@@ -291,15 +291,15 @@ class Neria extends Module
             'upcoming_events'  => $calendar->getUpcomingDates(),
 
             // Polices groupées par famille d'écriture (onglet typography)
-            'fonts_by_script'  => $fonts->getFontsByScript(),
-            'current_fonts'    => $fonts->getCurrentFonts(),
+            'fonts_by_script'  => $fonts->getAllScripts(),
+            'current_fonts'    => $config->getTypographyConfig(),
 
             // Styles de signature disponibles (onglet configure)
             'signature_styles' => SignatureGenerator::STYLES,
             'current_signature' => $config->getSignatureConfig(),
 
             // Diagnostic complet pour l'onglet Aide
-            'diagnostic'       => NeriaTools::getDiagnostic($this),
+            'diagnostic'       => NeriaTools::getDiagnosticReport($this),
         ]);
 
         // ── Réseaux sociaux ───────────────────────────────────────

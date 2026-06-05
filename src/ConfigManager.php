@@ -546,6 +546,42 @@ class ConfigManager
     }
 
     /**
+     * Retourne la configuration typographie courante (polices par script)
+     * Utilisé par neria.php → getContent() pour l'onglet typography
+     *
+     * @return array
+     */
+    public function getTypographyConfig(): array
+    {
+        return [
+            'latin'              => $this->get(self::KEY_FONT_LATIN),
+            'arabic'             => $this->get(self::KEY_FONT_ARABIC),
+            'japanese'           => $this->get(self::KEY_FONT_JAPANESE),
+            'korean'             => $this->get(self::KEY_FONT_KOREAN),
+            'chinese_simplified' => $this->get(self::KEY_FONT_ZH_SIMPLIFIED),
+            'chinese_traditional'=> $this->get(self::KEY_FONT_ZH_TRADITIONAL),
+            'cyrillic'           => $this->get(self::KEY_FONT_CYRILLIC),
+        ];
+    }
+
+    /**
+     * Retourne la configuration de la signature active
+     * Utilisé par neria.php → getContent() pour l'onglet configure
+     *
+     * @return array
+     */
+    public function getSignatureConfig(): array
+    {
+        return [
+            'style'        => $this->get('NERIA_SIGNATURE_STYLE', 'great_vibes'),
+            'founder_name' => $this->get('NERIA_SIGNATURE_NAME', ''),
+            'founder_title'=> $this->get('NERIA_SIGNATURE_TITLE', ''),
+            'color'        => $this->get(self::KEY_COLOR_ACCENT),
+            'enabled'      => (bool) $this->get('NERIA_SIGNATURE_ENABLED', 0),
+        ];
+    }
+
+    /**
      * Supprime toutes les clés de configuration du module
      * Appelé depuis neria.php → deleteConfiguration()
      *
