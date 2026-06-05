@@ -1,0 +1,700 @@
+<?php
+/**
+ * NERIA — SignatureGenerator
+ *
+ * Generateur de signatures manuscrites pour les emails.
+ * Cree une image PNG de signature a partir du nom du fondateur,
+ * avec un style calligraphique elegant adapte au positionnement luxe.
+ *
+ * Fonctionnement :
+ * 1. Charge une police TTF manuscrite selon le style choisi
+ * 2. Cree une image transparente avec GD
+ * 3. Rend le texte avec effets (ombre, inclinaison subtile)
+ * 4. Ajoute un paraphe decoratif sous la signature
+ * 5. Sauvegarde en PNG dans data/signatures/
+ *
+ * Polices incluses (libres de droits, licence OFL) :
+ * - Dancing Script  : elegante, cursive classique
+ * - Great Vibes     : raffinee, style haute couture
+ * - Sacramento      : fine et delicate
+ * - Pinyon Script   : majestueuse et formelle
+ * - Pacifico        : moderne et accessible
+ *
+ * Prerequis serveur : extension PHP GD (standard sur tous les hosts)
+ *
+ * @author  Neria
+ * @version 1.0.0
+ */
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
+class SignatureGenerator
+{
+    // ============================================================
+    // CONSTANTES
+    // ============================================================
+
+    /** Largeur de l'image generee en pixels */
+    const IMAGE_WIDTH  = 400;
+
+    /** Hauteur de l'image generee en pixels */
+    const IMAGE_HEIGHT = 120;
+
+    /** Taille de la police de signature en points */
+    const FONT_SIZE_SIGNATURE = 48;
+
+    /** Taille de la police du titre en points */
+    const FONT_SIZE_TITLE = 14;
+
+    /** Styles de signature disponibles */
+    const STYLES = [
+        'great_vibes'   => 'Great Vibes — Haute couture',
+        'dancing_script'=> 'Dancing Script — Classique elegant',
+        'sacramento'    => 'Sacramento — Fin et delicat',
+        'pinyon_script' => 'Pinyon Script — Majestueux',
+        'pacifico'      => 'Pacifico — Moderne',
+    ];
+
+    /** Dossier des polices TTF (relatif a la racine du module) */
+    const FONTS_DIR = 'data/fonts';
+
+    /** Dossier de sauvegarde des signatures */
+    const SIGNATURES_DIR = 'data/signatures';
+
+    // ============================================================
+    // PROPRIETES
+    // ============================================================
+
+    /** @var Neria Instance du module principal */
+    private Neria $module;
+
+    /** @var string Chemin absolu vers le dossier des polices */
+    private string $fontsPath;
+
+    /** @var string Chemin absolu vers le dossier des signatures */
+    private string $signaturesPath;
+
+    // ============================================================
+    // CONSTRUCTEUR
+    // ============================================================
+
+    public function __construct(Neria $module)
+    {
+        $this->module         = $module;
+        $this->fontsPath      = $module->getModulePath(self::FONTS_DIR);
+        $this->signaturesPath = $module->getModulePath(self::SIGNATURES_DIR);
+    }
+
+    // ============================================================
+    // GENERATION PRINCIPALE
+    // ============================================================
+
+    /**
+     * Genere une image de signature et la sauvegarde sur le disque
+     *
+     * @param string $name      Nom du signataire (ex: "Marie Dupont")
+     * @param string $title     Titre (ex: "Fondatrice & Directrice Artistique")
+     * @param string $style     Cle du style (ex: 'great_vibes')
+     * @param string $color     Couleur hexadecimale (ex: '#b38b59')
+     * @param int    $idShop    ID de la boutique
+     * @return string|false     Chemin relatif de l'image ou false si erreur
+     */
+    public function generate(
+        string $name,
+        string $title  = '',
+        string $style  = 'great_vibes',
+        string $color  = '#b38b59',
+        int    $idShop = 1
+    ) {
+        // Verifie que GD est disponible
+        if (!$this->isGdAvailable()) {
+            $this->module->log(
+                'SignatureGenerator: extension GD indisponible',
+                2
+            );
+            return false;
+        }
+
+        // Verifie que le nom n'est pas vide
+        $name = trim($name);
+        if (empty($name)) {
+            return false;
+        }
+
+        // Charge la police TTF
+        $fontPath = $this->getFontPath($style);
+        if (!$fontPath) {
+            $this->module->log(
+                "SignatureGenerator: police [{$style}] introuvable",
+                2
+            );
+            return false;
+        }
+
+        // Cree l'image
+        $image = $this->createImage($name, $title, $fontPath, $color);
+        if (!$image) {
+            return false;
+        }
+
+        // Sauvegarde
+        $filename = $this->buildFilename($idShop, $style);
+        $fullPath = $this->signaturesPath . '/' . $filename;
+
+        $this->ensureDirectoryExists($this->signaturesPath);
+
+        $saved = imagepng($image, $fullPath, 9);
+        imagedestroy($image);
+
+        if (!$saved) {
+            $this->module->log(
+                "SignatureGenerator: echec sauvegarde [{$fullPath}]",
+                3
+            );
+            return false;
+        }
+
+        $relativePath = self::SIGNATURES_DIR . '/' . $filename;
+
+        $this->module->log(
+            "SignatureGenerator: signature generee [{$relativePath}]",
+            1
+        );
+
+        return $relativePath;
+    }
+
+    // ============================================================
+    // CREATION DE L'IMAGE
+    // ============================================================
+
+    /**
+     * Cree l'image GD de la signature
+     *
+     * @param string $name     Nom du signataire
+     * @param string $title    Titre du signataire
+     * @param string $fontPath Chemin absolu vers la police TTF
+     * @param string $color    Couleur hexadecimale
+     * @return resource|\GdImage|false
+     */
+    private function createImage(
+        string $name,
+        string $title,
+        string $fontPath,
+        string $color
+    ) {
+        // Parse la couleur accent
+        $rgb = $this->hexToRgb($color);
+
+        // Calcule la taille reelle du texte pour adapter la largeur
+        $bbox    = imagettfbbox(self::FONT_SIZE_SIGNATURE, 0, $fontPath, $name);
+        $textW   = abs($bbox[4] - $bbox[0]) + 60; // marge laterale
+        $width   = max(self::IMAGE_WIDTH, $textW);
+        $height  = self::IMAGE_HEIGHT + (!empty($title) ? 30 : 0);
+
+        // Cree l'image avec fond transparent
+        $image = imagecreatetruecolor($width, $height);
+        imagealphablending($image, false);
+        imagesavealpha($image, true);
+
+        // Fond transparent
+        $transparent = imagecolorallocatealpha($image, 0, 0, 0, 127);
+        imagefill($image, 0, 0, $transparent);
+
+        imagealphablending($image, true);
+
+        // Couleur de la signature
+        $signColor = imagecolorallocate(
+            $image,
+            $rgb['r'],
+            $rgb['g'],
+            $rgb['b']
+        );
+
+        // Couleur de l'ombre (meme teinte, plus claire)
+        $shadowColor = imagecolorallocatealpha(
+            $image,
+            $rgb['r'],
+            $rgb['g'],
+            $rgb['b'],
+            90
+        );
+
+        // Position Y de la signature (centree verticalement)
+        $signatureY = (int) (self::IMAGE_HEIGHT * 0.70);
+
+        // Position X (centree)
+        $bboxFinal = imagettfbbox(self::FONT_SIZE_SIGNATURE, 0, $fontPath, $name);
+        $textWidth = abs($bboxFinal[4] - $bboxFinal[0]);
+        $signatureX = (int) (($width - $textWidth) / 2);
+
+        // Ombre portee (decalee de 2px)
+        imagettftext(
+            $image,
+            self::FONT_SIZE_SIGNATURE,
+            0,              // angle
+            $signatureX + 2,
+            $signatureY + 2,
+            $shadowColor,
+            $fontPath,
+            $name
+        );
+
+        // Texte principal de la signature
+        imagettftext(
+            $image,
+            self::FONT_SIZE_SIGNATURE,
+            0,
+            $signatureX,
+            $signatureY,
+            $signColor,
+            $fontPath,
+            $name
+        );
+
+        // Paraphe decoratif sous la signature
+        $this->drawParaphe($image, $signatureX, $signatureY, $textWidth, $signColor);
+
+        // Titre du signataire si fourni
+        if (!empty($title)) {
+            $this->drawTitle($image, $title, $width, $signatureY + 20, $signColor);
+        }
+
+        return $image;
+    }
+
+    /**
+     * Dessine le paraphe decoratif sous la signature
+     * Ligne courbe elegante inspiree des signatures de couturiers
+     *
+     * @param resource $image      Image GD
+     * @param int      $x          Position X de debut du nom
+     * @param int      $y          Position Y de la ligne de base
+     * @param int      $textWidth  Largeur du texte de signature
+     * @param int      $color      Couleur GD allouee
+     */
+    private function drawParaphe(
+        $image,
+        int $x,
+        int $y,
+        int $textWidth,
+        int $color
+    ): void {
+        $startX = $x - 10;
+        $endX   = $x + $textWidth + 20;
+        $lineY  = $y + 8;
+
+        // Ligne principale du paraphe
+        imagesetthickness($image, 1);
+        imageline($image, $startX, $lineY, $endX, $lineY, $color);
+
+        // Petit trait final vers le bas (flourish)
+        imageline(
+            $image,
+            $endX - 20,
+            $lineY,
+            $endX + 10,
+            $lineY + 8,
+            $color
+        );
+
+        // Petit trait de debut (flourish gauche)
+        imageline(
+            $image,
+            $startX,
+            $lineY,
+            $startX - 15,
+            $lineY - 6,
+            $color
+        );
+    }
+
+    /**
+     * Dessine le titre sous le paraphe avec une police plus petite
+     *
+     * @param resource $image   Image GD
+     * @param string   $title   Texte du titre
+     * @param int      $width   Largeur totale de l'image
+     * @param int      $y       Position Y de base
+     * @param int      $color   Couleur GD
+     */
+    private function drawTitle(
+        $image,
+        string $title,
+        int    $width,
+        int    $y,
+        int    $color
+    ): void {
+        // Police systeme pour le titre (plus lisible a petite taille)
+        // On utilise une fonte embarquee simple si disponible
+        $titleFontPath = $this->getSystemFontPath();
+
+        if ($titleFontPath) {
+            $bbox      = imagettfbbox(self::FONT_SIZE_TITLE, 0, $titleFontPath, $title);
+            $textWidth = abs($bbox[4] - $bbox[0]);
+            $titleX    = (int) (($width - $textWidth) / 2);
+            $titleY    = $y + 28;
+
+            // Couleur du titre : meme teinte mais plus claire (alpha)
+            $titleColor = imagecolorallocatealpha(
+                $image,
+                imagecolorat($image, 0, 0) >> 16 & 0xFF,
+                imagecolorat($image, 0, 0) >> 8  & 0xFF,
+                imagecolorat($image, 0, 0)        & 0xFF,
+                40
+            );
+
+            imagettftext(
+                $image,
+                self::FONT_SIZE_TITLE,
+                0,
+                $titleX,
+                $titleY,
+                $color,
+                $titleFontPath,
+                $title
+            );
+        } else {
+            // Fallback : fonte systeme integree GD (moins elegante)
+            $titleX = (int) (($width - strlen($title) * 6) / 2);
+            imagestring($image, 2, $titleX, $y + 20, $title, $color);
+        }
+    }
+
+    // ============================================================
+    // GESTION DES POLICES
+    // ============================================================
+
+    /**
+     * Retourne le chemin absolu de la police TTF pour un style donne
+     *
+     * @param string $style Cle du style
+     * @return string|null Chemin absolu ou null si introuvable
+     */
+    private function getFontPath(string $style): ?string
+    {
+        $fontFiles = [
+            'great_vibes'    => 'GreatVibes-Regular.ttf',
+            'dancing_script' => 'DancingScript-Regular.ttf',
+            'sacramento'     => 'Sacramento-Regular.ttf',
+            'pinyon_script'  => 'PinyonScript-Regular.ttf',
+            'pacifico'       => 'Pacifico-Regular.ttf',
+        ];
+
+        if (!isset($fontFiles[$style])) {
+            // Style inconnu : utilise great_vibes par defaut
+            $style = 'great_vibes';
+        }
+
+        $path = $this->fontsPath . '/' . $fontFiles[$style];
+
+        if (file_exists($path)) {
+            return $path;
+        }
+
+        // Essaie le premier style disponible comme fallback
+        foreach ($fontFiles as $key => $file) {
+            $fallback = $this->fontsPath . '/' . $file;
+            if (file_exists($fallback)) {
+                $this->module->log(
+                    "SignatureGenerator: [{$style}] introuvable, "
+                    . "fallback vers [{$key}]",
+                    2
+                );
+                return $fallback;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Retourne le chemin d'une police systeme pour les petits textes
+     * Cherche une fonte standard disponible sur le serveur
+     *
+     * @return string|null
+     */
+    private function getSystemFontPath(): ?string
+    {
+        $candidates = [
+            // Linux
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+            '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+            '/usr/share/fonts/truetype/freefont/FreeSans.ttf',
+            // macOS
+            '/Library/Fonts/Arial.ttf',
+            '/System/Library/Fonts/Helvetica.ttc',
+            // Windows
+            'C:/Windows/Fonts/arial.ttf',
+            'C:/Windows/Fonts/calibri.ttf',
+            // Module (fonte embarquee de secours)
+            $this->fontsPath . '/DancingScript-Regular.ttf',
+        ];
+
+        foreach ($candidates as $path) {
+            if (file_exists($path)) {
+                return $path;
+            }
+        }
+
+        return null;
+    }
+
+    // ============================================================
+    // APERCU BACK-OFFICE
+    // ============================================================
+
+    /**
+     * Genere une signature de preview pour le back-office
+     * Retourne le contenu base64 de l'image pour affichage inline
+     * sans sauvegarder sur le disque
+     *
+     * @param string $name  Nom du signataire
+     * @param string $title Titre
+     * @param string $style Style de police
+     * @param string $color Couleur hexadecimale
+     * @return string|false Data URI base64 ou false
+     */
+    public function generatePreview(
+        string $name,
+        string $title  = '',
+        string $style  = 'great_vibes',
+        string $color  = '#b38b59'
+    ) {
+        if (!$this->isGdAvailable()) {
+            return false;
+        }
+
+        $fontPath = $this->getFontPath($style);
+        if (!$fontPath) {
+            return false;
+        }
+
+        $image = $this->createImage($name, $title, $fontPath, $color);
+        if (!$image) {
+            return false;
+        }
+
+        // Capture en buffer memoire
+        ob_start();
+        imagepng($image, null, 9);
+        $imageData = ob_get_clean();
+        imagedestroy($image);
+
+        return 'data:image/png;base64,' . base64_encode($imageData);
+    }
+
+    // ============================================================
+    // GESTION DES SIGNATURES EXISTANTES
+    // ============================================================
+
+    /**
+     * Supprime l'image de signature d'une boutique
+     *
+     * @param int    $idShop ID boutique
+     * @param string $style  Style (pour construire le nom du fichier)
+     * @return bool
+     */
+    public function delete(int $idShop, string $style = ''): bool
+    {
+        if ($style) {
+            $path = $this->signaturesPath . '/' . $this->buildFilename($idShop, $style);
+            if (file_exists($path)) {
+                return unlink($path);
+            }
+            return true;
+        }
+
+        // Supprime toutes les signatures de cette boutique
+        $pattern = $this->signaturesPath . "/signature_{$idShop}_*.png";
+        foreach (glob($pattern) ?: [] as $file) {
+            unlink($file);
+        }
+
+        return true;
+    }
+
+    /**
+     * Retourne la liste des signatures existantes pour une boutique
+     *
+     * @param int $idShop ID boutique
+     * @return array [['style' => '...', 'path' => '...', 'url' => '...'], ...]
+     */
+    public function getExistingSignatures(int $idShop): array
+    {
+        $pattern    = $this->signaturesPath . "/signature_{$idShop}_*.png";
+        $signatures = [];
+
+        foreach (glob($pattern) ?: [] as $file) {
+            $filename  = basename($file);
+            $parts     = explode('_', str_replace('.png', '', $filename));
+            $style     = isset($parts[2]) ? $parts[2] : 'unknown';
+
+            $signatures[] = [
+                'style'    => $style,
+                'filename' => $filename,
+                'path'     => self::SIGNATURES_DIR . '/' . $filename,
+                'url'      => $this->module->getModuleUrl(
+                    self::SIGNATURES_DIR . '/' . $filename
+                ),
+                'size'     => filesize($file),
+                'modified' => date('Y-m-d H:i:s', filemtime($file)),
+            ];
+        }
+
+        return $signatures;
+    }
+
+    // ============================================================
+    // INSTALLATION DES POLICES
+    // ============================================================
+
+    /**
+     * Verifie si les polices TTF sont installees dans data/fonts/
+     * Affiche un avertissement dans le back-office si manquantes
+     *
+     * @return array ['installed' => [...], 'missing' => [...]]
+     */
+    public function checkFonts(): array
+    {
+        $fontFiles = [
+            'great_vibes'    => 'GreatVibes-Regular.ttf',
+            'dancing_script' => 'DancingScript-Regular.ttf',
+            'sacramento'     => 'Sacramento-Regular.ttf',
+            'pinyon_script'  => 'PinyonScript-Regular.ttf',
+            'pacifico'       => 'Pacifico-Regular.ttf',
+        ];
+
+        $installed = [];
+        $missing   = [];
+
+        foreach ($fontFiles as $style => $file) {
+            $path = $this->fontsPath . '/' . $file;
+            if (file_exists($path)) {
+                $installed[$style] = $file;
+            } else {
+                $missing[$style] = $file;
+            }
+        }
+
+        return [
+            'installed'    => $installed,
+            'missing'      => $missing,
+            'fonts_dir'    => $this->fontsPath,
+            'gd_available' => $this->isGdAvailable(),
+        ];
+    }
+
+    /**
+     * Retourne les URLs de telechargement des polices manquantes
+     * Affiche dans le back-office pour guider le marchand
+     *
+     * @return array ['style' => ['name' => '...', 'url' => '...'], ...]
+     */
+    public function getFontDownloadUrls(): array
+    {
+        return [
+            'great_vibes'    => [
+                'name' => 'Great Vibes',
+                'url'  => 'https://fonts.google.com/specimen/Great+Vibes',
+                'file' => 'GreatVibes-Regular.ttf',
+            ],
+            'dancing_script' => [
+                'name' => 'Dancing Script',
+                'url'  => 'https://fonts.google.com/specimen/Dancing+Script',
+                'file' => 'DancingScript-Regular.ttf',
+            ],
+            'sacramento'     => [
+                'name' => 'Sacramento',
+                'url'  => 'https://fonts.google.com/specimen/Sacramento',
+                'file' => 'Sacramento-Regular.ttf',
+            ],
+            'pinyon_script'  => [
+                'name' => 'Pinyon Script',
+                'url'  => 'https://fonts.google.com/specimen/Pinyon+Script',
+                'file' => 'PinyonScript-Regular.ttf',
+            ],
+            'pacifico'       => [
+                'name' => 'Pacifico',
+                'url'  => 'https://fonts.google.com/specimen/Pacifico',
+                'file' => 'Pacifico-Regular.ttf',
+            ],
+        ];
+    }
+
+    // ============================================================
+    // UTILITAIRES PRIVES
+    // ============================================================
+
+    /**
+     * Verifie que l'extension GD est disponible et fonctionnelle
+     *
+     * @return bool
+     */
+    private function isGdAvailable(): bool
+    {
+        return extension_loaded('gd')
+            && function_exists('imagecreatetruecolor')
+            && function_exists('imagettftext');
+    }
+
+    /**
+     * Convertit une couleur hexadecimale en composantes RGB
+     *
+     * @param string $hex Couleur hex (ex: '#b38b59' ou 'b38b59')
+     * @return array ['r' => int, 'g' => int, 'b' => int]
+     */
+    private function hexToRgb(string $hex): array
+    {
+        $hex = ltrim($hex, '#');
+
+        // Normalise le format court (#abc → #aabbcc)
+        if (strlen($hex) === 3) {
+            $hex = str_repeat($hex[0], 2)
+                 . str_repeat($hex[1], 2)
+                 . str_repeat($hex[2], 2);
+        }
+
+        return [
+            'r' => hexdec(substr($hex, 0, 2)),
+            'g' => hexdec(substr($hex, 2, 2)),
+            'b' => hexdec(substr($hex, 4, 2)),
+        ];
+    }
+
+    /**
+     * Construit le nom de fichier pour une signature
+     *
+     * @param int    $idShop ID boutique
+     * @param string $style  Style de police
+     * @return string Nom du fichier (ex: signature_1_great_vibes.png)
+     */
+    private function buildFilename(int $idShop, string $style): string
+    {
+        return sprintf(
+            'signature_%d_%s.png',
+            $idShop,
+            preg_replace('/[^a-z0-9_]/', '', strtolower($style))
+        );
+    }
+
+    /**
+     * Cree le dossier de destination s'il n'existe pas
+     *
+     * @param string $path Chemin absolu du dossier
+     */
+    private function ensureDirectoryExists(string $path): void
+    {
+        if (!is_dir($path)) {
+            mkdir($path, 0755, true);
+
+            // Securite : ajoute un index.php vide
+            $indexFile = $path . '/index.php';
+            if (!file_exists($indexFile)) {
+                file_put_contents($indexFile, '<?php' . PHP_EOL . 'header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");' . PHP_EOL . 'header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");' . PHP_EOL . 'header("Cache-Control: no-store, no-cache, must-revalidate");' . PHP_EOL . 'header("Cache-Control: post-check=0, pre-check=0", false);' . PHP_EOL . 'header("Pragma: no-cache");' . PHP_EOL . 'header("Location: ../");' . PHP_EOL . 'exit;');
+            }
+        }
+    }
+}

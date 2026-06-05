@@ -1,0 +1,27 @@
+{extends file='layouts/layout.html'}
+{block name='sydia_content'}
+
+<!-- TITRE PRINCIPAL -->
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+
+<!-- SALUTATION & INTRO -->
+<p class="sydia-text">{sydia_trad key='dear_customer'},</p>
+<p class="sydia-text">{sydia_trad key='review_intro'}</p>
+<p class="sydia-text">{sydia_trad key='review_message'}</p>
+
+<!-- BOUTON D'AVIS -->
+<div style="text-align:center;margin-top:24px;">
+  <a href="{review_url}" class="sydia-btn">{sydia_trad key='review_btn'}</a>
+</div>
+
+<!-- NOTE DE FIN -->
+<p class="sydia-text-note" style="margin-top:20px;">{sydia_trad key='review_note'}</p>
+
+<!-- SIGNATURE -->
+<div class="sydia-signature">
+  {sydia_trad key='signature_thanks'}<br />
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

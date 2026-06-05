@@ -1,0 +1,29 @@
+{extends file='layouts/layout.html'}
+{block name='sydia_content'}
+
+<!-- TITRE PRINCIPAL -->
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+
+<!-- INTRO -->
+<p class="sydia-text">{sydia_trad key='newsletter_conf_intro'}</p>
+
+<!-- BOX CONFIRMATION -->
+<div class="sydia-section-title">{sydia_trad key='newsletter_conf_title'}</div>
+<div class="sydia-info-box">
+  <p>{sydia_trad key='newsletter_conf_text'}</p>
+  <p style="margin-top:8px;">{sydia_trad key='newsletter_conf_promise'}</p>
+</div>
+
+<!-- ACTIONS / CONFIGURATION -->
+<p class="sydia-text" style="margin-top:22px;">{sydia_trad key='newsletter_conf_manage'}</p>
+<p class="sydia-text">
+  <a href="{shop_url}" style="font-weight:600;">{sydia_trad key='newsletter_conf_btn'}</a>
+</p>
+
+<!-- SIGNATURE -->
+<div class="sydia-signature">
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

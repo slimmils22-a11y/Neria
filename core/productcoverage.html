@@ -1,0 +1,13 @@
+{extends file='../layout.html'}
+{block name='sydia_content'}
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+<p class="sydia-text">{sydia_trad key='productcoverage_intro'}</p>
+<div class="sydia-section-title">{sydia_trad key='productcoverage_status'}</div>
+<div class="sydia-info-box">
+  <p><strong>{sydia_trad key='productcoverage_min'} :</strong> {warning_coverage}</p>
+  <p style="margin-top:8px;"><strong>{sydia_trad key='productcoverage_current'} :</strong> {current_coverage}</p>
+</div>
+<p class="sydia-text-note" style="margin-top:20px;">{sydia_trad key='productcoverage_admin_note'}</p>
+<div class="sydia-signature"><strong>{shop_name}</strong></div>
+{/block}

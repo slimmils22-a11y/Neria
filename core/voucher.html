@@ -1,0 +1,16 @@
+{extends file='../layout.html'}
+{block name='sydia_content'}
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+<p class="sydia-text">{sydia_trad key='dear_customer'},</p>
+<p class="sydia-text">{sydia_trad key='voucher_intro'}</p>
+<div class="sydia-section-title">{sydia_trad key='order_details_title'} {order_name}</div>
+<div class="sydia-info-box">
+  <p>{sydia_trad key='voucher_for_order'} <strong>{order_name}</strong>.</p>
+</div>
+<div style="text-align:center;font-size:22px;font-weight:700;color:{sydiaAccentColor};padding:20px;margin:20px 0;border:2px dashed #e3d7c7;background:#fefefe;letter-spacing:0.06em;">{voucher_num}</div>
+<p class="sydia-text" style="text-align:center;"><strong>{sydia_trad key='voucher_amount_label'} :</strong> {voucher_amount}</p>
+<p class="sydia-text" style="margin-top:20px;">{sydia_trad key='voucher_usage'}</p>
+<p class="sydia-text-note" style="margin-top:20px;">{sydia_trad key='voucher_next'}</p>
+<div class="sydia-signature">{sydia_trad key='signature_thanks'}<br /><strong>{shop_name}</strong></div>
+{/block}

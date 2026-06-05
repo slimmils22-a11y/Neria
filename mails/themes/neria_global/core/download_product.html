@@ -1,0 +1,32 @@
+{extends file='layouts/layout.html'}
+
+{block name='sydia_content'}
+
+<!-- TITRE PRINCIPAL -->
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+
+<!-- SALUTATION -->
+<p class="sydia-text">{sydia_trad key='dear_customer'},</p>
+
+<!-- INTRO -->
+<p class="sydia-text">{sydia_trad key='download_intro'}</p>
+
+<!-- BOX TÉLÉCHARGEMENT -->
+<div class="sydia-section-title">{sydia_trad key='order_details_title'} {order_name} — {sydia_trad key='download_title'}</div>
+<div class="sydia-info-box">
+  <p>{sydia_trad key='download_available'} <strong>{nbProducts}</strong> {sydia_trad key='download_items'}.</p>
+  <div style="margin-top:14px;">{virtualProducts}</div>
+</div>
+
+<!-- LIENS -->
+<p class="sydia-text" style="margin-top:24px;">{sydia_trad key='history_info'}</p>
+<p class="sydia-text">{sydia_trad key='guest_tracking_info'}</p>
+
+<!-- SIGNATURE -->
+<div class="sydia-signature">
+  {sydia_trad key='signature_thanks'}<br />
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

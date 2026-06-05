@@ -1,0 +1,34 @@
+{extends file='../layout.html'}
+
+{block name='sydia_content'}
+
+<!-- TITRE PRINCIPAL -->
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+
+<!-- SALUTATION -->
+<p class="sydia-text">{sydia_trad key='dear_customer'},</p>
+
+<!-- INTRO -->
+<p class="sydia-text">{sydia_trad key='outofstock_intro'}</p>
+
+<!-- BOX RÉFÉRENCE -->
+<div class="sydia-section-title">{sydia_trad key='order_details_title'} {order_name}</div>
+<div class="sydia-info-box">
+  <p>{sydia_trad key='outofstock_info'}</p>
+  <p style="margin-top:8px;">{sydia_trad key='outofstock_apologies'}</p>
+</div>
+
+<!-- LIENS -->
+<p class="sydia-text" style="margin-top:24px;">{sydia_trad key='history_info'}</p>
+<p class="sydia-text">{sydia_trad key='guest_tracking_info'}</p>
+
+<!-- NOTE -->
+<p class="sydia-text-note" style="margin-top:20px;">{sydia_trad key='outofstock_thanks'}</p>
+
+<!-- SIGNATURE -->
+<div class="sydia-signature">
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

@@ -1,0 +1,18 @@
+{extends file='layouts/layout.html'}
+{block name='sydia_content'}
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+<p class="sydia-text">{sydia_trad key='dear_customer'},</p>
+<p class="sydia-text">{sydia_trad key='abandoned_cart_3_intro'}</p>
+
+<div class="sydia-info-box" style="margin-top:20px;">
+  {products}
+</div>
+
+<div style="text-align:center;margin-top:24px;">
+  <a href="{cart_url}" class="sydia-btn">{sydia_trad key='abandoned_cart_3_btn'}</a>
+</div>
+
+<p class="sydia-text-note" style="margin-top:20px;">{sydia_trad key='abandoned_cart_3_note'}</p>
+<div class="sydia-signature"><strong>{shop_name}</strong></div>
+{/block}

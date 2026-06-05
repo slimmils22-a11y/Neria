@@ -1,0 +1,17 @@
+{shop_name}
+
+{sydia_trad key='dear_customer'},
+
+{sydia_trad key='outofstock_intro'}
+
+{sydia_trad key='order_details_title'} {order_name}
+{sydia_trad key='outofstock_info'}
+{sydia_trad key='outofstock_apologies'}
+
+{sydia_trad key='history_info'} : {history_url}
+{sydia_trad key='guest_tracking_info'} : {guest_tracking_url}
+
+{sydia_trad key='outofstock_thanks'}
+
+{shop_name}
+{shop_url}

@@ -1,0 +1,12 @@
+{shop_name}
+{sydia_trad key='dear_customer'},
+{sydia_trad key='gift_intro'}
+{sydia_trad key='gift_details_title'}
+{sydia_trad key='gift_detail_1'}
+{sydia_trad key='gift_detail_2'}
+{sydia_trad key='gift_detail_3'}
+{sydia_trad key='gift_detail_4'}
+{sydia_trad key='gift_message'}
+{sydia_trad key='gift_btn'} : {order_url}
+{sydia_trad key='gift_note'}
+{shop_name} - {shop_url}

@@ -1,0 +1,11 @@
+{shop_name}
+{sydia_trad key='dear_customer'},
+{sydia_trad key='care_intro'}
+{sydia_trad key='care_message'}
+{sydia_trad key='care_tips_title'}
+{sydia_trad key='care_tip_1'}
+{sydia_trad key='care_tip_2'}
+{sydia_trad key='care_tip_3'}
+{sydia_trad key='care_note'}
+{sydia_trad key='signature_thanks'}
+{shop_name} - {shop_url}

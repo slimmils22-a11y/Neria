@@ -1,0 +1,30 @@
+{extends file='layouts/layout.html'}
+{block name='sydia_content'}
+
+<!-- TITRE PRINCIPAL -->
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+
+<!-- SALUTATION -->
+<p class="sydia-text">{sydia_trad key='dear_customer'},</p>
+
+<!-- INTRO -->
+<p class="sydia-text">{sydia_trad key='backoffice_order_intro'}</p>
+
+<!-- BOX PAIEMENT -->
+<div class="sydia-section-title">{sydia_trad key='backoffice_order_payment_title'}</div>
+<div class="sydia-info-box">
+  <p>{sydia_trad key='backoffice_order_payment_text'}</p>
+</div>
+
+<!-- BOUTON PAIEMENT -->
+<div style="text-align:center;margin-top:24px;">
+  <a href="{order_link}" class="sydia-btn">{sydia_trad key='backoffice_order_btn'}</a>
+</div>
+
+<!-- SIGNATURE -->
+<div class="sydia-signature">
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

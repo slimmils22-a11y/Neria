@@ -1,0 +1,12 @@
+{shop_name}
+{sydia_trad key='dear_customer'},
+{sydia_trad key='apology_intro'}
+{sydia_trad key='apology_details_title'}
+{sydia_trad key='order_reference_label'} : {order_name}
+{apology_reason}
+{sydia_trad key='apology_responsibility'}
+{sydia_trad key='apology_solution'}
+{sydia_trad key='apology_btn'} : {contact_url}
+{sydia_trad key='apology_note'}
+{sydia_trad key='apology_signature'}
+{shop_name} - {shop_url}

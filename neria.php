@@ -1,0 +1,559 @@
+<?php
+/**
+ * NERIA — Luxury Email Suite
+ *
+ * Module PrestaShop — Emails transactionnels & marketing haut de gamme
+ * 18 langues · Adaptation culturelle · Typographie premium
+ * Compatible PrestaShop 8.0.0 → 9.x
+ *
+ * @author    Neria
+ * @version   1.0.0
+ * @license   AFL (Academic Free License)
+ */
+
+// Sécurité : interdire l'accès direct au fichier PHP
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
+// ============================================================
+// AUTOLOAD : charge automatiquement toutes les classes src/
+// ============================================================
+spl_autoload_register(function (string $class): void {
+    $file = __DIR__ . '/src/' . $class . '.php';
+    if (file_exists($file)) {
+        require_once $file;
+    }
+});
+
+/**
+ * Classe principale du module Neria
+ * Gère l'installation, la désinstallation et les hooks PrestaShop
+ */
+class Neria extends Module
+{
+    // ============================================================
+    // CONSTANTES DU MODULE
+    // ============================================================
+
+    /** Version courante du module */
+    const VERSION = '1.0.0';
+
+    /** Préfixe de toutes les clés Configuration::get() du module */
+    const CONFIG_PREFIX = 'NERIA_';
+
+    /** Langues supportées par le module */
+    const SUPPORTED_LANGS = [
+        'fr', 'en', 'de', 'it', 'es', 'pt', 'br',
+        'ar', 'ja', 'ko', 'zh', 'tw',
+        'ru', 'tr', 'sv', 'no', 'da', 'nl',
+    ];
+
+    /** Langues RTL (right-to-left) */
+    const RTL_LANGS = ['ar'];
+
+    // ============================================================
+    // CONSTRUCTEUR
+    // ============================================================
+
+    public function __construct()
+    {
+        $this->name          = 'neria';
+        $this->tab           = 'emailing';
+        $this->version       = self::VERSION;
+        $this->author        = 'Neria';
+        $this->need_instance = 1;
+        $this->bootstrap     = true;
+
+        // Compatibilité PrestaShop déclarée
+        $this->ps_versions_compliancy = [
+            'min' => '8.0.0',
+            'max' => '9.99.99',
+        ];
+
+        // Appel obligatoire AVANT d'accéder à $this->l()
+        parent::__construct();
+
+        $this->displayName = $this->l('Neria – Luxury Email Suite');
+        $this->description = $this->l(
+            'Emails transactionnels et marketing haut de gamme. ' .
+            '18 langues avec adaptation culturelle réelle, ' .
+            'typographie par écriture et design luxe.'
+        );
+
+        // Message affiché si la version PS n'est pas compatible
+        $this->confirmUninstall = $this->l(
+            'Attention : désinstaller Neria supprimera toutes vos ' .
+            'traductions personnalisées et vos statistiques. ' .
+            'Êtes-vous certain de vouloir continuer ?'
+        );
+    }
+
+    // ============================================================
+    // INSTALLATION
+    // ============================================================
+
+    /**
+     * Installe le module :
+     * 1. Appel du parent (enregistrement en base)
+     * 2. Création des tables SQL
+     * 3. Enregistrement des hooks
+     * 4. Création de l'onglet back-office
+     * 5. Import du dictionnaire translations.json
+     */
+    public function install(): bool
+    {
+        return parent::install()
+            && $this->executeSqlFile('install.sql')
+            && $this->registerHooks()
+            && $this->installTab()
+            && $this->importTranslations()
+            && $this->setDefaultConfiguration();
+    }
+
+    // ============================================================
+    // DÉSINSTALLATION
+    // ============================================================
+
+    /**
+     * Désinstalle le module :
+     * 1. Suppression des tables SQL
+     * 2. Suppression de l'onglet back-office
+     * 3. Nettoyage des clés Configuration
+     * 4. Appel du parent
+     */
+    public function uninstall(): bool
+    {
+        return $this->executeSqlFile('uninstall.sql')
+            && $this->uninstallTab()
+            && $this->deleteConfiguration()
+            && parent::uninstall();
+    }
+
+    // ============================================================
+    // ENREGISTREMENT DES HOOKS
+    // ============================================================
+
+    /**
+     * Enregistre tous les hooks nécessaires au fonctionnement du module
+     * Délégation à HooksManager pour la logique métier
+     */
+    private function registerHooks(): bool
+    {
+        $hooks = [
+            // ── Emails ────────────────────────────────────────────
+            // Hook principal : intercepte TOUS les envois email PS
+            // Permet d'injecter les traductions Neria et le tracking
+            'actionEmailSendBefore',
+
+            // ── Back-office ───────────────────────────────────────
+            // Charge CSS/JS Neria dans le header du back-office
+            'displayBackOfficeHeader',
+
+            // ── Tracking stats ────────────────────────────────────
+            // Enregistre l'envoi dans neria_stat
+            'actionEmailSendAfter',
+
+            // ── Occasions calendaires ─────────────────────────────
+            // Vérifie chaque jour les occasions à envoyer (cron-like)
+            'actionCronJob',
+
+            // ── Support multi-boutique ────────────────────────────
+            'displayHeader',
+        ];
+
+        foreach ($hooks as $hook) {
+            // registerHook() retourne false si le hook est invalide
+            // On ignore les hooks non-existants (compatibilité versions)
+            $this->registerHook($hook);
+        }
+
+        return true;
+    }
+
+    // ============================================================
+    // HOOKS — DÉLÉGATION AUX MANAGERS
+    // ============================================================
+
+    /**
+     * Hook principal : intercepte l'envoi d'emails PrestaShop
+     * Remplace les textes natifs par les traductions Neria
+     * Injecte le pixel de tracking et les variables personnalisées
+     *
+     * @param array $params Paramètres passés par PrestaShop :
+     *   - $params['template']   : nom du template (ex: order_conf)
+     *   - $params['subject']    : sujet de l'email
+     *   - $params['to']         : adresse destinataire
+     *   - $params['toName']     : nom destinataire
+     *   - $params['templateVars'] : variables Smarty du template
+     *   - $params['idLang']     : id de langue PrestaShop
+     */
+    public function hookActionEmailSendBefore(array $params): void
+    {
+        // Délégation à EmailRenderer
+        // (implémenté à l'étape 6 — EmailRenderer.php)
+        if (class_exists('EmailRenderer')) {
+            $renderer = new EmailRenderer($this);
+            $renderer->processEmailParams($params);
+        }
+    }
+
+    /**
+     * Hook post-envoi : enregistre la stat d'envoi
+     *
+     * @param array $params Mêmes paramètres que actionEmailSendBefore
+     */
+    public function hookActionEmailSendAfter(array $params): void
+    {
+        if (class_exists('StatsManager')) {
+            $stats = new StatsManager($this);
+            $stats->recordSent($params);
+        }
+    }
+
+    /**
+     * Hook back-office : injecte CSS et JS Neria dans le header admin
+     */
+    public function hookDisplayBackOfficeHeader(): void
+    {
+        // Vérifie qu'on est bien sur la page de configuration Neria
+        if (Tools::getValue('configure') === $this->name) {
+            $this->context->controller->addCSS(
+                $this->_path . 'views/css/neria-admin.css'
+            );
+            $this->context->controller->addJS(
+                $this->_path . 'views/js/neria-admin.js'
+            );
+        }
+    }
+
+    /**
+     * Hook cron-like : vérifie les occasions calendaires du jour
+     * Déclenché par l'action displayHeader (toutes les 24h via cache)
+     */
+    public function hookDisplayHeader(): void
+    {
+        if (class_exists('CalendarManager')) {
+            $calendar = new CalendarManager($this);
+            $calendar->checkAndSendDailyEvents();
+        }
+    }
+
+    // ============================================================
+    // PANNEAU DE CONFIGURATION BACK-OFFICE
+    // ============================================================
+
+    /**
+     * Point d'entrée du panneau de configuration
+     * PrestaShop appelle cette méthode quand le marchand
+     * clique sur "Configurer" dans la liste des modules
+     */
+    public function getContent(): string
+    {
+        // Détermine l'onglet actif (par défaut : configure)
+        $activeTab = Tools::getValue('neria_tab', 'configure');
+
+        // Injecte les variables communes dans Smarty
+        $this->context->smarty->assign([
+            'neria_version'    => self::VERSION,
+            'neria_module_dir' => $this->_path,
+            'neria_active_tab' => $activeTab,
+            'neria_tabs'       => $this->getBackOfficeTabs(),
+        ]);
+
+        // ── Réseaux sociaux ───────────────────────────────────────
+        // Assigné ici pour être disponible avant renderTab('social')
+        // Compatible Smarty 2 et 3 (pas de tableau inline dans le .tpl)
+        $this->context->smarty->assign('social_networks', [
+            'instagram' => [
+                'icon'        => '◉',
+                'label'       => $this->l('Instagram'),
+                'placeholder' => 'https://instagram.com/votre_compte',
+            ],
+            'pinterest' => [
+                'icon'        => '⊕',
+                'label'       => $this->l('Pinterest'),
+                'placeholder' => 'https://pinterest.com/votre_compte',
+            ],
+            'facebook' => [
+                'icon'        => '◈',
+                'label'       => $this->l('Facebook'),
+                'placeholder' => 'https://facebook.com/votre_page',
+            ],
+            'twitter' => [
+                'icon'        => '◇',
+                'label'       => $this->l('X (Twitter)'),
+                'placeholder' => 'https://x.com/votre_compte',
+            ],
+            'youtube' => [
+                'icon'        => '▷',
+                'label'       => $this->l('YouTube'),
+                'placeholder' => 'https://youtube.com/@votre_chaine',
+            ],
+            'tiktok' => [
+                'icon'        => '◎',
+                'label'       => $this->l('TikTok'),
+                'placeholder' => 'https://tiktok.com/@votre_compte',
+            ],
+        ]);
+
+        // Affiche la navigation + l'onglet actif
+        $navigation = $this->renderTemplate('navigation.tpl');
+        $content    = $this->renderTab($activeTab);
+
+        return $navigation . $content;
+    }
+
+    /**
+     * Retourne la liste des onglets du back-office
+     * Utilisé par navigation.tpl pour construire le menu
+     */
+    private function getBackOfficeTabs(): array
+    {
+        return [
+            'configure'    => $this->l('Accueil'),
+            'design'       => $this->l('Design'),
+            'typography'   => $this->l('Typographie'),
+            'translations' => $this->l('Traductions'),
+            'social'       => $this->l('Réseaux sociaux'),
+            'stats'        => $this->l('Statistiques'),
+            'abtest'       => $this->l('A/B Testing'),
+            'help'         => $this->l('Aide'),
+        ];
+    }
+
+    /**
+     * Charge et retourne le contenu d'un onglet back-office
+     *
+     * @param string $tab Nom de l'onglet
+     */
+    private function renderTab(string $tab): string
+    {
+        $allowedTabs = array_keys($this->getBackOfficeTabs());
+
+        // Sécurité : vérifie que l'onglet demandé est valide
+        if (!in_array($tab, $allowedTabs, true)) {
+            $tab = 'configure';
+        }
+
+        return $this->renderTemplate($tab . '.tpl');
+    }
+
+    /**
+     * Charge un template Smarty depuis views/templates/admin/
+     *
+     * @param string $template Nom du fichier .tpl
+     */
+    private function renderTemplate(string $template): string
+    {
+        $templatePath = 'module:neria/views/templates/admin/' . $template;
+
+        return $this->context->smarty->fetch($templatePath);
+    }
+
+    // ============================================================
+    // ONGLET BACK-OFFICE (menu latéral PrestaShop)
+    // ============================================================
+
+    /**
+     * Crée l'entrée "Neria" dans le menu latéral du back-office
+     * Apparaît sous l'onglet "Modules"
+     */
+    private function installTab(): bool
+    {
+        $tab             = new Tab();
+        $tab->active     = 1;
+        $tab->class_name = 'AdminNeria';
+        $tab->name       = [];
+        $tab->module     = $this->name;
+        $tab->id_parent  = (int) Tab::getIdFromClassName('AdminParentModules');
+
+        foreach (Language::getLanguages(true) as $lang) {
+            $tab->name[$lang['id_lang']] = 'Neria';
+        }
+
+        return (bool) $tab->add();
+    }
+
+    /**
+     * Supprime l'entrée "Neria" du menu latéral du back-office
+     */
+    private function uninstallTab(): bool
+    {
+        $idTab = (int) Tab::getIdFromClassName('AdminNeria');
+
+        if ($idTab) {
+            $tab = new Tab($idTab);
+            return (bool) $tab->delete();
+        }
+
+        return true;
+    }
+
+    // ============================================================
+    // SQL
+    // ============================================================
+
+    /**
+     * Exécute un fichier SQL depuis le dossier sql/
+     * Remplace PREFIX_ par le vrai préfixe de la BDD
+     *
+     * @param string $filename Nom du fichier (ex: install.sql)
+     */
+    private function executeSqlFile(string $filename): bool
+    {
+        $filePath = __DIR__ . '/sql/' . $filename;
+
+        if (!file_exists($filePath)) {
+            $this->_errors[] = sprintf(
+                $this->l('Fichier SQL introuvable : %s'),
+                $filename
+            );
+            return false;
+        }
+
+        $sql = file_get_contents($filePath);
+
+        // Remplace PREFIX_ par le vrai préfixe (ex: ps_)
+        $sql = str_replace('PREFIX_', _DB_PREFIX_, $sql);
+
+        // Supprime les commentaires SQL et découpe en requêtes
+        $sql = preg_replace('/--[^\n]*\n/', "\n", $sql);
+        $queries = array_filter(
+            array_map('trim', explode(';', $sql)),
+            fn(string $q): bool => !empty($q)
+        );
+
+        foreach ($queries as $query) {
+            if (!Db::getInstance()->execute($query)) {
+                $this->_errors[] = sprintf(
+                    $this->l('Erreur SQL dans %s : %s'),
+                    $filename,
+                    Db::getInstance()->getMsgError()
+                );
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // ============================================================
+    // IMPORT DES TRADUCTIONS
+    // ============================================================
+
+    /**
+     * Importe translations.json en base de données
+     * Délégué à TranslationInstaller pour le bulk insert optimisé
+     */
+    private function importTranslations(): bool
+    {
+        if (!class_exists('TranslationInstaller')) {
+            $this->_errors[] = $this->l('TranslationInstaller introuvable.');
+            return false;
+        }
+
+        $installer = new TranslationInstaller($this);
+        return $installer->importFromJson(
+            __DIR__ . '/data/translations.json'
+        );
+    }
+
+    // ============================================================
+    // CONFIGURATION PAR DÉFAUT
+    // ============================================================
+
+    /**
+     * Définit les valeurs de configuration par défaut
+     * Ces valeurs sont également insérées dans install.sql
+     * mais Configuration::get() est aussi utilisé dans le code
+     */
+    private function setDefaultConfiguration(): bool
+    {
+        $defaults = [
+            self::CONFIG_PREFIX . 'ACTIVE'           => 1,
+            self::CONFIG_PREFIX . 'COLOR_ACCENT'     => '#b38b59',
+            self::CONFIG_PREFIX . 'COLOR_BACKGROUND' => '#f4f1eb',
+            self::CONFIG_PREFIX . 'DARK_MODE'        => 0,
+            self::CONFIG_PREFIX . 'CONTAINER_WIDTH'  => 620,
+            self::CONFIG_PREFIX . 'STATS_ENABLED'    => 1,
+            self::CONFIG_PREFIX . 'ABTEST_ENABLED'   => 0,
+            self::CONFIG_PREFIX . 'INSTALLED_AT'     => date('Y-m-d H:i:s'),
+        ];
+
+        foreach ($defaults as $key => $value) {
+            if (!Configuration::updateValue($key, $value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Supprime toutes les clés Configuration du module
+     * Appelé lors de la désinstallation
+     */
+    private function deleteConfiguration(): bool
+    {
+        $keys = [
+            self::CONFIG_PREFIX . 'ACTIVE',
+            self::CONFIG_PREFIX . 'COLOR_ACCENT',
+            self::CONFIG_PREFIX . 'COLOR_BACKGROUND',
+            self::CONFIG_PREFIX . 'DARK_MODE',
+            self::CONFIG_PREFIX . 'CONTAINER_WIDTH',
+            self::CONFIG_PREFIX . 'STATS_ENABLED',
+            self::CONFIG_PREFIX . 'ABTEST_ENABLED',
+            self::CONFIG_PREFIX . 'INSTALLED_AT',
+        ];
+
+        foreach ($keys as $key) {
+            Configuration::deleteByName($key);
+        }
+
+        return true;
+    }
+
+    // ============================================================
+    // UTILITAIRES PUBLICS
+    // Utilisés par les classes src/ qui reçoivent $this (le module)
+    // ============================================================
+
+    /**
+     * Retourne le chemin absolu vers un fichier du module
+     *
+     * @param string $relativePath Chemin relatif depuis la racine du module
+     */
+    public function getModulePath(string $relativePath = ''): string
+    {
+        return __DIR__ . ($relativePath ? '/' . ltrim($relativePath, '/') : '');
+    }
+
+    /**
+     * Retourne l'URL publique vers un fichier du module
+     *
+     * @param string $relativePath Chemin relatif depuis la racine du module
+     */
+    public function getModuleUrl(string $relativePath = ''): string
+    {
+        return $this->_path . ($relativePath ? ltrim($relativePath, '/') : '');
+    }
+
+    /**
+     * Log une erreur dans le système de logs PrestaShop
+     *
+     * @param string $message  Message d'erreur
+     * @param int    $severity Niveau : 1=info, 2=warn, 3=error, 4=critical
+     */
+    public function log(string $message, int $severity = 1): void
+    {
+        PrestaShopLogger::addLog(
+            '[Neria] ' . $message,
+            $severity,
+            null,
+            'Neria',
+            0,
+            true
+        );
+    }
+}

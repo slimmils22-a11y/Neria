@@ -1,0 +1,24 @@
+/**
+ * Neria – Styles additionnels pour clients email
+ *
+ * Ce fichier est chargé en complément des styles inline du layout.html.
+ * Il permet d'ajuster certains rendus spécifiques sans alourdir le layout.
+ */
+
+/* Ajustements pour certains clients email */
+.neria-products-table img {
+    max-width: 60px;
+    height: auto;
+}
+
+/* Lien dans le footer */
+.neria-footer a:hover {
+    color: {neriaAccentColor};
+}
+
+/* Correction Outlook */
+<!--[if mso]>
+.neria-btn {
+    padding: 14px 36px !important;
+}
+<![endif]-->

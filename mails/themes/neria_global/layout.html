@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" dir="{neria_dir}">
+<head>
+  <title>{shop_name} – {subject}</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!--[if !mso]><!-->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <!--<![endif]-->
+
+  <style type="text/css">
+    /* RESET */
+    body {
+      margin: 0;
+      padding: 0;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+      background-color: {neriaBgColor};
+    }
+    table {
+      border-collapse: collapse;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+    img {
+      border: 0;
+      height: auto;
+      line-height: 100%;
+      outline: none;
+      text-decoration: none;
+      -ms-interpolation-mode: bicubic;
+    }
+    a {
+      color: {neriaAccentColor};
+      text-decoration: none;
+    }
+
+    /* TYPOGRAPHIE PAR DÉFAUT (sera surchargée par langue) */
+    body, table, td, p, a, li, blockquote {
+      font-family: {neriaFont};
+    }
+
+    /* STRUCTURE */
+    .neria-wrapper {
+      width: 100%;
+      background-color: {neriaBgColor};
+      padding: 32px 0;
+    }
+    .neria-container {
+      width: 100%;
+      max-width: {neriaMaxWidth}px;
+      margin: 0 auto;
+      background-color: {neriaContainerBg};
+      border-radius: 4px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+    }
+    .neria-inner {
+      padding: 32px 40px;
+    }
+
+    /* TITRES */
+    .neria-title-main {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-align: center;
+      line-height: 1.6;
+      color: #2b2520;
+      margin: 0 0 8px 0;
+    }
+    .neria-title-sub {
+      font-size: 15px;
+      text-align: center;
+      line-height: 1.7;
+      color: #5c554e;
+      margin: 0 0 28px 0;
+    }
+    .neria-section-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-bottom: 1px solid #e3d7c7;
+      padding-bottom: 8px;
+      margin: 28px 0 14px 0;
+      color: #2b2520;
+    }
+
+    /* BOXES */
+    .neria-info-box {
+      background-color: #fefefe;
+      border: 1px solid #e8e0d5;
+      padding: 20px 24px;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+    .neria-address-box {
+      background-color: #fefefe;
+      border: 1px solid #e8e0d5;
+      padding: 20px 24px;
+      font-size: 14px;
+      line-height: 1.7;
+      margin-top: 8px;
+    }
+
+    /* TEXTE */
+    .neria-text {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #3a3530;
+    }
+    .neria-text-note {
+      font-size: 13px;
+      line-height: 1.7;
+      color: #88837c;
+    }
+
+    /* BOUTON */
+    .neria-btn {
+      display: inline-block;
+      padding: 14px 36px;
+      background-color: #2b2520;
+      color: #ffffff !important;
+      text-decoration: none;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 2px;
+      font-weight: 600;
+    }
+
+    /* TABLEAU PRODUITS */
+    .neria-products-table {
+      width: 100%;
+      font-size: 13px;
+      line-height: 1.6;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    .neria-products-table th {
+      font-weight: 600;
+      padding: 12px 8px;
+      border-bottom: 1px solid #e3d7c7;
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8c857e;
+    }
+    .neria-products-table td {
+      padding: 12px 8px;
+      border-bottom: 1px solid #f0e7db;
+      vertical-align: top;
+    }
+    .neria-products-table .summary td {
+      font-weight: 600;
+      border-bottom: none;
+      padding: 6px 8px;
+    }
+    .neria-products-table .grand-total td {
+      font-weight: 600;
+      font-size: 16px;
+      border-top: 1px solid #e3d7c7;
+      padding-top: 14px;
+    }
+
+    /* SIGNATURE */
+    .neria-signature {
+      margin-top: 36px;
+      font-size: 14px;
+      line-height: 1.8;
+      text-align: left;
+      color: #2b2520;
+    }
+    .neria-brand-line {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: {neriaAccentColor};
+      margin-top: 4px;
+    }
+
+    /* HEADER / FOOTER */
+    .neria-header {
+      text-align: center;
+      padding: 30px 20px 10px 20px;
+      border-bottom: 1px solid #f0e7db;
+    }
+    .neria-footer {
+      text-align: center;
+      padding: 24px 20px;
+      font-size: 12px;
+      color: #a09990;
+      line-height: 1.8;
+    }
+    .neria-footer a {
+      color: #a09990;
+      text-decoration: underline;
+    }
+
+    /* BORDURE DÉCORATIVE */
+    .neria-rule {
+      border: 0;
+      height: 1px;
+      background-color: #e3d7c7;
+      margin: 20px 40px;
+    }
+
+    /* DARK MODE – VERROUILLAGE */
+    @media (prefers-color-scheme: dark) {
+      body, .neria-wrapper {
+        background-color: {neriaBgColor} !important;
+      }
+      .neria-container {
+        background-color: {neriaContainerBg} !important;
+      }
+      .neria-title-main, .neria-section-title, .neria-signature, .neria-text, .neria-title-sub {
+        color: #2b2520 !important;
+      }
+      .neria-info-box, .neria-address-box {
+        background-color: #fefefe !important;
+        border-color: #e8e0d5 !important;
+      }
+      .neria-products-table th {
+        color: #8c857e !important;
+      }
+      .neria-products-table td {
+        border-color: #f0e7db !important;
+      }
+      a {
+        color: {neriaAccentColor} !important;
+      }
+      img {
+        filter: none !important;
+      }
+    }
+
+    /* RESPONSIVE */
+    @media only screen and (max-width: 480px) {
+      .neria-inner {
+        padding: 24px 20px !important;
+      }
+      .neria-rule {
+        margin: 16px 20px !important;
+      }
+      .neria-title-main {
+        font-size: 20px !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="neria-wrapper">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center">
+        <table class="neria-container" width="100%">
+          <!-- HEADER -->
+          <tr>
+            <td class="neria-header">
+              <a href="{shop_url}" target="_blank" rel="noopener">
+                <img src="{neriaLogo}" alt="{shop_name}" width="160" style="max-width:160px; width:100%; height:auto; display:block; margin:0 auto;" />
+              </a>
+            </td>
+          </tr>
+          <!-- CONTENU SPÉCIFIQUE (injecté par chaque template) -->
+          <tr>
+            <td class="neria-inner">
+              {block name='neria_content'}{/block}
+            </td>
+          </tr>
+          <!-- SÉPARATEUR -->
+          <tr>
+            <td><hr class="neria-rule" /></td>
+          </tr>
+          <!-- FOOTER -->
+          <tr>
+            <td class="neria-footer">
+              <strong><a href="{shop_url}" style="font-weight:600;">{shop_name}</a></strong><br />
+              <a href="{history_url}">{neria_trad key='footer_order_history'}</a>
+              &nbsp;·&nbsp;
+              <a href="{guest_tracking_url}">{neria_trad key='footer_guest_tracking'}</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>

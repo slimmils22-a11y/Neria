@@ -1,0 +1,8 @@
+{shop_name}
+{sydia_trad key='dear_customer'},
+{sydia_trad key='eid_intro'}
+{sydia_trad key='eid_message'}
+{sydia_trad key='eid_btn'} : {shop_url}
+{sydia_trad key='eid_note'}
+{sydia_trad key='eid_signature'}
+{shop_name} - {shop_url}

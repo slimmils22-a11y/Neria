@@ -1,0 +1,13 @@
+{shop_name}
+
+{sydia_trad key='dear_customer'},
+
+{sydia_trad key='abandoned_cart_3_intro'}
+
+{products}
+
+{sydia_trad key='abandoned_cart_3_btn'} : {cart_url}
+
+{sydia_trad key='abandoned_cart_3_note'}
+
+{shop_name} - {shop_url}

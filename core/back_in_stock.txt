@@ -1,0 +1,8 @@
+{shop_name}
+{sydia_trad key='dear_customer'},
+{sydia_trad key='back_in_stock_intro'}
+{product_name}
+{sydia_trad key='back_in_stock_available'}
+{sydia_trad key='back_in_stock_btn'} : {product_url}
+{sydia_trad key='back_in_stock_note'}
+{shop_name} - {shop_url}

@@ -1,0 +1,33 @@
+{extends file='layouts/layout.html'}
+
+{block name='sydia_content'}
+
+<!-- TITRE PRINCIPAL -->
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+
+<!-- INTRO -->
+<p class="sydia-text">{sydia_trad key='comment_intro'}</p>
+
+<!-- INFOS COMMANDE -->
+<div class="sydia-section-title">{sydia_trad key='order_info_title'}</div>
+<div class="sydia-info-box">
+  <p><strong>{sydia_trad key='order_reference_label'} :</strong> {order_name}</p>
+  <p><strong>{sydia_trad key='customer_label'} :</strong> {firstname} {lastname} ({email})</p>
+</div>
+
+<!-- MESSAGE CLIENT -->
+<div class="sydia-section-title">{sydia_trad key='customer_message_title'}</div>
+<div class="sydia-info-box" style="background-color:#f9f6f0;">
+  <p style="white-space:pre-wrap;">{message}</p>
+</div>
+
+<!-- NOTE ADMIN -->
+<p class="sydia-text-note" style="margin-top:20px;">{sydia_trad key='comment_admin_note'}</p>
+
+<!-- SIGNATURE -->
+<div class="sydia-signature">
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

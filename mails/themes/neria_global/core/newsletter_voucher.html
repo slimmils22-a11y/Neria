@@ -1,0 +1,33 @@
+{extends file='layouts/layout.html'}
+{block name='sydia_content'}
+
+<!-- TITRE PRINCIPAL -->
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+
+<!-- INTRO -->
+<p class="sydia-text">{sydia_trad key='newsletter_voucher_intro'}</p>
+
+<!-- BOX CODE PROMO -->
+<div class="sydia-section-title">{sydia_trad key='newsletter_voucher_code_title'}</div>
+<div style="text-align:center;font-size:22px;font-weight:700;color:{sydiaAccentColor};padding:20px;margin:20px 0;border:2px dashed #e3d7c7;background:#fefefe;letter-spacing:0.06em;">
+  {discount}
+</div>
+
+<!-- INSTRUCTIONS D'UTILISATION -->
+<p class="sydia-text" style="margin-top:20px;">{sydia_trad key='newsletter_voucher_usage'}</p>
+
+<!-- BOUTON VERS LA BOUTIQUE -->
+<div style="text-align:center;margin-top:24px;">
+  <a href="{shop_url}" class="sydia-btn">{sydia_trad key='newsletter_voucher_btn'}</a>
+</div>
+
+<!-- NOTE DE FIN -->
+<p class="sydia-text-note" style="margin-top:20px;">{sydia_trad key='newsletter_voucher_next'}</p>
+
+<!-- SIGNATURE -->
+<div class="sydia-signature">
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

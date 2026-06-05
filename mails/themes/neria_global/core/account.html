@@ -1,0 +1,44 @@
+{extends file='layouts/layout.html'}
+{block name='sydia_content'}
+
+<!-- TITRE PRINCIPAL -->
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+
+<!-- SALUTATION -->
+<p class="sydia-text">{sydia_trad key='dear_customer'},</p>
+
+<!-- INTRO -->
+<p class="sydia-text">{sydia_trad key='account_intro'}</p>
+
+<!-- INFOS COMPTE -->
+<div class="sydia-section-title">{sydia_trad key='account_info_title'}</div>
+<div class="sydia-info-box">
+  <p>{sydia_trad key='account_info_text'}</p>
+  <p style="margin-top:14px;"><strong>{sydia_trad key='account_email_label'} :</strong> <span style="color:{sydiaAccentColor};">{email}</span></p>
+</div>
+
+<!-- SÉCURITÉ -->
+<div class="sydia-section-title">{sydia_trad key='account_security_title'}</div>
+<div class="sydia-info-box">
+  <p>{sydia_trad key='account_security_1'}</p>
+  <p>{sydia_trad key='account_security_2'}</p>
+  <p>{sydia_trad key='account_security_3'}</p>
+  <p>{sydia_trad key='account_security_4'}</p>
+</div>
+
+<!-- NOTE -->
+<p class="sydia-text-note" style="margin-top:22px;">{sydia_trad key='account_ready'}</p>
+
+<!-- BOUTON -->
+<div style="text-align:center;margin-top:24px;">
+  <a href="{shop_url}" class="sydia-btn">{sydia_trad key='account_btn'}</a>
+</div>
+
+<!-- SIGNATURE -->
+<div class="sydia-signature">
+  {sydia_trad key='signature_thanks'}<br />
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

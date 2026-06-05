@@ -1,0 +1,21 @@
+{shop_name}
+
+{sydia_trad key='dear_customer'},
+
+{sydia_trad key='canceled_intro'}
+
+{sydia_trad key='order_details_title'}
+--------------------------------
+{sydia_trad key='canceled_confirmation'} {order_name}.
+{sydia_trad key='canceled_info'}
+
+{sydia_trad key='canceled_account'}
+{sydia_trad key='canceled_history_link'} : {history_url}
+
+{sydia_trad key='guest_tracking_info'} : {guest_tracking_url}
+
+{sydia_trad key='canceled_hope'}
+
+{sydia_trad key='signature_regret'}
+{shop_name}
+{shop_url}

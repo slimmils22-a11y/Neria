@@ -1,0 +1,36 @@
+{extends file='../layout.html'}
+
+{block name='sydia_content'}
+
+<!-- TITRE PRINCIPAL -->
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+
+<!-- INTRO -->
+<p class="sydia-text">{sydia_trad key='contact_intro'}</p>
+
+<!-- INFOS CLIENT -->
+<div class="sydia-section-title">{sydia_trad key='contact_info_title'}</div>
+<div class="sydia-info-box">
+  <p><strong>{sydia_trad key='contact_email_label'} :</strong> <a href="mailto:{email}" style="color:{sydiaAccentColor};font-weight:600;">{email}</a></p>
+  <p><strong>{sydia_trad key='order_reference_label'} :</strong> {order_name}</p>
+  <p><strong>{sydia_trad key='contact_attachment_label'} :</strong> {attached_file}</p>
+</div>
+
+<!-- MESSAGE -->
+<div class="sydia-section-title">{sydia_trad key='contact_message_title'}</div>
+<div class="sydia-info-box" style="background-color:#f9f6f0;">
+  <p style="white-space:pre-wrap;">{message}</p>
+</div>
+
+<!-- BOUTON RÉPONSE -->
+<div style="text-align:center;margin-top:24px;">
+  <a href="mailto:{email}" class="sydia-btn">{sydia_trad key='contact_btn_reply'}</a>
+</div>
+
+<!-- SIGNATURE -->
+<div class="sydia-signature">
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

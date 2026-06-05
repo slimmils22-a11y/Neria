@@ -1,0 +1,38 @@
+{extends file='layouts/layout.html'}
+
+{block name='sydia_content'}
+
+<!-- TITRE PRINCIPAL -->
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+
+<!-- SALUTATION -->
+<p class="sydia-text">{sydia_trad key='dear_customer'},</p>
+
+<!-- INTRO -->
+<p class="sydia-text">{sydia_trad key='merchant_comment_intro'}</p>
+
+<!-- RÉFÉRENCE -->
+<div class="sydia-section-title">{sydia_trad key='order_details_title'} {order_name}</div>
+<div class="sydia-info-box">
+  <p>{sydia_trad key='merchant_comment_new'} <strong>{order_name}</strong>.</p>
+</div>
+
+<!-- MESSAGE -->
+<div class="sydia-section-title">{sydia_trad key='merchant_comment_message'}</div>
+<div class="sydia-info-box" style="background-color:#f9f6f0;">
+  <p style="white-space:pre-wrap;">{message}</p>
+</div>
+
+<!-- LIEN -->
+<p class="sydia-text" style="margin-top:22px;">
+  {sydia_trad key='merchant_comment_account'} 
+  <a href="{history_url}" style="font-weight:600;">{sydia_trad key='merchant_comment_link'}</a>
+</p>
+
+<!-- SIGNATURE -->
+<div class="sydia-signature">
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

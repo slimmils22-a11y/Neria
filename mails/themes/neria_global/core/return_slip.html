@@ -1,0 +1,55 @@
+{extends file='layouts/layout.html'}
+
+{block name='sydia_content'}
+
+<!-- TITRE PRINCIPAL -->
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+
+<!-- INTRO -->
+<p class="sydia-text">{sydia_trad key='return_slip_intro'}</p>
+
+<!-- DÉTAILS RETOUR -->
+<div class="sydia-section-title">{sydia_trad key='return_slip_details'}</div>
+<div class="sydia-info-box">
+  <p><strong>{sydia_trad key='order_reference_label'} :</strong> {order_name}</p>
+  <p><strong>{sydia_trad key='order_date_label'} :</strong> {date}</p>
+  <p><strong>{sydia_trad key='customer_label'} :</strong> {firstname} {lastname} ({email})</p>
+</div>
+
+<!-- PRODUITS -->
+<div class="sydia-section-title">{sydia_trad key='return_slip_products'}</div>
+{items}
+<table class="sydia-products-table" cellpadding="0" cellspacing="0" width="100%">
+  <thead>
+    <tr>
+      <th>{sydia_trad key='col_reference'}</th>
+      <th>{sydia_trad key='col_product'}</th>
+      <th style="text-align:right;">{sydia_trad key='col_quantity'}</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<!-- ADRESSES -->
+<div class="sydia-section-title">{sydia_trad key='delivery_address_title'}</div>
+<div class="sydia-address-box">{delivery_block_html}</div>
+
+<div class="sydia-section-title">{sydia_trad key='invoice_address_title'}</div>
+<div class="sydia-address-box">{invoice_block_html}</div>
+
+<!-- MESSAGE -->
+<div class="sydia-section-title">{sydia_trad key='customer_message_title'}</div>
+<div class="sydia-info-box" style="background-color:#f9f6f0;">
+  <p style="white-space:pre-wrap;">{message}</p>
+</div>
+
+<!-- NOTE -->
+<p class="sydia-text-note" style="margin-top:20px;">{sydia_trad key='return_slip_admin_note'}</p>
+
+<!-- SIGNATURE -->
+<div class="sydia-signature">
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

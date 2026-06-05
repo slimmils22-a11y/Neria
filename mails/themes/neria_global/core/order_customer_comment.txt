@@ -1,0 +1,19 @@
+{shop_name}
+
+{sydia_trad key='greeting_main'}
+
+{sydia_trad key='comment_intro'}
+
+{sydia_trad key='order_info_title'}
+--------------------------------
+{sydia_trad key='order_reference_label'} : {order_name}
+{sydia_trad key='customer_label'} : {firstname} {lastname} ({email})
+
+{sydia_trad key='customer_message_title'}
+--------------------------------
+{message}
+
+{sydia_trad key='comment_admin_note'}
+
+{shop_name}
+{shop_url}

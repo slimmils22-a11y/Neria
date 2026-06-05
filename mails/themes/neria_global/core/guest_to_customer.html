@@ -1,0 +1,36 @@
+{extends file='layouts/layout.html'}
+
+{block name='sydia_content'}
+
+<!-- TITRE PRINCIPAL -->
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+
+<!-- SALUTATION -->
+<p class="sydia-text">{sydia_trad key='dear_customer'},</p>
+
+<!-- INTRO -->
+<p class="sydia-text">{sydia_trad key='guest_to_customer_intro'}</p>
+
+<!-- INFOS COMPTE -->
+<div class="sydia-section-title">{sydia_trad key='account_info_title'}</div>
+<div class="sydia-info-box">
+  <p><strong>{sydia_trad key='account_email_label'} :</strong> {email}</p>
+</div>
+
+<!-- BOUTON PASSWORD -->
+<p class="sydia-text" style="margin-top:22px;">{sydia_trad key='guest_to_customer_password'}</p>
+<div style="text-align:center;margin-top:24px;">
+  <a href="{url}" class="sydia-btn">{sydia_trad key='guest_to_customer_btn'}</a>
+</div>
+
+<!-- AVANTAGES -->
+<p class="sydia-text" style="margin-top:24px;">{sydia_trad key='guest_to_customer_benefits'}</p>
+<p class="sydia-text"><a href="{shop_url}" style="font-weight:600;">{sydia_trad key='guest_to_customer_account_link'}</a></p>
+
+<!-- SIGNATURE -->
+<div class="sydia-signature">
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

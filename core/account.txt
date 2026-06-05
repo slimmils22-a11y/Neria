@@ -1,0 +1,24 @@
+{shop_name}
+
+{sydia_trad key='dear_customer'},
+
+{sydia_trad key='account_intro'}
+
+{sydia_trad key='account_info_title'}
+--------------------------------
+{sydia_trad key='account_info_text'}
+{sydia_trad key='account_email_label'} : {email}
+
+{sydia_trad key='account_security_title'}
+--------------------------------
+{sydia_trad key='account_security_1'}
+{sydia_trad key='account_security_2'}
+{sydia_trad key='account_security_3'}
+{sydia_trad key='account_security_4'}
+
+{sydia_trad key='account_ready'}
+{sydia_trad key='account_btn'} : {shop_url}
+
+{sydia_trad key='signature_thanks'}
+{shop_name}
+{shop_url}

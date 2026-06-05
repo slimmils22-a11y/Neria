@@ -1,0 +1,83 @@
+{extends file='layouts/layout.html'}
+{block name='sydia_content'}
+
+<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
+<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+
+<p class="sydia-text">{sydia_trad key='new_order_intro'}</p>
+
+<div class="sydia-section-title">{sydia_trad key='customer_label'}</div>
+<div class="sydia-info-box">
+  <p><strong>{sydia_trad key='customer_label'} :</strong> {firstname} {lastname} ({email})</p>
+</div>
+
+<div class="sydia-section-title">{sydia_trad key='order_details_title'}</div>
+<div class="sydia-info-box">
+  <p><strong>{sydia_trad key='order_reference_label'} :</strong> {order_name}</p>
+  <p><strong>{sydia_trad key='order_date_label'} :</strong> {date}</p>
+  <p><strong>{sydia_trad key='payment_label'} :</strong> {payment}</p>
+</div>
+
+<table class="sydia-products-table" cellpadding="0" cellspacing="0" width="100%">
+  <thead>
+    <tr>
+      <th>{sydia_trad key='col_reference'}</th>
+      <th>{sydia_trad key='col_product'}</th>
+      <th>{sydia_trad key='col_unit_price'}</th>
+      <th>{sydia_trad key='col_quantity'}</th>
+      <th style="text-align:right;">{sydia_trad key='col_total_price'}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {items}
+    <tr class="summary">
+      <td colspan="4" style="text-align:right;">{sydia_trad key='total_products_label'}</td>
+      <td style="text-align:right;">{total_products}</td>
+    </tr>
+    <tr class="summary">
+      <td colspan="4" style="text-align:right;">{sydia_trad key='total_discounts_label'}</td>
+      <td style="text-align:right;">{total_discounts}</td>
+    </tr>
+    <tr class="summary">
+      <td colspan="4" style="text-align:right;">{sydia_trad key='total_wrapping_label'}</td>
+      <td style="text-align:right;">{total_wrapping}</td>
+    </tr>
+    <tr class="summary">
+      <td colspan="4" style="text-align:right;">{sydia_trad key='total_shipping_label'}</td>
+      <td style="text-align:right;">{total_shipping}</td>
+    </tr>
+    <tr class="summary">
+      <td colspan="4" style="text-align:right;">{sydia_trad key='total_tax_label'}</td>
+      <td style="text-align:right;">{total_tax_paid}</td>
+    </tr>
+    <tr class="summary grand-total">
+      <td colspan="4" style="text-align:right;">{sydia_trad key='total_paid_label'}</td>
+      <td style="text-align:right;">{total_paid}</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="sydia-section-title">{sydia_trad key='shipping_title'}</div>
+<div class="sydia-info-box">
+  <p><strong>{sydia_trad key='carrier_label'} :</strong> {carrier}</p>
+  <p><strong>{sydia_trad key='payment_label'} :</strong> {payment}</p>
+</div>
+
+<div class="sydia-section-title">{sydia_trad key='delivery_address_title'}</div>
+<div class="sydia-address-box">{delivery_block_html}</div>
+
+<div class="sydia-section-title">{sydia_trad key='invoice_address_title'}</div>
+<div class="sydia-address-box">{invoice_block_html}</div>
+
+<div class="sydia-section-title">{sydia_trad key='customer_message_title'}</div>
+<div class="sydia-info-box" style="background-color:#f9f6f0;">
+  <p style="white-space:pre-wrap;">{message}</p>
+</div>
+
+<p class="sydia-text-note" style="margin-top:20px;">{sydia_trad key='new_order_admin_note'}</p>
+
+<div class="sydia-signature">
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

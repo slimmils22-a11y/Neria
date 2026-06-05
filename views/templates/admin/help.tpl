@@ -1,0 +1,180 @@
+{**
+ * NERIA — help.tpl
+ * Onglet Aide — Documentation, diagnostic et support
+ *}
+
+{* ── Diagnostic ─────────────────────────────────────────────── *}
+<div class="neria-section">
+  <h2 class="neria-section__title">
+    {l s='Diagnostic du module' mod='neria'}
+    <span class="neria-score neria-score--{$diagnostic.score.status}">
+      {$diagnostic.score.score}/100
+    </span>
+  </h2>
+
+  <div class="neria-diag-grid">
+
+    {* PHP *}
+    <div class="neria-diag-block">
+      <h3 class="neria-diag-block__title">PHP</h3>
+      <ul class="neria-diag-list">
+        <li class="{if $diagnostic.php.version_ok}neria-diag--ok{else}neria-diag--err{/if}">
+          PHP {$diagnostic.php.version}
+          {if !$diagnostic.php.version_ok}
+            <span class="neria-diag-note">{l s='Requis: PHP 8.0+' mod='neria'}</span>
+          {/if}
+        </li>
+        <li class="{if $diagnostic.php.gd_available}neria-diag--ok{else}neria-diag--warn{/if}">
+          GD (signatures)
+          {if !$diagnostic.php.gd_available}
+            <span class="neria-diag-note">{l s='Requis pour les signatures manuscrites' mod='neria'}</span>
+          {/if}
+        </li>
+        <li class="{if $diagnostic.php.mbstring}neria-diag--ok{else}neria-diag--err{/if}">
+          mbstring
+        </li>
+        <li class="{if $diagnostic.php.openssl}neria-diag--ok{else}neria-diag--warn{/if}">
+          OpenSSL
+        </li>
+      </ul>
+    </div>
+
+    {* Base de données *}
+    <div class="neria-diag-block">
+      <h3 class="neria-diag-block__title">{l s='Base de données' mod='neria'}</h3>
+      <ul class="neria-diag-list">
+        {foreach $diagnostic.database as $table => $data}
+          <li class="{if $data.exists}neria-diag--ok{else}neria-diag--err{/if}">
+            {$table}
+            {if $data.exists}
+              <span class="neria-diag-count">{$data.rows} {l s='lignes' mod='neria'}</span>
+            {else}
+              <span class="neria-diag-note">{l s='Table manquante' mod='neria'}</span>
+            {/if}
+          </li>
+        {/foreach}
+      </ul>
+    </div>
+
+    {* Hooks *}
+    <div class="neria-diag-block">
+      <h3 class="neria-diag-block__title">Hooks</h3>
+      <ul class="neria-diag-list">
+        {foreach $diagnostic.hooks as $hook => $registered}
+          <li class="{if $registered}neria-diag--ok{else}neria-diag--err{/if}">
+            {$hook}
+            {if !$registered}
+              <span class="neria-diag-note">{l s='Non enregistré' mod='neria'}</span>
+            {/if}
+          </li>
+        {/foreach}
+      </ul>
+    </div>
+
+    {* Fichiers *}
+    <div class="neria-diag-block">
+      <h3 class="neria-diag-block__title">{l s='Fichiers' mod='neria'}</h3>
+      <ul class="neria-diag-list">
+        {foreach $diagnostic.files as $label => $data}
+          <li class="{if $data.exists}neria-diag--ok{else}neria-diag--err{/if}">
+            {$label}
+            {if $data.exists}
+              <span class="neria-diag-count">{$data.size}</span>
+            {else}
+              <span class="neria-diag-note">{l s='Introuvable' mod='neria'}</span>
+            {/if}
+          </li>
+        {/foreach}
+      </ul>
+    </div>
+
+    {* Polices TTF *}
+    <div class="neria-diag-block">
+      <h3 class="neria-diag-block__title">{l s='Polices TTF' mod='neria'}</h3>
+      <ul class="neria-diag-list">
+        {foreach $diagnostic.fonts as $font => $present}
+          <li class="{if $present}neria-diag--ok{else}neria-diag--warn{/if}">
+            {$font}
+            {if !$present}
+              <span class="neria-diag-note">
+                <a href="https://fonts.google.com" target="_blank">
+                  {l s='Télécharger sur Google Fonts' mod='neria'}
+                </a>
+              </span>
+            {/if}
+          </li>
+        {/foreach}
+      </ul>
+    </div>
+
+    {* Permissions *}
+    <div class="neria-diag-block">
+      <h3 class="neria-diag-block__title">{l s='Permissions dossiers' mod='neria'}</h3>
+      <ul class="neria-diag-list">
+        {foreach $diagnostic.permissions as $dir => $data}
+          <li class="{if $data.exists && $data.writable}neria-diag--ok{elseif $data.exists}neria-diag--warn{else}neria-diag--err{/if}">
+            {$dir}
+            {if !$data.exists}
+              <span class="neria-diag-note">{l s='Dossier manquant' mod='neria'}</span>
+            {elseif !$data.writable}
+              <span class="neria-diag-note">{l s='Non accessible en écriture (chmod 755)' mod='neria'}</span>
+            {/if}
+          </li>
+        {/foreach}
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+{* ── Documentation rapide ───────────────────────────────────── *}
+<div class="neria-section">
+  <h2 class="neria-section__title">{l s='Guide rapide' mod='neria'}</h2>
+
+  <div class="neria-doc-grid">
+
+    <div class="neria-doc-card">
+      <h3 class="neria-doc-card__title">◈ {l s='Variables dans les textes' mod='neria'}</h3>
+      <p>{l s='Utilisez ces variables dans vos traductions pour personnaliser chaque email :' mod='neria'}</p>
+      <ul class="neria-doc-vars">
+        <li><code>{literal}{maison_name}{/literal}</code> — {l s='Nom de votre maison' mod='neria'}</li>
+        <li><code>{literal}{slogan}{/literal}</code> — {l s='Votre slogan' mod='neria'}</li>
+        <li><code>{literal}{founder_name}{/literal}</code> — {l s='Nom du fondateur' mod='neria'}</li>
+        <li><code>{literal}{founder_title}{/literal}</code> — {l s='Titre du fondateur' mod='neria'}</li>
+        <li><code>{literal}{signature_closing}{/literal}</code> — {l s='Formule de clôture' mod='neria'}</li>
+        <li><code>{literal}{shop_name}{/literal}</code> — {l s='Nom de la boutique (PrestaShop)' mod='neria'}</li>
+        <li><code>{literal}{firstname}{/literal}</code> — {l s='Prénom du client' mod='neria'}</li>
+        <li><code>{literal}{lastname}{/literal}</code> — {l s='Nom du client' mod='neria'}</li>
+      </ul>
+    </div>
+
+    <div class="neria-doc-card">
+      <h3 class="neria-doc-card__title">⇋ {l s='A/B Testing — conseils' mod='neria'}</h3>
+      <ul class="neria-doc-list">
+        <li>{l s='Laissez un test tourner au moins 2 semaines avant de conclure.' mod='neria'}</li>
+        <li>{l s='Commencez par les paniers abandonnés — plus faciles à mesurer.' mod='neria'}</li>
+        <li>{l s='Ne testez qu\'une seule variable à la fois (ton OU accroche, pas les deux).' mod='neria'}</li>
+        <li>{l s='Un taux d\'ouverture &gt;35% ou de clic &gt;5% est excellent.' mod='neria'}</li>
+      </ul>
+    </div>
+
+    <div class="neria-doc-card">
+      <h3 class="neria-doc-card__title">◫ {l s='Calendrier — mise à jour des dates' mod='neria'}</h3>
+      <p>{l s='Les dates des fêtes islamiques et du Nouvel An lunaire sont pré-calculées jusqu\'en 2035 et recalculées automatiquement au-delà. En cas d\'erreur, utilisez l\'override manuel dans l\'onglet Accueil.' mod='neria'}</p>
+    </div>
+
+    <div class="neria-doc-card">
+      <h3 class="neria-doc-card__title">? {l s='Support' mod='neria'}</h3>
+      <p>{l s='Pour toute question technique, consultez la documentation complète ou contactez le support Neria.' mod='neria'}</p>
+      <a href="https://www.neria.io/docs" target="_blank"
+         class="neria-btn neria-btn--ghost neria-btn--sm">
+        {l s='Documentation' mod='neria'}
+      </a>
+    </div>
+
+  </div>
+</div>
+
+{* ── Fermeture du wrapper principal (ouvert dans navigation.tpl) *}
+  </div>{* .neria-bo-content *}
+</div>{* .neria-bo-wrap *}

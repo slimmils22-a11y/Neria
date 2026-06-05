@@ -1,0 +1,8 @@
+{shop_name}
+{sydia_trad key='newsletter_voucher_intro'}
+{sydia_trad key='newsletter_voucher_code_title'}
+{sydia_trad key='voucher_code'} : {discount}
+{sydia_trad key='newsletter_voucher_usage'}
+{sydia_trad key='newsletter_voucher_btn'} : {shop_url}
+{sydia_trad key='newsletter_voucher_next'}
+{shop_name} - {shop_url}

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+    <!-- ================================================
+         NERIA — Module Email Luxe pour PrestaShop
+         Emails transactionnels & marketing haut de gamme
+         18 langues · Adaptation culturelle · Typographie
+         ================================================ -->
+
+    <!-- Identifiant technique du module (doit correspondre exactement
+         au nom du dossier et à la classe PHP principale) -->
+    <name>neria</name>
+
+    <!-- Nom affiché dans le back-office PrestaShop -->
+    <displayName><![CDATA[Neria – Luxury Email Suite]]></displayName>
+
+    <!-- Version du module (format : X.Y.Z) -->
+    <version><![CDATA[1.0.0]]></version>
+
+    <!-- Description courte affichée sur la fiche Addons -->
+    <description><![CDATA[Emails transactionnels et marketing haut de gamme. 18 langues avec adaptation culturelle réelle, typographie par écriture, design luxe Dark Mode et moteur de traduction interne.]]></description>
+
+    <!-- Auteur affiché sur Addons -->
+    <author><![CDATA[Neria]]></author>
+
+    <!-- Onglet du back-office où apparaît le module -->
+    <!-- others = divers | emailing = emails | front_office_features -->
+    <tab>emailing</tab>
+
+    <!-- ================================================
+         COMPATIBILITÉ PRESTASHOP
+         Déclarée de PS 8.0.0 à PS 9.99.99
+         ================================================ -->
+    <compatibility>
+        <version>
+            <min>8.0.0</min>
+            <max>9.99.99</max>
+        </version>
+    </compatibility>
+
+    <!-- ================================================
+         DÉPENDANCES
+         Aucune dépendance externe — le module est autonome
+         ================================================ -->
+    <dependencies>
+        <!-- Pas de module tiers requis -->
+    </dependencies>
+
+    <!-- ================================================
+         CONFIGURATION ADDONS
+         ================================================ -->
+
+    <!-- Nécessite une licence par boutique -->
+    <is_configurable>1</is_configurable>
+
+    <!-- Utilise l'API PrestaShop (hooks) -->
+    <need_instance>1</need_instance>
+
+</module>
