@@ -1,12 +1,12 @@
-{shop_name}
-{sydia_trad key='dear_customer'},
-{sydia_trad key='certificate_intro'}
-{sydia_trad key='certificate_origin_title'}
+﻿{shop_name}
+{neria_trad key='dear_customer'},
+{neria_trad key='certificate_intro'}
+{neria_trad key='certificate_origin_title'}
 {certificate_origin}
-{sydia_trad key='certificate_materials_title'}
+{neria_trad key='certificate_materials_title'}
 {certificate_materials}
-{sydia_trad key='certificate_artisan_title'}
+{neria_trad key='certificate_artisan_title'}
 {certificate_artisan}
-{sydia_trad key='certificate_message'}
-{sydia_trad key='certificate_note'}
+{neria_trad key='certificate_message'}
+{neria_trad key='certificate_note'}
 {shop_name} - {shop_url}

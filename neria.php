@@ -253,17 +253,56 @@ class Neria extends Module
         // Détermine l'onglet actif (par défaut : configure)
         $activeTab = Tools::getValue('neria_tab', 'configure');
 
-        // Injecte les variables communes dans Smarty
+        // ── Instanciation des managers ────────────────────────────
+        $config    = new ConfigManager($this);
+        $stats     = new StatsManager($this);
+        $calendar  = new CalendarManager($this);
+        $fonts     = new FontManager($this);
+        $signature = new SignatureGenerator($this);
+
+        // ── Variables communes à tous les onglets ─────────────────
         $this->context->smarty->assign([
             'neria_version'    => self::VERSION,
             'neria_module_dir' => $this->_path,
             'neria_active_tab' => $activeTab,
+            'neria_active'     => $config->isActive(),
             'neria_tabs'       => $this->getBackOfficeTabs(),
+
+            // Libellés et drapeaux des 18 langues supportées
+            'lang_labels'      => NeriaTools::getLangLabels(),
+            'lang_flags'       => NeriaTools::getLangFlags(),
+
+            // Libellés des 107 templates
+            'template_labels'  => NeriaTools::getTemplateLabels(),
+
+            // Configuration design (couleurs, logo, typo…)
+            'design'           => $config->getDesignConfig(),
+
+            // Variables personnalisées du marchand
+            'custom_vars'      => $config->getCustomVariables(),
+
+            // Liens réseaux sociaux configurés
+            'social_links'     => $config->getSocialLinks(),
+
+            // KPIs des 30 derniers jours (onglet configure + stats)
+            'kpis'             => $stats->getKpis(30),
+
+            // Prochaines occasions calendaires (onglet configure)
+            'upcoming_events'  => $calendar->getUpcomingDates(),
+
+            // Polices groupées par famille d'écriture (onglet typography)
+            'fonts_by_script'  => $fonts->getFontsByScript(),
+            'current_fonts'    => $fonts->getCurrentFonts(),
+
+            // Styles de signature disponibles (onglet configure)
+            'signature_styles' => SignatureGenerator::STYLES,
+            'current_signature' => $config->getSignatureConfig(),
+
+            // Diagnostic complet pour l'onglet Aide
+            'diagnostic'       => NeriaTools::getDiagnostic($this),
         ]);
 
         // ── Réseaux sociaux ───────────────────────────────────────
-        // Assigné ici pour être disponible avant renderTab('social')
-        // Compatible Smarty 2 et 3 (pas de tableau inline dans le .tpl)
         $this->context->smarty->assign('social_networks', [
             'instagram' => [
                 'icon'        => '◉',
@@ -297,11 +336,14 @@ class Neria extends Module
             ],
         ]);
 
-        // Affiche la navigation + l'onglet actif
+        // ── Rendu navigation + contenu ────────────────────────────
         $navigation = $this->renderTemplate('navigation.tpl');
         $content    = $this->renderTab($activeTab);
 
-        return $navigation . $content;
+        return $navigation
+            . '<div class="neria-bo-content">'
+            . $content
+            . '</div>';
     }
 
     /**

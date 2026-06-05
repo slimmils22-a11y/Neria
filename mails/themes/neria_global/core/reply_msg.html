@@ -1,26 +1,26 @@
-{extends file='layouts/layout.html'}
+﻿{extends file='layouts/layout.html'}
 
-{block name='sydia_content'}
+{block name='neria_content'}
 
 <!-- TITRE PRINCIPAL -->
-<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
-<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+<h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
+<p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
 
 <!-- SALUTATION -->
-<p class="sydia-text">{sydia_trad key='dear_customer'},</p>
+<p class="neria-text">{neria_trad key='dear_customer'},</p>
 
 <!-- MESSAGE -->
-<div class="sydia-section-title">{sydia_trad key='reply_msg_message'}</div>
-<div class="sydia-info-box" style="background-color:#f9f6f0;">
+<div class="neria-section-title">{neria_trad key='reply_msg_message'}</div>
+<div class="neria-info-box" style="background-color:#f9f6f0;">
   <p style="white-space:pre-wrap;">{reply}</p>
 </div>
 
 <!-- NOTE NO-REPLY -->
-<p class="sydia-text-note" style="margin-top:22px;">{sydia_trad key='reply_msg_noreply'}</p>
-<p class="sydia-text"><a href="{link}" style="font-weight:600;">{sydia_trad key='reply_msg_contact'}</a></p>
+<p class="neria-text-note" style="margin-top:22px;">{neria_trad key='reply_msg_noreply'}</p>
+<p class="neria-text"><a href="{link}" style="font-weight:600;">{neria_trad key='reply_msg_contact'}</a></p>
 
 <!-- SIGNATURE -->
-<div class="sydia-signature">
+<div class="neria-signature">
   <strong>{shop_name}</strong>
 </div>
 

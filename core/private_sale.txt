@@ -1,7 +1,0 @@
-{shop_name}
-{sydia_trad key='dear_customer'},
-{sydia_trad key='private_sale_intro'}
-{sydia_trad key='private_sale_message'}
-{sydia_trad key='private_sale_btn'} : {sale_url}
-{sydia_trad key='private_sale_note'}
-{shop_name} - {shop_url}

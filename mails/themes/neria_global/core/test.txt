@@ -1,7 +1,7 @@
-{shop_name}
-{sydia_trad key='dear_employee'},
-{sydia_trad key='test_title'}
-{sydia_trad key='test_message'}
-{sydia_trad key='test_success'}
-{sydia_trad key='test_admin_note'}
+﻿{shop_name}
+{neria_trad key='dear_employee'},
+{neria_trad key='test_title'}
+{neria_trad key='test_message'}
+{neria_trad key='test_success'}
+{neria_trad key='test_admin_note'}
 {shop_name} - {shop_url}

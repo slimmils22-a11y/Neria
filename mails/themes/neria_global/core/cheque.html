@@ -1,41 +1,41 @@
-{extends file='layouts/layout.html'}
+﻿{extends file='layouts/layout.html'}
 
-{block name='sydia_content'}
+{block name='neria_content'}
 
 <!-- TITRE PRINCIPAL -->
-<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
-<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+<h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
+<p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
 
 <!-- SALUTATION -->
-<p class="sydia-text">{sydia_trad key='dear_customer'},</p>
+<p class="neria-text">{neria_trad key='dear_customer'},</p>
 
 <!-- INTRO -->
-<p class="sydia-text">{sydia_trad key='cheque_intro'}</p>
+<p class="neria-text">{neria_trad key='cheque_intro'}</p>
 
 <!-- BOX RÉFÉRENCE -->
-<div class="sydia-section-title">{sydia_trad key='order_details_title'} {order_name} — {sydia_trad key='cheque_status'}</div>
-<div class="sydia-info-box">
-  <p>{sydia_trad key='cheque_confirmation'} <strong>{order_name}</strong>.</p>
+<div class="neria-section-title">{neria_trad key='order_details_title'} {order_name} — {neria_trad key='cheque_status'}</div>
+<div class="neria-info-box">
+  <p>{neria_trad key='cheque_confirmation'} <strong>{order_name}</strong>.</p>
 </div>
 
 <!-- COORDONNÉES CHÈQUE -->
-<div class="sydia-section-title">{sydia_trad key='cheque_details_title'}</div>
-<div class="sydia-info-box">
-  <p>{sydia_trad key='cheque_instructions'}</p>
-  <p style="margin-top:14px;"><strong>{sydia_trad key='cheque_amount_label'} :</strong> {total_paid}</p>
-  <p><strong>{sydia_trad key='cheque_payable_label'} :</strong> {check_name}</p>
-  <p style="margin-top:14px;"><strong>{sydia_trad key='cheque_address_label'} :</strong></p>
+<div class="neria-section-title">{neria_trad key='cheque_details_title'}</div>
+<div class="neria-info-box">
+  <p>{neria_trad key='cheque_instructions'}</p>
+  <p style="margin-top:14px;"><strong>{neria_trad key='cheque_amount_label'} :</strong> {total_paid}</p>
+  <p><strong>{neria_trad key='cheque_payable_label'} :</strong> {check_name}</p>
+  <p style="margin-top:14px;"><strong>{neria_trad key='cheque_address_label'} :</strong></p>
   <p>{check_address_html}</p>
-  <p style="margin-top:14px;font-style:italic;">{sydia_trad key='cheque_reference_note'} <strong style="color:{sydiaAccentColor};">{order_name}</strong>.</p>
+  <p style="margin-top:14px;font-style:italic;">{neria_trad key='cheque_reference_note'} <strong style="color:{$neria_color_accent};">{order_name}</strong>.</p>
 </div>
 
 <!-- LIENS -->
-<p class="sydia-text" style="margin-top:24px;">{sydia_trad key='history_info'}</p>
-<p class="sydia-text">{sydia_trad key='guest_tracking_info'}</p>
+<p class="neria-text" style="margin-top:24px;">{neria_trad key='history_info'}</p>
+<p class="neria-text">{neria_trad key='guest_tracking_info'}</p>
 
 <!-- SIGNATURE -->
-<div class="sydia-signature">
-  {sydia_trad key='signature_thanks'}<br />
+<div class="neria-signature">
+  {neria_trad key='signature_thanks'}<br />
   <strong>{shop_name}</strong>
 </div>
 

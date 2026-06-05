@@ -1,15 +1,15 @@
-{shop_name}
+﻿{shop_name}
 
-{sydia_trad key='dear_customer'},
+{neria_trad key='dear_customer'},
 
-{sydia_trad key='newsletter_intro'}
+{neria_trad key='newsletter_intro'}
 
-{sydia_trad key='newsletter_content'}
+{neria_trad key='newsletter_content'}
 --------------------------------
 {message}
 
-{sydia_trad key='newsletter_update'}
-{sydia_trad key='newsletter_btn'} : {shop_url}
+{neria_trad key='newsletter_update'}
+{neria_trad key='newsletter_btn'} : {shop_url}
 
 {shop_name}
 {shop_url}

@@ -1,16 +1,16 @@
-{shop_name}
+﻿{shop_name}
 
-{sydia_trad key='dear_customer'},
+{neria_trad key='dear_customer'},
 
-{sydia_trad key='refund_intro'}
+{neria_trad key='refund_intro'}
 
-{sydia_trad key='order_details_title'} {order_name}
-{sydia_trad key='refund_confirmation'} {order_name}.
+{neria_trad key='order_details_title'} {order_name}
+{neria_trad key='refund_confirmation'} {order_name}.
 
-{sydia_trad key='history_info'} : {history_url}
-{sydia_trad key='guest_tracking_info'} : {guest_tracking_url}
+{neria_trad key='history_info'} : {history_url}
+{neria_trad key='guest_tracking_info'} : {guest_tracking_url}
 
-{sydia_trad key='refund_thanks'}
+{neria_trad key='refund_thanks'}
 
 {shop_name}
 {shop_url}

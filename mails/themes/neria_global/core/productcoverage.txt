@@ -1,8 +1,8 @@
-{shop_name}
-{sydia_trad key='greeting_main'}
-{sydia_trad key='productcoverage_intro'}
-{sydia_trad key='productcoverage_status'}
-{sydia_trad key='productcoverage_min'} : {warning_coverage}
-{sydia_trad key='productcoverage_current'} : {current_coverage}
-{sydia_trad key='productcoverage_admin_note'}
+﻿{shop_name}
+{neria_trad key='greeting_main'}
+{neria_trad key='productcoverage_intro'}
+{neria_trad key='productcoverage_status'}
+{neria_trad key='productcoverage_min'} : {warning_coverage}
+{neria_trad key='productcoverage_current'} : {current_coverage}
+{neria_trad key='productcoverage_admin_note'}
 {shop_name} - {shop_url}

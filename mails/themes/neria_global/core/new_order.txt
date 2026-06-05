@@ -1,22 +1,22 @@
-{shop_name}
-{sydia_trad key='greeting_main'}
-{sydia_trad key='new_order_intro'}
-{sydia_trad key='customer_label'} : {firstname} {lastname} ({email})
-{sydia_trad key='order_details_title'}
-{sydia_trad key='order_reference_label'} : {order_name}
-{sydia_trad key='order_date_label'} : {date}
-{sydia_trad key='payment_label'} : {payment}
+﻿{shop_name}
+{neria_trad key='greeting_main'}
+{neria_trad key='new_order_intro'}
+{neria_trad key='customer_label'} : {firstname} {lastname} ({email})
+{neria_trad key='order_details_title'}
+{neria_trad key='order_reference_label'} : {order_name}
+{neria_trad key='order_date_label'} : {date}
+{neria_trad key='payment_label'} : {payment}
 {items_txt}
-{sydia_trad key='total_products_label'} : {total_products}
-{sydia_trad key='total_discounts_label'} : {total_discounts}
-{sydia_trad key='total_wrapping_label'} : {total_wrapping}
-{sydia_trad key='total_shipping_label'} : {total_shipping}
-{sydia_trad key='total_tax_label'} : {total_tax_paid}
-{sydia_trad key='total_paid_label'} : {total_paid}
-{sydia_trad key='shipping_title'}
-{sydia_trad key='carrier_label'} : {carrier}
-{sydia_trad key='delivery_address_title'} : {delivery_block_txt}
-{sydia_trad key='invoice_address_title'} : {invoice_block_txt}
-{sydia_trad key='customer_message_title'} : {message}
-{sydia_trad key='new_order_admin_note'}
+{neria_trad key='total_products_label'} : {total_products}
+{neria_trad key='total_discounts_label'} : {total_discounts}
+{neria_trad key='total_wrapping_label'} : {total_wrapping}
+{neria_trad key='total_shipping_label'} : {total_shipping}
+{neria_trad key='total_tax_label'} : {total_tax_paid}
+{neria_trad key='total_paid_label'} : {total_paid}
+{neria_trad key='shipping_title'}
+{neria_trad key='carrier_label'} : {carrier}
+{neria_trad key='delivery_address_title'} : {delivery_block_txt}
+{neria_trad key='invoice_address_title'} : {invoice_block_txt}
+{neria_trad key='customer_message_title'} : {message}
+{neria_trad key='new_order_admin_note'}
 {shop_name} - {shop_url}

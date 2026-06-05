@@ -1,0 +1,50 @@
+/**
+ * Neria – Styles RTL (Arabe)
+ * Injecté automatiquement par EmailRenderer quand la langue est 'ar'
+ */
+
+body,
+table,
+td,
+p,
+a,
+li {
+    direction: rtl;
+    text-align: right;
+}
+
+.neria-title-main,
+.neria-title-sub,
+.neria-section-title,
+.neria-text,
+.neria-text-note {
+    text-align: right;
+    direction: rtl;
+}
+
+.neria-info-box,
+.neria-address-box {
+    text-align: right;
+    direction: rtl;
+}
+
+.neria-signature {
+    text-align: right;
+}
+
+.neria-products-table th,
+.neria-products-table td {
+    text-align: right;
+}
+
+.neria-products-table th:last-child,
+.neria-products-table td:last-child {
+    text-align: left;
+}
+
+.neria-section-title {
+    border-bottom: none;
+    border-top: 1px solid #e3d7c7;
+    padding-bottom: 0;
+    padding-top: 8px;
+}

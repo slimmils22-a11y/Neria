@@ -1,0 +1,14 @@
+﻿{shop_name}
+
+{neria_trad key='dear_customer'},
+
+{neria_trad key='milestone_intro'}
+{neria_trad key='milestone_message'}
+
+{neria_trad key='milestone_btn'} : {history_url}
+
+{neria_trad key='milestone_note'}
+
+{neria_trad key='milestone_signature'}
+{shop_name}
+{shop_url}

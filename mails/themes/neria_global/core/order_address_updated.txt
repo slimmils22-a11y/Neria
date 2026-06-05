@@ -1,0 +1,20 @@
+﻿{shop_name}
+
+{neria_trad key='dear_customer'},
+
+{neria_trad key='address_update_intro'}
+
+{neria_trad key='order_reference_label'} : {order_name}
+
+{neria_trad key='address_update_details'}
+--------------------------------
+{neria_trad key='address_update_old'} : {old_address}
+{neria_trad key='address_update_new'} : {new_address}
+
+{neria_trad key='address_update_btn'} : {history_url}
+
+{neria_trad key='address_update_note'}
+
+{neria_trad key='address_update_signature'}
+{shop_name}
+{shop_url}

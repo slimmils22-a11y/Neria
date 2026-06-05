@@ -1,17 +1,17 @@
-{shop_name}
+﻿{shop_name}
 
-{sydia_trad key='dear_customer'},
+{neria_trad key='dear_customer'},
 
-{sydia_trad key='payment_error_intro'}
+{neria_trad key='payment_error_intro'}
 
-{sydia_trad key='order_details_title'} {order_name}
-{sydia_trad key='payment_error_issue'} {order_name}.
-{sydia_trad key='payment_error_apologies'}
+{neria_trad key='order_details_title'} {order_name}
+{neria_trad key='payment_error_issue'} {order_name}.
+{neria_trad key='payment_error_apologies'}
 
-{sydia_trad key='payment_error_help'} : {history_url}
-{sydia_trad key='guest_tracking_info'} : {guest_tracking_url}
+{neria_trad key='payment_error_help'} : {history_url}
+{neria_trad key='guest_tracking_info'} : {guest_tracking_url}
 
-{sydia_trad key='payment_error_thanks'}
+{neria_trad key='payment_error_thanks'}
 
 {shop_name}
 {shop_url}

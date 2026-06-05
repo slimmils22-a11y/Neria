@@ -1,0 +1,18 @@
+﻿{shop_name}
+
+{neria_trad key='dear_customer'},
+
+{neria_trad key='return_received_intro'}
+
+{neria_trad key='order_reference_label'} : {order_name}
+
+{neria_trad key='return_received_details'}
+--------------------------------
+
+{neria_trad key='return_received_btn'} : {history_url}
+
+{neria_trad key='return_received_note'}
+
+{neria_trad key='return_received_signature'}
+{shop_name}
+{shop_url}

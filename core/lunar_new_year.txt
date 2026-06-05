@@ -1,8 +1,0 @@
-{shop_name}
-{sydia_trad key='dear_customer'},
-{sydia_trad key='lunar_intro'}
-{sydia_trad key='lunar_message'}
-{sydia_trad key='lunar_btn'} : {shop_url}
-{sydia_trad key='lunar_note'}
-{sydia_trad key='lunar_signature'}
-{shop_name} - {shop_url}

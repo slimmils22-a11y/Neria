@@ -1,13 +1,13 @@
-{shop_name}
+﻿{shop_name}
 
-{sydia_trad key='dear_customer'},
+{neria_trad key='dear_customer'},
 
-{sydia_trad key='reply_msg_message'}
+{neria_trad key='reply_msg_message'}
 --------------------------------
 {reply}
 
-{sydia_trad key='reply_msg_noreply'}
-{sydia_trad key='reply_msg_contact'} : {link}
+{neria_trad key='reply_msg_noreply'}
+{neria_trad key='reply_msg_contact'} : {link}
 
 {shop_name}
 {shop_url}

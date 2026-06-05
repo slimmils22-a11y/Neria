@@ -1,18 +1,18 @@
-{shop_name}
+﻿{shop_name}
 
-{sydia_trad key='dear_employee'},
+{neria_trad key='dear_employee'},
 
-{sydia_trad key='productoutofstock_intro'}
+{neria_trad key='productoutofstock_intro'}
 
-{sydia_trad key='productoutofstock_details'}
+{neria_trad key='productoutofstock_details'}
 --------------------------------
-{sydia_trad key='productoutofstock_product'} : {product}
-{sydia_trad key='productoutofstock_below'} {last_qty}.
-{sydia_trad key='productoutofstock_remaining'} : {qty}
+{neria_trad key='productoutofstock_product'} : {product}
+{neria_trad key='productoutofstock_below'} {last_qty}.
+{neria_trad key='productoutofstock_remaining'} : {qty}
 
-{sydia_trad key='productoutofstock_action'}
+{neria_trad key='productoutofstock_action'}
 
-{sydia_trad key='productoutofstock_admin_note'}
+{neria_trad key='productoutofstock_admin_note'}
 
 {shop_name}
 {shop_url}

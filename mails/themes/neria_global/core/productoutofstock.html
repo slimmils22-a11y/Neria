@@ -1,33 +1,33 @@
-{extends file='layouts/layout.html'}
+﻿{extends file='layouts/layout.html'}
 
-{block name='sydia_content'}
+{block name='neria_content'}
 
 <!-- TITRE PRINCIPAL -->
-<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
-<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+<h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
+<p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
 
 <!-- SALUTATION -->
-<p class="sydia-text">{sydia_trad key='dear_employee'},</p>
+<p class="neria-text">{neria_trad key='dear_employee'},</p>
 
 <!-- INTRO -->
-<p class="sydia-text">{sydia_trad key='productoutofstock_intro'}</p>
+<p class="neria-text">{neria_trad key='productoutofstock_intro'}</p>
 
 <!-- BOX STOCK -->
-<div class="sydia-section-title">{sydia_trad key='productoutofstock_details'}</div>
-<div class="sydia-info-box">
-  <p><strong>{sydia_trad key='productoutofstock_product'} :</strong> {product}</p>
-  <p style="margin-top:8px;">{sydia_trad key='productoutofstock_below'} <strong>{last_qty}</strong>.</p>
-  <p><strong>{sydia_trad key='productoutofstock_remaining'} :</strong> {qty}</p>
+<div class="neria-section-title">{neria_trad key='productoutofstock_details'}</div>
+<div class="neria-info-box">
+  <p><strong>{neria_trad key='productoutofstock_product'} :</strong> {product}</p>
+  <p style="margin-top:8px;">{neria_trad key='productoutofstock_below'} <strong>{last_qty}</strong>.</p>
+  <p><strong>{neria_trad key='productoutofstock_remaining'} :</strong> {qty}</p>
 </div>
 
 <!-- ACTION -->
-<p class="sydia-text" style="margin-top:22px;">{sydia_trad key='productoutofstock_action'}</p>
+<p class="neria-text" style="margin-top:22px;">{neria_trad key='productoutofstock_action'}</p>
 
 <!-- NOTE -->
-<p class="sydia-text-note" style="margin-top:20px;">{sydia_trad key='productoutofstock_admin_note'}</p>
+<p class="neria-text-note" style="margin-top:20px;">{neria_trad key='productoutofstock_admin_note'}</p>
 
 <!-- SIGNATURE -->
-<div class="sydia-signature">
+<div class="neria-signature">
   <strong>{shop_name}</strong>
 </div>
 

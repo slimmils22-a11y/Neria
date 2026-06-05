@@ -1,11 +1,11 @@
-{shop_name}
-{sydia_trad key='dear_customer'},
-{sydia_trad key='voucher_intro'}
-{sydia_trad key='order_details_title'} {order_name}
-{sydia_trad key='voucher_for_order'} {order_name}.
-{sydia_trad key='voucher_amount_label'} : {voucher_amount}
-{sydia_trad key='voucher_code'} : {voucher_num}
-{sydia_trad key='voucher_usage'}
-{sydia_trad key='voucher_next'}
-{sydia_trad key='signature_thanks'}
+﻿{shop_name}
+{neria_trad key='dear_customer'},
+{neria_trad key='voucher_intro'}
+{neria_trad key='order_details_title'} {order_name}
+{neria_trad key='voucher_for_order'} {order_name}.
+{neria_trad key='voucher_amount_label'} : {voucher_amount}
+{neria_trad key='voucher_code'} : {voucher_num}
+{neria_trad key='voucher_usage'}
+{neria_trad key='voucher_next'}
+{neria_trad key='signature_thanks'}
 {shop_name} - {shop_url}

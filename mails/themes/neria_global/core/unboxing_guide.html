@@ -1,0 +1,35 @@
+﻿{extends file='layouts/layout.html'}
+
+{block name='neria_content'}
+
+<!-- UNBOXING GUIDE -->
+<h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
+<p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
+
+<!-- CORPS -->
+<p class="neria-text">{neria_trad key='dear_customer'},</p>
+<p class="neria-text">{neria_trad key='unboxing_intro'}</p>
+
+<!-- SECTION -->
+<div class="neria-section-title">{neria_trad key='unboxing_guide_title'}</div>
+
+<div class="neria-info-box">
+  <p><strong>①</strong>&nbsp;{neria_trad key='unboxing_guide_1'}</p>
+  <p><strong>②</strong>&nbsp;{neria_trad key='unboxing_guide_2'}</p>
+  <p><strong>③</strong>&nbsp;{neria_trad key='unboxing_guide_3'}</p>
+</div>
+
+<!-- BOUTON -->
+<p style="text-align:center; margin:28px 0;">
+  <a href="{shop_url}" class="neria-btn">{neria_trad key='unboxing_btn'}</a>
+</p>
+
+<p class="neria-text-note">{neria_trad key='unboxing_note'}</p>
+
+<!-- SIGNATURE -->
+<div class="neria-signature">
+  {neria_trad key='unboxing_signature'}<br />
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

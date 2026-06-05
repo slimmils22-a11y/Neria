@@ -1,26 +1,22 @@
-{extends file='layouts/layout.html'}
-{block name='sydia_content'}
-<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
-<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
-<p class="sydia-text">{sydia_trad key='dear_customer'},</p>
-<p class="sydia-text">{sydia_trad key='certificate_intro'}</p>
-
-<div class="sydia-section-title">{sydia_trad key='certificate_origin_title'}</div>
-<div class="sydia-info-box">
+﻿{extends file='layouts/layout.html'}
+{block name='neria_content'}
+<h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
+<p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
+<p class="neria-text">{neria_trad key='dear_customer'},</p>
+<p class="neria-text">{neria_trad key='certificate_intro'}</p>
+<div class="neria-section-title">{neria_trad key='certificate_origin_title'}</div>
+<div class="neria-info-box">
   <p>{certificate_origin}</p>
 </div>
-
-<div class="sydia-section-title">{sydia_trad key='certificate_materials_title'}</div>
-<div class="sydia-info-box">
+<div class="neria-section-title">{neria_trad key='certificate_materials_title'}</div>
+<div class="neria-info-box">
   <p>{certificate_materials}</p>
 </div>
-
-<div class="sydia-section-title">{sydia_trad key='certificate_artisan_title'}</div>
-<div class="sydia-info-box">
+<div class="neria-section-title">{neria_trad key='certificate_artisan_title'}</div>
+<div class="neria-info-box">
   <p>{certificate_artisan}</p>
 </div>
-
-<p class="sydia-text" style="margin-top:22px;">{sydia_trad key='certificate_message'}</p>
-<p class="sydia-text-note" style="margin-top:20px;">{sydia_trad key='certificate_note'}</p>
-<div class="sydia-signature"><strong>{shop_name}</strong></div>
+<p class="neria-text" style="margin-top:22px;">{neria_trad key='certificate_message'}</p>
+<p class="neria-text-note" style="margin-top:20px;">{neria_trad key='certificate_note'}</p>
+<div class="neria-signature"><strong>{shop_name}</strong></div>
 {/block}

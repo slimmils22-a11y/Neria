@@ -1,0 +1,16 @@
+﻿{shop_name}
+
+{neria_trad key='dear_customer'},
+
+{neria_trad key='end_of_year_intro'}
+
+{neria_trad key='end_of_year_message'}
+--------------------------------
+{neria_trad key='end_of_year_voucher_value'} : {voucher_amount}
+{neria_trad key='end_of_year_usage'} : {voucher_usage}
+
+{neria_trad key='end_of_year_btn'} : {shop_url}
+
+{neria_trad key='end_of_year_signature'}
+{shop_name}
+{shop_url}

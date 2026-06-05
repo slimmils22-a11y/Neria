@@ -1,0 +1,34 @@
+﻿{extends file='layouts/layout.html'}
+
+{block name='neria_content'}
+
+<!-- REPAIR COMPLETED -->
+<h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
+<p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
+
+<!-- RÉFÉRENCE COMMANDE -->
+<div class="neria-info-box">
+  <p><strong>{neria_trad key='order_reference_label'} :</strong> {order_name}</p>
+</div>
+
+<!-- CORPS -->
+<p class="neria-text">{neria_trad key='dear_customer'},</p>
+<p class="neria-text">{neria_trad key='repair_completed_intro'}</p>
+
+<!-- SECTION -->
+<div class="neria-section-title">{neria_trad key='repair_completed_details'}</div>
+
+<!-- BOUTON -->
+<p style="text-align:center; margin:28px 0;">
+  <a href="{history_url}" class="neria-btn">{neria_trad key='repair_completed_btn'}</a>
+</p>
+
+<p class="neria-text-note">{neria_trad key='repair_completed_note'}</p>
+
+<!-- SIGNATURE -->
+<div class="neria-signature">
+  {neria_trad key='repair_completed_signature'}<br />
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

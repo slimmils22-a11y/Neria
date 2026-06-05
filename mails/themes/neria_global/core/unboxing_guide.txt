@@ -1,0 +1,19 @@
+﻿{shop_name}
+
+{neria_trad key='dear_customer'},
+
+{neria_trad key='unboxing_intro'}
+
+{neria_trad key='unboxing_guide_title'}
+--------------------------------
+{neria_trad key='unboxing_guide_1'}
+{neria_trad key='unboxing_guide_2'}
+{neria_trad key='unboxing_guide_3'}
+
+{neria_trad key='unboxing_btn'} : {shop_url}
+
+{neria_trad key='unboxing_note'}
+
+{neria_trad key='unboxing_signature'}
+{shop_name}
+{shop_url}

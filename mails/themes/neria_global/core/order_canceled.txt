@@ -1,21 +1,21 @@
-{shop_name}
+﻿{shop_name}
 
-{sydia_trad key='dear_customer'},
+{neria_trad key='dear_customer'},
 
-{sydia_trad key='canceled_intro'}
+{neria_trad key='canceled_intro'}
 
-{sydia_trad key='order_details_title'}
+{neria_trad key='order_details_title'}
 --------------------------------
-{sydia_trad key='canceled_confirmation'} {order_name}.
-{sydia_trad key='canceled_info'}
+{neria_trad key='canceled_confirmation'} {order_name}.
+{neria_trad key='canceled_info'}
 
-{sydia_trad key='canceled_account'}
-{sydia_trad key='canceled_history_link'} : {history_url}
+{neria_trad key='canceled_account'}
+{neria_trad key='canceled_history_link'} : {history_url}
 
-{sydia_trad key='guest_tracking_info'} : {guest_tracking_url}
+{neria_trad key='guest_tracking_info'} : {guest_tracking_url}
 
-{sydia_trad key='canceled_hope'}
+{neria_trad key='canceled_hope'}
 
-{sydia_trad key='signature_regret'}
+{neria_trad key='signature_regret'}
 {shop_name}
 {shop_url}

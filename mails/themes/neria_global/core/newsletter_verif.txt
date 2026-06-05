@@ -1,7 +1,7 @@
-{shop_name}
-{sydia_trad key='newsletter_verif_intro'}
-{sydia_trad key='newsletter_verif_title'}
-{sydia_trad key='newsletter_verif_text'}
-{sydia_trad key='newsletter_verif_btn'} : {verif_url}
-{sydia_trad key='newsletter_verif_ignore'}
+﻿{shop_name}
+{neria_trad key='newsletter_verif_intro'}
+{neria_trad key='newsletter_verif_title'}
+{neria_trad key='newsletter_verif_text'}
+{neria_trad key='newsletter_verif_btn'} : {verif_url}
+{neria_trad key='newsletter_verif_ignore'}
 {shop_name} - {shop_url}

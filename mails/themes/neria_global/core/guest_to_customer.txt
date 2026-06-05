@@ -1,18 +1,18 @@
-{shop_name}
+﻿{shop_name}
 
-{sydia_trad key='dear_customer'},
+{neria_trad key='dear_customer'},
 
-{sydia_trad key='guest_to_customer_intro'}
+{neria_trad key='guest_to_customer_intro'}
 
-{sydia_trad key='account_info_title'}
+{neria_trad key='account_info_title'}
 --------------------------------
-{sydia_trad key='account_email_label'} : {email}
+{neria_trad key='account_email_label'} : {email}
 
-{sydia_trad key='guest_to_customer_password'}
-{sydia_trad key='guest_to_customer_btn'} : {url}
+{neria_trad key='guest_to_customer_password'}
+{neria_trad key='guest_to_customer_btn'} : {url}
 
-{sydia_trad key='guest_to_customer_benefits'}
-{sydia_trad key='guest_to_customer_account_link'} : {shop_url}
+{neria_trad key='guest_to_customer_benefits'}
+{neria_trad key='guest_to_customer_account_link'} : {shop_url}
 
 {shop_name}
 {shop_url}

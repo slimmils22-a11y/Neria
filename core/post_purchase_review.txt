@@ -1,8 +1,0 @@
-{shop_name}
-{sydia_trad key='dear_customer'},
-{sydia_trad key='review_intro'}
-{sydia_trad key='review_message'}
-{sydia_trad key='review_btn'} : {review_url}
-{sydia_trad key='review_note'}
-{sydia_trad key='signature_thanks'}
-{shop_name} - {shop_url}

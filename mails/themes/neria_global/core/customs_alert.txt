@@ -1,0 +1,20 @@
+﻿{shop_name}
+
+{neria_trad key='dear_customer'},
+
+{neria_trad key='customs_alert_intro'}
+
+{neria_trad key='order_reference_label'} : {order_name}
+
+{neria_trad key='customs_alert_details'}
+--------------------------------
+{neria_trad key='customs_alert_status'} : {customs_status}
+{neria_trad key='customs_alert_action'} : {customs_action}
+
+{neria_trad key='customs_alert_btn'} : {history_url}
+
+{neria_trad key='customs_alert_note'}
+
+{neria_trad key='customs_alert_signature'}
+{shop_name}
+{shop_url}

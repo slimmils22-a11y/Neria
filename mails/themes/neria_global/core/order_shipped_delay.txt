@@ -1,0 +1,19 @@
+﻿{shop_name}
+
+{neria_trad key='dear_customer'},
+
+{neria_trad key='shipped_delay_intro'}
+
+{neria_trad key='order_reference_label'} : {order_name}
+
+{neria_trad key='shipped_delay_details'}
+--------------------------------
+{neria_trad key='shipped_delay_new_date'} : {new_shipping_date}
+
+{neria_trad key='shipped_delay_btn'} : {history_url}
+
+{neria_trad key='shipped_delay_note'}
+
+{neria_trad key='shipped_delay_signature'}
+{shop_name}
+{shop_url}

@@ -1,0 +1,14 @@
+﻿{shop_name}
+
+{neria_trad key='dear_customer'},
+
+{neria_trad key='fathers_day_intro'}
+{neria_trad key='fathers_day_message'}
+
+{neria_trad key='fathers_day_btn'} : {shop_url}
+
+{neria_trad key='fathers_day_note'}
+
+{neria_trad key='fathers_day_signature'}
+{shop_name}
+{shop_url}

@@ -1,17 +1,17 @@
-{shop_name}
+﻿{shop_name}
 
-{sydia_trad key='dear_employee'},
+{neria_trad key='dear_employee'},
 
-{sydia_trad key='forward_msg_intro'}
-{employee} {sydia_trad key='forward_msg_transferred'}.
+{neria_trad key='forward_msg_intro'}
+{employee} {neria_trad key='forward_msg_transferred'}.
 
-{sydia_trad key='forward_msg_history'}
+{neria_trad key='forward_msg_history'}
 --------------------------------
 {messages}
 
-{employee} {sydia_trad key='forward_msg_added'} : {comment}
+{employee} {neria_trad key='forward_msg_added'} : {comment}
 
-{sydia_trad key='forward_msg_noreply'}
+{neria_trad key='forward_msg_noreply'}
 
 {shop_name}
 {shop_url}

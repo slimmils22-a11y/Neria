@@ -1,0 +1,17 @@
+﻿{shop_name}
+
+{neria_trad key='dear_customer'},
+
+{neria_trad key='loyalty_expiry_intro'}
+
+{neria_trad key='loyalty_expiry_details'}
+--------------------------------
+{neria_trad key='loyalty_expiry_details'} : {reward_expiry_date}
+
+{neria_trad key='loyalty_expiry_btn'} : {history_url}
+
+{neria_trad key='loyalty_expiry_note'}
+
+{neria_trad key='loyalty_expiry_signature'}
+{shop_name}
+{shop_url}

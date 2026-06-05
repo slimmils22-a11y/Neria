@@ -1,20 +1,20 @@
-{shop_name}
+﻿{shop_name}
 
-{sydia_trad key='greeting_main'}
+{neria_trad key='greeting_main'}
 
-{sydia_trad key='contact_intro'}
+{neria_trad key='contact_intro'}
 
-{sydia_trad key='contact_info_title'}
+{neria_trad key='contact_info_title'}
 --------------------------------
-{sydia_trad key='contact_email_label'} : {email}
-{sydia_trad key='order_reference_label'} : {order_name}
-{sydia_trad key='contact_attachment_label'} : {attached_file}
+{neria_trad key='contact_email_label'} : {email}
+{neria_trad key='order_reference_label'} : {order_name}
+{neria_trad key='contact_attachment_label'} : {attached_file}
 
-{sydia_trad key='contact_message_title'}
+{neria_trad key='contact_message_title'}
 --------------------------------
 {message}
 
-{sydia_trad key='contact_btn_reply'} : {email}
+{neria_trad key='contact_btn_reply'} : {email}
 
 {shop_name}
 {shop_url}

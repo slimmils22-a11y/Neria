@@ -1,15 +1,15 @@
-{shop_name}
+﻿{shop_name}
 
-{sydia_trad key='dear_employee'},
+{neria_trad key='dear_employee'},
 
-{sydia_trad key='import_intro'}
+{neria_trad key='import_intro'}
 
-{sydia_trad key='import_result_title'}
+{neria_trad key='import_result_title'}
 --------------------------------
-{sydia_trad key='import_filename'} : {filename}
-{sydia_trad key='import_success'}
+{neria_trad key='import_filename'} : {filename}
+{neria_trad key='import_success'}
 
-{sydia_trad key='import_admin_note'}
+{neria_trad key='import_admin_note'}
 
 {shop_name}
 {shop_url}

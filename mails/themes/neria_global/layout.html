@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" dir="{neria_dir}">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" dir="{$neria_dir}">
 <head>
   <title>{shop_name} – {subject}</title>
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -17,7 +17,7 @@
       padding: 0;
       -webkit-text-size-adjust: 100%;
       -ms-text-size-adjust: 100%;
-      background-color: {neriaBgColor};
+      background-color: {$neria_color_background};
     }
     table {
       border-collapse: collapse;
@@ -33,28 +33,28 @@
       -ms-interpolation-mode: bicubic;
     }
     a {
-      color: {neriaAccentColor};
+      color: {$neria_color_accent};
       text-decoration: none;
     }
 
-    /* TYPOGRAPHIE PAR DÉFAUT (sera surchargée par langue) */
+    /* TYPOGRAPHIE (surchargée par langue via EmailRenderer) */
     body, table, td, p, a, li, blockquote {
-      font-family: {neriaFont};
+      font-family: {$neria_font_family};
     }
 
     /* STRUCTURE */
     .neria-wrapper {
       width: 100%;
-      background-color: {neriaBgColor};
+      background-color: {$neria_color_background};
       padding: 32px 0;
     }
     .neria-container {
       width: 100%;
-      max-width: {neriaMaxWidth}px;
+      max-width: {$neria_container_width}px;
       margin: 0 auto;
-      background-color: {neriaContainerBg};
+      background-color: {$neria_color_container};
       border-radius: 4px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.06);
       overflow: hidden;
     }
     .neria-inner {
@@ -179,8 +179,23 @@
       font-size: 11px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: {neriaAccentColor};
+      color: {$neria_color_accent};
       margin-top: 4px;
+    }
+
+    /* RÉSEAUX SOCIAUX */
+    .neria-social {
+      text-align: center;
+      padding: 16px 0 8px 0;
+    }
+    .neria-social a {
+      display: inline-block;
+      margin: 0 6px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #a09990;
+      text-decoration: none;
     }
 
     /* HEADER / FOOTER */
@@ -201,7 +216,7 @@
       text-decoration: underline;
     }
 
-    /* BORDURE DÉCORATIVE */
+    /* SÉPARATEUR */
     .neria-rule {
       border: 0;
       height: 1px;
@@ -209,46 +224,23 @@
       margin: 20px 40px;
     }
 
-    /* DARK MODE – VERROUILLAGE */
+    /* DARK MODE – VERROUILLAGE FORCÉ */
     @media (prefers-color-scheme: dark) {
-      body, .neria-wrapper {
-        background-color: {neriaBgColor} !important;
-      }
-      .neria-container {
-        background-color: {neriaContainerBg} !important;
-      }
-      .neria-title-main, .neria-section-title, .neria-signature, .neria-text, .neria-title-sub {
-        color: #2b2520 !important;
-      }
-      .neria-info-box, .neria-address-box {
-        background-color: #fefefe !important;
-        border-color: #e8e0d5 !important;
-      }
-      .neria-products-table th {
-        color: #8c857e !important;
-      }
-      .neria-products-table td {
-        border-color: #f0e7db !important;
-      }
-      a {
-        color: {neriaAccentColor} !important;
-      }
-      img {
-        filter: none !important;
-      }
+      body, .neria-wrapper { background-color: {$neria_color_background} !important; }
+      .neria-container { background-color: {$neria_color_container} !important; }
+      .neria-title-main, .neria-section-title, .neria-signature, .neria-text, .neria-title-sub { color: #2b2520 !important; }
+      .neria-info-box, .neria-address-box { background-color: #fefefe !important; border-color: #e8e0d5 !important; }
+      .neria-products-table th { color: #8c857e !important; }
+      .neria-products-table td { border-color: #f0e7db !important; }
+      a { color: {$neria_color_accent} !important; }
+      img { filter: none !important; }
     }
 
     /* RESPONSIVE */
     @media only screen and (max-width: 480px) {
-      .neria-inner {
-        padding: 24px 20px !important;
-      }
-      .neria-rule {
-        margin: 16px 20px !important;
-      }
-      .neria-title-main {
-        font-size: 20px !important;
-      }
+      .neria-inner { padding: 24px 20px !important; }
+      .neria-rule { margin: 16px 20px !important; }
+      .neria-title-main { font-size: 20px !important; }
     }
   </style>
 </head>
@@ -258,25 +250,43 @@
   <table width="100%" border="0" cellpadding="0" cellspacing="0">
     <tr>
       <td align="center">
-        <table class="neria-container" width="100%">
-          <!-- HEADER -->
+        <table class="neria-container" width="100%" style="max-width:{$neria_container_width}px;">
+          <!-- HEADER LOGO -->
           <tr>
             <td class="neria-header">
               <a href="{shop_url}" target="_blank" rel="noopener">
-                <img src="{neriaLogo}" alt="{shop_name}" width="160" style="max-width:160px; width:100%; height:auto; display:block; margin:0 auto;" />
+                <img src="{$neria_logo_url}" alt="{shop_name}" width="160" style="max-width:160px; width:100%; height:auto; display:block; margin:0 auto;" />
               </a>
             </td>
           </tr>
-          <!-- CONTENU SPÉCIFIQUE (injecté par chaque template) -->
+
+          <!-- CONTENU SPÉCIFIQUE -->
           <tr>
             <td class="neria-inner">
               {block name='neria_content'}{/block}
             </td>
           </tr>
-          <!-- SÉPARATEUR -->
+
+          <!-- SIGNATURE MANUSCRITE -->
+          {if isset($neria_has_signature) && $neria_has_signature}
           <tr>
-            <td><hr class="neria-rule" /></td>
+            <td style="text-align:left; padding: 0 40px 16px 40px;">
+              <img src="{$neria_signature_url}" alt="" style="max-width:180px; height:auto; display:block;" />
+            </td>
           </tr>
+          {/if}
+
+          <!-- RÉSEAUX SOCIAUX -->
+          {if isset($neria_has_social) && $neria_has_social}
+          <tr>
+            <td class="neria-social">
+              {$neria_social_links}
+            </td>
+          </tr>
+          {/if}
+
+          <tr><td><hr class="neria-rule" /></td></tr>
+
           <!-- FOOTER -->
           <tr>
             <td class="neria-footer">
@@ -291,5 +301,9 @@
     </tr>
   </table>
 </div>
+
+{* PIXEL DE TRACKING *}
+{if isset($neria_tracking_pixel)}{$neria_tracking_pixel}{/if}
+
 </body>
 </html>

@@ -1,0 +1,19 @@
+﻿{shop_name}
+
+{neria_trad key='dear_customer'},
+
+{neria_trad key='care_certificate_intro'}
+
+{neria_trad key='care_certificate_title'}
+--------------------------------
+{neria_trad key='care_certificate_product'} : {product_name}
+{neria_trad key='care_certificate_materials'} : {product_materials}
+{neria_trad key='care_certificate_instructions'} : {care_instructions}
+
+{neria_trad key='care_certificate_btn'} : {shop_url}
+
+{neria_trad key='care_certificate_note'}
+
+{neria_trad key='care_certificate_signature'}
+{shop_name}
+{shop_url}

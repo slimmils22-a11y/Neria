@@ -1,12 +1,12 @@
-{shop_name}
+﻿{shop_name}
 
-{sydia_trad key='dear_customer'},
+{neria_trad key='dear_customer'},
 
-{sydia_trad key='order_details_title'} {order_name} — {sydia_trad key='credit_slip_title'}
-{sydia_trad key='credit_slip_confirmation'} {order_name}.
+{neria_trad key='order_details_title'} {order_name} — {neria_trad key='credit_slip_title'}
+{neria_trad key='credit_slip_confirmation'} {order_name}.
 
-{sydia_trad key='credit_slip_info'} : {history_url}
+{neria_trad key='credit_slip_info'} : {history_url}
 
-{sydia_trad key='signature_thanks'}
+{neria_trad key='signature_thanks'}
 {shop_name}
 {shop_url}

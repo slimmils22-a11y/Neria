@@ -1,8 +1,0 @@
-{shop_name}
-{sydia_trad key='dear_customer'},
-{sydia_trad key='halloween_intro'}
-{sydia_trad key='halloween_message'}
-{sydia_trad key='halloween_btn'} : {shop_url}
-{sydia_trad key='halloween_note'}
-{sydia_trad key='halloween_signature'}
-{shop_name} - {shop_url}

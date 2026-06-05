@@ -1,8 +1,8 @@
-{shop_name}
-{sydia_trad key='dear_customer'},
-{sydia_trad key='ramadan_intro'}
-{sydia_trad key='ramadan_message'}
-{sydia_trad key='ramadan_btn'} : {shop_url}
-{sydia_trad key='ramadan_note'}
-{sydia_trad key='ramadan_signature'}
+﻿{shop_name}
+{neria_trad key='dear_customer'},
+{neria_trad key='ramadan_intro'}
+{neria_trad key='ramadan_message'}
+{neria_trad key='ramadan_btn'} : {shop_url}
+{neria_trad key='ramadan_note'}
+{neria_trad key='ramadan_signature'}
 {shop_name} - {shop_url}

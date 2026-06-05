@@ -1,24 +1,15 @@
-{extends file='layouts/layout.html'}
-{block name='sydia_content'}
-<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
-<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
-<p class="sydia-text">{sydia_trad key='dear_customer'},</p>
-<p class="sydia-text">{sydia_trad key='birthday_intro'}</p>
-<p class="sydia-text">{sydia_trad key='birthday_message'}</p>
-
-<div style="text-align:center;margin:28px 0;padding:24px;border:2px solid {sydiaAccentColor};background:#fefefe;">
-  <p style="font-size:20px;font-weight:700;color:{sydiaAccentColor};margin:0;letter-spacing:0.06em;">{voucher_code}</p>
-  <p style="margin:12px 0 0 0;">{sydia_trad key='birthday_voucher_value'}</p>
+﻿{extends file='layouts/layout.html'}
+{block name='neria_content'}
+<h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
+<p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
+<p class="neria-text">{neria_trad key='dear_customer'},</p>
+<p class="neria-text">{neria_trad key='birthday_intro'}</p>
+<p class="neria-text">{neria_trad key='birthday_message'}</p>
+<div style="text-align:center;margin:28px 0;padding:24px;border:2px solid {$neria_color_accent};background:#fefefe;">
+  <p style="font-size:20px;font-weight:700;color:{$neria_color_accent};margin:0;letter-spacing:0.06em;">{voucher_code}</p>
+  <p style="margin:12px 0 0 0;">{neria_trad key='birthday_voucher_value'}</p>
 </div>
-
-<p class="sydia-text">{sydia_trad key='birthday_usage'}</p>
-
-<div style="text-align:center;margin-top:24px;">
-  <a href="{shop_url}" class="sydia-btn">{sydia_trad key='birthday_btn'}</a>
-</div>
-
-<div class="sydia-signature">
-  {sydia_trad key='birthday_signature'}<br />
-  <strong>{shop_name}</strong>
-</div>
+<p class="neria-text">{neria_trad key='birthday_usage'}</p>
+<div style="text-align:center;margin-top:24px;"><a href="{shop_url}" class="neria-btn">{neria_trad key='birthday_btn'}</a></div>
+<div class="neria-signature">{neria_trad key='birthday_signature'}<br /><strong>{shop_name}</strong></div>
 {/block}

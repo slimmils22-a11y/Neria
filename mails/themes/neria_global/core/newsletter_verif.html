@@ -1,30 +1,13 @@
-{extends file='layouts/layout.html'}
-{block name='sydia_content'}
-
-<!-- TITRE PRINCIPAL -->
-<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
-<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
-
-<!-- INTRO -->
-<p class="sydia-text">{sydia_trad key='newsletter_verif_intro'}</p>
-
-<!-- BOX VÉRIFICATION -->
-<div class="sydia-section-title">{sydia_trad key='newsletter_verif_title'}</div>
-<div class="sydia-info-box">
-  <p>{sydia_trad key='newsletter_verif_text'}</p>
+﻿{extends file='layouts/layout.html'}
+{block name='neria_content'}
+<h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
+<p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
+<p class="neria-text">{neria_trad key='newsletter_verif_intro'}</p>
+<div class="neria-section-title">{neria_trad key='newsletter_verif_title'}</div>
+<div class="neria-info-box">
+  <p>{neria_trad key='newsletter_verif_text'}</p>
 </div>
-
-<!-- BOUTON DE VÉRIFICATION -->
-<div style="text-align:center;margin-top:24px;">
-  <a href="{verif_url}" class="sydia-btn">{sydia_trad key='newsletter_verif_btn'}</a>
-</div>
-
-<!-- NOTE DE SÉCURITÉ -->
-<p class="sydia-text-note" style="margin-top:22px;">{sydia_trad key='newsletter_verif_ignore'}</p>
-
-<!-- SIGNATURE -->
-<div class="sydia-signature">
-  <strong>{shop_name}</strong>
-</div>
-
+<div style="text-align:center;margin-top:24px;"><a href="{verif_url}" class="neria-btn">{neria_trad key='newsletter_verif_btn'}</a></div>
+<p class="neria-text-note" style="margin-top:22px;">{neria_trad key='newsletter_verif_ignore'}</p>
+<div class="neria-signature"><strong>{shop_name}</strong></div>
 {/block}

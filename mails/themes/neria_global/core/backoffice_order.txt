@@ -1,14 +1,14 @@
-{shop_name}
+﻿{shop_name}
 
-{sydia_trad key='dear_customer'},
+{neria_trad key='dear_customer'},
 
-{sydia_trad key='backoffice_order_intro'}
+{neria_trad key='backoffice_order_intro'}
 
-{sydia_trad key='backoffice_order_payment_title'}
+{neria_trad key='backoffice_order_payment_title'}
 --------------------------------
-{sydia_trad key='backoffice_order_payment_text'}
+{neria_trad key='backoffice_order_payment_text'}
 
-{sydia_trad key='backoffice_order_btn'} : {order_link}
+{neria_trad key='backoffice_order_btn'} : {order_link}
 
 {shop_name}
 {shop_url}

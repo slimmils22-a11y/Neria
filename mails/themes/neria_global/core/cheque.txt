@@ -1,27 +1,27 @@
-{shop_name}
+﻿{shop_name}
 
-{sydia_trad key='dear_customer'},
+{neria_trad key='dear_customer'},
 
-{sydia_trad key='cheque_intro'}
+{neria_trad key='cheque_intro'}
 
-{sydia_trad key='order_details_title'} {order_name} — {sydia_trad key='cheque_status'}
-{sydia_trad key='cheque_confirmation'} {order_name}.
+{neria_trad key='order_details_title'} {order_name} — {neria_trad key='cheque_status'}
+{neria_trad key='cheque_confirmation'} {order_name}.
 
-{sydia_trad key='cheque_details_title'}
+{neria_trad key='cheque_details_title'}
 --------------------------------
-{sydia_trad key='cheque_instructions'}
+{neria_trad key='cheque_instructions'}
 
-{sydia_trad key='cheque_amount_label'} : {total_paid}
-{sydia_trad key='cheque_payable_label'} : {check_name}
+{neria_trad key='cheque_amount_label'} : {total_paid}
+{neria_trad key='cheque_payable_label'} : {check_name}
 
-{sydia_trad key='cheque_address_label'} :
+{neria_trad key='cheque_address_label'} :
 {check_address_txt}
 
-{sydia_trad key='cheque_reference_note'} {order_name}.
+{neria_trad key='cheque_reference_note'} {order_name}.
 
-{sydia_trad key='history_info'} : {history_url}
-{sydia_trad key='guest_tracking_info'} : {guest_tracking_url}
+{neria_trad key='history_info'} : {history_url}
+{neria_trad key='guest_tracking_info'} : {guest_tracking_url}
 
-{sydia_trad key='signature_thanks'}
+{neria_trad key='signature_thanks'}
 {shop_name}
 {shop_url}

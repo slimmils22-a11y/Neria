@@ -1,10 +1,10 @@
-{shop_name}
-{sydia_trad key='dear_customer'},
-{sydia_trad key='birthday_intro'}
-{sydia_trad key='birthday_message'}
-{sydia_trad key='voucher_code'} : {voucher_code}
-{sydia_trad key='birthday_voucher_value'}
-{sydia_trad key='birthday_usage'}
-{sydia_trad key='birthday_btn'} : {shop_url}
-{sydia_trad key='birthday_signature'}
+﻿{shop_name}
+{neria_trad key='dear_customer'},
+{neria_trad key='birthday_intro'}
+{neria_trad key='birthday_message'}
+{neria_trad key='voucher_code'} : {voucher_code}
+{neria_trad key='birthday_voucher_value'}
+{neria_trad key='birthday_usage'}
+{neria_trad key='birthday_btn'} : {shop_url}
+{neria_trad key='birthday_signature'}
 {shop_name} - {shop_url}

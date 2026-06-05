@@ -1,26 +1,11 @@
-{extends file='layouts/layout.html'}
-{block name='sydia_content'}
-
-<!-- TITRE PRINCIPAL -->
-<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
-<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
-
-<!-- SALUTATION & INTRO -->
-<p class="sydia-text">{sydia_trad key='dear_customer'},</p>
-<p class="sydia-text">{sydia_trad key='private_sale_intro'}</p>
-<p class="sydia-text">{sydia_trad key='private_sale_message'}</p>
-
-<!-- BOUTON D'ACCÈS VENTE PRIVÉE -->
-<div style="text-align:center;margin-top:24px;">
-  <a href="{sale_url}" class="sydia-btn">{sydia_trad key='private_sale_btn'}</a>
-</div>
-
-<!-- NOTE FINALE -->
-<p class="sydia-text-note" style="margin-top:20px;">{sydia_trad key='private_sale_note'}</p>
-
-<!-- SIGNATURE -->
-<div class="sydia-signature">
-  <strong>{shop_name}</strong>
-</div>
-
+﻿{extends file='layouts/layout.html'}
+{block name='neria_content'}
+<h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
+<p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
+<p class="neria-text">{neria_trad key='dear_customer'},</p>
+<p class="neria-text">{neria_trad key='private_sale_intro'}</p>
+<p class="neria-text">{neria_trad key='private_sale_message'}</p>
+<div style="text-align:center;margin-top:24px;"><a href="{sale_url}" class="neria-btn">{neria_trad key='private_sale_btn'}</a></div>
+<p class="neria-text-note" style="margin-top:20px;">{neria_trad key='private_sale_note'}</p>
+<div class="neria-signature"><strong>{shop_name}</strong></div>
 {/block}

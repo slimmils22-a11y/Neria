@@ -1,0 +1,18 @@
+﻿{shop_name}
+
+{neria_trad key='dear_customer'},
+
+{neria_trad key='multi_recipient_intro'}
+
+{neria_trad key='order_reference_label'} : {order_name}
+
+{neria_trad key='multi_recipient_details'}
+--------------------------------
+
+{neria_trad key='multi_recipient_btn'} : {history_url}
+
+{neria_trad key='multi_recipient_note'}
+
+{neria_trad key='multi_recipient_signature'}
+{shop_name}
+{shop_url}

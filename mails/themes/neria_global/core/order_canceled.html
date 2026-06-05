@@ -1,35 +1,35 @@
-{extends file='layouts/layout.html'}
+﻿{extends file='layouts/layout.html'}
 
-{block name='sydia_content'}
+{block name='neria_content'}
 
 <!-- TITRE PRINCIPAL -->
-<h1 class="sydia-title-main">{sydia_trad key='greeting_main'}</h1>
-<p class="sydia-title-sub">{sydia_trad key='greeting_subtitle'}</p>
+<h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
+<p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
 
 <!-- SALUTATION -->
-<p class="sydia-text">{sydia_trad key='dear_customer'},</p>
+<p class="neria-text">{neria_trad key='dear_customer'},</p>
 
 <!-- INTRO -->
-<p class="sydia-text">{sydia_trad key='canceled_intro'}</p>
+<p class="neria-text">{neria_trad key='canceled_intro'}</p>
 
 <!-- BOX RÉFÉRENCE -->
-<div class="sydia-section-title">{sydia_trad key='order_details_title'}</div>
-<div class="sydia-info-box">
-  <p>{sydia_trad key='canceled_confirmation'} <strong>{order_name}</strong>.</p>
-  <p style="margin-top:8px;">{sydia_trad key='canceled_info'}</p>
+<div class="neria-section-title">{neria_trad key='order_details_title'}</div>
+<div class="neria-info-box">
+  <p>{neria_trad key='canceled_confirmation'} <strong>{order_name}</strong>.</p>
+  <p style="margin-top:8px;">{neria_trad key='canceled_info'}</p>
 </div>
 
 <!-- LIENS -->
-<p class="sydia-text" style="margin-top:24px;">{sydia_trad key='canceled_account'}</p>
-<p class="sydia-text"><a href="{history_url}" style="font-weight:600;">{sydia_trad key='canceled_history_link'}</a></p>
-<p class="sydia-text">{sydia_trad key='guest_tracking_info'}</p>
+<p class="neria-text" style="margin-top:24px;">{neria_trad key='canceled_account'}</p>
+<p class="neria-text"><a href="{history_url}" style="font-weight:600;">{neria_trad key='canceled_history_link'}</a></p>
+<p class="neria-text">{neria_trad key='guest_tracking_info'}</p>
 
 <!-- NOTE -->
-<p class="sydia-text-note" style="margin-top:20px;">{sydia_trad key='canceled_hope'}</p>
+<p class="neria-text-note" style="margin-top:20px;">{neria_trad key='canceled_hope'}</p>
 
 <!-- SIGNATURE -->
-<div class="sydia-signature">
-  {sydia_trad key='signature_regret'}<br />
+<div class="neria-signature">
+  {neria_trad key='signature_regret'}<br />
   <strong>{shop_name}</strong>
 </div>
 
