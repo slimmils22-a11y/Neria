@@ -278,8 +278,14 @@ class Neria extends Module
             // Configuration design (couleurs, logo, typo…)
             'design'           => $config->getDesignConfig(),
 
-            // Variables personnalisées du marchand
-            'custom_vars'      => $config->getCustomVariables(),
+            // Variables personnalisées du marchand — transformées en tableau associatif
+            // getCustomVariables() retourne [['variable_key'=>'...','variable_value'=>'...'], ...]
+            // configure.tpl accède via $custom_vars.maison_name → tableau associatif requis
+            'custom_vars'      => array_column(
+                $config->getCustomVariables(),
+                'variable_value',
+                'variable_key'
+            ),
 
             // Liens réseaux sociaux configurés
             'social_links'     => $config->getSocialLinks(),
