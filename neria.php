@@ -290,14 +290,25 @@ class Neria extends Module
             // Liens réseaux sociaux configurés
             'social_links'     => $config->getSocialLinks(),
 
-            // KPIs des 30 derniers jours (onglet configure + stats)
+            // KPIs des 30 derniers jours (onglet configure)
             'kpis'             => $stats->getKpis(30),
+
+            // Rapports complets pour stats.tpl ($stats.kpis, $stats.global_30, etc.)
+            'stats'            => $stats->getCachedReports(),
+            'stats_days'       => (int) Tools::getValue('stats_days', 30),
 
             // Prochaines occasions calendaires (onglet configure)
             'upcoming_events'  => $calendar->getUpcomingDates(),
 
-            // Polices groupées par famille d'écriture (onglet typography)
-            'fonts_by_script'  => $fonts->getAllScripts(),
+            // Polices : $font_scripts = metadata scripts, $fonts_by_script = polices par script
+            'font_scripts'     => $fonts->getAllScripts(),
+            'fonts_by_script'  => array_combine(
+                array_keys($fonts->getAllScripts()),
+                array_map(
+                    fn($script) => $fonts->getFontsForScript($script),
+                    array_keys($fonts->getAllScripts())
+                )
+            ),
             'current_fonts'    => $config->getTypographyConfig(),
 
             // Styles de signature disponibles (onglet configure)
@@ -306,6 +317,12 @@ class Neria extends Module
 
             // Diagnostic complet pour l'onglet Aide
             'diagnostic'       => NeriaTools::getDiagnosticReport($this),
+
+            // Variables pour abtest.tpl
+            'eligible_templates' => (new ABTestManager($this))->getEligibleTemplates(),
+            'tests_status'       => $this->getAbtestStatusMap(new ABTestManager($this)),
+            'tests_data'         => $this->getAbtestDataMap(new ABTestManager($this)),
+            'ab_reports'         => $this->getAbtestReportsMap($stats, new ABTestManager($this)),
         ]);
 
         // ── Réseaux sociaux ───────────────────────────────────────
@@ -566,6 +583,53 @@ class Neria extends Module
     // UTILITAIRES PUBLICS
     // Utilisés par les classes src/ qui reçoivent $this (le module)
     // ============================================================
+
+    /**
+     * Construit la map statut A/B pour abtest.tpl
+     * ['template_name' => 'active|draft|none', ...]
+     */
+    private function getAbtestStatusMap(ABTestManager $ab): array
+    {
+        $map = [];
+        foreach ($ab->getEligibleTemplates() as $tpl => $label) {
+            $map[$tpl] = $ab->getTestStatus($tpl);
+        }
+        return $map;
+    }
+
+    /**
+     * Construit la map données A/B pour abtest.tpl
+     * ['template_name' => ['a' => [...], 'b' => [...]], ...]
+     */
+    private function getAbtestDataMap(ABTestManager $ab): array
+    {
+        $map  = [];
+        $rows = $ab->getAllActiveTests();
+        foreach ($rows as $row) {
+            $tpl     = $row['template'];
+            $variant = strtolower($row['variant']);
+            if (!isset($map[$tpl])) {
+                $map[$tpl] = [];
+            }
+            $map[$tpl][$variant] = $row;
+        }
+        return $map;
+    }
+
+    /**
+     * Construit la map rapports A/B pour abtest.tpl
+     * ['template_name' => ['A' => [...], 'B' => [...]], ...]
+     */
+    private function getAbtestReportsMap(StatsManager $stats, ABTestManager $ab): array
+    {
+        $map = [];
+        foreach ($ab->getEligibleTemplates() as $tpl => $label) {
+            if ($ab->hasActiveTest($tpl)) {
+                $map[$tpl] = $stats->getABTestReport($tpl, 30);
+            }
+        }
+        return $map;
+    }
 
     /**
      * Retourne le chemin absolu vers un fichier du module

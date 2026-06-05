@@ -177,7 +177,8 @@ class EmailRenderer
 
                 // Variante B : cherche d'abord dans les textes A/B
                 if ($variant === 'B') {
-                    $abValue = $engine->getABVariantValue($template, $lang, $key);
+                    $abManager = new ABTestManager($module);
+                    $abValue   = $abManager->getVariantBValue($template, $lang, $key);
                     if ($abValue !== null) {
                         return $abValue;
                     }
