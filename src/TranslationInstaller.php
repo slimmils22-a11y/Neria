@@ -90,7 +90,7 @@ class TranslationInstaller
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             $this->module->log(
-                'TranslationInstaller: JSON invalide → ' . json_error_msg(),
+                'TranslationInstaller: JSON invalide → ' . json_last_error_msg(),
                 3
             );
             return false;

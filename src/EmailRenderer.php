@@ -516,7 +516,7 @@ class EmailRenderer
             // Variables PrestaShop factices pour l'aperçu
             'shop_name'              => \Configuration::get('PS_SHOP_NAME'),
             'shop_url'               => \Tools::getShopDomainSsl(true),
-            'order_name'             => 'SY-000123',
+            'order_name'             => 'NR-000123',
             'date'                   => date('d/m/Y'),
             'payment'                => 'Carte bancaire',
             'total_paid'             => '189,00 €',
@@ -557,7 +557,7 @@ class EmailRenderer
     private function getFakeProductsTable(): string
     {
         return '<tr>
-            <td>SY-001</td>
+            <td>NR-001</td>
             <td>Montre Artisanale Edition Limitée</td>
             <td>189,00 €</td>
             <td>1</td>
