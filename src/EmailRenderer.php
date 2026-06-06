@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * NERIA â€” EmailRenderer
  *
@@ -105,6 +105,11 @@ class EmailRenderer
         $variant = $this->resolveABVariant($template, $params);
 
         // â”€â”€ Enregistre {neria_trad} dans Smarty â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Rediriger vers les templates Neria
+        if (isset($params['templatePath'])) {
+            $params['templatePath'] = $this->module->getModulePath('mails/themes/neria_global/');
+        }
+
         $this->registerSmartyFunction($template, $lang, $variant);
 
         // â”€â”€ Injecte les variables de design dans Smarty â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
