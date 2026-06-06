@@ -124,7 +124,7 @@ class EmailRenderer
         // Compiler template Neria et changer templatePath
         $compiledPath = $this->compileNeriaTemplate($template, $lang);
         if ($compiledPath && isset($params['templatePath'])) {
-            $params['templatePath'] = dirname($compiledPath) . DIRECTORY_SEPARATOR;
+            $params['templatePath'] = dirname(dirname($compiledPath)) . DIRECTORY_SEPARATOR;
         }
 
         // â”€â”€ Log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
