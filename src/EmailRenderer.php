@@ -201,8 +201,11 @@ class EmailRenderer
      * @param string $lang         Code langue (pour la police)
      * @param array  $templateVars Variables Smarty (passÃ© par rÃ©fÃ©rence)
      */
-    private function injectDesignVars(string $lang, array &$templateVars): void
+    private function injectDesignVars(string $lang, &$templateVars): void
     {
+        if (!is_array($templateVars)) {
+            $templateVars = [];
+        }
         $design = $this->config->getDesignConfig();
 
         $templateVars = array_merge($templateVars, [
