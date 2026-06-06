@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * NERIA â€” EmailRenderer
  *
@@ -566,5 +566,39 @@ class EmailRenderer
             <td>1</td>
             <td style="text-align:right;">189,00 â‚¬</td>
         </tr>';
+    }
+
+    /**
+     * Compile le template Neria en fichier HTML plat (sans heritage Smarty)
+     * Fusionne layout.html + core/{template}.html
+     */
+    private function compileNeriaTemplate(string $template, string $lang): ?string
+    {
+        $layoutPath = $this->module->getModulePath('mails/themes/neria_global/layout.html');
+        $corePath   = $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html');
+
+        if (!file_exists($layoutPath) || !file_exists($corePath)) {
+            return null;
+        }
+
+        $layout = file_get_contents($layoutPath);
+        $core   = file_get_contents($corePath);
+
+        if (!preg_match('/\{block\s+name=[\'"]neria_content[\'\"]\}(.*?)\{\/block\}/s', $core, $m)) {
+            return null;
+        }
+
+        $compiled = preg_replace('/\{block\s+name=[\'"]neria_content[\'\"]\}\{\/block\}/', trim($m[1]), $layout);
+        $compiled = preg_replace('/\{extends\s+[^}]+\}/', '', $compiled);
+
+        $outDir = _PS_ROOT_DIR_ . '/var/cache/neria/' . $lang . '/';
+        if (!is_dir($outDir)) {
+            mkdir($outDir, 0755, true);
+        }
+
+        $outFile = $outDir . $template . '.html';
+        file_put_contents($outFile, $compiled);
+
+        return $outFile;
     }
 }
