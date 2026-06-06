@@ -248,12 +248,10 @@ VALUES
 
 
 -- Occasions calendaires par défaut
-INSERT INTO `PREFIX_neria_calendar_event`
+INSERT IGNORE INTO `PREFIX_neria_calendar_event`
     (`id_shop`, `event_key`, `lang`, `country_code`, `template`, `send_days_before`, `is_active`, `date_add`, `date_upd`)
 VALUES
     (1, 'eid',              'ar',  'SA',  'eid',              7, 1, NOW(), NOW()),
-    (1, 'eid',              'ar',  'AE',  'eid',              7, 1, NOW(), NOW()),
-    (1, 'eid',              'ar',  'MA',  'eid',              7, 1, NOW(), NOW()),
     (1, 'lunar_new_year',   'zh',  'CN',  'lunar_new_year',   7, 1, NOW(), NOW()),
     (1, 'lunar_new_year',   'tw',  'TW',  'lunar_new_year',   7, 1, NOW(), NOW()),
     (1, 'lunar_new_year',   'ko',  'KR',  'lunar_new_year',   7, 1, NOW(), NOW()),
@@ -263,9 +261,6 @@ VALUES
     (1, 'christmas',        'it',  'IT',  'christmas',        5, 1, NOW(), NOW()),
     (1, 'christmas',        'es',  'ES',  'christmas',        5, 1, NOW(), NOW()),
     (1, 'halloween',        'en',  'US',  'halloween',        7, 1, NOW(), NOW()),
-    (1, 'halloween',        'en',  'GB',  'halloween',        7, 1, NOW(), NOW()),
     (1, 'valentine',        'fr',  'FR',  'valentine',        7, 1, NOW(), NOW()),
     (1, 'valentine',        'en',  'US',  'valentine',        7, 1, NOW(), NOW()),
-    (1, 'valentine',        'en',  'GB',  'valentine',        7, 1, NOW(), NOW()),
-    (1, 'ramadan',          'ar',  'SA',  'ramadan',         14, 1, NOW(), NOW()),
-    (1, 'ramadan',          'ar',  'AE',  'ramadan',         14, 1, NOW(), NOW());
+    (1, 'ramadan',          'ar',  'SA',  'ramadan',         14, 1, NOW(), NOW());
