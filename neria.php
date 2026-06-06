@@ -188,10 +188,8 @@ class Neria extends Module
      *   - $params['templateVars'] : variables Smarty du template
      *   - $params['idLang']     : id de langue PrestaShop
      */
-    public function hookActionEmailSendBefore(array $params): void
+    public function hookActionEmailSendBefore(array &$params): void
     {
-        // Délégation à EmailRenderer
-        // (implémenté à l'étape 6 — EmailRenderer.php)
         if (class_exists('EmailRenderer')) {
             $renderer = new EmailRenderer($this);
             $renderer->processEmailParams($params);
