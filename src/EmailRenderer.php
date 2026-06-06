@@ -124,7 +124,8 @@ class EmailRenderer
         // Compiler template Neria et changer templatePath
         $compiledPath = $this->compileNeriaTemplate($template, $lang);
         if ($compiledPath && isset($params['templatePath'])) {
-            $params['templatePath'] = dirname(dirname($compiledPath)) . DIRECTORY_SEPARATOR;
+            // PS détecte 'modules/neria/' dans le chemin et cherche dans ce dossier
+            $params['templatePath'] = _PS_MODULE_DIR_ . 'neria/mails/';
         }
 
         // â”€â”€ Log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -597,13 +598,19 @@ class EmailRenderer
         $compiled = preg_replace('/\{block\s+name=[\'"]neria_content[\'\"]\}\{\/block\}/', trim($m[1]), $layout);
         $compiled = preg_replace('/\{extends\s+[^}]+\}/', '', $compiled);
 
-        $outDir = _PS_ROOT_DIR_ . '/var/cache/neria/' . $lang . '/';
+        $outDir = _PS_MODULE_DIR_ . 'neria/mails/' . $lang . '/';
         if (!is_dir($outDir)) {
             mkdir($outDir, 0755, true);
         }
 
         $outFile = $outDir . $template . '.html';
         file_put_contents($outFile, $compiled);
+
+        // Générer aussi la version .txt
+        $txtPath = $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.txt');
+        if (file_exists($txtPath)) {
+            copy($txtPath, $outDir . $template . '.txt');
+        }
 
         return $outFile;
     }
