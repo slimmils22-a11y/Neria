@@ -287,6 +287,9 @@ class TranslationInstaller
             return true;
         }
 
+        // Forcer l'encodage UTF-8mb4 pour les traductions multilingues
+        $this->db->execute("SET NAMES 'utf8mb4'");
+
         // Construction de la requête INSERT bulk
         $table   = _DB_PREFIX_ . self::TABLE;
         $columns = '(`template`, `lang`, `translation_key`, `translation_value`, `is_custom`, `date_add`, `date_upd`)';
