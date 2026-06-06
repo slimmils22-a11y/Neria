@@ -1,17 +1,17 @@
-<?php
+﻿<?php
 /**
- * NERIA — StatsManager
+ * NERIA â€” StatsManager
  *
- * Gestion complète des statistiques d'emails :
- * — Enregistrement des envois, ouvertures et clics
- * — Calcul des taux d'ouverture et de clic
- * — Rapports par template, langue et pays
- * — Nettoyage des données anciennes
- * — Anonymisation RGPD des IPs
+ * Gestion complÃ¨te des statistiques d'emails :
+ * â€” Enregistrement des envois, ouvertures et clics
+ * â€” Calcul des taux d'ouverture et de clic
+ * â€” Rapports par template, langue et pays
+ * â€” Nettoyage des donnÃ©es anciennes
+ * â€” Anonymisation RGPD des IPs
  *
  * Flux de tracking :
- * 1. EmailRenderer génère un token unique par email
- * 2. Un pixel 1x1 est injecté dans le HTML de l'email
+ * 1. EmailRenderer gÃ©nÃ¨re un token unique par email
+ * 2. Un pixel 1x1 est injectÃ© dans le HTML de l'email
  * 3. Quand le client ouvre l'email, le pixel charge
  *    PrestaShop appelle le front controller "track"
  *    StatsManager enregistre l'evenement "open"
@@ -444,8 +444,7 @@ class StatsManager
                     `id_customer`, `id_order`, `abtest_variant`
              FROM `{$table}`
              WHERE `tracking_token` = '" . pSQL($token) . "'
-               AND `event_type`     = '" . self::EVENT_SENT . "'
-             LIMIT 1"
+               AND `event_type`     = '" . self::EVENT_SENT . "'"
         );
 
         return $row ?: null;

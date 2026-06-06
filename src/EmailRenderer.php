@@ -1,18 +1,18 @@
-<?php
+﻿<?php
 /**
- * NERIA — EmailRenderer
+ * NERIA â€” EmailRenderer
  *
  * Orchestrateur central du rendu des emails Neria.
- * Intercepte chaque email envoyé par PrestaShop via le hook
+ * Intercepte chaque email envoyÃ© par PrestaShop via le hook
  * actionEmailSendBefore et :
  *
  * 1. Identifie le template et la langue du destinataire
  * 2. Enregistre la fonction Smarty {neria_trad key='...'}
  * 3. Injecte les variables de design (couleurs, polices, RTL)
- * 4. Sélectionne la variante A/B si un test est actif
+ * 4. SÃ©lectionne la variante A/B si un test est actif
  * 5. Injecte le pixel de tracking pour les statistiques
- * 6. Injecte les liens réseaux sociaux
- * 7. Injecte la signature manuscrite si configurée
+ * 6. Injecte les liens rÃ©seaux sociaux
+ * 7. Injecte la signature manuscrite si configurÃ©e
  *
  * @author  Neria
  * @version 1.0.0
@@ -29,7 +29,7 @@ class EmailRenderer
     // ============================================================
 
     /**
-     * Templates qui NE doivent PAS être traités par Neria
+     * Templates qui NE doivent PAS Ãªtre traitÃ©s par Neria
      * (emails admin purement techniques)
      */
     const EXCLUDED_TEMPLATES = [
@@ -41,7 +41,7 @@ class EmailRenderer
     ];
 
     // ============================================================
-    // PROPRIÉTÉS
+    // PROPRIÃ‰TÃ‰S
     // ============================================================
 
     /** @var Neria Instance du module principal */
@@ -69,14 +69,14 @@ class EmailRenderer
     }
 
     // ============================================================
-    // POINT D'ENTRÉE PRINCIPAL
+    // POINT D'ENTRÃ‰E PRINCIPAL
     // ============================================================
 
     /**
-     * Traite les paramètres d'un email avant son envoi
-     * Appelé depuis neria.php → hookActionEmailSendBefore()
+     * Traite les paramÃ¨tres d'un email avant son envoi
+     * AppelÃ© depuis neria.php â†’ hookActionEmailSendBefore()
      *
-     * @param array $params Paramètres passés par PrestaShop :
+     * @param array $params ParamÃ¨tres passÃ©s par PrestaShop :
      *   $params['template']     : nom du template (ex: order_conf)
      *   $params['idLang']       : id langue PrestaShop
      *   $params['templateVars'] : variables Smarty du template
@@ -86,42 +86,42 @@ class EmailRenderer
      */
     public function processEmailParams(array &$params): void
     {
-        // ── Vérifie que le module est actif ──────────────────────
+        // â”€â”€ VÃ©rifie que le module est actif â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!$this->config->isActive()) {
             return;
         }
 
-        // ── Récupère et valide le template ───────────────────────
+        // â”€â”€ RÃ©cupÃ¨re et valide le template â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $template = $this->resolveTemplate($params['template'] ?? '');
 
         if (!$template || $this->isExcluded($template)) {
             return;
         }
 
-        // ── Résout la langue ─────────────────────────────────────
+        // â”€â”€ RÃ©sout la langue â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $lang = $this->engine->langFromId((int) ($params['idLang'] ?? 0));
 
-        // ── Sélectionne la variante A/B si nécessaire ────────────
+        // â”€â”€ SÃ©lectionne la variante A/B si nÃ©cessaire â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $variant = $this->resolveABVariant($template, $params);
 
-        // ── Enregistre {neria_trad} dans Smarty ──────────────────
+        // â”€â”€ Enregistre {neria_trad} dans Smarty â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $this->registerSmartyFunction($template, $lang, $variant);
 
-        // ── Injecte les variables de design dans Smarty ──────────
+        // â”€â”€ Injecte les variables de design dans Smarty â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $this->injectDesignVars($lang, $params['templateVars']);
 
-        // ── Injecte les liens réseaux sociaux ────────────────────
+        // â”€â”€ Injecte les liens rÃ©seaux sociaux â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $this->injectSocialVars($params['templateVars']);
 
-        // ── Injecte la signature ─────────────────────────────────
+        // â”€â”€ Injecte la signature â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $this->injectSignatureVars($params['templateVars']);
 
-        // ── Injecte le pixel de tracking ─────────────────────────
+        // â”€â”€ Injecte le pixel de tracking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if ($this->config->isStatsEnabled()) {
             $this->injectTrackingPixel($template, $lang, $params);
         }
 
-        // ── Log ──────────────────────────────────────────────────
+        // â”€â”€ Log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $this->module->log(
             sprintf(
                 'EmailRenderer: rendu [%s][%s]%s',
@@ -134,7 +134,7 @@ class EmailRenderer
     }
 
     // ============================================================
-    // SMARTY — Enregistrement de {neria_trad}
+    // SMARTY â€” Enregistrement de {neria_trad}
     // ============================================================
 
     /**
@@ -157,12 +157,12 @@ class EmailRenderer
         $module  = $this->module;
         $smarty  = $this->context->smarty;
 
-        // Évite d'enregistrer deux fois (cas de plusieurs emails
-        // envoyés dans la même requête)
+        // Ã‰vite d'enregistrer deux fois (cas de plusieurs emails
+        // envoyÃ©s dans la mÃªme requÃªte)
         try {
             $smarty->unregisterPlugin('function', 'neria_trad');
         } catch (\Throwable $e) {
-            // Plugin pas encore enregistré — normal au premier appel
+            // Plugin pas encore enregistrÃ© â€” normal au premier appel
         }
 
         $smarty->registerPlugin(
@@ -199,46 +199,46 @@ class EmailRenderer
      * Disponibles dans les templates sous {$neria_color_accent}, etc.
      *
      * @param string $lang         Code langue (pour la police)
-     * @param array  $templateVars Variables Smarty (passé par référence)
+     * @param array  $templateVars Variables Smarty (passÃ© par rÃ©fÃ©rence)
      */
     private function injectDesignVars(string $lang, array &$templateVars): void
     {
         $design = $this->config->getDesignConfig();
 
         $templateVars = array_merge($templateVars, [
-            // ── Couleurs ─────────────────────────────────────────
+            // â”€â”€ Couleurs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             'neria_color_background' => $design['color_background'],
             'neria_color_container'  => $design['color_container'],
             'neria_color_accent'     => $design['color_accent'],
             'neria_color_text'       => $design['color_text'],
 
-            // ── Mode sombre ───────────────────────────────────────
+            // â”€â”€ Mode sombre â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             'neria_dark_mode'        => $design['dark_mode'] ? 'true' : 'false',
 
-            // ── Mise en page ──────────────────────────────────────
+            // â”€â”€ Mise en page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             'neria_container_width'  => $design['container_width'],
             'neria_logo_width'       => $design['logo_width'],
             'neria_logo_url'         => $this->resolveLogoUrl($design['logo_path']),
 
-            // ── Typographie ───────────────────────────────────────
+            // â”€â”€ Typographie â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             'neria_font_family'      => $this->config->getFontForLang($lang),
 
-            // ── RTL ───────────────────────────────────────────────
+            // â”€â”€ RTL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             'neria_dir'              => $this->engine->isRtl($lang) ? 'rtl' : 'ltr',
             'neria_text_align'       => $this->engine->isRtl($lang) ? 'right' : 'left',
             'neria_is_rtl'           => $this->engine->isRtl($lang),
 
-            // ── Langue ────────────────────────────────────────────
+            // â”€â”€ Langue â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             'neria_lang'             => $lang,
         ]);
     }
 
     /**
-     * Injecte les liens réseaux sociaux dans les templateVars
-     * Seuls les liens renseignés sont injectés
-     * Si vide → variable à chaîne vide (le template gère l'affichage)
+     * Injecte les liens rÃ©seaux sociaux dans les templateVars
+     * Seuls les liens renseignÃ©s sont injectÃ©s
+     * Si vide â†’ variable Ã  chaÃ®ne vide (le template gÃ¨re l'affichage)
      *
-     * @param array $templateVars Variables Smarty (passé par référence)
+     * @param array $templateVars Variables Smarty (passÃ© par rÃ©fÃ©rence)
      */
     private function injectSocialVars(array &$templateVars): void
     {
@@ -257,9 +257,9 @@ class EmailRenderer
 
     /**
      * Injecte la signature manuscrite dans les templateVars
-     * Si aucune signature n'est configurée, injecte des chaînes vides
+     * Si aucune signature n'est configurÃ©e, injecte des chaÃ®nes vides
      *
-     * @param array $templateVars Variables Smarty (passé par référence)
+     * @param array $templateVars Variables Smarty (passÃ© par rÃ©fÃ©rence)
      */
     private function injectSignatureVars(array &$templateVars): void
     {
@@ -278,20 +278,20 @@ class EmailRenderer
     // ============================================================
 
     /**
-     * Génère un token de tracking unique et injecte le pixel HTML
-     * dans les templateVars. Le pixel est une image 1×1 invisible
-     * qui déclenche un "open" quand l'email est ouvert.
+     * GÃ©nÃ¨re un token de tracking unique et injecte le pixel HTML
+     * dans les templateVars. Le pixel est une image 1Ã—1 invisible
+     * qui dÃ©clenche un "open" quand l'email est ouvert.
      *
      * @param string $template    Nom du template
      * @param string $lang        Code langue
-     * @param array  $params      Paramètres email (passé par référence)
+     * @param array  $params      ParamÃ¨tres email (passÃ© par rÃ©fÃ©rence)
      */
     private function injectTrackingPixel(
         string $template,
         string $lang,
         array &$params
     ): void {
-        // Génère un token unique par email
+        // GÃ©nÃ¨re un token unique par email
         $token = $this->generateTrackingToken(
             $template,
             $lang,
@@ -303,10 +303,10 @@ class EmailRenderer
             'neria',
             'track',
             ['t' => $token, 'e' => 'open'],
-            true // HTTPS forcé
+            true // HTTPS forcÃ©
         );
 
-        // Pixel HTML 1×1 invisible — compatible tous clients email
+        // Pixel HTML 1Ã—1 invisible â€” compatible tous clients email
         $pixel = sprintf(
             '<img src="%s" width="1" height="1" '
             . 'style="display:block;width:1px;height:1px;border:0;" '
@@ -325,12 +325,12 @@ class EmailRenderer
     }
 
     /**
-     * Génère un token SHA-256 unique pour un email
+     * GÃ©nÃ¨re un token SHA-256 unique pour un email
      *
      * @param string $template Nom du template
      * @param string $lang     Code langue
      * @param string $to       Email destinataire
-     * @return string Token hexadécimal de 64 caractères
+     * @return string Token hexadÃ©cimal de 64 caractÃ¨res
      */
     private function generateTrackingToken(
         string $template,
@@ -351,11 +351,11 @@ class EmailRenderer
     // ============================================================
 
     /**
-     * Détermine la variante A/B à utiliser pour un email donné
+     * DÃ©termine la variante A/B Ã  utiliser pour un email donnÃ©
      * Retourne 'A', 'B' ou '' si pas de test actif
      *
      * @param string $template Nom du template
-     * @param array  $params   Paramètres email
+     * @param array  $params   ParamÃ¨tres email
      * @return string
      */
     private function resolveABVariant(string $template, array $params): string
@@ -376,7 +376,7 @@ class EmailRenderer
     }
 
     // ============================================================
-    // RÉSOLUTION DES RESSOURCES
+    // RÃ‰SOLUTION DES RESSOURCES
     // ============================================================
 
     /**
@@ -384,14 +384,14 @@ class EmailRenderer
      * PrestaShop peut passer 'order_conf.html' ou 'order_conf'
      *
      * @param string $raw Nom brut du template
-     * @return string Nom normalisé (sans extension)
+     * @return string Nom normalisÃ© (sans extension)
      */
     private function resolveTemplate(string $raw): string
     {
-        // Supprime l'extension si présente
+        // Supprime l'extension si prÃ©sente
         $template = preg_replace('/\.(html?|txt)$/i', '', trim($raw));
 
-        // Supprime les caractères non autorisés (sécurité)
+        // Supprime les caractÃ¨res non autorisÃ©s (sÃ©curitÃ©)
         $template = preg_replace('/[^a-z0-9_-]/i', '', $template);
 
         return strtolower($template);
@@ -409,10 +409,10 @@ class EmailRenderer
     }
 
     /**
-     * Résout l'URL publique du logo depuis son chemin relatif
+     * RÃ©sout l'URL publique du logo depuis son chemin relatif
      *
      * @param string $relativePath Chemin relatif (ex: data/signatures/logo_1.png)
-     * @return string URL absolue ou URL du logo PS par défaut
+     * @return string URL absolue ou URL du logo PS par dÃ©faut
      */
     private function resolveLogoUrl(string $relativePath): string
     {
@@ -427,7 +427,7 @@ class EmailRenderer
     }
 
     /**
-     * Récupère les données de la signature active pour la boutique
+     * RÃ©cupÃ¨re les donnÃ©es de la signature active pour la boutique
      * Retourne un tableau avec url, name, title
      *
      * @return array
@@ -441,8 +441,7 @@ class EmailRenderer
             "SELECT `signer_name`, `signer_title`, `image_path`
              FROM `{$table}`
              WHERE `id_shop`  = {$idShop}
-               AND `is_active` = 1
-             LIMIT 1"
+               AND `is_active` = 1"
         );
 
         if (!$row) {
@@ -461,17 +460,17 @@ class EmailRenderer
     }
 
     // ============================================================
-    // APERÇU BACK-OFFICE (temps réel)
+    // APERÃ‡U BACK-OFFICE (temps rÃ©el)
     // ============================================================
 
     /**
-     * Génère un aperçu HTML d'un template pour le back-office
-     * Utilisé par l'onglet Design pour l'aperçu en temps réel
+     * GÃ©nÃ¨re un aperÃ§u HTML d'un template pour le back-office
+     * UtilisÃ© par l'onglet Design pour l'aperÃ§u en temps rÃ©el
      *
      * @param string $template    Nom du template (ex: order_conf)
      * @param string $lang        Code langue (ex: fr)
      * @param array  $designOverride Valeurs de design temporaires
-     *                              (couleurs/polices non encore sauvegardées)
+     *                              (couleurs/polices non encore sauvegardÃ©es)
      * @return string HTML rendu
      */
     public function renderPreview(
@@ -489,13 +488,13 @@ class EmailRenderer
                 . htmlspecialchars($template) . '</p>';
         }
 
-        // Enregistre {neria_trad} pour le rendu de l'aperçu
+        // Enregistre {neria_trad} pour le rendu de l'aperÃ§u
         $this->registerSmartyFunction($template, $lang, '');
 
-        // Variables de design (avec override pour l'aperçu temps réel)
+        // Variables de design (avec override pour l'aperÃ§u temps rÃ©el)
         $design = array_merge($this->config->getDesignConfig(), $designOverride);
 
-        // Variables Smarty pour l'aperçu
+        // Variables Smarty pour l'aperÃ§u
         $previewVars = [
             'neria_color_background' => $design['color_background'],
             'neria_color_container'  => $design['color_container'],
@@ -512,19 +511,19 @@ class EmailRenderer
             'neria_lang'             => $lang,
             'neria_has_social'       => false,
             'neria_has_signature'    => false,
-            'neria_tracking_pixel'   => '', // Pas de tracking en aperçu
+            'neria_tracking_pixel'   => '', // Pas de tracking en aperÃ§u
 
-            // Variables PrestaShop factices pour l'aperçu
+            // Variables PrestaShop factices pour l'aperÃ§u
             'shop_name'              => \Configuration::get('PS_SHOP_NAME'),
             'shop_url'               => \Tools::getShopDomainSsl(true),
             'order_name'             => 'NR-000123',
             'date'                   => date('d/m/Y'),
             'payment'                => 'Carte bancaire',
-            'total_paid'             => '189,00 €',
-            'total_products'         => '189,00 €',
-            'total_discounts'        => '0,00 €',
-            'total_shipping'         => '0,00 €',
-            'total_tax_paid'         => '31,50 €',
+            'total_paid'             => '189,00 â‚¬',
+            'total_products'         => '189,00 â‚¬',
+            'total_discounts'        => '0,00 â‚¬',
+            'total_shipping'         => '0,00 â‚¬',
+            'total_tax_paid'         => '31,50 â‚¬',
             'carrier'                => 'Colissimo',
             'delivery_block_html'    => '<p>12 rue de la Paix<br>75001 Paris</p>',
             'invoice_block_html'     => '<p>12 rue de la Paix<br>75001 Paris</p>',
@@ -542,7 +541,7 @@ class EmailRenderer
             return $smarty->fetch($templatePath);
         } catch (\Throwable $e) {
             $this->module->log(
-                'EmailRenderer::renderPreview erreur → ' . $e->getMessage(),
+                'EmailRenderer::renderPreview erreur â†’ ' . $e->getMessage(),
                 3
             );
             return '<p style="color:red;">Erreur de rendu : '
@@ -551,7 +550,7 @@ class EmailRenderer
     }
 
     /**
-     * Génère un faux tableau produits HTML pour l'aperçu
+     * GÃ©nÃ¨re un faux tableau produits HTML pour l'aperÃ§u
      *
      * @return string HTML du tableau produits
      */
@@ -559,10 +558,10 @@ class EmailRenderer
     {
         return '<tr>
             <td>NR-001</td>
-            <td>Montre Artisanale Edition Limitée</td>
-            <td>189,00 €</td>
+            <td>Montre Artisanale Edition LimitÃ©e</td>
+            <td>189,00 â‚¬</td>
             <td>1</td>
-            <td style="text-align:right;">189,00 €</td>
+            <td style="text-align:right;">189,00 â‚¬</td>
         </tr>';
     }
 }

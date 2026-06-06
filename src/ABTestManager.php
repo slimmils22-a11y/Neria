@@ -1,24 +1,24 @@
-<?php
+﻿<?php
 /**
- * NERIA — ABTestManager
+ * NERIA â€” ABTestManager
  *
  * Gestion des tests A/B sur les templates email.
  *
  * Principe :
- * — Le marchand cree deux versions d'un email (A = original, B = variante)
- * — Chaque client recoit toujours la meme variante (coherence)
- * — La repartition est configurable (ex: 50/50, 60/40)
- * — Les resultats sont mesures via StatsManager
- * — Le marchand declare un gagnant et desactive le test
+ * â€” Le marchand cree deux versions d'un email (A = original, B = variante)
+ * â€” Chaque client recoit toujours la meme variante (coherence)
+ * â€” La repartition est configurable (ex: 50/50, 60/40)
+ * â€” Les resultats sont mesures via StatsManager
+ * â€” Le marchand declare un gagnant et desactive le test
  *
  * Algorithme de repartition :
  * La variante est determinee par un hash du couple (id_customer + template).
  * Cela garantit qu'un client recoit toujours la meme variante
- * sans stocker d'affectation en base — zero table supplementaire.
+ * sans stocker d'affectation en base â€” zero table supplementaire.
  *
  * Exemple :
  *   hash('abandoned_cart_1' + id_customer=42) % 100 = 37
- *   split_percent(A) = 60 → 37 < 60 → variante A
+ *   split_percent(A) = 60 â†’ 37 < 60 â†’ variante A
  *
  * @author  Neria
  * @version 1.0.0
@@ -141,7 +141,7 @@ class ABTestManager
         int    $idCustomer,
         int    $splitPercent
     ): string {
-        // crc32 produit un entier signe — abs() pour le positiver
+        // crc32 produit un entier signe â€” abs() pour le positiver
         $hash    = abs(crc32($template . '|' . $idCustomer));
         $bucket  = $hash % 100; // Valeur entre 0 et 99
 
@@ -432,15 +432,14 @@ class ABTestManager
              FROM `{$table}`
              WHERE `id_abtest`       = {$idAbtest}
                AND `lang`            = '" . pSQL($lang) . "'
-               AND `translation_key` = '" . pSQL($key) . "'
-             LIMIT 1"
+               AND `translation_key` = '" . pSQL($key) . "'"
         );
 
         return $value !== false ? (string) $value : null;
     }
 
     // ============================================================
-    // LECTURE — BACK-OFFICE
+    // LECTURE â€” BACK-OFFICE
     // ============================================================
 
     /**

@@ -1,26 +1,26 @@
-<?php
+﻿<?php
 /**
- * NERIA — CalendarManager
+ * NERIA â€” CalendarManager
  *
  * Gestion des occasions calendaires automatiques.
  *
- * Resolution des dates — 3 niveaux par priorite :
+ * Resolution des dates â€” 3 niveaux par priorite :
  *
- * NIVEAU 1 — Override manuel du marchand
+ * NIVEAU 1 â€” Override manuel du marchand
  *   Le marchand a saisi une date manuellement dans le back-office
  *   pour cette occasion + annee. Priorite absolue.
  *   Stocke dans : Configuration::get('NERIA_CAL_DATE_EID_2028')
  *
- * NIVEAU 2 — Calcul algorithmique
+ * NIVEAU 2 â€” Calcul algorithmique
  *   Pour le calendrier Hegirien (Eid, Ramadan) et le calendrier
  *   lunaire chinois (Nouvel An). Calcule pour n'importe quelle annee.
  *   Autonome a vie, sans mise a jour requise.
  *
- * NIVEAU 3 — Dates pre-calculees (2025-2035)
+ * NIVEAU 3 â€” Dates pre-calculees (2025-2035)
  *   Filet de securite si l'algorithme echoue.
  *   Couvre 10 ans avec des dates verifiees manuellement.
  *
- * NIVEAU 4 — Dates fixes recurrees
+ * NIVEAU 4 â€” Dates fixes recurrees
  *   Noel, Valentine, Halloween etc. Valables a l'infini.
  *
  * @author  Neria
@@ -152,7 +152,7 @@ class CalendarManager
     }
 
     // ============================================================
-    // RESOLUTION DES DATES — 4 NIVEAUX
+    // RESOLUTION DES DATES â€” 4 NIVEAUX
     // ============================================================
 
     /**
@@ -209,7 +209,7 @@ class CalendarManager
     }
 
     // ============================================================
-    // NIVEAU 1 — OVERRIDE MANUEL DU MARCHAND
+    // NIVEAU 1 â€” OVERRIDE MANUEL DU MARCHAND
     // ============================================================
 
     /**
@@ -332,12 +332,12 @@ class CalendarManager
     }
 
     // ============================================================
-    // NIVEAU 2 — CALCUL ALGORITHMIQUE
+    // NIVEAU 2 â€” CALCUL ALGORITHMIQUE
     // ============================================================
 
     /**
      * Calcule la date d'un evenement par algorithme
-     * Pour n'importe quelle annee — autonome a vie
+     * Pour n'importe quelle annee â€” autonome a vie
      *
      * @param string $eventKey Cle de l'evenement
      * @param int    $year     Annee gregorienne
@@ -391,7 +391,7 @@ class CalendarManager
      */
     private function calculateRamadanStart(int $year): ?\DateTime
     {
-        // Conversion annee gregorienne → annee hegirienne approximative
+        // Conversion annee gregorienne â†’ annee hegirienne approximative
         $hijriYear = (int) round(($year - 622) * (33 / 32));
 
         // Calcul du JDN (Jour Julien) du 1er Ramadan
@@ -403,7 +403,7 @@ class CalendarManager
 
     /**
      * Calcule la date d'Eid al-Fitr (1er Shawwal)
-     * Fin du Ramadan — 30 jours apres le debut
+     * Fin du Ramadan â€” 30 jours apres le debut
      *
      * @param int $year Annee gregorienne
      * @return \DateTime|null
@@ -459,7 +459,7 @@ class CalendarManager
      */
     private function jdnToDateTime(int $jdn): ?\DateTime
     {
-        // Algorithme de conversion JDN → date gregorienne
+        // Algorithme de conversion JDN â†’ date gregorienne
         $l = $jdn + 68569;
         $n = (int) (4 * $l / 146097);
         $l = $l - (int) ((146097 * $n + 3) / 4);
@@ -486,7 +486,7 @@ class CalendarManager
 
     /**
      * Calcule le Nouvel An lunaire chinois pour une annee gregorienne
-     * Algorithme de Gregorian/Lunar basé sur les cycles de 19 ans (Metonic)
+     * Algorithme de Gregorian/Lunar basÃ© sur les cycles de 19 ans (Metonic)
      *
      * Precision : +/- 1-2 jours
      * Pour une precision parfaite, utiliser l'override manuel
@@ -660,7 +660,7 @@ class CalendarManager
     }
 
     // ============================================================
-    // NIVEAU 3 — DATES PRE-CALCULEES (2025-2035)
+    // NIVEAU 3 â€” DATES PRE-CALCULEES (2025-2035)
     // ============================================================
 
     private function loadCalendarDates(): void
@@ -689,7 +689,7 @@ class CalendarManager
     }
 
     /**
-     * Dates pre-calculees et verifiees manuellement — 2025 a 2035
+     * Dates pre-calculees et verifiees manuellement â€” 2025 a 2035
      * Servent de filet de securite si l'algorithme est imprecis
      *
      * @return array
@@ -698,7 +698,7 @@ class CalendarManager
     {
         return [
 
-            // ── Dates fixes recurrees (NIVEAU 4) ─────────────────
+            // â”€â”€ Dates fixes recurrees (NIVEAU 4) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
             'christmas'  => ['recurring' => ['month' => 12, 'day' => 25]],
             'new_year'   => ['recurring' => ['month' => 1,  'day' => 1]],
@@ -707,7 +707,7 @@ class CalendarManager
             'setsubun'   => ['recurring' => ['month' => 2,  'day' => 3]],
             'nowruz'     => ['recurring' => ['month' => 3,  'day' => 21]],
 
-            // ── Eid al-Fitr — 2025 a 2035 ────────────────────────
+            // â”€â”€ Eid al-Fitr â€” 2025 a 2035 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             'eid' => [
                 'dates' => [
                     ['year' => 2025, 'month' => 3,  'day' => 30],
@@ -724,7 +724,7 @@ class CalendarManager
                 ],
             ],
 
-            // ── Eid al-Adha — 2025 a 2035 ────────────────────────
+            // â”€â”€ Eid al-Adha â€” 2025 a 2035 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             'eid_adha' => [
                 'dates' => [
                     ['year' => 2025, 'month' => 6,  'day' => 6],
@@ -741,7 +741,7 @@ class CalendarManager
                 ],
             ],
 
-            // ── Debut du Ramadan — 2025 a 2035 ───────────────────
+            // â”€â”€ Debut du Ramadan â€” 2025 a 2035 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             'ramadan' => [
                 'dates' => [
                     ['year' => 2025, 'month' => 3,  'day' => 1],
@@ -758,7 +758,7 @@ class CalendarManager
                 ],
             ],
 
-            // ── Nouvel An lunaire chinois — 2025 a 2035 ───────────
+            // â”€â”€ Nouvel An lunaire chinois â€” 2025 a 2035 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             'lunar_new_year' => [
                 'dates' => [
                     ['year' => 2025, 'month' => 1,  'day' => 29],
@@ -775,7 +775,7 @@ class CalendarManager
                 ],
             ],
 
-            // ── Seollal coreen — meme dates que lunaire chinois ───
+            // â”€â”€ Seollal coreen â€” meme dates que lunaire chinois â”€â”€â”€
             'seollal' => [
                 'dates' => [
                     ['year' => 2025, 'month' => 1,  'day' => 29],
@@ -792,7 +792,7 @@ class CalendarManager
                 ],
             ],
 
-            // ── Diwali — 2025 a 2035 ─────────────────────────────
+            // â”€â”€ Diwali â€” 2025 a 2035 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             'diwali' => [
                 'dates' => [
                     ['year' => 2025, 'month' => 10, 'day' => 20],
@@ -809,7 +809,7 @@ class CalendarManager
                 ],
             ],
 
-            // ── Hanami — approximation (debut avril) ─────────────
+            // â”€â”€ Hanami â€” approximation (debut avril) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             'hanami' => [
                 'recurring' => ['month' => 4, 'day' => 1],
             ],
@@ -871,8 +871,7 @@ class CalendarManager
             "SELECT `id_lang`
              FROM `" . _DB_PREFIX_ . "lang`
              WHERE `iso_code` = '" . pSQL($isoCode) . "'
-               AND `active`   = 1
-             LIMIT 1"
+               AND `active`   = 1"
         );
     }
 
@@ -944,7 +943,7 @@ class CalendarManager
     }
 
     // ============================================================
-    // BACK-OFFICE — GESTION DES EVENEMENTS
+    // BACK-OFFICE â€” GESTION DES EVENEMENTS
     // ============================================================
 
     public function getAllEvents(): array
