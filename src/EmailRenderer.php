@@ -598,6 +598,40 @@ class EmailRenderer
         $compiled = preg_replace('/\{block\s+name=[\'"]neria_content[\'\"]\}\{\/block\}/', trim($m[1]), $layout);
         $compiled = preg_replace('/\{extends\s+[^}]+\}/', '', $compiled);
 
+        // ── Résoudre les {neria_trad key='...'} avec les vraies traductions ──
+        $engine = $this->engine;
+        $compiled = preg_replace_callback(
+            '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
+            function ($m) use ($engine, $template, $lang) {
+                $v = $engine->get($template, $m[1], $lang);
+                return $v !== '' ? $v : $m[0];
+            },
+            $compiled
+        );
+
+        // ── Résoudre les variables de design ─────────────────────────────
+        $design = $this->config->getDesignConfig();
+        $tplVars = [
+            '{$neria_color_accent}'     => $design['color_accent'],
+            '{$neria_color_background}' => $design['color_background'],
+            '{$neria_color_container}'  => $design['color_container'],
+            '{$neria_color_text}'       => $design['color_text'],
+            '{$neria_font_family}'      => $this->config->getFontForLang($lang),
+            '{$neria_dir}'              => $this->engine->isRtl($lang) ? 'rtl' : 'ltr',
+            '{$neria_text_align}'       => $this->engine->isRtl($lang) ? 'right' : 'left',
+            '{$neria_container_width}'  => (string) $design['container_width'],
+            '{$neria_logo_url}'         => $this->resolveLogoUrl($design['logo_path']),
+            '{$neria_tracking_pixel}'   => '',
+            '{$neria_social_links}'     => '',
+            '{$neria_lang}'             => $lang,
+        ];
+        $compiled = str_replace(array_keys($tplVars), array_values($tplVars), $compiled);
+
+        // ── Nettoyer les résidus Smarty ───────────────────────────────────
+        $compiled = preg_replace('/\{if\s[^}]+\}.*?\{\/if\}/s', '', $compiled);
+        $compiled = preg_replace('/\{\*.*?\*\}/s', '', $compiled);
+        $compiled = preg_replace('/\{\$[a-z_]+\}/', '', $compiled);
+
         $outDir = _PS_MODULE_DIR_ . 'neria/mails/' . $lang . '/';
         if (!is_dir($outDir)) {
             mkdir($outDir, 0755, true);
