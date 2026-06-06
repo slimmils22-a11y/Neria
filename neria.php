@@ -250,6 +250,11 @@ class Neria extends Module
      */
     public function getContent(): string
     {
+        // ── Action : envoi d'un email de test ─────────────────────
+        if (Tools::getValue('neria_action') === 'send_test') {
+            $this->sendTestEmail();
+        }
+
         // Détermine l'onglet actif (par défaut : configure)
         $activeTab = Tools::getValue('neria_tab', 'configure');
 
@@ -367,6 +372,49 @@ class Neria extends Module
             . '<div class="neria-bo-content">'
             . $content
             . '</div>';
+    }
+
+    /**
+     * Envoie un email de test au marchand
+     * Utilise le template "test" pour vérifier que le rendu fonctionne
+     */
+    private function sendTestEmail(): void
+    {
+        $adminEmail = Configuration::get('PS_SHOP_EMAIL');
+        $shopName   = Configuration::get('PS_SHOP_NAME');
+        $idLang     = (int) $this->context->language->id;
+
+        $result = Mail::Send(
+            $idLang,
+            'test',
+            $this->l('Email de test — Neria Luxury Email Suite'),
+            [
+                '{firstname}' => 'Admin',
+                '{lastname}'  => '',
+                '{email}'     => $adminEmail,
+                '{shop_name}' => $shopName,
+                '{shop_url}'  => Tools::getShopDomainSsl(true, true),
+            ],
+            $adminEmail,
+            $shopName,
+            null,
+            null,
+            null,
+            null,
+            _PS_MODULE_DIR_ . 'neria/mails/',
+            false,
+            (int) $this->context->shop->id
+        );
+
+        if ($result) {
+            $this->context->smarty->assign('neria_success',
+                $this->l('Email de test envoyé à ') . $adminEmail
+            );
+        } else {
+            $this->context->smarty->assign('neria_error',
+                $this->l('Échec de l\'envoi. Vérifiez la configuration email de PrestaShop.')
+            );
+        }
     }
 
     /**
