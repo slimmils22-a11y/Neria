@@ -1,6 +1,6 @@
 ﻿{shop_name}
 
-{neria_trad key='dear_customer'},
+{neria_trad key='dear_customer'}
 
 {neria_trad key='order_details_title'} {order_name} — {neria_trad key='credit_slip_title'}
 {neria_trad key='credit_slip_confirmation'} {order_name}.

@@ -1,5 +1,5 @@
 ﻿{shop_name}
-{neria_trad key='dear_customer'},
+{neria_trad key='dear_customer'}
 {neria_trad key='eid_intro'}
 {neria_trad key='eid_message'}
 {neria_trad key='eid_btn'} : {shop_url}

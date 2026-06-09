@@ -1,6 +1,6 @@
 ﻿{shop_name}
 
-{neria_trad key='dear_customer'},
+{neria_trad key='dear_customer'}
 
 {neria_trad key='new_year_intro'}
 {neria_trad key='new_year_message'}

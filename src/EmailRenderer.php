@@ -29,16 +29,9 @@ class EmailRenderer
     // ============================================================
 
     /**
-     * Templates qui NE doivent PAS Ãªtre traitÃ©s par Neria
-     * (emails admin purement techniques)
+     * Templates qui NE doivent PAS être traités par Neria
      */
-    const EXCLUDED_TEMPLATES = [
-        'log_alert',
-        'employee_password',
-        'import',
-        'new_order',        // email admin notif nouvelle commande
-        'backoffice_order', // email admin interne
-    ];
+    const EXCLUDED_TEMPLATES = [];
 
     // ============================================================
     // PROPRIÃ‰TÃ‰S
@@ -111,10 +104,16 @@ class EmailRenderer
         $this->injectDesignVars($lang, $params['templateVars']);
 
         // â”€â”€ Injecte les liens rÃ©seaux sociaux â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Reformate le tableau produits PrestaShop
+        $this->reformatProductsHtml($params['templateVars']);
+
         $this->injectSocialVars($params['templateVars']);
 
         // â”€â”€ Injecte la signature â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $this->injectSignatureVars($params['templateVars']);
+
+        // â”€â”€ GÃ©nÃ¨re les variantes texte des variables HTML (pour le .txt)
+        $this->injectTextVariants($params['templateVars']);
 
         // â”€â”€ Injecte le pixel de tracking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if ($this->config->isStatsEnabled()) {
@@ -281,6 +280,49 @@ class EmailRenderer
             'neria_signature_title'  => $signature['title'],
             'neria_has_signature'    => !empty($signature['url']),
         ]);
+    }
+
+    /**
+     * GÃ©nÃ¨re des variantes texte brut des variables HTML, pour que
+     * la version .txt des emails n'affiche pas de balises HTML.
+     *
+     * PrestaShop substitue les mÃªmes templateVars dans le .html et
+     * le .txt. Une variable comme {messages} (bloc HTML de conversation)
+     * apparaÃ®t donc en balises brutes dans le .txt. On crÃ©e ici une
+     * variante {messages_txt} nettoyÃ©e que le template .txt utilise.
+     *
+     * @param array $templateVars Variables Smarty (passÃ© par rÃ©fÃ©rence)
+     */
+    private function injectTextVariants(array &$templateVars): void
+    {
+        if (!is_array($templateVars)) {
+            return;
+        }
+
+        // Variables HTML connues â†’ variante texte {xxx_txt}
+        $htmlKeys = ['{messages}'];
+
+        foreach ($htmlKeys as $key) {
+            if (empty($templateVars[$key])) {
+                continue;
+            }
+
+            $txtKey = preg_replace('/\}$/', '_txt}', $key);
+
+            // Si la variante texte existe dÃ©jÃ , on la respecte
+            if (isset($templateVars[$txtKey])) {
+                continue;
+            }
+
+            $html = (string) $templateVars[$key];
+            // Convertit les sauts de bloc en retours Ã  la ligne
+            $text = preg_replace('#</p>|<br\s*/?>#i', "\n", $html);
+            $text = NeriaTools::sanitizeText($text);
+            // Compacte les lignes vides multiples
+            $text = preg_replace("/\n{2,}/", "\n", $text);
+
+            $templateVars[$txtKey] = trim($text);
+        }
     }
 
     // ============================================================
@@ -640,12 +682,109 @@ class EmailRenderer
         $outFile = $outDir . $template . '.html';
         file_put_contents($outFile, $compiled);
 
-        // Générer aussi la version .txt
+        // Générer aussi la version .txt (avec résolution des {neria_trad})
         $txtPath = $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.txt');
         if (file_exists($txtPath)) {
-            copy($txtPath, $outDir . $template . '.txt');
+            $compiledTxt = file_get_contents($txtPath);
+            $compiledTxt = preg_replace_callback(
+                '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
+                function ($m) use ($engine, $template, $lang) {
+                    $v = $engine->get($template, $m[1], $lang);
+                    return $v !== '' ? $v : $m[0];
+                },
+                $compiledTxt
+            );
+            file_put_contents($outDir . $template . '.txt', $compiledTxt);
         }
 
         return $outFile;
+    }
+
+    /**
+     * Reformate le HTML {products} généré par PrestaShop.
+     * PrestaShop injecte des tableaux imbriqués dans chaque <td> qui brisent
+     * les largeurs de colonnes. Cette méthode remplace chaque <td> imbriqué
+     * par un <td> simple avec les bons attributs de style Neria.
+     *
+     * @param array $templateVars Variables Smarty (passé par référence)
+     */
+    private function reformatProductsHtml(array &$templateVars): void
+    {
+        $key = '{products}';
+        if (empty($templateVars[$key])) {
+            return;
+        }
+
+        $html = $templateVars[$key];
+
+        $base = 'padding:14px 12px; border-bottom:1px solid #f0ece6; font-size:13px; color:#2c2c2c; vertical-align:middle;';
+        $styles = [
+            $base . ' white-space:nowrap;',
+            $base,
+            $base . ' white-space:nowrap;',
+            $base . ' text-align:center; white-space:nowrap;',
+            $base . ' text-align:right; white-space:nowrap;',
+        ];
+
+        $dom = new \DOMDocument();
+        @$dom->loadHTML(
+            '<?xml encoding="UTF-8"><html><body><table>' . $html . '</table></body></html>',
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+        );
+
+        $rows    = $dom->getElementsByTagName('tr');
+        $newRows = [];
+
+        foreach ($rows as $tr) {
+
+            $outerTds = [];
+            foreach ($tr->childNodes as $node) {
+                if ($node->nodeType === XML_ELEMENT_NODE && $node->nodeName === 'td') {
+                    $outerTds[] = $node;
+                }
+            }
+
+            if (empty($outerTds)) {
+                continue;
+            }
+
+            $firstStyle = $outerTds[0]->getAttribute('style');
+            if (strpos($firstStyle, 'border') === false) {
+                continue;
+            }
+
+            $contents = [];
+            foreach ($outerTds as $td) {
+                $innerTds = $td->getElementsByTagName('td');
+                $content  = '';
+                foreach ($innerTds as $inner) {
+                    if ($inner->getAttribute('width') === '5') {
+                        continue;
+                    }
+                    $innerHTML = '';
+                    foreach ($inner->childNodes as $child) {
+                        $innerHTML .= $dom->saveHTML($child);
+                    }
+                    $innerHTML = trim($innerHTML);
+                    if ($innerHTML !== '' && $innerHTML !== '&nbsp;') {
+                        $content = $innerHTML;
+                        break;
+                    }
+                }
+                $contents[] = $content;
+            }
+
+            $cells = '';
+            foreach ($contents as $i => $content) {
+                $style  = $styles[$i] ?? $base;
+                $cells .= '<td style="' . $style . '">' . $content . '</td>';
+            }
+
+            $newRows[] = '<tr>' . $cells . '</tr>';
+        }
+
+        if (!empty($newRows)) {
+            $templateVars[$key] = implode("\n", $newRows);
+        }
     }
 }

@@ -58,7 +58,7 @@
       overflow: hidden;
     }
     .neria-inner {
-      padding: 32px 40px;
+      padding: 40px 48px 48px 48px;
     }
 
     /* TITRES */
@@ -85,7 +85,7 @@
       text-transform: uppercase;
       border-bottom: 1px solid #e3d7c7;
       padding-bottom: 8px;
-      margin: 28px 0 14px 0;
+      margin: 48px 0 18px 0;
       color: #2b2520;
     }
 
@@ -165,11 +165,14 @@
       font-size: 16px;
       border-top: 1px solid #e3d7c7;
       padding-top: 14px;
+      font-size: 15px;
     }
 
     /* SIGNATURE */
     .neria-signature {
-      margin-top: 36px;
+      margin-top: 56px;
+      padding-top: 32px;
+      border-top: 1px solid #f0e7db;
       font-size: 14px;
       line-height: 1.8;
       text-align: left;
@@ -201,19 +204,27 @@
     /* HEADER / FOOTER */
     .neria-header {
       text-align: center;
-      padding: 30px 20px 10px 20px;
-      border-bottom: 1px solid #f0e7db;
+      padding: 30px 20px 20px 20px;
+      border-bottom: 1px solid #b38b59;
     }
     .neria-footer {
       text-align: center;
-      padding: 24px 20px;
-      font-size: 12px;
+      padding: 28px 20px 32px 20px;
+      font-size: 11px;
       color: #a09990;
-      line-height: 1.8;
+      line-height: 2;
+      border-top: 1px solid #f0e7db;
     }
     .neria-footer a {
       color: #a09990;
       text-decoration: underline;
+    }
+    .neria-footer__brand {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #b38b59;
+      margin-bottom: 8px;
     }
 
     /* SÉPARATEUR */
@@ -245,7 +256,7 @@
   </style>
 </head>
 
-<body>
+<body bgcolor="#f4f1eb" style="background-color:#f4f1eb;">
 <div class="neria-wrapper">
   <table width="100%" border="0" cellpadding="0" cellspacing="0">
     <tr>
@@ -293,10 +304,16 @@
           <!-- FOOTER -->
           <tr>
             <td class="neria-footer">
-              <strong><a href="{shop_url}" style="font-weight:600;">{shop_name}</a></strong><br />
-              <a href="{history_url}">Historique des commandes</a>
+              <div class="neria-footer__brand">{shop_name}</div>
+              <a href="{shop_url}">{neria_trad key='footer_visit'}</a>
               &nbsp;·&nbsp;
-              <a href="{guest_tracking_url}">Suivi invité</a>
+              <a href="{history_url}">{neria_trad key='footer_order_history'}</a>
+              &nbsp;·&nbsp;
+              <a href="{guest_tracking_url}">{neria_trad key='footer_guest_tracking'}</a>
+              <br />
+              &copy; {shop_name}
+              &nbsp;·&nbsp;
+              <a href="{shop_url}content/mentions-legales">{neria_trad key='footer_legal'}</a>
             </td>
           </tr>
         </table>

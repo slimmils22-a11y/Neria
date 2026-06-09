@@ -1,6 +1,6 @@
 ﻿{shop_name}
 
-{neria_trad key='dear_customer'},
+{neria_trad key='dear_customer'}
 
 {neria_trad key='care_certificate_intro'}
 

@@ -127,6 +127,20 @@ class TranslationEngine
             }
         }
 
+        // ── Fallback _global (clés partagées : footer, etc.) ─────
+        if ($template !== '_global') {
+            $this->loadBlock('_global', $lang);
+            $globalKey = '_global:' . $lang;
+            if (isset($this->cache[$globalKey][$key])) {
+                return $this->resolveVariables($this->cache[$globalKey][$key]);
+            }
+            $this->loadBlock('_global', self::FALLBACK_LANG);
+            $globalFallbackKey = '_global:' . self::FALLBACK_LANG;
+            if (isset($this->cache[$globalFallbackKey][$key])) {
+                return $this->resolveVariables($this->cache[$globalFallbackKey][$key]);
+            }
+        }
+
         // ── Rien trouvé : log et retourne chaîne vide ────────────
         $this->module->log(
             sprintf(

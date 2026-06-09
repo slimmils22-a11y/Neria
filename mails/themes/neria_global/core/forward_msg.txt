@@ -1,13 +1,13 @@
 ﻿{shop_name}
 
-{neria_trad key='dear_employee'},
+{neria_trad key='dear_employee'}
 
 {neria_trad key='forward_msg_intro'}
 {employee} {neria_trad key='forward_msg_transferred'}.
 
 {neria_trad key='forward_msg_history'}
 --------------------------------
-{messages}
+{messages_txt}
 
 {employee} {neria_trad key='forward_msg_added'} : {comment}
 

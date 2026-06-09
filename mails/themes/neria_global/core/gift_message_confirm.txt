@@ -1,6 +1,6 @@
 ﻿{shop_name}
 
-{neria_trad key='dear_customer'},
+{neria_trad key='dear_customer'}
 
 {neria_trad key='gift_message_confirm_intro'}
 
@@ -8,6 +8,7 @@
 
 {neria_trad key='gift_message_confirm_details'}
 --------------------------------
+« {gift_message} »
 
 {neria_trad key='gift_message_confirm_btn'} : {history_url}
 
