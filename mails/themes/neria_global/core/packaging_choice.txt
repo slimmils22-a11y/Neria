@@ -6,6 +6,7 @@
 
 {neria_trad key='packaging_choice_options'}
 --------------------------------
+{neria_trad key='packaging_choice_options_desc'}
 
 {neria_trad key='packaging_choice_btn'} : {shop_url}
 

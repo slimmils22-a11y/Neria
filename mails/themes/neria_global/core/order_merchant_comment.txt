@@ -11,7 +11,7 @@
 --------------------------------
 {message}
 
-{neria_trad key='merchant_comment_account'} : {history_url}
+{neria_trad key='merchant_comment_account'} {history_url}
 
 {shop_name}
 {shop_url}

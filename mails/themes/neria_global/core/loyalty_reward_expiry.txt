@@ -6,7 +6,7 @@
 
 {neria_trad key='loyalty_expiry_details'}
 --------------------------------
-{neria_trad key='loyalty_expiry_details'} : {reward_expiry_date}
+{neria_trad key='loyalty_expiry_date_label'} : {reward_expiry_date}
 
 {neria_trad key='loyalty_expiry_btn'} : {history_url}
 

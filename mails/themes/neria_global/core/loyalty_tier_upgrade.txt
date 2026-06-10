@@ -6,7 +6,7 @@
 
 {neria_trad key='loyalty_tier_details'}
 --------------------------------
-{neria_trad key='loyalty_tier_details'} : {new_tier_name}
+{neria_trad key='loyalty_tier_name_label'} : {new_tier_name}
 
 {neria_trad key='loyalty_tier_btn'} : {history_url}
 

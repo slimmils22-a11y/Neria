@@ -8,6 +8,8 @@
 
 {neria_trad key='product_recall_details'}
 --------------------------------
+{neria_trad key='product_recall_product_label'} : {product_name}
+
 {neria_trad key='product_recall_action'}
 
 {neria_trad key='product_recall_btn'} : {history_url}

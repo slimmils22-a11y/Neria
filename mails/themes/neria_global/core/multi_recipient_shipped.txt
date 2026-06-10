@@ -8,6 +8,7 @@
 
 {neria_trad key='multi_recipient_details'}
 --------------------------------
+{recipients_txt}
 
 {neria_trad key='multi_recipient_btn'} : {history_url}
 

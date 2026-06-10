@@ -8,7 +8,7 @@
 {neria_trad key='payment_error_issue'} {order_name}.
 {neria_trad key='payment_error_apologies'}
 
-{neria_trad key='payment_error_help'} : {history_url}
+{neria_trad key='payment_error_help'}
 {neria_trad key='guest_tracking_info'} : {guest_tracking_url}
 
 {neria_trad key='payment_error_thanks'}

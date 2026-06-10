@@ -8,8 +8,7 @@
 
 {neria_trad key='order_on_hold_details'}
 --------------------------------
-{neria_trad key='order_on_hold_reason'} : {order_name}
-{neria_trad key='order_on_hold_status'} : {neria_trad key='order_on_hold_action'}
+{neria_trad key='order_on_hold_reason'} : {hold_reason}
 
 {neria_trad key='order_on_hold_btn'} : {history_url}
 
