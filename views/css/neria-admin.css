@@ -197,6 +197,3 @@
 .neria-log-row--critical td{ background: rgba(122,0,0,0.08); }
 .neria-badge--warn { background: #FAEEDA; color: #633806; }
 .neria-badge--err  { background: #FCEBEB; color: #791F1F; }
-
-/* Guide rapide — espace entre l'icone et le titre */
-.neria-doc-card__icon { display:inline-block; margin-right:8px; color:var(--neria-accent); }
