@@ -127,6 +127,98 @@
   </div>
 </div>
 
+{* ── Journal des événements ─────────────────────────────────── *}
+<div class="neria-section">
+  <h2 class="neria-section__title">
+    {l s='Journal des événements' mod='neria'}
+  </h2>
+
+  {* Résumé par niveau *}
+  <div class="neria-kpi-grid" style="margin-bottom:20px;">
+    <div class="neria-kpi">
+      <div class="neria-kpi__value">{$log_counts.info|default:0}</div>
+      <div class="neria-kpi__label">Info</div>
+    </div>
+    <div class="neria-kpi">
+      <div class="neria-kpi__value" style="color:#BA7517;">{$log_counts.warning|default:0}</div>
+      <div class="neria-kpi__label">Warnings</div>
+    </div>
+    <div class="neria-kpi">
+      <div class="neria-kpi__value" style="color:#A32D2D;">{$log_counts.error|default:0}</div>
+      <div class="neria-kpi__label">Erreurs</div>
+    </div>
+    <div class="neria-kpi">
+      <div class="neria-kpi__value" style="color:#7a0000;">{$log_counts.critical|default:0}</div>
+      <div class="neria-kpi__label">Critiques</div>
+    </div>
+  </div>
+
+  {* Filtres *}
+  <div class="neria-trad-selectors" style="margin-bottom:16px;">
+    <select id="neria-log-level" class="neria-select neria-select--sm">
+      <option value="">{l s='Tous les niveaux' mod='neria'}</option>
+      <option value="info">Info</option>
+      <option value="warning">Warning</option>
+      <option value="error">Erreur</option>
+      <option value="critical">Critique</option>
+    </select>
+
+    <select id="neria-log-template" class="neria-select neria-select--sm">
+      <option value="">{l s='Tous les templates' mod='neria'}</option>
+      {foreach $log_templates as $tpl}
+        <option value="{$tpl}">{$tpl}</option>
+      {/foreach}
+    </select>
+
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline">
+      <input type="hidden" name="neria_action" value="clear_logs">
+      <input type="hidden" name="neria_tab" value="help">
+      <button type="submit"
+              class="neria-btn neria-btn--danger neria-btn--sm"
+              onclick="return confirm('{l s='Vider tout le journal ?' mod='neria'}')">
+        {l s='Vider le journal' mod='neria'}
+      </button>
+    </form>
+  </div>
+
+  {* Tableau des logs *}
+  {if isset($logs) && $logs}
+    <div class="neria-table-wrap">
+      <table class="neria-table" id="neria-log-table">
+        <thead>
+          <tr>
+            <th>{l s='Date' mod='neria'}</th>
+            <th>{l s='Niveau' mod='neria'}</th>
+            <th>{l s='Classe' mod='neria'}</th>
+            <th>{l s='Template' mod='neria'}</th>
+            <th>{l s='Message' mod='neria'}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {foreach $logs as $log}
+            <tr class="neria-log-row neria-log-row--{$log.level}">
+              <td style="white-space:nowrap; font-size:12px;">{$log.date_add}</td>
+              <td>
+                <span class="neria-badge neria-badge--{if $log.level === 'info'}neutral{elseif $log.level === 'warning'}warn{else}err{/if}">
+                  {$log.level}
+                </span>
+              </td>
+              <td style="font-size:12px; color:var(--neria-text-light);">{$log.class}</td>
+              <td style="font-size:12px;">{$log.template|default:'—'}</td>
+              <td style="font-size:13px;">{$log.message|escape:'html'}</td>
+            </tr>
+          {/foreach}
+        </tbody>
+      </table>
+    </div>
+  {else}
+    <div class="neria-empty-state">
+      <span class="neria-empty-state__icon">✓</span>
+      <p>{l s='Aucun événement enregistré — tout fonctionne parfaitement.' mod='neria'}</p>
+    </div>
+  {/if}
+</div>
+
 {* ── Documentation rapide ───────────────────────────────────── *}
 <div class="neria-section">
   <h2 class="neria-section__title">{l s='Guide rapide' mod='neria'}</h2>

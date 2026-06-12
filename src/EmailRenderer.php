@@ -49,6 +49,9 @@ class EmailRenderer
     /** @var \Context Contexte PrestaShop courant */
     private \Context $context;
 
+    /** @var WatchdogManager|null Instance paresseuse du watchdog */
+    private ?WatchdogManager $watchdog = null;
+
     // ============================================================
     // CONSTRUCTEUR
     // ============================================================
@@ -77,6 +80,14 @@ class EmailRenderer
      *   $params['to']           : adresse email destinataire
      *   $params['toName']       : nom du destinataire
      */
+    private function watchdog(): WatchdogManager
+    {
+        if ($this->watchdog === null) {
+            $this->watchdog = new WatchdogManager($this->module);
+        }
+        return $this->watchdog;
+    }
+
     public function processEmailParams(array &$params): void
     {
         // â”€â”€ VÃ©rifie que le module est actif â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -144,6 +155,12 @@ class EmailRenderer
                 $variant ? ' variante ' . $variant : ''
             ),
             1
+        );
+
+        $this->watchdog()->info(
+            sprintf('Email rendu avec succès%s', $variant ? ' — variante ' . $variant : ''),
+            $template,
+            'EmailRenderer'
         );
     }
 
@@ -703,6 +720,11 @@ class EmailRenderer
         $corePath   = $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html');
 
         if (!file_exists($layoutPath) || !file_exists($corePath)) {
+            $this->watchdog()->error(
+                'Template introuvable : ' . $template,
+                $template,
+                'EmailRenderer'
+            );
             return null;
         }
 

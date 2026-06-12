@@ -80,11 +80,22 @@ class SignatureGenerator
     // CONSTRUCTEUR
     // ============================================================
 
+    /** @var WatchdogManager|null Instance paresseuse du watchdog */
+    private ?WatchdogManager $watchdog = null;
+
     public function __construct(Neria $module)
     {
         $this->module         = $module;
         $this->fontsPath      = $module->getModulePath(self::FONTS_DIR);
         $this->signaturesPath = $module->getModulePath(self::SIGNATURES_DIR);
+    }
+
+    private function watchdog(): WatchdogManager
+    {
+        if ($this->watchdog === null) {
+            $this->watchdog = new WatchdogManager($this->module);
+        }
+        return $this->watchdog;
     }
 
     // ============================================================
@@ -114,6 +125,7 @@ class SignatureGenerator
                 'SignatureGenerator: extension GD indisponible',
                 2
             );
+            $this->watchdog()->critical('Extension GD indisponible', '', 'SignatureGenerator');
             return false;
         }
 
@@ -130,6 +142,7 @@ class SignatureGenerator
                 "SignatureGenerator: police [{$style}] introuvable",
                 2
             );
+            $this->watchdog()->error('Police TTF introuvable : ' . $style, '', 'SignatureGenerator');
             return false;
         }
 

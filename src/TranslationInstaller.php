@@ -44,6 +44,9 @@ class TranslationInstaller
     private int $countSkipped  = 0;
     private int $countErrors   = 0;
 
+    /** @var WatchdogManager|null Instance paresseuse du watchdog */
+    private ?WatchdogManager $watchdog = null;
+
     // ============================================================
     // CONSTRUCTEUR
     // ============================================================
@@ -52,6 +55,14 @@ class TranslationInstaller
     {
         $this->module = $module;
         $this->db     = \Db::getInstance();
+    }
+
+    private function watchdog(): WatchdogManager
+    {
+        if ($this->watchdog === null) {
+            $this->watchdog = new WatchdogManager($this->module);
+        }
+        return $this->watchdog;
     }
 
     // ============================================================
@@ -161,6 +172,11 @@ class TranslationInstaller
                 $this->countErrors
             ),
             1
+        );
+        $this->watchdog()->info(
+            sprintf('Import terminé — %d traductions insérées', $this->countInserted),
+            '',
+            'TranslationInstaller'
         );
 
         return $this->countErrors === 0;
@@ -325,6 +341,11 @@ class TranslationInstaller
                 'TranslationInstaller: erreur bulk insert → ' .
                 $this->db->getMsgError(),
                 3
+            );
+            $this->watchdog()->error(
+                'Erreur bulk insert : ' . $this->db->getMsgError(),
+                '',
+                'TranslationInstaller'
             );
         }
 

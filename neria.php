@@ -253,6 +253,12 @@ class Neria extends Module
             $this->sendTestEmail();
         }
 
+        // ── Action : vider le journal watchdog ────────────────────
+        if (Tools::getValue('neria_action') === 'clear_logs') {
+            $watchdog = new WatchdogManager($this);
+            $watchdog->clearLogs();
+        }
+
         // Détermine l'onglet actif (par défaut : configure)
         $activeTab = Tools::getValue('neria_tab', 'configure');
 
@@ -320,6 +326,11 @@ class Neria extends Module
 
             // Diagnostic complet pour l'onglet Aide
             'diagnostic'       => NeriaTools::getDiagnosticReport($this),
+
+            // Journal watchdog pour l'onglet Aide
+            'logs'             => (new WatchdogManager($this))->getLogs(100),
+            'log_counts'       => (new WatchdogManager($this))->getCountByLevel(),
+            'log_templates'    => (new WatchdogManager($this))->getTemplatesWithErrors(),
 
             // Variables pour abtest.tpl
             'eligible_templates' => (new ABTestManager($this))->getEligibleTemplates(),

@@ -60,11 +60,22 @@ class CalendarManager
     // CONSTRUCTEUR
     // ============================================================
 
+    /** @var WatchdogManager|null Instance paresseuse du watchdog */
+    private ?WatchdogManager $watchdog = null;
+
     public function __construct(Neria $module)
     {
         $this->module = $module;
         $this->db     = \Db::getInstance();
         $this->idShop = (int) \Context::getContext()->shop->id;
+    }
+
+    private function watchdog(): WatchdogManager
+    {
+        if ($this->watchdog === null) {
+            $this->watchdog = new WatchdogManager($this->module);
+        }
+        return $this->watchdog;
     }
 
     // ============================================================
@@ -94,6 +105,11 @@ class CalendarManager
                         $e->getMessage()
                     ),
                     2
+                );
+                $this->watchdog()->error(
+                    'Erreur envoi calendaire : ' . $e->getMessage(),
+                    $event['template'] ?? '',
+                    'CalendarManager'
                 );
             }
         }
@@ -148,6 +164,11 @@ class CalendarManager
                 $eventDate->format('d/m/Y')
             ),
             1
+        );
+        $this->watchdog()->info(
+            sprintf('%d emails envoyés pour : %s', $sent, $eventKey),
+            $template,
+            'CalendarManager'
         );
     }
 

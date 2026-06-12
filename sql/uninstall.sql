@@ -21,3 +21,4 @@ DROP TABLE IF EXISTS `PREFIX_neria_signature`;
 DROP TABLE IF EXISTS `PREFIX_neria_custom_variable`;
 DROP TABLE IF EXISTS `PREFIX_neria_config`;
 DROP TABLE IF EXISTS `PREFIX_neria_translation`;
+DROP TABLE IF EXISTS `PREFIX_neria_log`;

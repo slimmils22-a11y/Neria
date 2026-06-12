@@ -63,6 +63,9 @@ class TranslationEngine
     /** @var bool Indique si les variables custom ont été chargées */
     private bool $customVarsLoaded = false;
 
+    /** @var WatchdogManager|null Instance paresseuse du watchdog */
+    private ?WatchdogManager $watchdog = null;
+
     // ============================================================
     // CONSTRUCTEUR
     // ============================================================
@@ -71,6 +74,14 @@ class TranslationEngine
     {
         $this->module = $module;
         $this->db     = \Db::getInstance();
+    }
+
+    private function watchdog(): WatchdogManager
+    {
+        if ($this->watchdog === null) {
+            $this->watchdog = new WatchdogManager($this->module);
+        }
+        return $this->watchdog;
     }
 
     // ============================================================
@@ -121,6 +132,11 @@ class TranslationEngine
                     ),
                     2
                 );
+                $this->watchdog()->warning(
+                    'Fallback EN utilisé pour langue : ' . $lang . ' — clé : ' . $key,
+                    $template,
+                    'TranslationEngine'
+                );
                 return $this->resolveVariables(
                     $this->cache[$fallbackKey][$key]
                 );
@@ -148,6 +164,11 @@ class TranslationEngine
                 $template, $lang, $key
             ),
             2
+        );
+        $this->watchdog()->warning(
+            'Clé introuvable : ' . $key,
+            $template,
+            'TranslationEngine'
         );
 
         return '';

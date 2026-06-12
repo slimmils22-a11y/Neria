@@ -206,6 +206,29 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_calendar_event` (
 COMMENT='Configuration des occasions calendaires automatiques';
 
 
+-- ------------------------------------------------------------
+-- TABLE 9 : neria_log
+-- Journal des erreurs et événements du module (watchdog)
+-- Accessible depuis l'onglet Aide du back-office
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `PREFIX_neria_log` (
+    `id_log`        INT(11)         NOT NULL AUTO_INCREMENT,
+    `id_shop`       INT(11)         NOT NULL DEFAULT 1,
+    `level`         ENUM('info','warning','error','critical') NOT NULL DEFAULT 'info',
+    `template`      VARCHAR(100)    NOT NULL DEFAULT '',
+    `class`         VARCHAR(100)    NOT NULL DEFAULT '',
+    `message`       TEXT            NOT NULL,
+    `context`       TEXT            NULL,
+    `date_add`      DATETIME        NOT NULL,
+    PRIMARY KEY (`id_log`),
+    INDEX `idx_shop`    (`id_shop`),
+    INDEX `idx_level`   (`level`),
+    INDEX `idx_date`    (`date_add`),
+    INDEX `idx_template`(`template`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Journal des erreurs et événements du module Neria';
+
+
 -- ============================================================
 -- DONNÉES PAR DÉFAUT
 -- Injectées à l'installation pour que le module soit

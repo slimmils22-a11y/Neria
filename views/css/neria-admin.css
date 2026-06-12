@@ -190,3 +190,10 @@
 .neria-trad-fields { display:flex; flex-direction:column; gap:12px; }
 .neria-trad-field { display:flex; flex-direction:column; gap:4px; }
 .neria-trad-key { font-family:monospace; font-size:11px; color:var(--neria-text-light); }
+
+/* Watchdog — lignes du journal colorées par niveau */
+.neria-log-row--warning td { background: rgba(186,117,23,0.04); }
+.neria-log-row--error td   { background: rgba(163,45,45,0.04); }
+.neria-log-row--critical td{ background: rgba(122,0,0,0.08); }
+.neria-badge--warn { background: #FAEEDA; color: #633806; }
+.neria-badge--err  { background: #FCEBEB; color: #791F1F; }
