@@ -5,7 +5,7 @@
 {neria_trad key='voucher_intro'}
 
 {neria_trad key='order_details_title'} {order_name}
-
+--------------------------------
 {neria_trad key='voucher_for_order'} {order_name}.
 
 {neria_trad key='voucher_amount_label'} : {voucher_amount}

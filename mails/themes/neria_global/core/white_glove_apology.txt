@@ -5,8 +5,9 @@
 {neria_trad key='apology_intro'}
 
 {neria_trad key='apology_details_title'}
-
+--------------------------------
 {neria_trad key='order_reference_label'} : {order_name}
+
 {apology_reason}
 
 {neria_trad key='apology_responsibility'}
