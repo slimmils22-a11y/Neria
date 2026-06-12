@@ -1,12 +1,24 @@
-﻿{shop_name}
+{shop_name}
+
 {neria_trad key='dear_customer'}
+
 {neria_trad key='gift_intro'}
+
 {neria_trad key='gift_details_title'}
+--------------------------------
 {neria_trad key='gift_detail_1'}
+
 {neria_trad key='gift_detail_2'}
+
 {neria_trad key='gift_detail_3'}
+
 {neria_trad key='gift_detail_4'}
+
 {neria_trad key='gift_message'}
+
 {neria_trad key='gift_btn'} : {order_url}
+
 {neria_trad key='gift_note'}
-{shop_name} - {shop_url}
+
+{shop_name}
+{shop_url}

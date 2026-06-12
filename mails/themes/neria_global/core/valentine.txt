@@ -1,8 +1,16 @@
-﻿{shop_name}
+{shop_name}
+
 {neria_trad key='dear_customer'}
+
 {neria_trad key='valentine_intro'}
+
 {neria_trad key='valentine_message'}
+
 {neria_trad key='valentine_btn'} : {shop_url}
+
 {neria_trad key='valentine_note'}
+
 {neria_trad key='valentine_signature'}
-{shop_name} - {shop_url}
+
+{shop_name}
+{shop_url}

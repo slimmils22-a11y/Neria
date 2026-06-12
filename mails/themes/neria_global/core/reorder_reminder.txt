@@ -1,4 +1,4 @@
-﻿{shop_name}
+{shop_name}
 
 {neria_trad key='dear_customer'}
 
@@ -6,11 +6,13 @@
 
 {neria_trad key='reorder_reminder_details'}
 --------------------------------
+{product_name}
 
 {neria_trad key='reorder_reminder_btn'} : {shop_url}
 
 {neria_trad key='reorder_reminder_note'}
 
 {neria_trad key='reorder_reminder_signature'}
+
 {shop_name}
 {shop_url}

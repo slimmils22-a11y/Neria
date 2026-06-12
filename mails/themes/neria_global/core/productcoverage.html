@@ -1,13 +1,30 @@
-﻿{extends file='layouts/layout.html'}
+{extends file='layouts/layout.html'}
+
 {block name='neria_content'}
+
+<!-- TITRE PRINCIPAL -->
 <h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
 <p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
+
+<!-- SALUTATION -->
+<p class="neria-text">{neria_trad key='dear_employee'}</p>
+
+<!-- INTRO -->
 <p class="neria-text">{neria_trad key='productcoverage_intro'}</p>
+
+<!-- BOX COUVERTURE -->
 <div class="neria-section-title">{neria_trad key='productcoverage_status'}</div>
 <div class="neria-info-box">
   <p><strong>{neria_trad key='productcoverage_min'} :</strong> {warning_coverage}</p>
   <p style="margin-top:8px;"><strong>{neria_trad key='productcoverage_current'} :</strong> {current_coverage}</p>
 </div>
+
+<!-- NOTE -->
 <p class="neria-text-note" style="margin-top:20px;">{neria_trad key='productcoverage_admin_note'}</p>
-<div class="neria-signature"><strong>{shop_name}</strong></div>
+
+<!-- SIGNATURE -->
+<div class="neria-signature">
+  <strong>{shop_name}</strong>
+</div>
+
 {/block}

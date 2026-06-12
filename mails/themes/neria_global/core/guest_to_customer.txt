@@ -9,9 +9,11 @@
 {neria_trad key='account_email_label'} : {email}
 
 {neria_trad key='guest_to_customer_password'}
+
 {neria_trad key='guest_to_customer_btn'} : {url}
 
 {neria_trad key='guest_to_customer_benefits'}
+
 {neria_trad key='guest_to_customer_account_link'} : {shop_url}
 
 {shop_name}

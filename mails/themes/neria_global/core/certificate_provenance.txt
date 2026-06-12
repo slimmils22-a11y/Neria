@@ -1,12 +1,24 @@
-﻿{shop_name}
+{shop_name}
+
 {neria_trad key='dear_customer'}
+
 {neria_trad key='certificate_intro'}
+
 {neria_trad key='certificate_origin_title'}
+--------------------------------
 {certificate_origin}
+
 {neria_trad key='certificate_materials_title'}
+--------------------------------
 {certificate_materials}
+
 {neria_trad key='certificate_artisan_title'}
+--------------------------------
 {certificate_artisan}
+
 {neria_trad key='certificate_message'}
+
 {neria_trad key='certificate_note'}
-{shop_name} - {shop_url}
+
+{shop_name}
+{shop_url}

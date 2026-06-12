@@ -13,5 +13,6 @@
 {neria_trad key='loyalty_tier_note'}
 
 {neria_trad key='loyalty_tier_signature'}
+
 {shop_name}
 {shop_url}

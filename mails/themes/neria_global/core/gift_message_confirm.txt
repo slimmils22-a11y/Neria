@@ -15,5 +15,6 @@
 {neria_trad key='gift_message_confirm_note'}
 
 {neria_trad key='gift_message_confirm_signature'}
+
 {shop_name}
 {shop_url}

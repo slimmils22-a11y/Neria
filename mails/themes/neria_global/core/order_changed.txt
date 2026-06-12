@@ -7,9 +7,11 @@
 {neria_trad key='order_details_title'} {order_name}
 --------------------------------
 {neria_trad key='changed_confirmation'} {order_name}.
+
 {neria_trad key='changed_info'}
 
 {neria_trad key='changed_account'}
+
 {neria_trad key='changed_history_link'} : {history_url}
 
 {neria_trad key='guest_tracking_info'} : {guest_tracking_url}

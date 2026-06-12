@@ -7,7 +7,9 @@
 {neria_trad key='gift_card_details'}
 --------------------------------
 {neria_trad key='gift_card_amount'} : {gift_card_amount}
-{neria_trad key='gift_card_code'} : <strong>{gift_card_code}</strong>
+
+{neria_trad key='gift_card_code'} : {gift_card_code}
+
 {neria_trad key='gift_card_usage'} : {gift_card_usage}
 
 {neria_trad key='gift_card_btn'} : {shop_url}
@@ -15,5 +17,6 @@
 {neria_trad key='gift_card_note'}
 
 {neria_trad key='gift_card_signature'}
+
 {shop_name}
 {shop_url}

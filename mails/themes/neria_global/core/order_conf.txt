@@ -1,23 +1,30 @@
-﻿{shop_name}
+{shop_name}
 
 {neria_trad key='dear_customer'}
 
 {neria_trad key='order_confirmation_intro'}
+
 {neria_trad key='order_confirmation_craftsmanship'}
 
 {neria_trad key='order_details_title'}
 --------------------------------
 {neria_trad key='order_reference_label'} : {order_name}
+
 {neria_trad key='order_date_label'} : {date}
+
 {neria_trad key='payment_label'} : {payment}
 
 {products_txt}
 {discounts_txt}
 
 {neria_trad key='total_products_label'} : {total_products}
+
 {neria_trad key='total_discounts_label'} : {total_discounts}
+
 {neria_trad key='total_shipping_label'} : {total_shipping}
+
 {neria_trad key='total_tax_label'} : {total_tax_paid}
+
 {neria_trad key='total_paid_label'} : {total_paid}
 
 {neria_trad key='shipping_title'}
@@ -25,15 +32,20 @@
 {neria_trad key='carrier_label'} : {carrier}
 
 {neria_trad key='delivery_address_title'}
+--------------------------------
 {delivery_block_txt}
 
 {neria_trad key='invoice_address_title'}
+--------------------------------
 {invoice_block_txt}
 
 {neria_trad key='tracking_info'}
+
 {neria_trad key='history_info'} : {history_url}
+
 {neria_trad key='guest_tracking_info'} : {guest_tracking_url}
 
 {neria_trad key='signature_thanks'}
+
 {shop_name}
 {shop_url}

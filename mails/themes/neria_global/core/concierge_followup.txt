@@ -12,5 +12,6 @@
 {neria_trad key='concierge_followup_note'}
 
 {neria_trad key='concierge_followup_signature'}
+
 {shop_name}
 {shop_url}

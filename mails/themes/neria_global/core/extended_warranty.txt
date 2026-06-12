@@ -8,11 +8,13 @@
 
 {neria_trad key='extended_warranty_details'}
 --------------------------------
+{product_name}
 
 {neria_trad key='extended_warranty_btn'} : {history_url}
 
 {neria_trad key='extended_warranty_note'}
 
 {neria_trad key='extended_warranty_signature'}
+
 {shop_name}
 {shop_url}

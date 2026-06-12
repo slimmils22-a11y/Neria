@@ -1,4 +1,4 @@
-﻿{shop_name}
+{shop_name}
 
 {neria_trad key='dear_customer'}
 
@@ -6,11 +6,13 @@
 
 {neria_trad key='subscription_confirm_details'}
 --------------------------------
+{neria_trad key='account_email_label'} : {email}
 
 {neria_trad key='subscription_confirm_btn'} : {shop_url}
 
 {neria_trad key='subscription_confirm_note'}
 
 {neria_trad key='subscription_confirm_signature'}
+
 {shop_name}
 {shop_url}

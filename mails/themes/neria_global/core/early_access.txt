@@ -12,5 +12,6 @@
 {neria_trad key='early_access_note'}
 
 {neria_trad key='early_access_signature'}
+
 {shop_name}
 {shop_url}

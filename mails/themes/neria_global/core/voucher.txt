@@ -1,11 +1,22 @@
-﻿{shop_name}
+{shop_name}
+
 {neria_trad key='dear_customer'}
+
 {neria_trad key='voucher_intro'}
+
 {neria_trad key='order_details_title'} {order_name}
+
 {neria_trad key='voucher_for_order'} {order_name}.
+
 {neria_trad key='voucher_amount_label'} : {voucher_amount}
+
 {neria_trad key='voucher_code'} : {voucher_num}
+
 {neria_trad key='voucher_usage'}
+
 {neria_trad key='voucher_next'}
+
 {neria_trad key='signature_thanks'}
-{shop_name} - {shop_url}
+
+{shop_name}
+{shop_url}

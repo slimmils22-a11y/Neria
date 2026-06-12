@@ -1,4 +1,4 @@
-﻿{shop_name}
+{shop_name}
 
 {neria_trad key='dear_customer'}
 
@@ -7,13 +7,16 @@
 {neria_trad key='order_details_title'}
 --------------------------------
 {neria_trad key='shipped_confirmation'} {order_name}.
+
 {neria_trad key='shipped_wait'}
 
 {neria_trad key='history_info'} : {history_url}
+
 {neria_trad key='guest_tracking_info'} : {guest_tracking_url}
 
 {neria_trad key='shipped_wish'}
 
 {neria_trad key='signature_thanks'}
+
 {shop_name}
 {shop_url}

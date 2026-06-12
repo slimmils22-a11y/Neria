@@ -1,4 +1,4 @@
-﻿{shop_name}
+{shop_name}
 
 {neria_trad key='dear_employee'}
 
@@ -7,7 +7,9 @@
 {neria_trad key='productoutofstock_details'}
 --------------------------------
 {neria_trad key='productoutofstock_product'} : {product}
-{neria_trad key='productoutofstock_below'} {last_qty}.
+
+{neria_trad key='productoutofstock_threshold'} : {last_qty}
+
 {neria_trad key='productoutofstock_remaining'} : {qty}
 
 {neria_trad key='productoutofstock_action'}

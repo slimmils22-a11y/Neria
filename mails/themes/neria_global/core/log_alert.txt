@@ -7,6 +7,7 @@
 {neria_trad key='log_alert_details'}
 --------------------------------
 {neria_trad key='log_alert_warning'}
+
 {neria_trad key='log_alert_check'}
 
 {neria_trad key='log_alert_admin_note'}

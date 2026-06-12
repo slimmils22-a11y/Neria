@@ -12,5 +12,6 @@
 {neria_trad key='exclusive_preview_note'}
 
 {neria_trad key='exclusive_preview_signature'}
+
 {shop_name}
 {shop_url}

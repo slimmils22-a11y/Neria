@@ -137,6 +137,38 @@
                placeholder="{l s='Ex: Avec toute notre estime,' mod='neria'}">
       </div>
 
+      <div class="neria-form-group neria-form-group--full">
+        <label class="neria-label" for="return_address">
+          {l s='Adresse de retour' mod='neria'}
+          <span class="neria-var-tag">{literal}{return_address}{/literal}</span>
+        </label>
+        <textarea id="return_address" name="return_address"
+                  class="neria-input" rows="3"
+                  placeholder="{l s='Ex: Neria Returns, 15 rue du Commerce, 75015 Paris' mod='neria'}">{$custom_vars.return_address|default:''|escape:'html'}</textarea>
+      </div>
+
+      <div class="neria-form-group">
+        <label class="neria-label" for="return_deadline_days">
+          {l s='Délai de renvoi (jours)' mod='neria'}
+          <span class="neria-var-tag">{literal}{return_deadline_days}{/literal}</span>
+        </label>
+        <input type="text" id="return_deadline_days" name="return_deadline_days"
+               class="neria-input"
+               value="{$custom_vars.return_deadline_days|default:''|escape:'html'}"
+               placeholder="{l s='Ex: 14' mod='neria'}">
+      </div>
+
+      <div class="neria-form-group">
+        <label class="neria-label" for="return_processing_days">
+          {l s='Délai d\'examen du retour' mod='neria'}
+          <span class="neria-var-tag">{literal}{return_processing_days}{/literal}</span>
+        </label>
+        <input type="text" id="return_processing_days" name="return_processing_days"
+               class="neria-input"
+               value="{$custom_vars.return_processing_days|default:''|escape:'html'}"
+               placeholder="{l s='Ex: 5-7' mod='neria'}">
+      </div>
+
     </div>
 
     <div class="neria-form-actions">

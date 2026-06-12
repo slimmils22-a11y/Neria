@@ -1,11 +1,22 @@
-﻿{shop_name}
+{shop_name}
+
 {neria_trad key='dear_customer'}
+
 {neria_trad key='care_intro'}
+
 {neria_trad key='care_message'}
+
 {neria_trad key='care_tips_title'}
+--------------------------------
 {neria_trad key='care_tip_1'}
+
 {neria_trad key='care_tip_2'}
+
 {neria_trad key='care_tip_3'}
+
 {neria_trad key='care_note'}
+
 {neria_trad key='signature_thanks'}
-{shop_name} - {shop_url}
+
+{shop_name}
+{shop_url}

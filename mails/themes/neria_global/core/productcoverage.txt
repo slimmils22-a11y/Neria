@@ -1,8 +1,16 @@
-﻿{shop_name}
-{neria_trad key='greeting_main'}
+{shop_name}
+
+{neria_trad key='dear_employee'}
+
 {neria_trad key='productcoverage_intro'}
+
 {neria_trad key='productcoverage_status'}
+--------------------------------
 {neria_trad key='productcoverage_min'} : {warning_coverage}
+
 {neria_trad key='productcoverage_current'} : {current_coverage}
+
 {neria_trad key='productcoverage_admin_note'}
-{shop_name} - {shop_url}
+
+{shop_name}
+{shop_url}

@@ -7,11 +7,14 @@
 {neria_trad key='end_of_year_message'}
 --------------------------------
 {neria_trad key='end_of_year_voucher_value'} : {voucher_amount}
+
 {voucher_usage}
+
 {neria_trad key='end_of_year_usage'}
 
 {neria_trad key='end_of_year_btn'} : {shop_url}
 
 {neria_trad key='end_of_year_signature'}
+
 {shop_name}
 {shop_url}

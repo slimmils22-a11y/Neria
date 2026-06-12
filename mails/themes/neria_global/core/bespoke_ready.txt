@@ -8,11 +8,13 @@
 
 {neria_trad key='bespoke_ready_details'}
 --------------------------------
+{product_name}
 
 {neria_trad key='bespoke_ready_btn'} : {history_url}
 
 {neria_trad key='bespoke_ready_note'}
 
 {neria_trad key='bespoke_ready_signature'}
+
 {shop_name}
 {shop_url}

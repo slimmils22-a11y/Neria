@@ -13,5 +13,6 @@
 {neria_trad key='loyalty_expiry_note'}
 
 {neria_trad key='loyalty_expiry_signature'}
+
 {shop_name}
 {shop_url}

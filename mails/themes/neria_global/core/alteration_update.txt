@@ -15,5 +15,6 @@
 {neria_trad key='alteration_update_note'}
 
 {neria_trad key='alteration_update_signature'}
+
 {shop_name}
 {shop_url}

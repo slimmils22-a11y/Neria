@@ -5,6 +5,7 @@
 {neria_trad key='merchant_comment_intro'}
 
 {neria_trad key='order_details_title'} {order_name}
+--------------------------------
 {neria_trad key='merchant_comment_new'} {order_name}.
 
 {neria_trad key='merchant_comment_message'}

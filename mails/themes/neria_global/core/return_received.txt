@@ -8,11 +8,13 @@
 
 {neria_trad key='return_received_details'}
 --------------------------------
+{meta_products_txt}
 
 {neria_trad key='return_received_btn'} : {history_url}
 
 {neria_trad key='return_received_note'}
 
 {neria_trad key='return_received_signature'}
+
 {shop_name}
 {shop_url}

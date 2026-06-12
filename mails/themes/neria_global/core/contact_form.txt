@@ -7,7 +7,9 @@
 {neria_trad key='contact_form_summary'}
 --------------------------------
 {neria_trad key='order_reference_label'} : {order_name}
+
 {neria_trad key='contact_form_product_label'} : {product_name}
+
 {neria_trad key='contact_attachment_label'} : {attached_file}
 
 {neria_trad key='contact_form_promise'}
@@ -15,5 +17,6 @@
 {neria_trad key='contact_form_btn'} : {shop_url}
 
 {neria_trad key='signature_thanks'}
+
 {shop_name}
 {shop_url}

@@ -244,7 +244,10 @@ VALUES
     (1, 'slogan',           '',  'Votre slogan ou devise (ex: L\'élégance au quotidien)', NOW(), NOW()),
     (1, 'signature_closing','',  'Formule de clôture personnalisée (ex: Avec toute notre estime)', NOW(), NOW()),
     (1, 'founder_name',     '',  'Nom du fondateur pour la signature manuscrite', NOW(), NOW()),
-    (1, 'founder_title',    '',  'Titre du fondateur (ex: Fondatrice & Directrice Artistique)', NOW(), NOW());
+    (1, 'founder_title',    '',  'Titre du fondateur (ex: Fondatrice & Directrice Artistique)', NOW(), NOW()),
+    (1, 'return_address',        '',    'Adresse de retour des marchandises (bon de retour)', NOW(), NOW()),
+    (1, 'return_deadline_days',  '14',  'Bon de retour : délai accordé pour renvoyer le colis (en jours)', NOW(), NOW()),
+    (1, 'return_processing_days','5-7', 'Bon de retour : délai d\'examen du retour (jours ouvrés, ex: 5-7)', NOW(), NOW());
 
 
 -- Occasions calendaires par défaut

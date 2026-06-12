@@ -9,6 +9,7 @@
 {message}
 
 {neria_trad key='newsletter_update'}
+
 {neria_trad key='newsletter_btn'} : {shop_url}
 
 {shop_name}

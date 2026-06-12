@@ -1,8 +1,16 @@
-﻿{shop_name}
+{shop_name}
+
 {neria_trad key='newsletter_conf_intro'}
+
 {neria_trad key='newsletter_conf_title'}
+--------------------------------
 {neria_trad key='newsletter_conf_text'}
+
 {neria_trad key='newsletter_conf_promise'}
+
 {neria_trad key='newsletter_conf_manage'}
+
 {neria_trad key='newsletter_conf_btn'} : {shop_url}
-{shop_name} - {shop_url}
+
+{shop_name}
+{shop_url}

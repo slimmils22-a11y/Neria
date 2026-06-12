@@ -9,6 +9,7 @@
 {neria_trad key='customs_alert_details'}
 --------------------------------
 {neria_trad key='customs_alert_status'} : {customs_status}
+
 {neria_trad key='customs_alert_action'} : {customs_action}
 
 {neria_trad key='customs_alert_btn'} : {history_url}
@@ -16,5 +17,6 @@
 {neria_trad key='customs_alert_note'}
 
 {neria_trad key='customs_alert_signature'}
+
 {shop_name}
 {shop_url}

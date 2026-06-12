@@ -9,6 +9,7 @@
 {neria_trad key='delivery_attempt_details'}
 --------------------------------
 {neria_trad key='delivery_attempt_status'} : {carrier_name}
+
 {neria_trad key='delivery_attempt_action'} : {pickup_point_address}
 
 {neria_trad key='delivery_attempt_btn'} : {history_url}
@@ -16,5 +17,6 @@
 {neria_trad key='delivery_attempt_note'}
 
 {neria_trad key='delivery_attempt_signature'}
+
 {shop_name}
 {shop_url}

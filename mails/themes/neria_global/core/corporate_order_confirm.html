@@ -6,17 +6,32 @@
 <h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
 <p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
 
-<!-- RÉFÉRENCE COMMANDE -->
-<div class="neria-info-box">
-  <p><strong>{neria_trad key='order_reference_label'} :</strong> {order_name}</p>
-</div>
-
 <!-- CORPS -->
 <p class="neria-text">{neria_trad key='dear_customer'}</p>
 <p class="neria-text">{neria_trad key='corporate_confirm_intro'}</p>
 
+<!-- RÉFÉRENCE COMMANDE -->
+<div class="neria-info-box" style="margin-top:16px;">
+  <p><strong>{neria_trad key='order_reference_label'} :</strong> {order_name}</p>
+</div>
+
 <!-- SECTION -->
 <div class="neria-section-title">{neria_trad key='corporate_confirm_details'}</div>
+
+<table class="neria-products-table" cellpadding="0" cellspacing="0" width="100%">
+  <thead>
+    <tr>
+      <th width="12%" style="white-space:nowrap;">{neria_trad key='col_reference'}</th>
+      <th width="45%">{neria_trad key='col_product'}</th>
+      <th width="15%" style="text-align:right; white-space:nowrap;">{neria_trad key='col_unit_price'}</th>
+      <th width="10%" style="text-align:center; white-space:nowrap;">{neria_trad key='col_quantity'}</th>
+      <th width="18%" style="text-align:right; white-space:nowrap;">{neria_trad key='col_total_price'}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {products}
+  </tbody>
+</table>
 
 <!-- BOUTON -->
 <p style="text-align:center; margin:28px 0;">

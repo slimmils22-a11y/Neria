@@ -15,5 +15,6 @@
 {neria_trad key='multi_recipient_note'}
 
 {neria_trad key='multi_recipient_signature'}
+
 {shop_name}
 {shop_url}

@@ -1,4 +1,4 @@
-﻿{shop_name}
+{shop_name}
 
 {neria_trad key='greeting_main'}
 
@@ -7,6 +7,7 @@
 {neria_trad key='order_info_title'}
 --------------------------------
 {neria_trad key='order_reference_label'} : {order_name}
+
 {neria_trad key='customer_label'} : {firstname} {lastname} ({email})
 
 {neria_trad key='customer_message_title'}

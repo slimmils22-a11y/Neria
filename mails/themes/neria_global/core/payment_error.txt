@@ -1,14 +1,17 @@
-﻿{shop_name}
+{shop_name}
 
 {neria_trad key='dear_customer'}
 
 {neria_trad key='payment_error_intro'}
 
 {neria_trad key='order_details_title'} {order_name}
+--------------------------------
 {neria_trad key='payment_error_issue'} {order_name}.
+
 {neria_trad key='payment_error_apologies'}
 
 {neria_trad key='payment_error_help'}
+
 {neria_trad key='guest_tracking_info'} : {guest_tracking_url}
 
 {neria_trad key='payment_error_thanks'}

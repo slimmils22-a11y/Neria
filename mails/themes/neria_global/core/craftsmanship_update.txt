@@ -1,8 +1,16 @@
-﻿{shop_name}
+{shop_name}
+
 {neria_trad key='dear_customer'}
+
 {neria_trad key='craftsmanship_intro'}
+
 {neria_trad key='craftsmanship_status_title'}
+--------------------------------
 {craftsmanship_stage}
+
 {neria_trad key='craftsmanship_message'}
+
 {neria_trad key='craftsmanship_note'}
-{shop_name} - {shop_url}
+
+{shop_name}
+{shop_url}

@@ -8,11 +8,13 @@
 
 {neria_trad key='corporate_confirm_details'}
 --------------------------------
+{products_txt}
 
 {neria_trad key='corporate_confirm_btn'} : {history_url}
 
 {neria_trad key='corporate_confirm_note'}
 
 {neria_trad key='corporate_confirm_signature'}
+
 {shop_name}
 {shop_url}

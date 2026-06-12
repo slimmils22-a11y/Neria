@@ -7,9 +7,11 @@
 {neria_trad key='order_details_title'}
 --------------------------------
 {neria_trad key='canceled_confirmation'} {order_name}.
+
 {neria_trad key='canceled_info'}
 
 {neria_trad key='canceled_account'}
+
 {neria_trad key='canceled_history_link'} : {history_url}
 
 {neria_trad key='guest_tracking_info'} : {guest_tracking_url}
@@ -17,5 +19,6 @@
 {neria_trad key='canceled_hope'}
 
 {neria_trad key='signature_regret'}
+
 {shop_name}
 {shop_url}

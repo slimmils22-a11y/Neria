@@ -1,4 +1,4 @@
-﻿{shop_name}
+{shop_name}
 
 {neria_trad key='dear_customer'}
 
@@ -12,5 +12,6 @@
 {neria_trad key='referral_note'}
 
 {neria_trad key='referral_signature'}
+
 {shop_name}
 {shop_url}

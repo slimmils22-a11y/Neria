@@ -455,6 +455,9 @@ class ConfigManager
             'signature_closing',
             'founder_name',
             'founder_title',
+            'return_address',
+            'return_deadline_days',
+            'return_processing_days',
         ];
 
         foreach ($allowedVariables as $varKey) {

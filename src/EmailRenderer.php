@@ -112,6 +112,14 @@ class EmailRenderer
         // â”€â”€ Injecte la signature â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $this->injectSignatureVars($params['templateVars']);
 
+        // Injecte les variables personnalisées du marchand ({return_address}, etc.)
+        $this->injectCustomVars($params['templateVars']);
+
+        // Lien du bon de retour (page Retours du compte client)
+        if ($template === 'return_slip') {
+            $this->injectReturnSlipUrl($params['templateVars']);
+        }
+
         // â”€â”€ GÃ©nÃ¨re les variantes texte des variables HTML (pour le .txt)
         $this->injectTextVariants($params['templateVars']);
 
@@ -280,6 +288,74 @@ class EmailRenderer
             'neria_signature_title'  => $signature['title'],
             'neria_has_signature'    => !empty($signature['url']),
         ]);
+    }
+
+    /**
+     * Injecte les variables personnalisées du marchand dans les templateVars
+     * pour qu'elles soient substituées directement dans les emails (.html et .txt).
+     *
+     * Pour chaque variable {cle}, génère aussi deux variantes :
+     *   - {cle_html} : sauts de ligne convertis en <br> (rendu HTML)
+     *   - {cle_txt}  : texte brut, entités décodées (rendu .txt)
+     *
+     * Ne remplace jamais une valeur déjà présente (respecte les fakeVars d'aperçu).
+     *
+     * @param array $templateVars Variables Smarty (passé par référence)
+     */
+    private function injectCustomVars(array &$templateVars): void
+    {
+        if (!is_array($templateVars)) {
+            return;
+        }
+
+        $vars = $this->config->getCustomVariables();
+        if (empty($vars)) {
+            return;
+        }
+
+        foreach ($vars as $row) {
+            $key = isset($row['variable_key']) ? trim((string) $row['variable_key']) : '';
+            if ($key === '') {
+                continue;
+            }
+
+            $value   = (string) ($row['variable_value'] ?? '');
+            $rawKey  = '{' . $key . '}';
+            $htmlKey = '{' . $key . '_html}';
+            $txtKey  = '{' . $key . '_txt}';
+
+            if (empty($templateVars[$rawKey])) {
+                $templateVars[$rawKey] = $value;
+            }
+            if (empty($templateVars[$htmlKey])) {
+                $templateVars[$htmlKey] = nl2br($value);
+            }
+            if (empty($templateVars[$txtKey])) {
+                $templateVars[$txtKey] = trim(html_entity_decode($value, ENT_QUOTES, 'UTF-8'));
+            }
+        }
+    }
+
+    /**
+     * Injecte le lien du bon de retour ({return_slip_url}) pointant vers la
+     * page « Retours marchandise » du compte client (order-follow).
+     * Fallback : page historique des commandes.
+     *
+     * @param array $templateVars Variables Smarty (passé par référence)
+     */
+    private function injectReturnSlipUrl(array &$templateVars): void
+    {
+        if (!empty($templateVars['{return_slip_url}'])) {
+            return;
+        }
+
+        try {
+            $url = $this->context->link->getPageLink('order-follow', true);
+        } catch (\Throwable $e) {
+            $url = $this->context->link->getPageLink('history', true);
+        }
+
+        $templateVars['{return_slip_url}'] = $url;
     }
 
     /**

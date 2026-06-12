@@ -1,4 +1,4 @@
-﻿{extends file='layouts/layout.html'}
+{extends file='layouts/layout.html'}
 
 {block name='neria_content'}
 
@@ -6,43 +6,62 @@
 <h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
 <p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
 
-<!-- INTRO -->
+<!-- SALUTATION -->
+<p class="neria-text">{neria_trad key='dear_customer'}</p>
 <p class="neria-text">{neria_trad key='return_slip_intro'}</p>
 
-<!-- DÉTAILS RETOUR -->
-<div class="neria-section-title">{neria_trad key='return_slip_details'}</div>
+<!-- RÉFÉRENCES -->
 <div class="neria-info-box">
-  <p><strong>{neria_trad key='order_reference_label'} :</strong> {order_name}</p>
-  <p><strong>{neria_trad key='order_date_label'} :</strong> {date}</p>
-  <p><strong>{neria_trad key='customer_label'} :</strong> {firstname} {lastname} ({email})</p>
+  <p><strong>{neria_trad key='return_slip_order_label'} :</strong> {order_name}</p>
+  <p><strong>{neria_trad key='return_slip_rma_label'} :</strong> {id_order_return}</p>
+  <p><strong>{neria_trad key='return_slip_deadline_label'} :</strong> {neria_trad key='return_slip_deadline'}</p>
 </div>
 
-<!-- PRODUITS -->
-<div class="neria-section-title">{neria_trad key='return_slip_products'}</div>
-{items}
+<!-- ARTICLES -->
+<div class="neria-section-title">{neria_trad key='return_slip_articles_title'}</div>
 <table class="neria-products-table" cellpadding="0" cellspacing="0" width="100%">
-  <thead><tr><th width="15%" style="white-space:nowrap;">{neria_trad key='col_reference'}</th><th width="70%">{neria_trad key='col_product'}</th><th width="15%" style="text-align:right; white-space:nowrap;">{neria_trad key='col_quantity'}</th></tr></thead>
-  <tbody></tbody>
+  <thead>
+    <tr>
+      <th width="12%" style="white-space:nowrap;">{neria_trad key='col_reference'}</th>
+      <th width="45%">{neria_trad key='col_product'}</th>
+      <th width="15%" style="text-align:right; white-space:nowrap;">{neria_trad key='col_unit_price'}</th>
+      <th width="10%" style="text-align:center; white-space:nowrap;">{neria_trad key='col_quantity'}</th>
+      <th width="18%" style="text-align:right; white-space:nowrap;">{neria_trad key='col_total_price'}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {products}
+  </tbody>
 </table>
 
-<!-- ADRESSES -->
-<div class="neria-section-title">{neria_trad key='delivery_address_title'}</div>
-<div class="neria-address-box">{delivery_block_html}</div>
+<!-- MOTIF -->
+<p class="neria-text"><strong>{neria_trad key='return_slip_reason_label'} :</strong> {return_slip_reason}</p>
 
-<div class="neria-section-title">{neria_trad key='invoice_address_title'}</div>
-<div class="neria-address-box">{invoice_block_html}</div>
-
-<!-- MESSAGE -->
-<div class="neria-section-title">{neria_trad key='customer_message_title'}</div>
-<div class="neria-info-box" style="background-color:#f9f6f0;">
-  <p style="white-space:pre-wrap;">{message}</p>
+<!-- INSTRUCTIONS D'ENVOI -->
+<div class="neria-section-title">{neria_trad key='return_slip_instructions_title'}</div>
+<div class="neria-info-box">
+  <p><strong>{neria_trad key='return_slip_address_label'} :</strong></p>
+  <p>{return_address_html}</p>
+  <p style="margin-top:14px;">{neria_trad key='return_slip_rma_note'} <strong>{id_order_return}</strong></p>
+  <p>{neria_trad key='return_slip_carrier_info'}</p>
+  <p>{neria_trad key='return_slip_shipping_cost'}</p>
 </div>
 
-<!-- NOTE -->
-<p class="neria-text-note" style="margin-top:20px;">{neria_trad key='return_slip_admin_note'}</p>
+<!-- DÉLAIS & REMBOURSEMENT -->
+<p class="neria-text">{neria_trad key='return_slip_processing_delay'}</p>
+<p class="neria-text">{neria_trad key='return_slip_refund_method'}</p>
+
+<!-- BOUTON TÉLÉCHARGEMENT -->
+<p style="text-align:center; margin:28px 0;">
+  <a href="{return_slip_url}" class="neria-btn">{neria_trad key='return_slip_download_btn'}</a>
+</p>
+
+<!-- CONTACT -->
+<p class="neria-text-note">{neria_trad key='return_slip_contact_info'}</p>
 
 <!-- SIGNATURE -->
 <div class="neria-signature">
+  {neria_trad key='signature_thanks'}<br />
   <strong>{shop_name}</strong>
 </div>
 

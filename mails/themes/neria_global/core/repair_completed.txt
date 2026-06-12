@@ -1,4 +1,4 @@
-﻿{shop_name}
+{shop_name}
 
 {neria_trad key='dear_customer'}
 
@@ -8,11 +8,13 @@
 
 {neria_trad key='repair_completed_details'}
 --------------------------------
+{product_name}
 
 {neria_trad key='repair_completed_btn'} : {history_url}
 
 {neria_trad key='repair_completed_note'}
 
 {neria_trad key='repair_completed_signature'}
+
 {shop_name}
 {shop_url}

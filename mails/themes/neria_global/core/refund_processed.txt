@@ -1,4 +1,4 @@
-﻿{shop_name}
+{shop_name}
 
 {neria_trad key='dear_customer'}
 
@@ -8,12 +8,13 @@
 
 {neria_trad key='refund_processed_details'}
 --------------------------------
-{neria_trad key='refund_processed_details'} : {refund_amount}
+{neria_trad key='refund_amount_label'} : {refund_amount}
 
 {neria_trad key='refund_processed_btn'} : {history_url}
 
 {neria_trad key='refund_processed_note'}
 
 {neria_trad key='refund_processed_signature'}
+
 {shop_name}
 {shop_url}

@@ -1,8 +1,16 @@
-﻿{shop_name}
+{shop_name}
+
 {neria_trad key='dear_customer'}
+
 {neria_trad key='review_intro'}
+
 {neria_trad key='review_message'}
+
 {neria_trad key='review_btn'} : {review_url}
+
 {neria_trad key='review_note'}
+
 {neria_trad key='signature_thanks'}
-{shop_name} - {shop_url}
+
+{shop_name}
+{shop_url}

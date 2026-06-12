@@ -1,4 +1,4 @@
-﻿{shop_name}
+{shop_name}
 
 {neria_trad key='dear_customer'}
 
@@ -7,7 +7,9 @@
 {reply}
 
 {neria_trad key='reply_msg_noreply'}
-{neria_trad key='reply_msg_contact'} : {link}
+
+{neria_trad key='reply_msg_contact'}
+{link}
 
 {shop_name}
 {shop_url}

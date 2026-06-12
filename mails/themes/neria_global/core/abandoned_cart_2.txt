@@ -1,7 +1,17 @@
-﻿{shop_name}
+{shop_name}
+
 {neria_trad key='dear_customer'}
+
 {neria_trad key='abandoned_cart_2_intro'}
+
+--------------------------------
+{products_txt}
+
 {neria_trad key='abandoned_cart_2_help'}
+
 {neria_trad key='abandoned_cart_2_btn'} : {cart_url}
+
 {neria_trad key='abandoned_cart_2_note'}
-{shop_name} - {shop_url}
+
+{shop_name}
+{shop_url}

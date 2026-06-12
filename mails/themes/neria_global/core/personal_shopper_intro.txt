@@ -1,4 +1,4 @@
-﻿{shop_name}
+{shop_name}
 
 {neria_trad key='dear_customer'}
 
@@ -6,11 +6,13 @@
 
 {neria_trad key='shopper_details'}
 --------------------------------
+{neria_trad key='shopper_name_label'} : {shopper_name}
 
 {neria_trad key='shopper_btn'} : {shop_url}
 
 {neria_trad key='shopper_note'}
 
 {neria_trad key='shopper_signature'}
+
 {shop_name}
 {shop_url}

@@ -1,4 +1,4 @@
-﻿{shop_name}
+{shop_name}
 
 {neria_trad key='dear_customer'}
 
@@ -6,11 +6,13 @@
 
 {neria_trad key='tax_refund_details'}
 --------------------------------
+{neria_trad key='order_reference_label'} : {order_name}
 
 {neria_trad key='tax_refund_btn'} : {shop_url}
 
 {neria_trad key='tax_refund_note'}
 
 {neria_trad key='tax_refund_signature'}
+
 {shop_name}
 {shop_url}

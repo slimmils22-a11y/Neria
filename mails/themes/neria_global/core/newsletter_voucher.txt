@@ -1,8 +1,16 @@
-﻿{shop_name}
+{shop_name}
+
 {neria_trad key='newsletter_voucher_intro'}
+
 {neria_trad key='newsletter_voucher_code_title'}
+--------------------------------
 {neria_trad key='voucher_code'} : {voucher_code}
+
 {neria_trad key='newsletter_voucher_usage'}
+
 {neria_trad key='newsletter_voucher_btn'} : {shop_url}
+
 {neria_trad key='newsletter_voucher_next'}
-{shop_name} - {shop_url}
+
+{shop_name}
+{shop_url}

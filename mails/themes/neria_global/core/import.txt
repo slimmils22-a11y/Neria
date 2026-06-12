@@ -7,6 +7,7 @@
 {neria_trad key='import_result_title'}
 --------------------------------
 {neria_trad key='import_filename'} : {filename}
+
 {neria_trad key='import_success'}
 
 {neria_trad key='import_admin_note'}

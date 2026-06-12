@@ -1,8 +1,16 @@
-﻿{shop_name}
+{shop_name}
+
 {neria_trad key='dear_customer'}
+
 {neria_trad key='back_in_stock_intro'}
+
 {product_name}
+--------------------------------
 {neria_trad key='back_in_stock_available'}
+
 {neria_trad key='back_in_stock_btn'} : {product_url}
+
 {neria_trad key='back_in_stock_note'}
-{shop_name} - {shop_url}
+
+{shop_name}
+{shop_url}

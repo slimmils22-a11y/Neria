@@ -1,4 +1,4 @@
-﻿{shop_name}
+{shop_name}
 
 {neria_trad key='dear_customer'}
 
@@ -15,5 +15,6 @@
 {neria_trad key='shipped_delay_note'}
 
 {neria_trad key='shipped_delay_signature'}
+
 {shop_name}
 {shop_url}

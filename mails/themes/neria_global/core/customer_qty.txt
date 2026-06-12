@@ -1,7 +1,14 @@
-﻿{shop_name}
+{shop_name}
+
 {neria_trad key='customer_qty_intro'}
+
 {neria_trad key='customer_qty_product_title'}
+--------------------------------
 {neria_trad key='customer_qty_back'} {product}.
+
 {neria_trad key='customer_qty_btn'} : {product_link}
+
 {neria_trad key='customer_qty_limited'}
-{shop_name} - {shop_url}
+
+{shop_name}
+{shop_url}

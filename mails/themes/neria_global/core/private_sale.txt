@@ -1,7 +1,14 @@
 ﻿{shop_name}
+
 {neria_trad key='dear_customer'}
+
 {neria_trad key='private_sale_intro'}
+
 {neria_trad key='private_sale_message'}
+
 {neria_trad key='private_sale_btn'} : {sale_url}
+
 {neria_trad key='private_sale_note'}
-{shop_name} - {shop_url}
+
+{shop_name}
+{shop_url}
