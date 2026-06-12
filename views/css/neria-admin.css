@@ -197,3 +197,13 @@
 .neria-log-row--critical td{ background: rgba(122,0,0,0.08); }
 .neria-badge--warn { background: #FAEEDA; color: #633806; }
 .neria-badge--err  { background: #FCEBEB; color: #791F1F; }
+
+/* Guide rapide — cartes documentation */
+.neria-doc-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:18px; }
+.neria-doc-card { background:var(--neria-light-bg); border:1px solid var(--neria-border); border-radius:var(--neria-radius); padding:20px 22px; }
+.neria-doc-card__title { font-size:15px; font-weight:600; letter-spacing:.02em; color:var(--neria-dark); margin:0 0 14px; padding-bottom:10px; border-bottom:1px solid var(--neria-border); }
+.neria-doc-card p { font-size:13px; line-height:1.6; color:var(--neria-text); margin:0 0 12px; }
+.neria-doc-card p:last-child { margin-bottom:0; }
+.neria-doc-vars, .neria-doc-list { margin:0; padding-left:18px; }
+.neria-doc-vars li, .neria-doc-list li { font-size:13px; line-height:1.9; color:var(--neria-text); }
+.neria-doc-vars code { background:#fff; border:1px solid var(--neria-border); border-radius:3px; padding:1px 6px; font-size:12px; color:var(--neria-accent); }
