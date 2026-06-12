@@ -226,7 +226,7 @@
   <div class="neria-doc-grid">
 
     <div class="neria-doc-card">
-      <h3 class="neria-doc-card__title">◈ {l s='Variables dans les textes' mod='neria'}</h3>
+      <h3 class="neria-doc-card__title"><span class="neria-doc-card__icon">◈</span>{l s='Variables dans les textes' mod='neria'}</h3>
       <p>{l s='Utilisez ces variables dans vos traductions pour personnaliser chaque email :' mod='neria'}</p>
       <ul class="neria-doc-vars">
         <li><code>{literal}{maison_name}{/literal}</code> — {l s='Nom de votre maison' mod='neria'}</li>
@@ -241,22 +241,22 @@
     </div>
 
     <div class="neria-doc-card">
-      <h3 class="neria-doc-card__title">⇋ {l s='A/B Testing — conseils' mod='neria'}</h3>
+      <h3 class="neria-doc-card__title"><span class="neria-doc-card__icon">⇋</span>{l s='A/B Testing — conseils' mod='neria'}</h3>
       <ul class="neria-doc-list">
         <li>{l s='Laissez un test tourner au moins 2 semaines avant de conclure.' mod='neria'}</li>
         <li>{l s='Commencez par les paniers abandonnés — plus faciles à mesurer.' mod='neria'}</li>
         <li>{l s='Ne testez qu\'une seule variable à la fois (ton OU accroche, pas les deux).' mod='neria'}</li>
-        <li>{l s='Un taux d\'ouverture &gt;35% ou de clic &gt;5% est excellent.' mod='neria'}</li>
+        <li>{l s='Un taux d\'ouverture >35% ou de clic >5% est excellent.' mod='neria'}</li>
       </ul>
     </div>
 
     <div class="neria-doc-card">
-      <h3 class="neria-doc-card__title">◫ {l s='Calendrier — mise à jour des dates' mod='neria'}</h3>
+      <h3 class="neria-doc-card__title"><span class="neria-doc-card__icon">◫</span>{l s='Calendrier — mise à jour des dates' mod='neria'}</h3>
       <p>{l s='Les dates des fêtes islamiques et du Nouvel An lunaire sont pré-calculées jusqu\'en 2035 et recalculées automatiquement au-delà. En cas d\'erreur, utilisez l\'override manuel dans l\'onglet Accueil.' mod='neria'}</p>
     </div>
 
     <div class="neria-doc-card">
-      <h3 class="neria-doc-card__title">? {l s='Support' mod='neria'}</h3>
+      <h3 class="neria-doc-card__title"><span class="neria-doc-card__icon">?</span>{l s='Support' mod='neria'}</h3>
       <p>{l s='Pour toute question technique, consultez la documentation complète ou contactez le support Neria.' mod='neria'}</p>
       <a href="https://www.neria.io/docs" target="_blank"
          class="neria-btn neria-btn--ghost neria-btn--sm">
