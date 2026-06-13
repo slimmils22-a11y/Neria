@@ -109,6 +109,14 @@
         </a>
       </li>
 
+      <li class="neria-bo-nav__item">
+        <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''}&neria_tab=send"
+           class="neria-bo-nav__link {if $neria_active_tab === 'send'}neria-bo-nav__link--active{/if}">
+          <span class="neria-bo-nav__icon">✉</span>
+          {l s='Envoi manuel' mod='neria'}
+        </a>
+      </li>
+
       <li class="neria-bo-nav__item neria-bo-nav__item--right">
         <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''}&neria_tab=help"
            class="neria-bo-nav__link {if $neria_active_tab === 'help'}neria-bo-nav__link--active{/if}">

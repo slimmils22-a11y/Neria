@@ -267,6 +267,26 @@ class Neria extends Module
             );
         }
 
+        // ── Action : envoi manuel d'un template à un client ───────
+        if (Tools::getValue('neria_action') === 'send_manual') {
+            $manual      = new ManualSendManager($this);
+            $contentVars = Tools::getValue('neria_var');
+            if (!is_array($contentVars)) {
+                $contentVars = [];
+            }
+            $res = $manual->send(
+                (string) Tools::getValue('neria_template'),
+                (string) Tools::getValue('neria_email'),
+                (string) Tools::getValue('neria_order_ref'),
+                (string) Tools::getValue('neria_subject'),
+                $contentVars
+            );
+            $this->context->smarty->assign(
+                $res['ok'] ? 'neria_success' : 'neria_error',
+                $res['message']
+            );
+        }
+
         // Détermine l'onglet actif (par défaut : configure)
         $activeTab = Tools::getValue('neria_tab', 'configure');
 
@@ -340,6 +360,10 @@ class Neria extends Module
             'logs'             => (new WatchdogManager($this))->getLogs(100),
             'log_counts'       => (new WatchdogManager($this))->getCountByLevel(),
             'log_templates'    => (new WatchdogManager($this))->getTemplatesWithErrors(),
+
+            // Variables pour send.tpl (envoi manuel — vague 1)
+            'send_templates'    => (new ManualSendManager($this))->getSendableTemplates(),
+            'send_editable_map' => (new ManualSendManager($this))->getEditableVarsMap(),
 
             // Variables pour abtest.tpl
             'eligible_templates' => (new ABTestManager($this))->getEligibleTemplates(),
@@ -449,6 +473,7 @@ class Neria extends Module
             'social'       => $this->l('Réseaux sociaux'),
             'stats'        => $this->l('Statistiques'),
             'abtest'       => $this->l('A/B Testing'),
+            'send'         => $this->l('Envoi manuel'),
             'help'         => $this->l('Aide'),
         ];
     }
