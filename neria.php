@@ -259,6 +259,14 @@ class Neria extends Module
             $watchdog->clearLogs();
         }
 
+        // ── Action : détection automatique de la langue ───────────
+        if (Tools::getValue('neria_action') === 'save_autolang') {
+            Configuration::updateValue(
+                self::CONFIG_PREFIX . 'AUTO_LANG',
+                (int) Tools::getValue('neria_auto_lang', 0)
+            );
+        }
+
         // Détermine l'onglet actif (par défaut : configure)
         $activeTab = Tools::getValue('neria_tab', 'configure');
 
@@ -275,6 +283,7 @@ class Neria extends Module
             'neria_module_dir' => $this->_path,
             'neria_active_tab' => $activeTab,
             'neria_active'     => $config->isActive(),
+            'auto_lang_enabled' => $config->isAutoLangEnabled(),
             'neria_tabs'       => $this->getBackOfficeTabs(),
 
             // Libellés et drapeaux des 18 langues supportées
@@ -600,6 +609,7 @@ class Neria extends Module
             self::CONFIG_PREFIX . 'CONTAINER_WIDTH'  => 620,
             self::CONFIG_PREFIX . 'STATS_ENABLED'    => 1,
             self::CONFIG_PREFIX . 'ABTEST_ENABLED'   => 0,
+            self::CONFIG_PREFIX . 'AUTO_LANG'        => 1,
             self::CONFIG_PREFIX . 'INSTALLED_AT'     => date('Y-m-d H:i:s'),
         ];
 
@@ -626,6 +636,7 @@ class Neria extends Module
             self::CONFIG_PREFIX . 'CONTAINER_WIDTH',
             self::CONFIG_PREFIX . 'STATS_ENABLED',
             self::CONFIG_PREFIX . 'ABTEST_ENABLED',
+            self::CONFIG_PREFIX . 'AUTO_LANG',
             self::CONFIG_PREFIX . 'INSTALLED_AT',
         ];
 

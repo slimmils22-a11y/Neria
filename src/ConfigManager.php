@@ -60,6 +60,7 @@ class ConfigManager
     const KEY_STATS_ENABLED     = 'NERIA_STATS_ENABLED';
     const KEY_ABTEST_ENABLED    = 'NERIA_ABTEST_ENABLED';
     const KEY_ACTIVE            = 'NERIA_ACTIVE';
+    const KEY_AUTO_LANG         = 'NERIA_AUTO_LANG';
 
     // ── Valeurs par défaut ────────────────────────────────────────
     const DEFAULTS = [
@@ -87,6 +88,7 @@ class ConfigManager
         self::KEY_STATS_ENABLED       => 1,
         self::KEY_ABTEST_ENABLED      => 0,
         self::KEY_ACTIVE              => 1,
+        self::KEY_AUTO_LANG           => 1,
     ];
 
     // Polices disponibles pour le sélecteur back-office
@@ -246,6 +248,16 @@ class ConfigManager
     public function isAbtestEnabled(): bool
     {
         return (bool) $this->get(self::KEY_ABTEST_ENABLED, 0);
+    }
+
+    /**
+     * Indique si la détection automatique de la langue client est active
+     *
+     * @return bool
+     */
+    public function isAutoLangEnabled(): bool
+    {
+        return (bool) $this->get(self::KEY_AUTO_LANG, 1);
     }
 
     // ============================================================

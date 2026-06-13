@@ -34,6 +34,35 @@
   </div>
 </div>
 
+{* ── Détection automatique de la langue ─────────────────────── *}
+<div class="neria-section">
+  <h2 class="neria-section__title">
+    {l s='Détection automatique de la langue' mod='neria'}
+  </h2>
+  <p class="neria-section__desc">
+    {l s='Neria choisit la langue de chaque email selon le client : son choix explicite s\'il a sélectionné une langue, sinon le pays de son adresse de livraison. Un client étranger reçoit ainsi l\'email dans sa langue, même si la boutique est configurée en une seule langue.' mod='neria'}
+  </p>
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <input type="hidden" name="neria_action"    value="save_autolang">
+    <input type="hidden" name="neria_tab"       value="configure">
+    <input type="hidden" name="neria_auto_lang" value="0">
+
+    <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:14px; color:var(--neria-text);">
+      <input type="checkbox" name="neria_auto_lang" value="1"
+             style="width:16px; height:16px; cursor:pointer;"
+             {if $auto_lang_enabled}checked{/if}>
+      <span>{l s='Détection automatique de la langue client' mod='neria'}</span>
+    </label>
+
+    <div style="margin-top:16px;">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+        {l s='Enregistrer' mod='neria'}
+      </button>
+    </div>
+  </form>
+</div>
+
 {* ── Prochaines occasions calendaires ───────────────────────── *}
 {* $upcoming_events est assignée par neria.php via CalendarManager::getUpcomingDates() *}
 {if isset($upcoming_events) && $upcoming_events|@count > 0}

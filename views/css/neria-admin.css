@@ -84,6 +84,9 @@
 .neria-btn--ghost { background:transparent; color:var(--neria-dark); border:1px solid var(--neria-border); }
 .neria-btn--ghost:hover { border-color:var(--neria-accent); color:var(--neria-accent); }
 .neria-btn--secondary { background:var(--neria-light-bg); color:var(--neria-dark); border:1px solid var(--neria-border); }
+.neria-btn--danger { background:var(--neria-error); color:#fff; }
+.neria-btn--danger:hover { background:#a93226; color:#fff; }
+.neria-btn--sm { padding:7px 14px; font-size:11px; }
 .neria-form-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid var(--neria-border); }
 .neria-form-actions--sticky { position:sticky; bottom:0; background:#fff; z-index:10; }
 

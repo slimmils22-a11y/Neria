@@ -103,7 +103,7 @@ class EmailRenderer
         }
 
         // â”€â”€ RÃ©sout la langue â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        $lang = $this->engine->langFromId((int) ($params['idLang'] ?? 0));
+        $lang = $this->resolveEmailLang($params);
 
         // â”€â”€ SÃ©lectionne la variante A/B si nÃ©cessaire â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $variant = $this->resolveABVariant($template, $params);
@@ -517,6 +517,64 @@ class EmailRenderer
         return $abManager->getVariantForEmail(
             $template,
             (int) ($params['idCustomer'] ?? 0)
+        );
+    }
+
+    // ============================================================
+    // RÉSOLUTION DE LA LANGUE
+    // ============================================================
+
+    /**
+     * Détermine la langue de l'email.
+     *
+     * Si la détection automatique (NERIA_AUTO_LANG) est activée, délègue
+     * à TranslationEngine::resolveOptimalLang() qui tient compte du choix
+     * explicite du client et du pays de livraison. Sinon, conserve le
+     * comportement PrestaShop historique (langue du compte).
+     *
+     * @param array $params Paramètres de l'email
+     * @return string Code langue Neria
+     */
+    private function resolveEmailLang(array $params): string
+    {
+        $idLang = (int) ($params['idLang'] ?? 0);
+
+        if (!$this->config->isAutoLangEnabled()) {
+            return $this->engine->langFromId($idLang);
+        }
+
+        $idCustomer = $this->resolveCustomerId($params);
+        return $this->engine->resolveOptimalLang($idLang, $idCustomer);
+    }
+
+    /**
+     * Retrouve l'id_customer à partir de l'email destinataire.
+     *
+     * Le hook actionEmailSendBefore ne fournit pas d'id_customer ; on le
+     * déduit de l'adresse email (champ 'to') pour pouvoir remonter au
+     * pays de livraison.
+     *
+     * @param array $params Paramètres de l'email
+     * @return int id_customer ou 0 si introuvable
+     */
+    private function resolveCustomerId(array $params): int
+    {
+        $to = $params['to'] ?? '';
+        if (is_array($to)) {
+            $to = reset($to);
+        }
+        $to = trim((string) $to);
+
+        if ($to === '' || !\Validate::isEmail($to)) {
+            return 0;
+        }
+
+        return (int) \Db::getInstance()->getValue(
+            'SELECT `id_customer`
+             FROM `' . _DB_PREFIX_ . 'customer`
+             WHERE `email` = \'' . pSQL($to) . '\'
+               AND `deleted` = 0
+             ORDER BY `id_customer` DESC'
         );
     }
 

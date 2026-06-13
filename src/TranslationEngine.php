@@ -37,6 +37,12 @@ class TranslationEngine
     /** Langues RTL — nécessitent dir="rtl" dans le HTML */
     const RTL_LANGS = ['ar'];
 
+    /** Les 18 langues supportées par Neria (codes normalisés) */
+    const SUPPORTED_LANGS = [
+        'fr', 'en', 'de', 'it', 'es', 'pt', 'br', 'ar', 'ja',
+        'ko', 'zh', 'tw', 'ru', 'tr', 'sv', 'no', 'da', 'nl',
+    ];
+
     // ============================================================
     // PROPRIÉTÉS
     // ============================================================
@@ -62,6 +68,9 @@ class TranslationEngine
 
     /** @var bool Indique si les variables custom ont été chargées */
     private bool $customVarsLoaded = false;
+
+    /** @var array|null Cache du mapping pays ISO → langue Neria */
+    private ?array $countryLangMap = null;
 
     /** @var WatchdogManager|null Instance paresseuse du watchdog */
     private ?WatchdogManager $watchdog = null;
@@ -287,6 +296,129 @@ class TranslationEngine
     public function isRtl(string $lang): bool
     {
         return in_array($lang, self::RTL_LANGS, true);
+    }
+
+    // ============================================================
+    // DÉTECTION AUTOMATIQUE DE LA LANGUE
+    // ============================================================
+
+    /**
+     * Résout la langue optimale pour un destinataire.
+     *
+     * Ordre de résolution (décidé avec le marchand) :
+     *  1. Choix explicite du client — langue du compte ≠ langue par
+     *     défaut de la boutique (le client l'a délibérément choisie).
+     *  2. Pays de livraison — si le compte n'est que la langue par
+     *     défaut, le pays de l'adresse de livraison décide. Permet à un
+     *     client japonais sur une boutique francophone de recevoir
+     *     l'email en japonais.
+     *  3. Repli — langue du compte (= défaut boutique).
+     *  4. Fallback absolu — anglais.
+     *
+     * @param int    $idLang             id_lang PrestaShop du destinataire
+     * @param int    $idCustomer         id_customer (sert à retrouver le pays si non fourni)
+     * @param string $deliveryCountryIso Code ISO pays de livraison (optionnel)
+     * @return string Code langue Neria (ex: 'ja', 'fr')
+     */
+    public function resolveOptimalLang(
+        int $idLang,
+        int $idCustomer = 0,
+        string $deliveryCountryIso = ''
+    ): string {
+        $supported   = self::SUPPORTED_LANGS;
+        $accountLang = $idLang > 0 ? $this->langFromId($idLang) : '';
+        $defaultLang = $this->langFromId(
+            (int) \Configuration::get('PS_LANG_DEFAULT')
+        );
+
+        // 1. Choix explicite du client (compte ≠ défaut boutique)
+        if ($accountLang !== ''
+            && $accountLang !== $defaultLang
+            && in_array($accountLang, $supported, true)
+        ) {
+            return $accountLang;
+        }
+
+        // 2. Pays de livraison (client étranger sur boutique mono-langue)
+        if ($deliveryCountryIso === '' && $idCustomer > 0) {
+            $deliveryCountryIso = $this->deliveryCountryIsoForCustomer($idCustomer);
+        }
+        if ($deliveryCountryIso !== '') {
+            $map    = $this->loadCountryLangMap();
+            $mapped = $map[strtoupper($deliveryCountryIso)] ?? null;
+            if ($mapped !== null && in_array($mapped, $supported, true)) {
+                return $mapped;
+            }
+        }
+
+        // 3. Repli : langue du compte (= défaut), puis défaut boutique
+        if ($accountLang !== '' && in_array($accountLang, $supported, true)) {
+            return $accountLang;
+        }
+        if (in_array($defaultLang, $supported, true)) {
+            return $defaultLang;
+        }
+
+        // 4. Fallback absolu
+        return self::FALLBACK_LANG;
+    }
+
+    /**
+     * Charge le mapping pays ISO → langue Neria depuis
+     * data/country_lang_map.json. Résultat mis en cache pour la requête.
+     *
+     * @return array
+     */
+    private function loadCountryLangMap(): array
+    {
+        if ($this->countryLangMap !== null) {
+            return $this->countryLangMap;
+        }
+
+        $mapFile = __DIR__ . '/../data/country_lang_map.json';
+        if (!is_file($mapFile)) {
+            $this->watchdog()->warning(
+                'Mapping pays→langue introuvable : data/country_lang_map.json',
+                '',
+                'TranslationEngine'
+            );
+            $this->countryLangMap = [];
+            return $this->countryLangMap;
+        }
+
+        $decoded = json_decode((string) file_get_contents($mapFile), true);
+        $this->countryLangMap = is_array($decoded) ? $decoded : [];
+
+        return $this->countryLangMap;
+    }
+
+    /**
+     * Retrouve le code ISO du pays de l'adresse de livraison la plus
+     * récente d'un client (adresse non supprimée).
+     *
+     * @param int $idCustomer
+     * @return string Code ISO majuscule (ex: 'JP') ou '' si introuvable
+     */
+    private function deliveryCountryIsoForCustomer(int $idCustomer): string
+    {
+        if ($idCustomer <= 0) {
+            return '';
+        }
+
+        $idCountry = (int) $this->db->getValue(
+            'SELECT `id_country`
+             FROM `' . _DB_PREFIX_ . 'address`
+             WHERE `id_customer` = ' . $idCustomer . '
+               AND `deleted` = 0
+             ORDER BY `date_upd` DESC'
+        );
+
+        if ($idCountry <= 0) {
+            return '';
+        }
+
+        $iso = \Country::getIsoById($idCountry);
+        return $iso ? strtoupper($iso) : '';
     }
 
     // ============================================================
