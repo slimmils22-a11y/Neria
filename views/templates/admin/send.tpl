@@ -47,9 +47,10 @@
       {* ── Sujet ──────────────────────────────────────────────── *}
       <div class="neria-form-group">
         <label class="neria-label" for="neria-send-subject">
-          {l s='Sujet de l\'email' mod='neria'}
+          {l s='Sujet de l\'email' mod='neria'} <span class="neria-hint">({l s='optionnel' mod='neria'})</span>
         </label>
         <input type="text" id="neria-send-subject" name="neria_subject" class="neria-input"
+               placeholder="{l s='Laissé vide : le titre de l\'email, traduit dans la langue du client' mod='neria'}"
                value="{if isset($smarty.post.neria_subject)}{$smarty.post.neria_subject|escape:'html'}{/if}">
       </div>
 
@@ -88,6 +89,16 @@
       {/foreach}
     </div>
 
+    {* ── Message personnalisé (optionnel, valable pour tous les templates) ── *}
+    <div class="neria-form-group neria-form-group--full" style="margin-top:18px;">
+      <label class="neria-label" for="neria-send-message">
+        {l s='Message personnalisé' mod='neria'}
+        <span class="neria-hint">({l s='optionnel — ajouté en bas de l\'email, dans une note' mod='neria'})</span>
+      </label>
+      <textarea id="neria-send-message" name="neria_var[custom_message]" class="neria-input" rows="3"
+                placeholder="{l s='Un mot personnel pour ce client…' mod='neria'}">{if isset($smarty.post.neria_var) && isset($smarty.post.neria_var.custom_message)}{$smarty.post.neria_var.custom_message|escape:'html'}{/if}</textarea>
+    </div>
+
     <div style="margin-top:20px;">
       <button type="submit" class="neria-btn neria-btn--primary">
         <span class="neria-icon">✉</span>
@@ -101,25 +112,19 @@
 <script>
 {literal}
 (function () {
-  var sel  = document.getElementById('neria-send-template');
-  var subj = document.getElementById('neria-send-subject');
+  var sel = document.getElementById('neria-send-template');
   if (!sel) { return; }
 
-  function refresh(setSubject) {
+  function refresh() {
     var tpl = sel.value;
     var fields = document.querySelectorAll('.neria-send-fields');
     for (var i = 0; i < fields.length; i++) {
       fields[i].style.display = (fields[i].getAttribute('data-tpl') === tpl) ? '' : 'none';
     }
-    if (setSubject && subj) {
-      var opt = sel.options[sel.selectedIndex];
-      subj.value = opt ? (opt.getAttribute('data-label') || '') : '';
-    }
   }
 
-  sel.addEventListener('change', function () { refresh(true); });
-  // Au chargement : afficher les bons champs, pré-remplir le sujet s'il est vide
-  refresh(subj && subj.value === '');
+  sel.addEventListener('change', refresh);
+  refresh();
 })();
 {/literal}
 </script>

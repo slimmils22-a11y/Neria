@@ -105,6 +105,17 @@ class EmailRenderer
         // â”€â”€ RÃ©sout la langue â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $lang = $this->resolveEmailLang($params);
 
+        // â”€â”€ Sujet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // Si aucun sujet n'est fourni (ex. envoi manuel), on utilise le titre
+        // principal du template (clé greeting_main) traduit dans la langue
+        // détectée — réutilise les traductions existantes (18 langues).
+        if (trim((string) ($params['subject'] ?? '')) === '') {
+            $headline = $this->engine->get($template, 'greeting_main', $lang);
+            if ($headline !== '') {
+                $params['subject'] = trim(strip_tags($headline));
+            }
+        }
+
         // â”€â”€ SÃ©lectionne la variante A/B si nÃ©cessaire â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $variant = $this->resolveABVariant($template, $params);
 
@@ -125,6 +136,9 @@ class EmailRenderer
 
         // Injecte les variables personnalisées du marchand ({return_address}, etc.)
         $this->injectCustomVars($params['templateVars']);
+
+        // Message personnalisé optionnel (envoi manuel) — versions HTML et TXT
+        $this->injectCustomMessage($params['templateVars']);
 
         // Lien du bon de retour (page Retours du compte client)
         if ($template === 'return_slip') {
@@ -357,6 +371,43 @@ class EmailRenderer
                 $templateVars[$txtKey] = trim(html_entity_decode($value, ENT_QUOTES, 'UTF-8'));
             }
         }
+    }
+
+    /**
+     * Construit le message personnalisé optionnel (saisi par le marchand lors
+     * d'un envoi manuel) en deux variantes : {custom_message} (bloc HTML) et
+     * {custom_message_txt} (texte). Source : {custom_message_raw}.
+     *
+     * Toujours défini (vide par défaut) pour qu'aucun placeholder littéral ne
+     * subsiste dans les emails standards (le slot existe dans layout.html et
+     * dans le TXT compilé).
+     *
+     * @param array $templateVars Variables Smarty (passé par référence)
+     */
+    private function injectCustomMessage(array &$templateVars): void
+    {
+        if (!is_array($templateVars)) {
+            return;
+        }
+
+        $raw = isset($templateVars['{custom_message_raw}'])
+            ? trim((string) $templateVars['{custom_message_raw}'])
+            : '';
+
+        if ($raw === '') {
+            $templateVars['{custom_message}']     = '';
+            $templateVars['{custom_message_txt}'] = '';
+            return;
+        }
+
+        $safe = htmlspecialchars($raw, ENT_QUOTES, 'UTF-8');
+        $templateVars['{custom_message}'] =
+            '<div class="neria-info-box" style="margin-top:28px; font-style:italic;">'
+            . nl2br($safe)
+            . '</div>';
+
+        $templateVars['{custom_message_txt}'] =
+            "\n--------------------------------\n" . $raw . "\n";
     }
 
     /**
@@ -967,6 +1018,9 @@ class EmailRenderer
                 },
                 $compiledTxt
             );
+            // Slot du message personnalisé optionnel (vide par défaut, rempli
+            // par Mail::Send via {custom_message_txt} si un message est saisi).
+            $compiledTxt = rtrim($compiledTxt, "\n") . "\n{custom_message_txt}\n";
             file_put_contents($outDir . $template . '.txt', $compiledTxt);
         }
 

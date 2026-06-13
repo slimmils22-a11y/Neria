@@ -248,10 +248,9 @@ class ManualSendManager
             return ['ok' => false, 'message' => $this->module->l('Adresse email du destinataire invalide.')];
         }
 
+        // Sujet vide : laissé tel quel. EmailRenderer le remplira avec le titre
+        // du template traduit dans la langue détectée du client.
         $subject = trim($subject);
-        if ($subject === '') {
-            $subject = NeriaTools::getTemplateLabels()[$template] ?? $template;
-        }
 
         $customer = $this->findCustomer($email);
         $idLang   = $customer ? (int) $customer['id_lang'] : (int) \Configuration::get('PS_LANG_DEFAULT');
@@ -280,6 +279,12 @@ class ManualSendManager
         foreach ($contentVars as $key => $value) {
             $key = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $key));
             if ($key === '') {
+                continue;
+            }
+            // Le message personnalisé est transformé en bloc HTML/TXT par
+            // EmailRenderer (via {custom_message_raw}).
+            if ($key === 'custom_message') {
+                $vars['{custom_message_raw}'] = (string) $value;
                 continue;
             }
             $vars['{' . $key . '}'] = (string) $value;
