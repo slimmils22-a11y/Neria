@@ -544,7 +544,9 @@ class EmailRenderer
         }
 
         $idCustomer = $this->resolveCustomerId($params);
-        return $this->engine->resolveOptimalLang($idLang, $idCustomer);
+        $countryIso = $this->getCustomerCountryIso($idCustomer, $params);
+
+        return $this->engine->resolveOptimalLang($idLang, $countryIso);
     }
 
     /**
@@ -576,6 +578,87 @@ class EmailRenderer
                AND `deleted` = 0
              ORDER BY `id_customer` DESC'
         );
+    }
+
+    /**
+     * Détermine le pays de référence du client pour le choix de la langue.
+     *
+     * Privilégie l'adresse de FACTURATION (le titulaire du compte qui lit
+     * l'email), pas la livraison — celle-ci peut être un tiers (cadeau,
+     * bureau, famille à l'étranger) et ne reflète pas la langue du lecteur.
+     *
+     * 1. Email de commande ({id_order} présent dans templateVars) :
+     *    adresse de facturation de CETTE commande (orders.id_address_invoice).
+     * 2. Email hors commande (newsletter, compte…) : adresse principale du
+     *    client (la plus récente) comme approximation.
+     *
+     * @param int   $idCustomer
+     * @param array $params Paramètres de l'email (dont templateVars)
+     * @return string Code ISO majuscule (ex: 'FR') ou '' si introuvable
+     */
+    private function getCustomerCountryIso(int $idCustomer, array $params): string
+    {
+        // 1. Adresse de facturation de la commande liée à l'email
+        $iso = $this->invoiceCountryIsoFromOrder($params);
+        if ($iso !== '') {
+            return $iso;
+        }
+
+        // 2. Repli : adresse principale du client (la plus récente)
+        return $this->customerAddressCountryIso($idCustomer);
+    }
+
+    /**
+     * Récupère le code ISO pays de l'adresse de facturation de la commande
+     * référencée par {id_order} dans les templateVars (emails de commande).
+     *
+     * @param array $params Paramètres de l'email
+     * @return string Code ISO majuscule ou ''
+     */
+    private function invoiceCountryIsoFromOrder(array $params): string
+    {
+        $vars    = is_array($params['templateVars'] ?? null) ? $params['templateVars'] : [];
+        $idOrder = (int) ($vars['{id_order}'] ?? 0);
+
+        if ($idOrder <= 0) {
+            return '';
+        }
+
+        $iso = \Db::getInstance()->getValue(
+            'SELECT co.`iso_code`
+             FROM `' . _DB_PREFIX_ . 'orders` o
+             INNER JOIN `' . _DB_PREFIX_ . 'address` a ON a.`id_address` = o.`id_address_invoice`
+             INNER JOIN `' . _DB_PREFIX_ . 'country` co ON co.`id_country` = a.`id_country`
+             WHERE o.`id_order` = ' . $idOrder
+        );
+
+        return $iso ? strtoupper((string) $iso) : '';
+    }
+
+    /**
+     * Récupère le code ISO pays de l'adresse non supprimée la plus récente
+     * d'un client. Approximation de l'adresse principale en l'absence de
+     * commande (emails hors commande).
+     *
+     * @param int $idCustomer
+     * @return string Code ISO majuscule ou ''
+     */
+    private function customerAddressCountryIso(int $idCustomer): string
+    {
+        if ($idCustomer <= 0) {
+            return '';
+        }
+
+        $iso = \Db::getInstance()->getValue(
+            'SELECT co.`iso_code`
+             FROM `' . _DB_PREFIX_ . 'address` a
+             INNER JOIN `' . _DB_PREFIX_ . 'country` co ON co.`id_country` = a.`id_country`
+             WHERE a.`id_customer` = ' . $idCustomer . '
+               AND a.`deleted` = 0
+             ORDER BY a.`date_upd` DESC'
+        );
+
+        return $iso ? strtoupper((string) $iso) : '';
     }
 
     // ============================================================

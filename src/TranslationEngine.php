@@ -308,22 +308,22 @@ class TranslationEngine
      * Ordre de résolution (décidé avec le marchand) :
      *  1. Choix explicite du client — langue du compte ≠ langue par
      *     défaut de la boutique (le client l'a délibérément choisie).
-     *  2. Pays de livraison — si le compte n'est que la langue par
-     *     défaut, le pays de l'adresse de livraison décide. Permet à un
-     *     client japonais sur une boutique francophone de recevoir
-     *     l'email en japonais.
+     *  2. Pays du client — si le compte n'est que la langue par défaut,
+     *     le pays décide. EmailRenderer fournit ce pays en privilégiant
+     *     l'adresse de FACTURATION (titulaire du compte) plutôt que la
+     *     livraison (qui peut être un tiers : cadeau, bureau, famille).
+     *     Permet à un client japonais sur une boutique francophone de
+     *     recevoir l'email en japonais.
      *  3. Repli — langue du compte (= défaut boutique).
      *  4. Fallback absolu — anglais.
      *
-     * @param int    $idLang             id_lang PrestaShop du destinataire
-     * @param int    $idCustomer         id_customer (sert à retrouver le pays si non fourni)
-     * @param string $deliveryCountryIso Code ISO pays de livraison (optionnel)
+     * @param int    $idLang            id_lang PrestaShop du destinataire
+     * @param string $customerCountryIso Code ISO pays du client (résolu par EmailRenderer)
      * @return string Code langue Neria (ex: 'ja', 'fr')
      */
     public function resolveOptimalLang(
         int $idLang,
-        int $idCustomer = 0,
-        string $deliveryCountryIso = ''
+        string $customerCountryIso = ''
     ): string {
         $supported   = self::SUPPORTED_LANGS;
         $accountLang = $idLang > 0 ? $this->langFromId($idLang) : '';
@@ -339,13 +339,10 @@ class TranslationEngine
             return $accountLang;
         }
 
-        // 2. Pays de livraison (client étranger sur boutique mono-langue)
-        if ($deliveryCountryIso === '' && $idCustomer > 0) {
-            $deliveryCountryIso = $this->deliveryCountryIsoForCustomer($idCustomer);
-        }
-        if ($deliveryCountryIso !== '') {
+        // 2. Pays du client (facturation prioritaire — résolu par EmailRenderer)
+        if ($customerCountryIso !== '') {
             $map    = $this->loadCountryLangMap();
-            $mapped = $map[strtoupper($deliveryCountryIso)] ?? null;
+            $mapped = $map[strtoupper($customerCountryIso)] ?? null;
             if ($mapped !== null && in_array($mapped, $supported, true)) {
                 return $mapped;
             }
@@ -390,35 +387,6 @@ class TranslationEngine
         $this->countryLangMap = is_array($decoded) ? $decoded : [];
 
         return $this->countryLangMap;
-    }
-
-    /**
-     * Retrouve le code ISO du pays de l'adresse de livraison la plus
-     * récente d'un client (adresse non supprimée).
-     *
-     * @param int $idCustomer
-     * @return string Code ISO majuscule (ex: 'JP') ou '' si introuvable
-     */
-    private function deliveryCountryIsoForCustomer(int $idCustomer): string
-    {
-        if ($idCustomer <= 0) {
-            return '';
-        }
-
-        $idCountry = (int) $this->db->getValue(
-            'SELECT `id_country`
-             FROM `' . _DB_PREFIX_ . 'address`
-             WHERE `id_customer` = ' . $idCustomer . '
-               AND `deleted` = 0
-             ORDER BY `date_upd` DESC'
-        );
-
-        if ($idCountry <= 0) {
-            return '';
-        }
-
-        $iso = \Country::getIsoById($idCountry);
-        return $iso ? strtoupper($iso) : '';
     }
 
     // ============================================================
