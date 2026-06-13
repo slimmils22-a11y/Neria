@@ -933,6 +933,132 @@ class EmailRenderer
     }
 
     /**
+     * Génère l'aperçu HTML d'un email pour le back-office (onglet Design).
+     * Réutilise le vrai chemin de compilation (str_replace, pas de Smarty
+     * fetch), applique un override de design (couleurs/largeur non encore
+     * sauvegardées) et injecte des valeurs fictives pour les placeholders
+     * PrestaShop restants.
+     *
+     * @param string $template       Nom du template (ex: order_conf)
+     * @param string $lang           Code langue
+     * @param array  $designOverride Valeurs de design temporaires
+     * @return string HTML de l'aperçu
+     */
+    public function renderPreviewHtml(string $template, string $lang, array $designOverride = []): string
+    {
+        $design   = array_merge($this->config->getDesignConfig(), $designOverride);
+        $compiled = $this->buildCompiledHtml($template, $lang, $design);
+
+        if ($compiled === null) {
+            return '<p style="padding:40px;font-family:sans-serif;color:#a33;">'
+                . 'Aperçu indisponible : template « ' . htmlspecialchars($template) . ' » introuvable.</p>';
+        }
+
+        return $this->injectPreviewFakes($compiled);
+    }
+
+    /**
+     * Compile layout + core en HTML plat (résout {neria_trad} et les variables
+     * de design) sans écrire de fichier. Coeur partageable entre l'envoi réel
+     * et l'aperçu. Retourne null si le template est introuvable.
+     *
+     * @param string $template
+     * @param string $lang
+     * @param array  $design Configuration de design (déjà fusionnée)
+     * @return string|null
+     */
+    private function buildCompiledHtml(string $template, string $lang, array $design): ?string
+    {
+        $layoutPath = $this->module->getModulePath('mails/themes/neria_global/layout.html');
+        $corePath   = $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html');
+
+        if (!file_exists($layoutPath) || !file_exists($corePath)) {
+            return null;
+        }
+
+        $layout = file_get_contents($layoutPath);
+        $core   = file_get_contents($corePath);
+
+        if (!preg_match('/\{block\s+name=[\'"]neria_content[\'\"]\}(.*?)\{\/block\}/s', $core, $m)) {
+            return null;
+        }
+
+        $compiled = preg_replace('/\{block\s+name=[\'"]neria_content[\'\"]\}\{\/block\}/', trim($m[1]), $layout);
+        $compiled = preg_replace('/\{extends\s+[^}]+\}/', '', $compiled);
+
+        $engine   = $this->engine;
+        $compiled = preg_replace_callback(
+            '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
+            function ($mm) use ($engine, $template, $lang) {
+                $v = $engine->get($template, $mm[1], $lang);
+                return $v !== '' ? $v : $mm[0];
+            },
+            $compiled
+        );
+
+        $tplVars = [
+            '{$neria_color_accent}'     => $design['color_accent'],
+            '{$neria_color_background}' => $design['color_background'],
+            '{$neria_color_container}'  => $design['color_container'],
+            '{$neria_color_text}'       => $design['color_text'],
+            '{$neria_font_family}'      => $this->config->getFontForLang($lang),
+            '{$neria_dir}'              => $this->engine->isRtl($lang) ? 'rtl' : 'ltr',
+            '{$neria_text_align}'       => $this->engine->isRtl($lang) ? 'right' : 'left',
+            '{$neria_container_width}'  => (string) $design['container_width'],
+            '{$neria_logo_url}'         => $this->resolveLogoUrl($design['logo_path']),
+            '{$neria_tracking_pixel}'   => '',
+            '{$neria_social_links}'     => '',
+            '{$neria_lang}'             => $lang,
+        ];
+        $compiled = str_replace(array_keys($tplVars), array_values($tplVars), $compiled);
+
+        $compiled = preg_replace('/\{if\s[^}]+\}.*?\{\/if\}/s', '', $compiled);
+        $compiled = preg_replace('/\{\*.*?\*\}/s', '', $compiled);
+        $compiled = preg_replace('/\{\$[a-z_]+\}/', '', $compiled);
+
+        return $compiled;
+    }
+
+    /**
+     * Remplace les placeholders PrestaShop restants par des valeurs fictives
+     * pour l'aperçu, puis remplace tout placeholder résiduel par « … ».
+     *
+     * @param string $html
+     * @return string
+     */
+    private function injectPreviewFakes(string $html): string
+    {
+        $fakes = [
+            '{shop_name}'          => (string) \Configuration::get('PS_SHOP_NAME'),
+            '{shop_url}'           => \Tools::getShopDomainSsl(true),
+            '{firstname}'          => 'Sophie',
+            '{lastname}'           => 'Durand',
+            '{email}'              => (string) \Configuration::get('PS_SHOP_EMAIL'),
+            '{order_name}'         => 'NR-000123',
+            '{id_order}'           => '123',
+            '{date}'               => date('d/m/Y'),
+            '{payment}'            => 'Carte bancaire',
+            '{total_paid}'         => '189,00 €',
+            '{total_products}'     => '189,00 €',
+            '{total_shipping}'     => '0,00 €',
+            '{total_tax_paid}'     => '31,50 €',
+            '{total_discounts}'    => '0,00 €',
+            '{carrier}'            => 'Colissimo',
+            '{history_url}'        => '#',
+            '{guest_tracking_url}' => '#',
+            '{products}'           => $this->getFakeProductsTable(),
+            '{custom_message}'     => '',
+        ];
+
+        $html = str_replace(array_keys($fakes), array_values($fakes), $html);
+
+        // Placeholders de contenu restants (product_name, certificate_*, etc.)
+        $html = preg_replace('/\{[a-z][a-z0-9_]*\}/', '…', $html);
+
+        return $html;
+    }
+
+    /**
      * Compile le template Neria en fichier HTML plat (sans heritage Smarty)
      * Fusionne layout.html + core/{template}.html
      */

@@ -248,6 +248,14 @@ class Neria extends Module
      */
     public function getContent(): string
     {
+        // ── Aperçu email (iframe de l'onglet Design) ──────────────
+        // Ne rend QUE l'email et coupe le rendu. Sinon l'iframe, dont le src
+        // pointe vers cette même page, rechargerait toute la page admin (qui
+        // contient l'iframe) → récursion infinie → surchauffe CPU.
+        if (Tools::getValue('neria_action') === 'preview') {
+            $this->outputEmailPreview();
+        }
+
         // ── Action : envoi d'un email de test ─────────────────────
         if (Tools::getValue('neria_action') === 'send_test') {
             $this->sendTestEmail();
@@ -460,6 +468,52 @@ class Neria extends Module
                 $this->l('Échec de l\'envoi. Vérifiez la configuration email de PrestaShop.')
             );
         }
+    }
+
+    /**
+     * Rend l'aperçu d'un email (iframe de l'onglet Design) et coupe le rendu.
+     * Ne renvoie QUE le HTML de l'email — jamais la page admin complète — pour
+     * éviter que l'iframe ne recharge la page entière (récursion infinie).
+     */
+    private function outputEmailPreview(): void
+    {
+        $template = preg_replace('/[^a-z0-9_-]/i', '', (string) Tools::getValue('neria_template', 'order_conf'));
+        $lang     = preg_replace('/[^a-z-]/i', '', (string) Tools::getValue('neria_lang', 'fr'));
+        if ($template === '') {
+            $template = 'order_conf';
+        }
+        if ($lang === '') {
+            $lang = 'fr';
+        }
+
+        // Override de design (valeurs non sauvegardées), validées pour éviter
+        // toute injection dans le HTML de l'email.
+        $override = [];
+        foreach (['color_background', 'color_container', 'color_accent', 'color_text'] as $field) {
+            $value = (string) Tools::getValue('preview_' . $field, '');
+            if ($value !== '' && preg_match('/^#?[0-9a-fA-F]{3,8}$/', $value)) {
+                $override[$field] = $value;
+            }
+        }
+        $width = (int) Tools::getValue('preview_container_width', 0);
+        if ($width >= 480 && $width <= 800) {
+            $override['container_width'] = $width;
+        }
+
+        $html = '';
+        if (class_exists('EmailRenderer')) {
+            $html = (new EmailRenderer($this))->renderPreviewHtml($template, $lang, $override);
+        }
+
+        // Vide tout buffer admin et ne renvoie que l'email, puis stoppe.
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        if (!headers_sent()) {
+            header('Content-Type: text/html; charset=utf-8');
+        }
+        echo $html;
+        exit;
     }
 
     /**
