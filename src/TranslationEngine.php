@@ -322,13 +322,18 @@ class TranslationEngine
      *     puis langue par défaut de la boutique.
      *  4. Fallback absolu — anglais.
      *
+     * Les pays multilingues (Belgique, Suisse) sont affinés par code postal
+     * quand il est fourni — voir refineMultilingualCountry().
+     *
      * @param int    $idLang            id_lang PrestaShop du destinataire
      * @param string $customerCountryIso Code ISO pays du client (résolu par EmailRenderer)
+     * @param string $postalCode        Code postal de l'adresse (pour BE/CH)
      * @return string Code langue Neria (ex: 'ja', 'fr')
      */
     public function resolveOptimalLang(
         int $idLang,
-        string $customerCountryIso = ''
+        string $customerCountryIso = '',
+        string $postalCode = ''
     ): string {
         $supported   = self::SUPPORTED_LANGS;
         $accountLang = $idLang > 0 ? $this->langFromId($idLang) : '';
@@ -346,8 +351,7 @@ class TranslationEngine
 
         // 2. Boutique mono-langue : le pays du client décide.
         if ($customerCountryIso !== '') {
-            $map    = $this->loadCountryLangMap();
-            $mapped = $map[strtoupper($customerCountryIso)] ?? null;
+            $mapped = $this->langForCountry($customerCountryIso, $postalCode);
             if ($mapped !== null && in_array($mapped, $supported, true)) {
                 return $mapped;
             }
@@ -415,6 +419,72 @@ class TranslationEngine
         $this->countryLangMap = is_array($decoded) ? $decoded : [];
 
         return $this->countryLangMap;
+    }
+
+    /**
+     * Résout la langue d'un pays. Pour les pays multilingues (BE, CH), affine
+     * d'abord par code postal ; sinon utilise le mapping pays → langue.
+     *
+     * @param string $iso        Code ISO pays
+     * @param string $postalCode Code postal (optionnel)
+     * @return string|null Code langue Neria ou null si pays inconnu
+     */
+    private function langForCountry(string $iso, string $postalCode): ?string
+    {
+        $iso = strtoupper($iso);
+
+        $refined = $this->refineMultilingualCountry($iso, $postalCode);
+        if ($refined !== null) {
+            return $refined;
+        }
+
+        return $this->loadCountryLangMap()[$iso] ?? null;
+    }
+
+    /**
+     * Affine la langue d'un pays multilingue d'après le code postal de
+     * l'adresse. Retourne null si le pays n'est pas concerné ou si le code
+     * postal est absent/inexploitable (on retombe alors sur le mapping par
+     * défaut, qui pointe vers la langue majoritaire du pays).
+     *
+     * Belgique (précis) : néerlandais en Flandre et Brabant flamand
+     * (1500-3999, 8000-9999), français à Bruxelles et en Wallonie.
+     * Suisse (approximatif) : français en Suisse romande (1000-2999),
+     * italien au Tessin (6500-6999), allemand ailleurs.
+     *
+     * @param string $iso        Code ISO pays (déjà en majuscules)
+     * @param string $postalCode Code postal
+     * @return string|null Code langue, ou null si non applicable
+     */
+    private function refineMultilingualCountry(string $iso, string $postalCode): ?string
+    {
+        if ($iso !== 'BE' && $iso !== 'CH') {
+            return null;
+        }
+
+        $digits = preg_replace('/\D/', '', $postalCode);
+        if (strlen($digits) < 4) {
+            return null; // pas de code postal exploitable → mapping par défaut
+        }
+        $n = (int) substr($digits, 0, 4);
+
+        if ($iso === 'BE') {
+            // Néerlandais : Brabant flamand, Anvers, Limbourg, Flandres
+            if (($n >= 1500 && $n <= 3999) || ($n >= 8000 && $n <= 9999)) {
+                return 'nl';
+            }
+            // Français : Bruxelles (1000-1499) + Wallonie (4000-7999)
+            return 'fr';
+        }
+
+        // Suisse
+        if ($n >= 1000 && $n <= 2999) {
+            return 'fr'; // Suisse romande
+        }
+        if ($n >= 6500 && $n <= 6999) {
+            return 'it'; // Tessin
+        }
+        return 'de'; // Suisse alémanique (+ Grisons, majorité allemande)
     }
 
     // ============================================================

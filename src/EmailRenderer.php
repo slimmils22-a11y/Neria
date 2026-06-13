@@ -550,9 +550,13 @@ class EmailRenderer
         }
 
         $idCustomer = $this->resolveCustomerId($params);
-        $countryIso = $this->getCustomerCountryIso($idCustomer, $params);
+        $location   = $this->getCustomerLocation($idCustomer, $params);
 
-        return $this->engine->resolveOptimalLang($idLang, $countryIso);
+        return $this->engine->resolveOptimalLang(
+            $idLang,
+            $location['iso'],
+            $location['postcode']
+        );
     }
 
     /**
@@ -587,11 +591,13 @@ class EmailRenderer
     }
 
     /**
-     * Détermine le pays de référence du client pour le choix de la langue.
+     * Détermine la localisation de référence du client (pays + code postal)
+     * pour le choix de la langue.
      *
      * Privilégie l'adresse de FACTURATION (le titulaire du compte qui lit
      * l'email), pas la livraison — celle-ci peut être un tiers (cadeau,
      * bureau, famille à l'étranger) et ne reflète pas la langue du lecteur.
+     * Le code postal sert à départager les pays multilingues (BE, CH).
      *
      * 1. Email de commande ({id_order} présent dans templateVars) :
      *    adresse de facturation de CETTE commande (orders.id_address_invoice).
@@ -600,63 +606,63 @@ class EmailRenderer
      *
      * @param int   $idCustomer
      * @param array $params Paramètres de l'email (dont templateVars)
-     * @return string Code ISO majuscule (ex: 'FR') ou '' si introuvable
+     * @return array{iso:string, postcode:string}
      */
-    private function getCustomerCountryIso(int $idCustomer, array $params): string
+    private function getCustomerLocation(int $idCustomer, array $params): array
     {
         // 1. Adresse de facturation de la commande liée à l'email
-        $iso = $this->invoiceCountryIsoFromOrder($params);
-        if ($iso !== '') {
-            return $iso;
+        $loc = $this->invoiceLocationFromOrder($params);
+        if ($loc['iso'] !== '') {
+            return $loc;
         }
 
         // 2. Repli : adresse principale du client (la plus récente)
-        return $this->customerAddressCountryIso($idCustomer);
+        return $this->customerAddressLocation($idCustomer);
     }
 
     /**
-     * Récupère le code ISO pays de l'adresse de facturation de la commande
-     * référencée par {id_order} dans les templateVars (emails de commande).
+     * Localisation (pays + code postal) de l'adresse de facturation de la
+     * commande référencée par {id_order} dans les templateVars.
      *
      * @param array $params Paramètres de l'email
-     * @return string Code ISO majuscule ou ''
+     * @return array{iso:string, postcode:string}
      */
-    private function invoiceCountryIsoFromOrder(array $params): string
+    private function invoiceLocationFromOrder(array $params): array
     {
         $vars    = is_array($params['templateVars'] ?? null) ? $params['templateVars'] : [];
         $idOrder = (int) ($vars['{id_order}'] ?? 0);
 
         if ($idOrder <= 0) {
-            return '';
+            return ['iso' => '', 'postcode' => ''];
         }
 
-        $iso = \Db::getInstance()->getValue(
-            'SELECT co.`iso_code`
+        $row = \Db::getInstance()->getRow(
+            'SELECT co.`iso_code`, a.`postcode`
              FROM `' . _DB_PREFIX_ . 'orders` o
              INNER JOIN `' . _DB_PREFIX_ . 'address` a ON a.`id_address` = o.`id_address_invoice`
              INNER JOIN `' . _DB_PREFIX_ . 'country` co ON co.`id_country` = a.`id_country`
              WHERE o.`id_order` = ' . $idOrder
         );
 
-        return $iso ? strtoupper((string) $iso) : '';
+        return $this->locationRow($row);
     }
 
     /**
-     * Récupère le code ISO pays de l'adresse non supprimée la plus récente
-     * d'un client. Approximation de l'adresse principale en l'absence de
-     * commande (emails hors commande).
+     * Localisation (pays + code postal) de l'adresse non supprimée la plus
+     * récente d'un client. Approximation de l'adresse principale en l'absence
+     * de commande (emails hors commande).
      *
      * @param int $idCustomer
-     * @return string Code ISO majuscule ou ''
+     * @return array{iso:string, postcode:string}
      */
-    private function customerAddressCountryIso(int $idCustomer): string
+    private function customerAddressLocation(int $idCustomer): array
     {
         if ($idCustomer <= 0) {
-            return '';
+            return ['iso' => '', 'postcode' => ''];
         }
 
-        $iso = \Db::getInstance()->getValue(
-            'SELECT co.`iso_code`
+        $row = \Db::getInstance()->getRow(
+            'SELECT co.`iso_code`, a.`postcode`
              FROM `' . _DB_PREFIX_ . 'address` a
              INNER JOIN `' . _DB_PREFIX_ . 'country` co ON co.`id_country` = a.`id_country`
              WHERE a.`id_customer` = ' . $idCustomer . '
@@ -664,7 +670,25 @@ class EmailRenderer
              ORDER BY a.`date_upd` DESC'
         );
 
-        return $iso ? strtoupper((string) $iso) : '';
+        return $this->locationRow($row);
+    }
+
+    /**
+     * Normalise une ligne SQL {iso_code, postcode} en localisation.
+     *
+     * @param array|false|null $row
+     * @return array{iso:string, postcode:string}
+     */
+    private function locationRow($row): array
+    {
+        if (!is_array($row) || empty($row['iso_code'])) {
+            return ['iso' => '', 'postcode' => ''];
+        }
+
+        return [
+            'iso'      => strtoupper((string) $row['iso_code']),
+            'postcode' => (string) ($row['postcode'] ?? ''),
+        ];
     }
 
     // ============================================================
