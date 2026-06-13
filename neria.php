@@ -499,6 +499,10 @@ class Neria extends Module
         if ($width >= 480 && $width <= 800) {
             $override['container_width'] = $width;
         }
+        $logoWidth = (int) Tools::getValue('preview_logo_width', 0);
+        if ($logoWidth >= 80 && $logoWidth <= 320) {
+            $override['logo_width'] = $logoWidth;
+        }
 
         $html = '';
         if (class_exists('EmailRenderer')) {
