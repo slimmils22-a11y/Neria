@@ -110,12 +110,19 @@
             if (loading) loading.classList.remove('is-loading');
         };
 
-        // Construit l'URL de preview
-        var baseUrl = neriaConfig ? neriaConfig.adminUrl : window.location.href;
+        // Construit l'URL de preview à partir de la page admin courante
+        // (token + configure=neria déjà présents, comme le src serveur de
+        // l'iframe), nettoyée des paramètres d'aperçu précédents. On ne dépend
+        // pas de neriaConfig (qui peut ne pas être défini sur la page).
+        var baseUrl = window.location.href.split('#')[0]
+            .replace(/&neria_action=[^&]*/g, '')
+            .replace(/&neria_template=[^&]*/g, '')
+            .replace(/&neria_lang=[^&]*/g, '')
+            .replace(/&preview_[^=&]*=[^&]*/g, '');
+
         var url = baseUrl
             + (baseUrl.indexOf('?') > -1 ? '&' : '?')
-            + 'configure=' + (neriaConfig ? neriaConfig.moduleName : 'neria')
-            + '&neria_action=preview'
+            + 'neria_action=preview'
             + '&neria_template=' + encodeURIComponent(template)
             + '&neria_lang=' + encodeURIComponent(lang)
             + '&' + params;
@@ -146,6 +153,17 @@
     }
 
     function initPreviewFrame() {
+        var frame   = document.getElementById('neria-preview-frame');
+        var loading = document.getElementById('neria-preview-loading');
+
+        // Cache l'overlay de chargement dès que l'iframe a fini de charger
+        // (chargement initial via le src serveur, ou mises à jour JS).
+        if (frame && loading) {
+            frame.addEventListener('load', function () {
+                loading.classList.remove('is-loading');
+            });
+        }
+
         var templateSel = document.getElementById('preview_template');
         var langSel     = document.getElementById('preview_lang');
 
