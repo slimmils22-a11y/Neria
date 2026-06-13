@@ -313,12 +313,13 @@ class TranslationEngine
      *  1. Boutique MULTI-langues — la langue du compte reflète un vrai
      *     choix (sélectionnée par le client ou détectée depuis son
      *     navigateur) : on la respecte.
-     *  2. Boutique MONO-langue — la langue du compte est imposée et ne
-     *     nous apprend rien : le pays du client décide (facturation
-     *     prioritaire, fourni par EmailRenderer). Permet à un client
-     *     étranger de recevoir l'email dans sa langue même si la boutique
-     *     ne la propose pas (ex. japonais sur une boutique francophone).
-     *  3. Repli — langue du compte, puis langue par défaut de la boutique.
+     *  2. Boutique MONO-langue — le pays du client décide (facturation
+     *     prioritaire, fourni par EmailRenderer). Pays couvert par le
+     *     mapping → sa langue (ex. japonais sur une boutique francophone).
+     *     Pays connu mais non couvert (Finlande, Grèce…) → anglais, le
+     *     meilleur choix international, plutôt que la langue du marchand.
+     *  3. Aucun pays connu — client supposé local : langue du compte,
+     *     puis langue par défaut de la boutique.
      *  4. Fallback absolu — anglais.
      *
      * @param int    $idLang            id_lang PrestaShop du destinataire
@@ -350,9 +351,14 @@ class TranslationEngine
             if ($mapped !== null && in_array($mapped, $supported, true)) {
                 return $mapped;
             }
+            // Pays connu mais non couvert (Finlande, Grèce…) : l'anglais est
+            // le meilleur choix international, plutôt que d'imposer la langue
+            // locale du marchand à un client manifestement étranger.
+            return self::FALLBACK_LANG;
         }
 
-        // 3. Repli : langue du compte, puis langue par défaut de la boutique
+        // 3. Aucun pays connu (pas d'adresse) : client supposé local →
+        //    langue du compte, puis langue par défaut de la boutique.
         if ($accountLang !== '' && in_array($accountLang, $supported, true)) {
             return $accountLang;
         }

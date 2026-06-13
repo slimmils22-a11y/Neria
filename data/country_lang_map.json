@@ -15,5 +15,6 @@
   "SE":"sv",
   "NO":"no",
   "DK":"da",
-  "NL":"nl"
+  "NL":"nl",
+  "GB":"en","US":"en","IE":"en","AU":"en","NZ":"en","CA":"en"
 }
