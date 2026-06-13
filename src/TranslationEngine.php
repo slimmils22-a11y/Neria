@@ -72,6 +72,9 @@ class TranslationEngine
     /** @var array|null Cache du mapping pays ISO → langue Neria */
     private ?array $countryLangMap = null;
 
+    /** @var int|null Cache du nombre de langues installées (actives) de la boutique */
+    private ?int $installedLangCount = null;
+
     /** @var WatchdogManager|null Instance paresseuse du watchdog */
     private ?WatchdogManager $watchdog = null;
 
@@ -305,16 +308,17 @@ class TranslationEngine
     /**
      * Résout la langue optimale pour un destinataire.
      *
-     * Ordre de résolution (décidé avec le marchand) :
-     *  1. Choix explicite du client — langue du compte ≠ langue par
-     *     défaut de la boutique (le client l'a délibérément choisie).
-     *  2. Pays du client — si le compte n'est que la langue par défaut,
-     *     le pays décide. EmailRenderer fournit ce pays en privilégiant
-     *     l'adresse de FACTURATION (titulaire du compte) plutôt que la
-     *     livraison (qui peut être un tiers : cadeau, bureau, famille).
-     *     Permet à un client japonais sur une boutique francophone de
-     *     recevoir l'email en japonais.
-     *  3. Repli — langue du compte (= défaut boutique).
+     * Ordre de résolution (décidé avec le marchand — agnostique au pays
+     * du marchand : fonctionne pour une boutique FR, DE, ES, JP, etc.) :
+     *  1. Boutique MULTI-langues — la langue du compte reflète un vrai
+     *     choix (sélectionnée par le client ou détectée depuis son
+     *     navigateur) : on la respecte.
+     *  2. Boutique MONO-langue — la langue du compte est imposée et ne
+     *     nous apprend rien : le pays du client décide (facturation
+     *     prioritaire, fourni par EmailRenderer). Permet à un client
+     *     étranger de recevoir l'email dans sa langue même si la boutique
+     *     ne la propose pas (ex. japonais sur une boutique francophone).
+     *  3. Repli — langue du compte, puis langue par défaut de la boutique.
      *  4. Fallback absolu — anglais.
      *
      * @param int    $idLang            id_lang PrestaShop du destinataire
@@ -331,15 +335,15 @@ class TranslationEngine
             (int) \Configuration::get('PS_LANG_DEFAULT')
         );
 
-        // 1. Choix explicite du client (compte ≠ défaut boutique)
-        if ($accountLang !== ''
-            && $accountLang !== $defaultLang
+        // 1. Boutique multi-langues : la langue du compte est un vrai choix,
+        //    on la respecte (quel que soit le pays du marchand).
+        if ($this->isMultilingualShop()
             && in_array($accountLang, $supported, true)
         ) {
             return $accountLang;
         }
 
-        // 2. Pays du client (facturation prioritaire — résolu par EmailRenderer)
+        // 2. Boutique mono-langue : le pays du client décide.
         if ($customerCountryIso !== '') {
             $map    = $this->loadCountryLangMap();
             $mapped = $map[strtoupper($customerCountryIso)] ?? null;
@@ -348,7 +352,7 @@ class TranslationEngine
             }
         }
 
-        // 3. Repli : langue du compte (= défaut), puis défaut boutique
+        // 3. Repli : langue du compte, puis langue par défaut de la boutique
         if ($accountLang !== '' && in_array($accountLang, $supported, true)) {
             return $accountLang;
         }
@@ -358,6 +362,24 @@ class TranslationEngine
 
         // 4. Fallback absolu
         return self::FALLBACK_LANG;
+    }
+
+    /**
+     * Indique si la boutique propose plusieurs langues actives au client.
+     * Sur une boutique multi-langues, la langue du compte reflète un choix
+     * réel ; sur une boutique mono-langue, elle est imposée par le marchand.
+     *
+     * @return bool
+     */
+    private function isMultilingualShop(): bool
+    {
+        if ($this->installedLangCount === null) {
+            $idShop = (int) \Context::getContext()->shop->id;
+            $langs  = \Language::getLanguages(true, $idShop);
+            $this->installedLangCount = is_array($langs) ? count($langs) : 1;
+        }
+
+        return $this->installedLangCount > 1;
     }
 
     /**
