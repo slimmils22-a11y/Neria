@@ -188,11 +188,9 @@
             {l s='Template' mod='neria'}
           </label>
           <select id="preview_template" class="neria-select neria-select--sm">
-            <option value="order_conf">Confirmation commande</option>
-            <option value="shipped">Expédition</option>
-            <option value="abandoned_cart_1">Panier abandonné</option>
-            <option value="payment">Paiement</option>
-            <option value="birthday">Anniversaire</option>
+            {foreach $template_labels as $key => $label}
+              <option value="{$key}" {if $key === 'order_conf'}selected{/if}>{$label}</option>
+            {/foreach}
           </select>
 
           <label class="neria-label" for="preview_lang">
