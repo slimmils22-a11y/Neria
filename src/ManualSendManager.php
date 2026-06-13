@@ -65,6 +65,48 @@ class ManualSendManager
         'subject', 'check_name', 'check_address_html', 'check_address_txt',
     ];
 
+    /**
+     * Variables sans libellé dédié dans leur template (paragraphe autonome) :
+     * on les rattache à la meilleure clé de traduction existante, plutôt que
+     * de retomber sur la clé brute (anglaise). Reste du pur reuse de
+     * traductions (aucune fabrication).
+     */
+    const LABEL_KEY_OVERRIDE = [
+        'white_glove_apology' => ['apology_reason' => 'apology_details_title'],
+    ];
+
+    /**
+     * Libellés des rares champs sans clé de traduction dédiée dans leur
+     * template (paragraphes autonomes ou titre partagé). Mots simples,
+     * fournis dans les 18 langues. La clé est le nom de variable.
+     */
+    const FIELD_LABEL_I18N = [
+        'invitation_location' => [
+            'fr' => 'Lieu', 'en' => 'Location', 'de' => 'Ort', 'it' => 'Luogo',
+            'es' => 'Lugar', 'pt' => 'Local', 'br' => 'Local', 'ar' => 'المكان',
+            'ja' => '会場', 'ko' => '장소', 'zh' => '地点', 'tw' => '地點',
+            'ru' => 'Место', 'tr' => 'Yer', 'sv' => 'Plats', 'no' => 'Sted',
+            'da' => 'Sted', 'nl' => 'Locatie',
+        ],
+        'invitation_dates' => [
+            'fr' => 'Dates', 'en' => 'Dates', 'de' => 'Termine', 'it' => 'Date',
+            'es' => 'Fechas', 'pt' => 'Datas', 'br' => 'Datas', 'ar' => 'التواريخ',
+            'ja' => '日時', 'ko' => '일정', 'zh' => '日期', 'tw' => '日期',
+            'ru' => 'Даты', 'tr' => 'Tarihler', 'sv' => 'Datum', 'no' => 'Datoer',
+            'da' => 'Datoer', 'nl' => 'Data',
+        ],
+        'voucher_usage' => [
+            'fr' => "Conditions d'utilisation", 'en' => 'Terms of use',
+            'de' => 'Nutzungsbedingungen', 'it' => "Condizioni d'uso",
+            'es' => 'Condiciones de uso', 'pt' => 'Condições de uso',
+            'br' => 'Condições de uso', 'ar' => 'شروط الاستخدام',
+            'ja' => '利用条件', 'ko' => '이용 조건', 'zh' => '使用条款',
+            'tw' => '使用條款', 'ru' => 'Условия использования',
+            'tr' => 'Kullanım koşulları', 'sv' => 'Användningsvillkor',
+            'no' => 'Vilkår', 'da' => 'Betingelser', 'nl' => 'Gebruiksvoorwaarden',
+        ],
+    ];
+
     /** @var Neria */
     private Neria $module;
 
@@ -215,6 +257,126 @@ class ManualSendManager
             $map[$key] = $this->getEditableVars($key);
         }
         return $map;
+    }
+
+    /**
+     * Map template => champs éditables avec libellé traduit dans la langue du
+     * back-office (réutilise les libellés déjà traduits dans les templates).
+     * [template => [ ['key'=>'product_name', 'label'=>'Pièce'], ... ]]
+     *
+     * @param string $adminIso Code langue du back-office (employé)
+     * @return array<string,array<int,array{key:string,label:string}>>
+     */
+    public function getEditableFieldsMap(string $adminIso): array
+    {
+        $engine = new TranslationEngine($this->module);
+        $map    = [];
+
+        foreach (self::WAVE1_TEMPLATES as $tpl) {
+            $fields = [];
+            foreach ($this->getEditableVars($tpl) as $var) {
+                // 1. Libellé fourni directement (champs sans clé de trad dédiée)
+                $label = $this->directLabel($var, $adminIso);
+
+                // 2. Sinon, libellé réutilisé depuis le template (traduit dans
+                //    la langue du BO) ; on retire un éventuel « : » final.
+                if ($label === '') {
+                    $labelKey = $this->findVarLabelKey($tpl, $var);
+                    if ($labelKey !== '') {
+                        $label = trim(strip_tags($engine->get($tpl, $labelKey, $adminIso)));
+                        $label = rtrim($label, " :—-");
+                    }
+                }
+
+                // 3. Repli : nom de variable humanisé
+                if ($label === '') {
+                    $label = ucfirst(str_replace('_', ' ', $var));
+                }
+
+                $fields[] = ['key' => $var, 'label' => $label];
+            }
+            $map[$tpl] = $fields;
+        }
+
+        return $map;
+    }
+
+    /**
+     * Libellé direct d'une variable depuis FIELD_LABEL_I18N, dans la langue du
+     * back-office (replis : code 2 lettres, puis anglais). '' si absente.
+     *
+     * @param string $var
+     * @param string $adminIso
+     * @return string
+     */
+    private function directLabel(string $var, string $adminIso): string
+    {
+        if (!isset(self::FIELD_LABEL_I18N[$var])) {
+            return '';
+        }
+        $set = self::FIELD_LABEL_I18N[$var];
+        $iso = strtolower($adminIso);
+
+        return $set[$iso] ?? $set[substr($iso, 0, 2)] ?? $set['en'] ?? '';
+    }
+
+    /**
+     * Retrouve la clé de traduction servant de libellé à une variable dans un
+     * template : soit un {neria_trad} inline avant la variable sur la même
+     * ligne, soit un titre {neria_trad} seul sur la ligne juste au-dessus
+     * (en ignorant les lignes vides et les séparateurs ----).
+     *
+     * @param string $template
+     * @param string $var
+     * @return string Clé de traduction, ou '' si aucune trouvée
+     */
+    private function findVarLabelKey(string $template, string $var): string
+    {
+        $path = $this->module->getModulePath(
+            'mails/themes/neria_global/core/' . $template . '.txt'
+        );
+        if (!is_file($path)) {
+            return '';
+        }
+
+        // Override explicite (variables sans libellé dédié dans le template)
+        if (isset(self::LABEL_KEY_OVERRIDE[$template][$var])) {
+            return self::LABEL_KEY_OVERRIDE[$template][$var];
+        }
+
+        $lines  = preg_split('/\r\n|\r|\n/', (string) file_get_contents($path));
+        $needle = '{' . $var . '}';
+
+        foreach ($lines as $i => $line) {
+            $pos = strpos($line, $needle);
+            if ($pos === false) {
+                continue;
+            }
+
+            // 1. Libellé inline (même ligne, avant la variable)
+            $before = substr($line, 0, $pos);
+            if (preg_match_all('/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/', $before, $mm)
+                && !empty($mm[1])
+            ) {
+                return end($mm[1]);
+            }
+
+            // 2. Titre sur une ligne au-dessus (saute blancs et séparateurs)
+            for ($j = $i - 1; $j >= 0; $j--) {
+                $prev = trim($lines[$j]);
+                if ($prev === '' || preg_match('/^-{3,}$/', $prev)) {
+                    continue;
+                }
+                if (preg_match('/^\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}$/', $prev, $tm)) {
+                    return $tm[1];
+                }
+                break; // ligne non-titre → pas de libellé dédié
+            }
+
+            return '';
+        }
+
+        return '';
     }
 
     // ============================================================

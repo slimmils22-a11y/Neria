@@ -68,15 +68,15 @@
 
     {* ── Champs de contenu spécifiques au template ────────────── *}
     <div class="neria-send-content" style="margin-top:18px;">
-      {foreach $send_editable_map as $tpl => $vars}
+      {foreach $send_editable_map as $tpl => $fields}
         <div class="neria-send-fields" data-tpl="{$tpl}" style="display:none;">
-          {if $vars}
+          {if $fields}
             <div class="neria-form-grid">
-              {foreach $vars as $v}
+              {foreach $fields as $f}
                 <div class="neria-form-group">
-                  <label class="neria-label">{$v|replace:'_':' '|capitalize}</label>
-                  <input type="text" class="neria-input" name="neria_var[{$v}]"
-                         value="{if isset($smarty.post.neria_var) && isset($smarty.post.neria_var[$v])}{$smarty.post.neria_var[$v]|escape:'html'}{/if}">
+                  <label class="neria-label">{$f.label|escape:'html'}</label>
+                  <input type="text" class="neria-input" name="neria_var[{$f.key}]"
+                         value="{if isset($smarty.post.neria_var) && isset($smarty.post.neria_var[$f.key])}{$smarty.post.neria_var[$f.key]|escape:'html'}{/if}">
                 </div>
               {/foreach}
             </div>

@@ -362,8 +362,11 @@ class Neria extends Module
             'log_templates'    => (new WatchdogManager($this))->getTemplatesWithErrors(),
 
             // Variables pour send.tpl (envoi manuel — vague 1)
+            // Libellés des champs traduits dans la langue du back-office.
             'send_templates'    => (new ManualSendManager($this))->getSendableTemplates(),
-            'send_editable_map' => (new ManualSendManager($this))->getEditableVarsMap(),
+            'send_editable_map' => (new ManualSendManager($this))->getEditableFieldsMap(
+                $this->context->language->iso_code
+            ),
 
             // Variables pour abtest.tpl
             'eligible_templates' => (new ABTestManager($this))->getEligibleTemplates(),
