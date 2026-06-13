@@ -616,6 +616,7 @@ class NeriaTools
             'credit_slip'                    => 'Avoir',
             'customer_qty'                   => 'Quantité client',
             'customs_alert'                  => 'Alerte douane',
+            'delivered'                      => 'Commande livrée',
             'delivery_attempt_failed'        => 'Tentative de livraison échouée',
             'digital_gift_card'              => 'Carte cadeau digitale',
             'diwali'                         => 'Email Diwali',
