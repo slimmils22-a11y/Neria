@@ -139,8 +139,14 @@ class EmailRenderer
             $this->injectTrackingPixel($template, $lang, $params);
         }
 
-        // Compiler template Neria et changer templatePath
-        $compiledPath = $this->compileNeriaTemplate($template, $lang);
+        // Compiler template Neria et changer templatePath.
+        // Le contenu est compilé dans la langue DÉTECTÉE ($lang), mais doit
+        // être écrit dans le dossier ISO que Mail::send va réellement lire —
+        // celui de $idLang (cf. Mail::send → getIsoById((int)$idLang)). Sinon
+        // PrestaShop sert un autre fichier que la langue détectée et l'email
+        // part dans la mauvaise langue.
+        $outIso = \Language::getIsoById((int) ($params['idLang'] ?? 0)) ?: $lang;
+        $compiledPath = $this->compileNeriaTemplate($template, $lang, $outIso);
         if ($compiledPath && isset($params['templatePath'])) {
             // PS détecte 'modules/neria/' dans le chemin et cherche dans ce dossier
             $params['templatePath'] = _PS_MODULE_DIR_ . 'neria/mails/';
@@ -855,7 +861,7 @@ class EmailRenderer
      * Compile le template Neria en fichier HTML plat (sans heritage Smarty)
      * Fusionne layout.html + core/{template}.html
      */
-    private function compileNeriaTemplate(string $template, string $lang): ?string
+    private function compileNeriaTemplate(string $template, string $lang, ?string $outIso = null): ?string
     {
         $layoutPath = $this->module->getModulePath('mails/themes/neria_global/layout.html');
         $corePath   = $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html');
@@ -913,7 +919,11 @@ class EmailRenderer
         $compiled = preg_replace('/\{\*.*?\*\}/s', '', $compiled);
         $compiled = preg_replace('/\{\$[a-z_]+\}/', '', $compiled);
 
-        $outDir = _PS_MODULE_DIR_ . 'neria/mails/' . $lang . '/';
+        // Dossier de sortie : l'ISO que Mail::send va lire (langue du compte,
+        // $outIso) plutôt que la langue détectée du contenu ($lang). Le fichier
+        // contient le texte en langue détectée, mais doit résider dans le
+        // dossier où PrestaShop ira le chercher.
+        $outDir = _PS_MODULE_DIR_ . 'neria/mails/' . ($outIso ?: $lang) . '/';
         if (!is_dir($outDir)) {
             mkdir($outDir, 0755, true);
         }
