@@ -108,7 +108,8 @@ class Neria extends Module
             && $this->registerHooks()
             && $this->installTab()
             && $this->importTranslations()
-            && $this->setDefaultConfiguration();
+            && $this->setDefaultConfiguration()
+            && $this->configureDeliveredStatus();
     }
 
     // ============================================================
@@ -124,7 +125,8 @@ class Neria extends Module
      */
     public function uninstall(): bool
     {
-        return $this->executeSqlFile('uninstall.sql')
+        return $this->restoreDeliveredStatus()
+            && $this->executeSqlFile('uninstall.sql')
             && $this->uninstallTab()
             && $this->deleteConfiguration()
             && parent::uninstall();
@@ -729,6 +731,83 @@ class Neria extends Module
         foreach ($keys as $key) {
             Configuration::deleteByName($key);
         }
+
+        return true;
+    }
+
+    // ============================================================
+    // STATUT « LIVRÉ » → TEMPLATE delivered
+    // ============================================================
+
+    /**
+     * Configure le statut de commande « Livré » pour qu'il envoie l'email avec
+     * le template Neria `delivered`. Par défaut, PrestaShop n'envoie AUCUN
+     * email pour ce statut (delivered n'est pas un template natif). Sans cette
+     * config, le template delivered ne partirait jamais.
+     *
+     * L'état précédent est sauvegardé pour être restauré à la désinstallation.
+     * Non bloquant : retourne toujours true (ne doit pas faire échouer l'install).
+     */
+    private function configureDeliveredStatus(): bool
+    {
+        $idState = (int) Configuration::get('PS_OS_DELIVERED');
+        if (!$idState) {
+            return true;
+        }
+
+        $orderState = new OrderState($idState);
+        if (!Validate::isLoadedObject($orderState)) {
+            return true;
+        }
+
+        // Sauvegarde de l'état précédent (pour restauration à la désinstallation)
+        $prevTemplate = is_array($orderState->template)
+            ? (string) reset($orderState->template)
+            : (string) $orderState->template;
+        Configuration::updateValue(self::CONFIG_PREFIX . 'OSD_SEND', (int) $orderState->send_email);
+        Configuration::updateValue(self::CONFIG_PREFIX . 'OSD_TPL', $prevTemplate);
+
+        // Active l'email + template `delivered` pour toutes les langues
+        $orderState->send_email = true;
+        $tplByLang = [];
+        foreach (Language::getLanguages(false) as $lang) {
+            $tplByLang[(int) $lang['id_lang']] = 'delivered';
+        }
+        $orderState->template = $tplByLang;
+        $orderState->save();
+
+        return true;
+    }
+
+    /**
+     * Restaure le statut « Livré » dans son état d'avant l'installation Neria.
+     * Non bloquant : retourne toujours true.
+     */
+    private function restoreDeliveredStatus(): bool
+    {
+        $idState = (int) Configuration::get('PS_OS_DELIVERED');
+        if (!$idState) {
+            return true;
+        }
+
+        $orderState = new OrderState($idState);
+        if (!Validate::isLoadedObject($orderState)) {
+            return true;
+        }
+
+        $prevSend = Configuration::get(self::CONFIG_PREFIX . 'OSD_SEND');
+        $prevTpl  = (string) Configuration::get(self::CONFIG_PREFIX . 'OSD_TPL');
+
+        $orderState->send_email = ($prevSend !== false) ? (bool) (int) $prevSend : false;
+        $tplByLang = [];
+        foreach (Language::getLanguages(false) as $lang) {
+            $tplByLang[(int) $lang['id_lang']] = $prevTpl;
+        }
+        $orderState->template = $tplByLang;
+        $orderState->save();
+
+        Configuration::deleteByName(self::CONFIG_PREFIX . 'OSD_SEND');
+        Configuration::deleteByName(self::CONFIG_PREFIX . 'OSD_TPL');
 
         return true;
     }
