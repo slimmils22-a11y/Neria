@@ -113,6 +113,14 @@ class EmailRenderer
             $headline = $this->engine->get($template, 'greeting_main', $lang);
             if ($headline !== '') {
                 $params['subject'] = trim(strip_tags($headline));
+            } else {
+                $this->watchdog()->warning(
+                    'Sujet auto-traduit vide (clé greeting_main introuvable) — '
+                    . 'l\'email risque de partir sans objet',
+                    $template,
+                    'EmailRenderer',
+                    ['lang' => $lang]
+                );
             }
         }
 
@@ -472,7 +480,19 @@ class EmailRenderer
         }
 
         // {discount} (intro « offrant … de réduction ») = vrai taux/montant du bon
-        $templateVars['{discount}'] = $this->voucherRateFromCode($code);
+        $rate = $this->voucherRateFromCode($code);
+        if ($rate === '') {
+            // Aucun cart rule ne correspond à ce code : l'intro afficherait un
+            // montant vide. On le signale (email visiblement défectueux).
+            $this->watchdog()->warning(
+                'Bon newsletter : code introuvable ou taux non résolu — '
+                . 'le montant de réduction sera vide dans l\'email',
+                'newsletter_voucher',
+                'EmailRenderer',
+                ['code' => $code]
+            );
+        }
+        $templateVars['{discount}'] = $rate;
     }
 
     /**
@@ -690,6 +710,24 @@ class EmailRenderer
 
         $idCustomer = $this->resolveCustomerId($params);
         $location   = $this->getCustomerLocation($idCustomer, $params);
+
+        // Surveillance : sur une boutique mono-langue, c'est le pays du client
+        // qui décide de la langue. Si aucune localisation n'a pu être trouvée,
+        // on retombe sur la langue par défaut — l'email peut donc partir dans
+        // une langue qui ne correspond pas au lecteur, sans erreur visible.
+        if ($location['iso'] === '' && !$this->engine->isMultilingualShop()) {
+            $this->watchdog()->warning(
+                'Détection de langue : aucune localisation client trouvée, '
+                . 'repli sur la langue par défaut (peut ne pas correspondre au lecteur)',
+                $this->resolveTemplate($params['template'] ?? ''),
+                'EmailRenderer',
+                [
+                    'id_customer' => $idCustomer,
+                    'id_order'    => (int) (($params['templateVars']['{id_order}'] ?? 0)),
+                    'to'          => is_array($params['to'] ?? null) ? reset($params['to']) : ($params['to'] ?? ''),
+                ]
+            );
+        }
 
         return $this->engine->resolveOptimalLang(
             $idLang,

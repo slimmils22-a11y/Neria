@@ -381,7 +381,7 @@ class TranslationEngine
      *
      * @return bool
      */
-    private function isMultilingualShop(): bool
+    public function isMultilingualShop(): bool
     {
         if ($this->installedLangCount === null) {
             $idShop = (int) \Context::getContext()->shop->id;
