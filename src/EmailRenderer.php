@@ -271,6 +271,14 @@ class EmailRenderer
         // Durée de validité des bons (variable {validity_days}, réglage marchand)
         if (is_array($params['templateVars'])) {
             $params['templateVars']['{validity_days}'] = (string) $this->config->getVoucherValidity();
+
+            // Lien de désabonnement signé (pied de page) — cohérent avec
+            // l'en-tête List-Unsubscribe ajouté par le module avant l'envoi.
+            $unsubTo = $params['to'] ?? '';
+            if (is_array($unsubTo)) {
+                $unsubTo = reset($unsubTo);
+            }
+            $params['templateVars']['{unsubscribe_url}'] = $this->module->getUnsubscribeUrl((string) $unsubTo);
         }
 
         // Lien du bon de retour (page Retours du compte client)
@@ -523,6 +531,7 @@ class EmailRenderer
                 '{custom_message}'     => '',
                 '{custom_message_txt}' => '',
                 '{subject}'            => $subject,
+                '{unsubscribe_url}'    => $this->module->getUnsubscribeUrl($to),
             ];
 
             // ── Envoi (anti-récursion via le drapeau statique) ──────────
@@ -1562,6 +1571,7 @@ class EmailRenderer
             // ── Géré ailleurs / vide ───────────────────────────────
             '{custom_message}'     => '',
             '{validity_days}'      => (string) $this->config->getVoucherValidity(),
+            '{unsubscribe_url}'    => $this->module->getUnsubscribeUrl('client@example.com'),
             // ── Liens (aperçu : ancres neutres) ────────────────────
             '{history_url}'        => '#',
             '{guest_tracking_url}' => '#',

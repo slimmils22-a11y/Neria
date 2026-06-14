@@ -275,6 +275,7 @@ class DeliverabilityScorer
         // ── Critère 5 : lien de désabonnement (−15) ──────────────
         $hasUnsubscribe = str_contains($htmlContent, 'unsubscribe')
             || str_contains($htmlContent, 'désabonnement')
+            || str_contains($htmlContent, 'désabonner')
             || str_contains($htmlContent, 'désinscrire')
             || str_contains($htmlContent, 'se désinscrire')
             || str_contains($htmlContent, 'abmelden')

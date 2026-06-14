@@ -148,6 +148,9 @@ class Neria extends Module
             // Permet d'injecter les traductions Neria et le tracking
             'actionEmailSendBefore',
 
+            // Ajoute l'en-tête List-Unsubscribe au message juste avant l'envoi
+            'actionMailAlterMessageBeforeSend',
+
             // ── Back-office ───────────────────────────────────────
             // Charge CSS/JS Neria dans le header du back-office
             'displayBackOfficeHeader',
@@ -201,6 +204,84 @@ class Neria extends Module
         }
 
         return true;
+    }
+
+    /**
+     * Hook juste avant l'envoi : ajoute l'en-tête List-Unsubscribe (RFC 2369 /
+     * 8058) au message. C'est le principal levier de délivrabilité exigé par
+     * Gmail/Yahoo : un moyen de désabonnement standard (mailto + un clic).
+     *
+     * @param array $params ['message' => Swift_Message par référence]
+     */
+    public function hookActionMailAlterMessageBeforeSend(array $params): void
+    {
+        try {
+            if (empty($params['message']) || !is_object($params['message'])) {
+                return;
+            }
+            $message = $params['message'];
+
+            // Destinataire (1re adresse du message)
+            $to = method_exists($message, 'getTo') ? $message->getTo() : null;
+            if (!is_array($to) || empty($to)) {
+                return;
+            }
+            $email = (string) key($to);
+            if ($email === '' || !Validate::isEmail($email)) {
+                return;
+            }
+
+            $headers = $message->getHeaders();
+            if (!$headers || $headers->has('List-Unsubscribe')) {
+                return;
+            }
+
+            $shopEmail = (string) Configuration::get('PS_SHOP_EMAIL');
+            $httpsUrl  = $this->getUnsubscribeUrl($email);
+
+            $values = [];
+            if ($shopEmail !== '' && Validate::isEmail($shopEmail)) {
+                $values[] = '<mailto:' . $shopEmail . '?subject=unsubscribe>';
+            }
+            if ($httpsUrl !== '') {
+                $values[] = '<' . $httpsUrl . '>';
+            }
+            if (empty($values)) {
+                return;
+            }
+
+            $headers->addTextHeader('List-Unsubscribe', implode(', ', $values));
+            // Désabonnement « un clic » (RFC 8058) — seulement si l'URL https existe
+            if ($httpsUrl !== '') {
+                $headers->addTextHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
+            }
+        } catch (\Throwable $e) {
+            // Best-effort : ne jamais bloquer l'envoi pour un en-tête.
+        }
+    }
+
+    /**
+     * Construit l'URL de désabonnement signée (jeton HMAC) pour une adresse.
+     * Utilisée par l'en-tête List-Unsubscribe et le lien en pied d'email ;
+     * le front controller `unsubscribe` recalcule et vérifie le même jeton.
+     *
+     * @param string $email
+     * @return string URL absolue, ou '' si email invalide
+     */
+    public function getUnsubscribeUrl(string $email): string
+    {
+        $email = Tools::strtolower(trim($email));
+        if ($email === '' || !Validate::isEmail($email)) {
+            return '';
+        }
+        $token = substr(hash_hmac('sha256', $email, _COOKIE_KEY_), 0, 32);
+
+        return $this->context->link->getModuleLink(
+            'neria',
+            'unsubscribe',
+            ['email' => $email, 'token' => $token],
+            true
+        );
     }
 
     /**

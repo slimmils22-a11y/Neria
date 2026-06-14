@@ -22143,6 +22143,7 @@
             "footer_order_history": "Historique des commandes",
             "footer_guest_tracking": "Suivi invité",
             "footer_legal": "Mentions légales",
+            "footer_unsubscribe": "Se désabonner",
             "order_reference_label": "Référence commande"
         },
         "en": {
@@ -22150,6 +22151,7 @@
             "footer_order_history": "Order history",
             "footer_guest_tracking": "Guest tracking",
             "footer_legal": "Legal notices",
+            "footer_unsubscribe": "Unsubscribe",
             "order_reference_label": "Order reference"
         },
         "de": {
@@ -22157,6 +22159,7 @@
             "footer_order_history": "Bestellverlauf",
             "footer_guest_tracking": "Gastsendungsverfolgung",
             "footer_legal": "Rechtliche Hinweise",
+            "footer_unsubscribe": "Abmelden",
             "order_reference_label": "Bestellreferenz"
         },
         "it": {
@@ -22164,6 +22167,7 @@
             "footer_order_history": "Storico ordini",
             "footer_guest_tracking": "Tracciamento ospite",
             "footer_legal": "Note legali",
+            "footer_unsubscribe": "Annulla iscrizione",
             "order_reference_label": "Riferimento ordine"
         },
         "es": {
@@ -22171,6 +22175,7 @@
             "footer_order_history": "Historial de pedidos",
             "footer_guest_tracking": "Seguimiento de invitado",
             "footer_legal": "Aviso legal",
+            "footer_unsubscribe": "Cancelar suscripción",
             "order_reference_label": "Referencia del pedido"
         },
         "pt": {
@@ -22178,6 +22183,7 @@
             "footer_order_history": "Histórico de encomendas",
             "footer_guest_tracking": "Rastreio de convidado",
             "footer_legal": "Menções legais",
+            "footer_unsubscribe": "Cancelar subscrição",
             "order_reference_label": "Referência da encomenda"
         },
         "br": {
@@ -22185,6 +22191,7 @@
             "footer_order_history": "Histórico de pedidos",
             "footer_guest_tracking": "Rastreamento de convidado",
             "footer_legal": "Informações legais",
+            "footer_unsubscribe": "Cancelar inscrição",
             "order_reference_label": "Referência do pedido"
         },
         "ar": {
@@ -22192,6 +22199,7 @@
             "footer_order_history": "سجل الطلبات",
             "footer_guest_tracking": "تتبع الزائر",
             "footer_legal": "الإشعارات القانونية",
+            "footer_unsubscribe": "إلغاء الاشتراك",
             "order_reference_label": "مرجع الطلب"
         },
         "ja": {
@@ -22199,6 +22207,7 @@
             "footer_order_history": "注文履歴",
             "footer_guest_tracking": "ゲスト注文の追跡",
             "footer_legal": "法的事項",
+            "footer_unsubscribe": "配信を停止",
             "order_reference_label": "注文番号"
         },
         "ko": {
@@ -22206,6 +22215,7 @@
             "footer_order_history": "주문 내역",
             "footer_guest_tracking": "게스트 주문 추적",
             "footer_legal": "법적 고지",
+            "footer_unsubscribe": "수신 거부",
             "order_reference_label": "주문 참조 번호"
         },
         "zh": {
@@ -22213,6 +22223,7 @@
             "footer_order_history": "订单历史",
             "footer_guest_tracking": "访客订单追踪",
             "footer_legal": "法律声明",
+            "footer_unsubscribe": "取消订阅",
             "order_reference_label": "订单编号"
         },
         "tw": {
@@ -22220,6 +22231,7 @@
             "footer_order_history": "訂單歷史",
             "footer_guest_tracking": "訪客訂單追蹤",
             "footer_legal": "法律聲明",
+            "footer_unsubscribe": "取消訂閱",
             "order_reference_label": "訂單編號"
         },
         "ru": {
@@ -22227,6 +22239,7 @@
             "footer_order_history": "История заказов",
             "footer_guest_tracking": "Отслеживание для гостей",
             "footer_legal": "Правовая информация",
+            "footer_unsubscribe": "Отписаться",
             "order_reference_label": "Номер заказа"
         },
         "tr": {
@@ -22234,6 +22247,7 @@
             "footer_order_history": "Sipariş geçmişi",
             "footer_guest_tracking": "Misafir takibi",
             "footer_legal": "Yasal bildirimler",
+            "footer_unsubscribe": "Aboneliği iptal et",
             "order_reference_label": "Sipariş referansı"
         },
         "sv": {
@@ -22241,6 +22255,7 @@
             "footer_order_history": "Orderhistorik",
             "footer_guest_tracking": "Gästspårning",
             "footer_legal": "Juridisk information",
+            "footer_unsubscribe": "Avregistrera",
             "order_reference_label": "Beställningsreferens"
         },
         "no": {
@@ -22248,6 +22263,7 @@
             "footer_order_history": "Ordrehistorikk",
             "footer_guest_tracking": "Gjestesporing",
             "footer_legal": "Juridisk informasjon",
+            "footer_unsubscribe": "Meld av",
             "order_reference_label": "Bestillingsreferanse"
         },
         "da": {
@@ -22255,6 +22271,7 @@
             "footer_order_history": "Ordrehistorik",
             "footer_guest_tracking": "Gæstesporing",
             "footer_legal": "Juridiske oplysninger",
+            "footer_unsubscribe": "Afmeld",
             "order_reference_label": "Ordriereference"
         },
         "nl": {
@@ -22262,6 +22279,7 @@
             "footer_order_history": "Bestelgeschiedenis",
             "footer_guest_tracking": "Gast tracking",
             "footer_legal": "Juridische mededelingen",
+            "footer_unsubscribe": "Uitschrijven",
             "order_reference_label": "Orderreferentie"
         }
     },
