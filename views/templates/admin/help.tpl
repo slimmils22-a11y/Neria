@@ -133,6 +133,22 @@
     {l s='Journal des événements' mod='neria'}
   </h2>
 
+  {* Réglage : inclure ou non les emails internes (administrateur) *}
+  <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-bottom:18px;">
+    <input type="hidden" name="neria_action"       value="save_log_internal">
+    <input type="hidden" name="neria_tab"          value="help">
+    <input type="hidden" name="neria_log_internal" value="0">
+    <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:13px; color:var(--neria-text);">
+      <input type="checkbox" name="neria_log_internal" value="1"
+             style="width:16px; height:16px; cursor:pointer;"
+             onchange="this.form.submit()"
+             {if $log_internal_enabled}checked{/if}>
+      <span>{l s='Inclure les emails internes (administrateur) dans le journal' mod='neria'}
+        <span style="color:#999;">— {l s='les erreurs et critiques restent toujours enregistrées' mod='neria'}</span>
+      </span>
+    </label>
+  </form>
+
   {* Résumé par niveau *}
   <div class="neria-kpi-grid" style="margin-bottom:20px;">
     <div class="neria-kpi">
