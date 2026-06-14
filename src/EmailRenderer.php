@@ -140,6 +140,11 @@ class EmailRenderer
         // Message personnalisé optionnel (envoi manuel) — versions HTML et TXT
         $this->injectCustomMessage($params['templateVars']);
 
+        // Durée de validité des bons (variable {validity_days}, réglage marchand)
+        if (is_array($params['templateVars'])) {
+            $params['templateVars']['{validity_days}'] = (string) $this->config->getVoucherValidity();
+        }
+
         // Lien du bon de retour (page Retours du compte client)
         if ($template === 'return_slip') {
             $this->injectReturnSlipUrl($params['templateVars']);
@@ -1049,6 +1054,7 @@ class EmailRenderer
             '{guest_tracking_url}' => '#',
             '{products}'           => $this->getFakeProductsTable(),
             '{custom_message}'     => '',
+            '{validity_days}'      => (string) $this->config->getVoucherValidity(),
         ];
 
         $html = str_replace(array_keys($fakes), array_values($fakes), $html);

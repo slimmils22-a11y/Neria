@@ -277,6 +277,13 @@ class Neria extends Module
             );
         }
 
+        // ── Action : durée de validité des bons ───────────────────
+        if (Tools::getValue('neria_action') === 'save_voucher_validity') {
+            $days = (int) Tools::getValue('neria_voucher_validity', 30);
+            $days = max(1, min(365, $days));
+            Configuration::updateValue(self::CONFIG_PREFIX . 'VOUCHER_VALIDITY', $days);
+        }
+
         // ── Action : envoi manuel d'un template à un client ───────
         if (Tools::getValue('neria_action') === 'send_manual') {
             $manual      = new ManualSendManager($this);
@@ -314,6 +321,7 @@ class Neria extends Module
             'neria_active_tab' => $activeTab,
             'neria_active'     => $config->isActive(),
             'auto_lang_enabled' => $config->isAutoLangEnabled(),
+            'voucher_validity'  => $config->getVoucherValidity(),
             'neria_tabs'       => $this->getBackOfficeTabs(),
 
             // Libellés et drapeaux des 18 langues supportées
@@ -698,6 +706,7 @@ class Neria extends Module
             self::CONFIG_PREFIX . 'STATS_ENABLED'    => 1,
             self::CONFIG_PREFIX . 'ABTEST_ENABLED'   => 0,
             self::CONFIG_PREFIX . 'AUTO_LANG'        => 1,
+            self::CONFIG_PREFIX . 'VOUCHER_VALIDITY' => 30,
             self::CONFIG_PREFIX . 'INSTALLED_AT'     => date('Y-m-d H:i:s'),
         ];
 
@@ -725,6 +734,7 @@ class Neria extends Module
             self::CONFIG_PREFIX . 'STATS_ENABLED',
             self::CONFIG_PREFIX . 'ABTEST_ENABLED',
             self::CONFIG_PREFIX . 'AUTO_LANG',
+            self::CONFIG_PREFIX . 'VOUCHER_VALIDITY',
             self::CONFIG_PREFIX . 'INSTALLED_AT',
         ];
 

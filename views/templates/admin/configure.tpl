@@ -63,6 +63,34 @@
   </form>
 </div>
 
+{* ── Bons de réduction ──────────────────────────────────────── *}
+<div class="neria-section">
+  <h2 class="neria-section__title">{l s='Bons de réduction' mod='neria'}</h2>
+  <p class="neria-section__desc">
+    {l s='Durée de validité affichée dans les emails de bon (variable {validity_days}). Modifiez-la selon votre politique.' mod='neria'}
+  </p>
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <input type="hidden" name="neria_action" value="save_voucher_validity">
+    <input type="hidden" name="neria_tab"    value="configure">
+
+    <div class="neria-form-group">
+      <label class="neria-label" for="neria-voucher-validity">
+        {l s='Durée de validité (jours)' mod='neria'}
+      </label>
+      <input type="number" id="neria-voucher-validity" name="neria_voucher_validity"
+             class="neria-input" min="1" max="365" style="max-width:140px;"
+             value="{$voucher_validity|default:30}">
+    </div>
+
+    <div style="margin-top:16px;">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+        {l s='Enregistrer' mod='neria'}
+      </button>
+    </div>
+  </form>
+</div>
+
 {* ── Prochaines occasions calendaires ───────────────────────── *}
 {* $upcoming_events est assignée par neria.php via CalendarManager::getUpcomingDates() *}
 {if isset($upcoming_events) && $upcoming_events|@count > 0}

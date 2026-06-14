@@ -61,6 +61,7 @@ class ConfigManager
     const KEY_ABTEST_ENABLED    = 'NERIA_ABTEST_ENABLED';
     const KEY_ACTIVE            = 'NERIA_ACTIVE';
     const KEY_AUTO_LANG         = 'NERIA_AUTO_LANG';
+    const KEY_VOUCHER_VALIDITY  = 'NERIA_VOUCHER_VALIDITY';
 
     // ── Valeurs par défaut ────────────────────────────────────────
     const DEFAULTS = [
@@ -89,6 +90,7 @@ class ConfigManager
         self::KEY_ABTEST_ENABLED      => 0,
         self::KEY_ACTIVE              => 1,
         self::KEY_AUTO_LANG           => 1,
+        self::KEY_VOUCHER_VALIDITY    => 30,
     ];
 
     // Polices disponibles pour le sélecteur back-office
@@ -258,6 +260,16 @@ class ConfigManager
     public function isAutoLangEnabled(): bool
     {
         return (bool) $this->get(self::KEY_AUTO_LANG, 1);
+    }
+
+    /**
+     * Durée de validité des bons de réduction, en jours (variable {validity_days}).
+     *
+     * @return int
+     */
+    public function getVoucherValidity(): int
+    {
+        return (int) $this->get(self::KEY_VOUCHER_VALIDITY, 30);
     }
 
     // ============================================================
