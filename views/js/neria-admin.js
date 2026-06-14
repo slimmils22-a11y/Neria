@@ -23,9 +23,35 @@
         initSignaturePreview();
         initDesignReset();
         initFontCards();
+        initScoreButton();
     });
 
     // ── Synchronisation color picker ↔ champ texte hex ───────────
+    // ── Score de délivrabilité : recharge la page avec l'analyse ──
+    function initScoreButton() {
+        var btn = document.getElementById('neria-score-btn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function () {
+            var tplEl  = document.getElementById('score_template');
+            var langEl = document.getElementById('score_lang');
+            var template = tplEl ? tplEl.value : '';
+            var lang     = langEl ? langEl.value : 'fr';
+
+            if (!template) {
+                return;
+            }
+
+            var url = new URL(window.location.href);
+            url.searchParams.set('neria_action', 'deliverability_score');
+            url.searchParams.set('score_template', template);
+            url.searchParams.set('score_lang', lang);
+            url.searchParams.set('neria_tab', 'design');
+
+            window.location.href = url.toString();
+        });
+    }
+
     function initColorPickers() {
         var pickers = document.querySelectorAll('.neria-color-picker');
 

@@ -317,6 +317,53 @@ class Neria extends Module
             );
         }
 
+        // ── Action : score de délivrabilité (onglet Design) ───────
+        if (Tools::getValue('neria_action') === 'deliverability_score') {
+            $scoreTemplate = (string) Tools::getValue('score_template', 'order_conf');
+            $scoreLang     = (string) Tools::getValue('score_lang', 'fr');
+
+            if (class_exists('EmailRenderer') && class_exists('DeliverabilityScorer')) {
+                try {
+                    $renderer = new EmailRenderer($this);
+                    $html     = $renderer->renderPreviewHtml($scoreTemplate, $scoreLang);
+                    $engine   = new TranslationEngine($this);
+                    $subject  = trim(strip_tags($engine->get($scoreTemplate, 'greeting_main', $scoreLang)));
+
+                    $scorer = new DeliverabilityScorer();
+                    $result = $scorer->score($html, $subject, $scoreLang);
+
+                    $this->context->smarty->assign('neria_deliverability', $result);
+
+                    // Watchdog : trace de l'analyse (warning si score faible)
+                    if (class_exists('WatchdogManager')) {
+                        $wd  = new WatchdogManager($this);
+                        $msg = sprintf(
+                            'Analyse délivrabilité : %d/100 (%s)',
+                            $result['score'],
+                            $result['grade']
+                        );
+                        if ($result['score'] < 60) {
+                            $wd->warning($msg, $scoreTemplate, 'DeliverabilityScorer');
+                        } else {
+                            $wd->info($msg, $scoreTemplate, 'DeliverabilityScorer');
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    if (class_exists('WatchdogManager')) {
+                        (new WatchdogManager($this))->error(
+                            'Échec analyse délivrabilité : ' . $e->getMessage(),
+                            $scoreTemplate,
+                            'DeliverabilityScorer'
+                        );
+                    }
+                    $this->context->smarty->assign(
+                        'neria_deliverability_error',
+                        $this->l('Impossible d\'analyser ce template.')
+                    );
+                }
+            }
+        }
+
         // Détermine l'onglet actif (par défaut : configure)
         $activeTab = Tools::getValue('neria_tab', 'configure');
 
