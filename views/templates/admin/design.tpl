@@ -239,29 +239,34 @@
       {l s='Analysez un email pour vérifier qu\'il ne risque pas le dossier spam. Neria inspecte le sujet, le ratio texte/HTML, les mots déclencheurs, le poids, le lien de désabonnement et plusieurs patterns techniques.' mod='neria'}
     </p>
 
-    <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
-      <div class="neria-form-group" style="flex:1; min-width:240px;">
-        <label class="neria-label" for="score_template">{l s='Template à analyser' mod='neria'}</label>
-        <select id="score_template" name="score_template" class="neria-select">
-          {foreach $template_labels as $key => $label}
-            <option value="{$key}"{if isset($smarty.get.score_template) && $smarty.get.score_template == $key} selected{/if}>{$label}</option>
-          {/foreach}
-        </select>
-      </div>
+    <form method="post" action="{$smarty.server.REQUEST_URI}">
+      <input type="hidden" name="neria_action" value="deliverability_score">
+      <input type="hidden" name="neria_tab"    value="design">
 
-      <div class="neria-form-group" style="min-width:180px;">
-        <label class="neria-label" for="score_lang">{l s='Langue' mod='neria'}</label>
-        <select id="score_lang" name="score_lang" class="neria-select">
-          {foreach $lang_labels as $code => $name}
-            <option value="{$code}"{if isset($smarty.get.score_lang) && $smarty.get.score_lang == $code} selected{/if}>{$lang_flags[$code]|default:''} {$name}</option>
-          {/foreach}
-        </select>
-      </div>
+      <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;">
+        <div class="neria-form-group" style="flex:1; min-width:240px;">
+          <label class="neria-label" for="score_template">{l s='Template à analyser' mod='neria'}</label>
+          <select id="score_template" name="score_template" class="neria-select">
+            {foreach $template_labels as $key => $label}
+              <option value="{$key}"{if isset($smarty.request.score_template) && $smarty.request.score_template == $key} selected{/if}>{$label}</option>
+            {/foreach}
+          </select>
+        </div>
 
-      <button type="button" class="neria-btn neria-btn--primary" id="neria-score-btn">
-        {l s='Analyser la délivrabilité' mod='neria'}
-      </button>
-    </div>
+        <div class="neria-form-group" style="min-width:180px;">
+          <label class="neria-label" for="score_lang">{l s='Langue' mod='neria'}</label>
+          <select id="score_lang" name="score_lang" class="neria-select">
+            {foreach $lang_labels as $code => $name}
+              <option value="{$code}"{if isset($smarty.request.score_lang) && $smarty.request.score_lang == $code} selected{/if}>{$lang_flags[$code]|default:''} {$name}</option>
+            {/foreach}
+          </select>
+        </div>
+
+        <button type="submit" class="neria-btn neria-btn--primary" id="neria-score-btn">
+          {l s='Analyser la délivrabilité' mod='neria'}
+        </button>
+      </div>
+    </form>
 
     {* Résultats — affichés après analyse *}
     {if isset($neria_deliverability)}
