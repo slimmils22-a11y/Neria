@@ -62,6 +62,12 @@ class EmailRenderer
      */
     private static bool $inFallback = false;
 
+    /** @var bool L'email en cours de traitement est-il interne (destiné au marchand) ? */
+    private bool $currentInternal = false;
+
+    /** @var bool|null Cache du réglage « journaliser les emails internes » */
+    private ?bool $logInternalCache = null;
+
     // ============================================================
     // CONSTRUCTEUR
     // ============================================================
@@ -96,6 +102,70 @@ class EmailRenderer
             $this->watchdog = new WatchdogManager($this->module);
         }
         return $this->watchdog;
+    }
+
+    /**
+     * Journalise un événement « doux » (info / warning) lié au rendu d'un
+     * email. Les emails internes (destinés au marchand) ne sont PAS journalisés
+     * à ce niveau, sauf si le marchand l'a explicitement activé (réglage
+     * « Journaliser les emails internes »), pour garder le journal centré sur
+     * les emails clients. Les erreurs et critiques passent toujours par
+     * watchdog()->error()/critical() directement, quel que soit le réglage.
+     *
+     * @param string $level    'info' ou 'warning'
+     * @param string $message
+     * @param string $template
+     * @param array  $context
+     */
+    private function softLog(string $level, string $message, string $template, array $context = []): void
+    {
+        if ($this->currentInternal && !$this->internalLogEnabled()) {
+            return;
+        }
+        $this->watchdog()->{$level}($message, $template, 'EmailRenderer', $context);
+    }
+
+    /**
+     * Réglage « journaliser les emails internes » (mis en cache pour la requête).
+     *
+     * @return bool
+     */
+    private function internalLogEnabled(): bool
+    {
+        if ($this->logInternalCache === null) {
+            $this->logInternalCache = $this->config->isInternalLogEnabled();
+        }
+        return $this->logInternalCache;
+    }
+
+    /**
+     * Détermine si un email est « interne » : destiné au marchand plutôt qu'au
+     * client (alertes de log, notifications administrateur, email de test…).
+     * Heuristique robuste : le destinataire est l'email de la boutique ou
+     * celui d'un employé.
+     *
+     * @param array $params Paramètres de l'email
+     * @return bool
+     */
+    private function isInternalEmail(array $params): bool
+    {
+        $to = $params['to'] ?? '';
+        if (is_array($to)) {
+            $to = reset($to);
+        }
+        $to = strtolower(trim((string) $to));
+        if ($to === '') {
+            return false;
+        }
+
+        $shopEmail = strtolower((string) \Configuration::get('PS_SHOP_EMAIL'));
+        if ($shopEmail !== '' && $to === $shopEmail) {
+            return true;
+        }
+
+        return (int) \Db::getInstance()->getValue(
+            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'employee` WHERE `email` = \'' . pSQL($to) . '\''
+        ) > 0;
     }
 
     public function processEmailParams(array &$params): bool
@@ -139,6 +209,10 @@ class EmailRenderer
      */
     private function applyNeriaRendering(array &$params, string $template): void
     {
+        // Email interne (destiné au marchand) ? Conditionne la journalisation
+        // « douce » (info/warning) selon le réglage du marchand.
+        $this->currentInternal = $this->isInternalEmail($params);
+
         // Template absent de tous les emplacements où PrestaShop le chercherait
         // (et non couvert par Neria) → l'envoi natif échouerait dans le vide.
         // On lève pour basculer sur l'email de secours.
@@ -160,11 +234,11 @@ class EmailRenderer
             if ($headline !== '') {
                 $params['subject'] = trim(strip_tags($headline));
             } else {
-                $this->watchdog()->warning(
+                $this->softLog(
+                    'warning',
                     'Sujet auto-traduit vide (clé greeting_main introuvable) — '
                     . 'l\'email risque de partir sans objet',
                     $template,
-                    'EmailRenderer',
                     ['lang' => $lang]
                 );
             }
@@ -253,11 +327,16 @@ class EmailRenderer
             1
         );
 
-        $this->watchdog()->info(
-            sprintf('Email rendu avec succès%s', $variant ? ' — variante ' . $variant : ''),
-            $template,
-            'EmailRenderer'
-        );
+        // INFO de succès uniquement si Neria a réellement habillé l'email
+        // (compilation effective) — pas pour les emails laissés tels quels à
+        // PrestaShop. softLog respecte aussi le réglage « emails internes ».
+        if ($compiledPath !== null) {
+            $this->softLog(
+                'info',
+                sprintf('Email rendu avec succès%s', $variant ? ' — variante ' . $variant : ''),
+                $template
+            );
+        }
     }
 
     // ============================================================
@@ -1015,11 +1094,11 @@ class EmailRenderer
         // on retombe sur la langue par défaut — l'email peut donc partir dans
         // une langue qui ne correspond pas au lecteur, sans erreur visible.
         if ($location['iso'] === '' && !$this->engine->isMultilingualShop()) {
-            $this->watchdog()->warning(
+            $this->softLog(
+                'warning',
                 'Détection de langue : aucune localisation client trouvée, '
                 . 'repli sur la langue par défaut (peut ne pas correspondre au lecteur)',
                 $this->resolveTemplate($params['template'] ?? ''),
-                'EmailRenderer',
                 [
                     'id_customer' => $idCustomer,
                     'id_order'    => (int) (($params['templateVars']['{id_order}'] ?? 0)),

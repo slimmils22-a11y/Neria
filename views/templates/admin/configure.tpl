@@ -63,6 +63,35 @@
   </form>
 </div>
 
+{* ── Journal : emails internes ──────────────────────────────── *}
+<div class="neria-section">
+  <h2 class="neria-section__title">
+    {l s='Journal — emails internes' mod='neria'}
+  </h2>
+  <p class="neria-section__desc">
+    {l s='Par défaut, le journal d\'événements (onglet Aide) se concentre sur les emails clients. Activez cette option pour y inclure aussi les emails internes destinés à l\'administrateur (alertes système, notifications de commande…). Les erreurs et alertes critiques restent toujours enregistrées, dans tous les cas.' mod='neria'}
+  </p>
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <input type="hidden" name="neria_action"       value="save_log_internal">
+    <input type="hidden" name="neria_tab"          value="configure">
+    <input type="hidden" name="neria_log_internal" value="0">
+
+    <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:14px; color:var(--neria-text);">
+      <input type="checkbox" name="neria_log_internal" value="1"
+             style="width:16px; height:16px; cursor:pointer;"
+             {if $log_internal_enabled}checked{/if}>
+      <span>{l s='Journaliser aussi les emails internes (administrateur)' mod='neria'}</span>
+    </label>
+
+    <div style="margin-top:16px;">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+        {l s='Enregistrer' mod='neria'}
+      </button>
+    </div>
+  </form>
+</div>
+
 {* ── Bons de réduction ──────────────────────────────────────── *}
 <div class="neria-section">
   <h2 class="neria-section__title">{l s='Bons de réduction' mod='neria'}</h2>

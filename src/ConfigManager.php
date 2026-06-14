@@ -62,6 +62,7 @@ class ConfigManager
     const KEY_ACTIVE            = 'NERIA_ACTIVE';
     const KEY_AUTO_LANG         = 'NERIA_AUTO_LANG';
     const KEY_VOUCHER_VALIDITY  = 'NERIA_VOUCHER_VALIDITY';
+    const KEY_LOG_INTERNAL      = 'NERIA_LOG_INTERNAL';
 
     // ── Valeurs par défaut ────────────────────────────────────────
     const DEFAULTS = [
@@ -91,6 +92,7 @@ class ConfigManager
         self::KEY_ACTIVE              => 1,
         self::KEY_AUTO_LANG           => 1,
         self::KEY_VOUCHER_VALIDITY    => 30,
+        self::KEY_LOG_INTERNAL        => 0,
     ];
 
     // Polices disponibles pour le sélecteur back-office
@@ -260,6 +262,18 @@ class ConfigManager
     public function isAutoLangEnabled(): bool
     {
         return (bool) $this->get(self::KEY_AUTO_LANG, 1);
+    }
+
+    /**
+     * Indique si les emails internes (destinés au marchand : alertes de log,
+     * notifications administrateur…) doivent être journalisés par le watchdog.
+     * Désactivé par défaut pour garder le journal centré sur les emails clients.
+     *
+     * @return bool
+     */
+    public function isInternalLogEnabled(): bool
+    {
+        return (bool) $this->get(self::KEY_LOG_INTERNAL, 0);
     }
 
     /**

@@ -282,6 +282,14 @@ class Neria extends Module
             );
         }
 
+        // ── Action : journalisation des emails internes ───────────
+        if (Tools::getValue('neria_action') === 'save_log_internal') {
+            Configuration::updateValue(
+                self::CONFIG_PREFIX . 'LOG_INTERNAL',
+                (int) Tools::getValue('neria_log_internal', 0)
+            );
+        }
+
         // ── Action : durée de validité des bons ───────────────────
         if (Tools::getValue('neria_action') === 'save_voucher_validity') {
             $days = (int) Tools::getValue('neria_voucher_validity', 30);
@@ -326,6 +334,7 @@ class Neria extends Module
             'neria_active_tab' => $activeTab,
             'neria_active'     => $config->isActive(),
             'auto_lang_enabled' => $config->isAutoLangEnabled(),
+            'log_internal_enabled' => $config->isInternalLogEnabled(),
             'voucher_validity'  => $config->getVoucherValidity(),
             'neria_tabs'       => $this->getBackOfficeTabs(),
 
@@ -711,6 +720,7 @@ class Neria extends Module
             self::CONFIG_PREFIX . 'STATS_ENABLED'    => 1,
             self::CONFIG_PREFIX . 'ABTEST_ENABLED'   => 0,
             self::CONFIG_PREFIX . 'AUTO_LANG'        => 1,
+            self::CONFIG_PREFIX . 'LOG_INTERNAL'     => 0,
             self::CONFIG_PREFIX . 'VOUCHER_VALIDITY' => 30,
             self::CONFIG_PREFIX . 'INSTALLED_AT'     => date('Y-m-d H:i:s'),
         ];
@@ -739,6 +749,7 @@ class Neria extends Module
             self::CONFIG_PREFIX . 'STATS_ENABLED',
             self::CONFIG_PREFIX . 'ABTEST_ENABLED',
             self::CONFIG_PREFIX . 'AUTO_LANG',
+            self::CONFIG_PREFIX . 'LOG_INTERNAL',
             self::CONFIG_PREFIX . 'VOUCHER_VALIDITY',
             self::CONFIG_PREFIX . 'INSTALLED_AT',
         ];
