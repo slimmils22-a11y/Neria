@@ -150,6 +150,13 @@ class EmailRenderer
             $this->injectReturnSlipUrl($params['templateVars']);
         }
 
+        // newsletter_voucher : ps_emailsubscription passe le CODE du bon dans
+        // {discount}. On remet le code dans {voucher_code} (ligne « Code : … »)
+        // et on calcule le vrai taux/montant du bon pour {discount} (intro).
+        if ($template === 'newsletter_voucher') {
+            $this->fixNewsletterVoucherVars($params['templateVars']);
+        }
+
         // â”€â”€ GÃ©nÃ¨re les variantes texte des variables HTML (pour le .txt)
         $this->injectTextVariants($params['templateVars']);
 
@@ -435,6 +442,82 @@ class EmailRenderer
         }
 
         $templateVars['{return_slip_url}'] = $url;
+    }
+
+    /**
+     * Corrige les variables de newsletter_voucher.
+     *
+     * ps_emailsubscription envoie ce template avec {discount} = le CODE du bon
+     * (réglage NW_VOUCHER_CODE), pas un taux. Or le template Neria attend
+     * {voucher_code} (le code) et {discount} (le taux dans l'intro). On remet
+     * donc le code dans {voucher_code}, et on calcule le vrai taux/montant du
+     * cart rule pour {discount}. Aucune traduction à modifier.
+     *
+     * @param array $templateVars Variables Smarty (passé par référence)
+     */
+    private function fixNewsletterVoucherVars(array &$templateVars): void
+    {
+        if (!is_array($templateVars)) {
+            return;
+        }
+
+        $code = isset($templateVars['{discount}']) ? trim((string) $templateVars['{discount}']) : '';
+        if ($code === '') {
+            return;
+        }
+
+        // Le code va sur la ligne « Code : {voucher_code} »
+        if (empty($templateVars['{voucher_code}'])) {
+            $templateVars['{voucher_code}'] = $code;
+        }
+
+        // {discount} (intro « offrant … de réduction ») = vrai taux/montant du bon
+        $templateVars['{discount}'] = $this->voucherRateFromCode($code);
+    }
+
+    /**
+     * Retourne le taux ("10 %") ou le montant ("15,00 €") d'un bon à partir de
+     * son code, en chargeant le cart rule correspondant. '' si introuvable.
+     *
+     * @param string $code
+     * @return string
+     */
+    private function voucherRateFromCode(string $code): string
+    {
+        $id = (int) \Db::getInstance()->getValue(
+            'SELECT `id_cart_rule` FROM `' . _DB_PREFIX_ . 'cart_rule`
+             WHERE `code` = \'' . pSQL($code) . '\''
+        );
+        if ($id <= 0) {
+            return '';
+        }
+
+        $rule = new \CartRule($id);
+        if (!\Validate::isLoadedObject($rule)) {
+            return '';
+        }
+
+        if ((float) $rule->reduction_percent > 0) {
+            $p = (float) $rule->reduction_percent;
+            $p = (fmod($p, 1.0) === 0.0)
+                ? (string) (int) $p
+                : rtrim(rtrim(number_format($p, 2, ',', ''), '0'), ',');
+            return $p . ' %';
+        }
+
+        if ((float) $rule->reduction_amount > 0) {
+            try {
+                $ctx = \Context::getContext();
+                return \Tools::getContextLocale($ctx)->formatPrice(
+                    (float) $rule->reduction_amount,
+                    $ctx->currency->iso_code
+                );
+            } catch (\Throwable $e) {
+                return number_format((float) $rule->reduction_amount, 2, ',', ' ') . ' €';
+            }
+        }
+
+        return '';
     }
 
     /**
