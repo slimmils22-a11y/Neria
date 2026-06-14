@@ -1,0 +1,10 @@
+{shop_name}
+
+{neria_trad key='fallback_greeting'}
+
+{neria_trad key='fallback_message'}
+
+{neria_trad key='fallback_signature'}
+
+{shop_name}
+{shop_url}

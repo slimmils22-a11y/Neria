@@ -190,12 +190,17 @@ class Neria extends Module
      *   - $params['templateVars'] : variables Smarty du template
      *   - $params['idLang']     : id de langue PrestaShop
      */
-    public function hookActionEmailSendBefore(array &$params): void
+    public function hookActionEmailSendBefore(array &$params): bool
     {
         if (class_exists('EmailRenderer')) {
             $renderer = new EmailRenderer($this);
-            $renderer->processEmailParams($params);
+            // Retourne false pour annuler l'envoi natif de PrestaShop : c'est
+            // le cas quand le rendu a échoué et qu'un email de secours élégant
+            // a été envoyé à la place (cf. EmailRenderer::handleRenderFailure).
+            return $renderer->processEmailParams($params);
         }
+
+        return true;
     }
 
     /**

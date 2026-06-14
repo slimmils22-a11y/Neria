@@ -1,0 +1,17 @@
+{extends file='layouts/layout.html'}
+
+{block name='neria_content'}
+
+<!-- TITRE PRINCIPAL -->
+<h1 class="neria-title-main">{neria_trad key='fallback_greeting'}</h1>
+
+<!-- MESSAGE -->
+<p class="neria-text" style="margin-top:28px;">{neria_trad key='fallback_message'}</p>
+
+<!-- SIGNATURE -->
+<div class="neria-signature">
+  {neria_trad key='fallback_signature'}<br />
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

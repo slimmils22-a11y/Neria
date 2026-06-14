@@ -52,6 +52,16 @@ class EmailRenderer
     /** @var WatchdogManager|null Instance paresseuse du watchdog */
     private ?WatchdogManager $watchdog = null;
 
+    /**
+     * Garde anti-récursion pour l'email de secours.
+     * Statique car le hook crée une nouvelle instance EmailRenderer à chaque
+     * appel : l'envoi du fallback rappelle Mail::Send → ce même hook. Sans ce
+     * drapeau partagé, un fallback en échec relancerait un fallback à l'infini.
+     *
+     * @var bool
+     */
+    private static bool $inFallback = false;
+
     // ============================================================
     // CONSTRUCTEUR
     // ============================================================
@@ -88,19 +98,55 @@ class EmailRenderer
         return $this->watchdog;
     }
 
-    public function processEmailParams(array &$params): void
+    public function processEmailParams(array &$params): bool
     {
         // â”€â”€ VÃ©rifie que le module est actif â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if (!$this->config->isActive()) {
-            return;
+            return true;
+        }
+
+        // Pendant l'envoi de l'email de secours, ne pas re-traiter : le fichier
+        // est déjà compilé et le templatePath déjà fourni à Mail::Send.
+        if (self::$inFallback) {
+            return true;
         }
 
         // â”€â”€ RÃ©cupÃ¨re et valide le template â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $template = $this->resolveTemplate($params['template'] ?? '');
 
         if (!$template || $this->isExcluded($template)) {
-            return;
+            return true;
         }
+
+        // ── Rendu protégé : la moindre erreur déclenche l'email de secours,
+        // plutôt que de laisser PrestaShop envoyer un email natif brut ───────
+        try {
+            $this->applyNeriaRendering($params, $template);
+            return true;
+        } catch (\Throwable $e) {
+            return $this->handleRenderFailure($params, $template, $e);
+        }
+    }
+
+    /**
+     * Applique tout le traitement Neria à un email (langue, sujet, design,
+     * variantes, variables, compilation). Isolé dans sa propre méthode pour
+     * pouvoir l'envelopper dans un try/catch : toute erreur de rendu bascule
+     * sur l'email de secours sans jamais remonter jusqu'à PrestaShop.
+     *
+     * @param array  $params   Paramètres de l'email (par référence)
+     * @param string $template Nom de template déjà résolu
+     */
+    private function applyNeriaRendering(array &$params, string $template): void
+    {
+        // Template absent de tous les emplacements où PrestaShop le chercherait
+        // (et non couvert par Neria) → l'envoi natif échouerait dans le vide.
+        // On lève pour basculer sur l'email de secours.
+        if (!file_exists($this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html'))
+            && $this->templateMissingEverywhere($template, $params)) {
+            throw new \RuntimeException('Template introuvable : ' . $template);
+        }
+
 
         // â”€â”€ RÃ©sout la langue â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $lang = $this->resolveEmailLang($params);
@@ -181,9 +227,19 @@ class EmailRenderer
         // part dans la mauvaise langue.
         $outIso = \Language::getIsoById((int) ($params['idLang'] ?? 0)) ?: $lang;
         $compiledPath = $this->compileNeriaTemplate($template, $lang, $outIso);
-        if ($compiledPath && isset($params['templatePath'])) {
-            // PS détecte 'modules/neria/' dans le chemin et cherche dans ce dossier
-            $params['templatePath'] = _PS_MODULE_DIR_ . 'neria/mails/';
+        if ($compiledPath !== null) {
+            if (isset($params['templatePath'])) {
+                // PS détecte 'modules/neria/' dans le chemin et cherche dans ce dossier
+                $params['templatePath'] = _PS_MODULE_DIR_ . 'neria/mails/';
+            }
+        } elseif (file_exists(
+            $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html')
+        )) {
+            // Le template Neria existe mais n'a pas pu être compilé (fichier
+            // corrompu, bloc neria_content manquant) : on lève pour basculer
+            // sur l'email de secours. Un template hors périmètre Neria (pas de
+            // fichier core) est au contraire laissé tel quel à PrestaShop.
+            throw new \RuntimeException('Compilation impossible du template ' . $template);
         }
 
         // â”€â”€ Log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -202,6 +258,243 @@ class EmailRenderer
             $template,
             'EmailRenderer'
         );
+    }
+
+    // ============================================================
+    // EMAIL DE SECOURS (FALLBACK)
+    // ============================================================
+
+    /**
+     * Détermine si un template email est introuvable dans TOUS les emplacements
+     * où PrestaShop irait le chercher (thèmes, racine, dossier mails du module
+     * concerné, mails compilés Neria) — auquel cas l'envoi natif échouerait.
+     * Réplique la résolution de Mail::getTemplateBasePath (PS 8) et reste
+     * PRUDENTE : en cas de doute, renvoie false (ne jamais annuler un email
+     * légitime sur une fausse alerte).
+     *
+     * @param string $template Nom du template
+     * @param array  $params   Paramètres de l'email (idLang + templatePath)
+     * @return bool true uniquement si le template n'existe nulle part
+     */
+    private function templateMissingEverywhere(string $template, array $params): bool
+    {
+        try {
+            // ISO à tester : langue de l'email + 'en' (comme PrestaShop)
+            $idLang   = (int) ($params['idLang'] ?? 0);
+            $iso      = $idLang > 0 ? \Language::getIsoById($idLang) : '';
+            $isoArray = [];
+            if ($iso) {
+                $isoArray[] = strtolower($iso);
+            }
+            if (!in_array('en', $isoArray, true)) {
+                $isoArray[] = 'en';
+            }
+
+            // Nom du module depuis le templatePath fourni (comme PrestaShop)
+            $moduleName = '';
+            $tp = isset($params['templatePath'])
+                ? str_replace(DIRECTORY_SEPARATOR, '/', (string) $params['templatePath'])
+                : '';
+            if ($tp !== '' && preg_match('#modules/([a-z0-9_-]+)/#ui', $tp, $res)) {
+                $moduleName = $res[1];
+            }
+
+            // Chemins de base (cf. Mail::getTemplateBasePath)
+            $basePaths = [];
+            $theme = $this->context->shop->theme ?? null;
+            if ($theme && method_exists($theme, 'getName')) {
+                $basePaths[] = _PS_ROOT_DIR_ . '/themes/' . $theme->getName() . '/';
+                $parent = method_exists($theme, 'get') ? (string) $theme->get('parent') : '';
+                if ($parent !== '') {
+                    $basePaths[] = _PS_ROOT_DIR_ . '/themes/' . $parent . '/';
+                }
+            }
+            $basePaths[] = _PS_ROOT_DIR_;
+
+            $rel = $moduleName !== '' ? '/modules/' . $moduleName . '/mails/' : '/mails/';
+
+            foreach ($isoArray as $isoCode) {
+                $isoTemplate = $isoCode . '/' . $template;
+                foreach ($basePaths as $base) {
+                    $path = $base . $rel . $isoTemplate;
+                    if (file_exists($path . '.txt') || file_exists($path . '.html')) {
+                        return false;
+                    }
+                }
+                // Dossier des emails compilés par Neria
+                $neria = _PS_MODULE_DIR_ . 'neria/mails/' . $isoTemplate;
+                if (file_exists($neria . '.txt') || file_exists($neria . '.html')) {
+                    return false;
+                }
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            // Prudence absolue : à la moindre incertitude, ne pas considérer le
+            // template comme manquant (ne jamais annuler un email légitime).
+            return false;
+        }
+    }
+
+    /**
+     * Gère un échec de rendu : journalise et, si le template fait partie de
+     * ceux que Neria habille, envoie l'email de secours élégant à la place de
+     * l'email natif brut de PrestaShop.
+     *
+     * @param array      $params   Paramètres de l'email (par référence)
+     * @param string     $template Template en échec
+     * @param \Throwable $e        Erreur survenue pendant le rendu
+     * @return bool false = annuler l'envoi natif (secours envoyé) ;
+     *              true  = laisser PrestaShop poursuivre son envoi natif
+     */
+    private function handleRenderFailure(array &$params, string $template, \Throwable $e): bool
+    {
+        $this->module->log(
+            'Echec du rendu Neria [' . $template . '] : ' . $e->getMessage(),
+            3
+        );
+        $this->watchdog()->error(
+            'Echec du rendu — ' . $e->getMessage(),
+            $template,
+            'EmailRenderer'
+        );
+
+        // Ne détourner que les emails que Neria habille réellement (un fichier
+        // core/<template>.html existe). Un template tiers/natif inconnu est
+        // laissé à PrestaShop — on ne le remplace pas par un message générique.
+        // Et jamais de secours pendant l'envoi d'un secours (anti-récursion).
+        // Éligible au secours si : (a) Neria habille ce template (core présent),
+        // ou (b) le template est introuvable partout (PS échouerait de toute
+        // façon). Un template tiers/natif existant n'est jamais détourné.
+        $eligible = file_exists(
+            $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html')
+        ) || $this->templateMissingEverywhere($template, $params);
+
+        if ($eligible && !self::$inFallback && $this->sendFallbackEmail($params, $e)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Envoie l'email de secours Neria (template neria_fallback) — générique
+     * mais élégant, avec l'identité visuelle Neria. Garantit qu'aucun email
+     * natif brut ne parte quand le rendu normal échoue.
+     *
+     * Ne lève JAMAIS d'exception : si le secours lui-même échoue, on
+     * journalise et on renvoie false (PrestaShop reprend la main).
+     *
+     * @param array      $params Paramètres de l'email d'origine
+     * @param \Throwable $cause  Erreur ayant déclenché le secours (pour le log)
+     * @return bool true si l'email de secours a bien été envoyé
+     */
+    private function sendFallbackEmail(array $params, \Throwable $cause): bool
+    {
+        try {
+            // ── Destinataire ────────────────────────────────────────────
+            $to = $params['to'] ?? '';
+            if (is_array($to)) {
+                $to = reset($to);
+            }
+            $to = trim((string) $to);
+            if ($to === '' || !\Validate::isEmail($to)) {
+                $this->watchdog()->critical(
+                    'Email de secours impossible : adresse destinataire absente ou invalide',
+                    'neria_fallback',
+                    'EmailRenderer'
+                );
+                return false;
+            }
+            $toName = (string) ($params['toName'] ?? '');
+
+            // ── Langue : même résolution que le flux normal ─────────────
+            $lang   = $this->resolveEmailLang($params);
+            $idLang = (int) ($params['idLang'] ?? 0);
+            if ($idLang <= 0) {
+                $idLang = (int) \Configuration::get('PS_LANG_DEFAULT');
+            }
+            $outIso = \Language::getIsoById($idLang) ?: $lang;
+
+            // ── Compile le template de secours ──────────────────────────
+            // Écrit les .html/.txt plats que Mail::send lira dans mails/<iso>/
+            if ($this->compileNeriaTemplate('neria_fallback', $lang, $outIso) === null) {
+                $this->watchdog()->critical(
+                    'Email de secours impossible : template neria_fallback introuvable ou corrompu',
+                    'neria_fallback',
+                    'EmailRenderer'
+                );
+                return false;
+            }
+
+            // ── Sujet (clé fallback_subject), repli sur le nom de boutique
+            $subject = trim(strip_tags(
+                $this->engine->get('neria_fallback', 'fallback_subject', $lang)
+            ));
+            if ($subject === '') {
+                $subject = (string) \Configuration::get('PS_SHOP_NAME');
+            }
+
+            // ── Variables minimales attendues par le layout ─────────────
+            $templateVars = [
+                '{shop_name}'          => (string) \Configuration::get('PS_SHOP_NAME'),
+                '{shop_url}'           => $this->context->link->getBaseLink(),
+                '{history_url}'        => $this->context->link->getPageLink('history', true),
+                '{guest_tracking_url}' => $this->context->link->getPageLink('guest-tracking', true),
+                '{custom_message}'     => '',
+                '{custom_message_txt}' => '',
+                '{subject}'            => $subject,
+            ];
+
+            // ── Envoi (anti-récursion via le drapeau statique) ──────────
+            self::$inFallback = true;
+            try {
+                $sent = \Mail::Send(
+                    $idLang,
+                    'neria_fallback',
+                    $subject,
+                    $templateVars,
+                    $to,
+                    $toName,
+                    null,
+                    null,
+                    null,
+                    null,
+                    _PS_MODULE_DIR_ . 'neria/mails/'
+                );
+            } finally {
+                self::$inFallback = false;
+            }
+
+            if ($sent) {
+                $this->watchdog()->warning(
+                    'Email de secours envoyé à la place de [' . ($params['template'] ?? '?')
+                    . '] — cause : ' . $cause->getMessage(),
+                    (string) ($params['template'] ?? ''),
+                    'EmailRenderer',
+                    ['to' => $to, 'lang' => $lang]
+                );
+                return true;
+            }
+
+            $this->watchdog()->critical(
+                'Email de secours : Mail::Send a renvoyé un échec',
+                'neria_fallback',
+                'EmailRenderer'
+            );
+            return false;
+
+        } catch (\Throwable $e) {
+            // Le secours lui-même a échoué — ne JAMAIS laisser remonter.
+            self::$inFallback = false;
+            $this->module->log('Echec du fallback email : ' . $e->getMessage(), 3);
+            $this->watchdog()->critical(
+                'Email de secours : exception — ' . $e->getMessage(),
+                'neria_fallback',
+                'EmailRenderer'
+            );
+            return false;
+        }
     }
 
     // ============================================================
@@ -602,10 +895,16 @@ class EmailRenderer
         array &$params
     ): void {
         // GÃ©nÃ¨re un token unique par email
+        // $params['to'] peut être un tableau (envoi multi-destinataires) :
+        // on retient la première adresse pour le token (string attendue).
+        $to = $params['to'] ?? '';
+        if (is_array($to)) {
+            $to = (string) (reset($to) ?: '');
+        }
         $token = $this->generateTrackingToken(
             $template,
             $lang,
-            $params['to'] ?? ''
+            (string) $to
         );
 
         // URL du pixel de tracking (module front controller)

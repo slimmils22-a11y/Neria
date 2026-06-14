@@ -226,8 +226,10 @@ class TranslationInstaller
         }
 
         // Supprime uniquement les traductions par défaut de ce template
+        // NB : Db::delete() préfixe lui-même la table — passer self::TABLE
+        // SANS _DB_PREFIX_ (sinon double préfixe → table inexistante).
         $this->db->delete(
-            _DB_PREFIX_ . self::TABLE,
+            self::TABLE,
             '`template` = \'' . pSQL($template) . '\' AND `is_custom` = 0'
         );
 
@@ -255,8 +257,10 @@ class TranslationInstaller
      */
     private function clearDefaultTranslations(): void
     {
+        // NB : Db::delete() préfixe lui-même la table — passer self::TABLE
+        // SANS _DB_PREFIX_ (sinon double préfixe → table inexistante).
         $this->db->delete(
-            _DB_PREFIX_ . self::TABLE,
+            self::TABLE,
             '`is_custom` = 0'
         );
     }
