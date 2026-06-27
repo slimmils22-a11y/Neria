@@ -34,6 +34,9 @@
     <canvas id="neriaRevenueChart"></canvas>
   </div>
   <div id="neria-chart-legend" style="display:flex;flex-wrap:wrap;gap:14px;margin-top:16px;font-size:12px;"></div>
+  <p style="margin:10px 0 0;font-size:11px;color:#a09990;font-style:italic;">
+    &#9432; Cliquez sur une catégorie pour l'isoler — recliquez pour tout réafficher.
+  </p>
 </div>
 
 <script>
@@ -132,6 +135,7 @@ var _nrc = {
       var vals = data.series && data.series[cat] ? data.series[cat] : [];
       if (!vals.some(function(v) { return v > 0; })) return;
       var ds = {
+        _neriaKey: cat,
         label: LABELS[cat] || cat,
         data: vals,
         borderColor: COLORS[cat],
@@ -147,6 +151,7 @@ var _nrc = {
     });
     if (showTotal && data.total) {
       var totalDs = {
+        _neriaKey: 'total',
         label: LABELS.total,
         data: data.total,
         borderColor: COLORS.total,
@@ -195,17 +200,64 @@ var _nrc = {
     };
   }
 
+  var soloSeries = null;
+  var currentIsDoughnut = false;
+  var doughnutCatOrder = [];
+
+  function applySolo() {
+    if (!chart) return;
+    if (currentIsDoughnut) {
+      var ds = chart.data.datasets[0];
+      if (!ds) return;
+      ds.backgroundColor = doughnutCatOrder.map(function(cat) {
+        if (soloSeries === null || soloSeries === cat) return COLORS[cat] || '#999';
+        return 'rgba(0,0,0,0.07)';
+      });
+      ds.hoverOffset = doughnutCatOrder.map(function(cat) {
+        return (soloSeries === null || soloSeries === cat) ? 8 : 0;
+      });
+    } else {
+      chart.data.datasets.forEach(function(ds, i) {
+        chart.setDatasetVisibility(i, soloSeries === null || ds._neriaKey === soloSeries);
+      });
+    }
+    chart.update();
+    updateLegendState();
+  }
+
+  function updateLegendState() {
+    var el = document.getElementById('neria-chart-legend');
+    if (!el) return;
+    el.querySelectorAll('[data-neria-cat]').forEach(function(span) {
+      var cat = span.dataset.neriaCat;
+      var active = soloSeries === null || soloSeries === cat;
+      span.style.opacity = active ? '1' : '0.35';
+      span.style.textDecoration = active ? 'none' : 'line-through';
+      span.style.borderColor = soloSeries === cat ? (COLORS[cat] || '#999') : '#e8d5b0';
+      span.style.boxShadow = soloSeries === cat ? ('0 0 0 2px ' + (COLORS[cat] || '#999') + '44') : 'none';
+    });
+  }
+
   function renderLegend(cats, isDoughnut) {
     var el = document.getElementById('neria-chart-legend');
     if (!el) return;
-    var items = cats;
-    el.innerHTML = items.map(function(cat) {
+    currentIsDoughnut = isDoughnut;
+    doughnutCatOrder = isDoughnut ? cats.filter(function(c) { return c !== 'total'; }) : [];
+    el.innerHTML = cats.map(function(cat) {
       var color = COLORS[cat] || '#999';
       var label = LABELS[cat] || cat;
-      return '<span style="display:flex;align-items:center;gap:6px;padding:3px 8px;background:#fff;border:1px solid #e8d5b0;border-radius:4px;">'
+      return '<span data-neria-cat="' + cat + '" style="display:flex;align-items:center;gap:6px;padding:3px 10px;background:#fff;border:1px solid #e8d5b0;border-radius:4px;cursor:pointer;transition:opacity .15s,border-color .15s,box-shadow .15s;user-select:none;">'
         + '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:' + color + ';flex-shrink:0;"></span>'
         + label + '</span>';
     }).join('');
+    el.querySelectorAll('[data-neria-cat]').forEach(function(span) {
+      span.addEventListener('click', function() {
+        var cat = span.dataset.neriaCat;
+        soloSeries = (soloSeries === cat) ? null : cat;
+        applySolo();
+      });
+    });
+    updateLegendState();
   }
 
   function getActiveCats(data) {
@@ -333,17 +385,20 @@ var _nrc = {
       document.querySelectorAll('.neria-period-tab').forEach(function(b) { b.classList.remove('neria-period-tab--active'); });
       btn.classList.add('neria-period-tab--active');
       currentPeriod = parseInt(btn.dataset.period, 10);
+      soloSeries = null;
       renderChart(currentPeriod, currentTypeIdx);
     });
 
     document.getElementById('neria-chart-prev').addEventListener('click', function() {
       currentTypeIdx = (currentTypeIdx - 1 + TYPES.length) % TYPES.length;
+      soloSeries = null;
       updateTypeLabel();
       renderChart(currentPeriod, currentTypeIdx);
     });
 
     document.getElementById('neria-chart-next').addEventListener('click', function() {
       currentTypeIdx = (currentTypeIdx + 1) % TYPES.length;
+      soloSeries = null;
       updateTypeLabel();
       renderChart(currentPeriod, currentTypeIdx);
     });
