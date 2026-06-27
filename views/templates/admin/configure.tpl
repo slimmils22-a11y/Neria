@@ -985,3 +985,12 @@
   {/if}
 
 </div>
+
+{if isset($neria_scroll_to)}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var el = document.getElementById('{$neria_scroll_to|escape:'javascript'}');
+  if (el) { setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'start'}); }, 200); }
+});
+</script>
+{/if}
