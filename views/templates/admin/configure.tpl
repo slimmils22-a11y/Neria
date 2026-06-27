@@ -990,7 +990,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var el = document.getElementById('{$neria_scroll_to|escape:'javascript'}');
-  if (el) { setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'start'}); }, 200); }
+  if (el) { setTimeout(function(){ el.scrollIntoView({ldelim}behavior:'smooth', block:'start'{rdelim}); }, 200); }
 });
 </script>
 {/if}
