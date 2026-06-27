@@ -73,76 +73,76 @@
     simplement les formules ci-dessous par langue et par créneau.
   </p>
 
+  {assign var="tg_langs" value=[
+    'fr'=>'FR','en'=>'EN','de'=>'DE','it'=>'IT','es'=>'ES','pt'=>'PT',
+    'br'=>'BR','ar'=>'AR','ja'=>'JA','ko'=>'KO','zh'=>'ZH','tw'=>'TW',
+    'ru'=>'RU','tr'=>'TR','sv'=>'SV','no'=>'NO','da'=>'DA','nl'=>'NL'
+  ]}
+  {assign var="tg_slots" value=['morning'=>'🌅 Matin (6h–12h)','afternoon'=>'☀ Après-midi (12h–18h)','evening'=>'🌆 Soir (18h–22h)','night'=>'🌙 Nuit (22h–6h)']}
+
+  {* ── Sélecteur de pays cibles (form indépendant) ────────────────── *}
+  <div style="margin-bottom:24px;padding:16px;background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;">
+    <form method="post" action="{$smarty.server.REQUEST_URI}" id="neria-countries-form">
+      <input type="hidden" name="neria_action" value="save_target_countries">
+      <input type="hidden" name="neria_tab"    value="configure">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+        <strong style="font-size:13px;color:var(--neria-dark);">🌍 Pays cibles</strong>
+        <div style="display:flex;gap:8px;">
+          <button type="button" onclick="neriaSelectAllCountries(true)"
+            style="font-size:11px;padding:3px 10px;background:#fff;border:1px solid #e8d5b0;border-radius:4px;cursor:pointer;color:var(--neria-dark);">
+            Tout activer
+          </button>
+          <button type="button" onclick="neriaSelectAllCountries(false)"
+            style="font-size:11px;padding:3px 10px;background:#fff;border:1px solid #e8d5b0;border-radius:4px;cursor:pointer;color:var(--neria-dark);">
+            Tout désactiver
+          </button>
+        </div>
+      </div>
+
+      <input type="text" id="neria-country-search" placeholder="🔍 Rechercher un pays…"
+             oninput="neriaFilterCountries(this.value)"
+             style="width:100%;padding:7px 12px;border:1px solid #e8d5b0;border-radius:4px;font-size:12px;margin-bottom:10px;box-sizing:border-box;">
+
+      <div id="neria-countries-list"
+           style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px;max-height:240px;overflow-y:auto;padding:4px;">
+        {foreach $all_countries as $iso => $name}
+          <label data-country="{$name|lower}" style="display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 6px;border-radius:3px;cursor:pointer;white-space:nowrap;overflow:hidden;">
+            <input type="checkbox" name="neria_target_countries[]" value="{$iso}"
+                   {if !$target_countries || in_array($iso, $target_countries)}checked{/if}>
+            <span style="overflow:hidden;text-overflow:ellipsis;" title="{$name|escape:'html'}">{$name|escape:'html'}</span>
+          </label>
+        {/foreach}
+      </div>
+
+      <div style="margin-top:12px;">
+        <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">Enregistrer les pays</button>
+        <span style="font-size:11px;color:#a09990;margin-left:10px;font-style:italic;">
+          &#9432; Vide = tous les pays activés par défaut.
+        </span>
+      </div>
+    </form>
+  </div>
+
+  <script>
+  function neriaFilterCountries(q) {
+    q = q.toLowerCase().trim();
+    document.querySelectorAll('#neria-countries-list label').forEach(function(el) {
+      el.style.display = (!q || el.dataset.country.indexOf(q) !== -1) ? '' : 'none';
+    });
+  }
+  function neriaSelectAllCountries(check) {
+    document.querySelectorAll('#neria-countries-list input[type=checkbox]').forEach(function(cb) {
+      if (cb.closest('label').style.display !== 'none') cb.checked = check;
+    });
+  }
+  </script>
+
+  {* ── Tableau des salutations (form indépendant) ─────────────────── *}
   <form method="post" action="{$smarty.server.REQUEST_URI}">
     <input type="hidden" name="neria_action" value="save_time_greetings">
     <input type="hidden" name="neria_tab"    value="configure">
 
-    {assign var="tg_langs" value=[
-      'fr'=>'FR','en'=>'EN','de'=>'DE','it'=>'IT','es'=>'ES','pt'=>'PT',
-      'br'=>'BR','ar'=>'AR','ja'=>'JA','ko'=>'KO','zh'=>'ZH','tw'=>'TW',
-      'ru'=>'RU','tr'=>'TR','sv'=>'SV','no'=>'NO','da'=>'DA','nl'=>'NL'
-    ]}
-    {assign var="tg_slots" value=['morning'=>'🌅 Matin (6h–12h)','afternoon'=>'☀ Après-midi (12h–18h)','evening'=>'🌆 Soir (18h–22h)','night'=>'🌙 Nuit (22h–6h)']}
-
-    {* ── Sélecteur de pays cibles ───────────────────────────────── *}
-    <div style="margin-bottom:24px;padding:16px;background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;">
-      <form method="post" action="{$smarty.server.REQUEST_URI}" id="neria-countries-form">
-        <input type="hidden" name="neria_action" value="save_target_countries">
-        <input type="hidden" name="neria_tab"    value="configure">
-
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
-          <strong style="font-size:13px;color:var(--neria-dark);">🌍 Pays cibles</strong>
-          <div style="display:flex;gap:8px;">
-            <button type="button" onclick="neriaSelectAllCountries(true)"
-              style="font-size:11px;padding:3px 10px;background:#fff;border:1px solid #e8d5b0;border-radius:4px;cursor:pointer;color:var(--neria-dark);">
-              Tout activer
-            </button>
-            <button type="button" onclick="neriaSelectAllCountries(false)"
-              style="font-size:11px;padding:3px 10px;background:#fff;border:1px solid #e8d5b0;border-radius:4px;cursor:pointer;color:var(--neria-dark);">
-              Tout désactiver
-            </button>
-          </div>
-        </div>
-
-        <input type="text" id="neria-country-search" placeholder="🔍 Rechercher un pays…"
-               oninput="neriaFilterCountries(this.value)"
-               style="width:100%;padding:7px 12px;border:1px solid #e8d5b0;border-radius:4px;font-size:12px;margin-bottom:10px;box-sizing:border-box;">
-
-        <div id="neria-countries-list"
-             style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px;max-height:240px;overflow-y:auto;padding:4px;">
-          {foreach $all_countries as $iso => $name}
-            <label data-country="{$name|lower}" style="display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 6px;border-radius:3px;cursor:pointer;white-space:nowrap;overflow:hidden;">
-              <input type="checkbox" name="neria_target_countries[]" value="{$iso}"
-                     {if !$target_countries || in_array($iso, $target_countries)}checked{/if}>
-              <span style="overflow:hidden;text-overflow:ellipsis;" title="{$name|escape:'html'}">{$name|escape:'html'}</span>
-            </label>
-          {/foreach}
-        </div>
-
-        <div style="margin-top:12px;">
-          <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">Enregistrer les pays</button>
-          <span style="font-size:11px;color:#a09990;margin-left:10px;font-style:italic;">
-            &#9432; Vide = tous les pays activés par défaut.
-          </span>
-        </div>
-      </form>
-    </div>
-
-    <script>
-    function neriaFilterCountries(q) {
-      q = q.toLowerCase().trim();
-      document.querySelectorAll('#neria-countries-list label').forEach(function(el) {
-        el.style.display = (!q || el.dataset.country.indexOf(q) !== -1) ? '' : 'none';
-      });
-    }
-    function neriaSelectAllCountries(check) {
-      document.querySelectorAll('#neria-countries-list input[type=checkbox]').forEach(function(cb) {
-        if (cb.closest('label').style.display !== 'none') cb.checked = check;
-      });
-    }
-    </script>
-
-    {* ── Tableau des salutations ─────────────────────────────────── *}
     <div style="overflow-x:auto;margin-top:16px;">
       <table style="width:100%;border-collapse:collapse;font-size:12px;">
         <thead>
