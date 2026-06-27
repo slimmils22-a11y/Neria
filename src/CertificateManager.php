@@ -65,12 +65,6 @@ class CertificateManager
         // ── Commande & client ─────────────────────────────────────
         $order = new \Order($idOrder);
         if (!\Validate::isLoadedObject($order)) {
-            if (class_exists('WatchdogManager')) {
-                (new \WatchdogManager($this->module))->error(
-                    sprintf('Certificat impossible : commande #%d introuvable', $idOrder),
-                    '', 'CertificateManager'
-                );
-            }
             return 'Commande introuvable.';
         }
 
@@ -97,12 +91,6 @@ class CertificateManager
             $serialNumber, $order, $customerName, $productName, $artisanNote
         );
         if (isset($pdfResult['error'])) {
-            if (class_exists('WatchdogManager')) {
-                (new \WatchdogManager($this->module))->error(
-                    sprintf('Certificat PDF échoué (commande #%d) : %s', $idOrder, $pdfResult['error']),
-                    '', 'CertificateManager'
-                );
-            }
             return $pdfResult['error'];
         }
 
@@ -134,12 +122,6 @@ class CertificateManager
                 $serialNumber, $pdfContent, $order
             );
             if ($err !== '') {
-                if (class_exists('WatchdogManager')) {
-                    (new \WatchdogManager($this->module))->error(
-                        sprintf('Certificat email échoué (commande #%d, %s) : %s', $idOrder, $customerEmail, $err),
-                        '', 'CertificateManager'
-                    );
-                }
                 return $err;
             }
 

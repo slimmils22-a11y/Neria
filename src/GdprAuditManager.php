@@ -5,58 +5,255 @@ if (!defined('_PS_VERSION_')) {
 
 class GdprAuditManager
 {
-    // ── Limites légales de rétention ─────────────────────────────
-    const TABLES = [
+    /**
+     * SOURCE DE VÉRITÉ UNIQUE — toutes les tables Neria concernées par le RGPD.
+     *
+     * Champs :
+     *   table        — nom sans préfixe
+     *   date_col     — colonne de date pour purge par ancienneté
+     *   months       — durée de rétention légale
+     *   label        — libellé affiché dans l'onglet RGPD
+     *   note         — explication affichée au marchand
+     *   customer_col — colonne id_customer pour purge individuelle (null = pas de PII client)
+     *   has_pii      — true si la table contient des données personnelles nominatives
+     *
+     * Pour ajouter une nouvelle table : ajouter UNE entrée ici, c'est tout.
+     */
+    const REGISTRY = [
         [
-            'table'    => 'neria_stat',
-            'date_col' => 'date_add',
-            'label'    => 'Statistiques d\'envoi (tracking)',
-            'months'   => 36,
-            'note'     => 'Données comportementales des destinataires.',
+            'table'        => 'neria_stat',
+            'date_col'     => 'date_add',
+            'months'       => 36,
+            'label'        => 'Statistiques d\'envoi (tracking)',
+            'note'         => 'Données comportementales des destinataires.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
         ],
         [
-            'table'    => 'neria_log',
-            'date_col' => 'date_add',
-            'label'    => 'Journal système (watchdog)',
-            'months'   => 12,
-            'note'     => 'Journaux techniques internes.',
+            'table'        => 'neria_log',
+            'date_col'     => 'date_add',
+            'months'       => 12,
+            'label'        => 'Journal système (watchdog)',
+            'note'         => 'Journaux techniques internes.',
+            'customer_col' => null,
+            'has_pii'      => false,
         ],
         [
-            'table'    => 'neria_behavioral_sent',
-            'date_col' => 'sent_at',
-            'label'    => 'Emails comportementaux (déduplication)',
-            'months'   => 36,
-            'note'     => 'Horodatages d\'envoi liés aux clients.',
+            'table'        => 'neria_behavioral_sent',
+            'date_col'     => 'sent_at',
+            'months'       => 36,
+            'label'        => 'Emails comportementaux (déduplication)',
+            'note'         => 'Horodatages d\'envoi liés aux clients.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
         ],
         [
-            'table'    => 'neria_customer_segment',
-            'date_col' => 'computed_at',
-            'label'    => 'Segments comportementaux clients',
-            'months'   => 36,
-            'note'     => 'Profils de comportement par client.',
+            'table'        => 'neria_customer_segment',
+            'date_col'     => 'computed_at',
+            'months'       => 36,
+            'label'        => 'Segments comportementaux clients',
+            'note'         => 'Profils de comportement par client.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
         ],
         [
-            'table'    => 'neria_churn_score',
-            'date_col' => 'computed_at',
-            'label'    => 'Scores de désabonnement clients',
-            'months'   => 36,
-            'note'     => 'Scores de risque calculés par client.',
+            'table'        => 'neria_churn_score',
+            'date_col'     => 'computed_at',
+            'months'       => 36,
+            'label'        => 'Scores de churn clients',
+            'note'         => 'Scores de risque calculés par client.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
         ],
         [
-            'table'    => 'neria_webhook_queue',
-            'date_col' => 'date_add',
-            'label'    => 'File d\'attente webhooks',
-            'months'   => 12,
-            'note'     => 'Notifications sortantes traitées.',
+            'table'        => 'neria_webhook_queue',
+            'date_col'     => 'date_add',
+            'months'       => 12,
+            'label'        => 'File d\'attente webhooks',
+            'note'         => 'Payload JSON peut contenir email/nom client — purgé par ancienneté.',
+            'customer_col' => null,
+            'has_pii'      => true,
         ],
         [
-            'table'    => 'neria_translation_history',
-            'date_col' => 'date_add',
-            'label'    => 'Historique des modifications de textes',
-            'months'   => 36,
-            'note'     => 'Changelog interne — ne contient pas de données clients.',
+            'table'        => 'neria_translation_history',
+            'date_col'     => 'date_add',
+            'months'       => 36,
+            'label'        => 'Historique des modifications de textes',
+            'note'         => 'Changelog interne — ne contient pas de données clients.',
+            'customer_col' => null,
+            'has_pii'      => false,
+        ],
+        [
+            'table'        => 'neria_preferences',
+            'date_col'     => 'date_upd',
+            'months'       => 36,
+            'label'        => 'Préférences email clients',
+            'note'         => 'Choix opt-in/out par catégorie. Contient l\'email en clair.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
+        ],
+        [
+            'table'        => 'neria_attribution',
+            'date_col'     => 'created_at',
+            'months'       => 36,
+            'label'        => 'Attribution de revenus (last-click)',
+            'note'         => 'Pivot id_order → token de clic. Purgé par ancienneté (pas d\'id_customer direct).',
+            'customer_col' => null,
+            'has_pii'      => true,
+        ],
+        [
+            'table'        => 'neria_loyalty_points',
+            'date_col'     => 'date_add',
+            'months'       => 36,
+            'label'        => 'Points de fidélité clients',
+            'note'         => 'Solde et historique des points par client.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
+        ],
+        [
+            'table'        => 'neria_loyalty_rewards',
+            'date_col'     => 'sent_at',
+            'months'       => 36,
+            'label'        => 'Récompenses fidélité envoyées',
+            'note'         => 'Bons de réduction générés par palier atteint.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
+        ],
+        [
+            'table'        => 'neria_waitlist',
+            'date_col'     => 'registered_at',
+            'months'       => 24,
+            'label'        => 'Liste d\'attente produits',
+            'note'         => 'Demandes de notification retour en stock.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
+        ],
+        [
+            'table'        => 'neria_queue',
+            'date_col'     => 'send_at',
+            'months'       => 3,
+            'label'        => 'File d\'envoi (fenêtre d\'achat)',
+            'note'         => 'Emails en attente d\'envoi programmé — contient email et nom destinataire.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
+        ],
+        [
+            'table'        => 'neria_quote',
+            'date_col'     => 'date_add',
+            'months'       => 60,
+            'label'        => 'Devis B2B',
+            'note'         => 'Devis suivis manuellement par le marchand.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
+        ],
+        [
+            'table'        => 'neria_upsell',
+            'date_col'     => 'sent_at',
+            'months'       => 36,
+            'label'        => 'Upsell post-achat (historique envois)',
+            'note'         => 'Enregistrements d\'envoi d\'upsell par client.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
+        ],
+        [
+            'table'        => 'neria_collection_sent',
+            'date_col'     => 'sent_at',
+            'months'       => 36,
+            'label'        => 'Complétion collection (déduplication)',
+            'note'         => 'Horodatages d\'envoi par client.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
+        ],
+        [
+            'table'        => 'neria_look_sent',
+            'date_col'     => 'sent_at',
+            'months'       => 36,
+            'label'        => 'Complétez votre look (déduplication)',
+            'note'         => 'Horodatages d\'envoi par client.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
+        ],
+        [
+            'table'        => 'neria_reconciliation',
+            'date_col'     => 'date_add',
+            'months'       => 36,
+            'label'        => 'Réconciliation remboursements',
+            'note'         => 'Suivi des emails de réconciliation par commande/client.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
+        ],
+        [
+            'table'        => 'neria_propensity_score',
+            'date_col'     => 'date_upd',
+            'months'       => 36,
+            'label'        => 'Scores de propension d\'achat',
+            'note'         => 'Scores comportementaux estimés par client.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
+        ],
+        [
+            'table'        => 'neria_bounces',
+            'date_col'     => 'date_add',
+            'months'       => 36,
+            'label'        => 'Adresses en rebond (bounces)',
+            'note'         => 'Emails invalides détectés — purgés par ancienneté (pas d\'id_customer).',
+            'customer_col' => null,
+            'has_pii'      => true,
+        ],
+        [
+            'table'        => 'neria_certificate',
+            'date_col'     => 'date_add',
+            'months'       => 60,
+            'label'        => 'Certificats d\'authenticité',
+            'note'         => 'Contient le nom client et la référence commande.',
+            'customer_col' => null,
+            'has_pii'      => true,
+        ],
+        [
+            'table'        => 'neria_abtest',
+            'date_col'     => 'date_add',
+            'months'       => 36,
+            'label'        => 'Tests A/B',
+            'note'         => 'Configuration des tests — pas de données clients directes.',
+            'customer_col' => null,
+            'has_pii'      => false,
+        ],
+        [
+            'table'        => 'neria_seasonal_campaign',
+            'date_col'     => 'date_add',
+            'months'       => 36,
+            'label'        => 'Campagnes saisonnières',
+            'note'         => 'Configuration des campagnes — pas de données clients.',
+            'customer_col' => null,
+            'has_pii'      => false,
         ],
     ];
+
+    /** Rétrocompatibilité — TABLES dérive de REGISTRY */
+    public static function getTables(): array
+    {
+        return array_map(function ($r) {
+            return [
+                'table'    => $r['table'],
+                'date_col' => $r['date_col'],
+                'label'    => $r['label'],
+                'months'   => $r['months'],
+                'note'     => $r['note'],
+            ];
+        }, self::REGISTRY);
+    }
+
+    /** Rétrocompatibilité — PII_TABLES_BY_CUSTOMER dérive de REGISTRY */
+    public static function getPiiTablesByCustomer(): array
+    {
+        $result = [];
+        foreach (self::REGISTRY as $r) {
+            if ($r['customer_col'] !== null) {
+                $result[$r['table']] = $r['customer_col'];
+            }
+        }
+        return $result;
+    }
 
     const CONSENT_TEMPLATES = [
         'newsletter', 'newsletter_conf', 'birthday', 'win_back',
@@ -166,7 +363,21 @@ class GdprAuditManager
                 : 'Le fichier controllers/front/unsubscribe.php est manquant — les liens ne fonctionnent pas.',
         ];
 
-        // 1d. Taille de la blacklist (information, pas une issue)
+        // 1d. Centre de préférences email (consentement granulaire)
+        $prefsLayout = file_exists($layoutPath)
+            && stripos((string) file_get_contents($layoutPath), '{preferences_url}') !== false;
+        $prefsCtrl   = file_exists($this->modulePath . '/controllers/front/preferences.php');
+        $prefsOk     = $prefsLayout && $prefsCtrl;
+        $checks[] = [
+            'label'  => 'Centre de préférences email (consentement granulaire)',
+            'ok'     => $prefsOk,
+            'detail' => $prefsOk
+                ? 'Le lien {preferences_url} est présent dans le layout et le contrôleur est en place.'
+                : 'Le centre de préférences n\'est pas configuré — recommandé pour un consentement granulaire conforme.',
+            'info'   => !$prefsOk,
+        ];
+
+        // 1e. Taille de la blacklist (information, pas une issue)
         $blacklistCount = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_blacklist` WHERE `id_shop` = " . $this->idShop
         );
@@ -189,7 +400,7 @@ class GdprAuditManager
         $rows   = [];
         $issues = 0;
 
-        foreach (self::TABLES as $def) {
+        foreach (self::getTables() as $def) {
             $table  = _DB_PREFIX_ . $def['table'];
             $dcol   = $def['date_col'];
             $months = $def['months'];
@@ -368,7 +579,7 @@ class GdprAuditManager
         $fullTable = _DB_PREFIX_ . $table;
 
         // Sécurité : on ne purge que les tables Neria connues
-        $allowed = array_column(self::TABLES, 'table');
+        $allowed = array_column(self::getTables(), 'table');
         if (!in_array($table, $allowed, true)) {
             return 0;
         }
@@ -384,17 +595,70 @@ class GdprAuditManager
              WHERE `{$dateCol}` < DATE_SUB(NOW(), INTERVAL {$months} MONTH)"
         );
 
-        if ($count > 0 && class_exists('WatchdogManager')) {
-            $mod = \Module::getInstanceByName('neria');
-            if ($mod) {
-                (new \WatchdogManager($mod))->info(
-                    sprintf('RGPD purge : %d enregistrement(s) supprimé(s) dans %s (rétention %d mois)', $count, $table, $months),
-                    '', 'GdprAuditManager'
+        return $count;
+    }
+
+    /**
+     * Purge toutes les données personnelles Neria d'un client (hook RGPD PS).
+     * Appelé par hookActionDeleteGDPRCustomer quand un marchand supprime un compte.
+     */
+    public function purgeCustomerData(int $idCustomer, string $email): int
+    {
+        $total = 0;
+        foreach (self::getPiiTablesByCustomer() as $table => $col) {
+            $full = _DB_PREFIX_ . $table;
+            // Vérifie que la table existe avant de DELETE
+            $exists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($full) . "'");
+            if (!is_array($exists) || empty($exists)) {
+                continue;
+            }
+            $count = (int) $this->db->getValue(
+                "SELECT COUNT(*) FROM `{$full}` WHERE `{$col}` = " . (int) $idCustomer
+            );
+            if ($count > 0) {
+                $this->db->execute(
+                    "DELETE FROM `{$full}` WHERE `{$col}` = " . (int) $idCustomer
                 );
+                $total += $count;
             }
         }
-
-        return $count;
+        // Purge par email : neria_preferences + neria_bounces (pas d'id_customer)
+        if ($email !== '') {
+            $emailSql = pSQL(strtolower($email));
+            foreach (['neria_preferences', 'neria_bounces'] as $tbl) {
+                $full = _DB_PREFIX_ . $tbl;
+                $exists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($full) . "'");
+                if (!is_array($exists) || empty($exists)) {
+                    continue;
+                }
+                $n = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$full}` WHERE `email` = '{$emailSql}'");
+                if ($n > 0) {
+                    $this->db->execute("DELETE FROM `{$full}` WHERE `email` = '{$emailSql}'");
+                    $total += $n;
+                }
+            }
+        }
+        // Purge neria_certificate via la commande (pas d'id_customer direct)
+        $fullCert = _DB_PREFIX_ . 'neria_certificate';
+        $certExists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($fullCert) . "'");
+        if (is_array($certExists) && !empty($certExists)) {
+            $n = (int) $this->db->getValue(
+                "SELECT COUNT(*) FROM `{$fullCert}` nc
+                 INNER JOIN `" . _DB_PREFIX_ . "orders` o ON o.id_order = nc.id_order
+                 WHERE o.id_customer = " . (int) $idCustomer
+            );
+            if ($n > 0) {
+                $this->db->execute(
+                    "DELETE nc FROM `{$fullCert}` nc
+                     INNER JOIN `" . _DB_PREFIX_ . "orders` o ON o.id_order = nc.id_order
+                     WHERE o.id_customer = " . (int) $idCustomer
+                );
+                $total += $n;
+            }
+        }
+        // neria_webhook_queue : payload JSON peut contenir des PII mais sans référence client directe
+        // → purgé automatiquement par ancienneté via purgeTable() dans le cron quotidien
+        return $total;
     }
 
     // ============================================================
@@ -587,7 +851,7 @@ class GdprAuditManager
 
     public static function getTableDef(string $table): ?array
     {
-        foreach (self::TABLES as $def) {
+        foreach (self::getTables() as $def) {
             if ($def['table'] === $table) {
                 return $def;
             }

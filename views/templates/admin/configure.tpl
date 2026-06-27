@@ -595,6 +595,59 @@
   </form>
 </div>
 
+{* ── Centre de préférences email ───────────────────────────── *}
+<div class="neria-section" id="neria-cfg-preferences">
+  <h2 class="neria-section__title">Centre de préférences email</h2>
+  <p class="neria-section__desc">Vos clients peuvent choisir quels types d'emails ils souhaitent recevoir via un lien dans le pied de chaque email. Opt-in par défaut — seuls les clients ayant modifié leurs préférences apparaissent ici.</p>
+
+  {if $prefs_stats}
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:24px;">
+    {foreach ['cart'=>'Relances panier','post'=>'Post-achat','loyalty'=>'Fidélité','behav'=>'Personnalisés','season'=>'Saisonniers','b2b'=>'Devis B2B','newsletter'=>'Newsletters'] as $cat=>$label}
+      {assign var="s" value=$prefs_stats[$cat]}
+      <div style="background:#fff;border:1px solid var(--neria-border);border-radius:8px;padding:14px 16px;text-align:center;">
+        <div style="font-size:22px;font-weight:700;color:{if $s.opted_out > 0}#dc2626{else}#16a34a{/if};">{$s.opted_out|intval}</div>
+        <div style="font-size:11px;color:var(--neria-muted);margin-top:2px;">opt-out</div>
+        <div style="font-size:12px;font-weight:600;color:var(--neria-text);margin-top:6px;">{$label}</div>
+        {if $s.total > 0}
+        <div style="font-size:10px;color:#aaa;margin-top:2px;">sur {$s.total|intval} modifiés</div>
+        {/if}
+      </div>
+    {/foreach}
+  </div>
+  {/if}
+
+  {if $prefs_recent}
+  <p style="font-size:12px;font-weight:700;color:var(--neria-text);margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.06em;">Dernières modifications</p>
+  <div style="overflow-x:auto;">
+    <table class="neria-table" style="min-width:460px;">
+      <thead>
+        <tr><th>Client</th><th>Opt-out</th><th>Modifié le</th></tr>
+      </thead>
+      <tbody>
+        {foreach $prefs_recent as $r}
+        <tr>
+          <td>
+            <span style="font-size:13px;font-weight:600;">{$r.firstname|escape:'html'} {$r.lastname|escape:'html'}</span><br>
+            <span style="font-size:11px;color:var(--neria-muted);">{$r.email|escape:'html'}</span>
+          </td>
+          <td style="text-align:center;">
+            {if $r.nb_optout > 0}
+              <span style="font-size:13px;font-weight:700;color:#dc2626;">{$r.nb_optout|intval} catégorie{if $r.nb_optout > 1}s{/if}</span>
+            {else}
+              <span style="font-size:12px;color:#16a34a;">✓ Toutes actives</span>
+            {/if}
+          </td>
+          <td style="font-size:12px;color:var(--neria-muted);">{$r.date_upd|escape:'html'}</td>
+        </tr>
+        {/foreach}
+      </tbody>
+    </table>
+  </div>
+  {else}
+  <p style="font-size:13px;color:var(--neria-muted);font-style:italic;">Aucun client n'a encore modifié ses préférences.</p>
+  {/if}
+</div>
+
 {* ── Section Programme de Fidélité ───────────────────────── *}
 <div class="neria-section" id="neria-loyalty-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">

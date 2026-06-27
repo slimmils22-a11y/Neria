@@ -811,3 +811,21 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_waitlist` (
     KEY `idx_notified`  (`notified_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Liste d\'attente produits Neria — notification retour en stock';
+
+-- ------------------------------------------------------------
+-- TABLE 33 : neria_preferences
+-- Centre de préférences email : opt-in/out par catégorie.
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `PREFIX_neria_preferences` (
+    `id_preference` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `id_shop`       INT UNSIGNED NOT NULL DEFAULT 1,
+    `id_customer`   INT UNSIGNED NOT NULL DEFAULT 0,
+    `email`         VARCHAR(150) NOT NULL DEFAULT '',
+    `category`      ENUM('cart','post','loyalty','behav','season','b2b','newsletter') NOT NULL,
+    `subscribed`    TINYINT(1) NOT NULL DEFAULT 1,
+    `date_upd`      DATETIME NOT NULL,
+    PRIMARY KEY (`id_preference`),
+    UNIQUE KEY `uq_shop_customer_cat` (`id_shop`,`id_customer`,`category`),
+    KEY `idx_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Centre de préférences email Neria — opt-in/out par catégorie';

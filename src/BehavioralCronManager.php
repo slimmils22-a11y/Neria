@@ -1208,6 +1208,20 @@ class BehavioralCronManager
             $idLang = (int) $customer['id_lang'] ?: (int) \Configuration::get('PS_LANG_DEFAULT');
             $idShop = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
             $toName = trim($customer['firstname'] . ' ' . $customer['lastname']) ?: null;
+            $idCust = (int) ($customer['id_customer'] ?? 0);
+
+            // Vérifier les préférences email du client avant envoi
+            if ($idCust > 0 && class_exists('PreferencesManager')) {
+                $pm = new PreferencesManager($this->module);
+                if (!$pm->isAllowed($idCust, $template)) {
+                    $this->watchdog()->info(
+                        sprintf('Envoi annulé — client %d a désactivé la catégorie pour "%s".', $idCust, $template),
+                        $template,
+                        'BehavioralCron'
+                    );
+                    return;
+                }
+            }
 
             // Vérifier que le template SOURCE Neria existe avant d'appeler Mail::Send.
             $coreFile = _PS_MODULE_DIR_ . 'neria/mails/themes/neria_global/core/' . $template . '.html';

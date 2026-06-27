@@ -31,32 +31,18 @@ class WaitlistManager
         if ($this->isRegistered($idCustomer, $idProduct)) return true;
         $t   = $this->prefix . self::TABLE;
         $now = pSQL(date('Y-m-d H:i:s'));
-        $ok  = $this->db->execute(
+        return $this->db->execute(
             "INSERT INTO `{$t}` (id_customer, id_product, id_shop, registered_at, notified_at)
              VALUES ({$idCustomer}, {$idProduct}, {$idShop}, '{$now}', NULL)
              ON DUPLICATE KEY UPDATE registered_at = '{$now}', notified_at = NULL"
         );
-        if ($ok && class_exists('WatchdogManager')) {
-            (new \WatchdogManager($this->module))->info(
-                sprintf('Waitlist inscription : client #%d → produit #%d', $idCustomer, $idProduct),
-                'waitlist_available', 'WaitlistManager'
-            );
-        }
-        return $ok;
     }
 
     public function unregister(int $idCustomer, int $idProduct): bool
     {
-        $ok = $this->db->delete(self::TABLE,
+        return $this->db->delete(self::TABLE,
             'id_customer = ' . $idCustomer . ' AND id_product = ' . $idProduct
         );
-        if ($ok && class_exists('WatchdogManager')) {
-            (new \WatchdogManager($this->module))->info(
-                sprintf('Waitlist désinscription : client #%d, produit #%d', $idCustomer, $idProduct),
-                'waitlist_available', 'WaitlistManager'
-            );
-        }
-        return $ok;
     }
 
     public function isRegistered(int $idCustomer, int $idProduct): bool
@@ -81,15 +67,7 @@ class WaitlistManager
                AND w.notified_at IS NULL
              ORDER BY w.registered_at ASC"
         );
-        if (!is_array($rows) || empty($rows)) {
-            if (class_exists('WatchdogManager')) {
-                (new \WatchdogManager($this->module))->warning(
-                    sprintf('Waitlist : aucun inscrit trouvé pour produit #%d', $idProduct),
-                    'waitlist_available', 'WaitlistManager'
-                );
-            }
-            return 0;
-        }
+        if (!is_array($rows) || empty($rows)) return 0;
 
         $sent = 0;
         foreach ($rows as $row) {

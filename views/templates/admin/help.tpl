@@ -174,7 +174,16 @@
       'assets'               => 'help.health_check_assets',
       'smtp_config'          => 'help.health_check_smtp',
       'bounce_rate'          => 'help.health_check_bounce_rate',
-      'consecutive_failures' => 'help.health_check_consecutive_failures'
+      'consecutive_failures' => 'help.health_check_consecutive_failures',
+      'gdpr_registry'        => 'help.health_check_gdpr_registry',
+      'critical_methods'     => 'help.health_check_critical_methods',
+      'template_files'       => 'help.health_check_template_files',
+      'trad_keys'            => 'help.health_check_trad_keys',
+      'hooks_registered'     => 'help.health_check_hooks_registered',
+      'version_sync'         => 'help.health_check_version_sync',
+      'open_rate'            => 'help.health_check_open_rate',
+      'queue_blocked'        => 'help.health_check_queue_blocked',
+      'hmac_secret'          => 'help.health_check_hmac_secret'
     ]}
     <div class="neria-diag-grid">
       {foreach $health_results as $checkKey => $result}

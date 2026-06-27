@@ -804,6 +804,81 @@ class StatsManager
         ];
     }
 
+    private static $CHART_CATEGORIES = [
+        'cart'    => ['abandoned_cart_1','abandoned_cart_2','abandoned_cart_3',
+                      'checkout_abandonment','ghost_cart'],
+        'post'    => ['post_purchase_review','complete_your_look','collection_completion',
+                      'product_lifespan_reminder','refund_reconciliation_1',
+                      'refund_reconciliation_2','refund_reconciliation_3',
+                      'waitlist_available','wishlist_reminder','back_in_stock'],
+        'loyalty' => ['loyalty_tier_upgrade','loyalty_recap','loyalty_reward_expiry',
+                      'milestone_order','referral_invitation'],
+        'behav'   => ['birthday','relationship_anniversary','win_back',
+                      'reorder_reminder','vip_invitation','private_sale','first_anniversary'],
+        'season'  => ['christmas','valentine','halloween','eid','ramadan',
+                      'diwali','lunar_new_year','nowruz','black_friday','new_year',
+                      'hanukkah','fathers_day','mothers_day','grandparents_day',
+                      'end_of_year_gift','early_access','exclusive_preview'],
+        'b2b'     => ['quote_expiry_48h','quote_expiry_day','quote_extension_offer'],
+    ];
+
+    public function getRevenueDailyByCategory(int $days = 30): array
+    {
+        $table    = _DB_PREFIX_ . self::TABLE;
+        $dateFrom = pSQL(date('Y-m-d', strtotime("-{$days} days")));
+
+        $rows = $this->db->executeS(
+            "SELECT DATE(`date_add`) AS `d`, `template`, SUM(`revenue`) AS `rev`
+             FROM `{$table}`
+             WHERE `event_type` = '" . self::EVENT_CONVERSION . "'
+               AND `id_shop`    = {$this->idShop}
+               AND `date_add`  >= '{$dateFrom}'
+               AND `revenue`   >  0
+             GROUP BY DATE(`date_add`), `template`
+             ORDER BY `d` ASC"
+        );
+
+        $dates = [];
+        for ($i = $days; $i >= 0; $i--) {
+            $dates[] = date('Y-m-d', strtotime("-{$i} days"));
+        }
+
+        $tplTocat = [];
+        foreach (self::$CHART_CATEGORIES as $cat => $tpls) {
+            foreach ($tpls as $tpl) {
+                $tplTocat[$tpl] = $cat;
+            }
+        }
+
+        $cats   = array_keys(self::$CHART_CATEGORIES);
+        $cats[] = 'other';
+        $series = [];
+        foreach ($cats as $cat) {
+            $series[$cat] = array_fill_keys($dates, 0.0);
+        }
+        $total = array_fill_keys($dates, 0.0);
+
+        foreach ((is_array($rows) ? $rows : []) as $r) {
+            $d   = $r['d'];
+            $rev = (float) $r['rev'];
+            $cat = $tplTocat[$r['template']] ?? 'other';
+            if (isset($series[$cat][$d])) {
+                $series[$cat][$d] += $rev;
+            }
+            if (isset($total[$d])) {
+                $total[$d] += $rev;
+            }
+        }
+
+        $out = ['dates' => $dates, 'series' => [], 'total' => []];
+        foreach ($series as $cat => $byDate) {
+            $out['series'][$cat] = array_values(array_map(fn($v) => round($v, 2), $byDate));
+        }
+        $out['total'] = array_values(array_map(fn($v) => round($v, 2), $total));
+
+        return $out;
+    }
+
     // ============================================================
     // UTILITAIRES PRIVES
     // ============================================================

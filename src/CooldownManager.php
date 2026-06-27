@@ -67,17 +67,7 @@ class CooldownManager
                AND `date_add`    > DATE_SUB(NOW(), INTERVAL ' . (int) $windowMinutes . ' MINUTE)'
         );
 
-        $isDuplicate = $count > 0;
-        if ($isDuplicate && class_exists('WatchdogManager')) {
-            $mod = \Module::getInstanceByName('neria');
-            if ($mod) {
-                (new \WatchdogManager($mod))->warning(
-                    sprintf('Email bloqué (cooldown %d min) : template "%s" → %s', $windowMinutes, $template, $toEmail),
-                    $template, 'CooldownManager'
-                );
-            }
-        }
-        return $isDuplicate;
+        return $count > 0;
     }
 
     private function resolveCustomerId(string $email): int

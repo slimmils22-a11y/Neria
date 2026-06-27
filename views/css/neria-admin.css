@@ -435,3 +435,14 @@
 .neria-mpp-banner__sep   { width:1px; height:32px; background:#c9b8f0; }
 .neria-hist-result-link { display:block; padding:10px 14px; font-size:13px; color:var(--neria-dark); text-decoration:none; transition:background .15s,color .15s; }
 .neria-hist-result-link:hover { background:var(--neria-light-bg); color:var(--neria-accent); }
+
+/* Graphique CA — onglets de période */
+.neria-period-tabs { display:flex; gap:4px; background:var(--neria-light-bg); border:1px solid var(--neria-border); border-radius:6px; padding:3px; }
+.neria-period-tab { background:transparent; border:none; border-radius:4px; padding:5px 14px; font-size:12px; font-weight:600; color:var(--neria-muted,#888); cursor:pointer; transition:background .15s,color .15s; }
+.neria-period-tab:hover { background:#fff; color:var(--neria-dark); }
+.neria-period-tab--active { background:#fff; color:var(--neria-dark); box-shadow:0 1px 3px rgba(0,0,0,.1); }
+
+/* Graphique CA — sélecteur de type (flèches) */
+.neria-chart-type-nav { display:flex; align-items:center; gap:6px; background:var(--neria-light-bg); border:1px solid var(--neria-border); border-radius:6px; padding:3px 6px; }
+.neria-chart-arrow { background:transparent; border:none; cursor:pointer; color:var(--neria-accent); font-size:11px; padding:3px 6px; border-radius:4px; line-height:1; transition:background .15s; }
+.neria-chart-arrow:hover { background:#fff; }

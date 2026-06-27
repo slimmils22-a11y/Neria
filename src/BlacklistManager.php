@@ -50,15 +50,6 @@ class BlacklistManager
             }
             // Règle "toutes langues" (lang = '') ou règle pour cette langue précise
             if ($rule['lang'] === '' || ($lang !== '' && $rule['lang'] === $lang)) {
-                if (class_exists('WatchdogManager')) {
-                    $mod = \Module::getInstanceByName('neria');
-                    if ($mod) {
-                        (new \WatchdogManager($mod))->info(
-                            sprintf('Template blacklisté, email ignoré : %s (lang: %s)', $template, $lang ?: 'toutes'),
-                            $template, 'BlacklistManager'
-                        );
-                    }
-                }
                 return true;
             }
         }
@@ -86,15 +77,6 @@ class BlacklistManager
              VALUES (' . (int) $this->idShop . ", '" . $template . "', '" . $lang . "', NOW())"
         );
         $this->cache = null;
-        if ($ok && class_exists('WatchdogManager')) {
-            $mod = \Module::getInstanceByName('neria');
-            if ($mod) {
-                (new \WatchdogManager($mod))->info(
-                    sprintf('Blacklist : règle ajoutée pour %s (lang: %s)', $template, $lang ?: 'toutes'),
-                    $template, 'BlacklistManager'
-                );
-            }
-        }
         return (bool) $ok;
     }
 
@@ -112,15 +94,6 @@ class BlacklistManager
                AND `id_shop` = ' . (int) $this->idShop
         );
         $this->cache = null;
-        if ($ok && class_exists('WatchdogManager')) {
-            $mod = \Module::getInstanceByName('neria');
-            if ($mod) {
-                (new \WatchdogManager($mod))->info(
-                    sprintf('Blacklist : règle #%d supprimée', $id),
-                    '', 'BlacklistManager'
-                );
-            }
-        }
         return (bool) $ok;
     }
 
