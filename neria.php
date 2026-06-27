@@ -1433,6 +1433,19 @@ class Neria extends Module
             $this->context->smarty->assign('neria_success', 'Salutations horaires enregistrées.');
         }
 
+        if (Tools::getValue('neria_action') === 'reset_time_greetings_all') {
+            (new ConfigManager($this))->resetTimeGreetings();
+            $this->context->smarty->assign('neria_success', 'Salutations réinitialisées aux valeurs par défaut (toutes les langues).');
+        }
+
+        if (Tools::getValue('neria_action') === 'reset_time_greetings_lang') {
+            $lang = trim((string) Tools::getValue('neria_reset_lang'));
+            if ($lang && array_key_exists($lang, TranslationEngine::SUPPORTED_LANGS)) {
+                (new ConfigManager($this))->resetTimeGreetings($lang);
+                $this->context->smarty->assign('neria_success', 'Salutations réinitialisées pour la langue : ' . strtoupper($lang) . '.');
+            }
+        }
+
         if (Tools::getValue('neria_action') === 'save_firstname_fallbacks') {
             $langs     = TranslationEngine::SUPPORTED_LANGS;
             $fallbacks = [];

@@ -382,6 +382,22 @@ class ConfigManager
         return $this->set(self::KEY_TIME_GREETINGS, json_encode($greetings, JSON_UNESCAPED_UNICODE));
     }
 
+    /**
+     * Réinitialise les salutations aux valeurs par défaut.
+     * Sans argument → réinitialise toutes les langues.
+     * Avec $lang → réinitialise uniquement cette langue.
+     */
+    public function resetTimeGreetings(?string $lang = null): bool
+    {
+        if ($lang === null) {
+            return (bool) \Configuration::deleteByName(self::KEY_TIME_GREETINGS);
+        }
+        $saved = $this->get(self::KEY_TIME_GREETINGS);
+        $data  = ($saved && is_array($arr = json_decode($saved, true))) ? $arr : [];
+        unset($data[$lang]);
+        return $this->set(self::KEY_TIME_GREETINGS, json_encode($data, JSON_UNESCAPED_UNICODE));
+    }
+
     /** Retourne les pays cibles activés (ISO 2 lettres). Vide = tous activés. */
     public function getTargetCountries(): array
     {

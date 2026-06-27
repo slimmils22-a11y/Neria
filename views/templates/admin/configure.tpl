@@ -177,6 +177,53 @@
       </span>
     </div>
   </form>
+
+  {* ── Réinitialisation ─────────────────────────────────────────── *}
+  <div style="margin-top:16px;padding:12px 16px;background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <span style="font-size:12px;color:#7a6f65;font-weight:600;white-space:nowrap;">🔄 Réinitialiser :</span>
+
+    {* Toutes les langues *}
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;"
+          onsubmit="return confirm('Réinitialiser toutes les langues aux valeurs par défaut ?')">
+      <input type="hidden" name="neria_action" value="reset_time_greetings_all">
+      <input type="hidden" name="neria_tab"    value="configure">
+      <button type="submit" class="neria-btn neria-btn--sm"
+              style="background:#dc2626;color:#fff;border-color:#dc2626;">
+        Toutes les langues
+      </button>
+    </form>
+
+    {* Une langue au choix *}
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;display:flex;align-items:center;gap:8px;"
+          onsubmit="return confirm('Réinitialiser cette langue aux valeurs par défaut ?')">
+      <input type="hidden" name="neria_action" value="reset_time_greetings_lang">
+      <input type="hidden" name="neria_tab"    value="configure">
+      <select name="neria_reset_lang" class="neria-input" style="font-size:12px;padding:4px 8px;height:auto;">
+        <option value="fr">🇫🇷 Français</option>
+        <option value="en">🇬🇧 English</option>
+        <option value="de">🇩🇪 Deutsch</option>
+        <option value="it">🇮🇹 Italiano</option>
+        <option value="es">🇪🇸 Español</option>
+        <option value="pt">🇵🇹 Português</option>
+        <option value="br">🇧🇷 Português (BR)</option>
+        <option value="ar">🇸🇦 العربية</option>
+        <option value="ja">🇯🇵 日本語</option>
+        <option value="ko">🇰🇷 한국어</option>
+        <option value="zh">🇨🇳 中文 (ZH)</option>
+        <option value="tw">🇹🇼 中文 (TW)</option>
+        <option value="ru">🇷🇺 Русский</option>
+        <option value="tr">🇹🇷 Türkçe</option>
+        <option value="sv">🇸🇪 Svenska</option>
+        <option value="no">🇳🇴 Norsk</option>
+        <option value="da">🇩🇰 Dansk</option>
+        <option value="nl">🇳🇱 Nederlands</option>
+      </select>
+      <button type="submit" class="neria-btn neria-btn--sm"
+              style="background:#dc2626;color:#fff;border-color:#dc2626;">
+        Réinitialiser
+      </button>
+    </form>
+  </div>
 </div>
 
 {* ── Smart Fallbacks — prénom manquant ─────────────────────── *}
