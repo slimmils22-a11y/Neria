@@ -65,8 +65,9 @@ class ConfigManager
     const KEY_LOG_INTERNAL      = 'NERIA_LOG_INTERNAL';
 
     // ── Mode Silence (anti-doublon) ───────────────────────────────
-    const KEY_COOLDOWN_ENABLED  = 'NERIA_COOLDOWN_ENABLED';
-    const KEY_COOLDOWN_MINUTES  = 'NERIA_COOLDOWN_MINUTES';
+    const KEY_COOLDOWN_ENABLED      = 'NERIA_COOLDOWN_ENABLED';
+    const KEY_COOLDOWN_MINUTES      = 'NERIA_COOLDOWN_MINUTES';
+    const KEY_FIRSTNAME_FALLBACKS   = 'NERIA_FIRSTNAME_FALLBACKS';
 
     // ── Empreinte carbone ─────────────────────────────────────────
     const KEY_CARBON_ENABLED    = 'NERIA_CARBON_ENABLED';
@@ -311,6 +312,30 @@ class ConfigManager
     public function getVoucherValidity(): int
     {
         return (int) $this->get(self::KEY_VOUCHER_VALIDITY, 30);
+    }
+
+    /** Retourne les fallbacks firstname par langue (tableau ['fr'=>'Cher Invité', ...]) */
+    public function getFirstnameFallbacks(): array
+    {
+        $defaults = [
+            'fr' => 'Cher Invité',      'en' => 'Dear Guest',       'de' => 'Lieber Gast',
+            'it' => 'Caro Ospite',      'es' => 'Estimado Cliente',  'pt' => 'Caro Convidado',
+            'br' => 'Prezado Cliente',  'ar' => 'عزيزي الضيف',       'ja' => 'お客様',
+            'ko' => '소중한 고객님',      'zh' => '尊贵的顾客',          'tw' => '尊貴的顧客',
+            'ru' => 'Уважаемый гость',  'tr' => 'Sayın Misafirimiz', 'sv' => 'Kära Gäst',
+            'no' => 'Kjære Gjest',      'da' => 'Kære Gæst',         'nl' => 'Beste Gast',
+        ];
+        $saved = $this->get(self::KEY_FIRSTNAME_FALLBACKS);
+        if (!$saved) {
+            return $defaults;
+        }
+        $decoded = json_decode($saved, true);
+        return is_array($decoded) ? array_merge($defaults, $decoded) : $defaults;
+    }
+
+    public function saveFirstnameFallbacks(array $fallbacks): bool
+    {
+        return $this->set(self::KEY_FIRSTNAME_FALLBACKS, json_encode($fallbacks, JSON_UNESCAPED_UNICODE));
     }
 
     public function isCooldownEnabled(): bool

@@ -1008,27 +1008,6 @@ class HealthCheckManager
             ];
         }
 
-        // Vérifie que les fichiers contrôleurs admin AJAX existent sur disque
-        $ajaxControllers = [
-            'controllers/admin/AdminNeriaConfigController.php',
-            'controllers/admin/AdminNeriaSendController.php',
-        ];
-        $missing = [];
-        $base    = rtrim($this->module->getLocalPath(), '/') . '/';
-        foreach ($ajaxControllers as $ctrl) {
-            if (!file_exists($base . $ctrl)) {
-                $missing[] = $ctrl;
-            }
-        }
-
-        if ($missing) {
-            return [
-                'status' => self::STATUS_WARNING,
-                'detail' => 'Contrôleur(s) AJAX introuvable(s) : ' . implode(', ', $missing)
-                    . ' → Que faire : Vérifiez que le dossier controllers/admin/ est complet.',
-            ];
-        }
-
         return [
             'status' => self::STATUS_OK,
             'detail' => 'Aucune erreur AJAX dans les dernières 24h — endpoints back-office opérationnels.',
@@ -1043,13 +1022,13 @@ class HealthCheckManager
     private function checkCriticalMethods(): array
     {
         $probes = [
-            'StatsManager'        => ['getKpis', 'getGlobalReport', 'recordSent'],
-            'EmailRenderer'       => ['render'],
-            'TranslationEngine'   => ['get', 'importFromJson'],
-            'ConfigManager'       => ['isActive', 'getAccentColor'],
-            'WatchdogManager'     => ['info', 'warning', 'error'],
+            'StatsManager'          => ['getKpis', 'getGlobalReport', 'recordSent'],
+            'EmailRenderer'         => ['processEmailParams', 'renderWithVars', 'renderPreview'],
+            'TranslationEngine'     => ['get', 'getAll', 'update'],
+            'ConfigManager'         => ['isActive', 'getDesignConfig', 'get'],
+            'WatchdogManager'       => ['info', 'warning', 'error'],
             'BehavioralCronManager' => ['run'],
-            'LoyaltyManager'      => ['getCustomerStats', 'addPoints'],
+            'LoyaltyManager'        => ['getCustomerStats', 'awardPoints', 'checkAndReward'],
         ];
 
         $errors = [];

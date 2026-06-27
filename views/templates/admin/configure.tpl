@@ -64,6 +64,51 @@
   </form>
 </div>
 
+{* ── Smart Fallbacks — prénom manquant ─────────────────────── *}
+<div class="neria-section" id="neria-cfg-firstname-fallbacks">
+  <h2 class="neria-section__title">✦ Smart Fallbacks — Prénom manquant</h2>
+  <p class="neria-section__desc">
+    Si un client s'est inscrit sans prénom, Neria remplace automatiquement <code>{ldelim}firstname{rdelim}</code>
+    par le mot élégant que vous définissez ici, selon la langue de l'email.
+    Laissez un champ vide pour conserver la valeur par défaut.
+  </p>
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <input type="hidden" name="neria_action" value="save_firstname_fallbacks">
+    <input type="hidden" name="neria_tab"    value="configure">
+
+    {assign var="fallback_langs" value=[
+      'fr'=>'Français','en'=>'English','de'=>'Deutsch','it'=>'Italiano',
+      'es'=>'Español','pt'=>'Português','br'=>'Português BR','ar'=>'العربية',
+      'ja'=>'日本語','ko'=>'한국어','zh'=>'中文简','tw'=>'中文繁',
+      'ru'=>'Русский','tr'=>'Türkçe','sv'=>'Svenska','no'=>'Norsk',
+      'da'=>'Dansk','nl'=>'Nederlands'
+    ]}
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:16px;">
+      {foreach $fallback_langs as $code => $label}
+        <div class="neria-form-group" style="margin:0;">
+          <label class="neria-label" style="font-size:11px;margin-bottom:4px;">
+            {$label} <span style="color:#a09990;font-weight:400;">({$code})</span>
+          </label>
+          <input type="text" name="neria_fallback_{$code}" class="neria-input"
+                 placeholder="{$firstname_fallbacks[$code]|default:''}"
+                 value="{$firstname_fallbacks[$code]|default:''|escape:'html'}">
+        </div>
+      {/foreach}
+    </div>
+
+    <div style="margin-top:16px;display:flex;align-items:center;gap:12px;">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+        Enregistrer les fallbacks
+      </button>
+      <span style="font-size:11px;color:#a09990;font-style:italic;">
+        &#9432; Ces textes remplacent <code>{ldelim}firstname{rdelim}</code> uniquement si le champ est vide côté client.
+      </span>
+    </div>
+  </form>
+</div>
+
 {* ── Bons de réduction ──────────────────────────────────────── *}
 <div class="neria-section" id="neria-cfg-vouchers">
   <h2 class="neria-section__title">{neria_admin key='configure.voucher_title'}</h2>

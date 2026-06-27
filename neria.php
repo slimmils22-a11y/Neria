@@ -1405,6 +1405,19 @@ class Neria extends Module
             Configuration::updateValue(self::CONFIG_PREFIX . 'VOUCHER_VALIDITY', $days);
         }
 
+        if (Tools::getValue('neria_action') === 'save_firstname_fallbacks') {
+            $langs     = TranslationEngine::SUPPORTED_LANGS;
+            $fallbacks = [];
+            foreach ($langs as $lang) {
+                $val = trim((string) Tools::getValue('neria_fallback_' . $lang));
+                if ($val !== '') {
+                    $fallbacks[$lang] = $val;
+                }
+            }
+            (new ConfigManager($this))->saveFirstnameFallbacks($fallbacks);
+            $this->context->smarty->assign('neria_success', 'Fallbacks de prénom enregistrés.');
+        }
+
         // ── Action : envoi manuel d'un template à un client ───────
         // ── Garde-fou anniversaire : vérification AJAX ───────────────
         if (Tools::getValue('neria_action') === 'check_anniversary_guard') {
@@ -2600,7 +2613,8 @@ class Neria extends Module
             'neria_active'     => $config->isActive(),
             'auto_lang_enabled' => $config->isAutoLangEnabled(),
             'log_internal_enabled' => $config->isInternalLogEnabled(),
-            'voucher_validity'      => $config->getVoucherValidity(),
+            'voucher_validity'        => $config->getVoucherValidity(),
+            'firstname_fallbacks'     => $config->getFirstnameFallbacks(),
             'cooldown_enabled'      => $config->isCooldownEnabled(),
             'cooldown_minutes'      => $config->getCooldownMinutes(),
             'carbon_enabled'        => $config->isCarbonEnabled(),

@@ -291,6 +291,9 @@ class EmailRenderer
         // Injecte les variables personnalisées du marchand ({return_address}, etc.)
         $this->injectCustomVars($params['templateVars']);
 
+        // Fallback prénom : si {firstname} absent/vide, substitue par le mot élégant défini par le marchand
+        $this->injectFirstnameFallback($params['templateVars'], $lang);
+
         // Injecte {email} depuis le destinataire si absent (ex: newsletter_conf → subscription_confirmation)
         if (empty($params['templateVars']['{email}'])) {
             $to = $params['to'] ?? '';
@@ -857,6 +860,32 @@ class EmailRenderer
             if (empty($templateVars[$txtKey])) {
                 $templateVars[$txtKey] = trim(html_entity_decode($value, ENT_QUOTES, 'UTF-8'));
             }
+        }
+    }
+
+    private function injectFirstnameFallback(array &$templateVars, string $lang): void
+    {
+        if (!is_array($templateVars)) {
+            return;
+        }
+        $firstname = trim((string) ($templateVars['{firstname}'] ?? ''));
+        if ($firstname !== '') {
+            return;
+        }
+        try {
+            $fallbacks = $this->config->getFirstnameFallbacks();
+            $fallback  = $fallbacks[$lang] ?? $fallbacks['en'] ?? 'Dear Guest';
+            $templateVars['{firstname}'] = $fallback;
+            $template = trim((string) ($templateVars['{template_name}'] ?? ''));
+            (new WatchdogManager($this->module))->info(
+                '[fallback] Prénom absent — fallback "' . $fallback . '" injecté'
+                . ($template ? ' (template : ' . $template . ', langue : ' . $lang . ')' : ' (langue : ' . $lang . ')')
+            );
+        } catch (\Throwable $e) {
+            $templateVars['{firstname}'] = 'Dear Guest';
+            (new WatchdogManager($this->module))->warning(
+                '[fallback] Échec récupération fallbacks prénom — valeur de secours "Dear Guest" utilisée. Erreur : ' . $e->getMessage()
+            );
         }
     }
 
