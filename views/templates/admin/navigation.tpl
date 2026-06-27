@@ -98,8 +98,8 @@
         <ul class="neria-nav-dropdown">
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-dashboard">📊 Tableau de bord</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-autolang">🌐 Détection de langue</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-firstname-fallbacks">✦ Smart Fallbacks</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-time-greetings">⏱ Smart Salutation</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-time-greetings">⏱ Smart Salutation — Heure locale</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-firstname-fallbacks">✦ Smart Fallbacks — Prénom manquant</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-vouchers">🎁 Bons de réduction</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-cooldown">⏱ Mode Silence</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-carbon">🌿 Empreinte carbone</a></li>

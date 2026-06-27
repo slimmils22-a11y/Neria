@@ -2065,6 +2065,23 @@ class EmailRenderer
         $compiled = preg_replace('/\{block\s+name=[\'"]neria_content[\'\"]\}\{\/block\}/', trim($m[1]), $layout);
         $compiled = preg_replace('/\{extends\s+[^}]+\}/', '', $compiled);
 
+        // ── Smart Salutation plug-and-play ─────────────────────────────────────
+        // Si {time_greeting} est calculé (client identifié + pays ciblé),
+        // remplace dear_customer par la salutation horaire + prénom.
+        // Aucune retouche de template nécessaire — plug & play.
+        $plugTimeGreeting = $templateVars['{time_greeting}'] ?? '';
+        if ($plugTimeGreeting !== '') {
+            $plugFirstname = $templateVars['{firstname}'] ?? '';
+            $plugSalutation = $plugTimeGreeting
+                . ($plugFirstname !== '' ? ', ' . $plugFirstname : '')
+                . ',';
+            $compiled = str_replace(
+                ["{neria_trad key='dear_customer'}", '{neria_trad key="dear_customer"}'],
+                $plugSalutation,
+                $compiled
+            );
+        }
+
         // ── Résoudre les {neria_trad key='...'} avec les vraies traductions ──
         $engine = $this->engine;
         $compiled = preg_replace_callback(
@@ -2171,6 +2188,14 @@ class EmailRenderer
         $txtPath = $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.txt');
         if (file_exists($txtPath)) {
             $compiledTxt = file_get_contents($txtPath);
+            // Smart Salutation — version TXT ({firstname} résolu par Mail::send)
+            if ($plugTimeGreeting !== '') {
+                $compiledTxt = str_replace(
+                    ["{neria_trad key='dear_customer'}", '{neria_trad key="dear_customer"}'],
+                    $plugTimeGreeting . ', {firstname},',
+                    $compiledTxt
+                );
+            }
             $compiledTxt = preg_replace_callback(
                 '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
                 function ($m) use ($engine, $template, $lang) {
