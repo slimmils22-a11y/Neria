@@ -68,6 +68,7 @@ class ConfigManager
     const KEY_COOLDOWN_ENABLED      = 'NERIA_COOLDOWN_ENABLED';
     const KEY_COOLDOWN_MINUTES      = 'NERIA_COOLDOWN_MINUTES';
     const KEY_FIRSTNAME_FALLBACKS   = 'NERIA_FIRSTNAME_FALLBACKS';
+    const KEY_TIME_GREETINGS        = 'NERIA_TIME_GREETINGS';
 
     // ── Empreinte carbone ─────────────────────────────────────────
     const KEY_CARBON_ENABLED    = 'NERIA_CARBON_ENABLED';
@@ -336,6 +337,48 @@ class ConfigManager
     public function saveFirstnameFallbacks(array $fallbacks): bool
     {
         return $this->set(self::KEY_FIRSTNAME_FALLBACKS, json_encode($fallbacks, JSON_UNESCAPED_UNICODE));
+    }
+
+    /** Retourne les salutations horaires par langue × créneau (morning/afternoon/evening/night) */
+    public function getTimeGreetings(): array
+    {
+        $defaults = [
+            'fr' => ['morning' => 'Bonjour',          'afternoon' => 'Bon après-midi',  'evening' => 'Bonne soirée',    'night' => 'Bonjour'],
+            'en' => ['morning' => 'Good morning',     'afternoon' => 'Good afternoon',  'evening' => 'Good evening',    'night' => 'Hello'],
+            'de' => ['morning' => 'Guten Morgen',     'afternoon' => 'Guten Tag',       'evening' => 'Guten Abend',     'night' => 'Hallo'],
+            'it' => ['morning' => 'Buongiorno',       'afternoon' => 'Buon pomeriggio', 'evening' => 'Buonasera',       'night' => 'Salve'],
+            'es' => ['morning' => 'Buenos días',      'afternoon' => 'Buenas tardes',   'evening' => 'Buenas noches',   'night' => 'Hola'],
+            'pt' => ['morning' => 'Bom dia',          'afternoon' => 'Boa tarde',       'evening' => 'Boa noite',       'night' => 'Olá'],
+            'br' => ['morning' => 'Bom dia',          'afternoon' => 'Boa tarde',       'evening' => 'Boa noite',       'night' => 'Olá'],
+            'ar' => ['morning' => 'صباح الخير',       'afternoon' => 'مساء الخير',      'evening' => 'مساء النور',      'night' => 'أهلاً'],
+            'ja' => ['morning' => 'おはようございます', 'afternoon' => 'こんにちは',       'evening' => 'こんばんは',       'night' => 'こんにちは'],
+            'ko' => ['morning' => '좋은 아침이에요',    'afternoon' => '안녕하세요',       'evening' => '안녕하세요',       'night' => '안녕하세요'],
+            'zh' => ['morning' => '早上好',            'afternoon' => '下午好',          'evening' => '晚上好',           'night' => '您好'],
+            'tw' => ['morning' => '早安',              'afternoon' => '午安',            'evening' => '晚安',             'night' => '您好'],
+            'ru' => ['morning' => 'Доброе утро',      'afternoon' => 'Добрый день',     'evening' => 'Добрый вечер',    'night' => 'Здравствуйте'],
+            'tr' => ['morning' => 'Günaydın',         'afternoon' => 'İyi günler',      'evening' => 'İyi akşamlar',    'night' => 'Merhaba'],
+            'sv' => ['morning' => 'God morgon',       'afternoon' => 'God dag',         'evening' => 'God kväll',       'night' => 'Hej'],
+            'no' => ['morning' => 'God morgen',       'afternoon' => 'God dag',         'evening' => 'God kveld',       'night' => 'Hei'],
+            'da' => ['morning' => 'God morgen',       'afternoon' => 'God dag',         'evening' => 'God aften',       'night' => 'Hej'],
+            'nl' => ['morning' => 'Goedemorgen',      'afternoon' => 'Goedemiddag',     'evening' => 'Goedenavond',     'night' => 'Hallo'],
+        ];
+        $saved = $this->get(self::KEY_TIME_GREETINGS);
+        if (!$saved) {
+            return $defaults;
+        }
+        $decoded = json_decode($saved, true);
+        if (!is_array($decoded)) {
+            return $defaults;
+        }
+        foreach ($defaults as $lang => $slots) {
+            $decoded[$lang] = array_merge($slots, $decoded[$lang] ?? []);
+        }
+        return $decoded;
+    }
+
+    public function saveTimeGreetings(array $greetings): bool
+    {
+        return $this->set(self::KEY_TIME_GREETINGS, json_encode($greetings, JSON_UNESCAPED_UNICODE));
     }
 
     public function isCooldownEnabled(): bool

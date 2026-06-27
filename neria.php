@@ -1405,6 +1405,22 @@ class Neria extends Module
             Configuration::updateValue(self::CONFIG_PREFIX . 'VOUCHER_VALIDITY', $days);
         }
 
+        if (Tools::getValue('neria_action') === 'save_time_greetings') {
+            $langs    = TranslationEngine::SUPPORTED_LANGS;
+            $slots    = ['morning', 'afternoon', 'evening', 'night'];
+            $greetings = [];
+            foreach ($langs as $lang) {
+                foreach ($slots as $slot) {
+                    $val = trim((string) Tools::getValue('neria_tg_' . $lang . '_' . $slot));
+                    if ($val !== '') {
+                        $greetings[$lang][$slot] = $val;
+                    }
+                }
+            }
+            (new ConfigManager($this))->saveTimeGreetings($greetings);
+            $this->context->smarty->assign('neria_success', 'Salutations horaires enregistrées.');
+        }
+
         if (Tools::getValue('neria_action') === 'save_firstname_fallbacks') {
             $langs     = TranslationEngine::SUPPORTED_LANGS;
             $fallbacks = [];
@@ -2615,6 +2631,7 @@ class Neria extends Module
             'log_internal_enabled' => $config->isInternalLogEnabled(),
             'voucher_validity'        => $config->getVoucherValidity(),
             'firstname_fallbacks'     => $config->getFirstnameFallbacks(),
+            'time_greetings'          => $config->getTimeGreetings(),
             'cooldown_enabled'      => $config->isCooldownEnabled(),
             'cooldown_minutes'      => $config->getCooldownMinutes(),
             'carbon_enabled'        => $config->isCarbonEnabled(),

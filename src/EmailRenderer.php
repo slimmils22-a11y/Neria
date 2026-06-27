@@ -294,6 +294,9 @@ class EmailRenderer
         // Fallback prénom : si {firstname} absent/vide, substitue par le mot élégant défini par le marchand
         $this->injectFirstnameFallback($params['templateVars'], $lang);
 
+        // Salutation horaire : {time_greeting} selon l'heure locale du client
+        $this->injectTimeGreeting($params['templateVars'], $lang);
+
         // Injecte {email} depuis le destinataire si absent (ex: newsletter_conf → subscription_confirmation)
         if (empty($params['templateVars']['{email}'])) {
             $to = $params['to'] ?? '';
@@ -861,6 +864,84 @@ class EmailRenderer
                 $templateVars[$txtKey] = trim(html_entity_decode($value, ENT_QUOTES, 'UTF-8'));
             }
         }
+    }
+
+    private function injectTimeGreeting(array &$templateVars, string $lang): void
+    {
+        try {
+            $timezone = $this->resolveCustomerTimezone($templateVars);
+            $hour     = (int) (new \DateTime('now', new \DateTimeZone($timezone)))->format('H');
+            $slot     = $this->getTimeSlot($hour);
+            $greetings = $this->config->getTimeGreetings();
+            $greeting  = $greetings[$lang][$slot] ?? $greetings['en'][$slot] ?? '';
+            $templateVars['{time_greeting}'] = $greeting;
+            (new WatchdogManager($this->module))->info(
+                '[time_greeting] "' . $greeting . '" injecté (lang:' . $lang . ' créneau:' . $slot . ' TZ:' . $timezone . ')'
+            );
+        } catch (\Throwable $e) {
+            $templateVars['{time_greeting}'] = '';
+            (new WatchdogManager($this->module))->warning(
+                '[time_greeting] Échec détection fuseau — salutation vide. ' . $e->getMessage()
+            );
+        }
+    }
+
+    private function resolveCustomerTimezone(array $templateVars): string
+    {
+        $countryIso = '';
+
+        // Priorité 1 : via id_customer → adresse par défaut
+        $idCustomer = (int) ($templateVars['{id_customer}'] ?? 0);
+        if ($idCustomer > 0) {
+            $addresses = (new \Customer($idCustomer))->getAddresses((int) \Configuration::get('PS_LANG_DEFAULT'));
+            if (!empty($addresses)) {
+                $countryIso = \Country::getIsoById((int) $addresses[0]['id_country']);
+            }
+        }
+
+        // Priorité 2 : via id_address_delivery (emails de commande)
+        if (!$countryIso) {
+            $idAddress = (int) ($templateVars['{id_address_delivery}'] ?? 0);
+            if ($idAddress > 0) {
+                $address    = new \Address($idAddress);
+                $countryIso = \Country::getIsoById((int) $address->id_country);
+            }
+        }
+
+        // Priorité 3 : pays par défaut de la boutique
+        if (!$countryIso) {
+            $countryIso = \Country::getIsoById((int) \Configuration::get('PS_COUNTRY_DEFAULT'));
+        }
+
+        return $this->countryIsoToTimezone((string) $countryIso);
+    }
+
+    private function countryIsoToTimezone(string $iso): string
+    {
+        if ($iso === '') {
+            return 'UTC';
+        }
+        // Pays à fuseaux multiples : on retient la zone la plus peuplée
+        $preferred = [
+            'US' => 'America/New_York',   'RU' => 'Europe/Moscow',
+            'AU' => 'Australia/Sydney',   'BR' => 'America/Sao_Paulo',
+            'CN' => 'Asia/Shanghai',      'ID' => 'Asia/Jakarta',
+            'MX' => 'America/Mexico_City','CA' => 'America/Toronto',
+            'IN' => 'Asia/Kolkata',       'AR' => 'America/Argentina/Buenos_Aires',
+        ];
+        if (isset($preferred[strtoupper($iso)])) {
+            return $preferred[strtoupper($iso)];
+        }
+        $zones = \DateTimeZone::listIdentifiers(\DateTimeZone::PER_COUNTRY, strtoupper($iso));
+        return $zones[0] ?? 'UTC';
+    }
+
+    private function getTimeSlot(int $hour): string
+    {
+        if ($hour >= 6 && $hour < 12) return 'morning';
+        if ($hour >= 12 && $hour < 18) return 'afternoon';
+        if ($hour >= 18 && $hour < 22) return 'evening';
+        return 'night';
     }
 
     private function injectFirstnameFallback(array &$templateVars, string $lang): void

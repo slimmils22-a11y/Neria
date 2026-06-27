@@ -64,6 +64,61 @@
   </form>
 </div>
 
+{* ── Smart Salutation — heure locale client ─────────────────── *}
+<div class="neria-section" id="neria-cfg-time-greetings">
+  <h2 class="neria-section__title">⏱ Smart Salutation — Heure locale</h2>
+  <p class="neria-section__desc">
+    Neria adapte la salutation <code>{ldelim}time_greeting{rdelim}</code> selon l'heure locale du client
+    (déduite de son adresse de livraison). Personnalisez les formules par langue et par créneau.
+  </p>
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <input type="hidden" name="neria_action" value="save_time_greetings">
+    <input type="hidden" name="neria_tab"    value="configure">
+
+    {assign var="tg_langs" value=[
+      'fr'=>'FR','en'=>'EN','de'=>'DE','it'=>'IT','es'=>'ES','pt'=>'PT',
+      'br'=>'BR','ar'=>'AR','ja'=>'JA','ko'=>'KO','zh'=>'ZH','tw'=>'TW',
+      'ru'=>'RU','tr'=>'TR','sv'=>'SV','no'=>'NO','da'=>'DA','nl'=>'NL'
+    ]}
+    {assign var="tg_slots" value=['morning'=>'🌅 Matin (6h–12h)','afternoon'=>'☀ Après-midi (12h–18h)','evening'=>'🌆 Soir (18h–22h)','night'=>'🌙 Nuit (22h–6h)']}
+
+    <div style="overflow-x:auto;margin-top:16px;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="background:#f9f6f1;">
+            <th style="padding:8px 10px;text-align:left;border-bottom:2px solid #e8d5b0;white-space:nowrap;">Langue</th>
+            {foreach $tg_slots as $slot => $slotLabel}
+              <th style="padding:8px 10px;text-align:left;border-bottom:2px solid #e8d5b0;white-space:nowrap;">{$slotLabel}</th>
+            {/foreach}
+          </tr>
+        </thead>
+        <tbody>
+          {foreach $tg_langs as $code => $label}
+            <tr style="border-bottom:1px solid #f0e8d8;">
+              <td style="padding:6px 10px;font-weight:600;color:var(--neria-dark);white-space:nowrap;">{$label}</td>
+              {foreach $tg_slots as $slot => $slotLabel}
+                <td style="padding:4px 6px;">
+                  <input type="text" name="neria_tg_{$code}_{$slot}" class="neria-input"
+                         style="font-size:12px;padding:4px 8px;"
+                         value="{$time_greetings[$code][$slot]|default:''|escape:'html'}">
+                </td>
+              {/foreach}
+            </tr>
+          {/foreach}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:16px;display:flex;align-items:center;gap:12px;">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">Enregistrer</button>
+      <span style="font-size:11px;color:#a09990;font-style:italic;">
+        &#9432; Utilisez <code>{ldelim}time_greeting{rdelim}</code> dans vos templates pour insérer la salutation automatiquement.
+      </span>
+    </div>
+  </form>
+</div>
+
 {* ── Smart Fallbacks — prénom manquant ─────────────────────── *}
 <div class="neria-section" id="neria-cfg-firstname-fallbacks">
   <h2 class="neria-section__title">✦ Smart Fallbacks — Prénom manquant</h2>
