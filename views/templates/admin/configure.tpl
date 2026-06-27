@@ -68,8 +68,9 @@
 <div class="neria-section" id="neria-cfg-time-greetings">
   <h2 class="neria-section__title">⏱ Smart Salutation — Heure locale</h2>
   <p class="neria-section__desc">
-    Neria adapte la salutation <code>{ldelim}time_greeting{rdelim}</code> selon l'heure locale du client
-    (déduite de son adresse de livraison). Personnalisez les formules par langue et par créneau.
+    Neria injecte automatiquement la bonne formule de salutation selon l'heure locale du client
+    (déduite de son adresse de livraison). Aucune retouche de template nécessaire — personnalisez
+    simplement les formules ci-dessous par langue et par créneau.
   </p>
 
   <form method="post" action="{$smarty.server.REQUEST_URI}">
@@ -172,7 +173,7 @@
     <div style="margin-top:16px;display:flex;align-items:center;gap:12px;">
       <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">Enregistrer</button>
       <span style="font-size:11px;color:#a09990;font-style:italic;">
-        &#9432; Utilisez <code>{ldelim}time_greeting{rdelim}</code> dans vos templates pour insérer la salutation automatiquement.
+        ✓ Plug &amp; play — la salutation remplace automatiquement la formule d'accueil dans tous vos templates.
       </span>
     </div>
   </form>
