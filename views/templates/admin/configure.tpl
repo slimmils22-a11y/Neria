@@ -990,7 +990,14 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var el = document.getElementById('{$neria_scroll_to|escape:'javascript'}');
-  if (el) { setTimeout(function(){ el.scrollIntoView({ldelim}behavior:'smooth', block:'start'{rdelim}); }, 200); }
+  if (el) {
+    setTimeout(function() {
+      var header = document.querySelector('#header_infos') || document.querySelector('.navbar-fixed-top') || document.querySelector('nav.navbar');
+      var offset = header ? header.offsetHeight + 16 : 70;
+      var top = el.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ldelim}behavior: 'smooth', top: top{rdelim});
+    }, 200);
+  }
 });
 </script>
 {/if}
