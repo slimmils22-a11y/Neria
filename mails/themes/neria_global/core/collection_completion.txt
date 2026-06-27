@@ -1,0 +1,22 @@
+{collection_completion_eyebrow}
+
+{collection_completion_title}
+
+{collection_completion_intro}
+
+--------
+
+{collection_completion_progress_label} : {collection_name}
+{collection_completion_pieces_bought} — {collection_completion_one_left}
+
+--------
+
+{collection_completion_missing_label} : {missing_product}
+{missing_price} €
+
+{collection_completion_cta} :
+{missing_product_url}
+
+--------
+
+{collection_completion_note}

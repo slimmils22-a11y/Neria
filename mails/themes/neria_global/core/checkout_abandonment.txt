@@ -1,0 +1,18 @@
+{shop_name}
+
+{neria_trad key='dear_customer'}
+
+{neria_trad key='checkout_abandonment_intro'}
+
+{neria_trad key='checkout_abandonment_reassure'}
+
+{neria_trad key='checkout_abandonment_btn'} : {cart_url}
+
+{neria_trad key='checkout_abandonment_help'}
+
+{neria_trad key='checkout_abandonment_note'}
+
+{neria_trad key='checkout_abandonment_signature'}
+
+{shop_name}
+{shop_url}

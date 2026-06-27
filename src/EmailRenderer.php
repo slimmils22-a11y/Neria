@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * NERIA â€” EmailRenderer
  *
@@ -32,6 +32,14 @@ class EmailRenderer
      * Templates qui NE doivent PAS être traités par Neria
      */
     const EXCLUDED_TEMPLATES = [];
+
+    /**
+     * Alias : template PS natif → template Neria équivalent.
+     * À utiliser uniquement quand le module tiers utilise un nom de template
+     * différent de celui du fichier core Neria correspondant.
+     * Exemple : 'native_name' => 'neria_template_name'
+     */
+    const TEMPLATE_ALIASES = [];
 
     // ============================================================
     // PROPRIÃ‰TÃ‰S
@@ -102,6 +110,15 @@ class EmailRenderer
             $this->watchdog = new WatchdogManager($this->module);
         }
         return $this->watchdog;
+    }
+
+    private function tw(string $key, array $vars = []): string
+    {
+        $str = class_exists('AdminTranslator') ? AdminTranslator::t($key) : $key;
+        foreach ($vars as $k => $v) {
+            $str = str_replace('{' . $k . '}', (string) $v, $str);
+        }
+        return $str;
     }
 
     /**
@@ -184,7 +201,7 @@ class EmailRenderer
         // â”€â”€ RÃ©cupÃ¨re et valide le template â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $template = $this->resolveTemplate($params['template'] ?? '');
 
-        if (!$template || $this->isExcluded($template)) {
+        if (!$template || $this->isExcluded($template, $params)) {
             return true;
         }
 
@@ -218,12 +235,21 @@ class EmailRenderer
         // On lève pour basculer sur l'email de secours.
         if (!file_exists($this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html'))
             && $this->templateMissingEverywhere($template, $params)) {
-            throw new \RuntimeException('Template introuvable : ' . $template);
+            throw new \RuntimeException(WatchdogManager::i18nMsg('watchdog.core_missing', ['template' => $template]));
         }
 
 
         // â”€â”€ RÃ©sout la langue â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $lang = $this->resolveEmailLang($params);
+
+        // Expéditeur spécifique à la langue (multi-sender)
+        $sender = $this->config->getSenderForLang($lang);
+        if (!empty($sender['name'])) {
+            $params['fromName'] = $sender['name'];
+        }
+        if (!empty($sender['email']) && \Validate::isEmail($sender['email'])) {
+            $params['from'] = $sender['email'];
+        }
 
         // â”€â”€ Sujet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         // Si aucun sujet n'est fourni (ex. envoi manuel), on utilise le titre
@@ -265,6 +291,12 @@ class EmailRenderer
         // Injecte les variables personnalisées du marchand ({return_address}, etc.)
         $this->injectCustomVars($params['templateVars']);
 
+        // Injecte {email} depuis le destinataire si absent (ex: newsletter_conf → subscription_confirmation)
+        if (empty($params['templateVars']['{email}'])) {
+            $to = $params['to'] ?? '';
+            $params['templateVars']['{email}'] = is_array($to) ? (string) reset($to) : (string) $to;
+        }
+
         // Message personnalisé optionnel (envoi manuel) — versions HTML et TXT
         $this->injectCustomMessage($params['templateVars']);
 
@@ -278,7 +310,7 @@ class EmailRenderer
             if (is_array($unsubTo)) {
                 $unsubTo = reset($unsubTo);
             }
-            $params['templateVars']['{unsubscribe_url}'] = $this->module->getUnsubscribeUrl((string) $unsubTo);
+            $params['templateVars']['{unsubscribe_url}'] = $this->module->getUnsubscribeUrl((string) $unsubTo, $lang);
         }
 
         // Lien du bon de retour (page Retours du compte client)
@@ -308,11 +340,21 @@ class EmailRenderer
         // PrestaShop sert un autre fichier que la langue détectée et l'email
         // part dans la mauvaise langue.
         $outIso = \Language::getIsoById((int) ($params['idLang'] ?? 0)) ?: $lang;
-        $compiledPath = $this->compileNeriaTemplate($template, $lang, $outIso);
+        $compiledPath = $this->compileNeriaTemplate($template, $lang, $outIso, $params['templateVars'] ?? []);
         if ($compiledPath !== null) {
+            // ── Wrapping des liens pour le tracking de clics ─────────────
+            if ($this->config->isStatsEnabled() && !empty($params['neria_token'])) {
+                $this->wrapLinksInFile($compiledPath, (string) $params['neria_token']);
+            }
+
             if (isset($params['templatePath'])) {
                 // PS détecte 'modules/neria/' dans le chemin et cherche dans ce dossier
                 $params['templatePath'] = _PS_MODULE_DIR_ . 'neria/mails/';
+            }
+            // Si un alias a changé le nom du template, synchroniser $params['template']
+            // pour que PS cherche le bon fichier compilé dans templatePath.
+            if ($params['template'] !== $template) {
+                $params['template'] = $template;
             }
         } elseif (file_exists(
             $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html')
@@ -321,7 +363,7 @@ class EmailRenderer
             // corrompu, bloc neria_content manquant) : on lève pour basculer
             // sur l'email de secours. Un template hors périmètre Neria (pas de
             // fichier core) est au contraire laissé tel quel à PrestaShop.
-            throw new \RuntimeException('Compilation impossible du template ' . $template);
+            throw new \RuntimeException(WatchdogManager::i18nMsg('watchdog.block_missing', ['template' => $template]));
         }
 
         // â”€â”€ Log â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -339,11 +381,13 @@ class EmailRenderer
         // (compilation effective) — pas pour les emails laissés tels quels à
         // PrestaShop. softLog respecte aussi le réglage « emails internes ».
         if ($compiledPath !== null) {
-            $this->softLog(
-                'info',
-                sprintf('Email rendu avec succès%s', $variant ? ' — variante ' . $variant : ''),
-                $template
-            );
+            // Rendu réussi → réinitialiser le compteur d'échecs consécutifs
+            \Configuration::updateValue(HealthCheckManager::CFG_CONSECUTIVE_FAILURES, 0);
+
+            $msg = $variant
+                ? WatchdogManager::i18nMsg('watchdog.render_success_variant', ['variant' => $variant])
+                : WatchdogManager::i18nMsg('watchdog.render_success');
+            $this->softLog('info', $msg, $template);
         }
     }
 
@@ -434,17 +478,57 @@ class EmailRenderer
      * @return bool false = annuler l'envoi natif (secours envoyé) ;
      *              true  = laisser PrestaShop poursuivre son envoi natif
      */
+    /**
+     * Extrait un conseil actionnable depuis un message d'erreur Smarty.
+     */
+    private function extractSmartyHint(string $cause, string $template): string
+    {
+        $lower = strtolower($cause);
+
+        // Variable Smarty manquante : "Undefined variable: foo" ou "Undefined index: foo"
+        if (preg_match('/undefined (?:variable|index)[:\s]+[\'"]?(\w+)/i', $cause, $m)) {
+            return 'Variable Smarty manquante : {' . $m[1] . '} dans le template ' . $template
+                . '. Vérifiez que cette variable est bien injectée dans templateVars avant l\'envoi.';
+        }
+
+        // Fichier template introuvable
+        if (strpos($lower, 'no such file') !== false || strpos($lower, 'unable to load') !== false) {
+            return 'Fichier template introuvable pour ' . $template
+                . '. Vérifiez que le fichier existe dans mails/themes/neria_global/core/.';
+        }
+
+        // Erreur de permissions
+        if (strpos($lower, 'permission denied') !== false || strpos($lower, 'failed to open stream') !== false) {
+            return 'Erreur de permissions sur le dossier mails/. Vérifiez que le dossier mails/'
+                . ' est accessible en écriture (chmod 755 ou 775).';
+        }
+
+        // Dépassement de mémoire
+        if (strpos($lower, 'allowed memory size') !== false || strpos($lower, 'out of memory') !== false) {
+            return 'Mémoire PHP insuffisante. Augmentez memory_limit dans php.ini (recommandé : 256M minimum).';
+        }
+
+        return '';
+    }
+
     private function handleRenderFailure(array &$params, string $template, \Throwable $e): bool
     {
-        $this->module->log(
-            'Echec du rendu Neria [' . $template . '] : ' . $e->getMessage(),
-            3
-        );
-        $this->watchdog()->error(
-            'Echec du rendu — ' . $e->getMessage(),
-            $template,
-            'EmailRenderer'
-        );
+        $cause = $e->getMessage();
+        $this->module->log('Echec du rendu Neria [' . $template . '] : ' . $cause, 3);
+
+        // Incrémenter le compteur d'échecs consécutifs
+        $fails = (int) \Configuration::get(HealthCheckManager::CFG_CONSECUTIVE_FAILURES);
+        \Configuration::updateValue(HealthCheckManager::CFG_CONSECUTIVE_FAILURES, $fails + 1);
+
+        if (str_starts_with($cause, '::i18n::')) {
+            $wdMsg = $cause;
+        } else {
+            // Détecter les erreurs Smarty avec variable manquante
+            $actionable = $this->extractSmartyHint($cause, $template);
+            $enriched   = $cause . ($actionable ? ' → ' . $actionable : '');
+            $wdMsg      = WatchdogManager::i18nMsg('watchdog.render_unexpected', ['cause' => $enriched]);
+        }
+        $this->watchdog()->error($wdMsg, $template, 'EmailRenderer');
 
         // Ne détourner que les emails que Neria habille réellement (un fichier
         // core/<template>.html existe). Un template tiers/natif inconnu est
@@ -487,7 +571,7 @@ class EmailRenderer
             $to = trim((string) $to);
             if ($to === '' || !\Validate::isEmail($to)) {
                 $this->watchdog()->critical(
-                    'Email de secours impossible : adresse destinataire absente ou invalide',
+                    WatchdogManager::i18nMsg('watchdog.fallback_no_to'),
                     'neria_fallback',
                     'EmailRenderer'
                 );
@@ -507,7 +591,7 @@ class EmailRenderer
             // Écrit les .html/.txt plats que Mail::send lira dans mails/<iso>/
             if ($this->compileNeriaTemplate('neria_fallback', $lang, $outIso) === null) {
                 $this->watchdog()->critical(
-                    'Email de secours impossible : template neria_fallback introuvable ou corrompu',
+                    WatchdogManager::i18nMsg('watchdog.fallback_no_template'),
                     'neria_fallback',
                     'EmailRenderer'
                 );
@@ -531,7 +615,7 @@ class EmailRenderer
                 '{custom_message}'     => '',
                 '{custom_message_txt}' => '',
                 '{subject}'            => $subject,
-                '{unsubscribe_url}'    => $this->module->getUnsubscribeUrl($to),
+                '{unsubscribe_url}'    => $this->module->getUnsubscribeUrl($to, $lang),
             ];
 
             // ── Envoi (anti-récursion via le drapeau statique) ──────────
@@ -556,8 +640,10 @@ class EmailRenderer
 
             if ($sent) {
                 $this->watchdog()->warning(
-                    'Email de secours envoyé à la place de [' . ($params['template'] ?? '?')
-                    . '] — cause : ' . $cause->getMessage(),
+                    WatchdogManager::i18nMsg('watchdog.fallback_sent', [
+                        'template' => $params['template'] ?? '?',
+                        'cause'    => $cause->getMessage(),
+                    ]),
                     (string) ($params['template'] ?? ''),
                     'EmailRenderer',
                     ['to' => $to, 'lang' => $lang]
@@ -566,7 +652,7 @@ class EmailRenderer
             }
 
             $this->watchdog()->critical(
-                'Email de secours : Mail::Send a renvoyé un échec',
+                WatchdogManager::i18nMsg('watchdog.fallback_send_failed'),
                 'neria_fallback',
                 'EmailRenderer'
             );
@@ -577,7 +663,7 @@ class EmailRenderer
             self::$inFallback = false;
             $this->module->log('Echec du fallback email : ' . $e->getMessage(), 3);
             $this->watchdog()->critical(
-                'Email de secours : exception — ' . $e->getMessage(),
+                WatchdogManager::i18nMsg('watchdog.fallback_exception', ['error' => $e->getMessage()]),
                 'neria_fallback',
                 'EmailRenderer'
             );
@@ -866,8 +952,7 @@ class EmailRenderer
             // Aucun cart rule ne correspond à ce code : l'intro afficherait un
             // montant vide. On le signale (email visiblement défectueux).
             $this->watchdog()->warning(
-                'Bon newsletter : code introuvable ou taux non résolu — '
-                . 'le montant de réduction sera vide dans l\'email',
+                WatchdogManager::i18nMsg('watchdog.voucher_rate_missing'),
                 'newsletter_voucher',
                 'EmailRenderer',
                 ['code' => $code]
@@ -1022,6 +1107,58 @@ class EmailRenderer
     }
 
     /**
+     * Remplace les href HTTP(S) du fichier HTML compilé par des URLs de tracking.
+     * Permet de compter les clics et d'identifier le visiteur pour l'attribution.
+     * Liens ignorés : mailto, tel, #, javascript, déjà trackés, désabonnement.
+     */
+    private function wrapLinksInFile(string $filePath, string $token): void
+    {
+        if (!file_exists($filePath) || !is_readable($filePath)) {
+            return;
+        }
+        $html = file_get_contents($filePath);
+        if ($html === false || $html === '') {
+            return;
+        }
+
+        // Matche uniquement les balises <a …> pour ne pas wrapper les <link>
+        $wrapped = preg_replace_callback(
+            '/<a(\s[^>]*)>/i',
+            function ($m) use ($token) {
+                $attrs = preg_replace_callback(
+                    '/\bhref=(["\'])(https?:\/\/[^"\'>\s]+)\1/i',
+                    function ($am) use ($token) {
+                        $quote = $am[1];
+                        $url   = $am[2];
+                        if (
+                            strpos($url, 'controller=track')    !== false ||
+                            strpos($url, '/neria/track')        !== false ||
+                            strpos($url, '/neria/unsubscribe')  !== false ||
+                            strpos($url, 'neria_action=unsubscribe') !== false
+                        ) {
+                            return $am[0];
+                        }
+                        $trackUrl = $this->context->link->getModuleLink(
+                            'neria',
+                            'track',
+                            ['t' => $token, 'e' => 'click', 'url' => $url],
+                            true
+                        );
+                        return 'href=' . $quote . $trackUrl . $quote;
+                    },
+                    $m[1]
+                );
+                return '<a' . $attrs . '>';
+            },
+            $html
+        );
+
+        if ($wrapped !== null && $wrapped !== $html) {
+            file_put_contents($filePath, $wrapped);
+        }
+    }
+
+    /**
      * GÃ©nÃ¨re un token SHA-256 unique pour un email
      *
      * @param string $template Nom du template
@@ -1095,6 +1232,24 @@ class EmailRenderer
             return $this->engine->langFromId($idLang);
         }
 
+        // Pour les emails internes (marchand, employés), on utilise directement
+        // idLang sans chercher la localisation client : l'adresse admin peut être
+        // enregistrée comme client avec un pays français, ce qui forcerait
+        // systématiquement le français sur les envois de test.
+        if ($this->currentInternal) {
+            // Priorité 1 : langue explicitement demandée via le picker test Neria
+            // (fonctionne même si la langue n'est pas installée dans ps_lang)
+            $testLang = (string) \Tools::getValue('neria_test_lang', '');
+            if ($testLang !== '' && in_array($testLang, TranslationEngine::SUPPORTED_LANGS, true)) {
+                return $testLang;
+            }
+            // Priorité 2 : id_lang transmis par PS (langue de l'employé en base)
+            $lang = $this->engine->langFromId($idLang);
+            return in_array($lang, TranslationEngine::SUPPORTED_LANGS, true)
+                ? $lang
+                : TranslationEngine::FALLBACK_LANG;
+        }
+
         $idCustomer = $this->resolveCustomerId($params);
         $location   = $this->getCustomerLocation($idCustomer, $params);
 
@@ -1105,8 +1260,7 @@ class EmailRenderer
         if ($location['iso'] === '' && !$this->engine->isMultilingualShop()) {
             $this->softLog(
                 'warning',
-                'Détection de langue : aucune localisation client trouvée, '
-                . 'repli sur la langue par défaut (peut ne pas correspondre au lecteur)',
+                WatchdogManager::i18nMsg('watchdog.lang_fallback'),
                 $this->resolveTemplate($params['template'] ?? ''),
                 [
                     'id_customer' => $idCustomer,
@@ -1274,18 +1428,30 @@ class EmailRenderer
         // Supprime les caractÃ¨res non autorisÃ©s (sÃ©curitÃ©)
         $template = preg_replace('/[^a-z0-9_-]/i', '', $template);
 
-        return strtolower($template);
+        $template = strtolower($template);
+
+        // Alias : remappe les templates PS/modules tiers vers Neria
+        return self::TEMPLATE_ALIASES[$template] ?? $template;
     }
 
     /**
      * Indique si un template est exclu du traitement Neria
      *
      * @param string $template Nom du template
+     * @param array  $params   Paramètres de l'email (pour la résolution de langue)
      * @return bool
      */
-    private function isExcluded(string $template): bool
+    private function isExcluded(string $template, array $params = []): bool
     {
-        return in_array($template, self::EXCLUDED_TEMPLATES, true);
+        if (in_array($template, self::EXCLUDED_TEMPLATES, true)) {
+            return true;
+        }
+        // Résolution rapide de la langue (idLang uniquement, sans lookup client)
+        $lang = '';
+        if (!empty($params['idLang'])) {
+            $lang = $this->engine->langFromId((int) $params['idLang']);
+        }
+        return (new BlacklistManager())->isBlacklisted($template, $lang);
     }
 
     /**
@@ -1471,6 +1637,45 @@ class EmailRenderer
     }
 
     /**
+     * Rend un template avec de VRAIES variables (snapshot d'un envoi passé),
+     * pour l'aperçu fidèle et le renvoi depuis l'historique client. À la
+     * différence de renderPreviewHtml() (données fictives pour la démo design),
+     * les variables manquantes sont effacées plutôt que remplacées par des
+     * valeurs inventées — il s'agit d'un email réel destiné à un client réel.
+     *
+     * @param string $template
+     * @param string $lang
+     * @param array  $vars Paires clé (sans accolades) => valeur, ex. ['order_name' => 'NR-123']
+     * @return string|null HTML compilé, ou null si le template est introuvable
+     */
+    public function renderWithVars(string $template, string $lang, array $vars): ?string
+    {
+        $design   = $this->config->getDesignConfig();
+        $compiled = $this->buildCompiledHtml($template, $lang, $design);
+        if ($compiled === null) {
+            return null;
+        }
+
+        $replacements = [];
+        foreach ($vars as $key => $value) {
+            $replacements['{' . $key . '}'] = (string) $value;
+        }
+        // Toujours résolus avec les données actuelles de la boutique, pas
+        // figés dans le snapshot (l'adresse/le nom de la boutique peuvent
+        // avoir changé depuis l'envoi d'origine).
+        $replacements['{shop_name}'] = (string) \Configuration::get('PS_SHOP_NAME');
+        $replacements['{shop_url}']  = \Tools::getShopDomainSsl(true);
+
+        $compiled = str_replace(array_keys($replacements), array_values($replacements), $compiled);
+
+        // Résidus (variables non capturées dans le snapshot, ex. blocs HTML
+        // complexes type tableau produits) : effacés silencieusement.
+        $compiled = preg_replace('/\{[a-z0-9_]+\}/i', '', $compiled);
+
+        return $compiled;
+    }
+
+    /**
      * Compile layout + core en HTML plat (résout {neria_trad} et les variables
      * de design) sans écrire de fichier. Coeur partageable entre l'envoi réel
      * et l'aperçu. Retourne null si le template est introuvable.
@@ -1529,6 +1734,30 @@ class EmailRenderer
         $compiled = preg_replace('/\{if\s[^}]+\}.*?\{\/if\}/s', '', $compiled);
         $compiled = preg_replace('/\{\*.*?\*\}/s', '', $compiled);
         $compiled = preg_replace('/\{\$[a-z_]+\}/', '', $compiled);
+
+        // Empreinte carbone — injecté AVANT le CSS inlining (DOMDocument déplace
+        // les commentaires HTML hors des <table>, le str_replace ne les retrouve plus après)
+        $carbonHtml = '';
+        if ($this->config->isCarbonEnabled()) {
+            $sizeKb  = strlen($compiled) / 1024;
+            $co2     = number_format($sizeKb * 0.02, 1, '.', ''); // ~0.3g pour 15 Ko
+            $link    = $this->config->getCarbonLink();
+            $carbonLabel  = $this->engine->get('_global', 'carbon_label', $lang) ?: 'Empreinte estimée de cet email';
+            $carbonMethod = $this->engine->get('_global', 'carbon_method', $lang) ?: 'méthodologie';
+            $linkHtml = $link
+                ? ' — <a href="' . htmlspecialchars($link, ENT_QUOTES, 'UTF-8') . '" style="color:#a09990;text-decoration:underline;" target="_blank">' . htmlspecialchars($carbonMethod, ENT_QUOTES, 'UTF-8') . '</a>'
+                : '';
+            $carbonHtml = '<tr><td style="text-align:center;font-family:Georgia,Times New Roman,serif;'
+                . 'font-size:11px;color:#a09990;padding:4px 20px 20px;line-height:1.8;">'
+                . '🌱 ' . htmlspecialchars($carbonLabel, ENT_QUOTES, 'UTF-8') . '&nbsp;: ~' . $co2 . 'g CO₂' . $linkHtml
+                . '</td></tr>';
+        }
+        $compiled = str_replace('<!-- NERIA_CARBON -->', $carbonHtml, $compiled);
+
+        // Inline CSS pour compatibilité Gmail / Orange / Yahoo (suppriment <style>)
+        if (class_exists('CssInliner')) {
+            $compiled = CssInliner::inline($compiled);
+        }
 
         return $compiled;
     }
@@ -1676,14 +1905,26 @@ class EmailRenderer
      * Compile le template Neria en fichier HTML plat (sans heritage Smarty)
      * Fusionne layout.html + core/{template}.html
      */
-    private function compileNeriaTemplate(string $template, string $lang, ?string $outIso = null): ?string
-    {
+    private function compileNeriaTemplate(
+        string $template,
+        string $lang,
+        ?string $outIso = null,
+        array $templateVars = []
+    ): ?string {
         $layoutPath = $this->module->getModulePath('mails/themes/neria_global/layout.html');
         $corePath   = $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html');
 
-        if (!file_exists($layoutPath) || !file_exists($corePath)) {
+        if (!file_exists($layoutPath)) {
             $this->watchdog()->error(
-                'Template introuvable : ' . $template,
+                WatchdogManager::i18nMsg('watchdog.layout_missing'),
+                $template,
+                'EmailRenderer'
+            );
+            return null;
+        }
+        if (!file_exists($corePath)) {
+            $this->watchdog()->error(
+                WatchdogManager::i18nMsg('watchdog.core_missing', ['template' => $template]),
                 $template,
                 'EmailRenderer'
             );
@@ -1694,6 +1935,11 @@ class EmailRenderer
         $core   = file_get_contents($corePath);
 
         if (!preg_match('/\{block\s+name=[\'"]neria_content[\'\"]\}(.*?)\{\/block\}/s', $core, $m)) {
+            $this->watchdog()->error(
+                WatchdogManager::i18nMsg('watchdog.block_missing', ['template' => $template]),
+                $template,
+                'EmailRenderer'
+            );
             return null;
         }
 
@@ -1724,16 +1970,64 @@ class EmailRenderer
             '{$neria_container_width}'  => (string) $design['container_width'],
             '{$neria_logo_width}'       => (string) $design['logo_width'],
             '{$neria_logo_url}'         => $this->resolveLogoUrl($design['logo_path']),
-            '{$neria_tracking_pixel}'   => '',
-            '{$neria_social_links}'     => '',
+            '{$neria_tracking_pixel}'   => $templateVars['neria_tracking_pixel'] ?? '',
+            '{$neria_social_links}'     => $templateVars['neria_social_links']   ?? '',
             '{$neria_lang}'             => $lang,
         ];
         $compiled = str_replace(array_keys($tplVars), array_values($tplVars), $compiled);
+
+        // ── Variables PS communes garanties ──────────────────────────────────
+        // Appliquées EN PREMIER pour garantir la valeur correcte (shop_url
+        // avec le sous-répertoire __PS_BASE_URI__ compris). Si on les applique
+        // après la boucle templateVars, le caller a déjà remplacé {shop_url}
+        // avec sa valeur incomplète (getShopDomainSsl sans base URI) et le
+        // override ne trouve plus rien à remplacer.
+        $baseUrl  = rtrim(\Tools::getShopDomainSsl(true), '/') . __PS_BASE_URI__;
+        $psCommon = [
+            '{shop_url}'           => $baseUrl,
+            '{history_url}'        => $this->context->link->getPageLink('history', true),
+            '{guest_tracking_url}' => $this->context->link->getPageLink('guest-tracking', true),
+        ];
+        $compiled = str_replace(array_keys($psCommon), array_values($psCommon), $compiled);
+
+        // ── Résoudre les variables PS-style {var} restantes ──────────────────
+        // Les clés dans templateVars ont déjà les accolades : '{firstname}'.
+        // Les vars déjà résolues par psCommon (shop_url, etc.) ne sont plus
+        // présentes dans $compiled — le str_replace est un no-op pour elles.
+        foreach ($templateVars as $key => $value) {
+            if (is_string($value) && $value !== '') {
+                $compiled = str_replace($key, $value, $compiled);
+            }
+        }
 
         // ── Nettoyer les résidus Smarty ───────────────────────────────────
         $compiled = preg_replace('/\{if\s[^}]+\}.*?\{\/if\}/s', '', $compiled);
         $compiled = preg_replace('/\{\*.*?\*\}/s', '', $compiled);
         $compiled = preg_replace('/\{\$[a-z_]+\}/', '', $compiled);
+
+        // ── Empreinte carbone — injecté avant CssInliner (DOMDocument déplace
+        // les commentaires hors des <table>) et avant l'écriture du fichier ──
+        $carbonHtml = '';
+        if ($this->config->isCarbonEnabled()) {
+            $sizeKb   = strlen($compiled) / 1024;
+            $co2      = number_format($sizeKb * 0.02, 1, '.', '');
+            $carbonLink   = $this->config->getCarbonLink();
+            $carbonLabel  = $this->engine->get('_global', 'carbon_label', $lang) ?: 'Empreinte estimée de cet email';
+            $carbonMethod = $this->engine->get('_global', 'carbon_method', $lang) ?: 'méthodologie';
+            $carbonLinkHtml = $carbonLink
+                ? ' — <a href="' . htmlspecialchars($carbonLink, ENT_QUOTES, 'UTF-8') . '" style="color:#a09990;text-decoration:underline;" target="_blank">' . htmlspecialchars($carbonMethod, ENT_QUOTES, 'UTF-8') . '</a>'
+                : '';
+            $carbonHtml = '<tr><td style="text-align:center;font-family:Georgia,Times New Roman,serif;'
+                . 'font-size:11px;color:#a09990;padding:4px 20px 20px;line-height:1.8;">'
+                . '🌱 ' . htmlspecialchars($carbonLabel, ENT_QUOTES, 'UTF-8') . '&nbsp;: ~' . $co2 . 'g CO₂' . $carbonLinkHtml
+                . '</td></tr>';
+        }
+        $compiled = str_replace('<!-- NERIA_CARBON -->', $carbonHtml, $compiled);
+
+        // ── Inline CSS pour compatibilité Gmail / Orange / Yahoo ─────────────
+        if (class_exists('CssInliner')) {
+            $compiled = CssInliner::inline($compiled);
+        }
 
         // Dossier de sortie : l'ISO que Mail::send va lire (langue du compte,
         // $outIso) plutôt que la langue détectée du contenu ($lang). Le fichier
@@ -1745,7 +2039,14 @@ class EmailRenderer
         }
 
         $outFile = $outDir . $template . '.html';
-        file_put_contents($outFile, $compiled);
+        if (file_put_contents($outFile, $compiled) === false) {
+            $this->watchdog()->error(
+                WatchdogManager::i18nMsg('watchdog.write_error', ['lang' => $outIso ?: $lang, 'template' => $template]),
+                $template,
+                'EmailRenderer'
+            );
+            return null;
+        }
 
         // Générer aussi la version .txt (avec résolution des {neria_trad})
         $txtPath = $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.txt');

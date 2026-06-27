@@ -1,0 +1,66 @@
+{extends file='layouts/layout.html'}
+{block name='neria_content'}
+<table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+  <tr>
+    <td style="padding:32px 40px 8px;">
+      <p style="margin:0 0 6px;font-size:12px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:#b8975a;opacity:.85;">
+        {neria_trad key='ghost_cart_eyebrow'}
+      </p>
+      <p style="margin:0 0 12px;font-size:16px;color:#1a1a1a;">
+        {neria_trad key='ghost_cart_greeting'} {firstname},
+      </p>
+      <h1 style="margin:0 0 18px;font-size:24px;font-weight:700;color:#1a1a1a;line-height:1.3;">
+        {neria_trad key='ghost_cart_title'}
+      </h1>
+      <p style="margin:0 0 24px;font-size:15px;line-height:1.75;color:#4a3f35;">
+        {neria_trad key='ghost_cart_intro'}
+      </p>
+    </td>
+  </tr>
+
+  {* ── Carte produit ── *}
+  <tr>
+    <td style="padding:0 40px 24px;">
+      <table width="100%" cellpadding="0" cellspacing="0"
+             style="border:1px solid #e8d5b0;border-radius:6px;overflow:hidden;background:#fff;">
+        <tr>
+          {if $product_image}
+          <td width="110" style="padding:16px 0 16px 16px;vertical-align:top;">
+            <a href="{product_url}" style="display:block;">
+              <img src="{product_image}" width="94" height="94"
+                   alt="{product_name}"
+                   style="display:block;border-radius:4px;object-fit:cover;width:94px;height:94px;" />
+            </a>
+          </td>
+          {/if}
+          <td style="padding:16px 20px;vertical-align:top;">
+            <p style="margin:0 0 4px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#b8975a;">
+              {neria_trad key='ghost_cart_product_label'}
+            </p>
+            <p style="margin:0 0 8px;font-size:16px;font-weight:700;color:#1a1a1a;line-height:1.3;">
+              <a href="{product_url}" style="color:#1a1a1a;text-decoration:none;">{product_name}</a>
+            </p>
+            <p style="margin:0 0 14px;font-size:14px;color:#7a6a55;">{product_price} €</p>
+            <a href="{product_url}"
+               style="display:inline-block;padding:9px 22px;background:#1a1a1a;color:#fff;
+                      font-size:12px;font-weight:700;letter-spacing:.05em;text-decoration:none;
+                      border-radius:3px;">
+              {neria_trad key='ghost_cart_cta'}
+            </a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  {* ── Note de clôture ── *}
+  <tr>
+    <td style="padding:0 40px 32px;">
+      <p style="margin:0;font-size:13px;line-height:1.7;color:#7a6a55;font-style:italic;
+                border-left:3px solid #e8d5b0;padding-left:14px;">
+        {neria_trad key='ghost_cart_note'}
+      </p>
+    </td>
+  </tr>
+</table>
+{/block}

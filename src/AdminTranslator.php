@@ -1,0 +1,302 @@
+<?php
+/**
+ * NERIA — AdminTranslator
+ *
+ * Traduction du back-office dans les 18 langues du module.
+ *
+ * Contrairement aux emails (table SQL, éditables par le marchand), les libellés
+ * de l'interface d'administration sont figés et vivent dans un dictionnaire JSON
+ * livré avec le module : data/admin_translations.json.
+ *
+ * La langue affichée est celle de l'employé connecté au back-office
+ * (Context::getContext()->language). Si elle ne fait pas partie des 18 langues
+ * supportées, on retombe sur l'anglais.
+ *
+ * Utilisation :
+ *   - Côté Smarty  : {neria_admin key='design.colors_title'}
+ *   - Côté PHP     : AdminTranslator::t('msg.design_saved')
+ *
+ * @author  Neria
+ * @license AFL
+ */
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
+class AdminTranslator
+{
+    /** Langue de repli si la langue de l'employé n'est pas couverte */
+    const FALLBACK_LANG = 'en';
+
+    /**
+     * Dictionnaire chargé depuis le JSON, mis en cache pour la requête.
+     * Structure : ['cle.semantique' => ['fr' => '...', 'en' => '...', ...], ...]
+     *
+     * @var array|null
+     */
+    private static ?array $dict = null;
+
+    /** Code langue résolu pour le back-office courant (cache requête). */
+    private static ?string $lang = null;
+
+    /**
+     * Dictionnaire des noms de templates (data/template_labels_i18n.json).
+     * Structure : ['order_conf' => ['fr' => '...', 'en' => '...', ...], ...]
+     *
+     * @var array|null
+     */
+    private static ?array $tplDict = null;
+
+    // ============================================================
+    // API PUBLIQUE
+    // ============================================================
+
+    /**
+     * Traduit une clé dans la langue du back-office courant.
+     *
+     * Ordre de résolution : langue employé → anglais → français → la clé.
+     * Ne plante jamais : renvoie au pire la clé elle-même.
+     *
+     * @param string $key Clé sémantique (ex: 'design.colors_title')
+     * @return string     Libellé traduit
+     */
+    public static function t(string $key): string
+    {
+        $dict = self::dict();
+        $lang = self::currentLang();
+
+        if (isset($dict[$key][$lang]) && $dict[$key][$lang] !== '') {
+            return $dict[$key][$lang];
+        }
+
+        if (isset($dict[$key][self::FALLBACK_LANG]) && $dict[$key][self::FALLBACK_LANG] !== '') {
+            return $dict[$key][self::FALLBACK_LANG];
+        }
+
+        if (isset($dict[$key]['fr']) && $dict[$key]['fr'] !== '') {
+            return $dict[$key]['fr'];
+        }
+
+        // Rien trouvé : on renvoie la clé pour repérer visuellement l'oubli.
+        return $key;
+    }
+
+    /**
+     * Traduction avec substitution de variables ({var} → valeur), pour les
+     * messages composés en PHP (alertes, watchdog...) avant assignation à
+     * Smarty ou au journal.
+     *
+     * @param string $key  Clé sémantique
+     * @param array  $vars Paires {placeholder} => valeur
+     */
+    public static function tVars(string $key, array $vars = []): string
+    {
+        $str = self::t($key);
+        foreach ($vars as $k => $v) {
+            $str = str_replace('{' . $k . '}', (string) $v, $str);
+        }
+        return $str;
+    }
+
+    /**
+     * Helper Smarty pour {neria_admin key='...'}.
+     *
+     * @param array  $params  Paramètres Smarty (attend 'key')
+     * @param object $smarty  Instance Smarty (non utilisée)
+     * @return string
+     */
+    public static function smartyHelper(array $params, $smarty): string
+    {
+        $key = isset($params['key']) ? (string) $params['key'] : '';
+
+        if ($key === '') {
+            return '';
+        }
+
+        return self::t($key);
+    }
+
+    /**
+     * Enregistre le plugin Smarty {neria_admin} sur l'instance fournie.
+     * Idempotent : ignore l'erreur si déjà enregistré dans la requête.
+     *
+     * @param object $smarty Instance Smarty (context->smarty)
+     */
+    public static function register($smarty): void
+    {
+        if (!is_object($smarty) || !method_exists($smarty, 'registerPlugin')) {
+            return;
+        }
+
+        try {
+            $smarty->registerPlugin('function', 'neria_admin', ['AdminTranslator', 'smartyHelper']);
+        } catch (\Throwable $e) {
+            // Déjà enregistré dans cette requête : sans gravité.
+        }
+    }
+
+    /**
+     * Retourne les noms des 108 templates traduits dans la langue du
+     * back-office courant, en conservant l'ordre canonique de
+     * NeriaTools::getTemplateLabels().
+     *
+     * Repli par template : langue employé → anglais → nom français canonique.
+     * Le repli FR garantit qu'un template sans traduction reste lisible.
+     *
+     * @return array ['order_conf' => 'Order confirmation', ...]
+     */
+    public static function templateLabels(): array
+    {
+        $raw  = NeriaTools::getTemplateLabels();
+        $dict = self::tplDict();
+        $lang = self::currentLang();
+
+        $out = [];
+        foreach ($raw as $key => $frLabel) {
+            if (isset($dict[$key][$lang]) && $dict[$key][$lang] !== '') {
+                $out[$key] = $dict[$key][$lang];
+            } elseif (isset($dict[$key][self::FALLBACK_LANG]) && $dict[$key][self::FALLBACK_LANG] !== '') {
+                $out[$key] = $dict[$key][self::FALLBACK_LANG];
+            } else {
+                $out[$key] = $frLabel;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Indique si la langue courante du back-office s'écrit de droite à gauche.
+     */
+    public static function isRtl(): bool
+    {
+        return in_array(self::currentLang(), TranslationEngine::RTL_LANGS, true);
+    }
+
+    /**
+     * Direction d'écriture du back-office : 'rtl' (arabe…) ou 'ltr'.
+     * Utilisé pour l'attribut dir="" du conteneur principal.
+     */
+    public static function dir(): string
+    {
+        return self::isRtl() ? 'rtl' : 'ltr';
+    }
+
+    /**
+     * Force la langue (ex : front controller de désabonnement, qui résout la
+     * langue du destinataire plutôt que celle de l'employé). Ignore une langue
+     * non supportée.
+     */
+    public static function setLang(string $lang): void
+    {
+        $lang = strtolower(trim($lang));
+        if ($lang !== '' && in_array($lang, TranslationEngine::SUPPORTED_LANGS, true)) {
+            self::$lang = $lang;
+        }
+    }
+
+    /**
+     * Code langue effectivement utilisé pour le back-office.
+     * Exposé pour le diagnostic / les tests.
+     */
+    public static function currentLang(): string
+    {
+        if (self::$lang !== null) {
+            return self::$lang;
+        }
+
+        // Aperçu QA : &neria_bo_lang=XX force une langue (réservé au back-office,
+        // déjà protégé par l'authentification admin). Permet de prévisualiser
+        // les 18 langues sans les installer dans la boutique.
+        $override = strtolower((string) \Tools::getValue('neria_bo_lang'));
+        if ($override !== '' && in_array($override, TranslationEngine::SUPPORTED_LANGS, true)) {
+            return self::$lang = $override;
+        }
+
+        $iso = self::FALLBACK_LANG;
+
+        $context = \Context::getContext();
+        if ($context !== null
+            && isset($context->language)
+            && !empty($context->language->iso_code)
+        ) {
+            $iso = strtolower((string) $context->language->iso_code);
+        }
+
+        // On ne garde que les 18 langues réellement traduites ; sinon anglais.
+        if (!in_array($iso, TranslationEngine::SUPPORTED_LANGS, true)) {
+            $iso = self::FALLBACK_LANG;
+        }
+
+        return self::$lang = $iso;
+    }
+
+    // ============================================================
+    // INTERNE
+    // ============================================================
+
+    /**
+     * Charge (une seule fois) le dictionnaire JSON.
+     *
+     * @return array
+     */
+    private static function dict(): array
+    {
+        if (self::$dict !== null) {
+            return self::$dict;
+        }
+
+        $path = __DIR__ . '/../data/admin_translations.json';
+
+        if (!is_file($path)) {
+            return self::$dict = [];
+        }
+
+        $raw = file_get_contents($path);
+        if ($raw === false) {
+            return self::$dict = [];
+        }
+
+        $data = json_decode($raw, true);
+
+        return self::$dict = is_array($data) ? $data : [];
+    }
+
+    /**
+     * Charge (une seule fois) le dictionnaire des noms de templates.
+     *
+     * @return array
+     */
+    private static function tplDict(): array
+    {
+        if (self::$tplDict !== null) {
+            return self::$tplDict;
+        }
+
+        $path = __DIR__ . '/../data/template_labels_i18n.json';
+
+        if (!is_file($path)) {
+            return self::$tplDict = [];
+        }
+
+        $raw = file_get_contents($path);
+        if ($raw === false) {
+            return self::$tplDict = [];
+        }
+
+        $data = json_decode($raw, true);
+
+        return self::$tplDict = is_array($data) ? $data : [];
+    }
+
+    /**
+     * Réinitialise les caches (utile pour les tests / changement de langue).
+     */
+    public static function reset(): void
+    {
+        self::$dict    = null;
+        self::$lang    = null;
+        self::$tplDict = null;
+    }
+}

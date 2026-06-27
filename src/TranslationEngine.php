@@ -642,6 +642,9 @@ class TranslationEngine
             'zh-tw' => 'tw',
             'zh-cn' => 'zh',
             'zh-hk' => 'tw',
+            'cn'    => 'zh',  // PS stocke parfois le chinois simplifié avec l'ISO court 'cn'
+            'nb'    => 'no',  // Norvégien Bokmål → code Neria 'no'
+            'nn'    => 'no',  // Norvégien Nynorsk → code Neria 'no'
         ];
 
         return $map[$lang] ?? $lang;

@@ -1,0 +1,17 @@
+{shop_name}
+
+{neria_trad key='dear_customer'}
+
+{neria_trad key='gift_ideas_intro'}
+
+{neria_trad key='gift_ideas_message'}
+
+{neria_trad key='gift_ideas_cta'} : {shop_url}
+
+{neria_trad key='gift_ideas_note'}
+{upsell_block_txt}
+
+{neria_trad key='signature_warm'}
+
+{shop_name}
+{shop_url}

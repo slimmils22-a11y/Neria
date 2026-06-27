@@ -1,0 +1,14 @@
+{extends file='layouts/layout.html'}
+{block name='neria_content'}
+<h1 class="neria-title-main">{neria_trad key='gift_ideas_title'}</h1>
+<p class="neria-title-sub">{neria_trad key='gift_ideas_subtitle'}</p>
+<p class="neria-text">{neria_trad key='dear_customer'}</p>
+<p class="neria-text">{neria_trad key='gift_ideas_intro'}</p>
+<p class="neria-text">{neria_trad key='gift_ideas_message'}</p>
+<div style="text-align:center;margin-top:24px;">
+  <a href="{shop_url}" class="neria-btn">{neria_trad key='gift_ideas_cta'}</a>
+</div>
+{upsell_block}
+<p class="neria-text-note" style="margin-top:24px;">{neria_trad key='gift_ideas_note'}</p>
+<div class="neria-signature">{neria_trad key='signature_warm'}<br /><strong>{shop_name}</strong></div>
+{/block}

@@ -11,7 +11,7 @@
 {neria_trad key='product_recall_product_label'} : {product_name}
 
 {neria_trad key='product_recall_action'}
-
+--------------------------------
 {neria_trad key='product_recall_btn'} : {history_url}
 
 {neria_trad key='product_recall_note'}

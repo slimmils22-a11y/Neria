@@ -29,6 +29,10 @@ class ManualSendManager
         'artisan_message', 'craftsmanship_update', 'alteration_update', 'bespoke_ready',
         'repair_completed', 'repair_request_confirm', 'care_certificate',
         'certificate_provenance', 'extended_warranty',
+        // Comportemental (crons)
+        'first_anniversary', 'relationship_anniversary',
+        'checkout_abandonment',
+        'quote_expiry_48h', 'quote_expiry_day', 'quote_extension_offer',
         // Logistique / incidents
         'white_glove_apology', 'product_recall', 'customs_alert',
         'delivery_attempt_failed', 'packaging_choice',
@@ -105,6 +109,118 @@ class ManualSendManager
             'tr' => 'Kullanım koşulları', 'sv' => 'Användningsvillkor',
             'no' => 'Vilkår', 'da' => 'Betingelser', 'nl' => 'Gebruiksvoorwaarden',
         ],
+        // ── Champs URL éditables ─────────────────────────────────────
+        // Label explicite : indique au marchand qu'il faut coller une URL.
+        'sale_url' => [
+            'fr' => 'URL de la vente privée', 'en' => 'Private sale URL',
+            'de' => 'URL des Privatverkaufs', 'it' => 'URL della vendita privata',
+            'es' => 'URL de la venta privada', 'pt' => 'URL da venda privada',
+            'br' => 'URL da venda privada', 'ar' => 'رابط البيع الخاص',
+            'ja' => 'プライベートセールURL', 'ko' => '프라이빗 세일 URL',
+            'zh' => '私密特卖链接', 'tw' => '私密特賣連結',
+            'ru' => 'Ссылка на закрытую распродажу', 'tr' => 'Özel satış URL\'si',
+            'sv' => 'URL för privatförsäljning', 'no' => 'URL til privat salg',
+            'da' => 'URL til privatsalg', 'nl' => 'URL van de private sale',
+        ],
+        'rsvp_url' => [
+            'fr' => 'URL de confirmation (RSVP)', 'en' => 'RSVP confirmation URL',
+            'de' => 'Bestätigungs-URL (RSVP)', 'it' => 'URL di conferma (RSVP)',
+            'es' => 'URL de confirmación (RSVP)', 'pt' => 'URL de confirmação (RSVP)',
+            'br' => 'URL de confirmação (RSVP)', 'ar' => 'رابط التأكيد (RSVP)',
+            'ja' => '出欠確認URL (RSVP)', 'ko' => 'RSVP 확인 URL',
+            'zh' => '确认链接 (RSVP)', 'tw' => '確認連結 (RSVP)',
+            'ru' => 'Ссылка для подтверждения (RSVP)', 'tr' => 'Onay URL\'si (RSVP)',
+            'sv' => 'Bekräftelse-URL (RSVP)', 'no' => 'Bekreftelses-URL (RSVP)',
+            'da' => 'Bekræftelses-URL (RSVP)', 'nl' => 'Bevestigings-URL (RSVP)',
+        ],
+        'review_url' => [
+            'fr' => 'URL de la page avis', 'en' => 'Review page URL',
+            'de' => 'URL der Bewertungsseite', 'it' => 'URL della pagina recensioni',
+            'es' => 'URL de la página de reseñas', 'pt' => 'URL da página de avaliações',
+            'br' => 'URL da página de avaliações', 'ar' => 'رابط صفحة التقييمات',
+            'ja' => 'レビューページURL', 'ko' => '리뷰 페이지 URL',
+            'zh' => '评价页面链接', 'tw' => '評價頁面連結',
+            'ru' => 'Ссылка на страницу отзывов', 'tr' => 'Yorum sayfası URL\'si',
+            'sv' => 'URL till recensionssida', 'no' => 'URL til anmeldelsesside',
+            'da' => 'URL til anmeldelsesside', 'nl' => 'URL van de beoordelingspagina',
+        ],
+        'contact_url' => [
+            'fr' => 'URL du formulaire de contact', 'en' => 'Contact form URL',
+            'de' => 'Kontaktformular-URL', 'it' => 'URL del modulo di contatto',
+            'es' => 'URL del formulario de contacto', 'pt' => 'URL do formulário de contato',
+            'br' => 'URL do formulário de contato', 'ar' => 'رابط نموذج الاتصال',
+            'ja' => 'お問い合わせフォームURL', 'ko' => '연락처 양식 URL',
+            'zh' => '联系表单链接', 'tw' => '聯絡表單連結',
+            'ru' => 'Ссылка на форму обратной связи', 'tr' => 'İletişim formu URL\'si',
+            'sv' => 'URL till kontaktformulär', 'no' => 'URL til kontaktskjema',
+            'da' => 'URL til kontaktformular', 'nl' => 'URL van het contactformulier',
+        ],
+        'product_url' => [
+            'fr' => 'URL du produit', 'en' => 'Product URL',
+            'de' => 'Produkt-URL', 'it' => 'URL del prodotto',
+            'es' => 'URL del producto', 'pt' => 'URL do produto',
+            'br' => 'URL do produto', 'ar' => 'رابط المنتج',
+            'ja' => '商品URL', 'ko' => '제품 URL',
+            'zh' => '商品链接', 'tw' => '商品連結',
+            'ru' => 'Ссылка на товар', 'tr' => 'Ürün URL\'si',
+            'sv' => 'Produkt-URL', 'no' => 'Produkt-URL',
+            'da' => 'Produkt-URL', 'nl' => 'Product-URL',
+        ],
+        'cart_url' => [
+            'fr' => 'URL du panier abandonné', 'en' => 'Abandoned cart URL',
+            'de' => 'URL des abgebrochenen Warenkorbs', 'it' => 'URL del carrello abbandonato',
+            'es' => 'URL del carrito abandonado', 'pt' => 'URL do carrinho abandonado',
+            'br' => 'URL do carrinho abandonado', 'ar' => 'رابط سلة التسوق المتروكة',
+            'ja' => '放棄カートURL', 'ko' => '포기된 장바구니 URL',
+            'zh' => '弃购购物车链接', 'tw' => '棄購購物車連結',
+            'ru' => 'Ссылка на брошенную корзину', 'tr' => 'Terk edilen sepet URL\'si',
+            'sv' => 'URL för övergiven varukorg', 'no' => 'URL for forlatt handlekurv',
+            'da' => 'URL til forladt indkøbskurv', 'nl' => 'URL van verlaten winkelwagen',
+        ],
+        'order_url' => [
+            'fr' => 'URL de la commande', 'en' => 'Order URL',
+            'de' => 'Bestell-URL', 'it' => 'URL dell\'ordine',
+            'es' => 'URL del pedido', 'pt' => 'URL do pedido',
+            'br' => 'URL do pedido', 'ar' => 'رابط الطلب',
+            'ja' => '注文URL', 'ko' => '주문 URL',
+            'zh' => '订单链接', 'tw' => '訂單連結',
+            'ru' => 'Ссылка на заказ', 'tr' => 'Sipariş URL\'si',
+            'sv' => 'Order-URL', 'no' => 'Ordre-URL',
+            'da' => 'Ordre-URL', 'nl' => 'Bestelling-URL',
+        ],
+        'verif_url' => [
+            'fr' => 'URL de vérification email', 'en' => 'Email verification URL',
+            'de' => 'E-Mail-Verifizierungs-URL', 'it' => 'URL di verifica email',
+            'es' => 'URL de verificación de email', 'pt' => 'URL de verificação de email',
+            'br' => 'URL de verificação de email', 'ar' => 'رابط التحقق من البريد',
+            'ja' => 'メール確認URL', 'ko' => '이메일 확인 URL',
+            'zh' => '邮箱验证链接', 'tw' => '電郵驗證連結',
+            'ru' => 'Ссылка для подтверждения email', 'tr' => 'E-posta doğrulama URL\'si',
+            'sv' => 'E-postverifierings-URL', 'no' => 'E-postverifiserings-URL',
+            'da' => 'E-mailverifikations-URL', 'nl' => 'E-mailverificatie-URL',
+        ],
+        'return_slip_url' => [
+            'fr' => 'URL du bon de retour', 'en' => 'Return slip URL',
+            'de' => 'Rückgabeschein-URL', 'it' => 'URL del documento di reso',
+            'es' => 'URL del albarán de devolución', 'pt' => 'URL da guia de devolução',
+            'br' => 'URL da guia de devolução', 'ar' => 'رابط إيصال الإرجاع',
+            'ja' => '返品票URL', 'ko' => '반품 전표 URL',
+            'zh' => '退货单链接', 'tw' => '退貨單連結',
+            'ru' => 'Ссылка на бланк возврата', 'tr' => 'İade formu URL\'si',
+            'sv' => 'Returkvitto-URL', 'no' => 'Returkvittering-URL',
+            'da' => 'Returkvitterings-URL', 'nl' => 'Retourbon-URL',
+        ],
+        'years_label' => [
+            'fr' => 'Durée (ex : deux ans)', 'en' => 'Duration (e.g. two years)',
+            'de' => 'Dauer (z.B. zwei Jahre)', 'it' => 'Durata (es. due anni)',
+            'es' => 'Duración (ej. dos años)', 'pt' => 'Duração (ex. dois anos)',
+            'br' => 'Duração (ex. dois anos)', 'ar' => 'المدة (مثال: سنتين)',
+            'ja' => '期間（例：2年）', 'ko' => '기간 (예: 2년)',
+            'zh' => '时长（如：两年）', 'tw' => '時長（如：兩年）',
+            'ru' => 'Срок (напр. два года)', 'tr' => 'Süre (örn. iki yıl)',
+            'sv' => 'Tid (t.ex. två år)', 'no' => 'Varighet (f.eks. to år)',
+            'da' => 'Varighed (f.eks. to år)', 'nl' => 'Duur (bijv. twee jaar)',
+        ],
     ];
 
     /** @var Neria */
@@ -142,7 +258,10 @@ class ManualSendManager
      */
     public function getSendableTemplates(): array
     {
-        $labels = NeriaTools::getTemplateLabels();
+        // Libellés traduits dans la langue du back-office (repli FR canonique)
+        $labels = class_exists('AdminTranslator')
+            ? AdminTranslator::templateLabels()
+            : NeriaTools::getTemplateLabels();
         $out    = [];
 
         foreach (self::WAVE1_TEMPLATES as $key) {
@@ -176,23 +295,29 @@ class ManualSendManager
      */
     public function getEditableVars(string $template): array
     {
-        $placeholders = $this->extractPlaceholders($template);
-        if (empty($placeholders)) {
-            return [];
-        }
+        // Champs injectés par le cron, invisibles dans le source HTML/TXT
+        // mais nécessaires à l'envoi manuel pour un rendu correct.
+        $cronInjected = [
+            'relationship_anniversary' => ['years_label'],
+            'first_anniversary'        => [],
+        ];
 
-        $auto       = array_flip(self::AUTO_VARS);
-        $customKeys = array_flip($this->getCustomVarKeys());
-        $editable   = [];
+        $placeholders = $this->extractPlaceholders($template);
+        $auto         = array_flip(self::AUTO_VARS);
+        $customKeys   = array_flip($this->getCustomVarKeys());
+        $editable     = [];
 
         foreach ($placeholders as $key) {
-            // Ramène les variantes _html / _txt à la clé de base
             $base = preg_replace('/_(html|txt)$/', '', $key);
-
             if (isset($auto[$base]) || isset($customKeys[$base])) {
                 continue;
             }
             $editable[$base] = true;
+        }
+
+        // Ajouter les champs cron-injectés spécifiques à ce template
+        foreach ($cronInjected[$template] ?? [] as $extra) {
+            $editable[$extra] = true;
         }
 
         return array_keys($editable);
@@ -402,12 +527,28 @@ class ManualSendManager
         array $contentVars
     ): array {
         if (!$this->isSendable($template)) {
-            return ['ok' => false, 'message' => $this->module->l('Template non autorisé à l\'envoi manuel.')];
+            return ['ok' => false, 'message' => AdminTranslator::t('msg.send_not_allowed')];
         }
 
         $email = trim($email);
         if ($email === '' || !\Validate::isEmail($email)) {
-            return ['ok' => false, 'message' => $this->module->l('Adresse email du destinataire invalide.')];
+            return ['ok' => false, 'message' => AdminTranslator::t('msg.send_invalid_email')];
+        }
+
+        // ── Garde-fou first_anniversary / relationship_anniversary ────────
+        if ($template === 'first_anniversary'
+            && \Configuration::getGlobalValue('NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED')
+        ) {
+            $guard = $this->checkAnniversaryConflict($email, 'relationship_anniversary');
+            if ($guard !== null) {
+                return ['ok' => false, 'message' => $guard];
+            }
+        }
+        if ($template === 'relationship_anniversary') {
+            $guard = $this->checkAnniversaryConflict($email, 'first_anniversary');
+            if ($guard !== null) {
+                return ['ok' => false, 'message' => $guard];
+            }
         }
 
         // Sujet vide : laissé tel quel. EmailRenderer le remplira avec le titre
@@ -472,24 +613,38 @@ class ManualSendManager
 
         if ($sent) {
             $this->watchdog()->info(
-                'Envoi manuel : ' . $template . ' → ' . $email,
+                WatchdogManager::i18nMsg('watchdog.manual_send_ok', ['template' => $template, 'email' => $email]),
                 $template,
                 'ManualSendManager'
             );
+
+            // Enregistrer les envois manuels d'anniversaire dans behavioral_sent
+            // pour que le garde-fou bidirectionnel fonctionne (cron + manuel).
+            if (in_array($template, ['first_anniversary', 'relationship_anniversary'], true)
+                && $customer
+            ) {
+                $this->db->execute(
+                    'INSERT IGNORE INTO `' . _DB_PREFIX_ . 'neria_behavioral_sent`
+                     (id_customer, template, ref_id, sent_at)
+                     VALUES (' . (int) $customer['id_customer'] . ', \'' . pSQL($template) . '\', '
+                    . (int) date('Y') . ', NOW())'
+                );
+            }
+
             return [
                 'ok'      => true,
-                'message' => sprintf($this->module->l('Email « %1$s » envoyé à %2$s.'), $template, $email),
+                'message' => sprintf(AdminTranslator::t('msg.send_success'), $template, $email),
             ];
         }
 
         $this->watchdog()->error(
-            'Échec envoi manuel : ' . $template . ' → ' . $email,
+            WatchdogManager::i18nMsg('watchdog.manual_send_failed', ['template' => $template, 'email' => $email]),
             $template,
             'ManualSendManager'
         );
         return [
             'ok'      => false,
-            'message' => $this->module->l('Échec de l\'envoi. Vérifiez la configuration email de PrestaShop.'),
+            'message' => AdminTranslator::t('msg.send_failed'),
         ];
     }
 
@@ -528,5 +683,101 @@ class ManualSendManager
         );
 
         return (is_array($row) && !empty($row['id_order'])) ? $row : null;
+    }
+
+    /**
+     * Bloque l'envoi si le template concurrent ($conflictTemplate) a déjà été
+     * envoyé à ce client cette année (auto ou manuel via behavioral_sent).
+     * Fonctionne dans les deux sens : first_anniversary ↔ relationship_anniversary.
+     */
+    private function checkAnniversaryConflict(string $email, string $conflictTemplate): ?string
+    {
+        $customer = $this->findCustomer($email);
+        if (!$customer) {
+            return null;
+        }
+
+        $alreadySent = (int) $this->db->getValue(
+            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_behavioral_sent`
+             WHERE id_customer = ' . (int) $customer['id_customer'] . '
+               AND template = \'' . pSQL($conflictTemplate) . '\'
+               AND ref_id = ' . (int) date('Y')
+        );
+
+        if ($alreadySent > 0) {
+            $labels = [
+                'first_anniversary'        => 'Premier anniversaire client (first_anniversary)',
+                'relationship_anniversary' => 'Anniversaire de la relation client (relationship_anniversary)',
+            ];
+            $conflictLabel = $labels[$conflictTemplate] ?? $conflictTemplate;
+            return 'Envoi bloqué : un email « ' . $conflictLabel . ' » a déjà été envoyé '
+                 . 'à ce client cette année (automatiquement ou manuellement). '
+                 . 'Envoyer les deux créerait un doublon.';
+        }
+
+        return null;
+    }
+
+    /**
+     * Vérification AJAX du garde-fou pour le front BO (bidirectionnel).
+     * $template = template que le marchand veut envoyer (first_anniversary ou relationship_anniversary)
+     * Retourne ['blocked' => bool, 'sent' => bool, 'message' => string]
+     */
+    public function getAnniversaryGuardStatus(string $email, string $template = 'first_anniversary'): array
+    {
+        $conflictTemplate = ($template === 'first_anniversary') ? 'relationship_anniversary' : 'first_anniversary';
+        $featureActive    = (bool) \Configuration::getGlobalValue('NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED');
+
+        // Pour first_anniversary : ne vérifier que si la feature est active
+        if ($template === 'first_anniversary' && !$featureActive) {
+            return ['blocked' => false, 'sent' => false, 'message' => ''];
+        }
+
+        $customer = $this->findCustomer($email);
+        if (!$customer) {
+            if ($template === 'first_anniversary' && $featureActive) {
+                return [
+                    'blocked' => false,
+                    'sent'    => false,
+                    'message' => 'La fonctionnalité <strong>Anniversaire de la relation client</strong> est active. '
+                               . 'Si ce client existe, un email automatique pourrait être envoyé le jour de son anniversaire.',
+                ];
+            }
+            return ['blocked' => false, 'sent' => false, 'message' => ''];
+        }
+
+        $conflictSent = (int) $this->db->getValue(
+            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_behavioral_sent`
+             WHERE id_customer = ' . (int) $customer['id_customer'] . '
+               AND template = \'' . pSQL($conflictTemplate) . '\'
+               AND ref_id = ' . (int) date('Y')
+        );
+
+        $labels = [
+            'first_anniversary'        => 'Premier anniversaire client',
+            'relationship_anniversary' => 'Anniversaire de la relation client',
+        ];
+
+        if ($conflictSent > 0) {
+            return [
+                'blocked' => true,
+                'sent'    => true,
+                'message' => '🚫 <strong>Envoi bloqué.</strong> Un email <em>' . $labels[$conflictTemplate] . '</em> '
+                           . 'a déjà été envoyé à ce client cette année (automatiquement ou manuellement). '
+                           . 'Envoyer les deux créerait un doublon.',
+            ];
+        }
+
+        if ($template === 'first_anniversary' && $featureActive) {
+            return [
+                'blocked' => false,
+                'sent'    => false,
+                'message' => '⚠ La fonctionnalité <strong>Anniversaire de la relation client</strong> est active. '
+                           . 'Aucun email n\'a encore été envoyé à ce client cette année, '
+                           . 'mais un envoi automatique est prévu à la date anniversaire de son premier achat.',
+            ];
+        }
+
+        return ['blocked' => false, 'sent' => false, 'message' => ''];
     }
 }

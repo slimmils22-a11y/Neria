@@ -1,12 +1,13 @@
 {**
  * NERIA — help.tpl
  * Onglet Aide — Documentation, diagnostic et support
+ * i18n : libellés via {neria_admin key='...'} (18 langues, AdminTranslator)
  *}
 
 {* ── Diagnostic ─────────────────────────────────────────────── *}
-<div class="neria-section">
+<div class="neria-section" id="neria-help-diagnostic">
   <h2 class="neria-section__title">
-    {l s='Diagnostic du module' mod='neria'}
+    {neria_admin key='help.diagnostic_title'}
     <span class="neria-score neria-score--{$diagnostic.score.status}">
       {$diagnostic.score.score}/100
     </span>
@@ -21,13 +22,13 @@
         <li class="{if $diagnostic.php.version_ok}neria-diag--ok{else}neria-diag--err{/if}">
           PHP {$diagnostic.php.version}
           {if !$diagnostic.php.version_ok}
-            <span class="neria-diag-note">{l s='Requis: PHP 8.0+' mod='neria'}</span>
+            <span class="neria-diag-note">{neria_admin key='help.php_required'}</span>
           {/if}
         </li>
         <li class="{if $diagnostic.php.gd_available}neria-diag--ok{else}neria-diag--warn{/if}">
           GD (signatures)
           {if !$diagnostic.php.gd_available}
-            <span class="neria-diag-note">{l s='Requis pour les signatures manuscrites' mod='neria'}</span>
+            <span class="neria-diag-note">{neria_admin key='help.gd_required'}</span>
           {/if}
         </li>
         <li class="{if $diagnostic.php.mbstring}neria-diag--ok{else}neria-diag--err{/if}">
@@ -41,15 +42,15 @@
 
     {* Base de données *}
     <div class="neria-diag-block">
-      <h3 class="neria-diag-block__title">{l s='Base de données' mod='neria'}</h3>
+      <h3 class="neria-diag-block__title">{neria_admin key='help.database'}</h3>
       <ul class="neria-diag-list">
         {foreach $diagnostic.database as $table => $data}
           <li class="{if $data.exists}neria-diag--ok{else}neria-diag--err{/if}">
             {$table}
             {if $data.exists}
-              <span class="neria-diag-count">{$data.rows} {l s='lignes' mod='neria'}</span>
+              <span class="neria-diag-count">{$data.rows} {neria_admin key='help.rows'}</span>
             {else}
-              <span class="neria-diag-note">{l s='Table manquante' mod='neria'}</span>
+              <span class="neria-diag-note">{neria_admin key='help.table_missing'}</span>
             {/if}
           </li>
         {/foreach}
@@ -64,7 +65,7 @@
           <li class="{if $registered}neria-diag--ok{else}neria-diag--err{/if}">
             {$hook}
             {if !$registered}
-              <span class="neria-diag-note">{l s='Non enregistré' mod='neria'}</span>
+              <span class="neria-diag-note">{neria_admin key='help.not_registered'}</span>
             {/if}
           </li>
         {/foreach}
@@ -73,7 +74,7 @@
 
     {* Fichiers *}
     <div class="neria-diag-block">
-      <h3 class="neria-diag-block__title">{l s='Fichiers' mod='neria'}</h3>
+      <h3 class="neria-diag-block__title">{neria_admin key='help.files'}</h3>
       <ul class="neria-diag-list">
         {foreach $diagnostic.files as $label => $data}
           <li class="{if $data.exists}neria-diag--ok{else}neria-diag--err{/if}">
@@ -81,7 +82,7 @@
             {if $data.exists}
               <span class="neria-diag-count">{$data.size}</span>
             {else}
-              <span class="neria-diag-note">{l s='Introuvable' mod='neria'}</span>
+              <span class="neria-diag-note">{neria_admin key='help.not_found'}</span>
             {/if}
           </li>
         {/foreach}
@@ -90,7 +91,7 @@
 
     {* Polices TTF *}
     <div class="neria-diag-block">
-      <h3 class="neria-diag-block__title">{l s='Polices TTF' mod='neria'}</h3>
+      <h3 class="neria-diag-block__title">{neria_admin key='help.ttf_fonts'}</h3>
       <ul class="neria-diag-list">
         {foreach $diagnostic.fonts as $font => $present}
           <li class="{if $present}neria-diag--ok{else}neria-diag--warn{/if}">
@@ -98,7 +99,7 @@
             {if !$present}
               <span class="neria-diag-note">
                 <a href="https://fonts.google.com" target="_blank">
-                  {l s='Télécharger sur Google Fonts' mod='neria'}
+                  {neria_admin key='help.download_google_fonts'}
                 </a>
               </span>
             {/if}
@@ -109,15 +110,15 @@
 
     {* Permissions *}
     <div class="neria-diag-block">
-      <h3 class="neria-diag-block__title">{l s='Permissions dossiers' mod='neria'}</h3>
+      <h3 class="neria-diag-block__title">{neria_admin key='help.folder_permissions'}</h3>
       <ul class="neria-diag-list">
         {foreach $diagnostic.permissions as $dir => $data}
           <li class="{if $data.exists && $data.writable}neria-diag--ok{elseif $data.exists}neria-diag--warn{else}neria-diag--err{/if}">
             {$dir}
             {if !$data.exists}
-              <span class="neria-diag-note">{l s='Dossier manquant' mod='neria'}</span>
+              <span class="neria-diag-note">{neria_admin key='help.folder_missing'}</span>
             {elseif !$data.writable}
-              <span class="neria-diag-note">{l s='Non accessible en écriture (chmod 755)' mod='neria'}</span>
+              <span class="neria-diag-note">{neria_admin key='help.not_writable'}</span>
             {/if}
           </li>
         {/foreach}
@@ -127,10 +128,212 @@
   </div>
 </div>
 
-{* ── Journal des événements ─────────────────────────────────── *}
-<div class="neria-section">
+{* ── Contrôles de santé actifs ──────────────────────────────── *}
+<div class="neria-section" id="neria-help-health">
   <h2 class="neria-section__title">
-    {l s='Journal des événements' mod='neria'}
+    {neria_admin key='help.health_title'}
+    {if $health_last_run}
+      <span style="font-size:12px; font-weight:400; color:var(--neria-text-light); margin-left:10px;">
+        {neria_admin key='help.health_last_run'} {$health_last_run}
+      </span>
+    {else}
+      <span style="font-size:12px; font-weight:400; color:#BA7517; margin-left:10px;">
+        {neria_admin key='help.health_never'}
+      </span>
+    {/if}
+  </h2>
+
+  <p style="font-size:12px; color:var(--neria-text-light); margin-bottom:16px;">
+    {neria_admin key='help.health_auto_note'}
+  </p>
+
+  {* Bouton diagnostic complet *}
+  <div style="margin-bottom:20px;">
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+      <input type="hidden" name="neria_action" value="run_full_diagnostic">
+      <input type="hidden" name="neria_tab"    value="help">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm" style="gap:6px;">
+        <span>⟳</span> {neria_admin key='help.health_run_full'}
+      </button>
+    </form>
+    <span style="font-size:12px; color:var(--neria-text-light); margin-left:12px;">
+      {neria_admin key='help.health_run_full_note'}
+    </span>
+  </div>
+
+  {if $health_results}
+    {assign var='_checks' value=[
+      'sent_reconciliation'  => 'help.health_check_sent',
+      'pixel_in_html'        => 'help.health_check_pixel_html',
+      'theme_override'       => 'help.health_check_theme',
+      'translation_gaps'     => 'help.health_check_trad',
+      'cron_triggered'       => 'help.health_check_cron',
+      'crons_health'         => 'help.health_check_crons_health',
+      'config_keys'          => 'help.health_check_config',
+      'list_unsubscribe'     => 'help.health_check_unsubscribe',
+      'assets'               => 'help.health_check_assets',
+      'smtp_config'          => 'help.health_check_smtp',
+      'bounce_rate'          => 'help.health_check_bounce_rate',
+      'consecutive_failures' => 'help.health_check_consecutive_failures'
+    ]}
+    <div class="neria-diag-grid">
+      {foreach $health_results as $checkKey => $result}
+        {assign var='hStatus' value=$result.status|default:'ok'}
+        <div class="neria-diag-block">
+          <h3 class="neria-diag-block__title">{neria_admin key=$_checks[$checkKey]|default:$checkKey}</h3>
+          <ul class="neria-diag-list">
+            <li class="{if $hStatus === 'ok'}neria-diag--ok{elseif $hStatus === 'warning'}neria-diag--warn{else}neria-diag--err{/if}">
+              {if !empty($result.auto_fixed)}
+                <span class="neria-badge neria-badge--warn" style="margin-right:4px;">
+                  {neria_admin key='help.health_auto_fixed'}
+                </span>
+              {/if}
+              {$result.detail|default:''|escape:'html'|regex_replace:'/→ Que faire :/':"<br><strong style=\"color:#BA7517;\">→ Que faire :</strong>"}
+            </li>
+          </ul>
+        </div>
+      {/foreach}
+    </div>
+  {else}
+    <div class="neria-empty-state">
+      <span class="neria-empty-state__icon">⟳</span>
+      <p>{neria_admin key='help.health_pending'}</p>
+    </div>
+  {/if}
+
+  {* Test manuel du pixel HTTP *}
+  <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--neria-border);">
+    <strong style="font-size:13px;">{neria_admin key='help.health_pixel_manual'}</strong>
+    <p style="font-size:12px; color:var(--neria-text-light); margin:6px 0 10px;">
+      {neria_admin key='help.health_pixel_desc'}
+    </p>
+
+    {if isset($health_pixel_result)}
+      {assign var='_ps' value=$health_pixel_result.status|default:'ok'}
+      <div class="neria-alert {if $_ps === 'ok'}neria-alert--success{else}neria-alert--warning{/if}"
+           style="margin-bottom:10px; font-size:12px;">
+        {$health_pixel_result.detail|default:''|escape:'html'}
+      </div>
+    {/if}
+
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+      <input type="hidden" name="neria_action" value="health_pixel_test">
+      <input type="hidden" name="neria_tab"    value="help">
+      <button type="submit" class="neria-btn neria-btn--ghost neria-btn--sm">
+        {neria_admin key='help.health_pixel_btn'}
+      </button>
+    </form>
+  </div>
+</div>
+
+{* ── Alertes email Watchdog ─────────────────────────────────── *}
+<div class="neria-section" id="neria-help-alerts">
+  <h2 class="neria-section__title">
+    📧 {neria_admin key="help.alert_title"}
+  </h2>
+  <p style="font-size:12px; color:var(--neria-text-light); margin-bottom:16px;">
+    {neria_admin key="help.alert_desc"}
+  </p>
+
+  <form method="post" action="{$current_url|escape:'html'}">
+    <input type="hidden" name="neria_action" value="save_alert_config">
+
+    <div class="neria-field" style="margin-bottom:12px;">
+      <label style="display:block; font-size:12px; font-weight:600; margin-bottom:6px; color:var(--neria-text);">
+        {neria_admin key="help.alert_email_label"}
+      </label>
+      <input type="email" name="neria_alert_email"
+             value="{$alert_email|escape:'html'}"
+             placeholder="admin@votre-boutique.com"
+             style="width:100%; max-width:380px; padding:8px 12px; border:1px solid var(--neria-border); border-radius:6px; font-size:13px;">
+      <p style="font-size:11px; color:var(--neria-text-light); margin-top:4px;">
+        {neria_admin key="help.alert_email_hint"}
+      </p>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:16px;">
+      <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
+        <input type="checkbox" name="neria_alert_immediate" value="1"
+               {if $alert_immediate}checked{/if}
+               style="margin-top:2px; flex-shrink:0; width:15px; height:15px; cursor:pointer;">
+        <span>
+          <strong style="font-size:13px;">{neria_admin key="help.alert_immediate_label"}</strong><br>
+          <span style="font-size:11px; color:var(--neria-text-light);">{neria_admin key="help.alert_immediate_hint"}</span>
+        </span>
+      </label>
+
+      <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
+        <input type="checkbox" name="neria_alert_digest" value="1"
+               {if $alert_digest}checked{/if}
+               style="margin-top:2px; flex-shrink:0; width:15px; height:15px; cursor:pointer;">
+        <span>
+          <strong style="font-size:13px;">{neria_admin key="help.alert_digest_label"}</strong><br>
+          <span style="font-size:11px; color:var(--neria-text-light);">{neria_admin key="help.alert_digest_hint"}</span>
+        </span>
+      </label>
+    </div>
+
+    <button type="submit" class="neria-btn neria-btn--primary" style="font-size:13px; padding:9px 20px;">
+      {neria_admin key="help.alert_save"}
+    </button>
+  </form>
+</div>
+
+{* ── Page d'urgence Watchdog ────────────────────────────────── *}
+<div class="neria-section" id="neria-help-emergency">
+  <h2 class="neria-section__title">
+    🚨 {neria_admin key='help.emergency_title'}
+  </h2>
+
+  <p style="font-size:12px; color:var(--neria-text-light); margin-bottom:16px;">
+    {neria_admin key='help.emergency_desc'}
+  </p>
+
+  <div style="background:#1a1a2e; border-radius:8px; padding:14px 18px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+    <span style="color:#b38b59; font-size:16px;">✦</span>
+    <span style="color:#e8e8e8 !important; font-size:12px; word-break:break-all; flex:1; font-family:monospace;">{$emergency_url|escape:'html'}</span>
+    <button id="neria-emergency-copy-btn" class="neria-btn neria-btn--ghost neria-btn--sm" style="color:#b38b59; border-color:#b38b59;">
+      {neria_admin key='help.emergency_copy'}
+    </button>
+    <a href="{$emergency_url|escape:'html'}" target="_blank" class="neria-btn neria-btn--ghost neria-btn--sm" style="color:#b38b59; border-color:#b38b59;">
+      {neria_admin key='help.emergency_open'}
+    </a>
+  </div>
+  <script>
+  (function() {
+    var btn = document.getElementById('neria-emergency-copy-btn');
+    var url = '{$emergency_url|escape:"javascript"}';
+    if (btn) {
+      btn.addEventListener('click', function() {
+        navigator.clipboard.writeText(url).then(function() {
+          btn.textContent = '✓ Copié';
+          setTimeout(function() { btn.textContent = btn.dataset.label; }, 2000);
+        });
+      });
+      btn.dataset.label = btn.textContent;
+    }
+  })();
+  </script>
+
+  <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+      <input type="hidden" name="neria_action" value="regenerate_emergency_token">
+      <input type="hidden" name="neria_tab"    value="help">
+      <button type="submit" class="neria-btn neria-btn--danger neria-btn--sm"
+              onclick="return confirm('{neria_admin key="help.emergency_regen_confirm"}')">
+        ↺ {neria_admin key='help.emergency_regen'}
+      </button>
+    </form>
+    <span style="font-size:12px; color:var(--neria-text-light);">
+      {neria_admin key='help.emergency_regen_note'}
+    </span>
+  </div>
+</div>
+
+{* ── Journal des événements ─────────────────────────────────── *}
+<div class="neria-section" id="neria-help-log">
+  <h2 class="neria-section__title">
+    {neria_admin key='help.log_title'}
   </h2>
 
   {* Réglage : inclure ou non les emails internes (administrateur) *}
@@ -143,8 +346,8 @@
              style="width:16px; height:16px; cursor:pointer;"
              onchange="this.form.submit()"
              {if $log_internal_enabled}checked{/if}>
-      <span>{l s='Inclure les emails internes (administrateur) dans le journal' mod='neria'}
-        <span style="color:#999;">— {l s='les erreurs et critiques restent toujours enregistrées' mod='neria'}</span>
+      <span>{neria_admin key='help.log_internal_toggle'}
+        <span style="color:#999;">— {neria_admin key='help.log_internal_note'}</span>
       </span>
     </label>
   </form>
@@ -153,34 +356,34 @@
   <div class="neria-kpi-grid" style="margin-bottom:20px;">
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$log_counts.info|default:0}</div>
-      <div class="neria-kpi__label">Info</div>
+      <div class="neria-kpi__label">{neria_admin key='common.level_info'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value" style="color:#BA7517;">{$log_counts.warning|default:0}</div>
-      <div class="neria-kpi__label">Warnings</div>
+      <div class="neria-kpi__label">{neria_admin key='common.level_warning'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value" style="color:#A32D2D;">{$log_counts.error|default:0}</div>
-      <div class="neria-kpi__label">Erreurs</div>
+      <div class="neria-kpi__label">{neria_admin key='common.level_error'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value" style="color:#7a0000;">{$log_counts.critical|default:0}</div>
-      <div class="neria-kpi__label">Critiques</div>
+      <div class="neria-kpi__label">{neria_admin key='common.level_critical'}</div>
     </div>
   </div>
 
   {* Filtres *}
   <div class="neria-trad-selectors" style="margin-bottom:16px;">
     <select id="neria-log-level" class="neria-select neria-select--sm">
-      <option value="">{l s='Tous les niveaux' mod='neria'}</option>
-      <option value="info">Info</option>
-      <option value="warning">Warning</option>
-      <option value="error">Erreur</option>
-      <option value="critical">Critique</option>
+      <option value="">{neria_admin key='help.all_levels'}</option>
+      <option value="info">{neria_admin key='common.level_info'}</option>
+      <option value="warning">{neria_admin key='common.level_warning'}</option>
+      <option value="error">{neria_admin key='common.level_error'}</option>
+      <option value="critical">{neria_admin key='common.level_critical'}</option>
     </select>
 
     <select id="neria-log-template" class="neria-select neria-select--sm">
-      <option value="">{l s='Tous les templates' mod='neria'}</option>
+      <option value="">{neria_admin key='help.all_templates'}</option>
       {foreach $log_templates as $tpl}
         <option value="{$tpl}">{$tpl}</option>
       {/foreach}
@@ -189,39 +392,62 @@
     <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline">
       <input type="hidden" name="neria_action" value="clear_logs">
       <input type="hidden" name="neria_tab" value="help">
-      <button type="submit"
-              class="neria-btn neria-btn--danger neria-btn--sm"
-              onclick="return confirm('{l s='Vider tout le journal ?' mod='neria'}')">
-        {l s='Vider le journal' mod='neria'}
+      <button type="submit" class="neria-btn neria-watchdog-btn neria-watchdog-btn--danger"
+              onclick="return confirm('{neria_admin key='help.clear_confirm'}')">
+        🗑 {neria_admin key='help.clear_log'}
       </button>
     </form>
+
+    <button type="button" id="neria-log-pdf-btn" class="neria-btn neria-watchdog-btn">
+      ⬇ {neria_admin key='help.log_pdf'}
+    </button>
+
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+      <input type="hidden" name="neria_action" value="send_log_email">
+      <input type="hidden" name="neria_tab" value="help">
+      <button type="submit" class="neria-btn neria-watchdog-btn"
+              title="{neria_admin key='help.log_email_send_title'}">
+        📧 {neria_admin key='help.log_email_send'}
+      </button>
+    </form>
+
+    <button type="button" id="neria-log-share-btn" class="neria-btn neria-watchdog-btn">
+      ↗ {neria_admin key='help.log_share'}
+    </button>
   </div>
 
   {* Tableau des logs *}
   {if isset($logs) && $logs}
     <div class="neria-table-wrap">
-      <table class="neria-table" id="neria-log-table">
+      <table class="neria-table neria-log-table" id="neria-log-table">
+        <colgroup>
+          <col class="col-date">
+          <col class="col-level">
+          <col class="col-class">
+          <col class="col-tpl">
+          <col class="col-msg">
+        </colgroup>
         <thead>
           <tr>
-            <th>{l s='Date' mod='neria'}</th>
-            <th>{l s='Niveau' mod='neria'}</th>
-            <th>{l s='Classe' mod='neria'}</th>
-            <th>{l s='Template' mod='neria'}</th>
-            <th>{l s='Message' mod='neria'}</th>
+            <th>{neria_admin key='common.date'}</th>
+            <th>{neria_admin key='help.col_level'}</th>
+            <th>{neria_admin key='help.col_class'}</th>
+            <th>{neria_admin key='common.template'}</th>
+            <th>{neria_admin key='help.col_message'}</th>
           </tr>
         </thead>
         <tbody>
           {foreach $logs as $log}
             <tr class="neria-log-row neria-log-row--{$log.level}">
-              <td style="white-space:nowrap; font-size:12px;">{$log.date_add}</td>
-              <td>
+              <td class="col-date">{$log.date_add}</td>
+              <td class="col-level">
                 <span class="neria-badge neria-badge--{if $log.level === 'info'}neutral{elseif $log.level === 'warning'}warn{else}err{/if}">
                   {$log.level}
                 </span>
               </td>
-              <td style="font-size:12px; color:var(--neria-text-light);">{$log.class}</td>
-              <td style="font-size:12px;">{$log.template|default:'—'}</td>
-              <td style="font-size:13px;">{$log.message|escape:'html'}</td>
+              <td class="col-class">{$log.class}</td>
+              <td class="col-tpl">{$log.template|default:'—'}</td>
+              <td class="col-msg">{$log.message|escape:'html'}</td>
             </tr>
           {/foreach}
         </tbody>
@@ -230,58 +456,322 @@
   {else}
     <div class="neria-empty-state">
       <span class="neria-empty-state__icon">✓</span>
-      <p>{l s='Aucun événement enregistré — tout fonctionne parfaitement.' mod='neria'}</p>
+      <p>{neria_admin key='help.log_empty'}</p>
     </div>
   {/if}
 </div>
 
 {* ── Documentation rapide ───────────────────────────────────── *}
-<div class="neria-section">
-  <h2 class="neria-section__title">{l s='Guide rapide' mod='neria'}</h2>
+<div class="neria-section" id="neria-help-quickguide">
+  <h2 class="neria-section__title">{neria_admin key='help.quickguide_title'}</h2>
 
   <div class="neria-doc-grid">
 
     <div class="neria-doc-card">
-      <h3 class="neria-doc-card__title">◈&nbsp;{l s='Variables dans les textes' mod='neria'}</h3>
-      <p>{l s='Utilisez ces variables dans vos traductions pour personnaliser chaque email :' mod='neria'}</p>
+      <h3 class="neria-doc-card__title">◈&nbsp;{neria_admin key='help.vars_title'}</h3>
+      <p>{neria_admin key='help.vars_desc'}</p>
       <ul class="neria-doc-vars">
-        <li><code>{literal}{maison_name}{/literal}</code> — {l s='Nom de votre maison' mod='neria'}</li>
-        <li><code>{literal}{slogan}{/literal}</code> — {l s='Votre slogan' mod='neria'}</li>
-        <li><code>{literal}{founder_name}{/literal}</code> — {l s='Nom du fondateur' mod='neria'}</li>
-        <li><code>{literal}{founder_title}{/literal}</code> — {l s='Titre du fondateur' mod='neria'}</li>
-        <li><code>{literal}{signature_closing}{/literal}</code> — {l s='Formule de clôture' mod='neria'}</li>
-        <li><code>{literal}{shop_name}{/literal}</code> — {l s='Nom de la boutique (PrestaShop)' mod='neria'}</li>
-        <li><code>{literal}{firstname}{/literal}</code> — {l s='Prénom du client' mod='neria'}</li>
-        <li><code>{literal}{lastname}{/literal}</code> — {l s='Nom du client' mod='neria'}</li>
+        <li><code>{literal}{maison_name}{/literal}</code> — {neria_admin key='configure.var_maison_name'}</li>
+        <li><code>{literal}{slogan}{/literal}</code> — {neria_admin key='help.var_slogan_desc'}</li>
+        <li><code>{literal}{founder_name}{/literal}</code> — {neria_admin key='configure.var_founder_name'}</li>
+        <li><code>{literal}{founder_title}{/literal}</code> — {neria_admin key='configure.var_founder_title'}</li>
+        <li><code>{literal}{signature_closing}{/literal}</code> — {neria_admin key='configure.var_signature_closing'}</li>
+        <li><code>{literal}{shop_name}{/literal}</code> — {neria_admin key='help.var_shop_name'}</li>
+        <li><code>{literal}{firstname}{/literal}</code> — {neria_admin key='help.var_firstname'}</li>
+        <li><code>{literal}{lastname}{/literal}</code> — {neria_admin key='help.var_lastname'}</li>
       </ul>
     </div>
 
     <div class="neria-doc-card">
-      <h3 class="neria-doc-card__title">⇋&nbsp;{l s='A/B Testing — conseils' mod='neria'}</h3>
+      <h3 class="neria-doc-card__title">⇋&nbsp;{neria_admin key='help.abtest_tips_title'}</h3>
       <ul class="neria-doc-list">
-        <li>{l s='Laissez un test tourner au moins 2 semaines avant de conclure.' mod='neria'}</li>
-        <li>{l s='Commencez par les paniers abandonnés — plus faciles à mesurer.' mod='neria'}</li>
-        <li>{l s='Ne testez qu\'une seule variable à la fois (ton OU accroche, pas les deux).' mod='neria'}</li>
-        <li>{l s='Un taux d\'ouverture >35% ou de clic >5% est excellent.' mod='neria'}</li>
+        <li>{neria_admin key='help.abtest_tip1'}</li>
+        <li>{neria_admin key='help.abtest_tip2'}</li>
+        <li>{neria_admin key='help.abtest_tip3'}</li>
+        <li>{neria_admin key='help.abtest_tip4'}</li>
       </ul>
     </div>
 
     <div class="neria-doc-card">
-      <h3 class="neria-doc-card__title">◫&nbsp;{l s='Calendrier — mise à jour des dates' mod='neria'}</h3>
-      <p>{l s='Les dates des fêtes islamiques et du Nouvel An lunaire sont pré-calculées jusqu\'en 2035 et recalculées automatiquement au-delà. En cas d\'erreur, utilisez l\'override manuel dans l\'onglet Accueil.' mod='neria'}</p>
+      <h3 class="neria-doc-card__title">◫&nbsp;{neria_admin key='help.calendar_title'}</h3>
+      <p>{neria_admin key='help.calendar_desc'}</p>
     </div>
 
     <div class="neria-doc-card">
-      <h3 class="neria-doc-card__title">?&nbsp;{l s='Support' mod='neria'}</h3>
-      <p>{l s='Pour toute question technique, consultez la documentation complète ou contactez le support Neria.' mod='neria'}</p>
+      <h3 class="neria-doc-card__title">?&nbsp;{neria_admin key='help.support_title'}</h3>
+      <p>{neria_admin key='help.support_desc'}</p>
       <a href="https://www.neria.io/docs" target="_blank"
          class="neria-btn neria-btn--ghost neria-btn--sm">
-        {l s='Documentation' mod='neria'}
+        {neria_admin key='help.documentation'}
       </a>
     </div>
 
   </div>
 </div>
+
+{* ── PDF + Partage : JS ─────────────────────────────────────── *}
+{literal}
+<script>
+(function () {
+  /* ── PDF : ouvre une nouvelle fenêtre avec uniquement le tableau ── */
+  var btnPdf = document.getElementById('neria-log-pdf-btn');
+  if (btnPdf) {
+    btnPdf.addEventListener('click', function () { openPdfWindow(''); });
+  }
+
+  /* ── Partager : menu déroulant ── */
+  var LS_KEY = 'neria_share_platforms';
+
+  var BUILTIN = [
+    { id: 'whatsapp',  label: 'WhatsApp',        icon: '💬', url: 'https://wa.me/?text={text}' },
+    { id: 'telegram',  label: 'Telegram',         icon: '✈️',  url: 'https://t.me/share/url?url={url}&text={text}' },
+    { id: 'teams',     label: 'Microsoft Teams',  icon: '🟦', url: 'https://teams.microsoft.com/share?href={url}&msgText={text}' },
+    { id: 'gmail',     label: 'Gmail',            icon: '📧', url: 'https://mail.google.com/mail/?view=cm&su={title}&body={text}' },
+    { id: 'yahoo',     label: 'Yahoo Mail',       icon: '🟣', url: 'https://compose.mail.yahoo.com/?subject={title}&body={text}' },
+    { id: 'outlook',   label: 'Outlook',          icon: '🔵', url: 'https://outlook.live.com/mail/0/deeplink/compose?subject={title}&body={text}' },
+    { id: 'copy',      label: 'Copier le texte',  icon: '📋', url: '__copy__' },
+  ];
+
+  function getCustomPlatforms() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch(e) { return []; }
+  }
+  function saveCustomPlatforms(list) {
+    localStorage.setItem(LS_KEY, JSON.stringify(list));
+  }
+
+  function buildLines() {
+    var rows  = document.querySelectorAll('#neria-log-table tbody tr');
+    var lines = [
+      'Journal Watchdog Neria — ' + new Date().toLocaleString('fr-FR'),
+      window.location.hostname,
+      ''
+    ];
+    rows.forEach(function (r) {
+      if (r.style.display === 'none') return;
+      var cells = r.querySelectorAll('td');
+      if (cells.length >= 5) {
+        lines.push('[' + cells[1].textContent.trim().toUpperCase() + '] '
+          + cells[0].textContent.trim() + ' — '
+          + (cells[3].textContent.trim() || cells[2].textContent.trim()) + ' : '
+          + cells[4].textContent.trim().substring(0, 120));
+      }
+    });
+    return lines.slice(0, 33);
+  }
+
+  var EMAIL_PLATFORMS = ['gmail', 'yahoo', 'outlook'];
+
+  function openPlatform(p, title) {
+    var lines = buildLines();
+
+    if (p.url === '__copy__') {
+      var t = lines.join('\n');
+      navigator.clipboard ? navigator.clipboard.writeText(t) : (function(){
+        var ta = document.createElement('textarea');
+        ta.value = t; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+      })();
+      return;
+    }
+
+    var isEmail = EMAIL_PLATFORMS.indexOf(p.id) !== -1;
+    var encodedText, url;
+
+    if (isEmail) {
+      var mailUrl = p.url
+        .replace('{text}',  encodeURIComponent('Veuillez trouver ci-joint le journal Watchdog Neria.'))
+        .replace('{title}', encodeURIComponent('Journal Watchdog Neria — ' + window.location.hostname))
+        .replace('{url}',   encodeURIComponent(window.location.href));
+      /* Ouvre le PDF */
+      openPdfWindow('');
+      /* Affiche un bandeau flottant avec le lien vers la boîte mail */
+      showMailToast(p.label, p.icon, mailUrl);
+    } else {
+      var text = lines.join('\n');
+      url = p.url
+        .replace('{text}',  encodeURIComponent(text))
+        .replace('{title}', encodeURIComponent(title))
+        .replace('{url}',   encodeURIComponent(window.location.href));
+      window.open(url, '_blank', 'noopener');
+    }
+  }
+
+  function showMailToast(label, icon, mailUrl) {
+    var existing = document.getElementById('neria-mail-toast');
+    if (existing) existing.remove();
+
+    var toast = document.createElement('div');
+    toast.id = 'neria-mail-toast';
+    toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;'
+      + 'background:#1a1a2e;color:#fff;border-radius:10px;padding:16px 20px;'
+      + 'box-shadow:0 6px 24px rgba(0,0,0,.35);max-width:320px;font-family:sans-serif;';
+    toast.innerHTML = '<div style="font-size:12px;color:#b38b59;font-weight:600;margin-bottom:8px;">📎 PDF généré</div>'
+      + '<div style="font-size:13px;margin-bottom:14px;line-height:1.5;">Enregistrez le PDF, puis cliquez pour ouvrir votre boîte mail.</div>'
+      + '<div style="display:flex;gap:8px;align-items:center;">'
+      + '<a href="' + mailUrl + '" target="_blank" rel="noopener" '
+      +   'style="flex:1;display:block;text-align:center;background:#b38b59;color:#fff;padding:9px 14px;'
+      +   'border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;">'
+      + icon + ' Ouvrir ' + label + '</a>'
+      + '<button onclick="document.getElementById(\'neria-mail-toast\').remove()" '
+      +   'style="background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:6px;'
+      +   'padding:9px 12px;cursor:pointer;font-size:13px;">✕</button>'
+      + '</div>';
+
+    document.body.appendChild(toast);
+
+    /* Disparaît automatiquement après 20s */
+    setTimeout(function () {
+      if (document.getElementById('neria-mail-toast')) {
+        toast.style.transition = 'opacity .4s';
+        toast.style.opacity = '0';
+        setTimeout(function () { toast.remove(); }, 400);
+      }
+    }, 20000);
+  }
+
+  function openPdfWindow(notice) {
+    var level = (document.getElementById('neria-log-level') || {}).value || '';
+    var rows  = document.querySelectorAll('#neria-log-table tbody tr');
+    var tbody = '';
+    rows.forEach(function (r) {
+      if (level && !r.classList.contains('neria-log-row--' + level)) return;
+      tbody += r.outerHTML;
+    });
+    var thEl  = document.querySelector('#neria-log-table thead');
+    var thead = thEl ? thEl.outerHTML : '';
+    var now   = new Date().toLocaleString('fr-FR');
+    var host  = window.location.hostname;
+    var noticeHtml = notice
+      ? '<div style="background:#fff8e6;border:1px solid #ffe082;border-radius:6px;padding:12px 16px;margin-bottom:18px;font-size:12px;color:#7a5800;">'
+        + '📎 ' + notice + '</div>'
+      : '';
+    var html = '<!DOCTYPE html><html><head><meta charset="utf-8">'
+      + '<title>Neria — Journal Watchdog</title>'
+      + '<style>'
+      + 'body{font-family:sans-serif;font-size:11px;margin:24px;color:#222;}'
+      + '.print-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #b38b59;padding-bottom:10px;margin-bottom:18px;}'
+      + '.print-header h1{margin:0;font-size:16px;color:#1a1a2e;}'
+      + '.notice{background:#fff8e6;border:1px solid #ffe082;border-radius:6px;padding:12px 16px;margin-bottom:18px;font-size:12px;color:#7a5800;}'
+      + 'table{width:100%;border-collapse:collapse;font-size:10px;}'
+      + 'th{background:#1a1a2e;color:#fff;padding:5px 8px;text-align:left;}'
+      + 'td{padding:4px 8px;border-bottom:1px solid #eee;vertical-align:top;}'
+      + '.neria-log-row--warning td{background:#fffbf0;}'
+      + '.neria-log-row--error td{background:#fff5f5;}'
+      + '.neria-log-row--critical td{background:#fdf0f0;}'
+      + '.neria-badge{padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;color:#fff;display:inline-block;}'
+      + '.neria-badge--neutral{background:#6c757d;}.neria-badge--warn{background:#ba7517;}.neria-badge--err{background:#a32d2d;}'
+      + '.col-msg{max-width:340px;word-break:break-word;}'
+      + '@media print{.notice{display:none;}@page{margin:1cm;}}'
+      + '</style></head><body>'
+      + '<div class="print-header">'
+      +   '<div><h1>Neria — Journal Watchdog</h1><div style="font-size:10px;color:#888;">' + host + '</div></div>'
+      +   '<div style="text-align:right;font-size:10px;color:#888;">Exporté le ' + now + '<br>PrestaShop BO</div>'
+      + '</div>'
+      + (notice ? '<div class="notice">📎 ' + notice + '</div>' : '')
+      + '<table>' + thead + '<tbody>' + tbody + '</tbody></table>'
+      + '<script>window.onload=function(){window.print();}<\/script>'
+      + '</body></html>';
+    var win = window.open('', '_blank', 'width=900,height=700');
+    if (win) { win.document.write(html); win.document.close(); }
+  }
+
+  function buildDropdown() {
+    var drop = document.getElementById('neria-share-dropdown');
+    if (!drop) return;
+    drop.innerHTML = '';
+
+    var all = BUILTIN.concat(getCustomPlatforms());
+    all.forEach(function (p) {
+      var li = document.createElement('li');
+      li.style.cssText = 'list-style:none;';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.style.cssText = 'width:100%;text-align:left;padding:8px 14px;background:none;border:none;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;color:#222;white-space:nowrap;';
+      btn.innerHTML = '<span>' + p.icon + '</span><span>' + p.label + '</span>';
+      if (p.custom) {
+        var del = document.createElement('span');
+        del.textContent = '✕';
+        del.title = 'Supprimer';
+        del.style.cssText = 'margin-left:auto;color:#aaa;font-size:11px;cursor:pointer;';
+        del.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var customs = getCustomPlatforms().filter(function(x){ return x.id !== p.id; });
+          saveCustomPlatforms(customs);
+          buildDropdown();
+        });
+        btn.appendChild(del);
+      }
+      btn.addEventListener('mouseenter', function(){ btn.style.background = '#f5f5f5'; });
+      btn.addEventListener('mouseleave', function(){ btn.style.background = 'none'; });
+      btn.addEventListener('click', function () {
+        openPlatform(p, 'Journal Watchdog Neria');
+        closeDrop();
+      });
+      li.appendChild(btn);
+      drop.appendChild(li);
+    });
+
+    /* Séparateur + formulaire ajout custom */
+    var sep = document.createElement('li');
+    sep.style.cssText = 'list-style:none;border-top:1px solid #eee;margin:4px 0;';
+    drop.appendChild(sep);
+
+    var addLi = document.createElement('li');
+    addLi.style.cssText = 'list-style:none;padding:8px 14px;';
+    addLi.innerHTML = '<div style="font-size:11px;font-weight:600;color:#888;margin-bottom:6px;">➕ Ajouter une plateforme</div>'
+      + '<input id="neria-share-add-name" placeholder="Nom (ex: Slack)" style="width:100%;padding:4px 7px;border:1px solid #ddd;border-radius:4px;font-size:12px;margin-bottom:5px;box-sizing:border-box;">'
+      + '<input id="neria-share-add-url"  placeholder="URL avec {text} et {title}" style="width:100%;padding:4px 7px;border:1px solid #ddd;border-radius:4px;font-size:12px;margin-bottom:6px;box-sizing:border-box;">'
+      + '<button id="neria-share-add-btn" type="button" style="font-size:11px;padding:4px 10px;background:#b38b59;color:#fff;border:none;border-radius:4px;cursor:pointer;">Ajouter</button>';
+    drop.appendChild(addLi);
+
+    document.getElementById('neria-share-add-btn').addEventListener('click', function () {
+      var name = (document.getElementById('neria-share-add-name').value || '').trim();
+      var url  = (document.getElementById('neria-share-add-url').value  || '').trim();
+      if (!name || !url) return;
+      var customs = getCustomPlatforms();
+      customs.push({ id: 'custom_' + Date.now(), label: name, icon: '🔗', url: url, custom: true });
+      saveCustomPlatforms(customs);
+      buildDropdown();
+    });
+  }
+
+  function closeDrop() {
+    var wrap = document.getElementById('neria-share-wrap');
+    if (wrap) wrap.classList.remove('open');
+  }
+
+  var btnShare = document.getElementById('neria-log-share-btn');
+  if (btnShare) {
+    /* Injecte le dropdown dans le DOM */
+    var wrap = document.createElement('div');
+    wrap.id = 'neria-share-wrap';
+    wrap.style.cssText = 'position:relative;display:inline-block;';
+    btnShare.parentNode.insertBefore(wrap, btnShare);
+    wrap.appendChild(btnShare);
+
+    var drop = document.createElement('ul');
+    drop.id = 'neria-share-dropdown';
+    drop.style.cssText = 'display:none;position:absolute;top:calc(100% + 4px);right:0;background:#fff;'
+      + 'border:1px solid #e0e0e0;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);'
+      + 'padding:4px 0;min-width:230px;z-index:9999;margin:0;';
+    wrap.appendChild(drop);
+
+    wrap.addEventListener('click', function (e) { e.stopPropagation(); });
+
+    btnShare.addEventListener('click', function () {
+      var isOpen = wrap.classList.toggle('open');
+      drop.style.display = isOpen ? 'block' : 'none';
+      if (isOpen) buildDropdown();
+    });
+
+    document.addEventListener('click', function () {
+      closeDrop();
+      drop.style.display = 'none';
+    });
+  }
+})();
+</script>
+{/literal}
 
 {* ── Fermeture du wrapper principal (ouvert dans navigation.tpl) *}
   </div>{* .neria-bo-content *}

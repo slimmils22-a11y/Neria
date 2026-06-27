@@ -1,0 +1,20 @@
+{complete_your_look_eyebrow}
+
+{complete_your_look_title}
+
+{complete_your_look_intro}
+
+--------
+
+1. {product1_name} — {product1_price} €
+{product1_url}
+
+2. {product2_name} — {product2_price} €
+{product2_url}
+
+3. {product3_name} — {product3_price} €
+{product3_url}
+
+--------
+
+{complete_your_look_note}

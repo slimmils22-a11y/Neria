@@ -7,9 +7,9 @@
  *}
 
 <div class="neria-section">
-  <h2 class="neria-section__title">{l s='Envoi manuel' mod='neria'}</h2>
+  <h2 class="neria-section__title">{neria_admin key='nav.manual_send'}</h2>
   <p class="neria-section__desc">
-    {l s='Envoyez à un client un email « à la demande » (message d\'artisan, invitation privée, excuses, rappel produit…). L\'email est mis en forme, traduit et envoyé dans la langue du client automatiquement.' mod='neria'}
+    {neria_admin key='send.desc'}
   </p>
 
   <form method="post" action="{$smarty.server.REQUEST_URI}">
@@ -21,7 +21,7 @@
       {* ── Template ───────────────────────────────────────────── *}
       <div class="neria-form-group">
         <label class="neria-label" for="neria-send-template">
-          {l s='Template à envoyer' mod='neria'}
+          {neria_admin key='send.template_label'}
         </label>
         <select id="neria-send-template" name="neria_template" class="neria-select">
           {foreach $send_templates as $key => $lbl}
@@ -31,33 +31,48 @@
             </option>
           {/foreach}
         </select>
+
+        {* Avertissement statique doublon (affiché dès sélection du template) *}
+        <div id="neria-anniversary-static-warn"
+             style="display:none; margin-top:10px; padding:11px 14px;
+                    background:#fff8e1; border-left:3px solid #f59e0b;
+                    border-radius:4px; font-size:12px; color:#78350f; line-height:1.6;">
+          <span id="neria-anniversary-static-text"></span>
+        </div>
       </div>
 
       {* ── Destinataire ───────────────────────────────────────── *}
       <div class="neria-form-group">
         <label class="neria-label" for="neria-send-email">
-          {l s='Email du client' mod='neria'}
+          {neria_admin key='send.email_label'}
         </label>
         <input type="email" id="neria-send-email" name="neria_email" class="neria-input"
                placeholder="client@exemple.com" required
                value="{if isset($smarty.post.neria_email)}{$smarty.post.neria_email|escape:'html'}{/if}">
-        <span class="neria-hint">{l s='La langue de l\'email est détectée automatiquement à partir de ce client.' mod='neria'}</span>
+        <span class="neria-hint">{neria_admin key='send.email_hint'}</span>
+
+        {* Avertissement dynamique par client (chargé en AJAX après saisie email) *}
+        <div id="neria-anniversary-guard"
+             style="display:none; margin-top:10px; padding:11px 14px;
+                    border-radius:4px; font-size:12px; line-height:1.6;">
+          <span id="neria-anniversary-guard-text"></span>
+        </div>
       </div>
 
       {* ── Sujet ──────────────────────────────────────────────── *}
       <div class="neria-form-group">
         <label class="neria-label" for="neria-send-subject">
-          {l s='Sujet de l\'email' mod='neria'} <span class="neria-hint">({l s='optionnel' mod='neria'})</span>
+          {neria_admin key='send.subject_label'} <span class="neria-hint">({neria_admin key='common.optional'})</span>
         </label>
         <input type="text" id="neria-send-subject" name="neria_subject" class="neria-input"
-               placeholder="{l s='Laissé vide : le titre de l\'email, traduit dans la langue du client' mod='neria'}"
+               placeholder="{neria_admin key='send.subject_ph'}"
                value="{if isset($smarty.post.neria_subject)}{$smarty.post.neria_subject|escape:'html'}{/if}">
       </div>
 
       {* ── Commande (optionnel) ───────────────────────────────── *}
       <div class="neria-form-group">
         <label class="neria-label" for="neria-send-order">
-          {l s='Référence commande' mod='neria'} <span class="neria-hint">({l s='optionnel' mod='neria'})</span>
+          {neria_admin key='send.order_label'} <span class="neria-hint">({neria_admin key='common.optional'})</span>
         </label>
         <input type="text" id="neria-send-order" name="neria_order_ref" class="neria-input"
                placeholder="NER-000123"
@@ -82,7 +97,7 @@
             </div>
           {else}
             <p class="neria-section__desc" style="margin:0;">
-              {l s='Ce template n\'a pas de champ à remplir — il est prêt à l\'envoi.' mod='neria'}
+              {neria_admin key='send.no_fields'}
             </p>
           {/if}
         </div>
@@ -92,17 +107,17 @@
     {* ── Message personnalisé (optionnel, valable pour tous les templates) ── *}
     <div class="neria-form-group neria-form-group--full" style="margin-top:18px;">
       <label class="neria-label" for="neria-send-message">
-        {l s='Message personnalisé' mod='neria'}
-        <span class="neria-hint">({l s='optionnel — ajouté en bas de l\'email, dans une note' mod='neria'})</span>
+        {neria_admin key='send.custom_message'}
+        <span class="neria-hint">({neria_admin key='send.custom_message_hint'})</span>
       </label>
       <textarea id="neria-send-message" name="neria_var[custom_message]" class="neria-input" rows="3"
-                placeholder="{l s='Un mot personnel pour ce client…' mod='neria'}">{if isset($smarty.post.neria_var) && isset($smarty.post.neria_var.custom_message)}{$smarty.post.neria_var.custom_message|escape:'html'}{/if}</textarea>
+                placeholder="{neria_admin key='send.custom_message_ph'}">{if isset($smarty.post.neria_var) && isset($smarty.post.neria_var.custom_message)}{$smarty.post.neria_var.custom_message|escape:'html'}{/if}</textarea>
     </div>
 
     <div style="margin-top:20px;">
-      <button type="submit" class="neria-btn neria-btn--primary">
+      <button type="submit" id="neria-send-btn" class="neria-btn neria-btn--primary">
         <span class="neria-icon">✉</span>
-        {l s='Envoyer l\'email' mod='neria'}
+        {neria_admin key='send.send_btn'}
       </button>
     </div>
 
@@ -112,8 +127,69 @@
 <script>
 {literal}
 (function () {
-  var sel = document.getElementById('neria-send-template');
+  var sel        = document.getElementById('neria-send-template');
+  var emailInput = document.getElementById('neria-send-email');
+  var sendBtn    = document.getElementById('neria-send-btn');
+  var staticWarn = document.getElementById('neria-anniversary-static-warn');
+  var staticText = document.getElementById('neria-anniversary-static-text');
+  var guardBox   = document.getElementById('neria-anniversary-guard');
+  var guardText  = document.getElementById('neria-anniversary-guard-text');
+
   if (!sel) { return; }
+
+  var ajaxTimer = null;
+  var currentBlocked = false;
+
+  function setBlocked(blocked) {
+    currentBlocked = blocked;
+    if (sendBtn) {
+      sendBtn.disabled = blocked;
+      sendBtn.style.opacity = blocked ? '0.45' : '';
+      sendBtn.style.cursor  = blocked ? 'not-allowed' : '';
+    }
+  }
+
+  function showGuard(data) {
+    if (!guardBox || !guardText) { return; }
+    if (!data.message) {
+      guardBox.style.display = 'none';
+      setBlocked(false);
+      return;
+    }
+    guardText.innerHTML = data.message;
+    guardBox.style.background  = data.blocked ? '#fef2f2' : '#fff8e1';
+    guardBox.style.borderLeft  = data.blocked ? '3px solid #dc2626' : '3px solid #f59e0b';
+    guardBox.style.color       = data.blocked ? '#7f1d1d' : '#78350f';
+    guardBox.style.display     = '';
+    setBlocked(data.blocked);
+  }
+
+  function hideGuard() {
+    if (guardBox) { guardBox.style.display = 'none'; }
+    setBlocked(false);
+  }
+
+  var GUARD_TEMPLATES = ['first_anniversary', 'relationship_anniversary'];
+
+  function checkGuard() {
+    var tpl = sel.value;
+    if (GUARD_TEMPLATES.indexOf(tpl) === -1) { hideGuard(); return; }
+    var email = (emailInput ? emailInput.value : '').trim();
+    if (!email || email.indexOf('@') === -1) { hideGuard(); return; }
+
+    clearTimeout(ajaxTimer);
+    ajaxTimer = setTimeout(function () {
+      var base = window.location.href.replace(/[?&]neria_action=[^&]*/g, '');
+      var sep  = base.indexOf('?') !== -1 ? '&' : '?';
+      var url  = base + sep + 'neria_action=check_anniversary_guard'
+               + '&neria_email=' + encodeURIComponent(email)
+               + '&neria_template=' + encodeURIComponent(tpl);
+      fetch(url, { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) { showGuard(data); })
+        .catch(function () { hideGuard(); });
+    }, 500);
+  }
 
   function refresh() {
     var tpl = sel.value;
@@ -121,9 +197,33 @@
     for (var i = 0; i < fields.length; i++) {
       fields[i].style.display = (fields[i].getAttribute('data-tpl') === tpl) ? '' : 'none';
     }
+
+    // Avertissement statique dès sélection du template
+    if (staticWarn && staticText) {
+      if (tpl === 'first_anniversary') {
+        staticText.innerHTML = '⚠ <strong>Doublon potentiel :</strong> la fonctionnalité '
+          + '<em>Anniversaire de la relation client</em> envoie également un email chaque année '
+          + 'à la date du 1er achat. Saisissez l\'adresse email du client pour vérifier si un '
+          + 'email automatique a déjà été envoyé cette année.';
+        staticWarn.style.display = '';
+      } else if (tpl === 'relationship_anniversary') {
+        staticText.innerHTML = '⚠ <strong>Doublon potentiel :</strong> le template '
+          + '<em>Premier anniversaire client</em> (first_anniversary) s\'envoie également à J+365 '
+          + 'du 1er achat. Si les deux sont actifs, un client peut recevoir deux emails le même jour '
+          + 'lors de sa 1ère année.';
+        staticWarn.style.display = '';
+      } else {
+        staticWarn.style.display = 'none';
+      }
+    }
+
+    // Garde dynamique pour les deux templates anniversaire
+    if (GUARD_TEMPLATES.indexOf(tpl) === -1) { hideGuard(); }
+    else { checkGuard(); }
   }
 
   sel.addEventListener('change', refresh);
+  if (emailInput) { emailInput.addEventListener('blur', checkGuard); }
   refresh();
 })();
 {/literal}

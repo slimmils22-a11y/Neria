@@ -1,0 +1,597 @@
+﻿<?php
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
+class GdprAuditManager
+{
+    // ── Limites légales de rétention ─────────────────────────────
+    const TABLES = [
+        [
+            'table'    => 'neria_stat',
+            'date_col' => 'date_add',
+            'label'    => 'Statistiques d\'envoi (tracking)',
+            'months'   => 36,
+            'note'     => 'Données comportementales des destinataires.',
+        ],
+        [
+            'table'    => 'neria_log',
+            'date_col' => 'date_add',
+            'label'    => 'Journal système (watchdog)',
+            'months'   => 12,
+            'note'     => 'Journaux techniques internes.',
+        ],
+        [
+            'table'    => 'neria_behavioral_sent',
+            'date_col' => 'sent_at',
+            'label'    => 'Emails comportementaux (déduplication)',
+            'months'   => 36,
+            'note'     => 'Horodatages d\'envoi liés aux clients.',
+        ],
+        [
+            'table'    => 'neria_customer_segment',
+            'date_col' => 'computed_at',
+            'label'    => 'Segments comportementaux clients',
+            'months'   => 36,
+            'note'     => 'Profils de comportement par client.',
+        ],
+        [
+            'table'    => 'neria_churn_score',
+            'date_col' => 'computed_at',
+            'label'    => 'Scores de désabonnement clients',
+            'months'   => 36,
+            'note'     => 'Scores de risque calculés par client.',
+        ],
+        [
+            'table'    => 'neria_webhook_queue',
+            'date_col' => 'date_add',
+            'label'    => 'File d\'attente webhooks',
+            'months'   => 12,
+            'note'     => 'Notifications sortantes traitées.',
+        ],
+        [
+            'table'    => 'neria_translation_history',
+            'date_col' => 'date_add',
+            'label'    => 'Historique des modifications de textes',
+            'months'   => 36,
+            'note'     => 'Changelog interne — ne contient pas de données clients.',
+        ],
+    ];
+
+    const CONSENT_TEMPLATES = [
+        'newsletter', 'newsletter_conf', 'birthday', 'win_back',
+        'abandoned_cart_1', 'abandoned_cart_2', 'abandoned_cart_3',
+        'black_friday', 'christmas', 'valentine', 'halloween',
+    ];
+
+    // ── Variables PS contenant des données personnelles ──────────
+    const PII_VARS = [
+        '{firstname}'  => 'Prénom',
+        '{lastname}'   => 'Nom de famille',
+        '{email}'      => 'Adresse e-mail',
+        '{phone}'      => 'Téléphone',
+        '{address1}'   => 'Adresse postale',
+        '{address2}'   => 'Complément d\'adresse',
+        '{birthday}'   => 'Date de naissance',
+    ];
+
+    private \Db   $db;
+    private int   $idShop;
+    private string $modulePath;
+
+    public function __construct(string $modulePath)
+    {
+        $this->db         = \Db::getInstance();
+        $this->idShop     = (int) \Context::getContext()->shop->id;
+        $this->modulePath = rtrim($modulePath, '/\\');
+    }
+
+    // ============================================================
+    // AUDIT PRINCIPAL
+    // ============================================================
+
+    public function runAudit(): array
+    {
+        $unsub     = $this->auditUnsubscribe();
+        $retention = $this->auditRetention();
+        $pii       = $this->auditPersonalData();
+        $crypto    = $this->auditEncryption();
+
+        $issues = $unsub['issues'] + $retention['issues'] + $pii['issues'] + $crypto['issues'];
+        $score  = $this->grade($issues);
+
+        $gradeColors = ['A' => '#4a9e6b', 'B' => '#b8600a', 'C' => '#e05c5c', 'D' => '#8b0000'];
+
+        return [
+            'unsubscribe'  => $unsub,
+            'retention'    => $retention,
+            'pii'          => $pii,
+            'crypto'       => $crypto,
+            'score'        => $score,
+            'grade_color'  => $gradeColors[$score] ?? '#888',
+            'issues'       => $issues,
+            'generated_at' => date('d/m/Y à H:i'),
+        ];
+    }
+
+    // ============================================================
+    // AXE 1 — DÉSABONNEMENT
+    // ============================================================
+
+    private function auditUnsubscribe(): array
+    {
+        $checks = [];
+        $issues = 0;
+
+        // 1a. {unsubscribe_url} dans le layout global
+        $layoutPath = $this->modulePath . '/mails/themes/neria_global/layout.html';
+        $layoutOk   = file_exists($layoutPath)
+            && stripos((string) file_get_contents($layoutPath), '{unsubscribe_url}') !== false;
+        if (!$layoutOk) { $issues++; }
+        $checks[] = [
+            'label'  => 'Lien de désabonnement dans le layout global',
+            'ok'     => $layoutOk,
+            'detail' => $layoutOk
+                ? 'Le placeholder {unsubscribe_url} est présent dans layout.html.'
+                : 'Le placeholder {unsubscribe_url} est absent du layout — tous les emails sont non conformes.',
+        ];
+
+        // 1b. Header List-Unsubscribe (RFC 2369 / RFC 8058) — cherche dans neria.php ET HooksManager
+        $headerOk = false;
+        foreach (['neria.php', 'src/HooksManager.php'] as $candidate) {
+            $p = $this->modulePath . '/' . $candidate;
+            if (file_exists($p) && stripos((string) file_get_contents($p), 'List-Unsubscribe') !== false) {
+                $headerOk = true;
+                break;
+            }
+        }
+        if (!$headerOk) { $issues++; }
+        $checks[] = [
+            'label'  => 'Header List-Unsubscribe (RFC 2369 / One-Click RFC 8058)',
+            'ok'     => $headerOk,
+            'detail' => $headerOk
+                ? 'Le header est injecté automatiquement sur chaque envoi.'
+                : 'Le header List-Unsubscribe n\'est pas configuré — requis par Gmail, Apple Mail, Outlook.',
+        ];
+
+        // 1c. Endpoint de désabonnement
+        $endpointPath = $this->modulePath . '/controllers/front/unsubscribe.php';
+        $endpointOk   = file_exists($endpointPath);
+        if (!$endpointOk) { $issues++; }
+        $checks[] = [
+            'label'  => 'Endpoint de désabonnement (controllers/front/unsubscribe.php)',
+            'ok'     => $endpointOk,
+            'detail' => $endpointOk
+                ? 'Le contrôleur de désabonnement est bien présent.'
+                : 'Le fichier controllers/front/unsubscribe.php est manquant — les liens ne fonctionnent pas.',
+        ];
+
+        // 1d. Taille de la blacklist (information, pas une issue)
+        $blacklistCount = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_blacklist` WHERE `id_shop` = " . $this->idShop
+        );
+        $checks[] = [
+            'label'  => 'Blacklist de désabonnement',
+            'ok'     => true,
+            'detail' => $blacklistCount . ' adresse(s) désabonnée(s). La blacklist doit être conservée indéfiniment (preuve de conformité) — aucune purge ne doit être effectuée.',
+            'info'   => true,
+        ];
+
+        return ['checks' => $checks, 'issues' => $issues];
+    }
+
+    // ============================================================
+    // AXE 2 — RÉTENTION DES DONNÉES
+    // ============================================================
+
+    private function auditRetention(): array
+    {
+        $rows   = [];
+        $issues = 0;
+
+        foreach (self::TABLES as $def) {
+            $table  = _DB_PREFIX_ . $def['table'];
+            $dcol   = $def['date_col'];
+            $months = $def['months'];
+
+            // Vérifie que la table existe
+            $exists = (bool) $this->db->getValue(
+                "SELECT COUNT(*) FROM information_schema.TABLES
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME = '" . pSQL($table) . "'"
+            );
+            if (!$exists) {
+                continue;
+            }
+
+            $total = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$table}`");
+
+            $oldest = $this->db->getValue(
+                "SELECT MIN(`{$dcol}`) FROM `{$table}`"
+            );
+
+            $overdue = (int) $this->db->getValue(
+                "SELECT COUNT(*) FROM `{$table}`
+                 WHERE `{$dcol}` < DATE_SUB(NOW(), INTERVAL {$months} MONTH)"
+            );
+
+            $isIssue = $overdue > 0;
+            if ($isIssue) { $issues++; }
+
+            $rows[] = [
+                'table'   => $def['table'],
+                'date_col'=> $dcol,
+                'label'   => $def['label'],
+                'note'    => $def['note'],
+                'months'  => $months,
+                'total'   => $total,
+                'oldest'  => $oldest ? date('d/m/Y', strtotime($oldest)) : '—',
+                'overdue' => $overdue,
+                'ok'      => !$isIssue,
+            ];
+        }
+
+        return ['rows' => $rows, 'issues' => $issues];
+    }
+
+    // ============================================================
+    // AXE 3 — DONNÉES PERSONNELLES DANS LES TEMPLATES
+    // ============================================================
+
+    private function auditPersonalData(): array
+    {
+        $corePath = $this->modulePath . '/mails/themes/neria_global/core';
+        $map      = [];
+
+        if (!is_dir($corePath)) {
+            return ['map' => [], 'issues' => 0];
+        }
+
+        foreach (glob($corePath . '/*.html') as $file) {
+            $name    = basename($file, '.html');
+            $content = (string) file_get_contents($file);
+            $found   = [];
+            foreach (self::PII_VARS as $var => $varLabel) {
+                if (stripos($content, $var) !== false) {
+                    $found[] = $varLabel;
+                }
+            }
+            if ($found) {
+                $map[] = [
+                    'template'    => $name,
+                    'vars'        => $found,
+                    'vars_str'    => implode(', ', $found),
+                    'legal_basis' => in_array($name, self::CONSENT_TEMPLATES, true)
+                        ? 'Consentement'
+                        : 'Contrat / intérêt légitime',
+                ];
+            }
+        }
+
+        // Pas d'issue automatique ici — c'est une cartographie informative.
+        // L'issue serait l'absence de mentions légales, mais le layout inclut
+        // déjà un lien vers les mentions légales de la boutique.
+        $layoutPath   = $this->modulePath . '/mails/themes/neria_global/layout.html';
+        $legalInLayout = file_exists($layoutPath)
+            && stripos((string) file_get_contents($layoutPath), 'mentions-legales') !== false;
+
+        $issues = $legalInLayout ? 0 : 1;
+
+        return [
+            'map'           => $map,
+            'legal_in_layout' => $legalInLayout,
+            'issues'        => $issues,
+        ];
+    }
+
+    // ============================================================
+    // AXE 4 — CHIFFREMENT DES DONNÉES AU REPOS
+    // ============================================================
+
+    public function auditEncryption(): array
+    {
+        $opensslOk = class_exists('CryptoManager') && \CryptoManager::isAvailable();
+        $keyOk     = $opensslOk && strlen((string) \Configuration::get(\CryptoManager::CONFIG_KEY)) === 64;
+        $active    = $opensslOk && $keyOk;
+
+        $table     = _DB_PREFIX_ . 'neria_stat';
+        $totalVars = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}` WHERE `rendered_vars` IS NOT NULL AND `rendered_vars` != ''"
+        );
+        $encrypted = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}` WHERE `rendered_vars` LIKE 'ENC:%'"
+        );
+        $plain = $totalVars - $encrypted;
+
+        // Issue si openssl est dispo mais la clé manque, ou si des enregistrements restent en clair
+        $issues = ($opensslOk && (!$keyOk || $plain > 0)) ? 1 : 0;
+
+        return [
+            'openssl_ok' => $opensslOk,
+            'key_ok'     => $keyOk,
+            'active'     => $active,
+            'cipher'     => 'AES-256-GCM',
+            'total'      => $totalVars,
+            'encrypted'  => $encrypted,
+            'plain'      => $plain,
+            'issues'     => $issues,
+        ];
+    }
+
+    /**
+     * Chiffre en masse les enregistrements rendered_vars encore en clair.
+     * Traite par lots de 200 pour ne pas saturer la mémoire.
+     *
+     * @return int Nombre d'enregistrements chiffrés
+     */
+    public function encryptExistingRecords(): int
+    {
+        if (!class_exists('CryptoManager') || !\CryptoManager::isAvailable()) {
+            return 0;
+        }
+
+        $table = _DB_PREFIX_ . 'neria_stat';
+        $done  = 0;
+
+        do {
+            $rows = $this->db->executeS(
+                "SELECT `id_stat`, `rendered_vars` FROM `{$table}`
+                 WHERE `rendered_vars` IS NOT NULL
+                   AND `rendered_vars` != ''
+                   AND `rendered_vars` NOT LIKE 'ENC:%'
+                 LIMIT 200"
+            );
+
+            if (empty($rows)) {
+                break;
+            }
+
+            foreach ($rows as $row) {
+                $encrypted = \CryptoManager::encrypt($row['rendered_vars']);
+                $this->db->execute(
+                    "UPDATE `{$table}` SET `rendered_vars` = '" . pSQL($encrypted) . "'
+                     WHERE `id_stat` = " . (int) $row['id_stat']
+                );
+                $done++;
+            }
+        } while (count($rows) === 200);
+
+        return $done;
+    }
+
+    // ============================================================
+    // PURGE
+    // ============================================================
+
+    public function purgeTable(string $table, string $dateCol, int $months): int
+    {
+        $fullTable = _DB_PREFIX_ . $table;
+
+        // Sécurité : on ne purge que les tables Neria connues
+        $allowed = array_column(self::TABLES, 'table');
+        if (!in_array($table, $allowed, true)) {
+            return 0;
+        }
+
+        // Compte avant purge
+        $count = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$fullTable}`
+             WHERE `{$dateCol}` < DATE_SUB(NOW(), INTERVAL {$months} MONTH)"
+        );
+
+        $this->db->execute(
+            "DELETE FROM `{$fullTable}`
+             WHERE `{$dateCol}` < DATE_SUB(NOW(), INTERVAL {$months} MONTH)"
+        );
+
+        if ($count > 0 && class_exists('WatchdogManager')) {
+            $mod = \Module::getInstanceByName('neria');
+            if ($mod) {
+                (new \WatchdogManager($mod))->info(
+                    sprintf('RGPD purge : %d enregistrement(s) supprimé(s) dans %s (rétention %d mois)', $count, $table, $months),
+                    '', 'GdprAuditManager'
+                );
+            }
+        }
+
+        return $count;
+    }
+
+    // ============================================================
+    // RAPPORT PDF — retourne un HTML complet print-ready
+    // ============================================================
+
+    public function generateReport(array $audit, string $shopName): string
+    {
+        $score   = $audit['score'];
+        $date    = $audit['generated_at'];
+        $issues  = $audit['issues'];
+
+        $gradeColors = ['A' => '#4a9e6b', 'B' => '#b8600a', 'C' => '#e05c5c', 'D' => '#8b0000'];
+        $gradeColor  = $gradeColors[$score] ?? '#888';
+
+        ob_start();
+        ?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Rapport RGPD — <?= htmlspecialchars($shopName) ?></title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, 'Times New Roman', serif; font-size: 13px; color: #2c2c2c; background: #fff; padding: 40px; max-width: 860px; margin: auto; }
+  h1 { font-size: 24px; letter-spacing: .05em; margin-bottom: 4px; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .08em; margin: 28px 0 12px; padding-bottom: 6px; border-bottom: 1px solid #e0d8cc; color: #7a6a55; }
+  h3 { font-size: 13px; font-weight: bold; margin-bottom: 6px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; border-bottom: 2px solid #b38b59; padding-bottom: 20px; }
+  .logo { font-size: 28px; color: #b38b59; }
+  .meta { font-size: 11px; color: #888; text-align: right; line-height: 1.8; }
+  .score-badge { display: inline-block; width: 54px; height: 54px; border-radius: 50%; line-height: 54px; text-align: center; font-size: 28px; font-weight: bold; color: #fff; background: <?= $gradeColor ?>; }
+  .summary { display: flex; align-items: center; gap: 20px; background: #faf8f5; border: 1px solid #e8e0d5; border-radius: 8px; padding: 16px 20px; margin-bottom: 24px; }
+  .summary-text { flex: 1; }
+  .summary-text strong { font-size: 15px; }
+  .summary-text p { font-size: 12px; color: #666; margin-top: 4px; }
+  .check { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0ebe4; }
+  .check:last-child { border-bottom: 0; }
+  .check-icon { width: 18px; font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+  .ok { color: #4a9e6b; }
+  .warn { color: #e05c5c; }
+  .info-icon { color: #b38b59; }
+  .check-label { font-weight: bold; font-size: 12px; }
+  .check-detail { font-size: 11px; color: #666; margin-top: 2px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  th { text-align: left; padding: 6px 8px; background: #f5f0ea; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #7a6a55; }
+  td { padding: 7px 8px; border-bottom: 1px solid #f0ebe4; vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  .tag-ok { background: #e8f5ee; color: #2d7a4f; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: bold; }
+  .tag-warn { background: #fde8e8; color: #c0392b; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: bold; }
+  .pii-list { font-size: 11px; color: #666; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e0d8cc; font-size: 10px; color: #aaa; display: flex; justify-content: space-between; }
+  .disclaimer { font-size: 10px; color: #aaa; background: #faf8f5; border: 1px solid #e8e0d5; padding: 10px 14px; border-radius: 6px; margin-top: 20px; line-height: 1.6; }
+  @media print {
+    body { padding: 20px; }
+    @page { margin: 1.5cm; }
+    .no-print { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">✦ Neria</div>
+    <h1>Rapport de conformité RGPD</h1>
+    <p style="font-size:12px;color:#888;margin-top:4px;"><?= htmlspecialchars($shopName) ?></p>
+  </div>
+  <div class="meta">
+    Généré le <?= $date ?><br>
+    Neria — Luxury Email Suite<br>
+    Document à usage interne
+  </div>
+</div>
+
+<div class="summary">
+  <div class="score-badge"><?= $score ?></div>
+  <div class="summary-text">
+    <strong>Score de conformité : <?= $score ?></strong>
+    <p><?= $issues ?> point(s) d'attention identifié(s) sur les <?= count($audit['retention']['rows']) + 3 + 1 ?> critères analysés.</p>
+  </div>
+</div>
+
+<!-- AXE 1 : DÉSABONNEMENT -->
+<h2>1 — Système de désabonnement</h2>
+<?php foreach ($audit['unsubscribe']['checks'] as $c): ?>
+<div class="check">
+  <span class="check-icon <?= isset($c['info']) ? 'info-icon' : ($c['ok'] ? 'ok' : 'warn') ?>">
+    <?= isset($c['info']) ? '·' : ($c['ok'] ? '✓' : '✕') ?>
+  </span>
+  <div>
+    <div class="check-label"><?= htmlspecialchars($c['label']) ?></div>
+    <div class="check-detail"><?= htmlspecialchars($c['detail']) ?></div>
+  </div>
+</div>
+<?php endforeach; ?>
+
+<!-- AXE 2 : RÉTENTION -->
+<h2>2 — Rétention des données</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Table</th>
+      <th>Limite légale</th>
+      <th>Plus ancienne donnée</th>
+      <th>Enregistrements hors délai</th>
+      <th>Statut</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php foreach ($audit['retention']['rows'] as $r): ?>
+    <tr>
+      <td><strong><?= htmlspecialchars($r['label']) ?></strong><br><span style="font-size:10px;color:#aaa;"><?= htmlspecialchars($r['note']) ?></span></td>
+      <td><?= $r['months'] ?> mois</td>
+      <td><?= $r['oldest'] ?></td>
+      <td><?= $r['overdue'] > 0 ? $r['overdue'] : '0' ?></td>
+      <td><?= $r['ok'] ? '<span class="tag-ok">CONFORME</span>' : '<span class="tag-warn">À PURGER</span>' ?></td>
+    </tr>
+    <?php endforeach; ?>
+  </tbody>
+</table>
+
+<!-- AXE 3 : DONNÉES PERSONNELLES -->
+<h2>3 — Cartographie des données personnelles</h2>
+<?php if ($audit['pii']['legal_in_layout']): ?>
+<div class="check">
+  <span class="check-icon ok">✓</span>
+  <div>
+    <div class="check-label">Mentions légales dans le layout global</div>
+    <div class="check-detail">Un lien vers les mentions légales de la boutique est présent dans le pied de page de tous les emails.</div>
+  </div>
+</div>
+<?php else: ?>
+<div class="check">
+  <span class="check-icon warn">✕</span>
+  <div>
+    <div class="check-label">Mentions légales absentes du layout</div>
+    <div class="check-detail">Aucun lien vers les mentions légales n'a été détecté dans layout.html.</div>
+  </div>
+</div>
+<?php endif; ?>
+
+<?php if ($audit['pii']['map']): ?>
+<table style="margin-top:12px;">
+  <thead>
+    <tr>
+      <th>Template</th>
+      <th>Données personnelles utilisées</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php foreach ($audit['pii']['map'] as $row): ?>
+    <tr>
+      <td><?= htmlspecialchars($row['template']) ?></td>
+      <td class="pii-list"><?= htmlspecialchars(implode(', ', $row['vars'])) ?></td>
+    </tr>
+    <?php endforeach; ?>
+  </tbody>
+</table>
+<?php endif; ?>
+
+<div class="disclaimer">
+  <strong>Avis de limitation :</strong> Ce rapport est généré automatiquement par Neria à partir de l'analyse des fichiers et des données stockées.
+  Il ne constitue pas un avis juridique et ne remplace pas l'intervention d'un délégué à la protection des données (DPO) ou d'un conseil spécialisé RGPD.
+  La conformité RGPD dépend également de votre politique de confidentialité, de votre registre des traitements et de vos contrats sous-traitants.
+</div>
+
+<div class="footer">
+  <span>Neria — Luxury Email Suite</span>
+  <span>Rapport généré le <?= $date ?> — Confidentiel</span>
+</div>
+
+</body>
+</html>
+        <?php
+        return ob_get_clean();
+    }
+
+    // ============================================================
+    // SCORE
+    // ============================================================
+
+    private function grade(int $issues): string
+    {
+        if ($issues === 0) { return 'A'; }
+        if ($issues <= 2)  { return 'B'; }
+        if ($issues <= 5)  { return 'C'; }
+        return 'D';
+    }
+
+    public static function getTableDef(string $table): ?array
+    {
+        foreach (self::TABLES as $def) {
+            if ($def['table'] === $table) {
+                return $def;
+            }
+        }
+        return null;
+    }
+}

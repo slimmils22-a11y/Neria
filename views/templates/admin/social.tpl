@@ -7,7 +7,7 @@
 
 <div class="neria-section">
   <p class="neria-section__desc">
-    {l s='Les liens renseignés apparaissent automatiquement en pied de chaque email. Laissez vide pour masquer.' mod='neria'}
+    {neria_admin key='social.desc'}
   </p>
 
   <form method="post" action="{$smarty.server.REQUEST_URI}">
@@ -51,7 +51,7 @@
 
     <div class="neria-form-actions">
       <button type="submit" class="neria-btn neria-btn--primary">
-        {l s='Sauvegarder les réseaux sociaux' mod='neria'}
+        {neria_admin key='social.save'}
       </button>
     </div>
 

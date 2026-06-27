@@ -7,6 +7,10 @@
 {neria_trad key='loyalty_tier_details'}
 --------------------------------
 {neria_trad key='loyalty_tier_name_label'} : {new_tier_name}
+{neria_trad key='loyalty_tier_points_label'} : {total_points}
+
+{neria_trad key='loyalty_voucher_intro'}
+{voucher_code} — {neria_trad key='loyalty_voucher_value'} : {voucher_amount}
 
 {neria_trad key='loyalty_tier_btn'} : {history_url}
 

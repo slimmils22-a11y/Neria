@@ -1,0 +1,318 @@
+<?php
+/**
+ * NERIA — QueueManager
+ *
+ * File d'attente d'emails comportementaux (TABLE 27 : ps_neria_queue).
+ *
+ * Flux :
+ *  1. BehavioralCronManager::send() appelle enqueue() si la fenêtre d'achat
+ *     est activée et que le client a un pattern détecté.
+ *  2. Le cron quotidien appelle processQueue() pour envoyer les emails arrivés
+ *     à échéance (send_at <= NOW()).
+ *  3. Chaque tentative est loguée via Watchdog.
+ */
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
+class QueueManager
+{
+    const MAX_ATTEMPTS = 3;
+    const BATCH_SIZE   = 50;
+
+    private \Neria $module;
+    private \Db    $db;
+    private string $prefix;
+    private ?\WatchdogManager $watchdog = null;
+
+    public function __construct(\Neria $module)
+    {
+        $this->module = $module;
+        $this->db     = \Db::getInstance();
+        $this->prefix = _DB_PREFIX_;
+    }
+
+    private function watchdog(): \WatchdogManager
+    {
+        if ($this->watchdog === null) {
+            $this->watchdog = new \WatchdogManager($this->module);
+        }
+        return $this->watchdog;
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // ENQUEUE
+    // ──────────────────────────────────────────────────────────────────
+
+    /**
+     * Ajoute un email à la file d'attente pour envoi à l'heure préférée du client.
+     * Si l'heure préférée est passée aujourd'hui, l'email est programmé pour demain.
+     */
+    public function enqueue(
+        string $template,
+        array  $customer,
+        array  $extraVars,
+        int    $refId,
+        int    $preferredHour
+    ): void {
+        $sendAt    = $this->nextOccurrence($preferredHour);
+        $idLang    = (int) ($customer['id_lang'] ?? \Configuration::get('PS_LANG_DEFAULT'));
+        $idShop    = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
+        $toName    = trim(($customer['firstname'] ?? '') . ' ' . ($customer['lastname'] ?? ''));
+        $varsJson  = json_encode($extraVars, JSON_UNESCAPED_UNICODE);
+
+        $this->db->execute(
+            'INSERT INTO `' . $this->prefix . 'neria_queue`
+             (id_customer, id_shop, id_lang, template, recipient_email, recipient_name,
+              vars_json, ref_id, send_at, status, created_at)
+             VALUES (
+               ' . (int) $customer['id_customer'] . ',
+               ' . $idShop . ',
+               ' . $idLang . ',
+               \'' . pSQL($template) . '\',
+               \'' . pSQL($customer['email'] ?? '') . '\',
+               \'' . pSQL($toName) . '\',
+               \'' . pSQL($varsJson) . '\',
+               ' . (int) $refId . ',
+               \'' . pSQL($sendAt) . '\',
+               \'pending\',
+               NOW()
+             )'
+        );
+
+        $this->watchdog()->info(
+            sprintf(
+                'Queue — %s programmé pour %s à %s (fenêtre préférée %02dh).',
+                $template,
+                $customer['email'] ?? '?',
+                $sendAt,
+                $preferredHour
+            ),
+            $template,
+            'QueueManager'
+        );
+    }
+
+    /**
+     * Calcule le prochain datetime correspondant à $hour (ex. 14 → "2026-06-25 14:00:00").
+     * Si l'heure est déjà passée aujourd'hui, on programme pour demain.
+     */
+    private function nextOccurrence(int $hour): string
+    {
+        $now    = new \DateTime();
+        $target = new \DateTime('today ' . sprintf('%02d:00:00', $hour));
+
+        if ($target <= $now) {
+            $target->modify('+1 day');
+        }
+
+        return $target->format('Y-m-d H:i:s');
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // PROCESS QUEUE
+    // ──────────────────────────────────────────────────────────────────
+
+    /**
+     * Envoie tous les emails en attente dont send_at <= NOW().
+     * Appelé depuis BehavioralCronManager::run().
+     *
+     * @return int Nombre d'emails envoyés avec succès.
+     */
+    public function processQueue(): int
+    {
+        $rows = $this->db->executeS(
+            'SELECT * FROM `' . $this->prefix . 'neria_queue`
+             WHERE status = \'pending\'
+               AND send_at <= NOW()
+               AND attempts < ' . self::MAX_ATTEMPTS . '
+             ORDER BY send_at ASC
+             LIMIT ' . self::BATCH_SIZE
+        );
+
+        if (empty($rows)) {
+            return 0;
+        }
+
+        $sent   = 0;
+        $failed = 0;
+
+        foreach ((array) $rows as $row) {
+            if ($this->processSingle($row)) {
+                $sent++;
+            } else {
+                $failed++;
+            }
+        }
+
+        $this->watchdog()->info(
+            sprintf(
+                'Queue — %d email%s envoyé%s, %d échec%s.',
+                $sent,   $sent   > 1 ? 's' : '', $sent   > 1 ? 's' : '',
+                $failed, $failed > 1 ? 's' : ''
+            ),
+            '',
+            'QueueManager'
+        );
+
+        return $sent;
+    }
+
+    private function processSingle(array $row): bool
+    {
+        $id = (int) $row['id_neria_queue'];
+
+        // Incrémenter les tentatives immédiatement pour éviter le double-envoi concurrent.
+        $this->db->execute(
+            'UPDATE `' . $this->prefix . 'neria_queue`
+             SET attempts = attempts + 1
+             WHERE id_neria_queue = ' . $id
+        );
+
+        try {
+            $vars   = json_decode($row['vars_json'] ?? '{}', true) ?: [];
+            $idLang = (int) ($row['id_lang'] ?? \Configuration::get('PS_LANG_DEFAULT'));
+            $idShop = (int) ($row['id_shop'] ?? 1);
+
+            $ctx  = \Context::getContext();
+            $link = ($ctx && $ctx->link) ? $ctx->link : null;
+
+            $allVars = array_merge(
+                [
+                    '{shop_name}'   => \Configuration::get('PS_SHOP_NAME'),
+                    '{history_url}' => $link ? $link->getPageLink('history', true) : '',
+                ],
+                $vars
+            );
+
+            $sent = \Mail::Send(
+                $idLang,
+                $row['template'],
+                '',
+                $allVars,
+                $row['recipient_email'],
+                $row['recipient_name'] ?: null,
+                null, null, null, null,
+                _PS_MODULE_DIR_ . 'neria/mails/',
+                false,
+                $idShop
+            );
+
+            if ($sent) {
+                $this->db->execute(
+                    'UPDATE `' . $this->prefix . 'neria_queue`
+                     SET status = \'sent\', sent_at = NOW()
+                     WHERE id_neria_queue = ' . $id
+                );
+                $this->watchdog()->info(
+                    sprintf(
+                        'Queue — %s envoyé à %s (id #%d).',
+                        $row['template'],
+                        $row['recipient_email'],
+                        $id
+                    ),
+                    $row['template'],
+                    'QueueManager'
+                );
+                return true;
+            }
+
+            $this->markFailedOrRetry($id, (int) $row['attempts'] + 1, 'Mail::Send() a retourné false.');
+            return false;
+
+        } catch (\Throwable $e) {
+            $this->markFailedOrRetry($id, (int) $row['attempts'] + 1, $e->getMessage());
+            $this->watchdog()->error(
+                sprintf(
+                    'Queue — Erreur pour %s (#%d) : %s',
+                    $row['recipient_email'],
+                    $id,
+                    $e->getMessage()
+                ),
+                $row['template'] ?? '',
+                'QueueManager'
+            );
+            return false;
+        }
+    }
+
+    private function markFailedOrRetry(int $id, int $attempts, string $error): void
+    {
+        $status = $attempts >= self::MAX_ATTEMPTS ? 'failed' : 'pending';
+        $this->db->execute(
+            'UPDATE `' . $this->prefix . 'neria_queue`
+             SET status = \'' . $status . '\',
+                 error  = \'' . pSQL(substr($error, 0, 500)) . '\'
+             WHERE id_neria_queue = ' . $id
+        );
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // STATS BO
+    // ──────────────────────────────────────────────────────────────────
+
+    /**
+     * Statistiques pour la section BO.
+     *
+     * @return array{pending: int, sent_30d: int, failed_30d: int, avg_delay_min: int|null, coverage_pct: int, peak_hour: int|null}
+     */
+    public function getStats(): array
+    {
+        $pending = (int) $this->db->getValue(
+            'SELECT COUNT(*) FROM `' . $this->prefix . 'neria_queue` WHERE status = \'pending\''
+        );
+
+        $sent30d = (int) $this->db->getValue(
+            'SELECT COUNT(*) FROM `' . $this->prefix . 'neria_queue`
+             WHERE status = \'sent\' AND sent_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
+        );
+
+        $failed30d = (int) $this->db->getValue(
+            'SELECT COUNT(*) FROM `' . $this->prefix . 'neria_queue`
+             WHERE status = \'failed\' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
+        );
+
+        $avgRaw = $this->db->getValue(
+            'SELECT AVG(TIMESTAMPDIFF(MINUTE, created_at, sent_at))
+             FROM `' . $this->prefix . 'neria_queue`
+             WHERE status = \'sent\' AND sent_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
+        );
+        $avgDelay = ($avgRaw !== false && $avgRaw !== null) ? (int) round((float) $avgRaw) : null;
+
+        // % de clients actifs ayant une fenêtre détectable
+        $totalActive = (int) $this->db->getValue(
+            'SELECT COUNT(*) FROM `' . $this->prefix . 'customer` WHERE active = 1 AND deleted = 0'
+        );
+        $withWindow = (int) $this->db->getValue(
+            'SELECT COUNT(*) FROM (
+               SELECT id_customer
+               FROM `' . $this->prefix . 'orders`
+               WHERE valid = 1
+               GROUP BY id_customer, HOUR(date_add)
+               HAVING COUNT(*) >= ' . \PurchaseWindowManager::MINIMUM_ORDERS . '
+             ) sub'
+        );
+        $coveragePct = $totalActive > 0 ? (int) round($withWindow / $totalActive * 100) : 0;
+
+        // Heure de pointe globale (pour l'histogramme simplifié)
+        // getRow() ajoute LIMIT 1 automatiquement — pas de LIMIT dans la requête.
+        $peakRow = $this->db->getRow(
+            'SELECT HOUR(date_add) AS h, COUNT(*) AS cnt
+             FROM `' . $this->prefix . 'orders`
+             WHERE valid = 1
+             GROUP BY HOUR(date_add)
+             ORDER BY cnt DESC'
+        );
+        $peakHour = $peakRow ? (int) $peakRow['h'] : null;
+
+        return [
+            'pending'       => $pending,
+            'sent_30d'      => $sent30d,
+            'failed_30d'    => $failed30d,
+            'avg_delay_min' => $avgDelay,
+            'coverage_pct'  => $coveragePct,
+            'peak_hour'     => $peakHour,
+        ];
+    }
+}

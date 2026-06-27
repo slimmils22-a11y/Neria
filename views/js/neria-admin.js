@@ -1,4 +1,4 @@
-/**
+﻿/**
  * NERIA — Luxury Email Suite
  * JavaScript back-office PrestaShop
  *
@@ -20,10 +20,36 @@
         initRangeSync();
         initPreviewFrame();
         initTranslationsLoader();
+        initTranslationsReset();
+        initSubjectAnalyzer();
         initSignaturePreview();
         initDesignReset();
         initFontCards();
+        initFileInputs();
+        initActionAnchor();
+        initAlertAutoDismiss();
     });
+
+    // ── Champ fichier personnalisé (affiche le nom choisi) ───────
+    function initFileInputs() {
+        var fields = document.querySelectorAll('.neria-file-field__input');
+
+        fields.forEach(function (input) {
+            var nameEl = input.parentNode
+                ? input.parentNode.querySelector('.neria-file-field__name')
+                : null;
+            if (!nameEl) return;
+
+            input.addEventListener('change', function () {
+                if (input.files && input.files.length > 0) {
+                    nameEl.textContent = input.files[0].name;
+                } else {
+                    nameEl.textContent =
+                        input.getAttribute('data-default-text') || '';
+                }
+            });
+        });
+    }
 
     // ── Synchronisation color picker ↔ champ texte hex ───────────
     function initColorPickers() {
@@ -221,6 +247,39 @@
         });
     }
 
+    // ── Réinitialisation traductions ─────────────────────────────
+    function initTranslationsReset() {
+        var btn = document.getElementById('neria-trad-reset');
+        if (!btn) return;
+
+        btn.addEventListener('click', function () {
+            var msg = btn.getAttribute('data-confirm') || 'Réinitialiser ?';
+            if (!window.confirm(msg)) return;
+
+            var form = document.createElement('form');
+            form.method = 'post';
+            form.action = window.location.href;
+
+            var fields = {
+                neria_action:  'reset_template',
+                neria_tab:     'translations',
+                trad_template: btn.getAttribute('data-template') || '',
+                trad_lang:     btn.getAttribute('data-lang') || ''
+            };
+
+            Object.keys(fields).forEach(function (key) {
+                var input = document.createElement('input');
+                input.type  = 'hidden';
+                input.name  = key;
+                input.value = fields[key];
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+    }
+
     // ── Aperçu signature ─────────────────────────────────────────
     function initSignaturePreview() {
         var btn = document.getElementById('neria-sig-preview-btn');
@@ -296,6 +355,84 @@
         });
     }
 
+    // ── Assistant de rédaction de sujet — Variante B (onglet Traductions) ──
+    function initSubjectAnalyzer() {
+        var SPAM_WORDS = (window.NERIA_SPAM_TRIGGERS && window.NERIA_SPAM_TRIGGERS.length)
+            ? window.NERIA_SPAM_TRIGGERS
+            : ['gratuit', 'urgent', 'gagner', 'offre', 'promo', 'free', 'win', 'discount'];
+
+        var allLabels = window.NERIA_LABELS || {};
+        var lang      = window.NERIA_LANG   || 'en';
+        var L = allLabels[lang] || allLabels['en'] || {
+            t: 'Email subject', s: '⚠ Risk words:', u: 'chars',
+            e: 'empty', c: 'too short', o: 'optimal', l1: 'a bit long', l2: 'too long'
+        };
+
+        function isCJK(str) {
+            return /[　-鿿가-힯぀-ヿ＀-￯؀-ۿ]/.test(str);
+        }
+
+        var widgets = document.querySelectorAll('.neria-subject-analyzer[data-target]');
+        widgets.forEach(function (widget) {
+            var fieldId = widget.getAttribute('data-target');
+            var field   = document.getElementById(fieldId);
+            if (!field) return;
+
+            var elTitle = widget.querySelector('.nsa-title');
+            var elChars = widget.querySelector('.nsa-chars');
+            var elBar   = widget.querySelector('.nsa-bar');
+            var elScore = widget.querySelector('.nsa-score');
+            var elSpam  = widget.querySelector('.nsa-spam');
+
+            if (elTitle) { elTitle.textContent = '✦ ' + L.t; }
+
+            function analyze() {
+                var val = field.value, len = val.length, score = 100, charColor, charLabel;
+                var cjk = isCJK(val);
+
+                if (len === 0) {
+                    score -= 20; charColor = '#e05c5c'; charLabel = '0 ' + L.u + ' — ' + L.e;
+                } else if (cjk) {
+                    if (len < 8)        { score -= 10; charColor = '#b8600a'; charLabel = len + ' ' + L.u + ' — ' + L.c; }
+                    else if (len <= 20)  {              charColor = '#4a9e6b'; charLabel = len + ' ' + L.u + ' — ' + L.o; }
+                    else if (len <= 35)  { score -= 5;  charColor = '#b8600a'; charLabel = len + ' ' + L.u + ' — ' + L.l1; }
+                    else                 { score -= 15; charColor = '#e05c5c'; charLabel = len + ' ' + L.u + ' — ' + L.l2; }
+                } else {
+                    if (len < 20)        { score -= 10; charColor = '#b8600a'; charLabel = len + ' ' + L.u + ' — ' + L.c; }
+                    else if (len <= 50)   {              charColor = '#4a9e6b'; charLabel = len + ' ' + L.u + ' — ' + L.o; }
+                    else if (len <= 70)   { score -= 5;  charColor = '#b8600a'; charLabel = len + ' ' + L.u + ' — ' + L.l1; }
+                    else                  { score -= 15; charColor = '#e05c5c'; charLabel = len + ' ' + L.u + ' — ' + L.l2; }
+                }
+
+                var lc = val.toLowerCase(), found = [];
+                SPAM_WORDS.forEach(function (w) {
+                    if (lc.indexOf(w.toLowerCase()) !== -1 && found.indexOf(w) === -1) { found.push(w); }
+                });
+                score -= Math.min(24, found.length * 8);
+                var caps = 0, maxC = 0;
+                for (var i = 0; i < val.length; i++) {
+                    if (val[i] >= 'A' && val[i] <= 'Z') { maxC = Math.max(maxC, ++caps); } else { caps = 0; }
+                }
+                if (maxC >= 6) { score -= 10; }
+                if (val.indexOf('!!!') !== -1) { score -= 5; }
+                score = Math.max(0, Math.min(100, score));
+
+                var barColor = score >= 80 ? '#4a9e6b' : score >= 60 ? '#b8600a' : '#e05c5c';
+                elChars.textContent    = charLabel;
+                elChars.style.color    = charColor;
+                elScore.textContent    = score + '/100';
+                elScore.style.color    = barColor;
+                elBar.style.width      = score + '%';
+                elBar.style.background = barColor;
+                elSpam.style.display   = found.length ? '' : 'none';
+                elSpam.textContent     = found.length ? L.s + ' ' + found.join(', ') : '';
+            }
+
+            field.addEventListener('input', analyze);
+            analyze();
+        });
+    }
+
     // ── Sélection des polices (font cards) ───────────────────────
     function initFontCards() {
         var cards = document.querySelectorAll('.neria-font-card');
@@ -320,5 +457,104 @@
             });
         });
     }
+
+    // ── Repositionnement contextuel des messages d'action ─────────
+    // Problème : la bannière de message s'affiche en haut de page, au-dessus de
+    // la navigation ; après un POST la page revient en haut et l'utilisateur perd
+    // sa position, surtout sur les onglets longs (stats, configure, help, bounces).
+    //
+    // Mécanisme : le serveur écrit l'action traitée sur la bannière
+    // (data-neria-action). On retrouve la section (.neria-section) qui contient le
+    // formulaire de cette même action, on y déplace la bannière et on défile
+    // jusqu'à elle. Lire l'action depuis le DOM (et non un sessionStorage écrit au
+    // clic) rend le comportement fiable même au rechargement (Ctrl+F5).
+    // Dégradation gracieuse : sans JS, la bannière reste lisible en haut.
+    function initActionAnchor() {
+        var alertEl = document.querySelector('[data-neria-alert]');
+        if (!alertEl) { return; }
+
+        var action = alertEl.getAttribute('data-neria-action');
+        if (!action) { return; }
+
+        // La valeur ne contient que [a-z_] : sélecteur d'attribut sûr.
+        var marker = document.querySelector('input[name="neria_action"][value="' + action + '"]');
+        var section = marker && marker.closest ? marker.closest('.neria-section') : null;
+        if (!section) { return; } // section non identifiée : la bannière reste en haut.
+
+        section.insertBefore(alertEl, section.firstChild);
+        try {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (err) {
+            section.scrollIntoView();
+        }
+    }
+
+    // ── Durée de vie des messages d'action ────────────────────────
+    // Le message n'a pas de durée côté serveur (il réapparaît tant que
+    // neria_action est dans la requête, ex. au rafraîchissement qui renvoie le
+    // formulaire). On lui donne ici une fin de vie côté client : disparition
+    // automatique après un délai, plus un bouton de fermeture immédiate.
+    var ALERT_TTL_MS = 10000;
+    function initAlertAutoDismiss() {
+        var alertEl = document.querySelector('[data-neria-alert]');
+        if (!alertEl) { return; }
+
+        var timer = null;
+        function dismiss() {
+            if (timer) { clearTimeout(timer); timer = null; }
+            alertEl.style.transition = 'opacity .4s ease';
+            alertEl.style.opacity = '0';
+            setTimeout(function () {
+                if (alertEl.parentNode) { alertEl.parentNode.removeChild(alertEl); }
+            }, 400);
+        }
+
+        // Bouton de fermeture (✕) aligné à droite de la bannière.
+        var close = document.createElement('button');
+        close.type = 'button';
+        close.setAttribute('aria-label', 'Fermer');
+        close.innerHTML = '✕';
+        close.style.cssText = 'float:right; margin-left:12px; background:none; border:none;'
+            + ' cursor:pointer; font-size:13px; line-height:1; color:inherit; opacity:.55;';
+        close.addEventListener('mouseenter', function () { close.style.opacity = '1'; });
+        close.addEventListener('mouseleave', function () { close.style.opacity = '.55'; });
+        close.addEventListener('click', dismiss);
+        alertEl.insertBefore(close, alertEl.firstChild);
+
+        // Disparition automatique ; suspendue tant que la souris survole le message.
+        timer = setTimeout(dismiss, ALERT_TTL_MS);
+        alertEl.addEventListener('mouseenter', function () {
+            if (timer) { clearTimeout(timer); timer = null; }
+        });
+        alertEl.addEventListener('mouseleave', function () {
+            if (!timer) { timer = setTimeout(dismiss, ALERT_TTL_MS); }
+        });
+    }
+
+
+    // ── Boutons flottants haut / bas ─────────────────────────────
+    (function () {
+        var btnTop = document.getElementById('neria-scroll-top');
+        var btnBot = document.getElementById('neria-scroll-bot');
+        if (!btnTop || !btnBot) { return; }
+
+        // Trouve le conteneur scrollable (PS BO utilise souvent un div interne)
+        function getScroller() {
+            var el = document.querySelector('.main-page-content, #main, .content-div, body');
+            return el || document.documentElement;
+        }
+
+        btnTop.onclick = function () {
+            var s = getScroller();
+            s.scrollTo ? s.scrollTo(0, 0) : (s.scrollTop = 0);
+            window.scrollTo(0, 0);
+        };
+        btnBot.onclick = function () {
+            var s = getScroller();
+            var bottom = s.scrollHeight || document.body.scrollHeight;
+            s.scrollTo ? s.scrollTo(0, bottom) : (s.scrollTop = bottom);
+            window.scrollTo(0, document.body.scrollHeight);
+        };
+    })();
 
 })();

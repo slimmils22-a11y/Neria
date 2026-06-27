@@ -1,0 +1,22 @@
+{shop_name}
+
+{neria_trad key='dear_customer'}
+
+{neria_trad key='quote_expiry_48h_intro'}
+
+{neria_trad key='quote_ref_label'} {quote_ref}
+
+{neria_trad key='quote_total_label'} {quote_total}
+
+{neria_trad key='quote_expiry_label'} {expiry_date}
+
+{neria_trad key='quote_expiry_48h_btn'} : {quote_url}
+
+{neria_trad key='quote_expiry_48h_help'}
+
+{neria_trad key='quote_expiry_48h_note'}
+
+{neria_trad key='quote_expiry_48h_signature'}
+
+{shop_name}
+{shop_url}

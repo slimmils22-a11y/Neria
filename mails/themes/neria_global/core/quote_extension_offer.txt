@@ -1,0 +1,22 @@
+{shop_name}
+
+{neria_trad key='dear_customer'}
+
+{neria_trad key='quote_extension_intro'}
+
+{neria_trad key='quote_ref_label'} {quote_ref}
+
+{neria_trad key='quote_total_label'} {quote_total}
+
+{neria_trad key='quote_extension_new_expiry_label'} {new_expiry_date}
+
+{neria_trad key='quote_extension_btn'} : {quote_url}
+
+{neria_trad key='quote_extension_help'}
+
+{neria_trad key='quote_extension_note'}
+
+{neria_trad key='quote_extension_signature'}
+
+{shop_name}
+{shop_url}

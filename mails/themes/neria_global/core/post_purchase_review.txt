@@ -9,6 +9,7 @@
 {neria_trad key='review_btn'} : {review_url}
 
 {neria_trad key='review_note'}
+{upsell_block_txt}
 
 {neria_trad key='signature_thanks'}
 

@@ -3,44 +3,45 @@
  * Page d'accueil du back-office
  * Fix 2 : id unique sur le select signature
  * Fix 4 : $upcoming_events doit être assignée par neria.php
+ * i18n : libellés via {neria_admin key='...'} (18 langues, AdminTranslator)
  *}
 
 {* ── KPIs rapides ───────────────────────────────────────────── *}
-<div class="neria-section">
+<div class="neria-section" id="neria-cfg-dashboard">
   <h2 class="neria-section__title">
-    {l s='Tableau de bord' mod='neria'}
+    {neria_admin key='configure.dashboard_title'}
   </h2>
   <div class="neria-kpi-grid">
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$kpis.total_sent|default:0}</div>
-      <div class="neria-kpi__label">{l s='Emails envoyés' mod='neria'}</div>
-      <div class="neria-kpi__period">{l s='30 derniers jours' mod='neria'}</div>
+      <div class="neria-kpi__label">{neria_admin key='common.emails_sent'}</div>
+      <div class="neria-kpi__period">{neria_admin key='common.last_30_days'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$kpis.rate_open|default:0}%</div>
-      <div class="neria-kpi__label">{l s='Taux d\'ouverture' mod='neria'}</div>
-      <div class="neria-kpi__period">{l s='30 derniers jours' mod='neria'}</div>
+      <div class="neria-kpi__label">{neria_admin key='common.open_rate'}</div>
+      <div class="neria-kpi__period">{neria_admin key='common.last_30_days'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$kpis.rate_click|default:0}%</div>
-      <div class="neria-kpi__label">{l s='Taux de clic' mod='neria'}</div>
-      <div class="neria-kpi__period">{l s='30 derniers jours' mod='neria'}</div>
+      <div class="neria-kpi__label">{neria_admin key='common.click_rate'}</div>
+      <div class="neria-kpi__period">{neria_admin key='common.last_30_days'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$kpis.active_langs|default:0}</div>
-      <div class="neria-kpi__label">{l s='Langues actives' mod='neria'}</div>
-      <div class="neria-kpi__period">{l s='sur 18' mod='neria'}</div>
+      <div class="neria-kpi__label">{neria_admin key='common.active_langs'}</div>
+      <div class="neria-kpi__period">{neria_admin key='configure.of_18'}</div>
     </div>
   </div>
 </div>
 
 {* ── Détection automatique de la langue ─────────────────────── *}
-<div class="neria-section">
+<div class="neria-section" id="neria-cfg-autolang">
   <h2 class="neria-section__title">
-    {l s='Détection automatique de la langue' mod='neria'}
+    {neria_admin key='configure.autolang_title'}
   </h2>
   <p class="neria-section__desc">
-    {l s='Neria choisit la langue de chaque email selon le client : son choix explicite s\'il a sélectionné une langue, sinon le pays de son adresse de livraison. Un client étranger reçoit ainsi l\'email dans sa langue, même si la boutique est configurée en une seule langue.' mod='neria'}
+    {neria_admin key='configure.autolang_desc'}
   </p>
 
   <form method="post" action="{$smarty.server.REQUEST_URI}">
@@ -52,22 +53,22 @@
       <input type="checkbox" name="neria_auto_lang" value="1"
              style="width:16px; height:16px; cursor:pointer;"
              {if $auto_lang_enabled}checked{/if}>
-      <span>{l s='Détection automatique de la langue client' mod='neria'}</span>
+      <span>{neria_admin key='configure.autolang_toggle'}</span>
     </label>
 
     <div style="margin-top:16px;">
       <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
-        {l s='Enregistrer' mod='neria'}
+        {neria_admin key='common.register'}
       </button>
     </div>
   </form>
 </div>
 
 {* ── Bons de réduction ──────────────────────────────────────── *}
-<div class="neria-section">
-  <h2 class="neria-section__title">{l s='Bons de réduction' mod='neria'}</h2>
+<div class="neria-section" id="neria-cfg-vouchers">
+  <h2 class="neria-section__title">{neria_admin key='configure.voucher_title'}</h2>
   <p class="neria-section__desc">
-    {l s='Durée de validité affichée dans les emails de bon (variable {validity_days}). Modifiez-la selon votre politique.' mod='neria'}
+    {neria_admin key='configure.voucher_desc'}
   </p>
 
   <form method="post" action="{$smarty.server.REQUEST_URI}">
@@ -76,7 +77,7 @@
 
     <div class="neria-form-group">
       <label class="neria-label" for="neria-voucher-validity">
-        {l s='Durée de validité (jours)' mod='neria'}
+        {neria_admin key='configure.voucher_validity_label'}
       </label>
       <input type="number" id="neria-voucher-validity" name="neria_voucher_validity"
              class="neria-input" min="1" max="365" style="max-width:140px;"
@@ -85,18 +86,304 @@
 
     <div style="margin-top:16px;">
       <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
-        {l s='Enregistrer' mod='neria'}
+        {neria_admin key='common.register'}
       </button>
     </div>
+  </form>
+</div>
+
+{* ── Mode Silence — anti-doublon ────────────────────────────── *}
+<div class="neria-section" id="neria-cfg-cooldown">
+  <h2 class="neria-section__title">{neria_admin key='configure.cooldown_title'}</h2>
+  <p class="neria-section__desc">{neria_admin key='configure.cooldown_desc'}</p>
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <input type="hidden" name="neria_action" value="save_cooldown">
+    <input type="hidden" name="neria_tab"    value="configure">
+
+    <div class="neria-form-group">
+      <input type="hidden" name="neria_cooldown_enabled" value="0">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;color:var(--neria-text);">
+        <input type="checkbox" name="neria_cooldown_enabled" value="1"
+               style="width:16px;height:16px;cursor:pointer;"
+               {if $cooldown_enabled}checked{/if}>
+        <span>{neria_admin key='configure.cooldown_enabled_label'}</span>
+      </label>
+    </div>
+
+    <div class="neria-form-group" style="margin-top:12px;">
+      <label class="neria-label" for="neria-cooldown-minutes">
+        {neria_admin key='configure.cooldown_minutes_label'}
+      </label>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="number" id="neria-cooldown-minutes" name="neria_cooldown_minutes"
+               class="neria-input" min="1" max="60" style="max-width:100px;"
+               value="{$cooldown_minutes|default:10}">
+        <span style="font-size:13px;color:var(--neria-text-light);">{neria_admin key='configure.cooldown_minutes_unit'}</span>
+      </div>
+      <p class="neria-hint">{neria_admin key='configure.cooldown_hint'}</p>
+    </div>
+
+    <div style="margin-top:16px;">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+        {neria_admin key='common.register'}
+      </button>
+    </div>
+  </form>
+</div>
+
+{* ── Empreinte carbone ──────────────────────────────────── *}
+<div class="neria-section" id="neria-cfg-carbon">
+  <h2 class="neria-section__title">{neria_admin key='configure.carbon_title'}</h2>
+  <p class="neria-section__desc">{neria_admin key='configure.carbon_desc'}</p>
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <input type="hidden" name="neria_action" value="save_carbon">
+    <input type="hidden" name="neria_tab"    value="configure">
+
+    <div class="neria-form-group">
+      <input type="hidden" name="neria_carbon_enabled" value="0">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;color:var(--neria-text);">
+        <input type="checkbox" name="neria_carbon_enabled" value="1"
+               style="width:16px;height:16px;cursor:pointer;"
+               {if $carbon_enabled}checked{/if}>
+        <span>{neria_admin key='configure.carbon_enabled_label'}</span>
+      </label>
+    </div>
+
+    <div class="neria-form-group" style="margin-top:14px; max-width:480px;">
+      <label class="neria-label" for="neria-carbon-link">
+        {neria_admin key='configure.carbon_link_label'}
+        <span class="neria-hint">{neria_admin key='configure.carbon_link_hint'}</span>
+      </label>
+      <input type="url" id="neria-carbon-link" name="neria_carbon_link"
+             class="neria-input" placeholder="https://…"
+             value="{$carbon_link|default:''}">
+    </div>
+
+    <p class="neria-hint" style="margin-top:10px;">
+      {neria_admin key='configure.carbon_example'}
+    </p>
+
+    <div style="margin-top:16px;">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+        {neria_admin key='common.register'}
+      </button>
+    </div>
+  </form>
+</div>
+
+{* ── Multi-expéditeur par langue ────────────────────────── *}
+<div class="neria-section" id="neria-cfg-senders">
+  <h2 class="neria-section__title">{neria_admin key='configure.senders_title'}</h2>
+  <p class="neria-section__desc">{neria_admin key='configure.senders_desc'}</p>
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <input type="hidden" name="neria_action" value="save_senders">
+    <input type="hidden" name="neria_tab"    value="configure">
+
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--neria-border);">
+          <th style="text-align:left;padding:8px 10px;color:var(--neria-muted);font-weight:600;width:200px;">{neria_admin key='configure.senders_col_lang'}</th>
+          <th style="text-align:left;padding:8px 10px;color:var(--neria-muted);font-weight:600;">{neria_admin key='configure.senders_col_name'}</th>
+          <th style="text-align:left;padding:8px 10px;color:var(--neria-muted);font-weight:600;">{neria_admin key='configure.senders_col_email'}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {foreach from=$lang_labels key=iso item=label}
+        <tr style="border-bottom:1px solid var(--neria-border);">
+          <td style="padding:8px 10px;color:var(--neria-text);white-space:nowrap;">
+            {if isset($lang_flags[$iso])}{$lang_flags[$iso]}{/if} {$label}
+          </td>
+          <td style="padding:6px 10px;">
+            <input type="text"
+                   name="neria_sender_name_{$iso}"
+                   value="{if isset($senders_config[$iso]) && isset($senders_config[$iso].name)}{$senders_config[$iso].name|escape:'html'}{/if}"
+                   placeholder="{neria_admin key='configure.senders_name_placeholder'}"
+                   class="neria-input" style="width:100%;max-width:260px;">
+          </td>
+          <td style="padding:6px 10px;">
+            <input type="email"
+                   name="neria_sender_email_{$iso}"
+                   value="{if isset($senders_config[$iso]) && isset($senders_config[$iso].email)}{$senders_config[$iso].email|escape:'html'}{/if}"
+                   placeholder="contact@votreboutique.fr"
+                   class="neria-input" style="width:100%;max-width:280px;">
+          </td>
+        </tr>
+        {/foreach}
+      </tbody>
+    </table>
+
+    <p class="neria-hint" style="margin-top:12px;">{neria_admin key='configure.senders_spf_hint'}</p>
+
+    <div style="margin-top:16px;">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+        {neria_admin key='common.register'}
+      </button>
+    </div>
+  </form>
+</div>
+
+{* ── Blacklist templates ─────────────────────────────────── *}
+<div class="neria-section" id="neria-cfg-blacklist">
+  <h2 class="neria-section__title">{neria_admin key='configure.blacklist_title'}</h2>
+  <p class="neria-section__desc">{neria_admin key='configure.blacklist_desc'}</p>
+
+  {* Formulaire d'ajout *}
+  <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-bottom:20px;">
+    <input type="hidden" name="neria_action" value="add_blacklist">
+    <input type="hidden" name="neria_tab"    value="configure">
+    <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">
+      <div>
+        <label class="neria-label" for="neria-bl-template">{neria_admin key='common.template'}</label>
+        <select id="neria-bl-template" name="neria_bl_template" class="neria-select" style="max-width:280px;">
+          <option value="">— {neria_admin key='configure.blacklist_choose_template'} —</option>
+          {foreach $template_labels as $code => $label}
+            <option value="{$code}">{$label} ({$code})</option>
+          {/foreach}
+        </select>
+      </div>
+      <div>
+        <label class="neria-label" for="neria-bl-lang">{neria_admin key='configure.blacklist_language'}</label>
+        <select id="neria-bl-lang" name="neria_bl_lang" class="neria-select" style="max-width:200px;">
+          <option value="">{neria_admin key='configure.blacklist_all_langs'}</option>
+          {foreach $lang_labels as $code => $name}
+            <option value="{$code}">{$lang_flags[$code]|default:''} {$name}</option>
+          {/foreach}
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-end;">
+        <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+          + {neria_admin key='configure.blacklist_add'}
+        </button>
+        {if $blacklist}
+        <button type="button" class="neria-btn neria-btn--ghost neria-btn--sm"
+                style="color:var(--neria-error);border-color:var(--neria-error);"
+                onclick="if(confirm('{neria_admin key='configure.blacklist_reset_confirm'}'))this.closest('form').querySelector('[name=neria_action]').value='reset_blacklist',this.closest('form').submit();">
+          {neria_admin key='configure.blacklist_reset'}
+        </button>
+        {/if}
+      </div>
+    </div>
+  </form>
+
+  {* Tableau des règles actives *}
+  {if $blacklist}
+    <div class="neria-table-wrap">
+      <table class="neria-table neria-blacklist-table">
+        <colgroup>
+          <col style="width:220px;">
+          <col style="width:160px;">
+          <col style="width:150px;">
+          <col style="width:60px;">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>{neria_admin key='common.template'}</th>
+            <th>{neria_admin key='configure.blacklist_language'}</th>
+            <th>{neria_admin key='common.date'}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {foreach $blacklist as $rule}
+            <tr>
+              <td>
+                <code style="font-size:12px;">{$rule.template}</code>
+                {if isset($template_labels[$rule.template])}
+                  <span style="font-size:11px;color:var(--neria-text-light);display:block;">
+                    {$template_labels[$rule.template]}
+                  </span>
+                {/if}
+              </td>
+              <td>
+                {if $rule.lang === ''}
+                  <span class="neria-badge neria-badge--neutral">{neria_admin key='configure.blacklist_all_langs'}</span>
+                {else}
+                  <span>{$lang_flags[$rule.lang]|default:''} {$lang_labels[$rule.lang]|default:$rule.lang}</span>
+                {/if}
+              </td>
+              <td style="font-size:12px;color:var(--neria-text-light);">{$rule.date_add|date_format:'%d/%m/%Y'}</td>
+              <td>
+                <form method="post" action="{$smarty.server.REQUEST_URI}">
+                  <input type="hidden" name="neria_action" value="remove_blacklist">
+                  <input type="hidden" name="neria_tab"    value="configure">
+                  <input type="hidden" name="neria_bl_id"  value="{$rule.id_blacklist}">
+                  <button type="submit" class="neria-btn neria-btn--ghost neria-btn--sm"
+                          style="color:var(--neria-error);border-color:var(--neria-error);"
+                          title="{neria_admin key='configure.blacklist_remove'}">✕</button>
+                </form>
+              </td>
+            </tr>
+          {/foreach}
+        </tbody>
+      </table>
+    </div>
+  {else}
+    <p style="font-size:13px;color:var(--neria-text-light);font-style:italic;">
+      {neria_admin key='configure.blacklist_empty'}
+    </p>
+  {/if}
+</div>
+
+{* ── Rapport mensuel automatique ───────────────────────────── *}
+<div class="neria-section" id="neria-cfg-report">
+  <h2 class="neria-section__title">{neria_admin key='configure.report_title'}</h2>
+  <p class="neria-section__desc">{neria_admin key='configure.report_desc'}</p>
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <input type="hidden" name="neria_action" value="save_report_config">
+    <input type="hidden" name="neria_tab"    value="configure">
+
+    <div class="neria-form-group">
+      <input type="hidden" name="neria_report_enabled" value="0">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;color:var(--neria-text);">
+        <input type="checkbox" name="neria_report_enabled" value="1"
+               style="width:16px;height:16px;cursor:pointer;"
+               {if $report_enabled}checked{/if}>
+        <span>{neria_admin key='configure.report_enabled_label'}</span>
+      </label>
+    </div>
+
+    <div class="neria-form-group" style="margin-top:12px;">
+      <label class="neria-label" for="neria-report-recipients">
+        {neria_admin key='configure.report_recipients_label'}
+      </label>
+      <input type="email" id="neria-report-recipients" name="neria_report_recipients"
+             class="neria-input" style="max-width:380px;"
+             placeholder="{neria_admin key='configure.report_recipients_placeholder'}"
+             value="{$report_recipients|default:''}">
+      <p class="neria-hint">{neria_admin key='configure.report_recipients_hint'}</p>
+    </div>
+
+    <div style="margin-top:16px;display:flex;align-items:center;gap:12px;">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+        {neria_admin key='common.register'}
+      </button>
+      {if $report_last_sent}
+      <span class="neria-badge neria-badge--success">
+        {neria_admin key='configure.report_last_sent'} {$report_last_sent}
+      </span>
+      {/if}
+    </div>
+  </form>
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:16px;">
+    <input type="hidden" name="neria_action" value="send_report_now">
+    <input type="hidden" name="neria_tab"    value="configure">
+    <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm">
+      {neria_admin key='configure.report_send_now'}
+    </button>
   </form>
 </div>
 
 {* ── Prochaines occasions calendaires ───────────────────────── *}
 {* $upcoming_events est assignée par neria.php via CalendarManager::getUpcomingDates() *}
 {if isset($upcoming_events) && $upcoming_events|@count > 0}
-<div class="neria-section">
+<div class="neria-section" id="neria-cfg-upcoming">
   <h2 class="neria-section__title">
-    {l s='Prochaines occasions' mod='neria'}
+    {neria_admin key='configure.upcoming_title'}
   </h2>
   <div class="neria-upcoming">
     {foreach $upcoming_events as $event}
@@ -125,12 +412,12 @@
 {/if}
 
 {* ── Variables personnalisées ───────────────────────────────── *}
-<div class="neria-section">
+<div class="neria-section" id="neria-cfg-customvars">
   <h2 class="neria-section__title">
-    {l s='Variables personnalisées' mod='neria'}
+    {neria_admin key='configure.customvars_title'}
   </h2>
   <p class="neria-section__desc">
-    {l s='Ces variables sont injectées dans tous vos emails. Utilisez {maison_name}, {slogan}, etc. dans vos textes.' mod='neria'}
+    {neria_admin key='configure.customvars_desc'}
   </p>
 
   <form method="post" action="{$smarty.server.REQUEST_URI}">
@@ -141,108 +428,108 @@
 
       <div class="neria-form-group">
         <label class="neria-label" for="maison_name">
-          {l s='Nom de votre maison' mod='neria'}
+          {neria_admin key='configure.var_maison_name'}
           <span class="neria-var-tag">{literal}{maison_name}{/literal}</span>
         </label>
         <input type="text" id="maison_name" name="maison_name"
                class="neria-input"
                value="{$custom_vars.maison_name|default:''|escape:'html'}"
-               placeholder="{l s='Ex: Maison Dupont' mod='neria'}">
+               placeholder="{neria_admin key='configure.ph_maison_name'}">
       </div>
 
       <div class="neria-form-group">
         <label class="neria-label" for="slogan">
-          {l s='Slogan / devise' mod='neria'}
+          {neria_admin key='configure.var_slogan'}
           <span class="neria-var-tag">{literal}{slogan}{/literal}</span>
         </label>
         <input type="text" id="slogan" name="slogan"
                class="neria-input"
                value="{$custom_vars.slogan|default:''|escape:'html'}"
-               placeholder="{l s='Ex: L\'élégance au quotidien' mod='neria'}">
+               placeholder="{neria_admin key='configure.ph_slogan'}">
       </div>
 
       <div class="neria-form-group">
         <label class="neria-label" for="founder_name">
-          {l s='Nom du fondateur' mod='neria'}
+          {neria_admin key='configure.var_founder_name'}
           <span class="neria-var-tag">{literal}{founder_name}{/literal}</span>
         </label>
         <input type="text" id="founder_name" name="founder_name"
                class="neria-input"
                value="{$custom_vars.founder_name|default:''|escape:'html'}"
-               placeholder="{l s='Ex: Marie Dupont' mod='neria'}">
+               placeholder="{neria_admin key='configure.ph_founder_name'}">
       </div>
 
       <div class="neria-form-group">
         <label class="neria-label" for="founder_title">
-          {l s='Titre du fondateur' mod='neria'}
+          {neria_admin key='configure.var_founder_title'}
           <span class="neria-var-tag">{literal}{founder_title}{/literal}</span>
         </label>
         <input type="text" id="founder_title" name="founder_title"
                class="neria-input"
                value="{$custom_vars.founder_title|default:''|escape:'html'}"
-               placeholder="{l s='Ex: Fondatrice & Directrice Artistique' mod='neria'}">
+               placeholder="{neria_admin key='configure.ph_founder_title'}">
       </div>
 
       <div class="neria-form-group neria-form-group--full">
         <label class="neria-label" for="signature_closing">
-          {l s='Formule de clôture' mod='neria'}
+          {neria_admin key='configure.var_signature_closing'}
           <span class="neria-var-tag">{literal}{signature_closing}{/literal}</span>
         </label>
         <input type="text" id="signature_closing" name="signature_closing"
                class="neria-input"
                value="{$custom_vars.signature_closing|default:''|escape:'html'}"
-               placeholder="{l s='Ex: Avec toute notre estime,' mod='neria'}">
+               placeholder="{neria_admin key='configure.ph_signature_closing'}">
       </div>
 
       <div class="neria-form-group neria-form-group--full">
         <label class="neria-label" for="return_address">
-          {l s='Adresse de retour' mod='neria'}
+          {neria_admin key='configure.var_return_address'}
           <span class="neria-var-tag">{literal}{return_address}{/literal}</span>
         </label>
         <textarea id="return_address" name="return_address"
                   class="neria-input" rows="3"
-                  placeholder="{l s='Ex: Neria Returns, 15 rue du Commerce, 75015 Paris' mod='neria'}">{$custom_vars.return_address|default:''|escape:'html'}</textarea>
+                  placeholder="{neria_admin key='configure.ph_return_address'}">{$custom_vars.return_address|default:''|escape:'html'}</textarea>
       </div>
 
       <div class="neria-form-group">
         <label class="neria-label" for="return_deadline_days">
-          {l s='Délai de renvoi (jours)' mod='neria'}
+          {neria_admin key='configure.var_return_deadline'}
           <span class="neria-var-tag">{literal}{return_deadline_days}{/literal}</span>
         </label>
         <input type="text" id="return_deadline_days" name="return_deadline_days"
                class="neria-input"
                value="{$custom_vars.return_deadline_days|default:''|escape:'html'}"
-               placeholder="{l s='Ex: 14' mod='neria'}">
+               placeholder="{neria_admin key='configure.ph_return_deadline'}">
       </div>
 
       <div class="neria-form-group">
         <label class="neria-label" for="return_processing_days">
-          {l s='Délai d\'examen du retour' mod='neria'}
+          {neria_admin key='configure.var_return_processing'}
           <span class="neria-var-tag">{literal}{return_processing_days}{/literal}</span>
         </label>
         <input type="text" id="return_processing_days" name="return_processing_days"
                class="neria-input"
                value="{$custom_vars.return_processing_days|default:''|escape:'html'}"
-               placeholder="{l s='Ex: 5-7' mod='neria'}">
+               placeholder="{neria_admin key='configure.ph_return_processing'}">
       </div>
 
     </div>
 
     <div class="neria-form-actions">
       <button type="submit" class="neria-btn neria-btn--primary">
-        {l s='Sauvegarder' mod='neria'}
+        {neria_admin key='common.save'}
       </button>
     </div>
   </form>
 </div>
 
 {* ── Signature manuscrite ───────────────────────────────────── *}
-<div class="neria-section">
+<div class="neria-section" id="neria-cfg-signature">
   <h2 class="neria-section__title">
-    {l s='Signature manuscrite' mod='neria'}
+    {neria_admin key='configure.signature_title'}
   </h2>
   <p class="neria-section__desc">
-    {l s='Générée à partir du nom du fondateur et injectée dans vos emails de confirmation et d\'expédition.' mod='neria'}
+    {neria_admin key='configure.signature_desc'}
   </p>
 
   <form method="post" action="{$smarty.server.REQUEST_URI}" id="neria-signature-form">
@@ -253,7 +540,7 @@
 
       <div class="neria-form-group">
         <label class="neria-label" for="neria-sig-style">
-          {l s='Style de signature' mod='neria'}
+          {neria_admin key='configure.signature_style'}
         </label>
         {* Fix 2 : un seul id="neria-sig-style", name="sig_style" pour le POST *}
         <select id="neria-sig-style" name="sig_style" class="neria-select">
@@ -268,7 +555,7 @@
 
       <div class="neria-form-group">
         <label class="neria-label" for="sig_color">
-          {l s='Couleur' mod='neria'}
+          {neria_admin key='common.color'}
         </label>
         <div class="neria-color-input-wrap">
           <input type="color" id="sig_color" name="sig_color"
@@ -286,11 +573,11 @@
     <div class="neria-signature-preview" id="neria-sig-preview">
       {if isset($current_signature.url) && $current_signature.url}
         <img src="{$current_signature.url}"
-             alt="{l s='Signature' mod='neria'}"
+             alt="{neria_admin key='common.signature'}"
              class="neria-signature-preview__img">
       {else}
         <span class="neria-signature-preview__placeholder">
-          {l s='Cliquez sur Aperçu pour visualiser votre signature' mod='neria'}
+          {neria_admin key='configure.signature_placeholder'}
         </span>
       {/if}
     </div>
@@ -298,12 +585,143 @@
     <div class="neria-form-actions">
       <button type="button" class="neria-btn neria-btn--ghost"
               id="neria-sig-preview-btn">
-        {l s='Aperçu' mod='neria'}
+        {neria_admin key='common.preview'}
       </button>
       <button type="submit" class="neria-btn neria-btn--primary">
-        {l s='Générer et sauvegarder' mod='neria'}
+        {neria_admin key='configure.signature_generate'}
       </button>
     </div>
 
   </form>
+</div>
+
+{* ── Section Programme de Fidélité ───────────────────────── *}
+<div class="neria-section" id="neria-loyalty-section">
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+    <div>
+      <h2 class="neria-section__title" style="margin:0 0 4px 0;">Programme de Fidélité</h2>
+      <p class="neria-section__desc" style="margin:0;">
+        Attribue des points à chaque interaction email (ouverture +1 pt, clic +3 pts, achat +10 pts) et envoie automatiquement un bon de réduction à chaque palier atteint.
+      </p>
+    </div>
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
+      <input type="hidden" name="neria_action" value="loyalty_toggle">
+      <button type="submit"
+              style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px;
+                     background:{if $loyalty_enabled}#1a7a40{else}#c0392b{/if};
+                     color:#fff; border:none; border-radius:4px; font-size:12px;
+                     font-weight:700; cursor:pointer; letter-spacing:.04em;">
+        {if $loyalty_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+      </button>
+    </form>
+  </div>
+
+  {if $loyalty_enabled && $loyalty_global_stats}
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:12px; margin-bottom:28px;">
+    <div class="neria-kpi">
+      <div class="neria-kpi__value">{$loyalty_global_stats.active_customers|default:0}</div>
+      <div class="neria-kpi__label">Clients actifs</div>
+    </div>
+    <div class="neria-kpi">
+      <div class="neria-kpi__value">{$loyalty_global_stats.total_points|default:0}</div>
+      <div class="neria-kpi__label">Points distribués</div>
+    </div>
+    <div class="neria-kpi">
+      <div class="neria-kpi__value">{$loyalty_global_stats.rewards_sent|default:0}</div>
+      <div class="neria-kpi__label">Bons envoyés</div>
+    </div>
+    <div class="neria-kpi">
+      <div class="neria-kpi__value">{$loyalty_global_stats.cnt_open|default:0}</div>
+      <div class="neria-kpi__label">Ouvertures</div>
+      <div class="neria-kpi__rate">+1 pt</div>
+    </div>
+    <div class="neria-kpi">
+      <div class="neria-kpi__value">{$loyalty_global_stats.cnt_click|default:0}</div>
+      <div class="neria-kpi__label">Clics</div>
+      <div class="neria-kpi__rate">+3 pts</div>
+    </div>
+    <div class="neria-kpi neria-kpi--main">
+      <div class="neria-kpi__value">{$loyalty_global_stats.cnt_conversion|default:0}</div>
+      <div class="neria-kpi__label">Achats trackés</div>
+      <div class="neria-kpi__rate">+10 pts</div>
+    </div>
+  </div>
+  {/if}
+
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
+    <input type="hidden" name="neria_action" value="save_loyalty_tiers">
+
+    <p style="font-size:12px; font-weight:700; color:var(--neria-text); margin:0 0 14px 0; text-transform:uppercase; letter-spacing:.06em;">
+      Configuration des paliers
+    </p>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:16px; margin-bottom:20px;">
+      {foreach $loyalty_tiers as $tier}
+      <div style="padding:16px; background:var(--neria-bg); border-radius:6px; border:1px solid var(--neria-border);">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+          {if $tier.key === 'bronze'}<span style="font-size:18px; line-height:1;">&#127949;</span>
+          {elseif $tier.key === 'silver'}<span style="font-size:18px; line-height:1;">&#127948;</span>
+          {else}<span style="font-size:18px; line-height:1;">&#127947;</span>{/if}
+          <input type="text" name="loyalty_name_{$tier.key|escape:'html'}"
+                 value="{$tier.name|escape:'html'}"
+                 style="flex:1; padding:6px 10px; border:1px solid var(--neria-border); border-radius:4px;
+                        font-size:14px; font-weight:600; background:var(--neria-container);">
+        </div>
+        <div style="margin-bottom:10px;">
+          <label style="font-size:11px; color:var(--neria-muted); display:block; margin-bottom:4px;">Seuil (points)</label>
+          <input type="number" name="loyalty_points_{$tier.key|escape:'html'}"
+                 value="{$tier.points|intval}"
+                 min="1" step="1"
+                 style="width:100%; padding:7px 10px; border:1px solid var(--neria-border); border-radius:4px;
+                        font-size:13px; background:var(--neria-container); box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:10px;">
+          <label style="font-size:11px; color:var(--neria-muted); display:block; margin-bottom:4px;">Récompense (montant)</label>
+          <input type="number" name="loyalty_amount_{$tier.key|escape:'html'}"
+                 value="{$tier.amount|string_format:"%.2f"}"
+                 min="0.01" step="0.01"
+                 style="width:100%; padding:7px 10px; border:1px solid var(--neria-border); border-radius:4px;
+                        font-size:13px; background:var(--neria-container); box-sizing:border-box;">
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--neria-text); cursor:pointer;">
+          <input type="checkbox" name="loyalty_percent_{$tier.key|escape:'html'}"
+                 value="1" {if $tier.is_percent}checked{/if}>
+          Réduction en % (sinon montant fixe {$currency_symbol})
+        </label>
+      </div>
+      {/foreach}
+    </div>
+
+    <div class="neria-form-actions">
+      <button type="submit" class="neria-btn neria-btn--primary">Enregistrer les paliers</button>
+    </div>
+  </form>
+
+  {if $loyalty_enabled && $loyalty_top_customers}
+  <div style="margin-top:28px;">
+    <p style="font-size:12px; font-weight:700; color:var(--neria-text); margin:0 0 12px 0; text-transform:uppercase; letter-spacing:.06em;">
+      Top 10 clients — points fidélité
+    </p>
+    <div style="overflow-x:auto;">
+      <table class="neria-table" style="min-width:400px;">
+        <thead>
+          <tr><th>#</th><th>Client</th><th>Points</th></tr>
+        </thead>
+        <tbody>
+          {foreach $loyalty_top_customers as $c}
+          <tr>
+            <td style="font-size:12px; color:var(--neria-muted); text-align:center;">{$c@iteration}</td>
+            <td>
+              <span style="font-size:13px; font-weight:600;">{$c.firstname|escape:'html'} {$c.lastname|escape:'html'}</span><br>
+              <span style="font-size:11px; color:var(--neria-muted);">{$c.email|escape:'html'}</span>
+            </td>
+            <td style="font-size:16px; font-weight:700; color:var(--neria-accent); text-align:right;">{$c.total|intval}</td>
+          </tr>
+          {/foreach}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {/if}
+
 </div>

@@ -58,15 +58,17 @@ class ABTestManager
     /** @var int ID boutique courante */
     private int $idShop;
 
-    /**
-     * Cache memoire des tests actifs
-     * Evite de requeter la BDD pour chaque email envoye
-     * Structure : ['template' => [...data...]]
-     */
     private array $activeTestsCache = [];
+    private bool  $cacheLoaded      = false;
+    private ?WatchdogManager $wdm   = null;
 
-    /** @var bool Indique si le cache a ete charge */
-    private bool $cacheLoaded = false;
+    private function wd(): WatchdogManager
+    {
+        if ($this->wdm === null) {
+            $this->wdm = new WatchdogManager($this->module);
+        }
+        return $this->wdm;
+    }
 
     // ============================================================
     // CONSTRUCTEUR
@@ -112,11 +114,14 @@ class ABTestManager
         }
 
         // Algorithme de repartition deterministe
-        return $this->assignVariant(
-            $template,
-            $idCustomer,
-            (int) $test['split_percent']
+        $variant = $this->assignVariant($template, $idCustomer, (int) $test['split_percent']);
+
+        $this->wd()->info(
+            "A/B [{$template}] client #{$idCustomer} → variante {$variant}",
+            $template, 'ABTestManager'
         );
+
+        return $variant;
     }
 
     /**
@@ -219,10 +224,9 @@ class ABTestManager
             return false;
         }
 
-        $this->module->log(
-            "ABTestManager: test cree pour [{$template}] "
-            . "A={$variantAName} / B={$variantBName} ({$splitPercent}%)",
-            1
+        $this->wd()->info(
+            "A/B test créé : [{$template}] A=\"{$variantAName}\" / B=\"{$variantBName}\" — répartition {$splitPercent}%/" . (100 - $splitPercent) . '%',
+            $template, 'ABTestManager'
         );
 
         return $idAbtestA;
@@ -263,9 +267,9 @@ class ABTestManager
         $this->cacheLoaded = false;
         $this->activeTestsCache = [];
 
-        $this->module->log(
-            "ABTestManager: test active pour [{$template}]",
-            1
+        $this->wd()->info(
+            "A/B test activé : [{$template}]",
+            $template, 'ABTestManager'
         );
 
         return $result !== false;
@@ -294,6 +298,13 @@ class ABTestManager
         // Invalide le cache
         $this->cacheLoaded = false;
         $this->activeTestsCache = [];
+
+        if ($result !== false) {
+            $this->wd()->info(
+                "A/B test arrêté : [{$template}]",
+                $template, 'ABTestManager'
+            );
+        }
 
         return $result !== false;
     }
@@ -631,20 +642,55 @@ class ABTestManager
      */
     public function getEligibleTemplates(): array
     {
-        return [
-            'abandoned_cart_1'   => 'Panier abandonne - Relance 1',
-            'abandoned_cart_2'   => 'Panier abandonne - Relance 2',
-            'abandoned_cart_3'   => 'Panier abandonne - Relance 3',
-            'birthday'           => 'Anniversaire client',
-            'newsletter_conf'    => 'Confirmation newsletter',
-            'newsletter_voucher' => 'Bon de reduction newsletter',
-            'post_purchase_care' => 'Entretien post-achat',
-            'post_purchase_review' => 'Demande d\'avis',
-            'private_invitation' => 'Vente privee',
-            'private_sale'       => 'Soldes privees',
-            'vip'                => 'Programme VIP',
-            'voucher'            => 'Bon de reduction',
-            'voucher_new'        => 'Nouveau bon de reduction',
+        // Templates marketing éligibles à l'A/B testing.
+        $eligible = [
+            // Paniers & relances comportementales
+            'abandoned_cart_1',
+            'abandoned_cart_2',
+            'abandoned_cart_3',
+            'checkout_abandonment',
+            'win_back',
+            'reorder_reminder',
+            'wishlist_reminder',
+            // Post-achat & fidélité
+            'post_purchase_care',
+            'post_purchase_review',
+            'birthday',
+            'first_anniversary',
+            'relationship_anniversary',
+            'milestone_order',
+            'back_in_stock',
+            'loyalty_recap',
+            'loyalty_tier_upgrade',
+            'loyalty_reward_expiry',
+            // Réconciliation post-remboursement
+            'refund_reconciliation_1',
+            'refund_reconciliation_2',
+            'refund_reconciliation_3',
+            // Comportemental produit
+            'product_lifespan_reminder',
+            // Acquisition & engagement
+            'newsletter_conf',
+            'newsletter_voucher',
+            'referral_invitation',
+            'private_invitation',
+            'private_sale',
+            'early_access',
+            'vip',
+            'voucher',
+            'voucher_new',
         ];
+
+        // Libellés traduits dans la langue du back-office (repli FR canonique)
+        $labels = class_exists('AdminTranslator')
+            ? AdminTranslator::templateLabels()
+            : NeriaTools::getTemplateLabels();
+
+        $out = [];
+        foreach ($eligible as $key) {
+            $out[$key] = $labels[$key] ?? $key;
+        }
+
+        return $out;
     }
 }

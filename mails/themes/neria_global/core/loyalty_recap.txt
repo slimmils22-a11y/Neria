@@ -1,0 +1,23 @@
+{shop_name}
+
+{neria_trad key='dear_customer'}
+
+{neria_trad key='loyalty_recap_intro'}
+
+--------------------------------
+{neria_trad key='loyalty_recap_month_points'} : +{points_this_month}
+{neria_trad key='loyalty_recap_total_points'} : {points_total}
+--------------------------------
+
+{neria_trad key='loyalty_recap_progress'}
+
+{if next_tier_name}{neria_trad key='loyalty_recap_next_tier'} : {next_tier_name} ({points_remaining} {neria_trad key='loyalty_recap_points_left'}){else}{neria_trad key='loyalty_recap_max_tier'}{/if}
+
+{neria_trad key='loyalty_recap_btn'} : {shop_url}
+
+{neria_trad key='loyalty_recap_note'}
+
+{neria_trad key='loyalty_recap_signature'}
+
+{shop_name}
+{shop_url}

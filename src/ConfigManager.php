@@ -64,6 +64,17 @@ class ConfigManager
     const KEY_VOUCHER_VALIDITY  = 'NERIA_VOUCHER_VALIDITY';
     const KEY_LOG_INTERNAL      = 'NERIA_LOG_INTERNAL';
 
+    // ── Mode Silence (anti-doublon) ───────────────────────────────
+    const KEY_COOLDOWN_ENABLED  = 'NERIA_COOLDOWN_ENABLED';
+    const KEY_COOLDOWN_MINUTES  = 'NERIA_COOLDOWN_MINUTES';
+
+    // ── Empreinte carbone ─────────────────────────────────────────
+    const KEY_CARBON_ENABLED    = 'NERIA_CARBON_ENABLED';
+    const KEY_CARBON_LINK       = 'NERIA_CARBON_LINK';
+
+    // ── Multi-expéditeur par langue ───────────────────────────────
+    const KEY_SENDERS_JSON      = 'NERIA_SENDERS_JSON';
+
     // ── Valeurs par défaut ────────────────────────────────────────
     const DEFAULTS = [
         self::KEY_COLOR_BACKGROUND    => '#f4f1eb',
@@ -93,6 +104,11 @@ class ConfigManager
         self::KEY_AUTO_LANG           => 1,
         self::KEY_VOUCHER_VALIDITY    => 30,
         self::KEY_LOG_INTERNAL        => 0,
+        self::KEY_COOLDOWN_ENABLED    => 0,
+        self::KEY_COOLDOWN_MINUTES    => 10,
+        self::KEY_CARBON_ENABLED      => 0,
+        self::KEY_CARBON_LINK         => '',
+        self::KEY_SENDERS_JSON        => '',
     ];
 
     // Polices disponibles pour le sélecteur back-office
@@ -117,6 +133,9 @@ class ConfigManager
     /** @var int ID de la boutique courante */
     private int $idShop;
 
+    /** @var \WatchdogManager|null Instance paresseuse du watchdog */
+    private ?\WatchdogManager $watchdog = null;
+
     /** Cache mémoire des valeurs lues */
     private array $cache = [];
 
@@ -129,6 +148,14 @@ class ConfigManager
         $this->module = $module;
         $this->db     = \Db::getInstance();
         $this->idShop = (int) \Context::getContext()->shop->id;
+    }
+
+    private function watchdog(): \WatchdogManager
+    {
+        if ($this->watchdog === null) {
+            $this->watchdog = new \WatchdogManager($this->module);
+        }
+        return $this->watchdog;
     }
 
     // ============================================================
@@ -284,6 +311,54 @@ class ConfigManager
     public function getVoucherValidity(): int
     {
         return (int) $this->get(self::KEY_VOUCHER_VALIDITY, 30);
+    }
+
+    public function isCooldownEnabled(): bool
+    {
+        return (bool) $this->get(self::KEY_COOLDOWN_ENABLED, 0);
+    }
+
+    public function getCooldownMinutes(): int
+    {
+        return max(1, (int) $this->get(self::KEY_COOLDOWN_MINUTES, 10));
+    }
+
+    public function isCarbonEnabled(): bool
+    {
+        return (bool) $this->get(self::KEY_CARBON_ENABLED, 0);
+    }
+
+    public function getCarbonLink(): string
+    {
+        return (string) $this->get(self::KEY_CARBON_LINK, '');
+    }
+
+    /**
+     * Retourne tous les expéditeurs par langue.
+     * Structure : ['fr' => ['name' => '...', 'email' => '...'], ...]
+     */
+    public function getAllSenders(): array
+    {
+        $json = $this->get(self::KEY_SENDERS_JSON, '');
+        if ($json === '' || $json === false) {
+            return [];
+        }
+        $decoded = json_decode((string) $json, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
+     * Retourne le nom et l'email expéditeur pour une langue donnée.
+     * Retourne un tableau vide si aucun expéditeur n'est configuré pour cette langue.
+     */
+    public function getSenderForLang(string $lang): array
+    {
+        $all = $this->getAllSenders();
+        $entry = $all[$lang] ?? [];
+        if (empty($entry['name']) && empty($entry['email'])) {
+            return [];
+        }
+        return $entry;
     }
 
     // ============================================================
@@ -533,16 +608,25 @@ class ConfigManager
         $mime         = mime_content_type($file['tmp_name']);
 
         if (!in_array($mime, $allowedMimes, true)) {
-            $this->module->log(
-                'ConfigManager: type de fichier logo refusé → ' . $mime,
-                2
+            $this->watchdog()->warning(
+                sprintf(
+                    'Upload logo refusé : type de fichier "%s" non accepté. Formats autorisés : PNG, JPEG, GIF, WebP.',
+                    $mime
+                ),
+                '', 'ConfigManager'
             );
             return false;
         }
 
         // Taille max : 2 Mo
         if ($file['size'] > 2 * 1024 * 1024) {
-            $this->module->log('ConfigManager: logo trop lourd (max 2 Mo)', 2);
+            $this->watchdog()->warning(
+                sprintf(
+                    'Upload logo refusé : fichier trop lourd (%s Ko). Taille maximum : 2 Mo.',
+                    round($file['size'] / 1024)
+                ),
+                '', 'ConfigManager'
+            );
             return false;
         }
 
@@ -553,7 +637,13 @@ class ConfigManager
         $dest       = $uploadDir . '/' . $filename;
 
         if (!move_uploaded_file($file['tmp_name'], $dest)) {
-            $this->module->log('ConfigManager: échec déplacement fichier logo', 3);
+            $this->watchdog()->error(
+                sprintf(
+                    'Upload logo : échec du déplacement vers "%s". Vérifiez que le dossier data/signatures/ est accessible en écriture (chmod 755 ou 777).',
+                    $dest
+                ),
+                '', 'ConfigManager'
+            );
             return false;
         }
 
@@ -618,7 +708,6 @@ class ConfigManager
             'founder_name' => $this->get('NERIA_SIGNATURE_NAME', ''),
             'founder_title'=> $this->get('NERIA_SIGNATURE_TITLE', ''),
             'color'        => $this->get(self::KEY_COLOR_ACCENT),
-            'enabled'      => (bool) $this->get('NERIA_SIGNATURE_ENABLED', 0),
         ];
     }
 

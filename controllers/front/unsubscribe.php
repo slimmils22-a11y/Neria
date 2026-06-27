@@ -53,10 +53,23 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
 
         $done = $this->processUnsubscribe();
 
+        // Langue du destinataire : transportée par l'email (param neria_lang),
+        // sinon langue front courante, sinon anglais. La page s'affiche ainsi
+        // dans la langue de l'email reçu.
+        if (class_exists('AdminTranslator')) {
+            $lang = Tools::strtolower((string) Tools::getValue('neria_lang'));
+            if ($lang === '' && isset($this->context->language->iso_code)) {
+                $lang = Tools::strtolower((string) $this->context->language->iso_code);
+            }
+            AdminTranslator::setLang($lang);
+            AdminTranslator::register($this->context->smarty);
+        }
+
         $this->context->smarty->assign([
             'neria_unsub_done' => $done,
             'neria_shop_name'  => (string) Configuration::get('PS_SHOP_NAME'),
             'neria_shop_url'   => $this->context->link->getBaseLink(),
+            'neria_unsub_dir'  => class_exists('AdminTranslator') ? AdminTranslator::dir() : 'ltr',
         ]);
 
         $this->setTemplate('module:neria/views/templates/front/unsubscribe.tpl');
@@ -120,6 +133,16 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
                 );
             } catch (\Throwable $ex) {
                 // log best-effort
+            }
+        }
+
+        if ($ok && class_exists('WebhookManager')) {
+            try {
+                (new WebhookManager($this->module))->trigger('unsubscribed', [
+                    'customer_email' => $email,
+                ]);
+            } catch (\Throwable $ex) {
+                // best-effort
             }
         }
 

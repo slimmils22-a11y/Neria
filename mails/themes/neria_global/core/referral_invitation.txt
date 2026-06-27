@@ -5,7 +5,6 @@
 {neria_trad key='referral_intro'}
 
 {neria_trad key='referral_message'}
---------------------------------
 
 {neria_trad key='referral_btn'} : {shop_url}
 

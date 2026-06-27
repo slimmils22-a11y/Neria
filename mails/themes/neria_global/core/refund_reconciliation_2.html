@@ -1,0 +1,24 @@
+{extends file='layouts/layout.html'}
+
+{block name='neria_content'}
+
+<!-- REFUND RECONCILIATION — J+3 -->
+<h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
+<p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
+
+<p class="neria-text">{neria_trad key='dear_customer'}</p>
+<p class="neria-text">{neria_trad key='reconciliation_2_intro'}</p>
+<p class="neria-text">{neria_trad key='reconciliation_2_message'}</p>
+
+<p style="text-align:center; margin:28px 0;">
+  <a href="{shop_url}" class="neria-btn">{neria_trad key='reconciliation_2_btn'}</a>
+</p>
+
+<p class="neria-text-note">{neria_trad key='reconciliation_2_note'}</p>
+
+<div class="neria-signature">
+  {neria_trad key='reconciliation_2_signature'}<br />
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

@@ -72,7 +72,7 @@
 
   <div class="neria-form-actions neria-form-actions--sticky">
     <button type="submit" class="neria-btn neria-btn--primary">
-      {l s='Sauvegarder les polices' mod='neria'}
+      {neria_admin key='typography.save'}
     </button>
   </div>
 

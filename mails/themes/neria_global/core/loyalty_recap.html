@@ -1,0 +1,60 @@
+{extends file='layouts/layout.html'}
+
+{block name='neria_content'}
+
+<!-- LOYALTY RECAP MENSUEL -->
+<h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
+<p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
+
+<!-- CORPS -->
+<p class="neria-text">{neria_trad key='dear_customer'}</p>
+<p class="neria-text">{neria_trad key='loyalty_recap_intro'}</p>
+
+<!-- POINTS CE MOIS / TOTAL -->
+<div class="neria-info-box" style="text-align:center; padding:24px;">
+  <p style="margin:0 0 16px 0; font-size:13px; color:#888; text-transform:uppercase; letter-spacing:.06em;">
+    {neria_trad key='loyalty_recap_month_points'}
+  </p>
+  <p style="margin:0 0 4px 0; font-size:40px; font-weight:700; color:{color_accent}; line-height:1;">
+    +{points_this_month}
+  </p>
+  <p style="margin:0; font-size:13px; color:#888;">
+    {neria_trad key='loyalty_recap_total_points'} : <strong style="color:{color_text};">{points_total}</strong>
+  </p>
+</div>
+
+<!-- PROGRESSION VERS LE PROCHAIN PALIER -->
+<div style="margin:24px 0;">
+  <p class="neria-text" style="margin-bottom:10px;">
+    {neria_trad key='loyalty_recap_progress'}
+  </p>
+
+  {if next_tier_name}
+  <!-- Barre de progression -->
+  <div style="background:#ede8e0; border-radius:4px; height:10px; overflow:hidden; margin-bottom:8px;">
+    <div style="width:{progress_pct}%; height:100%; background:{color_accent}; border-radius:4px;"></div>
+  </div>
+  <p style="font-size:12px; color:#888; margin:0; text-align:right;">
+    {progress_pct}% — {neria_trad key='loyalty_recap_next_tier'} : <strong>{next_tier_name}</strong> ({points_remaining} {neria_trad key='loyalty_recap_points_left'})
+  </p>
+  {else}
+  <p class="neria-text" style="color:{color_accent}; font-weight:600;">
+    {neria_trad key='loyalty_recap_max_tier'}
+  </p>
+  {/if}
+</div>
+
+<!-- BOUTON -->
+<p style="text-align:center; margin:28px 0;">
+  <a href="{shop_url}" class="neria-btn">{neria_trad key='loyalty_recap_btn'}</a>
+</p>
+
+<p class="neria-text-note">{neria_trad key='loyalty_recap_note'}</p>
+
+<!-- SIGNATURE -->
+<div class="neria-signature">
+  {neria_trad key='loyalty_recap_signature'}<br />
+  <strong>{shop_name}</strong>
+</div>
+
+{/block}

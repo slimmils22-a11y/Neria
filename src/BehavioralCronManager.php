@@ -1,0 +1,1415 @@
+<?php
+/**
+ * NERIA — BehavioralCronManager
+ *
+ * Emails comportementaux déclenchés une fois par jour.
+ * Chaque méthode privée correspond à un template coquille de la Vague 2.
+ * La déduplication passe par ps_neria_behavioral_sent (UNIQUE sur customer+template+ref_id).
+ *
+ * Templates gérés :
+ *   birthday            — anniversaire client (J-0)
+ *   first_anniversary            — 1 an après la 1ère commande
+ *   relationship_anniversary    — chaque année à la date du 1er achat (2 ans, 3 ans…)
+ *   reorder_reminder    — 30 j après la dernière commande
+ *   win_back            — 90 j sans commande
+ *   abandoned_cart_1    — panier abandonné 1 h
+ *   abandoned_cart_2    — panier abandonné 24 h
+ *   abandoned_cart_3    — panier abandonné 72 h
+ *   checkout_abandonment— paiement abandonné (transporteur + adresses sélectionnés, 1h)
+ *   post_purchase_care  — 7 j après livraison
+ *   post_purchase_review— 14 j après livraison
+ *   order_shipped_delay — expédié depuis 7 j sans livraison
+ */
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
+class BehavioralCronManager
+{
+    // ── Délais (jours / heures) ───────────────────────────────────
+    const DELAY_REORDER_DAYS          = 30;
+    const DELAY_WIN_BACK_DAYS         = 90;
+    const DELAY_POST_CARE_DAYS        = 7;
+    const DELAY_POST_REVIEW_DAYS      = 14;
+    const DELAY_SHIPPED_DELAY_DAYS    = 7;
+    const DELAY_CART_1_HOURS          = 1;
+    const DELAY_CART_2_HOURS          = 24;
+    const DELAY_CART_3_HOURS          = 72;
+    const DELAY_CHECKOUT_HOURS        = 1;
+
+    // Statut PS « Livré » (ID 5 par défaut)
+    const STATUS_DELIVERED = 5;
+    // Statut PS « Expédié » (shipped=1)
+    const STATUS_SHIPPED   = 4;
+
+    private \Neria $module;
+    private \Db $db;
+    private string $prefix;
+    private ?\WatchdogManager $watchdog = null;
+
+    public function __construct(\Neria $module)
+    {
+        $this->module = $module;
+        $this->db     = \Db::getInstance();
+        $this->prefix = _DB_PREFIX_;
+    }
+
+    private function historyUrl(): string
+    {
+        $ctx = \Context::getContext();
+        return ($ctx && $ctx->link) ? $ctx->link->getPageLink('history', true) : '';
+    }
+
+    private function watchdog(): \WatchdogManager
+    {
+        if ($this->watchdog === null) {
+            $this->watchdog = new \WatchdogManager($this->module);
+        }
+        return $this->watchdog;
+    }
+
+    /**
+     * Point d'entrée principal — appelé une fois par jour.
+     */
+    public function run(): void
+    {
+        \Configuration::updateValue(\HealthCheckManager::CRON_LAST_BEHAVIORAL, date('Y-m-d H:i:s'));
+        $this->watchdog()->info('Démarrage BehavioralCronManager', '', 'BehavioralCron');
+
+        // Vider la file d'attente des emails programmés (fenêtres d'achat individuelles)
+        if (\Configuration::getGlobalValue('NERIA_PURCHASE_WINDOW_ENABLED') && class_exists('QueueManager')) {
+            try {
+                $queued = (new \QueueManager($this->module))->processQueue();
+                if ($queued > 0) {
+                    $this->watchdog()->info(
+                        sprintf('Queue — %d email%s traité%s.', $queued, $queued > 1 ? 's' : '', $queued > 1 ? 's' : ''),
+                        '',
+                        'BehavioralCron'
+                    );
+                }
+            } catch (\Throwable $e) {
+                $this->watchdog()->error('Erreur processQueue : ' . $e->getMessage(), '', 'BehavioralCron');
+            }
+        }
+
+        $this->sendBirthdays();
+        $this->sendFirstAnniversaries();
+        $this->sendRelationshipAnniversaries();
+        $this->sendReorderReminders();
+        $this->sendWinBacks();
+        $this->sendRewardExpiryAlerts();
+        $this->sendWishlistReminders();
+        $this->sendAbandonedCarts('abandoned_cart_1', self::DELAY_CART_1_HOURS);
+        $this->sendAbandonedCarts('abandoned_cart_2', self::DELAY_CART_2_HOURS);
+        $this->sendAbandonedCarts('abandoned_cart_3', self::DELAY_CART_3_HOURS);
+        $this->sendCheckoutAbandonment();
+        $this->sendQuoteExpiryReminders();
+        $this->sendRefundReconciliations();
+        $this->sendLifespanReminders();
+        $this->recalculatePropensityScores();
+        $this->sendPostPurchase('post_purchase_care',   self::DELAY_POST_CARE_DAYS);
+        $this->sendPostPurchase('post_purchase_review', self::DELAY_POST_REVIEW_DAYS);
+        $this->sendShippedDelayAlerts();
+        $this->sendCollectionCompletions();
+        $this->sendLookCompletions();
+        $this->sendGhostCarts();
+
+        // ── Segmentation comportementale (recalcul quotidien) ─────────
+        if (class_exists('SegmentManager')) {
+            try {
+                (new \SegmentManager($this->module))->recomputeAll();
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    'SegmentManager::recomputeAll() a échoué : ' . $e->getMessage(),
+                    '', 'BehavioralCron'
+                );
+            }
+        }
+
+        // ── Score de risque de désabonnement (recalcul quotidien) ─────
+        if (class_exists('ChurnScoreManager')) {
+            try {
+                (new \ChurnScoreManager($this->module))->recomputeAll();
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    'ChurnScoreManager::recomputeAll() a échoué : ' . $e->getMessage(),
+                    '', 'BehavioralCron'
+                );
+            }
+        }
+
+        $this->watchdog()->info('BehavioralCronManager terminé', '', 'BehavioralCron');
+    }
+
+    // ============================================================
+    // BIRTHDAY — anniversaire client
+    // Ref_id = année courante (une seule fois par an)
+    // ============================================================
+
+    private function sendBirthdays(): void
+    {
+        $year = (int) date('Y');
+        $rows = $this->db->executeS(
+            'SELECT c.id_customer, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop
+             FROM `' . $this->prefix . 'customer` c
+             WHERE c.active = 1 AND c.deleted = 0
+               AND c.birthday IS NOT NULL AND c.birthday != \'0000-00-00\'
+               AND DAY(c.birthday) = DAY(NOW()) AND MONTH(c.birthday) = MONTH(NOW())
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+                   WHERE bs.id_customer = c.id_customer AND bs.template = \'birthday\'
+                     AND bs.ref_id = ' . $year . '
+               )'
+        );
+
+        foreach ((array) $rows as $r) {
+            $this->send(
+                'birthday',
+                $r,
+                [
+                    '{voucher_code}' => '',
+                    '{shop_url}'     => \Tools::getShopDomainSsl(true),
+                ],
+                $year
+            );
+        }
+    }
+
+    // ============================================================
+    // FIRST ANNIVERSARY — 1 an après la 1ère commande
+    // Ref_id = id_order de la 1ère commande
+    // ============================================================
+
+    private function sendFirstAnniversaries(): void
+    {
+        $rows = $this->db->executeS(
+            'SELECT c.id_customer, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop,
+                    MIN(o.id_order) AS id_first_order
+             FROM `' . $this->prefix . 'customer` c
+             JOIN `' . $this->prefix . 'orders` o ON o.id_customer = c.id_customer AND o.valid = 1
+             WHERE c.active = 1 AND c.deleted = 0
+             GROUP BY c.id_customer
+             HAVING DATE(MIN(o.date_add)) = DATE(DATE_SUB(NOW(), INTERVAL 1 YEAR))
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+                   WHERE bs.id_customer = c.id_customer AND bs.template = \'first_anniversary\'
+               )'
+        );
+
+        foreach ((array) $rows as $r) {
+            $this->send('first_anniversary', $r, [], (int) $r['id_first_order']);
+        }
+    }
+
+    // ============================================================
+    // REORDER REMINDER — 30 j après la dernière commande
+    // Ref_id = id_order de la dernière commande
+    // ============================================================
+
+    private function sendReorderReminders(): void
+    {
+        $days = self::DELAY_REORDER_DAYS;
+        $rows = $this->db->executeS(
+            'SELECT c.id_customer, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop,
+                    o.id_order, od.product_name
+             FROM `' . $this->prefix . 'customer` c
+             JOIN `' . $this->prefix . 'orders` o
+                  ON o.id_customer = c.id_customer AND o.valid = 1
+             JOIN `' . $this->prefix . 'order_detail` od ON od.id_order = o.id_order
+             WHERE c.active = 1 AND c.deleted = 0
+               AND DATE(o.date_add) = DATE(DATE_SUB(NOW(), INTERVAL ' . $days . ' DAY))
+               AND o.id_order = (
+                   SELECT MAX(o2.id_order) FROM `' . $this->prefix . 'orders` o2
+                   WHERE o2.id_customer = c.id_customer AND o2.valid = 1
+               )
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+                   WHERE bs.id_customer = c.id_customer AND bs.template = \'reorder_reminder\'
+                     AND bs.ref_id = o.id_order
+               )
+             GROUP BY c.id_customer'
+        );
+
+        foreach ((array) $rows as $r) {
+            $this->send(
+                'reorder_reminder',
+                $r,
+                [
+                    '{product_name}' => $r['product_name'],
+                    '{shop_url}'     => \Tools::getShopDomainSsl(true),
+                ],
+                (int) $r['id_order']
+            );
+        }
+    }
+
+    // ============================================================
+    // WIN BACK — 90 j sans commande
+    // Ref_id = année courante (une campagne par an)
+    // ============================================================
+
+    private function sendWinBacks(): void
+    {
+        $days = self::DELAY_WIN_BACK_DAYS;
+        $year = (int) date('Y');
+        $rows = $this->db->executeS(
+            'SELECT c.id_customer, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop
+             FROM `' . $this->prefix . 'customer` c
+             WHERE c.active = 1 AND c.deleted = 0
+               AND (
+                   SELECT MAX(o.date_add) FROM `' . $this->prefix . 'orders` o
+                   WHERE o.id_customer = c.id_customer AND o.valid = 1
+               ) <= DATE_SUB(NOW(), INTERVAL ' . $days . ' DAY)
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+                   WHERE bs.id_customer = c.id_customer AND bs.template = \'win_back\'
+                     AND bs.ref_id = ' . $year . '
+               )'
+        );
+
+        foreach ((array) $rows as $r) {
+            $this->send(
+                'win_back',
+                $r,
+                ['{shop_url}' => \Tools::getShopDomainSsl(true)],
+                $year
+            );
+        }
+    }
+
+    // ============================================================
+    // LOYALTY_REWARD_EXPIRY — bon de réduction expirant dans 7 j
+    // Source : ps_cart_rule assigné à un client (id_customer > 0)
+    // Ref_id = id_cart_rule (une seule alerte par bon)
+    // ============================================================
+
+    private function sendRewardExpiryAlerts(): void
+    {
+        $rows = $this->db->executeS(
+            'SELECT cr.id_cart_rule, cr.id_customer, cr.date_to,
+                    c.email, c.firstname, c.lastname, c.id_lang, c.id_shop
+             FROM `' . $this->prefix . 'cart_rule` cr
+             JOIN `' . $this->prefix . 'customer` c ON c.id_customer = cr.id_customer
+             WHERE cr.active = 1 AND cr.id_customer > 0
+               AND DATE(cr.date_to) = DATE(DATE_ADD(NOW(), INTERVAL 7 DAY))
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+                   WHERE bs.id_customer = cr.id_customer
+                     AND bs.template = \'loyalty_reward_expiry\'
+                     AND bs.ref_id = cr.id_cart_rule
+               )'
+        );
+
+        foreach ((array) $rows as $r) {
+            $expiryDate = date('d/m/Y', strtotime($r['date_to']));
+            $historyUrl = $this->historyUrl();
+
+            $this->send(
+                'loyalty_reward_expiry',
+                $r,
+                [
+                    '{reward_expiry_date}' => $expiryDate,
+                    '{history_url}'        => $historyUrl,
+                ],
+                (int) $r['id_cart_rule']
+            );
+        }
+    }
+
+    // ============================================================
+    // WISHLIST_REMINDER — article en wishlist non acheté
+    // Nécessite le module blockwishlist (tables ps_wishlist*)
+    // Ref_id = YEAR*100+MONTH → une alerte par client par mois
+    // ============================================================
+
+    private function sendWishlistReminders(): void
+    {
+        // Passer silencieusement si le module blockwishlist n'est pas installé
+        $tableExists = $this->db->executeS(
+            'SELECT 1 FROM information_schema.tables
+             WHERE table_schema = DATABASE()
+               AND table_name = \'' . pSQL(_DB_PREFIX_ . 'wishlist_product') . '\' LIMIT 1'
+        );
+        if (empty($tableExists)) {
+            return;
+        }
+
+        $refId = (int) date('Y') * 100 + (int) date('n');
+
+        $rows = $this->db->executeS(
+            'SELECT w.id_customer, w.id_shop,
+                    c.email, c.firstname, c.lastname, c.id_lang,
+                    pl.name AS product_name
+             FROM `' . $this->prefix . 'wishlist` w
+             JOIN `' . $this->prefix . 'customer` c ON c.id_customer = w.id_customer
+             JOIN (
+                 SELECT wp.id_wishlist, MIN(wp.id_wishlist_product) AS min_id
+                 FROM `' . $this->prefix . 'wishlist_product` wp
+                 GROUP BY wp.id_wishlist
+             ) first_item ON first_item.id_wishlist = w.id_wishlist
+             JOIN `' . $this->prefix . 'wishlist_product` wp
+                  ON wp.id_wishlist_product = first_item.min_id
+             JOIN `' . $this->prefix . 'product_lang` pl
+                  ON pl.id_product = wp.id_product AND pl.id_lang = c.id_lang
+             WHERE c.active = 1 AND c.deleted = 0
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+                   WHERE bs.id_customer = w.id_customer
+                     AND bs.template = \'wishlist_reminder\'
+                     AND bs.ref_id = ' . $refId . '
+               )
+               AND NOT EXISTS (
+                   SELECT 1
+                   FROM `' . $this->prefix . 'orders` o
+                   JOIN `' . $this->prefix . 'order_detail` od ON od.id_order = o.id_order
+                   JOIN `' . $this->prefix . 'wishlist_product` wp2
+                        ON wp2.id_wishlist_product = first_item.min_id
+                   WHERE o.id_customer = w.id_customer
+                     AND od.product_id = wp2.id_product
+                     AND o.valid = 1
+               )
+             GROUP BY w.id_customer'
+        );
+
+        foreach ((array) $rows as $r) {
+            $this->send(
+                'wishlist_reminder',
+                $r,
+                [
+                    '{product_name}' => $r['product_name'],
+                    '{shop_url}'     => \Tools::getShopDomainSsl(true),
+                ],
+                $refId
+            );
+        }
+    }
+
+    // ============================================================
+    // ABANDONED CART — 3 séquences (1h / 24h / 72h)
+    // Ref_id = id_cart
+    // ============================================================
+
+    private function sendAbandonedCarts(string $template, int $hours): void
+    {
+        $minAgo = $hours + 1;
+        $rows   = $this->db->executeS(
+            'SELECT ca.id_cart, ca.id_customer, ca.id_shop,
+                    c.email, c.firstname, c.lastname, c.id_lang
+             FROM `' . $this->prefix . 'cart` ca
+             JOIN `' . $this->prefix . 'customer` c ON c.id_customer = ca.id_customer
+             WHERE ca.id_customer > 0 AND c.active = 1 AND c.deleted = 0
+               AND ca.date_upd BETWEEN DATE_SUB(NOW(), INTERVAL ' . $minAgo . ' HOUR)
+                                   AND DATE_SUB(NOW(), INTERVAL ' . $hours . ' HOUR)
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'orders` o WHERE o.id_cart = ca.id_cart
+               )
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+                   WHERE bs.id_customer = ca.id_customer AND bs.template = \'' . pSQL($template) . '\'
+                     AND bs.ref_id = ca.id_cart
+               )
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+                   WHERE bs.id_customer = ca.id_customer AND bs.template = \'checkout_abandonment\'
+                     AND bs.ref_id = ca.id_cart
+               )'
+        );
+
+        foreach ((array) $rows as $r) {
+            $idCart   = (int) $r['id_cart'];
+            $cartUrl  = \Tools::getShopDomainSsl(true) . 'index.php?controller=order';
+            $products = $this->buildCartProducts($idCart);
+
+            $this->send(
+                $template,
+                $r,
+                [
+                    '{cart_url}' => $cartUrl,
+                    '{products}' => $products,
+                ],
+                $idCart
+            );
+        }
+    }
+
+    // ============================================================
+    // CHECKOUT ABANDONMENT — 1h (transporteur + 2 adresses sélectionnés)
+    // Ref_id = id_cart
+    // ============================================================
+
+    public function getCheckoutAbandonmentStats(): array
+    {
+        $row  = $this->db->getRow(
+            'SELECT
+                COUNT(bs.id)                    AS emails_sent,
+                COUNT(DISTINCT o.id_order)      AS orders_recovered,
+                COALESCE(SUM(o.total_paid_tax_incl), 0) AS revenue_recovered
+             FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+             LEFT JOIN `' . $this->prefix . 'orders` o
+                ON o.id_cart = bs.ref_id AND o.date_add > bs.sent_at
+             WHERE bs.template = \'checkout_abandonment\''
+        );
+
+        $sent      = (int)   ($row['emails_sent']       ?? 0);
+        $recovered = (int)   ($row['orders_recovered']  ?? 0);
+        $revenue   = (float) ($row['revenue_recovered'] ?? 0.0);
+
+        return [
+            'emails_sent'       => $sent,
+            'orders_recovered'  => $recovered,
+            'revenue_recovered' => round($revenue, 2),
+            'conversion_rate'   => $sent > 0 ? round($recovered / $sent * 100, 1) : 0.0,
+        ];
+    }
+
+    private function sendCheckoutAbandonment(): void
+    {
+        if (!\Configuration::getGlobalValue('NERIA_CHECKOUT_ABANDONMENT_ENABLED')) {
+            return;
+        }
+
+        $hours = self::DELAY_CHECKOUT_HOURS;
+        $rows  = $this->db->executeS(
+            'SELECT ca.id_cart, ca.id_customer, ca.id_shop,
+                    c.email, c.firstname, c.lastname, c.id_lang
+             FROM `' . $this->prefix . 'cart` ca
+             JOIN `' . $this->prefix . 'customer` c ON c.id_customer = ca.id_customer
+             WHERE ca.id_customer > 0 AND c.active = 1 AND c.deleted = 0
+               AND ca.id_carrier > 0
+               AND ca.id_address_delivery > 0
+               AND ca.id_address_invoice > 0
+               AND (SELECT COUNT(*) FROM `' . $this->prefix . 'cart_product` cp
+                    WHERE cp.id_cart = ca.id_cart) > 0
+               AND ca.date_upd BETWEEN DATE_SUB(NOW(), INTERVAL ' . ($hours + 1) . ' HOUR)
+                                   AND DATE_SUB(NOW(), INTERVAL ' . $hours . ' HOUR)
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'orders` o WHERE o.id_cart = ca.id_cart
+               )
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+                   WHERE bs.id_customer = ca.id_customer AND bs.template = \'checkout_abandonment\'
+                     AND bs.ref_id = ca.id_cart
+               )
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+                   WHERE bs.id_customer = ca.id_customer
+                     AND bs.template IN (\'abandoned_cart_1\',\'abandoned_cart_2\',\'abandoned_cart_3\')
+                     AND bs.ref_id = ca.id_cart
+               )'
+        );
+
+        foreach ((array) $rows as $r) {
+            $idCart  = (int) $r['id_cart'];
+            $cartUrl = \Tools::getShopDomainSsl(true) . 'index.php?controller=order';
+
+            $this->send(
+                'checkout_abandonment',
+                $r,
+                [
+                    '{cart_url}' => $cartUrl,
+                    '{products}' => $this->buildCartProducts($idCart),
+                ],
+                $idCart
+            );
+        }
+    }
+
+    // ============================================================
+    // POST PURCHASE — care (J+7) et review (J+14)
+    // Ref_id = id_order
+    // ============================================================
+
+    private function sendPostPurchase(string $template, int $days): void
+    {
+        $rows = $this->db->executeS(
+            'SELECT o.id_order, o.id_customer, o.id_shop,
+                    c.email, c.firstname, c.lastname, c.id_lang
+             FROM `' . $this->prefix . 'orders` o
+             JOIN `' . $this->prefix . 'customer` c ON c.id_customer = o.id_customer
+             WHERE c.active = 1 AND c.deleted = 0 AND o.valid = 1
+               AND EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'order_history` oh
+                   WHERE oh.id_order = o.id_order
+                     AND oh.id_order_state = ' . self::STATUS_DELIVERED . '
+                     AND DATE(oh.date_add) = DATE(DATE_SUB(NOW(), INTERVAL ' . $days . ' DAY))
+               )
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+                   WHERE bs.id_customer = o.id_customer AND bs.template = \'' . pSQL($template) . '\'
+                     AND bs.ref_id = o.id_order
+               )'
+        );
+
+        // Toggle BO respecté : l'upsell n'est instancié que s'il est activé.
+        // L'email d'avis (post_purchase_review) part dans tous les cas ;
+        // seul le bloc produit est conditionné par NERIA_UPSELL_ENABLED.
+        $upsellMgr = ($template === 'post_purchase_review'
+                      && (bool) \Configuration::getGlobalValue('NERIA_UPSELL_ENABLED'))
+            ? new \UpsellManager($this->module)
+            : null;
+
+        foreach ((array) $rows as $r) {
+            $idOrder = (int) $r['id_order'];
+            $idLang  = (int) ($r['id_lang'] ?: \Configuration::get('PS_LANG_DEFAULT'));
+
+            $extraVars = ['{review_url}' => \Tools::getShopDomainSsl(true)];
+
+            // Placeholders upsell toujours nettoyés pour l'email d'avis
+            // (vides si désactivé OU si aucun produit pertinent n'est trouvé).
+            if ($template === 'post_purchase_review') {
+                $extraVars['{upsell_block}']     = '';
+                $extraVars['{upsell_block_txt}'] = '';
+            }
+
+            if ($upsellMgr !== null) {
+                try {
+                    $upsell = $upsellMgr->getUpsellProduct($idOrder, $idLang);
+
+                    if ($upsell !== null) {
+                        $idUpsell = $upsellMgr->recordSuggestion(
+                            (int) $r['id_customer'], $idOrder, $upsell
+                        );
+                        if ($idUpsell > 0) {
+                            $sep = (strpos($upsell['product_url'], '?') !== false) ? '&' : '?';
+                            $upsell['product_url'] .= $sep . 'neria_ur=' . $idUpsell;
+                            $this->watchdog()->info(
+                                sprintf(
+                                    'Upsell — Suggestion envoyée : "%s" (%s) → %s (cde #%d).',
+                                    $upsell['name'],
+                                    $upsell['reason'],
+                                    $r['email'] ?? '?',
+                                    $idOrder
+                                ),
+                                'post_purchase_review',
+                                'Upsell'
+                            );
+                        }
+                    } else {
+                        $this->watchdog()->info(
+                            sprintf(
+                                'Upsell — Aucun produit complémentaire trouvé pour la cde #%d (%s). Email envoyé sans bloc upsell.',
+                                $idOrder,
+                                $r['email'] ?? '?'
+                            ),
+                            'post_purchase_review',
+                            'Upsell'
+                        );
+                    }
+
+                    $config = new \ConfigManager($this->module);
+                    $extraVars['{upsell_block}']     = $upsellMgr->buildHtmlBlock($upsell, $config);
+                    $extraVars['{upsell_block_txt}'] = $upsellMgr->buildTxtBlock($upsell);
+                } catch (\Throwable $e) {
+                    $extraVars['{upsell_block}']     = '';
+                    $extraVars['{upsell_block_txt}'] = '';
+                    $this->watchdog()->error(
+                        sprintf(
+                            'Upsell — Erreur lors de la sélection du produit pour la cde #%d : %s. Email envoyé sans bloc upsell.',
+                            $idOrder,
+                            $e->getMessage()
+                        ),
+                        'post_purchase_review',
+                        'Upsell'
+                    );
+                }
+            }
+
+            $this->send($template, $r, $extraVars, $idOrder);
+        }
+    }
+
+    // ============================================================
+    // ORDER SHIPPED DELAY — expédié depuis 7 j sans livraison
+    // Ref_id = id_order
+    // ============================================================
+
+    private function sendShippedDelayAlerts(): void
+    {
+        $days = self::DELAY_SHIPPED_DELAY_DAYS;
+        $rows = $this->db->executeS(
+            'SELECT o.id_order, o.reference, o.id_customer, o.id_shop,
+                    c.email, c.firstname, c.lastname, c.id_lang
+             FROM `' . $this->prefix . 'orders` o
+             JOIN `' . $this->prefix . 'customer` c ON c.id_customer = o.id_customer
+             WHERE c.active = 1 AND c.deleted = 0 AND o.valid = 1
+               AND EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'order_history` oh
+                   JOIN `' . $this->prefix . 'order_state` os ON os.id_order_state = oh.id_order_state
+                   WHERE oh.id_order = o.id_order AND os.shipped = 1
+                     AND oh.date_add <= DATE_SUB(NOW(), INTERVAL ' . $days . ' DAY)
+               )
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'order_history` oh
+                   JOIN `' . $this->prefix . 'order_state` os ON os.id_order_state = oh.id_order_state
+                   WHERE oh.id_order = o.id_order
+                     AND (os.delivery = 1 OR oh.id_order_state = ' . (int) \Configuration::get('PS_OS_CANCELED') . ')
+               )
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+                   WHERE bs.id_customer = o.id_customer AND bs.template = \'order_shipped_delay\'
+                     AND bs.ref_id = o.id_order
+               )'
+        );
+
+        $newDate = date('d/m/Y', strtotime('+7 days'));
+        foreach ((array) $rows as $r) {
+            $this->send(
+                'order_shipped_delay',
+                $r,
+                [
+                    '{order_name}'        => $r['reference'],
+                    '{new_shipping_date}' => $newDate,
+                ],
+                (int) $r['id_order']
+            );
+        }
+    }
+
+    // ============================================================
+    // QUOTE EXPIRY REMINDERS — devis B2B (J-2, Jour J, prolongation)
+    // Ref_id = id_quote (table neria_quote)
+    // ============================================================
+
+    public function getQuoteStats(): array
+    {
+        $row = $this->db->getRow(
+            'SELECT
+                COUNT(*)                                          AS total_quotes,
+                SUM(status = \'won\')                            AS quotes_won,
+                SUM(status = \'active\')                         AS quotes_active,
+                SUM(status IN (\'expired\',\'lost\'))            AS quotes_lost,
+                COALESCE(SUM(CASE WHEN status = \'won\' THEN quote_total ELSE 0 END), 0) AS revenue_won
+             FROM `' . $this->prefix . 'neria_quote`'
+        );
+
+        $total   = (int)   ($row['total_quotes']  ?? 0);
+        $won     = (int)   ($row['quotes_won']     ?? 0);
+        $active  = (int)   ($row['quotes_active']  ?? 0);
+        $lost    = (int)   ($row['quotes_lost']    ?? 0);
+        $revenue = (float) ($row['revenue_won']    ?? 0.0);
+
+        return [
+            'total_quotes'  => $total,
+            'quotes_won'    => $won,
+            'quotes_active' => $active,
+            'quotes_lost'   => $lost,
+            'revenue_won'   => round($revenue, 2),
+            'win_rate'      => $total > 0 ? round($won / $total * 100, 1) : 0.0,
+        ];
+    }
+
+    private function sendQuoteExpiryReminders(): void
+    {
+        if (!\Configuration::getGlobalValue('NERIA_QUOTE_REMINDERS_ENABLED')) {
+            return;
+        }
+
+        // ── 1. Rappel 48h avant expiration ───────────────────────
+        $rows48h = $this->db->executeS(
+            'SELECT q.id_quote, q.id_customer, q.id_shop, q.quote_ref, q.quote_total,
+                    q.id_currency, q.expiry_date,
+                    c.email, c.firstname, c.lastname, c.id_lang
+             FROM `' . $this->prefix . 'neria_quote` q
+             JOIN `' . $this->prefix . 'customer` c ON c.id_customer = q.id_customer
+             WHERE q.status = \'active\' AND q.sent_48h = 0
+               AND DATE(q.expiry_date) = DATE(DATE_ADD(NOW(), INTERVAL 2 DAY))
+               AND c.active = 1 AND c.deleted = 0'
+        );
+        foreach ((array) $rows48h as $r) {
+            $this->sendQuoteEmail('quote_expiry_48h', $r);
+            $this->db->execute(
+                'UPDATE `' . $this->prefix . 'neria_quote`
+                 SET sent_48h = 1, date_upd = NOW() WHERE id_quote = ' . (int) $r['id_quote']
+            );
+        }
+
+        // ── 2. Rappel Jour J ──────────────────────────────────────
+        $rowsDay = $this->db->executeS(
+            'SELECT q.id_quote, q.id_customer, q.id_shop, q.quote_ref, q.quote_total,
+                    q.id_currency, q.expiry_date,
+                    c.email, c.firstname, c.lastname, c.id_lang
+             FROM `' . $this->prefix . 'neria_quote` q
+             JOIN `' . $this->prefix . 'customer` c ON c.id_customer = q.id_customer
+             WHERE q.status = \'active\' AND q.sent_day = 0
+               AND DATE(q.expiry_date) = CURDATE()
+               AND c.active = 1 AND c.deleted = 0'
+        );
+        foreach ((array) $rowsDay as $r) {
+            $this->sendQuoteEmail('quote_expiry_day', $r);
+            $this->db->execute(
+                'UPDATE `' . $this->prefix . 'neria_quote`
+                 SET sent_day = 1, date_upd = NOW() WHERE id_quote = ' . (int) $r['id_quote']
+            );
+        }
+
+        // ── 3. Offre de prolongation (J+1 ou après) ──────────────
+        $rowsExt = $this->db->executeS(
+            'SELECT q.id_quote, q.id_customer, q.id_shop, q.quote_ref, q.quote_total,
+                    q.id_currency, q.expiry_date,
+                    c.email, c.firstname, c.lastname, c.id_lang
+             FROM `' . $this->prefix . 'neria_quote` q
+             JOIN `' . $this->prefix . 'customer` c ON c.id_customer = q.id_customer
+             WHERE q.status = \'active\' AND q.sent_extension = 0
+               AND DATE(q.expiry_date) < CURDATE()
+               AND c.active = 1 AND c.deleted = 0'
+        );
+        foreach ((array) $rowsExt as $r) {
+            $this->sendQuoteEmail('quote_extension_offer', $r, true);
+            $this->db->execute(
+                'UPDATE `' . $this->prefix . 'neria_quote`
+                 SET sent_extension = 1, status = \'expired\', date_upd = NOW()
+                 WHERE id_quote = ' . (int) $r['id_quote']
+            );
+        }
+    }
+
+    private function sendQuoteEmail(string $template, array $r, bool $withExtension = false): void
+    {
+        $idCurrency = (int) ($r['id_currency'] ?: \Configuration::get('PS_CURRENCY_DEFAULT'));
+        $currency   = new \Currency($idCurrency);
+        $total      = number_format((float) $r['quote_total'], 2, ',', ' ') . ' ' . ($currency->sign ?? '€');
+        $expiry     = date('d/m/Y', strtotime($r['expiry_date']));
+        $newExpiry  = $withExtension
+            ? date('d/m/Y', strtotime($r['expiry_date'] . ' +7 days'))
+            : '';
+
+        $this->send(
+            $template,
+            $r,
+            [
+                '{quote_ref}'       => $r['quote_ref'],
+                '{quote_total}'     => $total,
+                '{expiry_date}'     => $expiry,
+                '{new_expiry_date}' => $newExpiry,
+                '{quote_url}'       => \Tools::getShopDomainSsl(true),
+            ],
+            (int) $r['id_quote']
+        );
+    }
+
+    // ============================================================
+    // RECONCILIATION POST-REMBOURSEMENT — J+1 / J+3 / J+7
+    // Déclenchée par actionOrderSlipAdd via OrderTriggersManager.
+    // Le cron envoie chaque step quand sa date est atteinte.
+    // Annulation si le client a repassé commande depuis le remboursement.
+    // ============================================================
+
+    private function sendRefundReconciliations(): void
+    {
+        if (!\Configuration::getGlobalValue('NERIA_REFUND_RECONCILIATION_ENABLED')) {
+            return;
+        }
+
+        $table = $this->prefix . 'neria_reconciliation';
+        $rows  = $this->db->executeS(
+            "SELECT r.*, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop AS c_shop
+             FROM `{$table}` r
+             JOIN `{$this->prefix}customer` c ON c.id_customer = r.id_customer
+             WHERE r.status = 'active'
+               AND (
+                   (r.sent_1 = 0 AND r.send_1_date <= CURDATE()) OR
+                   (r.sent_1 = 1 AND r.sent_2 = 0 AND r.send_2_date <= CURDATE()) OR
+                   (r.sent_1 = 1 AND r.sent_2 = 1 AND r.sent_3 = 0 AND r.send_3_date <= CURDATE())
+               )
+               AND c.active = 1 AND c.deleted = 0"
+        );
+
+        foreach ((array) $rows as $r) {
+            $idReconciliation = (int) $r['id_reconciliation'];
+            $idCustomer       = (int) $r['id_customer'];
+            $idOrder          = (int) $r['id_order'];
+
+            // Annuler si le client a passé une nouvelle commande depuis le remboursement
+            $hasReordered = (int) $this->db->getValue(
+                "SELECT COUNT(*) FROM `{$this->prefix}orders`
+                 WHERE id_customer = {$idCustomer}
+                   AND valid = 1
+                   AND id_order > {$idOrder}"
+            );
+            if ($hasReordered > 0) {
+                $this->db->execute(
+                    "UPDATE `{$table}` SET status = 'cancelled' WHERE id_reconciliation = {$idReconciliation}"
+                );
+                $this->watchdog()->info(
+                    "Réconciliation #{$idReconciliation} annulée — client #{$idCustomer} a repassé commande.",
+                    'refund_reconciliation', 'BehavioralCron'
+                );
+                continue;
+            }
+
+            $customer = [
+                'id_customer' => $idCustomer,
+                'email'       => $r['email'],
+                'firstname'   => $r['firstname'],
+                'lastname'    => $r['lastname'],
+                'id_lang'     => $r['id_lang'],
+                'id_shop'     => $r['id_shop'],
+            ];
+
+            if (!$r['sent_1']) {
+                $this->send('refund_reconciliation_1', $customer, ['{order_name}' => ''], $idOrder);
+                $this->db->execute(
+                    "UPDATE `{$table}` SET sent_1 = 1 WHERE id_reconciliation = {$idReconciliation}"
+                );
+            } elseif (!$r['sent_2']) {
+                $this->send('refund_reconciliation_2', $customer, ['{order_name}' => ''], $idOrder);
+                $this->db->execute(
+                    "UPDATE `{$table}` SET sent_2 = 1 WHERE id_reconciliation = {$idReconciliation}"
+                );
+            } elseif (!$r['sent_3']) {
+                $this->send('refund_reconciliation_3', $customer, ['{order_name}' => ''], $idOrder);
+                $this->db->execute(
+                    "UPDATE `{$table}` SET sent_3 = 1 WHERE id_reconciliation = {$idReconciliation}"
+                );
+            }
+        }
+    }
+
+    private function recalculatePropensityScores(): void
+    {
+        if (!class_exists('PropensityScoreManager') || !\Configuration::getGlobalValue('NERIA_PROPENSITY_ENABLED')) {
+            return;
+        }
+        try {
+            (new \PropensityScoreManager($this->module))->recalculateAll();
+        } catch (\Throwable $e) {
+            $this->watchdog()->error('PropensityScore recalcul : ' . $e->getMessage(), '', 'BehavioralCron');
+        }
+    }
+
+    private function sendLifespanReminders(): void
+    {
+        if (!\Configuration::getGlobalValue('NERIA_LIFESPAN_ENABLED')) {
+            return;
+        }
+
+        $table    = $this->prefix . 'neria_product_lifespan';
+        $products = $this->db->executeS(
+            "SELECT pl.id_product, pl.id_shop, pl.lifespan_days, pl.alert_days,
+                    p.reference, pl2.name AS product_name
+             FROM `{$table}` pl
+             JOIN `{$this->prefix}product` p ON p.id_product = pl.id_product
+             JOIN `{$this->prefix}product_lang` pl2
+                  ON pl2.id_product = pl.id_product AND pl2.id_lang = 1 AND pl2.id_shop = pl.id_shop"
+        ) ?: [];
+
+        if (empty($products)) {
+            return;
+        }
+
+        foreach ($products as $product) {
+            $idProduct   = (int) $product['id_product'];
+            $lifespanDays = (int) $product['lifespan_days'];
+            $alertDays   = (int) $product['alert_days'];
+            $targetDay   = $lifespanDays - $alertDays;
+
+            // Chercher les clients ayant acheté ce produit il y a exactement $targetDay jours
+            $customers = $this->db->executeS(
+                "SELECT DISTINCT c.id_customer, c.email, c.firstname, c.lastname,
+                        c.id_lang, o.id_shop, o.id_order,
+                        MAX(o.date_add) AS purchase_date
+                 FROM `{$this->prefix}orders` o
+                 JOIN `{$this->prefix}order_detail` od ON od.id_order = o.id_order
+                 JOIN `{$this->prefix}customer` c ON c.id_customer = o.id_customer
+                 WHERE od.product_id = {$idProduct}
+                   AND o.valid = 1
+                   AND o.id_shop = {$product['id_shop']}
+                   AND c.active = 1 AND c.deleted = 0
+                   AND DATE(o.date_add) = DATE_SUB(CURDATE(), INTERVAL {$targetDay} DAY)
+                 GROUP BY c.id_customer, o.id_shop, o.id_order"
+            ) ?: [];
+
+            foreach ($customers as $customer) {
+                // Déduplication via neria_behavioral_sent
+                $alreadySent = (int) $this->db->getValue(
+                    "SELECT COUNT(*) FROM `{$this->prefix}neria_behavioral_sent`
+                     WHERE id_customer = " . (int) $customer['id_customer'] . "
+                       AND template = 'product_lifespan_reminder'
+                       AND ref_id = {$idProduct}"
+                );
+                if ($alreadySent > 0) {
+                    continue;
+                }
+
+                // Annuler si le client a déjà racheté ce produit après son achat initial
+                $hasReordered = (int) $this->db->getValue(
+                    "SELECT COUNT(*) FROM `{$this->prefix}orders` o
+                     JOIN `{$this->prefix}order_detail` od ON od.id_order = o.id_order
+                     WHERE o.id_customer = " . (int) $customer['id_customer'] . "
+                       AND od.product_id = {$idProduct}
+                       AND o.valid = 1
+                       AND o.id_order > " . (int) $customer['id_order']
+                );
+                if ($hasReordered > 0) {
+                    continue;
+                }
+
+                $idLang      = (int) $customer['id_lang'] ?: (int) \Configuration::get('PS_LANG_DEFAULT');
+                $productName = $this->db->getValue(
+                    "SELECT name FROM `{$this->prefix}product_lang`
+                     WHERE id_product = {$idProduct} AND id_lang = {$idLang} LIMIT 1"
+                ) ?: $product['product_name'];
+
+                $productUrl = \Context::getContext()->link->getProductLink(
+                    $idProduct, null, null, null, $idLang, (int) $customer['id_shop']
+                );
+
+                $this->send('product_lifespan_reminder', $customer, [
+                    '{product_name}'   => $productName,
+                    '{product_url}'    => $productUrl,
+                    '{estimated_days}' => (string) $lifespanDays,
+                ], $idProduct);
+            }
+        }
+    }
+
+    // ============================================================
+    // RELATIONSHIP ANNIVERSARY — stats BO
+    // ============================================================
+
+    public function getRelationshipAnniversaryStats(): array
+    {
+        // Emails envoyés
+        $sent = (int) $this->db->getValue(
+            'SELECT COUNT(*) FROM `' . $this->prefix . 'neria_behavioral_sent`
+             WHERE template = \'relationship_anniversary\''
+        );
+
+        // Commandes passées dans les 48h suivant l'envoi (attribution last-click)
+        $row = $this->db->getRow(
+            'SELECT COUNT(DISTINCT o.id_order) AS orders_attributed,
+                    COALESCE(SUM(o.total_paid_tax_incl), 0) AS revenue_attributed
+             FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+             JOIN `' . $this->prefix . 'orders` o
+                  ON o.id_customer = bs.id_customer
+                  AND o.valid = 1
+                  AND o.date_add BETWEEN bs.sent_at AND DATE_ADD(bs.sent_at, INTERVAL 48 HOUR)
+             WHERE bs.template = \'relationship_anniversary\''
+        );
+
+        $orders  = (int)   ($row['orders_attributed']  ?? 0);
+        $revenue = (float) ($row['revenue_attributed'] ?? 0.0);
+
+        return [
+            'emails_sent'        => $sent,
+            'orders_attributed'  => $orders,
+            'revenue_attributed' => round($revenue, 2),
+            'avg_order_value'    => $orders > 0 ? round($revenue / $orders, 2) : 0.0,
+        ];
+    }
+
+    // ============================================================
+    // RELATIONSHIP ANNIVERSARY — chaque année à la date du 1er achat
+    // Dédup : un envoi par client par année (ref_id = année courante)
+    // ============================================================
+
+    private function sendRelationshipAnniversaries(): void
+    {
+        if (!\Configuration::getGlobalValue('NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED')) {
+            return;
+        }
+
+        // Clients dont la date du 1er achat tombe aujourd'hui (mois+jour)
+        // et qui ont passé commande il y a au moins 1 an.
+        $rows = $this->db->executeS(
+            'SELECT c.id_customer, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop,
+                    MIN(o.date_add) AS first_order_date,
+                    MIN(o.id_order) AS id_first_order,
+                    TIMESTAMPDIFF(YEAR, MIN(o.date_add), NOW()) AS years
+             FROM `' . $this->prefix . 'customer` c
+             JOIN `' . $this->prefix . 'orders` o ON o.id_customer = c.id_customer AND o.valid = 1
+             WHERE c.active = 1 AND c.deleted = 0
+             GROUP BY c.id_customer
+             HAVING DATE_FORMAT(MIN(o.date_add), \'%m-%d\') = DATE_FORMAT(NOW(), \'%m-%d\')
+               AND TIMESTAMPDIFF(YEAR, MIN(o.date_add), NOW()) >= 1
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+                   WHERE bs.id_customer = c.id_customer
+                     AND bs.template = \'relationship_anniversary\'
+                     AND bs.ref_id = YEAR(NOW())
+               )
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs2
+                   WHERE bs2.id_customer = c.id_customer
+                     AND bs2.template = \'first_anniversary\'
+                     AND bs2.ref_id = YEAR(NOW())
+               )'
+        );
+
+        $rows = (array) $rows;
+
+        if (empty($rows)) {
+            $this->watchdog()->info(
+                'Anniversaire relation client — Aucun client éligible aujourd\'hui.',
+                'relationship_anniversary',
+                'BehavioralCron'
+            );
+            return;
+        }
+
+        $sent   = 0;
+        $errors = 0;
+
+        foreach ($rows as $r) {
+            $years      = (int) $r['years'];
+            $yearsLabel = $this->yearsLabel($years, (int) $r['id_lang']);
+
+            try {
+                $this->send(
+                    'relationship_anniversary',
+                    $r,
+                    ['{years_label}' => $yearsLabel],
+                    (int) date('Y')
+                );
+                $sent++;
+                $this->watchdog()->info(
+                    sprintf(
+                        'Anniversaire relation client — Email envoyé à %s (%s, %d an%s de fidélité).',
+                        $r['email'] ?? '?',
+                        $r['firstname'] ?? '',
+                        $years,
+                        $years > 1 ? 's' : ''
+                    ),
+                    'relationship_anniversary',
+                    'BehavioralCron'
+                );
+            } catch (\Throwable $e) {
+                $errors++;
+                $this->watchdog()->error(
+                    sprintf(
+                        'Anniversaire relation client — Erreur pour %s : %s',
+                        $r['email'] ?? '?',
+                        $e->getMessage()
+                    ),
+                    'relationship_anniversary',
+                    'BehavioralCron'
+                );
+            }
+        }
+
+        $this->watchdog()->info(
+            sprintf(
+                'Anniversaire relation client — %d email%s envoyé%s, %d erreur%s.',
+                $sent,   $sent   > 1 ? 's' : '',
+                $sent   > 1 ? 's' : '',
+                $errors, $errors > 1 ? 's' : ''
+            ),
+            'relationship_anniversary',
+            'BehavioralCron'
+        );
+    }
+
+    // ============================================================
+    // GHOST CART — même produit ajouté 3+ fois sans achat
+    // Ref_id = id_product (un email unique par produit par client)
+    // ============================================================
+
+    private function sendGhostCarts(): void
+    {
+        if (!\Configuration::getGlobalValue('NERIA_GHOST_CART_ENABLED')) {
+            return;
+        }
+
+        $rows = $this->db->executeS(
+            'SELECT cp.id_product, ca.id_customer, ca.id_shop,
+                    c.email, c.firstname, c.lastname, c.id_lang,
+                    COUNT(DISTINCT ca.id_cart) AS times_added
+             FROM `' . $this->prefix . 'cart_product` cp
+             JOIN `' . $this->prefix . 'cart` ca
+                  ON ca.id_cart = cp.id_cart AND ca.id_customer > 0
+             JOIN `' . $this->prefix . 'customer` c
+                  ON c.id_customer = ca.id_customer AND c.active = 1 AND c.deleted = 0
+             WHERE ca.date_upd >= DATE_SUB(NOW(), INTERVAL 60 DAY)
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'orders` o
+                   JOIN `' . $this->prefix . 'order_detail` od ON od.id_order = o.id_order
+                   WHERE o.id_customer = ca.id_customer
+                     AND od.product_id = cp.id_product
+                     AND o.valid = 1
+               )
+               AND NOT EXISTS (
+                   SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
+                   WHERE bs.id_customer = ca.id_customer
+                     AND bs.template = \'ghost_cart\'
+                     AND bs.ref_id = cp.id_product
+               )
+             GROUP BY cp.id_product, ca.id_customer, ca.id_shop,
+                      c.email, c.firstname, c.lastname, c.id_lang
+             HAVING COUNT(DISTINCT ca.id_cart) >= 3'
+        );
+
+        if (empty($rows)) {
+            return;
+        }
+
+        foreach ((array) $rows as $r) {
+            $idProduct  = (int) $r['id_product'];
+            $idLang     = (int) ($r['id_lang'] ?: \Configuration::get('PS_LANG_DEFAULT'));
+            $idCustomer = (int) $r['id_customer'];
+
+            $product = new \Product($idProduct, false, $idLang);
+            if (!\Validate::isLoadedObject($product)) {
+                continue;
+            }
+
+            // URL produit
+            $productUrl = \Context::getContext()->link->getProductLink(
+                $product, null, null, null, $idLang, (int) $r['id_shop']
+            );
+
+            // Image principale
+            $cover    = \Product::getCover($idProduct);
+            $imageUrl = '';
+            if ($cover) {
+                $imageUrl = \Context::getContext()->link->getImageLink(
+                    $product->link_rewrite,
+                    (int) $cover['id_image'],
+                    \ImageType::getFormattedName('home')
+                );
+            }
+
+            $this->send(
+                'ghost_cart',
+                $r,
+                [
+                    '{product_name}'  => $product->name,
+                    '{product_url}'   => $productUrl,
+                    '{product_image}' => $imageUrl,
+                    '{product_price}' => number_format((float) $product->price, 2, ',', ' '),
+                    '{times_added}'   => (int) $r['times_added'],
+                ],
+                $idProduct
+            );
+        }
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+
+    /**
+     * Envoie un email comportemental et enregistre l'envoi.
+     *
+     * @param string $template  Nom du template Neria
+     * @param array  $customer  Ligne DB avec email, firstname, lastname, id_lang, id_shop
+     * @param array  $extraVars Variables spécifiques au template
+     * @param int    $refId     Identifiant de déduplication (id_order, id_cart, année…)
+     */
+    private function send(
+        string $template,
+        array $customer,
+        array $extraVars,
+        int $refId = 0
+    ): void {
+        $email = $customer['email'] ?? '?';
+
+        try {
+            $idLang = (int) $customer['id_lang'] ?: (int) \Configuration::get('PS_LANG_DEFAULT');
+            $idShop = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
+            $toName = trim($customer['firstname'] . ' ' . $customer['lastname']) ?: null;
+
+            // Vérifier que le template SOURCE Neria existe avant d'appeler Mail::Send.
+            $coreFile = _PS_MODULE_DIR_ . 'neria/mails/themes/neria_global/core/' . $template . '.html';
+            if (!file_exists($coreFile)) {
+                $this->watchdog()->error(
+                    sprintf(
+                        'Template source "%s" introuvable (fichier attendu : mails/themes/neria_global/core/%s.html).',
+                        $template, $template
+                    ),
+                    $template,
+                    'BehavioralCron'
+                );
+                return;
+            }
+
+            // ── Fenêtre d'achat individuelle ─────────────────────────────
+            // Si la feature est activée et que ce client a un pattern d'achat détecté,
+            // on place l'email en queue plutôt que de l'envoyer immédiatement.
+            if (
+                \Configuration::getGlobalValue('NERIA_PURCHASE_WINDOW_ENABLED')
+                && class_exists('PurchaseWindowManager')
+                && class_exists('QueueManager')
+            ) {
+                $preferredHour = (new \PurchaseWindowManager())->getPreferredHour((int) $customer['id_customer']);
+                if ($preferredHour !== null) {
+                    (new \QueueManager($this->module))->enqueue($template, $customer, $extraVars, $refId, $preferredHour);
+                    // Inscrire en dedup immédiatement : le cron ne repassera pas dessus demain.
+                    $this->db->execute(
+                        'INSERT IGNORE INTO `' . $this->prefix . 'neria_behavioral_sent`
+                         (id_customer, template, ref_id, sent_at)
+                         VALUES (' . (int) $customer['id_customer'] . ', \'' . pSQL($template) . '\', '
+                        . (int) $refId . ', NOW())'
+                    );
+                    return;
+                }
+            }
+            // ─────────────────────────────────────────────────────────────
+
+            $vars = array_merge(
+                [
+                    '{firstname}'   => $customer['firstname'],
+                    '{lastname}'    => $customer['lastname'],
+                    '{shop_name}'   => \Configuration::get('PS_SHOP_NAME'),
+                    '{history_url}' => $this->historyUrl(),
+                ],
+                $extraVars
+            );
+
+            $sent = \Mail::Send(
+                $idLang,
+                $template,
+                '',
+                $vars,
+                $email,
+                $toName,
+                null, null, null, null,
+                _PS_MODULE_DIR_ . 'neria/mails/',
+                false,
+                $idShop
+            );
+
+            if ($sent) {
+                $this->db->execute(
+                    'INSERT IGNORE INTO `' . $this->prefix . 'neria_behavioral_sent`
+                     (id_customer, template, ref_id, sent_at)
+                     VALUES (' . (int) $customer['id_customer'] . ', \'' . pSQL($template) . '\', '
+                    . (int) $refId . ', NOW())'
+                );
+                $this->watchdog()->info(
+                    sprintf('%s → %s (ref#%d)', $template, $email, $refId),
+                    $template,
+                    'BehavioralCron'
+                );
+            } else {
+                $this->watchdog()->warning(
+                    sprintf(
+                        'Échec silencieux : "%s" n\'a pas pu être envoyé à %s — Mail::Send() a retourné false. Vérifiez la configuration SMTP (Paramètres avancés → Email).',
+                        $template, $email
+                    ),
+                    $template,
+                    'BehavioralCron'
+                );
+            }
+        } catch (\Throwable $e) {
+            $this->watchdog()->error(
+                sprintf(
+                    'Erreur lors de l\'envoi de "%s" à %s : %s. Vérifiez la configuration SMTP et les logs serveur.',
+                    $template, $email, $e->getMessage()
+                ),
+                $template,
+                'BehavioralCron'
+            );
+        }
+    }
+
+    /**
+     * Construit le résumé HTML des produits d'un panier pour {products}.
+     */
+    private function buildCartProducts(int $idCart): string
+    {
+        try {
+            $rows = $this->db->executeS(
+                'SELECT p.reference, pl.name, cp.quantity
+                 FROM `' . $this->prefix . 'cart_product` cp
+                 JOIN `' . $this->prefix . 'product` p ON p.id_product = cp.id_product
+                 JOIN `' . $this->prefix . 'product_lang` pl
+                      ON pl.id_product = cp.id_product
+                     AND pl.id_lang = (SELECT id_lang FROM `' . $this->prefix . 'cart`
+                                       WHERE id_cart = ' . $idCart . ' LIMIT 1)
+                 WHERE cp.id_cart = ' . $idCart
+            );
+            if (!is_array($rows) || empty($rows)) {
+                return '';
+            }
+            $lines = array_map(
+                fn($r) => '<li>× ' . (int) $r['quantity'] . ' ' . htmlspecialchars($r['name']) . '</li>',
+                $rows
+            );
+            return '<ul style="margin:0;padding:0 0 0 18px;">' . implode('', $lines) . '</ul>';
+        } catch (\Throwable $e) {
+            return '';
+        }
+    }
+
+    private function yearsLabel(int $years, int $idLang): string
+    {
+        $iso = \Language::getIsoById($idLang) ?: 'en';
+        $words = [
+            'fr' => ['un an',       'deux ans',   'trois ans',    'quatre ans',   'cinq ans'],
+            'en' => ['one year',    'two years',  'three years',  'four years',   'five years'],
+            'de' => ['einem Jahr',  'zwei Jahren','drei Jahren',  'vier Jahren',  'fünf Jahren'],
+            'it' => ['un anno',     'due anni',   'tre anni',     'quattro anni', 'cinque anni'],
+            'es' => ['un año',      'dos años',   'tres años',    'cuatro años',  'cinco años'],
+            'pt' => ['um ano',      'dois anos',  'três anos',    'quatro anos',  'cinco anos'],
+            'br' => ['um ano',      'dois anos',  'três anos',    'quatro anos',  'cinco anos'],
+            'nl' => ['één jaar',    'twee jaar',  'drie jaar',    'vier jaar',    'vijf jaar'],
+            'ru' => ['один год',    'два года',   'три года',     'четыре года',  'пять лет'],
+            'tr' => ['bir yıl',     'iki yıl',    'üç yıl',       'dört yıl',     'beş yıl'],
+            'sv' => ['ett år',      'två år',     'tre år',       'fyra år',      'fem år'],
+            'da' => ['ét år',       'to år',      'tre år',       'fire år',      'fem år'],
+            'no' => ['ett år',      'to år',      'tre år',       'fire år',      'fem år'],
+            'ar' => ['سنة واحدة',  'سنتين',      'ثلاث سنوات',  'أربع سنوات',  'خمس سنوات'],
+            'ja' => ['1年',         '2年',        '3年',          '4年',          '5年'],
+            'ko' => ['1년',         '2년',        '3년',          '4년',          '5년'],
+            'zh' => ['一年',        '两年',       '三年',         '四年',         '五年'],
+            'tw' => ['一年',        '兩年',       '三年',         '四年',         '五年'],
+        ];
+
+        if (isset($words[$iso]) && $years >= 1 && $years <= 5) {
+            return $words[$iso][$years - 1];
+        }
+
+        $suffixes = [
+            'fr' => ' ans', 'es' => ' años', 'pt' => ' anos', 'br' => ' anos',
+            'it' => ' anni', 'de' => ' Jahre', 'nl' => ' jaar', 'ru' => ' лет',
+            'tr' => ' yıl', 'sv' => ' år', 'da' => ' år', 'no' => ' år',
+            'ar' => ' سنوات',
+        ];
+        $suffix = $suffixes[$iso] ?? ' years';
+        return $years . $suffix;
+    }
+
+    // ── Complétez votre look ─────────────────────────────────────────────
+
+    private function sendLookCompletions(): void
+    {
+        if (!class_exists('LookCompletionManager')) return;
+        try {
+            $sent = (new \LookCompletionManager($this->module))->runDailyCheck();
+            if ($sent > 0) {
+                $this->watchdog()->info(
+                    sprintf('Look completion — %d email%s envoyé%s.', $sent, $sent > 1 ? 's' : '', $sent > 1 ? 's' : ''),
+                    '', 'BehavioralCron'
+                );
+            }
+        } catch (\Throwable $e) {
+            $this->watchdog()->error(
+                'LookCompletionManager::runDailyCheck() a échoué : ' . $e->getMessage(),
+                '', 'BehavioralCron'
+            );
+        }
+    }
+
+    // ── Complétion de collection ──────────────────────────────────────────
+
+    private function sendCollectionCompletions(): void
+    {
+        if (!class_exists('CollectionManager')) return;
+        try {
+            $sent = (new \CollectionManager($this->module))->runDailyCheck();
+            if ($sent > 0) {
+                $this->watchdog()->info(
+                    sprintf('Collection completion — %d email%s envoyé%s.', $sent, $sent > 1 ? 's' : '', $sent > 1 ? 's' : ''),
+                    '', 'BehavioralCron'
+                );
+            }
+        } catch (\Throwable $e) {
+            $this->watchdog()->error(
+                'CollectionManager::runDailyCheck() a échoué : ' . $e->getMessage(),
+                '', 'BehavioralCron'
+            );
+        }
+    }
+
+}

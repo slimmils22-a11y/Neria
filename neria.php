@@ -37,7 +37,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.0';
+    const VERSION = '1.0.11';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -74,19 +74,14 @@ class Neria extends Module
         // Appel obligatoire AVANT d'accéder à $this->l()
         parent::__construct();
 
-        $this->displayName = $this->l('Neria – Luxury Email Suite');
-        $this->description = $this->l(
-            'Emails transactionnels et marketing haut de gamme. ' .
-            '18 langues avec adaptation culturelle réelle, ' .
-            'typographie par écriture et design luxe.'
-        );
+        // Filet de sécurité global : capture les E_ERROR/E_PARSE/E_CORE_ERROR
+        // qui ne sont pas rattrapables par try/catch.
+        NeriaErrorHandler::register();
 
-        // Message affiché si la version PS n'est pas compatible
-        $this->confirmUninstall = $this->l(
-            'Attention : désinstaller Neria supprimera toutes vos ' .
-            'traductions personnalisées et vos statistiques. ' .
-            'Êtes-vous certain de vouloir continuer ?'
-        );
+        $this->displayName = $this->l('Neria – Luxury Email Suite');
+        // Description et confirmation traduites (18 langues) via le dictionnaire
+        $this->description      = AdminTranslator::t('msg.module_description');
+        $this->confirmUninstall = AdminTranslator::t('msg.confirm_uninstall');
     }
 
     // ============================================================
@@ -155,16 +150,39 @@ class Neria extends Module
             // Charge CSS/JS Neria dans le header du back-office
             'displayBackOfficeHeader',
 
-            // ── Tracking stats ────────────────────────────────────
-            // Enregistre l'envoi dans neria_stat
-            'actionEmailSendAfter',
-
             // ── Occasions calendaires ─────────────────────────────
             // Vérifie chaque jour les occasions à envoyer (cron-like)
             'actionCronJob',
 
             // ── Support multi-boutique ────────────────────────────
             'displayHeader',
+
+            // ── Fiche client : bloc « Emails reçus » ──────────────
+            // PS 1.6 legacy : displayAdminCustomersView (object Customer)
+            // PS 1.7+/8 (Symfony) : displayAdminCustomers (id_customer brut)
+            // On enregistre les deux pour couvrir toutes les versions.
+            'displayAdminCustomersView',
+            'displayAdminCustomers',
+
+            // ── Attribution de revenus ────────────────────────────
+            // actionObjectOrderAddAfter : capture le cookie neria_ref dans le
+            // navigateur du client au moment de la commande → stocke en DB.
+            // actionOrderStatusPostUpdate : lit la DB quand le statut passe à payé.
+            'actionObjectOrderAddAfter',
+            'actionOrderStatusPostUpdate',
+
+            // ── Déclencheurs commande (Vague 2) ──────────────────
+            // refund_processed : avoir créé
+            'actionOrderSlipAdd',
+            // return_received : retour marchandise enregistré
+            'actionObjectOrderReturnAddAfter',
+
+            // ── Certificat d'authenticité : bloc fiche commande ───
+            'displayAdminOrderMainBottom',
+
+            // ── Liste d'attente produits ───────────────────────────
+            'displayProductAdditionalInfo',
+            'actionUpdateQuantity',
         ];
 
         foreach ($hooks as $hook) {
@@ -195,12 +213,65 @@ class Neria extends Module
      */
     public function hookActionEmailSendBefore(array &$params): bool
     {
+        // Templates internes Neria : on laisse PS envoyer directement sans
+        // passer par l'EmailRenderer (ils ont leur propre rendu autonome).
+        $internalTemplates = ['monthly_report', 'log_alert', 'neria_fallback'];
+        if (in_array($params['template'] ?? '', $internalTemplates, true)) {
+            return true;
+        }
+
+        // ── Bounce check : bloquer les adresses invalides ─────────
+        if (class_exists('BounceManager')) {
+            $toEmail = $params['to'] ?? '';
+            if (is_array($toEmail)) {
+                $toEmail = reset($toEmail) ?: '';
+            }
+            if (BounceManager::isBounced((string) $toEmail)) {
+                (new WatchdogManager($this))->warning(
+                    'Envoi annulé — adresse en bounce : ' . $toEmail,
+                    $params['template'] ?? '',
+                    'BounceManager'
+                );
+                return false;
+            }
+        }
+
+        // ── Mode Silence : anti-doublon ───────────────────────────
+        if ((new ConfigManager($this))->isCooldownEnabled() && class_exists('CooldownManager')) {
+            $to = $params['to'] ?? '';
+            if (is_array($to)) {
+                $to = reset($to) ?: '';
+            }
+            $tpl = $params['template'] ?? '';
+            $cdMgr = new CooldownManager();
+            $cdMinutes = (new ConfigManager($this))->getCooldownMinutes();
+            if ($cdMgr->isDuplicate((string) $to, $tpl, $cdMinutes)) {
+                (new WatchdogManager($this))->info(
+                    WatchdogManager::i18nMsg('watchdog.cooldown_blocked', ['template' => $tpl, 'to' => (string) $to]),
+                    $tpl,
+                    'CooldownManager'
+                );
+                return false;
+            }
+        }
+
         if (class_exists('EmailRenderer')) {
             $renderer = new EmailRenderer($this);
             // Retourne false pour annuler l'envoi natif de PrestaShop : c'est
             // le cas quand le rendu a échoué et qu'un email de secours élégant
             // a été envoyé à la place (cf. EmailRenderer::handleRenderFailure).
-            return $renderer->processEmailParams($params);
+            $result = $renderer->processEmailParams($params);
+
+            // Enregistrement de la stat « envoyé » ICI, pas via un hook
+            // « après envoi » : PrestaShop n'a pas de hook actionEmailSendAfter
+            // réel dans Mail::Send() (il n'existe nulle part dans le cœur PS,
+            // donc n'est jamais déclenché). Le rendu a réussi à ce stade et le
+            // token de tracking est posé dans $params par EmailRenderer.
+            if ($result && !empty($params['neria_token']) && class_exists('StatsManager')) {
+                (new StatsManager($this))->recordSent($params);
+            }
+
+            return $result;
         }
 
         return true;
@@ -268,7 +339,7 @@ class Neria extends Module
      * @param string $email
      * @return string URL absolue, ou '' si email invalide
      */
-    public function getUnsubscribeUrl(string $email): string
+    public function getUnsubscribeUrl(string $email, string $lang = ''): string
     {
         $email = Tools::strtolower(trim($email));
         if ($email === '' || !Validate::isEmail($email)) {
@@ -276,25 +347,450 @@ class Neria extends Module
         }
         $token = substr(hash_hmac('sha256', $email, _COOKIE_KEY_), 0, 32);
 
+        $params = ['email' => $email, 'token' => $token];
+
+        // Transporte la langue de l'email pour que la page de désabonnement
+        // s'affiche dans la langue du destinataire (et non du visiteur).
+        $lang = Tools::strtolower(trim($lang));
+        if ($lang !== ''
+            && class_exists('TranslationEngine')
+            && in_array($lang, TranslationEngine::SUPPORTED_LANGS, true)
+        ) {
+            $params['neria_lang'] = $lang;
+        }
+
         return $this->context->link->getModuleLink(
             'neria',
             'unsubscribe',
-            ['email' => $email, 'token' => $token],
+            $params,
             true
         );
     }
 
     /**
-     * Hook post-envoi : enregistre la stat d'envoi
+     * Fiche client (BO) : bloc « Emails reçus » — historique des envois
+     * Neria à ce client (timeline + tableau, badge d'engagement, alertes,
+     * export CSV). S'appuie sur ps_neria_stat, déjà alimentée par
+     * StatsManager — aucune nouvelle table nécessaire.
      *
-     * @param array $params Mêmes paramètres que actionEmailSendBefore
+     * Deux formats de paramètres selon la version PrestaShop :
+     *   - legacy (displayAdminCustomersView) : $params['object'] = Customer
+     *   - Symfony (displayAdminCustomers)     : $params['id_customer'] = int
      */
-    public function hookActionEmailSendAfter(array $params): void
+    public function hookDisplayAdminCustomersView(array $params): string
     {
-        if (class_exists('StatsManager')) {
-            $stats = new StatsManager($this);
-            $stats->recordSent($params);
+        return $this->renderCustomerEmailHistory($params);
+    }
+
+    public function hookDisplayAdminCustomers(array $params): string
+    {
+        return $this->renderCustomerEmailHistory($params);
+    }
+
+    /**
+     * Étape 1 de l'attribution : capture le cookie neria_ref au moment où la
+     * commande est créée (contexte navigateur du CLIENT → cookie accessible).
+     * Stocke l'association id_order → tracking_token en DB pour que
+     * hookActionOrderStatusPostUpdate puisse l'utiliser plus tard, même depuis
+     * le BO du marchand (contexte navigateur différent).
+     */
+    public function hookActionObjectOrderAddAfter(array $params): void
+    {
+        $order = $params['object'] ?? null;
+        if (!$order instanceof Order) {
+            return;
         }
+
+        // milestone_order : email au palier 5/10/25/50/100 commandes
+        if (class_exists('OrderTriggersManager')) {
+            (new OrderTriggersManager($this))->handleNewOrder($order);
+        }
+
+        // Attribution de revenus : cookie neria_ref → DB
+        if (empty($_COOKIE['neria_ref'])) {
+            return;
+        }
+        $idOrder = (int) $order->id;
+        if ($idOrder <= 0) {
+            return;
+        }
+
+        $parts = explode(':', $_COOKIE['neria_ref'], 3);
+        if (count($parts) !== 3) {
+            return;
+        }
+        [, , $token] = $parts;
+        if ($token === '') {
+            return;
+        }
+
+        Db::getInstance()->execute(
+            'INSERT IGNORE INTO `' . _DB_PREFIX_ . 'neria_attribution`
+             (`id_order`, `tracking_token`, `created_at`)
+             VALUES (' . (int) $idOrder . ', \'' . pSQL($token) . '\', NOW())'
+        );
+
+        if (class_exists('WatchdogManager')) {
+            (new WatchdogManager($this))->info(
+                "Attribution : commande #{$idOrder} liée au token {$token} (cookie neria_ref capturé)",
+                '', 'Attribution'
+            );
+        }
+    }
+
+    /**
+     * Étape 2 de l'attribution : déclenché à chaque changement de statut.
+     * Lit l'association id_order → token depuis la DB (posée par hookActionObjectOrderAddAfter).
+     * N'attribue que si le nouveau statut est "payé" (OrderState::$paid == 1).
+     * Idempotent : recordConversion() ignore les tokens déjà convertis.
+     */
+    public function hookActionOrderStatusPostUpdate(array $params): void
+    {
+        $newStatus = $params['newOrderStatus'] ?? null;
+        $oldStatus = $params['oldOrderStatus'] ?? null;
+        $idOrder   = (int) ($params['id_order'] ?? 0);
+
+        // order_on_hold / order_partial_shipped : statuts custom marchand
+        if ($newStatus && $oldStatus && $idOrder > 0 && class_exists('OrderTriggersManager')) {
+            (new OrderTriggersManager($this))->handleStatusChange($newStatus, $oldStatus, $idOrder);
+        }
+
+        // Attribution de revenus : déclenché uniquement sur statut payé
+        if (!$newStatus || !(bool) $newStatus->paid) {
+            return;
+        }
+        $idOrder = (int) ($params['id_order'] ?? 0);
+        if ($idOrder <= 0) {
+            return;
+        }
+
+        $row = Db::getInstance()->getRow(
+            'SELECT tracking_token FROM `' . _DB_PREFIX_ . 'neria_attribution`
+             WHERE id_order = ' . $idOrder
+        );
+        if (empty($row['tracking_token'])) {
+            return;
+        }
+        $token = (string) $row['tracking_token'];
+
+        if (!class_exists('StatsManager') || !(new ConfigManager($this))->isStatsEnabled()) {
+            return;
+        }
+
+        try {
+            $order = new Order($idOrder);
+            $amount = (float) $order->total_paid_tax_incl;
+        } catch (\Throwable $e) {
+            $amount = 0.0;
+        }
+
+        (new StatsManager($this))->recordConversion($token, $idOrder, $amount);
+
+        if (class_exists('WatchdogManager')) {
+            (new WatchdogManager($this))->info(
+                sprintf('Conversion enregistrée : commande #%d — %.2f € (token %s)', $idOrder, $amount, $token),
+                '', 'Attribution'
+            );
+        }
+
+        // Nettoyer l'entrée d'attribution une fois convertie
+        Db::getInstance()->execute(
+            'DELETE FROM `' . _DB_PREFIX_ . 'neria_attribution` WHERE id_order = ' . $idOrder
+        );
+    }
+
+    /**
+     * Remboursement / avoir créé → envoie refund_processed
+     */
+    public function hookActionOrderSlipAdd(array $params): void
+    {
+        if (!class_exists('OrderTriggersManager')) {
+            return;
+        }
+        $order = $params['order'] ?? null;
+        if (!$order instanceof Order) {
+            return;
+        }
+        (new OrderTriggersManager($this))->handleRefund($order, $params['productList'] ?? []);
+    }
+
+    /**
+     * Retour marchandise enregistré → envoie return_received
+     */
+    public function hookActionObjectOrderReturnAddAfter(array $params): void
+    {
+        if (!class_exists('OrderTriggersManager')) {
+            return;
+        }
+        $orderReturn = $params['object'] ?? null;
+        if (!$orderReturn instanceof OrderReturn) {
+            return;
+        }
+        (new OrderTriggersManager($this))->handleReturn($orderReturn);
+    }
+
+    /**
+     * Bloc certificat d'authenticité sur la fiche commande PS
+     * Affiché en bas de la colonne principale (under order details)
+     */
+    public function hookDisplayAdminOrderMainBottom(array $params): string
+    {
+        if (!class_exists('CertificateManager')) {
+            return '';
+        }
+        if (!(bool) Configuration::getGlobalValue(CertificateManager::CFG_ENABLED)) {
+            return '';
+        }
+
+        $idOrder = (int) ($params['id_order'] ?? 0);
+        if ($idOrder <= 0) {
+            return '';
+        }
+
+        $order    = new Order($idOrder);
+        if (!Validate::isLoadedObject($order)) {
+            return '';
+        }
+
+        // Produits de la commande
+        $products = $order->getProducts();
+
+        // Certificats déjà émis pour cette commande
+        $certs = (new CertificateManager($this))->getByOrder($idOrder);
+
+        // URL de l'action (retour sur la même page commande)
+        $actionUrl = $this->context->link->getAdminLink('AdminModules')
+                   . '&configure=' . $this->name
+                   . '&neria_action=cert_issue';
+
+        // Vérifie si une signature est disponible
+        $hasSig = (bool) Db::getInstance()->getValue(
+            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_signature`
+             WHERE `is_active` = 1 AND `id_shop` = ' . (int) $this->context->shop->id
+        );
+
+        $this->context->smarty->assign([
+            'cert_order_id'       => $idOrder,
+            'cert_order_products' => $products,
+            'cert_existing'       => $certs,
+            'cert_action_url'     => $actionUrl,
+            'cert_has_signature'  => $hasSig,
+            'cert_qr_enabled'     => (bool) Configuration::getGlobalValue(CertificateManager::CFG_QR_ENABLED),
+            'cert_bo_url'         => $this->context->link->getAdminLink('AdminModules')
+                                   . '&configure=' . $this->name . '&neria_tab=certificates',
+        ]);
+
+        // Enregistre le plugin Smarty {neria_admin} — requis hors contexte getContent()
+        AdminTranslator::register($this->context->smarty);
+
+        try {
+            return $this->renderTemplate('order_certificate_block.tpl');
+        } catch (\Throwable $e) {
+            return '';
+        }
+    }
+
+    private function getSegmentCountries(): array
+    {
+        $idLang = (int) $this->context->language->id;
+        $rows   = Db::getInstance()->executeS(
+            "SELECT co.id_country, cl.name
+             FROM " . _DB_PREFIX_ . "country co
+             INNER JOIN " . _DB_PREFIX_ . "country_lang cl
+               ON cl.id_country = co.id_country AND cl.id_lang = {$idLang}
+             ORDER BY cl.name"
+        );
+        return is_array($rows) ? $rows : [];
+    }
+
+    private function renderCustomerEmailHistory(array $params): string
+    {
+        if (!class_exists('CustomerEmailHistoryManager')) {
+            return '';
+        }
+
+        $customer   = $params['object'] ?? null;
+        $idCustomer = is_object($customer) ? (int) $customer->id : (int) ($params['id_customer'] ?? 0);
+        if ($idCustomer <= 0) {
+            return '';
+        }
+
+        $manager = new CustomerEmailHistoryManager($this);
+        $this->maybeOutputHistoryFileResponse($idCustomer, $manager);
+
+        AdminTranslator::register($this->context->smarty);
+        $resendMessage = $this->processHistoryResend($idCustomer, $manager);
+        $vars = $this->buildHistorySmartyVars($idCustomer, $manager, $resendMessage);
+
+        // Score de risque de désabonnement (ChurnScoreManager)
+        if (class_exists('ChurnScoreManager')) {
+            $churnMgr = new ChurnScoreManager($this);
+            $vars['neria_churn'] = $churnMgr->getCustomerScore($idCustomer);
+            $vars['neria_churn_threshold'] = ChurnScoreManager::HIGH_RISK_THRESHOLD;
+        }
+
+        // Potentiel client 12 mois (ClvManager)
+        if (class_exists('ClvManager')) {
+            $vars['neria_clv'] = (new ClvManager($this))->getCustomerClv($idCustomer);
+        }
+
+        $this->context->smarty->assign($vars);
+
+        return $this->display($this->name, 'views/templates/admin/customer_email_history.tpl');
+    }
+
+    /**
+     * Onglet « Historique clients » du panneau Neria : si un client a été
+     * sélectionné via la recherche (paramètre neria_hist_customer), prépare
+     * les mêmes variables Smarty que le bloc affiché sur la fiche client.
+     */
+    private function prepareCustomerHistoryTab(): void
+    {
+        $idCustomer = (int) Tools::getValue('neria_hist_customer', 0);
+        if ($idCustomer <= 0 || !class_exists('CustomerEmailHistoryManager')) {
+            return;
+        }
+
+        $customer = new Customer($idCustomer);
+        if (!Validate::isLoadedObject($customer)) {
+            return;
+        }
+
+        $manager = new CustomerEmailHistoryManager($this);
+        $this->maybeOutputHistoryFileResponse($idCustomer, $manager);
+
+        $resendMessage = $this->processHistoryResend($idCustomer, $manager);
+        $vars = $this->buildHistorySmartyVars($idCustomer, $manager, $resendMessage);
+        $vars['neria_hist_selected_customer'] = true;
+        $vars['neria_hist_selected_label'] = trim($customer->firstname . ' ' . $customer->lastname)
+            . ' — ' . $customer->email;
+
+        $this->context->smarty->assign($vars);
+    }
+
+    /**
+     * Aperçu (iframe) et export CSV : ces deux actions répondent directement
+     * (HTML brut / fichier téléchargé) et coupent le rendu de la page —
+     * partagé entre la fiche client (hook) et l'onglet Historique clients.
+     */
+    private function maybeOutputHistoryFileResponse(int $idCustomer, CustomerEmailHistoryManager $manager): void
+    {
+        if (Tools::getValue('neria_preview_email') && (int) Tools::getValue('id_customer') === $idCustomer) {
+            $idStat = (int) Tools::getValue('id_stat');
+            $html   = $manager->buildPreviewHtml($idStat, $idCustomer);
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
+            if (!headers_sent()) {
+                header('Content-Type: text/html; charset=utf-8');
+            }
+            echo $html ?? '<p style="padding:40px;font-family:sans-serif;color:#a33;">Aperçu indisponible.</p>';
+            exit;
+        }
+
+        if (Tools::getValue('neria_export_csv') && (int) Tools::getValue('id_customer') === $idCustomer) {
+            $csv = $manager->buildCsv($idCustomer);
+            header('Content-Type: text/csv; charset=UTF-8');
+            header('Content-Disposition: attachment; filename="neria_emails_client_' . $idCustomer . '.csv"');
+            echo "\xEF\xBB\xBF" . $csv;
+            exit;
+        }
+    }
+
+    /**
+     * Renvoi : POST déclenché par le bouton « Renvoyer » d'une ligne.
+     */
+    private function processHistoryResend(int $idCustomer, CustomerEmailHistoryManager $manager): ?array
+    {
+        if (!Tools::isSubmit('neria_resend_email') || (int) Tools::getValue('id_customer') !== $idCustomer) {
+            return null;
+        }
+
+        $result = $manager->resend((int) Tools::getValue('id_stat'), $idCustomer);
+
+        return [
+            'ok'   => $result['ok'],
+            'text' => AdminTranslator::tVars($result['message_key'], $result['vars']),
+        ];
+    }
+
+    private function buildHistorySmartyVars(
+        int $idCustomer,
+        CustomerEmailHistoryManager $manager,
+        ?array $resendMessage
+    ): array {
+        $data = $manager->buildBlockData($idCustomer);
+        foreach ($data['alerts'] as &$alert) {
+            $alert['text'] = AdminTranslator::tVars('history.' . $alert['key'], $alert['vars']);
+        }
+        unset($alert);
+
+        $loyaltyStats = null;
+        if (class_exists('LoyaltyManager') && Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')) {
+            try {
+                $loyaltyStats = (new LoyaltyManager($this))->getCustomerStats($idCustomer);
+            } catch (\Throwable $e) {
+                // Non-bloquant
+            }
+        }
+
+        return [
+            'neria_history'              => $data,
+            'neria_customer_id'          => $idCustomer,
+            'neria_resend_message'       => $resendMessage,
+            'neria_resend_confirm_texts' => [
+                'history.resend_confirm'            => AdminTranslator::t('history.resend_confirm'),
+                'history.resend_confirm_no_snapshot' => AdminTranslator::t('history.resend_confirm_no_snapshot'),
+            ],
+            'neria_loyalty'             => $loyaltyStats,
+            'neria_loyalty_enabled'     => (bool) Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED'),
+            'currency_symbol'           => $this->context->currency->sign ?? '€',
+        ];
+    }
+
+    /**
+     * Recherche client (AJAX) pour l'onglet Historique clients : retourne
+     * un JSON de correspondances nom/email, coupe le rendu de la page.
+     */
+    private function outputCustomerSearch(): void
+    {
+        $query   = trim((string) Tools::getValue('q', ''));
+        $results = strlen($query) >= 2 ? $this->searchCustomersForHistory($query) : [];
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=utf-8');
+        }
+        echo json_encode($results);
+        exit;
+    }
+
+    private function searchCustomersForHistory(string $query): array
+    {
+        $q    = pSQL($query);
+        $rows = Db::getInstance()->executeS(
+            "SELECT id_customer, firstname, lastname, email FROM " . _DB_PREFIX_ . "customer
+             WHERE deleted = 0
+               AND (firstname LIKE '%{$q}%' OR lastname LIKE '%{$q}%' OR email LIKE '%{$q}%')
+             ORDER BY lastname ASC, firstname ASC
+             LIMIT 10"
+        );
+
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($rows as $row) {
+            $out[] = [
+                'id'    => (int) $row['id_customer'],
+                'label' => trim($row['firstname'] . ' ' . $row['lastname']) . ' — ' . $row['email'],
+            ];
+        }
+
+        return $out;
     }
 
     /**
@@ -302,14 +798,295 @@ class Neria extends Module
      */
     public function hookDisplayBackOfficeHeader(): void
     {
-        // Vérifie qu'on est bien sur la page de configuration Neria
-        if (Tools::getValue('configure') === $this->name) {
+        $controllerName = Tools::getValue('controller') ?: ($this->context->controller->controller_name ?? '');
+        $requestUri     = (string) ($_SERVER['REQUEST_URI'] ?? '');
+
+        // CSS/JS chargés sur la page de configuration Neria, et sur la fiche
+        // client pour le bloc « Emails reçus ». La fiche client est en
+        // Symfony depuis PS 1.7+ (route /sell/customers/{id}/view, pas de
+        // paramètre controller=AdminCustomers classique) — on détecte donc
+        // aussi via l'URL en complément du nom de contrôleur legacy.
+        $onConfigPage   = Tools::getValue('configure') === $this->name;
+        $onCustomerView = $controllerName === 'AdminCustomers'
+            || (bool) preg_match('#/customers?/\d+#i', $requestUri);
+
+        if ($onConfigPage || $onCustomerView) {
             $this->context->controller->addCSS(
                 $this->_path . 'views/css/neria-admin.css'
             );
             $this->context->controller->addJS(
                 $this->_path . 'views/js/neria-admin.js'
             );
+        }
+
+        $this->migrateStatTableIfNeeded();
+        $this->migrateRevenueColumnIfNeeded();
+        $this->migrateMppColumnIfNeeded();
+        $this->createAttributionTableIfNeeded();
+        $this->createUpsellTableIfNeeded();
+        $this->createLoyaltyTablesIfNeeded();
+        $this->createSeasonalCampaignTableIfNeeded();
+
+        // Hooks ajoutés après l'install() initial des installations
+        // existantes : à enregistrer explicitement, sinon PrestaShop ne les
+        // appelle jamais (pas d'entrée en ps_hook_module). registerHook()
+        // est idempotent — sans risque de double-enregistrement.
+        $this->registerHook('displayAdminCustomersView');
+        $this->registerHook('displayAdminCustomers');
+        $this->registerHook('actionOrderStatusPostUpdate');
+        $this->registerHook('actionObjectOrderAddAfter');
+
+        // Nettoyage : 'actionEmailSendAfter' n'est pas un hook PrestaShop
+        // réel (absent du cœur, jamais déclenché) — on retire l'entrée
+        // fantôme laissée par une version antérieure du module.
+        $this->unregisterHook('actionEmailSendAfter');
+    }
+
+    /**
+     * Migration légère pour les installations existantes : ajoute la colonne
+     * rendered_vars (snapshot JSON) à ps_neria_stat si elle n'existe pas
+     * encore. Protégé par un flag Configuration pour ne tourner qu'une fois.
+     */
+    private function migrateStatTableIfNeeded(): void
+    {
+        if (Configuration::get('NERIA_MIGRATED_RENDERED_VARS')) {
+            return;
+        }
+
+        $table  = _DB_PREFIX_ . 'neria_stat';
+        $exists = Db::getInstance()->executeS(
+            "SHOW COLUMNS FROM `{$table}` LIKE 'rendered_vars'"
+        );
+
+        if (empty($exists)) {
+            Db::getInstance()->execute(
+                "ALTER TABLE `{$table}` ADD COLUMN `rendered_vars` MEDIUMTEXT NULL AFTER `abtest_variant`"
+            );
+        }
+
+        Configuration::updateValue('NERIA_MIGRATED_RENDERED_VARS', 1);
+    }
+
+    private function migrateMppColumnIfNeeded(): void
+    {
+        if (Configuration::get('NERIA_MIGRATED_MPP_COL')) {
+            return;
+        }
+
+        $table  = _DB_PREFIX_ . 'neria_stat';
+        $exists = Db::getInstance()->executeS(
+            "SHOW COLUMNS FROM `{$table}` LIKE 'is_mpp'"
+        );
+
+        if (empty($exists)) {
+            Db::getInstance()->execute(
+                "ALTER TABLE `{$table}` ADD COLUMN `is_mpp` TINYINT(1) NOT NULL DEFAULT 0
+                 COMMENT 'Apple MPP : 1 = ouverture probable MPP' AFTER `event_type`"
+            );
+        }
+
+        Configuration::updateValue('NERIA_MIGRATED_MPP_COL', 1);
+    }
+
+    private function migrateRevenueColumnIfNeeded(): void
+    {
+        if (Configuration::get('NERIA_MIGRATED_REVENUE_COL')) {
+            return;
+        }
+
+        $table  = _DB_PREFIX_ . 'neria_stat';
+        $exists = Db::getInstance()->executeS(
+            "SHOW COLUMNS FROM `{$table}` LIKE 'revenue'"
+        );
+
+        if (empty($exists)) {
+            Db::getInstance()->execute(
+                "ALTER TABLE `{$table}` ADD COLUMN `revenue` DECIMAL(10,2) NOT NULL DEFAULT 0 AFTER `rendered_vars`"
+            );
+        }
+
+        Configuration::updateValue('NERIA_MIGRATED_REVENUE_COL', 1);
+    }
+
+    private function createUpsellTableIfNeeded(): void
+    {
+        if (Configuration::get('NERIA_CREATED_UPSELL_TABLE')) {
+            return;
+        }
+
+        Db::getInstance()->execute(
+            'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'neria_upsell` (
+                `id_upsell`          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+                `id_customer`        INT UNSIGNED  NOT NULL DEFAULT 0,
+                `id_order_source`    INT UNSIGNED  NOT NULL DEFAULT 0,
+                `id_product_upsell`  INT UNSIGNED  NOT NULL DEFAULT 0,
+                `product_name`       VARCHAR(255)  NOT NULL DEFAULT \'\',
+                `tier`               ENUM(\'accessory\',\'co_purchase\',\'bestseller\') NOT NULL DEFAULT \'bestseller\',
+                `reason`             VARCHAR(100)  NOT NULL DEFAULT \'\',
+                `sent_at`            DATETIME      NOT NULL,
+                `clicked_at`         DATETIME      NULL DEFAULT NULL,
+                `id_order_converted` INT UNSIGNED  NULL DEFAULT NULL,
+                `converted_at`       DATETIME      NULL DEFAULT NULL,
+                `conversion_amount`  DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                PRIMARY KEY (`id_upsell`),
+                KEY `idx_customer` (`id_customer`),
+                KEY `idx_product`  (`id_product_upsell`),
+                KEY `idx_clicked`  (`clicked_at`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+
+        Configuration::updateValue('NERIA_CREATED_UPSELL_TABLE', 1);
+    }
+
+    private function createLoyaltyTablesIfNeeded(): void
+    {
+        if (Configuration::get('NERIA_CREATED_LOYALTY_TABLES')) {
+            return;
+        }
+
+        $db = Db::getInstance();
+
+        $db->execute(
+            'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'neria_loyalty_points` (
+                `id_point`    INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+                `id_customer` INT UNSIGNED  NOT NULL,
+                `id_stat`     INT UNSIGNED  NOT NULL,
+                `event_type`  ENUM(\'open\',\'click\',\'conversion\') NOT NULL,
+                `points`      TINYINT       NOT NULL DEFAULT 0,
+                `date_add`    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id_point`),
+                UNIQUE KEY `uq_stat_event` (`id_stat`, `event_type`),
+                KEY `idx_customer` (`id_customer`),
+                KEY `idx_date`     (`date_add`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+
+        $db->execute(
+            'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'neria_loyalty_rewards` (
+                `id_reward`        INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+                `id_customer`      INT UNSIGNED  NOT NULL,
+                `tier_key`         VARCHAR(20)   NOT NULL,
+                `tier_name`        VARCHAR(50)   NOT NULL DEFAULT \'\',
+                `points_at_reward` INT           NOT NULL DEFAULT 0,
+                `id_cart_rule`     INT UNSIGNED  NOT NULL DEFAULT 0,
+                `voucher_code`     VARCHAR(50)   NOT NULL DEFAULT \'\',
+                `voucher_amount`   DECIMAL(8,2)  NOT NULL DEFAULT 0.00,
+                `is_percent`       TINYINT(1)    NOT NULL DEFAULT 0,
+                `sent_at`          DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id_reward`),
+                UNIQUE KEY `uq_customer_tier` (`id_customer`, `tier_key`),
+                KEY `idx_customer` (`id_customer`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+
+        Configuration::updateValue('NERIA_CREATED_LOYALTY_TABLES', 1);
+    }
+
+    private function createSeasonalCampaignTableIfNeeded(): void
+    {
+        if (Configuration::get('NERIA_CREATED_SEASONAL_TABLE')) {
+            return;
+        }
+
+        Db::getInstance()->execute(
+            'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'neria_seasonal_campaign` (
+                `id_campaign`    INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+                `id_shop`        INT           NOT NULL DEFAULT 1,
+                `name`           VARCHAR(100)  NOT NULL DEFAULT \'\',
+                `template`       VARCHAR(100)  NOT NULL DEFAULT \'\',
+                `annual_date`    CHAR(5)       NOT NULL DEFAULT \'01-01\',
+                `days_before`    TINYINT       NOT NULL DEFAULT 0,
+                `is_active`      TINYINT(1)    NOT NULL DEFAULT 1,
+                `target_segment` VARCHAR(255)  NOT NULL DEFAULT \'\',
+                `target_gender`  TINYINT       NOT NULL DEFAULT 0,
+                `target_lang`    VARCHAR(255)  NOT NULL DEFAULT \'\',
+                `min_age`        TINYINT       NOT NULL DEFAULT 0,
+                `max_age`        TINYINT       NOT NULL DEFAULT 0,
+                `date_add`       DATETIME      NOT NULL,
+                `date_upd`       DATETIME      NOT NULL,
+                PRIMARY KEY (`id_campaign`),
+                KEY `idx_shop_active` (`id_shop`, `is_active`),
+                KEY `idx_date`        (`annual_date`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+
+        Configuration::updateValue('NERIA_CREATED_SEASONAL_TABLE', 1);
+    }
+
+    private function createAttributionTableIfNeeded(): void
+    {
+        if (Configuration::get('NERIA_CREATED_ATTRIBUTION_TABLE')) {
+            return;
+        }
+
+        Db::getInstance()->execute(
+            'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'neria_attribution` (
+                `id_order`       INT(10) UNSIGNED NOT NULL,
+                `tracking_token` VARCHAR(128)     NOT NULL,
+                `created_at`     DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id_order`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+
+        Configuration::updateValue('NERIA_CREATED_ATTRIBUTION_TABLE', 1);
+    }
+
+    // ── Liste d'attente ───────────────────────────────────────────
+
+    public function hookDisplayProductAdditionalInfo(array $params): string
+    {
+        if (!Configuration::getGlobalValue('NERIA_WAITLIST_ENABLED')) return '';
+        if (!class_exists('WaitlistManager')) return '';
+
+        $product = $params['product'] ?? null;
+        if (!$product) return '';
+
+        $idProduct  = (int) ($product['id_product'] ?? 0);
+        $qty        = (int) ($product['quantity'] ?? 0);
+        $idCustomer = (int) $this->context->customer->id;
+
+        if ($qty > 0) return '';
+
+        $mgr        = new WaitlistManager($this);
+        $registered = $idCustomer > 0 && $mgr->isRegistered($idCustomer, $idProduct);
+
+        $actionUrl = $this->context->link->getModuleLink('neria', 'waitlist');
+        $backUrl   = $this->context->link->getProductLink($idProduct);
+
+        $this->context->smarty->assign([
+            'waitlist_oos'             => true,
+            'waitlist_registered'      => $registered,
+            'waitlist_id_product'      => $idProduct,
+            'waitlist_subscribe_url'   => $actionUrl,
+            'waitlist_unsubscribe_url' => $actionUrl . '?action=unsubscribe&id_product=' . $idProduct . '&back=' . urlencode($backUrl),
+            'waitlist_back_url'        => $backUrl,
+        ]);
+
+        $html = $this->display(__FILE__, 'views/templates/front/waitlist_button.tpl');
+
+        // Masquer le bouton ps_emailalerts pour éviter le double bouton
+        if ($qty <= 0 && Module::isInstalled('ps_emailalerts') && Module::isEnabled('ps_emailalerts')) {
+            $html .= '<style>.js-mailalert,.tabs:has(.js-mailalert){display:none!important;}</style>';
+        }
+
+        return $html;
+    }
+
+    public function hookActionUpdateQuantity(array $params): void
+    {
+        if (!Configuration::getGlobalValue('NERIA_WAITLIST_ENABLED')) return;
+        if (!class_exists('WaitlistManager')) return;
+
+        $idProduct = (int) ($params['id_product'] ?? 0);
+        $quantity  = (int) ($params['quantity']   ?? 0);
+        $idShop    = (int) ($params['id_shop']    ?? $this->context->shop->id);
+
+        if ($idProduct <= 0 || $quantity <= 0) return;
+
+        try {
+            (new WaitlistManager($this))->notifyProduct($idProduct, $idShop);
+        } catch (\Throwable $e) {
+            $this->log('WaitlistManager::notifyProduct() erreur : ' . $e->getMessage(), 'error');
         }
     }
 
@@ -319,9 +1096,31 @@ class Neria extends Module
      */
     public function hookDisplayHeader(): void
     {
+        $health = new HealthCheckManager($this);
+        $health->recordDisplayHeaderRun();
+        $health->runAutoChecksIfDue();
+
+        // ── Queue webhook (toutes les 5 min) ──────────────────────────
+        if (class_exists('WebhookManager')) {
+            $now = time();
+            $lastWebhook = (int) \Configuration::get('neria_webhook_last_process');
+            if (($now - $lastWebhook) >= 300) {
+                \Configuration::updateValue('neria_webhook_last_process', $now);
+                try {
+                    (new WebhookManager($this))->processQueue();
+                } catch (\Throwable $e) {
+                    // best-effort — ne bloque jamais le front
+                }
+            }
+        }
+
         if (class_exists('CalendarManager')) {
             $calendar = new CalendarManager($this);
             $calendar->checkAndSendDailyEvents();
+        }
+
+        if (class_exists('MonthlyReportManager')) {
+            (new MonthlyReportManager($this))->checkAndSend();
         }
     }
 
@@ -336,6 +1135,24 @@ class Neria extends Module
      */
     public function getContent(): string
     {
+        return NeriaErrorHandler::wrapGetContent(function (): string {
+            return $this->getContentImpl();
+        }, $this);
+    }
+
+    /** Corps réel du panneau de configuration — appelé depuis getContent() via NeriaErrorHandler. */
+    private function getContentImpl(): string
+    {
+        // ── Traductions du back-office (18 langues) ───────────────
+        // Enregistre le helper Smarty {neria_admin key='...'} sur l'instance
+        // courante. La langue affichée = celle de l'employé connecté.
+        AdminTranslator::register($this->context->smarty);
+
+        // ── Migrations runtime (installations existantes) ─────────
+        // hookDisplayBackOfficeHeader s'exécute APRÈS getContent() ;
+        // les tables doivent exister avant les Smarty assigns.
+        $this->createSeasonalCampaignTableIfNeeded();
+
         // ── Aperçu email (iframe de l'onglet Design) ──────────────
         // Ne rend QUE l'email et coupe le rendu. Sinon l'iframe, dont le src
         // pointe vers cette même page, rechargerait toute la page admin (qui
@@ -347,6 +1164,66 @@ class Neria extends Module
         // ── Action : envoi d'un email de test ─────────────────────
         if (Tools::getValue('neria_action') === 'send_test') {
             $this->sendTestEmail();
+        }
+
+        // ── Action : recherche client (AJAX, onglet Historique clients) ──
+        if (Tools::getValue('neria_action') === 'search_customers') {
+            $this->outputCustomerSearch();
+        }
+
+        // ── Action : test manuel du pixel HTTP ───────────────────
+        if (Tools::getValue('neria_action') === 'health_pixel_test') {
+            $result = (new HealthCheckManager($this))->testPixelHttp();
+            $this->context->smarty->assign('health_pixel_result', $result);
+        }
+
+        // ── Action : sauvegarder config alertes email ──────────────
+        if (Tools::getValue('neria_action') === 'save_alert_config') {
+            $alertEmail     = trim(Tools::getValue('neria_alert_email'));
+            $alertImmediate = (int) (bool) Tools::getValue('neria_alert_immediate');
+            $alertDigest    = (int) (bool) Tools::getValue('neria_alert_digest');
+
+            if ($alertEmail !== '' && !Validate::isEmail($alertEmail)) {
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('help.alert_invalid_email'));
+            } else {
+                Configuration::updateGlobalValue(WatchdogManager::CFG_ALERT_EMAIL, $alertEmail);
+                Configuration::updateGlobalValue(WatchdogManager::CFG_ALERT_IMMEDIATE, $alertImmediate);
+                Configuration::updateGlobalValue(WatchdogManager::CFG_ALERT_DIGEST, $alertDigest);
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('help.alert_saved'));
+            }
+        }
+
+        // ── Action : régénérer le token d'urgence ─────────────────
+        if (Tools::getValue('neria_action') === 'regenerate_emergency_token') {
+            Configuration::updateGlobalValue('NERIA_EMERGENCY_TOKEN', bin2hex(random_bytes(24)));
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('help.emergency_token_regenerated'));
+        }
+
+        // ── Action : diagnostic complet à la demande ──────────────
+        if (Tools::getValue('neria_action') === 'run_full_diagnostic') {
+            $hcm     = new HealthCheckManager($this);
+            $results = $hcm->runFullDiagnostic();
+            $this->context->smarty->assign('health_results', $results);
+            $this->context->smarty->assign('health_last_run', date('d/m/Y H:i'));
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('help.diagnostic_done'));
+        }
+
+        // ── Action : envoyer le journal Watchdog par email (PDF) ─────
+        if (Tools::getValue('neria_action') === 'send_log_email') {
+            try {
+                $err = $this->sendWatchdogLogByEmail();
+                if ($err === '') {
+                    $dest = Configuration::getGlobalValue(WatchdogManager::CFG_ALERT_EMAIL)
+                         ?: Configuration::get('PS_SHOP_EMAIL');
+                    $this->context->smarty->assign('neria_success',
+                        AdminTranslator::t('help.log_email_sent') . ' ' . $dest);
+                } else {
+                    $this->context->smarty->assign('neria_error', $err);
+                }
+            } catch (\Throwable $e) {
+                $this->context->smarty->assign('neria_error',
+                    get_class($e) . ': ' . $e->getMessage() . ' — ' . basename($e->getFile()) . ':' . $e->getLine());
+            }
         }
 
         // ── Action : vider le journal watchdog ────────────────────
@@ -371,6 +1248,156 @@ class Neria extends Module
             );
         }
 
+        // ── Action : configuration du rapport mensuel ─────────────
+        if (Tools::getValue('neria_action') === 'save_report_config') {
+            Configuration::updateValue(
+                MonthlyReportManager::CONFIG_ENABLED,
+                (int) Tools::getValue('neria_report_enabled', 0)
+            );
+            $recipients = strip_tags((string) Tools::getValue('neria_report_recipients', ''));
+            Configuration::updateValue(MonthlyReportManager::CONFIG_RECIPIENTS, $recipients);
+        }
+
+        // ── Action : envoi manuel du rapport ──────────────────────
+        if (Tools::getValue('neria_action') === 'send_report_now') {
+            if (class_exists('MonthlyReportManager')) {
+                $rm    = new MonthlyReportManager($this);
+                $year  = (int) date('Y', strtotime('last month'));
+                $month = (int) date('n', strtotime('last month'));
+                $rm->sendReport($year, $month);
+            }
+        }
+
+        // ── Action : blacklist templates ──────────────────────────
+        if (Tools::getValue('neria_action') === 'add_blacklist') {
+            $tpl  = trim((string) Tools::getValue('neria_bl_template'));
+            $lang = trim((string) Tools::getValue('neria_bl_lang'));
+            if ($tpl !== '') {
+                (new BlacklistManager())->add($tpl, $lang);
+            }
+        }
+
+        if (Tools::getValue('neria_action') === 'remove_blacklist') {
+            $id = (int) Tools::getValue('neria_bl_id');
+            if ($id > 0) {
+                (new BlacklistManager())->remove($id);
+            }
+        }
+
+        if (Tools::getValue('neria_action') === 'reset_blacklist') {
+            (new BlacklistManager())->reset();
+        }
+
+        // ── Action : mode silence (anti-doublon) ──────────────────
+        if (Tools::getValue('neria_action') === 'save_cooldown') {
+            Configuration::updateValue(
+                self::CONFIG_PREFIX . 'COOLDOWN_ENABLED',
+                (int) Tools::getValue('neria_cooldown_enabled', 0)
+            );
+            $minutes = (int) Tools::getValue('neria_cooldown_minutes', 10);
+            $minutes = max(1, min(60, $minutes));
+            Configuration::updateValue(self::CONFIG_PREFIX . 'COOLDOWN_MINUTES', $minutes);
+        }
+
+        // ── Action : empreinte carbone ────────────────────────────
+        if (Tools::getValue('neria_action') === 'save_carbon') {
+            Configuration::updateValue(
+                self::CONFIG_PREFIX . 'CARBON_ENABLED',
+                (int) Tools::getValue('neria_carbon_enabled', 0)
+            );
+            Configuration::updateValue(
+                self::CONFIG_PREFIX . 'CARBON_LINK',
+                (string) Tools::getValue('neria_carbon_link', '')
+            );
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+        }
+
+        // ── Actions : calendrier des occasions ───────────────────
+        if (Tools::getValue('neria_action') === 'add_calendar_event') {
+            // Si l'occasion est personnalisée, on lit le champ texte libre
+            $rawKey    = (string) Tools::getValue('cal_event_key', '');
+            $eventKey  = $rawKey === '__custom__'
+                ? preg_replace('/[^a-z0-9_]/', '', strtolower((string) Tools::getValue('cal_custom_key', '')))
+                : preg_replace('/[^a-z0-9_]/', '', strtolower($rawKey));
+
+            $lang       = preg_replace('/[^a-z]/', '', strtolower((string) Tools::getValue('cal_lang', '')));
+            $country    = strtoupper(preg_replace('/[^a-zA-Z]/', '', (string) Tools::getValue('cal_country', '')));
+            $template   = preg_replace('/[^a-z0-9_\-]/', '', strtolower((string) Tools::getValue('cal_template', '')));
+            $days       = max(1, min(60, (int) Tools::getValue('cal_days', 7)));
+            $active     = (int) Tools::getValue('cal_active', 0) > 0 ? 1 : 0;
+            $idShop     = (int) $this->context->shop->id;
+
+            // Date personnalisée : validation format MM-DD
+            $rawDate    = preg_replace('/[^0-9\-]/', '', (string) Tools::getValue('cal_custom_date', ''));
+            $customDate = (preg_match('/^\d{2}-\d{2}$/', $rawDate)) ? $rawDate : '';
+
+            if ($eventKey && $lang && $template) {
+                Db::getInstance()->execute(
+                    'INSERT IGNORE INTO `' . _DB_PREFIX_ . 'neria_calendar_event`
+                     (`id_shop`, `event_key`, `lang`, `country_code`, `custom_date`, `template`, `send_days_before`, `is_active`, `date_add`, `date_upd`)
+                     VALUES (' . $idShop . ', \'' . pSQL($eventKey) . '\', \'' . pSQL($lang) . '\',
+                             \'' . pSQL($country) . '\', \'' . pSQL($customDate) . '\',
+                             \'' . pSQL($template) . '\', ' . $days . ', ' . $active . ', NOW(), NOW())'
+                );
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('calendar.added'));
+            }
+        }
+
+        if (Tools::getValue('neria_action') === 'save_calendar_event') {
+            $idEvent = (int) Tools::getValue('cal_id', 0);
+            $days    = max(1, min(60, (int) Tools::getValue('cal_days', 7)));
+            if ($idEvent > 0) {
+                Db::getInstance()->execute(
+                    'UPDATE `' . _DB_PREFIX_ . 'neria_calendar_event`
+                     SET `send_days_before` = ' . $days . ', `date_upd` = NOW()
+                     WHERE `id_event` = ' . $idEvent
+                );
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+            }
+        }
+
+        if (Tools::getValue('neria_action') === 'toggle_calendar_event') {
+            $idEvent = (int) Tools::getValue('cal_id', 0);
+            if ($idEvent > 0) {
+                Db::getInstance()->execute(
+                    'UPDATE `' . _DB_PREFIX_ . 'neria_calendar_event`
+                     SET `is_active` = 1 - `is_active`, `date_upd` = NOW()
+                     WHERE `id_event` = ' . $idEvent
+                );
+            }
+        }
+
+        if (Tools::getValue('neria_action') === 'delete_calendar_event') {
+            $idEvent = (int) Tools::getValue('cal_id', 0);
+            if ($idEvent > 0) {
+                Db::getInstance()->execute(
+                    'DELETE FROM `' . _DB_PREFIX_ . 'neria_calendar_event`
+                     WHERE `id_event` = ' . $idEvent
+                );
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('calendar.deleted'));
+            }
+        }
+
+        // ── Action : multi-expéditeur par langue ──────────────────
+        if (Tools::getValue('neria_action') === 'save_senders') {
+            $senders = [];
+            foreach (TranslationEngine::SUPPORTED_LANGS as $iso) {
+                $name  = trim((string) Tools::getValue('neria_sender_name_' . $iso, ''));
+                $email = trim((string) Tools::getValue('neria_sender_email_' . $iso, ''));
+                if ($name !== '' || ($email !== '' && Validate::isEmail($email))) {
+                    $senders[$iso] = [
+                        'name'  => $name,
+                        'email' => $email !== '' && Validate::isEmail($email) ? $email : '',
+                    ];
+                }
+            }
+            Configuration::updateValue(
+                self::CONFIG_PREFIX . 'SENDERS_JSON',
+                json_encode($senders, JSON_UNESCAPED_UNICODE)
+            );
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+        }
+
         // ── Action : durée de validité des bons ───────────────────
         if (Tools::getValue('neria_action') === 'save_voucher_validity') {
             $days = (int) Tools::getValue('neria_voucher_validity', 30);
@@ -379,6 +1406,17 @@ class Neria extends Module
         }
 
         // ── Action : envoi manuel d'un template à un client ───────
+        // ── Garde-fou anniversaire : vérification AJAX ───────────────
+        if (Tools::getValue('neria_action') === 'check_anniversary_guard') {
+            $email    = trim((string) Tools::getValue('neria_email'));
+            $template = trim((string) Tools::getValue('neria_template'));
+            $status   = class_exists('ManualSendManager')
+                ? (new ManualSendManager($this))->getAnniversaryGuardStatus($email, $template)
+                : ['blocked' => false, 'sent' => false, 'message' => ''];
+            header('Content-Type: application/json');
+            die(json_encode($status));
+        }
+
         if (Tools::getValue('neria_action') === 'send_manual') {
             $manual      = new ManualSendManager($this);
             $contentVars = Tools::getValue('neria_var');
@@ -398,7 +1436,37 @@ class Neria extends Module
             );
         }
 
-        // ── Action : score de délivrabilité (onglet Design) ───────
+        // ── Action : score de délivrabilité (onglet Statistiques) ──
+        // ── Réputation de domaine : rafraîchissement manuel ──────────
+        if (Tools::getValue('neria_action') === 'refresh_domain_reputation' && class_exists('DomainReputationManager')) {
+            try {
+                $domRep = (new DomainReputationManager($this))->runFullCheck();
+                $this->context->smarty->assign('domain_reputation', $domRep);
+                $this->context->smarty->assign('neria_success', 'Réputation de domaine actualisée.');
+                if (class_exists('WatchdogManager')) {
+                    $wd      = new WatchdogManager($this);
+                    $hits    = count($domRep['blacklists']['hits'] ?? []);
+                    $score   = $domRep['score'];
+                    $msg     = sprintf(
+                        'Réputation domaine %s : %d/100 (%s) — %d blacklist(s) touchée(s).',
+                        $domRep['domain'] ?? '',
+                        $score,
+                        $domRep['grade'],
+                        $hits
+                    );
+                    if ($score < 50 || $hits > 0) {
+                        $wd->error($msg, '', 'DomainReputation');
+                    } elseif ($score < 75) {
+                        $wd->warning($msg, '', 'DomainReputation');
+                    } else {
+                        $wd->info($msg, '', 'DomainReputation');
+                    }
+                }
+            } catch (\Throwable $e) {
+                $this->context->smarty->assign('neria_error', 'Erreur lors de la vérification DNS : ' . $e->getMessage());
+            }
+        }
+
         if (Tools::getValue('neria_action') === 'deliverability_score') {
             $scoreTemplate = (string) Tools::getValue('score_template', 'order_conf');
             $scoreLang     = (string) Tools::getValue('score_lang', 'fr');
@@ -439,11 +1507,1073 @@ class Neria extends Module
                     }
                     $this->context->smarty->assign(
                         'neria_deliverability_error',
-                        $this->l('Impossible d\'analyser ce template.')
+                        AdminTranslator::t('msg.score_error')
                     );
                 }
             }
         }
+
+        // ── Onglet A/B Testing : création / désactivation ────────────
+        if (Tools::getValue('neria_action') === 'create_abtest' && class_exists('ABTestManager')) {
+            $tplKey      = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('abtest_template', ''));
+            $variantAName = pSQL(trim((string) Tools::getValue('variant_a_name', 'Variante A')));
+            $variantBName = pSQL(trim((string) Tools::getValue('variant_b_name', 'Variante B')));
+            $splitPercent = (int) Tools::getValue('split_percent', 50);
+
+            if ($tplKey !== '') {
+                $ab = new ABTestManager($this);
+                $ab->deleteTests($tplKey);
+                $idA = $ab->createTest($tplKey, $variantAName, $variantBName, $splitPercent);
+                if ($idA) {
+                    $ab->activateTest($tplKey);
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.error'));
+                }
+            }
+        }
+
+        if (Tools::getValue('neria_action') === 'deactivate_abtest' && class_exists('ABTestManager')) {
+            $tplKey = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('abtest_template', ''));
+            if ($tplKey !== '') {
+                (new ABTestManager($this))->deactivateTest($tplKey);
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+            }
+        }
+
+        // ── Onglet Traductions : chargement / sauvegarde / reset ─────
+        $tradAction = Tools::getValue('neria_action');
+
+        if (in_array($tradAction, ['load_translations', 'save_translations', 'reset_template', 'save_variant_b', 'restore_translation'], true)) {
+            $tplKey  = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
+            $tplLang = preg_replace('/[^a-z]/i', '',    (string) Tools::getValue('trad_lang', 'fr'));
+
+            if ($tplKey !== '' && $tplLang !== '' && class_exists('TranslationEngine')) {
+                $engine    = new TranslationEngine($this);
+                $tableTrad = _DB_PREFIX_ . 'neria_translation';
+
+                if ($tradAction === 'save_translations') {
+                    $fields = Tools::getValue('fields', []);
+                    if (is_array($fields)) {
+                        // Enregistre les changements dans l'historique avant d'écraser
+                        if (class_exists('TranslationHistoryManager')) {
+                            $histMgr  = new TranslationHistoryManager();
+                            $employee = $this->context->employee;
+                            $author   = trim($employee->firstname . ' ' . $employee->lastname) ?: 'Admin';
+
+                            $currentRows = Db::getInstance()->executeS(
+                                "SELECT `translation_key`, `translation_value`
+                                 FROM `{$tableTrad}`
+                                 WHERE `template` = '" . pSQL($tplKey) . "'
+                                   AND `lang`     = '" . pSQL($tplLang) . "'"
+                            );
+                            $currentVals = [];
+                            foreach ((array) $currentRows as $r) {
+                                $currentVals[$r['translation_key']] = $r['translation_value'];
+                            }
+
+                            foreach ($fields as $fKey => $fVal) {
+                                $fKey = preg_replace('/[^a-z0-9_]/i', '', (string) $fKey);
+                                if ($fKey !== '') {
+                                    $histMgr->record(
+                                        $tplKey,
+                                        $tplLang,
+                                        $fKey,
+                                        $currentVals[$fKey] ?? '',
+                                        (string) $fVal,
+                                        $author
+                                    );
+                                }
+                            }
+                        }
+
+                        foreach ($fields as $key => $value) {
+                            $key = preg_replace('/[^a-z0-9_]/i', '', (string) $key);
+                            if ($key !== '') {
+                                $engine->update($tplKey, $tplLang, $key, (string) $value);
+                            }
+                        }
+                    }
+                    // Watchdog : log le nombre de champs réellement modifiés
+                    if (class_exists('WatchdogManager') && isset($histMgr)) {
+                        $changedCount = count(array_filter(
+                            array_keys((array) $fields),
+                            fn($k) => preg_replace('/[^a-z0-9_]/i', '', (string) $k) !== ''
+                                   && ($currentVals[preg_replace('/[^a-z0-9_]/i', '', (string) $k)] ?? null)
+                                      !== (string) $fields[$k]
+                        ));
+                        if ($changedCount > 0) {
+                            (new WatchdogManager($this))->info(
+                                sprintf('%d champ(s) modifié(s) dans "%s" [%s]', $changedCount, $tplKey, $tplLang),
+                                '',
+                                'Traductions'
+                            );
+                        }
+                    }
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                }
+
+                if ($tradAction === 'reset_template') {
+                    $jsonPath = __DIR__ . '/data/translations.json';
+                    $jsonAll  = [];
+                    if (file_exists($jsonPath)) {
+                        $decoded = json_decode((string) file_get_contents($jsonPath), true);
+                        if (isset($decoded[$tplKey][$tplLang]) && is_array($decoded[$tplKey][$tplLang])) {
+                            $jsonAll = $decoded[$tplKey][$tplLang];
+                        }
+                    }
+
+                    // 1. Sauvegarde les valeurs custom dans le changelog avant écrasement
+                    if (class_exists('TranslationHistoryManager') && !empty($jsonAll)) {
+                        $histMgr  = new TranslationHistoryManager();
+                        $employee = $this->context->employee;
+                        $author   = trim($employee->firstname . ' ' . $employee->lastname) ?: 'Admin';
+
+                        $customRows = Db::getInstance()->executeS(
+                            "SELECT `translation_key`, `translation_value`
+                             FROM `{$tableTrad}`
+                             WHERE `template` = '" . pSQL($tplKey) . "'
+                               AND `lang`     = '" . pSQL($tplLang) . "'
+                               AND `is_custom` = 1"
+                        );
+                        foreach ((array) $customRows as $r) {
+                            $histMgr->record(
+                                $tplKey,
+                                $tplLang,
+                                $r['translation_key'],
+                                $r['translation_value'],
+                                $jsonAll[$r['translation_key']] ?? '',
+                                $author . ' (réinitialisation)'
+                            );
+                        }
+                    }
+
+                    // 2. Supprime toutes les lignes du template+lang (custom ET défaut)
+                    Db::getInstance()->execute(
+                        "DELETE FROM `{$tableTrad}`
+                         WHERE `template` = '" . pSQL($tplKey) . "'
+                           AND `lang`     = '" . pSQL($tplLang) . "'"
+                    );
+
+                    // 3. Réinsère les valeurs d'usine depuis translations.json
+                    if (!empty($jsonAll)) {
+                        $batch = [];
+                        $now   = date('Y-m-d H:i:s');
+                        foreach ($jsonAll as $fKey => $fVal) {
+                            if (is_string($fVal)) {
+                                $batch[] = sprintf(
+                                    "('%s', '%s', '%s', '%s', 0, '%s', '%s')",
+                                    pSQL($tplKey), pSQL($tplLang),
+                                    pSQL($fKey), pSQL($fVal, true),
+                                    $now, $now
+                                );
+                            }
+                        }
+                        if ($batch) {
+                            Db::getInstance()->execute("SET NAMES 'utf8mb4'");
+                            Db::getInstance()->execute(sprintf(
+                                "INSERT INTO `%s` (`template`, `lang`, `translation_key`, `translation_value`, `is_custom`, `date_add`, `date_upd`) VALUES %s",
+                                $tableTrad,
+                                implode(', ', $batch)
+                            ));
+                        }
+                    }
+
+                    $engine->clearCache();
+
+                    // Watchdog : réinitialisation = action forte → niveau warning
+                    if (class_exists('WatchdogManager')) {
+                        $resetCount = isset($customRows) ? count((array) $customRows) : 0;
+                        (new WatchdogManager($this))->warning(
+                            sprintf('Template "%s" [%s] réinitialisé aux valeurs Neria d\'origine (%d champ(s) écrasé(s))', $tplKey, $tplLang, $resetCount),
+                            '',
+                            'Traductions'
+                        );
+                    }
+                    $this->context->smarty->assign('neria_success', 'Template réinitialisé aux valeurs Neria d\'origine.');
+                }
+
+                if ($tradAction === 'save_variant_b' && class_exists('ABTestManager')) {
+                    $idAbtestB = (int) Tools::getValue('id_abtest_b', 0);
+                    $fieldsB   = Tools::getValue('fields_b', []);
+                    if ($idAbtestB > 0 && is_array($fieldsB)) {
+                        (new ABTestManager($this))->saveVariantBTranslations($idAbtestB, $tplLang, $fieldsB);
+                    }
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                }
+
+                if ($tradAction === 'restore_translation' && class_exists('TranslationHistoryManager')) {
+                    $idHistory = (int) Tools::getValue('id_history', 0);
+                    if ($idHistory > 0) {
+                        $histMgr = new TranslationHistoryManager();
+                        $entry   = $histMgr->getById($idHistory);
+                        if ($entry) {
+                            $restoreKey = $entry['translation_key'];
+                            $restoreVal = $entry['old_value'];
+                            $employee   = $this->context->employee;
+                            $author     = trim($employee->firstname . ' ' . $employee->lastname) ?: 'Admin';
+
+                            // Valeur actuelle avant restauration
+                            $currentVal = Db::getInstance()->getValue(
+                                "SELECT `translation_value` FROM `{$tableTrad}`
+                                 WHERE `template` = '" . pSQL($tplKey) . "'
+                                   AND `lang`     = '" . pSQL($tplLang) . "'
+                                   AND `translation_key` = '" . pSQL($restoreKey) . "'"
+                            );
+
+                            $engine->update($tplKey, $tplLang, $restoreKey, $restoreVal);
+
+                            // La restauration est elle-même une entrée d'historique
+                            $histMgr->record(
+                                $tplKey,
+                                $tplLang,
+                                $restoreKey,
+                                $currentVal ?: '',
+                                $restoreVal,
+                                $author . ' (restauration)'
+                            );
+
+                            // Watchdog : restauration depuis l'historique
+                            if (class_exists('WatchdogManager')) {
+                                (new WatchdogManager($this))->info(
+                                    sprintf('Champ "%s" restauré dans "%s" [%s] par %s', $restoreKey, $tplKey, $tplLang, $author),
+                                    '',
+                                    'Traductions'
+                                );
+                            }
+                        }
+                    }
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                }
+
+                if ($tradAction === 'delete_history' && class_exists('TranslationHistoryManager')) {
+                    $idHistory = (int) Tools::getValue('id_history', 0);
+                    if ($idHistory > 0) {
+                        Db::getInstance()->execute(
+                            "DELETE FROM `" . _DB_PREFIX_ . "neria_translation_history`
+                             WHERE `id_history` = " . $idHistory
+                        );
+                    }
+                }
+
+                // Charge (ou recharge après save/reset) les traductions A
+                $rows = Db::getInstance()->executeS(
+                    "SELECT `translation_key`, `translation_value`, `is_custom`
+                     FROM `{$tableTrad}`
+                     WHERE `template` = '" . pSQL($tplKey) . "'
+                       AND `lang`     = '" . pSQL($tplLang) . "'
+                     ORDER BY `translation_key` ASC"
+                );
+
+                $translations = [];
+                $isCustom     = [];
+                if (is_array($rows)) {
+                    foreach ($rows as $row) {
+                        $translations[$row['translation_key']] = $row['translation_value'];
+                        $isCustom[$row['translation_key']]     = (bool) $row['is_custom'];
+                    }
+                }
+
+                $subjectSpamJson = '[]';
+                if (class_exists('DeliverabilityScorer')) {
+                    $subjectSpamJson = json_encode(
+                        (new DeliverabilityScorer())->getSubjectSpamTriggers(),
+                        JSON_UNESCAPED_UNICODE
+                    );
+                }
+
+                $nsaLabelsJson = json_encode([
+                    'fr' => ['t' => 'Sujet de l\'email',       's' => '⚠ Mots à risque :',        'u' => 'car.',    'e' => 'vide',        'c' => 'trop court',       'o' => 'optimal',      'l1' => 'un peu long',       'l2' => 'trop long'],
+                    'en' => ['t' => 'Email subject',            's' => '⚠ Risk words:',             'u' => 'chars',   'e' => 'empty',       'c' => 'too short',        'o' => 'optimal',      'l1' => 'a bit long',        'l2' => 'too long'],
+                    'de' => ['t' => 'E-Mail-Betreff',           's' => '⚠ Risikowörter:',           'u' => 'Zeichen', 'e' => 'leer',        'c' => 'zu kurz',          'o' => 'optimal',      'l1' => 'etwas lang',        'l2' => 'zu lang'],
+                    'es' => ['t' => 'Asunto del email',         's' => '⚠ Palabras de riesgo:',     'u' => 'car.',    'e' => 'vacío',       'c' => 'demasiado corto',  'o' => 'óptimo',       'l1' => 'algo largo',        'l2' => 'demasiado largo'],
+                    'it' => ['t' => 'Oggetto email',            's' => '⚠ Parole a rischio:',       'u' => 'car.',    'e' => 'vuoto',       'c' => 'troppo corto',     'o' => 'ottimale',     'l1' => 'un po\' lungo',     'l2' => 'troppo lungo'],
+                    'pt' => ['t' => 'Assunto do email',         's' => '⚠ Palavras de risco:',      'u' => 'car.',    'e' => 'vazio',       'c' => 'muito curto',      'o' => 'ótimo',        'l1' => 'um pouco longo',    'l2' => 'muito longo'],
+                    'nl' => ['t' => 'E-mailonderwerp',          's' => '⚠ Risicowoorden:',          'u' => 'tek.',    'e' => 'leeg',        'c' => 'te kort',          'o' => 'optimaal',     'l1' => 'iets lang',         'l2' => 'te lang'],
+                    'pl' => ['t' => 'Temat e-maila',            's' => '⚠ Ryzykowne słowa:',        'u' => 'zn.',     'e' => 'puste',       'c' => 'za krótki',        'o' => 'optymalny',    'l1' => 'trochę długi',      'l2' => 'za długi'],
+                    'sv' => ['t' => 'E-postämne',               's' => '⚠ Riskord:',                'u' => 'tkn',     'e' => 'tomt',        'c' => 'för kort',         'o' => 'optimalt',     'l1' => 'lite långt',        'l2' => 'för långt'],
+                    'da' => ['t' => 'E-mail emne',              's' => '⚠ Risikoord:',              'u' => 'tegn',    'e' => 'tomt',        'c' => 'for kort',         'o' => 'optimalt',     'l1' => 'lidt langt',        'l2' => 'for langt'],
+                    'fi' => ['t' => 'Sähköpostin aihe',         's' => '⚠ Riskisanat:',             'u' => 'merk.',   'e' => 'tyhjä',       'c' => 'liian lyhyt',      'o' => 'optimaalinen', 'l1' => 'hieman pitkä',      'l2' => 'liian pitkä'],
+                    'no' => ['t' => 'E-postemne',               's' => '⚠ Risikoord:',              'u' => 'tegn',    'e' => 'tomt',        'c' => 'for kort',         'o' => 'optimalt',     'l1' => 'litt langt',        'l2' => 'for langt'],
+                    'tr' => ['t' => 'E-posta konusu',           's' => '⚠ Riskli kelimeler:',       'u' => 'kar.',    'e' => 'boş',         'c' => 'çok kısa',         'o' => 'optimal',      'l1' => 'biraz uzun',        'l2' => 'çok uzun'],
+                    'cs' => ['t' => 'Předmět e-mailu',          's' => '⚠ Riziková slova:',         'u' => 'zn.',     'e' => 'prázdný',     'c' => 'příliš krátký',    'o' => 'optimální',    'l1' => 'trochu dlouhý',     'l2' => 'příliš dlouhý'],
+                    'hu' => ['t' => 'E-mail tárgya',            's' => '⚠ Kockázatos szavak:',      'u' => 'kar.',    'e' => 'üres',        'c' => 'túl rövid',        'o' => 'optimális',    'l1' => 'kicsit hosszú',     'l2' => 'túl hosszú'],
+                    'ro' => ['t' => 'Subiect email',            's' => '⚠ Cuvinte de risc:',        'u' => 'car.',    'e' => 'gol',         'c' => 'prea scurt',       'o' => 'optim',        'l1' => 'puțin lung',        'l2' => 'prea lung'],
+                    'ru' => ['t' => 'Тема письма',              's' => '⚠ Рискованные слова:',      'u' => 'симв.',   'e' => 'пусто',       'c' => 'слишком коротко',  'o' => 'оптимально',   'l1' => 'немного длинно',    'l2' => 'слишком длинно'],
+                    'ar' => ['t' => 'موضوع البريد',             's' => '⚠ كلمات خطرة:',             'u' => 'حرف',     'e' => 'فارغ',        'c' => 'قصير جداً',        'o' => 'مثالي',        'l1' => 'طويل قليلاً',       'l2' => 'طويل جداً'],
+                    'zh' => ['t' => '邮件主题',                  's' => '⚠ 风险词汇：',               'u' => '字',      'e' => '空白',         'c' => '太短',             'o' => '最佳',          'l1' => '稍长',              'l2' => '太长'],
+                    'ja' => ['t' => 'メールの件名',              's' => '⚠ リスクワード：',           'u' => '文字',    'e' => '空白',         'c' => '短すぎ',           'o' => '最適',         'l1' => 'やや長い',          'l2' => '長すぎ'],
+                    'ko' => ['t' => '이메일 제목',               's' => '⚠ 위험 단어:',              'u' => '자',      'e' => '비어 있음',    'c' => '너무 짧음',        'o' => '최적',         'l1' => '약간 긴',           'l2' => '너무 김'],
+                ], JSON_UNESCAPED_UNICODE);
+
+                // Historique des modifications pour l'onglet Traductions
+                $translationHistory = [];
+                if (class_exists('TranslationHistoryManager')) {
+                    $rawHistory = (new TranslationHistoryManager())->getHistoryForTemplate($tplKey, $tplLang, 40);
+                    foreach ($rawHistory as $entry) {
+                        $entry['date_formatted'] = date('d/m/Y H:i', strtotime($entry['date_add']));
+                        $translationHistory[]    = $entry;
+                    }
+                }
+
+                $this->context->smarty->assign([
+                    'selected_template'         => $tplKey,
+                    'selected_lang'             => $tplLang,
+                    'translations'              => $translations ?: null,
+                    'is_custom'                 => $isCustom,
+                    'subject_spam_triggers_json' => $subjectSpamJson,
+                    'nsa_labels_json'           => $nsaLabelsJson,
+                    'translation_history'       => $translationHistory,
+                ]);
+
+                // Charge les traductions variante B si un test A/B est actif
+                if (class_exists('ABTestManager')) {
+                    $ab = new ABTestManager($this);
+                    if ($ab->hasActiveTest($tplKey)) {
+                        $idAbtestB = 0;
+                        foreach ($ab->getAllActiveTests() as $row) {
+                            if ($row['template'] === $tplKey && $row['variant'] === 'B') {
+                                $idAbtestB = (int) $row['id_abtest'];
+                                break;
+                            }
+                        }
+
+                        if ($idAbtestB > 0) {
+                            $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';
+                            $rowsB = Db::getInstance()->executeS(
+                                "SELECT `translation_key`, `translation_value`
+                                 FROM `{$tableTradB}`
+                                 WHERE `id_abtest` = {$idAbtestB}
+                                   AND `lang`      = '" . pSQL($tplLang) . "'"
+                            );
+
+                            $translationsB = [];
+                            if (is_array($rowsB)) {
+                                foreach ($rowsB as $row) {
+                                    $translationsB[$row['translation_key']] = $row['translation_value'];
+                                }
+                            }
+
+                            // Les champs non encore renseignés en B affichent le texte A comme point de départ
+                            foreach ($translations as $key => $value) {
+                                if (!isset($translationsB[$key])) {
+                                    $translationsB[$key] = $value;
+                                }
+                            }
+
+                            $this->context->smarty->assign([
+                                'abtest_active'  => true,
+                                'id_abtest_b'    => $idAbtestB,
+                                'translations_b' => $translationsB,
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── Prévisualisation multi-client : rendu simulé (form POST) ─
+        if (Tools::getValue('neria_action') === 'multipreview_render' && class_exists('MultiClientPreviewManager') && class_exists('EmailRenderer')) {
+            $mpTemplate = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('mp_template', 'order_conf'));
+            $mpLang     = preg_replace('/[^a-z\-]/i', '',   (string) Tools::getValue('mp_lang', 'fr'));
+            if ($mpTemplate === '') { $mpTemplate = 'order_conf'; }
+            if ($mpLang     === '') { $mpLang     = 'fr'; }
+            $rawHtml = (new EmailRenderer($this))->renderPreviewHtml($mpTemplate, $mpLang);
+            $mgr     = new MultiClientPreviewManager();
+            $previews = [];
+            $styleCountRaw = preg_match_all('/<style\b/i', $rawHtml);
+            foreach (array_keys(MultiClientPreviewManager::CLIENTS) as $clientId) {
+                $transformed = $mgr->transformForClient($rawHtml, $clientId);
+                $previews[$clientId] = [
+                    'html'   => $transformed,
+                    'issues' => max(0, $styleCountRaw - preg_match_all('/<style\b/i', $transformed)),
+                ];
+            }
+            // Sauvegarde chaque aperçu dans un fichier temp — évite la troncature Smarty
+            $previewDir = _PS_ROOT_DIR_ . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR
+                        . 'cache' . DIRECTORY_SEPARATOR . 'neria_previews' . DIRECTORY_SEPARATOR;
+            if (!is_dir($previewDir)) {
+                @mkdir($previewDir, 0755, true);
+            }
+            $mpToken = bin2hex(random_bytes(10));
+            foreach ($previews as $clientId => $data) {
+                file_put_contents($previewDir . $clientId . '_' . $mpToken . '.html', (string) ($data['html'] ?? ''));
+            }
+            // Nettoyage des fichiers > 2 h
+            foreach (glob($previewDir . '*.html') ?: [] as $old) {
+                if (filemtime($old) < time() - 7200) {
+                    @unlink($old);
+                }
+            }
+            $this->context->smarty->assign([
+                'mp_previews_meta'     => array_map(fn ($pv) => ['issues' => (int) ($pv['issues'] ?? 0)], $previews),
+                'mp_token'             => $mpToken,
+                'mp_preview_base'      => rtrim($this->context->link->getBaseLink(), '/') . '/modules/neria/getpreview.php',
+                'mp_selected_template' => $mpTemplate,
+                'mp_selected_lang'     => $mpLang,
+            ]);
+        }
+
+        // ── Prévisualisation multi-client : sauvegarde clés API ──
+        if (Tools::getValue('neria_action') === 'save_multipreview_keys') {
+            $litmusKey = trim((string) Tools::getValue('litmus_key', ''));
+            $eoaKey    = trim((string) Tools::getValue('eoa_key', ''));
+            if (class_exists('MultiClientPreviewManager')) {
+                Configuration::updateValue(MultiClientPreviewManager::CONFIG_LITMUS_KEY, $litmusKey);
+                Configuration::updateValue(MultiClientPreviewManager::CONFIG_EOA_KEY, $eoaKey);
+            }
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+        }
+
+        // ── Webhooks : sauvegarde ─────────────────────────────────
+        if (Tools::getValue('neria_action') === 'save_webhooks') {
+            $whUrl    = trim((string) Tools::getValue('webhook_url', ''));
+            $whSecret = trim((string) Tools::getValue('webhook_secret', ''));
+            $whEvents = Tools::getValue('webhook_events', []);
+
+            if ($whUrl !== '' && !Validate::isAbsoluteUrl($whUrl)) {
+                $this->context->smarty->assign('neria_error', 'URL invalide — elle doit commencer par https://');
+            } else {
+                Configuration::updateValue(WebhookManager::CONFIG_URL, $whUrl);
+                if ($whSecret === '' && $whUrl !== '') {
+                    $whSecret = WebhookManager::generateSecret();
+                }
+                if ($whSecret !== '') {
+                    Configuration::updateValue(WebhookManager::CONFIG_SECRET, $whSecret);
+                }
+                Configuration::updateValue(
+                    WebhookManager::CONFIG_EVENTS,
+                    json_encode(is_array($whEvents) ? $whEvents : [])
+                );
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+            }
+        }
+
+        // ── Webhooks : test de livraison ──────────────────────────
+        if (Tools::getValue('neria_action') === 'test_webhook') {
+            $result = (new WebhookManager($this))->sendTest();
+            if ($result['ok']) {
+                $this->context->smarty->assign(
+                    'neria_success',
+                    'Test webhook envoyé avec succès (HTTP ' . ($result['http_code'] ?? '200') . ').'
+                );
+            } else {
+                $errDetail = $result['error'] ?? ('HTTP ' . ($result['http_code'] ?? '0'));
+                $this->context->smarty->assign(
+                    'neria_error',
+                    'Test webhook échoué : ' . $errDetail
+                );
+            }
+        }
+
+        // ── Churn : recalcul manuel ─────────────────────────────────
+        if (Tools::getValue('neria_action') === 'recompute_churn') {
+            if (class_exists('ChurnScoreManager')) {
+                $n = (new ChurnScoreManager($this))->recomputeAll();
+                $this->context->smarty->assign('neria_success', "{$n} score(s) de désabonnement recalculé(s).");
+            }
+        }
+
+        // ── Segments : calcul manuel ────────────────────────────────
+        if (Tools::getValue('neria_action') === 'recompute_segments') {
+            if (class_exists('SegmentManager')) {
+                $n = (new SegmentManager($this))->recomputeAll();
+                $this->context->smarty->assign('neria_success', "{$n} client(s) mis à jour.");
+            }
+        }
+
+        // ── Segments : envoi de campagne ────────────────────────────
+        if (Tools::getValue('neria_action') === 'send_segment_campaign') {
+            $seg      = (string) Tools::getValue('campaign_segment', '');
+            $template = (string) Tools::getValue('campaign_template', '');
+            $filters  = array_filter([
+                'slot'       => (string) Tools::getValue('campaign_slot', ''),
+                'lang_iso'   => (string) Tools::getValue('campaign_lang', ''),
+                'id_country' => (int)    Tools::getValue('campaign_country', 0),
+            ]);
+            if ($seg !== '' && $template !== '' && class_exists('SegmentManager')) {
+                $res = (new SegmentManager($this))->sendToSegment($seg, $template, $filters);
+                if (isset($res['error'])) {
+                    $this->context->smarty->assign('neria_error', 'Template non autorisé pour les campagnes segment.');
+                } else {
+                    $this->context->smarty->assign(
+                        'neria_success',
+                        $res['sent'] . ' email(s) envoyé(s)'
+                        . ($res['failed']  > 0 ? ', ' . $res['failed']  . ' échoué(s)' : '')
+                        . ($res['skipped'] > 0 ? ', ' . $res['skipped'] . ' ignoré(s)' : '')
+                        . '.'
+                    );
+                }
+            } else {
+                $this->context->smarty->assign('neria_error', 'Segment et template requis.');
+            }
+        }
+
+        // ── RGPD : purge d'une table ──────────────────────────────
+        if (Tools::getValue('neria_action') === 'gdpr_purge' && class_exists('GdprAuditManager')) {
+            $gdprTable   = preg_replace('/[^a-z0-9_]/i', '', (string) Tools::getValue('gdpr_table', ''));
+            $gdprDateCol = preg_replace('/[^a-z0-9_]/i', '', (string) Tools::getValue('gdpr_date_col', ''));
+            $gdprMonths  = max(1, (int) Tools::getValue('gdpr_months', 36));
+            $def = GdprAuditManager::getTableDef($gdprTable);
+            if ($def && $gdprDateCol === $def['date_col']) {
+                $purged = (new GdprAuditManager(__DIR__))->purgeTable($gdprTable, $gdprDateCol, $gdprMonths);
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this))->warning(
+                        sprintf('Purge RGPD : %d enregistrement(s) supprimé(s) de %s (> %d mois)', $purged, $gdprTable, $gdprMonths),
+                        '', 'RGPD'
+                    );
+                }
+                $this->context->smarty->assign('neria_success', sprintf('%d enregistrement(s) supprimé(s) de %s.', $purged, $gdprTable));
+            }
+        }
+
+        // ── Anniversaire relation client : toggle ─────────────────
+        if (Tools::getValue('neria_action') === 'relationship_anniversary_toggle') {
+            $current = (bool) Configuration::getGlobalValue('NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED');
+            Configuration::updateGlobalValue('NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED', $current ? 0 : 1);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-relationship-anniversary-section');
+        }
+
+        // ── Checkout Abandonment : toggle activer/désactiver ─────
+        if (Tools::getValue('neria_action') === 'checkout_abandonment_toggle') {
+            $current = (bool) Configuration::getGlobalValue('NERIA_CHECKOUT_ABANDONMENT_ENABLED');
+            Configuration::updateGlobalValue('NERIA_CHECKOUT_ABANDONMENT_ENABLED', $current ? 0 : 1);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-checkout-abandonment-section');
+        }
+
+        // ── Liste d'attente : toggle activer/désactiver ──────────
+        if (Tools::getValue('neria_action') === 'waitlist_toggle') {
+            $current = (bool) Configuration::getGlobalValue('NERIA_WAITLIST_ENABLED');
+            Configuration::updateGlobalValue('NERIA_WAITLIST_ENABLED', $current ? 0 : 1);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-waitlist-section');
+        }
+
+        if (Tools::getValue('neria_action') === 'waitlist_reservation_save') {
+            $hours = max(1, min(72, (int) Tools::getValue('waitlist_reservation_hours')));
+            Configuration::updateGlobalValue('NERIA_WAITLIST_RESERVATION_HOURS', $hours);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-waitlist-section');
+        }
+
+        // ── Panier fantôme : toggle activer/désactiver ───────────
+        if (Tools::getValue('neria_action') === 'ghost_cart_toggle') {
+            $current = (bool) Configuration::getGlobalValue('NERIA_GHOST_CART_ENABLED');
+            Configuration::updateGlobalValue('NERIA_GHOST_CART_ENABLED', $current ? 0 : 1);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-ghost-cart-section');
+        }
+
+        // ── Complétion de collection : toggle activer/désactiver ─
+        if (Tools::getValue('neria_action') === 'collection_completion_toggle') {
+            $current = (bool) Configuration::getGlobalValue('NERIA_COLLECTION_COMPLETION_ENABLED');
+            Configuration::updateGlobalValue('NERIA_COLLECTION_COMPLETION_ENABLED', $current ? 0 : 1);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-collection-section');
+        }
+
+        // ── Complétez votre look : toggle activer/désactiver ─────
+        if (Tools::getValue('neria_action') === 'look_completion_toggle') {
+            $current = (bool) Configuration::getGlobalValue('NERIA_LOOK_COMPLETION_ENABLED');
+            Configuration::updateGlobalValue('NERIA_LOOK_COMPLETION_ENABLED', $current ? 0 : 1);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-look-section');
+        }
+
+        // ── Devis B2B : toggle ───────────────────────────────────
+        if (Tools::getValue('neria_action') === 'quote_reminder_toggle') {
+            $current = (bool) Configuration::getGlobalValue('NERIA_QUOTE_REMINDERS_ENABLED');
+            Configuration::updateGlobalValue('NERIA_QUOTE_REMINDERS_ENABLED', $current ? 0 : 1);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-quote-section');
+        }
+
+        // ── Réconciliation post-remboursement : toggle ────────────
+        if (Tools::getValue('neria_action') === 'reconciliation_toggle') {
+            $current = (bool) Configuration::getGlobalValue('NERIA_REFUND_RECONCILIATION_ENABLED');
+            Configuration::updateGlobalValue('NERIA_REFUND_RECONCILIATION_ENABLED', $current ? 0 : 1);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-reconciliation-section');
+        }
+
+        // ── Score de propension : toggle ──────────────────────────────
+        if (Tools::getValue('neria_action') === 'propensity_toggle') {
+            $current = (bool) Configuration::getGlobalValue('NERIA_PROPENSITY_ENABLED');
+            Configuration::updateGlobalValue('NERIA_PROPENSITY_ENABLED', $current ? 0 : 1);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-propensity-section');
+        }
+
+        // ── Rappel fin de vie produit : toggle ───────────────────────
+        if (Tools::getValue('neria_action') === 'lifespan_toggle') {
+            $current = (bool) Configuration::getGlobalValue('NERIA_LIFESPAN_ENABLED');
+            Configuration::updateGlobalValue('NERIA_LIFESPAN_ENABLED', $current ? 0 : 1);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-lifespan-section');
+        }
+
+        if (Tools::getValue('neria_action') === 'purchase_window_toggle') {
+            $current = (bool) Configuration::getGlobalValue('NERIA_PURCHASE_WINDOW_ENABLED');
+            Configuration::updateGlobalValue('NERIA_PURCHASE_WINDOW_ENABLED', $current ? 0 : 1);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-purchase-window-section');
+        }
+
+        // ── Rappel fin de vie produit : ajouter ──────────────────────
+        if (Tools::getValue('neria_action') === 'lifespan_add') {
+            $idProduct    = (int) Tools::getValue('lifespan_id_product');
+            $lifespanDays = (int) Tools::getValue('lifespan_days');
+            $alertDays    = max(1, (int) Tools::getValue('lifespan_alert_days'));
+            if ($idProduct > 0 && $lifespanDays > 0) {
+                Db::getInstance()->execute(
+                    'INSERT INTO `' . _DB_PREFIX_ . 'neria_product_lifespan`
+                     (id_shop, id_product, lifespan_days, alert_days, date_add, date_upd)
+                     VALUES (' . (int) $this->context->shop->id . ', ' . $idProduct . ', '
+                    . $lifespanDays . ', ' . $alertDays . ', NOW(), NOW())
+                     ON DUPLICATE KEY UPDATE lifespan_days = ' . $lifespanDays . ',
+                     alert_days = ' . $alertDays . ', date_upd = NOW()'
+                );
+                $this->context->smarty->assign('neria_success', 'Produit ajouté à la liste de rappels.');
+            } else {
+                $this->context->smarty->assign('neria_error', 'Veuillez renseigner un produit et une durée valides.');
+            }
+        }
+
+        // ── Rappel fin de vie produit : supprimer ─────────────────────
+        if (Tools::getValue('neria_action') === 'lifespan_delete') {
+            $idLifespan = (int) Tools::getValue('lifespan_id');
+            if ($idLifespan > 0) {
+                Db::getInstance()->execute(
+                    'DELETE FROM `' . _DB_PREFIX_ . 'neria_product_lifespan` WHERE id_lifespan = ' . $idLifespan
+                );
+                $this->context->smarty->assign('neria_success', 'Produit supprimé de la liste de rappels.');
+            }
+        }
+
+        // ── Devis B2B : ajouter un devis ─────────────────────────
+        if (Tools::getValue('neria_action') === 'quote_add') {
+            // Le champ « client » accepte un ID numérique OU un email :
+            // le marchand connaît souvent l'email de son client B2B, pas l'ID PS.
+            $custInput  = trim((string) Tools::getValue('quote_id_customer'));
+            $quoteRef   = pSQL(trim((string) Tools::getValue('quote_ref')));
+            $quoteTotal = (float) str_replace(',', '.', Tools::getValue('quote_total'));
+            $expiryDate = pSQL(trim((string) Tools::getValue('quote_expiry_date')));
+            $idCurrency = (int) (Tools::getValue('quote_id_currency') ?: Configuration::get('PS_CURRENCY_DEFAULT'));
+
+            $idCustomer = 0;
+            if (ctype_digit($custInput)) {
+                // Saisie numérique → vérifier que ce client existe vraiment.
+                $idCustomer = (int) Db::getInstance()->getValue(
+                    'SELECT id_customer FROM `' . _DB_PREFIX_ . 'customer`
+                     WHERE id_customer = ' . (int) $custInput . ' AND deleted = 0'
+                );
+            } elseif ($custInput !== '' && Validate::isEmail($custInput)) {
+                // Saisie email → résoudre vers l'id_customer.
+                $idCustomer = (int) Db::getInstance()->getValue(
+                    'SELECT id_customer FROM `' . _DB_PREFIX_ . 'customer`
+                     WHERE email = \'' . pSQL($custInput) . '\' AND deleted = 0
+                     ORDER BY id_customer DESC'
+                );
+            }
+
+            // Anti-doublon : même référence déjà suivie pour ce client dans cette
+            // boutique. Évite deux séquences de relance parallèles sur un même devis
+            // (le client recevrait chaque email en double) et des stats faussées.
+            $alreadyTracked = ($idCustomer > 0 && $quoteRef !== '')
+                ? (int) Db::getInstance()->getValue(
+                    'SELECT id_quote FROM `' . _DB_PREFIX_ . 'neria_quote`
+                     WHERE id_shop = ' . (int) $this->context->shop->id . '
+                       AND id_customer = ' . (int) $idCustomer . '
+                       AND quote_ref = \'' . pSQL($quoteRef) . '\''
+                )
+                : 0;
+
+            if ($custInput === '' || $quoteRef === '' || $expiryDate === '') {
+                $this->assignQuoteMsg('error', 'Client, référence et date d\'expiration sont requis.');
+            } elseif ($idCustomer <= 0) {
+                $this->assignQuoteMsg(
+                    'error',
+                    'Client introuvable : « ' . htmlspecialchars($custInput) . ' ». Saisissez un ID client valide ou l\'email d\'un client existant.'
+                );
+            } elseif ($alreadyTracked > 0) {
+                $this->assignQuoteMsg(
+                    'error',
+                    'Ce devis est déjà suivi : la référence « ' . htmlspecialchars($quoteRef) . ' » existe déjà pour ce client. Supprimez la ligne existante avant de la recréer.'
+                );
+            } else {
+                Db::getInstance()->execute(
+                    'INSERT INTO `' . _DB_PREFIX_ . 'neria_quote`
+                     (id_shop, id_customer, quote_ref, quote_total, id_currency, expiry_date, status, date_add, date_upd)
+                     VALUES (' . (int) $this->context->shop->id . ', ' . $idCustomer . ', \'' . $quoteRef . '\',
+                     ' . $quoteTotal . ', ' . $idCurrency . ', \'' . $expiryDate . '\', \'active\', NOW(), NOW())'
+                );
+                $this->assignQuoteMsg('success', 'Devis ajouté avec succès.');
+            }
+        }
+
+        // ── Devis B2B : marquer comme gagné ──────────────────────
+        if (Tools::getValue('neria_action') === 'quote_mark_won') {
+            $idQuote = (int) Tools::getValue('id_quote');
+            if ($idQuote > 0) {
+                Db::getInstance()->execute(
+                    'UPDATE `' . _DB_PREFIX_ . 'neria_quote`
+                     SET status = \'won\', date_upd = NOW() WHERE id_quote = ' . $idQuote
+                );
+                $this->assignQuoteMsg('success', 'Devis marqué comme gagné.');
+            }
+        }
+
+        // ── Devis B2B : marquer comme perdu ──────────────────────
+        if (Tools::getValue('neria_action') === 'quote_mark_lost') {
+            $idQuote = (int) Tools::getValue('id_quote');
+            if ($idQuote > 0) {
+                Db::getInstance()->execute(
+                    'UPDATE `' . _DB_PREFIX_ . 'neria_quote`
+                     SET status = \'lost\', date_upd = NOW() WHERE id_quote = ' . $idQuote
+                );
+                $this->assignQuoteMsg('success', 'Devis marqué comme perdu.');
+            }
+        }
+
+        // ── Devis B2B : supprimer ─────────────────────────────────
+        if (Tools::getValue('neria_action') === 'quote_delete') {
+            $idQuote = (int) Tools::getValue('id_quote');
+            if ($idQuote > 0) {
+                Db::getInstance()->execute(
+                    'DELETE FROM `' . _DB_PREFIX_ . 'neria_quote` WHERE id_quote = ' . $idQuote
+                );
+                $this->assignQuoteMsg('success', 'Devis supprimé.');
+            }
+        }
+
+
+
+        // ── Look completion : ajouter règle ──────────────────────
+        if (Tools::getValue('neria_action') === 'look_rule_add' && class_exists('LookCompletionManager')) {
+            $idCat = (int) Tools::getValue('look_category_id');
+            $rawIds  = trim((string) Tools::getValue('look_product_ids'));
+            $pids    = array_filter(array_map('intval', explode(',', $rawIds)));
+            if ($idCat > 0 && count($pids) >= 2) {
+                (new LookCompletionManager($this))->createRule($idCat, array_slice($pids, 0, 3));
+            }
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-look-section');
+        }
+
+        // ── Look completion : activer/désactiver règle ────────────
+        if (Tools::getValue('neria_action') === 'look_rule_toggle' && class_exists('LookCompletionManager')) {
+            $id  = (int) Tools::getValue('look_rule_id');
+            $mgr = new LookCompletionManager($this);
+            $r   = $mgr->getRuleById($id);
+            if ($r) {
+                $mgr->updateRule($id, (int) $r['id_category'], json_decode($r['product_ids'], true), !(bool) $r['active']);
+            }
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-look-section');
+        }
+
+        // ── Look completion : supprimer règle ─────────────────────
+        if (Tools::getValue('neria_action') === 'look_rule_delete' && class_exists('LookCompletionManager')) {
+            $id = (int) Tools::getValue('look_rule_id');
+            if ($id > 0) {
+                (new LookCompletionManager($this))->deleteRule($id);
+            }
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-look-section');
+        }
+
+        // ── Collection : ajouter ─────────────────────────────────
+        if (Tools::getValue('neria_action') === 'collection_add' && class_exists('CollectionManager')) {
+            $name       = trim((string) Tools::getValue('collection_name'));
+            $rawIds     = trim((string) Tools::getValue('collection_product_ids'));
+            $productIds = array_filter(array_map('intval', explode(',', $rawIds)));
+            if ($name !== '' && count($productIds) >= 2) {
+                (new CollectionManager($this))->create($name, $productIds);
+            }
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-collection-section');
+        }
+
+        // ── Collection : activer/désactiver ──────────────────────
+        if (Tools::getValue('neria_action') === 'collection_toggle' && class_exists('CollectionManager')) {
+            $id  = (int) Tools::getValue('collection_id');
+            $mgr = new CollectionManager($this);
+            $col = $mgr->getById($id);
+            if ($col) {
+                $mgr->update($id, $col['name'], json_decode($col['product_ids'], true), !(bool) $col['active']);
+            }
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-collection-section');
+        }
+
+        // ── Collection : supprimer ────────────────────────────────
+        if (Tools::getValue('neria_action') === 'collection_delete' && class_exists('CollectionManager')) {
+            $id = (int) Tools::getValue('collection_id');
+            if ($id > 0) {
+                (new CollectionManager($this))->delete($id);
+            }
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-collection-section');
+        }
+
+        // ── Upsell : toggle activer/désactiver ───────────────────
+        if (Tools::getValue('neria_action') === 'upsell_toggle') {
+            $current = (bool) Configuration::getGlobalValue('NERIA_UPSELL_ENABLED');
+            Configuration::updateGlobalValue('NERIA_UPSELL_ENABLED', $current ? 0 : 1);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-upsell-section');
+        }
+
+        // ── Upsell : aperçu AJAX d'un produit suggéré ────────────
+        if (Tools::getValue('neria_action') === 'upsell_preview' && class_exists('UpsellManager')) {
+            // Accepte le numéro interne (ex: 12) OU la référence (ex: NER-000123)
+            $query   = trim((string) Tools::getValue('order_q', (string) Tools::getValue('id_order', '')));
+            $idOrder = 0;
+            if ($query !== '') {
+                if (ctype_digit($query)) {
+                    $idOrder = (int) $query;
+                } else {
+                    $row = Db::getInstance()->getRow(
+                        'SELECT `id_order` FROM `' . _DB_PREFIX_ . 'orders`
+                         WHERE `reference` = \'' . pSQL($query) . '\'
+                         ORDER BY `id_order` DESC'
+                    );
+                    $idOrder = (int) ($row['id_order'] ?? 0);
+                }
+            }
+            // La commande existe-t-elle réellement ? (distingue « introuvable »
+            // de « trouvée mais sans suggestion »)
+            $orderExists = $idOrder > 0 && (bool) Db::getInstance()->getValue(
+                'SELECT 1 FROM `' . _DB_PREFIX_ . 'orders` WHERE `id_order` = ' . $idOrder
+            );
+
+            if (!$orderExists) {
+                die(json_encode(['status' => 'not_found']));
+            }
+
+            $idLang = (int) $this->context->language->id;
+            $result = ['status' => 'no_suggestion'];
+            try {
+                $upsellMgr = new UpsellManager($this);
+                $upsell    = $upsellMgr->getUpsellProduct($idOrder, $idLang);
+                if ($upsell) {
+                    // Renvoie le bloc HTML EXACT inséré dans l'email du client
+                    $result = [
+                        'status' => 'found',
+                        'html'   => $upsellMgr->buildHtmlBlock($upsell, new ConfigManager($this)),
+                    ];
+                }
+            } catch (\Throwable $e) {
+                $result = ['status' => 'error', 'message' => $e->getMessage()];
+            }
+
+            die(json_encode($result));
+        }
+
+        // ── RGPD : chiffrement des enregistrements existants ─────
+        if (Tools::getValue('neria_action') === 'gdpr_encrypt_all' && class_exists('GdprAuditManager')) {
+            $done = (new GdprAuditManager(__DIR__))->encryptExistingRecords();
+            if (class_exists('WatchdogManager')) {
+                (new WatchdogManager($this))->info(
+                    sprintf('Chiffrement rétroactif : %d enregistrement(s) de rendered_vars chiffré(s) avec AES-256-GCM.', $done),
+                    '', 'RGPD'
+                );
+            }
+            $this->context->smarty->assign('neria_success', sprintf('%d enregistrement(s) chiffré(s) avec succès.', $done));
+        }
+
+        // ── Fidélité : activation / désactivation ────────────────
+        if (Tools::getValue('neria_action') === 'loyalty_toggle') {
+            $current = (bool) Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED');
+            Configuration::updateGlobalValue('NERIA_LOYALTY_ENABLED', $current ? 0 : 1);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=configure#neria-loyalty-section');
+        }
+
+        // ── Fidélité : sauvegarde des paliers ─────────────────
+        if (Tools::getValue('neria_action') === 'save_loyalty_tiers' && class_exists('LoyaltyManager')) {
+            $tiers = [];
+            $keys  = ['bronze', 'silver', 'gold'];
+            foreach ($keys as $k) {
+                $tiers[] = [
+                    'key'        => $k,
+                    'name'       => pSQL(Tools::getValue('loyalty_name_' . $k, ucfirst($k))),
+                    'points'     => max(1, (int) Tools::getValue('loyalty_points_' . $k, 50)),
+                    'amount'     => max(0.01, (float) Tools::getValue('loyalty_amount_' . $k, 5)),
+                    'is_percent' => (bool) Tools::getValue('loyalty_percent_' . $k, 0),
+                ];
+            }
+            (new LoyaltyManager($this))->saveTiers($tiers);
+            $this->context->smarty->assign('neria_success', 'Paliers de fidélité enregistrés.');
+        }
+
+        // ── Campagnes saisonnières : créer / modifier ─────────────
+        if (Tools::getValue('neria_action') === 'save_seasonal_campaign' && class_exists('SeasonalCampaignManager')) {
+            $mgr = new SeasonalCampaignManager($this);
+            $id  = (int) Tools::getValue('id_campaign', 0);
+            $data = [
+                'name'           => Tools::getValue('seasonal_name', ''),
+                'template'       => Tools::getValue('seasonal_template', ''),
+                'annual_date'    => Tools::getValue('seasonal_annual_date', '01-01'),
+                'days_before'    => (int) Tools::getValue('seasonal_days_before', 0),
+                'is_active'      => (int) (bool) Tools::getValue('seasonal_is_active', 1),
+                'target_segment' => implode(',', array_filter((array) Tools::getValue('seasonal_segments', []))),
+                'target_gender'  => (int) Tools::getValue('seasonal_gender', 0),
+                'target_lang'    => implode(',', array_filter((array) Tools::getValue('seasonal_langs', []))),
+                'min_age'        => (int) Tools::getValue('seasonal_min_age', 0),
+                'max_age'        => (int) Tools::getValue('seasonal_max_age', 0),
+                'gift_mode'      => (int) (bool) Tools::getValue('seasonal_gift_mode', 0),
+            ];
+            if ($id > 0) {
+                $mgr->update($id, $data);
+                $this->context->smarty->assign('neria_success', 'Campagne mise à jour.');
+            } else {
+                $mgr->create($data);
+                $this->context->smarty->assign('neria_success', 'Campagne créée.');
+            }
+        }
+
+        // ── Campagnes saisonnières : supprimer ────────────────────
+        if (Tools::getValue('neria_action') === 'delete_seasonal_campaign' && class_exists('SeasonalCampaignManager')) {
+            $id = (int) Tools::getValue('id_campaign', 0);
+            if ($id > 0) {
+                (new SeasonalCampaignManager($this))->delete($id);
+                $this->context->smarty->assign('neria_success', 'Campagne supprimée.');
+            }
+        }
+
+        // ── Campagnes saisonnières : activer / désactiver ─────────
+        if (Tools::getValue('neria_action') === 'toggle_seasonal_campaign' && class_exists('SeasonalCampaignManager')) {
+            $id = (int) Tools::getValue('id_campaign', 0);
+            if ($id > 0) {
+                (new SeasonalCampaignManager($this))->toggle($id);
+            }
+        }
+
+        // ── Bounces : sauvegarde configuration ───────────────────────
+        if (Tools::getValue('neria_action') === 'save_bounce_config' && class_exists('BounceManager')) {
+            Configuration::updateValue(BounceManager::CFG_ENABLED,        (int)    Tools::getValue('bounce_enabled', 0));
+            Configuration::updateValue(BounceManager::CFG_IMAP_HOST,      (string) Tools::getValue('bounce_imap_host', ''));
+            Configuration::updateValue(BounceManager::CFG_IMAP_PORT,      (int)    Tools::getValue('bounce_imap_port', 993));
+            Configuration::updateValue(BounceManager::CFG_IMAP_USER,      (string) Tools::getValue('bounce_imap_user', ''));
+            $pass = (string) Tools::getValue('bounce_imap_pass', '');
+            if ($pass !== '') {
+                Configuration::updateValue(BounceManager::CFG_IMAP_PASS,  $pass);
+            }
+            Configuration::updateValue(BounceManager::CFG_IMAP_SSL,       (int)    Tools::getValue('bounce_imap_ssl', 1));
+            Configuration::updateValue(BounceManager::CFG_IMAP_FOLDER,    (string) Tools::getValue('bounce_imap_folder', 'INBOX'));
+            Configuration::updateValue(BounceManager::CFG_SOFT_THRESHOLD, max(1, (int) Tools::getValue('bounce_soft_threshold', 3)));
+            $secret = (string) Tools::getValue('bounce_webhook_secret', '');
+            if ($secret !== '') {
+                Configuration::updateValue(BounceManager::CFG_WEBHOOK_SECRET, $secret);
+            }
+            $this->context->smarty->assign('neria_success', 'Configuration des bounces enregistrée.');
+        }
+
+        // ── Bounces : test connexion IMAP (AJAX) ─────────────────────
+        if (Tools::getValue('neria_action') === 'test_imap_connection' && class_exists('BounceManager')) {
+            // Précharge les valeurs du formulaire avant de tester
+            Configuration::updateValue(BounceManager::CFG_IMAP_HOST,   (string) Tools::getValue('bounce_imap_host', ''));
+            Configuration::updateValue(BounceManager::CFG_IMAP_PORT,   (int)    Tools::getValue('bounce_imap_port', 993));
+            Configuration::updateValue(BounceManager::CFG_IMAP_USER,   (string) Tools::getValue('bounce_imap_user', ''));
+            $p = (string) Tools::getValue('bounce_imap_pass', '');
+            if ($p !== '') {
+                Configuration::updateValue(BounceManager::CFG_IMAP_PASS, $p);
+            }
+            Configuration::updateValue(BounceManager::CFG_IMAP_SSL,    (int) Tools::getValue('bounce_imap_ssl', 1));
+            Configuration::updateValue(BounceManager::CFG_IMAP_FOLDER, (string) Tools::getValue('bounce_imap_folder', 'INBOX'));
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode((new BounceManager($this))->testImapConnection());
+            exit;
+        }
+
+        // ── Bounces : lancer le check IMAP maintenant ────────────────
+        if (Tools::getValue('neria_action') === 'run_bounce_check' && class_exists('BounceManager')) {
+            $result = (new BounceManager($this))->checkBounceMailbox();
+            $this->context->smarty->assign('bounce_run_result', $result);
+        }
+
+        // ── Bounces : ajouter manuellement ───────────────────────────
+        if (Tools::getValue('neria_action') === 'add_manual_bounce' && class_exists('BounceManager')) {
+            $email = trim((string) Tools::getValue('bounce_email', ''));
+            $type  = Tools::getValue('bounce_type', 'hard') === 'soft' ? 'soft' : 'hard';
+            if ($email !== '') {
+                (new BounceManager($this))->addManualBounce($email, $type);
+                $this->context->smarty->assign('neria_success', "Adresse $email ajoutée en $type bounce.");
+            }
+        }
+
+        // ── Bounces : ignorer / réactiver / supprimer ────────────────
+        if (in_array(Tools::getValue('neria_action'), ['ignore_bounce', 'reactivate_bounce', 'delete_bounce'], true)
+            && class_exists('BounceManager')) {
+            $email = trim((string) Tools::getValue('bounce_email', ''));
+            $mgr   = new BounceManager($this);
+            $action = Tools::getValue('neria_action');
+            if ($email !== '') {
+                if ($action === 'ignore_bounce') {
+                    $mgr->ignoreBounce($email);
+                } elseif ($action === 'reactivate_bounce') {
+                    $mgr->reactivateBounce($email);
+                } else {
+                    $mgr->deleteBounce($email);
+                }
+            }
+        }
+
+        // ── Certificat : configuration ────────────────────────────
+        if (Tools::getValue('neria_action') === 'cert_save_config' && class_exists('CertificateManager')) {
+            Configuration::updateGlobalValue(CertificateManager::CFG_ENABLED,       (int)    Tools::getValue('cert_enabled', 0));
+            Configuration::updateGlobalValue(CertificateManager::CFG_SERIAL_PREFIX, pSQL(trim((string) Tools::getValue('cert_prefix', 'CERT'))));
+            Configuration::updateGlobalValue(CertificateManager::CFG_TITLE,         pSQL(trim((string) Tools::getValue('cert_title', ''))));
+            Configuration::updateGlobalValue(CertificateManager::CFG_SUBTITLE,      pSQL(trim((string) Tools::getValue('cert_subtitle', ''))));
+            Configuration::updateGlobalValue(CertificateManager::CFG_BODY,          pSQL(trim((string) Tools::getValue('cert_body', ''))));
+            Configuration::updateGlobalValue(CertificateManager::CFG_QR_ENABLED,    (int) Tools::getValue('cert_qr_enabled', 0));
+            Configuration::updateGlobalValue(CertificateManager::CFG_QR_URL,        pSQL(trim((string) Tools::getValue('cert_qr_url', ''))));
+            $this->context->smarty->assign('neria_success', 'Configuration du certificat enregistrée.');
+        }
+
+        // ── Certificat : émission depuis fiche commande ───────────
+        if (Tools::getValue('neria_action') === 'cert_issue' && class_exists('CertificateManager')) {
+            $idOrder       = (int) Tools::getValue('cert_id_order', 0);
+            $idProduct     = (int) Tools::getValue('cert_id_product', 0);
+            $idOrderDetail = (int) Tools::getValue('cert_id_order_detail', 0);
+            $serialOverride = trim((string) Tools::getValue('cert_serial', ''));
+            $artisanNote    = trim((string) Tools::getValue('cert_note', ''));
+            $sendEmail      = (bool) Tools::getValue('cert_send_email', 1);
+
+            if ($idOrder > 0 && $idProduct > 0) {
+                $err = (new CertificateManager($this))->issue(
+                    $idOrder, $idProduct, $idOrderDetail,
+                    $serialOverride, $artisanNote, $sendEmail
+                );
+                $this->context->smarty->assign(
+                    $err === '' ? 'neria_success' : 'neria_error',
+                    $err === '' ? 'Certificat émis avec succès.' : $err
+                );
+            }
+        }
+
+        // ── Certificat : re-téléchargement ────────────────────────
+        if (Tools::getValue('neria_action') === 'cert_download' && class_exists('CertificateManager')) {
+            $idCert = (int) Tools::getValue('id_certificate', 0);
+            if ($idCert > 0) {
+                $result = (new CertificateManager($this))->redownload($idCert);
+                if (isset($result['error'])) {
+                    $this->context->smarty->assign('neria_error', $result['error']);
+                } else {
+                    header('Content-Type: application/pdf');
+                    header('Content-Disposition: attachment; filename="' . $result['filename'] . '"');
+                    header('Content-Length: ' . strlen($result['content']));
+                    echo $result['content'];
+                    exit;
+                }
+            }
+        }
+
+        // ── Certificat : suppression ──────────────────────────────
+        if (Tools::getValue('neria_action') === 'cert_delete' && class_exists('CertificateManager')) {
+            $idCert = (int) Tools::getValue('id_certificate', 0);
+            if ($idCert > 0) {
+                (new CertificateManager($this))->delete($idCert);
+                $this->context->smarty->assign('neria_success', 'Certificat supprimé.');
+            }
+        }
+
+        // ── RGPD : rapport PDF (rendu HTML print-ready) ───────────
+        if (Tools::getValue('neria_action') === 'gdpr_pdf' && class_exists('GdprAuditManager')) {
+            $audit    = (new GdprAuditManager(__DIR__))->runAudit();
+            $shopName = Configuration::get('PS_SHOP_NAME') ?: 'Boutique';
+            $html     = (new GdprAuditManager(__DIR__))->generateReport($audit, $shopName);
+            echo $html;
+            exit;
+        }
+
+        // ── Surveillance actions POST silencieuses ────────────────
+        // Si une action a été soumise mais n'a assigné ni neria_success
+        // ni neria_error, le marchand ne voit rien — on le logue.
+        $this->checkSilentPostAction();
 
         // Détermine l'onglet actif (par défaut : configure)
         $activeTab = Tools::getValue('neria_tab', 'configure');
@@ -456,22 +2586,39 @@ class Neria extends Module
         $signature = new SignatureGenerator($this);
 
         // ── Variables communes à tous les onglets ─────────────────
+        // neria_msg_action : action POST qui vient d'être traitée. Écrite sur la
+        // bannière de message (data-neria-action) pour que le JS la repositionne
+        // dans la section concernée — robuste même au rechargement (Ctrl+F5).
         $this->context->smarty->assign([
+            'link'             => $this->context->link,
             'neria_version'    => self::VERSION,
             'neria_module_dir' => $this->_path,
             'neria_active_tab' => $activeTab,
+            'neria_msg_action' => (string) Tools::getValue('neria_action'),
+            'neria_bo_lang'    => AdminTranslator::currentLang(),
+            'neria_bo_dir'     => AdminTranslator::dir(),
             'neria_active'     => $config->isActive(),
             'auto_lang_enabled' => $config->isAutoLangEnabled(),
             'log_internal_enabled' => $config->isInternalLogEnabled(),
-            'voucher_validity'  => $config->getVoucherValidity(),
+            'voucher_validity'      => $config->getVoucherValidity(),
+            'cooldown_enabled'      => $config->isCooldownEnabled(),
+            'cooldown_minutes'      => $config->getCooldownMinutes(),
+            'carbon_enabled'        => $config->isCarbonEnabled(),
+            'carbon_link'           => $config->getCarbonLink(),
+            'senders_config'        => $config->getAllSenders(),
+            'blacklist'             => (new BlacklistManager())->getAll(),
+            'report_enabled'    => $this->getReportEnabledConfig(),
+            'report_recipients' => (string) Configuration::get(MonthlyReportManager::CONFIG_RECIPIENTS),
+            'report_last_sent'  => (string) Configuration::get(MonthlyReportManager::CONFIG_LAST_SENT),
             'neria_tabs'       => $this->getBackOfficeTabs(),
 
             // Libellés et drapeaux des 18 langues supportées
             'lang_labels'      => NeriaTools::getLangLabels(),
             'lang_flags'       => NeriaTools::getLangFlags(),
 
-            // Libellés des 107 templates
-            'template_labels'  => NeriaTools::getTemplateLabels(),
+            // Libellés des 108 templates, traduits dans la langue du BO
+            // (repli sur le nom français canonique si une trad manque)
+            'template_labels'  => AdminTranslator::templateLabels(),
 
             // Configuration design (couleurs, logo, typo…)
             'design'           => $config->getDesignConfig(),
@@ -492,8 +2639,29 @@ class Neria extends Module
             'kpis'             => $stats->getKpis(30),
 
             // Rapports complets pour stats.tpl ($stats.kpis, $stats.global_30, etc.)
-            'stats'            => $stats->getCachedReports(),
+            'stats'            => (function () use ($stats): array {
+                $statsDays = (int) Tools::getValue('stats_days', 30);
+                $cached    = $stats->getCachedReports();
+                // Injecte la clé 'kpis' selon la période sélectionnée
+                if ($statsDays === 7 && !empty($cached['kpis_7'])) {
+                    $cached['kpis'] = $cached['kpis_7'];
+                } elseif (!empty($cached['kpis_30'])) {
+                    $cached['kpis'] = $cached['kpis_30'];
+                } else {
+                    $cached['kpis'] = $stats->getKpis($statsDays);
+                }
+                return $cached;
+            })(),
             'stats_days'       => (int) Tools::getValue('stats_days', 30),
+            'golden_hour'      => (new GoldenHourManager())->getRecommendations(90),
+            'revenue'          => (new StatsManager($this))->getRevenueStats(90),
+            'currency_symbol'  => $this->context->currency->sign ?? '€',
+
+            // Graphique CA par catégorie — 4 périodes (stats.tpl)
+            'revenue_chart_7'   => json_encode($stats->getRevenueDailyByCategory(7)),
+            'revenue_chart_30'  => json_encode($stats->getRevenueDailyByCategory(30)),
+            'revenue_chart_90'  => json_encode($stats->getRevenueDailyByCategory(90)),
+            'revenue_chart_365' => json_encode($stats->getRevenueDailyByCategory(365)),
 
             // Prochaines occasions calendaires (onglet configure)
             'upcoming_events'  => $calendar->getUpcomingDates(),
@@ -515,9 +2683,22 @@ class Neria extends Module
 
             // Diagnostic complet pour l'onglet Aide
             'diagnostic'       => NeriaTools::getDiagnosticReport($this),
+            'health_results'   => (new HealthCheckManager($this))->getLastResults(),
+            'health_last_run'  => (string) Configuration::get(HealthCheckManager::CONFIG_LAST_RUN),
 
-            // Journal watchdog pour l'onglet Aide
-            'logs'             => (new WatchdogManager($this))->getLogs(100),
+            // Alertes email Watchdog
+            'alert_email'      => (string) Configuration::getGlobalValue(WatchdogManager::CFG_ALERT_EMAIL),
+            'alert_immediate'  => (bool) Configuration::getGlobalValue(WatchdogManager::CFG_ALERT_IMMEDIATE),
+            'alert_digest'     => (bool) Configuration::getGlobalValue(WatchdogManager::CFG_ALERT_DIGEST),
+
+            // URL d'urgence Watchdog (page autonome sans PS)
+            'emergency_token'  => (string) Configuration::getGlobalValue('NERIA_EMERGENCY_TOKEN'),
+            'emergency_url'    => Tools::getShopDomainSsl(true)
+                . __PS_BASE_URI__ . 'modules/neria/neria-emergency.php?token='
+                . urlencode((string) Configuration::getGlobalValue('NERIA_EMERGENCY_TOKEN')),
+
+            // Journal watchdog pour l'onglet Aide — messages traduits à l'affichage
+            'logs'             => $this->translateWatchdogLogs((new WatchdogManager($this))->getLogs(100)),
             'log_counts'       => (new WatchdogManager($this))->getCountByLevel(),
             'log_templates'    => (new WatchdogManager($this))->getTemplatesWithErrors(),
 
@@ -533,7 +2714,305 @@ class Neria extends Module
             'tests_status'       => $this->getAbtestStatusMap(new ABTestManager($this)),
             'tests_data'         => $this->getAbtestDataMap(new ABTestManager($this)),
             'ab_reports'         => $this->getAbtestReportsMap($stats, new ABTestManager($this)),
-        ]);
+
+            // Rapport A/B focalisé — utilisé par stats.tpl quand on arrive via "Voir les stats"
+            'abtest_focus_key'   => preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('abtest_template', '')),
+
+            // Variables pour calendar.tpl
+            'calendar_events'     => Db::getInstance()->executeS(
+                'SELECT * FROM `' . _DB_PREFIX_ . 'neria_calendar_event`
+                 WHERE `id_shop` = ' . (int) $this->context->shop->id . '
+                 ORDER BY `event_key` ASC, `lang` ASC'
+            ),
+            'calendar_templates'  => $this->getCalendarTemplatesList(),
+            'calendar_known_keys' => $this->getCalendarKnownKeys(),
+
+            // Variables pour webhooks.tpl
+            'webhook_url'         => (string) Configuration::get(WebhookManager::CONFIG_URL),
+            'webhook_secret'      => (string) Configuration::get(WebhookManager::CONFIG_SECRET),
+            'webhook_events'      => json_decode(
+                (string) Configuration::get(WebhookManager::CONFIG_EVENTS), true
+            ) ?? [],
+            'webhook_all_events'  => WebhookManager::ALL_EVENTS,
+            'webhook_deliveries'  => (new WebhookManager($this))->getRecentDeliveries(10),
+
+            // Variables pour segments.tpl
+            'segment_counts'      => class_exists('SegmentManager')
+                ? (new SegmentManager($this))->getSegmentCounts()
+                : [],
+            'segment_customers'   => (function () use ($activeTab) {
+                if (!class_exists('SegmentManager')) {
+                    return [];
+                }
+                $seg = (string) Tools::getValue('filter_segment', '');
+                if ($seg === '' && $activeTab === 'segments') {
+                    $seg = SegmentManager::AMBASSADOR;
+                }
+                return $seg !== '' ? (new SegmentManager($this))->getCustomersBySegment($seg, 50) : [];
+            })(),
+            'segment_filter'      => (string) Tools::getValue('filter_segment', SegmentManager::AMBASSADOR),
+            'segment_all'         => class_exists('SegmentManager') ? SegmentManager::getAllSegments() : [],
+            'segment_campaign_templates' => class_exists('SegmentManager') ? SegmentManager::CAMPAIGN_TEMPLATES : [],
+            'segment_recommended' => class_exists('SegmentManager') ? SegmentManager::RECOMMENDED_TEMPLATES : [],
+            'segment_languages'   => [
+                ['iso' => 'fr', 'name' => 'Français'],
+                ['iso' => 'en', 'name' => 'English'],
+                ['iso' => 'de', 'name' => 'Deutsch'],
+                ['iso' => 'it', 'name' => 'Italiano'],
+                ['iso' => 'es', 'name' => 'Español'],
+                ['iso' => 'pt', 'name' => 'Português (PT)'],
+                ['iso' => 'br', 'name' => 'Português (BR)'],
+                ['iso' => 'ar', 'name' => 'العربية'],
+                ['iso' => 'ja', 'name' => '日本語'],
+                ['iso' => 'ko', 'name' => '한국어'],
+                ['iso' => 'zh', 'name' => '中文简体'],
+                ['iso' => 'tw', 'name' => '中文繁體'],
+                ['iso' => 'ru', 'name' => 'Русский'],
+                ['iso' => 'tr', 'name' => 'Türkçe'],
+                ['iso' => 'sv', 'name' => 'Svenska'],
+                ['iso' => 'no', 'name' => 'Norsk'],
+                ['iso' => 'da', 'name' => 'Dansk'],
+                ['iso' => 'nl', 'name' => 'Nederlands'],
+            ],
+            'segment_countries'   => $this->getSegmentCountries(),
+            'segment_slots'       => [
+                'morning'   => 'Matin (6h–12h)',
+                'afternoon' => 'Après-midi (12h–18h)',
+                'evening'   => 'Soir (18h–22h)',
+                'night'     => 'Nuit (22h–6h)',
+            ],
+
+            // Variables pour la section Churn dans segments.tpl
+            'churn_high_risk'     => class_exists('ChurnScoreManager')
+                ? (new ChurnScoreManager($this))->getHighRiskCustomers(30)
+                : [],
+            'churn_threshold'     => ChurnScoreManager::HIGH_RISK_THRESHOLD ?? 70,
+
+            // Variables CLV — potentiel client 12 mois (segments.tpl + fiche client)
+            'clv_top_customers'   => ($activeTab === 'segments' && class_exists('ClvManager'))
+                ? (new ClvManager($this))->getTopCustomers(20)
+                : [],
+
+            // Variables pour la section Score de propension (onglet Statistiques)
+            'propensity_enabled'     => (bool) Configuration::getGlobalValue('NERIA_PROPENSITY_ENABLED'),
+            'propensity_alerts'      => class_exists('PropensityScoreManager')
+                ? (new PropensityScoreManager($this))->getAlertCustomers(20)
+                : [],
+            'propensity_threshold'   => PropensityScoreManager::ALERT_THRESHOLD,
+
+            // Fenêtre d'achat individuelle (onglet Statistiques)
+            'purchase_window_enabled' => (bool) Configuration::getGlobalValue('NERIA_PURCHASE_WINDOW_ENABLED'),
+            'purchase_window_stats'   => class_exists('QueueManager')
+                ? (new QueueManager($this))->getStats()
+                : ['pending' => 0, 'sent_30d' => 0, 'failed_30d' => 0, 'avg_delay_min' => null, 'coverage_pct' => 0, 'peak_hour' => null],
+
+            // Variables pour la section Rappel fin de vie produit (onglet Statistiques)
+            'lifespan_enabled'  => (bool) Configuration::getGlobalValue('NERIA_LIFESPAN_ENABLED'),
+            'lifespan_products' => Db::getInstance()->executeS(
+                'SELECT pl.id_lifespan, pl.id_product, pl.lifespan_days, pl.alert_days,
+                        pla.name AS product_name, p.reference
+                 FROM `' . _DB_PREFIX_ . 'neria_product_lifespan` pl
+                 LEFT JOIN `' . _DB_PREFIX_ . 'product` p ON p.id_product = pl.id_product
+                 LEFT JOIN `' . _DB_PREFIX_ . 'product_lang` pla
+                      ON pla.id_product = pl.id_product
+                      AND pla.id_lang = ' . (int) $this->context->language->id . '
+                      AND pla.id_shop = pl.id_shop
+                 WHERE pl.id_shop = ' . (int) $this->context->shop->id . '
+                 ORDER BY pla.name ASC'
+            ) ?: [],
+
+            // Variables pour la section Réconciliation post-remboursement (onglet Statistiques)
+            'reconciliation_enabled' => (bool) Configuration::getGlobalValue('NERIA_REFUND_RECONCILIATION_ENABLED'),
+            'reconciliation_stats'   => Db::getInstance()->getRow(
+                'SELECT
+                    COUNT(*) AS total,
+                    SUM(sent_1) AS step1_sent,
+                    SUM(sent_2) AS step2_sent,
+                    SUM(sent_3) AS step3_sent,
+                    SUM(IF(status = \'cancelled\', 1, 0)) AS cancelled,
+                    SUM(IF(status = \'active\' AND sent_3 = 1, 1, 0)) AS completed
+                 FROM `' . _DB_PREFIX_ . 'neria_reconciliation`'
+            ) ?: ['total' => 0, 'step1_sent' => 0, 'step2_sent' => 0, 'step3_sent' => 0, 'cancelled' => 0, 'completed' => 0],
+
+            // Variables pour la section Devis B2B (onglet Statistiques)
+            'quote_reminders_enabled' => (bool) Configuration::getGlobalValue('NERIA_QUOTE_REMINDERS_ENABLED'),
+            'quote_stats'             => class_exists('BehavioralCronManager')
+                ? (new BehavioralCronManager($this))->getQuoteStats()
+                : ['total_quotes' => 0, 'quotes_won' => 0, 'quotes_active' => 0, 'quotes_lost' => 0, 'revenue_won' => 0.0, 'win_rate' => 0.0],
+            'quote_list'              => Db::getInstance()->executeS(
+                'SELECT q.*, CONCAT(c.firstname, " ", c.lastname) AS customer_name, c.email
+                 FROM `' . _DB_PREFIX_ . 'neria_quote` q
+                 LEFT JOIN `' . _DB_PREFIX_ . 'customer` c ON c.id_customer = q.id_customer
+                 ORDER BY q.expiry_date ASC LIMIT 50'
+            ) ?: [],
+
+            'look_completion_enabled'   => (bool) Configuration::getGlobalValue('NERIA_LOOK_COMPLETION_ENABLED'),
+            'collection_completion_enabled' => (bool) Configuration::getGlobalValue('NERIA_COLLECTION_COMPLETION_ENABLED'),
+
+            // Variables pour la section Complétez votre look
+            'look_rules'      => class_exists('LookCompletionManager')
+                ? (new LookCompletionManager($this))->getAllRules()
+                : [],
+            'look_stats'      => class_exists('LookCompletionManager')
+                ? (new LookCompletionManager($this))->getStats()
+                : ['rules' => 0, 'active' => 0, 'sent' => 0, 'sent30' => 0],
+            'look_categories' => class_exists('LookCompletionManager')
+                ? (new LookCompletionManager($this))->getCategories()
+                : [],
+
+            // Variables pour la section Complétion de collection
+            'collections'      => class_exists('CollectionManager')
+                ? (new CollectionManager($this))->getAll()
+                : [],
+            'collection_stats' => class_exists('CollectionManager')
+                ? (new CollectionManager($this))->getStats()
+                : ['total' => 0, 'active' => 0, 'sent' => 0, 'sentLast30' => 0],
+
+            // Variables pour la section Liste d'attente
+            'waitlist_enabled'           => (bool) Configuration::getGlobalValue('NERIA_WAITLIST_ENABLED'),
+            'waitlist_reservation_hours' => (int) Configuration::getGlobalValue('NERIA_WAITLIST_RESERVATION_HOURS') ?: 4,
+            'waitlist_stats'    => class_exists('WaitlistManager')
+                ? (new WaitlistManager($this))->getStats()
+                : ['subscribers' => 0, 'products' => 0, 'notified' => 0, 'notified30' => 0],
+            'waitlist_top_products' => class_exists('WaitlistManager')
+                ? (new WaitlistManager($this))->getTopProducts(10)
+                : [],
+
+            // Panier fantôme récurrent
+            'ghost_cart_enabled' => (bool) Configuration::getGlobalValue('NERIA_GHOST_CART_ENABLED'),
+
+            // Variables pour la section Abandon de Caisse dans send.tpl
+            'relationship_anniversary_enabled' => (bool) Configuration::getGlobalValue('NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED'),
+            'relationship_anniversary_stats'   => class_exists('BehavioralCronManager')
+                ? (new BehavioralCronManager($this))->getRelationshipAnniversaryStats()
+                : ['emails_sent' => 0, 'orders_attributed' => 0, 'revenue_attributed' => 0.0, 'avg_order_value' => 0.0],
+
+            'checkout_abandonment_enabled' => (bool) Configuration::getGlobalValue('NERIA_CHECKOUT_ABANDONMENT_ENABLED'),
+            'checkout_abandonment_stats'   => class_exists('BehavioralCronManager')
+                ? (new BehavioralCronManager($this))->getCheckoutAbandonmentStats()
+                : ['emails_sent' => 0, 'orders_recovered' => 0, 'revenue_recovered' => 0.0, 'conversion_rate' => 0.0],
+
+            // Variables pour la section Upsell (onglet Statistiques)
+            'upsell_enabled'      => (bool) Configuration::getGlobalValue('NERIA_UPSELL_ENABLED'),
+            'upsell_stats'        => class_exists('UpsellManager')
+                ? (new UpsellManager($this))->getStats(90)
+                : [],
+            'upsell_log'          => class_exists('UpsellManager')
+                ? (new UpsellManager($this))->getLog((int) $this->context->language->id, 30)
+                : [],
+            'upsell_action_url'   => $this->context->link->getAdminLink('AdminModules') . '&configure=' . $this->name,
+
+            // Réputation de domaine (onglet stats) — lecture du cache uniquement
+            'domain_reputation' => class_exists('DomainReputationManager')
+                ? (new DomainReputationManager($this))->getCachedReport()
+                : null,
+
+            // Variables pour la section Fidélité dans configure.tpl
+            'loyalty_enabled'     => (bool) Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED'),
+            'loyalty_tiers'       => class_exists('LoyaltyManager')
+                ? (new LoyaltyManager($this))->getTiers()
+                : LoyaltyManager::DEFAULT_TIERS,
+            'loyalty_global_stats' => class_exists('LoyaltyManager') && Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')
+                ? (new LoyaltyManager($this))->getGlobalStats()
+                : null,
+            'loyalty_top_customers' => class_exists('LoyaltyManager') && Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')
+                ? (new LoyaltyManager($this))->getTopCustomers(10)
+                : [],
+
+            // Variables pour seasonal.tpl (campagnes saisonnières)
+            'seasonal_campaigns'  => class_exists('SeasonalCampaignManager')
+                ? (new SeasonalCampaignManager($this))->getAll()
+                : [],
+            'seasonal_calendar'   => class_exists('SeasonalCampaignManager')
+                ? (new SeasonalCampaignManager($this))->getCalendarData()
+                : array_fill(1, 12, []),
+            'seasonal_edit'       => (function () {
+                $editId = (int) Tools::getValue('edit_campaign', 0);
+                if ($editId > 0 && class_exists('SeasonalCampaignManager')) {
+                    return (new SeasonalCampaignManager($this))->getById($editId);
+                }
+                return null;
+            })(),
+            'seasonal_edit_seg_map' => (function () {
+                $editId = (int) Tools::getValue('edit_campaign', 0);
+                if ($editId > 0 && class_exists('SeasonalCampaignManager')) {
+                    $c = (new SeasonalCampaignManager($this))->getById($editId);
+                    if ($c && $c['target_segment'] !== '') {
+                        return array_flip(array_filter(array_map('trim', explode(',', $c['target_segment']))));
+                    }
+                }
+                return [];
+            })(),
+            'seasonal_edit_lang_map' => (function () {
+                $editId = (int) Tools::getValue('edit_campaign', 0);
+                if ($editId > 0 && class_exists('SeasonalCampaignManager')) {
+                    $c = (new SeasonalCampaignManager($this))->getById($editId);
+                    if ($c && $c['target_lang'] !== '') {
+                        return array_flip(array_filter(array_map('trim', explode(',', $c['target_lang']))));
+                    }
+                }
+                return [];
+            })(),
+            'seasonal_templates'  => class_exists('ManualSendManager')
+                ? (new ManualSendManager($this))->getSendableTemplates()
+                : [],
+            'seasonal_segments'   => class_exists('SegmentManager')
+                ? SegmentManager::getAllSegments()
+                : [],
+            'ac'                  => $this->loadAcademyStrings(),
+            // ── Bounces ──────────────────────────────────────────────
+            'bounce_stats'          => class_exists('BounceManager') ? (new BounceManager($this))->getBounceStats() : [],
+            'bounce_enabled'        => (bool) Configuration::get(BounceManager::CFG_ENABLED),
+            'bounce_soft_threshold' => (int) Configuration::get(BounceManager::CFG_SOFT_THRESHOLD) ?: 3,
+            'bounce_webhook_url'    => class_exists('BounceManager') ? BounceManager::getWebhookUrl() : '',
+            'bounce_webhook_secret' => (string) Configuration::get(BounceManager::CFG_WEBHOOK_SECRET),
+            'bounce_cfg'            => [
+                'host'   => (string) Configuration::get(BounceManager::CFG_IMAP_HOST),
+                'port'   => (int)    Configuration::get(BounceManager::CFG_IMAP_PORT) ?: 993,
+                'user'   => (string) Configuration::get(BounceManager::CFG_IMAP_USER),
+                'pass'   => (string) Configuration::get(BounceManager::CFG_IMAP_PASS),
+                'ssl'    => (bool)   Configuration::get(BounceManager::CFG_IMAP_SSL),
+                'folder' => (string) Configuration::get(BounceManager::CFG_IMAP_FOLDER) ?: 'INBOX',
+            ],
+
+            // ── Certificats d'authenticité ───────────────────────────
+            'cert_enabled'     => (bool) Configuration::getGlobalValue(CertificateManager::CFG_ENABLED),
+            'cert_prefix'      => (string) Configuration::getGlobalValue(CertificateManager::CFG_SERIAL_PREFIX) ?: 'CERT',
+            'cert_title'       => (string) Configuration::getGlobalValue(CertificateManager::CFG_TITLE),
+            'cert_subtitle'    => (string) Configuration::getGlobalValue(CertificateManager::CFG_SUBTITLE),
+            'cert_body'        => (string) Configuration::getGlobalValue(CertificateManager::CFG_BODY),
+            'cert_qr_enabled'  => (bool) Configuration::getGlobalValue(CertificateManager::CFG_QR_ENABLED),
+            'cert_qr_url'      => (string) Configuration::getGlobalValue(CertificateManager::CFG_QR_URL),
+            'cert_list'        => class_exists('CertificateManager')
+                ? (new CertificateManager($this))->getAll(50)
+                : [],
+            'cert_count'       => class_exists('CertificateManager')
+                ? (new CertificateManager($this))->countAll()
+                : 0,
+        ] + $this->getBounceListVars());
+
+        // Charge le rapport A/B focalisé si un template est ciblé
+        $focusKey = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('abtest_template', ''));
+        if ($focusKey !== '' && class_exists('ABTestManager')) {
+            $abMgr = new ABTestManager($this);
+            $rows  = $abMgr->getTestsByTemplate($focusKey);
+            if ($rows) {
+                $focusData = [];
+                foreach ($rows as $row) {
+                    $focusData[strtolower($row['variant'])] = $row;
+                }
+                $focusReport = $stats->getABTestReport($focusKey);
+                $focusReport['significance'] = $stats->computeSignificance(
+                    $focusReport['A'] ?? [],
+                    $focusReport['B'] ?? []
+                );
+                $this->context->smarty->assign([
+                    'abtest_focus'        => $focusData,
+                    'abtest_focus_report' => $focusReport,
+                    'abtest_focus_label'  => AdminTranslator::templateLabels()[$focusKey] ?? $focusKey,
+                ]);
+            }
+        }
 
         // ── Réseaux sociaux ───────────────────────────────────────
         $this->context->smarty->assign('social_networks', [
@@ -569,6 +3048,46 @@ class Neria extends Module
             ],
         ]);
 
+        // ── Onglet « Historique clients » : client sélectionné ────
+        if ($activeTab === 'customer_history') {
+            $this->prepareCustomerHistoryTab();
+
+            // Recherche via formulaire GET (neria_hist_q)
+            $histQ = trim((string) Tools::getValue('neria_hist_q', ''));
+            if ($histQ !== '') {
+                $results = strlen($histQ) >= 2 ? $this->searchCustomersForHistory($histQ) : [];
+                // URL de base pour les liens résultats (sans neria_hist_q)
+                $baseUrl = $_SERVER['REQUEST_URI'] ?? '';
+                $baseUrl = preg_replace('/&?neria_hist_q=[^&]*/', '', $baseUrl);
+                $baseUrl = rtrim($baseUrl, '?&');
+                $this->context->smarty->assign([
+                    'neria_hist_q'              => $histQ,
+                    'neria_hist_search_results' => $results,
+                    'neria_hist_search_base'    => $baseUrl,
+                ]);
+            }
+        }
+
+        // ── Onglet « Prévisualisation multi-client » ──────────────
+        if ($activeTab === 'multipreview' && class_exists('MultiClientPreviewManager')) {
+            $mpMgr = new MultiClientPreviewManager();
+            $this->context->smarty->assign([
+                'mp_clients'    => MultiClientPreviewManager::CLIENTS,
+                'mp_has_litmus' => $mpMgr->hasLitmusKey(),
+                'mp_has_eoa'    => $mpMgr->hasEoaKey(),
+                'mp_litmus_key' => $mpMgr->hasLitmusKey() ? '••••••••' : '',
+                'mp_eoa_key'    => $mpMgr->hasEoaKey()    ? '••••••••' : '',
+            ]);
+        }
+
+        // ── RGPD : audit chargé à la demande (onglet actif uniquement) ──
+        if ($activeTab === 'gdpr' && class_exists('GdprAuditManager')) {
+            $this->context->smarty->assign(
+                'gdpr_audit',
+                (new GdprAuditManager(__DIR__))->runAudit()
+            );
+        }
+
         // ── Rendu navigation + contenu ────────────────────────────
         $navigation = $this->renderTemplate('navigation.tpl');
         $content    = $this->renderTab($activeTab);
@@ -579,20 +3098,164 @@ class Neria extends Module
             . '</div>';
     }
 
+    /** Variables Smarty pour la liste paginée des bounces (onglet bounces). */
+    private function getBounceListVars(): array
+    {
+        if (!class_exists('BounceManager')) {
+            return ['bounce_list' => [], 'bounce_count' => 0, 'bounce_filter' => '', 'bounce_page' => 1, 'bounce_total_pages' => 1];
+        }
+        $mgr    = new BounceManager($this);
+        $filter = trim((string) Tools::getValue('nb_filter', ''));
+        $page   = max(1, (int) Tools::getValue('nb_page', 1));
+        $limit  = 25;
+        $offset = ($page - 1) * $limit;
+        $total  = $mgr->getBounceCount($filter);
+        return [
+            'bounce_list'        => $mgr->getBounceList($limit, $offset, $filter),
+            'bounce_count'       => $total,
+            'bounce_filter'      => $filter,
+            'bounce_page'        => $page,
+            'bounce_total_pages' => max(1, (int) ceil($total / $limit)),
+        ];
+    }
+
     /**
      * Envoie un email de test au marchand
      * Utilise le template "test" pour vérifier que le rendu fonctionne
      */
+    /**
+     * Génère un PDF du journal Watchdog et l'envoie par email.
+     * Retourne '' si succès, message d'erreur sinon.
+     */
+    private function sendWatchdogLogByEmail(): string
+    {
+        // Destinataire
+        $to = (string) Configuration::getGlobalValue(WatchdogManager::CFG_ALERT_EMAIL);
+        if ($to === '' || !Validate::isEmail($to)) {
+            $to = (string) Configuration::get('PS_SHOP_EMAIL');
+        }
+        if (!Validate::isEmail($to)) {
+            return 'Aucun email destinataire configuré.';
+        }
+
+        // Récupère les 200 derniers logs
+        $table = _DB_PREFIX_ . 'neria_log';
+        $idShop = (int) $this->context->shop->id;
+        $logs = Db::getInstance()->executeS(
+            "SELECT `date_add`, `level`, `class`, `template`, `message`
+             FROM `{$table}`
+             WHERE `id_shop` = {$idShop}
+             ORDER BY `date_add` DESC
+             LIMIT 200"
+        );
+        if (empty($logs)) {
+            return 'Le journal est vide.';
+        }
+
+        // Charge TCPDF (inclus dans PrestaShop)
+        $tcpdfPath = _PS_ROOT_DIR_ . '/vendor/tecnickcom/tcpdf/tcpdf.php';
+        if (!file_exists($tcpdfPath)) {
+            return 'TCPDF introuvable (' . $tcpdfPath . ').';
+        }
+        require_once $tcpdfPath;
+
+        $shopName   = (string) Configuration::get('PS_SHOP_NAME');
+        $shopDomain = Tools::getShopDomainSsl(true);
+        $now        = date('d/m/Y H:i');
+
+        // Génère le HTML du tableau
+        $rows = '';
+        $colors = ['error' => '#ffebee', 'critical' => '#fce4e4', 'warning' => '#fffde7', 'info' => '#ffffff'];
+        foreach ($logs as $log) {
+            $bg   = $colors[$log['level']] ?? '#ffffff';
+            $lvl  = strtoupper(htmlspecialchars($log['level']));
+            $msg  = htmlspecialchars(strip_tags(str_replace(['::i18n::'], '', $log['message'])));
+            $rows .= '<tr style="background:' . $bg . ';">'
+                . '<td style="padding:5px 8px;border-bottom:1px solid #eee;white-space:nowrap;font-size:9pt;">' . htmlspecialchars(substr($log['date_add'], 0, 16)) . '</td>'
+                . '<td style="padding:5px 8px;border-bottom:1px solid #eee;font-weight:700;font-size:9pt;">' . $lvl . '</td>'
+                . '<td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:9pt;">' . htmlspecialchars($log['class'] ?? '') . '</td>'
+                . '<td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:9pt;">' . htmlspecialchars($log['template'] ?? '—') . '</td>'
+                . '<td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:9pt;">' . $msg . '</td>'
+                . '</tr>';
+        }
+
+        $html = '<h2 style="color:#1a1a2e;font-family:sans-serif;border-bottom:2px solid #b38b59;padding-bottom:8px;">'
+            . 'Neria — Journal Watchdog</h2>'
+            . '<p style="font-family:sans-serif;font-size:10pt;color:#666;">'
+            . htmlspecialchars($shopName) . ' &mdash; ' . $shopDomain . ' &mdash; Exporté le ' . $now
+            . '</p>'
+            . '<table border="0" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">'
+            . '<thead><tr style="background:#1a1a2e;color:#ffffff;">'
+            . '<th style="padding:6px 8px;text-align:left;font-size:9pt;">Date</th>'
+            . '<th style="padding:6px 8px;text-align:left;font-size:9pt;">Niveau</th>'
+            . '<th style="padding:6px 8px;text-align:left;font-size:9pt;">Classe</th>'
+            . '<th style="padding:6px 8px;text-align:left;font-size:9pt;">Template</th>'
+            . '<th style="padding:6px 8px;text-align:left;font-size:9pt;">Message</th>'
+            . '</tr></thead><tbody>' . $rows . '</tbody></table>';
+
+        // Génère le PDF avec TCPDF
+        try {
+            $pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
+            $pdf->SetCreator('Neria');
+            $pdf->SetAuthor($shopName);
+            $pdf->SetTitle('Journal Watchdog Neria');
+            $pdf->SetMargins(10, 10, 10);
+            $pdf->SetAutoPageBreak(true, 10);
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+            $pdf->AddPage();
+            $pdf->writeHTML($html, true, false, true, false, '');
+            $pdfContent = $pdf->Output('watchdog.pdf', 'S');
+        } catch (\Throwable $e) {
+            return 'Erreur TCPDF : ' . $e->getMessage();
+        }
+
+        // Envoie l'email avec pièce jointe via mail() natif
+        $boundary  = '----=_NeriaBoundary_' . md5(uniqid());
+        $fromEmail = (string) Configuration::get('PS_SHOP_EMAIL') ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST);
+        $subject   = '[Neria] Journal Watchdog — ' . $shopName . ' — ' . $now;
+
+        $headers = "MIME-Version: 1.0\r\n"
+                 . "Content-Type: multipart/mixed; boundary=\"{$boundary}\"\r\n"
+                 . "From: Neria <{$fromEmail}>\r\n"
+                 . "X-Mailer: Neria-WatchdogExport/1.0\r\n";
+
+        $body = "--{$boundary}\r\n"
+              . "Content-Type: text/plain; charset=UTF-8\r\n"
+              . "Content-Transfer-Encoding: 8bit\r\n\r\n"
+              . "Bonjour,\r\n\r\nVeuillez trouver ci-joint le journal Watchdog Neria ({$shopName}).\r\n\r\nExporté le {$now}.\r\n\r\n"
+              . "--{$boundary}\r\n"
+              . "Content-Type: application/pdf; name=\"watchdog_neria_{$now}.pdf\"\r\n"
+              . "Content-Transfer-Encoding: base64\r\n"
+              . "Content-Disposition: attachment; filename=\"watchdog_neria_{$now}.pdf\"\r\n\r\n"
+              . chunk_split(base64_encode($pdfContent)) . "\r\n"
+              . "--{$boundary}--";
+
+        $sent = @mail($to, $subject, $body, $headers);
+        return $sent ? '' : 'La fonction mail() a retourné false. Vérifiez la configuration SMTP.';
+    }
+
     private function sendTestEmail(): void
     {
         $adminEmail = Configuration::get('PS_SHOP_EMAIL');
         $shopName   = Configuration::get('PS_SHOP_NAME');
-        $idLang     = (int) $this->context->language->id;
+
+        // La langue de test vient du picker Neria (neria_bo_lang) transmis dans l'URL.
+        // $this->context->language->id reflète l'employé en base (fr=1 si non changé),
+        // pas la langue affichée dans le BO (gérée côté client par PS).
+        $testLang = (string) Tools::getValue('neria_test_lang', '');
+        $supported = TranslationEngine::SUPPORTED_LANGS;
+        if ($testLang !== '' && in_array($testLang, $supported, true)) {
+            $resolvedId = (int) Language::getIdByIso($testLang);
+            $idLang     = $resolvedId > 0 ? $resolvedId : (int) $this->context->language->id;
+        } else {
+            $idLang = (int) $this->context->language->id;
+        }
 
         $result = Mail::Send(
             $idLang,
             'test',
-            $this->l('Email de test — Neria Luxury Email Suite'),
+            AdminTranslator::t('msg.test_subject'),
             [
                 '{firstname}' => 'Admin',
                 '{lastname}'  => '',
@@ -613,11 +3276,11 @@ class Neria extends Module
 
         if ($result) {
             $this->context->smarty->assign('neria_success',
-                $this->l('Email de test envoyé à ') . $adminEmail
+                AdminTranslator::t('msg.test_sent') . $adminEmail
             );
         } else {
             $this->context->smarty->assign('neria_error',
-                $this->l('Échec de l\'envoi. Vérifiez la configuration email de PrestaShop.')
+                AdminTranslator::t('msg.send_failed')
             );
         }
     }
@@ -679,15 +3342,25 @@ class Neria extends Module
     private function getBackOfficeTabs(): array
     {
         return [
-            'configure'    => $this->l('Accueil'),
-            'design'       => $this->l('Design'),
-            'typography'   => $this->l('Typographie'),
-            'translations' => $this->l('Traductions'),
-            'social'       => $this->l('Réseaux sociaux'),
-            'stats'        => $this->l('Statistiques'),
-            'abtest'       => $this->l('A/B Testing'),
-            'send'         => $this->l('Envoi manuel'),
-            'help'         => $this->l('Aide'),
+            'configure'      => AdminTranslator::t('nav.home'),
+            'design'         => AdminTranslator::t('nav.design'),
+            'typography'     => AdminTranslator::t('nav.typography'),
+            'translations'   => AdminTranslator::t('nav.translations'),
+            'social'         => AdminTranslator::t('nav.social'),
+            'stats'          => AdminTranslator::t('nav.stats'),
+            'abtest'         => AdminTranslator::t('nav.abtest'),
+            'send'           => AdminTranslator::t('nav.manual_send'),
+            'multipreview'   => AdminTranslator::t('nav.multipreview'),
+            'customer_history' => AdminTranslator::t('nav.customer_history'),
+            'calendar'         => AdminTranslator::t('nav.calendar'),
+            'webhooks'         => AdminTranslator::t('nav.webhooks'),
+            'segments'         => AdminTranslator::t('nav.segments'),
+            'seasonal'         => AdminTranslator::t('nav.seasonal'),
+            'bounces'          => AdminTranslator::t('nav.bounces'),
+            'gdpr'             => 'RGPD',
+            'academy'          => AdminTranslator::t('nav.academy'),
+            'certificates'     => AdminTranslator::t('nav.certificates'),
+            'help'           => AdminTranslator::t('nav.help'),
         ];
     }
 
@@ -705,7 +3378,115 @@ class Neria extends Module
             $tab = 'configure';
         }
 
+        $this->checkSmartyCriticalVars($tab);
+
         return $this->renderTemplate($tab . '.tpl');
+    }
+
+    /**
+     * Détecte les actions POST qui se terminent sans feedback (ni neria_success
+     * ni neria_error assigné à Smarty). Indique une action silencieuse — le
+     * marchand ne sait pas si ça a fonctionné.
+     */
+    private function checkSilentPostAction(): void
+    {
+        if (!class_exists('WatchdogManager')) {
+            return;
+        }
+
+        $action = (string) Tools::getValue('neria_action');
+        if ($action === '') {
+            return;
+        }
+
+        // Actions qui sortent via exit() ou redirect — pas de feedback Smarty attendu
+        $exitActions = [
+            'preview', 'send_test', 'search_customers', 'health_pixel_test',
+            'run_full_diagnostic', 'gdpr_pdf', 'cert_download',
+            'upsell_preview', 'test_imap_connection',
+        ];
+        if (in_array($action, $exitActions, true)) {
+            return;
+        }
+
+        $vars = $this->context->smarty->getTemplateVars();
+        $hasSuccess = !empty($vars['neria_success']);
+        $hasError   = !empty($vars['neria_error']);
+        $hasInfo    = !empty($vars['neria_info']);
+
+        if (!$hasSuccess && !$hasError && !$hasInfo) {
+            (new WatchdogManager($this))->warning(
+                '[BO] Action POST "' . $action . '" exécutée sans retour utilisateur'
+                . ' (ni neria_success, ni neria_error assigné). Le marchand ne voit pas le résultat.'
+            );
+        }
+    }
+
+    /**
+     * Vérifie que les variables Smarty critiques de l'onglet sont bien assignées.
+     * Log un WARNING dans le Watchdog pour chaque variable manquante ou nulle.
+     * Whitelist par onglet — seules les variables dont l'absence casse l'affichage.
+     */
+    private function checkSmartyCriticalVars(string $tab): void
+    {
+        if (!class_exists('WatchdogManager')) {
+            return;
+        }
+
+        static $whitelist = [
+            'stats' => [
+                'revenue_chart_7'   => 'Graphique CA 7j (getRevenueDailyByCategory)',
+                'revenue_chart_30'  => 'Graphique CA 30j (getRevenueDailyByCategory)',
+                'revenue_chart_90'  => 'Graphique CA 90j (getRevenueDailyByCategory)',
+                'revenue_chart_365' => 'Graphique CA 365j (getRevenueDailyByCategory)',
+                'stats'             => 'Rapports stats (getCachedReports)',
+                'kpis'              => 'KPIs 30j (getKpis)',
+                'revenue'           => 'Revenus 90j (getRevenueStats)',
+            ],
+            'configure' => [
+                'kpis'          => 'KPIs 30j (getKpis)',
+                'custom_vars'   => 'Variables personnalisées (getCustomVars)',
+                'upcoming_events' => 'Calendrier (getUpcomingDates)',
+            ],
+            'design' => [
+                'font_scripts'   => 'Scripts de polices (getAllScripts)',
+                'fonts_by_script' => 'Polices par script',
+            ],
+            'send' => [
+                'templates_list' => 'Liste des templates',
+                'currency_symbol' => 'Symbole devise',
+            ],
+            'abtest' => [
+                'ab_tests'   => 'Tests A/B actifs',
+                'ab_reports' => 'Rapports A/B',
+            ],
+            'segments' => [
+                'segments' => 'Segments comportementaux',
+            ],
+        ];
+
+        if (!isset($whitelist[$tab])) {
+            return;
+        }
+
+        $smartyVars = $this->context->smarty->getTemplateVars();
+        $missing    = [];
+
+        foreach ($whitelist[$tab] as $var => $desc) {
+            if (!array_key_exists($var, $smartyVars) || $smartyVars[$var] === null) {
+                $missing[] = "\${$var} ({$desc})";
+            }
+        }
+
+        if (empty($missing)) {
+            return;
+        }
+
+        (new WatchdogManager($this))->warning(
+            '[BO] Onglet "' . $tab . '" — variable(s) Smarty non assignée(s) : '
+            . implode(', ', $missing)
+            . '. Le rendu peut être incomplet.'
+        );
     }
 
     /**
@@ -730,12 +3511,16 @@ class Neria extends Module
      */
     private function installTab(): bool
     {
+        // Supprimer un éventuel tab existant avant de recréer
+        $this->uninstallTab();
+
         $tab             = new Tab();
         $tab->active     = 1;
         $tab->class_name = 'AdminNeria';
-        $tab->name       = [];
         $tab->module     = $this->name;
-        $tab->id_parent  = (int) Tab::getIdFromClassName('AdminParentModules');
+        $tab->icon       = 'email';
+        $tab->id_parent  = (int) Tab::getIdFromClassName('IMPROVE');
+        $tab->name       = [];
 
         foreach (Language::getLanguages(true) as $lang) {
             $tab->name[$lang['id_lang']] = 'Neria';
@@ -764,6 +3549,24 @@ class Neria extends Module
     // ============================================================
 
     /**
+     * Assigne le message d'une action « Relances Devis B2B ».
+     * Passe par la bannière globale (neria_success / neria_error) : le script de
+     * navigation.tpl la repositionne ensuite automatiquement dans la section où
+     * l'action a été déclenchée, et y défile — comportement uniforme sur tout le
+     * module, plus besoin de variables ni de bannière locales.
+     *
+     * @param string $type 'success' ou 'error'
+     * @param string $msg  Texte du message
+     */
+    private function assignQuoteMsg(string $type, string $msg): void
+    {
+        $this->context->smarty->assign(
+            $type === 'error' ? 'neria_error' : 'neria_success',
+            $msg
+        );
+    }
+
+    /**
      * Exécute un fichier SQL depuis le dossier sql/
      * Remplace PREFIX_ par le vrai préfixe de la BDD
      *
@@ -775,7 +3578,7 @@ class Neria extends Module
 
         if (!file_exists($filePath)) {
             $this->_errors[] = sprintf(
-                $this->l('Fichier SQL introuvable : %s'),
+                AdminTranslator::t('msg.sql_file_missing'),
                 $filename
             );
             return false;
@@ -796,7 +3599,7 @@ class Neria extends Module
         foreach ($queries as $query) {
             if (!Db::getInstance()->execute($query)) {
                 $this->_errors[] = sprintf(
-                    $this->l('Erreur SQL dans %s : %s'),
+                    AdminTranslator::t('msg.sql_error'),
                     $filename,
                     Db::getInstance()->getMsgError()
                 );
@@ -818,7 +3621,7 @@ class Neria extends Module
     private function importTranslations(): bool
     {
         if (!class_exists('TranslationInstaller')) {
-            $this->_errors[] = $this->l('TranslationInstaller introuvable.');
+            $this->_errors[] = AdminTranslator::t('msg.translation_installer_missing');
             return false;
         }
 
@@ -849,14 +3652,45 @@ class Neria extends Module
             self::CONFIG_PREFIX . 'ABTEST_ENABLED'   => 0,
             self::CONFIG_PREFIX . 'AUTO_LANG'        => 1,
             self::CONFIG_PREFIX . 'LOG_INTERNAL'     => 0,
-            self::CONFIG_PREFIX . 'VOUCHER_VALIDITY' => 30,
-            self::CONFIG_PREFIX . 'INSTALLED_AT'     => date('Y-m-d H:i:s'),
+            'NERIA_CHECKOUT_ABANDONMENT_ENABLED'         => 1,
+            'NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED'     => 1,
+            'NERIA_QUOTE_REMINDERS_ENABLED'              => 1,
+            'NERIA_COLLECTION_COMPLETION_ENABLED'        => 1,
+            'NERIA_LOOK_COMPLETION_ENABLED'              => 1,
+            'NERIA_WAITLIST_ENABLED'                     => 1,
+            'NERIA_WAITLIST_RESERVATION_HOURS'           => 4,
+            'NERIA_GHOST_CART_ENABLED'                   => 1,
+            'NERIA_REFUND_RECONCILIATION_ENABLED'    => 1,
+            'NERIA_LIFESPAN_ENABLED'                 => 1,
+            'NERIA_PROPENSITY_ENABLED'               => 1,
+            'NERIA_PURCHASE_WINDOW_ENABLED'          => 1,
+            self::CONFIG_PREFIX . 'VOUCHER_VALIDITY'          => 30,
+            self::CONFIG_PREFIX . 'INSTALLED_AT'               => date('Y-m-d H:i:s'),
+            MonthlyReportManager::CONFIG_ENABLED               => 1,
+            MonthlyReportManager::CONFIG_RECIPIENTS            => '',
+            HealthCheckManager::CONFIG_LAST_RUN                => '',
+            HealthCheckManager::CONFIG_HDR_LAST                => '',
+            'NERIA_INSTALLED_VERSION'                          => self::VERSION,
+            WatchdogManager::CFG_ALERT_EMAIL                   => (string) Configuration::get('PS_SHOP_EMAIL'),
+            WatchdogManager::CFG_ALERT_IMMEDIATE               => 1,
+            WatchdogManager::CFG_ALERT_DIGEST                  => 0,
+            WatchdogManager::CFG_ALERT_LAST_SENT               => 0,
+            WatchdogManager::CFG_DIGEST_LAST                   => 0,
         ];
 
         foreach ($defaults as $key => $value) {
             if (!Configuration::updateValue($key, $value)) {
                 return false;
             }
+        }
+
+        if (class_exists('CryptoManager')) {
+            \CryptoManager::generateAndStoreKey();
+        }
+
+        // Génère le token d'urgence Watchdog s'il n'existe pas encore
+        if (!Configuration::getGlobalValue('NERIA_EMERGENCY_TOKEN')) {
+            Configuration::updateGlobalValue('NERIA_EMERGENCY_TOKEN', bin2hex(random_bytes(24)));
         }
 
         return true;
@@ -880,6 +3714,20 @@ class Neria extends Module
             self::CONFIG_PREFIX . 'LOG_INTERNAL',
             self::CONFIG_PREFIX . 'VOUCHER_VALIDITY',
             self::CONFIG_PREFIX . 'INSTALLED_AT',
+            MonthlyReportManager::CONFIG_ENABLED,
+            MonthlyReportManager::CONFIG_RECIPIENTS,
+            MonthlyReportManager::CONFIG_LAST_SENT,
+            'NERIA_MIGRATED_RENDERED_VARS',
+            'NERIA_MIGRATED_REVENUE_COL',
+            'NERIA_MIGRATED_MPP_COL',
+            'NERIA_ENCRYPTION_KEY',
+            HealthCheckManager::CONFIG_LAST_RUN,
+            HealthCheckManager::CONFIG_HDR_LAST,
+            HealthCheckManager::CONFIG_RESULTS,
+            'NERIA_CHECKOUT_ABANDONMENT_ENABLED',
+            'NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED',
+            'NERIA_QUOTE_REMINDERS_ENABLED',
+            'NERIA_PURCHASE_WINDOW_ENABLED',
         ];
 
         foreach ($keys as $key) {
@@ -902,6 +3750,50 @@ class Neria extends Module
      * L'état précédent est sauvegardé pour être restauré à la désinstallation.
      * Non bloquant : retourne toujours true (ne doit pas faire échouer l'install).
      */
+    private function translateWatchdogLogs(array $logs): array
+    {
+        foreach ($logs as &$entry) {
+            $msg = $entry['message'] ?? '';
+            if (str_starts_with($msg, '::i18n::')) {
+                $decoded = json_decode(substr($msg, 8), true);
+                if (is_array($decoded) && isset($decoded['k'])) {
+                    $str = AdminTranslator::t($decoded['k']);
+                    foreach ($decoded['v'] ?? [] as $k => $v) {
+                        $str = str_replace('{' . $k . '}', (string) $v, $str);
+                    }
+                    $entry['message'] = $str;
+                }
+            }
+        }
+        unset($entry);
+        return $logs;
+    }
+
+    private function getReportEnabledConfig(): bool
+    {
+        $val = Configuration::get(MonthlyReportManager::CONFIG_ENABLED);
+        if ($val === false) {
+            Configuration::updateValue(MonthlyReportManager::CONFIG_ENABLED, 1);
+            return true;
+        }
+        return (bool) $val;
+    }
+
+    private function loadAcademyStrings(): array
+    {
+        $boLang   = class_exists('AdminTranslator') ? AdminTranslator::currentLang() : 'fr';
+        $supported = ['fr','en','de','it','es','pt','br','ar','ja','ko','zh','tw','ru','tr','sv','no','da','nl'];
+        if (!in_array($boLang, $supported, true)) {
+            $boLang = 'fr';
+        }
+        $path = _PS_MODULE_DIR_ . 'neria/data/academy/' . $boLang . '.json';
+        if (!file_exists($path)) {
+            $path = _PS_MODULE_DIR_ . 'neria/data/academy/fr.json';
+        }
+        $data = json_decode((string) file_get_contents($path), true);
+        return is_array($data) ? $data : [];
+    }
+
     private function configureDeliveredStatus(): bool
     {
         $idState = (int) Configuration::get('PS_OS_DELIVERED');
@@ -1016,6 +3908,48 @@ class Neria extends Module
             }
         }
         return $map;
+    }
+
+    private function getCalendarTemplatesList(): array
+    {
+        $dir  = __DIR__ . '/mails/themes/neria_global/core/';
+        $list = [];
+        if (is_dir($dir)) {
+            foreach (glob($dir . '*.html') as $file) {
+                $tpl = basename($file, '.html');
+                // On exclut layout et les templates système
+                if (!in_array($tpl, ['layout', 'neria_layout', 'monthly_report'], true)) {
+                    $list[] = $tpl;
+                }
+            }
+        }
+        sort($list);
+        return $list;
+    }
+
+    private function getCalendarKnownKeys(): array
+    {
+        return [
+            'christmas'       => 'Noël / Christmas',
+            'new_year'        => 'Nouvel An / New Year',
+            'valentine'       => 'Saint-Valentin / Valentine\'s Day',
+            'halloween'       => 'Halloween',
+            'easter'          => 'Pâques / Easter',
+            'black_friday'    => 'Black Friday',
+            'mothers_day_fr'  => 'Fête des Mères (France)',
+            'mothers_day_us'  => 'Mother\'s Day (US/UK)',
+            'fathers_day'     => 'Fête des Pères / Father\'s Day',
+            'grandparents_day'=> 'Fête des Grands-parents',
+            'eid'             => 'Aïd el-Fitr',
+            'eid_adha'        => 'Aïd el-Adha',
+            'ramadan'         => 'Ramadan',
+            'lunar_new_year'  => 'Nouvel An Chinois / Lunar New Year',
+            'seollal'         => 'Seollal (Corée)',
+            'diwali'          => 'Diwali',
+            'hanukkah'        => 'Hanukkah',
+            'nowruz'          => 'Norouz (Nouvel An Persan)',
+            'setsubun'        => 'Setsubun (Japon)',
+        ];
     }
 
     /**

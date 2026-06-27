@@ -1,0 +1,13 @@
+{waitlist_title}
+
+{firstname},
+
+{waitlist_intro}
+
+{product_name}
+{product_price} €
+{product_url}
+
+{waitlist_note}
+
+{shop_name}

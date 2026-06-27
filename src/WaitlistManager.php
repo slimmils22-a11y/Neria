@@ -1,0 +1,202 @@
+<?php
+/**
+ * WaitlistManager — Liste d'attente produits
+ *
+ * Quand un produit est en rupture, le client s'inscrit.
+ * Quand le stock remonte, Neria envoie un email unique avec réservation temporelle.
+ */
+
+if (!defined('_PS_VERSION_')) exit;
+
+class WaitlistManager
+{
+    const TABLE      = 'neria_waitlist';
+    const RESERVATION_HOURS = 4; // valeur par défaut si non configuré
+
+    private \Db    $db;
+    private string $prefix;
+    private        $module;
+
+    public function __construct($module)
+    {
+        $this->module = $module;
+        $this->db     = \Db::getInstance();
+        $this->prefix = _DB_PREFIX_;
+    }
+
+    // ── Inscription / désinscription ─────────────────────────────
+
+    public function register(int $idCustomer, int $idProduct, int $idShop): bool
+    {
+        if ($this->isRegistered($idCustomer, $idProduct)) return true;
+        $t   = $this->prefix . self::TABLE;
+        $now = pSQL(date('Y-m-d H:i:s'));
+        $ok  = $this->db->execute(
+            "INSERT INTO `{$t}` (id_customer, id_product, id_shop, registered_at, notified_at)
+             VALUES ({$idCustomer}, {$idProduct}, {$idShop}, '{$now}', NULL)
+             ON DUPLICATE KEY UPDATE registered_at = '{$now}', notified_at = NULL"
+        );
+        if ($ok && class_exists('WatchdogManager')) {
+            (new \WatchdogManager($this->module))->info(
+                sprintf('Waitlist inscription : client #%d → produit #%d', $idCustomer, $idProduct),
+                'waitlist_available', 'WaitlistManager'
+            );
+        }
+        return $ok;
+    }
+
+    public function unregister(int $idCustomer, int $idProduct): bool
+    {
+        $ok = $this->db->delete(self::TABLE,
+            'id_customer = ' . $idCustomer . ' AND id_product = ' . $idProduct
+        );
+        if ($ok && class_exists('WatchdogManager')) {
+            (new \WatchdogManager($this->module))->info(
+                sprintf('Waitlist désinscription : client #%d, produit #%d', $idCustomer, $idProduct),
+                'waitlist_available', 'WaitlistManager'
+            );
+        }
+        return $ok;
+    }
+
+    public function isRegistered(int $idCustomer, int $idProduct): bool
+    {
+        return (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$this->prefix}" . self::TABLE . "`
+             WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
+               AND notified_at IS NULL"
+        ) > 0;
+    }
+
+    // ── Notification lors du retour en stock ─────────────────────
+
+    public function notifyProduct(int $idProduct, int $idShop): int
+    {
+        $rows = $this->db->executeS(
+            "SELECT w.*, c.firstname, c.lastname, c.email, w.id_shop,
+                    DATEDIFF(NOW(), w.registered_at) AS days_waited
+             FROM `{$this->prefix}" . self::TABLE . "` w
+             INNER JOIN `{$this->prefix}customer` c ON c.id_customer = w.id_customer
+             WHERE w.id_product = {$idProduct}
+               AND w.notified_at IS NULL
+             ORDER BY w.registered_at ASC"
+        );
+        if (!is_array($rows) || empty($rows)) {
+            if (class_exists('WatchdogManager')) {
+                (new \WatchdogManager($this->module))->warning(
+                    sprintf('Waitlist : aucun inscrit trouvé pour produit #%d', $idProduct),
+                    'waitlist_available', 'WaitlistManager'
+                );
+            }
+            return 0;
+        }
+
+        $sent = 0;
+        foreach ($rows as $row) {
+            $idCustomer = (int) $row['id_customer'];
+            $idLang     = (int) \Customer::getDefaultGroupId($idCustomer) > 0
+                ? (int) $this->db->getValue(
+                    "SELECT id_lang FROM `{$this->prefix}customer`
+                     WHERE id_customer = {$idCustomer}"
+                  )
+                : (int) \Configuration::get('PS_LANG_DEFAULT');
+
+            $product = new \Product($idProduct, false, $idLang);
+            if (!\Validate::isLoadedObject($product)) continue;
+
+            $cover    = \Product::getCover($idProduct);
+            $imageUrl = '';
+            if ($cover) {
+                $imageUrl = \Context::getContext()->link->getImageLink(
+                    $product->link_rewrite,
+                    (int) $cover['id_image'],
+                    \ImageType::getFormattedName('home')
+                );
+            }
+
+            $daysWaited = max(1, (int) $row['days_waited']);
+            $vars = [
+                '{firstname}'          => $row['firstname'],
+                '{days_waited_plural}' => $daysWaited > 1 ? 's' : '',
+                '{product_name}'       => $product->name,
+                '{product_url}'        => \Context::getContext()->link->getProductLink($product),
+                '{product_image}'      => $imageUrl,
+                '{product_price}'      => number_format((float) $product->price, 2, ',', ' '),
+                '{days_waited}'        => $daysWaited,
+                '{reservation_hours}'  => (int) \Configuration::getGlobalValue('NERIA_WAITLIST_RESERVATION_HOURS') ?: self::RESERVATION_HOURS,
+                '{shop_name}'          => \Configuration::get('PS_SHOP_NAME'),
+            ];
+
+            try {
+                $mailed = \Mail::Send(
+                    $idLang,
+                    'waitlist_available',
+                    '',
+                    $vars,
+                    $row['email'],
+                    trim($row['firstname'] . ' ' . $row['lastname']) ?: null,
+                    null, null, null, null,
+                    _PS_MODULE_DIR_ . 'neria/mails/',
+                    false,
+                    $idShop
+                );
+
+                if ($mailed) {
+                    $this->db->execute(
+                        "UPDATE `{$this->prefix}" . self::TABLE . "`
+                         SET notified_at = NOW()
+                         WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}"
+                    );
+                    $sent++;
+
+                    if (class_exists('WatchdogManager')) {
+                        (new \WatchdogManager($this->module))->info(
+                            sprintf('Waitlist → %s (produit #%d, %d j d\'attente)', $row['email'], $idProduct, $daysWaited),
+                            'waitlist_available', 'WaitlistManager'
+                        );
+                    }
+                }
+            } catch (\Throwable $e) {
+                if (class_exists('WatchdogManager')) {
+                    (new \WatchdogManager($this->module))->error(
+                        'Waitlist notify error : ' . $e->getMessage(),
+                        'waitlist_available', 'WaitlistManager'
+                    );
+                }
+            }
+        }
+
+        return $sent;
+    }
+
+    // ── Stats BO ─────────────────────────────────────────────────
+
+    public function getStats(): array
+    {
+        $t = $this->prefix . self::TABLE;
+        return [
+            'subscribers' => (int) $this->db->getValue("SELECT COUNT(*) FROM `{$t}` WHERE notified_at IS NULL"),
+            'products'    => (int) $this->db->getValue("SELECT COUNT(DISTINCT id_product) FROM `{$t}` WHERE notified_at IS NULL"),
+            'notified'    => (int) $this->db->getValue("SELECT COUNT(*) FROM `{$t}` WHERE notified_at IS NOT NULL"),
+            'notified30'  => (int) $this->db->getValue("SELECT COUNT(*) FROM `{$t}` WHERE notified_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)"),
+        ];
+    }
+
+    public function getTopProducts(int $limit = 10): array
+    {
+        $rows = $this->db->executeS(
+            "SELECT w.id_product, COUNT(*) AS nb,
+                    pl.name AS product_name,
+                    MAX(DATEDIFF(NOW(), w.registered_at)) AS max_wait_days
+             FROM `{$this->prefix}" . self::TABLE . "` w
+             LEFT JOIN `{$this->prefix}product_lang` pl
+                ON pl.id_product = w.id_product
+               AND pl.id_lang = " . (int) \Configuration::get('PS_LANG_DEFAULT') . "
+             WHERE w.notified_at IS NULL
+             GROUP BY w.id_product, pl.name
+             ORDER BY nb DESC
+             LIMIT " . (int) $limit
+        );
+        return is_array($rows) ? $rows : [];
+    }
+}

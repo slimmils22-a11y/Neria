@@ -84,6 +84,7 @@ class CalendarManager
 
     public function checkAndSendDailyEvents(): void
     {
+        \Configuration::updateValue(\HealthCheckManager::CRON_LAST_CALENDAR, date('Y-m-d H:i:s'));
         $this->loadCalendarDates();
         $events = $this->getActiveEvents();
 
@@ -128,9 +129,19 @@ class CalendarManager
         $daysBefore  = (int) $event['send_days_before'];
         $year        = (int) $today->format('Y');
 
-        $eventDate = $this->getEventDate($eventKey, $year);
+        // Occasion personnalisée : date fixe stockée en base (format MM-DD)
+        if (!empty($event['custom_date']) && preg_match('/^\d{2}-\d{2}$/', $event['custom_date'])) {
+            $eventDate = \DateTime::createFromFormat('Y-m-d', $year . '-' . $event['custom_date']) ?: null;
+        } else {
+            $eventDate = $this->getEventDate($eventKey, $year);
+        }
 
         if (!$eventDate) {
+            $this->watchdog()->warning(
+                sprintf('Date introuvable pour l\'occasion "%s" en %d — vérifiez le calendrier.', $eventKey, $year),
+                $template,
+                'CalendarManager'
+            );
             return;
         }
 
@@ -150,26 +161,51 @@ class CalendarManager
         $customers = $this->getEligibleCustomers($lang, $countryCode);
 
         if (empty($customers)) {
+            $this->watchdog()->warning(
+                sprintf(
+                    'Occasion "%s" : 0 client éligible (langue : %s%s). Vérifiez que la langue est installée et que des clients y sont abonnés à la newsletter.',
+                    $eventKey,
+                    strtoupper($lang),
+                    $countryCode ? ', pays : ' . strtoupper($countryCode) : ''
+                ),
+                $template,
+                'CalendarManager'
+            );
             return;
         }
 
-        $sent = $this->sendToCustomers($customers, $template, $lang, $eventKey);
+        $total  = count($customers);
+        $result = $this->sendToCustomers($customers, $template, $lang, $eventKey);
+        $sent   = $result['sent'];
+        $failed = $result['failed'];
 
         \Configuration::updateValue($sentKey, date('Y-m-d H:i:s'));
 
         $this->module->log(
             sprintf(
-                'CalendarManager: [%s][%s] : %d emails envoyes (J-%d avant %s)',
-                $eventKey, $lang, $sent, $daysBefore,
+                'CalendarManager: [%s][%s] : %d/%d emails envoyes (J-%d avant %s)',
+                $eventKey, $lang, $sent, $total, $daysBefore,
                 $eventDate->format('d/m/Y')
             ),
             1
         );
-        $this->watchdog()->info(
-            sprintf('%d emails envoyés pour : %s', $sent, $eventKey),
-            $template,
-            'CalendarManager'
-        );
+
+        if ($failed > 0) {
+            $this->watchdog()->warning(
+                sprintf(
+                    'Occasion "%s" : %d/%d envois ont échoué (SMTP ou template manquant). Vérifiez la configuration SMTP et le template "%s".',
+                    $eventKey, $failed, $total, $template
+                ),
+                $template,
+                'CalendarManager'
+            );
+        } else {
+            $this->watchdog()->info(
+                sprintf('%d/%d emails envoyés pour : %s', $sent, $total, $eventKey),
+                $template,
+                'CalendarManager'
+            );
+        }
     }
 
     // ============================================================
@@ -901,14 +937,27 @@ class CalendarManager
         string $template,
         string $lang,
         string $eventKey
-    ): int {
+    ): array {
         $sent    = 0;
+        $failed  = 0;
         $batches = array_chunk($customers, self::BATCH_SIZE);
 
         foreach ($batches as $batch) {
             foreach ($batch as $customer) {
                 if ($this->sendCalendarEmail($customer, $template, $lang)) {
                     $sent++;
+                } else {
+                    $failed++;
+                    $this->watchdog()->warning(
+                        sprintf(
+                            'Échec envoi à %s (id %d) pour l\'occasion "%s" — Mail::Send() a retourné false.',
+                            $customer['email'],
+                            $customer['id_customer'],
+                            $eventKey
+                        ),
+                        $template,
+                        'CalendarManager'
+                    );
                 }
             }
             if (count($batches) > 1) {
@@ -916,7 +965,7 @@ class CalendarManager
             }
         }
 
-        return $sent;
+        return ['sent' => $sent, 'failed' => $failed];
     }
 
     private function sendCalendarEmail(
@@ -937,6 +986,16 @@ class CalendarManager
             '{id_customer}' => $customer['id_customer'],
         ];
 
+        // Vérifier que le template existe avant d'appeler Mail::Send
+        $templateFile = _PS_MODULE_DIR_ . 'neria/mails/' . $lang . '/' . $template . '.html';
+        if (!file_exists($templateFile)) {
+            $this->module->log(
+                'CalendarManager: template manquant — ' . $templateFile,
+                2
+            );
+            return false;
+        }
+
         try {
             $result = \Mail::Send(
                 $idLang, $template,
@@ -955,7 +1014,7 @@ class CalendarManager
 
         } catch (\Throwable $e) {
             $this->module->log(
-                'CalendarManager: erreur envoi a '
+                'CalendarManager: erreur SMTP envoi à '
                 . $customer['email'] . ' : ' . $e->getMessage(),
                 2
             );
