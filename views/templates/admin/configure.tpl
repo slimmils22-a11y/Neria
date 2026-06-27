@@ -170,7 +170,7 @@
       </table>
     </div>
 
-    <div style="margin-top:16px;display:flex;align-items:center;gap:12px;">
+    <div id="neria-tg-save-row" style="margin-top:16px;display:flex;align-items:center;gap:12px;">
       <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">Enregistrer</button>
       <span style="font-size:11px;color:#a09990;font-style:italic;">
         ✓ Plug &amp; play — la salutation remplace automatiquement la formule d'accueil dans tous vos templates.
@@ -179,7 +179,7 @@
   </form>
 
   {* ── Réinitialisation ─────────────────────────────────────────── *}
-  <div style="margin-top:16px;padding:12px 16px;background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+  <div id="neria-tg-reset-panel" style="margin-top:16px;padding:12px 16px;background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
     <span style="font-size:12px;color:#7a6f65;font-weight:600;white-space:nowrap;">🔄 Réinitialiser :</span>
 
     {* Toutes les langues *}

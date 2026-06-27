@@ -1431,13 +1431,13 @@ class Neria extends Module
             }
             (new ConfigManager($this))->saveTimeGreetings($greetings);
             $this->context->smarty->assign('neria_success', 'Salutations horaires enregistrées.');
-            $this->context->smarty->assign('neria_scroll_to', 'neria-cfg-time-greetings');
+            $this->context->smarty->assign('neria_scroll_to', 'neria-tg-save-row');
         }
 
         if (Tools::getValue('neria_action') === 'reset_time_greetings_all') {
             (new ConfigManager($this))->resetTimeGreetings();
             $this->context->smarty->assign('neria_success', 'Salutations réinitialisées aux valeurs par défaut (toutes les langues).');
-            $this->context->smarty->assign('neria_scroll_to', 'neria-cfg-time-greetings');
+            $this->context->smarty->assign('neria_scroll_to', 'neria-tg-reset-panel');
         }
 
         if (Tools::getValue('neria_action') === 'reset_time_greetings_lang') {
@@ -1445,7 +1445,7 @@ class Neria extends Module
             if ($lang && array_key_exists($lang, TranslationEngine::SUPPORTED_LANGS)) {
                 (new ConfigManager($this))->resetTimeGreetings($lang);
                 $this->context->smarty->assign('neria_success', 'Salutations réinitialisées pour la langue : ' . strtoupper($lang) . '.');
-                $this->context->smarty->assign('neria_scroll_to', 'neria-cfg-time-greetings');
+                $this->context->smarty->assign('neria_scroll_to', 'neria-tg-reset-panel');
             }
         }
 
