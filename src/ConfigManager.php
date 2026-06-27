@@ -69,6 +69,7 @@ class ConfigManager
     const KEY_COOLDOWN_MINUTES      = 'NERIA_COOLDOWN_MINUTES';
     const KEY_FIRSTNAME_FALLBACKS   = 'NERIA_FIRSTNAME_FALLBACKS';
     const KEY_TIME_GREETINGS        = 'NERIA_TIME_GREETINGS';
+    const KEY_TARGET_COUNTRIES      = 'NERIA_TARGET_COUNTRIES';
 
     // ── Empreinte carbone ─────────────────────────────────────────
     const KEY_CARBON_ENABLED    = 'NERIA_CARBON_ENABLED';
@@ -379,6 +380,79 @@ class ConfigManager
     public function saveTimeGreetings(array $greetings): bool
     {
         return $this->set(self::KEY_TIME_GREETINGS, json_encode($greetings, JSON_UNESCAPED_UNICODE));
+    }
+
+    /** Retourne les pays cibles activés (ISO 2 lettres). Vide = tous activés. */
+    public function getTargetCountries(): array
+    {
+        $saved = $this->get(self::KEY_TARGET_COUNTRIES);
+        if (!$saved) return [];
+        $decoded = json_decode($saved, true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    public function saveTargetCountries(array $isoCodes): bool
+    {
+        return $this->set(self::KEY_TARGET_COUNTRIES, json_encode(array_values($isoCodes)));
+    }
+
+    /** Liste exhaustive des pays du monde (ISO 3166-1 alpha-2 → nom FR) */
+    public static function getAllCountries(): array
+    {
+        return [
+            'AF'=>'Afghanistan','ZA'=>'Afrique du Sud','AL'=>'Albanie','DZ'=>'Algérie',
+            'DE'=>'Allemagne','AD'=>'Andorre','AO'=>'Angola','AG'=>'Antigua-et-Barbuda',
+            'SA'=>'Arabie saoudite','AR'=>'Argentine','AM'=>'Arménie','AU'=>'Australie',
+            'AT'=>'Autriche','AZ'=>'Azerbaïdjan','BS'=>'Bahamas','BH'=>'Bahreïn',
+            'BD'=>'Bangladesh','BB'=>'Barbade','BE'=>'Belgique','BZ'=>'Belize',
+            'BJ'=>'Bénin','BT'=>'Bhoutan','BY'=>'Biélorussie','BO'=>'Bolivie',
+            'BA'=>'Bosnie-Herzégovine','BW'=>'Botswana','BR'=>'Brésil','BN'=>'Brunéi',
+            'BG'=>'Bulgarie','BF'=>'Burkina Faso','BI'=>'Burundi','CV'=>'Cap-Vert',
+            'KH'=>'Cambodge','CM'=>'Cameroun','CA'=>'Canada','QA'=>'Qatar',
+            'CF'=>'Rép. centrafricaine','CL'=>'Chili','CN'=>'Chine','CY'=>'Chypre',
+            'CO'=>'Colombie','KM'=>'Comores','CG'=>'Congo','CD'=>'Congo (RDC)',
+            'KR'=>'Corée du Sud','KP'=>'Corée du Nord','CR'=>'Costa Rica',
+            'HR'=>'Croatie','CU'=>'Cuba','CZ'=>'Tchéquie','DK'=>'Danemark',
+            'DJ'=>'Djibouti','DM'=>'Dominique','EG'=>'Égypte','AE'=>'Émirats arabes unis',
+            'EC'=>'Équateur','ER'=>'Érythrée','ES'=>'Espagne','EE'=>'Estonie',
+            'SZ'=>'Eswatini','ET'=>'Éthiopie','FJ'=>'Fidji','FI'=>'Finlande',
+            'FR'=>'France','GA'=>'Gabon','GM'=>'Gambie','GE'=>'Géorgie',
+            'GH'=>'Ghana','GR'=>'Grèce','GD'=>'Grenade','GT'=>'Guatemala',
+            'GN'=>'Guinée','GQ'=>'Guinée équatoriale','GW'=>'Guinée-Bissau',
+            'GY'=>'Guyana','HT'=>'Haïti','HN'=>'Honduras','HU'=>'Hongrie',
+            'IN'=>'Inde','ID'=>'Indonésie','IQ'=>'Irak','IR'=>'Iran',
+            'IE'=>'Irlande','IS'=>'Islande','IL'=>'Israël','IT'=>'Italie',
+            'JM'=>'Jamaïque','JP'=>'Japon','JO'=>'Jordanie','KZ'=>'Kazakhstan',
+            'KE'=>'Kenya','KI'=>'Kiribati','KW'=>'Koweït','KG'=>'Kirghizistan',
+            'LA'=>'Laos','LS'=>'Lesotho','LV'=>'Lettonie','LB'=>'Liban',
+            'LR'=>'Libéria','LY'=>'Libye','LI'=>'Liechtenstein','LT'=>'Lituanie',
+            'LU'=>'Luxembourg','MK'=>'Macédoine du Nord','MG'=>'Madagascar',
+            'MY'=>'Malaisie','MW'=>'Malawi','MV'=>'Maldives','ML'=>'Mali',
+            'MT'=>'Malte','MA'=>'Maroc','MH'=>'Îles Marshall','MU'=>'Maurice',
+            'MR'=>'Mauritanie','MX'=>'Mexique','FM'=>'Micronésie','MD'=>'Moldavie',
+            'MC'=>'Monaco','MN'=>'Mongolie','ME'=>'Monténégro','MZ'=>'Mozambique',
+            'MM'=>'Myanmar','NA'=>'Namibie','NR'=>'Nauru','NP'=>'Népal',
+            'NI'=>'Nicaragua','NE'=>'Niger','NG'=>'Nigéria','NO'=>'Norvège',
+            'NZ'=>'Nouvelle-Zélande','NL'=>'Pays-Bas','OM'=>'Oman','UG'=>'Ouganda',
+            'UZ'=>'Ouzbékistan','PK'=>'Pakistan','PW'=>'Palaos','PS'=>'Palestine',
+            'PA'=>'Panama','PG'=>'Papouasie-Nouvelle-Guinée','PY'=>'Paraguay',
+            'PE'=>'Pérou','PH'=>'Philippines','PL'=>'Pologne','PT'=>'Portugal',
+            'RO'=>'Roumanie','GB'=>'Royaume-Uni','RU'=>'Russie','RW'=>'Rwanda',
+            'KN'=>'Saint-Christophe-et-Niévès','SM'=>'Saint-Marin',
+            'VC'=>'Saint-Vincent-et-les-Grenadines','LC'=>'Sainte-Lucie',
+            'SB'=>'Îles Salomon','WS'=>'Samoa','ST'=>'São Tomé-et-Príncipe',
+            'SN'=>'Sénégal','RS'=>'Serbie','SC'=>'Seychelles','SL'=>'Sierra Leone',
+            'SG'=>'Singapour','SK'=>'Slovaquie','SI'=>'Slovénie','SO'=>'Somalie',
+            'SD'=>'Soudan','SS'=>'Soudan du Sud','LK'=>'Sri Lanka','SE'=>'Suède',
+            'CH'=>'Suisse','SR'=>'Suriname','SY'=>'Syrie','TJ'=>'Tadjikistan',
+            'TW'=>'Taïwan','TZ'=>'Tanzanie','TD'=>'Tchad','TH'=>'Thaïlande',
+            'TL'=>'Timor oriental','TG'=>'Togo','TO'=>'Tonga',
+            'TT'=>'Trinité-et-Tobago','TN'=>'Tunisie','TM'=>'Turkménistan',
+            'TR'=>'Turquie','TV'=>'Tuvalu','UA'=>'Ukraine','UY'=>'Uruguay',
+            'VU'=>'Vanuatu','VE'=>'Venezuela','VN'=>'Viêt Nam',
+            'YE'=>'Yémen','ZM'=>'Zambie','ZW'=>'Zimbabwe',
+            'DO'=>'Rép. dominicaine','SV'=>'Salvador','US'=>'États-Unis',
+        ];
     }
 
     public function isCooldownEnabled(): bool

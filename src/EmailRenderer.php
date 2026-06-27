@@ -913,6 +913,15 @@ class EmailRenderer
             $countryIso = \Country::getIsoById((int) \Configuration::get('PS_COUNTRY_DEFAULT'));
         }
 
+        // Vérification pays cibles : avertir si le pays n'est pas dans la liste configurée
+        $targetCountries = $this->config->getTargetCountries();
+        if (!empty($targetCountries) && $countryIso && !in_array(strtoupper($countryIso), array_map('strtoupper', $targetCountries), true)) {
+            (new WatchdogManager($this->module))->warning(
+                '[time_greeting] Pays "' . $countryIso . '" hors liste cible — fuseau UTC utilisé par défaut.'
+            );
+            return 'UTC';
+        }
+
         return $this->countryIsoToTimezone((string) $countryIso);
     }
 

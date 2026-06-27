@@ -1405,6 +1405,18 @@ class Neria extends Module
             Configuration::updateValue(self::CONFIG_PREFIX . 'VOUCHER_VALIDITY', $days);
         }
 
+        if (Tools::getValue('neria_action') === 'save_target_countries') {
+            $raw      = Tools::getValue('neria_target_countries', []);
+            $selected = is_array($raw) ? array_filter(array_map('strval', $raw)) : [];
+            (new ConfigManager($this))->saveTargetCountries($selected);
+            $total = count(ConfigManager::getAllCountries());
+            $count = count($selected);
+            (new WatchdogManager($this))->info(
+                '[target_countries] Configuration mise à jour : ' . $count . '/' . $total . ' pays activés.'
+            );
+            $this->context->smarty->assign('neria_success', 'Pays cibles enregistrés (' . $count . ' pays activés).');
+        }
+
         if (Tools::getValue('neria_action') === 'save_time_greetings') {
             $langs    = TranslationEngine::SUPPORTED_LANGS;
             $slots    = ['morning', 'afternoon', 'evening', 'night'];
@@ -2632,6 +2644,8 @@ class Neria extends Module
             'voucher_validity'        => $config->getVoucherValidity(),
             'firstname_fallbacks'     => $config->getFirstnameFallbacks(),
             'time_greetings'          => $config->getTimeGreetings(),
+            'target_countries'        => $config->getTargetCountries(),
+            'all_countries'           => ConfigManager::getAllCountries(),
             'cooldown_enabled'      => $config->isCooldownEnabled(),
             'cooldown_minutes'      => $config->getCooldownMinutes(),
             'carbon_enabled'        => $config->isCarbonEnabled(),
