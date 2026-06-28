@@ -116,8 +116,8 @@
 .neria-section__title { font-size:15px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--neria-dark); margin:0 0 18px; padding-bottom:12px; border-bottom:1px solid var(--neria-border); display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .neria-section__header { display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--neria-border); margin:0 0 18px; padding-bottom:12px; }
 .neria-section__header .neria-section__title { border-bottom:none; margin:0; padding:0; }
-.neria-section-reset { background:none; border:1px solid var(--neria-border); cursor:pointer; font-size:11px; color:var(--neria-text-light); padding:3px 8px; border-radius:var(--neria-radius); transition:all .15s; white-space:nowrap; flex-shrink:0; }
-.neria-section-reset:hover { color:var(--neria-accent); border-color:var(--neria-accent); background:var(--neria-light-bg); }
+.neria-section-reset { background:var(--neria-light-bg); border:1px solid var(--neria-accent); cursor:pointer; font-size:11px; color:var(--neria-accent); padding:4px 10px; border-radius:var(--neria-radius); transition:all .15s; white-space:nowrap; flex-shrink:0; font-family:inherit; }
+.neria-section-reset:hover { background:var(--neria-accent); color:#fff; }
 .neria-section__desc { font-size:13px; color:var(--neria-text-light); margin:0 0 18px; line-height:1.6; }
 .neria-section__langs { display:flex; gap:4px; flex-wrap:wrap; margin-left:auto; }
 

@@ -812,7 +812,7 @@ class Neria extends Module
 
         if ($onConfigPage || $onCustomerView) {
             $this->context->controller->addCSS(
-                $this->_path . 'views/css/neria-admin.css'
+                $this->_path . 'views/css/neria-admin.css?v=' . $this->version
             );
             $this->context->controller->addJS(
                 $this->_path . 'views/js/neria-admin.js'
