@@ -207,8 +207,9 @@
 .neria-signature-preview__placeholder { font-size:12px; color:var(--neria-text-light); }
 .neria-signature-preview__img { max-width:200px; }
 
-/* Design panel */
-.neria-design-layout { display:grid; grid-template-columns:380px 1fr; gap:24px; }
+/* Design + Typography panel */
+.neria-design-layout { display:grid; grid-template-columns:380px 1fr; gap:24px; align-items:start; }
+.neria-design-panel { min-width:0; overflow-x:hidden; }
 .neria-design-preview-panel { position:sticky; top:16px; height:calc(100vh - 32px); display:flex; flex-direction:column; }
 .neria-preview-header { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:#fff; border:1px solid var(--neria-border); border-bottom:none; border-radius:var(--neria-radius) var(--neria-radius) 0 0; flex-shrink:0; }
 .neria-preview-header__title { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; }
@@ -221,7 +222,7 @@
 .neria-logo-current { display:flex; align-items:center; gap:12px; padding:12px; background:var(--neria-light-bg); border:1px solid var(--neria-border); border-radius:var(--neria-radius); margin-bottom:12px; }
 
 /* Typographie */
-.neria-font-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.neria-font-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
 .neria-font-card { display:flex; flex-direction:column; gap:8px; padding:14px; border:2px solid var(--neria-border); border-radius:var(--neria-radius); cursor:pointer; transition:border-color .15s; }
 .neria-font-card--selected { border-color:var(--neria-accent); }
 .neria-font-card__radio { display:none; }
