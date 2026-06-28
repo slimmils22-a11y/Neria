@@ -21,7 +21,7 @@
           <div class="neria-section__header">
             <h2 class="neria-section__title">{neria_admin key='design.colors_title'}</h2>
             <button type="button" class="neria-section-reset"
-                    data-defaults='{ldelim}"color_background":"#f4f1eb","color_container":"#ffffff","color_accent":"#b38b59","color_text":"#2c2c2c"{rdelim}'>
+                    data-reset="color_background:#f4f1eb,color_container:#ffffff,color_accent:#b38b59,color_text:#2c2c2c">
               ↺ Défauts
             </button>
           </div>
@@ -92,7 +92,7 @@
           <div class="neria-section__header">
             <h2 class="neria-section__title">{neria_admin key='design.layout_title'}</h2>
             <button type="button" class="neria-section-reset"
-                    data-defaults='{ldelim}"container_width":"620","logo_width":"160"{rdelim}'>
+                    data-reset="container_width:620,logo_width:160">
               ↺ Défauts
             </button>
           </div>
@@ -192,7 +192,7 @@
           <div class="neria-section__header">
             <h2 class="neria-section__title">Police de titres</h2>
             <button type="button" class="neria-section-reset"
-                    data-defaults='{ldelim}"font_heading":"Cormorant Garamond"{rdelim}'>
+                    data-reset="font_heading:Cormorant Garamond">
               ↺ Défauts
             </button>
           </div>
@@ -224,7 +224,7 @@
           <div class="neria-section__header">
             <h2 class="neria-section__title">Style des boutons</h2>
             <button type="button" class="neria-section-reset"
-                    data-defaults='{ldelim}"btn_color":"#2b2520","btn_radius":"2"{rdelim}'>
+                    data-reset="btn_color:#2b2520,btn_radius:2">
               ↺ Défauts
             </button>
           </div>
@@ -262,7 +262,7 @@
           <div class="neria-section__header">
             <h2 class="neria-section__title">Couleurs header & footer</h2>
             <button type="button" class="neria-section-reset"
-                    data-defaults='{ldelim}"color_header_bg":"#ffffff","color_footer_bg":"#ffffff","color_footer_text":"#a09990"{rdelim}'>
+                    data-reset="color_header_bg:#ffffff,color_footer_bg:#ffffff,color_footer_text:#a09990">
               ↺ Défauts
             </button>
           </div>
@@ -308,7 +308,7 @@
           <div class="neria-section__header">
             <h2 class="neria-section__title">Espacement, séparateur & ombre</h2>
             <button type="button" class="neria-section-reset"
-                    data-defaults='{ldelim}"section_padding":"40","block_spacing":"48","separator_style":"line","card_shadow":"soft"{rdelim}'>
+                    data-reset="section_padding:40,block_spacing:48,separator_style:line,card_shadow:soft">
               ↺ Défauts
             </button>
           </div>

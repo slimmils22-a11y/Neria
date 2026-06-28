@@ -362,10 +362,15 @@
         document.querySelectorAll('.neria-section-reset').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
-                var defaults;
-                try {
-                    defaults = JSON.parse(btn.getAttribute('data-defaults') || '{}');
-                } catch (err) { return; }
+                // Format : "field1:value1,field2:value2"
+                var raw = btn.getAttribute('data-reset') || '';
+                var defaults = {};
+                raw.split(',').forEach(function (pair) {
+                    var colon = pair.indexOf(':');
+                    if (colon > 0) {
+                        defaults[pair.slice(0, colon).trim()] = pair.slice(colon + 1).trim();
+                    }
+                });
                 applySectionDefaults(defaults);
             });
         });
