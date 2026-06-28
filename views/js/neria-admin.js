@@ -24,6 +24,7 @@
         initSubjectAnalyzer();
         initSignaturePreview();
         initDesignReset();
+        initSectionReset();
         initFontCards();
         initFileInputs();
         initActionAnchor();
@@ -353,6 +354,94 @@
 
             document.body.appendChild(form);
             form.submit();
+        });
+    }
+
+    // ── Reset par section (non-destructif : sans sauvegarde) ─────
+    function initSectionReset() {
+        document.querySelectorAll('.neria-section-reset').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                var defaults;
+                try {
+                    defaults = JSON.parse(btn.getAttribute('data-defaults') || '{}');
+                } catch (err) { return; }
+                applySectionDefaults(defaults);
+            });
+        });
+    }
+
+    function applySectionDefaults(defaults) {
+        Object.keys(defaults).forEach(function (field) {
+            var val = String(defaults[field]);
+
+            // Couleur
+            var picker = document.querySelector(
+                'input[name="' + field + '"][type="color"]'
+            );
+            if (picker) {
+                picker.value = val;
+                document.querySelectorAll('[data-sync="' + field + '"]')
+                    .forEach(function (el) { el.value = val; });
+                schedulePreviewUpdate();
+                return;
+            }
+
+            // Range / Number pair
+            var range = document.getElementById(field + '_range');
+            if (range) {
+                range.value = val;
+                var num = document.getElementById(field)
+                       || document.getElementById(field + '_number');
+                if (num) num.value = val;
+                schedulePreviewUpdate();
+                return;
+            }
+
+            // Select
+            var sel = document.querySelector('select[name="' + field + '"]');
+            if (sel) {
+                sel.value = val;
+                schedulePreviewUpdate();
+                return;
+            }
+
+            // Radio (radius / separator / shadow / heading_weight)
+            var target = document.querySelector(
+                'input[name="' + field + '"][value="' + val + '"]'
+            );
+            if (target) {
+                document.querySelectorAll('input[name="' + field + '"]')
+                    .forEach(function (r) {
+                        r.checked = false;
+                        // Réinitialise les previews inline (radius, sep, shadow)
+                        var prev = r.parentElement &&
+                            r.parentElement.querySelector(
+                                '[data-radius],[data-sep],[data-shadow]'
+                            );
+                        if (prev) {
+                            prev.style.borderColor = '#e8d5b0';
+                            prev.style.background  = '#fff';
+                        }
+                        // Réinitialise les neria-radio-card
+                        var card = r.closest('.neria-radio-card');
+                        if (card) card.classList.remove('neria-radio-card--selected');
+                    });
+
+                target.checked = true;
+                var tPrev = target.parentElement &&
+                    target.parentElement.querySelector(
+                        '[data-radius],[data-sep],[data-shadow]'
+                    );
+                if (tPrev) {
+                    tPrev.style.borderColor = '#b38b59';
+                    tPrev.style.background  = '#f9f4ef';
+                }
+                var tCard = target.closest('.neria-radio-card');
+                if (tCard) tCard.classList.add('neria-radio-card--selected');
+
+                schedulePreviewUpdate();
+            }
         });
     }
 

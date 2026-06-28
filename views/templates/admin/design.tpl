@@ -18,7 +18,13 @@
 
         {* Couleurs *}
         <div class="neria-section">
-          <h2 class="neria-section__title">{neria_admin key='design.colors_title'}</h2>
+          <div class="neria-section__header">
+            <h2 class="neria-section__title">{neria_admin key='design.colors_title'}</h2>
+            <button type="button" class="neria-section-reset"
+                    data-defaults='{"color_background":"#f4f1eb","color_container":"#ffffff","color_accent":"#b38b59","color_text":"#2c2c2c"}'>
+              ↺ Défauts
+            </button>
+          </div>
           <div class="neria-color-grid">
 
             <div class="neria-form-group">
@@ -83,7 +89,13 @@
 
         {* Mise en page *}
         <div class="neria-section">
-          <h2 class="neria-section__title">{neria_admin key='design.layout_title'}</h2>
+          <div class="neria-section__header">
+            <h2 class="neria-section__title">{neria_admin key='design.layout_title'}</h2>
+            <button type="button" class="neria-section-reset"
+                    data-defaults='{"container_width":"620","logo_width":"160"}'>
+              ↺ Défauts
+            </button>
+          </div>
 
           <div class="neria-form-group">
             <label class="neria-label" for="container_width">
@@ -177,7 +189,13 @@
 
         {* ── Police de titres ───────────────────────────────────── *}
         <div class="neria-section">
-          <h2 class="neria-section__title">Police de titres</h2>
+          <div class="neria-section__header">
+            <h2 class="neria-section__title">Police de titres</h2>
+            <button type="button" class="neria-section-reset"
+                    data-defaults='{"font_heading":"Cormorant Garamond"}'>
+              ↺ Défauts
+            </button>
+          </div>
           <p style="font-size:12px;color:#7a6a5a;margin:0 0 14px;">
             Appliquée aux titres principaux et sous-titres des emails. La police du corps de texte se configure dans l'onglet Typographie.
           </p>
@@ -203,7 +221,13 @@
 
         {* ── Style des boutons ───────────────────────────────────── *}
         <div class="neria-section">
-          <h2 class="neria-section__title">Style des boutons</h2>
+          <div class="neria-section__header">
+            <h2 class="neria-section__title">Style des boutons</h2>
+            <button type="button" class="neria-section-reset"
+                    data-defaults='{"btn_color":"#2b2520","btn_radius":"2"}'>
+              ↺ Défauts
+            </button>
+          </div>
           <div class="neria-form-group">
             <label class="neria-label">Couleur du bouton</label>
             <div class="neria-color-input-wrap">
@@ -235,7 +259,13 @@
 
         {* ── Couleurs header / footer ────────────────────────────── *}
         <div class="neria-section">
-          <h2 class="neria-section__title">Couleurs header & footer</h2>
+          <div class="neria-section__header">
+            <h2 class="neria-section__title">Couleurs header & footer</h2>
+            <button type="button" class="neria-section-reset"
+                    data-defaults='{"color_header_bg":"#ffffff","color_footer_bg":"#ffffff","color_footer_text":"#a09990"}'>
+              ↺ Défauts
+            </button>
+          </div>
           <div class="neria-color-grid">
             <div class="neria-form-group">
               <label class="neria-label">Fond du header</label>
@@ -275,7 +305,13 @@
 
         {* ── Espacement & séparateur & ombre ────────────────────── *}
         <div class="neria-section">
-          <h2 class="neria-section__title">Espacement, séparateur & ombre</h2>
+          <div class="neria-section__header">
+            <h2 class="neria-section__title">Espacement, séparateur & ombre</h2>
+            <button type="button" class="neria-section-reset"
+                    data-defaults='{"section_padding":"40","block_spacing":"48","separator_style":"line","card_shadow":"soft"}'>
+              ↺ Défauts
+            </button>
+          </div>
 
           <div class="neria-form-group">
             <label class="neria-label" for="section_padding">

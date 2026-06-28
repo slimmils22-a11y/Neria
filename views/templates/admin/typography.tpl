@@ -16,7 +16,13 @@
 
         {* ── Taille de police corps ──────────────────────────────── *}
         <div class="neria-section">
-          <h2 class="neria-section__title">{neria_admin key='typography.font_size_title'}</h2>
+          <div class="neria-section__header">
+            <h2 class="neria-section__title">{neria_admin key='typography.font_size_title'}</h2>
+            <button type="button" class="neria-section-reset"
+                    data-defaults='{"font_size":"14"}'>
+              ↺ Défauts
+            </button>
+          </div>
           <p class="neria-hint">{neria_admin key='typography.font_size_hint'}</p>
 
           <div class="neria-slider-row">
@@ -41,7 +47,13 @@
 
         {* ── Interligne ──────────────────────────────────────────── *}
         <div class="neria-section">
-          <h2 class="neria-section__title">{neria_admin key='typography.line_height_title'}</h2>
+          <div class="neria-section__header">
+            <h2 class="neria-section__title">{neria_admin key='typography.line_height_title'}</h2>
+            <button type="button" class="neria-section-reset"
+                    data-defaults='{"line_height":"1.8"}'>
+              ↺ Défauts
+            </button>
+          </div>
           <p class="neria-hint">{neria_admin key='typography.line_height_hint'}</p>
 
           <div class="neria-slider-row">
@@ -65,7 +77,13 @@
 
         {* ── Poids des titres ────────────────────────────────────── *}
         <div class="neria-section">
-          <h2 class="neria-section__title">{neria_admin key='typography.heading_weight_title'}</h2>
+          <div class="neria-section__header">
+            <h2 class="neria-section__title">{neria_admin key='typography.heading_weight_title'}</h2>
+            <button type="button" class="neria-section-reset"
+                    data-defaults='{"heading_weight":"600"}'>
+              ↺ Défauts
+            </button>
+          </div>
           <p class="neria-hint">{neria_admin key='typography.heading_weight_hint'}</p>
 
           <div class="neria-radio-row">
