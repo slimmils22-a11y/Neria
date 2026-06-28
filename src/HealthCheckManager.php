@@ -187,6 +187,11 @@ class HealthCheckManager
             'abtest_stuck'         => $this->checkAbtestStuck(),
             'crypto_key'           => $this->checkCryptoKey(),
             'send_volume_spike'    => $this->checkSendVolumeSpike(),
+            'domain_rep_score'     => $this->checkDomainRepScore(),
+            'db_tables'            => $this->checkDbTables(),
+            'unsubscribe_url'      => $this->checkUnsubscribeUrl(),
+            'waitlist_backlog'     => $this->checkWaitlistBacklog(),
+            'smtp_quota'           => $this->checkSmtpQuota(),
         ];
     }
 
@@ -1389,6 +1394,254 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => sprintf('Volume d\'envoi normal (%d emails aujourd\'hui, moyenne 7j : %.0f).', $today, $avg)];
+    }
+
+    /**
+     * #28 — Score de réputation de domaine sous le seuil
+     * Le rapport est calculé automatiquement mais personne n'alerte
+     * si le score chute sous 50 ou si le domaine est blacklisté.
+     */
+    private function checkDomainRepScore(): array
+    {
+        if (!class_exists('DomainReputationManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => 'DomainReputationManager absent — sans impact.'];
+        }
+
+        $mgr    = new DomainReputationManager($this->module);
+        $cached = $mgr->getCachedReport();
+
+        if ($cached === null) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Rapport de réputation pas encore généré.'];
+        }
+
+        $score = (int) ($cached['score'] ?? 100);
+        $grade = (string) ($cached['grade'] ?? 'A');
+        $hits  = count($cached['blacklists']['hits'] ?? []);
+
+        if ($hits > 0 || $grade === 'F' || $grade === 'D') {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => sprintf(
+                    'Réputation domaine critique : score %d/100 (grade %s), %d liste(s) noire(s) touchée(s).'
+                    . ' → Que faire : Consultez l\'onglet Statistiques → Réputation de domaine'
+                    . ' et suivez les recommandations pour vous faire retirer des blacklists.',
+                    $score, $grade, $hits
+                ),
+            ];
+        }
+
+        if ($score < 75 || $grade === 'C') {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => sprintf(
+                    'Réputation domaine dégradée : score %d/100 (grade %s).'
+                    . ' → Que faire : Vérifiez votre configuration SPF/DKIM/DMARC'
+                    . ' dans l\'onglet Statistiques → Réputation de domaine.',
+                    $score, $grade
+                ),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => sprintf('Réputation domaine saine : %d/100 (grade %s).', $score, $grade)];
+    }
+
+    /**
+     * #29 — Tables DB manquantes
+     * Si un script d'upgrade a échoué silencieusement, une table entière
+     * peut être absente : la feature plante sans exception PHP visible.
+     */
+    private function checkDbTables(): array
+    {
+        $expected = [
+            'neria_stat', 'neria_template', 'neria_abtest', 'neria_abtest_translation',
+            'neria_attribution', 'neria_behavioral_sent', 'neria_bounces',
+            'neria_collection', 'neria_collection_sent',
+            'neria_log', 'neria_look_rule', 'neria_look_sent',
+            'neria_loyalty_points', 'neria_loyalty_rewards',
+            'neria_preferences', 'neria_product_lifespan',
+            'neria_propensity_score', 'neria_queue', 'neria_quote',
+            'neria_reconciliation', 'neria_seasonal_campaign',
+            'neria_segments', 'neria_upsell', 'neria_waitlist',
+            'neria_webhook_queue',
+        ];
+
+        $existing = $this->db->executeS(
+            "SELECT TABLE_NAME FROM information_schema.tables
+             WHERE table_schema = DATABASE()
+               AND TABLE_NAME LIKE 'neria_%'"
+        ) ?: [];
+
+        $existingNames = array_column($existing, 'TABLE_NAME');
+        $prefix        = _DB_PREFIX_;
+        $missing       = [];
+
+        foreach ($expected as $table) {
+            if (!in_array($prefix . $table, $existingNames, true)) {
+                $missing[] = $table;
+            }
+        }
+
+        if ($missing) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => count($missing) . ' table(s) manquante(s) : ' . implode(', ', $missing)
+                    . ' → Que faire : Désinstallez et réinstallez le module,'
+                    . ' ou exécutez manuellement le script d\'upgrade correspondant.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => count($expected) . ' tables présentes en base.'];
+    }
+
+    /**
+     * #30 — Lien de désabonnement accessible
+     * Le header List-Unsubscribe est déjà vérifié, mais pas l'URL réelle
+     * cliquable dans l'email. Si elle est cassée, le client ne peut plus
+     * se désabonner — violation RGPD immédiate.
+     */
+    private function checkUnsubscribeUrl(): array
+    {
+        $testEmail = 'neria-health-check@example.com';
+        $token     = substr(hash_hmac('sha256', $testEmail, _COOKIE_KEY_), 0, 32);
+        $base      = \Tools::getShopDomainSsl(true);
+        $url       = $base . '/index.php?fc=module&module=neria&controller=unsubscribe'
+                   . '&email=' . urlencode($testEmail) . '&token=' . $token;
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 5,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_NOBODY         => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+        ]);
+        curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error    = curl_error($ch);
+        curl_close($ch);
+
+        if ($error) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => 'Lien de désabonnement injoignable (erreur cURL : ' . $error . ').'
+                    . ' → Que faire : Vérifiez que votre boutique est accessible depuis internet'
+                    . ' et que le contrôleur neria/unsubscribe répond.',
+            ];
+        }
+
+        // 200 ou 302 = page trouvée ; 404/500 = cassé
+        if ($httpCode === 0 || $httpCode >= 400) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => 'Lien de désabonnement inaccessible (HTTP ' . $httpCode . ').'
+                    . ' → Que faire : Vérifiez que le fichier controllers/front/unsubscribe.php'
+                    . ' existe et que le module est correctement installé (hooks enregistrés).',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => 'Lien de désabonnement accessible (HTTP ' . $httpCode . ').'];
+    }
+
+    /**
+     * #31 — Waitlist non notifiée
+     * Des clients attendent un produit revenu en stock mais l'email
+     * n'a jamais été envoyé depuis plus de 48h.
+     */
+    private function checkWaitlistBacklog(): array
+    {
+        $table = _DB_PREFIX_ . WaitlistManager::TABLE;
+
+        $exists = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM information_schema.tables
+             WHERE table_schema = DATABASE() AND table_name = '{$table}'"
+        );
+        if (!$exists) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Waitlist non activée — sans impact.'];
+        }
+
+        // Clients en attente non notifiés depuis plus de 48h,
+        // dont le produit est actuellement en stock (quantity > 0)
+        $backlog = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}` w
+             JOIN `" . _DB_PREFIX_ . "stock_available` s
+                  ON s.id_product = w.id_product AND s.id_product_attribute = 0
+             WHERE w.notified_at IS NULL
+               AND w.registered_at < DATE_SUB(NOW(), INTERVAL 48 HOUR)
+               AND s.quantity > 0"
+        );
+
+        if ($backlog === 0) {
+            $total = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$table}` WHERE notified_at IS NULL");
+            return [
+                'status' => self::STATUS_OK,
+                'detail' => 'Waitlist à jour — ' . $total . ' client(s) en attente de restockage.',
+            ];
+        }
+
+        return [
+            'status' => self::STATUS_WARNING,
+            'detail' => $backlog . ' client(s) en liste d\'attente non notifié(s) alors que le produit'
+                . ' est revenu en stock depuis plus de 48h.'
+                . ' → Que faire : Vérifiez que le cron comportemental tourne bien'
+                . ' et consultez les logs Watchdog pour des erreurs WaitlistManager.',
+        ];
+    }
+
+    /**
+     * #32 — Quota SMTP journalier approché
+     * Certains hébergeurs limitent les envois à 200–500 emails/jour.
+     * Si on approche du quota, les emails suivants rebondissent silencieusement.
+     * Compare le volume du jour avec le quota configuré (si défini).
+     */
+    private function checkSmtpQuota(): array
+    {
+        $quota = (int) \Configuration::get('NERIA_SMTP_DAILY_QUOTA');
+
+        if ($quota <= 0) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Aucun quota SMTP journalier configuré.'];
+        }
+
+        $table = _DB_PREFIX_ . 'neria_stat';
+        $exists = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM information_schema.tables
+             WHERE table_schema = DATABASE() AND table_name = '{$table}'"
+        );
+        if (!$exists) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Table stats absente — sans impact.'];
+        }
+
+        $today = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}`
+             WHERE `event_type` = 'sent' AND DATE(`date_add`) = CURDATE()"
+        );
+
+        $pct = ($today / $quota) * 100;
+
+        if ($pct >= 100) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => sprintf(
+                    'Quota SMTP journalier dépassé : %d/%d emails envoyés aujourd\'hui (%.0f%%).'
+                    . ' → Que faire : Les emails suivants risquent d\'être rejetés.'
+                    . ' Contactez votre hébergeur ou réduisez le volume d\'envoi.',
+                    $today, $quota, $pct
+                ),
+            ];
+        }
+
+        if ($pct >= 80) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => sprintf(
+                    'Quota SMTP journalier à %.0f%% : %d/%d emails envoyés aujourd\'hui.'
+                    . ' → Que faire : Vous approchez de la limite de votre hébergeur.'
+                    . ' Envisagez de différer les campagnes non urgentes.',
+                    $pct, $today, $quota
+                ),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => sprintf('Quota SMTP : %d/%d emails aujourd\'hui (%.0f%%).', $today, $quota, $pct)];
     }
 
     private function logResultsToWatchdog(array $results): void

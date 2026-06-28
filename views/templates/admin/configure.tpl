@@ -370,6 +370,31 @@
       </button>
     </div>
   </form>
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:20px;padding-top:16px;border-top:1px solid #e8d5b0;">
+    <input type="hidden" name="neria_action" value="save_smtp_quota">
+    <input type="hidden" name="neria_tab"    value="configure">
+    <div class="neria-form-group">
+      <label class="neria-label" for="neria-smtp-quota">
+        📬 Quota SMTP journalier (optionnel)
+      </label>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="number" id="neria-smtp-quota" name="neria_smtp_quota"
+               class="neria-input" min="0" style="max-width:120px;"
+               value="{$smtp_daily_quota|default:0}">
+        <span style="font-size:13px;color:var(--neria-text-light);">emails / jour</span>
+      </div>
+      <p class="neria-hint">
+        Limite d'envoi imposée par votre hébergeur (ex: 500). Laissez 0 si illimité.
+        Le Watchdog vous alertera à 80% et 100% du quota.
+      </p>
+    </div>
+    <div style="margin-top:12px;">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+        {neria_admin key='common.register'}
+      </button>
+    </div>
+  </form>
 </div>
 
 {* ── Empreinte carbone ──────────────────────────────────── *}

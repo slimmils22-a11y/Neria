@@ -1347,6 +1347,12 @@ class Neria extends Module
             Configuration::updateValue(self::CONFIG_PREFIX . 'COOLDOWN_MINUTES', $minutes);
         }
 
+        if (Tools::getValue('neria_action') === 'save_smtp_quota') {
+            $quota = max(0, (int) Tools::getValue('neria_smtp_quota', 0));
+            Configuration::updateValue('NERIA_SMTP_DAILY_QUOTA', $quota);
+            $this->context->smarty->assign('neria_success', 'Quota SMTP journalier enregistré.');
+        }
+
         // ── Action : empreinte carbone ────────────────────────────
         if (Tools::getValue('neria_action') === 'save_carbon') {
             Configuration::updateValue(
@@ -2739,6 +2745,7 @@ class Neria extends Module
             'all_countries'                => ConfigManager::getAllCountries(),
             'cooldown_enabled'      => $config->isCooldownEnabled(),
             'cooldown_minutes'      => $config->getCooldownMinutes(),
+            'smtp_daily_quota'      => (int) Configuration::get('NERIA_SMTP_DAILY_QUOTA'),
             'carbon_enabled'        => $config->isCarbonEnabled(),
             'carbon_link'           => $config->getCarbonLink(),
             'multi_sender_enabled'  => $config->isMultiSenderEnabled(),
