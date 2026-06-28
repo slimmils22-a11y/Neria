@@ -193,6 +193,7 @@ class HealthCheckManager
             'unsubscribe_url'      => $this->checkUnsubscribeUrl(),
             'waitlist_backlog'     => $this->checkWaitlistBacklog(),
             'smtp_quota'           => $this->checkSmtpQuota(),
+            'postmaster_rep'       => $this->checkPostmasterReputation(),
         ];
     }
 
@@ -1693,6 +1694,84 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => 'PTR / rDNS configuré et valide (' . ($ptr['hostname'] ?? '') . ').'];
+    }
+
+    /**
+     * #34 — Réputation Google Postmaster Tools
+     * Alerte si le cache contient des données dégradées (spam rate élevé,
+     * réputation LOW/BAD). Silencieux si l'intégration n'est pas configurée.
+     */
+    private function checkPostmasterReputation(): array
+    {
+        if (!class_exists('PostmasterManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => 'PostmasterManager non disponible.'];
+        }
+
+        $mgr = new \PostmasterManager($this->module);
+
+        if (!$mgr->isConfigured()) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Postmaster Tools non configuré (optionnel).'];
+        }
+
+        if (!$mgr->isConnected()) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => 'Postmaster Tools configuré mais non connecté à Google.'
+                    . ' → Que faire : Rendez-vous dans l\'onglet Statistiques et cliquez sur « Connecter avec Google ».',
+            ];
+        }
+
+        $stats = $mgr->getCachedStats();
+        if ($stats === null) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Postmaster Tools connecté — données pas encore chargées (actualisez dans l\'onglet Stats).'];
+        }
+
+        if (empty($stats)) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Postmaster Tools : aucune donnée disponible (volume d\'envoi insuffisant ou domaine non vérifié).'];
+        }
+
+        $errors   = [];
+        $warnings = [];
+
+        foreach ($stats as $ps) {
+            $domain   = $ps['domain']            ?? '?';
+            $rep      = $ps['domain_reputation'] ?? null;
+            $spamRate = $ps['spam_rate']          ?? null;
+
+            if ($rep === 'BAD') {
+                $errors[] = "Réputation BLOQUÉE (BAD) pour {$domain} — Gmail rejette activement vos emails.";
+            } elseif ($rep === 'LOW') {
+                $errors[] = "Réputation LOW pour {$domain} — vos emails passent en spam Gmail.";
+            } elseif ($rep === 'MEDIUM') {
+                $warnings[] = "Réputation MEDIUM pour {$domain} — surveillance recommandée.";
+            }
+
+            if ($spamRate !== null && $spamRate > 0.3) {
+                $errors[] = "Taux de spam {$spamRate}% pour {$domain} (seuil critique >0,3%) — action immédiate requise.";
+            } elseif ($spamRate !== null && $spamRate > 0.1) {
+                $warnings[] = "Taux de spam {$spamRate}% pour {$domain} (zone d'attention >0,1%).";
+            }
+        }
+
+        if (!empty($errors)) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => 'Postmaster Tools : ' . implode(' | ', $errors)
+                    . ' → Que faire : Vérifiez vos listes d\'envoi, retirez les adresses invalides, réduisez la fréquence.'
+                    . ' Consultez l\'onglet Statistiques pour le détail complet.',
+            ];
+        }
+
+        if (!empty($warnings)) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => 'Postmaster Tools : ' . implode(' | ', $warnings),
+            ];
+        }
+
+        $cacheAge = $mgr->getCacheAge();
+        $ageStr   = $cacheAge !== null ? " (données vieilles de {$cacheAge} min)" : '';
+        return ['status' => self::STATUS_OK, 'detail' => 'Postmaster Tools : réputation et taux de spam dans les normes' . $ageStr . '.'];
     }
 
     private function logResultsToWatchdog(array $results): void

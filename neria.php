@@ -1353,6 +1353,80 @@ class Neria extends Module
             $this->context->smarty->assign('neria_success', 'Quota SMTP journalier enregistré.');
         }
 
+        // ── Google Postmaster Tools : sauvegarde credentials ─────
+        if (Tools::getValue('neria_action') === 'save_postmaster_config' && class_exists('PostmasterManager')) {
+            $clientId     = trim((string) Tools::getValue('postmaster_client_id', ''));
+            $clientSecret = trim((string) Tools::getValue('postmaster_client_secret', ''));
+            Configuration::updateValue(PostmasterManager::CONFIG_CLIENT_ID,     $clientId);
+            Configuration::updateValue(PostmasterManager::CONFIG_CLIENT_SECRET, $clientSecret);
+            // Efface les anciens tokens si les credentials changent
+            Configuration::deleteByName(PostmasterManager::CONFIG_ACCESS_TOKEN);
+            Configuration::deleteByName(PostmasterManager::CONFIG_REFRESH_TOKEN);
+            Configuration::deleteByName(PostmasterManager::CONFIG_TOKEN_EXPIRY);
+            Configuration::deleteByName(PostmasterManager::CONFIG_CACHE);
+            Configuration::deleteByName(PostmasterManager::CONFIG_CACHE_TIME);
+            $this->context->smarty->assign('neria_success', 'Identifiants Google sauvegardés. Cliquez sur « Connecter » pour autoriser l\'accès.');
+        }
+
+        // ── Google Postmaster Tools : connexion (redirect OAuth) ──
+        if (Tools::getValue('neria_action') === 'connect_postmaster' && class_exists('PostmasterManager')) {
+            $manager   = new PostmasterManager($this);
+            $returnUrl = $this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats';
+            $authUrl   = $manager->getAuthUrl($returnUrl);
+            Tools::redirectAdmin($authUrl);
+        }
+
+        // ── Google Postmaster Tools : déconnexion ─────────────────
+        if (Tools::getValue('neria_action') === 'disconnect_postmaster' && class_exists('PostmasterManager')) {
+            (new PostmasterManager($this))->disconnect();
+            $this->context->smarty->assign('neria_success', 'Compte Google déconnecté.');
+        }
+
+        // ── Google Postmaster Tools : rafraîchissement forcé ──────
+        if (Tools::getValue('neria_action') === 'refresh_postmaster' && class_exists('PostmasterManager')) {
+            $manager = new PostmasterManager($this);
+            Configuration::deleteByName(PostmasterManager::CONFIG_CACHE);
+            Configuration::deleteByName(PostmasterManager::CONFIG_CACHE_TIME);
+            $stats = $manager->getStats();
+            if ($stats !== null) {
+                $this->context->smarty->assign([
+                    'postmaster_stats'     => $stats,
+                    'postmaster_cache_age' => 0,
+                    'neria_success'        => 'Données Postmaster Tools actualisées.',
+                ]);
+                // Watchdog : alerte si réputation ou taux de spam dégradés
+                if (class_exists('WatchdogManager')) {
+                    $wd = new WatchdogManager($this);
+                    foreach ($stats as $ps) {
+                        $domain   = $ps['domain']            ?? '?';
+                        $rep      = $ps['domain_reputation'] ?? null;
+                        $spamRate = $ps['spam_rate']         ?? null;
+
+                        if ($rep === 'BAD') {
+                            $wd->error("Postmaster Tools [{$domain}] : réputation BLOQUÉE (BAD) — Gmail rejette activement vos emails.", '', 'PostmasterTools');
+                        } elseif ($rep === 'LOW') {
+                            $wd->error("Postmaster Tools [{$domain}] : réputation LOW — vos emails passent en spam Gmail.", '', 'PostmasterTools');
+                        } elseif ($rep === 'MEDIUM') {
+                            $wd->warning("Postmaster Tools [{$domain}] : réputation MEDIUM — surveillance recommandée.", '', 'PostmasterTools');
+                        }
+
+                        if ($spamRate !== null && $spamRate > 0.3) {
+                            $wd->error("Postmaster Tools [{$domain}] : taux de spam {$spamRate}% (seuil critique >0,3%) — action immédiate requise.", '', 'PostmasterTools');
+                        } elseif ($spamRate !== null && $spamRate > 0.1) {
+                            $wd->warning("Postmaster Tools [{$domain}] : taux de spam {$spamRate}% (zone d'attention >0,1%).", '', 'PostmasterTools');
+                        } elseif ($rep === 'HIGH' && ($spamRate === null || $spamRate < 0.1)) {
+                            $wd->info("Postmaster Tools [{$domain}] : réputation HIGH — tout va bien.", '', 'PostmasterTools');
+                        }
+                    }
+                }
+            } else {
+                $this->context->smarty->assign('neria_error', 'Impossible de récupérer les données. Vérifiez la connexion Google.');
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this))->warning('Postmaster Tools : échec de récupération des données API (token expiré ou révoqué ?).', '', 'PostmasterTools');
+                }
+            }
+        }
+
         // ── Action : empreinte carbone ────────────────────────────
         if (Tools::getValue('neria_action') === 'save_carbon') {
             Configuration::updateValue(
@@ -3051,6 +3125,22 @@ class Neria extends Module
             'domain_reputation' => class_exists('DomainReputationManager')
                 ? (new DomainReputationManager($this))->getCachedReport()
                 : null,
+
+            // Google Postmaster Tools
+            'postmaster_configured'  => class_exists('PostmasterManager') && (new PostmasterManager($this))->isConfigured(),
+            'postmaster_connected'   => class_exists('PostmasterManager') && (new PostmasterManager($this))->isConnected(),
+            'postmaster_client_id'   => class_exists('PostmasterManager') ? (string) Configuration::get(PostmasterManager::CONFIG_CLIENT_ID) : '',
+            'postmaster_stats'       => (function () {
+                if (!class_exists('PostmasterManager')) {
+                    return null;
+                }
+                $mgr = new PostmasterManager($this);
+                if (!$mgr->isConnected()) {
+                    return null;
+                }
+                return $mgr->getCachedStats();
+            })(),
+            'postmaster_cache_age'   => class_exists('PostmasterManager') ? (new PostmasterManager($this))->getCacheAge() : null,
 
             // Variables pour la section Fidélité dans configure.tpl
             'loyalty_enabled'     => (bool) Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED'),

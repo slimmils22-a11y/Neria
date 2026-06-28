@@ -838,65 +838,279 @@ var _nrc = {
 
 </div>
 
-{* ── Outils de surveillance externe ─────────────────────────── *}
+{* ── Google Postmaster Tools — intégration OAuth ────────────── *}
 <div class="neria-section" id="neria-postmaster-tools">
-  <h2 class="neria-section__title">🔭 Surveillance externe — Postmaster Tools</h2>
+  <h2 class="neria-section__title">🔭 Google Postmaster Tools</h2>
   <p class="neria-section__desc">
-    Ces outils gratuits fournis par Google et Microsoft vous donnent accès aux vraies données de réputation
-    de votre domaine — taux de spam signalé par les utilisateurs, réputation IP, taux de livraison réel.
-    Neria ne peut pas accéder à ces données directement : c'est vous qui devez vous y connecter.
+    Connectez votre compte Google pour afficher directement dans Neria le taux de spam signalé,
+    la réputation de domaine et les ratios SPF/DKIM/DMARC mesurés par Gmail.
   </p>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
-
-    <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:20px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-        <span style="font-size:24px;">📬</span>
+  {* ═══ ÉTAT 1 : Non configuré — saisie des credentials ══════ *}
+  {if !$postmaster_configured}
+  <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:24px;margin-top:16px;">
+    <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:8px;">⚙️ Configuration OAuth 2.0</div>
+    <p style="font-size:12px;color:#7a6a5a;line-height:1.6;margin:0 0 16px;">
+      Créez un projet Google Cloud, activez l'API <strong>Gmail Postmaster Tools</strong>,
+      puis créez des identifiants OAuth 2.0 (type « Application Web ») avec l'URI de redirection suivante :
+    </p>
+    <div style="background:#f9f6f1;border-radius:6px;padding:10px 14px;font-size:12px;font-family:monospace;color:#5c3d1e;margin-bottom:16px;word-break:break-all;">
+      {$smarty.server.REQUEST_SCHEME|default:'https'}://{$smarty.server.HTTP_HOST}/index.php?fc=module&module=neria&controller=oauth
+    </div>
+    <div style="font-size:12px;background:#fef9f0;border:1px solid #e8d5b0;border-radius:6px;padding:10px 14px;color:#5c3d1e;line-height:1.6;margin-bottom:20px;">
+      <strong>Étapes rapides :</strong><br>
+      1. <a href="https://console.cloud.google.com/" target="_blank" style="color:#1a7a40;">console.cloud.google.com</a> → Nouveau projet → API &amp; services → Bibliothèque<br>
+      2. Activez « <strong>Gmail Postmaster Tools API</strong> »<br>
+      3. Identifiants → Créer des identifiants → ID client OAuth → Application Web<br>
+      4. Ajoutez l'URI de redirection ci-dessus → copiez Client ID et Secret
+    </div>
+    <form method="post" action="{$smarty.server.REQUEST_URI}">
+      <input type="hidden" name="neria_action" value="save_postmaster_config">
+      <input type="hidden" name="neria_tab"    value="stats">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
         <div>
-          <div style="font-weight:700;font-size:14px;color:#5c3d1e;">Google Postmaster Tools</div>
-          <div style="font-size:11px;color:#7a6a5a;">postmaster.google.com</div>
+          <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">Client ID</label>
+          <input type="text" name="postmaster_client_id" value="{$postmaster_client_id|escape:'html'}"
+                 style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
+                 placeholder="12345...apps.googleusercontent.com">
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">Client Secret</label>
+          <input type="password" name="postmaster_client_secret"
+                 style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
+                 placeholder="GOCSPX-…">
         </div>
       </div>
-      <p style="font-size:12px;color:#7a6a5a;line-height:1.6;margin:0 0 14px;">
-        Affiche votre <strong>taux de spam signalé</strong> par les utilisateurs Gmail,
-        la réputation de votre domaine et de votre IP, et le taux de chiffrement des emails.
-        Indispensable si vous envoyez vers Gmail (60%+ du marché en France).
-      </p>
-      <div style="font-size:12px;background:#f9f6f1;border-radius:6px;padding:10px 12px;color:#5c3d1e;line-height:1.6;">
-        <strong>Comment s'inscrire :</strong><br>
-        1. Allez sur <code>postmaster.google.com</code><br>
-        2. Ajoutez votre domaine d'envoi<br>
-        3. Vérifiez-le via un enregistrement DNS TXT<br>
-        4. Les données apparaissent après 24–48h d'envoi
+      <button type="submit" class="neria-btn neria-btn--primary" style="font-size:12px;padding:8px 18px;">
+        Enregistrer les identifiants
+      </button>
+    </form>
+  </div>
+  {/if}
+
+  {* ═══ ÉTAT 2 : Configuré mais non connecté ══════════════════ *}
+  {if $postmaster_configured && !$postmaster_connected}
+  <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:24px;margin-top:16px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <div style="width:10px;height:10px;border-radius:50%;background:#e67e22;flex-shrink:0;"></div>
+      <div>
+        <div style="font-weight:700;font-size:13px;color:#5c3d1e;">Identifiants enregistrés — autorisation requise</div>
+        <div style="font-size:11px;color:#7a6a5a;margin-top:2px;">Client ID : {$postmaster_client_id|escape:'html'|truncate:40:'…':true}</div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:#7a6a5a;line-height:1.6;margin:0 0 16px;">
+      Cliquez sur le bouton ci-dessous pour autoriser Neria à lire vos données Postmaster Tools.
+      Vous serez redirigé vers Google, puis ramené automatiquement ici.
+    </p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <form method="post" action="{$smarty.server.REQUEST_URI}">
+        <input type="hidden" name="neria_action" value="connect_postmaster">
+        <input type="hidden" name="neria_tab"    value="stats">
+        <button type="submit" style="background:#1a7a40;color:#fff;border:none;border-radius:5px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;">
+          🔗 Connecter avec Google
+        </button>
+      </form>
+      <form method="post" action="{$smarty.server.REQUEST_URI}">
+        <input type="hidden" name="neria_action" value="save_postmaster_config">
+        <input type="hidden" name="neria_tab"    value="stats">
+        <input type="hidden" name="postmaster_client_id"     value="">
+        <input type="hidden" name="postmaster_client_secret" value="">
+        <button type="submit" style="background:#fff;color:#7a6a5a;border:1px solid #d4c5a9;border-radius:5px;padding:9px 16px;font-size:12px;cursor:pointer;">
+          Modifier les identifiants
+        </button>
+      </form>
+    </div>
+  </div>
+  {/if}
+
+  {* ═══ ÉTAT 3 : Connecté — affichage des données ═════════════ *}
+  {if $postmaster_connected}
+  <div style="margin-top:16px;">
+
+    {* Barre de statut *}
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:#fff;border:1px solid #c8e6c9;border-radius:8px;padding:12px 16px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:10px;height:10px;border-radius:50%;background:#16a34a;flex-shrink:0;"></div>
+        <div>
+          <span style="font-weight:700;font-size:13px;color:#16a34a;">Connecté à Google Postmaster Tools</span>
+          {if $postmaster_cache_age !== null}
+          <span style="font-size:11px;color:#7a6a5a;margin-left:8px;">— données actualisées il y a {$postmaster_cache_age} min</span>
+          {/if}
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+          <input type="hidden" name="neria_action" value="refresh_postmaster">
+          <input type="hidden" name="neria_tab"    value="stats">
+          <button type="submit" style="background:#fff;color:#5c3d1e;border:1px solid #d4c5a9;border-radius:5px;padding:6px 12px;font-size:11px;cursor:pointer;">
+            ↺ Actualiser
+          </button>
+        </form>
+        <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+          <input type="hidden" name="neria_action" value="disconnect_postmaster">
+          <input type="hidden" name="neria_tab"    value="stats">
+          <button type="submit" style="background:#fff;color:#c0392b;border:1px solid #f5c6cb;border-radius:5px;padding:6px 12px;font-size:11px;cursor:pointer;">
+            Déconnecter
+          </button>
+        </form>
       </div>
     </div>
 
-    <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:20px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-        <span style="font-size:24px;">🪟</span>
-        <div>
-          <div style="font-weight:700;font-size:14px;color:#5c3d1e;">Microsoft SNDS</div>
-          <div style="font-size:11px;color:#7a6a5a;">sendersupport.olc.protection.outlook.com/snds</div>
+    {* Données par domaine *}
+    {if $postmaster_stats && $postmaster_stats|count > 0}
+      {foreach $postmaster_stats as $ps}
+      <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:20px;margin-bottom:14px;">
+
+        {* En-tête domaine *}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <div style="font-weight:700;font-size:15px;color:#5c3d1e;">{$ps.domain|escape:'html'}</div>
+            <div style="font-size:11px;color:#7a6a5a;">Données du {$ps.date|escape:'html'}</div>
+          </div>
+          {* Badge réputation domaine *}
+          {assign var="drep" value=$ps.domain_reputation}
+          {if $drep === 'HIGH'}
+            <div style="background:#d4edda;color:#155724;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;">✅ HIGH — Excellent</div>
+          {elseif $drep === 'MEDIUM'}
+            <div style="background:#fff3cd;color:#856404;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;">⚠️ MEDIUM — Moyen</div>
+          {elseif $drep === 'LOW'}
+            <div style="background:#f8d7da;color:#721c24;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;">🔴 LOW — Dégradé</div>
+          {elseif $drep === 'BAD'}
+            <div style="background:#721c24;color:#fff;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;">💀 BAD — Bloqué</div>
+          {else}
+            <div style="background:#f9f6f1;color:#7a6a5a;border-radius:20px;padding:5px 14px;font-size:12px;">○ Insuffisant (trop peu d'envois)</div>
+          {/if}
         </div>
+
+        {* Taux de spam *}
+        {if $ps.spam_rate !== null}
+          {assign var="spRate" value=$ps.spam_rate}
+          {if $spRate < 0.1}
+            {assign var="spColor" value="#16a34a"}
+            {assign var="spLabel" value="Zone verte"}
+          {elseif $spRate < 0.3}
+            {assign var="spColor" value="#d97706"}
+            {assign var="spLabel" value="Attention"}
+          {else}
+            {assign var="spColor" value="#dc2626"}
+            {assign var="spLabel" value="Danger"}
+          {/if}
+          <div style="background:#f9f6f1;border-radius:8px;padding:14px 16px;margin-bottom:14px;">
+            <div style="font-size:11px;font-weight:600;color:#7a6a5a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Taux de spam signalé</div>
+            <div style="display:flex;align-items:baseline;gap:8px;">
+              <span style="font-size:32px;font-weight:700;color:{$spColor};">{$spRate|string_format:"%.4f"}%</span>
+              <span style="font-size:12px;font-weight:600;color:{$spColor};">{$spLabel}</span>
+            </div>
+            <div style="margin-top:8px;height:6px;background:#e8d5b0;border-radius:3px;overflow:hidden;">
+              {assign var="spPct" value=($spRate/0.5*100)}
+              {if $spPct > 100}{assign var="spPct" value=100}{/if}
+              <div style="height:100%;width:{$spPct}%;background:{$spColor};border-radius:3px;transition:width .4s;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:#7a6a5a;margin-top:3px;">
+              <span>0%</span><span style="color:#16a34a;">0,1%</span><span style="color:#d97706;">0,3%</span><span>0,5%+</span>
+            </div>
+          </div>
+        {/if}
+
+        {* Grille SPF / DKIM / DMARC / TLS *}
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;">
+          {foreach ['SPF'=>$ps.spf_success,'DKIM'=>$ps.dkim_success,'DMARC'=>$ps.dmarc_success,'TLS'=>$ps.tls_outbound] as $mlabel=>$mval}
+            <div style="text-align:center;background:#f9f6f1;border-radius:6px;padding:10px 6px;">
+              <div style="font-size:10px;font-weight:600;color:#7a6a5a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">{$mlabel}</div>
+              {if $mval !== null}
+                {if $mval >= 95}
+                  <div style="font-size:20px;font-weight:700;color:#16a34a;">{$mval}%</div>
+                {elseif $mval >= 80}
+                  <div style="font-size:20px;font-weight:700;color:#d97706;">{$mval}%</div>
+                {else}
+                  <div style="font-size:20px;font-weight:700;color:#dc2626;">{$mval}%</div>
+                {/if}
+              {else}
+                <div style="font-size:18px;color:#b0a090;">—</div>
+              {/if}
+            </div>
+          {/foreach}
+        </div>
+
+        {* IP Reputations *}
+        {if $ps.ip_reputations && $ps.ip_reputations|count > 0}
+        <div style="margin-top:10px;">
+          <div style="font-size:11px;font-weight:600;color:#7a6a5a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Réputations IP</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            {foreach $ps.ip_reputations as $ipr}
+              {assign var="ipRep" value=$ipr.reputation|default:'UNKNOWN'}
+              {if $ipRep === 'HIGH'}
+                <span style="background:#d4edda;color:#155724;padding:3px 10px;border-radius:12px;font-size:11px;">✅ HIGH</span>
+              {elseif $ipRep === 'MEDIUM'}
+                <span style="background:#fff3cd;color:#856404;padding:3px 10px;border-radius:12px;font-size:11px;">⚠️ MEDIUM</span>
+              {elseif $ipRep === 'LOW'}
+                <span style="background:#f8d7da;color:#721c24;padding:3px 10px;border-radius:12px;font-size:11px;">🔴 LOW</span>
+              {elseif $ipRep === 'BAD'}
+                <span style="background:#721c24;color:#fff;padding:3px 10px;border-radius:12px;font-size:11px;">💀 BAD</span>
+              {else}
+                <span style="background:#f9f6f1;color:#7a6a5a;padding:3px 10px;border-radius:12px;font-size:11px;">○ {$ipRep}</span>
+              {/if}
+            {/foreach}
+          </div>
+        </div>
+        {/if}
+
+        {* Erreurs de livraison *}
+        {if $ps.delivery_errors && $ps.delivery_errors|count > 0}
+        <div style="margin-top:12px;padding:10px 14px;background:#fff3cd;border:1px solid #ffc107;border-radius:6px;">
+          <div style="font-size:11px;font-weight:600;color:#856404;margin-bottom:4px;">⚠️ Erreurs de livraison détectées</div>
+          {foreach $ps.delivery_errors as $de}
+          <div style="font-size:11px;color:#856404;line-height:1.5;">
+            {$de.errorClass|default:'UNKNOWN'} — {$de.errorType|default:''} ({$de.errorRatio|default:0|string_format:"%.3f"}%)
+          </div>
+          {/foreach}
+        </div>
+        {/if}
+
       </div>
-      <p style="font-size:12px;color:#7a6a5a;line-height:1.6;margin:0 0 14px;">
-        Smart Network Data Services : réputation de votre <strong>IP d'envoi</strong> auprès de
-        Outlook et Hotmail. Affiche le taux de plaintes spam et l'état de filtrage de votre IP.
-        Essentiel pour les clients Outlook/Hotmail (très répandu en entreprise).
-      </p>
-      <div style="font-size:12px;background:#f9f6f1;border-radius:6px;padding:10px 12px;color:#5c3d1e;line-height:1.6;">
-        <strong>Comment s'inscrire :</strong><br>
-        1. Relevez l'IP de votre serveur d'envoi<br>
-        2. Connectez-vous sur le site SNDS<br>
-        3. Demandez l'accès pour votre IP<br>
-        4. Vous recevrez un email de confirmation
+      {/foreach}
+
+    {elseif $postmaster_stats !== null}
+      <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:8px;padding:20px;text-align:center;color:#7a6a5a;font-size:13px;">
+        <div style="font-size:24px;margin-bottom:8px;">📭</div>
+        Aucune donnée disponible pour les 7 derniers jours.<br>
+        <small>Cela peut indiquer un volume d'envoi insuffisant ou que votre domaine n'est pas encore vérifié dans Postmaster Tools.</small>
+      </div>
+    {else}
+      <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:8px;padding:20px;text-align:center;color:#7a6a5a;font-size:13px;">
+        <div style="font-size:24px;margin-bottom:8px;">⏳</div>
+        Cliquez sur <strong>Actualiser</strong> pour charger les données Postmaster Tools.
+      </div>
+    {/if}
+
+  </div>
+  {/if}
+
+  {* ── Microsoft SNDS — guide statique ──────────────────────── *}
+  <div style="margin-top:20px;background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <span style="font-size:24px;">🪟</span>
+      <div>
+        <div style="font-weight:700;font-size:14px;color:#5c3d1e;">Microsoft SNDS</div>
+        <div style="font-size:11px;color:#7a6a5a;">sendersupport.olc.protection.outlook.com/snds</div>
       </div>
     </div>
-
+    <p style="font-size:12px;color:#7a6a5a;line-height:1.6;margin:0 0 14px;">
+      Smart Network Data Services : réputation de votre <strong>IP d'envoi</strong> auprès de
+      Outlook et Hotmail. Affiche le taux de plaintes spam et l'état de filtrage de votre IP.
+      Essentiel pour les clients Outlook/Hotmail (très répandu en entreprise).
+    </p>
+    <div style="font-size:12px;background:#f9f6f1;border-radius:6px;padding:10px 12px;color:#5c3d1e;line-height:1.6;">
+      <strong>Comment s'inscrire :</strong><br>
+      1. Relevez l'IP de votre serveur d'envoi<br>
+      2. Connectez-vous sur le site SNDS<br>
+      3. Demandez l'accès pour votre IP<br>
+      4. Vous recevrez un email de confirmation
+    </div>
   </div>
 
   <div style="margin-top:14px;padding:12px 16px;background:#fef9f0;border:1px solid #e8d5b0;border-radius:6px;font-size:12px;color:#7a6a5a;line-height:1.6;">
-    💡 <strong>Conseil :</strong> Vérifiez ces tableaux de bord une fois par semaine. Un taux de spam >0,3% sur Google Postmaster entraîne une dégradation immédiate de votre délivrabilité. En dessous de 0,1%, vous êtes dans la zone verte.
+    💡 <strong>Conseil :</strong> Un taux de spam >0,3% sur Google Postmaster entraîne une dégradation immédiate de votre délivrabilité. En dessous de 0,1%, vous êtes dans la zone verte.
   </div>
 </div>
 
