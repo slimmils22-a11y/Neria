@@ -130,7 +130,17 @@ function neriaSelectAllCountries(check) {
 
 {* ── Smart Salutation — formules par langue ──────────────────────── *}
 <div class="neria-section" id="neria-cfg-time-greetings">
-  <h2 class="neria-section__title">⏱ Smart Salutation — Heure locale</h2>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+    <h2 class="neria-section__title" style="margin:0;">⏱ Smart Salutation — Heure locale</h2>
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;">
+      <input type="hidden" name="neria_action" value="toggle_time_greeting">
+      <input type="hidden" name="neria_tab"    value="configure">
+      <button type="submit" class="neria-btn neria-btn--sm"
+              style="background:{if $time_greeting_enabled}#16a34a{else}#dc2626{/if};color:#fff;border-color:{if $time_greeting_enabled}#16a34a{else}#dc2626{/if};">
+        {if $time_greeting_enabled}✓ Activé{else}✗ Désactivé{/if}
+      </button>
+    </form>
+  </div>
   <p class="neria-section__desc">
     Neria injecte automatiquement la bonne formule de salutation selon l'heure locale du client
     (déduite de son adresse de livraison). Aucune retouche de template nécessaire — personnalisez
@@ -234,7 +244,17 @@ function neriaSelectAllCountries(check) {
 
 {* ── Smart Fallbacks — prénom manquant ─────────────────────── *}
 <div class="neria-section" id="neria-cfg-firstname-fallbacks">
-  <h2 class="neria-section__title">✦ Smart Fallbacks — Prénom manquant</h2>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+    <h2 class="neria-section__title" style="margin:0;">✦ Smart Fallbacks — Prénom manquant</h2>
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;">
+      <input type="hidden" name="neria_action" value="toggle_firstname_fallback">
+      <input type="hidden" name="neria_tab"    value="configure">
+      <button type="submit" class="neria-btn neria-btn--sm"
+              style="background:{if $firstname_fallback_enabled}#16a34a{else}#dc2626{/if};color:#fff;border-color:{if $firstname_fallback_enabled}#16a34a{else}#dc2626{/if};">
+        {if $firstname_fallback_enabled}✓ Activé{else}✗ Désactivé{/if}
+      </button>
+    </form>
+  </div>
   <p class="neria-section__desc">
     Si un client s'est inscrit sans prénom, Neria remplace automatiquement <code>{ldelim}firstname{rdelim}</code>
     par le mot élégant que vous définissez ici, selon la langue de l'email.

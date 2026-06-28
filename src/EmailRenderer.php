@@ -292,10 +292,14 @@ class EmailRenderer
         $this->injectCustomVars($params['templateVars']);
 
         // Fallback prénom : si {firstname} absent/vide, substitue par le mot élégant défini par le marchand
-        $this->injectFirstnameFallback($params['templateVars'], $lang);
+        if ($this->config->isFirstnameFallbackEnabled()) {
+            $this->injectFirstnameFallback($params['templateVars'], $lang);
+        }
 
         // Salutation horaire : {time_greeting} selon l'heure locale du client
-        $this->injectTimeGreeting($params['templateVars'], $lang);
+        if ($this->config->isTimeGreetingEnabled()) {
+            $this->injectTimeGreeting($params['templateVars'], $lang);
+        }
 
         // Injecte {email} depuis le destinataire si absent (ex: newsletter_conf → subscription_confirmation)
         if (empty($params['templateVars']['{email}'])) {

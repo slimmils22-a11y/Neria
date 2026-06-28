@@ -1443,7 +1443,21 @@ class Neria extends Module
             if ($lang && array_key_exists($lang, TranslationEngine::SUPPORTED_LANGS)) {
                 (new ConfigManager($this))->resetTimeGreetings($lang);
                 $this->context->smarty->assign('neria_success', 'Salutations réinitialisées pour la langue : ' . strtoupper($lang) . '.');
-                }
+            }
+        }
+
+        if (Tools::getValue('neria_action') === 'toggle_time_greeting') {
+            $cfg     = new ConfigManager($this);
+            $enabled = !$cfg->isTimeGreetingEnabled();
+            $cfg->setTimeGreetingEnabled($enabled);
+            $this->context->smarty->assign('neria_success', 'Smart Salutation ' . ($enabled ? 'activée' : 'désactivée') . '.');
+        }
+
+        if (Tools::getValue('neria_action') === 'toggle_firstname_fallback') {
+            $cfg     = new ConfigManager($this);
+            $enabled = !$cfg->isFirstnameFallbackEnabled();
+            $cfg->setFirstnameFallbackEnabled($enabled);
+            $this->context->smarty->assign('neria_success', 'Smart Fallbacks ' . ($enabled ? 'activés' : 'désactivés') . '.');
         }
 
         if (Tools::getValue('neria_action') === 'save_firstname_fallbacks') {
@@ -2655,10 +2669,12 @@ class Neria extends Module
             'auto_lang_enabled' => $config->isAutoLangEnabled(),
             'log_internal_enabled' => $config->isInternalLogEnabled(),
             'voucher_validity'        => $config->getVoucherValidity(),
-            'firstname_fallbacks'     => $config->getFirstnameFallbacks(),
-            'time_greetings'          => $config->getTimeGreetings(),
-            'target_countries'        => $config->getTargetCountries(),
-            'all_countries'           => ConfigManager::getAllCountries(),
+            'firstname_fallbacks'          => $config->getFirstnameFallbacks(),
+            'firstname_fallback_enabled'   => $config->isFirstnameFallbackEnabled(),
+            'time_greetings'               => $config->getTimeGreetings(),
+            'time_greeting_enabled'        => $config->isTimeGreetingEnabled(),
+            'target_countries'             => $config->getTargetCountries(),
+            'all_countries'                => ConfigManager::getAllCountries(),
             'cooldown_enabled'      => $config->isCooldownEnabled(),
             'cooldown_minutes'      => $config->getCooldownMinutes(),
             'carbon_enabled'        => $config->isCarbonEnabled(),

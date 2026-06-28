@@ -67,9 +67,11 @@ class ConfigManager
     // ── Mode Silence (anti-doublon) ───────────────────────────────
     const KEY_COOLDOWN_ENABLED      = 'NERIA_COOLDOWN_ENABLED';
     const KEY_COOLDOWN_MINUTES      = 'NERIA_COOLDOWN_MINUTES';
-    const KEY_FIRSTNAME_FALLBACKS   = 'NERIA_FIRSTNAME_FALLBACKS';
-    const KEY_TIME_GREETINGS        = 'NERIA_TIME_GREETINGS';
-    const KEY_TARGET_COUNTRIES      = 'NERIA_TARGET_COUNTRIES';
+    const KEY_FIRSTNAME_FALLBACKS         = 'NERIA_FIRSTNAME_FALLBACKS';
+    const KEY_FIRSTNAME_FALLBACK_ENABLED  = 'NERIA_FIRSTNAME_FALLBACK_ENABLED';
+    const KEY_TIME_GREETINGS              = 'NERIA_TIME_GREETINGS';
+    const KEY_TIME_GREETING_ENABLED       = 'NERIA_TIME_GREETING_ENABLED';
+    const KEY_TARGET_COUNTRIES            = 'NERIA_TARGET_COUNTRIES';
 
     // ── Empreinte carbone ─────────────────────────────────────────
     const KEY_CARBON_ENABLED    = 'NERIA_CARBON_ENABLED';
@@ -272,6 +274,26 @@ class ConfigManager
     public function isStatsEnabled(): bool
     {
         return (bool) $this->get(self::KEY_STATS_ENABLED, 1);
+    }
+
+    public function isTimeGreetingEnabled(): bool
+    {
+        return (bool) $this->get(self::KEY_TIME_GREETING_ENABLED, 1);
+    }
+
+    public function setTimeGreetingEnabled(bool $enabled): bool
+    {
+        return $this->set(self::KEY_TIME_GREETING_ENABLED, (int) $enabled);
+    }
+
+    public function isFirstnameFallbackEnabled(): bool
+    {
+        return (bool) $this->get(self::KEY_FIRSTNAME_FALLBACK_ENABLED, 1);
+    }
+
+    public function setFirstnameFallbackEnabled(bool $enabled): bool
+    {
+        return $this->set(self::KEY_FIRSTNAME_FALLBACK_ENABLED, (int) $enabled);
     }
 
     /**
