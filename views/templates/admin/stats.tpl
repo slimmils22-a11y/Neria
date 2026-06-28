@@ -692,6 +692,34 @@ var _nrc = {
         </div>
       </div>
 
+      {* PTR / rDNS *}
+      {assign var="ptr" value=$dr.ptr}
+      <div style="border:1px solid {if $ptr.found || $ptr.skipped}#c3e6cb{else}#ffe082{/if};
+                  background:{if $ptr.found || $ptr.skipped}#f0faf3{elseif $ptr.skipped}#f0faf3{else}#fffde7{/if};
+                  border-radius:6px;padding:16px 18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span style="font-size:18px;">{if $ptr.found || $ptr.skipped}✅{else}⚠️{/if}</span>
+          <span style="font-size:13px;font-weight:700;color:var(--neria-dark);">PTR / rDNS</span>
+          {if $ptr.found && isset($ptr.valid)}
+            <span class="neria-badge" style="margin-left:auto;font-size:10px;
+              background:{if $ptr.valid}#eaf5ec{else}#fef9ee{/if};
+              color:{if $ptr.valid}var(--neria-success){else}var(--neria-accent){/if};
+              border:1px solid {if $ptr.valid}#c3e6cb{else}#e8d5b0{/if};">
+              {if $ptr.valid}Vérifié{else}Incomplet{/if}
+            </span>
+          {/if}
+        </div>
+        <div style="font-size:12px;color:var(--neria-text-light);">
+          {if $ptr.skipped}
+            Non applicable (IP locale)
+          {elseif $ptr.found}
+            {$ptr.hostname|escape:'html'}
+          {else}
+            <span style="color:#a07820;">Absent — certains serveurs rejettent les IPs sans PTR</span>
+          {/if}
+        </div>
+      </div>
+
       {* Blacklists *}
       {assign var="bl" value=$dr.blacklists}
       {assign var="bl_hits_count" value=$dr_hits|count}
@@ -745,6 +773,30 @@ var _nrc = {
       {assign var="has_recs" value=true}
     {/if}
 
+    {* ── BIMI ── *}
+    {assign var="bimi" value=$dr.bimi}
+    <div style="margin-bottom:16px;padding:14px 18px;border-radius:6px;
+         border:1px solid {if $bimi.found}#c3e6cb{elseif $bimi.eligible}#ffe082{else}#e8d5b0{/if};
+         background:{if $bimi.found}#f0faf3{elseif $bimi.eligible}#fffde7{else}#f9f6f1{/if};">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:18px;">{if $bimi.found}✅{elseif $bimi.eligible}💡{else}○{/if}</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--neria-dark);">
+            BIMI — Affichage du logo dans la boîte mail
+          </div>
+          <div style="font-size:12px;color:var(--neria-text-light);margin-top:2px;">
+            {if $bimi.found}
+              Logo configuré · Votre logo apparaît dans les boîtes mail compatibles (Gmail, Yahoo, Apple Mail)
+            {elseif $bimi.eligible}
+              DMARC éligible · Votre domaine peut activer BIMI — ajoutez un enregistrement DNS <code>default._bimi.{$dr.domain|escape:'html'}</code> avec votre logo SVG
+            {else}
+              Non éligible · BIMI nécessite DMARC en <code>p=quarantine</code> ou <code>p=reject</code>
+            {/if}
+          </div>
+        </div>
+      </div>
+    </div>
+
     {if $has_recs}
     <div style="margin-top:4px;">
       <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--neria-text-light);margin-bottom:10px;">Recommandations</div>
@@ -784,6 +836,68 @@ var _nrc = {
     </div>
   {/if}
 
+</div>
+
+{* ── Outils de surveillance externe ─────────────────────────── *}
+<div class="neria-section" id="neria-postmaster-tools">
+  <h2 class="neria-section__title">🔭 Surveillance externe — Postmaster Tools</h2>
+  <p class="neria-section__desc">
+    Ces outils gratuits fournis par Google et Microsoft vous donnent accès aux vraies données de réputation
+    de votre domaine — taux de spam signalé par les utilisateurs, réputation IP, taux de livraison réel.
+    Neria ne peut pas accéder à ces données directement : c'est vous qui devez vous y connecter.
+  </p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+
+    <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <span style="font-size:24px;">📬</span>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:#5c3d1e;">Google Postmaster Tools</div>
+          <div style="font-size:11px;color:#7a6a5a;">postmaster.google.com</div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:#7a6a5a;line-height:1.6;margin:0 0 14px;">
+        Affiche votre <strong>taux de spam signalé</strong> par les utilisateurs Gmail,
+        la réputation de votre domaine et de votre IP, et le taux de chiffrement des emails.
+        Indispensable si vous envoyez vers Gmail (60%+ du marché en France).
+      </p>
+      <div style="font-size:12px;background:#f9f6f1;border-radius:6px;padding:10px 12px;color:#5c3d1e;line-height:1.6;">
+        <strong>Comment s'inscrire :</strong><br>
+        1. Allez sur <code>postmaster.google.com</code><br>
+        2. Ajoutez votre domaine d'envoi<br>
+        3. Vérifiez-le via un enregistrement DNS TXT<br>
+        4. Les données apparaissent après 24–48h d'envoi
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <span style="font-size:24px;">🪟</span>
+        <div>
+          <div style="font-weight:700;font-size:14px;color:#5c3d1e;">Microsoft SNDS</div>
+          <div style="font-size:11px;color:#7a6a5a;">sendersupport.olc.protection.outlook.com/snds</div>
+        </div>
+      </div>
+      <p style="font-size:12px;color:#7a6a5a;line-height:1.6;margin:0 0 14px;">
+        Smart Network Data Services : réputation de votre <strong>IP d'envoi</strong> auprès de
+        Outlook et Hotmail. Affiche le taux de plaintes spam et l'état de filtrage de votre IP.
+        Essentiel pour les clients Outlook/Hotmail (très répandu en entreprise).
+      </p>
+      <div style="font-size:12px;background:#f9f6f1;border-radius:6px;padding:10px 12px;color:#5c3d1e;line-height:1.6;">
+        <strong>Comment s'inscrire :</strong><br>
+        1. Relevez l'IP de votre serveur d'envoi<br>
+        2. Connectez-vous sur le site SNDS<br>
+        3. Demandez l'accès pour votre IP<br>
+        4. Vous recevrez un email de confirmation
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:14px;padding:12px 16px;background:#fef9f0;border:1px solid #e8d5b0;border-radius:6px;font-size:12px;color:#7a6a5a;line-height:1.6;">
+    💡 <strong>Conseil :</strong> Vérifiez ces tableaux de bord une fois par semaine. Un taux de spam >0,3% sur Google Postmaster entraîne une dégradation immédiate de votre délivrabilité. En dessous de 0,1%, vous êtes dans la zone verte.
+  </div>
 </div>
 
 {* ── Score de délivrabilité ─────────────────────────────────── *}

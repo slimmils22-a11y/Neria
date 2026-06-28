@@ -160,11 +160,13 @@ class DomainReputationManager
         $dkim   = $this->checkDkim($domain);
         $dmarc  = $this->checkDmarc($domain);
         $mx     = $this->checkMx($domain);
+        $ptr    = ($ip && !$this->isPrivateIp($ip)) ? $this->checkPtr($ip) : ['found' => false, 'hostname' => null, 'skipped' => true];
+        $bimi   = $this->checkBimi($domain, $dmarc);
         $bl     = ($ip && !$this->isPrivateIp($ip))
             ? $this->checkBlacklists($ip)
             : ['checked' => 0, 'hits' => [], 'clean' => 0, 'skipped' => true];
 
-        $score = $this->computeScore($spf, $dkim, $dmarc, $bl);
+        $score = $this->computeScore($spf, $dkim, $dmarc, $ptr, $bl);
         $grade = $this->computeGrade($score);
 
         $report = [
@@ -174,6 +176,8 @@ class DomainReputationManager
             'dkim'       => $dkim,
             'dmarc'      => $dmarc,
             'mx'         => $mx,
+            'ptr'        => $ptr,
+            'bimi'       => $bimi,
             'blacklists' => $bl,
             'score'      => $score,
             'grade'      => $grade,
@@ -295,6 +299,58 @@ class DomainReputationManager
         ];
     }
 
+    private function checkPtr(string $ip): array
+    {
+        $hostname = @gethostbyaddr($ip);
+
+        // gethostbyaddr retourne l'IP elle-même si aucun PTR n'existe
+        if ($hostname === false || $hostname === $ip) {
+            return ['found' => false, 'hostname' => null];
+        }
+
+        // Vérification inverse : le hostname doit résoudre vers la même IP
+        $resolvedIp = @gethostbyname($hostname);
+        $valid      = ($resolvedIp === $ip);
+
+        return [
+            'found'    => true,
+            'hostname' => $hostname,
+            'valid'    => $valid,
+        ];
+    }
+
+    private function checkBimi(string $domain, array $dmarc): array
+    {
+        if (!$domain) {
+            return ['found' => false, 'record' => null, 'eligible' => false];
+        }
+
+        // BIMI nécessite DMARC p=quarantine ou p=reject
+        $dmarcPolicy   = $dmarc['policy'] ?? 'none';
+        $dmarcEligible = in_array($dmarcPolicy, ['quarantine', 'reject'], true);
+
+        $records = @dns_get_record('default._bimi.' . $domain, DNS_TXT) ?: [];
+        foreach ($records as $r) {
+            $txt = $r['txt'] ?? '';
+            if (!$txt && !empty($r['entries'])) {
+                $txt = implode('', (array) $r['entries']);
+            }
+            if (stripos($txt, 'v=BIMI1') === 0) {
+                return [
+                    'found'    => true,
+                    'record'   => substr($txt, 0, 100) . (strlen($txt) > 100 ? '…' : ''),
+                    'eligible' => $dmarcEligible,
+                ];
+            }
+        }
+
+        return [
+            'found'    => false,
+            'record'   => null,
+            'eligible' => $dmarcEligible,
+        ];
+    }
+
     // ============================================================
     // VÉRIFICATION BLACKLISTS (42 RBL)
     // ============================================================
@@ -332,7 +388,7 @@ class DomainReputationManager
     // SCORE ET GRADE
     // ============================================================
 
-    private function computeScore(array $spf, array $dkim, array $dmarc, array $bl): int
+    private function computeScore(array $spf, array $dkim, array $dmarc, array $ptr, array $bl): int
     {
         $score = 0;
 
@@ -360,12 +416,16 @@ class DomainReputationManager
             };
         }
 
-        // Blacklists — 30 pts max
-        $hits     = count($bl['hits'] ?? []);
-        $checked  = max(1, (int) ($bl['checked'] ?? 1));
-        $blScore  = max(0, 30 - ($hits * 6));
+        // PTR / rDNS — 5 pts
+        if (!empty($ptr['found']) || !empty($ptr['skipped'])) {
+            $score += 5;
+        }
+
+        // Blacklists — 25 pts max
+        $hits    = count($bl['hits'] ?? []);
+        $blScore = max(0, 25 - ($hits * 5));
         if (!empty($bl['skipped'])) {
-            $blScore = 30; // IP privée — pas pénalisée
+            $blScore = 25; // IP privée — pas pénalisée
         }
         $score += $blScore;
 

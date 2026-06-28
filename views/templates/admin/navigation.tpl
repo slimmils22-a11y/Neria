@@ -156,6 +156,7 @@
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-revenue-chart-section">📈 Graphique de revenus</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-abtest-focus">⇋ A/B Testing</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-domain-rep">🔒 Réputation de domaine</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-postmaster-tools">🔭 Postmaster Tools</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-score-panel">📋 Score de délivrabilité</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-checkout-abandonment-section">🛒 Abandon de caisse</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-relationship-anniversary-section">🎂 Anniversaire relation</a></li>
