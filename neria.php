@@ -1122,6 +1122,48 @@ class Neria extends Module
         if (class_exists('MonthlyReportManager')) {
             (new MonthlyReportManager($this))->checkAndSend();
         }
+
+        // ── Réputation de domaine (rafraîchissement auto 24h) ─────────
+        if (class_exists('DomainReputationManager')) {
+            try {
+                (new DomainReputationManager($this))->getReport(false);
+            } catch (\Throwable $e) {
+                // best-effort — ne bloque jamais le front
+            }
+        }
+
+        // ── Tâches quotidiennes comportementales (fallback sans cron serveur) ─
+        // CRON_LAST_BEHAVIORAL est mis à jour par BehavioralCronManager::run() lui-même
+        if (class_exists('BehavioralCronManager')) {
+            $lastBehavioral = (int) strtotime(
+                (string) \Configuration::get(HealthCheckManager::CRON_LAST_BEHAVIORAL)
+            );
+            if ((time() - $lastBehavioral) >= 86400) {
+                try {
+                    (new BehavioralCronManager($this))->run();
+                } catch (\Throwable $e) {
+                    // best-effort — ne bloque jamais le front
+                }
+                if (class_exists('UpsellManager')) {
+                    try { (new UpsellManager($this))->checkConversions(); } catch (\Throwable $e) {}
+                }
+                if (class_exists('LoyaltyManager') && \Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')) {
+                    try { (new LoyaltyManager($this))->sendMonthlyRecaps(); } catch (\Throwable $e) {}
+                }
+                if (class_exists('SeasonalCampaignManager')) {
+                    try { (new SeasonalCampaignManager($this))->runDueCampaigns(); } catch (\Throwable $e) {}
+                }
+            }
+        }
+
+        // ── Watchdog — digest quotidien (throttle interne 24h) ────────
+        if (class_exists('WatchdogManager')) {
+            try {
+                (new WatchdogManager($this))->sendDailyDigestIfDue();
+            } catch (\Throwable $e) {
+                // best-effort — ne bloque jamais le front
+            }
+        }
     }
 
     // ============================================================
@@ -1233,11 +1275,11 @@ class Neria extends Module
         }
 
         // ── Action : détection automatique de la langue ───────────
-        if (Tools::getValue('neria_action') === 'save_autolang') {
-            Configuration::updateValue(
-                self::CONFIG_PREFIX . 'AUTO_LANG',
-                (int) Tools::getValue('neria_auto_lang', 0)
-            );
+        if (Tools::getValue('neria_action') === 'toggle_autolang') {
+            $current = (bool) Configuration::get(self::CONFIG_PREFIX . 'AUTO_LANG');
+            $enabled = !$current;
+            Configuration::updateValue(self::CONFIG_PREFIX . 'AUTO_LANG', (int) $enabled);
+            $this->context->smarty->assign('neria_success', 'Détection automatique de la langue ' . ($enabled ? 'activée' : 'désactivée') . '.');
         }
 
         // ── Action : journalisation des emails internes ───────────
@@ -1249,11 +1291,14 @@ class Neria extends Module
         }
 
         // ── Action : configuration du rapport mensuel ─────────────
+        if (Tools::getValue('neria_action') === 'toggle_report') {
+            $current = (bool) Configuration::get(MonthlyReportManager::CONFIG_ENABLED);
+            $enabled = !$current;
+            Configuration::updateValue(MonthlyReportManager::CONFIG_ENABLED, (int) $enabled);
+            $this->context->smarty->assign('neria_success', 'Rapport mensuel ' . ($enabled ? 'activé' : 'désactivé') . '.');
+        }
+
         if (Tools::getValue('neria_action') === 'save_report_config') {
-            Configuration::updateValue(
-                MonthlyReportManager::CONFIG_ENABLED,
-                (int) Tools::getValue('neria_report_enabled', 0)
-            );
             $recipients = strip_tags((string) Tools::getValue('neria_report_recipients', ''));
             Configuration::updateValue(MonthlyReportManager::CONFIG_RECIPIENTS, $recipients);
         }
@@ -1289,11 +1334,14 @@ class Neria extends Module
         }
 
         // ── Action : mode silence (anti-doublon) ──────────────────
+        if (Tools::getValue('neria_action') === 'toggle_cooldown') {
+            $cfg     = new ConfigManager($this);
+            $enabled = !$cfg->isCooldownEnabled();
+            $cfg->setCooldownEnabled($enabled);
+            $this->context->smarty->assign('neria_success', 'Mode Silence ' . ($enabled ? 'activé' : 'désactivé') . '.');
+        }
+
         if (Tools::getValue('neria_action') === 'save_cooldown') {
-            Configuration::updateValue(
-                self::CONFIG_PREFIX . 'COOLDOWN_ENABLED',
-                (int) Tools::getValue('neria_cooldown_enabled', 0)
-            );
             $minutes = (int) Tools::getValue('neria_cooldown_minutes', 10);
             $minutes = max(1, min(60, $minutes));
             Configuration::updateValue(self::CONFIG_PREFIX . 'COOLDOWN_MINUTES', $minutes);
@@ -1451,6 +1499,20 @@ class Neria extends Module
             $enabled = !$cfg->isTimeGreetingEnabled();
             $cfg->setTimeGreetingEnabled($enabled);
             $this->context->smarty->assign('neria_success', 'Smart Salutation ' . ($enabled ? 'activée' : 'désactivée') . '.');
+        }
+
+        if (Tools::getValue('neria_action') === 'toggle_multi_sender') {
+            $cfg     = new ConfigManager($this);
+            $enabled = !$cfg->isMultiSenderEnabled();
+            $cfg->setMultiSenderEnabled($enabled);
+            $this->context->smarty->assign('neria_success', 'Multi-expéditeur ' . ($enabled ? 'activé' : 'désactivé') . '.');
+        }
+
+        if (Tools::getValue('neria_action') === 'toggle_signature') {
+            $cfg     = new ConfigManager($this);
+            $enabled = !$cfg->isSignatureEnabled();
+            $cfg->setSignatureEnabled($enabled);
+            $this->context->smarty->assign('neria_success', 'Signature manuscrite ' . ($enabled ? 'activée' : 'désactivée') . '.');
         }
 
         if (Tools::getValue('neria_action') === 'toggle_firstname_fallback') {
@@ -2679,6 +2741,8 @@ class Neria extends Module
             'cooldown_minutes'      => $config->getCooldownMinutes(),
             'carbon_enabled'        => $config->isCarbonEnabled(),
             'carbon_link'           => $config->getCarbonLink(),
+            'multi_sender_enabled'  => $config->isMultiSenderEnabled(),
+            'signature_enabled'     => $config->isSignatureEnabled(),
             'senders_config'        => $config->getAllSenders(),
             'blacklist'             => (new BlacklistManager())->getAll(),
             'report_enabled'    => $this->getReportEnabledConfig(),

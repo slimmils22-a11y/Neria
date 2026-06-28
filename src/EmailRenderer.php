@@ -243,12 +243,14 @@ class EmailRenderer
         $lang = $this->resolveEmailLang($params);
 
         // Expéditeur spécifique à la langue (multi-sender)
-        $sender = $this->config->getSenderForLang($lang);
-        if (!empty($sender['name'])) {
-            $params['fromName'] = $sender['name'];
-        }
-        if (!empty($sender['email']) && \Validate::isEmail($sender['email'])) {
-            $params['from'] = $sender['email'];
+        if ($this->config->isMultiSenderEnabled()) {
+            $sender = $this->config->getSenderForLang($lang);
+            if (!empty($sender['name'])) {
+                $params['fromName'] = $sender['name'];
+            }
+            if (!empty($sender['email']) && \Validate::isEmail($sender['email'])) {
+                $params['from'] = $sender['email'];
+            }
         }
 
         // â”€â”€ Sujet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -286,7 +288,9 @@ class EmailRenderer
         $this->injectSocialVars($params['templateVars']);
 
         // â”€â”€ Injecte la signature â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        $this->injectSignatureVars($params['templateVars']);
+        if ($this->config->isSignatureEnabled()) {
+            $this->injectSignatureVars($params['templateVars']);
+        }
 
         // Injecte les variables personnalisées du marchand ({return_address}, etc.)
         $this->injectCustomVars($params['templateVars']);

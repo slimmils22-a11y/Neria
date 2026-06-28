@@ -72,6 +72,8 @@ class ConfigManager
     const KEY_TIME_GREETINGS              = 'NERIA_TIME_GREETINGS';
     const KEY_TIME_GREETING_ENABLED       = 'NERIA_TIME_GREETING_ENABLED';
     const KEY_TARGET_COUNTRIES            = 'NERIA_TARGET_COUNTRIES';
+    const KEY_MULTI_SENDER_ENABLED        = 'NERIA_MULTI_SENDER_ENABLED';
+    const KEY_SIGNATURE_ENABLED           = 'NERIA_SIGNATURE_ENABLED';
 
     // ── Empreinte carbone ─────────────────────────────────────────
     const KEY_CARBON_ENABLED    = 'NERIA_CARBON_ENABLED';
@@ -296,6 +298,26 @@ class ConfigManager
         return $this->set(self::KEY_FIRSTNAME_FALLBACK_ENABLED, (int) $enabled);
     }
 
+    public function isMultiSenderEnabled(): bool
+    {
+        return (bool) $this->get(self::KEY_MULTI_SENDER_ENABLED, 1);
+    }
+
+    public function setMultiSenderEnabled(bool $enabled): bool
+    {
+        return $this->set(self::KEY_MULTI_SENDER_ENABLED, (int) $enabled);
+    }
+
+    public function isSignatureEnabled(): bool
+    {
+        return (bool) $this->get(self::KEY_SIGNATURE_ENABLED, 1);
+    }
+
+    public function setSignatureEnabled(bool $enabled): bool
+    {
+        return $this->set(self::KEY_SIGNATURE_ENABLED, (int) $enabled);
+    }
+
     /**
      * Indique si l'A/B testing est activé
      *
@@ -496,6 +518,11 @@ class ConfigManager
     public function isCooldownEnabled(): bool
     {
         return (bool) $this->get(self::KEY_COOLDOWN_ENABLED, 0);
+    }
+
+    public function setCooldownEnabled(bool $enabled): bool
+    {
+        return $this->set(self::KEY_COOLDOWN_ENABLED, (int) $enabled);
     }
 
     public function getCooldownMinutes(): int

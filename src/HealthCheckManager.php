@@ -182,6 +182,11 @@ class HealthCheckManager
             'assets'               => $this->checkAssets(),
             'managers_available'   => $this->checkManagersAvailable(),
             'critical_methods'     => $this->checkCriticalMethods(),
+            // ── Surveillance avancée ────────────────────────────────
+            'webhook_failures'     => $this->checkWebhookFailures(),
+            'abtest_stuck'         => $this->checkAbtestStuck(),
+            'crypto_key'           => $this->checkCryptoKey(),
+            'send_volume_spike'    => $this->checkSendVolumeSpike(),
         ];
     }
 
@@ -497,18 +502,18 @@ class HealthCheckManager
      */
     private function checkCronsHealth(): array
     {
-        $crons = [
+        // Crons automatiques (hookDisplayHeader) — alertes si absent >26h
+        $autoCrons = [
             self::CRON_LAST_BEHAVIORAL => 'Emails comportementaux (anniversaires, paniers abandonnés…)',
             self::CRON_LAST_CALENDAR   => 'Emails calendaires (Noël, Saint-Valentin…)',
-            self::CRON_LAST_BOUNCES    => 'Vérification IMAP des bounces',
             self::CRON_LAST_DOMREP     => 'Score de réputation de domaine',
         ];
 
-        $stale  = [];
-        $never  = [];
-        $limit  = 26 * 3600; // 26 h
+        $stale = [];
+        $never = [];
+        $limit = 26 * 3600;
 
-        foreach ($crons as $key => $label) {
+        foreach ($autoCrons as $key => $label) {
             $last = (string) \Configuration::get($key);
             if ($last === '' || $last === false) {
                 $never[] = $label;
@@ -521,22 +526,40 @@ class HealthCheckManager
         if ($never) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Ces crons n\'ont jamais tourné : ' . implode(', ', $never)
-                    . ' → Que faire : Assurez-vous que votre hébergeur exécute le cron Neria'
-                    . ' une fois par jour (cURL vers index.php?fc=module&module=neria&controller=cron).',
+                'detail' => 'Ces tâches automatiques n\'ont jamais tourné : ' . implode(', ', $never)
+                    . ' → Que faire : Ces tâches se déclenchent automatiquement dès qu\'un visiteur'
+                    . ' charge une page de la boutique. Si votre boutique est inactive depuis l\'installation,'
+                    . ' ouvrez-la dans un navigateur pour déclencher le premier cycle.',
             ];
         }
 
         if ($stale) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Ces crons sont en retard : ' . implode('; ', $stale)
-                    . ' → Que faire : Vérifiez la configuration cron de votre hébergeur'
-                    . ' et les logs serveur (erreur 5xx, timeout, mémoire insuffisante).',
+                'detail' => 'Ces tâches automatiques sont en retard : ' . implode('; ', $stale)
+                    . ' → Que faire : Ces tâches se déclenchent via les visites frontend.'
+                    . ' Si votre boutique a du trafic, vérifiez les logs d\'erreur PHP'
+                    . ' (erreur fatale dans hookDisplayHeader ?).',
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => 'Tous les crons métier se sont exécutés dans les 26 dernières heures.'];
+        // Cron manuel bounces IMAP — alerte seulement si déjà utilisé et en retard
+        $lastBounces = (string) \Configuration::get(self::CRON_LAST_BOUNCES);
+        if ($lastBounces && (time() - (int) strtotime($lastBounces)) > 72 * 3600) {
+            $hoursAgo = round((time() - (int) strtotime($lastBounces)) / 3600);
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => 'Vérification bounces IMAP en retard (dernière exéc. il y a ' . $hoursAgo . 'h).'
+                    . ' → Que faire : Cliquez sur "Vérifier les bounces" dans l\'onglet Aide,'
+                    . ' ou configurez un cron externe pour automatiser cette vérification.',
+            ];
+        }
+
+        $bounceInfo = $lastBounces
+            ? 'Vérification bounces IMAP — dernier passage : ' . $lastBounces . '.'
+            : 'Vérification bounces IMAP — jamais lancée (normal si vous n\'utilisez pas l\'IMAP).';
+
+        return ['status' => self::STATUS_OK, 'detail' => 'Toutes les tâches automatiques se sont exécutées dans les 26 dernières heures. ' . $bounceInfo];
     }
 
     /**
@@ -1182,6 +1205,191 @@ class HealthCheckManager
     // ============================================================
     // INTERNE
     // ============================================================
+
+    /**
+     * #24 — Webhooks en échec permanent
+     * Si des webhooks ont atteint le max de retries (status=failed) dans les 48h,
+     * le CRM/Zapier/Slack du marchand ne reçoit plus rien silencieusement.
+     */
+    private function checkWebhookFailures(): array
+    {
+        $table = _DB_PREFIX_ . WebhookManager::TABLE;
+
+        $exists = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM information_schema.tables
+             WHERE table_schema = DATABASE() AND table_name = '{$table}'"
+        );
+        if (!$exists) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Webhooks non activés — sans impact.'];
+        }
+
+        $failed = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}`
+             WHERE `status` = '" . pSQL(WebhookManager::STATUS_FAILED) . "'
+               AND `date_add` > DATE_SUB(NOW(), INTERVAL 48 HOUR)"
+        );
+
+        if ($failed === 0) {
+            $pending = (int) $this->db->getValue(
+                "SELECT COUNT(*) FROM `{$table}` WHERE `status` = 'pending'"
+            );
+            return [
+                'status' => self::STATUS_OK,
+                'detail' => 'Webhooks opérationnels — ' . $pending . ' en attente.',
+            ];
+        }
+
+        return [
+            'status' => self::STATUS_ERROR,
+            'detail' => $failed . ' webhook(s) en échec définitif dans les 48h (3 retries épuisés).'
+                . ' → Que faire : Vérifiez l\'URL de destination dans l\'onglet Webhooks'
+                . ' et contrôlez que le serveur distant répond correctement (code 2xx).',
+        ];
+    }
+
+    /**
+     * #25 — A/B tests bloqués sans gagnant
+     * Un test actif depuis >30 jours sans significance déclare divise le trafic
+     * indéfiniment et empêche d'optimiser les templates.
+     */
+    private function checkAbtestStuck(): array
+    {
+        $table = _DB_PREFIX_ . ABTestManager::TABLE;
+
+        $exists = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM information_schema.tables
+             WHERE table_schema = DATABASE() AND table_name = '{$table}'"
+        );
+        if (!$exists) {
+            return ['status' => self::STATUS_OK, 'detail' => 'A/B Testing non activé — sans impact.'];
+        }
+
+        $stuck = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}`
+             WHERE `is_active` = 1
+               AND `date_add` < DATE_SUB(NOW(), INTERVAL 30 DAY)"
+        );
+
+        if ($stuck === 0) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Aucun A/B test bloqué.'];
+        }
+
+        return [
+            'status' => self::STATUS_WARNING,
+            'detail' => $stuck . ' A/B test(s) actif(s) depuis plus de 30 jours sans gagnant déclaré.'
+                . ' → Que faire : Consultez l\'onglet Statistiques → A/B Testing'
+                . ' et déclarez manuellement le gagnant pour arrêter le split de trafic.',
+        ];
+    }
+
+    /**
+     * #26 — Clé de chiffrement AES absente
+     * Si la clé est absente alors que des rendered_vars chiffrés existent en base,
+     * l\'historique des emails client est illisible et les données sont perdues.
+     */
+    private function checkCryptoKey(): array
+    {
+        $key = (string) \Configuration::get(CryptoManager::CONFIG_KEY);
+
+        if ($key !== '') {
+            return ['status' => self::STATUS_OK, 'detail' => 'Clé de chiffrement AES-256-GCM présente.'];
+        }
+
+        // Vérifie si des données chiffrées existent réellement
+        $statTable  = _DB_PREFIX_ . 'neria_stat';
+        $hasEncData = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM information_schema.columns
+             WHERE table_schema = DATABASE()
+               AND table_name   = '{$statTable}'
+               AND column_name  = 'rendered_vars'"
+        );
+
+        if (!$hasEncData) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Chiffrement non activé — sans impact.'];
+        }
+
+        return [
+            'status' => self::STATUS_ERROR,
+            'detail' => 'Clé de chiffrement AES absente (NERIA_ENCRYPTION_KEY vide).'
+                . ' Les données chiffrées en base sont illisibles.'
+                . ' → Que faire : Allez dans l\'onglet RGPD → Chiffrement'
+                . ' et régénérez la clé, puis lancez la migration rétroactive.',
+        ];
+    }
+
+    /**
+     * #27 — Pic de volume d\'envoi anormal
+     * Si le module envoie aujourd\'hui plus de 3× la moyenne des 7 derniers jours,
+     * c\'est le signe d\'une boucle infinie ou d\'une campagne mal configurée.
+     * Risque de blacklistage immédiat.
+     */
+    private function checkSendVolumeSpike(): array
+    {
+        $table = _DB_PREFIX_ . 'neria_stat';
+
+        $exists = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM information_schema.tables
+             WHERE table_schema = DATABASE() AND table_name = '{$table}'"
+        );
+        if (!$exists) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Table stats absente — sans impact.'];
+        }
+
+        $today = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}`
+             WHERE `event_type` = 'sent'
+               AND DATE(`date_add`) = CURDATE()"
+        );
+
+        if ($today === 0) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Aucun envoi aujourd\'hui.'];
+        }
+
+        $avgRow = $this->db->getValue(
+            "SELECT AVG(daily_count) FROM (
+                SELECT COUNT(*) AS daily_count
+                FROM `{$table}`
+                WHERE `event_type` = 'sent'
+                  AND `date_add` >= DATE_SUB(CURDATE(), INTERVAL 8 DAY)
+                  AND `date_add` < CURDATE()
+                GROUP BY DATE(`date_add`)
+             ) AS daily_stats"
+        );
+
+        $avg = (float) $avgRow;
+
+        if ($avg < 10) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Volume d\'envoi normal (' . $today . ' emails aujourd\'hui).'];
+        }
+
+        $ratio = $today / $avg;
+
+        if ($ratio >= 5) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => sprintf(
+                    'Pic d\'envoi critique : %d emails aujourd\'hui vs moyenne 7j de %.0f (×%.1f).'
+                    . ' → Que faire : Vérifiez immédiatement les logs watchdog'
+                    . ' et les campagnes actives — risque de blacklistage.',
+                    $today, $avg, $ratio
+                ),
+            ];
+        }
+
+        if ($ratio >= 3) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => sprintf(
+                    'Volume d\'envoi élevé : %d emails aujourd\'hui vs moyenne 7j de %.0f (×%.1f).'
+                    . ' → Que faire : Vérifiez qu\'une campagne manuelle ou saisonnière'
+                    . ' n\'a pas été envoyée par erreur.',
+                    $today, $avg, $ratio
+                ),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => sprintf('Volume d\'envoi normal (%d emails aujourd\'hui, moyenne 7j : %.0f).', $today, $avg)];
+    }
 
     private function logResultsToWatchdog(array $results): void
     {

@@ -37,48 +37,62 @@
 
 {* ── Détection automatique de la langue ─────────────────────── *}
 <div class="neria-section" id="neria-cfg-autolang">
-  <h2 class="neria-section__title">
-    {neria_admin key='configure.autolang_title'}
-  </h2>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+    <h2 class="neria-section__title" style="margin:0;">{neria_admin key='configure.autolang_title'}</h2>
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
+      <input type="hidden" name="neria_action" value="toggle_autolang">
+      <input type="hidden" name="neria_tab"    value="configure">
+      <button type="submit"
+              style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px;
+                     background:{if $auto_lang_enabled}#1a7a40{else}#c0392b{/if};
+                     color:#fff; border:none; border-radius:4px; font-size:12px;
+                     font-weight:700; cursor:pointer; letter-spacing:.04em;">
+        {if $auto_lang_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+      </button>
+    </form>
+  </div>
   <p class="neria-section__desc">
     {neria_admin key='configure.autolang_desc'}
   </p>
-
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
-    <input type="hidden" name="neria_action"    value="save_autolang">
-    <input type="hidden" name="neria_tab"       value="configure">
-    <input type="hidden" name="neria_auto_lang" value="0">
-
-    <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:14px; color:var(--neria-text);">
-      <input type="checkbox" name="neria_auto_lang" value="1"
-             style="width:16px; height:16px; cursor:pointer;"
-             {if $auto_lang_enabled}checked{/if}>
-      <span>{neria_admin key='configure.autolang_toggle'}</span>
-    </label>
-
-    <div style="margin-top:16px;">
-      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
-        {neria_admin key='common.register'}
-      </button>
-    </div>
-  </form>
 </div>
 
-{* ── Smart Salutation — heure locale client ─────────────────── *}
-{* ── Pays cibles — section indépendante ─────────────────────────── *}
-<div class="neria-section" id="neria-cfg-target-countries">
-  <h2 class="neria-section__title">🌍 Pays cibles — Smart Salutation</h2>
+{* ── Smart Salutation — section unifiée ─────────────────────── *}
+<div class="neria-section" id="neria-cfg-time-greetings">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+    <h2 class="neria-section__title" style="margin:0;">⏱ Smart Salutation — Heure locale</h2>
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;">
+      <input type="hidden" name="neria_action" value="toggle_time_greeting">
+      <input type="hidden" name="neria_tab"    value="configure">
+      <button type="submit"
+              style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px;
+                     background:{if $time_greeting_enabled}#1a7a40{else}#c0392b{/if};
+                     color:#fff; border:none; border-radius:4px; font-size:12px;
+                     font-weight:700; cursor:pointer; letter-spacing:.04em;">
+        {if $time_greeting_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+      </button>
+    </form>
+  </div>
   <p class="neria-section__desc">
-    Limitez la détection de fuseau horaire à certains pays.
-    Laissez tout coché pour activer la Smart Salutation dans tous les pays.
+    Neria injecte automatiquement la bonne formule de salutation selon l'heure locale du client
+    (déduite de son adresse de livraison). Aucune retouche de template nécessaire — personnalisez
+    simplement les formules ci-dessous par langue et par créneau.
   </p>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}" id="neria-countries-form">
-    <input type="hidden" name="neria_action" value="save_target_countries">
-    <input type="hidden" name="neria_tab"    value="configure">
+  {* ── Pays cibles ─────────────────────────────────────────────── *}
+  <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e8d5b0;">
+    <p style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.6;margin:0 0 6px;">
+      🌍 Pays cibles
+    </p>
+    <p class="neria-section__desc" style="margin-bottom:10px;">
+      Limitez la détection de fuseau horaire à certains pays.
+      Laissez tout coché pour activer la Smart Salutation dans tous les pays.
+    </p>
 
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
-      <div style="display:flex;gap:8px;">
+    <form method="post" action="{$smarty.server.REQUEST_URI}" id="neria-countries-form">
+      <input type="hidden" name="neria_action" value="save_target_countries">
+      <input type="hidden" name="neria_tab"    value="configure">
+
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
         <button type="button" onclick="neriaSelectAllCountries(true)"
           style="font-size:11px;padding:3px 10px;background:#fff;border:1px solid #e8d5b0;border-radius:4px;cursor:pointer;color:var(--neria-dark);">
           Tout activer
@@ -88,64 +102,50 @@
           Tout désactiver
         </button>
       </div>
-    </div>
 
-    <input type="text" id="neria-country-search" placeholder="🔍 Rechercher un pays…"
-           oninput="neriaFilterCountries(this.value)"
-           style="width:100%;padding:7px 12px;border:1px solid #e8d5b0;border-radius:4px;font-size:12px;margin-bottom:10px;box-sizing:border-box;">
+      <input type="text" id="neria-country-search" placeholder="🔍 Rechercher un pays…"
+             oninput="neriaFilterCountries(this.value)"
+             style="width:100%;padding:7px 12px;border:1px solid #e8d5b0;border-radius:4px;font-size:12px;margin-bottom:10px;box-sizing:border-box;">
 
-    <div id="neria-countries-list"
-         style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px;max-height:240px;overflow-y:auto;padding:4px;">
-      {foreach $all_countries as $iso => $name}
-        <label data-country="{$name|lower}" style="display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 6px;border-radius:3px;cursor:pointer;white-space:nowrap;overflow:hidden;">
-          <input type="checkbox" name="neria_target_countries[]" value="{$iso}"
-                 {if !$target_countries || in_array($iso, $target_countries)}checked{/if}>
-          <span style="overflow:hidden;text-overflow:ellipsis;" title="{$name|escape:'html'}">{$name|escape:'html'}</span>
-        </label>
-      {/foreach}
-    </div>
+      <div id="neria-countries-list"
+           style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px;max-height:240px;overflow-y:auto;padding:4px;">
+        {foreach $all_countries as $iso => $name}
+          <label data-country="{$name|lower}" style="display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 6px;border-radius:3px;cursor:pointer;white-space:nowrap;overflow:hidden;">
+            <input type="checkbox" name="neria_target_countries[]" value="{$iso}"
+                   {if !$target_countries || in_array($iso, $target_countries)}checked{/if}>
+            <span style="overflow:hidden;text-overflow:ellipsis;" title="{$name|escape:'html'}">{$name|escape:'html'}</span>
+          </label>
+        {/foreach}
+      </div>
 
-    <div style="margin-top:12px;">
-      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">Enregistrer les pays</button>
-      <span style="font-size:11px;color:#a09990;margin-left:10px;font-style:italic;">
-        &#9432; Vide = tous les pays activés par défaut.
-      </span>
-    </div>
-  </form>
-</div>
-
-<script>
-function neriaFilterCountries(q) {
-  q = q.toLowerCase().trim();
-  document.querySelectorAll('#neria-countries-list label').forEach(function(el) {
-    el.style.display = (!q || el.dataset.country.indexOf(q) !== -1) ? '' : 'none';
-  });
-}
-function neriaSelectAllCountries(check) {
-  document.querySelectorAll('#neria-countries-list input[type=checkbox]').forEach(function(cb) {
-    if (cb.closest('label').style.display !== 'none') cb.checked = check;
-  });
-}
-</script>
-
-{* ── Smart Salutation — formules par langue ──────────────────────── *}
-<div class="neria-section" id="neria-cfg-time-greetings">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
-    <h2 class="neria-section__title" style="margin:0;">⏱ Smart Salutation — Heure locale</h2>
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;">
-      <input type="hidden" name="neria_action" value="toggle_time_greeting">
-      <input type="hidden" name="neria_tab"    value="configure">
-      <button type="submit" class="neria-btn neria-btn--sm"
-              style="background:{if $time_greeting_enabled}#16a34a{else}#dc2626{/if};color:#fff;border-color:{if $time_greeting_enabled}#16a34a{else}#dc2626{/if};">
-        {if $time_greeting_enabled}✓ Activé{else}✗ Désactivé{/if}
-      </button>
+      <div style="margin-top:12px;">
+        <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">Enregistrer les pays</button>
+        <span style="font-size:11px;color:#a09990;margin-left:10px;font-style:italic;">
+          &#9432; Vide = tous les pays activés par défaut.
+        </span>
+      </div>
     </form>
   </div>
-  <p class="neria-section__desc">
-    Neria injecte automatiquement la bonne formule de salutation selon l'heure locale du client
-    (déduite de son adresse de livraison). Aucune retouche de template nécessaire — personnalisez
-    simplement les formules ci-dessous par langue et par créneau.
-  </p>
+
+  <script>
+  function neriaFilterCountries(q) {
+    q = q.toLowerCase().trim();
+    document.querySelectorAll('#neria-countries-list label').forEach(function(el) {
+      el.style.display = (!q || el.dataset.country.indexOf(q) !== -1) ? '' : 'none';
+    });
+  }
+  function neriaSelectAllCountries(check) {
+    document.querySelectorAll('#neria-countries-list input[type=checkbox]').forEach(function(cb) {
+      if (cb.closest('label').style.display !== 'none') cb.checked = check;
+    });
+  }
+  </script>
+
+  {* ── Formules de salutation ──────────────────────────────────── *}
+  <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e8d5b0;">
+    <p style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.6;margin:0 0 12px;">
+      Formules par langue
+    </p>
 
   {assign var="tg_langs" value=[
     'fr'=>'FR','en'=>'EN','de'=>'DE','it'=>'IT','es'=>'ES','pt'=>'PT',
@@ -240,6 +240,7 @@ function neriaSelectAllCountries(check) {
       </button>
     </form>
   </div>
+  </div>{* /Formules par langue *}
 </div>
 
 {* ── Smart Fallbacks — prénom manquant ─────────────────────── *}
@@ -249,9 +250,12 @@ function neriaSelectAllCountries(check) {
     <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;">
       <input type="hidden" name="neria_action" value="toggle_firstname_fallback">
       <input type="hidden" name="neria_tab"    value="configure">
-      <button type="submit" class="neria-btn neria-btn--sm"
-              style="background:{if $firstname_fallback_enabled}#16a34a{else}#dc2626{/if};color:#fff;border-color:{if $firstname_fallback_enabled}#16a34a{else}#dc2626{/if};">
-        {if $firstname_fallback_enabled}✓ Activé{else}✗ Désactivé{/if}
+      <button type="submit"
+              style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px;
+                     background:{if $firstname_fallback_enabled}#1a7a40{else}#c0392b{/if};
+                     color:#fff; border:none; border-radius:4px; font-size:12px;
+                     font-weight:700; cursor:pointer; letter-spacing:.04em;">
+        {if $firstname_fallback_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
       </button>
     </form>
   </div>
@@ -327,22 +331,25 @@ function neriaSelectAllCountries(check) {
 
 {* ── Mode Silence — anti-doublon ────────────────────────────── *}
 <div class="neria-section" id="neria-cfg-cooldown">
-  <h2 class="neria-section__title">{neria_admin key='configure.cooldown_title'}</h2>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+    <h2 class="neria-section__title" style="margin:0;">{neria_admin key='configure.cooldown_title'}</h2>
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
+      <input type="hidden" name="neria_action" value="toggle_cooldown">
+      <input type="hidden" name="neria_tab"    value="configure">
+      <button type="submit"
+              style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px;
+                     background:{if $cooldown_enabled}#1a7a40{else}#c0392b{/if};
+                     color:#fff; border:none; border-radius:4px; font-size:12px;
+                     font-weight:700; cursor:pointer; letter-spacing:.04em;">
+        {if $cooldown_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+      </button>
+    </form>
+  </div>
   <p class="neria-section__desc">{neria_admin key='configure.cooldown_desc'}</p>
 
   <form method="post" action="{$smarty.server.REQUEST_URI}">
     <input type="hidden" name="neria_action" value="save_cooldown">
     <input type="hidden" name="neria_tab"    value="configure">
-
-    <div class="neria-form-group">
-      <input type="hidden" name="neria_cooldown_enabled" value="0">
-      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;color:var(--neria-text);">
-        <input type="checkbox" name="neria_cooldown_enabled" value="1"
-               style="width:16px;height:16px;cursor:pointer;"
-               {if $cooldown_enabled}checked{/if}>
-        <span>{neria_admin key='configure.cooldown_enabled_label'}</span>
-      </label>
-    </div>
 
     <div class="neria-form-group" style="margin-top:12px;">
       <label class="neria-label" for="neria-cooldown-minutes">
@@ -408,8 +415,47 @@ function neriaSelectAllCountries(check) {
 
 {* ── Multi-expéditeur par langue ────────────────────────── *}
 <div class="neria-section" id="neria-cfg-senders">
-  <h2 class="neria-section__title">{neria_admin key='configure.senders_title'}</h2>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+    <h2 class="neria-section__title" style="margin:0;">{neria_admin key='configure.senders_title'}</h2>
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
+      <input type="hidden" name="neria_action" value="toggle_multi_sender">
+      <input type="hidden" name="neria_tab"    value="configure">
+      <button type="submit"
+              style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px;
+                     background:{if $multi_sender_enabled}#1a7a40{else}#c0392b{/if};
+                     color:#fff; border:none; border-radius:4px; font-size:12px;
+                     font-weight:700; cursor:pointer; letter-spacing:.04em;">
+        {if $multi_sender_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+      </button>
+    </form>
+  </div>
   <p class="neria-section__desc">{neria_admin key='configure.senders_desc'}</p>
+
+  <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:24px;font-size:13px;line-height:1.75;color:#4a3f35;">
+    <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.6;margin-bottom:10px;">Pourquoi utiliser cette feature ?</div>
+    <p style="margin:0 0 10px;">Un client japonais qui reçoit un email de <strong>contact@votreboutique.fr</strong> aura moins confiance qu'un email venant de <strong>japan@votreboutique.jp</strong>. Le multi-expéditeur permet d'adapter l'identité de l'expéditeur selon la langue du destinataire, sans toucher à votre configuration email principale.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:14px;">
+      <div style="background:#fff;border:1px solid #e8d5b0;border-radius:5px;padding:12px 14px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.5;margin-bottom:4px;">Délivrabilité</div>
+        <div style="font-size:13px;">Un nom d'expéditeur localisé améliore le taux d'ouverture — les filtres anti-spam favorisent les emails dont le nom est reconnu par le destinataire.</div>
+      </div>
+      <div style="background:#fff;border:1px solid #e8d5b0;border-radius:5px;padding:12px 14px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.5;margin-bottom:4px;">Confiance</div>
+        <div style="font-size:13px;">Un client arabophone lit « متجرك » plutôt que « Maison Dupont » dans sa boîte mail. Adapter le nom renforce l'identité locale de votre marque.</div>
+      </div>
+      <div style="background:#fff;border:1px solid #e8d5b0;border-radius:5px;padding:12px 14px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.5;margin-bottom:4px;">Fonctionnement</div>
+        <div style="font-size:13px;">Neria détecte la langue de l'email et substitue automatiquement le nom et l'adresse expéditeur. Laissez un champ vide = expéditeur par défaut de la boutique.</div>
+      </div>
+    </div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid #e8d5b0;font-size:12px;color:#4a3f35;">
+      💡 Avant d'utiliser une nouvelle adresse expéditeur, vérifiez que votre domaine est correctement configuré (SPF, DKIM, DMARC).
+      <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''}&neria_tab=stats#neria-domain-rep"
+         style="color:#b38b59;font-weight:700;text-decoration:underline;">
+        → Voir mon score de réputation de domaine
+      </a>
+    </div>
+  </div>
 
   <form method="post" action="{$smarty.server.REQUEST_URI}">
     <input type="hidden" name="neria_action" value="save_senders">
@@ -562,22 +608,25 @@ function neriaSelectAllCountries(check) {
 
 {* ── Rapport mensuel automatique ───────────────────────────── *}
 <div class="neria-section" id="neria-cfg-report">
-  <h2 class="neria-section__title">{neria_admin key='configure.report_title'}</h2>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+    <h2 class="neria-section__title" style="margin:0;">{neria_admin key='configure.report_title'}</h2>
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
+      <input type="hidden" name="neria_action" value="toggle_report">
+      <input type="hidden" name="neria_tab"    value="configure">
+      <button type="submit"
+              style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px;
+                     background:{if $report_enabled}#1a7a40{else}#c0392b{/if};
+                     color:#fff; border:none; border-radius:4px; font-size:12px;
+                     font-weight:700; cursor:pointer; letter-spacing:.04em;">
+        {if $report_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+      </button>
+    </form>
+  </div>
   <p class="neria-section__desc">{neria_admin key='configure.report_desc'}</p>
 
   <form method="post" action="{$smarty.server.REQUEST_URI}">
     <input type="hidden" name="neria_action" value="save_report_config">
     <input type="hidden" name="neria_tab"    value="configure">
-
-    <div class="neria-form-group">
-      <input type="hidden" name="neria_report_enabled" value="0">
-      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;color:var(--neria-text);">
-        <input type="checkbox" name="neria_report_enabled" value="1"
-               style="width:16px;height:16px;cursor:pointer;"
-               {if $report_enabled}checked{/if}>
-        <span>{neria_admin key='configure.report_enabled_label'}</span>
-      </label>
-    </div>
 
     <div class="neria-form-group" style="margin-top:12px;">
       <label class="neria-label" for="neria-report-recipients">
@@ -758,9 +807,20 @@ function neriaSelectAllCountries(check) {
 
 {* ── Signature manuscrite ───────────────────────────────────── *}
 <div class="neria-section" id="neria-cfg-signature">
-  <h2 class="neria-section__title">
-    {neria_admin key='configure.signature_title'}
-  </h2>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+    <h2 class="neria-section__title" style="margin:0;">{neria_admin key='configure.signature_title'}</h2>
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
+      <input type="hidden" name="neria_action" value="toggle_signature">
+      <input type="hidden" name="neria_tab"    value="configure">
+      <button type="submit"
+              style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px;
+                     background:{if $signature_enabled}#1a7a40{else}#c0392b{/if};
+                     color:#fff; border:none; border-radius:4px; font-size:12px;
+                     font-weight:700; cursor:pointer; letter-spacing:.04em;">
+        {if $signature_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+      </button>
+    </form>
+  </div>
   <p class="neria-section__desc">
     {neria_admin key='configure.signature_desc'}
   </p>

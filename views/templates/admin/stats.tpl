@@ -1124,7 +1124,7 @@ var _nrc = {
 
 {* ── L'Heure d'Or ───────────────────────────────────────────── *}
 {if isset($golden_hour) && $golden_hour|@count > 0}
-<div class="neria-section">
+<div class="neria-section" id="neria-golden-hour-section">
   <h2 class="neria-section__title">{neria_admin key='stats.golden_hour_title'} ✦</h2>
   <p class="neria-section__desc">{neria_admin key='stats.golden_hour_desc'}</p>
 
