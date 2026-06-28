@@ -19,7 +19,7 @@
           <div class="neria-section__header">
             <h2 class="neria-section__title">{neria_admin key='typography.font_size_title'}</h2>
             <button type="button" class="neria-section-reset"
-                    data-defaults='{"font_size":"14"}'>
+                    data-defaults='{ldelim}"font_size":"14"{rdelim}'>
               ↺ Défauts
             </button>
           </div>
@@ -50,7 +50,7 @@
           <div class="neria-section__header">
             <h2 class="neria-section__title">{neria_admin key='typography.line_height_title'}</h2>
             <button type="button" class="neria-section-reset"
-                    data-defaults='{"line_height":"1.8"}'>
+                    data-defaults='{ldelim}"line_height":"1.8"{rdelim}'>
               ↺ Défauts
             </button>
           </div>
@@ -80,7 +80,7 @@
           <div class="neria-section__header">
             <h2 class="neria-section__title">{neria_admin key='typography.heading_weight_title'}</h2>
             <button type="button" class="neria-section-reset"
-                    data-defaults='{"heading_weight":"600"}'>
+                    data-defaults='{ldelim}"heading_weight":"600"{rdelim}'>
               ↺ Défauts
             </button>
           </div>
