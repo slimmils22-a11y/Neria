@@ -188,6 +188,7 @@ class HealthCheckManager
             'crypto_key'           => $this->checkCryptoKey(),
             'send_volume_spike'    => $this->checkSendVolumeSpike(),
             'domain_rep_score'     => $this->checkDomainRepScore(),
+            'ptr_record'           => $this->checkPtrRecord(),
             'db_tables'            => $this->checkDbTables(),
             'unsubscribe_url'      => $this->checkUnsubscribeUrl(),
             'waitlist_backlog'     => $this->checkWaitlistBacklog(),
@@ -1642,6 +1643,56 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => sprintf('Quota SMTP : %d/%d emails aujourd\'hui (%.0f%%).', $today, $quota, $pct)];
+    }
+
+    /**
+     * #33 — PTR / rDNS manquant
+     * Certains serveurs de réception (Orange, SFR, serveurs corporate)
+     * rejettent silencieusement les emails venant d'une IP sans PTR configuré.
+     */
+    private function checkPtrRecord(): array
+    {
+        if (!class_exists('DomainReputationManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => 'DomainReputationManager absent — sans impact.'];
+        }
+
+        $cached = (new DomainReputationManager($this->module))->getCachedReport();
+
+        if ($cached === null) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Rapport de réputation pas encore généré — PTR non vérifié.'];
+        }
+
+        $ptr = $cached['ptr'] ?? null;
+
+        if (!is_array($ptr)) {
+            return ['status' => self::STATUS_OK, 'detail' => 'PTR non encore analysé — actualisez le score de réputation.'];
+        }
+
+        if (!empty($ptr['skipped'])) {
+            return ['status' => self::STATUS_OK, 'detail' => 'PTR non applicable (IP locale / développement).'];
+        }
+
+        if (empty($ptr['found'])) {
+            $ip = $cached['ip'] ?? '?';
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => 'PTR / rDNS absent pour l\'IP ' . $ip . '.'
+                    . ' Certains serveurs (Orange, SFR, serveurs corporate) rejettent les emails sans reverse DNS.'
+                    . ' → Que faire : Contactez votre hébergeur pour configurer un enregistrement PTR'
+                    . ' pointant vers votre nom de domaine d\'envoi.',
+            ];
+        }
+
+        if (isset($ptr['valid']) && !$ptr['valid']) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => 'PTR configuré (' . ($ptr['hostname'] ?? '?') . ') mais la vérification inverse échoue'
+                    . ' (le hostname ne résout pas vers la même IP).'
+                    . ' → Que faire : Vérifiez que le PTR et l\'enregistrement A sont cohérents chez votre hébergeur.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => 'PTR / rDNS configuré et valide (' . ($ptr['hostname'] ?? '') . ').'];
     }
 
     private function logResultsToWatchdog(array $results): void
