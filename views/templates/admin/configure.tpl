@@ -347,6 +347,33 @@
   </div>
   <p class="neria-section__desc">{neria_admin key='configure.cooldown_desc'}</p>
 
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0;">
+    <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:14px;">
+      <div style="font-size:20px;margin-bottom:6px;">🛡️</div>
+      <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:4px;">Anti-doublon</div>
+      <div style="font-size:12px;color:#7a6a5a;line-height:1.5;">
+        Évite qu'un même client reçoive deux emails identiques à quelques minutes d'intervalle
+        — notamment lors de commandes multiples rapides.
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:14px;">
+      <div style="font-size:20px;margin-bottom:6px;">⏱️</div>
+      <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:4px;">Fenêtre de silence</div>
+      <div style="font-size:12px;color:#7a6a5a;line-height:1.5;">
+        Pendant le délai configuré (ex: 10 min), tout email du même type vers le même client
+        est bloqué. Après ce délai, l'envoi redevient normal.
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:14px;">
+      <div style="font-size:20px;margin-bottom:6px;">📊</div>
+      <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:4px;">Impact délivrabilité</div>
+      <div style="font-size:12px;color:#7a6a5a;line-height:1.5;">
+        Réduire les doublons améliore votre score de réputation et diminue le risque
+        que vos emails soient classés comme spam.
+      </div>
+    </div>
+  </div>
+
   <form method="post" action="{$smarty.server.REQUEST_URI}">
     <input type="hidden" name="neria_action" value="save_cooldown">
     <input type="hidden" name="neria_tab"    value="configure">
@@ -371,30 +398,42 @@
     </div>
   </form>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:20px;padding-top:16px;border-top:1px solid #e8d5b0;">
-    <input type="hidden" name="neria_action" value="save_smtp_quota">
-    <input type="hidden" name="neria_tab"    value="configure">
-    <div class="neria-form-group">
-      <label class="neria-label" for="neria-smtp-quota">
-        📬 Quota SMTP journalier (optionnel)
-      </label>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <input type="number" id="neria-smtp-quota" name="neria_smtp_quota"
-               class="neria-input" min="0" style="max-width:120px;"
-               value="{$smtp_daily_quota|default:0}">
-        <span style="font-size:13px;color:var(--neria-text-light);">emails / jour</span>
+  <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e8d5b0;">
+    <h3 style="font-size:14px;font-weight:700;color:#5c3d1e;margin:0 0 8px;">📬 Quota SMTP journalier</h3>
+    <p style="font-size:13px;color:#7a6a5a;margin:0 0 12px;line-height:1.6;">
+      Certains hébergeurs imposent une limite d'emails par jour (OVH, Ionos, o2switch…).
+      Si vous dépassez ce quota, les emails suivants sont rejetés <strong>silencieusement</strong> —
+      ni erreur visible, ni rebond : ils disparaissent simplement.
+      En renseignant votre limite ici, le Watchdog vous alertera à <strong>80%</strong> du quota
+      pour que vous puissiez agir avant que les envois ne s'arrêtent.
+    </p>
+
+    <div style="background:#fef9f0;border:1px solid #e8d5b0;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#7a6a5a;line-height:1.6;">
+      💡 <strong>Comment trouver votre quota ?</strong><br>
+      Consultez votre espace client hébergeur (rubrique Email ou SMTP) ou contactez leur support.
+      Les limites courantes : OVH Starter = 200/j · o2switch = 500/j · Ionos = 200/j · Infomaniak = illimité.
+      Laissez <strong>0</strong> si votre hébergeur n'impose aucune limite.
+    </div>
+
+    <form method="post" action="{$smarty.server.REQUEST_URI}">
+      <input type="hidden" name="neria_action" value="save_smtp_quota">
+      <input type="hidden" name="neria_tab"    value="configure">
+      <div class="neria-form-group">
+        <label class="neria-label" for="neria-smtp-quota">Limite journalière</label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="number" id="neria-smtp-quota" name="neria_smtp_quota"
+                 class="neria-input" min="0" style="max-width:120px;"
+                 value="{$smtp_daily_quota|default:0}">
+          <span style="font-size:13px;color:var(--neria-text-light);">emails / jour (0 = illimité)</span>
+        </div>
       </div>
-      <p class="neria-hint">
-        Limite d'envoi imposée par votre hébergeur (ex: 500). Laissez 0 si illimité.
-        Le Watchdog vous alertera à 80% et 100% du quota.
-      </p>
-    </div>
-    <div style="margin-top:12px;">
-      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
-        {neria_admin key='common.register'}
-      </button>
-    </div>
-  </form>
+      <div style="margin-top:12px;">
+        <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+          {neria_admin key='common.register'}
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 
 {* ── Empreinte carbone ──────────────────────────────────── *}
