@@ -175,6 +175,178 @@
           </div>
         </div>
 
+        {* ── Police de titres ───────────────────────────────────── *}
+        <div class="neria-section">
+          <h2 class="neria-section__title">Police de titres</h2>
+          <p style="font-size:12px;color:#7a6a5a;margin:0 0 14px;">
+            Appliquée aux titres principaux et sous-titres des emails. La police du corps de texte se configure dans l'onglet Typographie.
+          </p>
+          <div class="neria-form-group">
+            <label class="neria-label" for="font_heading">Famille de police</label>
+            <select id="font_heading" name="font_heading" class="neria-select">
+              {foreach ['Cormorant Garamond','Playfair Display','EB Garamond','Lora','Libre Baskerville','Cinzel','Josefin Sans','Raleway'] as $fkey}
+                <option value="{$fkey}" {if ($design.font_heading|default:'Cormorant Garamond') === $fkey}selected{/if}>
+                  {if $fkey === 'Cormorant Garamond'}Cormorant Garamond — Élégance classique
+                  {elseif $fkey === 'Playfair Display'}Playfair Display — Éditorial luxe
+                  {elseif $fkey === 'EB Garamond'}EB Garamond — Intemporel lettres
+                  {elseif $fkey === 'Lora'}Lora — Chaleur contemporaine
+                  {elseif $fkey === 'Libre Baskerville'}Libre Baskerville — Sobre et lisible
+                  {elseif $fkey === 'Cinzel'}Cinzel — Prestige romain
+                  {elseif $fkey === 'Josefin Sans'}Josefin Sans — Minimalisme chic
+                  {else}Raleway — Sophistiqué moderne
+                  {/if}
+                </option>
+              {/foreach}
+            </select>
+          </div>
+        </div>
+
+        {* ── Style des boutons ───────────────────────────────────── *}
+        <div class="neria-section">
+          <h2 class="neria-section__title">Style des boutons</h2>
+          <div class="neria-form-group">
+            <label class="neria-label">Couleur du bouton</label>
+            <div class="neria-color-input-wrap">
+              <input type="color" id="btn_color" name="btn_color"
+                     class="neria-color-picker" data-sync="btn_color"
+                     value="{$design.btn_color|default:'#2b2520'}">
+              <input type="text" class="neria-input neria-input--hex"
+                     value="{$design.btn_color|default:'#2b2520'}"
+                     data-sync="btn_color">
+            </div>
+          </div>
+          <div class="neria-form-group" style="margin-top:14px;">
+            <label class="neria-label">Arrondi des coins</label>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px;">
+              {foreach [0=>['label'=>'Carré','px'=>'0px'],2=>['label'=>'Discret','px'=>'2px'],6=>['label'=>'Arrondi','px'=>'6px'],24=>['label'=>'Pill','px'=>'24px']] as $rv=>$rd}
+                <label style="cursor:pointer;text-align:center;">
+                  <input type="radio" name="btn_radius" value="{$rv}"
+                         {if (int)($design.btn_radius|default:2) === $rv}checked{/if}
+                         style="display:none;" class="neria-radius-radio">
+                  <div class="neria-radius-preview" data-radius="{$rv}"
+                       style="height:36px;line-height:36px;border:2px solid {if (int)($design.btn_radius|default:2) === $rv}#b38b59{else}#e8d5b0{/if};border-radius:{$rd.px};background:{if (int)($design.btn_radius|default:2) === $rv}#f9f4ef{else}#fff{/if};font-size:11px;color:#5c3d1e;transition:all .2s;">
+                    {$rd.label}
+                  </div>
+                </label>
+              {/foreach}
+            </div>
+          </div>
+        </div>
+
+        {* ── Couleurs header / footer ────────────────────────────── *}
+        <div class="neria-section">
+          <h2 class="neria-section__title">Couleurs header & footer</h2>
+          <div class="neria-color-grid">
+            <div class="neria-form-group">
+              <label class="neria-label">Fond du header</label>
+              <div class="neria-color-input-wrap">
+                <input type="color" id="color_header_bg" name="color_header_bg"
+                       class="neria-color-picker" data-sync="color_header_bg"
+                       value="{$design.color_header_bg|default:'#ffffff'}">
+                <input type="text" class="neria-input neria-input--hex"
+                       value="{$design.color_header_bg|default:'#ffffff'}"
+                       data-sync="color_header_bg">
+              </div>
+            </div>
+            <div class="neria-form-group">
+              <label class="neria-label">Fond du footer</label>
+              <div class="neria-color-input-wrap">
+                <input type="color" id="color_footer_bg" name="color_footer_bg"
+                       class="neria-color-picker" data-sync="color_footer_bg"
+                       value="{$design.color_footer_bg|default:'#ffffff'}">
+                <input type="text" class="neria-input neria-input--hex"
+                       value="{$design.color_footer_bg|default:'#ffffff'}"
+                       data-sync="color_footer_bg">
+              </div>
+            </div>
+            <div class="neria-form-group">
+              <label class="neria-label">Texte du footer</label>
+              <div class="neria-color-input-wrap">
+                <input type="color" id="color_footer_text" name="color_footer_text"
+                       class="neria-color-picker" data-sync="color_footer_text"
+                       value="{$design.color_footer_text|default:'#a09990'}">
+                <input type="text" class="neria-input neria-input--hex"
+                       value="{$design.color_footer_text|default:'#a09990'}"
+                       data-sync="color_footer_text">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {* ── Espacement & séparateur & ombre ────────────────────── *}
+        <div class="neria-section">
+          <h2 class="neria-section__title">Espacement, séparateur & ombre</h2>
+
+          <div class="neria-form-group">
+            <label class="neria-label" for="section_padding">
+              Padding interne
+              <span class="neria-hint">Espace entre le bord de l'email et le contenu</span>
+            </label>
+            <div class="neria-range-wrap">
+              <input type="range" id="section_padding_range" min="16" max="64" step="4"
+                     value="{$design.section_padding|default:40}" class="neria-range"
+                     data-sync-input="section_padding">
+              <input type="number" id="section_padding" name="section_padding"
+                     class="neria-input neria-input--number" min="16" max="64"
+                     value="{$design.section_padding|default:40}">
+              <span class="neria-unit">px</span>
+            </div>
+          </div>
+
+          <div class="neria-form-group">
+            <label class="neria-label" for="block_spacing">
+              Espacement entre blocs
+              <span class="neria-hint">Marge au-dessus des titres de section</span>
+            </label>
+            <div class="neria-range-wrap">
+              <input type="range" id="block_spacing_range" min="16" max="80" step="4"
+                     value="{$design.block_spacing|default:48}" class="neria-range"
+                     data-sync-input="block_spacing">
+              <input type="number" id="block_spacing" name="block_spacing"
+                     class="neria-input neria-input--number" min="16" max="80"
+                     value="{$design.block_spacing|default:48}">
+              <span class="neria-unit">px</span>
+            </div>
+          </div>
+
+          <div class="neria-form-group" style="margin-top:14px;">
+            <label class="neria-label">Style du séparateur</label>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px;">
+              {foreach ['none'=>'Aucun','line'=>'Ligne','dotted'=>'Pointillés','double'=>'Double'] as $sv=>$sl}
+                <label style="cursor:pointer;text-align:center;">
+                  <input type="radio" name="separator_style" value="{$sv}"
+                         {if ($design.separator_style|default:'line') === $sv}checked{/if}
+                         style="display:none;" class="neria-sep-radio">
+                  <div style="height:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:2px solid {if ($design.separator_style|default:'line') === $sv}#b38b59{else}#e8d5b0{/if};border-radius:5px;background:{if ($design.separator_style|default:'line') === $sv}#f9f4ef{else}#fff{/if};font-size:11px;color:#5c3d1e;padding:4px 8px;cursor:pointer;transition:all .2s;" data-sep="{$sv}">
+                    {if $sv === 'none'}<span style="font-size:16px;">✕</span>
+                    {elseif $sv === 'line'}<span style="width:32px;height:1px;background:#b38b59;display:block;"></span>
+                    {elseif $sv === 'dotted'}<span style="width:32px;height:1px;border-top:1px dotted #b38b59;display:block;"></span>
+                    {else}<span style="width:32px;height:2px;border-top:3px double #b38b59;display:block;"></span>
+                    {/if}
+                    <span>{$sl}</span>
+                  </div>
+                </label>
+              {/foreach}
+            </div>
+          </div>
+
+          <div class="neria-form-group" style="margin-top:14px;">
+            <label class="neria-label">Ombre de la carte email</label>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px;">
+              {foreach ['none'=>'Aucune','soft'=>'Légère','medium'=>'Marquée','strong'=>'Forte'] as $shv=>$shl}
+                <label style="cursor:pointer;text-align:center;">
+                  <input type="radio" name="card_shadow" value="{$shv}"
+                         {if ($design.card_shadow|default:'soft') === $shv}checked{/if}
+                         style="display:none;" class="neria-shadow-radio">
+                  <div style="height:36px;line-height:36px;border:2px solid {if ($design.card_shadow|default:'soft') === $shv}#b38b59{else}#e8d5b0{/if};border-radius:5px;background:{if ($design.card_shadow|default:'soft') === $shv}#f9f4ef{else}#fff{/if};font-size:11px;color:#5c3d1e;transition:all .2s;" data-shadow="{$shv}">
+                    {$shl}
+                  </div>
+                </label>
+              {/foreach}
+            </div>
+          </div>
+        </div>
+
         <div class="neria-form-actions neria-form-actions--sticky">
           <button type="button" class="neria-btn neria-btn--ghost"
                   id="neria-design-reset"

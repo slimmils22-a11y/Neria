@@ -760,31 +760,54 @@ class EmailRenderer
         }
         $design = $this->config->getDesignConfig();
 
+
         $templateVars = array_merge($templateVars, [
-            // â”€â”€ Couleurs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            'neria_color_background' => $design['color_background'],
-            'neria_color_container'  => $design['color_container'],
-            'neria_color_accent'     => $design['color_accent'],
-            'neria_color_text'       => $design['color_text'],
+            // Couleurs
+            'neria_color_background'    => $design['color_background'],
+            'neria_color_container'     => $design['color_container'],
+            'neria_color_accent'        => $design['color_accent'],
+            'neria_color_text'          => $design['color_text'],
+            'neria_color_header_bg'     => $design['color_header_bg']   ?? '#ffffff',
+            'neria_color_footer_bg'     => $design['color_footer_bg']   ?? '#ffffff',
+            'neria_color_footer_text'   => $design['color_footer_text'] ?? '#a09990',
 
-            // â”€â”€ Mode sombre â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            'neria_dark_mode'        => $design['dark_mode'] ? 'true' : 'false',
+            // Mode sombre
+            'neria_dark_mode'           => $design['dark_mode'] ? 'true' : 'false',
 
-            // â”€â”€ Mise en page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            'neria_container_width'  => $design['container_width'],
-            'neria_logo_width'       => $design['logo_width'],
-            'neria_logo_url'         => $this->resolveLogoUrl($design['logo_path']),
+            // Mise en page
+            'neria_container_width'     => $design['container_width'],
+            'neria_logo_width'          => $design['logo_width'],
+            'neria_logo_url'            => $this->resolveLogoUrl($design['logo_path']),
 
-            // â”€â”€ Typographie â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            'neria_font_family'      => $this->config->getFontForLang($lang),
+            // Typographie
+            'neria_font_family'         => $this->config->getFontForLang($lang),
+            'neria_font_heading_family' => $this->config->getHeadingFontFamily($design['font_heading'] ?? 'Cormorant Garamond'),
+            'neria_google_font_link'    => $this->config->getHeadingFontLink($design['font_heading'] ?? 'Cormorant Garamond'),
 
-            // â”€â”€ RTL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            'neria_dir'              => $this->engine->isRtl($lang) ? 'rtl' : 'ltr',
-            'neria_text_align'       => $this->engine->isRtl($lang) ? 'right' : 'left',
-            'neria_is_rtl'           => $this->engine->isRtl($lang),
+            // Bouton
+            'neria_btn_radius'          => (int) ($design['btn_radius'] ?? 2),
+            'neria_btn_color'           => $design['btn_color'] ?? '#2b2520',
 
-            // â”€â”€ Langue â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            'neria_lang'             => $lang,
+            // Espacement
+            'neria_section_padding'     => (int) ($design['section_padding'] ?? 40),
+            'neria_block_spacing'       => (int) ($design['block_spacing']   ?? 48),
+
+            // Séparateur et ombre
+            'neria_separator_css'       => \ConfigManager::getSeparatorCss($design['separator_style'] ?? 'line'),
+            'neria_card_shadow'         => \ConfigManager::getCardShadowCss($design['card_shadow'] ?? 'soft'),
+
+            // Typographie corps
+            'neria_font_size'           => (int) ($design['font_size'] ?? 14),
+            'neria_line_height'         => number_format((float) ($design['line_height'] ?? 1.8), 1, '.', ''),
+            'neria_heading_weight'      => (int) ($design['heading_weight'] ?? 600),
+
+            // RTL
+            'neria_dir'                 => $this->engine->isRtl($lang) ? 'rtl' : 'ltr',
+            'neria_text_align'          => $this->engine->isRtl($lang) ? 'right' : 'left',
+            'neria_is_rtl'              => $this->engine->isRtl($lang),
+
+            // Langue
+            'neria_lang'                => $lang,
         ]);
     }
 
@@ -1677,6 +1700,20 @@ class EmailRenderer
             'neria_container_width'  => $design['container_width'],
             'neria_logo_width'       => $design['logo_width'],
             'neria_logo_url'         => $this->resolveLogoUrl($design['logo_path']),
+            'neria_color_header_bg'   => $design['color_header_bg']   ?? '#ffffff',
+            'neria_color_footer_bg'   => $design['color_footer_bg']   ?? '#ffffff',
+            'neria_color_footer_text' => $design['color_footer_text'] ?? '#a09990',
+            'neria_font_heading_family' => $this->config->getHeadingFontFamily($design['font_heading'] ?? 'Cormorant Garamond'),
+            'neria_google_font_link'  => $this->config->getHeadingFontLink($design['font_heading'] ?? 'Cormorant Garamond'),
+            'neria_btn_radius'        => (int)($design['btn_radius'] ?? 2),
+            'neria_btn_color'         => $design['btn_color'] ?? '#2b2520',
+            'neria_section_padding'   => (int)($design['section_padding'] ?? 40),
+            'neria_block_spacing'     => (int)($design['block_spacing'] ?? 48),
+            'neria_separator_css'     => \ConfigManager::getSeparatorCss($design['separator_style'] ?? 'line'),
+            'neria_card_shadow'       => \ConfigManager::getCardShadowCss($design['card_shadow'] ?? 'soft'),
+            'neria_font_size'         => (int) ($design['font_size'] ?? 14),
+            'neria_line_height'       => number_format((float) ($design['line_height'] ?? 1.8), 1, '.', ''),
+            'neria_heading_weight'    => (int) ($design['heading_weight'] ?? 600),
             'neria_font_family'      => $this->config->getFontForLang($lang),
             'neria_dir'              => $this->engine->isRtl($lang) ? 'rtl' : 'ltr',
             'neria_text_align'       => $this->engine->isRtl($lang) ? 'right' : 'left',
@@ -1684,7 +1721,7 @@ class EmailRenderer
             'neria_lang'             => $lang,
             'neria_has_social'       => false,
             'neria_has_signature'    => false,
-            'neria_tracking_pixel'   => '', // Pas de tracking en aperÃ§u
+            'neria_tracking_pixel'   => '', // Pas de tracking en aperçu
 
             // Variables PrestaShop factices pour l'aperÃ§u
             'shop_name'              => \Configuration::get('PS_SHOP_NAME'),
@@ -1852,6 +1889,20 @@ class EmailRenderer
             '{$neria_container_width}'  => (string) $design['container_width'],
             '{$neria_logo_width}'       => (string) $design['logo_width'],
             '{$neria_logo_url}'         => $this->resolveLogoUrl($design['logo_path']),
+            '{$neria_color_header_bg}'   => $design['color_header_bg']   ?? '#ffffff',
+            '{$neria_color_footer_bg}'   => $design['color_footer_bg']   ?? '#ffffff',
+            '{$neria_color_footer_text}' => $design['color_footer_text'] ?? '#a09990',
+            '{$neria_font_heading_family}' => $this->config->getHeadingFontFamily($design['font_heading'] ?? 'Cormorant Garamond'),
+            '{$neria_google_font_link}'  => $this->config->getHeadingFontLink($design['font_heading'] ?? 'Cormorant Garamond'),
+            '{$neria_btn_radius}'        => (string)(int)($design['btn_radius'] ?? 2),
+            '{$neria_btn_color}'         => $design['btn_color'] ?? '#2b2520',
+            '{$neria_section_padding}'   => (string)(int)($design['section_padding'] ?? 40),
+            '{$neria_block_spacing}'     => (string)(int)($design['block_spacing'] ?? 48),
+            '{$neria_separator_css}'     => \ConfigManager::getSeparatorCss($design['separator_style'] ?? 'line'),
+            '{$neria_card_shadow}'       => \ConfigManager::getCardShadowCss($design['card_shadow'] ?? 'soft'),
+            '{$neria_font_size}'         => (string)(int)($design['font_size'] ?? 14),
+            '{$neria_line_height}'       => number_format((float)($design['line_height'] ?? 1.8), 1, '.', ''),
+            '{$neria_heading_weight}'    => (string)(int)($design['heading_weight'] ?? 600),
             '{$neria_tracking_pixel}'   => '',
             '{$neria_social_links}'     => '',
             '{$neria_lang}'             => $lang,
@@ -2114,6 +2165,20 @@ class EmailRenderer
             '{$neria_container_width}'  => (string) $design['container_width'],
             '{$neria_logo_width}'       => (string) $design['logo_width'],
             '{$neria_logo_url}'         => $this->resolveLogoUrl($design['logo_path']),
+            '{$neria_color_header_bg}'   => $design['color_header_bg']   ?? '#ffffff',
+            '{$neria_color_footer_bg}'   => $design['color_footer_bg']   ?? '#ffffff',
+            '{$neria_color_footer_text}' => $design['color_footer_text'] ?? '#a09990',
+            '{$neria_font_heading_family}' => $this->config->getHeadingFontFamily($design['font_heading'] ?? 'Cormorant Garamond'),
+            '{$neria_google_font_link}'  => $this->config->getHeadingFontLink($design['font_heading'] ?? 'Cormorant Garamond'),
+            '{$neria_btn_radius}'        => (string)(int)($design['btn_radius'] ?? 2),
+            '{$neria_btn_color}'         => $design['btn_color'] ?? '#2b2520',
+            '{$neria_section_padding}'   => (string)(int)($design['section_padding'] ?? 40),
+            '{$neria_block_spacing}'     => (string)(int)($design['block_spacing'] ?? 48),
+            '{$neria_separator_css}'     => \ConfigManager::getSeparatorCss($design['separator_style'] ?? 'line'),
+            '{$neria_card_shadow}'       => \ConfigManager::getCardShadowCss($design['card_shadow'] ?? 'soft'),
+            '{$neria_font_size}'         => (string)(int)($design['font_size'] ?? 14),
+            '{$neria_line_height}'       => number_format((float)($design['line_height'] ?? 1.8), 1, '.', ''),
+            '{$neria_heading_weight}'    => (string)(int)($design['heading_weight'] ?? 600),
             '{$neria_tracking_pixel}'   => $templateVars['neria_tracking_pixel'] ?? '',
             '{$neria_social_links}'     => $templateVars['neria_social_links']   ?? '',
             '{$neria_lang}'             => $lang,

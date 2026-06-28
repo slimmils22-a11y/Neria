@@ -38,8 +38,22 @@ class ConfigManager
     const KEY_CONTAINER_WIDTH   = 'NERIA_CONTAINER_WIDTH';
     const KEY_LOGO_WIDTH        = 'NERIA_LOGO_WIDTH';
     const KEY_LOGO_PATH         = 'NERIA_LOGO_PATH';
+    // ── Design avancé ────────────────────────────────────────────
+    const KEY_FONT_HEADING      = 'NERIA_FONT_HEADING';
+    const KEY_BTN_RADIUS        = 'NERIA_BTN_RADIUS';
+    const KEY_BTN_COLOR         = 'NERIA_BTN_COLOR';
+    const KEY_COLOR_HEADER_BG   = 'NERIA_COLOR_HEADER_BG';
+    const KEY_COLOR_FOOTER_BG   = 'NERIA_COLOR_FOOTER_BG';
+    const KEY_COLOR_FOOTER_TEXT = 'NERIA_COLOR_FOOTER_TEXT';
+    const KEY_SECTION_PADDING   = 'NERIA_SECTION_PADDING';
+    const KEY_BLOCK_SPACING     = 'NERIA_BLOCK_SPACING';
+    const KEY_SEPARATOR_STYLE   = 'NERIA_SEPARATOR_STYLE';
+    const KEY_CARD_SHADOW       = 'NERIA_CARD_SHADOW';
 
-    // ── Typographie ───────────────────────────────────────────────
+    // ── Typographie corps ─────────────────────────────────────────
+    const KEY_FONT_SIZE         = 'NERIA_FONT_SIZE';
+    const KEY_LINE_HEIGHT       = 'NERIA_LINE_HEIGHT';
+    const KEY_HEADING_WEIGHT    = 'NERIA_HEADING_WEIGHT';
     const KEY_FONT_LATIN        = 'NERIA_FONT_LATIN';
     const KEY_FONT_ARABIC       = 'NERIA_FONT_ARABIC';
     const KEY_FONT_JAPANESE     = 'NERIA_FONT_JAPANESE';
@@ -92,6 +106,19 @@ class ConfigManager
         self::KEY_CONTAINER_WIDTH     => 620,
         self::KEY_LOGO_WIDTH          => 160,
         self::KEY_LOGO_PATH           => '',
+        self::KEY_FONT_HEADING        => 'Cormorant Garamond',
+        self::KEY_BTN_RADIUS          => 2,
+        self::KEY_BTN_COLOR           => '#2b2520',
+        self::KEY_COLOR_HEADER_BG     => '#ffffff',
+        self::KEY_COLOR_FOOTER_BG     => '#ffffff',
+        self::KEY_COLOR_FOOTER_TEXT   => '#a09990',
+        self::KEY_SECTION_PADDING     => 40,
+        self::KEY_BLOCK_SPACING       => 48,
+        self::KEY_SEPARATOR_STYLE     => 'line',
+        self::KEY_CARD_SHADOW         => 'soft',
+        self::KEY_FONT_SIZE           => 14,
+        self::KEY_LINE_HEIGHT         => 1.8,
+        self::KEY_HEADING_WEIGHT      => 600,
         self::KEY_FONT_LATIN          => 'Cormorant Garamond, Georgia, Times New Roman, serif',
         self::KEY_FONT_ARABIC         => 'Noto Naskh Arabic, Traditional Arabic, serif',
         self::KEY_FONT_JAPANESE       => 'Noto Serif JP, Hiragino Mincho Pro, serif',
@@ -118,13 +145,65 @@ class ConfigManager
         self::KEY_SENDERS_JSON        => '',
     ];
 
-    // Polices disponibles pour le sélecteur back-office
+    // Polices disponibles pour le sélecteur back-office (corps de texte)
     const FONT_OPTIONS_LATIN = [
         'Cormorant Garamond, Georgia, Times New Roman, serif' => 'Cormorant Garamond',
         'EB Garamond, Georgia, serif'                         => 'EB Garamond',
         'Playfair Display, Georgia, serif'                    => 'Playfair Display',
         'Libre Baskerville, Georgia, serif'                   => 'Libre Baskerville',
         'Georgia, Times New Roman, serif'                     => 'Georgia (système)',
+    ];
+
+    // Polices de titres disponibles — Google Fonts premium pour marques de luxe
+    const HEADING_FONT_OPTIONS = [
+        'Cormorant Garamond' => [
+            'label'    => 'Cormorant Garamond — Élégance classique',
+            'family'   => "'Cormorant Garamond', Georgia, 'Times New Roman', serif",
+            'gfont'    => 'Cormorant+Garamond:ital,wght@0,400;0,600;1,400',
+            'category' => 'serif',
+        ],
+        'Playfair Display' => [
+            'label'    => 'Playfair Display — Éditorial luxe',
+            'family'   => "'Playfair Display', Georgia, 'Times New Roman', serif",
+            'gfont'    => 'Playfair+Display:ital,wght@0,400;0,700;1,400',
+            'category' => 'serif',
+        ],
+        'EB Garamond' => [
+            'label'    => 'EB Garamond — Intemporel lettres',
+            'family'   => "'EB Garamond', Georgia, serif",
+            'gfont'    => 'EB+Garamond:ital,wght@0,400;0,600;1,400',
+            'category' => 'serif',
+        ],
+        'Lora' => [
+            'label'    => 'Lora — Chaleur contemporaine',
+            'family'   => "'Lora', Georgia, serif",
+            'gfont'    => 'Lora:ital,wght@0,400;0,600;1,400',
+            'category' => 'serif',
+        ],
+        'Libre Baskerville' => [
+            'label'    => 'Libre Baskerville — Sobre et lisible',
+            'family'   => "'Libre Baskerville', Georgia, serif",
+            'gfont'    => 'Libre+Baskerville:ital,wght@0,400;0,700;1,400',
+            'category' => 'serif',
+        ],
+        'Cinzel' => [
+            'label'    => 'Cinzel — Prestige romain',
+            'family'   => "'Cinzel', Georgia, serif",
+            'gfont'    => 'Cinzel:wght@400;600',
+            'category' => 'serif',
+        ],
+        'Josefin Sans' => [
+            'label'    => 'Josefin Sans — Minimalisme chic',
+            'family'   => "'Josefin Sans', Arial, sans-serif",
+            'gfont'    => 'Josefin+Sans:ital,wght@0,300;0,400;1,300',
+            'category' => 'sans-serif',
+        ],
+        'Raleway' => [
+            'label'    => 'Raleway — Sophistiqué moderne',
+            'family'   => "'Raleway', Arial, sans-serif",
+            'gfont'    => 'Raleway:ital,wght@0,300;0,400;1,300',
+            'category' => 'sans-serif',
+        ],
     ];
 
     // ============================================================
@@ -205,15 +284,62 @@ class ConfigManager
     public function getDesignConfig(): array
     {
         return [
-            'color_background' => $this->get(self::KEY_COLOR_BACKGROUND),
-            'color_container'  => $this->get(self::KEY_COLOR_CONTAINER),
-            'color_accent'     => $this->get(self::KEY_COLOR_ACCENT),
-            'color_text'       => $this->get(self::KEY_COLOR_TEXT),
-            'dark_mode'        => (bool) $this->get(self::KEY_DARK_MODE),
-            'container_width'  => (int) $this->get(self::KEY_CONTAINER_WIDTH),
-            'logo_width'       => (int) $this->get(self::KEY_LOGO_WIDTH),
-            'logo_path'        => $this->get(self::KEY_LOGO_PATH),
+            'color_background'  => $this->get(self::KEY_COLOR_BACKGROUND),
+            'color_container'   => $this->get(self::KEY_COLOR_CONTAINER),
+            'color_accent'      => $this->get(self::KEY_COLOR_ACCENT),
+            'color_text'        => $this->get(self::KEY_COLOR_TEXT),
+            'dark_mode'         => (bool) $this->get(self::KEY_DARK_MODE),
+            'container_width'   => (int) $this->get(self::KEY_CONTAINER_WIDTH),
+            'logo_width'        => (int) $this->get(self::KEY_LOGO_WIDTH),
+            'logo_path'         => $this->get(self::KEY_LOGO_PATH),
+            // Design avancé
+            'font_heading'      => $this->get(self::KEY_FONT_HEADING),
+            'btn_radius'        => (int) $this->get(self::KEY_BTN_RADIUS),
+            'btn_color'         => $this->get(self::KEY_BTN_COLOR),
+            'color_header_bg'   => $this->get(self::KEY_COLOR_HEADER_BG),
+            'color_footer_bg'   => $this->get(self::KEY_COLOR_FOOTER_BG),
+            'color_footer_text' => $this->get(self::KEY_COLOR_FOOTER_TEXT),
+            'section_padding'   => (int) $this->get(self::KEY_SECTION_PADDING),
+            'block_spacing'     => (int) $this->get(self::KEY_BLOCK_SPACING),
+            'separator_style'   => $this->get(self::KEY_SEPARATOR_STYLE),
+            'card_shadow'       => $this->get(self::KEY_CARD_SHADOW),
+            // Typographie corps
+            'font_size'         => (int)   $this->get(self::KEY_FONT_SIZE),
+            'line_height'       => (float) $this->get(self::KEY_LINE_HEIGHT),
+            'heading_weight'    => (int)   $this->get(self::KEY_HEADING_WEIGHT),
         ];
+    }
+
+    public function getHeadingFontFamily(string $font): string
+    {
+        return self::HEADING_FONT_OPTIONS[$font]['family']
+            ?? "'Cormorant Garamond', Georgia, 'Times New Roman', serif";
+    }
+
+    public function getHeadingFontLink(string $font): string
+    {
+        $gfont = self::HEADING_FONT_OPTIONS[$font]['gfont'] ?? 'Cormorant+Garamond:ital,wght@0,400;0,600;1,400';
+        return '<link href="https://fonts.googleapis.com/css2?family=' . $gfont . '&display=swap" rel="stylesheet">';
+    }
+
+    public static function getSeparatorCss(string $style): string
+    {
+        switch ($style) {
+            case 'none':   return 'display:none; height:0; overflow:hidden;';
+            case 'dotted': return 'border:0; border-top:1px dotted #e3d7c7; height:0; margin:20px 40px;';
+            case 'double': return 'border:0; border-top:3px double #e3d7c7; height:0; margin:20px 40px;';
+            default:       return 'border:0; height:1px; background-color:#e3d7c7; margin:20px 40px;';
+        }
+    }
+
+    public static function getCardShadowCss(string $shadow): string
+    {
+        switch ($shadow) {
+            case 'none':   return 'none';
+            case 'medium': return '0 8px 24px rgba(0,0,0,0.14)';
+            case 'strong': return '0 4px 16px rgba(0,0,0,0.30)';
+            default:       return '0 20px 40px rgba(0,0,0,0.06)'; // soft
+        }
     }
 
     /**
@@ -603,14 +729,17 @@ class ConfigManager
 
         // Couleurs — validation format hexadécimal
         $colorKeys = [
-            self::KEY_COLOR_BACKGROUND,
-            self::KEY_COLOR_CONTAINER,
-            self::KEY_COLOR_ACCENT,
-            self::KEY_COLOR_TEXT,
+            self::KEY_COLOR_BACKGROUND  => 'color_background',
+            self::KEY_COLOR_CONTAINER   => 'color_container',
+            self::KEY_COLOR_ACCENT      => 'color_accent',
+            self::KEY_COLOR_TEXT        => 'color_text',
+            self::KEY_BTN_COLOR         => 'btn_color',
+            self::KEY_COLOR_HEADER_BG   => 'color_header_bg',
+            self::KEY_COLOR_FOOTER_BG   => 'color_footer_bg',
+            self::KEY_COLOR_FOOTER_TEXT => 'color_footer_text',
         ];
 
-        foreach ($colorKeys as $key) {
-            $postKey = strtolower(str_replace('NERIA_', '', $key));
+        foreach ($colorKeys as $key => $postKey) {
             if (isset($data[$postKey])) {
                 $color = $this->sanitizeColor($data[$postKey]);
                 if ($color) {
@@ -641,6 +770,43 @@ class ConfigManager
             $success = $success && $this->set(self::KEY_LOGO_WIDTH, $logoWidth);
         }
 
+        // Police de titres
+        if (!empty($data['font_heading']) && isset(self::HEADING_FONT_OPTIONS[$data['font_heading']])) {
+            $success = $success && $this->set(self::KEY_FONT_HEADING, $data['font_heading']);
+        }
+
+        // Border-radius bouton — valeurs autorisées : 0, 2, 6, 24
+        if (isset($data['btn_radius'])) {
+            $radius = (int) $data['btn_radius'];
+            if (in_array($radius, [0, 2, 6, 24], true)) {
+                $success = $success && $this->set(self::KEY_BTN_RADIUS, $radius);
+            }
+        }
+
+        // Espacement interne des sections — entre 20 et 64px
+        if (isset($data['section_padding'])) {
+            $pad = (int) $data['section_padding'];
+            $pad = max(16, min(64, $pad));
+            $success = $success && $this->set(self::KEY_SECTION_PADDING, $pad);
+        }
+
+        // Espacement entre les blocs — entre 16 et 80px
+        if (isset($data['block_spacing'])) {
+            $sp = (int) $data['block_spacing'];
+            $sp = max(16, min(80, $sp));
+            $success = $success && $this->set(self::KEY_BLOCK_SPACING, $sp);
+        }
+
+        // Style du séparateur
+        if (!empty($data['separator_style']) && in_array($data['separator_style'], ['none', 'line', 'dotted', 'double'], true)) {
+            $success = $success && $this->set(self::KEY_SEPARATOR_STYLE, $data['separator_style']);
+        }
+
+        // Ombre de la carte email
+        if (!empty($data['card_shadow']) && in_array($data['card_shadow'], ['none', 'soft', 'medium', 'strong'], true)) {
+            $success = $success && $this->set(self::KEY_CARD_SHADOW, $data['card_shadow']);
+        }
+
         return $success;
     }
 
@@ -669,6 +835,28 @@ class ConfigManager
                     $configKey,
                     \Tools::safeOutput($data[$postKey])
                 );
+            }
+        }
+
+        // Taille de police corps — 12 à 16px
+        if (isset($data['font_size'])) {
+            $fs = (int) $data['font_size'];
+            $fs = max(12, min(16, $fs));
+            $success = $success && $this->set(self::KEY_FONT_SIZE, $fs);
+        }
+
+        // Interligne — 1.4 à 2.0
+        if (isset($data['line_height'])) {
+            $lh = round((float) $data['line_height'], 1);
+            $lh = max(1.4, min(2.0, $lh));
+            $success = $success && $this->set(self::KEY_LINE_HEIGHT, $lh);
+        }
+
+        // Poids titres — 400 / 600 / 700
+        if (isset($data['heading_weight'])) {
+            $hw = (int) $data['heading_weight'];
+            if (in_array($hw, [400, 600, 700], true)) {
+                $success = $success && $this->set(self::KEY_HEADING_WEIGHT, $hw);
             }
         }
 

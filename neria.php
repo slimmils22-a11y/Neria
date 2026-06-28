@@ -2894,7 +2894,10 @@ class Neria extends Module
                     array_keys($fonts->getAllScripts())
                 )
             ),
-            'current_fonts'    => $config->getTypographyConfig(),
+            'current_fonts'             => $config->getTypographyConfig(),
+            'typography_font_size'      => $config->getDesignConfig()['font_size']      ?? 14,
+            'typography_line_height'    => $config->getDesignConfig()['line_height']    ?? 1.8,
+            'typography_heading_weight' => $config->getDesignConfig()['heading_weight'] ?? 600,
 
             // Styles de signature disponibles (onglet configure)
             'signature_styles' => SignatureGenerator::STYLES,
@@ -3552,6 +3555,18 @@ class Neria extends Module
         $logoWidth = (int) Tools::getValue('preview_logo_width', 0);
         if ($logoWidth >= 80 && $logoWidth <= 320) {
             $override['logo_width'] = $logoWidth;
+        }
+        $fontSize = (int) Tools::getValue('preview_font_size', 0);
+        if ($fontSize >= 12 && $fontSize <= 16) {
+            $override['font_size'] = $fontSize;
+        }
+        $lineHeight = (float) Tools::getValue('preview_line_height', 0);
+        if ($lineHeight >= 1.4 && $lineHeight <= 2.0) {
+            $override['line_height'] = $lineHeight;
+        }
+        $headingWeight = (int) Tools::getValue('preview_heading_weight', 0);
+        if (in_array($headingWeight, [400, 600, 700], true)) {
+            $override['heading_weight'] = $headingWeight;
         }
 
         $html = '';

@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!--[if !mso]><!-->
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  {$neria_google_font_link}
   <!--<![endif]-->
 
   <style type="text/css">
@@ -54,22 +54,23 @@
       margin: 0 auto;
       background-color: {$neria_color_container};
       border-radius: 4px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+      box-shadow: {$neria_card_shadow};
       overflow: hidden;
     }
     .neria-inner {
-      padding: 40px 48px 48px 48px;
+      padding: {$neria_section_padding}px 48px {$neria_section_padding}px 48px;
     }
 
     /* TITRES */
     .neria-title-main {
       font-size: 22px;
-      font-weight: 600;
+      font-weight: {$neria_heading_weight};
       letter-spacing: 0.04em;
       text-align: center;
       line-height: 1.6;
       color: #2b2520;
       margin: 0 0 8px 0;
+      font-family: {$neria_font_heading_family};
     }
     .neria-title-sub {
       font-size: 15px;
@@ -77,6 +78,7 @@
       line-height: 1.7;
       color: #5c554e;
       margin: 0 0 28px 0;
+      font-family: {$neria_font_heading_family};
     }
     .neria-section-title {
       font-size: 15px;
@@ -85,7 +87,7 @@
       text-transform: uppercase;
       border-bottom: 1px solid #e3d7c7;
       padding-bottom: 8px;
-      margin: 48px 0 18px 0;
+      margin: {$neria_block_spacing}px 0 18px 0;
       color: #2b2520;
     }
 
@@ -94,22 +96,22 @@
       background-color: #fefefe;
       border: 1px solid #e8e0d5;
       padding: 20px 24px;
-      font-size: 14px;
-      line-height: 1.8;
+      font-size: {$neria_font_size}px;
+      line-height: {$neria_line_height};
     }
     .neria-address-box {
       background-color: #fefefe;
       border: 1px solid #e8e0d5;
       padding: 20px 24px;
-      font-size: 14px;
-      line-height: 1.7;
+      font-size: {$neria_font_size}px;
+      line-height: {$neria_line_height};
       margin-top: 8px;
     }
 
     /* TEXTE */
     .neria-text {
-      font-size: 14px;
-      line-height: 1.8;
+      font-size: {$neria_font_size}px;
+      line-height: {$neria_line_height};
       color: #3a3530;
     }
     .neria-text-note {
@@ -122,13 +124,13 @@
     .neria-btn {
       display: inline-block;
       padding: 14px 36px;
-      background-color: #2b2520;
+      background-color: {$neria_btn_color};
       color: #ffffff !important;
       text-decoration: none;
       font-size: 13px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      border-radius: 2px;
+      border-radius: {$neria_btn_radius}px;
       font-weight: 600;
       white-space: nowrap;
     }
@@ -174,8 +176,8 @@
       margin-top: 56px;
       padding-top: 32px;
       border-top: 1px solid #f0e7db;
-      font-size: 14px;
-      line-height: 1.8;
+      font-size: {$neria_font_size}px;
+      line-height: {$neria_line_height};
       text-align: left;
       color: #2b2520;
     }
@@ -206,34 +208,33 @@
     .neria-header {
       text-align: center;
       padding: 30px 20px 20px 20px;
-      border-bottom: 1px solid #b38b59;
+      border-bottom: 1px solid {$neria_color_accent};
+      background-color: {$neria_color_header_bg};
     }
     .neria-footer {
       text-align: center;
       padding: 28px 20px 32px 20px;
       font-size: 11px;
-      color: #a09990;
+      color: {$neria_color_footer_text};
       line-height: 2;
       border-top: 1px solid #f0e7db;
+      background-color: {$neria_color_footer_bg};
     }
     .neria-footer a {
-      color: #a09990;
+      color: {$neria_color_footer_text};
       text-decoration: underline;
     }
     .neria-footer__brand {
       font-size: 12px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: #b38b59;
+      color: {$neria_color_accent};
       margin-bottom: 8px;
     }
 
     /* SÉPARATEUR */
     .neria-rule {
-      border: 0;
-      height: 1px;
-      background-color: #e3d7c7;
-      margin: 20px 40px;
+      {$neria_separator_css}
     }
 
     /* DARK MODE – VERROUILLAGE FORCÉ */

@@ -161,7 +161,8 @@
 
         var fields = [
             'color_background', 'color_container',
-            'color_accent', 'color_text', 'container_width', 'logo_width'
+            'color_accent', 'color_text', 'container_width', 'logo_width',
+            'font_size', 'line_height', 'heading_weight'
         ];
 
         fields.forEach(function (field) {
