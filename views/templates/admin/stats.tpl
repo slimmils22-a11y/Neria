@@ -76,10 +76,8 @@
           {else}{$cur|number_format:0:',':' '}{/if}
         </div>
         {if $delta !== null}
-          {assign var="arrow" value=($delta > 0 ? '▲' : '▼')}
-          {assign var="clr"   value=($isGood ? '#16a34a' : '#dc2626')}
-          <div style="font-size:11px;font-weight:600;color:{$clr};margin-top:5px;">
-            {$arrow} {$delta|abs}% vs sem. préc.
+          <div style="font-size:11px;font-weight:600;color:{if $isGood}#16a34a{else}#dc2626{/if};margin-top:5px;">
+            {if $delta > 0}▲{else}▼{/if} {$delta|abs}% vs sem. préc.
           </div>
         {else}
           <div style="font-size:11px;color:var(--neria-muted);margin-top:5px;">— sem. préc. vide</div>
@@ -3255,8 +3253,8 @@ function neriaPreviewUpsell() {
             </td>
             <td class="neria-table__num">
               {if $delta !== null}
-                {assign var="up"    value=($delta > 0)}
-                {assign var="isGood" value=($mrow.good_up ? $up : !$up)}
+                {if $delta > 0}{assign var="up" value=true}{else}{assign var="up" value=false}{/if}
+                {if $mrow.good_up}{assign var="isGood" value=$up}{else}{assign var="isGood" value=!$up}{/if}
                 <span style="font-weight:700;color:{if $isGood}#16a34a{else}#dc2626{/if};">
                   {if $up}▲{else}▼{/if} {$delta|abs}%
                 </span>
