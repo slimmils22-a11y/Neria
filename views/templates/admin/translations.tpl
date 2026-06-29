@@ -81,9 +81,14 @@ window.neriaAjaxUrl = function(action, extra) {
 <div class="neria-section">
   <h2 class="neria-section__title">{neria_admin key='translations.page_title'}</h2>
   <p class="neria-section__desc">{neria_admin key='translations.page_desc'}</p>
+</div>
 
-  {* Bloc unique repliable — pourquoi + comment *}
-  <div id="neria-trad-why" style="margin-top:16px;background:#fdfaf5;border:1px solid #e8d5b0;border-radius:8px;overflow:hidden;">
+{* ── Panneau de configuration — un seul bloc ───────────────────── *}
+<div class="neria-section">
+<div class="neria-card" style="padding:0;overflow:hidden;">
+
+  {* — Bloc info repliable ————————————————————————————————————————— *}
+  <div id="neria-trad-why" style="border-bottom:1px solid var(--neria-border,#e8d5b0);">
     <button type="button" onclick="neriaToggleWhy()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:none;border:none;cursor:pointer;text-align:left;">
       <span style="font-size:13px;font-weight:700;color:var(--neria-dark,#2c1810);">
         💡 Neria est déjà traduit en 18 langues — à quoi sert cet onglet ?
@@ -91,189 +96,127 @@ window.neriaAjaxUrl = function(action, extra) {
       <span id="neria-why-chevron" style="font-size:16px;color:var(--neria-accent,#b8976a);transition:transform .2s;">▾</span>
     </button>
     <div id="neria-why-body" style="padding:0 20px 20px;">
-
       <p style="margin:0 0 10px;font-size:13px;color:#555;line-height:1.7;">
         Oui, Neria livre tous vos emails prêts à l'emploi. Mais ces textes sont <strong>génériques</strong> : chaque boutique qui utilise Neria reçoit exactement les mêmes formulations. Cet onglet vous permet de <strong>faire sonner vos emails comme votre marque</strong>, pas comme un logiciel.
       </p>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
-        <div style="background:#fff;border:1px solid #ede0cc;border-radius:6px;padding:12px 14px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:5px;">Adapter le ton</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div style="background:var(--neria-bg-subtle,#f9f6f1);border:1px solid var(--neria-border,#e8d5b0);border-radius:6px;padding:11px 14px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:4px;">Adapter le ton</div>
           <div style="font-size:12px;color:#666;line-height:1.6;">Remplacez "Cher client" par "Chère Madame, Cher Monsieur" ou par le prénom — selon votre positionnement.</div>
         </div>
-        <div style="background:#fff;border:1px solid #ede0cc;border-radius:6px;padding:12px 14px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:5px;">Soigner une langue</div>
+        <div style="background:var(--neria-bg-subtle,#f9f6f1);border:1px solid var(--neria-border,#e8d5b0);border-radius:6px;padding:11px 14px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:4px;">Soigner une langue</div>
           <div style="font-size:12px;color:#666;line-height:1.6;">La traduction par défaut est correcte, mais votre marché attend peut-être un registre différent.</div>
         </div>
-        <div style="background:#fff;border:1px solid #ede0cc;border-radius:6px;padding:12px 14px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:5px;">Copywriter externe</div>
+        <div style="background:var(--neria-bg-subtle,#f9f6f1);border:1px solid var(--neria-border,#e8d5b0);border-radius:6px;padding:11px 14px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:4px;">Copywriter externe</div>
           <div style="font-size:12px;color:#666;line-height:1.6;">Exportez les textes en CSV, faites-les réécrire par un professionnel, réimportez. Zéro copier-coller.</div>
         </div>
-        <div style="background:#fff;border:1px solid #ede0cc;border-radius:6px;padding:12px 14px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:5px;">Multi-boutiques</div>
+        <div style="background:var(--neria-bg-subtle,#f9f6f1);border:1px solid var(--neria-border,#e8d5b0);border-radius:6px;padding:11px 14px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:4px;">Multi-boutiques</div>
           <div style="font-size:12px;color:#666;line-height:1.6;">Exportez vos textes depuis une boutique et importez-les sur les autres en quelques secondes.</div>
         </div>
       </div>
-
-      <div style="border-top:1px solid #ede0cc;padding-top:14px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:8px;">{neria_admin key='translations.howto_title'}</div>
-        <ol style="margin:0 0 12px;padding-left:18px;line-height:1.9;font-size:13px;color:#666;">
+      <div style="border-top:1px solid var(--neria-border,#e8d5b0);padding-top:12px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:6px;">{neria_admin key='translations.howto_title'}</div>
+        <ol style="margin:0 0 10px;padding-left:18px;line-height:1.9;font-size:13px;color:#666;">
           <li>{neria_admin key='translations.howto_step1'}</li>
           <li>{neria_admin key='translations.howto_step2'}</li>
           <li>{neria_admin key='translations.howto_step3'}</li>
         </ol>
-        <p style="margin:0 0 6px;font-size:12px;color:#888;line-height:1.6;">📊 {neria_admin key='translations.subject_hint'}</p>
+        <p style="margin:0 0 5px;font-size:12px;color:#888;line-height:1.6;">📊 {neria_admin key='translations.subject_hint'}</p>
         <p style="margin:0;font-size:12px;color:#888;line-height:1.6;">🔒 <strong>Vos modifications sont protégées :</strong> les mises à jour de Neria ne les écrasent jamais. Chaque champ retravaillé est marqué <span style="background:#f3ede4;color:#b38b59;border-radius:3px;padding:1px 6px;font-size:11px;font-family:monospace;">PERSONNALISÉ</span> et toujours restaurable en un clic.</p>
       </div>
-
     </div>
   </div>
-</div>
 
-{* ── Recherche globale ─────────────────────────────────────────── *}
-<div class="neria-section">
-  <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-text-light);margin:0 0 10px;">
-    🔍 {neria_admin key='translations.search_title'}
-  </h3>
-  <div class="neria-search-bar">
-    <input type="text"
-           id="neria-global-search"
-           class="neria-input"
-           placeholder="{neria_admin key='translations.search_placeholder'}"
-           autocomplete="off">
-    <button type="button" class="neria-btn neria-btn--secondary neria-btn--sm" id="neria-search-clear" style="display:none;">✕</button>
-  </div>
-  <div class="neria-search-results" id="neria-search-results"></div>
-</div>
-
-{* ── Sélecteurs template / langue ──────────────────────────────── *}
-<div class="neria-section">
-  <div class="neria-trad-selectors" style="flex-wrap:wrap;gap:12px 16px;">
-
-    <div class="neria-form-group">
-      <label class="neria-label" for="neria-trad-template">
-        {neria_admin key='common.template'}
-      </label>
-      <select id="neria-trad-template" name="trad_template" class="neria-select">
-        <option value="">{neria_admin key='translations.choose_template'}</option>
-        {foreach $template_labels as $key => $label}
-          <option value="{$key}"
-            {if isset($selected_template) && $selected_template === $key}selected{/if}>
-            {$label}
-          </option>
-        {/foreach}
-      </select>
+  {* — Recherche globale ——————————————————————————————————————————— *}
+  <div style="padding:16px 20px;border-bottom:1px solid var(--neria-border,#e8d5b0);">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-text-light,#aaa);margin-bottom:8px;">🔍 {neria_admin key='translations.search_title'}</div>
+    <div class="neria-search-bar">
+      <input type="text" id="neria-global-search" class="neria-input"
+             placeholder="{neria_admin key='translations.search_placeholder'}" autocomplete="off">
+      <button type="button" class="neria-btn neria-btn--secondary neria-btn--sm" id="neria-search-clear" style="display:none;">✕</button>
     </div>
-
-    <div class="neria-form-group">
-      <label class="neria-label" for="neria-trad-lang">
-        {neria_admin key='common.language'}
-      </label>
-      <select id="neria-trad-lang" name="trad_lang" class="neria-select">
-        {foreach $lang_labels as $code => $name}
-          <option value="{$code}"
-            {if isset($selected_lang) && $selected_lang === $code}selected{/if}>
-            {$lang_flags[$code]|default:''} {$name}
-          </option>
-        {/foreach}
-      </select>
-    </div>
-
-    <div class="neria-form-group">
-      <label class="neria-label" style="visibility:hidden">.</label>
-      <button type="button" class="neria-btn neria-btn--primary" id="neria-trad-load">
-        {neria_admin key='translations.load'}
-      </button>
-    </div>
-
-    {* Bouton aperçu split *}
-    <div class="neria-form-group">
-      <label class="neria-label" style="visibility:hidden">.</label>
-      <button type="button" class="neria-btn neria-btn--secondary" id="neria-toggle-preview"
-              title="Afficher/masquer l'aperçu en temps réel">
-        ⊞ Aperçu
-      </button>
-    </div>
-
-    <div class="neria-form-group" style="margin-left:auto;">
-      <label class="neria-label" style="visibility:hidden">.</label>
-      <form method="post" style="margin:0;">
-        <input type="hidden" name="neria_action" value="reload_all_translations">
-        <button type="submit" class="neria-btn neria-btn--primary"
-                title="{neria_admin key='translations.reload_all_title'}">
-          ↺ {neria_admin key='translations.reload_all'}
-        </button>
-      </form>
-    </div>
-
-  </div>
-</div>
-
-{* ── Configuration DeepL ───────────────────────────────────────── *}
-<div class="neria-section" id="neria-deepl-section">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-    <span class="neria-deepl-badge">DeepL</span>
-    <span style="font-size:13px;font-weight:600;color:var(--neria-text);">{neria_admin key='translations.deepl_title'}</span>
-    <a href="https://www.deepl.com/pro-api" target="_blank"
-       style="font-size:11px;color:var(--neria-accent);text-decoration:none;margin-left:auto;">
-      {neria_admin key='translations.deepl_get_key'} →
-    </a>
+    <div class="neria-search-results" id="neria-search-results"></div>
   </div>
 
-  {* Notice explicative DeepL *}
-  <div style="background:var(--neria-bg-subtle);border:1px solid var(--neria-border);border-left:3px solid #0f2b46;border-radius:var(--neria-radius);padding:16px 20px;margin-bottom:16px;">
+  {* — Sélecteurs template / langue ———————————————————————————————— *}
+  <div style="padding:16px 20px;border-bottom:1px solid var(--neria-border,#e8d5b0);">
+    <div class="neria-trad-selectors" style="flex-wrap:wrap;gap:12px 16px;">
+      <div class="neria-form-group">
+        <label class="neria-label" for="neria-trad-template">{neria_admin key='common.template'}</label>
+        <select id="neria-trad-template" name="trad_template" class="neria-select">
+          <option value="">{neria_admin key='translations.choose_template'}</option>
+          {foreach $template_labels as $key => $label}
+            <option value="{$key}" {if isset($selected_template) && $selected_template === $key}selected{/if}>{$label}</option>
+          {/foreach}
+        </select>
+      </div>
+      <div class="neria-form-group">
+        <label class="neria-label" for="neria-trad-lang">{neria_admin key='common.language'}</label>
+        <select id="neria-trad-lang" name="trad_lang" class="neria-select">
+          {foreach $lang_labels as $code => $name}
+            <option value="{$code}" {if isset($selected_lang) && $selected_lang === $code}selected{/if}>{$lang_flags[$code]|default:''} {$name}</option>
+          {/foreach}
+        </select>
+      </div>
+      <div class="neria-form-group">
+        <label class="neria-label" style="visibility:hidden">.</label>
+        <button type="button" class="neria-btn neria-btn--primary" id="neria-trad-load">{neria_admin key='translations.load'}</button>
+      </div>
+      <div class="neria-form-group">
+        <label class="neria-label" style="visibility:hidden">.</label>
+        <button type="button" class="neria-btn neria-btn--secondary" id="neria-toggle-preview" title="Afficher/masquer l'aperçu en temps réel">⊞ Aperçu</button>
+      </div>
+      <div class="neria-form-group" style="margin-left:auto;">
+        <label class="neria-label" style="visibility:hidden">.</label>
+        <form method="post" style="margin:0;">
+          <input type="hidden" name="neria_action" value="reload_all_translations">
+          <button type="submit" class="neria-btn neria-btn--primary" title="{neria_admin key='translations.reload_all_title'}">↺ {neria_admin key='translations.reload_all'}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {* — Configuration DeepL ————————————————————————————————————————— *}
+  <div style="padding:16px 20px;" id="neria-deepl-section">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <span class="neria-deepl-badge">DeepL</span>
+      <span style="font-size:13px;font-weight:600;color:var(--neria-text);">{neria_admin key='translations.deepl_title'}</span>
+      <a href="https://www.deepl.com/pro-api" target="_blank" style="font-size:11px;color:var(--neria-accent);text-decoration:none;margin-left:auto;">{neria_admin key='translations.deepl_get_key'} →</a>
+    </div>
     <p style="margin:0 0 10px;font-size:13px;color:var(--neria-text);line-height:1.7;">
-      <strong>DeepL</strong> est un service de traduction automatique de haute qualité — bien supérieur à Google Translate pour les textes professionnels et les nuances de langue. Il traduit vos emails Neria du français vers n'importe laquelle des 18 langues supportées en quelques secondes.
+      <strong>DeepL</strong> est un service de traduction automatique de haute qualité — bien supérieur à Google Translate pour les textes professionnels. Il traduit vos emails Neria du français vers n'importe laquelle des 18 langues supportées en quelques secondes.
     </p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;font-size:12px;color:var(--neria-text-muted);line-height:1.6;">
-      <div>
-        🎁 <strong style="color:var(--neria-text);">Plan gratuit</strong> — 500 000 caractères/mois<br>
-        <span style="padding-left:18px;">Suffisant pour tous vos 125 templates.</span>
-      </div>
-      <div>
-        🌍 <strong style="color:var(--neria-text);">18 langues supportées</strong><br>
-        <span style="padding-left:18px;">Dont japonais, coréen, arabe, chinois…</span>
-      </div>
-      <div>
-        🔒 <strong style="color:var(--neria-text);">Vos textes restent modifiables</strong><br>
-        <span style="padding-left:18px;">DeepL pré-remplit, vous relisez et corrigez.</span>
-      </div>
-      <div>
-        ↺ <strong style="color:var(--neria-text);">Réversible à tout moment</strong><br>
-        <span style="padding-left:18px;">Les textes Neria d'origine sont toujours restaurables.</span>
-      </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;font-size:12px;color:var(--neria-text-muted);line-height:1.6;margin-bottom:12px;">
+      <div>🎁 <strong style="color:var(--neria-text);">Plan gratuit</strong> — 500 000 car./mois — suffisant pour vos 125 templates.</div>
+      <div>🌍 <strong style="color:var(--neria-text);">18 langues supportées</strong> — dont japonais, coréen, arabe, chinois…</div>
+      <div>🔒 <strong style="color:var(--neria-text);">Vos textes restent modifiables</strong> — DeepL pré-remplit, vous relisez et corrigez.</div>
+      <div>↺ <strong style="color:var(--neria-text);">Réversible à tout moment</strong> — les textes Neria d'origine sont toujours restaurables.</div>
     </div>
-    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--neria-border);font-size:12px;color:var(--neria-text-muted);">
+    <p style="margin:0 0 10px;font-size:12px;color:var(--neria-text-muted);">
       <strong style="color:var(--neria-text);">Comment obtenir votre clé gratuite :</strong>
       créez un compte sur <strong>deepl.com</strong> → section <em>API</em> → copiez votre clé API Free (elle se termine par <code style="background:var(--neria-bg-hover);padding:1px 5px;border-radius:3px;">:fx</code>) → collez-la ci-dessous.
-    </div>
+    </p>
+    <form method="post" class="neria-deepl-key-row">
+      <input type="hidden" name="neria_action" value="save_deepl_key">
+      <input type="password" name="deepl_key" id="neria-deepl-key-input" class="neria-input"
+             placeholder="xxxx-xxxx-xxxx-xxxx:fx  (clé gratuite) ou xxxx-xxxx-xxxx-xxxx (Pro)"
+             value="{$deepl_key|default:''}">
+      <button type="button" id="neria-deepl-toggle-vis" class="neria-btn neria-btn--secondary neria-btn--sm"
+              title="Afficher/masquer"
+              onclick="var f=document.getElementById('neria-deepl-key-input');f.type=f.type==='password'?'text':'password';">👁</button>
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">{neria_admin key='common.save'}</button>
+      <span style="font-size:11px;color:var(--neria-text-muted);">
+        {if $deepl_key|default:'' neq ''}✅ {neria_admin key='translations.deepl_configured'}
+        {else}{neria_admin key='translations.deepl_hint'}{/if}
+      </span>
+    </form>
   </div>
-  <form method="post" class="neria-deepl-key-row">
-    <input type="hidden" name="neria_action" value="save_deepl_key">
-    <input type="password"
-           name="deepl_key"
-           id="neria-deepl-key-input"
-           class="neria-input"
-           placeholder="xxxx-xxxx-xxxx-xxxx:fx  (clé gratuite) ou xxxx-xxxx-xxxx-xxxx (Pro)"
-           value="{$deepl_key|default:''}">
-    <button type="button" id="neria-deepl-toggle-vis"
-            class="neria-btn neria-btn--secondary neria-btn--sm"
-            title="Afficher/masquer"
-            onclick="var f=document.getElementById('neria-deepl-key-input');f.type=f.type==='password'?'text':'password';">
-      👁
-    </button>
-    <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
-      {neria_admin key='common.save'}
-    </button>
-    <span style="font-size:11px;color:var(--neria-text-muted);">
-      {if $deepl_key|default:'' neq ''}
-        ✅ {neria_admin key='translations.deepl_configured'}
-      {else}
-        {neria_admin key='translations.deepl_hint'}
-      {/if}
-    </span>
-  </form>
-</div>
+
+</div>{* fin neria-card *}
+</div>{* fin neria-section *}
 
 {if isset($translations) && $translations}
 
