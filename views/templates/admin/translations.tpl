@@ -315,8 +315,8 @@ window.neriaAjaxUrl = function(action, extra) {
     {* Colonne éditeur *}
     <div class="neria-trad-editor-col">
 
-      <div class="neria-section" id="neria-trad-editor">
-        <div class="neria-trad-header">
+      <div class="neria-card" id="neria-trad-editor" style="padding:0;overflow:hidden;">
+        <div class="neria-trad-header" style="padding:16px 20px 0;">
           <h2 class="neria-section__title">
             {$template_labels[$selected_template]|default:$selected_template}
             <span class="neria-lang-chip">
@@ -342,7 +342,7 @@ window.neriaAjaxUrl = function(action, extra) {
           <input type="hidden" name="trad_template"   value="{$selected_template}">
           <input type="hidden" name="trad_lang"       value="{$selected_lang}">
 
-          <div class="neria-trad-fields">
+          <div class="neria-trad-fields" style="padding:0 20px;">
             {foreach $translations as $key => $value}
               <div class="neria-form-group neria-trad-field">
 
@@ -451,7 +451,7 @@ window.neriaAjaxUrl = function(action, extra) {
 
         {* Changelog *}
         {if isset($translation_history)}
-        <div class="neria-section neria-changelog" id="neria-changelog">
+        <div class="neria-changelog" id="neria-changelog" style="margin-top:0;border-top:1px solid var(--neria-border,#e8d5b0);">
           <div class="neria-trad-header">
             <button type="button" class="neria-btn neria-btn--primary neria-btn--sm"
                     onclick="document.getElementById('neria-changelog-body').classList.toggle('neria-changelog--hidden');">
