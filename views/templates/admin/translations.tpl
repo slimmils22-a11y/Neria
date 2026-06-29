@@ -56,7 +56,13 @@ document.addEventListener('DOMContentLoaded', function() {
 window.NERIA_SPAM_TRIGGERS = {$subject_spam_triggers_json|default:'[]'};
 window.NERIA_LABELS = {$nsa_labels_json|default:'{}'};
 window.NERIA_LANG   = '{$selected_lang|default:'en'}';
-window.NERIA_BASE_URL = window.location.href.split('?')[0];
+// Construit une URL AJAX en préservant le token PS et tous les params existants
+window.neriaAjaxUrl = function(action, extra) {
+  var url = new URL(window.location.href);
+  url.searchParams.set('neria_action', action);
+  if (extra) { Object.keys(extra).forEach(function(k){ url.searchParams.set(k, extra[k]); }); }
+  return url.toString();
+};
 </script>
 
 {* ── En-tête page ──────────────────────────────────────────────── *}
@@ -614,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() {
       searchClear.style.display = q ? '' : 'none';
       if (q.length < 2) { searchResults.classList.remove('active'); searchResults.innerHTML = ''; return; }
       searchTimer = setTimeout(function() {
-        var url = window.NERIA_BASE_URL + '?neria_action=search_translations&q=' + encodeURIComponent(q);
+        var url = window.neriaAjaxUrl('search_translations', {q: q});
         fetch(url).then(function(r){ return r.json(); }).then(function(data) {
           var items = data.results || [];
           if (!items.length) {
@@ -674,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var lang = this.getAttribute('data-lang');
       btnTranslate.disabled = true;
       translateStatus.textContent = '⏳ Traduction en cours...';
-      var url = window.NERIA_BASE_URL + '?neria_action=auto_translate_template&trad_template=' + encodeURIComponent(tpl) + '&trad_lang=' + encodeURIComponent(lang);
+      var url = window.neriaAjaxUrl('auto_translate_template', {trad_template: tpl, trad_lang: lang});
       fetch(url).then(function(r){ return r.json(); }).then(function(data) {
         btnTranslate.disabled = false;
         if (data.error) {
