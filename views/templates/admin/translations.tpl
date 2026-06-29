@@ -383,6 +383,9 @@ window.NERIA_BASE_URL = window.location.href.split('?')[0];
                     <span id="nsa_score_{$key}" style="font-size:13px;font-weight:700;color:#ccc;min-width:52px;text-align:right;">—/100</span>
                   </div>
                   <div id="nsa_spam_{$key}" style="display:none;margin-top:5px;font-size:11px;color:#c0392b;line-height:1.4;"></div>
+                  <p style="margin:6px 0 0;font-size:11px;color:var(--neria-text-muted,#aaa);line-height:1.5;">
+                    Cette barre mesure la qualité de votre objet d'email : longueur idéale (20–50 car.), absence de mots spam, pas de majuscules excessives. <strong style="color:var(--neria-text,#555);">Visez 80/100 minimum</strong> pour maximiser le taux d'ouverture.
+                  </p>
                 </div>
                 <script>
                 (function() {
