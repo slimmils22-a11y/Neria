@@ -194,6 +194,29 @@ class HealthCheckManager
             'waitlist_backlog'     => $this->checkWaitlistBacklog(),
             'smtp_quota'           => $this->checkSmtpQuota(),
             'postmaster_rep'       => $this->checkPostmasterReputation(),
+            // ── Flux email avancé ──────────────────────────────────────
+            'click_rate_7d'        => $this->checkClickRate7d(),
+            'unsubscribe_spike'    => $this->checkUnsubscribeSpike(),
+            'fallback_template'    => $this->checkFallbackTemplate(),
+            'front_controllers'    => $this->checkFrontControllers(),
+            // ── Infrastructure avancée ─────────────────────────────────
+            'queue_overflow'       => $this->checkQueueOverflow(),
+            'behavioral_dedup'     => $this->checkBehavioralDedupSize(),
+            // ── Configuration avancée ──────────────────────────────────
+            'multi_sender_json'    => $this->checkMultiSenderJson(),
+            'monthly_report_cfg'   => $this->checkMonthlyReportConfig(),
+            'deepl_key_valid'      => $this->checkDeeplKeyValid(),
+            'php_memory_limit'     => $this->checkPhpMemoryLimit(),
+            // ── Sous-systèmes ──────────────────────────────────────────
+            'loyalty_integrity'    => $this->checkLoyaltyIntegrity(),
+            'segment_freshness'    => $this->checkSegmentFreshness(),
+            'clv_freshness'        => $this->checkClvFreshness(),
+            'quote_reminders'      => $this->checkQuoteRemindersStuck(),
+            'campaign_empty_seg'   => $this->checkCampaignEmptySegment(),
+            // ── Qualité des données ────────────────────────────────────
+            'attribution_coverage' => $this->checkAttributionCoverage(),
+            'history_table_size'   => $this->checkTranslationHistorySize(),
+            'abtest_trad_gaps'     => $this->checkAbtestTranslationGaps(),
         ];
     }
 
@@ -1772,6 +1795,773 @@ class HealthCheckManager
         $cacheAge = $mgr->getCacheAge();
         $ageStr   = $cacheAge !== null ? " (données vieilles de {$cacheAge} min)" : '';
         return ['status' => self::STATUS_OK, 'detail' => 'Postmaster Tools : réputation et taux de spam dans les normes' . $ageStr . '.'];
+    }
+
+    /**
+     * #35 — Taux de clic email sur 7 jours
+     * Si des ouvertures sont enregistrées mais aucun clic depuis 7j,
+     * le tracking de liens est probablement cassé.
+     */
+    private function checkClickRate7d(): array
+    {
+        $db = \Db::getInstance();
+
+        $opens = (int) $db->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_log`
+            WHERE event = \'open\'
+              AND date_add >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ');
+
+        if ($opens === 0) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Aucune ouverture enregistrée ces 7 derniers jours — taux de clic non applicable.'];
+        }
+
+        $clicks = (int) $db->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_log`
+            WHERE event = \'click\'
+              AND date_add >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ');
+
+        if ($clicks === 0) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => $opens . ' ouvertures enregistrées ces 7 derniers jours, mais aucun clic.'
+                    . ' → Que faire : Vérifiez que track.php est accessible et que les liens dans vos templates'
+                    . ' passent bien par le pixel de suivi Neria.',
+            ];
+        }
+
+        $rate = round($clicks / $opens * 100, 1);
+
+        if ($rate < 0.5) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => "Taux de clic très bas : {$rate}% ({$clicks} clics / {$opens} ouvertures) sur 7j."
+                    . ' → Que faire : Vérifiez vos appels à l\'action (CTA) et la pertinence du contenu de vos emails.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => "Taux de clic 7j : {$rate}% ({$clicks} clics / {$opens} ouvertures). Tracking opérationnel."];
+    }
+
+    /**
+     * #36 — Pic de désabonnements sur 7 jours
+     * Un taux > 0,5 % du volume envoyé signale un problème de ciblage ou de contenu.
+     */
+    private function checkUnsubscribeSpike(): array
+    {
+        $db = \Db::getInstance();
+
+        $sent = (int) $db->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_log`
+            WHERE event = \'sent\'
+              AND date_add >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ');
+
+        if ($sent < 100) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Volume d\'envoi insuffisant pour mesurer le taux de désabonnement (< 100 emails).'];
+        }
+
+        $unsubs = (int) $db->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_log`
+            WHERE event = \'unsubscribed\'
+              AND date_add >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ');
+
+        $rate = round($unsubs / $sent * 100, 2);
+
+        if ($rate > 0.5) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => "Pic de désabonnements : {$rate}% sur 7j ({$unsubs} / {$sent} envois)."
+                    . ' Seuil critique dépassé (> 0,5%).'
+                    . ' → Que faire : Examinez les segments ciblés cette semaine, vérifiez la pertinence du contenu,'
+                    . ' et suspendez temporairement les campagnes non urgentes.',
+            ];
+        }
+
+        if ($rate > 0.2) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => "Taux de désabonnement en hausse : {$rate}% sur 7j ({$unsubs} / {$sent} envois). Seuil d'attention (> 0,2%).",
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => "Taux de désabonnement 7j : {$rate}% ({$unsubs} / {$sent} envois). Dans les normes."];
+    }
+
+    /**
+     * #37 — Template neria_fallback et traduction FR présente
+     * Si le template d'urgence n'a pas de traduction, il échouera silencieusement.
+     */
+    private function checkFallbackTemplate(): array
+    {
+        $db = \Db::getInstance();
+
+        $hasTpl = (bool) $db->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_template`
+            WHERE tpl_key = \'neria_fallback\'
+        ');
+
+        if (!$hasTpl) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => 'Le template de secours neria_fallback est introuvable en base.'
+                    . ' → Que faire : Réinstallez le module ou exécutez la migration importFromJson.',
+            ];
+        }
+
+        $frLang = (int) $db->getValue('
+            SELECT id_lang FROM `' . _DB_PREFIX_ . 'lang` WHERE iso_code = \'fr\' LIMIT 1
+        ');
+
+        if ($frLang === 0) {
+            return ['status' => self::STATUS_OK, 'detail' => 'neria_fallback présent. Langue FR absente — vérification de traduction ignorée.'];
+        }
+
+        $hasTrad = (bool) $db->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_translation`
+            WHERE tpl_key = \'neria_fallback\' AND id_lang = ' . (int) $frLang . '
+              AND translation_key = \'subject\'
+        ');
+
+        if (!$hasTrad) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => 'neria_fallback présent mais la traduction FR (objet) est manquante.'
+                    . ' → Que faire : Ouvrez le template dans l\'onglet Traductions et renseignez les champs FR.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => 'Template de secours neria_fallback présent avec traduction FR.'];
+    }
+
+    /**
+     * #38 — Contrôleurs frontaux (track.php, unsubscribe.php, waitlist.php)
+     * Ces fichiers doivent être présents dans le dossier du module.
+     */
+    private function checkFrontControllers(): array
+    {
+        $base    = _PS_MODULE_DIR_ . 'neria/';
+        $missing = [];
+
+        foreach (['track.php', 'unsubscribe.php', 'waitlist.php'] as $file) {
+            if (!file_exists($base . $file)) {
+                $missing[] = $file;
+            }
+        }
+
+        if (!empty($missing)) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => 'Fichiers frontaux manquants : ' . implode(', ', $missing) . '.'
+                    . ' → Que faire : Réinstallez les fichiers depuis le package Neria.'
+                    . ' Ces fichiers sont indispensables pour le tracking, les désabonnements et la liste d\'attente.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => 'Contrôleurs frontaux présents (track.php, unsubscribe.php, waitlist.php).'];
+    }
+
+    /**
+     * #39 — Débordement de la file d'envoi
+     * Plus de 1 000 messages en attente suggère un cron bloqué ou une boucle infinie.
+     */
+    private function checkQueueOverflow(): array
+    {
+        if (!class_exists('QueueManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => 'QueueManager absent — sans impact.'];
+        }
+
+        $pending = (int) \Db::getInstance()->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_queue`
+            WHERE status = \'pending\'
+        ');
+
+        if ($pending > 5000) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => "{$pending} emails en attente dans la file — saturation probable."
+                    . ' → Que faire : Vérifiez le cron d\'envoi, la connexion SMTP, et les logs Watchdog'
+                    . ' pour identifier la cause de l\'accumulation.',
+            ];
+        }
+
+        if ($pending > 1000) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => "{$pending} emails en attente dans la file (seuil d'attention : 1 000)."
+                    . ' → Que faire : Surveillez l\'évolution ; si la file continue de croître, vérifiez le cron.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => "{$pending} email(s) en attente dans la file. Charge normale."];
+    }
+
+    /**
+     * #40 — Table neria_behavioral_sent surdimensionnée
+     * Sans purge automatique, cette table grossit indéfiniment et ralentit les crons.
+     */
+    private function checkBehavioralDedupSize(): array
+    {
+        $count = (int) \Db::getInstance()->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_behavioral_sent`
+        ');
+
+        if ($count > 200000) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => "La table neria_behavioral_sent contient {$count} lignes — taille critique."
+                    . ' Cela peut ralentir significativement les crons comportementaux.'
+                    . ' → Que faire : Exécutez manuellement une purge des entrées vieilles de plus de 90 jours'
+                    . ' via phpMyAdmin ou SQL : DELETE FROM neria_behavioral_sent WHERE date_add < DATE_SUB(NOW(), INTERVAL 90 DAY).',
+            ];
+        }
+
+        if ($count > 50000) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => "La table neria_behavioral_sent contient {$count} lignes. Croissance normale mais surveillée (seuil : 50 000).",
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => "Table de déduplication comportementale : {$count} lignes. Taille saine."];
+    }
+
+    /**
+     * #41 — Configuration multi-expéditeur (NERIA_SENDERS_JSON)
+     * Un JSON corrompu provoque l'envoi de TOUS les emails avec l'expéditeur par défaut
+     * de la boutique, sans avertissement.
+     */
+    private function checkMultiSenderJson(): array
+    {
+        $raw = \Configuration::get('NERIA_SENDERS_JSON');
+
+        if (empty($raw)) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Multi-expéditeur non configuré (fonctionnement mono-expéditeur).'];
+        }
+
+        $decoded = json_decode($raw, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => 'NERIA_SENDERS_JSON contient du JSON invalide : ' . json_last_error_msg() . '.'
+                    . ' Tous les emails utilisent actuellement l\'expéditeur par défaut.'
+                    . ' → Que faire : Corrigez la configuration dans l\'onglet Design → Multi-expéditeur.',
+            ];
+        }
+
+        if (!is_array($decoded)) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => 'NERIA_SENDERS_JSON ne contient pas un tableau valide.'
+                    . ' → Que faire : Réenregistrez la configuration multi-expéditeur depuis le BO.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => count($decoded) . ' configuration(s) d\'expéditeur chargée(s). JSON valide.'];
+    }
+
+    /**
+     * #42 — Rapport mensuel : activé sans destinataire
+     * Le rapport mensuel s'exécute mais n'est livré nulle part.
+     */
+    private function checkMonthlyReportConfig(): array
+    {
+        $enabled = (bool) \Configuration::get('NERIA_MONTHLY_REPORT_ENABLED');
+
+        if (!$enabled) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Rapport mensuel désactivé.'];
+        }
+
+        $recipient = trim((string) \Configuration::get('NERIA_MONTHLY_REPORT_EMAIL'));
+
+        if ($recipient === '') {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => 'Le rapport mensuel est activé mais aucun email destinataire n\'est configuré.'
+                    . ' → Que faire : Renseignez l\'adresse email dans les paramètres du rapport mensuel.',
+            ];
+        }
+
+        if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => "Le rapport mensuel est activé mais l'email destinataire est invalide : « {$recipient} »."
+                    . ' → Que faire : Corrigez l\'adresse email dans les paramètres du rapport mensuel.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => "Rapport mensuel actif — destinataire : {$recipient}."];
+    }
+
+    /**
+     * #43 — Validité de la clé API DeepL
+     * Une clé expirée ou invalide provoque l'échec silencieux des auto-traductions.
+     */
+    private function checkDeeplKeyValid(): array
+    {
+        $key = trim((string) \Configuration::get('NERIA_DEEPL_API_KEY'));
+
+        if ($key === '') {
+            return ['status' => self::STATUS_OK, 'detail' => 'Clé DeepL non configurée (traduction automatique désactivée).'];
+        }
+
+        // Appel minimal à l'endpoint /usage qui ne consomme pas de quota
+        $isFree   = \Tools::substr($key, -3) === ':fx';
+        $baseUrl  = $isFree ? 'https://api-free.deepl.com' : 'https://api.deepl.com';
+        $endpoint = $baseUrl . '/v2/usage';
+
+        $ch = curl_init($endpoint);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 5,
+            CURLOPT_HTTPHEADER     => ['Authorization: DeepL-Auth-Key ' . $key],
+        ]);
+        $response = curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode === 200) {
+            $usage = json_decode($response, true);
+            if (is_array($usage) && isset($usage['character_count'], $usage['character_limit'])) {
+                $used  = $usage['character_count'];
+                $limit = $usage['character_limit'];
+                $pct   = $limit > 0 ? round($used / $limit * 100, 1) : 0;
+
+                if ($pct >= 95) {
+                    return [
+                        'status' => self::STATUS_WARNING,
+                        'detail' => "Quota DeepL presque épuisé : {$pct}% utilisé ({$used} / {$limit} caractères)."
+                            . ' → Que faire : Passez au niveau supérieur ou désactivez la traduction automatique temporairement.',
+                    ];
+                }
+
+                return ['status' => self::STATUS_OK, 'detail' => "Clé DeepL valide. Quota : {$pct}% utilisé ({$used} / {$limit} caractères)."];
+            }
+
+            return ['status' => self::STATUS_OK, 'detail' => 'Clé DeepL valide (quota illisible).'];
+        }
+
+        if ($httpCode === 403) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => 'Clé DeepL invalide ou expirée (HTTP 403).'
+                    . ' → Que faire : Renouvelez votre clé dans le compte DeepL et mettez-la à jour dans Neria.',
+            ];
+        }
+
+        return [
+            'status' => self::STATUS_WARNING,
+            'detail' => "Impossible de vérifier la clé DeepL (HTTP {$httpCode}). L'API est peut-être temporairement indisponible.",
+        ];
+    }
+
+    /**
+     * #44 — Mémoire PHP disponible
+     * Le rendu d'emails complexes (TCPDF, CSS inlining, DeepL) nécessite >= 128 MB.
+     */
+    private function checkPhpMemoryLimit(): array
+    {
+        $raw  = ini_get('memory_limit');
+        $val  = trim($raw);
+        $last = strtolower(substr($val, -1));
+        $num  = (int) $val;
+        switch ($last) {
+            case 'g': $num *= 1024; // fall through
+            case 'm': $num *= 1024; // fall through
+            case 'k': $num *= 1024; break;
+        }
+        $bytes = $num;
+
+        if ($bytes < 0) {
+            // -1 = illimité
+            return ['status' => self::STATUS_OK, 'detail' => 'Mémoire PHP illimitée (memory_limit = -1).'];
+        }
+
+        $mb = (int) ($bytes / 1024 / 1024);
+
+        if ($mb < 64) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => "Mémoire PHP insuffisante : {$mb} MB (minimum requis : 128 MB)."
+                    . ' → Que faire : Augmentez memory_limit dans php.ini ou .htaccess à 128M minimum.',
+            ];
+        }
+
+        if ($mb < 128) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => "Mémoire PHP limite : {$mb} MB. 128 MB recommandés pour la génération de PDF et le CSS inlining."
+                    . ' → Que faire : Augmentez memory_limit à 128M dans php.ini.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => "Mémoire PHP : {$mb} MB. Suffisante pour toutes les opérations Neria."];
+    }
+
+    /**
+     * #45 — Intégrité du programme de fidélité
+     * Détecte les soldes négatifs et les récompenses sans propriétaire.
+     */
+    private function checkLoyaltyIntegrity(): array
+    {
+        if (!class_exists('LoyaltyManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => 'LoyaltyManager absent — module fidélité non chargé.'];
+        }
+
+        $db = \Db::getInstance();
+
+        $negative = (int) $db->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_loyalty_points`
+            WHERE points_total < 0
+        ');
+
+        if ($negative > 0) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => "{$negative} client(s) avec un solde de points de fidélité négatif."
+                    . ' → Que faire : Vérifiez la logique de déduction des points dans LoyaltyManager.'
+                    . ' Un solde négatif ne devrait jamais se produire.',
+            ];
+        }
+
+        $orphaned = (int) $db->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_loyalty_rewards` r
+            LEFT JOIN `' . _DB_PREFIX_ . 'neria_loyalty_points` p ON p.id_customer = r.id_customer
+            WHERE p.id_customer IS NULL
+        ');
+
+        if ($orphaned > 0) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => "{$orphaned} récompense(s) de fidélité sans compte points associé."
+                    . ' → Que faire : Nettoyage recommandé — ces récompenses appartiennent à des clients sans historique de points.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => 'Programme de fidélité : intégrité des données vérifiée.'];
+    }
+
+    /**
+     * #46 — Fraîcheur des segments comportementaux
+     * La segmentation doit être recalculée au moins toutes les 48h.
+     */
+    private function checkSegmentFreshness(): array
+    {
+        if (!class_exists('SegmentManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => 'SegmentManager absent — segmentation non activée.'];
+        }
+
+        $lastRun = \Configuration::get('NERIA_SEGMENT_LAST_RUN');
+
+        if (!$lastRun) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => 'Segmentation comportementale jamais exécutée.'
+                    . ' → Que faire : Lancez manuellement le cron de segmentation ou attendez le passage cron automatique.',
+            ];
+        }
+
+        $ageH = round((time() - strtotime($lastRun)) / 3600, 1);
+
+        if ($ageH > 72) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => "Segments non recalculés depuis {$ageH}h (dernier recalcul : {$lastRun})."
+                    . ' → Que faire : Vérifiez que le cron de segmentation est déclenché chaque jour.',
+            ];
+        }
+
+        if ($ageH > 48) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => "Segments en retard de recalcul : {$ageH}h depuis la dernière exécution.",
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => "Segments recalculés il y a {$ageH}h. À jour."];
+    }
+
+    /**
+     * #47 — Fraîcheur des scores CLV (Customer Lifetime Value)
+     * Des scores vieux de plus de 48h donnent des prédictions inexactes.
+     */
+    private function checkClvFreshness(): array
+    {
+        if (!class_exists('ClvManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => 'ClvManager absent — CLV non activé.'];
+        }
+
+        $count = (int) \Db::getInstance()->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_clv`
+        ');
+
+        if ($count === 0) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => 'Aucun score CLV en base. La table est vide.'
+                    . ' → Que faire : Attendez le premier calcul automatique ou déclenchez-le manuellement.',
+            ];
+        }
+
+        $lastCalc = \Db::getInstance()->getValue('
+            SELECT MAX(date_upd) FROM `' . _DB_PREFIX_ . 'neria_clv`
+        ');
+
+        if (!$lastCalc) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Scores CLV présents, date de mise à jour non disponible.'];
+        }
+
+        $ageH = round((time() - strtotime($lastCalc)) / 3600, 1);
+
+        if ($ageH > 72) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => "Scores CLV non mis à jour depuis {$ageH}h ({$count} clients)."
+                    . ' → Que faire : Vérifiez le cron de calcul CLV.',
+            ];
+        }
+
+        if ($ageH > 48) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => "Scores CLV en léger retard : {$ageH}h depuis la dernière mise à jour ({$count} clients).",
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => "Scores CLV ({$count} clients) mis à jour il y a {$ageH}h."];
+    }
+
+    /**
+     * #48 — Relances devis B2B bloquées
+     * Un devis dépassé depuis plus de 7 jours sans relance indique un cron bloqué.
+     */
+    private function checkQuoteRemindersStuck(): array
+    {
+        $tableExists = (bool) \Db::getInstance()->getValue('
+            SELECT COUNT(*) FROM information_schema.tables
+            WHERE table_schema = DATABASE()
+              AND table_name = \'' . _DB_PREFIX_ . 'neria_quote\'
+        ');
+
+        if (!$tableExists) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Table neria_quote absente — relances devis non activées.'];
+        }
+
+        $stuck = (int) \Db::getInstance()->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_quote`
+            WHERE status = \'pending\'
+              AND reminder_1_sent_at IS NULL
+              AND date_add < DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ');
+
+        if ($stuck > 0) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => "{$stuck} devis en attente depuis plus de 7 jours sans relance envoyée."
+                    . ' → Que faire : Vérifiez le cron de relances devis. La première relance devrait partir sous 48h.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => 'Relances devis : aucun devis bloqué sans relance.'];
+    }
+
+    /**
+     * #49 — Campagnes actives ciblant un segment vide
+     * Envoyer une campagne à un segment vide déclenche 0 email mais consomme des ressources.
+     */
+    private function checkCampaignEmptySegment(): array
+    {
+        if (!class_exists('SegmentManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => 'SegmentManager absent — vérification ignorée.'];
+        }
+
+        $db = \Db::getInstance();
+
+        $tableExists = (bool) $db->getValue('
+            SELECT COUNT(*) FROM information_schema.tables
+            WHERE table_schema = DATABASE()
+              AND table_name = \'' . _DB_PREFIX_ . 'neria_campaign\'
+        ');
+
+        if (!$tableExists) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Table neria_campaign absente.'];
+        }
+
+        $campaigns = $db->executeS('
+            SELECT id_campaign, name, target_segment
+            FROM `' . _DB_PREFIX_ . 'neria_campaign`
+            WHERE active = 1
+              AND target_segment IS NOT NULL
+              AND target_segment != \'\'
+              AND target_segment != \'all\'
+        ');
+
+        if (empty($campaigns)) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Aucune campagne active avec ciblage de segment.'];
+        }
+
+        $emptySegments = [];
+        $mgr = new \SegmentManager($this->module);
+
+        foreach ($campaigns as $c) {
+            $seg = $c['target_segment'];
+            try {
+                $customerCount = $mgr->getSegmentCustomerCount($seg);
+                if ($customerCount === 0) {
+                    $emptySegments[] = '"' . $c['name'] . '" (segment : ' . $seg . ')';
+                }
+            } catch (\Exception $e) {
+                // Silencieux — méthode peut ne pas exister sur toutes les versions
+            }
+        }
+
+        if (!empty($emptySegments)) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => count($emptySegments) . ' campagne(s) active(s) ciblant un segment vide : '
+                    . implode(', ', $emptySegments) . '.'
+                    . ' → Que faire : Recalculez les segments ou ajustez le ciblage de ces campagnes.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => count($campaigns) . ' campagne(s) active(s) — tous les segments ciblés contiennent des clients.'];
+    }
+
+    /**
+     * #50 — Couverture de l'attribution sur les commandes récentes
+     * Si l'attribution est active mais que les 7 derniers jours n'ont aucun enregistrement,
+     * le cookie de tracking est probablement cassé.
+     */
+    private function checkAttributionCoverage(): array
+    {
+        $enabled = (bool) \Configuration::get('NERIA_ATTRIBUTION_ENABLED');
+
+        if (!$enabled) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Attribution désactivée.'];
+        }
+
+        $db = \Db::getInstance();
+
+        $recentOrders = (int) $db->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'orders`
+            WHERE date_add >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+              AND current_state NOT IN (
+                SELECT id_order_state FROM `' . _DB_PREFIX_ . 'order_state` WHERE deleted = 1
+              )
+        ');
+
+        if ($recentOrders < 5) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Attribution active. Trop peu de commandes récentes pour mesurer la couverture.'];
+        }
+
+        $tableExists = (bool) $db->getValue('
+            SELECT COUNT(*) FROM information_schema.tables
+            WHERE table_schema = DATABASE()
+              AND table_name = \'' . _DB_PREFIX_ . 'neria_attribution\'
+        ');
+
+        if (!$tableExists) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => 'Attribution activée mais table neria_attribution introuvable.'
+                    . ' → Que faire : Réinstallez le module pour créer les tables manquantes.',
+            ];
+        }
+
+        $attributed = (int) $db->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_attribution`
+            WHERE date_add >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ');
+
+        $rate = round($attributed / $recentOrders * 100, 1);
+
+        if ($attributed === 0) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => "Attribution active mais 0 commande sur {$recentOrders} attribuée ces 7 derniers jours."
+                    . ' → Que faire : Vérifiez que le cookie de tracking Neria est bien déposé sur le front-office.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => "Attribution : {$rate}% de couverture sur les commandes des 7 derniers jours ({$attributed} / {$recentOrders})."];
+    }
+
+    /**
+     * #51 — Volume de l'historique des traductions
+     * La table grossit à chaque sauvegarde et peut ralentir la page Traductions.
+     */
+    private function checkTranslationHistorySize(): array
+    {
+        $count = (int) \Db::getInstance()->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_translation_history`
+        ');
+
+        if ($count > 50000) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => "L'historique des traductions contient {$count} entrées — taille importante."
+                    . ' → Que faire : Nettoyez les entrées anciennes via l\'onglet Traductions'
+                    . ' ou directement en SQL : DELETE FROM neria_translation_history WHERE date_add < DATE_SUB(NOW(), INTERVAL 180 DAY).',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => "Historique des traductions : {$count} entrées. Taille normale."];
+    }
+
+    /**
+     * #52 — Tests A/B actifs avec variante B incomplète
+     * Une variante B vide envoie exactement le même contenu que la variante A —
+     * le test ne mesure rien.
+     */
+    private function checkAbtestTranslationGaps(): array
+    {
+        $db = \Db::getInstance();
+
+        $tableExists = (bool) $db->getValue('
+            SELECT COUNT(*) FROM information_schema.tables
+            WHERE table_schema = DATABASE()
+              AND table_name = \'' . _DB_PREFIX_ . 'neria_abtest\'
+        ');
+
+        if (!$tableExists) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Table neria_abtest absente — tests A/B non activés.'];
+        }
+
+        $activeTests = $db->executeS('
+            SELECT t.id_abtest, t.template_key, t.id_lang,
+                   l.iso_code,
+                   (SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_abtest_translation` tr
+                    WHERE tr.id_abtest = t.id_abtest) AS b_count
+            FROM `' . _DB_PREFIX_ . 'neria_abtest` t
+            LEFT JOIN `' . _DB_PREFIX_ . 'lang` l ON l.id_lang = t.id_lang
+            WHERE t.status = \'active\'
+        ');
+
+        if (empty($activeTests)) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Aucun test A/B actif.'];
+        }
+
+        $emptyB = [];
+        foreach ($activeTests as $test) {
+            if ((int) $test['b_count'] === 0) {
+                $emptyB[] = $test['template_key'] . ' (' . ($test['iso_code'] ?? '?') . ')';
+            }
+        }
+
+        if (!empty($emptyB)) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => count($emptyB) . ' test(s) A/B actif(s) sans aucune traduction en variante B : '
+                    . implode(', ', $emptyB) . '.'
+                    . ' → Que faire : Ouvrez ces tests dans l\'onglet Traductions et renseignez les textes de la variante B,'
+                    . ' ou désactivez ces tests.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => count($activeTests) . ' test(s) A/B actif(s) — toutes les variantes B ont du contenu.'];
     }
 
     private function logResultsToWatchdog(array $results): void
