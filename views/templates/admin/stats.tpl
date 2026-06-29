@@ -13,8 +13,9 @@
   {assign var="hs" value=$health_score}
   {assign var="hs_total" value=$hs.total|default:0}
   {assign var="hs_pct"   value=$hs.score_pct|default:0}
-  {assign var="hs_color" value=($hs_pct >= 90 ? '#16a34a' : ($hs_pct >= 70 ? '#d97706' : '#dc2626'))}
-  {assign var="hs_grade" value=($hs_pct >= 90 ? 'A' : ($hs_pct >= 70 ? 'B' : 'C'))}
+  {if $hs_pct >= 90}{assign var="hs_color" value='#16a34a'}{assign var="hs_grade" value='A'}
+  {elseif $hs_pct >= 70}{assign var="hs_color" value='#d97706'}{assign var="hs_grade" value='B'}
+  {else}{assign var="hs_color" value='#dc2626'}{assign var="hs_grade" value='C'}{/if}
 
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
     <div style="display:flex;align-items:center;gap:16px;">
