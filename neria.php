@@ -1385,6 +1385,140 @@ class Neria extends Module
             exit;
         }
 
+        // ── Action : traduction DeepL automatique — Variante B ────────
+        if ($earlyAction === 'auto_translate_variant_b') {
+            header('Content-Type: application/json; charset=utf-8');
+            $tplKey    = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
+            $tplLang   = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
+            $idAbtestB = (int) Tools::getValue('id_abtest_b', 0);
+            $config    = new ConfigManager($this);
+            $deeplKey  = trim((string) $config->get(ConfigManager::KEY_DEEPL_KEY, ''));
+
+            if ($deeplKey === '') {
+                echo json_encode(['error' => 'Clé API DeepL manquante.']);
+                exit;
+            }
+            if ($idAbtestB <= 0) {
+                echo json_encode(['error' => 'Test A/B introuvable.']);
+                exit;
+            }
+
+            $deeplTargetMap = [
+                'fr'=>'FR','en'=>'EN-GB','de'=>'DE','it'=>'IT','es'=>'ES',
+                'pt'=>'PT-PT','br'=>'PT-BR','nl'=>'NL','ru'=>'RU','tr'=>'TR',
+                'sv'=>'SV','no'=>'NB','da'=>'DA','ja'=>'JA','ko'=>'KO',
+                'zh'=>'ZH','tw'=>'ZH','ar'=>'AR',
+            ];
+            $deeplTarget = $deeplTargetMap[$tplLang] ?? null;
+            if (!$deeplTarget) {
+                echo json_encode(['error' => "Langue '{$tplLang}' non supportée par DeepL."]);
+                exit;
+            }
+            if ($tplLang === 'fr') {
+                echo json_encode(['error' => 'Le français est la langue source.']);
+                exit;
+            }
+
+            // Source : traductions A en FR
+            $tableTrad  = _DB_PREFIX_ . 'neria_translation';
+            $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';
+            $rows = Db::getInstance()->executeS(
+                "SELECT `translation_key`, `translation_value`
+                 FROM `{$tableTrad}`
+                 WHERE `template` = '" . pSQL($tplKey) . "'
+                   AND `lang` = 'fr'"
+            );
+            if (!$rows) {
+                echo json_encode(['error' => 'Aucun texte source FR trouvé.']);
+                exit;
+            }
+
+            // Champs déjà renseignés en variante B (considérés comme personnalisés — on ne les écrase pas)
+            $customBRows = Db::getInstance()->executeS(
+                "SELECT `translation_key`, `translation_value`
+                 FROM `{$tableTradB}`
+                 WHERE `id_abtest` = {$idAbtestB}
+                   AND `lang` = '" . pSQL($tplLang) . "'"
+            );
+            $customBKeys = [];
+            foreach ((array) $customBRows as $r) {
+                if (trim($r['translation_value']) !== '') {
+                    $customBKeys[$r['translation_key']] = true;
+                }
+            }
+
+            $isFreeKey = str_ends_with($deeplKey, ':fx');
+            $apiHost   = $isFreeKey ? 'api-free.deepl.com' : 'api.deepl.com';
+            $now       = date('Y-m-d H:i:s');
+            $translated = 0;
+            $skipped    = 0;
+            $errors     = [];
+            $firstErrCode = null;
+            $firstErrBody = null;
+
+            foreach ($rows as $row) {
+                if (isset($customBKeys[$row['translation_key']])) { $skipped++; continue; }
+                $text = $row['translation_value'];
+                if (trim($text) === '') { continue; }
+
+                $ch = curl_init("https://{$apiHost}/v2/translate");
+                curl_setopt_array($ch, [
+                    CURLOPT_POST           => true,
+                    CURLOPT_POSTFIELDS     => http_build_query([
+                        'text'        => $text,
+                        'source_lang' => 'FR',
+                        'target_lang' => $deeplTarget,
+                        'tag_handling'=> 'html',
+                    ]),
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_TIMEOUT        => 15,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_HTTPHEADER     => [
+                        'Authorization: DeepL-Auth-Key ' . $deeplKey,
+                        'Accept: application/json',
+                    ],
+                ]);
+                $resp    = curl_exec($ch);
+                $code    = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $curlErr = curl_error($ch);
+                curl_close($ch);
+
+                if ($code !== 200 || !$resp) {
+                    if ($firstErrCode === null) { $firstErrCode = $code; $firstErrBody = $curlErr ?: (string) $resp; }
+                    $errors[] = $row['translation_key'];
+                    continue;
+                }
+                $json   = json_decode($resp, true);
+                $result = $json['translations'][0]['text'] ?? null;
+                if ($result === null) { $errors[] = $row['translation_key']; continue; }
+
+                Db::getInstance()->execute(
+                    "INSERT INTO `{$tableTradB}` (`id_abtest`,`lang`,`translation_key`,`translation_value`,`date_add`,`date_upd`)
+                     VALUES ({$idAbtestB},'" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "','{$now}','{$now}')
+                     ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($result, true) . "', `date_upd`='{$now}'"
+                );
+                $translated++;
+            }
+
+            if (class_exists('WatchdogManager') && $translated > 0) {
+                (new WatchdogManager($this))->info(
+                    sprintf('DeepL Variante B : %d champ(s) traduit(s) dans "%s" [%s]', $translated, $tplKey, $tplLang),
+                    $tplKey, 'Traductions'
+                );
+            }
+
+            if ($translated === 0 && !empty($errors)) {
+                $detail = $firstErrCode ? " (HTTP {$firstErrCode})" : '';
+                echo json_encode(['error' => "Échec DeepL — 0 champ traduit.{$detail}"]);
+                exit;
+            }
+            $msg = "{$translated} champ(s) traduit(s) en Variante B via DeepL.";
+            if ($skipped > 0) { $msg .= " {$skipped} champ(s) déjà renseigné(s) conservé(s)."; }
+            if (!empty($errors)) { $msg .= ' (' . count($errors) . ' erreur(s))'; }
+            echo json_encode(['success' => true, 'translated' => $translated, 'skipped' => $skipped, 'message' => $msg]);
+            exit;
+        }
+
         // ── Action : envoi d'un email de test ─────────────────────
         if (Tools::getValue('neria_action') === 'send_test') {
             $this->sendTestEmail();
@@ -2029,6 +2163,67 @@ class Neria extends Module
             }
         }
 
+        // ── Export CSV Variante B ────────────────────────────────────
+        if ($tradAction === 'export_variant_b_csv') {
+            $tplKey    = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
+            $tplLang   = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
+            $idAbtestB = (int) Tools::getValue('id_abtest_b', 0);
+            $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';
+
+            $rows = Db::getInstance()->executeS(
+                "SELECT `translation_key`, `translation_value`
+                 FROM `{$tableTradB}`
+                 WHERE `id_abtest` = {$idAbtestB}
+                   AND `lang`      = '" . pSQL($tplLang) . "'
+                 ORDER BY `translation_key` ASC"
+            );
+
+            $filename = 'neria_variantb_' . $tplKey . '_' . $tplLang . '_' . date('Ymd') . '.csv';
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            $out = fopen('php://output', 'w');
+            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($out, ['template', 'lang', 'key', 'value'], ';');
+            foreach ((array) $rows as $row) {
+                fputcsv($out, [$tplKey, $tplLang, $row['translation_key'], $row['translation_value']], ';');
+            }
+            fclose($out);
+            exit;
+        }
+
+        // ── Import CSV Variante B ────────────────────────────────────
+        if ($tradAction === 'import_variant_b_csv') {
+            $tplKey    = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
+            $tplLang   = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
+            $idAbtestB = (int) Tools::getValue('id_abtest_b', 0);
+
+            if ($idAbtestB > 0 && !empty($_FILES['neria_csv_b']['tmp_name']) && is_uploaded_file($_FILES['neria_csv_b']['tmp_name'])) {
+                $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';
+                $handle     = fopen($_FILES['neria_csv_b']['tmp_name'], 'r');
+                $bom = fread($handle, 3);
+                if ($bom !== chr(0xEF).chr(0xBB).chr(0xBF)) { rewind($handle); }
+                fgetcsv($handle, 0, ';'); // header
+                $count = 0;
+                $now   = date('Y-m-d H:i:s');
+                while (($line = fgetcsv($handle, 0, ';')) !== false) {
+                    if (count($line) < 4) { continue; }
+                    $key   = preg_replace('/[^a-z0-9_\.\-]/i', '', $line[2]);
+                    $value = $line[3];
+                    if ($key === '') { continue; }
+                    Db::getInstance()->execute(
+                        "INSERT INTO `{$tableTradB}` (`id_abtest`,`lang`,`translation_key`,`translation_value`,`date_add`,`date_upd`)
+                         VALUES ({$idAbtestB},'" . pSQL($tplLang) . "','" . pSQL($key) . "','" . pSQL($value, true) . "','{$now}','{$now}')
+                         ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($value, true) . "', `date_upd`='{$now}'"
+                    );
+                    $count++;
+                }
+                fclose($handle);
+                $this->context->smarty->assign('neria_success', "{$count} traduction(s) Variante B importée(s).");
+            } else {
+                $this->context->smarty->assign('neria_error', 'Aucun fichier CSV valide reçu pour la Variante B.');
+            }
+        }
+
         // ── Réinitialiser ce template dans TOUTES les langues ─────────
         if ($tradAction === 'reset_template_all_langs') {
             $tplKey    = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
@@ -2127,7 +2322,7 @@ class Neria extends Module
             $this->context->smarty->assign('neria_success', 'Clé API DeepL enregistrée.');
         }
 
-        if (in_array($tradAction, ['load_translations', 'save_translations', 'reset_template', 'save_variant_b', 'restore_translation'], true)) {
+        if (in_array($tradAction, ['load_translations', 'save_translations', 'reset_template', 'save_variant_b', 'restore_translation', 'reset_variant_b', 'restore_variant_b', 'delete_history'], true)) {
             $tplKey  = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
             $tplLang = preg_replace('/[^a-z]/i', '',    (string) Tools::getValue('trad_lang', 'fr'));
 
@@ -2276,11 +2471,124 @@ class Neria extends Module
                     $this->context->smarty->assign('neria_success', 'Template réinitialisé aux valeurs Neria d\'origine.');
                 }
 
+                if ($tradAction === 'reset_variant_b') {
+                    $idAbtestB  = (int) Tools::getValue('id_abtest_b', 0);
+                    $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';
+                    if ($idAbtestB > 0) {
+                        // Archive dans l'historique avant suppression
+                        if (class_exists('TranslationHistoryManager')) {
+                            $prevRowsB = Db::getInstance()->executeS(
+                                "SELECT `translation_key`, `translation_value`
+                                 FROM `{$tableTradB}`
+                                 WHERE `id_abtest` = {$idAbtestB}
+                                   AND `lang` = '" . pSQL($tplLang) . "'"
+                            );
+                            if ($prevRowsB) {
+                                $histMgrB = new TranslationHistoryManager();
+                                $employee = $this->context->employee;
+                                $authorB  = trim($employee->firstname . ' ' . $employee->lastname) ?: 'Admin';
+                                foreach ($prevRowsB as $r) {
+                                    $histMgrB->record(
+                                        'variantb_' . $tplKey,
+                                        $tplLang,
+                                        $r['translation_key'],
+                                        $r['translation_value'],
+                                        '',
+                                        $authorB . ' (réinitialisation)'
+                                    );
+                                }
+                            }
+                        }
+                        Db::getInstance()->execute(
+                            "DELETE FROM `{$tableTradB}`
+                             WHERE `id_abtest` = {$idAbtestB}
+                               AND `lang` = '" . pSQL($tplLang) . "'"
+                        );
+                        if (class_exists('WatchdogManager')) {
+                            (new WatchdogManager($this))->warning(
+                                sprintf('Variante B de "%s" [%s] réinitialisée (retour aux textes A)', $tplKey, $tplLang),
+                                '', 'Traductions'
+                            );
+                        }
+                    }
+                    $this->context->smarty->assign('neria_success', 'Variante B réinitialisée — les champs affichent à nouveau les textes de la Variante A.');
+                }
+
                 if ($tradAction === 'save_variant_b' && class_exists('ABTestManager')) {
                     $idAbtestB = (int) Tools::getValue('id_abtest_b', 0);
                     $fieldsB   = Tools::getValue('fields_b', []);
                     if ($idAbtestB > 0 && is_array($fieldsB)) {
+                        // Enregistre l'historique des modifications Variante B avant sauvegarde
+                        if (class_exists('TranslationHistoryManager')) {
+                            $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';
+                            $histMgrB   = new TranslationHistoryManager();
+                            $employee   = $this->context->employee;
+                            $authorB    = trim($employee->firstname . ' ' . $employee->lastname) ?: 'Admin';
+                            $prevRowsB  = Db::getInstance()->executeS(
+                                "SELECT `translation_key`, `translation_value`
+                                 FROM `{$tableTradB}`
+                                 WHERE `id_abtest` = {$idAbtestB}
+                                   AND `lang` = '" . pSQL($tplLang) . "'"
+                            );
+                            $prevValsB = [];
+                            foreach ((array) $prevRowsB as $r) {
+                                $prevValsB[$r['translation_key']] = $r['translation_value'];
+                            }
+                            foreach ($fieldsB as $fKey => $fVal) {
+                                $fKey = preg_replace('/[^a-z0-9_]/i', '', (string) $fKey);
+                                if ($fKey !== '' && ($prevValsB[$fKey] ?? '') !== (string) $fVal) {
+                                    $histMgrB->record(
+                                        'variantb_' . $tplKey,
+                                        $tplLang,
+                                        $fKey,
+                                        $prevValsB[$fKey] ?? '',
+                                        (string) $fVal,
+                                        $authorB
+                                    );
+                                }
+                            }
+                        }
                         (new ABTestManager($this))->saveVariantBTranslations($idAbtestB, $tplLang, $fieldsB);
+                    }
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                }
+
+                if ($tradAction === 'restore_variant_b' && class_exists('TranslationHistoryManager')) {
+                    $idHistory = (int) Tools::getValue('id_history', 0);
+                    $idAbtestB = (int) Tools::getValue('id_abtest_b', 0);
+                    if ($idHistory > 0 && $idAbtestB > 0) {
+                        $histMgr = new TranslationHistoryManager();
+                        $entry   = $histMgr->getById($idHistory);
+                        if ($entry) {
+                            $restoreKey = $entry['translation_key'];
+                            $restoreVal = $entry['old_value'];
+                            $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';
+                            $now        = date('Y-m-d H:i:s');
+                            $employee   = $this->context->employee;
+                            $author     = trim($employee->firstname . ' ' . $employee->lastname) ?: 'Admin';
+
+                            $currentVal = Db::getInstance()->getValue(
+                                "SELECT `translation_value` FROM `{$tableTradB}`
+                                 WHERE `id_abtest` = {$idAbtestB}
+                                   AND `lang` = '" . pSQL($tplLang) . "'
+                                   AND `translation_key` = '" . pSQL($restoreKey) . "'"
+                            );
+
+                            Db::getInstance()->execute(
+                                "INSERT INTO `{$tableTradB}` (`id_abtest`,`lang`,`translation_key`,`translation_value`,`date_add`,`date_upd`)
+                                 VALUES ({$idAbtestB},'" . pSQL($tplLang) . "','" . pSQL($restoreKey) . "','" . pSQL($restoreVal, true) . "','{$now}','{$now}')
+                                 ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($restoreVal, true) . "', `date_upd`='{$now}'"
+                            );
+
+                            $histMgr->record(
+                                'variantb_' . $tplKey,
+                                $tplLang,
+                                $restoreKey,
+                                $currentVal ?: '',
+                                $restoreVal,
+                                $author . ' (restauration B)'
+                            );
+                        }
                     }
                     $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
                 }
@@ -2431,9 +2739,11 @@ class Neria extends Module
                             );
 
                             $translationsB = [];
+                            $isCustomB     = [];
                             if (is_array($rowsB)) {
                                 foreach ($rowsB as $row) {
                                     $translationsB[$row['translation_key']] = $row['translation_value'];
+                                    $isCustomB[$row['translation_key']]     = true; // présent en DB = personnalisé
                                 }
                             }
 
@@ -2444,10 +2754,22 @@ class Neria extends Module
                                 }
                             }
 
+                            // Historique des modifications Variante B
+                            $translationHistoryB = [];
+                            if (class_exists('TranslationHistoryManager')) {
+                                $rawHistB = (new TranslationHistoryManager())->getHistoryForTemplate('variantb_' . $tplKey, $tplLang, 40);
+                                foreach ($rawHistB as $entry) {
+                                    $entry['date_formatted'] = date('d/m/Y H:i', strtotime($entry['date_add']));
+                                    $translationHistoryB[]   = $entry;
+                                }
+                            }
+
                             $this->context->smarty->assign([
-                                'abtest_active'  => true,
-                                'id_abtest_b'    => $idAbtestB,
-                                'translations_b' => $translationsB,
+                                'abtest_active'         => true,
+                                'id_abtest_b'           => $idAbtestB,
+                                'translations_b'        => $translationsB,
+                                'is_custom_b'           => $isCustomB,
+                                'translation_history_b' => $translationHistoryB,
                             ]);
                         }
                     }
@@ -3944,9 +4266,10 @@ class Neria extends Module
             $override['heading_weight'] = $headingWeight;
         }
 
+        $variantB = Tools::getValue('neria_variant') === 'b';
         $html = '';
         if (class_exists('EmailRenderer')) {
-            $html = (new EmailRenderer($this))->renderPreviewHtml($template, $lang, $override);
+            $html = (new EmailRenderer($this))->renderPreviewHtml($template, $lang, $override, $variantB);
         }
 
         // Vide tout buffer admin et ne renvoie que l'email, puis stoppe.

@@ -478,7 +478,7 @@ window.neriaAjaxUrl = function(action, extra) {
                   <td class="neria-changelog__val">{$entry.new_value|truncate:90|escape:'html'}</td>
                   <td class="neria-changelog__author">{$entry.author|escape:'html'}</td>
                   <td class="neria-changelog__action" style="white-space:nowrap;display:flex;gap:6px;">
-                    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;">
+                    <form method="post" action="{$smarty.server.REQUEST_URI}#neria-changelog" style="margin:0;">
                       <input type="hidden" name="neria_action"  value="restore_translation">
                       <input type="hidden" name="neria_tab"      value="translations">
                       <input type="hidden" name="trad_template"  value="{$selected_template|escape:'html'}">
@@ -489,7 +489,7 @@ window.neriaAjaxUrl = function(action, extra) {
                         {neria_admin key='translations.restore_btn'}
                       </button>
                     </form>
-                    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;" class="neria-delete-history-form">
+                    <form method="post" action="{$smarty.server.REQUEST_URI}#neria-changelog" style="margin:0;" class="neria-delete-history-form">
                       <input type="hidden" name="neria_action"  value="delete_history">
                       <input type="hidden" name="neria_tab"      value="translations">
                       <input type="hidden" name="trad_template"  value="{$selected_template|escape:'html'}">
@@ -521,14 +521,89 @@ window.neriaAjaxUrl = function(action, extra) {
       {if isset($abtest_active) && $abtest_active && isset($translations_b) && $translations_b}
       <div class="neria-card" id="neria-trad-editor-b" style="padding:0;overflow:hidden;margin-top:16px;">
         <div class="neria-trad-header" style="padding:16px 20px 0;border-bottom:1px solid var(--neria-border,#e8d5b0);">
-          <h2 class="neria-section__title">
-            {$template_labels[$selected_template]|default:$selected_template}
-            <span class="neria-lang-chip">{$lang_flags[$selected_lang]|default:''} {$lang_labels[$selected_lang]|default:$selected_lang}</span>
-            <span class="neria-badge neria-badge--accent" style="margin-left:8px;">Variante B</span>
-          </h2>
-          <p style="margin:4px 0 12px;font-size:12px;color:var(--neria-text-muted,#888);">
-            Textes alternatifs envoyés à la moitié de vos clients. Modifiez uniquement les champs que vous voulez tester — laissez les autres identiques à la variante A.
-          </p>
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div>
+              <h2 class="neria-section__title" style="margin:0 0 4px;">
+                {$template_labels[$selected_template]|default:$selected_template}
+                <span class="neria-lang-chip">{$lang_flags[$selected_lang]|default:''} {$lang_labels[$selected_lang]|default:$selected_lang}</span>
+                <span class="neria-badge neria-badge--accent" style="margin-left:8px;">Variante B</span>
+              </h2>
+              <p style="margin:0 0 12px;font-size:12px;color:var(--neria-text-muted,#888);">
+                Textes alternatifs envoyés à la moitié de vos clients. Modifiez uniquement les champs que vous voulez tester.
+              </p>
+            </div>
+            {* Toolbar Variante B — même structure que le toolbar A *}
+            <div class="neria-trad-toolbar" style="margin:0 0 12px;padding:10px 16px;border:1px solid var(--neria-border,#e8d5b0);border-radius:var(--neria-radius,6px);background:var(--neria-bg,#fdf9f4);">
+
+              {* Export CSV B *}
+              <div class="neria-trad-toolbar__group">
+                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-text-light);">Export CSV</span>
+                <form method="post" style="margin:0;">
+                  <input type="hidden" name="neria_action"   value="export_variant_b_csv">
+                  <input type="hidden" name="trad_template"  value="{$selected_template}">
+                  <input type="hidden" name="trad_lang"      value="{$selected_lang}">
+                  <input type="hidden" name="id_abtest_b"    value="{$id_abtest_b}">
+                  <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm"
+                          title="Télécharger le CSV Variante B de cette langue">
+                    ⬇ {$lang_flags[$selected_lang]|default:''} {neria_admin key='translations.export_lang'}
+                  </button>
+                </form>
+              </div>
+
+              <div class="neria-trad-toolbar__sep"></div>
+
+              {* Import CSV B *}
+              <div class="neria-trad-toolbar__group">
+                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-text-light);">Import CSV</span>
+                <form method="post" enctype="multipart/form-data" style="margin:0;display:flex;gap:6px;align-items:center;">
+                  <input type="hidden" name="neria_action"   value="import_variant_b_csv">
+                  <input type="hidden" name="trad_template"  value="{$selected_template}">
+                  <input type="hidden" name="trad_lang"      value="{$selected_lang}">
+                  <input type="hidden" name="id_abtest_b"    value="{$id_abtest_b}">
+                  <label class="neria-btn neria-btn--secondary neria-btn--sm" style="cursor:pointer;margin:0;">
+                    📂 {neria_admin key='translations.import_csv'}
+                    <input type="file" name="neria_csv_b" accept=".csv" style="display:none;" onchange="this.form.submit();">
+                  </label>
+                </form>
+              </div>
+
+              <div class="neria-trad-toolbar__sep"></div>
+
+              {* DeepL B *}
+              <div class="neria-trad-toolbar__group">
+                <span class="neria-deepl-badge">DeepL</span>
+                <button type="button"
+                        class="neria-btn neria-btn--primary neria-btn--sm"
+                        id="neria-auto-translate-b"
+                        data-template="{$selected_template}"
+                        data-lang="{$selected_lang}"
+                        data-idabtest="{$id_abtest_b}"
+                        {if $deepl_key|default:'' eq ''}disabled title="Renseignez la clé API DeepL ci-dessus"{/if}>
+                  ✨ {neria_admin key='translations.auto_translate'}
+                </button>
+                <span id="neria-translate-b-status" style="font-size:11px;color:var(--neria-text-muted);"></span>
+              </div>
+
+              <div class="neria-trad-toolbar__sep"></div>
+
+              {* Reset B *}
+              <div class="neria-trad-toolbar__group">
+                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-text-light);">Reset</span>
+                <form method="post" style="margin:0;">
+                  <input type="hidden" name="neria_action"   value="reset_variant_b">
+                  <input type="hidden" name="neria_tab"       value="translations">
+                  <input type="hidden" name="trad_template"   value="{$selected_template}">
+                  <input type="hidden" name="trad_lang"       value="{$selected_lang}">
+                  <input type="hidden" name="id_abtest_b"     value="{$id_abtest_b}">
+                  <button type="submit" class="neria-btn neria-btn--warn neria-btn--sm"
+                          onclick="return confirm('Réinitialiser la Variante B ? Tous vos textes B seront supprimés et les champs afficheront à nouveau les textes de la Variante A.');">
+                    ↺ {neria_admin key='translations.reset_template'}
+                  </button>
+                </form>
+              </div>
+
+            </div>
+          </div>
         </div>
         <form method="post" action="{$smarty.server.REQUEST_URI}">
           <input type="hidden" name="neria_action"   value="save_variant_b">
@@ -539,7 +614,14 @@ window.neriaAjaxUrl = function(action, extra) {
           <div class="neria-trad-fields" style="padding:0 20px;">
             {foreach $translations_b as $key => $value}
               <div class="neria-form-group neria-trad-field">
-                <label class="neria-label" for="trad_b_{$key}">{$key}</label>
+                <label class="neria-label" for="trad_b_{$key}">
+                  {$key}
+                  {if isset($is_custom_b[$key]) && $is_custom_b[$key]}
+                    <span class="neria-badge neria-badge--accent">
+                      {neria_admin key='translations.custom_badge'}
+                    </span>
+                  {/if}
+                </label>
                 {assign var="is_subject_field_b" value=($key === 'greeting_main' || $key === 'fallback_subject' || $key === 'subject')}
                 {if $value|strlen > 120}
                   <textarea id="trad_b_{$key}" name="fields_b[{$key}]"
@@ -626,6 +708,72 @@ window.neriaAjaxUrl = function(action, extra) {
             </button>
           </div>
         </form>
+
+        {* Changelog Variante B *}
+        {if isset($translation_history_b)}
+        <div class="neria-changelog" id="neria-changelog-b" style="margin-top:0;border-top:1px solid var(--neria-border,#e8d5b0);">
+          <div class="neria-trad-header">
+            <button type="button" class="neria-btn neria-btn--primary neria-btn--sm"
+                    onclick="document.getElementById('neria-changelog-b-body').classList.toggle('neria-changelog--hidden');">
+              {neria_admin key='translations.history_title'} — Variante B
+              <span class="neria-badge" style="margin-left:6px;font-size:11px;background:rgba(255,255,255,.2);color:#fff;border-radius:10px;padding:1px 7px;">{$translation_history_b|count}</span>
+              <span style="margin-left:6px;font-size:10px;">&#9660;</span>
+            </button>
+          </div>
+          <div id="neria-changelog-b-body">
+            {if $translation_history_b}
+            <table class="neria-changelog-table">
+              <thead>
+                <tr>
+                  <th>Date</th><th>Champ</th><th>Ancienne valeur</th><th>Nouvelle valeur</th><th>Auteur</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {foreach $translation_history_b as $entry}
+                <tr>
+                  <td class="neria-changelog__date">{$entry.date_formatted}</td>
+                  <td class="neria-changelog__key"><code>{$entry.translation_key|escape:'html'}</code></td>
+                  <td class="neria-changelog__val neria-changelog__val--old">{$entry.old_value|truncate:90|escape:'html'}</td>
+                  <td class="neria-changelog__val">{$entry.new_value|truncate:90|escape:'html'}</td>
+                  <td class="neria-changelog__author">{$entry.author|escape:'html'}</td>
+                  <td class="neria-changelog__action" style="white-space:nowrap;display:flex;gap:6px;">
+                    <form method="post" action="{$smarty.server.REQUEST_URI}#neria-changelog-b" style="margin:0;">
+                      <input type="hidden" name="neria_action"  value="restore_variant_b">
+                      <input type="hidden" name="neria_tab"      value="translations">
+                      <input type="hidden" name="trad_template"  value="{$selected_template|escape:'html'}">
+                      <input type="hidden" name="trad_lang"      value="{$selected_lang|escape:'html'}">
+                      <input type="hidden" name="id_abtest_b"    value="{$id_abtest_b}">
+                      <input type="hidden" name="id_history"     value="{$entry.id_history|intval}">
+                      <button type="submit" class="neria-btn neria-btn--primary neria-btn--xs"
+                              onclick="return confirm('{neria_admin key='translations.restore_confirm'|escape:'javascript'}');">
+                        {neria_admin key='translations.restore_btn'}
+                      </button>
+                    </form>
+                    <form method="post" action="{$smarty.server.REQUEST_URI}#neria-changelog-b" style="margin:0;" class="neria-delete-history-form">
+                      <input type="hidden" name="neria_action"  value="delete_history">
+                      <input type="hidden" name="neria_tab"      value="translations">
+                      <input type="hidden" name="trad_template"  value="{$selected_template|escape:'html'}">
+                      <input type="hidden" name="trad_lang"      value="{$selected_lang|escape:'html'}">
+                      <input type="hidden" name="id_history"     value="{$entry.id_history|intval}">
+                      <button type="button" class="neria-btn neria-btn--danger neria-btn--xs"
+                              data-confirm="{neria_admin key='translations.delete_history_confirm'}"
+                              data-key="{$entry.translation_key|escape:'html'}"
+                              onclick="neriaConfirmDelete(this);">
+                        {neria_admin key='translations.delete_btn'}
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                {/foreach}
+              </tbody>
+            </table>
+            {else}
+            <p class="neria-changelog__empty">Aucune modification enregistrée pour la Variante B de ce template.</p>
+            {/if}
+          </div>
+        </div>
+        {/if}
+
       </div>
       {/if}
 
@@ -640,14 +788,29 @@ window.neriaAjaxUrl = function(action, extra) {
             {$lang_flags[$selected_lang]|default:''} {$lang_labels[$selected_lang]|default:$selected_lang}
           </span>
         </span>
-        <button type="button" class="neria-btn neria-btn--secondary neria-btn--sm"
-                onclick="document.getElementById('neria-trad-preview').contentWindow.location.reload();">
-          ↺ Rafraîchir
-        </button>
+        <div style="display:flex;align-items:center;gap:8px;">
+          {if isset($abtest_active) && $abtest_active}
+          <div id="neria-preview-tabs" style="display:flex;border:1px solid var(--neria-border,#e8d5b0);border-radius:4px;overflow:hidden;">
+            <button type="button" id="neria-preview-tab-a"
+                    style="padding:4px 12px;font-size:11px;font-weight:700;letter-spacing:.06em;background:var(--neria-gold,#b38b59);color:#fff;border:none;cursor:pointer;">
+              A
+            </button>
+            <button type="button" id="neria-preview-tab-b"
+                    style="padding:4px 12px;font-size:11px;font-weight:700;letter-spacing:.06em;background:transparent;color:var(--neria-text-muted,#888);border:none;cursor:pointer;">
+              B
+            </button>
+          </div>
+          {/if}
+          <button type="button" class="neria-btn neria-btn--secondary neria-btn--sm"
+                  onclick="document.getElementById('neria-trad-preview').contentWindow.location.reload();">
+            ↺ Rafraîchir
+          </button>
+        </div>
       </div>
       <iframe id="neria-trad-preview"
               src="{$smarty.server.REQUEST_URI}&neria_action=preview&neria_template={$selected_template}&neria_lang={$selected_lang}"
-              frameborder="0" scrolling="yes" style="flex:1;border:1px solid var(--neria-border);border-radius:var(--neria-radius);background:#fff;"></iframe>
+              frameborder="0" scrolling="no"
+              style="width:100%;height:1200px;border:1px solid var(--neria-border,#e8d5b0);border-radius:4px;background:#fff;display:block;"></iframe>
     </div>
 
   </div>{* /trad-layout *}
@@ -757,15 +920,95 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // ── Toggle aperçu split ─────────────────────────────────────────
+  // ── Traduction automatique DeepL — Variante B ───────────────────
+  var btnTranslateB = document.getElementById('neria-auto-translate-b');
+  var translateStatusB = document.getElementById('neria-translate-b-status');
+  if (btnTranslateB) {
+    btnTranslateB.addEventListener('click', function() {
+      if (!confirm('Traduire automatiquement tous les champs de la Variante B depuis le français via DeepL ?\n\nSeuls les champs non renseignés seront traduits.')) { return; }
+      var tpl      = this.getAttribute('data-template');
+      var lang     = this.getAttribute('data-lang');
+      var idAbtest = this.getAttribute('data-idabtest');
+      btnTranslateB.disabled = true;
+      translateStatusB.textContent = '⏳ Traduction en cours...';
+      var url = window.neriaAjaxUrl('auto_translate_variant_b')
+              + '&trad_template=' + encodeURIComponent(tpl)
+              + '&trad_lang='     + encodeURIComponent(lang)
+              + '&id_abtest_b='   + encodeURIComponent(idAbtest);
+      fetch(url).then(function(r){ return r.json(); }).then(function(data) {
+        btnTranslateB.disabled = false;
+        if (data.error) {
+          translateStatusB.textContent = '❌ ' + data.error;
+          translateStatusB.style.color = '#c0392b';
+        } else {
+          translateStatusB.textContent = '✅ ' + data.message;
+          translateStatusB.style.color = '#16a34a';
+          setTimeout(function() { window.location.reload(); }, 1500);
+        }
+      }).catch(function() {
+        btnTranslateB.disabled = false;
+        translateStatusB.textContent = '❌ Erreur réseau';
+        translateStatusB.style.color = '#c0392b';
+      });
+    });
+  }
+
+  // ── Toggle aperçu (en bas) ──────────────────────────────────────
   var btnToggle  = document.getElementById('neria-toggle-preview');
-  var layout     = document.getElementById('neria-trad-layout');
   var previewCol = document.getElementById('neria-trad-preview-col');
-  if (btnToggle && layout && previewCol) {
+  if (btnToggle && previewCol) {
     btnToggle.addEventListener('click', function() {
-      var isOpen = layout.classList.toggle('neria-trad-layout--split');
-      previewCol.style.display = isOpen ? '' : 'none';
-      btnToggle.textContent = isOpen ? '✕ Masquer aperçu' : '⊞ Aperçu';
+      var isHidden = previewCol.style.display === 'none';
+      previewCol.style.display = isHidden ? 'flex' : 'none';
+      btnToggle.textContent = isHidden ? '✕ Masquer aperçu' : '⊞ Aperçu';
+      if (isHidden) {
+        setTimeout(function() {
+          previewCol.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
+      }
+    });
+  }
+
+  // ── Redimensionner l'iframe à la hauteur de son contenu ─────────
+  function neriaFitIframe(f) {
+    try {
+      var doc = f.contentWindow.document;
+      var h = Math.max(
+        doc.body.scrollHeight,
+        doc.body.offsetHeight,
+        doc.documentElement.scrollHeight,
+        doc.documentElement.offsetHeight
+      );
+      if (h > 100) { f.style.height = (h + 80) + 'px'; }
+    } catch(e) {}
+  }
+  var previewIframe = document.getElementById('neria-trad-preview');
+  if (previewIframe) {
+    previewIframe.addEventListener('load', function() {
+      var f = this;
+      setTimeout(function() { neriaFitIframe(f); }, 100);
+      setTimeout(function() { neriaFitIframe(f); }, 600);
+      setTimeout(function() { neriaFitIframe(f); }, 1500);
+    });
+  }
+
+  // ── Onglets A / B aperçu ────────────────────────────────────────
+  var tabA    = document.getElementById('neria-preview-tab-a');
+  var tabB    = document.getElementById('neria-preview-tab-b');
+  var iframe  = document.getElementById('neria-trad-preview');
+  if (tabA && tabB && iframe) {
+    var basePreviewSrc = iframe.src;
+    var goldColor  = 'var(--neria-gold,#b38b59)';
+    var mutedColor = 'var(--neria-text-muted,#888)';
+    tabA.addEventListener('click', function() {
+      tabA.style.background = goldColor; tabA.style.color = '#fff';
+      tabB.style.background = 'transparent'; tabB.style.color = mutedColor;
+      iframe.src = basePreviewSrc;
+    });
+    tabB.addEventListener('click', function() {
+      tabB.style.background = goldColor; tabB.style.color = '#fff';
+      tabA.style.background = 'transparent'; tabA.style.color = mutedColor;
+      iframe.src = basePreviewSrc + '&neria_variant=b';
     });
   }
 

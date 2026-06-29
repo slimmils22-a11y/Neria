@@ -118,6 +118,17 @@
         previewTimer = setTimeout(updatePreview, 600);
     }
 
+    function fitPreviewFrame(f) {
+        try {
+            var doc = f.contentWindow.document;
+            var h = Math.max(
+                doc.body.scrollHeight, doc.body.offsetHeight,
+                doc.documentElement.scrollHeight, doc.documentElement.offsetHeight
+            );
+            if (h > 100) { f.style.height = (h + 80) + 'px'; }
+        } catch(e) {}
+    }
+
     function updatePreview() {
         var frame = document.getElementById('neria-preview-frame');
         var loading = document.getElementById('neria-preview-loading');
@@ -135,6 +146,9 @@
 
         frame.onload = function () {
             if (loading) loading.classList.remove('is-loading');
+            var f = frame;
+            setTimeout(function() { fitPreviewFrame(f); }, 100);
+            setTimeout(function() { fitPreviewFrame(f); }, 800);
         };
 
         // Construit l'URL de preview à partir de la page admin courante
@@ -189,6 +203,9 @@
         if (frame && loading) {
             frame.addEventListener('load', function () {
                 loading.classList.remove('is-loading');
+                var f = frame;
+                setTimeout(function() { fitPreviewFrame(f); }, 100);
+                setTimeout(function() { fitPreviewFrame(f); }, 800);
             });
         }
 

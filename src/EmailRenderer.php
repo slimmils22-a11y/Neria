@@ -1811,10 +1811,11 @@ class EmailRenderer
      * @param array  $designOverride Valeurs de design temporaires
      * @return string HTML de l'aperçu
      */
-    public function renderPreviewHtml(string $template, string $lang, array $designOverride = []): string
+    public function renderPreviewHtml(string $template, string $lang, array $designOverride = [], bool $variantB = false): string
     {
         $design   = array_merge($this->config->getDesignConfig(), $designOverride);
-        $compiled = $this->buildCompiledHtml($template, $lang, $design);
+        $abtestMgr = ($variantB && class_exists('ABTestManager')) ? new \ABTestManager($this->module) : null;
+        $compiled = $this->buildCompiledHtml($template, $lang, $design, $abtestMgr);
 
         if ($compiled === null) {
             return '<p style="padding:40px;font-family:sans-serif;color:#a33;">'
@@ -1873,7 +1874,7 @@ class EmailRenderer
      * @param array  $design Configuration de design (déjà fusionnée)
      * @return string|null
      */
-    private function buildCompiledHtml(string $template, string $lang, array $design): ?string
+    private function buildCompiledHtml(string $template, string $lang, array $design, ?\ABTestManager $abtestMgr = null): ?string
     {
         $layoutPath = $this->module->getModulePath('mails/themes/neria_global/layout.html');
         $corePath   = $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html');
@@ -1895,7 +1896,14 @@ class EmailRenderer
         $engine   = $this->engine;
         $compiled = preg_replace_callback(
             '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
-            function ($mm) use ($engine, $template, $lang) {
+            function ($mm) use ($engine, $template, $lang, $abtestMgr) {
+                // Variante B : utiliser la valeur B si elle existe, sinon fallback A
+                if ($abtestMgr !== null) {
+                    $vB = $abtestMgr->getVariantBValue($template, $lang, $mm[1]);
+                    if ($vB !== null && $vB !== '') {
+                        return $vB;
+                    }
+                }
                 $v = $engine->get($template, $mm[1], $lang);
                 return $v !== '' ? $v : $mm[0];
             },
