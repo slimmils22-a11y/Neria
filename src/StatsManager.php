@@ -1060,24 +1060,19 @@ class StatsManager
             $raw[$period] = $row ?: ['sent' => 0, 'opens' => 0, 'clicks' => 0, 'unsubs' => 0];
         }
 
-        // Revenus attribués
-        $attrTable   = _DB_PREFIX_ . 'neria_attribution';
-        $hasAttr     = (bool) $this->db->getValue(
-            "SELECT COUNT(*) FROM information_schema.tables
-             WHERE table_schema = DATABASE() AND table_name = '{$attrTable}'"
-        );
+        // Revenus attribués — depuis neria_stat event_type='conversion'
+        $statTable = _DB_PREFIX_ . self::TABLE;
         foreach (['current' => 0, 'previous' => 7] as $period => $offset) {
-            if ($hasAttr) {
-                $from = pSQL(date('Y-m-d', strtotime('-' . ($offset + 7) . ' days')));
-                $to   = pSQL(date('Y-m-d', strtotime('-' . $offset . ' days')));
-                $rev  = (float) $this->db->getValue(
-                    "SELECT COALESCE(SUM(order_amount), 0) FROM `{$attrTable}`
-                     WHERE DATE(date_add) >= '{$from}' AND DATE(date_add) < '{$to}'"
-                );
-                $raw[$period]['revenue'] = $rev;
-            } else {
-                $raw[$period]['revenue'] = 0.0;
-            }
+            $from = pSQL(date('Y-m-d', strtotime('-' . ($offset + 7) . ' days')));
+            $to   = pSQL(date('Y-m-d', strtotime('-' . $offset . ' days')));
+            $rev  = (float) $this->db->getValue(
+                "SELECT COALESCE(SUM(revenue), 0) FROM `{$statTable}`
+                 WHERE event_type = 'conversion'
+                   AND id_shop    = {$this->idShop}
+                   AND DATE(date_add) >= '{$from}'
+                   AND DATE(date_add) <  '{$to}'"
+            );
+            $raw[$period]['revenue'] = $rev;
         }
 
         $result = [];
@@ -1231,27 +1226,21 @@ class StatsManager
     }
 
     /**
-     * Top templates par revenus attribués (30 derniers jours).
+     * Top templates par revenus attribués (30 derniers jours) — via neria_stat conversions.
      */
     public function getTopTemplatesByRevenue(int $limit = 10): array
     {
-        $attrTable = _DB_PREFIX_ . 'neria_attribution';
-        $hasAttr   = (bool) $this->db->getValue(
-            "SELECT COUNT(*) FROM information_schema.tables
-             WHERE table_schema = DATABASE() AND table_name = '{$attrTable}'"
-        );
-
-        if (!$hasAttr) {
-            return [];
-        }
-
+        $table    = _DB_PREFIX_ . self::TABLE;
         $dateFrom = pSQL(date('Y-m-d', strtotime('-30 days')));
 
         $rows = $this->db->executeS("
-            SELECT template_key AS template, COUNT(*) AS orders, SUM(order_amount) AS revenue
-            FROM `{$attrTable}`
-            WHERE date_add >= '{$dateFrom}'
-            GROUP BY template_key
+            SELECT template, COUNT(*) AS orders, SUM(revenue) AS revenue
+            FROM `{$table}`
+            WHERE event_type = 'conversion'
+              AND id_shop    = {$this->idShop}
+              AND revenue    > 0
+              AND date_add  >= '{$dateFrom}'
+            GROUP BY template
             ORDER BY revenue DESC
             LIMIT " . (int) $limit
         );
@@ -1305,21 +1294,19 @@ class StatsManager
             ];
         }
 
-        // Revenus attribués
-        $attrTable = _DB_PREFIX_ . 'neria_attribution';
-        $hasAttr   = (bool) $this->db->getValue(
-            "SELECT COUNT(*) FROM information_schema.tables
-             WHERE table_schema = DATABASE() AND table_name = '{$attrTable}'"
-        );
+        // Revenus attribués — depuis neria_stat event_type='conversion'
+        $statTable = _DB_PREFIX_ . self::TABLE;
         foreach ($periods as $label => [$from, $to]) {
             $from = pSQL($from);
             $to   = pSQL($to);
-            $data[$label]['revenue'] = $hasAttr
-                ? round((float) $this->db->getValue(
-                    "SELECT COALESCE(SUM(order_amount), 0) FROM `{$attrTable}`
-                     WHERE DATE(date_add) >= '{$from}' AND DATE(date_add) <= '{$to}'"
-                ), 2)
-                : 0.0;
+            $data[$label]['revenue'] = round((float) $this->db->getValue(
+                "SELECT COALESCE(SUM(revenue), 0) FROM `{$statTable}`
+                 WHERE event_type = 'conversion'
+                   AND id_shop    = {$this->idShop}
+                   AND revenue    > 0
+                   AND DATE(date_add) >= '{$from}'
+                   AND DATE(date_add) <= '{$to}'"
+            ), 2);
         }
 
         // Deltas
