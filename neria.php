@@ -3579,6 +3579,17 @@ class Neria extends Module
             'revenue_chart_90'  => json_encode($stats->getRevenueDailyByCategory(90)),
             'revenue_chart_365' => json_encode($stats->getRevenueDailyByCategory(365)),
 
+            // Statistiques avancées — nouveaux blocs stats.tpl
+            'kpi_trends'              => $stats->getKpiTrends(),
+            'engagement_chart_30'     => json_encode($stats->getEngagementDailyChart(30)),
+            'engagement_chart_90'     => json_encode($stats->getEngagementDailyChart(90)),
+            'open_heatmap'            => json_encode($stats->getOpenHeatmap(90)),
+            'top_templates_open'      => $stats->getTopTemplatesByMetric('rate_open', 10),
+            'top_templates_click'     => $stats->getTopTemplatesByMetric('rate_click', 10),
+            'top_templates_revenue'   => $stats->getTopTemplatesByRevenue(10),
+            'monthly_comparison'      => $stats->getMonthlyComparison(),
+            'health_score'            => $stats->getHealthScore(),
+
             // Prochaines occasions calendaires (onglet configure)
             'upcoming_events'  => $calendar->getUpcomingDates(),
 

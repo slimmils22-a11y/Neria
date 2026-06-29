@@ -4,6 +4,91 @@
  * i18n : libellés via {neria_admin key='...'} (18 langues, AdminTranslator)
  *}
 
+{* ══════════════════════════════════════════════════════════════
+   SCORE DE SANTÉ GLOBAL + BANDEAU KPI TENDANCES
+   ══════════════════════════════════════════════════════════════ *}
+<div class="neria-section" id="neria-health-kpi-banner" style="padding:20px 24px;">
+
+  {* ── Score de santé ── *}
+  {assign var="hs" value=$health_score}
+  {assign var="hs_total" value=$hs.total|default:0}
+  {assign var="hs_pct"   value=$hs.score_pct|default:0}
+  {assign var="hs_color" value=($hs_pct >= 90 ? '#16a34a' : ($hs_pct >= 70 ? '#d97706' : '#dc2626'))}
+  {assign var="hs_grade" value=($hs_pct >= 90 ? 'A' : ($hs_pct >= 70 ? 'B' : 'C'))}
+
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="position:relative;flex-shrink:0;">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="26" fill="none" stroke="var(--neria-border)" stroke-width="7"/>
+          <circle cx="32" cy="32" r="26" fill="none" stroke="{$hs_color}" stroke-width="7"
+                  stroke-dasharray="{math equation='163 * pct / 100' pct=$hs_pct} 163"
+                  stroke-dashoffset="41" stroke-linecap="round"
+                  transform="rotate(-90 32 32)"/>
+          <text x="32" y="29" text-anchor="middle" font-size="14" font-weight="700" fill="{$hs_color}">{$hs_grade}</text>
+          <text x="32" y="43" text-anchor="middle" font-size="9" fill="{$hs_color}">{$hs_pct}%</text>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--neria-dark);">Santé du module</div>
+        <div style="font-size:12px;color:var(--neria-muted);margin-top:2px;">
+          {$hs.ok|default:0} contrôles OK
+          {if ($hs.warning|default:0) > 0} · <span style="color:#d97706;">{$hs.warning} alertes</span>{/if}
+          {if ($hs.error|default:0)   > 0} · <span style="color:#dc2626;">{$hs.error} erreurs</span>{/if}
+          / {$hs_total} total
+        </div>
+        <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''}&neria_tab=help"
+           style="font-size:11px;color:var(--neria-accent);text-decoration:none;margin-top:4px;display:inline-block;">
+          → Voir le diagnostic complet
+        </a>
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:var(--neria-muted);text-align:right;">
+      Tendances · semaine courante vs semaine précédente
+    </div>
+  </div>
+
+  {* ── Bandeau KPI tendances ── *}
+  {assign var="tr" value=$kpi_trends}
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
+
+    {foreach [
+      ['key'=>'sent',       'label'=>'Envois',           'format'=>'int',     'icon'=>'✉'],
+      ['key'=>'open_rate',  'label'=>'Taux ouverture',   'format'=>'pct',     'icon'=>'◉'],
+      ['key'=>'click_rate', 'label'=>'Taux clic',        'format'=>'pct',     'icon'=>'↗'],
+      ['key'=>'unsubs',     'label'=>'Désabonnements',   'format'=>'int',     'icon'=>'✕'],
+      ['key'=>'revenue',    'label'=>'CA attribué',      'format'=>'money',   'icon'=>'◈']
+    ] as $kpit}
+      {assign var="kd" value=$tr[$kpit.key]|default:[]}
+      {assign var="delta"  value=$kd.delta|default:null}
+      {assign var="isGood" value=$kd.good|default:null}
+      {assign var="cur"    value=$kd.current|default:0}
+
+      <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:14px 16px;">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-muted);margin-bottom:6px;">
+          {$kpit.icon} {$kpit.label}
+        </div>
+        <div style="font-size:22px;font-weight:700;color:var(--neria-dark);line-height:1;">
+          {if $kpit.format == 'money'}{$cur|string_format:"%.2f"} {$currency_symbol}
+          {elseif $kpit.format == 'pct'}{$cur}%
+          {else}{$cur|number_format:0:',':' '}{/if}
+        </div>
+        {if $delta !== null}
+          {assign var="arrow" value=($delta > 0 ? '▲' : '▼')}
+          {assign var="clr"   value=($isGood ? '#16a34a' : '#dc2626')}
+          <div style="font-size:11px;font-weight:600;color:{$clr};margin-top:5px;">
+            {$arrow} {$delta|abs}% vs sem. préc.
+          </div>
+        {else}
+          <div style="font-size:11px;color:var(--neria-muted);margin-top:5px;">— sem. préc. vide</div>
+        {/if}
+      </div>
+    {/foreach}
+
+  </div>
+</div>
+
 {* ── Graphique CA par catégorie — EN TÊTE ───────────────────── *}
 <div class="neria-section" id="neria-revenue-chart-section">
   <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
@@ -421,6 +506,186 @@ var _nrc = {
       updateToggleBtn();
       renderChart(currentPeriod, currentTypeIdx);
     });
+  });
+})();
+</script>
+{/literal}
+
+{* ══════════════════════════════════════════════════════════════
+   GRAPHIQUE ENGAGEMENT EMAIL — Envois / Ouvertures / Clics
+   ══════════════════════════════════════════════════════════════ *}
+<div class="neria-section" id="neria-engagement-chart-section">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+    <div>
+      <h2 class="neria-section__title" style="margin:0;">Engagement email ◉</h2>
+      <p class="neria-section__desc" style="margin:4px 0 0;">Envois, ouvertures et clics jour par jour (hors MPP Apple).</p>
+    </div>
+    <div class="neria-period-tabs" id="neria-eng-period">
+      <button class="neria-period-tab neria-period-tab--active" data-period="30">30j</button>
+      <button class="neria-period-tab" data-period="90">90j</button>
+    </div>
+  </div>
+  <div style="position:relative;height:280px;">
+    <canvas id="neriaEngagementChart"></canvas>
+  </div>
+</div>
+
+<script>
+var _nec = {
+  d30: {$engagement_chart_30|default:'null'},
+  d90: {$engagement_chart_90|default:'null'}
+};
+</script>
+{literal}
+<script>
+(function() {
+  var DATA = { 30: _nec.d30, 90: _nec.d90 };
+  var echart = null;
+  var ecPeriod = 30;
+
+  function fmtDate(d, period) {
+    var p = d.split('-');
+    return period <= 30 ? p[2]+'/'+p[1] : p[1]+'/'+p[0].slice(2);
+  }
+
+  function renderEng(period) {
+    var data = DATA[period] || {};
+    var labels = (data.dates || []).map(function(d){ return fmtDate(d, period); });
+    var maxTick = period <= 30 ? 15 : 12;
+
+    var datasets = [
+      { label:'Envois',      data: data.sent   || [], borderColor:'#b0a090', backgroundColor:'#b0a09020', borderWidth:1.5, pointRadius:0, fill:true, tension:0.3 },
+      { label:'Ouvertures',  data: data.opens  || [], borderColor:'#b38b59', backgroundColor:'#b38b5930', borderWidth:2,   pointRadius:0, fill:true, tension:0.3 },
+      { label:'Clics',       data: data.clicks || [], borderColor:'#5f8b4a', backgroundColor:'#5f8b4a40', borderWidth:2,   pointRadius:period<=30?3:0, fill:true, tension:0.3 }
+    ];
+
+    if (echart) {
+      echart.data.labels = labels;
+      echart.data.datasets = datasets;
+      echart.update();
+      return;
+    }
+
+    var ctx = document.getElementById('neriaEngagementChart');
+    if (!ctx) return;
+
+    function loadChartJs(cb) {
+      if (window.Chart) { cb(); return; }
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+      s.onload = cb;
+      document.head.appendChild(s);
+    }
+
+    loadChartJs(function() {
+      echart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: labels, datasets: datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode:'index', intersect:false },
+          plugins: { legend: { position:'bottom', labels:{ font:{size:11}, boxWidth:12, padding:16 } } },
+          scales: {
+            x: { grid:{color:'#e8d5b015'}, ticks:{font:{size:11},color:'#999',maxTicksLimit:maxTick} },
+            y: { beginAtZero:true, grid:{color:'#e8d5b030'}, ticks:{font:{size:11},color:'#999'} }
+          }
+        }
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    renderEng(ecPeriod);
+    var tabs = document.getElementById('neria-eng-period');
+    if (tabs) {
+      tabs.addEventListener('click', function(e) {
+        var btn = e.target.closest('.neria-period-tab');
+        if (!btn) return;
+        tabs.querySelectorAll('.neria-period-tab').forEach(function(b){b.classList.remove('neria-period-tab--active');});
+        btn.classList.add('neria-period-tab--active');
+        ecPeriod = parseInt(btn.dataset.period, 10);
+        renderEng(ecPeriod);
+      });
+    }
+  });
+})();
+</script>
+{/literal}
+
+{* ══════════════════════════════════════════════════════════════
+   HEATMAP HORAIRE DES OUVERTURES (7j × 24h)
+   ══════════════════════════════════════════════════════════════ *}
+<div class="neria-section" id="neria-heatmap-section">
+  <h2 class="neria-section__title" style="margin:0 0 6px;">Heatmap des ouvertures ◈</h2>
+  <p class="neria-section__desc" style="margin:0 0 20px;">Quand vos clients lisent leurs emails — 90 derniers jours (hors MPP). Plus la case est foncée, plus les ouvertures sont nombreuses.</p>
+
+  <div id="neria-heatmap-wrap" style="overflow-x:auto;">
+    <table id="neria-heatmap-table" style="border-collapse:separate;border-spacing:3px;font-size:11px;">
+      <thead id="neria-heatmap-head"></thead>
+      <tbody id="neria-heatmap-body"></tbody>
+    </table>
+  </div>
+  <div style="margin-top:14px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--neria-muted);">
+    <span>Moins</span>
+    <span id="neria-heatmap-legend" style="display:flex;gap:2px;"></span>
+    <span>Plus d'ouvertures</span>
+  </div>
+</div>
+
+<script>
+var _nhm = {$open_heatmap|default:'null'};
+</script>
+{literal}
+<script>
+(function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    var hm = _nhm;
+    if (!hm || !hm.grid || !hm.max) return;
+
+    var grid = hm.grid;
+    var maxV = hm.max;
+    var days = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+    var colors = ['#f5f0ea','#e8d5b0','#d4a96a','#c07830','#8b4a10','#5c2a05'];
+
+    function getColor(cnt) {
+      if (maxV === 0 || cnt === 0) return colors[0];
+      var idx = Math.ceil(cnt / maxV * (colors.length - 2));
+      return colors[Math.min(idx, colors.length - 1)];
+    }
+
+    // En-tête heures
+    var thead = document.getElementById('neria-heatmap-head');
+    if (!thead) return;
+    var headRow = '<tr><th style="width:36px;"></th>';
+    for (var h = 0; h < 24; h++) {
+      headRow += '<th style="width:22px;text-align:center;font-size:9px;color:#aaa;padding:0 1px;">' + (h % 3 === 0 ? h + 'h' : '') + '</th>';
+    }
+    headRow += '</tr>';
+    thead.innerHTML = headRow;
+
+    // Corps
+    var tbody = document.getElementById('neria-heatmap-body');
+    if (!tbody) return;
+    var bodyHtml = '';
+    for (var d = 0; d < 7; d++) {
+      bodyHtml += '<tr><td style="font-size:10px;font-weight:600;color:#888;padding-right:6px;white-space:nowrap;">' + days[d] + '</td>';
+      for (var hr = 0; hr < 24; hr++) {
+        var cnt = (grid[d] && grid[d][hr]) ? grid[d][hr] : 0;
+        var bg  = getColor(cnt);
+        var tip = days[d] + ' ' + hr + 'h : ' + cnt + ' ouverture' + (cnt > 1 ? 's' : '');
+        bodyHtml += '<td title="' + tip + '" style="width:22px;height:20px;background:' + bg + ';border-radius:3px;cursor:default;"></td>';
+      }
+      bodyHtml += '</tr>';
+    }
+    tbody.innerHTML = bodyHtml;
+
+    // Légende
+    var leg = document.getElementById('neria-heatmap-legend');
+    if (leg) {
+      leg.innerHTML = colors.map(function(c) {
+        return '<span style="display:inline-block;width:16px;height:12px;background:' + c + ';border-radius:2px;"></span>';
+      }).join('');
+    }
   });
 })();
 </script>
@@ -1365,6 +1630,140 @@ var _nrc = {
     </table>
   </div>
   {/if}
+
+  {* ── Top 10 templates — classement ──────────────────────── *}
+  <hr style="border:none; border-top:1px solid rgba(0,0,0,.07); margin:28px 0;" />
+  <h3 style="font-size:13px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; opacity:.5; margin:0 0 16px 0;">Classement des templates</h3>
+
+  {* Onglets de tri *}
+  <div style="display:flex;gap:8px;margin-bottom:16px;" id="neria-top10-tabs">
+    <button class="neria-period-tab neria-period-tab--active" data-top10="open">Top ouverture</button>
+    <button class="neria-period-tab" data-top10="click">Top clic</button>
+    <button class="neria-period-tab" data-top10="revenue">Top CA</button>
+  </div>
+
+  {* Top ouverture *}
+  <div id="neria-top10-open">
+  {if $top_templates_open}
+  <div class="neria-table-wrap">
+    <table class="neria-table">
+      <thead><tr>
+        <th>#</th>
+        <th>{neria_admin key='common.template'}</th>
+        <th class="neria-table__num">{neria_admin key='common.sent'}</th>
+        <th class="neria-table__num">{neria_admin key='common.open_rate_short'}</th>
+        <th class="neria-table__num">{neria_admin key='common.click_rate_short'}</th>
+      </tr></thead>
+      <tbody>
+        {foreach $top_templates_open as $i => $row}
+        <tr>
+          <td style="font-size:16px;font-weight:700;color:{if $i==0}#b8975a{elseif $i==1}#aaa{elseif $i==2}#a07060{else}var(--neria-muted){/if};width:32px;">
+            {if $i==0}🥇{elseif $i==1}🥈{elseif $i==2}🥉{else}{$i+1}{/if}
+          </td>
+          <td><span class="neria-template-label">{$template_labels[$row.template]|default:$row.template}</span></td>
+          <td class="neria-table__num">{$row.sent|number_format:0:',':' '}</td>
+          <td class="neria-table__num">
+            <span class="neria-rate {if $row.rate_open > 30}neria-rate--good{elseif $row.rate_open > 15}neria-rate--ok{else}neria-rate--low{/if}">
+              {$row.rate_open}%
+            </span>
+          </td>
+          <td class="neria-table__num">
+            <span class="neria-rate {if $row.rate_click > 5}neria-rate--good{elseif $row.rate_click > 2}neria-rate--ok{else}neria-rate--low{/if}">
+              {$row.rate_click}%
+            </span>
+          </td>
+        </tr>
+        {/foreach}
+      </tbody>
+    </table>
+  </div>
+  {/if}
+  </div>
+
+  {* Top clic *}
+  <div id="neria-top10-click" style="display:none;">
+  {if $top_templates_click}
+  <div class="neria-table-wrap">
+    <table class="neria-table">
+      <thead><tr>
+        <th>#</th>
+        <th>{neria_admin key='common.template'}</th>
+        <th class="neria-table__num">{neria_admin key='common.sent'}</th>
+        <th class="neria-table__num">{neria_admin key='common.open_rate_short'}</th>
+        <th class="neria-table__num">{neria_admin key='common.click_rate_short'}</th>
+      </tr></thead>
+      <tbody>
+        {foreach $top_templates_click as $i => $row}
+        <tr>
+          <td style="font-size:16px;font-weight:700;color:{if $i==0}#b8975a{elseif $i==1}#aaa{elseif $i==2}#a07060{else}var(--neria-muted){/if};width:32px;">
+            {if $i==0}🥇{elseif $i==1}🥈{elseif $i==2}🥉{else}{$i+1}{/if}
+          </td>
+          <td><span class="neria-template-label">{$template_labels[$row.template]|default:$row.template}</span></td>
+          <td class="neria-table__num">{$row.sent|number_format:0:',':' '}</td>
+          <td class="neria-table__num">{$row.rate_open}%</td>
+          <td class="neria-table__num">
+            <span class="neria-rate {if $row.rate_click > 5}neria-rate--good{elseif $row.rate_click > 2}neria-rate--ok{else}neria-rate--low{/if}">
+              {$row.rate_click}%
+            </span>
+          </td>
+        </tr>
+        {/foreach}
+      </tbody>
+    </table>
+  </div>
+  {/if}
+  </div>
+
+  {* Top CA *}
+  <div id="neria-top10-revenue" style="display:none;">
+  {if $top_templates_revenue}
+  <div class="neria-table-wrap">
+    <table class="neria-table">
+      <thead><tr>
+        <th>#</th>
+        <th>{neria_admin key='common.template'}</th>
+        <th class="neria-table__num">Commandes</th>
+        <th class="neria-table__num">CA attribué</th>
+      </tr></thead>
+      <tbody>
+        {foreach $top_templates_revenue as $i => $row}
+        <tr>
+          <td style="font-size:16px;font-weight:700;color:{if $i==0}#b8975a{elseif $i==1}#aaa{elseif $i==2}#a07060{else}var(--neria-muted){/if};width:32px;">
+            {if $i==0}🥇{elseif $i==1}🥈{elseif $i==2}🥉{else}{$i+1}{/if}
+          </td>
+          <td><span class="neria-template-label">{$template_labels[$row.template]|default:$row.template}</span></td>
+          <td class="neria-table__num">{$row.orders}</td>
+          <td class="neria-table__num" style="font-weight:700;color:var(--neria-accent);">
+            {$row.revenue|string_format:"%.2f"} {$currency_symbol}
+          </td>
+        </tr>
+        {/foreach}
+      </tbody>
+    </table>
+  </div>
+  {else}
+    <p style="font-size:13px;color:var(--neria-muted);margin:0;">Aucune attribution de CA enregistrée sur 30 jours.</p>
+  {/if}
+  </div>
+
+  {literal}
+  <script>
+  (function() {
+    var tabs = document.getElementById('neria-top10-tabs');
+    if (!tabs) return;
+    tabs.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-top10]');
+      if (!btn) return;
+      tabs.querySelectorAll('[data-top10]').forEach(function(b){ b.classList.remove('neria-period-tab--active'); });
+      btn.classList.add('neria-period-tab--active');
+      ['open','click','revenue'].forEach(function(k) {
+        var el = document.getElementById('neria-top10-' + k);
+        if (el) el.style.display = (k === btn.dataset.top10) ? '' : 'none';
+      });
+    });
+  })();
+  </script>
+  {/literal}
 
   {* ── Rapport par langue ───────────────────────────────────── *}
   {if isset($stats.by_lang_30) && $stats.by_lang_30}
@@ -2805,6 +3204,73 @@ function neriaPreviewUpsell() {
 }
 {/literal}
 </script>
+
+{* ══════════════════════════════════════════════════════════════
+   COMPARATIF MENSUEL — M vs M-1
+   ══════════════════════════════════════════════════════════════ *}
+{assign var="mc" value=$monthly_comparison}
+{if $mc && isset($mc.current)}
+<div class="neria-section" id="neria-monthly-comparison">
+  <h2 class="neria-section__title" style="margin:0 0 6px;">Comparatif mensuel ◫</h2>
+  <p class="neria-section__desc" style="margin:0 0 20px;">
+    {$mc.labels.current|default:''} vs {$mc.labels.previous|default:''} — tous les indicateurs clés en un coup d'œil.
+  </p>
+
+  <div class="neria-table-wrap">
+    <table class="neria-table" style="min-width:500px;">
+      <thead>
+        <tr>
+          <th>Indicateur</th>
+          <th class="neria-table__num">{$mc.labels.previous|default:'Mois préc.'}</th>
+          <th class="neria-table__num">{$mc.labels.current|default:'Ce mois'}</th>
+          <th class="neria-table__num">Évolution</th>
+        </tr>
+      </thead>
+      <tbody>
+        {foreach [
+          ['key'=>'sent',       'label'=>'Emails envoyés',      'format'=>'int',   'good_up'=>true],
+          ['key'=>'opens',      'label'=>'Ouvertures réelles',  'format'=>'int',   'good_up'=>true],
+          ['key'=>'rate_open',  'label'=>'Taux d\'ouverture',   'format'=>'pct',   'good_up'=>true],
+          ['key'=>'clicks',     'label'=>'Clics',               'format'=>'int',   'good_up'=>true],
+          ['key'=>'rate_click', 'label'=>'Taux de clic',        'format'=>'pct',   'good_up'=>true],
+          ['key'=>'unsubs',     'label'=>'Désabonnements',      'format'=>'int',   'good_up'=>false],
+          ['key'=>'revenue',    'label'=>'CA attribué',         'format'=>'money', 'good_up'=>true]
+        ] as $mrow}
+          {assign var="prev"  value=$mc.previous[$mrow.key]|default:0}
+          {assign var="cur"   value=$mc.current[$mrow.key]|default:0}
+          {assign var="delta" value=$mc.delta[$mrow.key]|default:null}
+
+          <tr>
+            <td style="font-weight:600;">{$mrow.label}</td>
+            <td class="neria-table__num" style="color:var(--neria-muted);">
+              {if $mrow.format == 'money'}{$prev|string_format:"%.2f"} {$currency_symbol}
+              {elseif $mrow.format == 'pct'}{$prev}%
+              {else}{$prev|number_format:0:',':' '}{/if}
+            </td>
+            <td class="neria-table__num" style="font-weight:700;">
+              {if $mrow.format == 'money'}{$cur|string_format:"%.2f"} {$currency_symbol}
+              {elseif $mrow.format == 'pct'}{$cur}%
+              {else}{$cur|number_format:0:',':' '}{/if}
+            </td>
+            <td class="neria-table__num">
+              {if $delta !== null}
+                {assign var="up"    value=($delta > 0)}
+                {assign var="isGood" value=($mrow.good_up ? $up : !$up)}
+                <span style="font-weight:700;color:{if $isGood}#16a34a{else}#dc2626{/if};">
+                  {if $up}▲{else}▼{/if} {$delta|abs}%
+                </span>
+              {else}
+                <span style="color:var(--neria-muted);">—</span>
+              {/if}
+            </td>
+          </tr>
+        {/foreach}
+      </tbody>
+    </table>
+  </div>
+  <p class="neria-hint" style="margin-top:8px;">Les données du mois en cours sont partielles (jusqu'à aujourd'hui).</p>
+</div>
+{/if}
 
 {if !isset($stats.global_30) || !$stats.global_30}
   <div class="neria-empty-state">

@@ -1029,4 +1029,349 @@ class StatsManager
             'period_days'      => 0,
         ];
     }
+
+    // ============================================================
+    // NOUVEAUX INDICATEURS — STATISTIQUES AVANCÉES
+    // ============================================================
+
+    /**
+     * Tendances KPIs — semaine courante vs semaine précédente.
+     * Retourne pour chaque métrique : current, previous, delta (%)
+     */
+    public function getKpiTrends(): array
+    {
+        $table = _DB_PREFIX_ . self::TABLE;
+
+        $raw = [];
+        foreach (['current' => 0, 'previous' => 7] as $period => $offset) {
+            $from = pSQL(date('Y-m-d', strtotime('-' . ($offset + 7) . ' days')));
+            $to   = pSQL(date('Y-m-d', strtotime('-' . $offset . ' days')));
+            $row  = $this->db->getRow("
+                SELECT
+                    COUNT(CASE WHEN event_type = 'sent'              THEN 1 END) AS sent,
+                    COUNT(CASE WHEN event_type = 'open' AND is_mpp=0 THEN 1 END) AS opens,
+                    COUNT(CASE WHEN event_type = 'click'             THEN 1 END) AS clicks,
+                    COUNT(CASE WHEN event_type = 'unsubscribed'      THEN 1 END) AS unsubs
+                FROM `{$table}`
+                WHERE id_shop     = {$this->idShop}
+                  AND DATE(date_add) >= '{$from}'
+                  AND DATE(date_add) <  '{$to}'
+            ");
+            $raw[$period] = $row ?: ['sent' => 0, 'opens' => 0, 'clicks' => 0, 'unsubs' => 0];
+        }
+
+        // Revenus attribués
+        $attrTable   = _DB_PREFIX_ . 'neria_attribution';
+        $hasAttr     = (bool) $this->db->getValue(
+            "SELECT COUNT(*) FROM information_schema.tables
+             WHERE table_schema = DATABASE() AND table_name = '{$attrTable}'"
+        );
+        foreach (['current' => 0, 'previous' => 7] as $period => $offset) {
+            if ($hasAttr) {
+                $from = pSQL(date('Y-m-d', strtotime('-' . ($offset + 7) . ' days')));
+                $to   = pSQL(date('Y-m-d', strtotime('-' . $offset . ' days')));
+                $rev  = (float) $this->db->getValue(
+                    "SELECT COALESCE(SUM(order_amount), 0) FROM `{$attrTable}`
+                     WHERE DATE(date_add) >= '{$from}' AND DATE(date_add) < '{$to}'"
+                );
+                $raw[$period]['revenue'] = $rev;
+            } else {
+                $raw[$period]['revenue'] = 0.0;
+            }
+        }
+
+        $result = [];
+        foreach (['sent', 'opens', 'clicks', 'unsubs', 'revenue'] as $key) {
+            $cur   = (float) ($raw['current'][$key]  ?? 0);
+            $prev  = (float) ($raw['previous'][$key] ?? 0);
+            $delta = $prev > 0 ? round(($cur - $prev) / $prev * 100, 1) : null;
+            $isGood = $key === 'unsubs' ? ($delta !== null && $delta < 0) : ($delta !== null && $delta > 0);
+            $result[$key] = [
+                'current'  => $key === 'revenue' ? round($cur, 2) : (int) $cur,
+                'previous' => $key === 'revenue' ? round($prev, 2) : (int) $prev,
+                'delta'    => $delta,
+                'good'     => $delta === null ? null : $isGood,
+            ];
+        }
+
+        // Taux d'ouverture et de clic
+        $sentCur  = max(1, (float) ($raw['current']['sent']  ?? 1));
+        $sentPrev = max(1, (float) ($raw['previous']['sent'] ?? 1));
+        foreach (['open_rate', 'click_rate'] as $rk) {
+            $base  = $rk === 'open_rate' ? 'opens' : 'clicks';
+            $cur   = round((float) ($raw['current'][$base]  ?? 0) / $sentCur  * 100, 1);
+            $prev  = round((float) ($raw['previous'][$base] ?? 0) / $sentPrev * 100, 1);
+            $delta = $prev > 0 ? round(($cur - $prev) / $prev * 100, 1) : null;
+            $result[$rk] = [
+                'current'  => $cur,
+                'previous' => $prev,
+                'delta'    => $delta,
+                'good'     => $delta === null ? null : $delta > 0,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Graphique d'engagement email — envois / ouvertures / clics par jour.
+     */
+    public function getEngagementDailyChart(int $days = 30): array
+    {
+        $table    = _DB_PREFIX_ . self::TABLE;
+        $dateFrom = pSQL(date('Y-m-d', strtotime("-{$days} days")));
+
+        $rows = $this->db->executeS("
+            SELECT DATE(date_add) AS d,
+                   COUNT(CASE WHEN event_type = 'sent'              THEN 1 END) AS sent,
+                   COUNT(CASE WHEN event_type = 'open' AND is_mpp=0 THEN 1 END) AS opens,
+                   COUNT(CASE WHEN event_type = 'click'             THEN 1 END) AS clicks
+            FROM `{$table}`
+            WHERE id_shop  = {$this->idShop}
+              AND date_add >= '{$dateFrom}'
+            GROUP BY DATE(date_add)
+            ORDER BY d ASC
+        ");
+
+        $dates = [];
+        for ($i = $days; $i >= 0; $i--) {
+            $dates[] = date('Y-m-d', strtotime("-{$i} days"));
+        }
+
+        $byDate = [];
+        foreach ((is_array($rows) ? $rows : []) as $r) {
+            $byDate[$r['d']] = $r;
+        }
+
+        $sent = $opens = $clicks = [];
+        foreach ($dates as $d) {
+            $r        = $byDate[$d] ?? null;
+            $sent[]   = $r ? (int) $r['sent']   : 0;
+            $opens[]  = $r ? (int) $r['opens']  : 0;
+            $clicks[] = $r ? (int) $r['clicks'] : 0;
+        }
+
+        return ['dates' => $dates, 'sent' => $sent, 'opens' => $opens, 'clicks' => $clicks];
+    }
+
+    /**
+     * Heatmap des ouvertures — grille WEEKDAY×HOUR (0=lun, 6=dim).
+     */
+    public function getOpenHeatmap(int $days = 90): array
+    {
+        $table    = _DB_PREFIX_ . self::TABLE;
+        $dateFrom = pSQL(date('Y-m-d', strtotime("-{$days} days")));
+
+        $rows = $this->db->executeS("
+            SELECT WEEKDAY(date_add) AS dow, HOUR(date_add) AS h, COUNT(*) AS cnt
+            FROM `{$table}`
+            WHERE event_type = 'open'
+              AND is_mpp     = 0
+              AND id_shop    = {$this->idShop}
+              AND date_add  >= '{$dateFrom}'
+            GROUP BY WEEKDAY(date_add), HOUR(date_add)
+        ");
+
+        $grid = [];
+        for ($d = 0; $d < 7; $d++) {
+            $grid[$d] = array_fill(0, 24, 0);
+        }
+
+        $max = 0;
+        foreach ((is_array($rows) ? $rows : []) as $r) {
+            $cnt = (int) $r['cnt'];
+            $grid[(int) $r['dow']][(int) $r['h']] = $cnt;
+            if ($cnt > $max) {
+                $max = $cnt;
+            }
+        }
+
+        return ['grid' => $grid, 'max' => $max, 'days' => $days];
+    }
+
+    /**
+     * Top 10 templates par taux d'ouverture ou de clic (30 derniers jours).
+     */
+    public function getTopTemplatesByMetric(string $metric = 'rate_open', int $limit = 10): array
+    {
+        $table    = _DB_PREFIX_ . self::TABLE;
+        $dateFrom = pSQL(date('Y-m-d', strtotime('-30 days')));
+
+        $orderBy = $metric === 'rate_click'
+            ? 'clicks / NULLIF(sent, 0) DESC'
+            : 'opens  / NULLIF(sent, 0) DESC';
+
+        $rows = $this->db->executeS("
+            SELECT template,
+                   COUNT(CASE WHEN event_type = 'sent'              THEN 1 END) AS sent,
+                   COUNT(CASE WHEN event_type = 'open' AND is_mpp=0 THEN 1 END) AS opens,
+                   COUNT(CASE WHEN event_type = 'click'             THEN 1 END) AS clicks
+            FROM `{$table}`
+            WHERE id_shop  = {$this->idShop}
+              AND date_add >= '{$dateFrom}'
+            GROUP BY template
+            HAVING sent >= 5
+            ORDER BY {$orderBy}
+            LIMIT " . (int) $limit
+        );
+
+        return array_map(function ($r) {
+            $sent   = (int) $r['sent'];
+            $opens  = (int) $r['opens'];
+            $clicks = (int) $r['clicks'];
+            return [
+                'template'   => $r['template'],
+                'sent'       => $sent,
+                'opens'      => $opens,
+                'clicks'     => $clicks,
+                'rate_open'  => $sent > 0 ? round($opens  / $sent * 100, 1) : 0.0,
+                'rate_click' => $sent > 0 ? round($clicks / $sent * 100, 1) : 0.0,
+            ];
+        }, is_array($rows) ? $rows : []);
+    }
+
+    /**
+     * Top templates par revenus attribués (30 derniers jours).
+     */
+    public function getTopTemplatesByRevenue(int $limit = 10): array
+    {
+        $attrTable = _DB_PREFIX_ . 'neria_attribution';
+        $hasAttr   = (bool) $this->db->getValue(
+            "SELECT COUNT(*) FROM information_schema.tables
+             WHERE table_schema = DATABASE() AND table_name = '{$attrTable}'"
+        );
+
+        if (!$hasAttr) {
+            return [];
+        }
+
+        $dateFrom = pSQL(date('Y-m-d', strtotime('-30 days')));
+
+        $rows = $this->db->executeS("
+            SELECT template_key AS template, COUNT(*) AS orders, SUM(order_amount) AS revenue
+            FROM `{$attrTable}`
+            WHERE date_add >= '{$dateFrom}'
+            GROUP BY template_key
+            ORDER BY revenue DESC
+            LIMIT " . (int) $limit
+        );
+
+        return array_map(fn($r) => [
+            'template' => $r['template'],
+            'orders'   => (int) $r['orders'],
+            'revenue'  => round((float) $r['revenue'], 2),
+        ], is_array($rows) ? $rows : []);
+    }
+
+    /**
+     * Comparatif mois M vs mois M-1.
+     */
+    public function getMonthlyComparison(): array
+    {
+        $table   = _DB_PREFIX_ . self::TABLE;
+        $periods = [
+            'current'  => [date('Y-m-01'), date('Y-m-d')],
+            'previous' => [
+                date('Y-m-01', strtotime('first day of last month')),
+                date('Y-m-t',  strtotime('last day of last month')),
+            ],
+        ];
+
+        $data = [];
+        foreach ($periods as $label => [$from, $to]) {
+            $from = pSQL($from);
+            $to   = pSQL($to);
+            $row  = $this->db->getRow("
+                SELECT
+                    COUNT(CASE WHEN event_type = 'sent'              THEN 1 END) AS sent,
+                    COUNT(CASE WHEN event_type = 'open' AND is_mpp=0 THEN 1 END) AS opens,
+                    COUNT(CASE WHEN event_type = 'click'             THEN 1 END) AS clicks,
+                    COUNT(CASE WHEN event_type = 'unsubscribed'      THEN 1 END) AS unsubs
+                FROM `{$table}`
+                WHERE id_shop      = {$this->idShop}
+                  AND DATE(date_add) >= '{$from}'
+                  AND DATE(date_add) <= '{$to}'
+            ");
+            $sent   = (int) ($row['sent']  ?? 0);
+            $opens  = (int) ($row['opens'] ?? 0);
+            $clicks = (int) ($row['clicks'] ?? 0);
+            $data[$label] = [
+                'sent'       => $sent,
+                'opens'      => $opens,
+                'clicks'     => $clicks,
+                'unsubs'     => (int) ($row['unsubs'] ?? 0),
+                'rate_open'  => $sent > 0 ? round($opens  / $sent * 100, 1) : 0.0,
+                'rate_click' => $sent > 0 ? round($clicks / $sent * 100, 1) : 0.0,
+            ];
+        }
+
+        // Revenus attribués
+        $attrTable = _DB_PREFIX_ . 'neria_attribution';
+        $hasAttr   = (bool) $this->db->getValue(
+            "SELECT COUNT(*) FROM information_schema.tables
+             WHERE table_schema = DATABASE() AND table_name = '{$attrTable}'"
+        );
+        foreach ($periods as $label => [$from, $to]) {
+            $from = pSQL($from);
+            $to   = pSQL($to);
+            $data[$label]['revenue'] = $hasAttr
+                ? round((float) $this->db->getValue(
+                    "SELECT COALESCE(SUM(order_amount), 0) FROM `{$attrTable}`
+                     WHERE DATE(date_add) >= '{$from}' AND DATE(date_add) <= '{$to}'"
+                ), 2)
+                : 0.0;
+        }
+
+        // Deltas
+        foreach (['sent', 'opens', 'clicks', 'unsubs', 'rate_open', 'rate_click', 'revenue'] as $key) {
+            $cur   = (float) ($data['current'][$key]  ?? 0);
+            $prev  = (float) ($data['previous'][$key] ?? 0);
+            $data['delta'][$key] = $prev > 0 ? round(($cur - $prev) / $prev * 100, 1) : null;
+        }
+
+        $data['labels'] = [
+            'current'  => strftime('%B %Y') ?: date('m/Y'),
+            'previous' => strftime('%B %Y', strtotime('last month')) ?: date('m/Y', strtotime('last month')),
+        ];
+
+        return $data;
+    }
+
+    /**
+     * Score santé global — compte les résultats du dernier diagnostic.
+     * Retourne [ok, warning, error, total, score_pct]
+     */
+    public function getHealthScore(): array
+    {
+        $raw = \Configuration::get(\HealthCheckManager::CONFIG_RESULTS);
+        if (!$raw) {
+            return ['ok' => 0, 'warning' => 0, 'error' => 0, 'total' => 0, 'score_pct' => 0];
+        }
+
+        $results = json_decode($raw, true);
+        if (!is_array($results)) {
+            return ['ok' => 0, 'warning' => 0, 'error' => 0, 'total' => 0, 'score_pct' => 0];
+        }
+
+        $ok = $warn = $err = 0;
+        foreach ($results as $check) {
+            $status = $check['status'] ?? 'ok';
+            if ($status === 'error') {
+                $err++;
+            } elseif ($status === 'warning') {
+                $warn++;
+            } else {
+                $ok++;
+            }
+        }
+
+        $total = $ok + $warn + $err;
+        return [
+            'ok'        => $ok,
+            'warning'   => $warn,
+            'error'     => $err,
+            'total'     => $total,
+            'score_pct' => $total > 0 ? (int) round($ok / $total * 100) : 100,
+        ];
+    }
 }
