@@ -96,6 +96,9 @@ class ConfigManager
     // ── Multi-expéditeur par langue ───────────────────────────────
     const KEY_SENDERS_JSON      = 'NERIA_SENDERS_JSON';
 
+    // ── Traduction automatique ─────────────────────────────────────
+    const KEY_DEEPL_KEY         = 'NERIA_DEEPL_KEY';
+
     // ── Valeurs par défaut ────────────────────────────────────────
     const DEFAULTS = [
         self::KEY_COLOR_BACKGROUND    => '#f4f1eb',

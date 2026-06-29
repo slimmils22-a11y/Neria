@@ -1754,6 +1754,316 @@ class Neria extends Module
         // ── Onglet Traductions : chargement / sauvegarde / reset ─────
         $tradAction = Tools::getValue('neria_action');
 
+        // ── Export CSV traductions ────────────────────────────────────
+        if ($tradAction === 'export_translations_csv') {
+            $tplKey  = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
+            $allLangs = (int) Tools::getValue('all_langs', 0) === 1;
+            $tableTrad = _DB_PREFIX_ . 'neria_translation';
+
+            if ($allLangs) {
+                $rows = Db::getInstance()->executeS(
+                    "SELECT `template`, `lang`, `translation_key`, `translation_value`, `is_custom`
+                     FROM `{$tableTrad}`
+                     WHERE `template` = '" . pSQL($tplKey) . "'
+                     ORDER BY `lang`, `translation_key`"
+                );
+                $filename = "neria_translations_{$tplKey}_all_langs_" . date('Ymd') . '.csv';
+            } else {
+                $tplLang = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
+                $rows = Db::getInstance()->executeS(
+                    "SELECT `template`, `lang`, `translation_key`, `translation_value`, `is_custom`
+                     FROM `{$tableTrad}`
+                     WHERE `template` = '" . pSQL($tplKey) . "'
+                       AND `lang`     = '" . pSQL($tplLang) . "'
+                     ORDER BY `translation_key`"
+                );
+                $filename = "neria_translations_{$tplKey}_{$tplLang}_" . date('Ymd') . '.csv';
+            }
+
+            header('Content-Type: text/csv; charset=UTF-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Cache-Control: no-cache, no-store, must-revalidate');
+            $out = fopen('php://output', 'w');
+            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF)); // BOM UTF-8 pour Excel
+            fputcsv($out, ['template', 'lang', 'key', 'value', 'is_custom'], ';');
+            foreach ((array) $rows as $row) {
+                fputcsv($out, [
+                    $row['template'],
+                    $row['lang'],
+                    $row['translation_key'],
+                    $row['translation_value'],
+                    $row['is_custom'] ? '1' : '0',
+                ], ';');
+            }
+            fclose($out);
+            exit;
+        }
+
+        // ── Import CSV traductions ────────────────────────────────────
+        if ($tradAction === 'import_translations_csv') {
+            $tplKey  = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
+            $tplLang = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
+
+            if (!empty($_FILES['neria_csv']['tmp_name']) && is_uploaded_file($_FILES['neria_csv']['tmp_name'])) {
+                $tableTrad = _DB_PREFIX_ . 'neria_translation';
+                $handle    = fopen($_FILES['neria_csv']['tmp_name'], 'r');
+
+                // Détecter et sauter le BOM
+                $bom = fread($handle, 3);
+                if ($bom !== chr(0xEF).chr(0xBB).chr(0xBF)) {
+                    rewind($handle);
+                }
+
+                $header  = fgetcsv($handle, 0, ';');
+                $count   = 0;
+                $now     = date('Y-m-d H:i:s');
+
+                while (($line = fgetcsv($handle, 0, ';')) !== false) {
+                    if (count($line) < 4) { continue; }
+                    $template = preg_replace('/[^a-z0-9_\-]/i', '', $line[0]);
+                    $lang     = preg_replace('/[^a-z]/i', '', $line[1]);
+                    $key      = preg_replace('/[^a-z0-9_\.\-]/i', '', $line[2]);
+                    $value    = $line[3];
+                    if ($template === '' || $lang === '' || $key === '') { continue; }
+
+                    Db::getInstance()->execute(
+                        "INSERT INTO `{$tableTrad}` (`template`,`lang`,`translation_key`,`translation_value`,`is_custom`,`date_add`,`date_upd`)
+                         VALUES ('" . pSQL($template) . "','" . pSQL($lang) . "','" . pSQL($key) . "','" . pSQL($value, true) . "',1,'{$now}','{$now}')
+                         ON DUPLICATE KEY UPDATE `translation_value` = '" . pSQL($value, true) . "', `is_custom` = 1, `date_upd` = '{$now}'"
+                    );
+                    $count++;
+                }
+                fclose($handle);
+
+                if (class_exists('TranslationEngine')) { (new TranslationEngine($this))->clearCache(); }
+                $this->context->smarty->assign('neria_success', "{$count} traduction(s) importée(s) avec succès.");
+            } else {
+                $this->context->smarty->assign('neria_error', 'Aucun fichier CSV valide reçu.');
+            }
+        }
+
+        // ── Traduction automatique DeepL ──────────────────────────────
+        if ($tradAction === 'auto_translate_template') {
+            header('Content-Type: application/json; charset=utf-8');
+            $tplKey  = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
+            $tplLang = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
+            $config  = new ConfigManager($this);
+            $deeplKey = trim((string) $config->get(ConfigManager::KEY_DEEPL_KEY, ''));
+
+            if ($deeplKey === '') {
+                echo json_encode(['error' => 'Clé API DeepL manquante. Renseignez-la dans le champ ci-dessus.']);
+                exit;
+            }
+
+            // Langues cibles non supportées par DeepL → on mappe
+            $deeplTargetMap = [
+                'fr' => 'FR', 'en' => 'EN-GB', 'de' => 'DE', 'it' => 'IT',
+                'es' => 'ES', 'pt' => 'PT-PT', 'br' => 'PT-BR', 'nl' => 'NL',
+                'ru' => 'RU', 'tr' => 'TR', 'sv' => 'SV', 'no' => 'NB',
+                'da' => 'DA', 'ja' => 'JA', 'ko' => 'KO', 'zh' => 'ZH',
+                'tw' => 'ZH', 'ar' => 'AR',
+            ];
+            $deeplTarget = $deeplTargetMap[$tplLang] ?? null;
+            if (!$deeplTarget) {
+                echo json_encode(['error' => "Langue '{$tplLang}' non supportée par DeepL."]);
+                exit;
+            }
+
+            // Récupérer les textes source (FR)
+            $tableTrad = _DB_PREFIX_ . 'neria_translation';
+            $rows = Db::getInstance()->executeS(
+                "SELECT `translation_key`, `translation_value`
+                 FROM `{$tableTrad}`
+                 WHERE `template` = '" . pSQL($tplKey) . "'
+                   AND `lang` = 'fr'"
+            );
+
+            if (!$rows) {
+                echo json_encode(['error' => 'Aucun texte source FR trouvé pour ce template.']);
+                exit;
+            }
+
+            $translated = 0;
+            $errors     = [];
+            $now        = date('Y-m-d H:i:s');
+            $isFreeKey  = str_ends_with($deeplKey, ':fx');
+            $apiHost    = $isFreeKey ? 'api-free.deepl.com' : 'api.deepl.com';
+
+            foreach ($rows as $row) {
+                $text = $row['translation_value'];
+                if (trim($text) === '') { continue; }
+
+                $postData = http_build_query([
+                    'auth_key'    => $deeplKey,
+                    'text'        => $text,
+                    'source_lang' => 'FR',
+                    'target_lang' => $deeplTarget,
+                    'tag_handling' => 'html',
+                ]);
+                $ch = curl_init("https://{$apiHost}/v2/translate");
+                curl_setopt_array($ch, [
+                    CURLOPT_POST           => true,
+                    CURLOPT_POSTFIELDS     => $postData,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_TIMEOUT        => 10,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                ]);
+                $resp = curl_exec($ch);
+                $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($code !== 200 || !$resp) {
+                    $errors[] = $row['translation_key'];
+                    continue;
+                }
+
+                $json = json_decode($resp, true);
+                $result = $json['translations'][0]['text'] ?? null;
+                if ($result === null) { $errors[] = $row['translation_key']; continue; }
+
+                Db::getInstance()->execute(
+                    "INSERT INTO `{$tableTrad}` (`template`,`lang`,`translation_key`,`translation_value`,`is_custom`,`date_add`,`date_upd`)
+                     VALUES ('" . pSQL($tplKey) . "','" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "',1,'{$now}','{$now}')
+                     ON DUPLICATE KEY UPDATE `translation_value` = '" . pSQL($result, true) . "', `is_custom` = 1, `date_upd` = '{$now}'"
+                );
+                $translated++;
+            }
+
+            if (class_exists('TranslationEngine')) { (new TranslationEngine($this))->clearCache(); }
+
+            echo json_encode([
+                'success'    => true,
+                'translated' => $translated,
+                'errors'     => $errors,
+                'message'    => "{$translated} champ(s) traduit(s) via DeepL." . (!empty($errors) ? " Erreurs sur : " . implode(', ', $errors) : ''),
+            ]);
+            exit;
+        }
+
+        // ── Recherche globale AJAX ────────────────────────────────────
+        if ($tradAction === 'search_translations') {
+            header('Content-Type: application/json; charset=utf-8');
+            $q = preg_replace('/[^a-z0-9àâäéèêëîïôùûüç\s\-_]/i', '', (string) Tools::getValue('q', ''));
+            if (mb_strlen($q) < 2) { echo json_encode(['results' => []]); exit; }
+
+            $tableTrad = _DB_PREFIX_ . 'neria_translation';
+            $rows = Db::getInstance()->executeS(
+                "SELECT `template`, `lang`, `translation_key`, `translation_value`
+                 FROM `{$tableTrad}`
+                 WHERE `translation_value` LIKE '%" . pSQL($q, true) . "%'
+                    OR `translation_key`   LIKE '%" . pSQL($q, true) . "%'
+                 ORDER BY `template`, `lang`, `translation_key`
+                 LIMIT 60"
+            );
+
+            $templateLabels = \AdminTranslator::templateLabels();
+            $results = [];
+            foreach ((array) $rows as $row) {
+                $results[] = [
+                    'template'       => $row['template'],
+                    'template_label' => $templateLabels[$row['template']] ?? $row['template'],
+                    'lang'           => $row['lang'],
+                    'key'            => $row['translation_key'],
+                    'value'          => mb_substr($row['translation_value'], 0, 120),
+                ];
+            }
+            echo json_encode(['results' => $results]);
+            exit;
+        }
+
+        // ── Réinitialiser ce template dans TOUTES les langues ─────────
+        if ($tradAction === 'reset_template_all_langs') {
+            $tplKey    = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
+            $tableTrad = _DB_PREFIX_ . 'neria_translation';
+            $jsonPath  = __DIR__ . '/data/translations.json';
+            $jsonData  = is_file($jsonPath) ? json_decode(file_get_contents($jsonPath), true) : [];
+
+            if ($tplKey !== '' && !empty($jsonData[$tplKey])) {
+                Db::getInstance()->execute(
+                    "DELETE FROM `{$tableTrad}` WHERE `template` = '" . pSQL($tplKey) . "'"
+                );
+                $now   = date('Y-m-d H:i:s');
+                $batch = [];
+                foreach ($jsonData[$tplKey] as $lang => $fields) {
+                    foreach ($fields as $fKey => $fVal) {
+                        if (is_string($fVal)) {
+                            $batch[] = sprintf(
+                                "('%s','%s','%s','%s',0,'%s','%s')",
+                                pSQL($tplKey), pSQL($lang), pSQL($fKey), pSQL($fVal, true), $now, $now
+                            );
+                        }
+                    }
+                }
+                if ($batch) {
+                    Db::getInstance()->execute("SET NAMES 'utf8mb4'");
+                    Db::getInstance()->execute(sprintf(
+                        "INSERT INTO `%s` (`template`,`lang`,`translation_key`,`translation_value`,`is_custom`,`date_add`,`date_upd`) VALUES %s",
+                        $tableTrad, implode(',', $batch)
+                    ));
+                }
+                if (class_exists('TranslationEngine')) { (new TranslationEngine($this))->clearCache(); }
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this))->warning(
+                        sprintf('Template "%s" réinitialisé dans toutes les langues', $tplKey), '', 'Traductions'
+                    );
+                }
+                $this->context->smarty->assign('neria_success', "Template \"{$tplKey}\" réinitialisé dans toutes les langues.");
+            }
+        }
+
+        // ── Réinitialiser TOUT (tous templates, toutes langues) ───────
+        if ($tradAction === 'reset_all_translations') {
+            $tableTrad = _DB_PREFIX_ . 'neria_translation';
+            $jsonPath  = __DIR__ . '/data/translations.json';
+            $jsonData  = is_file($jsonPath) ? json_decode(file_get_contents($jsonPath), true) : [];
+
+            if (!empty($jsonData) && is_array($jsonData)) {
+                Db::getInstance()->execute("TRUNCATE TABLE `{$tableTrad}`");
+                $now   = date('Y-m-d H:i:s');
+                $batch = [];
+                foreach ($jsonData as $tpl => $langs) {
+                    foreach ($langs as $lang => $fields) {
+                        foreach ($fields as $fKey => $fVal) {
+                            if (is_string($fVal)) {
+                                $batch[] = sprintf(
+                                    "('%s','%s','%s','%s',0,'%s','%s')",
+                                    pSQL($tpl), pSQL($lang), pSQL($fKey), pSQL($fVal, true), $now, $now
+                                );
+                            }
+                        }
+                    }
+                    // Insérer par lots de 500
+                    if (count($batch) >= 500) {
+                        Db::getInstance()->execute("SET NAMES 'utf8mb4'");
+                        Db::getInstance()->execute(sprintf(
+                            "INSERT INTO `%s` (`template`,`lang`,`translation_key`,`translation_value`,`is_custom`,`date_add`,`date_upd`) VALUES %s",
+                            $tableTrad, implode(',', $batch)
+                        ));
+                        $batch = [];
+                    }
+                }
+                if ($batch) {
+                    Db::getInstance()->execute("SET NAMES 'utf8mb4'");
+                    Db::getInstance()->execute(sprintf(
+                        "INSERT INTO `%s` (`template`,`lang`,`translation_key`,`translation_value`,`is_custom`,`date_add`,`date_upd`) VALUES %s",
+                        $tableTrad, implode(',', $batch)
+                    ));
+                }
+                if (class_exists('TranslationEngine')) { (new TranslationEngine($this))->clearCache(); }
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this))->warning('RÉINITIALISATION GLOBALE de toutes les traductions', '', 'Traductions');
+                }
+                $this->context->smarty->assign('neria_success', 'Toutes les traductions ont été réinitialisées aux valeurs Neria d\'origine.');
+            }
+        }
+
+        // ── Sauvegarde clé DeepL ──────────────────────────────────────
+        if ($tradAction === 'save_deepl_key') {
+            $key = trim((string) Tools::getValue('deepl_key', ''));
+            (new ConfigManager($this))->set(ConfigManager::KEY_DEEPL_KEY, $key);
+            $this->context->smarty->assign('neria_success', 'Clé API DeepL enregistrée.');
+        }
+
         if (in_array($tradAction, ['load_translations', 'save_translations', 'reset_template', 'save_variant_b', 'restore_translation'], true)) {
             $tplKey  = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
             $tplLang = preg_replace('/[^a-z]/i', '',    (string) Tools::getValue('trad_lang', 'fr'));
@@ -2835,9 +3145,11 @@ class Neria extends Module
             'lang_labels'      => NeriaTools::getLangLabels(),
             'lang_flags'       => NeriaTools::getLangFlags(),
 
-            // Libellés des 108 templates, traduits dans la langue du BO
-            // (repli sur le nom français canonique si une trad manque)
+            // Libellés des 125 templates, traduits dans la langue du BO
             'template_labels'  => AdminTranslator::templateLabels(),
+
+            // Clé DeepL pour la traduction automatique
+            'deepl_key'        => (string) $config->get(ConfigManager::KEY_DEEPL_KEY, ''),
 
             // Configuration design (couleurs, logo, typo…)
             'design'           => $config->getDesignConfig(),

@@ -417,6 +417,40 @@
 .neria-btn--xs { padding:3px 10px; font-size:11px; border-radius:4px; }
 .neria-changelog__empty { font-size:13px; color:var(--neria-text-muted,#aaa); font-style:italic; margin:16px 0 4px; }
 
+/* ── Traductions — layout split ──────────────────────────────── */
+.neria-trad-layout { display:grid; grid-template-columns:1fr; gap:0; transition:grid-template-columns .3s; }
+.neria-trad-layout.neria-trad-layout--split { grid-template-columns:55% 1fr; gap:24px; }
+.neria-trad-editor-col { min-width:0; }
+.neria-trad-preview-col { position:sticky; top:80px; height:calc(100vh - 100px); display:flex; flex-direction:column; }
+.neria-trad-preview-col iframe { flex:1; border:1px solid var(--neria-border); border-radius:var(--neria-radius); background:#fff; }
+.neria-trad-preview-col .neria-preview-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--neria-text-light); }
+
+/* Recherche globale */
+.neria-search-bar { display:flex; gap:8px; align-items:center; }
+.neria-search-bar .neria-input { flex:1; }
+.neria-search-results { margin-top:8px; display:none; border:1px solid var(--neria-border); border-radius:var(--neria-radius); background:#fff; max-height:320px; overflow-y:auto; }
+.neria-search-results.active { display:block; }
+.neria-search-result-item { display:grid; grid-template-columns:auto auto 1fr; gap:6px 10px; align-items:baseline; padding:10px 14px; border-bottom:1px solid var(--neria-border); cursor:pointer; transition:background .12s; }
+.neria-search-result-item:last-child { border-bottom:0; }
+.neria-search-result-item:hover { background:var(--neria-bg-subtle); }
+.neria-search-result-item__tpl { font-size:11px; font-weight:700; color:var(--neria-accent); white-space:nowrap; }
+.neria-search-result-item__lang { font-size:11px; background:var(--neria-bg-hover); color:var(--neria-text-light); border-radius:3px; padding:1px 5px; white-space:nowrap; }
+.neria-search-result-item__val { font-size:12px; color:var(--neria-text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.neria-search-result-item__key { font-size:10px; font-family:monospace; color:var(--neria-text-muted); grid-column:3; }
+.neria-search-empty { padding:14px 16px; font-size:13px; color:var(--neria-text-muted); font-style:italic; }
+
+/* Barre outils traductions */
+.neria-trad-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:16px; padding:12px 16px; background:var(--neria-bg-subtle); border:1px solid var(--neria-border); border-radius:var(--neria-radius); }
+.neria-trad-toolbar__group { display:flex; gap:6px; align-items:center; }
+.neria-trad-toolbar__sep { width:1px; height:28px; background:var(--neria-border); margin:0 4px; }
+.neria-deepl-key-row { display:flex; gap:8px; align-items:center; margin-bottom:16px; }
+.neria-deepl-key-row .neria-input { flex:1; font-family:monospace; font-size:12px; }
+.neria-deepl-badge { font-size:10px; background:#0f2b46; color:#4ec9f7; border-radius:4px; padding:2px 7px; font-weight:700; letter-spacing:.04em; white-space:nowrap; }
+
+/* Boutons reset danger */
+.neria-btn--warn { background:#b45309; border-color:#b45309; color:#fff; }
+.neria-btn--warn:hover { background:#92400e; border-color:#92400e; }
+
 /* ── Onglet RGPD ─────────────────────────────────────────────── */
 .neria-gdpr-grade { display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px; border-radius:50%; font-size:26px; font-weight:700; color:#fff; flex-shrink:0; }
 .neria-gdpr-score-card { display:flex; align-items:center; }
