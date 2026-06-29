@@ -1270,36 +1270,50 @@ class Neria extends Module
                 exit;
             }
 
-            $translated = 0;
-            $errors     = [];
-            $now        = date('Y-m-d H:i:s');
-            $isFreeKey  = str_ends_with($deeplKey, ':fx');
-            $apiHost    = $isFreeKey ? 'api-free.deepl.com' : 'api.deepl.com';
+            if ($tplLang === 'fr') {
+                echo json_encode(['error' => 'Le français est la langue source — choisissez une autre langue à traduire.']);
+                exit;
+            }
+
+            $translated   = 0;
+            $errors       = [];
+            $firstErrBody = null;
+            $firstErrCode = null;
+            $now          = date('Y-m-d H:i:s');
+            $isFreeKey    = str_ends_with($deeplKey, ':fx');
+            $apiHost      = $isFreeKey ? 'api-free.deepl.com' : 'api.deepl.com';
 
             foreach ($rows as $row) {
                 $text = $row['translation_value'];
                 if (trim($text) === '') { continue; }
 
-                $postData = http_build_query([
-                    'auth_key'     => $deeplKey,
-                    'text'         => $text,
-                    'source_lang'  => 'FR',
-                    'target_lang'  => $deeplTarget,
-                    'tag_handling' => 'html',
-                ]);
                 $ch = curl_init("https://{$apiHost}/v2/translate");
                 curl_setopt_array($ch, [
                     CURLOPT_POST           => true,
-                    CURLOPT_POSTFIELDS     => $postData,
+                    CURLOPT_POSTFIELDS     => http_build_query([
+                        'text'        => $text,
+                        'source_lang' => 'FR',
+                        'target_lang' => $deeplTarget,
+                        'tag_handling'=> 'html',
+                    ]),
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_TIMEOUT        => 15,
                     CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_HTTPHEADER     => [
+                        'Authorization: DeepL-Auth-Key ' . $deeplKey,
+                        'Accept: application/json',
+                    ],
                 ]);
                 $resp = curl_exec($ch);
-                $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $curlErr = curl_error($ch);
                 curl_close($ch);
 
                 if ($code !== 200 || !$resp) {
+                    if ($firstErrCode === null) {
+                        $firstErrCode = $code;
+                        $firstErrBody = $curlErr ?: (string) $resp;
+                    }
                     $errors[] = $row['translation_key'];
                     continue;
                 }
@@ -1317,12 +1331,21 @@ class Neria extends Module
 
             if (class_exists('TranslationEngine')) { (new TranslationEngine($this))->clearCache(); }
 
+            if ($translated === 0 && !empty($errors)) {
+                $detail = '';
+                if ($firstErrCode !== null) {
+                    $detail = " (HTTP {$firstErrCode}" . ($firstErrBody ? ': ' . substr($firstErrBody, 0, 120) : '') . ')';
+                }
+                echo json_encode(['error' => "Échec DeepL — 0 champ traduit sur " . count($errors) . ".{$detail}"]);
+                exit;
+            }
+
             echo json_encode([
                 'success'    => true,
                 'translated' => $translated,
                 'errors'     => $errors,
                 'message'    => "{$translated} champ(s) traduit(s) via DeepL."
-                              . (!empty($errors) ? ' Erreurs : ' . implode(', ', $errors) : ''),
+                              . (!empty($errors) ? ' (' . count($errors) . ' erreur(s))' : ''),
             ]);
             exit;
         }
