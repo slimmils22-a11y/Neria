@@ -1356,6 +1356,12 @@ class Neria extends Module
             }
 
             if (class_exists('TranslationEngine')) { (new TranslationEngine($this))->clearCache(); }
+            if (class_exists('WatchdogManager') && $translated > 0) {
+                (new WatchdogManager($this))->info(
+                    sprintf('DeepL : %d champ(s) traduit(s) dans "%s" [%s]%s', $translated, $tplKey, $tplLang, $skipped > 0 ? ", {$skipped} conservé(s)" : ''),
+                    $tplKey, 'Traductions'
+                );
+            }
 
             if ($translated === 0 && !empty($errors)) {
                 $detail = '';
@@ -2012,6 +2018,11 @@ class Neria extends Module
                 fclose($handle);
 
                 if (class_exists('TranslationEngine')) { (new TranslationEngine($this))->clearCache(); }
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this))->info(
+                        sprintf('Import CSV : %d traduction(s) importée(s)', $count), '', 'Traductions'
+                    );
+                }
                 $this->context->smarty->assign('neria_success', "{$count} traduction(s) importée(s) avec succès.");
             } else {
                 $this->context->smarty->assign('neria_error', 'Aucun fichier CSV valide reçu.');
@@ -2108,6 +2119,11 @@ class Neria extends Module
         if ($tradAction === 'save_deepl_key') {
             $key = trim((string) Tools::getValue('deepl_key', ''));
             (new ConfigManager($this))->set(ConfigManager::KEY_DEEPL_KEY, $key);
+            if (class_exists('WatchdogManager')) {
+                (new WatchdogManager($this))->info(
+                    $key !== '' ? 'Clé API DeepL configurée' : 'Clé API DeepL supprimée', '', 'Traductions'
+                );
+            }
             $this->context->smarty->assign('neria_success', 'Clé API DeepL enregistrée.');
         }
 
