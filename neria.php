@@ -827,6 +827,18 @@ class Neria extends Module
         $this->createLoyaltyTablesIfNeeded();
         $this->createSeasonalCampaignTableIfNeeded();
 
+        // Réputation de domaine — refresh auto côté BO (même throttle 24h que front)
+        if (class_exists('DomainReputationManager')) {
+            $lastCheck = (int) Configuration::get('NERIA_DOMAIN_REP_LAST_CHECK');
+            if ((time() - $lastCheck) >= 86400) {
+                try {
+                    (new DomainReputationManager($this))->runFullCheck();
+                } catch (\Throwable $e) {
+                    // best-effort
+                }
+            }
+        }
+
         // Hooks ajoutés après l'install() initial des installations
         // existantes : à enregistrer explicitement, sinon PrestaShop ne les
         // appelle jamais (pas d'entrée en ps_hook_module). registerHook()
@@ -3834,7 +3846,7 @@ class Neria extends Module
 
             // Réputation de domaine (onglet stats) — lecture du cache uniquement
             'domain_reputation' => class_exists('DomainReputationManager')
-                ? (new DomainReputationManager($this))->getCachedReport()
+                ? (new DomainReputationManager($this))->getReport(false)
                 : null,
 
             // Google Postmaster Tools
