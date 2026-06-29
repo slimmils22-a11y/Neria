@@ -42,7 +42,19 @@ function neriaCloseDeleteModal() {
   document.getElementById('neria-delete-modal-overlay').classList.remove('active');
   _neriaDeleteForm = null;
 }
+function neriaToggleWhy() {
+  var body    = document.getElementById('neria-why-body');
+  var chevron = document.getElementById('neria-why-chevron');
+  var hidden  = body.style.display === 'none';
+  body.style.display    = hidden ? '' : 'none';
+  chevron.style.transform = hidden ? '' : 'rotate(-90deg)';
+  localStorage.setItem('neria_why_collapsed', hidden ? '0' : '1');
+}
 document.addEventListener('DOMContentLoaded', function() {
+  if (localStorage.getItem('neria_why_collapsed') === '1') {
+    document.getElementById('neria-why-body').style.display = 'none';
+    document.getElementById('neria-why-chevron').style.transform = 'rotate(-90deg)';
+  }
   document.getElementById('neria-delete-modal-confirm').addEventListener('click', function() {
     if (_neriaDeleteForm) { _neriaDeleteForm.submit(); }
   });
@@ -69,6 +81,45 @@ window.neriaAjaxUrl = function(action, extra) {
 <div class="neria-section">
   <h2 class="neria-section__title">{neria_admin key='translations.page_title'}</h2>
   <p class="neria-section__desc">{neria_admin key='translations.page_desc'}</p>
+
+  {* Notice explicative — repliable via localStorage *}
+  <div id="neria-trad-why" style="margin-top:16px;background:#fdfaf5;border:1px solid #e8d5b0;border-radius:8px;overflow:hidden;">
+    <button type="button" onclick="neriaToggleWhy()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:none;border:none;cursor:pointer;text-align:left;">
+      <span style="font-size:13px;font-weight:700;color:var(--neria-dark,#2c1810);">
+        💡 Neria est déjà traduit en 18 langues — à quoi sert cet onglet ?
+      </span>
+      <span id="neria-why-chevron" style="font-size:16px;color:var(--neria-accent,#b8976a);transition:transform .2s;">▾</span>
+    </button>
+    <div id="neria-why-body" style="padding:0 20px 18px;">
+      <p style="margin:0 0 12px;font-size:13px;color:#555;line-height:1.7;">
+        Oui, Neria livre tous vos emails prêts à l'emploi. Mais ces textes sont <strong>génériques</strong> : chaque boutique qui utilise Neria reçoit exactement les mêmes formulations, dans les mêmes 18 langues.
+      </p>
+      <p style="margin:0 0 14px;font-size:13px;color:#555;line-height:1.7;">
+        Cet onglet vous permet de <strong>faire sonner vos emails comme votre marque</strong>, pas comme un logiciel.
+      </p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="background:#fff;border:1px solid #ede0cc;border-radius:6px;padding:12px 14px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:6px;">Adapter le ton</div>
+          <div style="font-size:12px;color:#666;line-height:1.6;">Remplacez "Cher client" par "Chère Madame, Cher Monsieur" ou par le prénom — selon votre positionnement.</div>
+        </div>
+        <div style="background:#fff;border:1px solid #ede0cc;border-radius:6px;padding:12px 14px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:6px;">Soigner une langue</div>
+          <div style="font-size:12px;color:#666;line-height:1.6;">La traduction par défaut en japonais ou en arabe est correcte, mais votre marché attend peut-être un registre différent.</div>
+        </div>
+        <div style="background:#fff;border:1px solid #ede0cc;border-radius:6px;padding:12px 14px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:6px;">Copywriter externe</div>
+          <div style="font-size:12px;color:#666;line-height:1.6;">Exportez les textes en CSV, faites-les réécrire par un professionnel, réimportez. Zéro copier-coller.</div>
+        </div>
+        <div style="background:#fff;border:1px solid #ede0cc;border-radius:6px;padding:12px 14px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:6px;">Multi-boutiques</div>
+          <div style="font-size:12px;color:#666;line-height:1.6;">Exportez vos textes personnalisés depuis une boutique et importez-les sur les autres en quelques secondes.</div>
+        </div>
+      </div>
+      <p style="margin:0;font-size:12px;color:#888;line-height:1.6;border-top:1px solid #ede0cc;padding-top:10px;">
+        🔒 <strong>Vos modifications sont protégées :</strong> les mises à jour de Neria ne les écrasent jamais. Chaque champ que vous retravaillez est marqué <span style="background:#f3ede4;color:#b38b59;border-radius:3px;padding:1px 6px;font-size:11px;font-family:monospace;">PERSONNALISÉ</span> et conservé même si vous utilisez DeepL ou réinitialisez d'autres champs. Vous pouvez toujours restaurer le texte d'origine en un clic.
+      </p>
+    </div>
+  </div>
 
   <div class="neria-card" style="margin-top:20px;background:var(--neria-bg-subtle,#f9f7f4);border-left:3px solid var(--neria-accent,#b8976a);padding:18px 24px;">
     <h4 style="margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--neria-accent,#b8976a);">{neria_admin key='translations.howto_title'}</h4>
