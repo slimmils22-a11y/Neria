@@ -1283,6 +1283,21 @@ class Neria extends Module
             $isFreeKey    = str_ends_with($deeplKey, ':fx');
             $apiHost      = $isFreeKey ? 'api-free.deepl.com' : 'api.deepl.com';
 
+            // Valeurs actuelles de la langue cible (pour l'historique)
+            $currentRows = Db::getInstance()->executeS(
+                "SELECT `translation_key`, `translation_value`
+                 FROM `{$tableTrad}`
+                 WHERE `template` = '" . pSQL($tplKey) . "'
+                   AND `lang`     = '" . pSQL($tplLang) . "'"
+            );
+            $currentVals = [];
+            foreach ((array) $currentRows as $r) {
+                $currentVals[$r['translation_key']] = $r['translation_value'];
+            }
+            $histMgr = class_exists('TranslationHistoryManager') ? new TranslationHistoryManager() : null;
+            $employee = $this->context->employee;
+            $author   = trim($employee->firstname . ' ' . $employee->lastname) ?: 'DeepL';
+
             foreach ($rows as $row) {
                 $text = $row['translation_value'];
                 if (trim($text) === '') { continue; }
@@ -1320,6 +1335,10 @@ class Neria extends Module
                 $json   = json_decode($resp, true);
                 $result = $json['translations'][0]['text'] ?? null;
                 if ($result === null) { $errors[] = $row['translation_key']; continue; }
+
+                if ($histMgr !== null) {
+                    $histMgr->record($tplKey, $tplLang, $row['translation_key'], $currentVals[$row['translation_key']] ?? '', $result, $author . ' (DeepL)');
+                }
 
                 Db::getInstance()->execute(
                     "INSERT INTO `{$tableTrad}` (`template`,`lang`,`translation_key`,`translation_value`,`is_custom`,`date_add`,`date_upd`)
