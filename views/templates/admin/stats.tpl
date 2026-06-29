@@ -88,8 +88,37 @@
   </div>
 </div>
 
-{* ── Graphique CA par catégorie — EN TÊTE ───────────────────── *}
-<div class="neria-section" id="neria-revenue-chart-section">
+{* ── Revenus Attribués — graphique + KPIs + tableau ─────────── *}
+<div class="neria-section" id="neria-revenue-attribution">
+
+  {* Bloc explicatif last-click *}
+  <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:24px;font-size:13px;line-height:1.75;color:#4a3f35;">
+    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
+    Neria utilise un modèle <strong>last-click sur 24h</strong> : dès qu'un client clique sur un lien dans un email Neria, un cookie <code>neria_ref</code> est posé. Si une commande payée est enregistrée dans les 24 heures suivantes, la vente est automatiquement attribuée à ce template.
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8d5b0;">
+      <strong>Fenêtre d'analyse :</strong> les 90 derniers jours. Un même client peut générer plusieurs conversions sur des templates différents. Les commandes annulées ou remboursées sont exclues du calcul.
+    </div>
+  </div>
+
+  {* KPIs attribution 90j *}
+  {if isset($revenue) && $revenue.total_orders > 0}
+  <div class="neria-kpi-grid neria-kpi-grid--large" style="margin-bottom:24px;">
+    <div class="neria-kpi neria-kpi--main">
+      <div class="neria-kpi__value">{$revenue.total_revenue|string_format:"%.2f"} {$currency_symbol}</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.revenue_total'}</div>
+    </div>
+    <div class="neria-kpi">
+      <div class="neria-kpi__value">{$revenue.total_orders}</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.revenue_orders'}</div>
+    </div>
+    <div class="neria-kpi">
+      <div class="neria-kpi__value">{$revenue.avg_order|string_format:"%.2f"} {$currency_symbol}</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.revenue_avg_order'}</div>
+    </div>
+  </div>
+  {/if}
+
+  {* Graphique CA par catégorie *}
   <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
     <div>
       <h2 class="neria-section__title" style="margin:0;">{neria_admin key='stats.revenue_chart_title'} ◈</h2>
@@ -121,6 +150,43 @@
   <p style="margin:10px 0 0;font-size:11px;color:#a09990;font-style:italic;">
     &#9432; Cliquez sur une catégorie pour l'isoler — recliquez pour tout réafficher.
   </p>
+
+  {* Tableau par template *}
+  {if isset($revenue) && $revenue.total_orders > 0}
+  <hr style="border:none;border-top:1px solid rgba(0,0,0,.07);margin:24px 0;">
+  <div class="neria-table-wrap">
+    <table class="neria-table">
+      <colgroup>
+        <col style="width:200px">
+        <col style="width:120px">
+        <col style="width:120px">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>{neria_admin key='stats.revenue_col_template'}</th>
+          <th style="text-align:right">{neria_admin key='stats.revenue_col_orders'}</th>
+          <th style="text-align:right">{neria_admin key='stats.revenue_col_revenue'}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {foreach $revenue.by_template as $tpl => $data}
+        <tr>
+          <td><span class="neria-tpl-name">{$tpl|escape:'html'}</span></td>
+          <td style="text-align:right">{$data.orders}</td>
+          <td style="text-align:right"><strong>{$data.revenue|string_format:"%.2f"} {$currency_symbol}</strong></td>
+        </tr>
+        {/foreach}
+      </tbody>
+    </table>
+  </div>
+  {elseif !isset($revenue) || $revenue.total_orders == 0}
+  <hr style="border:none;border-top:1px solid rgba(0,0,0,.07);margin:24px 0;">
+  <div class="neria-empty-state" style="margin:0;">
+    <span class="neria-empty-state__icon">◈</span>
+    <p class="neria-empty-state__text">{neria_admin key='stats.revenue_empty'}</p>
+  </div>
+  {/if}
+  <p class="neria-hint" style="margin-top:8px;">{neria_admin key='stats.revenue_hint'}</p>
 </div>
 
 <script>
@@ -1910,72 +1976,7 @@ var _nhm = {$open_heatmap|default:'null'};
 </div>
 {/if}
 
-{* bloc graphique déplacé en tête du fichier *}
-
-{* ── Revenue Attribution ─────────────────────────────────────── *}
-{if isset($revenue) && ($revenue.total_orders > 0 || true)}
-<div class="neria-section">
-  <h2 class="neria-section__title">{neria_admin key='stats.revenue_title'} ◈</h2>
-  <p class="neria-section__desc">{neria_admin key='stats.revenue_desc'}</p>
-
-  <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:24px;font-size:13px;line-height:1.75;color:#4a3f35;">
-    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-    Neria utilise un modèle <strong>last-click sur 24h</strong> : dès qu'un client clique sur un lien dans un email Neria, un cookie <code>neria_ref</code> est posé. Si une commande payée est enregistrée dans les 24 heures suivantes, la vente est automatiquement attribuée à ce template.
-    <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8d5b0;">
-      <strong>Fenêtre d'analyse :</strong> les 90 derniers jours. Un même client peut générer plusieurs conversions sur des templates différents. Les commandes annulées ou remboursées sont exclues du calcul.
-    </div>
-  </div>
-
-  {if $revenue.total_orders > 0}
-  <div class="neria-kpi-grid neria-kpi-grid--large" style="margin-bottom:24px;">
-    <div class="neria-kpi neria-kpi--main">
-      <div class="neria-kpi__value">{$revenue.total_revenue|string_format:"%.2f"} {$currency_symbol}</div>
-      <div class="neria-kpi__label">{neria_admin key='stats.revenue_total'}</div>
-    </div>
-    <div class="neria-kpi">
-      <div class="neria-kpi__value">{$revenue.total_orders}</div>
-      <div class="neria-kpi__label">{neria_admin key='stats.revenue_orders'}</div>
-    </div>
-    <div class="neria-kpi">
-      <div class="neria-kpi__value">{$revenue.avg_order|string_format:"%.2f"} {$currency_symbol}</div>
-      <div class="neria-kpi__label">{neria_admin key='stats.revenue_avg_order'}</div>
-    </div>
-  </div>
-
-  <div class="neria-table-wrap">
-    <table class="neria-table">
-      <colgroup>
-        <col style="width:200px">
-        <col style="width:120px">
-        <col style="width:120px">
-      </colgroup>
-      <thead>
-        <tr>
-          <th>{neria_admin key='stats.revenue_col_template'}</th>
-          <th style="text-align:right">{neria_admin key='stats.revenue_col_orders'}</th>
-          <th style="text-align:right">{neria_admin key='stats.revenue_col_revenue'}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {foreach $revenue.by_template as $tpl => $data}
-        <tr>
-          <td><span class="neria-tpl-name">{$tpl|escape:'html'}</span></td>
-          <td style="text-align:right">{$data.orders}</td>
-          <td style="text-align:right"><strong>{$data.revenue|string_format:"%.2f"} {$currency_symbol}</strong></td>
-        </tr>
-        {/foreach}
-      </tbody>
-    </table>
-  </div>
-  {else}
-  <div class="neria-empty-state" style="margin:0;">
-    <span class="neria-empty-state__icon">◈</span>
-    <p class="neria-empty-state__text">{neria_admin key='stats.revenue_empty'}</p>
-  </div>
-  {/if}
-  <p class="neria-hint" style="margin-top:8px;">{neria_admin key='stats.revenue_hint'}</p>
-</div>
-{/if}
+{* Revenue Attribution fusionné dans #neria-revenue-attribution en tête du fichier *}
 
 {* ── Abandon de caisse ─────────────────────────────────────── *}
 <div class="neria-section" id="neria-checkout-abandonment-section">
