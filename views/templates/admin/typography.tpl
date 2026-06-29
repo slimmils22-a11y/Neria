@@ -188,19 +188,22 @@
         </span>
 
         <div class="neria-preview-controls">
+          <label class="neria-label" for="preview_template">
+            {neria_admin key='common.template'}
+          </label>
           <select id="preview_template" class="neria-select neria-select--sm">
-            {foreach $templates_list as $tplName => $tplLabel}
-              <option value="{$tplName}"
-                {if $tplName === 'order_conf'}selected{/if}>
-                {$tplLabel|truncate:28:'…':true}
-              </option>
+            {foreach $template_labels as $key => $label}
+              <option value="{$key}" {if $key === 'order_conf'}selected{/if}>{$label}</option>
             {/foreach}
           </select>
 
+          <label class="neria-label" for="preview_lang">
+            {neria_admin key='common.language'}
+          </label>
           <select id="preview_lang" class="neria-select neria-select--sm">
-            {foreach ['fr','en','de','es','it','pt','nl','pl','ar','ja','ko','zh','tw','ru'] as $lc}
-              <option value="{$lc}" {if $lc === 'fr'}selected{/if}>
-                {$lc|upper}
+            {foreach $lang_labels as $code => $name}
+              <option value="{$code}" {if $code === 'fr'}selected{/if}>
+                {$lang_flags[$code]|default:''} {$name}
               </option>
             {/foreach}
           </select>
