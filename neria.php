@@ -1203,6 +1203,130 @@ class Neria extends Module
             $this->outputEmailPreview();
         }
 
+        // ── Actions AJAX pures — doivent sortir avant le rendu PS ──────
+        $earlyAction = Tools::getValue('neria_action');
+
+        if ($earlyAction === 'search_translations') {
+            header('Content-Type: application/json; charset=utf-8');
+            $q = preg_replace('/[^a-z0-9àâäéèêëîïôùûüç\s\-_]/i', '', (string) Tools::getValue('q', ''));
+            if (mb_strlen($q) < 2) { echo json_encode(['results' => []]); exit; }
+            $tableTrad = _DB_PREFIX_ . 'neria_translation';
+            $rows = Db::getInstance()->executeS(
+                "SELECT `template`, `lang`, `translation_key`, `translation_value`
+                 FROM `{$tableTrad}`
+                 WHERE `translation_value` LIKE '%" . pSQL($q, true) . "%'
+                    OR `translation_key`   LIKE '%" . pSQL($q, true) . "%'
+                 ORDER BY `template`, `lang`, `translation_key`
+                 LIMIT 60"
+            );
+            $templateLabels = \AdminTranslator::templateLabels();
+            $results = [];
+            foreach ((array) $rows as $row) {
+                $results[] = [
+                    'template'       => $row['template'],
+                    'template_label' => $templateLabels[$row['template']] ?? $row['template'],
+                    'lang'           => $row['lang'],
+                    'key'            => $row['translation_key'],
+                    'value'          => mb_substr($row['translation_value'], 0, 120),
+                ];
+            }
+            echo json_encode(['results' => $results]);
+            exit;
+        }
+
+        if ($earlyAction === 'auto_translate_template') {
+            header('Content-Type: application/json; charset=utf-8');
+            $tplKey  = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
+            $tplLang = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
+            $config  = new ConfigManager($this);
+            $deeplKey = trim((string) $config->get(ConfigManager::KEY_DEEPL_KEY, ''));
+
+            if ($deeplKey === '') {
+                echo json_encode(['error' => 'Clé API DeepL manquante. Renseignez-la et sauvegardez avant de traduire.']);
+                exit;
+            }
+
+            $deeplTargetMap = [
+                'fr'=>'FR','en'=>'EN-GB','de'=>'DE','it'=>'IT','es'=>'ES',
+                'pt'=>'PT-PT','br'=>'PT-BR','nl'=>'NL','ru'=>'RU','tr'=>'TR',
+                'sv'=>'SV','no'=>'NB','da'=>'DA','ja'=>'JA','ko'=>'KO',
+                'zh'=>'ZH','tw'=>'ZH','ar'=>'AR',
+            ];
+            $deeplTarget = $deeplTargetMap[$tplLang] ?? null;
+            if (!$deeplTarget) {
+                echo json_encode(['error' => "Langue '{$tplLang}' non supportée par DeepL."]);
+                exit;
+            }
+
+            $tableTrad = _DB_PREFIX_ . 'neria_translation';
+            $rows = Db::getInstance()->executeS(
+                "SELECT `translation_key`, `translation_value`
+                 FROM `{$tableTrad}`
+                 WHERE `template` = '" . pSQL($tplKey) . "'
+                   AND `lang` = 'fr'"
+            );
+            if (!$rows) {
+                echo json_encode(['error' => 'Aucun texte source FR trouvé pour ce template.']);
+                exit;
+            }
+
+            $translated = 0;
+            $errors     = [];
+            $now        = date('Y-m-d H:i:s');
+            $isFreeKey  = str_ends_with($deeplKey, ':fx');
+            $apiHost    = $isFreeKey ? 'api-free.deepl.com' : 'api.deepl.com';
+
+            foreach ($rows as $row) {
+                $text = $row['translation_value'];
+                if (trim($text) === '') { continue; }
+
+                $postData = http_build_query([
+                    'auth_key'     => $deeplKey,
+                    'text'         => $text,
+                    'source_lang'  => 'FR',
+                    'target_lang'  => $deeplTarget,
+                    'tag_handling' => 'html',
+                ]);
+                $ch = curl_init("https://{$apiHost}/v2/translate");
+                curl_setopt_array($ch, [
+                    CURLOPT_POST           => true,
+                    CURLOPT_POSTFIELDS     => $postData,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_TIMEOUT        => 15,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                ]);
+                $resp = curl_exec($ch);
+                $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+
+                if ($code !== 200 || !$resp) {
+                    $errors[] = $row['translation_key'];
+                    continue;
+                }
+                $json   = json_decode($resp, true);
+                $result = $json['translations'][0]['text'] ?? null;
+                if ($result === null) { $errors[] = $row['translation_key']; continue; }
+
+                Db::getInstance()->execute(
+                    "INSERT INTO `{$tableTrad}` (`template`,`lang`,`translation_key`,`translation_value`,`is_custom`,`date_add`,`date_upd`)
+                     VALUES ('" . pSQL($tplKey) . "','" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "',1,'{$now}','{$now}')
+                     ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($result, true) . "', `is_custom`=1, `date_upd`='{$now}'"
+                );
+                $translated++;
+            }
+
+            if (class_exists('TranslationEngine')) { (new TranslationEngine($this))->clearCache(); }
+
+            echo json_encode([
+                'success'    => true,
+                'translated' => $translated,
+                'errors'     => $errors,
+                'message'    => "{$translated} champ(s) traduit(s) via DeepL."
+                              . (!empty($errors) ? ' Erreurs : ' . implode(', ', $errors) : ''),
+            ]);
+            exit;
+        }
+
         // ── Action : envoi d'un email de test ─────────────────────
         if (Tools::getValue('neria_action') === 'send_test') {
             $this->sendTestEmail();
@@ -1840,135 +1964,6 @@ class Neria extends Module
             } else {
                 $this->context->smarty->assign('neria_error', 'Aucun fichier CSV valide reçu.');
             }
-        }
-
-        // ── Traduction automatique DeepL ──────────────────────────────
-        if ($tradAction === 'auto_translate_template') {
-            header('Content-Type: application/json; charset=utf-8');
-            $tplKey  = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
-            $tplLang = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
-            $config  = new ConfigManager($this);
-            $deeplKey = trim((string) $config->get(ConfigManager::KEY_DEEPL_KEY, ''));
-
-            if ($deeplKey === '') {
-                echo json_encode(['error' => 'Clé API DeepL manquante. Renseignez-la dans le champ ci-dessus.']);
-                exit;
-            }
-
-            // Langues cibles non supportées par DeepL → on mappe
-            $deeplTargetMap = [
-                'fr' => 'FR', 'en' => 'EN-GB', 'de' => 'DE', 'it' => 'IT',
-                'es' => 'ES', 'pt' => 'PT-PT', 'br' => 'PT-BR', 'nl' => 'NL',
-                'ru' => 'RU', 'tr' => 'TR', 'sv' => 'SV', 'no' => 'NB',
-                'da' => 'DA', 'ja' => 'JA', 'ko' => 'KO', 'zh' => 'ZH',
-                'tw' => 'ZH', 'ar' => 'AR',
-            ];
-            $deeplTarget = $deeplTargetMap[$tplLang] ?? null;
-            if (!$deeplTarget) {
-                echo json_encode(['error' => "Langue '{$tplLang}' non supportée par DeepL."]);
-                exit;
-            }
-
-            // Récupérer les textes source (FR)
-            $tableTrad = _DB_PREFIX_ . 'neria_translation';
-            $rows = Db::getInstance()->executeS(
-                "SELECT `translation_key`, `translation_value`
-                 FROM `{$tableTrad}`
-                 WHERE `template` = '" . pSQL($tplKey) . "'
-                   AND `lang` = 'fr'"
-            );
-
-            if (!$rows) {
-                echo json_encode(['error' => 'Aucun texte source FR trouvé pour ce template.']);
-                exit;
-            }
-
-            $translated = 0;
-            $errors     = [];
-            $now        = date('Y-m-d H:i:s');
-            $isFreeKey  = str_ends_with($deeplKey, ':fx');
-            $apiHost    = $isFreeKey ? 'api-free.deepl.com' : 'api.deepl.com';
-
-            foreach ($rows as $row) {
-                $text = $row['translation_value'];
-                if (trim($text) === '') { continue; }
-
-                $postData = http_build_query([
-                    'auth_key'    => $deeplKey,
-                    'text'        => $text,
-                    'source_lang' => 'FR',
-                    'target_lang' => $deeplTarget,
-                    'tag_handling' => 'html',
-                ]);
-                $ch = curl_init("https://{$apiHost}/v2/translate");
-                curl_setopt_array($ch, [
-                    CURLOPT_POST           => true,
-                    CURLOPT_POSTFIELDS     => $postData,
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_TIMEOUT        => 10,
-                    CURLOPT_SSL_VERIFYPEER => false,
-                ]);
-                $resp = curl_exec($ch);
-                $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                curl_close($ch);
-
-                if ($code !== 200 || !$resp) {
-                    $errors[] = $row['translation_key'];
-                    continue;
-                }
-
-                $json = json_decode($resp, true);
-                $result = $json['translations'][0]['text'] ?? null;
-                if ($result === null) { $errors[] = $row['translation_key']; continue; }
-
-                Db::getInstance()->execute(
-                    "INSERT INTO `{$tableTrad}` (`template`,`lang`,`translation_key`,`translation_value`,`is_custom`,`date_add`,`date_upd`)
-                     VALUES ('" . pSQL($tplKey) . "','" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "',1,'{$now}','{$now}')
-                     ON DUPLICATE KEY UPDATE `translation_value` = '" . pSQL($result, true) . "', `is_custom` = 1, `date_upd` = '{$now}'"
-                );
-                $translated++;
-            }
-
-            if (class_exists('TranslationEngine')) { (new TranslationEngine($this))->clearCache(); }
-
-            echo json_encode([
-                'success'    => true,
-                'translated' => $translated,
-                'errors'     => $errors,
-                'message'    => "{$translated} champ(s) traduit(s) via DeepL." . (!empty($errors) ? " Erreurs sur : " . implode(', ', $errors) : ''),
-            ]);
-            exit;
-        }
-
-        // ── Recherche globale AJAX ────────────────────────────────────
-        if ($tradAction === 'search_translations') {
-            header('Content-Type: application/json; charset=utf-8');
-            $q = preg_replace('/[^a-z0-9àâäéèêëîïôùûüç\s\-_]/i', '', (string) Tools::getValue('q', ''));
-            if (mb_strlen($q) < 2) { echo json_encode(['results' => []]); exit; }
-
-            $tableTrad = _DB_PREFIX_ . 'neria_translation';
-            $rows = Db::getInstance()->executeS(
-                "SELECT `template`, `lang`, `translation_key`, `translation_value`
-                 FROM `{$tableTrad}`
-                 WHERE `translation_value` LIKE '%" . pSQL($q, true) . "%'
-                    OR `translation_key`   LIKE '%" . pSQL($q, true) . "%'
-                 ORDER BY `template`, `lang`, `translation_key`
-                 LIMIT 60"
-            );
-
-            $templateLabels = \AdminTranslator::templateLabels();
-            $results = [];
-            foreach ((array) $rows as $row) {
-                $results[] = [
-                    'template'       => $row['template'],
-                    'template_label' => $templateLabels[$row['template']] ?? $row['template'],
-                    'lang'           => $row['lang'],
-                    'key'            => $row['translation_key'],
-                    'value'          => mb_substr($row['translation_value'], 0, 120),
-                ];
-            }
-            echo json_encode(['results' => $results]);
-            exit;
         }
 
         // ── Réinitialiser ce template dans TOUTES les langues ─────────
