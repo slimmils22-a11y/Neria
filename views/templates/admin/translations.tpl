@@ -215,13 +215,10 @@ window.neriaAjaxUrl = function(action, extra) {
     </form>
   </div>
 
-</div>{* fin neria-card *}
-</div>{* fin neria-section *}
-
-{if isset($translations) && $translations}
-
-  {* ── Barre d'outils : Export / Import / Auto-translate / Reset ── *}
-  <div class="neria-trad-toolbar">
+  {* — Barre d'outils : Export / Import / Auto-translate / Reset ——— *}
+  {if isset($translations) && $translations}
+  <div style="border-top:1px solid var(--neria-border,#e8d5b0);padding:12px 20px;">
+  <div class="neria-trad-toolbar" style="margin:0;border:none;background:none;padding:0;">
 
     {* Export CSV *}
     <div class="neria-trad-toolbar__group">
@@ -304,6 +301,13 @@ window.neriaAjaxUrl = function(action, extra) {
     </div>
 
   </div>
+  </div>{* fin wrapper toolbar *}
+  {/if}
+
+</div>{* fin neria-card *}
+</div>{* fin neria-section *}
+
+{if isset($translations) && $translations}
 
   {* ── Layout split : éditeur + aperçu ──────────────────────────── *}
   <div class="neria-trad-layout" id="neria-trad-layout">
