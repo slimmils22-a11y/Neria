@@ -153,6 +153,10 @@
           <span class="neria-nav-arrow">▾</span>
         </a>
         <ul class="neria-nav-dropdown">
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-health-kpi-banner">🛡 Santé &amp; Tendances</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-engagement-chart-section">📊 Engagement email</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-heatmap-section">🌡 Heatmap horaire</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-monthly-comparison">📅 Comparatif mensuel</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-revenue-chart-section">📈 Graphique de revenus</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-abtest-focus">⇋ A/B Testing</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-domain-rep">🔒 Réputation de domaine</a></li>
