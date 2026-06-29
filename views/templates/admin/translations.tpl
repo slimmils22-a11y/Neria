@@ -161,13 +161,42 @@ window.NERIA_BASE_URL = window.location.href.split('?')[0];
 
 {* ── Configuration DeepL ───────────────────────────────────────── *}
 <div class="neria-section" id="neria-deepl-section">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
     <span class="neria-deepl-badge">DeepL</span>
     <span style="font-size:13px;font-weight:600;color:var(--neria-text);">{neria_admin key='translations.deepl_title'}</span>
     <a href="https://www.deepl.com/pro-api" target="_blank"
        style="font-size:11px;color:var(--neria-accent);text-decoration:none;margin-left:auto;">
       {neria_admin key='translations.deepl_get_key'} →
     </a>
+  </div>
+
+  {* Notice explicative DeepL *}
+  <div style="background:var(--neria-bg-subtle);border:1px solid var(--neria-border);border-left:3px solid #0f2b46;border-radius:var(--neria-radius);padding:16px 20px;margin-bottom:16px;">
+    <p style="margin:0 0 10px;font-size:13px;color:var(--neria-text);line-height:1.7;">
+      <strong>DeepL</strong> est un service de traduction automatique de haute qualité — bien supérieur à Google Translate pour les textes professionnels et les nuances de langue. Il traduit vos emails Neria du français vers n'importe laquelle des 18 langues supportées en quelques secondes.
+    </p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;font-size:12px;color:var(--neria-text-muted);line-height:1.6;">
+      <div>
+        🎁 <strong style="color:var(--neria-text);">Plan gratuit</strong> — 500 000 caractères/mois<br>
+        <span style="padding-left:18px;">Suffisant pour tous vos 125 templates.</span>
+      </div>
+      <div>
+        🌍 <strong style="color:var(--neria-text);">18 langues supportées</strong><br>
+        <span style="padding-left:18px;">Dont japonais, coréen, arabe, chinois…</span>
+      </div>
+      <div>
+        🔒 <strong style="color:var(--neria-text);">Vos textes restent modifiables</strong><br>
+        <span style="padding-left:18px;">DeepL pré-remplit, vous relisez et corrigez.</span>
+      </div>
+      <div>
+        ↺ <strong style="color:var(--neria-text);">Réversible à tout moment</strong><br>
+        <span style="padding-left:18px;">Les textes Neria d'origine sont toujours restaurables.</span>
+      </div>
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--neria-border);font-size:12px;color:var(--neria-text-muted);">
+      <strong style="color:var(--neria-text);">Comment obtenir votre clé gratuite :</strong>
+      créez un compte sur <strong>deepl.com</strong> → section <em>API</em> → copiez votre clé API Free (elle se termine par <code style="background:var(--neria-bg-hover);padding:1px 5px;border-radius:3px;">:fx</code>) → collez-la ci-dessous.
+    </div>
   </div>
   <form method="post" class="neria-deepl-key-row">
     <input type="hidden" name="neria_action" value="save_deepl_key">
