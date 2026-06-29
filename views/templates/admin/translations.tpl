@@ -620,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() {
       searchClear.style.display = q ? '' : 'none';
       if (q.length < 2) { searchResults.classList.remove('active'); searchResults.innerHTML = ''; return; }
       searchTimer = setTimeout(function() {
-        var url = window.neriaAjaxUrl('search_translations', {q: q});
+        var url = window.neriaAjaxUrl('search_translations') + '&q=' + encodeURIComponent(q);
         fetch(url).then(function(r){ return r.json(); }).then(function(data) {
           var items = data.results || [];
           if (!items.length) {
@@ -680,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var lang = this.getAttribute('data-lang');
       btnTranslate.disabled = true;
       translateStatus.textContent = '⏳ Traduction en cours...';
-      var url = window.neriaAjaxUrl('auto_translate_template', {trad_template: tpl, trad_lang: lang});
+      var url = window.neriaAjaxUrl('auto_translate_template') + '&trad_template=' + encodeURIComponent(tpl) + '&trad_lang=' + encodeURIComponent(lang);
       fetch(url).then(function(r){ return r.json(); }).then(function(data) {
         btnTranslate.disabled = false;
         if (data.error) {
