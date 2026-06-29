@@ -1283,22 +1283,29 @@ class Neria extends Module
             $isFreeKey    = str_ends_with($deeplKey, ':fx');
             $apiHost      = $isFreeKey ? 'api-free.deepl.com' : 'api.deepl.com';
 
-            // Valeurs actuelles de la langue cible (pour l'historique)
+            // Valeurs actuelles de la langue cible (pour l'historique + détection champs déjà personnalisés)
             $currentRows = Db::getInstance()->executeS(
-                "SELECT `translation_key`, `translation_value`
+                "SELECT `translation_key`, `translation_value`, `is_custom`
                  FROM `{$tableTrad}`
                  WHERE `template` = '" . pSQL($tplKey) . "'
                    AND `lang`     = '" . pSQL($tplLang) . "'"
             );
-            $currentVals = [];
+            $currentVals   = [];
+            $customizedKeys = [];
             foreach ((array) $currentRows as $r) {
                 $currentVals[$r['translation_key']] = $r['translation_value'];
+                if ((int) $r['is_custom'] === 1 && trim($r['translation_value']) !== '') {
+                    $customizedKeys[$r['translation_key']] = true;
+                }
             }
             $histMgr = class_exists('TranslationHistoryManager') ? new TranslationHistoryManager() : null;
             $employee = $this->context->employee;
             $author   = trim($employee->firstname . ' ' . $employee->lastname) ?: 'DeepL';
 
+            $skipped = 0;
             foreach ($rows as $row) {
+                // Ne pas écraser un champ déjà personnalisé manuellement par le marchand
+                if (isset($customizedKeys[$row['translation_key']])) { $skipped++; continue; }
                 $text = $row['translation_value'];
                 if (trim($text) === '') { continue; }
 
@@ -1359,12 +1366,15 @@ class Neria extends Module
                 exit;
             }
 
+            $msg = "{$translated} champ(s) traduit(s) via DeepL.";
+            if ($skipped > 0) { $msg .= " {$skipped} champ(s) déjà personnalisé(s) conservé(s)."; }
+            if (!empty($errors)) { $msg .= ' (' . count($errors) . ' erreur(s))'; }
             echo json_encode([
                 'success'    => true,
                 'translated' => $translated,
+                'skipped'    => $skipped,
                 'errors'     => $errors,
-                'message'    => "{$translated} champ(s) traduit(s) via DeepL."
-                              . (!empty($errors) ? ' (' . count($errors) . ' erreur(s))' : ''),
+                'message'    => $msg,
             ]);
             exit;
         }
