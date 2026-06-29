@@ -549,17 +549,14 @@ window.neriaAjaxUrl = function(action, extra) {
 
 {* Variante B A/B test *}
 {if isset($abtest_active) && $abtest_active && isset($translations_b) && $translations_b}
-  <div class="neria-section" id="neria-trad-editor-b">
-    <div class="neria-trad-header">
+  <div class="neria-card" id="neria-trad-editor-b" style="padding:0;overflow:hidden;margin-top:16px;">
+    <div class="neria-trad-header" style="padding:16px 20px 0;border-bottom:1px solid var(--neria-border,#e8d5b0);">
       <h2 class="neria-section__title">
         {$template_labels[$selected_template]|default:$selected_template}
-        <span class="neria-lang-chip">
-          {$lang_flags[$selected_lang]|default:''}
-          {$lang_labels[$selected_lang]|default:$selected_lang}
-        </span>
+        <span class="neria-lang-chip">{$lang_flags[$selected_lang]|default:''} {$lang_labels[$selected_lang]|default:$selected_lang}</span>
         <span class="neria-badge neria-badge--accent" style="margin-left:8px;">Variante B</span>
       </h2>
-      <p class="neria-section__desc" style="margin-top:4px;">
+      <p style="margin:4px 0 12px;font-size:12px;color:var(--neria-text-muted,#888);">
         Textes alternatifs envoyés à la moitié de vos clients. Modifiez uniquement les champs que vous voulez tester — laissez les autres identiques à la variante A.
       </p>
     </div>
@@ -569,7 +566,7 @@ window.neriaAjaxUrl = function(action, extra) {
       <input type="hidden" name="trad_template"   value="{$selected_template}">
       <input type="hidden" name="trad_lang"       value="{$selected_lang}">
       <input type="hidden" name="id_abtest_b"     value="{$id_abtest_b}">
-      <div class="neria-trad-fields">
+      <div class="neria-trad-fields" style="padding:0 20px;">
         {foreach $translations_b as $key => $value}
           <div class="neria-form-group neria-trad-field">
             <label class="neria-label" for="trad_b_{$key}">{$key}</label>
