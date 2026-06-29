@@ -1729,17 +1729,17 @@ class EmailRenderer
             'order_name'             => 'NR-000123',
             'date'                   => date('d/m/Y'),
             'payment'                => 'Carte bancaire',
-            'total_paid'             => '189,00 â‚¬',
-            'total_products'         => '189,00 â‚¬',
-            'total_discounts'        => '0,00 â‚¬',
-            'total_shipping'         => '0,00 â‚¬',
-            'total_tax_paid'         => '31,50 â‚¬',
+            'total_paid'             => '189,00 €',
+            'total_products'         => '189,00 €',
+            'total_discounts'        => '0,00 €',
+            'total_shipping'         => '0,00 €',
+            'total_tax_paid'         => '31,50 €',
             'carrier'                => 'Colissimo',
             'delivery_block_html'    => '<p>12 rue de la Paix<br>75001 Paris</p>',
             'invoice_block_html'     => '<p>12 rue de la Paix<br>75001 Paris</p>',
             'history_url'            => '#',
             'guest_tracking_url'     => '#',
-            'products'               => $this->getFakeProductsTable(),
+            'products'               => $this->getFakeProductsList(),
             'discounts'              => '',
         ];
 
@@ -1764,15 +1764,39 @@ class EmailRenderer
      *
      * @return string HTML du tableau produits
      */
-    private function getFakeProductsTable(): string
+    private function getFakeProductsRows(): string
     {
         return '<tr>
             <td>NR-001</td>
-            <td>Montre Artisanale Edition LimitÃ©e</td>
-            <td>189,00 â‚¬</td>
+            <td>Montre Artisanale Édition Limitée</td>
+            <td>189,00 €</td>
             <td>1</td>
-            <td style="text-align:right;">189,00 â‚¬</td>
+            <td style="text-align:right;">189,00 €</td>
+        </tr>
+        <tr>
+            <td>NR-014</td>
+            <td>Bracelet Cuir Atelier</td>
+            <td>79,00 €</td>
+            <td>1</td>
+            <td style="text-align:right;">79,00 €</td>
         </tr>';
+    }
+
+    private function getFakeProductsList(): string
+    {
+        return '<ul style="margin:0;padding:0 0 0 18px;">
+            <li>× 1 Montre Artisanale Édition Limitée — 189,00 €</li>
+            <li>× 2 Bracelet Cuir Atelier — 79,00 €</li>
+        </ul>';
+    }
+
+    private function resolveFakeProducts(string $template): string
+    {
+        // Templates avec {products} directement dans un <tbody> de neria-products-table
+        $tableTemplates = ['order_conf', 'order_conf_virtual', 'order_changed', 'order_return'];
+        return in_array($template, $tableTemplates, true)
+            ? $this->getFakeProductsRows()
+            : $this->getFakeProductsList();
     }
 
     /**
@@ -1797,7 +1821,7 @@ class EmailRenderer
                 . 'Aperçu indisponible : template « ' . htmlspecialchars($template) . ' » introuvable.</p>';
         }
 
-        return $this->injectPreviewFakes($compiled);
+        return $this->injectPreviewFakes($compiled, $template);
     }
 
     /**
@@ -1947,7 +1971,7 @@ class EmailRenderer
      * @param string $html
      * @return string
      */
-    private function injectPreviewFakes(string $html): string
+    private function injectPreviewFakes(string $html, string $template = ''): string
     {
         $fakes = [
             // ── Contexte client / boutique / commande ──────────────
@@ -1970,7 +1994,7 @@ class EmailRenderer
             '{carrier}'            => 'Colissimo',
             '{carrier_name}'       => 'Colissimo',
             '{nbProducts}'         => '2',
-            '{products}'           => $this->getFakeProductsTable(),
+            '{products}'           => $this->resolveFakeProducts($template),
             '{discounts}'          => '',
             '{items}'              => '<p>Réf. NER-001 — Montre Élégance Neria × 1 — 89,00 €</p>',
             '{return_address_html}' => 'Neria Retours<br>15 rue du Commerce<br>75015 Paris<br>France',

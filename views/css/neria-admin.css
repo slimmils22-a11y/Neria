@@ -418,10 +418,12 @@
 .neria-changelog__empty { font-size:13px; color:var(--neria-text-muted,#aaa); font-style:italic; margin:16px 0 4px; }
 
 /* ── Traductions — layout split ──────────────────────────────── */
-.neria-trad-layout { display:grid; grid-template-columns:1fr; gap:0; transition:grid-template-columns .3s; }
-.neria-trad-layout.neria-trad-layout--split { grid-template-columns:55% 1fr; gap:24px; }
+.neria-trad-layout { display:grid; grid-template-columns:1fr; gap:0; }
+.neria-trad-layout.neria-trad-layout--split { grid-template-columns:55% 1fr; gap:24px; height:calc(100vh - 180px); overflow:hidden; }
 .neria-trad-editor-col { min-width:0; }
-.neria-trad-preview-col { position:sticky; top:80px; height:calc(100vh - 100px); display:flex; flex-direction:column; }
+.neria-trad-layout--split .neria-trad-editor-col { overflow-y:auto; padding-right:2px; }
+.neria-trad-preview-col { display:flex; flex-direction:column; }
+.neria-trad-layout--split .neria-trad-preview-col { height:100%; }
 .neria-trad-preview-col iframe { flex:1; border:1px solid var(--neria-border); border-radius:var(--neria-radius); background:#fff; }
 .neria-trad-preview-col .neria-preview-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--neria-text-light); }
 

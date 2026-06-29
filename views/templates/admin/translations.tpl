@@ -516,7 +516,8 @@ window.neriaAjaxUrl = function(action, extra) {
 
       </div>
 
-      {* Variante B A/B test — dans la même colonne éditeur *}
+
+      {* Variante B A/B test — dans la colonne éditeur, scrollable avec le reste *}
       {if isset($abtest_active) && $abtest_active && isset($translations_b) && $translations_b}
       <div class="neria-card" id="neria-trad-editor-b" style="padding:0;overflow:hidden;margin-top:16px;">
         <div class="neria-trad-header" style="padding:16px 20px 0;border-bottom:1px solid var(--neria-border,#e8d5b0);">
