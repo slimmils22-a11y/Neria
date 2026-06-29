@@ -515,6 +515,119 @@ window.neriaAjaxUrl = function(action, extra) {
         {/if}
 
       </div>
+
+      {* Variante B A/B test — dans la même colonne éditeur *}
+      {if isset($abtest_active) && $abtest_active && isset($translations_b) && $translations_b}
+      <div class="neria-card" id="neria-trad-editor-b" style="padding:0;overflow:hidden;margin-top:16px;">
+        <div class="neria-trad-header" style="padding:16px 20px 0;border-bottom:1px solid var(--neria-border,#e8d5b0);">
+          <h2 class="neria-section__title">
+            {$template_labels[$selected_template]|default:$selected_template}
+            <span class="neria-lang-chip">{$lang_flags[$selected_lang]|default:''} {$lang_labels[$selected_lang]|default:$selected_lang}</span>
+            <span class="neria-badge neria-badge--accent" style="margin-left:8px;">Variante B</span>
+          </h2>
+          <p style="margin:4px 0 12px;font-size:12px;color:var(--neria-text-muted,#888);">
+            Textes alternatifs envoyés à la moitié de vos clients. Modifiez uniquement les champs que vous voulez tester — laissez les autres identiques à la variante A.
+          </p>
+        </div>
+        <form method="post" action="{$smarty.server.REQUEST_URI}">
+          <input type="hidden" name="neria_action"   value="save_variant_b">
+          <input type="hidden" name="neria_tab"       value="translations">
+          <input type="hidden" name="trad_template"   value="{$selected_template}">
+          <input type="hidden" name="trad_lang"       value="{$selected_lang}">
+          <input type="hidden" name="id_abtest_b"     value="{$id_abtest_b}">
+          <div class="neria-trad-fields" style="padding:0 20px;">
+            {foreach $translations_b as $key => $value}
+              <div class="neria-form-group neria-trad-field">
+                <label class="neria-label" for="trad_b_{$key}">{$key}</label>
+                {assign var="is_subject_field_b" value=($key === 'greeting_main' || $key === 'fallback_subject' || $key === 'subject')}
+                {if $value|strlen > 120}
+                  <textarea id="trad_b_{$key}" name="fields_b[{$key}]"
+                            class="neria-textarea neria-textarea--auto" rows="3"
+                            {if $is_subject_field_b}data-neria-subject="1"{/if}>{$value|escape:'html'}</textarea>
+                {else}
+                  <input type="text" id="trad_b_{$key}" name="fields_b[{$key}]"
+                         class="neria-input" value="{$value|escape:'html'}"
+                         {if $is_subject_field_b}data-neria-subject="1"{/if}>
+                {/if}
+                {if $is_subject_field_b}
+                <div id="nsa_b_wrap_{$key}" style="margin-top:8px;">
+                  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+                    <span id="nsa_b_title_{$key}" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-gold,#b38b59);">&#x2726;</span>
+                    <span id="nsa_b_chars_{$key}" style="font-size:12px;color:var(--neria-text-muted,#888);"></span>
+                    <div style="flex:1;min-width:80px;height:3px;border-radius:2px;background:var(--neria-border,#e8e0d5);overflow:hidden;">
+                      <span id="nsa_b_bar_{$key}" style="display:block;height:100%;width:0;border-radius:2px;transition:width .25s,background .25s;background:#ccc;"></span>
+                    </div>
+                    <span id="nsa_b_score_{$key}" style="font-size:13px;font-weight:700;color:#ccc;min-width:52px;text-align:right;">—/100</span>
+                  </div>
+                  <div id="nsa_b_spam_{$key}" style="display:none;margin-top:5px;font-size:11px;color:#c0392b;line-height:1.4;"></div>
+                  <p style="margin:6px 0 0;font-size:11px;color:var(--neria-text-muted,#aaa);line-height:1.5;">
+                    Cette barre mesure la qualité de votre objet d'email : longueur idéale (20–50 car.), absence de mots spam, pas de majuscules excessives. <strong style="color:var(--neria-text,#555);">Visez 80/100 minimum</strong> pour maximiser le taux d'ouverture.
+                  </p>
+                </div>
+                <script>
+                (function() {
+                  var SPAM = {$subject_spam_triggers_json|default:'[]'};
+                  var lang  = '{$selected_lang|default:'en'}';
+                  var NSA_L = {$nsa_labels_json|default:'{}'};
+                  var L = NSA_L[lang] || NSA_L['en'];
+                  var field  = document.getElementById('trad_b_{$key}');
+                  var eTitle = document.getElementById('nsa_b_title_{$key}');
+                  var eChars = document.getElementById('nsa_b_chars_{$key}');
+                  var eBar   = document.getElementById('nsa_b_bar_{$key}');
+                  var eScore = document.getElementById('nsa_b_score_{$key}');
+                  var eSpam  = document.getElementById('nsa_b_spam_{$key}');
+                  if (!field || !eChars) return;
+                  if (eTitle) eTitle.textContent = '✦ ' + L.t;
+                  function isCJK(str) { return /[　-鿿가-힯぀-ヿ＀-￯؀-ۿ]/.test(str); }
+                  function run() {
+                    var v = field.value, n = v.length, s = 100, cc, cl;
+                    var cjk = isCJK(v);
+                    if (n === 0) { s -= 20; cc = '#e05c5c'; cl = '0 ' + L.u + ' — ' + L.e; }
+                    else if (cjk) {
+                      if (n < 8)       { s -= 10; cc = '#b8600a'; cl = n + ' ' + L.u + ' — ' + L.c; }
+                      else if (n <= 20){           cc = '#4a9e6b'; cl = n + ' ' + L.u + ' — ' + L.o; }
+                      else if (n <= 35){ s -= 5;  cc = '#b8600a'; cl = n + ' ' + L.u + ' — ' + L.l1; }
+                      else             { s -= 15; cc = '#e05c5c'; cl = n + ' ' + L.u + ' — ' + L.l2; }
+                    } else {
+                      if (n < 20)      { s -= 10; cc = '#b8600a'; cl = n + ' ' + L.u + ' — ' + L.c; }
+                      else if (n <= 50){           cc = '#4a9e6b'; cl = n + ' ' + L.u + ' — ' + L.o; }
+                      else if (n <= 70){ s -= 5;  cc = '#b8600a'; cl = n + ' ' + L.u + ' — ' + L.l1; }
+                      else             { s -= 15; cc = '#e05c5c'; cl = n + ' ' + L.u + ' — ' + L.l2; }
+                    }
+                    var lc = v.toLowerCase(), found = [];
+                    SPAM.forEach(function(w){ if (lc.indexOf(w) !== -1 && found.indexOf(w) === -1) found.push(w); });
+                    s -= Math.min(24, found.length * 8);
+                    var caps = 0, maxC = 0;
+                    for (var i = 0; i < v.length; i++) {
+                      if (v[i] >= 'A' && v[i] <= 'Z') { maxC = Math.max(maxC, ++caps); } else { caps = 0; }
+                    }
+                    if (maxC >= 6) s -= 10;
+                    if (v.indexOf('!!!') !== -1) s -= 5;
+                    s = Math.max(0, Math.min(100, s));
+                    var bc = s >= 80 ? '#4a9e6b' : s >= 60 ? '#b8600a' : '#e05c5c';
+                    eChars.textContent = cl; eChars.style.color = cc;
+                    eScore.textContent = s + '/100'; eScore.style.color = bc;
+                    eBar.style.width = s + '%'; eBar.style.background = bc;
+                    eSpam.style.display = found.length ? '' : 'none';
+                    eSpam.textContent = found.length ? L.s + ' ' + found.join(', ') : '';
+                  }
+                  field.addEventListener('input', run);
+                  run();
+                })();
+                </script>
+                {/if}
+              </div>
+            {/foreach}
+          </div>
+          <div class="neria-form-actions neria-form-actions--sticky">
+            <button type="submit" class="neria-btn neria-btn--primary">
+              {neria_admin key='translations.save'} — Variante B
+            </button>
+          </div>
+        </form>
+      </div>
+      {/if}
+
     </div>{* /editor col *}
 
     {* Colonne aperçu (masquée par défaut) *}
@@ -547,119 +660,6 @@ window.neriaAjaxUrl = function(action, extra) {
 
 {/if}
 
-{* Variante B A/B test *}
-{if isset($abtest_active) && $abtest_active && isset($translations_b) && $translations_b}
-  <div class="neria-card" id="neria-trad-editor-b" style="padding:0;overflow:hidden;margin-top:16px;">
-    <div class="neria-trad-header" style="padding:16px 20px 0;border-bottom:1px solid var(--neria-border,#e8d5b0);">
-      <h2 class="neria-section__title">
-        {$template_labels[$selected_template]|default:$selected_template}
-        <span class="neria-lang-chip">{$lang_flags[$selected_lang]|default:''} {$lang_labels[$selected_lang]|default:$selected_lang}</span>
-        <span class="neria-badge neria-badge--accent" style="margin-left:8px;">Variante B</span>
-      </h2>
-      <p style="margin:4px 0 12px;font-size:12px;color:var(--neria-text-muted,#888);">
-        Textes alternatifs envoyés à la moitié de vos clients. Modifiez uniquement les champs que vous voulez tester — laissez les autres identiques à la variante A.
-      </p>
-    </div>
-    <form method="post" action="{$smarty.server.REQUEST_URI}">
-      <input type="hidden" name="neria_action"   value="save_variant_b">
-      <input type="hidden" name="neria_tab"       value="translations">
-      <input type="hidden" name="trad_template"   value="{$selected_template}">
-      <input type="hidden" name="trad_lang"       value="{$selected_lang}">
-      <input type="hidden" name="id_abtest_b"     value="{$id_abtest_b}">
-      <div class="neria-trad-fields" style="padding:0 20px;">
-        {foreach $translations_b as $key => $value}
-          <div class="neria-form-group neria-trad-field">
-            <label class="neria-label" for="trad_b_{$key}">{$key}</label>
-            {assign var="is_subject_field_b" value=($key === 'greeting_main' || $key === 'fallback_subject' || $key === 'subject')}
-            {if $value|strlen > 120}
-              <textarea id="trad_b_{$key}" name="fields_b[{$key}]"
-                        class="neria-textarea neria-textarea--auto" rows="3"
-                        {if $is_subject_field_b}data-neria-subject="1"{/if}>{$value|escape:'html'}</textarea>
-            {else}
-              <input type="text" id="trad_b_{$key}" name="fields_b[{$key}]"
-                     class="neria-input" value="{$value|escape:'html'}"
-                     {if $is_subject_field_b}data-neria-subject="1"{/if}>
-            {/if}
-
-            {if $is_subject_field_b}
-            <div id="nsa_b_wrap_{$key}" style="margin-top:8px;">
-              <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-                <span id="nsa_b_title_{$key}" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-gold,#b38b59);">&#x2726;</span>
-                <span id="nsa_b_chars_{$key}" style="font-size:12px;color:var(--neria-text-muted,#888);"></span>
-                <div style="flex:1;min-width:80px;height:3px;border-radius:2px;background:var(--neria-border,#e8e0d5);overflow:hidden;">
-                  <span id="nsa_b_bar_{$key}" style="display:block;height:100%;width:0;border-radius:2px;transition:width .25s,background .25s;background:#ccc;"></span>
-                </div>
-                <span id="nsa_b_score_{$key}" style="font-size:13px;font-weight:700;color:#ccc;min-width:52px;text-align:right;">—/100</span>
-              </div>
-              <div id="nsa_b_spam_{$key}" style="display:none;margin-top:5px;font-size:11px;color:#c0392b;line-height:1.4;"></div>
-              <p style="margin:6px 0 0;font-size:11px;color:var(--neria-text-muted,#aaa);line-height:1.5;">
-                Cette barre mesure la qualité de votre objet d'email : longueur idéale (20–50 car.), absence de mots spam, pas de majuscules excessives. <strong style="color:var(--neria-text,#555);">Visez 80/100 minimum</strong> pour maximiser le taux d'ouverture.
-              </p>
-            </div>
-            <script>
-            (function() {
-              var SPAM = {$subject_spam_triggers_json|default:'[]'};
-              var lang  = '{$selected_lang|default:'en'}';
-              var NSA_L = {$nsa_labels_json|default:'{}'};
-              var L = NSA_L[lang] || NSA_L['en'];
-              var field  = document.getElementById('trad_b_{$key}');
-              var eTitle = document.getElementById('nsa_b_title_{$key}');
-              var eChars = document.getElementById('nsa_b_chars_{$key}');
-              var eBar   = document.getElementById('nsa_b_bar_{$key}');
-              var eScore = document.getElementById('nsa_b_score_{$key}');
-              var eSpam  = document.getElementById('nsa_b_spam_{$key}');
-              if (!field || !eChars) return;
-              if (eTitle) eTitle.textContent = '✦ ' + L.t;
-              function isCJK(str) { return /[　-鿿가-힯぀-ヿ＀-￯؀-ۿ]/.test(str); }
-              function run() {
-                var v = field.value, n = v.length, s = 100, cc, cl;
-                var cjk = isCJK(v);
-                if (n === 0) { s -= 20; cc = '#e05c5c'; cl = '0 ' + L.u + ' — ' + L.e; }
-                else if (cjk) {
-                  if (n < 8)       { s -= 10; cc = '#b8600a'; cl = n + ' ' + L.u + ' — ' + L.c; }
-                  else if (n <= 20){           cc = '#4a9e6b'; cl = n + ' ' + L.u + ' — ' + L.o; }
-                  else if (n <= 35){ s -= 5;  cc = '#b8600a'; cl = n + ' ' + L.u + ' — ' + L.l1; }
-                  else             { s -= 15; cc = '#e05c5c'; cl = n + ' ' + L.u + ' — ' + L.l2; }
-                } else {
-                  if (n < 20)      { s -= 10; cc = '#b8600a'; cl = n + ' ' + L.u + ' — ' + L.c; }
-                  else if (n <= 50){           cc = '#4a9e6b'; cl = n + ' ' + L.u + ' — ' + L.o; }
-                  else if (n <= 70){ s -= 5;  cc = '#b8600a'; cl = n + ' ' + L.u + ' — ' + L.l1; }
-                  else             { s -= 15; cc = '#e05c5c'; cl = n + ' ' + L.u + ' — ' + L.l2; }
-                }
-                var lc = v.toLowerCase(), found = [];
-                SPAM.forEach(function(w){ if (lc.indexOf(w) !== -1 && found.indexOf(w) === -1) found.push(w); });
-                s -= Math.min(24, found.length * 8);
-                var caps = 0, maxC = 0;
-                for (var i = 0; i < v.length; i++) {
-                  if (v[i] >= 'A' && v[i] <= 'Z') { maxC = Math.max(maxC, ++caps); } else { caps = 0; }
-                }
-                if (maxC >= 6) s -= 10;
-                if (v.indexOf('!!!') !== -1) s -= 5;
-                s = Math.max(0, Math.min(100, s));
-                var bc = s >= 80 ? '#4a9e6b' : s >= 60 ? '#b8600a' : '#e05c5c';
-                eChars.textContent = cl; eChars.style.color = cc;
-                eScore.textContent = s + '/100'; eScore.style.color = bc;
-                eBar.style.width = s + '%'; eBar.style.background = bc;
-                eSpam.style.display = found.length ? '' : 'none';
-                eSpam.textContent = found.length ? L.s + ' ' + found.join(', ') : '';
-              }
-              field.addEventListener('input', run);
-              run();
-            })();
-            </script>
-            {/if}
-
-          </div>
-        {/foreach}
-      </div>
-      <div class="neria-form-actions neria-form-actions--sticky">
-        <button type="submit" class="neria-btn neria-btn--primary">
-          {neria_admin key='translations.save'} — Variante B
-        </button>
-      </div>
-    </form>
-  </div>
-{/if}
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
