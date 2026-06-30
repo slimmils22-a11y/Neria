@@ -1206,17 +1206,19 @@ var _nhm = {$open_heatmap|default:'null'};
     </div>
 
     {* Notice explicative *}
-    <div style="background:#f0f7ff;border-left:3px solid #4a90d9;border-radius:0 6px 6px 0;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#1e3a5f;line-height:1.8;">
-      <strong>À quoi ça sert ?</strong><br>
+    <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:16px;font-size:13px;line-height:1.75;color:#4a3f35;">
+      <div style="font-weight:700;margin-bottom:10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
       Google PageSpeed Insights analyse la <strong>qualité technique</strong> de votre boutique et lui attribue quatre scores de 0 à 100 :
       <strong>Performance</strong> (vitesse de chargement), <strong>Accessibilité</strong> (lisibilité pour tous),
-      <strong>SEO</strong> (signaux techniques de référencement) et <strong>Bonnes pratiques</strong> (sécurité, standards web).<br>
-      Il mesure également les <strong>Core Web Vitals</strong> imposés par Google depuis 2021 :
-      <em>LCP</em> (temps avant que le contenu principal s'affiche — idéal &lt; 2,5 s),
-      <em>CLS</em> (stabilité visuelle de la page — idéal &lt; 0,1) et
-      <em>TBT</em> (temps pendant lequel la page est non interactive — idéal &lt; 200 ms).<br>
-      Un mauvais score PageSpeed peut <strong>pénaliser votre classement dans Google Search</strong> et augmenter le taux de rebond.
-      L'analyse est gratuite et se met à jour toutes les 24 heures.
+      <strong>SEO</strong> (signaux techniques de référencement) et <strong>Bonnes pratiques</strong> (sécurité, standards web).
+      <div style="font-weight:700;margin:14px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Core Web Vitals</div>
+      Ces trois métriques sont imposées par Google depuis 2021 et influencent directement votre classement dans les résultats de recherche :
+      <ul style="margin:8px 0 0 18px;padding:0;">
+        <li style="margin-bottom:4px;"><strong>LCP</strong> — temps avant que le contenu principal s'affiche (idéal : moins de 2,5 s)</li>
+        <li style="margin-bottom:4px;"><strong>CLS</strong> — stabilité visuelle de la page, évite les éléments qui sautent (idéal : moins de 0,1)</li>
+        <li><strong>TBT</strong> — durée pendant laquelle la page est bloquée et non interactive (idéal : moins de 200 ms)</li>
+      </ul>
+      <div style="margin-top:12px;font-size:12px;opacity:.75;">L'analyse est gratuite — la clé API Google est suffisante. Le cache est renouvelé toutes les 24 heures.</div>
     </div>
 
     {* Configuration : saisie clé API + URL cible *}
@@ -1407,15 +1409,20 @@ var _nhm = {$open_heatmap|default:'null'};
     </div>
 
     {* Notice explicative *}
-    <div style="background:#f0f7ff;border-left:3px solid #4a90d9;border-radius:0 6px 6px 0;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#1e3a5f;line-height:1.8;">
-      <strong>À quoi ça sert ?</strong><br>
-      Google Search Console vous donne accès aux <strong>données officielles de Google</strong> sur la présence de votre boutique dans les résultats de recherche :
-      nombre de <strong>clics</strong> réels depuis Google, <strong>impressions</strong> (combien de fois votre boutique apparaît),
-      <strong>taux de clics (CTR)</strong> et <strong>position moyenne</strong> de vos pages dans les résultats.<br>
-      Vous voyez aussi les <strong>10 requêtes</strong> qui génèrent le plus de trafic (les mots-clés tapés par vos visiteurs)
-      et les <strong>10 pages</strong> les plus visitées depuis Google — idéal pour repérer ce qui fonctionne et ce qui mérite d'être amélioré.<br>
-      La connexion est <strong>entièrement gratuite</strong> via votre compte Google.
-      Les données couvrent les 28 derniers jours avec 2 à 3 jours de latence (délai normal imposé par Google).
+    <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:16px;font-size:13px;line-height:1.75;color:#4a3f35;">
+      <div style="font-weight:700;margin-bottom:10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
+      Google Search Console vous donne accès aux <strong>données officielles de Google</strong> sur la présence de votre boutique dans les résultats de recherche.
+      Contrairement à Google Analytics, ces chiffres viennent directement de Google Search — ils sont fiables à 100 %.
+      <div style="font-weight:700;margin:14px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Ce que vous obtenez</div>
+      <ul style="margin:0 0 0 18px;padding:0;">
+        <li style="margin-bottom:4px;"><strong>Clics</strong> — nombre de fois où un visiteur a cliqué sur votre boutique dans Google</li>
+        <li style="margin-bottom:4px;"><strong>Impressions</strong> — nombre de fois où votre boutique est apparue dans les résultats</li>
+        <li style="margin-bottom:4px;"><strong>CTR</strong> — taux de clics (clics ÷ impressions) : plus il est élevé, plus vos titres attirent</li>
+        <li style="margin-bottom:4px;"><strong>Position moyenne</strong> — rang moyen de vos pages dans Google (1 = première position)</li>
+        <li style="margin-bottom:4px;"><strong>Top 10 requêtes</strong> — les mots-clés qui génèrent le plus de trafic vers votre boutique</li>
+        <li><strong>Top 10 pages</strong> — vos pages les plus visitées depuis Google</li>
+      </ul>
+      <div style="margin-top:12px;font-size:12px;opacity:.75;">Connexion gratuite via votre compte Google. Données sur 28 jours, avec 2 à 3 jours de latence (délai normal imposé par Google).</div>
     </div>
 
     {* État 1 : non configuré *}
@@ -1606,17 +1613,24 @@ var _nhm = {$open_heatmap|default:'null'};
     </div>
 
     {* Notice explicative *}
-    <div style="background:#f0f7ff;border-left:3px solid #4a90d9;border-radius:0 6px 6px 0;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#1e3a5f;line-height:1.8;">
-      <strong>À quoi ça sert ?</strong><br>
+    <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:16px;font-size:13px;line-height:1.75;color:#4a3f35;">
+      <div style="font-weight:700;margin-bottom:10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
       Les APIs SEO avancées complètent PageSpeed et Search Console en ajoutant la <strong>dimension concurrentielle</strong> :
-      où se positionne votre boutique face à vos concurrents ?<br>
-      <strong>Semrush</strong> fournit une estimation du trafic organique mensuel, le nombre de mots-clés sur lesquels votre boutique est positionnée
-      et les requêtes qui génèrent le plus de visibilité — utile pour identifier des opportunités SEO inexploitées.<br>
-      <strong>Moz</strong> mesure le <em>Domain Authority</em> (DA, score 0-100 de l'autorité globale de votre domaine),
-      le <em>Page Authority</em> (PA), le <em>Spam Score</em> (risque de pénalité Google) et le nombre de <em>backlinks</em>
-      (liens entrants depuis d'autres sites).<br>
-      Cette section est <strong>optionnelle</strong> et nécessite un abonnement payant chez Semrush ou Moz.
-      Sans API payante, PageSpeed et Search Console couvrent déjà l'essentiel de votre visibilité.
+      où se positionne votre boutique face à vos concurrents, quelle est son autorité aux yeux de Google ?
+      <div style="font-weight:700;margin:14px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Semrush</div>
+      <ul style="margin:0 0 0 18px;padding:0;">
+        <li style="margin-bottom:4px;"><strong>Trafic organique estimé</strong> — nombre de visiteurs mensuels provenant de Google</li>
+        <li style="margin-bottom:4px;"><strong>Mots-clés positionnés</strong> — sur combien de requêtes votre boutique apparaît dans Google</li>
+        <li><strong>Top mots-clés</strong> — les requêtes qui vous apportent le plus de visibilité</li>
+      </ul>
+      <div style="font-weight:700;margin:14px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Moz</div>
+      <ul style="margin:0 0 0 18px;padding:0;">
+        <li style="margin-bottom:4px;"><strong>Domain Authority (DA)</strong> — score 0-100 de la force globale de votre domaine (plus c'est élevé, mieux c'est)</li>
+        <li style="margin-bottom:4px;"><strong>Page Authority (PA)</strong> — force spécifique de votre page d'accueil</li>
+        <li style="margin-bottom:4px;"><strong>Spam Score</strong> — risque de pénalité Google lié à des backlinks suspects (idéal : proche de 0)</li>
+        <li><strong>Backlinks</strong> — nombre de liens entrants depuis d'autres sites</li>
+      </ul>
+      <div style="margin-top:12px;font-size:12px;opacity:.75;">Section optionnelle — nécessite un abonnement payant chez Semrush ou Moz. Sans API payante, PageSpeed et Search Console couvrent déjà l'essentiel.</div>
     </div>
 
     {* Formulaire de configuration *}
