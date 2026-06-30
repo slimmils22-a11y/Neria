@@ -618,6 +618,203 @@ class ABTestManager
     }
 
     // ============================================================
+    // APPLICATION DU GAGNANT
+    // ============================================================
+
+    /**
+     * Applique la variante gagnante comme template par défaut.
+     * Si B gagne : copie ses traductions vers neria_translation.
+     * Si A gagne : rien à faire (A est déjà le défaut).
+     * Dans les deux cas : désactive le test.
+     */
+    public function applyWinner(string $template, string $winner): bool
+    {
+        if ($winner === self::VARIANT_B) {
+            $this->copyVariantBToDefault($template);
+        }
+        return $this->deactivateTest($template);
+    }
+
+    private function copyVariantBToDefault(string $template): void
+    {
+        $tableAb    = _DB_PREFIX_ . self::TABLE;
+        $tableTradB = _DB_PREFIX_ . self::TABLE_TRAD;
+        $tableTrad  = _DB_PREFIX_ . 'neria_translation';
+        $now        = date('Y-m-d H:i:s');
+
+        $idAbtestB = (int) $this->db->getValue(
+            "SELECT `id_abtest` FROM `{$tableAb}`
+             WHERE `id_shop`   = {$this->idShop}
+               AND `template`  = '" . pSQL($template) . "'
+               AND `variant`   = 'B'
+               AND `is_active` = 1"
+        );
+
+        if (!$idAbtestB) {
+            return;
+        }
+
+        $this->db->execute(
+            "INSERT INTO `{$tableTrad}`
+                 (`template`, `lang`, `translation_key`, `translation_value`, `date_add`, `date_upd`)
+             SELECT '" . pSQL($template) . "', `lang`, `translation_key`, `translation_value`,
+                    '{$now}', '{$now}'
+             FROM `{$tableTradB}`
+             WHERE `id_abtest` = {$idAbtestB}
+             ON DUPLICATE KEY UPDATE
+                `translation_value` = VALUES(`translation_value`),
+                `date_upd`          = VALUES(`date_upd`)"
+        );
+
+        $this->wd()->info(
+            "A/B [{$template}] : traductions variante B promues en défaut.",
+            $template, 'ABTestManager'
+        );
+    }
+
+    // ============================================================
+    // HISTORIQUE
+    // ============================================================
+
+    const TABLE_HISTORY = 'neria_abtest_history';
+
+    /**
+     * Sauvegarde un snapshot du test terminé dans l'historique.
+     * À appeler AVANT deactivateTest().
+     */
+    public function archiveTest(string $template, array $report, string $winner, int $confidence, bool $applied = false): void
+    {
+        $tableAb = _DB_PREFIX_ . self::TABLE;
+        $rows = $this->db->executeS(
+            "SELECT `variant`, `variant_name`, `split_percent`, `date_start`
+             FROM `{$tableAb}`
+             WHERE `id_shop`   = {$this->idShop}
+               AND `template`  = '" . pSQL($template) . "'
+               AND `is_active` = 1"
+        );
+
+        $variantAName = '';
+        $variantBName = '';
+        $splitPercent = 50;
+        $dateStart    = null;
+
+        foreach ((array) $rows as $row) {
+            if ($row['variant'] === 'A') {
+                $variantAName = $row['variant_name'];
+                $splitPercent = (int) $row['split_percent'];
+                $dateStart    = $row['date_start'];
+            } else {
+                $variantBName = $row['variant_name'];
+            }
+        }
+
+        $a = $report['A'] ?? [];
+        $b = $report['B'] ?? [];
+
+        $table = _DB_PREFIX_ . self::TABLE_HISTORY;
+        $this->db->execute(sprintf(
+            "INSERT INTO `%s`
+                (`id_shop`, `template`, `variant_a_name`, `variant_b_name`, `split_percent`,
+                 `sent_a`, `sent_b`,
+                 `rate_open_a`, `rate_open_b`, `rate_click_a`, `rate_click_b`,
+                 `revenue_a`, `revenue_b`,
+                 `winner`, `confidence`, `applied`, `date_start`, `date_end`)
+             VALUES (%d, '%s', '%s', '%s', %d,
+                     %d, %d,
+                     %.1f, %.1f, %.1f, %.1f,
+                     %.2f, %.2f,
+                     %s, %s, %d, %s, NOW())",
+            $table,
+            $this->idShop,
+            pSQL($template),
+            pSQL($variantAName),
+            pSQL($variantBName),
+            $splitPercent,
+            (int) ($a['total_sent']  ?? 0),
+            (int) ($b['total_sent']  ?? 0),
+            (float) ($a['rate_open']   ?? 0),
+            (float) ($b['rate_open']   ?? 0),
+            (float) ($a['rate_click']  ?? 0),
+            (float) ($b['rate_click']  ?? 0),
+            (float) ($a['total_revenue'] ?? 0),
+            (float) ($b['total_revenue'] ?? 0),
+            $winner !== '' ? "'" . pSQL($winner) . "'" : 'NULL',
+            $confidence > 0 ? (int) $confidence : 'NULL',
+            $applied ? 1 : 0,
+            $dateStart ? "'" . pSQL($dateStart) . "'" : 'NULL'
+        ));
+    }
+
+    /**
+     * Retourne les derniers tests archivés.
+     */
+    public function getHistory(int $limit = 20): array
+    {
+        $table = _DB_PREFIX_ . self::TABLE_HISTORY;
+        $rows  = $this->db->executeS(
+            "SELECT * FROM `{$table}`
+             WHERE `id_shop` = {$this->idShop}
+             ORDER BY `date_end` DESC
+             LIMIT " . (int) $limit
+        );
+        return is_array($rows) ? $rows : [];
+    }
+
+    // ============================================================
+    // DURÉE ESTIMÉE AVANT RÉSULTAT
+    // ============================================================
+
+    /**
+     * Estime le nombre de jours restants avant la significativité.
+     * Retourne 0 si déjà significatif, null si impossible à calculer.
+     */
+    public function estimateDaysRemaining(string $template, array $report): ?int
+    {
+        $sig = $report['significance'] ?? [];
+
+        if ($sig['significant'] ?? false) {
+            return 0;
+        }
+
+        $sentA     = (int) ($sig['sent_a']     ?? 0);
+        $sentB     = (int) ($sig['sent_b']     ?? 0);
+        $minSample = (int) ($sig['min_sample'] ?? 100);
+        $minSent   = min($sentA, $sentB);
+
+        if ($minSent < 1) {
+            return null;
+        }
+
+        $tableAb   = _DB_PREFIX_ . self::TABLE;
+        $dateStart = $this->db->getValue(
+            "SELECT `date_start` FROM `{$tableAb}`
+             WHERE `id_shop`   = {$this->idShop}
+               AND `template`  = '" . pSQL($template) . "'
+               AND `is_active` = 1
+               AND `variant`   = 'A'"
+        );
+
+        if (!$dateStart) {
+            return null;
+        }
+
+        $daysElapsed = max(1, (int) ceil((time() - strtotime($dateStart)) / 86400));
+        $dailyRate   = $minSent / $daysElapsed;
+
+        if ($dailyRate < 0.01) {
+            return null;
+        }
+
+        $remaining = max(0, $minSample - $minSent);
+
+        if ($remaining === 0) {
+            return 0;
+        }
+
+        return (int) ceil($remaining / $dailyRate);
+    }
+
+    // ============================================================
     // UTILITAIRES PUBLICS
     // ============================================================
 

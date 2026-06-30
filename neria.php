@@ -37,7 +37,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.13';
+    const VERSION = '1.0.14';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -2201,8 +2201,38 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'deactivate_abtest' && class_exists('ABTestManager')) {
             $tplKey = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('abtest_template', ''));
             if ($tplKey !== '') {
-                (new ABTestManager($this))->deactivateTest($tplKey);
-                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                $ab     = new ABTestManager($this);
+                $report = (new StatsManager($this))->getABTestReport($tplKey, 9999);
+                $sig    = $report['significance'] ?? [];
+                $winner = (string) ($sig['overall_winner'] ?? '');
+                $conf   = (int) max($sig['open']['confidence'] ?? 0, $sig['click']['confidence'] ?? 0);
+                $ab->archiveTest($tplKey, $report, $winner, $conf, false);
+                $ab->deactivateTest($tplKey);
+                $this->context->smarty->assign('neria_success', 'Test arrêté et archivé.');
+            }
+        }
+
+        if (Tools::getValue('neria_action') === 'apply_abtest_winner' && class_exists('ABTestManager')) {
+            $tplKey = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('abtest_template', ''));
+            $winner = Tools::getValue('abtest_winner', '');
+            $winner = in_array($winner, ['A', 'B'], true) ? $winner : '';
+            if ($tplKey !== '' && $winner !== '') {
+                $ab     = new ABTestManager($this);
+                $report = (new StatsManager($this))->getABTestReport($tplKey, 9999);
+                $sig    = $report['significance'] ?? [];
+                $conf   = (int) max($sig['open']['confidence'] ?? 0, $sig['click']['confidence'] ?? 0);
+                $ab->archiveTest($tplKey, $report, $winner, $conf, true);
+                $ab->applyWinner($tplKey, $winner);
+                $msg = $winner === 'B'
+                    ? 'Variante B appliquée comme template par défaut. Test archivé.'
+                    : 'Variante A confirmée comme template par défaut. Test archivé.';
+                $this->context->smarty->assign('neria_success', $msg);
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this))->info(
+                        "A/B [{$tplKey}] : variante {$winner} appliquée manuellement (confiance {$conf}%).",
+                        $tplKey, 'ABTestManager'
+                    );
+                }
             }
         }
 
@@ -3783,6 +3813,7 @@ class Neria extends Module
             'tests_status'       => $this->getAbtestStatusMap(new ABTestManager($this)),
             'tests_data'         => $this->getAbtestDataMap(new ABTestManager($this)),
             'ab_reports'         => $this->getAbtestReportsMap($stats, new ABTestManager($this)),
+            'ab_history'         => class_exists('ABTestManager') ? (new ABTestManager($this))->getHistory(30) : [],
 
             // Rapport A/B focalisé — utilisé par stats.tpl quand on arrive via "Voir les stats"
             'abtest_focus_key'   => preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('abtest_template', '')),
@@ -5047,14 +5078,16 @@ class Neria extends Module
 
     /**
      * Construit la map rapports A/B pour abtest.tpl
-     * ['template_name' => ['A' => [...], 'B' => [...]], ...]
+     * ['template_name' => ['A' => [...], 'B' => [...], 'days_remaining' => int|null], ...]
      */
     private function getAbtestReportsMap(StatsManager $stats, ABTestManager $ab): array
     {
         $map = [];
         foreach ($ab->getEligibleTemplates() as $tpl => $label) {
             if ($ab->hasActiveTest($tpl)) {
-                $map[$tpl] = $stats->getABTestReport($tpl, 30);
+                $report                  = $stats->getABTestReport($tpl, 30);
+                $report['days_remaining'] = $ab->estimateDaysRemaining($tpl, $report);
+                $map[$tpl]               = $report;
             }
         }
         return $map;

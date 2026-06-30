@@ -484,16 +484,19 @@ class StatsManager
         $table    = _DB_PREFIX_ . self::TABLE;
         $dateFrom = date('Y-m-d', strtotime("-{$days} days"));
 
+        $dateClause = $days < 9999 ? "AND `date_add` >= '{$dateFrom}'" : '';
+
         $sql = "SELECT
                     `abtest_variant` AS variant,
-                    COUNT(CASE WHEN `event_type` = 'sent'                     THEN 1 END) AS total_sent,
-                    COUNT(CASE WHEN `event_type` = 'open' AND `is_mpp` = 0   THEN 1 END) AS total_open,
-                    COUNT(CASE WHEN `event_type` = 'click'                    THEN 1 END) AS total_click
+                    COUNT(CASE WHEN `event_type` = 'sent'                          THEN 1 END) AS total_sent,
+                    COUNT(CASE WHEN `event_type` = 'open' AND `is_mpp` = 0        THEN 1 END) AS total_open,
+                    COUNT(CASE WHEN `event_type` = 'click'                         THEN 1 END) AS total_click,
+                    SUM(CASE WHEN `event_type`   = 'conversion' THEN `revenue` ELSE 0 END) AS total_revenue
                 FROM `{$table}`
                 WHERE `id_shop`        = {$this->idShop}
                   AND `template`       = '" . pSQL($template) . "'
                   AND `abtest_variant` IN ('A', 'B')
-                  AND `date_add`       >= '{$dateFrom}'
+                  {$dateClause}
                 GROUP BY `abtest_variant`";
 
         $rows   = $this->db->executeS($sql) ?: [];
@@ -501,14 +504,17 @@ class StatsManager
 
         foreach ($rows as $row) {
             $sent    = (int) $row['total_sent'];
+            $revenue = round((float) ($row['total_revenue'] ?? 0), 2);
             $variant = $row['variant'];
             $result[$variant] = [
-                'total_sent'  => $sent,
-                'total_open'  => (int) $row['total_open'],
-                'total_click' => (int) $row['total_click'],
-                'rate_open'   => $sent > 0
+                'total_sent'       => $sent,
+                'total_open'       => (int) $row['total_open'],
+                'total_click'      => (int) $row['total_click'],
+                'total_revenue'    => $revenue,
+                'revenue_per_100'  => $sent > 0 ? round($revenue / $sent * 100, 2) : 0,
+                'rate_open'        => $sent > 0
                     ? round(((int) $row['total_open']  / $sent) * 100, 1) : 0,
-                'rate_click'  => $sent > 0
+                'rate_click'       => $sent > 0
                     ? round(((int) $row['total_click'] / $sent) * 100, 1) : 0,
             ];
         }
