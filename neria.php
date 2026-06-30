@@ -37,7 +37,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.14';
+    const VERSION = '1.0.15';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -1120,6 +1120,9 @@ class Neria extends Module
                 \Configuration::updateValue('neria_webhook_last_process', $now);
                 try {
                     (new WebhookManager($this))->processQueue();
+                    if (class_exists('WatchdogManager')) {
+                        (new WatchdogManager($this))->cronHeartbeat('webhook');
+                    }
                 } catch (\Throwable $e) {
                     // best-effort — ne bloque jamais le front
                 }
@@ -1129,6 +1132,9 @@ class Neria extends Module
         if (class_exists('CalendarManager')) {
             $calendar = new CalendarManager($this);
             $calendar->checkAndSendDailyEvents();
+            if (class_exists('WatchdogManager')) {
+                try { (new WatchdogManager($this))->cronHeartbeat('calendar'); } catch (\Throwable $e) {}
+            }
         }
 
         if (class_exists('MonthlyReportManager')) {
@@ -3800,6 +3806,10 @@ class Neria extends Module
             'logs'             => $this->translateWatchdogLogs((new WatchdogManager($this))->getLogs(100)),
             'log_counts'       => (new WatchdogManager($this))->getCountByLevel(),
             'log_templates'    => (new WatchdogManager($this))->getTemplatesWithErrors(),
+
+            // Watchdog v2 — score santé, crons, queue, anomalies métriques
+            'watchdog_health'  => (new WatchdogManager($this))->getWatchdogHealthScore(),
+            'anomaly_warnings' => class_exists('StatsManager') ? (new StatsManager($this))->detectAnomalies() : [],
 
             // Variables pour send.tpl (envoi manuel — vague 1)
             // Libellés des champs traduits dans la langue du back-office.

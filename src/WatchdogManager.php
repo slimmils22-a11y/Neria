@@ -25,6 +25,14 @@ class WatchdogManager
     const LEVEL_ERROR    = 'error';
     const LEVEL_CRITICAL = 'critical';
 
+    // ── Monitoring des crons ───────────────────────────────────────
+    const TABLE_CRON  = 'neria_cron_health';
+    const KNOWN_CRONS = [
+        'behavioral' => ['label' => 'Cron comportemental',    'threshold_hours' => 25],
+        'calendar'   => ['label' => 'Cron calendaire',        'threshold_hours' => 25],
+        'webhook'    => ['label' => 'Queue webhook',           'threshold_hours' => 2],
+    ];
+
     // ── Alertes email ──────────────────────────────────────────────
     const CFG_ALERT_EMAIL     = 'NERIA_ALERT_EMAIL';
     const CFG_ALERT_IMMEDIATE = 'NERIA_ALERT_IMMEDIATE_ENABLED';
@@ -89,15 +97,37 @@ class WatchdogManager
         string $class,
         array  $context
     ): void {
-        $table       = _DB_PREFIX_ . self::TABLE;
-        $contextSql  = !empty($context)
+        $table      = _DB_PREFIX_ . self::TABLE;
+        $contextSql = !empty($context)
             ? "'" . pSQL(json_encode($context, JSON_UNESCAPED_UNICODE)) . "'"
             : 'NULL';
 
+        // Consolidation : même message+class dans la dernière heure → incrémenter au lieu d'insérer
+        $existing = (int) $this->db->getValue(sprintf(
+            "SELECT `id_log` FROM `%s`
+             WHERE `id_shop` = %d AND `level` = '%s' AND `class` = '%s'
+               AND `message` = '%s'
+               AND `date_add` > DATE_SUB(NOW(), INTERVAL 1 HOUR)
+             ORDER BY `date_add` DESC LIMIT 1",
+            $table,
+            $this->idShop,
+            pSQL($level),
+            pSQL($class),
+            pSQL($message)
+        ));
+
+        if ($existing > 0) {
+            $this->db->execute(
+                "UPDATE `{$table}` SET `occurrence_count` = `occurrence_count` + 1
+                 WHERE `id_log` = {$existing}"
+            );
+            return;
+        }
+
         $this->db->execute(sprintf(
             "INSERT INTO `%s`
-                (`id_shop`, `level`, `template`, `class`, `message`, `context`, `date_add`)
-             VALUES (%d, '%s', '%s', '%s', '%s', %s, '%s')",
+                (`id_shop`, `level`, `template`, `class`, `message`, `context`, `occurrence_count`, `date_add`)
+             VALUES (%d, '%s', '%s', '%s', '%s', %s, 1, '%s')",
             $table,
             $this->idShop,
             pSQL($level),
@@ -399,5 +429,214 @@ class WatchdogManager
                  LIMIT {$toDelete}"
             );
         }
+    }
+
+    // ============================================================
+    // FEATURE 1 — MONITORING DES CRONS
+    // ============================================================
+
+    /**
+     * Enregistre l'exécution d'un cron. Appeler en fin de tâche.
+     * $status : 'ok' | 'warning' | 'error'
+     * $count  : nombre d'éléments traités (emails envoyés, lignes nettoyées…)
+     */
+    public function cronHeartbeat(string $cronKey, string $status = 'ok', int $count = 0): void
+    {
+        $table = _DB_PREFIX_ . self::TABLE_CRON;
+        $this->db->execute(sprintf(
+            "INSERT INTO `%s` (`id_shop`, `cron_key`, `last_run`, `last_status`, `last_count`)
+             VALUES (%d, '%s', '%s', '%s', %d)
+             ON DUPLICATE KEY UPDATE
+               `last_run`    = VALUES(`last_run`),
+               `last_status` = VALUES(`last_status`),
+               `last_count`  = VALUES(`last_count`)",
+            $table,
+            $this->idShop,
+            pSQL($cronKey),
+            date('Y-m-d H:i:s'),
+            pSQL($status),
+            $count
+        ));
+    }
+
+    /**
+     * Retourne l'état de chaque cron connu.
+     * Indique si le cron est en retard (> seuil par cron).
+     */
+    public function getCronHealth(): array
+    {
+        $table = _DB_PREFIX_ . self::TABLE_CRON;
+        $rows  = $this->db->executeS(
+            "SELECT * FROM `{$table}` WHERE `id_shop` = {$this->idShop}"
+        );
+
+        $byKey = [];
+        if (is_array($rows)) {
+            foreach ($rows as $r) {
+                $byKey[$r['cron_key']] = $r;
+            }
+        }
+
+        $result = [];
+        foreach (self::KNOWN_CRONS as $key => $cfg) {
+            $row       = $byKey[$key] ?? null;
+            $lastRun   = $row ? $row['last_run']    : null;
+            $lastStatus= $row ? $row['last_status'] : 'unknown';
+            $lastCount = $row ? (int) $row['last_count'] : 0;
+            $threshold = ($cfg['threshold_hours'] ?? 25) * 3600;
+            $age       = $lastRun ? (time() - strtotime($lastRun)) : null;
+            $isLate    = ($age === null || $age > $threshold);
+
+            $result[$key] = [
+                'label'       => $cfg['label'],
+                'last_run'    => $lastRun,
+                'last_count'  => $lastCount,
+                'last_status' => $lastStatus,
+                'age_minutes' => $age !== null ? (int) round($age / 60) : null,
+                'is_late'     => $isLate,
+                'status'      => $isLate ? 'late' : ($lastStatus === 'error' ? 'error' : 'ok'),
+            ];
+        }
+
+        return $result;
+    }
+
+    // ============================================================
+    // FEATURE 2 — MONITORING DE LA QUEUE
+    // ============================================================
+
+    /**
+     * Retourne l'état de la file d'attente ps_neria_queue.
+     * Détecte les emails bloqués (pending > 2h) et les échecs.
+     */
+    public function getQueueHealth(): array
+    {
+        $table  = _DB_PREFIX_ . 'neria_queue';
+        $exists = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$table}'"
+        );
+
+        if (!$exists) {
+            return ['exists' => false, 'status' => 'ok', 'stuck' => 0, 'failed' => 0, 'total_pending' => 0];
+        }
+
+        $stuck = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}`
+             WHERE `status` = 'pending'
+               AND `scheduled_at` < DATE_SUB(NOW(), INTERVAL 2 HOUR)"
+        );
+
+        $failed = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}` WHERE `status` = 'failed'"
+        );
+
+        $totalPending = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}` WHERE `status` = 'pending'"
+        );
+
+        return [
+            'exists'        => true,
+            'stuck'         => $stuck,
+            'failed'        => $failed,
+            'total_pending' => $totalPending,
+            'status'        => ($stuck > 0 || $failed > 5) ? 'warning' : 'ok',
+        ];
+    }
+
+    // ============================================================
+    // FEATURE 5 — SCORE DE SANTÉ GLOBAL WATCHDOG
+    // ============================================================
+
+    /**
+     * Score 0-100 basé sur : erreurs récentes, crons en retard, queue bloquée.
+     * Distinct de StatsManager::getHealthScore() qui mesure les contrôles de diagnostic.
+     */
+    public function getWatchdogHealthScore(): array
+    {
+        $table  = _DB_PREFIX_ . self::TABLE;
+        $score  = 100;
+        $issues = [];
+
+        // ── Événements watchdog (24h) ─────────────────────────────
+        $recent = $this->db->executeS(
+            "SELECT `level`, COUNT(*) AS cnt
+             FROM `{$table}`
+             WHERE `id_shop`  = {$this->idShop}
+               AND `date_add` > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+               AND `level`    IN ('warning','error','critical')
+             GROUP BY `level`"
+        );
+        $rc = ['warning' => 0, 'error' => 0, 'critical' => 0];
+        if (is_array($recent)) {
+            foreach ($recent as $r) {
+                $rc[$r['level']] = (int) $r['cnt'];
+            }
+        }
+        $score -= min(15, $rc['warning']  * 2);
+        $score -= min(30, $rc['error']    * 5);
+        $score -= min(40, $rc['critical'] * 10);
+        if ($rc['error'] > 0 || $rc['critical'] > 0) {
+            $tot = $rc['error'] + $rc['critical'];
+            $issues[] = $tot . ' erreur(s)/critique(s) dans les 24 dernières heures';
+        }
+        if ($rc['warning'] > 0) {
+            $issues[] = $rc['warning'] . ' avertissement(s) dans les 24 dernières heures';
+        }
+
+        // ── Crons en retard ───────────────────────────────────────
+        $crons  = $this->getCronHealth();
+        $lateCt = 0;
+        foreach ($crons as $c) {
+            if ($c['is_late']) {
+                $lateCt++;
+            }
+        }
+        if ($lateCt > 0) {
+            $score   -= min(25, $lateCt * 10);
+            $issues[] = $lateCt . ' cron(s) en retard (pas d\'exécution depuis > seuil)';
+        }
+
+        // ── Queue bloquée ─────────────────────────────────────────
+        $queue = $this->getQueueHealth();
+        if (!empty($queue['stuck']) && $queue['stuck'] > 0) {
+            $score   -= 10;
+            $issues[] = $queue['stuck'] . ' email(s) bloqué(s) dans la file d\'attente';
+        }
+        if (!empty($queue['failed']) && $queue['failed'] > 5) {
+            $score   -= 5;
+            $issues[] = $queue['failed'] . ' email(s) en échec dans la file';
+        }
+
+        $score = max(0, $score);
+
+        if ($score >= 90) {
+            $status = 'excellent';
+            $color  = '#16a34a';
+            $label  = 'Excellent';
+        } elseif ($score >= 70) {
+            $status = 'good';
+            $color  = '#65a30d';
+            $label  = 'Bon';
+        } elseif ($score >= 50) {
+            $status = 'warning';
+            $color  = '#d97706';
+            $label  = 'Attention';
+        } else {
+            $status = 'critical';
+            $color  = '#dc2626';
+            $label  = 'Critique';
+        }
+
+        return [
+            'score'   => $score,
+            'status'  => $status,
+            'color'   => $color,
+            'label'   => $label,
+            'issues'  => $issues,
+            'crons'   => $crons,
+            'queue'   => $queue,
+            'rc_24h'  => $rc,
+        ];
     }
 }

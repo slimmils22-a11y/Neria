@@ -1367,4 +1367,96 @@ class StatsManager
             'score_pct' => $total > 0 ? (int) round($ok / $total * 100) : 100,
         ];
     }
+
+    // ============================================================
+    // FEATURE 3 — DÉTECTION D'ANOMALIES MÉTRIQUES
+    // ============================================================
+
+    /**
+     * Compare les taux d'ouverture/clic cette semaine vs la semaine précédente.
+     * Retourne la liste des templates avec une chute > 20 %.
+     */
+    public function detectAnomalies(): array
+    {
+        $table = _DB_PREFIX_ . 'neria_stat';
+
+        $templates = $this->db->executeS(
+            "SELECT DISTINCT `template` FROM `{$table}`
+             WHERE `event_type` = 'sent'
+               AND `date_add`  > DATE_SUB(NOW(), INTERVAL 14 DAY)"
+        );
+
+        if (empty($templates)) {
+            return [];
+        }
+
+        $anomalies = [];
+        foreach ($templates as $tpl) {
+            $template = $tpl['template'];
+            $thisWeek = $this->getTemplateWeekRates($template, 7, 0);
+            $lastWeek = $this->getTemplateWeekRates($template, 14, 7);
+
+            if (!$thisWeek || !$lastWeek || $lastWeek['sent'] < 10 || $thisWeek['sent'] < 5) {
+                continue;
+            }
+
+            $openDrop  = $lastWeek['open_rate']  > 0
+                ? round(($lastWeek['open_rate']  - $thisWeek['open_rate'])  / $lastWeek['open_rate']  * 100, 1)
+                : 0.0;
+            $clickDrop = $lastWeek['click_rate'] > 0
+                ? round(($lastWeek['click_rate'] - $thisWeek['click_rate']) / $lastWeek['click_rate'] * 100, 1)
+                : 0.0;
+
+            if ($openDrop >= 20 || $clickDrop >= 20) {
+                $anomalies[] = [
+                    'template'   => $template,
+                    'open_drop'  => $openDrop,
+                    'click_drop' => $clickDrop,
+                    'this_week'  => $thisWeek,
+                    'last_week'  => $lastWeek,
+                ];
+            }
+        }
+
+        return $anomalies;
+    }
+
+    private function getTemplateWeekRates(string $template, int $daysBack, int $daysOffset): ?array
+    {
+        $t = _DB_PREFIX_ . 'neria_stat';
+
+        $sent = (int) $this->db->getValue(sprintf(
+            "SELECT COUNT(*) FROM `{$t}`
+             WHERE `template` = '%s' AND `event_type` = 'sent'
+               AND `date_add` > DATE_SUB(NOW(), INTERVAL %d DAY)
+               AND `date_add` <= DATE_SUB(NOW(), INTERVAL %d DAY)",
+            pSQL($template), $daysBack, $daysOffset
+        ));
+
+        if ($sent === 0) {
+            return null;
+        }
+
+        $opens = (int) $this->db->getValue(sprintf(
+            "SELECT COUNT(DISTINCT `id_customer`) FROM `{$t}`
+             WHERE `template` = '%s' AND `event_type` = 'open'
+               AND `date_add` > DATE_SUB(NOW(), INTERVAL %d DAY)
+               AND `date_add` <= DATE_SUB(NOW(), INTERVAL %d DAY)",
+            pSQL($template), $daysBack, $daysOffset
+        ));
+
+        $clicks = (int) $this->db->getValue(sprintf(
+            "SELECT COUNT(DISTINCT `id_customer`) FROM `{$t}`
+             WHERE `template` = '%s' AND `event_type` = 'click'
+               AND `date_add` > DATE_SUB(NOW(), INTERVAL %d DAY)
+               AND `date_add` <= DATE_SUB(NOW(), INTERVAL %d DAY)",
+            pSQL($template), $daysBack, $daysOffset
+        ));
+
+        return [
+            'sent'       => $sent,
+            'open_rate'  => round($opens  / $sent * 100, 1),
+            'click_rate' => round($clicks / $sent * 100, 1),
+        ];
+    }
 }

@@ -139,6 +139,7 @@ class BehavioralCronManager
             }
         }
 
+        $this->watchdog()->cronHeartbeat('behavioral', 'ok');
         $this->watchdog()->info('BehavioralCronManager terminé', '', 'BehavioralCron');
     }
 

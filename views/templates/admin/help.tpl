@@ -4,6 +4,140 @@
  * i18n : libellés via {neria_admin key='...'} (18 langues, AdminTranslator)
  *}
 
+{* ── Watchdog v2 — Score de santé global ────────────────────── *}
+{if isset($watchdog_health)}
+{assign var="wh" value=$watchdog_health}
+<div class="neria-section" id="neria-help-watchdog-score">
+  <h2 class="neria-section__title">
+    ⚡ Score de santé Watchdog
+  </h2>
+
+  {* Score principal *}
+  <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-bottom:24px;">
+    <div style="text-align:center;flex-shrink:0;">
+      <svg viewBox="0 0 100 100" width="90" height="90">
+        {assign var="wCircum" value=251.2}
+        {assign var="wOffset" value=$wCircum|default:251.2}
+        {assign var="wPct"    value=$wh.score|default:0}
+        <circle cx="50" cy="50" r="40" fill="none" stroke="#e8d5b0" stroke-width="10"/>
+        <circle cx="50" cy="50" r="40" fill="none"
+                stroke="{$wh.color|default:'#16a34a'}" stroke-width="10"
+                stroke-dasharray="{$wCircum}"
+                stroke-dashoffset="{math equation='c - c * p / 100' c=$wCircum p=$wPct}"
+                stroke-linecap="round"
+                transform="rotate(-90 50 50)"/>
+        <text x="50" y="46" text-anchor="middle"
+              style="font-size:20px;font-weight:700;fill:{$wh.color|default:'#16a34a'}">{$wh.score|default:0}</text>
+        <text x="50" y="60" text-anchor="middle"
+              style="font-size:9px;fill:#888;">/100</text>
+      </svg>
+      <div style="font-size:13px;font-weight:700;color:{$wh.color|default:'#16a34a'};margin-top:4px;">{$wh.label|default:'—'}</div>
+    </div>
+
+    {* Issues *}
+    <div style="flex:1;min-width:200px;">
+      {if empty($wh.issues)}
+        <div style="color:#16a34a;font-size:13px;font-weight:600;">✓ Aucun problème détecté</div>
+        <div style="color:#888;font-size:12px;margin-top:4px;">Tous les systèmes fonctionnent normalement.</div>
+      {else}
+        <div style="font-size:12px;font-weight:700;color:#7a5800;margin-bottom:8px;">Problèmes détectés :</div>
+        <ul style="margin:0;padding-left:16px;font-size:12px;color:#5c3d1e;line-height:1.8;">
+          {foreach $wh.issues as $issue}
+            <li>{$issue|escape:'html'}</li>
+          {/foreach}
+        </ul>
+      {/if}
+    </div>
+  </div>
+
+  {* Grille sous-systèmes : Crons *}
+  <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.55;color:var(--neria-dark);margin-bottom:10px;">
+    Monitoring des crons
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:20px;">
+    {foreach $wh.crons as $cKey => $cron}
+      {assign var="cStatus" value=$cron.status|default:'late'}
+      <div style="padding:12px 14px;border-radius:6px;border:1px solid {if $cStatus === 'ok'}#bbf7d0{elseif $cStatus === 'error'}#fecaca{else}#fed7aa{/if};background:{if $cStatus === 'ok'}#f0fdf4{elseif $cStatus === 'error'}#fff5f5{else}#fffbf0{/if};">
+        <div style="font-size:11px;font-weight:700;color:{if $cStatus === 'ok'}#16a34a{elseif $cStatus === 'error'}#dc2626{else}#d97706{/if};margin-bottom:4px;">
+          {if $cStatus === 'ok'}✓{elseif $cStatus === 'error'}✕{else}⚠{/if}
+          {$cron.label|escape:'html'}
+        </div>
+        {if $cron.last_run}
+          <div style="font-size:11px;color:#888;">
+            Il y a
+            {if $cron.age_minutes < 60}
+              {$cron.age_minutes} min
+            {else}
+              {math equation="floor(m/60)" m=$cron.age_minutes}h
+            {/if}
+            ({$cron.last_count} traité{if $cron.last_count > 1}s{/if})
+          </div>
+        {else}
+          <div style="font-size:11px;color:#d97706;">Jamais exécuté</div>
+        {/if}
+      </div>
+    {/foreach}
+
+    {* Queue *}
+    {assign var="qStatus" value=$wh.queue.status|default:'ok'}
+    <div style="padding:12px 14px;border-radius:6px;border:1px solid {if $qStatus === 'ok'}#bbf7d0{else}#fed7aa{/if};background:{if $qStatus === 'ok'}#f0fdf4{else}#fffbf0{/if};">
+      <div style="font-size:11px;font-weight:700;color:{if $qStatus === 'ok'}#16a34a{else}#d97706{/if};margin-bottom:4px;">
+        {if $qStatus === 'ok'}✓{else}⚠{/if} File d'attente
+      </div>
+      {if $wh.queue.exists}
+        {if $wh.queue.stuck > 0}
+          <div style="font-size:11px;color:#d97706;">{$wh.queue.stuck} bloqué{if $wh.queue.stuck > 1}s{/if} (&gt;2h)</div>
+        {/if}
+        {if $wh.queue.failed > 0}
+          <div style="font-size:11px;color:#dc2626;">{$wh.queue.failed} en échec</div>
+        {/if}
+        {if $wh.queue.stuck == 0 && $wh.queue.failed == 0}
+          <div style="font-size:11px;color:#888;">{$wh.queue.total_pending} en attente — OK</div>
+        {/if}
+      {else}
+        <div style="font-size:11px;color:#888;">Queue non activée</div>
+      {/if}
+    </div>
+
+    {* Erreurs 24h *}
+    {assign var="e24Err"    value=$wh.rc_24h.error|default:0}
+    {assign var="e24Crit"   value=$wh.rc_24h.critical|default:0}
+    {assign var="e24Warn"   value=$wh.rc_24h.warning|default:0}
+    <div style="padding:12px 14px;border-radius:6px;border:1px solid {if $e24Err > 0 || $e24Crit > 0}#fecaca{else}#bbf7d0{/if};background:{if $e24Err > 0 || $e24Crit > 0}#fff5f5{else}#f0fdf4{/if};">
+      <div style="font-size:11px;font-weight:700;color:{if $e24Err > 0 || $e24Crit > 0}#dc2626{else}#16a34a{/if};margin-bottom:4px;">
+        {if $e24Err > 0 || $e24Crit > 0}✕{else}✓{/if} Erreurs (24h)
+      </div>
+      {if $e24Err == 0 && $e24Crit == 0 && $e24Warn == 0}
+        <div style="font-size:11px;color:#888;">Aucune anomalie</div>
+      {else}
+        {if $e24Crit > 0}<div style="font-size:11px;color:#dc2626;">{$e24Crit} critique{if $e24Crit > 1}s{/if}</div>{/if}
+        {if $e24Err > 0}<div style="font-size:11px;color:#a32d2d;">{$e24Err} erreur{if $e24Err > 1}s{/if}</div>{/if}
+        {if $e24Warn > 0}<div style="font-size:11px;color:#d97706;">{$e24Warn} warning{if $e24Warn > 1}s{/if}</div>{/if}
+      {/if}
+    </div>
+
+  </div>
+
+  {* Anomalies métriques *}
+  {if isset($anomaly_warnings) && !empty($anomaly_warnings)}
+  <div style="background:#fffbf0;border:1px solid #fcd34d;border-radius:6px;padding:14px 18px;margin-top:4px;">
+    <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:10px;">
+      ⚠ Anomalies détectées sur {$anomaly_warnings|@count} template{if $anomaly_warnings|@count > 1}s{/if}
+    </div>
+    {foreach $anomaly_warnings as $anm}
+    <div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #fde68a;font-size:12px;">
+      <strong>{$anm.template|escape:'html'}</strong> —
+      {if $anm.open_drop >= 20}Ouv. : -{$anm.open_drop}% (S-1 : {$anm.last_week.open_rate}% → S : {$anm.this_week.open_rate}%){/if}
+      {if $anm.open_drop >= 20 && $anm.click_drop >= 20} · {/if}
+      {if $anm.click_drop >= 20}Clics : -{$anm.click_drop}%{/if}
+    </div>
+    {/foreach}
+  </div>
+  {/if}
+
+</div>
+{/if}
+
 {* ── Diagnostic ─────────────────────────────────────────────── *}
 <div class="neria-section" id="neria-help-diagnostic">
   <h2 class="neria-section__title">
@@ -453,6 +587,11 @@
                 <span class="neria-badge neria-badge--{if $log.level === 'info'}neutral{elseif $log.level === 'warning'}warn{else}err{/if}">
                   {$log.level}
                 </span>
+                {assign var="occCount" value=$log.occurrence_count|default:1}
+                {if $occCount > 1}
+                  <span style="font-size:10px;background:#e8d5b0;color:#5c3d1e;padding:1px 5px;border-radius:10px;font-weight:700;margin-left:3px;"
+                        title="Ce message est apparu {$occCount} fois en 1h">×{$occCount}</span>
+                {/if}
               </td>
               <td class="col-class">{$log.class}</td>
               <td class="col-tpl">{$log.template|default:'—'}</td>
