@@ -1456,18 +1456,26 @@ var _nhm = {$open_heatmap|default:'null'};
 
       {* 4 KPIs *}
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px;">
-        {foreach [
-          ['label'=>'Impressions','val'=>$sc.impressions|number_format:0:',':' ','icon'=>'👁'],
-          ['label'=>'Clics',      'val'=>$sc.clicks|number_format:0:',':' ',     'icon'=>'↗'],
-          ['label'=>'CTR',        'val'=>$sc.ctr~'%',                            'icon'=>'%'],
-          ['label'=>'Position',   'val'=>$sc.position,                           'icon'=>'#']
-        ] as $kpi}
         <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:12px 14px;text-align:center;">
-          <div style="font-size:18px;margin-bottom:4px;">{$kpi.icon}</div>
-          <div style="font-size:20px;font-weight:700;color:var(--neria-dark);">{$kpi.val}</div>
-          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">{$kpi.label}</div>
+          <div style="font-size:18px;margin-bottom:4px;">👁</div>
+          <div style="font-size:20px;font-weight:700;color:var(--neria-dark);">{$sc.impressions|number_format:0:',':' '}</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">Impressions</div>
         </div>
-        {/foreach}
+        <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:12px 14px;text-align:center;">
+          <div style="font-size:18px;margin-bottom:4px;">↗</div>
+          <div style="font-size:20px;font-weight:700;color:var(--neria-dark);">{$sc.clicks|number_format:0:',':' '}</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">Clics</div>
+        </div>
+        <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:12px 14px;text-align:center;">
+          <div style="font-size:18px;margin-bottom:4px;">%</div>
+          <div style="font-size:20px;font-weight:700;color:var(--neria-dark);">{$sc.ctr}%</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">CTR</div>
+        </div>
+        <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:12px 14px;text-align:center;">
+          <div style="font-size:18px;margin-bottom:4px;">#</div>
+          <div style="font-size:20px;font-weight:700;color:var(--neria-dark);">{$sc.position}</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">Position</div>
+        </div>
       </div>
 
       {* Top requêtes + Top pages côte à côte *}
