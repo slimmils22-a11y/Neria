@@ -1168,6 +1168,542 @@ var _nhm = {$open_heatmap|default:'null'};
 
 </div>
 
+{* ══════════════════════════════════════════════════════════════
+   VISIBILITÉ BOUTIQUE — PageSpeed + Search Console + SEO API
+   ══════════════════════════════════════════════════════════════ *}
+<div class="neria-section" id="neria-visibility-section">
+  <h2 class="neria-section__title">🌐 Visibilité sur le web</h2>
+  <p class="neria-section__desc">
+    Mesurez la présence organique de votre boutique : performance technique, trafic Search Console
+    et autorité de domaine. Ces métriques complètent la délivrabilité email pour une vision à 360°.
+  </p>
+
+  {* ── 1. PAGESPEED INSIGHTS ────────────────────────────────── *}
+  <div style="border:1px solid var(--neria-border);border-radius:8px;padding:20px 24px;margin-bottom:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">⚡</span>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--neria-dark);">Google PageSpeed Insights</div>
+          <div style="font-size:11px;color:var(--neria-muted);">Performance · Accessibilité · SEO · Core Web Vitals — clé API gratuite</div>
+        </div>
+      </div>
+      {if $pagespeed_configured}
+        <div style="display:flex;gap:8px;align-items:center;">
+          {if $pagespeed_cache_age !== null}
+            <span style="font-size:11px;color:var(--neria-muted);">actualisé il y a {$pagespeed_cache_age} min</span>
+          {/if}
+          <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+            <input type="hidden" name="neria_action" value="refresh_pagespeed">
+            <input type="hidden" name="neria_tab"    value="stats">
+            <button type="submit" style="padding:5px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;"
+                    onmouseover="this.style.background='#b8975a'" onmouseout="this.style.background='#1a1a1a'">
+              ↻ Actualiser
+            </button>
+          </form>
+        </div>
+      {/if}
+    </div>
+
+    {* Configuration : saisie clé API *}
+    {if !$pagespeed_configured}
+    <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:16px 20px;margin-bottom:16px;">
+      <div style="font-size:12px;color:#5c3d1e;line-height:1.6;margin-bottom:12px;">
+        <strong>Comment obtenir une clé gratuite :</strong><br>
+        1. Rendez-vous sur <a href="https://console.cloud.google.com/" target="_blank" style="color:#1a7a40;">console.cloud.google.com</a>
+        → API &amp; services → Bibliothèque<br>
+        2. Activez <strong>PageSpeed Insights API</strong><br>
+        3. Identifiants → Créer une clé API → copiez la clé
+      </div>
+      <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+        <input type="hidden" name="neria_action" value="save_pagespeed_key">
+        <input type="hidden" name="neria_tab"    value="stats">
+        <div style="flex:1;min-width:200px;">
+          <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">Clé API Google</label>
+          <input type="text" name="pagespeed_api_key" value="{$pagespeed_api_key|escape:'html'}"
+                 style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
+                 placeholder="AIzaSy…">
+        </div>
+        <button type="submit" class="neria-btn neria-btn--primary" style="font-size:12px;padding:8px 16px;">
+          Enregistrer
+        </button>
+      </form>
+    </div>
+    {/if}
+
+    {* Résultats PageSpeed *}
+    {if $pagespeed_report}
+      {assign var="ps" value=$pagespeed_report}
+
+      {* 4 scores — Mobile *}
+      {if $ps.mobile}
+      {assign var="psm" value=$ps.mobile}
+      <div style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:12px;">📱 Mobile</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:16px;">
+          {foreach [
+            ['label'=>'Performance', 'val'=>$psm.perf,   'color'=>$psm.perf_color],
+            ['label'=>'Accessibilité','val'=>$psm.access, 'color'=>$psm.access_color],
+            ['label'=>'SEO',          'val'=>$psm.seo,    'color'=>$psm.seo_color],
+            ['label'=>'Bonnes prat.', 'val'=>$psm.best,   'color'=>$psm.best_color]
+          ] as $sc}
+          <div style="text-align:center;background:var(--neria-bg);border-radius:6px;padding:12px 8px;">
+            <svg width="48" height="48" viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r="18" fill="none" stroke="var(--neria-border)" stroke-width="5"/>
+              {if $sc.val !== null}
+              <circle cx="24" cy="24" r="18" fill="none" stroke="{$sc.color}" stroke-width="5"
+                      stroke-dasharray="{math equation='113 * v / 100' v=$sc.val} 113"
+                      stroke-dashoffset="28" stroke-linecap="round" transform="rotate(-90 24 24)"/>
+              <text x="24" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="{$sc.color}">{$sc.val}</text>
+              {else}
+              <text x="24" y="28" text-anchor="middle" font-size="11" fill="#ccc">—</text>
+              {/if}
+            </svg>
+            <div style="font-size:10px;color:var(--neria-muted);margin-top:4px;">{$sc.label}</div>
+          </div>
+          {/foreach}
+        </div>
+
+        {* Core Web Vitals *}
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+          {foreach [
+            ['key'=>'lcp','label'=>'LCP','val'=>$psm.lcp,'status'=>$psm.lcp_status,'hint'=>'Largest Contentful Paint'],
+            ['key'=>'cls','label'=>'CLS','val'=>$psm.cls,'status'=>$psm.cls_status,'hint'=>'Cumulative Layout Shift'],
+            ['key'=>'tbt','label'=>'TBT','val'=>$psm.tbt,'status'=>$psm.tbt_status,'hint'=>'Total Blocking Time']
+          ] as $cwv}
+          <div style="padding:10px 12px;border-radius:6px;
+                      background:{if $cwv.status == 'good'}#f0faf3{elseif $cwv.status == 'needs-improvement'}#fffde7{else}#fdf0ee{/if};
+                      border:1px solid {if $cwv.status == 'good'}#c3e6cb{elseif $cwv.status == 'needs-improvement'}#ffe082{else}#f5c6cb{/if};">
+            <div style="font-size:10px;font-weight:700;color:var(--neria-muted);text-transform:uppercase;margin-bottom:3px;"
+                 title="{$cwv.hint}">{$cwv.label}</div>
+            <div style="font-size:14px;font-weight:700;color:{if $cwv.status == 'good'}#16a34a{elseif $cwv.status == 'needs-improvement'}#d97706{else}#dc2626{/if};">
+              {$cwv.val}
+            </div>
+          </div>
+          {/foreach}
+        </div>
+      </div>
+      {/if}
+
+      {* Desktop *}
+      {if $ps.desktop}
+      {assign var="psd" value=$ps.desktop}
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:12px;">🖥 Desktop</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:16px;">
+          {foreach [
+            ['label'=>'Performance', 'val'=>$psd.perf,   'color'=>$psd.perf_color],
+            ['label'=>'Accessibilité','val'=>$psd.access, 'color'=>$psd.access_color],
+            ['label'=>'SEO',          'val'=>$psd.seo,    'color'=>$psd.seo_color],
+            ['label'=>'Bonnes prat.', 'val'=>$psd.best,   'color'=>$psd.best_color]
+          ] as $sc}
+          <div style="text-align:center;background:var(--neria-bg);border-radius:6px;padding:12px 8px;">
+            <svg width="48" height="48" viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r="18" fill="none" stroke="var(--neria-border)" stroke-width="5"/>
+              {if $sc.val !== null}
+              <circle cx="24" cy="24" r="18" fill="none" stroke="{$sc.color}" stroke-width="5"
+                      stroke-dasharray="{math equation='113 * v / 100' v=$sc.val} 113"
+                      stroke-dashoffset="28" stroke-linecap="round" transform="rotate(-90 24 24)"/>
+              <text x="24" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="{$sc.color}">{$sc.val}</text>
+              {else}
+              <text x="24" y="28" text-anchor="middle" font-size="11" fill="#ccc">—</text>
+              {/if}
+            </svg>
+            <div style="font-size:10px;color:var(--neria-muted);margin-top:4px;">{$sc.label}</div>
+          </div>
+          {/foreach}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+          {foreach [
+            ['label'=>'LCP','val'=>$psd.lcp,'status'=>$psd.lcp_status],
+            ['label'=>'CLS','val'=>$psd.cls,'status'=>$psd.cls_status],
+            ['label'=>'TBT','val'=>$psd.tbt,'status'=>$psd.tbt_status]
+          ] as $cwv}
+          <div style="padding:10px 12px;border-radius:6px;
+                      background:{if $cwv.status == 'good'}#f0faf3{elseif $cwv.status == 'needs-improvement'}#fffde7{else}#fdf0ee{/if};
+                      border:1px solid {if $cwv.status == 'good'}#c3e6cb{elseif $cwv.status == 'needs-improvement'}#ffe082{else}#f5c6cb{/if};">
+            <div style="font-size:10px;font-weight:700;color:var(--neria-muted);text-transform:uppercase;margin-bottom:3px;">{$cwv.label}</div>
+            <div style="font-size:14px;font-weight:700;color:{if $cwv.status == 'good'}#16a34a{elseif $cwv.status == 'needs-improvement'}#d97706{else}#dc2626{/if};">
+              {$cwv.val}
+            </div>
+          </div>
+          {/foreach}
+        </div>
+      </div>
+      {/if}
+
+      <p style="font-size:11px;color:var(--neria-muted);margin:12px 0 0;font-style:italic;">
+        Analysé le {$ps.checked_at} · URL : {$ps.url|escape:'html'}
+      </p>
+
+    {elseif $pagespeed_configured}
+      <div style="text-align:center;padding:24px;color:var(--neria-muted);font-size:13px;">
+        <div style="font-size:32px;margin-bottom:8px;">⚡</div>
+        Clé API configurée — cliquez sur <strong>Actualiser</strong> pour lancer l'analyse.
+      </div>
+    {/if}
+  </div>
+
+  {* ── 2. GOOGLE SEARCH CONSOLE ─────────────────────────────── *}
+  <div style="border:1px solid var(--neria-border);border-radius:8px;padding:20px 24px;margin-bottom:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">🔍</span>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--neria-dark);">Google Search Console</div>
+          <div style="font-size:11px;color:var(--neria-muted);">Impressions · Clics · CTR · Position moyenne · Top requêtes — OAuth gratuit</div>
+        </div>
+      </div>
+      {if $searchconsole_connected}
+        <div style="display:flex;gap:8px;align-items:center;">
+          {if $searchconsole_cache_age !== null}
+            <span style="font-size:11px;color:var(--neria-muted);">actualisé il y a {$searchconsole_cache_age} min</span>
+          {/if}
+          <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+            <input type="hidden" name="neria_action" value="refresh_searchconsole">
+            <input type="hidden" name="neria_tab"    value="stats">
+            <button type="submit" style="padding:5px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;"
+                    onmouseover="this.style.background='#b8975a'" onmouseout="this.style.background='#1a1a1a'">
+              ↻ Actualiser
+            </button>
+          </form>
+          <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+            <input type="hidden" name="neria_action" value="disconnect_searchconsole">
+            <input type="hidden" name="neria_tab"    value="stats">
+            <button type="submit" style="padding:5px 12px;background:#fff;color:#c0392b;border:1px solid #f5c6cb;border-radius:4px;font-size:11px;cursor:pointer;">
+              Déconnecter
+            </button>
+          </form>
+        </div>
+      {/if}
+    </div>
+
+    {* État 1 : non configuré *}
+    {if !$searchconsole_configured}
+    <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:16px 20px;">
+      <div style="font-size:12px;color:#5c3d1e;line-height:1.6;margin-bottom:12px;">
+        <strong>Configuration OAuth 2.0 :</strong><br>
+        1. <a href="https://console.cloud.google.com/" target="_blank" style="color:#1a7a40;">console.cloud.google.com</a>
+        → Nouveau projet → API &amp; services → Bibliothèque<br>
+        2. Activez <strong>Google Search Console API</strong><br>
+        3. Identifiants → OAuth 2.0 → Application Web → URI de redirection :<br>
+        <code style="font-size:11px;background:#fff;padding:2px 6px;border-radius:3px;">
+          {$smarty.server.REQUEST_SCHEME|default:'https'}://{$smarty.server.HTTP_HOST}/index.php?fc=module&amp;module=neria&amp;controller=oauthsc
+        </code>
+      </div>
+      <form method="post" action="{$smarty.server.REQUEST_URI}">
+        <input type="hidden" name="neria_action" value="save_searchconsole_config">
+        <input type="hidden" name="neria_tab"    value="stats">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">Client ID</label>
+            <input type="text" name="sc_client_id" value="{$searchconsole_client_id|escape:'html'}"
+                   style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
+                   placeholder="12345…googleusercontent.com">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">Client Secret</label>
+            <input type="password" name="sc_client_secret"
+                   style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
+                   placeholder="GOCSPX-…">
+          </div>
+        </div>
+        <button type="submit" class="neria-btn neria-btn--primary" style="font-size:12px;padding:8px 16px;">
+          Enregistrer les identifiants
+        </button>
+      </form>
+    </div>
+    {/if}
+
+    {* État 2 : configuré mais non connecté *}
+    {if $searchconsole_configured && !$searchconsole_connected}
+    <div style="background:#fff;border:1px solid #e8d5b0;border-radius:6px;padding:16px 20px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:#e67e22;flex-shrink:0;"></div>
+        <div style="font-weight:700;font-size:13px;color:#5c3d1e;">Identifiants enregistrés — autorisation requise</div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <form method="post" action="{$smarty.server.REQUEST_URI}">
+          <input type="hidden" name="neria_action" value="connect_searchconsole">
+          <input type="hidden" name="neria_tab"    value="stats">
+          <button type="submit" style="background:#1a7a40;color:#fff;border:none;border-radius:5px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;">
+            🔗 Connecter avec Google
+          </button>
+        </form>
+        <form method="post" action="{$smarty.server.REQUEST_URI}">
+          <input type="hidden" name="neria_action" value="save_searchconsole_config">
+          <input type="hidden" name="neria_tab"    value="stats">
+          <input type="hidden" name="sc_client_id"     value="">
+          <input type="hidden" name="sc_client_secret" value="">
+          <button type="submit" style="background:#fff;color:#7a6a5a;border:1px solid #d4c5a9;border-radius:5px;padding:9px 16px;font-size:12px;cursor:pointer;">
+            Modifier les identifiants
+          </button>
+        </form>
+      </div>
+    </div>
+    {/if}
+
+    {* État 3 : connecté — données *}
+    {if $searchconsole_connected}
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;background:#f0faf3;border:1px solid #c3e6cb;border-radius:6px;padding:10px 14px;">
+      <div style="width:8px;height:8px;border-radius:50%;background:#16a34a;flex-shrink:0;"></div>
+      <span style="font-size:12px;font-weight:700;color:#16a34a;">Connecté à Google Search Console</span>
+    </div>
+
+    {if $searchconsole_stats}
+      {assign var="sc" value=$searchconsole_stats}
+      <div style="font-size:11px;color:var(--neria-muted);margin-bottom:12px;">{$sc.site_url|escape:'html'} · {$sc.period}</div>
+
+      {* 4 KPIs *}
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px;">
+        {foreach [
+          ['label'=>'Impressions','val'=>$sc.impressions|number_format:0:',':' ','icon'=>'👁'],
+          ['label'=>'Clics',      'val'=>$sc.clicks|number_format:0:',':' ',     'icon'=>'↗'],
+          ['label'=>'CTR',        'val'=>$sc.ctr~'%',                            'icon'=>'%'],
+          ['label'=>'Position',   'val'=>$sc.position,                           'icon'=>'#']
+        ] as $kpi}
+        <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:12px 14px;text-align:center;">
+          <div style="font-size:18px;margin-bottom:4px;">{$kpi.icon}</div>
+          <div style="font-size:20px;font-weight:700;color:var(--neria-dark);">{$kpi.val}</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">{$kpi.label}</div>
+        </div>
+        {/foreach}
+      </div>
+
+      {* Top requêtes + Top pages côte à côte *}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+        {* Top 10 requêtes *}
+        {if $sc.queries}
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:8px;">Top requêtes</div>
+          <table class="neria-table" style="font-size:12px;">
+            <thead><tr>
+              <th>Requête</th>
+              <th class="neria-table__num">Clics</th>
+              <th class="neria-table__num">Pos.</th>
+            </tr></thead>
+            <tbody>
+              {foreach $sc.queries as $q}
+              <tr>
+                <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{$q.label|escape:'html'}">{$q.label|escape:'html'}</td>
+                <td class="neria-table__num">{$q.clicks}</td>
+                <td class="neria-table__num" style="color:{if $q.position <= 3}#16a34a{elseif $q.position <= 10}#d97706{else}#dc2626{/if};font-weight:700;">{$q.position}</td>
+              </tr>
+              {/foreach}
+            </tbody>
+          </table>
+        </div>
+        {/if}
+
+        {* Top 10 pages *}
+        {if $sc.pages}
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:8px;">Top pages</div>
+          <table class="neria-table" style="font-size:12px;">
+            <thead><tr>
+              <th>Page</th>
+              <th class="neria-table__num">Clics</th>
+              <th class="neria-table__num">Pos.</th>
+            </tr></thead>
+            <tbody>
+              {foreach $sc.pages as $p}
+              <tr>
+                <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{$p.label|escape:'html'}">{$p.short|escape:'html'}</td>
+                <td class="neria-table__num">{$p.clicks}</td>
+                <td class="neria-table__num" style="color:{if $p.position <= 3}#16a34a{elseif $p.position <= 10}#d97706{else}#dc2626{/if};font-weight:700;">{$p.position}</td>
+              </tr>
+              {/foreach}
+            </tbody>
+          </table>
+        </div>
+        {/if}
+
+      </div>
+      <p style="font-size:11px;color:var(--neria-muted);margin:12px 0 0;font-style:italic;">Données du {$sc.checked_at} — latence Google : 3 jours</p>
+
+    {else}
+      <div style="text-align:center;padding:20px;color:var(--neria-muted);font-size:13px;">
+        Cliquez sur <strong>Actualiser</strong> pour charger les données Search Console.
+      </div>
+    {/if}
+    {/if}
+  </div>
+
+  {* ── 3. API SEO PAYANTE (Semrush / Moz) ──────────────────── *}
+  <div style="border:1px solid var(--neria-border);border-radius:8px;padding:20px 24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:20px;">📊</span>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--neria-dark);">API SEO avancée <span style="font-size:11px;font-weight:400;color:var(--neria-muted);">(optionnelle)</span></div>
+          <div style="font-size:11px;color:var(--neria-muted);">Semrush ou Moz — autorité, backlinks, mots-clés organiques</div>
+        </div>
+      </div>
+      {if $seo_configured}
+        <div style="display:flex;gap:8px;align-items:center;">
+          {if $seo_cache_age !== null}
+            <span style="font-size:11px;color:var(--neria-muted);">actualisé il y a {$seo_cache_age} min</span>
+          {/if}
+          <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+            <input type="hidden" name="neria_action" value="refresh_seo_api">
+            <input type="hidden" name="neria_tab"    value="stats">
+            <button type="submit" style="padding:5px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;"
+                    onmouseover="this.style.background='#b8975a'" onmouseout="this.style.background='#1a1a1a'">
+              ↻ Actualiser
+            </button>
+          </form>
+        </div>
+      {/if}
+    </div>
+
+    {* Formulaire de configuration *}
+    <form method="post" action="{$smarty.server.REQUEST_URI}">
+      <input type="hidden" name="neria_action" value="save_seo_config">
+      <input type="hidden" name="neria_tab"    value="stats">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        {* Choix du fournisseur *}
+        <div>
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--neria-dark);margin-bottom:6px;">Fournisseur</label>
+          <select name="seo_provider" id="neria-seo-provider"
+                  style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;">
+            <option value="">— Aucun —</option>
+            <option value="semrush" {if $seo_provider == 'semrush'}selected{/if}>Semrush</option>
+            <option value="moz"     {if $seo_provider == 'moz'}selected{/if}>Moz</option>
+          </select>
+        </div>
+
+        {* Champs Semrush *}
+        <div id="neria-seo-semrush" style="display:{if $seo_provider == 'semrush'}block{else}none{/if};">
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--neria-dark);margin-bottom:6px;">Clé API Semrush</label>
+          <input type="text" name="seo_semrush_key" value="{$seo_semrush_key|escape:'html'}"
+                 style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
+                 placeholder="votre clé Semrush API">
+          <div style="font-size:10px;color:var(--neria-muted);margin-top:4px;">
+            <a href="https://www.semrush.com/api-documentation/" target="_blank" style="color:var(--neria-accent);">Documentation Semrush API →</a>
+          </div>
+        </div>
+
+        {* Champs Moz *}
+        <div id="neria-seo-moz" style="display:{if $seo_provider == 'moz'}block{else}none{/if};">
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--neria-dark);margin-bottom:4px;">Moz Access ID</label>
+          <input type="text" name="seo_moz_access" value="{$seo_moz_access|escape:'html'}"
+                 style="width:100%;padding:7px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;margin-bottom:8px;"
+                 placeholder="mozscape-…">
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--neria-dark);margin-bottom:4px;">Moz Secret Key</label>
+          <input type="password" name="seo_moz_secret"
+                 style="width:100%;padding:7px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
+                 placeholder="…">
+          <div style="font-size:10px;color:var(--neria-muted);margin-top:4px;">
+            <a href="https://moz.com/products/api" target="_blank" style="color:var(--neria-accent);">Documentation Moz API →</a>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="neria-btn neria-btn--primary" style="font-size:12px;padding:8px 16px;">
+        Enregistrer
+      </button>
+    </form>
+
+    {* Résultats Semrush *}
+    {if $seo_report && $seo_report.provider == 'semrush'}
+      {assign var="sr" value=$seo_report}
+      <hr style="border:none;border-top:1px solid var(--neria-border);margin:20px 0;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:12px;">Semrush — {$sr.domain|escape:'html'} · {$sr.checked_at}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px;">
+        {foreach [
+          ['label'=>'Score auto.','val'=>$sr.authority_score,'icon'=>'★'],
+          ['label'=>'Mots-clés org.','val'=>$sr.organic_keywords|number_format:0:',':' ','icon'=>'🔑'],
+          ['label'=>'Trafic org.','val'=>$sr.organic_traffic|number_format:0:',':' ','icon'=>'📈'],
+          ['label'=>'Mots-clés payants','val'=>$sr.paid_keywords|number_format:0:',':' ','icon'=>'💰']
+        ] as $kpi}
+        <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:12px 14px;text-align:center;">
+          <div style="font-size:16px;margin-bottom:4px;">{$kpi.icon}</div>
+          <div style="font-size:18px;font-weight:700;color:var(--neria-dark);">{$kpi.val}</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">{$kpi.label}</div>
+        </div>
+        {/foreach}
+      </div>
+      {if $sr.keywords}
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:8px;">Top mots-clés organiques</div>
+      <table class="neria-table" style="font-size:12px;">
+        <thead><tr>
+          <th>Mot-clé</th>
+          <th class="neria-table__num">Position</th>
+          <th class="neria-table__num">Volume/mois</th>
+        </tr></thead>
+        <tbody>
+          {foreach $sr.keywords as $kw}
+          <tr>
+            <td>{$kw.keyword|escape:'html'}</td>
+            <td class="neria-table__num" style="font-weight:700;color:{if $kw.position <= 3}#16a34a{elseif $kw.position <= 10}#d97706{else}#dc2626{/if};">#{$kw.position}</td>
+            <td class="neria-table__num">{$kw.volume|number_format:0:',':' '}</td>
+          </tr>
+          {/foreach}
+        </tbody>
+      </table>
+      {/if}
+    {/if}
+
+    {* Résultats Moz *}
+    {if $seo_report && $seo_report.provider == 'moz'}
+      {assign var="mr" value=$seo_report}
+      <hr style="border:none;border-top:1px solid var(--neria-border);margin:20px 0;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:12px;">Moz — {$mr.domain|escape:'html'} · {$mr.checked_at}</div>
+
+      {assign var="da" value=$mr.domain_authority}
+      {if $da >= 60}{assign var="da_color" value='#16a34a'}
+      {elseif $da >= 30}{assign var="da_color" value='#d97706'}
+      {else}{assign var="da_color" value='#dc2626'}{/if}
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">
+        <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:14px;text-align:center;">
+          <div style="font-size:32px;font-weight:700;color:{$da_color};">{$da}</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">Domain Authority</div>
+        </div>
+        <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:14px;text-align:center;">
+          <div style="font-size:32px;font-weight:700;color:var(--neria-dark);">{$mr.page_authority}</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">Page Authority</div>
+        </div>
+        <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:14px;text-align:center;">
+          <div style="font-size:32px;font-weight:700;color:var(--neria-dark);">{$mr.links_to_root|number_format:0:',':' '}</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">Backlinks</div>
+        </div>
+        <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:14px;text-align:center;">
+          {assign var="spam" value=$mr.spam_score}
+          <div style="font-size:32px;font-weight:700;color:{if $spam < 30}#16a34a{elseif $spam < 60}#d97706{else}#dc2626{/if};">{$spam}%</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">Spam Score</div>
+        </div>
+      </div>
+    {/if}
+
+    {if !$seo_provider}
+    <div style="margin-top:14px;padding:12px 16px;background:#fef9f0;border:1px solid #e8d5b0;border-radius:6px;font-size:12px;color:var(--neria-muted);line-height:1.6;">
+      💡 Sans API payante, vous pouvez quand même mesurer votre visibilité via PageSpeed et Search Console ci-dessus.
+      Les APIs payantes ajoutent la dimension <strong>concurrentielle</strong> : où vous positionnez-vous par rapport à vos concurrents ?
+    </div>
+    {/if}
+  </div>
+</div>
+
+{literal}
+<script>
+(function() {
+  var sel = document.getElementById('neria-seo-provider');
+  if (!sel) return;
+  function toggle() {
+    var v = sel.value;
+    var sm = document.getElementById('neria-seo-semrush');
+    var mz = document.getElementById('neria-seo-moz');
+    if (sm) sm.style.display = (v === 'semrush') ? 'block' : 'none';
+    if (mz) mz.style.display = (v === 'moz')     ? 'block' : 'none';
+  }
+  sel.addEventListener('change', toggle);
+})();
+</script>
+{/literal}
+
 {* ── Google Postmaster Tools — intégration OAuth ────────────── *}
 <div class="neria-section" id="neria-postmaster-tools">
   <h2 class="neria-section__title">🔭 Google Postmaster Tools</h2>

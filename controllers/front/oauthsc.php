@@ -1,0 +1,62 @@
+<?php
+/**
+ * NERIA — Front controller : callback OAuth 2.0 (Google Search Console)
+ *
+ * Google redirige ici après que le marchand a accordé l'accès Search Console.
+ * Ce contrôleur échange le code d'autorisation contre des tokens,
+ * les stocke en base, puis redirige vers l'onglet Statistiques du BO.
+ *
+ * URL : /index.php?fc=module&module=neria&controller=oauthsc
+ *
+ * @author  Neria
+ * @version 1.0.0
+ */
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
+class NeriaOauthscModuleFrontController extends ModuleFrontController
+{
+    public function init(): void
+    {
+        parent::init();
+
+        if (!$this->context->employee || !$this->context->employee->id) {
+            $returnUrl = (string) \Configuration::get(\SearchConsoleManager::CONFIG_RETURN_URL);
+            \Tools::redirectAdmin($returnUrl ?: 'index.php');
+        }
+
+        $code  = (string) \Tools::getValue('code',  '');
+        $state = (string) \Tools::getValue('state', '');
+        $error = (string) \Tools::getValue('error', '');
+
+        $returnUrl = (string) \Configuration::get(\SearchConsoleManager::CONFIG_RETURN_URL);
+        if (!$returnUrl) {
+            $returnUrl = $this->context->link->getAdminLink('AdminModules', true, [], [
+                'configure' => 'neria',
+            ]) . '&neria_tab=stats';
+        }
+
+        if ($error !== '') {
+            \Tools::redirectAdmin($returnUrl . '&neria_error=' . urlencode('Connexion Google annulée : ' . $error));
+        }
+
+        if ($code === '' || $state === '') {
+            \Tools::redirectAdmin($returnUrl . '&neria_error=' . urlencode('Paramètres OAuth manquants.'));
+        }
+
+        if (!class_exists('SearchConsoleManager')) {
+            require_once _PS_MODULE_DIR_ . 'neria/src/SearchConsoleManager.php';
+        }
+
+        $manager = new \SearchConsoleManager($this->module);
+        $ok      = $manager->handleCallback($code, $state);
+
+        if ($ok) {
+            \Tools::redirectAdmin($returnUrl . '&neria_success=' . urlencode('Google Search Console connecté avec succès !'));
+        } else {
+            \Tools::redirectAdmin($returnUrl . '&neria_error=' . urlencode('Échec de l\'échange OAuth. Vérifiez vos Client ID et Secret.'));
+        }
+    }
+}

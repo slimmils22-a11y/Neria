@@ -37,7 +37,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.11';
+    const VERSION = '1.0.13';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -1752,6 +1752,115 @@ class Neria extends Module
                 if (class_exists('WatchdogManager')) {
                     (new WatchdogManager($this))->warning('Postmaster Tools : échec de récupération des données API (token expiré ou révoqué ?).', '', 'PostmasterTools');
                 }
+            }
+        }
+
+        // ── PageSpeed Insights : sauvegarde clé API ──────────────
+        if (Tools::getValue('neria_action') === 'save_pagespeed_key') {
+            $key = trim((string) Tools::getValue('pagespeed_api_key', ''));
+            Configuration::updateValue(PageSpeedManager::CONFIG_API_KEY, $key);
+            Configuration::deleteByName(PageSpeedManager::CONFIG_CACHE);
+            Configuration::deleteByName(PageSpeedManager::CONFIG_CACHE_TIME);
+            $this->context->smarty->assign('neria_success', 'Clé API PageSpeed enregistrée.');
+        }
+
+        // ── PageSpeed Insights : rafraîchissement forcé ───────────
+        if (Tools::getValue('neria_action') === 'refresh_pagespeed' && class_exists('PageSpeedManager')) {
+            $mgr    = new PageSpeedManager($this);
+            $report = $mgr->runCheck();
+            if ($report) {
+                $this->context->smarty->assign([
+                    'pagespeed_report'    => $report,
+                    'pagespeed_cache_age' => 0,
+                    'neria_success'       => 'PageSpeed actualisé.',
+                ]);
+            } else {
+                $this->context->smarty->assign('neria_error', 'Impossible de récupérer les données PageSpeed. Vérifiez la clé API.');
+            }
+        }
+
+        // ── Search Console : sauvegarde credentials ───────────────
+        if (Tools::getValue('neria_action') === 'save_searchconsole_config') {
+            $clientId     = trim((string) Tools::getValue('sc_client_id', ''));
+            $clientSecret = trim((string) Tools::getValue('sc_client_secret', ''));
+            Configuration::updateValue(SearchConsoleManager::CONFIG_CLIENT_ID,     $clientId);
+            Configuration::updateValue(SearchConsoleManager::CONFIG_CLIENT_SECRET, $clientSecret);
+            Configuration::deleteByName(SearchConsoleManager::CONFIG_ACCESS_TOKEN);
+            Configuration::deleteByName(SearchConsoleManager::CONFIG_REFRESH_TOKEN);
+            Configuration::deleteByName(SearchConsoleManager::CONFIG_TOKEN_EXPIRY);
+            Configuration::deleteByName(SearchConsoleManager::CONFIG_CACHE);
+            Configuration::deleteByName(SearchConsoleManager::CONFIG_CACHE_TIME);
+            $this->context->smarty->assign('neria_success', 'Identifiants Search Console enregistrés.');
+        }
+
+        // ── Search Console : connexion OAuth ──────────────────────
+        if (Tools::getValue('neria_action') === 'connect_searchconsole' && class_exists('SearchConsoleManager')) {
+            $manager   = new SearchConsoleManager($this);
+            $returnUrl = $this->context->link->getAdminLink('AdminModules', true, [], [
+                'configure' => $this->name,
+            ]) . '&neria_tab=stats';
+            $authUrl = $manager->getAuthUrl($returnUrl);
+            Tools::redirectAdmin($authUrl);
+        }
+
+        // ── Search Console : déconnexion ──────────────────────────
+        if (Tools::getValue('neria_action') === 'disconnect_searchconsole' && class_exists('SearchConsoleManager')) {
+            (new SearchConsoleManager($this))->disconnect();
+            $this->context->smarty->assign('neria_success', 'Search Console déconnecté.');
+        }
+
+        // ── Search Console : rafraîchissement forcé ───────────────
+        if (Tools::getValue('neria_action') === 'refresh_searchconsole' && class_exists('SearchConsoleManager')) {
+            $mgr    = new SearchConsoleManager($this);
+            Configuration::deleteByName(SearchConsoleManager::CONFIG_CACHE);
+            Configuration::deleteByName(SearchConsoleManager::CONFIG_CACHE_TIME);
+            $stats = $mgr->getStats();
+            if ($stats !== null) {
+                $this->context->smarty->assign([
+                    'searchconsole_stats'     => $stats,
+                    'searchconsole_cache_age' => 0,
+                    'neria_success'           => 'Search Console actualisé.',
+                ]);
+            } else {
+                $this->context->smarty->assign('neria_error', 'Impossible de récupérer les données Search Console.');
+            }
+        }
+
+        // ── SEO API payante : sauvegarde config ───────────────────
+        if (Tools::getValue('neria_action') === 'save_seo_config') {
+            $provider  = in_array(Tools::getValue('seo_provider'), ['semrush', 'moz', ''], true)
+                ? (string) Tools::getValue('seo_provider')
+                : '';
+            $semrushKey = trim((string) Tools::getValue('seo_semrush_key', ''));
+            $mozAccess  = trim((string) Tools::getValue('seo_moz_access', ''));
+            $mozSecret  = trim((string) Tools::getValue('seo_moz_secret', ''));
+            Configuration::updateValue(SeoApiManager::CONFIG_PROVIDER,    $provider);
+            if ($semrushKey !== '') {
+                Configuration::updateValue(SeoApiManager::CONFIG_SEMRUSH_KEY, $semrushKey);
+            }
+            if ($mozAccess !== '') {
+                Configuration::updateValue(SeoApiManager::CONFIG_MOZ_ACCESS, $mozAccess);
+            }
+            if ($mozSecret !== '') {
+                Configuration::updateValue(SeoApiManager::CONFIG_MOZ_SECRET, $mozSecret);
+            }
+            Configuration::deleteByName(SeoApiManager::CONFIG_CACHE);
+            Configuration::deleteByName(SeoApiManager::CONFIG_CACHE_TIME);
+            $this->context->smarty->assign('neria_success', 'Configuration SEO enregistrée.');
+        }
+
+        // ── SEO API payante : rafraîchissement forcé ──────────────
+        if (Tools::getValue('neria_action') === 'refresh_seo_api' && class_exists('SeoApiManager')) {
+            $mgr    = new SeoApiManager($this);
+            $report = $mgr->runCheck();
+            if ($report) {
+                $this->context->smarty->assign([
+                    'seo_report'    => $report,
+                    'seo_cache_age' => 0,
+                    'neria_success' => 'Données SEO actualisées.',
+                ]);
+            } else {
+                $this->context->smarty->assign('neria_error', 'Impossible de récupérer les données SEO. Vérifiez votre clé API.');
             }
         }
 
@@ -3864,6 +3973,56 @@ class Neria extends Module
                 return $mgr->getCachedStats();
             })(),
             'postmaster_cache_age'   => class_exists('PostmasterManager') ? (new PostmasterManager($this))->getCacheAge() : null,
+
+            // ── Visibilité boutique ──────────────────────────────────
+            // PageSpeed Insights
+            'pagespeed_configured' => class_exists('PageSpeedManager') && (new PageSpeedManager($this))->isConfigured(),
+            'pagespeed_api_key'    => class_exists('PageSpeedManager') ? (string) Configuration::get(PageSpeedManager::CONFIG_API_KEY) : '',
+            'pagespeed_report'     => (function () {
+                if (!class_exists('PageSpeedManager')) {
+                    return null;
+                }
+                $mgr = new PageSpeedManager($this);
+                if (!$mgr->isConfigured()) {
+                    return null;
+                }
+                return $mgr->getCachedReport();
+            })(),
+            'pagespeed_cache_age'  => class_exists('PageSpeedManager') ? (new PageSpeedManager($this))->getCacheAge() : null,
+
+            // Google Search Console
+            'searchconsole_configured' => class_exists('SearchConsoleManager') && (new SearchConsoleManager($this))->isConfigured(),
+            'searchconsole_connected'  => class_exists('SearchConsoleManager') && (new SearchConsoleManager($this))->isConnected(),
+            'searchconsole_client_id'  => class_exists('SearchConsoleManager') ? (string) Configuration::get(SearchConsoleManager::CONFIG_CLIENT_ID) : '',
+            'searchconsole_stats'      => (function () {
+                if (!class_exists('SearchConsoleManager')) {
+                    return null;
+                }
+                $mgr = new SearchConsoleManager($this);
+                if (!$mgr->isConnected()) {
+                    return null;
+                }
+                return $mgr->getCachedStats();
+            })(),
+            'searchconsole_cache_age'  => class_exists('SearchConsoleManager') ? (new SearchConsoleManager($this))->getCacheAge() : null,
+
+            // SEO API payante (Semrush / Moz)
+            'seo_provider'     => class_exists('SeoApiManager') ? (new SeoApiManager($this))->getProvider() : '',
+            'seo_configured'   => class_exists('SeoApiManager') && (new SeoApiManager($this))->isConfigured(),
+            'seo_semrush_key'  => class_exists('SeoApiManager') ? (string) Configuration::get(SeoApiManager::CONFIG_SEMRUSH_KEY) : '',
+            'seo_moz_access'   => class_exists('SeoApiManager') ? (string) Configuration::get(SeoApiManager::CONFIG_MOZ_ACCESS) : '',
+            'seo_providers'    => class_exists('SeoApiManager') ? SeoApiManager::PROVIDERS : [],
+            'seo_report'       => (function () {
+                if (!class_exists('SeoApiManager')) {
+                    return null;
+                }
+                $mgr = new SeoApiManager($this);
+                if (!$mgr->isConfigured()) {
+                    return null;
+                }
+                return $mgr->getCachedReport();
+            })(),
+            'seo_cache_age'    => class_exists('SeoApiManager') ? (new SeoApiManager($this))->getCacheAge() : null,
 
             // Variables pour la section Fidélité dans configure.tpl
             'loyalty_enabled'     => (bool) Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED'),
