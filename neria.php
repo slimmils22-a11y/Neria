@@ -1757,14 +1757,29 @@ class Neria extends Module
 
         // ── PageSpeed Insights : sauvegarde clé API + URL ────────
         if (Tools::getValue('neria_action') === 'save_pagespeed_key') {
-            $key        = trim((string) Tools::getValue('pagespeed_api_key', ''));
-            $targetUrl  = trim((string) Tools::getValue('pagespeed_target_url', ''));
-            Configuration::updateValue(PageSpeedManager::CONFIG_API_KEY,    $key);
-            Configuration::updateValue(PageSpeedManager::CONFIG_TARGET_URL, $targetUrl);
-            Configuration::deleteByName(PageSpeedManager::CONFIG_CACHE);
-            Configuration::deleteByName(PageSpeedManager::CONFIG_CACHE_TIME);
-            Configuration::deleteByName('NERIA_PAGESPEED_LAST_ERROR');
-            $this->context->smarty->assign('neria_success', 'Configuration PageSpeed enregistrée.');
+            $key       = trim((string) Tools::getValue('pagespeed_api_key', ''));
+            $targetUrl = trim((string) Tools::getValue('pagespeed_target_url', ''));
+            $urlError  = '';
+
+            if ($targetUrl !== '') {
+                $parsed      = parse_url($targetUrl);
+                $enteredHost = strtolower(preg_replace('/^www\./', '', $parsed['host'] ?? ''));
+                $shopHost    = strtolower(preg_replace('/^www\./', '', Tools::getShopDomain()));
+                if ($enteredHost === '' || $enteredHost !== $shopHost) {
+                    $urlError = 'L\'URL doit appartenir au domaine de votre boutique (' . Tools::getShopDomain() . ').';
+                }
+            }
+
+            if ($urlError) {
+                $this->context->smarty->assign('neria_error', $urlError);
+            } else {
+                Configuration::updateValue(PageSpeedManager::CONFIG_API_KEY,    $key);
+                Configuration::updateValue(PageSpeedManager::CONFIG_TARGET_URL, $targetUrl);
+                Configuration::deleteByName(PageSpeedManager::CONFIG_CACHE);
+                Configuration::deleteByName(PageSpeedManager::CONFIG_CACHE_TIME);
+                Configuration::deleteByName('NERIA_PAGESPEED_LAST_ERROR');
+                $this->context->smarty->assign('neria_success', 'Configuration PageSpeed enregistrée.');
+            }
         }
 
         // ── PageSpeed Insights : rafraîchissement forcé ───────────

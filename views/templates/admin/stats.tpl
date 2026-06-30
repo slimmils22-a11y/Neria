@@ -1205,6 +1205,20 @@ var _nhm = {$open_heatmap|default:'null'};
       {/if}
     </div>
 
+    {* Notice explicative *}
+    <div style="background:#f0f7ff;border-left:3px solid #4a90d9;border-radius:0 6px 6px 0;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#1e3a5f;line-height:1.8;">
+      <strong>À quoi ça sert ?</strong><br>
+      Google PageSpeed Insights analyse la <strong>qualité technique</strong> de votre boutique et lui attribue quatre scores de 0 à 100 :
+      <strong>Performance</strong> (vitesse de chargement), <strong>Accessibilité</strong> (lisibilité pour tous),
+      <strong>SEO</strong> (signaux techniques de référencement) et <strong>Bonnes pratiques</strong> (sécurité, standards web).<br>
+      Il mesure également les <strong>Core Web Vitals</strong> imposés par Google depuis 2021 :
+      <em>LCP</em> (temps avant que le contenu principal s'affiche — idéal &lt; 2,5 s),
+      <em>CLS</em> (stabilité visuelle de la page — idéal &lt; 0,1) et
+      <em>TBT</em> (temps pendant lequel la page est non interactive — idéal &lt; 200 ms).<br>
+      Un mauvais score PageSpeed peut <strong>pénaliser votre classement dans Google Search</strong> et augmenter le taux de rebond.
+      L'analyse est gratuite et se met à jour toutes les 24 heures.
+    </div>
+
     {* Configuration : saisie clé API + URL cible *}
     <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:16px 20px;margin-bottom:16px;">
       {if !$pagespeed_configured}
@@ -1392,6 +1406,18 @@ var _nhm = {$open_heatmap|default:'null'};
       {/if}
     </div>
 
+    {* Notice explicative *}
+    <div style="background:#f0f7ff;border-left:3px solid #4a90d9;border-radius:0 6px 6px 0;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#1e3a5f;line-height:1.8;">
+      <strong>À quoi ça sert ?</strong><br>
+      Google Search Console vous donne accès aux <strong>données officielles de Google</strong> sur la présence de votre boutique dans les résultats de recherche :
+      nombre de <strong>clics</strong> réels depuis Google, <strong>impressions</strong> (combien de fois votre boutique apparaît),
+      <strong>taux de clics (CTR)</strong> et <strong>position moyenne</strong> de vos pages dans les résultats.<br>
+      Vous voyez aussi les <strong>10 requêtes</strong> qui génèrent le plus de trafic (les mots-clés tapés par vos visiteurs)
+      et les <strong>10 pages</strong> les plus visitées depuis Google — idéal pour repérer ce qui fonctionne et ce qui mérite d'être amélioré.<br>
+      La connexion est <strong>entièrement gratuite</strong> via votre compte Google.
+      Les données couvrent les 28 derniers jours avec 2 à 3 jours de latence (délai normal imposé par Google).
+    </div>
+
     {* État 1 : non configuré *}
     {if !$searchconsole_configured}
     <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:16px 20px;">
@@ -1577,6 +1603,20 @@ var _nhm = {$open_heatmap|default:'null'};
           </form>
         </div>
       {/if}
+    </div>
+
+    {* Notice explicative *}
+    <div style="background:#f0f7ff;border-left:3px solid #4a90d9;border-radius:0 6px 6px 0;padding:12px 16px;margin-bottom:16px;font-size:12px;color:#1e3a5f;line-height:1.8;">
+      <strong>À quoi ça sert ?</strong><br>
+      Les APIs SEO avancées complètent PageSpeed et Search Console en ajoutant la <strong>dimension concurrentielle</strong> :
+      où se positionne votre boutique face à vos concurrents ?<br>
+      <strong>Semrush</strong> fournit une estimation du trafic organique mensuel, le nombre de mots-clés sur lesquels votre boutique est positionnée
+      et les requêtes qui génèrent le plus de visibilité — utile pour identifier des opportunités SEO inexploitées.<br>
+      <strong>Moz</strong> mesure le <em>Domain Authority</em> (DA, score 0-100 de l'autorité globale de votre domaine),
+      le <em>Page Authority</em> (PA), le <em>Spam Score</em> (risque de pénalité Google) et le nombre de <em>backlinks</em>
+      (liens entrants depuis d'autres sites).<br>
+      Cette section est <strong>optionnelle</strong> et nécessite un abonnement payant chez Semrush ou Moz.
+      Sans API payante, PageSpeed et Search Console couvrent déjà l'essentiel de votre visibilité.
     </div>
 
     {* Formulaire de configuration *}
