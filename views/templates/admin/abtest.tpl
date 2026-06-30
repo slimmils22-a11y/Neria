@@ -45,14 +45,9 @@
               <span class="neria-abtest-variant__metrics">
                 <span class="neria-abtest-metric">{$report.A.rate_open|default:0}% {neria_admin key='abtest.open_short'}</span>
                 <span class="neria-abtest-metric neria-abtest-metric--secondary">{$report.A.rate_click|default:0}% {neria_admin key='abtest.click_short'}</span>
-                {if isset($report.A.total_revenue) && $report.A.total_revenue > 0}
-                  <span class="neria-abtest-metric neria-abtest-metric--revenue" title="CA total attribué à cette variante">
-                    {$report.A.total_revenue|string_format:"%.2f"}€
-                  </span>
-                  <span class="neria-abtest-metric neria-abtest-metric--secondary" title="CA par 100 envois">
-                    {$report.A.revenue_per_100|string_format:"%.2f"}€/100e
-                  </span>
-                {/if}
+                <span class="neria-abtest-metric neria-abtest-metric--revenue" title="Chiffre d'affaires attribué à cette variante">
+                  {if isset($report.A.total_revenue)}{$report.A.total_revenue|string_format:"%.2f"}{else}0.00{/if}€ CA
+                </span>
               </span>
               {if $winner === 'A'}<span class="neria-abtest-crown">↑</span>{/if}
             </div>
@@ -66,14 +61,9 @@
               <span class="neria-abtest-variant__metrics">
                 <span class="neria-abtest-metric">{$report.B.rate_open|default:0}% {neria_admin key='abtest.open_short'}</span>
                 <span class="neria-abtest-metric neria-abtest-metric--secondary">{$report.B.rate_click|default:0}% {neria_admin key='abtest.click_short'}</span>
-                {if isset($report.B.total_revenue) && $report.B.total_revenue > 0}
-                  <span class="neria-abtest-metric neria-abtest-metric--revenue" title="CA total attribué à cette variante">
-                    {$report.B.total_revenue|string_format:"%.2f"}€
-                  </span>
-                  <span class="neria-abtest-metric neria-abtest-metric--secondary" title="CA par 100 envois">
-                    {$report.B.revenue_per_100|string_format:"%.2f"}€/100e
-                  </span>
-                {/if}
+                <span class="neria-abtest-metric neria-abtest-metric--revenue" title="Chiffre d'affaires attribué à cette variante">
+                  {if isset($report.B.total_revenue)}{$report.B.total_revenue|string_format:"%.2f"}{else}0.00{/if}€ CA
+                </span>
               </span>
               {if $winner === 'B'}<span class="neria-abtest-crown">↑</span>{/if}
             </div>
@@ -105,8 +95,12 @@
 
               {* Durée estimée avant résultat *}
               {assign var="days_rem" value=$report.days_remaining|default:null}
-              {if $days_rem !== null && $days_rem > 0}
-                <div style="font-size:11px;color:var(--neria-muted);margin-top:6px;padding:4px 8px;background:#fef9f0;border-radius:4px;display:inline-block;">
+              {if $days_rem === null}
+                <div style="font-size:11px;color:var(--neria-muted);margin-top:6px;padding:4px 8px;background:#f9f6f1;border-radius:4px;display:inline-block;">
+                  ⏱ Durée estimée disponible après les premiers envois
+                </div>
+              {elseif $days_rem > 0}
+                <div style="font-size:11px;color:#92400e;margin-top:6px;padding:4px 8px;background:#fef9f0;border:1px solid #fcd34d;border-radius:4px;display:inline-block;">
                   ⏱ Résultat estimé dans <strong>{$days_rem}</strong> jour{if $days_rem > 1}s{/if}
                 </div>
               {/if}
@@ -203,11 +197,16 @@
   </div>
 
   {* ══ HISTORIQUE DES TESTS TERMINÉS ══════════════════════════════ *}
-  {if !empty($ab_history)}
+  {if true}
   <div style="margin-top:40px;">
     <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.55;color:var(--neria-dark);margin-bottom:16px;">
       Historique des tests terminés
     </div>
+    {if empty($ab_history)}
+    <div style="padding:20px 24px;background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;font-size:12px;color:var(--neria-muted);text-align:center;">
+      Aucun test terminé pour l'instant. L'historique s'alimentera automatiquement à chaque fois que vous arrêterez ou appliquerez un test.
+    </div>
+    {else}
     <div style="overflow-x:auto;">
       <table style="width:100%;border-collapse:collapse;font-size:12px;">
         <thead>
@@ -281,6 +280,7 @@
         </tbody>
       </table>
     </div>
+    {/if}
   </div>
   {/if}
 
