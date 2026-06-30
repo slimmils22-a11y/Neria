@@ -1205,31 +1205,45 @@ var _nhm = {$open_heatmap|default:'null'};
       {/if}
     </div>
 
-    {* Configuration : saisie clé API *}
-    {if !$pagespeed_configured}
+    {* Configuration : saisie clé API + URL cible *}
     <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:16px 20px;margin-bottom:16px;">
+      {if !$pagespeed_configured}
       <div style="font-size:12px;color:#5c3d1e;line-height:1.6;margin-bottom:12px;">
         <strong>Comment obtenir une clé gratuite :</strong><br>
-        1. Rendez-vous sur <a href="https://console.cloud.google.com/" target="_blank" style="color:#1a7a40;">console.cloud.google.com</a>
-        → API &amp; services → Bibliothèque<br>
-        2. Activez <strong>PageSpeed Insights API</strong><br>
-        3. Identifiants → Créer une clé API → copiez la clé
+        1. <a href="https://console.cloud.google.com/" target="_blank" style="color:#1a7a40;">console.cloud.google.com</a>
+        → API &amp; services → Bibliothèque → Activez <strong>PageSpeed Insights API</strong><br>
+        2. Identifiants → Créer une clé API → copiez la clé
       </div>
-      <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+      {/if}
+      <form method="post" action="{$smarty.server.REQUEST_URI}">
         <input type="hidden" name="neria_action" value="save_pagespeed_key">
         <input type="hidden" name="neria_tab"    value="stats">
-        <div style="flex:1;min-width:200px;">
-          <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">Clé API Google</label>
-          <input type="text" name="pagespeed_api_key" value="{$pagespeed_api_key|escape:'html'}"
-                 style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
-                 placeholder="AIzaSy…">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">Clé API Google</label>
+            <input type="text" name="pagespeed_api_key" value="{$pagespeed_api_key|escape:'html'}"
+                   style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
+                   placeholder="AIzaSy…">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">
+              URL à analyser <span style="font-weight:400;color:#7a6a5a;">(optionnel — URL publique si boutique locale)</span>
+            </label>
+            <input type="url" name="pagespeed_target_url" value="{$pagespeed_target_url|escape:'html'}"
+                   style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
+                   placeholder="https://ma-boutique.com/">
+          </div>
         </div>
         <button type="submit" class="neria-btn neria-btn--primary" style="font-size:12px;padding:8px 16px;">
           Enregistrer
         </button>
       </form>
+      {if $pagespeed_last_error}
+      <div style="margin-top:12px;padding:10px 14px;background:#fdf0ee;border-left:3px solid #dc2626;border-radius:4px;font-size:12px;color:#7a1c1c;">
+        ⚠ {$pagespeed_last_error|escape:'html'}
+      </div>
+      {/if}
     </div>
-    {/if}
 
     {* Résultats PageSpeed *}
     {if $pagespeed_report}

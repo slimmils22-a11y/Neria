@@ -18,6 +18,7 @@ if (!defined('_PS_VERSION_')) {
 class PageSpeedManager
 {
     const CONFIG_API_KEY    = 'NERIA_PAGESPEED_API_KEY';
+    const CONFIG_TARGET_URL = 'NERIA_PAGESPEED_TARGET_URL'; // URL custom (optionnel)
     const CONFIG_CACHE      = 'NERIA_PAGESPEED_CACHE';
     const CONFIG_CACHE_TIME = 'NERIA_PAGESPEED_CACHE_TIME';
 
@@ -78,6 +79,15 @@ class PageSpeedManager
     /**
      * Force un appel API et met à jour le cache.
      */
+    public function getTargetUrl(): string
+    {
+        $custom = trim((string) \Configuration::get(self::CONFIG_TARGET_URL));
+        if ($custom !== '') {
+            return rtrim($custom, '/') . '/';
+        }
+        return \Tools::getShopDomainSsl(true) . '/';
+    }
+
     public function runCheck(): ?array
     {
         $key = (string) \Configuration::get(self::CONFIG_API_KEY);
@@ -85,7 +95,7 @@ class PageSpeedManager
             return null;
         }
 
-        $shopUrl = \Tools::getShopDomainSsl(true) . '/';
+        $shopUrl = $this->getTargetUrl();
 
         $mobile  = $this->fetchStrategy($shopUrl, $key, 'mobile');
         $desktop = $this->fetchStrategy($shopUrl, $key, 'desktop');
@@ -128,11 +138,29 @@ class PageSpeedManager
         ]);
         $body     = curl_exec($ch);
         $httpCode = (int) curl_getinfo($ch, \CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
         curl_close($ch);
 
-        if (!$body || $httpCode !== 200) {
+        if (!$body) {
+            // Erreur réseau (URL locale non accessible par Google)
+            \Configuration::updateValue('NERIA_PAGESPEED_LAST_ERROR', 'Erreur réseau : ' . $curlErr . ' — L\'URL doit être publiquement accessible par Google.');
             return null;
         }
+        if ($httpCode === 400) {
+            $errData = json_decode($body, true);
+            $msg = $errData['error']['message'] ?? 'Requête invalide (HTTP 400)';
+            \Configuration::updateValue('NERIA_PAGESPEED_LAST_ERROR', $msg);
+            return null;
+        }
+        if ($httpCode === 403) {
+            \Configuration::updateValue('NERIA_PAGESPEED_LAST_ERROR', 'Clé API invalide ou PageSpeed Insights API non activée (HTTP 403).');
+            return null;
+        }
+        if ($httpCode !== 200) {
+            \Configuration::updateValue('NERIA_PAGESPEED_LAST_ERROR', 'Erreur HTTP ' . $httpCode . ' — vérifiez la clé API et l\'URL cible.');
+            return null;
+        }
+        \Configuration::deleteByName('NERIA_PAGESPEED_LAST_ERROR');
 
         $data = json_decode($body, true);
         if (!is_array($data)) {

@@ -1755,13 +1755,16 @@ class Neria extends Module
             }
         }
 
-        // ── PageSpeed Insights : sauvegarde clé API ──────────────
+        // ── PageSpeed Insights : sauvegarde clé API + URL ────────
         if (Tools::getValue('neria_action') === 'save_pagespeed_key') {
-            $key = trim((string) Tools::getValue('pagespeed_api_key', ''));
-            Configuration::updateValue(PageSpeedManager::CONFIG_API_KEY, $key);
+            $key        = trim((string) Tools::getValue('pagespeed_api_key', ''));
+            $targetUrl  = trim((string) Tools::getValue('pagespeed_target_url', ''));
+            Configuration::updateValue(PageSpeedManager::CONFIG_API_KEY,    $key);
+            Configuration::updateValue(PageSpeedManager::CONFIG_TARGET_URL, $targetUrl);
             Configuration::deleteByName(PageSpeedManager::CONFIG_CACHE);
             Configuration::deleteByName(PageSpeedManager::CONFIG_CACHE_TIME);
-            $this->context->smarty->assign('neria_success', 'Clé API PageSpeed enregistrée.');
+            Configuration::deleteByName('NERIA_PAGESPEED_LAST_ERROR');
+            $this->context->smarty->assign('neria_success', 'Configuration PageSpeed enregistrée.');
         }
 
         // ── PageSpeed Insights : rafraîchissement forcé ───────────
@@ -3976,8 +3979,10 @@ class Neria extends Module
 
             // ── Visibilité boutique ──────────────────────────────────
             // PageSpeed Insights
-            'pagespeed_configured' => class_exists('PageSpeedManager') && (new PageSpeedManager($this))->isConfigured(),
-            'pagespeed_api_key'    => class_exists('PageSpeedManager') ? (string) Configuration::get(PageSpeedManager::CONFIG_API_KEY) : '',
+            'pagespeed_configured'  => class_exists('PageSpeedManager') && (new PageSpeedManager($this))->isConfigured(),
+            'pagespeed_api_key'     => class_exists('PageSpeedManager') ? (string) Configuration::get(PageSpeedManager::CONFIG_API_KEY) : '',
+            'pagespeed_target_url'  => class_exists('PageSpeedManager') ? (string) Configuration::get(PageSpeedManager::CONFIG_TARGET_URL) : '',
+            'pagespeed_last_error'  => (string) Configuration::get('NERIA_PAGESPEED_LAST_ERROR'),
             'pagespeed_report'     => (function () {
                 if (!class_exists('PageSpeedManager')) {
                     return null;
