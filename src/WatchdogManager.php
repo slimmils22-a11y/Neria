@@ -108,7 +108,7 @@ class WatchdogManager
              WHERE `id_shop` = %d AND `level` = '%s' AND `class` = '%s'
                AND `message` = '%s'
                AND `date_add` > DATE_SUB(NOW(), INTERVAL 1 HOUR)
-             ORDER BY `date_add` DESC LIMIT 1",
+             ORDER BY `date_add` DESC",
             $table,
             $this->idShop,
             pSQL($level),
@@ -524,7 +524,7 @@ class WatchdogManager
         $stuck = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$table}`
              WHERE `status` = 'pending'
-               AND `scheduled_at` < DATE_SUB(NOW(), INTERVAL 2 HOUR)"
+               AND `send_at` < DATE_SUB(NOW(), INTERVAL 2 HOUR)"
         );
 
         $failed = (int) $this->db->getValue(

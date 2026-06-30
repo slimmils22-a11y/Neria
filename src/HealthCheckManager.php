@@ -1478,7 +1478,7 @@ class HealthCheckManager
     private function checkDbTables(): array
     {
         $expected = [
-            'neria_stat', 'neria_template', 'neria_abtest', 'neria_abtest_translation',
+            'neria_stat', 'neria_abtest', 'neria_abtest_translation',
             'neria_attribution', 'neria_behavioral_sent', 'neria_bounces',
             'neria_collection', 'neria_collection_sent',
             'neria_log', 'neria_look_rule', 'neria_look_sent',
@@ -1486,14 +1486,14 @@ class HealthCheckManager
             'neria_preferences', 'neria_product_lifespan',
             'neria_propensity_score', 'neria_queue', 'neria_quote',
             'neria_reconciliation', 'neria_seasonal_campaign',
-            'neria_segments', 'neria_upsell', 'neria_waitlist',
-            'neria_webhook_queue',
+            'neria_customer_segment', 'neria_upsell', 'neria_waitlist',
+            'neria_webhook_queue', 'neria_cron_health', 'neria_abtest_history',
         ];
 
         $existing = $this->db->executeS(
             "SELECT TABLE_NAME FROM information_schema.tables
              WHERE table_schema = DATABASE()
-               AND TABLE_NAME LIKE 'neria_%'"
+               AND TABLE_NAME LIKE '" . pSQL(_DB_PREFIX_) . "neria_%'"
         ) ?: [];
 
         $existingNames = array_column($existing, 'TABLE_NAME');
@@ -1807,8 +1807,8 @@ class HealthCheckManager
         $db = \Db::getInstance();
 
         $opens = (int) $db->getValue('
-            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_log`
-            WHERE event = \'open\'
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
+            WHERE event_type = \'open\'
               AND date_add >= DATE_SUB(NOW(), INTERVAL 7 DAY)
         ');
 
@@ -1817,8 +1817,8 @@ class HealthCheckManager
         }
 
         $clicks = (int) $db->getValue('
-            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_log`
-            WHERE event = \'click\'
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
+            WHERE event_type = \'click\'
               AND date_add >= DATE_SUB(NOW(), INTERVAL 7 DAY)
         ');
 
@@ -1853,8 +1853,8 @@ class HealthCheckManager
         $db = \Db::getInstance();
 
         $sent = (int) $db->getValue('
-            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_log`
-            WHERE event = \'sent\'
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
+            WHERE event_type = \'sent\'
               AND date_add >= DATE_SUB(NOW(), INTERVAL 7 DAY)
         ');
 
@@ -1863,9 +1863,9 @@ class HealthCheckManager
         }
 
         $unsubs = (int) $db->getValue('
-            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_log`
-            WHERE event = \'unsubscribed\'
-              AND date_add >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            SELECT COUNT(DISTINCT id_customer) FROM `' . _DB_PREFIX_ . 'neria_preferences`
+            WHERE subscribed = 0
+              AND date_upd >= DATE_SUB(NOW(), INTERVAL 7 DAY)
         ');
 
         $rate = round($unsubs / $sent * 100, 2);
@@ -1899,8 +1899,8 @@ class HealthCheckManager
         $db = \Db::getInstance();
 
         $hasTpl = (bool) $db->getValue('
-            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_template`
-            WHERE tpl_key = \'neria_fallback\'
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_translation`
+            WHERE template = \'neria_fallback\'
         ');
 
         if (!$hasTpl) {
@@ -1911,18 +1911,10 @@ class HealthCheckManager
             ];
         }
 
-        $frLang = (int) $db->getValue('
-            SELECT id_lang FROM `' . _DB_PREFIX_ . 'lang` WHERE iso_code = \'fr\' LIMIT 1
-        ');
-
-        if ($frLang === 0) {
-            return ['status' => self::STATUS_OK, 'detail' => 'neria_fallback présent. Langue FR absente — vérification de traduction ignorée.'];
-        }
-
         $hasTrad = (bool) $db->getValue('
             SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_translation`
-            WHERE tpl_key = \'neria_fallback\' AND id_lang = ' . (int) $frLang . '
-              AND translation_key = \'subject\'
+            WHERE template = \'neria_fallback\' AND lang = \'fr\'
+              AND translation_key = \'fallback_subject\'
         ');
 
         if (!$hasTrad) {
@@ -1942,7 +1934,7 @@ class HealthCheckManager
      */
     private function checkFrontControllers(): array
     {
-        $base    = _PS_MODULE_DIR_ . 'neria/';
+        $base    = _PS_MODULE_DIR_ . 'neria/controllers/front/';
         $missing = [];
 
         foreach (['track.php', 'unsubscribe.php', 'waitlist.php'] as $file) {
@@ -2214,8 +2206,12 @@ class HealthCheckManager
         $db = \Db::getInstance();
 
         $negative = (int) $db->getValue('
-            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_loyalty_points`
-            WHERE points_total < 0
+            SELECT COUNT(*) FROM (
+                SELECT SUM(`points`) AS total
+                FROM `' . _DB_PREFIX_ . 'neria_loyalty_points`
+                GROUP BY `id_customer`
+                HAVING total < 0
+            ) AS neg
         ');
 
         if ($negative > 0) {
@@ -2294,44 +2290,40 @@ class HealthCheckManager
             return ['status' => self::STATUS_OK, 'detail' => 'ClvManager absent — CLV non activé.'];
         }
 
-        $count = (int) \Db::getInstance()->getValue('
-            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_clv`
+        // CLV est calculé à la volée — on vérifie que les données sources (churn_score) sont fraîches
+        $db = \Db::getInstance();
+
+        $count = (int) $db->getValue('
+            SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_churn_score`
         ');
 
         if ($count === 0) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Aucun score CLV en base. La table est vide.'
-                    . ' → Que faire : Attendez le premier calcul automatique ou déclenchez-le manuellement.',
+                'detail' => 'Aucun score churn en base — le CLV dynamique sera approximatif.'
+                    . ' → Que faire : Attendez le premier calcul de segmentation ou déclenchez-le manuellement.',
             ];
         }
 
-        $lastCalc = \Db::getInstance()->getValue('
-            SELECT MAX(date_upd) FROM `' . _DB_PREFIX_ . 'neria_clv`
+        $lastCalc = $db->getValue('
+            SELECT MAX(computed_at) FROM `' . _DB_PREFIX_ . 'neria_churn_score`
         ');
 
         if (!$lastCalc) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Scores CLV présents, date de mise à jour non disponible.'];
+            return ['status' => self::STATUS_OK, 'detail' => "CLV dynamique actif. Scores churn présents ({$count} clients)."];
         }
 
         $ageH = round((time() - strtotime($lastCalc)) / 3600, 1);
 
         if ($ageH > 72) {
             return [
-                'status' => self::STATUS_ERROR,
-                'detail' => "Scores CLV non mis à jour depuis {$ageH}h ({$count} clients)."
-                    . ' → Que faire : Vérifiez le cron de calcul CLV.',
-            ];
-        }
-
-        if ($ageH > 48) {
-            return [
                 'status' => self::STATUS_WARNING,
-                'detail' => "Scores CLV en léger retard : {$ageH}h depuis la dernière mise à jour ({$count} clients).",
+                'detail' => "Scores churn (source CLV) non recalculés depuis {$ageH}h ({$count} clients)."
+                    . ' → Que faire : Vérifiez le cron de segmentation comportementale.',
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => "Scores CLV ({$count} clients) mis à jour il y a {$ageH}h."];
+        return ['status' => self::STATUS_OK, 'detail' => "CLV dynamique actif — scores sources ({$count} clients) calculés il y a {$ageH}h."];
     }
 
     /**
@@ -2352,20 +2344,20 @@ class HealthCheckManager
 
         $stuck = (int) \Db::getInstance()->getValue('
             SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_quote`
-            WHERE status = \'pending\'
-              AND reminder_1_sent_at IS NULL
+            WHERE status = \'active\'
+              AND sent_48h = 0
               AND date_add < DATE_SUB(NOW(), INTERVAL 7 DAY)
         ');
 
         if ($stuck > 0) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => "{$stuck} devis en attente depuis plus de 7 jours sans relance envoyée."
+                'detail' => "{$stuck} devis actif(s) depuis plus de 7 jours sans aucune relance envoyée."
                     . ' → Que faire : Vérifiez le cron de relances devis. La première relance devrait partir sous 48h.',
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => 'Relances devis : aucun devis bloqué sans relance.'];
+        return ['status' => self::STATUS_OK, 'detail' => 'Relances devis : aucun devis actif bloqué sans relance.'];
     }
 
     /**
@@ -2531,13 +2523,11 @@ class HealthCheckManager
         }
 
         $activeTests = $db->executeS('
-            SELECT t.id_abtest, t.template_key, t.id_lang,
-                   l.iso_code,
+            SELECT t.id_abtest, t.template,
                    (SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_abtest_translation` tr
                     WHERE tr.id_abtest = t.id_abtest) AS b_count
             FROM `' . _DB_PREFIX_ . 'neria_abtest` t
-            LEFT JOIN `' . _DB_PREFIX_ . 'lang` l ON l.id_lang = t.id_lang
-            WHERE t.status = \'active\'
+            WHERE t.is_active = 1
         ');
 
         if (empty($activeTests)) {
@@ -2547,7 +2537,7 @@ class HealthCheckManager
         $emptyB = [];
         foreach ($activeTests as $test) {
             if ((int) $test['b_count'] === 0) {
-                $emptyB[] = $test['template_key'] . ' (' . ($test['iso_code'] ?? '?') . ')';
+                $emptyB[] = $test['template'];
             }
         }
 

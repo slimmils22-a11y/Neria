@@ -4648,8 +4648,8 @@ class Neria extends Module
                 'currency_symbol' => 'Symbole devise',
             ],
             'abtest' => [
-                'ab_tests'   => 'Tests A/B actifs',
-                'ab_reports' => 'Rapports A/B',
+                'tests_status' => 'Tests A/B actifs',
+                'ab_reports'   => 'Rapports A/B',
             ],
             'segments' => [
                 'segments' => 'Segments comportementaux',
