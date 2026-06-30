@@ -712,7 +712,7 @@ class ABTestManager
         $b = $report['B'] ?? [];
 
         $table = _DB_PREFIX_ . self::TABLE_HISTORY;
-        $this->db->execute(sprintf(
+        $sql = sprintf(
             "INSERT INTO `%s`
                 (`id_shop`, `template`, `variant_a_name`, `variant_b_name`, `split_percent`,
                  `sent_a`, `sent_b`,
@@ -742,7 +742,16 @@ class ABTestManager
             $confidence > 0 ? (int) $confidence : 'NULL',
             $applied ? 1 : 0,
             $dateStart ? "'" . pSQL($dateStart) . "'" : 'NULL'
-        ));
+        );
+
+        $this->db->execute($sql);
+
+        $winnerLabel = $winner !== '' ? "gagnant : variante {$winner} ({$confidence}%)" : 'sans gagnant déclaré';
+        $appliedLabel = $applied ? ', variante appliquée comme défaut' : '';
+        $this->wd()->info(
+            "A/B [{$template}] archivé — {$winnerLabel}{$appliedLabel}.",
+            $template, 'ABTestManager'
+        );
     }
 
     /**

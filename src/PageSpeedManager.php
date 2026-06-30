@@ -26,6 +26,15 @@ class PageSpeedManager
     const API_URL   = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
 
     private \Neria $module;
+    private ?\WatchdogManager $wdm = null;
+
+    private function wd(): \WatchdogManager
+    {
+        if ($this->wdm === null) {
+            $this->wdm = new \WatchdogManager($this->module);
+        }
+        return $this->wdm;
+    }
 
     public function __construct(\Neria $module)
     {
@@ -114,6 +123,13 @@ class PageSpeedManager
         \Configuration::updateValue(self::CONFIG_CACHE,      json_encode($result, JSON_UNESCAPED_UNICODE));
         \Configuration::updateValue(self::CONFIG_CACHE_TIME, time());
 
+        $perfM = $result['mobile']['perf']   ?? '—';
+        $perfD = $result['desktop']['perf']  ?? '—';
+        $this->wd()->info(
+            "PageSpeed analysé : {$shopUrl} — Mobile perf {$perfM}/100, Desktop perf {$perfD}/100.",
+            '', 'PageSpeedManager'
+        );
+
         return $result;
     }
 
@@ -142,22 +158,28 @@ class PageSpeedManager
         curl_close($ch);
 
         if (!$body) {
-            // Erreur réseau (URL locale non accessible par Google)
+            $msg = 'PageSpeed [{' . $strategy . '}] — erreur réseau : ' . $curlErr . ' — URL non accessible publiquement.';
             \Configuration::updateValue('NERIA_PAGESPEED_LAST_ERROR', 'Erreur réseau : ' . $curlErr . ' — L\'URL doit être publiquement accessible par Google.');
+            $this->wd()->warning($msg, '', 'PageSpeedManager');
             return null;
         }
         if ($httpCode === 400) {
             $errData = json_decode($body, true);
             $msg = $errData['error']['message'] ?? 'Requête invalide (HTTP 400)';
             \Configuration::updateValue('NERIA_PAGESPEED_LAST_ERROR', $msg);
+            $this->wd()->warning('PageSpeed [' . $strategy . '] HTTP 400 : ' . $msg, '', 'PageSpeedManager');
             return null;
         }
         if ($httpCode === 403) {
-            \Configuration::updateValue('NERIA_PAGESPEED_LAST_ERROR', 'Clé API invalide ou PageSpeed Insights API non activée (HTTP 403).');
+            $msg = 'Clé API invalide ou PageSpeed Insights API non activée (HTTP 403).';
+            \Configuration::updateValue('NERIA_PAGESPEED_LAST_ERROR', $msg);
+            $this->wd()->error('PageSpeed [' . $strategy . '] HTTP 403 : clé API invalide ou API non activée.', '', 'PageSpeedManager');
             return null;
         }
         if ($httpCode !== 200) {
-            \Configuration::updateValue('NERIA_PAGESPEED_LAST_ERROR', 'Erreur HTTP ' . $httpCode . ' — vérifiez la clé API et l\'URL cible.');
+            $msg = 'Erreur HTTP ' . $httpCode . ' — vérifiez la clé API et l\'URL cible.';
+            \Configuration::updateValue('NERIA_PAGESPEED_LAST_ERROR', $msg);
+            $this->wd()->warning('PageSpeed [' . $strategy . '] HTTP ' . $httpCode, '', 'PageSpeedManager');
             return null;
         }
         \Configuration::deleteByName('NERIA_PAGESPEED_LAST_ERROR');

@@ -45,6 +45,15 @@ class SeoApiManager
     ];
 
     private \Neria $module;
+    private ?\WatchdogManager $wdm = null;
+
+    private function wd(): \WatchdogManager
+    {
+        if ($this->wdm === null) {
+            $this->wdm = new \WatchdogManager($this->module);
+        }
+        return $this->wdm;
+    }
 
     public function __construct(\Neria $module)
     {
@@ -166,6 +175,7 @@ class SeoApiManager
         $rows = array_filter(array_map('str_getcsv', explode("\n", trim($overview))));
         $rows = array_values($rows);
         if (count($rows) < 2) {
+            $this->wd()->warning('Semrush : réponse CSV invalide — clé API incorrecte ou domaine inconnu de Semrush.', '', 'SeoApiManager');
             return null;
         }
 
@@ -207,7 +217,7 @@ class SeoApiManager
             }
         }
 
-        return [
+        $result = [
             'domain'           => $domain,
             'authority_score'  => (int) ($row['Rank'] ?? 0),
             'organic_keywords' => (int) ($row['Organic Keywords'] ?? 0),
@@ -217,6 +227,13 @@ class SeoApiManager
             'paid_traffic'     => (int) ($row['Adwords Traffic'] ?? 0),
             'keywords'         => $keywords,
         ];
+
+        $this->wd()->info(
+            "Semrush chargé : {$domain} — {$result['organic_traffic']} visites/mois, {$result['organic_keywords']} mots-clés.",
+            '', 'SeoApiManager'
+        );
+
+        return $result;
     }
 
     // ============================================================
@@ -251,6 +268,7 @@ class SeoApiManager
         curl_close($ch);
 
         if (!$body || $httpCode !== 200) {
+            $this->wd()->warning("Moz API HTTP {$httpCode} — vérifiez l'Access ID et la Secret Key.", '', 'SeoApiManager');
             return null;
         }
 
@@ -261,7 +279,7 @@ class SeoApiManager
 
         $r = $data['results'][0] ?? [];
 
-        return [
+        $result = [
             'domain'              => $domain,
             'domain_authority'    => (int)   ($r['domain_authority']    ?? 0),
             'page_authority'      => (int)   ($r['page_authority']      ?? 0),
@@ -269,6 +287,13 @@ class SeoApiManager
             'links_to_root'       => (int)   ($r['links_to_root_domain'] ?? 0),
             'root_domains_to_root'=> (int)   ($r['root_domains_to_root_domain'] ?? 0),
         ];
+
+        $this->wd()->info(
+            "Moz chargé : {$domain} — DA {$result['domain_authority']}, PA {$result['page_authority']}, Spam {$result['spam_score']}.",
+            '', 'SeoApiManager'
+        );
+
+        return $result;
     }
 
     // ============================================================

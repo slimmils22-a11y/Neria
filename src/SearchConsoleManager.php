@@ -33,6 +33,15 @@ class SearchConsoleManager
     const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
     private \Neria $module;
+    private ?\WatchdogManager $wdm = null;
+
+    private function wd(): \WatchdogManager
+    {
+        if ($this->wdm === null) {
+            $this->wdm = new \WatchdogManager($this->module);
+        }
+        return $this->wdm;
+    }
 
     public function __construct(\Neria $module)
     {
@@ -103,6 +112,7 @@ class SearchConsoleManager
         ]);
 
         if (empty($response['access_token'])) {
+            $this->wd()->warning('Search Console OAuth : échange de code échoué — access_token absent.', '', 'SearchConsoleManager');
             return false;
         }
 
@@ -111,6 +121,7 @@ class SearchConsoleManager
         \Configuration::updateValue(self::CONFIG_TOKEN_EXPIRY,  time() + ($response['expires_in'] ?? 3600) - 60);
         \Configuration::deleteByName(self::CONFIG_OAUTH_STATE);
 
+        $this->wd()->info('Search Console OAuth connecté avec succès.', '', 'SearchConsoleManager');
         return true;
     }
 
@@ -167,6 +178,7 @@ class SearchConsoleManager
         // Récupère la liste des sites vérifiés
         $sitesData = $this->apiGet('/sites', $token);
         if (empty($sitesData['siteEntry'])) {
+            $this->wd()->warning('Search Console : aucun site vérifié trouvé dans ce compte Google.', '', 'SearchConsoleManager');
             return [];
         }
 
@@ -200,6 +212,7 @@ class SearchConsoleManager
         $pages = $this->querySearchAnalytics($siteUrl, $token, $startDate, $endDate, ['page'], 10);
 
         if ($global === null) {
+            $this->wd()->warning('Search Console : échec de récupération des données analytics (token expiré ?).', '', 'SearchConsoleManager');
             return null;
         }
 
@@ -237,6 +250,11 @@ class SearchConsoleManager
 
         \Configuration::updateValue(self::CONFIG_CACHE,      json_encode($result, JSON_UNESCAPED_UNICODE));
         \Configuration::updateValue(self::CONFIG_CACHE_TIME, time());
+
+        $this->wd()->info(
+            "Search Console chargé : {$result['clicks']} clics, {$result['impressions']} impressions, position {$result['position']} (28 jours).",
+            '', 'SearchConsoleManager'
+        );
 
         return $result;
     }
@@ -298,6 +316,7 @@ class SearchConsoleManager
         ]);
 
         if (empty($response['access_token'])) {
+            $this->wd()->error('Search Console : refresh token invalide ou révoqué — reconnexion OAuth requise.', '', 'SearchConsoleManager');
             return null;
         }
 
