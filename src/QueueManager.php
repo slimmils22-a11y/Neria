@@ -95,6 +95,47 @@ class QueueManager
     }
 
     /**
+     * Ajoute un email avec une date/heure précise (envoi manuel planifié depuis le BO).
+     */
+    public function enqueueAt(
+        string $template,
+        array  $customer,
+        array  $extraVars,
+        int    $refId,
+        string $sendAt
+    ): void {
+        $idLang   = (int) ($customer['id_lang'] ?? \Configuration::get('PS_LANG_DEFAULT'));
+        $idShop   = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
+        $toName   = trim(($customer['firstname'] ?? '') . ' ' . ($customer['lastname'] ?? ''));
+        $varsJson = json_encode($extraVars, JSON_UNESCAPED_UNICODE);
+
+        $this->db->execute(
+            'INSERT INTO `' . $this->prefix . 'neria_queue`
+             (id_customer, id_shop, id_lang, template, recipient_email, recipient_name,
+              vars_json, ref_id, send_at, status, created_at)
+             VALUES (
+               ' . (int) ($customer['id_customer'] ?? 0) . ',
+               ' . $idShop . ',
+               ' . $idLang . ',
+               \'' . pSQL($template) . '\',
+               \'' . pSQL($customer['email'] ?? '') . '\',
+               \'' . pSQL($toName) . '\',
+               \'' . pSQL($varsJson) . '\',
+               ' . (int) $refId . ',
+               \'' . pSQL($sendAt) . '\',
+               \'pending\',
+               NOW()
+             )'
+        );
+
+        $this->watchdog()->info(
+            sprintf('Queue manuelle — %s programmé pour %s à %s.', $template, $customer['email'] ?? '?', $sendAt),
+            $template,
+            'QueueManager'
+        );
+    }
+
+    /**
      * Calcule le prochain datetime correspondant à $hour (ex. 14 → "2026-06-25 14:00:00").
      * Si l'heure est déjà passée aujourd'hui, on programme pour demain.
      */
@@ -120,6 +161,24 @@ class QueueManager
      *
      * @return int Nombre d'emails envoyés avec succès.
      */
+    /**
+     * Retourne les entrées en attente issues d'un envoi manuel (ref_id = 0), pour affichage BO.
+     */
+    public function getPendingManual(): array
+    {
+        $rows = $this->db->executeS(
+            'SELECT `id_neria_queue`, `template`, `recipient_email`, `recipient_name`,
+                    DATE_FORMAT(`send_at`, \'%d/%m/%Y %H:%i\') AS send_at_fmt,
+                    `send_at`, `status`
+             FROM `' . $this->prefix . 'neria_queue`
+             WHERE `ref_id` = 0
+               AND `status` = \'pending\'
+             ORDER BY `send_at` ASC
+             LIMIT 20'
+        );
+        return is_array($rows) ? $rows : [];
+    }
+
     public function processQueue(): int
     {
         $rows = $this->db->executeS(

@@ -1375,7 +1375,7 @@ var _nhm = {$open_heatmap|default:'null'};
   </div>
 
   {* ── 2. GOOGLE SEARCH CONSOLE ─────────────────────────────── *}
-  <div style="border:1px solid var(--neria-border);border-radius:8px;padding:20px 24px;margin-bottom:20px;">
+  <div id="neria-search-console-section" style="border:1px solid var(--neria-border);border-radius:8px;padding:20px 24px;margin-bottom:20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-size:20px;">🔍</span>
@@ -1427,17 +1427,78 @@ var _nhm = {$open_heatmap|default:'null'};
 
     {* État 1 : non configuré *}
     {if !$searchconsole_configured}
-    <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:16px 20px;">
-      <div style="font-size:12px;color:#5c3d1e;line-height:1.6;margin-bottom:12px;">
-        <strong>Configuration OAuth 2.0 :</strong><br>
-        1. <a href="https://console.cloud.google.com/" target="_blank" style="color:#1a7a40;">console.cloud.google.com</a>
-        → Nouveau projet → API &amp; services → Bibliothèque<br>
-        2. Activez <strong>Google Search Console API</strong><br>
-        3. Identifiants → OAuth 2.0 → Application Web → URI de redirection :<br>
-        <code style="font-size:11px;background:#fff;padding:2px 6px;border-radius:3px;">
-          {$smarty.server.REQUEST_SCHEME|default:'https'}://{$smarty.server.HTTP_HOST}/index.php?fc=module&amp;module=neria&amp;controller=oauthsc
-        </code>
+    <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;">
+
+      {* Guide pas-à-pas *}
+      <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#4a3f35;opacity:.6;margin-bottom:14px;">
+        Guide de configuration — 5 étapes
       </div>
+
+      <div style="counter-reset:step;display:flex;flex-direction:column;gap:14px;margin-bottom:20px;">
+
+        {* Étape 1 *}
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:#4a3f35;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;">1</span>
+          <div style="font-size:12px;color:#4a3f35;line-height:1.65;">
+            Ouvrez <a href="https://console.cloud.google.com/" target="_blank" rel="noopener" style="color:#1a7a40;font-weight:600;">console.cloud.google.com</a>
+            et créez un <strong>nouveau projet</strong> (bouton en haut à gauche, à côté du logo Google Cloud).
+            Donnez-lui un nom comme <em>"Neria SEO"</em>.
+          </div>
+        </div>
+
+        {* Étape 2 *}
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:#4a3f35;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;">2</span>
+          <div style="font-size:12px;color:#4a3f35;line-height:1.65;">
+            Dans le menu gauche : <strong>API et services → Bibliothèque</strong>.<br>
+            Recherchez <strong>"Google Search Console API"</strong> et cliquez sur <strong>Activer</strong>.
+          </div>
+        </div>
+
+        {* Étape 3 *}
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:#4a3f35;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;">3</span>
+          <div style="font-size:12px;color:#4a3f35;line-height:1.65;">
+            Menu gauche : <strong>API et services → Écran de consentement OAuth</strong>.<br>
+            Choisissez <strong>Externe</strong>, renseignez un nom d'application et votre email, laissez le reste vide.
+            Dans <strong>Audience</strong>, ajoutez votre propre adresse Google comme <em>utilisateur test</em>.
+          </div>
+        </div>
+
+        {* Étape 4 *}
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:#4a3f35;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;">4</span>
+          <div style="font-size:12px;color:#4a3f35;line-height:1.65;">
+            Menu gauche : <strong>API et services → Identifiants → + Créer des identifiants → ID client OAuth 2.0</strong>.<br>
+            Type d'application : <strong>Application Web</strong>.<br>
+            Dans <strong>"URI de redirection autorisés"</strong>, copiez exactement cette URL et collez-la :
+            <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+              <code id="neria-sc-redirect-uri"
+                    style="flex:1;font-size:11px;background:#fff;border:1px solid #d4c5a9;padding:7px 10px;border-radius:4px;word-break:break-all;color:#1a1a1a;">
+                {$sc_redirect_uri|escape:'html'}
+              </code>
+              <button type="button" id="neria-sc-copy-btn"
+                      style="flex-shrink:0;padding:6px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;">
+                📋 Copier
+              </button>
+            </div>
+            <span style="display:block;margin-top:6px;font-size:11px;opacity:.7;">⚠ L'URL doit être copiée telle quelle dans Google Cloud — une seule lettre manquante bloque la connexion.</span>
+          </div>
+        </div>
+
+        {* Étape 5 *}
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:#4a3f35;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;">5</span>
+          <div style="font-size:12px;color:#4a3f35;line-height:1.65;">
+            Après création, Google affiche un popup avec le <strong>Client ID</strong> et le <strong>Client Secret</strong>.<br>
+            Copiez-les et collez-les dans les champs ci-dessous. Attention : le Client Secret ne s'affiche qu'une seule fois —
+            si vous le perdez, cliquez sur <em>"Modifier"</em> dans Google Cloud pour en générer un nouveau.
+          </div>
+        </div>
+
+      </div>
+
+      <div style="border-top:1px solid #e8d5b0;padding-top:16px;margin-bottom:16px;">
       <form method="post" action="{$smarty.server.REQUEST_URI}">
         <input type="hidden" name="neria_action" value="save_searchconsole_config">
         <input type="hidden" name="neria_tab"    value="stats">
@@ -1586,7 +1647,7 @@ var _nhm = {$open_heatmap|default:'null'};
   </div>
 
   {* ── 3. API SEO PAYANTE (Semrush / Moz) ──────────────────── *}
-  <div style="border:1px solid var(--neria-border);border-radius:8px;padding:20px 24px;">
+  <div id="neria-seo-api-section" style="border:1px solid var(--neria-border);border-radius:8px;padding:20px 24px;">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-size:20px;">📊</span>
@@ -1766,16 +1827,33 @@ var _nhm = {$open_heatmap|default:'null'};
 {literal}
 <script>
 (function() {
+  // Toggle Semrush / Moz
   var sel = document.getElementById('neria-seo-provider');
-  if (!sel) return;
-  function toggle() {
-    var v = sel.value;
-    var sm = document.getElementById('neria-seo-semrush');
-    var mz = document.getElementById('neria-seo-moz');
-    if (sm) sm.style.display = (v === 'semrush') ? 'block' : 'none';
-    if (mz) mz.style.display = (v === 'moz')     ? 'block' : 'none';
+  if (sel) {
+    function toggle() {
+      var v = sel.value;
+      var sm = document.getElementById('neria-seo-semrush');
+      var mz = document.getElementById('neria-seo-moz');
+      if (sm) sm.style.display = (v === 'semrush') ? 'block' : 'none';
+      if (mz) mz.style.display = (v === 'moz')     ? 'block' : 'none';
+    }
+    sel.addEventListener('change', toggle);
   }
-  sel.addEventListener('change', toggle);
+
+  // Bouton copier l'URI de redirection Search Console
+  var copyBtn = document.getElementById('neria-sc-copy-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('mouseover', function() { this.style.background = '#b8975a'; });
+    copyBtn.addEventListener('mouseout',  function() { this.style.background = '#1a1a1a'; });
+    copyBtn.addEventListener('click', function() {
+      var uri = document.getElementById('neria-sc-redirect-uri');
+      if (!uri) { return; }
+      navigator.clipboard.writeText(uri.textContent.trim()).then(function() {
+        copyBtn.textContent = '✓ Copié';
+        setTimeout(function() { copyBtn.textContent = '📋 Copier'; }, 2000);
+      });
+    });
+  }
 })();
 </script>
 {/literal}
@@ -2029,7 +2107,7 @@ var _nhm = {$open_heatmap|default:'null'};
   {/if}
 
   {* ── Microsoft SNDS — guide statique ──────────────────────── *}
-  <div style="margin-top:20px;background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:20px;">
+  <div id="neria-snds-section" style="margin-top:20px;background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:20px;">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
       <span style="font-size:24px;">🪟</span>
       <div>

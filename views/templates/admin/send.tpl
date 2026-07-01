@@ -1,9 +1,7 @@
 {**
  * NERIA — send.tpl
  * Envoi manuel d'un template à un client (vague 1).
- * Le marchand choisit un template + un destinataire, remplit les champs
- * de contenu propres au template, et envoie. L'email passe par le hook
- * Neria (design + traduction + détection de langue).
+ * Features : auto-complétion client, détection doublon, planification différée, prévisualisation.
  *}
 
 <div class="neria-section">
@@ -12,9 +10,10 @@
     {neria_admin key='send.desc'}
   </p>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI}" id="neria-send-form">
     <input type="hidden" name="neria_action" value="send_manual">
     <input type="hidden" name="neria_tab"    value="send">
+    <input type="hidden" name="neria_send_at" id="neria-send-at-hidden" value="">
 
     <div class="neria-form-grid">
 
@@ -32,7 +31,7 @@
           {/foreach}
         </select>
 
-        {* Avertissement statique doublon (affiché dès sélection du template) *}
+        {* Avertissement statique doublon anniversaire *}
         <div id="neria-anniversary-static-warn"
              style="display:none; margin-top:10px; padding:11px 14px;
                     background:#fff8e1; border-left:3px solid #f59e0b;
@@ -41,17 +40,38 @@
         </div>
       </div>
 
-      {* ── Destinataire ───────────────────────────────────────── *}
-      <div class="neria-form-group">
+      {* ── Destinataire avec auto-complétion ─────────────────── *}
+      <div class="neria-form-group" style="position:relative;">
         <label class="neria-label" for="neria-send-email">
           {neria_admin key='send.email_label'}
         </label>
         <input type="email" id="neria-send-email" name="neria_email" class="neria-input"
-               placeholder="client@exemple.com" required
+               placeholder="client@exemple.com" required autocomplete="off"
                value="{if isset($smarty.post.neria_email)}{$smarty.post.neria_email|escape:'html'}{/if}">
         <span class="neria-hint">{neria_admin key='send.email_hint'}</span>
 
-        {* Avertissement dynamique par client (chargé en AJAX après saisie email) *}
+        {* Dropdown autocomplétion *}
+        <div id="neria-autocomplete-dropdown"
+             style="display:none; position:absolute; top:100%; left:0; right:0; z-index:200;
+                    background:#fff; border:1px solid #e8d5b0; border-radius:0 0 6px 6px;
+                    box-shadow:0 4px 12px rgba(0,0,0,.10); max-height:260px; overflow-y:auto;">
+        </div>
+
+        {* Carte client identifié *}
+        <div id="neria-customer-card"
+             style="display:none; margin-top:8px; padding:10px 14px;
+                    background:#f9f6f1; border:1px solid #e8d5b0; border-radius:6px;
+                    font-size:12px; color:#4a3f35; line-height:1.7;">
+        </div>
+
+        {* Avertissement doublon générique (chargé en AJAX) *}
+        <div id="neria-duplicate-guard"
+             style="display:none; margin-top:10px; padding:11px 14px;
+                    border-radius:4px; font-size:12px; line-height:1.6;">
+          <span id="neria-duplicate-guard-text"></span>
+        </div>
+
+        {* Avertissement dynamique anniversaire (chargé en AJAX) *}
         <div id="neria-anniversary-guard"
              style="display:none; margin-top:10px; padding:11px 14px;
                     border-radius:4px; font-size:12px; line-height:1.6;">
@@ -104,7 +124,7 @@
       {/foreach}
     </div>
 
-    {* ── Message personnalisé (optionnel, valable pour tous les templates) ── *}
+    {* ── Message personnalisé ───────────────────────────────────── *}
     <div class="neria-form-group neria-form-group--full" style="margin-top:18px;">
       <label class="neria-label" for="neria-send-message">
         {neria_admin key='send.custom_message'}
@@ -114,14 +134,124 @@
                 placeholder="{neria_admin key='send.custom_message_ph'}">{if isset($smarty.post.neria_var) && isset($smarty.post.neria_var.custom_message)}{$smarty.post.neria_var.custom_message|escape:'html'}{/if}</textarea>
     </div>
 
-    <div style="margin-top:20px;">
+    {* ── Planification différée ─────────────────────────────────── *}
+    <div style="margin-top:20px; padding:16px 20px; background:#f9f6f1; border:1px solid #e8d5b0; border-radius:6px;">
+      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" id="neria-schedule-toggle">
+        <span style="font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#4a3f35; opacity:.75;">
+          ⏰ Planifier l'envoi
+        </span>
+        <span id="neria-schedule-arrow" style="font-size:11px; color:#a08060; transition:.2s;">▼</span>
+        <span id="neria-schedule-badge" style="display:none; margin-left:auto; font-size:11px; font-weight:700;
+              background:#16a34a; color:#fff; border-radius:10px; padding:2px 10px;">Planifié</span>
+      </div>
+      <div id="neria-schedule-body" style="display:none; margin-top:14px;">
+        <p style="font-size:12px; color:#6b5e52; margin:0 0 12px;">
+          L'email sera mis en file d'attente et envoyé à la date et heure choisies par le cron Neria.
+        </p>
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+          <div class="neria-form-group" style="margin:0;">
+            <label class="neria-label">Date d'envoi</label>
+            <input type="date" id="neria-schedule-date" class="neria-input" style="width:160px;"
+                   min="{$smarty.now|date_format:'%Y-%m-%d'}">
+          </div>
+          <div class="neria-form-group" style="margin:0;">
+            <label class="neria-label">Heure</label>
+            <input type="time" id="neria-schedule-time" class="neria-input" style="width:110px;" value="09:00">
+          </div>
+          <button type="button" id="neria-schedule-confirm" class="neria-btn neria-btn--ghost" style="margin-bottom:0;">
+            Confirmer la planification
+          </button>
+          <button type="button" id="neria-schedule-cancel"
+                  style="display:none; background:none; border:none; font-size:12px;
+                         color:#dc2626; cursor:pointer; text-decoration:underline; margin-bottom:4px;">
+            ✕ Annuler la planification
+          </button>
+        </div>
+        <div id="neria-schedule-feedback" style="display:none; margin-top:10px; font-size:12px;
+             font-weight:700; color:#16a34a;">
+        </div>
+      </div>
+    </div>
+
+    {* ── Boutons ────────────────────────────────────────────────── *}
+    <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
       <button type="submit" id="neria-send-btn" class="neria-btn neria-btn--primary">
         <span class="neria-icon">✉</span>
-        {neria_admin key='send.send_btn'}
+        <span id="neria-send-btn-label">{neria_admin key='send.send_btn'}</span>
+      </button>
+      <button type="button" id="neria-preview-btn" class="neria-btn neria-btn--ghost">
+        👁 Prévisualiser
       </button>
     </div>
 
   </form>
+</div>
+
+{* ── File d'attente des envois planifiés ────────────────────────── *}
+{if isset($send_queue_pending) && $send_queue_pending|@count > 0}
+<div style="margin-top:24px; padding:18px 22px; background:#f9f6f1; border:1px solid #e8d5b0; border-radius:6px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+    <span style="font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#4a3f35; opacity:.75;">
+      ⏳ Envois planifiés en attente ({$send_queue_pending|@count})
+    </span>
+    <button type="button" id="neria-process-queue-btn" class="neria-btn neria-btn--primary" style="font-size:11px; padding:6px 14px;">
+      ▶ Envoyer les emails en retard
+    </button>
+  </div>
+  <div id="neria-process-queue-result" style="display:none; margin-bottom:10px; padding:8px 12px;
+       background:#dcfce7; border:1px solid #16a34a; border-radius:4px; font-size:12px; font-weight:700; color:#14532d;">
+  </div>
+  <table style="width:100%; border-collapse:collapse; font-size:12px;">
+    <thead>
+      <tr style="border-bottom:1px solid #e8d5b0; color:#4a3f35; opacity:.7; text-align:left;">
+        <th style="padding:6px 10px 8px;">Template</th>
+        <th style="padding:6px 10px 8px;">Destinataire</th>
+        <th style="padding:6px 10px 8px;">Envoi prévu</th>
+        <th style="padding:6px 10px 8px;">Statut</th>
+      </tr>
+    </thead>
+    <tbody>
+      {foreach $send_queue_pending as $q}
+      <tr style="border-bottom:1px solid #f0e8d8;">
+        <td style="padding:7px 10px; color:#4a3f35; font-family:monospace;">{$q.template|escape:'html'}</td>
+        <td style="padding:7px 10px; color:#4a3f35;">
+          {if $q.recipient_name}{$q.recipient_name|escape:'html'} &lt;{/if}{$q.recipient_email|escape:'html'}{if $q.recipient_name}&gt;{/if}
+        </td>
+        <td style="padding:7px 10px; color:#4a3f35;">{$q.send_at_fmt|escape:'html'}</td>
+        <td style="padding:7px 10px;">
+          <span style="background:{if $q.send_at < $smarty.now|date_format:'%Y-%m-%d %H:%M:%S'}#fef2f2{else}#fefce8{/if};
+                        color:{if $q.send_at < $smarty.now|date_format:'%Y-%m-%d %H:%M:%S'}#991b1b{else}#854d0e{/if};
+                        padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700;">
+            {if $q.send_at < $smarty.now|date_format:'%Y-%m-%d %H:%M:%S'}En retard — cron en attente{else}Programmé{/if}
+          </span>
+        </td>
+      </tr>
+      {/foreach}
+    </tbody>
+  </table>
+  <p style="margin:10px 0 0; font-size:11px; color:#a08060;">
+    En production, le cron Neria traite automatiquement la file toutes les heures.
+    En développement, utilisez le bouton ci-dessus.
+  </p>
+</div>
+{/if}
+
+{* ── Prévisualisation (iframe en bas, hors form) ────────────────── *}
+<div id="neria-preview-wrap" style="display:none; margin-top:28px;">
+  <div style="padding:16px 20px 12px; background:#f9f6f1; border:1px solid #e8d5b0;
+              border-radius:6px 6px 0 0; display:flex; align-items:center; justify-content:space-between;">
+    <span style="font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+                 color:#4a3f35; opacity:.75;">
+      👁 Prévisualisation — rendu avec la langue détectée du client
+    </span>
+    <button type="button" id="neria-preview-close"
+            style="background:none; border:none; font-size:16px; cursor:pointer; color:#a08060;">✕</button>
+  </div>
+  <iframe id="neria-preview-frame"
+          style="width:100%; border:1px solid #e8d5b0; border-top:none;
+                 border-radius:0 0 6px 6px; min-height:600px; background:#fff;"
+          src="about:blank">
+  </iframe>
 </div>
 
 <script>
@@ -130,16 +260,54 @@
   var sel        = document.getElementById('neria-send-template');
   var emailInput = document.getElementById('neria-send-email');
   var sendBtn    = document.getElementById('neria-send-btn');
+  var sendLabel  = document.getElementById('neria-send-btn-label');
+  var sendAtHidden = document.getElementById('neria-send-at-hidden');
+
+  // Guards
   var staticWarn = document.getElementById('neria-anniversary-static-warn');
   var staticText = document.getElementById('neria-anniversary-static-text');
-  var guardBox   = document.getElementById('neria-anniversary-guard');
-  var guardText  = document.getElementById('neria-anniversary-guard-text');
+  var annGuardBox  = document.getElementById('neria-anniversary-guard');
+  var annGuardText = document.getElementById('neria-anniversary-guard-text');
+  var dupGuardBox  = document.getElementById('neria-duplicate-guard');
+  var dupGuardText = document.getElementById('neria-duplicate-guard-text');
+
+  // Customer card + autocomplete
+  var dropdown   = document.getElementById('neria-autocomplete-dropdown');
+  var custCard   = document.getElementById('neria-customer-card');
+
+  // Planning
+  var schedToggle  = document.getElementById('neria-schedule-toggle');
+  var schedBody    = document.getElementById('neria-schedule-body');
+  var schedArrow   = document.getElementById('neria-schedule-arrow');
+  var schedDate    = document.getElementById('neria-schedule-date');
+  var schedTime    = document.getElementById('neria-schedule-time');
+  var schedConfirm = document.getElementById('neria-schedule-confirm');
+  var schedCancel  = document.getElementById('neria-schedule-cancel');
+  var schedFeedback= document.getElementById('neria-schedule-feedback');
+  var schedBadge   = document.getElementById('neria-schedule-badge');
+
+  // Preview
+  var previewBtn   = document.getElementById('neria-preview-btn');
+  var previewWrap  = document.getElementById('neria-preview-wrap');
+  var previewFrame = document.getElementById('neria-preview-frame');
+  var previewClose = document.getElementById('neria-preview-close');
 
   if (!sel) { return; }
 
   var ajaxTimer = null;
+  var acTimer   = null;
   var currentBlocked = false;
 
+  function getBase() {
+    return window.location.href.split('#')[0].replace(/[?&]neria_action=[^&]*/g, '');
+  }
+  function ajaxUrl(action, extra) {
+    var base = getBase();
+    var sep  = base.indexOf('?') !== -1 ? '&' : '?';
+    return base + sep + 'neria_action=' + action + (extra || '');
+  }
+
+  // ── Blocage bouton ────────────────────────────────────────────
   function setBlocked(blocked) {
     currentBlocked = blocked;
     if (sendBtn) {
@@ -149,82 +317,274 @@
     }
   }
 
-  function showGuard(data) {
-    if (!guardBox || !guardText) { return; }
-    if (!data.message) {
-      guardBox.style.display = 'none';
-      setBlocked(false);
-      return;
-    }
-    guardText.innerHTML = data.message;
-    guardBox.style.background  = data.blocked ? '#fef2f2' : '#fff8e1';
-    guardBox.style.borderLeft  = data.blocked ? '3px solid #dc2626' : '3px solid #f59e0b';
-    guardBox.style.color       = data.blocked ? '#7f1d1d' : '#78350f';
-    guardBox.style.display     = '';
-    setBlocked(data.blocked);
+  // ── Affichage guards ──────────────────────────────────────────
+  function showBox(box, textEl, data, isOrange) {
+    if (!box || !textEl) { return; }
+    if (!data.message) { box.style.display = 'none'; return; }
+    textEl.innerHTML = data.message;
+    box.style.background = data.blocked
+      ? '#fef2f2' : (isOrange ? '#fff8e1' : '#fff8e1');
+    box.style.borderLeft = data.blocked
+      ? '3px solid #dc2626' : '3px solid #f59e0b';
+    box.style.color = data.blocked ? '#7f1d1d' : '#78350f';
+    box.style.display = '';
+    if (data.blocked) { setBlocked(true); }
+  }
+  function hideBox(box) { if (box) { box.style.display = 'none'; } }
+
+  // ── AJAX : doublon générique ──────────────────────────────────
+  function checkDuplicate() {
+    var tpl   = sel.value;
+    var email = (emailInput ? emailInput.value : '').trim();
+    if (!email || email.indexOf('@') === -1) { hideBox(dupGuardBox); return; }
+    fetch(ajaxUrl('check_send_duplicate',
+      '&neria_template=' + encodeURIComponent(tpl)
+      + '&neria_email='  + encodeURIComponent(email)),
+      { credentials: 'same-origin' }
+    ).then(function (r) { return r.json(); })
+     .then(function (d) { showBox(dupGuardBox, dupGuardText, d, true); })
+     .catch(function () { hideBox(dupGuardBox); });
   }
 
-  function hideGuard() {
-    if (guardBox) { guardBox.style.display = 'none'; }
-    setBlocked(false);
-  }
-
+  // ── AJAX : garde anniversaire ─────────────────────────────────
   var GUARD_TEMPLATES = ['first_anniversary', 'relationship_anniversary'];
 
-  function checkGuard() {
+  function checkAnniversaryGuard() {
     var tpl = sel.value;
-    if (GUARD_TEMPLATES.indexOf(tpl) === -1) { hideGuard(); return; }
+    if (GUARD_TEMPLATES.indexOf(tpl) === -1) { hideBox(annGuardBox); setBlocked(false); return; }
     var email = (emailInput ? emailInput.value : '').trim();
-    if (!email || email.indexOf('@') === -1) { hideGuard(); return; }
+    if (!email || email.indexOf('@') === -1) { hideBox(annGuardBox); setBlocked(false); return; }
+    fetch(ajaxUrl('check_anniversary_guard',
+      '&neria_email=' + encodeURIComponent(email)
+      + '&neria_template=' + encodeURIComponent(tpl)),
+      { credentials: 'same-origin' }
+    ).then(function (r) { return r.json(); })
+     .then(function (d) {
+       showBox(annGuardBox, annGuardText, d, false);
+       if (d.blocked) { setBlocked(true); } else { setBlocked(false); }
+     })
+     .catch(function () { hideBox(annGuardBox); setBlocked(false); });
+  }
 
+  function checkAllGuards() {
+    setBlocked(false);
+    hideBox(dupGuardBox);
+    hideBox(annGuardBox);
     clearTimeout(ajaxTimer);
     ajaxTimer = setTimeout(function () {
-      var base = window.location.href.replace(/[?&]neria_action=[^&]*/g, '');
-      var sep  = base.indexOf('?') !== -1 ? '&' : '?';
-      var url  = base + sep + 'neria_action=check_anniversary_guard'
-               + '&neria_email=' + encodeURIComponent(email)
-               + '&neria_template=' + encodeURIComponent(tpl);
-      fetch(url, { credentials: 'same-origin' })
-        .then(function (r) { return r.json(); })
-        .then(function (data) { showGuard(data); })
-        .catch(function () { hideGuard(); });
+      checkDuplicate();
+      checkAnniversaryGuard();
     }, 500);
   }
 
+  // ── Auto-complétion client ────────────────────────────────────
+  function showCustomerCard(c) {
+    if (!custCard) { return; }
+    var label = '<strong>' + esc(c.firstname) + ' ' + esc(c.lastname) + '</strong>'
+              + ' — ' + esc(c.email);
+    if (c.last_order_ref) {
+      label += ' &nbsp;·&nbsp; Dernière commande : <strong>' + esc(c.last_order_ref) + '</strong>'
+             + (c.last_order_date ? ' (' + esc(c.last_order_date) + ')' : '');
+    } else {
+      label += ' &nbsp;·&nbsp; <em>Aucune commande</em>';
+    }
+    custCard.innerHTML = '👤 ' + label;
+    custCard.style.display = '';
+  }
+  function hideCustomerCard() { if (custCard) { custCard.style.display = 'none'; } }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function buildDropdown(results) {
+    if (!dropdown) { return; }
+    dropdown.innerHTML = '';
+    if (!results.length) { dropdown.style.display = 'none'; return; }
+    results.forEach(function (c) {
+      var item = document.createElement('div');
+      item.style.cssText = 'padding:9px 14px; cursor:pointer; border-bottom:1px solid #f0e8d8;'
+                         + 'font-size:12px; color:#4a3f35; line-height:1.5;';
+      item.innerHTML = '<strong>' + esc(c.firstname) + ' ' + esc(c.lastname) + '</strong>'
+                     + ' &lt;' + esc(c.email) + '&gt;'
+                     + (c.last_order_ref
+                         ? '<br><span style="color:#a08060;">Cmd: ' + esc(c.last_order_ref) + (c.last_order_date ? ' · ' + esc(c.last_order_date) : '') + '</span>'
+                         : '<br><span style="color:#a08060;font-style:italic;">Aucune commande</span>');
+      item.addEventListener('mouseenter', function () { this.style.background = '#f9f6f1'; });
+      item.addEventListener('mouseleave', function () { this.style.background = ''; });
+      item.addEventListener('mousedown', function (e) {
+        e.preventDefault();
+        if (emailInput) { emailInput.value = c.email; }
+        dropdown.style.display = 'none';
+        showCustomerCard(c);
+        checkAllGuards();
+      });
+      dropdown.appendChild(item);
+    });
+    dropdown.style.display = '';
+  }
+
+  function runAutocomplete() {
+    var q = (emailInput ? emailInput.value : '').trim();
+    if (q.length < 2) { if (dropdown) { dropdown.style.display = 'none'; } return; }
+    clearTimeout(acTimer);
+    acTimer = setTimeout(function () {
+      fetch(ajaxUrl('customer_autocomplete', '&q=' + encodeURIComponent(q)),
+        { credentials: 'same-origin' }
+      ).then(function (r) { return r.json(); })
+       .then(function (d) { buildDropdown(d); })
+       .catch(function () { if (dropdown) { dropdown.style.display = 'none'; } });
+    }, 280);
+  }
+
+  if (emailInput) {
+    emailInput.addEventListener('input', function () {
+      hideCustomerCard();
+      runAutocomplete();
+    });
+    emailInput.addEventListener('blur', function () {
+      setTimeout(function () { if (dropdown) { dropdown.style.display = 'none'; } }, 200);
+      checkAllGuards();
+    });
+  }
+
+  // ── Refresh champs + guards au changement de template ────────
   function refresh() {
-    var tpl = sel.value;
+    var tpl    = sel.value;
     var fields = document.querySelectorAll('.neria-send-fields');
     for (var i = 0; i < fields.length; i++) {
       fields[i].style.display = (fields[i].getAttribute('data-tpl') === tpl) ? '' : 'none';
     }
 
-    // Avertissement statique dès sélection du template
     if (staticWarn && staticText) {
       if (tpl === 'first_anniversary') {
         staticText.innerHTML = '⚠ <strong>Doublon potentiel :</strong> la fonctionnalité '
           + '<em>Anniversaire de la relation client</em> envoie également un email chaque année '
-          + 'à la date du 1er achat. Saisissez l\'adresse email du client pour vérifier si un '
-          + 'email automatique a déjà été envoyé cette année.';
+          + 'à la date du 1er achat. Saisissez l\'adresse email du client pour vérifier.';
         staticWarn.style.display = '';
       } else if (tpl === 'relationship_anniversary') {
         staticText.innerHTML = '⚠ <strong>Doublon potentiel :</strong> le template '
           + '<em>Premier anniversaire client</em> (first_anniversary) s\'envoie également à J+365 '
-          + 'du 1er achat. Si les deux sont actifs, un client peut recevoir deux emails le même jour '
-          + 'lors de sa 1ère année.';
+          + 'du 1er achat. Si les deux sont actifs, un client peut recevoir deux emails le même jour.';
         staticWarn.style.display = '';
       } else {
         staticWarn.style.display = 'none';
       }
     }
 
-    // Garde dynamique pour les deux templates anniversaire
-    if (GUARD_TEMPLATES.indexOf(tpl) === -1) { hideGuard(); }
-    else { checkGuard(); }
+    checkAllGuards();
   }
 
   sel.addEventListener('change', refresh);
-  if (emailInput) { emailInput.addEventListener('blur', checkGuard); }
   refresh();
+
+  // ── Planification différée ────────────────────────────────────
+  if (schedToggle) {
+    schedToggle.addEventListener('click', function () {
+      var open = schedBody.style.display !== 'none';
+      schedBody.style.display = open ? 'none' : '';
+      schedArrow.textContent = open ? '▼' : '▲';
+    });
+  }
+
+  if (schedConfirm) {
+    schedConfirm.addEventListener('click', function () {
+      var d = schedDate ? schedDate.value : '';
+      var t = schedTime ? schedTime.value : '09:00';
+      if (!d) {
+        alert('Veuillez choisir une date d\'envoi.');
+        return;
+      }
+      var dt = d + ' ' + t + ':00';
+      if (sendAtHidden) { sendAtHidden.value = dt; }
+
+      var dFmt = d.split('-').reverse().join('/');
+      if (schedFeedback) {
+        schedFeedback.textContent = '✓ Envoi planifié pour le ' + dFmt + ' à ' + t;
+        schedFeedback.style.display = '';
+      }
+      if (schedBadge) { schedBadge.style.display = ''; }
+      if (schedCancel) { schedCancel.style.display = ''; }
+      if (schedConfirm) { schedConfirm.style.display = 'none'; }
+      if (sendLabel) { sendLabel.textContent = 'Planifier l\'envoi'; }
+    });
+  }
+
+  if (schedCancel) {
+    schedCancel.addEventListener('click', function () {
+      if (sendAtHidden) { sendAtHidden.value = ''; }
+      if (schedFeedback) { schedFeedback.style.display = 'none'; }
+      if (schedBadge) { schedBadge.style.display = 'none'; }
+      schedCancel.style.display = 'none';
+      if (schedConfirm) { schedConfirm.style.display = ''; }
+      if (sendLabel) { sendLabel.textContent = 'Envoyer l\'email'; }
+    });
+  }
+
+  // ── Prévisualisation ──────────────────────────────────────────
+  if (previewBtn) {
+    previewBtn.addEventListener('click', function () {
+      var tpl   = sel.value;
+      var email = emailInput ? emailInput.value.trim() : '';
+      var url   = ajaxUrl('preview_manual',
+        '&neria_template=' + encodeURIComponent(tpl)
+        + '&neria_email='  + encodeURIComponent(email));
+      if (previewFrame) { previewFrame.src = url; }
+      if (previewWrap) { previewWrap.style.display = ''; }
+      previewWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  if (previewClose) {
+    previewClose.addEventListener('click', function () {
+      if (previewWrap) { previewWrap.style.display = 'none'; }
+      if (previewFrame) { previewFrame.src = 'about:blank'; }
+    });
+  }
+
+  // ── Traitement manuel de la file ─────────────────────────────
+  var processQueueBtn    = document.getElementById('neria-process-queue-btn');
+  var processQueueResult = document.getElementById('neria-process-queue-result');
+  if (processQueueBtn) {
+    processQueueBtn.addEventListener('click', function () {
+      processQueueBtn.disabled = true;
+      processQueueBtn.textContent = '⏳ Traitement…';
+      fetch(ajaxUrl('process_queue_now'), { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (processQueueResult) {
+            if (!d.ok && d.error) {
+              processQueueResult.textContent = '⚠ Erreur : ' + d.error;
+              processQueueResult.style.background = '#fef2f2';
+              processQueueResult.style.borderColor = '#dc2626';
+              processQueueResult.style.color = '#7f1d1d';
+            } else {
+              processQueueResult.textContent = d.sent > 0
+                ? '✓ ' + d.sent + ' email(s) envoyé(s). Rechargez la page pour mettre à jour.'
+                : '✓ File traitée — aucun email dû pour l\'instant (heure d\'envoi pas encore atteinte ?).';
+              processQueueResult.style.background = '#dcfce7';
+              processQueueResult.style.borderColor = '#16a34a';
+              processQueueResult.style.color = '#14532d';
+            }
+            processQueueResult.style.display = '';
+          }
+        })
+        .catch(function (err) {
+          if (processQueueResult) {
+            processQueueResult.textContent = '⚠ Réponse inattendue du serveur (voir Watchdog).';
+            processQueueResult.style.background = '#fef2f2';
+            processQueueResult.style.borderColor = '#dc2626';
+            processQueueResult.style.color = '#7f1d1d';
+            processQueueResult.style.display = '';
+          }
+        })
+        .finally(function () {
+          processQueueBtn.disabled = false;
+          processQueueBtn.textContent = '▶ Envoyer les emails en retard';
+        });
+    });
+  }
+
 })();
 {/literal}
 </script>

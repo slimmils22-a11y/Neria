@@ -2092,6 +2092,69 @@ class Neria extends Module
             $this->context->smarty->assign('neria_success', 'Fallbacks de prénom enregistrés.');
         }
 
+        // ── AJAX : autocomplétion client (envoi manuel) ──────────────────
+        if (Tools::getValue('neria_action') === 'customer_autocomplete') {
+            while (ob_get_level() > 0) { ob_end_clean(); }
+            if (!headers_sent()) { header('Content-Type: application/json; charset=utf-8'); }
+            $q       = (string) Tools::getValue('q', '');
+            $results = class_exists('ManualSendManager')
+                ? (new ManualSendManager($this))->searchCustomers($q)
+                : [];
+            echo json_encode($results);
+            exit;
+        }
+
+        // ── AJAX : détection de doublon (envoi manuel) ────────────────────
+        if (Tools::getValue('neria_action') === 'check_send_duplicate') {
+            while (ob_get_level() > 0) { ob_end_clean(); }
+            if (!headers_sent()) { header('Content-Type: application/json; charset=utf-8'); }
+            $email    = (string) Tools::getValue('neria_email', '');
+            $template = (string) Tools::getValue('neria_template', '');
+            $status   = class_exists('ManualSendManager')
+                ? (new ManualSendManager($this))->checkDuplicate($email, $template)
+                : ['blocked' => false, 'message' => ''];
+            echo json_encode($status);
+            exit;
+        }
+
+        // ── AJAX : prévisualisation email (envoi manuel, avec langue client) ─
+        if (Tools::getValue('neria_action') === 'preview_manual') {
+            while (ob_get_level() > 0) { ob_end_clean(); }
+            if (!headers_sent()) { header('Content-Type: text/html; charset=utf-8'); }
+            $tpl  = preg_replace('/[^a-z0-9_-]/i', '', (string) Tools::getValue('neria_template', 'order_conf'));
+            $mail = trim((string) Tools::getValue('neria_email', ''));
+            $lang = 'fr';
+            if ($mail !== '' && class_exists('ManualSendManager')) {
+                $cust = (new ManualSendManager($this))->findCustomerPublic($mail);
+                if ($cust && !empty($cust['id_lang'])) {
+                    $lr = Language::getLanguage((int) $cust['id_lang']);
+                    if ($lr) { $lang = $lr['iso_code']; }
+                }
+            }
+            $html = class_exists('EmailRenderer')
+                ? (new EmailRenderer($this))->renderPreviewHtml($tpl, $lang)
+                : '<p style="font-family:sans-serif;padding:20px">EmailRenderer non disponible.</p>';
+            echo $html;
+            exit;
+        }
+
+        // ── AJAX : traitement manuel de la file d'attente ────────────────
+        if (Tools::getValue('neria_action') === 'process_queue_now') {
+            while (ob_get_level() > 0) { ob_end_clean(); }
+            if (!headers_sent()) { header('Content-Type: application/json; charset=utf-8'); }
+            try {
+                if (class_exists('QueueManager')) {
+                    $sent = (new QueueManager($this))->processQueue();
+                    echo json_encode(['ok' => true, 'sent' => $sent]);
+                } else {
+                    echo json_encode(['ok' => false, 'sent' => 0, 'error' => 'QueueManager introuvable']);
+                }
+            } catch (\Throwable $e) {
+                echo json_encode(['ok' => false, 'sent' => 0, 'error' => $e->getMessage()]);
+            }
+            exit;
+        }
+
         // ── Action : envoi manuel d'un template à un client ───────
         // ── Garde-fou anniversaire : vérification AJAX ───────────────
         if (Tools::getValue('neria_action') === 'check_anniversary_guard') {
@@ -2110,13 +2173,25 @@ class Neria extends Module
             if (!is_array($contentVars)) {
                 $contentVars = [];
             }
-            $res = $manual->send(
-                (string) Tools::getValue('neria_template'),
-                (string) Tools::getValue('neria_email'),
-                (string) Tools::getValue('neria_order_ref'),
-                (string) Tools::getValue('neria_subject'),
-                $contentVars
-            );
+            $sendAt = trim((string) Tools::getValue('neria_send_at', ''));
+            if ($sendAt !== '' && class_exists('QueueManager')) {
+                $res = $manual->scheduleManual(
+                    (string) Tools::getValue('neria_template'),
+                    (string) Tools::getValue('neria_email'),
+                    (string) Tools::getValue('neria_order_ref'),
+                    (string) Tools::getValue('neria_subject'),
+                    $contentVars,
+                    $sendAt
+                );
+            } else {
+                $res = $manual->send(
+                    (string) Tools::getValue('neria_template'),
+                    (string) Tools::getValue('neria_email'),
+                    (string) Tools::getValue('neria_order_ref'),
+                    (string) Tools::getValue('neria_subject'),
+                    $contentVars
+                );
+            }
             $this->context->smarty->assign(
                 $res['ok'] ? 'neria_success' : 'neria_error',
                 $res['message']
@@ -3833,6 +3908,9 @@ class Neria extends Module
             'send_editable_map' => (new ManualSendManager($this))->getEditableFieldsMap(
                 $this->context->language->iso_code
             ),
+            'send_queue_pending' => class_exists('QueueManager')
+                ? (new QueueManager($this))->getPendingManual()
+                : [],
 
             // Variables pour abtest.tpl
             'eligible_templates' => (new ABTestManager($this))->getEligibleTemplates(),
@@ -4071,6 +4149,7 @@ class Neria extends Module
             'searchconsole_configured' => class_exists('SearchConsoleManager') && (new SearchConsoleManager($this))->isConfigured(),
             'searchconsole_connected'  => class_exists('SearchConsoleManager') && (new SearchConsoleManager($this))->isConnected(),
             'searchconsole_client_id'  => class_exists('SearchConsoleManager') ? (string) Configuration::get(SearchConsoleManager::CONFIG_CLIENT_ID) : '',
+            'sc_redirect_uri'          => class_exists('SearchConsoleManager') ? (new SearchConsoleManager($this))->getRedirectUri() : '',
             'searchconsole_stats'      => (function () {
                 if (!class_exists('SearchConsoleManager')) {
                     return null;

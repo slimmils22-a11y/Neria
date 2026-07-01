@@ -780,4 +780,131 @@ class ManualSendManager
 
         return ['blocked' => false, 'sent' => false, 'message' => ''];
     }
+
+    /**
+     * Recherche des clients par email, prénom ou nom (autocomplétion BO).
+     * Retourne max 8 résultats avec la dernière commande.
+     */
+    public function searchCustomers(string $q): array
+    {
+        $q = trim($q);
+        if (strlen($q) < 2) {
+            return [];
+        }
+        $safe = pSQL($q);
+        $rows = $this->db->executeS(
+            'SELECT c.`id_customer`, c.`email`, c.`firstname`, c.`lastname`,
+                    o.`reference` AS last_order_ref,
+                    DATE_FORMAT(o.`date_add`, \'%d/%m/%Y\') AS last_order_date
+             FROM `' . _DB_PREFIX_ . 'customer` c
+             LEFT JOIN `' . _DB_PREFIX_ . 'orders` o
+                   ON o.`id_customer` = c.`id_customer`
+                  AND o.`id_order` = (
+                      SELECT MAX(`id_order`) FROM `' . _DB_PREFIX_ . 'orders`
+                      WHERE `id_customer` = c.`id_customer`
+                  )
+             WHERE c.`deleted` = 0
+               AND (
+                   c.`email` LIKE \'%' . $safe . '%\'
+                OR c.`firstname` LIKE \'%' . $safe . '%\'
+                OR c.`lastname` LIKE \'%' . $safe . '%\'
+               )
+             ORDER BY c.`id_customer` DESC
+             LIMIT 8'
+        );
+        return is_array($rows) ? $rows : [];
+    }
+
+    /**
+     * Vérifie si ce template a déjà été envoyé manuellement à ce client (7 derniers jours).
+     */
+    public function checkDuplicate(string $email, string $template): array
+    {
+        if ($email === '' || $template === '') {
+            return ['blocked' => false, 'message' => ''];
+        }
+        $count = (int) $this->db->getValue(
+            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_log`
+             WHERE `class` = \'ManualSendManager\'
+               AND `template` = \'' . pSQL($template) . '\'
+               AND `message` LIKE \'%' . pSQL($email) . '%\'
+               AND `date_add` >= DATE_SUB(NOW(), INTERVAL 7 DAY)'
+        );
+        if ($count > 0) {
+            return [
+                'blocked' => false,
+                'message' => '⚠ <strong>Doublon possible :</strong> ce template a déjà été envoyé '
+                           . 'manuellement à ce client ' . $count . ' fois ces 7 derniers jours.',
+            ];
+        }
+        return ['blocked' => false, 'message' => ''];
+    }
+
+    /**
+     * Wrapper public de findCustomer() pour les endpoints AJAX (preview, etc.).
+     */
+    public function findCustomerPublic(string $email): ?array
+    {
+        return $this->findCustomer($email);
+    }
+
+    /**
+     * Planifie un envoi manuel à une date/heure précise via la Queue.
+     */
+    public function scheduleManual(
+        string $template,
+        string $email,
+        string $orderRef,
+        string $subject,
+        array  $contentVars,
+        string $sendAt
+    ): array {
+        if (!$this->isSendable($template)) {
+            return ['ok' => false, 'message' => AdminTranslator::t('msg.send_not_allowed')];
+        }
+        $email = trim($email);
+        if ($email === '' || !\Validate::isEmail($email)) {
+            return ['ok' => false, 'message' => AdminTranslator::t('msg.send_invalid_email')];
+        }
+        if (!class_exists('QueueManager')) {
+            return ['ok' => false, 'message' => 'QueueManager non disponible.'];
+        }
+
+        $customer = $this->findCustomer($email) ?? [
+            'id_customer' => 0,
+            'id_lang'     => (int) \Configuration::get('PS_LANG_DEFAULT'),
+            'firstname'   => '',
+            'lastname'    => '',
+            'email'       => $email,
+            'id_shop'     => (int) \Context::getContext()->shop->id,
+        ];
+        $customer['email'] = $email;
+
+        $vars = [
+            '{firstname}'   => $customer['firstname'] ?? '',
+            '{lastname}'    => $customer['lastname'] ?? '',
+            '{email}'       => $email,
+            '{shop_name}'   => (string) \Configuration::get('PS_SHOP_NAME'),
+            '{shop_url}'    => \Tools::getShopDomainSsl(true, true),
+        ];
+        foreach ($contentVars as $key => $value) {
+            $key = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $key));
+            if ($key !== '') {
+                $vars['{' . $key . '}'] = (string) $value;
+            }
+        }
+
+        (new \QueueManager($this->module))->enqueueAt($template, $customer, $vars, 0, $sendAt);
+
+        $this->watchdog()->info(
+            'Envoi manuel planifié : ' . $template . ' → ' . $email . ' pour ' . $sendAt,
+            $template,
+            'ManualSendManager'
+        );
+
+        return [
+            'ok'      => true,
+            'message' => 'Email planifié pour le ' . date('d/m/Y \à H:i', strtotime($sendAt)) . '.',
+        ];
+    }
 }

@@ -161,6 +161,9 @@
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-abtest-focus">⇋ A/B Testing</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-domain-rep">🔒 Réputation de domaine</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-visibility-section">🌐 Visibilité boutique</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-search-console-section">🔍 Google Search Console</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-seo-api-section">📊 API SEO avancée</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-snds-section">🪟 Microsoft SNDS</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-postmaster-tools">🔭 Postmaster Tools</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-score-panel">📋 Score de délivrabilité</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-checkout-abandonment-section">🛒 Abandon de caisse</a></li>
