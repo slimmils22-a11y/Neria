@@ -66,7 +66,8 @@ class SearchConsoleManager
     public function getRedirectUri(): string
     {
         return \Tools::getShopDomainSsl(true)
-            . '/index.php?fc=module&module=neria&controller=oauthsc';
+            . __PS_BASE_URI__
+            . 'index.php?fc=module&module=neria&controller=oauthsc';
     }
 
     public function getCacheAge(): ?int
