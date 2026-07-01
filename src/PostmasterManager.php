@@ -33,6 +33,15 @@ class PostmasterManager
     const TOKEN_URL  = 'https://oauth2.googleapis.com/token';
 
     private Neria $module;
+    private ?\WatchdogManager $wdm = null;
+
+    private function wd(): \WatchdogManager
+    {
+        if ($this->wdm === null) {
+            $this->wdm = new \WatchdogManager($this->module);
+        }
+        return $this->wdm;
+    }
 
     public function __construct(Neria $module)
     {
@@ -57,7 +66,8 @@ class PostmasterManager
     public function getRedirectUri(): string
     {
         return \Tools::getShopDomainSsl(true)
-            . '/index.php?fc=module&module=neria&controller=oauth';
+            . __PS_BASE_URI__
+            . 'index.php?fc=module&module=neria&controller=oauth';
     }
 
     // ============================================================
@@ -103,6 +113,10 @@ class PostmasterManager
         ]);
 
         if (empty($response['access_token'])) {
+            $detail = isset($response['error'])
+                ? $response['error'] . ' — ' . ($response['error_description'] ?? '')
+                : 'réponse vide';
+            $this->wd()->warning('Postmaster OAuth : échange de code échoué — ' . $detail, '', 'PostmasterManager');
             return false;
         }
 
@@ -111,6 +125,7 @@ class PostmasterManager
         \Configuration::updateValue(self::CONFIG_TOKEN_EXPIRY,  time() + ($response['expires_in'] ?? 3600) - 60);
         \Configuration::deleteByName(self::CONFIG_OAUTH_STATE);
 
+        $this->wd()->info('Postmaster Tools OAuth connecté avec succès.', '', 'PostmasterManager');
         return true;
     }
 
@@ -176,6 +191,7 @@ class PostmasterManager
 
         $domains = $this->apiGet('/domains', $token);
         if (empty($domains['domains'])) {
+            $this->wd()->warning('Postmaster Tools : aucun domaine vérifié trouvé dans ce compte Google.', '', 'PostmasterManager');
             return [];
         }
 
@@ -193,6 +209,22 @@ class PostmasterManager
 
         \Configuration::updateValue(self::CONFIG_CACHE,      json_encode($results, JSON_UNESCAPED_UNICODE));
         \Configuration::updateValue(self::CONFIG_CACHE_TIME, time());
+
+        if (!empty($results)) {
+            $first = $results[0];
+            $this->wd()->info(
+                sprintf(
+                    'Postmaster Tools chargé : %s — réputation %s, spam %.4f%%, SPF %.1f%%, DKIM %.1f%%.',
+                    $first['domain'],
+                    $first['domain_reputation'] ?? '?',
+                    $first['spam_rate'] ?? 0,
+                    $first['spf_success'] ?? 0,
+                    $first['dkim_success'] ?? 0
+                ),
+                '',
+                'PostmasterManager'
+            );
+        }
 
         return $results;
     }
@@ -271,6 +303,7 @@ class PostmasterManager
         ]);
 
         if (empty($response['access_token'])) {
+            $this->wd()->error('Postmaster Tools : refresh token invalide ou révoqué — reconnexion OAuth requise.', '', 'PostmasterManager');
             return null;
         }
 

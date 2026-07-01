@@ -22,12 +22,9 @@ class NeriaOauthModuleFrontController extends ModuleFrontController
     {
         parent::init();
 
-        // Ce controller ne sert qu'en backoffice — doit être appelé par un admin
-        if (!$this->context->employee || !$this->context->employee->id) {
-            // Essaie de récupérer l'URL de retour avant de renvoyer vers le login BO
-            $returnUrl = (string) \Configuration::get(\PostmasterManager::CONFIG_RETURN_URL);
-            \Tools::redirectAdmin($returnUrl ?: 'index.php');
-        }
+        // Pas de check employee ici : le callback arrive côté front (fc=module),
+        // l'employee n'est pas chargé dans ce contexte. La sécurité est assurée
+        // par le paramètre state (CSRF token vérifié dans handleCallback).
 
         $code  = (string) \Tools::getValue('code',  '');
         $state = (string) \Tools::getValue('state', '');

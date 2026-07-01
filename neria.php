@@ -4114,6 +4114,7 @@ class Neria extends Module
             // Google Postmaster Tools
             'postmaster_configured'  => class_exists('PostmasterManager') && (new PostmasterManager($this))->isConfigured(),
             'postmaster_connected'   => class_exists('PostmasterManager') && (new PostmasterManager($this))->isConnected(),
+            'pm_redirect_uri'        => class_exists('PostmasterManager') ? (new PostmasterManager($this))->getRedirectUri() : '',
             'postmaster_client_id'   => class_exists('PostmasterManager') ? (string) Configuration::get(PostmasterManager::CONFIG_CLIENT_ID) : '',
             'postmaster_stats'       => (function () {
                 if (!class_exists('PostmasterManager')) {

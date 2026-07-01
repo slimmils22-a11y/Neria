@@ -1840,6 +1840,21 @@ var _nhm = {$open_heatmap|default:'null'};
     sel.addEventListener('change', toggle);
   }
 
+  // Bouton copier l'URI de redirection Postmaster Tools
+  var pmCopyBtn = document.getElementById('neria-pm-copy-btn');
+  if (pmCopyBtn) {
+    pmCopyBtn.addEventListener('mouseover', function() { this.style.background = '#b8975a'; });
+    pmCopyBtn.addEventListener('mouseout',  function() { this.style.background = '#1a1a1a'; });
+    pmCopyBtn.addEventListener('click', function() {
+      var uri = document.getElementById('neria-pm-redirect-uri');
+      if (!uri) { return; }
+      navigator.clipboard.writeText(uri.textContent.trim()).then(function() {
+        pmCopyBtn.textContent = '✓ Copié';
+        setTimeout(function() { pmCopyBtn.textContent = '📋 Copier'; }, 2000);
+      });
+    });
+  }
+
   // Bouton copier l'URI de redirection Search Console
   var copyBtn = document.getElementById('neria-sc-copy-btn');
   if (copyBtn) {
@@ -1874,15 +1889,28 @@ var _nhm = {$open_heatmap|default:'null'};
       Créez un projet Google Cloud, activez l'API <strong>Gmail Postmaster Tools</strong>,
       puis créez des identifiants OAuth 2.0 (type « Application Web ») avec l'URI de redirection suivante :
     </p>
-    <div style="background:#f9f6f1;border-radius:6px;padding:10px 14px;font-size:12px;font-family:monospace;color:#5c3d1e;margin-bottom:16px;word-break:break-all;">
-      {$smarty.server.REQUEST_SCHEME|default:'https'}://{$smarty.server.HTTP_HOST}/index.php?fc=module&module=neria&controller=oauth
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+      <code id="neria-pm-redirect-uri"
+            style="flex:1;font-size:11px;background:#f9f6f1;border:1px solid #d4c5a9;padding:7px 10px;border-radius:4px;word-break:break-all;color:#1a1a1a;">
+        {$pm_redirect_uri|escape:'html'}
+      </code>
+      <button type="button" id="neria-pm-copy-btn"
+              style="flex-shrink:0;padding:6px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;">
+        📋 Copier
+      </button>
     </div>
-    <div style="font-size:12px;background:#fef9f0;border:1px solid #e8d5b0;border-radius:6px;padding:10px 14px;color:#5c3d1e;line-height:1.6;margin-bottom:20px;">
-      <strong>Étapes rapides :</strong><br>
-      1. <a href="https://console.cloud.google.com/" target="_blank" style="color:#1a7a40;">console.cloud.google.com</a> → Nouveau projet → API &amp; services → Bibliothèque<br>
-      2. Activez « <strong>Gmail Postmaster Tools API</strong> »<br>
-      3. Identifiants → Créer des identifiants → ID client OAuth → Application Web<br>
-      4. Ajoutez l'URI de redirection ci-dessus → copiez Client ID et Secret
+    <div style="font-size:12px;background:#fef9f0;border:1px solid #e8d5b0;border-radius:6px;padding:14px 16px;color:#5c3d1e;line-height:1.7;margin-bottom:20px;">
+      <strong>Étapes de configuration :</strong><br>
+      1. <a href="https://console.cloud.google.com/" target="_blank" rel="noopener" style="color:#1a7a40;font-weight:600;">console.cloud.google.com</a>
+         → Nouveau projet → <strong>API et services → Bibliothèque</strong><br>
+      2. Recherchez <strong>"Gmail Postmaster Tools API"</strong> → cliquez <strong>Activer</strong><br>
+      3. <strong>API et services → Écran de consentement OAuth</strong> → Externe → renseignez un nom + votre email
+         → dans <strong>Audience</strong>, ajoutez votre adresse Google comme utilisateur test<br>
+      4. <strong>API et services → Identifiants → + Créer des identifiants → ID client OAuth 2.0</strong>
+         → Type : <strong>Application Web</strong>
+         → Collez l'URI de redirection ci-dessus dans <em>"URI de redirection autorisés"</em><br>
+      5. Copiez le <strong>Client ID</strong> et le <strong>Client Secret</strong> affichés par Google et collez-les ci-dessous.<br>
+      <span style="display:block;margin-top:8px;font-size:11px;opacity:.75;">⚠ Votre domaine doit être <strong>vérifié dans Google Search Console</strong> pour que Postmaster Tools affiche des données.</span>
     </div>
     <form method="post" action="{$smarty.server.REQUEST_URI}">
       <input type="hidden" name="neria_action" value="save_postmaster_config">
