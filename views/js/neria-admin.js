@@ -658,8 +658,8 @@
             if (icon)  icon.style.animation  = 'neria-spin 1s linear infinite';
             if (label) label.textContent      = 'Analyse en cours…';
 
-            // URL AJAX : page courante + action
-            var base = window.location.href.replace(/&neria_action=[^&]*/g, '');
+            // URL AJAX : page courante + action (sans hash — le fragment n'est pas envoyé au serveur)
+            var base = window.location.href.split('#')[0].replace(/&neria_action=[^&]*/g, '');
             var url  = base + '&neria_action=watchdog_refresh';
 
             fetch(url, { credentials: 'same-origin' })
