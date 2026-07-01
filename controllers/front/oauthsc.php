@@ -22,10 +22,9 @@ class NeriaOauthscModuleFrontController extends ModuleFrontController
     {
         parent::init();
 
-        if (!$this->context->employee || !$this->context->employee->id) {
-            $returnUrl = (string) \Configuration::get(\SearchConsoleManager::CONFIG_RETURN_URL);
-            \Tools::redirectAdmin($returnUrl ?: 'index.php');
-        }
+        // Pas de check employee ici : le callback arrive côté front (fc=module),
+        // l'employee n'est pas chargé dans ce contexte. La sécurité est assurée
+        // par le paramètre state (CSRF token vérifié dans handleCallback).
 
         $code  = (string) \Tools::getValue('code',  '');
         $state = (string) \Tools::getValue('state', '');
