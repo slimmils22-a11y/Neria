@@ -46,15 +46,42 @@ class CustomerEmailHistoryManager
     {
         $emails = $this->getEmails($idCustomer);
         $badge  = $this->computeEngagementBadge($emails);
+        $badge['shop_avg_rate_open'] = $this->getShopAverageOpenRate();
 
         return [
-            'id_customer' => $idCustomer,
-            'emails'      => $emails,
-            'timeline'    => array_slice($emails, 0, self::TIMELINE_LIMIT),
-            'has_more'    => count($emails) > self::TIMELINE_LIMIT,
-            'badge'       => $badge,
-            'alerts'      => $this->computeAlerts($emails, $badge),
+            'id_customer'   => $idCustomer,
+            'emails'        => $emails,
+            'timeline'      => array_slice($emails, 0, self::TIMELINE_LIMIT),
+            'has_more'      => count($emails) > self::TIMELINE_LIMIT,
+            'badge'         => $badge,
+            'alerts'        => $this->computeAlerts($emails, $badge),
+            'templates_list' => array_values(array_unique(array_column($emails, 'template'))),
         ];
+    }
+
+    /**
+     * Taux d'ouverture moyen de la boutique, tous clients confondus —
+     * sert de point de comparaison au badge d'engagement individuel.
+     */
+    public function getShopAverageOpenRate(): float
+    {
+        $table = _DB_PREFIX_ . StatsManager::TABLE;
+
+        $sql = "SELECT
+                    COUNT(*) AS total_sent,
+                    SUM(CASE WHEN EXISTS (
+                        SELECT 1 FROM `{$table}` o
+                        WHERE o.tracking_token = s.tracking_token AND o.event_type = 'open'
+                    ) THEN 1 ELSE 0 END) AS total_opened
+                FROM `{$table}` s
+                WHERE s.id_shop = {$this->idShop} AND s.event_type = 'sent'";
+
+        $row = $this->db->getRow($sql);
+        if (!$row || (int) $row['total_sent'] === 0) {
+            return 0.0;
+        }
+
+        return round(((int) $row['total_opened'] / (int) $row['total_sent']) * 100);
     }
 
     /**

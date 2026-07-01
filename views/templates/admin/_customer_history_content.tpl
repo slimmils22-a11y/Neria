@@ -196,6 +196,13 @@
   <div class="neria-history__summary-stat">
     <span class="neria-history__summary-value">{$neria_history.badge.rate_open}%</span>
     <span class="neria-history__summary-label">{neria_admin key='history.open_rate'}</span>
+    {if isset($neria_history.badge.shop_avg_rate_open)}
+      <span style="display:block;font-size:11px;margin-top:2px;
+                   color:{if $neria_history.badge.rate_open >= $neria_history.badge.shop_avg_rate_open}#1a7a40{else}#c0392b{/if};">
+        {if $neria_history.badge.rate_open >= $neria_history.badge.shop_avg_rate_open}▲{else}▼{/if}
+        vs {$neria_history.badge.shop_avg_rate_open}% {neria_admin key='history.shop_avg'}
+      </span>
+    {/if}
   </div>
   <div class="neria-history__summary-badge">
     {if $neria_history.badge.level === 'very_engaged'}
@@ -254,6 +261,19 @@
 </div>
 
 {* ── Tableau complet (masqué par défaut) ────────────────────── *}
+<div id="neria-history-filters" style="display:none;gap:10px;margin-bottom:10px;">
+  <select id="neria-history-filter-template" class="neria-select" style="max-width:220px;">
+    <option value="">{neria_admin key='history.filter_all_templates'}</option>
+    {foreach $neria_history.templates_list as $tpl}
+      <option value="{$tpl|escape:'html'}">{$tpl}</option>
+    {/foreach}
+  </select>
+  <select id="neria-history-filter-status" class="neria-select" style="max-width:180px;">
+    <option value="">{neria_admin key='history.filter_all_status'}</option>
+    <option value="opened">{neria_admin key='history.status_opened'}</option>
+    <option value="sent">{neria_admin key='history.status_sent'}</option>
+  </select>
+</div>
 <table class="table neria-history__full-table" id="neria-history-table" style="display:none;">
   <thead>
     <tr>
@@ -266,7 +286,7 @@
   </thead>
   <tbody>
     {foreach $neria_history.emails as $email}
-      <tr>
+      <tr data-template="{$email.template|escape:'html'}" data-status="{if $email.opened}opened{else}sent{/if}">
         <td>{$email.sent_at_fmt}</td>
         <td>{$email.template}</td>
         <td>{$email.lang|upper}</td>
@@ -292,7 +312,7 @@
 {if $neria_history.emails|@count > 0}
 <div class="neria-history__actions">
   {if $neria_history.has_more || $neria_history.emails|@count > 0}
-    <button type="button" class="neria-btn neria-btn--ghost neria-btn--sm" id="neria-history-toggle">
+    <button type="button" class="neria-btn neria-btn--primary neria-btn--sm" id="neria-history-toggle">
       {neria_admin key='history.view_all'}
     </button>
   {/if}
@@ -332,14 +352,32 @@ document.addEventListener('DOMContentLoaded', function () {
     var toggle   = document.getElementById('neria-history-toggle');
     var timeline = document.getElementById('neria-history-timeline');
     var table    = document.getElementById('neria-history-table');
+    var filters  = document.getElementById('neria-history-filters');
     if (toggle) {
         var showingTable = false;
         toggle.addEventListener('click', function () {
             showingTable = !showingTable;
             timeline.style.display = showingTable ? 'none' : '';
             table.style.display    = showingTable ? '' : 'none';
+            if (filters) { filters.style.display = showingTable ? 'flex' : 'none'; }
         });
     }
+
+    // Filtres template / statut sur le tableau complet
+    var filterTemplate = document.getElementById('neria-history-filter-template');
+    var filterStatus   = document.getElementById('neria-history-filter-status');
+    function neriaApplyHistoryFilters() {
+        if (!table) { return; }
+        var tplVal    = filterTemplate ? filterTemplate.value : '';
+        var statusVal = filterStatus ? filterStatus.value : '';
+        table.querySelectorAll('tbody tr').forEach(function (row) {
+            var matchTpl    = !tplVal    || row.dataset.template === tplVal;
+            var matchStatus = !statusVal || row.dataset.status === statusVal;
+            row.style.display = (matchTpl && matchStatus) ? '' : 'none';
+        });
+    }
+    if (filterTemplate) { filterTemplate.addEventListener('change', neriaApplyHistoryFilters); }
+    if (filterStatus)   { filterStatus.addEventListener('change', neriaApplyHistoryFilters); }
 
     var modal     = document.getElementById('neria-preview-modal');
     var iframe    = document.getElementById('neria-preview-iframe');

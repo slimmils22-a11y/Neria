@@ -50,6 +50,14 @@ class CssInliner
             return $html;
         }
 
+        // Trier par spécificité croissante (element < .classe < element.classe)
+        // pour que les règles les plus spécifiques soient appliquées en premier :
+        // merge() ignore une propriété déjà inlinée, donc l'ordre de traitement
+        // détermine quelle règle "gagne" en cas de conflit (ex: a{color} vs .neria-btn{color}).
+        usort($rules, function ($a, $b) {
+            return self::specificity($b[0]) <=> self::specificity($a[0]);
+        });
+
         // Charger dans DOMDocument
         $dom = new \DOMDocument('1.0', 'UTF-8');
         libxml_use_internal_errors(true);
@@ -121,6 +129,24 @@ class CssInliner
         }
 
         return $rules;
+    }
+
+    // ============================================================
+    // SPÉCIFICITÉ (approximation simple pour l'ordre de traitement)
+    // ============================================================
+
+    private static function specificity(string $sel): int
+    {
+        // element.classe (le plus spécifique des sélecteurs supportés)
+        if (preg_match('/^[a-zA-Z][\w]*\.[a-zA-Z][\w-]*$/', $sel)) {
+            return 2;
+        }
+        // .classe
+        if (preg_match('/^\.[a-zA-Z][\w-]*$/', $sel)) {
+            return 1;
+        }
+        // element
+        return 0;
     }
 
     // ============================================================

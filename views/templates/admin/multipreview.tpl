@@ -2,6 +2,49 @@
  * NERIA — multipreview.tpl
  * Prévisualisation multi-client : iframes chargées via getpreview.php
  *}
+{literal}<style>
+.neria-mp-card__viewport{cursor:zoom-in;position:relative;}
+.neria-mp-card__viewport .neria-mp-frame{pointer-events:none;}
+#neria-mp-zoom-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:99999;align-items:center;justify-content:center;padding:30px;}
+#neria-mp-zoom-overlay.active{display:flex;}
+#neria-mp-zoom-modal{background:#fff;border-radius:10px;width:min(920px,100%);height:95vh;box-shadow:0 8px 32px rgba(0,0,0,.25);display:flex;flex-direction:column;overflow:hidden;}
+#neria-mp-zoom-header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--neria-border);flex-shrink:0;}
+#neria-mp-zoom-icon{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;border-radius:5px;color:#fff;font-size:11px;font-weight:700;}
+#neria-mp-zoom-name{font-size:14px;font-weight:700;color:#1a1a1a;flex-grow:1;}
+#neria-mp-zoom-dark-btn{background:#fff;border:1px solid #d4c5a9;border-radius:5px;padding:5px 12px;font-size:11px;cursor:pointer;color:#5c3d1e;margin-right:4px;}
+#neria-mp-zoom-dark-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+#neria-mp-zoom-close{background:none;border:none;font-size:20px;line-height:1;cursor:pointer;color:#666;padding:4px 8px;}
+#neria-mp-zoom-close:hover{color:#1a1a1a;}
+#neria-mp-zoom-frame{flex-grow:1;width:100%;border:none;zoom:1.85;overflow:auto;}
+
+.neria-mp-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.neria-mp-toolbar-btn--on{box-shadow:0 0 0 2px #b8975a inset;}
+.neria-mp-card__badge{cursor:pointer;}
+.neria-mp-card__issue-detail{display:none;background:#fff8ed;border:1px solid #e8c97a;border-radius:6px;padding:10px 12px;margin-top:8px;font-size:11px;line-height:1.6;color:#5c3d1e;}
+.neria-mp-card__issue-detail.active{display:block;}
+.neria-mp-card__issue-detail ul{margin:0;padding-left:16px;}
+
+@media print {
+  .neria-section, #neria-mp-zoom-overlay, .neria-mp-card__viewport { cursor:default !important; }
+  .neria-mp-card__viewport .neria-mp-frame { pointer-events:auto; }
+  form, .neria-mp-toolbar, #neria-mp-zoom-overlay { display:none !important; }
+  .neria-mp-grid { display:block !important; }
+  .neria-mp-card { break-inside:avoid; page-break-inside:avoid; margin-bottom:24px; border:1px solid #ccc; }
+}
+</style>{/literal}
+
+{* Modal zoom prévisualisation *}
+<div id="neria-mp-zoom-overlay">
+  <div id="neria-mp-zoom-modal">
+    <div id="neria-mp-zoom-header">
+      <span id="neria-mp-zoom-icon"></span>
+      <span id="neria-mp-zoom-name"></span>
+      <button type="button" id="neria-mp-zoom-dark-btn">🌙 Mode sombre</button>
+      <button type="button" id="neria-mp-zoom-close">✕</button>
+    </div>
+    <iframe id="neria-mp-zoom-frame" src="about:blank" sandbox="allow-same-origin" title="Aperçu agrandi"></iframe>
+  </div>
+</div>
 
 {* ── Formulaire de sélection ────────────────────────────────── *}
 <div class="neria-section">
@@ -9,7 +52,7 @@
     <input type="hidden" name="neria_action" value="multipreview_render">
     <input type="hidden" name="neria_tab"    value="multipreview">
 
-    <div class="neria-trad-selectors">
+    <div class="neria-trad-selectors" style="align-items:flex-end;">
 
       <div class="neria-form-group">
         <label class="neria-label" for="mp-template">{neria_admin key='common.template'}</label>
@@ -49,6 +92,15 @@
 {* ── Grille de prévisualisations ────────────────────────────── *}
 {if isset($mp_token) && $mp_token}
 
+  <div class="neria-mp-toolbar">
+    <button type="button" id="neria-mp-dark-toggle" class="neria-btn neria-btn--primary neria-btn--sm">
+      🌙 Simuler le mode sombre (tous les clients)
+    </button>
+    <button type="button" id="neria-mp-export-btn" class="neria-btn neria-btn--primary neria-btn--sm">
+      🖨 Exporter en PDF
+    </button>
+  </div>
+
   <div class="neria-mp-grid">
     {foreach $mp_clients as $clientId => $ci}
       {assign var="meta" value=$mp_previews_meta[$clientId]|default:[]}
@@ -59,13 +111,27 @@
           <span class="neria-mp-card__icon" style="background:{$ci.color};">{$ci.icon}</span>
           <span class="neria-mp-card__name">{$ci.name}</span>
           {if ($meta.issues|default:0) > 0}
-            <span class="neria-mp-card__badge" style="background:#f57f17;color:#fff;">
+            <span class="neria-mp-card__badge neria-mp-issue-toggle" style="background:#f57f17;color:#fff;">
               {$meta.issues} ⚠
             </span>
           {/if}
         </div>
 
-        <div class="neria-mp-card__viewport">
+        {if ($meta.detail|default:[])|@count > 0}
+          <div class="neria-mp-card__issue-detail">
+            <ul>
+              {foreach $meta.detail as $d}
+                <li>{$d|escape:'html'}</li>
+              {/foreach}
+            </ul>
+          </div>
+        {/if}
+
+        <div class="neria-mp-card__viewport"
+             data-mp-src="{$mp_preview_base}?client={$clientId|escape:'url'}&amp;token={$mp_token|escape:'url'}"
+             data-mp-name="{$ci.name|escape:'html'}"
+             data-mp-icon="{$ci.icon|escape:'html'}"
+             data-mp-color="{$ci.color|escape:'html'}">
           <iframe
             src="{$mp_preview_base}?client={$clientId|escape:'url'}&amp;token={$mp_token|escape:'url'}"
             class="neria-mp-frame"
@@ -121,7 +187,7 @@
              autocomplete="new-password">
     </div>
 
-    <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm">
+    <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
       {neria_admin key='translations.save'}
     </button>
   </form>
@@ -137,3 +203,105 @@
     </p>
   {/if}
 </div>
+
+{literal}<script>
+document.addEventListener('click', function (e) {
+  // Badge d'anomalies : bascule le détail sans ouvrir le zoom
+  var badge = e.target.closest('.neria-mp-issue-toggle');
+  if (badge) {
+    var card = badge.closest('.neria-mp-card');
+    var detail = card ? card.querySelector('.neria-mp-card__issue-detail') : null;
+    if (detail) { detail.classList.toggle('active'); }
+    return;
+  }
+
+  var vp = e.target.closest('.neria-mp-card__viewport');
+  if (!vp) { return; }
+
+  var overlay = document.getElementById('neria-mp-zoom-overlay');
+  var frame   = document.getElementById('neria-mp-zoom-frame');
+  var icon    = document.getElementById('neria-mp-zoom-icon');
+  var name    = document.getElementById('neria-mp-zoom-name');
+
+  icon.textContent   = vp.getAttribute('data-mp-icon') || '';
+  icon.style.background = vp.getAttribute('data-mp-color') || '#1a1a1a';
+  name.textContent   = vp.getAttribute('data-mp-name') || '';
+  frame.src          = vp.getAttribute('data-mp-src') || 'about:blank';
+
+  overlay.classList.add('active');
+
+  var darkBtn = document.getElementById('neria-mp-zoom-dark-btn');
+  darkBtn.classList.toggle('active', neriaMpDarkGlobal);
+});
+
+// ── Mode sombre simulé ────────────────────────────────────────
+// Approche : filtre CSS invert+hue-rotate, comme le fait l'auto-dark
+// de nombreux clients webmail sur des emails sans support dark natif.
+var neriaMpDarkGlobal = false;
+
+function neriaApplyDarkSim(doc, on) {
+  if (!doc || !doc.body) { return; }
+  doc.body.style.filter = on ? 'invert(1) hue-rotate(180deg)' : '';
+  var imgs = doc.querySelectorAll('img');
+  for (var i = 0; i < imgs.length; i++) {
+    imgs[i].style.filter = on ? 'invert(1) hue-rotate(180deg)' : '';
+  }
+}
+
+document.getElementById('neria-mp-dark-toggle').addEventListener('click', function () {
+  neriaMpDarkGlobal = !neriaMpDarkGlobal;
+  this.classList.toggle('neria-mp-toolbar-btn--on', neriaMpDarkGlobal);
+
+  var frames = document.querySelectorAll('.neria-mp-frame');
+  for (var i = 0; i < frames.length; i++) {
+    (function (f) {
+      try { neriaApplyDarkSim(f.contentDocument, neriaMpDarkGlobal); } catch (err) {}
+    })(frames[i]);
+  }
+
+  var zoomFrame = document.getElementById('neria-mp-zoom-frame');
+  document.getElementById('neria-mp-zoom-dark-btn').classList.toggle('active', neriaMpDarkGlobal);
+  try { neriaApplyDarkSim(zoomFrame.contentDocument, neriaMpDarkGlobal); } catch (err) {}
+});
+
+document.getElementById('neria-mp-zoom-dark-btn').addEventListener('click', function () {
+  neriaMpDarkGlobal = !neriaMpDarkGlobal;
+  this.classList.toggle('active', neriaMpDarkGlobal);
+  document.getElementById('neria-mp-dark-toggle').classList.toggle('neria-mp-toolbar-btn--on', neriaMpDarkGlobal);
+
+  var zoomFrame = document.getElementById('neria-mp-zoom-frame');
+  try { neriaApplyDarkSim(zoomFrame.contentDocument, neriaMpDarkGlobal); } catch (err) {}
+});
+
+// ── Export PDF (impression navigateur) ──────────────────────────
+var exportBtn = document.getElementById('neria-mp-export-btn');
+if (exportBtn) {
+  exportBtn.addEventListener('click', function () { window.print(); });
+}
+
+// Bloque les liens à l'intérieur de l'aperçu agrandi sans empêcher le scroll
+document.getElementById('neria-mp-zoom-frame').addEventListener('load', function () {
+  try {
+    var doc = this.contentDocument;
+    if (!doc) { return; }
+    doc.addEventListener('click', function (e) {
+      var link = e.target.closest('a');
+      if (link) { e.preventDefault(); }
+    }, true);
+    if (neriaMpDarkGlobal) { neriaApplyDarkSim(doc, true); }
+  } catch (err) { /* cross-origin — ignoré */ }
+});
+
+function neriaCloseMpZoom() {
+  document.getElementById('neria-mp-zoom-overlay').classList.remove('active');
+  document.getElementById('neria-mp-zoom-frame').src = 'about:blank';
+}
+
+document.getElementById('neria-mp-zoom-close').addEventListener('click', neriaCloseMpZoom);
+document.getElementById('neria-mp-zoom-overlay').addEventListener('click', function (e) {
+  if (e.target.id === 'neria-mp-zoom-overlay') { neriaCloseMpZoom(); }
+});
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') { neriaCloseMpZoom(); }
+});
+</script>{/literal}

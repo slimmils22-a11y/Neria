@@ -1,4 +1,4 @@
-{**
+﻿{**
  * NERIA — stats.tpl
  * Onglet Statistiques — KPIs, rapports par template/langue/pays
  * i18n : libellés via {neria_admin key='...'} (18 langues, AdminTranslator)
@@ -867,7 +867,7 @@ var _nhm = {$open_heatmap|default:'null'};
         {neria_admin key='stats.computed_on'} {$stats.computed_at|default:'—'}
       </span>
     </div>
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="flex-shrink:0;">
+    <form method="post" action="{$smarty.server.REQUEST_URI}#neria-domain-rep" style="flex-shrink:0;">
       <input type="hidden" name="neria_action" value="refresh_domain_reputation">
       <input type="hidden" name="neria_tab"    value="stats">
       <button type="submit" id="neria-domain-rep-btn"
@@ -1193,7 +1193,7 @@ var _nhm = {$open_heatmap|default:'null'};
           {if $pagespeed_cache_age !== null}
             <span style="font-size:11px;color:var(--neria-muted);">actualisé il y a {$pagespeed_cache_age} min</span>
           {/if}
-          <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+          <form method="post" action="{$smarty.server.REQUEST_URI}#neria-visibility-section" style="display:inline;">
             <input type="hidden" name="neria_action" value="refresh_pagespeed">
             <input type="hidden" name="neria_tab"    value="stats">
             <button type="submit" style="padding:5px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;"
@@ -1231,7 +1231,7 @@ var _nhm = {$open_heatmap|default:'null'};
         2. Identifiants → Créer une clé API → copiez la clé
       </div>
       {/if}
-      <form method="post" action="{$smarty.server.REQUEST_URI}">
+      <form method="post" action="{$smarty.server.REQUEST_URI}#neria-visibility-section">
         <input type="hidden" name="neria_action" value="save_pagespeed_key">
         <input type="hidden" name="neria_tab"    value="stats">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
@@ -1389,7 +1389,7 @@ var _nhm = {$open_heatmap|default:'null'};
           {if $searchconsole_cache_age !== null}
             <span style="font-size:11px;color:var(--neria-muted);">actualisé il y a {$searchconsole_cache_age} min</span>
           {/if}
-          <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+          <form method="post" action="{$smarty.server.REQUEST_URI}#neria-search-console-section" style="display:inline;">
             <input type="hidden" name="neria_action" value="refresh_searchconsole">
             <input type="hidden" name="neria_tab"    value="stats">
             <button type="submit" style="padding:5px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;"
@@ -1397,10 +1397,10 @@ var _nhm = {$open_heatmap|default:'null'};
               ↻ Actualiser
             </button>
           </form>
-          <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+          <form method="post" action="{$smarty.server.REQUEST_URI}#neria-search-console-section" style="display:inline;">
             <input type="hidden" name="neria_action" value="disconnect_searchconsole">
             <input type="hidden" name="neria_tab"    value="stats">
-            <button type="submit" style="padding:5px 12px;background:#fff;color:#c0392b;border:1px solid #f5c6cb;border-radius:4px;font-size:11px;cursor:pointer;">
+            <button type="submit" class="neria-btn neria-btn--danger neria-btn--sm">
               Déconnecter
             </button>
           </form>
@@ -1499,7 +1499,7 @@ var _nhm = {$open_heatmap|default:'null'};
       </div>
 
       <div style="border-top:1px solid #e8d5b0;padding-top:16px;margin-bottom:16px;">
-      <form method="post" action="{$smarty.server.REQUEST_URI}">
+      <form method="post" action="{$smarty.server.REQUEST_URI}#neria-search-console-section">
         <input type="hidden" name="neria_action" value="save_searchconsole_config">
         <input type="hidden" name="neria_tab"    value="stats">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
@@ -1531,14 +1531,14 @@ var _nhm = {$open_heatmap|default:'null'};
         <div style="font-weight:700;font-size:13px;color:#5c3d1e;">Identifiants enregistrés — autorisation requise</div>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <form method="post" action="{$smarty.server.REQUEST_URI}">
+        <form method="post" action="{$smarty.server.REQUEST_URI}#neria-search-console-section">
           <input type="hidden" name="neria_action" value="connect_searchconsole">
           <input type="hidden" name="neria_tab"    value="stats">
           <button type="submit" style="background:#1a7a40;color:#fff;border:none;border-radius:5px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;">
             🔗 Connecter avec Google
           </button>
         </form>
-        <form method="post" action="{$smarty.server.REQUEST_URI}">
+        <form method="post" action="{$smarty.server.REQUEST_URI}#neria-search-console-section">
           <input type="hidden" name="neria_action" value="save_searchconsole_config">
           <input type="hidden" name="neria_tab"    value="stats">
           <input type="hidden" name="sc_client_id"     value="">
@@ -1661,7 +1661,7 @@ var _nhm = {$open_heatmap|default:'null'};
           {if $seo_cache_age !== null}
             <span style="font-size:11px;color:var(--neria-muted);">actualisé il y a {$seo_cache_age} min</span>
           {/if}
-          <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+          <form method="post" action="{$smarty.server.REQUEST_URI}#neria-seo-api-section" style="display:inline;">
             <input type="hidden" name="neria_action" value="refresh_seo_api">
             <input type="hidden" name="neria_tab"    value="stats">
             <button type="submit" style="padding:5px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;"
@@ -1695,7 +1695,7 @@ var _nhm = {$open_heatmap|default:'null'};
     </div>
 
     {* Formulaire de configuration *}
-    <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <form method="post" action="{$smarty.server.REQUEST_URI}#neria-seo-api-section">
       <input type="hidden" name="neria_action" value="save_seo_config">
       <input type="hidden" name="neria_tab"    value="stats">
 
@@ -1912,7 +1912,7 @@ var _nhm = {$open_heatmap|default:'null'};
       5. Copiez le <strong>Client ID</strong> et le <strong>Client Secret</strong> affichés par Google et collez-les ci-dessous.<br>
       <span style="display:block;margin-top:8px;font-size:11px;opacity:.75;">⚠ Votre domaine doit être <strong>vérifié dans Google Search Console</strong> pour que Postmaster Tools affiche des données.</span>
     </div>
-    <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <form method="post" action="{$smarty.server.REQUEST_URI}#neria-postmaster-tools">
       <input type="hidden" name="neria_action" value="save_postmaster_config">
       <input type="hidden" name="neria_tab"    value="stats">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
@@ -1951,14 +1951,14 @@ var _nhm = {$open_heatmap|default:'null'};
       Vous serez redirigé vers Google, puis ramené automatiquement ici.
     </p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <form method="post" action="{$smarty.server.REQUEST_URI}">
+      <form method="post" action="{$smarty.server.REQUEST_URI}#neria-postmaster-tools">
         <input type="hidden" name="neria_action" value="connect_postmaster">
         <input type="hidden" name="neria_tab"    value="stats">
         <button type="submit" style="background:#1a7a40;color:#fff;border:none;border-radius:5px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;">
           🔗 Connecter avec Google
         </button>
       </form>
-      <form method="post" action="{$smarty.server.REQUEST_URI}">
+      <form method="post" action="{$smarty.server.REQUEST_URI}#neria-postmaster-tools">
         <input type="hidden" name="neria_action" value="save_postmaster_config">
         <input type="hidden" name="neria_tab"    value="stats">
         <input type="hidden" name="postmaster_client_id"     value="">
@@ -1987,17 +1987,17 @@ var _nhm = {$open_heatmap|default:'null'};
         </div>
       </div>
       <div style="display:flex;gap:8px;">
-        <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+        <form method="post" action="{$smarty.server.REQUEST_URI}#neria-postmaster-tools" style="display:inline;">
           <input type="hidden" name="neria_action" value="refresh_postmaster">
           <input type="hidden" name="neria_tab"    value="stats">
-          <button type="submit" style="background:#fff;color:#5c3d1e;border:1px solid #d4c5a9;border-radius:5px;padding:6px 12px;font-size:11px;cursor:pointer;">
+          <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
             ↺ Actualiser
           </button>
         </form>
-        <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+        <form method="post" action="{$smarty.server.REQUEST_URI}#neria-postmaster-tools" style="display:inline;">
           <input type="hidden" name="neria_action" value="disconnect_postmaster">
           <input type="hidden" name="neria_tab"    value="stats">
-          <button type="submit" style="background:#fff;color:#c0392b;border:1px solid #f5c6cb;border-radius:5px;padding:6px 12px;font-size:11px;cursor:pointer;">
+          <button type="submit" class="neria-btn neria-btn--danger neria-btn--sm">
             Déconnecter
           </button>
         </form>
@@ -2178,7 +2178,7 @@ var _nhm = {$open_heatmap|default:'null'};
     </div>
   </div>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI}#neria-score-panel">
     <input type="hidden" name="neria_action" value="deliverability_score">
     <input type="hidden" name="neria_tab"    value="stats">
 
@@ -2706,7 +2706,7 @@ var _nhm = {$open_heatmap|default:'null'};
         Email rassurant envoyé automatiquement <strong>1h après l'abandon</strong>, sans promotion.
       </p>
     </div>
-    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-checkout-abandonment-section" style="display:inline;">
       <input type="hidden" name="neria_action" value="checkout_abandonment_toggle">
       <input type="hidden" name="neria_tab"    value="stats">
       <button type="submit"
@@ -2758,7 +2758,7 @@ var _nhm = {$open_heatmap|default:'null'};
         "Il y a deux ans, vous nous avez accordé votre confiance pour la première fois."
       </p>
     </div>
-    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-relationship-anniversary-section" style="display:inline;">
       <input type="hidden" name="neria_action" value="relationship_anniversary_toggle">
       <input type="hidden" name="neria_tab"    value="stats">
       <button type="submit"
@@ -2823,7 +2823,7 @@ var _nhm = {$open_heatmap|default:'null'};
         Produit complémentaire suggéré automatiquement dans l'email post-achat (J+14 après livraison).
       </p>
     </div>
-    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-upsell-section" style="display:inline;">
       <input type="hidden" name="neria_action" value="upsell_toggle">
       <input type="hidden" name="neria_tab"    value="stats">
       <button type="submit"
@@ -3502,7 +3502,7 @@ var _nhm = {$open_heatmap|default:'null'};
         Détecte les clients à une pièce de compléter une collection et leur envoie un email personnalisé.
       </p>
     </div>
-    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-collection-section" style="display:inline;">
       <input type="hidden" name="neria_action" value="collection_completion_toggle">
       <input type="hidden" name="neria_tab"    value="stats">
       <button type="submit"
@@ -3629,7 +3629,7 @@ var _nhm = {$open_heatmap|default:'null'};
         48h après la livraison, suggère 2-3 produits complémentaires selon les règles que vous définissez par catégorie.
       </p>
     </div>
-    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-look-section" style="display:inline;">
       <input type="hidden" name="neria_action" value="look_completion_toggle">
       <input type="hidden" name="neria_tab"    value="stats">
       <button type="submit"
@@ -3757,7 +3757,7 @@ var _nhm = {$open_heatmap|default:'null'};
         Quand un produit en rupture revient en stock, Neria notifie automatiquement les clients inscrits.
       </p>
     </div>
-    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-waitlist-section" style="display:inline;">
       <input type="hidden" name="neria_action" value="waitlist_toggle">
       <input type="hidden" name="neria_tab"    value="stats">
       <button type="submit"
@@ -3858,7 +3858,7 @@ var _nhm = {$open_heatmap|default:'null'};
         Détecte les clients qui ajoutent le même produit 3 fois ou plus sans jamais acheter, et leur envoie un email d'ouverture de dialogue.
       </p>
     </div>
-    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-ghost-cart-section" style="display:inline;">
       <input type="hidden" name="neria_action" value="ghost_cart_toggle">
       <input type="hidden" name="neria_tab" value="stats">
       <button type="submit"

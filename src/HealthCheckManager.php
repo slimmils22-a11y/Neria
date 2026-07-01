@@ -2573,4 +2573,247 @@ class HealthCheckManager
             }
         }
     }
+
+    // ============================================================
+    // DIAGNOSTIC DE CODE — scan manuel à la demande uniquement
+    // (jamais dans runAutoChecksIfDue : trop coûteux pour le trafic front)
+    // ============================================================
+
+    /**
+     * Scan complet du code du module : syntaxe PHP, clés de traduction BO
+     * utilisées mais absentes du dictionnaire, et références de classes
+     * cassées (class_exists() sur un fichier manquant).
+     * Déclenché uniquement par le bouton "Scanner le code" de l'onglet Aide.
+     */
+    public function runCodeDiagnostic(): array
+    {
+        $results = [
+            'php_syntax'        => $this->checkPhpSyntaxAll(),
+            'admin_trad_usage'  => $this->checkAdminTranslationKeyUsage(),
+            'class_references'  => $this->checkClassReferencesIntegrity(),
+        ];
+
+        $this->logResultsToWatchdog($results);
+
+        return $results;
+    }
+
+    /**
+     * Vérifie la syntaxe PHP de tous les fichiers du module via `php -l`.
+     * Silencieux (STATUS_OK) si exec() est désactivé par l'hébergeur —
+     * ne doit jamais générer de fausse alerte sur un hébergement mutualisé.
+     */
+    private function checkPhpSyntaxAll(): array
+    {
+        if (!function_exists('exec') || in_array('exec', array_map('trim', explode(',', (string) ini_get('disable_functions'))), true)) {
+            return [
+                'status' => self::STATUS_OK,
+                'detail' => 'Vérification syntaxe ignorée — exec() désactivé sur cet hébergement. Vérifiez manuellement avant packaging.',
+            ];
+        }
+
+        $root  = rtrim($this->module->getLocalPath(), '/');
+        $files = array_merge(
+            glob($root . '/*.php') ?: [],
+            $this->globRecursive($root . '/src'),
+            $this->globRecursive($root . '/controllers'),
+            $this->globRecursive($root . '/upgrade')
+        );
+
+        // Sous SAPI CLI, PHP_BINARY pointe vers un vrai exécutable php.
+        // Sous Apache (mod_php/Laragon), PHP_BINARY pointe vers httpd/le module
+        // Apache lui-même — inutilisable avec "-l". On teste plusieurs candidats
+        // en les EXÉCUTANT réellement (is_file() peut mentir sous open_basedir).
+        $candidates = [];
+        if (\php_sapi_name() === 'cli' && defined('PHP_BINARY') && PHP_BINARY !== '') {
+            $candidates[] = PHP_BINARY;
+        }
+        if (defined('PHP_BINDIR') && PHP_BINDIR !== '') {
+            $candidates[] = rtrim(PHP_BINDIR, '/\\') . DIRECTORY_SEPARATOR
+                . (stripos(PHP_OS, 'WIN') === 0 ? 'php.exe' : 'php');
+        }
+        $candidates[] = 'php'; // dernier recours : dépend du PATH
+
+        $phpBin = null;
+        foreach (array_unique($candidates) as $candidate) {
+            $verOutput = [];
+            $verReturn = 0;
+            @exec(escapeshellarg($candidate) . ' -v 2>&1', $verOutput, $verReturn);
+            if ($verReturn === 0 && stripos(implode(' ', $verOutput), 'PHP') !== false) {
+                $phpBin = $candidate;
+                break;
+            }
+        }
+
+        if ($phpBin === null) {
+            return [
+                'status' => self::STATUS_OK,
+                'detail' => 'Vérification syntaxe ignorée — impossible de localiser un exécutable PHP CLI fonctionnel sur cet hébergement. Vérifiez manuellement avant packaging.',
+            ];
+        }
+
+        $errors = [];
+        foreach ($files as $file) {
+            $output    = [];
+            $returnVar = 0;
+            @exec(escapeshellarg($phpBin) . ' -l ' . escapeshellarg($file) . ' 2>&1', $output, $returnVar);
+            if ($returnVar !== 0) {
+                $errors[] = str_replace($root . '/', '', $file) . ' : ' . trim(implode(' ', $output));
+            }
+        }
+
+        if ($errors) {
+            $count = count($errors);
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => $count . ' fichier(s) avec une erreur de syntaxe PHP : '
+                    . implode(' | ', array_slice($errors, 0, 5)) . ($count > 5 ? '… (' . ($count - 5) . ' autres)' : '')
+                    . ' → Que faire : corrigez ces fichiers avant tout déploiement, le module plantera en production.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => count($files) . ' fichier(s) PHP analysé(s) — aucune erreur de syntaxe.'];
+    }
+
+    /**
+     * Scanne tous les templates .tpl à la recherche de clés
+     * {neria_admin key='...'} littérales (sans variable Smarty) qui
+     * n'existent pas dans data/admin_translations.json — le marchand
+     * verrait alors un texte vide dans le BO.
+     */
+    private function checkAdminTranslationKeyUsage(): array
+    {
+        $root     = rtrim($this->module->getLocalPath(), '/');
+        $jsonPath = $root . '/data/admin_translations.json';
+
+        if (!is_file($jsonPath)) {
+            return ['status' => self::STATUS_ERROR, 'detail' => 'Fichier data/admin_translations.json introuvable.'];
+        }
+
+        $dict = json_decode((string) file_get_contents($jsonPath), true) ?: [];
+        $tplFiles = $this->globRecursive($root . '/views/templates/admin', '.tpl');
+
+        $usedKeys = [];
+        foreach ($tplFiles as $file) {
+            $content = (string) file_get_contents($file);
+            // Retire les commentaires Smarty {* ... *} — évite de capturer des
+            // exemples de syntaxe écrits en doc-header (ex: {neria_admin key='...'})
+            $content = preg_replace('/\{\*.*?\*\}/s', '', $content) ?? $content;
+            // Ne capture que les clés littérales (guillemets simples/doubles, sans `$` ni backtick)
+            if (preg_match_all('/neria_admin\s+key=([\'"])([a-zA-Z0-9_.\-]+)\1/', $content, $m)) {
+                foreach ($m[2] as $key) {
+                    $usedKeys[$key][] = basename($file);
+                }
+            }
+        }
+
+        $missing = [];
+        foreach ($usedKeys as $key => $inFiles) {
+            if (!array_key_exists($key, $dict)) {
+                $missing[$key] = $inFiles[0];
+            }
+        }
+
+        if ($missing) {
+            $count  = count($missing);
+            $sample = [];
+            $i = 0;
+            foreach ($missing as $key => $file) {
+                $sample[] = "{$key} ({$file})";
+                if (++$i >= 5) {
+                    break;
+                }
+            }
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => $count . ' clé(s) de traduction BO utilisée(s) mais absente(s) du dictionnaire : '
+                    . implode(', ', $sample) . ($count > 5 ? '… (' . ($count - 5) . ' autres)' : '')
+                    . ' → Que faire : ajoutez ces clés dans data/admin_translations.json.',
+            ];
+        }
+
+        return [
+            'status' => self::STATUS_OK,
+            'detail' => count($usedKeys) . ' clé(s) de traduction BO utilisée(s) — toutes présentes dans le dictionnaire.',
+        ];
+    }
+
+    /**
+     * Scanne tout le code PHP à la recherche de `class_exists('X')` et
+     * vérifie que src/X.php existe bien et déclare la classe attendue —
+     * détecte un fichier renommé/supprimé par erreur qui ferait échouer
+     * silencieusement une fonctionnalité entière.
+     */
+    private function checkClassReferencesIntegrity(): array
+    {
+        $root  = rtrim($this->module->getLocalPath(), '/');
+        $files = array_merge(
+            glob($root . '/*.php') ?: [],
+            $this->globRecursive($root . '/src'),
+            $this->globRecursive($root . '/controllers')
+        );
+
+        $referenced = [];
+        foreach ($files as $file) {
+            $content = (string) file_get_contents($file);
+            // Retire les commentaires (/* ... */, /** ... */, // ...) — évite de
+            // capturer des exemples de syntaxe écrits en docblock
+            $content = preg_replace('#/\*.*?\*/#s', '', $content) ?? $content;
+            $content = preg_replace('#(?<!:)//.*$#m', '', $content) ?? $content;
+            if (preg_match_all('/class_exists\(\s*[\'"]([A-Za-z0-9_]+)[\'"]/', $content, $m)) {
+                foreach ($m[1] as $class) {
+                    $referenced[$class] = true;
+                }
+            }
+        }
+
+        $broken = [];
+        foreach (array_keys($referenced) as $class) {
+            // Les classes système PHP/PrestaShop ne vivent pas dans src/
+            if (!is_file($root . '/src/' . $class . '.php')) {
+                // Peut être une classe autoloadée ailleurs (ex: coeur PrestaShop) — on
+                // ne signale que si la classe n'existe nulle part au runtime non plus.
+                if (!class_exists($class)) {
+                    $broken[] = $class;
+                }
+            }
+        }
+
+        if ($broken) {
+            $count = count($broken);
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => $count . ' classe(s) référencée(s) via class_exists() introuvable(s) : '
+                    . implode(', ', array_slice($broken, 0, 8)) . ($count > 8 ? '… (' . ($count - 8) . ' autres)' : '')
+                    . ' → Que faire : fichier manquant dans src/ ou nom de classe mal orthographié.',
+            ];
+        }
+
+        return [
+            'status' => self::STATUS_OK,
+            'detail' => count($referenced) . ' classe(s) référencée(s) via class_exists() — toutes résolues correctement.',
+        ];
+    }
+
+    /**
+     * Liste récursivement les fichiers d'un répertoire filtrés par extension.
+     */
+    private function globRecursive(string $dir, string $ext = '.php'): array
+    {
+        if (!is_dir($dir)) {
+            return [];
+        }
+
+        $result = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $file) {
+            if ($file->isFile() && str_ends_with($file->getFilename(), $ext)) {
+                $result[] = $file->getPathname();
+            }
+        }
+
+        return $result;
+    }
 }

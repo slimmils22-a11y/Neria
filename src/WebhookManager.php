@@ -369,6 +369,34 @@ class WebhookManager
         return is_array($rows) ? $rows : [];
     }
 
+    /**
+     * Remet un webhook définitivement échoué en file d'attente
+     * (réinitialise ses tentatives) pour une relance manuelle immédiate.
+     */
+    public function retryOne(int $idWebhook): bool
+    {
+        $table = _DB_PREFIX_ . self::TABLE;
+        $row = $this->db->getRow(sprintf(
+            "SELECT id_webhook FROM `%s` WHERE id_webhook = %d AND id_shop = %d",
+            $table, $idWebhook, $this->idShop
+        ));
+        if (!$row) {
+            return false;
+        }
+
+        $this->db->execute(sprintf(
+            "UPDATE `%s` SET `status` = 'pending', `attempts` = 0 WHERE `id_webhook` = %d",
+            $table, $idWebhook
+        ));
+
+        $this->watchdog()->info(
+            "Webhook #{$idWebhook} remis en file pour relance manuelle.",
+            '', 'WebhookManager'
+        );
+
+        return true;
+    }
+
     // ============================================================
     // MAINTENANCE
     // ============================================================

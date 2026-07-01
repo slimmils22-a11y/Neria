@@ -179,7 +179,7 @@ class CalendarManager
         $sent   = $result['sent'];
         $failed = $result['failed'];
 
-        \Configuration::updateValue($sentKey, date('Y-m-d H:i:s'));
+        \Configuration::updateValue($sentKey, date('Y-m-d H:i:s') . '|' . $sent . '/' . $total);
 
         $this->module->log(
             sprintf(
@@ -206,6 +206,70 @@ class CalendarManager
                 'CalendarManager'
             );
         }
+    }
+
+    // ============================================================
+    // AFFICHAGE BO â€” prochaine date calculee + dernier envoi
+    // ============================================================
+
+    /**
+     * Infos d'affichage pour le tableau BO : prochaine date calculee de
+     * l'occasion, date d'envoi prevue (J - delai), et dernier envoi effectue
+     * (date + nombre de destinataires) si disponible.
+     */
+    public function getEventDisplayInfo(array $event): array
+    {
+        $eventKey    = $event['event_key'];
+        $lang        = $event['lang'];
+        $countryCode = $event['country_code'] ?? '';
+        $daysBefore  = (int) $event['send_days_before'];
+
+        $today = new \DateTime('today');
+        $year  = (int) $today->format('Y');
+
+        $resolveDate = function (int $y) use ($event, $eventKey) {
+            if (!empty($event['custom_date']) && preg_match('/^\d{2}-\d{2}$/', $event['custom_date'])) {
+                return \DateTime::createFromFormat('Y-m-d', $y . '-' . $event['custom_date']) ?: null;
+            }
+            return $this->getEventDate($eventKey, $y);
+        };
+
+        $eventDate = $resolveDate($year);
+        $sendDate  = null;
+        if ($eventDate) {
+            $sendDate = clone $eventDate;
+            $sendDate->modify("-{$daysBefore} days");
+
+            // Si l'envoi prevu est deja passe cette annee, basculer sur l'annee suivante
+            if ($sendDate < $today) {
+                $eventDate = $resolveDate($year + 1);
+                $sendDate  = null;
+                if ($eventDate) {
+                    $sendDate = clone $eventDate;
+                    $sendDate->modify("-{$daysBefore} days");
+                }
+            }
+        }
+
+        // Dernier envoi effectue : cherche cette annee puis l'annee precedente
+        $lastSent = null;
+        foreach ([$year, $year - 1] as $y) {
+            $raw = \Configuration::get($this->buildSentKey($eventKey, $lang, $countryCode, $y));
+            if ($raw) {
+                $parts = explode('|', (string) $raw, 2);
+                $lastSent = [
+                    'date'  => $parts[0],
+                    'count' => $parts[1] ?? null,
+                ];
+                break;
+            }
+        }
+
+        return [
+            'next_event_date' => $eventDate ? $eventDate->format('d/m/Y') : null,
+            'next_send_date'  => $sendDate  ? $sendDate->format('d/m/Y')  : null,
+            'last_sent'       => $lastSent,
+        ];
     }
 
     // ============================================================

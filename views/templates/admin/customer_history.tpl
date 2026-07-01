@@ -26,6 +26,14 @@
     </button>
   </form>
 
+  {* Recherches récentes (stockées côté navigateur) *}
+  <div id="neria-hist-recent" style="display:none;margin-top:12px;">
+    <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-right:8px;">
+      {neria_admin key='history.recent_searches'} :
+    </span>
+    <span id="neria-hist-recent-list"></span>
+  </div>
+
   {* Résultats de recherche *}
   {if isset($neria_hist_search_results)}
     {if $neria_hist_search_results|count > 0}
@@ -55,3 +63,55 @@
   {include file="module:neria/views/templates/admin/_customer_history_content.tpl"}
 </div>
 {/if}
+
+<script>
+  var neriaHistCurrentCustomer = {if $neria_hist_selected_customer}{ldelim}id: {$neria_customer_id}, label: {$neria_hist_selected_label|json_encode}{rdelim}{else}null{/if};
+  var neriaHistBaseUrl         = {$neria_hist_search_base|default:''|json_encode};
+</script>
+<script>
+{literal}
+(function () {
+  var STORAGE_KEY = 'neria_recent_customers';
+  var MAX_RECENT  = 5;
+
+  function loadRecent() {
+    try {
+      var raw = window.localStorage.getItem(STORAGE_KEY);
+      var list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch (e) { return []; }
+  }
+
+  function saveRecent(list) {
+    try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch (e) {}
+  }
+
+  // Enregistre le client actuellement affiché en tête de liste
+  if (neriaHistCurrentCustomer && neriaHistCurrentCustomer.id) {
+    var list = loadRecent().filter(function (c) { return c.id !== neriaHistCurrentCustomer.id; });
+    list.unshift(neriaHistCurrentCustomer);
+    list = list.slice(0, MAX_RECENT);
+    saveRecent(list);
+  }
+
+  // Affiche les chips de recherches récentes
+  var recent = loadRecent();
+  if (recent.length > 0) {
+    var wrap = document.getElementById('neria-hist-recent');
+    var listEl = document.getElementById('neria-hist-recent-list');
+    if (wrap && listEl) {
+      recent.forEach(function (c) {
+        var sep = neriaHistBaseUrl.indexOf('?') === -1 ? '?' : '&';
+        var a = document.createElement('a');
+        a.href = neriaHistBaseUrl + sep + 'neria_hist_customer=' + encodeURIComponent(c.id);
+        a.textContent = c.label;
+        a.style.cssText = 'display:inline-block;margin:2px 6px 2px 0;padding:3px 10px;background:#f9f6f1;'
+          + 'border:1px solid #e8d5b0;border-radius:20px;font-size:11px;color:#5c3d1e;text-decoration:none;';
+        listEl.appendChild(a);
+      });
+      wrap.style.display = 'block';
+    }
+  }
+})();
+{/literal}
+</script>

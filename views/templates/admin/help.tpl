@@ -376,6 +376,61 @@
   </div>
 </div>
 
+{* ── Scan de code du module ────────────────────────────────── *}
+<div class="neria-section" id="neria-help-code-scan">
+  <h2 class="neria-section__title">
+    🔍 {neria_admin key='help.code_scan_title'}
+    {if $code_diag_last_run}
+      <span style="font-size:12px; font-weight:400; color:var(--neria-text-light); margin-left:10px;">
+        {neria_admin key='help.health_last_run'} {$code_diag_last_run}
+      </span>
+    {/if}
+  </h2>
+
+  <p style="font-size:12px; color:var(--neria-text-light); margin-bottom:16px;">
+    {neria_admin key='help.code_scan_desc'}
+  </p>
+
+  <div style="margin-bottom:20px;">
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+      <input type="hidden" name="neria_action" value="run_code_diagnostic">
+      <input type="hidden" name="neria_tab"    value="help">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm" style="gap:6px;">
+        <span>🔍</span> {neria_admin key='help.code_scan_btn'}
+      </button>
+    </form>
+    <span style="font-size:12px; color:var(--neria-text-light); margin-left:12px;">
+      {neria_admin key='help.code_scan_note'}
+    </span>
+  </div>
+
+  {if $code_diag_results}
+    {assign var='_codeChecks' value=[
+      'php_syntax'       => 'help.code_scan_php_syntax',
+      'admin_trad_usage' => 'help.code_scan_trad_usage',
+      'class_references' => 'help.code_scan_class_refs'
+    ]}
+    <div class="neria-diag-grid">
+      {foreach $code_diag_results as $checkKey => $result}
+        {assign var='cStatus' value=$result.status|default:'ok'}
+        <div class="neria-diag-block">
+          <h3 class="neria-diag-block__title">{neria_admin key=$_codeChecks[$checkKey]|default:$checkKey}</h3>
+          <ul class="neria-diag-list">
+            <li class="{if $cStatus === 'ok'}neria-diag--ok{elseif $cStatus === 'warning'}neria-diag--warn{else}neria-diag--err{/if}">
+              {$result.detail|default:''|escape:'html'|regex_replace:'/→ Que faire :/':"<br><strong style=\"color:#BA7517;\">→ Que faire :</strong>"}
+            </li>
+          </ul>
+        </div>
+      {/foreach}
+    </div>
+  {else}
+    <div class="neria-empty-state">
+      <span class="neria-empty-state__icon">🔍</span>
+      <p>{neria_admin key='help.code_scan_pending'}</p>
+    </div>
+  {/if}
+</div>
+
 {* ── Alertes email Watchdog ─────────────────────────────────── *}
 <div class="neria-section" id="neria-help-alerts">
   <h2 class="neria-section__title">

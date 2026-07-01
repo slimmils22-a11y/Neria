@@ -1600,6 +1600,26 @@ class Neria extends Module
             $this->context->smarty->assign('neria_success', AdminTranslator::t('help.diagnostic_done'));
         }
 
+        // ── Action : scan du code du module (syntaxe, traductions, classes) ──
+        if (Tools::getValue('neria_action') === 'run_code_diagnostic') {
+            $hcm     = new HealthCheckManager($this);
+            $results = $hcm->runCodeDiagnostic();
+            $this->context->smarty->assign('code_diag_results', $results);
+            $this->context->smarty->assign('code_diag_last_run', date('d/m/Y H:i'));
+            $anyIssue = false;
+            foreach ($results as $r) {
+                if (($r['status'] ?? 'ok') !== 'ok') {
+                    $anyIssue = true;
+                    break;
+                }
+            }
+            $this->context->smarty->assign(
+                $anyIssue ? 'neria_error' : 'neria_success',
+                $anyIssue ? 'Scan de code terminé — des anomalies ont été détectées, voir le détail ci-dessous.'
+                          : 'Scan de code terminé — aucune anomalie détectée.'
+            );
+        }
+
         // ── Action : envoyer le journal Watchdog par email (PDF) ─────
         if (Tools::getValue('neria_action') === 'send_log_email') {
             try {
@@ -3053,11 +3073,33 @@ class Neria extends Module
             $mgr     = new MultiClientPreviewManager();
             $previews = [];
             $styleCountRaw = preg_match_all('/<style\b/i', $rawHtml);
+
+            // Détection des anomalies pour le résumé affiché au clic sur le badge ⚠
+            $diffChecks = [
+                'Balises <style> supprimées'            => fn ($r, $t) => (bool) preg_match('/<style\b/i', $r) && !preg_match('/<style\b/i', $t),
+                'Liens <link> CSS externes supprimés'   => fn ($r, $t) => substr_count($r, 'rel="stylesheet"') > substr_count($t, 'rel="stylesheet"'),
+                'background-image supprimé'             => fn ($r, $t) => substr_count($r, 'background-image') > substr_count($t, 'background-image'),
+                'border-radius supprimé'                => fn ($r, $t) => substr_count($r, 'border-radius') > substr_count($t, 'border-radius'),
+                'text-shadow / box-shadow supprimés'    => fn ($r, $t) => substr_count($r, '-shadow') > substr_count($t, '-shadow'),
+                'display:flex neutralisé (→ block)'     => fn ($r, $t) => substr_count($r, 'flex') > substr_count($t, 'flex'),
+                'gap (flexbox) supprimé'                => fn ($r, $t) => substr_count($r, 'gap:') > substr_count($t, 'gap:'),
+                'position supprimée'                    => fn ($r, $t) => substr_count($r, 'position:') > substr_count($t, 'position:'),
+                '@media queries supprimées'             => fn ($r, $t) => substr_count($r, '@media') > substr_count($t, '@media'),
+                'Attributs style="" en ligne supprimés' => fn ($r, $t) => substr_count($r, ' style=') > substr_count($t, ' style='),
+            ];
+
             foreach (array_keys(MultiClientPreviewManager::CLIENTS) as $clientId) {
                 $transformed = $mgr->transformForClient($rawHtml, $clientId);
+                $detail = [];
+                foreach ($diffChecks as $label => $check) {
+                    if ($check($rawHtml, $transformed)) {
+                        $detail[] = $label;
+                    }
+                }
                 $previews[$clientId] = [
                     'html'   => $transformed,
                     'issues' => max(0, $styleCountRaw - preg_match_all('/<style\b/i', $transformed)),
+                    'detail' => $detail,
                 ];
             }
             // Sauvegarde chaque aperçu dans un fichier temp — évite la troncature Smarty
@@ -3077,12 +3119,16 @@ class Neria extends Module
                 }
             }
             $this->context->smarty->assign([
-                'mp_previews_meta'     => array_map(fn ($pv) => ['issues' => (int) ($pv['issues'] ?? 0)], $previews),
+                'mp_previews_meta'     => array_map(fn ($pv) => [
+                    'issues' => (int) ($pv['issues'] ?? 0),
+                    'detail' => $pv['detail'] ?? [],
+                ], $previews),
                 'mp_token'             => $mpToken,
                 'mp_preview_base'      => rtrim($this->context->link->getBaseLink(), '/') . '/modules/neria/getpreview.php',
                 'mp_selected_template' => $mpTemplate,
                 'mp_selected_lang'     => $mpLang,
             ]);
+            $this->context->smarty->assign('neria_success', 'Prévisualisation générée pour ' . count($previews) . ' client(s).');
         }
 
         // ── Prévisualisation multi-client : sauvegarde clés API ──
@@ -3134,6 +3180,26 @@ class Neria extends Module
                     'neria_error',
                     'Test webhook échoué : ' . $errDetail
                 );
+            }
+        }
+
+        // ── Webhooks : traiter la file maintenant ──────────────────
+        if (Tools::getValue('neria_action') === 'process_webhook_queue_now' && class_exists('WebhookManager')) {
+            try {
+                (new WebhookManager($this))->processQueue();
+                $this->context->smarty->assign('neria_success', 'File de webhooks traitée.');
+            } catch (\Throwable $e) {
+                $this->context->smarty->assign('neria_error', 'Erreur lors du traitement : ' . $e->getMessage());
+            }
+        }
+
+        // ── Webhooks : relance manuelle d'une livraison échouée ─────
+        if (Tools::getValue('neria_action') === 'retry_webhook' && class_exists('WebhookManager')) {
+            $idWebhook = (int) Tools::getValue('id_webhook', 0);
+            if ($idWebhook > 0 && (new WebhookManager($this))->retryOne($idWebhook)) {
+                $this->context->smarty->assign('neria_success', 'Webhook remis en file pour relance.');
+            } else {
+                $this->context->smarty->assign('neria_error', 'Impossible de relancer ce webhook.');
             }
         }
 
@@ -3923,13 +3989,17 @@ class Neria extends Module
             'abtest_focus_key'   => preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('abtest_template', '')),
 
             // Variables pour calendar.tpl
-            'calendar_events'     => Db::getInstance()->executeS(
+            'calendar_events'     => array_map(function ($ev) use ($calendar) {
+                $ev['display_info'] = $calendar->getEventDisplayInfo($ev);
+                return $ev;
+            }, Db::getInstance()->executeS(
                 'SELECT * FROM `' . _DB_PREFIX_ . 'neria_calendar_event`
                  WHERE `id_shop` = ' . (int) $this->context->shop->id . '
                  ORDER BY `event_key` ASC, `lang` ASC'
-            ),
+            ) ?: []),
             'calendar_templates'  => $this->getCalendarTemplatesList(),
             'calendar_known_keys' => $this->getCalendarKnownKeys(),
+            'calendar_countries'  => $this->getCountriesListForSelect(),
 
             // Variables pour webhooks.tpl
             'webhook_url'         => (string) Configuration::get(WebhookManager::CONFIG_URL),
@@ -4326,18 +4396,20 @@ class Neria extends Module
         if ($activeTab === 'customer_history') {
             $this->prepareCustomerHistoryTab();
 
+            // URL de base pour les liens (résultats de recherche + chips récents)
+            $histBaseUrl = $_SERVER['REQUEST_URI'] ?? '';
+            $histBaseUrl = preg_replace('/&?neria_hist_q=[^&]*/', '', $histBaseUrl);
+            $histBaseUrl = preg_replace('/&?neria_hist_customer=[^&]*/', '', $histBaseUrl);
+            $histBaseUrl = rtrim($histBaseUrl, '?&');
+            $this->context->smarty->assign('neria_hist_search_base', $histBaseUrl);
+
             // Recherche via formulaire GET (neria_hist_q)
             $histQ = trim((string) Tools::getValue('neria_hist_q', ''));
             if ($histQ !== '') {
                 $results = strlen($histQ) >= 2 ? $this->searchCustomersForHistory($histQ) : [];
-                // URL de base pour les liens résultats (sans neria_hist_q)
-                $baseUrl = $_SERVER['REQUEST_URI'] ?? '';
-                $baseUrl = preg_replace('/&?neria_hist_q=[^&]*/', '', $baseUrl);
-                $baseUrl = rtrim($baseUrl, '?&');
                 $this->context->smarty->assign([
                     'neria_hist_q'              => $histQ,
                     'neria_hist_search_results' => $results,
-                    'neria_hist_search_base'    => $baseUrl,
                 ]);
             }
         }
@@ -5239,6 +5311,26 @@ class Neria extends Module
             'nowruz'          => 'Norouz (Nouvel An Persan)',
             'setsubun'        => 'Setsubun (Japon)',
         ];
+    }
+
+    /**
+     * Liste des pays (ISO 2 lettres → nom) pour le menu déroulant du
+     * formulaire Calendrier, triée alphabétiquement par nom.
+     */
+    private function getCountriesListForSelect(): array
+    {
+        $idLang = (int) $this->context->language->id;
+        $rows   = Country::getCountries($idLang, false, false, false);
+        $list   = [];
+        foreach ($rows as $row) {
+            $iso = strtoupper((string) ($row['iso_code'] ?? ''));
+            if ($iso === '') {
+                continue;
+            }
+            $list[$iso] = (string) ($row['name'] ?? $iso);
+        }
+        asort($list, SORT_STRING | SORT_FLAG_CASE);
+        return $list;
     }
 
     /**

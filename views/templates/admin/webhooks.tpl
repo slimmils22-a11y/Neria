@@ -83,14 +83,21 @@
 
     {* Bouton test (formulaire séparé pour éviter la double soumission) *}
     {if $webhook_url}
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:12px;">
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:12px;display:inline-block;">
       <input type="hidden" name="neria_action" value="test_webhook">
       <input type="hidden" name="neria_tab"    value="webhooks">
       <button type="submit" class="neria-btn neria-btn--sm">
         ⚡ {neria_admin key='webhook.test_btn'}
       </button>
-      <span class="neria-hint" style="margin-left:8px;">{neria_admin key='webhook.test_hint'}</span>
     </form>
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:12px;display:inline-block;margin-left:8px;">
+      <input type="hidden" name="neria_action" value="process_webhook_queue_now">
+      <input type="hidden" name="neria_tab"    value="webhooks">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+        ▶ {neria_admin key='webhook.process_now_btn'}
+      </button>
+    </form>
+    <span class="neria-hint" style="margin-left:8px;">{neria_admin key='webhook.test_hint'}</span>
     {/if}
   </div>
 
@@ -114,18 +121,33 @@
     <h3 class="neria-card__title">{neria_admin key='webhook.recent_deliveries'}</h3>
 
     {if $webhook_deliveries|@count > 0}
-    <table class="neria-table" style="margin-top:12px;">
+    <div style="display:flex;gap:10px;margin-top:12px;">
+      <select id="neria-webhook-filter-event" class="neria-select" style="max-width:220px;">
+        <option value="">{neria_admin key='webhook.filter_all_events'}</option>
+        {foreach $webhook_all_events as $evt}
+          <option value="{$evt|escape:'html'}">{$evt|escape:'html'}</option>
+        {/foreach}
+      </select>
+      <select id="neria-webhook-filter-status" class="neria-select" style="max-width:180px;">
+        <option value="">{neria_admin key='webhook.filter_all_status'}</option>
+        <option value="done">{neria_admin key='webhook.status_done'}</option>
+        <option value="pending">{neria_admin key='webhook.status_pending'}</option>
+        <option value="failed">{neria_admin key='webhook.status_failed'}</option>
+      </select>
+    </div>
+    <table class="neria-table" id="neria-webhook-table" style="margin-top:12px;">
       <thead>
         <tr>
           <th>{neria_admin key='webhook.col_event'}</th>
           <th style="text-align:center;">{neria_admin key='webhook.col_status'}</th>
           <th style="text-align:center;">{neria_admin key='webhook.col_attempts'}</th>
           <th>{neria_admin key='webhook.col_date'}</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         {foreach $webhook_deliveries as $d}
-        <tr>
+        <tr data-event="{$d.event|escape:'html'}" data-status="{$d.status|escape:'html'}">
           <td><code style="font-size:12px;">{$d.event|escape:'html'}</code></td>
           <td style="text-align:center;">
             <span class="neria-badge {if $d.status === 'done'}neria-badge--on{elseif $d.status === 'failed'}neria-badge--off{else}neria-badge--neutral{/if}">
@@ -134,6 +156,16 @@
           </td>
           <td style="text-align:center;color:var(--neria-text-muted,#888);">{$d.attempts|intval}</td>
           <td style="font-size:12px;color:var(--neria-text-muted,#888);">{$d.date_add|escape:'html'}</td>
+          <td>
+            {if $d.status === 'failed'}
+            <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+              <input type="hidden" name="neria_action" value="retry_webhook">
+              <input type="hidden" name="neria_tab"    value="webhooks">
+              <input type="hidden" name="id_webhook"   value="{$d.id_webhook|intval}">
+              <button type="submit" class="neria-link-btn">↺ {neria_admin key='webhook.retry_btn'}</button>
+            </form>
+            {/if}
+          </td>
         </tr>
         {/foreach}
       </tbody>
@@ -146,6 +178,24 @@
 </div>
 
 <script>
+(function () {
+  var filterEvent  = document.getElementById('neria-webhook-filter-event');
+  var filterStatus = document.getElementById('neria-webhook-filter-status');
+  var table        = document.getElementById('neria-webhook-table');
+  function applyFilters() {
+    if (!table) { return; }
+    var evVal = filterEvent  ? filterEvent.value  : '';
+    var stVal = filterStatus ? filterStatus.value : '';
+    table.querySelectorAll('tbody tr').forEach(function (row) {
+      var matchEv = !evVal || row.dataset.event  === evVal;
+      var matchSt = !stVal || row.dataset.status === stVal;
+      row.style.display = (matchEv && matchSt) ? '' : 'none';
+    });
+  }
+  if (filterEvent)  { filterEvent.addEventListener('change', applyFilters); }
+  if (filterStatus) { filterStatus.addEventListener('change', applyFilters); }
+})();
+
 function neriaGenerateSecret() {
   var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   var result = '';

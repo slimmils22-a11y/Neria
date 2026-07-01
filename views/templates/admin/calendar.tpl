@@ -33,6 +33,8 @@
         <th>{neria_admin key='calendar.col_country'}</th>
         <th>{neria_admin key='calendar.col_template'}</th>
         <th style="text-align:center;">{neria_admin key='calendar.col_days'}</th>
+        <th>{neria_admin key='calendar.col_next_date'}</th>
+        <th>{neria_admin key='calendar.col_last_sent'}</th>
         <th style="text-align:center;">{neria_admin key='calendar.col_active'}</th>
         <th></th>
       </tr>
@@ -60,6 +62,30 @@
           </form>
         </td>
 
+        {* Prochaine date calculée ──────────────────────────────── *}
+        <td style="font-size:12px;">
+          {if $ev.display_info.next_event_date}
+            📅 {$ev.display_info.next_event_date}
+            {if $ev.display_info.next_send_date}
+              <br><span class="neria-hint" style="font-size:11px;">→ envoi le {$ev.display_info.next_send_date}</span>
+            {/if}
+          {else}
+            <span class="neria-hint">—</span>
+          {/if}
+        </td>
+
+        {* Dernier envoi ─────────────────────────────────────────── *}
+        <td style="font-size:12px;">
+          {if $ev.display_info.last_sent}
+            {$ev.display_info.last_sent.date|date_format:"%d/%m/%Y"}
+            {if $ev.display_info.last_sent.count}
+              <br><span class="neria-hint" style="font-size:11px;">{$ev.display_info.last_sent.count|escape:'html'} destinataires</span>
+            {/if}
+          {else}
+            <span class="neria-hint">{neria_admin key='calendar.never_sent'}</span>
+          {/if}
+        </td>
+
         {* Toggle actif ─────────────────────────────────────────── *}
         <td style="text-align:center;">
           <a href="{$smarty.server.REQUEST_URI}&neria_action=toggle_calendar_event&neria_tab=calendar&cal_id={$ev.id_event|intval}"
@@ -68,8 +94,14 @@
           </a>
         </td>
 
-        {* Suppression ──────────────────────────────────────────── *}
-        <td>
+        {* Duplication + Suppression ────────────────────────────── *}
+        <td style="white-space:nowrap;">
+          <button type="button" class="neria-btn neria-btn--ghost neria-btn--xs neria-cal-duplicate"
+                  data-event-key="{$ev.event_key|escape:'html'}"
+                  data-country="{$ev.country_code|escape:'html'}"
+                  data-template="{$ev.template|escape:'html'}"
+                  data-days="{$ev.send_days_before|intval}"
+                  title="{neria_admin key='calendar.duplicate_btn'}">⎘</button>
           <a href="{$smarty.server.REQUEST_URI}&neria_action=delete_calendar_event&neria_tab=calendar&cal_id={$ev.id_event|intval}"
              class="neria-btn neria-btn--danger neria-btn--xs"
              onclick="return confirm('{neria_admin key='calendar.delete_confirm'|escape:'javascript'}')">✕</a>
@@ -83,7 +115,7 @@
   {/if}
 
   {* ── Formulaire ajout ──────────────────────────────────────────── *}
-  <div class="neria-card" style="margin-top:32px;">
+  <div class="neria-card" id="cal-add-form" style="margin-top:32px;">
     <h3 class="neria-card__title">{neria_admin key='calendar.add_title'}</h3>
 
     <form method="post" action="{$smarty.server.REQUEST_URI}">
@@ -150,15 +182,19 @@
         {* Code pays (optionnel) ─────────────────────────────────── *}
         <div class="neria-form-group">
           <label class="neria-label">{neria_admin key='calendar.col_country'} <span class="neria-hint">({neria_admin key='common.optional'})</span></label>
-          <input type="text" name="cal_country" class="neria-input" maxlength="5"
-                 placeholder="FR, DE, US…" style="text-transform:uppercase;">
+          <select id="cal-country-input" name="cal_country" class="neria-select">
+            <option value="">— {neria_admin key='calendar.all_countries'} —</option>
+            {foreach $calendar_countries as $iso => $name}
+              <option value="{$iso|escape:'html'}">{$name|escape:'html'} ({$iso|escape:'html'})</option>
+            {/foreach}
+          </select>
           <span class="neria-hint">{neria_admin key='calendar.country_hint'}</span>
         </div>
 
         {* Template ─────────────────────────────────────────────── *}
         <div class="neria-form-group">
           <label class="neria-label">{neria_admin key='calendar.col_template'}</label>
-          <select name="cal_template" class="neria-select" required>
+          <select id="cal-template-select" name="cal_template" class="neria-select" required>
             {foreach $calendar_templates as $tpl}
               <option value="{$tpl|escape:'html'}">{$tpl|escape:'html'}</option>
             {/foreach}
@@ -168,7 +204,7 @@
         {* Jours avant ──────────────────────────────────────────── *}
         <div class="neria-form-group">
           <label class="neria-label">{neria_admin key='calendar.col_days'}</label>
-          <input type="number" name="cal_days" class="neria-input" value="7" min="1" max="60" required>
+          <input type="number" id="cal-days-input" name="cal_days" class="neria-input" value="7" min="1" max="60" required>
           <span class="neria-hint">{neria_admin key='calendar.days_hint'}</span>
         </div>
 
@@ -190,3 +226,31 @@
   </div>
 
 </div>
+
+{literal}<script>
+document.addEventListener('click', function (e) {
+  var btn = e.target.closest('.neria-cal-duplicate');
+  if (!btn) { return; }
+
+  var eventSel = document.getElementById('cal-event-key-select');
+  var country  = document.getElementById('cal-country-input');
+  var tplSel   = document.getElementById('cal-template-select');
+  var days     = document.getElementById('cal-days-input');
+
+  if (eventSel) {
+    var key = btn.dataset.eventKey;
+    var hasOption = Array.prototype.some.call(eventSel.options, function (o) { return o.value === key; });
+    eventSel.value = hasOption ? key : '__custom__';
+    eventSel.dispatchEvent(new Event('change'));
+    if (!hasOption) {
+      var keyIn = document.getElementById('cal-custom-key-input');
+      if (keyIn) { keyIn.value = key; }
+    }
+  }
+  if (country) { country.value = btn.dataset.country || ''; }
+  if (tplSel && btn.dataset.template) { tplSel.value = btn.dataset.template; }
+  if (days && btn.dataset.days) { days.value = btn.dataset.days; }
+
+  document.getElementById('cal-add-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+</script>{/literal}

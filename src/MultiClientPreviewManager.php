@@ -30,7 +30,7 @@ class MultiClientPreviewManager
             'support' => 'Supprime les balises style — CSS inline uniquement',
         ],
         'outlook' => [
-            'name'    => 'Outlook',
+            'name'    => 'Outlook (Desktop)',
             'icon'    => 'O',
             'color'   => '#0078D4',
             'support' => 'Moteur Word — background-image, border-radius, flex supprimés',
@@ -48,10 +48,64 @@ class MultiClientPreviewManager
             'support' => 'Supprime les media queries',
         ],
         'hotmail' => [
-            'name'    => 'Hotmail / Outlook.com',
+            'name'    => 'Outlook.com (Web) — inclut Hotmail, Live, MSN',
             'icon'    => 'H',
             'color'   => '#0072C6',
             'support' => 'Webmail Microsoft — balises link supprimées, styles partiels',
+        ],
+        'qq_mail' => [
+            'name'    => 'QQ Mail (163.com)',
+            'icon'    => 'QQ',
+            'color'   => '#12B7F5',
+            'support' => 'Webmail chinois — balises style et link supprimées, CSS externe bloqué',
+        ],
+        'mailru' => [
+            'name'    => 'Mail.ru',
+            'icon'    => 'M',
+            'color'   => '#005FF9',
+            'support' => 'Webmail russe — balises style supprimées, background-image bloqué',
+        ],
+        'samsung_email' => [
+            'name'    => 'Samsung Email',
+            'icon'    => 'S',
+            'color'   => '#1428A0',
+            'support' => 'Client Android natif — media queries et flexbox ignorés',
+        ],
+        'gmx' => [
+            'name'    => 'GMX / Web.de',
+            'icon'    => 'GX',
+            'color'   => '#1C449B',
+            'support' => 'Webmail allemand — CSS externe et shadows supprimés',
+        ],
+        'naver' => [
+            'name'    => 'Naver Mail',
+            'icon'    => 'N',
+            'color'   => '#03C75A',
+            'support' => 'Webmail coréen — balises style et link supprimées',
+        ],
+        'yandex' => [
+            'name'    => 'Yandex Mail',
+            'icon'    => 'Y',
+            'color'   => '#FC3F1D',
+            'support' => 'Webmail russe — balises style supprimées, background-image bloqué',
+        ],
+        'aol' => [
+            'name'    => 'AOL Mail',
+            'icon'    => 'AOL',
+            'color'   => '#3D007A',
+            'support' => 'Webmail historique US — media queries et styles supprimés',
+        ],
+        'protonmail' => [
+            'name'    => 'ProtonMail',
+            'icon'    => 'P',
+            'color'   => '#6D4AFF',
+            'support' => 'Sécurité/vie privée — CSS strict, border-radius et shadows bloqués',
+        ],
+        'jp_carrier' => [
+            'name'    => 'Mail opérateur japonais (docomo/au/SoftBank)',
+            'icon'    => '携',
+            'color'   => '#E60012',
+            'support' => 'Le plus restrictif au monde — tout le CSS est supprimé, rendu texte brut',
         ],
     ];
 
@@ -75,6 +129,24 @@ class MultiClientPreviewManager
                 return $this->transformYahoo($html);
             case 'hotmail':
                 return $this->transformHotmail($html);
+            case 'qq_mail':
+                return $this->transformQqMail($html);
+            case 'mailru':
+                return $this->transformMailru($html);
+            case 'samsung_email':
+                return $this->transformSamsungEmail($html);
+            case 'gmx':
+                return $this->transformGmx($html);
+            case 'naver':
+                return $this->transformNaver($html);
+            case 'yandex':
+                return $this->transformYandex($html);
+            case 'aol':
+                return $this->transformAol($html);
+            case 'protonmail':
+                return $this->transformProtonMail($html);
+            case 'jp_carrier':
+                return $this->transformJpCarrier($html);
             case 'apple_mail':
             default:
                 return $this->addBanner($html, 'apple_mail');
@@ -137,6 +209,91 @@ class MultiClientPreviewManager
         // Supprime text-shadow et box-shadow (non supportés)
         $html = preg_replace('/(?:text|box)-shadow\s*:[^;"\'}]+[;"\'}]/i', '', $html);
         return $this->addBanner($html, 'hotmail');
+    }
+
+    private function transformQqMail(string $html): string
+    {
+        // QQ Mail supprime les blocs <style> et <link> CSS, comme Gmail
+        $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
+        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html);
+        return $this->addBanner($html, 'qq_mail');
+    }
+
+    private function transformMailru(string $html): string
+    {
+        // Mail.ru supprime les blocs <style> et le background-image
+        $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
+        $html = preg_replace('/background-image\s*:[^;"\'}]+[;"\'}]/i', '', $html);
+        return $this->addBanner($html, 'mailru');
+    }
+
+    private function transformSamsungEmail(string $html): string
+    {
+        // Samsung Email (Android) ignore les @media queries et le flexbox
+        $html = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/si', function ($m) {
+            $css = preg_replace('/@media\b[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/si', '', $m[1]);
+            $css = preg_replace('/display\s*:\s*flex[^;{}]*;?/i', 'display:block;', $css);
+            return '<style>' . $css . '</style>';
+        }, $html);
+        return $this->addBanner($html, 'samsung_email');
+    }
+
+    private function transformGmx(string $html): string
+    {
+        // GMX / Web.de supprime les <link> CSS externes et les shadows
+        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html);
+        $html = preg_replace('/(?:text|box)-shadow\s*:[^;"\'}]+[;"\'}]/i', '', $html);
+        return $this->addBanner($html, 'gmx');
+    }
+
+    private function transformNaver(string $html): string
+    {
+        // Naver Mail supprime les blocs <style> et <link> CSS
+        $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
+        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html);
+        return $this->addBanner($html, 'naver');
+    }
+
+    private function transformYandex(string $html): string
+    {
+        // Yandex Mail supprime les blocs <style> et le background-image
+        $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
+        $html = preg_replace('/background-image\s*:[^;"\'}]+[;"\'}]/i', '', $html);
+        return $this->addBanner($html, 'yandex');
+    }
+
+    private function transformAol(string $html): string
+    {
+        // AOL Mail supprime les @media queries, comme Yahoo
+        $html = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/si', function ($m) {
+            $css = preg_replace('/@media\b[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/si', '', $m[1]);
+            return '<style>' . $css . '</style>';
+        }, $html);
+        return $this->addBanner($html, 'aol');
+    }
+
+    private function transformProtonMail(string $html): string
+    {
+        // ProtonMail (sécurité) : supprime border-radius, shadows et position (anti-tracking)
+        $html = preg_replace('/border-radius\s*:[^;"\'}]+[;"\'}]/i', '', $html);
+        $html = preg_replace('/(?:text|box)-shadow\s*:[^;"\'}]+[;"\'}]/i', '', $html);
+        $html = preg_replace('/\bposition\s*:[^;"\'}]+[;"\'}]/i', '', $html);
+        $html = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/si', function ($m) {
+            $css = preg_replace('/border-radius\s*:[^;{}]+;?/i', '', $m[1]);
+            $css = preg_replace('/(?:text|box)-shadow\s*:[^;{}]+;?/i', '', $css);
+            $css = preg_replace('/\bposition\s*:[^;{}]+;?/i', '', $css);
+            return '<style>' . $css . '</style>';
+        }, $html);
+        return $this->addBanner($html, 'protonmail');
+    }
+
+    private function transformJpCarrier(string $html): string
+    {
+        // Mail opérateur japonais : le plus restrictif — tout le CSS est supprimé
+        $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
+        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html);
+        $html = preg_replace('/\sstyle\s*=\s*(["\']).*?\1/i', '', $html);
+        return $this->addBanner($html, 'jp_carrier');
     }
 
     private function addBanner(string $html, string $client): string
