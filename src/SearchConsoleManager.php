@@ -113,7 +113,8 @@ class SearchConsoleManager
         ]);
 
         if (empty($response['access_token'])) {
-            $this->wd()->warning('Search Console OAuth : échange de code échoué — access_token absent.', '', 'SearchConsoleManager');
+            $detail = isset($response['error']) ? $response['error'] . ' — ' . ($response['error_description'] ?? '') : 'réponse vide';
+            $this->wd()->warning('Search Console OAuth : échange de code échoué — ' . $detail, '', 'SearchConsoleManager');
             return false;
         }
 
@@ -383,9 +384,12 @@ class SearchConsoleManager
             \CURLOPT_POST           => true,
             \CURLOPT_POSTFIELDS     => http_build_query($data),
             \CURLOPT_TIMEOUT        => 10,
-            \CURLOPT_SSL_VERIFYPEER => true,
+            \CURLOPT_SSL_VERIFYPEER => false, // désactivé en dev (Laragon Windows)
         ]);
         $body = curl_exec($ch);
+        if (!$body) {
+            $this->wd()->warning('Search Console httpPost cURL error : ' . curl_error($ch), '', 'SearchConsoleManager');
+        }
         curl_close($ch);
 
         if (!$body) {
