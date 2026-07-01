@@ -10,7 +10,7 @@
 <div class="neria-section" id="neria-help-watchdog-score">
   <h2 class="neria-section__title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
     <span>⚡ Score de santé Watchdog</span>
-    <button id="neria-watchdog-analyze-btn"
+    <button id="neria-watchdog-analyze-btn" type="button"
             style="background:#16a34a;color:#fff;border:none;padding:7px 16px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.02em;display:flex;align-items:center;gap:6px;">
       <span id="neria-watchdog-analyze-icon" style="display:inline-block;">🔄</span>
       <span id="neria-watchdog-analyze-label">Analyser maintenant</span>
