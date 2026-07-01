@@ -1223,7 +1223,8 @@ class Neria extends Module
 
         // ── AJAX : rafraîchissement Watchdog ─────────────────────────
         if (Tools::getValue('neria_action') === 'watchdog_refresh') {
-            header('Content-Type: application/json; charset=utf-8');
+            while (ob_get_level() > 0) { ob_end_clean(); }
+            if (!headers_sent()) { header('Content-Type: application/json; charset=utf-8'); }
             try {
                 $wh = (new WatchdogManager($this))->getWatchdogHealthScore();
                 $wh['anomalies'] = class_exists('StatsManager')
