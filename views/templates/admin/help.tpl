@@ -8,8 +8,13 @@
 {if isset($watchdog_health)}
 {assign var="wh" value=$watchdog_health}
 <div class="neria-section" id="neria-help-watchdog-score">
-  <h2 class="neria-section__title">
-    ⚡ Score de santé Watchdog
+  <h2 class="neria-section__title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <span>⚡ Score de santé Watchdog</span>
+    <button id="neria-watchdog-analyze-btn"
+            style="background:#16a34a;color:#fff;border:none;padding:7px 16px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.02em;display:flex;align-items:center;gap:6px;">
+      <span id="neria-watchdog-analyze-icon" style="display:inline-block;">🔄</span>
+      <span id="neria-watchdog-analyze-label">Analyser maintenant</span>
+    </button>
   </h2>
 
   {* Score principal *}
@@ -17,25 +22,24 @@
     <div style="text-align:center;flex-shrink:0;">
       <svg viewBox="0 0 100 100" width="90" height="90">
         {assign var="wCircum" value=251.2}
-        {assign var="wOffset" value=$wCircum|default:251.2}
         {assign var="wPct"    value=$wh.score|default:0}
         <circle cx="50" cy="50" r="40" fill="none" stroke="#e8d5b0" stroke-width="10"/>
-        <circle cx="50" cy="50" r="40" fill="none"
+        <circle id="neria-wd-circle-bar" cx="50" cy="50" r="40" fill="none"
                 stroke="{$wh.color|default:'#16a34a'}" stroke-width="10"
                 stroke-dasharray="{$wCircum}"
                 stroke-dashoffset="{math equation='c - c * p / 100' c=$wCircum p=$wPct}"
                 stroke-linecap="round"
                 transform="rotate(-90 50 50)"/>
-        <text x="50" y="46" text-anchor="middle"
+        <text id="neria-wd-score-num" x="50" y="46" text-anchor="middle"
               style="font-size:20px;font-weight:700;fill:{$wh.color|default:'#16a34a'}">{$wh.score|default:0}</text>
         <text x="50" y="60" text-anchor="middle"
               style="font-size:9px;fill:#888;">/100</text>
       </svg>
-      <div style="font-size:13px;font-weight:700;color:{$wh.color|default:'#16a34a'};margin-top:4px;">{$wh.label|default:'—'}</div>
+      <div id="neria-wd-score-label" style="font-size:13px;font-weight:700;color:{$wh.color|default:'#16a34a'};margin-top:4px;">{$wh.label|default:'—'}</div>
     </div>
 
     {* Issues *}
-    <div style="flex:1;min-width:200px;">
+    <div id="neria-wd-issues-wrap" style="flex:1;min-width:200px;">
       {if empty($wh.issues)}
         <div style="color:#16a34a;font-size:13px;font-weight:600;">✓ Aucun problème détecté</div>
         <div style="color:#888;font-size:12px;margin-top:4px;">Tous les systèmes fonctionnent normalement.</div>
@@ -54,7 +58,7 @@
   <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.55;color:var(--neria-dark);margin-bottom:10px;">
     Monitoring des crons
   </div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:20px;">
+  <div id="neria-wd-crons-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:20px;">
     {foreach $wh.crons as $cKey => $cron}
       {assign var="cStatus" value=$cron.status|default:'late'}
       <div style="padding:12px 14px;border-radius:6px;border:1px solid {if $cStatus === 'ok'}#bbf7d0{elseif $cStatus === 'error'}#fecaca{else}#fed7aa{/if};background:{if $cStatus === 'ok'}#f0fdf4{elseif $cStatus === 'error'}#fff5f5{else}#fffbf0{/if};">
@@ -119,6 +123,7 @@
   </div>
 
   {* Anomalies métriques *}
+  <div id="neria-wd-anomalies">
   {if isset($anomaly_warnings) && !empty($anomaly_warnings)}
   <div style="background:#fffbf0;border:1px solid #fcd34d;border-radius:6px;padding:14px 18px;margin-top:4px;">
     <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:10px;">
@@ -134,6 +139,7 @@
     {/foreach}
   </div>
   {/if}
+  </div>{* /neria-wd-anomalies *}
 
 </div>
 {/if}

@@ -1221,6 +1221,21 @@ class Neria extends Module
             $this->outputEmailPreview();
         }
 
+        // ── AJAX : rafraîchissement Watchdog ─────────────────────────
+        if (Tools::getValue('neria_action') === 'watchdog_refresh') {
+            header('Content-Type: application/json; charset=utf-8');
+            try {
+                $wh = (new WatchdogManager($this))->getWatchdogHealthScore();
+                $wh['anomalies'] = class_exists('StatsManager')
+                    ? (new StatsManager($this))->detectAnomalies()
+                    : [];
+                echo json_encode($wh);
+            } catch (\Exception $e) {
+                echo json_encode(['error' => $e->getMessage()]);
+            }
+            exit;
+        }
+
         // ── Actions AJAX pures — doivent sortir avant le rendu PS ──────
         $earlyAction = Tools::getValue('neria_action');
 

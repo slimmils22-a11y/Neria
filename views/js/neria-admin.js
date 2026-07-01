@@ -29,6 +29,7 @@
         initFileInputs();
         initActionAnchor();
         initAlertAutoDismiss();
+        initWatchdogAnalyze();
     });
 
     // ── Champ fichier personnalisé (affiche le nom choisi) ───────
@@ -643,6 +644,162 @@
         });
     }
 
+
+    // ── Bouton Analyser Watchdog ──────────────────────────────────
+    function initWatchdogAnalyze() {
+        var btn   = document.getElementById('neria-watchdog-analyze-btn');
+        if (!btn) return;
+
+        var icon  = document.getElementById('neria-watchdog-analyze-icon');
+        var label = document.getElementById('neria-watchdog-analyze-label');
+
+        btn.addEventListener('click', function () {
+            btn.disabled = true;
+            if (icon)  icon.style.animation  = 'neria-spin 1s linear infinite';
+            if (label) label.textContent      = 'Analyse en cours…';
+
+            // URL AJAX : page courante + action
+            var base = window.location.href.replace(/&neria_action=[^&]*/g, '');
+            var url  = base + '&neria_action=watchdog_refresh';
+
+            fetch(url, { credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (d) { applyWatchdogData(d); })
+                .catch(function () { /* silencieux : rechargement au prochain accès */ })
+                .finally(function () {
+                    btn.disabled = false;
+                    if (icon)  { icon.style.animation = ''; icon.textContent = '🔄'; }
+                    if (label) label.textContent = 'Analyser maintenant';
+                });
+        });
+    }
+
+    function applyWatchdogData(d) {
+        var CIRC = 251.2;
+        var score = d.score || 0;
+        var color = d.color || '#16a34a';
+
+        // Cercle SVG
+        var circle = document.getElementById('neria-wd-circle-bar');
+        if (circle) {
+            circle.setAttribute('stroke', color);
+            circle.setAttribute('stroke-dashoffset', (CIRC - CIRC * score / 100).toFixed(1));
+        }
+        var scoreNum = document.getElementById('neria-wd-score-num');
+        if (scoreNum) {
+            scoreNum.textContent = score;
+            scoreNum.style.fill  = color;
+        }
+        var scoreLbl = document.getElementById('neria-wd-score-label');
+        if (scoreLbl) {
+            scoreLbl.textContent = d.label || '—';
+            scoreLbl.style.color = color;
+        }
+
+        // Problèmes détectés
+        var issuesWrap = document.getElementById('neria-wd-issues-wrap');
+        if (issuesWrap) {
+            if (!d.issues || d.issues.length === 0) {
+                issuesWrap.innerHTML =
+                    '<div style="color:#16a34a;font-size:13px;font-weight:600;">✓ Aucun problème détecté</div>' +
+                    '<div style="color:#888;font-size:12px;margin-top:4px;">Tous les systèmes fonctionnent normalement.</div>';
+            } else {
+                var items = d.issues.map(function (i) {
+                    return '<li>' + escHtml(i) + '</li>';
+                }).join('');
+                issuesWrap.innerHTML =
+                    '<div style="font-size:12px;font-weight:700;color:#7a5800;margin-bottom:8px;">Problèmes détectés :</div>' +
+                    '<ul style="margin:0;padding-left:16px;font-size:12px;color:#5c3d1e;line-height:1.8;">' + items + '</ul>';
+            }
+        }
+
+        // Grille crons + queue + erreurs 24h
+        var cronsGrid = document.getElementById('neria-wd-crons-grid');
+        if (cronsGrid && d.crons) {
+            var html = '';
+            Object.keys(d.crons).forEach(function (k) {
+                var c = d.crons[k];
+                var st = c.status || 'late';
+                var bdr  = st === 'ok' ? '#bbf7d0' : (st === 'error' ? '#fecaca' : '#fed7aa');
+                var bg   = st === 'ok' ? '#f0fdf4' : (st === 'error' ? '#fff5f5' : '#fffbf0');
+                var fc   = st === 'ok' ? '#16a34a' : (st === 'error' ? '#dc2626' : '#d97706');
+                var icon = st === 'ok' ? '✓' : (st === 'error' ? '✕' : '⚠');
+                var sub  = c.last_run
+                    ? ('Il y a ' + (c.age_minutes < 60 ? c.age_minutes + ' min' : Math.floor(c.age_minutes / 60) + 'h') +
+                       ' (' + c.last_count + ' traité' + (c.last_count > 1 ? 's' : '') + ')')
+                    : 'Jamais exécuté';
+                var subColor = c.last_run ? '#888' : '#d97706';
+                html += '<div style="padding:12px 14px;border-radius:6px;border:1px solid ' + bdr + ';background:' + bg + ';">' +
+                    '<div style="font-size:11px;font-weight:700;color:' + fc + ';margin-bottom:4px;">' + icon + ' ' + escHtml(c.label || k) + '</div>' +
+                    '<div style="font-size:11px;color:' + subColor + ';">' + sub + '</div></div>';
+            });
+
+            // Queue
+            if (d.queue) {
+                var q = d.queue;
+                var qst  = q.status || 'ok';
+                var qbdr = qst === 'ok' ? '#bbf7d0' : '#fed7aa';
+                var qbg  = qst === 'ok' ? '#f0fdf4' : '#fffbf0';
+                var qfc  = qst === 'ok' ? '#16a34a' : '#d97706';
+                var qSub = '';
+                if (q.exists) {
+                    if (q.stuck > 0)  qSub += '<div style="font-size:11px;color:#d97706;">' + q.stuck + ' bloqué' + (q.stuck > 1 ? 's' : '') + ' (&gt;2h)</div>';
+                    if (q.failed > 0) qSub += '<div style="font-size:11px;color:#dc2626;">' + q.failed + ' en échec</div>';
+                    if (!q.stuck && !q.failed) qSub = '<div style="font-size:11px;color:#888;">' + q.total_pending + ' en attente — OK</div>';
+                } else {
+                    qSub = '<div style="font-size:11px;color:#888;">Queue non activée</div>';
+                }
+                html += '<div style="padding:12px 14px;border-radius:6px;border:1px solid ' + qbdr + ';background:' + qbg + ';">' +
+                    '<div style="font-size:11px;font-weight:700;color:' + qfc + ';margin-bottom:4px;">' + (qst === 'ok' ? '✓' : '⚠') + ' File d\'attente</div>' + qSub + '</div>';
+            }
+
+            // Erreurs 24h
+            if (d.rc_24h) {
+                var err   = d.rc_24h.error    || 0;
+                var crit  = d.rc_24h.critical  || 0;
+                var warn  = d.rc_24h.warning   || 0;
+                var hasErr = err > 0 || crit > 0;
+                var eBdr  = hasErr ? '#fecaca' : '#bbf7d0';
+                var eBg   = hasErr ? '#fff5f5' : '#f0fdf4';
+                var eFc   = hasErr ? '#dc2626' : '#16a34a';
+                var eSub  = '';
+                if (!err && !crit && !warn) {
+                    eSub = '<div style="font-size:11px;color:#888;">Aucune anomalie</div>';
+                } else {
+                    if (crit) eSub += '<div style="font-size:11px;color:#dc2626;">' + crit + ' critique' + (crit > 1 ? 's' : '') + '</div>';
+                    if (err)  eSub += '<div style="font-size:11px;color:#a32d2d;">' + err  + ' erreur'   + (err  > 1 ? 's' : '') + '</div>';
+                    if (warn) eSub += '<div style="font-size:11px;color:#d97706;">' + warn + ' warning'  + (warn > 1 ? 's' : '') + '</div>';
+                }
+                html += '<div style="padding:12px 14px;border-radius:6px;border:1px solid ' + eBdr + ';background:' + eBg + ';">' +
+                    '<div style="font-size:11px;font-weight:700;color:' + eFc + ';margin-bottom:4px;">' + (hasErr ? '✕' : '✓') + ' Erreurs (24h)</div>' + eSub + '</div>';
+            }
+            cronsGrid.innerHTML = html;
+        }
+
+        // Anomalies métriques
+        var anom = document.getElementById('neria-wd-anomalies');
+        if (anom) {
+            if (!d.anomalies || d.anomalies.length === 0) {
+                anom.innerHTML = '';
+            } else {
+                var rows = d.anomalies.map(function (a) {
+                    var parts = [];
+                    if (a.open_drop  >= 20) parts.push('Ouv. : -' + a.open_drop  + '%');
+                    if (a.click_drop >= 20) parts.push('Clics : -' + a.click_drop + '%');
+                    return '<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #fde68a;font-size:12px;">' +
+                        '<strong>' + escHtml(a.template) + '</strong> — ' + parts.join(' · ') + '</div>';
+                }).join('');
+                anom.innerHTML =
+                    '<div style="background:#fffbf0;border:1px solid #fcd34d;border-radius:6px;padding:14px 18px;margin-top:4px;">' +
+                    '<div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:10px;">⚠ Anomalies détectées sur ' + d.anomalies.length + ' template' + (d.anomalies.length > 1 ? 's' : '') + '</div>' +
+                    rows + '</div>';
+            }
+        }
+    }
+
+    function escHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
 
     // ── Boutons flottants haut / bas ─────────────────────────────
     (function () {
