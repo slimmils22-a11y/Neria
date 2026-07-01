@@ -16,6 +16,7 @@
       <span id="neria-watchdog-analyze-label">Analyser maintenant</span>
     </button>
   </h2>
+  <div id="neria-wd-timestamp" style="font-size:11px;color:#aaa;text-align:right;margin-top:-8px;margin-bottom:8px;"></div>
 
   {* Score principal *}
   <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-bottom:24px;">

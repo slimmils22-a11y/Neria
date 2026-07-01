@@ -665,7 +665,7 @@
             fetch(url, { credentials: 'same-origin' })
                 .then(function (r) { return r.json(); })
                 .then(function (d) { applyWatchdogData(d); })
-                .catch(function () { /* silencieux : rechargement au prochain accès */ })
+                .catch(function () { /* silencieux */ })
                 .finally(function () {
                     btn.disabled = false;
                     if (icon)  { icon.style.animation = ''; icon.textContent = '🔄'; }
@@ -675,7 +675,7 @@
     }
 
     function applyWatchdogData(d) {
-        var CIRC = 251.2;
+var CIRC = 251.2;
         var score = d.score || 0;
         var color = d.color || '#16a34a';
 
@@ -774,6 +774,13 @@
                     '<div style="font-size:11px;font-weight:700;color:' + eFc + ';margin-bottom:4px;">' + (hasErr ? '✕' : '✓') + ' Erreurs (24h)</div>' + eSub + '</div>';
             }
             cronsGrid.innerHTML = html;
+        }
+
+        // Timestamp de dernière analyse
+        var ts = document.getElementById('neria-wd-timestamp');
+        if (ts) {
+            var now = new Date();
+            ts.textContent = 'Mis à jour à ' + now.toLocaleTimeString('fr-FR');
         }
 
         // Anomalies métriques
