@@ -384,7 +384,7 @@ class SearchConsoleManager
             \CURLOPT_POST           => true,
             \CURLOPT_POSTFIELDS     => http_build_query($data),
             \CURLOPT_TIMEOUT        => 10,
-            \CURLOPT_SSL_VERIFYPEER => false, // désactivé en dev (Laragon Windows)
+            \CURLOPT_SSL_VERIFYPEER => true,
         ]);
         $body = curl_exec($ch);
         if (!$body) {
