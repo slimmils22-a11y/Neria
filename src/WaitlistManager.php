@@ -59,7 +59,7 @@ class WaitlistManager
     public function notifyProduct(int $idProduct, int $idShop): int
     {
         $rows = $this->db->executeS(
-            "SELECT w.*, c.firstname, c.lastname, c.email, w.id_shop,
+            "SELECT w.*, c.firstname, c.lastname, c.email, c.id_lang, w.id_shop,
                     DATEDIFF(NOW(), w.registered_at) AS days_waited
              FROM `{$this->prefix}" . self::TABLE . "` w
              INNER JOIN `{$this->prefix}customer` c ON c.id_customer = w.id_customer
@@ -72,12 +72,9 @@ class WaitlistManager
         $sent = 0;
         foreach ($rows as $row) {
             $idCustomer = (int) $row['id_customer'];
-            $idLang     = (int) \Customer::getDefaultGroupId($idCustomer) > 0
-                ? (int) $this->db->getValue(
-                    "SELECT id_lang FROM `{$this->prefix}customer`
-                     WHERE id_customer = {$idCustomer}"
-                  )
-                : (int) \Configuration::get('PS_LANG_DEFAULT');
+            // Langue du client (déjà récupérée par la jointure ci-dessus) —
+            // repli sur la langue par défaut de la boutique si absente/corrompue.
+            $idLang     = (int) $row['id_lang'] ?: (int) \Configuration::get('PS_LANG_DEFAULT');
 
             $product = new \Product($idProduct, false, $idLang);
             if (!\Validate::isLoadedObject($product)) continue;

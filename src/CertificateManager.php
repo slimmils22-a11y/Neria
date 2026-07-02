@@ -98,7 +98,7 @@ class CertificateManager
         $pdfPath    = $pdfResult['path'];
 
         // ── Sauvegarde en DB ──────────────────────────────────────
-        $this->db->insert(self::TABLE, [
+        $inserted = $this->db->insert(self::TABLE, [
             'id_shop'         => $this->idShop,
             'id_order'        => $idOrder,
             'id_product'      => $idProduct,
@@ -108,10 +108,16 @@ class CertificateManager
             'product_name'    => pSQL($productName),
             'artisan_note'    => pSQL($artisanNote),
             'pdf_path'        => pSQL($pdfPath),
-            'emailed'         => $sendEmail ? 0 : 0,
+            'emailed'         => 0,
             'date_issued'     => date('Y-m-d H:i:s'),
             'date_add'        => date('Y-m-d H:i:s'),
         ]);
+
+        if (!$inserted) {
+            // Doublon de clé unique sur serial_number (émissions quasi simultanées)
+            // ou autre échec DB — on ne continue jamais avec un id_certificate invalide.
+            return 'Échec de l\'enregistrement du certificat en base (numéro de série peut-être déjà pris).';
+        }
 
         $idCertificate = (int) $this->db->Insert_ID();
 

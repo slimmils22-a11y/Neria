@@ -253,10 +253,23 @@ class LoyaltyManager
         if ($json) {
             $tiers = json_decode($json, true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($tiers)) {
-                return $tiers;
+                return $this->sortTiersByPoints($tiers);
             }
         }
         return self::DEFAULT_TIERS;
+    }
+
+    /**
+     * checkAndReward() (ordre d'envoi des récompenses) et getCustomerTier()
+     * (palier actuel = dernier match) supposent tous deux un tableau trié par
+     * points croissants — le marchand peut réordonner/ajouter des paliers
+     * dans le BO sans garantie d'ordre dans le JSON stocké. On trie ici une
+     * bonne fois pour toutes, au point d'entrée commun aux deux méthodes.
+     */
+    private function sortTiersByPoints(array $tiers): array
+    {
+        usort($tiers, fn ($a, $b) => ($a['points'] ?? 0) <=> ($b['points'] ?? 0));
+        return $tiers;
     }
 
     public function saveTiers(array $tiers): void
@@ -397,8 +410,12 @@ class LoyaltyManager
      */
     public function sendMonthlyRecaps(): int
     {
-        $lastSent = (int) \Configuration::get(self::CONFIG_RECAP_LAST_SENT);
-        if ($lastSent > 0 && (time() - $lastSent) < 28 * 86400) {
+        // Comparaison par mois calendaire (comme MonthlyReportManager::isDue())
+        // plutôt qu'une fenêtre glissante de 28 jours, qui dérive avec le temps
+        // et peut finir par envoyer le récap 13 fois par an au lieu de 12.
+        $lastSent = (string) \Configuration::get(self::CONFIG_RECAP_LAST_SENT);
+        $thisMonth = date('Y-m');
+        if ($lastSent === $thisMonth) {
             return 0; // Déjà envoyé ce mois-ci
         }
 
@@ -425,7 +442,7 @@ class LoyaltyManager
             }
         }
 
-        \Configuration::updateValue(self::CONFIG_RECAP_LAST_SENT, time());
+        \Configuration::updateValue(self::CONFIG_RECAP_LAST_SENT, $thisMonth);
 
         return $sent;
     }

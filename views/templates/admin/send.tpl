@@ -192,7 +192,8 @@
 <div style="margin-top:24px; padding:18px 22px; background:#f9f6f1; border:1px solid #e8d5b0; border-radius:6px;">
   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
     <span style="font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#4a3f35; opacity:.75;">
-      ⏳ Envois planifiés en attente ({$send_queue_pending|@count})
+      ⏳ Envois planifiés en attente
+      ({if isset($send_queue_pending_total) && $send_queue_pending_total > $send_queue_pending|@count}{$send_queue_pending|@count} affiché(s) sur {$send_queue_pending_total}{else}{$send_queue_pending|@count}{/if})
     </span>
     <button type="button" id="neria-process-queue-btn" class="neria-btn neria-btn--primary" style="font-size:11px; padding:6px 14px;">
       ▶ Envoyer les emails en retard

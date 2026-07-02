@@ -179,6 +179,19 @@ class QueueManager
         return is_array($rows) ? $rows : [];
     }
 
+    /**
+     * Compte total des envois manuels en attente (au-delà des 20 affichés
+     * par getPendingManual()) — permet au BO d'indiquer "20 affichés sur X"
+     * plutôt que de tronquer silencieusement la liste au-delà de 20.
+     */
+    public function countPendingManual(): int
+    {
+        return (int) $this->db->getValue(
+            'SELECT COUNT(*) FROM `' . $this->prefix . 'neria_queue`
+             WHERE `ref_id` = 0 AND `status` = \'pending\''
+        );
+    }
+
     public function processQueue(): int
     {
         $rows = $this->db->executeS(

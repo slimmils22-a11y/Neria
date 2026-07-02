@@ -1323,11 +1323,45 @@ class StatsManager
         }
 
         $data['labels'] = [
-            'current'  => strftime('%B %Y') ?: date('m/Y'),
-            'previous' => strftime('%B %Y', strtotime('last month')) ?: date('m/Y', strtotime('last month')),
+            'current'  => $this->formatMonthLabel(new \DateTime('first day of this month')),
+            'previous' => $this->formatMonthLabel(new \DateTime('first day of last month')),
         ];
 
         return $data;
+    }
+
+    /**
+     * Formate un mois/année localisé pour l'affichage BO ("juillet 2026").
+     * N'utilise plus strftime() — dépréciée en PHP 8.1, supprimée en PHP 9,
+     * incompatible avec la cible de compatibilité du module (PS8 → PS9).
+     * Utilise IntlDateFormatter (langue de l'employé connecté) si disponible,
+     * sinon un repli numérique stable quel que soit l'environnement serveur.
+     */
+    private function formatMonthLabel(\DateTime $date): string
+    {
+        if (class_exists('\IntlDateFormatter')) {
+            $isoLang = \Context::getContext()->employee->id
+                ? (\Language::getIsoById((int) \Context::getContext()->employee->id_lang) ?: 'fr')
+                : 'fr';
+            try {
+                $fmt = new \IntlDateFormatter(
+                    $isoLang,
+                    \IntlDateFormatter::LONG,
+                    \IntlDateFormatter::NONE,
+                    null,
+                    null,
+                    'MMMM yyyy'
+                );
+                $label = $fmt->format($date);
+                if (is_string($label) && $label !== '') {
+                    return $label;
+                }
+            } catch (\Throwable $e) {
+                // repli silencieux
+            }
+        }
+
+        return $date->format('m/Y');
     }
 
     /**
@@ -1437,16 +1471,20 @@ class StatsManager
             return null;
         }
 
+        // COUNT(*) événement (pas COUNT(DISTINCT id_customer)) pour rester
+        // comparable au taux affiché partout ailleurs dans ce fichier
+        // (getGlobalReport, getKpis...) — et exclusion des pré-chargements
+        // Apple Mail Privacy Protection (is_mpp), comme ces mêmes méthodes.
         $opens = (int) $this->db->getValue(sprintf(
-            "SELECT COUNT(DISTINCT `id_customer`) FROM `{$t}`
-             WHERE `template` = '%s' AND `event_type` = 'open'
+            "SELECT COUNT(*) FROM `{$t}`
+             WHERE `template` = '%s' AND `event_type` = 'open' AND `is_mpp` = 0
                AND `date_add` > DATE_SUB(NOW(), INTERVAL %d DAY)
                AND `date_add` <= DATE_SUB(NOW(), INTERVAL %d DAY)",
             pSQL($template), $daysBack, $daysOffset
         ));
 
         $clicks = (int) $this->db->getValue(sprintf(
-            "SELECT COUNT(DISTINCT `id_customer`) FROM `{$t}`
+            "SELECT COUNT(*) FROM `{$t}`
              WHERE `template` = '%s' AND `event_type` = 'click'
                AND `date_add` > DATE_SUB(NOW(), INTERVAL %d DAY)
                AND `date_add` <= DATE_SUB(NOW(), INTERVAL %d DAY)",

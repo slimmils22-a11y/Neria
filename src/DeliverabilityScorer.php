@@ -455,8 +455,13 @@ class DeliverabilityScorer
 
         // ── Critère 3 : ratio texte/HTML (−20 max) ───────────────
         // Texte VISIBLE (sans CSS/JS) rapporté au poids HTML total.
+        // strlen() (octets) des deux côtés — pas mb_strlen() pour le texte :
+        // mélanger caractères (numérateur) et octets (dénominateur) fausse le
+        // ratio pour les langues non-latines (japonais, arabe, chinois, coréen,
+        // russe — 6 des 18 langues du module), où chaque caractère visible
+        // pèse 2-3 octets UTF-8 alors que le balisage HTML reste en ASCII.
         $visible = $this->visibleText($htmlContent);
-        $textLen = mb_strlen(trim($visible));
+        $textLen = strlen(trim($visible));
         $htmlLen = strlen($htmlContent);
         $ratio       = $htmlLen > 0 ? round(($textLen / $htmlLen) * 100, 1) : 0;
 
@@ -711,8 +716,12 @@ class DeliverabilityScorer
 
     private function getDnsStatus(string $domain): array
     {
-        if (self::$dnsCache !== null) {
-            return self::$dnsCache;
+        // Clé par domaine — un cache non clé renvoyait silencieusement les
+        // résultats SPF/DKIM/DMARC du PREMIER domaine analysé pour tout appel
+        // suivant sur un domaine différent (scénario multi-expéditeur par
+        // langue avec des domaines d'envoi distincts).
+        if (self::$dnsCache !== null && isset(self::$dnsCache[$domain])) {
+            return self::$dnsCache[$domain];
         }
 
         $result = ['spf' => false, 'dmarc' => false, 'dkim' => false];
@@ -760,7 +769,8 @@ class DeliverabilityScorer
             // DNS indisponible — on laisse les valeurs par défaut (false)
         }
 
-        self::$dnsCache = $result;
+        self::$dnsCache ??= [];
+        self::$dnsCache[$domain] = $result;
         return $result;
     }
 

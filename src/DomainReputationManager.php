@@ -416,9 +416,15 @@ class DomainReputationManager
             };
         }
 
-        // PTR / rDNS — 5 pts
-        if (!empty($ptr['found']) || !empty($ptr['skipped'])) {
+        // PTR / rDNS — 5 pts. checkPtr() calcule aussi une vérification FCrDNS
+        // (le hostname du PTR doit re-résoudre vers la même IP — c'est ce que
+        // vérifient réellement les gros fournisseurs de messagerie) : un PTR
+        // présent mais mal configuré (FCrDNS invalide) ne doit pas obtenir les
+        // points pleins comme s'il était parfaitement valide.
+        if (!empty($ptr['skipped']) || !empty($ptr['valid'])) {
             $score += 5;
+        } elseif (!empty($ptr['found'])) {
+            $score += 2;
         }
 
         // Blacklists — 25 pts max

@@ -196,16 +196,22 @@ class ClvManager
      */
     public function getTopCustomers(int $limit = 20): array
     {
-        // Récupère tous les clients ayant passé au moins une commande
+        // Récupère les clients ayant passé au moins une commande, en pré-triant
+        // par CA total décroissant (proxy du CLV) pour que le pool des 200
+        // candidats contienne bien les clients les plus probables du Top,
+        // plutôt qu'un sous-ensemble arbitraire des plus anciens id_customer
+        // (bug précédent : un client à forte valeur mais inscrit récemment
+        // pouvait être exclu du Top 20 sur une boutique de > 200 clients).
         $customers = $this->db->executeS(
-            'SELECT DISTINCT o.`id_customer`,
+            'SELECT o.`id_customer`,
                     CONCAT(c.`firstname`, " ", c.`lastname`) AS customer_name,
                     c.`email`
              FROM `' . _DB_PREFIX_ . 'orders` o
              INNER JOIN `' . _DB_PREFIX_ . 'customer` c ON c.`id_customer` = o.`id_customer`
              WHERE o.`id_shop` = ' . $this->idShop . ' AND o.`valid` = 1
                AND c.`deleted` = 0
-             ORDER BY o.`id_customer` ASC
+             GROUP BY o.`id_customer`, c.`firstname`, c.`lastname`, c.`email`
+             ORDER BY SUM(o.`total_paid_tax_incl`) DESC
              LIMIT 200'
         ) ?: [];
 

@@ -350,12 +350,15 @@ class SignatureGenerator
             $titleX    = (int) (($width - $textWidth) / 2);
             $titleY    = $y + 28;
 
-            // Couleur du titre : meme teinte mais plus claire (alpha)
+            // Couleur du titre : meme teinte mais plus claire (alpha) — dérivée
+            // du VRAI index couleur $color (imagecolorsforindex), pas du pixel
+            // (0,0) qui est transparent et ne reflète jamais la teinte réelle.
+            $rgb = imagecolorsforindex($image, $color);
             $titleColor = imagecolorallocatealpha(
                 $image,
-                imagecolorat($image, 0, 0) >> 16 & 0xFF,
-                imagecolorat($image, 0, 0) >> 8  & 0xFF,
-                imagecolorat($image, 0, 0)        & 0xFF,
+                $rgb['red'],
+                $rgb['green'],
+                $rgb['blue'],
                 40
             );
 
@@ -365,7 +368,7 @@ class SignatureGenerator
                 0,
                 $titleX,
                 $titleY,
-                $color,
+                $titleColor,
                 $titleFontPath,
                 $title
             );

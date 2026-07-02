@@ -220,8 +220,12 @@ class UpsellManager
         $inProducts = $this->intList($productIds);
         $notIn      = $this->notInClause('p.id_product', $excluded);
 
+        // GROUP BY + ORDER BY déterministe : un produit peut avoir plusieurs
+        // catégories (JOIN category_product) — sans ces clauses, le résultat
+        // dépend de l'ordre physique des lignes en base et peut changer d'un
+        // appel à l'autre pour un même client/commande sans raison fonctionnelle.
         return $this->db->getRow(
-            "SELECT p.id_product, pl.name, cp.id_category
+            "SELECT p.id_product, MIN(pl.name) AS name, MIN(cp.id_category) AS id_category
              FROM `{$this->prefix}accessory` a
              JOIN `{$this->prefix}product` p
                   ON a.id_product_2 = p.id_product AND p.active = 1
@@ -231,7 +235,9 @@ class UpsellManager
                   ON sa.id_product = p.id_product AND sa.id_product_attribute = 0 AND sa.quantity > 0
              JOIN `{$this->prefix}category_product` cp ON p.id_product = cp.id_product
              WHERE a.id_product_1 IN ({$inProducts})
-               {$notIn}"
+               {$notIn}
+             GROUP BY p.id_product
+             ORDER BY p.id_product ASC"
         ) ?: null;
     }
 
@@ -460,9 +466,13 @@ class UpsellManager
 
         $count = 0;
         foreach ($rows as $row) {
+            // SUM() + GROUP BY : le produit upsell peut apparaître sur plusieurs
+            // lignes order_detail de la même commande (attributs différents,
+            // quantités multiples) — prendre une seule ligne sous-évaluait le
+            // revenu réellement attribué à l'upsell.
             $match = $this->db->getRow(
                 "SELECT o.id_order,
-                        od.unit_price_tax_incl * od.product_quantity AS revenue
+                        SUM(od.unit_price_tax_incl * od.product_quantity) AS revenue
                  FROM `{$this->prefix}orders` o
                  JOIN `{$this->prefix}order_detail` od
                       ON od.id_order = o.id_order
@@ -471,6 +481,7 @@ class UpsellManager
                    AND o.date_add   >  '" . pSQL($row['clicked_at']) . "'
                    AND o.date_add   <= DATE_ADD('" . pSQL($row['clicked_at']) . "', INTERVAL 7 DAY)
                    AND o.valid = 1
+                 GROUP BY o.id_order
                  ORDER BY o.date_add ASC"
             );
 

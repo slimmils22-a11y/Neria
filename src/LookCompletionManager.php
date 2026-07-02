@@ -164,18 +164,33 @@ class LookCompletionManager
 
     // ── Helpers privés ───────────────────────────────────────────────────
 
+    /**
+     * Catégories des produits de la commande, triées par valeur totale
+     * décroissante (quantité × prix) — la catégorie du produit ayant le plus
+     * de poids dans la commande passe en premier, pour que findMatchingRule()
+     * priorise une règle pertinente plutôt qu'un ordre de création arbitraire.
+     */
     private function getOrderCategoryIds(int $idOrder): array
     {
         $rows = $this->db->executeS("
-            SELECT DISTINCT p.id_category_default
+            SELECT p.id_category_default,
+                   SUM(od.unit_price_tax_incl * od.product_quantity) AS category_value
             FROM `{$this->prefix}order_detail` od
             INNER JOIN `{$this->prefix}product` p ON p.id_product = od.product_id
             WHERE od.id_order = {$idOrder}
+            GROUP BY p.id_category_default
+            ORDER BY category_value DESC
         ");
         if (!is_array($rows)) return [];
         return array_column($rows, 'id_category_default');
     }
 
+    /**
+     * $categoryIds doit être trié par pertinence décroissante (cf.
+     * getOrderCategoryIds ci-dessus). Priorité : catégorie la plus pertinente
+     * d'abord (FIELD()), puis règle la plus ancienne en cas d'égalité au sein
+     * d'une même catégorie.
+     */
     private function findMatchingRule(array $categoryIds): ?array
     {
         $inList = implode(',', array_map('intval', $categoryIds));
@@ -186,7 +201,7 @@ class LookCompletionManager
                ON cl.id_category = r.id_category
               AND cl.id_lang = " . (int) \Configuration::get('PS_LANG_DEFAULT') . "
             WHERE r.active = 1 AND r.id_category IN ({$inList})
-            ORDER BY r.id_neria_look_rule ASC
+            ORDER BY FIELD(r.id_category, {$inList}) ASC, r.id_neria_look_rule ASC
         ");
         return $row ?: null;
     }

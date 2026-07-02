@@ -69,7 +69,15 @@ class OrderTriggersManager
             return;
         }
 
-        $count  = (int) \Order::getCustomerNbOrders($idCustomer);
+        // \Order::getCustomerNbOrders() compte TOUTES les commandes (y compris
+        // en attente de paiement, refusées ou annulées) — on ne veut compter que
+        // les commandes valides pour les paliers milestone/fidélité, sinon un
+        // client peut décrocher un palier (et sa récompense) sur des commandes
+        // jamais réellement honorées.
+        $count  = (int) \Db::getInstance()->getValue(
+            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'orders`
+             WHERE `id_customer` = ' . $idCustomer . ' AND `valid` = 1'
+        );
         $idLang = (int) $customer->id_lang ?: (int) \Configuration::get('PS_LANG_DEFAULT');
         $idShop = (int) $order->id_shop;
         $toName = trim($customer->firstname . ' ' . $customer->lastname) ?: null;

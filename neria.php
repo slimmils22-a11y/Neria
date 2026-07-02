@@ -4105,6 +4105,9 @@ class Neria extends Module
             'send_queue_pending' => class_exists('QueueManager')
                 ? (new QueueManager($this))->getPendingManual()
                 : [],
+            'send_queue_pending_total' => class_exists('QueueManager')
+                ? (new QueueManager($this))->countPendingManual()
+                : 0,
 
             // Variables pour abtest.tpl
             'eligible_templates' => (new ABTestManager($this))->getEligibleTemplates(),

@@ -260,9 +260,16 @@ class MonthlyReportManager
     {
         $t = _DB_PREFIX_ . StatsManager::TABLE;
 
-        $days = $this->db->executeS(
+        // Groupé sur le COUPLE (jour, heure), pas sur chaque dimension
+        // séparément : le rapport affiche "meilleur moment : {jour} à {heure}"
+        // comme une combinaison mesurée conjointement — un calcul indépendant
+        // par dimension pouvait recommander une combinaison qui n'existe même
+        // pas dans les données réelles (ex: mardi meilleur jour toutes heures
+        // confondues, mais 14h jamais un bon moment le mardi spécifiquement).
+        $combos = $this->db->executeS(
             "SELECT
                 DAYOFWEEK(s.date_add) AS dow,
+                HOUR(s.date_add)      AS hour_of_day,
                 COUNT(*) AS total_sent,
                 SUM(CASE WHEN o.id_stat IS NOT NULL THEN 1 ELSE 0 END) AS total_open
              FROM `{$t}` s
@@ -273,34 +280,15 @@ class MonthlyReportManager
                AND s.event_type = 'sent'
                AND s.date_add >= '{$dateFrom}'
                AND s.date_add <= '{$dateTo} 23:59:59'
-             GROUP BY DAYOFWEEK(s.date_add)
-             HAVING total_sent >= 3
-             ORDER BY (total_open / total_sent) DESC
-             LIMIT 1"
-        ) ?: [];
-
-        $hours = $this->db->executeS(
-            "SELECT
-                HOUR(s.date_add) AS hour_of_day,
-                COUNT(*) AS total_sent,
-                SUM(CASE WHEN o.id_stat IS NOT NULL THEN 1 ELSE 0 END) AS total_open
-             FROM `{$t}` s
-             LEFT JOIN `{$t}` o
-                ON o.tracking_token = s.tracking_token
-               AND o.event_type = 'open'
-             WHERE s.id_shop = {$this->idShop}
-               AND s.event_type = 'sent'
-               AND s.date_add >= '{$dateFrom}'
-               AND s.date_add <= '{$dateTo} 23:59:59'
-             GROUP BY HOUR(s.date_add)
+             GROUP BY DAYOFWEEK(s.date_add), HOUR(s.date_add)
              HAVING total_sent >= 3
              ORDER BY (total_open / total_sent) DESC
              LIMIT 1"
         ) ?: [];
 
         return [
-            'best_day'  => isset($days[0])  ? (int) $days[0]['dow']          : null,
-            'best_hour' => isset($hours[0]) ? (int) $hours[0]['hour_of_day'] : null,
+            'best_day'  => isset($combos[0]) ? (int) $combos[0]['dow']        : null,
+            'best_hour' => isset($combos[0]) ? (int) $combos[0]['hour_of_day'] : null,
         ];
     }
 
@@ -375,7 +363,11 @@ class MonthlyReportManager
             $direct[$row['template']] = (float) $row['revenue'];
         }
 
-        // Revenus attribués : commandes passées dans les 7 jours après un clic
+        // Revenus attribués : commandes passées dans les 7 jours après un clic —
+        // exclut les commandes déjà comptées en "direct" ci-dessus (lien
+        // transactionnel explicite via id_order), sinon un client qui clique
+        // sur "suivre ma commande" dans l'email de confirmation lui-même fait
+        // compter deux fois le même montant (direct + attribué).
         $attributed = [];
         $rows2 = $this->db->executeS(
             "SELECT s.template, SUM(o.total_paid_tax_incl) AS revenue
@@ -389,6 +381,12 @@ class MonthlyReportManager
                AND s.event_type = 'click'
                AND s.date_add >= '{$dateFrom}'
                AND s.date_add <= '{$dateTo} 23:59:59'
+               AND NOT EXISTS (
+                   SELECT 1 FROM `{$st}` s2
+                   WHERE s2.id_order   = o.id_order
+                     AND s2.event_type = 'sent'
+                     AND s2.id_order   > 0
+               )
              GROUP BY s.template"
         ) ?: [];
         foreach ($rows2 as $row) {
@@ -523,49 +521,29 @@ class MonthlyReportManager
             return false;
         }
 
-        $lang     = class_exists('AdminTranslator') ? AdminTranslator::currentLang() : 'fr';
         $shopName = (string) \Configuration::get('PS_SHOP_NAME');
-        $subject  = $this->t('report.email_subject', [
-            'month' => $data['month_label'],
-            'shop'  => $shopName,
-        ]);
+        $mailDir     = _PS_MODULE_DIR_ . 'neria/mails/';
+        $wd          = class_exists('WatchdogManager') ? new \WatchdogManager($this->module) : null;
+        $defaultLang = (int) \Configuration::get('PS_LANG_DEFAULT');
 
-        $htmlFull = $this->renderHtml($data, $lang);
-        $txtFull  = $this->renderTxt($data, $lang);
-
-        // Write the pre-built email directly to mails/{iso}/ so PS Mail::Send
-        // can find it without needing EmailRenderer or Smarty compilation.
-        $langId  = (int) \Configuration::get('PS_LANG_DEFAULT');
-        $langIso = \Language::getIsoById($langId) ?: 'fr';
-        $mailDir = _PS_MODULE_DIR_ . 'neria/mails/';
-        $langDir = $mailDir . $langIso . '/';
-        $wd      = class_exists('WatchdogManager') ? new \WatchdogManager($this->module) : null;
-
-        if (!is_dir($langDir) && !mkdir($langDir, 0755, true)) {
-            if ($wd) {
-                $wd->error(
-                    \WatchdogManager::i18nMsg('watchdog.mkdir_error', ['lang' => $langIso]),
-                    '',
-                    'MonthlyReportManager'
-                );
-            }
-            return false;
+        // Résout la langue de chaque destinataire : si son email correspond à
+        // un employé BO (cas courant — le rapport part surtout à l'équipe),
+        // on utilise SA langue configurée plutôt que d'imposer la langue par
+        // défaut de la boutique à tout le monde.
+        $employeeLangs = [];
+        $empRows = $this->db->executeS(
+            'SELECT `email`, `id_lang` FROM `' . _DB_PREFIX_ . 'employee` WHERE `active` = 1'
+        ) ?: [];
+        foreach ($empRows as $row) {
+            $employeeLangs[mb_strtolower(trim((string) $row['email']))] = (int) $row['id_lang'];
         }
 
-        $htmlFile = $langDir . 'monthly_report.html';
-        $txtFile  = $langDir . 'monthly_report.txt';
-
-        if (file_put_contents($htmlFile, $htmlFull) === false) {
-            if ($wd) {
-                $wd->error(
-                    \WatchdogManager::i18nMsg('watchdog.report_write_error', ['lang' => $langIso]),
-                    '',
-                    'MonthlyReportManager'
-                );
-            }
-            return false;
-        }
-        file_put_contents($txtFile, $txtFull);
+        // Rendu + écriture disque une seule fois par langue réellement utilisée
+        // (pas une fois par destinataire) — évite le travail redondant si
+        // plusieurs destinataires partagent la même langue.
+        $renderedLangs = [];
+        $writtenFiles  = [];
+        $originalLang  = class_exists('AdminTranslator') ? \AdminTranslator::currentLang() : null;
 
         $ok        = true;
         $failEmail = '';
@@ -581,10 +559,61 @@ class MonthlyReportManager
                 continue;
             }
 
+            $recipientLangId = $employeeLangs[mb_strtolower(trim($email))] ?? $defaultLang;
+
+            if (!isset($renderedLangs[$recipientLangId])) {
+                $recipientIso = \Language::getIsoById($recipientLangId) ?: 'fr';
+                $langDir      = $mailDir . $recipientIso . '/';
+
+                // $t() (utilisé par renderHtml/renderTxt) traduit via l'état
+                // global d'AdminTranslator, pas via un paramètre de langue —
+                // on doit donc bien le faire pointer sur CETTE langue avant
+                // de générer le contenu, sinon tous les destinataires
+                // recevraient le même contenu quelle que soit leur langue.
+                if (class_exists('AdminTranslator')) {
+                    \AdminTranslator::setLang($recipientIso);
+                }
+
+                if (!is_dir($langDir) && !mkdir($langDir, 0755, true)) {
+                    if ($wd) {
+                        $wd->error(
+                            \WatchdogManager::i18nMsg('watchdog.mkdir_error', ['lang' => $recipientIso]),
+                            '',
+                            'MonthlyReportManager'
+                        );
+                    }
+                    continue;
+                }
+
+                $htmlFull = $this->renderHtml($data, $recipientIso);
+                $txtFull  = $this->renderTxt($data, $recipientIso);
+
+                if (file_put_contents($langDir . 'monthly_report.html', $htmlFull) === false) {
+                    if ($wd) {
+                        $wd->error(
+                            \WatchdogManager::i18nMsg('watchdog.report_write_error', ['lang' => $recipientIso]),
+                            '',
+                            'MonthlyReportManager'
+                        );
+                    }
+                    continue;
+                }
+                file_put_contents($langDir . 'monthly_report.txt', $txtFull);
+                $writtenFiles[] = $langDir . 'monthly_report.html';
+                $writtenFiles[] = $langDir . 'monthly_report.txt';
+
+                // Sujet localisé lui aussi (utilise le même état AdminTranslator
+                // qui vient d'être basculé sur $recipientIso ci-dessus).
+                $renderedLangs[$recipientLangId] = $this->t('report.email_subject', [
+                    'month' => $data['month_label'],
+                    'shop'  => $shopName,
+                ]);
+            }
+
             $sent = \Mail::Send(
-                $langId,
+                $recipientLangId,
                 'monthly_report',
-                $subject,
+                $renderedLangs[$recipientLangId],
                 [],
                 $email,
                 $shopName,
@@ -601,9 +630,17 @@ class MonthlyReportManager
             }
         }
 
-        // Clean up temporary compiled files
-        @unlink($htmlFile);
-        @unlink($txtFile);
+        // Nettoyage des fichiers temporaires compilés (une paire par langue
+        // réellement utilisée, cf. boucle ci-dessus).
+        foreach ($writtenFiles as $f) {
+            @unlink($f);
+        }
+
+        // Restaure la langue d'origine — setLang() modifie un état global,
+        // ne doit jamais fuiter sur le reste du rendu de la page BO courante.
+        if ($originalLang !== null && class_exists('AdminTranslator')) {
+            \AdminTranslator::setLang($originalLang);
+        }
 
         if ($wd) {
             if ($ok) {
