@@ -3779,7 +3779,7 @@ var _nhm = {$open_heatmap|default:'null'};
     </p>
   </div>
 
-  <form method="post" action="{$neria_ajax_url|escape:'html'}" style="margin-bottom:24px;">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin-bottom:24px;">
     <input type="hidden" name="neria_action" value="waitlist_reservation_save">
     <input type="hidden" name="neria_tab"    value="stats">
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">

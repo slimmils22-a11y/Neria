@@ -7,7 +7,7 @@
   <h2 class="neria-section-title">📜 {neria_admin key='cert.config_title'}</h2>
   <p class="neria-section-desc">{neria_admin key='cert.config_desc'}</p>
 
-  <form method="post" action="{$neria_action_url|escape:'html':'UTF-8'}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html':'UTF-8'}">
     <input type="hidden" name="neria_action" value="cert_save_config">
 
     {* Toggle activation *}
@@ -134,7 +134,7 @@
             </td>
             <td style="padding:10px 12px;text-align:right;">
               {* Télécharger *}
-              <form method="post" action="{$neria_action_url|escape:'html':'UTF-8'}" style="display:inline;">
+              <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html':'UTF-8'}" style="display:inline;">
                 <input type="hidden" name="neria_action" value="cert_download">
                 <input type="hidden" name="id_certificate" value="{$c.id_certificate|intval}">
                 <button type="submit"
@@ -144,7 +144,7 @@
                 </button>
               </form>
               {* Supprimer *}
-              <form method="post" action="{$neria_action_url|escape:'html':'UTF-8'}" style="display:inline;"
+              <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html':'UTF-8'}" style="display:inline;"
                     onsubmit="return confirm('{neria_admin key='cert.delete_confirm'}');">
                 <input type="hidden" name="neria_action" value="cert_delete">
                 <input type="hidden" name="id_certificate" value="{$c.id_certificate|intval}">

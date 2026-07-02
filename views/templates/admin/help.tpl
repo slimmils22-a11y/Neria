@@ -441,7 +441,7 @@
     {neria_admin key="help.alert_desc"}
   </p>
 
-  <form method="post" action="{$current_url|escape:'html'}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_alert_config">
 
     <div class="neria-field" style="margin-bottom:12px;">

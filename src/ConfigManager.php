@@ -822,14 +822,18 @@ class ConfigManager
     public function saveTypographyConfig(array $data): bool
     {
         $success  = true;
+        // Les clés POST correspondent aux scripts retournés par
+        // FontManager::getAllScripts() ('chinese_simplified'/'chinese_traditional',
+        // pas 'zh_simplified'/'zh_traditional') — typography.tpl construit
+        // name="font_{$script}" à partir de ces mêmes clés.
         $fontKeys = [
-            'font_latin'          => self::KEY_FONT_LATIN,
-            'font_arabic'         => self::KEY_FONT_ARABIC,
-            'font_japanese'       => self::KEY_FONT_JAPANESE,
-            'font_korean'         => self::KEY_FONT_KOREAN,
-            'font_zh_simplified'  => self::KEY_FONT_ZH_SIMPLIFIED,
-            'font_zh_traditional' => self::KEY_FONT_ZH_TRADITIONAL,
-            'font_cyrillic'       => self::KEY_FONT_CYRILLIC,
+            'font_latin'               => self::KEY_FONT_LATIN,
+            'font_arabic'              => self::KEY_FONT_ARABIC,
+            'font_japanese'            => self::KEY_FONT_JAPANESE,
+            'font_korean'              => self::KEY_FONT_KOREAN,
+            'font_chinese_simplified'  => self::KEY_FONT_ZH_SIMPLIFIED,
+            'font_chinese_traditional' => self::KEY_FONT_ZH_TRADITIONAL,
+            'font_cyrillic'            => self::KEY_FONT_CYRILLIC,
         ];
 
         foreach ($fontKeys as $postKey => $configKey) {
@@ -1101,11 +1105,33 @@ class ConfigManager
      */
     public function getSignatureConfig(): array
     {
+        // La signature active est stockée dans ps_neria_signature (is_active=1),
+        // pas dans ps_configuration — c'est aussi ce que lit EmailRenderer::
+        // resolveSignature() pour l'injection dans les emails. Les anciennes
+        // clés NERIA_SIGNATURE_* n'étaient jamais écrites nulle part.
+        $table = _DB_PREFIX_ . 'neria_signature';
+        $row   = $this->db->getRow(
+            "SELECT `signer_name`, `signer_title`, `font_style`, `color`, `image_path`
+             FROM `{$table}`
+             WHERE `id_shop` = {$this->idShop} AND `is_active` = 1"
+        );
+
+        if (!$row) {
+            return [
+                'style'         => 'great_vibes',
+                'founder_name'  => '',
+                'founder_title' => '',
+                'color'         => $this->get(self::KEY_COLOR_ACCENT),
+                'url'           => '',
+            ];
+        }
+
         return [
-            'style'        => $this->get('NERIA_SIGNATURE_STYLE', 'great_vibes'),
-            'founder_name' => $this->get('NERIA_SIGNATURE_NAME', ''),
-            'founder_title'=> $this->get('NERIA_SIGNATURE_TITLE', ''),
-            'color'        => $this->get(self::KEY_COLOR_ACCENT),
+            'style'         => $row['font_style'],
+            'founder_name'  => $row['signer_name'],
+            'founder_title' => $row['signer_title'],
+            'color'         => $row['color'],
+            'url'           => !empty($row['image_path']) ? $this->module->getModuleUrl($row['image_path']) : '',
         ];
     }
 

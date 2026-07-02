@@ -2069,6 +2069,146 @@ class Neria extends Module
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
+        // ── Réseaux sociaux : sauvegarde ──────────────────────────
+        if (Tools::getValue('neria_action') === 'save_social' && class_exists('ConfigManager')) {
+            $socialData = [
+                'social_instagram' => (string) Tools::getValue('social_instagram', ''),
+                'social_pinterest' => (string) Tools::getValue('social_pinterest', ''),
+                'social_facebook'  => (string) Tools::getValue('social_facebook', ''),
+                'social_twitter'   => (string) Tools::getValue('social_twitter', ''),
+                'social_youtube'   => (string) Tools::getValue('social_youtube', ''),
+                'social_tiktok'    => (string) Tools::getValue('social_tiktok', ''),
+            ];
+            (new ConfigManager($this))->saveSocialConfig($socialData);
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+        }
+
+        // ── Onglet Design : sauvegarde ─────────────────────────────
+        if (Tools::getValue('neria_action') === 'save_design' && class_exists('ConfigManager')) {
+            $designMgr  = new ConfigManager($this);
+            $designData = [
+                'color_background'  => (string) Tools::getValue('color_background', ''),
+                'color_container'   => (string) Tools::getValue('color_container', ''),
+                'color_accent'      => (string) Tools::getValue('color_accent', ''),
+                'color_text'        => (string) Tools::getValue('color_text', ''),
+                'btn_color'         => (string) Tools::getValue('btn_color', ''),
+                'color_header_bg'   => (string) Tools::getValue('color_header_bg', ''),
+                'color_footer_bg'   => (string) Tools::getValue('color_footer_bg', ''),
+                'color_footer_text' => (string) Tools::getValue('color_footer_text', ''),
+                'dark_mode'         => (int) Tools::getValue('dark_mode', 0),
+                'container_width'   => (int) Tools::getValue('container_width', 0),
+                'logo_width'        => (int) Tools::getValue('logo_width', 0),
+                'font_heading'      => (string) Tools::getValue('font_heading', ''),
+                'btn_radius'        => (int) Tools::getValue('btn_radius', 2),
+                'section_padding'   => (int) Tools::getValue('section_padding', 0),
+                'block_spacing'     => (int) Tools::getValue('block_spacing', 0),
+                'separator_style'   => (string) Tools::getValue('separator_style', ''),
+                'card_shadow'       => (string) Tools::getValue('card_shadow', ''),
+            ];
+            $designMgr->saveDesignConfig($designData);
+
+            $logoUploadFailed = false;
+            if (!empty($_FILES['logo']['tmp_name'])) {
+                if (!$designMgr->uploadLogo($_FILES['logo'])) {
+                    $logoUploadFailed = true;
+                    $this->context->smarty->assign('neria_error',
+                        'Logo non enregistré — vérifiez le format (PNG, JPEG, GIF, WebP) et la taille (max 2 Mo).'
+                    );
+                }
+            }
+
+            if (!$logoUploadFailed) {
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+            }
+        }
+
+        // ── Onglet Typographie : sauvegarde ────────────────────────
+        if (Tools::getValue('neria_action') === 'save_typography' && class_exists('ConfigManager')) {
+            $typoData = [
+                'font_latin'               => (string) Tools::getValue('font_latin', ''),
+                'font_arabic'              => (string) Tools::getValue('font_arabic', ''),
+                'font_japanese'            => (string) Tools::getValue('font_japanese', ''),
+                'font_korean'              => (string) Tools::getValue('font_korean', ''),
+                'font_chinese_simplified'  => (string) Tools::getValue('font_chinese_simplified', ''),
+                'font_chinese_traditional' => (string) Tools::getValue('font_chinese_traditional', ''),
+                'font_size'                => (int) Tools::getValue('font_size', 0),
+                'line_height'              => (float) Tools::getValue('line_height', 0),
+                'heading_weight'           => (int) Tools::getValue('heading_weight', 0),
+            ];
+            (new ConfigManager($this))->saveTypographyConfig($typoData);
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+        }
+
+        // ── Variables personnalisées : sauvegarde ──────────────────
+        if (Tools::getValue('neria_action') === 'save_custom_vars' && class_exists('ConfigManager')) {
+            $varsData = [
+                'maison_name'            => (string) Tools::getValue('maison_name', ''),
+                'slogan'                 => (string) Tools::getValue('slogan', ''),
+                'founder_name'           => (string) Tools::getValue('founder_name', ''),
+                'founder_title'          => (string) Tools::getValue('founder_title', ''),
+                'signature_closing'      => (string) Tools::getValue('signature_closing', ''),
+                'return_address'         => (string) Tools::getValue('return_address', ''),
+                'return_deadline_days'   => (string) Tools::getValue('return_deadline_days', ''),
+                'return_processing_days' => (string) Tools::getValue('return_processing_days', ''),
+            ];
+            (new ConfigManager($this))->saveCustomVariables($varsData);
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+        }
+
+        // ── Signature manuscrite : génération ──────────────────────
+        if (Tools::getValue('neria_action') === 'generate_signature'
+            && class_exists('SignatureGenerator') && class_exists('ConfigManager')
+        ) {
+            $sigStyle = (string) Tools::getValue('sig_style', 'great_vibes');
+            $sigColor = (string) Tools::getValue('sig_color', '#b38b59');
+
+            // Le nom/titre viennent des Variables personnalisées déjà enregistrées
+            // (formulaire séparé sur la même page) — pas de champs dédiés dans
+            // le formulaire de signature.
+            $customVars = array_column(
+                (new ConfigManager($this))->getCustomVariables(),
+                'variable_value',
+                'variable_key'
+            );
+            $sigName  = trim((string) ($customVars['founder_name']  ?? ''));
+            $sigTitle = trim((string) ($customVars['founder_title'] ?? ''));
+
+            if ($sigName === '') {
+                $this->context->smarty->assign('neria_error',
+                    'Veuillez renseigner le nom du fondateur dans « Variables personnalisées » avant de générer la signature.'
+                );
+            } else {
+                $idShop = (int) $this->context->shop->id;
+                $path   = (new SignatureGenerator($this))->generate($sigName, $sigTitle, $sigStyle, $sigColor, $idShop);
+
+                if ($path) {
+                    $db = Db::getInstance();
+                    // Une seule signature active par boutique — désactive les
+                    // précédentes avant d'insérer la nouvelle (cohérent avec
+                    // EmailRenderer::resolveSignature() qui lit WHERE is_active=1).
+                    $db->execute(
+                        'UPDATE `' . _DB_PREFIX_ . 'neria_signature` SET `is_active` = 0 WHERE `id_shop` = ' . $idShop
+                    );
+                    $db->insert('neria_signature', [
+                        'id_shop'      => $idShop,
+                        'signer_name'  => pSQL($sigName),
+                        'signer_title' => pSQL($sigTitle),
+                        'font_style'   => pSQL($sigStyle),
+                        'color'        => pSQL($sigColor),
+                        'image_path'   => pSQL($path),
+                        'is_active'    => 1,
+                        'date_add'     => date('Y-m-d H:i:s'),
+                        'date_upd'     => date('Y-m-d H:i:s'),
+                    ]);
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                } else {
+                    $this->context->smarty->assign('neria_error',
+                        'Échec de la génération de la signature (police manquante ou extension GD indisponible — voir Aide → Diagnostic).'
+                    );
+                }
+            }
+        }
+
         // ── Actions : calendrier des occasions ───────────────────
         if (Tools::getValue('neria_action') === 'add_calendar_event') {
             // Si l'occasion est personnalisée, on lit le champ texte libre
@@ -2499,6 +2639,22 @@ class Neria extends Module
 
         // ── Onglet Traductions : chargement / sauvegarde / reset ─────
         $tradAction = Tools::getValue('neria_action');
+
+        // ── Recharger toutes les traductions par défaut depuis le JSON ──
+        // N'écrase que les lignes is_custom=0 (importFromJson/importTemplate
+        // suppriment puis réinsèrent uniquement les valeurs non personnalisées) —
+        // utile pour récupérer des corrections de texte livrées avec une mise
+        // à jour du module sans attendre un bump de version qui déclenche
+        // l'upgrade automatique.
+        if ($tradAction === 'reload_all_translations' && class_exists('TranslationInstaller')) {
+            $installer = new TranslationInstaller($this);
+            $ok = $installer->importFromJson(_PS_MODULE_DIR_ . 'neria/data/translations.json');
+            if ($ok) {
+                $this->context->smarty->assign('neria_success', 'Traductions par défaut rechargées depuis le fichier source (vos personnalisations sont conservées).');
+            } else {
+                $this->context->smarty->assign('neria_error', 'Échec du rechargement des traductions.');
+            }
+        }
 
         // ── Export CSV traductions ────────────────────────────────────
         if ($tradAction === 'export_translations_csv') {
