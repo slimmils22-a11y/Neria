@@ -826,6 +826,9 @@ window.neriaAjaxUrl = function(action, extra) {
 
 
 <script>
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 document.addEventListener('DOMContentLoaded', function() {
 
   // ── Recherche globale ───────────────────────────────────────────
@@ -845,16 +848,16 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(url).then(function(r){ return r.json(); }).then(function(data) {
           var items = data.results || [];
           if (!items.length) {
-            searchResults.innerHTML = '<div class="neria-search-empty">Aucun résultat pour « ' + q + ' »</div>';
+            searchResults.innerHTML = '<div class="neria-search-empty">Aucun résultat pour « ' + escHtml(q) + ' »</div>';
           } else {
             var html = '';
             items.forEach(function(item) {
-              var hl = item.value.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi'), '<mark>$1</mark>');
-              html += '<div class="neria-search-result-item" data-template="' + item.template + '" data-lang="' + item.lang + '">'
-                    + '<span class="neria-search-result-item__tpl">' + item.template_label + '</span>'
-                    + '<span class="neria-search-result-item__lang">' + item.lang + '</span>'
+              var hl = escHtml(item.value).replace(new RegExp('(' + escHtml(q).replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi'), '<mark>$1</mark>');
+              html += '<div class="neria-search-result-item" data-template="' + escHtml(item.template) + '" data-lang="' + escHtml(item.lang) + '">'
+                    + '<span class="neria-search-result-item__tpl">' + escHtml(item.template_label) + '</span>'
+                    + '<span class="neria-search-result-item__lang">' + escHtml(item.lang) + '</span>'
                     + '<span class="neria-search-result-item__val">' + hl + '</span>'
-                    + '<span class="neria-search-result-item__key">' + item.key + '</span>'
+                    + '<span class="neria-search-result-item__key">' + escHtml(item.key) + '</span>'
                     + '</div>';
             });
             searchResults.innerHTML = html;
