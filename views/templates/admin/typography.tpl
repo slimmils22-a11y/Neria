@@ -14,6 +14,12 @@
         <input type="hidden" name="neria_action" value="save_typography">
         <input type="hidden" name="neria_tab"    value="typography">
 
+        {* ── Comment ça fonctionne ───────────────────────────────── *}
+        <div class="neria-info-box" style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:14px 16px;margin-bottom:20px;font-size:12px;line-height:1.6;color:#5c3d1e;">
+          <strong>{neria_admin key='typography.howitworks_title'}</strong><br>
+          {neria_admin key='typography.howitworks_body'}
+        </div>
+
         {* ── Taille de police corps ──────────────────────────────── *}
         <div class="neria-section">
           <div class="neria-section__header">

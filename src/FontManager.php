@@ -49,8 +49,8 @@ class FontManager
             'css_family'  => "'EB Garamond', 'Cormorant Garamond', Georgia, serif",
             'fallback'    => "Georgia, 'Times New Roman', serif",
             'script'      => 'latin',
-            'languages'   => ['fr','en','de','it','es','pt','br','tr','sv','no','da','nl','ru'],
-            'description' => 'Garamond classique — parfaite pour le cyrillique',
+            'languages'   => ['fr','en','de','it','es','pt','br','tr','sv','no','da','nl'],
+            'description' => 'Garamond classique — plus rond que Cormorant',
         ],
         'Playfair Display' => [
             'google_url'  => 'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap',
@@ -139,6 +139,25 @@ class FontManager
             'languages'   => ['tw'],
             'description' => 'Serif chinois traditionnel',
         ],
+
+        // ── Polices cyrilliques ────────────────────────────────────
+
+        'PT Serif' => [
+            'google_url'  => 'https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap',
+            'css_family'  => "'PT Serif', Georgia, 'Times New Roman', serif",
+            'fallback'    => "Georgia, 'Times New Roman', serif",
+            'script'      => 'cyrillic',
+            'languages'   => ['ru'],
+            'description' => 'Serif russe classique — lisible et élégante',
+        ],
+        'Noto Serif' => [
+            'google_url'  => 'https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,600;1,400&display=swap',
+            'css_family'  => "'Noto Serif', 'PT Serif', Georgia, serif",
+            'fallback'    => "Georgia, 'Times New Roman', serif",
+            'script'      => 'cyrillic',
+            'languages'   => ['ru'],
+            'description' => 'Universelle et sobre — couverture cyrillique complète',
+        ],
     ];
 
     // ============================================================
@@ -158,7 +177,7 @@ class FontManager
         'no'  => 'Cormorant Garamond',
         'da'  => 'Cormorant Garamond',
         'nl'  => 'Cormorant Garamond',
-        'ru'  => 'EB Garamond',
+        'ru'  => 'PT Serif',
         'ar'  => 'Noto Naskh Arabic',
         'ja'  => 'Noto Serif JP',
         'ko'  => 'Noto Serif KR',
@@ -393,7 +412,7 @@ class FontManager
         return [
             'latin'              => [
                 'label'     => 'Latin',
-                'languages' => ['fr','en','de','it','es','pt','br','tr','sv','no','da','nl','ru'],
+                'languages' => ['fr','en','de','it','es','pt','br','tr','sv','no','da','nl'],
             ],
             'arabic'             => [
                 'label'     => 'Arabe',
@@ -414,6 +433,10 @@ class FontManager
             'chinese_traditional' => [
                 'label'     => 'Chinois traditionnel',
                 'languages' => ['tw'],
+            ],
+            'cyrillic'           => [
+                'label'     => 'Cyrillique',
+                'languages' => ['ru'],
             ],
         ];
     }

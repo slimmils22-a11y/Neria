@@ -122,13 +122,19 @@ class ConfigManager
         self::KEY_FONT_SIZE           => 14,
         self::KEY_LINE_HEIGHT         => 1.8,
         self::KEY_HEADING_WEIGHT      => 600,
-        self::KEY_FONT_LATIN          => 'Cormorant Garamond, Georgia, Times New Roman, serif',
-        self::KEY_FONT_ARABIC         => 'Noto Naskh Arabic, Traditional Arabic, serif',
-        self::KEY_FONT_JAPANESE       => 'Noto Serif JP, Hiragino Mincho Pro, serif',
-        self::KEY_FONT_KOREAN         => 'Noto Serif KR, Batang, serif',
-        self::KEY_FONT_ZH_SIMPLIFIED  => 'Noto Serif SC, SimSun, serif',
-        self::KEY_FONT_ZH_TRADITIONAL => 'Noto Serif TC, PMingLiU, serif',
-        self::KEY_FONT_CYRILLIC       => 'EB Garamond, Cormorant Garamond, serif',
+        // Noms courts correspondant aux clés de FontManager::FONT_CATALOG —
+        // FontManager résout le css_family complet (avec fallback) à partir
+        // de ce nom. Ne PAS stocker de stack CSS complet ici : le formulaire
+        // de l'onglet Typographie enregistre lui aussi un nom court (valeur
+        // des cartes radio), donc les deux doivent utiliser le même format
+        // pour que l'état "sélectionné" s'affiche correctement.
+        self::KEY_FONT_LATIN          => 'Cormorant Garamond',
+        self::KEY_FONT_ARABIC         => 'Noto Naskh Arabic',
+        self::KEY_FONT_JAPANESE       => 'Noto Serif JP',
+        self::KEY_FONT_KOREAN         => 'Noto Serif KR',
+        self::KEY_FONT_ZH_SIMPLIFIED  => 'Noto Serif SC',
+        self::KEY_FONT_ZH_TRADITIONAL => 'Noto Serif TC',
+        self::KEY_FONT_CYRILLIC       => 'PT Serif',
         self::KEY_SOCIAL_INSTAGRAM    => '',
         self::KEY_SOCIAL_PINTEREST    => '',
         self::KEY_SOCIAL_FACEBOOK     => '',

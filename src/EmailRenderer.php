@@ -60,6 +60,9 @@ class EmailRenderer
     /** @var WatchdogManager|null Instance paresseuse du watchdog */
     private ?WatchdogManager $watchdog = null;
 
+    /** @var FontManager|null Instance paresseuse du gestionnaire de polices */
+    private ?FontManager $fonts = null;
+
     /**
      * Garde anti-récursion pour l'email de secours.
      * Statique car le hook crée une nouvelle instance EmailRenderer à chaque
@@ -110,6 +113,30 @@ class EmailRenderer
             $this->watchdog = new WatchdogManager($this->module);
         }
         return $this->watchdog;
+    }
+
+    private function fonts(): FontManager
+    {
+        if ($this->fonts === null) {
+            $this->fonts = new FontManager($this->module);
+        }
+        return $this->fonts;
+    }
+
+    /**
+     * Balises <link> Google Fonts combinées (police de titre + police de corps).
+     * Les deux polices sont choisies indépendamment (titre = un seul réglage
+     * global, corps = un réglage par langue/écriture) et peuvent donc pointer
+     * vers deux URLs Google Fonts différentes — les deux doivent être chargées.
+     */
+    private function googleFontLinks(string $lang, string $headingFont): string
+    {
+        $headingLink = $this->config->getHeadingFontLink($headingFont);
+        $bodyLink    = $this->fonts()->generateGoogleFontsLink($lang);
+        if ($bodyLink === '' || strpos($headingLink, $bodyLink) !== false) {
+            return $headingLink;
+        }
+        return $headingLink . "\n  " . $bodyLink;
     }
 
     private function tw(string $key, array $vars = []): string
@@ -780,9 +807,9 @@ class EmailRenderer
             'neria_logo_url'            => $this->resolveLogoUrl($design['logo_path']),
 
             // Typographie
-            'neria_font_family'         => $this->config->getFontForLang($lang),
+            'neria_font_family'         => $this->fonts()->getCssFamilyForLang($lang),
             'neria_font_heading_family' => $this->config->getHeadingFontFamily($design['font_heading'] ?? 'Cormorant Garamond'),
-            'neria_google_font_link'    => $this->config->getHeadingFontLink($design['font_heading'] ?? 'Cormorant Garamond'),
+            'neria_google_font_link'    => $this->googleFontLinks($lang, $design['font_heading'] ?? 'Cormorant Garamond'),
 
             // Bouton
             'neria_btn_radius'          => (int) ($design['btn_radius'] ?? 2),
@@ -1704,7 +1731,7 @@ class EmailRenderer
             'neria_color_footer_bg'   => $design['color_footer_bg']   ?? '#ffffff',
             'neria_color_footer_text' => $design['color_footer_text'] ?? '#a09990',
             'neria_font_heading_family' => $this->config->getHeadingFontFamily($design['font_heading'] ?? 'Cormorant Garamond'),
-            'neria_google_font_link'  => $this->config->getHeadingFontLink($design['font_heading'] ?? 'Cormorant Garamond'),
+            'neria_google_font_link'  => $this->googleFontLinks($lang, $design['font_heading'] ?? 'Cormorant Garamond'),
             'neria_btn_radius'        => (int)($design['btn_radius'] ?? 2),
             'neria_btn_color'         => $design['btn_color'] ?? '#2b2520',
             'neria_section_padding'   => (int)($design['section_padding'] ?? 40),
@@ -1714,7 +1741,7 @@ class EmailRenderer
             'neria_font_size'         => (int) ($design['font_size'] ?? 14),
             'neria_line_height'       => number_format((float) ($design['line_height'] ?? 1.8), 1, '.', ''),
             'neria_heading_weight'    => (int) ($design['heading_weight'] ?? 600),
-            'neria_font_family'      => $this->config->getFontForLang($lang),
+            'neria_font_family'      => $this->fonts()->getCssFamilyForLang($lang),
             'neria_dir'              => $this->engine->isRtl($lang) ? 'rtl' : 'ltr',
             'neria_text_align'       => $this->engine->isRtl($lang) ? 'right' : 'left',
             'neria_is_rtl'           => $this->engine->isRtl($lang),
@@ -1915,7 +1942,7 @@ class EmailRenderer
             '{$neria_color_background}' => $design['color_background'],
             '{$neria_color_container}'  => $design['color_container'],
             '{$neria_color_text}'       => $design['color_text'],
-            '{$neria_font_family}'      => $this->config->getFontForLang($lang),
+            '{$neria_font_family}'      => $this->fonts()->getCssFamilyForLang($lang),
             '{$neria_dir}'              => $this->engine->isRtl($lang) ? 'rtl' : 'ltr',
             '{$neria_text_align}'       => $this->engine->isRtl($lang) ? 'right' : 'left',
             '{$neria_container_width}'  => (string) $design['container_width'],
@@ -1925,7 +1952,7 @@ class EmailRenderer
             '{$neria_color_footer_bg}'   => $design['color_footer_bg']   ?? '#ffffff',
             '{$neria_color_footer_text}' => $design['color_footer_text'] ?? '#a09990',
             '{$neria_font_heading_family}' => $this->config->getHeadingFontFamily($design['font_heading'] ?? 'Cormorant Garamond'),
-            '{$neria_google_font_link}'  => $this->config->getHeadingFontLink($design['font_heading'] ?? 'Cormorant Garamond'),
+            '{$neria_google_font_link}'  => $this->googleFontLinks($lang, $design['font_heading'] ?? 'Cormorant Garamond'),
             '{$neria_btn_radius}'        => (string)(int)($design['btn_radius'] ?? 2),
             '{$neria_btn_color}'         => $design['btn_color'] ?? '#2b2520',
             '{$neria_section_padding}'   => (string)(int)($design['section_padding'] ?? 40),
@@ -2191,7 +2218,7 @@ class EmailRenderer
             '{$neria_color_background}' => $design['color_background'],
             '{$neria_color_container}'  => $design['color_container'],
             '{$neria_color_text}'       => $design['color_text'],
-            '{$neria_font_family}'      => $this->config->getFontForLang($lang),
+            '{$neria_font_family}'      => $this->fonts()->getCssFamilyForLang($lang),
             '{$neria_dir}'              => $this->engine->isRtl($lang) ? 'rtl' : 'ltr',
             '{$neria_text_align}'       => $this->engine->isRtl($lang) ? 'right' : 'left',
             '{$neria_container_width}'  => (string) $design['container_width'],
@@ -2201,7 +2228,7 @@ class EmailRenderer
             '{$neria_color_footer_bg}'   => $design['color_footer_bg']   ?? '#ffffff',
             '{$neria_color_footer_text}' => $design['color_footer_text'] ?? '#a09990',
             '{$neria_font_heading_family}' => $this->config->getHeadingFontFamily($design['font_heading'] ?? 'Cormorant Garamond'),
-            '{$neria_google_font_link}'  => $this->config->getHeadingFontLink($design['font_heading'] ?? 'Cormorant Garamond'),
+            '{$neria_google_font_link}'  => $this->googleFontLinks($lang, $design['font_heading'] ?? 'Cormorant Garamond'),
             '{$neria_btn_radius}'        => (string)(int)($design['btn_radius'] ?? 2),
             '{$neria_btn_color}'         => $design['btn_color'] ?? '#2b2520',
             '{$neria_section_padding}'   => (string)(int)($design['section_padding'] ?? 40),
