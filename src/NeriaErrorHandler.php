@@ -132,6 +132,46 @@ class NeriaErrorHandler
         }
     }
 
+    /**
+     * Filet de sécurité pour hookDisplayHeader() — exécuté sur CHAQUE page
+     * front-office. Une exception non rattrapée ici casserait la boutique
+     * entière pour tout visiteur, pas seulement une fonctionnalité Neria.
+     * Contrairement à wrapGetContent(), ne retourne/affiche jamais rien :
+     * le hook doit rester totalement silencieux en cas d'échec.
+     */
+    public static function wrapDisplayHeader(callable $callback, \Neria $module): void
+    {
+        try {
+            $callback();
+        } catch (\Throwable $e) {
+            try {
+                (new \WatchdogManager($module))->critical(
+                    sprintf(
+                        'Crash dans hookDisplayHeader() : %s in %s:%d — Ce hook tourne sur CHAQUE page boutique,'
+                        . ' une exception non rattrapée ici aurait cassé le front-office pour vos clients.'
+                        . ' Corrigez en priorité absolue.',
+                        $e->getMessage(),
+                        basename($e->getFile()),
+                        $e->getLine()
+                    ),
+                    '',
+                    'NeriaErrorHandler'
+                );
+            } catch (\Throwable $t) {
+                try {
+                    $db  = \Db::getInstance();
+                    $msg = pSQL(substr($e->getMessage(), 0, 500));
+                    $db->execute(
+                        "INSERT INTO `" . _DB_PREFIX_ . "neria_log`
+                         (id_shop, level, template, class, message, date_add)
+                         VALUES (1, 'critical', '', 'NeriaErrorHandler', '$msg', NOW())"
+                    );
+                } catch (\Throwable $ignored) {}
+            }
+            // Aucun retour, aucun affichage — le hook s'arrête proprement, la page continue.
+        }
+    }
+
     private static function errorTypeName(int $type): string
     {
         return match ($type) {

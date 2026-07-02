@@ -217,6 +217,9 @@ class HealthCheckManager
             'attribution_coverage' => $this->checkAttributionCoverage(),
             'history_table_size'   => $this->checkTranslationHistorySize(),
             'abtest_trad_gaps'     => $this->checkAbtestTranslationGaps(),
+            // ── Contrôles proactifs ─────────────────────────────────────
+            'engagement_trend'     => $this->checkEngagementTrend(),
+            'oauth_freshness'      => $this->checkOAuthFreshness(),
         ];
     }
 
@@ -962,6 +965,117 @@ class HealthCheckManager
             'status' => self::STATUS_OK,
             'detail' => 'Taux d\'ouverture 7j : ' . $rate . '% (' . $open7 . ' ouvertures / ' . $sent7 . ' envois).',
         ];
+    }
+
+    /**
+     * #PROACTIF-1 — Tendance d'engagement (proactif)
+     * Compare le taux d'ouverture des 7 derniers jours à la moyenne des
+     * 30 jours précédents. Détecte une dégradation progressive AVANT qu'elle
+     * ne franchisse le seuil critique fixe de checkOpenRate7d().
+     */
+    private function checkEngagementTrend(): array
+    {
+        $table = _DB_PREFIX_ . 'neria_stat';
+
+        $recent = $this->db->getRow(
+            "SELECT
+                SUM(CASE WHEN event_type = 'sent' THEN 1 ELSE 0 END) AS sent,
+                SUM(CASE WHEN event_type = 'open' THEN 1 ELSE 0 END) AS opened
+             FROM `{$table}`
+             WHERE id_shop = {$this->idShop}
+               AND date_add > DATE_SUB(NOW(), INTERVAL 7 DAY)"
+        );
+
+        $baseline = $this->db->getRow(
+            "SELECT
+                SUM(CASE WHEN event_type = 'sent' THEN 1 ELSE 0 END) AS sent,
+                SUM(CASE WHEN event_type = 'open' THEN 1 ELSE 0 END) AS opened
+             FROM `{$table}`
+             WHERE id_shop = {$this->idShop}
+               AND date_add > DATE_SUB(NOW(), INTERVAL 37 DAY)
+               AND date_add <= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+        );
+
+        $recentSent    = (int) ($recent['sent'] ?? 0);
+        $baselineSent  = (int) ($baseline['sent'] ?? 0);
+
+        if ($recentSent < 50 || $baselineSent < 50) {
+            return [
+                'status' => self::STATUS_OK,
+                'detail' => 'Historique insuffisant pour détecter une tendance (besoin de ≥ 50 envois sur les deux périodes).',
+            ];
+        }
+
+        $recentRate   = round((int) ($recent['opened'] ?? 0) / $recentSent * 100, 1);
+        $baselineRate = round((int) ($baseline['opened'] ?? 0) / $baselineSent * 100, 1);
+
+        if ($baselineRate <= 0) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Taux de référence nul — comparaison ignorée.'];
+        }
+
+        $relativeChange = round((($recentRate - $baselineRate) / $baselineRate) * 100, 1);
+
+        if ($relativeChange <= -30) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => "Tendance d'engagement en baisse : {$recentRate}% cette semaine vs {$baselineRate}% en moyenne sur les 30 jours précédents"
+                    . " ({$relativeChange}% relatif)."
+                    . ' → Que faire : Vérifiez la réputation domaine, la fraîcheur des segments ciblés récemment,'
+                    . ' et si aucun changement de contenu/fréquence n\'explique la baisse.',
+            ];
+        }
+
+        return [
+            'status' => self::STATUS_OK,
+            'detail' => "Tendance d'engagement stable : {$recentRate}% cette semaine vs {$baselineRate}% en moyenne (30j précédents).",
+        ];
+    }
+
+    /**
+     * #PROACTIF-2 — Fraîcheur des connexions OAuth (proactif)
+     * Search Console et Postmaster Tools se ré-authentifient automatiquement
+     * via leur refresh token. Si ce mécanisme casse silencieusement (jeton
+     * révoqué, app en mode Test Google avec expiration 7j…), les données
+     * arrêtent de se rafraîchir sans qu'aucune erreur ne soit visible tant
+     * que le marchand ne consulte pas l'onglet Statistiques. Ce contrôle le
+     * détecte en amont, pendant le diagnostic périodique.
+     */
+    private function checkOAuthFreshness(): array
+    {
+        $stale = [];
+        $staleThresholdMinutes = 60 * 24 * 3; // 3 jours
+
+        if (class_exists('SearchConsoleManager')) {
+            $mgr = new \SearchConsoleManager($this->module);
+            if ($mgr->isConnected()) {
+                $age = $mgr->getCacheAge();
+                if ($age === null || $age > $staleThresholdMinutes) {
+                    $stale[] = 'Search Console (' . ($age === null ? 'jamais rafraîchi' : round($age / 60 / 24) . 'j') . ')';
+                }
+            }
+        }
+
+        if (class_exists('PostmasterManager')) {
+            $mgr = new \PostmasterManager($this->module);
+            if ($mgr->isConnected()) {
+                $age = $mgr->getCacheAge();
+                if ($age === null || $age > $staleThresholdMinutes) {
+                    $stale[] = 'Postmaster Tools (' . ($age === null ? 'jamais rafraîchi' : round($age / 60 / 24) . 'j') . ')';
+                }
+            }
+        }
+
+        if ($stale) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => 'Connexion(s) OAuth avec données obsolètes (> 3j) : ' . implode(', ', $stale) . '.'
+                    . ' → Que faire : le refresh token a peut-être été révoqué côté Google (ou l\'app est encore'
+                    . ' en mode "Test" — les refresh tokens expirent alors après 7 jours). Reconnectez-vous depuis'
+                    . ' l\'onglet Statistiques, et pensez à publier l\'app OAuth dans Google Cloud Console.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => 'Connexions OAuth (Search Console / Postmaster) à jour ou non configurées.'];
     }
 
     /**

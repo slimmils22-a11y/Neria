@@ -324,7 +324,9 @@
       'version_sync'         => 'help.health_check_version_sync',
       'open_rate'            => 'help.health_check_open_rate',
       'queue_blocked'        => 'help.health_check_queue_blocked',
-      'hmac_secret'          => 'help.health_check_hmac_secret'
+      'hmac_secret'          => 'help.health_check_hmac_secret',
+      'engagement_trend'     => 'help.health_check_engagement_trend',
+      'oauth_freshness'      => 'help.health_check_oauth_freshness'
     ]}
     <div class="neria-diag-grid">
       {foreach $health_results as $checkKey => $result}

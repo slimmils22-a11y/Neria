@@ -97,7 +97,20 @@ class NeriaPreferencesModuleFrontController extends ModuleFrontController
             }
         }
 
-        $prefs = $manager->getByCustomer($idCustomer);
+        try {
+            $prefs = $manager->getByCustomer($idCustomer);
+        } catch (\Throwable $e) {
+            if (class_exists('WatchdogManager')) {
+                try {
+                    (new WatchdogManager($this->module))->warning(
+                        'Lecture préférences échouée pour ' . $email . ' : ' . $e->getMessage(),
+                        'preferences', 'PreferencesController'
+                    );
+                } catch (\Throwable $ignored) {
+                }
+            }
+            $prefs = [];
+        }
 
         // Labels des catégories (traduits via AdminTranslator si dispo)
         $catLabels = $this->getCatLabels($lang);

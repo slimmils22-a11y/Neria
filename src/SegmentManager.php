@@ -283,10 +283,65 @@ class SegmentManager
      * @param array $filters Clés optionnelles : slot, id_lang, id_country
      * @return array{sent:int, failed:int, skipped:int}
      */
+    /**
+     * Contrôle à blanc avant tout envoi de masse : vérifie le template,
+     * le segment (non vide) et la présence d'au moins un fichier de
+     * template dans une langue réellement utilisée par les destinataires —
+     * sans envoyer un seul email. Permet au marchand (ou au BO) de détecter
+     * un problème AVANT de lancer une campagne à des centaines de clients.
+     */
+    public function preflightCheck(string $segment, string $template, array $filters = []): array
+    {
+        $issues = [];
+
+        if (!in_array($template, self::CAMPAIGN_TEMPLATES, true)) {
+            $issues[] = "Le template « {$template} » n'est pas autorisé pour les campagnes segment.";
+        }
+
+        $customers = $this->getCustomersBySegment($segment, 500, 0, $filters);
+        $recipientCount = count($customers);
+
+        if ($recipientCount === 0) {
+            $issues[] = "Le segment « {$segment} » (avec ces filtres) ne contient aucun destinataire.";
+        }
+
+        $missingLangFiles = [];
+        if (!$issues && $recipientCount > 0) {
+            $langsUsed = [];
+            foreach ($customers as $c) {
+                $idLang = (int) ($c['id_lang'] ?? 0) ?: (int) \Configuration::get('PS_LANG_DEFAULT');
+                $langsUsed[$idLang] = true;
+            }
+            foreach (array_keys($langsUsed) as $idLang) {
+                $langCode     = \Language::getIsoById($idLang) ?: 'fr';
+                $templateFile = _PS_MODULE_DIR_ . 'neria/mails/' . $langCode . '/' . $template . '.html';
+                if (!file_exists($templateFile)) {
+                    $missingLangFiles[] = $langCode;
+                }
+            }
+            if ($missingLangFiles) {
+                $issues[] = "Fichier template manquant pour la/les langue(s) : " . implode(', ', $missingLangFiles)
+                    . ' — ces destinataires seront ignorés silencieusement.';
+            }
+        }
+
+        return [
+            'ok'               => empty($issues) || (count($issues) === 1 && $missingLangFiles),
+            'blocking'         => !empty(array_filter($issues, fn ($i) => !str_contains($i, 'seront ignorés'))),
+            'recipient_count'  => $recipientCount,
+            'issues'           => $issues,
+        ];
+    }
+
     public function sendToSegment(string $segment, string $template, array $filters = []): array
     {
-        if (!in_array($template, self::CAMPAIGN_TEMPLATES, true)) {
-            return ['sent' => 0, 'failed' => 0, 'skipped' => 0, 'error' => 'template_not_allowed'];
+        $preflight = $this->preflightCheck($segment, $template, $filters);
+        if ($preflight['blocking']) {
+            $this->watchdog()->warning(
+                "Campagne [{$segment}] → {$template} annulée avant envoi (dry-run) : " . implode(' ', $preflight['issues']),
+                $template, 'SegmentManager'
+            );
+            return ['sent' => 0, 'failed' => 0, 'skipped' => 0, 'error' => 'preflight_failed', 'preflight' => $preflight];
         }
 
         $customers = $this->getCustomersBySegment($segment, 500, 0, $filters);

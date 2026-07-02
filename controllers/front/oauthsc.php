@@ -49,8 +49,21 @@ class NeriaOauthscModuleFrontController extends ModuleFrontController
             require_once _PS_MODULE_DIR_ . 'neria/src/SearchConsoleManager.php';
         }
 
-        $manager = new \SearchConsoleManager($this->module);
-        $ok      = $manager->handleCallback($code, $state);
+        try {
+            $manager = new \SearchConsoleManager($this->module);
+            $ok      = $manager->handleCallback($code, $state);
+        } catch (\Throwable $e) {
+            if (class_exists('WatchdogManager')) {
+                try {
+                    (new \WatchdogManager($this->module))->error(
+                        'Callback OAuth Search Console — exception : ' . $e->getMessage(),
+                        '', 'OauthController'
+                    );
+                } catch (\Throwable $ignored) {
+                }
+            }
+            $ok = false;
+        }
 
         if ($ok) {
             \Tools::redirectAdmin($returnUrl . '&neria_success=' . urlencode('Google Search Console connecté avec succès !'));

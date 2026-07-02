@@ -1108,6 +1108,18 @@ class Neria extends Module
      */
     public function hookDisplayHeader(): void
     {
+        NeriaErrorHandler::wrapDisplayHeader(function (): void {
+            $this->hookDisplayHeaderImpl();
+        }, $this);
+    }
+
+    /**
+     * Corps réel de hookDisplayHeader() — appelé via NeriaErrorHandler::wrapDisplayHeader().
+     * Ce hook tourne sur CHAQUE page front-office ; une exception non
+     * rattrapée ici casserait la boutique pour tout visiteur.
+     */
+    private function hookDisplayHeaderImpl(): void
+    {
         $health = new HealthCheckManager($this);
         $health->recordDisplayHeaderRun();
         $health->runAutoChecksIfDue();
@@ -3230,7 +3242,12 @@ class Neria extends Module
             ]);
             if ($seg !== '' && $template !== '' && class_exists('SegmentManager')) {
                 $res = (new SegmentManager($this))->sendToSegment($seg, $template, $filters);
-                if (isset($res['error'])) {
+                if (($res['error'] ?? '') === 'preflight_failed') {
+                    $this->context->smarty->assign(
+                        'neria_error',
+                        'Envoi annulé avant déclenchement (contrôle à blanc) : ' . implode(' ', $res['preflight']['issues'] ?? [])
+                    );
+                } elseif (isset($res['error'])) {
                     $this->context->smarty->assign('neria_error', 'Template non autorisé pour les campagnes segment.');
                 } else {
                     $this->context->smarty->assign(
@@ -4820,7 +4837,7 @@ class Neria extends Module
                 'ab_reports'   => 'Rapports A/B',
             ],
             'segments' => [
-                'segments' => 'Segments comportementaux',
+                'segment_counts' => 'Segments comportementaux',
             ],
         ];
 

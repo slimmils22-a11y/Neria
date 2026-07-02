@@ -51,8 +51,21 @@ class NeriaOauthModuleFrontController extends ModuleFrontController
             require_once _PS_MODULE_DIR_ . 'neria/src/PostmasterManager.php';
         }
 
-        $manager = new \PostmasterManager($this->module);
-        $ok      = $manager->handleCallback($code, $state);
+        try {
+            $manager = new \PostmasterManager($this->module);
+            $ok      = $manager->handleCallback($code, $state);
+        } catch (\Throwable $e) {
+            if (class_exists('WatchdogManager')) {
+                try {
+                    (new \WatchdogManager($this->module))->error(
+                        'Callback OAuth Postmaster — exception : ' . $e->getMessage(),
+                        '', 'OauthController'
+                    );
+                } catch (\Throwable $ignored) {
+                }
+            }
+            $ok = false;
+        }
 
         if ($ok) {
             \Tools::redirectAdmin($returnUrl . '&neria_success=' . urlencode('Google Postmaster Tools connecté avec succès !'));

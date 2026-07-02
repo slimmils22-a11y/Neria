@@ -36,14 +36,27 @@ class NeriaWaitlistModuleFrontController extends ModuleFrontController
             Tools::redirect($redirect);
         }
 
-        $mgr        = new WaitlistManager($this->module);
-        $idCustomer = (int) $this->context->customer->id;
-        $idShop     = (int) $this->context->shop->id;
+        try {
+            $mgr        = new WaitlistManager($this->module);
+            $idCustomer = (int) $this->context->customer->id;
+            $idShop     = (int) $this->context->shop->id;
 
-        if ($action === 'subscribe') {
-            $mgr->register($idCustomer, $idProduct, $idShop);
-        } else {
-            $mgr->unregister($idCustomer, $idProduct);
+            if ($action === 'subscribe') {
+                $mgr->register($idCustomer, $idProduct, $idShop);
+            } else {
+                $mgr->unregister($idCustomer, $idProduct);
+            }
+        } catch (\Throwable $e) {
+            if (class_exists('WatchdogManager')) {
+                try {
+                    (new WatchdogManager($this->module))->warning(
+                        "Liste d'attente [{$action}] — exception : " . $e->getMessage(),
+                        '', 'WaitlistController'
+                    );
+                } catch (\Throwable $ignored) {
+                }
+            }
+            // Le client est quand même redirigé — jamais de page cassée sur un clic.
         }
 
         Tools::redirect($redirect);

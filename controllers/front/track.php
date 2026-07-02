@@ -30,47 +30,65 @@ class NeriaTrackModuleFrontController extends ModuleFrontController
     {
         $token = (string) Tools::getValue('t');
         $event = Tools::strtolower((string) Tools::getValue('e', 'open'));
+        $url   = (string) Tools::getValue('url', '');
 
-        if ($token !== '' && class_exists('StatsManager')) {
-            $stats = new StatsManager($this->module);
+        // Le tracking (best-effort) ne doit JAMAIS empêcher la redirection du
+        // client ou l'affichage du pixel. Une exception ici — DB, token
+        // corrompu, disque plein — ne doit jamais se traduire par un lien
+        // mort dans un email déjà envoyé, ni par une image cassée visible.
+        try {
+            if ($token !== '' && class_exists('StatsManager')) {
+                $stats = new StatsManager($this->module);
 
-            if ($event === 'click') {
-                $url = (string) Tools::getValue('url', '');
-                $stats->recordClick($token, $url);
+                if ($event === 'click') {
+                    $stats->recordClick($token, $url);
 
-                // Cookie d'attribution : template:lang:token (24h)
-                // Permet à hookActionOrderStatusPostUpdate d'attribuer la commande.
-                $ref = $stats->getRefDataByToken($token);
-                if ($ref) {
-                    $cookieVal = implode(':', [$ref['template'], $ref['lang'], $token]);
-                    setcookie('neria_ref', $cookieVal, [
-                        'expires'  => time() + 86400,
-                        'path'     => '/',
-                        'secure'   => isset($_SERVER['HTTPS']),
-                        'httponly' => true,
-                        'samesite' => 'Lax',
-                    ]);
-                }
+                    // Cookie d'attribution : template:lang:token (24h)
+                    // Permet à hookActionOrderStatusPostUpdate d'attribuer la commande.
+                    $ref = $stats->getRefDataByToken($token);
+                    if ($ref) {
+                        $cookieVal = implode(':', [$ref['template'], $ref['lang'], $token]);
+                        setcookie('neria_ref', $cookieVal, [
+                            'expires'  => time() + 86400,
+                            'path'     => '/',
+                            'secure'   => isset($_SERVER['HTTPS']),
+                            'httponly' => true,
+                            'samesite' => 'Lax',
+                        ]);
+                    }
 
-                // Tracking upsell : détecte neria_ur dans l'URL cible
-                if ($url !== '' && class_exists('UpsellManager')) {
-                    $parsed = parse_url($url);
-                    if (!empty($parsed['query'])) {
-                        parse_str($parsed['query'], $qp);
-                        $idUpsell = (int) ($qp['neria_ur'] ?? 0);
-                        if ($idUpsell > 0) {
-                            (new UpsellManager($this->module))->recordClick($idUpsell);
+                    // Tracking upsell : détecte neria_ur dans l'URL cible
+                    if ($url !== '' && class_exists('UpsellManager')) {
+                        $parsed = parse_url($url);
+                        if (!empty($parsed['query'])) {
+                            parse_str($parsed['query'], $qp);
+                            $idUpsell = (int) ($qp['neria_ur'] ?? 0);
+                            if ($idUpsell > 0) {
+                                (new UpsellManager($this->module))->recordClick($idUpsell);
+                            }
                         }
                     }
+                } else {
+                    $stats->recordOpen($token);
                 }
-
-                if ($url !== '' && Validate::isAbsoluteUrl($url)) {
-                    header('Location: ' . $url, true, 302);
-                    exit;
-                }
-            } else {
-                $stats->recordOpen($token);
             }
+        } catch (\Throwable $e) {
+            if (class_exists('WatchdogManager')) {
+                try {
+                    (new WatchdogManager($this->module))->warning(
+                        "Pixel de tracking [{$event}] — exception non bloquante : " . $e->getMessage(),
+                        '', 'TrackController'
+                    );
+                } catch (\Throwable $ignored) {
+                }
+            }
+        }
+
+        // La redirection (clic) doit se produire même si le tracking a échoué —
+        // le client ne doit jamais tomber sur une page cassée à cause de nous.
+        if ($event === 'click' && $url !== '' && Validate::isAbsoluteUrl($url)) {
+            header('Location: ' . $url, true, 302);
+            exit;
         }
 
         $this->outputPixel();

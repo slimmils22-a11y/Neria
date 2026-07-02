@@ -39,25 +39,44 @@ class NeriaBounceModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $mgr = new BounceManager($this->module);
+        // Best-effort : une exception ici ne doit jamais renvoyer une page
+        // d'erreur brute à l'ESP — plusieurs (Mailgun...) désactivent un
+        // webhook après des échecs HTTP répétés, cassant durablement et
+        // silencieusement tout le pipeline de bounces.
+        try {
+            $mgr = new BounceManager($this->module);
 
-        // Vérification de la signature HMAC
-        $signature = $_SERVER['HTTP_X_NERIA_SIGNATURE'] ?? '';
-        if ($signature !== '' && !$mgr->verifyWebhookSignature($rawBody, $signature)) {
-            $this->jsonResponse(['error' => 'Invalid signature'], 401);
-            return;
+            // Vérification de la signature HMAC
+            $signature = $_SERVER['HTTP_X_NERIA_SIGNATURE'] ?? '';
+            if ($signature !== '' && !$mgr->verifyWebhookSignature($rawBody, $signature)) {
+                $this->jsonResponse(['error' => 'Invalid signature'], 401);
+                return;
+            }
+
+            // Détection automatique de la source ESP
+            $source = $this->detectSource($payload, $_SERVER);
+
+            $recorded = $mgr->processBounceWebhook($payload, $source);
+
+            $this->jsonResponse([
+                'ok'       => $recorded,
+                'source'   => $source,
+                'recorded' => $recorded,
+            ]);
+        } catch (\Throwable $e) {
+            if (class_exists('WatchdogManager')) {
+                try {
+                    (new WatchdogManager($this->module))->error(
+                        'Webhook bounce — exception : ' . $e->getMessage(),
+                        '', 'BounceController'
+                    );
+                } catch (\Throwable $ignored) {
+                }
+            }
+            // 200 volontaire : évite que l'ESP désactive le webhook après
+            // plusieurs échecs HTTP consécutifs (comportement Mailgun notamment).
+            $this->jsonResponse(['ok' => false, 'error' => 'internal_error_logged'], 200);
         }
-
-        // Détection automatique de la source ESP
-        $source = $this->detectSource($payload, $_SERVER);
-
-        $recorded = $mgr->processBounceWebhook($payload, $source);
-
-        $this->jsonResponse([
-            'ok'       => $recorded,
-            'source'   => $source,
-            'recorded' => $recorded,
-        ]);
     }
 
     /**
