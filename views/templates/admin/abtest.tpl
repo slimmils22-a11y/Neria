@@ -40,7 +40,7 @@
             <div class="neria-abtest-variant{if $winner === 'A'} neria-abtest-variant--winner{/if}">
               <span class="neria-abtest-variant__label">A</span>
               <span class="neria-abtest-variant__name">
-                {$tests_data[$key].a.variant_name|default:'Variante A'}
+                {$tests_data[$key].a.variant_name|default:'Variante A'|escape:'html'}
               </span>
               <span class="neria-abtest-variant__metrics">
                 <span class="neria-abtest-metric">{$report.A.rate_open|default:0}% {neria_admin key='abtest.open_short'}</span>
@@ -56,7 +56,7 @@
             <div class="neria-abtest-variant{if $winner === 'B'} neria-abtest-variant--winner{/if}">
               <span class="neria-abtest-variant__label neria-abtest-variant__label--b">B</span>
               <span class="neria-abtest-variant__name">
-                {$tests_data[$key].b.variant_name|default:'Variante B'}
+                {$tests_data[$key].b.variant_name|default:'Variante B'|escape:'html'}
               </span>
               <span class="neria-abtest-variant__metrics">
                 <span class="neria-abtest-metric">{$report.B.rate_open|default:0}% {neria_admin key='abtest.open_short'}</span>

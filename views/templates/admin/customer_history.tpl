@@ -56,7 +56,7 @@
 {if $neria_hist_selected_customer}
 <div class="neria-section neria-customer-history" id="neria-customer-history">
   <div class="panel-heading neria-history__heading">
-    <span><i class="icon-envelope"></i> {neria_admin key='history.title'} — {$neria_hist_selected_label}</span>
+    <span><i class="icon-envelope"></i> {neria_admin key='history.title'} — {$neria_hist_selected_label|escape:'html'}</span>
     <span class="neria-powered-by">{neria_admin key='history.powered_by'}</span>
   </div>
 

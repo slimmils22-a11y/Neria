@@ -72,14 +72,14 @@
   {if isset($neria_success) && $neria_success}
     <div class="neria-alert neria-alert--success" data-neria-alert data-neria-action="{$neria_msg_action|default:''|escape:'html'}">
       <span class="neria-alert__icon">✓</span>
-      {$neria_success}
+      {$neria_success|escape:'html'}
     </div>
   {/if}
 
   {if isset($neria_error) && $neria_error}
     <div class="neria-alert neria-alert--error" data-neria-alert data-neria-action="{$neria_msg_action|default:''|escape:'html'}">
       <span class="neria-alert__icon">⚠</span>
-      {$neria_error}
+      {$neria_error|escape:'html'}
     </div>
   {/if}
 

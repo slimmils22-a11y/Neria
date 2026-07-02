@@ -792,7 +792,7 @@ var _nhm = {$open_heatmap|default:'null'};
           {* Variante A *}
           <div style="padding:12px; background:var(--neria-bg); border-radius:4px; {if $winner === 'A'}border-left:3px solid var(--neria-accent);{/if}">
             <div style="font-size:10px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--neria-muted); margin-bottom:6px;">
-              A — {$td.a.variant_name|default:'Variante A'}{if $winner === 'A'} ↑{/if}
+              A — {$td.a.variant_name|default:'Variante A'|escape:'html'}{if $winner === 'A'} ↑{/if}
             </div>
             <div style="font-size:24px; font-weight:700; color:var(--neria-text);">{$fr.A.total_sent|default:0}</div>
             <div style="font-size:11px; color:var(--neria-muted); margin-bottom:6px;">{neria_admin key='common.sent'}</div>
@@ -806,7 +806,7 @@ var _nhm = {$open_heatmap|default:'null'};
           {* Variante B *}
           <div style="padding:12px; background:var(--neria-bg); border-radius:4px; {if $winner === 'B'}border-left:3px solid var(--neria-accent);{/if}">
             <div style="font-size:10px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--neria-muted); margin-bottom:6px;">
-              B — {$td.b.variant_name|default:'Variante B'}{if $winner === 'B'} ↑{/if}
+              B — {$td.b.variant_name|default:'Variante B'|escape:'html'}{if $winner === 'B'} ↑{/if}
             </div>
             <div style="font-size:24px; font-weight:700; color:var(--neria-text);">{$fr.B.total_sent|default:0}</div>
             <div style="font-size:11px; color:var(--neria-muted); margin-bottom:6px;">{neria_admin key='common.sent'}</div>
@@ -2674,9 +2674,10 @@ var _nhm = {$open_heatmap|default:'null'};
             <td>
               {neria_admin key=$day_names[$rec.best_day]}
             </td>
+            {assign var="ghNextHour" value=($rec.best_hour+1)%24}
             <td>
               <span class="neria-golden-hour">
-                {if $rec.best_hour < 10}0{/if}{$rec.best_hour}h — {if $rec.best_hour < 9}{if $rec.best_hour+1 < 10}0{/if}{$rec.best_hour+1}{else}{$rec.best_hour+1}{/if}h
+                {if $rec.best_hour < 10}0{/if}{$rec.best_hour}h — {if $ghNextHour < 10}0{/if}{$ghNextHour}h
               </span>
             </td>
             <td class="neria-table__num">{$rec.total_opens}</td>

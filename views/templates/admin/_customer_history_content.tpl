@@ -10,7 +10,7 @@
  *}
 {if $neria_resend_message}
 <div class="neria-alert neria-alert--{if $neria_resend_message.ok}success{else}error{/if}">
-  {$neria_resend_message.text}
+  {$neria_resend_message.text|escape:'html'}
 </div>
 {/if}
 
@@ -222,7 +222,7 @@
 <div class="neria-history__alerts">
   {foreach $neria_history.alerts as $alert}
     <div class="neria-alert neria-alert--{if $alert.type === 'success'}success{else}warning{/if}">
-      {$alert.text}
+      {$alert.text|escape:'html'}
     </div>
   {/foreach}
 </div>
