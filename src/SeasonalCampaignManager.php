@@ -168,7 +168,17 @@ class SeasonalCampaignManager
                 $campaign['target_segment'] = 'ambassador,loyal';
             }
 
-            $customers = $this->getEligibleCustomers($campaign);
+            // Isole chaque campagne : une erreur ici (ciblage, dédup…) ne doit
+            // jamais empêcher les campagnes saisonnières suivantes de se déclencher.
+            try {
+                $customers = $this->getEligibleCustomers($campaign);
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    sprintf('Campagne saisonnière "%s" — ciblage échoué : %s.', $campaign['name'], $e->getMessage()),
+                    $campaign['template'] ?? '', 'SeasonalCampaign'
+                );
+                continue;
+            }
             $sentCount = 0;
 
             foreach ($customers as $customer) {

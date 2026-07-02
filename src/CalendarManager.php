@@ -85,8 +85,17 @@ class CalendarManager
     public function checkAndSendDailyEvents(): void
     {
         \Configuration::updateValue(\HealthCheckManager::CRON_LAST_CALENDAR, date('Y-m-d H:i:s'));
-        $this->loadCalendarDates();
-        $events = $this->getActiveEvents();
+
+        try {
+            $this->loadCalendarDates();
+            $events = $this->getActiveEvents();
+        } catch (\Throwable $e) {
+            $this->watchdog()->error(
+                'CalendarManager : chargement des occasions échoué — ' . $e->getMessage(),
+                '', 'CalendarManager'
+            );
+            return;
+        }
 
         if (empty($events)) {
             return;

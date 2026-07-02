@@ -93,27 +93,29 @@ class BehavioralCronManager
             }
         }
 
-        $this->sendBirthdays();
-        $this->sendFirstAnniversaries();
-        $this->sendRelationshipAnniversaries();
-        $this->sendReorderReminders();
-        $this->sendWinBacks();
-        $this->sendRewardExpiryAlerts();
-        $this->sendWishlistReminders();
-        $this->sendAbandonedCarts('abandoned_cart_1', self::DELAY_CART_1_HOURS);
-        $this->sendAbandonedCarts('abandoned_cart_2', self::DELAY_CART_2_HOURS);
-        $this->sendAbandonedCarts('abandoned_cart_3', self::DELAY_CART_3_HOURS);
-        $this->sendCheckoutAbandonment();
-        $this->sendQuoteExpiryReminders();
-        $this->sendRefundReconciliations();
-        $this->sendLifespanReminders();
-        $this->recalculatePropensityScores();
-        $this->sendPostPurchase('post_purchase_care',   self::DELAY_POST_CARE_DAYS);
-        $this->sendPostPurchase('post_purchase_review', self::DELAY_POST_REVIEW_DAYS);
-        $this->sendShippedDelayAlerts();
-        $this->sendCollectionCompletions();
-        $this->sendLookCompletions();
-        $this->sendGhostCarts();
+        // Chaque tâche est isolée : l'échec de l'une (ex: sendBirthdays())
+        // ne doit jamais empêcher les 19 autres de s'exécuter le même jour.
+        $this->runStep('sendBirthdays',                 fn () => $this->sendBirthdays());
+        $this->runStep('sendFirstAnniversaries',         fn () => $this->sendFirstAnniversaries());
+        $this->runStep('sendRelationshipAnniversaries',  fn () => $this->sendRelationshipAnniversaries());
+        $this->runStep('sendReorderReminders',           fn () => $this->sendReorderReminders());
+        $this->runStep('sendWinBacks',                   fn () => $this->sendWinBacks());
+        $this->runStep('sendRewardExpiryAlerts',         fn () => $this->sendRewardExpiryAlerts());
+        $this->runStep('sendWishlistReminders',          fn () => $this->sendWishlistReminders());
+        $this->runStep('sendAbandonedCarts(1)',          fn () => $this->sendAbandonedCarts('abandoned_cart_1', self::DELAY_CART_1_HOURS));
+        $this->runStep('sendAbandonedCarts(2)',          fn () => $this->sendAbandonedCarts('abandoned_cart_2', self::DELAY_CART_2_HOURS));
+        $this->runStep('sendAbandonedCarts(3)',          fn () => $this->sendAbandonedCarts('abandoned_cart_3', self::DELAY_CART_3_HOURS));
+        $this->runStep('sendCheckoutAbandonment',        fn () => $this->sendCheckoutAbandonment());
+        $this->runStep('sendQuoteExpiryReminders',       fn () => $this->sendQuoteExpiryReminders());
+        $this->runStep('sendRefundReconciliations',      fn () => $this->sendRefundReconciliations());
+        $this->runStep('sendLifespanReminders',          fn () => $this->sendLifespanReminders());
+        $this->runStep('recalculatePropensityScores',    fn () => $this->recalculatePropensityScores());
+        $this->runStep('sendPostPurchase(care)',         fn () => $this->sendPostPurchase('post_purchase_care',   self::DELAY_POST_CARE_DAYS));
+        $this->runStep('sendPostPurchase(review)',       fn () => $this->sendPostPurchase('post_purchase_review', self::DELAY_POST_REVIEW_DAYS));
+        $this->runStep('sendShippedDelayAlerts',         fn () => $this->sendShippedDelayAlerts());
+        $this->runStep('sendCollectionCompletions',      fn () => $this->sendCollectionCompletions());
+        $this->runStep('sendLookCompletions',            fn () => $this->sendLookCompletions());
+        $this->runStep('sendGhostCarts',                 fn () => $this->sendGhostCarts());
 
         // ── Segmentation comportementale (recalcul quotidien) ─────────
         if (class_exists('SegmentManager')) {
@@ -141,6 +143,22 @@ class BehavioralCronManager
 
         $this->watchdog()->cronHeartbeat('behavioral', 'ok');
         $this->watchdog()->info('BehavioralCronManager terminé', '', 'BehavioralCron');
+    }
+
+    /**
+     * Exécute une tâche isolée : une exception y est journalisée puis
+     * absorbée, sans jamais interrompre les tâches suivantes du run().
+     */
+    private function runStep(string $label, callable $fn): void
+    {
+        try {
+            $fn();
+        } catch (\Throwable $e) {
+            $this->watchdog()->error(
+                "Tâche « {$label} » a échoué : " . $e->getMessage(),
+                '', 'BehavioralCron'
+            );
+        }
     }
 
     // ============================================================
