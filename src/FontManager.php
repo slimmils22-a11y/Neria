@@ -117,6 +117,14 @@ class FontManager
             'languages'   => ['ko'],
             'description' => 'Serif coréenne — formelle et élégante',
         ],
+        'Nanum Myeongjo' => [
+            'google_url'  => 'https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap',
+            'css_family'  => "'Nanum Myeongjo', Batang, 'Malgun Gothic', serif",
+            'fallback'    => "Batang, 'Malgun Gothic', serif",
+            'script'      => 'korean',
+            'languages'   => ['ko'],
+            'description' => 'Serif coréenne traditionnelle — très lisible',
+        ],
 
         // ── Polices chinoises simplifiées ─────────────────────────
 
@@ -128,6 +136,14 @@ class FontManager
             'languages'   => ['zh'],
             'description' => 'Serif chinois simplifié',
         ],
+        'ZCOOL XiaoWei' => [
+            'google_url'  => 'https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap',
+            'css_family'  => "'ZCOOL XiaoWei', SimSun, 'Songti SC', serif",
+            'fallback'    => "SimSun, 'Songti SC', serif",
+            'script'      => 'chinese_simplified',
+            'languages'   => ['zh'],
+            'description' => 'Serif moderne et épurée',
+        ],
 
         // ── Polices chinoises traditionnelles ─────────────────────
 
@@ -138,6 +154,14 @@ class FontManager
             'script'      => 'chinese_traditional',
             'languages'   => ['tw'],
             'description' => 'Serif chinois traditionnel',
+        ],
+        'Noto Serif HK' => [
+            'google_url'  => 'https://fonts.googleapis.com/css2?family=Noto+Serif+HK:wght@300;400;500&display=swap',
+            'css_family'  => "'Noto Serif HK', PMingLiU, 'Apple LiSung', serif",
+            'fallback'    => "PMingLiU, 'Apple LiSung', serif",
+            'script'      => 'chinese_traditional',
+            'languages'   => ['tw'],
+            'description' => 'Serif style Hong Kong — variante raffinée',
         ],
 
         // ── Polices cyrilliques ────────────────────────────────────
