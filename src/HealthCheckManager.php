@@ -2175,13 +2175,18 @@ class HealthCheckManager
      */
     private function checkMonthlyReportConfig(): array
     {
-        $enabled = (bool) \Configuration::get('NERIA_MONTHLY_REPORT_ENABLED');
+        // Clés réelles : MonthlyReportManager::CONFIG_ENABLED/CONFIG_RECIPIENTS
+        // (NERIA_REPORT_ENABLED / NERIA_REPORT_RECIPIENTS) — pas
+        // NERIA_MONTHLY_REPORT_ENABLED/EMAIL, qui ne sont jamais écrites.
+        // Ce contrôle rapportait donc systématiquement "désactivé", même
+        // avec le rapport mensuel actif sans destinataire valide.
+        $enabled = (bool) \Configuration::get(\MonthlyReportManager::CONFIG_ENABLED);
 
         if (!$enabled) {
             return ['status' => self::STATUS_OK, 'detail' => 'Rapport mensuel désactivé.'];
         }
 
-        $recipient = trim((string) \Configuration::get('NERIA_MONTHLY_REPORT_EMAIL'));
+        $recipient = trim((string) \Configuration::get(\MonthlyReportManager::CONFIG_RECIPIENTS));
 
         if ($recipient === '') {
             return [
@@ -2208,7 +2213,11 @@ class HealthCheckManager
      */
     private function checkDeeplKeyValid(): array
     {
-        $key = trim((string) \Configuration::get('NERIA_DEEPL_API_KEY'));
+        // La clé est enregistrée sous NERIA_DEEPL_KEY (ConfigManager::KEY_DEEPL_KEY,
+        // action save_deepl_key) — pas NERIA_DEEPL_API_KEY, qui n'est jamais écrite.
+        // Ce contrôle rapportait donc systématiquement "non configurée", même
+        // avec une clé DeepL correctement enregistrée et fonctionnelle.
+        $key = trim((string) \Configuration::get('NERIA_DEEPL_KEY'));
 
         if ($key === '') {
             return ['status' => self::STATUS_OK, 'detail' => 'Clé DeepL non configurée (traduction automatique désactivée).'];
@@ -2364,7 +2373,14 @@ class HealthCheckManager
             return ['status' => self::STATUS_OK, 'detail' => 'SegmentManager absent — segmentation non activée.'];
         }
 
-        $lastRun = \Configuration::get('NERIA_SEGMENT_LAST_RUN');
+        // SegmentManager ne tient pas de flag global de dernière exécution
+        // (NERIA_SEGMENT_LAST_RUN n'est écrite nulle part) — la fraîcheur
+        // réelle se lit dans computed_at, par client, dans la table de
+        // segmentation. Ce contrôle rapportait donc systématiquement
+        // "jamais exécuté", même la segmentation tournant chaque nuit.
+        $lastRun = \Db::getInstance()->getValue(
+            'SELECT MAX(`computed_at`) FROM `' . _DB_PREFIX_ . 'neria_customer_segment`'
+        );
 
         if (!$lastRun) {
             return [
@@ -2543,12 +2559,12 @@ class HealthCheckManager
      */
     private function checkAttributionCoverage(): array
     {
-        $enabled = (bool) \Configuration::get('NERIA_ATTRIBUTION_ENABLED');
-
-        if (!$enabled) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Attribution désactivée.'];
-        }
-
+        // L'attribution de revenus (last-click 24h) est une fonctionnalité
+        // toujours active — il n'existe aucun interrupteur marchand pour la
+        // désactiver (le cookie neria_ref est posé sans condition dans
+        // track.php). Ce contrôle vérifiait auparavant une clé de
+        // configuration NERIA_ATTRIBUTION_ENABLED qui n'était écrite nulle
+        // part, ce qui le rendait toujours inactif.
         $db = \Db::getInstance();
 
         $recentOrders = (int) $db->getValue('
