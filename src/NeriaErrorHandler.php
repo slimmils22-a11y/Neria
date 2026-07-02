@@ -172,6 +172,65 @@ class NeriaErrorHandler
         }
     }
 
+    /**
+     * Filet générique pour les hooks PrestaShop à retour void (actionXxx,
+     * displayBackOfficeHeader…). Utilisé pour tous les hooks qui ne rendent
+     * pas de HTML — une exception y est journalisée puis absorbée.
+     */
+    public static function wrapHookVoid(string $hookName, callable $callback, \Neria $module): void
+    {
+        try {
+            $callback();
+        } catch (\Throwable $e) {
+            self::logHookCrash($hookName, $e, $module);
+        }
+    }
+
+    /**
+     * Filet générique pour les hooks PrestaShop qui retournent du HTML
+     * (displayXxx). Retourne une chaîne vide en cas d'exception — le bloc
+     * Neria disparaît silencieusement plutôt que de casser toute la page
+     * (fiche commande, fiche client, page produit…).
+     */
+    public static function wrapHookString(string $hookName, callable $callback, \Neria $module): string
+    {
+        try {
+            return (string) $callback();
+        } catch (\Throwable $e) {
+            self::logHookCrash($hookName, $e, $module);
+            return '';
+        }
+    }
+
+    private static function logHookCrash(string $hookName, \Throwable $e, \Neria $module): void
+    {
+        try {
+            (new \WatchdogManager($module))->critical(
+                sprintf(
+                    'Crash dans %s() : %s in %s:%d — Corrigez en priorité, ce hook peut affecter'
+                    . ' une page visitée par vos clients ou votre équipe (pas seulement Neria).',
+                    $hookName,
+                    $e->getMessage(),
+                    basename($e->getFile()),
+                    $e->getLine()
+                ),
+                '',
+                'NeriaErrorHandler'
+            );
+        } catch (\Throwable $t) {
+            try {
+                $db  = \Db::getInstance();
+                $msg = pSQL(substr($hookName . ' : ' . $e->getMessage(), 0, 500));
+                $db->execute(
+                    "INSERT INTO `" . _DB_PREFIX_ . "neria_log`
+                     (id_shop, level, template, class, message, date_add)
+                     VALUES (1, 'critical', '', 'NeriaErrorHandler', '$msg', NOW())"
+                );
+            } catch (\Throwable $ignored) {
+            }
+        }
+    }
+
     private static function errorTypeName(int $type): string
     {
         return match ($type) {

@@ -213,6 +213,34 @@ class Neria extends Module
      */
     public function hookActionEmailSendBefore(array &$params): bool
     {
+        // CRITIQUE : ce hook s'exécute avant CHAQUE email envoyé par
+        // PrestaShop (confirmation de commande, réinitialisation mot de
+        // passe, facture…), pas seulement les templates Neria. En cas
+        // d'exception, on retourne TOUJOURS true (laisser PS envoyer son
+        // email natif) — jamais false, qui annulerait silencieusement un
+        // email transactionnel critique pour le client.
+        try {
+            return $this->hookActionEmailSendBeforeImpl($params);
+        } catch (\Throwable $e) {
+            if (class_exists('WatchdogManager')) {
+                try {
+                    (new WatchdogManager($this))->critical(
+                        'Crash dans hookActionEmailSendBefore() : ' . $e->getMessage()
+                        . ' in ' . basename($e->getFile()) . ':' . $e->getLine()
+                        . ' — Ce hook tourne sur TOUS les emails PrestaShop (pas que Neria).'
+                        . ' Envoi natif PS laissé passer par sécurité. Corrigez en priorité absolue.',
+                        $params['template'] ?? '',
+                        'NeriaErrorHandler'
+                    );
+                } catch (\Throwable $ignored) {
+                }
+            }
+            return true;
+        }
+    }
+
+    private function hookActionEmailSendBeforeImpl(array &$params): bool
+    {
         // Templates internes Neria : on laisse PS envoyer directement sans
         // passer par l'EmailRenderer (ils ont leur propre rendu autonome).
         $internalTemplates = ['monthly_report', 'log_alert', 'neria_fallback'];
@@ -396,6 +424,13 @@ class Neria extends Module
      */
     public function hookActionObjectOrderAddAfter(array $params): void
     {
+        NeriaErrorHandler::wrapHookVoid('hookActionObjectOrderAddAfter', function () use ($params): void {
+            $this->hookActionObjectOrderAddAfterImpl($params);
+        }, $this);
+    }
+
+    private function hookActionObjectOrderAddAfterImpl(array $params): void
+    {
         $order = $params['object'] ?? null;
         if (!$order instanceof Order) {
             return;
@@ -445,6 +480,13 @@ class Neria extends Module
      * Idempotent : recordConversion() ignore les tokens déjà convertis.
      */
     public function hookActionOrderStatusPostUpdate(array $params): void
+    {
+        NeriaErrorHandler::wrapHookVoid('hookActionOrderStatusPostUpdate', function () use ($params): void {
+            $this->hookActionOrderStatusPostUpdateImpl($params);
+        }, $this);
+    }
+
+    private function hookActionOrderStatusPostUpdateImpl(array $params): void
     {
         $newStatus = $params['newOrderStatus'] ?? null;
         $oldStatus = $params['oldOrderStatus'] ?? null;
@@ -504,14 +546,16 @@ class Neria extends Module
      */
     public function hookActionOrderSlipAdd(array $params): void
     {
-        if (!class_exists('OrderTriggersManager')) {
-            return;
-        }
-        $order = $params['order'] ?? null;
-        if (!$order instanceof Order) {
-            return;
-        }
-        (new OrderTriggersManager($this))->handleRefund($order, $params['productList'] ?? []);
+        NeriaErrorHandler::wrapHookVoid('hookActionOrderSlipAdd', function () use ($params): void {
+            if (!class_exists('OrderTriggersManager')) {
+                return;
+            }
+            $order = $params['order'] ?? null;
+            if (!$order instanceof Order) {
+                return;
+            }
+            (new OrderTriggersManager($this))->handleRefund($order, $params['productList'] ?? []);
+        }, $this);
     }
 
     /**
@@ -519,14 +563,16 @@ class Neria extends Module
      */
     public function hookActionObjectOrderReturnAddAfter(array $params): void
     {
-        if (!class_exists('OrderTriggersManager')) {
-            return;
-        }
-        $orderReturn = $params['object'] ?? null;
-        if (!$orderReturn instanceof OrderReturn) {
-            return;
-        }
-        (new OrderTriggersManager($this))->handleReturn($orderReturn);
+        NeriaErrorHandler::wrapHookVoid('hookActionObjectOrderReturnAddAfter', function () use ($params): void {
+            if (!class_exists('OrderTriggersManager')) {
+                return;
+            }
+            $orderReturn = $params['object'] ?? null;
+            if (!$orderReturn instanceof OrderReturn) {
+                return;
+            }
+            (new OrderTriggersManager($this))->handleReturn($orderReturn);
+        }, $this);
     }
 
     /**
@@ -534,6 +580,13 @@ class Neria extends Module
      * Affiché en bas de la colonne principale (under order details)
      */
     public function hookDisplayAdminOrderMainBottom(array $params): string
+    {
+        return NeriaErrorHandler::wrapHookString('hookDisplayAdminOrderMainBottom', function () use ($params): string {
+            return $this->hookDisplayAdminOrderMainBottomImpl($params);
+        }, $this);
+    }
+
+    private function hookDisplayAdminOrderMainBottomImpl(array $params): string
     {
         if (!class_exists('CertificateManager')) {
             return '';
@@ -604,6 +657,13 @@ class Neria extends Module
     }
 
     private function renderCustomerEmailHistory(array $params): string
+    {
+        return NeriaErrorHandler::wrapHookString('hookDisplayAdminCustomersView', function () use ($params): string {
+            return $this->renderCustomerEmailHistoryImpl($params);
+        }, $this);
+    }
+
+    private function renderCustomerEmailHistoryImpl(array $params): string
     {
         if (!class_exists('CustomerEmailHistoryManager')) {
             return '';
@@ -798,9 +858,19 @@ class Neria extends Module
     }
 
     /**
-     * Hook back-office : injecte CSS et JS Neria dans le header admin
+     * Hook back-office : injecte CSS et JS Neria dans le header admin.
+     * CRITIQUE : ce hook tourne sur CHAQUE page du BO PrestaShop (pas
+     * seulement Neria) — une exception non rattrapée ici casserait
+     * l'administration entière de la boutique pour le marchand.
      */
     public function hookDisplayBackOfficeHeader(): void
+    {
+        NeriaErrorHandler::wrapHookVoid('hookDisplayBackOfficeHeader', function (): void {
+            $this->hookDisplayBackOfficeHeaderImpl();
+        }, $this);
+    }
+
+    private function hookDisplayBackOfficeHeaderImpl(): void
     {
         $controllerName = Tools::getValue('controller') ?: ($this->context->controller->controller_name ?? '');
         $requestUri     = (string) ($_SERVER['REQUEST_URI'] ?? '');
@@ -1050,6 +1120,13 @@ class Neria extends Module
     // ── Liste d'attente ───────────────────────────────────────────
 
     public function hookDisplayProductAdditionalInfo(array $params): string
+    {
+        return NeriaErrorHandler::wrapHookString('hookDisplayProductAdditionalInfo', function () use ($params): string {
+            return $this->hookDisplayProductAdditionalInfoImpl($params);
+        }, $this);
+    }
+
+    private function hookDisplayProductAdditionalInfoImpl(array $params): string
     {
         if (!Configuration::getGlobalValue('NERIA_WAITLIST_ENABLED')) return '';
         if (!class_exists('WaitlistManager')) return '';
