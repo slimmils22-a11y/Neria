@@ -26,7 +26,15 @@ class NeriaWaitlistModuleFrontController extends ModuleFrontController
         $redirect  = $idProduct
             ? $this->context->link->getProductLink($idProduct)
             : 'index.php?controller=my-account';
-        if ($back) $redirect = urldecode($back);
+        if ($back) {
+            $decodedBack = urldecode($back);
+            // N'accepte qu'un chemin relatif interne (commence par un seul "/") —
+            // jamais une URL absolue ou protocol-relative ("//host/..."), sinon
+            // ce endpoint devient un open redirect vers un domaine externe.
+            if (strpos($decodedBack, '/') === 0 && strpos($decodedBack, '//') !== 0) {
+                $redirect = $decodedBack;
+            }
+        }
 
         if (!$idProduct || !in_array($action, ['subscribe', 'unsubscribe'])) {
             Tools::redirect($redirect);

@@ -32,6 +32,14 @@ class NeriaTrackModuleFrontController extends ModuleFrontController
         $event = Tools::strtolower((string) Tools::getValue('e', 'open'));
         $url   = (string) Tools::getValue('url', '');
 
+        // Autorisation de redirection : liée à un token connu, jamais à l'URL
+        // seule — sans ça, ce endpoint public devient un open redirect
+        // (n'importe qui peut forger track.php?e=click&url=https://phishing…
+        // sans token et faire rediriger via le domaine de confiance de la
+        // boutique). En cas d'exception (DB, etc.) on reste permissif SI un
+        // token était présent, pour ne jamais casser un email déjà envoyé.
+        $redirectAllowed = false;
+
         // Le tracking (best-effort) ne doit JAMAIS empêcher la redirection du
         // client ou l'affichage du pixel. Une exception ici — DB, token
         // corrompu, disque plein — ne doit jamais se traduire par un lien
@@ -41,12 +49,13 @@ class NeriaTrackModuleFrontController extends ModuleFrontController
                 $stats = new StatsManager($this->module);
 
                 if ($event === 'click') {
-                    $stats->recordClick($token, $url);
-
-                    // Cookie d'attribution : template:lang:token (24h)
-                    // Permet à hookActionOrderStatusPostUpdate d'attribuer la commande.
                     $ref = $stats->getRefDataByToken($token);
                     if ($ref) {
+                        $redirectAllowed = true;
+                        $stats->recordClick($token, $url);
+
+                        // Cookie d'attribution : template:lang:token (24h)
+                        // Permet à hookActionOrderStatusPostUpdate d'attribuer la commande.
                         $cookieVal = implode(':', [$ref['template'], $ref['lang'], $token]);
                         setcookie('neria_ref', $cookieVal, [
                             'expires'  => time() + 86400,
@@ -73,6 +82,11 @@ class NeriaTrackModuleFrontController extends ModuleFrontController
                 }
             }
         } catch (\Throwable $e) {
+            // Infra en échec (pas un token invalide) : reste permissif si un
+            // token était fourni, pour ne pas casser un email déjà envoyé.
+            if ($token !== '') {
+                $redirectAllowed = true;
+            }
             if (class_exists('WatchdogManager')) {
                 try {
                     (new WatchdogManager($this->module))->warning(
@@ -85,8 +99,9 @@ class NeriaTrackModuleFrontController extends ModuleFrontController
         }
 
         // La redirection (clic) doit se produire même si le tracking a échoué —
-        // le client ne doit jamais tomber sur une page cassée à cause de nous.
-        if ($event === 'click' && $url !== '' && Validate::isAbsoluteUrl($url)) {
+        // le client ne doit jamais tomber sur une page cassée à cause de nous —
+        // mais uniquement pour un token connu (cf. $redirectAllowed ci-dessus).
+        if ($event === 'click' && $redirectAllowed && $url !== '' && Validate::isAbsoluteUrl($url)) {
             header('Location: ' . $url, true, 302);
             exit;
         }

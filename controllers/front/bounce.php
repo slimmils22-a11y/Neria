@@ -46,9 +46,12 @@ class NeriaBounceModuleFrontController extends ModuleFrontController
         try {
             $mgr = new BounceManager($this->module);
 
-            // Vérification de la signature HMAC
-            $signature = $_SERVER['HTTP_X_NERIA_SIGNATURE'] ?? '';
-            if ($signature !== '' && !$mgr->verifyWebhookSignature($rawBody, $signature)) {
+            // Vérification de la signature HMAC — si un secret est configuré,
+            // la signature est obligatoire (sinon un attaquant contournerait
+            // la vérification en omettant simplement l'en-tête).
+            $signature       = $_SERVER['HTTP_X_NERIA_SIGNATURE'] ?? '';
+            $secretConfigured = (string) \Configuration::get(BounceManager::CFG_WEBHOOK_SECRET) !== '';
+            if ($secretConfigured && !$mgr->verifyWebhookSignature($rawBody, $signature)) {
                 $this->jsonResponse(['error' => 'Invalid signature'], 401);
                 return;
             }
