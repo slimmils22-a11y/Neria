@@ -37,7 +37,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.15';
+    const VERSION = '1.0.16';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -150,11 +150,11 @@ class Neria extends Module
             // Charge CSS/JS Neria dans le header du back-office
             'displayBackOfficeHeader',
 
-            // ── Occasions calendaires ─────────────────────────────
-            // Vérifie chaque jour les occasions à envoyer (cron-like)
-            'actionCronJob',
-
             // ── Support multi-boutique ────────────────────────────
+            // La vérification des occasions calendaires (cron-like) tourne
+            // via displayHeader (throttlée à 24h par cache) plutôt que via
+            // actionCronJob, qui dépend d'un module tiers de dispatch cron
+            // non garanti sur toutes les installations.
             'displayHeader',
 
             // ── Fiche client : bloc « Emails reçus » ──────────────
@@ -183,6 +183,9 @@ class Neria extends Module
             // ── Liste d'attente produits ───────────────────────────
             'displayProductAdditionalInfo',
             'actionUpdateQuantity',
+
+            // ── RGPD : purge à la suppression d'un client ──────────
+            'actionDeleteGDPRCustomer',
         ];
 
         foreach ($hooks as $hook) {
@@ -1184,6 +1187,49 @@ class Neria extends Module
     }
 
     /**
+     * Hook RGPD natif PrestaShop : déclenché quand un marchand supprime un
+     * client via « Supprimer + effacer les données personnelles » (BO
+     * Clients, ou via le module psgdpr). PrestaShop appelle ce hook avec
+     * l'objet Customer casté en tableau (clés : 'id', 'email', ...) —
+     * cf. modules/ps_emailsubscription/ps_emailsubscription.php pour le
+     * contrat exact. Purge les données Neria liées à ce client (stats,
+     * comportemental, fidélité, etc.) — GdprAuditManager::purgeCustomerData().
+     */
+    public function hookActionDeleteGDPRCustomer($customer): void
+    {
+        NeriaErrorHandler::wrapHookVoid('hookActionDeleteGDPRCustomer', function () use ($customer): void {
+            $this->hookActionDeleteGDPRCustomerImpl($customer);
+        }, $this);
+    }
+
+    private function hookActionDeleteGDPRCustomerImpl($customer): void
+    {
+        if (!class_exists('GdprAuditManager')) {
+            return;
+        }
+
+        $data       = (array) $customer;
+        $idCustomer = (int) ($data['id'] ?? $data['id_customer'] ?? 0);
+        $email      = (string) ($data['email'] ?? '');
+
+        if ($idCustomer <= 0 || $email === '') {
+            return;
+        }
+
+        $purged = (new GdprAuditManager($this))->purgeCustomerData($idCustomer, $email);
+
+        if (class_exists('WatchdogManager')) {
+            (new WatchdogManager($this))->info(
+                sprintf(
+                    'Purge RGPD Neria pour le client #%d (%s) : %d ligne(s) supprimée(s).',
+                    $idCustomer, $email, $purged
+                ),
+                '', 'GdprAuditManager'
+            );
+        }
+    }
+
+    /**
      * Hook cron-like : vérifie les occasions calendaires du jour
      * Déclenché par l'action displayHeader (toutes les 24h via cache)
      */
@@ -1803,6 +1849,7 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'save_report_config') {
             $recipients = strip_tags((string) Tools::getValue('neria_report_recipients', ''));
             Configuration::updateValue(MonthlyReportManager::CONFIG_RECIPIENTS, $recipients);
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
         // ── Action : envoi manuel du rapport ──────────────────────
@@ -2300,6 +2347,7 @@ class Neria extends Module
             $days = (int) Tools::getValue('neria_voucher_validity', 30);
             $days = max(1, min(365, $days));
             Configuration::updateValue(self::CONFIG_PREFIX . 'VOUCHER_VALIDITY', $days);
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
         if (Tools::getValue('neria_action') === 'save_target_countries') {
@@ -3429,6 +3477,47 @@ class Neria extends Module
                 'mp_selected_lang'     => $mpLang,
             ]);
             $this->context->smarty->assign('neria_success', 'Prévisualisation générée pour ' . count($previews) . ' client(s).');
+        }
+
+        // ── Multi-preview : soumission + sondage Litmus / Email on Acid ──
+        // Endpoints JSON purs, en dehors du try/catch général : re-rendent le
+        // HTML depuis mp_template/mp_lang (pas besoin de session côté serveur)
+        // et relaient l'appel à l'API tierce configurée par le marchand.
+        if (in_array(Tools::getValue('neria_action'), [
+            'multipreview_submit_litmus', 'multipreview_poll_litmus',
+            'multipreview_submit_eoa', 'multipreview_poll_eoa',
+        ], true) && class_exists('MultiClientPreviewManager')) {
+            while (ob_get_level() > 0) { ob_end_clean(); }
+            if (!headers_sent()) { header('Content-Type: application/json; charset=utf-8'); }
+
+            $mpAction = Tools::getValue('neria_action');
+            $mgr      = new MultiClientPreviewManager();
+
+            try {
+                if ($mpAction === 'multipreview_submit_litmus' || $mpAction === 'multipreview_submit_eoa') {
+                    $tpl  = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('mp_template', 'order_conf'));
+                    $lang = preg_replace('/[^a-z\-]/i', '', (string) Tools::getValue('mp_lang', 'fr'));
+                    $tpl  = $tpl !== '' ? $tpl : 'order_conf';
+                    $lang = $lang !== '' ? $lang : 'fr';
+
+                    $html = class_exists('EmailRenderer')
+                        ? (new EmailRenderer($this))->renderPreviewHtml($tpl, $lang)
+                        : '';
+
+                    $result = $mpAction === 'multipreview_submit_litmus'
+                        ? $mgr->submitToLitmus($html)
+                        : $mgr->submitToEmailOnAcid($html);
+                } else {
+                    $testId = preg_replace('/[^a-zA-Z0-9_\-]/', '', (string) Tools::getValue('test_id', ''));
+                    $result = ['results' => $testId !== ''
+                        ? ($mpAction === 'multipreview_poll_litmus' ? $mgr->pollLitmus($testId) : $mgr->pollEmailOnAcid($testId))
+                        : []];
+                }
+                echo json_encode($result);
+            } catch (\Throwable $e) {
+                echo json_encode(['error' => $e->getMessage()]);
+            }
+            exit;
         }
 
         // ── Prévisualisation multi-client : sauvegarde clés API ──

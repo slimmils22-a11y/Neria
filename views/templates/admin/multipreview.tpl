@@ -99,7 +99,24 @@
     <button type="button" id="neria-mp-export-btn" class="neria-btn neria-btn--primary neria-btn--sm">
       🖨 Exporter en PDF
     </button>
+    {if isset($mp_has_litmus) && $mp_has_litmus}
+    <button type="button" id="neria-mp-litmus-btn" class="neria-btn neria-btn--secondary neria-btn--sm"
+            data-mp-template="{$mp_selected_template|escape:'html'}" data-mp-lang="{$mp_selected_lang|escape:'html'}">
+      🧪 {neria_admin key='multipreview.litmus_btn'}
+    </button>
+    {/if}
+    {if isset($mp_has_eoa) && $mp_has_eoa}
+    <button type="button" id="neria-mp-eoa-btn" class="neria-btn neria-btn--secondary neria-btn--sm"
+            data-mp-template="{$mp_selected_template|escape:'html'}" data-mp-lang="{$mp_selected_lang|escape:'html'}">
+      🧪 {neria_admin key='multipreview.eoa_btn'}
+    </button>
+    {/if}
   </div>
+
+  {if (isset($mp_has_litmus) && $mp_has_litmus) || (isset($mp_has_eoa) && $mp_has_eoa)}
+  <div id="neria-mp-api-status" class="neria-hint" style="display:none;margin-bottom:10px;"></div>
+  <div id="neria-mp-api-results" class="neria-mp-api-results" style="margin-bottom:20px;"></div>
+  {/if}
 
   <div class="neria-mp-grid">
     {foreach $mp_clients as $clientId => $ci}
@@ -304,4 +321,103 @@ document.getElementById('neria-mp-zoom-overlay').addEventListener('click', funct
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape') { neriaCloseMpZoom(); }
 });
+
+// ── Tests tiers Litmus / Email on Acid ───────────────────────────
+// URL construite depuis la page courante (token + controller déjà présents),
+// nettoyée du neria_action précédent — même pattern que le reste du BO.
+function neriaMpAjaxUrl(action, extra) {
+  var base = window.location.href.split('#')[0].replace(/&neria_action=[^&]*/g, '');
+  return base + (base.indexOf('?') === -1 ? '?' : '&') + 'neria_action=' + action + (extra || '');
+}
+
+function neriaMpEscHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function neriaMpRunThirdPartyTest(provider) {
+  var btn = document.getElementById('neria-mp-' + provider + '-btn');
+  var statusEl = document.getElementById('neria-mp-api-status');
+  var resultsEl = document.getElementById('neria-mp-api-results');
+  if (!btn || !statusEl || !resultsEl) { return; }
+
+  var tpl  = btn.getAttribute('data-mp-template') || 'order_conf';
+  var lang = btn.getAttribute('data-mp-lang') || 'fr';
+
+  btn.disabled = true;
+  statusEl.style.display = '';
+  statusEl.textContent = '⏳ Envoi vers ' + (provider === 'litmus' ? 'Litmus' : 'Email on Acid') + '…';
+  resultsEl.innerHTML = '';
+
+  var submitUrl = neriaMpAjaxUrl('multipreview_submit_' + provider,
+    '&mp_template=' + encodeURIComponent(tpl) + '&mp_lang=' + encodeURIComponent(lang));
+
+  fetch(submitUrl, { credentials: 'same-origin' })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (!d || d.error || !d.id) {
+        statusEl.textContent = '⚠ ' + (d && d.error ? d.error : 'Échec de la soumission.');
+        btn.disabled = false;
+        return;
+      }
+      statusEl.textContent = '⏳ Test en cours — génération des aperçus…';
+      neriaMpPollThirdParty(provider, d.id, btn, statusEl, resultsEl, 0);
+    })
+    .catch(function () {
+      statusEl.textContent = '⚠ Impossible de contacter le serveur.';
+      btn.disabled = false;
+    });
+}
+
+function neriaMpPollThirdParty(provider, testId, btn, statusEl, resultsEl, attempt) {
+  var MAX_ATTEMPTS = 15; // ~15 × 4s = 60s max
+
+  var pollUrl = neriaMpAjaxUrl('multipreview_poll_' + provider, '&test_id=' + encodeURIComponent(testId));
+
+  fetch(pollUrl, { credentials: 'same-origin' })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var results = (d && d.results) || [];
+      var readyCount = results.filter(function (r) { return r.ready; }).length;
+
+      if (results.length) {
+        resultsEl.innerHTML = results.map(function (r) {
+          if (!r.ready) {
+            return '<div class="neria-mp-api-thumb"><div class="neria-mp-api-thumb__label">' + neriaMpEscHtml(r.client) + '</div>'
+                 + '<div style="width:120px;height:80px;display:flex;align-items:center;justify-content:center;background:#f5f5f5;border-radius:4px;font-size:11px;color:#aaa;">…</div></div>';
+          }
+          return '<div class="neria-mp-api-thumb"><div class="neria-mp-api-thumb__label">' + neriaMpEscHtml(r.client) + '</div>'
+               + '<img class="neria-mp-api-thumb__img" src="' + neriaMpEscHtml(r.image) + '" alt="' + neriaMpEscHtml(r.client) + '"></div>';
+        }).join('');
+      }
+
+      if (results.length && readyCount === results.length) {
+        statusEl.textContent = '✓ Terminé — ' + readyCount + ' rendu(s) client reçu(s).';
+        btn.disabled = false;
+        return;
+      }
+
+      if (attempt >= MAX_ATTEMPTS) {
+        statusEl.textContent = readyCount > 0
+          ? '✓ ' + readyCount + '/' + results.length + ' rendu(s) reçu(s) — les autres prennent plus de temps que prévu.'
+          : '⚠ Le test prend plus de temps que prévu — réessayez plus tard.';
+        btn.disabled = false;
+        return;
+      }
+
+      setTimeout(function () {
+        neriaMpPollThirdParty(provider, testId, btn, statusEl, resultsEl, attempt + 1);
+      }, 4000);
+    })
+    .catch(function () {
+      statusEl.textContent = '⚠ Erreur lors de la récupération des résultats.';
+      btn.disabled = false;
+    });
+}
+
+(function () {
+  var litmusBtn = document.getElementById('neria-mp-litmus-btn');
+  if (litmusBtn) { litmusBtn.addEventListener('click', function () { neriaMpRunThirdPartyTest('litmus'); }); }
+  var eoaBtn = document.getElementById('neria-mp-eoa-btn');
+  if (eoaBtn) { eoaBtn.addEventListener('click', function () { neriaMpRunThirdPartyTest('eoa'); }); }
+})();
 </script>{/literal}
