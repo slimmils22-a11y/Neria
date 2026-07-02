@@ -40,3 +40,11 @@ DROP TABLE IF EXISTS `PREFIX_neria_product_lifespan`;
 DROP TABLE IF EXISTS `PREFIX_neria_propensity_score`;
 
 DROP TABLE IF EXISTS `PREFIX_neria_queue`;
+DROP TABLE IF EXISTS `PREFIX_neria_collection_sent`;
+DROP TABLE IF EXISTS `PREFIX_neria_collection`;
+DROP TABLE IF EXISTS `PREFIX_neria_look_sent`;
+DROP TABLE IF EXISTS `PREFIX_neria_look_rule`;
+DROP TABLE IF EXISTS `PREFIX_neria_waitlist`;
+DROP TABLE IF EXISTS `PREFIX_neria_preferences`;
+DROP TABLE IF EXISTS `PREFIX_neria_abtest_history`;
+DROP TABLE IF EXISTS `PREFIX_neria_cron_health`;

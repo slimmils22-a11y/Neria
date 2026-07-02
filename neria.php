@@ -1330,6 +1330,31 @@ class Neria extends Module
             exit;
         }
 
+        // ── AJAX : aperçu signature manuscrite (onglet Configurer) ────
+        if (Tools::getValue('neria_action') === 'preview_signature') {
+            while (ob_get_level() > 0) { ob_end_clean(); }
+            if (!headers_sent()) { header('Content-Type: application/json; charset=utf-8'); }
+            try {
+                $sigName  = (string) Tools::getValue('sig_name', '');
+                $sigTitle = (string) Tools::getValue('sig_title', '');
+                $sigStyle = (string) Tools::getValue('sig_style', 'great_vibes');
+                $sigColor = (string) Tools::getValue('sig_color', '#b38b59');
+
+                if ($sigName === '') {
+                    $sigName = trim((string) Configuration::get('PS_SHOP_NAME')) ?: 'Signature';
+                }
+
+                $preview = class_exists('SignatureGenerator')
+                    ? (new SignatureGenerator($this))->generatePreview($sigName, $sigTitle, $sigStyle, $sigColor)
+                    : false;
+
+                echo json_encode(['preview' => $preview ?: null]);
+            } catch (\Throwable $e) {
+                echo json_encode(['preview' => null, 'error' => $e->getMessage()]);
+            }
+            exit;
+        }
+
         // ── Actions AJAX pures — doivent sortir avant le rendu PS ──────
         $earlyAction = Tools::getValue('neria_action');
 

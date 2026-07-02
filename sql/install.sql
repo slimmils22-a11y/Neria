@@ -224,6 +224,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_log` (
     `message`       TEXT            NOT NULL,
     `context`       TEXT            NULL,
     `date_add`      DATETIME        NOT NULL,
+    `occurrence_count` INT(11)      NOT NULL DEFAULT 1 COMMENT 'Nombre d''occurrences consolidées (déduplication 1h)',
     PRIMARY KEY (`id_log`),
     INDEX `idx_shop`    (`id_shop`),
     INDEX `idx_level`   (`level`),
@@ -574,7 +575,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_certificate` (
     `serial_number`   VARCHAR(100) NOT NULL COMMENT 'N° de série unique (ex: LUX-2026-000042)',
     `customer_name`   VARCHAR(255) NOT NULL DEFAULT '',
     `product_name`    VARCHAR(255) NOT NULL DEFAULT '',
-    `artisan_note`    TEXT         DEFAULT NULL COMMENT 'Note manuscrite optionnelle de l'artisan',
+    `artisan_note`    TEXT         DEFAULT NULL COMMENT 'Note manuscrite optionnelle de l''artisan',
     `pdf_path`        VARCHAR(500) DEFAULT NULL COMMENT 'Chemin relatif du PDF stocké',
     `emailed`         TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '1 = envoyé au client par email',
     `date_issued`     DATETIME     NOT NULL,
@@ -585,7 +586,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_certificate` (
     KEY `idx_product` (`id_product`),
     KEY `idx_shop`    (`id_shop`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Certificats d'authenticité émis par Neria — un par produit/commande';
+COMMENT='Certificats d''authenticité émis par Neria — un par produit/commande';
 
 -- TABLE 21 : neria_bounces (ancienne numérotation conservée)
 -- Adresses email invalides détectées par BounceManager.
@@ -829,3 +830,48 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_preferences` (
     KEY `idx_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Centre de préférences email Neria — opt-in/out par catégorie';
+
+-- ------------------------------------------------------------
+-- TABLE 34 : neria_abtest_history
+-- Historique des tests A/B terminés (archivage après application
+-- du gagnant). Alimentée par ABTestManager.
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `PREFIX_neria_abtest_history` (
+    `id_history`      INT(11)        NOT NULL AUTO_INCREMENT,
+    `id_shop`         INT(11)        NOT NULL DEFAULT 1,
+    `template`        VARCHAR(100)   NOT NULL,
+    `variant_a_name`  VARCHAR(100)   NOT NULL DEFAULT '',
+    `variant_b_name`  VARCHAR(100)   NOT NULL DEFAULT '',
+    `split_percent`   TINYINT(3)     NOT NULL DEFAULT 50,
+    `sent_a`          INT(11)        NOT NULL DEFAULT 0,
+    `sent_b`          INT(11)        NOT NULL DEFAULT 0,
+    `rate_open_a`     DECIMAL(5,2)   NOT NULL DEFAULT 0,
+    `rate_open_b`     DECIMAL(5,2)   NOT NULL DEFAULT 0,
+    `rate_click_a`    DECIMAL(5,2)   NOT NULL DEFAULT 0,
+    `rate_click_b`    DECIMAL(5,2)   NOT NULL DEFAULT 0,
+    `revenue_a`       DECIMAL(10,2)  NOT NULL DEFAULT 0,
+    `revenue_b`       DECIMAL(10,2)  NOT NULL DEFAULT 0,
+    `winner`          CHAR(1)        NULL,
+    `confidence`      TINYINT(3)     NULL,
+    `applied`         TINYINT(1)     NOT NULL DEFAULT 0,
+    `date_start`      DATETIME       NULL,
+    `date_end`        DATETIME       NOT NULL,
+    PRIMARY KEY (`id_history`),
+    INDEX `idx_shop_template` (`id_shop`, `template`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Historique des tests A/B terminés';
+
+-- ------------------------------------------------------------
+-- TABLE 35 : neria_cron_health
+-- Monitoring des crons internes (behavioral, calendar, webhook)
+-- pour le score de santé du Watchdog.
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `PREFIX_neria_cron_health` (
+    `id_shop`     INT(11)      NOT NULL DEFAULT 1,
+    `cron_key`    VARCHAR(50)  NOT NULL,
+    `last_run`    DATETIME     NULL,
+    `last_status` ENUM('ok','warning','error') NOT NULL DEFAULT 'ok',
+    `last_count`  INT(11)      NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id_shop`, `cron_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Monitoring des crons internes Neria (Watchdog)';

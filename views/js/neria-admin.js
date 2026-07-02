@@ -323,9 +323,10 @@
                 sig_title:    title ? title.value : ''
             });
 
-            var baseUrl = window.location.href.split('?')[0];
+            var baseUrl = window.location.href.split('#')[0]
+                .replace(/&neria_action=[^&]*/g, '');
 
-            fetch(baseUrl + '?' + params.toString())
+            fetch(baseUrl + (baseUrl.indexOf('?') > -1 ? '&' : '?') + params.toString())
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
                     if (data.preview) {

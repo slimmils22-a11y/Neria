@@ -14,6 +14,13 @@
     --neria-error:      #c0392b;
     --neria-warn:       #d68910;
     --neria-radius:     4px;
+    --neria-muted:      #88837c;
+    --neria-text-muted: #888;
+    --neria-bg:         #faf8f5;
+    --neria-bg-subtle:  #faf8f5;
+    --neria-bg-hover:   #f5f0ea;
+    --neria-container:  #fff;
+    --neria-gold:       #b38b59;
 }
 
 .neria-bo-wrap { font-family: 'Cormorant Garamond', Georgia, serif; color: var(--neria-text); }
