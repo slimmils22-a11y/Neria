@@ -459,7 +459,7 @@ class NeriaTools
         }
 
         // ── Hooks ─────────────────────────────────────────────────
-        $hooks = HooksManager::getHooksList();
+        $hooks = Neria::HOOKS;
         $report['hooks'] = [];
         foreach ($hooks as $hook) {
             $report['hooks'][$hook] = (bool) \Hook::getIdByName($hook)

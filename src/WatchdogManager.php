@@ -284,7 +284,7 @@ class WatchdogManager
 
     /**
      * Digest quotidien — résumé des WARNING/ERROR des 24 dernières heures.
-     * À appeler une fois par jour depuis HooksManager::onDisplayHeader().
+     * Appelé quotidiennement depuis neria.php (hookDisplayHeader, throttlé).
      */
     public function sendDailyDigestIfDue(): void
     {

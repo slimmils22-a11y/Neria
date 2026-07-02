@@ -140,7 +140,7 @@ class SeasonalCampaignManager
 
     /**
      * Vérifie les campagnes dues aujourd'hui et envoie aux clients éligibles.
-     * Appelé quotidiennement depuis HooksManager (neria_behavioral).
+     * Appelé quotidiennement depuis neria.php (hookDisplayHeader, throttlé).
      */
     public function runDueCampaigns(): int
     {

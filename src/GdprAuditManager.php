@@ -333,15 +333,10 @@ class GdprAuditManager
                 : 'Le placeholder {unsubscribe_url} est absent du layout — tous les emails sont non conformes.',
         ];
 
-        // 1b. Header List-Unsubscribe (RFC 2369 / RFC 8058) — cherche dans neria.php ET HooksManager
-        $headerOk = false;
-        foreach (['neria.php', 'src/HooksManager.php'] as $candidate) {
-            $p = $this->modulePath . '/' . $candidate;
-            if (file_exists($p) && stripos((string) file_get_contents($p), 'List-Unsubscribe') !== false) {
-                $headerOk = true;
-                break;
-            }
-        }
+        // 1b. Header List-Unsubscribe (RFC 2369 / RFC 8058) — injecté dans neria.php
+        $neriaPhpPath = $this->modulePath . '/neria.php';
+        $headerOk = file_exists($neriaPhpPath)
+            && stripos((string) file_get_contents($neriaPhpPath), 'List-Unsubscribe') !== false;
         if (!$headerOk) { $issues++; }
         $checks[] = [
             'label'  => 'Header List-Unsubscribe (RFC 2369 / One-Click RFC 8058)',

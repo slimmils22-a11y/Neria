@@ -132,12 +132,11 @@ class Neria extends Module
     // ============================================================
 
     /**
-     * Enregistre tous les hooks nécessaires au fonctionnement du module
-     * Délégation à HooksManager pour la logique métier
+     * Liste unique des hooks utilisés par le module — source de vérité pour
+     * registerHooks() (installation) ET NeriaTools::runFullDiagnostic()
+     * (contrôle de santé). Ne pas dupliquer cette liste ailleurs.
      */
-    private function registerHooks(): bool
-    {
-        $hooks = [
+    const HOOKS = [
             // ── Emails ────────────────────────────────────────────
             // Hook principal : intercepte TOUS les envois email PS
             // Permet d'injecter les traductions Neria et le tracking
@@ -186,9 +185,14 @@ class Neria extends Module
 
             // ── RGPD : purge à la suppression d'un client ──────────
             'actionDeleteGDPRCustomer',
-        ];
+    ];
 
-        foreach ($hooks as $hook) {
+    /**
+     * Enregistre tous les hooks nécessaires au fonctionnement du module
+     */
+    private function registerHooks(): bool
+    {
+        foreach (self::HOOKS as $hook) {
             // registerHook() retourne false si le hook est invalide
             // On ignore les hooks non-existants (compatibilité versions)
             $this->registerHook($hook);
