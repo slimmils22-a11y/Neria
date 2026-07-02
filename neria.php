@@ -754,8 +754,12 @@ class Neria extends Module
      */
     private function outputCustomerSearch(): void
     {
-        $query   = trim((string) Tools::getValue('q', ''));
-        $results = strlen($query) >= 2 ? $this->searchCustomersForHistory($query) : [];
+        $query = trim((string) Tools::getValue('q', ''));
+        try {
+            $results = strlen($query) >= 2 ? $this->searchCustomersForHistory($query) : [];
+        } catch (\Throwable $e) {
+            $results = [];
+        }
 
         while (ob_get_level() > 0) {
             ob_end_clean();
@@ -1256,25 +1260,29 @@ class Neria extends Module
             header('Content-Type: application/json; charset=utf-8');
             $q = preg_replace('/[^a-z0-9àâäéèêëîïôùûüç\s\-_]/i', '', (string) Tools::getValue('q', ''));
             if (mb_strlen($q) < 2) { echo json_encode(['results' => []]); exit; }
-            $tableTrad = _DB_PREFIX_ . 'neria_translation';
-            $rows = Db::getInstance()->executeS(
-                "SELECT `template`, `lang`, `translation_key`, `translation_value`
-                 FROM `{$tableTrad}`
-                 WHERE `translation_value` LIKE '%" . pSQL($q, true) . "%'
-                    OR `translation_key`   LIKE '%" . pSQL($q, true) . "%'
-                 ORDER BY `template`, `lang`, `translation_key`
-                 LIMIT 60"
-            );
-            $templateLabels = \AdminTranslator::templateLabels();
-            $results = [];
-            foreach ((array) $rows as $row) {
-                $results[] = [
-                    'template'       => $row['template'],
-                    'template_label' => $templateLabels[$row['template']] ?? $row['template'],
-                    'lang'           => $row['lang'],
-                    'key'            => $row['translation_key'],
-                    'value'          => mb_substr($row['translation_value'], 0, 120),
-                ];
+            try {
+                $tableTrad = _DB_PREFIX_ . 'neria_translation';
+                $rows = Db::getInstance()->executeS(
+                    "SELECT `template`, `lang`, `translation_key`, `translation_value`
+                     FROM `{$tableTrad}`
+                     WHERE `translation_value` LIKE '%" . pSQL($q, true) . "%'
+                        OR `translation_key`   LIKE '%" . pSQL($q, true) . "%'
+                     ORDER BY `template`, `lang`, `translation_key`
+                     LIMIT 60"
+                );
+                $templateLabels = \AdminTranslator::templateLabels();
+                $results = [];
+                foreach ((array) $rows as $row) {
+                    $results[] = [
+                        'template'       => $row['template'],
+                        'template_label' => $templateLabels[$row['template']] ?? $row['template'],
+                        'lang'           => $row['lang'],
+                        'key'            => $row['translation_key'],
+                        'value'          => mb_substr($row['translation_value'], 0, 120),
+                    ];
+                }
+            } catch (\Throwable $e) {
+                $results = [];
             }
             echo json_encode(['results' => $results]);
             exit;
@@ -1389,16 +1397,22 @@ class Neria extends Module
                 $result = $json['translations'][0]['text'] ?? null;
                 if ($result === null) { $errors[] = $row['translation_key']; continue; }
 
-                if ($histMgr !== null) {
-                    $histMgr->record($tplKey, $tplLang, $row['translation_key'], $currentVals[$row['translation_key']] ?? '', $result, $author . ' (DeepL)');
-                }
+                // Une clé en échec (DB, historique) ne doit jamais interrompre
+                // le lot entier — les autres clés doivent quand même se traduire.
+                try {
+                    if ($histMgr !== null) {
+                        $histMgr->record($tplKey, $tplLang, $row['translation_key'], $currentVals[$row['translation_key']] ?? '', $result, $author . ' (DeepL)');
+                    }
 
-                Db::getInstance()->execute(
-                    "INSERT INTO `{$tableTrad}` (`template`,`lang`,`translation_key`,`translation_value`,`is_custom`,`date_add`,`date_upd`)
-                     VALUES ('" . pSQL($tplKey) . "','" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "',1,'{$now}','{$now}')
-                     ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($result, true) . "', `is_custom`=1, `date_upd`='{$now}'"
-                );
-                $translated++;
+                    Db::getInstance()->execute(
+                        "INSERT INTO `{$tableTrad}` (`template`,`lang`,`translation_key`,`translation_value`,`is_custom`,`date_add`,`date_upd`)
+                         VALUES ('" . pSQL($tplKey) . "','" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "',1,'{$now}','{$now}')
+                         ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($result, true) . "', `is_custom`=1, `date_upd`='{$now}'"
+                    );
+                    $translated++;
+                } catch (\Throwable $e) {
+                    $errors[] = $row['translation_key'];
+                }
             }
 
             if (class_exists('TranslationEngine')) { (new TranslationEngine($this))->clearCache(); }
@@ -1538,12 +1552,16 @@ class Neria extends Module
                 $result = $json['translations'][0]['text'] ?? null;
                 if ($result === null) { $errors[] = $row['translation_key']; continue; }
 
-                Db::getInstance()->execute(
-                    "INSERT INTO `{$tableTradB}` (`id_abtest`,`lang`,`translation_key`,`translation_value`,`date_add`,`date_upd`)
-                     VALUES ({$idAbtestB},'" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "','{$now}','{$now}')
-                     ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($result, true) . "', `date_upd`='{$now}'"
-                );
-                $translated++;
+                try {
+                    Db::getInstance()->execute(
+                        "INSERT INTO `{$tableTradB}` (`id_abtest`,`lang`,`translation_key`,`translation_value`,`date_add`,`date_upd`)
+                         VALUES ({$idAbtestB},'" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "','{$now}','{$now}')
+                         ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($result, true) . "', `date_upd`='{$now}'"
+                    );
+                    $translated++;
+                } catch (\Throwable $e) {
+                    $errors[] = $row['translation_key'];
+                }
             }
 
             if (class_exists('WatchdogManager') && $translated > 0) {
@@ -2128,11 +2146,15 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'customer_autocomplete') {
             while (ob_get_level() > 0) { ob_end_clean(); }
             if (!headers_sent()) { header('Content-Type: application/json; charset=utf-8'); }
-            $q       = (string) Tools::getValue('q', '');
-            $results = class_exists('ManualSendManager')
-                ? (new ManualSendManager($this))->searchCustomers($q)
-                : [];
-            echo json_encode($results);
+            $q = (string) Tools::getValue('q', '');
+            try {
+                $results = class_exists('ManualSendManager')
+                    ? (new ManualSendManager($this))->searchCustomers($q)
+                    : [];
+                echo json_encode($results);
+            } catch (\Throwable $e) {
+                echo json_encode([]);
+            }
             exit;
         }
 
@@ -2142,10 +2164,14 @@ class Neria extends Module
             if (!headers_sent()) { header('Content-Type: application/json; charset=utf-8'); }
             $email    = (string) Tools::getValue('neria_email', '');
             $template = (string) Tools::getValue('neria_template', '');
-            $status   = class_exists('ManualSendManager')
-                ? (new ManualSendManager($this))->checkDuplicate($email, $template)
-                : ['blocked' => false, 'message' => ''];
-            echo json_encode($status);
+            try {
+                $status = class_exists('ManualSendManager')
+                    ? (new ManualSendManager($this))->checkDuplicate($email, $template)
+                    : ['blocked' => false, 'message' => ''];
+                echo json_encode($status);
+            } catch (\Throwable $e) {
+                echo json_encode(['blocked' => false, 'message' => '']);
+            }
             exit;
         }
 
@@ -2192,9 +2218,13 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'check_anniversary_guard') {
             $email    = trim((string) Tools::getValue('neria_email'));
             $template = trim((string) Tools::getValue('neria_template'));
-            $status   = class_exists('ManualSendManager')
-                ? (new ManualSendManager($this))->getAnniversaryGuardStatus($email, $template)
-                : ['blocked' => false, 'sent' => false, 'message' => ''];
+            try {
+                $status = class_exists('ManualSendManager')
+                    ? (new ManualSendManager($this))->getAnniversaryGuardStatus($email, $template)
+                    : ['blocked' => false, 'sent' => false, 'message' => ''];
+            } catch (\Throwable $e) {
+                $status = ['blocked' => false, 'sent' => false, 'message' => ''];
+            }
             header('Content-Type: application/json');
             die(json_encode($status));
         }
@@ -3719,7 +3749,11 @@ class Neria extends Module
             Configuration::updateValue(BounceManager::CFG_IMAP_SSL,    (int) Tools::getValue('bounce_imap_ssl', 1));
             Configuration::updateValue(BounceManager::CFG_IMAP_FOLDER, (string) Tools::getValue('bounce_imap_folder', 'INBOX'));
             header('Content-Type: application/json; charset=utf-8');
-            echo json_encode((new BounceManager($this))->testImapConnection());
+            try {
+                echo json_encode((new BounceManager($this))->testImapConnection());
+            } catch (\Throwable $e) {
+                echo json_encode(['ok' => false, 'error' => $e->getMessage()]);
+            }
             exit;
         }
 
