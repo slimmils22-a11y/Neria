@@ -408,7 +408,6 @@
 
   {if $code_diag_results}
     {assign var='_codeChecks' value=[
-      'php_syntax'       => 'help.code_scan_php_syntax',
       'admin_trad_usage' => 'help.code_scan_trad_usage',
       'class_references' => 'help.code_scan_class_refs'
     ]}

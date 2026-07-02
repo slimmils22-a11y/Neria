@@ -9,6 +9,11 @@
  * Les adresses en hard bounce sont automatiquement exclues de tout envoi.
  * Les soft bounces sont exclus après N échecs consécutifs (seuil configurable).
  */
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class BounceManager
 {
     // ── Clés de configuration ──────────────────────────────────────────────

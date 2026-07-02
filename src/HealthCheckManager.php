@@ -1652,7 +1652,7 @@ class HealthCheckManager
             CURLOPT_TIMEOUT        => 5,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_NOBODY         => true,
-            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYPEER => true,
         ]);
         curl_exec($ch);
         $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -2694,15 +2694,21 @@ class HealthCheckManager
     // ============================================================
 
     /**
-     * Scan complet du code du module : syntaxe PHP, clés de traduction BO
-     * utilisées mais absentes du dictionnaire, et références de classes
-     * cassées (class_exists() sur un fichier manquant).
+     * Scan complet du code du module : clés de traduction BO utilisées mais
+     * absentes du dictionnaire, et références de classes cassées
+     * (class_exists() sur un fichier manquant).
      * Déclenché uniquement par le bouton "Scanner le code" de l'onglet Aide.
+     *
+     * Volontairement SANS vérification de syntaxe PHP via exec("php -l") :
+     * tout appel système (exec/shell_exec/system) est scruté par le
+     * validateur PrestaShop Addons comme surface de risque potentielle,
+     * même sécurisé — et ne fonctionne de toute façon pas sur la plupart
+     * des hébergements mutualisés. La syntaxe se vérifie en local avant
+     * chaque déploiement (déjà fait manuellement pendant le développement).
      */
     public function runCodeDiagnostic(): array
     {
         $results = [
-            'php_syntax'        => $this->checkPhpSyntaxAll(),
             'admin_trad_usage'  => $this->checkAdminTranslationKeyUsage(),
             'class_references'  => $this->checkClassReferencesIntegrity(),
         ];
@@ -2710,83 +2716,6 @@ class HealthCheckManager
         $this->logResultsToWatchdog($results);
 
         return $results;
-    }
-
-    /**
-     * Vérifie la syntaxe PHP de tous les fichiers du module via `php -l`.
-     * Silencieux (STATUS_OK) si exec() est désactivé par l'hébergeur —
-     * ne doit jamais générer de fausse alerte sur un hébergement mutualisé.
-     */
-    private function checkPhpSyntaxAll(): array
-    {
-        if (!function_exists('exec') || in_array('exec', array_map('trim', explode(',', (string) ini_get('disable_functions'))), true)) {
-            return [
-                'status' => self::STATUS_OK,
-                'detail' => 'Vérification syntaxe ignorée — exec() désactivé sur cet hébergement. Vérifiez manuellement avant packaging.',
-            ];
-        }
-
-        $root  = rtrim($this->module->getLocalPath(), '/');
-        $files = array_merge(
-            glob($root . '/*.php') ?: [],
-            $this->globRecursive($root . '/src'),
-            $this->globRecursive($root . '/controllers'),
-            $this->globRecursive($root . '/upgrade')
-        );
-
-        // Sous SAPI CLI, PHP_BINARY pointe vers un vrai exécutable php.
-        // Sous Apache (mod_php/Laragon), PHP_BINARY pointe vers httpd/le module
-        // Apache lui-même — inutilisable avec "-l". On teste plusieurs candidats
-        // en les EXÉCUTANT réellement (is_file() peut mentir sous open_basedir).
-        $candidates = [];
-        if (\php_sapi_name() === 'cli' && defined('PHP_BINARY') && PHP_BINARY !== '') {
-            $candidates[] = PHP_BINARY;
-        }
-        if (defined('PHP_BINDIR') && PHP_BINDIR !== '') {
-            $candidates[] = rtrim(PHP_BINDIR, '/\\') . DIRECTORY_SEPARATOR
-                . (stripos(PHP_OS, 'WIN') === 0 ? 'php.exe' : 'php');
-        }
-        $candidates[] = 'php'; // dernier recours : dépend du PATH
-
-        $phpBin = null;
-        foreach (array_unique($candidates) as $candidate) {
-            $verOutput = [];
-            $verReturn = 0;
-            @exec(escapeshellarg($candidate) . ' -v 2>&1', $verOutput, $verReturn);
-            if ($verReturn === 0 && stripos(implode(' ', $verOutput), 'PHP') !== false) {
-                $phpBin = $candidate;
-                break;
-            }
-        }
-
-        if ($phpBin === null) {
-            return [
-                'status' => self::STATUS_OK,
-                'detail' => 'Vérification syntaxe ignorée — impossible de localiser un exécutable PHP CLI fonctionnel sur cet hébergement. Vérifiez manuellement avant packaging.',
-            ];
-        }
-
-        $errors = [];
-        foreach ($files as $file) {
-            $output    = [];
-            $returnVar = 0;
-            @exec(escapeshellarg($phpBin) . ' -l ' . escapeshellarg($file) . ' 2>&1', $output, $returnVar);
-            if ($returnVar !== 0) {
-                $errors[] = str_replace($root . '/', '', $file) . ' : ' . trim(implode(' ', $output));
-            }
-        }
-
-        if ($errors) {
-            $count = count($errors);
-            return [
-                'status' => self::STATUS_ERROR,
-                'detail' => $count . ' fichier(s) avec une erreur de syntaxe PHP : '
-                    . implode(' | ', array_slice($errors, 0, 5)) . ($count > 5 ? '… (' . ($count - 5) . ' autres)' : '')
-                    . ' → Que faire : corrigez ces fichiers avant tout déploiement, le module plantera en production.',
-            ];
-        }
-
-        return ['status' => self::STATUS_OK, 'detail' => count($files) . ' fichier(s) PHP analysé(s) — aucune erreur de syntaxe.'];
     }
 
     /**
