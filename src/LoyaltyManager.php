@@ -121,7 +121,12 @@ class LoyaltyManager
 
             // Génère le bon et envoie l'email
             try {
-                $code   = $this->generateVoucher($idCustomer, $tier);
+                $code = $this->generateVoucher($idCustomer, $tier);
+                if ($code === '') {
+                    // Réservation perdue face à une requête concurrente —
+                    // comportement attendu (anti-doublon), pas une erreur.
+                    continue;
+                }
                 $amount = $tier['is_percent']
                     ? $tier['amount'] . '%'
                     : number_format((float) $tier['amount'], 2, ',', ' ') . "\u{202F}" . ($this->context->currency->sign ?? '€');
@@ -154,6 +159,33 @@ class LoyaltyManager
 
     private function generateVoucher(int $idCustomer, array $tier): string
     {
+        // Réservation atomique du palier AVANT de créer un vrai bon de
+        // réduction : la contrainte UNIQUE (id_customer, tier_key) sur
+        // neria_loyalty_rewards est le véritable garde-fou anti-course.
+        // Sans cette réservation en premier, deux requêtes quasi simultanées
+        // (ex : ouverture + clic sur deux appareils au même moment) pourraient
+        // chacune passer le contrôle "déjà récompensé ?" fait plus haut dans
+        // checkAndReward() et créer chacune un CartRule réel et valide pour
+        // le même palier, avant que la contrainte d'unicité n'intervienne.
+        $reserved = $this->db->execute(
+            "INSERT IGNORE INTO `{$this->prefix}" . self::TABLE_REWARDS . "`
+                (id_customer, tier_key, tier_name, points_at_reward, id_cart_rule,
+                 voucher_code, voucher_amount, is_percent, sent_at)
+             VALUES (
+                " . (int) $idCustomer . ",
+                '" . pSQL($tier['key'])  . "',
+                '" . pSQL($tier['name']) . "',
+                " . (int) $this->getCustomerPoints($idCustomer) . ",
+                0, '', " . (float) $tier['amount'] . ", " . (int) $tier['is_percent'] . ", NOW()
+             )"
+        );
+
+        if (!$reserved || (int) $this->db->Affected_Rows() === 0) {
+            // Un autre processus a déjà réservé ce palier entre-temps —
+            // comportement attendu, pas une erreur.
+            return '';
+        }
+
         $code = 'NERIA-' . strtoupper($tier['key']) . '-' . strtoupper(\Tools::passwdGen(6));
 
         $langs = \Language::getLanguages(false);
@@ -187,25 +219,24 @@ class LoyaltyManager
         }
 
         if (!$cartRule->add()) {
+            // Libère la réservation pour permettre une nouvelle tentative
+            // (sinon ce client resterait bloqué à vie pour ce palier).
+            $this->db->execute(
+                "DELETE FROM `{$this->prefix}" . self::TABLE_REWARDS . "`
+                 WHERE id_customer = " . (int) $idCustomer . "
+                   AND tier_key = '" . pSQL($tier['key']) . "'
+                   AND id_cart_rule = 0"
+            );
             throw new \RuntimeException('CartRule::add() a échoué pour le client #' . $idCustomer);
         }
 
-        // Enregistre la récompense
+        // Complète la réservation avec le vrai bon de réduction généré.
         $this->db->execute(
-            "INSERT INTO `{$this->prefix}" . self::TABLE_REWARDS . "`
-                (id_customer, tier_key, tier_name, points_at_reward, id_cart_rule,
-                 voucher_code, voucher_amount, is_percent, sent_at)
-             VALUES (
-                " . (int) $idCustomer . ",
-                '" . pSQL($tier['key'])  . "',
-                '" . pSQL($tier['name']) . "',
-                " . (int) $this->getCustomerPoints($idCustomer) . ",
-                " . (int) $cartRule->id . ",
-                '" . pSQL($code) . "',
-                " . (float) $tier['amount'] . ",
-                " . (int) $tier['is_percent'] . ",
-                NOW()
-             )"
+            "UPDATE `{$this->prefix}" . self::TABLE_REWARDS . "`
+             SET id_cart_rule = " . (int) $cartRule->id . ",
+                 voucher_code = '" . pSQL($code) . "'
+             WHERE id_customer = " . (int) $idCustomer . "
+               AND tier_key = '" . pSQL($tier['key']) . "'"
         );
 
         return $code;

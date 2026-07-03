@@ -148,9 +148,12 @@ class StatsManager
         }
 
         $json = json_encode($snapshot, JSON_UNESCAPED_UNICODE);
-        // Garde-fou : ne jamais dépasser ~4 Ko même si beaucoup de petites variables
-        if ($json !== false && strlen($json) > 4096) {
-            $json = substr($json, 0, 4093) . '"}';
+        // Garde-fou : ne jamais dépasser ~4 Ko même si beaucoup de petites variables.
+        // On retire des clés (au lieu de tronquer la chaîne encodée) pour ne jamais
+        // produire un JSON invalide qui casserait le renvoi/aperçu d'email.
+        while ($json !== false && strlen($json) > 4096 && !empty($snapshot)) {
+            array_pop($snapshot);
+            $json = json_encode($snapshot, JSON_UNESCAPED_UNICODE);
         }
 
         return $json !== false ? $json : '{}';
@@ -203,6 +206,14 @@ class StatsManager
             return;
         }
 
+        // Chaque clic (même sur des liens différents du même email) crée un
+        // événement pour les statistiques — mais un client qui recharge ou
+        // reclique plusieurs fois sur son propre lien ne doit gagner des
+        // points de fidélité qu'une seule fois par email envoyé, sinon le
+        // programme de fidélité est trivialement exploitable (clics répétés
+        // → points illimités → paliers de réduction obtenus gratuitement).
+        $awardPoints = !$this->eventExists($token, self::EVENT_CLICK);
+
         $this->record(
             $sent['template'],
             $sent['lang'],
@@ -213,7 +224,8 @@ class StatsManager
                 'id_order'     => (int) $sent['id_order'],
                 'country_code' => $sent['country_code'],
                 'abtest'       => $sent['abtest_variant'],
-            ]
+            ],
+            $awardPoints
         );
     }
 
@@ -222,7 +234,8 @@ class StatsManager
         string $lang,
         string $token,
         string $event,
-        array  $extra = []
+        array  $extra = [],
+        bool   $awardPoints = true
     ): void {
         if (empty($template) || empty($token)) {
             return;
@@ -285,7 +298,7 @@ class StatsManager
         }
 
         // Attribution de points fidélité (non-bloquant, uniquement si l'INSERT a réussi)
-        if ($ok && class_exists('LoyaltyManager') && \Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')) {
+        if ($ok && $awardPoints && class_exists('LoyaltyManager') && \Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')) {
             $idCustomer = (int) ($extra['id_customer'] ?? 0);
             $idStat     = (int) $this->db->Insert_ID();
             if ($idCustomer > 0 && $idStat > 0
@@ -1048,6 +1061,8 @@ class StatsManager
     {
         $table = _DB_PREFIX_ . self::TABLE;
 
+        $prefTable = _DB_PREFIX_ . 'neria_preferences';
+
         $raw = [];
         foreach (['current' => 0, 'previous' => 7] as $period => $offset) {
             $from = pSQL(date('Y-m-d', strtotime('-' . ($offset + 7) . ' days')));
@@ -1056,14 +1071,24 @@ class StatsManager
                 SELECT
                     COUNT(CASE WHEN event_type = 'sent'              THEN 1 END) AS sent,
                     COUNT(CASE WHEN event_type = 'open' AND is_mpp=0 THEN 1 END) AS opens,
-                    COUNT(CASE WHEN event_type = 'click'             THEN 1 END) AS clicks,
-                    COUNT(CASE WHEN event_type = 'unsubscribed'      THEN 1 END) AS unsubs
+                    COUNT(CASE WHEN event_type = 'click'             THEN 1 END) AS clicks
                 FROM `{$table}`
                 WHERE id_shop     = {$this->idShop}
                   AND DATE(date_add) >= '{$from}'
                   AND DATE(date_add) <  '{$to}'
             ");
-            $raw[$period] = $row ?: ['sent' => 0, 'opens' => 0, 'clicks' => 0, 'unsubs' => 0];
+            $raw[$period] = $row ?: ['sent' => 0, 'opens' => 0, 'clicks' => 0];
+
+            // Neria n'a pas d'événement 'unsubscribed' dans neria_stat — le vrai
+            // désabonnement est stocké dans neria_preferences (subscribed=0),
+            // horodaté sur date_upd. On compte les nouveaux "subscribed=0" de la période.
+            $raw[$period]['unsubs'] = (int) $this->db->getValue("
+                SELECT COUNT(*) FROM `{$prefTable}`
+                WHERE id_shop     = {$this->idShop}
+                  AND subscribed  = 0
+                  AND DATE(date_upd) >= '{$from}'
+                  AND DATE(date_upd) <  '{$to}'
+            ");
         }
 
         // Revenus attribués — depuis neria_stat event_type='conversion'
@@ -1272,6 +1297,8 @@ class StatsManager
             ],
         ];
 
+        $prefTable = _DB_PREFIX_ . 'neria_preferences';
+
         $data = [];
         foreach ($periods as $label => [$from, $to]) {
             $from = pSQL($from);
@@ -1280,8 +1307,7 @@ class StatsManager
                 SELECT
                     COUNT(CASE WHEN event_type = 'sent'              THEN 1 END) AS sent,
                     COUNT(CASE WHEN event_type = 'open' AND is_mpp=0 THEN 1 END) AS opens,
-                    COUNT(CASE WHEN event_type = 'click'             THEN 1 END) AS clicks,
-                    COUNT(CASE WHEN event_type = 'unsubscribed'      THEN 1 END) AS unsubs
+                    COUNT(CASE WHEN event_type = 'click'             THEN 1 END) AS clicks
                 FROM `{$table}`
                 WHERE id_shop      = {$this->idShop}
                   AND DATE(date_add) >= '{$from}'
@@ -1290,11 +1316,20 @@ class StatsManager
             $sent   = (int) ($row['sent']  ?? 0);
             $opens  = (int) ($row['opens'] ?? 0);
             $clicks = (int) ($row['clicks'] ?? 0);
+            // Voir getKpiTrends() : le désabonnement réel vit dans neria_preferences,
+            // pas dans neria_stat (aucun événement 'unsubscribed' n'y est jamais écrit).
+            $unsubs = (int) $this->db->getValue("
+                SELECT COUNT(*) FROM `{$prefTable}`
+                WHERE id_shop     = {$this->idShop}
+                  AND subscribed  = 0
+                  AND DATE(date_upd) >= '{$from}'
+                  AND DATE(date_upd) <= '{$to}'
+            ");
             $data[$label] = [
                 'sent'       => $sent,
                 'opens'      => $opens,
                 'clicks'     => $clicks,
-                'unsubs'     => (int) ($row['unsubs'] ?? 0),
+                'unsubs'     => $unsubs,
                 'rate_open'  => $sent > 0 ? round($opens  / $sent * 100, 1) : 0.0,
                 'rate_click' => $sent > 0 ? round($clicks / $sent * 100, 1) : 0.0,
             ];
