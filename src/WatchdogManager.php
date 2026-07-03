@@ -28,9 +28,14 @@ class WatchdogManager
     // ── Monitoring des crons ───────────────────────────────────────
     const TABLE_CRON  = 'neria_cron_health';
     const KNOWN_CRONS = [
-        'behavioral' => ['label' => 'Cron comportemental',    'threshold_hours' => 25],
-        'calendar'   => ['label' => 'Cron calendaire',        'threshold_hours' => 25],
-        'webhook'    => ['label' => 'Queue webhook',           'threshold_hours' => 2],
+        'behavioral'         => ['label' => 'Cron comportemental',          'threshold_hours' => 25],
+        'calendar'           => ['label' => 'Cron calendaire',              'threshold_hours' => 25],
+        'webhook'            => ['label' => 'Queue webhook',                'threshold_hours' => 2],
+        'queue'              => ['label' => 'File d\'envoi (Queue)',        'threshold_hours' => 2],
+        'monthly_report'     => ['label' => 'Rapport mensuel',              'threshold_hours' => 25],
+        'upsell_conversions' => ['label' => 'Suivi conversions upsell',     'threshold_hours' => 25],
+        'seasonal_campaigns' => ['label' => 'Campagnes saisonnières',       'threshold_hours' => 25],
+        'loyalty_recaps'     => ['label' => 'Récaps fidélité',              'threshold_hours' => 25, 'enabled_cfg' => 'NERIA_LOYALTY_ENABLED'],
     ];
 
     // ── Alertes email ──────────────────────────────────────────────
@@ -481,6 +486,11 @@ class WatchdogManager
 
         $result = [];
         foreach (self::KNOWN_CRONS as $key => $cfg) {
+            // Cron lié à une fonctionnalité optionnelle désactivée (ex. fidélité) :
+            // ne jamais le compter en retard, il n'est pas censé tourner.
+            if (!empty($cfg['enabled_cfg']) && !\Configuration::getGlobalValue($cfg['enabled_cfg'])) {
+                continue;
+            }
             $row       = $byKey[$key] ?? null;
             $lastRun   = $row ? $row['last_run']    : null;
             $lastStatus= $row ? $row['last_status'] : 'unknown';
@@ -501,6 +511,24 @@ class WatchdogManager
         }
 
         return $result;
+    }
+
+    /**
+     * Timestamp de la dernière fois où le point d'entrée cron externe
+     * (controllers/front/cron.php) a été appelé avec succès, ou null si
+     * jamais. Contrairement aux entrées de KNOWN_CRONS, ce cron est
+     * facultatif (le fallback via hookDisplayHeader existe toujours) —
+     * son absence ne doit donc jamais pénaliser le score de santé, elle
+     * est juste signalée en information (cf. HealthCheckManager).
+     */
+    public function getLastCronEndpointHit(): ?string
+    {
+        $table = _DB_PREFIX_ . self::TABLE_CRON;
+        $value = $this->db->getValue(
+            "SELECT `last_run` FROM `{$table}`
+             WHERE `id_shop` = {$this->idShop} AND `cron_key` = 'cron_endpoint'"
+        );
+        return $value ?: null;
     }
 
     // ============================================================

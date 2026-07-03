@@ -536,6 +536,64 @@
   </div>
 </div>
 
+{* ── Cron externe (surveillance active) ────────────────────────── *}
+<div class="neria-section" id="neria-help-cron">
+  <h2 class="neria-section__title">
+    ⏱ {neria_admin key='help.cron_title'}
+  </h2>
+
+  <p style="font-size:12px; color:var(--neria-text-light); margin-bottom:16px;">
+    {neria_admin key='help.cron_desc'}
+  </p>
+
+  {if $cron_last_hit}
+    <p style="font-size:12px; color:#16a34a; margin-bottom:12px;">
+      ✓ {neria_admin key='help.cron_active'} — {$cron_last_hit|escape:'html'}
+    </p>
+  {else}
+    <p style="font-size:12px; color:#d97706; margin-bottom:12px;">
+      ⚠ {neria_admin key='help.cron_not_configured'}
+    </p>
+  {/if}
+
+  <div style="background:#1a1a2e; border-radius:8px; padding:14px 18px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+    <span style="color:#b38b59; font-size:16px;">⏱</span>
+    <span style="color:#e8e8e8 !important; font-size:12px; word-break:break-all; flex:1; font-family:monospace;">*/10 * * * * curl -s "{$cron_url|escape:'html'}" &gt;/dev/null</span>
+    <button id="neria-cron-copy-btn" class="neria-btn neria-btn--ghost neria-btn--sm" style="color:#b38b59; border-color:#b38b59;">
+      {neria_admin key='help.emergency_copy'}
+    </button>
+  </div>
+  <script>
+  (function() {
+    var btn = document.getElementById('neria-cron-copy-btn');
+    var url = '*/10 * * * * curl -s "{$cron_url|escape:"javascript"}" >/dev/null';
+    if (btn) {
+      btn.addEventListener('click', function() {
+        navigator.clipboard.writeText(url).then(function() {
+          btn.textContent = '✓ Copié';
+          setTimeout(function() { btn.textContent = btn.dataset.label; }, 2000);
+        });
+      });
+      btn.dataset.label = btn.textContent;
+    }
+  })();
+  </script>
+
+  <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+      <input type="hidden" name="neria_action" value="regenerate_cron_token">
+      <input type="hidden" name="neria_tab"    value="help">
+      <button type="submit" class="neria-btn neria-btn--danger neria-btn--sm"
+              onclick="return confirm('{neria_admin key="help.cron_regen_confirm"}')">
+        ↺ {neria_admin key='help.cron_regen'}
+      </button>
+    </form>
+    <span style="font-size:12px; color:var(--neria-text-light);">
+      {neria_admin key='help.emergency_regen_note'}
+    </span>
+  </div>
+</div>
+
 {* ── Journal des événements ─────────────────────────────────── *}
 <div class="neria-section" id="neria-help-log">
   <h2 class="neria-section__title">

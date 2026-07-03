@@ -37,7 +37,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.17';
+    const VERSION = '1.0.18';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -1267,9 +1267,54 @@ class Neria extends Module
      */
     private function hookDisplayHeaderImpl(): void
     {
+        $this->runBackgroundJobs();
+    }
+
+    /**
+     * Corps commun de toutes les tâches de fond de Neria (queue, crons
+     * comportementaux, rapports, digest Watchdog…). Appelé depuis deux
+     * points d'entrée :
+     *  - hookDisplayHeader() : déclenchement passif, sur chaque page
+     *    front-office (fallback qui ne dépend d'aucune configuration
+     *    serveur, fonctionne sur toute installation "out of the box").
+     *  - controllers/front/cron.php : déclenchement actif, via un vrai
+     *    cron serveur (crontab) protégé par jeton — recommandé en
+     *    production pour ne pas dépendre du trafic visiteurs.
+     * Chaque tâche a son propre throttle interne (Configuration ou table
+     * neria_cron_health) : appeler cette méthode plus souvent que
+     * nécessaire est sans danger, aucune tâche ne s'exécute deux fois
+     * dans sa fenêtre.
+     *
+     * @return array<string,bool> Résumé "tâche => a été exécutée" (utilisé
+     *                            par le contrôleur cron pour son rapport JSON)
+     */
+    public function runBackgroundJobs(): array
+    {
+        $ran = [];
+
         $health = new HealthCheckManager($this);
         $health->recordDisplayHeaderRun();
         $health->runAutoChecksIfDue();
+        $ran['health_checks'] = true;
+
+        // ── Queue d'envoi (toutes les 5 min) — emails programmés à l'heure
+        // préférée du client (fenêtre d'achat), relances comportementales…
+        if (class_exists('QueueManager')) {
+            $now      = time();
+            $lastQueue = (int) \Configuration::get('neria_queue_last_process');
+            if (($now - $lastQueue) >= 300) {
+                \Configuration::updateValue('neria_queue_last_process', $now);
+                try {
+                    $sent = (new QueueManager($this))->processQueue();
+                    $ran['queue'] = true;
+                    if (class_exists('WatchdogManager')) {
+                        (new WatchdogManager($this))->cronHeartbeat('queue', 'ok', $sent);
+                    }
+                } catch (\Throwable $e) {
+                    // best-effort — ne bloque jamais le front
+                }
+            }
+        }
 
         // ── Queue webhook (toutes les 5 min) ──────────────────────────
         if (class_exists('WebhookManager')) {
@@ -1279,6 +1324,7 @@ class Neria extends Module
                 \Configuration::updateValue('neria_webhook_last_process', $now);
                 try {
                     (new WebhookManager($this))->processQueue();
+                    $ran['webhook'] = true;
                     if (class_exists('WatchdogManager')) {
                         (new WatchdogManager($this))->cronHeartbeat('webhook');
                     }
@@ -1291,19 +1337,29 @@ class Neria extends Module
         if (class_exists('CalendarManager')) {
             $calendar = new CalendarManager($this);
             $calendar->checkAndSendDailyEvents();
+            $ran['calendar'] = true;
             if (class_exists('WatchdogManager')) {
                 try { (new WatchdogManager($this))->cronHeartbeat('calendar'); } catch (\Throwable $e) {}
             }
         }
 
         if (class_exists('MonthlyReportManager')) {
-            (new MonthlyReportManager($this))->checkAndSend();
+            try {
+                (new MonthlyReportManager($this))->checkAndSend();
+                $ran['monthly_report'] = true;
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this))->cronHeartbeat('monthly_report');
+                }
+            } catch (\Throwable $e) {
+                // best-effort — ne bloque jamais le front
+            }
         }
 
         // ── Réputation de domaine (rafraîchissement auto 24h) ─────────
         if (class_exists('DomainReputationManager')) {
             try {
                 (new DomainReputationManager($this))->getReport(false);
+                $ran['domain_reputation'] = true;
             } catch (\Throwable $e) {
                 // best-effort — ne bloque jamais le front
             }
@@ -1318,17 +1374,36 @@ class Neria extends Module
             if ((time() - $lastBehavioral) >= 86400) {
                 try {
                     (new BehavioralCronManager($this))->run();
+                    $ran['behavioral'] = true;
                 } catch (\Throwable $e) {
                     // best-effort — ne bloque jamais le front
                 }
                 if (class_exists('UpsellManager')) {
-                    try { (new UpsellManager($this))->checkConversions(); } catch (\Throwable $e) {}
+                    try {
+                        (new UpsellManager($this))->checkConversions();
+                        $ran['upsell_conversions'] = true;
+                        if (class_exists('WatchdogManager')) {
+                            (new WatchdogManager($this))->cronHeartbeat('upsell_conversions');
+                        }
+                    } catch (\Throwable $e) {}
                 }
                 if (class_exists('LoyaltyManager') && \Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')) {
-                    try { (new LoyaltyManager($this))->sendMonthlyRecaps(); } catch (\Throwable $e) {}
+                    try {
+                        (new LoyaltyManager($this))->sendMonthlyRecaps();
+                        $ran['loyalty_recaps'] = true;
+                        if (class_exists('WatchdogManager')) {
+                            (new WatchdogManager($this))->cronHeartbeat('loyalty_recaps');
+                        }
+                    } catch (\Throwable $e) {}
                 }
                 if (class_exists('SeasonalCampaignManager')) {
-                    try { (new SeasonalCampaignManager($this))->runDueCampaigns(); } catch (\Throwable $e) {}
+                    try {
+                        (new SeasonalCampaignManager($this))->runDueCampaigns();
+                        $ran['seasonal_campaigns'] = true;
+                        if (class_exists('WatchdogManager')) {
+                            (new WatchdogManager($this))->cronHeartbeat('seasonal_campaigns');
+                        }
+                    } catch (\Throwable $e) {}
                 }
             }
         }
@@ -1337,10 +1412,13 @@ class Neria extends Module
         if (class_exists('WatchdogManager')) {
             try {
                 (new WatchdogManager($this))->sendDailyDigestIfDue();
+                $ran['watchdog_digest'] = true;
             } catch (\Throwable $e) {
                 // best-effort — ne bloque jamais le front
             }
         }
+
+        return $ran;
     }
 
     // ============================================================
@@ -1787,6 +1865,11 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'regenerate_emergency_token') {
             Configuration::updateGlobalValue('NERIA_EMERGENCY_TOKEN', bin2hex(random_bytes(24)));
             $this->context->smarty->assign('neria_success', AdminTranslator::t('help.emergency_token_regenerated'));
+        }
+
+        if (Tools::getValue('neria_action') === 'regenerate_cron_token') {
+            Configuration::updateGlobalValue('NERIA_CRON_TOKEN', bin2hex(random_bytes(24)));
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('help.cron_token_regenerated'));
         }
 
         // ── Action : diagnostic complet à la demande ──────────────
@@ -3616,16 +3699,36 @@ class Neria extends Module
         // ── Churn : recalcul manuel ─────────────────────────────────
         if (Tools::getValue('neria_action') === 'recompute_churn') {
             if (class_exists('ChurnScoreManager')) {
-                $n = (new ChurnScoreManager($this))->recomputeAll();
-                $this->context->smarty->assign('neria_success', "{$n} score(s) de désabonnement recalculé(s).");
+                try {
+                    $n = (new ChurnScoreManager($this))->recomputeAll();
+                    $this->context->smarty->assign('neria_success', "{$n} score(s) de désabonnement recalculé(s).");
+                } catch (\Throwable $e) {
+                    if (class_exists('WatchdogManager')) {
+                        (new WatchdogManager($this))->error(
+                            'Recalcul des scores de churn échoué : ' . $e->getMessage(),
+                            '', 'ChurnScoreManager'
+                        );
+                    }
+                    $this->context->smarty->assign('neria_error', 'Le recalcul a échoué — voir le journal Watchdog.');
+                }
             }
         }
 
         // ── Segments : calcul manuel ────────────────────────────────
         if (Tools::getValue('neria_action') === 'recompute_segments') {
             if (class_exists('SegmentManager')) {
-                $n = (new SegmentManager($this))->recomputeAll();
-                $this->context->smarty->assign('neria_success', "{$n} client(s) mis à jour.");
+                try {
+                    $n = (new SegmentManager($this))->recomputeAll();
+                    $this->context->smarty->assign('neria_success', "{$n} client(s) mis à jour.");
+                } catch (\Throwable $e) {
+                    if (class_exists('WatchdogManager')) {
+                        (new WatchdogManager($this))->error(
+                            'Recalcul des segments échoué : ' . $e->getMessage(),
+                            '', 'SegmentManager'
+                        );
+                    }
+                    $this->context->smarty->assign('neria_error', 'Le recalcul a échoué — voir le journal Watchdog.');
+                }
             }
         }
 
@@ -3668,14 +3771,24 @@ class Neria extends Module
             $gdprMonths  = max(1, (int) Tools::getValue('gdpr_months', 36));
             $def = GdprAuditManager::getTableDef($gdprTable);
             if ($def && $gdprDateCol === $def['date_col']) {
-                $purged = (new GdprAuditManager(__DIR__))->purgeTable($gdprTable, $gdprDateCol, $gdprMonths);
-                if (class_exists('WatchdogManager')) {
-                    (new WatchdogManager($this))->warning(
-                        sprintf('Purge RGPD : %d enregistrement(s) supprimé(s) de %s (> %d mois)', $purged, $gdprTable, $gdprMonths),
-                        '', 'RGPD'
-                    );
+                try {
+                    $purged = (new GdprAuditManager(__DIR__))->purgeTable($gdprTable, $gdprDateCol, $gdprMonths);
+                    if (class_exists('WatchdogManager')) {
+                        (new WatchdogManager($this))->warning(
+                            sprintf('Purge RGPD : %d enregistrement(s) supprimé(s) de %s (> %d mois)', $purged, $gdprTable, $gdprMonths),
+                            '', 'RGPD'
+                        );
+                    }
+                    $this->context->smarty->assign('neria_success', sprintf('%d enregistrement(s) supprimé(s) de %s.', $purged, $gdprTable));
+                } catch (\Throwable $e) {
+                    if (class_exists('WatchdogManager')) {
+                        (new WatchdogManager($this))->error(
+                            sprintf('Purge RGPD de %s échouée : %s', $gdprTable, $e->getMessage()),
+                            '', 'RGPD'
+                        );
+                    }
+                    $this->context->smarty->assign('neria_error', 'La purge a échoué — voir le journal Watchdog.');
                 }
-                $this->context->smarty->assign('neria_success', sprintf('%d enregistrement(s) supprimé(s) de %s.', $purged, $gdprTable));
             }
         }
 
@@ -4383,6 +4496,13 @@ class Neria extends Module
             'emergency_url'    => Tools::getShopDomainSsl(true)
                 . __PS_BASE_URI__ . 'modules/neria/neria-emergency.php?token='
                 . urlencode((string) Configuration::getGlobalValue('NERIA_EMERGENCY_TOKEN')),
+
+            // URL du point d'entrée cron externe (surveillance active — recommandé)
+            'cron_token'       => (string) Configuration::getGlobalValue('NERIA_CRON_TOKEN'),
+            'cron_url'         => Tools::getShopDomainSsl(true) . __PS_BASE_URI__
+                . 'index.php?fc=module&module=neria&controller=cron&token='
+                . urlencode((string) Configuration::getGlobalValue('NERIA_CRON_TOKEN')),
+            'cron_last_hit'    => class_exists('WatchdogManager') ? (new WatchdogManager($this))->getLastCronEndpointHit() : null,
 
             // Journal watchdog pour l'onglet Aide — messages traduits à l'affichage
             'logs'             => $this->translateWatchdogLogs((new WatchdogManager($this))->getLogs(100)),
@@ -5505,6 +5625,11 @@ class Neria extends Module
         // Génère le token d'urgence Watchdog s'il n'existe pas encore
         if (!Configuration::getGlobalValue('NERIA_EMERGENCY_TOKEN')) {
             Configuration::updateGlobalValue('NERIA_EMERGENCY_TOKEN', bin2hex(random_bytes(24)));
+        }
+
+        // Génère le token du point d'entrée cron externe s'il n'existe pas encore
+        if (!Configuration::getGlobalValue('NERIA_CRON_TOKEN')) {
+            Configuration::updateGlobalValue('NERIA_CRON_TOKEN', bin2hex(random_bytes(24)));
         }
 
         return true;
