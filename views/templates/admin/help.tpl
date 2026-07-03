@@ -371,7 +371,7 @@
     <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
       <input type="hidden" name="neria_action" value="health_pixel_test">
       <input type="hidden" name="neria_tab"    value="help">
-      <button type="submit" class="neria-btn neria-btn--ghost neria-btn--sm">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
         {neria_admin key='help.health_pixel_btn'}
       </button>
     </form>
