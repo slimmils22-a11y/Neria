@@ -28,7 +28,6 @@ class NeriaPreferencesModuleFrontController extends ModuleFrontController
         $email = trim((string) Tools::getValue('email'));
         $token = (string) Tools::getValue('token');
         $lang  = Tools::strtolower((string) Tools::getValue('lang')) ?: 'fr';
-        $cid   = (int) Tools::getValue('cid');
 
         // Enregistrement de l'AdminTranslator pour le rendu multilingue
         if (class_exists('AdminTranslator')) {
@@ -55,16 +54,17 @@ class NeriaPreferencesModuleFrontController extends ModuleFrontController
             return;
         }
 
-        // Résolution du client (par cid ou email)
-        $idCustomer = $cid > 0 ? $cid : (int) Customer::customerExists($email, true);
-        if ($idCustomer <= 0) {
-            $row = Db::getInstance()->getRow(
-                "SELECT `id_customer` FROM `" . _DB_PREFIX_ . "customer`
-                 WHERE LOWER(`email`) = '" . pSQL(strtolower($email)) . "'
-                 AND `deleted` = 0 LIMIT 1"
-            );
-            $idCustomer = $row ? (int) $row['id_customer'] : 0;
-        }
+        // Résolution du client par email UNIQUEMENT — le token HMAC n'authentifie
+        // que l'email, jamais le paramètre `cid`. Si on faisait confiance à un
+        // `cid` fourni par le client sans vérifier qu'il correspond bien à cet
+        // email, un client authentifié sur SA PROPRE adresse pourrait changer
+        // `cid` pour écraser les préférences d'un autre client (IDOR en écriture).
+        $row = Db::getInstance()->getRow(
+            "SELECT `id_customer` FROM `" . _DB_PREFIX_ . "customer`
+             WHERE LOWER(`email`) = '" . pSQL(strtolower($email)) . "'
+             AND `deleted` = 0 LIMIT 1"
+        );
+        $idCustomer = $row ? (int) $row['id_customer'] : 0;
 
         $manager = new PreferencesManager($this->module);
 
