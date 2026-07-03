@@ -4738,6 +4738,9 @@ class Neria extends Module
             'cert_count'       => class_exists('CertificateManager')
                 ? (new CertificateManager($this))->countAll()
                 : 0,
+            'cert_stats'       => class_exists('CertificateManager')
+                ? (new CertificateManager($this))->getStats()
+                : null,
         ] + $this->getBounceListVars());
 
         // Charge le rapport A/B focalisé si un template est ciblé

@@ -474,6 +474,53 @@ class CertificateManager
         ) ?: [];
     }
 
+    /**
+     * KPIs pour l'onglet Certificats : total émis, taux d'envoi email,
+     * tendance vs mois précédent, top 5 produits certifiés.
+     */
+    public function getStats(): array
+    {
+        $table = _DB_PREFIX_ . self::TABLE;
+
+        $total   = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}` WHERE `id_shop` = {$this->idShop}"
+        );
+        $emailed = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}` WHERE `id_shop` = {$this->idShop} AND `emailed` = 1"
+        );
+        $thisMonth = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}`
+             WHERE `id_shop` = {$this->idShop}
+               AND `date_issued` >= DATE_FORMAT(NOW(), '%Y-%m-01')"
+        );
+        $lastMonth = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}`
+             WHERE `id_shop` = {$this->idShop}
+               AND `date_issued` >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01')
+               AND `date_issued` <  DATE_FORMAT(NOW(), '%Y-%m-01')"
+        );
+        $topProducts = $this->db->executeS(
+            "SELECT `product_name`, COUNT(*) AS cnt
+             FROM `{$table}`
+             WHERE `id_shop` = {$this->idShop}
+             GROUP BY `product_name`
+             ORDER BY cnt DESC
+             LIMIT 5"
+        ) ?: [];
+
+        return [
+            'total'        => $total,
+            'emailed'      => $emailed,
+            'email_rate'   => $total > 0 ? round($emailed / $total * 100, 1) : 0.0,
+            'this_month'   => $thisMonth,
+            'last_month'   => $lastMonth,
+            'trend_pct'    => $lastMonth > 0
+                ? round((($thisMonth - $lastMonth) / $lastMonth) * 100, 1)
+                : ($thisMonth > 0 ? 100.0 : 0.0),
+            'top_products' => $topProducts,
+        ];
+    }
+
     public function delete(int $idCertificate): void
     {
         $row = $this->db->getRow(

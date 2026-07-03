@@ -82,6 +82,50 @@
   </form>
 </div>
 
+{* ── KPIs ────────────────────────────────────────────────────── *}
+{if $cert_stats}
+<div class="neria-section" style="margin-top:32px;">
+  <h2 class="neria-section-title">📊 {neria_admin key='cert.stats_title'}</h2>
+
+  <div class="neria-kpi-grid neria-kpi-grid--large" style="margin-bottom:8px;">
+    <div class="neria-kpi neria-kpi--main">
+      <div class="neria-kpi__value">{$cert_stats.total|number_format:0:',':' '}</div>
+      <div class="neria-kpi__label">{neria_admin key='cert.kpi_total'}</div>
+    </div>
+    <div class="neria-kpi">
+      <div class="neria-kpi__value">{$cert_stats.email_rate}%</div>
+      <div class="neria-kpi__label">{neria_admin key='cert.kpi_email_rate'}</div>
+      <div class="neria-kpi__rate" style="font-size:11px;color:#888;">{$cert_stats.emailed|number_format:0:',':' '} / {$cert_stats.total|number_format:0:',':' '}</div>
+    </div>
+    <div class="neria-kpi">
+      <div class="neria-kpi__value">{$cert_stats.this_month|number_format:0:',':' '}</div>
+      <div class="neria-kpi__label">{neria_admin key='cert.kpi_this_month'}</div>
+      {if $cert_stats.last_month > 0 || $cert_stats.this_month > 0}
+        <div class="neria-kpi__rate" style="font-size:11px;color:{if $cert_stats.trend_pct >= 0}#27ae60{else}#c0392b{/if};">
+          {if $cert_stats.trend_pct >= 0}▲{else}▼{/if} {$cert_stats.trend_pct|abs}% {neria_admin key='cert.kpi_vs_last_month'}
+        </div>
+      {/if}
+    </div>
+  </div>
+
+  {if $cert_stats.top_products}
+    <div style="margin-top:12px;">
+      <p style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px;">
+        {neria_admin key='cert.kpi_top_products'}
+      </p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        {foreach from=$cert_stats.top_products item=tp}
+          <span style="background:#faf6f0;border:1px solid #e8d8c0;border-radius:20px;padding:4px 12px;font-size:12px;color:#1a1a2e;">
+            {$tp.product_name|escape:'html':'UTF-8'|truncate:30:'…'}
+            <strong style="color:#b38b59;">× {$tp.cnt|intval}</strong>
+          </span>
+        {/foreach}
+      </div>
+    </div>
+  {/if}
+</div>
+{/if}
+
 {* ── Liste des certificats émis ─────────────────────────────── *}
 <div class="neria-section" style="margin-top:32px;">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
