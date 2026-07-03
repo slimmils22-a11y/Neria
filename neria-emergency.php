@@ -22,10 +22,13 @@ $startTime = microtime(true);
 $psRoot = realpath(__DIR__ . '/../../');
 $paramsFile = $psRoot . '/app/config/parameters.php';
 
+// Avant validation du token : aucun détail technique (chemin serveur, message
+// d'exception PDO) n'est renvoyé à l'appelant — cette page est accessible sans
+// authentification PrestaShop, un visiteur non autorisé ne doit rien apprendre
+// sur l'infrastructure. Les détails complets vont uniquement au log PHP serveur.
 if (!file_exists($paramsFile)) {
-    emergencyDie('Fichier de configuration PrestaShop introuvable ('
-        . htmlspecialchars($paramsFile) . '). '
-        . 'Vérifiez que ce fichier est à la racine de votre installation PS.');
+    error_log('[Neria emergency] Fichier de configuration introuvable : ' . $paramsFile);
+    emergencyDie('Configuration PrestaShop introuvable. Consultez les logs serveur pour le détail.');
 }
 
 $params = require $paramsFile;
@@ -47,9 +50,8 @@ try {
         PDO::ATTR_TIMEOUT            => 5,
     ]);
 } catch (Exception $e) {
-    emergencyDie('Impossible de se connecter à la base de données : '
-        . htmlspecialchars($e->getMessage())
-        . ' — Vérifiez que MySQL/MariaDB est bien démarré.');
+    error_log('[Neria emergency] Connexion DB échouée : ' . $e->getMessage());
+    emergencyDie('Connexion à la base de données impossible. Consultez les logs serveur pour le détail.');
 }
 
 // ── Validation du token ───────────────────────────────────────────
@@ -69,7 +71,8 @@ try {
     $row = $stmt->fetch();
     $validToken = $row ? (string) $row['value'] : '';
 } catch (Exception $e) {
-    emergencyDie('Erreur lecture token en base : ' . htmlspecialchars($e->getMessage()));
+    error_log('[Neria emergency] Lecture token échouée : ' . $e->getMessage());
+    emergencyDie('Erreur de lecture en base. Consultez les logs serveur pour le détail.');
 }
 
 if ($validToken === '' || !hash_equals($validToken, $token)) {
