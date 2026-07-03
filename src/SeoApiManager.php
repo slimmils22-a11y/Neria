@@ -152,7 +152,7 @@ class SeoApiManager
 
     private function fetchSemrush(string $domain): ?array
     {
-        $key = (string) \Configuration::get(self::CONFIG_SEMRUSH_KEY);
+        $key = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_SEMRUSH_KEY));
         if ($key === '') {
             return null;
         }
@@ -242,8 +242,8 @@ class SeoApiManager
 
     private function fetchMoz(string $domain): ?array
     {
-        $accessId  = (string) \Configuration::get(self::CONFIG_MOZ_ACCESS);
-        $secretKey = (string) \Configuration::get(self::CONFIG_MOZ_SECRET);
+        $accessId  = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_MOZ_ACCESS));
+        $secretKey = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_MOZ_SECRET));
         if ($accessId === '' || $secretKey === '') {
             return null;
         }

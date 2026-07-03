@@ -100,14 +100,14 @@ class SearchConsoleManager
     public function handleCallback(string $code, string $state): bool
     {
         $savedState = (string) \Configuration::get(self::CONFIG_OAUTH_STATE);
-        if ($state === '' || $state !== $savedState) {
+        if ($state === '' || $savedState === '' || !hash_equals($savedState, $state)) {
             return false;
         }
 
         $response = $this->httpPost(self::TOKEN_URL, [
             'code'          => $code,
             'client_id'     => (string) \Configuration::get(self::CONFIG_CLIENT_ID),
-            'client_secret' => (string) \Configuration::get(self::CONFIG_CLIENT_SECRET),
+            'client_secret' => \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_CLIENT_SECRET)),
             'redirect_uri'  => $this->getRedirectUri(),
             'grant_type'    => 'authorization_code',
         ]);
@@ -118,8 +118,8 @@ class SearchConsoleManager
             return false;
         }
 
-        \Configuration::updateValue(self::CONFIG_ACCESS_TOKEN,  $response['access_token']);
-        \Configuration::updateValue(self::CONFIG_REFRESH_TOKEN, $response['refresh_token'] ?? '');
+        \Configuration::updateValue(self::CONFIG_ACCESS_TOKEN,  \CryptoManager::encrypt($response['access_token']));
+        \Configuration::updateValue(self::CONFIG_REFRESH_TOKEN, \CryptoManager::encrypt($response['refresh_token'] ?? ''));
         \Configuration::updateValue(self::CONFIG_TOKEN_EXPIRY,  time() + ($response['expires_in'] ?? 3600) - 60);
         \Configuration::deleteByName(self::CONFIG_OAUTH_STATE);
 
@@ -295,7 +295,7 @@ class SearchConsoleManager
     {
         $expiry = (int) \Configuration::get(self::CONFIG_TOKEN_EXPIRY);
         if (time() < $expiry) {
-            $token = (string) \Configuration::get(self::CONFIG_ACCESS_TOKEN);
+            $token = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_ACCESS_TOKEN));
             if ($token !== '') {
                 return $token;
             }
@@ -305,14 +305,14 @@ class SearchConsoleManager
 
     private function refreshAccessToken(): ?string
     {
-        $refresh = (string) \Configuration::get(self::CONFIG_REFRESH_TOKEN);
+        $refresh = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_REFRESH_TOKEN));
         if ($refresh === '') {
             return null;
         }
 
         $response = $this->httpPost(self::TOKEN_URL, [
             'client_id'     => (string) \Configuration::get(self::CONFIG_CLIENT_ID),
-            'client_secret' => (string) \Configuration::get(self::CONFIG_CLIENT_SECRET),
+            'client_secret' => \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_CLIENT_SECRET)),
             'refresh_token' => $refresh,
             'grant_type'    => 'refresh_token',
         ]);
@@ -322,7 +322,7 @@ class SearchConsoleManager
             return null;
         }
 
-        \Configuration::updateValue(self::CONFIG_ACCESS_TOKEN, $response['access_token']);
+        \Configuration::updateValue(self::CONFIG_ACCESS_TOKEN, \CryptoManager::encrypt($response['access_token']));
         \Configuration::updateValue(self::CONFIG_TOKEN_EXPIRY, time() + ($response['expires_in'] ?? 3600) - 60);
 
         return $response['access_token'];

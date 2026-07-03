@@ -99,7 +99,7 @@ class PageSpeedManager
 
     public function runCheck(): ?array
     {
-        $key = (string) \Configuration::get(self::CONFIG_API_KEY);
+        $key = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_API_KEY));
         if ($key === '') {
             return null;
         }

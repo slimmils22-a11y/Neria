@@ -95,7 +95,7 @@ class BounceManager
         $host      = (string) \Configuration::get(self::CFG_IMAP_HOST);
         $port      = (int)   \Configuration::get(self::CFG_IMAP_PORT)   ?: 993;
         $user      = (string) \Configuration::get(self::CFG_IMAP_USER);
-        $pass      = (string) \Configuration::get(self::CFG_IMAP_PASS);
+        $pass      = \CryptoManager::decrypt((string) \Configuration::get(self::CFG_IMAP_PASS));
         $ssl       = (bool)   \Configuration::get(self::CFG_IMAP_SSL);
         $folder    = (string) \Configuration::get(self::CFG_IMAP_FOLDER) ?: 'INBOX';
 
@@ -350,7 +350,7 @@ class BounceManager
      */
     public function verifyWebhookSignature(string $payload, string $signature): bool
     {
-        $secret = (string) \Configuration::get(self::CFG_WEBHOOK_SECRET);
+        $secret = \CryptoManager::decrypt((string) \Configuration::get(self::CFG_WEBHOOK_SECRET));
         if ($secret === '') {
             return false;
         }
@@ -505,7 +505,7 @@ class BounceManager
         $host   = (string) \Configuration::get(self::CFG_IMAP_HOST);
         $port   = (int)   \Configuration::get(self::CFG_IMAP_PORT) ?: 993;
         $user   = (string) \Configuration::get(self::CFG_IMAP_USER);
-        $pass   = (string) \Configuration::get(self::CFG_IMAP_PASS);
+        $pass   = \CryptoManager::decrypt((string) \Configuration::get(self::CFG_IMAP_PASS));
         $ssl    = (bool)   \Configuration::get(self::CFG_IMAP_SSL);
         $folder = (string) \Configuration::get(self::CFG_IMAP_FOLDER) ?: 'INBOX';
 
@@ -532,7 +532,7 @@ class BounceManager
     public static function generateWebhookSecret(): string
     {
         $secret = bin2hex(random_bytes(24));
-        \Configuration::updateValue(self::CFG_WEBHOOK_SECRET, $secret);
+        \Configuration::updateValue(self::CFG_WEBHOOK_SECRET, \CryptoManager::encrypt($secret));
         return $secret;
     }
 
