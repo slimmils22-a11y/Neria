@@ -155,7 +155,8 @@ class CertificateManager
     {
         $row = $this->db->getRow(
             'SELECT * FROM `' . _DB_PREFIX_ . self::TABLE . '`
-             WHERE `id_certificate` = ' . $idCertificate
+             WHERE `id_certificate` = ' . $idCertificate . '
+               AND `id_shop` = ' . $this->idShop
         );
         if (!$row) {
             return ['error' => 'Certificat introuvable.'];
@@ -393,11 +394,21 @@ class CertificateManager
         string $pdfContent,
         \Order $order
     ): string {
-        $shopName   = (string) \Configuration::get('PS_SHOP_NAME');
-        $shopDomain = \Tools::getShopDomainSsl(true);
-        $fromEmail  = (string) \Configuration::get('PS_SHOP_EMAIL')
-                   ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST);
-        $subject    = 'Votre certificat d\'authenticité — ' . $productName;
+        // Cet envoi utilise mail() natif directement (pas Mail::Send de PS,
+        // pour joindre le PDF en pièce jointe MIME) — contrairement à
+        // Mail::Send/PHPMailer, mail() n'assainit rien lui-même : toute valeur
+        // interpolée dans un en-tête (sujet compris) doit être nettoyée des
+        // retours à la ligne, sinon un nom de produit contenant \r\n
+        // (import CSV/API par ex.) permettrait d'injecter des en-têtes
+        // arbitraires (Bcc caché, etc.).
+        $stripCrlf = static fn (string $s): string => str_replace(["\r", "\n"], '', $s);
+
+        $shopName    = $stripCrlf((string) \Configuration::get('PS_SHOP_NAME'));
+        $shopDomain  = \Tools::getShopDomainSsl(true);
+        $fromEmail   = $stripCrlf((string) \Configuration::get('PS_SHOP_EMAIL')
+                     ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST));
+        $productName = $stripCrlf($productName);
+        $subject     = $stripCrlf('Votre certificat d\'authenticité — ' . $productName);
 
         $body = '<!DOCTYPE html><html><head><meta charset="utf-8"></head>'
             . '<body style="font-family:serif;background:#f5f0e8;margin:0;padding:30px;">'
@@ -436,6 +447,10 @@ class CertificateManager
                    . "Content-Disposition: attachment; filename=\"{$filename}\"\r\n\r\n"
                    . chunk_split(base64_encode($pdfContent)) . "\r\n"
                    . "--{$boundary}--";
+
+        if (!\Validate::isEmail($to)) {
+            return 'Adresse email destinataire invalide.';
+        }
 
         $sent = @mail($to, $subject, $message, $headers);
         return $sent ? '' : 'mail() a retourné false.';
@@ -525,15 +540,19 @@ class CertificateManager
     {
         $row = $this->db->getRow(
             'SELECT `pdf_path` FROM `' . _DB_PREFIX_ . self::TABLE . '`
-             WHERE `id_certificate` = ' . $idCertificate
+             WHERE `id_certificate` = ' . $idCertificate . '
+               AND `id_shop` = ' . $this->idShop
         );
-        if ($row && $row['pdf_path']) {
+        if (!$row) {
+            return;
+        }
+        if ($row['pdf_path']) {
             $file = _PS_MODULE_DIR_ . 'neria/' . $row['pdf_path'];
             if (file_exists($file)) {
                 @unlink($file);
             }
         }
-        $this->db->delete(self::TABLE, '`id_certificate` = ' . $idCertificate);
+        $this->db->delete(self::TABLE, '`id_certificate` = ' . $idCertificate . ' AND `id_shop` = ' . $this->idShop);
     }
 
     // ============================================================

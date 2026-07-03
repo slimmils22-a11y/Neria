@@ -236,11 +236,13 @@ class WatchdogManager
 
         \Configuration::updateGlobalValue(self::CFG_ALERT_LAST_SENT, time());
 
-        $shopName   = (string) \Configuration::get('PS_SHOP_NAME');
+        // mail() natif n'assainit pas les en-têtes lui-même — retire tout
+        // retour à la ligne des valeurs interpolées dans le sujet/en-têtes.
+        $shopName   = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_NAME'));
         $shopDomain = \Tools::getShopDomainSsl(true);
         $levelUpper = strtoupper($level);
         $color      = $level === self::LEVEL_CRITICAL ? '#7a0000' : '#a32d2d';
-        $subject    = '[Neria] Alerte ' . $levelUpper . ' — ' . $shopName;
+        $subject    = str_replace(["\r", "\n"], '', '[Neria] Alerte ' . $levelUpper . ' — ' . $shopName);
 
         $emergencyToken = (string) \Configuration::getGlobalValue('NERIA_EMERGENCY_TOKEN');
         $emergencyUrl   = $emergencyToken
@@ -274,7 +276,7 @@ class WatchdogManager
             . '<p style="margin-top:20px;font-size:11px;color:#aaa;">Vous recevez cet email car les alertes Neria sont activées. Pour les désactiver : Neria → Aide → Alertes email.</p>'
             . '</div></div></body></html>';
 
-        $fromEmail = (string) \Configuration::get('PS_SHOP_EMAIL') ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST);
+        $fromEmail = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_EMAIL') ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST));
         $headers   = "MIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n"
                    . "From: Neria <" . $fromEmail . ">\r\n"
                    . "X-Mailer: Neria-WatchdogAlert/1.0\r\n";
@@ -320,7 +322,7 @@ class WatchdogManager
 
         \Configuration::updateGlobalValue(self::CFG_DIGEST_LAST, time());
 
-        $shopName   = (string) \Configuration::get('PS_SHOP_NAME');
+        $shopName   = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_NAME'));
         $shopDomain = \Tools::getShopDomainSsl(true);
         $counts     = ['warning' => 0, 'error' => 0, 'critical' => 0];
         foreach ($rows as $r) {
@@ -329,7 +331,7 @@ class WatchdogManager
             }
         }
 
-        $subject = '[Neria] Digest quotidien — ' . count($rows) . ' événement(s) — ' . $shopName;
+        $subject = str_replace(["\r", "\n"], '', '[Neria] Digest quotidien — ' . count($rows) . ' événement(s) — ' . $shopName);
 
         $emergencyToken = (string) \Configuration::getGlobalValue('NERIA_EMERGENCY_TOKEN');
         $emergencyUrl   = $emergencyToken
@@ -376,7 +378,7 @@ class WatchdogManager
             . '<p style="margin-top:20px;font-size:11px;color:#aaa;">Digest Neria — envoyé automatiquement chaque jour si des événements WARNING/ERROR ont eu lieu. Pour désactiver : Neria → Aide → Alertes email.</p>'
             . '</div></div></body></html>';
 
-        $fromEmail = (string) \Configuration::get('PS_SHOP_EMAIL') ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST);
+        $fromEmail = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_EMAIL') ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST));
         $headers   = "MIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n"
                    . "From: Neria <" . $fromEmail . ">\r\n"
                    . "X-Mailer: Neria-WatchdogDigest/1.0\r\n";
