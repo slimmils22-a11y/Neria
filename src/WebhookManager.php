@@ -70,6 +70,63 @@ class WebhookManager
         return $this->watchdog;
     }
 
+    /**
+     * Protection SSRF : rejette toute URL de webhook dont l'hôte résout vers
+     * une adresse privée, boucle locale, lien-local ou de métadonnées cloud.
+     * Sans ce contrôle, un marchand (ou un compte BO compromis) pourrait
+     * configurer une URL interne (127.0.0.1, réseau privé, 169.254.169.254…)
+     * et faire exécuter par le serveur des requêtes HTTP vers des services
+     * internes normalement inaccessibles depuis l'extérieur.
+     *
+     * Appelé à la fois à l'enregistrement ET juste avant chaque envoi
+     * (defense in depth contre le DNS rebinding, où le nom de domaine
+     * résoudrait différemment entre la sauvegarde et la livraison réelle).
+     */
+    public static function isPublicUrl(string $url): bool
+    {
+        if (!\Validate::isAbsoluteUrl($url)) {
+            return false;
+        }
+
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        if (!in_array($scheme, ['http', 'https'], true)) {
+            return false;
+        }
+
+        $host = (string) parse_url($url, PHP_URL_HOST);
+        if ($host === '') {
+            return false;
+        }
+
+        // Résout tous les enregistrements A/AAAA de l'hôte — un domaine peut
+        // pointer vers plusieurs IP, il suffit qu'une seule soit privée pour
+        // rejeter l'URL entière.
+        $ips = [];
+        $ipv4 = gethostbynamel($host);
+        if (is_array($ipv4)) {
+            $ips = array_merge($ips, $ipv4);
+        }
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            $ips[] = $host;
+        }
+
+        if (empty($ips)) {
+            return false;
+        }
+
+        foreach ($ips as $ip) {
+            if (!filter_var(
+                $ip,
+                FILTER_VALIDATE_IP,
+                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+            )) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     // ============================================================
     // ENQUEUE
     // ============================================================
@@ -124,9 +181,13 @@ class WebhookManager
     public function processQueue(): void
     {
         $url    = (string) \Configuration::get(self::CONFIG_URL);
-        $secret = (string) \Configuration::get(self::CONFIG_SECRET);
+        $secret = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_SECRET));
 
-        if ($url === '' || !\Validate::isAbsoluteUrl($url)) {
+        // Revalidation à l'envoi (pas seulement à la sauvegarde) : protège
+        // contre le DNS rebinding, où le domaine configuré résoudrait vers
+        // une IP publique au moment de l'enregistrement puis vers une IP
+        // interne au moment de la livraison réelle.
+        if ($url === '' || !self::isPublicUrl($url)) {
             return;
         }
 
@@ -276,10 +337,10 @@ class WebhookManager
     public function sendTest(): array
     {
         $url    = (string) \Configuration::get(self::CONFIG_URL);
-        $secret = (string) \Configuration::get(self::CONFIG_SECRET);
+        $secret = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_SECRET));
 
-        if ($url === '' || !\Validate::isAbsoluteUrl($url)) {
-            return ['ok' => false, 'error' => 'URL non configurée ou invalide.'];
+        if ($url === '' || !self::isPublicUrl($url)) {
+            return ['ok' => false, 'error' => 'URL non configurée ou invalide (doit être une adresse publique).'];
         }
 
         if (!function_exists('curl_init')) {
