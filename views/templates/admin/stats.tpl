@@ -190,6 +190,10 @@
 </div>
 
 <script>
+// Assigné hors des blocs Smarty "literal" plus bas (les variables Smarty n'y
+// sont pas interprétées) — seul moyen de transmettre ce chemin aux scripts
+// de chargement de Chart.js à l'intérieur de ces blocs.
+window.NERIA_MODULE_DIR = '{$neria_module_dir|escape:'javascript'}';
 var _nrc = {
   d7:   {$revenue_chart_7|default:'null'},
   d30:  {$revenue_chart_30|default:'null'},
@@ -518,7 +522,7 @@ var _nrc = {
   function loadChartJs(cb) {
     if (window.Chart) { cb(); return; }
     var s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+    s.src = window.NERIA_MODULE_DIR + 'views/js/vendor/chart.umd.min.js';
     s.onload = cb;
     document.head.appendChild(s);
   }
@@ -637,7 +641,7 @@ var _nec = {
     function loadChartJs(cb) {
       if (window.Chart) { cb(); return; }
       var s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+      s.src = window.NERIA_MODULE_DIR + 'views/js/vendor/chart.umd.min.js';
       s.onload = cb;
       document.head.appendChild(s);
     }
