@@ -1,0 +1,16 @@
+# Bloque tout accès direct à ce dossier — les PDF de certificats
+# (contenant nom client, produit, commande) portent des noms de fichiers
+# prévisibles et séquentiels (cert_CERT-<année>-<numéro>.pdf). Sans ce
+# blocage, n'importe qui sur Internet peut énumérer et télécharger tous
+# les certificats émis sans authentification.
+#
+# Le téléchargement légitime passe uniquement par l'action BO authentifiée
+# "cert_download" (CertificateManager::redownload), jamais par ce dossier
+# directement.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order Deny,Allow
+    Deny from all
+</IfModule>
