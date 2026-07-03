@@ -923,6 +923,12 @@ class BehavioralCronManager
             $alertDays   = (int) $product['alert_days'];
             $targetDay   = $lifespanDays - $alertDays;
 
+            if ($targetDay <= 0) {
+                // alert_days >= lifespan_days (mauvaise config) : DATE_SUB deviendrait
+                // une addition et chercherait des achats dans le futur — on ignore.
+                continue;
+            }
+
             // Chercher les clients ayant acheté ce produit il y a exactement $targetDay jours
             $customers = $this->db->executeS(
                 "SELECT DISTINCT c.id_customer, c.email, c.firstname, c.lastname,
