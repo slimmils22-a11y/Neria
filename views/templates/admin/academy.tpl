@@ -1,6 +1,7 @@
 {**
  * NERIA — academy.tpl
- * Onglet Académie : 3 guides pratiques (ouverture, objet, RGPD) — multilingue via {$ac}
+ * Onglet Académie : 8 guides pratiques (ouverture, objet, RGPD, délivrabilité,
+ * segmentation, fidélité/upsell, A/B testing, panier abandonné) — multilingue via {$ac}
  *}
 
 {assign var="na_base" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''}
@@ -61,6 +62,9 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 14px;
     margin-bottom: 26px;
+}
+@media (max-width: 1100px) {
+    .na-guides { grid-template-columns: repeat(2, 1fr); }
 }
 .na-guide-card {
     background: #fff;
@@ -371,7 +375,7 @@
 
   {* ── Progress bar ──────────────────────────────────────────────── *}
   <div class="na-progress">
-    <span id="na-progress-label">0 / 3</span>
+    <span id="na-progress-label">0 / 6</span>
     <div class="na-progress__bar"><div class="na-progress__fill" id="na-progress-fill"></div></div>
   </div>
 
@@ -397,6 +401,41 @@
       <span class="na-guide-card__icon">⚖</span>
       <p class="na-guide-card__title">{$ac.card3_title}</p>
       <p class="na-guide-card__meta">{$ac.card3_meta}</p>
+    </div>
+
+    <div class="na-guide-card" id="na-card-deliverability" onclick="naShow('deliverability')">
+      <span class="na-guide-card__done">✓</span>
+      <span class="na-guide-card__icon">🛡</span>
+      <p class="na-guide-card__title">{$ac.card4_title}</p>
+      <p class="na-guide-card__meta">{$ac.card4_meta}</p>
+    </div>
+
+    <div class="na-guide-card" id="na-card-segmentation" onclick="naShow('segmentation')">
+      <span class="na-guide-card__done">✓</span>
+      <span class="na-guide-card__icon">🎯</span>
+      <p class="na-guide-card__title">{$ac.card5_title}</p>
+      <p class="na-guide-card__meta">{$ac.card5_meta}</p>
+    </div>
+
+    <div class="na-guide-card" id="na-card-loyalty" onclick="naShow('loyalty')">
+      <span class="na-guide-card__done">✓</span>
+      <span class="na-guide-card__icon">💎</span>
+      <p class="na-guide-card__title">{$ac.card6_title}</p>
+      <p class="na-guide-card__meta">{$ac.card6_meta}</p>
+    </div>
+
+    <div class="na-guide-card" id="na-card-abtest" onclick="naShow('abtest')">
+      <span class="na-guide-card__done">✓</span>
+      <span class="na-guide-card__icon">🔬</span>
+      <p class="na-guide-card__title">{$ac.card7_title}</p>
+      <p class="na-guide-card__meta">{$ac.card7_meta}</p>
+    </div>
+
+    <div class="na-guide-card" id="na-card-cart" onclick="naShow('cart')">
+      <span class="na-guide-card__done">✓</span>
+      <span class="na-guide-card__icon">🛒</span>
+      <p class="na-guide-card__title">{$ac.card8_title}</p>
+      <p class="na-guide-card__meta">{$ac.card8_meta}</p>
     </div>
 
   </div>
@@ -803,6 +842,362 @@
 
   </div>{* /panel gdpr *}
 
+
+  {* ═══════════════════════════════════════════════════════════════ *}
+  {* Guide 4 — Délivrabilité / spam                                  *}
+  {* ═══════════════════════════════════════════════════════════════ *}
+  <div class="na-panel" id="na-panel-deliverability">
+
+    <div class="na-guide-header">
+      <span class="na-guide-header__icon">🛡</span>
+      <div>
+        <h2 class="na-guide-header__title">{$ac.g4_title}</h2>
+        <p class="na-guide-header__intro">{$ac.g4_intro}</p>
+      </div>
+    </div>
+
+    <div class="na-box na-box--tip">
+      <span class="na-box__ico">ℹ</span>
+      <span>{$ac.g4_tip}</span>
+    </div>
+
+    <div class="na-h2"><span class="na-h2__num">1</span> {$ac.g4_h1}</div>
+    <div class="na-cause na-cause--blue">
+      <p class="na-cause__title">{$ac.g4_c1_t}</p>
+      <p class="na-cause__body">{$ac.g4_c1_b}</p>
+      <div class="na-cause__fix">
+        <strong>{$ac.lbl_solution} :</strong> {$ac.g4_c1_f}
+        <br><a href="{$na_base}&neria_tab=stats" class="na-tab-link">{$ac.tab_stats_rep}</a>
+      </div>
+    </div>
+
+    <div class="na-h2"><span class="na-h2__num">2</span> {$ac.g4_h2}</div>
+    <div class="na-cause na-cause--orange">
+      <p class="na-cause__title">{$ac.g4_c2_t}</p>
+      <p class="na-cause__body">{$ac.g4_c2_b}</p>
+      <div class="na-cause__fix">
+        <strong>{$ac.lbl_solution} :</strong> {$ac.g4_c2_f}
+        <br><a href="{$na_base}&neria_tab=stats" class="na-tab-link">{$ac.tab_stats_rep}</a>
+      </div>
+    </div>
+
+    <div class="na-h2"><span class="na-h2__num">3</span> {$ac.g4_h3}</div>
+    <div class="na-cause na-cause--red">
+      <p class="na-cause__title">{$ac.g4_c3_t}</p>
+      <p class="na-cause__body">{$ac.g4_c3_b}</p>
+      <div class="na-cause__fix">
+        <strong>{$ac.lbl_solution} :</strong> {$ac.g4_c3_f}
+        <br><a href="{$na_base}&neria_tab=segments" class="na-tab-link">{$ac.tab_segs_gh}</a>
+      </div>
+    </div>
+
+    <div class="na-h2"><span class="na-h2__num">4</span> {$ac.g4_h4}</div>
+    <div class="na-cause na-cause--orange">
+      <p class="na-cause__title">{$ac.g4_c4_t}</p>
+      <p class="na-cause__body">{$ac.g4_c4_b}</p>
+      <div class="na-cause__fix">
+        <strong>{$ac.lbl_solution} :</strong> {$ac.g4_c4_f}
+        <br><a href="{$na_base}&neria_tab=stats" class="na-tab-link">{$ac.tab_stats_del}</a>
+      </div>
+    </div>
+
+    <div class="na-box na-box--ok" style="margin-top:22px;">
+      <span class="na-box__ico">✓</span>
+      <span>{$ac.g4_final}</span>
+    </div>
+
+  </div>{* /panel deliverability *}
+
+
+  {* ═══════════════════════════════════════════════════════════════ *}
+  {* Guide 5 — Segmentation comportementale                          *}
+  {* ═══════════════════════════════════════════════════════════════ *}
+  <div class="na-panel" id="na-panel-segmentation">
+
+    <div class="na-guide-header">
+      <span class="na-guide-header__icon">🎯</span>
+      <div>
+        <h2 class="na-guide-header__title">{$ac.g5_title}</h2>
+        <p class="na-guide-header__intro">{$ac.g5_intro}</p>
+      </div>
+    </div>
+
+    <div class="na-box na-box--tip">
+      <span class="na-box__ico">ℹ</span>
+      <span>{$ac.g5_tip}</span>
+    </div>
+
+    <div class="na-h2"><span class="na-h2__num" style="background:#2c2c2c;"></span> {$ac.g5_seg_h}</div>
+
+    <table class="na-table">
+      <thead>
+        <tr>
+          <th>{$ac.g5_col1}</th>
+          <th>{$ac.g5_col2}</th>
+          <th>{$ac.g5_col3}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>{$ac.g5_seg1_t}</strong></td><td>{$ac.g5_seg1_c}</td><td>{$ac.g5_seg1_s}</td></tr>
+        <tr><td><strong>{$ac.g5_seg2_t}</strong></td><td>{$ac.g5_seg2_c}</td><td>{$ac.g5_seg2_s}</td></tr>
+        <tr><td><strong>{$ac.g5_seg3_t}</strong></td><td>{$ac.g5_seg3_c}</td><td>{$ac.g5_seg3_s}</td></tr>
+        <tr><td><strong>{$ac.g5_seg4_t}</strong></td><td>{$ac.g5_seg4_c}</td><td>{$ac.g5_seg4_s}</td></tr>
+        <tr><td><strong>{$ac.g5_seg5_t}</strong></td><td>{$ac.g5_seg5_c}</td><td>{$ac.g5_seg5_s}</td></tr>
+      </tbody>
+    </table>
+
+    <div class="na-h2"><span class="na-h2__num" style="background:#2c2c2c;"></span> {$ac.g5_rules_h}</div>
+
+    <div class="na-rules">
+      <div class="na-rule">
+        <div class="na-rule__num">1</div>
+        <div>
+          <p class="na-rule__title">{$ac.g5_r1_t}</p>
+          <p class="na-rule__body">{$ac.g5_r1_b}</p>
+        </div>
+      </div>
+      <div class="na-rule">
+        <div class="na-rule__num">2</div>
+        <div>
+          <p class="na-rule__title">{$ac.g5_r2_t}</p>
+          <p class="na-rule__body">{$ac.g5_r2_b}</p>
+        </div>
+      </div>
+      <div class="na-rule">
+        <div class="na-rule__num">3</div>
+        <div>
+          <p class="na-rule__title">{$ac.g5_r3_t}</p>
+          <p class="na-rule__body">{$ac.g5_r3_b}</p>
+          <a href="{$na_base}&neria_tab=segments" class="na-tab-link">{$ac.tab_segs_camp}</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="na-box na-box--ok" style="margin-top:22px;">
+      <span class="na-box__ico">✓</span>
+      <span>{$ac.g5_final}</span>
+    </div>
+
+  </div>{* /panel segmentation *}
+
+
+  {* ═══════════════════════════════════════════════════════════════ *}
+  {* Guide 6 — Fidélité & upsell                                     *}
+  {* ═══════════════════════════════════════════════════════════════ *}
+  <div class="na-panel" id="na-panel-loyalty">
+
+    <div class="na-guide-header">
+      <span class="na-guide-header__icon">💎</span>
+      <div>
+        <h2 class="na-guide-header__title">{$ac.g6_title}</h2>
+        <p class="na-guide-header__intro">{$ac.g6_intro}</p>
+      </div>
+    </div>
+
+    <div class="na-box na-box--tip">
+      <span class="na-box__ico">ℹ</span>
+      <span>{$ac.g6_tip}</span>
+    </div>
+
+    <div class="na-h2"><span class="na-h2__num" style="background:#2c2c2c;"></span> {$ac.g6_loyalty_h}</div>
+
+    <div class="na-legal-grid">
+      <div class="na-legal-card">
+        <span class="na-legal-card__badge na-badge--orange">{$ac.g6_lc1_badge}</span>
+        <p class="na-legal-card__title">{$ac.g6_lc1_title}</p>
+        <ul class="na-legal-card__list">
+          {foreach from=$ac.g6_lc1_items item=item}<li>{$item}</li>{/foreach}
+        </ul>
+      </div>
+      <div class="na-legal-card">
+        <span class="na-legal-card__badge na-badge--blue">{$ac.g6_lc2_badge}</span>
+        <p class="na-legal-card__title">{$ac.g6_lc2_title}</p>
+        <ul class="na-legal-card__list">
+          {foreach from=$ac.g6_lc2_items item=item}<li>{$item}</li>{/foreach}
+        </ul>
+      </div>
+      <div class="na-legal-card">
+        <span class="na-legal-card__badge na-badge--green">{$ac.g6_lc3_badge}</span>
+        <p class="na-legal-card__title">{$ac.g6_lc3_title}</p>
+        <ul class="na-legal-card__list">
+          {foreach from=$ac.g6_lc3_items item=item}<li>{$item}</li>{/foreach}
+        </ul>
+      </div>
+    </div>
+
+    <div class="na-h2"><span class="na-h2__num" style="background:#2c2c2c;"></span> {$ac.g6_points_h}</div>
+
+    <div class="na-obligation">
+      <p class="na-obligation__body">{$ac.g6_points_intro}</p>
+      <ul class="na-obligation__list">
+        {foreach from=$ac.g6_points_items item=item}<li>{$item}</li>{/foreach}
+      </ul>
+      <p class="na-obligation__body" style="margin-top:8px;">{$ac.g6_points_note}</p>
+    </div>
+
+    <div class="na-h2"><span class="na-h2__num" style="background:#2c2c2c;"></span> {$ac.g6_upsell_h}</div>
+
+    <div class="na-rules">
+      <div class="na-rule">
+        <div class="na-rule__num">1</div>
+        <div>
+          <p class="na-rule__title">{$ac.g6_ur1_t}</p>
+          <p class="na-rule__body">{$ac.g6_ur1_b}</p>
+        </div>
+      </div>
+      <div class="na-rule">
+        <div class="na-rule__num">2</div>
+        <div>
+          <p class="na-rule__title">{$ac.g6_ur2_t}</p>
+          <p class="na-rule__body">{$ac.g6_ur2_b}</p>
+        </div>
+      </div>
+      <div class="na-rule">
+        <div class="na-rule__num">3</div>
+        <div>
+          <p class="na-rule__title">{$ac.g6_ur3_t}</p>
+          <p class="na-rule__body">{$ac.g6_ur3_b}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="na-box na-box--ok" style="margin-top:22px;">
+      <span class="na-box__ico">✓</span>
+      <span>{$ac.g6_final}</span>
+    </div>
+
+  </div>{* /panel loyalty *}
+
+
+  {* ═══════════════════════════════════════════════════════════════ *}
+  {* Guide 7 — A/B Testing                                           *}
+  {* ═══════════════════════════════════════════════════════════════ *}
+  <div class="na-panel" id="na-panel-abtest">
+
+    <div class="na-guide-header">
+      <span class="na-guide-header__icon">🔬</span>
+      <div>
+        <h2 class="na-guide-header__title">{$ac.g7_title}</h2>
+        <p class="na-guide-header__intro">{$ac.g7_intro}</p>
+      </div>
+    </div>
+
+    <div class="na-box na-box--tip">
+      <span class="na-box__ico">ℹ</span>
+      <span>{$ac.g7_tip}</span>
+    </div>
+
+    <div class="na-h2"><span class="na-h2__num" style="background:#2c2c2c;"></span> {$ac.g7_rules_h}</div>
+
+    <div class="na-rules">
+      <div class="na-rule">
+        <div class="na-rule__num">1</div>
+        <div>
+          <p class="na-rule__title">{$ac.g7_r1_t}</p>
+          <p class="na-rule__body">{$ac.g7_r1_b}</p>
+        </div>
+      </div>
+      <div class="na-rule">
+        <div class="na-rule__num">2</div>
+        <div>
+          <p class="na-rule__title">{$ac.g7_r2_t}</p>
+          <p class="na-rule__body">{$ac.g7_r2_b}</p>
+        </div>
+      </div>
+      <div class="na-rule">
+        <div class="na-rule__num">3</div>
+        <div>
+          <p class="na-rule__title">{$ac.g7_r3_t}</p>
+          <p class="na-rule__body">{$ac.g7_r3_b}</p>
+        </div>
+      </div>
+      <div class="na-rule">
+        <div class="na-rule__num">4</div>
+        <div>
+          <p class="na-rule__title">{$ac.g7_r4_t}</p>
+          <p class="na-rule__body">{$ac.g7_r4_b}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="na-h2"><span class="na-h2__num" style="background:#2c2c2c;"></span> {$ac.g7_ex_h}</div>
+
+    <div class="na-obligation">
+      <p class="na-obligation__body">{$ac.g7_ex_intro}</p>
+      <ul class="na-obligation__list">
+        {foreach from=$ac.g7_ex_items item=item}<li>{$item}</li>{/foreach}
+      </ul>
+      <a href="{$na_base}&neria_tab=abtest" class="na-tab-link" style="margin-top:10px;display:inline-flex;">{$ac.tab_abtest}</a>
+    </div>
+
+    <div class="na-box na-box--ok" style="margin-top:22px;">
+      <span class="na-box__ico">✓</span>
+      <span>{$ac.g7_final}</span>
+    </div>
+
+  </div>{* /panel abtest *}
+
+
+  {* ═══════════════════════════════════════════════════════════════ *}
+  {* Guide 8 — Panier abandonné                                      *}
+  {* ═══════════════════════════════════════════════════════════════ *}
+  <div class="na-panel" id="na-panel-cart">
+
+    <div class="na-guide-header">
+      <span class="na-guide-header__icon">🛒</span>
+      <div>
+        <h2 class="na-guide-header__title">{$ac.g8_title}</h2>
+        <p class="na-guide-header__intro">{$ac.g8_intro}</p>
+      </div>
+    </div>
+
+    <div class="na-box na-box--tip">
+      <span class="na-box__ico">ℹ</span>
+      <span>{$ac.g8_tip}</span>
+    </div>
+
+    <div class="na-h2"><span class="na-h2__num" style="background:#2c2c2c;"></span> {$ac.g8_rules_h}</div>
+
+    <div class="na-rules">
+      <div class="na-rule">
+        <div class="na-rule__num">1</div>
+        <div>
+          <p class="na-rule__title">{$ac.g8_r1_t}</p>
+          <p class="na-rule__body">{$ac.g8_r1_b}</p>
+        </div>
+      </div>
+      <div class="na-rule">
+        <div class="na-rule__num">2</div>
+        <div>
+          <p class="na-rule__title">{$ac.g8_r2_t}</p>
+          <p class="na-rule__body">{$ac.g8_r2_b}</p>
+        </div>
+      </div>
+      <div class="na-rule">
+        <div class="na-rule__num">3</div>
+        <div>
+          <p class="na-rule__title">{$ac.g8_r3_t}</p>
+          <p class="na-rule__body">{$ac.g8_r3_b}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="na-h2"><span class="na-h2__num" style="background:#2c2c2c;"></span> {$ac.g8_stop_h}</div>
+
+    <div class="na-obligation">
+      <ul class="na-obligation__list">
+        {foreach from=$ac.g8_stop_items item=item}<li>{$item}</li>{/foreach}
+      </ul>
+      <a href="{$na_base}&neria_tab=stats" class="na-tab-link" style="margin-top:10px;display:inline-flex;">{$ac.tab_stats_top}</a>
+    </div>
+
+    <div class="na-box na-box--ok" style="margin-top:22px;">
+      <span class="na-box__ico">✓</span>
+      <span>{$ac.g8_final}</span>
+    </div>
+
+  </div>{* /panel cart *}
+
 </div>{* /neria-section *}
 
 <script>
@@ -830,12 +1225,12 @@
     var n = Object.keys(state.read).filter(function(k){ return state.read[k]; }).length;
     var fill  = document.getElementById('na-progress-fill');
     var label = document.getElementById('na-progress-label');
-    if (fill)  fill.style.width = Math.round(n / 3 * 100) + '%';
-    if (label) label.textContent = n + ' / 3';
+    if (fill)  fill.style.width = Math.round(n / 8 * 100) + '%';
+    if (label) label.textContent = n + ' / 8';
   }
 
   window.naShow = function(id) {
-    ['openrate','subject','gdpr'].forEach(function(g){
+    ['openrate','subject','gdpr','deliverability','segmentation','loyalty','abtest','cart'].forEach(function(g){
       var p = document.getElementById('na-panel-' + g);
       var c = document.getElementById('na-card-'  + g);
       if (p) p.classList.toggle('na--active', g === id);
@@ -843,7 +1238,7 @@
     });
     state.read[id] = true;
     save(STORE_KEY, state.read);
-    ['openrate','subject','gdpr'].forEach(function(g){
+    ['openrate','subject','gdpr','deliverability','segmentation','loyalty','abtest','cart'].forEach(function(g){
       var c = document.getElementById('na-card-' + g);
       if (c) c.classList.toggle('na--read', !!state.read[g]);
     });
