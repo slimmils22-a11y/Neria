@@ -304,3 +304,73 @@
   <button type="button" id="neria-scroll-bot" class="neria-scroll-fab neria-scroll-fab--bot"
           onclick="window.scrollTo(0,document.body.scrollHeight);" title="Bas de page" aria-label="Bas de page">▼</button>
 
+  {* ── Modale de confirmation partagée (remplace confirm() natif partout) ── *}
+  {literal}<style>
+  #neria-delete-modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:99999;align-items:center;justify-content:center;}
+  #neria-delete-modal-overlay.active{display:flex;}
+  #neria-delete-modal{background:#fff;border-radius:10px;padding:32px 28px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18);text-align:center;}
+  #neria-delete-modal h4{margin:0 0 12px;font-size:16px;color:#1a1a1a;}
+  #neria-delete-modal p{margin:0 0 24px;font-size:13px;color:#666;line-height:1.6;}
+  #neria-delete-modal .neria-modal-key{display:inline-block;background:#f3ede4;color:#b38b59;border-radius:4px;padding:2px 8px;font-family:monospace;font-size:12px;margin-bottom:16px;}
+  #neria-delete-modal-actions{display:flex;gap:10px;justify-content:center;}
+  </style>{/literal}
+
+  <div id="neria-delete-modal-overlay">
+    <div id="neria-delete-modal">
+      <h4>⚠ {neria_admin key='common.confirm_modal_title'}</h4>
+      <p id="neria-delete-modal-msg"></p>
+      <span id="neria-delete-modal-key" class="neria-modal-key"></span>
+      <div id="neria-delete-modal-actions">
+        <button type="button" class="neria-btn neria-btn--secondary" onclick="neriaCloseDeleteModal();">
+          {neria_admin key='common.cancel'}
+        </button>
+        <button type="button" class="neria-btn neria-btn--danger" id="neria-delete-modal-confirm">
+          {neria_admin key='common.confirm_btn'}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  var _neriaDeleteForm = null;
+  var _neriaConfirmCallback = null;
+  function neriaConfirmDelete(btn) {
+    _neriaDeleteForm = btn.closest('form');
+    _neriaConfirmCallback = null;
+    document.getElementById('neria-delete-modal-msg').textContent = btn.getAttribute('data-confirm');
+    document.getElementById('neria-delete-modal-key').textContent = btn.getAttribute('data-key') || '';
+    document.getElementById('neria-delete-modal-overlay').classList.add('active');
+  }
+  function neriaConfirmAction(message, callback) {
+    _neriaDeleteForm = null;
+    _neriaConfirmCallback = callback;
+    document.getElementById('neria-delete-modal-msg').textContent = message;
+    document.getElementById('neria-delete-modal-key').textContent = '';
+    document.getElementById('neria-delete-modal-overlay').classList.add('active');
+  }
+  // Pour les liens <a href> (GET) au lieu d'un <form> — appeler avec
+  // onclick="return neriaConfirmLink(event, this);"
+  function neriaConfirmLink(event, link) {
+    event.preventDefault();
+    neriaConfirmAction(link.getAttribute('data-confirm'), function() {
+      window.location.href = link.href;
+    });
+    return false;
+  }
+  function neriaCloseDeleteModal() {
+    document.getElementById('neria-delete-modal-overlay').classList.remove('active');
+    _neriaDeleteForm = null;
+    _neriaConfirmCallback = null;
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('neria-delete-modal-confirm').addEventListener('click', function() {
+      if (_neriaDeleteForm) { _neriaDeleteForm.submit(); }
+      if (_neriaConfirmCallback) { _neriaConfirmCallback(); }
+      neriaCloseDeleteModal();
+    });
+    document.getElementById('neria-delete-modal-overlay').addEventListener('click', function(e) {
+      if (e.target === this) { neriaCloseDeleteModal(); }
+    });
+  });
+  </script>
+

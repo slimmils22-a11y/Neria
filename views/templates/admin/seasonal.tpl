@@ -372,10 +372,11 @@
             </a>
             <form method="post"
                   action="{$tab_url|escape:'html'}&neria_action=delete_seasonal_campaign"
-                  style="display:inline;margin-left:4px;"
-                  onsubmit="return confirm('Supprimer la campagne « {$c.name|escape:'javascript'} » ?');">
+                  style="display:inline;margin-left:4px;">
               <input type="hidden" name="id_campaign" value="{$c.id_campaign|intval}">
-              <button type="submit" class="neria-btn neria-btn--sm neria-btn--danger"
+              <button type="button" class="neria-btn neria-btn--sm neria-btn--danger"
+                      data-confirm="Supprimer la campagne « {$c.name|escape:'html'} » ?"
+                      onclick="neriaConfirmDelete(this);"
                       title="Supprimer définitivement">✕</button>
             </form>
           </td>

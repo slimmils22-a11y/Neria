@@ -274,29 +274,29 @@
 
         btn.addEventListener('click', function () {
             var msg = btn.getAttribute('data-confirm') || 'Réinitialiser ?';
-            if (!window.confirm(msg)) return;
+            window.neriaConfirmAction(msg, function () {
+                var form = document.createElement('form');
+                form.method = 'post';
+                form.action = window.location.href;
 
-            var form = document.createElement('form');
-            form.method = 'post';
-            form.action = window.location.href;
+                var fields = {
+                    neria_action:  'reset_template',
+                    neria_tab:     'translations',
+                    trad_template: btn.getAttribute('data-template') || '',
+                    trad_lang:     btn.getAttribute('data-lang') || ''
+                };
 
-            var fields = {
-                neria_action:  'reset_template',
-                neria_tab:     'translations',
-                trad_template: btn.getAttribute('data-template') || '',
-                trad_lang:     btn.getAttribute('data-lang') || ''
-            };
+                Object.keys(fields).forEach(function (key) {
+                    var input = document.createElement('input');
+                    input.type  = 'hidden';
+                    input.name  = key;
+                    input.value = fields[key];
+                    form.appendChild(input);
+                });
 
-            Object.keys(fields).forEach(function (key) {
-                var input = document.createElement('input');
-                input.type  = 'hidden';
-                input.name  = key;
-                input.value = fields[key];
-                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
             });
-
-            document.body.appendChild(form);
-            form.submit();
         });
     }
 
@@ -352,27 +352,27 @@
             var msg = btn.getAttribute('data-confirm')
                    || 'Réinitialiser le design ?';
 
-            if (!window.confirm(msg)) return;
+            window.neriaConfirmAction(msg, function () {
+                var form = document.createElement('form');
+                form.method = 'post';
+                form.action = window.location.href;
 
-            var form = document.createElement('form');
-            form.method = 'post';
-            form.action = window.location.href;
+                var fields = {
+                    neria_action: 'reset_design',
+                    neria_tab:    'design'
+                };
 
-            var fields = {
-                neria_action: 'reset_design',
-                neria_tab:    'design'
-            };
+                Object.keys(fields).forEach(function (key) {
+                    var input = document.createElement('input');
+                    input.type  = 'hidden';
+                    input.name  = key;
+                    input.value = fields[key];
+                    form.appendChild(input);
+                });
 
-            Object.keys(fields).forEach(function (key) {
-                var input = document.createElement('input');
-                input.type  = 'hidden';
-                input.name  = key;
-                input.value = fields[key];
-                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
             });
-
-            document.body.appendChild(form);
-            form.submit();
         });
     }
 

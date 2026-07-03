@@ -2,46 +2,10 @@
  * NERIA — translations.tpl
  * Onglet Traductions — v2 : recherche globale, traduction auto DeepL,
  * export/import CSV, aperçu live, boutons réinitialiser
+ * Note : la modale de confirmation (#neria-delete-modal-*) est partagée
+ * et définie une seule fois dans navigation.tpl, rendue sur chaque onglet.
  *}
-{literal}<style>
-#neria-delete-modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:99999;align-items:center;justify-content:center;}
-#neria-delete-modal-overlay.active{display:flex;}
-#neria-delete-modal{background:#fff;border-radius:10px;padding:32px 28px;max-width:420px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18);text-align:center;}
-#neria-delete-modal h4{margin:0 0 12px;font-size:16px;color:#1a1a1a;}
-#neria-delete-modal p{margin:0 0 24px;font-size:13px;color:#666;line-height:1.6;}
-#neria-delete-modal .neria-modal-key{display:inline-block;background:#f3ede4;color:#b38b59;border-radius:4px;padding:2px 8px;font-family:monospace;font-size:12px;margin-bottom:16px;}
-#neria-delete-modal-actions{display:flex;gap:10px;justify-content:center;}
-</style>{/literal}
-
-{* Modal suppression historique *}
-<div id="neria-delete-modal-overlay">
-  <div id="neria-delete-modal">
-    <h4>⚠ {neria_admin key='translations.delete_modal_title'}</h4>
-    <p id="neria-delete-modal-msg"></p>
-    <span id="neria-delete-modal-key" class="neria-modal-key"></span>
-    <div id="neria-delete-modal-actions">
-      <button type="button" class="neria-btn neria-btn--secondary" onclick="neriaCloseDeleteModal();">
-        {neria_admin key='common.cancel'}
-      </button>
-      <button type="button" class="neria-btn neria-btn--danger" id="neria-delete-modal-confirm">
-        {neria_admin key='translations.delete_btn'}
-      </button>
-    </div>
-  </div>
-</div>
-
 <script>
-var _neriaDeleteForm = null;
-function neriaConfirmDelete(btn) {
-  _neriaDeleteForm = btn.closest('form');
-  document.getElementById('neria-delete-modal-msg').textContent  = btn.getAttribute('data-confirm');
-  document.getElementById('neria-delete-modal-key').textContent  = btn.getAttribute('data-key');
-  document.getElementById('neria-delete-modal-overlay').classList.add('active');
-}
-function neriaCloseDeleteModal() {
-  document.getElementById('neria-delete-modal-overlay').classList.remove('active');
-  _neriaDeleteForm = null;
-}
 function neriaToggleWhy() {
   var body    = document.getElementById('neria-why-body');
   var chevron = document.getElementById('neria-why-chevron');
@@ -55,12 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('neria-why-body').style.display = 'none';
     document.getElementById('neria-why-chevron').style.transform = 'rotate(-90deg)';
   }
-  document.getElementById('neria-delete-modal-confirm').addEventListener('click', function() {
-    if (_neriaDeleteForm) { _neriaDeleteForm.submit(); }
-  });
-  document.getElementById('neria-delete-modal-overlay').addEventListener('click', function(e) {
-    if (e.target === this) { neriaCloseDeleteModal(); }
-  });
 });
 </script>
 
@@ -286,15 +244,17 @@ window.neriaAjaxUrl = function(action, extra) {
       <form method="post" style="margin:0;">
         <input type="hidden" name="neria_action"  value="reset_template_all_langs">
         <input type="hidden" name="trad_template" value="{$selected_template}">
-        <button type="submit" class="neria-btn neria-btn--warn neria-btn--sm"
-                onclick="return confirm('Réinitialiser ce template dans TOUTES les langues ? Vos textes personnalisés seront perdus.');">
+        <button type="button" class="neria-btn neria-btn--warn neria-btn--sm"
+                data-confirm="Réinitialiser ce template dans TOUTES les langues ? Vos textes personnalisés seront perdus."
+                onclick="neriaConfirmDelete(this);">
           ↺ {neria_admin key='translations.reset_all_langs'}
         </button>
       </form>
       <form method="post" style="margin:0;">
         <input type="hidden" name="neria_action"  value="reset_all_translations">
-        <button type="submit" class="neria-btn neria-btn--danger neria-btn--sm"
-                onclick="return confirm('⚠ ATTENTION — Réinitialiser TOUTES les traductions de TOUS les templates ? Cette action est irréversible.');">
+        <button type="button" class="neria-btn neria-btn--danger neria-btn--sm"
+                data-confirm="⚠ ATTENTION — Réinitialiser TOUTES les traductions de TOUS les templates ? Cette action est irréversible."
+                onclick="neriaConfirmDelete(this);">
           ↺ {neria_admin key='translations.reset_all'}
         </button>
       </form>
@@ -484,8 +444,9 @@ window.neriaAjaxUrl = function(action, extra) {
                       <input type="hidden" name="trad_template"  value="{$selected_template|escape:'html'}">
                       <input type="hidden" name="trad_lang"      value="{$selected_lang|escape:'html'}">
                       <input type="hidden" name="id_history"     value="{$entry.id_history|intval}">
-                      <button type="submit" class="neria-btn neria-btn--primary neria-btn--xs"
-                              onclick="return confirm('{neria_admin key='translations.restore_confirm'|escape:'javascript'}');">
+                      <button type="button" class="neria-btn neria-btn--primary neria-btn--xs"
+                              data-confirm="{neria_admin key='translations.restore_confirm'|escape:'html'}"
+                              onclick="neriaConfirmDelete(this);">
                         {neria_admin key='translations.restore_btn'}
                       </button>
                     </form>
@@ -595,8 +556,9 @@ window.neriaAjaxUrl = function(action, extra) {
                   <input type="hidden" name="trad_template"   value="{$selected_template}">
                   <input type="hidden" name="trad_lang"       value="{$selected_lang}">
                   <input type="hidden" name="id_abtest_b"     value="{$id_abtest_b}">
-                  <button type="submit" class="neria-btn neria-btn--warn neria-btn--sm"
-                          onclick="return confirm('Réinitialiser la Variante B ? Tous vos textes B seront supprimés et les champs afficheront à nouveau les textes de la Variante A.');">
+                  <button type="button" class="neria-btn neria-btn--warn neria-btn--sm"
+                          data-confirm="Réinitialiser la Variante B ? Tous vos textes B seront supprimés et les champs afficheront à nouveau les textes de la Variante A."
+                          onclick="neriaConfirmDelete(this);">
                     ↺ {neria_admin key='translations.reset_template'}
                   </button>
                 </form>
@@ -744,8 +706,9 @@ window.neriaAjaxUrl = function(action, extra) {
                       <input type="hidden" name="trad_lang"      value="{$selected_lang|escape:'html'}">
                       <input type="hidden" name="id_abtest_b"    value="{$id_abtest_b}">
                       <input type="hidden" name="id_history"     value="{$entry.id_history|intval}">
-                      <button type="submit" class="neria-btn neria-btn--primary neria-btn--xs"
-                              onclick="return confirm('{neria_admin key='translations.restore_confirm'|escape:'javascript'}');">
+                      <button type="button" class="neria-btn neria-btn--primary neria-btn--xs"
+                              data-confirm="{neria_admin key='translations.restore_confirm'|escape:'html'}"
+                              onclick="neriaConfirmDelete(this);">
                         {neria_admin key='translations.restore_btn'}
                       </button>
                     </form>
@@ -899,26 +862,28 @@ document.addEventListener('DOMContentLoaded', function() {
   var translateStatus = document.getElementById('neria-translate-status');
   if (btnTranslate) {
     btnTranslate.addEventListener('click', function() {
-      if (!confirm('Traduire automatiquement TOUS les champs depuis le français via DeepL ?\n\nLes champs existants seront écrasés.')) { return; }
-      var tpl  = this.getAttribute('data-template');
-      var lang = this.getAttribute('data-lang');
-      btnTranslate.disabled = true;
-      translateStatus.textContent = '⏳ Traduction en cours...';
-      var url = window.neriaAjaxUrl('auto_translate_template') + '&trad_template=' + encodeURIComponent(tpl) + '&trad_lang=' + encodeURIComponent(lang);
-      fetch(url).then(function(r){ return r.json(); }).then(function(data) {
-        btnTranslate.disabled = false;
-        if (data.error) {
-          translateStatus.textContent = '❌ ' + data.error;
+      var self = this;
+      neriaConfirmAction('Traduire automatiquement TOUS les champs depuis le français via DeepL ?\n\nLes champs existants seront écrasés.', function() {
+        var tpl  = self.getAttribute('data-template');
+        var lang = self.getAttribute('data-lang');
+        btnTranslate.disabled = true;
+        translateStatus.textContent = '⏳ Traduction en cours...';
+        var url = window.neriaAjaxUrl('auto_translate_template') + '&trad_template=' + encodeURIComponent(tpl) + '&trad_lang=' + encodeURIComponent(lang);
+        fetch(url).then(function(r){ return r.json(); }).then(function(data) {
+          btnTranslate.disabled = false;
+          if (data.error) {
+            translateStatus.textContent = '❌ ' + data.error;
+            translateStatus.style.color = '#c0392b';
+          } else {
+            translateStatus.textContent = '✅ ' + data.message;
+            translateStatus.style.color = '#16a34a';
+            setTimeout(function() { window.location.reload(); }, 1500);
+          }
+        }).catch(function() {
+          btnTranslate.disabled = false;
+          translateStatus.textContent = '❌ Erreur réseau';
           translateStatus.style.color = '#c0392b';
-        } else {
-          translateStatus.textContent = '✅ ' + data.message;
-          translateStatus.style.color = '#16a34a';
-          setTimeout(function() { window.location.reload(); }, 1500);
-        }
-      }).catch(function() {
-        btnTranslate.disabled = false;
-        translateStatus.textContent = '❌ Erreur réseau';
-        translateStatus.style.color = '#c0392b';
+        });
       });
     });
   }
@@ -928,10 +893,11 @@ document.addEventListener('DOMContentLoaded', function() {
   var translateStatusB = document.getElementById('neria-translate-b-status');
   if (btnTranslateB) {
     btnTranslateB.addEventListener('click', function() {
-      if (!confirm('Traduire automatiquement tous les champs de la Variante B depuis le français via DeepL ?\n\nSeuls les champs non renseignés seront traduits.')) { return; }
-      var tpl      = this.getAttribute('data-template');
-      var lang     = this.getAttribute('data-lang');
-      var idAbtest = this.getAttribute('data-idabtest');
+      var self = this;
+      neriaConfirmAction('Traduire automatiquement tous les champs de la Variante B depuis le français via DeepL ?\n\nSeuls les champs non renseignés seront traduits.', function() {
+      var tpl      = self.getAttribute('data-template');
+      var lang     = self.getAttribute('data-lang');
+      var idAbtest = self.getAttribute('data-idabtest');
       btnTranslateB.disabled = true;
       translateStatusB.textContent = '⏳ Traduction en cours...';
       var url = window.neriaAjaxUrl('auto_translate_variant_b')
@@ -952,6 +918,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btnTranslateB.disabled = false;
         translateStatusB.textContent = '❌ Erreur réseau';
         translateStatusB.style.color = '#c0392b';
+      });
       });
     });
   }

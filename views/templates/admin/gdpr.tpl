@@ -110,8 +110,9 @@
             <input type="hidden" name="gdpr_table"       value="{$row.table|escape:'html'}">
             <input type="hidden" name="gdpr_date_col"    value="{$row.date_col|escape:'html'}">
             <input type="hidden" name="gdpr_months"      value="{$row.months|intval}">
-            <button type="submit" class="neria-btn neria-btn--ghost neria-btn--xs"
-                    onclick="return confirm('Supprimer les {$row.overdue} enregistrement(s) de {$row.label|escape:'javascript'} anterieurs a {$row.months} mois ?');">
+            <button type="button" class="neria-btn neria-btn--ghost neria-btn--xs"
+                    data-confirm="Supprimer les {$row.overdue} enregistrement(s) de {$row.label|escape:'html'} anterieurs a {$row.months} mois ?"
+                    onclick="neriaConfirmDelete(this);">
               Purger
             </button>
           </form>
@@ -227,8 +228,9 @@
   <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
     <input type="hidden" name="neria_action" value="gdpr_encrypt_all">
     <input type="hidden" name="neria_tab"    value="gdpr">
-    <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm"
-            onclick="return confirm('Chiffrer {$gdpr_audit.crypto.plain} enregistrement(s) en clair avec AES-256-GCM ?');">
+    <button type="button" class="neria-btn neria-btn--primary neria-btn--sm"
+            data-confirm="Chiffrer {$gdpr_audit.crypto.plain} enregistrement(s) en clair avec AES-256-GCM ?"
+            onclick="neriaConfirmDelete(this);">
       Chiffrer les {$gdpr_audit.crypto.plain|intval} enregistrement(s) existant(s)
     </button>
     <span style="font-size:12px;color:var(--neria-text-muted,#888);">

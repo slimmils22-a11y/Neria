@@ -518,12 +518,13 @@
                     {if $b.status === 'active'}Ignorer{else}Réactiver{/if}
                   </button>
                 </form>
-                <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;"
-                      onsubmit="return confirm('Supprimer {$b.email|escape:'javascript'} de la liste des bounces ?')">
+                <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
                   <input type="hidden" name="neria_action" value="delete_bounce">
                   <input type="hidden" name="neria_tab" value="bounces">
                   <input type="hidden" name="bounce_email" value="{$b.email|escape:'html'}">
-                  <button type="submit" class="nb-btn nb-btn--danger nb-btn--sm">✕</button>
+                  <button type="button" class="nb-btn nb-btn--danger nb-btn--sm"
+                          data-confirm="Supprimer {$b.email|escape:'html'} de la liste des bounces ?"
+                          onclick="neriaConfirmDelete(this);">✕</button>
                 </form>
               </div>
             </td>

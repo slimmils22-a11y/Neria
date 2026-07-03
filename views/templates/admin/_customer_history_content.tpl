@@ -419,11 +419,10 @@ document.addEventListener('DOMContentLoaded', function () {
             var hasSnapshot = btn.dataset.hasSnapshot === '1';
             var msgKey = hasSnapshot ? 'history.resend_confirm' : 'history.resend_confirm_no_snapshot';
             var msg = neriaHistoryConfirmTexts;
-            if (!window.confirm(msg[msgKey])) {
-                return;
-            }
-            resendIdStat.value = btn.dataset.idStat;
-            resendForm.submit();
+            neriaConfirmAction(msg[msgKey], function () {
+                resendIdStat.value = btn.dataset.idStat;
+                resendForm.submit();
+            });
         });
     });
 });

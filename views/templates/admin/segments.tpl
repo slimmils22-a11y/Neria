@@ -332,8 +332,9 @@
 
       {* Bouton envoi *}
       <div>
-        <button type="submit" class="neria-btn neria-btn--primary"
-                onclick="return confirm('{neria_admin key='seg.campaign_confirm'}');">
+        <button type="button" class="neria-btn neria-btn--primary"
+                data-confirm="{neria_admin key='seg.campaign_confirm'|escape:'html'}"
+                onclick="neriaConfirmDelete(this);">
           ✉ {neria_admin key='seg.campaign_send'}
         </button>
         <span class="neria-hint" style="margin-left:10px;">{neria_admin key='seg.filter_cumulate'}</span>

@@ -525,8 +525,9 @@
     <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
       <input type="hidden" name="neria_action" value="regenerate_emergency_token">
       <input type="hidden" name="neria_tab"    value="help">
-      <button type="submit" class="neria-btn neria-btn--danger neria-btn--sm"
-              onclick="return confirm('{neria_admin key="help.emergency_regen_confirm"}')">
+      <button type="button" class="neria-btn neria-btn--danger neria-btn--sm"
+              data-confirm="{neria_admin key='help.emergency_regen_confirm'|escape:'html'}"
+              onclick="neriaConfirmDelete(this);">
         ↺ {neria_admin key='help.emergency_regen'}
       </button>
     </form>
@@ -614,8 +615,9 @@
     <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
       <input type="hidden" name="neria_action" value="regenerate_cron_token">
       <input type="hidden" name="neria_tab"    value="help">
-      <button type="submit" class="neria-btn neria-btn--danger neria-btn--sm"
-              onclick="return confirm('{neria_admin key="help.cron_regen_confirm"}')">
+      <button type="button" class="neria-btn neria-btn--danger neria-btn--sm"
+              data-confirm="{neria_admin key='help.cron_regen_confirm'|escape:'html'}"
+              onclick="neriaConfirmDelete(this);">
         ↺ {neria_admin key='help.cron_regen'}
       </button>
     </form>
@@ -687,8 +689,9 @@
     <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline">
       <input type="hidden" name="neria_action" value="clear_logs">
       <input type="hidden" name="neria_tab" value="help">
-      <button type="submit" class="neria-btn neria-watchdog-btn neria-watchdog-btn--danger"
-              onclick="return confirm('{neria_admin key='help.clear_confirm'}')">
+      <button type="button" class="neria-btn neria-watchdog-btn neria-watchdog-btn--danger"
+              data-confirm="{neria_admin key='help.clear_confirm'|escape:'html'}"
+              onclick="neriaConfirmDelete(this);">
         🗑 {neria_admin key='help.clear_log'}
       </button>
     </form>

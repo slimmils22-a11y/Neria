@@ -3260,10 +3260,10 @@ var _nhm = {$open_heatmap|default:'null'};
         <td style="padding:8px 12px; text-align:center;">{$lp.lifespan_days} j</td>
         <td style="padding:8px 12px; text-align:center;">{$lp.alert_days} j</td>
         <td style="padding:8px 12px; text-align:center;">
-          <form method="post" style="margin:0;" onsubmit="return confirm('Supprimer ce produit ?')">
+          <form method="post" style="margin:0;">
             <input type="hidden" name="neria_action" value="lifespan_delete" />
             <input type="hidden" name="lifespan_id" value="{$lp.id_lifespan}" />
-            <button type="submit" style="background:none; border:none; cursor:pointer; color:#e74c3c; font-size:16px;">✕</button>
+            <button type="button" data-confirm="Supprimer ce produit ?" onclick="neriaConfirmDelete(this);" style="background:none; border:none; cursor:pointer; color:#e74c3c; font-size:16px;">✕</button>
           </form>
         </td>
       </tr>
@@ -3478,12 +3478,11 @@ var _nhm = {$open_heatmap|default:'null'};
               <button type="submit" style="padding:4px 8px; background:#c0392b; color:#fff; border:none; border-radius:3px; font-size:11px; cursor:pointer; margin-right:4px;">Perdu</button>
             </form>
             {/if}
-            <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-quote-section" style="display:inline;"
-                  onsubmit="return confirm('Supprimer ce devis ?');">
+            <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-quote-section" style="display:inline;">
               <input type="hidden" name="neria_action" value="quote_delete">
               <input type="hidden" name="neria_tab"    value="stats">
               <input type="hidden" name="id_quote"     value="{$q.id_quote}">
-              <button type="submit" style="padding:4px 8px; background:var(--neria-border); color:var(--neria-text); border:none; border-radius:3px; font-size:11px; cursor:pointer;">Supprimer</button>
+              <button type="button" data-confirm="Supprimer ce devis ?" onclick="neriaConfirmDelete(this);" style="padding:4px 8px; background:var(--neria-border); color:var(--neria-text); border:none; border-radius:3px; font-size:11px; cursor:pointer;">Supprimer</button>
             </form>
           </td>
         </tr>
@@ -3609,8 +3608,8 @@ var _nhm = {$open_heatmap|default:'null'};
               <input type="hidden" name="neria_action" value="collection_delete">
               <input type="hidden" name="neria_tab"    value="stats">
               <input type="hidden" name="collection_id" value="{$col.id_neria_collection}">
-              <button type="submit" class="neria-btn neria-btn--danger neria-btn--sm"
-                      onclick="return confirm('Supprimer cette collection ?')">✕</button>
+              <button type="button" class="neria-btn neria-btn--danger neria-btn--sm"
+                      data-confirm="Supprimer cette collection ?" onclick="neriaConfirmDelete(this);">✕</button>
             </form>
           </td>
         </tr>
@@ -3737,8 +3736,8 @@ var _nhm = {$open_heatmap|default:'null'};
               <input type="hidden" name="neria_action" value="look_rule_delete">
               <input type="hidden" name="neria_tab"    value="stats">
               <input type="hidden" name="look_rule_id" value="{$rule.id_neria_look_rule}">
-              <button type="submit" class="neria-btn neria-btn--danger neria-btn--sm"
-                      onclick="return confirm('Supprimer cette règle ?')">✕</button>
+              <button type="button" class="neria-btn neria-btn--danger neria-btn--sm"
+                      data-confirm="Supprimer cette règle ?" onclick="neriaConfirmDelete(this);">✕</button>
             </form>
           </td>
         </tr>
