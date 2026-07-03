@@ -220,6 +220,7 @@ class HealthCheckManager
             // ── Contrôles proactifs ─────────────────────────────────────
             'engagement_trend'     => $this->checkEngagementTrend(),
             'oauth_freshness'      => $this->checkOAuthFreshness(),
+            'active_cron'          => $this->checkActiveCron(),
         ];
     }
 
@@ -1079,6 +1080,48 @@ class HealthCheckManager
     }
 
     /**
+     * Contrôle proactif — Cron externe actif
+     * Neria fonctionne "out of the box" via hookDisplayHeader (déclenché
+     * sur chaque page front-office), mais ce fallback dépend du trafic
+     * visiteurs. Un vrai cron serveur (controllers/front/cron.php) rend
+     * la surveillance réellement proactive. Ce contrôle est INFORMATIF
+     * uniquement — son absence ne doit jamais faire baisser le score de
+     * santé, c'est une recommandation, pas un prérequis.
+     */
+    private function checkActiveCron(): array
+    {
+        if (!class_exists('WatchdogManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Contrôle non disponible.'];
+        }
+
+        $lastHit = (new \WatchdogManager($this->module))->getLastCronEndpointHit();
+
+        if ($lastHit === null) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => 'Aucun cron serveur externe détecté — Neria repose uniquement sur le trafic visiteurs'
+                    . ' (hookDisplayHeader) pour ses tâches de fond, ce qui peut retarder leur exécution sur une'
+                    . ' boutique à faible trafic, ou si le site rencontre justement un problème.'
+                    . ' → Que faire : configurez une tâche cron serveur pointant vers l\'URL affichée dans'
+                    . ' Neria → Aide → section Diagnostic, pour un déclenchement actif toutes les 5-15 minutes.',
+            ];
+        }
+
+        $ageHours = (time() - strtotime($lastHit)) / 3600;
+        if ($ageHours > 26) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => 'Cron serveur externe configuré mais inactif depuis ' . round($ageHours / 24, 1) . ' jour(s)'
+                    . ' (dernier appel : ' . $lastHit . ').'
+                    . ' → Que faire : vérifiez que la tâche cron est toujours active côté hébergeur'
+                    . ' (crontab, ou tâche planifiée du panneau d\'hébergement).',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => 'Cron serveur externe actif (dernier appel : ' . $lastHit . ').'];
+    }
+
+    /**
      * #22 — Sécurité HMAC désabonnement
      * Les liens de désabonnement sont signés avec _COOKIE_KEY_ (constante PS).
      * Si elle est absente ou trop courte, les liens sont falsifiables.
@@ -1435,30 +1478,67 @@ class HealthCheckManager
     {
         $key = (string) \Configuration::get(CryptoManager::CONFIG_KEY);
 
-        if ($key !== '') {
+        if ($key === '') {
+            // Vérifie si des données chiffrées existent réellement
+            $statTable  = _DB_PREFIX_ . 'neria_stat';
+            $hasEncData = (int) $this->db->getValue(
+                "SELECT COUNT(*) FROM information_schema.columns
+                 WHERE table_schema = DATABASE()
+                   AND table_name   = '{$statTable}'
+                   AND column_name  = 'rendered_vars'"
+            );
+
+            if (!$hasEncData) {
+                return ['status' => self::STATUS_OK, 'detail' => 'Chiffrement non activé — sans impact.'];
+            }
+
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => 'Clé de chiffrement AES absente (NERIA_ENCRYPTION_KEY vide).'
+                    . ' Les données chiffrées en base sont illisibles.'
+                    . ' → Que faire : Allez dans l\'onglet RGPD → Chiffrement'
+                    . ' et régénérez la clé, puis lancez la migration rétroactive.',
+            ];
+        }
+
+        // La clé existe, mais existe-t-elle est-elle la BONNE clé ? Une clé
+        // présente mais rotée/corrompue passerait le test ci-dessus sans
+        // problème tout en cassant silencieusement le déchiffrement de tous
+        // les identifiants API (IMAP, OAuth, webhook, DeepL…) — chaque appel
+        // à CryptoManager::decrypt() renvoie alors '' sans lever d'erreur.
+        // On tente un vrai déchiffrement sur un échantillon de secrets réels.
+        if (!class_exists('CryptoManager')) {
             return ['status' => self::STATUS_OK, 'detail' => 'Clé de chiffrement AES-256-GCM présente.'];
         }
 
-        // Vérifie si des données chiffrées existent réellement
-        $statTable  = _DB_PREFIX_ . 'neria_stat';
-        $hasEncData = (int) $this->db->getValue(
-            "SELECT COUNT(*) FROM information_schema.columns
-             WHERE table_schema = DATABASE()
-               AND table_name   = '{$statTable}'
-               AND column_name  = 'rendered_vars'"
-        );
-
-        if (!$hasEncData) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Chiffrement non activé — sans impact.'];
+        $secretKeys = [
+            'NERIA_BOUNCE_IMAP_PASS', 'NERIA_BOUNCE_WEBHOOK_SECRET',
+            'NERIA_POSTMASTER_CLIENT_SECRET', 'NERIA_SC_CLIENT_SECRET',
+            'NERIA_WEBHOOK_SECRET', 'NERIA_DEEPL_KEY',
+        ];
+        $broken = [];
+        foreach ($secretKeys as $cfgKey) {
+            $stored = (string) \Configuration::getGlobalValue($cfgKey);
+            if ($stored === '' || !\CryptoManager::isEncrypted($stored)) {
+                continue; // rien de chiffré à tester pour cette clé
+            }
+            if (\CryptoManager::decrypt($stored) === '') {
+                $broken[] = $cfgKey;
+            }
         }
 
-        return [
-            'status' => self::STATUS_ERROR,
-            'detail' => 'Clé de chiffrement AES absente (NERIA_ENCRYPTION_KEY vide).'
-                . ' Les données chiffrées en base sont illisibles.'
-                . ' → Que faire : Allez dans l\'onglet RGPD → Chiffrement'
-                . ' et régénérez la clé, puis lancez la migration rétroactive.',
-        ];
+        if ($broken) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => 'Clé de chiffrement présente mais échec du déchiffrement sur ' . count($broken)
+                    . ' identifiant(s) déjà chiffré(s) en base (' . implode(', ', $broken) . ').'
+                    . ' → Que faire : la clé NERIA_ENCRYPTION_KEY a probablement été modifiée ou perdue'
+                    . ' (restauration de sauvegarde partielle, migration serveur…). Ces identifiants sont'
+                    . ' illisibles et doivent être ressaisis dans leurs onglets respectifs.',
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => 'Clé de chiffrement AES-256-GCM présente et fonctionnelle.'];
     }
 
     /**
