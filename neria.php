@@ -37,7 +37,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.18';
+    const VERSION = '1.0.19';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -1870,6 +1870,11 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'regenerate_cron_token') {
             Configuration::updateGlobalValue('NERIA_CRON_TOKEN', bin2hex(random_bytes(24)));
             $this->context->smarty->assign('neria_success', AdminTranslator::t('help.cron_token_regenerated'));
+        }
+
+        if (Tools::getValue('neria_action') === 'cron_toggle') {
+            $current = (bool) Configuration::getGlobalValue('NERIA_CRON_ENABLED');
+            Configuration::updateGlobalValue('NERIA_CRON_ENABLED', $current ? 0 : 1);
         }
 
         // ── Action : diagnostic complet à la demande ──────────────
@@ -4498,6 +4503,7 @@ class Neria extends Module
                 . urlencode((string) Configuration::getGlobalValue('NERIA_EMERGENCY_TOKEN')),
 
             // URL du point d'entrée cron externe (surveillance active — recommandé)
+            'cron_enabled'     => (bool) Configuration::getGlobalValue('NERIA_CRON_ENABLED'),
             'cron_token'       => (string) Configuration::getGlobalValue('NERIA_CRON_TOKEN'),
             'cron_url'         => Tools::getShopDomainSsl(true) . __PS_BASE_URI__
                 . 'index.php?fc=module&module=neria&controller=cron&token='
@@ -5586,6 +5592,7 @@ class Neria extends Module
             self::CONFIG_PREFIX . 'ABTEST_ENABLED'   => 0,
             self::CONFIG_PREFIX . 'AUTO_LANG'        => 1,
             self::CONFIG_PREFIX . 'LOG_INTERNAL'     => 0,
+            'NERIA_CRON_ENABLED'                         => 1,
             'NERIA_CHECKOUT_ABANDONMENT_ENABLED'         => 1,
             'NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED'     => 1,
             'NERIA_QUOTE_REMINDERS_ENABLED'              => 1,
@@ -5667,6 +5674,9 @@ class Neria extends Module
             'NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED',
             'NERIA_QUOTE_REMINDERS_ENABLED',
             'NERIA_PURCHASE_WINDOW_ENABLED',
+            'NERIA_CRON_ENABLED',
+            'NERIA_CRON_TOKEN',
+            'NERIA_EMERGENCY_TOKEN',
         ];
 
         foreach ($keys as $key) {

@@ -538,11 +538,24 @@
 
 {* ── Cron externe (surveillance active) ────────────────────────── *}
 <div class="neria-section" id="neria-help-cron">
-  <h2 class="neria-section__title">
-    ⏱ {neria_admin key='help.cron_title'}
-  </h2>
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <h2 class="neria-section__title" style="margin-bottom:0;">
+      ⏱ {neria_admin key='help.cron_title'}
+    </h2>
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+      <input type="hidden" name="neria_action" value="cron_toggle">
+      <input type="hidden" name="neria_tab"    value="help">
+      <button type="submit"
+              style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px;
+                     background:{if $cron_enabled}#1a7a40{else}#c0392b{/if};
+                     color:#fff; border:none; border-radius:4px; font-size:12px;
+                     font-weight:700; cursor:pointer; letter-spacing:.04em;">
+        {if $cron_enabled}● {neria_admin key='help.cron_toggle_on'}{else}○ {neria_admin key='help.cron_toggle_off'}{/if}
+      </button>
+    </form>
+  </div>
 
-  <p style="font-size:12px; color:var(--neria-text-light); margin-bottom:16px;">
+  <p style="font-size:12px; color:var(--neria-text-light); margin:12px 0 16px;">
     {neria_admin key='help.cron_desc'}
   </p>
 
@@ -560,7 +573,11 @@
     </div>
   </div>
 
-  {if $cron_last_hit}
+  {if !$cron_enabled}
+    <p style="font-size:12px; color:#c0392b; margin-bottom:12px;">
+      ⏸ {neria_admin key='help.cron_disabled_notice'}
+    </p>
+  {elseif $cron_last_hit}
     <p style="font-size:12px; color:#16a34a; margin-bottom:12px;">
       ✓ {neria_admin key='help.cron_active'} — {$cron_last_hit|escape:'html'}
     </p>

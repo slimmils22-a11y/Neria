@@ -1094,6 +1094,10 @@ class HealthCheckManager
             return ['status' => self::STATUS_OK, 'detail' => 'Contrôle non disponible.'];
         }
 
+        if (!\Configuration::getGlobalValue('NERIA_CRON_ENABLED')) {
+            return ['status' => self::STATUS_OK, 'detail' => 'Cron serveur externe désactivé volontairement (onglet Aide).'];
+        }
+
         $lastHit = (new \WatchdogManager($this->module))->getLastCronEndpointHit();
 
         if ($lastHit === null) {

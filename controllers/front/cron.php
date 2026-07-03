@@ -41,6 +41,14 @@ class NeriaCronModuleFrontController extends ModuleFrontController
             exit;
         }
 
+        if (!Configuration::getGlobalValue('NERIA_CRON_ENABLED')) {
+            // Désactivé volontairement par le marchand (onglet Aide) — pas une
+            // erreur : on répond 200 pour ne pas déclencher de fausse alerte
+            // côté outil de supervision cron de l'hébergeur.
+            echo json_encode(['ok' => true, 'disabled' => true]);
+            exit;
+        }
+
         $ran = [];
         try {
             $ran = $this->module->runBackgroundJobs();
