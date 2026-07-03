@@ -656,11 +656,13 @@ class ManualSendManager
      */
     private function findCustomer(string $email): ?array
     {
+        $shopRestriction = \Shop::addSqlRestriction(\Shop::SHARE_CUSTOMER);
         $row = $this->db->getRow(
             'SELECT `id_customer`, `id_lang`, `firstname`, `lastname`
              FROM `' . _DB_PREFIX_ . 'customer`
              WHERE `email` = \'' . pSQL($email) . '\'
                AND `deleted` = 0
+               ' . $shopRestriction . '
              ORDER BY `id_customer` DESC'
         );
 
@@ -679,6 +681,7 @@ class ManualSendManager
             'SELECT `id_order`, `reference`
              FROM `' . _DB_PREFIX_ . 'orders`
              WHERE `reference` = \'' . pSQL($ref) . '\'
+               AND `id_shop` = ' . (int) \Context::getContext()->shop->id . '
              ORDER BY `id_order` DESC'
         );
 
@@ -792,6 +795,11 @@ class ManualSendManager
             return [];
         }
         $safe = pSQL($q);
+        // Respecte le mode de partage client PrestaShop (boutique isolée ou
+        // partagée au sein d'un groupe) — évite qu'un employé restreint à
+        // une boutique retrouve des clients d'une autre boutique isolée,
+        // sans casser la recherche si les clients sont partagés.
+        $shopRestriction = \Shop::addSqlRestriction(\Shop::SHARE_CUSTOMER, 'c');
         $rows = $this->db->executeS(
             'SELECT c.`id_customer`, c.`email`, c.`firstname`, c.`lastname`,
                     o.`reference` AS last_order_ref,
@@ -804,6 +812,7 @@ class ManualSendManager
                       WHERE `id_customer` = c.`id_customer`
                   )
              WHERE c.`deleted` = 0
+               ' . $shopRestriction . '
                AND (
                    c.`email` LIKE \'%' . $safe . '%\'
                 OR c.`firstname` LIKE \'%' . $safe . '%\'

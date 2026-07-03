@@ -37,7 +37,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.16';
+    const VERSION = '1.0.17';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -722,6 +722,17 @@ class Neria extends Module
         if (!Validate::isLoadedObject($customer)) {
             return;
         }
+        // Même garde que la recherche : un id_customer saisi directement dans
+        // l'URL ne doit pas donner accès à l'historique d'un client d'une
+        // autre boutique isolée (mode de partage client non partagé).
+        $shopRestriction = Shop::addSqlRestriction(Shop::SHARE_CUSTOMER);
+        $exists = Db::getInstance()->getValue(
+            'SELECT `id_customer` FROM `' . _DB_PREFIX_ . 'customer`
+             WHERE `id_customer` = ' . $idCustomer . " AND `deleted` = 0 {$shopRestriction}"
+        );
+        if (!$exists) {
+            return;
+        }
 
         $manager = new CustomerEmailHistoryManager($this);
         $this->maybeOutputHistoryFileResponse($idCustomer, $manager);
@@ -840,11 +851,16 @@ class Neria extends Module
 
     private function searchCustomersForHistory(string $query): array
     {
-        $q    = pSQL($query);
+        $q = pSQL($query);
+        // Respecte le mode de partage client PrestaShop — évite qu'un employé
+        // restreint à une boutique retrouve/consulte l'historique de clients
+        // d'une autre boutique isolée (cf. ManualSendManager::searchCustomers).
+        $shopRestriction = Shop::addSqlRestriction(Shop::SHARE_CUSTOMER);
         $rows = Db::getInstance()->executeS(
             "SELECT id_customer, firstname, lastname, email FROM " . _DB_PREFIX_ . "customer
              WHERE deleted = 0
                AND (firstname LIKE '%{$q}%' OR lastname LIKE '%{$q}%' OR email LIKE '%{$q}%')
+               {$shopRestriction}
              ORDER BY lastname ASC, firstname ASC
              LIMIT 10"
         );
@@ -1445,7 +1461,7 @@ class Neria extends Module
             $tplKey  = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
             $tplLang = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
             $config  = new ConfigManager($this);
-            $deeplKey = trim((string) $config->get(ConfigManager::KEY_DEEPL_KEY, ''));
+            $deeplKey = CryptoManager::decrypt(trim((string) $config->get(ConfigManager::KEY_DEEPL_KEY, '')));
 
             if ($deeplKey === '') {
                 echo json_encode(['error' => 'Clé API DeepL manquante. Renseignez-la et sauvegardez avant de traduire.']);
@@ -1604,13 +1620,13 @@ class Neria extends Module
             $tplLang   = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
             $idAbtestB = (int) Tools::getValue('id_abtest_b', 0);
             $config    = new ConfigManager($this);
-            $deeplKey  = trim((string) $config->get(ConfigManager::KEY_DEEPL_KEY, ''));
+            $deeplKey  = CryptoManager::decrypt(trim((string) $config->get(ConfigManager::KEY_DEEPL_KEY, '')));
 
             if ($deeplKey === '') {
                 echo json_encode(['error' => 'Clé API DeepL manquante.']);
                 exit;
             }
-            if ($idAbtestB <= 0) {
+            if (!$this->abtestBelongsToShop($idAbtestB)) {
                 echo json_encode(['error' => 'Test A/B introuvable.']);
                 exit;
             }
@@ -1911,7 +1927,7 @@ class Neria extends Module
             $clientId     = trim((string) Tools::getValue('postmaster_client_id', ''));
             $clientSecret = trim((string) Tools::getValue('postmaster_client_secret', ''));
             Configuration::updateValue(PostmasterManager::CONFIG_CLIENT_ID,     $clientId);
-            Configuration::updateValue(PostmasterManager::CONFIG_CLIENT_SECRET, $clientSecret);
+            Configuration::updateValue(PostmasterManager::CONFIG_CLIENT_SECRET, CryptoManager::encrypt($clientSecret));
             // Efface les anciens tokens si les credentials changent
             Configuration::deleteByName(PostmasterManager::CONFIG_ACCESS_TOKEN);
             Configuration::deleteByName(PostmasterManager::CONFIG_REFRESH_TOKEN);
@@ -1998,7 +2014,7 @@ class Neria extends Module
             if ($urlError) {
                 $this->context->smarty->assign('neria_error', $urlError);
             } else {
-                Configuration::updateValue(PageSpeedManager::CONFIG_API_KEY,    $key);
+                Configuration::updateValue(PageSpeedManager::CONFIG_API_KEY,    CryptoManager::encrypt($key));
                 Configuration::updateValue(PageSpeedManager::CONFIG_TARGET_URL, $targetUrl);
                 Configuration::deleteByName(PageSpeedManager::CONFIG_CACHE);
                 Configuration::deleteByName(PageSpeedManager::CONFIG_CACHE_TIME);
@@ -2027,7 +2043,7 @@ class Neria extends Module
             $clientId     = trim((string) Tools::getValue('sc_client_id', ''));
             $clientSecret = trim((string) Tools::getValue('sc_client_secret', ''));
             Configuration::updateValue(SearchConsoleManager::CONFIG_CLIENT_ID,     $clientId);
-            Configuration::updateValue(SearchConsoleManager::CONFIG_CLIENT_SECRET, $clientSecret);
+            Configuration::updateValue(SearchConsoleManager::CONFIG_CLIENT_SECRET, CryptoManager::encrypt($clientSecret));
             Configuration::deleteByName(SearchConsoleManager::CONFIG_ACCESS_TOKEN);
             Configuration::deleteByName(SearchConsoleManager::CONFIG_REFRESH_TOKEN);
             Configuration::deleteByName(SearchConsoleManager::CONFIG_TOKEN_EXPIRY);
@@ -2079,13 +2095,13 @@ class Neria extends Module
             $mozSecret  = trim((string) Tools::getValue('seo_moz_secret', ''));
             Configuration::updateValue(SeoApiManager::CONFIG_PROVIDER,    $provider);
             if ($semrushKey !== '') {
-                Configuration::updateValue(SeoApiManager::CONFIG_SEMRUSH_KEY, $semrushKey);
+                Configuration::updateValue(SeoApiManager::CONFIG_SEMRUSH_KEY, CryptoManager::encrypt($semrushKey));
             }
             if ($mozAccess !== '') {
-                Configuration::updateValue(SeoApiManager::CONFIG_MOZ_ACCESS, $mozAccess);
+                Configuration::updateValue(SeoApiManager::CONFIG_MOZ_ACCESS, CryptoManager::encrypt($mozAccess));
             }
             if ($mozSecret !== '') {
-                Configuration::updateValue(SeoApiManager::CONFIG_MOZ_SECRET, $mozSecret);
+                Configuration::updateValue(SeoApiManager::CONFIG_MOZ_SECRET, CryptoManager::encrypt($mozSecret));
             }
             Configuration::deleteByName(SeoApiManager::CONFIG_CACHE);
             Configuration::deleteByName(SeoApiManager::CONFIG_CACHE_TIME);
@@ -2298,7 +2314,7 @@ class Neria extends Module
                 Db::getInstance()->execute(
                     'UPDATE `' . _DB_PREFIX_ . 'neria_calendar_event`
                      SET `send_days_before` = ' . $days . ', `date_upd` = NOW()
-                     WHERE `id_event` = ' . $idEvent
+                     WHERE `id_event` = ' . $idEvent . ' AND `id_shop` = ' . (int) $this->context->shop->id
                 );
                 $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
             }
@@ -2310,7 +2326,7 @@ class Neria extends Module
                 Db::getInstance()->execute(
                     'UPDATE `' . _DB_PREFIX_ . 'neria_calendar_event`
                      SET `is_active` = 1 - `is_active`, `date_upd` = NOW()
-                     WHERE `id_event` = ' . $idEvent
+                     WHERE `id_event` = ' . $idEvent . ' AND `id_shop` = ' . (int) $this->context->shop->id
                 );
             }
         }
@@ -2320,7 +2336,7 @@ class Neria extends Module
             if ($idEvent > 0) {
                 Db::getInstance()->execute(
                     'DELETE FROM `' . _DB_PREFIX_ . 'neria_calendar_event`
-                     WHERE `id_event` = ' . $idEvent
+                     WHERE `id_event` = ' . $idEvent . ' AND `id_shop` = ' . (int) $this->context->shop->id
                 );
                 $this->context->smarty->assign('neria_success', AdminTranslator::t('calendar.deleted'));
             }
@@ -2808,13 +2824,13 @@ class Neria extends Module
             $idAbtestB = (int) Tools::getValue('id_abtest_b', 0);
             $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';
 
-            $rows = Db::getInstance()->executeS(
+            $rows = $this->abtestBelongsToShop($idAbtestB) ? Db::getInstance()->executeS(
                 "SELECT `translation_key`, `translation_value`
                  FROM `{$tableTradB}`
                  WHERE `id_abtest` = {$idAbtestB}
                    AND `lang`      = '" . pSQL($tplLang) . "'
                  ORDER BY `translation_key` ASC"
-            );
+            ) : [];
 
             $filename = 'neria_variantb_' . $tplKey . '_' . $tplLang . '_' . date('Ymd') . '.csv';
             header('Content-Type: text/csv; charset=utf-8');
@@ -2835,7 +2851,7 @@ class Neria extends Module
             $tplLang   = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
             $idAbtestB = (int) Tools::getValue('id_abtest_b', 0);
 
-            if ($idAbtestB > 0 && !empty($_FILES['neria_csv_b']['tmp_name']) && is_uploaded_file($_FILES['neria_csv_b']['tmp_name'])) {
+            if ($this->abtestBelongsToShop($idAbtestB) && !empty($_FILES['neria_csv_b']['tmp_name']) && is_uploaded_file($_FILES['neria_csv_b']['tmp_name'])) {
                 $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';
                 $handle     = fopen($_FILES['neria_csv_b']['tmp_name'], 'r');
                 $bom = fread($handle, 3);
@@ -2951,7 +2967,7 @@ class Neria extends Module
         // ── Sauvegarde clé DeepL ──────────────────────────────────────
         if ($tradAction === 'save_deepl_key') {
             $key = trim((string) Tools::getValue('deepl_key', ''));
-            (new ConfigManager($this))->set(ConfigManager::KEY_DEEPL_KEY, $key);
+            (new ConfigManager($this))->set(ConfigManager::KEY_DEEPL_KEY, CryptoManager::encrypt($key));
             if (class_exists('WatchdogManager')) {
                 (new WatchdogManager($this))->info(
                     $key !== '' ? 'Clé API DeepL configurée' : 'Clé API DeepL supprimée', '', 'Traductions'
@@ -3112,7 +3128,7 @@ class Neria extends Module
                 if ($tradAction === 'reset_variant_b') {
                     $idAbtestB  = (int) Tools::getValue('id_abtest_b', 0);
                     $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';
-                    if ($idAbtestB > 0) {
+                    if ($this->abtestBelongsToShop($idAbtestB)) {
                         // Archive dans l'historique avant suppression
                         if (class_exists('TranslationHistoryManager')) {
                             $prevRowsB = Db::getInstance()->executeS(
@@ -3155,7 +3171,7 @@ class Neria extends Module
                 if ($tradAction === 'save_variant_b' && class_exists('ABTestManager')) {
                     $idAbtestB = (int) Tools::getValue('id_abtest_b', 0);
                     $fieldsB   = Tools::getValue('fields_b', []);
-                    if ($idAbtestB > 0 && is_array($fieldsB)) {
+                    if ($this->abtestBelongsToShop($idAbtestB) && is_array($fieldsB)) {
                         // Enregistre l'historique des modifications Variante B avant sauvegarde
                         if (class_exists('TranslationHistoryManager')) {
                             $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';
@@ -3194,7 +3210,7 @@ class Neria extends Module
                 if ($tradAction === 'restore_variant_b' && class_exists('TranslationHistoryManager')) {
                     $idHistory = (int) Tools::getValue('id_history', 0);
                     $idAbtestB = (int) Tools::getValue('id_abtest_b', 0);
-                    if ($idHistory > 0 && $idAbtestB > 0) {
+                    if ($idHistory > 0 && $this->abtestBelongsToShop($idAbtestB)) {
                         $histMgr = new TranslationHistoryManager();
                         $entry   = $histMgr->getById($idHistory);
                         if ($entry) {
@@ -3280,7 +3296,8 @@ class Neria extends Module
                     if ($idHistory > 0) {
                         Db::getInstance()->execute(
                             "DELETE FROM `" . _DB_PREFIX_ . "neria_translation_history`
-                             WHERE `id_history` = " . $idHistory
+                             WHERE `id_history` = " . $idHistory . "
+                               AND `id_shop` = " . (int) $this->context->shop->id
                         );
                     }
                 }
@@ -3529,8 +3546,8 @@ class Neria extends Module
             $litmusKey = trim((string) Tools::getValue('litmus_key', ''));
             $eoaKey    = trim((string) Tools::getValue('eoa_key', ''));
             if (class_exists('MultiClientPreviewManager')) {
-                Configuration::updateValue(MultiClientPreviewManager::CONFIG_LITMUS_KEY, $litmusKey);
-                Configuration::updateValue(MultiClientPreviewManager::CONFIG_EOA_KEY, $eoaKey);
+                Configuration::updateValue(MultiClientPreviewManager::CONFIG_LITMUS_KEY, CryptoManager::encrypt($litmusKey));
+                Configuration::updateValue(MultiClientPreviewManager::CONFIG_EOA_KEY, CryptoManager::encrypt($eoaKey));
             }
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
@@ -3541,15 +3558,15 @@ class Neria extends Module
             $whSecret = trim((string) Tools::getValue('webhook_secret', ''));
             $whEvents = Tools::getValue('webhook_events', []);
 
-            if ($whUrl !== '' && !Validate::isAbsoluteUrl($whUrl)) {
-                $this->context->smarty->assign('neria_error', 'URL invalide — elle doit commencer par https://');
+            if ($whUrl !== '' && !WebhookManager::isPublicUrl($whUrl)) {
+                $this->context->smarty->assign('neria_error', 'URL invalide — elle doit être une adresse publique valide (https://), pas une adresse interne ou privée.');
             } else {
                 Configuration::updateValue(WebhookManager::CONFIG_URL, $whUrl);
                 if ($whSecret === '' && $whUrl !== '') {
                     $whSecret = WebhookManager::generateSecret();
                 }
                 if ($whSecret !== '') {
-                    Configuration::updateValue(WebhookManager::CONFIG_SECRET, $whSecret);
+                    Configuration::updateValue(WebhookManager::CONFIG_SECRET, CryptoManager::encrypt($whSecret));
                 }
                 Configuration::updateValue(
                     WebhookManager::CONFIG_EVENTS,
@@ -3769,7 +3786,8 @@ class Neria extends Module
             $idLifespan = (int) Tools::getValue('lifespan_id');
             if ($idLifespan > 0) {
                 Db::getInstance()->execute(
-                    'DELETE FROM `' . _DB_PREFIX_ . 'neria_product_lifespan` WHERE id_lifespan = ' . $idLifespan
+                    'DELETE FROM `' . _DB_PREFIX_ . 'neria_product_lifespan`
+                     WHERE id_lifespan = ' . $idLifespan . ' AND id_shop = ' . (int) $this->context->shop->id
                 );
                 $this->context->smarty->assign('neria_success', 'Produit supprimé de la liste de rappels.');
             }
@@ -3842,7 +3860,8 @@ class Neria extends Module
             if ($idQuote > 0) {
                 Db::getInstance()->execute(
                     'UPDATE `' . _DB_PREFIX_ . 'neria_quote`
-                     SET status = \'won\', date_upd = NOW() WHERE id_quote = ' . $idQuote
+                     SET status = \'won\', date_upd = NOW()
+                     WHERE id_quote = ' . $idQuote . ' AND id_shop = ' . (int) $this->context->shop->id
                 );
                 $this->assignQuoteMsg('success', 'Devis marqué comme gagné.');
             }
@@ -3854,7 +3873,8 @@ class Neria extends Module
             if ($idQuote > 0) {
                 Db::getInstance()->execute(
                     'UPDATE `' . _DB_PREFIX_ . 'neria_quote`
-                     SET status = \'lost\', date_upd = NOW() WHERE id_quote = ' . $idQuote
+                     SET status = \'lost\', date_upd = NOW()
+                     WHERE id_quote = ' . $idQuote . ' AND id_shop = ' . (int) $this->context->shop->id
                 );
                 $this->assignQuoteMsg('success', 'Devis marqué comme perdu.');
             }
@@ -3865,7 +3885,8 @@ class Neria extends Module
             $idQuote = (int) Tools::getValue('id_quote');
             if ($idQuote > 0) {
                 Db::getInstance()->execute(
-                    'DELETE FROM `' . _DB_PREFIX_ . 'neria_quote` WHERE id_quote = ' . $idQuote
+                    'DELETE FROM `' . _DB_PREFIX_ . 'neria_quote`
+                     WHERE id_quote = ' . $idQuote . ' AND id_shop = ' . (int) $this->context->shop->id
                 );
                 $this->assignQuoteMsg('success', 'Devis supprimé.');
             }
@@ -3954,15 +3975,17 @@ class Neria extends Module
                     $row = Db::getInstance()->getRow(
                         'SELECT `id_order` FROM `' . _DB_PREFIX_ . 'orders`
                          WHERE `reference` = \'' . pSQL($query) . '\'
+                           AND `id_shop` = ' . (int) $this->context->shop->id . '
                          ORDER BY `id_order` DESC'
                     );
                     $idOrder = (int) ($row['id_order'] ?? 0);
                 }
             }
-            // La commande existe-t-elle réellement ? (distingue « introuvable »
-            // de « trouvée mais sans suggestion »)
+            // La commande existe-t-elle réellement (et appartient-elle à cette
+            // boutique) ? Distingue « introuvable » de « trouvée sans suggestion ».
             $orderExists = $idOrder > 0 && (bool) Db::getInstance()->getValue(
-                'SELECT 1 FROM `' . _DB_PREFIX_ . 'orders` WHERE `id_order` = ' . $idOrder
+                'SELECT 1 FROM `' . _DB_PREFIX_ . 'orders`
+                 WHERE `id_order` = ' . $idOrder . ' AND `id_shop` = ' . (int) $this->context->shop->id
             );
 
             if (!$orderExists) {
@@ -4075,14 +4098,14 @@ class Neria extends Module
             Configuration::updateValue(BounceManager::CFG_IMAP_USER,      (string) Tools::getValue('bounce_imap_user', ''));
             $pass = (string) Tools::getValue('bounce_imap_pass', '');
             if ($pass !== '') {
-                Configuration::updateValue(BounceManager::CFG_IMAP_PASS,  $pass);
+                Configuration::updateValue(BounceManager::CFG_IMAP_PASS,  CryptoManager::encrypt($pass));
             }
             Configuration::updateValue(BounceManager::CFG_IMAP_SSL,       (int)    Tools::getValue('bounce_imap_ssl', 1));
             Configuration::updateValue(BounceManager::CFG_IMAP_FOLDER,    (string) Tools::getValue('bounce_imap_folder', 'INBOX'));
             Configuration::updateValue(BounceManager::CFG_SOFT_THRESHOLD, max(1, (int) Tools::getValue('bounce_soft_threshold', 3)));
             $secret = (string) Tools::getValue('bounce_webhook_secret', '');
             if ($secret !== '') {
-                Configuration::updateValue(BounceManager::CFG_WEBHOOK_SECRET, $secret);
+                Configuration::updateValue(BounceManager::CFG_WEBHOOK_SECRET, CryptoManager::encrypt($secret));
             }
             $this->context->smarty->assign('neria_success', 'Configuration des bounces enregistrée.');
         }
@@ -4095,7 +4118,7 @@ class Neria extends Module
             Configuration::updateValue(BounceManager::CFG_IMAP_USER,   (string) Tools::getValue('bounce_imap_user', ''));
             $p = (string) Tools::getValue('bounce_imap_pass', '');
             if ($p !== '') {
-                Configuration::updateValue(BounceManager::CFG_IMAP_PASS, $p);
+                Configuration::updateValue(BounceManager::CFG_IMAP_PASS, CryptoManager::encrypt($p));
             }
             Configuration::updateValue(BounceManager::CFG_IMAP_SSL,    (int) Tools::getValue('bounce_imap_ssl', 1));
             Configuration::updateValue(BounceManager::CFG_IMAP_FOLDER, (string) Tools::getValue('bounce_imap_folder', 'INBOX'));
@@ -4118,7 +4141,7 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'add_manual_bounce' && class_exists('BounceManager')) {
             $email = trim((string) Tools::getValue('bounce_email', ''));
             $type  = Tools::getValue('bounce_type', 'hard') === 'soft' ? 'soft' : 'hard';
-            if ($email !== '') {
+            if ($email !== '' && Validate::isEmail($email)) {
                 (new BounceManager($this))->addManualBounce($email, $type);
                 $this->context->smarty->assign('neria_success', "Adresse $email ajoutée en $type bounce.");
             }
@@ -4268,7 +4291,7 @@ class Neria extends Module
             'template_labels'  => AdminTranslator::templateLabels(),
 
             // Clé DeepL pour la traduction automatique
-            'deepl_key'        => (string) $config->get(ConfigManager::KEY_DEEPL_KEY, ''),
+            'deepl_key'        => CryptoManager::decrypt((string) $config->get(ConfigManager::KEY_DEEPL_KEY, '')),
 
             // Configuration design (couleurs, logo, typo…)
             'design'           => $config->getDesignConfig(),
@@ -4408,7 +4431,7 @@ class Neria extends Module
 
             // Variables pour webhooks.tpl
             'webhook_url'         => (string) Configuration::get(WebhookManager::CONFIG_URL),
-            'webhook_secret'      => (string) Configuration::get(WebhookManager::CONFIG_SECRET),
+            'webhook_secret'      => CryptoManager::decrypt((string) Configuration::get(WebhookManager::CONFIG_SECRET)),
             'webhook_events'      => json_decode(
                 (string) Configuration::get(WebhookManager::CONFIG_EVENTS), true
             ) ?? [],
@@ -4510,7 +4533,8 @@ class Neria extends Module
                     SUM(sent_3) AS step3_sent,
                     SUM(IF(status = \'cancelled\', 1, 0)) AS cancelled,
                     SUM(IF(status = \'active\' AND sent_3 = 1, 1, 0)) AS completed
-                 FROM `' . _DB_PREFIX_ . 'neria_reconciliation`'
+                 FROM `' . _DB_PREFIX_ . 'neria_reconciliation`
+                 WHERE `id_shop` = ' . (int) $this->context->shop->id
             ) ?: ['total' => 0, 'step1_sent' => 0, 'step2_sent' => 0, 'step3_sent' => 0, 'cancelled' => 0, 'completed' => 0],
 
             // Variables pour la section Devis B2B (onglet Statistiques)
@@ -4522,6 +4546,7 @@ class Neria extends Module
                 'SELECT q.*, CONCAT(c.firstname, " ", c.lastname) AS customer_name, c.email
                  FROM `' . _DB_PREFIX_ . 'neria_quote` q
                  LEFT JOIN `' . _DB_PREFIX_ . 'customer` c ON c.id_customer = q.id_customer
+                 WHERE q.id_shop = ' . (int) $this->context->shop->id . '
                  ORDER BY q.expiry_date ASC LIMIT 50'
             ) ?: [],
 
@@ -4606,7 +4631,7 @@ class Neria extends Module
             // ── Visibilité boutique ──────────────────────────────────
             // PageSpeed Insights
             'pagespeed_configured'  => class_exists('PageSpeedManager') && (new PageSpeedManager($this))->isConfigured(),
-            'pagespeed_api_key'     => class_exists('PageSpeedManager') ? (string) Configuration::get(PageSpeedManager::CONFIG_API_KEY) : '',
+            'pagespeed_api_key'     => class_exists('PageSpeedManager') ? CryptoManager::decrypt((string) Configuration::get(PageSpeedManager::CONFIG_API_KEY)) : '',
             'pagespeed_target_url'  => class_exists('PageSpeedManager') ? (string) Configuration::get(PageSpeedManager::CONFIG_TARGET_URL) : '',
             'pagespeed_last_error'  => (string) Configuration::get('NERIA_PAGESPEED_LAST_ERROR'),
             'pagespeed_report'     => (function () {
@@ -4641,8 +4666,8 @@ class Neria extends Module
             // SEO API payante (Semrush / Moz)
             'seo_provider'     => class_exists('SeoApiManager') ? (new SeoApiManager($this))->getProvider() : '',
             'seo_configured'   => class_exists('SeoApiManager') && (new SeoApiManager($this))->isConfigured(),
-            'seo_semrush_key'  => class_exists('SeoApiManager') ? (string) Configuration::get(SeoApiManager::CONFIG_SEMRUSH_KEY) : '',
-            'seo_moz_access'   => class_exists('SeoApiManager') ? (string) Configuration::get(SeoApiManager::CONFIG_MOZ_ACCESS) : '',
+            'seo_semrush_key'  => class_exists('SeoApiManager') ? CryptoManager::decrypt((string) Configuration::get(SeoApiManager::CONFIG_SEMRUSH_KEY)) : '',
+            'seo_moz_access'   => class_exists('SeoApiManager') ? CryptoManager::decrypt((string) Configuration::get(SeoApiManager::CONFIG_MOZ_ACCESS)) : '',
             'seo_providers'    => class_exists('SeoApiManager') ? SeoApiManager::PROVIDERS : [],
             'seo_report'       => (function () {
                 if (!class_exists('SeoApiManager')) {
@@ -4714,12 +4739,12 @@ class Neria extends Module
             'bounce_enabled'        => (bool) Configuration::get(BounceManager::CFG_ENABLED),
             'bounce_soft_threshold' => (int) Configuration::get(BounceManager::CFG_SOFT_THRESHOLD) ?: 3,
             'bounce_webhook_url'    => class_exists('BounceManager') ? BounceManager::getWebhookUrl() : '',
-            'bounce_webhook_secret' => (string) Configuration::get(BounceManager::CFG_WEBHOOK_SECRET),
+            'bounce_webhook_secret' => CryptoManager::decrypt((string) Configuration::get(BounceManager::CFG_WEBHOOK_SECRET)),
             'bounce_cfg'            => [
                 'host'   => (string) Configuration::get(BounceManager::CFG_IMAP_HOST),
                 'port'   => (int)    Configuration::get(BounceManager::CFG_IMAP_PORT) ?: 993,
                 'user'   => (string) Configuration::get(BounceManager::CFG_IMAP_USER),
-                'pass'   => (string) Configuration::get(BounceManager::CFG_IMAP_PASS),
+                'pass'   => CryptoManager::decrypt((string) Configuration::get(BounceManager::CFG_IMAP_PASS)),
                 'ssl'    => (bool)   Configuration::get(BounceManager::CFG_IMAP_SSL),
                 'folder' => (string) Configuration::get(BounceManager::CFG_IMAP_FOLDER) ?: 'INBOX',
             ],
@@ -4964,10 +4989,12 @@ class Neria extends Module
             return 'Erreur TCPDF : ' . $e->getMessage();
         }
 
-        // Envoie l'email avec pièce jointe via mail() natif
+        // Envoie l'email avec pièce jointe via mail() natif — pas d'assainissement
+        // automatique des en-têtes, donc on retire tout retour à la ligne des
+        // valeurs interpolées (mêmes précautions que sendCertificateEmail).
         $boundary  = '----=_NeriaBoundary_' . md5(uniqid());
-        $fromEmail = (string) Configuration::get('PS_SHOP_EMAIL') ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST);
-        $subject   = '[Neria] Journal Watchdog — ' . $shopName . ' — ' . $now;
+        $fromEmail = str_replace(["\r", "\n"], '', (string) Configuration::get('PS_SHOP_EMAIL') ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST));
+        $subject   = str_replace(["\r", "\n"], '', '[Neria] Journal Watchdog — ' . $shopName . ' — ' . $now);
 
         $headers = "MIME-Version: 1.0\r\n"
                  . "Content-Type: multipart/mixed; boundary=\"{$boundary}\"\r\n"
@@ -5330,6 +5357,26 @@ class Neria extends Module
         $this->context->smarty->assign(
             $type === 'error' ? 'neria_error' : 'neria_success',
             $msg
+        );
+    }
+
+    /**
+     * Vérifie qu'un id_abtest appartient bien à la boutique courante avant
+     * toute lecture/écriture sur neria_abtest_translation — cette table
+     * n'a pas de colonne id_shop propre (liée uniquement via la FK
+     * id_abtest → neria_abtest), donc sans ce contrôle un id_abtest_b
+     * appartenant à une autre boutique (install multi-boutiques) serait
+     * accepté tel quel.
+     */
+    private function abtestBelongsToShop(int $idAbtest): bool
+    {
+        if ($idAbtest <= 0) {
+            return false;
+        }
+        return (bool) Db::getInstance()->getValue(
+            'SELECT `id_abtest` FROM `' . _DB_PREFIX_ . 'neria_abtest`
+             WHERE `id_abtest` = ' . $idAbtest . '
+               AND `id_shop` = ' . (int) $this->context->shop->id
         );
     }
 

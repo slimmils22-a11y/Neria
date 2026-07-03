@@ -579,15 +579,26 @@ class GdprAuditManager
             return 0;
         }
 
+        // Certaines tables du registre n'ont pas de colonne id_shop (ex:
+        // neria_upsell, neria_loyalty_points, neria_bounces) — sur celles
+        // qui en ont une, on scope la purge à la boutique courante : sans
+        // ce filtre, un marchand restreint à la boutique A purgerait aussi
+        // les données conservées de la boutique B sur une install
+        // multi-boutiques (suppression irréversible cross-boutique).
+        $hasShopCol = (bool) $this->db->executeS(
+            "SHOW COLUMNS FROM `{$fullTable}` LIKE 'id_shop'"
+        );
+        $shopFilter = $hasShopCol ? " AND `id_shop` = {$this->idShop}" : '';
+
         // Compte avant purge
         $count = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$fullTable}`
-             WHERE `{$dateCol}` < DATE_SUB(NOW(), INTERVAL {$months} MONTH)"
+             WHERE `{$dateCol}` < DATE_SUB(NOW(), INTERVAL {$months} MONTH){$shopFilter}"
         );
 
         $this->db->execute(
             "DELETE FROM `{$fullTable}`
-             WHERE `{$dateCol}` < DATE_SUB(NOW(), INTERVAL {$months} MONTH)"
+             WHERE `{$dateCol}` < DATE_SUB(NOW(), INTERVAL {$months} MONTH){$shopFilter}"
         );
 
         return $count;

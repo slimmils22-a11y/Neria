@@ -237,11 +237,11 @@ class ClvManager
     {
         $sent = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
-             WHERE `id_customer` = ' . $idCustomer . ' AND `event_type` = \'sent\''
+             WHERE `id_customer` = ' . $idCustomer . ' AND `id_shop` = ' . $this->idShop . ' AND `event_type` = \'sent\''
         );
         $opened = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
-             WHERE `id_customer` = ' . $idCustomer . ' AND `event_type` = \'open\''
+             WHERE `id_customer` = ' . $idCustomer . ' AND `id_shop` = ' . $this->idShop . ' AND `event_type` = \'open\''
         );
 
         return $sent > 0 ? min(1.0, $opened / $sent) : 0.0;
@@ -255,7 +255,7 @@ class ClvManager
 
         $segment = (string) $this->db->getValue(
             'SELECT `segment` FROM `' . _DB_PREFIX_ . 'neria_customer_segment`
-             WHERE `id_customer` = ' . $idCustomer
+             WHERE `id_customer` = ' . $idCustomer . ' AND `id_shop` = ' . $this->idShop
         );
 
         $map = [
@@ -277,7 +277,7 @@ class ClvManager
 
         $row = $this->db->getRow(
             'SELECT `score` FROM `' . _DB_PREFIX_ . 'neria_churn_score`
-             WHERE `id_customer` = ' . $idCustomer
+             WHERE `id_customer` = ' . $idCustomer . ' AND `id_shop` = ' . $this->idShop
         );
 
         return $row ? (int) $row['score'] : 0;
