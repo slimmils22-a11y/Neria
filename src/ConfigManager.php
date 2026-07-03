@@ -1038,9 +1038,20 @@ class ConfigManager
             return false;
         }
 
-        // Destination
+        // Destination — l'extension est dérivée du MIME type validé
+        // ci-dessus, JAMAIS du nom de fichier envoyé par le client :
+        // un nom "logo.php" avec un contenu image valide (polyglotte
+        // GIF/PNG contenant du code PHP) contournerait sinon le
+        // contrôle MIME et permettrait un dépôt de webshell exécutable
+        // dans data/signatures/ (dossier accessible publiquement).
+        $extByMime = [
+            'image/png'  => 'png',
+            'image/jpeg' => 'jpg',
+            'image/gif'  => 'gif',
+            'image/webp' => 'webp',
+        ];
         $uploadDir  = $this->module->getModulePath('data/signatures');
-        $ext        = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $ext        = $extByMime[$mime];
         $filename   = 'logo_' . $this->idShop . '.' . $ext;
         $dest       = $uploadDir . '/' . $filename;
 
