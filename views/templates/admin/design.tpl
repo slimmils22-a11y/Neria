@@ -16,6 +16,22 @@
         <input type="hidden" name="neria_action" value="save_design">
         <input type="hidden" name="neria_tab"    value="design">
 
+        {* Assistant de démarrage — bandeau affiché une seule fois (tant
+           qu'il n'a pas été fermé ou qu'un style n'a pas été choisi), et
+           qui redevient visible après un retour au design usine
+           (cf. ConfigManager::resetDesignConfig). *}
+        {if !$design_wizard_seen}
+          <div class="neria-wizard-banner" id="neria-design-wizard">
+            <div class="neria-wizard-banner__text">
+              <strong>{neria_admin key='design.wizard_title'}</strong>
+              <p>{neria_admin key='design.wizard_body'}</p>
+            </div>
+            <button type="button" class="neria-btn neria-btn--ghost neria-btn--sm" id="neria-wizard-dismiss">
+              {neria_admin key='design.wizard_dismiss'}
+            </button>
+          </div>
+        {/if}
+
         {* Styles rapides ("One-Click Apply") — pré-remplit le formulaire
            ci-dessous sans rien sauvegarder ; le marchand ajuste puis
            valide comme d'habitude. Purement visuel, aucun texte touché. *}

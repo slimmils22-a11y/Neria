@@ -26,6 +26,7 @@
         initDesignReset();
         initSectionReset();
         initDesignPresets();
+        initDesignWizardBanner();
         initFontCards();
         initFileInputs();
         initActionAnchor();
@@ -498,6 +499,7 @@
 
                 cards.forEach(function (c) { c.classList.remove('neria-preset-card--active'); });
                 card.classList.add('neria-preset-card--active');
+                dismissDesignWizard();
             });
         });
 
@@ -507,8 +509,35 @@
                 cards.forEach(function (c) { c.classList.remove('neria-preset-card--active'); });
                 var target = document.getElementById('neria-design-colors');
                 if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                dismissDesignWizard();
             });
         }
+    }
+
+    // ── Assistant de démarrage Design — bandeau "Nouveau sur Neria ?" ──
+    function initDesignWizardBanner() {
+        var btn = document.getElementById('neria-wizard-dismiss');
+        if (!btn) return;
+
+        btn.addEventListener('click', function () { dismissDesignWizard(); });
+    }
+
+    // Cache le bandeau immédiatement (retour visuel instantané) et prévient
+    // le serveur en tâche de fond ; échec réseau silencieux — le bandeau
+    // réapparaîtra simplement au prochain chargement de page, sans casser
+    // rien d'autre.
+    function dismissDesignWizard() {
+        var banner = document.getElementById('neria-design-wizard');
+        if (!banner || banner.dataset.dismissed === '1') return;
+        banner.dataset.dismissed = '1';
+        banner.style.display = 'none';
+
+        var base = window.location.href.split('#')[0].replace(/&neria_action=[^&]*/g, '');
+        var url  = base + '&neria_action=dismiss_design_wizard';
+        // keepalive: la requête doit survivre même si le marchand recharge
+        // ou quitte la page juste après avoir cliqué — sans ça, un fetch()
+        // normal peut être interrompu en plein vol par la navigation.
+        fetch(url, { credentials: 'same-origin', keepalive: true }).catch(function () { /* silencieux */ });
     }
 
     // ── Assistant de rédaction de sujet — Variante B (onglet Traductions) ──

@@ -49,6 +49,7 @@ class ConfigManager
     const KEY_BLOCK_SPACING     = 'NERIA_BLOCK_SPACING';
     const KEY_SEPARATOR_STYLE   = 'NERIA_SEPARATOR_STYLE';
     const KEY_CARD_SHADOW       = 'NERIA_CARD_SHADOW';
+    const KEY_DESIGN_WIZARD_SEEN = 'NERIA_DESIGN_WIZARD_SEEN';
 
     // ── Typographie corps ─────────────────────────────────────────
     const KEY_FONT_SIZE         = 'NERIA_FONT_SIZE';
@@ -119,6 +120,7 @@ class ConfigManager
         self::KEY_BLOCK_SPACING       => 48,
         self::KEY_SEPARATOR_STYLE     => 'line',
         self::KEY_CARD_SHADOW         => 'soft',
+        self::KEY_DESIGN_WIZARD_SEEN  => 0,
         self::KEY_FONT_SIZE           => 14,
         self::KEY_LINE_HEIGHT         => 1.8,
         self::KEY_HEADING_WEIGHT      => 600,
@@ -1236,6 +1238,11 @@ class ConfigManager
      * ni aux réglages d'autres onglets (réseaux sociaux, A/B testing,
      * multi-expéditeur, typographie par script...).
      *
+     * Réinitialise aussi KEY_DESIGN_WIZARD_SEEN : un retour au design
+     * usine remet le marchand devant une ardoise vierge, donc l'assistant
+     * de démarrage (bandeau "Nouveau sur Neria ?") redevient pertinent et
+     * doit se réafficher.
+     *
      * @return bool
      */
     public function resetDesignConfig(): bool
@@ -1258,6 +1265,7 @@ class ConfigManager
             self::KEY_BLOCK_SPACING,
             self::KEY_SEPARATOR_STYLE,
             self::KEY_CARD_SHADOW,
+            self::KEY_DESIGN_WIZARD_SEEN,
         ];
 
         $success = true;

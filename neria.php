@@ -931,7 +931,7 @@ class Neria extends Module
                 $this->_path . 'views/css/neria-admin.css?v=' . $this->version
             );
             $this->context->controller->addJS(
-                $this->_path . 'views/js/neria-admin.js'
+                $this->_path . 'views/js/neria-admin.js?v=' . $this->version
             );
         }
 
@@ -1490,6 +1490,16 @@ class Neria extends Module
             } catch (\Exception $e) {
                 echo json_encode(['error' => $e->getMessage()]);
             }
+            exit;
+        }
+
+        // ── AJAX : fermeture définitive de l'assistant de démarrage
+        //    Design ("Nouveau sur Neria ?") ─────────────────────────
+        if (Tools::getValue('neria_action') === 'dismiss_design_wizard' && class_exists('ConfigManager')) {
+            while (ob_get_level() > 0) { ob_end_clean(); }
+            if (!headers_sent()) { header('Content-Type: application/json; charset=utf-8'); }
+            (new ConfigManager($this))->set(ConfigManager::KEY_DESIGN_WIZARD_SEEN, 1);
+            echo json_encode(['ok' => true]);
             exit;
         }
 
@@ -4522,7 +4532,8 @@ class Neria extends Module
             'design'           => $config->getDesignConfig(),
 
             // Styles rapides ("One-Click Apply") — onglet Design
-            'design_presets'   => ConfigManager::DESIGN_PRESETS,
+            'design_presets'      => ConfigManager::DESIGN_PRESETS,
+            'design_wizard_seen'  => (bool) $config->get(ConfigManager::KEY_DESIGN_WIZARD_SEEN),
 
             // Variables personnalisées du marchand — transformées en tableau associatif
             // getCustomVariables() retourne [['variable_key'=>'...','variable_value'=>'...'], ...]

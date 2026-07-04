@@ -258,6 +258,12 @@
 .neria-radio-card__preview { color:var(--neria-dark); line-height:1; }
 .neria-radio-card__label { font-size:11px; color:var(--neria-text-light); }
 
+/* Assistant de démarrage — bandeau onglet Design */
+.neria-wizard-banner { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 20px; margin-bottom:16px; background:#f9f6f1; border:1px solid #e8d5b0; border-radius:var(--neria-radius); }
+.neria-wizard-banner__text strong { display:block; font-size:13px; color:var(--neria-dark); margin-bottom:2px; }
+.neria-wizard-banner__text p { margin:0; font-size:12px; color:var(--neria-text-light); }
+.neria-wizard-banner .neria-btn { flex-shrink:0; }
+
 /* Styles rapides (One-Click Apply) — onglet Design */
 .neria-help-text { font-size:12px; color:var(--neria-text-light); margin:-4px 0 14px; }
 .neria-preset-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:12px; }
