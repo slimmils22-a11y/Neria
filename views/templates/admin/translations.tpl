@@ -894,7 +894,7 @@ window.neriaAjaxUrl = function(action, extra) {
       </div>
       <iframe id="neria-trad-preview"
               src="{$smarty.server.REQUEST_URI}&neria_action=preview&neria_template={$selected_template}&neria_lang={$selected_lang}"
-              frameborder="0" scrolling="no"
+              frameborder="0" scrolling="auto"
               style="width:100%;height:1200px;border:1px solid var(--neria-border,#e8d5b0);border-radius:4px;background:#fff;display:block;"></iframe>
     </div>
 
@@ -1078,9 +1078,19 @@ document.addEventListener('DOMContentLoaded', function() {
   if (previewIframe) {
     previewIframe.addEventListener('load', function() {
       var f = this;
+      // Plusieurs passages successifs : le texte peut se réajuster après le
+      // chargement des polices web (Noto Serif JP/SC, Naskh Arabic…), qui
+      // arrive souvent après le premier rendu — surtout perceptible en CJK
+      // ou arabe où le "swap" de police change la hauteur des lignes.
       setTimeout(function() { neriaFitIframe(f); }, 100);
       setTimeout(function() { neriaFitIframe(f); }, 600);
       setTimeout(function() { neriaFitIframe(f); }, 1500);
+      setTimeout(function() { neriaFitIframe(f); }, 3000);
+      try {
+        if (f.contentWindow.document.fonts && f.contentWindow.document.fonts.ready) {
+          f.contentWindow.document.fonts.ready.then(function() { neriaFitIframe(f); });
+        }
+      } catch (e) {}
     });
   }
 
