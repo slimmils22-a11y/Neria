@@ -2315,6 +2315,14 @@ class Neria extends Module
             }
         }
 
+        // ── Onglet Design : réinitialisation (couleurs/police/bouton/
+        //    espacement/séparateur/ombre uniquement — ni logo, ni les
+        //    réglages des autres onglets) ─────────────────────────
+        if (Tools::getValue('neria_action') === 'reset_design' && class_exists('ConfigManager')) {
+            (new ConfigManager($this))->resetDesignConfig();
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+        }
+
         // ── Onglet Typographie : sauvegarde ────────────────────────
         if (Tools::getValue('neria_action') === 'save_typography' && class_exists('ConfigManager')) {
             $typoData = [
@@ -4513,6 +4521,9 @@ class Neria extends Module
             // Configuration design (couleurs, logo, typo…)
             'design'           => $config->getDesignConfig(),
 
+            // Styles rapides ("One-Click Apply") — onglet Design
+            'design_presets'   => ConfigManager::DESIGN_PRESETS,
+
             // Variables personnalisées du marchand — transformées en tableau associatif
             // getCustomVariables() retourne [['variable_key'=>'...','variable_value'=>'...'], ...]
             // configure.tpl accède via $custom_vars.maison_name → tableau associatif requis
@@ -5335,6 +5346,40 @@ class Neria extends Module
         $headingWeight = (int) Tools::getValue('preview_heading_weight', 0);
         if (in_array($headingWeight, [400, 600, 700], true)) {
             $override['heading_weight'] = $headingWeight;
+        }
+
+        // Champs "Design avancé" — mêmes règles de validation que
+        // ConfigManager::saveDesignConfig(), pour rester cohérent avec ce
+        // que le formulaire accepterait réellement à la sauvegarde.
+        foreach (['btn_color', 'color_header_bg', 'color_footer_bg', 'color_footer_text'] as $field) {
+            $value = (string) Tools::getValue('preview_' . $field, '');
+            if ($value !== '' && preg_match('/^#?[0-9a-fA-F]{3,8}$/', $value)) {
+                $override[$field] = $value;
+            }
+        }
+        $fontHeading = (string) Tools::getValue('preview_font_heading', '');
+        if (class_exists('ConfigManager') && array_key_exists($fontHeading, ConfigManager::HEADING_FONT_OPTIONS)) {
+            $override['font_heading'] = $fontHeading;
+        }
+        $btnRadius = (int) Tools::getValue('preview_btn_radius', -1);
+        if (in_array($btnRadius, [0, 2, 6, 24], true)) {
+            $override['btn_radius'] = $btnRadius;
+        }
+        $sectionPadding = (int) Tools::getValue('preview_section_padding', 0);
+        if ($sectionPadding >= 16 && $sectionPadding <= 64) {
+            $override['section_padding'] = $sectionPadding;
+        }
+        $blockSpacing = (int) Tools::getValue('preview_block_spacing', 0);
+        if ($blockSpacing >= 16 && $blockSpacing <= 80) {
+            $override['block_spacing'] = $blockSpacing;
+        }
+        $separatorStyle = (string) Tools::getValue('preview_separator_style', '');
+        if (in_array($separatorStyle, ['none', 'line', 'dotted', 'double'], true)) {
+            $override['separator_style'] = $separatorStyle;
+        }
+        $cardShadow = (string) Tools::getValue('preview_card_shadow', '');
+        if (in_array($cardShadow, ['none', 'soft', 'medium', 'strong'], true)) {
+            $override['card_shadow'] = $cardShadow;
         }
 
         $variantB = Tools::getValue('neria_variant') === 'b';

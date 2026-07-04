@@ -258,6 +258,18 @@
 .neria-radio-card__preview { color:var(--neria-dark); line-height:1; }
 .neria-radio-card__label { font-size:11px; color:var(--neria-text-light); }
 
+/* Styles rapides (One-Click Apply) — onglet Design */
+.neria-help-text { font-size:12px; color:var(--neria-text-light); margin:-4px 0 14px; }
+.neria-preset-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:12px; }
+.neria-preset-card { display:flex; flex-direction:column; align-items:flex-start; gap:6px; padding:14px 16px; border:2px solid var(--neria-border); border-radius:var(--neria-radius); background:#fff; cursor:pointer; text-align:left; transition:border-color .15s, background .15s; }
+.neria-preset-card:hover { border-color:var(--neria-accent); background:var(--neria-light-bg); }
+.neria-preset-card--active { border-color:var(--neria-accent); background:var(--neria-light-bg); }
+.neria-preset-card__swatch { width:22px; height:22px; border-radius:50%; border:1px solid rgba(0,0,0,.1); }
+.neria-preset-card__swatch--custom { display:flex; align-items:center; justify-content:center; background:var(--neria-light-bg); color:var(--neria-accent); font-size:12px; }
+.neria-preset-card__label { font-size:13px; font-weight:600; color:var(--neria-dark); }
+.neria-preset-card__tagline { font-size:11px; color:var(--neria-text-light); line-height:1.4; }
+.neria-preset-card--custom { border-style:dashed; }
+
 /* Réseaux sociaux */
 .neria-social-grid { display:flex; flex-direction:column; gap:12px; }
 .neria-social-item { display:grid; grid-template-columns:40px 1fr 24px; align-items:center; gap:12px; padding:12px 16px; border:1px solid var(--neria-border); border-radius:var(--neria-radius); background:var(--neria-light-bg); }

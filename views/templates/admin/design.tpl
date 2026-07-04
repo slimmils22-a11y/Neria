@@ -16,8 +16,33 @@
         <input type="hidden" name="neria_action" value="save_design">
         <input type="hidden" name="neria_tab"    value="design">
 
+        {* Styles rapides ("One-Click Apply") — pré-remplit le formulaire
+           ci-dessous sans rien sauvegarder ; le marchand ajuste puis
+           valide comme d'habitude. Purement visuel, aucun texte touché. *}
+        <div class="neria-section" id="neria-design-presets">
+          <div class="neria-section__header">
+            <h2 class="neria-section__title">{neria_admin key='design.presets_title'}</h2>
+          </div>
+          <p class="neria-help-text">{neria_admin key='design.presets_help'}</p>
+          <div class="neria-preset-grid">
+            {foreach $design_presets as $presetKey => $preset}
+              <button type="button" class="neria-preset-card" data-preset="{$presetKey}"
+                      data-preset-values="{foreach $preset.values as $pk => $pv}{$pk}:{$pv}{if !$pv@last},{/if}{/foreach}">
+                <span class="neria-preset-card__swatch" style="background:{$preset.values.color_accent};"></span>
+                <span class="neria-preset-card__label">{$preset.label}</span>
+                <span class="neria-preset-card__tagline">{$preset.tagline}</span>
+              </button>
+            {/foreach}
+            <button type="button" class="neria-preset-card neria-preset-card--custom" id="neria-preset-custom">
+              <span class="neria-preset-card__swatch neria-preset-card__swatch--custom">✎</span>
+              <span class="neria-preset-card__label">{neria_admin key='design.presets_custom'}</span>
+              <span class="neria-preset-card__tagline">{neria_admin key='design.presets_custom_help'}</span>
+            </button>
+          </div>
+        </div>
+
         {* Couleurs *}
-        <div class="neria-section">
+        <div class="neria-section" id="neria-design-colors">
           <div class="neria-section__header">
             <h2 class="neria-section__title">{neria_admin key='design.colors_title'}</h2>
             <button type="button" class="neria-section-reset"

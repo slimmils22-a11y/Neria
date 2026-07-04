@@ -25,6 +25,7 @@
         initSignaturePreview();
         initDesignReset();
         initSectionReset();
+        initDesignPresets();
         initFontCards();
         initFileInputs();
         initActionAnchor();
@@ -178,11 +179,20 @@
         var fields = [
             'color_background', 'color_container',
             'color_accent', 'color_text', 'container_width', 'logo_width',
-            'font_size', 'line_height', 'heading_weight'
+            'font_size', 'line_height', 'heading_weight',
+            'font_heading', 'btn_color', 'btn_radius',
+            'color_header_bg', 'color_footer_bg', 'color_footer_text',
+            'section_padding', 'block_spacing', 'separator_style', 'card_shadow'
         ];
 
         fields.forEach(function (field) {
+            // Ordre : champ direct par id (select/color/number) puis, pour
+            // les groupes de radios (btn_radius, separator_style,
+            // card_shadow), l'option réellement cochée — un simple
+            // querySelector('[name=...]') renverrait toujours la première
+            // radio du DOM, pas celle sélectionnée par le marchand.
             var el = document.getElementById(field)
+                  || document.querySelector('input[name="' + field + '"]:checked')
                   || document.querySelector('[name="' + field + '"]');
             if (el) {
                 parts.push(
@@ -467,6 +477,38 @@
                 schedulePreviewUpdate();
             }
         });
+    }
+
+    // ── Styles rapides (One-Click Apply) — onglet Design ──────────
+    function initDesignPresets() {
+        var cards = document.querySelectorAll('#neria-design-presets .neria-preset-card[data-preset]');
+        if (!cards.length) return;
+
+        cards.forEach(function (card) {
+            card.addEventListener('click', function () {
+                var raw = card.getAttribute('data-preset-values') || '';
+                var values = {};
+                raw.split(',').forEach(function (pair) {
+                    var colon = pair.indexOf(':');
+                    if (colon > 0) {
+                        values[pair.slice(0, colon).trim()] = pair.slice(colon + 1).trim();
+                    }
+                });
+                applySectionDefaults(values);
+
+                cards.forEach(function (c) { c.classList.remove('neria-preset-card--active'); });
+                card.classList.add('neria-preset-card--active');
+            });
+        });
+
+        var customBtn = document.getElementById('neria-preset-custom');
+        if (customBtn) {
+            customBtn.addEventListener('click', function () {
+                cards.forEach(function (c) { c.classList.remove('neria-preset-card--active'); });
+                var target = document.getElementById('neria-design-colors');
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        }
     }
 
     // ── Assistant de rédaction de sujet — Variante B (onglet Traductions) ──

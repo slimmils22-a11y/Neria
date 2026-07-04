@@ -215,6 +215,139 @@ class ConfigManager
         ],
     ];
 
+    /**
+     * Styles rapides ("One-Click Apply") — pré-remplissent le formulaire
+     * Design (couleurs, police de titre, bouton, espacement, séparateur,
+     * ombre) sans jamais sauvegarder automatiquement : le marchand garde
+     * la main pour ajuster puis valider, exactement comme un reset de
+     * section. Volontairement limité au visuel — aucun texte/traduction
+     * n'est modifié par un preset (cf. Empreinte vocale + variables
+     * personnalisées, qui restent le seul canal de personnalisation du
+     * texte).
+     */
+    const DESIGN_PRESETS = [
+        'haute_joaillerie' => [
+            'label'   => 'Haute Joaillerie',
+            'tagline' => 'Élégance extrême, doré discret, espacement royal',
+            'values'  => [
+                'color_background'  => '#faf8f4',
+                'color_container'   => '#ffffff',
+                'color_accent'      => '#8a6d3b',
+                'color_text'        => '#2b2520',
+                'font_heading'      => 'Cinzel',
+                'btn_color'         => '#2b2520',
+                'btn_radius'        => '0',
+                'color_header_bg'   => '#2b2520',
+                'color_footer_bg'   => '#2b2520',
+                'color_footer_text' => '#c9a876',
+                'section_padding'   => '56',
+                'block_spacing'     => '56',
+                'separator_style'   => 'double',
+                'card_shadow'       => 'medium',
+            ],
+        ],
+        'minimal_luxe' => [
+            'label'   => 'Minimal Luxe',
+            'tagline' => 'Sobriété chic, beaucoup d\'air, typographie fine',
+            'values'  => [
+                'color_background'  => '#ffffff',
+                'color_container'   => '#ffffff',
+                'color_accent'      => '#2c2c2c',
+                'color_text'        => '#2c2c2c',
+                'font_heading'      => 'Josefin Sans',
+                'btn_color'         => '#2c2c2c',
+                'btn_radius'        => '24',
+                'color_header_bg'   => '#ffffff',
+                'color_footer_bg'   => '#ffffff',
+                'color_footer_text' => '#9a9a9a',
+                'section_padding'   => '64',
+                'block_spacing'     => '64',
+                'separator_style'   => 'none',
+                'card_shadow'       => 'none',
+            ],
+        ],
+        'artisanal_authentique' => [
+            'label'   => 'Artisanal Authentique',
+            'tagline' => 'Chaleureux, matières naturelles, ton humain',
+            'values'  => [
+                'color_background'  => '#f6f0e8',
+                'color_container'   => '#fffdfa',
+                'color_accent'      => '#a8663f',
+                'color_text'        => '#3d2e22',
+                'font_heading'      => 'Lora',
+                'btn_color'         => '#a8663f',
+                'btn_radius'        => '6',
+                'color_header_bg'   => '#fffdfa',
+                'color_footer_bg'   => '#efe4d4',
+                'color_footer_text' => '#8a7a63',
+                'section_padding'   => '44',
+                'block_spacing'     => '48',
+                'separator_style'   => 'dotted',
+                'card_shadow'       => 'soft',
+            ],
+        ],
+        'parisien_chic' => [
+            'label'   => 'Parisien Chic',
+            'tagline' => 'Élégance française classique, sophistiquée et légère',
+            'values'  => [
+                'color_background'  => '#faf6f5',
+                'color_container'   => '#ffffff',
+                'color_accent'      => '#b5828c',
+                'color_text'        => '#362a2c',
+                'font_heading'      => 'Playfair Display',
+                'btn_color'         => '#362a2c',
+                'btn_radius'        => '2',
+                'color_header_bg'   => '#ffffff',
+                'color_footer_bg'   => '#ffffff',
+                'color_footer_text' => '#a98f92',
+                'section_padding'   => '44',
+                'block_spacing'     => '48',
+                'separator_style'   => 'line',
+                'card_shadow'       => 'soft',
+            ],
+        ],
+        'vintage_heritage' => [
+            'label'   => 'Vintage Heritage',
+            'tagline' => 'Charme intemporel, touches rétro nobles',
+            'values'  => [
+                'color_background'  => '#f3ece3',
+                'color_container'   => '#fffdf8',
+                'color_accent'      => '#7a3b3b',
+                'color_text'        => '#362420',
+                'font_heading'      => 'Libre Baskerville',
+                'btn_color'         => '#7a3b3b',
+                'btn_radius'        => '2',
+                'color_header_bg'   => '#fffdf8',
+                'color_footer_bg'   => '#ede2d3',
+                'color_footer_text' => '#8a7360',
+                'section_padding'   => '44',
+                'block_spacing'     => '48',
+                'separator_style'   => 'double',
+                'card_shadow'       => 'soft',
+            ],
+        ],
+        'modern_opulence' => [
+            'label'   => 'Modern Opulence',
+            'tagline' => 'Luxe audacieux, contrastes forts, présence affirmée',
+            'values'  => [
+                'color_background'  => '#f5f5f3',
+                'color_container'   => '#ffffff',
+                'color_accent'      => '#2f5233',
+                'color_text'        => '#1c1c1c',
+                'font_heading'      => 'EB Garamond',
+                'btn_color'         => '#1c1c1c',
+                'btn_radius'        => '0',
+                'color_header_bg'   => '#ffffff',
+                'color_footer_bg'   => '#1c1c1c',
+                'color_footer_text' => '#c9c9c9',
+                'section_padding'   => '36',
+                'block_spacing'     => '40',
+                'separator_style'   => 'line',
+                'card_shadow'       => 'strong',
+            ],
+        ],
+    ];
+
     // ============================================================
     // PROPRIÉTÉS
     // ============================================================
@@ -1089,6 +1222,47 @@ class ConfigManager
 
         foreach (self::DEFAULTS as $key => $value) {
             $success = $success && $this->set($key, $value);
+        }
+
+        $this->cache = [];
+        return $success;
+    }
+
+    /**
+     * Réinitialise UNIQUEMENT les champs de l'onglet Design (couleurs,
+     * police de titre, bouton, espacement, séparateur, ombre) aux valeurs
+     * neutres livrées avec le module. Volontairement plus restreint que
+     * resetToDefaults() : ne touche ni au logo du marchand (KEY_LOGO_PATH),
+     * ni aux réglages d'autres onglets (réseaux sociaux, A/B testing,
+     * multi-expéditeur, typographie par script...).
+     *
+     * @return bool
+     */
+    public function resetDesignConfig(): bool
+    {
+        $designKeys = [
+            self::KEY_COLOR_BACKGROUND,
+            self::KEY_COLOR_CONTAINER,
+            self::KEY_COLOR_ACCENT,
+            self::KEY_COLOR_TEXT,
+            self::KEY_BTN_COLOR,
+            self::KEY_COLOR_HEADER_BG,
+            self::KEY_COLOR_FOOTER_BG,
+            self::KEY_COLOR_FOOTER_TEXT,
+            self::KEY_DARK_MODE,
+            self::KEY_CONTAINER_WIDTH,
+            self::KEY_LOGO_WIDTH,
+            self::KEY_FONT_HEADING,
+            self::KEY_BTN_RADIUS,
+            self::KEY_SECTION_PADDING,
+            self::KEY_BLOCK_SPACING,
+            self::KEY_SEPARATOR_STYLE,
+            self::KEY_CARD_SHADOW,
+        ];
+
+        $success = true;
+        foreach ($designKeys as $key) {
+            $success = $success && $this->set($key, self::DEFAULTS[$key]);
         }
 
         $this->cache = [];
