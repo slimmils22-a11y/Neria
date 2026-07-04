@@ -886,7 +886,7 @@ window.neriaAjaxUrl = function(action, extra) {
             </button>
           </div>
           {/if}
-          <button type="button" class="neria-btn neria-btn--secondary neria-btn--sm"
+          <button type="button" class="neria-btn neria-btn--primary neria-btn--sm"
                   onclick="document.getElementById('neria-trad-preview').contentWindow.location.reload();">
             ↺ Rafraîchir
           </button>
