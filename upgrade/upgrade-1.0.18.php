@@ -24,7 +24,7 @@ function upgrade_module_1_0_18(Neria $module): bool
         Configuration::updateGlobalValue('NERIA_CRON_TOKEN', bin2hex(random_bytes(24)));
     }
 
-    Configuration::updateValue('NERIA_VERSION', $module->version);
+    Configuration::updateValue('NERIA_INSTALLED_VERSION', $module->version);
 
     return true;
 }

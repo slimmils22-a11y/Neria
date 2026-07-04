@@ -42,7 +42,7 @@ function upgrade_module_1_0_15(Neria $module): bool
         );
     }
 
-    Configuration::updateValue('NERIA_VERSION', $module->version);
+    Configuration::updateValue('NERIA_INSTALLED_VERSION', $module->version);
     return true;
 }
 }

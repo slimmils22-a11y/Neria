@@ -20,7 +20,7 @@ function upgrade_module_1_0_19(Neria $module): bool
         Configuration::updateGlobalValue('NERIA_CRON_ENABLED', 1);
     }
 
-    Configuration::updateValue('NERIA_VERSION', $module->version);
+    Configuration::updateValue('NERIA_INSTALLED_VERSION', $module->version);
 
     return true;
 }

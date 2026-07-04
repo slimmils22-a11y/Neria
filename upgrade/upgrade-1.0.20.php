@@ -38,7 +38,7 @@ function upgrade_module_1_0_20(Neria $module): bool
         Configuration::updateGlobalValue('NERIA_ARCHIVE_EMAIL', '');
     }
 
-    Configuration::updateValue('NERIA_VERSION', $module->version);
+    Configuration::updateValue('NERIA_INSTALLED_VERSION', $module->version);
 
     return (bool) $ok;
 }

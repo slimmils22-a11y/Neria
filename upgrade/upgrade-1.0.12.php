@@ -27,7 +27,7 @@ function upgrade_module_1_0_12(Neria $module): bool
     );
 
     // Enregistre la version installée pour le health check #19
-    Configuration::updateValue('NERIA_VERSION', $module->version);
+    Configuration::updateValue('NERIA_INSTALLED_VERSION', $module->version);
 
     return true;
 }

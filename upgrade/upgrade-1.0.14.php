@@ -40,6 +40,6 @@ function upgrade_module_1_0_14(Neria $module): bool
         COMMENT='Historique des tests A/B terminés'
     ");
 
-    Configuration::updateValue('NERIA_VERSION', $module->version);
+    Configuration::updateValue('NERIA_INSTALLED_VERSION', $module->version);
     return true;
 }
