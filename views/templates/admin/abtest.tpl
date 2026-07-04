@@ -37,16 +37,19 @@
             {assign var="winner" value=$sig.overall_winner|default:''}
 
             {* Variante A *}
+            {capture name="default_variant_a"}{neria_admin key='abtest.default_variant_a'}{/capture}
+            {capture name="default_variant_b"}{neria_admin key='abtest.default_variant_b'}{/capture}
+            {capture name="revenue_tooltip"}{neria_admin key='abtest.revenue_tooltip' esc='html'}{/capture}
             <div class="neria-abtest-variant{if $winner === 'A'} neria-abtest-variant--winner{/if}">
               <span class="neria-abtest-variant__label">A</span>
               <span class="neria-abtest-variant__name">
-                {$tests_data[$key].a.variant_name|default:'Variante A'|escape:'html'}
+                {$tests_data[$key].a.variant_name|default:$smarty.capture.default_variant_a|escape:'html'}
               </span>
               <span class="neria-abtest-variant__metrics">
                 <span class="neria-abtest-metric">{$report.A.rate_open|default:0}% {neria_admin key='abtest.open_short'}</span>
                 <span class="neria-abtest-metric neria-abtest-metric--secondary">{$report.A.rate_click|default:0}% {neria_admin key='abtest.click_short'}</span>
-                <span class="neria-abtest-metric neria-abtest-metric--revenue" title="Chiffre d'affaires attribué à cette variante">
-                  {if isset($report.A.total_revenue)}{$report.A.total_revenue|string_format:"%.2f"}{else}0.00{/if}€ CA
+                <span class="neria-abtest-metric neria-abtest-metric--revenue" title="{$smarty.capture.revenue_tooltip}">
+                  {if isset($report.A.total_revenue)}{$report.A.total_revenue|string_format:"%.2f"}{else}0.00{/if}€ {neria_admin key='abtest.col_ca'}
                 </span>
               </span>
               {if $winner === 'A'}<span class="neria-abtest-crown">↑</span>{/if}
@@ -56,13 +59,13 @@
             <div class="neria-abtest-variant{if $winner === 'B'} neria-abtest-variant--winner{/if}">
               <span class="neria-abtest-variant__label neria-abtest-variant__label--b">B</span>
               <span class="neria-abtest-variant__name">
-                {$tests_data[$key].b.variant_name|default:'Variante B'|escape:'html'}
+                {$tests_data[$key].b.variant_name|default:$smarty.capture.default_variant_b|escape:'html'}
               </span>
               <span class="neria-abtest-variant__metrics">
                 <span class="neria-abtest-metric">{$report.B.rate_open|default:0}% {neria_admin key='abtest.open_short'}</span>
                 <span class="neria-abtest-metric neria-abtest-metric--secondary">{$report.B.rate_click|default:0}% {neria_admin key='abtest.click_short'}</span>
-                <span class="neria-abtest-metric neria-abtest-metric--revenue" title="Chiffre d'affaires attribué à cette variante">
-                  {if isset($report.B.total_revenue)}{$report.B.total_revenue|string_format:"%.2f"}{else}0.00{/if}€ CA
+                <span class="neria-abtest-metric neria-abtest-metric--revenue" title="{$smarty.capture.revenue_tooltip}">
+                  {if isset($report.B.total_revenue)}{$report.B.total_revenue|string_format:"%.2f"}{else}0.00{/if}€ {neria_admin key='abtest.col_ca'}
                 </span>
               </span>
               {if $winner === 'B'}<span class="neria-abtest-crown">↑</span>{/if}
@@ -97,17 +100,17 @@
               {assign var="days_rem" value=$report.days_remaining|default:null}
               {if $days_rem === null}
                 <div style="font-size:11px;color:var(--neria-muted);margin-top:6px;padding:4px 8px;background:#f9f6f1;border-radius:4px;display:inline-block;">
-                  ⏱ Durée estimée disponible après les premiers envois
+                  {neria_admin key='abtest.duration_pending'}
                 </div>
               {elseif $days_rem > 0}
                 <div style="font-size:11px;color:#92400e;margin-top:6px;padding:4px 8px;background:#fef9f0;border:1px solid #fcd34d;border-radius:4px;display:inline-block;">
-                  ⏱ Résultat estimé dans <strong>{$days_rem}</strong> jour{if $days_rem > 1}s{/if}
+                  {neria_admin key='abtest.duration_estimate_prefix'}<strong>{$days_rem}</strong> {if $days_rem > 1}{neria_admin key='common.days'}{else}{neria_admin key='abtest.day_singular'}{/if}
                 </div>
               {/if}
             {/if}
 
             <p class="neria-abtest-hint">
-              ✎ Pour modifier les textes de la variante B, rendez-vous dans l'onglet <strong>Traductions</strong>, sélectionnez ce template et cliquez sur Charger.
+              {neria_admin key='abtest.variant_b_hint'}
             </p>
 
           </div>{* /.neria-abtest-results *}
@@ -200,27 +203,27 @@
   {if true}
   <div style="margin-top:40px;">
     <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.55;color:var(--neria-dark);margin-bottom:16px;">
-      Historique des tests terminés
+      {neria_admin key='abtest.history_title'}
     </div>
     {if empty($ab_history)}
     <div style="padding:20px 24px;background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;font-size:12px;color:var(--neria-muted);text-align:center;">
-      Aucun test terminé pour l'instant. L'historique s'alimentera automatiquement à chaque fois que vous arrêterez ou appliquerez un test.
+      {neria_admin key='abtest.history_empty'}
     </div>
     {else}
     <div style="overflow-x:auto;">
       <table style="width:100%;border-collapse:collapse;font-size:12px;">
         <thead>
           <tr style="background:#f9f6f1;border-bottom:2px solid #e8d5b0;">
-            <th style="padding:8px 12px;text-align:left;font-weight:700;color:#5c3d1e;white-space:nowrap;">Template</th>
-            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">Variante A</th>
-            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">Variante B</th>
-            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">Ouv.</th>
-            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">Clics</th>
-            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">CA</th>
-            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">Gagnant</th>
-            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">Confiance</th>
-            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">Appliqué</th>
-            <th style="padding:8px 12px;text-align:right;font-weight:700;color:#5c3d1e;">Fin</th>
+            <th style="padding:8px 12px;text-align:left;font-weight:700;color:#5c3d1e;white-space:nowrap;">{neria_admin key='common.template'}</th>
+            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">{neria_admin key='abtest.default_variant_a'}</th>
+            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">{neria_admin key='abtest.default_variant_b'}</th>
+            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">{neria_admin key='abtest.col_open_short'}</th>
+            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">{neria_admin key='common.clicks'}</th>
+            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">{neria_admin key='abtest.col_ca'}</th>
+            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">{neria_admin key='abtest.col_winner'}</th>
+            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">{neria_admin key='abtest.col_confidence'}</th>
+            <th style="padding:8px 12px;text-align:center;font-weight:700;color:#5c3d1e;">{neria_admin key='abtest.col_applied'}</th>
+            <th style="padding:8px 12px;text-align:right;font-weight:700;color:#5c3d1e;">{neria_admin key='abtest.col_end'}</th>
           </tr>
         </thead>
         <tbody>
@@ -267,7 +270,7 @@
             </td>
             <td style="padding:8px 12px;text-align:center;">
               {if $h.applied}
-                <span style="color:#16a34a;font-weight:700;" title="La variante gagnante a été appliquée comme défaut">✓</span>
+                <span style="color:#16a34a;font-weight:700;" title="{neria_admin key='abtest.history_applied_tooltip' esc='html'}">✓</span>
               {else}
                 <span style="color:var(--neria-muted);">–</span>
               {/if}
