@@ -47,7 +47,7 @@
                      background:{if $auto_lang_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if $auto_lang_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $auto_lang_enabled}● {neria_admin key='help.cron_toggle_on'}{else}○ {neria_admin key='help.cron_toggle_off'}{/if}
       </button>
     </form>
   </div>
@@ -59,7 +59,7 @@
 {* ── Smart Salutation — section unifiée ─────────────────────── *}
 <div class="neria-section" id="neria-cfg-time-greetings">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
-    <h2 class="neria-section__title" style="margin:0;">⏱ Smart Salutation — Heure locale</h2>
+    <h2 class="neria-section__title" style="margin:0;">⏱ {neria_admin key='configure.time_greetings_title'}</h2>
     <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;">
       <input type="hidden" name="neria_action" value="toggle_time_greeting">
       <input type="hidden" name="neria_tab"    value="configure">
@@ -68,24 +68,21 @@
                      background:{if $time_greeting_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if $time_greeting_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $time_greeting_enabled}● {neria_admin key='help.cron_toggle_on'}{else}○ {neria_admin key='help.cron_toggle_off'}{/if}
       </button>
     </form>
   </div>
   <p class="neria-section__desc">
-    Neria injecte automatiquement la bonne formule de salutation selon l'heure locale du client
-    (déduite de son adresse de livraison). Aucune retouche de template nécessaire — personnalisez
-    simplement les formules ci-dessous par langue et par créneau.
+    {neria_admin key='configure.time_greetings_desc'}
   </p>
 
   {* ── Pays cibles ─────────────────────────────────────────────── *}
   <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e8d5b0;">
     <p style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.6;margin:0 0 6px;">
-      🌍 Pays cibles
+      🌍 {neria_admin key='configure.target_countries_title'}
     </p>
     <p class="neria-section__desc" style="margin-bottom:10px;">
-      Limitez la détection de fuseau horaire à certains pays.
-      Laissez tout coché pour activer la Smart Salutation dans tous les pays.
+      {neria_admin key='configure.target_countries_desc'}
     </p>
 
     <form method="post" action="{$smarty.server.REQUEST_URI}" id="neria-countries-form">
@@ -95,15 +92,15 @@
       <div style="display:flex;gap:8px;margin-bottom:10px;">
         <button type="button" onclick="neriaSelectAllCountries(true)"
           style="font-size:11px;padding:3px 10px;background:#fff;border:1px solid #e8d5b0;border-radius:4px;cursor:pointer;color:var(--neria-dark);">
-          Tout activer
+          {neria_admin key='configure.select_all'}
         </button>
         <button type="button" onclick="neriaSelectAllCountries(false)"
           style="font-size:11px;padding:3px 10px;background:#fff;border:1px solid #e8d5b0;border-radius:4px;cursor:pointer;color:var(--neria-dark);">
-          Tout désactiver
+          {neria_admin key='configure.deselect_all'}
         </button>
       </div>
 
-      <input type="text" id="neria-country-search" placeholder="🔍 Rechercher un pays…"
+      <input type="text" id="neria-country-search" placeholder="🔍 {neria_admin key='configure.search_country_placeholder'}"
              oninput="neriaFilterCountries(this.value)"
              style="width:100%;padding:7px 12px;border:1px solid #e8d5b0;border-radius:4px;font-size:12px;margin-bottom:10px;box-sizing:border-box;">
 
@@ -119,9 +116,9 @@
       </div>
 
       <div style="margin-top:12px;">
-        <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">Enregistrer les pays</button>
+        <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">{neria_admin key='configure.save_countries'}</button>
         <span style="font-size:11px;color:#a09990;margin-left:10px;font-style:italic;">
-          &#9432; Vide = tous les pays activés par défaut.
+          &#9432; {neria_admin key='configure.countries_empty_hint'}
         </span>
       </div>
     </form>
@@ -144,7 +141,7 @@
   {* ── Formules de salutation ──────────────────────────────────── *}
   <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e8d5b0;">
     <p style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.6;margin:0 0 12px;">
-      Formules par langue
+      {neria_admin key='configure.tg_formulas_title'}
     </p>
 
   {assign var="tg_langs" value=[
@@ -152,7 +149,7 @@
     'br'=>'BR','ar'=>'AR','ja'=>'JA','ko'=>'KO','zh'=>'ZH','tw'=>'TW',
     'ru'=>'RU','tr'=>'TR','sv'=>'SV','no'=>'NO','da'=>'DA','nl'=>'NL'
   ]}
-  {assign var="tg_slots" value=['morning'=>'🌅 Matin (6h–12h)','afternoon'=>'☀ Après-midi (12h–18h)','evening'=>'🌆 Soir (18h–22h)','night'=>'🌙 Nuit (22h–6h)']}
+  {assign var="tg_slots" value=['morning','afternoon','evening','night']}
 
   {* ── Tableau des salutations ─────────────────────────────────────── *}
   <form method="post" action="{$smarty.server.REQUEST_URI}">
@@ -163,9 +160,9 @@
       <table style="width:100%;border-collapse:collapse;font-size:12px;">
         <thead>
           <tr style="background:#f9f6f1;">
-            <th style="padding:8px 10px;text-align:left;border-bottom:2px solid #e8d5b0;white-space:nowrap;">Langue</th>
-            {foreach $tg_slots as $slot => $slotLabel}
-              <th style="padding:8px 10px;text-align:left;border-bottom:2px solid #e8d5b0;white-space:nowrap;">{$slotLabel}</th>
+            <th style="padding:8px 10px;text-align:left;border-bottom:2px solid #e8d5b0;white-space:nowrap;">{neria_admin key='common.language'}</th>
+            {foreach $tg_slots as $slot}
+              <th style="padding:8px 10px;text-align:left;border-bottom:2px solid #e8d5b0;white-space:nowrap;">{neria_admin key="configure.tg_slot_`$slot`"}</th>
             {/foreach}
           </tr>
         </thead>
@@ -173,7 +170,7 @@
           {foreach $tg_langs as $code => $label}
             <tr style="border-bottom:1px solid #f0e8d8;">
               <td style="padding:6px 10px;font-weight:600;color:var(--neria-dark);white-space:nowrap;">{$label}</td>
-              {foreach $tg_slots as $slot => $slotLabel}
+              {foreach $tg_slots as $slot}
                 <td style="padding:4px 6px;">
                   <input type="text" name="neria_tg_{$code}_{$slot}" class="neria-input"
                          style="font-size:12px;padding:4px 8px;"
@@ -187,26 +184,26 @@
     </div>
 
     <div id="neria-tg-save-row" style="margin-top:16px;display:flex;align-items:center;gap:12px;">
-      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">Enregistrer</button>
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">{neria_admin key='common.register'}</button>
       <span style="font-size:11px;color:#a09990;font-style:italic;">
-        ✓ Plug &amp; play — la salutation remplace automatiquement la formule d'accueil dans tous vos templates.
+        ✓ {neria_admin key='configure.tg_plugplay_hint'}
       </span>
     </div>
   </form>
 
   {* ── Réinitialisation ─────────────────────────────────────────── *}
   <div id="neria-tg-reset-panel" style="margin-top:16px;padding:12px 16px;background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-    <span style="font-size:12px;color:#7a6f65;font-weight:600;white-space:nowrap;">🔄 Réinitialiser :</span>
+    <span style="font-size:12px;color:#7a6f65;font-weight:600;white-space:nowrap;">🔄 {neria_admin key='configure.tg_reset_label'}</span>
 
     {* Toutes les langues *}
     <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;">
       <input type="hidden" name="neria_action" value="reset_time_greetings_all">
       <input type="hidden" name="neria_tab"    value="configure">
       <button type="button" class="neria-btn neria-btn--sm"
-              data-confirm="Réinitialiser toutes les langues aux valeurs par défaut ?"
+              data-confirm="{neria_admin key='configure.tg_reset_all_confirm'|escape:'html'}"
               onclick="neriaConfirmDelete(this);"
               style="background:#dc2626;color:#fff;border-color:#dc2626;">
-        Toutes les langues
+        {neria_admin key='configure.tg_reset_all_btn'}
       </button>
     </form>
 
@@ -215,30 +212,15 @@
       <input type="hidden" name="neria_action" value="reset_time_greetings_lang">
       <input type="hidden" name="neria_tab"    value="configure">
       <select name="neria_reset_lang" class="neria-input" style="font-size:12px;padding:4px 8px;height:auto;">
-        <option value="fr">🇫🇷 Français</option>
-        <option value="en">🇬🇧 English</option>
-        <option value="de">🇩🇪 Deutsch</option>
-        <option value="it">🇮🇹 Italiano</option>
-        <option value="es">🇪🇸 Español</option>
-        <option value="pt">🇵🇹 Português</option>
-        <option value="br">🇧🇷 Português (BR)</option>
-        <option value="ar">🇸🇦 العربية</option>
-        <option value="ja">🇯🇵 日本語</option>
-        <option value="ko">🇰🇷 한국어</option>
-        <option value="zh">🇨🇳 中文 (ZH)</option>
-        <option value="tw">🇹🇼 中文 (TW)</option>
-        <option value="ru">🇷🇺 Русский</option>
-        <option value="tr">🇹🇷 Türkçe</option>
-        <option value="sv">🇸🇪 Svenska</option>
-        <option value="no">🇳🇴 Norsk</option>
-        <option value="da">🇩🇰 Dansk</option>
-        <option value="nl">🇳🇱 Nederlands</option>
+        {foreach $lang_labels as $code => $name}
+          <option value="{$code}">{$lang_flags[$code]|default:''} {$name}</option>
+        {/foreach}
       </select>
       <button type="button" class="neria-btn neria-btn--sm"
-              data-confirm="Réinitialiser cette langue aux valeurs par défaut ?"
+              data-confirm="{neria_admin key='configure.tg_reset_lang_confirm'|escape:'html'}"
               onclick="neriaConfirmDelete(this);"
               style="background:#dc2626;color:#fff;border-color:#dc2626;">
-        Réinitialiser
+        {neria_admin key='configure.tg_reset_lang_btn'}
       </button>
     </form>
   </div>
@@ -248,7 +230,7 @@
 {* ── Smart Fallbacks — prénom manquant ─────────────────────── *}
 <div class="neria-section" id="neria-cfg-firstname-fallbacks">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
-    <h2 class="neria-section__title" style="margin:0;">✦ Smart Fallbacks — Prénom manquant</h2>
+    <h2 class="neria-section__title" style="margin:0;">✦ {neria_admin key='configure.firstname_fallbacks_title'}</h2>
     <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;">
       <input type="hidden" name="neria_action" value="toggle_firstname_fallback">
       <input type="hidden" name="neria_tab"    value="configure">
@@ -257,33 +239,24 @@
                      background:{if $firstname_fallback_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if $firstname_fallback_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $firstname_fallback_enabled}● {neria_admin key='help.cron_toggle_on'}{else}○ {neria_admin key='help.cron_toggle_off'}{/if}
       </button>
     </form>
   </div>
   <p class="neria-section__desc">
-    Si un client s'est inscrit sans prénom, Neria remplace automatiquement <code>{ldelim}firstname{rdelim}</code>
-    par le mot élégant que vous définissez ici, selon la langue de l'email.
-    Laissez un champ vide pour conserver la valeur par défaut.
+    {neria_admin key='configure.firstname_fallbacks_desc_pre'} <code>{ldelim}firstname{rdelim}</code>
+    {neria_admin key='configure.firstname_fallbacks_desc_post'}
   </p>
 
   <form method="post" action="{$smarty.server.REQUEST_URI}">
     <input type="hidden" name="neria_action" value="save_firstname_fallbacks">
     <input type="hidden" name="neria_tab"    value="configure">
 
-    {assign var="fallback_langs" value=[
-      'fr'=>'Français','en'=>'English','de'=>'Deutsch','it'=>'Italiano',
-      'es'=>'Español','pt'=>'Português','br'=>'Português BR','ar'=>'العربية',
-      'ja'=>'日本語','ko'=>'한국어','zh'=>'中文简','tw'=>'中文繁',
-      'ru'=>'Русский','tr'=>'Türkçe','sv'=>'Svenska','no'=>'Norsk',
-      'da'=>'Dansk','nl'=>'Nederlands'
-    ]}
-
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:16px;">
-      {foreach $fallback_langs as $code => $label}
+      {foreach $lang_labels as $code => $label}
         <div class="neria-form-group" style="margin:0;">
           <label class="neria-label" style="font-size:11px;margin-bottom:4px;">
-            {$label} <span style="color:#a09990;font-weight:400;">({$code})</span>
+            {$lang_flags[$code]|default:''} {$label} <span style="color:#a09990;font-weight:400;">({$code})</span>
           </label>
           <input type="text" name="neria_fallback_{$code}" class="neria-input"
                  placeholder="{$firstname_fallbacks[$code]|default:''}"
@@ -294,10 +267,10 @@
 
     <div style="margin-top:16px;display:flex;align-items:center;gap:12px;">
       <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
-        Enregistrer les fallbacks
+        {neria_admin key='configure.save_fallbacks'}
       </button>
       <span style="font-size:11px;color:#a09990;font-style:italic;">
-        &#9432; Ces textes remplacent <code>{ldelim}firstname{rdelim}</code> uniquement si le champ est vide côté client.
+        &#9432; {neria_admin key='configure.fallbacks_hint_pre'} <code>{ldelim}firstname{rdelim}</code> {neria_admin key='configure.fallbacks_hint_post'}
       </span>
     </div>
   </form>
@@ -343,7 +316,7 @@
                      background:{if $cooldown_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if $cooldown_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $cooldown_enabled}● {neria_admin key='help.cron_toggle_on'}{else}○ {neria_admin key='help.cron_toggle_off'}{/if}
       </button>
     </form>
   </div>
@@ -352,26 +325,23 @@
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0;">
     <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:14px;">
       <div style="font-size:20px;margin-bottom:6px;">🛡️</div>
-      <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:4px;">Anti-doublon</div>
+      <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:4px;">{neria_admin key='configure.cooldown_card1_title'}</div>
       <div style="font-size:12px;color:#7a6a5a;line-height:1.5;">
-        Évite qu'un même client reçoive deux emails identiques à quelques minutes d'intervalle
-        — notamment lors de commandes multiples rapides.
+        {neria_admin key='configure.cooldown_card1_desc'}
       </div>
     </div>
     <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:14px;">
       <div style="font-size:20px;margin-bottom:6px;">⏱️</div>
-      <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:4px;">Fenêtre de silence</div>
+      <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:4px;">{neria_admin key='configure.cooldown_card2_title'}</div>
       <div style="font-size:12px;color:#7a6a5a;line-height:1.5;">
-        Pendant le délai configuré (ex: 10 min), tout email du même type vers le même client
-        est bloqué. Après ce délai, l'envoi redevient normal.
+        {neria_admin key='configure.cooldown_card2_desc'}
       </div>
     </div>
     <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:14px;">
       <div style="font-size:20px;margin-bottom:6px;">📊</div>
-      <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:4px;">Impact délivrabilité</div>
+      <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:4px;">{neria_admin key='configure.cooldown_card3_title'}</div>
       <div style="font-size:12px;color:#7a6a5a;line-height:1.5;">
-        Réduire les doublons améliore votre score de réputation et diminue le risque
-        que vos emails soient classés comme spam.
+        {neria_admin key='configure.cooldown_card3_desc'}
       </div>
     </div>
   </div>
@@ -401,32 +371,27 @@
   </form>
 
   <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e8d5b0;">
-    <h3 style="font-size:14px;font-weight:700;color:#5c3d1e;margin:0 0 8px;">📬 Quota SMTP journalier</h3>
+    <h3 style="font-size:14px;font-weight:700;color:#5c3d1e;margin:0 0 8px;">📬 {neria_admin key='configure.smtp_quota_title'}</h3>
     <p style="font-size:13px;color:#7a6a5a;margin:0 0 12px;line-height:1.6;">
-      Certains hébergeurs imposent une limite d'emails par jour (OVH, Ionos, o2switch…).
-      Si vous dépassez ce quota, les emails suivants sont rejetés <strong>silencieusement</strong> —
-      ni erreur visible, ni rebond : ils disparaissent simplement.
-      En renseignant votre limite ici, le Watchdog vous alertera à <strong>80%</strong> du quota
-      pour que vous puissiez agir avant que les envois ne s'arrêtent.
+      {neria_admin key='configure.smtp_quota_desc1'}
+      {neria_admin key='configure.smtp_quota_desc2'}
     </p>
 
     <div style="background:#fef9f0;border:1px solid #e8d5b0;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#7a6a5a;line-height:1.6;">
-      💡 <strong>Comment trouver votre quota ?</strong><br>
-      Consultez votre espace client hébergeur (rubrique Email ou SMTP) ou contactez leur support.
-      Les limites courantes : OVH Starter = 200/j · o2switch = 500/j · Ionos = 200/j · Infomaniak = illimité.
-      Laissez <strong>0</strong> si votre hébergeur n'impose aucune limite.
+      💡 <strong>{neria_admin key='configure.smtp_quota_howto_title'}</strong><br>
+      {neria_admin key='configure.smtp_quota_howto_body'}
     </div>
 
     <form method="post" action="{$smarty.server.REQUEST_URI}">
       <input type="hidden" name="neria_action" value="save_smtp_quota">
       <input type="hidden" name="neria_tab"    value="configure">
       <div class="neria-form-group">
-        <label class="neria-label" for="neria-smtp-quota">Limite journalière</label>
+        <label class="neria-label" for="neria-smtp-quota">{neria_admin key='configure.smtp_quota_label'}</label>
         <div style="display:flex;align-items:center;gap:8px;">
           <input type="number" id="neria-smtp-quota" name="neria_smtp_quota"
                  class="neria-input" min="0" style="max-width:120px;"
                  value="{$smtp_daily_quota|default:0}">
-          <span style="font-size:13px;color:var(--neria-text-light);">emails / jour (0 = illimité)</span>
+          <span style="font-size:13px;color:var(--neria-text-light);">{neria_admin key='configure.smtp_quota_unit'}</span>
         </div>
       </div>
       <div style="margin-top:12px;">
@@ -522,34 +487,34 @@
                      background:{if $multi_sender_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if $multi_sender_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $multi_sender_enabled}● {neria_admin key='help.cron_toggle_on'}{else}○ {neria_admin key='help.cron_toggle_off'}{/if}
       </button>
     </form>
   </div>
   <p class="neria-section__desc">{neria_admin key='configure.senders_desc'}</p>
 
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:24px;font-size:13px;line-height:1.75;color:#4a3f35;">
-    <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.6;margin-bottom:10px;">Pourquoi utiliser cette feature ?</div>
-    <p style="margin:0 0 10px;">Un client japonais qui reçoit un email de <strong>contact@votreboutique.fr</strong> aura moins confiance qu'un email venant de <strong>japan@votreboutique.jp</strong>. Le multi-expéditeur permet d'adapter l'identité de l'expéditeur selon la langue du destinataire, sans toucher à votre configuration email principale.</p>
+    <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.6;margin-bottom:10px;">{neria_admin key='configure.senders_why_title'}</div>
+    <p style="margin:0 0 10px;">{neria_admin key='configure.senders_why_body'}</p>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:14px;">
       <div style="background:#fff;border:1px solid #e8d5b0;border-radius:5px;padding:12px 14px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.5;margin-bottom:4px;">Délivrabilité</div>
-        <div style="font-size:13px;">Un nom d'expéditeur localisé améliore le taux d'ouverture — les filtres anti-spam favorisent les emails dont le nom est reconnu par le destinataire.</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.5;margin-bottom:4px;">{neria_admin key='configure.senders_card1_title'}</div>
+        <div style="font-size:13px;">{neria_admin key='configure.senders_card1_desc'}</div>
       </div>
       <div style="background:#fff;border:1px solid #e8d5b0;border-radius:5px;padding:12px 14px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.5;margin-bottom:4px;">Confiance</div>
-        <div style="font-size:13px;">Un client arabophone lit « متجرك » plutôt que « Maison Dupont » dans sa boîte mail. Adapter le nom renforce l'identité locale de votre marque.</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.5;margin-bottom:4px;">{neria_admin key='configure.senders_card2_title'}</div>
+        <div style="font-size:13px;">{neria_admin key='configure.senders_card2_desc'}</div>
       </div>
       <div style="background:#fff;border:1px solid #e8d5b0;border-radius:5px;padding:12px 14px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.5;margin-bottom:4px;">Fonctionnement</div>
-        <div style="font-size:13px;">Neria détecte la langue de l'email et substitue automatiquement le nom et l'adresse expéditeur. Laissez un champ vide = expéditeur par défaut de la boutique.</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.5;margin-bottom:4px;">{neria_admin key='configure.senders_card3_title'}</div>
+        <div style="font-size:13px;">{neria_admin key='configure.senders_card3_desc'}</div>
       </div>
     </div>
     <div style="margin-top:14px;padding-top:12px;border-top:1px solid #e8d5b0;font-size:12px;color:#4a3f35;">
-      💡 Avant d'utiliser une nouvelle adresse expéditeur, vérifiez que votre domaine est correctement configuré (SPF, DKIM, DMARC).
+      💡 {neria_admin key='configure.senders_tip_pre'}
       <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''}&neria_tab=stats#neria-domain-rep"
          style="color:#b38b59;font-weight:700;text-decoration:underline;">
-        → Voir mon score de réputation de domaine
+        → {neria_admin key='configure.senders_tip_link'}
       </a>
     </div>
   </div>
@@ -715,7 +680,7 @@
                      background:{if $report_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if $report_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $report_enabled}● {neria_admin key='help.cron_toggle_on'}{else}○ {neria_admin key='help.cron_toggle_off'}{/if}
       </button>
     </form>
   </div>
@@ -914,7 +879,7 @@
                      background:{if $signature_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if $signature_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $signature_enabled}● {neria_admin key='help.cron_toggle_on'}{else}○ {neria_admin key='help.cron_toggle_off'}{/if}
       </button>
     </form>
   </div>
@@ -987,19 +952,19 @@
 
 {* ── Centre de préférences email ───────────────────────────── *}
 <div class="neria-section" id="neria-cfg-preferences">
-  <h2 class="neria-section__title">Centre de préférences email</h2>
-  <p class="neria-section__desc">Vos clients peuvent choisir quels types d'emails ils souhaitent recevoir via un lien dans le pied de chaque email. Opt-in par défaut — seuls les clients ayant modifié leurs préférences apparaissent ici.</p>
+  <h2 class="neria-section__title">{neria_admin key='configure.preferences_title'}</h2>
+  <p class="neria-section__desc">{neria_admin key='configure.preferences_desc'}</p>
 
   {if $prefs_stats}
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:24px;">
-    {foreach ['cart'=>'Relances panier','post'=>'Post-achat','loyalty'=>'Fidélité','behav'=>'Personnalisés','season'=>'Saisonniers','b2b'=>'Devis B2B','newsletter'=>'Newsletters'] as $cat=>$label}
+    {foreach ['cart','post','loyalty','behav','season','b2b','newsletter'] as $cat}
       {assign var="s" value=$prefs_stats[$cat]}
       <div style="background:#fff;border:1px solid var(--neria-border);border-radius:8px;padding:14px 16px;text-align:center;">
         <div style="font-size:22px;font-weight:700;color:{if $s.opted_out > 0}#dc2626{else}#16a34a{/if};">{$s.opted_out|intval}</div>
-        <div style="font-size:11px;color:var(--neria-muted);margin-top:2px;">opt-out</div>
-        <div style="font-size:12px;font-weight:600;color:var(--neria-text);margin-top:6px;">{$label}</div>
+        <div style="font-size:11px;color:var(--neria-muted);margin-top:2px;">{neria_admin key='configure.pref_optout_label'}</div>
+        <div style="font-size:12px;font-weight:600;color:var(--neria-text);margin-top:6px;">{neria_admin key="configure.pref_cat_`$cat`"}</div>
         {if $s.total > 0}
-        <div style="font-size:10px;color:#aaa;margin-top:2px;">sur {$s.total|intval} modifiés</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px;">{neria_admin key='configure.pref_of_pre'} {$s.total|intval} {neria_admin key='configure.pref_of_post'}</div>
         {/if}
       </div>
     {/foreach}
@@ -1007,11 +972,11 @@
   {/if}
 
   {if $prefs_recent}
-  <p style="font-size:12px;font-weight:700;color:var(--neria-text);margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.06em;">Dernières modifications</p>
+  <p style="font-size:12px;font-weight:700;color:var(--neria-text);margin:0 0 12px 0;text-transform:uppercase;letter-spacing:.06em;">{neria_admin key='configure.pref_recent_title'}</p>
   <div style="overflow-x:auto;">
     <table class="neria-table" style="min-width:460px;">
       <thead>
-        <tr><th>Client</th><th>Opt-out</th><th>Modifié le</th></tr>
+        <tr><th>{neria_admin key='configure.pref_col_customer'}</th><th>{neria_admin key='configure.pref_col_optout'}</th><th>{neria_admin key='configure.pref_col_modified'}</th></tr>
       </thead>
       <tbody>
         {foreach $prefs_recent as $r}
@@ -1022,9 +987,9 @@
           </td>
           <td style="text-align:center;">
             {if $r.nb_optout > 0}
-              <span style="font-size:13px;font-weight:700;color:#dc2626;">{$r.nb_optout|intval} catégorie{if $r.nb_optout > 1}s{/if}</span>
+              <span style="font-size:13px;font-weight:700;color:#dc2626;">{$r.nb_optout|intval} {if $r.nb_optout > 1}{neria_admin key='configure.pref_category_plural'}{else}{neria_admin key='configure.pref_category_singular'}{/if}</span>
             {else}
-              <span style="font-size:12px;color:#16a34a;">✓ Toutes actives</span>
+              <span style="font-size:12px;color:#16a34a;">✓ {neria_admin key='configure.pref_all_active'}</span>
             {/if}
           </td>
           <td style="font-size:12px;color:var(--neria-muted);">{$r.date_upd|escape:'html'}</td>
@@ -1034,7 +999,7 @@
     </table>
   </div>
   {else}
-  <p style="font-size:13px;color:var(--neria-muted);font-style:italic;">Aucun client n'a encore modifié ses préférences.</p>
+  <p style="font-size:13px;color:var(--neria-muted);font-style:italic;">{neria_admin key='configure.pref_empty'}</p>
   {/if}
 </div>
 
@@ -1042,9 +1007,9 @@
 <div class="neria-section" id="neria-loyalty-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
-      <h2 class="neria-section__title" style="margin:0 0 4px 0;">Programme de Fidélité</h2>
+      <h2 class="neria-section__title" style="margin:0 0 4px 0;">{neria_admin key='configure.loyalty_title'}</h2>
       <p class="neria-section__desc" style="margin:0;">
-        Attribue des points à chaque interaction email (ouverture +1 pt, clic +3 pts, achat +10 pts) et envoie automatiquement un bon de réduction à chaque palier atteint.
+        {neria_admin key='configure.loyalty_desc'}
       </p>
     </div>
     <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
@@ -1054,7 +1019,7 @@
                      background:{if $loyalty_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if $loyalty_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $loyalty_enabled}● {neria_admin key='help.cron_toggle_on'}{else}○ {neria_admin key='help.cron_toggle_off'}{/if}
       </button>
     </form>
   </div>
@@ -1063,29 +1028,29 @@
   <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:12px; margin-bottom:28px;">
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$loyalty_global_stats.active_customers|default:0}</div>
-      <div class="neria-kpi__label">Clients actifs</div>
+      <div class="neria-kpi__label">{neria_admin key='configure.loyalty_kpi_active_customers'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$loyalty_global_stats.total_points|default:0}</div>
-      <div class="neria-kpi__label">Points distribués</div>
+      <div class="neria-kpi__label">{neria_admin key='configure.loyalty_kpi_points_distributed'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$loyalty_global_stats.rewards_sent|default:0}</div>
-      <div class="neria-kpi__label">Bons envoyés</div>
+      <div class="neria-kpi__label">{neria_admin key='configure.loyalty_kpi_rewards_sent'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$loyalty_global_stats.cnt_open|default:0}</div>
-      <div class="neria-kpi__label">Ouvertures</div>
+      <div class="neria-kpi__label">{neria_admin key='configure.loyalty_kpi_opens'}</div>
       <div class="neria-kpi__rate">+1 pt</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$loyalty_global_stats.cnt_click|default:0}</div>
-      <div class="neria-kpi__label">Clics</div>
+      <div class="neria-kpi__label">{neria_admin key='configure.loyalty_kpi_clicks'}</div>
       <div class="neria-kpi__rate">+3 pts</div>
     </div>
     <div class="neria-kpi neria-kpi--main">
       <div class="neria-kpi__value">{$loyalty_global_stats.cnt_conversion|default:0}</div>
-      <div class="neria-kpi__label">Achats trackés</div>
+      <div class="neria-kpi__label">{neria_admin key='configure.loyalty_kpi_conversions'}</div>
       <div class="neria-kpi__rate">+10 pts</div>
     </div>
   </div>
@@ -1095,7 +1060,7 @@
     <input type="hidden" name="neria_action" value="save_loyalty_tiers">
 
     <p style="font-size:12px; font-weight:700; color:var(--neria-text); margin:0 0 14px 0; text-transform:uppercase; letter-spacing:.06em;">
-      Configuration des paliers
+      {neria_admin key='configure.loyalty_tiers_title'}
     </p>
 
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:16px; margin-bottom:20px;">
@@ -1111,7 +1076,7 @@
                         font-size:14px; font-weight:600; background:var(--neria-container);">
         </div>
         <div style="margin-bottom:10px;">
-          <label style="font-size:11px; color:var(--neria-muted); display:block; margin-bottom:4px;">Seuil (points)</label>
+          <label style="font-size:11px; color:var(--neria-muted); display:block; margin-bottom:4px;">{neria_admin key='configure.loyalty_threshold_label'}</label>
           <input type="number" name="loyalty_points_{$tier.key|escape:'html'}"
                  value="{$tier.points|intval}"
                  min="1" step="1"
@@ -1119,7 +1084,7 @@
                         font-size:13px; background:var(--neria-container); box-sizing:border-box;">
         </div>
         <div style="margin-bottom:10px;">
-          <label style="font-size:11px; color:var(--neria-muted); display:block; margin-bottom:4px;">Récompense (montant)</label>
+          <label style="font-size:11px; color:var(--neria-muted); display:block; margin-bottom:4px;">{neria_admin key='configure.loyalty_reward_label'}</label>
           <input type="number" name="loyalty_amount_{$tier.key|escape:'html'}"
                  value="{$tier.amount|string_format:"%.2f"}"
                  min="0.01" step="0.01"
@@ -1129,26 +1094,26 @@
         <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--neria-text); cursor:pointer;">
           <input type="checkbox" name="loyalty_percent_{$tier.key|escape:'html'}"
                  value="1" {if $tier.is_percent}checked{/if}>
-          Réduction en % (sinon montant fixe {$currency_symbol})
+          {neria_admin key='configure.loyalty_percent_label_pre'} {$currency_symbol})
         </label>
       </div>
       {/foreach}
     </div>
 
     <div class="neria-form-actions">
-      <button type="submit" class="neria-btn neria-btn--primary">Enregistrer les paliers</button>
+      <button type="submit" class="neria-btn neria-btn--primary">{neria_admin key='configure.save_tiers'}</button>
     </div>
   </form>
 
   {if $loyalty_enabled && $loyalty_top_customers}
   <div style="margin-top:28px;">
     <p style="font-size:12px; font-weight:700; color:var(--neria-text); margin:0 0 12px 0; text-transform:uppercase; letter-spacing:.06em;">
-      Top 10 clients — points fidélité
+      {neria_admin key='configure.loyalty_top10_title'}
     </p>
     <div style="overflow-x:auto;">
       <table class="neria-table" style="min-width:400px;">
         <thead>
-          <tr><th>#</th><th>Client</th><th>Points</th></tr>
+          <tr><th>{neria_admin key='configure.loyalty_col_rank'}</th><th>{neria_admin key='configure.pref_col_customer'}</th><th>{neria_admin key='configure.loyalty_col_points'}</th></tr>
         </thead>
         <tbody>
           {foreach $loyalty_top_customers as $c}

@@ -96,20 +96,20 @@
           <span class="neria-nav-arrow">▾</span>
         </a>
         <ul class="neria-nav-dropdown">
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-dashboard">📊 Tableau de bord</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-autolang">🌐 Détection de langue</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-time-greetings">⏱ Smart Salutation — Heure locale</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-firstname-fallbacks">✦ Smart Fallbacks — Prénom manquant</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-vouchers">🎁 Bons de réduction</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-cooldown">⏱ Mode Silence</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-carbon">🌿 Empreinte carbone</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-senders">✉ Multi-expéditeur</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-blacklist">🚫 Blacklist templates</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-report">📅 Rapport mensuel</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-customvars">⚙ Variables personnalisées</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-signature">✍ Signature manuscrite</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-preferences">✉ Centre de préférences</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-loyalty-section">⭐ Programme de fidélité</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-dashboard">📊 {neria_admin key='nav.sub_dashboard'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-autolang">🌐 {neria_admin key='nav.sub_autolang'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-time-greetings">⏱ {neria_admin key='nav.sub_time_greetings'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-firstname-fallbacks">✦ {neria_admin key='nav.sub_firstname_fallbacks'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-vouchers">🎁 {neria_admin key='nav.sub_vouchers'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-cooldown">⏱ {neria_admin key='nav.sub_cooldown'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-carbon">🌿 {neria_admin key='nav.sub_carbon'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-senders">✉ {neria_admin key='nav.sub_senders'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-blacklist">🚫 {neria_admin key='nav.sub_blacklist'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-report">📅 {neria_admin key='nav.sub_report'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-customvars">⚙ {neria_admin key='nav.sub_customvars'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-signature">✍ {neria_admin key='nav.sub_signature'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-preferences">✉ {neria_admin key='nav.sub_preferences'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-loyalty-section">⭐ {neria_admin key='nav.sub_loyalty'}</a></li>
         </ul>
       </li>
 
@@ -153,32 +153,32 @@
           <span class="neria-nav-arrow">▾</span>
         </a>
         <ul class="neria-nav-dropdown">
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-health-kpi-banner">🛡 Santé &amp; Tendances</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-engagement-chart-section">📊 Engagement email</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-heatmap-section">🌡 Heatmap horaire</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-monthly-comparison">📅 Comparatif mensuel</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-revenue-attribution">◈ Revenus attribués</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-abtest-focus">⇋ A/B Testing</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-domain-rep">🔒 Réputation de domaine</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-visibility-section">🌐 Visibilité boutique</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-search-console-section">🔍 Google Search Console</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-seo-api-section">📊 API SEO avancée</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-snds-section">🪟 Microsoft SNDS</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-postmaster-tools">🔭 Postmaster Tools</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-score-panel">📋 Score de délivrabilité</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-checkout-abandonment-section">🛒 Abandon de caisse</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-relationship-anniversary-section">🎂 Anniversaire relation</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-upsell-section">⬆ Upsell intelligent</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-propensity-section">🎯 Propension d'achat</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-golden-hour-section">✦ L'Heure d'Or</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-purchase-window-section">⏰ Fenêtre d'achat</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-lifespan-section">⏳ Fin de vie produit</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-reconciliation-section">↩ Réconciliation</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-quote-section">📄 Devis B2B</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-collection-section">◎ Complétion collection</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-look-section">✦ Complétez votre look</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-waitlist-section">🔔 Liste d'attente</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-ghost-cart-section">👻 Panier fantôme</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-health-kpi-banner">🛡 {neria_admin key='nav.sub_health_kpi'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-engagement-chart-section">📊 {neria_admin key='nav.sub_engagement'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-heatmap-section">🌡 {neria_admin key='nav.sub_heatmap'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-monthly-comparison">📅 {neria_admin key='nav.sub_monthly_comparison'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-revenue-attribution">◈ {neria_admin key='nav.sub_revenue_attribution'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-abtest-focus">⇋ {neria_admin key='nav.sub_abtest_focus'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-domain-rep">🔒 {neria_admin key='nav.sub_domain_rep'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-visibility-section">🌐 {neria_admin key='nav.sub_visibility'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-search-console-section">🔍 {neria_admin key='nav.sub_search_console'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-seo-api-section">📊 {neria_admin key='nav.sub_seo_api'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-snds-section">🪟 {neria_admin key='nav.sub_snds'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-postmaster-tools">🔭 {neria_admin key='nav.sub_postmaster'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-score-panel">📋 {neria_admin key='nav.sub_score'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-checkout-abandonment-section">🛒 {neria_admin key='nav.sub_checkout_abandonment'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-relationship-anniversary-section">🎂 {neria_admin key='nav.sub_relationship_anniversary'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-upsell-section">⬆ {neria_admin key='nav.sub_upsell'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-propensity-section">🎯 {neria_admin key='nav.sub_propensity'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-golden-hour-section">✦ {neria_admin key='nav.sub_golden_hour'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-purchase-window-section">⏰ {neria_admin key='nav.sub_purchase_window'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-lifespan-section">⏳ {neria_admin key='nav.sub_lifespan'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-reconciliation-section">↩ {neria_admin key='nav.sub_reconciliation'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-quote-section">📄 {neria_admin key='nav.sub_quote'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-collection-section">◎ {neria_admin key='nav.sub_collection'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-look-section">✦ {neria_admin key='nav.sub_look'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-waitlist-section">🔔 {neria_admin key='nav.sub_waitlist'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-ghost-cart-section">👻 {neria_admin key='nav.sub_ghost_cart'}</a></li>
         </ul>
       </li>
 
@@ -258,7 +258,7 @@
         <a href="{$neria_tab_base}&neria_tab=gdpr"
            class="neria-bo-nav__link {if $neria_active_tab === 'gdpr'}neria-bo-nav__link--active{/if}">
           <span class="neria-bo-nav__icon">⚖</span>
-          RGPD
+          {neria_admin key='nav.gdpr'}
         </a>
       </li>
 
@@ -274,7 +274,7 @@
         <a href="{$neria_tab_base}&neria_tab=certificates"
            class="neria-bo-nav__link {if $neria_active_tab === 'certificates'}neria-bo-nav__link--active{/if}">
           <span class="neria-bo-nav__icon">📜</span>
-          Certificats
+          {neria_admin key='nav.certificates'}
         </a>
       </li>
 
@@ -286,12 +286,12 @@
           <span class="neria-nav-arrow">▾</span>
         </a>
         <ul class="neria-nav-dropdown">
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-diagnostic">🔍 Diagnostic</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-health">✅ Contrôles de santé</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-alerts">📧 Alertes Watchdog</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-emergency">🚨 Page d'urgence</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-log">📋 Journal</a></li>
-          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-quickguide">📖 Documentation</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-diagnostic">🔍 {neria_admin key='nav.sub_diagnostic'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-health">✅ {neria_admin key='nav.sub_health'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-alerts">📧 {neria_admin key='nav.sub_alerts'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-emergency">🚨 {neria_admin key='nav.sub_emergency'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-log">📋 {neria_admin key='nav.sub_log'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-quickguide">📖 {neria_admin key='nav.sub_quickguide'}</a></li>
         </ul>
       </li>
 
@@ -300,9 +300,9 @@
 
   {* ── Boutons flottants haut / bas ──────────────────────────── *}
   <button type="button" id="neria-scroll-top" class="neria-scroll-fab neria-scroll-fab--top"
-          onclick="window.scrollTo(0,0);" title="Haut de page" aria-label="Haut de page">▲</button>
+          onclick="window.scrollTo(0,0);" title="{neria_admin key='nav.scroll_top'}" aria-label="{neria_admin key='nav.scroll_top'}">▲</button>
   <button type="button" id="neria-scroll-bot" class="neria-scroll-fab neria-scroll-fab--bot"
-          onclick="window.scrollTo(0,document.body.scrollHeight);" title="Bas de page" aria-label="Bas de page">▼</button>
+          onclick="window.scrollTo(0,document.body.scrollHeight);" title="{neria_admin key='nav.scroll_bottom'}" aria-label="{neria_admin key='nav.scroll_bottom'}">▼</button>
 
   {* ── Modale de confirmation partagée (remplace confirm() natif partout) ── *}
   {literal}<style>
