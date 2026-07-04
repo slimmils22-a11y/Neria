@@ -273,7 +273,18 @@ window.neriaAjaxUrl = function(action, extra) {
   <p class="neria-section__desc">{neria_admin key='translations.voice_desc'}</p>
 
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin:16px 0;font-size:13px;line-height:1.75;color:#4a3f35;">
+    <div style="font-weight:700;margin-bottom:12px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='translations.voice_how_title'}</div>
     {neria_admin key='translations.voice_how'}
+    <div style="font-weight:700;margin:16px 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='translations.voice_setup_title'}</div>
+    <ol style="margin:0 0 0 18px;padding:0;">
+      <li style="margin-bottom:6px;">{neria_admin key='translations.voice_setup_1'}</li>
+      <li style="margin-bottom:6px;">{neria_admin key='translations.voice_setup_2'}</li>
+      <li style="margin-bottom:6px;">{neria_admin key='translations.voice_setup_3'}</li>
+      <li>{neria_admin key='translations.voice_setup_4'}</li>
+    </ol>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid #e8d5b0;font-size:12px;opacity:.75;">
+      <strong>{neria_admin key='help.cron_tip_label'} :</strong> {neria_admin key='translations.voice_tip_body'}
+    </div>
   </div>
 
   {if isset($neria_voice_warning)}
