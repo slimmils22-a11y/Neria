@@ -1842,14 +1842,20 @@ class EmailRenderer
     {
         $design   = array_merge($this->config->getDesignConfig(), $designOverride);
         $abtestMgr = ($variantB && class_exists('ABTestManager')) ? new \ABTestManager($this->module) : null;
-        $compiled = $this->buildCompiledHtml($template, $lang, $design, $abtestMgr);
+        // Les fausses valeurs de démo (dont {shop_url}, {history_url}...) et le
+        // nettoyage des résidus doivent se faire AVANT l'inlining CSS (voir
+        // buildCompiledHtml) — sinon les accolades encore présentes dans un
+        // href/src sont percent-encodées par le parseur DOM et ne correspondent
+        // plus à aucun remplacement ensuite (elles resteraient visibles en
+        // %7Bxxx%7D au lieu d'être remplacées par le repère neutre « … »).
+        $compiled = $this->buildCompiledHtml($template, $lang, $design, $abtestMgr, $this->buildPreviewFakes($template), '…');
 
         if ($compiled === null) {
             return '<p style="padding:40px;font-family:sans-serif;color:#a33;">'
                 . 'Aperçu indisponible : template « ' . htmlspecialchars($template) . ' » introuvable.</p>';
         }
 
-        return $this->injectPreviewFakes($compiled, $template);
+        return $compiled;
     }
 
     /**
@@ -1866,11 +1872,7 @@ class EmailRenderer
      */
     public function renderWithVars(string $template, string $lang, array $vars): ?string
     {
-        $design   = $this->config->getDesignConfig();
-        $compiled = $this->buildCompiledHtml($template, $lang, $design);
-        if ($compiled === null) {
-            return null;
-        }
+        $design = $this->config->getDesignConfig();
 
         $replacements = [];
         foreach ($vars as $key => $value) {
@@ -1880,13 +1882,19 @@ class EmailRenderer
         // figés dans le snapshot (l'adresse/le nom de la boutique peuvent
         // avoir changé depuis l'envoi d'origine).
         $replacements['{shop_name}'] = (string) \Configuration::get('PS_SHOP_NAME');
-        $replacements['{shop_url}']  = \Tools::getShopDomainSsl(true);
+        $replacements['{shop_url}']  = $this->context->link->getBaseLink();
 
-        $compiled = str_replace(array_keys($replacements), array_values($replacements), $compiled);
-
-        // Résidus (variables non capturées dans le snapshot, ex. blocs HTML
-        // complexes type tableau produits) : effacés silencieusement.
-        $compiled = preg_replace('/\{[a-z0-9_]+\}/i', '', $compiled);
+        // Résolus AVANT l'inlining CSS (voir buildCompiledHtml) — un {shop_url}
+        // encore présent dans un href au moment du passage DOM serait
+        // percent-encodé (accolades invalides en URI) et ne matcherait plus
+        // aucun remplacement après coup. Idem pour le nettoyage des résidus
+        // (variables non capturées dans le snapshot) : effacés AVANT
+        // CssInliner, sinon un résidu dans un href resterait visible sous
+        // forme %7Bxxx%7D au lieu d'être proprement effacé.
+        $compiled = $this->buildCompiledHtml($template, $lang, $design, null, $replacements, '');
+        if ($compiled === null) {
+            return null;
+        }
 
         return $compiled;
     }
@@ -1899,9 +1907,20 @@ class EmailRenderer
      * @param string $template
      * @param string $lang
      * @param array  $design Configuration de design (déjà fusionnée)
+     * @param array  $extraReplacements Paires '{cle}' => valeur (ex. {shop_url},
+     *               données fictives d'aperçu ou snapshot d'historique) à résoudre
+     *               AVANT l'inlining CSS — un placeholder encore présent dans un
+     *               href/src au moment du passage par CssInliner (DOMDocument)
+     *               est percent-encodé (accolades invalides en URI, { → %7B) et
+     *               ne correspond plus à aucun remplacement fait après coup.
+     * @param string|null $residualReplacement Si fourni, tout placeholder {xxx}
+     *               encore présent après $extraReplacements est remplacé par
+     *               cette valeur (ex. '…' pour l'aperçu, '' pour effacer) —
+     *               AVANT CssInliner, pour la même raison que ci-dessus.
+     *               Si null, les résidus sont laissés tels quels.
      * @return string|null
      */
-    private function buildCompiledHtml(string $template, string $lang, array $design, ?\ABTestManager $abtestMgr = null): ?string
+    private function buildCompiledHtml(string $template, string $lang, array $design, ?\ABTestManager $abtestMgr = null, array $extraReplacements = [], ?string $residualReplacement = null): ?string
     {
         $layoutPath = $this->module->getModulePath('mails/themes/neria_global/layout.html');
         $corePath   = $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html');
@@ -1968,9 +1987,21 @@ class EmailRenderer
         ];
         $compiled = str_replace(array_keys($tplVars), array_values($tplVars), $compiled);
 
+        // ── Placeholders génériques {xxx} (shop_url, fausses valeurs d'aperçu,
+        // snapshot d'historique...) — résolus ICI, avant CssInliner (cf. docblock).
+        if (!empty($extraReplacements)) {
+            $compiled = str_replace(array_keys($extraReplacements), array_values($extraReplacements), $compiled);
+        }
+
         $compiled = preg_replace('/\{if\s[^}]+\}.*?\{\/if\}/s', '', $compiled);
         $compiled = preg_replace('/\{\*.*?\*\}/s', '', $compiled);
         $compiled = preg_replace('/\{\$[a-z_]+\}/', '', $compiled);
+
+        // Résidus {xxx} non couverts par $extraReplacements — résolus ICI,
+        // avant CssInliner, pour la même raison (cf. docblock).
+        if ($residualReplacement !== null) {
+            $compiled = preg_replace('/\{[a-z][a-z0-9_]*\}/i', $residualReplacement, $compiled);
+        }
 
         // Empreinte carbone — injecté AVANT le CSS inlining (DOMDocument déplace
         // les commentaires HTML hors des <table>, le str_replace ne les retrouve plus après)
@@ -2000,18 +2031,22 @@ class EmailRenderer
     }
 
     /**
-     * Remplace les placeholders PrestaShop restants par des valeurs fictives
-     * pour l'aperçu, puis remplace tout placeholder résiduel par « … ».
+     * Construit les fausses valeurs de démo pour l'aperçu (nom client, montants,
+     * liens neutres...). Retournées en tableau — à résoudre AVANT l'inlining CSS
+     * via buildCompiledHtml(), jamais après (cf. docblock de buildCompiledHtml).
      *
-     * @param string $html
-     * @return string
+     * @param string $template
+     * @return array
      */
-    private function injectPreviewFakes(string $html, string $template = ''): string
+    private function buildPreviewFakes(string $template = ''): array
     {
-        $fakes = [
+        return [
             // ── Contexte client / boutique / commande ──────────────
             '{shop_name}'          => (string) \Configuration::get('PS_SHOP_NAME'),
-            '{shop_url}'           => \Tools::getShopDomainSsl(true),
+            // getBaseLink() (pas getShopDomainSsl seul) : inclut le sous-répertoire
+            // __PS_BASE_URI__ avec le / final, comme le fait le vrai envoi — sinon
+            // {shop_url}content/... colle "localhost" et "content" sans séparateur.
+            '{shop_url}'           => $this->context->link->getBaseLink(),
             '{firstname}'          => 'Sophie',
             '{lastname}'           => 'Durand',
             '{email}'              => (string) \Configuration::get('PS_SHOP_EMAIL'),
@@ -2038,6 +2073,7 @@ class EmailRenderer
             '{custom_message}'     => '',
             '{validity_days}'      => (string) $this->config->getVoucherValidity(),
             '{unsubscribe_url}'    => $this->module->getUnsubscribeUrl('client@example.com'),
+            '{preferences_url}'    => '#',
             // ── Liens (aperçu : ancres neutres) ────────────────────
             '{history_url}'        => '#',
             '{guest_tracking_url}' => '#',
@@ -2129,13 +2165,6 @@ class EmailRenderer
             '{bankwire_details}'   => 'IBAN : FR76 3000 6000 0112 3456 7890 189 — BIC : AGRIFRPP',
             '{bankwire_address}'   => '12 rue de la Paix, 75001 Paris, France',
         ];
-
-        $html = str_replace(array_keys($fakes), array_values($fakes), $html);
-
-        // Placeholders de contenu restants (product_name, certificate_*, etc.)
-        $html = preg_replace('/\{[a-z][a-z0-9_]*\}/', '…', $html);
-
-        return $html;
     }
 
     /**
