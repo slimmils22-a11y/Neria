@@ -37,7 +37,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.19';
+    const VERSION = '1.0.20';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -3090,6 +3090,38 @@ class Neria extends Module
             }
         }
 
+        // ── Empreinte vocale : sauvegarde du profil ───────────────────
+        if ($tradAction === 'save_voice_profile' && class_exists('VoiceProfileManager')) {
+            $voiceLang = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
+            $banned    = (string) Tools::getValue('voice_banned_words', '');
+            $preferred = (string) Tools::getValue('voice_preferred_words', '');
+            $toneNotes = (string) Tools::getValue('voice_tone_notes', '');
+
+            if ($voiceLang !== '') {
+                (new VoiceProfileManager($this))->saveProfile($voiceLang, $banned, $preferred, $toneNotes);
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this))->info(
+                        'Empreinte vocale mise à jour [' . $voiceLang . ']', '', 'Traductions'
+                    );
+                }
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('translations.voice_saved'));
+            }
+        }
+
+        // ── Empreinte vocale : audit de cohérence sur toutes les trads ─
+        if ($tradAction === 'check_voice_profile' && class_exists('VoiceProfileManager')) {
+            $voiceLang = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
+            if ($voiceLang !== '') {
+                $audit = (new VoiceProfileManager($this))->auditTranslations($voiceLang);
+                $audit['summary'] = sprintf(
+                    AdminTranslator::t('translations.voice_audit_summary'),
+                    $audit['templates_scanned'],
+                    $audit['entries_scanned']
+                );
+                $this->context->smarty->assign('voice_audit', $audit);
+            }
+        }
+
         // ── Sauvegarde clé DeepL ──────────────────────────────────────
         if ($tradAction === 'save_deepl_key') {
             $key = trim((string) Tools::getValue('deepl_key', ''));
@@ -3168,6 +3200,31 @@ class Neria extends Module
                             );
                         }
                     }
+
+                    // Empreinte vocale : signale (sans jamais bloquer la sauvegarde)
+                    // les mots bannis présents dans les valeurs qui viennent d'être
+                    // enregistrées.
+                    if (class_exists('VoiceProfileManager') && is_array($fields)) {
+                        $bannedWords = (new VoiceProfileManager($this))->getBannedWords($tplLang);
+                        if (!empty($bannedWords)) {
+                            $voiceHits = [];
+                            foreach ($fields as $fVal) {
+                                foreach (VoiceProfileManager::textContainsWords((string) $fVal, $bannedWords) as $w) {
+                                    $voiceHits[$w] = true;
+                                }
+                            }
+                            if ($voiceHits) {
+                                $this->context->smarty->assign(
+                                    'neria_voice_warning',
+                                    sprintf(
+                                        AdminTranslator::t('translations.voice_warning_found'),
+                                        implode(', ', array_keys($voiceHits))
+                                    )
+                                );
+                            }
+                        }
+                    }
+
                     $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
                 }
 
@@ -3496,6 +3553,9 @@ class Neria extends Module
                     'subject_spam_triggers_json' => $subjectSpamJson,
                     'nsa_labels_json'           => $nsaLabelsJson,
                     'translation_history'       => $translationHistory,
+                    'voice_profile'             => class_exists('VoiceProfileManager')
+                        ? (new VoiceProfileManager($this))->getProfile($tplLang)
+                        : ['banned_words' => '', 'preferred_words' => '', 'tone_notes' => ''],
                 ]);
 
                 // Charge les traductions variante B si un test A/B est actif

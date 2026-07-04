@@ -875,3 +875,22 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_cron_health` (
     PRIMARY KEY (`id_shop`, `cron_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Monitoring des crons internes Neria (Watchdog)';
+
+-- ------------------------------------------------------------
+-- TABLE 36 : neria_voice_profile
+-- Empreinte vocale de la marque, par langue : mots bannis/préférés
+-- et notes de ton — sert à détecter les incohérences éditoriales
+-- dans les traductions.
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `PREFIX_neria_voice_profile` (
+    `id_voice_profile` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `id_shop`          INT UNSIGNED NOT NULL DEFAULT 1,
+    `lang`             VARCHAR(5)   NOT NULL,
+    `banned_words`     TEXT         DEFAULT NULL,
+    `preferred_words`  TEXT         DEFAULT NULL,
+    `tone_notes`       TEXT         DEFAULT NULL,
+    `date_upd`         DATETIME     NOT NULL,
+    PRIMARY KEY (`id_voice_profile`),
+    UNIQUE KEY `uq_shop_lang` (`id_shop`, `lang`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Empreinte vocale de la marque par langue — mots bannis/préférés, ton cible';

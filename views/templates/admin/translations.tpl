@@ -267,6 +267,115 @@ window.neriaAjaxUrl = function(action, extra) {
 </div>{* fin neria-card *}
 </div>{* fin neria-section *}
 
+{* ── Empreinte vocale de la marque ──────────────────────────── *}
+<div class="neria-section" id="neria-trad-voice">
+  <h2 class="neria-section__title">🎙 {neria_admin key='translations.voice_title'}</h2>
+  <p class="neria-section__desc">{neria_admin key='translations.voice_desc'}</p>
+
+  <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin:16px 0;font-size:13px;line-height:1.75;color:#4a3f35;">
+    {neria_admin key='translations.voice_how'}
+  </div>
+
+  {if isset($neria_voice_warning)}
+    <div class="neria-alert neria-alert--warning" style="margin-bottom:14px;">
+      ⚠ {$neria_voice_warning|escape:'html'}
+    </div>
+  {/if}
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <input type="hidden" name="neria_action" value="save_voice_profile">
+    <input type="hidden" name="neria_tab"    value="translations">
+    <input type="hidden" name="trad_template" value="{$selected_template|escape:'html'}">
+    <input type="hidden" name="trad_lang"      value="{$selected_lang|escape:'html'}">
+
+    <div class="ns-row ns-row--2">
+      <div class="neria-form-group">
+        <label class="neria-label" for="neria-voice-banned">
+          ❌ {neria_admin key='translations.voice_banned_label'}
+        </label>
+        <textarea id="neria-voice-banned" name="voice_banned_words" class="neria-input" rows="4"
+                  placeholder="boutique&#10;produit&#10;achat">{$voice_profile.banned_words|default:''|escape:'html'}</textarea>
+        <p class="neria-hint">{neria_admin key='translations.voice_banned_hint'}</p>
+      </div>
+      <div class="neria-form-group">
+        <label class="neria-label" for="neria-voice-preferred">
+          ✅ {neria_admin key='translations.voice_preferred_label'}
+        </label>
+        <textarea id="neria-voice-preferred" name="voice_preferred_words" class="neria-input" rows="4"
+                  placeholder="création&#10;atelier&#10;savoir-faire">{$voice_profile.preferred_words|default:''|escape:'html'}</textarea>
+        <p class="neria-hint">{neria_admin key='translations.voice_preferred_hint'}</p>
+      </div>
+    </div>
+
+    <div class="neria-form-group" style="margin-top:12px;">
+      <label class="neria-label" for="neria-voice-tone">
+        🎯 {neria_admin key='translations.voice_tone_label'}
+      </label>
+      <textarea id="neria-voice-tone" name="voice_tone_notes" class="neria-input" rows="2"
+                placeholder="{neria_admin key='translations.voice_tone_placeholder'}">{$voice_profile.tone_notes|default:''|escape:'html'}</textarea>
+      <p class="neria-hint">{neria_admin key='translations.voice_tone_hint'}</p>
+    </div>
+
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+        {neria_admin key='common.register'}
+      </button>
+      <button type="submit" name="neria_action" value="check_voice_profile" class="neria-btn neria-btn--ghost neria-btn--sm">
+        🔍 {neria_admin key='translations.voice_check_btn'}
+      </button>
+    </div>
+  </form>
+
+  {if isset($voice_audit)}
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e8d5b0;">
+      <h3 style="font-size:14px;font-weight:700;color:#5c3d1e;margin:0 0 10px;">
+        {neria_admin key='translations.voice_audit_title'}
+      </h3>
+      <p style="font-size:12px;color:#7a6a5a;margin:0 0 14px;">
+        {$voice_audit.summary|default:''|escape:'html'}
+      </p>
+
+      {if $voice_audit.findings|@count > 0}
+        <div class="neria-table-wrap">
+          <table class="neria-table">
+            <thead>
+              <tr>
+                <th>{neria_admin key='common.template'}</th>
+                <th>{neria_admin key='translations.voice_audit_col_key'}</th>
+                <th>{neria_admin key='translations.voice_audit_col_words'}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {foreach $voice_audit.findings as $f}
+                <tr>
+                  <td>{$f.template|escape:'html'}</td>
+                  <td style="font-family:monospace;font-size:11px;">{$f.key|escape:'html'}</td>
+                  <td>
+                    {foreach $f.words as $w}
+                      <span class="neria-badge neria-badge--warn">{$w|escape:'html'}</span>
+                    {/foreach}
+                  </td>
+                </tr>
+              {/foreach}
+            </tbody>
+          </table>
+        </div>
+      {else}
+        <p style="font-size:13px;color:#1a7a40;">✅ {neria_admin key='translations.voice_audit_clean'}</p>
+      {/if}
+
+      {if $voice_audit.preferred_word_hits|@count > 0}
+        <p style="font-size:12px;color:#7a6a5a;margin-top:14px;">
+          {neria_admin key='translations.voice_audit_preferred_used'}
+          {foreach $voice_audit.preferred_word_hits as $word => $count}
+            <span class="neria-badge" style="background:#e8f5e9;color:#1a7a40;">{$word|escape:'html'} × {$count|intval}</span>
+          {/foreach}
+        </p>
+      {/if}
+    </div>
+  {/if}
+</div>
+
 {if isset($translations) && $translations}
 
   {* ── Layout split : éditeur + aperçu ──────────────────────────── *}
