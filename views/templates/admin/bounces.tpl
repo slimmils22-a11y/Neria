@@ -238,8 +238,8 @@
   <div class="nb-hero">
     <span class="nb-hero__icon" style="color:#ffffff;">↩</span>
     <div>
-      <div class="nb-hero__title">Détection des bounces</div>
-      <p class="nb-hero__sub">Neria détecte automatiquement les adresses email invalides et les exclut des envois futurs — protégeant ainsi votre réputation de domaine.</p>
+      <div class="nb-hero__title">{neria_admin key='bounces.hero_title'}</div>
+      <p class="nb-hero__sub">{neria_admin key='bounces.hero_sub'}</p>
     </div>
   </div>
 
@@ -247,92 +247,75 @@
   <div class="nb-stats">
     <div class="nb-stat nb-stat--hard">
       <div class="nb-stat__val">{$bounce_stats.hard|intval}</div>
-      <div class="nb-stat__lbl">Hard bounces</div>
+      <div class="nb-stat__lbl">{neria_admin key='bounces.stat_hard'}</div>
     </div>
     <div class="nb-stat nb-stat--soft">
       <div class="nb-stat__val">{$bounce_stats.soft|intval}</div>
-      <div class="nb-stat__lbl">Soft bounces</div>
+      <div class="nb-stat__lbl">{neria_admin key='bounces.stat_soft'}</div>
     </div>
     <div class="nb-stat">
       <div class="nb-stat__val">{$bounce_stats.total|intval}</div>
-      <div class="nb-stat__lbl">Total bloqués</div>
+      <div class="nb-stat__lbl">{neria_admin key='bounces.stat_total'}</div>
     </div>
     <div class="nb-stat nb-stat--ok">
       <div class="nb-stat__val">{$bounce_stats.ignored|intval}</div>
-      <div class="nb-stat__lbl">Ignorés (FP)</div>
+      <div class="nb-stat__lbl">{neria_admin key='bounces.stat_ignored'}</div>
     </div>
     <div class="nb-stat">
       <div class="nb-stat__val">{$bounce_stats.imap|intval} / {$bounce_stats.webhook|intval}</div>
-      <div class="nb-stat__lbl">IMAP / Webhook</div>
+      <div class="nb-stat__lbl">{neria_admin key='bounces.stat_imap_webhook'}</div>
     </div>
   </div>
 
   {* ── Explications : mode d'emploi ─────────────────────────────── *}
   <div class="nb-box--setup">
-    <h4>📖 Mode d'emploi — comment fonctionne la détection de bounces ?</h4>
+    <h4>📖 {neria_admin key='bounces.howto_title'}</h4>
 
     <p style="font-size:12px;color:#555;margin:0 0 18px;line-height:1.7;">
-      Un <strong>bounce</strong> (rebond) se produit quand un email ne peut pas être livré.
-      Il existe deux types : les <strong>hard bounces</strong> (adresse inexistante, domaine invalide — échec permanent)
-      et les <strong>soft bounces</strong> (boîte pleine, serveur temporairement indisponible — échec temporaire).
-      Continuer à envoyer vers ces adresses <strong>dégrade votre réputation de domaine</strong> et fait chuter votre taux d'ouverture.
+      {neria_admin key='bounces.howto_intro'}
     </p>
 
-    <p style="font-size:13px;font-weight:700;color:var(--neria-dark);margin:0 0 14px;">Neria propose deux mécanismes de détection :</p>
+    <p style="font-size:13px;font-weight:700;color:var(--neria-dark);margin:0 0 14px;">{neria_admin key='bounces.howto_mechanisms_label'}</p>
 
     <ol class="nb-steps">
       <li class="nb-step">
         <div>
-          <p class="nb-step__title">Mécanisme 1 — Boîte IMAP/POP3 dédiée (recommandé)</p>
+          <p class="nb-step__title">{neria_admin key='bounces.mech1_title'}</p>
           <p class="nb-step__body">
-            Quand un email rebondit, le serveur destinataire renvoie un message d'erreur (NDR / DSN)
-            à l'adresse <code>Return-Path</code> de votre envoi.
-            Neria se connecte automatiquement chaque nuit à cette boîte, parse les messages de rejet
-            et bloque les adresses détectées.
+            {neria_admin key='bounces.mech1_body'}
           </p>
           <div class="nb-box nb-box--warn" style="margin-top:10px;">
-            <strong>⚠ Prérequis :</strong> vous devez créer une boîte email dédiée (ex : <code>bounces@votre-boutique.com</code>)
-            accessible en <strong>IMAP ou POP3</strong> depuis votre hébergement. Cette boîte sert uniquement à
-            recevoir les notifications de rejet — elle ne reçoit aucun email de client.
-            Chez la plupart des hébergeurs (cPanel, Plesk, OVH, o2switch…), cela prend 2 minutes.
+            <strong>⚠ {neria_admin key='bounces.prereq_label'}</strong> {neria_admin key='bounces.mech1_prereq_body'}
           </div>
           <p class="nb-step__body" style="margin-top:8px;">
-            Configurez ensuite les identifiants IMAP ci-dessous et activez le checker.
-            Un cron Neria vérifie la boîte toutes les 24 heures.
+            {neria_admin key='bounces.mech1_footer'}
           </p>
         </div>
       </li>
 
       <li class="nb-step">
         <div>
-          <p class="nb-step__title">Mécanisme 2 — Webhook entrant (ESP tiers : Mailgun, SendGrid, Postmark…)</p>
+          <p class="nb-step__title">{neria_admin key='bounces.mech2_title'}</p>
           <p class="nb-step__body">
-            Si vous utilisez un service d'envoi tiers, il détecte les bounces en temps réel
-            et peut vous envoyer une notification automatique (webhook) à chaque rebond.
-            Copiez l'URL ci-dessous dans la configuration de votre ESP.
+            {neria_admin key='bounces.mech2_body'}
           </p>
-          <p style="font-size:12px;font-weight:700;color:var(--neria-dark);margin:10px 0 4px;">URL du webhook Neria :</p>
+          <p style="font-size:12px;font-weight:700;color:var(--neria-dark);margin:10px 0 4px;">{neria_admin key='bounces.webhook_url_label'}</p>
           <code class="nb-code" id="nb-webhook-url">{$bounce_webhook_url}</code>
-          <button class="nb-copy-btn" onclick="nbCopy('nb-webhook-url', this)">Copier</button>
+          <button class="nb-copy-btn" onclick="nbCopy('nb-webhook-url', this)">{neria_admin key='bounces.copy_btn'}</button>
           <p class="nb-step__body" style="margin-top:10px;">
-            <strong>Sécurité :</strong> optionnellement, configurez le secret HMAC ci-dessous et renseignez-le
-            dans votre ESP (champ "Signing key" ou "Webhook secret"). Neria vérifiera chaque requête via
-            le header <code>X-Neria-Signature</code>.
+            <strong>{neria_admin key='bounces.security_label'}</strong> {neria_admin key='bounces.mech2_security_body'}
           </p>
           <p style="font-size:12px;margin:8px 0 0;">
-            <strong>ESPs supportés :</strong> Mailgun · SendGrid · Postmark · format générique (tout ESP envoyant un JSON avec "event" et "email").
+            <strong>{neria_admin key='bounces.esp_supported_label'}</strong> {neria_admin key='bounces.esp_list'}
           </p>
         </div>
       </li>
 
       <li class="nb-step">
         <div>
-          <p class="nb-step__title">Comportement de blocage automatique</p>
+          <p class="nb-step__title">{neria_admin key='bounces.auto_block_title'}</p>
           <p class="nb-step__body">
-            • <strong>Hard bounce</strong> : l'adresse est bloquée immédiatement et définitivement — aucun email ne lui sera plus envoyé.<br>
-            • <strong>Soft bounce</strong> : l'adresse est bloquée après <strong>{$bounce_soft_threshold} échecs</strong> consécutifs (configurable ci-dessous).<br>
-            • Un hard bounce prend toujours le dessus sur un soft bounce précédent.<br>
-            • Les <strong>faux positifs</strong> peuvent être ignorés manuellement dans la liste ci-dessous.
+            {neria_admin key='bounces.auto_block_body_pre'} <strong>{$bounce_soft_threshold} {neria_admin key='bounces.failures_unit'}</strong> {neria_admin key='bounces.auto_block_body_post'}
           </p>
         </div>
       </li>
@@ -345,7 +328,7 @@
     <input type="hidden" name="neria_tab" value="bounces">
 
     <div class="nb-section">
-      <div class="nb-section__title">⚙ Configuration IMAP — boîte Return-Path</div>
+      <div class="nb-section__title">⚙ {neria_admin key='bounces.imap_section_title'}</div>
 
       <div class="nb-form-grid">
 
@@ -353,102 +336,99 @@
           <div class="nb-toggle">
             <input type="checkbox" id="nb_enabled" name="bounce_enabled" value="1" {if $bounce_enabled}checked{/if}>
             <label for="nb_enabled" style="text-transform:none;font-size:13px;color:var(--neria-dark);">
-              Activer la vérification IMAP automatique (cron quotidien)
+              {neria_admin key='bounces.imap_enable_label'}
             </label>
           </div>
         </div>
 
         <div class="nb-field">
-          <label>Hôte IMAP</label>
+          <label>{neria_admin key='bounces.imap_host_label'}</label>
           <input type="text" name="bounce_imap_host" value="{$bounce_cfg.host|escape:'html'}" placeholder="imap.votre-hebergeur.com">
-          <p class="nb-field__note">Ex : imap.gmail.com · mail.ovh.com · ssl0.ovh.net</p>
+          <p class="nb-field__note">{neria_admin key='bounces.imap_host_hint'}</p>
         </div>
 
         <div class="nb-field">
-          <label>Port</label>
+          <label>{neria_admin key='bounces.imap_port_label'}</label>
           <input type="number" name="bounce_imap_port" value="{$bounce_cfg.port|intval}" placeholder="993" min="1" max="65535">
-          <p class="nb-field__note">993 (SSL) · 143 (sans SSL) · 995 (POP3 SSL)</p>
+          <p class="nb-field__note">{neria_admin key='bounces.imap_port_hint'}</p>
         </div>
 
         <div class="nb-field">
-          <label>Adresse email (login)</label>
+          <label>{neria_admin key='bounces.imap_user_label'}</label>
           <input type="text" name="bounce_imap_user" value="{$bounce_cfg.user|escape:'html'}" placeholder="bounces@votre-boutique.com">
-          <p class="nb-field__note">L'adresse à utiliser comme Return-Path dans vos emails</p>
+          <p class="nb-field__note">{neria_admin key='bounces.imap_user_hint'}</p>
         </div>
 
         <div class="nb-field">
-          <label>Mot de passe</label>
+          <label>{neria_admin key='bounces.imap_pass_label'}</label>
           <input type="password" name="bounce_imap_pass" value="{$bounce_cfg.pass|escape:'html'}" placeholder="••••••••••••">
-          <p class="nb-field__note">Mot de passe de la boîte email dédiée</p>
+          <p class="nb-field__note">{neria_admin key='bounces.imap_pass_hint'}</p>
         </div>
 
         <div class="nb-field">
-          <label>Dossier IMAP</label>
+          <label>{neria_admin key='bounces.imap_folder_label'}</label>
           <input type="text" name="bounce_imap_folder" value="{$bounce_cfg.folder|escape:'html'}" placeholder="INBOX">
-          <p class="nb-field__note">Laissez INBOX si vous n'avez pas créé de sous-dossier</p>
+          <p class="nb-field__note">{neria_admin key='bounces.imap_folder_hint'}</p>
         </div>
 
         <div class="nb-field">
-          <label>Chiffrement</label>
+          <label>{neria_admin key='bounces.imap_encryption_label'}</label>
           <select name="bounce_imap_ssl">
-            <option value="1" {if $bounce_cfg.ssl}selected{/if}>SSL/TLS (recommandé)</option>
-            <option value="0" {if !$bounce_cfg.ssl}selected{/if}>Sans chiffrement (STARTTLS ou texte clair)</option>
+            <option value="1" {if $bounce_cfg.ssl}selected{/if}>{neria_admin key='bounces.imap_ssl_option'}</option>
+            <option value="0" {if !$bounce_cfg.ssl}selected{/if}>{neria_admin key='bounces.imap_nossl_option'}</option>
           </select>
         </div>
 
         <div class="nb-field nb-field--full">
-          <label>Seuil de blocage — soft bounces</label>
+          <label>{neria_admin key='bounces.soft_threshold_label'}</label>
           <input type="number" name="bounce_soft_threshold" value="{$bounce_soft_threshold|intval}" min="1" max="20" style="width:100px;">
           <p class="nb-field__note">
-            Nombre d'échecs de livraison temporaires avant de bloquer l'adresse définitivement.
-            Recommandé : 3. Un hard bounce bloque toujours immédiatement, quel que soit ce seuil.
+            {neria_admin key='bounces.soft_threshold_hint'}
           </p>
         </div>
 
       </div>
 
       <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
-        <button type="submit" class="nb-btn nb-btn--primary">💾 Enregistrer la configuration</button>
-        <button type="button" class="nb-btn nb-btn--test" onclick="nbTestImap(this)">🔌 Tester la connexion IMAP</button>
+        <button type="submit" class="nb-btn nb-btn--primary">💾 {neria_admin key='bounces.save_config_btn'}</button>
+        <button type="button" class="nb-btn nb-btn--test" onclick="nbTestImap(this)">🔌 {neria_admin key='bounces.test_imap_btn'}</button>
       </div>
       <div id="nb-test-result"></div>
     </div>
 
     {* ── Section 2 : Webhook ───────────────────────────────────────── *}
     <div class="nb-section">
-      <div class="nb-section__title">🔗 Webhook entrant — ESP tiers</div>
+      <div class="nb-section__title">🔗 {neria_admin key='bounces.webhook_section_title'}</div>
 
       <p style="font-size:12px;color:#555;margin:0 0 16px;line-height:1.7;">
-        Copiez cette URL dans les paramètres de votre ESP (onglet Webhooks ou Callbacks).
-        Sélectionnez les événements de type <strong>bounce</strong>, <strong>failed</strong> ou <strong>dropped</strong>.
+        {neria_admin key='bounces.webhook_intro'}
       </p>
 
       <div class="nb-field nb-field--full" style="margin-bottom:14px;">
-        <label>URL du webhook</label>
+        <label>{neria_admin key='bounces.webhook_url_field_label'}</label>
         <code class="nb-code">{$bounce_webhook_url}</code>
-        <button type="button" class="nb-copy-btn" onclick="nbCopy(null, this, '{$bounce_webhook_url|escape:'javascript'}')">Copier l'URL</button>
+        <button type="button" class="nb-copy-btn" onclick="nbCopy(null, this, '{$bounce_webhook_url|escape:'javascript'}')">{neria_admin key='bounces.copy_url_btn'}</button>
       </div>
 
       <div class="nb-field" style="margin-bottom:14px;">
-        <label>Secret HMAC (optionnel mais recommandé)</label>
+        <label>{neria_admin key='bounces.hmac_secret_label'}</label>
         <div style="display:flex;gap:10px;align-items:center;">
           <input type="text" id="nb-webhook-secret" name="bounce_webhook_secret"
                  value="{$bounce_webhook_secret|escape:'html'}"
-                 placeholder="Cliquez sur Générer →"
+                 placeholder="{neria_admin key='bounces.hmac_placeholder'}"
                  style="font-family:monospace;font-size:12px;">
-          <button type="button" class="nb-btn nb-btn--test nb-btn--sm" onclick="nbGenerateSecret()">⟳ Générer</button>
+          <button type="button" class="nb-btn nb-btn--test nb-btn--sm" onclick="nbGenerateSecret()">⟳ {neria_admin key='bounces.generate_btn'}</button>
         </div>
         <p class="nb-field__note">
-          Renseignez ce secret dans votre ESP (champ "Signing key" / "Webhook secret").
-          Neria vérifiera chaque notification via le header <code>X-Neria-Signature</code>.
+          {neria_admin key='bounces.hmac_hint'}
         </p>
       </div>
 
       <div class="nb-box nb-box--info" style="margin-bottom:0;">
-        <strong>Exemples de configuration par ESP :</strong><br>
-        • <strong>Mailgun</strong> : Sending → Webhooks → Add webhook → "Permanent Fail" + "Temporary Fail"<br>
-        • <strong>SendGrid</strong> : Settings → Mail Settings → Event Webhook → cocher "Bounces" et "Drops"<br>
-        • <strong>Postmark</strong> : Servers → [Serveur] → Webhooks → Add webhook → "Bounces"
+        <strong>{neria_admin key='bounces.esp_examples_label'}</strong><br>
+        • {neria_admin key='bounces.esp_example_mailgun'}<br>
+        • {neria_admin key='bounces.esp_example_sendgrid'}<br>
+        • {neria_admin key='bounces.esp_example_postmark'}
       </div>
     </div>
 
@@ -456,7 +436,7 @@
 
   {* ── Section 3 : Liste des bounces ─────────────────────────────── *}
   <div class="nb-section">
-    <div class="nb-section__title">📋 Liste des adresses bloquées ({$bounce_count|intval})</div>
+    <div class="nb-section__title">📋 {neria_admin key='bounces.list_title'} ({$bounce_count|intval})</div>
 
     {* Ajouter manuellement *}
     <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-bottom:18px;">
@@ -465,10 +445,10 @@
       <div class="nb-add-row">
         <input type="email" name="bounce_email" placeholder="adresse@exemple.com" required>
         <select name="bounce_type">
-          <option value="hard">Hard bounce</option>
-          <option value="soft">Soft bounce</option>
+          <option value="hard">{neria_admin key='bounces.option_hard'}</option>
+          <option value="soft">{neria_admin key='bounces.option_soft'}</option>
         </select>
-        <button type="submit" class="nb-btn nb-btn--primary nb-btn--sm">+ Ajouter manuellement</button>
+        <button type="submit" class="nb-btn nb-btn--primary nb-btn--sm">+ {neria_admin key='bounces.add_manual_btn'}</button>
       </div>
     </form>
 
@@ -478,9 +458,9 @@
       <input type="hidden" name="module_name" value="neria">
       <input type="hidden" name="neria_tab" value="bounces">
       <div class="nb-search">
-        <input type="text" name="nb_filter" value="{$bounce_filter|escape:'html'}" placeholder="Filtrer par email ou raison…">
-        <button type="submit" class="nb-btn nb-btn--primary nb-btn--sm">Filtrer</button>
-        {if $bounce_filter}<a href="?configure=AdminModules&module_name=neria&neria_tab=bounces" class="nb-btn nb-btn--sm" style="background:#999;color:#fff;text-decoration:none;">× Effacer</a>{/if}
+        <input type="text" name="nb_filter" value="{$bounce_filter|escape:'html'}" placeholder="{neria_admin key='bounces.filter_placeholder'}">
+        <button type="submit" class="nb-btn nb-btn--primary nb-btn--sm">{neria_admin key='bounces.filter_btn'}</button>
+        {if $bounce_filter}<a href="?configure=AdminModules&module_name=neria&neria_tab=bounces" class="nb-btn nb-btn--sm" style="background:#999;color:#fff;text-decoration:none;">× {neria_admin key='bounces.clear_filter_btn'}</a>{/if}
       </div>
     </form>
 
@@ -488,14 +468,14 @@
       <table class="nb-table">
         <thead>
           <tr>
-            <th>Email</th>
-            <th>Type</th>
-            <th>Source</th>
-            <th>Raison</th>
-            <th>Échecs</th>
-            <th>Dernier bounce</th>
-            <th>Statut</th>
-            <th>Actions</th>
+            <th>{neria_admin key='bounces.col_email'}</th>
+            <th>{neria_admin key='bounces.col_type'}</th>
+            <th>{neria_admin key='bounces.col_source'}</th>
+            <th>{neria_admin key='bounces.col_reason'}</th>
+            <th>{neria_admin key='bounces.col_failures'}</th>
+            <th>{neria_admin key='bounces.col_last_bounce'}</th>
+            <th>{neria_admin key='gdpr.col_status'}</th>
+            <th>{neria_admin key='bounces.col_actions'}</th>
           </tr>
         </thead>
         <tbody>
@@ -515,7 +495,7 @@
                   <input type="hidden" name="neria_tab" value="bounces">
                   <input type="hidden" name="bounce_email" value="{$b.email|escape:'html'}">
                   <button type="submit" class="nb-btn nb-btn--sm" style="background:{if $b.status === 'active'}#e67e22{else}#2980b9{/if};color:#fff;">
-                    {if $b.status === 'active'}Ignorer{else}Réactiver{/if}
+                    {if $b.status === 'active'}{neria_admin key='bounces.ignore_btn'}{else}{neria_admin key='bounces.reactivate_btn'}{/if}
                   </button>
                 </form>
                 <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
@@ -523,7 +503,7 @@
                   <input type="hidden" name="neria_tab" value="bounces">
                   <input type="hidden" name="bounce_email" value="{$b.email|escape:'html'}">
                   <button type="button" class="nb-btn nb-btn--danger nb-btn--sm"
-                          data-confirm="Supprimer {$b.email|escape:'html'} de la liste des bounces ?"
+                          data-confirm="{neria_admin key='bounces.delete_confirm_pre'} {$b.email|escape:'html'} {neria_admin key='bounces.delete_confirm_post'}"
                           onclick="neriaConfirmDelete(this);">✕</button>
                 </form>
               </div>
@@ -547,8 +527,8 @@
 
     {else}
       <div class="nb-empty">
-        Aucune adresse bloquée pour l'instant.<br>
-        <span style="font-size:11px;">Les bounces détectés via IMAP ou webhook apparaîtront ici automatiquement.</span>
+        {neria_admin key='bounces.empty_title'}<br>
+        <span style="font-size:11px;">{neria_admin key='bounces.empty_sub'}</span>
       </div>
     {/if}
 
@@ -558,16 +538,16 @@
   <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:4px;">
     <input type="hidden" name="neria_action" value="run_bounce_check">
     <input type="hidden" name="neria_tab" value="bounces">
-    <button type="submit" class="nb-btn nb-btn--test">↩ Lancer la vérification IMAP maintenant</button>
-    <span style="font-size:11px;color:#999;margin-left:10px;">Le cron tourne automatiquement chaque nuit. Ce bouton permet un lancement manuel immédiat.</span>
+    <button type="submit" class="nb-btn nb-btn--test">↩ {neria_admin key='bounces.run_check_btn'}</button>
+    <span style="font-size:11px;color:#999;margin-left:10px;">{neria_admin key='bounces.run_check_hint'}</span>
   </form>
 
   {if isset($bounce_run_result)}
   <div class="nb-box {if $bounce_run_result.errors}nb-box--warn{else}nb-box--ok{/if}" style="margin-top:14px;">
-    Résultat : <strong>{$bounce_run_result.processed}</strong> messages traités ·
-    <strong>{$bounce_run_result.bounces}</strong> bounces enregistrés.
+    {neria_admin key='bounces.result_label'} <strong>{$bounce_run_result.processed}</strong> {neria_admin key='bounces.result_processed'}
+    <strong>{$bounce_run_result.bounces}</strong> {neria_admin key='bounces.result_bounces_recorded'}
     {if $bounce_run_result.errors}
-      <br>Erreurs : {implode(', ', $bounce_run_result.errors)|escape:'html'}
+      <br>{neria_admin key='bounces.result_errors_label'} {implode(', ', $bounce_run_result.errors)|escape:'html'}
     {/if}
   </div>
   {/if}
@@ -579,14 +559,14 @@ function nbCopy(id, btn, directVal) {
     var text = directVal || document.getElementById(id).textContent.trim();
     navigator.clipboard.writeText(text).then(function() {
         var orig = btn.textContent;
-        btn.textContent = '✓ Copié !';
+        btn.textContent = '✓ {neria_admin key='bounces.js_copied'|escape:'javascript'}';
         setTimeout(function() { btn.textContent = orig; }, 1800);
     });
 }
 
 function nbTestImap(btn) {
     btn.disabled = true;
-    btn.textContent = '⏳ Test en cours…';
+    btn.textContent = '⏳ {neria_admin key='bounces.js_testing'|escape:'javascript'}';
     var result = document.getElementById('nb-test-result');
     result.style.display = 'none';
 
@@ -603,12 +583,12 @@ function nbTestImap(btn) {
         })
         .catch(function() {
             result.className = 'err';
-            result.textContent = 'Erreur de communication avec le serveur.';
+            result.textContent = '{neria_admin key='bounces.js_comm_error'|escape:'javascript'}';
             result.style.display = 'block';
         })
         .finally(function() {
             btn.disabled = false;
-            btn.textContent = '🔌 Tester la connexion IMAP';
+            btn.textContent = '🔌 {neria_admin key='bounces.test_imap_btn'|escape:'javascript'}';
         });
 }
 

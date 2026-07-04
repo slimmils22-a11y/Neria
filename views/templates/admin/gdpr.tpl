@@ -8,15 +8,15 @@
 {* ── Bouton de rapport PDF ─────────────────────────────────── *}
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
   <div>
-    <h2 class="neria-section__title" style="margin:0;">Audit RGPD automatique</h2>
+    <h2 class="neria-section__title" style="margin:0;">{neria_admin key='gdpr.title'}</h2>
     <p class="neria-section__desc" style="margin-top:4px;">
-      Analyse en temps réel de la conformité de Neria au Règlement Général sur la Protection des Données.
+      {neria_admin key='gdpr.desc'}
     </p>
   </div>
   <a href="{$smarty.server.REQUEST_URI}&neria_action=gdpr_pdf"
      target="_blank"
      class="neria-btn neria-btn--secondary neria-btn--sm">
-    Télécharger le rapport PDF
+    {neria_admin key='gdpr.download_pdf'}
   </a>
 </div>
 
@@ -28,13 +28,13 @@
     </div>
     <div>
       <div style="font-size:16px;font-weight:700;">
-        {if $gdpr_audit.score === 'A'}Excellent — Neria est conforme RGPD{/if}
-        {if $gdpr_audit.score === 'B'}Bon niveau — Quelques points d'attention{/if}
-        {if $gdpr_audit.score === 'C'}Attention — Plusieurs non-conformités détectées{/if}
-        {if $gdpr_audit.score === 'D'}Critique — Action immédiate requise{/if}
+        {if $gdpr_audit.score === 'A'}{neria_admin key='gdpr.grade_a'}{/if}
+        {if $gdpr_audit.score === 'B'}{neria_admin key='gdpr.grade_b'}{/if}
+        {if $gdpr_audit.score === 'C'}{neria_admin key='gdpr.grade_c'}{/if}
+        {if $gdpr_audit.score === 'D'}{neria_admin key='gdpr.grade_d'}{/if}
       </div>
       <div style="font-size:13px;color:var(--neria-text-muted,#888);margin-top:4px;">
-        {$gdpr_audit.issues} point(s) d'attention · Rapport généré le {$gdpr_audit.generated_at}
+        {$gdpr_audit.issues} {neria_admin key='gdpr.issues_label'} · {neria_admin key='gdpr.report_generated_on'} {$gdpr_audit.generated_at}
       </div>
     </div>
   </div>
@@ -43,10 +43,10 @@
 {* ── AXE 1 : DÉSABONNEMENT ─────────────────────────────────── *}
 <div class="neria-section">
   <h3 class="neria-section__title" style="font-size:14px;text-transform:uppercase;letter-spacing:.06em;">
-    1 — Système de désabonnement
+    1 — {neria_admin key='gdpr.axis1_title'}
   </h3>
   <p class="neria-section__desc">
-    Obligation légale pour tout email commercial (RGPD art. 21 + Directive ePrivacy).
+    {neria_admin key='gdpr.axis1_desc'}
   </p>
   <div class="neria-gdpr-checks">
     {foreach $gdpr_audit.unsubscribe.checks as $check}
@@ -66,20 +66,19 @@
 {* ── AXE 2 : RÉTENTION ─────────────────────────────────────── *}
 <div class="neria-section">
   <h3 class="neria-section__title" style="font-size:14px;text-transform:uppercase;letter-spacing:.06em;">
-    2 — Rétention des données
+    2 — {neria_admin key='gdpr.axis2_title'}
   </h3>
   <p class="neria-section__desc">
-    Le RGPD impose une durée de conservation limitée et proportionnée à la finalité du traitement.
-    Neria applique 36 mois pour les données commerciales et 12 mois pour les données techniques.
+    {neria_admin key='gdpr.axis2_desc'}
   </p>
   <table class="neria-gdpr-table">
     <thead>
       <tr>
-        <th>Données</th>
-        <th>Limite</th>
-        <th>Plus ancienne</th>
-        <th>Hors délai</th>
-        <th>Statut</th>
+        <th>{neria_admin key='gdpr.col_data'}</th>
+        <th>{neria_admin key='gdpr.col_limit'}</th>
+        <th>{neria_admin key='gdpr.col_oldest'}</th>
+        <th>{neria_admin key='gdpr.col_overdue'}</th>
+        <th>{neria_admin key='gdpr.col_status'}</th>
         <th></th>
       </tr>
     </thead>
@@ -90,16 +89,16 @@
           <strong>{$row.label|escape:'html'}</strong>
           <div class="neria-gdpr-table__note">{$row.note|escape:'html'}</div>
         </td>
-        <td class="neria-gdpr-table__num">{$row.months} mois</td>
+        <td class="neria-gdpr-table__num">{$row.months} {neria_admin key='gdpr.months_unit'}</td>
         <td class="neria-gdpr-table__num">{$row.oldest}</td>
         <td class="neria-gdpr-table__num {if $row.overdue > 0}neria-gdpr-overdue{/if}">
           {$row.overdue}
         </td>
         <td>
           {if $row.ok}
-            <span class="neria-badge neria-gdpr-badge--ok">Conforme</span>
+            <span class="neria-badge neria-gdpr-badge--ok">{neria_admin key='gdpr.status_compliant'}</span>
           {else}
-            <span class="neria-badge neria-gdpr-badge--warn">A purger</span>
+            <span class="neria-badge neria-gdpr-badge--warn">{neria_admin key='gdpr.status_to_purge'}</span>
           {/if}
         </td>
         <td>
@@ -111,9 +110,9 @@
             <input type="hidden" name="gdpr_date_col"    value="{$row.date_col|escape:'html'}">
             <input type="hidden" name="gdpr_months"      value="{$row.months|intval}">
             <button type="button" class="neria-btn neria-btn--ghost neria-btn--xs"
-                    data-confirm="Supprimer les {$row.overdue} enregistrement(s) de {$row.label|escape:'html'} anterieurs a {$row.months} mois ?"
+                    data-confirm="{neria_admin key='gdpr.purge_confirm_prefix'} {$row.overdue} {neria_admin key='gdpr.purge_confirm_records_of'} {$row.label|escape:'html'} {neria_admin key='gdpr.purge_confirm_older_than'} {$row.months} {neria_admin key='gdpr.purge_confirm_months_q'}"
                     onclick="neriaConfirmDelete(this);">
-              Purger
+              {neria_admin key='gdpr.purge_btn'}
             </button>
           </form>
           {/if}
@@ -127,23 +126,22 @@
 {* ── AXE 3 : DONNÉES PERSONNELLES ──────────────────────────── *}
 <div class="neria-section">
   <h3 class="neria-section__title" style="font-size:14px;text-transform:uppercase;letter-spacing:.06em;">
-    3 — Cartographie des données personnelles
+    3 — {neria_admin key='gdpr.axis3_title'}
   </h3>
   <p class="neria-section__desc">
-    Inventaire des templates qui utilisent des variables PrestaShop contenant des données personnelles.
-    Tous ces templates doivent avoir une base légale (contrat, consentement, intérêt légitime).
+    {neria_admin key='gdpr.axis3_desc'}
   </p>
 
   {* Mentions légales *}
   <div class="neria-gdpr-check {if $gdpr_audit.pii.legal_in_layout}neria-gdpr-check--ok{else}neria-gdpr-check--fail{/if}" style="margin-bottom:12px;">
     <span class="neria-gdpr-check__icon">{if $gdpr_audit.pii.legal_in_layout}✓{else}✕{/if}</span>
     <div>
-      <div class="neria-gdpr-check__label">Mentions légales dans le layout global</div>
+      <div class="neria-gdpr-check__label">{neria_admin key='gdpr.legal_notice_check_label'}</div>
       <div class="neria-gdpr-check__detail">
         {if $gdpr_audit.pii.legal_in_layout}
-          Un lien vers les mentions légales est présent dans le pied de page de tous les emails.
+          {neria_admin key='gdpr.legal_notice_ok'}
         {else}
-          Aucun lien vers les mentions légales détecté dans layout.html — à corriger.
+          {neria_admin key='gdpr.legal_notice_missing'}
         {/if}
       </div>
     </div>
@@ -153,9 +151,9 @@
   <table class="neria-gdpr-table">
     <thead>
       <tr>
-        <th>Template</th>
-        <th>Données personnelles détectées</th>
-        <th>Base légale présumée</th>
+        <th>{neria_admin key='gdpr.col_template'}</th>
+        <th>{neria_admin key='gdpr.col_personal_data'}</th>
+        <th>{neria_admin key='gdpr.col_legal_basis'}</th>
       </tr>
     </thead>
     <tbody>
@@ -169,18 +167,17 @@
     </tbody>
   </table>
   {else}
-  <p class="neria-empty-state" style="margin:0;">Aucune donnée personnelle directement identifiable détectée dans les templates.</p>
+  <p class="neria-empty-state" style="margin:0;">{neria_admin key='gdpr.pii_empty'}</p>
   {/if}
 </div>
 
 {* ── AXE 4 : CHIFFREMENT ───────────────────────────────────── *}
 <div class="neria-section">
   <h3 class="neria-section__title" style="font-size:14px;text-transform:uppercase;letter-spacing:.06em;">
-    4 — Chiffrement des données au repos
+    4 — {neria_admin key='gdpr.axis4_title'}
   </h3>
   <p class="neria-section__desc">
-    Les snapshots de variables (prénom, email, montant…) stockés dans la base de données sont chiffrés
-    avec {$gdpr_audit.crypto.cipher} — illisibles en cas de fuite chez l'hébergeur.
+    {neria_admin key='gdpr.axis4_desc_pre'} {$gdpr_audit.crypto.cipher} — {neria_admin key='gdpr.axis4_desc_post'}
   </p>
 
   <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
@@ -188,9 +185,9 @@
     <div class="neria-gdpr-check {if $gdpr_audit.crypto.openssl_ok}neria-gdpr-check--ok{else}neria-gdpr-check--fail{/if}" style="flex:1;min-width:200px;">
       <span class="neria-gdpr-check__icon">{if $gdpr_audit.crypto.openssl_ok}✓{else}✕{/if}</span>
       <div>
-        <div class="neria-gdpr-check__label">Extension OpenSSL</div>
+        <div class="neria-gdpr-check__label">{neria_admin key='gdpr.openssl_check_label'}</div>
         <div class="neria-gdpr-check__detail">
-          {if $gdpr_audit.crypto.openssl_ok}AES-256-GCM disponible sur ce serveur.{else}OpenSSL non disponible — contactez votre hébergeur.{/if}
+          {if $gdpr_audit.crypto.openssl_ok}{neria_admin key='gdpr.openssl_ok_detail'}{else}{neria_admin key='gdpr.openssl_missing_detail'}{/if}
         </div>
       </div>
     </div>
@@ -198,9 +195,9 @@
     <div class="neria-gdpr-check {if $gdpr_audit.crypto.key_ok}neria-gdpr-check--ok{else}neria-gdpr-check--fail{/if}" style="flex:1;min-width:200px;">
       <span class="neria-gdpr-check__icon">{if $gdpr_audit.crypto.key_ok}✓{else}✕{/if}</span>
       <div>
-        <div class="neria-gdpr-check__label">Clé de chiffrement</div>
+        <div class="neria-gdpr-check__label">{neria_admin key='gdpr.crypto_key_check_label'}</div>
         <div class="neria-gdpr-check__detail">
-          {if $gdpr_audit.crypto.key_ok}Clé 256 bits générée à l'installation — jamais exposée.{else}Clé absente — réinstallez le module pour en générer une.{/if}
+          {if $gdpr_audit.crypto.key_ok}{neria_admin key='gdpr.crypto_key_ok_detail'}{else}{neria_admin key='gdpr.crypto_key_missing_detail'}{/if}
         </div>
       </div>
     </div>
@@ -211,15 +208,15 @@
   <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
     <div style="flex:1;min-width:130px;padding:14px 16px;text-align:center;background:var(--neria-bg-hover,#faf8f5);border:1px solid var(--neria-border,#e8e0d5);border-radius:8px;">
       <div style="font-size:24px;font-weight:700;color:#4a9e6b;">{$gdpr_audit.crypto.encrypted}</div>
-      <div style="font-size:12px;color:var(--neria-text-muted,#888);margin-top:4px;">Chiffrés</div>
+      <div style="font-size:12px;color:var(--neria-text-muted,#888);margin-top:4px;">{neria_admin key='gdpr.stat_encrypted'}</div>
     </div>
     <div style="flex:1;min-width:130px;padding:14px 16px;text-align:center;background:var(--neria-bg-hover,#faf8f5);border:1px solid var(--neria-border,#e8e0d5);border-radius:8px;">
       <div style="font-size:24px;font-weight:700;{if $gdpr_audit.crypto.plain > 0}color:#e05c5c;{else}color:#4a9e6b;{/if}">{$gdpr_audit.crypto.plain}</div>
-      <div style="font-size:12px;color:var(--neria-text-muted,#888);margin-top:4px;">En clair</div>
+      <div style="font-size:12px;color:var(--neria-text-muted,#888);margin-top:4px;">{neria_admin key='gdpr.stat_plain'}</div>
     </div>
     <div style="flex:1;min-width:130px;padding:14px 16px;text-align:center;background:var(--neria-bg-hover,#faf8f5);border:1px solid var(--neria-border,#e8e0d5);border-radius:8px;">
       <div style="font-size:24px;font-weight:700;">{$gdpr_audit.crypto.total}</div>
-      <div style="font-size:12px;color:var(--neria-text-muted,#888);margin-top:4px;">Total snapshots</div>
+      <div style="font-size:12px;color:var(--neria-text-muted,#888);margin-top:4px;">{neria_admin key='gdpr.stat_total'}</div>
     </div>
   </div>
   {/if}
@@ -229,27 +226,25 @@
     <input type="hidden" name="neria_action" value="gdpr_encrypt_all">
     <input type="hidden" name="neria_tab"    value="gdpr">
     <button type="button" class="neria-btn neria-btn--primary neria-btn--sm"
-            data-confirm="Chiffrer {$gdpr_audit.crypto.plain} enregistrement(s) en clair avec AES-256-GCM ?"
+            data-confirm="{neria_admin key='gdpr.encrypt_confirm_pre'} {$gdpr_audit.crypto.plain} {neria_admin key='gdpr.encrypt_confirm_post'}"
             onclick="neriaConfirmDelete(this);">
-      Chiffrer les {$gdpr_audit.crypto.plain|intval} enregistrement(s) existant(s)
+      {neria_admin key='gdpr.encrypt_btn_pre'} {$gdpr_audit.crypto.plain|intval} {neria_admin key='gdpr.encrypt_btn_post'}
     </button>
     <span style="font-size:12px;color:var(--neria-text-muted,#888);">
-      Les nouveaux envois sont chiffrés automatiquement.
+      {neria_admin key='gdpr.encrypt_auto_note'}
     </span>
   </form>
   {elseif $gdpr_audit.crypto.active && $gdpr_audit.crypto.plain == 0 && $gdpr_audit.crypto.total > 0}
-  <p style="font-size:13px;color:#4a9e6b;font-weight:600;">✓ Toutes les données sont chiffrées.</p>
+  <p style="font-size:13px;color:#4a9e6b;font-weight:600;">✓ {neria_admin key='gdpr.all_encrypted'}</p>
   {elseif !$gdpr_audit.crypto.openssl_ok}
-  <p style="font-size:13px;color:var(--neria-text-muted,#888);">Le chiffrement n'est pas disponible sur cet environnement.</p>
+  <p style="font-size:13px;color:var(--neria-text-muted,#888);">{neria_admin key='gdpr.encrypt_unavailable'}</p>
   {/if}
 </div>
 
 {* ── Avertissement ─────────────────────────────────────────── *}
 <div class="neria-section" style="background:var(--neria-bg-hover,#faf8f5);border:1px solid var(--neria-border,#e8e0d5);">
   <p style="font-size:12px;color:var(--neria-text-muted,#888);line-height:1.7;">
-    <strong>Avis de limitation :</strong>
-    Ce rapport est généré automatiquement par Neria à partir de l'analyse des fichiers et des données stockées.
-    Il ne constitue pas un avis juridique et ne remplace pas l'intervention d'un délégué à la protection des données (DPO).
-    La conformité RGPD dépend également de votre politique de confidentialité, de votre registre des traitements et de vos contrats sous-traitants.
+    <strong>{neria_admin key='gdpr.disclaimer_title'}</strong>
+    {neria_admin key='gdpr.disclaimer_body'}
   </p>
 </div>

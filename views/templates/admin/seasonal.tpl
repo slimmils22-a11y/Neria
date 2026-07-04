@@ -9,8 +9,8 @@
 {assign var="base_url" value=$base_url|regex_replace:'/&neria_tab=[^&]*/':''}
 {assign var="tab_url"  value="{$base_url}&neria_tab=seasonal"}
 
-{assign var="month_names" value=['','Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']}
-{assign var="month_abbr"  value=['','Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc']}
+{* Noms des mois traduits directement au point d'usage via
+   {neria_admin key="common.month_`$n`"} — voir plus bas. *}
 
 {assign var="is_edit" value=false}
 {if isset($seasonal_edit) && $seasonal_edit}{assign var="is_edit" value=true}{/if}
@@ -96,27 +96,25 @@
 ══════════════════════════════════════════════════════════════ *}
 <div class="neria-section">
 
-  <h2 class="neria-section__title">◑ Campagnes saisonnières</h2>
+  <h2 class="neria-section__title">◑ {neria_admin key='seasonal.title'}</h2>
   <p class="neria-section__desc">
-    Définissez vos campagnes une fois — soldes, Black Friday, Noël, anniversaire boutique…
-    Neria les envoie automatiquement chaque année aux clients éligibles, via le cron quotidien.
-    Aucune action de votre part n'est requise après la configuration.
+    {neria_admin key='seasonal.desc'}
   </p>
 
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:24px;font-size:13px;line-height:1.75;color:#4a3f35;">
-    <div style="font-weight:700;margin-bottom:12px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-    Chaque jour, le cron Neria compare la date du jour avec vos campagnes configurées. Si une campagne est programmée pour aujourd'hui (ou dans N jours selon votre délai), les emails partent automatiquement aux clients éligibles. La déduplication est <strong>annuelle</strong> : un client ne reçoit jamais deux fois la même campagne la même année.
-    <div style="font-weight:700;margin:16px 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Mode d'emploi</div>
+    <div style="font-weight:700;margin-bottom:12px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='social.howto_title'}</div>
+    {neria_admin key='seasonal.howto_body'}
+    <div style="font-weight:700;margin:16px 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='seasonal.usage_title'}</div>
     <ol style="margin:0 0 0 18px;padding:0;">
-      <li style="margin-bottom:6px;"><strong>Nom</strong> — un nom interne pour vous repérer dans la liste (non visible par le client).</li>
-      <li style="margin-bottom:6px;"><strong>Template email</strong> — le design et le contenu envoyé. Choisissez <em>special_offer</em> pour une promotion, ou activez le <em>Mode Idées cadeaux</em> pour un email "offrir à quelqu'un".</li>
-      <li style="margin-bottom:6px;"><strong>Date annuelle</strong> — format MM-JJ. Exemples : <em>12-25</em> = Noël · <em>11-29</em> = Black Friday · <em>05-25</em> = Fête des mères · <em>06-21</em> = Fête de la musique.</li>
-      <li style="margin-bottom:6px;"><strong>N jours avant</strong> — anticiper l'envoi. <em>7</em> = une semaine avant · <em>0</em> = le jour J.</li>
-      <li style="margin-bottom:6px;"><strong>Ciblage</strong> — affinez par genre, tranche d'âge, segment (Ambassador, Loyal…) et langue. Tout coché = tous les clients actifs.</li>
-      <li><strong>Mode Idées cadeaux</strong> — email au ton "offrir à quelqu'un", réservé aux segments Ambassador + Loyal, avec une suggestion de produit personnalisée selon l'historique d'achat.</li>
+      <li style="margin-bottom:6px;">{neria_admin key='seasonal.usage_item1'}</li>
+      <li style="margin-bottom:6px;">{neria_admin key='seasonal.usage_item2'}</li>
+      <li style="margin-bottom:6px;">{neria_admin key='seasonal.usage_item3'}</li>
+      <li style="margin-bottom:6px;">{neria_admin key='seasonal.usage_item4'}</li>
+      <li style="margin-bottom:6px;">{neria_admin key='seasonal.usage_item5'}</li>
+      <li>{neria_admin key='seasonal.usage_item6'}</li>
     </ol>
     <div style="margin-top:14px;padding-top:12px;border-top:1px solid #e8d5b0;font-size:12px;opacity:.75;">
-      <strong>Conseil :</strong> créez une campagne par occasion — ne fusionnez pas Noël et Black Friday dans la même campagne, vous perdriez la flexibilité du ciblage et du délai.
+      <strong>{neria_admin key='seasonal.tip_label'}</strong> {neria_admin key='seasonal.tip_body'}
     </div>
   </div>
 
@@ -129,20 +127,20 @@
     <div class="ns-row ns-row--2">
       <div class="ns-field">
         <label class="neria-label" for="ns-name">
-          Nom de la campagne
-          <span class="neria-hint">affiché dans le BO uniquement</span>
+          {neria_admin key='seasonal.name_label'}
+          <span class="neria-hint">{neria_admin key='seasonal.name_hint'}</span>
         </label>
         <input id="ns-name" type="text" name="seasonal_name" class="neria-input" required
-               placeholder="Black Friday, Noël, Soldes d'été…"
+               placeholder="{neria_admin key='seasonal.name_placeholder'}"
                value="{if $is_edit}{$seasonal_edit.name|escape:'html'}{/if}">
       </div>
       <div class="ns-field">
         <label class="neria-label" for="ns-template">
-          Template email
-          <span class="neria-hint">sera envoyé aux clients éligibles</span>
+          {neria_admin key='seasonal.template_label'}
+          <span class="neria-hint">{neria_admin key='seasonal.template_hint'}</span>
         </label>
         <select id="ns-template" name="seasonal_template" class="neria-select" style="width:100%;" required>
-          <option value="">— Choisir un template —</option>
+          <option value="">— {neria_admin key='seasonal.choose_template_option'} —</option>
           {foreach $seasonal_templates as $tplKey => $tplLabel}
             <option value="{$tplKey|escape:'html'}"
               {if $is_edit && $seasonal_edit.template === $tplKey} selected{/if}>
@@ -156,28 +154,28 @@
     {* ── Rangée 2 : Date + Délai + Genre ── *}
     <div class="ns-row ns-row--3" style="align-items:start;">
       <div class="ns-field">
-        <label class="neria-label" for="ns-date">Date annuelle (MM-JJ)</label>
+        <label class="neria-label" for="ns-date">{neria_admin key='seasonal.date_label'}</label>
         <input id="ns-date" type="text" name="seasonal_annual_date" class="neria-input" required
                pattern="(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
-               placeholder="12-25" title="Format MM-JJ"
+               placeholder="12-25" title="{neria_admin key='seasonal.date_format_title'}"
                value="{if $is_edit}{$seasonal_edit.annual_date|escape:'html'}{else}12-25{/if}">
-        <span class="neria-hint">Ex : 11-25 = 25 nov · 12-25 = Noël · 07-14 = Fête nat.</span>
+        <span class="neria-hint">{neria_admin key='seasonal.date_hint'}</span>
       </div>
       <div class="ns-field">
-        <label class="neria-label" for="ns-days">Envoyer N jours avant</label>
+        <label class="neria-label" for="ns-days">{neria_admin key='seasonal.days_before_label'}</label>
         <div style="display:flex;align-items:center;gap:10px;">
           <input id="ns-days" type="number" name="seasonal_days_before" class="neria-input"
                  style="width:80px;" min="0" max="30"
                  value="{if $is_edit}{$seasonal_edit.days_before|intval}{else}0{/if}">
-          <span class="neria-hint">0 = le jour J<br>3 = 3 jours avant</span>
+          <span class="neria-hint">{neria_admin key='seasonal.days_before_hint'}</span>
         </div>
       </div>
       <div class="ns-field">
-        <label class="neria-label" for="ns-gender">Genre cible</label>
+        <label class="neria-label" for="ns-gender">{neria_admin key='seasonal.gender_label'}</label>
         <select id="ns-gender" name="seasonal_gender" class="neria-select" style="width:100%;">
-          <option value="0" {if !$is_edit || $seasonal_edit.target_gender == 0} selected{/if}>Tous (hommes + femmes)</option>
-          <option value="1" {if $is_edit && $seasonal_edit.target_gender == 1} selected{/if}>Hommes uniquement (M.)</option>
-          <option value="2" {if $is_edit && $seasonal_edit.target_gender == 2} selected{/if}>Femmes uniquement (Mme.)</option>
+          <option value="0" {if !$is_edit || $seasonal_edit.target_gender == 0} selected{/if}>{neria_admin key='seasonal.gender_all'}</option>
+          <option value="1" {if $is_edit && $seasonal_edit.target_gender == 1} selected{/if}>{neria_admin key='seasonal.gender_men'}</option>
+          <option value="2" {if $is_edit && $seasonal_edit.target_gender == 2} selected{/if}>{neria_admin key='seasonal.gender_women'}</option>
         </select>
       </div>
     </div>
@@ -186,29 +184,29 @@
     <div class="ns-row ns-row--2">
       <div class="ns-field">
         <label class="neria-label">
-          Tranche d'âge
-          <span class="neria-hint">0 = sans limite</span>
+          {neria_admin key='seasonal.age_range_label'}
+          <span class="neria-hint">{neria_admin key='seasonal.age_no_limit_hint'}</span>
         </label>
         <div style="display:flex;align-items:center;gap:12px;">
           <div style="display:flex;align-items:center;gap:6px;">
-            <span style="font-size:12px;color:var(--neria-text-light);white-space:nowrap;">de</span>
+            <span style="font-size:12px;color:var(--neria-text-light);white-space:nowrap;">{neria_admin key='seasonal.age_from'}</span>
             <input type="number" name="seasonal_min_age" class="neria-input"
                    style="width:72px;" min="0" max="120" placeholder="0"
                    value="{if $is_edit}{$seasonal_edit.min_age|intval}{else}0{/if}">
           </div>
           <div style="display:flex;align-items:center;gap:6px;">
-            <span style="font-size:12px;color:var(--neria-text-light);white-space:nowrap;">à</span>
+            <span style="font-size:12px;color:var(--neria-text-light);white-space:nowrap;">{neria_admin key='seasonal.age_to'}</span>
             <input type="number" name="seasonal_max_age" class="neria-input"
                    style="width:72px;" min="0" max="120" placeholder="0"
                    value="{if $is_edit}{$seasonal_edit.max_age|intval}{else}0{/if}">
-            <span style="font-size:12px;color:var(--neria-text-light);">ans</span>
+            <span style="font-size:12px;color:var(--neria-text-light);">{neria_admin key='seasonal.age_years_unit'}</span>
           </div>
         </div>
       </div>
       <div class="ns-field">
         <label class="neria-label">
-          Segments ciblés
-          <span class="neria-hint">aucun coché = tous les clients</span>
+          {neria_admin key='seasonal.segments_label'}
+          <span class="neria-hint">{neria_admin key='seasonal.segments_hint'}</span>
         </label>
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
           {foreach $seasonal_segments as $segKey => $segLabel}
@@ -227,8 +225,8 @@
     {* ── Langues ── *}
     <div class="ns-field">
       <label class="neria-label">
-        Langues ciblées
-        <span class="neria-hint">aucune cochée = toutes les langues</span>
+        {neria_admin key='seasonal.langs_label'}
+        <span class="neria-hint">{neria_admin key='seasonal.langs_hint'}</span>
       </label>
       <div style="display:flex;flex-wrap:wrap;gap:6px;">
         {foreach $lang_labels as $code => $name}
@@ -248,30 +246,29 @@
 
       {* Statut *}
       <div class="ns-option-card">
-        <div class="ns-option-card__label">Statut de la campagne</div>
+        <div class="ns-option-card__label">{neria_admin key='seasonal.status_label'}</div>
         <input type="hidden" id="ns-is-active-val" name="seasonal_is_active" value="{if !$is_edit || $seasonal_edit.is_active}1{else}0{/if}">
         <button type="button" id="ns-btn-active"
-          onclick="nsToggleBtn(this,'ns-is-active-val','Active','Inactive','#16a34a','#dc2626')"
+          onclick="nsToggleBtn(this,'ns-is-active-val','{neria_admin key='seasonal.active_label'|escape:'javascript'}','{neria_admin key='seasonal.inactive_label'|escape:'javascript'}','#16a34a','#dc2626')"
           style="padding:8px 20px;border-radius:20px;border:none;cursor:pointer;font-size:13px;font-weight:700;
                  background:{if !$is_edit || $seasonal_edit.is_active}#16a34a{else}#dc2626{/if};color:#fff;">
-          {if !$is_edit || $seasonal_edit.is_active}● Active{else}○ Inactive{/if}
+          {if !$is_edit || $seasonal_edit.is_active}● {neria_admin key='seasonal.active_label'}{else}○ {neria_admin key='seasonal.inactive_label'}{/if}
         </button>
-        <p class="neria-hint" style="margin-top:8px;">La campagne est exécutée automatiquement par le cron.</p>
+        <p class="neria-hint" style="margin-top:8px;">{neria_admin key='seasonal.status_hint'}</p>
       </div>
 
       {* Mode cadeaux *}
       <div class="ns-option-card ns-option-card--gift">
-        <div class="ns-option-card__label">Mode Idées cadeaux</div>
+        <div class="ns-option-card__label">{neria_admin key='seasonal.gift_mode_label'}</div>
         <input type="hidden" id="ns-gift-mode-val" name="seasonal_gift_mode" value="{if $is_edit && $seasonal_edit.gift_mode}1{else}0{/if}">
         <button type="button" id="ns-btn-gift"
-          onclick="nsToggleBtn(this,'ns-gift-mode-val','Activé','Désactivé','#16a34a','#dc2626')"
+          onclick="nsToggleBtn(this,'ns-gift-mode-val','{neria_admin key='seasonal.enabled_label'|escape:'javascript'}','{neria_admin key='seasonal.disabled_label'|escape:'javascript'}','#16a34a','#dc2626')"
           style="padding:8px 20px;border-radius:20px;border:none;cursor:pointer;font-size:13px;font-weight:700;
                  background:{if $is_edit && $seasonal_edit.gift_mode}#16a34a{else}#dc2626{/if};color:#fff;">
-          {if $is_edit && $seasonal_edit.gift_mode}● Activé{else}○ Désactivé{/if}
+          {if $is_edit && $seasonal_edit.gift_mode}● {neria_admin key='seasonal.enabled_label'}{else}○ {neria_admin key='seasonal.disabled_label'}{/if}
         </button>
         <p class="neria-hint" style="margin-top:8px;">
-          Template <strong>gift_ideas</strong> (ton "offrir") · segments
-          <strong>Ambassador + Loyal</strong> automatiques · suggestion produit selon l'historique.
+          {neria_admin key='seasonal.gift_mode_hint'}
         </p>
       </div>
 
@@ -280,10 +277,10 @@
     {* ── Boutons ── *}
     <div style="display:flex;align-items:center;gap:12px;padding-top:20px;border-top:1px solid var(--neria-border);">
       <button type="submit" class="neria-btn neria-btn--primary">
-        {if $is_edit}✓ Enregistrer les modifications{else}＋ Créer la campagne{/if}
+        {if $is_edit}✓ {neria_admin key='seasonal.save_edit_btn'}{else}＋ {neria_admin key='seasonal.create_btn'}{/if}
       </button>
       {if $is_edit}
-        <a href="{$tab_url|escape:'html'}" class="neria-btn neria-btn--ghost">✕ Annuler</a>
+        <a href="{$tab_url|escape:'html'}" class="neria-btn neria-btn--ghost">✕ {neria_admin key='common.cancel'}</a>
       {/if}
     </div>
 
@@ -296,7 +293,7 @@
 {if $seasonal_campaigns|count > 0}
 <div class="neria-section">
   <h2 class="neria-section__title">
-    {$seasonal_campaigns|count} campagne{if $seasonal_campaigns|count > 1}s{/if} configurée{if $seasonal_campaigns|count > 1}s{/if}
+    {$seasonal_campaigns|count} {if $seasonal_campaigns|count > 1}{neria_admin key='seasonal.campaign_plural'}{else}{neria_admin key='seasonal.campaign_singular'}{/if}
   </h2>
 
   <div class="neria-bo-wrap">
@@ -304,13 +301,13 @@
   <table class="neria-table">
     <thead>
       <tr>
-        <th>Nom</th>
-        <th>Template</th>
-        <th style="text-align:center;">Date</th>
-        <th style="text-align:center;">Envoi</th>
-        <th>Ciblage</th>
-        <th style="text-align:center;">Statut</th>
-        <th style="text-align:center;">Actions</th>
+        <th>{neria_admin key='seasonal.col_name'}</th>
+        <th>{neria_admin key='common.template'}</th>
+        <th style="text-align:center;">{neria_admin key='seasonal.col_date'}</th>
+        <th style="text-align:center;">{neria_admin key='seasonal.col_send'}</th>
+        <th>{neria_admin key='seasonal.col_targeting'}</th>
+        <th style="text-align:center;">{neria_admin key='gdpr.col_status'}</th>
+        <th style="text-align:center;">{neria_admin key='bounces.col_actions'}</th>
       </tr>
     </thead>
     <tbody>
@@ -323,34 +320,34 @@
           </td>
           <td>
             {if $c.gift_mode}
-              <span class="neria-var-tag" style="background:var(--neria-accent);color:#fff;">Idées cadeaux</span>
+              <span class="neria-var-tag" style="background:var(--neria-accent);color:#fff;">{neria_admin key='seasonal.gift_ideas_badge'}</span>
             {else}
               <span class="neria-var-tag">{$c.template|escape:'html'}</span>
             {/if}
           </td>
           <td style="text-align:center;white-space:nowrap;">
             <span class="neria-badge neria-badge--accent" style="font-size:11px;padding:4px 10px;">
-              {$month_abbr[$m_idx]} {$d_idx}
+              {neria_admin key="common.month_abbr_`$m_idx`"} {$d_idx}
             </span>
           </td>
           <td style="text-align:center;font-size:12px;color:var(--neria-text-light);">
-            {if $c.days_before > 0}J–{$c.days_before|intval}{else}Jour J{/if}
+            {if $c.days_before > 0}{neria_admin key='seasonal.day_minus_prefix'}–{$c.days_before|intval}{else}{neria_admin key='seasonal.day_j'}{/if}
           </td>
           <td style="font-size:12px;line-height:1.7;">
             {if $c.target_segment neq ''}
               <div style="color:var(--neria-text);">{$c.target_segment|escape:'html'}</div>
             {else}
-              <div style="color:var(--neria-text-light);">Tous segments</div>
+              <div style="color:var(--neria-text-light);">{neria_admin key='seasonal.all_segments'}</div>
             {/if}
-            {if $c.target_gender == 1}<div>♂ Hommes</div>
-            {elseif $c.target_gender == 2}<div>♀ Femmes</div>
+            {if $c.target_gender == 1}<div>♂ {neria_admin key='seasonal.men_short'}</div>
+            {elseif $c.target_gender == 2}<div>♀ {neria_admin key='seasonal.women_short'}</div>
             {/if}
             {if $c.target_lang neq ''}
               <div style="color:var(--neria-text-light);font-size:11px;">{$c.target_lang|escape:'html'}</div>
             {/if}
             {if $c.min_age > 0 || $c.max_age > 0}
               <div style="color:var(--neria-text-light);">
-                {$c.min_age|intval}–{if $c.max_age > 0}{$c.max_age|intval}{else}∞{/if} ans
+                {$c.min_age|intval}–{if $c.max_age > 0}{$c.max_age|intval}{else}∞{/if} {neria_admin key='seasonal.age_years_unit'}
               </div>
             {/if}
           </td>
@@ -361,23 +358,23 @@
               <button type="submit"
                 class="neria-btn neria-btn--sm"
                 style="{if $c.is_active}background:var(--neria-success);color:#fff;border-color:var(--neria-success);{else}background:var(--neria-danger,#dc2626);color:#fff;border-color:var(--neria-danger,#dc2626);{/if}font-weight:700;">
-                {if $c.is_active}● Actif{else}○ Inactif{/if}
+                {if $c.is_active}● {neria_admin key='seasonal.active_label'}{else}○ {neria_admin key='seasonal.inactive_label'}{/if}
               </button>
             </form>
           </td>
           <td style="text-align:center;white-space:nowrap;">
             <a href="{$tab_url|escape:'html'}&edit_campaign={$c.id_campaign|intval}"
-               class="neria-btn neria-btn--sm neria-btn--ghost" title="Modifier">
-              ✏ Modifier
+               class="neria-btn neria-btn--sm neria-btn--ghost" title="{neria_admin key='seasonal.edit_btn'}">
+              ✏ {neria_admin key='seasonal.edit_btn'}
             </a>
             <form method="post"
                   action="{$tab_url|escape:'html'}&neria_action=delete_seasonal_campaign"
                   style="display:inline;margin-left:4px;">
               <input type="hidden" name="id_campaign" value="{$c.id_campaign|intval}">
               <button type="button" class="neria-btn neria-btn--sm neria-btn--danger"
-                      data-confirm="Supprimer la campagne « {$c.name|escape:'html'} » ?"
+                      data-confirm="{neria_admin key='seasonal.delete_confirm_pre'} {$c.name|escape:'html'} {neria_admin key='seasonal.delete_confirm_post'}"
                       onclick="neriaConfirmDelete(this);"
-                      title="Supprimer définitivement">✕</button>
+                      title="{neria_admin key='seasonal.delete_title'}">✕</button>
             </form>
           </td>
         </tr>
@@ -391,13 +388,12 @@
 <div class="neria-section" style="text-align:center;padding:40px 28px;">
   <div style="font-size:32px;color:var(--neria-border);margin-bottom:12px;">◑</div>
   <p style="font-size:14px;color:var(--neria-text-light);margin:0 0 20px;">
-    Aucune campagne saisonnière configurée.<br>
-    Utilisez le formulaire ci-dessus pour créer votre première campagne.
+    {neria_admin key='seasonal.empty_message'}
   </p>
   <div style="font-size:12px;color:var(--neria-text-light);line-height:1.8;">
-    Exemples : Noël → template <em>special_offer</em> · date 12-25<br>
-    Black Friday → template <em>special_offer</em> · date 11-25 · J–3<br>
-    Soldes d'été → template <em>special_offer</em> · date 06-28
+    {neria_admin key='seasonal.examples_label'} {neria_admin key='seasonal.example_christmas'}<br>
+    {neria_admin key='seasonal.example_blackfriday'}<br>
+    {neria_admin key='seasonal.example_summersale'}
   </div>
 </div>
 {/if}
@@ -406,22 +402,22 @@
    SECTION 3 — CALENDRIER ANNUEL
 ══════════════════════════════════════════════════════════════ *}
 <div class="neria-section">
-  <h2 class="neria-section__title">Calendrier annuel</h2>
+  <h2 class="neria-section__title">{neria_admin key='seasonal.calendar_title'}</h2>
 
   <div class="ns-calendar-grid">
     {foreach from=$seasonal_calendar key=mNum item=mCampaigns}
       <div class="ns-calendar-month">
-        <div class="ns-calendar-month__name">{$month_names[$mNum]}</div>
+        <div class="ns-calendar-month__name">{neria_admin key="common.month_`$mNum`"}</div>
         <div class="ns-calendar-month__body">
           {if $mCampaigns|count > 0}
             {foreach $mCampaigns as $mc}
               <div class="ns-campaign-badge">
                 <span class="ns-campaign-badge__day{if !$mc.is_active} ns-campaign-badge__day--inactive{/if}">
-                  {$mc.day|intval}{if $mc.days_before > 0}<span style="font-weight:400;opacity:.8;font-size:10px;"> J-{$mc.days_before|intval}</span>{/if}
+                  {$mc.day|intval}{if $mc.days_before > 0}<span style="font-weight:400;opacity:.8;font-size:10px;"> {neria_admin key='seasonal.day_minus_prefix'}-{$mc.days_before|intval}</span>{/if}
                 </span>
                 <span class="ns-campaign-badge__name{if !$mc.is_active} ns-campaign-badge__name--inactive{/if}">
                   {$mc.name|truncate:24:'…'|escape:'html'}
-                  {if $mc.gift_mode}<br><span class="ns-campaign-badge__gift">Idées cadeaux</span>{/if}
+                  {if $mc.gift_mode}<br><span class="ns-campaign-badge__gift">{neria_admin key='seasonal.gift_ideas_badge'}</span>{/if}
                 </span>
               </div>
             {/foreach}
@@ -434,10 +430,10 @@
   </div>
 
   <p style="margin-top:14px;font-size:12px;color:var(--neria-text-light);line-height:1.8;">
-    <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--neria-accent);vertical-align:middle;margin-right:4px;"></span> Campagne active &nbsp;·&nbsp;
-    <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#ccc;vertical-align:middle;margin-right:4px;"></span> Campagne inactive &nbsp;·&nbsp;
-    J–N = envoi N jours avant la date &nbsp;·&nbsp;
-    Le cron quotidien déclenche automatiquement.
+    <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--neria-accent);vertical-align:middle;margin-right:4px;"></span> {neria_admin key='seasonal.legend_active'} &nbsp;·&nbsp;
+    <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#ccc;vertical-align:middle;margin-right:4px;"></span> {neria_admin key='seasonal.legend_inactive'} &nbsp;·&nbsp;
+    {neria_admin key='seasonal.legend_j_minus_n'} &nbsp;·&nbsp;
+    {neria_admin key='seasonal.legend_cron'}
   </p>
 </div>
 

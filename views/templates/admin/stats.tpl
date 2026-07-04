@@ -31,22 +31,22 @@
         </svg>
       </div>
       <div>
-        <div style="font-size:16px;font-weight:700;color:var(--neria-dark);">Santé du module</div>
+        <div style="font-size:16px;font-weight:700;color:var(--neria-dark);">{neria_admin key='stats.health_title'}</div>
         <div style="font-size:12px;color:var(--neria-muted);margin-top:2px;">
-          {$hs.ok|default:0} contrôles OK
-          {if ($hs.warning|default:0) > 0} · <span style="color:#d97706;">{$hs.warning} alertes</span>{/if}
-          {if ($hs.error|default:0)   > 0} · <span style="color:#dc2626;">{$hs.error} erreurs</span>{/if}
-          / {$hs_total} total
+          {$hs.ok|default:0} {neria_admin key='stats.health_ok_suffix'}
+          {if ($hs.warning|default:0) > 0} · <span style="color:#d97706;">{$hs.warning} {neria_admin key='stats.health_alerts_suffix'}</span>{/if}
+          {if ($hs.error|default:0)   > 0} · <span style="color:#dc2626;">{$hs.error} {neria_admin key='stats.health_errors_suffix'}</span>{/if}
+          / {$hs_total} {neria_admin key='stats.chart_total_btn'}
         </div>
         <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''}&neria_tab=help"
            style="font-size:11px;color:var(--neria-accent);text-decoration:none;margin-top:4px;display:inline-block;">
-          → Voir le diagnostic complet
+          → {neria_admin key='stats.health_diag_link'}
         </a>
       </div>
     </div>
 
     <div style="font-size:11px;color:var(--neria-muted);text-align:right;">
-      Tendances · semaine courante vs semaine précédente
+      {neria_admin key='stats.trends_subtitle'}
     </div>
   </div>
 
@@ -54,12 +54,17 @@
   {assign var="tr" value=$kpi_trends}
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
 
+    {capture name="lbl_sent"}{neria_admin key='common.emails_sent'}{/capture}
+    {capture name="lbl_open_rate"}{neria_admin key='stats.kpi_open_rate'}{/capture}
+    {capture name="lbl_click_rate"}{neria_admin key='stats.kpi_click_rate'}{/capture}
+    {capture name="lbl_unsubs"}{neria_admin key='stats.kpi_unsubs'}{/capture}
+    {capture name="lbl_revenue"}{neria_admin key='stats.revenue_total'}{/capture}
     {foreach [
-      ['key'=>'sent',       'label'=>'Envois',           'format'=>'int',     'icon'=>'✉'],
-      ['key'=>'open_rate',  'label'=>'Taux ouverture',   'format'=>'pct',     'icon'=>'◉'],
-      ['key'=>'click_rate', 'label'=>'Taux clic',        'format'=>'pct',     'icon'=>'↗'],
-      ['key'=>'unsubs',     'label'=>'Désabonnements',   'format'=>'int',     'icon'=>'✕'],
-      ['key'=>'revenue',    'label'=>'CA attribué',      'format'=>'money',   'icon'=>'◈']
+      ['key'=>'sent',       'label'=>$smarty.capture.lbl_sent,       'format'=>'int',     'icon'=>'✉'],
+      ['key'=>'open_rate',  'label'=>$smarty.capture.lbl_open_rate,   'format'=>'pct',     'icon'=>'◉'],
+      ['key'=>'click_rate', 'label'=>$smarty.capture.lbl_click_rate,        'format'=>'pct',     'icon'=>'↗'],
+      ['key'=>'unsubs',     'label'=>$smarty.capture.lbl_unsubs,   'format'=>'int',     'icon'=>'✕'],
+      ['key'=>'revenue',    'label'=>$smarty.capture.lbl_revenue,      'format'=>'money',   'icon'=>'◈']
     ] as $kpit}
       {assign var="kd" value=$tr[$kpit.key]|default:[]}
       {assign var="delta"  value=$kd.delta|default:null}
@@ -77,10 +82,10 @@
         </div>
         {if $delta !== null}
           <div style="font-size:11px;font-weight:600;color:{if $isGood}#16a34a{else}#dc2626{/if};margin-top:5px;">
-            {if $delta > 0}▲{else}▼{/if} {$delta|abs}% vs sem. préc.
+            {if $delta > 0}▲{else}▼{/if} {$delta|abs}% {neria_admin key='stats.vs_last_week'}
           </div>
         {else}
-          <div style="font-size:11px;color:var(--neria-muted);margin-top:5px;">— sem. préc. vide</div>
+          <div style="font-size:11px;color:var(--neria-muted);margin-top:5px;">— {neria_admin key='stats.no_prev_week_data'}</div>
         {/if}
       </div>
     {/foreach}
@@ -93,10 +98,10 @@
 
   {* Bloc explicatif last-click *}
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:24px;font-size:13px;line-height:1.75;color:#4a3f35;">
-    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-    Neria utilise un modèle <strong>last-click sur 24h</strong> : dès qu'un client clique sur un lien dans un email Neria, un cookie <code>neria_ref</code> est posé. Si une commande payée est enregistrée dans les 24 heures suivantes, la vente est automatiquement attribuée à ce template.
+    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+    {neria_admin key='stats.revenue_howto_body'}
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8d5b0;">
-      <strong>Fenêtre d'analyse :</strong> les 90 derniers jours. Un même client peut générer plusieurs conversions sur des templates différents. Les commandes annulées ou remboursées sont exclues du calcul.
+      {neria_admin key='stats.revenue_howto_window'}
     </div>
   </div>
 
@@ -125,21 +130,21 @@
       <p class="neria-section__desc" style="margin:4px 0 0;">{neria_admin key='stats.revenue_chart_desc'}</p>
       <div style="margin-top:10px;display:flex;align-items:baseline;gap:8px;">
         <span id="neria-chart-total-amount" style="font-size:28px;font-weight:700;color:var(--neria-dark);letter-spacing:-.5px;">—</span>
-        <span style="font-size:12px;color:#999;" id="neria-chart-total-label">CA total sur la période</span>
+        <span style="font-size:12px;color:#999;" id="neria-chart-total-label">{neria_admin key='stats.revenue_total_period_label'}</span>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <div class="neria-chart-type-nav">
-        <button class="neria-chart-arrow" id="neria-chart-prev" title="Type précédent">&#9664;</button>
-        <span id="neria-chart-type-label" style="min-width:80px;text-align:center;font-size:12px;font-weight:600;color:var(--neria-dark);">Courbes</span>
-        <button class="neria-chart-arrow" id="neria-chart-next" title="Type suivant">&#9654;</button>
+        <button class="neria-chart-arrow" id="neria-chart-prev" title="{neria_admin key='stats.chart_type_prev'}">&#9664;</button>
+        <span id="neria-chart-type-label" style="min-width:80px;text-align:center;font-size:12px;font-weight:600;color:var(--neria-dark);">{neria_admin key='stats.chart_type_line'}</span>
+        <button class="neria-chart-arrow" id="neria-chart-next" title="{neria_admin key='stats.chart_type_next'}">&#9654;</button>
       </div>
-      <button id="neria-total-toggle" class="neria-chart-arrow" style="border:1px solid var(--neria-border);border-radius:4px;padding:3px 10px;font-size:11px;font-weight:600;color:var(--neria-dark);background:#fff;">Total ◉</button>
+      <button id="neria-total-toggle" class="neria-chart-arrow" style="border:1px solid var(--neria-border);border-radius:4px;padding:3px 10px;font-size:11px;font-weight:600;color:var(--neria-dark);background:#fff;">{neria_admin key='stats.chart_total_btn'} ◉</button>
       <div class="neria-period-tabs" id="neria-chart-period">
-        <button class="neria-period-tab" data-period="7">7j</button>
-        <button class="neria-period-tab neria-period-tab--active" data-period="30">30j</button>
-        <button class="neria-period-tab" data-period="90">90j</button>
-        <button class="neria-period-tab" data-period="365">12 mois</button>
+        <button class="neria-period-tab" data-period="7">7{neria_admin key='common.days_unit_short'}</button>
+        <button class="neria-period-tab neria-period-tab--active" data-period="30">30{neria_admin key='common.days_unit_short'}</button>
+        <button class="neria-period-tab" data-period="90">90{neria_admin key='common.days_unit_short'}</button>
+        <button class="neria-period-tab" data-period="365">12 {neria_admin key='gdpr.months_unit'}</button>
       </div>
     </div>
   </div>
@@ -148,7 +153,7 @@
   </div>
   <div id="neria-chart-legend" style="display:flex;flex-wrap:wrap;gap:14px;margin-top:16px;font-size:12px;"></div>
   <p style="margin:10px 0 0;font-size:11px;color:#a09990;font-style:italic;">
-    &#9432; Cliquez sur une catégorie pour l'isoler — recliquez pour tout réafficher.
+    &#9432; {neria_admin key='stats.chart_isolate_hint'}
   </p>
 
   {* Tableau par template *}
@@ -209,7 +214,12 @@ var _nrc = {
     b2b:     "{neria_admin key='stats.chart_cat_b2b'}",
     other:   "{neria_admin key='stats.chart_cat_other'}",
     total:   "{neria_admin key='stats.chart_cat_total'}"
-  }
+  },
+  typeLabels: [
+    "{neria_admin key='stats.chart_type_line'|escape:'javascript'}",
+    "{neria_admin key='stats.chart_type_bar'|escape:'javascript'}",
+    "{neria_admin key='stats.chart_type_doughnut'|escape:'javascript'}"
+  ]
 };
 </script>
 {literal}
@@ -229,7 +239,7 @@ var _nrc = {
     total:   '#2c2c2c'
   };
   var TYPES = ['line','bar','doughnut'];
-  var TYPE_LABELS = ['Courbes', 'Colonnes', 'Camembert'];
+  var TYPE_LABELS = _nrc.typeLabels;
   var chart = null;
   var currentPeriod = 30;
   var currentTypeIdx = 0;
@@ -586,12 +596,12 @@ var _nrc = {
 <div class="neria-section" id="neria-engagement-chart-section">
   <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
     <div>
-      <h2 class="neria-section__title" style="margin:0;">Engagement email ◉</h2>
-      <p class="neria-section__desc" style="margin:4px 0 0;">Envois, ouvertures et clics jour par jour (hors MPP Apple).</p>
+      <h2 class="neria-section__title" style="margin:0;">{neria_admin key='stats.engagement_title'} ◉</h2>
+      <p class="neria-section__desc" style="margin:4px 0 0;">{neria_admin key='stats.engagement_desc'}</p>
     </div>
     <div class="neria-period-tabs" id="neria-eng-period">
-      <button class="neria-period-tab neria-period-tab--active" data-period="30">30j</button>
-      <button class="neria-period-tab" data-period="90">90j</button>
+      <button class="neria-period-tab neria-period-tab--active" data-period="30">30{neria_admin key='common.days_unit_short'}</button>
+      <button class="neria-period-tab" data-period="90">90{neria_admin key='common.days_unit_short'}</button>
     </div>
   </div>
   <div style="position:relative;height:280px;">
@@ -602,7 +612,12 @@ var _nrc = {
 <script>
 var _nec = {
   d30: {$engagement_chart_30|default:'null'},
-  d90: {$engagement_chart_90|default:'null'}
+  d90: {$engagement_chart_90|default:'null'},
+  lbl: {
+    sent:   "{neria_admin key='common.emails_sent'|escape:'javascript'}",
+    opens:  "{neria_admin key='common.opens'|escape:'javascript'}",
+    clicks: "{neria_admin key='common.clicks'|escape:'javascript'}"
+  }
 };
 </script>
 {literal}
@@ -623,9 +638,9 @@ var _nec = {
     var maxTick = period <= 30 ? 15 : 12;
 
     var datasets = [
-      { label:'Envois',      data: data.sent   || [], borderColor:'#b0a090', backgroundColor:'#b0a09020', borderWidth:1.5, pointRadius:0, fill:true, tension:0.3 },
-      { label:'Ouvertures',  data: data.opens  || [], borderColor:'#b38b59', backgroundColor:'#b38b5930', borderWidth:2,   pointRadius:0, fill:true, tension:0.3 },
-      { label:'Clics',       data: data.clicks || [], borderColor:'#5f8b4a', backgroundColor:'#5f8b4a40', borderWidth:2,   pointRadius:period<=30?3:0, fill:true, tension:0.3 }
+      { label:_nec.lbl.sent,   data: data.sent   || [], borderColor:'#b0a090', backgroundColor:'#b0a09020', borderWidth:1.5, pointRadius:0, fill:true, tension:0.3 },
+      { label:_nec.lbl.opens,  data: data.opens  || [], borderColor:'#b38b59', backgroundColor:'#b38b5930', borderWidth:2,   pointRadius:0, fill:true, tension:0.3 },
+      { label:_nec.lbl.clicks, data: data.clicks || [], borderColor:'#5f8b4a', backgroundColor:'#5f8b4a40', borderWidth:2,   pointRadius:period<=30?3:0, fill:true, tension:0.3 }
     ];
 
     if (echart) {
@@ -685,8 +700,8 @@ var _nec = {
    HEATMAP HORAIRE DES OUVERTURES (7j × 24h)
    ══════════════════════════════════════════════════════════════ *}
 <div class="neria-section" id="neria-heatmap-section">
-  <h2 class="neria-section__title" style="margin:0 0 6px;">Heatmap des ouvertures ◈</h2>
-  <p class="neria-section__desc" style="margin:0 0 20px;">Quand vos clients lisent leurs emails — 90 derniers jours (hors MPP). Plus la case est foncée, plus les ouvertures sont nombreuses.</p>
+  <h2 class="neria-section__title" style="margin:0 0 6px;">{neria_admin key='stats.heatmap_title'} ◈</h2>
+  <p class="neria-section__desc" style="margin:0 0 20px;">{neria_admin key='stats.heatmap_desc'}</p>
 
   <div id="neria-heatmap-wrap" style="overflow-x:auto;">
     <table id="neria-heatmap-table" style="border-collapse:separate;border-spacing:3px;font-size:11px;">
@@ -695,14 +710,27 @@ var _nec = {
     </table>
   </div>
   <div style="margin-top:14px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--neria-muted);">
-    <span>Moins</span>
+    <span>{neria_admin key='stats.heatmap_less'}</span>
     <span id="neria-heatmap-legend" style="display:flex;gap:2px;"></span>
-    <span>Plus d'ouvertures</span>
+    <span>{neria_admin key='stats.heatmap_more'}</span>
   </div>
 </div>
 
 <script>
 var _nhm = {$open_heatmap|default:'null'};
+var _nhmLbl = {
+  days: [
+    "{neria_admin key='stats.day_abbr_mon'|escape:'javascript'}",
+    "{neria_admin key='stats.day_abbr_tue'|escape:'javascript'}",
+    "{neria_admin key='stats.day_abbr_wed'|escape:'javascript'}",
+    "{neria_admin key='stats.day_abbr_thu'|escape:'javascript'}",
+    "{neria_admin key='stats.day_abbr_fri'|escape:'javascript'}",
+    "{neria_admin key='stats.day_abbr_sat'|escape:'javascript'}",
+    "{neria_admin key='stats.day_abbr_sun'|escape:'javascript'}"
+  ],
+  openSingular: "{neria_admin key='stats.heatmap_open_singular'|escape:'javascript'}",
+  openPlural:   "{neria_admin key='stats.heatmap_open_plural'|escape:'javascript'}"
+};
 </script>
 {literal}
 <script>
@@ -713,7 +741,7 @@ var _nhm = {$open_heatmap|default:'null'};
 
     var grid = hm.grid;
     var maxV = hm.max;
-    var days = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+    var days = _nhmLbl.days;
     var colors = ['#f5f0ea','#e8d5b0','#d4a96a','#c07830','#8b4a10','#5c2a05'];
 
     function getColor(cnt) {
@@ -741,7 +769,7 @@ var _nhm = {$open_heatmap|default:'null'};
       for (var hr = 0; hr < 24; hr++) {
         var cnt = (grid[d] && grid[d][hr]) ? grid[d][hr] : 0;
         var bg  = getColor(cnt);
-        var tip = days[d] + ' ' + hr + 'h : ' + cnt + ' ouverture' + (cnt > 1 ? 's' : '');
+        var tip = days[d] + ' ' + hr + 'h : ' + cnt + ' ' + (cnt > 1 ? _nhmLbl.openPlural : _nhmLbl.openSingular);
         bodyHtml += '<td title="' + tip + '" style="width:22px;height:20px;background:' + bg + ';border-radius:3px;cursor:default;"></td>';
       }
       bodyHtml += '</tr>';
@@ -792,11 +820,13 @@ var _nhm = {$open_heatmap|default:'null'};
           <span class="neria-badge neria-badge--accent" style="margin-left:8px; font-size:10px;">● {neria_admin key='abtest.status_active'}</span>
         </div>
 
+        {capture name="default_variant_a"}{neria_admin key='abtest.default_variant_a'}{/capture}
+        {capture name="default_variant_b"}{neria_admin key='abtest.default_variant_b'}{/capture}
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
           {* Variante A *}
           <div style="padding:12px; background:var(--neria-bg); border-radius:4px; {if $winner === 'A'}border-left:3px solid var(--neria-accent);{/if}">
             <div style="font-size:10px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--neria-muted); margin-bottom:6px;">
-              A — {$td.a.variant_name|default:'Variante A'|escape:'html'}{if $winner === 'A'} ↑{/if}
+              A — {$td.a.variant_name|default:$smarty.capture.default_variant_a|escape:'html'}{if $winner === 'A'} ↑{/if}
             </div>
             <div style="font-size:24px; font-weight:700; color:var(--neria-text);">{$fr.A.total_sent|default:0}</div>
             <div style="font-size:11px; color:var(--neria-muted); margin-bottom:6px;">{neria_admin key='common.sent'}</div>
@@ -810,7 +840,7 @@ var _nhm = {$open_heatmap|default:'null'};
           {* Variante B *}
           <div style="padding:12px; background:var(--neria-bg); border-radius:4px; {if $winner === 'B'}border-left:3px solid var(--neria-accent);{/if}">
             <div style="font-size:10px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--neria-muted); margin-bottom:6px;">
-              B — {$td.b.variant_name|default:'Variante B'|escape:'html'}{if $winner === 'B'} ↑{/if}
+              B — {$td.b.variant_name|default:$smarty.capture.default_variant_b|escape:'html'}{if $winner === 'B'} ↑{/if}
             </div>
             <div style="font-size:24px; font-weight:700; color:var(--neria-text);">{$fr.B.total_sent|default:0}</div>
             <div style="font-size:11px; color:var(--neria-muted); margin-bottom:6px;">{neria_admin key='common.sent'}</div>
@@ -858,7 +888,7 @@ var _nhm = {$open_heatmap|default:'null'};
 
   <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
     <h2 class="neria-section__title" style="margin:0;border:none;padding:0;flex:1;">
-      Réputation de domaine d'envoi
+      {neria_admin key='stats.domainrep_title'}
     </h2>
     <div class="neria-stats-filters" style="margin:0;">
       {foreach [7, 30, 90] as $period}
@@ -880,17 +910,17 @@ var _nhm = {$open_heatmap|default:'null'};
                      font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.04em;"
               onmouseover="this.style.background='#b8975a'"
               onmouseout="this.style.background='#1a1a1a'">
-        ↻ Actualiser
+        ↻ {neria_admin key='common.refresh'}
       </button>
     </form>
   </div>
   <div style="border-bottom:1px solid var(--neria-border);margin-bottom:24px;"></div>
 
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:24px;font-size:13px;line-height:1.75;color:#4a3f35;">
-    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-    Neria vérifie chaque jour la réputation de votre domaine d'envoi sur trois critères fondamentaux : <strong>SPF</strong> (autorisation de vos serveurs d'envoi), <strong>DKIM</strong> (signature cryptographique des emails) et <strong>DMARC</strong> (politique en cas d'usurpation). Un domaine bien configuré arrive en boîte de réception ; un domaine mal configuré finit en spam — ou est rejeté silencieusement.
+    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+    {neria_admin key='stats.domainrep_howto_body'}
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8d5b0;">
-      <strong>Score :</strong> 0–49 Critique · 50–74 Correct · 75–100 Excellent. Cliquez sur <strong>Actualiser</strong> après avoir modifié vos DNS pour voir le nouveau score immédiatement.
+      {neria_admin key='stats.domainrep_howto_score'}
     </div>
   </div>
 
@@ -923,7 +953,7 @@ var _nhm = {$open_heatmap|default:'null'};
           {/if}
         </div>
         <div style="font-size:13px;color:var(--neria-text-light);margin-bottom:12px;">
-          Dernière vérification : {$dr.checked_at|escape:'html'}
+          {neria_admin key='stats.domainrep_last_check'} {$dr.checked_at|escape:'html'}
         </div>
 
         {* Barre de progression *}
@@ -931,9 +961,9 @@ var _nhm = {$open_heatmap|default:'null'};
           <div style="width:{$dr.score}%;height:100%;background:{$dr.color};border-radius:4px;transition:width .6s;"></div>
         </div>
         <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--neria-text-light);margin-top:4px;max-width:320px;">
-          <span>0 — Critique</span>
-          <span>50 — Correct</span>
-          <span>100 — Excellent</span>
+          <span>0 — {neria_admin key='stats.grade_critical'}</span>
+          <span>50 — {neria_admin key='stats.grade_correct'}</span>
+          <span>100 — {neria_admin key='stats.grade_excellent'}</span>
         </div>
       </div>
 
@@ -958,9 +988,9 @@ var _nhm = {$open_heatmap|default:'null'};
         </div>
         <div style="font-size:12px;color:var(--neria-text-light);">
           {if $spf.found}
-            Configuré{if $spf.policy === 'reject'} · Politique stricte{elseif $spf.policy === 'softfail'} · Politique souple{/if}
+            {neria_admin key='stats.spf_configured'}{if $spf.policy === 'reject'} · {neria_admin key='stats.policy_strict'}{elseif $spf.policy === 'softfail'} · {neria_admin key='stats.policy_permissive'}{/if}
           {else}
-            <span style="color:#c0392b;">Absent — risque de rejet</span>
+            <span style="color:#c0392b;">{neria_admin key='stats.spf_absent'}</span>
           {/if}
         </div>
         {if $spf.record}
@@ -989,9 +1019,9 @@ var _nhm = {$open_heatmap|default:'null'};
         </div>
         <div style="font-size:12px;color:var(--neria-text-light);">
           {if $dkim.found}
-            Sélecteur « {$dkim.selector|escape:'html'} » détecté
+            {neria_admin key='stats.dkim_selector_prefix'} {$dkim.selector|escape:'html'} {neria_admin key='stats.dkim_selector_suffix'}
           {else}
-            <span style="color:#c0392b;">Absent — signature manquante</span>
+            <span style="color:#c0392b;">{neria_admin key='stats.dkim_absent'}</span>
           {/if}
         </div>
       </div>
@@ -1015,13 +1045,13 @@ var _nhm = {$open_heatmap|default:'null'};
         </div>
         <div style="font-size:12px;color:var(--neria-text-light);">
           {if !$dmarc.found}
-            <span style="color:#c0392b;">Absent — risque de spam élevé</span>
+            <span style="color:#c0392b;">{neria_admin key='stats.dmarc_absent'}</span>
           {elseif $dmarc.policy === 'reject'}
-            Politique stricte · Protection maximale
+            {neria_admin key='stats.dmarc_policy_reject'}
           {elseif $dmarc.policy === 'quarantine'}
-            Politique quarantaine · Bonne protection
+            {neria_admin key='stats.dmarc_policy_quarantine'}
           {else}
-            Configuré mais permissif (p=none)
+            {neria_admin key='stats.dmarc_policy_none'}
           {/if}
         </div>
       </div>
@@ -1039,17 +1069,17 @@ var _nhm = {$open_heatmap|default:'null'};
               background:{if $ptr.valid}#eaf5ec{else}#fef9ee{/if};
               color:{if $ptr.valid}var(--neria-success){else}var(--neria-accent){/if};
               border:1px solid {if $ptr.valid}#c3e6cb{else}#e8d5b0{/if};">
-              {if $ptr.valid}Vérifié{else}Incomplet{/if}
+              {if $ptr.valid}{neria_admin key='stats.ptr_verified'}{else}{neria_admin key='stats.ptr_incomplete'}{/if}
             </span>
           {/if}
         </div>
         <div style="font-size:12px;color:var(--neria-text-light);">
           {if $ptr.skipped}
-            Non applicable (IP locale)
+            {neria_admin key='stats.na_local_ip'}
           {elseif $ptr.found}
             {$ptr.hostname|escape:'html'}
           {else}
-            <span style="color:#a07820;">Absent — certains serveurs rejettent les IPs sans PTR</span>
+            <span style="color:#a07820;">{neria_admin key='stats.ptr_absent'}</span>
           {/if}
         </div>
       </div>
@@ -1062,19 +1092,19 @@ var _nhm = {$open_heatmap|default:'null'};
                   border-radius:6px;padding:16px 18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
           <span style="font-size:18px;">{if $bl_hits_count === 0}✅{elseif $bl_hits_count <= 2}⚠️{else}❌{/if}</span>
-          <span style="font-size:13px;font-weight:700;color:var(--neria-dark);">Listes noires</span>
+          <span style="font-size:13px;font-weight:700;color:var(--neria-dark);">{neria_admin key='stats.blacklists_label'}</span>
         </div>
         <div style="font-size:12px;color:var(--neria-text-light);">
           {if isset($bl.skipped) && $bl.skipped}
-            Non applicable (IP locale)
+            {neria_admin key='stats.na_local_ip'}
           {elseif $bl_hits_count === 0}
-            ✓ Non listé sur {$bl.checked} listes vérifiées
+            ✓ {neria_admin key='stats.blacklist_clean_prefix'} {$bl.checked} {neria_admin key='stats.blacklist_clean_suffix'}
           {else}
-            <span style="color:#c0392b;">Listé sur {$bl_hits_count} liste(s) / {$bl.checked} vérifiées</span>
+            <span style="color:#c0392b;">{neria_admin key='stats.blacklist_hit_prefix'} {$bl_hits_count} {neria_admin key='stats.blacklist_hit_middle'} {$bl.checked} {neria_admin key='stats.blacklist_hit_suffix'}</span>
           {/if}
         </div>
         <div style="font-size:10px;letter-spacing:.04em;color:var(--neria-text-light);margin-top:4px;">
-          {$bl.checked} RBL analysées
+          {$bl.checked} {neria_admin key='stats.blacklist_rbl_suffix'}
         </div>
       </div>
 
@@ -1084,7 +1114,7 @@ var _nhm = {$open_heatmap|default:'null'};
     {if $dr_hits|count > 0}
       <div style="background:#fdf0ee;border:1px solid #f5c6cb;border-radius:6px;padding:16px 18px;margin-bottom:16px;">
         <div style="font-size:12px;font-weight:700;color:#c0392b;margin-bottom:8px;">
-          ❌ Listes noires actives ({$dr_hits|count}) — action requise
+          ❌ {neria_admin key='stats.blacklist_active_prefix'}{$dr_hits|count}{neria_admin key='stats.blacklist_active_suffix'}
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;">
           {foreach $dr_hits as $blName}
@@ -1095,8 +1125,8 @@ var _nhm = {$open_heatmap|default:'null'};
           {/foreach}
         </div>
         <div style="margin-top:10px;font-size:12px;color:#7a1c1c;line-height:1.6;">
-          Pour être retiré d'une liste : accédez au site de la liste et effectuez une demande de délistage.
-          Spamhaus : <code style="font-size:11px;">lookup.mxtoolbox.com</code>
+          {neria_admin key='stats.blacklist_delist_howto'}
+          {neria_admin key='stats.blacklist_spamhaus_label'} <code style="font-size:11px;">lookup.mxtoolbox.com</code>
         </div>
       </div>
     {/if}
@@ -1116,15 +1146,15 @@ var _nhm = {$open_heatmap|default:'null'};
         <span style="font-size:18px;">{if $bimi.found}✅{elseif $bimi.eligible}💡{else}○{/if}</span>
         <div>
           <div style="font-size:13px;font-weight:700;color:var(--neria-dark);">
-            BIMI — Affichage du logo dans la boîte mail
+            {neria_admin key='stats.bimi_title'}
           </div>
           <div style="font-size:12px;color:var(--neria-text-light);margin-top:2px;">
             {if $bimi.found}
-              Logo configuré · Votre logo apparaît dans les boîtes mail compatibles (Gmail, Yahoo, Apple Mail)
+              {neria_admin key='stats.bimi_configured'}
             {elseif $bimi.eligible}
-              DMARC éligible · Votre domaine peut activer BIMI — ajoutez un enregistrement DNS <code>default._bimi.{$dr.domain|escape:'html'}</code> avec votre logo SVG
+              {neria_admin key='stats.bimi_eligible_prefix'} <code>default._bimi.{$dr.domain|escape:'html'}</code> {neria_admin key='stats.bimi_eligible_suffix'}
             {else}
-              Non éligible · BIMI nécessite DMARC en <code>p=quarantine</code> ou <code>p=reject</code>
+              {neria_admin key='stats.bimi_not_eligible'}
             {/if}
           </div>
         </div>
@@ -1133,24 +1163,24 @@ var _nhm = {$open_heatmap|default:'null'};
 
     {if $has_recs}
     <div style="margin-top:4px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--neria-text-light);margin-bottom:10px;">Recommandations</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--neria-text-light);margin-bottom:10px;">{neria_admin key='stats.recommendations'}</div>
       {if !$dr.spf.found}
         <div style="padding:10px 14px;margin-bottom:6px;border-left:3px solid #c0392b;background:#fdf0ee;font-size:13px;line-height:1.6;">
-          <strong>SPF manquant :</strong> Ajoutez un enregistrement TXT <code>v=spf1 include:votrehebergeur.com -all</code> dans vos DNS.
+          {neria_admin key='stats.rec_spf_missing'}
         </div>
       {/if}
       {if !$dr.dkim.found}
         <div style="padding:10px 14px;margin-bottom:6px;border-left:3px solid #c0392b;background:#fdf0ee;font-size:13px;line-height:1.6;">
-          <strong>DKIM manquant :</strong> Activez la signature DKIM dans votre hébergeur email ou votre ESP (OVH, Ionos, Infomaniak…).
+          {neria_admin key='stats.rec_dkim_missing'}
         </div>
       {/if}
       {if !$dr.dmarc.found}
         <div style="padding:10px 14px;margin-bottom:6px;border-left:3px solid #e67e22;background:#fef9ee;font-size:13px;line-height:1.6;">
-          <strong>DMARC absent :</strong> Ajoutez <code>_dmarc.{$dr.domain|escape:'html'} TXT "v=DMARC1; p=quarantine; rua=mailto:dmarc@{$dr.domain|escape:'html'}"</code>
+          {neria_admin key='stats.rec_dmarc_missing_prefix'}{$dr.domain|escape:'html'}{neria_admin key='stats.rec_dmarc_missing_middle'}{$dr.domain|escape:'html'}{neria_admin key='stats.rec_dmarc_missing_suffix'}
         </div>
       {elseif $dr.dmarc.policy === 'none'}
         <div style="padding:10px 14px;margin-bottom:6px;border-left:3px solid #f0ad0a;background:#fffde7;font-size:13px;line-height:1.6;">
-          <strong>DMARC trop permissif :</strong> Changez <code>p=none</code> en <code>p=quarantine</code> ou <code>p=reject</code> pour une protection maximale.
+          {neria_admin key='stats.rec_dmarc_permissive'}
         </div>
       {/if}
     </div>
@@ -1161,11 +1191,11 @@ var _nhm = {$open_heatmap|default:'null'};
     <div style="text-align:center;padding:32px 20px;">
       <div style="font-size:40px;color:var(--neria-border);margin-bottom:12px;">◎</div>
       <p style="font-size:14px;color:var(--neria-text-light);margin:0 0 20px;">
-        Aucune vérification effectuée.<br>
-        Cliquez sur <strong>Actualiser</strong> pour analyser la réputation de votre domaine d'envoi.
+        {neria_admin key='stats.domainrep_empty_line1'}<br>
+        {neria_admin key='stats.domainrep_empty_line2_prefix'} <strong>{neria_admin key='common.refresh'}</strong> {neria_admin key='stats.domainrep_empty_line2_suffix'}
       </p>
       <p style="font-size:12px;color:var(--neria-text-light);">
-        Vérifie : SPF · DKIM · DMARC · 42 listes noires RBL
+        {neria_admin key='stats.domainrep_empty_footer'}
       </p>
     </div>
   {/if}
@@ -1176,10 +1206,9 @@ var _nhm = {$open_heatmap|default:'null'};
    VISIBILITÉ BOUTIQUE — PageSpeed + Search Console + SEO API
    ══════════════════════════════════════════════════════════════ *}
 <div class="neria-section" id="neria-visibility-section">
-  <h2 class="neria-section__title">🌐 Visibilité sur le web</h2>
+  <h2 class="neria-section__title">🌐 {neria_admin key='stats.visibility_title'}</h2>
   <p class="neria-section__desc">
-    Mesurez la présence organique de votre boutique : performance technique, trafic Search Console
-    et autorité de domaine. Ces métriques complètent la délivrabilité email pour une vision à 360°.
+    {neria_admin key='stats.visibility_desc'}
   </p>
 
   {* ── 1. PAGESPEED INSIGHTS ────────────────────────────────── *}
@@ -1189,20 +1218,20 @@ var _nhm = {$open_heatmap|default:'null'};
         <span style="font-size:20px;">⚡</span>
         <div>
           <div style="font-size:14px;font-weight:700;color:var(--neria-dark);">Google PageSpeed Insights</div>
-          <div style="font-size:11px;color:var(--neria-muted);">Performance · Accessibilité · SEO · Core Web Vitals — clé API gratuite</div>
+          <div style="font-size:11px;color:var(--neria-muted);">{neria_admin key='stats.pagespeed_subtitle'}</div>
         </div>
       </div>
       {if $pagespeed_configured}
         <div style="display:flex;gap:8px;align-items:center;">
           {if $pagespeed_cache_age !== null}
-            <span style="font-size:11px;color:var(--neria-muted);">actualisé il y a {$pagespeed_cache_age} min</span>
+            <span style="font-size:11px;color:var(--neria-muted);">{neria_admin key='stats.cache_age_prefix'} {$pagespeed_cache_age} {neria_admin key='stats.cache_age_suffix'}</span>
           {/if}
           <form method="post" action="{$smarty.server.REQUEST_URI}#neria-visibility-section" style="display:inline;">
             <input type="hidden" name="neria_action" value="refresh_pagespeed">
             <input type="hidden" name="neria_tab"    value="stats">
             <button type="submit" style="padding:5px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;"
                     onmouseover="this.style.background='#b8975a'" onmouseout="this.style.background='#1a1a1a'">
-              ↻ Actualiser
+              ↻ {neria_admin key='common.refresh'}
             </button>
           </form>
         </div>
@@ -1211,28 +1240,26 @@ var _nhm = {$open_heatmap|default:'null'};
 
     {* Notice explicative *}
     <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:16px;font-size:13px;line-height:1.75;color:#4a3f35;">
-      <div style="font-weight:700;margin-bottom:10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-      Google PageSpeed Insights analyse la <strong>qualité technique</strong> de votre boutique et lui attribue quatre scores de 0 à 100 :
-      <strong>Performance</strong> (vitesse de chargement), <strong>Accessibilité</strong> (lisibilité pour tous),
-      <strong>SEO</strong> (signaux techniques de référencement) et <strong>Bonnes pratiques</strong> (sécurité, standards web).
+      <div style="font-weight:700;margin-bottom:10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+      {neria_admin key='stats.pagespeed_howto_scores'}
       <div style="font-weight:700;margin:14px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Core Web Vitals</div>
-      Ces trois métriques sont imposées par Google depuis 2021 et influencent directement votre classement dans les résultats de recherche :
+      {neria_admin key='stats.pagespeed_howto_cwv_body'}
       <ul style="margin:8px 0 0 18px;padding:0;">
-        <li style="margin-bottom:4px;"><strong>LCP</strong> — temps avant que le contenu principal s'affiche (idéal : moins de 2,5 s)</li>
-        <li style="margin-bottom:4px;"><strong>CLS</strong> — stabilité visuelle de la page, évite les éléments qui sautent (idéal : moins de 0,1)</li>
-        <li><strong>TBT</strong> — durée pendant laquelle la page est bloquée et non interactive (idéal : moins de 200 ms)</li>
+        <li style="margin-bottom:4px;"><strong>LCP</strong> — {neria_admin key='stats.pagespeed_lcp_desc'}</li>
+        <li style="margin-bottom:4px;"><strong>CLS</strong> — {neria_admin key='stats.pagespeed_cls_desc'}</li>
+        <li><strong>TBT</strong> — {neria_admin key='stats.pagespeed_tbt_desc'}</li>
       </ul>
-      <div style="margin-top:12px;font-size:12px;opacity:.75;">L'analyse est gratuite — la clé API Google est suffisante. Le cache est renouvelé toutes les 24 heures.</div>
+      <div style="margin-top:12px;font-size:12px;opacity:.75;">{neria_admin key='stats.pagespeed_howto_footer'}</div>
     </div>
 
     {* Configuration : saisie clé API + URL cible *}
     <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:16px 20px;margin-bottom:16px;">
       {if !$pagespeed_configured}
       <div style="font-size:12px;color:#5c3d1e;line-height:1.6;margin-bottom:12px;">
-        <strong>Comment obtenir une clé gratuite :</strong><br>
+        <strong>{neria_admin key='stats.pagespeed_getkey_title'}</strong><br>
         1. <a href="https://console.cloud.google.com/" target="_blank" style="color:#1a7a40;">console.cloud.google.com</a>
-        → API &amp; services → Bibliothèque → Activez <strong>PageSpeed Insights API</strong><br>
-        2. Identifiants → Créer une clé API → copiez la clé
+        {neria_admin key='stats.pagespeed_getkey_step1'}<br>
+        2. {neria_admin key='stats.pagespeed_getkey_step2'}
       </div>
       {/if}
       <form method="post" action="{$smarty.server.REQUEST_URI}#neria-visibility-section">
@@ -1240,14 +1267,14 @@ var _nhm = {$open_heatmap|default:'null'};
         <input type="hidden" name="neria_tab"    value="stats">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
           <div>
-            <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">Clé API Google</label>
+            <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">{neria_admin key='stats.pagespeed_api_key_label'}</label>
             <input type="text" name="pagespeed_api_key" value="{$pagespeed_api_key|escape:'html'}"
                    style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
                    placeholder="AIzaSy…">
           </div>
           <div>
             <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">
-              URL à analyser <span style="font-weight:400;color:#7a6a5a;">(optionnel — URL publique si boutique locale)</span>
+              {neria_admin key='stats.pagespeed_url_label'} <span style="font-weight:400;color:#7a6a5a;">{neria_admin key='stats.pagespeed_url_hint'}</span>
             </label>
             <input type="url" name="pagespeed_target_url" value="{$pagespeed_target_url|escape:'html'}"
                    style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
@@ -1255,7 +1282,7 @@ var _nhm = {$open_heatmap|default:'null'};
           </div>
         </div>
         <button type="submit" class="neria-btn neria-btn--primary" style="font-size:12px;padding:8px 16px;">
-          Enregistrer
+          {neria_admin key='common.save'}
         </button>
       </form>
       {if $pagespeed_last_error}
@@ -1268,18 +1295,21 @@ var _nhm = {$open_heatmap|default:'null'};
     {* Résultats PageSpeed *}
     {if $pagespeed_report}
       {assign var="ps" value=$pagespeed_report}
+      {capture name="lbl_perf"}{neria_admin key='stats.score_performance'}{/capture}
+      {capture name="lbl_access"}{neria_admin key='stats.score_accessibility'}{/capture}
+      {capture name="lbl_best"}{neria_admin key='stats.score_best_practices'}{/capture}
 
       {* 4 scores — Mobile *}
       {if $ps.mobile}
       {assign var="psm" value=$ps.mobile}
       <div style="margin-bottom:20px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:12px;">📱 Mobile</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:12px;">📱 {neria_admin key='stats.mobile_label'}</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:16px;">
           {foreach [
-            ['label'=>'Performance', 'val'=>$psm.perf,   'color'=>$psm.perf_color],
-            ['label'=>'Accessibilité','val'=>$psm.access, 'color'=>$psm.access_color],
+            ['label'=>$smarty.capture.lbl_perf, 'val'=>$psm.perf,   'color'=>$psm.perf_color],
+            ['label'=>$smarty.capture.lbl_access,'val'=>$psm.access, 'color'=>$psm.access_color],
             ['label'=>'SEO',          'val'=>$psm.seo,    'color'=>$psm.seo_color],
-            ['label'=>'Bonnes prat.', 'val'=>$psm.best,   'color'=>$psm.best_color]
+            ['label'=>$smarty.capture.lbl_best, 'val'=>$psm.best,   'color'=>$psm.best_color]
           ] as $sc}
           <div style="text-align:center;background:var(--neria-bg);border-radius:6px;padding:12px 8px;">
             <svg width="48" height="48" viewBox="0 0 48 48">
@@ -1323,13 +1353,13 @@ var _nhm = {$open_heatmap|default:'null'};
       {if $ps.desktop}
       {assign var="psd" value=$ps.desktop}
       <div>
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:12px;">🖥 Desktop</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:12px;">🖥 {neria_admin key='stats.desktop_label'}</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:16px;">
           {foreach [
-            ['label'=>'Performance', 'val'=>$psd.perf,   'color'=>$psd.perf_color],
-            ['label'=>'Accessibilité','val'=>$psd.access, 'color'=>$psd.access_color],
+            ['label'=>$smarty.capture.lbl_perf, 'val'=>$psd.perf,   'color'=>$psd.perf_color],
+            ['label'=>$smarty.capture.lbl_access,'val'=>$psd.access, 'color'=>$psd.access_color],
             ['label'=>'SEO',          'val'=>$psd.seo,    'color'=>$psd.seo_color],
-            ['label'=>'Bonnes prat.', 'val'=>$psd.best,   'color'=>$psd.best_color]
+            ['label'=>$smarty.capture.lbl_best, 'val'=>$psd.best,   'color'=>$psd.best_color]
           ] as $sc}
           <div style="text-align:center;background:var(--neria-bg);border-radius:6px;padding:12px 8px;">
             <svg width="48" height="48" viewBox="0 0 48 48">
@@ -1367,13 +1397,13 @@ var _nhm = {$open_heatmap|default:'null'};
       {/if}
 
       <p style="font-size:11px;color:var(--neria-muted);margin:12px 0 0;font-style:italic;">
-        Analysé le {$ps.checked_at} · URL : {$ps.url|escape:'html'}
+        {neria_admin key='stats.analyzed_on_prefix'} {$ps.checked_at} · {neria_admin key='stats.url_label'} {$ps.url|escape:'html'}
       </p>
 
     {elseif $pagespeed_configured}
       <div style="text-align:center;padding:24px;color:var(--neria-muted);font-size:13px;">
         <div style="font-size:32px;margin-bottom:8px;">⚡</div>
-        Clé API configurée — cliquez sur <strong>Actualiser</strong> pour lancer l'analyse.
+        {neria_admin key='stats.pagespeed_ready_prompt_prefix'} <strong>{neria_admin key='common.refresh'}</strong> {neria_admin key='stats.pagespeed_ready_prompt_suffix'}
       </div>
     {/if}
   </div>
@@ -1385,27 +1415,27 @@ var _nhm = {$open_heatmap|default:'null'};
         <span style="font-size:20px;">🔍</span>
         <div>
           <div style="font-size:14px;font-weight:700;color:var(--neria-dark);">Google Search Console</div>
-          <div style="font-size:11px;color:var(--neria-muted);">Impressions · Clics · CTR · Position moyenne · Top requêtes — OAuth gratuit</div>
+          <div style="font-size:11px;color:var(--neria-muted);">{neria_admin key='stats.searchconsole_subtitle'}</div>
         </div>
       </div>
       {if $searchconsole_connected}
         <div style="display:flex;gap:8px;align-items:center;">
           {if $searchconsole_cache_age !== null}
-            <span style="font-size:11px;color:var(--neria-muted);">actualisé il y a {$searchconsole_cache_age} min</span>
+            <span style="font-size:11px;color:var(--neria-muted);">{neria_admin key='stats.cache_age_prefix'} {$searchconsole_cache_age} {neria_admin key='stats.cache_age_suffix'}</span>
           {/if}
           <form method="post" action="{$smarty.server.REQUEST_URI}#neria-search-console-section" style="display:inline;">
             <input type="hidden" name="neria_action" value="refresh_searchconsole">
             <input type="hidden" name="neria_tab"    value="stats">
             <button type="submit" style="padding:5px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;"
                     onmouseover="this.style.background='#b8975a'" onmouseout="this.style.background='#1a1a1a'">
-              ↻ Actualiser
+              ↻ {neria_admin key='common.refresh'}
             </button>
           </form>
           <form method="post" action="{$smarty.server.REQUEST_URI}#neria-search-console-section" style="display:inline;">
             <input type="hidden" name="neria_action" value="disconnect_searchconsole">
             <input type="hidden" name="neria_tab"    value="stats">
             <button type="submit" class="neria-btn neria-btn--danger neria-btn--sm">
-              Déconnecter
+              {neria_admin key='common.disconnect'}
             </button>
           </form>
         </div>
@@ -1414,19 +1444,18 @@ var _nhm = {$open_heatmap|default:'null'};
 
     {* Notice explicative *}
     <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:16px;font-size:13px;line-height:1.75;color:#4a3f35;">
-      <div style="font-weight:700;margin-bottom:10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-      Google Search Console vous donne accès aux <strong>données officielles de Google</strong> sur la présence de votre boutique dans les résultats de recherche.
-      Contrairement à Google Analytics, ces chiffres viennent directement de Google Search — ils sont fiables à 100 %.
-      <div style="font-weight:700;margin:14px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Ce que vous obtenez</div>
+      <div style="font-weight:700;margin-bottom:10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+      {neria_admin key='stats.searchconsole_howto_intro'}
+      <div style="font-weight:700;margin:14px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.searchconsole_howto_gettitle'}</div>
       <ul style="margin:0 0 0 18px;padding:0;">
-        <li style="margin-bottom:4px;"><strong>Clics</strong> — nombre de fois où un visiteur a cliqué sur votre boutique dans Google</li>
-        <li style="margin-bottom:4px;"><strong>Impressions</strong> — nombre de fois où votre boutique est apparue dans les résultats</li>
-        <li style="margin-bottom:4px;"><strong>CTR</strong> — taux de clics (clics ÷ impressions) : plus il est élevé, plus vos titres attirent</li>
-        <li style="margin-bottom:4px;"><strong>Position moyenne</strong> — rang moyen de vos pages dans Google (1 = première position)</li>
-        <li style="margin-bottom:4px;"><strong>Top 10 requêtes</strong> — les mots-clés qui génèrent le plus de trafic vers votre boutique</li>
-        <li><strong>Top 10 pages</strong> — vos pages les plus visitées depuis Google</li>
+        <li style="margin-bottom:4px;"><strong>{neria_admin key='common.clicks'}</strong> — {neria_admin key='stats.sc_li_clicks'}</li>
+        <li style="margin-bottom:4px;"><strong>Impressions</strong> — {neria_admin key='stats.sc_li_impressions'}</li>
+        <li style="margin-bottom:4px;"><strong>CTR</strong> — {neria_admin key='stats.sc_li_ctr'}</li>
+        <li style="margin-bottom:4px;"><strong>{neria_admin key='stats.sc_avgposition_label'}</strong> — {neria_admin key='stats.sc_li_position'}</li>
+        <li style="margin-bottom:4px;"><strong>{neria_admin key='stats.sc_top10_queries_label'}</strong> — {neria_admin key='stats.sc_li_topqueries'}</li>
+        <li><strong>{neria_admin key='stats.sc_top10_pages_label'}</strong> — {neria_admin key='stats.sc_li_toppages'}</li>
       </ul>
-      <div style="margin-top:12px;font-size:12px;opacity:.75;">Connexion gratuite via votre compte Google. Données sur 28 jours, avec 2 à 3 jours de latence (délai normal imposé par Google).</div>
+      <div style="margin-top:12px;font-size:12px;opacity:.75;">{neria_admin key='stats.searchconsole_howto_footer'}</div>
     </div>
 
     {* État 1 : non configuré *}
@@ -1435,7 +1464,7 @@ var _nhm = {$open_heatmap|default:'null'};
 
       {* Guide pas-à-pas *}
       <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#4a3f35;opacity:.6;margin-bottom:14px;">
-        Guide de configuration — 5 étapes
+        {neria_admin key='stats.sc_guide_title'}
       </div>
 
       <div style="counter-reset:step;display:flex;flex-direction:column;gap:14px;margin-bottom:20px;">
@@ -1444,9 +1473,8 @@ var _nhm = {$open_heatmap|default:'null'};
         <div style="display:flex;gap:12px;align-items:flex-start;">
           <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:#4a3f35;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;">1</span>
           <div style="font-size:12px;color:#4a3f35;line-height:1.65;">
-            Ouvrez <a href="https://console.cloud.google.com/" target="_blank" rel="noopener" style="color:#1a7a40;font-weight:600;">console.cloud.google.com</a>
-            et créez un <strong>nouveau projet</strong> (bouton en haut à gauche, à côté du logo Google Cloud).
-            Donnez-lui un nom comme <em>"Neria SEO"</em>.
+            <a href="https://console.cloud.google.com/" target="_blank" rel="noopener" style="color:#1a7a40;font-weight:600;">console.cloud.google.com</a>
+            {neria_admin key='stats.sc_step1'}
           </div>
         </div>
 
@@ -1454,8 +1482,7 @@ var _nhm = {$open_heatmap|default:'null'};
         <div style="display:flex;gap:12px;align-items:flex-start;">
           <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:#4a3f35;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;">2</span>
           <div style="font-size:12px;color:#4a3f35;line-height:1.65;">
-            Dans le menu gauche : <strong>API et services → Bibliothèque</strong>.<br>
-            Recherchez <strong>"Google Search Console API"</strong> et cliquez sur <strong>Activer</strong>.
+            {neria_admin key='stats.sc_step2'}
           </div>
         </div>
 
@@ -1463,9 +1490,7 @@ var _nhm = {$open_heatmap|default:'null'};
         <div style="display:flex;gap:12px;align-items:flex-start;">
           <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:#4a3f35;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;">3</span>
           <div style="font-size:12px;color:#4a3f35;line-height:1.65;">
-            Menu gauche : <strong>API et services → Écran de consentement OAuth</strong>.<br>
-            Choisissez <strong>Externe</strong>, renseignez un nom d'application et votre email, laissez le reste vide.
-            Dans <strong>Audience</strong>, ajoutez votre propre adresse Google comme <em>utilisateur test</em>.
+            {neria_admin key='stats.sc_step3'}
           </div>
         </div>
 
@@ -1473,9 +1498,7 @@ var _nhm = {$open_heatmap|default:'null'};
         <div style="display:flex;gap:12px;align-items:flex-start;">
           <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:#4a3f35;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;">4</span>
           <div style="font-size:12px;color:#4a3f35;line-height:1.65;">
-            Menu gauche : <strong>API et services → Identifiants → + Créer des identifiants → ID client OAuth 2.0</strong>.<br>
-            Type d'application : <strong>Application Web</strong>.<br>
-            Dans <strong>"URI de redirection autorisés"</strong>, copiez exactement cette URL et collez-la :
+            {neria_admin key='stats.sc_step4'}
             <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
               <code id="neria-sc-redirect-uri"
                     style="flex:1;font-size:11px;background:#fff;border:1px solid #d4c5a9;padding:7px 10px;border-radius:4px;word-break:break-all;color:#1a1a1a;">
@@ -1483,10 +1506,10 @@ var _nhm = {$open_heatmap|default:'null'};
               </code>
               <button type="button" id="neria-sc-copy-btn"
                       style="flex-shrink:0;padding:6px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;">
-                📋 Copier
+                📋 {neria_admin key='common.copy'}
               </button>
             </div>
-            <span style="display:block;margin-top:6px;font-size:11px;opacity:.7;">⚠ L'URL doit être copiée telle quelle dans Google Cloud — une seule lettre manquante bloque la connexion.</span>
+            <span style="display:block;margin-top:6px;font-size:11px;opacity:.7;">{neria_admin key='stats.sc_step4_warning'}</span>
           </div>
         </div>
 
@@ -1494,9 +1517,7 @@ var _nhm = {$open_heatmap|default:'null'};
         <div style="display:flex;gap:12px;align-items:flex-start;">
           <span style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:#4a3f35;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;">5</span>
           <div style="font-size:12px;color:#4a3f35;line-height:1.65;">
-            Après création, Google affiche un popup avec le <strong>Client ID</strong> et le <strong>Client Secret</strong>.<br>
-            Copiez-les et collez-les dans les champs ci-dessous. Attention : le Client Secret ne s'affiche qu'une seule fois —
-            si vous le perdez, cliquez sur <em>"Modifier"</em> dans Google Cloud pour en générer un nouveau.
+            {neria_admin key='stats.sc_step5'}
           </div>
         </div>
 
@@ -1508,20 +1529,20 @@ var _nhm = {$open_heatmap|default:'null'};
         <input type="hidden" name="neria_tab"    value="stats">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
           <div>
-            <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">Client ID</label>
+            <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">{neria_admin key='stats.label_client_id'}</label>
             <input type="text" name="sc_client_id" value="{$searchconsole_client_id|escape:'html'}"
                    style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
                    placeholder="12345…googleusercontent.com">
           </div>
           <div>
-            <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">Client Secret</label>
+            <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">{neria_admin key='stats.label_client_secret'}</label>
             <input type="password" name="sc_client_secret"
                    style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
                    placeholder="GOCSPX-…">
           </div>
         </div>
         <button type="submit" class="neria-btn neria-btn--primary" style="font-size:12px;padding:8px 16px;">
-          Enregistrer les identifiants
+          {neria_admin key='common.save_credentials'}
         </button>
       </form>
     </div>
@@ -1532,14 +1553,14 @@ var _nhm = {$open_heatmap|default:'null'};
     <div style="background:#fff;border:1px solid #e8d5b0;border-radius:6px;padding:16px 20px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
         <div style="width:8px;height:8px;border-radius:50%;background:#e67e22;flex-shrink:0;"></div>
-        <div style="font-weight:700;font-size:13px;color:#5c3d1e;">Identifiants enregistrés — autorisation requise</div>
+        <div style="font-weight:700;font-size:13px;color:#5c3d1e;">{neria_admin key='stats.creds_saved_authreq'}</div>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <form method="post" action="{$smarty.server.REQUEST_URI}#neria-search-console-section">
           <input type="hidden" name="neria_action" value="connect_searchconsole">
           <input type="hidden" name="neria_tab"    value="stats">
           <button type="submit" style="background:#1a7a40;color:#fff;border:none;border-radius:5px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;">
-            🔗 Connecter avec Google
+            🔗 {neria_admin key='stats.connect_google_btn'}
           </button>
         </form>
         <form method="post" action="{$smarty.server.REQUEST_URI}#neria-search-console-section">
@@ -1548,7 +1569,7 @@ var _nhm = {$open_heatmap|default:'null'};
           <input type="hidden" name="sc_client_id"     value="">
           <input type="hidden" name="sc_client_secret" value="">
           <button type="submit" style="background:#fff;color:#7a6a5a;border:1px solid #d4c5a9;border-radius:5px;padding:9px 16px;font-size:12px;cursor:pointer;">
-            Modifier les identifiants
+            {neria_admin key='stats.edit_credentials_btn'}
           </button>
         </form>
       </div>
@@ -1559,7 +1580,7 @@ var _nhm = {$open_heatmap|default:'null'};
     {if $searchconsole_connected}
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;background:#f0faf3;border:1px solid #c3e6cb;border-radius:6px;padding:10px 14px;">
       <div style="width:8px;height:8px;border-radius:50%;background:#16a34a;flex-shrink:0;"></div>
-      <span style="font-size:12px;font-weight:700;color:#16a34a;">Connecté à Google Search Console</span>
+      <span style="font-size:12px;font-weight:700;color:#16a34a;">{neria_admin key='stats.sc_connected_label'}</span>
     </div>
 
     {if $searchconsole_stats}
@@ -1571,12 +1592,12 @@ var _nhm = {$open_heatmap|default:'null'};
         <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:12px 14px;text-align:center;">
           <div style="font-size:18px;margin-bottom:4px;">👁</div>
           <div style="font-size:20px;font-weight:700;color:var(--neria-dark);">{$sc.impressions|number_format:0:',':' '}</div>
-          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">Impressions</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">{neria_admin key='stats.impressions_label'}</div>
         </div>
         <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:12px 14px;text-align:center;">
           <div style="font-size:18px;margin-bottom:4px;">↗</div>
           <div style="font-size:20px;font-weight:700;color:var(--neria-dark);">{$sc.clicks|number_format:0:',':' '}</div>
-          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">Clics</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">{neria_admin key='common.clicks'}</div>
         </div>
         <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:12px 14px;text-align:center;">
           <div style="font-size:18px;margin-bottom:4px;">%</div>
@@ -1586,7 +1607,7 @@ var _nhm = {$open_heatmap|default:'null'};
         <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:12px 14px;text-align:center;">
           <div style="font-size:18px;margin-bottom:4px;">#</div>
           <div style="font-size:20px;font-weight:700;color:var(--neria-dark);">{$sc.position}</div>
-          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">Position</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">{neria_admin key='stats.sc_avgposition_label'}</div>
         </div>
       </div>
 
@@ -1596,12 +1617,12 @@ var _nhm = {$open_heatmap|default:'null'};
         {* Top 10 requêtes *}
         {if $sc.queries}
         <div>
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:8px;">Top requêtes</div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:8px;">{neria_admin key='stats.top_queries_label'}</div>
           <table class="neria-table" style="font-size:12px;">
             <thead><tr>
-              <th>Requête</th>
-              <th class="neria-table__num">Clics</th>
-              <th class="neria-table__num">Pos.</th>
+              <th>{neria_admin key='stats.query_label'}</th>
+              <th class="neria-table__num">{neria_admin key='common.clicks'}</th>
+              <th class="neria-table__num">{neria_admin key='stats.position_short'}</th>
             </tr></thead>
             <tbody>
               {foreach $sc.queries as $q}
@@ -1619,12 +1640,12 @@ var _nhm = {$open_heatmap|default:'null'};
         {* Top 10 pages *}
         {if $sc.pages}
         <div>
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:8px;">Top pages</div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:8px;">{neria_admin key='stats.top_pages_label'}</div>
           <table class="neria-table" style="font-size:12px;">
             <thead><tr>
-              <th>Page</th>
-              <th class="neria-table__num">Clics</th>
-              <th class="neria-table__num">Pos.</th>
+              <th>{neria_admin key='stats.page_label'}</th>
+              <th class="neria-table__num">{neria_admin key='common.clicks'}</th>
+              <th class="neria-table__num">{neria_admin key='stats.position_short'}</th>
             </tr></thead>
             <tbody>
               {foreach $sc.pages as $p}
@@ -1640,11 +1661,11 @@ var _nhm = {$open_heatmap|default:'null'};
         {/if}
 
       </div>
-      <p style="font-size:11px;color:var(--neria-muted);margin:12px 0 0;font-style:italic;">Données du {$sc.checked_at} — latence Google : 3 jours</p>
+      <p style="font-size:11px;color:var(--neria-muted);margin:12px 0 0;font-style:italic;">{neria_admin key='stats.sc_data_footer'} {$sc.checked_at} {neria_admin key='stats.sc_latency_note'}</p>
 
     {else}
       <div style="text-align:center;padding:20px;color:var(--neria-muted);font-size:13px;">
-        Cliquez sur <strong>Actualiser</strong> pour charger les données Search Console.
+        {neria_admin key='stats.sc_empty_prompt'}
       </div>
     {/if}
     {/if}
@@ -1656,21 +1677,21 @@ var _nhm = {$open_heatmap|default:'null'};
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-size:20px;">📊</span>
         <div>
-          <div style="font-size:14px;font-weight:700;color:var(--neria-dark);">API SEO avancée <span style="font-size:11px;font-weight:400;color:var(--neria-muted);">(optionnelle)</span></div>
-          <div style="font-size:11px;color:var(--neria-muted);">Semrush ou Moz — autorité, backlinks, mots-clés organiques</div>
+          <div style="font-size:14px;font-weight:700;color:var(--neria-dark);">{neria_admin key='stats.seo_api_title'} <span style="font-size:11px;font-weight:400;color:var(--neria-muted);">{neria_admin key='stats.optional_label'}</span></div>
+          <div style="font-size:11px;color:var(--neria-muted);">{neria_admin key='stats.seo_api_subtitle'}</div>
         </div>
       </div>
       {if $seo_configured}
         <div style="display:flex;gap:8px;align-items:center;">
           {if $seo_cache_age !== null}
-            <span style="font-size:11px;color:var(--neria-muted);">actualisé il y a {$seo_cache_age} min</span>
+            <span style="font-size:11px;color:var(--neria-muted);">{neria_admin key='stats.cache_age_prefix'} {$seo_cache_age} {neria_admin key='stats.cache_age_suffix'}</span>
           {/if}
           <form method="post" action="{$smarty.server.REQUEST_URI}#neria-seo-api-section" style="display:inline;">
             <input type="hidden" name="neria_action" value="refresh_seo_api">
             <input type="hidden" name="neria_tab"    value="stats">
             <button type="submit" style="padding:5px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;"
                     onmouseover="this.style.background='#b8975a'" onmouseout="this.style.background='#1a1a1a'">
-              ↻ Actualiser
+              ↻ {neria_admin key='common.refresh'}
             </button>
           </form>
         </div>
@@ -1679,23 +1700,22 @@ var _nhm = {$open_heatmap|default:'null'};
 
     {* Notice explicative *}
     <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:16px;font-size:13px;line-height:1.75;color:#4a3f35;">
-      <div style="font-weight:700;margin-bottom:10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-      Les APIs SEO avancées complètent PageSpeed et Search Console en ajoutant la <strong>dimension concurrentielle</strong> :
-      où se positionne votre boutique face à vos concurrents, quelle est son autorité aux yeux de Google ?
+      <div style="font-weight:700;margin-bottom:10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+      {neria_admin key='stats.seo_howto_intro'}
       <div style="font-weight:700;margin:14px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Semrush</div>
       <ul style="margin:0 0 0 18px;padding:0;">
-        <li style="margin-bottom:4px;"><strong>Trafic organique estimé</strong> — nombre de visiteurs mensuels provenant de Google</li>
-        <li style="margin-bottom:4px;"><strong>Mots-clés positionnés</strong> — sur combien de requêtes votre boutique apparaît dans Google</li>
-        <li><strong>Top mots-clés</strong> — les requêtes qui vous apportent le plus de visibilité</li>
+        <li style="margin-bottom:4px;"><strong>{neria_admin key='stats.seo_semrush_traffic_label'}</strong> — {neria_admin key='stats.seo_semrush_li1'}</li>
+        <li style="margin-bottom:4px;"><strong>{neria_admin key='stats.seo_semrush_positioned_label'}</strong> — {neria_admin key='stats.seo_semrush_li2'}</li>
+        <li><strong>{neria_admin key='stats.seo_top_keywords_label'}</strong> — {neria_admin key='stats.seo_semrush_li3'}</li>
       </ul>
       <div style="font-weight:700;margin:14px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Moz</div>
       <ul style="margin:0 0 0 18px;padding:0;">
-        <li style="margin-bottom:4px;"><strong>Domain Authority (DA)</strong> — score 0-100 de la force globale de votre domaine (plus c'est élevé, mieux c'est)</li>
-        <li style="margin-bottom:4px;"><strong>Page Authority (PA)</strong> — force spécifique de votre page d'accueil</li>
-        <li style="margin-bottom:4px;"><strong>Spam Score</strong> — risque de pénalité Google lié à des backlinks suspects (idéal : proche de 0)</li>
-        <li><strong>Backlinks</strong> — nombre de liens entrants depuis d'autres sites</li>
+        <li style="margin-bottom:4px;"><strong>{neria_admin key='stats.seo_da_label'}</strong> — {neria_admin key='stats.seo_moz_li1'}</li>
+        <li style="margin-bottom:4px;"><strong>{neria_admin key='stats.seo_pa_label'}</strong> — {neria_admin key='stats.seo_moz_li2'}</li>
+        <li style="margin-bottom:4px;"><strong>{neria_admin key='stats.seo_spamscore_label'}</strong> — {neria_admin key='stats.seo_moz_li3'}</li>
+        <li><strong>{neria_admin key='stats.seo_backlinks_label'}</strong> — {neria_admin key='stats.seo_moz_li4'}</li>
       </ul>
-      <div style="margin-top:12px;font-size:12px;opacity:.75;">Section optionnelle — nécessite un abonnement payant chez Semrush ou Moz. Sans API payante, PageSpeed et Search Console couvrent déjà l'essentiel.</div>
+      <div style="margin-top:12px;font-size:12px;opacity:.75;">{neria_admin key='stats.seo_howto_footer'}</div>
     </div>
 
     {* Formulaire de configuration *}
@@ -1706,10 +1726,10 @@ var _nhm = {$open_heatmap|default:'null'};
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
         {* Choix du fournisseur *}
         <div>
-          <label style="display:block;font-size:11px;font-weight:600;color:var(--neria-dark);margin-bottom:6px;">Fournisseur</label>
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--neria-dark);margin-bottom:6px;">{neria_admin key='stats.label_provider'}</label>
           <select name="seo_provider" id="neria-seo-provider"
                   style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;">
-            <option value="">— Aucun —</option>
+            <option value="">{neria_admin key='stats.provider_none_option'}</option>
             <option value="semrush" {if $seo_provider == 'semrush'}selected{/if}>Semrush</option>
             <option value="moz"     {if $seo_provider == 'moz'}selected{/if}>Moz</option>
           </select>
@@ -1717,33 +1737,33 @@ var _nhm = {$open_heatmap|default:'null'};
 
         {* Champs Semrush *}
         <div id="neria-seo-semrush" style="display:{if $seo_provider == 'semrush'}block{else}none{/if};">
-          <label style="display:block;font-size:11px;font-weight:600;color:var(--neria-dark);margin-bottom:6px;">Clé API Semrush</label>
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--neria-dark);margin-bottom:6px;">{neria_admin key='stats.label_semrush_key'}</label>
           <input type="text" name="seo_semrush_key" value="{$seo_semrush_key|escape:'html'}"
                  style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
-                 placeholder="votre clé Semrush API">
+                 placeholder="{neria_admin key='stats.semrush_key_placeholder'}">
           <div style="font-size:10px;color:var(--neria-muted);margin-top:4px;">
-            <a href="https://www.semrush.com/api-documentation/" target="_blank" style="color:var(--neria-accent);">Documentation Semrush API →</a>
+            <a href="https://www.semrush.com/api-documentation/" target="_blank" style="color:var(--neria-accent);">{neria_admin key='stats.seo_semrush_doc_link'}</a>
           </div>
         </div>
 
         {* Champs Moz *}
         <div id="neria-seo-moz" style="display:{if $seo_provider == 'moz'}block{else}none{/if};">
-          <label style="display:block;font-size:11px;font-weight:600;color:var(--neria-dark);margin-bottom:4px;">Moz Access ID</label>
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--neria-dark);margin-bottom:4px;">{neria_admin key='stats.label_moz_access'}</label>
           <input type="text" name="seo_moz_access" value="{$seo_moz_access|escape:'html'}"
                  style="width:100%;padding:7px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;margin-bottom:8px;"
                  placeholder="mozscape-…">
-          <label style="display:block;font-size:11px;font-weight:600;color:var(--neria-dark);margin-bottom:4px;">Moz Secret Key</label>
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--neria-dark);margin-bottom:4px;">{neria_admin key='stats.label_moz_secret'}</label>
           <input type="password" name="seo_moz_secret"
                  style="width:100%;padding:7px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
                  placeholder="…">
           <div style="font-size:10px;color:var(--neria-muted);margin-top:4px;">
-            <a href="https://moz.com/products/api" target="_blank" style="color:var(--neria-accent);">Documentation Moz API →</a>
+            <a href="https://moz.com/products/api" target="_blank" style="color:var(--neria-accent);">{neria_admin key='stats.seo_moz_doc_link'}</a>
           </div>
         </div>
       </div>
 
       <button type="submit" class="neria-btn neria-btn--primary" style="font-size:12px;padding:8px 16px;">
-        Enregistrer
+        {neria_admin key='common.save'}
       </button>
     </form>
 
@@ -1753,11 +1773,15 @@ var _nhm = {$open_heatmap|default:'null'};
       <hr style="border:none;border-top:1px solid var(--neria-border);margin:20px 0;">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:12px;">Semrush — {$sr.domain|escape:'html'} · {$sr.checked_at}</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px;">
+        {capture name="lbl_score_auto"}{neria_admin key='stats.seo_score_auto'}{/capture}
+        {capture name="lbl_kw_org"}{neria_admin key='stats.seo_keywords_org'}{/capture}
+        {capture name="lbl_traffic_org"}{neria_admin key='stats.seo_traffic_org'}{/capture}
+        {capture name="lbl_kw_paid"}{neria_admin key='stats.seo_keywords_paid'}{/capture}
         {foreach [
-          ['label'=>'Score auto.','val'=>$sr.authority_score,'icon'=>'★'],
-          ['label'=>'Mots-clés org.','val'=>$sr.organic_keywords|number_format:0:',':' ','icon'=>'🔑'],
-          ['label'=>'Trafic org.','val'=>$sr.organic_traffic|number_format:0:',':' ','icon'=>'📈'],
-          ['label'=>'Mots-clés payants','val'=>$sr.paid_keywords|number_format:0:',':' ','icon'=>'💰']
+          ['label'=>$smarty.capture.lbl_score_auto,'val'=>$sr.authority_score,'icon'=>'★'],
+          ['label'=>$smarty.capture.lbl_kw_org,'val'=>$sr.organic_keywords|number_format:0:',':' ','icon'=>'🔑'],
+          ['label'=>$smarty.capture.lbl_traffic_org,'val'=>$sr.organic_traffic|number_format:0:',':' ','icon'=>'📈'],
+          ['label'=>$smarty.capture.lbl_kw_paid,'val'=>$sr.paid_keywords|number_format:0:',':' ','icon'=>'💰']
         ] as $kpi}
         <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:12px 14px;text-align:center;">
           <div style="font-size:16px;margin-bottom:4px;">{$kpi.icon}</div>
@@ -1767,12 +1791,12 @@ var _nhm = {$open_heatmap|default:'null'};
         {/foreach}
       </div>
       {if $sr.keywords}
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:8px;">Top mots-clés organiques</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-muted);margin-bottom:8px;">{neria_admin key='stats.top_keywords_org_label'}</div>
       <table class="neria-table" style="font-size:12px;">
         <thead><tr>
-          <th>Mot-clé</th>
-          <th class="neria-table__num">Position</th>
-          <th class="neria-table__num">Volume/mois</th>
+          <th>{neria_admin key='stats.keyword_label'}</th>
+          <th class="neria-table__num">{neria_admin key='stats.position_label'}</th>
+          <th class="neria-table__num">{neria_admin key='stats.volume_month_label'}</th>
         </tr></thead>
         <tbody>
           {foreach $sr.keywords as $kw}
@@ -1801,33 +1825,38 @@ var _nhm = {$open_heatmap|default:'null'};
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">
         <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:14px;text-align:center;">
           <div style="font-size:32px;font-weight:700;color:{$da_color};">{$da}</div>
-          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">Domain Authority</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">{neria_admin key='stats.seo_da_label'}</div>
         </div>
         <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:14px;text-align:center;">
           <div style="font-size:32px;font-weight:700;color:var(--neria-dark);">{$mr.page_authority}</div>
-          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">Page Authority</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">{neria_admin key='stats.seo_pa_label'}</div>
         </div>
         <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:14px;text-align:center;">
           <div style="font-size:32px;font-weight:700;color:var(--neria-dark);">{$mr.links_to_root|number_format:0:',':' '}</div>
-          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">Backlinks</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">{neria_admin key='stats.seo_backlinks_label'}</div>
         </div>
         <div style="background:var(--neria-bg);border:1px solid var(--neria-border);border-radius:6px;padding:14px;text-align:center;">
           {assign var="spam" value=$mr.spam_score}
           <div style="font-size:32px;font-weight:700;color:{if $spam < 30}#16a34a{elseif $spam < 60}#d97706{else}#dc2626{/if};">{$spam}%</div>
-          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">Spam Score</div>
+          <div style="font-size:10px;color:var(--neria-muted);text-transform:uppercase;letter-spacing:.05em;">{neria_admin key='stats.seo_spamscore_label'}</div>
         </div>
       </div>
     {/if}
 
     {if !$seo_provider}
     <div style="margin-top:14px;padding:12px 16px;background:#fef9f0;border:1px solid #e8d5b0;border-radius:6px;font-size:12px;color:var(--neria-muted);line-height:1.6;">
-      💡 Sans API payante, vous pouvez quand même mesurer votre visibilité via PageSpeed et Search Console ci-dessus.
-      Les APIs payantes ajoutent la dimension <strong>concurrentielle</strong> : où vous positionnez-vous par rapport à vos concurrents ?
+      💡 {neria_admin key='stats.seo_no_provider_hint'}
     </div>
     {/if}
   </div>
 </div>
 
+<script>
+var _nCopyLbl = {
+  copy:   "📋 {neria_admin key='common.copy'|escape:'javascript'}",
+  copied: "✓ {neria_admin key='common.copied'|escape:'javascript'}"
+};
+</script>
 {literal}
 <script>
 (function() {
@@ -1853,8 +1882,8 @@ var _nhm = {$open_heatmap|default:'null'};
       var uri = document.getElementById('neria-pm-redirect-uri');
       if (!uri) { return; }
       navigator.clipboard.writeText(uri.textContent.trim()).then(function() {
-        pmCopyBtn.textContent = '✓ Copié';
-        setTimeout(function() { pmCopyBtn.textContent = '📋 Copier'; }, 2000);
+        pmCopyBtn.textContent = _nCopyLbl.copied;
+        setTimeout(function() { pmCopyBtn.textContent = _nCopyLbl.copy; }, 2000);
       });
     });
   }
@@ -1868,8 +1897,8 @@ var _nhm = {$open_heatmap|default:'null'};
       var uri = document.getElementById('neria-sc-redirect-uri');
       if (!uri) { return; }
       navigator.clipboard.writeText(uri.textContent.trim()).then(function() {
-        copyBtn.textContent = '✓ Copié';
-        setTimeout(function() { copyBtn.textContent = '📋 Copier'; }, 2000);
+        copyBtn.textContent = _nCopyLbl.copied;
+        setTimeout(function() { copyBtn.textContent = _nCopyLbl.copy; }, 2000);
       });
     });
   }
@@ -1881,17 +1910,15 @@ var _nhm = {$open_heatmap|default:'null'};
 <div class="neria-section" id="neria-postmaster-tools">
   <h2 class="neria-section__title">🔭 Google Postmaster Tools</h2>
   <p class="neria-section__desc">
-    Connectez votre compte Google pour afficher directement dans Neria le taux de spam signalé,
-    la réputation de domaine et les ratios SPF/DKIM/DMARC mesurés par Gmail.
+    {neria_admin key='stats.postmaster_desc'}
   </p>
 
   {* ═══ ÉTAT 1 : Non configuré — saisie des credentials ══════ *}
   {if !$postmaster_configured}
   <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:24px;margin-top:16px;">
-    <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:8px;">⚙️ Configuration OAuth 2.0</div>
+    <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:8px;">⚙️ {neria_admin key='stats.oauth_config_title'}</div>
     <p style="font-size:12px;color:#7a6a5a;line-height:1.6;margin:0 0 16px;">
-      Créez un projet Google Cloud, activez l'API <strong>Gmail Postmaster Tools</strong>,
-      puis créez des identifiants OAuth 2.0 (type « Application Web ») avec l'URI de redirection suivante :
+      {neria_admin key='stats.pm_intro'}
     </p>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
       <code id="neria-pm-redirect-uri"
@@ -1900,41 +1927,38 @@ var _nhm = {$open_heatmap|default:'null'};
       </code>
       <button type="button" id="neria-pm-copy-btn"
               style="flex-shrink:0;padding:6px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;">
-        📋 Copier
+        📋 {neria_admin key='common.copy'}
       </button>
     </div>
     <div style="font-size:12px;background:#fef9f0;border:1px solid #e8d5b0;border-radius:6px;padding:14px 16px;color:#5c3d1e;line-height:1.7;margin-bottom:20px;">
-      <strong>Étapes de configuration :</strong><br>
+      <strong>{neria_admin key='stats.pm_config_steps_title'}</strong><br>
       1. <a href="https://console.cloud.google.com/" target="_blank" rel="noopener" style="color:#1a7a40;font-weight:600;">console.cloud.google.com</a>
-         → Nouveau projet → <strong>API et services → Bibliothèque</strong><br>
-      2. Recherchez <strong>"Gmail Postmaster Tools API"</strong> → cliquez <strong>Activer</strong><br>
-      3. <strong>API et services → Écran de consentement OAuth</strong> → Externe → renseignez un nom + votre email
-         → dans <strong>Audience</strong>, ajoutez votre adresse Google comme utilisateur test<br>
-      4. <strong>API et services → Identifiants → + Créer des identifiants → ID client OAuth 2.0</strong>
-         → Type : <strong>Application Web</strong>
-         → Collez l'URI de redirection ci-dessus dans <em>"URI de redirection autorisés"</em><br>
-      5. Copiez le <strong>Client ID</strong> et le <strong>Client Secret</strong> affichés par Google et collez-les ci-dessous.<br>
-      <span style="display:block;margin-top:8px;font-size:11px;opacity:.75;">⚠ Votre domaine doit être <strong>vérifié dans Google Search Console</strong> pour que Postmaster Tools affiche des données.</span>
+         {neria_admin key='stats.pm_step1'}<br>
+      2. {neria_admin key='stats.pm_step2'}<br>
+      3. {neria_admin key='stats.pm_step3'}<br>
+      4. {neria_admin key='stats.pm_step4'}<br>
+      5. {neria_admin key='stats.pm_step5'}<br>
+      <span style="display:block;margin-top:8px;font-size:11px;opacity:.75;">{neria_admin key='stats.pm_domain_verified_warning'}</span>
     </div>
     <form method="post" action="{$smarty.server.REQUEST_URI}#neria-postmaster-tools">
       <input type="hidden" name="neria_action" value="save_postmaster_config">
       <input type="hidden" name="neria_tab"    value="stats">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
         <div>
-          <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">Client ID</label>
+          <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">{neria_admin key='stats.label_client_id'}</label>
           <input type="text" name="postmaster_client_id" value="{$postmaster_client_id|escape:'html'}"
                  style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
                  placeholder="12345...apps.googleusercontent.com">
         </div>
         <div>
-          <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">Client Secret</label>
+          <label style="display:block;font-size:11px;font-weight:600;color:#5c3d1e;margin-bottom:4px;">{neria_admin key='stats.label_client_secret'}</label>
           <input type="password" name="postmaster_client_secret"
                  style="width:100%;padding:8px 10px;border:1px solid #d4c5a9;border-radius:5px;font-size:12px;"
                  placeholder="GOCSPX-…">
         </div>
       </div>
       <button type="submit" class="neria-btn neria-btn--primary" style="font-size:12px;padding:8px 18px;">
-        Enregistrer les identifiants
+        {neria_admin key='common.save_credentials'}
       </button>
     </form>
   </div>
@@ -1946,20 +1970,19 @@ var _nhm = {$open_heatmap|default:'null'};
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
       <div style="width:10px;height:10px;border-radius:50%;background:#e67e22;flex-shrink:0;"></div>
       <div>
-        <div style="font-weight:700;font-size:13px;color:#5c3d1e;">Identifiants enregistrés — autorisation requise</div>
-        <div style="font-size:11px;color:#7a6a5a;margin-top:2px;">Client ID : {$postmaster_client_id|escape:'html'|truncate:40:'…':true}</div>
+        <div style="font-weight:700;font-size:13px;color:#5c3d1e;">{neria_admin key='stats.creds_saved_authreq'}</div>
+        <div style="font-size:11px;color:#7a6a5a;margin-top:2px;">{neria_admin key='stats.label_client_id'} : {$postmaster_client_id|escape:'html'|truncate:40:'…':true}</div>
       </div>
     </div>
     <p style="font-size:12px;color:#7a6a5a;line-height:1.6;margin:0 0 16px;">
-      Cliquez sur le bouton ci-dessous pour autoriser Neria à lire vos données Postmaster Tools.
-      Vous serez redirigé vers Google, puis ramené automatiquement ici.
+      {neria_admin key='stats.pm_authorize_body'}
     </p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
       <form method="post" action="{$smarty.server.REQUEST_URI}#neria-postmaster-tools">
         <input type="hidden" name="neria_action" value="connect_postmaster">
         <input type="hidden" name="neria_tab"    value="stats">
         <button type="submit" style="background:#1a7a40;color:#fff;border:none;border-radius:5px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;">
-          🔗 Connecter avec Google
+          🔗 {neria_admin key='stats.connect_google_btn'}
         </button>
       </form>
       <form method="post" action="{$smarty.server.REQUEST_URI}#neria-postmaster-tools">
@@ -1968,7 +1991,7 @@ var _nhm = {$open_heatmap|default:'null'};
         <input type="hidden" name="postmaster_client_id"     value="">
         <input type="hidden" name="postmaster_client_secret" value="">
         <button type="submit" style="background:#fff;color:#7a6a5a;border:1px solid #d4c5a9;border-radius:5px;padding:9px 16px;font-size:12px;cursor:pointer;">
-          Modifier les identifiants
+          {neria_admin key='stats.edit_credentials_btn'}
         </button>
       </form>
     </div>
@@ -1984,9 +2007,9 @@ var _nhm = {$open_heatmap|default:'null'};
       <div style="display:flex;align-items:center;gap:10px;">
         <div style="width:10px;height:10px;border-radius:50%;background:#16a34a;flex-shrink:0;"></div>
         <div>
-          <span style="font-weight:700;font-size:13px;color:#16a34a;">Connecté à Google Postmaster Tools</span>
+          <span style="font-weight:700;font-size:13px;color:#16a34a;">{neria_admin key='stats.pm_connected_label'}</span>
           {if $postmaster_cache_age !== null}
-          <span style="font-size:11px;color:#7a6a5a;margin-left:8px;">— données actualisées il y a {$postmaster_cache_age} min</span>
+          <span style="font-size:11px;color:#7a6a5a;margin-left:8px;">{neria_admin key='stats.pm_data_refreshed_prefix'} {$postmaster_cache_age} {neria_admin key='stats.cache_age_suffix'}</span>
           {/if}
         </div>
       </div>
@@ -1995,14 +2018,14 @@ var _nhm = {$open_heatmap|default:'null'};
           <input type="hidden" name="neria_action" value="refresh_postmaster">
           <input type="hidden" name="neria_tab"    value="stats">
           <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
-            ↺ Actualiser
+            ↺ {neria_admin key='common.refresh'}
           </button>
         </form>
         <form method="post" action="{$smarty.server.REQUEST_URI}#neria-postmaster-tools" style="display:inline;">
           <input type="hidden" name="neria_action" value="disconnect_postmaster">
           <input type="hidden" name="neria_tab"    value="stats">
           <button type="submit" class="neria-btn neria-btn--danger neria-btn--sm">
-            Déconnecter
+            {neria_admin key='common.disconnect'}
           </button>
         </form>
       </div>
@@ -2017,38 +2040,41 @@ var _nhm = {$open_heatmap|default:'null'};
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
           <div>
             <div style="font-weight:700;font-size:15px;color:#5c3d1e;">{$ps.domain|escape:'html'}</div>
-            <div style="font-size:11px;color:#7a6a5a;">Données du {$ps.date|escape:'html'}</div>
+            <div style="font-size:11px;color:#7a6a5a;">{neria_admin key='stats.domain_data_of'} {$ps.date|escape:'html'}</div>
           </div>
           {* Badge réputation domaine *}
           {assign var="drep" value=$ps.domain_reputation}
           {if $drep === 'HIGH'}
-            <div style="background:#d4edda;color:#155724;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;">✅ HIGH — Excellent</div>
+            <div style="background:#d4edda;color:#155724;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;">✅ {neria_admin key='stats.rep_high'}</div>
           {elseif $drep === 'MEDIUM'}
-            <div style="background:#fff3cd;color:#856404;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;">⚠️ MEDIUM — Moyen</div>
+            <div style="background:#fff3cd;color:#856404;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;">⚠️ {neria_admin key='stats.rep_medium'}</div>
           {elseif $drep === 'LOW'}
-            <div style="background:#f8d7da;color:#721c24;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;">🔴 LOW — Dégradé</div>
+            <div style="background:#f8d7da;color:#721c24;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;">🔴 {neria_admin key='stats.rep_low'}</div>
           {elseif $drep === 'BAD'}
-            <div style="background:#721c24;color:#fff;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;">💀 BAD — Bloqué</div>
+            <div style="background:#721c24;color:#fff;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;">💀 {neria_admin key='stats.rep_bad'}</div>
           {else}
-            <div style="background:#f9f6f1;color:#7a6a5a;border-radius:20px;padding:5px 14px;font-size:12px;">○ Insuffisant (trop peu d'envois)</div>
+            <div style="background:#f9f6f1;color:#7a6a5a;border-radius:20px;padding:5px 14px;font-size:12px;">○ {neria_admin key='stats.rep_insufficient'}</div>
           {/if}
         </div>
 
         {* Taux de spam *}
         {if $ps.spam_rate !== null}
           {assign var="spRate" value=$ps.spam_rate}
+          {capture name="zone_green"}{neria_admin key='stats.zone_green'}{/capture}
+          {capture name="zone_attention"}{neria_admin key='stats.zone_attention'}{/capture}
+          {capture name="zone_danger"}{neria_admin key='stats.zone_danger'}{/capture}
           {if $spRate < 0.1}
             {assign var="spColor" value="#16a34a"}
-            {assign var="spLabel" value="Zone verte"}
+            {assign var="spLabel" value=$smarty.capture.zone_green}
           {elseif $spRate < 0.3}
             {assign var="spColor" value="#d97706"}
-            {assign var="spLabel" value="Attention"}
+            {assign var="spLabel" value=$smarty.capture.zone_attention}
           {else}
             {assign var="spColor" value="#dc2626"}
-            {assign var="spLabel" value="Danger"}
+            {assign var="spLabel" value=$smarty.capture.zone_danger}
           {/if}
           <div style="background:#f9f6f1;border-radius:8px;padding:14px 16px;margin-bottom:14px;">
-            <div style="font-size:11px;font-weight:600;color:#7a6a5a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Taux de spam signalé</div>
+            <div style="font-size:11px;font-weight:600;color:#7a6a5a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">{neria_admin key='stats.spam_rate_label'}</div>
             <div style="display:flex;align-items:baseline;gap:8px;">
               <span style="font-size:32px;font-weight:700;color:{$spColor};">{$spRate|string_format:"%.4f"}%</span>
               <span style="font-size:12px;font-weight:600;color:{$spColor};">{$spLabel}</span>
@@ -2087,7 +2113,7 @@ var _nhm = {$open_heatmap|default:'null'};
         {* IP Reputations *}
         {if $ps.ip_reputations && $ps.ip_reputations|count > 0}
         <div style="margin-top:10px;">
-          <div style="font-size:11px;font-weight:600;color:#7a6a5a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Réputations IP</div>
+          <div style="font-size:11px;font-weight:600;color:#7a6a5a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">{neria_admin key='stats.ip_reputations_label'}</div>
           <div style="display:flex;flex-wrap:wrap;gap:6px;">
             {foreach $ps.ip_reputations as $ipr}
               {assign var="ipRep" value=$ipr.reputation|default:'UNKNOWN'}
@@ -2110,7 +2136,7 @@ var _nhm = {$open_heatmap|default:'null'};
         {* Erreurs de livraison *}
         {if $ps.delivery_errors && $ps.delivery_errors|count > 0}
         <div style="margin-top:12px;padding:10px 14px;background:#fff3cd;border:1px solid #ffc107;border-radius:6px;">
-          <div style="font-size:11px;font-weight:600;color:#856404;margin-bottom:4px;">⚠️ Erreurs de livraison détectées</div>
+          <div style="font-size:11px;font-weight:600;color:#856404;margin-bottom:4px;">⚠️ {neria_admin key='stats.delivery_errors_label'}</div>
           {foreach $ps.delivery_errors as $de}
           <div style="font-size:11px;color:#856404;line-height:1.5;">
             {$de.errorClass|default:'UNKNOWN'} — {$de.errorType|default:''} ({$de.errorRatio|default:0|string_format:"%.3f"}%)
@@ -2125,13 +2151,13 @@ var _nhm = {$open_heatmap|default:'null'};
     {elseif $postmaster_stats !== null}
       <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:8px;padding:20px;text-align:center;color:#7a6a5a;font-size:13px;">
         <div style="font-size:24px;margin-bottom:8px;">📭</div>
-        Aucune donnée disponible pour les 7 derniers jours.<br>
-        <small>Cela peut indiquer un volume d'envoi insuffisant ou que votre domaine n'est pas encore vérifié dans Postmaster Tools.</small>
+        {neria_admin key='stats.pm_no_data_7d'}<br>
+        <small>{neria_admin key='stats.pm_no_data_hint'}</small>
       </div>
     {else}
       <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:8px;padding:20px;text-align:center;color:#7a6a5a;font-size:13px;">
         <div style="font-size:24px;margin-bottom:8px;">⏳</div>
-        Cliquez sur <strong>Actualiser</strong> pour charger les données Postmaster Tools.
+        {neria_admin key='stats.pm_empty_prompt'}
       </div>
     {/if}
 
@@ -2148,21 +2174,19 @@ var _nhm = {$open_heatmap|default:'null'};
       </div>
     </div>
     <p style="font-size:12px;color:#7a6a5a;line-height:1.6;margin:0 0 14px;">
-      Smart Network Data Services : réputation de votre <strong>IP d'envoi</strong> auprès de
-      Outlook et Hotmail. Affiche le taux de plaintes spam et l'état de filtrage de votre IP.
-      Essentiel pour les clients Outlook/Hotmail (très répandu en entreprise).
+      {neria_admin key='stats.snds_desc'}
     </p>
     <div style="font-size:12px;background:#f9f6f1;border-radius:6px;padding:10px 12px;color:#5c3d1e;line-height:1.6;">
-      <strong>Comment s'inscrire :</strong><br>
-      1. Relevez l'IP de votre serveur d'envoi<br>
-      2. Connectez-vous sur le site SNDS<br>
-      3. Demandez l'accès pour votre IP<br>
-      4. Vous recevrez un email de confirmation
+      <strong>{neria_admin key='stats.snds_howto_title'}</strong><br>
+      1. {neria_admin key='stats.snds_step1'}<br>
+      2. {neria_admin key='stats.snds_step2'}<br>
+      3. {neria_admin key='stats.snds_step3'}<br>
+      4. {neria_admin key='stats.snds_step4'}
     </div>
   </div>
 
   <div style="margin-top:14px;padding:12px 16px;background:#fef9f0;border:1px solid #e8d5b0;border-radius:6px;font-size:12px;color:#7a6a5a;line-height:1.6;">
-    💡 <strong>Conseil :</strong> Un taux de spam >0,3% sur Google Postmaster entraîne une dégradation immédiate de votre délivrabilité. En dessous de 0,1%, vous êtes dans la zone verte.
+    💡 <strong>{neria_admin key='seasonal.tip_label'}</strong> {neria_admin key='stats.pm_tip'}
   </div>
 </div>
 
@@ -2175,10 +2199,10 @@ var _nhm = {$open_heatmap|default:'null'};
   </p>
 
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:24px;font-size:13px;line-height:1.75;color:#4a3f35;">
-    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-    Sélectionnez un template et une langue, puis cliquez sur <strong>Analyser la délivrabilité</strong>. Neria inspecte l'email selon <strong>8 critères anti-spam</strong> : objet (longueur, mots déclencheurs), ratio texte/HTML, poids total, lien de désabonnement, domaine d'envoi, images sans texte alternatif, et cohérence de l'expéditeur.
+    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+    {neria_admin key='stats.score_howto_body_pre'} <strong>{neria_admin key='stats.analyze_btn'}</strong>. {neria_admin key='stats.score_howto_body_post'}
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8d5b0;">
-      <strong>Score :</strong> 90–100 Excellent · 75–89 Bon · 60–74 Correct · &lt; 60 Risque spam. Chaque critère en échec est accompagné d'une recommandation concrète pour corriger le problème.
+      <strong>{neria_admin key='stats.score_label'}</strong> {neria_admin key='stats.score_howto_scale'}
     </div>
   </div>
 
@@ -2287,22 +2311,21 @@ var _nhm = {$open_heatmap|default:'null'};
     <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:260px;">
       <span style="font-size:22px;color:#5b3fa8;flex-shrink:0;">⊘</span>
       <div>
-        <div style="font-size:13px;font-weight:700;color:#3d2878;">Protection Apple MPP active</div>
+        <div style="font-size:13px;font-weight:700;color:#3d2878;">{neria_admin key='stats.mpp_title'}</div>
         <div style="font-size:11px;color:#7a6a95;margin-top:3px;line-height:1.5;">
-          Les ouvertures automatiques d'Apple Mail (iOS 15+) sont détectées et exclues —
-          vos taux d'ouverture reflètent les vraies lectures humaines.
+          {neria_admin key='stats.mpp_desc'}
         </div>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:20px;flex-shrink:0;">
       <div style="text-align:center;">
         <div style="font-size:22px;font-weight:700;color:#3d2878;line-height:1;">{$stats.kpis.total_open|default:0|number_format:0:',':' '}</div>
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#9b89c0;margin-top:3px;">Ouvertures réelles</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#9b89c0;margin-top:3px;">{neria_admin key='stats.mpp_real_opens'}</div>
       </div>
       <div style="width:1px;height:36px;background:#c9b8f0;"></div>
       <div style="text-align:center;">
         <div style="font-size:22px;font-weight:700;color:#5b3fa8;line-height:1;">{$stats.kpis.mpp_open|default:0|number_format:0:',':' '}</div>
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#9b89c0;margin-top:3px;">Exclues MPP</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#9b89c0;margin-top:3px;">{neria_admin key='stats.mpp_excluded'}</div>
       </div>
     </div>
   </div>
@@ -2321,7 +2344,7 @@ var _nhm = {$open_heatmap|default:'null'};
       <div class="neria-kpi__label">
         {neria_admin key='common.opens'}
         {if isset($stats.kpis.mpp_open) && $stats.kpis.mpp_open > 0}
-        <span class="neria-badge neria-badge--mpp" title="Ouvertures Apple MPP exclues des statistiques">
+        <span class="neria-badge neria-badge--mpp" title="{neria_admin key='stats.mpp_tooltip_excluded'}">
           +{$stats.kpis.mpp_open} MPP
         </span>
         {/if}
@@ -2335,7 +2358,7 @@ var _nhm = {$open_heatmap|default:'null'};
       <div class="neria-kpi__rate">{$stats.kpis.rate_click|default:0}%</div>
     </div>
 
-    <div class="neria-kpi" title="Click-to-Open Rate : parmi les lecteurs ayant vraiment ouvert, combien ont cliqué ?">
+    <div class="neria-kpi" title="{neria_admin key='stats.ctor_tooltip'}">
       <div class="neria-kpi__value">{$stats.kpis.ctor|default:0}%</div>
       <div class="neria-kpi__label">CTOR <span style="font-size:9px;color:var(--neria-text-muted,#aaa);font-weight:400;">clics / ouv. réelles</span></div>
       <div class="neria-kpi__rate" style="font-size:10px;color:var(--neria-text-muted,#aaa);">hors MPP</div>
@@ -2373,7 +2396,7 @@ var _nhm = {$open_heatmap|default:'null'};
           <th class="neria-table__num">{neria_admin key='common.open_rate_short'}</th>
           <th class="neria-table__num">{neria_admin key='common.clicks'}</th>
           <th class="neria-table__num">{neria_admin key='common.click_rate_short'}</th>
-          <th class="neria-table__num" title="Click-to-Open Rate : clics ÷ ouvertures réelles (hors MPP)">CTOR</th>
+          <th class="neria-table__num" title="{neria_admin key='stats.ctor_col_tooltip'}">CTOR</th>
         </tr>
       </thead>
       <tbody>
@@ -2388,7 +2411,7 @@ var _nhm = {$open_heatmap|default:'null'};
             <td class="neria-table__num">
               {$row.total_open|number_format:0:',':' '}
               {if isset($row.mpp_open) && $row.mpp_open > 0}
-              <span class="neria-badge neria-badge--mpp" title="+{$row.mpp_open} ouvertures Apple MPP exclues">MPP</span>
+              <span class="neria-badge neria-badge--mpp" title="+{$row.mpp_open} {neria_admin key='stats.mpp_row_tooltip_suffix'}">MPP</span>
               {/if}
             </td>
             <td class="neria-table__num">
@@ -2420,13 +2443,13 @@ var _nhm = {$open_heatmap|default:'null'};
 
   {* ── Top 10 templates — classement ──────────────────────── *}
   <hr style="border:none; border-top:1px solid rgba(0,0,0,.07); margin:28px 0;" />
-  <h3 style="font-size:13px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; opacity:.5; margin:0 0 16px 0;">Classement des templates</h3>
+  <h3 style="font-size:13px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; opacity:.5; margin:0 0 16px 0;">{neria_admin key='stats.template_ranking_title'}</h3>
 
   {* Onglets de tri *}
   <div style="display:flex;gap:8px;margin-bottom:16px;" id="neria-top10-tabs">
-    <button class="neria-period-tab neria-period-tab--active" data-top10="open">Top ouverture</button>
-    <button class="neria-period-tab" data-top10="click">Top clic</button>
-    <button class="neria-period-tab" data-top10="revenue">Top CA</button>
+    <button class="neria-period-tab neria-period-tab--active" data-top10="open">{neria_admin key='stats.top_open_tab'}</button>
+    <button class="neria-period-tab" data-top10="click">{neria_admin key='stats.top_click_tab'}</button>
+    <button class="neria-period-tab" data-top10="revenue">{neria_admin key='stats.top_revenue_tab'}</button>
   </div>
 
   {* Top ouverture *}
@@ -2509,8 +2532,8 @@ var _nhm = {$open_heatmap|default:'null'};
       <thead><tr>
         <th>#</th>
         <th>{neria_admin key='common.template'}</th>
-        <th class="neria-table__num">Commandes</th>
-        <th class="neria-table__num">CA attribué</th>
+        <th class="neria-table__num">{neria_admin key='stats.orders_label'}</th>
+        <th class="neria-table__num">{neria_admin key='stats.revenue_total'}</th>
       </tr></thead>
       <tbody>
         {foreach $top_templates_revenue as $i => $row}
@@ -2529,7 +2552,7 @@ var _nhm = {$open_heatmap|default:'null'};
     </table>
   </div>
   {else}
-    <p style="font-size:13px;color:var(--neria-muted);margin:0;">Aucune attribution de CA enregistrée sur 30 jours.</p>
+    <p style="font-size:13px;color:var(--neria-muted);margin:0;">{neria_admin key='stats.no_revenue_30d'}</p>
   {/if}
   </div>
 
@@ -2560,12 +2583,12 @@ var _nhm = {$open_heatmap|default:'null'};
   <table style="width:100%; border-collapse:collapse; font-size:13px;">
     <thead>
       <tr style="border-bottom:2px solid rgba(0,0,0,.08);">
-        <th style="text-align:left; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">LANGUE</th>
-        <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">ENVOIS</th>
-        <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">TAUX OUV.</th>
-        <th style="text-align:left; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px; width:200px;">BARRE OUV.</th>
-        <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">TAUX CLIC</th>
-        <th style="text-align:left; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px; width:200px;">BARRE CLIC</th>
+        <th style="text-align:left; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">{neria_admin key='stats.col_language'}</th>
+        <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">{neria_admin key='stats.col_sends'}</th>
+        <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">{neria_admin key='stats.col_open_rate'}</th>
+        <th style="text-align:left; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px; width:200px;">{neria_admin key='stats.col_open_bar'}</th>
+        <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">{neria_admin key='stats.col_click_rate'}</th>
+        <th style="text-align:left; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px; width:200px;">{neria_admin key='stats.col_click_bar'}</th>
       </tr>
     </thead>
     <tbody>
@@ -2643,10 +2666,10 @@ var _nhm = {$open_heatmap|default:'null'};
   <p class="neria-section__desc">{neria_admin key='stats.golden_hour_desc'}</p>
 
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:24px;font-size:13px;line-height:1.75;color:#4a3f35;">
-    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-    Neria analyse les <strong>90 derniers jours</strong> d'ouvertures pour identifier, par langue, le jour et la tranche horaire où vos clients lisent le plus leurs emails. Ces données alimentent automatiquement la fonctionnalité <strong>Fenêtre d'achat</strong> : les emails comportementaux (relances, anniversaires, upsell…) sont programmés à l'heure préférée de chaque client.
+    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+    {neria_admin key='stats.golden_howto_body'}
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8d5b0;">
-      <strong>Données :</strong> le statut <em>Correcte</em> indique une fiabilité suffisante (50+ ouvertures). En dessous, les données sont marquées <em>Insuffisantes</em> et Neria utilise une tranche par défaut (10h–11h). Le pixel de tracking doit être actif pour accumuler des données.
+      {neria_admin key='stats.golden_howto_data'}
     </div>
   </div>
 
@@ -2705,10 +2728,9 @@ var _nhm = {$open_heatmap|default:'null'};
 <div class="neria-section" id="neria-checkout-abandonment-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
-      <h2 class="neria-section__title" style="margin:0 0 4px 0;">Abandon de caisse ✦</h2>
+      <h2 class="neria-section__title" style="margin:0 0 4px 0;">{neria_admin key='stats.checkout_title'} ✦</h2>
       <p class="neria-section__desc" style="margin:0;">
-        Clients ayant atteint la page de paiement (transporteur + adresses sélectionnés) mais n'ayant pas finalisé.
-        Email rassurant envoyé automatiquement <strong>1h après l'abandon</strong>, sans promotion.
+        {neria_admin key='stats.checkout_desc'}
       </p>
     </div>
     <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-checkout-abandonment-section" style="display:inline;">
@@ -2719,7 +2741,7 @@ var _nhm = {$open_heatmap|default:'null'};
                      background:{if $checkout_abandonment_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if $checkout_abandonment_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $checkout_abandonment_enabled}{neria_admin key='stats.toggle_active_off'}{else}{neria_admin key='stats.toggle_inactive_on'}{/if}
       </button>
     </form>
   </div>
@@ -2727,28 +2749,27 @@ var _nhm = {$open_heatmap|default:'null'};
   <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:12px; margin-bottom:24px;">
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$checkout_abandonment_stats.emails_sent|default:0}</div>
-      <div class="neria-kpi__label">Emails envoyés</div>
+      <div class="neria-kpi__label">{neria_admin key='common.emails_sent'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$checkout_abandonment_stats.orders_recovered|default:0}</div>
-      <div class="neria-kpi__label">Commandes récupérées</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.kpi_orders_recovered'}</div>
     </div>
     <div class="neria-kpi neria-kpi--main">
       <div class="neria-kpi__value">{$checkout_abandonment_stats.revenue_recovered|default:0|string_format:"%.2f"} {$currency_symbol}</div>
-      <div class="neria-kpi__label">CA récupéré</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.kpi_revenue_recovered'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$checkout_abandonment_stats.conversion_rate|default:0} %</div>
-      <div class="neria-kpi__label">Taux de conversion</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.kpi_conversion_rate'}</div>
     </div>
   </div>
 
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;font-size:13px;line-height:1.75;color:#4a3f35;">
-    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-    Neria détecte les paniers dont le transporteur et les deux adresses ont été sélectionnés mais sans commande finalisée.
-    Un email rassurant (ton "problème technique ?") est envoyé une seule fois par panier, 1h après l'abandon.
+    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+    {neria_admin key='stats.checkout_howto_body'}
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8d5b0;">
-      <strong>Déduplication :</strong> un client qui reçoit cet email ne recevra aucune des 3 relances panier abandonné pour le même panier, et vice-versa.
+      {neria_admin key='stats.checkout_howto_dedup'}
     </div>
   </div>
 </div>
@@ -2757,10 +2778,9 @@ var _nhm = {$open_heatmap|default:'null'};
 <div class="neria-section" id="neria-relationship-anniversary-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
-      <h2 class="neria-section__title" style="margin:0 0 4px 0;">Anniversaire de la relation client ✦</h2>
+      <h2 class="neria-section__title" style="margin:0 0 4px 0;">{neria_admin key='stats.anniversary_title'} ✦</h2>
       <p class="neria-section__desc" style="margin:0;">
-        Chaque année, à la date exacte de leur premier achat, vos clients reçoivent un email personnel.
-        "Il y a deux ans, vous nous avez accordé votre confiance pour la première fois."
+        {neria_admin key='stats.anniversary_desc'}
       </p>
     </div>
     <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-relationship-anniversary-section" style="display:inline;">
@@ -2771,7 +2791,7 @@ var _nhm = {$open_heatmap|default:'null'};
                      background:{if $relationship_anniversary_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if $relationship_anniversary_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $relationship_anniversary_enabled}{neria_admin key='stats.toggle_active_off'}{else}{neria_admin key='stats.toggle_inactive_on'}{/if}
       </button>
     </form>
   </div>
@@ -2782,39 +2802,34 @@ var _nhm = {$open_heatmap|default:'null'};
               font-size:12px; color:#78350f; line-height:1.6;">
     <span style="font-size:16px; flex-shrink:0;">⚠</span>
     <span>
-      <strong>Attention doublon :</strong> le template <em>Premier anniversaire client</em> (first_anniversary)
-      envoie également un email à J+365 du 1er achat. Si les deux sont actifs, vos clients recevront
-      deux emails le même jour pour leur première année. Nous recommandons de <strong>désactiver
-      first_anniversary</strong> dans l'onglet <em>Envoi manuel</em> si vous utilisez cette fonctionnalité.
+      {neria_admin key='stats.anniversary_dup_warning'}
     </span>
   </div>
 
   <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:12px; margin-bottom:24px;">
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$relationship_anniversary_stats.emails_sent|default:0}</div>
-      <div class="neria-kpi__label">Emails envoyés</div>
+      <div class="neria-kpi__label">{neria_admin key='common.emails_sent'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$relationship_anniversary_stats.orders_attributed|default:0}</div>
-      <div class="neria-kpi__label">Commandes attribuées</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.kpi_orders_attributed'}</div>
     </div>
     <div class="neria-kpi neria-kpi--main">
       <div class="neria-kpi__value">{$relationship_anniversary_stats.revenue_attributed|default:0|string_format:"%.2f"} {$currency_symbol}</div>
-      <div class="neria-kpi__label">CA attribué</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.revenue_total'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$relationship_anniversary_stats.avg_order_value|default:0|string_format:"%.2f"} {$currency_symbol}</div>
-      <div class="neria-kpi__label">Panier moyen</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.kpi_avg_order'}</div>
     </div>
   </div>
 
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;font-size:13px;line-height:1.75;color:#4a3f35;">
-    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-    Chaque jour, le CRON détecte les clients dont la date du premier achat correspond à aujourd'hui
-    (même jour, même mois), avec au moins 1 an d'ancienneté. L'email s'adapte automatiquement à l'année :
-    "Il y a un an…", "Il y a deux ans…", "Il y a trois ans…" — dans la langue du client.
+    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+    {neria_admin key='stats.anniversary_howto_body'}
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8d5b0;">
-      <strong>Attribution :</strong> toute commande passée dans les <strong>48 heures</strong> suivant l'envoi est comptabilisée dans le CA attribué.
+      {neria_admin key='stats.anniversary_howto_attribution'}
     </div>
   </div>
 </div>
@@ -2823,9 +2838,9 @@ var _nhm = {$open_heatmap|default:'null'};
 <div class="neria-section" id="neria-upsell-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
-      <h2 class="neria-section__title" style="margin:0 0 4px 0;">Upsell Intelligent ✦</h2>
+      <h2 class="neria-section__title" style="margin:0 0 4px 0;">{neria_admin key='stats.upsell_title'} ✦</h2>
       <p class="neria-section__desc" style="margin:0;">
-        Produit complémentaire suggéré automatiquement dans l'email post-achat (J+14 après livraison).
+        {neria_admin key='stats.upsell_desc'}
       </p>
     </div>
     <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-upsell-section" style="display:inline;">
@@ -2836,85 +2851,79 @@ var _nhm = {$open_heatmap|default:'null'};
                      background:{if $upsell_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if $upsell_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $upsell_enabled}{neria_admin key='stats.toggle_active_off'}{else}{neria_admin key='stats.toggle_inactive_on'}{/if}
       </button>
     </form>
   </div>
 
   {* ── Notice explicative ──────────────────────────────────── *}
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:24px;font-size:13px;line-height:1.75;color:#4a3f35;">
-    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">À quoi ça sert</div>
-    14 jours après la livraison, Neria glisse dans l'email de suivi <strong>un seul produit complémentaire</strong>,
-    choisi automatiquement selon 3 critères, dans cet ordre de priorité :
+    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_purpose_title'}</div>
+    {neria_admin key='stats.upsell_howto_body'}
     <div style="margin:10px 0;">
-      <strong style="color:#1a7a40;">1. Accessoire</strong> que vous avez associé au produit acheté ·
-      <strong style="color:#2563a8;">2. Souvent acheté ensemble</strong> (déduit de vos commandes) ·
-      <strong style="color:#a0520d;">3. Meilleure vente</strong> de la même catégorie.
+      <strong style="color:#1a7a40;">{neria_admin key='stats.upsell_criteria1'}</strong> {neria_admin key='stats.upsell_criteria1_desc'} ·
+      <strong style="color:#2563a8;">{neria_admin key='stats.upsell_criteria2'}</strong> {neria_admin key='stats.upsell_criteria2_desc'} ·
+      <strong style="color:#a0520d;">{neria_admin key='stats.upsell_criteria3'}</strong> {neria_admin key='stats.upsell_criteria3_desc'}
     </div>
-    Les produits déjà achetés par le client (ou déjà dans sa commande) sont exclus, et seuls les articles
-    <strong>en stock</strong> sont proposés. Si le client clique puis commande sous 7 jours, la vente est
-    comptabilisée dans « CA généré » ci-dessous — c'est votre retour sur investissement, automatique et sans effort.
+    {neria_admin key='stats.upsell_howto_footer'}
   </div>
 
   <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:12px; margin-bottom:28px;">
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$upsell_stats.total_sent|default:0}</div>
-      <div class="neria-kpi__label">Suggestions</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.upsell_kpi_suggestions'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$upsell_stats.total_clicked|default:0}</div>
-      <div class="neria-kpi__label">Clics</div>
+      <div class="neria-kpi__label">{neria_admin key='common.clicks'}</div>
       <div class="neria-kpi__rate">{$upsell_stats.ctr|default:0}%</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$upsell_stats.total_converted|default:0}</div>
-      <div class="neria-kpi__label">Conversions</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.upsell_kpi_conversions'}</div>
       <div class="neria-kpi__rate">{$upsell_stats.conv_rate|default:0}%</div>
     </div>
     <div class="neria-kpi neria-kpi--main">
       <div class="neria-kpi__value">{$upsell_stats.total_revenue|default:0|string_format:"%.2f"} {$currency_symbol}</div>
-      <div class="neria-kpi__label">CA généré</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.upsell_kpi_revenue'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$upsell_stats.avg_order|default:0|string_format:"%.2f"} {$currency_symbol}</div>
-      <div class="neria-kpi__label">Panier moyen</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.kpi_avg_order'}</div>
     </div>
   </div>
 
   <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:28px;">
     <span style="padding:4px 10px; background:#f0f8f4; color:#1a7a40; border-radius:20px; font-size:11px; font-weight:600;">
-      ✦ Accessoire : {$upsell_stats.cnt_accessory|default:0}
+      ✦ {neria_admin key='stats.upsell_badge_accessory'} : {$upsell_stats.cnt_accessory|default:0}
     </span>
     <span style="padding:4px 10px; background:#f0f4f8; color:#2563a8; border-radius:20px; font-size:11px; font-weight:600;">
-      ✦ Co-achat : {$upsell_stats.cnt_co_purchase|default:0}
+      ✦ {neria_admin key='stats.upsell_badge_co_purchase'} : {$upsell_stats.cnt_co_purchase|default:0}
     </span>
     <span style="padding:4px 10px; background:#faf6f0; color:#a0520d; border-radius:20px; font-size:11px; font-weight:600;">
-      ✦ Catégorie : {$upsell_stats.cnt_bestseller|default:0}
+      ✦ {neria_admin key='stats.upsell_badge_category'} : {$upsell_stats.cnt_bestseller|default:0}
     </span>
   </div>
 
   <div style="padding:18px; background:var(--neria-bg); border-radius:6px; margin-bottom:28px;">
     <p style="font-size:12px; font-weight:700; color:var(--neria-text); margin:0 0 6px 0; text-transform:uppercase; letter-spacing:.06em;">
-      Prévisualiser l'email que recevra votre client
+      {neria_admin key='stats.upsell_preview_title'}
     </p>
     <p style="font-size:12px; color:var(--neria-muted); margin:0 0 14px 0; line-height:1.6;">
-      <strong>Mode d'emploi :</strong> saisissez le numéro ou la référence d'une commande livrée, puis cliquez sur
-      « Prévisualiser ». Vous verrez le <strong>bloc exact</strong> qui sera inséré dans l'email de suivi de ce client —
-      image, prix et bouton compris. <strong>Aucun email n'est envoyé</strong> : c'est une simulation pour vérifier la
-      pertinence de la suggestion avant qu'elle ne parte réellement.
+      {neria_admin key='stats.upsell_preview_howto'}
     </p>
     <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-      <input type="text" id="neria-upsell-order-id" placeholder="N° ou réf. (ex : 12 ou NER-000123)"
+      <input type="text" id="neria-upsell-order-id" placeholder="{neria_admin key='stats.order_ref_placeholder'}"
              autocomplete="off"
              style="padding:8px 12px; border:1px solid var(--neria-border); border-radius:4px;
                     font-size:13px; width:240px; background:var(--neria-container);">
       <button type="button" class="neria-btn neria-btn--primary" onclick="neriaPreviewUpsell()">
-        Prévisualiser
+        {neria_admin key='stats.preview_btn'}
       </button>
     </div>
     <div id="neria-upsell-preview" style="margin-top:18px; display:none;">
       <div style="font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--neria-muted); margin-bottom:8px;">
-        ↓ Aperçu tel que votre client le verra dans son email
+        ↓ {neria_admin key='stats.upsell_preview_seenote'}
       </div>
       <div style="background:#ffffff; border:1px solid var(--neria-border); border-radius:6px; padding:8px 28px 24px; max-width:560px;">
         <div id="neria-upsell-block"></div>
@@ -2928,13 +2937,13 @@ var _nhm = {$open_heatmap|default:'null'};
     <table class="neria-table" style="min-width:700px;">
       <thead>
         <tr>
-          <th>Client</th>
-          <th>Produit suggéré</th>
-          <th>Niveau</th>
-          <th>Envoyé le</th>
-          <th>Cliqué</th>
-          <th>Converti</th>
-          <th>Montant</th>
+          <th>{neria_admin key='stats.col_client'}</th>
+          <th>{neria_admin key='stats.col_suggested_product'}</th>
+          <th>{neria_admin key='stats.col_level'}</th>
+          <th>{neria_admin key='stats.col_sent_on'}</th>
+          <th>{neria_admin key='stats.col_clicked'}</th>
+          <th>{neria_admin key='stats.col_converted'}</th>
+          <th>{neria_admin key='stats.col_amount'}</th>
         </tr>
       </thead>
       <tbody>
@@ -2943,7 +2952,7 @@ var _nhm = {$open_heatmap|default:'null'};
           <td>
             <span style="font-size:13px; font-weight:600;">{$urow.firstname|escape:'html'} {$urow.lastname|escape:'html'}</span><br>
             <span style="font-size:11px; color:var(--neria-muted);">{$urow.email|escape:'html'}</span><br>
-            <span style="font-size:10px; color:var(--neria-muted);">Cde #{$urow.order_ref|escape:'html'}</span>
+            <span style="font-size:10px; color:var(--neria-muted);">{neria_admin key='stats.order_ref_prefix'}{$urow.order_ref|escape:'html'}</span>
           </td>
           <td>
             <div style="display:flex; align-items:center; gap:10px;">
@@ -2953,9 +2962,9 @@ var _nhm = {$open_heatmap|default:'null'};
             </div>
           </td>
           <td>
-            {if $urow.tier == 'accessory'}<span style="padding:3px 8px; background:#f0f8f4; color:#1a7a40; border-radius:20px; font-size:10px; font-weight:700;">Accessoire</span>
-            {elseif $urow.tier == 'co_purchase'}<span style="padding:3px 8px; background:#f0f4f8; color:#2563a8; border-radius:20px; font-size:10px; font-weight:700;">Co-achat</span>
-            {else}<span style="padding:3px 8px; background:#faf6f0; color:#a0520d; border-radius:20px; font-size:10px; font-weight:700;">Catégorie</span>{/if}
+            {if $urow.tier == 'accessory'}<span style="padding:3px 8px; background:#f0f8f4; color:#1a7a40; border-radius:20px; font-size:10px; font-weight:700;">{neria_admin key='stats.upsell_badge_accessory'}</span>
+            {elseif $urow.tier == 'co_purchase'}<span style="padding:3px 8px; background:#f0f4f8; color:#2563a8; border-radius:20px; font-size:10px; font-weight:700;">{neria_admin key='stats.upsell_badge_co_purchase'}</span>
+            {else}<span style="padding:3px 8px; background:#faf6f0; color:#a0520d; border-radius:20px; font-size:10px; font-weight:700;">{neria_admin key='stats.upsell_badge_category'}</span>{/if}
           </td>
           <td style="font-size:12px; color:var(--neria-muted); white-space:nowrap;">{$urow.sent_at|date_format:'%d/%m/%Y'}</td>
           <td style="text-align:center;">
@@ -2963,7 +2972,7 @@ var _nhm = {$open_heatmap|default:'null'};
             {else}<span style="color:var(--neria-muted);">—</span>{/if}
           </td>
           <td style="text-align:center;">
-            {if $urow.id_order_converted}<span style="color:#1a7a40; font-weight:700; font-size:15px;" title="Cde #{$urow.id_order_converted}">✓</span>
+            {if $urow.id_order_converted}<span style="color:#1a7a40; font-weight:700; font-size:15px;" title="{neria_admin key='stats.order_ref_prefix'}{$urow.id_order_converted}">✓</span>
             {else}<span style="color:var(--neria-muted);">—</span>{/if}
           </td>
           <td style="font-size:13px; font-weight:700; white-space:nowrap; color:{if $urow.conversion_amount > 0}var(--neria-accent){else}var(--neria-muted){/if};">
@@ -2976,7 +2985,7 @@ var _nhm = {$open_heatmap|default:'null'};
   </div>
   {else}
   <p style="font-size:13px; color:var(--neria-muted); margin:0;">
-    Aucune suggestion envoyée pour l'instant. Les emails <em>post_purchase_review</em> (J+14 après livraison) déclencheront les suggestions automatiquement.
+    {neria_admin key='stats.upsell_no_suggestions'}
   </p>
   {/if}
 </div>
@@ -2986,9 +2995,9 @@ var _nhm = {$open_heatmap|default:'null'};
 <div class="neria-section" id="neria-propensity-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
-      <h2 class="neria-section__title" style="margin:0 0 4px 0;">Fenêtres d'achat optimales 🎯</h2>
+      <h2 class="neria-section__title" style="margin:0 0 4px 0;">{neria_admin key='stats.propensity_title'} 🎯</h2>
       <p class="neria-text" style="margin:0; font-size:13px; opacity:.7;">
-        Clients dont le score de propension dépasse {$propensity_threshold}/100 en ce moment — moment idéal pour leur envoyer une offre ciblée.
+        {neria_admin key='stats.propensity_desc'}
       </p>
     </div>
     <form method="post" style="margin:0;">
@@ -2998,21 +3007,21 @@ var _nhm = {$open_heatmap|default:'null'};
                      background:{if $propensity_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if $propensity_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $propensity_enabled}{neria_admin key='stats.toggle_active_off'}{else}{neria_admin key='stats.toggle_inactive_on'}{/if}
       </button>
     </form>
   </div>
 
   <div style="background:#f9f6f1; border:1px solid #e8d5b0; border-radius:6px; padding:16px 20px; margin-bottom:24px; font-size:13px; line-height:1.7; color:#4a3f35;">
-    <div style="font-weight:700; margin-bottom:8px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; opacity:.6;">Comment ça fonctionne</div>
-    Neria calcule chaque nuit un score de propension à l'achat (0–100) pour chaque client ayant déjà commandé, selon <strong>4 facteurs</strong> :
+    <div style="font-weight:700; margin-bottom:8px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+    {neria_admin key='stats.propensity_howto_body'}
     <ul style="margin:10px 0 10px 18px; padding:0;">
-      <li><strong>Récence (0–40 pts)</strong> — Score plein si achat &lt; 7 jours, nul à 90 jours, décroissance linéaire entre les deux.</li>
-      <li><strong>Fréquence (0–25 pts)</strong> — Nombre de commandes par mois sur l'historique complet.</li>
-      <li><strong>Engagement email (0–25 pts)</strong> — Ouvertures et clics sur les 30 derniers jours (1 pt/ouverture, 2 pts/clic).</li>
-      <li><strong>Saisonnalité personnelle (0–10 pts)</strong> — Ce client achète-t-il historiquement plus durant ce mois-ci ?</li>
+      <li><strong>{neria_admin key='stats.propensity_factor_recency'}</strong> — {neria_admin key='stats.propensity_factor_recency_desc'}</li>
+      <li><strong>{neria_admin key='stats.propensity_factor_frequency'}</strong> — {neria_admin key='stats.propensity_factor_frequency_desc'}</li>
+      <li><strong>{neria_admin key='stats.propensity_factor_engagement'}</strong> — {neria_admin key='stats.propensity_factor_engagement_desc'}</li>
+      <li><strong>{neria_admin key='stats.propensity_factor_seasonality'}</strong> — {neria_admin key='stats.propensity_factor_seasonality_desc'}</li>
     </ul>
-    Les clients atteignant <strong>{$propensity_threshold}/100</strong> apparaissent ici comme étant en <em>fenêtre d'achat optimale</em>. Cliquez sur <strong>Envoyer offre</strong> pour accéder directement au formulaire d'envoi manuel pré-rempli avec ce client.
+    {neria_admin key='stats.propensity_howto_footer'}
   </div>
 
   {if $propensity_alerts}
@@ -3020,14 +3029,14 @@ var _nhm = {$open_heatmap|default:'null'};
     <table style="width:100%; border-collapse:collapse; font-size:13px;">
       <thead>
         <tr style="border-bottom:2px solid rgba(0,0,0,.08);">
-          <th style="text-align:left; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">CLIENT</th>
-          <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">SCORE</th>
-          <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">RÉCENCE</th>
-          <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">FRÉQUENCE</th>
-          <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">ENGAGEMENT</th>
-          <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">SAISONNALITÉ</th>
-          <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">DERNIER ACHAT</th>
-          <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">ACTION</th>
+          <th style="text-align:left; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">{neria_admin key='stats.col_client_caps'}</th>
+          <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">{neria_admin key='stats.col_score'}</th>
+          <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">{neria_admin key='stats.col_recency'}</th>
+          <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">{neria_admin key='stats.col_frequency'}</th>
+          <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">{neria_admin key='stats.col_engagement'}</th>
+          <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">{neria_admin key='stats.col_seasonality'}</th>
+          <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">{neria_admin key='stats.col_last_order'}</th>
+          <th style="text-align:center; padding:10px 16px; font-weight:600; opacity:.55; letter-spacing:.04em; font-size:11px;">{neria_admin key='stats.col_action'}</th>
         </tr>
       </thead>
       <tbody>
@@ -3079,7 +3088,7 @@ var _nhm = {$open_heatmap|default:'null'};
                       font-weight:700; text-decoration:none; letter-spacing:.04em;"
                onmouseover="this.style.background='#b8975a'"
                onmouseout="this.style.background='#1a1a1a'">
-              Envoyer offre
+              {neria_admin key='stats.send_offer_btn'}
             </a>
           </td>
         </tr>
@@ -3090,8 +3099,7 @@ var _nhm = {$open_heatmap|default:'null'};
   {else}
     <div style="text-align:center; padding:32px 20px; opacity:.5;">
       <div style="font-size:36px; margin-bottom:12px;">🎯</div>
-      <p style="font-size:13px; margin:0;">Aucun client en fenêtre d'achat optimale pour le moment.<br>
-      Les scores sont recalculés chaque nuit par le cron.</p>
+      <p style="font-size:13px; margin:0;">{neria_admin key='stats.propensity_empty'}</p>
     </div>
   {/if}
 </div>
@@ -3099,10 +3107,9 @@ var _nhm = {$open_heatmap|default:'null'};
 <div class="neria-section" id="neria-purchase-window-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
-      <h2 class="neria-section__title" style="margin:0 0 4px 0;">Fenêtre d'achat individuelle ⏰</h2>
+      <h2 class="neria-section__title" style="margin:0 0 4px 0;">{neria_admin key='stats.purchasewindow_title'} ⏰</h2>
       <p class="neria-text" style="margin:0; font-size:13px; opacity:.7;">
-        Neria détecte l'heure naturelle d'achat de chaque client et programme automatiquement
-        les emails comportementaux pour arriver dans cette fenêtre — pas une heure globale, une heure par client.
+        {neria_admin key='stats.purchasewindow_desc'}
       </p>
     </div>
     <form method="post" style="margin:0;">
@@ -3112,31 +3119,27 @@ var _nhm = {$open_heatmap|default:'null'};
                      background:{if $purchase_window_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if $purchase_window_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $purchase_window_enabled}{neria_admin key='stats.toggle_active_off'}{else}{neria_admin key='stats.toggle_inactive_on'}{/if}
       </button>
     </form>
   </div>
 
   <div style="background:#f9f6f1; border:1px solid #e8d5b0; border-radius:6px; padding:16px 20px; margin-bottom:24px; font-size:13px; line-height:1.7; color:#4a3f35;">
-    <div style="font-weight:700; margin-bottom:8px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; opacity:.6;">Comment ça fonctionne</div>
-    Neria analyse l'historique des commandes validées de chaque client pour détecter l'heure à laquelle il achète naturellement.
-    À partir de <strong>2 achats à la même heure</strong>, un pattern est considéré comme fiable.
-    Les emails comportementaux (anniversaire, win-back, relance panier…) ne sont plus envoyés immédiatement
-    mais <strong>mis en file d'attente</strong> et délivrés à l'heure préférée du client — le même jour si possible, sinon le lendemain.
+    <div style="font-weight:700; margin-bottom:8px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+    {neria_admin key='stats.purchasewindow_howto_body'}
     <br><br>
-    Les clients sans fenêtre détectée (premier achat ou achats trop dispersés) reçoivent toujours leurs emails immédiatement.
-    Cette feature est <strong>différente et complémentaire</strong> de la tranche horaire globale par langue.
+    {neria_admin key='stats.purchasewindow_howto_footer'}
   </div>
 
   {* KPIs *}
   <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:16px; margin-bottom:24px;">
     <div style="padding:18px; background:var(--neria-bg); border:1px solid var(--neria-border); border-radius:6px; text-align:center;">
       <div style="font-size:28px; font-weight:800; color:var(--neria-text);">{$purchase_window_stats.pending}</div>
-      <div style="font-size:11px; opacity:.55; margin-top:4px; letter-spacing:.04em; text-transform:uppercase;">Emails en attente</div>
+      <div style="font-size:11px; opacity:.55; margin-top:4px; letter-spacing:.04em; text-transform:uppercase;">{neria_admin key='stats.pw_kpi_pending'}</div>
     </div>
     <div style="padding:18px; background:var(--neria-bg); border:1px solid var(--neria-border); border-radius:6px; text-align:center;">
       <div style="font-size:28px; font-weight:800; color:#1a7a40;">{$purchase_window_stats.sent_30d}</div>
-      <div style="font-size:11px; opacity:.55; margin-top:4px; letter-spacing:.04em; text-transform:uppercase;">Envoyés (30 j)</div>
+      <div style="font-size:11px; opacity:.55; margin-top:4px; letter-spacing:.04em; text-transform:uppercase;">{neria_admin key='stats.pw_kpi_sent_30d'}</div>
     </div>
     <div style="padding:18px; background:var(--neria-bg); border:1px solid var(--neria-border); border-radius:6px; text-align:center;">
       <div style="font-size:28px; font-weight:800; color:var(--neria-accent);">
@@ -3148,22 +3151,22 @@ var _nhm = {$open_heatmap|default:'null'};
           {/if}
         {else}—{/if}
       </div>
-      <div style="font-size:11px; opacity:.55; margin-top:4px; letter-spacing:.04em; text-transform:uppercase;">Délai moyen</div>
+      <div style="font-size:11px; opacity:.55; margin-top:4px; letter-spacing:.04em; text-transform:uppercase;">{neria_admin key='stats.pw_kpi_avg_delay'}</div>
     </div>
     <div style="padding:18px; background:var(--neria-bg); border:1px solid var(--neria-border); border-radius:6px; text-align:center;">
       <div style="font-size:28px; font-weight:800; color:#5b3fa8;">{$purchase_window_stats.coverage_pct}%</div>
-      <div style="font-size:11px; opacity:.55; margin-top:4px; letter-spacing:.04em; text-transform:uppercase;">Clients avec fenêtre</div>
+      <div style="font-size:11px; opacity:.55; margin-top:4px; letter-spacing:.04em; text-transform:uppercase;">{neria_admin key='stats.pw_kpi_coverage'}</div>
     </div>
     <div style="padding:18px; background:var(--neria-bg); border:1px solid var(--neria-border); border-radius:6px; text-align:center;">
       <div style="font-size:28px; font-weight:800; color:var(--neria-text);">
         {if $purchase_window_stats.peak_hour !== null}{$purchase_window_stats.peak_hour}h{else}—{/if}
       </div>
-      <div style="font-size:11px; opacity:.55; margin-top:4px; letter-spacing:.04em; text-transform:uppercase;">Heure de pointe</div>
+      <div style="font-size:11px; opacity:.55; margin-top:4px; letter-spacing:.04em; text-transform:uppercase;">{neria_admin key='stats.pw_kpi_peak_hour'}</div>
     </div>
     {if $purchase_window_stats.failed_30d > 0}
     <div style="padding:18px; background:#fef2f2; border:1px solid #fecaca; border-radius:6px; text-align:center;">
       <div style="font-size:28px; font-weight:800; color:#dc2626;">{$purchase_window_stats.failed_30d}</div>
-      <div style="font-size:11px; opacity:.55; margin-top:4px; letter-spacing:.04em; text-transform:uppercase;">Échecs (30 j)</div>
+      <div style="font-size:11px; opacity:.55; margin-top:4px; letter-spacing:.04em; text-transform:uppercase;">{neria_admin key='stats.pw_kpi_failed'}</div>
     </div>
     {/if}
   </div>
@@ -3172,9 +3175,7 @@ var _nhm = {$open_heatmap|default:'null'};
     <div style="text-align:center; padding:32px 20px; opacity:.5;">
       <div style="font-size:36px; margin-bottom:12px;">⏰</div>
       <p style="font-size:13px; margin:0;">
-        Aucune fenêtre détectée pour l'instant.<br>
-        Les patterns apparaissent dès qu'un client a commandé au moins 2 fois à la même heure.
-        Les statistiques se rempliront après le premier cron nocturne.
+        {neria_admin key='stats.pw_empty'}
       </p>
     </div>
   {/if}
@@ -3183,9 +3184,9 @@ var _nhm = {$open_heatmap|default:'null'};
 <div class="neria-section" id="neria-lifespan-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
-      <h2 class="neria-section__title" style="margin:0 0 4px 0;">Rappel fin de vie produit ⏳</h2>
+      <h2 class="neria-section__title" style="margin:0 0 4px 0;">{neria_admin key='stats.lifespan_title'} ⏳</h2>
       <p class="neria-text" style="margin:0; font-size:13px; opacity:.7;">
-        Définissez la durée de vie estimée de vos produits consommables. Neria envoie automatiquement un email de rappel X jours avant la date estimée d'épuisement.
+        {neria_admin key='stats.lifespan_desc'}
       </p>
     </div>
     <form method="post" style="margin:0;">
@@ -3195,16 +3196,16 @@ var _nhm = {$open_heatmap|default:'null'};
                      background:{if $lifespan_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if $lifespan_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $lifespan_enabled}{neria_admin key='stats.toggle_active_off'}{else}{neria_admin key='stats.toggle_inactive_on'}{/if}
       </button>
     </form>
   </div>
 
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:24px;font-size:13px;line-height:1.75;color:#4a3f35;">
-    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-    Associez une <strong>durée de vie en jours</strong> à vos produits consommables (crèmes, capsules, filtres, compléments…). Neria calcule la date d'épuisement estimée à partir de la date d'achat et envoie automatiquement un email de rappel <strong>X jours avant</strong> cette date — au bon moment pour déclencher un réachat.
+    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+    {neria_admin key='stats.lifespan_howto_body'}
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8d5b0;">
-      <strong>Conseil :</strong> anticipez de 7 à 14 jours pour laisser le temps de la livraison. Si un client a déjà racheté le produit entre-temps, l'email est annulé automatiquement.
+      {neria_admin key='stats.lifespan_howto_tip'}
     </div>
   </div>
 
@@ -3212,17 +3213,17 @@ var _nhm = {$open_heatmap|default:'null'};
   <form method="post" style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-bottom:24px;">
     <input type="hidden" name="neria_action" value="lifespan_add" />
     <div style="display:flex; flex-direction:column; gap:4px;">
-      <label style="font-size:12px; opacity:.7;">ID Produit</label>
+      <label style="font-size:12px; opacity:.7;">{neria_admin key='stats.label_product_id'}</label>
       <input type="text" name="lifespan_id_product" required placeholder="ex: 42"
              pattern="[0-9]+" class="neria-input" style="width:120px;" />
     </div>
     <div style="display:flex; flex-direction:column; gap:4px;">
-      <label style="font-size:12px; opacity:.7;">Durée de vie (jours)</label>
+      <label style="font-size:12px; opacity:.7;">{neria_admin key='stats.label_lifespan_days'}</label>
       <input type="number" name="lifespan_days" min="1" required placeholder="ex: 30"
              class="neria-input" style="width:150px;" />
     </div>
     <div style="display:flex; flex-direction:column; gap:4px;">
-      <label style="font-size:12px; opacity:.7;">Alerter X jours avant</label>
+      <label style="font-size:12px; opacity:.7;">{neria_admin key='stats.label_alert_days_before'}</label>
       <input type="number" name="lifespan_alert_days" min="1" value="7"
              class="neria-input" style="width:140px;" />
     </div>
@@ -3235,7 +3236,7 @@ var _nhm = {$open_heatmap|default:'null'};
                      font-size:12px; font-weight:700; cursor:pointer; letter-spacing:.04em;"
               onmouseover="this.style.background='#b8975a'"
               onmouseout="this.style.background='#1a1a1a'">
-        Ajouter
+        {neria_admin key='stats.add_btn'}
       </button>
     </div>
   </form>
@@ -3245,11 +3246,11 @@ var _nhm = {$open_heatmap|default:'null'};
   <table style="width:100%; border-collapse:collapse; font-size:13px;">
     <thead>
       <tr style="border-bottom:1px solid rgba(255,255,255,.15); opacity:.6;">
-        <th style="text-align:left; padding:6px 12px;">Produit</th>
-        <th style="text-align:left; padding:6px 12px;">Référence</th>
-        <th style="text-align:center; padding:6px 12px;">Durée vie</th>
-        <th style="text-align:center; padding:6px 12px;">Alerte avant</th>
-        <th style="text-align:center; padding:6px 12px;">Action</th>
+        <th style="text-align:left; padding:6px 12px;">{neria_admin key='stats.col_product'}</th>
+        <th style="text-align:left; padding:6px 12px;">{neria_admin key='stats.col_reference'}</th>
+        <th style="text-align:center; padding:6px 12px;">{neria_admin key='stats.col_lifespan'}</th>
+        <th style="text-align:center; padding:6px 12px;">{neria_admin key='stats.col_alert_before'}</th>
+        <th style="text-align:center; padding:6px 12px;">{neria_admin key='stats.actions_col'}</th>
       </tr>
     </thead>
     <tbody>
@@ -3257,13 +3258,13 @@ var _nhm = {$open_heatmap|default:'null'};
       <tr style="border-bottom:1px solid rgba(255,255,255,.07);">
         <td style="padding:8px 12px;">{$lp.product_name|escape:'html':'UTF-8'|default:'—'}</td>
         <td style="padding:8px 12px; opacity:.6;">{$lp.reference|escape:'html':'UTF-8'|default:'—'}</td>
-        <td style="padding:8px 12px; text-align:center;">{$lp.lifespan_days} j</td>
-        <td style="padding:8px 12px; text-align:center;">{$lp.alert_days} j</td>
+        <td style="padding:8px 12px; text-align:center;">{$lp.lifespan_days} {neria_admin key='common.days_unit_short'}</td>
+        <td style="padding:8px 12px; text-align:center;">{$lp.alert_days} {neria_admin key='common.days_unit_short'}</td>
         <td style="padding:8px 12px; text-align:center;">
           <form method="post" style="margin:0;">
             <input type="hidden" name="neria_action" value="lifespan_delete" />
             <input type="hidden" name="lifespan_id" value="{$lp.id_lifespan}" />
-            <button type="button" data-confirm="Supprimer ce produit ?" onclick="neriaConfirmDelete(this);" style="background:none; border:none; cursor:pointer; color:#e74c3c; font-size:16px;">✕</button>
+            <button type="button" data-confirm="{neria_admin key='stats.confirm_delete_product'}" onclick="neriaConfirmDelete(this);" style="background:none; border:none; cursor:pointer; color:#e74c3c; font-size:16px;">✕</button>
           </form>
         </td>
       </tr>
@@ -3272,7 +3273,7 @@ var _nhm = {$open_heatmap|default:'null'};
   </table>
   {else}
   <p class="neria-text" style="opacity:.5; font-size:13px; text-align:center; padding:20px 0;">
-    Aucun produit configuré. Ajoutez un produit ci-dessus pour commencer.
+    {neria_admin key='stats.lifespan_empty'}
   </p>
   {/if}
 </div>
@@ -3281,47 +3282,47 @@ var _nhm = {$open_heatmap|default:'null'};
 <div class="neria-section" id="neria-reconciliation-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
-      <h2 class="neria-section__title" style="margin:0 0 4px 0;">Réconciliation post-remboursement ✦</h2>
-      <p class="neria-section__subtitle" style="margin:0;">Séquence automatique de 3 emails pour reconquérir les clients remboursés.</p>
+      <h2 class="neria-section__title" style="margin:0 0 4px 0;">{neria_admin key='stats.reconciliation_title'} ✦</h2>
+      <p class="neria-section__subtitle" style="margin:0;">{neria_admin key='stats.reconciliation_subtitle'}</p>
     </div>
     <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-reconciliation-section" style="display:inline;">
       <input type="hidden" name="neria_action" value="reconciliation_toggle">
       <button type="submit" class="neria-btn" style="font-size:12px; padding:6px 14px;
                      background:{if $reconciliation_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; cursor:pointer;">
-        {if $reconciliation_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $reconciliation_enabled}{neria_admin key='stats.toggle_active_off'}{else}{neria_admin key='stats.toggle_inactive_on'}{/if}
       </button>
     </form>
   </div>
 
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:20px;font-size:13px;line-height:1.75;color:#4a3f35;">
-    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-    Dès qu'un remboursement est enregistré dans PrestaShop, Neria planifie une séquence de 3 emails discrets : <strong>J+1</strong> (confirmation personnelle), <strong>J+3</strong> (attention exclusive), <strong>J+7</strong> (invitation douce au retour). La séquence est automatiquement annulée si le client passe une nouvelle commande entre-temps.
+    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+    {neria_admin key='stats.reconciliation_howto_body'}
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8d5b0;">
-      <strong>Potentiel :</strong> un client remboursé qui reçoit ce traitement a statistiquement plus de chances de racheter qu'un client sans problème — la résolution crée un lien émotionnel plus fort qu'une transaction sans accroc.
+      {neria_admin key='stats.reconciliation_howto_potential'}
     </div>
   </div>
 
   <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; margin-bottom:24px;">
     <div class="neria-kpi-card">
       <div class="neria-kpi-card__value">{$reconciliation_stats.total|default:0}</div>
-      <div class="neria-kpi-card__label">SÉQUENCES PLANIFIÉES</div>
+      <div class="neria-kpi-card__label">{neria_admin key='stats.reconciliation_kpi_scheduled'}</div>
     </div>
     <div class="neria-kpi-card">
       <div class="neria-kpi-card__value">{$reconciliation_stats.step1_sent|default:0}</div>
-      <div class="neria-kpi-card__label">J+1 ENVOYÉS</div>
+      <div class="neria-kpi-card__label">J+1 {neria_admin key='stats.reconciliation_kpi_step_sent'}</div>
     </div>
     <div class="neria-kpi-card">
       <div class="neria-kpi-card__value">{$reconciliation_stats.step2_sent|default:0}</div>
-      <div class="neria-kpi-card__label">J+3 ENVOYÉS</div>
+      <div class="neria-kpi-card__label">J+3 {neria_admin key='stats.reconciliation_kpi_step_sent'}</div>
     </div>
     <div class="neria-kpi-card">
       <div class="neria-kpi-card__value">{$reconciliation_stats.step3_sent|default:0}</div>
-      <div class="neria-kpi-card__label">J+7 ENVOYÉS</div>
+      <div class="neria-kpi-card__label">J+7 {neria_admin key='stats.reconciliation_kpi_step_sent'}</div>
     </div>
     <div class="neria-kpi-card">
       <div class="neria-kpi-card__value">{$reconciliation_stats.cancelled|default:0}</div>
-      <div class="neria-kpi-card__label" style="color:#1a7a40;">ANNULÉES (rachat)</div>
+      <div class="neria-kpi-card__label" style="color:#1a7a40;">{neria_admin key='stats.reconciliation_kpi_cancelled'}</div>
     </div>
   </div>
 </div>
@@ -3330,9 +3331,9 @@ var _nhm = {$open_heatmap|default:'null'};
 <div class="neria-section" id="neria-quote-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
-      <h2 class="neria-section__title" style="margin:0 0 4px 0;">Relances Devis B2B ✦</h2>
+      <h2 class="neria-section__title" style="margin:0 0 4px 0;">{neria_admin key='stats.quote_title'} ✦</h2>
       <p class="neria-section__desc" style="margin:0;">
-        Séquence automatique de 3 emails pour les devis B2B : rappel 48h avant expiration, rappel le jour J, offre de prolongation après expiration.
+        {neria_admin key='stats.quote_desc'}
       </p>
     </div>
     <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-quote-section" style="display:inline;">
@@ -3343,83 +3344,78 @@ var _nhm = {$open_heatmap|default:'null'};
                      background:{if $quote_reminders_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if $quote_reminders_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if $quote_reminders_enabled}{neria_admin key='stats.toggle_active_off'}{else}{neria_admin key='stats.toggle_inactive_on'}{/if}
       </button>
     </form>
   </div>
 
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:24px;font-size:13px;line-height:1.75;color:#4a3f35;">
-    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-    Ajoutez vos devis ci-dessous (référence, client, montant, date d'expiration). Neria envoie automatiquement
-    <strong>3 emails de relance</strong> : le J-2, le jour J, puis une offre de prolongation le lendemain de l'expiration.
-    Marquez un devis comme <strong>Gagné</strong> dès que le client confirme — cela arrête la séquence et comptabilise la vente.
+    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+    {neria_admin key='stats.quote_howto_body'}
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8d5b0;">
-      <strong>Potentiel :</strong> 20 à 40 % des devis expirés le sont par oubli, pas par désintérêt. Un rappel bien tourné les récupère sans effort.
+      {neria_admin key='stats.quote_howto_potential'}
     </div>
   </div>
 
   <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:12px; margin-bottom:28px;">
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$quote_stats.total_quotes|default:0}</div>
-      <div class="neria-kpi__label">Devis suivis</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.quote_kpi_tracked'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$quote_stats.quotes_active|default:0}</div>
-      <div class="neria-kpi__label">En cours</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.quote_kpi_active'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$quote_stats.quotes_won|default:0}</div>
-      <div class="neria-kpi__label">Gagnés</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.quote_kpi_won'}</div>
       <div class="neria-kpi__rate">{$quote_stats.win_rate|default:0} %</div>
     </div>
     <div class="neria-kpi neria-kpi--main">
       <div class="neria-kpi__value">{$quote_stats.revenue_won|default:0|string_format:"%.2f"} {$currency_symbol}</div>
-      <div class="neria-kpi__label">CA récupéré</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.kpi_revenue_recovered'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$quote_stats.quotes_lost|default:0}</div>
-      <div class="neria-kpi__label">Perdus / Expirés</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.quote_kpi_lost_expired'}</div>
     </div>
   </div>
 
   {* Formulaire d'ajout *}
   <div style="padding:18px; background:var(--neria-bg); border-radius:6px; margin-bottom:24px;">
     <p style="font-size:12px; font-weight:700; color:var(--neria-text); margin:0 0 8px 0; text-transform:uppercase; letter-spacing:.06em;">
-      Ajouter un devis à suivre
+      {neria_admin key='stats.quote_add_title'}
     </p>
     <p style="font-size:12px; color:var(--neria-muted); line-height:1.7; margin:0 0 16px 0;">
-      <strong style="color:var(--neria-text);">Saisie manuelle :</strong>
-      PrestaShop ne génère pas de devis nativement. Enregistrez ici les devis que vous établissez
-      par ailleurs (logiciel de gestion, tableur, module tiers) et que vous souhaitez faire relancer
-      automatiquement. Indiquez le client par son <strong>ID</strong> ou son <strong>email</strong> —
-      il doit déjà exister dans votre boutique.
+      <strong style="color:var(--neria-text);">{neria_admin key='stats.quote_manual_entry'}</strong>
+      {neria_admin key='stats.quote_manual_body'}
     </p>
     <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-quote-section"
           style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
       <input type="hidden" name="neria_action" value="quote_add">
       <input type="hidden" name="neria_tab"    value="stats">
       <div style="display:flex; flex-direction:column; gap:4px;">
-        <label style="font-size:11px; color:var(--neria-muted);">ID ou email client</label>
+        <label style="font-size:11px; color:var(--neria-muted);">{neria_admin key='stats.label_customer_id_email'}</label>
         <input type="text" name="quote_id_customer" placeholder="Ex : 42 ou client@email.com" required
                style="padding:7px 10px; border:1px solid var(--neria-border); border-radius:4px; font-size:13px; width:220px; background:var(--neria-container);">
       </div>
       <div style="display:flex; flex-direction:column; gap:4px;">
-        <label style="font-size:11px; color:var(--neria-muted);">Référence devis</label>
+        <label style="font-size:11px; color:var(--neria-muted);">{neria_admin key='stats.label_quote_ref'}</label>
         <input type="text" name="quote_ref" placeholder="Ex : DEVIS-2026-042" required
                style="padding:7px 10px; border:1px solid var(--neria-border); border-radius:4px; font-size:13px; width:180px; background:var(--neria-container);">
       </div>
       <div style="display:flex; flex-direction:column; gap:4px;">
-        <label style="font-size:11px; color:var(--neria-muted);">Montant HT (€)</label>
+        <label style="font-size:11px; color:var(--neria-muted);">{neria_admin key='stats.label_amount_excl_tax'}</label>
         <input type="text" name="quote_total" placeholder="Ex : 1250.00"
                style="padding:7px 10px; border:1px solid var(--neria-border); border-radius:4px; font-size:13px; width:120px; background:var(--neria-container);">
       </div>
       <div style="display:flex; flex-direction:column; gap:4px;">
-        <label style="font-size:11px; color:var(--neria-muted);">Date d'expiration</label>
+        <label style="font-size:11px; color:var(--neria-muted);">{neria_admin key='stats.label_expiry_date'}</label>
         <input type="date" name="quote_expiry_date" required
                style="padding:7px 10px; border:1px solid var(--neria-border); border-radius:4px; font-size:13px; background:var(--neria-container);">
       </div>
       <button type="submit" class="neria-btn neria-btn--primary" style="align-self:flex-end;">
-        Ajouter
+        {neria_admin key='stats.add_btn'}
       </button>
     </form>
   </div>
@@ -3430,13 +3426,13 @@ var _nhm = {$open_heatmap|default:'null'};
     <table class="neria-table" style="min-width:700px;">
       <thead>
         <tr>
-          <th>Référence</th>
-          <th>Client</th>
-          <th>Montant</th>
-          <th>Expiration</th>
-          <th>Statut</th>
-          <th>Rappels</th>
-          <th>Actions</th>
+          <th>{neria_admin key='stats.label_quote_ref'}</th>
+          <th>{neria_admin key='stats.col_client'}</th>
+          <th>{neria_admin key='stats.col_amount2'}</th>
+          <th>{neria_admin key='stats.col_expiry'}</th>
+          <th>{neria_admin key='stats.status_col'}</th>
+          <th>{neria_admin key='stats.col_reminders'}</th>
+          <th>{neria_admin key='stats.actions_col'}</th>
         </tr>
       </thead>
       <tbody>
@@ -3452,11 +3448,11 @@ var _nhm = {$open_heatmap|default:'null'};
             {$q.expiry_date|date_format:'%d/%m/%Y'}
           </td>
           <td>
-            {if $q.status === 'won'}<span style="color:#1a7a40; font-weight:700;">✓ Gagné</span>
-            {elseif $q.status === 'lost'}<span style="color:#c0392b; font-weight:700;">✗ Perdu</span>
-            {elseif $q.status === 'expired'}<span style="color:#a0520d; font-weight:600;">Expiré</span>
-            {elseif $q.status === 'extended'}<span style="color:#2563a8; font-weight:600;">Prolongé</span>
-            {else}<span style="color:#1a7a40;">En cours</span>{/if}
+            {if $q.status === 'won'}<span style="color:#1a7a40; font-weight:700;">✓ {neria_admin key='stats.status_won'}</span>
+            {elseif $q.status === 'lost'}<span style="color:#c0392b; font-weight:700;">✗ {neria_admin key='stats.status_lost'}</span>
+            {elseif $q.status === 'expired'}<span style="color:#a0520d; font-weight:600;">{neria_admin key='stats.status_expired'}</span>
+            {elseif $q.status === 'extended'}<span style="color:#2563a8; font-weight:600;">{neria_admin key='stats.status_extended'}</span>
+            {else}<span style="color:#1a7a40;">{neria_admin key='stats.status_in_progress'}</span>{/if}
           </td>
           <td style="font-size:11px; color:var(--neria-muted); text-align:center;">
             {if $q.sent_48h}48h ✓{else}48h —{/if}<br>
@@ -3469,20 +3465,20 @@ var _nhm = {$open_heatmap|default:'null'};
               <input type="hidden" name="neria_action" value="quote_mark_won">
               <input type="hidden" name="neria_tab"    value="stats">
               <input type="hidden" name="id_quote"     value="{$q.id_quote}">
-              <button type="submit" style="padding:4px 8px; background:#1a7a40; color:#fff; border:none; border-radius:3px; font-size:11px; cursor:pointer; margin-right:4px;">Gagné</button>
+              <button type="submit" style="padding:4px 8px; background:#1a7a40; color:#fff; border:none; border-radius:3px; font-size:11px; cursor:pointer; margin-right:4px;">{neria_admin key='stats.quote_mark_won_btn'}</button>
             </form>
             <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-quote-section" style="display:inline;">
               <input type="hidden" name="neria_action" value="quote_mark_lost">
               <input type="hidden" name="neria_tab"    value="stats">
               <input type="hidden" name="id_quote"     value="{$q.id_quote}">
-              <button type="submit" style="padding:4px 8px; background:#c0392b; color:#fff; border:none; border-radius:3px; font-size:11px; cursor:pointer; margin-right:4px;">Perdu</button>
+              <button type="submit" style="padding:4px 8px; background:#c0392b; color:#fff; border:none; border-radius:3px; font-size:11px; cursor:pointer; margin-right:4px;">{neria_admin key='stats.quote_mark_lost_btn'}</button>
             </form>
             {/if}
             <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-quote-section" style="display:inline;">
               <input type="hidden" name="neria_action" value="quote_delete">
               <input type="hidden" name="neria_tab"    value="stats">
               <input type="hidden" name="id_quote"     value="{$q.id_quote}">
-              <button type="button" data-confirm="Supprimer ce devis ?" onclick="neriaConfirmDelete(this);" style="padding:4px 8px; background:var(--neria-border); color:var(--neria-text); border:none; border-radius:3px; font-size:11px; cursor:pointer;">Supprimer</button>
+              <button type="button" data-confirm="{neria_admin key='stats.confirm_delete_quote'}" onclick="neriaConfirmDelete(this);" style="padding:4px 8px; background:var(--neria-border); color:var(--neria-text); border:none; border-radius:3px; font-size:11px; cursor:pointer;">{neria_admin key='stats.delete_btn'}</button>
             </form>
           </td>
         </tr>
@@ -3492,7 +3488,7 @@ var _nhm = {$open_heatmap|default:'null'};
   </div>
   {else}
   <p style="font-size:13px; color:var(--neria-muted); margin:0;">
-    Aucun devis enregistré. Utilisez le formulaire ci-dessus pour ajouter votre premier devis à suivre.
+    {neria_admin key='stats.quote_empty'}
   </p>
   {/if}
 </div>
@@ -3501,9 +3497,9 @@ var _nhm = {$open_heatmap|default:'null'};
 <div class="neria-section" id="neria-collection-section">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
     <div>
-      <h2 class="neria-section__title" style="margin:0 0 4px 0;">Complétion de collection ◎</h2>
+      <h2 class="neria-section__title" style="margin:0 0 4px 0;">{neria_admin key='stats.collection_title'} ◎</h2>
       <p class="neria-text" style="margin:0;font-size:13px;opacity:.7;">
-        Détecte les clients à une pièce de compléter une collection et leur envoie un email personnalisé.
+        {neria_admin key='stats.collection_desc'}
       </p>
     </div>
     <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-collection-section" style="display:inline;">
@@ -3514,17 +3510,17 @@ var _nhm = {$open_heatmap|default:'null'};
                      background:{if isset($collection_completion_enabled) && $collection_completion_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if isset($collection_completion_enabled) && $collection_completion_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if isset($collection_completion_enabled) && $collection_completion_enabled}{neria_admin key='stats.toggle_active_off'}{else}{neria_admin key='stats.toggle_inactive_on'}{/if}
       </button>
     </form>
   </div>
 
 
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:24px;font-size:13px;line-height:1.75;color:#4a3f35;">
-    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-    Définissez vos collections ci-dessous (un ensemble de 2 à 6 produits liés). Chaque jour, Neria analyse les commandes de vos clients et détecte ceux qui ont acheté <strong>toutes les pièces sauf une</strong>. Un email "votre collection est presque complète" leur est envoyé automatiquement avec le produit manquant mis en avant.
+    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+    {neria_admin key='stats.collection_howto_body'}
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8d5b0;">
-      <strong>Déduplication :</strong> un seul email est envoyé par client et par collection, même si le client continue d'acheter d'autres pièces par la suite. L'email est personnalisé avec la photo et le prix du produit manquant.
+      {neria_admin key='stats.collection_howto_dedup'}
     </div>
   </div>
 
@@ -3533,19 +3529,19 @@ var _nhm = {$open_heatmap|default:'null'};
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:28px;">
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$collection_stats.total|default:0}</div>
-      <div class="neria-kpi__label">Collections</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.kpi_collections'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$collection_stats.active|default:0}</div>
-      <div class="neria-kpi__label">Actives</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.kpi_active'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$collection_stats.sent|default:0}</div>
-      <div class="neria-kpi__label">Emails envoyés</div>
+      <div class="neria-kpi__label">{neria_admin key='common.emails_sent'}</div>
     </div>
     <div class="neria-kpi neria-kpi--main">
       <div class="neria-kpi__value">{$collection_stats.sentLast30|default:0}</div>
-      <div class="neria-kpi__label">30 derniers jours</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.kpi_last30days'}</div>
     </div>
   </div>
   {/if}
@@ -3556,15 +3552,15 @@ var _nhm = {$open_heatmap|default:'null'};
     <input type="hidden" name="neria_tab"    value="stats">
     <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
       <div style="flex:1;min-width:200px;">
-        <label class="neria-label">Nom de la collection</label>
+        <label class="neria-label">{neria_admin key='stats.label_collection_name'}</label>
         <input type="text" name="collection_name" class="neria-input" placeholder="ex : Trio soin visage" style="width:100%;">
       </div>
       <div style="flex:2;min-width:260px;">
-        <label class="neria-label">IDs produits (séparés par des virgules)</label>
+        <label class="neria-label">{neria_admin key='stats.label_product_ids_comma'}</label>
         <input type="text" name="collection_product_ids" class="neria-input" placeholder="ex : 12, 47, 83" style="width:100%;">
       </div>
       <div>
-        <button type="submit" class="neria-btn neria-btn--primary">Ajouter</button>
+        <button type="submit" class="neria-btn neria-btn--primary">{neria_admin key='stats.add_btn'}</button>
       </div>
     </div>
   </form>
@@ -3575,11 +3571,11 @@ var _nhm = {$open_heatmap|default:'null'};
     <table class="neria-table">
       <thead>
         <tr>
-          <th>Nom</th>
-          <th>Produits</th>
-          <th style="text-align:center;">Pièces</th>
-          <th style="text-align:center;">Statut</th>
-          <th style="text-align:center;">Actions</th>
+          <th>{neria_admin key='stats.col_name'}</th>
+          <th>{neria_admin key='stats.col_products'}</th>
+          <th style="text-align:center;">{neria_admin key='stats.col_pieces'}</th>
+          <th style="text-align:center;">{neria_admin key='stats.status_col'}</th>
+          <th style="text-align:center;">{neria_admin key='stats.actions_col'}</th>
         </tr>
       </thead>
       <tbody>
@@ -3599,7 +3595,7 @@ var _nhm = {$open_heatmap|default:'null'};
               <button type="submit"
                 style="padding:4px 12px;border-radius:12px;border:none;cursor:pointer;font-size:11px;font-weight:700;
                        background:{if $col.active}#16a34a{else}#dc2626{/if};color:#fff;">
-                {if $col.active}● Actif{else}○ Inactif{/if}
+                {if $col.active}● {neria_admin key='stats.short_active'}{else}○ {neria_admin key='stats.short_inactive'}{/if}
               </button>
             </form>
           </td>
@@ -3609,7 +3605,7 @@ var _nhm = {$open_heatmap|default:'null'};
               <input type="hidden" name="neria_tab"    value="stats">
               <input type="hidden" name="collection_id" value="{$col.id_neria_collection}">
               <button type="button" class="neria-btn neria-btn--danger neria-btn--sm"
-                      data-confirm="Supprimer cette collection ?" onclick="neriaConfirmDelete(this);">✕</button>
+                      data-confirm="{neria_admin key='stats.confirm_delete_collection'}" onclick="neriaConfirmDelete(this);">✕</button>
             </form>
           </td>
         </tr>
@@ -3619,7 +3615,7 @@ var _nhm = {$open_heatmap|default:'null'};
   </div>
   {else}
   <p class="neria-empty-state__text" style="font-size:13px;color:#7a6a5a;margin:0;">
-    Aucune collection définie. Ajoutez votre première collection ci-dessus.
+    {neria_admin key='stats.collection_empty'}
   </p>
   {/if}
 </div>
@@ -3628,9 +3624,9 @@ var _nhm = {$open_heatmap|default:'null'};
 <div class="neria-section" id="neria-look-section">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
     <div>
-      <h2 class="neria-section__title" style="margin:0 0 4px 0;">Complétez votre look ✦</h2>
+      <h2 class="neria-section__title" style="margin:0 0 4px 0;">{neria_admin key='stats.look_title'} ✦</h2>
       <p class="neria-text" style="margin:0;font-size:13px;opacity:.7;">
-        48h après la livraison, suggère 2-3 produits complémentaires selon les règles que vous définissez par catégorie.
+        {neria_admin key='stats.look_desc'}
       </p>
     </div>
     <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-look-section" style="display:inline;">
@@ -3641,16 +3637,16 @@ var _nhm = {$open_heatmap|default:'null'};
                      background:{if isset($look_completion_enabled) && $look_completion_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if isset($look_completion_enabled) && $look_completion_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if isset($look_completion_enabled) && $look_completion_enabled}{neria_admin key='stats.toggle_active_off'}{else}{neria_admin key='stats.toggle_inactive_on'}{/if}
       </button>
     </form>
   </div>
 
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin-bottom:24px;font-size:13px;line-height:1.75;color:#4a3f35;">
-    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</div>
-    Définissez des règles d'association : pour chaque catégorie de votre boutique, indiquez 2 à 3 produits complémentaires à suggérer. Le cron détecte chaque jour les commandes passées au statut <strong>Livré</strong> il y a 48h et envoie automatiquement l'email avec les produits définis dans la règle correspondante.
+    <div style="font-weight:700;margin-bottom:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</div>
+    {neria_admin key='stats.look_howto_body'}
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8d5b0;">
-      <strong>Moment clé :</strong> l'email arrive quand le client a le produit entre les mains et est dans un état émotionnel positif — le meilleur moment pour une suggestion complémentaire. Un seul email par commande (déduplication automatique).
+      {neria_admin key='stats.look_howto_key_moment'}
     </div>
   </div>
 
@@ -3659,19 +3655,19 @@ var _nhm = {$open_heatmap|default:'null'};
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:28px;">
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$look_stats.rules|default:0}</div>
-      <div class="neria-kpi__label">Règles</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.kpi_rules'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$look_stats.active|default:0}</div>
-      <div class="neria-kpi__label">Actives</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.kpi_active'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$look_stats.sent|default:0}</div>
-      <div class="neria-kpi__label">Emails envoyés</div>
+      <div class="neria-kpi__label">{neria_admin key='common.emails_sent'}</div>
     </div>
     <div class="neria-kpi neria-kpi--main">
       <div class="neria-kpi__value">{$look_stats.sent30|default:0}</div>
-      <div class="neria-kpi__label">30 derniers jours</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.kpi_last30days'}</div>
     </div>
   </div>
   {/if}
@@ -3682,9 +3678,9 @@ var _nhm = {$open_heatmap|default:'null'};
     <input type="hidden" name="neria_tab"    value="stats">
     <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
       <div style="min-width:200px;">
-        <label class="neria-label">Catégorie déclencheur</label>
+        <label class="neria-label">{neria_admin key='stats.label_trigger_category'}</label>
         <select name="look_category_id" class="neria-select" style="width:100%;">
-          <option value="">— Choisir une catégorie —</option>
+          <option value="">{neria_admin key='stats.choose_category_option'}</option>
           {if isset($look_categories)}
             {foreach $look_categories as $cat}
               <option value="{$cat.id_category}">{$cat.name}</option>
@@ -3693,11 +3689,11 @@ var _nhm = {$open_heatmap|default:'null'};
         </select>
       </div>
       <div style="flex:1;min-width:260px;">
-        <label class="neria-label">IDs produits suggérés (2-3, séparés par des virgules)</label>
+        <label class="neria-label">{neria_admin key='stats.label_suggested_product_ids'}</label>
         <input type="text" name="look_product_ids" class="neria-input" placeholder="ex : 12, 47, 83" style="width:100%;">
       </div>
       <div>
-        <button type="submit" class="neria-btn neria-btn--primary">Ajouter</button>
+        <button type="submit" class="neria-btn neria-btn--primary">{neria_admin key='stats.add_btn'}</button>
       </div>
     </div>
   </form>
@@ -3708,10 +3704,10 @@ var _nhm = {$open_heatmap|default:'null'};
     <table class="neria-table">
       <thead>
         <tr>
-          <th>Catégorie</th>
-          <th>Produits suggérés</th>
-          <th style="text-align:center;">Statut</th>
-          <th style="text-align:center;">Actions</th>
+          <th>{neria_admin key='stats.col_category'}</th>
+          <th>{neria_admin key='stats.col_suggested_products'}</th>
+          <th style="text-align:center;">{neria_admin key='stats.status_col'}</th>
+          <th style="text-align:center;">{neria_admin key='stats.actions_col'}</th>
         </tr>
       </thead>
       <tbody>
@@ -3727,7 +3723,7 @@ var _nhm = {$open_heatmap|default:'null'};
               <button type="submit"
                 style="padding:4px 12px;border-radius:12px;border:none;cursor:pointer;font-size:11px;font-weight:700;
                        background:{if $rule.active}#16a34a{else}#dc2626{/if};color:#fff;">
-                {if $rule.active}● Actif{else}○ Inactif{/if}
+                {if $rule.active}● {neria_admin key='stats.short_active'}{else}○ {neria_admin key='stats.short_inactive'}{/if}
               </button>
             </form>
           </td>
@@ -3737,7 +3733,7 @@ var _nhm = {$open_heatmap|default:'null'};
               <input type="hidden" name="neria_tab"    value="stats">
               <input type="hidden" name="look_rule_id" value="{$rule.id_neria_look_rule}">
               <button type="button" class="neria-btn neria-btn--danger neria-btn--sm"
-                      data-confirm="Supprimer cette règle ?" onclick="neriaConfirmDelete(this);">✕</button>
+                      data-confirm="{neria_admin key='stats.confirm_delete_rule'}" onclick="neriaConfirmDelete(this);">✕</button>
             </form>
           </td>
         </tr>
@@ -3747,7 +3743,7 @@ var _nhm = {$open_heatmap|default:'null'};
   </div>
   {else}
   <p style="font-size:13px;color:#7a6a5a;margin:0;">
-    Aucune règle définie. Ajoutez votre première association catégorie → produits ci-dessus.
+    {neria_admin key='stats.look_empty'}
   </p>
   {/if}
 </div>
@@ -3756,9 +3752,9 @@ var _nhm = {$open_heatmap|default:'null'};
 <div class="neria-section" id="neria-waitlist-section">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
     <div>
-      <h2 class="neria-section__title" style="margin:0 0 4px 0;">Liste d'attente produits 🔔</h2>
+      <h2 class="neria-section__title" style="margin:0 0 4px 0;">{neria_admin key='stats.waitlist_title'} 🔔</h2>
       <p class="neria-text" style="margin:0;font-size:13px;opacity:.7;">
-        Quand un produit en rupture revient en stock, Neria notifie automatiquement les clients inscrits.
+        {neria_admin key='stats.waitlist_desc'}
       </p>
     </div>
     <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-waitlist-section" style="display:inline;">
@@ -3769,16 +3765,16 @@ var _nhm = {$open_heatmap|default:'null'};
                      background:{if isset($waitlist_enabled) && $waitlist_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if isset($waitlist_enabled) && $waitlist_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if isset($waitlist_enabled) && $waitlist_enabled}{neria_admin key='stats.toggle_active_off'}{else}{neria_admin key='stats.toggle_inactive_on'}{/if}
       </button>
     </form>
   </div>
 
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;font-size:13px;line-height:1.75;color:#4a3f35;margin-bottom:24px;">
-    <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</p>
-    Sur chaque fiche produit en rupture de stock, un bouton <strong>« 🔔 M'avertir quand disponible »</strong> apparaît. Le client s'inscrit en un clic. Dès que le stock remonte, Neria envoie automatiquement un email unique avec un ton exclusif : <em>« Vous avez attendu X jours. Nous ne l'avons pas oublié. »</em>
+    <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</p>
+    {neria_admin key='stats.waitlist_howto_body'}
     <p style="margin:12px 0 0;border-top:1px solid #e8d5b0;padding-top:10px;font-size:12px;opacity:.75;">
-      <strong>Réservation temporelle :</strong> l'email mentionne une durée de priorité — psychologiquement puissant, sans bloquer le stock réellement. Un seul email par client et par produit.
+      {neria_admin key='stats.waitlist_howto_reservation'}
     </p>
   </div>
 
@@ -3787,20 +3783,20 @@ var _nhm = {$open_heatmap|default:'null'};
     <input type="hidden" name="neria_tab"    value="stats">
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       <label style="font-size:13px;font-weight:600;color:#4a3f35;white-space:nowrap;">
-        ⏳ Durée de réservation prioritaire :
+        {neria_admin key='stats.waitlist_priority_label'}
       </label>
       <input type="number" name="waitlist_reservation_hours"
              value="{$waitlist_reservation_hours|intval}"
              min="1" max="72"
              style="width:70px;padding:7px 10px;border:1px solid #e8d5b0;border-radius:4px;
                     font-size:13px;font-weight:600;color:#1a1a1a;text-align:center;">
-      <span style="font-size:13px;color:#4a3f35;">heures</span>
+      <span style="font-size:13px;color:#4a3f35;">{neria_admin key='stats.hours_unit'}</span>
       <button type="submit"
               style="padding:8px 16px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;
                      font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.04em;">
-        Enregistrer
+        {neria_admin key='common.save'}
       </button>
-      <span style="font-size:12px;color:#7a6a5a;opacity:.8;">Entre 1 et 72 heures</span>
+      <span style="font-size:12px;color:#7a6a5a;opacity:.8;">{neria_admin key='stats.between_1_72_hours'}</span>
     </div>
   </form>
 
@@ -3808,19 +3804,19 @@ var _nhm = {$open_heatmap|default:'null'};
   <div class="neria-kpi-row" style="margin-bottom:24px;">
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$waitlist_stats.subscribers|default:0}</div>
-      <div class="neria-kpi__label">EN ATTENTE</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.waitlist_kpi_pending'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$waitlist_stats.products|default:0}</div>
-      <div class="neria-kpi__label">PRODUITS SURVEILLÉS</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.waitlist_kpi_watched'}</div>
     </div>
     <div class="neria-kpi">
       <div class="neria-kpi__value">{$waitlist_stats.notified|default:0}</div>
-      <div class="neria-kpi__label">NOTIFIÉS (TOTAL)</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.waitlist_kpi_notified_total'}</div>
     </div>
     <div class="neria-kpi" style="border:2px solid var(--neria-accent);">
       <div class="neria-kpi__value">{$waitlist_stats.notified30|default:0}</div>
-      <div class="neria-kpi__label">30 DERNIERS JOURS</div>
+      <div class="neria-kpi__label">{neria_admin key='stats.waitlist_kpi_last30days'}</div>
     </div>
   </div>
   {/if}
@@ -3830,9 +3826,9 @@ var _nhm = {$open_heatmap|default:'null'};
     <table class="neria-table">
       <thead>
         <tr>
-          <th>Produit</th>
-          <th style="text-align:center;">Inscrits</th>
-          <th style="text-align:center;">Attente max</th>
+          <th>{neria_admin key='stats.col_product'}</th>
+          <th style="text-align:center;">{neria_admin key='stats.col_subscribers'}</th>
+          <th style="text-align:center;">{neria_admin key='stats.col_max_wait'}</th>
         </tr>
       </thead>
       <tbody>
@@ -3840,7 +3836,7 @@ var _nhm = {$open_heatmap|default:'null'};
         <tr>
           <td style="font-weight:600;">{$wp.product_name|default:'#'|cat:$wp.id_product|escape:'html'}</td>
           <td style="text-align:center;">{$wp.nb}</td>
-          <td style="text-align:center;">{$wp.max_wait_days} j</td>
+          <td style="text-align:center;">{$wp.max_wait_days} {neria_admin key='common.days_unit_short'}</td>
         </tr>
         {/foreach}
       </tbody>
@@ -3848,7 +3844,7 @@ var _nhm = {$open_heatmap|default:'null'};
   </div>
   {else}
   <p style="font-size:13px;color:#7a6a5a;margin:0;">
-    Aucun client en liste d'attente pour l'instant.
+    {neria_admin key='stats.waitlist_empty'}
   </p>
   {/if}
 </div>
@@ -3857,9 +3853,9 @@ var _nhm = {$open_heatmap|default:'null'};
 <div class="neria-section" id="neria-ghost-cart-section">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
     <div>
-      <h2 class="neria-section__title" style="margin:0 0 4px 0;">Panier fantôme récurrent 👻</h2>
+      <h2 class="neria-section__title" style="margin:0 0 4px 0;">{neria_admin key='stats.ghostcart_title'} 👻</h2>
       <p class="neria-text" style="margin:0;font-size:13px;opacity:.7;">
-        Détecte les clients qui ajoutent le même produit 3 fois ou plus sans jamais acheter, et leur envoie un email d'ouverture de dialogue.
+        {neria_admin key='stats.ghostcart_desc'}
       </p>
     </div>
     <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-ghost-cart-section" style="display:inline;">
@@ -3870,20 +3866,28 @@ var _nhm = {$open_heatmap|default:'null'};
                      background:{if isset($ghost_cart_enabled) && $ghost_cart_enabled}#1a7a40{else}#c0392b{/if};
                      color:#fff; border:none; border-radius:4px; font-size:12px;
                      font-weight:700; cursor:pointer; letter-spacing:.04em;">
-        {if isset($ghost_cart_enabled) && $ghost_cart_enabled}● Actif — Désactiver{else}○ Inactif — Activer{/if}
+        {if isset($ghost_cart_enabled) && $ghost_cart_enabled}{neria_admin key='stats.toggle_active_off'}{else}{neria_admin key='stats.toggle_inactive_on'}{/if}
       </button>
     </form>
   </div>
 
   <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:16px 20px;">
-    <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">Comment ça fonctionne</p>
-    Chaque nuit, Neria analyse les paniers des 60 derniers jours. Si un client a ajouté le même produit dans <strong>3 paniers distincts</strong> sans jamais l'acheter, il reçoit un email unique au ton humain — <em>« Nous avons remarqué que cette pièce retient particulièrement votre attention. »</em>
+    <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.6;">{neria_admin key='stats.howto_title'}</p>
+    {neria_admin key='stats.ghostcart_howto_body'}
     <p style="margin:12px 0 0;border-top:1px solid #e8d5b0;padding-top:10px;font-size:12px;opacity:.75;">
-      <strong>Pas de réduction proposée</strong> — une ouverture de dialogue. Le client se sent compris, pas ciblé. Un seul email par produit et par client.
+      {neria_admin key='stats.ghostcart_howto_nodiscount'}
     </p>
   </div>
 </div>
 
+<script>
+var _nUpsellMsg = {
+  notFound:    "{neria_admin key='stats.js_order_not_found'|escape:'javascript'}",
+  simError:    "{neria_admin key='stats.js_simulation_error'|escape:'javascript'}",
+  noRelevant:  "{neria_admin key='stats.js_no_relevant_product'|escape:'javascript'}",
+  unreachable: "{neria_admin key='stats.js_server_unreachable'|escape:'javascript'}"
+};
+</script>
 <script>
 {literal}
 function neriaPreviewUpsell() {
@@ -3913,15 +3917,15 @@ function neriaPreviewUpsell() {
         document.getElementById('neria-upsell-block').innerHTML = d.html || '';
         preview.style.display = '';
       } else if (d.status === 'not_found') {
-        showMsg('Commande introuvable — vérifiez le numéro ou la référence saisie.', true);
+        showMsg(_nUpsellMsg.notFound, true);
       } else if (d.status === 'error') {
-        showMsg('Une erreur est survenue pendant la simulation.', true);
+        showMsg(_nUpsellMsg.simError, true);
       } else {
-        showMsg('Commande trouvée, mais aucun produit complémentaire pertinent (accessoire, co-achat ou catégorie) pour ce client.', false);
+        showMsg(_nUpsellMsg.noRelevant, false);
       }
     })
     .catch(function() {
-      showMsg('Impossible de contacter le serveur. Réessayez.', true);
+      showMsg(_nUpsellMsg.unreachable, true);
     });
 }
 {/literal}
@@ -3933,30 +3937,37 @@ function neriaPreviewUpsell() {
 {assign var="mc" value=$monthly_comparison}
 {if $mc && isset($mc.current)}
 <div class="neria-section" id="neria-monthly-comparison">
-  <h2 class="neria-section__title" style="margin:0 0 6px;">Comparatif mensuel ◫</h2>
+  <h2 class="neria-section__title" style="margin:0 0 6px;">{neria_admin key='stats.monthly_comparison_title'} ◫</h2>
   <p class="neria-section__desc" style="margin:0 0 20px;">
-    {$mc.labels.current|default:''} vs {$mc.labels.previous|default:''} — tous les indicateurs clés en un coup d'œil.
+    {$mc.labels.current|default:''} {neria_admin key='stats.monthly_comparison_desc'} {$mc.labels.previous|default:''} {neria_admin key='stats.monthly_comparison_desc_suffix'}
   </p>
 
   <div class="neria-table-wrap">
     <table class="neria-table" style="min-width:500px;">
       <thead>
         <tr>
-          <th>Indicateur</th>
-          <th class="neria-table__num">{$mc.labels.previous|default:'Mois préc.'}</th>
-          <th class="neria-table__num">{$mc.labels.current|default:'Ce mois'}</th>
-          <th class="neria-table__num">Évolution</th>
+          <th>{neria_admin key='stats.mc_indicator_label'}</th>
+          <th class="neria-table__num">{$mc.labels.previous|default:''}</th>
+          <th class="neria-table__num">{$mc.labels.current|default:''}</th>
+          <th class="neria-table__num">{neria_admin key='stats.mc_evolution'}</th>
         </tr>
       </thead>
       <tbody>
+        {capture name="mc_lbl_sent"}{neria_admin key='stats.mc_row_sent'}{/capture}
+        {capture name="mc_lbl_opens"}{neria_admin key='stats.mc_row_opens'}{/capture}
+        {capture name="mc_lbl_open_rate"}{neria_admin key='stats.mc_row_open_rate'}{/capture}
+        {capture name="mc_lbl_clicks"}{neria_admin key='stats.mc_row_clicks'}{/capture}
+        {capture name="mc_lbl_click_rate"}{neria_admin key='stats.mc_row_click_rate'}{/capture}
+        {capture name="mc_lbl_unsubs"}{neria_admin key='stats.mc_row_unsubs'}{/capture}
+        {capture name="mc_lbl_revenue"}{neria_admin key='stats.revenue_total'}{/capture}
         {foreach [
-          ['key'=>'sent',       'label'=>'Emails envoyés',      'format'=>'int',   'good_up'=>true],
-          ['key'=>'opens',      'label'=>'Ouvertures réelles',  'format'=>'int',   'good_up'=>true],
-          ['key'=>'rate_open',  'label'=>'Taux d\'ouverture',   'format'=>'pct',   'good_up'=>true],
-          ['key'=>'clicks',     'label'=>'Clics',               'format'=>'int',   'good_up'=>true],
-          ['key'=>'rate_click', 'label'=>'Taux de clic',        'format'=>'pct',   'good_up'=>true],
-          ['key'=>'unsubs',     'label'=>'Désabonnements',      'format'=>'int',   'good_up'=>false],
-          ['key'=>'revenue',    'label'=>'CA attribué',         'format'=>'money', 'good_up'=>true]
+          ['key'=>'sent',       'label'=>$smarty.capture.mc_lbl_sent,      'format'=>'int',   'good_up'=>true],
+          ['key'=>'opens',      'label'=>$smarty.capture.mc_lbl_opens,  'format'=>'int',   'good_up'=>true],
+          ['key'=>'rate_open',  'label'=>$smarty.capture.mc_lbl_open_rate,   'format'=>'pct',   'good_up'=>true],
+          ['key'=>'clicks',     'label'=>$smarty.capture.mc_lbl_clicks,               'format'=>'int',   'good_up'=>true],
+          ['key'=>'rate_click', 'label'=>$smarty.capture.mc_lbl_click_rate,        'format'=>'pct',   'good_up'=>true],
+          ['key'=>'unsubs',     'label'=>$smarty.capture.mc_lbl_unsubs,      'format'=>'int',   'good_up'=>false],
+          ['key'=>'revenue',    'label'=>$smarty.capture.mc_lbl_revenue,         'format'=>'money', 'good_up'=>true]
         ] as $mrow}
           {assign var="prev"  value=$mc.previous[$mrow.key]|default:0}
           {assign var="cur"   value=$mc.current[$mrow.key]|default:0}
@@ -3990,7 +4001,7 @@ function neriaPreviewUpsell() {
       </tbody>
     </table>
   </div>
-  <p class="neria-hint" style="margin-top:8px;">Les données du mois en cours sont partielles (jusqu'à aujourd'hui).</p>
+  <p class="neria-hint" style="margin-top:8px;">{neria_admin key='stats.mc_partial_note'}</p>
 </div>
 {/if}
 
