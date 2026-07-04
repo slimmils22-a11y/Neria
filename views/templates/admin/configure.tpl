@@ -438,6 +438,37 @@
   </div>
 </div>
 
+{* ── Témoin silencieux (archive BCC) ───────────────────────── *}
+<div class="neria-section" id="neria-cfg-archive">
+  <h2 class="neria-section__title">✦ {neria_admin key='configure.archive_title'}</h2>
+  <p class="neria-section__desc">{neria_admin key='configure.archive_desc'}</p>
+
+  <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:20px 24px;margin:16px 0;font-size:13px;line-height:1.75;color:#4a3f35;">
+    {neria_admin key='configure.archive_how'}
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid #e8d5b0;font-size:12px;opacity:.75;">
+      <strong>{neria_admin key='help.cron_tip_label'} :</strong> {neria_admin key='configure.archive_privacy_note'}
+    </div>
+  </div>
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <input type="hidden" name="neria_action" value="save_archive_config">
+    <input type="hidden" name="neria_tab"    value="configure">
+    <div class="neria-form-group">
+      <label class="neria-label" for="neria-archive-email">{neria_admin key='configure.archive_email_label'}</label>
+      <input type="email" id="neria-archive-email" name="neria_archive_email"
+             class="neria-input" style="max-width:340px;"
+             placeholder="archive@maboutique.com"
+             value="{$archive_email|default:''|escape:'html'}">
+      <p class="neria-hint">{neria_admin key='configure.archive_email_hint'}</p>
+    </div>
+    <div style="margin-top:12px;">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+        {neria_admin key='common.register'}
+      </button>
+    </div>
+  </form>
+</div>
+
 {* ── Empreinte carbone ──────────────────────────────────── *}
 <div class="neria-section" id="neria-cfg-carbon">
   <h2 class="neria-section__title">{neria_admin key='configure.carbon_title'}</h2>

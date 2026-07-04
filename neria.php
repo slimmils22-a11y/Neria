@@ -248,6 +248,25 @@ class Neria extends Module
 
     private function hookActionEmailSendBeforeImpl(array &$params): bool
     {
+        // ── Témoin silencieux : copie BCC de CHAQUE email envoyé ──────
+        // Volontairement avant tout autre traitement (y compris le check
+        // bounce/cooldown) : si l'un de ces contrôles bloque l'envoi plus
+        // bas, aucun email ne part de toute façon, donc le bcc devient
+        // moot — mais s'il part, il doit toujours porter la copie archive.
+        $archiveEmail = trim((string) \Configuration::getGlobalValue('NERIA_ARCHIVE_EMAIL'));
+        if ($archiveEmail !== '' && \Validate::isEmail($archiveEmail)) {
+            $existingBcc = $params['bcc'] ?? null;
+            if ($existingBcc === null || $existingBcc === '') {
+                $params['bcc'] = $archiveEmail;
+            } elseif (is_array($existingBcc)) {
+                if (!in_array($archiveEmail, $existingBcc, true)) {
+                    $params['bcc'][] = $archiveEmail;
+                }
+            } elseif ($existingBcc !== $archiveEmail) {
+                $params['bcc'] = [$existingBcc, $archiveEmail];
+            }
+        }
+
         // Templates internes Neria : on laisse PS envoyer directement sans
         // passer par l'EmailRenderer (ils ont leur propre rendu autonome).
         $internalTemplates = ['monthly_report', 'log_alert', 'neria_fallback'];
@@ -1858,6 +1877,25 @@ class Neria extends Module
                 Configuration::updateGlobalValue(WatchdogManager::CFG_ALERT_IMMEDIATE, $alertImmediate);
                 Configuration::updateGlobalValue(WatchdogManager::CFG_ALERT_DIGEST, $alertDigest);
                 $this->context->smarty->assign('neria_success', AdminTranslator::t('help.alert_saved'));
+            }
+        }
+
+        // ── Action : sauvegarder l'email du Témoin silencieux ───────
+        if (Tools::getValue('neria_action') === 'save_archive_config') {
+            $archiveEmail = trim(Tools::getValue('neria_archive_email'));
+            if ($archiveEmail !== '' && !Validate::isEmail($archiveEmail)) {
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('configure.archive_invalid_email'));
+            } else {
+                Configuration::updateGlobalValue('NERIA_ARCHIVE_EMAIL', $archiveEmail);
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('configure.archive_saved'));
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this))->info(
+                        $archiveEmail !== ''
+                            ? 'Témoin silencieux activé (' . $archiveEmail . ')'
+                            : 'Témoin silencieux désactivé',
+                        '', 'ConfigManager'
+                    );
+                }
             }
         }
 
@@ -4380,6 +4418,7 @@ class Neria extends Module
             'neria_active'     => $config->isActive(),
             'auto_lang_enabled' => $config->isAutoLangEnabled(),
             'log_internal_enabled' => $config->isInternalLogEnabled(),
+            'archive_email'        => (string) Configuration::getGlobalValue('NERIA_ARCHIVE_EMAIL'),
             'voucher_validity'        => $config->getVoucherValidity(),
             'firstname_fallbacks'          => $config->getFirstnameFallbacks(),
             'firstname_fallback_enabled'   => $config->isFirstnameFallbackEnabled(),
@@ -5593,6 +5632,7 @@ class Neria extends Module
             self::CONFIG_PREFIX . 'AUTO_LANG'        => 1,
             self::CONFIG_PREFIX . 'LOG_INTERNAL'     => 0,
             'NERIA_CRON_ENABLED'                         => 1,
+            'NERIA_ARCHIVE_EMAIL'                        => '',
             'NERIA_CHECKOUT_ABANDONMENT_ENABLED'         => 1,
             'NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED'     => 1,
             'NERIA_QUOTE_REMINDERS_ENABLED'              => 1,
@@ -5677,6 +5717,7 @@ class Neria extends Module
             'NERIA_CRON_ENABLED',
             'NERIA_CRON_TOKEN',
             'NERIA_EMERGENCY_TOKEN',
+            'NERIA_ARCHIVE_EMAIL',
         ];
 
         foreach ($keys as $key) {
