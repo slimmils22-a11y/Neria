@@ -284,7 +284,9 @@
         if (!btn) return;
 
         btn.addEventListener('click', function () {
-            var msg = btn.getAttribute('data-confirm') || 'Réinitialiser ?';
+            var msg = btn.getAttribute('data-confirm')
+                   || (window.NERIA_UI && window.NERIA_UI.confirmGeneric)
+                   || 'Reset?';
             window.neriaConfirmAction(msg, function () {
                 var form = document.createElement('form');
                 form.method = 'post';
@@ -341,15 +343,18 @@
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
                     if (data.preview) {
+                        var altLabel = (window.NERIA_UI && window.NERIA_UI.sigPreviewAlt) || 'Signature';
                         container.innerHTML =
                             '<img src="' + data.preview
-                            + '" class="neria-signature-preview__img" alt="Signature">';
+                            + '" class="neria-signature-preview__img" alt="' + altLabel + '">';
                     }
                 })
                 .catch(function () {
+                    var errLabel = (window.NERIA_UI && window.NERIA_UI.sigPreviewError)
+                        || 'Error generating preview';
                     container.innerHTML =
                         '<span class="neria-signature-preview__placeholder">'
-                        + 'Erreur lors de la génération</span>';
+                        + errLabel + '</span>';
                 });
         });
     }
@@ -361,7 +366,8 @@
 
         btn.addEventListener('click', function () {
             var msg = btn.getAttribute('data-confirm')
-                   || 'Réinitialiser le design ?';
+                   || (window.NERIA_UI && window.NERIA_UI.confirmGeneric)
+                   || 'Reset?';
 
             window.neriaConfirmAction(msg, function () {
                 var form = document.createElement('form');
@@ -697,7 +703,7 @@
         // Bouton de fermeture (✕) aligné à droite de la bannière.
         var close = document.createElement('button');
         close.type = 'button';
-        close.setAttribute('aria-label', 'Fermer');
+        close.setAttribute('aria-label', (window.NERIA_UI && window.NERIA_UI.close) || 'Close');
         close.innerHTML = '✕';
         close.style.cssText = 'float:right; margin-left:12px; background:none; border:none;'
             + ' cursor:pointer; font-size:13px; line-height:1; color:inherit; opacity:.55;';
@@ -725,10 +731,13 @@
         var icon  = document.getElementById('neria-watchdog-analyze-icon');
         var label = document.getElementById('neria-watchdog-analyze-label');
 
+        var wdL = window.NERIA_WD_LABELS || {};
+
         btn.addEventListener('click', function () {
+            var originalLabel = label ? label.textContent : '';
             btn.disabled = true;
             if (icon)  icon.style.animation  = 'neria-spin 1s linear infinite';
-            if (label) label.textContent      = 'Analyse en cours…';
+            if (label) label.textContent      = wdL.analyzing || originalLabel;
 
             // URL AJAX : page courante + action (sans hash — le fragment n'est pas envoyé au serveur)
             var base = window.location.href.split('#')[0].replace(/&neria_action=[^&]*/g, '');
@@ -741,13 +750,18 @@
                 .finally(function () {
                     btn.disabled = false;
                     if (icon)  { icon.style.animation = ''; icon.textContent = '🔄'; }
-                    if (label) label.textContent = 'Analyser maintenant';
+                    if (label) label.textContent = originalLabel;
                 });
         });
     }
 
+    function fmtWd(str, n) {
+        return String(str || '').replace('%d', n);
+    }
+
     function applyWatchdogData(d) {
-var CIRC = 251.2;
+        var L = window.NERIA_WD_LABELS || {};
+        var CIRC = 251.2;
         var score = d.score || 0;
         var color = d.color || '#16a34a';
 
@@ -773,14 +787,14 @@ var CIRC = 251.2;
         if (issuesWrap) {
             if (!d.issues || d.issues.length === 0) {
                 issuesWrap.innerHTML =
-                    '<div style="color:#16a34a;font-size:13px;font-weight:600;">✓ Aucun problème détecté</div>' +
-                    '<div style="color:#888;font-size:12px;margin-top:4px;">Tous les systèmes fonctionnent normalement.</div>';
+                    '<div style="color:#16a34a;font-size:13px;font-weight:600;">' + escHtml(L.noIssuesTitle) + '</div>' +
+                    '<div style="color:#888;font-size:12px;margin-top:4px;">' + escHtml(L.noIssuesDesc) + '</div>';
             } else {
                 var items = d.issues.map(function (i) {
                     return '<li>' + escHtml(i) + '</li>';
                 }).join('');
                 issuesWrap.innerHTML =
-                    '<div style="font-size:12px;font-weight:700;color:#7a5800;margin-bottom:8px;">Problèmes détectés :</div>' +
+                    '<div style="font-size:12px;font-weight:700;color:#7a5800;margin-bottom:8px;">' + escHtml(L.issuesTitle) + '</div>' +
                     '<ul style="margin:0;padding-left:16px;font-size:12px;color:#5c3d1e;line-height:1.8;">' + items + '</ul>';
             }
         }
@@ -796,14 +810,20 @@ var CIRC = 251.2;
                 var bg   = st === 'ok' ? '#f0fdf4' : (st === 'error' ? '#fff5f5' : '#fffbf0');
                 var fc   = st === 'ok' ? '#16a34a' : (st === 'error' ? '#dc2626' : '#d97706');
                 var icon = st === 'ok' ? '✓' : (st === 'error' ? '✕' : '⚠');
-                var sub  = c.last_run
-                    ? ('Il y a ' + (c.age_minutes < 60 ? c.age_minutes + ' min' : Math.floor(c.age_minutes / 60) + 'h') +
-                       ' (' + c.last_count + ' traité' + (c.last_count > 1 ? 's' : '') + ')')
-                    : 'Jamais exécuté';
+                var sub;
+                if (c.last_run) {
+                    var agoTxt = c.age_minutes < 60
+                        ? fmtWd(L.agoMin, c.age_minutes)
+                        : fmtWd(L.agoHours, Math.floor(c.age_minutes / 60));
+                    var procTxt = fmtWd(c.last_count > 1 ? L.processedPlural : L.processedSingular, c.last_count);
+                    sub = agoTxt + ' ' + procTxt;
+                } else {
+                    sub = L.neverRun;
+                }
                 var subColor = c.last_run ? '#888' : '#d97706';
                 html += '<div style="padding:12px 14px;border-radius:6px;border:1px solid ' + bdr + ';background:' + bg + ';">' +
                     '<div style="font-size:11px;font-weight:700;color:' + fc + ';margin-bottom:4px;">' + icon + ' ' + escHtml(c.label || k) + '</div>' +
-                    '<div style="font-size:11px;color:' + subColor + ';">' + sub + '</div></div>';
+                    '<div style="font-size:11px;color:' + subColor + ';">' + escHtml(sub) + '</div></div>';
             });
 
             // Queue
@@ -815,14 +835,14 @@ var CIRC = 251.2;
                 var qfc  = qst === 'ok' ? '#16a34a' : '#d97706';
                 var qSub = '';
                 if (q.exists) {
-                    if (q.stuck > 0)  qSub += '<div style="font-size:11px;color:#d97706;">' + q.stuck + ' bloqué' + (q.stuck > 1 ? 's' : '') + ' (&gt;2h)</div>';
-                    if (q.failed > 0) qSub += '<div style="font-size:11px;color:#dc2626;">' + q.failed + ' en échec</div>';
-                    if (!q.stuck && !q.failed) qSub = '<div style="font-size:11px;color:#888;">' + q.total_pending + ' en attente — OK</div>';
+                    if (q.stuck > 0)  qSub += '<div style="font-size:11px;color:#d97706;">' + escHtml(fmtWd(q.stuck > 1 ? L.queueStuckPlural : L.queueStuckSingular, q.stuck)) + '</div>';
+                    if (q.failed > 0) qSub += '<div style="font-size:11px;color:#dc2626;">' + escHtml(fmtWd(L.queueFailed, q.failed)) + '</div>';
+                    if (!q.stuck && !q.failed) qSub = '<div style="font-size:11px;color:#888;">' + escHtml(fmtWd(L.queuePendingOk, q.total_pending)) + '</div>';
                 } else {
-                    qSub = '<div style="font-size:11px;color:#888;">Queue non activée</div>';
+                    qSub = '<div style="font-size:11px;color:#888;">' + escHtml(L.queueDisabled) + '</div>';
                 }
                 html += '<div style="padding:12px 14px;border-radius:6px;border:1px solid ' + qbdr + ';background:' + qbg + ';">' +
-                    '<div style="font-size:11px;font-weight:700;color:' + qfc + ';margin-bottom:4px;">' + (qst === 'ok' ? '✓' : '⚠') + ' File d\'attente</div>' + qSub + '</div>';
+                    '<div style="font-size:11px;font-weight:700;color:' + qfc + ';margin-bottom:4px;">' + (qst === 'ok' ? '✓' : '⚠') + ' ' + escHtml(L.queueTitle) + '</div>' + qSub + '</div>';
             }
 
             // Erreurs 24h
@@ -836,14 +856,14 @@ var CIRC = 251.2;
                 var eFc   = hasErr ? '#dc2626' : '#16a34a';
                 var eSub  = '';
                 if (!err && !crit && !warn) {
-                    eSub = '<div style="font-size:11px;color:#888;">Aucune anomalie</div>';
+                    eSub = '<div style="font-size:11px;color:#888;">' + escHtml(L.noAnomaly) + '</div>';
                 } else {
-                    if (crit) eSub += '<div style="font-size:11px;color:#dc2626;">' + crit + ' critique' + (crit > 1 ? 's' : '') + '</div>';
-                    if (err)  eSub += '<div style="font-size:11px;color:#a32d2d;">' + err  + ' erreur'   + (err  > 1 ? 's' : '') + '</div>';
-                    if (warn) eSub += '<div style="font-size:11px;color:#d97706;">' + warn + ' warning'  + (warn > 1 ? 's' : '') + '</div>';
+                    if (crit) eSub += '<div style="font-size:11px;color:#dc2626;">' + escHtml(fmtWd(crit > 1 ? L.critPlural : L.critSingular, crit)) + '</div>';
+                    if (err)  eSub += '<div style="font-size:11px;color:#a32d2d;">' + escHtml(fmtWd(err  > 1 ? L.errPlural  : L.errSingular,  err))  + '</div>';
+                    if (warn) eSub += '<div style="font-size:11px;color:#d97706;">' + escHtml(fmtWd(warn > 1 ? L.warnPlural : L.warnSingular, warn)) + '</div>';
                 }
                 html += '<div style="padding:12px 14px;border-radius:6px;border:1px solid ' + eBdr + ';background:' + eBg + ';">' +
-                    '<div style="font-size:11px;font-weight:700;color:' + eFc + ';margin-bottom:4px;">' + (hasErr ? '✕' : '✓') + ' Erreurs (24h)</div>' + eSub + '</div>';
+                    '<div style="font-size:11px;font-weight:700;color:' + eFc + ';margin-bottom:4px;">' + (hasErr ? '✕' : '✓') + ' ' + escHtml(L.errors24hTitle) + '</div>' + eSub + '</div>';
             }
             cronsGrid.innerHTML = html;
         }
@@ -852,7 +872,7 @@ var CIRC = 251.2;
         var ts = document.getElementById('neria-wd-timestamp');
         if (ts) {
             var now = new Date();
-            ts.textContent = 'Mis à jour à ' + now.toLocaleTimeString('fr-FR');
+            ts.textContent = (L.updatedAt || '') + ' ' + now.toLocaleTimeString();
         }
 
         // Anomalies métriques
@@ -863,14 +883,15 @@ var CIRC = 251.2;
             } else {
                 var rows = d.anomalies.map(function (a) {
                     var parts = [];
-                    if (a.open_drop  >= 20) parts.push('Ouv. : -' + a.open_drop  + '%');
-                    if (a.click_drop >= 20) parts.push('Clics : -' + a.click_drop + '%');
+                    if (a.open_drop  >= 20) parts.push(L.anomalyOpenPrefix  + a.open_drop  + L.pctSuffix);
+                    if (a.click_drop >= 20) parts.push(L.anomalyClickPrefix + a.click_drop + L.pctSuffix);
                     return '<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #fde68a;font-size:12px;">' +
-                        '<strong>' + escHtml(a.template) + '</strong> — ' + parts.join(' · ') + '</div>';
+                        '<strong>' + escHtml(a.template) + '</strong> — ' + escHtml(parts.join(' · ')) + '</div>';
                 }).join('');
+                var titleTxt = fmtWd(d.anomalies.length > 1 ? L.anomaliesTitlePlural : L.anomaliesTitleSingular, d.anomalies.length);
                 anom.innerHTML =
                     '<div style="background:#fffbf0;border:1px solid #fcd34d;border-radius:6px;padding:14px 18px;margin-top:4px;">' +
-                    '<div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:10px;">⚠ Anomalies détectées sur ' + d.anomalies.length + ' template' + (d.anomalies.length > 1 ? 's' : '') + '</div>' +
+                    '<div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:10px;">' + escHtml(titleTxt) + '</div>' +
                     rows + '</div>';
             }
         }

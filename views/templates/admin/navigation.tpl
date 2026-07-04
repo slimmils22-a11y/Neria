@@ -53,6 +53,12 @@
         </a>
       </span>
       <script>
+      window.NERIA_UI = {
+        close:           "{neria_admin key='common.close'|escape:'javascript'}",
+        confirmGeneric:  "{neria_admin key='msg.confirm_reset_generic'|escape:'javascript'}",
+        sigPreviewError: "{neria_admin key='configure.sig_preview_error'|escape:'javascript'}",
+        sigPreviewAlt:   "{neria_admin key='configure.sig_preview_alt'|escape:'javascript'}"
+      };
       (function(){
         var sel = document.getElementById('neria-test-lang-select');
         var btn = document.getElementById('neria-test-send-btn');

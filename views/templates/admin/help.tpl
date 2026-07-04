@@ -9,11 +9,11 @@
 {assign var="wh" value=$watchdog_health}
 <div class="neria-section" id="neria-help-watchdog-score">
   <h2 class="neria-section__title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-    <span>⚡ Score de santé Watchdog</span>
+    <span>{neria_admin key='help.wd_score_title'}</span>
     <button id="neria-watchdog-analyze-btn" type="button"
             style="background:#16a34a;color:#fff;border:none;padding:7px 16px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.02em;display:flex;align-items:center;gap:6px;">
       <span id="neria-watchdog-analyze-icon" style="display:inline-block;">🔄</span>
-      <span id="neria-watchdog-analyze-label">Analyser maintenant</span>
+      <span id="neria-watchdog-analyze-label">{neria_admin key='help.wd_analyze_btn'}</span>
     </button>
   </h2>
   <div id="neria-wd-timestamp" style="font-size:11px;color:#aaa;text-align:right;margin-top:-8px;margin-bottom:8px;"></div>
@@ -42,10 +42,10 @@
     {* Issues *}
     <div id="neria-wd-issues-wrap" style="flex:1;min-width:200px;">
       {if empty($wh.issues)}
-        <div style="color:#16a34a;font-size:13px;font-weight:600;">✓ Aucun problème détecté</div>
-        <div style="color:#888;font-size:12px;margin-top:4px;">Tous les systèmes fonctionnent normalement.</div>
+        <div style="color:#16a34a;font-size:13px;font-weight:600;">{neria_admin key='help.wd_no_issues_title'}</div>
+        <div style="color:#888;font-size:12px;margin-top:4px;">{neria_admin key='help.wd_no_issues_desc'}</div>
       {else}
-        <div style="font-size:12px;font-weight:700;color:#7a5800;margin-bottom:8px;">Problèmes détectés :</div>
+        <div style="font-size:12px;font-weight:700;color:#7a5800;margin-bottom:8px;">{neria_admin key='help.wd_issues_title'}</div>
         <ul style="margin:0;padding-left:16px;font-size:12px;color:#5c3d1e;line-height:1.8;">
           {foreach $wh.issues as $issue}
             <li>{$issue|escape:'html'}</li>
@@ -57,7 +57,7 @@
 
   {* Grille sous-systèmes : Crons *}
   <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.55;color:var(--neria-dark);margin-bottom:10px;">
-    Monitoring des crons
+    {neria_admin key='help.wd_crons_section_title'}
   </div>
   <div id="neria-wd-crons-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:20px;">
     {foreach $wh.crons as $cKey => $cron}
@@ -69,16 +69,20 @@
         </div>
         {if $cron.last_run}
           <div style="font-size:11px;color:#888;">
-            Il y a
             {if $cron.age_minutes < 60}
-              {$cron.age_minutes} min
+              {neria_admin key='help.wd_ago_min' n=$cron.age_minutes}
             {else}
-              {math equation="floor(m/60)" m=$cron.age_minutes}h
+              {math equation="floor(m/60)" m=$cron.age_minutes assign="cHrs"}
+              {neria_admin key='help.wd_ago_hours' n=$cHrs}
             {/if}
-            ({$cron.last_count} traité{if $cron.last_count > 1}s{/if})
+            {if $cron.last_count > 1}
+              {neria_admin key='help.wd_processed_plural' n=$cron.last_count}
+            {else}
+              {neria_admin key='help.wd_processed_singular' n=$cron.last_count}
+            {/if}
           </div>
         {else}
-          <div style="font-size:11px;color:#d97706;">Jamais exécuté</div>
+          <div style="font-size:11px;color:#d97706;">{neria_admin key='help.wd_never_run'}</div>
         {/if}
       </div>
     {/foreach}
@@ -87,20 +91,20 @@
     {assign var="qStatus" value=$wh.queue.status|default:'ok'}
     <div style="padding:12px 14px;border-radius:6px;border:1px solid {if $qStatus === 'ok'}#bbf7d0{else}#fed7aa{/if};background:{if $qStatus === 'ok'}#f0fdf4{else}#fffbf0{/if};">
       <div style="font-size:11px;font-weight:700;color:{if $qStatus === 'ok'}#16a34a{else}#d97706{/if};margin-bottom:4px;">
-        {if $qStatus === 'ok'}✓{else}⚠{/if} File d'attente
+        {if $qStatus === 'ok'}✓{else}⚠{/if} {neria_admin key='help.wd_queue_title'}
       </div>
       {if $wh.queue.exists}
         {if $wh.queue.stuck > 0}
-          <div style="font-size:11px;color:#d97706;">{$wh.queue.stuck} bloqué{if $wh.queue.stuck > 1}s{/if} (&gt;2h)</div>
+          <div style="font-size:11px;color:#d97706;">{if $wh.queue.stuck > 1}{neria_admin key='help.wd_queue_stuck_plural' n=$wh.queue.stuck}{else}{neria_admin key='help.wd_queue_stuck_singular' n=$wh.queue.stuck}{/if}</div>
         {/if}
         {if $wh.queue.failed > 0}
-          <div style="font-size:11px;color:#dc2626;">{$wh.queue.failed} en échec</div>
+          <div style="font-size:11px;color:#dc2626;">{neria_admin key='help.wd_queue_failed' n=$wh.queue.failed}</div>
         {/if}
         {if $wh.queue.stuck == 0 && $wh.queue.failed == 0}
-          <div style="font-size:11px;color:#888;">{$wh.queue.total_pending} en attente — OK</div>
+          <div style="font-size:11px;color:#888;">{neria_admin key='help.wd_queue_pending_ok' n=$wh.queue.total_pending}</div>
         {/if}
       {else}
-        <div style="font-size:11px;color:#888;">Queue non activée</div>
+        <div style="font-size:11px;color:#888;">{neria_admin key='help.wd_queue_disabled'}</div>
       {/if}
     </div>
 
@@ -110,14 +114,14 @@
     {assign var="e24Warn"   value=$wh.rc_24h.warning|default:0}
     <div style="padding:12px 14px;border-radius:6px;border:1px solid {if $e24Err > 0 || $e24Crit > 0}#fecaca{else}#bbf7d0{/if};background:{if $e24Err > 0 || $e24Crit > 0}#fff5f5{else}#f0fdf4{/if};">
       <div style="font-size:11px;font-weight:700;color:{if $e24Err > 0 || $e24Crit > 0}#dc2626{else}#16a34a{/if};margin-bottom:4px;">
-        {if $e24Err > 0 || $e24Crit > 0}✕{else}✓{/if} Erreurs (24h)
+        {if $e24Err > 0 || $e24Crit > 0}✕{else}✓{/if} {neria_admin key='help.wd_errors_24h_title'}
       </div>
       {if $e24Err == 0 && $e24Crit == 0 && $e24Warn == 0}
-        <div style="font-size:11px;color:#888;">Aucune anomalie</div>
+        <div style="font-size:11px;color:#888;">{neria_admin key='help.wd_no_anomaly'}</div>
       {else}
-        {if $e24Crit > 0}<div style="font-size:11px;color:#dc2626;">{$e24Crit} critique{if $e24Crit > 1}s{/if}</div>{/if}
-        {if $e24Err > 0}<div style="font-size:11px;color:#a32d2d;">{$e24Err} erreur{if $e24Err > 1}s{/if}</div>{/if}
-        {if $e24Warn > 0}<div style="font-size:11px;color:#d97706;">{$e24Warn} warning{if $e24Warn > 1}s{/if}</div>{/if}
+        {if $e24Crit > 0}<div style="font-size:11px;color:#dc2626;">{if $e24Crit > 1}{neria_admin key='help.wd_crit_plural' n=$e24Crit}{else}{neria_admin key='help.wd_crit_singular' n=$e24Crit}{/if}</div>{/if}
+        {if $e24Err > 0}<div style="font-size:11px;color:#a32d2d;">{if $e24Err > 1}{neria_admin key='help.wd_err_plural' n=$e24Err}{else}{neria_admin key='help.wd_err_singular' n=$e24Err}{/if}</div>{/if}
+        {if $e24Warn > 0}<div style="font-size:11px;color:#d97706;">{if $e24Warn > 1}{neria_admin key='help.wd_warn_plural' n=$e24Warn}{else}{neria_admin key='help.wd_warn_singular' n=$e24Warn}{/if}</div>{/if}
       {/if}
     </div>
 
@@ -128,19 +132,55 @@
   {if isset($anomaly_warnings) && !empty($anomaly_warnings)}
   <div style="background:#fffbf0;border:1px solid #fcd34d;border-radius:6px;padding:14px 18px;margin-top:4px;">
     <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:10px;">
-      ⚠ Anomalies détectées sur {$anomaly_warnings|@count} template{if $anomaly_warnings|@count > 1}s{/if}
+      {assign var="anmCount" value=$anomaly_warnings|@count}
+      {if $anmCount > 1}{neria_admin key='help.wd_anomalies_title_plural' n=$anmCount}{else}{neria_admin key='help.wd_anomalies_title_singular' n=$anmCount}{/if}
     </div>
     {foreach $anomaly_warnings as $anm}
     <div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #fde68a;font-size:12px;">
       <strong>{$anm.template|escape:'html'}</strong> —
-      {if $anm.open_drop >= 20}Ouv. : -{$anm.open_drop}% (S-1 : {$anm.last_week.open_rate}% → S : {$anm.this_week.open_rate}%){/if}
+      {if $anm.open_drop >= 20}{neria_admin key='help.wd_anomaly_open_prefix'}{$anm.open_drop}{neria_admin key='help.wd_anomaly_open_pct_prevweek'}{$anm.last_week.open_rate}{neria_admin key='help.wd_anomaly_open_pct_thisweek'}{$anm.this_week.open_rate}{neria_admin key='help.wd_anomaly_open_pct_suffix'}{/if}
       {if $anm.open_drop >= 20 && $anm.click_drop >= 20} · {/if}
-      {if $anm.click_drop >= 20}Clics : -{$anm.click_drop}%{/if}
+      {if $anm.click_drop >= 20}{neria_admin key='help.wd_anomaly_click_prefix'}{$anm.click_drop}{neria_admin key='help.wd_anomaly_pct_suffix'}{/if}
     </div>
     {/foreach}
   </div>
   {/if}
   </div>{* /neria-wd-anomalies *}
+
+  <script>
+  window.NERIA_WD_LABELS = {
+    noIssuesTitle:          "{neria_admin key='help.wd_no_issues_title'|escape:'javascript'}",
+    noIssuesDesc:           "{neria_admin key='help.wd_no_issues_desc'|escape:'javascript'}",
+    issuesTitle:            "{neria_admin key='help.wd_issues_title'|escape:'javascript'}",
+    agoMin:                 "{neria_admin key='help.wd_ago_min'|escape:'javascript'}",
+    agoHours:               "{neria_admin key='help.wd_ago_hours'|escape:'javascript'}",
+    processedSingular:      "{neria_admin key='help.wd_processed_singular'|escape:'javascript'}",
+    processedPlural:        "{neria_admin key='help.wd_processed_plural'|escape:'javascript'}",
+    neverRun:               "{neria_admin key='help.wd_never_run'|escape:'javascript'}",
+    queueTitle:             "{neria_admin key='help.wd_queue_title'|escape:'javascript'}",
+    queueStuckSingular:     "{neria_admin key='help.wd_queue_stuck_singular'|escape:'javascript'}",
+    queueStuckPlural:       "{neria_admin key='help.wd_queue_stuck_plural'|escape:'javascript'}",
+    queueFailed:            "{neria_admin key='help.wd_queue_failed'|escape:'javascript'}",
+    queuePendingOk:         "{neria_admin key='help.wd_queue_pending_ok'|escape:'javascript'}",
+    queueDisabled:          "{neria_admin key='help.wd_queue_disabled'|escape:'javascript'}",
+    errors24hTitle:         "{neria_admin key='help.wd_errors_24h_title'|escape:'javascript'}",
+    noAnomaly:              "{neria_admin key='help.wd_no_anomaly'|escape:'javascript'}",
+    critSingular:           "{neria_admin key='help.wd_crit_singular'|escape:'javascript'}",
+    critPlural:             "{neria_admin key='help.wd_crit_plural'|escape:'javascript'}",
+    errSingular:            "{neria_admin key='help.wd_err_singular'|escape:'javascript'}",
+    errPlural:              "{neria_admin key='help.wd_err_plural'|escape:'javascript'}",
+    warnSingular:           "{neria_admin key='help.wd_warn_singular'|escape:'javascript'}",
+    warnPlural:             "{neria_admin key='help.wd_warn_plural'|escape:'javascript'}",
+    anomaliesTitleSingular: "{neria_admin key='help.wd_anomalies_title_singular'|escape:'javascript'}",
+    anomaliesTitlePlural:   "{neria_admin key='help.wd_anomalies_title_plural'|escape:'javascript'}",
+    anomalyOpenPrefix:      "{neria_admin key='help.wd_anomaly_open_prefix'|escape:'javascript'}",
+    anomalyClickPrefix:     "{neria_admin key='help.wd_anomaly_click_prefix'|escape:'javascript'}",
+    pctSuffix:              "{neria_admin key='help.wd_anomaly_pct_suffix'|escape:'javascript'}",
+    updatedAt:              "{neria_admin key='help.wd_updated_at'|escape:'javascript'}",
+    analyzing:              "{neria_admin key='help.wd_analyzing'|escape:'javascript'}",
+    analyzeBtn:             "{neria_admin key='help.wd_analyze_btn'|escape:'javascript'}"
+  };
+  </script>
 
 </div>
 {/if}

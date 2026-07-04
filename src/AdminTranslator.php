@@ -102,7 +102,14 @@ class AdminTranslator
     /**
      * Helper Smarty pour {neria_admin key='...'}.
      *
-     * @param array  $params  Paramètres Smarty (attend 'key')
+     * Le paramètre optionnel 'n' substitue '%d' dans la chaîne traduite (ex.
+     * clés de comptage/pluriel comme 'help.wd_ago_min' = "Il y a %d min") sans
+     * avoir besoin d'un bloc {capture} : les modificateurs Smarty (|replace,
+     * |escape...) placés après un paramètre nommé s'appliquent à la VALEUR de
+     * ce paramètre, pas à la sortie de la fonction — {neria_admin key='x'
+     * |replace:'%d':$n} ne remplacerait donc rien dans la traduction.
+     *
+     * @param array  $params  Paramètres Smarty (attend 'key', 'n' optionnel)
      * @param object $smarty  Instance Smarty (non utilisée)
      * @return string
      */
@@ -114,7 +121,13 @@ class AdminTranslator
             return '';
         }
 
-        return self::t($key);
+        $str = self::t($key);
+
+        if (isset($params['n'])) {
+            $str = str_replace('%d', (string) $params['n'], $str);
+        }
+
+        return $str;
     }
 
     /**

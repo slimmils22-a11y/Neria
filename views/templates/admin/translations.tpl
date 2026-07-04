@@ -412,7 +412,8 @@ window.neriaAjaxUrl = function(action, extra) {
                     class="neria-section-reset"
                     id="neria-trad-reset"
                     data-template="{$selected_template}"
-                    data-lang="{$selected_lang}">
+                    data-lang="{$selected_lang}"
+                    data-confirm="{neria_admin key='translations.reset_confirm'|escape:'html'}">
               ↺ {neria_admin key='translations.reset_template'}
             </button>
           </div>
