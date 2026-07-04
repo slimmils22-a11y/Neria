@@ -333,7 +333,7 @@
       {* Bouton envoi *}
       <div>
         <button type="button" class="neria-btn neria-btn--primary"
-                data-confirm="{neria_admin key='seg.campaign_confirm'|escape:'html'}"
+                data-confirm="{neria_admin key='seg.campaign_confirm' esc='html'}"
                 onclick="neriaConfirmDelete(this);">
           ✉ {neria_admin key='seg.campaign_send'}
         </button>

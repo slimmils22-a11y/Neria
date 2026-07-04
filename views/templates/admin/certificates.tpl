@@ -192,7 +192,7 @@
                 <input type="hidden" name="neria_action" value="cert_delete">
                 <input type="hidden" name="id_certificate" value="{$c.id_certificate|intval}">
                 <button type="button"
-                        data-confirm="{neria_admin key='cert.delete_confirm'|escape:'html'}"
+                        data-confirm="{neria_admin key='cert.delete_confirm' esc='html'}"
                         onclick="neriaConfirmDelete(this);"
                         style="height:28px;padding:0 10px;background:#c0392b;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;"
                         title="{neria_admin key='cert.delete'}">

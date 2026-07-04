@@ -216,9 +216,9 @@ var _nrc = {
     total:   "{neria_admin key='stats.chart_cat_total'}"
   },
   typeLabels: [
-    "{neria_admin key='stats.chart_type_line'|escape:'javascript'}",
-    "{neria_admin key='stats.chart_type_bar'|escape:'javascript'}",
-    "{neria_admin key='stats.chart_type_doughnut'|escape:'javascript'}"
+    "{neria_admin key='stats.chart_type_line' esc='javascript'}",
+    "{neria_admin key='stats.chart_type_bar' esc='javascript'}",
+    "{neria_admin key='stats.chart_type_doughnut' esc='javascript'}"
   ]
 };
 </script>
@@ -614,9 +614,9 @@ var _nec = {
   d30: {$engagement_chart_30|default:'null'},
   d90: {$engagement_chart_90|default:'null'},
   lbl: {
-    sent:   "{neria_admin key='common.emails_sent'|escape:'javascript'}",
-    opens:  "{neria_admin key='common.opens'|escape:'javascript'}",
-    clicks: "{neria_admin key='common.clicks'|escape:'javascript'}"
+    sent:   "{neria_admin key='common.emails_sent' esc='javascript'}",
+    opens:  "{neria_admin key='common.opens' esc='javascript'}",
+    clicks: "{neria_admin key='common.clicks' esc='javascript'}"
   }
 };
 </script>
@@ -720,16 +720,16 @@ var _nec = {
 var _nhm = {$open_heatmap|default:'null'};
 var _nhmLbl = {
   days: [
-    "{neria_admin key='stats.day_abbr_mon'|escape:'javascript'}",
-    "{neria_admin key='stats.day_abbr_tue'|escape:'javascript'}",
-    "{neria_admin key='stats.day_abbr_wed'|escape:'javascript'}",
-    "{neria_admin key='stats.day_abbr_thu'|escape:'javascript'}",
-    "{neria_admin key='stats.day_abbr_fri'|escape:'javascript'}",
-    "{neria_admin key='stats.day_abbr_sat'|escape:'javascript'}",
-    "{neria_admin key='stats.day_abbr_sun'|escape:'javascript'}"
+    "{neria_admin key='stats.day_abbr_mon' esc='javascript'}",
+    "{neria_admin key='stats.day_abbr_tue' esc='javascript'}",
+    "{neria_admin key='stats.day_abbr_wed' esc='javascript'}",
+    "{neria_admin key='stats.day_abbr_thu' esc='javascript'}",
+    "{neria_admin key='stats.day_abbr_fri' esc='javascript'}",
+    "{neria_admin key='stats.day_abbr_sat' esc='javascript'}",
+    "{neria_admin key='stats.day_abbr_sun' esc='javascript'}"
   ],
-  openSingular: "{neria_admin key='stats.heatmap_open_singular'|escape:'javascript'}",
-  openPlural:   "{neria_admin key='stats.heatmap_open_plural'|escape:'javascript'}"
+  openSingular: "{neria_admin key='stats.heatmap_open_singular' esc='javascript'}",
+  openPlural:   "{neria_admin key='stats.heatmap_open_plural' esc='javascript'}"
 };
 </script>
 {literal}
@@ -1853,8 +1853,8 @@ var _nhmLbl = {
 
 <script>
 var _nCopyLbl = {
-  copy:   "📋 {neria_admin key='common.copy'|escape:'javascript'}",
-  copied: "✓ {neria_admin key='common.copied'|escape:'javascript'}"
+  copy:   "📋 {neria_admin key='common.copy' esc='javascript'}",
+  copied: "✓ {neria_admin key='common.copied' esc='javascript'}"
 };
 </script>
 {literal}
@@ -3882,10 +3882,10 @@ var _nCopyLbl = {
 
 <script>
 var _nUpsellMsg = {
-  notFound:    "{neria_admin key='stats.js_order_not_found'|escape:'javascript'}",
-  simError:    "{neria_admin key='stats.js_simulation_error'|escape:'javascript'}",
-  noRelevant:  "{neria_admin key='stats.js_no_relevant_product'|escape:'javascript'}",
-  unreachable: "{neria_admin key='stats.js_server_unreachable'|escape:'javascript'}"
+  notFound:    "{neria_admin key='stats.js_order_not_found' esc='javascript'}",
+  simError:    "{neria_admin key='stats.js_simulation_error' esc='javascript'}",
+  noRelevant:  "{neria_admin key='stats.js_no_relevant_product' esc='javascript'}",
+  unreachable: "{neria_admin key='stats.js_server_unreachable' esc='javascript'}"
 };
 </script>
 <script>

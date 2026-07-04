@@ -128,9 +128,9 @@
               <input type="hidden" name="abtest_winner"   value="{$winner}">
               <button type="submit"
                       class="neria-btn neria-btn--primary neria-btn--sm"
-                      data-confirm="Appliquer la variante {$winner} comme template par défaut ? Le test sera archivé et fermé."
-                      title="La variante {$winner} sera promue en template par défaut pour tous les futurs envois.">
-                ✓ Appliquer {$winner}
+                      data-confirm="{neria_admin key='abtest.apply_winner_confirm_prefix' esc='html'}{$winner}{neria_admin key='abtest.apply_winner_confirm_suffix' esc='html'}"
+                      title="{neria_admin key='abtest.apply_winner_tooltip_prefix' esc='html'}{$winner}{neria_admin key='abtest.apply_winner_tooltip_suffix' esc='html'}">
+                {neria_admin key='abtest.apply_winner_btn_prefix'}{$winner}
               </button>
             </form>
             {/if}

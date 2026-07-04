@@ -104,7 +104,7 @@
                   title="{neria_admin key='calendar.duplicate_btn'}">⎘</button>
           <a href="{$smarty.server.REQUEST_URI}&neria_action=delete_calendar_event&neria_tab=calendar&cal_id={$ev.id_event|intval}"
              class="neria-btn neria-btn--danger neria-btn--xs"
-             data-confirm="{neria_admin key='calendar.delete_confirm'|escape:'html'}"
+             data-confirm="{neria_admin key='calendar.delete_confirm' esc='html'}"
              onclick="return neriaConfirmLink(event, this);">✕</a>
         </td>
       </tr>

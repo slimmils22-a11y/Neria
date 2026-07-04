@@ -102,14 +102,21 @@ class AdminTranslator
     /**
      * Helper Smarty pour {neria_admin key='...'}.
      *
-     * Le paramètre optionnel 'n' substitue '%d' dans la chaîne traduite (ex.
-     * clés de comptage/pluriel comme 'help.wd_ago_min' = "Il y a %d min") sans
-     * avoir besoin d'un bloc {capture} : les modificateurs Smarty (|replace,
-     * |escape...) placés après un paramètre nommé s'appliquent à la VALEUR de
-     * ce paramètre, pas à la sortie de la fonction — {neria_admin key='x'
-     * |replace:'%d':$n} ne remplacerait donc rien dans la traduction.
+     * Paramètres optionnels :
+     *  - 'n'   : substitue '%d' dans la chaîne traduite (clés de comptage/
+     *            pluriel comme 'help.wd_ago_min' = "Il y a %d min").
+     *  - 'esc' : échappe la sortie ('html' ou 'javascript') pour une
+     *            injection sûre dans un attribut HTML ou une chaîne JS.
      *
-     * @param array  $params  Paramètres Smarty (attend 'key', 'n' optionnel)
+     * Ces deux paramètres existent parce que les modificateurs Smarty
+     * (|replace, |escape...) placés après un paramètre NOMMÉ de fonction
+     * s'appliquent à la VALEUR de ce paramètre, pas à la sortie de la
+     * fonction — {neria_admin key='x'|escape:'html'} échappe la chaîne
+     * littérale 'x' (le nom de la clé, sans effet), pas la traduction
+     * réellement affichée. D'où l'échappement fait ici, côté PHP, via le
+     * modificateur Smarty officiel (fidélité garantie avec |escape natif).
+     *
+     * @param array  $params  Paramètres Smarty (attend 'key', 'n' et 'esc' optionnels)
      * @param object $smarty  Instance Smarty (non utilisée)
      * @return string
      */
@@ -125,6 +132,15 @@ class AdminTranslator
 
         if (isset($params['n'])) {
             $str = str_replace('%d', (string) $params['n'], $str);
+        }
+
+        if (isset($params['esc']) && in_array($params['esc'], ['html', 'javascript'], true)) {
+            if (!function_exists('smarty_modifier_escape') && defined('SMARTY_PLUGINS_DIR')) {
+                require_once SMARTY_PLUGINS_DIR . 'modifier.escape.php';
+            }
+            if (function_exists('smarty_modifier_escape')) {
+                $str = smarty_modifier_escape($str, $params['esc']);
+            }
         }
 
         return $str;

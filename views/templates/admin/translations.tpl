@@ -240,12 +240,12 @@ window.neriaAjaxUrl = function(action, extra) {
 
     {* Boutons réinitialiser *}
     <div class="neria-trad-toolbar__group">
-      <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-text-light);">Reset</span>
+      <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-text-light);">{neria_admin key='design.reset'}</span>
       <form method="post" style="margin:0;">
         <input type="hidden" name="neria_action"  value="reset_template_all_langs">
         <input type="hidden" name="trad_template" value="{$selected_template}">
         <button type="button" class="neria-btn neria-btn--warn neria-btn--sm"
-                data-confirm="Réinitialiser ce template dans TOUTES les langues ? Vos textes personnalisés seront perdus."
+                data-confirm="{neria_admin key='translations.reset_all_langs_confirm' esc='html'}"
                 onclick="neriaConfirmDelete(this);">
           ↺ {neria_admin key='translations.reset_all_langs'}
         </button>
@@ -253,7 +253,7 @@ window.neriaAjaxUrl = function(action, extra) {
       <form method="post" style="margin:0;">
         <input type="hidden" name="neria_action"  value="reset_all_translations">
         <button type="button" class="neria-btn neria-btn--danger neria-btn--sm"
-                data-confirm="⚠ ATTENTION — Réinitialiser TOUTES les traductions de TOUS les templates ? Cette action est irréversible."
+                data-confirm="{neria_admin key='translations.reset_all_confirm' esc='html'}"
                 onclick="neriaConfirmDelete(this);">
           ↺ {neria_admin key='translations.reset_all'}
         </button>
@@ -413,7 +413,7 @@ window.neriaAjaxUrl = function(action, extra) {
                     id="neria-trad-reset"
                     data-template="{$selected_template}"
                     data-lang="{$selected_lang}"
-                    data-confirm="{neria_admin key='translations.reset_confirm'|escape:'html'}">
+                    data-confirm="{neria_admin key='translations.reset_confirm' esc='html'}">
               ↺ {neria_admin key='translations.reset_template'}
             </button>
           </div>
@@ -568,7 +568,7 @@ window.neriaAjaxUrl = function(action, extra) {
                       <input type="hidden" name="trad_lang"      value="{$selected_lang|escape:'html'}">
                       <input type="hidden" name="id_history"     value="{$entry.id_history|intval}">
                       <button type="button" class="neria-btn neria-btn--primary neria-btn--xs"
-                              data-confirm="{neria_admin key='translations.restore_confirm'|escape:'html'}"
+                              data-confirm="{neria_admin key='translations.restore_confirm' esc='html'}"
                               onclick="neriaConfirmDelete(this);">
                         {neria_admin key='translations.restore_btn'}
                       </button>
@@ -672,7 +672,7 @@ window.neriaAjaxUrl = function(action, extra) {
 
               {* Reset B *}
               <div class="neria-trad-toolbar__group">
-                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-text-light);">Reset</span>
+                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--neria-text-light);">{neria_admin key='design.reset'}</span>
                 <form method="post" style="margin:0;">
                   <input type="hidden" name="neria_action"   value="reset_variant_b">
                   <input type="hidden" name="neria_tab"       value="translations">
@@ -680,7 +680,7 @@ window.neriaAjaxUrl = function(action, extra) {
                   <input type="hidden" name="trad_lang"       value="{$selected_lang}">
                   <input type="hidden" name="id_abtest_b"     value="{$id_abtest_b}">
                   <button type="button" class="neria-btn neria-btn--warn neria-btn--sm"
-                          data-confirm="Réinitialiser la Variante B ? Tous vos textes B seront supprimés et les champs afficheront à nouveau les textes de la Variante A."
+                          data-confirm="{neria_admin key='translations.reset_variant_b_confirm' esc='html'}"
                           onclick="neriaConfirmDelete(this);">
                     ↺ {neria_admin key='translations.reset_template'}
                   </button>
@@ -830,7 +830,7 @@ window.neriaAjaxUrl = function(action, extra) {
                       <input type="hidden" name="id_abtest_b"    value="{$id_abtest_b}">
                       <input type="hidden" name="id_history"     value="{$entry.id_history|intval}">
                       <button type="button" class="neria-btn neria-btn--primary neria-btn--xs"
-                              data-confirm="{neria_admin key='translations.restore_confirm'|escape:'html'}"
+                              data-confirm="{neria_admin key='translations.restore_confirm' esc='html'}"
                               onclick="neriaConfirmDelete(this);">
                         {neria_admin key='translations.restore_btn'}
                       </button>

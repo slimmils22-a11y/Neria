@@ -149,36 +149,36 @@
 
   <script>
   window.NERIA_WD_LABELS = {
-    noIssuesTitle:          "{neria_admin key='help.wd_no_issues_title'|escape:'javascript'}",
-    noIssuesDesc:           "{neria_admin key='help.wd_no_issues_desc'|escape:'javascript'}",
-    issuesTitle:            "{neria_admin key='help.wd_issues_title'|escape:'javascript'}",
-    agoMin:                 "{neria_admin key='help.wd_ago_min'|escape:'javascript'}",
-    agoHours:               "{neria_admin key='help.wd_ago_hours'|escape:'javascript'}",
-    processedSingular:      "{neria_admin key='help.wd_processed_singular'|escape:'javascript'}",
-    processedPlural:        "{neria_admin key='help.wd_processed_plural'|escape:'javascript'}",
-    neverRun:               "{neria_admin key='help.wd_never_run'|escape:'javascript'}",
-    queueTitle:             "{neria_admin key='help.wd_queue_title'|escape:'javascript'}",
-    queueStuckSingular:     "{neria_admin key='help.wd_queue_stuck_singular'|escape:'javascript'}",
-    queueStuckPlural:       "{neria_admin key='help.wd_queue_stuck_plural'|escape:'javascript'}",
-    queueFailed:            "{neria_admin key='help.wd_queue_failed'|escape:'javascript'}",
-    queuePendingOk:         "{neria_admin key='help.wd_queue_pending_ok'|escape:'javascript'}",
-    queueDisabled:          "{neria_admin key='help.wd_queue_disabled'|escape:'javascript'}",
-    errors24hTitle:         "{neria_admin key='help.wd_errors_24h_title'|escape:'javascript'}",
-    noAnomaly:              "{neria_admin key='help.wd_no_anomaly'|escape:'javascript'}",
-    critSingular:           "{neria_admin key='help.wd_crit_singular'|escape:'javascript'}",
-    critPlural:             "{neria_admin key='help.wd_crit_plural'|escape:'javascript'}",
-    errSingular:            "{neria_admin key='help.wd_err_singular'|escape:'javascript'}",
-    errPlural:              "{neria_admin key='help.wd_err_plural'|escape:'javascript'}",
-    warnSingular:           "{neria_admin key='help.wd_warn_singular'|escape:'javascript'}",
-    warnPlural:             "{neria_admin key='help.wd_warn_plural'|escape:'javascript'}",
-    anomaliesTitleSingular: "{neria_admin key='help.wd_anomalies_title_singular'|escape:'javascript'}",
-    anomaliesTitlePlural:   "{neria_admin key='help.wd_anomalies_title_plural'|escape:'javascript'}",
-    anomalyOpenPrefix:      "{neria_admin key='help.wd_anomaly_open_prefix'|escape:'javascript'}",
-    anomalyClickPrefix:     "{neria_admin key='help.wd_anomaly_click_prefix'|escape:'javascript'}",
-    pctSuffix:              "{neria_admin key='help.wd_anomaly_pct_suffix'|escape:'javascript'}",
-    updatedAt:              "{neria_admin key='help.wd_updated_at'|escape:'javascript'}",
-    analyzing:              "{neria_admin key='help.wd_analyzing'|escape:'javascript'}",
-    analyzeBtn:             "{neria_admin key='help.wd_analyze_btn'|escape:'javascript'}"
+    noIssuesTitle:          "{neria_admin key='help.wd_no_issues_title' esc='javascript'}",
+    noIssuesDesc:           "{neria_admin key='help.wd_no_issues_desc' esc='javascript'}",
+    issuesTitle:            "{neria_admin key='help.wd_issues_title' esc='javascript'}",
+    agoMin:                 "{neria_admin key='help.wd_ago_min' esc='javascript'}",
+    agoHours:               "{neria_admin key='help.wd_ago_hours' esc='javascript'}",
+    processedSingular:      "{neria_admin key='help.wd_processed_singular' esc='javascript'}",
+    processedPlural:        "{neria_admin key='help.wd_processed_plural' esc='javascript'}",
+    neverRun:               "{neria_admin key='help.wd_never_run' esc='javascript'}",
+    queueTitle:             "{neria_admin key='help.wd_queue_title' esc='javascript'}",
+    queueStuckSingular:     "{neria_admin key='help.wd_queue_stuck_singular' esc='javascript'}",
+    queueStuckPlural:       "{neria_admin key='help.wd_queue_stuck_plural' esc='javascript'}",
+    queueFailed:            "{neria_admin key='help.wd_queue_failed' esc='javascript'}",
+    queuePendingOk:         "{neria_admin key='help.wd_queue_pending_ok' esc='javascript'}",
+    queueDisabled:          "{neria_admin key='help.wd_queue_disabled' esc='javascript'}",
+    errors24hTitle:         "{neria_admin key='help.wd_errors_24h_title' esc='javascript'}",
+    noAnomaly:              "{neria_admin key='help.wd_no_anomaly' esc='javascript'}",
+    critSingular:           "{neria_admin key='help.wd_crit_singular' esc='javascript'}",
+    critPlural:             "{neria_admin key='help.wd_crit_plural' esc='javascript'}",
+    errSingular:            "{neria_admin key='help.wd_err_singular' esc='javascript'}",
+    errPlural:              "{neria_admin key='help.wd_err_plural' esc='javascript'}",
+    warnSingular:           "{neria_admin key='help.wd_warn_singular' esc='javascript'}",
+    warnPlural:             "{neria_admin key='help.wd_warn_plural' esc='javascript'}",
+    anomaliesTitleSingular: "{neria_admin key='help.wd_anomalies_title_singular' esc='javascript'}",
+    anomaliesTitlePlural:   "{neria_admin key='help.wd_anomalies_title_plural' esc='javascript'}",
+    anomalyOpenPrefix:      "{neria_admin key='help.wd_anomaly_open_prefix' esc='javascript'}",
+    anomalyClickPrefix:     "{neria_admin key='help.wd_anomaly_click_prefix' esc='javascript'}",
+    pctSuffix:              "{neria_admin key='help.wd_anomaly_pct_suffix' esc='javascript'}",
+    updatedAt:              "{neria_admin key='help.wd_updated_at' esc='javascript'}",
+    analyzing:              "{neria_admin key='help.wd_analyzing' esc='javascript'}",
+    analyzeBtn:             "{neria_admin key='help.wd_analyze_btn' esc='javascript'}"
   };
   </script>
 
@@ -598,7 +598,7 @@
       <input type="hidden" name="neria_action" value="regenerate_emergency_token">
       <input type="hidden" name="neria_tab"    value="help">
       <button type="button" class="neria-btn neria-btn--danger neria-btn--sm"
-              data-confirm="{neria_admin key='help.emergency_regen_confirm'|escape:'html'}"
+              data-confirm="{neria_admin key='help.emergency_regen_confirm' esc='html'}"
               onclick="neriaConfirmDelete(this);">
         ↺ {neria_admin key='help.emergency_regen'}
       </button>
@@ -688,7 +688,7 @@
       <input type="hidden" name="neria_action" value="regenerate_cron_token">
       <input type="hidden" name="neria_tab"    value="help">
       <button type="button" class="neria-btn neria-btn--danger neria-btn--sm"
-              data-confirm="{neria_admin key='help.cron_regen_confirm'|escape:'html'}"
+              data-confirm="{neria_admin key='help.cron_regen_confirm' esc='html'}"
               onclick="neriaConfirmDelete(this);">
         ↺ {neria_admin key='help.cron_regen'}
       </button>
@@ -762,7 +762,7 @@
       <input type="hidden" name="neria_action" value="clear_logs">
       <input type="hidden" name="neria_tab" value="help">
       <button type="button" class="neria-btn neria-watchdog-btn neria-watchdog-btn--danger"
-              data-confirm="{neria_admin key='help.clear_confirm'|escape:'html'}"
+              data-confirm="{neria_admin key='help.clear_confirm' esc='html'}"
               onclick="neriaConfirmDelete(this);">
         🗑 {neria_admin key='help.clear_log'}
       </button>

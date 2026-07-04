@@ -249,7 +249,7 @@
         <div class="ns-option-card__label">{neria_admin key='seasonal.status_label'}</div>
         <input type="hidden" id="ns-is-active-val" name="seasonal_is_active" value="{if !$is_edit || $seasonal_edit.is_active}1{else}0{/if}">
         <button type="button" id="ns-btn-active"
-          onclick="nsToggleBtn(this,'ns-is-active-val','{neria_admin key='seasonal.active_label'|escape:'javascript'}','{neria_admin key='seasonal.inactive_label'|escape:'javascript'}','#16a34a','#dc2626')"
+          onclick="nsToggleBtn(this,'ns-is-active-val','{neria_admin key='seasonal.active_label' esc='javascript'}','{neria_admin key='seasonal.inactive_label' esc='javascript'}','#16a34a','#dc2626')"
           style="padding:8px 20px;border-radius:20px;border:none;cursor:pointer;font-size:13px;font-weight:700;
                  background:{if !$is_edit || $seasonal_edit.is_active}#16a34a{else}#dc2626{/if};color:#fff;">
           {if !$is_edit || $seasonal_edit.is_active}● {neria_admin key='seasonal.active_label'}{else}○ {neria_admin key='seasonal.inactive_label'}{/if}
@@ -262,7 +262,7 @@
         <div class="ns-option-card__label">{neria_admin key='seasonal.gift_mode_label'}</div>
         <input type="hidden" id="ns-gift-mode-val" name="seasonal_gift_mode" value="{if $is_edit && $seasonal_edit.gift_mode}1{else}0{/if}">
         <button type="button" id="ns-btn-gift"
-          onclick="nsToggleBtn(this,'ns-gift-mode-val','{neria_admin key='seasonal.enabled_label'|escape:'javascript'}','{neria_admin key='seasonal.disabled_label'|escape:'javascript'}','#16a34a','#dc2626')"
+          onclick="nsToggleBtn(this,'ns-gift-mode-val','{neria_admin key='seasonal.enabled_label' esc='javascript'}','{neria_admin key='seasonal.disabled_label' esc='javascript'}','#16a34a','#dc2626')"
           style="padding:8px 20px;border-radius:20px;border:none;cursor:pointer;font-size:13px;font-weight:700;
                  background:{if $is_edit && $seasonal_edit.gift_mode}#16a34a{else}#dc2626{/if};color:#fff;">
           {if $is_edit && $seasonal_edit.gift_mode}● {neria_admin key='seasonal.enabled_label'}{else}○ {neria_admin key='seasonal.disabled_label'}{/if}

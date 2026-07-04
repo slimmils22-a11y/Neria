@@ -200,7 +200,7 @@
       <input type="hidden" name="neria_action" value="reset_time_greetings_all">
       <input type="hidden" name="neria_tab"    value="configure">
       <button type="button" class="neria-btn neria-btn--sm"
-              data-confirm="{neria_admin key='configure.tg_reset_all_confirm'|escape:'html'}"
+              data-confirm="{neria_admin key='configure.tg_reset_all_confirm' esc='html'}"
               onclick="neriaConfirmDelete(this);"
               style="background:#dc2626;color:#fff;border-color:#dc2626;">
         {neria_admin key='configure.tg_reset_all_btn'}
@@ -217,7 +217,7 @@
         {/foreach}
       </select>
       <button type="button" class="neria-btn neria-btn--sm"
-              data-confirm="{neria_admin key='configure.tg_reset_lang_confirm'|escape:'html'}"
+              data-confirm="{neria_admin key='configure.tg_reset_lang_confirm' esc='html'}"
               onclick="neriaConfirmDelete(this);"
               style="background:#dc2626;color:#fff;border-color:#dc2626;">
         {neria_admin key='configure.tg_reset_lang_btn'}
@@ -601,7 +601,7 @@
         {if $blacklist}
         <button type="button" class="neria-btn neria-btn--ghost neria-btn--sm"
                 style="color:var(--neria-error);border-color:var(--neria-error);"
-                onclick="var f=this.closest('form'); neriaConfirmAction('{neria_admin key='configure.blacklist_reset_confirm'|escape:'javascript'}', function(){ f.querySelector('[name=neria_action]').value='reset_blacklist'; f.submit(); });">
+                onclick="var f=this.closest('form'); neriaConfirmAction('{neria_admin key='configure.blacklist_reset_confirm' esc='javascript'}', function(){ f.querySelector('[name=neria_action]').value='reset_blacklist'; f.submit(); });">
           {neria_admin key='configure.blacklist_reset'}
         </button>
         {/if}

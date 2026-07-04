@@ -559,14 +559,14 @@ function nbCopy(id, btn, directVal) {
     var text = directVal || document.getElementById(id).textContent.trim();
     navigator.clipboard.writeText(text).then(function() {
         var orig = btn.textContent;
-        btn.textContent = '✓ {neria_admin key='bounces.js_copied'|escape:'javascript'}';
+        btn.textContent = '✓ {neria_admin key='bounces.js_copied' esc='javascript'}';
         setTimeout(function() { btn.textContent = orig; }, 1800);
     });
 }
 
 function nbTestImap(btn) {
     btn.disabled = true;
-    btn.textContent = '⏳ {neria_admin key='bounces.js_testing'|escape:'javascript'}';
+    btn.textContent = '⏳ {neria_admin key='bounces.js_testing' esc='javascript'}';
     var result = document.getElementById('nb-test-result');
     result.style.display = 'none';
 
@@ -583,12 +583,12 @@ function nbTestImap(btn) {
         })
         .catch(function() {
             result.className = 'err';
-            result.textContent = '{neria_admin key='bounces.js_comm_error'|escape:'javascript'}';
+            result.textContent = '{neria_admin key='bounces.js_comm_error' esc='javascript'}';
             result.style.display = 'block';
         })
         .finally(function() {
             btn.disabled = false;
-            btn.textContent = '🔌 {neria_admin key='bounces.test_imap_btn'|escape:'javascript'}';
+            btn.textContent = '🔌 {neria_admin key='bounces.test_imap_btn' esc='javascript'}';
         });
 }
 

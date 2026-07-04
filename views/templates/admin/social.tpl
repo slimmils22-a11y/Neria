@@ -85,7 +85,7 @@
 </div>
 
 <script>
-var NERIA_SOCIAL_MISMATCH_PREFIX = '{neria_admin key='social.url_mismatch_warning'|escape:'javascript'}';
+var NERIA_SOCIAL_MISMATCH_PREFIX = '{neria_admin key='social.url_mismatch_warning' esc='javascript'}';
 {literal}
 (function () {
   // Alerte discrète (non bloquante) si l'URL saisie ne correspond pas
