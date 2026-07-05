@@ -86,9 +86,13 @@ class CertificateManager
             return 'Ce numéro de série existe déjà : ' . $serialNumber;
         }
 
+        // ── Langue du client (même algorithme que EmailRenderer pour l'email,
+        //    afin que le PDF joint corresponde à la langue de l'email) ──────
+        $lang = $this->resolveCertificateLang($order, (int) $customer->id_lang);
+
         // ── Génère le PDF ─────────────────────────────────────────
         $pdfResult = $this->generatePdf(
-            $serialNumber, $order, $customerName, $productName, $artisanNote
+            $serialNumber, $order, $customerName, $productName, $artisanNote, $lang
         );
         if (isset($pdfResult['error'])) {
             return $pdfResult['error'];
@@ -177,12 +181,37 @@ class CertificateManager
     // GÉNÉRATION PDF
     // ============================================================
 
+    /**
+     * Résout la langue à utiliser pour le PDF ET l'email du certificat, avec
+     * le même algorithme que EmailRenderer (TranslationEngine::resolveOptimalLang) :
+     * compte client si boutique multi-langues, sinon pays de facturation.
+     * Garantit que le PDF joint est dans la même langue que l'email qui
+     * l'accompagne (EmailRenderer applique indépendamment le même algorithme
+     * sur les mêmes données de commande/client).
+     */
+    private function resolveCertificateLang(\Order $order, int $idLang): string
+    {
+        $countryIso = '';
+        $postcode   = '';
+        if ($order->id_address_invoice) {
+            $address = new \Address((int) $order->id_address_invoice);
+            if (\Validate::isLoadedObject($address)) {
+                $countryIso = (string) (\Country::getIsoById((int) $address->id_country) ?: '');
+                $postcode   = (string) $address->postcode;
+            }
+        }
+
+        $engine = new \TranslationEngine($this->module);
+        return $engine->resolveOptimalLang($idLang, $countryIso, $postcode);
+    }
+
     private function generatePdf(
         string $serial,
         \Order $order,
         string $customerName,
         string $productName,
-        string $artisanNote
+        string $artisanNote,
+        string $lang
     ): array {
         $tcpdfPath = _PS_ROOT_DIR_ . '/vendor/tecnickcom/tcpdf/tcpdf.php';
         if (!file_exists($tcpdfPath)) {
@@ -280,13 +309,14 @@ class CertificateManager
             $y += 14;
 
             // ── Tableau des informations ──────────────────────────
+            $engine = new \TranslationEngine($this->module);
             $fields = [
-                'Produit'          => $productName,
-                'Numéro de série'  => $serial,
-                'Date de commande' => $dateStr,
-                'Certifié le'      => $issuedStr,
-                'Propriétaire'     => $customerName,
-                'Commande'         => '#' . (int) $order->id,
+                $engine->get('certificate_email', 'certificate_pdf_label_product', $lang)       => $productName,
+                $engine->get('certificate_email', 'certificate_pdf_label_serial', $lang)         => $serial,
+                $engine->get('certificate_email', 'certificate_pdf_label_order_date', $lang)     => $dateStr,
+                $engine->get('certificate_email', 'certificate_pdf_label_certified_date', $lang) => $issuedStr,
+                $engine->get('certificate_email', 'certificate_pdf_label_owner', $lang)          => $customerName,
+                $engine->get('certificate_email', 'certificate_pdf_label_order', $lang)          => '#' . (int) $order->id,
             ];
 
             foreach ($fields as $label => $value) {

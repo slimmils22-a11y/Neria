@@ -26346,7 +26346,13 @@
             "certificate_email_serial_label": "Numéro de série",
             "certificate_email_note": "Ce document certifie l'authenticité de votre pièce et constitue une pièce officielle. Conservez-le précieusement.",
             "dear_customer": "Madame, Monsieur,",
-            "certificate_email_signature": "Fiers de la qualité de notre savoir-faire,"
+            "certificate_email_signature": "Fiers de la qualité de notre savoir-faire,",
+            "certificate_pdf_label_product": "Produit",
+            "certificate_pdf_label_serial": "Numéro de série",
+            "certificate_pdf_label_order_date": "Date de commande",
+            "certificate_pdf_label_certified_date": "Certifié le",
+            "certificate_pdf_label_owner": "Propriétaire",
+            "certificate_pdf_label_order": "Commande"
         },
         "en": {
             "greeting_main": "Your Certificate of Authenticity",
@@ -26356,7 +26362,13 @@
             "certificate_email_serial_label": "Serial number",
             "certificate_email_note": "This document certifies the authenticity of your piece and is an official record. Please keep it in a safe place.",
             "dear_customer": "Dear Valued Guest,",
-            "certificate_email_signature": "Proud of the quality of our craftsmanship,"
+            "certificate_email_signature": "Proud of the quality of our craftsmanship,",
+            "certificate_pdf_label_product": "Product",
+            "certificate_pdf_label_serial": "Serial number",
+            "certificate_pdf_label_order_date": "Order date",
+            "certificate_pdf_label_certified_date": "Certified on",
+            "certificate_pdf_label_owner": "Owner",
+            "certificate_pdf_label_order": "Order"
         },
         "de": {
             "greeting_main": "Ihr Echtheitszertifikat",
@@ -26366,7 +26378,13 @@
             "certificate_email_serial_label": "Seriennummer",
             "certificate_email_note": "Dieses Dokument bescheinigt die Echtheit Ihres Stücks und ist ein offizielles Dokument. Bewahren Sie es sorgfältig auf.",
             "dear_customer": "Sehr geehrte Damen und Herren,",
-            "certificate_email_signature": "Stolz auf die Qualität unseres Handwerks,"
+            "certificate_email_signature": "Stolz auf die Qualität unseres Handwerks,",
+            "certificate_pdf_label_product": "Produkt",
+            "certificate_pdf_label_serial": "Seriennummer",
+            "certificate_pdf_label_order_date": "Bestelldatum",
+            "certificate_pdf_label_certified_date": "Zertifiziert am",
+            "certificate_pdf_label_owner": "Eigentümer",
+            "certificate_pdf_label_order": "Bestellung"
         },
         "it": {
             "greeting_main": "Il tuo Certificato di Autenticità",
@@ -26376,7 +26394,13 @@
             "certificate_email_serial_label": "Numero di serie",
             "certificate_email_note": "Questo documento certifica l'autenticità del tuo pezzo e costituisce un documento ufficiale. Conservalo con cura.",
             "dear_customer": "Gentile Cliente,",
-            "certificate_email_signature": "Orgogliosi della qualità della nostra maestria,"
+            "certificate_email_signature": "Orgogliosi della qualità della nostra maestria,",
+            "certificate_pdf_label_product": "Prodotto",
+            "certificate_pdf_label_serial": "Numero di serie",
+            "certificate_pdf_label_order_date": "Data ordine",
+            "certificate_pdf_label_certified_date": "Certificato il",
+            "certificate_pdf_label_owner": "Proprietario",
+            "certificate_pdf_label_order": "Ordine"
         },
         "es": {
             "greeting_main": "Su Certificado de Autenticidad",
@@ -26386,7 +26410,13 @@
             "certificate_email_serial_label": "Número de serie",
             "certificate_email_note": "Este documento certifica la autenticidad de su pieza y constituye un documento oficial. Consérvelo cuidadosamente.",
             "dear_customer": "Estimado cliente,",
-            "certificate_email_signature": "Orgullosos de la calidad de nuestra artesanía,"
+            "certificate_email_signature": "Orgullosos de la calidad de nuestra artesanía,",
+            "certificate_pdf_label_product": "Producto",
+            "certificate_pdf_label_serial": "Número de serie",
+            "certificate_pdf_label_order_date": "Fecha del pedido",
+            "certificate_pdf_label_certified_date": "Certificado el",
+            "certificate_pdf_label_owner": "Propietario",
+            "certificate_pdf_label_order": "Pedido"
         },
         "pt": {
             "greeting_main": "O seu Certificado de Autenticidade",
@@ -26396,7 +26426,13 @@
             "certificate_email_serial_label": "Número de série",
             "certificate_email_note": "Este documento certifica a autenticidade da sua peça e constitui um documento oficial. Guarde-o com cuidado.",
             "dear_customer": "Prezado Cliente,",
-            "certificate_email_signature": "Orgulhosos da qualidade do nosso artesanato,"
+            "certificate_email_signature": "Orgulhosos da qualidade do nosso artesanato,",
+            "certificate_pdf_label_product": "Produto",
+            "certificate_pdf_label_serial": "Número de série",
+            "certificate_pdf_label_order_date": "Data da encomenda",
+            "certificate_pdf_label_certified_date": "Certificado em",
+            "certificate_pdf_label_owner": "Proprietário",
+            "certificate_pdf_label_order": "Encomenda"
         },
         "br": {
             "greeting_main": "Seu Certificado de Autenticidade",
@@ -26406,7 +26442,13 @@
             "certificate_email_serial_label": "Número de série",
             "certificate_email_note": "Este documento certifica a autenticidade da sua peça e constitui um documento oficial. Guarde-o com cuidado.",
             "dear_customer": "Prezado Cliente,",
-            "certificate_email_signature": "Orgulhosos da qualidade do nosso artesanato,"
+            "certificate_email_signature": "Orgulhosos da qualidade do nosso artesanato,",
+            "certificate_pdf_label_product": "Produto",
+            "certificate_pdf_label_serial": "Número de série",
+            "certificate_pdf_label_order_date": "Data do pedido",
+            "certificate_pdf_label_certified_date": "Certificado em",
+            "certificate_pdf_label_owner": "Proprietário",
+            "certificate_pdf_label_order": "Pedido"
         },
         "ar": {
             "greeting_main": "شهادة الأصالة الخاصة بك",
@@ -26416,7 +26458,13 @@
             "certificate_email_serial_label": "الرقم التسلسلي",
             "certificate_email_note": "تشهد هذه الوثيقة على أصالة قطعتكم وتُعد وثيقة رسمية. يرجى الاحتفاظ بها بعناية.",
             "dear_customer": "ضيفنا الكريم،",
-            "certificate_email_signature": "فخورون بجودة حرفتنا،"
+            "certificate_email_signature": "فخورون بجودة حرفتنا،",
+            "certificate_pdf_label_product": "المنتج",
+            "certificate_pdf_label_serial": "الرقم التسلسلي",
+            "certificate_pdf_label_order_date": "تاريخ الطلب",
+            "certificate_pdf_label_certified_date": "تاريخ التصديق",
+            "certificate_pdf_label_owner": "المالك",
+            "certificate_pdf_label_order": "الطلب"
         },
         "ja": {
             "greeting_main": "お客様の真正性証明書",
@@ -26426,7 +26474,13 @@
             "certificate_email_serial_label": "シリアル番号",
             "certificate_email_note": "本書はお品物の真正性を証明する公式文書です。大切に保管してください。",
             "dear_customer": "{lastname} {firstname} 様",
-            "certificate_email_signature": "当社の技術の質に誇りを持って、"
+            "certificate_email_signature": "当社の技術の質に誇りを持って、",
+            "certificate_pdf_label_product": "商品",
+            "certificate_pdf_label_serial": "シリアル番号",
+            "certificate_pdf_label_order_date": "注文日",
+            "certificate_pdf_label_certified_date": "認証日",
+            "certificate_pdf_label_owner": "所有者",
+            "certificate_pdf_label_order": "注文"
         },
         "ko": {
             "greeting_main": "고객님의 진품 인증서",
@@ -26436,7 +26490,13 @@
             "certificate_email_serial_label": "일련번호",
             "certificate_email_note": "본 문서는 고객님 제품의 진품성을 증명하는 공식 문서입니다. 소중히 보관해 주세요.",
             "dear_customer": "{lastname} {firstname} 고객님께,",
-            "certificate_email_signature": "저희 장인 정신의 질에 자부심을 가지고,"
+            "certificate_email_signature": "저희 장인 정신의 질에 자부심을 가지고,",
+            "certificate_pdf_label_product": "제품",
+            "certificate_pdf_label_serial": "일련번호",
+            "certificate_pdf_label_order_date": "주문일",
+            "certificate_pdf_label_certified_date": "인증일",
+            "certificate_pdf_label_owner": "소유자",
+            "certificate_pdf_label_order": "주문"
         },
         "zh": {
             "greeting_main": "您的真品证书",
@@ -26446,7 +26506,13 @@
             "certificate_email_serial_label": "序列号",
             "certificate_email_note": "本文件证明您藏品的真实性，属于正式文件，请妥善保管。",
             "dear_customer": "尊敬的客人，",
-            "certificate_email_signature": "为我们的工艺品质感到自豪，"
+            "certificate_email_signature": "为我们的工艺品质感到自豪，",
+            "certificate_pdf_label_product": "产品",
+            "certificate_pdf_label_serial": "序列号",
+            "certificate_pdf_label_order_date": "订单日期",
+            "certificate_pdf_label_certified_date": "认证日期",
+            "certificate_pdf_label_owner": "所有者",
+            "certificate_pdf_label_order": "订单"
         },
         "tw": {
             "greeting_main": "您的真品證書",
@@ -26456,7 +26522,13 @@
             "certificate_email_serial_label": "序號",
             "certificate_email_note": "本文件證明您藏品的真實性，屬於正式文件，請妥善保管。",
             "dear_customer": "尊敬的客人，",
-            "certificate_email_signature": "為我們的工藝品質感到自豪，"
+            "certificate_email_signature": "為我們的工藝品質感到自豪，",
+            "certificate_pdf_label_product": "產品",
+            "certificate_pdf_label_serial": "序號",
+            "certificate_pdf_label_order_date": "訂單日期",
+            "certificate_pdf_label_certified_date": "認證日期",
+            "certificate_pdf_label_owner": "所有者",
+            "certificate_pdf_label_order": "訂單"
         },
         "ru": {
             "greeting_main": "Ваш сертификат подлинности",
@@ -26466,7 +26538,13 @@
             "certificate_email_serial_label": "Серийный номер",
             "certificate_email_note": "Этот документ подтверждает подлинность вашего изделия и является официальным документом. Пожалуйста, храните его бережно.",
             "dear_customer": "Уважаемый гость,",
-            "certificate_email_signature": "Гордимся качеством нашего мастерства,"
+            "certificate_email_signature": "Гордимся качеством нашего мастерства,",
+            "certificate_pdf_label_product": "Изделие",
+            "certificate_pdf_label_serial": "Серийный номер",
+            "certificate_pdf_label_order_date": "Дата заказа",
+            "certificate_pdf_label_certified_date": "Сертифицировано",
+            "certificate_pdf_label_owner": "Владелец",
+            "certificate_pdf_label_order": "Заказ"
         },
         "tr": {
             "greeting_main": "Orijinallik Sertifikanız",
@@ -26476,7 +26554,13 @@
             "certificate_email_serial_label": "Seri numarası",
             "certificate_email_note": "Bu belge, parçanızın orijinalliğini onaylar ve resmi bir belge niteliğindedir. Lütfen özenle saklayın.",
             "dear_customer": "Sayın Değerli Misafirimiz,",
-            "certificate_email_signature": "Zanaatımızın kalitesiyle gurur duyarak,"
+            "certificate_email_signature": "Zanaatımızın kalitesiyle gurur duyarak,",
+            "certificate_pdf_label_product": "Ürün",
+            "certificate_pdf_label_serial": "Seri numarası",
+            "certificate_pdf_label_order_date": "Sipariş tarihi",
+            "certificate_pdf_label_certified_date": "Onay tarihi",
+            "certificate_pdf_label_owner": "Sahip",
+            "certificate_pdf_label_order": "Sipariş"
         },
         "sv": {
             "greeting_main": "Ditt äkthetscertifikat",
@@ -26486,7 +26570,13 @@
             "certificate_email_serial_label": "Serienummer",
             "certificate_email_note": "Detta dokument intygar äktheten hos ditt föremål och utgör en officiell handling. Förvara det omsorgsfullt.",
             "dear_customer": "Bästa kund,",
-            "certificate_email_signature": "Stolta över kvaliteten på vårt hantverk,"
+            "certificate_email_signature": "Stolta över kvaliteten på vårt hantverk,",
+            "certificate_pdf_label_product": "Produkt",
+            "certificate_pdf_label_serial": "Serienummer",
+            "certificate_pdf_label_order_date": "Orderdatum",
+            "certificate_pdf_label_certified_date": "Certifierad den",
+            "certificate_pdf_label_owner": "Ägare",
+            "certificate_pdf_label_order": "Order"
         },
         "no": {
             "greeting_main": "Ditt ekthetssertifikat",
@@ -26496,7 +26586,13 @@
             "certificate_email_serial_label": "Serienummer",
             "certificate_email_note": "Dette dokumentet bekrefter ektheten til gjenstanden din og er et offisielt dokument. Oppbevar det trygt.",
             "dear_customer": "Kjære kunde,",
-            "certificate_email_signature": "Stolte av kvaliteten på håndverket vårt,"
+            "certificate_email_signature": "Stolte av kvaliteten på håndverket vårt,",
+            "certificate_pdf_label_product": "Produkt",
+            "certificate_pdf_label_serial": "Serienummer",
+            "certificate_pdf_label_order_date": "Bestillingsdato",
+            "certificate_pdf_label_certified_date": "Sertifisert den",
+            "certificate_pdf_label_owner": "Eier",
+            "certificate_pdf_label_order": "Bestilling"
         },
         "da": {
             "greeting_main": "Dit ægthedscertifikat",
@@ -26506,7 +26602,13 @@
             "certificate_email_serial_label": "Serienummer",
             "certificate_email_note": "Dette dokument bekræfter ægtheden af din genstand og udgør et officielt dokument. Opbevar det omhyggeligt.",
             "dear_customer": "Kære kunde,",
-            "certificate_email_signature": "Stolte over kvaliteten af vores håndværk,"
+            "certificate_email_signature": "Stolte over kvaliteten af vores håndværk,",
+            "certificate_pdf_label_product": "Produkt",
+            "certificate_pdf_label_serial": "Serienummer",
+            "certificate_pdf_label_order_date": "Bestillingsdato",
+            "certificate_pdf_label_certified_date": "Certificeret den",
+            "certificate_pdf_label_owner": "Ejer",
+            "certificate_pdf_label_order": "Bestilling"
         },
         "nl": {
             "greeting_main": "Uw echtheidscertificaat",
@@ -26516,7 +26618,13 @@
             "certificate_email_serial_label": "Serienummer",
             "certificate_email_note": "Dit document certificeert de echtheid van uw stuk en vormt een officieel document. Bewaar het zorgvuldig.",
             "dear_customer": "Geachte klant,",
-            "certificate_email_signature": "Trots op de kwaliteit van ons vakmanschap,"
+            "certificate_email_signature": "Trots op de kwaliteit van ons vakmanschap,",
+            "certificate_pdf_label_product": "Product",
+            "certificate_pdf_label_serial": "Serienummer",
+            "certificate_pdf_label_order_date": "Besteldatum",
+            "certificate_pdf_label_certified_date": "Gecertificeerd op",
+            "certificate_pdf_label_owner": "Eigenaar",
+            "certificate_pdf_label_order": "Bestelling"
         }
     }
 }
