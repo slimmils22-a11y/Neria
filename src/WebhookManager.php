@@ -208,7 +208,7 @@ class WebhookManager
         }
 
         $this->watchdog()->info(
-            count($rows) . ' webhook(s) en attente — traitement du lot.',
+            \WatchdogManager::i18nMsg('watchdog.webhook_batch_start', ['n' => count($rows)]),
             '', 'WebhookManager'
         );
 
@@ -241,10 +241,12 @@ class WebhookManager
                 );
                 $definitivelyFailed++;
                 $this->watchdog()->warning(
-                    "Webhook [{$row['event']}] définitivement échoué après "
-                    . self::MAX_ATTEMPTS . ' tentatives — URL : ' . $url
-                    . '. Vérifiez que l\'endpoint répond en moins de '
-                    . self::TIMEOUT_SECS . 's avec HTTP 2xx.',
+                    \WatchdogManager::i18nMsg('watchdog.webhook_definitively_failed', [
+                        'event'   => $row['event'],
+                        'max'     => self::MAX_ATTEMPTS,
+                        'url'     => $url,
+                        'timeout' => self::TIMEOUT_SECS,
+                    ]),
                     '', 'WebhookManager'
                 );
             }
@@ -254,17 +256,17 @@ class WebhookManager
         $total = count($rows);
         if ($sent > 0 && $definitivelyFailed === 0) {
             $this->watchdog()->info(
-                "{$sent}/{$total} webhook(s) livrés avec succès.",
+                \WatchdogManager::i18nMsg('watchdog.webhook_batch_success', ['sent' => $sent, 'total' => $total]),
                 '', 'WebhookManager'
             );
         } elseif ($sent > 0 && $definitivelyFailed > 0) {
             $this->watchdog()->warning(
-                "{$sent} webhook(s) livrés, {$definitivelyFailed} échoué(s) définitivement — consultez le journal des livraisons dans l'onglet Webhooks.",
+                \WatchdogManager::i18nMsg('watchdog.webhook_batch_partial', ['sent' => $sent, 'failed' => $definitivelyFailed]),
                 '', 'WebhookManager'
             );
         } elseif ($sent === 0 && $definitivelyFailed === 0 && $total > 0) {
             $this->watchdog()->warning(
-                "Webhook : 0/{$total} livré(s) cette tentative — tous ont échoué (cURL/timeout) mais ne sont pas encore définitivement abandonnés. Prochaine tentative dans 5 min.",
+                \WatchdogManager::i18nMsg('watchdog.webhook_batch_all_failed', ['total' => $total]),
                 '', 'WebhookManager'
             );
         }
@@ -311,7 +313,7 @@ class WebhookManager
         if ($error !== '') {
             $timeout = self::TIMEOUT_SECS;
             $this->watchdog()->warning(
-                "Webhook [{$event}] — erreur cURL : {$error}. Causes fréquentes : timeout (>{$timeout}s), SSL invalide, DNS non résolu.",
+                \WatchdogManager::i18nMsg('watchdog.webhook_curl_error', ['event' => $event, 'error' => $error, 'timeout' => $timeout]),
                 '', 'WebhookManager'
             );
             return false;
@@ -320,8 +322,9 @@ class WebhookManager
         if ($httpCode < 200 || $httpCode >= 300) {
             $preview = substr((string) $response, 0, 150);
             $this->watchdog()->warning(
-                "Webhook [{$event}] — l'endpoint a répondu HTTP {$httpCode} (attendu 2xx). URL : {$url}."
-                . ($preview !== '' ? " Réponse : {$preview}" : ''),
+                $preview !== ''
+                    ? \WatchdogManager::i18nMsg('watchdog.webhook_http_error_response', ['event' => $event, 'code' => $httpCode, 'url' => $url, 'response' => $preview])
+                    : \WatchdogManager::i18nMsg('watchdog.webhook_http_error', ['event' => $event, 'code' => $httpCode, 'url' => $url]),
                 '', 'WebhookManager'
             );
             return false;
@@ -350,7 +353,7 @@ class WebhookManager
         $payload = json_encode([
             'event'     => 'test',
             'shop_id'   => $this->idShop,
-            'message'   => 'Neria webhook test — connexion établie avec succès.',
+            'message'   => AdminTranslator::t('msg.webhook_test_connection'),
             'timestamp' => date('c'),
         ], JSON_UNESCAPED_UNICODE);
 
@@ -381,7 +384,7 @@ class WebhookManager
 
         if ($error !== '') {
             $this->watchdog()->warning(
-                "Test webhook échoué — erreur cURL : {$error}. URL : {$url}.",
+                \WatchdogManager::i18nMsg('watchdog.webhook_test_curl_error', ['error' => $error, 'url' => $url]),
                 '', 'WebhookManager'
             );
             return ['ok' => false, 'error' => $error, 'http_code' => 0];
@@ -391,14 +394,15 @@ class WebhookManager
 
         if ($ok) {
             $this->watchdog()->info(
-                "Test webhook réussi (HTTP {$httpCode}) — endpoint joignable : {$url}.",
+                \WatchdogManager::i18nMsg('watchdog.webhook_test_success', ['code' => $httpCode, 'url' => $url]),
                 '', 'WebhookManager'
             );
         } else {
             $preview = substr($body, 0, 150);
             $this->watchdog()->warning(
-                "Test webhook : l'endpoint a répondu HTTP {$httpCode}. URL : {$url}."
-                . ($preview !== '' ? " Réponse : {$preview}" : ''),
+                $preview !== ''
+                    ? \WatchdogManager::i18nMsg('watchdog.webhook_test_http_error_response', ['code' => $httpCode, 'url' => $url, 'response' => $preview])
+                    : \WatchdogManager::i18nMsg('watchdog.webhook_test_http_error', ['code' => $httpCode, 'url' => $url]),
                 '', 'WebhookManager'
             );
         }
@@ -451,7 +455,7 @@ class WebhookManager
         ));
 
         $this->watchdog()->info(
-            "Webhook #{$idWebhook} remis en file pour relance manuelle.",
+            \WatchdogManager::i18nMsg('watchdog.webhook_requeued', ['id' => $idWebhook]),
             '', 'WebhookManager'
         );
 
@@ -478,7 +482,7 @@ class WebhookManager
         $deleted = (int) $this->db->Affected_Rows();
         if ($deleted > 0) {
             $this->watchdog()->info(
-                "Webhook : {$deleted} entrée(s) ancienne(s) supprimées de la queue (antérieures à {$days} jours).",
+                \WatchdogManager::i18nMsg('watchdog.webhook_cleanup', ['n' => $deleted, 'days' => $days]),
                 '', 'WebhookManager'
             );
         }
