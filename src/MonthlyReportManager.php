@@ -64,7 +64,7 @@ class MonthlyReportManager
         } catch (\Throwable $e) {
             if (class_exists('WatchdogManager')) {
                 (new WatchdogManager($this->module))->error(
-                    'Rapport mensuel : échec envoi — ' . $e->getMessage(),
+                    WatchdogManager::i18nMsg('watchdog.monthly_report_send_failed', ['error' => $e->getMessage()]),
                     '',
                     'MonthlyReportManager'
                 );

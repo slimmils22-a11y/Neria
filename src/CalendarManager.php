@@ -91,7 +91,7 @@ class CalendarManager
             $events = $this->getActiveEvents();
         } catch (\Throwable $e) {
             $this->watchdog()->error(
-                'CalendarManager : chargement des occasions échoué — ' . $e->getMessage(),
+                \WatchdogManager::i18nMsg('watchdog.calendar_load_failed', ['error' => $e->getMessage()]),
                 '', 'CalendarManager'
             );
             return;
@@ -117,7 +117,7 @@ class CalendarManager
                     2
                 );
                 $this->watchdog()->error(
-                    'Erreur envoi calendaire : ' . $e->getMessage(),
+                    \WatchdogManager::i18nMsg('watchdog.calendar_send_error', ['error' => $e->getMessage()]),
                     $event['template'] ?? '',
                     'CalendarManager'
                 );
@@ -147,7 +147,7 @@ class CalendarManager
 
         if (!$eventDate) {
             $this->watchdog()->warning(
-                sprintf('Date introuvable pour l\'occasion "%s" en %d — vérifiez le calendrier.', $eventKey, $year),
+                \WatchdogManager::i18nMsg('watchdog.calendar_date_not_found', ['event' => $eventKey, 'year' => $year]),
                 $template,
                 'CalendarManager'
             );
@@ -171,12 +171,9 @@ class CalendarManager
 
         if (empty($customers)) {
             $this->watchdog()->warning(
-                sprintf(
-                    'Occasion "%s" : 0 client éligible (langue : %s%s). Vérifiez que la langue est installée et que des clients y sont abonnés à la newsletter.',
-                    $eventKey,
-                    strtoupper($lang),
-                    $countryCode ? ', pays : ' . strtoupper($countryCode) : ''
-                ),
+                $countryCode
+                    ? \WatchdogManager::i18nMsg('watchdog.calendar_no_customers_country', ['event' => $eventKey, 'lang' => strtoupper($lang), 'country' => strtoupper($countryCode)])
+                    : \WatchdogManager::i18nMsg('watchdog.calendar_no_customers', ['event' => $eventKey, 'lang' => strtoupper($lang)]),
                 $template,
                 'CalendarManager'
             );
@@ -201,16 +198,13 @@ class CalendarManager
 
         if ($failed > 0) {
             $this->watchdog()->warning(
-                sprintf(
-                    'Occasion "%s" : %d/%d envois ont échoué (SMTP ou template manquant). Vérifiez la configuration SMTP et le template "%s".',
-                    $eventKey, $failed, $total, $template
-                ),
+                \WatchdogManager::i18nMsg('watchdog.calendar_send_partial_fail', ['event' => $eventKey, 'failed' => $failed, 'total' => $total, 'template' => $template]),
                 $template,
                 'CalendarManager'
             );
         } else {
             $this->watchdog()->info(
-                sprintf('%d/%d emails envoyés pour : %s', $sent, $total, $eventKey),
+                \WatchdogManager::i18nMsg('watchdog.calendar_sent_summary', ['sent' => $sent, 'total' => $total, 'event' => $eventKey]),
                 $template,
                 'CalendarManager'
             );
@@ -1022,12 +1016,11 @@ class CalendarManager
                 } else {
                     $failed++;
                     $this->watchdog()->warning(
-                        sprintf(
-                            'Échec envoi à %s (id %d) pour l\'occasion "%s" — Mail::Send() a retourné false.',
-                            $customer['email'],
-                            $customer['id_customer'],
-                            $eventKey
-                        ),
+                        \WatchdogManager::i18nMsg('watchdog.calendar_send_fail_customer', [
+                            'email' => $customer['email'],
+                            'id'    => $customer['id_customer'],
+                            'event' => $eventKey,
+                        ]),
                         $template,
                         'CalendarManager'
                     );
