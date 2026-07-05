@@ -174,6 +174,7 @@ class HealthCheckManager
             // ── Configuration & sécurité ───────────────────────────
             'config_keys'          => $this->checkConfigKeys(),
             'version_sync'         => $this->checkVersionSync(),
+            'upgrade_integrity'    => $this->checkUpgradeIntegrity(),
             'hmac_security'        => $this->checkHmacSecurity(),
             'smtp_config'          => $this->checkSmtpConfig(),
             'list_unsubscribe'     => $this->checkListUnsubscribeApi(),
@@ -911,6 +912,113 @@ class HealthCheckManager
             'status' => self::STATUS_OK,
             'detail' => 'Version synchronisée : ' . $currentVersion . '.',
         ];
+    }
+
+    /**
+     * Contrôle proactif — Intégrité réelle des upgrades
+     * checkVersionSync() ne compare que deux nombres — un numéro de version
+     * peut être faux (comme le bug NERIA_VERSION vs NERIA_INSTALLED_VERSION
+     * trouvé le 2026-07-05, qui a désynchronisé ce compteur pendant 9
+     * versions sans que rien ne s'en aperçoive) ou avancer alors qu'un
+     * upgrade a échoué à mi-chemin. Ce contrôle vérifie à la place la PREUVE
+     * CONCRÈTE que chaque upgrade attendu a bien produit son effet (table
+     * créée, colonne ajoutée, config initialisée, hook enregistré).
+     *
+     * Convention pour un futur upgrade-X.Y.Z.php : ajouter une entrée dans
+     * $manifest ci-dessous décrivant comment vérifier son effet. Ne modifie
+     * jamais les scripts d'upgrade existants (déjà exécutés) — uniquement ce
+     * manifeste, indépendant.
+     */
+    private function checkUpgradeIntegrity(): array
+    {
+        $currentVersion = $this->module->version;
+
+        // 1.0.5, 1.0.13 : pas d'effet distinct et vérifiable (contenu de
+        // template / config tierce optionnelle) — volontairement absents.
+        // 1.0.17 : couvert séparément par checkSecretsEncrypted().
+        $manifest = [
+            '1.0.1'  => ['type' => 'table',  'name' => 'neria_quote'],
+            '1.0.2'  => ['type' => 'table',  'name' => 'neria_reconciliation'],
+            '1.0.3'  => ['type' => 'table',  'name' => 'neria_product_lifespan'],
+            '1.0.4'  => ['type' => 'table',  'name' => 'neria_propensity_score'],
+            '1.0.6'  => ['type' => 'table',  'name' => 'neria_queue'],
+            '1.0.7'  => ['type' => 'column', 'table' => 'neria_seasonal_campaign', 'name' => 'gift_mode'],
+            '1.0.8'  => ['type' => 'table',  'name' => 'neria_collection'],
+            '1.0.9'  => ['type' => 'table',  'name' => 'neria_look_rule'],
+            '1.0.10' => ['type' => 'table',  'name' => 'neria_waitlist'],
+            '1.0.11' => ['type' => 'config', 'name' => 'NERIA_GHOST_CART_ENABLED'],
+            '1.0.12' => ['type' => 'table',  'name' => 'neria_preferences'],
+            '1.0.14' => ['type' => 'table',  'name' => 'neria_abtest_history'],
+            '1.0.15' => ['type' => 'table',  'name' => 'neria_cron_health'],
+            '1.0.16' => ['type' => 'hook',   'name' => 'actionDeleteGDPRCustomer'],
+            '1.0.18' => ['type' => 'config', 'name' => 'NERIA_CRON_TOKEN'],
+            '1.0.19' => ['type' => 'config_global_set', 'name' => 'NERIA_CRON_ENABLED'],
+            '1.0.20' => ['type' => 'table',  'name' => 'neria_voice_profile'],
+        ];
+
+        $failures = [];
+        foreach ($manifest as $version => $rule) {
+            if (version_compare($currentVersion, $version, '<')) {
+                continue; // upgrade pas encore attendu sur cette version du module
+            }
+            if (!$this->verifyUpgradeRule($rule)) {
+                $failures[] = $version;
+            }
+        }
+
+        if ($failures) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.upgrade_integrity_failed', [
+                    'count'    => count($failures),
+                    'versions' => implode(', ', $failures),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.upgrade_integrity_ok')];
+    }
+
+    /**
+     * Vérifie une règle du manifeste d'intégrité des upgrades (voir
+     * checkUpgradeIntegrity()) : existence d'une table/colonne, présence
+     * d'une config, ou enregistrement d'un hook.
+     */
+    private function verifyUpgradeRule(array $rule): bool
+    {
+        switch ($rule['type']) {
+            case 'table':
+                return (bool) $this->db->getValue(
+                    "SELECT COUNT(*) FROM information_schema.tables
+                     WHERE table_schema = DATABASE() AND table_name = '" . _DB_PREFIX_ . $rule['name'] . "'"
+                );
+
+            case 'column':
+                return (bool) $this->db->getValue(
+                    "SELECT COUNT(*) FROM information_schema.columns
+                     WHERE table_schema = DATABASE() AND table_name = '" . _DB_PREFIX_ . $rule['table'] . "'
+                       AND column_name = '" . $rule['name'] . "'"
+                );
+
+            case 'config':
+                return (string) \Configuration::get($rule['name']) !== '';
+
+            case 'config_global_set':
+                return \Configuration::getGlobalValue($rule['name']) !== false;
+
+            case 'hook':
+                $hookId = \Hook::getIdByName($rule['name']);
+                if (!$hookId) {
+                    return false;
+                }
+                return (bool) $this->db->getValue(
+                    "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "hook_module`
+                     WHERE id_hook = " . (int) $hookId . " AND id_module = " . (int) $this->module->id
+                );
+
+            default:
+                return true;
+        }
     }
 
     /**

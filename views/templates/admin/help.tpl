@@ -361,6 +361,7 @@
       'trad_keys'            => 'help.health_check_trad_keys',
       'hooks_registered'     => 'help.health_check_hooks_registered',
       'version_sync'         => 'help.health_check_version_sync',
+      'upgrade_integrity'    => 'help.health_check_upgrade_integrity',
       'open_rate_7d'         => 'help.health_check_open_rate_7d',
       'queue_blocked'        => 'help.health_check_queue_blocked',
       'hmac_security'        => 'help.health_check_hmac_security',
