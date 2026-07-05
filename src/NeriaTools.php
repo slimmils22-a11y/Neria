@@ -605,6 +605,7 @@ class NeriaTools
             'birthday'                       => 'Anniversaire client',
             'black_friday'                   => 'Black Friday',
             'care_certificate'               => 'Certificat d\'entretien',
+            'certificate_email'              => 'Certificat d\'authenticité (envoi)',
             'certificate_provenance'         => 'Certificat de provenance',
             'checkout_abandonment'           => 'Abandon de caisse',
             'cheque'                         => 'Paiement par chèque',

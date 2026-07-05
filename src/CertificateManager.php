@@ -125,7 +125,7 @@ class CertificateManager
         if ($sendEmail) {
             $err = $this->sendCertificateEmail(
                 $customerEmail, $customerName, $productName,
-                $serialNumber, $pdfContent, $order
+                $serialNumber, $pdfContent, $order, (int) $customer->id_lang
             );
             if ($err !== '') {
                 return $err;
@@ -386,74 +386,63 @@ class CertificateManager
     // ENVOI EMAIL
     // ============================================================
 
+    /**
+     * Envoie le certificat par email via le pipeline Neria standard
+     * (Mail::Send → hook actionEmailSendBefore → EmailRenderer), comme tous
+     * les autres templates du module — design, traduction 18 langues et
+     * détection automatique de la langue du client comprises. Auparavant
+     * cet envoi utilisait mail() natif avec un HTML entièrement codé en dur
+     * en français : un client non-francophone recevait donc son certificat
+     * (email de luxe, contenu officiel) intégralement en français, quelle
+     * que soit sa langue configurée — jamais rendu via le template
+     * certificate_email (ni {neria_trad}, ni auto-détection de langue).
+     * Mail::Send() supporte nativement les pièces jointes (paramètre
+     * $fileAttachment), donc le PDF reste attaché sans MIME manuel.
+     */
     private function sendCertificateEmail(
         string $to,
         string $customerName,
         string $productName,
         string $serial,
         string $pdfContent,
-        \Order $order
+        \Order $order,
+        int    $idLang
     ): string {
-        // Cet envoi utilise mail() natif directement (pas Mail::Send de PS,
-        // pour joindre le PDF en pièce jointe MIME) — contrairement à
-        // Mail::Send/PHPMailer, mail() n'assainit rien lui-même : toute valeur
-        // interpolée dans un en-tête (sujet compris) doit être nettoyée des
-        // retours à la ligne, sinon un nom de produit contenant \r\n
-        // (import CSV/API par ex.) permettrait d'injecter des en-têtes
-        // arbitraires (Bcc caché, etc.).
-        $stripCrlf = static fn (string $s): string => str_replace(["\r", "\n"], '', $s);
-
-        $shopName    = $stripCrlf((string) \Configuration::get('PS_SHOP_NAME'));
-        $shopDomain  = \Tools::getShopDomainSsl(true);
-        $fromEmail   = $stripCrlf((string) \Configuration::get('PS_SHOP_EMAIL')
-                     ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST));
-        $productName = $stripCrlf($productName);
-        $subject     = $stripCrlf('Votre certificat d\'authenticité — ' . $productName);
-
-        $body = '<!DOCTYPE html><html><head><meta charset="utf-8"></head>'
-            . '<body style="font-family:serif;background:#f5f0e8;margin:0;padding:30px;">'
-            . '<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:4px;'
-            .   'border:1px solid #d4b896;overflow:hidden;">'
-            . '<div style="background:#1a1a2e;padding:24px;text-align:center;">'
-            .   '<p style="color:#b38b59;font-size:11px;letter-spacing:.15em;text-transform:uppercase;margin:0;">'
-            .     $shopName . '</p>'
-            .   '<h1 style="color:#fff;font-size:18px;margin:8px 0 0;font-family:serif;">Certificat d\'Authenticité</h1>'
-            . '</div>'
-            . '<div style="padding:30px;">'
-            .   '<p style="color:#555;font-size:14px;line-height:1.7;">Bonjour ' . htmlspecialchars($customerName) . ',</p>'
-            .   '<p style="color:#555;font-size:14px;line-height:1.7;">Veuillez trouver ci-joint le certificat d\'authenticité de votre <strong>' . htmlspecialchars($productName) . '</strong>.</p>'
-            .   '<div style="background:#faf6f0;border:1px solid #e8d8c0;border-radius:6px;padding:16px 20px;margin:20px 0;">'
-            .     '<p style="margin:0;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.08em;">Numéro de série</p>'
-            .     '<p style="margin:6px 0 0;font-size:18px;font-family:monospace;color:#1a1a2e;font-weight:700;">' . htmlspecialchars($serial) . '</p>'
-            .   '</div>'
-            .   '<p style="color:#999;font-size:12px;line-height:1.6;">Ce document certifie l\'authenticité de votre pièce et constitue un document officiel. Conservez-le précieusement.</p>'
-            . '</div>'
-            . '<div style="background:#f5f0e8;padding:16px;text-align:center;border-top:1px solid #e8d8c0;">'
-            .   '<p style="margin:0;font-size:11px;color:#aaa;">' . $shopName . ' · ' . $shopDomain . '</p>'
-            . '</div>'
-            . '</div></body></html>';
-
-        $boundary  = '----=_NeriaCert_' . md5(uniqid());
-        $headers   = "MIME-Version: 1.0\r\nContent-Type: multipart/mixed; boundary=\"{$boundary}\"\r\n"
-                   . "From: {$shopName} <{$fromEmail}>\r\nX-Mailer: Neria-Certificate/1.0\r\n";
-
-        $filename  = 'certificat_' . preg_replace('/[^a-z0-9_\-]/i', '_', $serial) . '.pdf';
-        $message   = "--{$boundary}\r\n"
-                   . "Content-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n"
-                   . $body . "\r\n"
-                   . "--{$boundary}\r\n"
-                   . "Content-Type: application/pdf; name=\"{$filename}\"\r\n"
-                   . "Content-Transfer-Encoding: base64\r\n"
-                   . "Content-Disposition: attachment; filename=\"{$filename}\"\r\n\r\n"
-                   . chunk_split(base64_encode($pdfContent)) . "\r\n"
-                   . "--{$boundary}--";
-
         if (!\Validate::isEmail($to)) {
             return 'Adresse email destinataire invalide.';
         }
 
-        $sent = @mail($to, $subject, $message, $headers);
-        return $sent ? '' : 'mail() a retourné false.';
+        $idShop   = (int) \Context::getContext()->shop->id;
+        $filename = 'certificat_' . preg_replace('/[^a-z0-9_\-]/i', '_', $serial) . '.pdf';
+
+        $vars = [
+            '{firstname}'      => $customerName,
+            '{customer_name}'  => $customerName,
+            '{product_name}'   => $productName,
+            '{serial_number}'  => $serial,
+            '{id_order}'       => (int) $order->id,
+            '{order_name}'     => $order->reference,
+            '{shop_name}'      => (string) \Configuration::get('PS_SHOP_NAME'),
+            '{shop_url}'       => \Tools::getShopDomainSsl(true, true),
+        ];
+
+        $sent = \Mail::Send(
+            $idLang,
+            'certificate_email',
+            '', // sujet auto-traduit depuis greeting_main (EmailRenderer)
+            $vars,
+            $to,
+            $customerName !== '' ? $customerName : null,
+            null,
+            null,
+            ['content' => $pdfContent, 'name' => $filename, 'mime' => 'application/pdf'],
+            null,
+            _PS_MODULE_DIR_ . 'neria/mails/',
+            false,
+            $idShop
+        );
+
+        return $sent ? '' : 'Mail::Send() a retourné false.';
     }
 
     // ============================================================

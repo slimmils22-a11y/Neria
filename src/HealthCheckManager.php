@@ -982,6 +982,7 @@ class HealthCheckManager
             '1.0.18' => ['type' => 'config', 'name' => 'NERIA_CRON_TOKEN'],
             '1.0.19' => ['type' => 'config_global_set', 'name' => 'NERIA_CRON_ENABLED'],
             '1.0.20' => ['type' => 'table',  'name' => 'neria_voice_profile'],
+            '1.0.21' => ['type' => 'translation_template', 'name' => 'certificate_email'],
         ];
 
         $failures = [];
@@ -1042,6 +1043,12 @@ class HealthCheckManager
                 return (bool) $this->db->getValue(
                     "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "hook_module`
                      WHERE id_hook = " . (int) $hookId . " AND id_module = " . (int) $this->module->id
+                );
+
+            case 'translation_template':
+                return (bool) $this->db->getValue(
+                    "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_translation`
+                     WHERE `template` = '" . pSQL($rule['name']) . "'"
                 );
 
             default:
