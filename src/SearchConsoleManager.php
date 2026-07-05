@@ -179,6 +179,10 @@ class SearchConsoleManager
 
         // Récupère la liste des sites vérifiés
         $sitesData = $this->apiGet('/sites', $token);
+        if ($sitesData === null) {
+            // Échec réseau/API — erreur déjà journalisée dans apiGet().
+            return null;
+        }
         if (empty($sitesData['siteEntry'])) {
             $this->wd()->warning('Search Console : aucun site vérifié trouvé dans ce compte Google.', '', 'SearchConsoleManager');
             return [];
@@ -341,14 +345,28 @@ class SearchConsoleManager
             \CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . $token, 'Accept: application/json'],
             \CURLOPT_SSL_VERIFYPEER => true,
         ]);
-        $body = curl_exec($ch);
+        $body     = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, \CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         if (!$body) {
             return null;
         }
         $data = json_decode($body, true);
-        return is_array($data) ? $data : null;
+        if (!is_array($data)) {
+            return null;
+        }
+
+        // Google renvoie un corps JSON valide même en erreur (403, 400...) —
+        // sans ce contrôle, une erreur d'API était silencieusement confondue
+        // avec "aucun site trouvé", masquant la vraie cause.
+        if ($httpCode >= 400 || isset($data['error'])) {
+            $msg = $data['error']['message'] ?? ('HTTP ' . $httpCode);
+            $this->wd()->warning('Search Console : erreur API — ' . $msg, '', 'SearchConsoleManager');
+            return null;
+        }
+
+        return $data;
     }
 
     private function apiPost(string $path, string $token, string $body): array

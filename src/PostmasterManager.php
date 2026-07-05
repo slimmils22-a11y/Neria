@@ -190,6 +190,10 @@ class PostmasterManager
         }
 
         $domains = $this->apiGet('/domains', $token);
+        if ($domains === null) {
+            // Échec réseau/API — erreur déjà journalisée dans apiGet().
+            return null;
+        }
         if (empty($domains['domains'])) {
             $this->wd()->warning('Postmaster Tools : aucun domaine vérifié trouvé dans ce compte Google.', '', 'PostmasterManager');
             return [];
@@ -326,14 +330,29 @@ class PostmasterManager
             CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . $token, 'Accept: application/json'],
             CURLOPT_SSL_VERIFYPEER => true,
         ]);
-        $body = curl_exec($ch);
+        $body     = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         if (!$body) {
             return null;
         }
         $data = json_decode($body, true);
-        return is_array($data) ? $data : null;
+        if (!is_array($data)) {
+            return null;
+        }
+
+        // Google renvoie un corps JSON valide même en erreur (403, 400...) —
+        // sans ce contrôle, une erreur d'API (ex. API désactivée dans Google
+        // Cloud Console) était silencieusement confondue avec "aucun domaine
+        // trouvé", masquant la vraie cause.
+        if ($httpCode >= 400 || isset($data['error'])) {
+            $msg = $data['error']['message'] ?? ('HTTP ' . $httpCode);
+            $this->wd()->warning('Postmaster Tools : erreur API — ' . $msg, '', 'PostmasterManager');
+            return null;
+        }
+
+        return $data;
     }
 
     private function httpPost(string $url, array $data): array
