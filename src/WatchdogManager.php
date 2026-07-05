@@ -425,11 +425,16 @@ class WatchdogManager
      * BO) où Context::language ne reflète pas forcément la langue du
      * destinataire réel de l'alerte.
      */
-    private function getShopLang(): string
+    public static function shopLang(): string
     {
         $idLang = (int) \Configuration::get('PS_LANG_DEFAULT');
         $iso    = $idLang ? \Language::getIsoById($idLang) : false;
         return $iso ?: 'en';
+    }
+
+    private function getShopLang(): string
+    {
+        return self::shopLang();
     }
 
     // ============================================================

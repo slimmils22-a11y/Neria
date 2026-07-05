@@ -291,8 +291,7 @@ class EmailRenderer
             } else {
                 $this->softLog(
                     'warning',
-                    'Sujet auto-traduit vide (clé greeting_main introuvable) — '
-                    . 'l\'email risque de partir sans objet',
+                    WatchdogManager::i18nMsg('watchdog.subject_empty'),
                     $template,
                     ['lang' => $lang]
                 );
@@ -525,29 +524,38 @@ class EmailRenderer
     private function extractSmartyHint(string $cause, string $template): string
     {
         $lower = strtolower($cause);
+        $prevLang = AdminTranslator::currentLang();
+        AdminTranslator::setLang(WatchdogManager::shopLang());
 
         // Variable Smarty manquante : "Undefined variable: foo" ou "Undefined index: foo"
         if (preg_match('/undefined (?:variable|index)[:\s]+[\'"]?(\w+)/i', $cause, $m)) {
-            return 'Variable Smarty manquante : {' . $m[1] . '} dans le template ' . $template
-                . '. Vérifiez que cette variable est bien injectée dans templateVars avant l\'envoi.';
+            $hint = AdminTranslator::tVars('hint.smarty_missing_var', ['var' => '{' . $m[1] . '}', 'template' => $template]);
+            AdminTranslator::setLang($prevLang);
+            return $hint;
         }
 
         // Fichier template introuvable
         if (strpos($lower, 'no such file') !== false || strpos($lower, 'unable to load') !== false) {
-            return 'Fichier template introuvable pour ' . $template
-                . '. Vérifiez que le fichier existe dans mails/themes/neria_global/core/.';
+            $hint = AdminTranslator::tVars('hint.smarty_file_missing', ['template' => $template]);
+            AdminTranslator::setLang($prevLang);
+            return $hint;
         }
 
         // Erreur de permissions
         if (strpos($lower, 'permission denied') !== false || strpos($lower, 'failed to open stream') !== false) {
-            return 'Erreur de permissions sur le dossier mails/. Vérifiez que le dossier mails/'
-                . ' est accessible en écriture (chmod 755 ou 775).';
+            $hint = AdminTranslator::t('hint.smarty_permission');
+            AdminTranslator::setLang($prevLang);
+            return $hint;
         }
 
         // Dépassement de mémoire
         if (strpos($lower, 'allowed memory size') !== false || strpos($lower, 'out of memory') !== false) {
-            return 'Mémoire PHP insuffisante. Augmentez memory_limit dans php.ini (recommandé : 256M minimum).';
+            $hint = AdminTranslator::t('hint.smarty_memory');
+            AdminTranslator::setLang($prevLang);
+            return $hint;
         }
+
+        AdminTranslator::setLang($prevLang);
 
         return '';
     }
@@ -934,12 +942,12 @@ class EmailRenderer
             $greeting  = $greetings[$lang][$slot] ?? $greetings['en'][$slot] ?? '';
             $templateVars['{time_greeting}'] = $greeting;
             (new WatchdogManager($this->module))->info(
-                '[time_greeting] "' . $greeting . '" injecté (lang:' . $lang . ' créneau:' . $slot . ' TZ:' . $timezone . ')'
+                WatchdogManager::i18nMsg('watchdog.time_greeting_injected', ['greeting' => $greeting, 'lang' => $lang, 'slot' => $slot, 'tz' => $timezone])
             );
         } catch (\Throwable $e) {
             $templateVars['{time_greeting}'] = '';
             (new WatchdogManager($this->module))->warning(
-                '[time_greeting] Échec détection fuseau — salutation vide. ' . $e->getMessage()
+                WatchdogManager::i18nMsg('watchdog.time_greeting_tz_error', ['error' => $e->getMessage()])
             );
         }
     }
@@ -975,7 +983,7 @@ class EmailRenderer
         $targetCountries = $this->config->getTargetCountries();
         if (!empty($targetCountries) && $countryIso && !in_array(strtoupper($countryIso), array_map('strtoupper', $targetCountries), true)) {
             (new WatchdogManager($this->module))->warning(
-                '[time_greeting] Pays "' . $countryIso . '" hors liste cible — fuseau UTC utilisé par défaut.'
+                WatchdogManager::i18nMsg('watchdog.time_greeting_country_fallback', ['country' => $countryIso])
             );
             return 'UTC';
         }
@@ -1026,13 +1034,14 @@ class EmailRenderer
             $templateVars['{firstname}'] = $fallback;
             $template = trim((string) ($templateVars['{template_name}'] ?? ''));
             (new WatchdogManager($this->module))->info(
-                '[fallback] Prénom absent — fallback "' . $fallback . '" injecté'
-                . ($template ? ' (template : ' . $template . ', langue : ' . $lang . ')' : ' (langue : ' . $lang . ')')
+                $template
+                    ? WatchdogManager::i18nMsg('watchdog.fallback_firstname_injected_tpl', ['fallback' => $fallback, 'template' => $template, 'lang' => $lang])
+                    : WatchdogManager::i18nMsg('watchdog.fallback_firstname_injected_notpl', ['fallback' => $fallback, 'lang' => $lang])
             );
         } catch (\Throwable $e) {
             $templateVars['{firstname}'] = 'Dear Guest';
             (new WatchdogManager($this->module))->warning(
-                '[fallback] Échec récupération fallbacks prénom — valeur de secours "Dear Guest" utilisée. Erreur : ' . $e->getMessage()
+                WatchdogManager::i18nMsg('watchdog.fallback_firstname_error', ['error' => $e->getMessage()])
             );
         }
     }
@@ -1852,7 +1861,8 @@ class EmailRenderer
 
         if ($compiled === null) {
             return '<p style="padding:40px;font-family:sans-serif;color:#a33;">'
-                . 'Aperçu indisponible : template « ' . htmlspecialchars($template) . ' » introuvable.</p>';
+                . AdminTranslator::tVars('watchdog.preview_unavailable', ['template' => htmlspecialchars($template)])
+                . '</p>';
         }
 
         return $compiled;
