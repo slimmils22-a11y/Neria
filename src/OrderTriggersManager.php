@@ -98,18 +98,18 @@ class OrderTriggersManager
                 );
                 if ($result) {
                     $this->watchdog()->info(
-                        "milestone_order palier {$count} envoyé à {$customer->email}",
+                        \WatchdogManager::i18nMsg('watchdog.milestone_sent', ['count' => $count, 'email' => $customer->email]),
                         'milestone_order', 'OrderTriggers'
                     );
                 } else {
                     $this->watchdog()->warning(
-                        "milestone_order palier {$count} : échec silencieux pour {$customer->email} — Mail::Send() a retourné false. Vérifiez la configuration SMTP.",
+                        \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'milestone_order', 'email' => $customer->email]),
                         'milestone_order', 'OrderTriggers'
                     );
                 }
             } catch (\Throwable $e) {
                 $this->watchdog()->error(
-                    "milestone_order palier {$count} : erreur pour {$customer->email} — {$e->getMessage()}",
+                    \WatchdogManager::i18nMsg('watchdog.milestone_error', ['count' => $count, 'email' => $customer->email, 'error' => $e->getMessage()]),
                     'milestone_order', 'OrderTriggers'
                 );
             }
@@ -132,18 +132,18 @@ class OrderTriggersManager
                 );
                 if ($result) {
                     $this->watchdog()->info(
-                        "loyalty_tier_upgrade tier {$tierName} envoyé à {$customer->email}",
+                        \WatchdogManager::i18nMsg('watchdog.loyalty_tier_sent', ['tier' => $tierName, 'email' => $customer->email]),
                         'loyalty_tier_upgrade', 'OrderTriggers'
                     );
                 } else {
                     $this->watchdog()->warning(
-                        "loyalty_tier_upgrade tier {$tierName} : échec silencieux pour {$customer->email} — Mail::Send() a retourné false. Vérifiez la configuration SMTP.",
+                        \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'loyalty_tier_upgrade', 'email' => $customer->email]),
                         'loyalty_tier_upgrade', 'OrderTriggers'
                     );
                 }
             } catch (\Throwable $e) {
                 $this->watchdog()->error(
-                    "loyalty_tier_upgrade tier {$tierName} : erreur pour {$customer->email} — {$e->getMessage()}",
+                    \WatchdogManager::i18nMsg('watchdog.loyalty_tier_error', ['tier' => $tierName, 'email' => $customer->email, 'error' => $e->getMessage()]),
                     'loyalty_tier_upgrade', 'OrderTriggers'
                 );
             }
@@ -202,12 +202,12 @@ class OrderTriggersManager
                 );
                 if ($result) {
                     $this->watchdog()->info(
-                        "order_partial_shipped commande #{$order->reference} envoyé à {$email}",
+                        \WatchdogManager::i18nMsg('watchdog.partial_shipped_sent', ['order' => $order->reference, 'email' => $email]),
                         'order_partial_shipped', 'OrderTriggers'
                     );
                 } else {
                     $this->watchdog()->warning(
-                        "order_partial_shipped commande #{$order->reference} : échec silencieux pour {$email} — Mail::Send() a retourné false. Vérifiez la configuration SMTP.",
+                        \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'order_partial_shipped', 'email' => $email]),
                         'order_partial_shipped', 'OrderTriggers'
                     );
                 }
@@ -233,19 +233,19 @@ class OrderTriggersManager
                 );
                 if ($result) {
                     $this->watchdog()->info(
-                        "order_on_hold « {$statusName} » commande #{$order->reference} envoyé à {$email}",
+                        \WatchdogManager::i18nMsg('watchdog.order_on_hold_sent', ['status' => $statusName, 'order' => $order->reference, 'email' => $email]),
                         'order_on_hold', 'OrderTriggers'
                     );
                 } else {
                     $this->watchdog()->warning(
-                        "order_on_hold « {$statusName} » : échec silencieux pour {$email} — Mail::Send() a retourné false. Vérifiez la configuration SMTP.",
+                        \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'order_on_hold', 'email' => $email]),
                         'order_on_hold', 'OrderTriggers'
                     );
                 }
             }
         } catch (\Throwable $e) {
             $this->watchdog()->error(
-                "handleStatusChange commande #{$idOrder} : erreur inattendue — {$e->getMessage()}. Vérifiez les logs serveur.",
+                \WatchdogManager::i18nMsg('watchdog.status_change_error', ['order' => $idOrder, 'error' => $e->getMessage()]),
                 '', 'OrderTriggers'
             );
         }
@@ -295,12 +295,12 @@ class OrderTriggersManager
 
             if ($result) {
                 $this->watchdog()->info(
-                    "refund_processed {$formatted} commande #{$order->reference} envoyé à {$customer->email}",
+                    \WatchdogManager::i18nMsg('watchdog.refund_sent', ['amount' => $formatted, 'order' => $order->reference, 'email' => $customer->email]),
                     'refund_processed', 'OrderTriggers'
                 );
             } else {
                 $this->watchdog()->warning(
-                    "refund_processed {$formatted} commande #{$order->reference} : échec silencieux pour {$customer->email} — Mail::Send() a retourné false. Vérifiez la configuration SMTP.",
+                    \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'refund_processed', 'email' => $customer->email]),
                     'refund_processed', 'OrderTriggers'
                 );
             }
@@ -326,7 +326,7 @@ class OrderTriggersManager
             }
         } catch (\Throwable $e) {
             $this->watchdog()->error(
-                "refund_processed commande #{$order->reference} : erreur — {$e->getMessage()}",
+                \WatchdogManager::i18nMsg('watchdog.refund_error', ['order' => $order->reference, 'error' => $e->getMessage()]),
                 'refund_processed', 'OrderTriggers'
             );
         }
@@ -390,18 +390,18 @@ class OrderTriggersManager
 
             if ($result) {
                 $this->watchdog()->info(
-                    "return_received retour #{$orderReturn->id} commande #{$order->reference} envoyé à {$customer->email}",
+                    \WatchdogManager::i18nMsg('watchdog.return_sent', ['return' => $orderReturn->id, 'order' => $order->reference, 'email' => $customer->email]),
                     'return_received', 'OrderTriggers'
                 );
             } else {
                 $this->watchdog()->warning(
-                    "return_received retour #{$orderReturn->id} : échec silencieux pour {$customer->email} — Mail::Send() a retourné false. Vérifiez la configuration SMTP.",
+                    \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'return_received', 'email' => $customer->email]),
                     'return_received', 'OrderTriggers'
                 );
             }
         } catch (\Throwable $e) {
             $this->watchdog()->error(
-                "return_received retour #{$orderReturn->id} : erreur — {$e->getMessage()}",
+                \WatchdogManager::i18nMsg('watchdog.return_error', ['return' => $orderReturn->id, 'error' => $e->getMessage()]),
                 'return_received', 'OrderTriggers'
             );
         }
