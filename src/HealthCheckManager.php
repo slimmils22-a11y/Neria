@@ -1988,22 +1988,20 @@ class HealthCheckManager
     /**
      * #29 — Tables DB manquantes
      * Si un script d'upgrade a échoué silencieusement, une table entière
-     * peut être absente : la feature plante sans exception PHP visible.
+     * peut être absente : la feature plante sans exception PHP invisible.
+     *
+     * La liste attendue était codée en dur ici (26 tables) et avait divergé
+     * de sql/install.sql (36 tables réelles) au fil des versions — 10 tables
+     * jamais vérifiées, dont neria_translation, LA table centrale qui
+     * stocke tout le contenu email personnalisable (21 000+ lignes). Pour
+     * éviter que cette liste puisse à nouveau diverger silencieusement,
+     * elle est maintenant extraite directement de sql/install.sql (la
+     * source réellement utilisée pour créer les tables) au lieu d'être
+     * recopiée à la main.
      */
     private function checkDbTables(): array
     {
-        $expected = [
-            'neria_stat', 'neria_abtest', 'neria_abtest_translation',
-            'neria_attribution', 'neria_behavioral_sent', 'neria_bounces',
-            'neria_collection', 'neria_collection_sent',
-            'neria_log', 'neria_look_rule', 'neria_look_sent',
-            'neria_loyalty_points', 'neria_loyalty_rewards',
-            'neria_preferences', 'neria_product_lifespan',
-            'neria_propensity_score', 'neria_queue', 'neria_quote',
-            'neria_reconciliation', 'neria_seasonal_campaign',
-            'neria_customer_segment', 'neria_upsell', 'neria_waitlist',
-            'neria_webhook_queue', 'neria_cron_health', 'neria_abtest_history',
-        ];
+        $expected = $this->getExpectedTablesFromInstallSql();
 
         $existing = $this->db->executeS(
             "SELECT TABLE_NAME FROM information_schema.tables
@@ -2024,13 +2022,54 @@ class HealthCheckManager
         if ($missing) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => count($missing) . ' table(s) manquante(s) : ' . implode(', ', $missing)
-                    . ' → Que faire : Désinstallez et réinstallez le module,'
-                    . ' ou exécutez manuellement le script d\'upgrade correspondant.',
+                'detail' => AdminTranslator::tVars('health.db_tables_missing', [
+                    'count' => count($missing),
+                    'list'  => implode(', ', $missing),
+                ]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => count($expected) . ' tables présentes en base.'];
+        return [
+            'status' => self::STATUS_OK,
+            'detail' => AdminTranslator::tVars('health.db_tables_ok', ['count' => count($expected)]),
+        ];
+    }
+
+    /**
+     * Extrait la liste des tables `neria_*` directement de sql/install.sql
+     * (source de vérité réellement utilisée à l'installation), pour que
+     * checkDbTables() ne puisse plus diverger silencieusement de la
+     * réalité comme cela s'est produit (26 tables vérifiées vs 36 réelles).
+     * Filet de sécurité statique si le fichier est illisible/déplacé.
+     */
+    private function getExpectedTablesFromInstallSql(): array
+    {
+        $sqlFile = _PS_MODULE_DIR_ . $this->module->name . '/sql/install.sql';
+        if (is_file($sqlFile)) {
+            $content = file_get_contents($sqlFile);
+            if ($content !== false && preg_match_all('/CREATE TABLE IF NOT EXISTS `PREFIX_(neria_[a-z_]+)`/i', $content, $matches)) {
+                $tables = array_values(array_unique($matches[1]));
+                if (!empty($tables)) {
+                    return $tables;
+                }
+            }
+        }
+
+        // Filet de sécurité si sql/install.sql est introuvable/illisible.
+        return [
+            'neria_abtest', 'neria_abtest_history', 'neria_abtest_translation',
+            'neria_attribution', 'neria_behavioral_sent', 'neria_blacklist',
+            'neria_bounces', 'neria_calendar_event', 'neria_certificate',
+            'neria_churn_score', 'neria_collection', 'neria_collection_sent',
+            'neria_config', 'neria_cron_health', 'neria_custom_variable',
+            'neria_customer_segment', 'neria_log', 'neria_look_rule',
+            'neria_look_sent', 'neria_loyalty_points', 'neria_loyalty_rewards',
+            'neria_preferences', 'neria_product_lifespan', 'neria_propensity_score',
+            'neria_queue', 'neria_quote', 'neria_reconciliation',
+            'neria_seasonal_campaign', 'neria_signature', 'neria_stat',
+            'neria_translation', 'neria_translation_history', 'neria_upsell',
+            'neria_voice_profile', 'neria_waitlist', 'neria_webhook_queue',
+        ];
     }
 
     /**
