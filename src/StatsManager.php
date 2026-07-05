@@ -250,7 +250,7 @@ class StatsManager
             if ($encrypted === $renderedVars && \CryptoManager::isAvailable()) {
                 // encrypt() a retourné la valeur d'origine → clé absente ou erreur openssl
                 $this->watchdog()->warning(
-                    'Chiffrement échoué pour rendered_vars (événement "' . $event . '", template "' . $template . '") — les données sont stockées en clair. Vérifiez que NERIA_ENCRYPTION_KEY est définie dans ps_configuration.',
+                    \WatchdogManager::i18nMsg('watchdog.stats_encryption_failed', ['event' => $event, 'template' => $template]),
                     '', 'CryptoManager'
                 );
             }
@@ -288,11 +288,7 @@ class StatsManager
         $ok = $this->db->execute($sql);
         if (!$ok) {
             $this->watchdog()->warning(
-                sprintf(
-                    'Impossible d\'enregistrer l\'événement "%s" en base de données : %s. Les statistiques de tracking peuvent être incomplètes. Vérifiez que la table ps_neria_stat existe et est accessible.',
-                    $event,
-                    $this->db->getMsgError()
-                ),
+                \WatchdogManager::i18nMsg('watchdog.stats_insert_failed', ['event' => $event, 'error' => $this->db->getMsgError()]),
                 '', 'StatsManager'
             );
         }
@@ -574,7 +570,7 @@ class StatsManager
         \Configuration::updateValue($cfgKey, $conf);
 
         (new WatchdogManager($this->module))->info(
-            "A/B [{$template}] significativité {$conf}% atteinte — gagnant : variante {$winner}",
+            WatchdogManager::i18nMsg('watchdog.abtest_significance_reached', ['template' => $template, 'conf' => $conf, 'winner' => $winner]),
             $template, 'StatsManager'
         );
 
@@ -718,7 +714,7 @@ class StatsManager
         $deleted = (int) $this->db->Affected_Rows();
 
         $this->watchdog()->info(
-            sprintf('Nettoyage statistiques : %d entrées supprimées (antérieures à %d jours).', $deleted, $days),
+            \WatchdogManager::i18nMsg('watchdog.stats_cleanup', ['n' => $deleted, 'days' => $days]),
             '', 'StatsManager'
         );
 

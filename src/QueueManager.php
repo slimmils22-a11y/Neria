@@ -82,13 +82,12 @@ class QueueManager
         );
 
         $this->watchdog()->info(
-            sprintf(
-                'Queue — %s programmé pour %s à %s (fenêtre préférée %02dh).',
-                $template,
-                $customer['email'] ?? '?',
-                $sendAt,
-                $preferredHour
-            ),
+            \WatchdogManager::i18nMsg('watchdog.queue_scheduled', [
+                'template' => $template,
+                'email'    => $customer['email'] ?? '?',
+                'sendAt'   => $sendAt,
+                'hour'     => sprintf('%02d', $preferredHour),
+            ]),
             $template,
             'QueueManager'
         );
@@ -129,7 +128,7 @@ class QueueManager
         );
 
         $this->watchdog()->info(
-            sprintf('Queue manuelle — %s programmé pour %s à %s.', $template, $customer['email'] ?? '?', $sendAt),
+            \WatchdogManager::i18nMsg('watchdog.queue_manual_scheduled', ['template' => $template, 'email' => $customer['email'] ?? '?', 'sendAt' => $sendAt]),
             $template,
             'QueueManager'
         );
@@ -219,11 +218,7 @@ class QueueManager
         }
 
         $this->watchdog()->info(
-            sprintf(
-                'Queue — %d email%s envoyé%s, %d échec%s.',
-                $sent,   $sent   > 1 ? 's' : '', $sent   > 1 ? 's' : '',
-                $failed, $failed > 1 ? 's' : ''
-            ),
+            \WatchdogManager::i18nMsg('watchdog.queue_processed_summary', ['sent' => $sent, 'failed' => $failed]),
             '',
             'QueueManager'
         );
@@ -278,12 +273,7 @@ class QueueManager
                      WHERE id_neria_queue = ' . $id
                 );
                 $this->watchdog()->info(
-                    sprintf(
-                        'Queue — %s envoyé à %s (id #%d).',
-                        $row['template'],
-                        $row['recipient_email'],
-                        $id
-                    ),
+                    \WatchdogManager::i18nMsg('watchdog.queue_sent_to', ['template' => $row['template'], 'email' => $row['recipient_email'], 'id' => $id]),
                     $row['template'],
                     'QueueManager'
                 );
@@ -296,12 +286,7 @@ class QueueManager
         } catch (\Throwable $e) {
             $this->markFailedOrRetry($id, (int) $row['attempts'] + 1, $e->getMessage());
             $this->watchdog()->error(
-                sprintf(
-                    'Queue — Erreur pour %s (#%d) : %s',
-                    $row['recipient_email'],
-                    $id,
-                    $e->getMessage()
-                ),
+                \WatchdogManager::i18nMsg('watchdog.queue_send_error', ['email' => $row['recipient_email'], 'id' => $id, 'error' => $e->getMessage()]),
                 $row['template'] ?? '',
                 'QueueManager'
             );
