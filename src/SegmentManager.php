@@ -157,7 +157,7 @@ class SegmentManager
         $affected = (int) $this->db->Affected_Rows();
 
         $this->watchdog()->info(
-            "SegmentManager : {$affected} client(s) recalculés.",
+            \WatchdogManager::i18nMsg('watchdog.segment_recomputed', ['n' => $affected]),
             '', 'SegmentManager'
         );
 
@@ -293,16 +293,19 @@ class SegmentManager
     public function preflightCheck(string $segment, string $template, array $filters = []): array
     {
         $issues = [];
+        $blockingCount = 0;
 
         if (!in_array($template, self::CAMPAIGN_TEMPLATES, true)) {
-            $issues[] = "Le template « {$template} » n'est pas autorisé pour les campagnes segment.";
+            $issues[] = \AdminTranslator::tVars('msg.segment_template_not_allowed', ['template' => $template]);
+            $blockingCount++;
         }
 
         $customers = $this->getCustomersBySegment($segment, 500, 0, $filters);
         $recipientCount = count($customers);
 
         if ($recipientCount === 0) {
-            $issues[] = "Le segment « {$segment} » (avec ces filtres) ne contient aucun destinataire.";
+            $issues[] = \AdminTranslator::tVars('msg.segment_no_recipients', ['segment' => $segment]);
+            $blockingCount++;
         }
 
         $missingLangFiles = [];
@@ -320,14 +323,15 @@ class SegmentManager
                 }
             }
             if ($missingLangFiles) {
-                $issues[] = "Fichier template manquant pour la/les langue(s) : " . implode(', ', $missingLangFiles)
-                    . ' — ces destinataires seront ignorés silencieusement.';
+                // Non bloquant : ces destinataires sont simplement ignorés, l'envoi
+                // continue pour les autres — ne pas incrémenter $blockingCount ici.
+                $issues[] = \AdminTranslator::tVars('msg.segment_missing_lang_files', ['langs' => implode(', ', $missingLangFiles)]);
             }
         }
 
         return [
             'ok'               => empty($issues) || (count($issues) === 1 && $missingLangFiles),
-            'blocking'         => !empty(array_filter($issues, fn ($i) => !str_contains($i, 'seront ignorés'))),
+            'blocking'         => $blockingCount > 0,
             'recipient_count'  => $recipientCount,
             'issues'           => $issues,
         ];
@@ -338,7 +342,7 @@ class SegmentManager
         $preflight = $this->preflightCheck($segment, $template, $filters);
         if ($preflight['blocking']) {
             $this->watchdog()->warning(
-                "Campagne [{$segment}] → {$template} annulée avant envoi (dry-run) : " . implode(' ', $preflight['issues']),
+                \WatchdogManager::i18nMsg('watchdog.segment_campaign_cancelled', ['segment' => $segment, 'template' => $template, 'issues' => implode(' ', $preflight['issues'])]),
                 $template, 'SegmentManager'
             );
             return ['sent' => 0, 'failed' => 0, 'skipped' => 0, 'error' => 'preflight_failed', 'preflight' => $preflight];
@@ -387,13 +391,20 @@ class SegmentManager
         }
 
         $filterParts = [];
-        if (!empty($filters['slot']))       { $filterParts[] = 'tranche=' . $filters['slot']; }
+        if (!empty($filters['slot']))       { $filterParts[] = 'slot=' . $filters['slot']; }
         if (!empty($filters['id_lang']))    { $filterParts[] = 'lang=' . $filters['id_lang']; }
-        if (!empty($filters['id_country'])) { $filterParts[] = 'pays=' . $filters['id_country']; }
-        $filterStr = $filterParts ? ' [filtres: ' . implode(', ', $filterParts) . ']' : '';
+        if (!empty($filters['id_country'])) { $filterParts[] = 'country=' . $filters['id_country']; }
+        $filterStr = $filterParts ? ' [filters: ' . implode(', ', $filterParts) . ']' : '';
 
         $this->watchdog()->info(
-            "Campagne [{$segment}] → {$template}{$filterStr} : {$sent} envoyé(s), {$failed} échoué(s), {$skipped} ignoré(s).",
+            \WatchdogManager::i18nMsg('watchdog.segment_campaign_summary', [
+                'segment' => $segment,
+                'template' => $template,
+                'filters' => $filterStr,
+                'sent'    => $sent,
+                'failed'  => $failed,
+                'skipped' => $skipped,
+            ]),
             $template, 'SegmentManager'
         );
 

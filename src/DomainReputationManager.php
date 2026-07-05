@@ -190,12 +190,15 @@ class DomainReputationManager
         \Configuration::updateValue(self::CONFIG_LAST_CHECK, time());
 
         $rblHits = count($bl['hits'] ?? []);
-        $msg = sprintf('Réputation domaine %s — score %d/100 (grade %s)', $domain ?: '?', $score, $grade);
+        $msgVars = ['domain' => $domain ?: '?', 'score' => $score, 'grade' => $grade];
+        $msg = $rblHits
+            ? \WatchdogManager::i18nMsg('watchdog.domain_reputation_checked_rbl', $msgVars + ['n' => $rblHits])
+            : \WatchdogManager::i18nMsg('watchdog.domain_reputation_checked', $msgVars);
 
         if ($grade === 'F' || $grade === 'D' || $rblHits > 2) {
-            $this->watchdog()->error($msg . ($rblHits ? " — {$rblHits} liste(s) noire(s)" : ''), '', 'DomainReputation');
+            $this->watchdog()->error($msg, '', 'DomainReputation');
         } elseif ($grade === 'C' || $rblHits > 0) {
-            $this->watchdog()->warning($msg . ($rblHits ? " — {$rblHits} liste(s) noire(s)" : ''), '', 'DomainReputation');
+            $this->watchdog()->warning($msg, '', 'DomainReputation');
         } else {
             $this->watchdog()->info($msg, '', 'DomainReputation');
         }

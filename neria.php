@@ -3872,17 +3872,18 @@ class Neria extends Module
                 if (($res['error'] ?? '') === 'preflight_failed') {
                     $this->context->smarty->assign(
                         'neria_error',
-                        'Envoi annulé avant déclenchement (contrôle à blanc) : ' . implode(' ', $res['preflight']['issues'] ?? [])
+                        AdminTranslator::tVars('msg.segment_send_cancelled', ['issues' => implode(' ', $res['preflight']['issues'] ?? [])])
                     );
                 } elseif (isset($res['error'])) {
-                    $this->context->smarty->assign('neria_error', 'Template non autorisé pour les campagnes segment.');
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.segment_template_not_allowed_generic'));
                 } else {
                     $this->context->smarty->assign(
                         'neria_success',
-                        $res['sent'] . ' email(s) envoyé(s)'
-                        . ($res['failed']  > 0 ? ', ' . $res['failed']  . ' échoué(s)' : '')
-                        . ($res['skipped'] > 0 ? ', ' . $res['skipped'] . ' ignoré(s)' : '')
-                        . '.'
+                        AdminTranslator::tVars('msg.segment_campaign_result', [
+                            'sent'        => $res['sent'],
+                            'failedPart'  => $res['failed']  > 0 ? AdminTranslator::tVars('msg.segment_failed_part', ['n' => $res['failed']]) : '',
+                            'skippedPart' => $res['skipped'] > 0 ? AdminTranslator::tVars('msg.segment_skipped_part', ['n' => $res['skipped']]) : '',
+                        ])
                     );
                 }
             } else {

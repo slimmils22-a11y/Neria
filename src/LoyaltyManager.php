@@ -133,19 +133,17 @@ class LoyaltyManager
 
                 $this->sendRewardEmail($idCustomer, $tier, $code, $amount, $total);
                 $this->watchdog()->info(
-                    sprintf(
-                        'Fidélité — Palier %s atteint par le client #%d (%d pts). Bon %s envoyé : %s.',
-                        $tier['name'], $idCustomer, $total, $amount, $code
-                    ),
+                    \WatchdogManager::i18nMsg('watchdog.loyalty_tier_reached', [
+                        'tier' => $tier['name'], 'customer' => $idCustomer, 'points' => $total, 'amount' => $amount, 'code' => $code,
+                    ]),
                     'loyalty_tier_upgrade',
                     'Loyalty'
                 );
             } catch (\Throwable $e) {
                 $this->watchdog()->error(
-                    sprintf(
-                        'Fidélité — Erreur lors de la récompense palier %s pour client #%d : %s.',
-                        $tier['name'], $idCustomer, $e->getMessage()
-                    ),
+                    \WatchdogManager::i18nMsg('watchdog.loyalty_reward_error', [
+                        'tier' => $tier['name'], 'customer' => $idCustomer, 'error' => $e->getMessage(),
+                    ]),
                     'loyalty_tier_upgrade',
                     'Loyalty'
                 );
@@ -190,9 +188,13 @@ class LoyaltyManager
 
         $langs = \Language::getLanguages(false);
         $names = [];
+        $prevLang = \AdminTranslator::currentLang();
         foreach ($langs as $l) {
-            $names[(int) $l['id_lang']] = 'Récompense Neria ' . $tier['name'];
+            $iso = \Language::getIsoById((int) $l['id_lang']) ?: 'en';
+            \AdminTranslator::setLang($iso);
+            $names[(int) $l['id_lang']] = \AdminTranslator::tVars('msg.loyalty_reward_name', ['tier' => $tier['name']]);
         }
+        \AdminTranslator::setLang($prevLang);
 
         $cartRule = new \CartRule();
         $cartRule->name                    = $names;
@@ -227,7 +229,7 @@ class LoyaltyManager
                    AND tier_key = '" . pSQL($tier['key']) . "'
                    AND id_cart_rule = 0"
             );
-            throw new \RuntimeException('CartRule::add() a échoué pour le client #' . $idCustomer);
+            throw new \RuntimeException(\AdminTranslator::tVars('msg.loyalty_cartrule_add_failed', ['customer' => $idCustomer]));
         }
 
         // Complète la réservation avec le vrai bon de réduction généré.
@@ -464,10 +466,7 @@ class LoyaltyManager
                 }
             } catch (\Throwable $e) {
                 $this->watchdog()->error(
-                    sprintf(
-                        'Fidélité recap — Erreur pour client #%d : %s.',
-                        (int) $row['id_customer'], $e->getMessage()
-                    ),
+                    \WatchdogManager::i18nMsg('watchdog.loyalty_recap_error', ['customer' => (int) $row['id_customer'], 'error' => $e->getMessage()]),
                     'loyalty_recap', 'Loyalty'
                 );
             }
