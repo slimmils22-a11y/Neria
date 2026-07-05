@@ -340,11 +340,11 @@ class WebhookManager
         $secret = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_SECRET));
 
         if ($url === '' || !self::isPublicUrl($url)) {
-            return ['ok' => false, 'error' => 'URL non configurée ou invalide (doit être une adresse publique).'];
+            return ['ok' => false, 'error' => AdminTranslator::t('msg.webhook_url_invalid')];
         }
 
         if (!function_exists('curl_init')) {
-            return ['ok' => false, 'error' => 'cURL non disponible sur ce serveur.'];
+            return ['ok' => false, 'error' => AdminTranslator::t('msg.curl_unavailable')];
         }
 
         $payload = json_encode([

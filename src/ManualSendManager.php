@@ -709,13 +709,11 @@ class ManualSendManager
 
         if ($alreadySent > 0) {
             $labels = [
-                'first_anniversary'        => 'Premier anniversaire client (first_anniversary)',
-                'relationship_anniversary' => 'Anniversaire de la relation client (relationship_anniversary)',
+                'first_anniversary'        => AdminTranslator::t('msg.anniversary_label_first_full'),
+                'relationship_anniversary' => AdminTranslator::t('msg.anniversary_label_relationship_full'),
             ];
             $conflictLabel = $labels[$conflictTemplate] ?? $conflictTemplate;
-            return 'Envoi bloqué : un email « ' . $conflictLabel . ' » a déjà été envoyé '
-                 . 'à ce client cette année (automatiquement ou manuellement). '
-                 . 'Envoyer les deux créerait un doublon.';
+            return AdminTranslator::tVars('msg.anniversary_conflict_blocked', ['label' => $conflictLabel]);
         }
 
         return null;
@@ -742,8 +740,7 @@ class ManualSendManager
                 return [
                     'blocked' => false,
                     'sent'    => false,
-                    'message' => 'La fonctionnalité <strong>Anniversaire de la relation client</strong> est active. '
-                               . 'Si ce client existe, un email automatique pourrait être envoyé le jour de son anniversaire.',
+                    'message' => AdminTranslator::t('msg.anniversary_feature_active_no_customer'),
                 ];
             }
             return ['blocked' => false, 'sent' => false, 'message' => ''];
@@ -757,17 +754,15 @@ class ManualSendManager
         );
 
         $labels = [
-            'first_anniversary'        => 'Premier anniversaire client',
-            'relationship_anniversary' => 'Anniversaire de la relation client',
+            'first_anniversary'        => AdminTranslator::t('msg.anniversary_label_first_short'),
+            'relationship_anniversary' => AdminTranslator::t('msg.anniversary_label_relationship_short'),
         ];
 
         if ($conflictSent > 0) {
             return [
                 'blocked' => true,
                 'sent'    => true,
-                'message' => '🚫 <strong>Envoi bloqué.</strong> Un email <em>' . $labels[$conflictTemplate] . '</em> '
-                           . 'a déjà été envoyé à ce client cette année (automatiquement ou manuellement). '
-                           . 'Envoyer les deux créerait un doublon.',
+                'message' => AdminTranslator::tVars('msg.anniversary_blocked_html', ['label' => $labels[$conflictTemplate]]),
             ];
         }
 
@@ -775,9 +770,7 @@ class ManualSendManager
             return [
                 'blocked' => false,
                 'sent'    => false,
-                'message' => '⚠ La fonctionnalité <strong>Anniversaire de la relation client</strong> est active. '
-                           . 'Aucun email n\'a encore été envoyé à ce client cette année, '
-                           . 'mais un envoi automatique est prévu à la date anniversaire de son premier achat.',
+                'message' => AdminTranslator::t('msg.anniversary_feature_active_pending'),
             ];
         }
 
@@ -842,8 +835,7 @@ class ManualSendManager
         if ($count > 0) {
             return [
                 'blocked' => false,
-                'message' => '⚠ <strong>Doublon possible :</strong> ce template a déjà été envoyé '
-                           . 'manuellement à ce client ' . $count . ' fois ces 7 derniers jours.',
+                'message' => AdminTranslator::tVars('msg.duplicate_warning', ['count' => $count]),
             ];
         }
         return ['blocked' => false, 'message' => ''];
@@ -913,7 +905,7 @@ class ManualSendManager
 
         return [
             'ok'      => true,
-            'message' => 'Email planifié pour le ' . date('d/m/Y \à H:i', strtotime($sendAt)) . '.',
+            'message' => AdminTranslator::tVars('msg.scheduled_success', ['date' => date('d/m/Y \à H:i', strtotime($sendAt))]),
         ];
     }
 }

@@ -331,10 +331,10 @@ class MultiClientPreviewManager
     {
         $key = \CryptoManager::decrypt(trim((string) \Configuration::get(self::CONFIG_LITMUS_KEY)));
         if (!$key) {
-            return ['error' => 'Clé API Litmus non configurée'];
+            return ['error' => AdminTranslator::t('msg.litmus_key_missing')];
         }
         if (!function_exists('curl_init')) {
-            return ['error' => 'cURL non disponible sur ce serveur'];
+            return ['error' => AdminTranslator::t('msg.curl_unavailable')];
         }
 
         $payload = json_encode([
@@ -419,10 +419,10 @@ class MultiClientPreviewManager
     {
         $key = \CryptoManager::decrypt(trim((string) \Configuration::get(self::CONFIG_EOA_KEY)));
         if (!$key) {
-            return ['error' => 'Clé API Email on Acid non configurée'];
+            return ['error' => AdminTranslator::t('msg.eoa_key_missing')];
         }
         if (!function_exists('curl_init')) {
-            return ['error' => 'cURL non disponible sur ce serveur'];
+            return ['error' => AdminTranslator::t('msg.curl_unavailable')];
         }
 
         $payload = json_encode([

@@ -499,7 +499,7 @@ class BounceManager
     public function testImapConnection(): array
     {
         if (!extension_loaded('imap')) {
-            return ['ok' => false, 'message' => "L'extension PHP 'imap' n'est pas installée sur ce serveur."];
+            return ['ok' => false, 'message' => AdminTranslator::t('msg.imap_missing_extension')];
         }
 
         $host   = (string) \Configuration::get(self::CFG_IMAP_HOST);
@@ -510,7 +510,7 @@ class BounceManager
         $folder = (string) \Configuration::get(self::CFG_IMAP_FOLDER) ?: 'INBOX';
 
         if ($host === '' || $user === '' || $pass === '') {
-            return ['ok' => false, 'message' => 'Renseignez hôte, utilisateur et mot de passe avant de tester.'];
+            return ['ok' => false, 'message' => AdminTranslator::t('msg.imap_missing_fields')];
         }
 
         $flags   = $ssl ? '/imap/ssl' : '/imap/notls';
@@ -518,12 +518,12 @@ class BounceManager
         $mbox    = @imap_open($mailbox, $user, $pass, OP_HALFOPEN, 1);
 
         if ($mbox === false) {
-            return ['ok' => false, 'message' => 'Connexion échouée : ' . imap_last_error()];
+            return ['ok' => false, 'message' => AdminTranslator::tVars('msg.imap_connection_failed', ['error' => imap_last_error()])];
         }
 
         $count = imap_num_msg($mbox);
         imap_close($mbox);
-        return ['ok' => true, 'message' => "Connexion réussie ✓ — $count message(s) dans $folder."];
+        return ['ok' => true, 'message' => AdminTranslator::tVars('msg.imap_connection_ok', ['count' => $count, 'folder' => $folder])];
     }
 
     /**
