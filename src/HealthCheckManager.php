@@ -623,9 +623,7 @@ class HealthCheckManager
         if ($method === '1') {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Envoi via PHP mail() (méthode basique).'
-                    . ' → Que faire : Configurez un serveur SMTP dédié dans Paramètres → Email'
-                    . ' pour améliorer la délivrabilité et recevoir les erreurs de rebond.',
+                'detail' => AdminTranslator::t('health.smtp_php_mail'),
             ];
         }
 
@@ -637,26 +635,24 @@ class HealthCheckManager
             if ($server === '') {
                 return [
                     'status' => self::STATUS_ERROR,
-                    'detail' => 'SMTP activé mais aucun serveur configuré.'
-                        . ' → Que faire : Renseignez l\'hôte SMTP dans Paramètres → Email → Serveur SMTP.',
+                    'detail' => AdminTranslator::t('health.smtp_no_server'),
                 ];
             }
 
             if ($user === '') {
                 return [
                     'status' => self::STATUS_WARNING,
-                    'detail' => 'Serveur SMTP configuré (' . $server . ') mais sans identifiant utilisateur.'
-                        . ' → Que faire : Ajoutez l\'identifiant SMTP dans Paramètres → Email.',
+                    'detail' => AdminTranslator::tVars('health.smtp_no_user', ['server' => $server]),
                 ];
             }
 
             return [
                 'status' => self::STATUS_OK,
-                'detail' => 'SMTP configuré : ' . $server . ' (utilisateur : ' . $user . ').',
+                'detail' => AdminTranslator::tVars('health.smtp_ok', ['server' => $server, 'user' => $user]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => 'Configuration email : méthode ' . $method . '.'];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.smtp_other_method', ['method' => $method])];
     }
 
     /**
@@ -676,7 +672,7 @@ class HealthCheckManager
         if ($sent24h < 20) {
             return [
                 'status' => self::STATUS_OK,
-                'detail' => 'Moins de 20 envois dans les dernières 24h — analyse du taux de bounce non significative.',
+                'detail' => AdminTranslator::t('health.bounce_rate_insufficient'),
             ];
         }
 
@@ -691,23 +687,20 @@ class HealthCheckManager
         if ($rate >= self::BOUNCE_RATE_THRESHOLD) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => 'Taux de bounce : ' . $rate . '% sur 24h (' . $bounces24h . ' bounces / ' . $sent24h . ' envois).'
-                    . ' → Que faire : Nettoyez votre liste d\'abonnés, vérifiez la réputation'
-                    . ' de votre domaine dans l\'onglet Statistiques, et envisagez un double opt-in.',
+                'detail' => AdminTranslator::tVars('health.bounce_rate_critical', ['rate' => $rate, 'bounces' => $bounces24h, 'sent' => $sent24h]),
             ];
         }
 
         if ($rate >= 2) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Taux de bounce : ' . $rate . '% sur 24h (' . $bounces24h . ' bounces / ' . $sent24h . ' envois).'
-                    . ' → Que faire : Surveillez l\'évolution. Un taux > 5% dégrade sérieusement la délivrabilité.',
+                'detail' => AdminTranslator::tVars('health.bounce_rate_warning', ['rate' => $rate, 'bounces' => $bounces24h, 'sent' => $sent24h]),
             ];
         }
 
         return [
             'status' => self::STATUS_OK,
-            'detail' => 'Taux de bounce : ' . $rate . '% sur 24h (' . $bounces24h . ' / ' . $sent24h . ' envois). Excellent.',
+            'detail' => AdminTranslator::tVars('health.bounce_rate_ok', ['rate' => $rate, 'bounces' => $bounces24h, 'sent' => $sent24h]),
         ];
     }
 
@@ -721,24 +714,19 @@ class HealthCheckManager
         $count = (int) \Configuration::get(self::CFG_CONSECUTIVE_FAILURES);
 
         if ($count === 0) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Aucun échec consécutif de rendu détecté.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.consecutive_failures_ok')];
         }
 
         if ($count >= self::CONSECUTIVE_THRESHOLD) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => $count . ' échecs de rendu consécutifs détectés.'
-                    . ' → Que faire : Consultez le journal Watchdog pour identifier le template'
-                    . ' en erreur. Vérifiez les variables Smarty manquantes et les permissions'
-                    . ' d\'écriture sur le dossier mails/. Un email de secours a été envoyé à chaque échec.',
+                'detail' => AdminTranslator::tVars('health.consecutive_failures_critical', ['count' => $count]),
             ];
         }
 
         return [
             'status' => self::STATUS_WARNING,
-            'detail' => $count . ' échec(s) de rendu récent(s) — sous le seuil critique ('
-                . self::CONSECUTIVE_THRESHOLD . ').'
-                . ' → Que faire : Vérifiez le journal pour identifier le template concerné.',
+            'detail' => AdminTranslator::tVars('health.consecutive_failures_warning', ['count' => $count, 'threshold' => self::CONSECUTIVE_THRESHOLD]),
         ];
     }
 
@@ -763,17 +751,16 @@ class HealthCheckManager
 
         if ($missing) {
             $count = count($missing);
+            $list  = implode(', ', array_slice($missing, 0, 5)) . ($count > 5 ? '… (' . ($count - 5) . ' autres)' : '');
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => $count . ' fichier(s) template manquant(s) sur disque : '
-                    . implode(', ', array_slice($missing, 0, 5)) . ($count > 5 ? '… (' . ($count - 5) . ' autres)' : '')
-                    . ' → Que faire : Réinstallez ou réuploadez le dossier mails/themes/neria_global/core/.',
+                'detail' => AdminTranslator::tVars('health.template_files_missing', ['count' => $count, 'list' => $list]),
             ];
         }
 
         return [
             'status' => self::STATUS_OK,
-            'detail' => count($templates) . ' templates présents sur disque (HTML + TXT).',
+            'detail' => AdminTranslator::tVars('health.template_files_ok', ['count' => count($templates)]),
         ];
     }
 
@@ -786,12 +773,12 @@ class HealthCheckManager
     {
         $jsonPath = __DIR__ . '/../data/translations.json';
         if (!is_file($jsonPath)) {
-            return ['status' => self::STATUS_ERROR, 'detail' => 'translations.json introuvable.'];
+            return ['status' => self::STATUS_ERROR, 'detail' => AdminTranslator::t('health.trad_keys_json_missing')];
         }
 
         $trad = json_decode((string) file_get_contents($jsonPath), true);
         if (!is_array($trad)) {
-            return ['status' => self::STATUS_ERROR, 'detail' => 'translations.json invalide (JSON corrompu).'];
+            return ['status' => self::STATUS_ERROR, 'detail' => AdminTranslator::t('health.trad_keys_json_invalid')];
         }
 
         // Construit l'index plat depuis la structure imbriquée {template:{lang:{key:val}}}
@@ -830,21 +817,21 @@ class HealthCheckManager
         if (empty($missing) && $dbMissing === 0) {
             return [
                 'status' => self::STATUS_OK,
-                'detail' => count($index) . ' clés de traduction présentes et complètes.',
+                'detail' => AdminTranslator::tVars('health.trad_keys_ok', ['count' => count($index)]),
             ];
         }
 
         $detail = '';
         if (!empty($missing)) {
-            $detail .= count($missing) . ' clé(s) avec langues manquantes dans translations.json. ';
+            $detail .= AdminTranslator::tVars('health.trad_keys_lang_gaps', ['count' => count($missing)]);
         }
         if ($dbMissing > 0) {
-            $detail .= $dbMissing . ' valeur(s) vide(s) en base ps_neria_translation.';
+            $detail .= AdminTranslator::tVars('health.trad_keys_db_gaps', ['count' => $dbMissing]);
         }
 
         return [
             'status' => self::STATUS_WARNING,
-            'detail' => $detail . ' → Que faire : Utilisez le bouton "Réparer les traductions" dans l\'onglet Traductions.',
+            'detail' => $detail . AdminTranslator::t('health.trad_keys_advice'),
         ];
     }
 
@@ -938,22 +925,20 @@ class HealthCheckManager
             \Configuration::updateValue('NERIA_INSTALLED_VERSION', $currentVersion);
             return [
                 'status' => self::STATUS_OK,
-                'detail' => 'Version enregistrée : ' . $currentVersion . '.',
+                'detail' => AdminTranslator::tVars('health.version_registered', ['version' => $currentVersion]),
             ];
         }
 
         if (version_compare($installedVersion, $currentVersion, '<')) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Version installée (' . $installedVersion . ') < version module ('
-                    . $currentVersion . '). Un upgrade script n\'a peut-être pas tourné.'
-                    . ' → Que faire : Allez dans Modules → Neria → Mettre à jour pour déclencher les scripts d\'upgrade.',
+                'detail' => AdminTranslator::tVars('health.version_outdated', ['installed' => $installedVersion, 'current' => $currentVersion]),
             ];
         }
 
         return [
             'status' => self::STATUS_OK,
-            'detail' => 'Version synchronisée : ' . $currentVersion . '.',
+            'detail' => AdminTranslator::tVars('health.version_synced', ['version' => $currentVersion]),
         ];
     }
 
@@ -1083,7 +1068,7 @@ class HealthCheckManager
         if ($sent7 < 50) {
             return [
                 'status' => self::STATUS_OK,
-                'detail' => 'Moins de 50 envois sur 7j (' . $sent7 . ') — analyse taux d\'ouverture non significative.',
+                'detail' => AdminTranslator::tVars('health.open_rate_insufficient', ['sent' => $sent7]),
             ];
         }
 
@@ -1099,24 +1084,20 @@ class HealthCheckManager
         if ($rate < 5) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => 'Taux d\'ouverture 7j : ' . $rate . '% (' . $open7 . '/' . $sent7 . ').'
-                    . ' → Que faire : Vérifiez le score de réputation dans l\'onglet Statistiques,'
-                    . ' testez le pixel de tracking (onglet Aide) et contrôlez que les emails n\'arrivent pas en spam.',
+                'detail' => AdminTranslator::tVars('health.open_rate_critical', ['rate' => $rate, 'open' => $open7, 'sent' => $sent7]),
             ];
         }
 
         if ($rate < 15) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Taux d\'ouverture 7j faible : ' . $rate . '% (' . $open7 . '/' . $sent7 . ').'
-                    . ' → Que faire : Travaillez les objets d\'email (onglet Formation → Guide objets)'
-                    . ' et vérifiez que les emails n\'arrivent pas dans les onglets promotions.',
+                'detail' => AdminTranslator::tVars('health.open_rate_low', ['rate' => $rate, 'open' => $open7, 'sent' => $sent7]),
             ];
         }
 
         return [
             'status' => self::STATUS_OK,
-            'detail' => 'Taux d\'ouverture 7j : ' . $rate . '% (' . $open7 . ' ouvertures / ' . $sent7 . ' envois).',
+            'detail' => AdminTranslator::tVars('health.open_rate_ok', ['rate' => $rate, 'open' => $open7, 'sent' => $sent7]),
         ];
     }
 
@@ -1155,7 +1136,7 @@ class HealthCheckManager
         if ($recentSent < 50 || $baselineSent < 50) {
             return [
                 'status' => self::STATUS_OK,
-                'detail' => 'Historique insuffisant pour détecter une tendance (besoin de ≥ 50 envois sur les deux périodes).',
+                'detail' => AdminTranslator::t('health.engagement_insufficient'),
             ];
         }
 
@@ -1163,7 +1144,7 @@ class HealthCheckManager
         $baselineRate = round((int) ($baseline['opened'] ?? 0) / $baselineSent * 100, 1);
 
         if ($baselineRate <= 0) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Taux de référence nul — comparaison ignorée.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.engagement_baseline_zero')];
         }
 
         $relativeChange = round((($recentRate - $baselineRate) / $baselineRate) * 100, 1);
@@ -1171,16 +1152,13 @@ class HealthCheckManager
         if ($relativeChange <= -30) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => "Tendance d'engagement en baisse : {$recentRate}% cette semaine vs {$baselineRate}% en moyenne sur les 30 jours précédents"
-                    . " ({$relativeChange}% relatif)."
-                    . ' → Que faire : Vérifiez la réputation domaine, la fraîcheur des segments ciblés récemment,'
-                    . ' et si aucun changement de contenu/fréquence n\'explique la baisse.',
+                'detail' => AdminTranslator::tVars('health.engagement_declining', ['recentRate' => $recentRate, 'baselineRate' => $baselineRate, 'relativeChange' => $relativeChange]),
             ];
         }
 
         return [
             'status' => self::STATUS_OK,
-            'detail' => "Tendance d'engagement stable : {$recentRate}% cette semaine vs {$baselineRate}% en moyenne (30j précédents).",
+            'detail' => AdminTranslator::tVars('health.engagement_stable', ['recentRate' => $recentRate, 'baselineRate' => $baselineRate]),
         ];
     }
 
@@ -1371,11 +1349,11 @@ class HealthCheckManager
     private function checkActiveCron(): array
     {
         if (!class_exists('WatchdogManager')) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Contrôle non disponible.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.active_cron_unavailable')];
         }
 
         if (!\Configuration::getGlobalValue('NERIA_CRON_ENABLED')) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Cron serveur externe désactivé volontairement (onglet Aide).'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.active_cron_disabled')];
         }
 
         $lastHit = (new \WatchdogManager($this->module))->getLastCronEndpointHit();
@@ -1383,11 +1361,7 @@ class HealthCheckManager
         if ($lastHit === null) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Aucun cron serveur externe détecté — Neria repose uniquement sur le trafic visiteurs'
-                    . ' (hookDisplayHeader) pour ses tâches de fond, ce qui peut retarder leur exécution sur une'
-                    . ' boutique à faible trafic, ou si le site rencontre justement un problème.'
-                    . ' → Que faire : configurez une tâche cron serveur pointant vers l\'URL affichée dans'
-                    . ' Neria → Aide → section Diagnostic, pour un déclenchement actif toutes les 5-15 minutes.',
+                'detail' => AdminTranslator::t('health.active_cron_never'),
             ];
         }
 
@@ -1395,14 +1369,11 @@ class HealthCheckManager
         if ($ageHours > 26) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Cron serveur externe configuré mais inactif depuis ' . round($ageHours / 24, 1) . ' jour(s)'
-                    . ' (dernier appel : ' . $lastHit . ').'
-                    . ' → Que faire : vérifiez que la tâche cron est toujours active côté hébergeur'
-                    . ' (crontab, ou tâche planifiée du panneau d\'hébergement).',
+                'detail' => AdminTranslator::tVars('health.active_cron_stale', ['days' => round($ageHours / 24, 1), 'lastHit' => $lastHit]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => 'Cron serveur externe actif (dernier appel : ' . $lastHit . ').'];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.active_cron_ok', ['lastHit' => $lastHit])];
     }
 
     /**
@@ -1415,8 +1386,7 @@ class HealthCheckManager
         if (!defined('_COOKIE_KEY_')) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => 'Constante _COOKIE_KEY_ absente — les liens de désabonnement ne peuvent pas être signés.'
-                    . ' → Que faire : Vérifiez que config/settings.inc.php existe et est lisible par PHP.',
+                'detail' => AdminTranslator::t('health.hmac_missing'),
             ];
         }
 
@@ -1425,15 +1395,13 @@ class HealthCheckManager
         if ($keyLength < 32) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => '_COOKIE_KEY_ trop courte (' . $keyLength . ' chars, minimum recommandé : 32).'
-                    . ' Liens de désabonnement potentiellement falsifiables.'
-                    . ' → Que faire : Régénérez les clés de sécurité PrestaShop.',
+                'detail' => AdminTranslator::tVars('health.hmac_short', ['length' => $keyLength]),
             ];
         }
 
         return [
             'status' => self::STATUS_OK,
-            'detail' => '_COOKIE_KEY_ présente et robuste (' . $keyLength . ' chars) — HMAC désabonnement sécurisé.',
+            'detail' => AdminTranslator::tVars('health.hmac_ok', ['length' => $keyLength]),
         ];
     }
 
@@ -1451,7 +1419,7 @@ class HealthCheckManager
              WHERE table_schema = DATABASE() AND table_name = '{$table}'"
         );
         if (!$exists) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Queue non activée (table absente) — sans impact.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.queue_disabled')];
         }
 
         $blocked = (int) $this->db->getValue(
@@ -1466,15 +1434,13 @@ class HealthCheckManager
             );
             return [
                 'status' => self::STATUS_OK,
-                'detail' => 'File d\'envoi fluide — ' . $pending . ' email(s) en attente programmé(s).',
+                'detail' => AdminTranslator::tVars('health.queue_blocked_ok', ['pending' => $pending]),
             ];
         }
 
         return [
             'status' => self::STATUS_ERROR,
-            'detail' => $blocked . ' email(s) bloqués en file depuis plus de 2h (send_at dépassé, statut pending).'
-                . ' → Que faire : Vérifiez que le cron Neria s\'exécute bien'
-                . ' (index.php?fc=module&module=neria&controller=cron) et consultez le journal Watchdog.',
+            'detail' => AdminTranslator::tVars('health.queue_blocked_critical', ['blocked' => $blocked]),
         ];
     }
 
@@ -1496,15 +1462,13 @@ class HealthCheckManager
         if ($recentAjaxErrors > 0) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => $recentAjaxErrors . ' erreur(s) AJAX détectée(s) dans le journal des dernières 24h.'
-                    . ' → Que faire : Consultez le journal Watchdog (onglet Aide) pour identifier'
-                    . ' l\'action concernée et vérifier les erreurs PHP/JS associées.',
+                'detail' => AdminTranslator::tVars('health.ajax_errors_recent', ['count' => $recentAjaxErrors]),
             ];
         }
 
         return [
             'status' => self::STATUS_OK,
-            'detail' => 'Aucune erreur AJAX dans les dernières 24h — endpoints back-office opérationnels.',
+            'detail' => AdminTranslator::t('health.ajax_ok'),
         ];
     }
 
@@ -1549,16 +1513,13 @@ class HealthCheckManager
         if ($errors) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => count($errors) . ' méthode(s) critique(s) introuvable(s) : '
-                    . implode(', ', $errors)
-                    . ' → Que faire : Une mise à jour a peut-être cassé l\'API interne.'
-                    . ' Vérifiez le dossier src/ et les scripts d\'upgrade.',
+                'detail' => AdminTranslator::tVars('health.critical_methods_missing', ['count' => count($errors), 'list' => implode(', ', $errors)]),
             ];
         }
 
         return [
             'status' => self::STATUS_OK,
-            'detail' => $ok . ' méthodes critiques vérifiées par réflexion — API interne intacte.',
+            'detail' => AdminTranslator::tVars('health.critical_methods_ok', ['ok' => $ok]),
         ];
     }
 
@@ -1606,23 +1567,21 @@ class HealthCheckManager
         if ($missingCritical) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => 'Manager(s) critique(s) introuvable(s) : ' . implode(', ', $missingCritical)
-                    . ' → Que faire : Réinstallez le module ou re-uploadez le dossier src/.',
+                'detail' => AdminTranslator::tVars('health.managers_critical_missing', ['list' => implode(', ', $missingCritical)]),
             ];
         }
 
         if ($missingOptional) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Manager(s) optionnel(s) introuvable(s) : ' . implode(', ', $missingOptional)
-                    . ' → Que faire : Ces features sont désactivées. Vérifiez que src/ est complet.',
+                'detail' => AdminTranslator::tVars('health.managers_optional_missing', ['list' => implode(', ', $missingOptional)]),
             ];
         }
 
         $total = count($critical) + count($optional);
         return [
             'status' => self::STATUS_OK,
-            'detail' => 'Tous les managers PHP sont disponibles (' . $total . '/' . $total . ').',
+            'detail' => AdminTranslator::tVars('health.managers_all_ok', ['total' => $total]),
         ];
     }
 
@@ -1640,7 +1599,7 @@ class HealthCheckManager
              WHERE table_schema = DATABASE() AND table_name = '{$table}'"
         );
         if (!$exists) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Table bounces absente — feature non activée.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.bounces_table_absent')];
         }
 
         // Bounces reçus depuis 48h mais dont le statut est toujours 'active'
@@ -1657,19 +1616,19 @@ class HealthCheckManager
             : null;
 
         if ($recent > 0 && ($cronAgeH === null || $cronAgeH > 26)) {
+            $cronStatus = $cronAgeH === null
+                ? AdminTranslator::t('health.bounces_cron_never')
+                : AdminTranslator::tVars('health.bounces_cron_late', ['hours' => $cronAgeH]);
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => $recent . ' bounce(s) reçu(s) dans les 48h mais cron IMAP '
-                    . ($cronAgeH === null ? 'jamais exécuté' : 'en retard (' . $cronAgeH . 'h)') . '.'
-                    . ' → Que faire : Vérifiez la configuration IMAP dans l\'onglet Statistiques'
-                    . ' et assurez-vous que le cron Neria s\'exécute quotidiennement.',
+                'detail' => AdminTranslator::tVars('health.bounces_cron_stale', ['recent' => $recent, 'cronStatus' => $cronStatus]),
             ];
         }
 
         $total = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$table}`");
         return [
             'status' => self::STATUS_OK,
-            'detail' => 'Bounces traités correctement — ' . $total . ' adresse(s) en base.',
+            'detail' => AdminTranslator::tVars('health.bounces_ok', ['total' => $total]),
         ];
     }
 
@@ -1691,7 +1650,7 @@ class HealthCheckManager
              WHERE table_schema = DATABASE() AND table_name = '{$table}'"
         );
         if (!$exists) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Webhooks non activés — sans impact.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.webhooks_disabled')];
         }
 
         $failed = (int) $this->db->getValue(
@@ -1706,15 +1665,13 @@ class HealthCheckManager
             );
             return [
                 'status' => self::STATUS_OK,
-                'detail' => 'Webhooks opérationnels — ' . $pending . ' en attente.',
+                'detail' => AdminTranslator::tVars('health.webhooks_ok', ['pending' => $pending]),
             ];
         }
 
         return [
             'status' => self::STATUS_ERROR,
-            'detail' => $failed . ' webhook(s) en échec définitif dans les 48h (3 retries épuisés).'
-                . ' → Que faire : Vérifiez l\'URL de destination dans l\'onglet Webhooks'
-                . ' et contrôlez que le serveur distant répond correctement (code 2xx).',
+            'detail' => AdminTranslator::tVars('health.webhooks_failed', ['failed' => $failed]),
         ];
     }
 
@@ -1732,7 +1689,7 @@ class HealthCheckManager
              WHERE table_schema = DATABASE() AND table_name = '{$table}'"
         );
         if (!$exists) {
-            return ['status' => self::STATUS_OK, 'detail' => 'A/B Testing non activé — sans impact.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.abtest_stuck_disabled')];
         }
 
         $stuck = (int) $this->db->getValue(
@@ -1742,14 +1699,12 @@ class HealthCheckManager
         );
 
         if ($stuck === 0) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Aucun A/B test bloqué.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.abtest_stuck_none')];
         }
 
         return [
             'status' => self::STATUS_WARNING,
-            'detail' => $stuck . ' A/B test(s) actif(s) depuis plus de 30 jours sans gagnant déclaré.'
-                . ' → Que faire : Consultez l\'onglet Statistiques → A/B Testing'
-                . ' et déclarez manuellement le gagnant pour arrêter le split de trafic.',
+            'detail' => AdminTranslator::tVars('health.abtest_stuck_warning', ['stuck' => $stuck]),
         ];
     }
 
@@ -1773,15 +1728,12 @@ class HealthCheckManager
             );
 
             if (!$hasEncData) {
-                return ['status' => self::STATUS_OK, 'detail' => 'Chiffrement non activé — sans impact.'];
+                return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.crypto_disabled')];
             }
 
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => 'Clé de chiffrement AES absente (NERIA_ENCRYPTION_KEY vide).'
-                    . ' Les données chiffrées en base sont illisibles.'
-                    . ' → Que faire : Allez dans l\'onglet RGPD → Chiffrement'
-                    . ' et régénérez la clé, puis lancez la migration rétroactive.',
+                'detail' => AdminTranslator::t('health.crypto_key_missing'),
             ];
         }
 
@@ -1792,7 +1744,7 @@ class HealthCheckManager
         // à CryptoManager::decrypt() renvoie alors '' sans lever d'erreur.
         // On tente un vrai déchiffrement sur un échantillon de secrets réels.
         if (!class_exists('CryptoManager')) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Clé de chiffrement AES-256-GCM présente.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.crypto_present_noclass')];
         }
 
         $secretKeys = [
@@ -1814,15 +1766,11 @@ class HealthCheckManager
         if ($broken) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => 'Clé de chiffrement présente mais échec du déchiffrement sur ' . count($broken)
-                    . ' identifiant(s) déjà chiffré(s) en base (' . implode(', ', $broken) . ').'
-                    . ' → Que faire : la clé NERIA_ENCRYPTION_KEY a probablement été modifiée ou perdue'
-                    . ' (restauration de sauvegarde partielle, migration serveur…). Ces identifiants sont'
-                    . ' illisibles et doivent être ressaisis dans leurs onglets respectifs.',
+                'detail' => AdminTranslator::tVars('health.crypto_broken', ['count' => count($broken), 'list' => implode(', ', $broken)]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => 'Clé de chiffrement AES-256-GCM présente et fonctionnelle.'];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.crypto_ok')];
     }
 
     /**
@@ -1877,7 +1825,7 @@ class HealthCheckManager
              WHERE table_schema = DATABASE() AND table_name = '{$table}'"
         );
         if (!$exists) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Table stats absente — sans impact.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.send_volume_no_table')];
         }
 
         $today = (int) $this->db->getValue(
@@ -1887,7 +1835,7 @@ class HealthCheckManager
         );
 
         if ($today === 0) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Aucun envoi aujourd\'hui.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.send_volume_none_today')];
         }
 
         $avgRow = $this->db->getValue(
@@ -1904,7 +1852,7 @@ class HealthCheckManager
         $avg = (float) $avgRow;
 
         if ($avg < 10) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Volume d\'envoi normal (' . $today . ' emails aujourd\'hui).'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.send_volume_normal_low', ['today' => $today])];
         }
 
         $ratio = $today / $avg;
@@ -1912,28 +1860,18 @@ class HealthCheckManager
         if ($ratio >= 5) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => sprintf(
-                    'Pic d\'envoi critique : %d emails aujourd\'hui vs moyenne 7j de %.0f (×%.1f).'
-                    . ' → Que faire : Vérifiez immédiatement les logs watchdog'
-                    . ' et les campagnes actives — risque de blacklistage.',
-                    $today, $avg, $ratio
-                ),
+                'detail' => AdminTranslator::tVars('health.send_volume_critical', ['today' => $today, 'avg' => sprintf('%.0f', $avg), 'ratio' => sprintf('%.1f', $ratio)]),
             ];
         }
 
         if ($ratio >= 3) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => sprintf(
-                    'Volume d\'envoi élevé : %d emails aujourd\'hui vs moyenne 7j de %.0f (×%.1f).'
-                    . ' → Que faire : Vérifiez qu\'une campagne manuelle ou saisonnière'
-                    . ' n\'a pas été envoyée par erreur.',
-                    $today, $avg, $ratio
-                ),
+                'detail' => AdminTranslator::tVars('health.send_volume_warning', ['today' => $today, 'avg' => sprintf('%.0f', $avg), 'ratio' => sprintf('%.1f', $ratio)]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => sprintf('Volume d\'envoi normal (%d emails aujourd\'hui, moyenne 7j : %.0f).', $today, $avg)];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.send_volume_ok', ['today' => $today, 'avg' => sprintf('%.0f', $avg)])];
     }
 
     /**
@@ -1944,14 +1882,14 @@ class HealthCheckManager
     private function checkDomainRepScore(): array
     {
         if (!class_exists('DomainReputationManager')) {
-            return ['status' => self::STATUS_OK, 'detail' => 'DomainReputationManager absent — sans impact.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.domain_rep_disabled')];
         }
 
         $mgr    = new DomainReputationManager($this->module);
         $cached = $mgr->getCachedReport();
 
         if ($cached === null) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Rapport de réputation pas encore généré.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.domain_rep_no_report')];
         }
 
         $score = (int) ($cached['score'] ?? 100);
@@ -1961,28 +1899,18 @@ class HealthCheckManager
         if ($hits > 0 || $grade === 'F' || $grade === 'D') {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => sprintf(
-                    'Réputation domaine critique : score %d/100 (grade %s), %d liste(s) noire(s) touchée(s).'
-                    . ' → Que faire : Consultez l\'onglet Statistiques → Réputation de domaine'
-                    . ' et suivez les recommandations pour vous faire retirer des blacklists.',
-                    $score, $grade, $hits
-                ),
+                'detail' => AdminTranslator::tVars('health.domain_rep_critical', ['score' => $score, 'grade' => $grade, 'hits' => $hits]),
             ];
         }
 
         if ($score < 75 || $grade === 'C') {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => sprintf(
-                    'Réputation domaine dégradée : score %d/100 (grade %s).'
-                    . ' → Que faire : Vérifiez votre configuration SPF/DKIM/DMARC'
-                    . ' dans l\'onglet Statistiques → Réputation de domaine.',
-                    $score, $grade
-                ),
+                'detail' => AdminTranslator::tVars('health.domain_rep_warning', ['score' => $score, 'grade' => $grade]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => sprintf('Réputation domaine saine : %d/100 (grade %s).', $score, $grade)];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.domain_rep_ok', ['score' => $score, 'grade' => $grade])];
     }
 
     /**
@@ -2102,9 +2030,7 @@ class HealthCheckManager
         if ($error) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Lien de désabonnement injoignable (erreur cURL : ' . $error . ').'
-                    . ' → Que faire : Vérifiez que votre boutique est accessible depuis internet'
-                    . ' et que le contrôleur neria/unsubscribe répond.',
+                'detail' => AdminTranslator::tVars('health.unsub_url_curl_error', ['error' => $error]),
             ];
         }
 
@@ -2112,13 +2038,11 @@ class HealthCheckManager
         if ($httpCode === 0 || $httpCode >= 400) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => 'Lien de désabonnement inaccessible (HTTP ' . $httpCode . ').'
-                    . ' → Que faire : Vérifiez que le fichier controllers/front/unsubscribe.php'
-                    . ' existe et que le module est correctement installé (hooks enregistrés).',
+                'detail' => AdminTranslator::tVars('health.unsub_url_http_error', ['code' => $httpCode]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => 'Lien de désabonnement accessible (HTTP ' . $httpCode . ').'];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.unsub_url_ok', ['code' => $httpCode])];
     }
 
     /**
@@ -2135,7 +2059,7 @@ class HealthCheckManager
              WHERE table_schema = DATABASE() AND table_name = '{$table}'"
         );
         if (!$exists) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Waitlist non activée — sans impact.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.waitlist_disabled')];
         }
 
         // Clients en attente non notifiés depuis plus de 48h,
@@ -2153,16 +2077,13 @@ class HealthCheckManager
             $total = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$table}` WHERE notified_at IS NULL");
             return [
                 'status' => self::STATUS_OK,
-                'detail' => 'Waitlist à jour — ' . $total . ' client(s) en attente de restockage.',
+                'detail' => AdminTranslator::tVars('health.waitlist_ok', ['total' => $total]),
             ];
         }
 
         return [
             'status' => self::STATUS_WARNING,
-            'detail' => $backlog . ' client(s) en liste d\'attente non notifié(s) alors que le produit'
-                . ' est revenu en stock depuis plus de 48h.'
-                . ' → Que faire : Vérifiez que le cron comportemental tourne bien'
-                . ' et consultez les logs Watchdog pour des erreurs WaitlistManager.',
+            'detail' => AdminTranslator::tVars('health.waitlist_warning', ['backlog' => $backlog]),
         ];
     }
 
@@ -2177,7 +2098,7 @@ class HealthCheckManager
         $quota = (int) \Configuration::get('NERIA_SMTP_DAILY_QUOTA');
 
         if ($quota <= 0) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Aucun quota SMTP journalier configuré.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.smtp_quota_none')];
         }
 
         $table = _DB_PREFIX_ . 'neria_stat';
@@ -2186,7 +2107,7 @@ class HealthCheckManager
              WHERE table_schema = DATABASE() AND table_name = '{$table}'"
         );
         if (!$exists) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Table stats absente — sans impact.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.send_volume_no_table')];
         }
 
         $today = (int) $this->db->getValue(
@@ -2199,28 +2120,18 @@ class HealthCheckManager
         if ($pct >= 100) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => sprintf(
-                    'Quota SMTP journalier dépassé : %d/%d emails envoyés aujourd\'hui (%.0f%%).'
-                    . ' → Que faire : Les emails suivants risquent d\'être rejetés.'
-                    . ' Contactez votre hébergeur ou réduisez le volume d\'envoi.',
-                    $today, $quota, $pct
-                ),
+                'detail' => AdminTranslator::tVars('health.smtp_quota_critical', ['today' => $today, 'quota' => $quota, 'pct' => sprintf('%.0f', $pct)]),
             ];
         }
 
         if ($pct >= 80) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => sprintf(
-                    'Quota SMTP journalier à %.0f%% : %d/%d emails envoyés aujourd\'hui.'
-                    . ' → Que faire : Vous approchez de la limite de votre hébergeur.'
-                    . ' Envisagez de différer les campagnes non urgentes.',
-                    $pct, $today, $quota
-                ),
+                'detail' => AdminTranslator::tVars('health.smtp_quota_warning', ['today' => $today, 'quota' => $quota, 'pct' => sprintf('%.0f', $pct)]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => sprintf('Quota SMTP : %d/%d emails aujourd\'hui (%.0f%%).', $today, $quota, $pct)];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.smtp_quota_ok', ['today' => $today, 'quota' => $quota, 'pct' => sprintf('%.0f', $pct)])];
     }
 
     /**
@@ -2231,46 +2142,41 @@ class HealthCheckManager
     private function checkPtrRecord(): array
     {
         if (!class_exists('DomainReputationManager')) {
-            return ['status' => self::STATUS_OK, 'detail' => 'DomainReputationManager absent — sans impact.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.domain_rep_disabled')];
         }
 
         $cached = (new DomainReputationManager($this->module))->getCachedReport();
 
         if ($cached === null) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Rapport de réputation pas encore généré — PTR non vérifié.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.ptr_no_report')];
         }
 
         $ptr = $cached['ptr'] ?? null;
 
         if (!is_array($ptr)) {
-            return ['status' => self::STATUS_OK, 'detail' => 'PTR non encore analysé — actualisez le score de réputation.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.ptr_not_analyzed')];
         }
 
         if (!empty($ptr['skipped'])) {
-            return ['status' => self::STATUS_OK, 'detail' => 'PTR non applicable (IP locale / développement).'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.ptr_skipped')];
         }
 
         if (empty($ptr['found'])) {
             $ip = $cached['ip'] ?? '?';
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'PTR / rDNS absent pour l\'IP ' . $ip . '.'
-                    . ' Certains serveurs (Orange, SFR, serveurs corporate) rejettent les emails sans reverse DNS.'
-                    . ' → Que faire : Contactez votre hébergeur pour configurer un enregistrement PTR'
-                    . ' pointant vers votre nom de domaine d\'envoi.',
+                'detail' => AdminTranslator::tVars('health.ptr_missing', ['ip' => $ip]),
             ];
         }
 
         if (isset($ptr['valid']) && !$ptr['valid']) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'PTR configuré (' . ($ptr['hostname'] ?? '?') . ') mais la vérification inverse échoue'
-                    . ' (le hostname ne résout pas vers la même IP).'
-                    . ' → Que faire : Vérifiez que le PTR et l\'enregistrement A sont cohérents chez votre hébergeur.',
+                'detail' => AdminTranslator::tVars('health.ptr_invalid', ['hostname' => $ptr['hostname'] ?? '?']),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => 'PTR / rDNS configuré et valide (' . ($ptr['hostname'] ?? '') . ').'];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.ptr_ok', ['hostname' => $ptr['hostname'] ?? ''])];
     }
 
     /**
@@ -2281,30 +2187,29 @@ class HealthCheckManager
     private function checkPostmasterReputation(): array
     {
         if (!class_exists('PostmasterManager')) {
-            return ['status' => self::STATUS_OK, 'detail' => 'PostmasterManager non disponible.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.postmaster_disabled')];
         }
 
         $mgr = new \PostmasterManager($this->module);
 
         if (!$mgr->isConfigured()) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Postmaster Tools non configuré (optionnel).'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.postmaster_not_configured')];
         }
 
         if (!$mgr->isConnected()) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Postmaster Tools configuré mais non connecté à Google.'
-                    . ' → Que faire : Rendez-vous dans l\'onglet Statistiques et cliquez sur « Connecter avec Google ».',
+                'detail' => AdminTranslator::t('health.postmaster_not_connected'),
             ];
         }
 
         $stats = $mgr->getCachedStats();
         if ($stats === null) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Postmaster Tools connecté — données pas encore chargées (actualisez dans l\'onglet Stats).'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.postmaster_no_data_yet')];
         }
 
         if (empty($stats)) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Postmaster Tools : aucune donnée disponible (volume d\'envoi insuffisant ou domaine non vérifié).'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.postmaster_empty_data')];
         }
 
         $errors   = [];
@@ -2316,39 +2221,37 @@ class HealthCheckManager
             $spamRate = $ps['spam_rate']          ?? null;
 
             if ($rep === 'BAD') {
-                $errors[] = "Réputation BLOQUÉE (BAD) pour {$domain} — Gmail rejette activement vos emails.";
+                $errors[] = AdminTranslator::tVars('health.postmaster_rep_bad', ['domain' => $domain]);
             } elseif ($rep === 'LOW') {
-                $errors[] = "Réputation LOW pour {$domain} — vos emails passent en spam Gmail.";
+                $errors[] = AdminTranslator::tVars('health.postmaster_rep_low', ['domain' => $domain]);
             } elseif ($rep === 'MEDIUM') {
-                $warnings[] = "Réputation MEDIUM pour {$domain} — surveillance recommandée.";
+                $warnings[] = AdminTranslator::tVars('health.postmaster_rep_medium', ['domain' => $domain]);
             }
 
             if ($spamRate !== null && $spamRate > 0.3) {
-                $errors[] = "Taux de spam {$spamRate}% pour {$domain} (seuil critique >0,3%) — action immédiate requise.";
+                $errors[] = AdminTranslator::tVars('health.postmaster_spam_critical', ['rate' => $spamRate, 'domain' => $domain]);
             } elseif ($spamRate !== null && $spamRate > 0.1) {
-                $warnings[] = "Taux de spam {$spamRate}% pour {$domain} (zone d'attention >0,1%).";
+                $warnings[] = AdminTranslator::tVars('health.postmaster_spam_warning', ['rate' => $spamRate, 'domain' => $domain]);
             }
         }
 
         if (!empty($errors)) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => 'Postmaster Tools : ' . implode(' | ', $errors)
-                    . ' → Que faire : Vérifiez vos listes d\'envoi, retirez les adresses invalides, réduisez la fréquence.'
-                    . ' Consultez l\'onglet Statistiques pour le détail complet.',
+                'detail' => AdminTranslator::tVars('health.postmaster_errors_wrapper', ['errors' => implode(' | ', $errors)]),
             ];
         }
 
         if (!empty($warnings)) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Postmaster Tools : ' . implode(' | ', $warnings),
+                'detail' => AdminTranslator::tVars('health.postmaster_warnings_wrapper', ['warnings' => implode(' | ', $warnings)]),
             ];
         }
 
         $cacheAge = $mgr->getCacheAge();
-        $ageStr   = $cacheAge !== null ? " (données vieilles de {$cacheAge} min)" : '';
-        return ['status' => self::STATUS_OK, 'detail' => 'Postmaster Tools : réputation et taux de spam dans les normes' . $ageStr . '.'];
+        $ageStr   = $cacheAge !== null ? AdminTranslator::tVars('health.postmaster_age_suffix', ['min' => $cacheAge]) : '';
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.postmaster_ok', ['ageStr' => $ageStr])];
     }
 
     /**
@@ -2367,7 +2270,7 @@ class HealthCheckManager
         ');
 
         if ($opens === 0) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Aucune ouverture enregistrée ces 7 derniers jours — taux de clic non applicable.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.click_rate_no_opens')];
         }
 
         $clicks = (int) $db->getValue('
@@ -2379,9 +2282,7 @@ class HealthCheckManager
         if ($clicks === 0) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => $opens . ' ouvertures enregistrées ces 7 derniers jours, mais aucun clic.'
-                    . ' → Que faire : Vérifiez que track.php est accessible et que les liens dans vos templates'
-                    . ' passent bien par le pixel de suivi Neria.',
+                'detail' => AdminTranslator::tVars('health.click_rate_no_clicks', ['opens' => $opens]),
             ];
         }
 
@@ -2390,12 +2291,11 @@ class HealthCheckManager
         if ($rate < 0.5) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => "Taux de clic très bas : {$rate}% ({$clicks} clics / {$opens} ouvertures) sur 7j."
-                    . ' → Que faire : Vérifiez vos appels à l\'action (CTA) et la pertinence du contenu de vos emails.',
+                'detail' => AdminTranslator::tVars('health.click_rate_low', ['rate' => $rate, 'clicks' => $clicks, 'opens' => $opens]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => "Taux de clic 7j : {$rate}% ({$clicks} clics / {$opens} ouvertures). Tracking opérationnel."];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.click_rate_ok', ['rate' => $rate, 'clicks' => $clicks, 'opens' => $opens])];
     }
 
     /**
@@ -2413,7 +2313,7 @@ class HealthCheckManager
         ');
 
         if ($sent < 100) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Volume d\'envoi insuffisant pour mesurer le taux de désabonnement (< 100 emails).'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.unsub_spike_insufficient')];
         }
 
         $unsubs = (int) $db->getValue('
@@ -2427,21 +2327,18 @@ class HealthCheckManager
         if ($rate > 0.5) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => "Pic de désabonnements : {$rate}% sur 7j ({$unsubs} / {$sent} envois)."
-                    . ' Seuil critique dépassé (> 0,5%).'
-                    . ' → Que faire : Examinez les segments ciblés cette semaine, vérifiez la pertinence du contenu,'
-                    . ' et suspendez temporairement les campagnes non urgentes.',
+                'detail' => AdminTranslator::tVars('health.unsub_spike_critical', ['rate' => $rate, 'unsubs' => $unsubs, 'sent' => $sent]),
             ];
         }
 
         if ($rate > 0.2) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => "Taux de désabonnement en hausse : {$rate}% sur 7j ({$unsubs} / {$sent} envois). Seuil d'attention (> 0,2%).",
+                'detail' => AdminTranslator::tVars('health.unsub_spike_warning', ['rate' => $rate, 'unsubs' => $unsubs, 'sent' => $sent]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => "Taux de désabonnement 7j : {$rate}% ({$unsubs} / {$sent} envois). Dans les normes."];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.unsub_spike_ok', ['rate' => $rate, 'unsubs' => $unsubs, 'sent' => $sent])];
     }
 
     /**
@@ -2460,8 +2357,7 @@ class HealthCheckManager
         if (!$hasTpl) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Le template de secours neria_fallback est introuvable en base.'
-                    . ' → Que faire : Réinstallez le module ou exécutez la migration importFromJson.',
+                'detail' => AdminTranslator::t('health.fallback_tpl_missing'),
             ];
         }
 
@@ -2474,12 +2370,11 @@ class HealthCheckManager
         if (!$hasTrad) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'neria_fallback présent mais la traduction FR (objet) est manquante.'
-                    . ' → Que faire : Ouvrez le template dans l\'onglet Traductions et renseignez les champs FR.',
+                'detail' => AdminTranslator::t('health.fallback_trad_missing'),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => 'Template de secours neria_fallback présent avec traduction FR.'];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.fallback_tpl_ok')];
     }
 
     /**
@@ -2529,7 +2424,7 @@ class HealthCheckManager
     private function checkQueueOverflow(): array
     {
         if (!class_exists('QueueManager')) {
-            return ['status' => self::STATUS_OK, 'detail' => 'QueueManager absent — sans impact.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.queue_overflow_disabled')];
         }
 
         $pending = (int) \Db::getInstance()->getValue('
@@ -2540,21 +2435,18 @@ class HealthCheckManager
         if ($pending > 5000) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => "{$pending} emails en attente dans la file — saturation probable."
-                    . ' → Que faire : Vérifiez le cron d\'envoi, la connexion SMTP, et les logs Watchdog'
-                    . ' pour identifier la cause de l\'accumulation.',
+                'detail' => AdminTranslator::tVars('health.queue_overflow_critical', ['pending' => $pending]),
             ];
         }
 
         if ($pending > 1000) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => "{$pending} emails en attente dans la file (seuil d'attention : 1 000)."
-                    . ' → Que faire : Surveillez l\'évolution ; si la file continue de croître, vérifiez le cron.',
+                'detail' => AdminTranslator::tVars('health.queue_overflow_warning', ['pending' => $pending]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => "{$pending} email(s) en attente dans la file. Charge normale."];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.queue_overflow_ok', ['pending' => $pending])];
     }
 
     /**
@@ -2570,21 +2462,18 @@ class HealthCheckManager
         if ($count > 200000) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => "La table neria_behavioral_sent contient {$count} lignes — taille critique."
-                    . ' Cela peut ralentir significativement les crons comportementaux.'
-                    . ' → Que faire : Exécutez manuellement une purge des entrées vieilles de plus de 90 jours'
-                    . ' via phpMyAdmin ou SQL : DELETE FROM neria_behavioral_sent WHERE date_add < DATE_SUB(NOW(), INTERVAL 90 DAY).',
+                'detail' => AdminTranslator::tVars('health.behavioral_dedup_critical', ['count' => $count]),
             ];
         }
 
         if ($count > 50000) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => "La table neria_behavioral_sent contient {$count} lignes. Croissance normale mais surveillée (seuil : 50 000).",
+                'detail' => AdminTranslator::tVars('health.behavioral_dedup_warning', ['count' => $count]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => "Table de déduplication comportementale : {$count} lignes. Taille saine."];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.behavioral_dedup_ok', ['count' => $count])];
     }
 
     /**
@@ -2597,7 +2486,7 @@ class HealthCheckManager
         $raw = \Configuration::get('NERIA_SENDERS_JSON');
 
         if (empty($raw)) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Multi-expéditeur non configuré (fonctionnement mono-expéditeur).'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.multisender_none')];
         }
 
         $decoded = json_decode($raw, true);
@@ -2605,21 +2494,18 @@ class HealthCheckManager
         if (json_last_error() !== JSON_ERROR_NONE) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => 'NERIA_SENDERS_JSON contient du JSON invalide : ' . json_last_error_msg() . '.'
-                    . ' Tous les emails utilisent actuellement l\'expéditeur par défaut.'
-                    . ' → Que faire : Corrigez la configuration dans l\'onglet Design → Multi-expéditeur.',
+                'detail' => AdminTranslator::tVars('health.multisender_invalid_json', ['err' => json_last_error_msg()]),
             ];
         }
 
         if (!is_array($decoded)) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => 'NERIA_SENDERS_JSON ne contient pas un tableau valide.'
-                    . ' → Que faire : Réenregistrez la configuration multi-expéditeur depuis le BO.',
+                'detail' => AdminTranslator::t('health.multisender_not_array'),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => count($decoded) . ' configuration(s) d\'expéditeur chargée(s). JSON valide.'];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.multisender_ok', ['count' => count($decoded)])];
     }
 
     /**
@@ -2636,7 +2522,7 @@ class HealthCheckManager
         $enabled = (bool) \Configuration::get(\MonthlyReportManager::CONFIG_ENABLED);
 
         if (!$enabled) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Rapport mensuel désactivé.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.monthly_report_disabled')];
         }
 
         $recipient = trim((string) \Configuration::get(\MonthlyReportManager::CONFIG_RECIPIENTS));
@@ -2644,20 +2530,18 @@ class HealthCheckManager
         if ($recipient === '') {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Le rapport mensuel est activé mais aucun email destinataire n\'est configuré.'
-                    . ' → Que faire : Renseignez l\'adresse email dans les paramètres du rapport mensuel.',
+                'detail' => AdminTranslator::t('health.monthly_report_no_recipient'),
             ];
         }
 
         if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => "Le rapport mensuel est activé mais l'email destinataire est invalide : « {$recipient} »."
-                    . ' → Que faire : Corrigez l\'adresse email dans les paramètres du rapport mensuel.',
+                'detail' => AdminTranslator::tVars('health.monthly_report_invalid_email', ['recipient' => $recipient]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => "Rapport mensuel actif — destinataire : {$recipient}."];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.monthly_report_ok', ['recipient' => $recipient])];
     }
 
     /**
@@ -2673,7 +2557,7 @@ class HealthCheckManager
         $key = trim((string) \Configuration::get('NERIA_DEEPL_KEY'));
 
         if ($key === '') {
-            return ['status' => self::STATUS_OK, 'detail' => 'Clé DeepL non configurée (traduction automatique désactivée).'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.deepl_not_configured')];
         }
 
         // Appel minimal à l'endpoint /usage qui ne consomme pas de quota
@@ -2701,28 +2585,26 @@ class HealthCheckManager
                 if ($pct >= 95) {
                     return [
                         'status' => self::STATUS_WARNING,
-                        'detail' => "Quota DeepL presque épuisé : {$pct}% utilisé ({$used} / {$limit} caractères)."
-                            . ' → Que faire : Passez au niveau supérieur ou désactivez la traduction automatique temporairement.',
+                        'detail' => AdminTranslator::tVars('health.deepl_quota_warning', ['pct' => $pct, 'used' => $used, 'limit' => $limit]),
                     ];
                 }
 
-                return ['status' => self::STATUS_OK, 'detail' => "Clé DeepL valide. Quota : {$pct}% utilisé ({$used} / {$limit} caractères)."];
+                return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.deepl_ok_quota', ['pct' => $pct, 'used' => $used, 'limit' => $limit])];
             }
 
-            return ['status' => self::STATUS_OK, 'detail' => 'Clé DeepL valide (quota illisible).'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.deepl_ok_unreadable')];
         }
 
         if ($httpCode === 403) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => 'Clé DeepL invalide ou expirée (HTTP 403).'
-                    . ' → Que faire : Renouvelez votre clé dans le compte DeepL et mettez-la à jour dans Neria.',
+                'detail' => AdminTranslator::t('health.deepl_invalid'),
             ];
         }
 
         return [
             'status' => self::STATUS_WARNING,
-            'detail' => "Impossible de vérifier la clé DeepL (HTTP {$httpCode}). L'API est peut-être temporairement indisponible.",
+            'detail' => AdminTranslator::tVars('health.deepl_check_failed', ['code' => $httpCode]),
         ];
     }
 
@@ -2745,7 +2627,7 @@ class HealthCheckManager
 
         if ($bytes < 0) {
             // -1 = illimité
-            return ['status' => self::STATUS_OK, 'detail' => 'Mémoire PHP illimitée (memory_limit = -1).'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.memory_unlimited')];
         }
 
         $mb = (int) ($bytes / 1024 / 1024);
@@ -2753,20 +2635,18 @@ class HealthCheckManager
         if ($mb < 64) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => "Mémoire PHP insuffisante : {$mb} MB (minimum requis : 128 MB)."
-                    . ' → Que faire : Augmentez memory_limit dans php.ini ou .htaccess à 128M minimum.',
+                'detail' => AdminTranslator::tVars('health.memory_critical', ['mb' => $mb]),
             ];
         }
 
         if ($mb < 128) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => "Mémoire PHP limite : {$mb} MB. 128 MB recommandés pour la génération de PDF et le CSS inlining."
-                    . ' → Que faire : Augmentez memory_limit à 128M dans php.ini.',
+                'detail' => AdminTranslator::tVars('health.memory_warning', ['mb' => $mb]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => "Mémoire PHP : {$mb} MB. Suffisante pour toutes les opérations Neria."];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.memory_ok', ['mb' => $mb])];
     }
 
     /**
@@ -2776,7 +2656,7 @@ class HealthCheckManager
     private function checkLoyaltyIntegrity(): array
     {
         if (!class_exists('LoyaltyManager')) {
-            return ['status' => self::STATUS_OK, 'detail' => 'LoyaltyManager absent — module fidélité non chargé.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.loyalty_disabled')];
         }
 
         $db = \Db::getInstance();
@@ -2793,9 +2673,7 @@ class HealthCheckManager
         if ($negative > 0) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => "{$negative} client(s) avec un solde de points de fidélité négatif."
-                    . ' → Que faire : Vérifiez la logique de déduction des points dans LoyaltyManager.'
-                    . ' Un solde négatif ne devrait jamais se produire.',
+                'detail' => AdminTranslator::tVars('health.loyalty_negative', ['negative' => $negative]),
             ];
         }
 
@@ -2808,12 +2686,11 @@ class HealthCheckManager
         if ($orphaned > 0) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => "{$orphaned} récompense(s) de fidélité sans compte points associé."
-                    . ' → Que faire : Nettoyage recommandé — ces récompenses appartiennent à des clients sans historique de points.',
+                'detail' => AdminTranslator::tVars('health.loyalty_orphaned', ['orphaned' => $orphaned]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => 'Programme de fidélité : intégrité des données vérifiée.'];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.loyalty_ok')];
     }
 
     /**
@@ -2823,7 +2700,7 @@ class HealthCheckManager
     private function checkSegmentFreshness(): array
     {
         if (!class_exists('SegmentManager')) {
-            return ['status' => self::STATUS_OK, 'detail' => 'SegmentManager absent — segmentation non activée.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.segment_disabled')];
         }
 
         // SegmentManager ne tient pas de flag global de dernière exécution
@@ -2838,8 +2715,7 @@ class HealthCheckManager
         if (!$lastRun) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Segmentation comportementale jamais exécutée.'
-                    . ' → Que faire : Lancez manuellement le cron de segmentation ou attendez le passage cron automatique.',
+                'detail' => AdminTranslator::t('health.segment_never'),
             ];
         }
 
@@ -2848,19 +2724,18 @@ class HealthCheckManager
         if ($ageH > 72) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => "Segments non recalculés depuis {$ageH}h (dernier recalcul : {$lastRun})."
-                    . ' → Que faire : Vérifiez que le cron de segmentation est déclenché chaque jour.',
+                'detail' => AdminTranslator::tVars('health.segment_critical', ['ageH' => $ageH, 'lastRun' => $lastRun]),
             ];
         }
 
         if ($ageH > 48) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => "Segments en retard de recalcul : {$ageH}h depuis la dernière exécution.",
+                'detail' => AdminTranslator::tVars('health.segment_late', ['ageH' => $ageH]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => "Segments recalculés il y a {$ageH}h. À jour."];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.segment_ok', ['ageH' => $ageH])];
     }
 
     /**
@@ -2870,7 +2745,7 @@ class HealthCheckManager
     private function checkClvFreshness(): array
     {
         if (!class_exists('ClvManager')) {
-            return ['status' => self::STATUS_OK, 'detail' => 'ClvManager absent — CLV non activé.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.clv_disabled')];
         }
 
         // CLV est calculé à la volée — on vérifie que les données sources (churn_score) sont fraîches
@@ -2883,8 +2758,7 @@ class HealthCheckManager
         if ($count === 0) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Aucun score churn en base — le CLV dynamique sera approximatif.'
-                    . ' → Que faire : Attendez le premier calcul de segmentation ou déclenchez-le manuellement.',
+                'detail' => AdminTranslator::t('health.clv_no_scores'),
             ];
         }
 
@@ -2893,7 +2767,7 @@ class HealthCheckManager
         ');
 
         if (!$lastCalc) {
-            return ['status' => self::STATUS_OK, 'detail' => "CLV dynamique actif. Scores churn présents ({$count} clients)."];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.clv_active_no_calc', ['count' => $count])];
         }
 
         $ageH = round((time() - strtotime($lastCalc)) / 3600, 1);
@@ -2901,12 +2775,11 @@ class HealthCheckManager
         if ($ageH > 72) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => "Scores churn (source CLV) non recalculés depuis {$ageH}h ({$count} clients)."
-                    . ' → Que faire : Vérifiez le cron de segmentation comportementale.',
+                'detail' => AdminTranslator::tVars('health.clv_stale', ['ageH' => $ageH, 'count' => $count]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => "CLV dynamique actif — scores sources ({$count} clients) calculés il y a {$ageH}h."];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.clv_ok', ['count' => $count, 'ageH' => $ageH])];
     }
 
     /**
@@ -2922,7 +2795,7 @@ class HealthCheckManager
         ');
 
         if (!$tableExists) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Table neria_quote absente — relances devis non activées.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.quote_no_table')];
         }
 
         $stuck = (int) \Db::getInstance()->getValue('
@@ -2935,12 +2808,11 @@ class HealthCheckManager
         if ($stuck > 0) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => "{$stuck} devis actif(s) depuis plus de 7 jours sans aucune relance envoyée."
-                    . ' → Que faire : Vérifiez le cron de relances devis. La première relance devrait partir sous 48h.',
+                'detail' => AdminTranslator::tVars('health.quote_stuck', ['stuck' => $stuck]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => 'Relances devis : aucun devis actif bloqué sans relance.'];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.quote_ok')];
     }
 
     /**
@@ -2950,7 +2822,7 @@ class HealthCheckManager
     private function checkCampaignEmptySegment(): array
     {
         if (!class_exists('SegmentManager')) {
-            return ['status' => self::STATUS_OK, 'detail' => 'SegmentManager absent — vérification ignorée.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.campaign_seg_disabled')];
         }
 
         $db = \Db::getInstance();
@@ -2962,7 +2834,7 @@ class HealthCheckManager
         ');
 
         if (!$tableExists) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Table neria_campaign absente.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.campaign_no_table')];
         }
 
         $campaigns = $db->executeS('
@@ -2975,7 +2847,7 @@ class HealthCheckManager
         ');
 
         if (empty($campaigns)) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Aucune campagne active avec ciblage de segment.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.campaign_none_targeted')];
         }
 
         $emptySegments = [];
@@ -2996,13 +2868,11 @@ class HealthCheckManager
         if (!empty($emptySegments)) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => count($emptySegments) . ' campagne(s) active(s) ciblant un segment vide : '
-                    . implode(', ', $emptySegments) . '.'
-                    . ' → Que faire : Recalculez les segments ou ajustez le ciblage de ces campagnes.',
+                'detail' => AdminTranslator::tVars('health.campaign_empty_warning', ['count' => count($emptySegments), 'list' => implode(', ', $emptySegments)]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => count($campaigns) . ' campagne(s) active(s) — tous les segments ciblés contiennent des clients.'];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.campaign_ok', ['count' => count($campaigns)])];
     }
 
     /**
@@ -3029,7 +2899,7 @@ class HealthCheckManager
         ');
 
         if ($recentOrders < 5) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Attribution active. Trop peu de commandes récentes pour mesurer la couverture.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.attribution_insufficient')];
         }
 
         $tableExists = (bool) $db->getValue('
@@ -3041,8 +2911,7 @@ class HealthCheckManager
         if (!$tableExists) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => 'Attribution activée mais table neria_attribution introuvable.'
-                    . ' → Que faire : Réinstallez le module pour créer les tables manquantes.',
+                'detail' => AdminTranslator::t('health.attribution_no_table'),
             ];
         }
 
@@ -3056,12 +2925,11 @@ class HealthCheckManager
         if ($attributed === 0) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => "Attribution active mais 0 commande sur {$recentOrders} attribuée ces 7 derniers jours."
-                    . ' → Que faire : Vérifiez que le cookie de tracking Neria est bien déposé sur le front-office.',
+                'detail' => AdminTranslator::tVars('health.attribution_zero', ['recentOrders' => $recentOrders]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => "Attribution : {$rate}% de couverture sur les commandes des 7 derniers jours ({$attributed} / {$recentOrders})."];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.attribution_ok', ['rate' => $rate, 'attributed' => $attributed, 'recentOrders' => $recentOrders])];
     }
 
     /**
@@ -3077,13 +2945,11 @@ class HealthCheckManager
         if ($count > 50000) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => "L'historique des traductions contient {$count} entrées — taille importante."
-                    . ' → Que faire : Nettoyez les entrées anciennes via l\'onglet Traductions'
-                    . ' ou directement en SQL : DELETE FROM neria_translation_history WHERE date_add < DATE_SUB(NOW(), INTERVAL 180 DAY).',
+                'detail' => AdminTranslator::tVars('health.trad_history_warning', ['count' => $count]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => "Historique des traductions : {$count} entrées. Taille normale."];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.trad_history_ok', ['count' => $count])];
     }
 
     /**
@@ -3102,7 +2968,7 @@ class HealthCheckManager
         ');
 
         if (!$tableExists) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Table neria_abtest absente — tests A/B non activés.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.abtest_trad_no_table')];
         }
 
         // Chaque test A/B a 2 lignes (variant='A' et variant='B') — seule la
@@ -3119,7 +2985,7 @@ class HealthCheckManager
         ');
 
         if (empty($activeTests)) {
-            return ['status' => self::STATUS_OK, 'detail' => 'Aucun test A/B actif.'];
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.abtest_trad_none')];
         }
 
         $emptyB = [];
@@ -3132,14 +2998,11 @@ class HealthCheckManager
         if (!empty($emptyB)) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => count($emptyB) . ' test(s) A/B actif(s) sans aucune traduction en variante B : '
-                    . implode(', ', $emptyB) . '.'
-                    . ' → Que faire : Ouvrez ces tests dans l\'onglet Traductions et renseignez les textes de la variante B,'
-                    . ' ou désactivez ces tests.',
+                'detail' => AdminTranslator::tVars('health.abtest_trad_gaps_warning', ['count' => count($emptyB), 'list' => implode(', ', $emptyB)]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => count($activeTests) . ' test(s) A/B actif(s) — toutes les variantes B ont du contenu.'];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.abtest_trad_ok', ['count' => count($activeTests)])];
     }
 
     private function logResultsToWatchdog(array $results): void
@@ -3204,7 +3067,7 @@ class HealthCheckManager
         $jsonPath = $root . '/data/admin_translations.json';
 
         if (!is_file($jsonPath)) {
-            return ['status' => self::STATUS_ERROR, 'detail' => 'Fichier data/admin_translations.json introuvable.'];
+            return ['status' => self::STATUS_ERROR, 'detail' => AdminTranslator::t('health.admin_trad_json_missing')];
         }
 
         $dict = json_decode((string) file_get_contents($jsonPath), true) ?: [];
@@ -3241,17 +3104,16 @@ class HealthCheckManager
                     break;
                 }
             }
+            $sampleStr = implode(', ', $sample) . ($count > 5 ? '… (' . ($count - 5) . ' autres)' : '');
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => $count . ' clé(s) de traduction BO utilisée(s) mais absente(s) du dictionnaire : '
-                    . implode(', ', $sample) . ($count > 5 ? '… (' . ($count - 5) . ' autres)' : '')
-                    . ' → Que faire : ajoutez ces clés dans data/admin_translations.json.',
+                'detail' => AdminTranslator::tVars('health.admin_trad_missing_keys', ['count' => $count, 'sample' => $sampleStr]),
             ];
         }
 
         return [
             'status' => self::STATUS_OK,
-            'detail' => count($usedKeys) . ' clé(s) de traduction BO utilisée(s) — toutes présentes dans le dictionnaire.',
+            'detail' => AdminTranslator::tVars('health.admin_trad_usage_ok', ['count' => count($usedKeys)]),
         ];
     }
 
@@ -3298,17 +3160,16 @@ class HealthCheckManager
 
         if ($broken) {
             $count = count($broken);
+            $list  = implode(', ', array_slice($broken, 0, 8)) . ($count > 8 ? '… (' . ($count - 8) . ' autres)' : '');
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => $count . ' classe(s) référencée(s) via class_exists() introuvable(s) : '
-                    . implode(', ', array_slice($broken, 0, 8)) . ($count > 8 ? '… (' . ($count - 8) . ' autres)' : '')
-                    . ' → Que faire : fichier manquant dans src/ ou nom de classe mal orthographié.',
+                'detail' => AdminTranslator::tVars('health.class_refs_broken', ['count' => $count, 'list' => $list]),
             ];
         }
 
         return [
             'status' => self::STATUS_OK,
-            'detail' => count($referenced) . ' classe(s) référencée(s) via class_exists() — toutes résolues correctement.',
+            'detail' => AdminTranslator::tVars('health.class_refs_ok', ['count' => count($referenced)]),
         ];
     }
 
