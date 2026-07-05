@@ -244,13 +244,20 @@ class WatchdogManager
 
         \Configuration::updateGlobalValue(self::CFG_ALERT_LAST_SENT, time());
 
+        // Rendu dans la langue de la boutique (le marchand configure la même
+        // langue pour le BO et le front) plutôt que celle du contexte courant
+        // — cet email peut être déclenché depuis un contrôleur front (visiteur)
+        // où Context::language ne reflète pas la langue du destinataire réel.
+        $prevLang = AdminTranslator::currentLang();
+        AdminTranslator::setLang($this->getShopLang());
+
         // mail() natif n'assainit pas les en-têtes lui-même — retire tout
         // retour à la ligne des valeurs interpolées dans le sujet/en-têtes.
         $shopName   = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_NAME'));
         $shopDomain = \Tools::getShopDomainSsl(true);
         $levelUpper = strtoupper($level);
         $color      = $level === self::LEVEL_CRITICAL ? '#7a0000' : '#a32d2d';
-        $subject    = str_replace(["\r", "\n"], '', '[Neria] Alerte ' . $levelUpper . ' — ' . $shopName);
+        $subject    = str_replace(["\r", "\n"], '', AdminTranslator::tVars('wd_alert.subject', ['level' => $levelUpper, 'shop' => $shopName]));
 
         $emergencyToken = (string) \Configuration::getGlobalValue('NERIA_EMERGENCY_TOKEN');
         $emergencyUrl   = $emergencyToken
@@ -263,26 +270,28 @@ class WatchdogManager
             . '<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e0e0e0;">'
             . '<div style="background:' . $color . ';padding:20px 24px;">'
             . '<p style="color:#fff;margin:0;font-size:11px;letter-spacing:.1em;text-transform:uppercase;">Neria · ' . htmlspecialchars($shopName) . '</p>'
-            . '<h1 style="color:#fff;margin:8px 0 0;font-size:20px;">Alerte ' . $levelUpper . '</h1>'
+            . '<h1 style="color:#fff;margin:8px 0 0;font-size:20px;">' . AdminTranslator::tVars('wd_alert.title', ['level' => $levelUpper]) . '</h1>'
             . '</div>'
             . '<div style="padding:24px;">'
             . '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">'
-            . '<tr><td style="padding:8px;color:#888;width:90px;vertical-align:top;">Niveau</td>'
+            . '<tr><td style="padding:8px;color:#888;width:90px;vertical-align:top;">' . AdminTranslator::t('wd_alert.level_label') . '</td>'
             . '<td style="padding:8px;font-weight:700;color:' . $color . ';">' . $levelUpper . '</td></tr>'
-            . '<tr style="background:#fafafa;"><td style="padding:8px;color:#888;vertical-align:top;">Classe</td>'
+            . '<tr style="background:#fafafa;"><td style="padding:8px;color:#888;vertical-align:top;">' . AdminTranslator::t('wd_alert.class_label') . '</td>'
             . '<td style="padding:8px;">' . htmlspecialchars($class ?: '—') . '</td></tr>'
-            . '<tr><td style="padding:8px;color:#888;vertical-align:top;">Template</td>'
+            . '<tr><td style="padding:8px;color:#888;vertical-align:top;">' . AdminTranslator::t('wd_alert.template_label') . '</td>'
             . '<td style="padding:8px;">' . htmlspecialchars($template ?: '—') . '</td></tr>'
-            . '<tr style="background:#fafafa;"><td style="padding:8px;color:#888;vertical-align:top;">Message</td>'
+            . '<tr style="background:#fafafa;"><td style="padding:8px;color:#888;vertical-align:top;">' . AdminTranslator::t('wd_alert.message_label') . '</td>'
             . '<td style="padding:8px;line-height:1.5;">' . $cleanMsg . '</td></tr>'
-            . '<tr><td style="padding:8px;color:#888;">Date</td>'
+            . '<tr><td style="padding:8px;color:#888;">' . AdminTranslator::t('wd_alert.date_label') . '</td>'
             . '<td style="padding:8px;">' . date('d/m/Y H:i:s') . '</td></tr>'
             . '</table>'
             . ($emergencyUrl
-                ? '<a href="' . htmlspecialchars($emergencyUrl) . '" style="display:inline-block;background:#b38b59;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;">Ouvrir le journal d\'urgence</a>'
+                ? '<a href="' . htmlspecialchars($emergencyUrl) . '" style="display:inline-block;background:#b38b59;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;">' . AdminTranslator::t('wd_alert.open_emergency') . '</a>'
                 : '')
-            . '<p style="margin-top:20px;font-size:11px;color:#aaa;">Vous recevez cet email car les alertes Neria sont activées. Pour les désactiver : Neria → Aide → Alertes email.</p>'
+            . '<p style="margin-top:20px;font-size:11px;color:#aaa;">' . AdminTranslator::t('wd_alert.footer') . '</p>'
             . '</div></div></body></html>';
+
+        AdminTranslator::setLang($prevLang);
 
         $fromEmail = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_EMAIL') ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST));
         $headers   = "MIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n"
@@ -330,6 +339,9 @@ class WatchdogManager
 
         \Configuration::updateGlobalValue(self::CFG_DIGEST_LAST, time());
 
+        $prevLang = AdminTranslator::currentLang();
+        AdminTranslator::setLang($this->getShopLang());
+
         $shopName   = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_NAME'));
         $shopDomain = \Tools::getShopDomainSsl(true);
         $counts     = ['warning' => 0, 'error' => 0, 'critical' => 0];
@@ -339,7 +351,7 @@ class WatchdogManager
             }
         }
 
-        $subject = str_replace(["\r", "\n"], '', '[Neria] Digest quotidien — ' . count($rows) . ' événement(s) — ' . $shopName);
+        $subject = str_replace(["\r", "\n"], '', AdminTranslator::tVars('wd_digest.subject', ['count' => count($rows), 'shop' => $shopName]));
 
         $emergencyToken = (string) \Configuration::getGlobalValue('NERIA_EMERGENCY_TOKEN');
         $emergencyUrl   = $emergencyToken
@@ -362,8 +374,8 @@ class WatchdogManager
             . '<div style="max-width:700px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e0e0e0;">'
             . '<div style="background:#1a1a2e;padding:20px 24px;">'
             . '<p style="color:#b38b59;margin:0;font-size:11px;letter-spacing:.1em;text-transform:uppercase;">Neria · ' . htmlspecialchars($shopName) . '</p>'
-            . '<h1 style="color:#fff;margin:8px 0 0;font-size:18px;">Digest quotidien Watchdog</h1>'
-            . '<p style="color:#aaa;margin:6px 0 0;font-size:12px;">' . date('d/m/Y') . ' — Dernières 24h</p>'
+            . '<h1 style="color:#fff;margin:8px 0 0;font-size:18px;">' . AdminTranslator::t('wd_digest.title') . '</h1>'
+            . '<p style="color:#aaa;margin:6px 0 0;font-size:12px;">' . AdminTranslator::tVars('wd_digest.subtitle', ['date' => date('d/m/Y')]) . '</p>'
             . '</div>'
             . '<div style="padding:20px 24px;">'
             . '<div style="display:flex;gap:16px;margin-bottom:20px;">'
@@ -374,17 +386,19 @@ class WatchdogManager
             . '<div style="overflow-x:auto;">'
             . '<table style="width:100%;border-collapse:collapse;font-size:12px;">'
             . '<thead><tr style="background:#f5f5f5;">'
-            . '<th style="padding:8px 10px;text-align:left;font-size:11px;color:#555;font-weight:600;">Date</th>'
-            . '<th style="padding:8px 10px;text-align:left;font-size:11px;color:#555;font-weight:600;">Niveau</th>'
-            . '<th style="padding:8px 10px;text-align:left;font-size:11px;color:#555;font-weight:600;">Classe</th>'
-            . '<th style="padding:8px 10px;text-align:left;font-size:11px;color:#555;font-weight:600;">Message</th>'
+            . '<th style="padding:8px 10px;text-align:left;font-size:11px;color:#555;font-weight:600;">' . AdminTranslator::t('wd_alert.date_label') . '</th>'
+            . '<th style="padding:8px 10px;text-align:left;font-size:11px;color:#555;font-weight:600;">' . AdminTranslator::t('wd_alert.level_label') . '</th>'
+            . '<th style="padding:8px 10px;text-align:left;font-size:11px;color:#555;font-weight:600;">' . AdminTranslator::t('wd_alert.class_label') . '</th>'
+            . '<th style="padding:8px 10px;text-align:left;font-size:11px;color:#555;font-weight:600;">' . AdminTranslator::t('wd_alert.message_label') . '</th>'
             . '</tr></thead><tbody>' . $rows_html . '</tbody></table>'
             . '</div>'
             . ($emergencyUrl
-                ? '<div style="margin-top:20px;"><a href="' . htmlspecialchars($emergencyUrl) . '" style="display:inline-block;background:#b38b59;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;">Ouvrir le journal d\'urgence</a></div>'
+                ? '<div style="margin-top:20px;"><a href="' . htmlspecialchars($emergencyUrl) . '" style="display:inline-block;background:#b38b59;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;">' . AdminTranslator::t('wd_alert.open_emergency') . '</a></div>'
                 : '')
-            . '<p style="margin-top:20px;font-size:11px;color:#aaa;">Digest Neria — envoyé automatiquement chaque jour si des événements WARNING/ERROR ont eu lieu. Pour désactiver : Neria → Aide → Alertes email.</p>'
+            . '<p style="margin-top:20px;font-size:11px;color:#aaa;">' . AdminTranslator::t('wd_digest.footer') . '</p>'
             . '</div></div></body></html>';
+
+        AdminTranslator::setLang($prevLang);
 
         $fromEmail = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_EMAIL') ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST));
         $headers   = "MIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n"
@@ -402,6 +416,20 @@ class WatchdogManager
         }
         $shopEmail = (string) \Configuration::get('PS_SHOP_EMAIL');
         return \Validate::isEmail($shopEmail) ? $shopEmail : '';
+    }
+
+    /**
+     * Langue de la boutique (le marchand configure la même langue pour le BO
+     * et le front) — source stable pour les emails d'alerte Watchdog, qui
+     * peuvent être déclenchés depuis n'importe quel contexte (cron, front,
+     * BO) où Context::language ne reflète pas forcément la langue du
+     * destinataire réel de l'alerte.
+     */
+    private function getShopLang(): string
+    {
+        $idLang = (int) \Configuration::get('PS_LANG_DEFAULT');
+        $iso    = $idLang ? \Language::getIsoById($idLang) : false;
+        return $iso ?: 'en';
     }
 
     // ============================================================
