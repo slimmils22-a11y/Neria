@@ -840,43 +840,74 @@ class HealthCheckManager
      * #18 — Hooks PS enregistrés
      * Un hook absent après mise à jour PS = feature entière silencieusement inactive.
      */
+    /**
+     * Contrôle proactif — Hooks réellement enregistrés
+     * Vérifiait auparavant seulement 5 hooks codés en dur ici, une copie
+     * séparée qui a divergé de la vraie liste : sur les 14 hooks que le
+     * module enregistre réellement (Neria::HOOKS, source unique de vérité
+     * utilisée à l'installation), 9 n'étaient jamais surveillés — dont
+     * actionDeleteGDPRCustomer, exactement le hook RGPD trouvé manquant le
+     * 2026-07-05 (bug upgrade 1.0.16, voir [[feedback_upgrade_wrong_config_key]]).
+     * Parcourt maintenant Neria::HOOKS en entier ; les 5 hooks "cœur"
+     * (fonctionnement de base : envoi email, tracking, CSS admin,
+     * attribution de revenus) restent en ERROR si absents, les 9 autres
+     * remontent en WARNING (important mais non bloquant).
+     */
     private function checkHooksRegistered(): array
     {
-        $critical = [
-            'actionEmailSendBefore'      => 'Interception emails (tracking, traductions)',
-            'actionMailAlterMessageBeforeSend' => 'En-tête List-Unsubscribe',
-            'displayBackOfficeHeader'    => 'CSS/JS back-office',
-            'actionObjectOrderAddAfter'  => 'Attribution de revenus',
-            'actionOrderStatusPostUpdate' => 'Attribution revenus (statut payé)',
+        $coreHooks = [
+            'actionEmailSendBefore',
+            'actionMailAlterMessageBeforeSend',
+            'displayBackOfficeHeader',
+            'actionObjectOrderAddAfter',
+            'actionOrderStatusPostUpdate',
         ];
 
-        $idModule = (int) $this->module->id;
-        $missing  = [];
+        $idModule         = (int) $this->module->id;
+        $missingCore      = [];
+        $missingSecondary = [];
 
-        foreach ($critical as $hookName => $desc) {
+        foreach (\Neria::HOOKS as $hookName) {
             $hooked = (int) $this->db->getValue(
                 "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "hook_module` hm
                  JOIN `" . _DB_PREFIX_ . "hook` h ON h.id_hook = hm.id_hook
                  WHERE h.`name` = '" . pSQL($hookName) . "'
                    AND hm.`id_module` = {$idModule}"
             );
-            if (!$hooked) {
-                $missing[] = $hookName . ' (' . $desc . ')';
+            if ($hooked) {
+                continue;
+            }
+            if (in_array($hookName, $coreHooks, true)) {
+                $missingCore[] = $hookName;
+            } else {
+                $missingSecondary[] = $hookName;
             }
         }
 
-        if ($missing) {
+        if ($missingCore || $missingSecondary) {
+            $parts = [];
+            if ($missingCore) {
+                $parts[] = AdminTranslator::tVars('health.hooks_core_missing', [
+                    'count' => count($missingCore),
+                    'hooks' => implode(', ', $missingCore),
+                ]);
+            }
+            if ($missingSecondary) {
+                $parts[] = AdminTranslator::tVars('health.hooks_secondary_missing', [
+                    'count' => count($missingSecondary),
+                    'hooks' => implode(', ', $missingSecondary),
+                ]);
+            }
+
             return [
-                'status' => self::STATUS_ERROR,
-                'detail' => count($missing) . ' hook(s) critique(s) non enregistré(s) : '
-                    . implode(', ', $missing)
-                    . ' → Que faire : Désinstallez et réinstallez le module pour réenregistrer les hooks.',
+                'status'  => $missingCore ? self::STATUS_ERROR : self::STATUS_WARNING,
+                'detail'  => implode(' ', $parts) . ' ' . AdminTranslator::t('health.hooks_missing_advice'),
             ];
         }
 
         return [
             'status' => self::STATUS_OK,
-            'detail' => count($critical) . ' hooks critiques correctement enregistrés.',
+            'detail' => AdminTranslator::tVars('health.hooks_all_registered', ['count' => count(\Neria::HOOKS)]),
         ];
     }
 
