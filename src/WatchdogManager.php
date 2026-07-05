@@ -26,16 +26,19 @@ class WatchdogManager
     const LEVEL_CRITICAL = 'critical';
 
     // ── Monitoring des crons ───────────────────────────────────────
+    // 'label_key' référence une clé AdminTranslator (18 langues) plutôt que
+    // du texte en dur — une constante de classe ne peut pas appeler de
+    // fonction, la résolution se fait dans getCronHealth().
     const TABLE_CRON  = 'neria_cron_health';
     const KNOWN_CRONS = [
-        'behavioral'         => ['label' => 'Cron comportemental',          'threshold_hours' => 25],
-        'calendar'           => ['label' => 'Cron calendaire',              'threshold_hours' => 25],
-        'webhook'            => ['label' => 'Queue webhook',                'threshold_hours' => 2],
-        'queue'              => ['label' => 'File d\'envoi (Queue)',        'threshold_hours' => 2],
-        'monthly_report'     => ['label' => 'Rapport mensuel',              'threshold_hours' => 25],
-        'upsell_conversions' => ['label' => 'Suivi conversions upsell',     'threshold_hours' => 25],
-        'seasonal_campaigns' => ['label' => 'Campagnes saisonnières',       'threshold_hours' => 25],
-        'loyalty_recaps'     => ['label' => 'Récaps fidélité',              'threshold_hours' => 25, 'enabled_cfg' => 'NERIA_LOYALTY_ENABLED'],
+        'behavioral'         => ['label_key' => 'health.cron_label_behavioral',         'threshold_hours' => 25],
+        'calendar'           => ['label_key' => 'health.cron_label_calendar',           'threshold_hours' => 25],
+        'webhook'            => ['label_key' => 'health.cron_label_webhook',            'threshold_hours' => 2],
+        'queue'              => ['label_key' => 'health.cron_label_queue',              'threshold_hours' => 2],
+        'monthly_report'     => ['label_key' => 'health.cron_label_monthly_report',     'threshold_hours' => 25],
+        'upsell_conversions' => ['label_key' => 'health.cron_label_upsell_conversions', 'threshold_hours' => 25],
+        'seasonal_campaigns' => ['label_key' => 'health.cron_label_seasonal_campaigns', 'threshold_hours' => 25],
+        'loyalty_recaps'     => ['label_key' => 'health.cron_label_loyalty_recaps',     'threshold_hours' => 25, 'enabled_cfg' => 'NERIA_LOYALTY_ENABLED'],
     ];
 
     // ── Alertes email ──────────────────────────────────────────────
@@ -500,7 +503,7 @@ class WatchdogManager
             $isLate    = ($age === null || $age > $threshold);
 
             $result[$key] = [
-                'label'       => $cfg['label'],
+                'label'       => class_exists('AdminTranslator') ? \AdminTranslator::t($cfg['label_key']) : $cfg['label_key'],
                 'last_run'    => $lastRun,
                 'last_count'  => $lastCount,
                 'last_status' => $lastStatus,

@@ -535,48 +535,58 @@ class HealthCheckManager
 
     /**
      * #10 — Surveillance des crons métier individuels
-     * Vérifie que chaque cron a bien tourné au cours des dernières 26h.
+     * Utilisait auparavant une liste séparée de 3 crons codés en dur
+     * ($autoCrons), un système parallèle à WatchdogManager::KNOWN_CRONS
+     * (8 crons, table dédiée neria_cron_health) qui alimente le widget
+     * visuel de l'onglet Aide — les deux avaient divergé : 5 tâches de
+     * fond (webhook, queue, rapport mensuel, conversions upsell, récaps
+     * fidélité, campagnes saisonnières) n'étaient jamais surveillées ici,
+     * seulement visibles dans le widget. Utilise maintenant
+     * WatchdogManager::getCronHealth() comme source unique de vérité
+     * (chaque cron avec son propre seuil de retard). La réputation de
+     * domaine reste suivie séparément (hors KNOWN_CRONS, voir
+     * DomainReputationManager::runFullCheck()).
      */
     private function checkCronsHealth(): array
     {
-        // Crons automatiques (hookDisplayHeader) — alertes si absent >26h
-        $autoCrons = [
-            self::CRON_LAST_BEHAVIORAL => 'Emails comportementaux (anniversaires, paniers abandonnés…)',
-            self::CRON_LAST_CALENDAR   => 'Emails calendaires (Noël, Saint-Valentin…)',
-            self::CRON_LAST_DOMREP     => 'Score de réputation de domaine',
-        ];
-
         $stale = [];
         $never = [];
-        $limit = 26 * 3600;
 
-        foreach ($autoCrons as $key => $label) {
-            $last = (string) \Configuration::get($key);
-            if ($last === '' || $last === false) {
-                $never[] = $label;
-            } elseif ((time() - (int) strtotime($last)) > $limit) {
-                $hoursAgo = round((time() - (int) strtotime($last)) / 3600);
-                $stale[]  = $label . ' (dernière exéc. il y a ' . $hoursAgo . 'h)';
+        if (class_exists('WatchdogManager')) {
+            $cronHealth = (new \WatchdogManager($this->module))->getCronHealth();
+            foreach ($cronHealth as $info) {
+                if ($info['last_run'] === null) {
+                    $never[] = $info['label'];
+                } elseif ($info['is_late']) {
+                    $hoursAgo = $info['age_minutes'] !== null ? round($info['age_minutes'] / 60) : 0;
+                    $stale[] = $info['label'] . ' (' . AdminTranslator::tVars('health.cron_hours_ago', ['hours' => $hoursAgo]) . ')';
+                }
             }
+        }
+
+        // Réputation de domaine : cron auto hors KNOWN_CRONS, suivi séparément
+        $lastDomrep  = (string) \Configuration::get(self::CRON_LAST_DOMREP);
+        $domrepLabel = AdminTranslator::t('health.cron_label_domrep');
+        if ($lastDomrep === '' || $lastDomrep === false) {
+            $never[] = $domrepLabel;
+        } elseif ((time() - (int) strtotime($lastDomrep)) > 26 * 3600) {
+            $hoursAgo = round((time() - (int) strtotime($lastDomrep)) / 3600);
+            $stale[] = $domrepLabel . ' (' . AdminTranslator::tVars('health.cron_hours_ago', ['hours' => $hoursAgo]) . ')';
         }
 
         if ($never) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Ces tâches automatiques n\'ont jamais tourné : ' . implode(', ', $never)
-                    . ' → Que faire : Ces tâches se déclenchent automatiquement dès qu\'un visiteur'
-                    . ' charge une page de la boutique. Si votre boutique est inactive depuis l\'installation,'
-                    . ' ouvrez-la dans un navigateur pour déclencher le premier cycle.',
+                'detail' => AdminTranslator::tVars('health.crons_never_run', ['list' => implode(', ', $never)])
+                    . ' ' . AdminTranslator::t('health.crons_never_advice'),
             ];
         }
 
         if ($stale) {
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Ces tâches automatiques sont en retard : ' . implode('; ', $stale)
-                    . ' → Que faire : Ces tâches se déclenchent via les visites frontend.'
-                    . ' Si votre boutique a du trafic, vérifiez les logs d\'erreur PHP'
-                    . ' (erreur fatale dans hookDisplayHeader ?).',
+                'detail' => AdminTranslator::tVars('health.crons_stale', ['list' => implode('; ', $stale)])
+                    . ' ' . AdminTranslator::t('health.crons_stale_advice'),
             ];
         }
 
@@ -586,17 +596,18 @@ class HealthCheckManager
             $hoursAgo = round((time() - (int) strtotime($lastBounces)) / 3600);
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Vérification bounces IMAP en retard (dernière exéc. il y a ' . $hoursAgo . 'h).'
-                    . ' → Que faire : Cliquez sur "Vérifier les bounces" dans l\'onglet Aide,'
-                    . ' ou configurez un cron externe pour automatiser cette vérification.',
+                'detail' => AdminTranslator::tVars('health.cron_bounces_stale', ['hours' => $hoursAgo]),
             ];
         }
 
         $bounceInfo = $lastBounces
-            ? 'Vérification bounces IMAP — dernier passage : ' . $lastBounces . '.'
-            : 'Vérification bounces IMAP — jamais lancée (normal si vous n\'utilisez pas l\'IMAP).';
+            ? AdminTranslator::tVars('health.cron_bounces_last', ['date' => $lastBounces])
+            : AdminTranslator::t('health.cron_bounces_never');
 
-        return ['status' => self::STATUS_OK, 'detail' => 'Toutes les tâches automatiques se sont exécutées dans les 26 dernières heures. ' . $bounceInfo];
+        return [
+            'status' => self::STATUS_OK,
+            'detail' => AdminTranslator::tVars('health.crons_all_ok', ['bounce_info' => $bounceInfo]),
+        ];
     }
 
     /**
