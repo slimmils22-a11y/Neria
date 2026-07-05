@@ -18,26 +18,7 @@ if (!defined('_PS_VERSION_')) {
 function upgrade_module_1_0_17(Neria $module): bool
 {
     if (class_exists('CryptoManager') && CryptoManager::isAvailable()) {
-        $keys = [
-            'NERIA_BOUNCE_IMAP_PASS',
-            'NERIA_BOUNCE_WEBHOOK_SECRET',
-            'NERIA_POSTMASTER_CLIENT_SECRET',
-            'NERIA_POSTMASTER_ACCESS_TOKEN',
-            'NERIA_POSTMASTER_REFRESH_TOKEN',
-            'NERIA_SC_CLIENT_SECRET',
-            'NERIA_SC_ACCESS_TOKEN',
-            'NERIA_SC_REFRESH_TOKEN',
-            'NERIA_WEBHOOK_SECRET',
-            'NERIA_DEEPL_KEY',
-            'NERIA_PAGESPEED_API_KEY',
-            'NERIA_SEMRUSH_API_KEY',
-            'NERIA_MOZ_ACCESS_ID',
-            'NERIA_MOZ_SECRET_KEY',
-            'NERIA_LITMUS_KEY',
-            'NERIA_EOA_KEY',
-        ];
-
-        foreach ($keys as $key) {
+        foreach (CryptoManager::SENSITIVE_CONFIG_KEYS as $key) {
             $value = (string) Configuration::get($key);
             if ($value !== '' && !CryptoManager::isEncrypted($value)) {
                 Configuration::updateValue($key, CryptoManager::encrypt($value));

@@ -25,6 +25,33 @@ class CryptoManager
     const IV_LEN     = 12;
     const TAG_LEN    = 16;
 
+    /**
+     * Clés `ps_configuration` contenant un secret (mot de passe, jeton OAuth,
+     * clé API tierce) — doivent toujours être chiffrées (préfixe ENC:) si
+     * non vides. Liste unique partagée par upgrade/upgrade-1.0.17.php (qui
+     * chiffre rétroactivement) et HealthCheckManager::checkSecretsEncrypted()
+     * (qui vérifie qu'aucune n'est repassée en clair) — éviter que ces deux
+     * listes divergent si une nouvelle intégration ajoute un secret.
+     */
+    const SENSITIVE_CONFIG_KEYS = [
+        'NERIA_BOUNCE_IMAP_PASS',
+        'NERIA_BOUNCE_WEBHOOK_SECRET',
+        'NERIA_POSTMASTER_CLIENT_SECRET',
+        'NERIA_POSTMASTER_ACCESS_TOKEN',
+        'NERIA_POSTMASTER_REFRESH_TOKEN',
+        'NERIA_SC_CLIENT_SECRET',
+        'NERIA_SC_ACCESS_TOKEN',
+        'NERIA_SC_REFRESH_TOKEN',
+        'NERIA_WEBHOOK_SECRET',
+        'NERIA_DEEPL_KEY',
+        'NERIA_PAGESPEED_API_KEY',
+        'NERIA_SEMRUSH_API_KEY',
+        'NERIA_MOZ_ACCESS_ID',
+        'NERIA_MOZ_SECRET_KEY',
+        'NERIA_LITMUS_KEY',
+        'NERIA_EOA_KEY',
+    ];
+
     // ============================================================
     // API PUBLIQUE
     // ============================================================

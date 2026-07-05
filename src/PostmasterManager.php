@@ -26,6 +26,7 @@ class PostmasterManager
     const CONFIG_RETURN_URL    = 'NERIA_POSTMASTER_RETURN_URL';
     const CONFIG_OAUTH_STATE   = 'NERIA_POSTMASTER_OAUTH_STATE';
     const CONFIG_LAST_ERROR    = 'NERIA_POSTMASTER_LAST_ERROR';
+    const CONFIG_LAST_ERROR_AT = 'NERIA_POSTMASTER_LAST_ERROR_AT';
 
     const CACHE_TTL  = 3600; // 1h
     const SCOPE      = 'https://www.googleapis.com/auth/postmaster.readonly';
@@ -193,6 +194,18 @@ class PostmasterManager
         return (string) \Configuration::get(self::CONFIG_LAST_ERROR);
     }
 
+    /**
+     * Timestamp Unix du début de la série d'échecs API en cours (null si le
+     * dernier appel a réussi). Permet de mesurer depuis combien de temps une
+     * erreur persiste sans interruption, pour escalader la sévérité du
+     * contrôle de santé au-delà d'un simple avertissement.
+     */
+    public function getLastErrorAt(): ?int
+    {
+        $t = (int) \Configuration::get(self::CONFIG_LAST_ERROR_AT);
+        return $t ?: null;
+    }
+
     private function fetchAndCache(): ?array
     {
         $token = $this->getAccessToken();
@@ -207,6 +220,7 @@ class PostmasterManager
             return null;
         }
         \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
         if (empty($domains['domains'])) {
             $this->wd()->warning('Postmaster Tools : aucun domaine vérifié trouvé dans ce compte Google.', '', 'PostmasterManager');
             return [];
@@ -362,6 +376,12 @@ class PostmasterManager
         if ($httpCode >= 400 || isset($data['error'])) {
             $msg = $data['error']['message'] ?? ('HTTP ' . $httpCode);
             \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            // Ne pose le timestamp de début qu'au premier échec de la série —
+            // préserve la date de départ réelle pour mesurer une panne
+            // persistante, même si le message d'erreur change entre-temps.
+            if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
+                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+            }
             $this->wd()->warning('Postmaster Tools : erreur API — ' . $msg, '', 'PostmasterManager');
             return null;
         }

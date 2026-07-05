@@ -371,6 +371,7 @@
       'webhook_failures'     => 'help.health_check_webhook_failures',
       'abtest_stuck'         => 'help.health_check_abtest_stuck',
       'crypto_key'           => 'help.health_check_crypto_key',
+      'secrets_encrypted'    => 'help.health_check_secrets_encrypted',
       'send_volume_spike'    => 'help.health_check_send_volume_spike',
       'domain_rep_score'     => 'help.health_check_domain_rep_score',
       'ptr_record'           => 'help.health_check_ptr_record',

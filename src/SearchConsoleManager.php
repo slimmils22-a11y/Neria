@@ -26,6 +26,7 @@ class SearchConsoleManager
     const CONFIG_RETURN_URL    = 'NERIA_SC_RETURN_URL';
     const CONFIG_OAUTH_STATE   = 'NERIA_SC_OAUTH_STATE';
     const CONFIG_LAST_ERROR    = 'NERIA_SC_LAST_ERROR';
+    const CONFIG_LAST_ERROR_AT = 'NERIA_SC_LAST_ERROR_AT';
 
     const CACHE_TTL = 43200; // 12h
     const SCOPE     = 'https://www.googleapis.com/auth/webmasters.readonly';
@@ -85,6 +86,18 @@ class SearchConsoleManager
     public function getLastError(): string
     {
         return (string) \Configuration::get(self::CONFIG_LAST_ERROR);
+    }
+
+    /**
+     * Timestamp Unix du début de la série d'échecs API en cours (null si le
+     * dernier appel a réussi). Permet de mesurer depuis combien de temps une
+     * erreur persiste sans interruption, pour escalader la sévérité du
+     * contrôle de santé au-delà d'un simple avertissement.
+     */
+    public function getLastErrorAt(): ?int
+    {
+        $t = (int) \Configuration::get(self::CONFIG_LAST_ERROR_AT);
+        return $t ?: null;
     }
 
     // ============================================================
@@ -196,6 +209,7 @@ class SearchConsoleManager
             return null;
         }
         \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
         if (empty($sitesData['siteEntry'])) {
             $this->wd()->warning('Search Console : aucun site vérifié trouvé dans ce compte Google.', '', 'SearchConsoleManager');
             return [];
@@ -376,6 +390,12 @@ class SearchConsoleManager
         if ($httpCode >= 400 || isset($data['error'])) {
             $msg = $data['error']['message'] ?? ('HTTP ' . $httpCode);
             \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            // Ne pose le timestamp de début qu'au premier échec de la série —
+            // préserve la date de départ réelle pour mesurer une panne
+            // persistante, même si le message d'erreur change entre-temps.
+            if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
+                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+            }
             $this->wd()->warning('Search Console : erreur API — ' . $msg, '', 'SearchConsoleManager');
             return null;
         }

@@ -186,6 +186,7 @@ class HealthCheckManager
             'webhook_failures'     => $this->checkWebhookFailures(),
             'abtest_stuck'         => $this->checkAbtestStuck(),
             'crypto_key'           => $this->checkCryptoKey(),
+            'secrets_encrypted'    => $this->checkSecretsEncrypted(),
             'send_volume_spike'    => $this->checkSendVolumeSpike(),
             'domain_rep_score'     => $this->checkDomainRepScore(),
             'ptr_record'           => $this->checkPtrRecord(),
@@ -1045,7 +1046,9 @@ class HealthCheckManager
     {
         $stale = [];
         $staleThresholdMinutes = 60 * 24 * 3; // 3 jours
+        $persistentThresholdDays = 7;
         $hasSpecificError = false;
+        $maxErrorDays = 0;
 
         if (class_exists('SearchConsoleManager')) {
             $mgr = new \SearchConsoleManager($this->module);
@@ -1054,10 +1057,17 @@ class HealthCheckManager
                 if ($age === null || $age > $staleThresholdMinutes) {
                     $err = $mgr->getLastError();
                     if ($err !== '') {
-                        $stale[] = 'Search Console (erreur API : ' . $err . ')';
+                        $stale[] = 'Search Console (' . AdminTranslator::tVars('health.oauth_error_label', ['error' => $err]) . ')';
                         $hasSpecificError = true;
+                        $errAt = $mgr->getLastErrorAt();
+                        if ($errAt) {
+                            $maxErrorDays = max($maxErrorDays, (int) floor((time() - $errAt) / 86400));
+                        }
                     } else {
-                        $stale[] = 'Search Console (' . ($age === null ? 'jamais rafraîchi' : round($age / 60 / 24) . 'j') . ')';
+                        $ageLabel = $age === null
+                            ? AdminTranslator::t('health.oauth_never_refreshed')
+                            : AdminTranslator::tVars('health.oauth_age_days', ['days' => (int) round($age / 60 / 24)]);
+                        $stale[] = 'Search Console (' . $ageLabel . ')';
                     }
                 }
             }
@@ -1070,10 +1080,17 @@ class HealthCheckManager
                 if ($age === null || $age > $staleThresholdMinutes) {
                     $err = $mgr->getLastError();
                     if ($err !== '') {
-                        $stale[] = 'Postmaster Tools (erreur API : ' . $err . ')';
+                        $stale[] = 'Postmaster Tools (' . AdminTranslator::tVars('health.oauth_error_label', ['error' => $err]) . ')';
                         $hasSpecificError = true;
+                        $errAt = $mgr->getLastErrorAt();
+                        if ($errAt) {
+                            $maxErrorDays = max($maxErrorDays, (int) floor((time() - $errAt) / 86400));
+                        }
                     } else {
-                        $stale[] = 'Postmaster Tools (' . ($age === null ? 'jamais rafraîchi' : round($age / 60 / 24) . 'j') . ')';
+                        $ageLabel = $age === null
+                            ? AdminTranslator::t('health.oauth_never_refreshed')
+                            : AdminTranslator::tVars('health.oauth_age_days', ['days' => (int) round($age / 60 / 24)]);
+                        $stale[] = 'Postmaster Tools (' . $ageLabel . ')';
                     }
                 }
             }
@@ -1084,22 +1101,26 @@ class HealthCheckManager
             // actionnable que le message générique de reconnexion OAuth — sans
             // cette distinction, une vraie cause (ex. API à activer dans Google
             // Cloud Console) était masquée derrière "reconnectez-vous", qui
-            // n'aurait rien résolu.
-            $advice = $hasSpecificError
-                ? ' → Que faire : une erreur API précise a été détectée ci-dessus — corrigez-la directement'
-                    . ' (ex. activer l\'API concernée dans Google Cloud Console, quota dépassé...), puis cliquez'
-                    . ' sur "Actualiser" dans l\'onglet Statistiques.'
-                : ' → Que faire : le refresh token a peut-être été révoqué côté Google (ou l\'app est encore'
-                    . ' en mode "Test" — les refresh tokens expirent alors après 7 jours). Reconnectez-vous depuis'
-                    . ' l\'onglet Statistiques, et pensez à publier l\'app OAuth dans Google Cloud Console.';
+            // n'aurait rien résolu. Si cette erreur persiste sans interruption
+            // depuis plus d'une semaine, on escalade en ERROR plutôt que
+            // WARNING pour ne pas laisser une intégration cassée passer inaperçue.
+            $isPersistent = $hasSpecificError && $maxErrorDays >= $persistentThresholdDays;
+
+            if ($isPersistent) {
+                $advice = AdminTranslator::tVars('health.oauth_advice_persistent', ['days' => $maxErrorDays]);
+            } elseif ($hasSpecificError) {
+                $advice = AdminTranslator::t('health.oauth_advice_specific_error');
+            } else {
+                $advice = AdminTranslator::t('health.oauth_advice_generic');
+            }
 
             return [
-                'status' => self::STATUS_WARNING,
-                'detail' => 'Connexion(s) OAuth avec données obsolètes (> 3j) : ' . implode(', ', $stale) . '.' . $advice,
+                'status' => $isPersistent ? self::STATUS_ERROR : self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.oauth_stale_detail', ['list' => implode(', ', $stale)]) . ' ' . $advice,
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => 'Connexions OAuth (Search Console / Postmaster) à jour ou non configurées.'];
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.oauth_all_fresh')];
     }
 
     /**
@@ -1566,6 +1587,43 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => 'Clé de chiffrement AES-256-GCM présente et fonctionnelle.'];
+    }
+
+    /**
+     * Contrôle proactif — Secrets réellement chiffrés
+     * checkCryptoKey() vérifie que la clé de chiffrement fonctionne (sur un
+     * échantillon), mais pas que CHAQUE secret sensible connu est bien
+     * chiffré : un upgrade de chiffrement qui n'a jamais tourné (ex. script
+     * exécuté hors du flux d'upgrade officiel de PrestaShop) laisse des
+     * secrets en clair sans que rien ne le signale. Ce contrôle parcourt la
+     * liste centralisée CryptoManager::SENSITIVE_CONFIG_KEYS et vérifie que
+     * chaque valeur non vide porte bien le préfixe ENC:.
+     */
+    private function checkSecretsEncrypted(): array
+    {
+        if (!class_exists('CryptoManager') || !\CryptoManager::isAvailable()) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.secrets_unavailable')];
+        }
+
+        $plaintext = [];
+        foreach (\CryptoManager::SENSITIVE_CONFIG_KEYS as $key) {
+            $value = (string) \Configuration::get($key);
+            if ($value !== '' && !\CryptoManager::isEncrypted($value)) {
+                $plaintext[] = $key;
+            }
+        }
+
+        if (!empty($plaintext)) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.secrets_plaintext_found', [
+                    'count' => count($plaintext),
+                    'keys'  => implode(', ', $plaintext),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.secrets_all_encrypted')];
     }
 
     /**
