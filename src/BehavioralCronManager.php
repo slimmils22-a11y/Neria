@@ -75,7 +75,7 @@ class BehavioralCronManager
     public function run(): void
     {
         \Configuration::updateValue(\HealthCheckManager::CRON_LAST_BEHAVIORAL, date('Y-m-d H:i:s'));
-        $this->watchdog()->info('Démarrage BehavioralCronManager', '', 'BehavioralCron');
+        $this->watchdog()->info(\WatchdogManager::i18nMsg('watchdog.behavioral_cron_start'), '', 'BehavioralCron');
 
         // Vider la file d'attente des emails programmés (fenêtres d'achat individuelles)
         if (\Configuration::getGlobalValue('NERIA_PURCHASE_WINDOW_ENABLED') && class_exists('QueueManager')) {
@@ -83,13 +83,13 @@ class BehavioralCronManager
                 $queued = (new \QueueManager($this->module))->processQueue();
                 if ($queued > 0) {
                     $this->watchdog()->info(
-                        sprintf('Queue — %d email%s traité%s.', $queued, $queued > 1 ? 's' : '', $queued > 1 ? 's' : ''),
+                        \WatchdogManager::i18nMsg('watchdog.queue_processed', ['n' => $queued]),
                         '',
                         'BehavioralCron'
                     );
                 }
             } catch (\Throwable $e) {
-                $this->watchdog()->error('Erreur processQueue : ' . $e->getMessage(), '', 'BehavioralCron');
+                $this->watchdog()->error(\WatchdogManager::i18nMsg('watchdog.queue_process_error', ['error' => $e->getMessage()]), '', 'BehavioralCron');
             }
         }
 
@@ -123,7 +123,7 @@ class BehavioralCronManager
                 (new \SegmentManager($this->module))->recomputeAll();
             } catch (\Throwable $e) {
                 $this->watchdog()->error(
-                    'SegmentManager::recomputeAll() a échoué : ' . $e->getMessage(),
+                    \WatchdogManager::i18nMsg('watchdog.segment_recompute_failed', ['error' => $e->getMessage()]),
                     '', 'BehavioralCron'
                 );
             }
@@ -135,14 +135,14 @@ class BehavioralCronManager
                 (new \ChurnScoreManager($this->module))->recomputeAll();
             } catch (\Throwable $e) {
                 $this->watchdog()->error(
-                    'ChurnScoreManager::recomputeAll() a échoué : ' . $e->getMessage(),
+                    \WatchdogManager::i18nMsg('watchdog.churn_recompute_failed', ['error' => $e->getMessage()]),
                     '', 'BehavioralCron'
                 );
             }
         }
 
         $this->watchdog()->cronHeartbeat('behavioral', 'ok');
-        $this->watchdog()->info('BehavioralCronManager terminé', '', 'BehavioralCron');
+        $this->watchdog()->info(\WatchdogManager::i18nMsg('watchdog.behavioral_cron_done'), '', 'BehavioralCron');
     }
 
     /**
@@ -155,7 +155,7 @@ class BehavioralCronManager
             $fn();
         } catch (\Throwable $e) {
             $this->watchdog()->error(
-                "Tâche « {$label} » a échoué : " . $e->getMessage(),
+                \WatchdogManager::i18nMsg('watchdog.step_failed', ['label' => $label, 'error' => $e->getMessage()]),
                 '', 'BehavioralCron'
             );
         }
@@ -593,24 +593,22 @@ class BehavioralCronManager
                             $sep = (strpos($upsell['product_url'], '?') !== false) ? '&' : '?';
                             $upsell['product_url'] .= $sep . 'neria_ur=' . $idUpsell;
                             $this->watchdog()->info(
-                                sprintf(
-                                    'Upsell — Suggestion envoyée : "%s" (%s) → %s (cde #%d).',
-                                    $upsell['name'],
-                                    $upsell['reason'],
-                                    $r['email'] ?? '?',
-                                    $idOrder
-                                ),
+                                \WatchdogManager::i18nMsg('watchdog.upsell_sent', [
+                                    'name'   => $upsell['name'],
+                                    'reason' => $upsell['reason'],
+                                    'email'  => $r['email'] ?? '?',
+                                    'order'  => $idOrder,
+                                ]),
                                 'post_purchase_review',
                                 'Upsell'
                             );
                         }
                     } else {
                         $this->watchdog()->info(
-                            sprintf(
-                                'Upsell — Aucun produit complémentaire trouvé pour la cde #%d (%s). Email envoyé sans bloc upsell.',
-                                $idOrder,
-                                $r['email'] ?? '?'
-                            ),
+                            \WatchdogManager::i18nMsg('watchdog.upsell_no_product', [
+                                'order' => $idOrder,
+                                'email' => $r['email'] ?? '?',
+                            ]),
                             'post_purchase_review',
                             'Upsell'
                         );
@@ -623,11 +621,10 @@ class BehavioralCronManager
                     $extraVars['{upsell_block}']     = '';
                     $extraVars['{upsell_block_txt}'] = '';
                     $this->watchdog()->error(
-                        sprintf(
-                            'Upsell — Erreur lors de la sélection du produit pour la cde #%d : %s. Email envoyé sans bloc upsell.',
-                            $idOrder,
-                            $e->getMessage()
-                        ),
+                        \WatchdogManager::i18nMsg('watchdog.upsell_error', [
+                            'order' => $idOrder,
+                            'error' => $e->getMessage(),
+                        ]),
                         'post_purchase_review',
                         'Upsell'
                     );
@@ -851,7 +848,7 @@ class BehavioralCronManager
                     "UPDATE `{$table}` SET status = 'cancelled' WHERE id_reconciliation = {$idReconciliation}"
                 );
                 $this->watchdog()->info(
-                    "Réconciliation #{$idReconciliation} annulée — client #{$idCustomer} a repassé commande.",
+                    \WatchdogManager::i18nMsg('watchdog.reconciliation_cancelled', ['id' => $idReconciliation, 'customer' => $idCustomer]),
                     'refund_reconciliation', 'BehavioralCron'
                 );
                 continue;
@@ -893,7 +890,7 @@ class BehavioralCronManager
         try {
             (new \PropensityScoreManager($this->module))->recalculateAll();
         } catch (\Throwable $e) {
-            $this->watchdog()->error('PropensityScore recalcul : ' . $e->getMessage(), '', 'BehavioralCron');
+            $this->watchdog()->error(\WatchdogManager::i18nMsg('watchdog.propensity_recalc_error', ['error' => $e->getMessage()]), '', 'BehavioralCron');
         }
     }
 
@@ -1066,7 +1063,7 @@ class BehavioralCronManager
 
         if (empty($rows)) {
             $this->watchdog()->info(
-                'Anniversaire relation client — Aucun client éligible aujourd\'hui.',
+                \WatchdogManager::i18nMsg('watchdog.anniversary_none_eligible'),
                 'relationship_anniversary',
                 'BehavioralCron'
             );
@@ -1089,24 +1086,21 @@ class BehavioralCronManager
                 );
                 $sent++;
                 $this->watchdog()->info(
-                    sprintf(
-                        'Anniversaire relation client — Email envoyé à %s (%s, %d an%s de fidélité).',
-                        $r['email'] ?? '?',
-                        $r['firstname'] ?? '',
-                        $years,
-                        $years > 1 ? 's' : ''
-                    ),
+                    \WatchdogManager::i18nMsg('watchdog.anniversary_sent', [
+                        'email'     => $r['email'] ?? '?',
+                        'firstname' => $r['firstname'] ?? '',
+                        'years'     => $yearsLabel,
+                    ]),
                     'relationship_anniversary',
                     'BehavioralCron'
                 );
             } catch (\Throwable $e) {
                 $errors++;
                 $this->watchdog()->error(
-                    sprintf(
-                        'Anniversaire relation client — Erreur pour %s : %s',
-                        $r['email'] ?? '?',
-                        $e->getMessage()
-                    ),
+                    \WatchdogManager::i18nMsg('watchdog.anniversary_error', [
+                        'email' => $r['email'] ?? '?',
+                        'error' => $e->getMessage(),
+                    ]),
                     'relationship_anniversary',
                     'BehavioralCron'
                 );
@@ -1114,12 +1108,7 @@ class BehavioralCronManager
         }
 
         $this->watchdog()->info(
-            sprintf(
-                'Anniversaire relation client — %d email%s envoyé%s, %d erreur%s.',
-                $sent,   $sent   > 1 ? 's' : '',
-                $sent   > 1 ? 's' : '',
-                $errors, $errors > 1 ? 's' : ''
-            ),
+            \WatchdogManager::i18nMsg('watchdog.anniversary_summary', ['sent' => $sent, 'errors' => $errors]),
             'relationship_anniversary',
             'BehavioralCron'
         );
@@ -1240,7 +1229,7 @@ class BehavioralCronManager
                 $pm = new PreferencesManager($this->module);
                 if (!$pm->isAllowed($idCust, $template)) {
                     $this->watchdog()->info(
-                        sprintf('Envoi annulé — client %d a désactivé la catégorie pour "%s".', $idCust, $template),
+                        \WatchdogManager::i18nMsg('watchdog.send_cancelled_pref', ['id' => $idCust, 'template' => $template]),
                         $template,
                         'BehavioralCron'
                     );
@@ -1252,10 +1241,7 @@ class BehavioralCronManager
             $coreFile = _PS_MODULE_DIR_ . 'neria/mails/themes/neria_global/core/' . $template . '.html';
             if (!file_exists($coreFile)) {
                 $this->watchdog()->error(
-                    sprintf(
-                        'Template source "%s" introuvable (fichier attendu : mails/themes/neria_global/core/%s.html).',
-                        $template, $template
-                    ),
+                    \WatchdogManager::i18nMsg('watchdog.template_missing', ['template' => $template]),
                     $template,
                     'BehavioralCron'
                 );
@@ -1316,26 +1302,20 @@ class BehavioralCronManager
                     . (int) $refId . ', NOW())'
                 );
                 $this->watchdog()->info(
-                    sprintf('%s → %s (ref#%d)', $template, $email, $refId),
+                    \WatchdogManager::i18nMsg('watchdog.send_ok', ['template' => $template, 'email' => $email, 'ref' => $refId]),
                     $template,
                     'BehavioralCron'
                 );
             } else {
                 $this->watchdog()->warning(
-                    sprintf(
-                        'Échec silencieux : "%s" n\'a pas pu être envoyé à %s — Mail::Send() a retourné false. Vérifiez la configuration SMTP (Paramètres avancés → Email).',
-                        $template, $email
-                    ),
+                    \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => $template, 'email' => $email]),
                     $template,
                     'BehavioralCron'
                 );
             }
         } catch (\Throwable $e) {
             $this->watchdog()->error(
-                sprintf(
-                    'Erreur lors de l\'envoi de "%s" à %s : %s. Vérifiez la configuration SMTP et les logs serveur.',
-                    $template, $email, $e->getMessage()
-                ),
+                \WatchdogManager::i18nMsg('watchdog.send_exception', ['template' => $template, 'email' => $email, 'error' => $e->getMessage()]),
                 $template,
                 'BehavioralCron'
             );
@@ -1418,13 +1398,13 @@ class BehavioralCronManager
             $sent = (new \LookCompletionManager($this->module))->runDailyCheck();
             if ($sent > 0) {
                 $this->watchdog()->info(
-                    sprintf('Look completion — %d email%s envoyé%s.', $sent, $sent > 1 ? 's' : '', $sent > 1 ? 's' : ''),
+                    \WatchdogManager::i18nMsg('watchdog.look_completion_sent', ['n' => $sent]),
                     '', 'BehavioralCron'
                 );
             }
         } catch (\Throwable $e) {
             $this->watchdog()->error(
-                'LookCompletionManager::runDailyCheck() a échoué : ' . $e->getMessage(),
+                \WatchdogManager::i18nMsg('watchdog.look_completion_error', ['error' => $e->getMessage()]),
                 '', 'BehavioralCron'
             );
         }
@@ -1439,13 +1419,13 @@ class BehavioralCronManager
             $sent = (new \CollectionManager($this->module))->runDailyCheck();
             if ($sent > 0) {
                 $this->watchdog()->info(
-                    sprintf('Collection completion — %d email%s envoyé%s.', $sent, $sent > 1 ? 's' : '', $sent > 1 ? 's' : ''),
+                    \WatchdogManager::i18nMsg('watchdog.collection_completion_sent', ['n' => $sent]),
                     '', 'BehavioralCron'
                 );
             }
         } catch (\Throwable $e) {
             $this->watchdog()->error(
-                'CollectionManager::runDailyCheck() a échoué : ' . $e->getMessage(),
+                \WatchdogManager::i18nMsg('watchdog.collection_completion_error', ['error' => $e->getMessage()]),
                 '', 'BehavioralCron'
             );
         }
