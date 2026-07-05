@@ -1188,6 +1188,11 @@ class Neria extends Module
         $actionUrl = $this->context->link->getModuleLink('neria', 'waitlist');
         $backUrl   = $this->context->link->getProductLink($idProduct);
 
+        if (class_exists('AdminTranslator')) {
+            AdminTranslator::setLang((string) ($this->context->language->iso_code ?? ''));
+            AdminTranslator::register($this->context->smarty);
+        }
+
         $this->context->smarty->assign([
             'waitlist_oos'             => true,
             'waitlist_registered'      => $registered,

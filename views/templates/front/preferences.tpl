@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{$neria_shop_name|escape:'html'} — Préférences email</title>
+  <title>{$neria_shop_name|escape:'html'} — {neria_admin key='front.prefs_title_suffix'}</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -144,22 +144,22 @@
   <div class="logo">{$neria_shop_name|escape:'html'}</div>
 
   {if isset($neria_prefs_error) && $neria_prefs_error}
-    <h1>Lien invalide</h1>
+    <h1>{neria_admin key='front.prefs_invalid_link_title'}</h1>
     <div class="error-banner">
-      Ce lien de préférences est invalide ou a expiré. Veuillez utiliser le lien présent dans votre dernier email.
+      {neria_admin key='front.prefs_invalid_link_body'}
     </div>
-    <a href="{$neria_shop_url|escape:'html'}" style="color:#b38b59;font-size:13px;">← Retour à la boutique</a>
+    <a href="{$neria_shop_url|escape:'html'}" style="color:#b38b59;font-size:13px;">{neria_admin key='front.prefs_back_to_shop'}</a>
 
   {else}
 
     {if $neria_prefs_saved}
       <div class="success-banner">
-        ✓ Vos préférences ont bien été enregistrées.
+        {neria_admin key='front.prefs_saved_success'}
       </div>
     {/if}
 
-    <h1>Gérer mes préférences email</h1>
-    <p class="subtitle">Choisissez les types d'emails que vous souhaitez recevoir de notre part. Vous pouvez modifier ces préférences à tout moment.</p>
+    <h1>{neria_admin key='front.prefs_heading'}</h1>
+    <p class="subtitle">{neria_admin key='front.prefs_subtitle'}</p>
 
     {if $neria_prefs_email !== ''}
       <div class="email-badge">✉ {$neria_prefs_email|escape:'html'}</div>
@@ -185,14 +185,14 @@
         {/foreach}
       </ul>
 
-      <button type="submit" class="btn-save">Enregistrer mes préférences</button>
+      <button type="submit" class="btn-save">{neria_admin key='front.prefs_save_btn'}</button>
     </form>
 
     <hr class="divider">
 
     {if $neria_unsub_url !== ''}
       <a href="{$neria_unsub_url|escape:'html'}" class="unsub-link">
-        Me désabonner de tous les emails
+        {neria_admin key='front.prefs_unsub_all'}
       </a>
     {/if}
 
