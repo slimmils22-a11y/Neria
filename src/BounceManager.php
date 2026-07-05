@@ -85,11 +85,11 @@ class BounceManager
         \Configuration::updateValue(\HealthCheckManager::CRON_LAST_BOUNCES, date('Y-m-d H:i:s'));
 
         if (!\Configuration::get(self::CFG_ENABLED)) {
-            return ['processed' => 0, 'bounces' => 0, 'errors' => ['Bounce checker désactivé.']];
+            return ['processed' => 0, 'bounces' => 0, 'errors' => [\AdminTranslator::t('msg.bounce_checker_disabled')]];
         }
 
         if (!extension_loaded('imap')) {
-            return ['processed' => 0, 'bounces' => 0, 'errors' => ["Extension PHP 'imap' non disponible sur ce serveur."]];
+            return ['processed' => 0, 'bounces' => 0, 'errors' => [\AdminTranslator::t('msg.bounce_imap_extension_missing')]];
         }
 
         $host      = (string) \Configuration::get(self::CFG_IMAP_HOST);
@@ -100,7 +100,7 @@ class BounceManager
         $folder    = (string) \Configuration::get(self::CFG_IMAP_FOLDER) ?: 'INBOX';
 
         if ($host === '' || $user === '' || $pass === '') {
-            return ['processed' => 0, 'bounces' => 0, 'errors' => ['Configuration IMAP incomplète.']];
+            return ['processed' => 0, 'bounces' => 0, 'errors' => [\AdminTranslator::t('msg.bounce_imap_incomplete_config')]];
         }
 
         $flags   = $ssl ? '/imap/ssl' : '/imap/notls';
@@ -109,7 +109,7 @@ class BounceManager
         $errors  = [];
         $mbox    = @imap_open($mailbox, $user, $pass, 0, 1);
         if ($mbox === false) {
-            return ['processed' => 0, 'bounces' => 0, 'errors' => ['Connexion IMAP échouée : ' . imap_last_error()]];
+            return ['processed' => 0, 'bounces' => 0, 'errors' => [\AdminTranslator::tVars('msg.bounce_imap_connection_failed', ['error' => imap_last_error()])]];
         }
 
         $uids      = imap_search($mbox, 'UNSEEN') ?: [];
@@ -154,7 +154,7 @@ class BounceManager
 
         if (class_exists('WatchdogManager')) {
             (new \WatchdogManager($this->module))->info(
-                "BounceManager IMAP : $processed messages traités, $bounces bounces enregistrés.",
+                \WatchdogManager::i18nMsg('watchdog.bounce_imap_summary', ['processed' => $processed, 'bounces' => $bounces]),
                 'bounce',
                 'BounceManager'
             );
@@ -408,7 +408,7 @@ class BounceManager
 
         if (class_exists('WatchdogManager')) {
             (new \WatchdogManager($this->module))->warning(
-                "Bounce $type enregistré pour $email ($source) : $reason",
+                \WatchdogManager::i18nMsg('watchdog.bounce_recorded', ['type' => $type, 'email' => $email, 'source' => $source, 'reason' => $reason]),
                 'bounce',
                 'BounceManager'
             );

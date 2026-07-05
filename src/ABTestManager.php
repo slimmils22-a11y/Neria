@@ -117,7 +117,7 @@ class ABTestManager
         $variant = $this->assignVariant($template, $idCustomer, (int) $test['split_percent']);
 
         $this->wd()->info(
-            "A/B [{$template}] client #{$idCustomer} → variante {$variant}",
+            \WatchdogManager::i18nMsg('watchdog.abtest_assigned', ['template' => $template, 'customer' => $idCustomer, 'variant' => $variant]),
             $template, 'ABTestManager'
         );
 
@@ -225,7 +225,13 @@ class ABTestManager
         }
 
         $this->wd()->info(
-            "A/B test créé : [{$template}] A=\"{$variantAName}\" / B=\"{$variantBName}\" — répartition {$splitPercent}%/" . (100 - $splitPercent) . '%',
+            \WatchdogManager::i18nMsg('watchdog.abtest_created', [
+                'template' => $template,
+                'nameA'    => $variantAName,
+                'nameB'    => $variantBName,
+                'splitA'   => $splitPercent,
+                'splitB'   => 100 - $splitPercent,
+            ]),
             $template, 'ABTestManager'
         );
 
@@ -268,7 +274,7 @@ class ABTestManager
         $this->activeTestsCache = [];
 
         $this->wd()->info(
-            "A/B test activé : [{$template}]",
+            \WatchdogManager::i18nMsg('watchdog.abtest_activated', ['template' => $template]),
             $template, 'ABTestManager'
         );
 
@@ -301,7 +307,7 @@ class ABTestManager
 
         if ($result !== false) {
             $this->wd()->info(
-                "A/B test arrêté : [{$template}]",
+                \WatchdogManager::i18nMsg('watchdog.abtest_stopped', ['template' => $template]),
                 $template, 'ABTestManager'
             );
         }
@@ -667,7 +673,7 @@ class ABTestManager
         );
 
         $this->wd()->info(
-            "A/B [{$template}] : traductions variante B promues en défaut.",
+            \WatchdogManager::i18nMsg('watchdog.abtest_variant_b_promoted', ['template' => $template]),
             $template, 'ABTestManager'
         );
     }
@@ -746,10 +752,15 @@ class ABTestManager
 
         $this->db->execute($sql);
 
-        $winnerLabel = $winner !== '' ? "gagnant : variante {$winner} ({$confidence}%)" : 'sans gagnant déclaré';
-        $appliedLabel = $applied ? ', variante appliquée comme défaut' : '';
+        $prevLang = \AdminTranslator::currentLang();
+        \AdminTranslator::setLang(\WatchdogManager::shopLang());
+        $winnerLabel = $winner !== ''
+            ? \AdminTranslator::tVars('watchdog.abtest_winner_label', ['winner' => $winner, 'confidence' => $confidence])
+            : \AdminTranslator::t('watchdog.abtest_no_winner_label');
+        $appliedLabel = $applied ? \AdminTranslator::t('watchdog.abtest_applied_label') : '';
+        \AdminTranslator::setLang($prevLang);
         $this->wd()->info(
-            "A/B [{$template}] archivé — {$winnerLabel}{$appliedLabel}.",
+            \WatchdogManager::i18nMsg('watchdog.abtest_archived', ['template' => $template, 'winnerLabel' => $winnerLabel, 'appliedLabel' => $appliedLabel]),
             $template, 'ABTestManager'
         );
     }
