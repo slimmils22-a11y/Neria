@@ -2759,12 +2759,17 @@ class HealthCheckManager
             return ['status' => self::STATUS_OK, 'detail' => 'Table neria_abtest absente — tests A/B non activés.'];
         }
 
+        // Chaque test A/B a 2 lignes (variant='A' et variant='B') — seule la
+        // ligne B peut recevoir du texte personnalisé (neria_abtest_translation),
+        // la ligne A représente le template par défaut sans surcharge. Filtrer
+        // sur variant='B' évite de compter chaque test deux fois et de lister
+        // le même template en double dans le message.
         $activeTests = $db->executeS('
             SELECT t.id_abtest, t.template,
                    (SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_abtest_translation` tr
                     WHERE tr.id_abtest = t.id_abtest) AS b_count
             FROM `' . _DB_PREFIX_ . 'neria_abtest` t
-            WHERE t.is_active = 1
+            WHERE t.is_active = 1 AND t.variant = \'B\'
         ');
 
         if (empty($activeTests)) {
