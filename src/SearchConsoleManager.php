@@ -25,6 +25,7 @@ class SearchConsoleManager
     const CONFIG_CACHE_TIME    = 'NERIA_SC_CACHE_TIME';
     const CONFIG_RETURN_URL    = 'NERIA_SC_RETURN_URL';
     const CONFIG_OAUTH_STATE   = 'NERIA_SC_OAUTH_STATE';
+    const CONFIG_LAST_ERROR    = 'NERIA_SC_LAST_ERROR';
 
     const CACHE_TTL = 43200; // 12h
     const SCOPE     = 'https://www.googleapis.com/auth/webmasters.readonly';
@@ -74,6 +75,16 @@ class SearchConsoleManager
     {
         $t = (int) \Configuration::get(self::CONFIG_CACHE_TIME);
         return $t ? (int) round((time() - $t) / 60) : null;
+    }
+
+    /**
+     * Dernière erreur API rencontrée (vide si le dernier appel a réussi).
+     * Utilisé par HealthCheckManager::checkOAuthFreshness() pour afficher
+     * la vraie cause au lieu du message générique "reconnectez-vous".
+     */
+    public function getLastError(): string
+    {
+        return (string) \Configuration::get(self::CONFIG_LAST_ERROR);
     }
 
     // ============================================================
@@ -180,9 +191,11 @@ class SearchConsoleManager
         // Récupère la liste des sites vérifiés
         $sitesData = $this->apiGet('/sites', $token);
         if ($sitesData === null) {
-            // Échec réseau/API — erreur déjà journalisée dans apiGet().
+            // Échec réseau/API — erreur déjà journalisée dans apiGet() et
+            // dans CONFIG_LAST_ERROR (lu par HealthCheckManager).
             return null;
         }
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
         if (empty($sitesData['siteEntry'])) {
             $this->wd()->warning('Search Console : aucun site vérifié trouvé dans ce compte Google.', '', 'SearchConsoleManager');
             return [];
@@ -362,6 +375,7 @@ class SearchConsoleManager
         // avec "aucun site trouvé", masquant la vraie cause.
         if ($httpCode >= 400 || isset($data['error'])) {
             $msg = $data['error']['message'] ?? ('HTTP ' . $httpCode);
+            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
             $this->wd()->warning('Search Console : erreur API — ' . $msg, '', 'SearchConsoleManager');
             return null;
         }

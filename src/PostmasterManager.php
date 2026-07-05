@@ -25,6 +25,7 @@ class PostmasterManager
     const CONFIG_CACHE_TIME    = 'NERIA_POSTMASTER_CACHE_TIME';
     const CONFIG_RETURN_URL    = 'NERIA_POSTMASTER_RETURN_URL';
     const CONFIG_OAUTH_STATE   = 'NERIA_POSTMASTER_OAUTH_STATE';
+    const CONFIG_LAST_ERROR    = 'NERIA_POSTMASTER_LAST_ERROR';
 
     const CACHE_TTL  = 3600; // 1h
     const SCOPE      = 'https://www.googleapis.com/auth/postmaster.readonly';
@@ -182,6 +183,16 @@ class PostmasterManager
         return $t ? (int) round((time() - $t) / 60) : null;
     }
 
+    /**
+     * Dernière erreur API rencontrée (vide si le dernier appel a réussi).
+     * Utilisé par HealthCheckManager::checkOAuthFreshness() pour afficher
+     * la vraie cause au lieu du message générique "reconnectez-vous".
+     */
+    public function getLastError(): string
+    {
+        return (string) \Configuration::get(self::CONFIG_LAST_ERROR);
+    }
+
     private function fetchAndCache(): ?array
     {
         $token = $this->getAccessToken();
@@ -191,9 +202,11 @@ class PostmasterManager
 
         $domains = $this->apiGet('/domains', $token);
         if ($domains === null) {
-            // Échec réseau/API — erreur déjà journalisée dans apiGet().
+            // Échec réseau/API — erreur déjà journalisée dans apiGet() et
+            // dans CONFIG_LAST_ERROR (lu par HealthCheckManager).
             return null;
         }
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
         if (empty($domains['domains'])) {
             $this->wd()->warning('Postmaster Tools : aucun domaine vérifié trouvé dans ce compte Google.', '', 'PostmasterManager');
             return [];
@@ -348,6 +361,7 @@ class PostmasterManager
         // trouvé", masquant la vraie cause.
         if ($httpCode >= 400 || isset($data['error'])) {
             $msg = $data['error']['message'] ?? ('HTTP ' . $httpCode);
+            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
             $this->wd()->warning('Postmaster Tools : erreur API — ' . $msg, '', 'PostmasterManager');
             return null;
         }

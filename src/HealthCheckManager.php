@@ -1045,13 +1045,20 @@ class HealthCheckManager
     {
         $stale = [];
         $staleThresholdMinutes = 60 * 24 * 3; // 3 jours
+        $hasSpecificError = false;
 
         if (class_exists('SearchConsoleManager')) {
             $mgr = new \SearchConsoleManager($this->module);
             if ($mgr->isConnected()) {
                 $age = $mgr->getCacheAge();
                 if ($age === null || $age > $staleThresholdMinutes) {
-                    $stale[] = 'Search Console (' . ($age === null ? 'jamais rafraîchi' : round($age / 60 / 24) . 'j') . ')';
+                    $err = $mgr->getLastError();
+                    if ($err !== '') {
+                        $stale[] = 'Search Console (erreur API : ' . $err . ')';
+                        $hasSpecificError = true;
+                    } else {
+                        $stale[] = 'Search Console (' . ($age === null ? 'jamais rafraîchi' : round($age / 60 / 24) . 'j') . ')';
+                    }
                 }
             }
         }
@@ -1061,18 +1068,34 @@ class HealthCheckManager
             if ($mgr->isConnected()) {
                 $age = $mgr->getCacheAge();
                 if ($age === null || $age > $staleThresholdMinutes) {
-                    $stale[] = 'Postmaster Tools (' . ($age === null ? 'jamais rafraîchi' : round($age / 60 / 24) . 'j') . ')';
+                    $err = $mgr->getLastError();
+                    if ($err !== '') {
+                        $stale[] = 'Postmaster Tools (erreur API : ' . $err . ')';
+                        $hasSpecificError = true;
+                    } else {
+                        $stale[] = 'Postmaster Tools (' . ($age === null ? 'jamais rafraîchi' : round($age / 60 / 24) . 'j') . ')';
+                    }
                 }
             }
         }
 
         if ($stale) {
+            // Une erreur API précise (ex. API désactivée, quota dépassé) est plus
+            // actionnable que le message générique de reconnexion OAuth — sans
+            // cette distinction, une vraie cause (ex. API à activer dans Google
+            // Cloud Console) était masquée derrière "reconnectez-vous", qui
+            // n'aurait rien résolu.
+            $advice = $hasSpecificError
+                ? ' → Que faire : une erreur API précise a été détectée ci-dessus — corrigez-la directement'
+                    . ' (ex. activer l\'API concernée dans Google Cloud Console, quota dépassé...), puis cliquez'
+                    . ' sur "Actualiser" dans l\'onglet Statistiques.'
+                : ' → Que faire : le refresh token a peut-être été révoqué côté Google (ou l\'app est encore'
+                    . ' en mode "Test" — les refresh tokens expirent alors après 7 jours). Reconnectez-vous depuis'
+                    . ' l\'onglet Statistiques, et pensez à publier l\'app OAuth dans Google Cloud Console.';
+
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => 'Connexion(s) OAuth avec données obsolètes (> 3j) : ' . implode(', ', $stale) . '.'
-                    . ' → Que faire : le refresh token a peut-être été révoqué côté Google (ou l\'app est encore'
-                    . ' en mode "Test" — les refresh tokens expirent alors après 7 jours). Reconnectez-vous depuis'
-                    . ' l\'onglet Statistiques, et pensez à publier l\'app OAuth dans Google Cloud Console.',
+                'detail' => 'Connexion(s) OAuth avec données obsolètes (> 3j) : ' . implode(', ', $stale) . '.' . $advice,
             ];
         }
 
