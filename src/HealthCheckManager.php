@@ -2486,12 +2486,22 @@ class HealthCheckManager
      * #38 — Contrôleurs frontaux (track.php, unsubscribe.php, waitlist.php)
      * Ces fichiers doivent être présents dans le dossier du module.
      */
+    /**
+     * Liste ne vérifiait que 3 fichiers sur 8 réellement présents dans
+     * controllers/front/ — cron.php (point d'entrée cron externe),
+     * oauth.php/oauthsc.php (callbacks OAuth Postmaster/Search Console)
+     * et bounce.php/preferences.php n'étaient jamais vérifiés. À mettre à
+     * jour si un nouveau contrôleur front est ajouté (pas de source
+     * indépendante du système de fichiers à dériver ici, contrairement aux
+     * tables/hooks/crons).
+     */
     private function checkFrontControllers(): array
     {
-        $base    = _PS_MODULE_DIR_ . 'neria/controllers/front/';
-        $missing = [];
+        $base     = _PS_MODULE_DIR_ . $this->module->name . '/controllers/front/';
+        $expected = ['bounce.php', 'cron.php', 'oauth.php', 'oauthsc.php', 'preferences.php', 'track.php', 'unsubscribe.php', 'waitlist.php'];
+        $missing  = [];
 
-        foreach (['track.php', 'unsubscribe.php', 'waitlist.php'] as $file) {
+        foreach ($expected as $file) {
             if (!file_exists($base . $file)) {
                 $missing[] = $file;
             }
@@ -2500,13 +2510,16 @@ class HealthCheckManager
         if (!empty($missing)) {
             return [
                 'status' => self::STATUS_ERROR,
-                'detail' => 'Fichiers frontaux manquants : ' . implode(', ', $missing) . '.'
-                    . ' → Que faire : Réinstallez les fichiers depuis le package Neria.'
-                    . ' Ces fichiers sont indispensables pour le tracking, les désabonnements et la liste d\'attente.',
+                'detail' => AdminTranslator::tVars('health.front_controllers_missing', [
+                    'list' => implode(', ', $missing),
+                ]),
             ];
         }
 
-        return ['status' => self::STATUS_OK, 'detail' => 'Contrôleurs frontaux présents (track.php, unsubscribe.php, waitlist.php).'];
+        return [
+            'status' => self::STATUS_OK,
+            'detail' => AdminTranslator::tVars('health.front_controllers_ok', ['count' => count($expected)]),
+        ];
     }
 
     /**
