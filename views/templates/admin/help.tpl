@@ -587,7 +587,7 @@
     if (btn) {
       btn.addEventListener('click', function() {
         navigator.clipboard.writeText(url).then(function() {
-          btn.textContent = '✓ Copié';
+          btn.textContent = '{neria_admin key='help.copied_feedback' esc='javascript'}';
           setTimeout(function() { btn.textContent = btn.dataset.label; }, 2000);
         });
       });
@@ -677,7 +677,7 @@
     if (btn) {
       btn.addEventListener('click', function() {
         navigator.clipboard.writeText(url).then(function() {
-          btn.textContent = '✓ Copié';
+          btn.textContent = '{neria_admin key='help.copied_feedback' esc='javascript'}';
           setTimeout(function() { btn.textContent = btn.dataset.label; }, 2000);
         });
       });
@@ -888,6 +888,15 @@
 </div>
 
 {* ── PDF + Partage : JS ─────────────────────────────────────── *}
+<script>
+window.NERIA_HELP_L10N = {
+  pdfGeneratedTitle: "{neria_admin key='help.pdf_generated_title' esc='javascript'}",
+  pdfGeneratedDesc:  "{neria_admin key='help.pdf_generated_desc' esc='javascript'}",
+  pdfOpenPrefix:     "{neria_admin key='help.pdf_open_prefix' esc='javascript'}",
+  printJournalTitle: "{neria_admin key='help.print_journal_title' esc='javascript'}",
+  exportedOn:        "{neria_admin key='help.exported_on' esc='javascript'}"
+};
+</script>
 {literal}
 <script>
 (function () {
@@ -983,13 +992,13 @@
     toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;'
       + 'background:#1a1a2e;color:#fff;border-radius:10px;padding:16px 20px;'
       + 'box-shadow:0 6px 24px rgba(0,0,0,.35);max-width:320px;font-family:sans-serif;';
-    toast.innerHTML = '<div style="font-size:12px;color:#b38b59;font-weight:600;margin-bottom:8px;">📎 PDF généré</div>'
-      + '<div style="font-size:13px;margin-bottom:14px;line-height:1.5;">Enregistrez le PDF, puis cliquez pour ouvrir votre boîte mail.</div>'
+    toast.innerHTML = '<div style="font-size:12px;color:#b38b59;font-weight:600;margin-bottom:8px;">' + window.NERIA_HELP_L10N.pdfGeneratedTitle + '</div>'
+      + '<div style="font-size:13px;margin-bottom:14px;line-height:1.5;">' + window.NERIA_HELP_L10N.pdfGeneratedDesc + '</div>'
       + '<div style="display:flex;gap:8px;align-items:center;">'
       + '<a href="' + mailUrl + '" target="_blank" rel="noopener" '
       +   'style="flex:1;display:block;text-align:center;background:#b38b59;color:#fff;padding:9px 14px;'
       +   'border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;">'
-      + icon + ' Ouvrir ' + label + '</a>'
+      + icon + ' ' + window.NERIA_HELP_L10N.pdfOpenPrefix + ' ' + label + '</a>'
       + '<button onclick="document.getElementById(\'neria-mail-toast\').remove()" '
       +   'style="background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:6px;'
       +   'padding:9px 12px;cursor:pointer;font-size:13px;">✕</button>'
@@ -1042,8 +1051,8 @@
       + '@media print{.notice{display:none;}@page{margin:1cm;}}'
       + '</style></head><body>'
       + '<div class="print-header">'
-      +   '<div><h1>Neria — Journal Watchdog</h1><div style="font-size:10px;color:#888;">' + host + '</div></div>'
-      +   '<div style="text-align:right;font-size:10px;color:#888;">Exporté le ' + now + '<br>PrestaShop BO</div>'
+      +   '<div><h1>' + window.NERIA_HELP_L10N.printJournalTitle + '</h1><div style="font-size:10px;color:#888;">' + host + '</div></div>'
+      +   '<div style="text-align:right;font-size:10px;color:#888;">' + window.NERIA_HELP_L10N.exportedOn + ' ' + now + '<br>PrestaShop BO</div>'
       + '</div>'
       + (notice ? '<div class="notice">📎 ' + notice + '</div>' : '')
       + '<table>' + thead + '<tbody>' + tbody + '</tbody></table>'

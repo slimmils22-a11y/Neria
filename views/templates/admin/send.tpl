@@ -46,7 +46,7 @@
           {neria_admin key='send.email_label'}
         </label>
         <input type="email" id="neria-send-email" name="neria_email" class="neria-input"
-               placeholder="client@exemple.com" required autocomplete="off"
+               placeholder="{neria_admin key='send.email_placeholder' esc='html'}" required autocomplete="off"
                value="{if isset($smarty.post.neria_email)}{$smarty.post.neria_email|escape:'html'}{/if}">
         <span class="neria-hint">{neria_admin key='send.email_hint'}</span>
 
@@ -95,7 +95,7 @@
           {neria_admin key='send.order_label'} <span class="neria-hint">({neria_admin key='common.optional'})</span>
         </label>
         <input type="text" id="neria-send-order" name="neria_order_ref" class="neria-input"
-               placeholder="NER-000123"
+               placeholder="{neria_admin key='send.order_ref_placeholder' esc='html'}"
                value="{if isset($smarty.post.neria_order_ref)}{$smarty.post.neria_order_ref|escape:'html'}{/if}">
       </div>
 
@@ -138,33 +138,33 @@
     <div style="margin-top:20px; padding:16px 20px; background:#f9f6f1; border:1px solid #e8d5b0; border-radius:6px;">
       <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" id="neria-schedule-toggle">
         <span style="font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#4a3f35; opacity:.75;">
-          ⏰ Planifier l'envoi
+          {neria_admin key='send.schedule_toggle_label'}
         </span>
         <span id="neria-schedule-arrow" style="font-size:11px; color:#a08060; transition:.2s;">▼</span>
         <span id="neria-schedule-badge" style="display:none; margin-left:auto; font-size:11px; font-weight:700;
-              background:#16a34a; color:#fff; border-radius:10px; padding:2px 10px;">Planifié</span>
+              background:#16a34a; color:#fff; border-radius:10px; padding:2px 10px;">{neria_admin key='send.schedule_badge_planned'}</span>
       </div>
       <div id="neria-schedule-body" style="display:none; margin-top:14px;">
         <p style="font-size:12px; color:#6b5e52; margin:0 0 12px;">
-          L'email sera mis en file d'attente et envoyé à la date et heure choisies par le cron Neria.
+          {neria_admin key='send.schedule_body_desc'}
         </p>
         <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
           <div class="neria-form-group" style="margin:0;">
-            <label class="neria-label">Date d'envoi</label>
+            <label class="neria-label">{neria_admin key='send.schedule_date_label'}</label>
             <input type="date" id="neria-schedule-date" class="neria-input" style="width:160px;"
                    min="{$smarty.now|date_format:'%Y-%m-%d'}">
           </div>
           <div class="neria-form-group" style="margin:0;">
-            <label class="neria-label">Heure</label>
+            <label class="neria-label">{neria_admin key='send.schedule_time_label'}</label>
             <input type="time" id="neria-schedule-time" class="neria-input" style="width:110px;" value="09:00">
           </div>
           <button type="button" id="neria-schedule-confirm" class="neria-btn neria-btn--ghost" style="margin-bottom:0;">
-            Confirmer la planification
+            {neria_admin key='send.schedule_confirm_btn'}
           </button>
           <button type="button" id="neria-schedule-cancel"
                   style="display:none; background:none; border:none; font-size:12px;
                          color:#dc2626; cursor:pointer; text-decoration:underline; margin-bottom:4px;">
-            ✕ Annuler la planification
+            {neria_admin key='send.schedule_cancel_btn'}
           </button>
         </div>
         <div id="neria-schedule-feedback" style="display:none; margin-top:10px; font-size:12px;
@@ -180,7 +180,7 @@
         <span id="neria-send-btn-label">{neria_admin key='send.send_btn'}</span>
       </button>
       <button type="button" id="neria-preview-btn" class="neria-btn neria-btn--ghost">
-        👁 Prévisualiser
+        {neria_admin key='send.preview_btn'}
       </button>
     </div>
 
@@ -192,11 +192,11 @@
 <div style="margin-top:24px; padding:18px 22px; background:#f9f6f1; border:1px solid #e8d5b0; border-radius:6px;">
   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
     <span style="font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#4a3f35; opacity:.75;">
-      ⏳ Envois planifiés en attente
-      ({if isset($send_queue_pending_total) && $send_queue_pending_total > $send_queue_pending|@count}{$send_queue_pending|@count} affiché(s) sur {$send_queue_pending_total}{else}{$send_queue_pending|@count}{/if})
+      {neria_admin key='send.queue_pending_title'}
+      ({if isset($send_queue_pending_total) && $send_queue_pending_total > $send_queue_pending|@count}{neria_admin key='send.queue_pending_count' n=$send_queue_pending|@count}{$send_queue_pending_total}{else}{$send_queue_pending|@count}{/if})
     </span>
     <button type="button" id="neria-process-queue-btn" class="neria-btn neria-btn--primary" style="font-size:11px; padding:6px 14px;">
-      ▶ Envoyer les emails en retard
+      {neria_admin key='send.process_queue_btn'}
     </button>
   </div>
   <div id="neria-process-queue-result" style="display:none; margin-bottom:10px; padding:8px 12px;
@@ -205,10 +205,10 @@
   <table style="width:100%; border-collapse:collapse; font-size:12px;">
     <thead>
       <tr style="border-bottom:1px solid #e8d5b0; color:#4a3f35; opacity:.7; text-align:left;">
-        <th style="padding:6px 10px 8px;">Template</th>
-        <th style="padding:6px 10px 8px;">Destinataire</th>
-        <th style="padding:6px 10px 8px;">Envoi prévu</th>
-        <th style="padding:6px 10px 8px;">Statut</th>
+        <th style="padding:6px 10px 8px;">{neria_admin key='send.queue_col_template'}</th>
+        <th style="padding:6px 10px 8px;">{neria_admin key='send.queue_col_recipient'}</th>
+        <th style="padding:6px 10px 8px;">{neria_admin key='send.queue_col_scheduled_for'}</th>
+        <th style="padding:6px 10px 8px;">{neria_admin key='send.queue_col_status'}</th>
       </tr>
     </thead>
     <tbody>
@@ -223,7 +223,7 @@
           <span style="background:{if $q.send_at < $smarty.now|date_format:'%Y-%m-%d %H:%M:%S'}#fef2f2{else}#fefce8{/if};
                         color:{if $q.send_at < $smarty.now|date_format:'%Y-%m-%d %H:%M:%S'}#991b1b{else}#854d0e{/if};
                         padding:2px 8px; border-radius:10px; font-size:11px; font-weight:700;">
-            {if $q.send_at < $smarty.now|date_format:'%Y-%m-%d %H:%M:%S'}En retard — cron en attente{else}Programmé{/if}
+            {if $q.send_at < $smarty.now|date_format:'%Y-%m-%d %H:%M:%S'}{neria_admin key='send.queue_status_late'}{else}{neria_admin key='send.queue_status_planned'}{/if}
           </span>
         </td>
       </tr>
@@ -231,8 +231,7 @@
     </tbody>
   </table>
   <p style="margin:10px 0 0; font-size:11px; color:#a08060;">
-    En production, le cron Neria traite automatiquement la file toutes les heures.
-    En développement, utilisez le bouton ci-dessus.
+    {neria_admin key='send.queue_cron_note'}
   </p>
 </div>
 {/if}
@@ -243,7 +242,7 @@
               border-radius:6px 6px 0 0; display:flex; align-items:center; justify-content:space-between;">
     <span style="font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
                  color:#4a3f35; opacity:.75;">
-      👁 Prévisualisation — rendu avec la langue détectée du client
+      {neria_admin key='send.preview_section_title'}
     </span>
     <button type="button" id="neria-preview-close"
             style="background:none; border:none; font-size:16px; cursor:pointer; color:#a08060;">✕</button>
@@ -256,6 +255,23 @@
 </div>
 
 <script>
+window.NERIA_SEND_L10N = {
+  noOrder:                "{neria_admin key='send.customer_no_order' esc='javascript'}",
+  lastOrderLabel:         "{neria_admin key='send.customer_last_order_label' esc='javascript'}",
+  orderPrefix:            "{neria_admin key='send.autocomplete_order_prefix' esc='javascript'}",
+  anniversaryWarnFirst:   "{neria_admin key='send.anniversary_warn_first' esc='javascript'}",
+  anniversaryWarnRelationship: "{neria_admin key='send.anniversary_warn_relationship' esc='javascript'}",
+  dateRequiredAlert:      "{neria_admin key='send.date_required_alert' esc='javascript'}",
+  schedulePlannedFeedback:"{neria_admin key='send.schedule_planned_feedback' esc='javascript'}",
+  scheduleSendBtnLabel:   "{neria_admin key='send.schedule_send_btn_label' esc='javascript'}",
+  sendBtnLabel:           "{neria_admin key='send.send_btn' esc='javascript'}",
+  processingLabel:        "{neria_admin key='send.processing_label' esc='javascript'}",
+  processQueueBtn:        "{neria_admin key='send.process_queue_btn' esc='javascript'}",
+  processedErrorPrefix:   "{neria_admin key='send.processed_error_prefix' esc='javascript'}",
+  processedResultSent:    "{neria_admin key='send.processed_result_sent' esc='javascript'}",
+  processedResultNone:    "{neria_admin key='send.processed_result_none' esc='javascript'}",
+  processedUnexpected:    "{neria_admin key='send.processed_unexpected_response' esc='javascript'}"
+};
 {literal}
 (function () {
   var sel        = document.getElementById('neria-send-template');
@@ -384,10 +400,10 @@
     var label = '<strong>' + esc(c.firstname) + ' ' + esc(c.lastname) + '</strong>'
               + ' — ' + esc(c.email);
     if (c.last_order_ref) {
-      label += ' &nbsp;·&nbsp; Dernière commande : <strong>' + esc(c.last_order_ref) + '</strong>'
+      label += ' &nbsp;·&nbsp; ' + NERIA_SEND_L10N.lastOrderLabel + ' <strong>' + esc(c.last_order_ref) + '</strong>'
              + (c.last_order_date ? ' (' + esc(c.last_order_date) + ')' : '');
     } else {
-      label += ' &nbsp;·&nbsp; <em>Aucune commande</em>';
+      label += ' &nbsp;·&nbsp; <em>' + NERIA_SEND_L10N.noOrder + '</em>';
     }
     custCard.innerHTML = '👤 ' + label;
     custCard.style.display = '';
@@ -409,8 +425,8 @@
       item.innerHTML = '<strong>' + esc(c.firstname) + ' ' + esc(c.lastname) + '</strong>'
                      + ' &lt;' + esc(c.email) + '&gt;'
                      + (c.last_order_ref
-                         ? '<br><span style="color:#a08060;">Cmd: ' + esc(c.last_order_ref) + (c.last_order_date ? ' · ' + esc(c.last_order_date) : '') + '</span>'
-                         : '<br><span style="color:#a08060;font-style:italic;">Aucune commande</span>');
+                         ? '<br><span style="color:#a08060;">' + NERIA_SEND_L10N.orderPrefix + ' ' + esc(c.last_order_ref) + (c.last_order_date ? ' · ' + esc(c.last_order_date) : '') + '</span>'
+                         : '<br><span style="color:#a08060;font-style:italic;">' + NERIA_SEND_L10N.noOrder + '</span>');
       item.addEventListener('mouseenter', function () { this.style.background = '#f9f6f1'; });
       item.addEventListener('mouseleave', function () { this.style.background = ''; });
       item.addEventListener('mousedown', function (e) {
@@ -459,14 +475,10 @@
 
     if (staticWarn && staticText) {
       if (tpl === 'first_anniversary') {
-        staticText.innerHTML = '⚠ <strong>Doublon potentiel :</strong> la fonctionnalité '
-          + '<em>Anniversaire de la relation client</em> envoie également un email chaque année '
-          + 'à la date du 1er achat. Saisissez l\'adresse email du client pour vérifier.';
+        staticText.innerHTML = NERIA_SEND_L10N.anniversaryWarnFirst;
         staticWarn.style.display = '';
       } else if (tpl === 'relationship_anniversary') {
-        staticText.innerHTML = '⚠ <strong>Doublon potentiel :</strong> le template '
-          + '<em>Premier anniversaire client</em> (first_anniversary) s\'envoie également à J+365 '
-          + 'du 1er achat. Si les deux sont actifs, un client peut recevoir deux emails le même jour.';
+        staticText.innerHTML = NERIA_SEND_L10N.anniversaryWarnRelationship;
         staticWarn.style.display = '';
       } else {
         staticWarn.style.display = 'none';
@@ -493,7 +505,7 @@
       var d = schedDate ? schedDate.value : '';
       var t = schedTime ? schedTime.value : '09:00';
       if (!d) {
-        alert('Veuillez choisir une date d\'envoi.');
+        alert(NERIA_SEND_L10N.dateRequiredAlert);
         return;
       }
       var dt = d + ' ' + t + ':00';
@@ -501,13 +513,13 @@
 
       var dFmt = d.split('-').reverse().join('/');
       if (schedFeedback) {
-        schedFeedback.textContent = '✓ Envoi planifié pour le ' + dFmt + ' à ' + t;
+        schedFeedback.textContent = NERIA_SEND_L10N.schedulePlannedFeedback.replace('{date}', dFmt).replace('{time}', t);
         schedFeedback.style.display = '';
       }
       if (schedBadge) { schedBadge.style.display = ''; }
       if (schedCancel) { schedCancel.style.display = ''; }
       if (schedConfirm) { schedConfirm.style.display = 'none'; }
-      if (sendLabel) { sendLabel.textContent = 'Planifier l\'envoi'; }
+      if (sendLabel) { sendLabel.textContent = NERIA_SEND_L10N.scheduleSendBtnLabel; }
     });
   }
 
@@ -518,7 +530,7 @@
       if (schedBadge) { schedBadge.style.display = 'none'; }
       schedCancel.style.display = 'none';
       if (schedConfirm) { schedConfirm.style.display = ''; }
-      if (sendLabel) { sendLabel.textContent = 'Envoyer l\'email'; }
+      if (sendLabel) { sendLabel.textContent = NERIA_SEND_L10N.sendBtnLabel; }
     });
   }
 
@@ -549,20 +561,20 @@
   if (processQueueBtn) {
     processQueueBtn.addEventListener('click', function () {
       processQueueBtn.disabled = true;
-      processQueueBtn.textContent = '⏳ Traitement…';
+      processQueueBtn.textContent = NERIA_SEND_L10N.processingLabel;
       fetch(ajaxUrl('process_queue_now'), { credentials: 'same-origin' })
         .then(function (r) { return r.json(); })
         .then(function (d) {
           if (processQueueResult) {
             if (!d.ok && d.error) {
-              processQueueResult.textContent = '⚠ Erreur : ' + d.error;
+              processQueueResult.textContent = NERIA_SEND_L10N.processedErrorPrefix.replace('{error}', d.error);
               processQueueResult.style.background = '#fef2f2';
               processQueueResult.style.borderColor = '#dc2626';
               processQueueResult.style.color = '#7f1d1d';
             } else {
               processQueueResult.textContent = d.sent > 0
-                ? '✓ ' + d.sent + ' email(s) envoyé(s). Rechargez la page pour mettre à jour.'
-                : '✓ File traitée — aucun email dû pour l\'instant (heure d\'envoi pas encore atteinte ?).';
+                ? NERIA_SEND_L10N.processedResultSent.replace('{n}', d.sent)
+                : NERIA_SEND_L10N.processedResultNone;
               processQueueResult.style.background = '#dcfce7';
               processQueueResult.style.borderColor = '#16a34a';
               processQueueResult.style.color = '#14532d';
@@ -572,7 +584,7 @@
         })
         .catch(function (err) {
           if (processQueueResult) {
-            processQueueResult.textContent = '⚠ Réponse inattendue du serveur (voir Watchdog).';
+            processQueueResult.textContent = NERIA_SEND_L10N.processedUnexpected;
             processQueueResult.style.background = '#fef2f2';
             processQueueResult.style.borderColor = '#dc2626';
             processQueueResult.style.color = '#7f1d1d';
@@ -581,7 +593,7 @@
         })
         .finally(function () {
           processQueueBtn.disabled = false;
-          processQueueBtn.textContent = '▶ Envoyer les emails en retard';
+          processQueueBtn.textContent = NERIA_SEND_L10N.processQueueBtn;
         });
     });
   }

@@ -39,10 +39,10 @@
     <div id="neria-mp-zoom-header">
       <span id="neria-mp-zoom-icon"></span>
       <span id="neria-mp-zoom-name"></span>
-      <button type="button" id="neria-mp-zoom-dark-btn">🌙 Mode sombre</button>
+      <button type="button" id="neria-mp-zoom-dark-btn">{neria_admin key='multipreview.dark_mode_btn'}</button>
       <button type="button" id="neria-mp-zoom-close">✕</button>
     </div>
-    <iframe id="neria-mp-zoom-frame" src="about:blank" sandbox="allow-same-origin" title="Aperçu agrandi"></iframe>
+    <iframe id="neria-mp-zoom-frame" src="about:blank" sandbox="allow-same-origin" title="{neria_admin key='multipreview.zoom_title' esc='html'}"></iframe>
   </div>
 </div>
 
@@ -94,10 +94,10 @@
 
   <div class="neria-mp-toolbar">
     <button type="button" id="neria-mp-dark-toggle" class="neria-btn neria-btn--primary neria-btn--sm">
-      🌙 Simuler le mode sombre (tous les clients)
+      {neria_admin key='multipreview.dark_sim_btn'}
     </button>
     <button type="button" id="neria-mp-export-btn" class="neria-btn neria-btn--primary neria-btn--sm">
-      🖨 Exporter en PDF
+      {neria_admin key='multipreview.export_pdf_btn'}
     </button>
     {if isset($mp_has_litmus) && $mp_has_litmus}
     <button type="button" id="neria-mp-litmus-btn" class="neria-btn neria-btn--secondary neria-btn--sm"
@@ -210,17 +210,33 @@
   </form>
 
   {if isset($mp_has_litmus) && $mp_has_litmus}
+    {capture name="mp_litmus_btn"}{neria_admin key='multipreview.litmus_btn'}{/capture}
+    {capture name="mp_litmus_msg"}{neria_admin key='multipreview.litmus_configured'}{/capture}
     <p style="margin-top:12px; font-size:12px; color:var(--neria-success);">
-      ✓ Clé Litmus configurée — {neria_admin key='multipreview.litmus_btn'} disponible après prévisualisation.
+      {$smarty.capture.mp_litmus_msg|replace:'{btn}':$smarty.capture.mp_litmus_btn}
     </p>
   {/if}
   {if isset($mp_has_eoa) && $mp_has_eoa}
+    {capture name="mp_eoa_btn"}{neria_admin key='multipreview.eoa_btn'}{/capture}
+    {capture name="mp_eoa_msg"}{neria_admin key='multipreview.eoa_configured'}{/capture}
     <p style="margin-top:8px; font-size:12px; color:var(--neria-success);">
-      ✓ Clé Email on Acid configurée — {neria_admin key='multipreview.eoa_btn'} disponible après prévisualisation.
+      {$smarty.capture.mp_eoa_msg|replace:'{btn}':$smarty.capture.mp_eoa_btn}
     </p>
   {/if}
 </div>
 
+<script>
+window.NERIA_MP_L10N = {
+  submissionFailed:  "{neria_admin key='multipreview.submission_failed' esc='javascript'}",
+  testInProgress:    "{neria_admin key='multipreview.test_in_progress' esc='javascript'}",
+  serverUnreachable: "{neria_admin key='multipreview.server_unreachable' esc='javascript'}",
+  testComplete:      "{neria_admin key='multipreview.test_complete' esc='javascript'}",
+  testPartial:       "{neria_admin key='multipreview.test_partial' esc='javascript'}",
+  testTimeout:       "{neria_admin key='multipreview.test_timeout' esc='javascript'}",
+  pollingError:      "{neria_admin key='multipreview.polling_error' esc='javascript'}",
+  sendingToProvider: "{neria_admin key='multipreview.sending_to_provider' esc='javascript'}"
+};
+</script>
 {literal}<script>
 document.addEventListener('click', function (e) {
   // Badge d'anomalies : bascule le détail sans ouvrir le zoom
@@ -345,7 +361,7 @@ function neriaMpRunThirdPartyTest(provider) {
 
   btn.disabled = true;
   statusEl.style.display = '';
-  statusEl.textContent = '⏳ Envoi vers ' + (provider === 'litmus' ? 'Litmus' : 'Email on Acid') + '…';
+  statusEl.textContent = window.NERIA_MP_L10N.sendingToProvider.replace('{provider}', provider === 'litmus' ? 'Litmus' : 'Email on Acid');
   resultsEl.innerHTML = '';
 
   var submitUrl = neriaMpAjaxUrl('multipreview_submit_' + provider,
@@ -355,15 +371,15 @@ function neriaMpRunThirdPartyTest(provider) {
     .then(function (r) { return r.json(); })
     .then(function (d) {
       if (!d || d.error || !d.id) {
-        statusEl.textContent = '⚠ ' + (d && d.error ? d.error : 'Échec de la soumission.');
+        statusEl.textContent = '⚠ ' + (d && d.error ? d.error : window.NERIA_MP_L10N.submissionFailed);
         btn.disabled = false;
         return;
       }
-      statusEl.textContent = '⏳ Test en cours — génération des aperçus…';
+      statusEl.textContent = window.NERIA_MP_L10N.testInProgress;
       neriaMpPollThirdParty(provider, d.id, btn, statusEl, resultsEl, 0);
     })
     .catch(function () {
-      statusEl.textContent = '⚠ Impossible de contacter le serveur.';
+      statusEl.textContent = '⚠ ' + window.NERIA_MP_L10N.serverUnreachable;
       btn.disabled = false;
     });
 }
@@ -391,15 +407,15 @@ function neriaMpPollThirdParty(provider, testId, btn, statusEl, resultsEl, attem
       }
 
       if (results.length && readyCount === results.length) {
-        statusEl.textContent = '✓ Terminé — ' + readyCount + ' rendu(s) client reçu(s).';
+        statusEl.textContent = window.NERIA_MP_L10N.testComplete.replace('{n}', readyCount);
         btn.disabled = false;
         return;
       }
 
       if (attempt >= MAX_ATTEMPTS) {
         statusEl.textContent = readyCount > 0
-          ? '✓ ' + readyCount + '/' + results.length + ' rendu(s) reçu(s) — les autres prennent plus de temps que prévu.'
-          : '⚠ Le test prend plus de temps que prévu — réessayez plus tard.';
+          ? window.NERIA_MP_L10N.testPartial.replace('{ready}', readyCount).replace('{total}', results.length)
+          : window.NERIA_MP_L10N.testTimeout;
         btn.disabled = false;
         return;
       }
@@ -409,7 +425,7 @@ function neriaMpPollThirdParty(provider, testId, btn, statusEl, resultsEl, attem
       }, 4000);
     })
     .catch(function () {
-      statusEl.textContent = '⚠ Erreur lors de la récupération des résultats.';
+      statusEl.textContent = '⚠ ' + window.NERIA_MP_L10N.pollingError;
       btn.disabled = false;
     });
 }

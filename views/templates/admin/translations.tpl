@@ -49,30 +49,30 @@ window.neriaAjaxUrl = function(action, extra) {
   <div id="neria-trad-why" style="border-bottom:1px solid var(--neria-border,#e8d5b0);">
     <button type="button" onclick="neriaToggleWhy()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:none;border:none;cursor:pointer;text-align:left;">
       <span style="font-size:13px;font-weight:700;color:var(--neria-dark,#2c1810);">
-        💡 Neria est déjà traduit en 18 langues — à quoi sert cet onglet ?
+        {neria_admin key='translations.why_title'}
       </span>
       <span id="neria-why-chevron" style="font-size:16px;color:var(--neria-accent,#b8976a);transition:transform .2s;">▾</span>
     </button>
     <div id="neria-why-body" style="padding:0 20px 20px;">
       <p style="margin:0 0 10px;font-size:13px;color:#555;line-height:1.7;">
-        Oui, Neria livre tous vos emails prêts à l'emploi. Mais ces textes sont <strong>génériques</strong> : chaque boutique qui utilise Neria reçoit exactement les mêmes formulations. Cet onglet vous permet de <strong>faire sonner vos emails comme votre marque</strong>, pas comme un logiciel.
+        {neria_admin key='translations.why_body'}
       </p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
         <div style="background:var(--neria-bg-subtle,#f9f6f1);border:1px solid var(--neria-border,#e8d5b0);border-radius:6px;padding:11px 14px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:4px;">Adapter le ton</div>
-          <div style="font-size:12px;color:#666;line-height:1.6;">Remplacez "Cher client" par "Chère Madame, Cher Monsieur" ou par le prénom — selon votre positionnement.</div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:4px;">{neria_admin key='translations.why_card1_title'}</div>
+          <div style="font-size:12px;color:#666;line-height:1.6;">{neria_admin key='translations.why_card1_desc'}</div>
         </div>
         <div style="background:var(--neria-bg-subtle,#f9f6f1);border:1px solid var(--neria-border,#e8d5b0);border-radius:6px;padding:11px 14px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:4px;">Soigner une langue</div>
-          <div style="font-size:12px;color:#666;line-height:1.6;">La traduction par défaut est correcte, mais votre marché attend peut-être un registre différent.</div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:4px;">{neria_admin key='translations.why_card2_title'}</div>
+          <div style="font-size:12px;color:#666;line-height:1.6;">{neria_admin key='translations.why_card2_desc'}</div>
         </div>
         <div style="background:var(--neria-bg-subtle,#f9f6f1);border:1px solid var(--neria-border,#e8d5b0);border-radius:6px;padding:11px 14px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:4px;">Copywriter externe</div>
-          <div style="font-size:12px;color:#666;line-height:1.6;">Exportez les textes en CSV, faites-les réécrire par un professionnel, réimportez. Zéro copier-coller.</div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:4px;">{neria_admin key='translations.why_card3_title'}</div>
+          <div style="font-size:12px;color:#666;line-height:1.6;">{neria_admin key='translations.why_card3_desc'}</div>
         </div>
         <div style="background:var(--neria-bg-subtle,#f9f6f1);border:1px solid var(--neria-border,#e8d5b0);border-radius:6px;padding:11px 14px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:4px;">Multi-boutiques</div>
-          <div style="font-size:12px;color:#666;line-height:1.6;">Exportez vos textes depuis une boutique et importez-les sur les autres en quelques secondes.</div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-accent,#b8976a);margin-bottom:4px;">{neria_admin key='translations.why_card4_title'}</div>
+          <div style="font-size:12px;color:#666;line-height:1.6;">{neria_admin key='translations.why_card4_desc'}</div>
         </div>
       </div>
       <div style="border-top:1px solid var(--neria-border,#e8d5b0);padding-top:12px;">
@@ -83,7 +83,7 @@ window.neriaAjaxUrl = function(action, extra) {
           <li>{neria_admin key='translations.howto_step3'}</li>
         </ol>
         <p style="margin:0 0 5px;font-size:12px;color:#888;line-height:1.6;">📊 {neria_admin key='translations.subject_hint'}</p>
-        <p style="margin:0;font-size:12px;color:#888;line-height:1.6;">🔒 <strong>Vos modifications sont protégées :</strong> les mises à jour de Neria ne les écrasent jamais. Chaque champ retravaillé est marqué <span style="background:#f3ede4;color:#b38b59;border-radius:3px;padding:1px 6px;font-size:11px;font-family:monospace;">PERSONNALISÉ</span> et toujours restaurable en un clic.</p>
+        <p style="margin:0;font-size:12px;color:#888;line-height:1.6;">{neria_admin key='translations.protected_note'}</p>
       </div>
     </div>
   </div>
@@ -125,7 +125,7 @@ window.neriaAjaxUrl = function(action, extra) {
       </div>
       <div class="neria-form-group">
         <label class="neria-label" style="visibility:hidden">.</label>
-        <button type="button" class="neria-btn neria-btn--secondary" id="neria-toggle-preview" title="Afficher/masquer l'aperçu en temps réel">⊞ Aperçu</button>
+        <button type="button" class="neria-btn neria-btn--secondary" id="neria-toggle-preview" title="{neria_admin key='translations.toggle_preview_title' esc='html'}">⊞ {neria_admin key='common.preview'}</button>
       </div>
       <div class="neria-form-group" style="margin-left:auto;">
         <label class="neria-label" style="visibility:hidden">.</label>
@@ -145,25 +145,24 @@ window.neriaAjaxUrl = function(action, extra) {
       <a href="https://www.deepl.com/pro-api" target="_blank" style="font-size:11px;color:var(--neria-accent);text-decoration:none;margin-left:auto;">{neria_admin key='translations.deepl_get_key'} →</a>
     </div>
     <p style="margin:0 0 10px;font-size:13px;color:var(--neria-text);line-height:1.7;">
-      <strong>DeepL</strong> est un service de traduction automatique de haute qualité — bien supérieur à Google Translate pour les textes professionnels. Il traduit vos emails Neria du français vers n'importe laquelle des 18 langues supportées en quelques secondes.
+      {neria_admin key='translations.deepl_intro'}
     </p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;font-size:12px;color:var(--neria-text-muted);line-height:1.6;margin-bottom:12px;">
-      <div>🎁 <strong style="color:var(--neria-text);">Plan gratuit</strong> — 500 000 car./mois — suffisant pour vos 125 templates.</div>
-      <div>🌍 <strong style="color:var(--neria-text);">18 langues supportées</strong> — dont japonais, coréen, arabe, chinois…</div>
-      <div>🔒 <strong style="color:var(--neria-text);">Vos textes restent modifiables</strong> — DeepL pré-remplit, vous relisez et corrigez.</div>
-      <div>↺ <strong style="color:var(--neria-text);">Réversible à tout moment</strong> — les textes Neria d'origine sont toujours restaurables.</div>
+      <div>{neria_admin key='translations.deepl_bullet1'}</div>
+      <div>{neria_admin key='translations.deepl_bullet2'}</div>
+      <div>{neria_admin key='translations.deepl_bullet3'}</div>
+      <div>{neria_admin key='translations.deepl_bullet4'}</div>
     </div>
     <p style="margin:0 0 10px;font-size:12px;color:var(--neria-text-muted);">
-      <strong style="color:var(--neria-text);">Comment obtenir votre clé gratuite :</strong>
-      créez un compte sur <strong>deepl.com</strong> → section <em>API</em> → copiez votre clé API Free (elle se termine par <code style="background:var(--neria-bg-hover);padding:1px 5px;border-radius:3px;">:fx</code>) → collez-la ci-dessous.
+      {neria_admin key='translations.deepl_howto'}
     </p>
     <form method="post" class="neria-deepl-key-row">
       <input type="hidden" name="neria_action" value="save_deepl_key">
       <input type="password" name="deepl_key" id="neria-deepl-key-input" class="neria-input"
-             placeholder="xxxx-xxxx-xxxx-xxxx:fx  (clé gratuite) ou xxxx-xxxx-xxxx-xxxx (Pro)"
+             placeholder="{neria_admin key='translations.deepl_key_placeholder' esc='html'}"
              value="{$deepl_key|default:''}">
       <button type="button" id="neria-deepl-toggle-vis" class="neria-btn neria-btn--secondary neria-btn--sm"
-              title="Afficher/masquer"
+              title="{neria_admin key='translations.toggle_visibility_title' esc='html'}"
               onclick="var f=document.getElementById('neria-deepl-key-input');f.type=f.type==='password'?'text':'password';">👁</button>
       <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">{neria_admin key='common.save'}</button>
       <span style="font-size:11px;color:var(--neria-text-muted);">
@@ -187,7 +186,7 @@ window.neriaAjaxUrl = function(action, extra) {
         <input type="hidden" name="trad_lang"      value="{$selected_lang}">
         <input type="hidden" name="all_langs"      value="0">
         <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm"
-                title="Télécharger le CSV de cette langue">
+                title="{neria_admin key='translations.export_lang_title' esc='html'}">
           ⬇ {$lang_flags[$selected_lang]|default:''} {neria_admin key='translations.export_lang'}
         </button>
       </form>
@@ -197,7 +196,7 @@ window.neriaAjaxUrl = function(action, extra) {
         <input type="hidden" name="trad_lang"      value="{$selected_lang}">
         <input type="hidden" name="all_langs"      value="1">
         <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm"
-                title="Télécharger le CSV de toutes les langues">
+                title="{neria_admin key='translations.export_all_title' esc='html'}">
           ⬇ {neria_admin key='translations.export_all_langs'}
         </button>
       </form>
@@ -230,7 +229,7 @@ window.neriaAjaxUrl = function(action, extra) {
               id="neria-auto-translate"
               data-template="{$selected_template}"
               data-lang="{$selected_lang}"
-              {if $deepl_key|default:'' eq ''}disabled title="Renseignez la clé API DeepL ci-dessus"{/if}>
+              {if $deepl_key|default:'' eq ''}disabled title="{neria_admin key='translations.deepl_key_required' esc='html'}"{/if}>
         ✨ {neria_admin key='translations.auto_translate'}
       </button>
       <span id="neria-translate-status" style="font-size:11px;color:var(--neria-text-muted);"></span>
@@ -304,7 +303,7 @@ window.neriaAjaxUrl = function(action, extra) {
           ❌ {neria_admin key='translations.voice_banned_label'}
         </label>
         <textarea id="neria-voice-banned" name="voice_banned_words" class="neria-input" rows="4"
-                  placeholder="boutique&#10;produit&#10;achat">{$voice_profile.banned_words|default:''|escape:'html'}</textarea>
+                  placeholder="{neria_admin key='translations.voice_banned_placeholder'}">{$voice_profile.banned_words|default:''|escape:'html'}</textarea>
         <p class="neria-hint">{neria_admin key='translations.voice_banned_hint'}</p>
       </div>
       <div class="neria-form-group">
@@ -312,7 +311,7 @@ window.neriaAjaxUrl = function(action, extra) {
           ✅ {neria_admin key='translations.voice_preferred_label'}
         </label>
         <textarea id="neria-voice-preferred" name="voice_preferred_words" class="neria-input" rows="4"
-                  placeholder="création&#10;atelier&#10;savoir-faire">{$voice_profile.preferred_words|default:''|escape:'html'}</textarea>
+                  placeholder="{neria_admin key='translations.voice_preferred_placeholder'}">{$voice_profile.preferred_words|default:''|escape:'html'}</textarea>
         <p class="neria-hint">{neria_admin key='translations.voice_preferred_hint'}</p>
       </div>
     </div>
@@ -464,7 +463,7 @@ window.neriaAjaxUrl = function(action, extra) {
                   </div>
                   <div id="nsa_spam_{$key}" style="display:none;margin-top:5px;font-size:11px;color:#c0392b;line-height:1.4;"></div>
                   <p style="margin:6px 0 0;font-size:11px;color:var(--neria-text-muted,#aaa);line-height:1.5;">
-                    Cette barre mesure la qualité de votre objet d'email : longueur idéale (20–50 car.), absence de mots spam, pas de majuscules excessives. <strong style="color:var(--neria-text,#555);">Visez 80/100 minimum</strong> pour maximiser le taux d'ouverture.
+                    {neria_admin key='translations.subject_score_hint'}
                   </p>
                 </div>
                 <script>
@@ -549,7 +548,7 @@ window.neriaAjaxUrl = function(action, extra) {
             <table class="neria-changelog-table">
               <thead>
                 <tr>
-                  <th>Date</th><th>Champ</th><th>Ancienne valeur</th><th>Nouvelle valeur</th><th>Auteur</th><th></th>
+                  <th>{neria_admin key='common.date'}</th><th>{neria_admin key='translations.col_field'}</th><th>{neria_admin key='translations.col_old_value'}</th><th>{neria_admin key='translations.col_new_value'}</th><th>{neria_admin key='translations.col_author'}</th><th></th>
                 </tr>
               </thead>
               <tbody>
@@ -592,7 +591,7 @@ window.neriaAjaxUrl = function(action, extra) {
               </tbody>
             </table>
             {else}
-            <p class="neria-changelog__empty">Aucune modification enregistrée pour ce template dans cette langue.</p>
+            <p class="neria-changelog__empty">{neria_admin key='translations.history_empty'}</p>
             {/if}
           </div>
         </div>
@@ -610,10 +609,10 @@ window.neriaAjaxUrl = function(action, extra) {
               <h2 class="neria-section__title" style="margin:0 0 4px;">
                 {$template_labels[$selected_template]|default:$selected_template}
                 <span class="neria-lang-chip">{$lang_flags[$selected_lang]|default:''} {$lang_labels[$selected_lang]|default:$selected_lang}</span>
-                <span class="neria-badge neria-badge--accent" style="margin-left:8px;">Variante B</span>
+                <span class="neria-badge neria-badge--accent" style="margin-left:8px;">{neria_admin key='translations.variant_b_badge'}</span>
               </h2>
               <p style="margin:0 0 12px;font-size:12px;color:var(--neria-text-muted,#888);">
-                Textes alternatifs envoyés à la moitié de vos clients. Modifiez uniquement les champs que vous voulez tester.
+                {neria_admin key='translations.variant_b_desc'}
               </p>
             </div>
             {* Toolbar Variante B — même structure que le toolbar A *}
@@ -628,7 +627,7 @@ window.neriaAjaxUrl = function(action, extra) {
                   <input type="hidden" name="trad_lang"      value="{$selected_lang}">
                   <input type="hidden" name="id_abtest_b"    value="{$id_abtest_b}">
                   <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm"
-                          title="Télécharger le CSV Variante B de cette langue">
+                          title="{neria_admin key='translations.export_lang_b_title' esc='html'}">
                     ⬇ {$lang_flags[$selected_lang]|default:''} {neria_admin key='translations.export_lang'}
                   </button>
                 </form>
@@ -662,7 +661,7 @@ window.neriaAjaxUrl = function(action, extra) {
                         data-template="{$selected_template}"
                         data-lang="{$selected_lang}"
                         data-idabtest="{$id_abtest_b}"
-                        {if $deepl_key|default:'' eq ''}disabled title="Renseignez la clé API DeepL ci-dessus"{/if}>
+                        {if $deepl_key|default:'' eq ''}disabled title="{neria_admin key='translations.deepl_key_required' esc='html'}"{/if}>
                   ✨ {neria_admin key='translations.auto_translate'}
                 </button>
                 <span id="neria-translate-b-status" style="font-size:11px;color:var(--neria-text-muted);"></span>
@@ -729,7 +728,7 @@ window.neriaAjaxUrl = function(action, extra) {
                   </div>
                   <div id="nsa_b_spam_{$key}" style="display:none;margin-top:5px;font-size:11px;color:#c0392b;line-height:1.4;"></div>
                   <p style="margin:6px 0 0;font-size:11px;color:var(--neria-text-muted,#aaa);line-height:1.5;">
-                    Cette barre mesure la qualité de votre objet d'email : longueur idéale (20–50 car.), absence de mots spam, pas de majuscules excessives. <strong style="color:var(--neria-text,#555);">Visez 80/100 minimum</strong> pour maximiser le taux d'ouverture.
+                    {neria_admin key='translations.subject_score_hint'}
                   </p>
                 </div>
                 <script>
@@ -789,7 +788,7 @@ window.neriaAjaxUrl = function(action, extra) {
           </div>
           <div class="neria-form-actions neria-form-actions--sticky">
             <button type="submit" class="neria-btn neria-btn--primary">
-              {neria_admin key='translations.save'} — Variante B
+              {neria_admin key='translations.save'} {neria_admin key='translations.variant_b_suffix'}
             </button>
           </div>
         </form>
@@ -800,7 +799,7 @@ window.neriaAjaxUrl = function(action, extra) {
           <div class="neria-trad-header">
             <button type="button" class="neria-btn neria-btn--primary neria-btn--sm"
                     onclick="document.getElementById('neria-changelog-b-body').classList.toggle('neria-changelog--hidden');">
-              {neria_admin key='translations.history_title'} — Variante B
+              {neria_admin key='translations.history_title'} {neria_admin key='translations.variant_b_suffix'}
               <span class="neria-badge" style="margin-left:6px;font-size:11px;background:rgba(255,255,255,.2);color:#fff;border-radius:10px;padding:1px 7px;">{$translation_history_b|count}</span>
               <span style="margin-left:6px;font-size:10px;">&#9660;</span>
             </button>
@@ -810,7 +809,7 @@ window.neriaAjaxUrl = function(action, extra) {
             <table class="neria-changelog-table">
               <thead>
                 <tr>
-                  <th>Date</th><th>Champ</th><th>Ancienne valeur</th><th>Nouvelle valeur</th><th>Auteur</th><th></th>
+                  <th>{neria_admin key='common.date'}</th><th>{neria_admin key='translations.col_field'}</th><th>{neria_admin key='translations.col_old_value'}</th><th>{neria_admin key='translations.col_new_value'}</th><th>{neria_admin key='translations.col_author'}</th><th></th>
                 </tr>
               </thead>
               <tbody>
@@ -854,7 +853,7 @@ window.neriaAjaxUrl = function(action, extra) {
               </tbody>
             </table>
             {else}
-            <p class="neria-changelog__empty">Aucune modification enregistrée pour la Variante B de ce template.</p>
+            <p class="neria-changelog__empty">{neria_admin key='translations.history_empty_b'}</p>
             {/if}
           </div>
         </div>
@@ -869,7 +868,7 @@ window.neriaAjaxUrl = function(action, extra) {
     <div class="neria-trad-preview-col" id="neria-trad-preview-col" style="display:none;">
       <div class="neria-preview-header">
         <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--neria-text-light);">
-          ⊞ Aperçu — {$template_labels[$selected_template]|default:$selected_template}
+          ⊞ {neria_admin key='common.preview'} — {$template_labels[$selected_template]|default:$selected_template}
           <span class="neria-lang-chip" style="margin-left:6px;">
             {$lang_flags[$selected_lang]|default:''} {$lang_labels[$selected_lang]|default:$selected_lang}
           </span>
@@ -889,7 +888,7 @@ window.neriaAjaxUrl = function(action, extra) {
           {/if}
           <button type="button" class="neria-btn neria-btn--primary neria-btn--sm"
                   onclick="document.getElementById('neria-trad-preview').contentWindow.location.reload();">
-            ↺ Rafraîchir
+            ↺ {neria_admin key='common.refresh'}
           </button>
         </div>
       </div>
@@ -934,7 +933,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(url).then(function(r){ return r.json(); }).then(function(data) {
           var items = data.results || [];
           if (!items.length) {
-            searchResults.innerHTML = '<div class="neria-search-empty">Aucun résultat pour « ' + escHtml(q) + ' »</div>';
+            searchResults.innerHTML = '<div class="neria-search-empty">' + '{neria_admin key='translations.search_no_results' esc='javascript'}'.replace('%s', escHtml(q)) + '</div>';
           } else {
             var html = '';
             items.forEach(function(item) {
@@ -986,11 +985,11 @@ document.addEventListener('DOMContentLoaded', function() {
   if (btnTranslate) {
     btnTranslate.addEventListener('click', function() {
       var self = this;
-      neriaConfirmAction('Traduire automatiquement TOUS les champs depuis le français via DeepL ?\n\nLes champs existants seront écrasés.', function() {
+      neriaConfirmAction('{neria_admin key='translations.confirm_translate_all' esc='javascript'}', function() {
         var tpl  = self.getAttribute('data-template');
         var lang = self.getAttribute('data-lang');
         btnTranslate.disabled = true;
-        translateStatus.textContent = '⏳ Traduction en cours...';
+        translateStatus.textContent = '{neria_admin key='translations.translating_progress' esc='javascript'}';
         var url = window.neriaAjaxUrl('auto_translate_template') + '&trad_template=' + encodeURIComponent(tpl) + '&trad_lang=' + encodeURIComponent(lang);
         fetch(url).then(function(r){ return r.json(); }).then(function(data) {
           btnTranslate.disabled = false;
@@ -1004,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }).catch(function() {
           btnTranslate.disabled = false;
-          translateStatus.textContent = '❌ Erreur réseau';
+          translateStatus.textContent = '{neria_admin key='translations.network_error' esc='javascript'}';
           translateStatus.style.color = '#c0392b';
         });
       });
@@ -1017,12 +1016,12 @@ document.addEventListener('DOMContentLoaded', function() {
   if (btnTranslateB) {
     btnTranslateB.addEventListener('click', function() {
       var self = this;
-      neriaConfirmAction('Traduire automatiquement tous les champs de la Variante B depuis le français via DeepL ?\n\nSeuls les champs non renseignés seront traduits.', function() {
+      neriaConfirmAction('{neria_admin key='translations.confirm_translate_b' esc='javascript'}', function() {
       var tpl      = self.getAttribute('data-template');
       var lang     = self.getAttribute('data-lang');
       var idAbtest = self.getAttribute('data-idabtest');
       btnTranslateB.disabled = true;
-      translateStatusB.textContent = '⏳ Traduction en cours...';
+      translateStatusB.textContent = '{neria_admin key='translations.translating_progress' esc='javascript'}';
       var url = window.neriaAjaxUrl('auto_translate_variant_b')
               + '&trad_template=' + encodeURIComponent(tpl)
               + '&trad_lang='     + encodeURIComponent(lang)
@@ -1039,7 +1038,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }).catch(function() {
         btnTranslateB.disabled = false;
-        translateStatusB.textContent = '❌ Erreur réseau';
+        translateStatusB.textContent = '{neria_admin key='translations.network_error' esc='javascript'}';
         translateStatusB.style.color = '#c0392b';
       });
       });
@@ -1053,7 +1052,7 @@ document.addEventListener('DOMContentLoaded', function() {
     btnToggle.addEventListener('click', function() {
       var isHidden = previewCol.style.display === 'none';
       previewCol.style.display = isHidden ? 'flex' : 'none';
-      btnToggle.textContent = isHidden ? '✕ Masquer aperçu' : '⊞ Aperçu';
+      btnToggle.textContent = isHidden ? '{neria_admin key='translations.hide_preview' esc='javascript'}' : '⊞ {neria_admin key='common.preview' esc='javascript'}';
       if (isHidden) {
         setTimeout(function() {
           previewCol.scrollIntoView({ behavior: 'smooth', block: 'start' });
