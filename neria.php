@@ -5458,6 +5458,22 @@ class Neria extends Module
             $tab = 'configure';
         }
 
+        // Feedback transmis en GET par un contrôleur front (ex. callback OAuth
+        // Postmaster/Search Console qui redirige ici après connexion) — sans
+        // ce relais, le marchand ne voit jamais le résultat de la connexion.
+        // Ne pas écraser un feedback déjà assigné par une action POST traitée
+        // plus haut dans getContentImpl().
+        $existingVars = $this->context->smarty->getTemplateVars();
+        if (empty($existingVars['neria_success']) && empty($existingVars['neria_error'])) {
+            $getSuccess = (string) Tools::getValue('neria_success');
+            $getError   = (string) Tools::getValue('neria_error');
+            if ($getSuccess !== '') {
+                $this->context->smarty->assign('neria_success', $getSuccess);
+            } elseif ($getError !== '') {
+                $this->context->smarty->assign('neria_error', $getError);
+            }
+        }
+
         $this->checkSmartyCriticalVars($tab);
 
         return $this->renderTemplate($tab . '.tpl');

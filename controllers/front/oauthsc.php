@@ -26,6 +26,14 @@ class NeriaOauthscModuleFrontController extends ModuleFrontController
         // l'employee n'est pas chargé dans ce contexte. La sécurité est assurée
         // par le paramètre state (CSRF token vérifié dans handleCallback).
 
+        if (!class_exists('WatchdogManager')) {
+            require_once _PS_MODULE_DIR_ . 'neria/src/WatchdogManager.php';
+        }
+        if (!class_exists('AdminTranslator')) {
+            require_once _PS_MODULE_DIR_ . 'neria/src/AdminTranslator.php';
+        }
+        \AdminTranslator::setLang(\WatchdogManager::shopLang());
+
         $code  = (string) \Tools::getValue('code',  '');
         $state = (string) \Tools::getValue('state', '');
         $error = (string) \Tools::getValue('error', '');
@@ -38,11 +46,11 @@ class NeriaOauthscModuleFrontController extends ModuleFrontController
         }
 
         if ($error !== '') {
-            \Tools::redirectAdmin($returnUrl . '&neria_error=' . urlencode('Connexion Google annulée : ' . $error));
+            \Tools::redirectAdmin($returnUrl . '&neria_error=' . urlencode(\AdminTranslator::tVars('msg.oauth_cancelled', ['error' => $error])));
         }
 
         if ($code === '' || $state === '') {
-            \Tools::redirectAdmin($returnUrl . '&neria_error=' . urlencode('Paramètres OAuth manquants.'));
+            \Tools::redirectAdmin($returnUrl . '&neria_error=' . urlencode(\AdminTranslator::t('msg.oauth_missing_params')));
         }
 
         if (!class_exists('SearchConsoleManager')) {
@@ -56,7 +64,7 @@ class NeriaOauthscModuleFrontController extends ModuleFrontController
             if (class_exists('WatchdogManager')) {
                 try {
                     (new \WatchdogManager($this->module))->error(
-                        'Callback OAuth Search Console — exception : ' . $e->getMessage(),
+                        \WatchdogManager::i18nMsg('watchdog.gsc_oauth_failed', ['error' => $e->getMessage()]),
                         '', 'OauthController'
                     );
                 } catch (\Throwable $ignored) {
@@ -66,9 +74,9 @@ class NeriaOauthscModuleFrontController extends ModuleFrontController
         }
 
         if ($ok) {
-            \Tools::redirectAdmin($returnUrl . '&neria_success=' . urlencode('Google Search Console connecté avec succès !'));
+            \Tools::redirectAdmin($returnUrl . '&neria_success=' . urlencode(\AdminTranslator::t('msg.gsc_oauth_connected')));
         } else {
-            \Tools::redirectAdmin($returnUrl . '&neria_error=' . urlencode('Échec de l\'échange OAuth. Vérifiez vos Client ID et Secret.'));
+            \Tools::redirectAdmin($returnUrl . '&neria_error=' . urlencode(\AdminTranslator::t('msg.gsc_oauth_exchange_failed')));
         }
     }
 }
