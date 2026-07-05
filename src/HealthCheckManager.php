@@ -222,6 +222,7 @@ class HealthCheckManager
             // ── Contrôles proactifs ─────────────────────────────────────
             'engagement_trend'     => $this->checkEngagementTrend(),
             'oauth_freshness'      => $this->checkOAuthFreshness(),
+            'visibility_freshness' => $this->checkVisibilityIntegrationsFreshness(),
             'active_cron'          => $this->checkActiveCron(),
         ];
     }
@@ -1260,6 +1261,91 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.oauth_all_fresh')];
+    }
+
+    /**
+     * Contrôle proactif — Fraîcheur des intégrations de visibilité web
+     * PageSpeedManager et SeoApiManager implémentent tous les deux
+     * getCacheAge() (même mécanisme que SearchConsoleManager/PostmasterManager)
+     * mais n'étaient surveillés par AUCUN contrôle Watchdog : si une clé
+     * PageSpeed expire ou qu'un abonnement Semrush/Moz se termine, le score
+     * de santé restait "OK" indéfiniment, l'erreur n'étant visible que dans
+     * le journal brut. Même logique que checkOAuthFreshness() : staleness,
+     * erreur API précise si disponible, escalade en ERROR après 7 jours
+     * d'erreur continue.
+     */
+    private function checkVisibilityIntegrationsFreshness(): array
+    {
+        $stale = [];
+        $staleThresholdMinutes = 60 * 24 * 3; // 3 jours
+        $persistentThresholdDays = 7;
+        $hasSpecificError = false;
+        $maxErrorDays = 0;
+
+        if (class_exists('PageSpeedManager')) {
+            $mgr = new \PageSpeedManager($this->module);
+            if ($mgr->isConfigured()) {
+                $age = $mgr->getCacheAge();
+                if ($age === null || $age > $staleThresholdMinutes) {
+                    $err = $mgr->getLastError();
+                    if ($err !== '') {
+                        $stale[] = 'PageSpeed (' . AdminTranslator::tVars('health.oauth_error_label', ['error' => $err]) . ')';
+                        $hasSpecificError = true;
+                        $errAt = $mgr->getLastErrorAt();
+                        if ($errAt) {
+                            $maxErrorDays = max($maxErrorDays, (int) floor((time() - $errAt) / 86400));
+                        }
+                    } else {
+                        $ageLabel = $age === null
+                            ? AdminTranslator::t('health.oauth_never_refreshed')
+                            : AdminTranslator::tVars('health.oauth_age_days', ['days' => (int) round($age / 60 / 24)]);
+                        $stale[] = 'PageSpeed (' . $ageLabel . ')';
+                    }
+                }
+            }
+        }
+
+        if (class_exists('SeoApiManager')) {
+            $mgr = new \SeoApiManager($this->module);
+            if ($mgr->isConfigured()) {
+                $age = $mgr->getCacheAge();
+                if ($age === null || $age > $staleThresholdMinutes) {
+                    $err = $mgr->getLastError();
+                    if ($err !== '') {
+                        $stale[] = 'API SEO (' . AdminTranslator::tVars('health.oauth_error_label', ['error' => $err]) . ')';
+                        $hasSpecificError = true;
+                        $errAt = $mgr->getLastErrorAt();
+                        if ($errAt) {
+                            $maxErrorDays = max($maxErrorDays, (int) floor((time() - $errAt) / 86400));
+                        }
+                    } else {
+                        $ageLabel = $age === null
+                            ? AdminTranslator::t('health.oauth_never_refreshed')
+                            : AdminTranslator::tVars('health.oauth_age_days', ['days' => (int) round($age / 60 / 24)]);
+                        $stale[] = 'API SEO (' . $ageLabel . ')';
+                    }
+                }
+            }
+        }
+
+        if ($stale) {
+            $isPersistent = $hasSpecificError && $maxErrorDays >= $persistentThresholdDays;
+
+            if ($isPersistent) {
+                $advice = AdminTranslator::tVars('health.oauth_advice_persistent', ['days' => $maxErrorDays]);
+            } elseif ($hasSpecificError) {
+                $advice = AdminTranslator::t('health.visibility_advice_specific_error');
+            } else {
+                $advice = AdminTranslator::t('health.visibility_advice_generic');
+            }
+
+            return [
+                'status' => $isPersistent ? self::STATUS_ERROR : self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.visibility_stale_detail', ['list' => implode(', ', $stale)]) . ' ' . $advice,
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.visibility_all_fresh')];
     }
 
     /**

@@ -21,6 +21,8 @@ class PageSpeedManager
     const CONFIG_TARGET_URL = 'NERIA_PAGESPEED_TARGET_URL'; // URL custom (optionnel)
     const CONFIG_CACHE      = 'NERIA_PAGESPEED_CACHE';
     const CONFIG_CACHE_TIME = 'NERIA_PAGESPEED_CACHE_TIME';
+    const CONFIG_LAST_ERROR    = 'NERIA_PAGESPEED_LAST_ERROR';
+    const CONFIG_LAST_ERROR_AT = 'NERIA_PAGESPEED_LAST_ERROR_AT';
 
     const CACHE_TTL = 86400; // 24h
     const API_URL   = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
@@ -64,6 +66,33 @@ class PageSpeedManager
     {
         $t = (int) \Configuration::get(self::CONFIG_CACHE_TIME);
         return $t ? (int) round((time() - $t) / 60) : null;
+    }
+
+    /**
+     * Dernière erreur API rencontrée (vide si le dernier appel a réussi).
+     * Utilisé par HealthCheckManager pour afficher la vraie cause.
+     */
+    public function getLastError(): string
+    {
+        return (string) \Configuration::get(self::CONFIG_LAST_ERROR);
+    }
+
+    /**
+     * Timestamp Unix du début de la série d'échecs API en cours (null si le
+     * dernier appel a réussi). Permet de mesurer une panne persistante.
+     */
+    public function getLastErrorAt(): ?int
+    {
+        $t = (int) \Configuration::get(self::CONFIG_LAST_ERROR_AT);
+        return $t ?: null;
+    }
+
+    private function recordError(string $msg): void
+    {
+        \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+        if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
+            \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+        }
     }
 
     // ============================================================
@@ -159,30 +188,31 @@ class PageSpeedManager
 
         if (!$body) {
             $msg = 'PageSpeed [{' . $strategy . '}] — erreur réseau : ' . $curlErr . ' — URL non accessible publiquement.';
-            \Configuration::updateValue('NERIA_PAGESPEED_LAST_ERROR', 'Erreur réseau : ' . $curlErr . ' — L\'URL doit être publiquement accessible par Google.');
+            $this->recordError('Erreur réseau : ' . $curlErr . ' — L\'URL doit être publiquement accessible par Google.');
             $this->wd()->warning($msg, '', 'PageSpeedManager');
             return null;
         }
         if ($httpCode === 400) {
             $errData = json_decode($body, true);
             $msg = $errData['error']['message'] ?? 'Requête invalide (HTTP 400)';
-            \Configuration::updateValue('NERIA_PAGESPEED_LAST_ERROR', $msg);
+            $this->recordError($msg);
             $this->wd()->warning('PageSpeed [' . $strategy . '] HTTP 400 : ' . $msg, '', 'PageSpeedManager');
             return null;
         }
         if ($httpCode === 403) {
             $msg = 'Clé API invalide ou PageSpeed Insights API non activée (HTTP 403).';
-            \Configuration::updateValue('NERIA_PAGESPEED_LAST_ERROR', $msg);
+            $this->recordError($msg);
             $this->wd()->error('PageSpeed [' . $strategy . '] HTTP 403 : clé API invalide ou API non activée.', '', 'PageSpeedManager');
             return null;
         }
         if ($httpCode !== 200) {
             $msg = 'Erreur HTTP ' . $httpCode . ' — vérifiez la clé API et l\'URL cible.';
-            \Configuration::updateValue('NERIA_PAGESPEED_LAST_ERROR', $msg);
+            $this->recordError($msg);
             $this->wd()->warning('PageSpeed [' . $strategy . '] HTTP ' . $httpCode, '', 'PageSpeedManager');
             return null;
         }
-        \Configuration::deleteByName('NERIA_PAGESPEED_LAST_ERROR');
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
 
         $data = json_decode($body, true);
         if (!is_array($data)) {

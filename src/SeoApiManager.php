@@ -23,6 +23,8 @@ class SeoApiManager
     const CONFIG_MOZ_SECRET  = 'NERIA_MOZ_SECRET_KEY';
     const CONFIG_CACHE       = 'NERIA_SEO_API_CACHE';
     const CONFIG_CACHE_TIME  = 'NERIA_SEO_API_CACHE_TIME';
+    const CONFIG_LAST_ERROR    = 'NERIA_SEO_API_LAST_ERROR';
+    const CONFIG_LAST_ERROR_AT = 'NERIA_SEO_API_LAST_ERROR_AT';
 
     const CACHE_TTL = 86400; // 24h
 
@@ -98,6 +100,40 @@ class SeoApiManager
         return $t ? (int) round((time() - $t) / 60) : null;
     }
 
+    /**
+     * Dernière erreur API rencontrée (vide si le dernier appel a réussi).
+     * Utilisé par HealthCheckManager pour afficher la vraie cause au lieu
+     * d'un simple silence — voir aussi SearchConsoleManager::getLastError().
+     */
+    public function getLastError(): string
+    {
+        return (string) \Configuration::get(self::CONFIG_LAST_ERROR);
+    }
+
+    /**
+     * Timestamp Unix du début de la série d'échecs API en cours (null si le
+     * dernier appel a réussi). Permet de mesurer une panne persistante.
+     */
+    public function getLastErrorAt(): ?int
+    {
+        $t = (int) \Configuration::get(self::CONFIG_LAST_ERROR_AT);
+        return $t ?: null;
+    }
+
+    private function recordError(string $msg): void
+    {
+        \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+        if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
+            \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+        }
+    }
+
+    private function clearError(): void
+    {
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
+    }
+
     // ============================================================
     // RAPPORT
     // ============================================================
@@ -142,6 +178,7 @@ class SeoApiManager
 
         \Configuration::updateValue(self::CONFIG_CACHE,      json_encode($result, JSON_UNESCAPED_UNICODE));
         \Configuration::updateValue(self::CONFIG_CACHE_TIME, time());
+        $this->clearError();
 
         return $result;
     }
@@ -175,6 +212,7 @@ class SeoApiManager
         $rows = array_filter(array_map('str_getcsv', explode("\n", trim($overview))));
         $rows = array_values($rows);
         if (count($rows) < 2) {
+            $this->recordError('Réponse CSV invalide — clé API incorrecte ou domaine inconnu de Semrush.');
             $this->wd()->warning('Semrush : réponse CSV invalide — clé API incorrecte ou domaine inconnu de Semrush.', '', 'SeoApiManager');
             return null;
         }
@@ -268,6 +306,7 @@ class SeoApiManager
         curl_close($ch);
 
         if (!$body || $httpCode !== 200) {
+            $this->recordError('Moz API HTTP ' . $httpCode . " — vérifiez l'Access ID et la Secret Key.");
             $this->wd()->warning("Moz API HTTP {$httpCode} — vérifiez l'Access ID et la Secret Key.", '', 'SeoApiManager');
             return null;
         }
@@ -311,8 +350,14 @@ class SeoApiManager
         ]);
         $body     = curl_exec($ch);
         $httpCode = (int) curl_getinfo($ch, \CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
         curl_close($ch);
 
-        return ($body && $httpCode === 200) ? $body : null;
+        if (!$body || $httpCode !== 200) {
+            $this->recordError($curlErr !== '' ? $curlErr : ('HTTP ' . $httpCode));
+            return null;
+        }
+
+        return $body;
     }
 }

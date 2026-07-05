@@ -367,6 +367,7 @@
       'hmac_security'        => 'help.health_check_hmac_security',
       'engagement_trend'     => 'help.health_check_engagement_trend',
       'oauth_freshness'      => 'help.health_check_oauth_freshness',
+      'visibility_freshness' => 'help.health_check_visibility_freshness',
       'ajax_endpoints'       => 'help.health_check_ajax_endpoints',
       'bounces_unprocessed'  => 'help.health_check_bounces_unprocessed',
       'webhook_failures'     => 'help.health_check_webhook_failures',
