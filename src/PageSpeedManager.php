@@ -155,7 +155,7 @@ class PageSpeedManager
         $perfM = $result['mobile']['perf']   ?? '—';
         $perfD = $result['desktop']['perf']  ?? '—';
         $this->wd()->info(
-            "PageSpeed analysé : {$shopUrl} — Mobile perf {$perfM}/100, Desktop perf {$perfD}/100.",
+            \WatchdogManager::i18nMsg('watchdog.pagespeed_analyzed', ['url' => $shopUrl, 'mobile' => $perfM, 'desktop' => $perfD]),
             '', 'PageSpeedManager'
         );
 
@@ -186,31 +186,36 @@ class PageSpeedManager
         $curlErr  = curl_error($ch);
         curl_close($ch);
 
+        $prevLang = \AdminTranslator::currentLang();
+        \AdminTranslator::setLang(\WatchdogManager::shopLang());
+
         if (!$body) {
-            $msg = 'PageSpeed [{' . $strategy . '}] — erreur réseau : ' . $curlErr . ' — URL non accessible publiquement.';
-            $this->recordError('Erreur réseau : ' . $curlErr . ' — L\'URL doit être publiquement accessible par Google.');
-            $this->wd()->warning($msg, '', 'PageSpeedManager');
+            $this->recordError(\AdminTranslator::tVars('msg.pagespeed_network_error', ['error' => $curlErr]));
+            \AdminTranslator::setLang($prevLang);
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_network_error_wd', ['strategy' => $strategy, 'error' => $curlErr]), '', 'PageSpeedManager');
             return null;
         }
         if ($httpCode === 400) {
             $errData = json_decode($body, true);
-            $msg = $errData['error']['message'] ?? 'Requête invalide (HTTP 400)';
+            $msg = $errData['error']['message'] ?? \AdminTranslator::t('msg.pagespeed_invalid_request');
             $this->recordError($msg);
-            $this->wd()->warning('PageSpeed [' . $strategy . '] HTTP 400 : ' . $msg, '', 'PageSpeedManager');
+            \AdminTranslator::setLang($prevLang);
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_http400', ['strategy' => $strategy, 'msg' => $msg]), '', 'PageSpeedManager');
             return null;
         }
         if ($httpCode === 403) {
-            $msg = 'Clé API invalide ou PageSpeed Insights API non activée (HTTP 403).';
-            $this->recordError($msg);
-            $this->wd()->error('PageSpeed [' . $strategy . '] HTTP 403 : clé API invalide ou API non activée.', '', 'PageSpeedManager');
+            $this->recordError(\AdminTranslator::t('msg.pagespeed_api_key_invalid'));
+            \AdminTranslator::setLang($prevLang);
+            $this->wd()->error(\WatchdogManager::i18nMsg('watchdog.pagespeed_http403', ['strategy' => $strategy]), '', 'PageSpeedManager');
             return null;
         }
         if ($httpCode !== 200) {
-            $msg = 'Erreur HTTP ' . $httpCode . ' — vérifiez la clé API et l\'URL cible.';
-            $this->recordError($msg);
-            $this->wd()->warning('PageSpeed [' . $strategy . '] HTTP ' . $httpCode, '', 'PageSpeedManager');
+            $this->recordError(\AdminTranslator::tVars('msg.pagespeed_http_error', ['code' => $httpCode]));
+            \AdminTranslator::setLang($prevLang);
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_http_other', ['strategy' => $strategy, 'code' => $httpCode]), '', 'PageSpeedManager');
             return null;
         }
+        \AdminTranslator::setLang($prevLang);
         \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
         \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
 

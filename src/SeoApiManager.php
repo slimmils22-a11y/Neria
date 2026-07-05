@@ -212,8 +212,11 @@ class SeoApiManager
         $rows = array_filter(array_map('str_getcsv', explode("\n", trim($overview))));
         $rows = array_values($rows);
         if (count($rows) < 2) {
-            $this->recordError('Réponse CSV invalide — clé API incorrecte ou domaine inconnu de Semrush.');
-            $this->wd()->warning('Semrush : réponse CSV invalide — clé API incorrecte ou domaine inconnu de Semrush.', '', 'SeoApiManager');
+            $prevLang = \AdminTranslator::currentLang();
+            \AdminTranslator::setLang(\WatchdogManager::shopLang());
+            $this->recordError(\AdminTranslator::t('msg.semrush_invalid_csv'));
+            \AdminTranslator::setLang($prevLang);
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.semrush_invalid_csv'), '', 'SeoApiManager');
             return null;
         }
 
@@ -267,7 +270,7 @@ class SeoApiManager
         ];
 
         $this->wd()->info(
-            "Semrush chargé : {$domain} — {$result['organic_traffic']} visites/mois, {$result['organic_keywords']} mots-clés.",
+            \WatchdogManager::i18nMsg('watchdog.semrush_loaded', ['domain' => $domain, 'traffic' => $result['organic_traffic'], 'keywords' => $result['organic_keywords']]),
             '', 'SeoApiManager'
         );
 
@@ -306,8 +309,11 @@ class SeoApiManager
         curl_close($ch);
 
         if (!$body || $httpCode !== 200) {
-            $this->recordError('Moz API HTTP ' . $httpCode . " — vérifiez l'Access ID et la Secret Key.");
-            $this->wd()->warning("Moz API HTTP {$httpCode} — vérifiez l'Access ID et la Secret Key.", '', 'SeoApiManager');
+            $prevLang = \AdminTranslator::currentLang();
+            \AdminTranslator::setLang(\WatchdogManager::shopLang());
+            $this->recordError(\AdminTranslator::tVars('msg.moz_http_error', ['code' => $httpCode]));
+            \AdminTranslator::setLang($prevLang);
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.moz_http_error', ['code' => $httpCode]), '', 'SeoApiManager');
             return null;
         }
 
@@ -328,7 +334,7 @@ class SeoApiManager
         ];
 
         $this->wd()->info(
-            "Moz chargé : {$domain} — DA {$result['domain_authority']}, PA {$result['page_authority']}, Spam {$result['spam_score']}.",
+            \WatchdogManager::i18nMsg('watchdog.moz_loaded', ['domain' => $domain, 'da' => $result['domain_authority'], 'pa' => $result['page_authority'], 'spam' => $result['spam_score']]),
             '', 'SeoApiManager'
         );
 
