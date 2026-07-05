@@ -137,8 +137,15 @@ class SearchConsoleManager
         ]);
 
         if (empty($response['access_token'])) {
-            $detail = isset($response['error']) ? $response['error'] . ' — ' . ($response['error_description'] ?? '') : 'réponse vide';
-            $this->wd()->warning('Search Console OAuth : échange de code échoué — ' . $detail, '', 'SearchConsoleManager');
+            if (isset($response['error'])) {
+                $detail = $response['error'] . ' — ' . ($response['error_description'] ?? '');
+            } else {
+                $prevLang = \AdminTranslator::currentLang();
+                \AdminTranslator::setLang(\WatchdogManager::shopLang());
+                $detail = \AdminTranslator::t('watchdog.empty_response');
+                \AdminTranslator::setLang($prevLang);
+            }
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_oauth_failed', ['error' => $detail]), '', 'SearchConsoleManager');
             return false;
         }
 
@@ -147,7 +154,7 @@ class SearchConsoleManager
         \Configuration::updateValue(self::CONFIG_TOKEN_EXPIRY,  time() + ($response['expires_in'] ?? 3600) - 60);
         \Configuration::deleteByName(self::CONFIG_OAUTH_STATE);
 
-        $this->wd()->info('Search Console OAuth connecté avec succès.', '', 'SearchConsoleManager');
+        $this->wd()->info(\WatchdogManager::i18nMsg('watchdog.gsc_oauth_success'), '', 'SearchConsoleManager');
         return true;
     }
 
@@ -211,7 +218,7 @@ class SearchConsoleManager
         \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
         \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
         if (empty($sitesData['siteEntry'])) {
-            $this->wd()->warning('Search Console : aucun site vérifié trouvé dans ce compte Google.', '', 'SearchConsoleManager');
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_no_site'), '', 'SearchConsoleManager');
             return [];
         }
 
@@ -245,7 +252,7 @@ class SearchConsoleManager
         $pages = $this->querySearchAnalytics($siteUrl, $token, $startDate, $endDate, ['page'], 10);
 
         if ($global === null) {
-            $this->wd()->warning('Search Console : échec de récupération des données analytics (token expiré ?).', '', 'SearchConsoleManager');
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_analytics_fetch_failed'), '', 'SearchConsoleManager');
             return null;
         }
 
@@ -285,7 +292,11 @@ class SearchConsoleManager
         \Configuration::updateValue(self::CONFIG_CACHE_TIME, time());
 
         $this->wd()->info(
-            "Search Console chargé : {$result['clicks']} clics, {$result['impressions']} impressions, position {$result['position']} (28 jours).",
+            \WatchdogManager::i18nMsg('watchdog.gsc_loaded', [
+                'clicks'      => $result['clicks'],
+                'impressions' => $result['impressions'],
+                'position'    => $result['position'],
+            ]),
             '', 'SearchConsoleManager'
         );
 
@@ -349,7 +360,7 @@ class SearchConsoleManager
         ]);
 
         if (empty($response['access_token'])) {
-            $this->wd()->error('Search Console : refresh token invalide ou révoqué — reconnexion OAuth requise.', '', 'SearchConsoleManager');
+            $this->wd()->error(\WatchdogManager::i18nMsg('watchdog.gsc_token_invalid'), '', 'SearchConsoleManager');
             return null;
         }
 
@@ -396,7 +407,7 @@ class SearchConsoleManager
             if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
                 \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
             }
-            $this->wd()->warning('Search Console : erreur API — ' . $msg, '', 'SearchConsoleManager');
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_api_error', ['error' => $msg]), '', 'SearchConsoleManager');
             return null;
         }
 
@@ -440,7 +451,7 @@ class SearchConsoleManager
         ]);
         $body = curl_exec($ch);
         if (!$body) {
-            $this->wd()->warning('Search Console httpPost cURL error : ' . curl_error($ch), '', 'SearchConsoleManager');
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_curl_error', ['error' => curl_error($ch)]), '', 'SearchConsoleManager');
         }
         curl_close($ch);
 

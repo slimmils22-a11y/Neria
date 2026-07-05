@@ -115,10 +115,15 @@ class PostmasterManager
         ]);
 
         if (empty($response['access_token'])) {
-            $detail = isset($response['error'])
-                ? $response['error'] . ' — ' . ($response['error_description'] ?? '')
-                : 'réponse vide';
-            $this->wd()->warning('Postmaster OAuth : échange de code échoué — ' . $detail, '', 'PostmasterManager');
+            if (isset($response['error'])) {
+                $detail = $response['error'] . ' — ' . ($response['error_description'] ?? '');
+            } else {
+                $prevLang = \AdminTranslator::currentLang();
+                \AdminTranslator::setLang(\WatchdogManager::shopLang());
+                $detail = \AdminTranslator::t('watchdog.empty_response');
+                \AdminTranslator::setLang($prevLang);
+            }
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.postmaster_oauth_failed', ['error' => $detail]), '', 'PostmasterManager');
             return false;
         }
 
@@ -127,7 +132,7 @@ class PostmasterManager
         \Configuration::updateValue(self::CONFIG_TOKEN_EXPIRY,  time() + ($response['expires_in'] ?? 3600) - 60);
         \Configuration::deleteByName(self::CONFIG_OAUTH_STATE);
 
-        $this->wd()->info('Postmaster Tools OAuth connecté avec succès.', '', 'PostmasterManager');
+        $this->wd()->info(\WatchdogManager::i18nMsg('watchdog.postmaster_oauth_success'), '', 'PostmasterManager');
         return true;
     }
 
@@ -222,7 +227,7 @@ class PostmasterManager
         \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
         \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
         if (empty($domains['domains'])) {
-            $this->wd()->warning('Postmaster Tools : aucun domaine vérifié trouvé dans ce compte Google.', '', 'PostmasterManager');
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.postmaster_no_domain'), '', 'PostmasterManager');
             return [];
         }
 
@@ -244,14 +249,13 @@ class PostmasterManager
         if (!empty($results)) {
             $first = $results[0];
             $this->wd()->info(
-                sprintf(
-                    'Postmaster Tools chargé : %s — réputation %s, spam %.4f%%, SPF %.1f%%, DKIM %.1f%%.',
-                    $first['domain'],
-                    $first['domain_reputation'] ?? '?',
-                    $first['spam_rate'] ?? 0,
-                    $first['spf_success'] ?? 0,
-                    $first['dkim_success'] ?? 0
-                ),
+                \WatchdogManager::i18nMsg('watchdog.postmaster_loaded', [
+                    'domain'     => $first['domain'],
+                    'reputation' => $first['domain_reputation'] ?? '?',
+                    'spam'       => sprintf('%.4f', $first['spam_rate'] ?? 0),
+                    'spf'        => sprintf('%.1f', $first['spf_success'] ?? 0),
+                    'dkim'       => sprintf('%.1f', $first['dkim_success'] ?? 0),
+                ]),
                 '',
                 'PostmasterManager'
             );
@@ -334,7 +338,7 @@ class PostmasterManager
         ]);
 
         if (empty($response['access_token'])) {
-            $this->wd()->error('Postmaster Tools : refresh token invalide ou révoqué — reconnexion OAuth requise.', '', 'PostmasterManager');
+            $this->wd()->error(\WatchdogManager::i18nMsg('watchdog.postmaster_token_invalid'), '', 'PostmasterManager');
             return null;
         }
 
@@ -382,7 +386,7 @@ class PostmasterManager
             if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
                 \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
             }
-            $this->wd()->warning('Postmaster Tools : erreur API — ' . $msg, '', 'PostmasterManager');
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.postmaster_api_error', ['error' => $msg]), '', 'PostmasterManager');
             return null;
         }
 
