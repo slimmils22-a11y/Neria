@@ -145,7 +145,7 @@ class TranslationEngine
                     2
                 );
                 $this->watchdog()->warning(
-                    'Fallback EN utilisé pour langue : ' . $lang . ' — clé : ' . $key,
+                    \WatchdogManager::i18nMsg('watchdog.translation_fallback_en', ['lang' => $lang, 'key' => $key]),
                     $template,
                     'TranslationEngine'
                 );
@@ -178,7 +178,7 @@ class TranslationEngine
             2
         );
         $this->watchdog()->warning(
-            'Clé introuvable : ' . $key,
+            \WatchdogManager::i18nMsg('watchdog.translation_key_missing', ['key' => $key]),
             $template,
             'TranslationEngine'
         );

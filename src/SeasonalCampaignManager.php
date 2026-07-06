@@ -174,7 +174,10 @@ class SeasonalCampaignManager
                 $customers = $this->getEligibleCustomers($campaign);
             } catch (\Throwable $e) {
                 $this->watchdog()->error(
-                    sprintf('Campagne saisonnière "%s" — ciblage échoué : %s.', $campaign['name'], $e->getMessage()),
+                    \WatchdogManager::i18nMsg('watchdog.seasonal_targeting_failed', [
+                        'campaign' => $campaign['name'],
+                        'error'    => $e->getMessage(),
+                    ]),
                     $campaign['template'] ?? '', 'SeasonalCampaign'
                 );
                 continue;
@@ -242,10 +245,11 @@ class SeasonalCampaignManager
                     $sentCount++;
                 } catch (\Throwable $e) {
                     $this->watchdog()->error(
-                        sprintf(
-                            'Campagne saisonnière "%s" — erreur envoi client #%d : %s.',
-                            $campaign['name'], $idCustomer, $e->getMessage()
-                        ),
+                        \WatchdogManager::i18nMsg('watchdog.seasonal_send_error', [
+                            'campaign' => $campaign['name'],
+                            'customer' => $idCustomer,
+                            'error'    => $e->getMessage(),
+                        ]),
                         $campaign['template'], 'SeasonalCampaign'
                     );
                 }
@@ -253,10 +257,10 @@ class SeasonalCampaignManager
 
             if ($sentCount > 0) {
                 $this->watchdog()->info(
-                    sprintf(
-                        'Campagne saisonnière "%s" — %d email(s) envoyé(s).',
-                        $campaign['name'], $sentCount
-                    ),
+                    \WatchdogManager::i18nMsg('watchdog.seasonal_sent_summary', [
+                        'campaign' => $campaign['name'],
+                        'n'        => $sentCount,
+                    ]),
                     $campaign['template'], 'SeasonalCampaign'
                 );
             }
