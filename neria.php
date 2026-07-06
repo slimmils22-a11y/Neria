@@ -2749,7 +2749,7 @@ class Neria extends Module
             try {
                 $domRep = (new DomainReputationManager($this))->runFullCheck();
                 $this->context->smarty->assign('domain_reputation', $domRep);
-                $this->context->smarty->assign('neria_success', 'Réputation de domaine actualisée.');
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.domain_reputation_refreshed'));
                 if (class_exists('WatchdogManager')) {
                     $wd      = new WatchdogManager($this);
                     $hits    = count($domRep['blacklists']['hits'] ?? []);
@@ -2769,7 +2769,7 @@ class Neria extends Module
                     }
                 }
             } catch (\Throwable $e) {
-                $this->context->smarty->assign('neria_error', 'Erreur lors de la vérification DNS : ' . $e->getMessage());
+                $this->context->smarty->assign('neria_error', AdminTranslator::tVars('msg.dns_check_error', ['error' => $e->getMessage()]));
             }
         }
 
@@ -2848,7 +2848,7 @@ class Neria extends Module
                 $conf   = (int) max($sig['open']['confidence'] ?? 0, $sig['click']['confidence'] ?? 0);
                 $ab->archiveTest($tplKey, $report, $winner, $conf, false);
                 $ab->deactivateTest($tplKey);
-                $this->context->smarty->assign('neria_success', 'Test arrêté et archivé.');
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.abtest_stopped_archived'));
             }
         }
 
@@ -2863,9 +2863,7 @@ class Neria extends Module
                 $conf   = (int) max($sig['open']['confidence'] ?? 0, $sig['click']['confidence'] ?? 0);
                 $ab->archiveTest($tplKey, $report, $winner, $conf, true);
                 $ab->applyWinner($tplKey, $winner);
-                $msg = $winner === 'B'
-                    ? 'Variante B appliquée comme template par défaut. Test archivé.'
-                    : 'Variante A confirmée comme template par défaut. Test archivé.';
+                $msg = AdminTranslator::t($winner === 'B' ? 'msg.abtest_applied_b' : 'msg.abtest_confirmed_a');
                 $this->context->smarty->assign('neria_success', $msg);
                 if (class_exists('WatchdogManager')) {
                     (new WatchdogManager($this))->info(
@@ -2891,9 +2889,9 @@ class Neria extends Module
             $installer = new TranslationInstaller($this);
             $ok = $installer->importFromJson(_PS_MODULE_DIR_ . 'neria/data/translations.json');
             if ($ok) {
-                $this->context->smarty->assign('neria_success', 'Traductions par défaut rechargées depuis le fichier source (vos personnalisations sont conservées).');
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.translations_reloaded_from_source'));
             } else {
-                $this->context->smarty->assign('neria_error', 'Échec du rechargement des traductions.');
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.translations_reload_failed'));
             }
         }
 
@@ -2984,9 +2982,9 @@ class Neria extends Module
                         WatchdogManager::i18nMsg('watchdog.csv_import_count', ['n' => $count]), '', 'Traductions'
                     );
                 }
-                $this->context->smarty->assign('neria_success', "{$count} traduction(s) importée(s) avec succès.");
+                $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.csv_import_success', ['n' => $count]));
             } else {
-                $this->context->smarty->assign('neria_error', 'Aucun fichier CSV valide reçu.');
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.csv_import_no_file'));
             }
         }
 
@@ -3045,9 +3043,9 @@ class Neria extends Module
                     $count++;
                 }
                 fclose($handle);
-                $this->context->smarty->assign('neria_success', "{$count} traduction(s) Variante B importée(s).");
+                $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.csv_import_success_variant_b', ['n' => $count]));
             } else {
-                $this->context->smarty->assign('neria_error', 'Aucun fichier CSV valide reçu pour la Variante B.');
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.csv_import_no_file_variant_b'));
             }
         }
 
@@ -3087,7 +3085,7 @@ class Neria extends Module
                         WatchdogManager::i18nMsg('watchdog.template_reset_all_langs', ['template' => $tplKey]), '', 'Traductions'
                     );
                 }
-                $this->context->smarty->assign('neria_success', "Template \"{$tplKey}\" réinitialisé dans toutes les langues.");
+                $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.template_reset_all_langs_banner', ['template' => $tplKey]));
             }
         }
 
@@ -3133,7 +3131,7 @@ class Neria extends Module
                 if (class_exists('WatchdogManager')) {
                     (new WatchdogManager($this))->warning(WatchdogManager::i18nMsg('watchdog.translations_reset_global'), '', 'Traductions');
                 }
-                $this->context->smarty->assign('neria_success', 'Toutes les traductions ont été réinitialisées aux valeurs Neria d\'origine.');
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.translations_reset_global_banner'));
             }
         }
 
@@ -3181,7 +3179,7 @@ class Neria extends Module
                     '', 'Traductions'
                 );
             }
-            $this->context->smarty->assign('neria_success', 'Clé API DeepL enregistrée.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.deepl_key_saved'));
         }
 
         if (in_array($tradAction, ['load_translations', 'save_translations', 'reset_template', 'save_variant_b', 'restore_translation', 'reset_variant_b', 'restore_variant_b', 'delete_history'], true)) {
@@ -3359,7 +3357,7 @@ class Neria extends Module
                             'Traductions'
                         );
                     }
-                    $this->context->smarty->assign('neria_success', 'Template réinitialisé aux valeurs Neria d\'origine.');
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.template_reset_default'));
                 }
 
                 if ($tradAction === 'reset_variant_b') {
@@ -3402,7 +3400,7 @@ class Neria extends Module
                             );
                         }
                     }
-                    $this->context->smarty->assign('neria_success', 'Variante B réinitialisée — les champs affichent à nouveau les textes de la Variante A.');
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.variant_b_reset_banner'));
                 }
 
                 if ($tradAction === 'save_variant_b' && class_exists('ABTestManager')) {
