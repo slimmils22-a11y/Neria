@@ -2020,6 +2020,7 @@ class Neria extends Module
                 self::CONFIG_PREFIX . 'LOG_INTERNAL',
                 (int) Tools::getValue('neria_log_internal', 0)
             );
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
         // ── Action : configuration du rapport mensuel ─────────────
@@ -2052,20 +2053,25 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'add_blacklist') {
             $tpl  = trim((string) Tools::getValue('neria_bl_template'));
             $lang = trim((string) Tools::getValue('neria_bl_lang'));
-            if ($tpl !== '') {
-                (new BlacklistManager())->add($tpl, $lang);
+            if ($tpl !== '' && (new BlacklistManager())->add($tpl, $lang)) {
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.blacklist_added'));
+            } else {
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.blacklist_invalid'));
             }
         }
 
         if (Tools::getValue('neria_action') === 'remove_blacklist') {
             $id = (int) Tools::getValue('neria_bl_id');
-            if ($id > 0) {
-                (new BlacklistManager())->remove($id);
+            if ($id > 0 && (new BlacklistManager())->remove($id)) {
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.blacklist_removed'));
+            } else {
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.blacklist_invalid'));
             }
         }
 
         if (Tools::getValue('neria_action') === 'reset_blacklist') {
             (new BlacklistManager())->reset();
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.blacklist_reset'));
         }
 
         // ── Action : mode silence (anti-doublon) ──────────────────
@@ -2082,6 +2088,7 @@ class Neria extends Module
             $minutes = (int) Tools::getValue('neria_cooldown_minutes', 10);
             $minutes = max(1, min(60, $minutes));
             Configuration::updateValue(self::CONFIG_PREFIX . 'COOLDOWN_MINUTES', $minutes);
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
         if (Tools::getValue('neria_action') === 'save_smtp_quota') {
@@ -4446,11 +4453,15 @@ class Neria extends Module
             if ($email !== '') {
                 if ($action === 'ignore_bounce') {
                     $mgr->ignoreBounce($email);
+                    $msgKey = 'msg.bounce_ignored';
                 } elseif ($action === 'reactivate_bounce') {
                     $mgr->reactivateBounce($email);
+                    $msgKey = 'msg.bounce_reactivated';
                 } else {
                     $mgr->deleteBounce($email);
+                    $msgKey = 'msg.bounce_deleted';
                 }
+                $this->context->smarty->assign('neria_success', AdminTranslator::t($msgKey));
             }
         }
 

@@ -167,12 +167,15 @@ class CertificateManager
         }
 
         $order    = new \Order((int) $row['id_order']);
+        $customer = new \Customer((int) $order->id_customer);
+        $lang     = $this->resolveCertificateLang($order, (int) $customer->id_lang);
         $result   = $this->generatePdf(
             $row['serial_number'],
             $order,
             $row['customer_name'],
             $row['product_name'],
-            $row['artisan_note'] ?? ''
+            $row['artisan_note'] ?? '',
+            $lang
         );
         return $result;
     }
