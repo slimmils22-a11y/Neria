@@ -126,7 +126,7 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
         if ($ok && class_exists('WatchdogManager')) {
             try {
                 (new WatchdogManager($this->module))->info(
-                    'Désabonnement marketing traité',
+                    WatchdogManager::i18nMsg('watchdog.unsubscribe_marketing_processed'),
                     '',
                     'Unsubscribe',
                     ['email' => $email]

@@ -59,7 +59,7 @@ class NeriaCronModuleFrontController extends ModuleFrontController
             if (class_exists('WatchdogManager')) {
                 try {
                     (new WatchdogManager($this->module))->error(
-                        'Point d\'entrée cron externe — exception : ' . $e->getMessage(),
+                        WatchdogManager::i18nMsg('watchdog.cron_endpoint_exception', ['error' => $e->getMessage()]),
                         '', 'CronController'
                     );
                 } catch (\Throwable $ignored) {

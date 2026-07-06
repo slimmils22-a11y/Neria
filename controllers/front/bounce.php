@@ -77,7 +77,7 @@ class NeriaBounceModuleFrontController extends ModuleFrontController
             if (class_exists('WatchdogManager')) {
                 try {
                     (new WatchdogManager($this->module))->error(
-                        'Webhook bounce — exception : ' . $e->getMessage(),
+                        WatchdogManager::i18nMsg('watchdog.bounce_webhook_exception', ['error' => $e->getMessage()]),
                         '', 'BounceController'
                     );
                 } catch (\Throwable $ignored) {

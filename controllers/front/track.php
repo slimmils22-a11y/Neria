@@ -90,7 +90,7 @@ class NeriaTrackModuleFrontController extends ModuleFrontController
             if (class_exists('WatchdogManager')) {
                 try {
                     (new WatchdogManager($this->module))->warning(
-                        "Pixel de tracking [{$event}] — exception non bloquante : " . $e->getMessage(),
+                        WatchdogManager::i18nMsg('watchdog.track_pixel_exception', ['event' => $event, 'error' => $e->getMessage()]),
                         '', 'TrackController'
                     );
                 } catch (\Throwable $ignored) {

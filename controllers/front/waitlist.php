@@ -58,7 +58,7 @@ class NeriaWaitlistModuleFrontController extends ModuleFrontController
             if (class_exists('WatchdogManager')) {
                 try {
                     (new WatchdogManager($this->module))->warning(
-                        "Liste d'attente [{$action}] — exception : " . $e->getMessage(),
+                        WatchdogManager::i18nMsg('watchdog.waitlist_exception', ['action' => $action, 'error' => $e->getMessage()]),
                         '', 'WaitlistController'
                     );
                 } catch (\Throwable $ignored) {

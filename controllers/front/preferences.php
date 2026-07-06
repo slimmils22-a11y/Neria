@@ -45,7 +45,7 @@ class NeriaPreferencesModuleFrontController extends ModuleFrontController
         if (!is_string($token) || !hash_equals($expected, $token)) {
             if (class_exists('WatchdogManager')) {
                 (new WatchdogManager($this->module))->warning(
-                    'Token de préférences invalide pour ' . $email . ' (ip:' . $_SERVER['REMOTE_ADDR'] . ')',
+                    WatchdogManager::i18nMsg('watchdog.preferences_token_invalid', ['email' => $email, 'ip' => $_SERVER['REMOTE_ADDR']]),
                     'preferences',
                     'PreferencesController'
                 );
@@ -79,9 +79,14 @@ class NeriaPreferencesModuleFrontController extends ModuleFrontController
                 $saved = true;
                 if (class_exists('WatchdogManager')) {
                     $optOut = array_keys(array_filter($submitted, fn($v) => $v === 0));
+                    $prevLang = AdminTranslator::currentLang();
+                    AdminTranslator::setLang(WatchdogManager::shopLang());
+                    $detail = $optOut
+                        ? AdminTranslator::tVars('watchdog.preferences_opted_out', ['list' => implode(', ', $optOut)])
+                        : AdminTranslator::t('watchdog.preferences_all_enabled');
+                    AdminTranslator::setLang($prevLang);
                     (new WatchdogManager($this->module))->info(
-                        'Préférences mises à jour pour ' . $email
-                            . ($optOut ? ' — désactivé : ' . implode(', ', $optOut) : ' — tout activé'),
+                        WatchdogManager::i18nMsg('watchdog.preferences_customer_updated', ['email' => $email, 'detail' => $detail]),
                         'preferences',
                         'PreferencesController'
                     );
@@ -89,7 +94,7 @@ class NeriaPreferencesModuleFrontController extends ModuleFrontController
             } catch (\Throwable $e) {
                 if (class_exists('WatchdogManager')) {
                     (new WatchdogManager($this->module))->error(
-                        'Erreur sauvegarde préférences pour ' . $email . ' : ' . $e->getMessage(),
+                        WatchdogManager::i18nMsg('watchdog.preferences_save_error', ['email' => $email, 'error' => $e->getMessage()]),
                         'preferences',
                         'PreferencesController'
                     );
@@ -103,7 +108,7 @@ class NeriaPreferencesModuleFrontController extends ModuleFrontController
             if (class_exists('WatchdogManager')) {
                 try {
                     (new WatchdogManager($this->module))->warning(
-                        'Lecture préférences échouée pour ' . $email . ' : ' . $e->getMessage(),
+                        WatchdogManager::i18nMsg('watchdog.preferences_read_failed', ['email' => $email, 'error' => $e->getMessage()]),
                         'preferences', 'PreferencesController'
                     );
                 } catch (\Throwable $ignored) {

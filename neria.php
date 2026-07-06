@@ -1582,7 +1582,7 @@ class Neria extends Module
             $deeplKey = CryptoManager::decrypt(trim((string) $config->get(ConfigManager::KEY_DEEPL_KEY, '')));
 
             if ($deeplKey === '') {
-                echo json_encode(['error' => 'Clé API DeepL manquante. Renseignez-la et sauvegardez avant de traduire.']);
+                echo json_encode(['error' => AdminTranslator::t('msg.deepl_key_missing_full')]);
                 exit;
             }
 
@@ -1594,7 +1594,7 @@ class Neria extends Module
             ];
             $deeplTarget = $deeplTargetMap[$tplLang] ?? null;
             if (!$deeplTarget) {
-                echo json_encode(['error' => "Langue '{$tplLang}' non supportée par DeepL."]);
+                echo json_encode(['error' => AdminTranslator::tVars('msg.deepl_lang_unsupported', ['lang' => $tplLang])]);
                 exit;
             }
 
@@ -1606,12 +1606,12 @@ class Neria extends Module
                    AND `lang` = 'fr'"
             );
             if (!$rows) {
-                echo json_encode(['error' => 'Aucun texte source FR trouvé pour ce template.']);
+                echo json_encode(['error' => AdminTranslator::t('msg.deepl_no_source_text')]);
                 exit;
             }
 
             if ($tplLang === 'fr') {
-                echo json_encode(['error' => 'Le français est la langue source — choisissez une autre langue à traduire.']);
+                echo json_encode(['error' => AdminTranslator::t('msg.deepl_french_is_source_full')]);
                 exit;
             }
 
@@ -1720,13 +1720,15 @@ class Neria extends Module
                 if ($firstErrCode !== null) {
                     $detail = " (HTTP {$firstErrCode}" . ($firstErrBody ? ': ' . substr($firstErrBody, 0, 120) : '') . ')';
                 }
-                echo json_encode(['error' => "Échec DeepL — 0 champ traduit sur " . count($errors) . ".{$detail}"]);
+                echo json_encode(['error' => AdminTranslator::tVars('msg.deepl_zero_translated', ['count' => count($errors), 'detail' => $detail])]);
                 exit;
             }
 
-            $msg = "{$translated} champ(s) traduit(s) via DeepL.";
-            if ($skipped > 0) { $msg .= " {$skipped} champ(s) déjà personnalisé(s) conservé(s)."; }
-            if (!empty($errors)) { $msg .= ' (' . count($errors) . ' erreur(s))'; }
+            $msg = AdminTranslator::tVars('msg.deepl_success_summary', [
+                'n'           => $translated,
+                'skippedPart' => $skipped > 0 ? AdminTranslator::tVars('msg.deepl_skipped_part', ['n' => $skipped]) : '',
+                'errorsPart'  => !empty($errors) ? AdminTranslator::tVars('msg.deepl_errors_part', ['n' => count($errors)]) : '',
+            ]);
             echo json_encode([
                 'success'    => true,
                 'translated' => $translated,
@@ -1747,11 +1749,11 @@ class Neria extends Module
             $deeplKey  = CryptoManager::decrypt(trim((string) $config->get(ConfigManager::KEY_DEEPL_KEY, '')));
 
             if ($deeplKey === '') {
-                echo json_encode(['error' => 'Clé API DeepL manquante.']);
+                echo json_encode(['error' => AdminTranslator::t('msg.deepl_key_missing_short')]);
                 exit;
             }
             if (!$this->abtestBelongsToShop($idAbtestB)) {
-                echo json_encode(['error' => 'Test A/B introuvable.']);
+                echo json_encode(['error' => AdminTranslator::t('msg.deepl_abtest_not_found')]);
                 exit;
             }
 
@@ -1763,11 +1765,11 @@ class Neria extends Module
             ];
             $deeplTarget = $deeplTargetMap[$tplLang] ?? null;
             if (!$deeplTarget) {
-                echo json_encode(['error' => "Langue '{$tplLang}' non supportée par DeepL."]);
+                echo json_encode(['error' => AdminTranslator::tVars('msg.deepl_lang_unsupported', ['lang' => $tplLang])]);
                 exit;
             }
             if ($tplLang === 'fr') {
-                echo json_encode(['error' => 'Le français est la langue source.']);
+                echo json_encode(['error' => AdminTranslator::t('msg.deepl_french_is_source_short')]);
                 exit;
             }
 
@@ -1781,7 +1783,7 @@ class Neria extends Module
                    AND `lang` = 'fr'"
             );
             if (!$rows) {
-                echo json_encode(['error' => 'Aucun texte source FR trouvé.']);
+                echo json_encode(['error' => AdminTranslator::t('msg.deepl_no_source_text_short')]);
                 exit;
             }
 
@@ -1867,12 +1869,14 @@ class Neria extends Module
 
             if ($translated === 0 && !empty($errors)) {
                 $detail = $firstErrCode ? " (HTTP {$firstErrCode})" : '';
-                echo json_encode(['error' => "Échec DeepL — 0 champ traduit.{$detail}"]);
+                echo json_encode(['error' => AdminTranslator::tVars('msg.deepl_zero_translated_short', ['detail' => $detail])]);
                 exit;
             }
-            $msg = "{$translated} champ(s) traduit(s) en Variante B via DeepL.";
-            if ($skipped > 0) { $msg .= " {$skipped} champ(s) déjà renseigné(s) conservé(s)."; }
-            if (!empty($errors)) { $msg .= ' (' . count($errors) . ' erreur(s))'; }
+            $msg = AdminTranslator::tVars('msg.deepl_success_summary_variant_b', [
+                'n'           => $translated,
+                'skippedPart' => $skipped > 0 ? AdminTranslator::tVars('msg.deepl_skipped_part_variant_b', ['n' => $skipped]) : '',
+                'errorsPart'  => !empty($errors) ? AdminTranslator::tVars('msg.deepl_errors_part', ['n' => count($errors)]) : '',
+            ]);
             echo json_encode(['success' => true, 'translated' => $translated, 'skipped' => $skipped, 'message' => $msg]);
             exit;
         }
