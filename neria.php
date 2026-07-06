@@ -232,10 +232,11 @@ class Neria extends Module
             if (class_exists('WatchdogManager')) {
                 try {
                     (new WatchdogManager($this))->critical(
-                        'Crash dans hookActionEmailSendBefore() : ' . $e->getMessage()
-                        . ' in ' . basename($e->getFile()) . ':' . $e->getLine()
-                        . ' — Ce hook tourne sur TOUS les emails PrestaShop (pas que Neria).'
-                        . ' Envoi natif PS laissé passer par sécurité. Corrigez en priorité absolue.',
+                        WatchdogManager::i18nMsg('watchdog.crash_email_send_before', [
+                            'error' => $e->getMessage(),
+                            'file'  => basename($e->getFile()),
+                            'line'  => $e->getLine(),
+                        ]),
                         $params['template'] ?? '',
                         'NeriaErrorHandler'
                     );
@@ -282,7 +283,7 @@ class Neria extends Module
             }
             if (BounceManager::isBounced((string) $toEmail)) {
                 (new WatchdogManager($this))->warning(
-                    'Envoi annulé — adresse en bounce : ' . $toEmail,
+                    WatchdogManager::i18nMsg('watchdog.send_cancelled_bounce', ['email' => $toEmail]),
                     $params['template'] ?? '',
                     'BounceManager'
                 );
@@ -493,7 +494,7 @@ class Neria extends Module
 
         if (class_exists('WatchdogManager')) {
             (new WatchdogManager($this))->info(
-                "Attribution : commande #{$idOrder} liée au token {$token} (cookie neria_ref capturé)",
+                WatchdogManager::i18nMsg('watchdog.attribution_order_linked', ['order' => $idOrder, 'token' => $token]),
                 '', 'Attribution'
             );
         }
@@ -556,7 +557,11 @@ class Neria extends Module
 
         if (class_exists('WatchdogManager')) {
             (new WatchdogManager($this))->info(
-                sprintf('Conversion enregistrée : commande #%d — %.2f € (token %s)', $idOrder, $amount, $token),
+                WatchdogManager::i18nMsg('watchdog.attribution_conversion_recorded', [
+                    'order'  => $idOrder,
+                    'amount' => sprintf('%.2f', $amount),
+                    'token'  => $token,
+                ]),
                 '', 'Attribution'
             );
         }
@@ -1264,10 +1269,11 @@ class Neria extends Module
 
         if (class_exists('WatchdogManager')) {
             (new WatchdogManager($this))->info(
-                sprintf(
-                    'Purge RGPD Neria pour le client #%d (%s) : %d ligne(s) supprimée(s).',
-                    $idCustomer, $email, $purged
-                ),
+                WatchdogManager::i18nMsg('watchdog.gdpr_customer_purged', [
+                    'customer' => $idCustomer,
+                    'email'    => $email,
+                    'n'        => $purged,
+                ]),
                 '', 'GdprAuditManager'
             );
         }
@@ -1698,7 +1704,13 @@ class Neria extends Module
             if (class_exists('TranslationEngine')) { (new TranslationEngine($this))->clearCache(); }
             if (class_exists('WatchdogManager') && $translated > 0) {
                 (new WatchdogManager($this))->info(
-                    sprintf('DeepL : %d champ(s) traduit(s) dans "%s" [%s]%s', $translated, $tplKey, $tplLang, $skipped > 0 ? ", {$skipped} conservé(s)" : ''),
+                    $skipped > 0
+                        ? WatchdogManager::i18nMsg('watchdog.deepl_translated_skipped', [
+                            'n' => $translated, 'template' => $tplKey, 'lang' => $tplLang, 'skipped' => $skipped,
+                        ])
+                        : WatchdogManager::i18nMsg('watchdog.deepl_translated', [
+                            'n' => $translated, 'template' => $tplKey, 'lang' => $tplLang,
+                        ]),
                     $tplKey, 'Traductions'
                 );
             }
@@ -1846,7 +1858,9 @@ class Neria extends Module
 
             if (class_exists('WatchdogManager') && $translated > 0) {
                 (new WatchdogManager($this))->info(
-                    sprintf('DeepL Variante B : %d champ(s) traduit(s) dans "%s" [%s]', $translated, $tplKey, $tplLang),
+                    WatchdogManager::i18nMsg('watchdog.deepl_translated_variant_b', [
+                        'n' => $translated, 'template' => $tplKey, 'lang' => $tplLang,
+                    ]),
                     $tplKey, 'Traductions'
                 );
             }
@@ -1906,8 +1920,8 @@ class Neria extends Module
                 if (class_exists('WatchdogManager')) {
                     (new WatchdogManager($this))->info(
                         $archiveEmail !== ''
-                            ? 'Témoin silencieux activé (' . $archiveEmail . ')'
-                            : 'Témoin silencieux désactivé',
+                            ? WatchdogManager::i18nMsg('watchdog.silent_witness_toggled', ['email' => $archiveEmail])
+                            : WatchdogManager::i18nMsg('watchdog.silent_witness_disabled'),
                         '', 'ConfigManager'
                     );
                 }
@@ -2113,26 +2127,26 @@ class Neria extends Module
                         $spamRate = $ps['spam_rate']         ?? null;
 
                         if ($rep === 'BAD') {
-                            $wd->error("Postmaster Tools [{$domain}] : réputation BLOQUÉE (BAD) — Gmail rejette activement vos emails.", '', 'PostmasterTools');
+                            $wd->error(WatchdogManager::i18nMsg('watchdog.postmaster_reputation_bad', ['domain' => $domain]), '', 'PostmasterTools');
                         } elseif ($rep === 'LOW') {
-                            $wd->error("Postmaster Tools [{$domain}] : réputation LOW — vos emails passent en spam Gmail.", '', 'PostmasterTools');
+                            $wd->error(WatchdogManager::i18nMsg('watchdog.postmaster_reputation_low', ['domain' => $domain]), '', 'PostmasterTools');
                         } elseif ($rep === 'MEDIUM') {
-                            $wd->warning("Postmaster Tools [{$domain}] : réputation MEDIUM — surveillance recommandée.", '', 'PostmasterTools');
+                            $wd->warning(WatchdogManager::i18nMsg('watchdog.postmaster_reputation_medium', ['domain' => $domain]), '', 'PostmasterTools');
                         }
 
                         if ($spamRate !== null && $spamRate > 0.3) {
-                            $wd->error("Postmaster Tools [{$domain}] : taux de spam {$spamRate}% (seuil critique >0,3%) — action immédiate requise.", '', 'PostmasterTools');
+                            $wd->error(WatchdogManager::i18nMsg('watchdog.postmaster_spam_critical', ['domain' => $domain, 'rate' => $spamRate]), '', 'PostmasterTools');
                         } elseif ($spamRate !== null && $spamRate > 0.1) {
-                            $wd->warning("Postmaster Tools [{$domain}] : taux de spam {$spamRate}% (zone d'attention >0,1%).", '', 'PostmasterTools');
+                            $wd->warning(WatchdogManager::i18nMsg('watchdog.postmaster_spam_attention', ['domain' => $domain, 'rate' => $spamRate]), '', 'PostmasterTools');
                         } elseif ($rep === 'HIGH' && ($spamRate === null || $spamRate < 0.1)) {
-                            $wd->info("Postmaster Tools [{$domain}] : réputation HIGH — tout va bien.", '', 'PostmasterTools');
+                            $wd->info(WatchdogManager::i18nMsg('watchdog.postmaster_reputation_high_ok', ['domain' => $domain]), '', 'PostmasterTools');
                         }
                     }
                 }
             } else {
                 $this->context->smarty->assign('neria_error', 'Impossible de récupérer les données. Vérifiez la connexion Google.');
                 if (class_exists('WatchdogManager')) {
-                    (new WatchdogManager($this))->warning('Postmaster Tools : échec de récupération des données API (token expiré ou révoqué ?).', '', 'PostmasterTools');
+                    (new WatchdogManager($this))->warning(WatchdogManager::i18nMsg('watchdog.postmaster_fetch_failed'), '', 'PostmasterTools');
                 }
             }
         }
@@ -2526,7 +2540,7 @@ class Neria extends Module
             $total = count(ConfigManager::getAllCountries());
             $count = count($selected);
             (new WatchdogManager($this))->info(
-                '[target_countries] Configuration mise à jour : ' . $count . '/' . $total . ' pays activés.'
+                WatchdogManager::i18nMsg('watchdog.target_countries_updated', ['n' => $count, 'total' => $total])
             );
             $this->context->smarty->assign('neria_success', 'Pays cibles enregistrés (' . $count . ' pays activés).');
         }
@@ -2730,13 +2744,12 @@ class Neria extends Module
                     $wd      = new WatchdogManager($this);
                     $hits    = count($domRep['blacklists']['hits'] ?? []);
                     $score   = $domRep['score'];
-                    $msg     = sprintf(
-                        'Réputation domaine %s : %d/100 (%s) — %d blacklist(s) touchée(s).',
-                        $domRep['domain'] ?? '',
-                        $score,
-                        $domRep['grade'],
-                        $hits
-                    );
+                    $msg     = WatchdogManager::i18nMsg('watchdog.domain_reputation_manual', [
+                        'domain' => $domRep['domain'] ?? '',
+                        'score'  => $score,
+                        'grade'  => $domRep['grade'],
+                        'hits'   => $hits,
+                    ]);
                     if ($score < 50 || $hits > 0) {
                         $wd->error($msg, '', 'DomainReputation');
                     } elseif ($score < 75) {
@@ -2769,11 +2782,10 @@ class Neria extends Module
                     // Watchdog : trace de l'analyse (warning si score faible)
                     if (class_exists('WatchdogManager')) {
                         $wd  = new WatchdogManager($this);
-                        $msg = sprintf(
-                            'Analyse délivrabilité : %d/100 (%s)',
-                            $result['score'],
-                            $result['grade']
-                        );
+                        $msg = WatchdogManager::i18nMsg('watchdog.deliverability_analyzed', [
+                            'score' => $result['score'],
+                            'grade' => $result['grade'],
+                        ]);
                         if ($result['score'] < 60) {
                             $wd->warning($msg, $scoreTemplate, 'DeliverabilityScorer');
                         } else {
@@ -2783,7 +2795,7 @@ class Neria extends Module
                 } catch (\Throwable $e) {
                     if (class_exists('WatchdogManager')) {
                         (new WatchdogManager($this))->error(
-                            'Échec analyse délivrabilité : ' . $e->getMessage(),
+                            WatchdogManager::i18nMsg('watchdog.deliverability_failed', ['error' => $e->getMessage()]),
                             $scoreTemplate,
                             'DeliverabilityScorer'
                         );
@@ -2847,7 +2859,9 @@ class Neria extends Module
                 $this->context->smarty->assign('neria_success', $msg);
                 if (class_exists('WatchdogManager')) {
                     (new WatchdogManager($this))->info(
-                        "A/B [{$tplKey}] : variante {$winner} appliquée manuellement (confiance {$conf}%).",
+                        WatchdogManager::i18nMsg('watchdog.abtest_applied_manual', [
+                            'template' => $tplKey, 'winner' => $winner, 'confidence' => $conf,
+                        ]),
                         $tplKey, 'ABTestManager'
                     );
                 }
@@ -2957,7 +2971,7 @@ class Neria extends Module
                 if (class_exists('TranslationEngine')) { (new TranslationEngine($this))->clearCache(); }
                 if (class_exists('WatchdogManager')) {
                     (new WatchdogManager($this))->info(
-                        sprintf('Import CSV : %d traduction(s) importée(s)', $count), '', 'Traductions'
+                        WatchdogManager::i18nMsg('watchdog.csv_import_count', ['n' => $count]), '', 'Traductions'
                     );
                 }
                 $this->context->smarty->assign('neria_success', "{$count} traduction(s) importée(s) avec succès.");
@@ -3060,7 +3074,7 @@ class Neria extends Module
                 if (class_exists('TranslationEngine')) { (new TranslationEngine($this))->clearCache(); }
                 if (class_exists('WatchdogManager')) {
                     (new WatchdogManager($this))->warning(
-                        sprintf('Template "%s" réinitialisé dans toutes les langues', $tplKey), '', 'Traductions'
+                        WatchdogManager::i18nMsg('watchdog.template_reset_all_langs', ['template' => $tplKey]), '', 'Traductions'
                     );
                 }
                 $this->context->smarty->assign('neria_success', "Template \"{$tplKey}\" réinitialisé dans toutes les langues.");
@@ -3107,7 +3121,7 @@ class Neria extends Module
                 }
                 if (class_exists('TranslationEngine')) { (new TranslationEngine($this))->clearCache(); }
                 if (class_exists('WatchdogManager')) {
-                    (new WatchdogManager($this))->warning('RÉINITIALISATION GLOBALE de toutes les traductions', '', 'Traductions');
+                    (new WatchdogManager($this))->warning(WatchdogManager::i18nMsg('watchdog.translations_reset_global'), '', 'Traductions');
                 }
                 $this->context->smarty->assign('neria_success', 'Toutes les traductions ont été réinitialisées aux valeurs Neria d\'origine.');
             }
@@ -3124,7 +3138,7 @@ class Neria extends Module
                 (new VoiceProfileManager($this))->saveProfile($voiceLang, $banned, $preferred, $toneNotes);
                 if (class_exists('WatchdogManager')) {
                     (new WatchdogManager($this))->info(
-                        'Empreinte vocale mise à jour [' . $voiceLang . ']', '', 'Traductions'
+                        WatchdogManager::i18nMsg('watchdog.voice_profile_updated', ['lang' => $voiceLang]), '', 'Traductions'
                     );
                 }
                 $this->context->smarty->assign('neria_success', AdminTranslator::t('translations.voice_saved'));
@@ -3151,7 +3165,10 @@ class Neria extends Module
             (new ConfigManager($this))->set(ConfigManager::KEY_DEEPL_KEY, CryptoManager::encrypt($key));
             if (class_exists('WatchdogManager')) {
                 (new WatchdogManager($this))->info(
-                    $key !== '' ? 'Clé API DeepL configurée' : 'Clé API DeepL supprimée', '', 'Traductions'
+                    $key !== ''
+                        ? WatchdogManager::i18nMsg('watchdog.deepl_key_configured')
+                        : WatchdogManager::i18nMsg('watchdog.deepl_key_removed'),
+                    '', 'Traductions'
                 );
             }
             $this->context->smarty->assign('neria_success', 'Clé API DeepL enregistrée.');
@@ -3217,7 +3234,9 @@ class Neria extends Module
                         ));
                         if ($changedCount > 0) {
                             (new WatchdogManager($this))->info(
-                                sprintf('%d champ(s) modifié(s) dans "%s" [%s]', $changedCount, $tplKey, $tplLang),
+                                WatchdogManager::i18nMsg('watchdog.translation_fields_changed', [
+                                    'n' => $changedCount, 'template' => $tplKey, 'lang' => $tplLang,
+                                ]),
                                 '',
                                 'Traductions'
                             );
@@ -3323,7 +3342,9 @@ class Neria extends Module
                     if (class_exists('WatchdogManager')) {
                         $resetCount = isset($customRows) ? count((array) $customRows) : 0;
                         (new WatchdogManager($this))->warning(
-                            sprintf('Template "%s" [%s] réinitialisé aux valeurs Neria d\'origine (%d champ(s) écrasé(s))', $tplKey, $tplLang, $resetCount),
+                            WatchdogManager::i18nMsg('watchdog.template_reset_lang', [
+                                'template' => $tplKey, 'lang' => $tplLang, 'n' => $resetCount,
+                            ]),
                             '',
                             'Traductions'
                         );
@@ -3366,7 +3387,7 @@ class Neria extends Module
                         );
                         if (class_exists('WatchdogManager')) {
                             (new WatchdogManager($this))->warning(
-                                sprintf('Variante B de "%s" [%s] réinitialisée (retour aux textes A)', $tplKey, $tplLang),
+                                WatchdogManager::i18nMsg('watchdog.variant_b_reset', ['template' => $tplKey, 'lang' => $tplLang]),
                                 '', 'Traductions'
                             );
                         }
@@ -3487,7 +3508,9 @@ class Neria extends Module
                             // Watchdog : restauration depuis l'historique
                             if (class_exists('WatchdogManager')) {
                                 (new WatchdogManager($this))->info(
-                                    sprintf('Champ "%s" restauré dans "%s" [%s] par %s', $restoreKey, $tplKey, $tplLang, $author),
+                                    WatchdogManager::i18nMsg('watchdog.translation_field_restored', [
+                                        'key' => $restoreKey, 'template' => $tplKey, 'lang' => $tplLang, 'author' => $author,
+                                    ]),
                                     '',
                                     'Traductions'
                                 );
@@ -3831,7 +3854,7 @@ class Neria extends Module
                 } catch (\Throwable $e) {
                     if (class_exists('WatchdogManager')) {
                         (new WatchdogManager($this))->error(
-                            'Recalcul des scores de churn échoué : ' . $e->getMessage(),
+                            WatchdogManager::i18nMsg('watchdog.churn_recompute_manual_failed', ['error' => $e->getMessage()]),
                             '', 'ChurnScoreManager'
                         );
                     }
@@ -3849,7 +3872,7 @@ class Neria extends Module
                 } catch (\Throwable $e) {
                     if (class_exists('WatchdogManager')) {
                         (new WatchdogManager($this))->error(
-                            'Recalcul des segments échoué : ' . $e->getMessage(),
+                            WatchdogManager::i18nMsg('watchdog.segment_recompute_manual_failed', ['error' => $e->getMessage()]),
                             '', 'SegmentManager'
                         );
                     }
@@ -3902,7 +3925,9 @@ class Neria extends Module
                     $purged = (new GdprAuditManager(__DIR__))->purgeTable($gdprTable, $gdprDateCol, $gdprMonths);
                     if (class_exists('WatchdogManager')) {
                         (new WatchdogManager($this))->warning(
-                            sprintf('Purge RGPD : %d enregistrement(s) supprimé(s) de %s (> %d mois)', $purged, $gdprTable, $gdprMonths),
+                            WatchdogManager::i18nMsg('watchdog.gdpr_purge_manual', [
+                                'n' => $purged, 'table' => $gdprTable, 'months' => $gdprMonths,
+                            ]),
                             '', 'RGPD'
                         );
                     }
@@ -3910,7 +3935,7 @@ class Neria extends Module
                 } catch (\Throwable $e) {
                     if (class_exists('WatchdogManager')) {
                         (new WatchdogManager($this))->error(
-                            sprintf('Purge RGPD de %s échouée : %s', $gdprTable, $e->getMessage()),
+                            WatchdogManager::i18nMsg('watchdog.gdpr_purge_manual_failed', ['table' => $gdprTable, 'error' => $e->getMessage()]),
                             '', 'RGPD'
                         );
                     }
@@ -4256,7 +4281,7 @@ class Neria extends Module
             $done = (new GdprAuditManager(__DIR__))->encryptExistingRecords();
             if (class_exists('WatchdogManager')) {
                 (new WatchdogManager($this))->info(
-                    sprintf('Chiffrement rétroactif : %d enregistrement(s) de rendered_vars chiffré(s) avec AES-256-GCM.', $done),
+                    WatchdogManager::i18nMsg('watchdog.gdpr_encrypt_retroactive', ['n' => $done]),
                     '', 'RGPD'
                 );
             }
@@ -5513,8 +5538,7 @@ class Neria extends Module
 
         if (!$hasSuccess && !$hasError && !$hasInfo) {
             (new WatchdogManager($this))->warning(
-                '[BO] Action POST "' . $action . '" exécutée sans retour utilisateur'
-                . ' (ni neria_success, ni neria_error assigné). Le marchand ne voit pas le résultat.'
+                WatchdogManager::i18nMsg('watchdog.bo_post_action_silent', ['action' => $action])
             );
         }
     }
@@ -5580,9 +5604,7 @@ class Neria extends Module
         }
 
         (new WatchdogManager($this))->warning(
-            '[BO] Onglet "' . $tab . '" — variable(s) Smarty non assignée(s) : '
-            . implode(', ', $missing)
-            . '. Le rendu peut être incomplet.'
+            WatchdogManager::i18nMsg('watchdog.bo_smarty_vars_missing', ['tab' => $tab, 'missing' => implode(', ', $missing)])
         );
     }
 
