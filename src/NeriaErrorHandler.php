@@ -90,12 +90,11 @@ class NeriaErrorHandler
             // Loguer au watchdog
             try {
                 (new \WatchdogManager($module))->critical(
-                    sprintf(
-                        'Crash dans getContent() : %s  in %s:%d — Le panneau de configuration n\'a pas pu s\'afficher.',
-                        $e->getMessage(),
-                        basename($e->getFile()),
-                        $e->getLine()
-                    ),
+                    \WatchdogManager::i18nMsg('watchdog.crash_get_content', [
+                        'error' => $e->getMessage(),
+                        'file'  => basename($e->getFile()),
+                        'line'  => $e->getLine(),
+                    ]),
                     '',
                     'NeriaErrorHandler'
                 );
@@ -146,14 +145,11 @@ class NeriaErrorHandler
         } catch (\Throwable $e) {
             try {
                 (new \WatchdogManager($module))->critical(
-                    sprintf(
-                        'Crash dans hookDisplayHeader() : %s in %s:%d — Ce hook tourne sur CHAQUE page boutique,'
-                        . ' une exception non rattrapée ici aurait cassé le front-office pour vos clients.'
-                        . ' Corrigez en priorité absolue.',
-                        $e->getMessage(),
-                        basename($e->getFile()),
-                        $e->getLine()
-                    ),
+                    \WatchdogManager::i18nMsg('watchdog.crash_display_header', [
+                        'error' => $e->getMessage(),
+                        'file'  => basename($e->getFile()),
+                        'line'  => $e->getLine(),
+                    ]),
                     '',
                     'NeriaErrorHandler'
                 );
@@ -206,14 +202,12 @@ class NeriaErrorHandler
     {
         try {
             (new \WatchdogManager($module))->critical(
-                sprintf(
-                    'Crash dans %s() : %s in %s:%d — Corrigez en priorité, ce hook peut affecter'
-                    . ' une page visitée par vos clients ou votre équipe (pas seulement Neria).',
-                    $hookName,
-                    $e->getMessage(),
-                    basename($e->getFile()),
-                    $e->getLine()
-                ),
+                \WatchdogManager::i18nMsg('watchdog.crash_hook_generic', [
+                    'hook'  => $hookName,
+                    'error' => $e->getMessage(),
+                    'file'  => basename($e->getFile()),
+                    'line'  => $e->getLine(),
+                ]),
                 '',
                 'NeriaErrorHandler'
             );

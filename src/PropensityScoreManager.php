@@ -80,7 +80,10 @@ class PropensityScoreManager
                 $count++;
             } catch (\Throwable $e) {
                 $this->watchdog()->error(
-                    'PropensityScore client #' . $row['id_customer'] . ' : ' . $e->getMessage(),
+                    \WatchdogManager::i18nMsg('watchdog.propensity_error', [
+                        'customer' => (int) $row['id_customer'],
+                        'error'    => $e->getMessage(),
+                    ]),
                     '', 'PropensityScore'
                 );
             }
@@ -92,7 +95,11 @@ class PropensityScoreManager
         );
 
         $this->watchdog()->info(
-            sprintf('PropensityScore : %d clients recalculés, %d en fenêtre d\'achat (≥%d).', $count, $alerts, self::ALERT_THRESHOLD),
+            \WatchdogManager::i18nMsg('watchdog.propensity_summary', [
+                'n'         => $count,
+                'alerts'    => $alerts,
+                'threshold' => self::ALERT_THRESHOLD,
+            ]),
             '', 'PropensityScore'
         );
     }

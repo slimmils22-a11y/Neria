@@ -155,7 +155,7 @@ class PreferencesManager
         if (class_exists('WatchdogManager')) {
             try {
                 (new WatchdogManager($this->module))->info(
-                    'Préférences email mises à jour',
+                    WatchdogManager::i18nMsg('watchdog.preferences_updated'),
                     '',
                     'Preferences',
                     ['id_customer' => $idCustomer, 'email' => $email, 'prefs' => $prefs]

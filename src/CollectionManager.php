@@ -164,7 +164,11 @@ class CollectionManager
 
                     if (class_exists('WatchdogManager')) {
                         (new \WatchdogManager($this->module))->info(
-                            sprintf('Collection "%s" → %s (produit manquant #%d)', $colName, $customer->email, $missingId),
+                            \WatchdogManager::i18nMsg('watchdog.collection_item_sent', [
+                                'collection' => $colName,
+                                'email'      => $customer->email,
+                                'product'    => $missingId,
+                            ]),
                             'collection_completion', 'CollectionManager'
                         );
                     }
@@ -172,7 +176,7 @@ class CollectionManager
             } catch (\Throwable $e) {
                 if (class_exists('WatchdogManager')) {
                     (new \WatchdogManager($this->module))->error(
-                        'Erreur envoi collection : ' . $e->getMessage(),
+                        \WatchdogManager::i18nMsg('watchdog.collection_item_error', ['error' => $e->getMessage()]),
                         'collection_completion', 'CollectionManager'
                     );
                 }

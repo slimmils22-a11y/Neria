@@ -156,7 +156,12 @@ class ChurnScoreManager
              WHERE id_shop = {$this->idShop} AND preferred_slot IS NOT NULL"
         );
         $this->watchdog()->info(
-            "ChurnScoreManager : {$inserted} client(s) scorés, {$atRisk} en risque élevé (≥ " . self::HIGH_RISK_THRESHOLD . "), {$withSlot} avec tranche horaire détectée.",
+            \WatchdogManager::i18nMsg('watchdog.churn_score_summary', [
+                'n'        => $inserted,
+                'atRisk'   => $atRisk,
+                'threshold' => self::HIGH_RISK_THRESHOLD,
+                'withSlot' => $withSlot,
+            ]),
             '', 'ChurnScore'
         );
 

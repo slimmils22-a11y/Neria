@@ -426,7 +426,13 @@ class UpsellManager
 
         $idUpsell = (int) $this->db->Insert_ID();
         $this->watchdog()->info(
-            sprintf('Suggestion upsell #%d → client #%d commande #%d : %s (%s)', $idUpsell, $idCustomer, $idOrderSource, $upsell['name'], $tier),
+            \WatchdogManager::i18nMsg('watchdog.upsell_suggestion_created', [
+                'upsell'   => $idUpsell,
+                'customer' => $idCustomer,
+                'order'    => $idOrderSource,
+                'product'  => $upsell['name'],
+                'tier'     => $tier,
+            ]),
             'upsell', 'Upsell'
         );
         return $idUpsell;
@@ -499,7 +505,7 @@ class UpsellManager
 
         if ($count > 0) {
             $this->watchdog()->info(
-                sprintf('%d conversion(s) upsell détectée(s)', $count),
+                \WatchdogManager::i18nMsg('watchdog.upsell_conversions_detected', ['n' => $count]),
                 'upsell_conversion', 'Upsell'
             );
         }

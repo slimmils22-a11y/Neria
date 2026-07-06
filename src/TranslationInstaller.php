@@ -174,7 +174,7 @@ class TranslationInstaller
             1
         );
         $this->watchdog()->info(
-            sprintf('Import terminé — %d traductions insérées', $this->countInserted),
+            \WatchdogManager::i18nMsg('watchdog.translation_install_summary', ['n' => $this->countInserted]),
             '',
             'TranslationInstaller'
         );
@@ -347,7 +347,7 @@ class TranslationInstaller
                 3
             );
             $this->watchdog()->error(
-                'Erreur bulk insert : ' . $this->db->getMsgError(),
+                \WatchdogManager::i18nMsg('watchdog.translation_install_bulk_error', ['error' => $this->db->getMsgError()]),
                 '',
                 'TranslationInstaller'
             );

@@ -144,7 +144,10 @@ class LookCompletionManager
 
                     if (class_exists('WatchdogManager')) {
                         (new \WatchdogManager($this->module))->info(
-                            sprintf('Look completion → %s (commande #%d)', $customer->email, $idOrder),
+                            \WatchdogManager::i18nMsg('watchdog.look_completion_item_sent', [
+                                'email' => $customer->email,
+                                'order' => $idOrder,
+                            ]),
                             'complete_your_look', 'LookCompletion'
                         );
                     }
@@ -152,7 +155,7 @@ class LookCompletionManager
             } catch (\Throwable $e) {
                 if (class_exists('WatchdogManager')) {
                     (new \WatchdogManager($this->module))->error(
-                        'Erreur look completion : ' . $e->getMessage(),
+                        \WatchdogManager::i18nMsg('watchdog.look_completion_item_error', ['error' => $e->getMessage()]),
                         'complete_your_look', 'LookCompletion'
                     );
                 }
