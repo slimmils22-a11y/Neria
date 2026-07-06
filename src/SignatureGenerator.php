@@ -125,7 +125,7 @@ class SignatureGenerator
                 'SignatureGenerator: extension GD indisponible',
                 2
             );
-            $this->watchdog()->critical('Extension GD indisponible', '', 'SignatureGenerator');
+            $this->watchdog()->critical(WatchdogManager::i18nMsg('watchdog.signature_gd_missing'), '', 'SignatureGenerator');
             return false;
         }
 
@@ -142,7 +142,7 @@ class SignatureGenerator
                 "SignatureGenerator: police [{$style}] introuvable",
                 2
             );
-            $this->watchdog()->error('Police TTF introuvable : ' . $style, '', 'SignatureGenerator');
+            $this->watchdog()->error(WatchdogManager::i18nMsg('watchdog.signature_font_missing', ['style' => $style]), '', 'SignatureGenerator');
             return false;
         }
 

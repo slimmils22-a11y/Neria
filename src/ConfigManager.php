@@ -1152,10 +1152,7 @@ class ConfigManager
 
         if (!in_array($mime, $allowedMimes, true)) {
             $this->watchdog()->warning(
-                sprintf(
-                    'Upload logo refusé : type de fichier "%s" non accepté. Formats autorisés : PNG, JPEG, GIF, WebP.',
-                    $mime
-                ),
+                \WatchdogManager::i18nMsg('watchdog.logo_upload_rejected_mime', ['mime' => $mime]),
                 '', 'ConfigManager'
             );
             return false;
@@ -1164,10 +1161,7 @@ class ConfigManager
         // Taille max : 2 Mo
         if ($file['size'] > 2 * 1024 * 1024) {
             $this->watchdog()->warning(
-                sprintf(
-                    'Upload logo refusé : fichier trop lourd (%s Ko). Taille maximum : 2 Mo.',
-                    round($file['size'] / 1024)
-                ),
+                \WatchdogManager::i18nMsg('watchdog.logo_upload_rejected_size', ['size' => round($file['size'] / 1024)]),
                 '', 'ConfigManager'
             );
             return false;
@@ -1192,10 +1186,7 @@ class ConfigManager
 
         if (!move_uploaded_file($file['tmp_name'], $dest)) {
             $this->watchdog()->error(
-                sprintf(
-                    'Upload logo : échec du déplacement vers "%s". Vérifiez que le dossier data/signatures/ est accessible en écriture (chmod 755 ou 777).',
-                    $dest
-                ),
+                \WatchdogManager::i18nMsg('watchdog.logo_upload_move_failed', ['dest' => $dest]),
                 '', 'ConfigManager'
             );
             return false;

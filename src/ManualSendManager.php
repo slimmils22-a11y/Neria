@@ -898,7 +898,11 @@ class ManualSendManager
         (new \QueueManager($this->module))->enqueueAt($template, $customer, $vars, 0, $sendAt);
 
         $this->watchdog()->info(
-            'Envoi manuel planifié : ' . $template . ' → ' . $email . ' pour ' . $sendAt,
+            WatchdogManager::i18nMsg('watchdog.manual_send_scheduled', [
+                'template' => $template,
+                'email'    => $email,
+                'date'     => $sendAt,
+            ]),
             $template,
             'ManualSendManager'
         );
