@@ -2584,9 +2584,11 @@ class Neria extends Module
 
         if (Tools::getValue('neria_action') === 'reset_time_greetings_lang') {
             $lang = trim((string) Tools::getValue('neria_reset_lang'));
-            if ($lang && array_key_exists($lang, TranslationEngine::SUPPORTED_LANGS)) {
+            if ($lang && in_array($lang, TranslationEngine::SUPPORTED_LANGS, true)) {
                 (new ConfigManager($this))->resetTimeGreetings($lang);
                 $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.time_greetings_reset_lang', ['lang' => strtoupper($lang)]));
+            } else {
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.invalid_lang'));
             }
         }
 

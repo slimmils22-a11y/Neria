@@ -50916,6 +50916,26 @@
         "da": "Test-webhook mislykkedes: {error}",
         "nl": "Test-webhook mislukt: {error}"
     },
+    "msg.invalid_lang": {
+        "fr": "Langue invalide.",
+        "en": "Invalid language.",
+        "de": "Ungültige Sprache.",
+        "it": "Lingua non valida.",
+        "es": "Idioma no válido.",
+        "pt": "Idioma inválido.",
+        "br": "Idioma inválido.",
+        "ar": "لغة غير صالحة.",
+        "ja": "無効な言語です。",
+        "ko": "잘못된 언어입니다.",
+        "zh": "无效的语言。",
+        "tw": "無效的語言。",
+        "ru": "Недопустимый язык.",
+        "tr": "Geçersiz dil.",
+        "sv": "Ogiltigt språk.",
+        "no": "Ugyldig språk.",
+        "da": "Ugyldigt sprog.",
+        "nl": "Ongeldige taal."
+    },
     "msg.bounce_deleted": {
         "fr": "Bounce supprimé.",
         "en": "Bounce deleted.",
