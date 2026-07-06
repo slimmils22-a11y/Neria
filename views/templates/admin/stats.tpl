@@ -2997,7 +2997,7 @@ var _nCopyLbl = {
     <div>
       <h2 class="neria-section__title" style="margin:0 0 4px 0;">{neria_admin key='stats.propensity_title'} 🎯</h2>
       <p class="neria-text" style="margin:0; font-size:13px; opacity:.7;">
-        {neria_admin key='stats.propensity_desc'}
+        {neria_admin key='stats.propensity_desc' n=$propensity_threshold}
       </p>
     </div>
     <form method="post" style="margin:0;">
@@ -3021,7 +3021,7 @@ var _nCopyLbl = {
       <li><strong>{neria_admin key='stats.propensity_factor_engagement'}</strong> — {neria_admin key='stats.propensity_factor_engagement_desc'}</li>
       <li><strong>{neria_admin key='stats.propensity_factor_seasonality'}</strong> — {neria_admin key='stats.propensity_factor_seasonality_desc'}</li>
     </ul>
-    {neria_admin key='stats.propensity_howto_footer'}
+    {neria_admin key='stats.propensity_howto_footer' n=$propensity_threshold}
   </div>
 
   {if $propensity_alerts}
