@@ -2002,6 +2002,7 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'clear_logs') {
             $watchdog = new WatchdogManager($this);
             $watchdog->clearLogs();
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.logs_cleared'));
         }
 
         // ── Action : détection automatique de la langue ───────────
@@ -2136,7 +2137,7 @@ class Neria extends Module
                 $this->context->smarty->assign([
                     'postmaster_stats'     => $stats,
                     'postmaster_cache_age' => 0,
-                    'neria_success'        => 'Données Postmaster Tools actualisées.',
+                    'neria_success'        => AdminTranslator::t('msg.postmaster_refreshed'),
                 ]);
                 // Watchdog : alerte si réputation ou taux de spam dégradés
                 if (class_exists('WatchdogManager')) {
@@ -2206,7 +2207,7 @@ class Neria extends Module
                 $this->context->smarty->assign([
                     'pagespeed_report'    => $report,
                     'pagespeed_cache_age' => 0,
-                    'neria_success'       => 'PageSpeed actualisé.',
+                    'neria_success'       => AdminTranslator::t('msg.pagespeed_refreshed'),
                 ]);
             } else {
                 $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.pagespeed_fetch_failed'));
@@ -2253,7 +2254,7 @@ class Neria extends Module
                 $this->context->smarty->assign([
                     'searchconsole_stats'     => $stats,
                     'searchconsole_cache_age' => 0,
-                    'neria_success'           => 'Search Console actualisé.',
+                    'neria_success'           => AdminTranslator::t('msg.searchconsole_refreshed'),
                 ]);
             } else {
                 $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.searchconsole_fetch_failed'));
@@ -2291,7 +2292,7 @@ class Neria extends Module
                 $this->context->smarty->assign([
                     'seo_report'    => $report,
                     'seo_cache_age' => 0,
-                    'neria_success' => 'Données SEO actualisées.',
+                    'neria_success' => AdminTranslator::t('msg.seo_refreshed'),
                 ]);
             } else {
                 $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.seo_fetch_failed'));
@@ -3835,13 +3836,13 @@ class Neria extends Module
             if ($result['ok']) {
                 $this->context->smarty->assign(
                     'neria_success',
-                    'Test webhook envoyé avec succès (HTTP ' . ($result['http_code'] ?? '200') . ').'
+                    AdminTranslator::tVars('msg.webhook_test_sent', ['code' => (string) ($result['http_code'] ?? '200')])
                 );
             } else {
                 $errDetail = $result['error'] ?? ('HTTP ' . ($result['http_code'] ?? '0'));
                 $this->context->smarty->assign(
                     'neria_error',
-                    'Test webhook échoué : ' . $errDetail
+                    AdminTranslator::tVars('msg.webhook_test_failed', ['error' => $errDetail])
                 );
             }
         }
