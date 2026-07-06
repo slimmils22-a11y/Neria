@@ -65,7 +65,7 @@ class CertificateManager
         // ── Commande & client ─────────────────────────────────────
         $order = new \Order($idOrder);
         if (!\Validate::isLoadedObject($order)) {
-            return 'Commande introuvable.';
+            return AdminTranslator::t('msg.certificate_order_not_found');
         }
 
         $customer = new \Customer((int) $order->id_customer);
@@ -83,7 +83,7 @@ class CertificateManager
 
         // Vérifie unicité
         if ($this->serialExists($serialNumber)) {
-            return 'Ce numéro de série existe déjà : ' . $serialNumber;
+            return AdminTranslator::tVars('msg.certificate_serial_exists', ['serial' => $serialNumber]);
         }
 
         // ── Langue du client (même algorithme que EmailRenderer pour l'email,

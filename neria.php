@@ -3737,7 +3737,7 @@ class Neria extends Module
                 'mp_selected_template' => $mpTemplate,
                 'mp_selected_lang'     => $mpLang,
             ]);
-            $this->context->smarty->assign('neria_success', 'Prévisualisation générée pour ' . count($previews) . ' client(s).');
+            $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.multipreview_generated', ['n' => count($previews)]));
         }
 
         // ── Multi-preview : soumission + sondage Litmus / Email on Acid ──
@@ -3799,7 +3799,7 @@ class Neria extends Module
             $whEvents = Tools::getValue('webhook_events', []);
 
             if ($whUrl !== '' && !WebhookManager::isPublicUrl($whUrl)) {
-                $this->context->smarty->assign('neria_error', 'URL invalide — elle doit être une adresse publique valide (https://), pas une adresse interne ou privée.');
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.webhook_save_url_invalid'));
             } else {
                 Configuration::updateValue(WebhookManager::CONFIG_URL, $whUrl);
                 if ($whSecret === '' && $whUrl !== '') {
@@ -3837,9 +3837,9 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'process_webhook_queue_now' && class_exists('WebhookManager')) {
             try {
                 (new WebhookManager($this))->processQueue();
-                $this->context->smarty->assign('neria_success', 'File de webhooks traitée.');
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.webhook_queue_processed'));
             } catch (\Throwable $e) {
-                $this->context->smarty->assign('neria_error', 'Erreur lors du traitement : ' . $e->getMessage());
+                $this->context->smarty->assign('neria_error', AdminTranslator::tVars('msg.webhook_process_error', ['error' => $e->getMessage()]));
             }
         }
 
@@ -3847,9 +3847,9 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'retry_webhook' && class_exists('WebhookManager')) {
             $idWebhook = (int) Tools::getValue('id_webhook', 0);
             if ($idWebhook > 0 && (new WebhookManager($this))->retryOne($idWebhook)) {
-                $this->context->smarty->assign('neria_success', 'Webhook remis en file pour relance.');
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.webhook_requeued'));
             } else {
-                $this->context->smarty->assign('neria_error', 'Impossible de relancer ce webhook.');
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.webhook_retry_failed'));
             }
         }
 
@@ -3858,7 +3858,7 @@ class Neria extends Module
             if (class_exists('ChurnScoreManager')) {
                 try {
                     $n = (new ChurnScoreManager($this))->recomputeAll();
-                    $this->context->smarty->assign('neria_success', "{$n} score(s) de désabonnement recalculé(s).");
+                    $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.churn_recomputed', ['n' => $n]));
                 } catch (\Throwable $e) {
                     if (class_exists('WatchdogManager')) {
                         (new WatchdogManager($this))->error(
@@ -3866,7 +3866,7 @@ class Neria extends Module
                             '', 'ChurnScoreManager'
                         );
                     }
-                    $this->context->smarty->assign('neria_error', 'Le recalcul a échoué — voir le journal Watchdog.');
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.recompute_failed_watchdog'));
                 }
             }
         }
@@ -3876,7 +3876,7 @@ class Neria extends Module
             if (class_exists('SegmentManager')) {
                 try {
                     $n = (new SegmentManager($this))->recomputeAll();
-                    $this->context->smarty->assign('neria_success', "{$n} client(s) mis à jour.");
+                    $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.segments_updated', ['n' => $n]));
                 } catch (\Throwable $e) {
                     if (class_exists('WatchdogManager')) {
                         (new WatchdogManager($this))->error(
@@ -3884,7 +3884,7 @@ class Neria extends Module
                             '', 'SegmentManager'
                         );
                     }
-                    $this->context->smarty->assign('neria_error', 'Le recalcul a échoué — voir le journal Watchdog.');
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.recompute_failed_watchdog'));
                 }
             }
         }
@@ -3918,7 +3918,7 @@ class Neria extends Module
                     );
                 }
             } else {
-                $this->context->smarty->assign('neria_error', 'Segment et template requis.');
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.segment_and_template_required'));
             }
         }
 
@@ -3939,7 +3939,7 @@ class Neria extends Module
                             '', 'RGPD'
                         );
                     }
-                    $this->context->smarty->assign('neria_success', sprintf('%d enregistrement(s) supprimé(s) de %s.', $purged, $gdprTable));
+                    $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.gdpr_purge_success', ['n' => $purged, 'table' => $gdprTable]));
                 } catch (\Throwable $e) {
                     if (class_exists('WatchdogManager')) {
                         (new WatchdogManager($this))->error(
@@ -3947,7 +3947,7 @@ class Neria extends Module
                             '', 'RGPD'
                         );
                     }
-                    $this->context->smarty->assign('neria_error', 'La purge a échoué — voir le journal Watchdog.');
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.purge_failed_watchdog'));
                 }
             }
         }
@@ -4048,9 +4048,9 @@ class Neria extends Module
                      ON DUPLICATE KEY UPDATE lifespan_days = ' . $lifespanDays . ',
                      alert_days = ' . $alertDays . ', date_upd = NOW()'
                 );
-                $this->context->smarty->assign('neria_success', 'Produit ajouté à la liste de rappels.');
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.lifespan_product_added'));
             } else {
-                $this->context->smarty->assign('neria_error', 'Veuillez renseigner un produit et une durée valides.');
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.lifespan_invalid_input'));
             }
         }
 
@@ -4062,7 +4062,7 @@ class Neria extends Module
                     'DELETE FROM `' . _DB_PREFIX_ . 'neria_product_lifespan`
                      WHERE id_lifespan = ' . $idLifespan . ' AND id_shop = ' . (int) $this->context->shop->id
                 );
-                $this->context->smarty->assign('neria_success', 'Produit supprimé de la liste de rappels.');
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.lifespan_product_removed'));
             }
         }
 
@@ -4105,16 +4105,16 @@ class Neria extends Module
                 : 0;
 
             if ($custInput === '' || $quoteRef === '' || $expiryDate === '') {
-                $this->assignQuoteMsg('error', 'Client, référence et date d\'expiration sont requis.');
+                $this->assignQuoteMsg('error', AdminTranslator::t('msg.quote_required_fields'));
             } elseif ($idCustomer <= 0) {
                 $this->assignQuoteMsg(
                     'error',
-                    'Client introuvable : « ' . htmlspecialchars($custInput) . ' ». Saisissez un ID client valide ou l\'email d\'un client existant.'
+                    AdminTranslator::tVars('msg.quote_customer_not_found', ['input' => htmlspecialchars($custInput)])
                 );
             } elseif ($alreadyTracked > 0) {
                 $this->assignQuoteMsg(
                     'error',
-                    'Ce devis est déjà suivi : la référence « ' . htmlspecialchars($quoteRef) . ' » existe déjà pour ce client. Supprimez la ligne existante avant de la recréer.'
+                    AdminTranslator::tVars('msg.quote_already_tracked', ['ref' => htmlspecialchars($quoteRef)])
                 );
             } else {
                 Db::getInstance()->execute(
@@ -4123,7 +4123,7 @@ class Neria extends Module
                      VALUES (' . (int) $this->context->shop->id . ', ' . $idCustomer . ', \'' . $quoteRef . '\',
                      ' . $quoteTotal . ', ' . $idCurrency . ', \'' . $expiryDate . '\', \'active\', NOW(), NOW())'
                 );
-                $this->assignQuoteMsg('success', 'Devis ajouté avec succès.');
+                $this->assignQuoteMsg('success', AdminTranslator::t('msg.quote_added'));
             }
         }
 
@@ -4136,7 +4136,7 @@ class Neria extends Module
                      SET status = \'won\', date_upd = NOW()
                      WHERE id_quote = ' . $idQuote . ' AND id_shop = ' . (int) $this->context->shop->id
                 );
-                $this->assignQuoteMsg('success', 'Devis marqué comme gagné.');
+                $this->assignQuoteMsg('success', AdminTranslator::t('msg.quote_marked_won'));
             }
         }
 
@@ -4149,7 +4149,7 @@ class Neria extends Module
                      SET status = \'lost\', date_upd = NOW()
                      WHERE id_quote = ' . $idQuote . ' AND id_shop = ' . (int) $this->context->shop->id
                 );
-                $this->assignQuoteMsg('success', 'Devis marqué comme perdu.');
+                $this->assignQuoteMsg('success', AdminTranslator::t('msg.quote_marked_lost'));
             }
         }
 
@@ -4161,7 +4161,7 @@ class Neria extends Module
                     'DELETE FROM `' . _DB_PREFIX_ . 'neria_quote`
                      WHERE id_quote = ' . $idQuote . ' AND id_shop = ' . (int) $this->context->shop->id
                 );
-                $this->assignQuoteMsg('success', 'Devis supprimé.');
+                $this->assignQuoteMsg('success', AdminTranslator::t('msg.quote_deleted'));
             }
         }
 
@@ -4293,7 +4293,7 @@ class Neria extends Module
                     '', 'RGPD'
                 );
             }
-            $this->context->smarty->assign('neria_success', sprintf('%d enregistrement(s) chiffré(s) avec succès.', $done));
+            $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.records_encrypted', ['n' => $done]));
         }
 
         // ── Fidélité : activation / désactivation ────────────────
@@ -4317,7 +4317,7 @@ class Neria extends Module
                 ];
             }
             (new LoyaltyManager($this))->saveTiers($tiers);
-            $this->context->smarty->assign('neria_success', 'Paliers de fidélité enregistrés.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.loyalty_tiers_saved'));
         }
 
         // ── Campagnes saisonnières : créer / modifier ─────────────
@@ -4339,10 +4339,10 @@ class Neria extends Module
             ];
             if ($id > 0) {
                 $mgr->update($id, $data);
-                $this->context->smarty->assign('neria_success', 'Campagne mise à jour.');
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.seasonal_campaign_updated'));
             } else {
                 $mgr->create($data);
-                $this->context->smarty->assign('neria_success', 'Campagne créée.');
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.seasonal_campaign_created'));
             }
         }
 
@@ -4351,7 +4351,7 @@ class Neria extends Module
             $id = (int) Tools::getValue('id_campaign', 0);
             if ($id > 0) {
                 (new SeasonalCampaignManager($this))->delete($id);
-                $this->context->smarty->assign('neria_success', 'Campagne supprimée.');
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.seasonal_campaign_deleted'));
             }
         }
 
@@ -4380,7 +4380,7 @@ class Neria extends Module
             if ($secret !== '') {
                 Configuration::updateValue(BounceManager::CFG_WEBHOOK_SECRET, CryptoManager::encrypt($secret));
             }
-            $this->context->smarty->assign('neria_success', 'Configuration des bounces enregistrée.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.bounce_config_saved'));
         }
 
         // ── Bounces : test connexion IMAP (AJAX) ─────────────────────
@@ -4416,7 +4416,7 @@ class Neria extends Module
             $type  = Tools::getValue('bounce_type', 'hard') === 'soft' ? 'soft' : 'hard';
             if ($email !== '' && Validate::isEmail($email)) {
                 (new BounceManager($this))->addManualBounce($email, $type);
-                $this->context->smarty->assign('neria_success', "Adresse $email ajoutée en $type bounce.");
+                $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.bounce_manual_added', ['email' => $email, 'type' => $type]));
             }
         }
 
@@ -4446,7 +4446,7 @@ class Neria extends Module
             Configuration::updateGlobalValue(CertificateManager::CFG_BODY,          pSQL(trim((string) Tools::getValue('cert_body', ''))));
             Configuration::updateGlobalValue(CertificateManager::CFG_QR_ENABLED,    (int) Tools::getValue('cert_qr_enabled', 0));
             Configuration::updateGlobalValue(CertificateManager::CFG_QR_URL,        pSQL(trim((string) Tools::getValue('cert_qr_url', ''))));
-            $this->context->smarty->assign('neria_success', 'Configuration du certificat enregistrée.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.certificate_config_saved'));
         }
 
         // ── Certificat : émission depuis fiche commande ───────────
@@ -4465,7 +4465,7 @@ class Neria extends Module
                 );
                 $this->context->smarty->assign(
                     $err === '' ? 'neria_success' : 'neria_error',
-                    $err === '' ? 'Certificat émis avec succès.' : $err
+                    $err === '' ? AdminTranslator::t('msg.certificate_issued') : $err
                 );
             }
         }
@@ -4492,7 +4492,7 @@ class Neria extends Module
             $idCert = (int) Tools::getValue('id_certificate', 0);
             if ($idCert > 0) {
                 (new CertificateManager($this))->delete($idCert);
-                $this->context->smarty->assign('neria_success', 'Certificat supprimé.');
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.certificate_deleted'));
             }
         }
 
