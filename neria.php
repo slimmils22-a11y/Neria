@@ -1986,8 +1986,10 @@ class Neria extends Module
                     $this->context->smarty->assign('neria_error', $err);
                 }
             } catch (\Throwable $e) {
-                $this->context->smarty->assign('neria_error',
-                    get_class($e) . ': ' . $e->getMessage() . ' — ' . basename($e->getFile()) . ':' . $e->getLine());
+                $this->context->smarty->assign('neria_error', AdminTranslator::tVars('msg.log_email_crash', [
+                    'class' => get_class($e), 'error' => $e->getMessage(),
+                    'file'  => basename($e->getFile()), 'line' => $e->getLine(),
+                ]));
             }
         }
 
@@ -2002,7 +2004,9 @@ class Neria extends Module
             $current = (bool) Configuration::get(self::CONFIG_PREFIX . 'AUTO_LANG');
             $enabled = !$current;
             Configuration::updateValue(self::CONFIG_PREFIX . 'AUTO_LANG', (int) $enabled);
-            $this->context->smarty->assign('neria_success', 'Détection automatique de la langue ' . ($enabled ? 'activée' : 'désactivée') . '.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.autolang_toggled', [
+                'state' => AdminTranslator::t($enabled ? 'msg.state_enabled' : 'msg.state_disabled'),
+            ]));
         }
 
         // ── Action : journalisation des emails internes ───────────
@@ -2018,7 +2022,9 @@ class Neria extends Module
             $current = (bool) Configuration::get(MonthlyReportManager::CONFIG_ENABLED);
             $enabled = !$current;
             Configuration::updateValue(MonthlyReportManager::CONFIG_ENABLED, (int) $enabled);
-            $this->context->smarty->assign('neria_success', 'Rapport mensuel ' . ($enabled ? 'activé' : 'désactivé') . '.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.report_toggled', [
+                'state' => AdminTranslator::t($enabled ? 'msg.state_enabled_m' : 'msg.state_disabled_m'),
+            ]));
         }
 
         if (Tools::getValue('neria_action') === 'save_report_config') {
@@ -2062,7 +2068,9 @@ class Neria extends Module
             $cfg     = new ConfigManager($this);
             $enabled = !$cfg->isCooldownEnabled();
             $cfg->setCooldownEnabled($enabled);
-            $this->context->smarty->assign('neria_success', 'Mode Silence ' . ($enabled ? 'activé' : 'désactivé') . '.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.cooldown_toggled', [
+                'state' => AdminTranslator::t($enabled ? 'msg.state_enabled_m' : 'msg.state_disabled_m'),
+            ]));
         }
 
         if (Tools::getValue('neria_action') === 'save_cooldown') {
@@ -2074,7 +2082,7 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'save_smtp_quota') {
             $quota = max(0, (int) Tools::getValue('neria_smtp_quota', 0));
             Configuration::updateValue('NERIA_SMTP_DAILY_QUOTA', $quota);
-            $this->context->smarty->assign('neria_success', 'Quota SMTP journalier enregistré.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.smtp_quota_saved'));
         }
 
         // ── Google Postmaster Tools : sauvegarde credentials ─────
@@ -2089,7 +2097,7 @@ class Neria extends Module
             Configuration::deleteByName(PostmasterManager::CONFIG_TOKEN_EXPIRY);
             Configuration::deleteByName(PostmasterManager::CONFIG_CACHE);
             Configuration::deleteByName(PostmasterManager::CONFIG_CACHE_TIME);
-            $this->context->smarty->assign('neria_success', 'Identifiants Google sauvegardés. Cliquez sur « Connecter » pour autoriser l\'accès.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.google_credentials_saved'));
         }
 
         // ── Google Postmaster Tools : connexion (redirect OAuth) ──
@@ -2103,7 +2111,7 @@ class Neria extends Module
         // ── Google Postmaster Tools : déconnexion ─────────────────
         if (Tools::getValue('neria_action') === 'disconnect_postmaster' && class_exists('PostmasterManager')) {
             (new PostmasterManager($this))->disconnect();
-            $this->context->smarty->assign('neria_success', 'Compte Google déconnecté.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.google_account_disconnected'));
         }
 
         // ── Google Postmaster Tools : rafraîchissement forcé ──────
@@ -2144,7 +2152,7 @@ class Neria extends Module
                     }
                 }
             } else {
-                $this->context->smarty->assign('neria_error', 'Impossible de récupérer les données. Vérifiez la connexion Google.');
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.postmaster_fetch_failed'));
                 if (class_exists('WatchdogManager')) {
                     (new WatchdogManager($this))->warning(WatchdogManager::i18nMsg('watchdog.postmaster_fetch_failed'), '', 'PostmasterTools');
                 }
@@ -2162,7 +2170,7 @@ class Neria extends Module
                 $enteredHost = strtolower(preg_replace('/^www\./', '', $parsed['host'] ?? ''));
                 $shopHost    = strtolower(preg_replace('/^www\./', '', Tools::getShopDomain()));
                 if ($enteredHost === '' || $enteredHost !== $shopHost) {
-                    $urlError = 'L\'URL doit appartenir au domaine de votre boutique (' . Tools::getShopDomain() . ').';
+                    $urlError = AdminTranslator::tVars('msg.url_wrong_domain', ['domain' => Tools::getShopDomain()]);
                 }
             }
 
@@ -2174,7 +2182,7 @@ class Neria extends Module
                 Configuration::deleteByName(PageSpeedManager::CONFIG_CACHE);
                 Configuration::deleteByName(PageSpeedManager::CONFIG_CACHE_TIME);
                 Configuration::deleteByName('NERIA_PAGESPEED_LAST_ERROR');
-                $this->context->smarty->assign('neria_success', 'Configuration PageSpeed enregistrée.');
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.pagespeed_config_saved'));
             }
         }
 
@@ -2189,7 +2197,7 @@ class Neria extends Module
                     'neria_success'       => 'PageSpeed actualisé.',
                 ]);
             } else {
-                $this->context->smarty->assign('neria_error', 'Impossible de récupérer les données PageSpeed. Vérifiez la clé API.');
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.pagespeed_fetch_failed'));
             }
         }
 
@@ -2204,7 +2212,7 @@ class Neria extends Module
             Configuration::deleteByName(SearchConsoleManager::CONFIG_TOKEN_EXPIRY);
             Configuration::deleteByName(SearchConsoleManager::CONFIG_CACHE);
             Configuration::deleteByName(SearchConsoleManager::CONFIG_CACHE_TIME);
-            $this->context->smarty->assign('neria_success', 'Identifiants Search Console enregistrés.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.searchconsole_credentials_saved'));
         }
 
         // ── Search Console : connexion OAuth ──────────────────────
@@ -2220,7 +2228,7 @@ class Neria extends Module
         // ── Search Console : déconnexion ──────────────────────────
         if (Tools::getValue('neria_action') === 'disconnect_searchconsole' && class_exists('SearchConsoleManager')) {
             (new SearchConsoleManager($this))->disconnect();
-            $this->context->smarty->assign('neria_success', 'Search Console déconnecté.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.searchconsole_disconnected'));
         }
 
         // ── Search Console : rafraîchissement forcé ───────────────
@@ -2236,7 +2244,7 @@ class Neria extends Module
                     'neria_success'           => 'Search Console actualisé.',
                 ]);
             } else {
-                $this->context->smarty->assign('neria_error', 'Impossible de récupérer les données Search Console.');
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.searchconsole_fetch_failed'));
             }
         }
 
@@ -2260,7 +2268,7 @@ class Neria extends Module
             }
             Configuration::deleteByName(SeoApiManager::CONFIG_CACHE);
             Configuration::deleteByName(SeoApiManager::CONFIG_CACHE_TIME);
-            $this->context->smarty->assign('neria_success', 'Configuration SEO enregistrée.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.seo_config_saved'));
         }
 
         // ── SEO API payante : rafraîchissement forcé ──────────────
@@ -2274,7 +2282,7 @@ class Neria extends Module
                     'neria_success' => 'Données SEO actualisées.',
                 ]);
             } else {
-                $this->context->smarty->assign('neria_error', 'Impossible de récupérer les données SEO. Vérifiez votre clé API.');
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.seo_fetch_failed'));
             }
         }
 
@@ -2333,9 +2341,7 @@ class Neria extends Module
             if (!empty($_FILES['logo']['tmp_name'])) {
                 if (!$designMgr->uploadLogo($_FILES['logo'])) {
                     $logoUploadFailed = true;
-                    $this->context->smarty->assign('neria_error',
-                        'Logo non enregistré — vérifiez le format (PNG, JPEG, GIF, WebP) et la taille (max 2 Mo).'
-                    );
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.logo_upload_failed_banner'));
                 }
             }
 
@@ -2404,9 +2410,7 @@ class Neria extends Module
             $sigTitle = trim((string) ($customVars['founder_title'] ?? ''));
 
             if ($sigName === '') {
-                $this->context->smarty->assign('neria_error',
-                    'Veuillez renseigner le nom du fondateur dans « Variables personnalisées » avant de générer la signature.'
-                );
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.signature_missing_founder_name'));
             } else {
                 $idShop = (int) $this->context->shop->id;
                 $path   = (new SignatureGenerator($this))->generate($sigName, $sigTitle, $sigStyle, $sigColor, $idShop);
@@ -2432,9 +2436,7 @@ class Neria extends Module
                     ]);
                     $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
                 } else {
-                    $this->context->smarty->assign('neria_error',
-                        'Échec de la génération de la signature (police manquante ou extension GD indisponible — voir Aide → Diagnostic).'
-                    );
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.signature_generation_failed'));
                 }
             }
         }
@@ -2542,7 +2544,7 @@ class Neria extends Module
             (new WatchdogManager($this))->info(
                 WatchdogManager::i18nMsg('watchdog.target_countries_updated', ['n' => $count, 'total' => $total])
             );
-            $this->context->smarty->assign('neria_success', 'Pays cibles enregistrés (' . $count . ' pays activés).');
+            $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.target_countries_saved', ['n' => $count]));
         }
 
         if (Tools::getValue('neria_action') === 'save_time_greetings') {
@@ -2558,19 +2560,19 @@ class Neria extends Module
                 }
             }
             (new ConfigManager($this))->saveTimeGreetings($greetings);
-            $this->context->smarty->assign('neria_success', 'Salutations horaires enregistrées.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.time_greetings_saved'));
         }
 
         if (Tools::getValue('neria_action') === 'reset_time_greetings_all') {
             (new ConfigManager($this))->resetTimeGreetings();
-            $this->context->smarty->assign('neria_success', 'Salutations réinitialisées aux valeurs par défaut (toutes les langues).');
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.time_greetings_reset_all'));
         }
 
         if (Tools::getValue('neria_action') === 'reset_time_greetings_lang') {
             $lang = trim((string) Tools::getValue('neria_reset_lang'));
             if ($lang && array_key_exists($lang, TranslationEngine::SUPPORTED_LANGS)) {
                 (new ConfigManager($this))->resetTimeGreetings($lang);
-                $this->context->smarty->assign('neria_success', 'Salutations réinitialisées pour la langue : ' . strtoupper($lang) . '.');
+                $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.time_greetings_reset_lang', ['lang' => strtoupper($lang)]));
             }
         }
 
@@ -2578,28 +2580,36 @@ class Neria extends Module
             $cfg     = new ConfigManager($this);
             $enabled = !$cfg->isTimeGreetingEnabled();
             $cfg->setTimeGreetingEnabled($enabled);
-            $this->context->smarty->assign('neria_success', 'Smart Salutation ' . ($enabled ? 'activée' : 'désactivée') . '.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.smart_salutation_toggled', [
+                'state' => AdminTranslator::t($enabled ? 'msg.state_enabled' : 'msg.state_disabled'),
+            ]));
         }
 
         if (Tools::getValue('neria_action') === 'toggle_multi_sender') {
             $cfg     = new ConfigManager($this);
             $enabled = !$cfg->isMultiSenderEnabled();
             $cfg->setMultiSenderEnabled($enabled);
-            $this->context->smarty->assign('neria_success', 'Multi-expéditeur ' . ($enabled ? 'activé' : 'désactivé') . '.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.multisender_toggled', [
+                'state' => AdminTranslator::t($enabled ? 'msg.state_enabled_m' : 'msg.state_disabled_m'),
+            ]));
         }
 
         if (Tools::getValue('neria_action') === 'toggle_signature') {
             $cfg     = new ConfigManager($this);
             $enabled = !$cfg->isSignatureEnabled();
             $cfg->setSignatureEnabled($enabled);
-            $this->context->smarty->assign('neria_success', 'Signature manuscrite ' . ($enabled ? 'activée' : 'désactivée') . '.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.signature_toggled', [
+                'state' => AdminTranslator::t($enabled ? 'msg.state_enabled' : 'msg.state_disabled'),
+            ]));
         }
 
         if (Tools::getValue('neria_action') === 'toggle_firstname_fallback') {
             $cfg     = new ConfigManager($this);
             $enabled = !$cfg->isFirstnameFallbackEnabled();
             $cfg->setFirstnameFallbackEnabled($enabled);
-            $this->context->smarty->assign('neria_success', 'Smart Fallbacks ' . ($enabled ? 'activés' : 'désactivés') . '.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.smart_fallbacks_toggled', [
+                'state' => AdminTranslator::t($enabled ? 'msg.state_activated' : 'msg.state_deactivated'),
+            ]));
         }
 
         if (Tools::getValue('neria_action') === 'save_firstname_fallbacks') {
@@ -2612,7 +2622,7 @@ class Neria extends Module
                 }
             }
             (new ConfigManager($this))->saveFirstnameFallbacks($fallbacks);
-            $this->context->smarty->assign('neria_success', 'Fallbacks de prénom enregistrés.');
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.firstname_fallbacks_saved'));
         }
 
         // ── AJAX : autocomplétion client (envoi manuel) ──────────────────

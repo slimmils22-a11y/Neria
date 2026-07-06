@@ -163,7 +163,7 @@ class CertificateManager
                AND `id_shop` = ' . $this->idShop
         );
         if (!$row) {
-            return ['error' => 'Certificat introuvable.'];
+            return ['error' => AdminTranslator::t('msg.certificate_not_found')];
         }
 
         $order    = new \Order((int) $row['id_order']);
@@ -215,7 +215,7 @@ class CertificateManager
     ): array {
         $tcpdfPath = _PS_ROOT_DIR_ . '/vendor/tecnickcom/tcpdf/tcpdf.php';
         if (!file_exists($tcpdfPath)) {
-            return ['error' => 'TCPDF introuvable.'];
+            return ['error' => AdminTranslator::t('msg.certificate_tcpdf_missing')];
         }
         require_once $tcpdfPath;
 
@@ -394,7 +394,7 @@ class CertificateManager
             $pdfContent = $pdf->Output('certificate_' . $serial . '.pdf', 'S');
 
         } catch (\Throwable $e) {
-            return ['error' => 'Erreur PDF : ' . $e->getMessage()];
+            return ['error' => AdminTranslator::tVars('msg.certificate_pdf_error', ['error' => $e->getMessage()])];
         }
 
         // Sauvegarde optionnelle sur disque
