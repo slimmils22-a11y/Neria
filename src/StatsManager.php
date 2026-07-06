@@ -1371,8 +1371,9 @@ class StatsManager
     private function formatMonthLabel(\DateTime $date): string
     {
         if (class_exists('\IntlDateFormatter')) {
-            $isoLang = \Context::getContext()->employee->id
-                ? (\Language::getIsoById((int) \Context::getContext()->employee->id_lang) ?: 'fr')
+            $employee = \Context::getContext()->employee;
+            $isoLang  = ($employee && $employee->id)
+                ? (\Language::getIsoById((int) $employee->id_lang) ?: 'fr')
                 : 'fr';
             try {
                 $fmt = new \IntlDateFormatter(
