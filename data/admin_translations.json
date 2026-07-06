@@ -50555,5 +50555,25 @@
         "no": "Markedsføringsavmelding behandlet",
         "da": "Marketingafmelding behandlet",
         "nl": "Marketingafmelding verwerkt"
+    },
+    "health.campaign_empty_item": {
+        "fr": "\"{name}\" (segment : {segment})",
+        "en": "\"{name}\" (segment: {segment})",
+        "de": "„{name}\" (Segment: {segment})",
+        "it": "\"{name}\" (segmento: {segment})",
+        "es": "\"{name}\" (segmento: {segment})",
+        "pt": "\"{name}\" (segmento: {segment})",
+        "br": "\"{name}\" (segmento: {segment})",
+        "ar": "\"{name}\" (الشريحة: {segment})",
+        "ja": "「{name}」（セグメント：{segment}）",
+        "ko": "\"{name}\" (세그먼트: {segment})",
+        "zh": "\"{name}\"（细分：{segment}）",
+        "tw": "\"{name}\"（區隔：{segment}）",
+        "ru": "«{name}» (сегмент: {segment})",
+        "tr": "\"{name}\" (segment: {segment})",
+        "sv": "\"{name}\" (segment: {segment})",
+        "no": "\"{name}\" (segment: {segment})",
+        "da": "\"{name}\" (segment: {segment})",
+        "nl": "\"{name}\" (segment: {segment})"
     }
 }

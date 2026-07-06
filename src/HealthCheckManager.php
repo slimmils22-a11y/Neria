@@ -2837,7 +2837,7 @@ class HealthCheckManager
         $tableExists = (bool) $db->getValue('
             SELECT COUNT(*) FROM information_schema.tables
             WHERE table_schema = DATABASE()
-              AND table_name = \'' . _DB_PREFIX_ . 'neria_campaign\'
+              AND table_name = \'' . _DB_PREFIX_ . 'neria_seasonal_campaign\'
         ');
 
         if (!$tableExists) {
@@ -2846,8 +2846,8 @@ class HealthCheckManager
 
         $campaigns = $db->executeS('
             SELECT id_campaign, name, target_segment
-            FROM `' . _DB_PREFIX_ . 'neria_campaign`
-            WHERE active = 1
+            FROM `' . _DB_PREFIX_ . 'neria_seasonal_campaign`
+            WHERE is_active = 1
               AND target_segment IS NOT NULL
               AND target_segment != \'\'
               AND target_segment != \'all\'
@@ -2865,7 +2865,7 @@ class HealthCheckManager
             try {
                 $customerCount = $mgr->getSegmentCustomerCount($seg);
                 if ($customerCount === 0) {
-                    $emptySegments[] = '"' . $c['name'] . '" (segment : ' . $seg . ')';
+                    $emptySegments[] = AdminTranslator::tVars('health.campaign_empty_item', ['name' => $c['name'], 'segment' => $seg]);
                 }
             } catch (\Exception $e) {
                 // Silencieux — méthode peut ne pas exister sur toutes les versions
