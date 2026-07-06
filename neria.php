@@ -1946,6 +1946,7 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'cron_toggle') {
             $current = (bool) Configuration::getGlobalValue('NERIA_CRON_ENABLED');
             Configuration::updateGlobalValue('NERIA_CRON_ENABLED', $current ? 0 : 1);
+            $this->context->smarty->assign('neria_success', AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled'));
         }
 
         // ── Action : diagnostic complet à la demande ──────────────
@@ -2497,6 +2498,7 @@ class Neria extends Module
                      SET `is_active` = 1 - `is_active`, `date_upd` = NOW()
                      WHERE `id_event` = ' . $idEvent . ' AND `id_shop` = ' . (int) $this->context->shop->id
                 );
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
             }
         }
 
@@ -3960,82 +3962,82 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'relationship_anniversary_toggle') {
             $current = (bool) Configuration::getGlobalValue('NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED');
             Configuration::updateGlobalValue('NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED', $current ? 0 : 1);
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-relationship-anniversary-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-relationship-anniversary-section');
         }
 
         // ── Checkout Abandonment : toggle activer/désactiver ─────
         if (Tools::getValue('neria_action') === 'checkout_abandonment_toggle') {
             $current = (bool) Configuration::getGlobalValue('NERIA_CHECKOUT_ABANDONMENT_ENABLED');
             Configuration::updateGlobalValue('NERIA_CHECKOUT_ABANDONMENT_ENABLED', $current ? 0 : 1);
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-checkout-abandonment-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-checkout-abandonment-section');
         }
 
         // ── Liste d'attente : toggle activer/désactiver ──────────
         if (Tools::getValue('neria_action') === 'waitlist_toggle') {
             $current = (bool) Configuration::getGlobalValue('NERIA_WAITLIST_ENABLED');
             Configuration::updateGlobalValue('NERIA_WAITLIST_ENABLED', $current ? 0 : 1);
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-waitlist-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-waitlist-section');
         }
 
         if (Tools::getValue('neria_action') === 'waitlist_reservation_save') {
             $hours = max(1, min(72, (int) Tools::getValue('waitlist_reservation_hours')));
             Configuration::updateGlobalValue('NERIA_WAITLIST_RESERVATION_HOURS', $hours);
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-waitlist-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t('msg.saved')) . '#neria-waitlist-section');
         }
 
         // ── Panier fantôme : toggle activer/désactiver ───────────
         if (Tools::getValue('neria_action') === 'ghost_cart_toggle') {
             $current = (bool) Configuration::getGlobalValue('NERIA_GHOST_CART_ENABLED');
             Configuration::updateGlobalValue('NERIA_GHOST_CART_ENABLED', $current ? 0 : 1);
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-ghost-cart-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-ghost-cart-section');
         }
 
         // ── Complétion de collection : toggle activer/désactiver ─
         if (Tools::getValue('neria_action') === 'collection_completion_toggle') {
             $current = (bool) Configuration::getGlobalValue('NERIA_COLLECTION_COMPLETION_ENABLED');
             Configuration::updateGlobalValue('NERIA_COLLECTION_COMPLETION_ENABLED', $current ? 0 : 1);
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-collection-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-collection-section');
         }
 
         // ── Complétez votre look : toggle activer/désactiver ─────
         if (Tools::getValue('neria_action') === 'look_completion_toggle') {
             $current = (bool) Configuration::getGlobalValue('NERIA_LOOK_COMPLETION_ENABLED');
             Configuration::updateGlobalValue('NERIA_LOOK_COMPLETION_ENABLED', $current ? 0 : 1);
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-look-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-look-section');
         }
 
         // ── Devis B2B : toggle ───────────────────────────────────
         if (Tools::getValue('neria_action') === 'quote_reminder_toggle') {
             $current = (bool) Configuration::getGlobalValue('NERIA_QUOTE_REMINDERS_ENABLED');
             Configuration::updateGlobalValue('NERIA_QUOTE_REMINDERS_ENABLED', $current ? 0 : 1);
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-quote-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-quote-section');
         }
 
         // ── Réconciliation post-remboursement : toggle ────────────
         if (Tools::getValue('neria_action') === 'reconciliation_toggle') {
             $current = (bool) Configuration::getGlobalValue('NERIA_REFUND_RECONCILIATION_ENABLED');
             Configuration::updateGlobalValue('NERIA_REFUND_RECONCILIATION_ENABLED', $current ? 0 : 1);
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-reconciliation-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-reconciliation-section');
         }
 
         // ── Score de propension : toggle ──────────────────────────────
         if (Tools::getValue('neria_action') === 'propensity_toggle') {
             $current = (bool) Configuration::getGlobalValue('NERIA_PROPENSITY_ENABLED');
             Configuration::updateGlobalValue('NERIA_PROPENSITY_ENABLED', $current ? 0 : 1);
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-propensity-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-propensity-section');
         }
 
         // ── Rappel fin de vie produit : toggle ───────────────────────
         if (Tools::getValue('neria_action') === 'lifespan_toggle') {
             $current = (bool) Configuration::getGlobalValue('NERIA_LIFESPAN_ENABLED');
             Configuration::updateGlobalValue('NERIA_LIFESPAN_ENABLED', $current ? 0 : 1);
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-lifespan-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-lifespan-section');
         }
 
         if (Tools::getValue('neria_action') === 'purchase_window_toggle') {
             $current = (bool) Configuration::getGlobalValue('NERIA_PURCHASE_WINDOW_ENABLED');
             Configuration::updateGlobalValue('NERIA_PURCHASE_WINDOW_ENABLED', $current ? 0 : 1);
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-purchase-window-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-purchase-window-section');
         }
 
         // ── Rappel fin de vie produit : ajouter ──────────────────────
@@ -4176,10 +4178,13 @@ class Neria extends Module
             $idCat = (int) Tools::getValue('look_category_id');
             $rawIds  = trim((string) Tools::getValue('look_product_ids'));
             $pids    = array_filter(array_map('intval', explode(',', $rawIds)));
+            $msgKey = 'error:msg.look_rule_invalid';
             if ($idCat > 0 && count($pids) >= 2) {
                 (new LookCompletionManager($this))->createRule($idCat, array_slice($pids, 0, 3));
+                $msgKey = 'success:msg.look_rule_added';
             }
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-look-section');
+            [$msgType, $msgTransKey] = explode(':', $msgKey);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_' . $msgType . '=' . urlencode(AdminTranslator::t($msgTransKey)) . '#neria-look-section');
         }
 
         // ── Look completion : activer/désactiver règle ────────────
@@ -4187,10 +4192,12 @@ class Neria extends Module
             $id  = (int) Tools::getValue('look_rule_id');
             $mgr = new LookCompletionManager($this);
             $r   = $mgr->getRuleById($id);
+            $msgKey = 'msg.item_activated';
             if ($r) {
                 $mgr->updateRule($id, (int) $r['id_category'], json_decode($r['product_ids'], true), !(bool) $r['active']);
+                $msgKey = $r['active'] ? 'msg.item_deactivated' : 'msg.item_activated';
             }
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-look-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($msgKey)) . '#neria-look-section');
         }
 
         // ── Look completion : supprimer règle ─────────────────────
@@ -4199,7 +4206,7 @@ class Neria extends Module
             if ($id > 0) {
                 (new LookCompletionManager($this))->deleteRule($id);
             }
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-look-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t('msg.look_rule_deleted')) . '#neria-look-section');
         }
 
         // ── Collection : ajouter ─────────────────────────────────
@@ -4207,10 +4214,13 @@ class Neria extends Module
             $name       = trim((string) Tools::getValue('collection_name'));
             $rawIds     = trim((string) Tools::getValue('collection_product_ids'));
             $productIds = array_filter(array_map('intval', explode(',', $rawIds)));
+            $msgKey = 'error:msg.collection_invalid';
             if ($name !== '' && count($productIds) >= 2) {
                 (new CollectionManager($this))->create($name, $productIds);
+                $msgKey = 'success:msg.collection_added';
             }
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-collection-section');
+            [$msgType, $msgTransKey] = explode(':', $msgKey);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_' . $msgType . '=' . urlencode(AdminTranslator::t($msgTransKey)) . '#neria-collection-section');
         }
 
         // ── Collection : activer/désactiver ──────────────────────
@@ -4218,10 +4228,12 @@ class Neria extends Module
             $id  = (int) Tools::getValue('collection_id');
             $mgr = new CollectionManager($this);
             $col = $mgr->getById($id);
+            $msgKey = 'msg.item_activated';
             if ($col) {
                 $mgr->update($id, $col['name'], json_decode($col['product_ids'], true), !(bool) $col['active']);
+                $msgKey = $col['active'] ? 'msg.item_deactivated' : 'msg.item_activated';
             }
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-collection-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($msgKey)) . '#neria-collection-section');
         }
 
         // ── Collection : supprimer ────────────────────────────────
@@ -4230,14 +4242,14 @@ class Neria extends Module
             if ($id > 0) {
                 (new CollectionManager($this))->delete($id);
             }
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-collection-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t('msg.collection_deleted')) . '#neria-collection-section');
         }
 
         // ── Upsell : toggle activer/désactiver ───────────────────
         if (Tools::getValue('neria_action') === 'upsell_toggle') {
             $current = (bool) Configuration::getGlobalValue('NERIA_UPSELL_ENABLED');
             Configuration::updateGlobalValue('NERIA_UPSELL_ENABLED', $current ? 0 : 1);
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats#neria-upsell-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-upsell-section');
         }
 
         // ── Upsell : aperçu AJAX d'un produit suggéré ────────────
@@ -4304,7 +4316,7 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'loyalty_toggle') {
             $current = (bool) Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED');
             Configuration::updateGlobalValue('NERIA_LOYALTY_ENABLED', $current ? 0 : 1);
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=configure#neria-loyalty-section');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=configure&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-loyalty-section');
         }
 
         // ── Fidélité : sauvegarde des paliers ─────────────────
@@ -4364,6 +4376,7 @@ class Neria extends Module
             $id = (int) Tools::getValue('id_campaign', 0);
             if ($id > 0) {
                 (new SeasonalCampaignManager($this))->toggle($id);
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
             }
         }
 
@@ -5157,6 +5170,22 @@ class Neria extends Module
             );
         }
 
+        // Feedback transmis en GET (redirect post-toggle, callback OAuth
+        // Postmaster/Search Console…) — doit être assigné AVANT le rendu de
+        // navigation.tpl, seul template affichant la bannière neria_success/
+        // neria_error. Ne pas écraser un feedback déjà assigné par une
+        // action POST traitée plus haut dans cette méthode.
+        $existingVars = $this->context->smarty->getTemplateVars();
+        if (empty($existingVars['neria_success']) && empty($existingVars['neria_error'])) {
+            $getSuccess = (string) Tools::getValue('neria_success');
+            $getError   = (string) Tools::getValue('neria_error');
+            if ($getSuccess !== '') {
+                $this->context->smarty->assign('neria_success', $getSuccess);
+            } elseif ($getError !== '') {
+                $this->context->smarty->assign('neria_error', $getError);
+            }
+        }
+
         // ── Rendu navigation + contenu ────────────────────────────
         $navigation = $this->renderTemplate('navigation.tpl');
         $content    = $this->renderTab($activeTab);
@@ -5494,22 +5523,6 @@ class Neria extends Module
         // Sécurité : vérifie que l'onglet demandé est valide
         if (!in_array($tab, $allowedTabs, true)) {
             $tab = 'configure';
-        }
-
-        // Feedback transmis en GET par un contrôleur front (ex. callback OAuth
-        // Postmaster/Search Console qui redirige ici après connexion) — sans
-        // ce relais, le marchand ne voit jamais le résultat de la connexion.
-        // Ne pas écraser un feedback déjà assigné par une action POST traitée
-        // plus haut dans getContentImpl().
-        $existingVars = $this->context->smarty->getTemplateVars();
-        if (empty($existingVars['neria_success']) && empty($existingVars['neria_error'])) {
-            $getSuccess = (string) Tools::getValue('neria_success');
-            $getError   = (string) Tools::getValue('neria_error');
-            if ($getSuccess !== '') {
-                $this->context->smarty->assign('neria_success', $getSuccess);
-            } elseif ($getError !== '') {
-                $this->context->smarty->assign('neria_error', $getError);
-            }
         }
 
         $this->checkSmartyCriticalVars($tab);
