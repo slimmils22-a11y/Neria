@@ -2345,6 +2345,29 @@ class EmailRenderer
         $compiled = preg_replace('/\{\*.*?\*\}/s', '', $compiled);
         $compiled = preg_replace('/\{\$[a-z_]+\}/', '', $compiled);
 
+        // ── Filet de sécurité : variable de contenu manquante ─────────────
+        // Contrairement à l'aperçu (buildCompiledHtml), ce chemin est celui
+        // d'un VRAI envoi client — si une variable attendue par le template
+        // n'a pas été fournie par l'appelant (PS core, ManualSendManager,
+        // cron comportemental...), il ne faut jamais laisser un "{xxx}" brut
+        // visible dans l'email livré. On le supprime silencieusement et on
+        // journalise pour que le marchand puisse identifier la variable
+        // manquante plutôt que de le découvrir via une plainte client.
+        if (preg_match_all('/\{[a-z][a-z0-9_]*\}/i', $compiled, $residualMatches)) {
+            $residualKeys = array_unique($residualMatches[0]);
+            $compiled = preg_replace('/\{[a-z][a-z0-9_]*\}/i', '', $compiled);
+            if (class_exists('WatchdogManager')) {
+                (new WatchdogManager($this->module))->warning(
+                    WatchdogManager::i18nMsg('watchdog.residual_vars_stripped', [
+                        'template' => $template,
+                        'vars'     => implode(', ', $residualKeys),
+                    ]),
+                    $template,
+                    'EmailRenderer'
+                );
+            }
+        }
+
         // ── Empreinte carbone — injecté avant CssInliner (DOMDocument déplace
         // les commentaires hors des <table>) et avant l'écriture du fichier ──
         $carbonHtml = '';

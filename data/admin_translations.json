@@ -43656,6 +43656,26 @@
         "da": "Filen core/{template}.html blev ikke fundet — skabelonen findes ikke i Neria-temaet.",
         "nl": "Bestand core/{template}.html niet gevonden — de template bestaat niet in het Neria-thema."
     },
+    "watchdog.residual_vars_stripped": {
+        "fr": "Variable(s) manquante(s) dans le template {template} : {vars} — supprimée(s) silencieusement de l'email envoyé pour éviter un affichage cassé.",
+        "en": "Missing variable(s) in template {template}: {vars} — silently removed from the sent email to avoid a broken display.",
+        "de": "Fehlende Variable(n) in Vorlage {template}: {vars} — im gesendeten E-Mail stillschweigend entfernt, um eine fehlerhafte Anzeige zu vermeiden.",
+        "it": "Variabile/i mancante/i nel modello {template}: {vars} — rimossa/e silenziosamente dall'email inviata per evitare una visualizzazione errata.",
+        "es": "Variable(s) faltante(s) en la plantilla {template}: {vars} — eliminada(s) silenciosamente del correo enviado para evitar una visualización incorrecta.",
+        "pt": "Variável(is) em falta no modelo {template}: {vars} — removida(s) silenciosamente do email enviado para evitar uma visualização quebrada.",
+        "br": "Variável(is) ausente(s) no modelo {template}: {vars} — removida(s) silenciosamente do e-mail enviado para evitar uma exibição quebrada.",
+        "ar": "متغير(ات) مفقودة في القالب {template}: {vars} — تمت إزالتها بصمت من البريد الإلكتروني المُرسل لتجنب عرض معطوب.",
+        "ja": "テンプレート{template}に不足している変数：{vars} — 表示崩れを防ぐため、送信メールから静かに削除されました。",
+        "ko": "템플릿 {template}에 누락된 변수: {vars} — 손상된 표시를 방지하기 위해 발송된 이메일에서 자동으로 제거되었습니다.",
+        "zh": "模板 {template} 中缺少变量：{vars} — 已从发送的邮件中静默移除，以避免显示错乱。",
+        "tw": "範本 {template} 中缺少變數：{vars} — 已從寄出的郵件中靜默移除，以避免顯示錯亂。",
+        "ru": "Отсутствующие переменные в шаблоне {template}: {vars} — незаметно удалены из отправленного письма во избежание некорректного отображения.",
+        "tr": "{template} şablonunda eksik değişken(ler): {vars} — bozuk görünümü önlemek için gönderilen e-postadan sessizce kaldırıldı.",
+        "sv": "Saknad(e) variabel(er) i mallen {template}: {vars} — togs tyst bort från det skickade e-postmeddelandet för att undvika trasig visning.",
+        "no": "Manglende variabel(er) i malen {template}: {vars} — fjernet stille fra den sendte e-posten for å unngå ødelagt visning.",
+        "da": "Manglende variabel/variabler i skabelonen {template}: {vars} — fjernet stille fra den sendte e-mail for at undgå ødelagt visning.",
+        "nl": "Ontbrekende variabele(n) in sjabloon {template}: {vars} — stilzwijgend verwijderd uit de verzonden e-mail om een kapotte weergave te voorkomen."
+    },
     "watchdog.domain_reputation_checked": {
         "fr": "Réputation domaine {domain} — score {score}/100 (grade {grade})",
         "en": "Domain reputation {domain} — score {score}/100 (grade {grade})",
