@@ -569,6 +569,19 @@ class ManualSendManager
         $idLang   = $customer ? (int) $customer['id_lang'] : (int) \Configuration::get('PS_LANG_DEFAULT');
         $idShop   = (int) \Context::getContext()->shop->id;
 
+        // ── Garde-fou blacklist ───────────────────────────────────────────
+        // Un template blacklisté ne peut plus être rendu par Neria ; comme les
+        // templates Wave1 (dont celui-ci) n'ont pas d'équivalent natif PrestaShop
+        // vers lequel se replier, Mail::Send() échouera de toute façon (fichier
+        // introuvable) — autant le dire clairement au marchand plutôt que de
+        // laisser passer un message générique "vérifiez la config SMTP".
+        if (class_exists('BlacklistManager')) {
+            $langIso = (string) (\Language::getIsoById($idLang) ?: '');
+            if ((new \BlacklistManager())->isBlacklisted($template, $langIso)) {
+                return ['ok' => false, 'message' => AdminTranslator::tVars('msg.send_blocked_blacklist', ['template' => $template])];
+            }
+        }
+
         // Contexte de base
         $vars = [
             '{firstname}'   => $customer['firstname'] ?? '',

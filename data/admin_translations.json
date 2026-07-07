@@ -50936,6 +50936,26 @@
         "da": "Ugyldigt sprog.",
         "nl": "Ongeldige taal."
     },
+    "msg.send_blocked_blacklist": {
+        "fr": "Envoi bloqué : le modèle « {template} » est désactivé (liste noire).",
+        "en": "Send blocked: template \"{template}\" is disabled (blacklist).",
+        "de": "Versand blockiert: Vorlage „{template}“ ist deaktiviert (Sperrliste).",
+        "it": "Invio bloccato: il modello «{template}» è disattivato (lista nera).",
+        "es": "Envío bloqueado: la plantilla «{template}» está desactivada (lista negra).",
+        "pt": "Envio bloqueado: o modelo «{template}» está desativado (lista negra).",
+        "br": "Envio bloqueado: o modelo \"{template}\" está desativado (lista negra).",
+        "ar": "تم حظر الإرسال: القالب «{template}» معطَّل (القائمة السوداء).",
+        "ja": "送信がブロックされました：テンプレート「{template}」は無効化されています（ブラックリスト）。",
+        "ko": "발송이 차단되었습니다: 템플릿 \"{template}\"이(가) 비활성화되었습니다(차단 목록).",
+        "zh": "发送已阻止：模板「{template}」已停用（黑名单）。",
+        "tw": "傳送已封鎖：範本「{template}」已停用（黑名單）。",
+        "ru": "Отправка заблокирована: шаблон «{template}» отключён (чёрный список).",
+        "tr": "Gönderim engellendi: «{template}» şablonu devre dışı (kara liste).",
+        "sv": "Utskick blockerat: mallen \"{template}\" är inaktiverad (svartlista).",
+        "no": "Utsending blokkert: malen «{template}» er deaktivert (svarteliste).",
+        "da": "Afsendelse blokeret: skabelonen \"{template}\" er deaktiveret (sortliste).",
+        "nl": "Verzending geblokkeerd: sjabloon \"{template}\" is uitgeschakeld (zwarte lijst)."
+    },
     "msg.send_blocked_bounce": {
         "fr": "Envoi bloqué : {email} est marqué comme adresse invalide (bounce).",
         "en": "Send blocked: {email} is marked as an invalid address (bounce).",

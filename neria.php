@@ -2055,6 +2055,20 @@ class Neria extends Module
             $tpl  = trim((string) Tools::getValue('neria_bl_template'));
             $lang = trim((string) Tools::getValue('neria_bl_lang'));
             if ($tpl !== '' && (new BlacklistManager())->add($tpl, $lang)) {
+                // Purge le(s) fichier(s) compilé(s) mails/{lang}/{tpl}.html|.txt déjà
+                // écrits sur disque par un envoi antérieur : sans ça, Mail::Send()
+                // continue de réutiliser tel quel l'ancien rendu Neria (signature,
+                // design...) au lieu de retomber sur l'envoi natif, et la blacklist
+                // n'a alors aucun effet tant qu'un envoi n'a pas régénéré le fichier.
+                $langsToClear = $lang !== '' ? [$lang] : TranslationEngine::SUPPORTED_LANGS;
+                foreach ($langsToClear as $iso) {
+                    foreach (['.html', '.txt'] as $ext) {
+                        $path = _PS_MODULE_DIR_ . 'neria/mails/' . $iso . '/' . $tpl . $ext;
+                        if (is_file($path)) {
+                            @unlink($path);
+                        }
+                    }
+                }
                 $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.blacklist_added'));
             } else {
                 $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.blacklist_invalid'));
