@@ -224,6 +224,9 @@ class HealthCheckManager
             'oauth_freshness'      => $this->checkOAuthFreshness(),
             'visibility_freshness' => $this->checkVisibilityIntegrationsFreshness(),
             'active_cron'          => $this->checkActiveCron(),
+            // ── Régression rendu (issus du test exhaustif 2026-07-07) ──
+            'blacklist_stale_files'  => $this->checkBlacklistStaleFiles(),
+            'residual_vars_recent'   => $this->checkRecentResidualVarsWarnings(),
         ];
     }
 
@@ -3177,6 +3180,91 @@ class HealthCheckManager
         return [
             'status' => self::STATUS_OK,
             'detail' => AdminTranslator::tVars('health.class_refs_ok', ['count' => count($referenced)]),
+        ];
+    }
+
+    /**
+     * #53 — Fichiers compilés périmés pour un template blacklisté
+     * add_blacklist() est censé supprimer mails/{lang}/{template}.html|.txt
+     * pour empêcher Mail::Send() de continuer à réutiliser l'ancien rendu
+     * Neria (signature, design...) malgré la désactivation. Si un upgrade
+     * ou une restauration de sauvegarde a laissé un fichier compilé pour un
+     * template pourtant blacklisté, le client continue de le recevoir en
+     * silence. Détecté le 2026-07-07 en conditions réelles (Mailpit).
+     */
+    private function checkBlacklistStaleFiles(): array
+    {
+        if (!class_exists('BlacklistManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.blacklist_stale_ok')];
+        }
+
+        $rows = $this->db->executeS(
+            'SELECT `template`, `lang` FROM `' . _DB_PREFIX_ . 'neria_blacklist`'
+        );
+        if (empty($rows)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.blacklist_stale_ok')];
+        }
+
+        $mailsDir  = rtrim($this->module->getLocalPath(), '/') . '/mails/';
+        $offenders = [];
+
+        foreach ((array) $rows as $row) {
+            $tpl   = (string) $row['template'];
+            $langs = $row['lang'] !== '' ? [(string) $row['lang']] : \TranslationEngine::SUPPORTED_LANGS;
+            foreach ($langs as $lang) {
+                if (is_file($mailsDir . $lang . '/' . $tpl . '.html') || is_file($mailsDir . $lang . '/' . $tpl . '.txt')) {
+                    $offenders[] = $tpl . ' (' . $lang . ')';
+                }
+            }
+        }
+
+        if ($offenders) {
+            $offenders = array_unique($offenders);
+            $count     = count($offenders);
+            $list      = implode(', ', array_slice($offenders, 0, 8));
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.blacklist_stale_error', ['count' => $count, 'list' => $list]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.blacklist_stale_ok')];
+    }
+
+    /**
+     * #54 — Alertes récentes de variables manquantes (filet de sécurité)
+     * EmailRenderer::compileNeriaTemplate() journalise un WARNING
+     * ('watchdog.residual_vars_stripped') chaque fois qu'une variable de
+     * contenu attendue par un template n'a pas été fournie par l'appelant
+     * (champ manuel oublié, intégration tierce incomplète...). Le filet de
+     * sécurité protège déjà le client d'un email cassé, mais le marchand
+     * doit être informé pour corriger la source plutôt que de compter sur
+     * ce filet indéfiniment.
+     */
+    private function checkRecentResidualVarsWarnings(): array
+    {
+        $rows = $this->db->executeS(
+            'SELECT `template`, COUNT(*) AS n FROM `' . _DB_PREFIX_ . 'neria_log`
+             WHERE `class` = \'EmailRenderer\'
+               AND `message` LIKE \'%residual_vars_stripped%\'
+               AND `date_add` >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+             GROUP BY `template`
+             ORDER BY n DESC'
+        );
+
+        if (empty($rows)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.residual_recent_ok')];
+        }
+
+        $templates = array_map(static fn ($r) => (string) $r['template'], (array) $rows);
+        $total     = array_sum(array_map(static fn ($r) => (int) $r['n'], (array) $rows));
+
+        return [
+            'status' => self::STATUS_WARNING,
+            'detail' => AdminTranslator::tVars('health.residual_recent_warning', [
+                'count' => $total,
+                'list'  => implode(', ', array_slice($templates, 0, 8)),
+            ]),
         ];
     }
 
