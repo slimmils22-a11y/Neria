@@ -857,6 +857,21 @@ class EmailRenderer
     {
         $links = $this->config->getSocialLinks();
 
+        $labels = [
+            'instagram' => 'Instagram',
+            'pinterest' => 'Pinterest',
+            'facebook'  => 'Facebook',
+            'twitter'   => 'Twitter',
+            'youtube'   => 'YouTube',
+            'tiktok'    => 'TikTok',
+        ];
+        $html = '';
+        foreach ($labels as $key => $label) {
+            if (!empty($links[$key])) {
+                $html .= '<a href="' . htmlspecialchars($links[$key], ENT_QUOTES, 'UTF-8') . '" target="_blank">' . $label . '</a>';
+            }
+        }
+
         $templateVars = array_merge($templateVars, [
             'neria_social_instagram' => $links['instagram'] ?? '',
             'neria_social_pinterest' => $links['pinterest'] ?? '',
@@ -864,6 +879,7 @@ class EmailRenderer
             'neria_social_twitter'   => $links['twitter']   ?? '',
             'neria_social_youtube'   => $links['youtube']   ?? '',
             'neria_social_tiktok'    => $links['tiktok']    ?? '',
+            'neria_social_links'     => $html,
             'neria_has_social'       => !empty($links),
         ]);
     }
@@ -2279,6 +2295,9 @@ class EmailRenderer
             '{$neria_heading_weight}'    => (string)(int)($design['heading_weight'] ?? 600),
             '{$neria_tracking_pixel}'   => $templateVars['neria_tracking_pixel'] ?? '',
             '{$neria_social_links}'     => $templateVars['neria_social_links']   ?? '',
+            '{$neria_signature_url}'    => $templateVars['neria_signature_url']  ?? '',
+            '{$neria_signature_name}'   => $templateVars['neria_signature_name'] ?? '',
+            '{$neria_signature_title}'  => $templateVars['neria_signature_title'] ?? '',
             '{$neria_lang}'             => $lang,
         ];
         $compiled = str_replace(array_keys($tplVars), array_values($tplVars), $compiled);
@@ -2306,6 +2325,20 @@ class EmailRenderer
                 $compiled = str_replace($key, $value, $compiled);
             }
         }
+
+        // ── Résoudre les blocs conditionnels {if isset($var) && $var}...{/if}
+        // (signature manuscrite, réseaux sociaux) selon la valeur réelle de
+        // $templateVars['var'] — ce n'est PAS du vrai Smarty, donc sans cette
+        // étape le bloc entier (y compris son contenu déjà substitué) était
+        // systématiquement supprimé par le nettoyage générique ci-dessous,
+        // même quand la condition était vraie.
+        $compiled = preg_replace_callback(
+            '/\{if\s+isset\(\$([a-z_]+)\)(?:\s*&&\s*\$\1)?\s*\}(.*?)\{\/if\}/s',
+            static function ($m) use ($templateVars) {
+                return !empty($templateVars[$m[1]]) ? $m[2] : '';
+            },
+            $compiled
+        );
 
         // ── Nettoyer les résidus Smarty ───────────────────────────────────
         $compiled = preg_replace('/\{if\s[^}]+\}.*?\{\/if\}/s', '', $compiled);
