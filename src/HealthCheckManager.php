@@ -227,6 +227,8 @@ class HealthCheckManager
             // ── Régression rendu (issus du test exhaustif 2026-07-07) ──
             'blacklist_stale_files'  => $this->checkBlacklistStaleFiles(),
             'residual_vars_recent'   => $this->checkRecentResidualVarsWarnings(),
+            'sig_social_recent'      => $this->checkSignatureSocialRenderedRecently(),
+            'action_banner_coverage' => $this->checkActionBannerCoverage(),
         ];
     }
 
@@ -3266,6 +3268,203 @@ class HealthCheckManager
                 'list'  => implode(', ', array_slice($templates, 0, 8)),
             ]),
         ];
+    }
+
+    /**
+     * #55 — Signature / réseaux sociaux absents des envois RÉCENTS
+     * Ne juge que les fichiers compilés modifiés dans les 7 derniers jours
+     * (mtime), jamais l'état figé du disque en général : un fichier compilé
+     * reflète le DERNIER envoi de son template, donc juger un fichier ancien
+     * produirait un faux signal sur un template simplement peu envoyé — piège
+     * déjà rencontré et écarté pour le contrôle blacklist_stale_files. Ici,
+     * si aucun fichier n'a été régénéré récemment, le contrôle ne peut rien
+     * affirmer et renvoie OK plutôt que de spéculer.
+     */
+    private function checkSignatureSocialRenderedRecently(): array
+    {
+        if (!class_exists('ConfigManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.sig_social_recent_ok')];
+        }
+
+        $config = new \ConfigManager($this->module);
+        $checkSignature = $config->isSignatureEnabled() && $this->db->getValue(
+            'SELECT 1 FROM `' . _DB_PREFIX_ . 'neria_signature` WHERE `is_active` = 1'
+        );
+        $socialLinks  = method_exists($config, 'getSocialLinks') ? $config->getSocialLinks() : [];
+        $checkSocial  = !empty($socialLinks);
+
+        if (!$checkSignature && !$checkSocial) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.sig_social_recent_na')];
+        }
+
+        $sigFile = '';
+        if ($checkSignature) {
+            $sigRow = $this->db->getRow(
+                'SELECT `image_path` FROM `' . _DB_PREFIX_ . 'neria_signature` WHERE `is_active` = 1'
+            );
+            $sigFile = $sigRow ? basename((string) $sigRow['image_path']) : '';
+        }
+
+        $mailsDir  = rtrim($this->module->getLocalPath(), '/') . '/mails/';
+        $cutoff    = time() - (7 * 86400);
+        $checked   = 0;
+        $missingSig    = [];
+        $missingSocial = [];
+
+        foreach (\TranslationEngine::SUPPORTED_LANGS as $lang) {
+            $langDir = $mailsDir . $lang . '/';
+            if (!is_dir($langDir)) {
+                continue;
+            }
+            foreach (glob($langDir . '*.html') ?: [] as $file) {
+                if (filemtime($file) < $cutoff) {
+                    continue; // fichier pas régénéré récemment — pas de jugement possible
+                }
+                $checked++;
+                $content = (string) file_get_contents($file);
+                $label   = $lang . '/' . basename($file);
+
+                if ($checkSignature && $sigFile !== '' && strpos($content, $sigFile) === false) {
+                    $missingSig[] = $label;
+                }
+                if ($checkSocial && strpos($content, 'neria-social') === false && !$this->contentHasAnySocialLink($content, $socialLinks)) {
+                    $missingSocial[] = $label;
+                }
+            }
+        }
+
+        if ($checked === 0) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.sig_social_recent_none')];
+        }
+
+        $issues = [];
+        if ($missingSig) {
+            $issues[] = AdminTranslator::tVars('health.sig_social_recent_sig_part', [
+                'count' => count($missingSig),
+                'list'  => implode(', ', array_slice($missingSig, 0, 5)),
+            ]);
+        }
+        if ($missingSocial) {
+            $issues[] = AdminTranslator::tVars('health.sig_social_recent_social_part', [
+                'count' => count($missingSocial),
+                'list'  => implode(', ', array_slice($missingSocial, 0, 5)),
+            ]);
+        }
+
+        if ($issues) {
+            return ['status' => self::STATUS_WARNING, 'detail' => implode(' ', $issues)];
+        }
+
+        return [
+            'status' => self::STATUS_OK,
+            'detail' => AdminTranslator::tVars('health.sig_social_recent_ok_count', ['count' => $checked]),
+        ];
+    }
+
+    /**
+     * #56 — Actions du BO sans bannière de confirmation
+     * Analyse statique de neria.php : pour chaque bloc
+     * `Tools::getValue('neria_action') === 'xxx'`, vérifie qu'il assigne bien
+     * neria_success/neria_error (directement, via un wrapper connu comme
+     * assignQuoteMsg(), ou via une clé construite dynamiquement du type
+     * "…neria_" . $var . "…"). Reproduit par le code ce que le test exhaustif
+     * du 2026-07-07 a dû faire manuellement (cliquer chaque action et lire
+     * la réponse HTML) pour détecter 19+ toggles muets et plusieurs actions
+     * CRUD sans retour visible. Les actions AJAX/JSON, de contenu brut
+     * (aperçu, téléchargement) ou de redirection OAuth externe sont exclues
+     * car elles n'affichent jamais de bannière par nature.
+     */
+    private function checkActionBannerCoverage(): array
+    {
+        $file = _PS_MODULE_DIR_ . 'neria/neria.php';
+        if (!is_file($file)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.banner_coverage_ok')];
+        }
+        $source = (string) file_get_contents($file);
+
+        // Actions volontairement silencieuses (AJAX/JSON, contenu brut, redirection
+        // OAuth externe, délégation à une méthode privée qui gère sa propre bannière) —
+        // établi lors du test exhaustif du 2026-07-07 (Groupes A à F).
+        $silentByDesign = [
+            'preview', 'preview_signature', 'preview_manual', 'multipreview_render',
+            'customer_autocomplete', 'check_send_duplicate', 'check_anniversary_guard',
+            'upsell_preview', 'cert_download', 'gdpr_pdf', 'run_bounce_check',
+            'deliverability_score', 'health_pixel_test', 'test_imap_connection',
+            'connect_postmaster', 'connect_searchconsole', 'watchdog_refresh',
+            'dismiss_design_wizard', 'process_queue_now', 'send_report_now',
+            'run_full_diagnostic', 'run_code_diagnostic', 'send_test', 'search_customers',
+        ];
+
+        preg_match_all(
+            "/Tools::getValue\('neria_action'\)\s*===\s*'([a-z_0-9]+)'/",
+            $source,
+            $m,
+            PREG_OFFSET_CAPTURE
+        );
+
+        $noBanner = [];
+        foreach ($m[1] as [$name, $offset]) {
+            if (in_array($name, $silentByDesign, true) || in_array($name, $noBanner, true)) {
+                continue;
+            }
+            $braceStart = strpos($source, '{', $offset);
+            if ($braceStart === false) {
+                continue;
+            }
+            $depth = 0;
+            $blockEnd = null;
+            $len = strlen($source);
+            for ($i = $braceStart; $i < $len; $i++) {
+                if ($source[$i] === '{') {
+                    $depth++;
+                } elseif ($source[$i] === '}') {
+                    $depth--;
+                    if ($depth === 0) {
+                        $blockEnd = $i;
+                        break;
+                    }
+                }
+            }
+            if ($blockEnd === null) {
+                continue;
+            }
+            $block = substr($source, $braceStart, $blockEnd - $braceStart);
+            $hasBanner = strpos($block, 'neria_success') !== false
+                || strpos($block, 'neria_error') !== false
+                || strpos($block, 'assignQuoteMsg(') !== false
+                || preg_match("/neria_'\s*\.\s*\\\$/", $block) === 1;
+            if (!$hasBanner) {
+                $noBanner[] = $name;
+            }
+        }
+
+        if ($noBanner) {
+            $count = count($noBanner);
+            $list  = implode(', ', array_slice($noBanner, 0, 8));
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.banner_coverage_warning', ['count' => $count, 'list' => $list]),
+            ];
+        }
+
+        return [
+            'status' => self::STATUS_OK,
+            'detail' => AdminTranslator::tVars('health.banner_coverage_ok_count', ['count' => count($m[1])]),
+        ];
+    }
+
+    /**
+     * Vérifie qu'au moins un lien social configuré apparaît littéralement
+     * dans le contenu compilé (contournement si le style du bloc change).
+     */
+    private function contentHasAnySocialLink(string $content, array $socialLinks): bool
+    {
+        foreach ($socialLinks as $url) {
+            if ($url !== '' && strpos($content, (string) $url) !== false) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
