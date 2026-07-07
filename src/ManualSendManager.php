@@ -535,6 +535,16 @@ class ManualSendManager
             return ['ok' => false, 'message' => AdminTranslator::t('msg.send_invalid_email')];
         }
 
+        // ── Garde-fou bounce ────────────────────────────────────────────
+        // Mail::Send() du cœur PrestaShop retourne TOUJOURS true quand un
+        // hook actionEmailSendBefore annule l'envoi (voir classes/Mail.php,
+        // "if (!$keepGoing) { return true; }") — sans ce contrôle en amont,
+        // le marchand voit "email envoyé" alors que rien n'est réellement
+        // parti (bloqué silencieusement par BounceManager dans le hook).
+        if (class_exists('BounceManager') && \BounceManager::isBounced($email)) {
+            return ['ok' => false, 'message' => AdminTranslator::tVars('msg.send_blocked_bounce', ['email' => $email])];
+        }
+
         // ── Garde-fou first_anniversary / relationship_anniversary ────────
         if ($template === 'first_anniversary'
             && \Configuration::getGlobalValue('NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED')
@@ -866,6 +876,9 @@ class ManualSendManager
         $email = trim($email);
         if ($email === '' || !\Validate::isEmail($email)) {
             return ['ok' => false, 'message' => AdminTranslator::t('msg.send_invalid_email')];
+        }
+        if (class_exists('BounceManager') && \BounceManager::isBounced($email)) {
+            return ['ok' => false, 'message' => AdminTranslator::tVars('msg.send_blocked_bounce', ['email' => $email])];
         }
         if (!class_exists('QueueManager')) {
             return ['ok' => false, 'message' => 'QueueManager non disponible.'];

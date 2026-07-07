@@ -50936,6 +50936,26 @@
         "da": "Ugyldigt sprog.",
         "nl": "Ongeldige taal."
     },
+    "msg.send_blocked_bounce": {
+        "fr": "Envoi bloqué : {email} est marqué comme adresse invalide (bounce).",
+        "en": "Send blocked: {email} is marked as an invalid address (bounce).",
+        "de": "Versand blockiert: {email} ist als ungültige Adresse markiert (Bounce).",
+        "it": "Invio bloccato: {email} è contrassegnato come indirizzo non valido (bounce).",
+        "es": "Envío bloqueado: {email} está marcado como dirección no válida (rebote).",
+        "pt": "Envio bloqueado: {email} está marcado como endereço inválido (bounce).",
+        "br": "Envio bloqueado: {email} está marcado como endereço inválido (bounce).",
+        "ar": "تم حظر الإرسال: {email} مُعلَّم كعنوان غير صالح (ارتداد).",
+        "ja": "送信がブロックされました：{email} は無効なアドレス（バウンス）としてマークされています。",
+        "ko": "발송이 차단되었습니다: {email}는 유효하지 않은 주소(반송)로 표시되어 있습니다.",
+        "zh": "发送已阻止：{email} 被标记为无效地址（退信）。",
+        "tw": "傳送已封鎖：{email} 已被標記為無效地址（退信）。",
+        "ru": "Отправка заблокирована: {email} помечен как недействительный адрес (возврат).",
+        "tr": "Gönderim engellendi: {email} geçersiz adres (geri dönüş) olarak işaretlendi.",
+        "sv": "Utskick blockerat: {email} är markerad som ogiltig adress (studs).",
+        "no": "Utsending blokkert: {email} er merket som ugyldig adresse (sprett).",
+        "da": "Afsendelse blokeret: {email} er markeret som ugyldig adresse (bounce).",
+        "nl": "Verzending geblokkeerd: {email} is gemarkeerd als ongeldig adres (bounce)."
+    },
     "msg.bounce_deleted": {
         "fr": "Bounce supprimé.",
         "en": "Bounce deleted.",
