@@ -83,6 +83,33 @@ class AdminTranslator
     }
 
     /**
+     * Traduit une clé dans une langue explicite, sans dépendre de la langue
+     * de l'employé connecté (ex: sujet d'un email de test envoyé dans une
+     * langue choisie par le marchand, indépendamment de sa propre session BO).
+     *
+     * @param string $key Clé sémantique
+     * @param string $iso Code langue (doit faire partie de TranslationEngine::SUPPORTED_LANGS)
+     */
+    public static function tLang(string $key, string $iso): string
+    {
+        $dict = self::dict();
+
+        if (isset($dict[$key][$iso]) && $dict[$key][$iso] !== '') {
+            return $dict[$key][$iso];
+        }
+
+        if (isset($dict[$key][self::FALLBACK_LANG]) && $dict[$key][self::FALLBACK_LANG] !== '') {
+            return $dict[$key][self::FALLBACK_LANG];
+        }
+
+        if (isset($dict[$key]['fr']) && $dict[$key]['fr'] !== '') {
+            return $dict[$key]['fr'];
+        }
+
+        return $key;
+    }
+
+    /**
      * Traduction avec substitution de variables ({var} → valeur), pour les
      * messages composés en PHP (alertes, watchdog...) avant assignation à
      * Smarty ou au journal.

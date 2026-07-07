@@ -5363,13 +5363,14 @@ class Neria extends Module
             $resolvedId = (int) Language::getIdByIso($testLang);
             $idLang     = $resolvedId > 0 ? $resolvedId : (int) $this->context->language->id;
         } else {
-            $idLang = (int) $this->context->language->id;
+            $testLang = (string) (Language::getIsoById((int) $this->context->language->id) ?: 'fr');
+            $idLang   = (int) $this->context->language->id;
         }
 
         $result = Mail::Send(
             $idLang,
             'test',
-            AdminTranslator::t('msg.test_subject'),
+            AdminTranslator::tLang('msg.test_subject', $testLang),
             [
                 '{firstname}' => 'Admin',
                 '{lastname}'  => '',
