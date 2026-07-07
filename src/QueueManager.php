@@ -245,8 +245,18 @@ class QueueManager
             $ctx  = \Context::getContext();
             $link = ($ctx && $ctx->link) ? $ctx->link : null;
 
+            // {firstname}/{lastname} ne sont jamais stockées dans vars_json (enqueue()
+            // ne persiste que $extraVars) — sans ce lookup, tout email comportemental
+            // passé par la fenêtre d'achat individuelle afficherait "{firstname}" brut
+            // au client, quel que soit le template.
+            $customer   = new \Customer((int) $row['id_customer']);
+            $firstname  = \Validate::isLoadedObject($customer) ? $customer->firstname : '';
+            $lastname   = \Validate::isLoadedObject($customer) ? $customer->lastname : '';
+
             $allVars = array_merge(
                 [
+                    '{firstname}'   => $firstname,
+                    '{lastname}'    => $lastname,
                     '{shop_name}'   => \Configuration::get('PS_SHOP_NAME'),
                     '{history_url}' => $link ? $link->getPageLink('history', true) : '',
                 ],
