@@ -16139,6 +16139,26 @@
         "da": "{count} skabeloner findes på disken (HTML + TXT).",
         "nl": "{count} templates aanwezig op schijf (HTML + TXT)."
     },
+    "health.log_undecodable": {
+        "fr": "Message du journal illisible (données corrompues).",
+        "en": "Log message unreadable (corrupted data).",
+        "de": "Protokollnachricht nicht lesbar (beschädigte Daten).",
+        "it": "Messaggio del registro illeggibile (dati corrotti).",
+        "es": "Mensaje de registro ilegible (datos corruptos).",
+        "pt": "Mensagem de registo ilegível (dados corrompidos).",
+        "br": "Mensagem de registro ilegível (dados corrompidos).",
+        "ar": "رسالة السجل غير قابلة للقراءة (بيانات تالفة).",
+        "ja": "ログメッセージを読み取れません（データ破損）。",
+        "ko": "로그 메시지를 읽을 수 없습니다 (데이터 손상).",
+        "zh": "日志消息无法读取（数据已损坏）。",
+        "tw": "日誌訊息無法讀取（資料已損毀）。",
+        "ru": "Сообщение журнала повреждено (нечитаемые данные).",
+        "tr": "Günlük mesajı okunamıyor (bozuk veri).",
+        "sv": "Loggmeddelandet kan inte läsas (skadad data).",
+        "no": "Loggmeldingen kan ikke leses (skadet data).",
+        "da": "Logbeskeden kan ikke læses (beskadigede data).",
+        "nl": "Logbericht onleesbaar (beschadigde gegevens)."
+    },
     "health.sig_social_recent_ok": {
         "fr": "Signature manuscrite / réseaux sociaux : contrôle non applicable.",
         "en": "Handwritten signature / social links: check not applicable.",

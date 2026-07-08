@@ -5959,17 +5959,7 @@ class Neria extends Module
     private function translateWatchdogLogs(array $logs): array
     {
         foreach ($logs as &$entry) {
-            $msg = $entry['message'] ?? '';
-            if (str_starts_with($msg, '::i18n::')) {
-                $decoded = json_decode(substr($msg, 8), true);
-                if (is_array($decoded) && isset($decoded['k'])) {
-                    $str = AdminTranslator::t($decoded['k']);
-                    foreach ($decoded['v'] ?? [] as $k => $v) {
-                        $str = str_replace('{' . $k . '}', (string) $v, $str);
-                    }
-                    $entry['message'] = $str;
-                }
-            }
+            $entry['message'] = WatchdogManager::resolveLogMessage($entry['message'] ?? '');
         }
         unset($entry);
         return $logs;

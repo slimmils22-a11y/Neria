@@ -76,6 +76,33 @@ class WatchdogManager
         return '::i18n::' . json_encode(['k' => $key, 'v' => $vars], JSON_UNESCAPED_UNICODE);
     }
 
+    /**
+     * Résout un message éventuellement encodé par i18nMsg() en texte lisible.
+     * Tolère un JSON tronqué/corrompu (au moins la clé est récupérée si possible)
+     * plutôt que d'exposer la structure brute au destinataire.
+     */
+    public static function resolveLogMessage(string $message): string
+    {
+        if (!str_starts_with($message, '::i18n::')) {
+            return $message;
+        }
+
+        $decoded = json_decode(substr($message, 8), true);
+        if (is_array($decoded) && isset($decoded['k'])) {
+            $str = AdminTranslator::t($decoded['k']);
+            foreach ($decoded['v'] ?? [] as $k => $v) {
+                $str = str_replace('{' . $k . '}', (string) $v, $str);
+            }
+            return $str;
+        }
+
+        if (preg_match('/"k"\s*:\s*"([a-z0-9_.]+)"/i', $message, $m)) {
+            return AdminTranslator::t($m[1]);
+        }
+
+        return AdminTranslator::t('health.log_undecodable');
+    }
+
     public function info(string $message, string $template = '', string $class = '', array $context = []): void
     {
         $this->record(self::LEVEL_INFO, $message, $template, $class, $context);
@@ -266,7 +293,7 @@ class WatchdogManager
             ? $shopDomain . \__PS_BASE_URI__ . 'modules/neria/neria-emergency.php?token=' . urlencode($emergencyToken)
             : '';
 
-        $cleanMsg = htmlspecialchars(strip_tags(str_replace(['::i18n::', '{"k":"', '"}'], '', $message)));
+        $cleanMsg = htmlspecialchars(strip_tags(self::resolveLogMessage($message)));
 
         $body = '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:sans-serif;background:#f5f5f5;margin:0;padding:20px;">'
             . '<div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;border:1px solid #e0e0e0;">'
@@ -363,7 +390,7 @@ class WatchdogManager
         $rows_html = '';
         foreach ($rows as $r) {
             $color  = $r['level'] === 'critical' ? '#7a0000' : ($r['level'] === 'error' ? '#a32d2d' : '#ba7517');
-            $cleanM = htmlspecialchars(strip_tags(str_replace(['::i18n::', '{"k":"', '"}'], '', $r['message'])));
+            $cleanM = htmlspecialchars(strip_tags(self::resolveLogMessage($r['message'])));
             $rows_html .= '<tr>'
                 . '<td style="padding:7px 10px;border-bottom:1px solid #f0f0f0;white-space:nowrap;font-size:11px;color:#888;">' . htmlspecialchars(substr($r['date_add'], 0, 16)) . '</td>'
                 . '<td style="padding:7px 10px;border-bottom:1px solid #f0f0f0;"><span style="background:' . $color . ';color:#fff;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:700;">' . strtoupper($r['level']) . '</span></td>'
