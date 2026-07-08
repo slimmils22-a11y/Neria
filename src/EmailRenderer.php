@@ -2021,6 +2021,18 @@ class EmailRenderer
             $compiled = str_replace(array_keys($extraReplacements), array_values($extraReplacements), $compiled);
         }
 
+        // ── Blocs conditionnels {if var}...{else}...{/if} (sans isset()) —
+        // même logique que compileNeriaTemplate (envoi réel), pour que
+        // l'aperçu reflète fidèlement ce qui sera envoyé.
+        $compiled = preg_replace_callback(
+            '/\{if\s+([a-z_]+)\s*\}(.*?)(?:\{else\}(.*?))?\{\/if\}/s',
+            static function ($m) use ($extraReplacements) {
+                $val = $extraReplacements['{' . $m[1] . '}'] ?? '';
+                return !empty($val) ? $m[2] : ($m[3] ?? '');
+            },
+            $compiled
+        );
+
         $compiled = preg_replace('/\{if\s[^}]+\}.*?\{\/if\}/s', '', $compiled);
         $compiled = preg_replace('/\{\*.*?\*\}/s', '', $compiled);
         $compiled = preg_replace('/\{\$[a-z_]+\}/', '', $compiled);
@@ -2342,6 +2354,19 @@ class EmailRenderer
             $compiled
         );
 
+        // ── Blocs conditionnels {if var}...{else}...{/if} (sans isset()) —
+        // utilisé par ex. par loyalty_recap pour palier suivant / palier max.
+        // Sans cette étape, tout le bloc (les deux branches) était supprimé
+        // par le nettoyage générique ci-dessous, quel que soit l'état réel.
+        $compiled = preg_replace_callback(
+            '/\{if\s+([a-z_]+)\s*\}(.*?)(?:\{else\}(.*?))?\{\/if\}/s',
+            static function ($m) use ($templateVars) {
+                $val = $templateVars['{' . $m[1] . '}'] ?? '';
+                return !empty($val) ? $m[2] : ($m[3] ?? '');
+            },
+            $compiled
+        );
+
         // ── Nettoyer les résidus Smarty ───────────────────────────────────
         $compiled = preg_replace('/\{if\s[^}]+\}.*?\{\/if\}/s', '', $compiled);
         $compiled = preg_replace('/\{\*.*?\*\}/s', '', $compiled);
@@ -2417,6 +2442,19 @@ class EmailRenderer
         $txtPath = $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.txt');
         if (file_exists($txtPath)) {
             $compiledTxt = file_get_contents($txtPath);
+
+            // ── Blocs conditionnels {if var}...{else}...{/if} — même logique
+            // que la version HTML (voir plus haut), sinon la syntaxe brute
+            // reste visible dans le .txt (Mail::send ne sait pas l'interpréter).
+            $compiledTxt = preg_replace_callback(
+                '/\{if\s+([a-z_]+)\s*\}(.*?)(?:\{else\}(.*?))?\{\/if\}/s',
+                static function ($m) use ($templateVars) {
+                    $val = $templateVars['{' . $m[1] . '}'] ?? '';
+                    return !empty($val) ? $m[2] : ($m[3] ?? '');
+                },
+                $compiledTxt
+            );
+
             // Smart Salutation — version TXT ({firstname} résolu par Mail::send)
             if ($plugTimeGreeting !== '') {
                 $compiledTxt = str_replace(
