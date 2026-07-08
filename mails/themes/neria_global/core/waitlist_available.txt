@@ -1,13 +1,21 @@
-{waitlist_title}
+{neria_trad key='waitlist_eyebrow'}
 
-{firstname},
+{neria_trad key='waitlist_greeting'} {firstname},
 
-{waitlist_intro}
+{neria_trad key='waitlist_title'}
+
+{neria_trad key='waitlist_intro'}
+
+{neria_trad key='waitlist_reservation'}
+
+--------
 
 {product_name}
 {product_price} €
 {product_url}
 
-{waitlist_note}
+--------
+
+{neria_trad key='waitlist_note'}
 
 {shop_name}
