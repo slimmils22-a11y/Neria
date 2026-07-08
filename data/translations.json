@@ -10400,7 +10400,7 @@
             "productcoverage_min": "Couverture minimale",
             "productcoverage_current": "Couverture actuelle",
             "productcoverage_admin_note": "Veuillez consulter votre stock et réapprovisionner si nécessaire.",
-            "dear_employee": "Cher(e) collaborateur/trice,"
+            "dear_employee": "Cher(e) collaborateur(trice),"
         },
         "en": {
             "greeting_main": "Stock coverage alert",
