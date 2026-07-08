@@ -2025,7 +2025,7 @@ class EmailRenderer
         // même logique que compileNeriaTemplate (envoi réel), pour que
         // l'aperçu reflète fidèlement ce qui sera envoyé.
         $compiled = preg_replace_callback(
-            '/\{if\s+([a-z_]+)\s*\}(.*?)(?:\{else\}(.*?))?\{\/if\}/s',
+            '/\{if\s+\$?([a-z_]+)\s*\}(.*?)(?:\{else\}(.*?))?\{\/if\}/s',
             static function ($m) use ($extraReplacements) {
                 $val = $extraReplacements['{' . $m[1] . '}'] ?? '';
                 return !empty($val) ? $m[2] : ($m[3] ?? '');
@@ -2359,7 +2359,7 @@ class EmailRenderer
         // Sans cette étape, tout le bloc (les deux branches) était supprimé
         // par le nettoyage générique ci-dessous, quel que soit l'état réel.
         $compiled = preg_replace_callback(
-            '/\{if\s+([a-z_]+)\s*\}(.*?)(?:\{else\}(.*?))?\{\/if\}/s',
+            '/\{if\s+\$?([a-z_]+)\s*\}(.*?)(?:\{else\}(.*?))?\{\/if\}/s',
             static function ($m) use ($templateVars) {
                 $val = $templateVars['{' . $m[1] . '}'] ?? '';
                 return !empty($val) ? $m[2] : ($m[3] ?? '');
@@ -2447,7 +2447,7 @@ class EmailRenderer
             // que la version HTML (voir plus haut), sinon la syntaxe brute
             // reste visible dans le .txt (Mail::send ne sait pas l'interpréter).
             $compiledTxt = preg_replace_callback(
-                '/\{if\s+([a-z_]+)\s*\}(.*?)(?:\{else\}(.*?))?\{\/if\}/s',
+                '/\{if\s+\$?([a-z_]+)\s*\}(.*?)(?:\{else\}(.*?))?\{\/if\}/s',
                 static function ($m) use ($templateVars) {
                     $val = $templateVars['{' . $m[1] . '}'] ?? '';
                     return !empty($val) ? $m[2] : ($m[3] ?? '');
