@@ -3169,7 +3169,8 @@
             "customer_qty_product_title": "Produit concerné",
             "customer_qty_back": "De retour en quantité limitée :",
             "customer_qty_btn": "Voir le produit",
-            "customer_qty_limited": "Cette offre est strictement limitée aux stocks disponibles. Nous vous invitons à ne pas tarder."
+            "customer_qty_limited": "Cette offre est strictement limitée aux stocks disponibles. Nous vous invitons à ne pas tarder.",
+            "dear_customer": "Madame, Monsieur,"
         },
         "en": {
             "greeting_main": "Limited quantity available",
@@ -3178,7 +3179,8 @@
             "customer_qty_product_title": "Product concerned",
             "customer_qty_back": "Back in limited quantity:",
             "customer_qty_btn": "View product",
-            "customer_qty_limited": "This offer is strictly limited to available stock. We encourage you not to delay."
+            "customer_qty_limited": "This offer is strictly limited to available stock. We encourage you not to delay.",
+            "dear_customer": "Dear Valued Guest,"
         },
         "de": {
             "greeting_main": "Begrenzte Stückzahl verfügbar",
@@ -3187,7 +3189,8 @@
             "customer_qty_product_title": "Betroffenes Produkt",
             "customer_qty_back": "Zurück in begrenzter Stückzahl:",
             "customer_qty_btn": "Zum Produkt",
-            "customer_qty_limited": "Dieses Angebot ist streng auf die verfügbaren Bestände beschränkt. Wir empfehlen Ihnen, nicht zu zögern."
+            "customer_qty_limited": "Dieses Angebot ist streng auf die verfügbaren Bestände beschränkt. Wir empfehlen Ihnen, nicht zu zögern.",
+            "dear_customer": "Sehr geehrte Damen und Herren,"
         },
         "it": {
             "greeting_main": "Quantità limitata disponibile",
@@ -3196,7 +3199,8 @@
             "customer_qty_product_title": "Prodotto interessato",
             "customer_qty_back": "Di nuovo disponibile in quantità limitata:",
             "customer_qty_btn": "Vedi prodotto",
-            "customer_qty_limited": "Questa offerta è strettamente limitata alle scorte disponibili. Vi invitiamo a non indugiare."
+            "customer_qty_limited": "Questa offerta è strettamente limitata alle scorte disponibili. Vi invitiamo a non indugiare.",
+            "dear_customer": "Gentile Cliente,"
         },
         "es": {
             "greeting_main": "Cantidad limitada disponible",
@@ -3205,7 +3209,8 @@
             "customer_qty_product_title": "Producto en cuestión",
             "customer_qty_back": "De vuelta en cantidad limitada:",
             "customer_qty_btn": "Ver producto",
-            "customer_qty_limited": "Esta oferta está estrictamente limitada a las existencias disponibles. Le invitamos a no demorarse."
+            "customer_qty_limited": "Esta oferta está estrictamente limitada a las existencias disponibles. Le invitamos a no demorarse.",
+            "dear_customer": "Estimado/a {firstname} {lastname},"
         },
         "pt": {
             "greeting_main": "Quantidade limitada disponível",
@@ -3214,7 +3219,8 @@
             "customer_qty_product_title": "Produto em causa",
             "customer_qty_back": "De volta em quantidade limitada:",
             "customer_qty_btn": "Ver produto",
-            "customer_qty_limited": "Esta oferta está estritamente limitada ao stock disponível. Convidamo-lo a não demorar."
+            "customer_qty_limited": "Esta oferta está estritamente limitada ao stock disponível. Convidamo-lo a não demorar.",
+            "dear_customer": "Prezado/a {firstname} {lastname},"
         },
         "br": {
             "greeting_main": "Quantidade limitada disponível",
@@ -3223,7 +3229,8 @@
             "customer_qty_product_title": "Produto em questão",
             "customer_qty_back": "De volta em quantidade limitada:",
             "customer_qty_btn": "Ver produto",
-            "customer_qty_limited": "Esta oferta está estritamente limitada ao estoque disponível. Convidamos você a não demorar."
+            "customer_qty_limited": "Esta oferta está estritamente limitada ao estoque disponível. Convidamos você a não demorar.",
+            "dear_customer": "Prezado/a {firstname} {lastname},"
         },
         "ar": {
             "greeting_main": "كمية محدودة متاحة",
@@ -3232,7 +3239,8 @@
             "customer_qty_product_title": "المنتج المعني",
             "customer_qty_back": "عودة بكمية محدودة:",
             "customer_qty_btn": "عرض المنتج",
-            "customer_qty_limited": "هذا العرض محدود للغاية حسب المخزون المتاح. ندعوكم إلى عدم التأخير."
+            "customer_qty_limited": "هذا العرض محدود للغاية حسب المخزون المتاح. ندعوكم إلى عدم التأخير.",
+            "dear_customer": "ضيفنا الكريم،"
         },
         "ja": {
             "greeting_main": "限定数量が再入荷",
@@ -3241,7 +3249,8 @@
             "customer_qty_product_title": "該当商品",
             "customer_qty_back": "限定数量で再入荷：",
             "customer_qty_btn": "商品を見る",
-            "customer_qty_limited": "このオファーは在庫限りとなります。お早めにご検討ください。"
+            "customer_qty_limited": "このオファーは在庫限りとなります。お早めにご検討ください。",
+            "dear_customer": "{lastname} {firstname} 様"
         },
         "ko": {
             "greeting_main": "제한된 수량 재입고",
@@ -3250,7 +3259,8 @@
             "customer_qty_product_title": "해당 상품",
             "customer_qty_back": "제한된 수량 재입고:",
             "customer_qty_btn": "제품 보기",
-            "customer_qty_limited": "이 제안은 재고 소진 시 종료됩니다. 서둘러 주시기 바랍니다."
+            "customer_qty_limited": "이 제안은 재고 소진 시 종료됩니다. 서둘러 주시기 바랍니다.",
+            "dear_customer": "고객님께,"
         },
         "zh": {
             "greeting_main": "限量商品再度到货",
@@ -3259,7 +3269,8 @@
             "customer_qty_product_title": "相关商品",
             "customer_qty_back": "限量到货：",
             "customer_qty_btn": "查看商品",
-            "customer_qty_limited": "此优惠仅限现有库存，售完即止。建议您尽快下单。"
+            "customer_qty_limited": "此优惠仅限现有库存，售完即止。建议您尽快下单。",
+            "dear_customer": "尊敬的顾客，"
         },
         "tw": {
             "greeting_main": "限量商品再度到貨",
@@ -3268,7 +3279,8 @@
             "customer_qty_product_title": "相關商品",
             "customer_qty_back": "限量到货：",
             "customer_qty_btn": "查看商品",
-            "customer_qty_limited": "此优惠仅限现有庫存，售完即止。建议您尽快下单。"
+            "customer_qty_limited": "此优惠仅限现有庫存，售完即止。建议您尽快下单。",
+            "dear_customer": "尊敬的顧客，"
         },
         "ru": {
             "greeting_main": "Ограниченное количество в наличии",
@@ -3277,7 +3289,8 @@
             "customer_qty_product_title": "Соответствующий товар",
             "customer_qty_back": "Снова в наличии в ограниченном количестве:",
             "customer_qty_btn": "Посмотреть товар",
-            "customer_qty_limited": "Это предложение строго ограничено имеющимися запасами. Рекомендуем не откладывать."
+            "customer_qty_limited": "Это предложение строго ограничено имеющимися запасами. Рекомендуем не откладывать.",
+            "dear_customer": "Уважаемый клиент,"
         },
         "tr": {
             "greeting_main": "Sınırlı miktarda stokta",
@@ -3286,7 +3299,8 @@
             "customer_qty_product_title": "İlgili ürün",
             "customer_qty_back": "Sınırlı miktarda tekrar stokta:",
             "customer_qty_btn": "Ürünü görüntüle",
-            "customer_qty_limited": "Bu teklif mevcut stoklarla sınırlıdır. Gecikmemenizi öneririz."
+            "customer_qty_limited": "Bu teklif mevcut stoklarla sınırlıdır. Gecikmemenizi öneririz.",
+            "dear_customer": "Sayın Müşterimiz,"
         },
         "sv": {
             "greeting_main": "Begränsad kvantitet tillgänglig",
@@ -3295,7 +3309,8 @@
             "customer_qty_product_title": "Berörd produkt",
             "customer_qty_back": "Tillbaka i begränsad kvantitet:",
             "customer_qty_btn": "Visa produkt",
-            "customer_qty_limited": "Detta erbjudande är strikt begränsat till tillgängligt lager. Vi uppmanar dig att inte dröja."
+            "customer_qty_limited": "Detta erbjudande är strikt begränsat till tillgängligt lager. Vi uppmanar dig att inte dröja.",
+            "dear_customer": "Bästa kund,"
         },
         "no": {
             "greeting_main": "Begrenset mengde tilgjengelig",
@@ -3304,7 +3319,8 @@
             "customer_qty_product_title": "Aktuelt produkt",
             "customer_qty_back": "Tilbake i begrenset mengde:",
             "customer_qty_btn": "Vis produkt",
-            "customer_qty_limited": "Dette tilbudet er strengt begrenset til tilgjengelig lager. Vi oppfordrer deg til ikke å nøle."
+            "customer_qty_limited": "Dette tilbudet er strengt begrenset til tilgjengelig lager. Vi oppfordrer deg til ikke å nøle.",
+            "dear_customer": "Kjære kunde,"
         },
         "da": {
             "greeting_main": "Begrænset mængde tilgængelig",
@@ -3313,7 +3329,8 @@
             "customer_qty_product_title": "Berørt produkt",
             "customer_qty_back": "Tilbage i begrænset mængde:",
             "customer_qty_btn": "Vis produkt",
-            "customer_qty_limited": "Dette tilbud er strengt begrenset til tilgjengelig lager. Vi opfordrer dig til ikke at tøve."
+            "customer_qty_limited": "Dette tilbud er strengt begrenset til tilgjengelig lager. Vi opfordrer dig til ikke at tøve.",
+            "dear_customer": "Kære kunde,"
         },
         "nl": {
             "greeting_main": "Beperkte hoeveelheid beschikbaar",
@@ -3322,7 +3339,8 @@
             "customer_qty_product_title": "Betrokken product",
             "customer_qty_back": "Terug in beperkte hoeveelheid:",
             "customer_qty_btn": "Bekijk product",
-            "customer_qty_limited": "Deze aanbieding is strikt beperkt tot de beschikbare voorraad. Wij raden u aan niet te aarzelen."
+            "customer_qty_limited": "Deze aanbieding is strikt beperkt tot de beschikbare voorraad. Wij raden u aan niet te aarzelen.",
+            "dear_customer": "Geachte klant,"
         }
     },
     "download_product": {
@@ -6186,7 +6204,8 @@
             "newsletter_conf_text": "Vous recevrez désormais en premier nos nouvelles collections, nos invitations privées et les moments forts de notre maison — partagés avec ceux que nous estimons.",
             "newsletter_conf_promise": "Votre confiance est sacrée. Nous la protégeons comme nous protégeons notre réputation : avec rigueur et discrétion.",
             "newsletter_conf_manage": "Vous pouvez gérer vos préférences et vous désabonner à tout moment depuis votre espace client.",
-            "newsletter_conf_btn": "Accéder à mon espace"
+            "newsletter_conf_btn": "Accéder à mon espace",
+            "dear_customer": "Madame, Monsieur,"
         },
         "en": {
             "greeting_main": "You are now part of our inner circle",
@@ -6196,7 +6215,8 @@
             "newsletter_conf_text": "You will now receive first our new collections, private invitations and the highlights of our house — shared with those we value.",
             "newsletter_conf_promise": "Your trust is sacred. We protect it as we protect our reputation: with rigor and discretion.",
             "newsletter_conf_manage": "You can manage your preferences and unsubscribe at any time from your customer account.",
-            "newsletter_conf_btn": "Access my space"
+            "newsletter_conf_btn": "Access my space",
+            "dear_customer": "Dear Valued Guest,"
         },
         "de": {
             "greeting_main": "Sie gehören nun zu unserem inneren Kreis",
@@ -6206,7 +6226,8 @@
             "newsletter_conf_text": "Sie erhalten nun als Erste unsere neuen Kollektionen, private Einladungen und die Highlights unseres Hauses — geteilt mit denen, die uns wichtig sind.",
             "newsletter_conf_promise": "Ihr Vertrauen ist heilig. Wir schützen es, wie wir unseren Ruf schützen: mit Strenge und Diskretion.",
             "newsletter_conf_manage": "Sie können Ihre Einstellungen verwalten und sich jederzeit über Ihr Kundenkonto abmelden.",
-            "newsletter_conf_btn": "Zu meinem Bereich"
+            "newsletter_conf_btn": "Zu meinem Bereich",
+            "dear_customer": "Sehr geehrte Damen und Herren,"
         },
         "it": {
             "greeting_main": "Fate ora parte della nostra intimità",
@@ -6216,7 +6237,8 @@
             "newsletter_conf_text": "D'ora in poi riceverete per primi le nostre nuove collezioni, gli inviti privati e i momenti salienti della nostra casa — condivisi con coloro che stimiamo.",
             "newsletter_conf_promise": "La vostra fiducia è sacra. La proteggiamo come proteggiamo la nostra reputazione: con rigore e discrezione.",
             "newsletter_conf_manage": "Puoi gestire le tue preferenze e disiscriverti in qualsiasi momento dal tuo account cliente.",
-            "newsletter_conf_btn": "Accedi al mio spazio"
+            "newsletter_conf_btn": "Accedi al mio spazio",
+            "dear_customer": "Gentile Cliente,"
         },
         "es": {
             "greeting_main": "Ahora forma parte de nuestra intimidad",
@@ -6226,7 +6248,8 @@
             "newsletter_conf_text": "A partir de ahora recibirás en primicia nuestras nuevas colecciones, invitaciones privadas y los momentos destacados de nuestra casa — compartidos con aquellos que valoramos.",
             "newsletter_conf_promise": "Tu confianza es sagrada. La protegemos como protegemos nuestra reputación: con rigor y discreción.",
             "newsletter_conf_manage": "Puedes gestionar tus preferencias y darte de baja en cualquier momento desde tu cuenta de cliente.",
-            "newsletter_conf_btn": "Acceder a mi espacio"
+            "newsletter_conf_btn": "Acceder a mi espacio",
+            "dear_customer": "Estimado/a {firstname} {lastname},"
         },
         "pt": {
             "greeting_main": "Faz agora parte da nossa intimidade",
@@ -6236,7 +6259,8 @@
             "newsletter_conf_text": "Passará a receber em primeira mão as nossas novas coleções, convites privados e os momentos altos da nossa casa — partilhados com aqueles que estimamos.",
             "newsletter_conf_promise": "A sua confiança é sagrada. Protegemo-la como protegemos a nossa reputação: com rigor e discrição.",
             "newsletter_conf_manage": "Pode gerir as suas preferências e cancelar a subscrição a qualquer momento a partir da sua conta de cliente.",
-            "newsletter_conf_btn": "Aceder ao meu espaço"
+            "newsletter_conf_btn": "Aceder ao meu espaço",
+            "dear_customer": "Prezado/a {firstname} {lastname},"
         },
         "br": {
             "greeting_main": "Você agora faz parte de nossa intimidade",
@@ -6246,7 +6270,8 @@
             "newsletter_conf_text": "A partir de agora você receberá em primeira mão nossas novas coleções, convites privados e os momentos altos de nossa casa — compartilhados com aqueles que estimamos.",
             "newsletter_conf_promise": "Sua confiança é sagrada. Nós a protegemos como protegemos nossa reputação: com rigor e discrição.",
             "newsletter_conf_manage": "Você pode gerenciar suas preferências e cancelar a inscrição a qualquer momento em sua conta de cliente.",
-            "newsletter_conf_btn": "Acessar meu espaço"
+            "newsletter_conf_btn": "Acessar meu espaço",
+            "dear_customer": "Prezado/a {firstname} {lastname},"
         },
         "ar": {
             "greeting_main": "أصبحتم الآن جزءاً من دائرتنا الخاصة",
@@ -6256,7 +6281,8 @@
             "newsletter_conf_text": "ستتلقون الآن في المقام الأول مجموعاتنا الجديدة، ودعواتنا الخاصة، وأبرز لحظات دارنا — مشاركة مع من نقدرهم.",
             "newsletter_conf_promise": "ثقتكم مقدسة. نحن نحميها كما نحمي سمعتنا: بالصرامة والسرية.",
             "newsletter_conf_manage": "يمكنكم إدارة تفضيلاتكم وإلغاء الاشتراك في أي وقت من حساب العميل الخاص بكم.",
-            "newsletter_conf_btn": "الدخول إلى مساحتي"
+            "newsletter_conf_btn": "الدخول إلى مساحتي",
+            "dear_customer": "ضيفنا الكريم،"
         },
         "ja": {
             "greeting_main": "お客様は今や私どもの親しいお仲間です",
@@ -6266,7 +6292,8 @@
             "newsletter_conf_text": "今後、新コレクション、プライベート・インビテーション、ハウスのハイライトを最速でお届けします。",
             "newsletter_conf_promise": "お客様の信頼は神聖です。私たちは評判を守るように、それを厳格かつ慎重に守ります。",
             "newsletter_conf_manage": "設定はいつでも管理し、購読を解除できます。",
-            "newsletter_conf_btn": "マイページへ"
+            "newsletter_conf_btn": "マイページへ",
+            "dear_customer": "{lastname} {firstname} 様"
         },
         "ko": {
             "greeting_main": "이제 고객님은 우리의 가까운 일원입니다",
@@ -6276,7 +6303,8 @@
             "newsletter_conf_text": "이제 새 컬렉션, 개인 초대, 하우스의 하이라이트를 가장 먼저 받게 됩니다 — 소중히 여기는 이들과 함께 나누는 것입니다.",
             "newsletter_conf_promise": "고객님의 신뢰는 신성합니다. 우리는 평판을 지키는 것처럼 이를 엄격하고 신중하게 보호합니다.",
             "newsletter_conf_manage": "고객 계정에서 언제든지 기본 설정을 관리하고 구독을 취소할 수 있습니다.",
-            "newsletter_conf_btn": "내 공간으로"
+            "newsletter_conf_btn": "내 공간으로",
+            "dear_customer": "고객님께,"
         },
         "zh": {
             "greeting_main": "您现已成为我们亲密圈的一员",
@@ -6286,7 +6314,8 @@
             "newsletter_conf_text": "您将首先收到我们的新系列、私人邀请和本店的高光时刻 — 与我们珍视的人共享。",
             "newsletter_conf_promise": "您的信任是神圣的。我们像保护声誉一样保护它：严谨而谨慎。",
             "newsletter_conf_manage": "您可随时在客户账户中管理偏好并取消订阅。",
-            "newsletter_conf_btn": "进入我的空间"
+            "newsletter_conf_btn": "进入我的空间",
+            "dear_customer": "尊敬的顾客，"
         },
         "tw": {
             "greeting_main": "您現已成為我們親密圈的一員",
@@ -6296,7 +6325,8 @@
             "newsletter_conf_text": "您將首先收到我們的新系列、私人邀請和本店的高光時刻 — 與我們珍視的人共享。",
             "newsletter_conf_promise": "您的信任是神聖的。我們像保護聲譽一樣保護它：嚴謹而謹慎。",
             "newsletter_conf_manage": "您可隨時在客戶帳戶中管理偏好並取消訂閱。",
-            "newsletter_conf_btn": "進入我的空間"
+            "newsletter_conf_btn": "進入我的空間",
+            "dear_customer": "尊敬的顧客，"
         },
         "ru": {
             "greeting_main": "Теперь Вы часть нашего ближнего круга",
@@ -6306,7 +6336,8 @@
             "newsletter_conf_text": "Теперь Вы будете первыми получать наши новые коллекции, частные приглашения и главные события нашего дома — разделённые с теми, кого мы ценим.",
             "newsletter_conf_promise": "Ваше доверие священно. Мы защищаем его так же, как защищаем нашу репутацию: со строгостью и сдержанностью.",
             "newsletter_conf_manage": "Вы можете управлять своими предпочтениями и отписаться в любое время из своего клиентского аккаунта.",
-            "newsletter_conf_btn": "Войти в мой кабинет"
+            "newsletter_conf_btn": "Войти в мой кабинет",
+            "dear_customer": "Уважаемый клиент,"
         },
         "tr": {
             "greeting_main": "Artık iç çevremizin bir parçasısınız",
@@ -6316,7 +6347,8 @@
             "newsletter_conf_text": "Artık yeni koleksiyonlarımızı, özel davetlerimizi ve evimizin öne çıkanlarını ilk siz alacaksınız — değer verdiklerimizle paylaştığımız şeyler.",
             "newsletter_conf_promise": "Güveniniz kutsaldır. Biz onu, itibarımızı koruduğumuz gibi koruruz: titizlik ve gizlilikle.",
             "newsletter_conf_manage": "Tercihlerinizi yönetebilir ve müşteri hesabınızdan istediğiniz zaman aboneliğinizi iptal edebilirsiniz.",
-            "newsletter_conf_btn": "Alanıma eriş"
+            "newsletter_conf_btn": "Alanıma eriş",
+            "dear_customer": "Sayın Müşterimiz,"
         },
         "sv": {
             "greeting_main": "Du tillhör nu vår inre krets",
@@ -6326,7 +6358,8 @@
             "newsletter_conf_text": "Du kommer nu att få våra nya kollektioner, privata inbjudningar och höjdpunkterna från vårt hus först — delat med dem vi värdesätter.",
             "newsletter_conf_promise": "Ditt förtroende är heligt. Vi skyddar det som vi skyddar vårt rykte: med noggrannhet och diskretion.",
             "newsletter_conf_manage": "Du kan hantera dina inställningar och avregistrera dig när som helst från ditt kundkonto.",
-            "newsletter_conf_btn": "Gå till mitt utrymme"
+            "newsletter_conf_btn": "Gå till mitt utrymme",
+            "dear_customer": "Bästa kund,"
         },
         "no": {
             "greeting_main": "Du tilhører nå vår indre krets",
@@ -6336,7 +6369,8 @@
             "newsletter_conf_text": "Du vil nå motta våre nye kolleksjoner, private invitasjoner og høydepunktene fra huset vårt først — delt med dem vi setter pris på.",
             "newsletter_conf_promise": "Din tillit er hellig. Vi beskytter den som vi beskytter vårt rykte: med strenghet og diskresjon.",
             "newsletter_conf_manage": "Du kan administrere innstillingene dine og si opp abonnementet når som helst fra kundekontoen din.",
-            "newsletter_conf_btn": "Gå til min plass"
+            "newsletter_conf_btn": "Gå til min plass",
+            "dear_customer": "Kjære kunde,"
         },
         "da": {
             "greeting_main": "Du tilhører nu vores indre kreds",
@@ -6346,7 +6380,8 @@
             "newsletter_conf_text": "Du vil nu modtage vores nye kollektioner, private invitationer og højdepunkter fra vores hus først — delt med dem, vi værdsætter.",
             "newsletter_conf_promise": "Din tillid er hellig. Vi beskytter den, ligesom vi beskytter vores omdømme: med stringens og diskretion.",
             "newsletter_conf_manage": "Du kan administrere dine præferencer og afmelde dig når som helst fra din kundekonto.",
-            "newsletter_conf_btn": "Gå til min plads"
+            "newsletter_conf_btn": "Gå til min plads",
+            "dear_customer": "Kære kunde,"
         },
         "nl": {
             "greeting_main": "U maakt nu deel uit van onze intieme kring",
@@ -6356,7 +6391,8 @@
             "newsletter_conf_text": "U ontvangt nu als eerste onze nieuwe collecties, privé-uitnodigingen en de hoogtepunten van ons huis — gedeeld met degenen die we waarderen.",
             "newsletter_conf_promise": "Uw vertrouwen is heilig. We beschermen het zoals we onze reputatie beschermen: met strengheid en discretie.",
             "newsletter_conf_manage": "U kunt uw voorkeuren beheren en zich op elk moment uitschrijven via uw klantenaccount.",
-            "newsletter_conf_btn": "Naar mijn ruimte"
+            "newsletter_conf_btn": "Naar mijn ruimte",
+            "dear_customer": "Geachte klant,"
         }
     },
     "newsletter_verif": {
@@ -6367,7 +6403,8 @@
             "newsletter_verif_title": "Vérification",
             "newsletter_verif_text": "Ce lien sécurisé confirme votre inscription et vous donne accès à toutes nos actualités.",
             "newsletter_verif_btn": "Confirmer mon inscription",
-            "newsletter_verif_ignore": "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer ce message."
+            "newsletter_verif_ignore": "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer ce message.",
+            "dear_customer": "Madame, Monsieur,"
         },
         "en": {
             "greeting_main": "Verify your subscription",
@@ -6376,7 +6413,8 @@
             "newsletter_verif_title": "Verification",
             "newsletter_verif_text": "This secure link confirms your subscription and gives you access to all our news.",
             "newsletter_verif_btn": "Confirm my subscription",
-            "newsletter_verif_ignore": "If you did not request this, you can ignore this message."
+            "newsletter_verif_ignore": "If you did not request this, you can ignore this message.",
+            "dear_customer": "Dear Valued Guest,"
         },
         "de": {
             "greeting_main": "Bestätigen Sie Ihre Anmeldung",
@@ -6385,7 +6423,8 @@
             "newsletter_verif_title": "Bestätigung",
             "newsletter_verif_text": "Dieser sichere Link bestätigt Ihre Anmeldung und gibt Ihnen Zugang zu all unseren Nachrichten.",
             "newsletter_verif_btn": "Meine Anmeldung bestätigen",
-            "newsletter_verif_ignore": "Wenn Sie diese Anfrage nicht gestellt haben, können Sie diese Nachricht ignorieren."
+            "newsletter_verif_ignore": "Wenn Sie diese Anfrage nicht gestellt haben, können Sie diese Nachricht ignorieren.",
+            "dear_customer": "Sehr geehrte Damen und Herren,"
         },
         "it": {
             "greeting_main": "Verifica la tua iscrizione",
@@ -6394,7 +6433,8 @@
             "newsletter_verif_title": "Verifica",
             "newsletter_verif_text": "Questo link sicuro conferma la tua iscrizione e ti dà accesso a tutte le nostre notizie.",
             "newsletter_verif_btn": "Conferma la mia iscrizione",
-            "newsletter_verif_ignore": "Se non hai richiesto questa iscrizione, puoi ignorare questo messaggio."
+            "newsletter_verif_ignore": "Se non hai richiesto questa iscrizione, puoi ignorare questo messaggio.",
+            "dear_customer": "Gentile Cliente,"
         },
         "es": {
             "greeting_main": "Verifica tu suscripción",
@@ -6403,7 +6443,8 @@
             "newsletter_verif_title": "Verificación",
             "newsletter_verif_text": "Este enlace seguro confirma tu suscripción y te da acceso a todas nuestras noticias.",
             "newsletter_verif_btn": "Confirmar mi suscripción",
-            "newsletter_verif_ignore": "Si no has solicitado esta suscripción, puedes ignorar este mensaje."
+            "newsletter_verif_ignore": "Si no has solicitado esta suscripción, puedes ignorar este mensaje.",
+            "dear_customer": "Estimado/a {firstname} {lastname},"
         },
         "pt": {
             "greeting_main": "Verifique a sua inscrição",
@@ -6412,7 +6453,8 @@
             "newsletter_verif_title": "Verificação",
             "newsletter_verif_text": "Este link seguro confirma a sua inscrição e dá-lhe acesso a todas as nossas notícias.",
             "newsletter_verif_btn": "Confirmar a minha inscrição",
-            "newsletter_verif_ignore": "Se não solicitou esta inscrição, pode ignorar esta mensagem."
+            "newsletter_verif_ignore": "Se não solicitou esta inscrição, pode ignorar esta mensagem.",
+            "dear_customer": "Prezado/a {firstname} {lastname},"
         },
         "br": {
             "greeting_main": "Verifique sua inscrição",
@@ -6421,7 +6463,8 @@
             "newsletter_verif_title": "Verificação",
             "newsletter_verif_text": "Este link seguro confirma sua inscrição e dá acesso a todas as nossas notícias.",
             "newsletter_verif_btn": "Confirmar minha inscrição",
-            "newsletter_verif_ignore": "Se você não solicitou esta inscrição, pode ignorar esta mensagem."
+            "newsletter_verif_ignore": "Se você não solicitou esta inscrição, pode ignorar esta mensagem.",
+            "dear_customer": "Prezado/a {firstname} {lastname},"
         },
         "ar": {
             "greeting_main": "تحقق من اشتراكك",
@@ -6430,7 +6473,8 @@
             "newsletter_verif_title": "التحقق",
             "newsletter_verif_text": "هذا الرابط الآمن يؤكد اشتراكك ويمنحك الوصول إلى جميع أخبارنا.",
             "newsletter_verif_btn": "تأكيد اشتراكي",
-            "newsletter_verif_ignore": "إذا لم تكن أنت من قام بهذا الطلب، يمكنك تجاهل هذه الرسالة."
+            "newsletter_verif_ignore": "إذا لم تكن أنت من قام بهذا الطلب، يمكنك تجاهل هذه الرسالة.",
+            "dear_customer": "ضيفنا الكريم،"
         },
         "ja": {
             "greeting_main": "登録の確認",
@@ -6439,7 +6483,8 @@
             "newsletter_verif_title": "確認",
             "newsletter_verif_text": "この安全なリンクで登録が確定し、すべての最新情報にアクセスできます。",
             "newsletter_verif_btn": "登録を確認",
-            "newsletter_verif_ignore": "このリクエストに心当たりがない場合は、このメッセージを無視してください。"
+            "newsletter_verif_ignore": "このリクエストに心当たりがない場合は、このメッセージを無視してください。",
+            "dear_customer": "{lastname} {firstname} 様"
         },
         "ko": {
             "greeting_main": "구독 확인",
@@ -6448,7 +6493,8 @@
             "newsletter_verif_title": "확인",
             "newsletter_verif_text": "이 안전한 링크를 통해 구독이 확인되고 모든 뉴스에 접근할 수 있습니다.",
             "newsletter_verif_btn": "구독 확인",
-            "newsletter_verif_ignore": "이 요청을 하지 않은 경우 이 메시지를 무시하세요."
+            "newsletter_verif_ignore": "이 요청을 하지 않은 경우 이 메시지를 무시하세요.",
+            "dear_customer": "고객님께,"
         },
         "zh": {
             "greeting_main": "验证您的订阅",
@@ -6457,7 +6503,8 @@
             "newsletter_verif_title": "验证",
             "newsletter_verif_text": "此安全链接将确认您的订阅，并使您能够接收所有消息。",
             "newsletter_verif_btn": "确认我的订阅",
-            "newsletter_verif_ignore": "如果您未发起此请求，请忽略此消息。"
+            "newsletter_verif_ignore": "如果您未发起此请求，请忽略此消息。",
+            "dear_customer": "尊敬的顾客，"
         },
         "tw": {
             "greeting_main": "驗證您的訂閱",
@@ -6466,7 +6513,8 @@
             "newsletter_verif_title": "驗證",
             "newsletter_verif_text": "此安全連結將確認您的訂閱，並使您能夠接收所有消息。",
             "newsletter_verif_btn": "確認我的訂閱",
-            "newsletter_verif_ignore": "如果您未發起此請求，請忽略此訊息。"
+            "newsletter_verif_ignore": "如果您未發起此請求，請忽略此訊息。",
+            "dear_customer": "尊敬的顧客，"
         },
         "ru": {
             "greeting_main": "Подтвердите Вашу подписку",
@@ -6475,7 +6523,8 @@
             "newsletter_verif_title": "Подтверждение",
             "newsletter_verif_text": "Эта безопасная ссылка подтверждает Вашу подписку и даёт Вам доступ ко всем нашим новостям.",
             "newsletter_verif_btn": "Подтвердить мою подписку",
-            "newsletter_verif_ignore": "Если Вы не запрашивали это, Вы можете проигнорировать данное сообщение."
+            "newsletter_verif_ignore": "Если Вы не запрашивали это, Вы можете проигнорировать данное сообщение.",
+            "dear_customer": "Уважаемый клиент,"
         },
         "tr": {
             "greeting_main": "Aboneliğinizi doğrulayın",
@@ -6484,7 +6533,8 @@
             "newsletter_verif_title": "Doğrulama",
             "newsletter_verif_text": "Bu güvenli bağlantı aboneliğinizi onaylar ve tüm haberlerimize erişim sağlar.",
             "newsletter_verif_btn": "Aboneliğimi onayla",
-            "newsletter_verif_ignore": "Bu talebi siz yapmadıysanız bu mesajı dikkate almayın."
+            "newsletter_verif_ignore": "Bu talebi siz yapmadıysanız bu mesajı dikkate almayın.",
+            "dear_customer": "Sayın Müşterimiz,"
         },
         "sv": {
             "greeting_main": "Bekräfta din prenumeration",
@@ -6493,7 +6543,8 @@
             "newsletter_verif_title": "Bekräftelse",
             "newsletter_verif_text": "Denna säkra länk bekräftar din prenumeration och ger dig tillgång till alla våra nyheter.",
             "newsletter_verif_btn": "Bekräfta min prenumeration",
-            "newsletter_verif_ignore": "Om du inte begärde detta kan du ignorera detta meddelande."
+            "newsletter_verif_ignore": "Om du inte begärde detta kan du ignorera detta meddelande.",
+            "dear_customer": "Bästa kund,"
         },
         "no": {
             "greeting_main": "Bekreft abonnementet ditt",
@@ -6502,7 +6553,8 @@
             "newsletter_verif_title": "Bekreftelse",
             "newsletter_verif_text": "Denne sikre lenken bekrefter abonnementet ditt og gir deg tilgang til alle våre nyheter.",
             "newsletter_verif_btn": "Bekreft abonnementet mitt",
-            "newsletter_verif_ignore": "Hvis du ikke har bedt om dette, kan du ignorere denne meldingen."
+            "newsletter_verif_ignore": "Hvis du ikke har bedt om dette, kan du ignorere denne meldingen.",
+            "dear_customer": "Kjære kunde,"
         },
         "da": {
             "greeting_main": "Bekræft dit abonnement",
@@ -6511,7 +6563,8 @@
             "newsletter_verif_title": "Bekræftelse",
             "newsletter_verif_text": "Dette sikre link bekræfter dit abonnement og giver dig adgang til alle vores nyheder.",
             "newsletter_verif_btn": "Bekræft mit abonnement",
-            "newsletter_verif_ignore": "Hvis du ikke har anmodet om dette, kan du ignorere denne besked."
+            "newsletter_verif_ignore": "Hvis du ikke har anmodet om dette, kan du ignorere denne besked.",
+            "dear_customer": "Kære kunde,"
         },
         "nl": {
             "greeting_main": "Bevestig uw abonnement",
@@ -6520,7 +6573,8 @@
             "newsletter_verif_title": "Bevestiging",
             "newsletter_verif_text": "Deze veilige link bevestigt uw abonnement en geeft u toegang tot al ons nieuws.",
             "newsletter_verif_btn": "Bevestig mijn abonnement",
-            "newsletter_verif_ignore": "Als u dit niet heeft aangevraagd, kunt u dit bericht negeren."
+            "newsletter_verif_ignore": "Als u dit niet heeft aangevraagd, kunt u dit bericht negeren.",
+            "dear_customer": "Geachte klant,"
         }
     },
     "newsletter_voucher": {
@@ -6532,7 +6586,8 @@
             "newsletter_voucher_usage": "Ce code est valable {validity_days} jours dans l'ensemble de notre maison. Il ne peut être cumulé avec d'autres attentions.",
             "newsletter_voucher_btn": "Découvrir nos créations",
             "newsletter_voucher_next": "Nous vous souhaitons une belle découverte de nos pièces uniques.",
-            "voucher_code": "Code exclusif"
+            "voucher_code": "Code exclusif",
+            "dear_customer": "Madame, Monsieur,"
         },
         "en": {
             "greeting_main": "Your welcome code",
@@ -6542,7 +6597,8 @@
             "newsletter_voucher_usage": "This code is valid for {validity_days} days throughout our house. It cannot be combined with other attentions.",
             "newsletter_voucher_btn": "Discover our creations",
             "newsletter_voucher_next": "We wish you a wonderful discovery of our unique pieces.",
-            "voucher_code": "Exclusive code"
+            "voucher_code": "Exclusive code",
+            "dear_customer": "Dear Valued Guest,"
         },
         "de": {
             "greeting_main": "Ihr Willkommenscode",
@@ -6552,7 +6608,8 @@
             "newsletter_voucher_usage": "Dieser Code ist {validity_days} Tage lang in unserem gesamten Haus gültig. Er kann nicht mit anderen Aufmerksamkeiten kombiniert werden.",
             "newsletter_voucher_btn": "Entdecken Sie unsere Kreationen",
             "newsletter_voucher_next": "Wir wünschen Ihnen eine wunderbare Entdeckung unserer einzigartigen Stücke.",
-            "voucher_code": "Exklusiver Code"
+            "voucher_code": "Exklusiver Code",
+            "dear_customer": "Sehr geehrte Damen und Herren,"
         },
         "it": {
             "greeting_main": "Il tuo codice di benvenuto",
@@ -6562,7 +6619,8 @@
             "newsletter_voucher_usage": "Questo codice è valido {validity_days} giorni in tutta la nostra maison. Non può essere cumulato con altre attenzioni.",
             "newsletter_voucher_btn": "Scopri le nostre creazioni",
             "newsletter_voucher_next": "Ti auguriamo una meravigliosa scoperta dei nostri pezzi unici.",
-            "voucher_code": "Codice esclusivo"
+            "voucher_code": "Codice esclusivo",
+            "dear_customer": "Gentile Cliente,"
         },
         "es": {
             "greeting_main": "Tu código de bienvenida",
@@ -6572,7 +6630,8 @@
             "newsletter_voucher_usage": "Este código es válido durante {validity_days} días en toda nuestra maison. No puede combinarse con otras atenciones.",
             "newsletter_voucher_btn": "Descubre nuestras creaciones",
             "newsletter_voucher_next": "Te deseamos un maravilloso descubrimiento de nuestras piezas únicas.",
-            "voucher_code": "Código exclusivo"
+            "voucher_code": "Código exclusivo",
+            "dear_customer": "Estimado/a {firstname} {lastname},"
         },
         "pt": {
             "greeting_main": "O seu código de boas-vindas",
@@ -6582,7 +6641,8 @@
             "newsletter_voucher_usage": "Este código é válido durante {validity_days} dias em toda a nossa maison. Não pode ser cumulado com outras atenções.",
             "newsletter_voucher_btn": "Descubra as nossas criações",
             "newsletter_voucher_next": "Desejamos-lhe uma maravilhosa descoberta das nossas peças únicas.",
-            "voucher_code": "Código exclusivo"
+            "voucher_code": "Código exclusivo",
+            "dear_customer": "Prezado/a {firstname} {lastname},"
         },
         "br": {
             "greeting_main": "Seu código de boas-vindas",
@@ -6592,7 +6652,8 @@
             "newsletter_voucher_usage": "Este código é válido por {validity_days} dias em toda a nossa maison. Não pode ser acumulado com outras atenções.",
             "newsletter_voucher_btn": "Descubra nossas criações",
             "newsletter_voucher_next": "Desejamos a você uma maravilhosa descoberta de nossas peças únicas.",
-            "voucher_code": "Código exclusivo"
+            "voucher_code": "Código exclusivo",
+            "dear_customer": "Prezado/a {firstname} {lastname},"
         },
         "ar": {
             "greeting_main": "رمز الترحيب الخاص بك",
@@ -6602,7 +6663,8 @@
             "newsletter_voucher_usage": "هذا الرمز صالح لمدة {validity_days} يوماً في جميع أرجاء داري. ولا يمكن الجمع بينه وبين الاهتمامات الأخرى.",
             "newsletter_voucher_btn": "اكتشف إبداعاتنا",
             "newsletter_voucher_next": "نتمنى لكم اكتشافاً رائعاً لقطعنا الفريدة.",
-            "voucher_code": "الرمز الحصري"
+            "voucher_code": "الرمز الحصري",
+            "dear_customer": "ضيفنا الكريم،"
         },
         "ja": {
             "greeting_main": "ウェルカムコード",
@@ -6612,7 +6674,8 @@
             "newsletter_voucher_usage": "このコードは当メゾン全体で{validity_days}日間有効です。他の特典との併用はできません。",
             "newsletter_voucher_btn": "作品を見る",
             "newsletter_voucher_next": "唯一無二の逸品との素晴らしい出会いをお楽しみください。",
-            "voucher_code": "エクスクルーシブコード"
+            "voucher_code": "エクスクルーシブコード",
+            "dear_customer": "{lastname} {firstname} 様"
         },
         "ko": {
             "greeting_main": "웰컴 코드",
@@ -6622,7 +6685,8 @@
             "newsletter_voucher_usage": "이 코드는 당사 전체에서 {validity_days}일간 유효합니다. 다른 배려와 중복 적용되지 않습니다.",
             "newsletter_voucher_btn": "작품 보기",
             "newsletter_voucher_next": "저희의 독특한 작품을 훌륭히 발견하시길 바랍니다.",
-            "voucher_code": "독점 코드"
+            "voucher_code": "독점 코드",
+            "dear_customer": "고객님께,"
         },
         "zh": {
             "greeting_main": "您的欢迎代码",
@@ -6632,7 +6696,8 @@
             "newsletter_voucher_usage": "此码在我们的品牌全场有效期{validity_days}天，不可与其他礼遇叠加使用。",
             "newsletter_voucher_btn": "探索我们的作品",
             "newsletter_voucher_next": "祝您发现我们独特作品的精彩。",
-            "voucher_code": "专属码"
+            "voucher_code": "专属码",
+            "dear_customer": "尊敬的顾客，"
         },
         "tw": {
             "greeting_main": "您的歡迎代码",
@@ -6642,7 +6707,8 @@
             "newsletter_voucher_usage": "此碼在我們的品牌全場有效期{validity_days}天，不可與其他禮遇疊加使用。",
             "newsletter_voucher_btn": "探索我們的作品",
             "newsletter_voucher_next": "祝您发现我們独特作品的精彩。",
-            "voucher_code": "專屬碼"
+            "voucher_code": "專屬碼",
+            "dear_customer": "尊敬的顧客，"
         },
         "ru": {
             "greeting_main": "Ваш приветственный код",
@@ -6652,7 +6718,8 @@
             "newsletter_voucher_usage": "Этот код действителен {validity_days} дней во всём нашем Доме. Он не суммируется с другими знаками внимания.",
             "newsletter_voucher_btn": "Откройте для себя наши творения",
             "newsletter_voucher_next": "Желаем Вам прекрасного знакомства с нашими уникальными изделиями.",
-            "voucher_code": "Эксклюзивный код"
+            "voucher_code": "Эксклюзивный код",
+            "dear_customer": "Уважаемый клиент,"
         },
         "tr": {
             "greeting_main": "Hoş geldiniz kodunuz",
@@ -6662,7 +6729,8 @@
             "newsletter_voucher_usage": "Bu kod, maisonda {validity_days} gün geçerlidir. Diğer iltifatlarla birleştirilemez.",
             "newsletter_voucher_btn": "Kreasyonlarımızı keşfedin",
             "newsletter_voucher_next": "Eşsiz parçalarımızı keşfetmenizi dileriz.",
-            "voucher_code": "Özel kod"
+            "voucher_code": "Özel kod",
+            "dear_customer": "Sayın Müşterimiz,"
         },
         "sv": {
             "greeting_main": "Din välkomstkod",
@@ -6672,7 +6740,8 @@
             "newsletter_voucher_usage": "Denna kod är giltig i {validity_days} dagar i hela vårt hus. Den kan inte kombineras med andra uppmärksamheter.",
             "newsletter_voucher_btn": "Upptäck våra skapelser",
             "newsletter_voucher_next": "Vi önskar dig en underbar upptäckt av våra unika föremål.",
-            "voucher_code": "Exklusiv kod"
+            "voucher_code": "Exklusiv kod",
+            "dear_customer": "Bästa kund,"
         },
         "no": {
             "greeting_main": "Din velkomstkode",
@@ -6682,7 +6751,8 @@
             "newsletter_voucher_usage": "Denne koden er gyldig i {validity_days} dager gjennom hele vårt hus. Den kan ikke kombineres med andre oppmerksomheter.",
             "newsletter_voucher_btn": "Oppdag våre kreasjoner",
             "newsletter_voucher_next": "Vi ønsker deg en fantastisk oppdagelse av våre unike gjenstander.",
-            "voucher_code": "Eksklusiv kode"
+            "voucher_code": "Eksklusiv kode",
+            "dear_customer": "Kjære kunde,"
         },
         "da": {
             "greeting_main": "Din velkomstkode",
@@ -6692,7 +6762,8 @@
             "newsletter_voucher_usage": "Denne kode er gyldig i {validity_days} dage i hele vores hus. Den kan ikke kombineres med andre opmærksomheder.",
             "newsletter_voucher_btn": "Opdag vores kreationer",
             "newsletter_voucher_next": "Vi ønsker dig en vidunderlig opdagelse af vores unikke stykker.",
-            "voucher_code": "Eksklusiv kode"
+            "voucher_code": "Eksklusiv kode",
+            "dear_customer": "Kære kunde,"
         },
         "nl": {
             "greeting_main": "Uw welkomstcode",
@@ -6702,7 +6773,8 @@
             "newsletter_voucher_usage": "Deze code is {validity_days} dagen geldig in ons volledige huis. Hij kan niet worden gecombineerd met andere attenties.",
             "newsletter_voucher_btn": "Ontdek onze creaties",
             "newsletter_voucher_next": "Wij wensen u een prachtige ontdekking van onze unieke stukken.",
-            "voucher_code": "Exclusieve code"
+            "voucher_code": "Exclusieve code",
+            "dear_customer": "Geachte klant,"
         }
     },
     "order_canceled": {

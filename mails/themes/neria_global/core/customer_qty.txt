@@ -1,5 +1,7 @@
 {shop_name}
 
+{neria_trad key='dear_customer'}
+
 {neria_trad key='customer_qty_intro'}
 
 {neria_trad key='customer_qty_product_title'}
