@@ -660,7 +660,7 @@ class ConfigManager
     public function getTimeGreetings(): array
     {
         $defaults = [
-            'fr' => ['morning' => 'Bonjour',          'afternoon' => 'Bon après-midi',  'evening' => 'Bonne soirée',    'night' => 'Bonjour'],
+            'fr' => ['morning' => 'Bonjour',          'afternoon' => 'Bonjour',         'evening' => 'Bonsoir',         'night' => 'Bonjour'],
             'en' => ['morning' => 'Good morning',     'afternoon' => 'Good afternoon',  'evening' => 'Good evening',    'night' => 'Hello'],
             'de' => ['morning' => 'Guten Morgen',     'afternoon' => 'Guten Tag',       'evening' => 'Guten Abend',     'night' => 'Hallo'],
             'it' => ['morning' => 'Buongiorno',       'afternoon' => 'Buon pomeriggio', 'evening' => 'Buonasera',       'night' => 'Salve'],
