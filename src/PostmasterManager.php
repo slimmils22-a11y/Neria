@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — PostmasterManager
  *
  * Intégration Gmail Postmaster Tools API (OAuth 2.0).

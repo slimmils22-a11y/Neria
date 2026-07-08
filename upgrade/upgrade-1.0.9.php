@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * Upgrade 1.0.8 → 1.0.9
  * Ajout des tables neria_look_rule et neria_look_sent
  */

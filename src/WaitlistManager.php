@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * WaitlistManager — Liste d'attente produits
  *
  * Quand un produit est en rupture, le client s'inscrit.

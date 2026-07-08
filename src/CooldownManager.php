@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — CooldownManager
  *
  * Mode Silence V1 : détecte les doublons d'envoi (même template, même client,

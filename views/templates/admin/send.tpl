@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — send.tpl
  * Envoi manuel d'un template à un client (vague 1).
  * Features : auto-complétion client, détection doublon, planification différée, prévisualisation.

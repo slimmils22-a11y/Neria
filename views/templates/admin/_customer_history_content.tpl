@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — _customer_history_content.tpl
  * Contenu partagé du bloc « Emails reçus » : badge, alertes, timeline,
  * tableau complet, actions, modale d'aperçu, formulaire de renvoi, JS.

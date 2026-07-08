@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — FontManager
  *
  * Gestionnaire des polices premium par langue.

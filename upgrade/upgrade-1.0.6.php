@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Upgrade 1.0.5 → 1.0.6
  *
  * Ajoute la TABLE 27 (neria_queue) et la clé de configuration

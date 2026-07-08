@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * PropensityScoreManager — Score de propension à l'achat (0–100)
  *
  * Formule transparente (4 facteurs) :

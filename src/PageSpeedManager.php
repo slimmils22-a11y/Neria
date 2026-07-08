@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — PageSpeedManager
  *
  * Intégration Google PageSpeed Insights v5 (clé API gratuite).

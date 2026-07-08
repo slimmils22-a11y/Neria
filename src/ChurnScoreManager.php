@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — ChurnScoreManager
  *
  * Calcule un score de risque de désabonnement (0-100) pour chaque client,

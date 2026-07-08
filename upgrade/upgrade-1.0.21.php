@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * Upgrade 1.0.20 → 1.0.21
  * Le certificat d'authenticité PDF envoyé au client (CertificateManager)
  * utilisait mail() natif avec un HTML codé en dur en français, entièrement

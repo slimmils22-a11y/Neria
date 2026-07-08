@@ -1,4 +1,6 @@
 {*
+ * © 2026 Neria.software - All rights reserved
+ *
  * Onglet Certificats d'Authenticité — back-office Neria
  *}
 

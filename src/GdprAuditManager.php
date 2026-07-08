@@ -1,4 +1,7 @@
 <?php
+/**
+ * © 2026 Neria.software - All rights reserved
+ */
 if (!defined('_PS_VERSION_')) {
     exit;
 }

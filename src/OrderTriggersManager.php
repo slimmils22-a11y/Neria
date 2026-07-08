@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — OrderTriggersManager
  *
  * Emails déclenchés par des événements de commande PrestaShop.

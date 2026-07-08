@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * LookCompletionManager — Programme "Complétez votre look"
  *
  * 48h après la livraison, envoie un email suggérant 2-3 produits complémentaires

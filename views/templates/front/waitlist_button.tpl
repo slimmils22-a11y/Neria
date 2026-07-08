@@ -1,3 +1,4 @@
+{* © 2026 Neria.software - All rights reserved *}
 {if $waitlist_oos}
 <div style="margin-top:14px;">
   {if $waitlist_registered}

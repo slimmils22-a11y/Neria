@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — webhooks.tpl
  * Configuration des notifications webhook sortantes.
  * Neria notifie des applications externes (CRM, Zapier, Make…)

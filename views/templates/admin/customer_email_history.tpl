@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — customer_email_history.tpl
  * Bloc « Emails reçus » injecté sur la fiche client (hook displayAdminCustomers)
  * Timeline visuelle par défaut + bascule vers le tableau complet + export CSV

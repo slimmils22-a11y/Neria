@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — design.tpl
  * Onglet Design — Couleurs, logo, mode sombre, largeur conteneur
  * Fix 5 : iframe avec src par défaut (preview fonctionnel sans JS)

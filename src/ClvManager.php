@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * ClvManager — Valeur client estimée sur 12 mois
  *
  * Formule transparente :

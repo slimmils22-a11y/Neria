@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Front controller : déclencheur cron externe
  *
  * Point d'entrée destiné à être appelé par un vrai cron serveur

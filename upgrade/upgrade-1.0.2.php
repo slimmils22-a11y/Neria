@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Mise à niveau vers la version 1.0.2
  *
  * Ajoute la fonctionnalité « Réconciliation post-remboursement » :

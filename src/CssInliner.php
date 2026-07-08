@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — CssInliner
  *
  * Inline les règles CSS d'un bloc <style> directement dans les attributs

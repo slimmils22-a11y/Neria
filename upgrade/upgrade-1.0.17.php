@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Upgrade 1.0.17
  *
  * Chiffre rétroactivement (AES-256-GCM via CryptoManager) tous les

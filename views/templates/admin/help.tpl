@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — help.tpl
  * Onglet Aide — Documentation, diagnostic et support
  * i18n : libellés via {neria_admin key='...'} (18 langues, AdminTranslator)

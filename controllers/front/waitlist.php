@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * Neria — Contrôleur front liste d'attente
  * URL : /module/neria/waitlist
  * Actions : subscribe / unsubscribe

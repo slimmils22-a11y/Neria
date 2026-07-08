@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — VoiceProfileManager
  *
  * Empreinte vocale de la marque, par langue : mots bannis, mots

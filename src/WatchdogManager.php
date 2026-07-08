@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — WatchdogManager
  *
  * Système de surveillance et journal des erreurs du module.

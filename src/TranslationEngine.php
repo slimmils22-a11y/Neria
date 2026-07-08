@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — TranslationEngine
  *
  * Moteur de traduction central du module Neria.

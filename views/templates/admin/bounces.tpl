@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — bounces.tpl
  * Gestion des adresses email invalides (bounces)
  *}

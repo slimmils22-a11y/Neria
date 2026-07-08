@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — DeliverabilityScorer
  *
  * Analyse le contenu HTML d'un email et retourne un score de

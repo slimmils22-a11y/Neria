@@ -1,4 +1,6 @@
 ﻿/**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Luxury Email Suite
  * JavaScript back-office PrestaShop
  *

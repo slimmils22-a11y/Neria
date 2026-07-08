@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — calendar.tpl
  * Gestion des occasions calendaires automatiques.
  * Le marchand active/désactive des occasions, règle le délai d'envoi

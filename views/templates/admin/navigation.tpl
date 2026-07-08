@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — navigation.tpl
  * Menu de navigation principal du back-office
  * NOTE : Ce template N'ouvre PAS .neria-bo-content

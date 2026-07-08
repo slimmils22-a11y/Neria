@@ -1,4 +1,6 @@
 {*
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Page de confirmation de désabonnement
  * i18n : libellés via {neria_admin key='...'} dans la langue du destinataire
  *}

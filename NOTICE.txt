@@ -1,0 +1,8 @@
+NERIA — Luxury Email Suite
+© 2026 Neria.software - All rights reserved
+
+This notice applies to the entire content of this module, including but not
+limited to all PHP source files, Smarty templates, JavaScript, CSS, and data
+files (including the JSON translation and configuration files under data/),
+except where a file explicitly states a different, compatible license
+(e.g. third-party vendor libraries under views/js/vendor/).

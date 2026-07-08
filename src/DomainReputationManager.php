@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — DomainReputationManager
  *
  * Vérifie la réputation du domaine d'envoi via DNS :

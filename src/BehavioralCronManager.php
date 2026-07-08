@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — BehavioralCronManager
  *
  * Emails comportementaux déclenchés une fois par jour.

@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — ManualSendManager
  *
  * Gère l'envoi manuel, depuis le back-office, des templates « à la demande »

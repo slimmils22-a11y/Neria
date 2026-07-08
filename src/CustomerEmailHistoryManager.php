@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — CustomerEmailHistoryManager
  *
  * Construit le bloc « Emails reçus » affiché sur la fiche client du BO

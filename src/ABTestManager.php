@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA â€” ABTestManager
  *
  * Gestion des tests A/B sur les templates email.

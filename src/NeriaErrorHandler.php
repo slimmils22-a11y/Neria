@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — NeriaErrorHandler
  *
  * Filet de sécurité global pour les erreurs PHP non catchées dans le module.

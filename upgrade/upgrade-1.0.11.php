@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * Upgrade 1.0.10 → 1.0.11
  * Panier fantôme récurrent (ghost_cart) — pas de nouvelle table,
  * utilise neria_behavioral_sent (UNIQUE customer+template+ref_id).

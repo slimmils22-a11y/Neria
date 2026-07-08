@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — customer_history.tpl
  * Onglet "Historique clients" : recherche d'un client (nom/email)
  * puis affichage du bloc « Emails reçus ».

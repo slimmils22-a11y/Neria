@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — TranslationInstaller
  *
  * Importe le dictionnaire translations.json en base de données

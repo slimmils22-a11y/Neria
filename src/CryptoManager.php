@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — CryptoManager
  *
  * Chiffrement symétrique AES-256-GCM des données sensibles au repos.

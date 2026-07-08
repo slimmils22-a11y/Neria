@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — abtest.tpl
  * Onglet A/B Testing
  * v1.0.14 : revenus par variante, application du gagnant, historique, durée estimée

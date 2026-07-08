@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Front controller : désabonnement
  *
  * Cible des en-têtes List-Unsubscribe (RFC 2369 / 8058) et du lien de

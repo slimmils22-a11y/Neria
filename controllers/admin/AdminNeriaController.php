@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — AdminNeriaController
  *
  * Contrôleur BO minimal : redirige vers la page de configuration Neria.

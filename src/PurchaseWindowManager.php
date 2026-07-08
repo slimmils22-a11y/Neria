@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — PurchaseWindowManager
  *
  * Détecte la fenêtre horaire d'achat naturelle de chaque client

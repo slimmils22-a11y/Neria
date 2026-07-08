@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — BlacklistManager
  *
  * Gère la blacklist interne de templates : permet au marchand de désactiver

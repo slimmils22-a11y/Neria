@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — QueueManager
  *
  * File d'attente d'emails comportementaux (TABLE 27 : ps_neria_queue).

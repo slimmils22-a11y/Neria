@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * CertificateManager — Certificats d'authenticité dynamiques
  *
  * Génère un PDF signé (TCPDF + signature manuscrite Neria) et l'envoie

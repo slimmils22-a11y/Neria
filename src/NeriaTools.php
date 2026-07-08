@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — NeriaTools
  *
  * Boite a outils du module — fonctions utilitaires transversales.

@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Front controller : callback OAuth 2.0 (Google Postmaster Tools)
  *
  * Google redirige ici après que le marchand a accordé l'accès.

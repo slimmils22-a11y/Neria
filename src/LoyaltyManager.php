@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — LoyaltyManager
  *
  * Programme de fidélité par email.

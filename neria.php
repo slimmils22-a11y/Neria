@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Luxury Email Suite
  *
  * Module PrestaShop — Emails transactionnels & marketing haut de gamme

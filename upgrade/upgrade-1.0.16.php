@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Upgrade 1.0.16
  *
  * Enregistre le hook RGPD natif actionDeleteGDPRCustomer, absent depuis

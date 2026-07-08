@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — academy.tpl
  * Onglet Académie : 8 guides pratiques (ouverture, objet, RGPD, délivrabilité,
  * segmentation, fidélité/upsell, A/B testing, panier abandonné) — multilingue via {$ac}

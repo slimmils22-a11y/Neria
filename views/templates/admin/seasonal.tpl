@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — seasonal.tpl
  * Campagnes saisonnières automatiques
  *}

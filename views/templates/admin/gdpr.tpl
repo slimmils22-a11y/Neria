@@ -1,4 +1,6 @@
 ﻿{**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — gdpr.tpl
  * Onglet Conformite RGPD — Audit automatique et purge des donnees
  *}

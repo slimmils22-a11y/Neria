@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * Upgrade 1.0.13 → 1.0.14
  * A/B Testing : historique des tests terminés (TABLE 28).
  */

@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Upgrade 1.0.20
  *
  * Deux dernières fonctionnalités avant le packaging final :

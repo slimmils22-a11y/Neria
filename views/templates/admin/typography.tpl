@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — typography.tpl
  * Onglet Typographie — polices par script + corps de texte + aperçu temps réel
  *}

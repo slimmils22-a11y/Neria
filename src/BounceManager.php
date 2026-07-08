@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — BounceManager
  *
  * Détecte les adresses email invalides (bounces) via deux canaux :

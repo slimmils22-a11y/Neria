@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — multipreview.tpl
  * Prévisualisation multi-client : iframes chargées via getpreview.php
  *}

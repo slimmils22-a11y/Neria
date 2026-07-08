@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — SeasonalCampaignManager
  *
  * Gère les campagnes saisonnières récurrentes (soldes, Black Friday, Noël…).

@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Endpoint webhook pour les notifications de bounce ESP
  *
  * URL : https://votredomaine.com/module/neria/bounce

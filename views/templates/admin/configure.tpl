@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — configure.tpl
  * Page d'accueil du back-office
  * Fix 2 : id unique sur le select signature

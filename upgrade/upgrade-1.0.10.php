@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * Upgrade 1.0.9 → 1.0.10
  * Ajout table neria_waitlist (liste d'attente produits)
  */

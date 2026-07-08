@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Front controller : pixel de tracking (ouvertures / clics)
  *
  * Cible du pixel 1×1 invisible injecté dans chaque email (EmailRenderer::

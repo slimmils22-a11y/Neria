@@ -1,4 +1,6 @@
 {*
+ * © 2026 Neria.software - All rights reserved
+ *
  * Bloc Certificat d'Authenticité — affiché sur la fiche commande PrestaShop
  * Hook : displayAdminOrderMainBottom
  *}

@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — segments.tpl
  * Tableau de bord de segmentation comportementale des clients.
  * 5 segments calculés quotidiennement depuis les stats email.

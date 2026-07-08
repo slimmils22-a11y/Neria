@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Upgrade 1.0.6 → 1.0.7
  *
  * Ajout de la colonne gift_mode sur neria_seasonal_campaign.

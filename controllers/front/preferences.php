@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Front controller : centre de préférences email
  *
  * Accessible via un lien dans le pied de chaque email Neria.

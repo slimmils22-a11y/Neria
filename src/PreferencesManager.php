@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — PreferencesManager
  * Centre de préférences email : opt-in/out par catégorie d'email.
  * Opt-in par défaut — aucune ligne en DB = client reçoit tout.

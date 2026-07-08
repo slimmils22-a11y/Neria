@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — GoldenHourManager
  *
  * Analyse les ouvertures enregistrées dans ps_neria_stat et détermine

@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Page d'urgence Watchdog
  *
  * Accessible SANS PrestaShop, directement via URL + token secret.

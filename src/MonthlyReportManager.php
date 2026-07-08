@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — MonthlyReportManager
  *
  * Génère et envoie le rapport mensuel de performance email au marchand.

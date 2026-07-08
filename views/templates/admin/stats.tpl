@@ -1,4 +1,6 @@
 ﻿{**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — stats.tpl
  * Onglet Statistiques — KPIs, rapports par template/langue/pays
  * i18n : libellés via {neria_admin key='...'} (18 langues, AdminTranslator)

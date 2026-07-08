@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Mise à niveau vers la version 1.0.3
  *
  * Ajoute la fonctionnalité « Rappel fin de vie produit » :

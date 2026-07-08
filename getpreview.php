@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — getpreview.php
  * Sert un aperçu email pour les iframes de la prévisualisation multi-client.
  * Fichier PHP minimal — ne charge PAS le framework PrestaShop.

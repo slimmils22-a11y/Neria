@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA â€” CalendarManager
  *
  * Gestion des occasions calendaires automatiques.

@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * Upgrade 1.0.11 → 1.0.12
  * Centre de préférences email — TABLE 33 neria_preferences
  */

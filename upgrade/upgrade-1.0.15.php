@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — Upgrade 1.0.15
  *
  * - Nouvelle table ps_neria_cron_health (monitoring des crons)

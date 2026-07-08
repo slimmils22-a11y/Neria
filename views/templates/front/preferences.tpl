@@ -1,3 +1,4 @@
+{* © 2026 Neria.software - All rights reserved *}
 <!DOCTYPE html>
 <html lang="{$neria_prefs_lang|escape:'html'}" dir="{$neria_prefs_dir|escape:'html'}">
 <head>

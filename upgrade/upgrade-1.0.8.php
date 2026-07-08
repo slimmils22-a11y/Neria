@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * Upgrade 1.0.7 → 1.0.8
  * Ajout des tables neria_collection et neria_collection_sent
  */

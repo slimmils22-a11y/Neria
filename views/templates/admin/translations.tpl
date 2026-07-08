@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — translations.tpl
  * Onglet Traductions — v2 : recherche globale, traduction auto DeepL,
  * export/import CSV, aperçu live, boutons réinitialiser

@@ -1,5 +1,7 @@
 <?php
 /**
+ * © 2026 Neria.software - All rights reserved
+ *
  * CollectionManager — Suggestion de complétion de collection
  *
  * Détecte les clients qui ont acheté N-1 pièces d'une collection de N

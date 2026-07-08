@@ -1,4 +1,6 @@
 {**
+ * © 2026 Neria.software - All rights reserved
+ *
  * NERIA — social.tpl
  * Onglet Réseaux sociaux
  * Fix 7 : tableau inline remplacé par variable $social_networks
