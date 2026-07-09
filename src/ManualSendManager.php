@@ -591,7 +591,7 @@ class ManualSendManager
             '{email}'       => $email,
             '{shop_name}'   => (string) \Configuration::get('PS_SHOP_NAME'),
             '{shop_url}'    => \Tools::getShopDomainSsl(true, true),
-            '{history_url}' => \Context::getContext()->link->getPageLink('history', true),
+            '{history_url}' => \Context::getContext()->link->getPageLink('history', true, $idLang),
         ];
 
         // Commande optionnelle (contexte + détection langue via {id_order})

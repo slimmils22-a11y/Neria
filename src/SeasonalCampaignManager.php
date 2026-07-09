@@ -225,7 +225,7 @@ class SeasonalCampaignManager
                             '{lastname}'      => $customer['lastname'],
                             '{shop_name}'     => \Configuration::get('PS_SHOP_NAME'),
                             '{shop_url}'      => $link->getBaseLink(),
-                            '{history_url}'   => $link->getPageLink('history', true),
+                            '{history_url}'   => $link->getPageLink('history', true, $idLang),
                             '{campaign_name}' => $campaign['name'],
                             '{upsell_block}'  => $upsellHtml,
                         ],

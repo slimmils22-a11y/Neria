@@ -57,10 +57,10 @@ class BehavioralCronManager
         $this->prefix = _DB_PREFIX_;
     }
 
-    private function historyUrl(): string
+    private function historyUrl(int $idLang = 0): string
     {
         $ctx = \Context::getContext();
-        return ($ctx && $ctx->link) ? $ctx->link->getPageLink('history', true) : '';
+        return ($ctx && $ctx->link) ? $ctx->link->getPageLink('history', true, $idLang > 0 ? $idLang : null) : '';
     }
 
     private function watchdog(): \WatchdogManager
@@ -324,7 +324,7 @@ class BehavioralCronManager
 
         foreach ((array) $rows as $r) {
             $expiryDate = date('d/m/Y', strtotime($r['date_to']));
-            $historyUrl = $this->historyUrl();
+            $historyUrl = $this->historyUrl((int) $r['id_lang']);
 
             $this->send(
                 'loyalty_reward_expiry',
@@ -1278,7 +1278,7 @@ class BehavioralCronManager
                     '{firstname}'   => $customer['firstname'],
                     '{lastname}'    => $customer['lastname'],
                     '{shop_name}'   => \Configuration::get('PS_SHOP_NAME'),
-                    '{history_url}' => $this->historyUrl(),
+                    '{history_url}' => $this->historyUrl($idLang),
                 ],
                 $extraVars
             );

@@ -121,7 +121,7 @@ class OrderTriggersManager
         if (isset(self::LOYALTY_TIERS[$count])) {
             try {
                 $tierName   = self::LOYALTY_TIERS[$count];
-                $historyUrl = \Context::getContext()->link->getPageLink('history', true);
+                $historyUrl = \Context::getContext()->link->getPageLink('history', true, $idLang);
 
                 $result = \Mail::Send(
                     $idLang, 'loyalty_tier_upgrade', '',

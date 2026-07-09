@@ -260,7 +260,7 @@ class QueueManager
                     '{firstname}'   => $firstname,
                     '{lastname}'    => $lastname,
                     '{shop_name}'   => \Configuration::get('PS_SHOP_NAME'),
-                    '{history_url}' => $link ? $link->getPageLink('history', true) : '',
+                    '{history_url}' => $link ? $link->getPageLink('history', true, $idLang) : '',
                 ],
                 $vars
             );
