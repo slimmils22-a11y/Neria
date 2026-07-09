@@ -647,6 +647,8 @@ class TranslationEngine
             'cn'    => 'zh',  // PS stocke parfois le chinois simplifié avec l'ISO court 'cn'
             'nb'    => 'no',  // Norvégien Bokmål → code Neria 'no'
             'nn'    => 'no',  // Norvégien Nynorsk → code Neria 'no'
+            'gb'    => 'en',  // Pack de langue PrestaShop "United Kingdom" → ISO 'gb', pas 'en'
+            'us'    => 'en',  // Pack de langue PrestaShop "United States" → ISO 'us', pas 'en'
         ];
 
         return $map[$lang] ?? $lang;
