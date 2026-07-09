@@ -2471,6 +2471,38 @@ class EmailRenderer
                 },
                 $compiledTxt
             );
+
+            // ── Résoudre les variables {var} — même logique que la version HTML
+            // (voir plus haut). Appliqué APRÈS la salutation intelligente
+            // ci-dessus (qui injecte elle-même un nouveau "{firstname}" dans le
+            // texte) pour que ce tag fraîchement inséré soit bien résolu avant
+            // le filet de sécurité qui suit.
+            $compiledTxt = str_replace(array_keys($psCommon), array_values($psCommon), $compiledTxt);
+            foreach ($templateVars as $key => $value) {
+                if (is_string($value) && $value !== '') {
+                    $compiledTxt = str_replace($key, $value, $compiledTxt);
+                }
+            }
+
+            // ── Filet de sécurité : variable de contenu manquante ─────────────
+            // Même logique que la version HTML (voir plus haut) — sans cette
+            // étape, une variable non fournie reste affichée brute ("{xxx}")
+            // dans l'email texte livré au client.
+            if (preg_match_all('/\{[a-z][a-z0-9_]*\}/i', $compiledTxt, $residualTxtMatches)) {
+                $residualTxtKeys = array_unique($residualTxtMatches[0]);
+                $compiledTxt = preg_replace('/\{[a-z][a-z0-9_]*\}/i', '', $compiledTxt);
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this->module))->warning(
+                        WatchdogManager::i18nMsg('watchdog.residual_vars_stripped', [
+                            'template' => $template,
+                            'vars'     => implode(', ', $residualTxtKeys),
+                        ]),
+                        $template,
+                        'EmailRenderer'
+                    );
+                }
+            }
+
             // Slot du message personnalisé optionnel (vide par défaut, rempli
             // par Mail::Send via {custom_message_txt} si un message est saisi).
             $compiledTxt = rtrim($compiledTxt, "\n") . "\n{custom_message_txt}\n";
