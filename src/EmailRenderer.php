@@ -357,7 +357,7 @@ class EmailRenderer
 
         // Lien du bon de retour (page Retours du compte client)
         if ($template === 'return_slip') {
-            $this->injectReturnSlipUrl($params['templateVars']);
+            $this->injectReturnSlipUrl($params['templateVars'], (int) ($params['idLang'] ?? 0));
         }
 
         // newsletter_voucher : ps_emailsubscription passe le CODE du bon dans
@@ -661,8 +661,8 @@ class EmailRenderer
             $templateVars = [
                 '{shop_name}'          => (string) \Configuration::get('PS_SHOP_NAME'),
                 '{shop_url}'           => $this->context->link->getBaseLink(),
-                '{history_url}'        => $this->context->link->getPageLink('history', true),
-                '{guest_tracking_url}' => $this->context->link->getPageLink('guest-tracking', true),
+                '{history_url}'        => $this->context->link->getPageLink('history', true, $idLang),
+                '{guest_tracking_url}' => $this->context->link->getPageLink('guest-tracking', true, $idLang),
                 '{custom_message}'     => '',
                 '{custom_message_txt}' => '',
                 '{subject}'            => $subject,
@@ -1108,16 +1108,21 @@ class EmailRenderer
      *
      * @param array $templateVars Variables Smarty (passé par référence)
      */
-    private function injectReturnSlipUrl(array &$templateVars): void
+    private function injectReturnSlipUrl(array &$templateVars, int $idLang = 0): void
     {
         if (!empty($templateVars['{return_slip_url}'])) {
             return;
         }
 
+        // id_lang explicite — même correctif que {history_url} plus haut :
+        // sans lui, ce lien restait dans la langue du contexte admin/cron
+        // ("/fr/suivi-commande") au lieu de la langue réelle de l'email.
+        $urlIdLang = $idLang > 0 ? $idLang : null;
+
         try {
-            $url = $this->context->link->getPageLink('order-follow', true);
+            $url = $this->context->link->getPageLink('order-follow', true, $urlIdLang);
         } catch (\Throwable $e) {
-            $url = $this->context->link->getPageLink('history', true);
+            $url = $this->context->link->getPageLink('history', true, $urlIdLang);
         }
 
         $templateVars['{return_slip_url}'] = $url;
