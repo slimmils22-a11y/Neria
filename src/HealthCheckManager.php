@@ -8,7 +8,7 @@
  * clés du module produisent bien les résultats attendus, pas seulement
  * qu'ils se terminent sans exception.
  *
- * 8 contrôles automatiques (1×/jour via hookDisplayHeader) + 1 manuel.
+ * Contrôles automatiques (1×/jour via hookDisplayHeader) + contrôles manuels.
  *
  * @author  Neria
  * @version 1.0.0
@@ -69,7 +69,7 @@ class HealthCheckManager
     }
 
     /**
-     * Lance les 8 contrôles automatiques si 24 h se sont écoulées.
+     * Lance tous les contrôles automatiques si 24 h se sont écoulées.
      */
     public function runAutoChecksIfDue(): void
     {
@@ -226,6 +226,7 @@ class HealthCheckManager
             'oauth_freshness'      => $this->checkOAuthFreshness(),
             'visibility_freshness' => $this->checkVisibilityIntegrationsFreshness(),
             'active_cron'          => $this->checkActiveCron(),
+            'template_staleness'   => $this->checkTemplateStaleness(),
             // ── Régression rendu (issus du test exhaustif 2026-07-07) ──
             'blacklist_stale_files'  => $this->checkBlacklistStaleFiles(),
             'residual_vars_recent'   => $this->checkRecentResidualVarsWarnings(),
@@ -1174,6 +1175,62 @@ class HealthCheckManager
             'status' => self::STATUS_OK,
             'detail' => AdminTranslator::tVars('health.engagement_stable', ['recentRate' => $recentRate, 'baselineRate' => $baselineRate]),
         ];
+    }
+
+    /**
+     * Contrôle proactif — Templates soudainement silencieux
+     * checkCronsHealth() surveille l'exécution des CRONS eux-mêmes, mais un
+     * cron qui tourne toujours peut envoyer 0 email pour UN template précis
+     * si son hook métier est cassé (ex. le hook fantôme trouvé le 2026-06-16
+     * sur l'historique email client) — le cron "réussit" silencieusement
+     * sans rien envoyer. Compare, par template, le volume envoyé sur les 30
+     * derniers jours à celui des 60 jours précédents : un template avec un
+     * historique d'envois réguliers qui tombe à zéro signale un hook ou un
+     * déclencheur cassé, pas un manque de trafic (le seuil minimum de 5
+     * envois sur la période de référence exclut les templates rares/manuels).
+     */
+    private function checkTemplateStaleness(): array
+    {
+        $table = _DB_PREFIX_ . 'neria_stat';
+
+        $exists = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM information_schema.tables
+             WHERE table_schema = DATABASE() AND table_name = '{$table}'"
+        );
+        if (!$exists) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.template_staleness_ok')];
+        }
+
+        $rows = $this->db->executeS(
+            "SELECT `template`,
+                    SUM(CASE WHEN `date_add` > DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) AS recent,
+                    SUM(CASE WHEN `date_add` <= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                              AND `date_add` > DATE_SUB(NOW(), INTERVAL 90 DAY) THEN 1 ELSE 0 END) AS baseline
+             FROM `{$table}`
+             WHERE `id_shop` = {$this->idShop} AND `event_type` = 'sent'
+             GROUP BY `template`"
+        );
+
+        $silent = [];
+        foreach (($rows ?: []) as $row) {
+            $baseline = (int) $row['baseline'];
+            $recent   = (int) $row['recent'];
+            if ($baseline >= 5 && $recent === 0) {
+                $silent[] = $row['template'];
+            }
+        }
+
+        if ($silent) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.template_staleness_warning', [
+                    'count'     => count($silent),
+                    'templates' => implode(', ', array_slice($silent, 0, 5)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.template_staleness_ok')];
     }
 
     /**
