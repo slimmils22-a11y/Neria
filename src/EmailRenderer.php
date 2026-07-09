@@ -2323,10 +2323,16 @@ class EmailRenderer
         // avec sa valeur incomplète (getShopDomainSsl sans base URI) et le
         // override ne trouve plus rien à remplacer.
         $baseUrl  = rtrim(\Tools::getShopDomainSsl(true), '/') . __PS_BASE_URI__;
+        // Sans id_lang explicite, Link::getPageLink() utilise la langue du
+        // CONTEXTE courant (celle de l'admin/cron qui déclenche l'envoi) et
+        // non celle réelle de l'email — un envoi en anglais depuis le BO
+        // produisait des liens préfixés "/fr/" (langue par défaut de la
+        // boutique). Résout l'id_lang réel à partir de l'ISO cible ($outIso).
+        $urlIdLang = ($outIso ? \Language::getIdByIso($outIso) : null) ?: null;
         $psCommon = [
             '{shop_url}'           => $baseUrl,
-            '{history_url}'        => $this->context->link->getPageLink('history', true),
-            '{guest_tracking_url}' => $this->context->link->getPageLink('guest-tracking', true),
+            '{history_url}'        => $this->context->link->getPageLink('history', true, $urlIdLang),
+            '{guest_tracking_url}' => $this->context->link->getPageLink('guest-tracking', true, $urlIdLang),
         ];
         $compiled = str_replace(array_keys($psCommon), array_values($psCommon), $compiled);
 
