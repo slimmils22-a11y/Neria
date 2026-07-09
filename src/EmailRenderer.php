@@ -2225,6 +2225,24 @@ class EmailRenderer
     }
 
     /**
+     * Compile un template interne (log_alert...) dans la langue de l'idLang
+     * donné et renvoie le dossier module à utiliser comme templatePath. Ce
+     * template est déclenché par le cœur PS (PrestaShopLogger::addLog()) sans
+     * template_path explicite — sans cet appel, Mail::Send() lit le template
+     * natif PrestaShop (mails/<iso>/ à la racine du shop, traductions PS
+     * standard) au lieu du rendu stylé/traduit Neria.
+     */
+    public function ensureInternalTemplateCompiled(string $template, int $idLang): ?string
+    {
+        $lang = $this->engine->langFromId($idLang);
+        $iso  = \Language::getIsoById($idLang) ?: $lang;
+        $templateVars = ['{shop_name}' => (string) \Configuration::get('PS_SHOP_NAME')];
+        return $this->compileNeriaTemplate($template, $lang, $iso, $templateVars) !== null
+            ? _PS_MODULE_DIR_ . 'neria/mails/'
+            : null;
+    }
+
+    /**
      * Compile le template Neria en fichier HTML plat (sans heritage Smarty)
      * Fusionne layout.html + core/{template}.html
      */

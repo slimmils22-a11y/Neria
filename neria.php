@@ -274,6 +274,25 @@ class Neria extends Module
         // passer par l'EmailRenderer (ils ont leur propre rendu autonome).
         $internalTemplates = ['monthly_report', 'log_alert', 'neria_fallback'];
         if (in_array($params['template'] ?? '', $internalTemplates, true)) {
+            // log_alert est déclenché par PrestaShopLogger::addLog() (cœur PS)
+            // sans template_path explicite : Mail::Send() lirait sinon le
+            // template natif PrestaShop (mails/<iso>/ à la racine du shop,
+            // traductions PS standard) au lieu du rendu stylé/traduit Neria —
+            // contraire à la promesse du module (traductions luxueuses partout).
+            // On (re)compile la version Neria dans la bonne langue et on
+            // redirige explicitement Mail::Send() vers le dossier du module.
+            if (($params['template'] ?? '') === 'log_alert' && class_exists('EmailRenderer')) {
+                try {
+                    $templatePath = (new EmailRenderer($this))->ensureInternalTemplateCompiled(
+                        'log_alert',
+                        (int) ($params['idLang'] ?? 0)
+                    );
+                    if ($templatePath !== null) {
+                        $params['templatePath'] = $templatePath;
+                    }
+                } catch (\Throwable $ignored) {
+                }
+            }
             return true;
         }
 
