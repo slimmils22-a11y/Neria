@@ -386,7 +386,7 @@ class EmailRenderer
         if ($compiledPath !== null) {
             // ── Wrapping des liens pour le tracking de clics ─────────────
             if ($this->config->isStatsEnabled() && !empty($params['neria_token'])) {
-                $this->wrapLinksInFile($compiledPath, (string) $params['neria_token']);
+                $this->wrapLinksInFile($compiledPath, (string) $params['neria_token'], (int) ($params['idLang'] ?? 0));
             }
 
             if (isset($params['templatePath'])) {
@@ -1285,11 +1285,17 @@ class EmailRenderer
         );
 
         // URL du pixel de tracking (module front controller)
+        // id_lang explicite : sans lui, getModuleLink() utilise la langue du
+        // CONTEXTE courant (admin/cron) plutôt que celle réelle de l'email —
+        // même bug que {history_url} plus haut, trouvé sur le lien de clic
+        // (ci-dessous) qui restait préfixé "/fr/" sur un envoi en anglais.
+        $trackIdLang = !empty($params['idLang']) ? (int) $params['idLang'] : null;
         $trackingUrl = $this->context->link->getModuleLink(
             'neria',
             'track',
             ['t' => $token, 'e' => 'open'],
-            true // HTTPS forcÃ©
+            true, // HTTPS forcÃ©
+            $trackIdLang
         );
 
         // Pixel HTML 1Ã—1 invisible â€” compatible tous clients email
@@ -1315,7 +1321,7 @@ class EmailRenderer
      * Permet de compter les clics et d'identifier le visiteur pour l'attribution.
      * Liens ignorés : mailto, tel, #, javascript, déjà trackés, désabonnement.
      */
-    private function wrapLinksInFile(string $filePath, string $token): void
+    private function wrapLinksInFile(string $filePath, string $token, int $idLang = 0): void
     {
         if (!file_exists($filePath) || !is_readable($filePath)) {
             return;
@@ -1325,13 +1331,18 @@ class EmailRenderer
             return;
         }
 
+        // id_lang explicite — même correctif que injectTrackingPixel() plus
+        // haut : sans lui, ces liens de clic restent préfixés par la langue
+        // du contexte admin/cron plutôt que celle réelle de l'email.
+        $wrapIdLang = $idLang > 0 ? $idLang : null;
+
         // Matche uniquement les balises <a …> pour ne pas wrapper les <link>
         $wrapped = preg_replace_callback(
             '/<a(\s[^>]*)>/i',
-            function ($m) use ($token) {
+            function ($m) use ($token, $wrapIdLang) {
                 $attrs = preg_replace_callback(
                     '/\bhref=(["\'])(https?:\/\/[^"\'>\s]+)\1/i',
-                    function ($am) use ($token) {
+                    function ($am) use ($token, $wrapIdLang) {
                         $quote = $am[1];
                         $url   = $am[2];
                         if (
@@ -1346,7 +1357,8 @@ class EmailRenderer
                             'neria',
                             'track',
                             ['t' => $token, 'e' => 'click', 'url' => $url],
-                            true
+                            true,
+                            $wrapIdLang
                         );
                         return 'href=' . $quote . $trackUrl . $quote;
                     },
