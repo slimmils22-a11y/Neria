@@ -19,3 +19,4 @@
 {neria_trad key='waitlist_note'}
 
 {shop_name}
+{shop_url}

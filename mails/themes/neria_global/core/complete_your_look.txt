@@ -1,5 +1,7 @@
 {neria_trad key='complete_your_look_eyebrow'}
 
+{neria_trad key='complete_your_look_greeting'} {firstname},
+
 {neria_trad key='complete_your_look_title'}
 
 {neria_trad key='complete_your_look_intro'}
@@ -18,3 +20,6 @@
 --------
 
 {neria_trad key='complete_your_look_note'}
+
+{shop_name}
+{shop_url}

@@ -22,3 +22,6 @@
 --------
 
 {neria_trad key='collection_completion_note'}
+
+{shop_name}
+{shop_url}

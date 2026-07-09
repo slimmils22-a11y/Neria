@@ -13,3 +13,6 @@
 --------------------------------------------------
 
 {neria_trad key='ghost_cart_note'}
+
+{shop_name}
+{shop_url}
