@@ -6243,11 +6243,11 @@
         "es": {
             "greeting_main": "Ahora forma parte de nuestra intimidad",
             "greeting_subtitle": "Bienvenido a nuestro círculo de confianza",
-            "newsletter_conf_intro": "Nos complace darte la bienvenida a nuestros suscriptores. Tu suscripción a nuestro boletín ha sido confirmada.",
+            "newsletter_conf_intro": "Nos complace darle la bienvenida a nuestros suscriptores. Su suscripción a nuestro boletín ha sido confirmada.",
             "newsletter_conf_title": "Confirmación",
             "newsletter_conf_text": "A partir de ahora recibirás en primicia nuestras nuevas colecciones, invitaciones privadas y los momentos destacados de nuestra casa — compartidos con aquellos que valoramos.",
-            "newsletter_conf_promise": "Tu confianza es sagrada. La protegemos como protegemos nuestra reputación: con rigor y discreción.",
-            "newsletter_conf_manage": "Puedes gestionar tus preferencias y darte de baja en cualquier momento desde tu cuenta de cliente.",
+            "newsletter_conf_promise": "Su confianza es sagrada. La protegemos como protegemos nuestra reputación: con rigor y discreción.",
+            "newsletter_conf_manage": "Puede gestionar sus preferencias y darse de baja en cualquier momento desde su cuenta de cliente.",
             "newsletter_conf_btn": "Acceder a mi espacio",
             "dear_customer": "Estimado/a {firstname} {lastname},"
         },
@@ -6437,13 +6437,13 @@
             "dear_customer": "Gentile Cliente,"
         },
         "es": {
-            "greeting_main": "Verifica tu suscripción",
+            "greeting_main": "Verifique su suscripción",
             "greeting_subtitle": "Un último paso antes de recibir nuestras noticias",
-            "newsletter_verif_intro": "Para activar tu suscripción a nuestro boletín, confirma tu dirección de correo electrónico haciendo clic en el siguiente enlace.",
+            "newsletter_verif_intro": "Para activar su suscripción a nuestro boletín, confirme su dirección de correo electrónico haciendo clic en el siguiente enlace.",
             "newsletter_verif_title": "Verificación",
-            "newsletter_verif_text": "Este enlace seguro confirma tu suscripción y te da acceso a todas nuestras noticias.",
+            "newsletter_verif_text": "Este enlace seguro confirma su suscripción y le da acceso a todas nuestras noticias.",
             "newsletter_verif_btn": "Confirmar mi suscripción",
-            "newsletter_verif_ignore": "Si no has solicitado esta suscripción, puedes ignorar este mensaje.",
+            "newsletter_verif_ignore": "Si no ha solicitado esta suscripción, puede ignorar este mensaje.",
             "dear_customer": "Estimado/a {firstname} {lastname},"
         },
         "pt": {
@@ -6623,13 +6623,13 @@
             "dear_customer": "Gentile Cliente,"
         },
         "es": {
-            "greeting_main": "Tu código de bienvenida",
-            "greeting_subtitle": "Un gesto de bienvenida por tu suscripción",
-            "newsletter_voucher_intro": "Te agradecemos por suscribirte a nuestro boletín. Como gesto de bienvenida, aquí tienes un código exclusivo que te ofrece {discount} de descuento en tu próximo pedido.",
+            "greeting_main": "Su código de bienvenida",
+            "greeting_subtitle": "Un gesto de bienvenida por su suscripción",
+            "newsletter_voucher_intro": "Le agradecemos que se haya suscrito a nuestro boletín. Como gesto de bienvenida, aquí tiene un código exclusivo que le ofrece {discount} de descuento en su próximo pedido.",
             "newsletter_voucher_code_title": "Su código de invitación",
             "newsletter_voucher_usage": "Este código es válido durante {validity_days} días en toda nuestra maison. No puede combinarse con otras atenciones.",
-            "newsletter_voucher_btn": "Descubre nuestras creaciones",
-            "newsletter_voucher_next": "Te deseamos un maravilloso descubrimiento de nuestras piezas únicas.",
+            "newsletter_voucher_btn": "Descubra nuestras creaciones",
+            "newsletter_voucher_next": "Le deseamos un maravilloso descubrimiento de nuestras piezas únicas.",
             "voucher_code": "Código exclusivo",
             "dear_customer": "Estimado/a {firstname} {lastname},"
         },
@@ -11541,10 +11541,10 @@
             "signature_thanks": "Con tutta la nostra gratitudine e il nostro orgoglio,"
         },
         "es": {
-            "greeting_main": "Cuidamos de tu artículo",
-            "greeting_subtitle": "Tu solicitud ha sido registrada",
+            "greeting_main": "Cuidamos de su artículo",
+            "greeting_subtitle": "Su solicitud ha sido registrada",
             "dear_customer": "Estimado/a {firstname} {lastname},",
-            "return_slip_intro": "Nos complace ocuparnos de tu artículo. Aquí tienes toda la información para hacérnoslo llegar.",
+            "return_slip_intro": "Nos complace ocuparnos de su artículo. Aquí tiene toda la información para hacérnoslo llegar.",
             "return_slip_order_label": "Pedido",
             "return_slip_rma_label": "Número de devolución",
             "return_slip_deadline_label": "Fecha límite de envío",
@@ -11558,14 +11558,14 @@
             "return_slip_reason_label": "Motivo",
             "return_slip_instructions_title": "Instrucciones de envío",
             "return_slip_address_label": "Dirección de devolución",
-            "return_slip_rma_note": "Por favor, indica este número de devolución en tu paquete:",
+            "return_slip_rma_note": "Por favor, indique este número de devolución en su paquete:",
             "return_slip_carrier_info": "Transportista recomendado: un envío con seguimiento y asegurado para viajar con tranquilidad.",
             "return_slip_shipping_cost": "Las condiciones y los posibles gastos de devolución se detallan en nuestra política de devoluciones.",
-            "return_slip_processing_delay": "Tu artículo será revisado en un plazo de {return_processing_days} días hábiles tras su recepción.",
-            "return_slip_refund_method": "El reembolso se realizará en tu método de pago original.",
+            "return_slip_processing_delay": "Su artículo será revisado en un plazo de {return_processing_days} días hábiles tras su recepción.",
+            "return_slip_refund_method": "El reembolso se realizará en su método de pago original.",
             "return_slip_download_btn": "Acceder a mi solicitud de devolución",
             "return_slip_tracking_info": "Seguir mi solicitud desde mi cuenta",
-            "return_slip_contact_info": "¿Alguna pregunta? Nuestro equipo queda a tu entera disposición.",
+            "return_slip_contact_info": "¿Alguna pregunta? Nuestro equipo queda a su entera disposición.",
             "signature_thanks": "Con todo nuestro agradecimiento y orgullo,"
         },
         "pt": {
@@ -12756,7 +12756,7 @@
             "dear_customer": "Estimado cliente,",
             "voucher_intro": "Su confianza nos conmueve. Como muestra de nuestra gratitud, hemos preparado una atención para usted.",
             "order_details_title": "Pedido",
-            "voucher_for_order": "Se ha generato un vale de compra para el pedido",
+            "voucher_for_order": "Se ha generado un vale de compra para el pedido",
             "voucher_amount_label": "Importe del vale",
             "voucher_code": "Código del vale",
             "voucher_usage": "Este vale es válido durante {validity_days} días en toda nuestra boutique. No puede combinarse con otras ofertas.",
@@ -25695,16 +25695,16 @@
             "collection_completion_note": "Questo suggerimento è basato sui tuoi acquisti precedenti all'interno di questa collezione."
         },
         "es": {
-            "collection_completion_eyebrow": "Tu colección",
+            "collection_completion_eyebrow": "Su colección",
             "collection_completion_greeting": "Hola",
             "collection_completion_title": "Solo falta una pieza",
-            "collection_completion_intro": "Ya has hecho lo más difícil. Solo falta una pieza para completar tu colección — queríamos recordártelo antes de que desaparezca.",
-            "collection_completion_progress_label": "Progreso de tu colección",
+            "collection_completion_intro": "Ya ha hecho lo más difícil. Solo falta una pieza para completar su colección — queríamos recordárselo antes de que desaparezca.",
+            "collection_completion_progress_label": "Progreso de su colección",
             "collection_completion_pieces_bought": "Piezas ya adquiridas",
             "collection_completion_one_left": "solo falta una para completarla",
             "collection_completion_missing_label": "La pieza que falta",
             "collection_completion_cta": "Completar mi colección",
-            "collection_completion_note": "Esta sugerencia se basa en tus compras anteriores dentro de esta colección."
+            "collection_completion_note": "Esta sugerencia se basa en sus compras anteriores dentro de esta colección."
         },
         "pt": {
             "collection_completion_eyebrow": "A sua coleção",
@@ -25919,12 +25919,12 @@
             "complete_your_look_note": "Questa selezione è stata composta appositamente per te, in armonia con il tuo acquisto recente."
         },
         "es": {
-            "complete_your_look_eyebrow": "Selección para ti",
+            "complete_your_look_eyebrow": "Selección para usted",
             "complete_your_look_greeting": "Hola",
-            "complete_your_look_title": "Completa tu look",
-            "complete_your_look_intro": "Tu pedido acaba de llegar — esperamos que te encante. Aquí tienes algunas piezas que combinan perfectamente con tu compra.",
+            "complete_your_look_title": "Complete su look",
+            "complete_your_look_intro": "Su pedido acaba de llegar — esperamos que le encante. Aquí tiene algunas piezas que combinan perfectamente con su compra.",
             "complete_your_look_cta": "Descubrir",
-            "complete_your_look_note": "Esta selección ha sido compuesta especialmente para ti, en armonía con tu compra reciente."
+            "complete_your_look_note": "Esta selección ha sido compuesta especialmente para usted, en armonía con su compra reciente."
         },
         "pt": {
             "complete_your_look_eyebrow": "Seleção para si",
@@ -26087,14 +26087,14 @@
             "waitlist_note": "Ricevi questa notifica perché hai chiesto di essere avvisato/a quando questo prodotto tornasse disponibile."
         },
         "es": {
-            "greeting_main": "Tu espera ha valido la pena",
+            "greeting_main": "Su espera ha valido la pena",
             "waitlist_greeting": "Hola",
-            "waitlist_eyebrow": "Reservado para ti",
-            "waitlist_title": "Esperaste {days_waited} días. No lo hemos olvidado.",
-            "waitlist_intro": "Esta pieza vuelve a estar disponible — y porque estabas aquí antes que nadie, te damos acceso prioritario exclusivo.",
-            "waitlist_reservation": "Tu acceso prioritario es válido durante {reservation_hours} horas. Después, el producto estará disponible para todos.",
+            "waitlist_eyebrow": "Reservado para usted",
+            "waitlist_title": "Esperó {days_waited} días. No lo hemos olvidado.",
+            "waitlist_intro": "Esta pieza vuelve a estar disponible — y porque estaba aquí antes que nadie, le damos acceso prioritario exclusivo.",
+            "waitlist_reservation": "Su acceso prioritario es válido durante {reservation_hours} horas. Después, el producto estará disponible para todos.",
             "waitlist_cta": "Ver el producto",
-            "waitlist_note": "Recibes esta notificación porque pediste que te avisáramos cuando este producto volviera a estar disponible."
+            "waitlist_note": "Recibe esta notificación porque pidió que le avisáramos cuando este producto volviera a estar disponible."
         },
         "pt": {
             "greeting_main": "A sua espera valeu a pena",
@@ -26269,14 +26269,14 @@
             "ghost_cart_note": "Nessuna pressione — siamo semplicemente qui se hai domande."
         },
         "es": {
-            "greeting_main": "Un artículo te espera",
+            "greeting_main": "Un artículo le espera",
             "ghost_cart_greeting": "Hola",
             "ghost_cart_eyebrow": "Hemos notado algo",
-            "ghost_cart_title": "Este artículo ha captado tu atención",
-            "ghost_cart_intro": "Hemos notado que has añadido este artículo a tu carrito en varias ocasiones. Si algo te frena — una pregunta sobre talla, materiales, plazos de entrega u otro asunto — nuestro equipo está disponible para ayudarte.",
-            "ghost_cart_product_label": "El artículo que te interesa:",
+            "ghost_cart_title": "Este artículo ha captado su atención",
+            "ghost_cart_intro": "Hemos notado que ha añadido este artículo a su carrito en varias ocasiones. Si algo le frena — una pregunta sobre talla, materiales, plazos de entrega u otro asunto — nuestro equipo está disponible para ayudarle.",
+            "ghost_cart_product_label": "El artículo que le interesa:",
             "ghost_cart_cta": "Ver el producto",
-            "ghost_cart_note": "Sin presión — simplemente estamos aquí si tienes alguna pregunta."
+            "ghost_cart_note": "Sin presión — simplemente estamos aquí si tiene alguna pregunta."
         },
         "pt": {
             "greeting_main": "Um artigo aguarda por si",
