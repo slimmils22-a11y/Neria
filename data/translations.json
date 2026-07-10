@@ -3826,7 +3826,7 @@
             "employee_password_firstname": "Nome próprio",
             "employee_password_lastname": "Apelido",
             "employee_password_email": "Endereço de email",
-            "employee_password_security": "Se não foi você que fez este pedido, contacte imediatamente o seu supervisor."
+            "employee_password_security": "Se este pedido não foi feito por si, contacte imediatamente o seu supervisor."
         },
         "br": {
             "greeting_main": "Redefinir sua senha",
@@ -8692,7 +8692,7 @@
             "password_confirmation": "A sua palavra-passe foi atualizada com sucesso. Agora pode iniciar sessão com as suas novas credenciais.",
             "password_account_link": "Pode aceder à sua conta de cliente clicando no link abaixo:",
             "password_my_account": "Aceder à minha conta",
-            "password_security_note": "Se não foi você que fez esta alteração, contacte imediatamente o nosso serviço de apoio ao cliente."
+            "password_security_note": "Se esta alteração não foi feita por si, contacte imediatamente o nosso serviço de apoio ao cliente."
         },
         "br": {
             "greeting_main": "Seu acesso está protegido",
@@ -8892,7 +8892,7 @@
             "password_query_action": "Repor a minha palavra-passe",
             "password_query_instructions": "Clique no botão abaixo para definir uma nova palavra-passe.",
             "password_query_btn": "Repor a minha palavra-passe",
-            "password_query_ignore": "Se não foi você que fez este pedido, pode ignorar esta mensagem."
+            "password_query_ignore": "Se este pedido não foi feito por si, pode ignorar esta mensagem."
         },
         "br": {
             "greeting_main": "Recupere seu espaço",
@@ -10159,11 +10159,11 @@
             "greeting_main": "É um dos nossos convidados de honra",
             "greeting_subtitle": "Um círculo exclusivo, um privilégio raro",
             "dear_customer": "Prezado Cliente,",
-            "invitation_intro": "Você faz parte do círculo muito restrito de personalidades a quem reservamos este convite. Não será renovado e não pode ser compartilhado.",
-            "invitation_message": "Numa moldura de exceção, longe do comércio comum, você descobrirá em primeira mão o que a nossa casa prepara para quem sabe olhar.",
+            "invitation_intro": "Faz parte do círculo muito restrito de personalidades a quem reservamos este convite. Não será renovado e não pode ser partilhado.",
+            "invitation_message": "Numa moldura de exceção, longe do comércio comum, descobrirá em primeira mão o que a nossa casa prepara para quem sabe olhar.",
             "invitation_details_title": "Detalhes do evento",
             "invitation_closing": "A sua presença seria uma honra para nós. Aguardamo-la.",
-            "invitation_btn": "Confirmar minha presença",
+            "invitation_btn": "Confirmar a minha presença",
             "invitation_note": "Este convite é estritamente pessoal e intransferível."
         },
         "br": {
@@ -12573,7 +12573,7 @@
             "vip_intro": "A sua excecional lealdade toca-nos profundamente. É com sincera gratidão que o acolhemos no nosso círculo mais exclusivo — aquele que reservamos para quem nos honra com a sua confiança duradoura.",
             "vip_privileges": "O seu estatuto VIP abre-lhe portas que mantemos fechadas para o resto do mundo: pré-estreias das nossas novas criações, convites privados para os nossos eventos, ofertas à medida e acompanhamento personalizado.",
             "vip_btn": "Descobrir os meus privilégios",
-            "vip_note": "Este estatuto é um reflexo da sua confiança. Nós o transportamos com tanto cuidado como você nos demonstra.",
+            "vip_note": "Este estatuto é um reflexo da sua confiança. Transportamo-lo com o mesmo cuidado que nos demonstra.",
             "signature_thanks": "Com toda a nossa gratidão e admiração,"
         },
         "br": {
@@ -15876,7 +15876,7 @@
             "greeting_main": "Dia dos avós",
             "greeting_subtitle": "Um pensamento para aqueles que tanto transmitiram",
             "dear_customer": "Prezado Cliente,",
-            "grandparents_day_intro": "Neste dia dedicado aos avós, honramos a memória, a doçura e a sabedoria que eles semearam em vocês.",
+            "grandparents_day_intro": "Neste dia dedicado aos avós, honramos a memória, a doçura e a sabedoria que eles semearam em si.",
             "grandparents_day_message": "Ofereça-lhes uma peça que carregue o tempo, a paciência e o amor que eles lhe deram.",
             "grandparents_day_btn": "Descubra a nossa seleção",
             "grandparents_day_note": "Uma atenção especial está reservada para si até ao final da semana.",
@@ -17894,12 +17894,12 @@
         },
         "pt": {
             "greeting_main": "Está na lista de espera",
-            "greeting_subtitle": "Manteremos você informado",
+            "greeting_subtitle": "Mantê-lo-emos informado",
             "dear_customer": "Prezado Cliente,",
-            "waitlist_intro": "Você manifestou interesse numa peça atualmente indisponível. A sua inscrição na nossa lista de espera foi registada com sucesso.",
+            "waitlist_intro": "Manifestou interesse numa peça atualmente indisponível. A sua inscrição na nossa lista de espera foi registada com sucesso.",
             "waitlist_details": "Peça em causa",
             "waitlist_btn": "Ver a peça",
-            "waitlist_note": "Contactaremos você assim que a peça estiver novamente disponível.",
+            "waitlist_note": "Contactá-lo-emos assim que a peça estiver novamente disponível.",
             "waitlist_signature": "Com toda a nossa atenção,"
         },
         "br": {
