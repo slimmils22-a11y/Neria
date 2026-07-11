@@ -3112,7 +3112,7 @@
             "order_details_title": "Sipariş",
             "credit_slip_title": "Alacak dekontu",
             "credit_slip_confirmation": "Siparişiniz için bir alacak dekontu oluşturuldu",
-            "credit_slip_info": "Bu alacak dekontunu görüntüleyebilir ve bir sonraki alışverişinizde kullanabilirsiniz:",
+            "credit_slip_info": "Bu alacak dekontunu görüntüleyebilir ve bir sonraki alışverişinizde kullanabilirsiniz",
             "credit_slip_link": "sipariş geçmişiniz",
             "signature_thanks": "Taahhüdümüzü yerine getirerek, tam saygıyla,"
         },
@@ -25476,18 +25476,6 @@
             "gift_ideas_note": "Esta seleção foi composta para si, em reconhecimento da sua fidelidade e sensibilidade.",
             "signature_warm": "Com toda a nossa delicadeza,"
         },
-        "pt-br": {
-            "greeting_main": "Ideias para quem importa",
-            "greeting_subtitle": "Uma seleção pensada para presentear",
-            "dear_customer": "Caro Cliente,",
-            "gift_ideas_title": "Ideias para quem importa",
-            "gift_ideas_subtitle": "Uma seleção pensada para presentear",
-            "gift_ideas_intro": "As grandes ocasiões se aproximam. Antes que cheguem, preparamos para você uma seleção de peças para presentear — escolhidas de acordo com seus gostos e os de quem você parece apreciar.",
-            "gift_ideas_message": "Presentear é prolongar uma atenção. Cada peça desta seleção foi escolhida para tocar quem a recebe, com a elegância que você lhes deseja.",
-            "gift_ideas_cta": "Descobrir a seleção",
-            "gift_ideas_note": "Esta seleção foi composta para você, em reconhecimento à sua fidelidade e sensibilidade.",
-            "signature_warm": "Com toda a nossa delicadeza,"
-        },
         "ar": {
             "greeting_main": "أفكار لمن يهمّون",
             "greeting_subtitle": "تشكيلة مختارة بعناية للإهداء",
@@ -25718,17 +25706,6 @@
             "collection_completion_cta": "Completar a minha coleção",
             "collection_completion_note": "Esta sugestão baseia-se nas suas compras anteriores dentro desta coleção."
         },
-        "pt-br": {
-            "collection_completion_eyebrow": "Sua coleção",
-            "collection_completion_title": "Só falta uma peça",
-            "collection_completion_intro": "Você já fez a parte mais difícil. Falta apenas uma peça para completar sua coleção — queríamos te lembrar antes que sumisse.",
-            "collection_completion_progress_label": "Progresso da sua coleção",
-            "collection_completion_pieces_bought": "Peças já adquiridas",
-            "collection_completion_one_left": "falta só mais uma",
-            "collection_completion_missing_label": "A peça que falta",
-            "collection_completion_cta": "Completar minha coleção",
-            "collection_completion_note": "Esta sugestão é baseada nas suas compras anteriores nesta coleção."
-        },
         "ar": {
             "collection_completion_eyebrow": "مجموعتك",
             "collection_completion_greeting": "مرحباً",
@@ -25933,13 +25910,6 @@
             "complete_your_look_intro": "A sua encomenda acabou de chegar — esperamos que goste. Aqui estão algumas peças que combinam perfeitamente com a sua compra.",
             "complete_your_look_cta": "Descobrir",
             "complete_your_look_note": "Esta seleção foi composta especialmente para si, em harmonia com a sua compra recente."
-        },
-        "pt-br": {
-            "complete_your_look_eyebrow": "Seleção para você",
-            "complete_your_look_title": "Complete o seu look",
-            "complete_your_look_intro": "Seu pedido acabou de chegar — esperamos que você adore. Aqui estão algumas peças que combinam perfeitamente com sua compra.",
-            "complete_your_look_cta": "Descobrir",
-            "complete_your_look_note": "Esta seleção foi composta especialmente para você, em harmonia com sua compra recente."
         },
         "ar": {
             "complete_your_look_eyebrow": "اختيار خاص لك",
