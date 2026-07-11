@@ -281,10 +281,11 @@ class Neria extends Module
             // contraire à la promesse du module (traductions luxueuses partout).
             // On (re)compile la version Neria dans la bonne langue et on
             // redirige explicitement Mail::Send() vers le dossier du module.
-            if (($params['template'] ?? '') === 'log_alert' && class_exists('EmailRenderer')) {
+            $tplName = $params['template'] ?? '';
+            if (in_array($tplName, ['log_alert', 'neria_fallback'], true) && class_exists('EmailRenderer')) {
                 try {
                     $templatePath = (new EmailRenderer($this))->ensureInternalTemplateCompiled(
-                        'log_alert',
+                        $tplName,
                         (int) ($params['idLang'] ?? 0)
                     );
                     if ($templatePath !== null) {
