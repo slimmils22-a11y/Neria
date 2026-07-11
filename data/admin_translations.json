@@ -58,7 +58,7 @@
         "tr": "Varyant ",
         "sv": "Tillämpa variant ",
         "no": "Bruke variant ",
-        "da": "Anvende variant ",
+        "da": "Anvend variant ",
         "nl": "Variant ",
         "gb": "Apply variant "
     },
@@ -1213,7 +1213,7 @@
         "tr": "Mailgun : Sending → Webhooks → Add webhook → \"Permanent Fail\" + \"Temporary Fail\"",
         "sv": "Mailgun : Sending → Webhooks → Add webhook → \"Permanent Fail\" + \"Temporary Fail\"",
         "no": "Mailgun : Sending → Webhooks → Add webhook → \"Permanent Fail\" + \"Temporary Fail\"",
-        "da": "Mailgun : Sending → Webhooks → Add webhook → \"Permanent Fail\" + \"Temporary Fail\"",
+        "da": "Mailgun: Sending → Webhooks → Add webhook → \"Permanent Fail\" + \"Temporary Fail\"",
         "nl": "Mailgun : Sending → Webhooks → Add webhook → \"Permanent Fail\" + \"Temporary Fail\"",
         "gb": "Mailgun : Sending → Webhooks → Add webhook → \"Permanent Fail\" + \"Temporary Fail\""
     },
@@ -1234,7 +1234,7 @@
         "tr": "Postmark : Servers → [Server] → Webhooks → Add webhook → \"Bounces\"",
         "sv": "Postmark : Servers → [Server] → Webhooks → Add webhook → \"Bounces\"",
         "no": "Postmark : Servers → [Server] → Webhooks → Add webhook → \"Bounces\"",
-        "da": "Postmark : Servers → [Server] → Webhooks → Add webhook → \"Bounces\"",
+        "da": "Postmark: Servers → [Server] → Webhooks → Add webhook → \"Bounces\"",
         "nl": "Postmark : Servers → [Server] → Webhooks → Add webhook → \"Bounces\"",
         "gb": "Postmark : Servers → [Server] → Webhooks → Add webhook → \"Bounces\""
     },
@@ -1255,7 +1255,7 @@
         "tr": "SendGrid : Settings → Mail Settings → Event Webhook → \"Bounces\" + \"Drops\"",
         "sv": "SendGrid : Settings → Mail Settings → Event Webhook → \"Bounces\" + \"Drops\"",
         "no": "SendGrid : Settings → Mail Settings → Event Webhook → \"Bounces\" + \"Drops\"",
-        "da": "SendGrid : Settings → Mail Settings → Event Webhook → \"Bounces\" + \"Drops\"",
+        "da": "SendGrid: Settings → Mail Settings → Event Webhook → \"Bounces\" + \"Drops\"",
         "nl": "SendGrid : Settings → Mail Settings → Event Webhook → \"Bounces\" + \"Drops\"",
         "gb": "SendGrid : Settings → Mail Settings → Event Webhook → \"Bounces\" + \"Drops\""
     },
@@ -4425,8 +4425,8 @@
         "ru": "После включения блок «Сертификат подлинности» появляется на каждой странице заказа в бэк-офисе.",
         "tr": "Etkinleştirildiğinde, arka ofisteki her sipariş sayfasında 'Özgünlük Sertifikası' bloğu görünür.",
         "sv": "När det är aktiverat visas ett block 'Äkthetsintyg' på varje ordersida i back-office.",
-        "no": "Når aktivert, vises en blokk 'Ekthetssertifikat' på hver ordresidei back-office.",
-        "da": "Når aktiveret, vises en blok 'Ægthedsattest' på hver ordresidei back-office.",
+        "no": "Når aktivert, vises en blokk 'Ekthetssertifikat' på hver ordreside i back-office.",
+        "da": "Når aktiveret, vises en blok 'Ægthedsattest' på hver ordreside i back-office.",
         "nl": "Eenmaal ingeschakeld verschijnt er een 'Echtheidscertificaat'-blok op elke bestelpagina in de back-office.",
         "gb": "Once enabled, a 'Certificate of Authenticity' block appears on each order page in the back-office."
     },
@@ -4614,7 +4614,7 @@
         "ru": "Нет клиентов с высоким риском. Запустите пересчёт для обновления оценок.",
         "tr": "Yüksek riskli müşteri yok. Puanları güncellemek için yeniden hesaplayın.",
         "sv": "Inga högriskskunder. Kör en omräkning för att uppdatera poängen.",
-        "no": "Ingen høyrisikokundekunder. Kjør en omberegning for å oppdatere poengene.",
+        "no": "Ingen høyrisikokunder. Kjør en omberegning for å oppdatere poengene.",
         "da": "Ingen højrisikokunder. Kør en genberegning for at opdatere pointene.",
         "nl": "Geen hoog-risico klanten. Voer een herberekening uit om scores bij te werken.",
         "gb": "No high-risk customers. Run a recalculation to update scores."
@@ -8310,8 +8310,8 @@
         "ru": "Автоматически отправляйте отчёт об эффективности email в начале каждого месяца.",
         "tr": "Her ay başında otomatik olarak e-posta performans raporu gönderin.",
         "sv": "Skicka automatiskt en e-postprestandarapport i början av varje månad.",
-        "no": "Send automatisk en e-postprestandarapport i begynnelsen av hver maned.",
-        "da": "Send automatisk en e-mailpraestationsrapport i starten af hver maned.",
+        "no": "Send automatisk en e-postprestandarapport i begynnelsen av hver måned.",
+        "da": "Send automatisk en e-mailpræstationsrapport i starten af hver måned.",
         "nl": "Stuur automatisch een e-mailprestatierapport aan het begin van elke maand.",
         "gb": "Automatically send an email performance report at the start of each month: top/flop templates, open rates, attributed revenue and recommendations."
     },
@@ -8331,8 +8331,8 @@
         "ru": "Включить ежемесячный отчёт",
         "tr": "Aylık raporu etkinleştir",
         "sv": "Aktivera månadsrapport",
-        "no": "Aktiver manedlig rapport",
-        "da": "Aktiver manedlig rapport",
+        "no": "Aktiver månedlig rapport",
+        "da": "Aktiver månedlig rapport",
         "nl": "Maandrapport inschakelen",
         "gb": "Enable monthly report"
     },
@@ -8436,8 +8436,8 @@
         "ru": "Отправить отчёт сейчас (за прошлый месяц)",
         "tr": "Raporu şimdi gönder (önceki ay)",
         "sv": "Skicka rapport nu (föregående månad)",
-        "no": "Send rapport na (forrige maned)",
-        "da": "Send rapport nu (forrige maned)",
+        "no": "Send rapport nå (forrige måned)",
+        "da": "Send rapport nu (forrige måned)",
         "nl": "Rapport nu verzenden (vorige maand)",
         "gb": "Send report now (previous month)"
     },
@@ -8457,8 +8457,8 @@
         "ru": "Автоматический ежемесячный отчёт",
         "tr": "Otomatik aylık rapor",
         "sv": "Automatisk månadsrapport",
-        "no": "Automatisk manedlig rapport",
-        "da": "Automatisk manedlig rapport",
+        "no": "Automatisk månedlig rapport",
+        "da": "Automatisk månedlig rapport",
         "nl": "Automatisch maandrapport",
         "gb": "Automatic monthly report"
     },
@@ -11398,7 +11398,7 @@
         "tr": "Abonelikten çıkma sistemi",
         "sv": "Avregistreringssystem",
         "no": "Avmeldingssystem",
-        "da": "Framelding system",
+        "da": "Frameldingssystem",
         "nl": "Afmeldsysteem",
         "gb": "Unsubscribe system"
     },
@@ -11502,7 +11502,7 @@
         "ru": "нечитаемы в случае утечки данных у хостинг-провайдера.",
         "tr": "şifrelenir — barındırma sağlayıcısında veri sızıntısı olması durumunda okunamaz.",
         "sv": "oläsliga vid ett dataintrång hos värdtjänsten.",
-        "no": "ulesbare ved et datalekkasje hos vertsleverandøren.",
+        "no": "uleselige ved en datalekkasje hos vertsleverandøren.",
         "da": "ulæselige i tilfælde af et databrud hos hostingudbyderen.",
         "nl": "onleesbaar bij een datalek bij de hostingprovider.",
         "gb": "unreadable in the event of a data leak at the host."
@@ -15157,7 +15157,7 @@
         "tr": "Aylık rapor etkin ama alıcı e-postası geçersiz: «{recipient}». → Ne yapmalı: aylık rapor ayarlarında e-posta adresini düzeltin.",
         "sv": "Månadsrapporten är aktiverad men mottagar-e-posten är ogiltig: ”{recipient}”. → Vad du ska göra: Rätta e-postadressen i inställningarna för månadsrapporten.",
         "no": "Månedsrapporten er aktivert, men mottaker-e-posten er ugyldig: «{recipient}». → Hva du bør gjøre: Rett e-postadressen i innstillingene for månedsrapporten.",
-        "da": "Den månedlige rapport er aktiveret, men modtager-e-mailen er ugyldig: «{recipient}». → Hvad du skal gøre: Ret e-mailadressen i indstillingerne for den månedlige rapport.",
+        "da": "Den månedlige rapport er aktiveret, men modtager-e-mailen er ugyldig: \"{recipient}\". → Hvad du skal gøre: Ret e-mailadressen i indstillingerne for den månedlige rapport.",
         "nl": "Het maandrapport is ingeschakeld maar het ontvanger-e-mailadres is ongeldig: «{recipient}». → Wat te doen: corrigeer het e-mailadres bij de instellingen van het maandrapport.",
         "gb": "The monthly report is enabled but the recipient email is invalid: \"{recipient}\". → What to do: Fix the email address in the monthly report settings."
     },
@@ -17278,7 +17278,7 @@
         "tr": "Geçersiz kılma tespit edildi: {paths} — kaldırılmalı",
         "sv": "Överskrivning(ar) hittad(e): {paths} — bör tas bort",
         "no": "Overstyring(er) funnet: {paths} — bør fjernes",
-        "da": "Overstyrele(r) fundet: {paths} — bør fjernes",
+        "da": "Overstyrelse(r) fundet: {paths} — bør fjernes",
         "nl": "Overschrijving(en) gedetecteerd: {paths} — moet(en) worden verwijderd",
         "gb": "Override(s) detected: {paths} — should be removed"
     },
@@ -17424,8 +17424,8 @@
         "ru": "{count} ключ(ей) с отсутствующими языками в translations.json.",
         "tr": "translations.json'da {count} anahtarda eksik diller var.",
         "sv": "{count} nyckel/nycklar med saknade språk i translations.json.",
-        "no": "{count} nøkkel/nøkler med manglende språk i translations.json. ",
-        "da": "{count} nøgle(r) med manglende sprog i translations.json. ",
+        "no": "{count} nøkkel/nøkler med manglende språk i translations.json.",
+        "da": "{count} nøgle(r) med manglende sprog i translations.json.",
         "nl": "{count} sleutel(s) met ontbrekende talen in translations.json. ",
         "gb": "{count} key(s) with missing languages in translations.json. "
     },
@@ -17845,7 +17845,7 @@
         "tr": "Verileri güncel olmayan web görünürlüğü entegrasyon(lar)ı (> 3 gün): {list}.",
         "sv": "Webbsynlighetsintegration(er) med föråldrad data (> 3 dagar): {list}.",
         "no": "Nettsynlighetsintegrasjon(er) med utdaterte data (> 3 dager): {list}.",
-        "da": "Webynlighedsintegration(er) med forældede data (> 3 dage): {list}.",
+        "da": "Websynlighedsintegration(er) med forældede data (> 3 dage): {list}.",
         "nl": "Webzichtbaarheidsintegratie(s) met verouderde gegevens (> 3 dagen): {list}.",
         "gb": "Web visibility integration(s) with stale data (> 3 days): {list}."
     },
@@ -18823,7 +18823,7 @@
         "tr": "PHP'nin belirli bir saatte kendiliğinden işlem tetikleyen dahili bir saati yoktur. Neria bir e-postayı « 9:05'te gönderilecek » şekilde planladığında, bu bilgiyi sadece bir bekleme listesine yazar — bir şey bu listeyi kontrol etmeye gelene kadar hiçbir şey gönderilmez. Varsayılan olarak, bir ziyaretçi mağazanızda bir sayfa yükleyerek bu kontrolü tetikler. Kullanışlı ama düzensiz: düşük trafikli bir mağazada, 9:05 için planlanan e-posta ancak bir sonraki ziyaretçiyle, muhtemelen çok daha geç bir zamanda gönderilebilir. Harici cron, trafikten bağımsız olarak bu listeyi her 5-15 dakikada bir kontrol eden güvenilir, düzenli bir denetleyici rolü oynar.",
         "sv": "PHP har ingen intern klocka som utlöser åtgärder på egen hand vid en exakt tidpunkt. När Neria schemalägger ett e-postmeddelande ”att skickas kl. 9:05” skriver den bara den informationen i en väntelista — inget skickas förrän något kommer och kontrollerar listan. Som standard är det en besökare som utlöser denna kontroll genom att ladda en sida i din butik. Praktiskt, men oregelbundet: i en butik med lite trafik kanske e-postmeddelandet som planerats till 9:05 inte skickas förrän nästa besökare kommer, eventuellt mycket senare. Den externa cronen fungerar som en pålitlig, regelbunden kontroll av listan var 5:e till 15:e minut, oberoende av trafik.",
         "no": "PHP har ingen intern klokke som utløser handlinger på egen hånd på et bestemt tidspunkt. Når Neria planlegger en e-post « som skal sendes kl. 9:05 », skriver den bare denne informasjonen inn i en venteliste — ingenting sendes før noe kommer og sjekker denne listen. Som standard er det en besøkende som utløser denne sjekken ved å laste en side i butikken din. Praktisk, men uregelmessig: i en butikk med lite trafikk kan e-posten som er planlagt til 9:05 kanskje ikke sendes før neste besøkende kommer, muligens mye senere. Den eksterne cronen fungerer som en pålitelig, regelmessig sjekk av denne listen hvert 5. til 15. minutt, uavhengig av trafikk.",
-        "da": "PHP har ikke et internt ur, der udløser handlinger af sig selv på et præcist tidspunkt. Når Neria planlægger en e-mail « der skal sendes kl. 9:05 », skriver den blot denne information ind i en venteliste — intet sendes, før noget kommer og tjekker denne liste. Som standard er det en besøgende, der udløser dette tjek ved at indlæse en side i din butik. Praktisk, men uregelmæssigt: i en butik med lav trafik sendes den e-mail, der er planlagt til 9:05, måske først, når den næste besøgende ankommer, muligvis meget senere. Den eksterne cron fungerer som et pålideligt, regelmæssigt tjek af denne liste hvert 5. til 15. minut, uafhængigt af trafik.",
+        "da": "PHP har ikke et internt ur, der udløser handlinger af sig selv på et præcist tidspunkt. Når Neria planlægger en e-mail \"der skal sendes kl. 9:05\", skriver den blot denne information ind i en venteliste — intet sendes, før noget kommer og tjekker denne liste. Som standard er det en besøgende, der udløser dette tjek ved at indlæse en side i din butik. Praktisk, men uregelmæssigt: i en butik med lav trafik sendes den e-mail, der er planlagt til 9:05, måske først, når den næste besøgende ankommer, muligvis meget senere. Den eksterne cron fungerer som et pålideligt, regelmæssigt tjek af denne liste hvert 5. til 15. minut, uafhængigt af trafik.",
         "nl": "PHP heeft geen interne klok die vanzelf acties op een precies tijdstip activeert. Wanneer Neria een e-mail plant « te verzenden om 9:05 uur », schrijft het die informatie gewoon in een wachtlijst — er gaat niets uit totdat iets die lijst komt controleren. Standaard is het een bezoeker die deze controle activeert door een pagina van uw winkel te laden. Handig, maar onregelmatig: bij een winkel met weinig verkeer kan de e-mail die gepland stond voor 9:05 uur pas bij de volgende bezoeker worden verzonden, mogelijk veel later. De externe cron speelt de rol van een betrouwbare, regelmatige controle van deze lijst elke 5 tot 15 minuten, onafhankelijk van het verkeer.",
         "gb": "PHP has no internal clock that triggers actions on its own at a precise time. When Neria schedules an email « to send at 9:05am », it simply writes that information into a waiting list — nothing goes out until something comes along to check that list. By default, a visitor triggers this check by loading a page on your shop. Convenient, but irregular: on a low-traffic shop, the email due at 9:05am might not go out until the next visitor arrives, possibly much later. The external cron acts as a reliable, regular check-in that reviews this list every 5 to 15 minutes, independent of traffic."
     },
@@ -18949,7 +18949,7 @@
         "tr": "Bunu PrestaShop <strong>içine değil</strong>, hosting kontrol panelinizin « Cron Görevleri » (veya « Zamanlanmış Görevler ») bölümüne yapıştırın. Bu genellikle cPanel, Plesk veya barındırma sağlayıcınızın arayüzünde bulunur.",
         "sv": "Klistra in den i avsnittet ”Cron-jobb” (eller ”Schemalagda uppgifter”) i ditt webbhotells kontrollpanel — <strong>inte</strong> i PrestaShop. Detta finns oftast i cPanel, Plesk eller ditt webbhotells gränssnitt.",
         "no": "Lim den inn i delen « Cron-jobber » (eller « Planlagte oppgaver ») i kontrollpanelet til webhotellet ditt — <strong>ikke</strong> i PrestaShop. Dette finnes vanligvis i cPanel, Plesk eller grensesnittet til leverandøren din.",
-        "da": "Indsæt den i afsnittet « Cron-job » (eller « Planlagte opgaver ») i dit hostingkontrolpanel — <strong>ikke</strong> i PrestaShop. Dette findes normalt i cPanel, Plesk eller din udbyders grænseflade.",
+        "da": "Indsæt den i afsnittet \"Cron-job\" (eller \"Planlagte opgaver\") i dit hostingkontrolpanel — <strong>ikke</strong> i PrestaShop. Dette findes normalt i cPanel, Plesk eller din udbyders grænseflade.",
         "nl": "Plak deze in de sectie « Cron-taken » (of « Geplande taken ») van uw hostingcontrolepaneel — <strong>niet</strong> in PrestaShop. Dit vindt u meestal in cPanel, Plesk of de interface van uw hostingprovider.",
         "gb": "Paste it into the « CRON Jobs » (or « Scheduled Tasks ») section of your hosting control panel — <strong>not</strong> inside PrestaShop. This is usually found in cPanel, Plesk, or your host's interface."
     },
@@ -18970,7 +18970,7 @@
         "tr": "Kaydedin. Yukarıdaki « Cron aktif » durumu ilk çalıştırmadan sonra birkaç dakika içinde güncellenecektir.",
         "sv": "Spara. Statusen ”Cron aktiv” ovan uppdateras efter den första körningen, inom några minuter.",
         "no": "Lagre. Statusen « Cron aktiv » ovenfor oppdateres etter første kjøring, i løpet av noen minutter.",
-        "da": "Gem. Statussen « Cron aktiv » ovenfor opdateres efter første kørsel, inden for få minutter.",
+        "da": "Gem. Statussen \"Cron aktiv\" ovenfor opdateres efter første kørsel, inden for få minutter.",
         "nl": "Sla op. De status « Cron actief » hierboven wordt bijgewerkt na de eerste uitvoering, binnen enkele minuten.",
         "gb": "Save. The « Cron active » status above will update after the first run, within a few minutes."
     },
@@ -20187,7 +20187,7 @@
         "ru": "Настройка нескольких отправителей",
         "tr": "Çoklu gönderici yapılandırması",
         "sv": "Konfiguration flera avsändare",
-        "no": "Flerne-avsenderkonfigurasjon",
+        "no": "Konfigurasjon for flere avsendere",
         "da": "Multi-afsenderkonfiguration",
         "nl": "Configuratie meerdere afzenders",
         "gb": "Multi-sender config"
@@ -24622,7 +24622,7 @@
         "tr": "«%1$s» e-postası %2$s adresine gönderildi.",
         "sv": "E-postmeddelandet ”%1$s” skickat till %2$s.",
         "no": "E-posten «%1$s» sendt til %2$s.",
-        "da": "E-mailen «%1$s» sendt til %2$s.",
+        "da": "E-mailen \"%1$s\" sendt til %2$s.",
         "nl": "E-mail \"%1$s\" verzonden naar %2$s.",
         "gb": "Email \"%1$s\" sent to %2$s."
     },
@@ -27331,7 +27331,7 @@
         "tr": "A/B «{template}»: {winner} varyantı +{delta}% açılma oranıyla kazandı",
         "sv": "A/B ”{template}”: variant {winner} vinner med +{delta}% öppningsfrekvens",
         "no": "A/B «{template}»: variant {winner} vinner med +{delta}% åpningsrate",
-        "da": "A/B «{template}»: variant {winner} vinder med +{delta}% åbningsrate",
+        "da": "A/B \"{template}\": variant {winner} vinder med +{delta}% åbningsrate",
         "nl": "A/B «{template}»: variant {winner} wint met +{delta}% openingspercentage",
         "gb": "A/B «{template}»: variant {winner} wins with +{delta}% open rate"
     },
@@ -27373,7 +27373,7 @@
         "tr": "«{template}»: iyi açılmalar ama az tıklama — harekete geçirme ifadesini güçlendirin",
         "sv": "”{template}”: bra öppningar men få klick — förstärk din uppmaning till handling",
         "no": "«{template}»: gode åpninger men få klikk — styrk oppfordringen til handling",
-        "da": "«{template}»: gode åbninger men få klik — styrk din opfordring til handling",
+        "da": "\"{template}\": gode åbninger men få klik — styrk din opfordring til handling",
         "nl": "«{template}»: goede openingen maar weinig klikken — versterk uw oproep tot actie",
         "gb": "«{template}»: good opens but low clicks — strengthen your call-to-action"
     },
@@ -27393,8 +27393,8 @@
         "ru": "«{template}» — открываемость {rate}% — протестируйте новую тему через A/B",
         "tr": "«{template}» açılma oranı {rate}% — A/B ile yeni bir konu deneyin",
         "sv": "”{template}” har {rate}% öppningsfrekvens — testa ny ämnesrad med A/B",
-        "no": "«{template}» har {rate}% åpningsrate — prøv ny emnefeltet med A/B",
-        "da": "«{template}» har {rate}% åbningsrate — prøv en ny emnelinje med A/B",
+        "no": "«{template}» har {rate}% åpningsrate — prøv et nytt emnefelt med A/B",
+        "da": "\"{template}\" har {rate}% åbningsrate — prøv en ny emnelinje med A/B",
         "nl": "«{template}» heeft {rate}% openingspercentage — probeer een nieuwe onderwerpregel via A/B",
         "gb": "«{template}» has {rate}% open rate — try a new subject with A/B test"
     },
@@ -27436,7 +27436,7 @@
         "tr": "Bu ayın yıldız şablonu: «{template}» ile {rate}% açılma oranı",
         "sv": "Månadens stjärnmall: ”{template}” med {rate}% öppningsfrekvens",
         "no": "Månedens stjerneskjema: «{template}» med {rate}% åpningsrate",
-        "da": "Månedens stjerneskabelon: «{template}» med {rate}% åbningsrate",
+        "da": "Månedens stjerneskabelon: \"{template}\" med {rate}% åbningsrate",
         "nl": "Sjabloon van de maand: «{template}» met {rate}% openingspercentage",
         "gb": "Your star template this month: «{template}» with {rate}% open rate"
     },
@@ -29410,7 +29410,7 @@
         "tr": " kampanyası silinsin mi?",
         "sv": "\"?",
         "no": "» ?",
-        "da": "» ?",
+        "da": "\"?",
         "nl": "\" verwijderen?",
         "gb": "\"?"
     },
@@ -29431,7 +29431,7 @@
         "tr": "\"",
         "sv": "Ta bort kampanjen \"",
         "no": "Slette kampanjen «",
-        "da": "Slet kampagnen «",
+        "da": "Slet kampagnen \"",
         "nl": "Campagne \"",
         "gb": "Delete the campaign \""
     },
@@ -30039,7 +30039,7 @@
         "ru": "Black Friday, Noël, Soldes d'été…",
         "tr": "Black Friday, Noel, Yaz indirimi…",
         "sv": "Black Friday, Noël, Soldes d'été…",
-        "no": "Black Friday, Noël, Soldes d'été…",
+        "no": "Black Friday, Jul, Sommersalg…",
         "da": "Black Friday, Noël, Soldes d'été…",
         "nl": "Black Friday, Noël, Soldes d'été…",
         "gb": "Black Friday, Noël, Soldes d'été…"
@@ -30795,7 +30795,7 @@
         "ru": "Никогда не открывал ни одного письма Neria. Следить или исключить из будущих кампаний.",
         "tr": "Hiç Neria e-postası açmamıştır. Gelecekteki kampanyalardan izleyin veya hariç tutun.",
         "sv": "Har aldrig öppnat ett enda Neria-e-postmeddelande. Att övervaka eller utesluta från framtida kampanjer.",
-        "no": "Har aldri åpnet en eneste Neria-e-post. Å overvåke eller ekskludere fra fremtidige kampanjer.",
+        "no": "Har aldri åpnet en eneste Neria-e-post. Bør overvåkes eller ekskluderes fra fremtidige kampanjer.",
         "da": "Har aldrig åbnet en eneste Neria-e-mail. At overvåge eller ekskludere fra fremtidige kampagner.",
         "nl": "Heeft nog nooit een Neria-e-mail geopend. Te monitoren of uitsluiten van toekomstige campagnes.",
         "gb": "Has never opened a single Neria email. To monitor or exclude from future campaigns."
@@ -30816,7 +30816,7 @@
         "ru": "Регулярно открывает и уже покупал. Следует поддерживать эксклюзивными предложениями.",
         "tr": "Düzenli olarak açar ve zaten satın almıştır. Özel tekliflerle besleyin.",
         "sv": "Öppnar regelbundet och har redan köpt. Att vårda med exklusiva erbjudanden.",
-        "no": "Åpner jevnlig og har allerede kjøpt. Å pleie med eksklusive tilbud.",
+        "no": "Åpner jevnlig og har allerede kjøpt. Bør pleies med eksklusive tilbud.",
         "da": "Åbner jævnligt og har allerede købt. At pleje med eksklusive tilbud.",
         "nl": "Opent regelmatig en heeft al gekocht. Te koesteren met exclusieve aanbiedingen.",
         "gb": "Opens regularly and has already purchased. To be nurtured with exclusive offers."
@@ -30837,7 +30837,7 @@
         "ru": "Иногда открывает, но недавно не покупал. Следует реактивировать целевым предложением.",
         "tr": "Bazen açar ama son zamanlarda satın almamıştır. Hedefli bir teklifle yeniden etkinleştirin.",
         "sv": "Öppnar ibland men har inte köpt nyligen. Att återaktivera med ett riktat erbjudande.",
-        "no": "Åpner av og til men har ikke kjøpt nylig. Å reaktivere med et målrettet tilbud.",
+        "no": "Åpner av og til men har ikke kjøpt nylig. Bør reaktiveres med et målrettet tilbud.",
         "da": "Åbner af og til men har ikke købt for nylig. At reaktivere med et målrettet tilbud.",
         "nl": "Opent soms maar heeft recentelijk niet gekocht. Te heractiveren met een gericht aanbod.",
         "gb": "Opens occasionally but hasn't purchased recently. To re-engage with a targeted offer."
@@ -31699,7 +31699,7 @@
         "tr": "Bir müşteriye «talep üzerine» e-posta gönderin (zanaatkâr mesajı, özel davet, özür, ürün geri çağırma…). E-posta otomatik olarak biçimlendirilir, çevrilir ve müşterinin dilinde gönderilir.",
         "sv": "Skicka ett e-postmeddelande ”på begäran” till en kund (hantverkarmeddelande, privat inbjudan, ursäkt, produktåterkallelse…). E-posten formateras, översätts och skickas automatiskt på kundens språk.",
         "no": "Send en kunde en «på forespørsel»-e-post (håndverkermelding, privat invitasjon, unnskyldning, produkttilbakekalling…). E-posten utformes, oversettes og sendes automatisk på kundens språk.",
-        "da": "Send en kunde en «efter behov»-e-mail (håndværkerbesked, privat invitation, undskyldning, produkttilbagekaldelse…). E-mailen formateres, oversættes og sendes automatisk på kundens sprog.",
+        "da": "Send en kunde en \"efter behov\"-e-mail (håndværkerbesked, privat invitation, undskyldning, produkttilbagekaldelse…). E-mailen formateres, oversættes og sendes automatisk på kundens sprog.",
         "nl": "Stuur een klant een e-mail «op verzoek» (ambachtsmanbericht, privé-uitnodiging, excuses, productterugroeping…). De e-mail wordt automatisch opgemaakt, vertaald en in de taal van de klant verzonden.",
         "gb": "Send a customer an on-demand email (artisan message, private invitation, apology, product recall…). The email is styled, translated and sent in the customer's language automatically."
     },
@@ -44613,8 +44613,8 @@
         "ru": "Перечислите ниже запрещённые и предпочитаемые слова (по одному на строку). При каждом сохранении перевода Neria предупредит вас, если в тексте появится запрещённое слово. Кнопка «Проверить согласованность» сканирует все уже сохранённые переводы для этого языка, а не только отображаемый шаблон.",
         "tr": "Yasaklı ve tercih edilen kelimelerinizi aşağıya listeleyin (her satıra bir tane). Bir çeviriyi her kaydettiğinizde, metinde yasaklı bir kelime varsa Neria sizi uyarır. « Tutarlılığı kontrol et » düğmesi, yalnızca görüntülenen şablonu değil, bu dil için zaten kaydedilmiş tüm çevirileri tarar.",
         "sv": "Lista dina förbjudna och föredragna ord nedan (ett per rad). Varje gång du sparar en översättning varnar Neria dig om ett förbjudet ord förekommer i texten. Knappen ”Kontrollera konsekvens” skannar alla redan sparade översättningar för detta språk, inte bara den visade mallen.",
-        "no": "List opp dine forbudte og foretrukne ord nedenfor (ett per linje). Hver gang du lagrer en oversettelse, varsler Neria deg hvis et forbudt ord vises i teksten. Knappen « Sjekk konsistens » skanner alle allerede lagrede oversettelser for dette språket, ikke bare malen som vises.",
-        "da": "List dine forbudte og foretrukne ord nedenfor (ét pr. linje). Hver gang du gemmer en oversættelse, advarer Neria dig, hvis et forbudt ord optræder i teksten. Knappen « Tjek konsistens » scanner alle allerede gemte oversættelser for dette sprog, ikke kun den viste skabelon.",
+        "no": "List opp dine forbudte og foretrukne ord nedenfor (ett per linje). Hver gang du lagrer en oversettelse, varsler Neria deg hvis et forbudt ord vises i teksten. Knappen \"Sjekk konsistens\" skanner alle allerede lagrede oversettelser for dette språket, ikke bare malen som vises.",
+        "da": "List dine forbudte og foretrukne ord nedenfor (ét pr. linje). Hver gang du gemmer en oversættelse, advarer Neria dig, hvis et forbudt ord optræder i teksten. Knappen \"Tjek konsistens\" scanner alle allerede gemte oversættelser for dette sprog, ikke kun den viste skabelon.",
         "nl": "Vermeld hieronder uw verboden en voorkeurswoorden (één per regel). Telkens wanneer u een vertaling opslaat, waarschuwt Neria u als een verboden woord in de tekst voorkomt. De knop « Consistentie controleren » scant alle reeds opgeslagen vertalingen voor deze taal, niet alleen het weergegeven sjabloon.",
         "gb": "List your banned and preferred words below (one per line). Every time you save a translation, Neria alerts you if a banned word appears in the text. The \"Check consistency\" button scans all translations already saved for this language, not just the template currently displayed."
     },
@@ -44802,8 +44802,8 @@
         "ru": "Нажмите «Проверить согласованность», чтобы просканировать все уже сохранённые переводы для этого языка, а не только отображаемый шаблон.",
         "tr": "Yalnızca görüntülenen şablonu değil, bu dil için zaten kaydedilmiş tüm çevirileri taramak için « Tutarlılığı kontrol et »e tıklayın.",
         "sv": "Klicka på ”Kontrollera konsekvens” för att skanna alla redan sparade översättningar för detta språk, inte bara den visade mallen.",
-        "no": "Klikk på « Sjekk konsistens » for å skanne alle allerede lagrede oversettelser for dette språket, ikke bare malen som vises.",
-        "da": "Klik på « Tjek konsistens » for at scanne alle allerede gemte oversættelser for dette sprog, ikke kun den viste skabelon.",
+        "no": "Klikk på \"Sjekk konsistens\" for å skanne alle allerede lagrede oversettelser for dette språket, ikke bare malen som vises.",
+        "da": "Klik på \"Tjek konsistens\" for at scanne alle allerede gemte oversættelser for dette sprog, ikke kun den viste skabelon.",
         "nl": "Klik op « Consistentie controleren » om alle reeds opgeslagen vertalingen voor deze taal te scannen, niet alleen het weergegeven sjabloon.",
         "gb": "Click \"Check consistency\" to scan all translations already saved for this language, not just the template currently shown."
     },
@@ -49255,7 +49255,7 @@
         "tr": "Dinlenecek olayları seçin, kaydedin, ardından bağlantıyı doğrulamak için «Test»e tıklayın.",
         "sv": "Välj händelserna att lyssna på, spara och klicka sedan på ”Testa” för att validera anslutningen.",
         "no": "Velg hendelsene å lytte til, lagre, og klikk deretter «Test» for å validere tilkoblingen.",
-        "da": "Vælg de hændelser der skal lyttes til, gem og klik deretter «Test» for at validere forbindelsen.",
+        "da": "Vælg de hændelser der skal lyttes til, gem og klik derefter på \"Test\" for at validere forbindelsen.",
         "nl": "Selecteer de te beluisteren evenementen, sla op en klik vervolgens op «Testen» om de verbinding te valideren.",
         "gb": "Select the events to listen to, save, then click \"Test\" to validate the connection."
     },
@@ -52677,7 +52677,7 @@
         "ru": "Настройки отказов сохранены.",
         "tr": "Geri dönüş yapılandırması kaydedildi.",
         "sv": "Studskonfiguration sparad.",
-        "no": "Sprettoppkonfigurasjon lagret.",
+        "no": "Sprettkonfigurasjon lagret.",
         "da": "Bounce-konfiguration gemt.",
         "nl": "Bounce-configuratie opgeslagen.",
         "gb": "Bounce configuration saved."
