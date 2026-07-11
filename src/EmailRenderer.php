@@ -2294,9 +2294,18 @@ class EmailRenderer
         $plugTimeGreeting = $templateVars['{time_greeting}'] ?? '';
         if ($plugTimeGreeting !== '') {
             $plugFirstname = $templateVars['{firstname}'] ?? '';
-            $plugSalutation = $plugTimeGreeting
-                . ($plugFirstname !== '' ? ', ' . $plugFirstname : '')
-                . ',';
+            if ($lang === 'ja') {
+                // Le japonais exige l'honorifique 様 après le nom, placé avant
+                // la formule de politesse (l'ordre et la ponctuation occidentaux
+                // « Bonjour, Prénom, » n'ont pas d'équivalent naturel en japonais).
+                $plugSalutation = ($plugFirstname !== '' ? $plugFirstname . '様、' : '')
+                    . $plugTimeGreeting
+                    . '。';
+            } else {
+                $plugSalutation = $plugTimeGreeting
+                    . ($plugFirstname !== '' ? ', ' . $plugFirstname : '')
+                    . ',';
+            }
             $compiled = str_replace(
                 ["{neria_trad key='dear_customer'}", '{neria_trad key="dear_customer"}'],
                 $plugSalutation,
@@ -2306,6 +2315,22 @@ class EmailRenderer
 
         // ── Résoudre les {neria_trad key='...'} avec les vraies traductions ──
         $engine = $this->engine;
+
+        // ── Salutations dédiées (templates "chantier 2") ────────────────────
+        // collection_completion / complete_your_look / ghost_cart / waitlist_available
+        // concatènent directement {xxx_greeting} {firstname}, dans leur source.
+        // Même correctif honorifique pour le japonais.
+        if ($lang === 'ja') {
+            $compiled = preg_replace_callback(
+                '/\{neria_trad\s+key=[\'"]([a-z0-9_]*greeting)[\'"]\s*\}\s*\{firstname\},/',
+                function ($mm) use ($engine, $template, $lang) {
+                    $g = $engine->get($template, $mm[1], $lang);
+                    return '{firstname}様、' . $g . '。';
+                },
+                $compiled
+            );
+        }
+
         $compiled = preg_replace_callback(
             '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
             function ($m) use ($engine, $template, $lang) {
@@ -2500,10 +2525,26 @@ class EmailRenderer
             if ($plugTimeGreeting !== '') {
                 $compiledTxt = str_replace(
                     ["{neria_trad key='dear_customer'}", '{neria_trad key="dear_customer"}'],
-                    $plugTimeGreeting . ', {firstname},',
+                    $lang === 'ja'
+                        ? '{firstname}様、' . $plugTimeGreeting . '。'
+                        : $plugTimeGreeting . ', {firstname},',
                     $compiledTxt
                 );
             }
+
+            // Salutations dédiées (templates "chantier 2") — version TXT.
+            // Même correctif honorifique japonais que la version HTML.
+            if ($lang === 'ja') {
+                $compiledTxt = preg_replace_callback(
+                    '/\{neria_trad\s+key=[\'"]([a-z0-9_]*greeting)[\'"]\s*\}\s*\{firstname\},/',
+                    function ($mm) use ($engine, $template, $lang) {
+                        $g = $engine->get($template, $mm[1], $lang);
+                        return '{firstname}様、' . $g . '。';
+                    },
+                    $compiledTxt
+                );
+            }
+
             $compiledTxt = preg_replace_callback(
                 '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
                 function ($m) use ($engine, $template, $lang) {
