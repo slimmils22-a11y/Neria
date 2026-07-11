@@ -2530,7 +2530,7 @@
         "no": {
             "greeting_main": "Meldingen din er mottatt",
             "greeting_subtitle": "Vi vil svare deg med den oppmerksomheten du fortjener",
-            "contact_intro": "Vi bekrefter mottakelsen av din forespørsel og takker deg for at du kontaktet oss. Her er en kopy av informasjonen du har gitt:",
+            "contact_intro": "Vi bekrefter mottakelsen av din forespørsel og takker deg for at du kontaktet oss. Her er en kopi av informasjonen du har gitt:",
             "contact_info_title": "Kontaktinformasjon",
             "contact_email_label": "E-postadresse",
             "order_reference_label": "Bestillingsreferanse",
@@ -4582,7 +4582,7 @@
             "greeting_main": "Ditt personlige rom venter på deg",
             "greeting_subtitle": "Bli med i kretsen vår i ett steg",
             "dear_customer": "Kjære {firstname} {lastname},",
-            "guest_to_customer_intro": "Du har nyligen lagt inn en bestilling som gjest. Vi inviterer deg til å konvertere gjestekontoen din til en permanent kundekonto for å nyte mange fordeler.",
+            "guest_to_customer_intro": "Du har nylig lagt inn en bestilling som gjest. Vi inviterer deg til å konvertere gjestekontoen din til en permanent kundekonto for å nyte mange fordeler.",
             "account_info_title": "Din kontoinformasjon",
             "account_email_label": "E-postadresse",
             "guest_to_customer_password": "Angi passordet ditt for å aktivere kontoen din og få tilgang til din personlige plass.",
