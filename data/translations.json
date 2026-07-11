@@ -64,13 +64,13 @@
             "abandoned_cart_1_note": "Sua seleção está reservada para você por 48 horas."
         },
         "ar": {
-            "greeting_main": "اختيارك لا يزال في انتظارك",
+            "greeting_main": "اختياركم لا يزال في انتظاركم",
             "greeting_subtitle": "لحظة تردد، قطعة استثنائية",
             "dear_customer": "ضيفنا الكريم،",
-            "abandoned_cart_1_intro": "بدا أنك توقفت أثناء زيارتك. لقد حرصنا على الحفاظ على القطع التي لفتت انتباهك.",
-            "abandoned_cart_1_help": "فريقنا رهن إشارتك لأي سؤال حول اختيارك.",
+            "abandoned_cart_1_intro": "بدا أنكم توقفتم أثناء زيارتكم. لقد حرصنا على الحفاظ على القطع التي لفتت انتباهكم.",
+            "abandoned_cart_1_help": "فريقنا رهن إشارتكم لأي سؤال حول اختياركم.",
             "abandoned_cart_1_btn": "استئناف اختياري",
-            "abandoned_cart_1_note": "اختيارك محفوظ لك لمدة 48 ساعة."
+            "abandoned_cart_1_note": "اختياركم محفوظ لكم لمدة 48 ساعة."
         },
         "ja": {
             "greeting_main": "お客様のセレクションがまだお待ちしております",
@@ -232,7 +232,7 @@
             "greeting_subtitle": "بعض القطع لا تنتظر",
             "dear_customer": "ضيفنا الكريم،",
             "abandoned_cart_2_intro": "القطع التي لفتت انتباهكم لا تزال متاحة. الندرة قد تكون عابرة — أردنا إعلامكم بذلك.",
-            "abandoned_cart_2_help": "فريقنا رهن إشارتك لأي سؤال يتعلق باختيارك.",
+            "abandoned_cart_2_help": "فريقنا رهن إشارتكم لأي سؤال يتعلق باختياركم.",
             "abandoned_cart_2_btn": "العودة إلى اختياري",
             "abandoned_cart_2_note": "لا يمكننا ضمان التوفر بعد هذه الدعوة."
         },
@@ -595,17 +595,17 @@
         },
         "ar": {
             "greeting_main": "داركم تفتح أبوابها لكم",
-            "greeting_subtitle": "عالمك من الأناقة يبدأ هنا",
+            "greeting_subtitle": "عالمكم من الأناقة يبدأ هنا",
             "dear_customer": "ضيفنا الكريم،",
             "account_intro": "حضوركم يشرّفنا. لقد أُعدّ فضاؤكم الشخصي بعناية فائقة — وهو ينتظركم.",
-            "account_info_title": "معلومات حسابك",
-            "account_info_text": "يمكنك الآن إدارة طلباتك وتتبع شحناتك وتعديل بياناتك الشخصية.",
+            "account_info_title": "معلومات حسابكم",
+            "account_info_text": "يمكنكم الآن إدارة طلباتكم وتتبع شحناتكم وتعديل بياناتكم الشخصية.",
             "account_email_label": "البريد الإلكتروني المرتبط",
             "account_security_title": "الأمان والسرية",
-            "account_security_1": "كلمة المرور الخاصة بك مشفرة ولا يمكن لفريقنا رؤيتها أبداً.",
-            "account_security_2": "لا نشارك أبداً بياناتك الشخصية مع أطراف ثالثة.",
-            "account_security_3": "يمكنك حذف حسابك في أي وقت بمجرد طلب بسيط.",
-            "account_security_4": "لأي استفسار، خدمة العملاء لدينا رهن إشارتك.",
+            "account_security_1": "كلمة المرور الخاصة بكم مشفرة ولا يمكن لفريقنا رؤيتها أبداً.",
+            "account_security_2": "لا نشارك أبداً بياناتكم الشخصية مع أطراف ثالثة.",
+            "account_security_3": "يمكنكم حذف حسابكم في أي وقت بمجرد طلب بسيط.",
+            "account_security_4": "لأي استفسار، خدمة العملاء لدينا رهن إشارتكم.",
             "account_ready": "فضاؤكم الشخصي أصبح نشطاً الآن. ندعوكم إلى ولوجه.",
             "account_btn": "الدخول إلى حسابي",
             "signature_thanks": "يسعد الدار أن تعدّكم في صفوفها،"
@@ -4243,18 +4243,18 @@
             "gift_note": "Em caso de dúvidas sobre seu pedido de presente, nossa equipe está à sua disposição."
         },
         "ar": {
-            "greeting_main": "هديتك جاهزة",
-            "greeting_subtitle": "اهتمام خاص لأحبائك",
+            "greeting_main": "هديتكم جاهزة",
+            "greeting_subtitle": "اهتمام خاص لأحبائكم",
             "dear_customer": "عزيزي/ {firstname} {lastname}،",
-            "gift_intro": "يسرنا تأكيد أن طلب الهدية الخاص بك قيد التحضير بعناية فائقة.",
+            "gift_intro": "يسرنا تأكيد أن طلب الهدية الخاص بكم قيد التحضير بعناية فائقة.",
             "gift_details_title": "ما نضمنه",
             "gift_detail_1": "تغليف هدايا فاخر",
-            "gift_detail_2": "رسالة شخصية حسب تعليماتك",
+            "gift_detail_2": "رسالة شخصية حسب تعليماتكم",
             "gift_detail_3": "تسليم آمن وسري",
             "gift_detail_4": "إمكانية الاستبدال أو الإرجاع حتى 31 يناير",
             "gift_message": "تم التفكير في كل التفاصيل لتقديم تجربة فريدة لمن سيتلقى هذه الهدية.",
             "gift_btn": "تتبع طلبي",
-            "gift_note": "لأي استفسار بخصوص طلب الهدية الخاص بك، فريقنا رهن إشارتك."
+            "gift_note": "لأي استفسار بخصوص طلب الهدية الخاص بكم، فريقنا رهن إشارتكم."
         },
         "ja": {
             "greeting_main": "ギフトの準備ができました",
@@ -4486,10 +4486,10 @@
             "greeting_main": "فضاؤكم الشخصي ينتظركم",
             "greeting_subtitle": "انضم إلى دائرتنا في خطوة واحدة",
             "dear_customer": "عزيزي/ {firstname} {lastname}،",
-            "guest_to_customer_intro": "لقد قمت مؤخراً بإجراء طلب كضيف. ندعوك لتحويل حساب الضيف الخاص بك إلى حساب عميل دائم للاستمتاع بالعديد من المزايا.",
-            "account_info_title": "معلومات حسابك",
+            "guest_to_customer_intro": "لقد قمتم مؤخراً بإجراء طلب كضيف. ندعوكم لتحويل حساب الضيف الخاص بكم إلى حساب عميل دائم للاستمتاع بالعديد من المزايا.",
+            "account_info_title": "معلومات حسابكم",
             "account_email_label": "البريد الإلكتروني",
-            "guest_to_customer_password": "قم بتعيين كلمة المرور الخاصة بك لتفعيل حسابك والوصول إلى مساحتك الشخصية.",
+            "guest_to_customer_password": "قوموا بتعيين كلمة المرور الخاصة بكم لتفعيل حسابكم والوصول إلى مساحتكم الشخصية.",
             "guest_to_customer_btn": "تفعيل مساحتي الشخصية",
             "guest_to_customer_benefits": "سيتيح لكم فضاؤكم الشخصي استرجاع امتيازاتكم في أي وقت: متابعة إبداعاتكم أثناء الشحن، مراجعة تاريخ اختياراتكم، والتحضير لزياراتكم القادمة في أفضل الظروف.",
             "guest_to_customer_account_link": "الدخول إلى حسابي"
@@ -6467,13 +6467,13 @@
             "dear_customer": "Prezado/a {firstname} {lastname},"
         },
         "ar": {
-            "greeting_main": "تحقق من اشتراكك",
+            "greeting_main": "تحققوا من اشتراككم",
             "greeting_subtitle": "خطوة أخيرة قبل تلقي أخبارنا",
-            "newsletter_verif_intro": "لتفعيل اشتراكك في نشرتنا الإخبارية، يرجى تأكيد عنوان بريدك الإلكتروني بالنقر على الرابط أدناه.",
+            "newsletter_verif_intro": "لتفعيل اشتراككم في نشرتنا الإخبارية، يرجى تأكيد عنوان بريدكم الإلكتروني بالنقر على الرابط أدناه.",
             "newsletter_verif_title": "التحقق",
-            "newsletter_verif_text": "هذا الرابط الآمن يؤكد اشتراكك ويمنحك الوصول إلى جميع أخبارنا.",
+            "newsletter_verif_text": "هذا الرابط الآمن يؤكد اشتراككم ويمنحكم الوصول إلى جميع أخبارنا.",
             "newsletter_verif_btn": "تأكيد اشتراكي",
-            "newsletter_verif_ignore": "إذا لم تكن أنت من قام بهذا الطلب، يمكنك تجاهل هذه الرسالة.",
+            "newsletter_verif_ignore": "إذا لم تكونوا أنتم من قام بهذا الطلب، يمكنكم تجاهل هذه الرسالة.",
             "dear_customer": "ضيفنا الكريم،"
         },
         "ja": {
@@ -6656,9 +6656,9 @@
             "dear_customer": "Prezado/a {firstname} {lastname},"
         },
         "ar": {
-            "greeting_main": "رمز الترحيب الخاص بك",
-            "greeting_subtitle": "لفتة ترحيبية لاشتراكك",
-            "newsletter_voucher_intro": "شكراً لاشتراكك في نشرتنا الإخبارية. كلفتة ترحيبية، إليك رمز حصري يمنحك خصم {discount} على طلبك القادم.",
+            "greeting_main": "رمز الترحيب الخاص بكم",
+            "greeting_subtitle": "لفتة ترحيبية لاشتراككم",
+            "newsletter_voucher_intro": "شكراً لاشتراككم في نشرتنا الإخبارية. كلفتة ترحيبية، إليكم رمز حصري يمنحكم خصم {discount} على طلبكم القادم.",
             "newsletter_voucher_code_title": "رمز دعوتكم",
             "newsletter_voucher_usage": "هذا الرمز صالح لمدة {validity_days} يوماً في جميع أرجاء داري. ولا يمكن الجمع بينه وبين الاهتمامات الأخرى.",
             "newsletter_voucher_btn": "اكتشف إبداعاتنا",
@@ -8091,11 +8091,11 @@
             "greeting_main": "رسالة من التاجر",
             "greeting_subtitle": "كلمة من فريقنا",
             "dear_customer": "ضيفنا الكريم،",
-            "merchant_comment_intro": "لدى فريقنا رسالة لك بخصوص طلبك.",
+            "merchant_comment_intro": "لدى فريقنا رسالة لكم بخصوص طلبكم.",
             "order_details_title": "الطلب",
             "merchant_comment_new": "تمت إضافة رسالة جديدة إلى الطلب",
             "merchant_comment_message": "رسالة من فريقنا",
-            "merchant_comment_account": "يمكنك عرض سجل طلبك من حساب العميل الخاص بك:",
+            "merchant_comment_account": "يمكنكم عرض سجل طلبكم من حساب العميل الخاص بكم:",
             "merchant_comment_link": "الدخول إلى حساب العميل الخاص بي"
         },
         "ja": {
@@ -8709,12 +8709,12 @@
             "greeting_main": "وصولكم محمي",
             "greeting_subtitle": "مساحتكم الخاصة بانتظاركم",
             "dear_customer": "ضيفنا الكريم،",
-            "password_intro": "نؤكد أن كلمة المرور الخاصة بك تم تغييرها بنجاح.",
+            "password_intro": "نؤكد أن كلمة المرور الخاصة بكم تم تغييرها بنجاح.",
             "password_update_title": "تحديث كلمة المرور",
-            "password_confirmation": "تم تحديث كلمة المرور الخاصة بك بنجاح. يمكنك الآن تسجيل الدخول باستخدام بيانات الاعتماد الجديدة الخاصة بك.",
-            "password_account_link": "يمكنك الوصول إلى حساب العميل الخاص بك بالنقر على الرابط أدناه:",
+            "password_confirmation": "تم تحديث كلمة المرور الخاصة بكم بنجاح. يمكنكم الآن تسجيل الدخول باستخدام بيانات الاعتماد الجديدة الخاصة بكم.",
+            "password_account_link": "يمكنكم الوصول إلى حساب العميل الخاص بكم بالنقر على الرابط أدناه:",
             "password_my_account": "الدخول إلى حسابي",
-            "password_security_note": "إذا لم تقم بهذا التغيير، يرجى الاتصال بخدمة العملاء لدينا على الفور."
+            "password_security_note": "إذا لم تقوموا بهذا التغيير، يرجى الاتصال بخدمة العملاء لدينا على الفور."
         },
         "ja": {
             "greeting_main": "お客様のアクセスが保護されました",
@@ -8909,12 +8909,12 @@
             "greeting_main": "استعيدوا فضاءكم الخاص",
             "greeting_subtitle": "إعادة تعيين وصولكم",
             "dear_customer": "ضيفنا الكريم،",
-            "password_query_intro": "تلقينا طلب إعادة تعيين كلمة المرور الخاص بك.",
+            "password_query_intro": "تلقينا طلب إعادة تعيين كلمة المرور الخاص بكم.",
             "password_query_notice": "لأسباب أمنية، هذا الرابط صالح فقط لفترة محدودة.",
             "password_query_action": "إعادة تعيين كلمة المرور الخاصة بي",
-            "password_query_instructions": "انقر على الزر أدناه لتعيين كلمة مرور جديدة.",
+            "password_query_instructions": "انقروا على الزر أدناه لتعيين كلمة مرور جديدة.",
             "password_query_btn": "إعادة تعيين كلمة المرور الخاصة بي",
-            "password_query_ignore": "إذا لم تكن أنت من قام بهذا الطلب، يمكنك تجاهل هذه الرسالة."
+            "password_query_ignore": "إذا لم تكونوا أنتم من قام بهذا الطلب، يمكنكم تجاهل هذه الرسالة."
         },
         "ja": {
             "greeting_main": "お客様のスペースを取り戻しましょう",
@@ -9559,13 +9559,13 @@
             "greeting_main": "كل تفصيل يستحق الحفاظ عليه",
             "greeting_subtitle": "العناية بقطعتكم الاستثنائية",
             "dear_customer": "ضيفنا الكريم،",
-            "care_intro": "نأمل أن تحقق قطعتك كل الرضا الذي كنا نتمناه.",
-            "care_message": "للحفاظ على بريقها وجمالها مع مرور الوقت، إليك بعض نصائح العناية.",
+            "care_intro": "نأمل أن تحقق قطعتكم كل الرضا الذي كنا نتمناه.",
+            "care_message": "للحفاظ على بريقها وجمالها مع مرور الوقت، إليكم بعض نصائح العناية.",
             "care_tips_title": "نصائح العناية",
-            "care_tip_1": "تجنب التعرض المطول للضوء المباشر أو مصادر الحرارة الشديدة.",
-            "care_tip_2": "نظف بلطف بقطعة قماش ناعمة وجافة. لا تستخدم أي منتجات كيميائية.",
-            "care_tip_3": "احفظ قطعتك في مكان جاف وبعيداً عن الغبار عندما لا تكون قيد الاستخدام.",
-            "care_note": "فريقنا رهن إشارتك لأي معلومات إضافية.",
+            "care_tip_1": "تجنبوا التعرض المطول للضوء المباشر أو مصادر الحرارة الشديدة.",
+            "care_tip_2": "نظفوا بلطف بقطعة قماش ناعمة وجافة. لا تستخدموا أي منتجات كيميائية.",
+            "care_tip_3": "احفظوا قطعتكم في مكان جاف وبعيداً عن الغبار عندما لا تكون قيد الاستخدام.",
+            "care_note": "فريقنا رهن إشارتكم لأي معلومات إضافية.",
             "signature_thanks": "بوصفنا حافظين لقطعكم الاستثنائية، بكل عنايتنا،"
         },
         "ja": {
@@ -11625,10 +11625,10 @@
             "signature_thanks": "Com toda a nossa gratidão e orgulho,"
         },
         "ar": {
-            "greeting_main": "نعتني بمنتجك",
-            "greeting_subtitle": "تم تسجيل طلبك",
+            "greeting_main": "نعتني بمنتجكم",
+            "greeting_subtitle": "تم تسجيل طلبكم",
             "dear_customer": "ضيفنا الكريم،",
-            "return_slip_intro": "يسعدنا الاعتناء بمنتجك. إليك جميع المعلومات اللازمة لإرساله إلينا.",
+            "return_slip_intro": "يسعدنا الاعتناء بمنتجكم. إليكم جميع المعلومات اللازمة لإرساله إلينا.",
             "return_slip_order_label": "الطلب",
             "return_slip_rma_label": "رقم الإرجاع",
             "return_slip_deadline_label": "آخر موعد للإرسال",
@@ -11643,13 +11643,13 @@
             "return_slip_instructions_title": "تعليمات الإرسال",
             "return_slip_address_label": "عنوان الإرجاع",
             "return_slip_rma_note": "يرجى كتابة رقم الإرجاع هذا على الطرد:",
-            "return_slip_carrier_info": "الناقل الموصى به: شحنة متتبَّعة ومؤمَّنة لراحة بالك.",
+            "return_slip_carrier_info": "الناقل الموصى به: شحنة متتبَّعة ومؤمَّنة لراحة بالكم.",
             "return_slip_shipping_cost": "تُوضَّح شروط الإرجاع والرسوم المحتملة في سياسة الإرجاع الخاصة بنا.",
-            "return_slip_processing_delay": "ستتم مراجعة منتجك خلال {return_processing_days} أيام عمل من الاستلام.",
+            "return_slip_processing_delay": "ستتم مراجعة منتجكم خلال {return_processing_days} أيام عمل من الاستلام.",
             "return_slip_refund_method": "سيتم رد المبلغ إلى وسيلة الدفع الأصلية.",
             "return_slip_download_btn": "الوصول إلى طلب الإرجاع الخاص بي",
             "return_slip_tracking_info": "تتبّع طلبي من حسابي",
-            "return_slip_contact_info": "هل لديك سؤال؟ فريقنا تحت تصرفك الكامل.",
+            "return_slip_contact_info": "هل لديكم سؤال؟ فريقنا تحت تصرفكم الكامل.",
             "signature_thanks": "بكل امتناننا وفخرنا،"
         },
         "ja": {
@@ -14443,10 +14443,10 @@
         },
         "ar": {
             "greeting_main": "لقد تلقيت هدية رقمية",
-            "greeting_subtitle": "بطاقة هدايا شخصية لك",
+            "greeting_subtitle": "بطاقة هدايا شخصية لكم",
             "dear_customer": "ضيفنا الكريم،",
             "gift_card_intro": "نشرف بإرسال هذه الهدية الرقمية إليكم بدلاً من شيء مادي.",
-            "gift_card_details": "تفاصيل بطاقة الهدايا الخاصة بك",
+            "gift_card_details": "تفاصيل بطاقة الهدايا الخاصة بكم",
             "gift_card_amount": "المبلغ",
             "gift_card_code": "رمز البطاقة",
             "gift_card_usage": "تعليمات الاستخدام",
@@ -24375,11 +24375,11 @@
             "greeting_main": "طلب غير مكتمل",
             "greeting_subtitle": "كان كل شيء جاهزاً. لم يبقَ سوى لحظة.",
             "dear_customer": "عزيزي العميل،",
-            "checkout_abandonment_intro": "لاحظنا أنك كنت على وشك إتمام طلبك. أحياناً تطرأ مشكلة تقنية في اللحظة الأخيرة — خطأ 3DS، انتهاء وقت الاتصال، أو تردد في اللحظة الأخيرة.",
-            "checkout_abandonment_reassure": "سلة تسوقك محفوظة وستجد اختياراتك في نفس المكان الذي تركتها فيه.",
-            "checkout_abandonment_help": "إذا واجهت مشكلة في الدفع، فريقنا متاح لمساعدتك على إتمام طلبك براحة تامة.",
+            "checkout_abandonment_intro": "لاحظنا أنكم كنتم على وشك إتمام طلبكم. أحياناً تطرأ مشكلة تقنية في اللحظة الأخيرة — خطأ 3DS، انتهاء وقت الاتصال، أو تردد في اللحظة الأخيرة.",
+            "checkout_abandonment_reassure": "سلة تسوقكم محفوظة وستجدون اختياراتكم في نفس المكان الذي تركتموها فيه.",
+            "checkout_abandonment_help": "إذا واجهتم مشكلة في الدفع، فريقنا متاح لمساعدتكم على إتمام طلبكم براحة تامة.",
             "checkout_abandonment_btn": "إتمام طلبي",
-            "checkout_abandonment_note": "لا يلزمك اتخاذ أي إجراء — سلتك محفوظة.",
+            "checkout_abandonment_note": "لا يلزمكم اتخاذ أي إجراء — سلتكم محفوظة.",
             "checkout_abandonment_signature": "باهتمام كامل منا،"
         },
         "ja": {
@@ -24565,11 +24565,11 @@
             "lifespan_signature": "Com toda a nossa atenção,"
         },
         "ar": {
-            "greeting_main": "قد يقترب منتجك من نهايته",
+            "greeting_main": "قد يقترب منتجكم من نهايته",
             "greeting_subtitle": "تذكير لطيف منا",
             "dear_customer": "عزيزي العميل،",
-            "lifespan_intro": "اقتنيت {product_name} منذ {estimated_days} يومًا. وفقًا لتقديرنا، قد يكون منتجك على وشك النفاد.",
-            "lifespan_message": "إذا كنت ترغب في تجديد تجربتك، فهذا هو الوقت المثالي — قبل أن ينفد.",
+            "lifespan_intro": "اقتنيتم {product_name} منذ {estimated_days} يومًا. وفقًا لتقديرنا، قد يكون منتجكم على وشك النفاد.",
+            "lifespan_message": "إذا كنتم ترغبون في تجديد تجربتكم، فهذا هو الوقت المثالي — قبل أن ينفد.",
             "lifespan_btn": "تجديد شرائي",
             "lifespan_note": "لا يوجد أي إلزام بالطبع — هذه مجرد تذكرة ودية منا.",
             "lifespan_signature": "باهتمامنا الكامل،"
@@ -24747,13 +24747,13 @@
             "reconciliation_1_signature": "Com toda a nossa consideração,"
         },
         "ar": {
-            "greeting_main": "استردادك في الطريق",
+            "greeting_main": "استردادكم في الطريق",
             "greeting_subtitle": "تأكيد شخصي",
             "dear_customer": "عزيزي العميل،",
-            "reconciliation_1_intro": "أردنا أن نؤكد لك شخصيًا أن استردادك قيد المعالجة حاليًا.",
-            "reconciliation_1_message": "تم استلام طلبك ونحرص على معالجته بكل الاهتمام الذي يستحقه.",
+            "reconciliation_1_intro": "أردنا أن نؤكد لكم شخصيًا أن استردادكم قيد المعالجة حاليًا.",
+            "reconciliation_1_message": "تم استلام طلبكم ونحرص على معالجته بكل الاهتمام الذي يستحقه.",
             "reconciliation_1_btn": "عرض طلباتي",
-            "reconciliation_1_note": "إذا كان لديك أي سؤال، فريقنا في خدمتك دائمًا.",
+            "reconciliation_1_note": "إذا كان لديكم أي سؤال، فريقنا في خدمتكم دائمًا.",
             "reconciliation_1_signature": "مع كل تقديرنا،"
         },
         "ja": {
@@ -24929,13 +24929,13 @@
             "reconciliation_2_signature": "Com nossa sincera gratidão,"
         },
         "ar": {
-            "greeting_main": "اهتمام خاص بك",
+            "greeting_main": "اهتمام خاص بكم",
             "greeting_subtitle": "تعبيرًا عن تقديرنا",
             "dear_customer": "عزيزي العميل،",
-            "reconciliation_2_intro": "فكرنا بك خلال هذه الأيام ونود شكرك على صبرك.",
-            "reconciliation_2_message": "تعبيرًا عن تقديرنا، أعددنا لك اهتمامًا حصريًا — دون أي شروط أو ضغوط.",
-            "reconciliation_2_btn": "اكتشف دعوتنا",
-            "reconciliation_2_note": "هذا الاهتمام مخصص لك. فريقنا في خدمتك لأي احتياج.",
+            "reconciliation_2_intro": "فكرنا بكم خلال هذه الأيام ونود شكركم على صبركم.",
+            "reconciliation_2_message": "تعبيرًا عن تقديرنا، أعددنا لكم اهتمامًا حصريًا — دون أي شروط أو ضغوط.",
+            "reconciliation_2_btn": "اكتشفوا دعوتنا",
+            "reconciliation_2_note": "هذا الاهتمام مخصص لكم. فريقنا في خدمتكم لأي احتياج.",
             "reconciliation_2_signature": "بامتناننا الصادق،"
         },
         "ja": {
@@ -25114,10 +25114,10 @@
             "greeting_main": "بيتنا لا يزال مفتوحًا",
             "greeting_subtitle": "متى تشاء",
             "dear_customer": "عزيزي العميل،",
-            "reconciliation_3_intro": "اكتمل استردادك الآن. نأمل أن يكون كل شيء قد سار على ما يرام.",
-            "reconciliation_3_message": "اعلم أن بيتنا بيتك، وسنكون دائمًا سعداء باستقبالك من جديد متى ما أردت.",
+            "reconciliation_3_intro": "اكتمل استردادكم الآن. نأمل أن يكون كل شيء قد سار على ما يرام.",
+            "reconciliation_3_message": "اعلموا أن بيتنا بيتكم، وسنكون دائمًا سعداء باستقبالكم من جديد متى ما أردتم.",
             "reconciliation_3_btn": "العودة إلى بيتنا",
-            "reconciliation_3_note": "وصلت مستجدات منذ زيارتك الأخيرة. ربما ستجد شيئًا يعجبك.",
+            "reconciliation_3_note": "وصلت مستجدات منذ زيارتكم الأخيرة. ربما ستجدون شيئًا يعجبكم.",
             "reconciliation_3_signature": "مع أطيب التحيات،"
         },
         "ja": {
@@ -25296,10 +25296,10 @@
             "greeting_main": "ذكرى سنوية تستحق الاحتفال",
             "greeting_subtitle": "شكراً لثقتكم بنا",
             "dear_customer": "عزيزي العميل،",
-            "relationship_anniversary_intro": "منذ {years_label}، منحتنا ثقتك للمرة الأولى. لم ننسَ ذلك.",
-            "relationship_anniversary_message": "وفاؤك هو أعظم مكافأة نتلقاها. يسعدنا أن نعدّك من أعز عملائنا.",
+            "relationship_anniversary_intro": "منذ {years_label}، منحتمونا ثقتكم للمرة الأولى. لم ننسَ ذلك.",
+            "relationship_anniversary_message": "وفاؤكم هو أعظم مكافأة نتلقاها. يسعدنا أن نعدّكم من أعز عملائنا.",
             "relationship_anniversary_btn": "عرض مشترياتي",
-            "relationship_anniversary_note": "شكراً لك على أنك جزء من قصة دارنا.",
+            "relationship_anniversary_note": "شكراً لكم على أنكم جزء من قصة دارنا.",
             "relationship_anniversary_signature": "بكل امتناننا وتقديرنا،"
         },
         "ja": {
@@ -25695,16 +25695,16 @@
             "collection_completion_note": "Esta sugestão baseia-se nas suas compras anteriores dentro desta coleção."
         },
         "ar": {
-            "collection_completion_eyebrow": "مجموعتك",
+            "collection_completion_eyebrow": "مجموعتكم",
             "collection_completion_greeting": "مرحباً",
-            "collection_completion_title": "قطعة واحدة فقط تفصلك",
-            "collection_completion_intro": "لقد أنجزت الجزء الأصعب. لم يتبق سوى قطعة واحدة لإكمال مجموعتك — أردنا تذكيرك قبل أن تختفي.",
-            "collection_completion_progress_label": "تقدم مجموعتك",
+            "collection_completion_title": "قطعة واحدة فقط تفصلكم",
+            "collection_completion_intro": "لقد أنجزتم الجزء الأصعب. لم يتبق سوى قطعة واحدة لإكمال مجموعتكم — أردنا تذكيركم قبل أن تختفي.",
+            "collection_completion_progress_label": "تقدم مجموعتكم",
             "collection_completion_pieces_bought": "القطع المقتناة",
             "collection_completion_one_left": "قطعة واحدة فقط للإكمال",
             "collection_completion_missing_label": "القطعة المفقودة",
             "collection_completion_cta": "أكمل مجموعتي",
-            "collection_completion_note": "هذا الاقتراح مبني على مشترياتك السابقة ضمن هذه المجموعة."
+            "collection_completion_note": "هذا الاقتراح مبني على مشترياتكم السابقة ضمن هذه المجموعة."
         },
         "ja": {
             "collection_completion_eyebrow": "あなたのコレクション",
@@ -25889,12 +25889,12 @@
             "complete_your_look_note": "Esta seleção foi composta especialmente para si, em harmonia com a sua compra recente."
         },
         "ar": {
-            "complete_your_look_eyebrow": "اختيار خاص لك",
+            "complete_your_look_eyebrow": "اختيار خاص لكم",
             "complete_your_look_greeting": "مرحباً",
-            "complete_your_look_title": "أكمل إطلالتك",
-            "complete_your_look_intro": "وصل طلبك للتو — نأمل أن يعجبك. إليك بعض القطع التي تتناسق تماماً مع مشترياتك.",
-            "complete_your_look_cta": "اكتشف",
-            "complete_your_look_note": "تم تجميع هذا الاختيار خصيصاً لك، بما يتناسب مع مشترياتك الأخيرة."
+            "complete_your_look_title": "أكملوا إطلالتكم",
+            "complete_your_look_intro": "وصل طلبكم للتو — نأمل أن يعجبكم. إليكم بعض القطع التي تتناسق تماماً مع مشترياتكم.",
+            "complete_your_look_cta": "اكتشفوا",
+            "complete_your_look_note": "تم تجميع هذا الاختيار خصيصاً لكم، بما يتناسب مع مشترياتكم الأخيرة."
         },
         "ja": {
             "complete_your_look_eyebrow": "あなたへのセレクション",
@@ -26057,14 +26057,14 @@
             "waitlist_note": "Você recebe esta notificação porque pediu para ser avisado/a quando este produto voltasse ao estoque."
         },
         "ar": {
-            "greeting_main": "انتظارك كان يستحق",
+            "greeting_main": "انتظاركم كان يستحق",
             "waitlist_greeting": "مرحباً",
-            "waitlist_eyebrow": "محجوز لك",
-            "waitlist_title": "لقد انتظرت {days_waited} يومًا. لم ننسَ ذلك.",
-            "waitlist_intro": "هذا المنتج متوفر مجددًا — ولأنك كنت هنا قبل الجميع، نمنحك أولوية وصول حصرية.",
-            "waitlist_reservation": "أولوية وصولك سارية لمدة {reservation_hours} ساعات. بعد ذلك، سيكون المنتج متاحًا للجميع.",
+            "waitlist_eyebrow": "محجوز لكم",
+            "waitlist_title": "لقد انتظرتم {days_waited} يومًا. لم ننسَ ذلك.",
+            "waitlist_intro": "هذا المنتج متوفر مجددًا — ولأنكم كنتم هنا قبل الجميع، نمنحكم أولوية وصول حصرية.",
+            "waitlist_reservation": "أولوية وصولكم سارية لمدة {reservation_hours} ساعات. بعد ذلك، سيكون المنتج متاحًا للجميع.",
             "waitlist_cta": "عرض المنتج",
-            "waitlist_note": "تتلقى هذا الإشعار لأنك طلبت تنبيهك عند عودة هذا المنتج إلى المخزون."
+            "waitlist_note": "تتلقون هذا الإشعار لأنكم طلبتم تنبيهكم عند عودة هذا المنتج إلى المخزون."
         },
         "ja": {
             "greeting_main": "お待ちいただいた甲斐がありました",
@@ -26239,14 +26239,14 @@
             "ghost_cart_note": "Sem pressão — estamos aqui caso tenha alguma dúvida."
         },
         "ar": {
-            "greeting_main": "قطعة تنتظرك",
+            "greeting_main": "قطعة تنتظركم",
             "ghost_cart_greeting": "مرحباً",
             "ghost_cart_eyebrow": "لاحظنا شيئاً",
-            "ghost_cart_title": "هذا المنتج يستهوي اهتمامك",
-            "ghost_cart_intro": "لاحظنا أنك أضفت هذا المنتج إلى سلة التسوق عدة مرات. إذا كان هناك شيء يثنيك — سؤال حول المقاس أو المواد أو مواعيد التسليم — فريقنا متاح للمساعدة.",
-            "ghost_cart_product_label": "المنتج الذي يستأثر باهتمامك:",
+            "ghost_cart_title": "هذا المنتج يستهوي اهتمامكم",
+            "ghost_cart_intro": "لاحظنا أنكم أضفتم هذا المنتج إلى سلة التسوق عدة مرات. إذا كان هناك شيء يثنيكم — سؤال حول المقاس أو المواد أو مواعيد التسليم — فريقنا متاح للمساعدة.",
+            "ghost_cart_product_label": "المنتج الذي يستأثر باهتمامكم:",
             "ghost_cart_cta": "عرض المنتج",
-            "ghost_cart_note": "لا ضغط على الإطلاق — نحن هنا فقط إذا كان لديك أي سؤال."
+            "ghost_cart_note": "لا ضغط على الإطلاق — نحن هنا فقط إذا كان لديكم أي سؤال."
         },
         "ja": {
             "greeting_main": "あなたを待つ一品",
