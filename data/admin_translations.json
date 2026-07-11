@@ -11147,7 +11147,7 @@
         "sv": "Denna inställningslänk är ogiltig eller har gått ut. Använd länken i ditt senaste e-postmeddelande.",
         "no": "Denne innstillingslenken er ugyldig eller har utløpt. Vennligst bruk lenken i din siste e-post.",
         "da": "Dette indstillingslink er ugyldigt eller er udløbet. Brug venligst linket i din seneste e-mail.",
-        "nl": "Deze voorkeurenlink is ongeldig of verlopen. Gebruik de link in je meest recente e-mail.",
+        "nl": "Deze voorkeurenlink is ongeldig of verlopen. Gebruik de link in uw meest recente e-mail.",
         "gb": "This preferences link is invalid or has expired. Please use the link in your most recent email."
     },
     "front.prefs_invalid_link_title": {
@@ -11210,7 +11210,7 @@
         "sv": "✓ Dina inställningar har sparats.",
         "no": "✓ Innstillingene dine er lagret.",
         "da": "✓ Dine indstillinger er blevet gemt.",
-        "nl": "✓ Je voorkeuren zijn opgeslagen.",
+        "nl": "✓ Uw voorkeuren zijn opgeslagen.",
         "gb": "✓ Your preferences have been saved."
     },
     "front.prefs_subtitle": {
@@ -11231,7 +11231,7 @@
         "sv": "Välj vilka typer av e-postmeddelanden du vill ta emot från oss. Du kan ändra dessa inställningar när som helst.",
         "no": "Velg hvilke typer e-poster du ønsker å motta fra oss. Du kan endre disse innstillingene når som helst.",
         "da": "Vælg hvilke typer e-mails du gerne vil modtage fra os. Du kan til enhver tid ændre disse indstillinger.",
-        "nl": "Kies welke soorten e-mails je van ons wilt ontvangen. Je kunt deze voorkeuren op elk moment wijzigen.",
+        "nl": "Kies welke soorten e-mails u van ons wilt ontvangen. U kunt deze voorkeuren op elk moment wijzigen.",
         "gb": "Choose the types of emails you'd like to receive from us. You can change these preferences at any time."
     },
     "front.prefs_title_suffix": {
@@ -11315,7 +11315,7 @@
         "sv": "Du kommer att meddelas så snart denna produkt är i lager igen.",
         "no": "Du vil bli varslet så snart dette produktet er tilgjengelig igjen.",
         "da": "Du bliver underrettet, så snart dette produkt er tilgængeligt igen.",
-        "nl": "Je wordt op de hoogte gebracht zodra dit product weer op voorraad is.",
+        "nl": "U wordt op de hoogte gebracht zodra dit product weer op voorraad is.",
         "gb": "You will be notified as soon as this product is back in stock."
     },
     "front.waitlist_notify_me": {
@@ -12743,7 +12743,7 @@
         "sv": "Extern servercron konfigurerad men inaktiv i {days} dag(ar) (senaste anrop: {lastHit}). → Vad du ska göra: kontrollera att cron-uppgiften fortfarande är aktiv hos din värdleverantör (crontab, eller schemalagd uppgift i hostingpanelen).",
         "no": "Ekstern servercron konfigurert men inaktiv i {days} dag(er) (siste kall: {lastHit}). → Hva du bør gjøre: sjekk at cron-oppgaven fortsatt er aktiv hos hostingleverandøren din (crontab, eller planlagt oppgave i hostingpanelet).",
         "da": "Ekstern server-cron konfigureret men inaktiv i {days} dag(e) (sidste kald: {lastHit}). → Hvad du skal gøre: tjek at cron-opgaven stadig er aktiv hos din hostingudbyder (crontab eller planlagt opgave i hostingpanelet).",
-        "nl": "Externe server-cron geconfigureerd maar inactief gedurende {days} dag(en) (laatste aanroep: {lastHit}). → Wat te doen: controleer of de crontaak nog actief is bij je hostingprovider (crontab, of geplande taak in het hostingpaneel).",
+        "nl": "Externe server-cron geconfigureerd maar inactief gedurende {days} dag(en) (laatste aanroep: {lastHit}). → Wat te doen: controleer of de crontaak nog actief is bij uw hostingprovider (crontab, of geplande taak in het hostingpaneel).",
         "gb": "External server cron configured but inactive for {days} day(s) (last call: {lastHit}). → What to do: check that the cron task is still active on your host (crontab, or scheduled task in the hosting panel)."
     },
     "health.active_cron_unavailable": {
@@ -13058,7 +13058,7 @@
         "sv": "Studsfrekvens: {rate}% på 24h ({bounces} studsar / {sent} utskick). → Vad du ska göra: Rensa din prenumerantlista, kontrollera din domäns rykte i fliken Statistik och överväg dubbel opt-in.",
         "no": "Avvisningsrate: {rate}% på 24t ({bounces} avvisninger / {sent} utsendelser). → Hva du bør gjøre: Rens abonnentlisten din, sjekk domenets omdømme i fanen Statistikk, og vurder dobbel opt-in.",
         "da": "Afvisningsrate: {rate}% over 24t ({bounces} afvisninger / {sent} afsendelser). → Hvad du skal gøre: Ryd op i din abonnentliste, tjek dit domænes omdømme under fanen Statistik, og overvej double opt-in.",
-        "nl": "Bounce-percentage: {rate}% over 24u ({bounces} bounces / {sent} verzendingen). → Wat te doen: maak je abonneelijst schoon, controleer de domeinreputatie in het tabblad Statistieken en overweeg dubbele opt-in.",
+        "nl": "Bounce-percentage: {rate}% over 24u ({bounces} bounces / {sent} verzendingen). → Wat te doen: maak uw abonneelijst schoon, controleer de domeinreputatie in het tabblad Statistieken en overweeg dubbele opt-in.",
         "gb": "Bounce rate: {rate}% over 24h ({bounces} bounces / {sent} sends). → What to do: Clean your subscriber list, check your domain reputation in the Statistics tab, and consider a double opt-in."
     },
     "health.bounce_rate_insufficient": {
@@ -13394,7 +13394,7 @@
         "sv": "Mycket låg klickfrekvens: {rate}% ({clicks} klick / {opens} öppningar) på 7d. → Vad du ska göra: Kontrollera dina uppmaningar till handling (CTA) och relevansen i ditt e-postinnehåll.",
         "no": "Svært lav klikkfrekvens: {rate}% ({clicks} klikk / {opens} åpninger) på 7d. → Hva du bør gjøre: Sjekk oppfordringene dine til handling (CTA) og relevansen til e-postinnholdet.",
         "da": "Meget lav klikrate: {rate}% ({clicks} klik / {opens} åbninger) over 7d. → Hvad du skal gøre: Tjek dine call-to-action (CTA) og relevansen af dit e-mailindhold.",
-        "nl": "Zeer laag klikpercentage: {rate}% ({clicks} kliks / {opens} openingen) over 7d. → Wat te doen: controleer je call-to-actions (CTA) en de relevantie van je e-mailinhoud.",
+        "nl": "Zeer laag klikpercentage: {rate}% ({clicks} kliks / {opens} openingen) over 7d. → Wat te doen: controleer uw call-to-actions (CTA) en de relevantie van uw e-mailinhoud.",
         "gb": "Very low click rate: {rate}% ({clicks} clicks / {opens} opens) over 7d. → What to do: Check your calls to action (CTA) and the relevance of your email content."
     },
     "health.click_rate_no_clicks": {
@@ -13415,7 +13415,7 @@
         "sv": "{opens} öppningar registrerade de senaste 7 dagarna, men inga klick. → Vad du ska göra: Kontrollera att track.php är tillgänglig och att länkarna i dina mallar går via Neria-spårningspixeln.",
         "no": "{opens} åpninger registrert de siste 7 dagene, men ingen klikk. → Hva du bør gjøre: Sjekk at track.php er tilgjengelig og at lenkene i malene dine går via Neria-sporingspikselen.",
         "da": "{opens} åbninger registreret de seneste 7 dage, men ingen klik. → Hvad du skal gøre: Tjek at track.php er tilgængelig, og at links i dine skabeloner går gennem Neria-sporingspixlen.",
-        "nl": "{opens} openingen geregistreerd in de laatste 7 dagen, maar geen kliks. → Wat te doen: controleer of track.php bereikbaar is en of links in je templates via de Neria-trackingpixel lopen.",
+        "nl": "{opens} openingen geregistreerd in de laatste 7 dagen, maar geen kliks. → Wat te doen: controleer of track.php bereikbaar is en of links in uw templates via de Neria-trackingpixel lopen.",
         "gb": "{opens} opens recorded in the last 7 days, but no clicks. → What to do: Check that track.php is accessible and that links in your templates go through the Neria tracking pixel."
     },
     "health.click_rate_no_opens": {
@@ -14339,7 +14339,7 @@
         "sv": "DeepL-nyckeln är ogiltig eller har gått ut (HTTP 403). → Vad du ska göra: Förnya din nyckel i ditt DeepL-konto och uppdatera den i Neria.",
         "no": "DeepL-nøkkelen er ugyldig eller utløpt (HTTP 403). → Hva du bør gjøre: Forny nøkkelen din i DeepL-kontoen og oppdater den i Neria.",
         "da": "DeepL-nøglen er ugyldig eller udløbet (HTTP 403). → Hvad du skal gøre: Forny din nøgle i din DeepL-konto, og opdater den i Neria.",
-        "nl": "DeepL-sleutel ongeldig of verlopen (HTTP 403). → Wat te doen: vernieuw je sleutel in je DeepL-account en werk deze bij in Neria.",
+        "nl": "DeepL-sleutel ongeldig of verlopen (HTTP 403). → Wat te doen: vernieuw uw sleutel in uw DeepL-account en werk deze bij in Neria.",
         "gb": "DeepL key invalid or expired (HTTP 403). → What to do: Renew your key in your DeepL account and update it in Neria."
     },
     "health.deepl_not_configured": {
@@ -14423,7 +14423,7 @@
         "sv": "DeepL-kvoten nästan förbrukad: {pct}% använt ({used} / {limit} tecken). → Vad du ska göra: Uppgradera din plan eller inaktivera automatisk översättning tillfälligt.",
         "no": "DeepL-kvoten nesten oppbrukt: {pct}% brukt ({used} / {limit} tegn). → Hva du bør gjøre: Oppgrader planen din eller deaktiver automatisk oversettelse midlertidig.",
         "da": "DeepL-kvoten næsten opbrugt: {pct}% brugt ({used} / {limit} tegn). → Hvad du skal gøre: Opgrader din plan, eller deaktiver automatisk oversættelse midlertidigt.",
-        "nl": "DeepL-quotum bijna verbruikt: {pct}% gebruikt ({used} / {limit} tekens). → Wat te doen: upgrade je abonnement of schakel automatische vertaling tijdelijk uit.",
+        "nl": "DeepL-quotum bijna verbruikt: {pct}% gebruikt ({used} / {limit} tekens). → Wat te doen: upgrade uw abonnement of schakel automatische vertaling tijdelijk uit.",
         "gb": "DeepL quota almost exhausted: {pct}% used ({used} / {limit} characters). → What to do: Upgrade your plan or temporarily disable automatic translation."
     },
     "health.domain_rep_critical": {
@@ -14528,7 +14528,7 @@
         "sv": "Försämrat domänrykte: poäng {score}/100 (betyg {grade}). → Vad du ska göra: Kontrollera din SPF/DKIM/DMARC-konfiguration i fliken Statistik → Domänrykte.",
         "no": "Forringet domeneomdømme: poengsum {score}/100 (karakter {grade}). → Hva du bør gjøre: Sjekk SPF/DKIM/DMARC-konfigurasjonen din i fanen Statistikk → Domeneomdømme.",
         "da": "Forringet domæneomdømme: score {score}/100 (karakter {grade}). → Hvad du skal gøre: Tjek din SPF/DKIM/DMARC-konfiguration under fanen Statistik → Domæneomdømme.",
-        "nl": "Verslechterde domeinreputatie: score {score}/100 (cijfer {grade}). → Wat te doen: controleer je SPF/DKIM/DMARC-configuratie in het tabblad Statistieken → Domeinreputatie.",
+        "nl": "Verslechterde domeinreputatie: score {score}/100 (cijfer {grade}). → Wat te doen: controleer uw SPF/DKIM/DMARC-configuratie in het tabblad Statistieken → Domeinreputatie.",
         "gb": "Degraded domain reputation: score {score}/100 (grade {grade}). → What to do: Check your SPF/DKIM/DMARC setup in the Statistics → Domain Reputation tab."
     },
     "health.engagement_baseline_zero": {
@@ -15515,7 +15515,7 @@
         "sv": "Låg 7-dagars öppningsfrekvens: {rate}% ({open}/{sent}). → Vad du ska göra: Förbättra dina ämnesrader (fliken Academy → Guide för ämnesrader) och kontrollera att e-post inte hamnar i kampanjfliken.",
         "no": "Lav 7-dagers åpningsrate: {rate}% ({open}/{sent}). → Hva du bør gjøre: Forbedre emnelinjene (fanen Academy → Veiledning for emnelinjer) og sjekk at e-postene ikke havner i kampanjefanen.",
         "da": "Lav 7-dages åbningsrate: {rate}% ({open}/{sent}). → Hvad du skal gøre: Forbedre dine emnelinjer (fanen Academy → Guide til emnelinjer), og tjek at e-mails ikke havner i kampagnefanen.",
-        "nl": "Laag 7-daags openingspercentage: {rate}% ({open}/{sent}). → Wat te doen: verbeter je e-mailonderwerpen (tabblad Academy → Gids onderwerpregels) en controleer of e-mails niet in het promotietabblad terechtkomen.",
+        "nl": "Laag 7-daags openingspercentage: {rate}% ({open}/{sent}). → Wat te doen: verbeter uw e-mailonderwerpen (tabblad Academy → Gids onderwerpregels) en controleer of e-mails niet in het promotietabblad terechtkomen.",
         "gb": "Low 7-day open rate: {rate}% ({open}/{sent}). → What to do: Improve your email subject lines (Academy tab → Subject line guide) and check emails aren't landing in the promotions tab."
     },
     "health.open_rate_ok": {
@@ -15725,7 +15725,7 @@
         "sv": "Postmaster Tools: {errors} → Vad du ska göra: Kontrollera dina sändningslistor, ta bort ogiltiga adresser, minska frekvensen. Se fliken Statistik för fullständiga detaljer.",
         "no": "Postmaster Tools: {errors} → Hva du bør gjøre: Sjekk sendelistene dine, fjern ugyldige adresser, reduser frekvensen. Se fanen Statistikk for fullstendige detaljer.",
         "da": "Postmaster Tools: {errors} → Hvad du skal gøre: Tjek dine afsendelseslister, fjern ugyldige adresser, reducer hyppigheden. Se fanen Statistik for fulde detaljer.",
-        "nl": "Postmaster Tools: {errors} → Wat te doen: controleer je verzendlijsten, verwijder ongeldige adressen, verlaag de frequentie. Zie het tabblad Statistieken voor volledige details.",
+        "nl": "Postmaster Tools: {errors} → Wat te doen: controleer uw verzendlijsten, verwijder ongeldige adressen, verlaag de frequentie. Zie het tabblad Statistieken voor volledige details.",
         "gb": "Postmaster Tools: {errors} → What to do: Check your send lists, remove invalid addresses, reduce frequency. See the Statistics tab for full details."
     },
     "health.postmaster_no_data_yet": {
@@ -15830,7 +15830,7 @@
         "sv": "BLOCKERAT rykte (BAD) för {domain} — Gmail avvisar aktivt dina e-postmeddelanden.",
         "no": "BLOKKERT omdømme (BAD) for {domain} — Gmail avviser aktivt e-postene dine.",
         "da": "BLOKERET omdømme (BAD) for {domain} — Gmail afviser aktivt dine e-mails.",
-        "nl": "GEBLOKKEERDE reputatie (BAD) voor {domain} — Gmail weigert actief je e-mails.",
+        "nl": "GEBLOKKEERDE reputatie (BAD) voor {domain} — Gmail weigert actief uw e-mails.",
         "gb": "BLOCKED reputation (BAD) for {domain} — Gmail is actively rejecting your emails."
     },
     "health.postmaster_rep_low": {
@@ -15851,7 +15851,7 @@
         "sv": "LÅGT rykte (LOW) för {domain} — dina e-postmeddelanden hamnar i Gmail-skräppost.",
         "no": "LAVT omdømme (LOW) for {domain} — e-postene dine havner i Gmail-spam.",
         "da": "LAVT omdømme (LOW) for {domain} — dine e-mails havner i Gmail-spam.",
-        "nl": "LAGE reputatie (LOW) voor {domain} — je e-mails komen in Gmail-spam terecht.",
+        "nl": "LAGE reputatie (LOW) voor {domain} — uw e-mails komen in Gmail-spam terecht.",
         "gb": "LOW reputation for {domain} — your emails are landing in Gmail spam."
     },
     "health.postmaster_rep_medium": {
@@ -15956,7 +15956,7 @@
         "sv": "PTR konfigurerad ({hostname}) men den omvända kontrollen misslyckas (värdnamnet matchar inte samma IP). → Vad du ska göra: Kontrollera att PTR och A-posten är samstämmiga hos din värdleverantör.",
         "no": "PTR konfigurert ({hostname}) men den omvendte sjekken feiler (vertsnavnet løses ikke til samme IP). → Hva du bør gjøre: Sjekk at PTR og A-posten er konsistente hos hostingleverandøren din.",
         "da": "PTR konfigureret ({hostname}), men den omvendte kontrol fejler (værtsnavnet matcher ikke samme IP). → Hvad du skal gøre: Tjek at PTR og A-posten er konsistente hos din hostingudbyder.",
-        "nl": "PTR geconfigureerd ({hostname}) maar de omgekeerde controle mislukt (de hostnaam resolveert niet naar hetzelfde IP). → Wat te doen: controleer of de PTR- en A-record overeenkomen bij je hostingprovider.",
+        "nl": "PTR geconfigureerd ({hostname}) maar de omgekeerde controle mislukt (de hostnaam resolveert niet naar hetzelfde IP). → Wat te doen: controleer of de PTR- en A-record overeenkomen bij uw hostingprovider.",
         "gb": "PTR configured ({hostname}) but the reverse check fails (the hostname doesn't resolve back to the same IP). → What to do: Check that the PTR and A records are consistent with your host."
     },
     "health.ptr_missing": {
@@ -15977,7 +15977,7 @@
         "sv": "PTR/rDNS saknas för IP {ip}. Vissa servrar (Orange, SFR, företagsservrar) avvisar e-post utan omvänd DNS. → Vad du ska göra: Kontakta din värdleverantör för att konfigurera en PTR-post som pekar på ditt avsändardomännamn.",
         "no": "PTR/rDNS mangler for IP {ip}. Enkelte servere (Orange, SFR, bedriftsservere) avviser e-post uten omvendt DNS. → Hva du bør gjøre: Kontakt hostingleverandøren din for å konfigurere en PTR-post som peker til domenenavnet ditt for avsendelse.",
         "da": "PTR/rDNS mangler for IP {ip}. Nogle servere (Orange, SFR, virksomhedsservere) afviser e-mails uden omvendt DNS. → Hvad du skal gøre: Kontakt din hostingudbyder for at konfigurere en PTR-post, der peger på dit afsendelsesdomænenavn.",
-        "nl": "PTR/rDNS ontbreekt voor IP {ip}. Sommige servers (Orange, SFR, bedrijfsservers) weigeren e-mails zonder reverse DNS. → Wat te doen: neem contact op met je hostingprovider om een PTR-record in te stellen dat naar je verzenddomeinnaam wijst.",
+        "nl": "PTR/rDNS ontbreekt voor IP {ip}. Sommige servers (Orange, SFR, bedrijfsservers) weigeren e-mails zonder reverse DNS. → Wat te doen: neem contact op met uw hostingprovider om een PTR-record in te stellen dat naar uw verzenddomeinnaam wijst.",
         "gb": "PTR / rDNS missing for IP {ip}. Some servers (Orange, SFR, corporate servers) reject emails without reverse DNS. → What to do: Contact your host to set up a PTR record pointing to your sending domain name."
     },
     "health.ptr_no_report": {
@@ -16754,7 +16754,7 @@
         "sv": "Daglig SMTP-kvot överskriden: {today}/{quota} e-postmeddelanden skickade idag ({pct}%). → Vad du ska göra: Efterföljande e-postmeddelanden riskerar att avvisas. Kontakta din värdleverantör eller minska utskicksvolymen.",
         "no": "Daglig SMTP-kvote overskredet: {today}/{quota} e-poster sendt i dag ({pct}%). → Hva du bør gjøre: Påfølgende e-poster risikerer å bli avvist. Kontakt hostingleverandøren din eller reduser sendevolumet.",
         "da": "Daglig SMTP-kvote overskredet: {today}/{quota} e-mails sendt i dag ({pct}%). → Hvad du skal gøre: Efterfølgende e-mails risikerer at blive afvist. Kontakt din hostingudbyder, eller reducer afsendelsesvolumen.",
-        "nl": "Dagelijks SMTP-quotum overschreden: {today}/{quota} e-mails vandaag verzonden ({pct}%). → Wat te doen: volgende e-mails lopen het risico geweigerd te worden. Neem contact op met je hostingprovider of verminder het verzendvolume.",
+        "nl": "Dagelijks SMTP-quotum overschreden: {today}/{quota} e-mails vandaag verzonden ({pct}%). → Wat te doen: volgende e-mails lopen het risico geweigerd te worden. Neem contact op met uw hostingprovider of verminder het verzendvolume.",
         "gb": "Daily SMTP quota exceeded: {today}/{quota} emails sent today ({pct}%). → What to do: Subsequent emails may be rejected. Contact your host or reduce the send volume."
     },
     "health.smtp_quota_none": {
@@ -16817,7 +16817,7 @@
         "sv": "Daglig SMTP-kvot vid {pct}%: {today}/{quota} e-postmeddelanden skickade idag. → Vad du ska göra: Du närmar dig din värdleverantörs gräns. Överväg att skjuta upp icke-brådskande kampanjer.",
         "no": "Daglig SMTP-kvote på {pct}%: {today}/{quota} e-poster sendt i dag. → Hva du bør gjøre: Du nærmer deg grensen til hostingleverandøren din. Vurder å utsette ikke-hastende kampanjer.",
         "da": "Daglig SMTP-kvote på {pct}%: {today}/{quota} e-mails sendt i dag. → Hvad du skal gøre: Du nærmer dig din hostingudbyders grænse. Overvej at udskyde ikke-presserende kampagner.",
-        "nl": "Dagelijks SMTP-quotum op {pct}%: {today}/{quota} e-mails vandaag verzonden. → Wat te doen: je nadert de limiet van je hostingprovider. Overweeg niet-dringende campagnes uit te stellen.",
+        "nl": "Dagelijks SMTP-quotum op {pct}%: {today}/{quota} e-mails vandaag verzonden. → Wat te doen: u nadert de limiet van uw hostingprovider. Overweeg niet-dringende campagnes uit te stellen.",
         "gb": "Daily SMTP quota at {pct}%: {today}/{quota} emails sent today. → What to do: You're approaching your host's limit. Consider postponing non-urgent campaigns."
     },
     "health.swift_broken": {
@@ -17615,7 +17615,7 @@
         "sv": "Avregistreringslänk oåtkomlig (cURL-fel: {error}). → Vad du ska göra: Kontrollera att din butik är åtkomlig från internet och att kontrollern neria/unsubscribe svarar.",
         "no": "Avmeldingslenke utilgjengelig (cURL-feil: {error}). → Hva du bør gjøre: Sjekk at butikken din er tilgjengelig fra internett og at kontrolleren neria/unsubscribe svarer.",
         "da": "Frameldingslink utilgængeligt (cURL-fejl: {error}). → Hvad du skal gøre: Tjek at din butik er tilgængelig fra internettet, og at controlleren neria/unsubscribe svarer.",
-        "nl": "Afmeldlink onbereikbaar (cURL-fout: {error}). → Wat te doen: controleer of je winkel bereikbaar is vanaf internet en of de controller neria/unsubscribe reageert.",
+        "nl": "Afmeldlink onbereikbaar (cURL-fout: {error}). → Wat te doen: controleer of uw winkel bereikbaar is vanaf internet en of de controller neria/unsubscribe reageert.",
         "gb": "Unsubscribe link unreachable (cURL error: {error}). → What to do: Check that your shop is accessible from the internet and that the neria/unsubscribe controller responds."
     },
     "health.unsub_url_http_error": {
@@ -26450,7 +26450,7 @@
         "sv": "Komplettera din look",
         "no": "Fullfør looken din",
         "da": "Fuldend dit look",
-        "nl": "Maak je look compleet",
+        "nl": "Maak uw look compleet",
         "gb": "Complete your look"
     },
     "nav.sub_loyalty": {
@@ -31175,7 +31175,7 @@
         "sv": "Hur använder man riktade kampanjer?",
         "no": "Hvordan bruke målrettede kampanjer?",
         "da": "Hvordan bruger man målrettede kampagner?",
-        "nl": "Hoe gebruik je gerichte campagnes?",
+        "nl": "Hoe gebruikt u gerichte campagnes?",
         "gb": "How to use targeted campaigns?"
     },
     "seg.label_ambassador": {
@@ -48647,7 +48647,7 @@
         "sv": "Du får detta e-postmeddelande eftersom Neria-varningar är aktiverade. För att inaktivera dem: Neria → Hjälp → E-postvarningar.",
         "no": "Du mottar denne e-posten fordi Neria-varsler er aktivert. For å deaktivere dem: Neria → Hjelp → E-postvarsler.",
         "da": "Du modtager denne e-mail, fordi Neria-advarsler er aktiveret. For at deaktivere dem: Neria → Hjælp → E-mailadvarsler.",
-        "nl": "Je ontvangt deze e-mail omdat Neria-meldingen zijn ingeschakeld. Om ze uit te schakelen: Neria → Help → E-mailmeldingen.",
+        "nl": "U ontvangt deze e-mail omdat Neria-meldingen zijn ingeschakeld. Om ze uit te schakelen: Neria → Help → E-mailmeldingen.",
         "gb": "You are receiving this email because Neria alerts are enabled. To disable them: Neria → Help → Email alerts."
     },
     "wd_alert.level_label": {
