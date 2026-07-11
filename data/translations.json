@@ -462,7 +462,7 @@
             "dear_customer": "Kære kunde,",
             "abandoned_cart_3_intro": "Vi lukker stille kapitlet om din indkøbskurv. Hvis du nogensinde skulle ønske at finde dit udvalg igen, ville vores håndværkere være beærede over at byde dig velkommen igen.",
             "abandoned_cart_3_btn": "Tilbage til huset",
-            "abandoned_cart_3_note": "Din indkøbskurv er ikke længere aktiv. Alle vores kreationer forblir til din rådighed."
+            "abandoned_cart_3_note": "Din indkøbskurv er ikke længere aktiv. Alle vores kreationer forbliver til din rådighed."
         },
         "nl": {
             "greeting_main": "Een laatste vertrouwelijke mededeling",
@@ -1423,7 +1423,7 @@
             "bankwire_status": "Venter på bankoverførsel",
             "bankwire_confirmation": "Tak for din ordre",
             "bankwire_details_title": "Bankoplysninger",
-            "bankwire_instructions": "Venligst overfør beløpet til kontoen nedenfor, og angiv følgende reference:",
+            "bankwire_instructions": "Venligst overfør beløbet til kontoen nedenfor, og angiv følgende reference:",
             "bankwire_amount_label": "Beløb",
             "bankwire_owner_label": "Modtager",
             "bankwire_details_label": "Kontodetaljer",
@@ -2544,7 +2544,7 @@
             "contact_intro": "Vi bekræfter modtagelsen af din forespørgsel og takker dig for, at du kontaktede os. Her er en kopi af de oplysninger, du har givet:",
             "contact_info_title": "Kontaktoplysninger",
             "contact_email_label": "E-mailadresse",
-            "order_reference_label": "Ordriereference",
+            "order_reference_label": "Ordrereference",
             "contact_attachment_label": "Vedhæftet fil",
             "contact_message_title": "Din besked",
             "contact_btn_reply": "Svar via e-mail"
@@ -2776,7 +2776,7 @@
             "dear_customer": "Kære {firstname} {lastname},",
             "contact_form_intro": "Vi har modtaget din besked vedrørende din ordre. Her er et resumé af de oplysninger, du har givet:",
             "contact_form_summary": "Resumé af din forespørgsel",
-            "order_reference_label": "Ordriereference",
+            "order_reference_label": "Ordrereference",
             "contact_form_product_label": "Berørt produkt",
             "contact_attachment_label": "Vedhæftet fil",
             "contact_form_promise": "Vi lægger særlig vægt på hver enkelt forespørgsel og vender tilbage til dig meget snart.",
@@ -2948,7 +2948,7 @@
             "dear_customer": "Kære {firstname} {lastname},",
             "craftsmanship_intro": "Vi er glade for at kunne informere dig om, at din ordre skrider frem i vores værksted.",
             "craftsmanship_status_title": "Nuværende trin",
-            "craftsmanship_message": "Vores håndværker vier al sin omhu til at give liv til dit unikke stykke. Vi vil holde dig opdatert på hvert trinn.",
+            "craftsmanship_message": "Vores håndværker vier al sin omhu til at give liv til dit unikke stykke. Vi vil holde dig opdatert på hvert trin.",
             "craftsmanship_note": "Du kan følge fremskridtene for din ordre fra din kundekonto."
         },
         "nl": {
@@ -3329,7 +3329,7 @@
             "customer_qty_product_title": "Berørt produkt",
             "customer_qty_back": "Tilbage i begrænset mængde:",
             "customer_qty_btn": "Vis produkt",
-            "customer_qty_limited": "Dette tilbud er strengt begrenset til tilgjengelig lager. Vi opfordrer dig til ikke at tøve.",
+            "customer_qty_limited": "Dette tilbud er strengt begrænset til tilgængeligt lager. Vi opfordrer dig til ikke at tøve.",
             "dear_customer": "Kære kunde,"
         },
         "nl": {
@@ -6182,7 +6182,7 @@
             "dear_customer": "Kære kunde,",
             "newsletter_intro": "Vi er glade for at dele vores seneste nyheder med dig. Opdag nedenfor den seneste information fra vores hus.",
             "newsletter_content": "Nyhedsbrevets indhold",
-            "newsletter_update": "For ikke at gå glip af vores fremtidige nyheter, hold dig forbundet.",
+            "newsletter_update": "For ikke at gå glip af vores fremtidige nyheder, hold dig forbundet.",
             "newsletter_btn": "Udforsk huset"
         },
         "nl": {
@@ -6375,7 +6375,7 @@
         "da": {
             "greeting_main": "Du tilhører nu vores indre kreds",
             "greeting_subtitle": "Velkommen til vores tillidskresen",
-            "newsletter_conf_intro": "Vi er glade for at byde dig velkommen blandt vores abonnenter. Dit abonnement på vores nyhedsbrev er bekreftet.",
+            "newsletter_conf_intro": "Vi er glade for at byde dig velkommen blandt vores abonnenter. Dit abonnement på vores nyhedsbrev er bekræftet.",
             "newsletter_conf_title": "Bekræftelse",
             "newsletter_conf_text": "Du vil nu modtage vores nye kollektioner, private invitationer og højdepunkter fra vores hus først — delt med dem, vi værdsætter.",
             "newsletter_conf_promise": "Din tillid er hellig. Vi beskytter den, ligesom vi beskytter vores omdømme: med stringens og diskretion.",
@@ -8604,7 +8604,7 @@
         },
         "da": {
             "greeting_main": "Dit stykke undslipper os øjeblikkeligt",
-            "greeting_subtitle": "Din ordre forblir vores prioritet",
+            "greeting_subtitle": "Din ordre forbliver vores prioritet",
             "dear_customer": "Kære kunde,",
             "outofstock_intro": "Vi beklager at informere dig om, at en af varerne i din ordre i øjeblikket ikke er tilgængelig.",
             "order_details_title": "Ordre",
@@ -9440,12 +9440,12 @@
         },
         "da": {
             "greeting_main": "Et øjebliks opmærksomhed påkrævet",
-            "greeting_subtitle": "Din ordre forblir vores prioritet",
+            "greeting_subtitle": "Din ordre forbliver vores prioritet",
             "dear_customer": "Kære kunde,",
             "payment_error_intro": "Et teknisk afbrud har stoppet behandlingen af din betaling. Vi beklager og inviterer dig til at regulere den, når det passer dig.",
             "order_details_title": "Ordre",
             "payment_error_issue": "Betaling for ordre",
-            "payment_error_apologies": "Din ordre er bevaret og forblir prioritet. Du kan regulere din betaling, når du ønsker det — vi venter på dig.",
+            "payment_error_apologies": "Din ordre er bevaret og forbliver prioritet. Du kan regulere din betaling, når du ønsker det — vi venter på dig.",
             "payment_error_help": "Skulle dette besvær vedvare, inviterer vi dig til at gennemgå detaljerne i din bestilling fra dit personlige rum.",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Hvis du bestilte som gæst, følg din ordre via det dedikerede link</a>",
             "payment_error_thanks": "Tak for din forståelse,"
@@ -9681,7 +9681,7 @@
             "care_tips_title": "Plejetips",
             "care_tip_1": "Undgå længerevarende udsættelse for direkte lys eller intense varmekilder.",
             "care_tip_2": "Rengør forsigtigt med en blød, tør klud. Brug ingen kemiske produkter.",
-            "care_tip_3": "Opbevar dit stykke på et tørt, støvfritt sted, når det ikke er i brug.",
+            "care_tip_3": "Opbevar dit stykke på et tørt, støvfrit sted, når det ikke er i brug.",
             "care_note": "Vores team står til din rådighed for yderligere information.",
             "signature_thanks": "Som vogtere af dine enestående stykker, med al vores omhu,"
         },
@@ -10285,7 +10285,7 @@
             "invitation_details_title": "Begivenhedsdetaljer",
             "invitation_closing": "Din tilstedeværelse ville være en ære for os. Vi venter på den.",
             "invitation_btn": "Bekræft min tilstedeværelse",
-            "invitation_note": "Denne invitation er strikt personlig og kan ikke overføres."
+            "invitation_note": "Denne invitation er strengt personlig og kan ikke overføres."
         },
         "nl": {
             "greeting_main": "U behoort tot onze eregazten",
@@ -11266,7 +11266,7 @@
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Du kan se din ordrehistorik fra din kundekonto</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Hvis du bestilte som gæst, følg din ordre via det dedikerede link</a>",
             "refund_thanks": "Med vores dybeste taknemmelighed,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "Uw terugbetaling is voltooid",
@@ -11416,7 +11416,7 @@
             "dear_customer": "Kære kunde,",
             "reply_msg_message": "Svar fra vores team",
             "reply_msg_noreply": "Svar venligst ikke på denne automatiske e-mail.",
-            "reply_msg_contact": "For spørsmål, kontakt os via vores hjemmeside."
+            "reply_msg_contact": "For spørgsmål, kontakt os via vores hjemmeside."
         },
         "nl": {
             "greeting_main": "Ons team antwoordt u",
@@ -12680,7 +12680,7 @@
             "greeting_main": "Eksellensen er nu din",
             "greeting_subtitle": "Velkommen til vores eksklusive kreds",
             "dear_customer": "Kære kunde,",
-            "vip_intro": "Din enestående loyalitet rører os dypt. Med oprigtig taknemmelighed byder vi dig velkommen i vores mest eksklusive kreds — den, vi reserverer til dem, der ærer os med deres varige tillid.",
+            "vip_intro": "Din enestående loyalitet rører os dybt. Med oprigtig taknemmelighed byder vi dig velkommen i vores mest eksklusive kreds — den, vi reserverer til dem, der ærer os med deres varige tillid.",
             "vip_privileges": "Din VIP-status åbner døre, som vi holder lukkede for resten af verden: forhåndsvisninger af vores nye kreationer, private invitationer til vores begivenheder, skræddersyede tilbud og personlig støtte.",
             "vip_btn": "Opdag mine privilegier",
             "vip_note": "Denne status er et spejl af din tillid. Vi bærer den med lige så stor omhu, som du viser os.",
@@ -13367,7 +13367,7 @@
             "apology_intro": "Vi skriver ikke for at retfærdiggøre os. Vi skriver for at påtage os det fulde ansvar og fremlægge vores undskyldninger uden forbehold.",
             "apology_details_title": "Hændelsesdetaljer",
             "order_reference_label": "Reference",
-            "apology_responsibility": "Denne forsinkelse afspejler på ingen måde de standarder, vi pålægger os selv. Vi er de første, der rammes, og beslutsomme på, at det forblir en absolut undtagelse.",
+            "apology_responsibility": "Denne forsinkelse afspejler på ingen måde de standarder, vi pålægger os selv. Vi er de første, der rammes, og beslutsomme på, at det forbliver en absolut undtagelse.",
             "apology_solution": "Et medlem af vores team vil kontakte dig personligt inden for 24 timer for at blive enige om den mest passende løsning — en, som vi håber, vil genoprette din tillid.",
             "apology_btn": "Kontakt vores service",
             "apology_note": "Din tålmodighed og venlighed rører os. Vi må nu fortjene dem.",
@@ -13624,7 +13624,7 @@
             "order_on_hold_btn": "Spor min ordre",
             "order_on_hold_note": "Vores team står til din rådighed for spørgsmål.",
             "order_on_hold_signature": "Med al vores opmærksomhed,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "Uw bestelling is in behandeling",
@@ -13861,7 +13861,7 @@
             "customs_alert_btn": "Spor min pakke",
             "customs_alert_note": "Vores team kan hjælpe dig med procedurerne, hvis det er nødvendigt.",
             "customs_alert_signature": "Til din tjeneste for at klare dette trin,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "Uw bestelling steekt een grens over",
@@ -14097,7 +14097,7 @@
             "delivery_attempt_btn": "Se afhentningsmuligheder",
             "delivery_attempt_note": "Pakken opbevares på et afhentningssted for dig.",
             "delivery_attempt_signature": "I forventning om at betjene dig,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "Uw pakket kon niet worden bezorgd",
@@ -14333,7 +14333,7 @@
             "address_update_btn": "Se min ordre",
             "address_update_note": "Hvis denne ændring ikke var tilsigtet, bedes du kontakte os hurtigt.",
             "address_update_signature": "Med al vores opmærksomhed,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "Uw leveringsadres is bijgewerkt",
@@ -16717,7 +16717,7 @@
             "hanukkah_intro": "I anledning af Hanukkah, lysfesten, sender vi dig vores mest oprigtige ønsker.",
             "hanukkah_message": "Må denne hellige højtid bringe dig hjemmets varme, fred og ro.",
             "hanukkah_btn": "Opdag vores kreationer",
-            "hanukkah_note": "En særlig opmærksomhed venter dig til slutten af uken.",
+            "hanukkah_note": "En særlig opmærksomhed venter dig til slutningen af ugen.",
             "hanukkah_signature": "Hele teamet ønsker dig en vidunderlig Hanukkah."
         },
         "nl": {
@@ -18409,7 +18409,7 @@
             "repair_request_btn": "Følg min anmodning",
             "repair_request_note": "Vores team vil kontakte dig for at bekræfte servicevilkårene.",
             "repair_request_signature": "Til din tjeneste,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "Uw reparatieverzoek is ontvangen",
@@ -18609,7 +18609,7 @@
             "repair_completed_btn": "Arranger retur",
             "repair_completed_note": "Vores team vil kontakte dig for at blive enige om returvilkårene.",
             "repair_completed_signature": "Vi er glade for at betjene dig,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "Uw stuk is klaar",
@@ -18826,7 +18826,7 @@
             "alteration_update_btn": "Følg fremskridtene",
             "alteration_update_note": "Vores team står til din rådighed for spørgsmål.",
             "alteration_update_signature": "Til din tjeneste,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "Update van uw aanpassing",
@@ -19027,7 +19027,7 @@
             "extended_warranty_btn": "Se vilkår",
             "extended_warranty_note": "Denne udvidede garanti er gyldig i en specificeret periode. Gem dette bevis.",
             "extended_warranty_signature": "Til din tjeneste,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "Uw uitgebreide garantie is actief",
@@ -19261,7 +19261,7 @@
             "product_recall_btn": "Læs mere",
             "product_recall_note": "Vores team står til din rådighed for spørgsmål. Vi takker dig for din forståelse.",
             "product_recall_signature": "Med al vores respekt,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "Belangrijke informatie over een van onze producten",
@@ -20171,7 +20171,7 @@
             "tax_refund_btn": "Start proceduren",
             "tax_refund_note": "Vores team vil hjælpe dig med de nødvendige trin.",
             "tax_refund_signature": "Til din tjeneste,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "U komt in aanmerking voor belastingteruggaaf",
@@ -20451,7 +20451,7 @@
             "corporate_confirm_btn": "Spor min ordre",
             "corporate_confirm_note": "Vores dedikerede team til virksomhedsrelationer står til din rådighed.",
             "corporate_confirm_signature": "Til din tjeneste for dette partnerskab,",
-            "order_reference_label": "Ordriereference",
+            "order_reference_label": "Ordrereference",
             "col_reference": "Ref.",
             "col_product": "Produkt",
             "col_unit_price": "Enhedspris",
@@ -20661,7 +20661,7 @@
             "gift_message_confirm_btn": "Se min ordre",
             "gift_message_confirm_note": "Modtageren vil modtage denne besked sammen med sin pakke.",
             "gift_message_confirm_signature": "Med al vores opmærksomhed,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "Uw cadeaubericht is geregistreerd",
@@ -20861,7 +20861,7 @@
             "multi_recipient_btn": "Spor pakkerne",
             "multi_recipient_note": "Du vil modtage en separat bekræftelse for hver modtager.",
             "multi_recipient_signature": "Vi håber, at hvert stykke finder sin ejer,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "Uw pakketten zijn onderweg",
@@ -21078,7 +21078,7 @@
             "shipped_delay_btn": "Spor min ordre",
             "shipped_delay_note": "Vi holder dig orienteret om eventuelle ændringer. Vi beklager.",
             "shipped_delay_signature": "Med al vores respekt,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "Een lichte vertraging voor uw bestelling",
@@ -21279,7 +21279,7 @@
             "partial_shipped_btn": "Spor mine pakker",
             "partial_shipped_note": "Vi holder dig orienteret om forsendelsen af de resterende pakker.",
             "partial_shipped_signature": "Med al vores opmærksomhed,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "Uw bestelling wordt in meerdere pakketten verzonden",
@@ -21479,7 +21479,7 @@
             "return_received_btn": "Spor min retur",
             "return_received_note": "Vi holder dig orienteret om behandlingens fremskridt.",
             "return_received_signature": "Til din tjeneste,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "We hebben uw retour ontvangen",
@@ -21695,7 +21695,7 @@
             "refund_processed_btn": "Se min ordre",
             "refund_processed_note": "Beløbet vil blive krediteret din konto i henhold til din banks sædvanlige tidsplan.",
             "refund_processed_signature": "Til din tjeneste,",
-            "order_reference_label": "Ordriereference",
+            "order_reference_label": "Ordrereference",
             "refund_amount_label": "Tilbagebetalingsbeløb"
         },
         "nl": {
@@ -23151,7 +23151,7 @@
             "bespoke_ready_btn": "Spor leveringen",
             "bespoke_ready_note": "Vi takker dig for din tålmodighed. Dette unikke stykke er endelig klar til at nå dig.",
             "bespoke_ready_signature": "Stolte over at have fulgt dig i denne skabelse,",
-            "order_reference_label": "Ordriereference"
+            "order_reference_label": "Ordrereference"
         },
         "nl": {
             "greeting_main": "Uw op maat gemaakte stuk is klaar",
@@ -23930,7 +23930,7 @@
             "footer_guest_tracking": "Gæstesporing",
             "footer_legal": "Juridiske oplysninger",
             "footer_unsubscribe": "Afmeld",
-            "order_reference_label": "Ordriereference",
+            "order_reference_label": "Ordrereference",
             "footer_preferences": "Administrer mine præferencer",
             "carbon_label": "Anslået CO₂-aftryk for denne e-mail",
             "carbon_method": "metodik"
