@@ -716,7 +716,7 @@
             "greeting_main": "Vårt hus öppnar sina dörrar för dig",
             "greeting_subtitle": "Din eleganta värld börjar här",
             "dear_customer": "Bästa kund,",
-            "account_intro": "Er närvaro är en heder för oss. Ert personliga utrymme har förberetts med omsorg — det väntar på er.",
+            "account_intro": "Din närvaro är en heder för oss. Ditt personliga utrymme har förberetts med omsorg — det väntar på dig.",
             "account_info_title": "Din kontoinformation",
             "account_info_text": "Du kan nu hantera dina beställningar, följa dina leveranser och ändra dina personuppgifter.",
             "account_email_label": "Ansluten e-postadress",
@@ -725,7 +725,7 @@
             "account_security_2": "Vi delar aldrig dina personuppgifter med tredje part.",
             "account_security_3": "Du kan radera ditt konto när som helst på enkel begäran.",
             "account_security_4": "För frågor står vår kundservice till din tjänst.",
-            "account_ready": "Ert personliga utrymme är nu aktivt. Vi inbjuder er att träda in.",
+            "account_ready": "Ditt personliga utrymme är nu aktivt. Vi inbjuder dig att träda in.",
             "account_btn": "Gå till mitt konto",
             "signature_thanks": "Huset är glatt att räkna dig bland sina egna,"
         },
@@ -1614,7 +1614,7 @@
             "dear_customer": "Bästa {firstname} {lastname},",
             "birthday_intro": "Denna speciella dag tänker hela vårt team på dig. En exceptionell persons födelsedag förtjänar att firas med den glans den förtjänar.",
             "birthday_message": "Vi har glädjen att erbjuda dig denna gest som ett vittnesbörd om den uppskattning vi har för dig — och glädjen att räkna dig bland oss.",
-            "birthday_voucher_value": "Er uppmärksamhetskod",
+            "birthday_voucher_value": "Din uppmärksamhetskod",
             "birthday_usage": "Giltig i {validity_days} dagar i hela vårt hus. Denna uppmärksamhet kan inte kombineras.",
             "birthday_btn": "Upptäck mitt urval",
             "birthday_signature": "Hela huset sänder dig sina käraste önskningar, med tillgivenhet och elegans,"
@@ -3925,7 +3925,7 @@
             "employee_password_firstname": "Förnamn",
             "employee_password_lastname": "Efternamn",
             "employee_password_email": "E-postadress",
-            "employee_password_security": "Om du inte gjort denna begäran, vänligen kontakt din chef omedelbart."
+            "employee_password_security": "Om du inte gjort denna begäran, vänligen kontakta din chef omedelbart."
         },
         "no": {
             "greeting_main": "Tilbakestill passordet ditt",
@@ -4567,7 +4567,7 @@
             "guest_to_customer_account_link": "Hesabıma eriş"
         },
         "sv": {
-            "greeting_main": "Ert personliga utrymme väntar på er",
+            "greeting_main": "Ditt personliga utrymme väntar på dig",
             "greeting_subtitle": "Gå med i vår krets i ett steg",
             "dear_customer": "Bästa {firstname} {lastname},",
             "guest_to_customer_intro": "Du har nyligen lagt en beställning som gäst. Vi inbjuder dig att omvandla ditt gästkonto till ett permanent kundkonto för att njuta av många fördelar.",
@@ -4575,7 +4575,7 @@
             "account_email_label": "E-postadress",
             "guest_to_customer_password": "Ange ditt lösenord för att aktivera ditt konto och få tillgång till din personliga yta.",
             "guest_to_customer_btn": "Aktivera min personliga yta",
-            "guest_to_customer_benefits": "Ert personliga utrymme låter er hitta era privilegier när som helst: följa era kreationer under transport, konsultera historiken över era val och förbereda era framtida besök under de bästa förhållandena.",
+            "guest_to_customer_benefits": "Ditt personliga utrymme låter dig hitta dina privilegier när som helst: följa dina kreationer under transport, konsultera historiken över dina val och förbereda dina framtida besök under de bästa förhållandena.",
             "guest_to_customer_account_link": "Gå till mitt konto"
         },
         "no": {
@@ -8791,7 +8791,7 @@
             "password_confirmation": "Ditt lösenord har uppdaterats. Du kan nu logga in med dina nya inloggningsuppgifter.",
             "password_account_link": "Du kan komma åt ditt kundkonto genom att klicka på länken nedan:",
             "password_my_account": "Gå till mitt konto",
-            "password_security_note": "Om du inte gjorde denna ändring, vänligen kontakt vår kundtjänst omedelbart."
+            "password_security_note": "Om du inte gjorde denna ändring, vänligen kontakta vår kundtjänst omedelbart."
         },
         "no": {
             "greeting_main": "Tilgangen din er sikret",
@@ -9422,7 +9422,7 @@
             "order_details_title": "Beställning",
             "payment_error_issue": "Betalning för beställning",
             "payment_error_apologies": "Din beställning är bevarad och förblir prioritet. Du kan reglera din betalning när du vill — vi väntar på dig.",
-            "payment_error_help": "Om detta besvär kvarstår inbjuder vi er att granska detaljerna i er beställning från ert personliga utrymme.",
+            "payment_error_help": "Om detta besvär kvarstår inbjuder vi dig att granska detaljerna i din beställning från ditt personliga utrymme.",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Om du beställde som gäst, följ din beställning via den dedikerade länken</a>",
             "payment_error_thanks": "Tack för din förståelse,"
         },
@@ -10430,7 +10430,7 @@
             "greeting_main": "En inbjudan vi reserverar för ett fåtal",
             "greeting_subtitle": "En exklusiv access till våra kollektioner",
             "dear_customer": "Bästa kund,",
-            "private_sale_intro": "Vi har privilegiet att bjuda in er till vår privatförsäljning, reserverad för våra mest värdefulla gäster.",
+            "private_sale_intro": "Vi har privilegiet att bjuda in dig till vår privatförsäljning, reserverad för våra mest värdefulla gäster.",
             "private_sale_message": "Njut av ett unikt urval av sällsynta föremål till privilegierade villkor.",
             "private_sale_btn": "Få tillgång till den privata försäljningen",
             "private_sale_note": "Detta erbjudande är strikt personligt och tidsbegränsat."
@@ -12882,9 +12882,9 @@
         },
         "sv": {
             "greeting_main": "En tacksamhetsgest för ditt förtroende",
-            "greeting_subtitle": "En särskild uppmärksamhet för er beställning",
+            "greeting_subtitle": "En särskild uppmärksamhet för din beställning",
             "dear_customer": "Bästa kund,",
-            "voucher_intro": "Ert förtroende rör oss. Som ett tecken på vår tacksamhet har vi förberett en uppmärksamhet för er.",
+            "voucher_intro": "Ditt förtroende rör oss. Som ett tecken på vår tacksamhet har vi förberett en uppmärksamhet för dig.",
             "order_details_title": "Beställning",
             "voucher_for_order": "Ett presentkort har skapats för beställningen",
             "voucher_amount_label": "Presentkortets belopp",
@@ -13107,8 +13107,8 @@
             "greeting_subtitle": "En uppskattningsgest",
             "dear_customer": "Bästa kund,",
             "voucher_new_intro": "Vi är glada att erbjuda dig ett nytt presentkort.",
-            "voucher_new_title": "En uppmärksamhet för er",
-            "voucher_new_text": "Vi har förberett denna uppmärksamhet för er. Ni kan använda den vid ert nästa besök.",
+            "voucher_new_title": "En uppmärksamhet för dig",
+            "voucher_new_text": "Vi har förberett denna uppmärksamhet för dig. Du kan använda den vid ditt nästa besök.",
             "voucher_code": "Presentkortskod",
             "voucher_new_usage": "Detta presentkort är giltigt i {validity_days} dagar i hela vår butik. Kan inte kombineras med andra erbjudanden.",
             "voucher_next": "Vi hoppas att du hittar något som faller dig i smaken bland våra skapelser.",
@@ -19470,7 +19470,7 @@
             "quote_expiry_label": "Löper ut:",
             "quote_expiry_48h_btn": "Bekräfta min beställning",
             "quote_expiry_48h_help": "Vårt team är helt tillgängligt för alla frågor eller justeringar innan bekräftelse.",
-            "quote_expiry_48h_note": "Detta offert löper ut den {expiry_date}. Efter detta datum kan de avtalade prisvillkoren inte garanteras.",
+            "quote_expiry_48h_note": "Denna offert löper ut den {expiry_date}. Efter detta datum kan de avtalade prisvillkoren inte garanteras.",
             "quote_expiry_48h_signature": "Med utmärkt aktning,"
         },
         "no": {
@@ -19704,9 +19704,9 @@
             "quote_ref_label": "Offertreferens:",
             "quote_total_label": "Belopp:",
             "quote_expiry_label": "Löper ut:",
-            "quote_expiry_day_btn": "Bekräfta mitt offert nu",
+            "quote_expiry_day_btn": "Bekräfta min offert nu",
             "quote_expiry_day_help": "Vid brådskande frågor är vårt team omedelbart tillgängligt.",
-            "quote_expiry_day_note": "Detta offert löper ut idag. Därefter kan de avtalade prisvillkoren komma att ändras.",
+            "quote_expiry_day_note": "Denna offert löper ut idag. Därefter kan de avtalade prisvillkoren komma att ändras.",
             "quote_expiry_day_signature": "Med utmärkt aktning,"
         },
         "no": {
@@ -19936,12 +19936,12 @@
             "greeting_main": "Vi erbjuder en förlängning av ditt offert",
             "greeting_subtitle": "Ditt projekt kan fortfarande förverkligas",
             "dear_customer": "Bäste kund,",
-            "quote_extension_intro": "Ditt offert har löpt ut, men vi vill erbjuda dig möjligheten att gå vidare. På enkel begäran kan vi förlänga dess giltighetstid beroende på tillgänglighet.",
+            "quote_extension_intro": "Din offert har löpt ut, men vi vill erbjuda dig möjligheten att gå vidare. På enkel begäran kan vi förlänga dess giltighetstid beroende på tillgänglighet.",
             "quote_ref_label": "Offertreferens:",
             "quote_total_label": "Belopp:",
             "quote_extension_new_expiry_label": "Förlängning möjlig till:",
             "quote_extension_btn": "Begär en förlängning",
-            "quote_extension_help": "Kontakta oss idag för att bekräfta ditt offert under de ursprungliga villkoren. Vårt team kommer att granska din begäran med yttersta omsorg.",
+            "quote_extension_help": "Kontakta oss idag för att bekräfta din offert under de ursprungliga villkoren. Vårt team kommer att granska din begäran med yttersta omsorg.",
             "quote_extension_note": "Detta förlängningserbjudande är beroende av artikelns tillgänglighet och bekräftelse från vårt team.",
             "quote_extension_signature": "Med utmärkt aktning,"
         },
