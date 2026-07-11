@@ -2244,11 +2244,11 @@
             "greeting_main": "Boas Festas",
             "greeting_subtitle": "Que esta época seja calorosa e brilhante",
             "dear_customer": "Prezado/a {firstname} {lastname},",
-            "christmas_intro": "Nesta época em que a luz triunfa sobre o frio, a nossa casa pensa em si com um calor muito particular.",
-            "christmas_message": "Que estas festas lhe ofereçam o que o quotidiano concede demasiado raramente: tempo, doçura e a companhia de quem conta.",
+            "christmas_intro": "Nesta época em que a luz triunfa sobre o frio, nossa casa pensa em você com um carinho muito especial.",
+            "christmas_message": "Que estas festas ofereçam a você o que o dia a dia raramente concede: tempo, carinho e a companhia de quem importa.",
             "christmas_btn": "Descubra as nossas criações",
             "christmas_note": "Uma atenção especial está reservada para você até 31 de dezembro.",
-            "christmas_signature": "Toda a equipe deseja-lhe boas festas."
+            "christmas_signature": "Toda a equipe deseja a você boas festas."
         },
         "ar": {
             "greeting_main": "أعياد سعيدة",
@@ -2431,7 +2431,7 @@
         "br": {
             "greeting_main": "Sua voz foi ouvida",
             "greeting_subtitle": "Responderemos com a atenção que merece",
-            "contact_intro": "Confirmamos o recebimento da sua solicitação e agradecemos por nos contactar. Segue uma cópia das informações que nos forneceu:",
+            "contact_intro": "Confirmamos o recebimento da sua solicitação e agradecemos por entrar em contato. Segue uma cópia das informações que você forneceu:",
             "contact_info_title": "Informações de contato",
             "contact_email_label": "Endereço de e-mail",
             "order_reference_label": "Referência do pedido",
@@ -10170,7 +10170,7 @@
             "greeting_main": "Você é um de nossos convidados de honra",
             "greeting_subtitle": "Um círculo exclusivo, um privilégio raro",
             "dear_customer": "Prezado Cliente,",
-            "invitation_intro": "Você faz parte do círculo muito restrito de personalidades a quem reservamos este convite. Não será renovado e não pode ser compartilhado.",
+            "invitation_intro": "Você faz parte do círculo muito restrito de pessoas para quem reservamos este convite. Ele não será renovado e não pode ser compartilhado.",
             "invitation_message": "Em um quadro de exceção, longe do comércio comum, você descobrirá em primeira mão o que a nossa casa prepara para quem sabe olhar.",
             "invitation_details_title": "Detalhes do evento",
             "invitation_closing": "Sua presença seria uma honra para nós. Aguardamo-la.",
@@ -10358,7 +10358,7 @@
             "greeting_main": "Um convite que reservamos a poucos",
             "greeting_subtitle": "Um acesso exclusivo às nossas coleções",
             "dear_customer": "Prezado Cliente,",
-            "private_sale_intro": "Temos o privilégio de convidá-lo para nossa venda privada, reservada aos nossos convidados mais preciosos.",
+            "private_sale_intro": "Temos o privilégio de convidar você para nossa venda privada, reservada aos nossos convidados mais especiais.",
             "private_sale_message": "Desfrute de uma seleção única de peças raras em condições privilegiadas.",
             "private_sale_btn": "Acessar a venda privada",
             "private_sale_note": "Esta oferta é estritamente pessoal e limitada no tempo."
@@ -12022,7 +12022,7 @@
             "shipped_wait": "Agora está nas mãos da nossa transportadora e chegará dentro do prazo previsto.",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Você pode ver o histórico do seu pedido a partir da sua conta de cliente</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se fez seu pedido como convidado, acompanhe-o através do link dedicado</a>",
-            "shipped_wish": "Desejamos-lhe uma receção à altura da emoção que esta peça carrega consigo.",
+            "shipped_wish": "Desejamos a você uma recepção à altura da emoção que esta peça carrega com ela.",
             "signature_thanks": "Com todo o nosso orgulho e dedicação,"
         },
         "ar": {
@@ -12583,7 +12583,7 @@
             "vip_intro": "A sua excepcional lealdade nos toca profundamente. É com sincera gratidão que o acolhemos em nosso círculo mais exclusivo — aquele que reservamos para quem nos honra com a sua confiança duradoura.",
             "vip_privileges": "Seu status VIP abre portas que mantemos fechadas para o resto do mundo: pré-estreias de nossas novas criações, convites privados para nossos eventos, ofertas sob medida e acompanhamento personalizado.",
             "vip_btn": "Descobrir meus privilégios",
-            "vip_note": "Este status é um reflexo da sua confiança. Nós o carregamos com tanto cuidado quanto você nos demonstra.",
+            "vip_note": "Este status reflete a sua confiança. Nós a valorizamos tanto quanto você nos demonstra.",
             "signature_thanks": "Com toda a nossa gratidão e admiração,"
         },
         "ar": {
@@ -16250,11 +16250,11 @@
             "greeting_main": "Feliz ano novo",
             "greeting_subtitle": "Que este novo ano lhe seja doce",
             "dear_customer": "Prezado Cliente,",
-            "new_year_intro": "No início deste ano, desejamos acompanhá-lo com os nossos mais sinceros votos.",
-            "new_year_message": "Que este novo ano seja para si um caminho de doçura, sucesso e belas descobertas.",
+            "new_year_intro": "No início deste ano, desejamos acompanhar você com nossos votos mais sinceros.",
+            "new_year_message": "Que este novo ano seja para você um caminho de leveza, sucesso e belas descobertas.",
             "new_year_btn": "Descubra as nossas criações",
-            "new_year_note": "Uma atenção especial está reservada para si até ao final do mês.",
-            "new_year_signature": "Toda a equipa deseja-lhe um excelente ano."
+            "new_year_note": "Uma atenção especial está reservada para você até o final do mês.",
+            "new_year_signature": "Toda a equipe deseja a você um excelente ano."
         },
         "ar": {
             "greeting_main": "عام جديد سعيد",
@@ -16432,11 +16432,11 @@
             "greeting_main": "Feliz Diwali",
             "greeting_subtitle": "Que a luz triunfe sobre a escuridão",
             "dear_customer": "Prezado Cliente,",
-            "diwali_intro": "Por ocasião de Diwali, o festival das luzes, enviamos-lhe os nossos mais calorosos votos.",
+            "diwali_intro": "Por ocasião do Diwali, o festival das luzes, enviamos a você nossos votos mais calorosos.",
             "diwali_message": "Que esta celebração sagrada traga clareza, prosperidade e alegria à sua vida.",
             "diwali_btn": "Descubra as nossas criações",
-            "diwali_note": "Uma atenção especial está reservada para si até ao final da semana.",
-            "diwali_signature": "Toda a equipa deseja-lhe um maravilhoso Diwali."
+            "diwali_note": "Uma atenção especial está reservada para você até o final da semana.",
+            "diwali_signature": "Toda a equipe deseja a você um maravilhoso Diwali."
         },
         "ar": {
             "greeting_main": "ديوالي سعيدة",
@@ -16614,11 +16614,11 @@
             "greeting_main": "Feliz Hanukkah",
             "greeting_subtitle": "Que esta festa das luzes o ilumine",
             "dear_customer": "Prezado Cliente,",
-            "hanukkah_intro": "Por ocasião de Hanukkah, a festa das luzes, enviamos-lhe os nossos mais sinceros votos.",
-            "hanukkah_message": "Que esta celebração sagrada lhe traga o calor do lar, a paz e a serenidade.",
+            "hanukkah_intro": "Por ocasião do Hanukkah, a festa das luzes, enviamos a você nossos votos mais sinceros.",
+            "hanukkah_message": "Que esta celebração sagrada traga a você o aconchego do lar, a paz e a serenidade.",
             "hanukkah_btn": "Descubra as nossas criações",
-            "hanukkah_note": "Uma atenção especial está reservada para si até ao final da semana.",
-            "hanukkah_signature": "Toda a equipa deseja-lhe um maravilhoso Hanukkah."
+            "hanukkah_note": "Uma atenção especial está reservada para você até o final da semana.",
+            "hanukkah_signature": "Toda a equipe deseja a você um maravilhoso Hanukkah."
         },
         "ar": {
             "greeting_main": "حانوكا سعيدة",
@@ -16984,10 +16984,10 @@
             "greeting_main": "Um presente para fechar o ano",
             "greeting_subtitle": "Obrigado pela sua fidelidade",
             "dear_customer": "Prezado Cliente,",
-            "end_of_year_intro": "No final deste ano, queremos oferecer-lhe uma atenção especial, em reconhecimento pela sua confiança.",
-            "end_of_year_message": "Este gesto reflete a preciosa relação que mantemos consigo.",
+            "end_of_year_intro": "No final deste ano, queremos oferecer a você uma atenção especial, em reconhecimento à sua confiança.",
+            "end_of_year_message": "Este gesto reflete a preciosa relação que temos com você.",
             "end_of_year_voucher_value": "O seu código de desconto",
-            "end_of_year_usage": "Válido por {validity_days} dias em toda a nossa boutique. Não acumulável com outras ofertas.",
+            "end_of_year_usage": "Válido por {validity_days} dias em toda a nossa boutique. Não cumulativo com outras ofertas.",
             "end_of_year_btn": "Descobrir a minha seleção",
             "end_of_year_signature": "Com toda a nossa gratidão,"
         },
@@ -17363,8 +17363,8 @@
             "wishlist_intro": "Uma das peças que você destacou em sua lista de desejos está novamente disponível.",
             "wishlist_details": "Detalhes da peça",
             "wishlist_btn": "Ver a peça",
-            "wishlist_note": "A disponibilidade é limitada. Convidamo-lo a não demorar.",
-            "wishlist_signature": "Ao seu serviço,"
+            "wishlist_note": "A disponibilidade é limitada. Convidamos você a não demorar.",
+            "wishlist_signature": "À sua disposição,"
         },
         "ar": {
             "greeting_main": "قطعتكم المفضلة متاحة",
@@ -17542,11 +17542,11 @@
             "greeting_main": "Um acesso antes de todos",
             "greeting_subtitle": "O seu privilégio de fidelidade",
             "dear_customer": "Prezado Cliente,",
-            "early_access_intro": "Em reconhecimento da sua fidelidade, abrimos-lhe o acesso à nossa nova coleção antes do seu lançamento oficial.",
+            "early_access_intro": "Em reconhecimento à sua fidelidade, abrimos a você o acesso à nossa nova coleção antes do lançamento oficial.",
             "early_access_details": "Coleção em pré-estreia",
-            "early_access_btn": "Aceder à coleção",
-            "early_access_note": "Este acesso antecipado é estritamente pessoal e limitado no tempo.",
-            "early_access_signature": "Temos o prazer de partilhar este momento consigo,"
+            "early_access_btn": "Acessar a coleção",
+            "early_access_note": "Este acesso antecipado é estritamente pessoal e por tempo limitado.",
+            "early_access_signature": "Temos o prazer de compartilhar este momento com você,"
         },
         "ar": {
             "greeting_main": "وصول قبل الجميع",
@@ -17906,10 +17906,10 @@
             "greeting_main": "Está na lista de espera",
             "greeting_subtitle": "Manteremos você informado",
             "dear_customer": "Prezado Cliente,",
-            "waitlist_intro": "Você manifestou interesse numa peça atualmente indisponível. A sua inscrição na nossa lista de espera foi registada com sucesso.",
+            "waitlist_intro": "Você manifestou interesse em uma peça atualmente indisponível. Sua inscrição na nossa lista de espera foi registrada com sucesso.",
             "waitlist_details": "Peça em causa",
             "waitlist_btn": "Ver a peça",
-            "waitlist_note": "Contactaremos você assim que a peça estiver novamente disponível.",
+            "waitlist_note": "Vamos entrar em contato assim que a peça estiver disponível novamente.",
             "waitlist_signature": "Com toda a nossa atenção,"
         },
         "ar": {
@@ -18094,12 +18094,12 @@
             "greeting_main": "A sua recompensa está a expirar",
             "greeting_subtitle": "Uma atenção que só espera para ser usada",
             "dear_customer": "Prezado Cliente,",
-            "loyalty_expiry_intro": "A recompensa que obteve através do nosso programa de fidelidade expirará em breve.",
+            "loyalty_expiry_intro": "A recompensa que você obteve pelo nosso programa de fidelidade vai expirar em breve.",
             "loyalty_expiry_details": "Detalhes da recompensa",
             "loyalty_expiry_date_label": "Data de validade",
-            "loyalty_expiry_btn": "Usar a minha recompensa",
-            "loyalty_expiry_note": "Esta recompensa é válida até à data indicada. Após essa data, não poderá mais ser utilizada.",
-            "loyalty_expiry_signature": "Esperamos satisfazê-lo,"
+            "loyalty_expiry_btn": "Usar minha recompensa",
+            "loyalty_expiry_note": "Esta recompensa é válida até a data indicada. Após essa data, ela não poderá mais ser utilizada.",
+            "loyalty_expiry_signature": "Esperamos satisfazer você,"
         },
         "ar": {
             "greeting_main": "مكافأتكم على وشك الانتهاء",
@@ -18294,10 +18294,10 @@
             "greeting_main": "O seu pedido de reparação foi recebido",
             "greeting_subtitle": "Cuidaremos da sua peça",
             "dear_customer": "Prezado Cliente,",
-            "repair_request_intro": "Recebemos o seu pedido de reparação ou alteração da sua peça.",
+            "repair_request_intro": "Recebemos seu pedido de reparo ou modificação da sua peça.",
             "repair_request_details": "Detalhes do pedido",
             "repair_request_btn": "Acompanhar o meu pedido",
-            "repair_request_note": "A nossa equipa entrará em contacto consigo para confirmar as modalidades do serviço.",
+            "repair_request_note": "Nossa equipe entrará em contato com você para confirmar as condições do serviço.",
             "repair_request_signature": "Ao seu serviço,",
             "order_reference_label": "Referência do pedido"
         },
@@ -18494,11 +18494,11 @@
             "greeting_main": "A sua peça está pronta",
             "greeting_subtitle": "A reparação está concluída",
             "dear_customer": "Prezado Cliente,",
-            "repair_completed_intro": "Temos o prazer de o informar que a reparação ou alteração da sua peça está agora concluída.",
+            "repair_completed_intro": "Temos o prazer de informar que o reparo ou a modificação da sua peça já foi concluído.",
             "repair_completed_details": "Detalhes da intervenção",
             "repair_completed_btn": "Organizar a devolução",
-            "repair_completed_note": "A nossa equipa entrará em contacto consigo para acordar as condições de devolução.",
-            "repair_completed_signature": "Temos o prazer de o servir,",
+            "repair_completed_note": "Nossa equipe entrará em contato com você para combinar as condições de devolução.",
+            "repair_completed_signature": "Temos o prazer de atender você,",
             "order_reference_label": "Referência do pedido"
         },
         "ar": {
@@ -18700,11 +18700,11 @@
             "greeting_main": "Atualização da sua modificação",
             "greeting_subtitle": "A sua peça evolui de acordo com os seus desejos",
             "dear_customer": "Prezado Cliente,",
-            "alteration_update_intro": "Informamo-lo sobre o progresso da modificação à medida da sua peça. Eis as últimas novidades.",
+            "alteration_update_intro": "Informamos você sobre o andamento da modificação da sua peça sob medida. Aqui estão as últimas novidades.",
             "alteration_update_details": "Detalhes do progresso",
             "alteration_update_status": "Estado atual",
             "alteration_update_btn": "Acompanhar o progresso",
-            "alteration_update_note": "A nossa equipa está ao seu dispor para qualquer questão.",
+            "alteration_update_note": "Nossa equipe está à sua disposição para qualquer dúvida.",
             "alteration_update_signature": "Ao seu serviço,",
             "order_reference_label": "Referência do pedido"
         },
@@ -18912,10 +18912,10 @@
             "greeting_main": "A sua garantia prolongada está ativa",
             "greeting_subtitle": "Prolongamos o nosso compromisso",
             "dear_customer": "Prezado Cliente,",
-            "extended_warranty_intro": "Temos o prazer de o informar que a sua garantia prolongada está agora ativa para a peça em causa.",
+            "extended_warranty_intro": "Temos o prazer de informar que sua garantia estendida já está ativa para a peça em questão.",
             "extended_warranty_details": "Detalhes da garantia",
             "extended_warranty_btn": "Ver termos",
-            "extended_warranty_note": "Esta garantia prolongada é válida por um período especificado. Guarde este comprovativo.",
+            "extended_warranty_note": "Esta garantia estendida é válida por um período especificado. Guarde este comprovante.",
             "extended_warranty_signature": "Ao seu serviço,",
             "order_reference_label": "Referência do pedido"
         },
@@ -19124,12 +19124,12 @@
             "greeting_main": "Informação importante sobre um dos nossos produtos",
             "greeting_subtitle": "Devemos-lhe transparência",
             "dear_customer": "Prezado Cliente,",
-            "product_recall_intro": "Identificámos um ponto que requer a sua atenção relativamente a um produto que possa ter adquirido connosco. Esta comunicação é um ato de transparência.",
+            "product_recall_intro": "Identificamos um ponto que requer sua atenção em relação a um produto que você possa ter adquirido conosco. Esta comunicação é um ato de transparência.",
             "product_recall_details": "Detalhes da recolha",
             "product_recall_product_label": "Produto em questão",
             "product_recall_action": "O que fazer?",
             "product_recall_btn": "Saber mais",
-            "product_recall_note": "A nossa equipa está à sua disposição para qualquer questão. Agradecemos a sua compreensão.",
+            "product_recall_note": "Nossa equipe está à sua disposição para qualquer dúvida. Agradecemos a sua compreensão.",
             "product_recall_signature": "Com toda a nossa consideração,",
             "order_reference_label": "Referência do pedido"
         },
@@ -20059,7 +20059,7 @@
             "tax_refund_intro": "Como convidado residente fora da União Europeia, você é elegível para reembolso de impostos em suas compras.",
             "tax_refund_details": "Detalhes da sua elegibilidade",
             "tax_refund_btn": "Iniciar o procedimento",
-            "tax_refund_note": "A nossa equipa irá ajudá-lo nos passos necessários.",
+            "tax_refund_note": "Nossa equipe vai ajudar você nas etapas necessárias.",
             "tax_refund_signature": "Ao seu serviço,",
             "order_reference_label": "Referência do pedido"
         },
@@ -20283,14 +20283,14 @@
             "col_total_price": "Total"
         },
         "br": {
-            "greeting_main": "Confirmação da sua encomenda corporativa",
+            "greeting_main": "Confirmação do seu pedido corporativo",
             "greeting_subtitle": "Estamos a tratar do seu pedido profissional",
             "dear_customer": "Prezado Cliente,",
-            "corporate_confirm_intro": "Confirmamos a receção da sua encomenda em nome da sua empresa. Será tratada com toda a atenção que tal compromisso merece.",
-            "corporate_confirm_details": "Detalhes da encomenda corporativa",
-            "corporate_confirm_btn": "Acompanhar a minha encomenda",
-            "corporate_confirm_note": "A nossa equipa dedicada às relações corporativas está à sua disposição.",
-            "corporate_confirm_signature": "Ao seu serviço para esta parceria,",
+            "corporate_confirm_intro": "Confirmamos o recebimento do seu pedido em nome da sua empresa. Ele será tratado com toda a atenção que esse compromisso merece.",
+            "corporate_confirm_details": "Detalhes do pedido corporativo",
+            "corporate_confirm_btn": "Acompanhar meu pedido",
+            "corporate_confirm_note": "Nossa equipe dedicada às relações corporativas está à sua disposição.",
+            "corporate_confirm_signature": "À sua disposição para esta parceria,",
             "order_reference_label": "Referência do pedido",
             "col_reference": "Ref.",
             "col_product": "Produto",
@@ -20546,10 +20546,10 @@
             "greeting_main": "A sua mensagem de presente foi registada",
             "greeting_subtitle": "Será transmitida com cuidado",
             "dear_customer": "Prezado Cliente,",
-            "gift_message_confirm_intro": "Confirmamos que a mensagem que anexou à sua encomenda de presente foi registada com sucesso.",
+            "gift_message_confirm_intro": "Confirmamos que a mensagem que você anexou ao seu pedido de presente foi registrada com sucesso.",
             "gift_message_confirm_details": "Conteúdo da mensagem",
-            "gift_message_confirm_btn": "Ver a minha encomenda",
-            "gift_message_confirm_note": "O destinatário receberá esta mensagem com a sua encomenda.",
+            "gift_message_confirm_btn": "Ver meu pedido",
+            "gift_message_confirm_note": "O destinatário receberá esta mensagem junto com o pedido.",
             "gift_message_confirm_signature": "Com toda a nossa atenção,",
             "order_reference_label": "Referência do pedido"
         },
@@ -20743,13 +20743,13 @@
             "order_reference_label": "Referência da encomenda"
         },
         "br": {
-            "greeting_main": "As suas encomendas estão a caminho",
+            "greeting_main": "Seus pedidos estão a caminho",
             "greeting_subtitle": "Envio para vários destinatários",
             "dear_customer": "Prezado Cliente,",
-            "multi_recipient_intro": "As encomendas do seu pedido com vários destinatários foram enviadas. Cada uma viaja para o seu beneficiário.",
+            "multi_recipient_intro": "Os pacotes do seu pedido com vários destinatários foram enviados. Cada um viaja até o seu destinatário.",
             "multi_recipient_details": "Detalhes dos destinatários",
-            "multi_recipient_btn": "Acompanhar as encomendas",
-            "multi_recipient_note": "Receberá uma confirmação separada para cada destinatário.",
+            "multi_recipient_btn": "Acompanhar os pedidos",
+            "multi_recipient_note": "Você receberá uma confirmação separada para cada destinatário.",
             "multi_recipient_signature": "Esperamos que cada peça encontre o seu dono,",
             "order_reference_label": "Referência do pedido"
         },
@@ -20949,14 +20949,14 @@
             "order_reference_label": "Referência da encomenda"
         },
         "br": {
-            "greeting_main": "Um ligeiro atraso para a sua encomenda",
+            "greeting_main": "Um pequeno atraso no seu pedido",
             "greeting_subtitle": "Fazemos tudo para limitar este contratempo",
             "dear_customer": "Prezado Cliente,",
-            "shipped_delay_intro": "Informamos que o envio da sua encomenda está a sofrer um atraso inesperado. Estamos a fazer tudo o que podemos para o resolver o mais rapidamente possível.",
+            "shipped_delay_intro": "Informamos que o envio do seu pedido está sofrendo um atraso inesperado. Estamos fazendo tudo o que é possível para resolver isso o quanto antes.",
             "shipped_delay_details": "Detalhes do atraso",
             "shipped_delay_new_date": "Nova data estimada",
-            "shipped_delay_btn": "Acompanhar a minha encomenda",
-            "shipped_delay_note": "Iremos mantê-lo informado de qualquer evolução. Pedimos desculpa.",
+            "shipped_delay_btn": "Acompanhar meu pedido",
+            "shipped_delay_note": "Vamos manter você informado sobre qualquer novidade. Pedimos desculpas.",
             "shipped_delay_signature": "Com toda a nossa consideração,",
             "order_reference_label": "Referência do pedido"
         },
@@ -21161,13 +21161,13 @@
             "order_reference_label": "Referência da encomenda"
         },
         "br": {
-            "greeting_main": "A sua encomenda é enviada em várias embalagens",
+            "greeting_main": "Seu pedido é enviado em vários pacotes",
             "greeting_subtitle": "Parte da sua seleção já está a caminho",
             "dear_customer": "Prezado Cliente,",
-            "partial_shipped_intro": "A sua encomenda foi dividida em várias embalagens para facilitar o envio. Parte dela já está a caminho de si.",
+            "partial_shipped_intro": "Seu pedido foi dividido em vários pacotes para facilitar o envio. Parte dele já está a caminho.",
             "partial_shipped_details": "Detalhes das embalagens enviadas",
             "partial_shipped_btn": "Acompanhar as minhas embalagens",
-            "partial_shipped_note": "Iremos mantê-lo informado do envio das restantes embalagens.",
+            "partial_shipped_note": "Vamos manter você informado sobre o envio dos demais pacotes.",
             "partial_shipped_signature": "Com toda a nossa atenção,",
             "order_reference_label": "Referência do pedido"
         },
@@ -21362,12 +21362,12 @@
         },
         "br": {
             "greeting_main": "Recebemos a sua devolução",
-            "greeting_subtitle": "A sua encomenda chegou às nossas oficinas",
+            "greeting_subtitle": "Seu pedido chegou às nossas oficinas",
             "dear_customer": "Prezado Cliente,",
-            "return_received_intro": "Confirmamos que a encomenda contendo a sua devolução chegou à nossa equipa. Será tratada com toda a atenção devida.",
+            "return_received_intro": "Confirmamos que o pacote com sua devolução chegou à nossa equipe. Ele será tratado com toda a atenção devida.",
             "return_received_details": "Detalhes da devolução",
             "return_received_btn": "Acompanhar a minha devolução",
-            "return_received_note": "Iremos mantê-lo informado do progresso do tratamento.",
+            "return_received_note": "Vamos manter você informado sobre o andamento do processo.",
             "return_received_signature": "Ao seu serviço,",
             "order_reference_label": "Referência do pedido"
         },
@@ -21570,10 +21570,10 @@
             "greeting_main": "O seu reembolso foi emitido",
             "greeting_subtitle": "Finalizámos o procedimento",
             "dear_customer": "Prezado Cliente,",
-            "refund_processed_intro": "Confirmamos que o procedimento de reembolso relativo à sua encomenda foi finalizado com sucesso.",
+            "refund_processed_intro": "Confirmamos que o procedimento de reembolso referente ao seu pedido foi finalizado com sucesso.",
             "refund_processed_details": "Detalhes do reembolso",
-            "refund_processed_btn": "Ver a minha encomenda",
-            "refund_processed_note": "O montante será creditado na sua conta de acordo com o prazo habitual do seu banco.",
+            "refund_processed_btn": "Ver meu pedido",
+            "refund_processed_note": "O valor será creditado na sua conta de acordo com o prazo habitual do seu banco.",
             "refund_processed_signature": "Ao seu serviço,",
             "order_reference_label": "Referência do pedido",
             "refund_amount_label": "Valor reembolsado"
@@ -21782,10 +21782,10 @@
             "greeting_main": "A sua subscrição está confirmada",
             "greeting_subtitle": "Bem-vindo ao nosso círculo privilegiado",
             "dear_customer": "Prezado Cliente,",
-            "subscription_confirm_intro": "Temos o prazer de confirmar a sua subscrição ao nosso boletim. Passará a ser dos primeiros a saber.",
+            "subscription_confirm_intro": "Temos o prazer de confirmar sua inscrição em nossa newsletter. Você será um dos primeiros a saber das novidades.",
             "subscription_confirm_details": "Detalhes da sua subscrição",
             "subscription_confirm_btn": "Gerir as minhas preferências",
-            "subscription_confirm_note": "Agradecemos a sua confiança. Nunca partilharemos os seus dados.",
+            "subscription_confirm_note": "Agradecemos a sua confiança. Nunca vamos compartilhar seus dados.",
             "subscription_confirm_signature": "Com toda a nossa gratidão,",
             "account_email_label": "Endereço de e-mail"
         },
@@ -22000,14 +22000,14 @@
             "greeting_main": "Sobe para o nível seguinte",
             "greeting_subtitle": "Um novo privilégio é agora seu",
             "dear_customer": "Prezado Cliente,",
-            "loyalty_tier_intro": "Temos o prazer de o informar que a sua fidelidade lhe permitiu alcançar o nível seguinte do nosso programa. Um novo marco na nossa relação.",
+            "loyalty_tier_intro": "Temos o prazer de informar que sua fidelidade permitiu que você alcançasse o próximo nível do nosso programa. Um novo marco em nossa relação.",
             "loyalty_tier_details": "O seu novo estatuto",
             "loyalty_tier_name_label": "Novo nível",
             "loyalty_tier_points_label": "Total de pontos",
             "loyalty_voucher_intro": "O seu voucher de desconto exclusivo",
             "loyalty_voucher_value": "Valor",
-            "loyalty_tier_btn": "Descobrir os meus novos privilégios",
-            "loyalty_tier_note": "Este estatuto abre-lhe portas que reservamos aos mais fiéis.",
+            "loyalty_tier_btn": "Descobrir meus novos privilégios",
+            "loyalty_tier_note": "Este status abre portas que reservamos aos mais fiéis.",
             "loyalty_tier_signature": "Com toda a nossa gratidão,"
         },
         "ar": {
@@ -22260,7 +22260,7 @@
             "greeting_main": "Os seus pontos de fidelidade este mês",
             "greeting_subtitle": "Um resumo do seu envolvimento",
             "dear_customer": "Prezado Cliente,",
-            "loyalty_recap_intro": "Aqui está o resumo mensal dos seus pontos de fidelidade. Cada abertura, cada clique e cada compra aproxima-o de uma recompensa.",
+            "loyalty_recap_intro": "Aqui está o resumo mensal dos seus pontos de fidelidade. Cada abertura, cada clique e cada compra aproxima você de uma recompensa.",
             "loyalty_recap_month_points": "Pontos ganhos este mês",
             "loyalty_recap_total_points": "Total acumulado",
             "loyalty_recap_progress": "O seu progresso para o próximo nível",
@@ -22268,7 +22268,7 @@
             "loyalty_recap_points_left": "pts restantes",
             "loyalty_recap_max_tier": "Parabéns — atingiu o nosso nível mais elevado.",
             "loyalty_recap_btn": "Descobrir as nossas novidades",
-            "loyalty_recap_note": "Os seus pontos são creditados automaticamente a cada interação com os nossos emails.",
+            "loyalty_recap_note": "Seus pontos são creditados automaticamente a cada interação com nossos e-mails.",
             "loyalty_recap_signature": "Com toda a nossa gratidão,"
         },
         "ar": {
@@ -22500,13 +22500,13 @@
         },
         "br": {
             "greeting_main": "Sentimos a sua falta",
-            "greeting_subtitle": "Um pensamento para si",
+            "greeting_subtitle": "Um pensamento para você",
             "dear_customer": "Prezado Cliente,",
-            "win_back_intro": "Pensámos em si e esperamos que esteja bem. As nossas criações continuam a evoluir e gostaríamos de as fazer redescobrir.",
-            "win_back_message": "Preparámos uma seleção que poderá ser do seu agrado. Uma atenção delicada, sem compromisso.",
-            "win_back_btn": "Descubra a nossa seleção",
-            "win_back_note": "Teríamos o maior prazer em recebê-lo novamente.",
-            "win_back_signature": "Na expectativa de o reencontrar,"
+            "win_back_intro": "Pensamos em você e esperamos que esteja tudo bem. Nossas criações continuam evoluindo e gostaríamos que você as redescobrisse.",
+            "win_back_message": "Preparamos uma seleção que pode ser do seu agrado. Uma atenção delicada, sem compromisso.",
+            "win_back_btn": "Descubra nossa seleção",
+            "win_back_note": "Teríamos o maior prazer em receber você novamente.",
+            "win_back_signature": "Na expectativa de reencontrar você,"
         },
         "ar": {
             "greeting_main": "افتقدناكم",
@@ -22684,9 +22684,9 @@
             "greeting_main": "Já passou um ano...",
             "greeting_subtitle": "Obrigado pela sua fidelidade",
             "dear_customer": "Prezado Cliente,",
-            "first_anniversary_intro": "Já passou um ano desde que nos confiou pela primeira vez. Este ano ao seu lado é uma fonte de infinita gratidão.",
-            "first_anniversary_message": "Quisemos celebrar este primeiro ano com uma atenção especial. Está reservada para si.",
-            "first_anniversary_btn": "Descobrir a minha atenção",
+            "first_anniversary_intro": "Já se passou um ano desde que você confiou em nós pela primeira vez. Este ano ao seu lado é motivo de imensa gratidão.",
+            "first_anniversary_message": "Quisemos celebrar este primeiro ano com uma atenção especial. Ela está reservada para você.",
+            "first_anniversary_btn": "Descobrir minha atenção",
             "first_anniversary_note": "Obrigado por fazer parte da história da nossa casa.",
             "first_anniversary_signature": "Com toda a nossa gratidão,"
         },
@@ -22860,9 +22860,9 @@
             "greeting_main": "O seu olhar sobre esta peça",
             "greeting_subtitle": "Partilhe a sua experiência, com discrição",
             "dear_customer": "Prezado Cliente,",
-            "review_request_intro": "Esperamos que a sua peça tenha encontrado o seu lugar em sua casa. Se desejar, teremos todo o gosto em ouvir a sua impressão sobre esta experiência.",
-            "review_request_btn": "Partilhar a minha opinião",
-            "review_request_note": "Apenas um seleto grupo de nossos convidados é convidado a compartilhar sua perspectiva. Sua opinião importa.",
+            "review_request_intro": "Esperamos que sua peça tenha encontrado seu lugar em sua casa. Se quiser, teremos o maior prazer em ouvir sua opinião sobre esta experiência.",
+            "review_request_btn": "Compartilhar minha opinião",
+            "review_request_note": "Apenas um grupo seleto de nossos convidados é convidado a compartilhar sua opinião. Ela é muito importante para nós.",
             "review_request_signature": "Ao seu dispor,"
         },
         "ar": {
@@ -23034,13 +23034,13 @@
         },
         "br": {
             "greeting_main": "A sua peça à medida está pronta",
-            "greeting_subtitle": "Só espera por si",
+            "greeting_subtitle": "Só espera por você",
             "dear_customer": "Prezado Cliente,",
-            "bespoke_ready_intro": "Temos o prazer de anunciar que a sua encomenda à medida está agora pronta. Os nossos artesãos deram vida à sua visão.",
+            "bespoke_ready_intro": "Temos o prazer de anunciar que seu pedido sob medida já está pronto. Nossos artesãos deram vida à sua visão.",
             "bespoke_ready_details": "Detalhes da sua peça",
             "bespoke_ready_btn": "Acompanhar a entrega",
-            "bespoke_ready_note": "Agradecemos a sua paciência. Esta peça única está finalmente pronta para o encontrar.",
-            "bespoke_ready_signature": "Orgulhosos de o ter acompanhado nesta criação,",
+            "bespoke_ready_note": "Agradecemos a sua paciência. Esta peça única está finalmente pronta para você.",
+            "bespoke_ready_signature": "Orgulhosos de ter acompanhado você nesta criação,",
             "order_reference_label": "Referência do pedido"
         },
         "ar": {
@@ -23233,13 +23233,13 @@
             "shopper_name_label": "O seu conselheiro"
         },
         "br": {
-            "greeting_main": "Um conselheiro pessoal para si",
+            "greeting_main": "Um consultor pessoal para você",
             "greeting_subtitle": "A elegância do acompanhamento à medida",
             "dear_customer": "Prezado Cliente,",
-            "shopper_intro": "Temos o prazer de lhe apresentar o seu conselheiro pessoal, dedicado a guiá-lo nas suas escolhas e a satisfazer os seus desejos.",
+            "shopper_intro": "Temos o prazer de apresentar a você seu consultor pessoal, dedicado a orientá-lo em suas escolhas e a atender seus desejos.",
             "shopper_details": "O seu conselheiro dedicado",
-            "shopper_btn": "Contactar o meu conselheiro",
-            "shopper_note": "Ele ou ela conhece os seus gostos e pode guiá-lo para peças que se adequam a si.",
+            "shopper_btn": "Contatar meu consultor",
+            "shopper_note": "Ele ou ela conhece seus gostos e pode indicar peças que combinam com você.",
             "shopper_signature": "Ao seu serviço, com atenção,",
             "shopper_name_label": "O seu conselheiro"
         },
@@ -23436,11 +23436,11 @@
             "greeting_main": "Personalize a embalagem da sua peça",
             "greeting_subtitle": "Um detalhe que faz a diferença",
             "dear_customer": "Prezado Cliente,",
-            "packaging_choice_intro": "Antes do envio, convidamo-lo a escolher a embalagem que acompanhará a sua peça. Uma forma de prolongar a experiência.",
+            "packaging_choice_intro": "Antes do envio, convidamos você a escolher a embalagem que vai acompanhar sua peça. Uma forma de prolongar a experiência.",
             "packaging_choice_options": "Opções de embalagem disponíveis",
-            "packaging_choice_options_desc": "Vários estojos, bolsas e caixas estão disponíveis para valorizar a sua peça.",
-            "packaging_choice_btn": "Escolher a minha embalagem",
-            "packaging_choice_note": "Daremos especial atenção à sua escolha.",
+            "packaging_choice_options_desc": "Vários estojos, sacolas e caixas estão disponíveis para valorizar sua peça.",
+            "packaging_choice_btn": "Escolher minha embalagem",
+            "packaging_choice_note": "Vamos dar atenção especial à sua escolha.",
             "packaging_choice_signature": "Ao seu serviço,"
         },
         "ar": {
@@ -25599,13 +25599,13 @@
         "br": {
             "greeting_main": "Ideias para quem importa",
             "greeting_subtitle": "Uma seleção pensada para oferecer",
-            "dear_customer": "Caro Cliente,",
+            "dear_customer": "Prezado Cliente,",
             "gift_ideas_title": "Ideias para quem importa",
             "gift_ideas_subtitle": "Uma seleção pensada para oferecer",
-            "gift_ideas_intro": "As grandes ocasiões aproximam-se. Antes que cheguem, preparámos para si uma seleção de peças para oferecer — escolhidas de acordo com os seus gostos e os de quem parece prezar.",
-            "gift_ideas_message": "Oferecer é prolongar uma atenção. Cada peça desta seleção foi escolhida para tocar quem a recebe, com a elegância que lhes deseja.",
+            "gift_ideas_intro": "As grandes ocasiões estão chegando. Antes que cheguem, preparamos para você uma seleção de peças para presentear — escolhidas de acordo com seus gostos e os de quem você valoriza.",
+            "gift_ideas_message": "Presentear é prolongar uma atenção. Cada peça desta seleção foi escolhida para tocar quem a recebe, com a elegância que você deseja para eles.",
             "gift_ideas_cta": "Descobrir a seleção",
-            "gift_ideas_note": "Esta seleção foi composta para si, em reconhecimento da sua fidelidade e sensibilidade.",
+            "gift_ideas_note": "Esta seleção foi montada para você, em reconhecimento à sua fidelidade e sensibilidade.",
             "signature_warm": "Com toda a nossa delicadeza,"
         },
         "tw": {
@@ -25969,12 +25969,12 @@
             "complete_your_look_note": "Deze selectie is speciaal voor u samengesteld, geïnspireerd op uw recente aankoop."
         },
         "br": {
-            "complete_your_look_eyebrow": "Seleção para si",
+            "complete_your_look_eyebrow": "Seleção para você",
             "complete_your_look_greeting": "Olá",
             "complete_your_look_title": "Complete o seu look",
-            "complete_your_look_intro": "A sua encomenda acabou de chegar — esperamos que goste. Aqui estão algumas peças que combinam perfeitamente com a sua compra.",
+            "complete_your_look_intro": "Seu pedido acabou de chegar — esperamos que você goste. Aqui estão algumas peças que combinam perfeitamente com sua compra.",
             "complete_your_look_cta": "Descobrir",
-            "complete_your_look_note": "Esta seleção foi composta especialmente para si, em harmonia com a sua compra recente."
+            "complete_your_look_note": "Esta seleção foi montada especialmente para você, em harmonia com sua compra recente."
         },
         "tw": {
             "complete_your_look_eyebrow": "為您精選",
