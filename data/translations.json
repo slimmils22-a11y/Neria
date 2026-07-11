@@ -10637,7 +10637,7 @@
         "nl": {
             "greeting_main": "Voorraaddekkingwaarschuwing",
             "greeting_subtitle": "Een product vereist uw aandacht",
-            "productcoverage_intro": "Het systeem heeft gedetecteerd dat een product zijn kritiske dekkingsdrempel nadert.",
+            "productcoverage_intro": "Het systeem heeft gedetecteerd dat een product zijn kritieke dekkingsdrempel nadert.",
             "productcoverage_status": "Dekkingsstatus",
             "productcoverage_min": "Minimale dekking",
             "productcoverage_current": "Huidige dekking",
@@ -15451,7 +15451,7 @@
             "greeting_subtitle": "Exclusief voor degenen die ons dierbaar zijn",
             "dear_customer": "Geachte klant,",
             "exclusive_preview_intro": "We zijn verheugd u vroege toegang te geven tot onze aankomende collectie. Exclusief, voordat deze zelfs aan de wereld wordt onthuld.",
-            "exclusive_preview_title": "Gereseveerde preview",
+            "exclusive_preview_title": "Gereserveerde preview",
             "exclusive_preview_btn": "Ontdek de collectie",
             "exclusive_preview_note": "Deze uitnodiging is persoonlijk en geldig voor een beperkte tijd.",
             "exclusive_preview_signature": "Dank u voor uw loyaliteit,"
@@ -15812,10 +15812,10 @@
         },
         "nl": {
             "greeting_main": "Vaderdag",
-            "greeting_subtitle": "Vier degene die je zoveel heeft gegeven",
+            "greeting_subtitle": "Vier degene die u zoveel heeft gegeven",
             "dear_customer": "Geachte klant,",
-            "fathers_day_intro": "Op deze dag die vaders eert, denken we aan degene die je wortels, je passies, je stiltes heeft gevormd.",
-            "fathers_day_message": "Geef hem wat het zeldzaamst is: een stuk dat zonder woorden je dankbaarheid vertelt.",
+            "fathers_day_intro": "Op deze dag die vaders eert, denken we aan degene die uw wortels, uw passies, uw stiltes heeft gevormd.",
+            "fathers_day_message": "Geef hem wat het zeldzaamst is: een stuk dat zonder woorden uw dankbaarheid vertelt.",
             "fathers_day_btn": "Ontdek onze selectie",
             "fathers_day_note": "Een bijzondere attentie is voor u beschikbaar tot het einde van de week.",
             "fathers_day_signature": "Het hele team wenst u een fijne vaderdag."
@@ -16176,9 +16176,9 @@
         },
         "nl": {
             "greeting_main": "Moederdag",
-            "greeting_subtitle": "Vier degene die je alles heeft gegeven",
+            "greeting_subtitle": "Vier degene die u alles heeft gegeven",
             "dear_customer": "Geachte klant,",
-            "mothers_day_intro": "Op deze dag die moeders viert, denken we aan degene wiens blik je eerste toevlucht was.",
+            "mothers_day_intro": "Op deze dag die moeders viert, denken we aan degene wiens blik uw eerste toevlucht was.",
             "mothers_day_message": "Geef haar wat lijkt op haar liefde: een uniek, discreet en oneindig kostbaar stuk.",
             "mothers_day_btn": "Ontdek onze selectie",
             "mothers_day_note": "Een bijzondere attentie is voor u beschikbaar tot het einde van de week.",
@@ -22796,7 +22796,7 @@
             "dear_customer": "Geachte klant,",
             "first_anniversary_intro": "Het is een jaar geleden dat u ons voor het eerst vertrouwde. Dit jaar aan uw zijde is een bron van oneindige dankbaarheid.",
             "first_anniversary_message": "We wilden dit eerste jaar vieren met een bijzondere attentie. Het is voor u gereserveerd.",
-            "first_anniversary_btn": "Ontdek mijn attentie",
+            "first_anniversary_btn": "Ontdek onze attentie",
             "first_anniversary_note": "Dank u dat u deel uitmaakt van de geschiedenis van ons huis.",
             "first_anniversary_signature": "Met al onze dankbaarheid,"
         }
@@ -26161,8 +26161,8 @@
             "waitlist_greeting": "Hallo",
             "waitlist_eyebrow": "Voor u gereserveerd",
             "waitlist_title": "U heeft {days_waited} dagen gewacht. We zijn het niet vergeten.",
-            "waitlist_intro": "Dit artikel is weer op voorraad — en omdat u als eerste aanmeldde, geven we u exclusieve voorrangstogang.",
-            "waitlist_reservation": "Uw voorrangsaccess is {reservation_hours} uur geldig. Daarna wordt het product voor iedereen beschikbaar.",
+            "waitlist_intro": "Dit artikel is weer op voorraad — en omdat u als eerste aanmeldde, geven we u exclusieve voorrangstoegang.",
+            "waitlist_reservation": "Uw voorrangstoegang is {reservation_hours} uur geldig. Daarna wordt het product voor iedereen beschikbaar.",
             "waitlist_cta": "Bekijk het product",
             "waitlist_note": "U ontvangt deze melding omdat u heeft gevraagd gewaarschuwd te worden wanneer dit product weer beschikbaar zou zijn."
         }
