@@ -2362,8 +2362,8 @@ var _nCopyLbl = {
 
     <div class="neria-kpi" title="{neria_admin key='stats.ctor_tooltip'}">
       <div class="neria-kpi__value">{$stats.kpis.ctor|default:0}%</div>
-      <div class="neria-kpi__label">CTOR <span style="font-size:9px;color:var(--neria-text-muted,#aaa);font-weight:400;">clics / ouv. réelles</span></div>
-      <div class="neria-kpi__rate" style="font-size:10px;color:var(--neria-text-muted,#aaa);">hors MPP</div>
+      <div class="neria-kpi__label">CTOR <span style="font-size:9px;color:var(--neria-text-muted,#aaa);font-weight:400;">{neria_admin key='stats.ctor_ratio_label'}</span></div>
+      <div class="neria-kpi__rate" style="font-size:10px;color:var(--neria-text-muted,#aaa);">{neria_admin key='stats.ctor_excluding_mpp'}</div>
     </div>
 
     <div class="neria-kpi">
