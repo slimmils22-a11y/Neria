@@ -2291,16 +2291,22 @@ class EmailRenderer
         // Si {time_greeting} est calculé (client identifié + pays ciblé),
         // remplace dear_customer par la salutation horaire + prénom.
         // Aucune retouche de template nécessaire — plug & play.
+        // Langues où l'usage exige un honorifique accolé au nom du client
+        // (様 en japonais, 님 en coréen) — l'ordre et la ponctuation occidentaux
+        // « Bonjour, Prénom, » n'ont pas d'équivalent naturel dans ces langues.
+        $nameHonorifics = [
+            'ja' => ['suffix' => '様', 'sep' => '、', 'end' => '。'],
+            'ko' => ['suffix' => '님', 'sep' => ', ', 'end' => '.'],
+        ];
+
         $plugTimeGreeting = $templateVars['{time_greeting}'] ?? '';
         if ($plugTimeGreeting !== '') {
             $plugFirstname = $templateVars['{firstname}'] ?? '';
-            if ($lang === 'ja') {
-                // Le japonais exige l'honorifique 様 après le nom, placé avant
-                // la formule de politesse (l'ordre et la ponctuation occidentaux
-                // « Bonjour, Prénom, » n'ont pas d'équivalent naturel en japonais).
-                $plugSalutation = ($plugFirstname !== '' ? $plugFirstname . '様、' : '')
+            if (isset($nameHonorifics[$lang])) {
+                $h = $nameHonorifics[$lang];
+                $plugSalutation = ($plugFirstname !== '' ? $plugFirstname . $h['suffix'] . $h['sep'] : '')
                     . $plugTimeGreeting
-                    . '。';
+                    . $h['end'];
             } else {
                 $plugSalutation = $plugTimeGreeting
                     . ($plugFirstname !== '' ? ', ' . $plugFirstname : '')
@@ -2319,13 +2325,14 @@ class EmailRenderer
         // ── Salutations dédiées (templates "chantier 2") ────────────────────
         // collection_completion / complete_your_look / ghost_cart / waitlist_available
         // concatènent directement {xxx_greeting} {firstname}, dans leur source.
-        // Même correctif honorifique pour le japonais.
-        if ($lang === 'ja') {
+        // Même correctif honorifique.
+        if (isset($nameHonorifics[$lang])) {
+            $h = $nameHonorifics[$lang];
             $compiled = preg_replace_callback(
                 '/\{neria_trad\s+key=[\'"]([a-z0-9_]*greeting)[\'"]\s*\}\s*\{firstname\},/',
-                function ($mm) use ($engine, $template, $lang) {
+                function ($mm) use ($engine, $template, $lang, $h) {
                     $g = $engine->get($template, $mm[1], $lang);
-                    return '{firstname}様、' . $g . '。';
+                    return '{firstname}' . $h['suffix'] . $h['sep'] . $g . $h['end'];
                 },
                 $compiled
             );
@@ -2525,21 +2532,22 @@ class EmailRenderer
             if ($plugTimeGreeting !== '') {
                 $compiledTxt = str_replace(
                     ["{neria_trad key='dear_customer'}", '{neria_trad key="dear_customer"}'],
-                    $lang === 'ja'
-                        ? '{firstname}様、' . $plugTimeGreeting . '。'
+                    isset($nameHonorifics[$lang])
+                        ? '{firstname}' . $nameHonorifics[$lang]['suffix'] . $nameHonorifics[$lang]['sep'] . $plugTimeGreeting . $nameHonorifics[$lang]['end']
                         : $plugTimeGreeting . ', {firstname},',
                     $compiledTxt
                 );
             }
 
             // Salutations dédiées (templates "chantier 2") — version TXT.
-            // Même correctif honorifique japonais que la version HTML.
-            if ($lang === 'ja') {
+            // Même correctif honorifique que la version HTML.
+            if (isset($nameHonorifics[$lang])) {
+                $h = $nameHonorifics[$lang];
                 $compiledTxt = preg_replace_callback(
                     '/\{neria_trad\s+key=[\'"]([a-z0-9_]*greeting)[\'"]\s*\}\s*\{firstname\},/',
-                    function ($mm) use ($engine, $template, $lang) {
+                    function ($mm) use ($engine, $template, $lang, $h) {
                         $g = $engine->get($template, $mm[1], $lang);
-                        return '{firstname}様、' . $g . '。';
+                        return '{firstname}' . $h['suffix'] . $h['sep'] . $g . $h['end'];
                     },
                     $compiledTxt
                 );
