@@ -638,7 +638,7 @@ class ConfigManager
         $defaults = [
             'fr' => 'Cher Invité',      'en' => 'Dear Guest',       'de' => 'Lieber Gast',
             'it' => 'Caro Ospite',      'es' => 'Estimado Cliente',  'pt' => 'Caro Convidado',
-            'br' => 'Prezado Cliente',  'ar' => 'عزيزي الضيف',       'ja' => 'お客様',
+            'br' => 'Prezado Cliente',  'gb' => 'Dear Guest',        'ar' => 'عزيزي الضيف',       'ja' => 'お客様',
             'ko' => '소중한 고객님',      'zh' => '尊贵的顾客',          'tw' => '尊貴的顧客',
             'ru' => 'Уважаемый гость',  'tr' => 'Sayın Misafirimiz', 'sv' => 'Kära Gäst',
             'no' => 'Kjære Gjest',      'da' => 'Kære Gæst',         'nl' => 'Beste Gast',
@@ -667,6 +667,7 @@ class ConfigManager
             'es' => ['morning' => 'Buenos días',      'afternoon' => 'Buenas tardes',   'evening' => 'Buenas noches',   'night' => 'Hola'],
             'pt' => ['morning' => 'Bom dia',          'afternoon' => 'Boa tarde',       'evening' => 'Boa noite',       'night' => 'Olá'],
             'br' => ['morning' => 'Bom dia',          'afternoon' => 'Boa tarde',       'evening' => 'Boa noite',       'night' => 'Olá'],
+            'gb' => ['morning' => 'Good morning',     'afternoon' => 'Good afternoon',  'evening' => 'Good evening',    'night' => 'Hello'],
             'ar' => ['morning' => 'صباح الخير',       'afternoon' => 'مساء الخير',      'evening' => 'مساء النور',      'night' => 'أهلاً'],
             'ja' => ['morning' => 'おはようございます', 'afternoon' => 'こんにちは',       'evening' => 'こんばんは',       'night' => 'こんにちは'],
             'ko' => ['morning' => '좋은 아침이에요',    'afternoon' => '안녕하세요',       'evening' => '안녕하세요',       'night' => '안녕하세요'],

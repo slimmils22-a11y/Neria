@@ -148,7 +148,7 @@
 
   {assign var="tg_langs" value=[
     'fr'=>'FR','en'=>'EN','de'=>'DE','it'=>'IT','es'=>'ES','pt'=>'PT',
-    'br'=>'BR','ar'=>'AR','ja'=>'JA','ko'=>'KO','zh'=>'ZH','tw'=>'TW',
+    'br'=>'BR','gb'=>'GB','ar'=>'AR','ja'=>'JA','ko'=>'KO','zh'=>'ZH','tw'=>'TW',
     'ru'=>'RU','tr'=>'TR','sv'=>'SV','no'=>'NO','da'=>'DA','nl'=>'NL'
   ]}
   {assign var="tg_slots" value=['morning','afternoon','evening','night']}

@@ -69,7 +69,7 @@ class NeriaTools
     public static function isValidLang(string $lang): bool
     {
         return in_array($lang, [
-            'fr','en','de','it','es','pt','br',
+            'fr','en','de','it','es','pt','br','gb',
             'ar','ja','ko','zh','tw',
             'ru','tr','sv','no','da','nl',
         ], true);
@@ -256,6 +256,7 @@ class NeriaTools
             'es' => 'd/m/Y',
             'pt' => 'd/m/Y',
             'br' => 'd/m/Y',
+            'gb' => 'd/m/Y',
             'ar' => 'd/m/Y',
             'ja' => 'Y年m月d日',
             'ko' => 'Y년 m월 d일',
@@ -565,12 +566,13 @@ class NeriaTools
     {
         return [
             'fr' => 'Français',
-            'en' => 'English',
+            'en' => 'English (US)',
             'de' => 'Deutsch',
             'it' => 'Italiano',
             'es' => 'Español',
             'pt' => 'Português (PT)',
             'br' => 'Português (BR)',
+            'gb' => 'English (GB)',
             'ar' => 'العربية',
             'ja' => '日本語',
             'ko' => '한국어',
@@ -735,12 +737,13 @@ class NeriaTools
     {
         return [
             'fr' => '🇫🇷',
-            'en' => '🇬🇧',
+            'en' => '🇺🇸',
             'de' => '🇩🇪',
             'it' => '🇮🇹',
             'es' => '🇪🇸',
             'pt' => '🇵🇹',
             'br' => '🇧🇷',
+            'gb' => '🇬🇧',
             'ar' => '🇸🇦',
             'ja' => '🇯🇵',
             'ko' => '🇰🇷',

@@ -161,6 +161,15 @@
             "abandoned_cart_1_help": "Ons team staat geheel tot uw beschikking voor vragen over uw selectie.",
             "abandoned_cart_1_btn": "Mijn selectie hervatten",
             "abandoned_cart_1_note": "Uw selectie is 48 uur voor u gereserveerd."
+        },
+        "gb": {
+            "greeting_main": "Your selection still awaits you",
+            "greeting_subtitle": "A moment of hesitation, an exceptional piece",
+            "dear_customer": "Dear Valued Guest,",
+            "abandoned_cart_1_intro": "You seemed to pause during your visit. We have taken care to preserve the pieces you brought to your attention.",
+            "abandoned_cart_1_help": "Our team remains entirely available for any questions about your selection.",
+            "abandoned_cart_1_btn": "Resume my selection",
+            "abandoned_cart_1_note": "Your selection is reserved for you for 48 hours."
         }
     },
     "abandoned_cart_2": {
@@ -325,6 +334,15 @@
             "abandoned_cart_2_help": "Ons team staat voor u klaar voor vragen over uw selectie.",
             "abandoned_cart_2_btn": "Terug naar mijn selectie",
             "abandoned_cart_2_note": "We kunnen de beschikbaarheid na deze uitnodiging niet garanderen."
+        },
+        "gb": {
+            "greeting_main": "We still think of your selection",
+            "greeting_subtitle": "Some pieces cannot wait",
+            "dear_customer": "Dear Valued Guest,",
+            "abandoned_cart_2_intro": "The pieces you distinguished are still available. Rarity can be fleeting — we wished to inform you.",
+            "abandoned_cart_2_help": "Our team remains available for any questions regarding your selection.",
+            "abandoned_cart_2_btn": "Return to my selection",
+            "abandoned_cart_2_note": "We cannot guarantee availability beyond this invitation."
         }
     },
     "abandoned_cart_3": {
@@ -471,6 +489,14 @@
             "abandoned_cart_3_intro": "We sluiten het hoofdstuk van uw winkelwagen zachtjes. Mocht u ooit uw selectie weer willen vinden, onze ambachtslieden zouden vereerd zijn u opnieuw te verwelkomen.",
             "abandoned_cart_3_btn": "Terug naar het huis",
             "abandoned_cart_3_note": "Uw winkelwagen is niet meer actief. Al onze creaties blijven tot uw beschikking."
+        },
+        "gb": {
+            "greeting_main": "A last confidence",
+            "greeting_subtitle": "What deserves to be possessed deserves to be chosen",
+            "dear_customer": "Dear Valued Guest,",
+            "abandoned_cart_3_intro": "We gently close the chapter of your cart. Should you ever wish to retrieve your selection, our artisans would be honoured to welcome you again.",
+            "abandoned_cart_3_btn": "Return to the house",
+            "abandoned_cart_3_note": "Your cart is no longer active. All our creations remain at your disposal."
         }
     },
     "account": {
@@ -779,6 +805,23 @@
             "account_ready": "Uw persoonlijke ruimte is nu actief. Wij nodigen u uit om binnen te stappen.",
             "account_btn": "Ga naar mijn account",
             "signature_thanks": "Het huis is verheugd u tot de zijnen te mogen rekenen,"
+        },
+        "gb": {
+            "greeting_main": "Our house opens its doors to you",
+            "greeting_subtitle": "Your world of elegance begins here",
+            "dear_customer": "Dear Valued Guest,",
+            "account_intro": "Your presence honours us. Your personal space has been prepared with care — it awaits you.",
+            "account_info_title": "Your account information",
+            "account_info_text": "You can now manage your orders, track your deliveries and update your personal details.",
+            "account_email_label": "Associated email address",
+            "account_security_title": "Security & confidentiality",
+            "account_security_1": "Your password is encrypted and never visible to our team.",
+            "account_security_2": "We never share your personal data with third parties.",
+            "account_security_3": "You may delete your account at any time upon simple request.",
+            "account_security_4": "For any question, our client service remains at your disposal.",
+            "account_ready": "Your personal space is now active. We invite you to step inside.",
+            "account_btn": "Access my account",
+            "signature_thanks": "The house is delighted to count you among its own,"
         }
     },
     "back_in_stock": {
@@ -943,6 +986,15 @@
             "back_in_stock_available": "Dit stuk is opnieuw beschikbaar. De beschikbaarheid blijft beperkt.",
             "back_in_stock_btn": "Ontdek het stuk",
             "back_in_stock_note": "Deze link is uniek en 7 dagen geldig. Daarna kunnen we de beschikbaarheid niet garanderen."
+        },
+        "gb": {
+            "greeting_main": "Rarity graces you once more",
+            "greeting_subtitle": "Your piece has returned",
+            "dear_customer": "Dear Valued Guest,",
+            "back_in_stock_intro": "You have expressed interest in a piece that was temporarily unavailable. We are pleased to inform you that it is now accessible again.",
+            "back_in_stock_available": "This piece is once again available. Its availability remains limited.",
+            "back_in_stock_btn": "Discover the piece",
+            "back_in_stock_note": "This link is unique and valid for 7 days. After that, we cannot guarantee availability."
         }
     },
     "backoffice_order": {
@@ -1107,6 +1159,15 @@
             "backoffice_order_payment_title": "Bijgewerkte betalingsinformatie",
             "backoffice_order_payment_text": "Het bedrag of de betalingsvoorwaarden zijn aangepast. Gelieve de aanpassing te voltooien door op onderstaande knop te klikken.",
             "backoffice_order_btn": "Ga naar betaling"
+        },
+        "gb": {
+            "greeting_main": "Update on your order",
+            "greeting_subtitle": "Important information regarding your selection",
+            "dear_customer": "Dear Valued Guest,",
+            "backoffice_order_intro": "A change has been made to your order by our team. Please review the updated payment information below.",
+            "backoffice_order_payment_title": "Updated payment information",
+            "backoffice_order_payment_text": "The amount or payment terms have been adjusted. Please proceed with the adjustment by clicking the button below.",
+            "backoffice_order_btn": "Proceed to payment"
         }
     },
     "bankwire": {
@@ -1451,6 +1512,25 @@
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Bekijk uw bestelgeschiedenis</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Gasttracking</a>",
             "signature_thanks": "In afwachting van uw overschrijving, met alle geduld,"
+        },
+        "gb": {
+            "greeting_main": "Your order is in good hands",
+            "greeting_subtitle": "Awaiting your bank transfer",
+            "dear_customer": "Dear {firstname} {lastname},",
+            "bankwire_intro": "Your order has been successfully registered. It will be processed upon receipt of your bank transfer.",
+            "order_details_title": "Order",
+            "bankwire_status": "Awaiting bank transfer",
+            "bankwire_confirmation": "Thank you for your order",
+            "bankwire_details_title": "Bank details",
+            "bankwire_instructions": "Please make your transfer to the account below, quoting the following reference:",
+            "bankwire_amount_label": "Amount",
+            "bankwire_owner_label": "Beneficiary",
+            "bankwire_details_label": "Account details",
+            "bankwire_address_label": "Bank address",
+            "bankwire_reference_note": "Please quote the reference",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">View your order history</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Guest tracking</a>",
+            "signature_thanks": "Awaiting your bank transfer, with all our patience,"
         }
     },
     "birthday": {
@@ -1651,6 +1731,17 @@
             "birthday_usage": "{validity_days} dagen geldig in ons volledige huis. Deze attentie kan niet worden gecombineerd.",
             "birthday_btn": "Ontdek mijn selectie",
             "birthday_signature": "Het hele huis stuurt u zijn dierbaarste wensen, met genegenheid en elegantie,"
+        },
+        "gb": {
+            "greeting_main": "This day belongs to you",
+            "greeting_subtitle": "The whole house celebrates you",
+            "dear_customer": "Dear {firstname} {lastname},",
+            "birthday_intro": "On this singular day, our entire team thinks of you. The birthday of an exceptional person deserves to be celebrated with the brilliance it deserves.",
+            "birthday_message": "We are delighted to offer you this gesture, in testimony of the esteem we hold for you — and the pleasure we have in counting you among us.",
+            "birthday_voucher_value": "Your attentive gift code",
+            "birthday_usage": "Valid for {validity_days} days throughout our house. This attention cannot be combined.",
+            "birthday_btn": "Discover my selection",
+            "birthday_signature": "The entire house sends you its dearest wishes, with affection and elegance,"
         }
     },
     "certificate_provenance": {
@@ -1851,6 +1942,17 @@
             "certificate_artisan_title": "Ambacht / Atelier",
             "certificate_message": "We zijn er trots op u dit uitzonderlijke stuk te kunnen overhandigen, dat een zorgvuldig bewaard ambachtserfgoed met zich meedraagt.",
             "certificate_note": "Dit elektronische document is uw certificaat van oorsprong. Bewaar het zorgvuldig."
+        },
+        "gb": {
+            "greeting_main": "The authenticity of your piece",
+            "greeting_subtitle": "Rare craftsmanship, a unique story",
+            "dear_customer": "Dear {firstname} {lastname},",
+            "certificate_intro": "Each piece we offer comes with a certificate of provenance guaranteeing its authenticity and origin.",
+            "certificate_origin_title": "Origin",
+            "certificate_materials_title": "Materials & techniques",
+            "certificate_artisan_title": "Artisan / Workshop",
+            "certificate_message": "We are proud to pass on to you this exceptional piece, bearing a carefully preserved artisanal heritage.",
+            "certificate_note": "This electronic document is your certificate of provenance. Please keep it safely."
         }
     },
     "cheque": {
@@ -2177,6 +2279,24 @@
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Bekijk uw bestelgeschiedenis</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Gasttracking</a>",
             "signature_thanks": "In afwachting van uw cheque, met al ons vertrouwen,"
+        },
+        "gb": {
+            "greeting_main": "Your order is in good hands",
+            "greeting_subtitle": "Awaiting your cheque",
+            "dear_customer": "Dear {firstname} {lastname},",
+            "cheque_intro": "Your order has been successfully registered. It will be processed upon receipt of your cheque.",
+            "order_details_title": "Order",
+            "cheque_status": "Awaiting cheque",
+            "cheque_confirmation": "Thank you for your order",
+            "cheque_details_title": "Cheque mailing details",
+            "cheque_instructions": "Please make your cheque payable to the order of the beneficiary indicated below, and send it to the following address:",
+            "cheque_amount_label": "Amount",
+            "cheque_payable_label": "Cheque payable to",
+            "cheque_address_label": "Mailing address",
+            "cheque_reference_note": "Please quote the reference",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">View your order history</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Guest tracking</a>",
+            "signature_thanks": "Awaiting your cheque, with all our trust,"
         }
     },
     "christmas": {
@@ -2359,6 +2479,16 @@
             "christmas_btn": "Ontdek onze creaties",
             "christmas_note": "Een bijzondere attentie is voor u beschikbaar tot 31 december.",
             "christmas_signature": "Het hele team wenst u fijne feestdagen."
+        },
+        "gb": {
+            "greeting_main": "Happy Holidays",
+            "greeting_subtitle": "May this season be warm and bright",
+            "dear_customer": "Dear {firstname} {lastname},",
+            "christmas_intro": "In this season where light triumphs over cold, our house thinks of you with particular warmth.",
+            "christmas_message": "May these holidays offer you what daily life too rarely gives: time, gentleness, and the company of those who matter.",
+            "christmas_btn": "Discover our creations",
+            "christmas_note": "A delicate attention awaits you until December 31.",
+            "christmas_signature": "The entire team wishes you wonderful holidays."
         }
     },
     "contact": {
@@ -2559,6 +2689,17 @@
             "contact_attachment_label": "Bijgevoegd bestand",
             "contact_message_title": "Uw bericht",
             "contact_btn_reply": "Antwoord per e-mail"
+        },
+        "gb": {
+            "greeting_main": "Your voice has been heard",
+            "greeting_subtitle": "We will reply with the attention you deserve",
+            "contact_intro": "We acknowledge receipt of your request and thank you for contacting us. Here is a copy of the information you provided:",
+            "contact_info_title": "Contact information",
+            "contact_email_label": "Email address",
+            "order_reference_label": "Order reference",
+            "contact_attachment_label": "Attached file",
+            "contact_message_title": "Your message",
+            "contact_btn_reply": "Reply by email"
         }
     },
     "contact_form": {
@@ -2795,6 +2936,19 @@
             "contact_form_promise": "Wij besteden bijzondere aandacht aan elk verzoek en nemen zeer binnenkort contact met u op.",
             "contact_form_btn": "Terug naar ons huis",
             "signature_thanks": "In afwachting van ons antwoord met alle vereiste aandacht,"
+        },
+        "gb": {
+            "greeting_main": "Your request has been submitted",
+            "greeting_subtitle": "We will reply as soon as possible",
+            "dear_customer": "Dear {firstname} {lastname},",
+            "contact_form_intro": "We have received your message regarding your order. Here is a summary of the information you provided:",
+            "contact_form_summary": "Summary of your request",
+            "order_reference_label": "Order reference",
+            "contact_form_product_label": "Product concerned",
+            "contact_attachment_label": "Attached file",
+            "contact_form_promise": "We pay special attention to every request and will get back to you very soon.",
+            "contact_form_btn": "Return to our house",
+            "signature_thanks": "Looking forward to responding with all due attention,"
         }
     },
     "craftsmanship_update": {
@@ -2959,6 +3113,15 @@
             "craftsmanship_status_title": "Huidige fase",
             "craftsmanship_message": "Onze ambachtsman besteedt al zijn zorg aan het tot leven brengen van uw unieke stuk. Wij zullen u op de hoogte houden van elke stap.",
             "craftsmanship_note": "U kunt de voortgang van uw bestelling volgen via uw klantenaccount."
+        },
+        "gb": {
+            "greeting_main": "Your creation is blossoming",
+            "greeting_subtitle": "In our workshops, it comes to life",
+            "dear_customer": "Dear {firstname} {lastname},",
+            "craftsmanship_intro": "We are pleased to inform you that your order is progressing in our workshop.",
+            "craftsmanship_status_title": "Current stage",
+            "craftsmanship_message": "Our artisan is dedicating all their care to bringing your unique piece to life. We will keep you updated at every stage.",
+            "craftsmanship_note": "You can track the progress of your order from your customer account."
         }
     },
     "credit_slip": {
@@ -3159,6 +3322,17 @@
             "credit_slip_info": "U kunt deze creditnota bekijken en gebruiken bij uw volgende aankoop op",
             "credit_slip_link": "uw bestelgeschiedenis",
             "signature_thanks": "Onze verbintenis nakomend, met alle waardering,"
+        },
+        "gb": {
+            "greeting_main": "A gesture of good faith",
+            "greeting_subtitle": "We honour our commitment to you",
+            "dear_customer": "Dear {firstname} {lastname},",
+            "order_details_title": "Order",
+            "credit_slip_title": "Credit slip",
+            "credit_slip_confirmation": "A credit slip has been created for your order",
+            "credit_slip_info": "You can view this credit slip and use it on your next purchase from",
+            "credit_slip_link": "your order history",
+            "signature_thanks": "Honouring our commitment, with all our consideration,"
         }
     },
     "customer_qty": {
@@ -3341,6 +3515,16 @@
             "customer_qty_btn": "Bekijk product",
             "customer_qty_limited": "Deze aanbieding is strikt beperkt tot de beschikbare voorraad. Wij raden u aan niet te aarzelen.",
             "dear_customer": "Geachte klant,"
+        },
+        "gb": {
+            "greeting_main": "Limited quantity available",
+            "greeting_subtitle": "A rare piece now accessible again",
+            "customer_qty_intro": "You have shown interest in a product that is currently in high demand. We are pleased to inform you that a limited quantity is now available again.",
+            "customer_qty_product_title": "Product concerned",
+            "customer_qty_back": "Back in limited quantity:",
+            "customer_qty_btn": "View product",
+            "customer_qty_limited": "This offer is strictly limited to available stock. We encourage you not to delay.",
+            "dear_customer": "Dear Valued Guest,"
         }
     },
     "download_product": {
@@ -3577,6 +3761,19 @@
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Bekijk uw bestelgeschiedenis</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Gasttracking</a>",
             "signature_thanks": "Geniet van de ontdekking van uw aankoop,"
+        },
+        "gb": {
+            "greeting_main": "Your digital acquisition awaits you",
+            "greeting_subtitle": "Your digital creation awaits",
+            "dear_customer": "Dear {firstname} {lastname},",
+            "download_intro": "Thank you for your order. The following digital products are now available for download.",
+            "order_details_title": "Order",
+            "download_title": "Downloads",
+            "download_available": "You have",
+            "download_items": "product(s) available for download",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">View your order history</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Guest tracking</a>",
+            "signature_thanks": "Enjoy the discovery of your acquisition,"
         }
     },
     "eid": {
@@ -3759,6 +3956,16 @@
             "eid_btn": "Ontdek onze selectie",
             "eid_note": "Een bijzondere attentie is voor u beschikbaar tot het einde van de week.",
             "eid_signature": "Het hele team wenst u een mooie viering."
+        },
+        "gb": {
+            "greeting_main": "Happy Eid",
+            "greeting_subtitle": "May this day bring you peace and serenity",
+            "dear_customer": "Dear {firstname} {lastname},",
+            "eid_intro": "On the occasion of Eid, we would like to send you our sincerest wishes.",
+            "eid_message": "May this sacred celebration fill you with happiness, health, and precious moments with your family.",
+            "eid_btn": "Discover our selection",
+            "eid_note": "A delicate attention is reserved for you until the end of the week.",
+            "eid_signature": "The entire team wishes you a wonderful celebration."
         }
     },
     "employee_password": {
@@ -3959,6 +4166,17 @@
             "employee_password_lastname": "Achternaam",
             "employee_password_email": "E-mailadres",
             "employee_password_security": "Als u dit verzoek niet hebt gedaan, neem dan onmiddellijk contact op met uw leidinggevende."
+        },
+        "gb": {
+            "greeting_main": "Reset your password",
+            "greeting_subtitle": "Secure your administration access",
+            "dear_employee": "Dear employee,",
+            "employee_password_intro": "We have received a request to reset your password for accessing the shop administration.",
+            "employee_password_details": "Your login information",
+            "employee_password_firstname": "First name",
+            "employee_password_lastname": "Last name",
+            "employee_password_email": "Email address",
+            "employee_password_security": "If you did not make this request, please contact your manager immediately."
         }
     },
     "forward_msg": {
@@ -4141,6 +4359,16 @@
             "forward_msg_history": "Gespreksgeschiedenis",
             "forward_msg_added": "heeft de volgende opmerking toegevoegd",
             "forward_msg_noreply": "Reageer niet op deze automatische e-mail. Log in op de beheeromgeving om de aanvraag te verwerken."
+        },
+        "gb": {
+            "greeting_main": "Customer message forwarded",
+            "greeting_subtitle": "Customer relationship follow-up",
+            "dear_employee": "Dear employee,",
+            "forward_msg_intro": "A customer message has been forwarded to you for handling.",
+            "forward_msg_transferred": "has forwarded the following message to you",
+            "forward_msg_history": "Conversation history",
+            "forward_msg_added": "added the following comment",
+            "forward_msg_noreply": "Please do not reply to this automatic email. Log in to the administration to process the request."
         }
     },
     "gift_guarantee": {
@@ -4395,6 +4623,20 @@
             "gift_message": "Elk detail is doordacht om de ontvanger van dit cadeau een unieke ervaring te bieden.",
             "gift_btn": "Mijn bestelling volgen",
             "gift_note": "Voor vragen over uw cadeaubestelling staat ons team voor u klaar."
+        },
+        "gb": {
+            "greeting_main": "Your gift is ready",
+            "greeting_subtitle": "A special touch for your loved ones",
+            "dear_customer": "Dear {firstname} {lastname},",
+            "gift_intro": "We are pleased to confirm that your gift order is being prepared with the utmost care.",
+            "gift_details_title": "What we guarantee",
+            "gift_detail_1": "Luxurious gift wrapping",
+            "gift_detail_2": "Personalised message as per your instructions",
+            "gift_detail_3": "Secure and discreet delivery",
+            "gift_detail_4": "Exchange or return possible until January 31st",
+            "gift_message": "Every detail has been thought through to offer a unique experience to the person receiving this gift.",
+            "gift_btn": "Track my order",
+            "gift_note": "For any question regarding your gift order, our team remains at your disposal."
         }
     },
     "guest_to_customer": {
@@ -4613,6 +4855,18 @@
             "guest_to_customer_btn": "Activeer mijn persoonlijke ruimte",
             "guest_to_customer_benefits": "Uw persoonlijke ruimte stelt u in staat uw privileges op elk moment te vinden: uw creaties tijdens transport volgen, de geschiedenis van uw keuzes raadplegen en uw toekomstige bezoeken onder de beste omstandigheden voorbereiden.",
             "guest_to_customer_account_link": "Ga naar mijn account"
+        },
+        "gb": {
+            "greeting_main": "Your personal space awaits you",
+            "greeting_subtitle": "Join our circle in one step",
+            "dear_customer": "Dear {firstname} {lastname},",
+            "guest_to_customer_intro": "You recently placed an order as a guest. We invite you to convert your guest account into a permanent customer account to enjoy many benefits.",
+            "account_info_title": "Your account information",
+            "account_email_label": "Email address",
+            "guest_to_customer_password": "Set your password to activate your account and access your personal space.",
+            "guest_to_customer_btn": "Activate my personal space",
+            "guest_to_customer_benefits": "Your personal space will allow you to find your privileges at any time: follow your creations in transit, consult the history of your choices, and prepare your future visits in the best conditions.",
+            "guest_to_customer_account_link": "Access my account"
         }
     },
     "halloween": {
@@ -4795,6 +5049,16 @@
             "halloween_btn": "Ontdek onze creaties",
             "halloween_note": "Een bijzondere attentie is voor u beschikbaar tot 31 oktober.",
             "halloween_signature": "Het hele team wenst u een prachtig Halloween."
+        },
+        "gb": {
+            "greeting_main": "Halloween, an exceptional night",
+            "greeting_subtitle": "Let yourself be enchanted by our selection",
+            "dear_customer": "Dear {firstname} {lastname},",
+            "halloween_intro": "On the occasion of Halloween, we have prepared a unique atmosphere for you, blending mystery and elegance.",
+            "halloween_message": "Immerse yourself in a world where every detail matters. Discover our exceptional creations for an unforgettable evening.",
+            "halloween_btn": "Discover our creations",
+            "halloween_note": "A delicate attention awaits you until October 31.",
+            "halloween_signature": "The entire team wishes you a wonderful Halloween celebration."
         }
     },
     "import": {
@@ -4977,6 +5241,16 @@
             "import_filename": "Bestand",
             "import_success": "De import is zonder incidenten voltooid. Alle gegevens zijn correct geïntegreerd.",
             "import_admin_note": "Raadpleeg voor vragen de importlogs in het beheerderspaneel."
+        },
+        "gb": {
+            "greeting_main": "Import completed",
+            "greeting_subtitle": "Your data has been successfully imported",
+            "dear_employee": "Dear employee,",
+            "import_intro": "The import you requested has been processed. Here is the detailed result.",
+            "import_result_title": "Import result",
+            "import_filename": "File",
+            "import_success": "The operation was completed without incident. All data has been successfully integrated.",
+            "import_admin_note": "For any question, please consult the import logs in the administration."
         }
     },
     "in_transit": {
@@ -5195,6 +5469,18 @@
             "in_transit_btn": "Mijn bestelling volgen",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Bekijk uw bestelgeschiedenis in uw klantenaccount</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Als u als gast heeft besteld, volg dan uw bestelling via de speciale link</a>"
+        },
+        "gb": {
+            "greeting_main": "Your selection travels towards you",
+            "greeting_subtitle": "One last journey before arrival",
+            "dear_customer": "Dear Valued Guest,",
+            "in_transit_intro": "Your selection is now on its journey to you. Here are the pieces concerned:",
+            "order_details_title": "Order",
+            "in_transit_confirmation": "Order",
+            "in_transit_wait": "It is currently in transit and will reach you within the expected time.",
+            "in_transit_btn": "Track my order",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">View your order history in your customer account</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">If you ordered as a guest, track your order via the dedicated link</a>"
         }
     },
     "log_alert": {
@@ -5359,6 +5645,15 @@
             "log_alert_warning": "Actie vereist",
             "log_alert_check": "Wij nodigen u uit om de logs te raadplegen om de oorsprong van deze waarschuwing te begrijpen en de nodige maatregelen te nemen.",
             "log_alert_admin_note": "Deze waarschuwing is automatisch gegenereerd. Controleer de status van uw winkel."
+        },
+        "gb": {
+            "greeting_main": "System alert",
+            "greeting_subtitle": "An event requires your attention",
+            "log_alert_intro": "The system has detected an unusual event that requires your intervention.",
+            "log_alert_details": "Alert details",
+            "log_alert_warning": "Action required",
+            "log_alert_check": "We invite you to consult the logs to understand the origin of this alert and take the necessary measures.",
+            "log_alert_admin_note": "This alert was automatically generated. Please check the status of your store."
         }
     },
     "lunar_new_year": {
@@ -5541,6 +5836,16 @@
             "lunar_btn": "Ontdek onze creaties",
             "lunar_note": "Een bijzondere attentie is voor u beschikbaar tot het einde van de festiviteiten.",
             "lunar_signature": "Het hele team wenst u een prachtig Maan Nieuwjaar."
+        },
+        "gb": {
+            "greeting_main": "Happy Lunar New Year",
+            "greeting_subtitle": "May this new year bring prosperity and light",
+            "dear_customer": "Dear Valued Guest,",
+            "lunar_intro": "On the occasion of the Lunar New Year, we send you our warmest wishes.",
+            "lunar_message": "May this celebration bring you happiness, health, and success in all your endeavors.",
+            "lunar_btn": "Discover our creations",
+            "lunar_note": "A special attention is reserved for you until the end of the festivities.",
+            "lunar_signature": "The entire team wishes you a wonderful Lunar New Year."
         }
     },
     "new_order": {
@@ -6029,6 +6334,33 @@
             "invoice_address_title": "Factuuradres",
             "customer_message_title": "Klantbericht",
             "new_order_admin_note": "Ga naar uw beheerderspaneel om deze bestelling met de nodige zorg te behandelen."
+        },
+        "gb": {
+            "greeting_main": "A new order awaits you",
+            "greeting_subtitle": "A customer has just placed an order",
+            "new_order_intro": "You have received a new order on your store. Here are the details.",
+            "customer_label": "Customer",
+            "order_details_title": "Order details",
+            "order_reference_label": "Reference",
+            "order_date_label": "Date",
+            "payment_label": "Payment",
+            "col_reference": "Ref.",
+            "col_product": "Product",
+            "col_unit_price": "Unit price",
+            "col_quantity": "Qty",
+            "col_total_price": "Total",
+            "total_products_label": "Total products",
+            "total_discounts_label": "Discounts",
+            "total_wrapping_label": "Gift wrapping",
+            "total_shipping_label": "Shipping",
+            "total_tax_label": "Tax",
+            "total_paid_label": "Total paid",
+            "shipping_title": "Shipping",
+            "carrier_label": "Carrier",
+            "delivery_address_title": "Delivery address",
+            "invoice_address_title": "Invoice address",
+            "customer_message_title": "Customer message",
+            "new_order_admin_note": "Go to your administration to process this order with the care it deserves."
         }
     },
     "newsletter": {
@@ -6193,6 +6525,15 @@
             "newsletter_content": "Inhoud nieuwsbrief",
             "newsletter_update": "Om geen van onze toekomstige nieuwtjes te missen, blijf verbonden.",
             "newsletter_btn": "Het huis ontdekken"
+        },
+        "gb": {
+            "greeting_main": "News from the house",
+            "greeting_subtitle": "Discover our latest news",
+            "dear_customer": "Dear Valued Guest,",
+            "newsletter_intro": "We are pleased to share our latest news with you. Discover below the latest information from our house.",
+            "newsletter_content": "Newsletter content",
+            "newsletter_update": "To not miss any of our future news, stay connected.",
+            "newsletter_btn": "Discover the house"
         }
     },
     "newsletter_conf": {
@@ -6393,6 +6734,17 @@
             "newsletter_conf_manage": "U kunt uw voorkeuren beheren en zich op elk moment uitschrijven via uw klantenaccount.",
             "newsletter_conf_btn": "Naar mijn ruimte",
             "dear_customer": "Geachte klant,"
+        },
+        "gb": {
+            "greeting_main": "You are now part of our inner circle",
+            "greeting_subtitle": "Welcome to our circle of trust",
+            "newsletter_conf_intro": "We are delighted to welcome you among our subscribers. Your subscription to our newsletter has been confirmed.",
+            "newsletter_conf_title": "Confirmation",
+            "newsletter_conf_text": "You will now receive first our new collections, private invitations and the highlights of our house — shared with those we value.",
+            "newsletter_conf_promise": "Your trust is sacred. We protect it as we protect our reputation: with rigor and discretion.",
+            "newsletter_conf_manage": "You can manage your preferences and unsubscribe at any time from your customer account.",
+            "newsletter_conf_btn": "Access my space",
+            "dear_customer": "Dear Valued Guest,"
         }
     },
     "newsletter_verif": {
@@ -6575,6 +6927,16 @@
             "newsletter_verif_btn": "Bevestig mijn abonnement",
             "newsletter_verif_ignore": "Als u dit niet heeft aangevraagd, kunt u dit bericht negeren.",
             "dear_customer": "Geachte klant,"
+        },
+        "gb": {
+            "greeting_main": "Verify your subscription",
+            "greeting_subtitle": "One last step before receiving our news",
+            "newsletter_verif_intro": "To activate your subscription to our newsletter, please confirm your email address by clicking the link below.",
+            "newsletter_verif_title": "Verification",
+            "newsletter_verif_text": "This secure link confirms your subscription and gives you access to all our news.",
+            "newsletter_verif_btn": "Confirm my subscription",
+            "newsletter_verif_ignore": "If you did not request this, you can ignore this message.",
+            "dear_customer": "Dear Valued Guest,"
         }
     },
     "newsletter_voucher": {
@@ -6775,6 +7137,17 @@
             "newsletter_voucher_next": "Wij wensen u een prachtige ontdekking van onze unieke stukken.",
             "voucher_code": "Exclusieve code",
             "dear_customer": "Geachte klant,"
+        },
+        "gb": {
+            "greeting_main": "Your welcome code",
+            "greeting_subtitle": "A welcome gesture for your subscription",
+            "newsletter_voucher_intro": "Thank you for subscribing to our newsletter. As a welcome gesture, here is an exclusive code offering {discount} off your next order.",
+            "newsletter_voucher_code_title": "Your invitation code",
+            "newsletter_voucher_usage": "This code is valid for {validity_days} days throughout our house. It cannot be combined with other attentions.",
+            "newsletter_voucher_btn": "Discover our creations",
+            "newsletter_voucher_next": "We wish you a wonderful discovery of our unique pieces.",
+            "voucher_code": "Exclusive code",
+            "dear_customer": "Dear Valued Guest,"
         }
     },
     "order_canceled": {
@@ -7029,6 +7402,20 @@
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Als u als gast heeft besteld, vindt u uw tracking via de speciale link</a>",
             "canceled_hope": "We hopen u weer te mogen verwelkomen binnen onze muren — op een tijdstip dat u uitkomt.",
             "signature_regret": "Met onze oprechtste spijt en alle achting,"
+        },
+        "gb": {
+            "greeting_main": "Your request has been heard",
+            "greeting_subtitle": "We take leave of this order with elegance",
+            "dear_customer": "Dear Valued Guest,",
+            "canceled_intro": "We acknowledge receipt of your cancellation request. It has been handled with all the care your trust imposes on us.",
+            "order_details_title": "Order",
+            "canceled_confirmation": "The order",
+            "canceled_info": "This order has been cancelled in accordance with your request. No amount will be charged.",
+            "canceled_account": "You can view the details of this order from your customer account.",
+            "canceled_history_link": "View my order history",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">If you ordered as a guest, find your order tracking via the dedicated link</a>",
+            "canceled_hope": "We hope to welcome you again within our walls — at a time that suits you.",
+            "signature_regret": "With our sincerest regrets and all our esteem,"
         }
     },
     "order_changed": {
@@ -7265,6 +7652,19 @@
             "changed_history_link": "Bekijk mijn bestelgeschiedenis",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Als u als gast heeft besteld, vindt u uw tracking via de speciale link</a>",
             "changed_thanks": "Met al onze dankbaarheid en trots,"
+        },
+        "gb": {
+            "greeting_main": "Your order has been modified",
+            "greeting_subtitle": "Your selection has been adjusted according to your wishes",
+            "dear_customer": "Dear Valued Guest,",
+            "changed_intro": "We inform you that changes have been made to your order. Here are the details of this modification.",
+            "order_details_title": "Order",
+            "changed_confirmation": "The order",
+            "changed_info": "This order has been updated according to the information you provided.",
+            "changed_account": "You can view the details of this order from your customer account.",
+            "changed_history_link": "View my order history",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">If you ordered as a guest, find your order tracking via the dedicated link</a>",
+            "changed_thanks": "With all our gratitude and pride,"
         }
     },
     "order_conf": {
@@ -7825,6 +8225,37 @@
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Bekijk uw bestelgeschiedenis in uw klantenaccount</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Als u als gast heeft besteld, volg dan uw bestelling via de speciale link</a>",
             "signature_thanks": "Met al onze dankbaarheid en trots,"
+        },
+        "gb": {
+            "greeting_main": "Your creation has been registered",
+            "greeting_subtitle": "Our artisans are preparing it for you",
+            "dear_customer": "Dear Valued Guest,",
+            "order_confirmation_intro": "We have the privilege of confirming the receipt of your order. Each piece you distinguished will be prepared with the attention it deserves — and you deserve.",
+            "order_confirmation_craftsmanship": "Our artisans carry a heritage passed down from generation to generation. Your creation is now the expression of it.",
+            "order_details_title": "Order details",
+            "order_reference_label": "Order number",
+            "order_date_label": "Date",
+            "payment_label": "Payment method",
+            "col_reference": "Reference",
+            "col_product": "Product",
+            "col_unit_price": "Unit price",
+            "col_quantity": "Quantity",
+            "col_total_price": "Total",
+            "total_products_label": "Total products",
+            "total_discounts_label": "Discounts",
+            "total_wrapping_label": "Gift wrapping",
+            "total_shipping_label": "Shipping",
+            "total_tax_label": "Tax",
+            "total_paid_label": "Total paid",
+            "shipping_title": "Shipping",
+            "carrier_label": "Carrier",
+            "recycled_packaging_label": "Recycled packaging",
+            "delivery_address_title": "Delivery address",
+            "invoice_address_title": "Invoice address",
+            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">You can track the progress of your package from your customer account</a>",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">View your order history in your customer account</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">If you ordered as a guest, track your order via the dedicated link</a>",
+            "signature_thanks": "With all our gratitude and pride,"
         }
     },
     "order_customer_comment": {
@@ -8007,6 +8438,16 @@
             "customer_label": "Klant",
             "customer_message_title": "Klantbericht",
             "comment_admin_note": "U kunt dit bericht beantwoorden via het winkelbeheer."
+        },
+        "gb": {
+            "greeting_main": "A comment on your order",
+            "greeting_subtitle": "We have noted your message",
+            "comment_intro": "A customer has left a comment regarding their order. Here is the information.",
+            "order_info_title": "Order information",
+            "order_reference_label": "Reference",
+            "customer_label": "Customer",
+            "customer_message_title": "Customer message",
+            "comment_admin_note": "You can reply to this message from the store administration."
         }
     },
     "order_merchant_comment": {
@@ -8207,6 +8648,17 @@
             "merchant_comment_message": "Bericht van ons team",
             "merchant_comment_account": "U kunt uw bestelgeschiedenis bekijken via uw klantenaccount:",
             "merchant_comment_link": "Naar mijn klantenaccount"
+        },
+        "gb": {
+            "greeting_main": "Message from the merchant",
+            "greeting_subtitle": "A word from our team",
+            "dear_customer": "Dear Valued Guest,",
+            "merchant_comment_intro": "Our team has a message for you regarding your order.",
+            "order_details_title": "Order",
+            "merchant_comment_new": "A new message has been added to the order",
+            "merchant_comment_message": "Message from our team",
+            "merchant_comment_account": "You can view your order history from your customer account:",
+            "merchant_comment_link": "Access my customer account"
         }
     },
     "order_return_state": {
@@ -8407,6 +8859,17 @@
             "return_state_status": "Huidige status",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">U kunt de details van uw retour bekijken via uw klantenaccount</a>",
             "return_state_thanks": "Met al onze dankbaarheid en trots,"
+        },
+        "gb": {
+            "greeting_main": "Your return status",
+            "greeting_subtitle": "Your return request has been updated",
+            "dear_customer": "Dear Valued Guest,",
+            "return_state_intro": "We inform you that the status of your return request has changed.",
+            "return_state_title": "Return",
+            "return_state_updated": "The status of your return has been updated",
+            "return_state_status": "Current status",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">You can view the details of your return from your customer account</a>",
+            "return_state_thanks": "With all our gratitude and pride,"
         }
     },
     "outofstock": {
@@ -8625,6 +9088,18 @@
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">U kunt de details van uw bestelling bekijken via uw klantenaccount</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Als u als gast heeft besteld, volg dan uw bestelling via de speciale link</a>",
             "outofstock_thanks": "Wij verontschuldigen ons voor deze zeer zeldzame vertraging,"
+        },
+        "gb": {
+            "greeting_main": "Your piece momentarily eludes us",
+            "greeting_subtitle": "Your order remains our priority",
+            "dear_customer": "Dear Valued Guest,",
+            "outofstock_intro": "We regret to inform you that one of the items in your order is currently unavailable.",
+            "order_details_title": "Order",
+            "outofstock_info": "One of the pieces in your order momentarily eludes us — a very rare situation, which we take very seriously.",
+            "outofstock_apologies": "We apologise for this delay which does not reflect our standards. Our team will contact you shortly to agree on the best solution together.",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">You can view the details of your order from your customer account</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">If you ordered as a guest, track your order via the dedicated link</a>",
+            "outofstock_thanks": "Asking your pardon for this very rare delay,"
         }
     },
     "password": {
@@ -8825,6 +9300,17 @@
             "password_account_link": "U kunt uw klantenaccount openen door op onderstaande link te klikken:",
             "password_my_account": "Naar mijn account",
             "password_security_note": "Als u deze wijziging niet heeft aangebracht, neem dan onmiddellijk contact op met onze klantenservice."
+        },
+        "gb": {
+            "greeting_main": "Your access is secured",
+            "greeting_subtitle": "Your private space awaits you",
+            "dear_customer": "Dear Valued Guest,",
+            "password_intro": "We confirm that your password has been successfully changed.",
+            "password_update_title": "Password update",
+            "password_confirmation": "Your password has been successfully updated. You can now log in with your new credentials.",
+            "password_account_link": "You can access your customer account by clicking the link below:",
+            "password_my_account": "Access my account",
+            "password_security_note": "If you did not make this change, please contact our customer service immediately."
         }
     },
     "password_query": {
@@ -9025,6 +9511,17 @@
             "password_query_instructions": "Klik op de knop hieronder om een nieuw wachtwoord in te stellen.",
             "password_query_btn": "Mijn wachtwoord resetten",
             "password_query_ignore": "Als u dit verzoek niet hebt gedaan, kunt u dit bericht negeren."
+        },
+        "gb": {
+            "greeting_main": "Reclaim your private space",
+            "greeting_subtitle": "Your access reset",
+            "dear_customer": "Dear Valued Guest,",
+            "password_query_intro": "We have received your password reset request.",
+            "password_query_notice": "For security reasons, this link is only valid for a limited time.",
+            "password_query_action": "Reset my password",
+            "password_query_instructions": "Click the button below to set a new password.",
+            "password_query_btn": "Reset my password",
+            "password_query_ignore": "If you did not make this request, you can ignore this message."
         }
     },
     "payment": {
@@ -9243,6 +9740,18 @@
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Als u als gast heeft besteld, volg dan uw bestelling via de speciale link</a>",
             "payment_next_steps": "Onze ambachtslieden zullen aan de slag gaan met het respect en de zorg die elk stuk in ons huis inspireert.",
             "signature_thanks": "Met onze diepste dank,"
+        },
+        "gb": {
+            "greeting_main": "Your trust honours us",
+            "greeting_subtitle": "Payment received, creation begins",
+            "dear_customer": "Dear Valued Guest,",
+            "payment_intro": "We have received your payment with gratitude. Your order now enters the creation phase.",
+            "order_details_title": "Order",
+            "payment_confirmation": "Payment for order",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">You can view your order history from your customer account</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">If you ordered as a guest, track your order via the dedicated link</a>",
+            "payment_next_steps": "Our artisans will set to work with the respect and care that every piece in our house inspires.",
+            "signature_thanks": "With our deepest gratitude,"
         }
     },
     "payment_error": {
@@ -9461,6 +9970,18 @@
             "payment_error_help": "Mocht dit ongemak aanhouden, nodigen wij u uit de details van uw bestelling in uw persoonlijke ruimte te bekijken.",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Als u als gast heeft besteld, volg dan uw bestelling via de speciale link</a>",
             "payment_error_thanks": "Dank u voor uw begrip,"
+        },
+        "gb": {
+            "greeting_main": "A moment of attention required",
+            "greeting_subtitle": "Your order remains our priority",
+            "dear_customer": "Dear Valued Guest,",
+            "payment_error_intro": "A technical interruption has interrupted the processing of your payment. We apologise and invite you to regularise it at your convenience.",
+            "order_details_title": "Order",
+            "payment_error_issue": "Payment for order",
+            "payment_error_apologies": "Your order is preserved and remains a priority. You can regularize your payment whenever you wish — we await you.",
+            "payment_error_help": "Should this inconvenience persist, we invite you to consult the details of your order from your personal space.",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">If you ordered as a guest, track your order via the dedicated link</a>",
+            "payment_error_thanks": "Thank you for your understanding,"
         }
     },
     "post_purchase_care": {
@@ -9697,6 +10218,19 @@
             "care_tip_3": "Bewaar uw stuk op een droge, stofvrije plaats wanneer het niet in gebruik is.",
             "care_note": "Ons team staat tot uw beschikking voor verdere informatie.",
             "signature_thanks": "Als bewakers van uw uitzonderlijke stukken, met al onze zorg,"
+        },
+        "gb": {
+            "greeting_main": "Every detail deserves preservation",
+            "greeting_subtitle": "Caring for your exceptional piece",
+            "dear_customer": "Dear Valued Guest,",
+            "care_intro": "We hope that your piece brings you all the satisfaction we intended.",
+            "care_message": "To maintain its shine and beauty over time, here are a few care tips.",
+            "care_tips_title": "Care tips",
+            "care_tip_1": "Avoid prolonged exposure to direct light or intense heat sources.",
+            "care_tip_2": "Clean gently with a soft, dry cloth. Do not use any chemical products.",
+            "care_tip_3": "Store your piece in a dry place, away from dust when not in use.",
+            "care_note": "Our team remains at your disposal for any further information.",
+            "signature_thanks": "As guardians of your exceptional pieces, with all our care,"
         }
     },
     "post_purchase_review": {
@@ -9879,6 +10413,16 @@
             "review_btn": "Deel mijn ervaring",
             "review_note": "Uw mening is waardevol voor ons. Het helpt ons uw verwachtingen beter te begrijpen.",
             "signature_thanks": "Uw blik is onze beste spiegel,"
+        },
+        "gb": {
+            "greeting_main": "Your perspective is precious to us",
+            "greeting_subtitle": "Share your experience",
+            "dear_customer": "Dear Valued Guest,",
+            "review_intro": "We hope that your piece has found, in your home, the place it deserves.",
+            "review_message": "Your perspective on this experience is infinitely precious to us. Not out of statistical obligation, but because the opinion of those who trust us guides our standards.",
+            "review_btn": "Share my experience",
+            "review_note": "Your opinion is valuable to us. It helps us better understand your expectations.",
+            "signature_thanks": "Your gaze is our best mirror,"
         }
     },
     "preparation": {
@@ -10097,6 +10641,18 @@
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">U kunt de voortgang van uw bestelling volgen via uw klantenaccount</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Als u als gast heeft besteld, volg dan uw bestelling via de speciale link</a>",
             "signature_thanks": "In afwachting van het genoegen u tevreden te stellen,"
+        },
+        "gb": {
+            "greeting_main": "Your wishes are taking shape",
+            "greeting_subtitle": "Our artisans are at work",
+            "dear_customer": "Dear Valued Guest,",
+            "preparation_intro": "Your pieces have been entrusted to our artisans. In their hands, every gesture is a tribute to your choice.",
+            "order_details_title": "Order",
+            "preparation_status": "The order",
+            "preparation_promise": "A patiently cultivated know-how, entirely dedicated to what you expect — and what you deserve.",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">You can follow the progress of your order from your customer account</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">If you ordered as a guest, track your order via the dedicated link</a>",
+            "signature_thanks": "In anticipation of the pleasure of satisfying you,"
         }
     },
     "private_invitation": {
@@ -10297,6 +10853,17 @@
             "invitation_closing": "Uw aanwezigheid zou een eer voor ons zijn. We wachten erop.",
             "invitation_btn": "Bevestig mijn aanwezigheid",
             "invitation_note": "Deze uitnodiging is strikt persoonlijk en niet overdraagbaar."
+        },
+        "gb": {
+            "greeting_main": "You are among our guests of honour",
+            "greeting_subtitle": "An exclusive circle, a rare privilege",
+            "dear_customer": "Dear Valued Guest,",
+            "invitation_intro": "You are part of the very restricted circle of personalities to whom we reserve this invitation. It will not be renewed, and cannot be shared.",
+            "invitation_message": "In an exceptional setting, far from ordinary commerce, you will discover in preview what our house is preparing for those who know how to look.",
+            "invitation_details_title": "Event details",
+            "invitation_closing": "Your presence would be an honour to us. We await it.",
+            "invitation_btn": "Confirm my presence",
+            "invitation_note": "This invitation is strictly personal and non-transferable."
         }
     },
     "private_sale": {
@@ -10461,6 +11028,15 @@
             "private_sale_message": "Geniet van een unieke selectie zeldzame stukken tegen bevoorrechte voorwaarden.",
             "private_sale_btn": "Toegang tot de privéverkoop",
             "private_sale_note": "Deze aanbieding is strikt persoonlijk en beperkt in de tijd."
+        },
+        "gb": {
+            "greeting_main": "An invitation we reserve for a few",
+            "greeting_subtitle": "An exclusive access to our collections",
+            "dear_customer": "Dear Valued Guest,",
+            "private_sale_intro": "We have the privilege of inviting you to our private sale, reserved for our most precious guests.",
+            "private_sale_message": "Enjoy a unique selection of rare pieces at privileged conditions.",
+            "private_sale_btn": "Access the private sale",
+            "private_sale_note": "This offer is strictly personal and limited in time."
         }
     },
     "productcoverage": {
@@ -10643,6 +11219,16 @@
             "productcoverage_current": "Huidige dekking",
             "productcoverage_admin_note": "Controleer uw voorraad en vul indien nodig aan.",
             "dear_employee": "Beste collega,"
+        },
+        "gb": {
+            "greeting_main": "Stock coverage alert",
+            "greeting_subtitle": "A product requires your attention",
+            "productcoverage_intro": "The system has detected that a product is close to its critical coverage threshold.",
+            "productcoverage_status": "Coverage status",
+            "productcoverage_min": "Minimum coverage",
+            "productcoverage_current": "Current coverage",
+            "productcoverage_admin_note": "Please review your stock and replenish if necessary.",
+            "dear_employee": "Dear colleague,"
         }
     },
     "productoutofstock": {
@@ -10879,6 +11465,19 @@
             "productoutofstock_action": "Wij raden u aan dit product zo snel mogelijk aan te vullen.",
             "productoutofstock_admin_note": "Deze waarschuwing is automatisch. Controleer uw voorraadstatus.",
             "productoutofstock_threshold": "Drempel voor voorraadwaarschuwing bereikt"
+        },
+        "gb": {
+            "greeting_main": "Product out of stock",
+            "greeting_subtitle": "A product requires your attention",
+            "dear_employee": "Dear employee,",
+            "productoutofstock_intro": "A product in your store is now out of stock.",
+            "productoutofstock_details": "Product details",
+            "productoutofstock_product": "Product",
+            "productoutofstock_below": "Stock has fallen below the alert threshold of",
+            "productoutofstock_remaining": "Remaining quantity",
+            "productoutofstock_action": "We recommend you proceed with replenishment as soon as possible.",
+            "productoutofstock_admin_note": "This alert is automatic. Check your stock status.",
+            "productoutofstock_threshold": "Stock alert threshold reached"
         }
     },
     "ramadan": {
@@ -11061,6 +11660,16 @@
             "ramadan_btn": "Ontdek onze creaties",
             "ramadan_note": "Een bijzondere attentie is voor u beschikbaar gedurende de hele heilige maand.",
             "ramadan_signature": "Het hele team wenst u een gezegende Ramadan."
+        },
+        "gb": {
+            "greeting_main": "Ramadan Mubarak",
+            "greeting_subtitle": "May this holy month bring you peace and serenity",
+            "dear_customer": "Dear Valued Guest,",
+            "ramadan_intro": "During this blessed month of Ramadan, we send you our warmest wishes.",
+            "ramadan_message": "May this blessed month bring you serenity from within, the joy of sharing, and the grace that accompanies those who fast with faith.",
+            "ramadan_btn": "Discover our creations",
+            "ramadan_note": "A special attention is reserved for you throughout the holy month.",
+            "ramadan_signature": "The entire team wishes you a blessed Ramadan."
         }
     },
     "refund": {
@@ -11279,6 +11888,18 @@
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Als u als gast heeft besteld, volg dan uw bestelling via de speciale link</a>",
             "refund_thanks": "Met onze diepste dank,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "Your refund has been processed",
+            "greeting_subtitle": "We honour our word",
+            "dear_customer": "Dear Valued Guest,",
+            "refund_intro": "We confirm that the refund for your order has been successfully processed.",
+            "order_details_title": "Order",
+            "refund_confirmation": "Refund for order",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">You can view your order history from your customer account</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">If you ordered as a guest, track your order via the dedicated link</a>",
+            "refund_thanks": "With our deepest gratitude,",
+            "order_reference_label": "Order reference"
         }
     },
     "reply_msg": {
@@ -11425,6 +12046,14 @@
             "reply_msg_message": "Antwoord van ons team",
             "reply_msg_noreply": "Reageer niet op deze automatische e-mail.",
             "reply_msg_contact": "Voor vragen kunt u via onze website contact met ons opnemen."
+        },
+        "gb": {
+            "greeting_main": "Our team replies to you",
+            "greeting_subtitle": "Your request has been taken into account",
+            "dear_customer": "Dear Valued Guest,",
+            "reply_msg_message": "Reply from our team",
+            "reply_msg_noreply": "Please do not reply to this automatic email.",
+            "reply_msg_contact": "For any question, please contact us through our website."
         }
     },
     "return_slip": {
@@ -11931,6 +12560,34 @@
             "return_slip_tracking_info": "Mijn aanvraag volgen vanuit mijn account",
             "return_slip_contact_info": "Vragen? Ons team staat volledig tot uw beschikking.",
             "signature_thanks": "Met al onze dankbaarheid en trots,"
+        },
+        "gb": {
+            "greeting_main": "Your item is in our care",
+            "greeting_subtitle": "Your request has been registered",
+            "dear_customer": "Dear Valued Guest,",
+            "return_slip_intro": "We are pleased to take care of your item. Here is everything you need to send it back to us.",
+            "return_slip_order_label": "Order",
+            "return_slip_rma_label": "Return reference",
+            "return_slip_deadline_label": "Return deadline",
+            "return_slip_deadline": "Within {return_deadline_days} days of receiving this email",
+            "return_slip_articles_title": "Item(s) concerned",
+            "col_reference": "Reference",
+            "col_product": "Product",
+            "col_unit_price": "Unit price",
+            "col_quantity": "Quantity",
+            "col_total_price": "Total",
+            "return_slip_reason_label": "Reason",
+            "return_slip_instructions_title": "Shipping instructions",
+            "return_slip_address_label": "Return address",
+            "return_slip_rma_note": "Please write this return reference on your parcel:",
+            "return_slip_carrier_info": "Recommended carrier: a tracked and insured shipment for complete peace of mind.",
+            "return_slip_shipping_cost": "Any return terms and fees are detailed in our return policy.",
+            "return_slip_processing_delay": "Your item will be reviewed within {return_processing_days} business days of receipt.",
+            "return_slip_refund_method": "The refund will be issued to your original payment method.",
+            "return_slip_download_btn": "Access my return request",
+            "return_slip_tracking_info": "Track my request from my account",
+            "return_slip_contact_info": "Any questions? Our team remains at your full disposal.",
+            "signature_thanks": "With all our gratitude and pride,"
         }
     },
     "shipped": {
@@ -12167,6 +12824,19 @@
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Als u als gast heeft besteld, volg dan uw bestelling via de speciale link</a>",
             "shipped_wish": "Wij wensen u een ontvangst die de emotie waardig is die dit stuk met zich meedraagt.",
             "signature_thanks": "Met al onze trots en toewijding,"
+        },
+        "gb": {
+            "greeting_main": "Your creation takes flight",
+            "greeting_subtitle": "It travels to you, imbued with our craftsmanship",
+            "dear_customer": "Dear Valued Guest,",
+            "shipped_intro": "It is with pride that we announce the shipment of your order. Our artisans have prepared it with the care it deserves — every detail, every package, every gesture.",
+            "order_details_title": "Order",
+            "shipped_confirmation": "The order",
+            "shipped_wait": "It is now in the hands of our carrier and will reach you within the expected time.",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">You can view your order history from your customer account</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">If you ordered as a guest, track your order via the dedicated link</a>",
+            "shipped_wish": "We wish you a reception worthy of the emotion this piece carries.",
+            "signature_thanks": "With all our pride and dedication,"
         }
     },
     "test": {
@@ -12331,6 +13001,15 @@
             "test_message": "Dit is een test-e-mail verzonden door de Neria-module.",
             "test_success": "Als u dit bericht ontvangt, betekent dit dat de module correct is geconfigureerd.",
             "test_admin_note": "Deze test is bedoeld voor het winkelbeheer. U kunt deze e-mail verwijderen."
+        },
+        "gb": {
+            "greeting_main": "Module test",
+            "greeting_subtitle": "Email sending verification",
+            "dear_employee": "Dear employee,",
+            "test_title": "Test result",
+            "test_message": "This is a test email sent by the Neria module.",
+            "test_success": "If you receive this message, it means the module is correctly configured.",
+            "test_admin_note": "This test is intended for the store administration. You can delete this email."
         }
     },
     "valentine": {
@@ -12513,6 +13192,16 @@
             "valentine_btn": "Ontdek onze creaties",
             "valentine_note": "Een bijzondere attentie is voor u beschikbaar tot 14 februari.",
             "valentine_signature": "Het hele team wenst u een prachtige Valentijnsdag."
+        },
+        "gb": {
+            "greeting_main": "Valentine's Day",
+            "greeting_subtitle": "Celebrate love with a unique piece",
+            "dear_customer": "Dear Valued Guest,",
+            "valentine_intro": "Love deserves to be celebrated with rare words and exceptional pieces. We make this our calling.",
+            "valentine_message": "Each creation of our house was born for this: to become the silent messenger of a feeling that words alone cannot express.",
+            "valentine_btn": "Discover our creations",
+            "valentine_note": "A delicate attention is reserved for you until February 14.",
+            "valentine_signature": "The entire team wishes you a wonderful Valentine's Day."
         }
     },
     "vip": {
@@ -12695,6 +13384,16 @@
             "vip_btn": "Ontdek mijn privileges",
             "vip_note": "Deze status is een weerspiegeling van uw vertrouwen. We dragen hem met evenveel zorg als u ons betoont.",
             "signature_thanks": "Met al onze dankbaarheid en bewondering,"
+        },
+        "gb": {
+            "greeting_main": "Excellence is now yours",
+            "greeting_subtitle": "Welcome to our circle of distinction",
+            "dear_customer": "Dear Valued Guest,",
+            "vip_intro": "Your exceptional loyalty moves us deeply. It is with sincere gratitude that we welcome you into our most exclusive circle — the one we reserve for those who honour us with their lasting trust.",
+            "vip_privileges": "Your VIP status opens doors that we keep closed to the rest of the world: previews of our new creations, private invitations to our events, tailor-made offers and personalised support.",
+            "vip_btn": "Discover my privileges",
+            "vip_note": "This status is a reflection of your trust. We carry it with as much care as you show us.",
+            "signature_thanks": "With all our gratitude and admiration,"
         }
     },
     "voucher": {
@@ -12931,6 +13630,19 @@
             "voucher_usage": "Deze cadeaubon is {validity_days} dagen geldig in onze hele winkel. Kan niet worden gecombineerd met andere aanbiedingen.",
             "voucher_next": "We hopen dat u iets naar uw zin vindt tussen onze creaties.",
             "signature_thanks": "Als blijk van onze erkentelijkheid voor uw loyaliteit,"
+        },
+        "gb": {
+            "greeting_main": "A gesture of recognition for your trust",
+            "greeting_subtitle": "A particular attention for your order",
+            "dear_customer": "Dear Valued Guest,",
+            "voucher_intro": "Your trust moves us. As a token of our gratitude, we have prepared an attention for you.",
+            "order_details_title": "Order",
+            "voucher_for_order": "A voucher has been generated for order",
+            "voucher_amount_label": "Voucher amount",
+            "voucher_code": "Voucher code",
+            "voucher_usage": "This voucher is valid for {validity_days} days across our entire boutique. Cannot be combined with other offers.",
+            "voucher_next": "We hope you will find something to your liking among our creations.",
+            "signature_thanks": "In token of our gratitude for your loyalty,"
         }
     },
     "voucher_new": {
@@ -13149,6 +13861,18 @@
             "voucher_new_usage": "Deze cadeaubon is {validity_days} dagen geldig in onze hele winkel. Kan niet worden gecombineerd met andere aanbiedingen.",
             "voucher_next": "We hopen dat u iets naar uw zin vindt tussen onze creaties.",
             "signature_thanks": "Met het plezier u dit gebaar aan te bieden,"
+        },
+        "gb": {
+            "greeting_main": "New voucher",
+            "greeting_subtitle": "A token of thanks",
+            "dear_customer": "Dear Valued Guest,",
+            "voucher_new_intro": "We are pleased to offer you a new voucher.",
+            "voucher_new_title": "An attention for you",
+            "voucher_new_text": "We have prepared this attention for you. You may use it during your next visit.",
+            "voucher_code": "Voucher code",
+            "voucher_new_usage": "This voucher is valid for {validity_days} days across our entire boutique. Cannot be combined with other offers.",
+            "voucher_next": "We hope you will find something to your liking among our creations.",
+            "signature_thanks": "With the pleasure of offering you this gesture,"
         }
     },
     "white_glove_apology": {
@@ -13385,6 +14109,19 @@
             "apology_btn": "Neem contact op met onze service",
             "apology_note": "Uw geduld en vriendelijkheid raken ons. We moeten ze nu verdienen.",
             "apology_signature": "Met onze oprechtste berouw en absolute toewijding,"
+        },
+        "gb": {
+            "greeting_main": "We assume full responsibility",
+            "greeting_subtitle": "A service that must be flawless",
+            "dear_customer": "Dear Valued Guest,",
+            "apology_intro": "We are not writing to justify ourselves. We are writing to fully assume, and present our apologies without reservation.",
+            "apology_details_title": "Incident details",
+            "order_reference_label": "Reference",
+            "apology_responsibility": "This delay in no way reflects the standards we impose on ourselves. We are the first affected, and determined that it remains an absolute exception.",
+            "apology_solution": "A member of our team will contact you personally within 24 hours to agree on the most appropriate solution — one that, we hope, will restore your trust.",
+            "apology_btn": "Contact our service",
+            "apology_note": "Your patience and kindness touch us. We now need to deserve them.",
+            "apology_signature": "With our sincerest contrition and absolute commitment,"
         }
     },
     "order_on_hold": {
@@ -13639,6 +14376,20 @@
             "order_on_hold_note": "Ons team staat voor u klaar voor vragen.",
             "order_on_hold_signature": "Met al onze aandacht,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "Your order is on hold",
+            "greeting_subtitle": "We are protecting the quality of your selection",
+            "dear_customer": "Dear Valued Guest,",
+            "order_on_hold_intro": "We are taking the time to verify every detail of your order before completing it.",
+            "order_on_hold_details": "Here are the details of the situation:",
+            "order_on_hold_reason": "Reason for the hold",
+            "order_on_hold_status": "Current status",
+            "order_on_hold_action": "What you can do",
+            "order_on_hold_btn": "Track my order",
+            "order_on_hold_note": "Our team remains available for any questions.",
+            "order_on_hold_signature": "With all our attention,",
+            "order_reference_label": "Order reference"
         }
     },
     "customs_alert": {
@@ -13875,6 +14626,19 @@
             "customs_alert_note": "Ons team kan u helpen met de procedures indien nodig.",
             "customs_alert_signature": "Tot uw dienst om deze stap te overwinnen,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "Your order crosses a border",
+            "greeting_subtitle": "Customs clearance is required",
+            "dear_customer": "Dear Valued Guest,",
+            "customs_alert_intro": "Your order is currently being processed by the customs authorities of its destination country.",
+            "customs_alert_details": "Customs alert details",
+            "customs_alert_status": "Current status",
+            "customs_alert_action": "Recommended action",
+            "customs_alert_btn": "Track my package",
+            "customs_alert_note": "Our team can assist you with the procedures if needed.",
+            "customs_alert_signature": "At your service to cross this step,",
+            "order_reference_label": "Order reference"
         }
     },
     "delivery_attempt_failed": {
@@ -14111,6 +14875,19 @@
             "delivery_attempt_note": "Het pakket wordt op een afhaalpunt voor u bewaard.",
             "delivery_attempt_signature": "In afwachting van u te kunnen bedienen,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "Your package could not be delivered",
+            "greeting_subtitle": "It is waiting for you at a pickup point",
+            "dear_customer": "Dear Valued Guest,",
+            "delivery_attempt_intro": "We attempted to deliver your package, but no one was present to receive it.",
+            "delivery_attempt_details": "Delivery attempt details",
+            "delivery_attempt_status": "Package status",
+            "delivery_attempt_action": "What to do now?",
+            "delivery_attempt_btn": "View pickup options",
+            "delivery_attempt_note": "The package is held at a pickup point for you.",
+            "delivery_attempt_signature": "Awaiting to serve you,",
+            "order_reference_label": "Order reference"
         }
     },
     "order_address_updated": {
@@ -14347,6 +15124,19 @@
             "address_update_note": "Als deze wijziging niet de bedoeling was, neem dan snel contact met ons op.",
             "address_update_signature": "Met al onze aandacht,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "Your delivery address has been updated",
+            "greeting_subtitle": "We have successfully registered your change",
+            "dear_customer": "Dear Valued Guest,",
+            "address_update_intro": "We confirm that the delivery address for your order has been successfully modified.",
+            "address_update_details": "Updated address details",
+            "address_update_new": "New delivery address",
+            "address_update_old": "Previous address (for reference)",
+            "address_update_btn": "View my order",
+            "address_update_note": "If this change was not intended, please contact us promptly.",
+            "address_update_signature": "With all our attention,",
+            "order_reference_label": "Order reference"
         }
     },
     "digital_gift_card": {
@@ -14583,6 +15373,19 @@
             "gift_card_btn": "Bezoek de website",
             "gift_card_note": "Deze cadeaukaart is gedurende een beperkte tijd geldig. Raadpleeg de algemene voorwaarden.",
             "gift_card_signature": "Met alle respect,"
+        },
+        "gb": {
+            "greeting_main": "You have received a digital gift",
+            "greeting_subtitle": "A personal gift card for you",
+            "dear_customer": "Dear Valued Guest,",
+            "gift_card_intro": "We are honoured to send you this digital gift in place of a physical object.",
+            "gift_card_details": "Your gift card details",
+            "gift_card_amount": "Amount",
+            "gift_card_code": "Card code",
+            "gift_card_usage": "Instructions for use",
+            "gift_card_btn": "Visit the website",
+            "gift_card_note": "This gift card is valid for a limited time. Please refer to the terms and conditions.",
+            "gift_card_signature": "With all our consideration,"
         }
     },
     "unboxing_guide": {
@@ -14819,6 +15622,19 @@
             "unboxing_btn": "Deel de emotie",
             "unboxing_note": "We zouden graag uw eerste indrukken horen.",
             "unboxing_signature": "In afwachting van de levering van dit stuk aan u, met al onze dankbaarheid,"
+        },
+        "gb": {
+            "greeting_main": "The art of discovering your piece",
+            "greeting_subtitle": "A guide for a gentle unboxing",
+            "dear_customer": "Dear Valued Guest,",
+            "unboxing_intro": "Your exceptional piece will soon arrive. To make the moment worthy of what it embodies, here are a few tips.",
+            "unboxing_guide_title": "Unboxing guide",
+            "unboxing_guide_1": "Prepare a clean, soft space to receive your package.",
+            "unboxing_guide_2": "Open the package gently, as if revealing a secret.",
+            "unboxing_guide_3": "Take time to admire the details before letting the piece settle into your home.",
+            "unboxing_btn": "Share the emotion",
+            "unboxing_note": "We would be delighted to hear your first impressions.",
+            "unboxing_signature": "Waiting for this piece to be delivered to you, with all our gratitude,"
         }
     },
     "care_certificate": {
@@ -15055,6 +15871,19 @@
             "care_certificate_btn": "Download het certificaat",
             "care_certificate_note": "Bewaar dit certificaat voor toekomstige raadpleging.",
             "care_certificate_signature": "Trots op de kwaliteit van ons vakmanschap,"
+        },
+        "gb": {
+            "greeting_main": "Caring for your exceptional piece",
+            "greeting_subtitle": "A personalised care certificate",
+            "dear_customer": "Dear Valued Guest,",
+            "care_certificate_intro": "To ensure your piece retains all its splendour over time, here is a personalised care certificate, specifically tailored to its materials.",
+            "care_certificate_title": "Care certificate",
+            "care_certificate_product": "Product concerned",
+            "care_certificate_materials": "Materials",
+            "care_certificate_instructions": "Care instructions",
+            "care_certificate_btn": "Download the certificate",
+            "care_certificate_note": "Keep this certificate for future reference.",
+            "care_certificate_signature": "Proud of the quality of our craftsmanship,"
         }
     },
     "artisan_message": {
@@ -15273,6 +16102,18 @@
             "artisan_message_btn": "Ontdek de werkplaats",
             "artisan_message_note": "We zijn er trots op u voor te stellen aan degenen die uw wensen tot leven brengen.",
             "artisan_message_signature": "Met de warmte van onze werkplaatsen,"
+        },
+        "gb": {
+            "greeting_main": "A word from the artisan who created your piece",
+            "greeting_subtitle": "Their know-how, their signature",
+            "dear_customer": "Dear Valued Guest,",
+            "artisan_message_intro": "Behind every piece you receive, there is a gaze, a hand, a story. Here is a personal message from the artisan who shaped yours.",
+            "artisan_message_title": "Message from the artisan",
+            "artisan_message_author": "From",
+            "artisan_message_text": "Your piece was born from my passion and my gestures. I hope it will accompany you for a long time.",
+            "artisan_message_btn": "Discover the workshop",
+            "artisan_message_note": "We are proud to introduce you to those who bring your wishes to life.",
+            "artisan_message_signature": "With the warmth of our workshops,"
         }
     },
     "exclusive_preview": {
@@ -15455,6 +16296,16 @@
             "exclusive_preview_btn": "Ontdek de collectie",
             "exclusive_preview_note": "Deze uitnodiging is persoonlijk en geldig voor een beperkte tijd.",
             "exclusive_preview_signature": "Dank u voor uw loyaliteit,"
+        },
+        "gb": {
+            "greeting_main": "A sneak peek of our new collection",
+            "greeting_subtitle": "Exclusively for those dear to us",
+            "dear_customer": "Dear Valued Guest,",
+            "exclusive_preview_intro": "We are pleased to offer you early access to our upcoming collection. Exclusively, before it is even revealed to the world.",
+            "exclusive_preview_title": "Reserved preview",
+            "exclusive_preview_btn": "Discover the collection",
+            "exclusive_preview_note": "This invitation is personal and valid for a limited time.",
+            "exclusive_preview_signature": "Thank you for your loyalty,"
         }
     },
     "concierge_followup": {
@@ -15637,6 +16488,16 @@
             "concierge_followup_btn": "Neem contact op met mijn adviseur",
             "concierge_followup_note": "We staan klaar om u te begeleiden bij elk detail van uw reis.",
             "concierge_followup_signature": "Tot uw dienst, onder alle omstandigheden,"
+        },
+        "gb": {
+            "greeting_main": "A personalised follow-up from our concierge",
+            "greeting_subtitle": "We are at your disposal",
+            "dear_customer": "Dear Valued Guest,",
+            "concierge_followup_intro": "Our concierge service wishes to ensure that your experience with our house meets your expectations.",
+            "concierge_followup_title": "In need of special attention?",
+            "concierge_followup_btn": "Contact my advisor",
+            "concierge_followup_note": "We are available to assist you with every detail of your journey.",
+            "concierge_followup_signature": "At your service, in all circumstances,"
         }
     },
     "fathers_day": {
@@ -15819,6 +16680,16 @@
             "fathers_day_btn": "Ontdek onze selectie",
             "fathers_day_note": "Een bijzondere attentie is voor u beschikbaar tot het einde van de week.",
             "fathers_day_signature": "Het hele team wenst u een fijne vaderdag."
+        },
+        "gb": {
+            "greeting_main": "Father's Day",
+            "greeting_subtitle": "Celebrate the one who gave you so much",
+            "dear_customer": "Dear Valued Guest,",
+            "fathers_day_intro": "On this day honouring fathers, we think of the one who shaped your roots, your passions, your silences.",
+            "fathers_day_message": "Offer him what is most rare: a piece that tells, without a word, your gratitude.",
+            "fathers_day_btn": "Discover our selection",
+            "fathers_day_note": "A special attention is reserved for you until the end of the week.",
+            "fathers_day_signature": "The entire team wishes you a happy Father's Day."
         }
     },
     "grandparents_day": {
@@ -16001,6 +16872,16 @@
             "grandparents_day_btn": "Ontdek onze selectie",
             "grandparents_day_note": "Een bijzondere attentie is voor u beschikbaar tot het einde van de week.",
             "grandparents_day_signature": "Het hele team wenst u een fijne grootouderdag."
+        },
+        "gb": {
+            "greeting_main": "Grandparents' Day",
+            "greeting_subtitle": "A thought for those who have passed on so much",
+            "dear_customer": "Dear Valued Guest,",
+            "grandparents_day_intro": "On this day dedicated to grandparents, we honour the memory, gentleness and wisdom they have sown in you.",
+            "grandparents_day_message": "Offer them a piece that carries the time, patience and love they have given you.",
+            "grandparents_day_btn": "Discover our selection",
+            "grandparents_day_note": "A special attention is reserved for you until the end of the week.",
+            "grandparents_day_signature": "The entire team wishes you a happy Grandparents' Day."
         }
     },
     "mothers_day": {
@@ -16183,6 +17064,16 @@
             "mothers_day_btn": "Ontdek onze selectie",
             "mothers_day_note": "Een bijzondere attentie is voor u beschikbaar tot het einde van de week.",
             "mothers_day_signature": "Het hele team wenst u een fijne moederdag."
+        },
+        "gb": {
+            "greeting_main": "Mother's Day",
+            "greeting_subtitle": "Celebrate the one who gave you everything",
+            "dear_customer": "Dear Valued Guest,",
+            "mothers_day_intro": "On this day celebrating mothers, we think of the one whose gaze was your first refuge.",
+            "mothers_day_message": "Offer her what resembles her love: a unique, discreet and infinitely precious piece.",
+            "mothers_day_btn": "Discover our selection",
+            "mothers_day_note": "A special attention is reserved for you until the end of the week.",
+            "mothers_day_signature": "The entire team wishes you a happy Mother's Day."
         }
     },
     "new_year": {
@@ -16365,6 +17256,16 @@
             "new_year_btn": "Ontdek onze creaties",
             "new_year_note": "Een bijzondere attentie is voor u beschikbaar tot het einde van de maand.",
             "new_year_signature": "Het hele team wenst u een uitstekend jaar."
+        },
+        "gb": {
+            "greeting_main": "Happy New Year",
+            "greeting_subtitle": "May this new year be gentle with you",
+            "dear_customer": "Dear Valued Guest,",
+            "new_year_intro": "At the beginning of this year, we wish to accompany you with our most sincere wishes.",
+            "new_year_message": "May this new year be for you a path of gentleness, success and beautiful discoveries.",
+            "new_year_btn": "Discover our creations",
+            "new_year_note": "A special attention is reserved for you until the end of the month.",
+            "new_year_signature": "The entire team wishes you an excellent year."
         }
     },
     "diwali": {
@@ -16547,6 +17448,16 @@
             "diwali_btn": "Ontdek onze creaties",
             "diwali_note": "Een bijzondere attentie is voor u beschikbaar tot het einde van de week.",
             "diwali_signature": "Het hele team wenst u een prachtig Diwali."
+        },
+        "gb": {
+            "greeting_main": "Happy Diwali",
+            "greeting_subtitle": "May light triumph over darkness",
+            "dear_customer": "Dear Valued Guest,",
+            "diwali_intro": "On the occasion of Diwali, the festival of lights, we send you our warmest wishes.",
+            "diwali_message": "May this sacred festival bring clarity, prosperity and joy into your life.",
+            "diwali_btn": "Discover our creations",
+            "diwali_note": "A special attention is reserved for you until the end of the week.",
+            "diwali_signature": "The entire team wishes you a wonderful Diwali."
         }
     },
     "hanukkah": {
@@ -16729,6 +17640,16 @@
             "hanukkah_btn": "Ontdek onze creaties",
             "hanukkah_note": "Een bijzondere attentie is voor u beschikbaar tot het einde van de week.",
             "hanukkah_signature": "Het hele team wenst u een prachtig Hanukkah."
+        },
+        "gb": {
+            "greeting_main": "Happy Hanukkah",
+            "greeting_subtitle": "May this festival of lights enlighten you",
+            "dear_customer": "Dear Valued Guest,",
+            "hanukkah_intro": "On the occasion of Hanukkah, the festival of lights, we send you our sincerest wishes.",
+            "hanukkah_message": "May this sacred celebration bring you the warmth of home, peace and serenity.",
+            "hanukkah_btn": "Discover our creations",
+            "hanukkah_note": "A special attention is reserved for you until the end of the week.",
+            "hanukkah_signature": "The entire team wishes you a wonderful Hanukkah."
         }
     },
     "black_friday": {
@@ -16911,6 +17832,16 @@
             "black_friday_btn": "Ontdek de selectie",
             "black_friday_note": "Dit aanbod is beperkt in de tijd en strikt voorbehouden aan onze meest aandachtige gasten.",
             "black_friday_signature": "Het hele team wenst u de beste ontdekking."
+        },
+        "gb": {
+            "greeting_main": "Black Friday — a rare occasion",
+            "greeting_subtitle": "Without haste, with elegance",
+            "dear_customer": "Dear Valued Guest,",
+            "black_friday_intro": "We have chosen to take part in this day with sobriety. Here is a selection of exceptional pieces at privileged conditions.",
+            "black_friday_message": "With us, rarity remains discreet. Treat yourself to a piece you may have been waiting for.",
+            "black_friday_btn": "Discover the selection",
+            "black_friday_note": "This offer is time-limited and strictly reserved for our most attentive guests.",
+            "black_friday_signature": "The entire team wishes you the best find."
         }
     },
     "end_of_year_gift": {
@@ -17111,6 +18042,17 @@
             "end_of_year_usage": "{validity_days} dagen geldig in onze hele winkel. Kan niet worden gecombineerd met andere aanbiedingen.",
             "end_of_year_btn": "Ontdek mijn selectie",
             "end_of_year_signature": "Met al onze dankbaarheid,"
+        },
+        "gb": {
+            "greeting_main": "A gift to close the year",
+            "greeting_subtitle": "Thank you for your loyalty",
+            "dear_customer": "Dear Valued Guest,",
+            "end_of_year_intro": "At the end of this year, we wish to offer you a special attention, in recognition of your trust.",
+            "end_of_year_message": "This gesture reflects the precious relationship we share with you.",
+            "end_of_year_voucher_value": "Your discount code",
+            "end_of_year_usage": "Valid for {validity_days} days across our entire boutique. Cannot be combined with other offers.",
+            "end_of_year_btn": "Discover my selection",
+            "end_of_year_signature": "With all our gratitude,"
         }
     },
     "referral_invitation": {
@@ -17293,6 +18235,16 @@
             "referral_btn": "Nodig een dierbare uit",
             "referral_note": "Uw gebaar zal worden beloond. Wij danken u bij voorbaat.",
             "referral_signature": "Met al onze dankbaarheid,"
+        },
+        "gb": {
+            "greeting_main": "Share the exceptional",
+            "greeting_subtitle": "Invite those dear to you",
+            "dear_customer": "Dear Valued Guest,",
+            "referral_intro": "You appreciate our house. Why not let those who share your tastes enjoy it too?",
+            "referral_message": "Refer a friend or a loved one and offer them a first privileged experience.",
+            "referral_btn": "Invite a loved one",
+            "referral_note": "Your gesture will be rewarded. We thank you in advance.",
+            "referral_signature": "With all our gratitude,"
         }
     },
     "wishlist_reminder": {
@@ -17475,6 +18427,16 @@
             "wishlist_btn": "Bekijk het stuk",
             "wishlist_note": "De beschikbaarheid is beperkt. We raden u aan niet te aarzelen.",
             "wishlist_signature": "Tot uw dienst,"
+        },
+        "gb": {
+            "greeting_main": "Your cherished piece is available",
+            "greeting_subtitle": "A news from your wishlist",
+            "dear_customer": "Dear Valued Guest,",
+            "wishlist_intro": "One of the pieces you noted in your wish list is once again available.",
+            "wishlist_details": "Piece details",
+            "wishlist_btn": "View the piece",
+            "wishlist_note": "Availability is limited. We encourage you not to delay.",
+            "wishlist_signature": "At your service,"
         }
     },
     "early_access": {
@@ -17657,6 +18619,16 @@
             "early_access_btn": "Toegang tot de collectie",
             "early_access_note": "Deze vroege toegang is strikt persoonlijk en beperkt in de tijd.",
             "early_access_signature": "We zijn blij dit moment met u te delen,"
+        },
+        "gb": {
+            "greeting_main": "Access before everyone else",
+            "greeting_subtitle": "Your loyalty privilege",
+            "dear_customer": "Dear Valued Guest,",
+            "early_access_intro": "In recognition of your loyalty, we are opening access to our new collection before its official release.",
+            "early_access_details": "Collection preview",
+            "early_access_btn": "Access the collection",
+            "early_access_note": "This early access is strictly personal and limited in time.",
+            "early_access_signature": "We are delighted to share this moment with you,"
         }
     },
     "milestone_order": {
@@ -17839,6 +18811,16 @@
             "milestone_btn": "Ontdek mijn selectie",
             "milestone_note": "Wij reserveren speciale aandacht voor onze gasten die deze mijlpalen bereiken.",
             "milestone_signature": "Met al onze dankbaarheid,"
+        },
+        "gb": {
+            "greeting_main": "This is your {milestone_count} order",
+            "greeting_subtitle": "A milestone in our relationship",
+            "dear_customer": "Dear Valued Guest,",
+            "milestone_intro": "We are pleased to inform you that you have just placed your {milestone_count} order with us. A symbolic milestone.",
+            "milestone_message": "Every order is a sign of trust for us. This one, in particular, is another one, and we warmly thank you for it.",
+            "milestone_btn": "Discover my selection",
+            "milestone_note": "We reserve special attention for our guests who reach these milestones.",
+            "milestone_signature": "With all our gratitude,"
         }
     },
     "product_waitlist_confirm": {
@@ -18021,6 +19003,16 @@
             "waitlist_btn": "Bekijk het stuk",
             "waitlist_note": "We nemen contact met u op zodra het stuk weer beschikbaar is.",
             "waitlist_signature": "Met al onze aandacht,"
+        },
+        "gb": {
+            "greeting_main": "You are on the waiting list",
+            "greeting_subtitle": "We will keep you informed",
+            "dear_customer": "Dear Valued Guest,",
+            "waitlist_intro": "You have expressed interest in a piece that is currently unavailable. Your registration on our waiting list has been successfully recorded.",
+            "waitlist_details": "Piece concerned",
+            "waitlist_btn": "View the piece",
+            "waitlist_note": "We will contact you as soon as the piece becomes available again.",
+            "waitlist_signature": "With all our attention,"
         }
     },
     "loyalty_reward_expiry": {
@@ -18221,6 +19213,17 @@
             "loyalty_expiry_btn": "Mijn beloning gebruiken",
             "loyalty_expiry_note": "Deze beloning is geldig tot de aangegeven datum. Daarna kan deze niet meer worden gebruikt.",
             "loyalty_expiry_signature": "We hopen u te kunnen verrassen,"
+        },
+        "gb": {
+            "greeting_main": "Your reward is about to expire",
+            "greeting_subtitle": "An attention waiting to be used",
+            "dear_customer": "Dear Valued Guest,",
+            "loyalty_expiry_intro": "The reward you earned through our loyalty programme will soon expire.",
+            "loyalty_expiry_details": "Reward details",
+            "loyalty_expiry_date_label": "Expiry date",
+            "loyalty_expiry_btn": "Use my reward",
+            "loyalty_expiry_note": "This reward is valid until the indicated date. After that, it can no longer be used.",
+            "loyalty_expiry_signature": "We hope to please you,"
         }
     },
     "repair_request_confirm": {
@@ -18421,6 +19424,17 @@
             "repair_request_note": "Ons team zal contact met u opnemen om de servicevoorwaarden te bevestigen.",
             "repair_request_signature": "Tot uw dienst,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "Your repair request has been received",
+            "greeting_subtitle": "We will take care of your piece",
+            "dear_customer": "Dear Valued Guest,",
+            "repair_request_intro": "We have received your request for repair or alteration of your piece.",
+            "repair_request_details": "Request details",
+            "repair_request_btn": "Track my request",
+            "repair_request_note": "Our team will contact you to confirm the terms of service.",
+            "repair_request_signature": "At your service,",
+            "order_reference_label": "Order reference"
         }
     },
     "repair_completed": {
@@ -18621,6 +19635,17 @@
             "repair_completed_note": "Ons team zal contact met u opnemen om de retourvoorwaarden af te spreken.",
             "repair_completed_signature": "Wij zijn blij u te kunnen dienen,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "Your piece is ready",
+            "greeting_subtitle": "The repair is complete",
+            "dear_customer": "Dear Valued Guest,",
+            "repair_completed_intro": "We are pleased to inform you that the repair or alteration of your piece is now complete.",
+            "repair_completed_details": "Service details",
+            "repair_completed_btn": "Arrange return",
+            "repair_completed_note": "Our team will contact you to agree on return arrangements.",
+            "repair_completed_signature": "We are happy to serve you,",
+            "order_reference_label": "Order reference"
         }
     },
     "alteration_update": {
@@ -18839,6 +19864,18 @@
             "alteration_update_note": "Ons team staat voor u klaar voor vragen.",
             "alteration_update_signature": "Tot uw dienst,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "Update on your alteration",
+            "greeting_subtitle": "Your piece evolves according to your wishes",
+            "dear_customer": "Dear Valued Guest,",
+            "alteration_update_intro": "We inform you of the progress of the custom alteration of your piece. Here are the latest news.",
+            "alteration_update_details": "Progress details",
+            "alteration_update_status": "Current status",
+            "alteration_update_btn": "Track progress",
+            "alteration_update_note": "Our team remains at your disposal for any questions.",
+            "alteration_update_signature": "At your service,",
+            "order_reference_label": "Order reference"
         }
     },
     "extended_warranty": {
@@ -19039,6 +20076,17 @@
             "extended_warranty_note": "Deze uitgebreide garantie is geldig voor een bepaalde periode. Bewaar dit bewijs.",
             "extended_warranty_signature": "Tot uw dienst,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "Your extended warranty is active",
+            "greeting_subtitle": "We extend our commitment",
+            "dear_customer": "Dear Valued Guest,",
+            "extended_warranty_intro": "We are pleased to inform you that your extended warranty is now active for the piece in question.",
+            "extended_warranty_details": "Warranty details",
+            "extended_warranty_btn": "View terms",
+            "extended_warranty_note": "This extended warranty is valid for a specified period. Keep this proof.",
+            "extended_warranty_signature": "At your service,",
+            "order_reference_label": "Order reference"
         }
     },
     "product_recall": {
@@ -19275,6 +20323,19 @@
             "product_recall_note": "Ons team staat voor u klaar voor vragen. Wij danken u voor uw begrip.",
             "product_recall_signature": "Met al onze achting,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "Important information regarding one of our products",
+            "greeting_subtitle": "We owe you transparency",
+            "dear_customer": "Dear Valued Guest,",
+            "product_recall_intro": "We have identified a point requiring your attention regarding a product you may have purchased from us. This communication is an act of transparency.",
+            "product_recall_details": "Recall details",
+            "product_recall_product_label": "Product concerned",
+            "product_recall_action": "What to do?",
+            "product_recall_btn": "Learn more",
+            "product_recall_note": "Our team is at your disposal for any questions. We thank you for your understanding.",
+            "product_recall_signature": "With all our consideration,",
+            "order_reference_label": "Order reference"
         }
     },
     "quote_expiry_48h": {
@@ -19511,6 +20572,19 @@
             "quote_expiry_48h_help": "Ons team staat volledig tot uw beschikking voor vragen of aanpassingen vóór bevestiging.",
             "quote_expiry_48h_note": "Deze offerte verloopt op {expiry_date}. Na deze datum kunnen de overeengekomen prijsvoorwaarden niet meer worden gegarandeerd.",
             "quote_expiry_48h_signature": "Met onze hoogachting,"
+        },
+        "gb": {
+            "greeting_main": "Your quote expires in 48 hours",
+            "greeting_subtitle": "Last opportunity to confirm your order",
+            "dear_customer": "Dear Valued Client,",
+            "quote_expiry_48h_intro": "We would like to remind you that your quote expires in less than 48 hours. We invite you to confirm it before expiration to benefit from the agreed terms.",
+            "quote_ref_label": "Quote reference:",
+            "quote_total_label": "Amount:",
+            "quote_expiry_label": "Expires on:",
+            "quote_expiry_48h_btn": "Confirm my order",
+            "quote_expiry_48h_help": "Our team remains fully available for any questions or adjustments before confirmation.",
+            "quote_expiry_48h_note": "This quote will expire on {expiry_date}. After this date, the agreed pricing conditions may no longer apply.",
+            "quote_expiry_48h_signature": "With our distinguished regards,"
         }
     },
     "quote_expiry_day": {
@@ -19747,6 +20821,19 @@
             "quote_expiry_day_help": "Voor dringende vragen is ons team direct beschikbaar.",
             "quote_expiry_day_note": "Deze offerte verloopt vandaag. Na verloop van tijd kunnen de overeengekomen prijsvoorwaarden worden gewijzigd.",
             "quote_expiry_day_signature": "Met onze hoogachting,"
+        },
+        "gb": {
+            "greeting_main": "Your quote expires today",
+            "greeting_subtitle": "Today is the day to confirm your order",
+            "dear_customer": "Dear Valued Client,",
+            "quote_expiry_day_intro": "Your quote expires today. We invite you to confirm it at your earliest convenience to secure the agreed terms.",
+            "quote_ref_label": "Quote reference:",
+            "quote_total_label": "Amount:",
+            "quote_expiry_label": "Expires on:",
+            "quote_expiry_day_btn": "Confirm my quote now",
+            "quote_expiry_day_help": "For any urgent enquiry, our team is available and ready to assist you.",
+            "quote_expiry_day_note": "This quote expires today. Once elapsed, the agreed pricing conditions may be subject to change.",
+            "quote_expiry_day_signature": "With our distinguished regards,"
         }
     },
     "quote_extension_offer": {
@@ -19983,6 +21070,19 @@
             "quote_extension_help": "Neem vandaag contact met ons op om uw offerte onder de oorspronkelijke voorwaarden te bevestigen. Ons team zal uw verzoek met de grootste zorg bekijken.",
             "quote_extension_note": "Dit verlengingsaanbod is afhankelijk van de beschikbaarheid van artikelen en bevestiging van ons team.",
             "quote_extension_signature": "Met onze hoogachting,"
+        },
+        "gb": {
+            "greeting_main": "We are offering an extension on your quote",
+            "greeting_subtitle": "Your project can still come to life",
+            "dear_customer": "Dear Valued Client,",
+            "quote_extension_intro": "Your quote has expired, but we would like to offer you the opportunity to proceed. Upon a simple request, we can extend its validity subject to availability.",
+            "quote_ref_label": "Quote reference:",
+            "quote_total_label": "Amount:",
+            "quote_extension_new_expiry_label": "Extension possible until:",
+            "quote_extension_btn": "Request an extension",
+            "quote_extension_help": "Contact us today to confirm your quote under the original terms. Our team will review your request with the utmost care.",
+            "quote_extension_note": "This extension offer is subject to item availability and confirmation from our team.",
+            "quote_extension_signature": "With our distinguished regards,"
         }
     },
     "tax_refund_eligible": {
@@ -20183,6 +21283,17 @@
             "tax_refund_note": "Ons team zal u begeleiden bij de nodige stappen.",
             "tax_refund_signature": "Tot uw dienst,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "You are eligible for a tax refund",
+            "greeting_subtitle": "For customers outside the European Union",
+            "dear_customer": "Dear Valued Guest,",
+            "tax_refund_intro": "As a guest residing outside the European Union, you are eligible for a tax refund on your purchases.",
+            "tax_refund_details": "Your eligibility details",
+            "tax_refund_btn": "Start the procedure",
+            "tax_refund_note": "Our team will assist you with the necessary steps.",
+            "tax_refund_signature": "At your service,",
+            "order_reference_label": "Order reference"
         }
     },
     "corporate_order_confirm": {
@@ -20473,6 +21584,22 @@
             "col_unit_price": "Eenheidsprijs",
             "col_quantity": "Aantal",
             "col_total_price": "Totaal"
+        },
+        "gb": {
+            "greeting_main": "Confirmation of your corporate order",
+            "greeting_subtitle": "We are handling your professional request",
+            "dear_customer": "Dear Valued Guest,",
+            "corporate_confirm_intro": "We acknowledge receipt of your order on behalf of your company. It will be processed with all the attention such a commitment deserves.",
+            "corporate_confirm_details": "Corporate order details",
+            "corporate_confirm_btn": "Track my order",
+            "corporate_confirm_note": "Our dedicated corporate relations team is at your disposal.",
+            "corporate_confirm_signature": "At your service for this partnership,",
+            "order_reference_label": "Order reference",
+            "col_reference": "Ref.",
+            "col_product": "Product",
+            "col_unit_price": "Unit price",
+            "col_quantity": "Qty",
+            "col_total_price": "Total"
         }
     },
     "gift_message_confirm": {
@@ -20673,6 +21800,17 @@
             "gift_message_confirm_note": "De ontvanger krijgt dit bericht samen met zijn pakket.",
             "gift_message_confirm_signature": "Met al onze aandacht,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "Your gift message has been registered",
+            "greeting_subtitle": "It will be carefully transmitted",
+            "dear_customer": "Dear Valued Guest,",
+            "gift_message_confirm_intro": "We confirm that the message you attached to your gift order has been successfully recorded.",
+            "gift_message_confirm_details": "Message content",
+            "gift_message_confirm_btn": "View my order",
+            "gift_message_confirm_note": "The recipient will receive this message with their package.",
+            "gift_message_confirm_signature": "With all our attention,",
+            "order_reference_label": "Order reference"
         }
     },
     "multi_recipient_shipped": {
@@ -20873,6 +22011,17 @@
             "multi_recipient_note": "U ontvangt een aparte bevestiging voor elke ontvanger.",
             "multi_recipient_signature": "We hopen dat elk stuk zijn eigenaar vindt,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "Your packages are on their way",
+            "greeting_subtitle": "Shipping to multiple recipients",
+            "dear_customer": "Dear Valued Guest,",
+            "multi_recipient_intro": "The packages for your multi-recipient order have been shipped. Each one is on its way to its beneficiary.",
+            "multi_recipient_details": "Recipient details",
+            "multi_recipient_btn": "Track the packages",
+            "multi_recipient_note": "You will receive a separate confirmation for each recipient.",
+            "multi_recipient_signature": "We hope each piece finds its owner,",
+            "order_reference_label": "Order reference"
         }
     },
     "order_shipped_delay": {
@@ -21091,6 +22240,18 @@
             "shipped_delay_note": "We houden u op de hoogte van eventuele ontwikkelingen. Onze excuses.",
             "shipped_delay_signature": "Met al onze achting,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "A slight delay for your order",
+            "greeting_subtitle": "We are doing our best to limit this setback",
+            "dear_customer": "Dear Valued Guest,",
+            "shipped_delay_intro": "We inform you that the shipment of your order is experiencing an unexpected delay. We are doing everything we can to resolve it as quickly as possible.",
+            "shipped_delay_details": "Delay details",
+            "shipped_delay_new_date": "New estimated date",
+            "shipped_delay_btn": "Track my order",
+            "shipped_delay_note": "We will keep you informed of any developments. We apologise for the inconvenience.",
+            "shipped_delay_signature": "With all our consideration,",
+            "order_reference_label": "Order reference"
         }
     },
     "order_partial_shipped": {
@@ -21291,6 +22452,17 @@
             "partial_shipped_note": "We houden u op de hoogte van de verzending van de resterende pakketten.",
             "partial_shipped_signature": "Met al onze aandacht,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "Your order is shipped in several packages",
+            "greeting_subtitle": "Part of your selection is already on its way",
+            "dear_customer": "Dear Valued Guest,",
+            "partial_shipped_intro": "Your order has been split into several packages to facilitate shipping. Part of it is already on its way to you.",
+            "partial_shipped_details": "Details of shipped packages",
+            "partial_shipped_btn": "Track my packages",
+            "partial_shipped_note": "We will keep you informed of the shipment of the remaining packages.",
+            "partial_shipped_signature": "With all our attention,",
+            "order_reference_label": "Order reference"
         }
     },
     "return_received": {
@@ -21491,6 +22663,17 @@
             "return_received_note": "We houden u op de hoogte van de voortgang van de verwerking.",
             "return_received_signature": "Tot uw dienst,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "We have received your return",
+            "greeting_subtitle": "Your package has arrived in our workshops",
+            "dear_customer": "Dear Valued Guest,",
+            "return_received_intro": "We confirm that the package containing your return has reached our team. It will be handled with all due attention.",
+            "return_received_details": "Return details",
+            "return_received_btn": "Track my return",
+            "return_received_note": "We will keep you informed of the processing progress.",
+            "return_received_signature": "At your service,",
+            "order_reference_label": "Order reference"
         }
     },
     "refund_processed": {
@@ -21709,6 +22892,18 @@
             "refund_processed_signature": "Tot uw dienst,",
             "order_reference_label": "Orderreferentie",
             "refund_amount_label": "Terugbetaald bedrag"
+        },
+        "gb": {
+            "greeting_main": "Your refund has been issued",
+            "greeting_subtitle": "We have finalised the procedure",
+            "dear_customer": "Dear Valued Guest,",
+            "refund_processed_intro": "We confirm that the refund procedure regarding your order has been successfully finalised.",
+            "refund_processed_details": "Refund details",
+            "refund_processed_btn": "View my order",
+            "refund_processed_note": "The amount will be credited to your account according to your bank's usual timeline.",
+            "refund_processed_signature": "At your service,",
+            "order_reference_label": "Order reference",
+            "refund_amount_label": "Refunded amount"
         }
     },
     "subscription_confirmation": {
@@ -21909,6 +23104,17 @@
             "subscription_confirm_note": "Wij danken u voor uw vertrouwen. Wij delen uw gegevens nooit.",
             "subscription_confirm_signature": "Met al onze dankbaarheid,",
             "account_email_label": "E-mailadres"
+        },
+        "gb": {
+            "greeting_main": "Your subscription is confirmed",
+            "greeting_subtitle": "Welcome to our privileged circle",
+            "dear_customer": "Dear Valued Guest,",
+            "subscription_confirm_intro": "We are pleased to confirm your subscription to our newsletter service. You will now be among the first to know.",
+            "subscription_confirm_details": "Your subscription details",
+            "subscription_confirm_btn": "Manage my preferences",
+            "subscription_confirm_note": "We thank you for your trust. We will never share your data.",
+            "subscription_confirm_signature": "With all our gratitude,",
+            "account_email_label": "Email address"
         }
     },
     "loyalty_tier_upgrade": {
@@ -22163,6 +23369,20 @@
             "loyalty_tier_btn": "Ontdek mijn nieuwe privileges",
             "loyalty_tier_note": "Deze status opent deuren die we voorbehouden aan de meest loyale.",
             "loyalty_tier_signature": "Met al onze dankbaarheid,"
+        },
+        "gb": {
+            "greeting_main": "You are moving up a level",
+            "greeting_subtitle": "A new privilege is now yours",
+            "dear_customer": "Dear Valued Guest,",
+            "loyalty_tier_intro": "We are pleased to inform you that your loyalty has allowed you to reach the next tier of our programme. A new milestone in our relationship.",
+            "loyalty_tier_details": "Your new status",
+            "loyalty_tier_name_label": "New tier",
+            "loyalty_tier_points_label": "Total points",
+            "loyalty_voucher_intro": "Your exclusive discount voucher",
+            "loyalty_voucher_value": "Value",
+            "loyalty_tier_btn": "Discover my new privileges",
+            "loyalty_tier_note": "This status opens doors we reserve for the most loyal.",
+            "loyalty_tier_signature": "With all our gratitude,"
         }
     },
     "loyalty_recap": {
@@ -22435,6 +23655,21 @@
             "loyalty_recap_btn": "Ontdek onze nieuwkomers",
             "loyalty_recap_note": "Uw punten worden automatisch bijgeschreven bij elke interactie met onze e-mails.",
             "loyalty_recap_signature": "Met al onze dankbaarheid,"
+        },
+        "gb": {
+            "greeting_main": "Your loyalty points this month",
+            "greeting_subtitle": "A summary of your engagement",
+            "dear_customer": "Dear Valued Guest,",
+            "loyalty_recap_intro": "Here is your monthly loyalty points summary. Every open, every click and every purchase brings you closer to a reward.",
+            "loyalty_recap_month_points": "Points earned this month",
+            "loyalty_recap_total_points": "Cumulative total",
+            "loyalty_recap_progress": "Your progress towards the next tier",
+            "loyalty_recap_next_tier": "Next tier",
+            "loyalty_recap_points_left": "pts remaining",
+            "loyalty_recap_max_tier": "Congratulations — you have reached our highest tier.",
+            "loyalty_recap_btn": "Discover our new arrivals",
+            "loyalty_recap_note": "Your points are automatically credited with each interaction with our emails.",
+            "loyalty_recap_signature": "With all our gratitude,"
         }
     },
     "win_back": {
@@ -22617,6 +23852,16 @@
             "win_back_btn": "Ontdek onze selectie",
             "win_back_note": "We zouden u graag weer verwelkomen.",
             "win_back_signature": "In afwachting u weer te zien,"
+        },
+        "gb": {
+            "greeting_main": "We have missed you",
+            "greeting_subtitle": "A thought for you",
+            "dear_customer": "Dear Valued Guest,",
+            "win_back_intro": "We thought of you, and hope you are well. Our creations continue to evolve, and we would like to reintroduce them to you.",
+            "win_back_message": "We have prepared a selection that might appeal to you. A delicate attention, with no obligation.",
+            "win_back_btn": "Discover our selection",
+            "win_back_note": "We would be happy to welcome you again.",
+            "win_back_signature": "Looking forward to seeing you again,"
         }
     },
     "first_anniversary": {
@@ -22799,6 +24044,16 @@
             "first_anniversary_btn": "Ontdek onze attentie",
             "first_anniversary_note": "Dank u dat u deel uitmaakt van de geschiedenis van ons huis.",
             "first_anniversary_signature": "Met al onze dankbaarheid,"
+        },
+        "gb": {
+            "greeting_main": "A year already...",
+            "greeting_subtitle": "Thank you for your loyalty",
+            "dear_customer": "Dear Valued Guest,",
+            "first_anniversary_intro": "It has been a year since you first trusted us. This year spent by your side is a source of infinite gratitude.",
+            "first_anniversary_message": "We wished to celebrate this first year with a special attention. It is reserved for you.",
+            "first_anniversary_btn": "Discover my attention",
+            "first_anniversary_note": "Thank you for being part of the story of our house.",
+            "first_anniversary_signature": "With all our gratitude,"
         }
     },
     "review_request": {
@@ -22963,6 +24218,15 @@
             "review_request_btn": "Deel mijn mening",
             "review_request_note": "Slechts een handvol van onze gasten wordt uitgenodigd hun perspectief te delen. Uw mening telt.",
             "review_request_signature": "Tot uw dienst,"
+        },
+        "gb": {
+            "greeting_main": "Your perspective on this piece",
+            "greeting_subtitle": "Share your experience, discreetly",
+            "dear_customer": "Dear Valued Guest,",
+            "review_request_intro": "We hope your piece has found its place in your home. If you wish, we would be delighted to hear your impression of this experience.",
+            "review_request_btn": "Share my review",
+            "review_request_note": "Only a handful of our guests are invited to share their perspective. Your opinion matters.",
+            "review_request_signature": "At your disposal,"
         }
     },
     "bespoke_ready": {
@@ -23163,6 +24427,17 @@
             "bespoke_ready_note": "Wij danken u voor uw geduld. Dit unieke stuk is eindelijk klaar om u te bereiken.",
             "bespoke_ready_signature": "Trots dat we u hebben begeleid bij deze creatie,",
             "order_reference_label": "Orderreferentie"
+        },
+        "gb": {
+            "greeting_main": "Your bespoke piece is ready",
+            "greeting_subtitle": "It only awaits you",
+            "dear_customer": "Dear Valued Guest,",
+            "bespoke_ready_intro": "We are pleased to announce that your bespoke order is now ready. Our artisans have brought your vision to life.",
+            "bespoke_ready_details": "Your piece details",
+            "bespoke_ready_btn": "Track delivery",
+            "bespoke_ready_note": "We thank you for your patience. This unique piece is finally ready to join you.",
+            "bespoke_ready_signature": "Proud to have accompanied you in this creation,",
+            "order_reference_label": "Order reference"
         }
     },
     "personal_shopper_intro": {
@@ -23363,6 +24638,17 @@
             "shopper_note": "Hij of zij kent uw smaak en kan u naar stukken leiden die bij u passen.",
             "shopper_signature": "Tot uw dienst, met aandacht,",
             "shopper_name_label": "Uw adviseur"
+        },
+        "gb": {
+            "greeting_main": "A personal advisor for you",
+            "greeting_subtitle": "The elegance of bespoke guidance",
+            "dear_customer": "Dear Valued Guest,",
+            "shopper_intro": "We are pleased to introduce your personal advisor, dedicated to guiding you in your choices and fulfilling your desires.",
+            "shopper_details": "Your dedicated advisor",
+            "shopper_btn": "Contact my advisor",
+            "shopper_note": "He or she knows your tastes and can guide you towards pieces that suit you.",
+            "shopper_signature": "At your service, with attention,",
+            "shopper_name_label": "Your advisor"
         }
     },
     "packaging_choice": {
@@ -23563,6 +24849,17 @@
             "packaging_choice_btn": "Kies mijn verpakking",
             "packaging_choice_note": "Wij zullen bijzondere aandacht besteden aan uw keuze.",
             "packaging_choice_signature": "Tot uw dienst,"
+        },
+        "gb": {
+            "greeting_main": "Customise the packaging of your piece",
+            "greeting_subtitle": "A detail that makes the difference",
+            "dear_customer": "Dear Valued Guest,",
+            "packaging_choice_intro": "Before shipment, we invite you to choose the packaging that will accompany your piece. A way to extend the experience.",
+            "packaging_choice_options": "Available packaging options",
+            "packaging_choice_options_desc": "Various cases, pouches and gift boxes are available to enhance your piece.",
+            "packaging_choice_btn": "Choose my packaging",
+            "packaging_choice_note": "We will pay special attention to your choice.",
+            "packaging_choice_signature": "At your service,"
         }
     },
     "reorder_reminder": {
@@ -23745,6 +25042,16 @@
             "reorder_reminder_btn": "Bekijk het stuk",
             "reorder_reminder_note": "We hopen dat dit voorstel u inspireert.",
             "reorder_reminder_signature": "Tot uw dienst,"
+        },
+        "gb": {
+            "greeting_main": "A piece that might interest you",
+            "greeting_subtitle": "Consider renewing your preferences",
+            "dear_customer": "Dear Valued Guest,",
+            "reorder_reminder_intro": "We thought of a piece that might complement your collection or spark a new interest within our house.",
+            "reorder_reminder_details": "Suggested piece",
+            "reorder_reminder_btn": "View the piece",
+            "reorder_reminder_note": "We hope this suggestion inspires you.",
+            "reorder_reminder_signature": "At your service,"
         }
     },
     "_global": {
@@ -23945,6 +25252,17 @@
             "footer_preferences": "Mijn voorkeuren beheren",
             "carbon_label": "Geschatte CO₂-voetafdruk van deze e-mail",
             "carbon_method": "methodologie"
+        },
+        "gb": {
+            "footer_visit": "Visit our house",
+            "footer_order_history": "Order history",
+            "footer_guest_tracking": "Guest tracking",
+            "footer_legal": "Legal notices",
+            "footer_unsubscribe": "Unsubscribe",
+            "order_reference_label": "Order reference",
+            "footer_preferences": "Manage my preferences",
+            "carbon_label": "Estimated footprint of this email",
+            "carbon_method": "methodology"
         }
     },
     "delivered": {
@@ -24181,6 +25499,19 @@
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Gasttracking</a>",
             "delivered_note": "Voor vragen over uw bestelling staat onze klantenservice voor u klaar.",
             "signature_thanks": "Met al onze dankbaarheid en trots,"
+        },
+        "gb": {
+            "greeting_main": "Your creation has arrived",
+            "greeting_subtitle": "We hope it exceeds your expectations",
+            "dear_customer": "Dear Customer,",
+            "delivered_intro": "We are delighted to confirm that your order has been delivered. We hope every detail meets your expectations.",
+            "order_details_title": "Order",
+            "delivered_confirmation": "Your order",
+            "delivered_hope": "We hope this piece brings you as much joy to wear as it brought our artisans to create.",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">View your order history</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Guest tracking</a>",
+            "delivered_note": "For any questions regarding your order, our customer service team is at your disposal.",
+            "signature_thanks": "With all our gratitude and pride,"
         }
     },
     "neria_fallback": {
@@ -24291,6 +25622,12 @@
             "fallback_greeting": "Wij denken aan u",
             "fallback_message": "Wij hebben uw verzoek ontvangen en behandelen het met alle vereiste aandacht. Ons team neemt contact met u op indien nodig.",
             "fallback_signature": "Met alle zorg,"
+        },
+        "gb": {
+            "fallback_subject": "A message from our house",
+            "fallback_greeting": "We are thinking of you",
+            "fallback_message": "We have received your request and are handling it with all due attention. Our team will contact you if necessary.",
+            "fallback_signature": "With all our care,"
         }
     },
     "checkout_abandonment": {
@@ -24491,6 +25828,17 @@
             "checkout_abandonment_btn": "Mijn bestelling voltooien",
             "checkout_abandonment_note": "Er is geen speciale actie van uw kant vereist — uw winkelwagen is bewaard.",
             "checkout_abandonment_signature": "Met alle aandacht,"
+        },
+        "gb": {
+            "greeting_main": "An unfinished order",
+            "greeting_subtitle": "Everything was ready. Just one moment away.",
+            "dear_customer": "Dear Customer,",
+            "checkout_abandonment_intro": "We noticed you were just about to complete your order. Sometimes a technical issue arises at the last moment — a 3DS error, a connection timeout, or a last-second hesitation.",
+            "checkout_abandonment_reassure": "Your cart is saved and your selection is waiting exactly where you left it.",
+            "checkout_abandonment_help": "If you encountered a payment issue, our team is available to help you complete your order with complete peace of mind.",
+            "checkout_abandonment_btn": "Complete my order",
+            "checkout_abandonment_note": "No action is required on your part — your cart is preserved.",
+            "checkout_abandonment_signature": "With our full attention,"
         }
     },
     "product_lifespan_reminder": {
@@ -24673,6 +26021,16 @@
             "lifespan_btn": "Mijn aankoop vernieuwen",
             "lifespan_note": "Er is uiteraard geen verplichting — dit is gewoon een vriendelijke herinnering van ons.",
             "lifespan_signature": "Met alle aandacht van ons,"
+        },
+        "gb": {
+            "greeting_main": "Your purchase may be nearing its end",
+            "greeting_subtitle": "A gentle reminder from us",
+            "dear_customer": "Dear Valued Guest,",
+            "lifespan_intro": "You purchased {product_name} {estimated_days} days ago. Based on our estimate, your product may be running low.",
+            "lifespan_message": "If you wish to renew your experience, now is the perfect time — before you run out.",
+            "lifespan_btn": "Renew my purchase",
+            "lifespan_note": "There is no obligation of course — this is simply a friendly reminder from us.",
+            "lifespan_signature": "With all our attention,"
         }
     },
     "refund_reconciliation_1": {
@@ -24855,6 +26213,16 @@
             "reconciliation_1_btn": "Mijn bestellingen bekijken",
             "reconciliation_1_note": "Als u vragen heeft, staat ons team altijd voor u klaar.",
             "reconciliation_1_signature": "Met vriendelijke groeten,"
+        },
+        "gb": {
+            "greeting_main": "Your refund is on its way",
+            "greeting_subtitle": "A personal confirmation",
+            "dear_customer": "Dear Valued Guest,",
+            "reconciliation_1_intro": "We wanted to personally confirm that your refund is currently being processed.",
+            "reconciliation_1_message": "Your request has been received and we are making sure it receives all the attention it deserves.",
+            "reconciliation_1_btn": "View my orders",
+            "reconciliation_1_note": "Should you have any questions, our team remains at your disposal.",
+            "reconciliation_1_signature": "With our sincerest regards,"
         }
     },
     "refund_reconciliation_2": {
@@ -25037,6 +26405,16 @@
             "reconciliation_2_btn": "Ontdek onze uitnodiging",
             "reconciliation_2_note": "Deze attentie is voor u gereserveerd. Ons team staat altijd voor u klaar.",
             "reconciliation_2_signature": "Met onze oprechte dankbaarheid,"
+        },
+        "gb": {
+            "greeting_main": "A gesture for you",
+            "greeting_subtitle": "In appreciation of your patience",
+            "dear_customer": "Dear Valued Guest,",
+            "reconciliation_2_intro": "We have been thinking of you over these past days and wished to thank you for your patience.",
+            "reconciliation_2_message": "As a token of our appreciation, we have prepared an exclusive gesture for you — with no conditions, no pressure.",
+            "reconciliation_2_btn": "Discover our invitation",
+            "reconciliation_2_note": "This is reserved for you. Our team remains at your disposal for anything you may need.",
+            "reconciliation_2_signature": "With our sincere gratitude,"
         }
     },
     "refund_reconciliation_3": {
@@ -25219,6 +26597,16 @@
             "reconciliation_3_btn": "Terugkeren naar ons huis",
             "reconciliation_3_note": "Er zijn nieuwe items gearriveerd sinds uw laatste bezoek. Misschien vindt u iets dat u aanspreekt.",
             "reconciliation_3_signature": "Met vriendelijke groeten,"
+        },
+        "gb": {
+            "greeting_main": "Our house remains open",
+            "greeting_subtitle": "Whenever you wish",
+            "dear_customer": "Dear Valued Guest,",
+            "reconciliation_3_intro": "Your refund has now been finalised. We hope everything has been handled to your satisfaction.",
+            "reconciliation_3_message": "Please know that our house is yours, and we will always be delighted to welcome you back, whenever you feel ready.",
+            "reconciliation_3_btn": "Return to our house",
+            "reconciliation_3_note": "New arrivals have come since your last visit. Perhaps you will find something that appeals to you.",
+            "reconciliation_3_signature": "With our warmest regards,"
         }
     },
     "relationship_anniversary": {
@@ -25401,6 +26789,16 @@
             "relationship_anniversary_btn": "Mijn aankopen bekijken",
             "relationship_anniversary_note": "Dank u dat u deel uitmaakt van ons verhaal.",
             "relationship_anniversary_signature": "Met onze oprechte dankbaarheid,"
+        },
+        "gb": {
+            "greeting_main": "An anniversary that truly matters",
+            "greeting_subtitle": "Thank you for trusting us",
+            "dear_customer": "Dear Valued Guest,",
+            "relationship_anniversary_intro": "It has been {years_label} since you first trusted us. We have not forgotten.",
+            "relationship_anniversary_message": "Your loyalty is our greatest reward. We are grateful to count you among our most cherished customers.",
+            "relationship_anniversary_btn": "View my purchases",
+            "relationship_anniversary_note": "Thank you for being part of our story.",
+            "relationship_anniversary_signature": "With all our gratitude,"
         }
     },
     "gift_ideas": {
@@ -25619,6 +27017,18 @@
             "gift_ideas_cta": "探索甄選",
             "gift_ideas_note": "這份甄選專為您而設，以感謝您一貫的忠誠與品味。",
             "signature_warm": "以全誠之心,"
+        },
+        "gb": {
+            "greeting_main": "Ideas for those who matter",
+            "greeting_subtitle": "A selection thoughtfully curated for gifting",
+            "dear_customer": "Dear Valued Guest,",
+            "gift_ideas_title": "Ideas for those who matter",
+            "gift_ideas_subtitle": "A selection thoughtfully curated for gifting",
+            "gift_ideas_intro": "The season of celebration is approaching. Before it arrives, we have prepared a selection of pieces to give — chosen with your tastes and those you cherish in mind.",
+            "gift_ideas_message": "To give is to extend an act of care. Each piece in this selection has been chosen to move those who receive it, with the elegance you wish for them.",
+            "gift_ideas_cta": "Discover the selection",
+            "gift_ideas_note": "This selection has been composed for you, in recognition of your loyalty and sensibility.",
+            "signature_warm": "With all our thoughtfulness,"
         }
     },
     "collection_completion": {
@@ -25837,6 +27247,18 @@
             "collection_completion_missing_label": "缺失的那一件",
             "collection_completion_cta": "完成我的系列",
             "collection_completion_note": "此推薦基於您在此系列中的過往購買記錄。"
+        },
+        "gb": {
+            "collection_completion_eyebrow": "Your collection",
+            "collection_completion_greeting": "Hello",
+            "collection_completion_title": "Just one piece away",
+            "collection_completion_intro": "You've already done the hard part. Only one piece remains to complete your collection — and we wanted to remind you before it's gone.",
+            "collection_completion_progress_label": "Your collection progress",
+            "collection_completion_pieces_bought": "Pieces already acquired",
+            "collection_completion_one_left": "just one left to complete",
+            "collection_completion_missing_label": "The missing piece",
+            "collection_completion_cta": "Complete my collection",
+            "collection_completion_note": "This suggestion is based on your previous purchases within this collection."
         }
     },
     "complete_your_look": {
@@ -25983,6 +27405,14 @@
             "complete_your_look_intro": "您的訂單剛剛到達——希望您喜歡。以下是幾件與您近期購買完美搭配的單品。",
             "complete_your_look_cta": "立即查看",
             "complete_your_look_note": "此推薦專為您精心策劃，靈感來自您的近期購買。"
+        },
+        "gb": {
+            "complete_your_look_eyebrow": "Curated for you",
+            "complete_your_look_greeting": "Hello",
+            "complete_your_look_title": "Complete your look",
+            "complete_your_look_intro": "Your order has just arrived — we hope you love it. Here are a few pieces that pair perfectly with your recent purchase.",
+            "complete_your_look_cta": "Discover",
+            "complete_your_look_note": "This selection was curated especially for you, inspired by your recent purchase."
         }
     },
     "waitlist_available": {
@@ -26165,6 +27595,16 @@
             "waitlist_reservation": "Uw voorrangstoegang is {reservation_hours} uur geldig. Daarna wordt het product voor iedereen beschikbaar.",
             "waitlist_cta": "Bekijk het product",
             "waitlist_note": "U ontvangt deze melding omdat u heeft gevraagd gewaarschuwd te worden wanneer dit product weer beschikbaar zou zijn."
+        },
+        "gb": {
+            "greeting_main": "Your wait has paid off",
+            "waitlist_greeting": "Hello",
+            "waitlist_eyebrow": "Reserved for you",
+            "waitlist_title": "You waited {days_waited} days. We haven't forgotten.",
+            "waitlist_intro": "This piece is back in stock — and because you were here before anyone else, we're giving you exclusive priority access.",
+            "waitlist_reservation": "Your priority access is valid for {reservation_hours} hours. After that, the product will be open to everyone.",
+            "waitlist_cta": "View product",
+            "waitlist_note": "You're receiving this notification because you asked to be alerted when this product came back in stock."
         }
     },
     "ghost_cart": {
@@ -26347,6 +27787,16 @@
             "ghost_cart_product_label": "Het product dat u interesseert:",
             "ghost_cart_cta": "Bekijk product",
             "ghost_cart_note": "Geen druk — we zijn er gewoon als u vragen heeft."
+        },
+        "gb": {
+            "greeting_main": "A piece awaits you",
+            "ghost_cart_greeting": "Hello",
+            "ghost_cart_eyebrow": "We noticed something",
+            "ghost_cart_title": "This piece has caught your attention",
+            "ghost_cart_intro": "We noticed you've added this item to your cart several times. If something is holding you back — a question about sizing, materials, delivery times, or anything else — our team is here to help.",
+            "ghost_cart_product_label": "The piece you're interested in:",
+            "ghost_cart_cta": "View product",
+            "ghost_cart_note": "No pressure — we're simply here if you have any questions."
         }
     },
     "certificate_email": {
@@ -26637,6 +28087,22 @@
             "certificate_pdf_label_certified_date": "Gecertificeerd op",
             "certificate_pdf_label_owner": "Eigenaar",
             "certificate_pdf_label_order": "Bestelling"
+        },
+        "gb": {
+            "greeting_main": "Your Certificate of Authenticity",
+            "greeting_subtitle": "The authenticity of your piece, guaranteed and documented",
+            "certificate_email_intro": "We are delighted to send you, attached to this email, the certificate of authenticity for your piece.",
+            "certificate_email_product_label": "Piece",
+            "certificate_email_serial_label": "Serial number",
+            "certificate_email_note": "This document certifies the authenticity of your piece and is an official record. Please keep it in a safe place.",
+            "dear_customer": "Dear Valued Guest,",
+            "certificate_email_signature": "Proud of the quality of our craftsmanship,",
+            "certificate_pdf_label_product": "Product",
+            "certificate_pdf_label_serial": "Serial number",
+            "certificate_pdf_label_order_date": "Order date",
+            "certificate_pdf_label_certified_date": "Certified on",
+            "certificate_pdf_label_owner": "Owner",
+            "certificate_pdf_label_order": "Order"
         }
     }
 }

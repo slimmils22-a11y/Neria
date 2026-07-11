@@ -39,14 +39,14 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.21';
+    const VERSION = '1.0.22';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
 
     /** Langues supportées par le module */
     const SUPPORTED_LANGS = [
-        'fr', 'en', 'de', 'it', 'es', 'pt', 'br',
+        'fr', 'en', 'de', 'it', 'es', 'pt', 'br', 'gb',
         'ar', 'ja', 'ko', 'zh', 'tw',
         'ru', 'tr', 'sv', 'no', 'da', 'nl',
     ];
@@ -1609,7 +1609,7 @@ class Neria extends Module
             }
 
             $deeplTargetMap = [
-                'fr'=>'FR','en'=>'EN-GB','de'=>'DE','it'=>'IT','es'=>'ES',
+                'fr'=>'FR','en'=>'EN-US','gb'=>'EN-GB','de'=>'DE','it'=>'IT','es'=>'ES',
                 'pt'=>'PT-PT','br'=>'PT-BR','nl'=>'NL','ru'=>'RU','tr'=>'TR',
                 'sv'=>'SV','no'=>'NB','da'=>'DA','ja'=>'JA','ko'=>'KO',
                 'zh'=>'ZH','tw'=>'ZH','ar'=>'AR',
@@ -1780,7 +1780,7 @@ class Neria extends Module
             }
 
             $deeplTargetMap = [
-                'fr'=>'FR','en'=>'EN-GB','de'=>'DE','it'=>'IT','es'=>'ES',
+                'fr'=>'FR','en'=>'EN-US','gb'=>'EN-GB','de'=>'DE','it'=>'IT','es'=>'ES',
                 'pt'=>'PT-PT','br'=>'PT-BR','nl'=>'NL','ru'=>'RU','tr'=>'TR',
                 'sv'=>'SV','no'=>'NB','da'=>'DA','ja'=>'JA','ko'=>'KO',
                 'zh'=>'ZH','tw'=>'ZH','ar'=>'AR',
@@ -4811,7 +4811,8 @@ class Neria extends Module
             'segment_recommended' => class_exists('SegmentManager') ? SegmentManager::RECOMMENDED_TEMPLATES : [],
             'segment_languages'   => [
                 ['iso' => 'fr', 'name' => 'Français'],
-                ['iso' => 'en', 'name' => 'English'],
+                ['iso' => 'en', 'name' => 'English (US)'],
+                ['iso' => 'gb', 'name' => 'English (GB)'],
                 ['iso' => 'de', 'name' => 'Deutsch'],
                 ['iso' => 'it', 'name' => 'Italiano'],
                 ['iso' => 'es', 'name' => 'Español'],
@@ -5998,7 +5999,7 @@ class Neria extends Module
     private function loadAcademyStrings(): array
     {
         $boLang   = class_exists('AdminTranslator') ? AdminTranslator::currentLang() : 'fr';
-        $supported = ['fr','en','de','it','es','pt','br','ar','ja','ko','zh','tw','ru','tr','sv','no','da','nl'];
+        $supported = ['fr','en','de','it','es','pt','br','gb','ar','ja','ko','zh','tw','ru','tr','sv','no','da','nl'];
         if (!in_array($boLang, $supported, true)) {
             $boLang = 'fr';
         }

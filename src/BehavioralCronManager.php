@@ -1364,6 +1364,7 @@ class BehavioralCronManager
             'es' => ['un año',      'dos años',   'tres años',    'cuatro años',  'cinco años'],
             'pt' => ['um ano',      'dois anos',  'três anos',    'quatro anos',  'cinco anos'],
             'br' => ['um ano',      'dois anos',  'três anos',    'quatro anos',  'cinco anos'],
+            'gb' => ['one year',    'two years',  'three years',  'four years',   'five years'],
             'nl' => ['één jaar',    'twee jaar',  'drie jaar',    'vier jaar',    'vijf jaar'],
             'ru' => ['один год',    'два года',   'три года',     'четыре года',  'пять лет'],
             'tr' => ['bir yıl',     'iki yıl',    'üç yıl',       'dört yıl',     'beş yıl'],

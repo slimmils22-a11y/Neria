@@ -43,7 +43,7 @@ class FontManager
             'css_family'  => "'Cormorant Garamond', Georgia, 'Times New Roman', serif",
             'fallback'    => "Georgia, 'Times New Roman', serif",
             'script'      => 'latin',
-            'languages'   => ['fr','en','de','it','es','pt','br','tr','sv','no','da','nl'],
+            'languages'   => ['fr','en','de','it','es','pt','br','gb','tr','sv','no','da','nl'],
             'description' => 'Élégante et raffinée — idéale pour le luxe',
         ],
         'EB Garamond' => [
@@ -51,7 +51,7 @@ class FontManager
             'css_family'  => "'EB Garamond', 'Cormorant Garamond', Georgia, serif",
             'fallback'    => "Georgia, 'Times New Roman', serif",
             'script'      => 'latin',
-            'languages'   => ['fr','en','de','it','es','pt','br','tr','sv','no','da','nl'],
+            'languages'   => ['fr','en','de','it','es','pt','br','gb','tr','sv','no','da','nl'],
             'description' => 'Garamond classique — plus rond que Cormorant',
         ],
         'Playfair Display' => [
@@ -59,7 +59,7 @@ class FontManager
             'css_family'  => "'Playfair Display', Georgia, 'Times New Roman', serif",
             'fallback'    => "Georgia, 'Times New Roman', serif",
             'script'      => 'latin',
-            'languages'   => ['fr','en','de','it','es','pt','br','tr','sv','no','da','nl'],
+            'languages'   => ['fr','en','de','it','es','pt','br','gb','tr','sv','no','da','nl'],
             'description' => 'Majestueuse et contrastée',
         ],
         'Libre Baskerville' => [
@@ -67,7 +67,7 @@ class FontManager
             'css_family'  => "'Libre Baskerville', Georgia, serif",
             'fallback'    => "Georgia, 'Times New Roman', serif",
             'script'      => 'latin',
-            'languages'   => ['fr','en','de','it','es','pt','br','tr','sv','no','da','nl'],
+            'languages'   => ['fr','en','de','it','es','pt','br','gb','tr','sv','no','da','nl'],
             'description' => 'Sobre et lisible',
         ],
 
@@ -198,6 +198,7 @@ class FontManager
         'es'  => 'Cormorant Garamond',
         'pt'  => 'Cormorant Garamond',
         'br'  => 'Cormorant Garamond',
+        'gb'  => 'Cormorant Garamond',
         'tr'  => 'Cormorant Garamond',
         'sv'  => 'Cormorant Garamond',
         'no'  => 'Cormorant Garamond',
@@ -438,7 +439,7 @@ class FontManager
         return [
             'latin'              => [
                 'label'     => 'Latin',
-                'languages' => ['fr','en','de','it','es','pt','br','tr','sv','no','da','nl'],
+                'languages' => ['fr','en','de','it','es','pt','br','gb','tr','sv','no','da','nl'],
             ],
             'arabic'             => [
                 'label'     => 'Arabe',

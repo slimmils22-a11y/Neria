@@ -39,9 +39,9 @@ class TranslationEngine
     /** Langues RTL — nécessitent dir="rtl" dans le HTML */
     const RTL_LANGS = ['ar'];
 
-    /** Les 18 langues supportées par Neria (codes normalisés) */
+    /** Les 19 langues supportées par Neria (codes normalisés) */
     const SUPPORTED_LANGS = [
-        'fr', 'en', 'de', 'it', 'es', 'pt', 'br', 'ar', 'ja',
+        'fr', 'en', 'de', 'it', 'es', 'pt', 'br', 'gb', 'ar', 'ja',
         'ko', 'zh', 'tw', 'ru', 'tr', 'sv', 'no', 'da', 'nl',
     ];
 
@@ -647,8 +647,9 @@ class TranslationEngine
             'cn'    => 'zh',  // PS stocke parfois le chinois simplifié avec l'ISO court 'cn'
             'nb'    => 'no',  // Norvégien Bokmål → code Neria 'no'
             'nn'    => 'no',  // Norvégien Nynorsk → code Neria 'no'
-            'gb'    => 'en',  // Pack de langue PrestaShop "United Kingdom" → ISO 'gb', pas 'en'
-            'us'    => 'en',  // Pack de langue PrestaShop "United States" → ISO 'us', pas 'en'
+            'us'    => 'en',  // Pack de langue PrestaShop "United States" → ISO 'us', mappé vers 'en' (anglais américain)
+            // 'gb' n'est plus mappé vers 'en' : c'est maintenant un code Neria à part entière
+            // (anglais britannique), au même titre que 'br' pour le portugais brésilien.
         ];
 
         return $map[$lang] ?? $lang;

@@ -88,21 +88,21 @@ class ManualSendManager
      */
     const FIELD_LABEL_I18N = [
         'invitation_location' => [
-            'fr' => 'Lieu', 'en' => 'Location', 'de' => 'Ort', 'it' => 'Luogo',
+            'fr' => 'Lieu', 'en' => 'Location', 'gb' => 'Location', 'de' => 'Ort', 'it' => 'Luogo',
             'es' => 'Lugar', 'pt' => 'Local', 'br' => 'Local', 'ar' => 'المكان',
             'ja' => '会場', 'ko' => '장소', 'zh' => '地点', 'tw' => '地點',
             'ru' => 'Место', 'tr' => 'Yer', 'sv' => 'Plats', 'no' => 'Sted',
             'da' => 'Sted', 'nl' => 'Locatie',
         ],
         'invitation_dates' => [
-            'fr' => 'Dates', 'en' => 'Dates', 'de' => 'Termine', 'it' => 'Date',
+            'fr' => 'Dates', 'en' => 'Dates', 'gb' => 'Dates', 'de' => 'Termine', 'it' => 'Date',
             'es' => 'Fechas', 'pt' => 'Datas', 'br' => 'Datas', 'ar' => 'التواريخ',
             'ja' => '日時', 'ko' => '일정', 'zh' => '日期', 'tw' => '日期',
             'ru' => 'Даты', 'tr' => 'Tarihler', 'sv' => 'Datum', 'no' => 'Datoer',
             'da' => 'Datoer', 'nl' => 'Data',
         ],
         'voucher_usage' => [
-            'fr' => "Conditions d'utilisation", 'en' => 'Terms of use',
+            'fr' => "Conditions d'utilisation", 'en' => 'Terms of use', 'gb' => 'Terms of use',
             'de' => 'Nutzungsbedingungen', 'it' => "Condizioni d'uso",
             'es' => 'Condiciones de uso', 'pt' => 'Condições de uso',
             'br' => 'Condições de uso', 'ar' => 'شروط الاستخدام',
@@ -114,7 +114,7 @@ class ManualSendManager
         // ── Champs URL éditables ─────────────────────────────────────
         // Label explicite : indique au marchand qu'il faut coller une URL.
         'sale_url' => [
-            'fr' => 'URL de la vente privée', 'en' => 'Private sale URL',
+            'fr' => 'URL de la vente privée', 'en' => 'Private sale URL', 'gb' => 'Private sale URL',
             'de' => 'URL des Privatverkaufs', 'it' => 'URL della vendita privata',
             'es' => 'URL de la venta privada', 'pt' => 'URL da venda privada',
             'br' => 'URL da venda privada', 'ar' => 'رابط البيع الخاص',
@@ -125,7 +125,7 @@ class ManualSendManager
             'da' => 'URL til privatsalg', 'nl' => 'URL van de private sale',
         ],
         'rsvp_url' => [
-            'fr' => 'URL de confirmation (RSVP)', 'en' => 'RSVP confirmation URL',
+            'fr' => 'URL de confirmation (RSVP)', 'en' => 'RSVP confirmation URL', 'gb' => 'RSVP confirmation URL',
             'de' => 'Bestätigungs-URL (RSVP)', 'it' => 'URL di conferma (RSVP)',
             'es' => 'URL de confirmación (RSVP)', 'pt' => 'URL de confirmação (RSVP)',
             'br' => 'URL de confirmação (RSVP)', 'ar' => 'رابط التأكيد (RSVP)',
@@ -136,7 +136,7 @@ class ManualSendManager
             'da' => 'Bekræftelses-URL (RSVP)', 'nl' => 'Bevestigings-URL (RSVP)',
         ],
         'review_url' => [
-            'fr' => 'URL de la page avis', 'en' => 'Review page URL',
+            'fr' => 'URL de la page avis', 'en' => 'Review page URL', 'gb' => 'Review page URL',
             'de' => 'URL der Bewertungsseite', 'it' => 'URL della pagina recensioni',
             'es' => 'URL de la página de reseñas', 'pt' => 'URL da página de avaliações',
             'br' => 'URL da página de avaliações', 'ar' => 'رابط صفحة التقييمات',
@@ -147,7 +147,7 @@ class ManualSendManager
             'da' => 'URL til anmeldelsesside', 'nl' => 'URL van de beoordelingspagina',
         ],
         'contact_url' => [
-            'fr' => 'URL du formulaire de contact', 'en' => 'Contact form URL',
+            'fr' => 'URL du formulaire de contact', 'en' => 'Contact form URL', 'gb' => 'Contact form URL',
             'de' => 'Kontaktformular-URL', 'it' => 'URL del modulo di contatto',
             'es' => 'URL del formulario de contacto', 'pt' => 'URL do formulário de contato',
             'br' => 'URL do formulário de contato', 'ar' => 'رابط نموذج الاتصال',
@@ -158,7 +158,7 @@ class ManualSendManager
             'da' => 'URL til kontaktformular', 'nl' => 'URL van het contactformulier',
         ],
         'product_url' => [
-            'fr' => 'URL du produit', 'en' => 'Product URL',
+            'fr' => 'URL du produit', 'en' => 'Product URL', 'gb' => 'Product URL',
             'de' => 'Produkt-URL', 'it' => 'URL del prodotto',
             'es' => 'URL del producto', 'pt' => 'URL do produto',
             'br' => 'URL do produto', 'ar' => 'رابط المنتج',
@@ -169,7 +169,7 @@ class ManualSendManager
             'da' => 'Produkt-URL', 'nl' => 'Product-URL',
         ],
         'cart_url' => [
-            'fr' => 'URL du panier abandonné', 'en' => 'Abandoned cart URL',
+            'fr' => 'URL du panier abandonné', 'en' => 'Abandoned cart URL', 'gb' => 'Abandoned cart URL',
             'de' => 'URL des abgebrochenen Warenkorbs', 'it' => 'URL del carrello abbandonato',
             'es' => 'URL del carrito abandonado', 'pt' => 'URL do carrinho abandonado',
             'br' => 'URL do carrinho abandonado', 'ar' => 'رابط سلة التسوق المتروكة',
@@ -180,7 +180,7 @@ class ManualSendManager
             'da' => 'URL til forladt indkøbskurv', 'nl' => 'URL van verlaten winkelwagen',
         ],
         'order_url' => [
-            'fr' => 'URL de la commande', 'en' => 'Order URL',
+            'fr' => 'URL de la commande', 'en' => 'Order URL', 'gb' => 'Order URL',
             'de' => 'Bestell-URL', 'it' => 'URL dell\'ordine',
             'es' => 'URL del pedido', 'pt' => 'URL do pedido',
             'br' => 'URL do pedido', 'ar' => 'رابط الطلب',
@@ -191,7 +191,7 @@ class ManualSendManager
             'da' => 'Ordre-URL', 'nl' => 'Bestelling-URL',
         ],
         'verif_url' => [
-            'fr' => 'URL de vérification email', 'en' => 'Email verification URL',
+            'fr' => 'URL de vérification email', 'en' => 'Email verification URL', 'gb' => 'Email verification URL',
             'de' => 'E-Mail-Verifizierungs-URL', 'it' => 'URL di verifica email',
             'es' => 'URL de verificación de email', 'pt' => 'URL de verificação de email',
             'br' => 'URL de verificação de email', 'ar' => 'رابط التحقق من البريد',
@@ -202,7 +202,7 @@ class ManualSendManager
             'da' => 'E-mailverifikations-URL', 'nl' => 'E-mailverificatie-URL',
         ],
         'return_slip_url' => [
-            'fr' => 'URL du bon de retour', 'en' => 'Return slip URL',
+            'fr' => 'URL du bon de retour', 'en' => 'Return slip URL', 'gb' => 'Return slip URL',
             'de' => 'Rückgabeschein-URL', 'it' => 'URL del documento di reso',
             'es' => 'URL del albarán de devolución', 'pt' => 'URL da guia de devolução',
             'br' => 'URL da guia de devolução', 'ar' => 'رابط إيصال الإرجاع',
@@ -213,7 +213,7 @@ class ManualSendManager
             'da' => 'Returkvitterings-URL', 'nl' => 'Retourbon-URL',
         ],
         'years_label' => [
-            'fr' => 'Durée (ex : deux ans)', 'en' => 'Duration (e.g. two years)',
+            'fr' => 'Durée (ex : deux ans)', 'en' => 'Duration (e.g. two years)', 'gb' => 'Duration (e.g. two years)',
             'de' => 'Dauer (z.B. zwei Jahre)', 'it' => 'Durata (es. due anni)',
             'es' => 'Duración (ej. dos años)', 'pt' => 'Duração (ex. dois anos)',
             'br' => 'Duração (ex. dois anos)', 'ar' => 'المدة (مثال: سنتين)',
