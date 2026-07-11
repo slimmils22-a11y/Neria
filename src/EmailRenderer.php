@@ -1798,7 +1798,7 @@ class EmailRenderer
             'shop_name'              => \Configuration::get('PS_SHOP_NAME'),
             'shop_url'               => \Tools::getShopDomainSsl(true),
             'order_name'             => 'NR-000123',
-            'date'                   => date('d/m/Y'),
+            'date'                   => NeriaTools::formatDate(date('Y-m-d H:i:s'), $lang),
             'payment'                => 'Carte bancaire',
             'total_paid'             => '189,00 €',
             'total_products'         => '189,00 €',
@@ -1892,7 +1892,7 @@ class EmailRenderer
         // href/src sont percent-encodées par le parseur DOM et ne correspondent
         // plus à aucun remplacement ensuite (elles resteraient visibles en
         // %7Bxxx%7D au lieu d'être remplacées par le repère neutre « … »).
-        $compiled = $this->buildCompiledHtml($template, $lang, $design, $abtestMgr, $this->buildPreviewFakes($template), '…');
+        $compiled = $this->buildCompiledHtml($template, $lang, $design, $abtestMgr, $this->buildPreviewFakes($template, $lang), '…');
 
         if ($compiled === null) {
             return '<p style="padding:40px;font-family:sans-serif;color:#a33;">'
@@ -2095,7 +2095,7 @@ class EmailRenderer
      * @param string $template
      * @return array
      */
-    private function buildPreviewFakes(string $template = ''): array
+    private function buildPreviewFakes(string $template = '', string $lang = 'fr'): array
     {
         return [
             // ── Contexte client / boutique / commande ──────────────
@@ -2109,7 +2109,7 @@ class EmailRenderer
             '{email}'              => (string) \Configuration::get('PS_SHOP_EMAIL'),
             '{order_name}'         => 'NR-000123',
             '{id_order}'           => '123',
-            '{date}'               => date('d/m/Y'),
+            '{date}'               => NeriaTools::formatDate(date('Y-m-d H:i:s'), $lang),
             '{payment}'            => 'Carte bancaire',
             '{total_paid}'         => '189,00 €',
             '{total_products}'     => '189,00 €',
