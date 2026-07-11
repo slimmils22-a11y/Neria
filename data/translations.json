@@ -882,13 +882,13 @@
             "back_in_stock_note": "此链接有效期为7天，过期后无法保证库存。"
         },
         "tw": {
-            "greeting_main": "珍稀再度向您敞开",
-            "greeting_subtitle": "您的珍品已回归",
+            "greeting_main": "珍稀再度向您敞開",
+            "greeting_subtitle": "您的珍品已回歸",
             "dear_customer": "尊敬的客人，",
-            "back_in_stock_intro": "您曾对一件暂时缺货的商品表示兴趣。我們很高興通知您，该商品现已重新上架。",
+            "back_in_stock_intro": "您曾對一件暫時缺貨的商品表示興趣。我們很高興通知您，該商品現已重新上架。",
             "back_in_stock_available": "這件作品再次可供購買。數量依然有限。",
             "back_in_stock_btn": "查看商品",
-            "back_in_stock_note": "此連結有效期为7天，過期后無法保证庫存。"
+            "back_in_stock_note": "此連結有效期為7天，過期後無法保證庫存。"
         },
         "ru": {
             "greeting_main": "Редкость снова к Вашим услугам",
@@ -1776,15 +1776,15 @@
             "certificate_note": "此电子文档即为您的来源证明书，请妥善保管。"
         },
         "tw": {
-            "greeting_main": "您的作品之真品证明",
-            "greeting_subtitle": "稀有工艺，独特故事",
+            "greeting_main": "您的作品之真品證明",
+            "greeting_subtitle": "稀有工藝，獨特故事",
             "dear_customer": "尊敬的 {firstname} {lastname} 先生/女士，",
-            "certificate_intro": "我們提供的每件作品均附有来源证明书，保证其真实性和产地。",
-            "certificate_origin_title": "产地",
-            "certificate_materials_title": "材料与工艺",
+            "certificate_intro": "我們提供的每件作品均附有來源證明書，保證其真實性和產地。",
+            "certificate_origin_title": "產地",
+            "certificate_materials_title": "材料與工藝",
             "certificate_artisan_title": "工匠 / 工坊",
-            "certificate_message": "我們很自豪能将这件非凡的作品传递给您，它承载着精心保存的手工艺遗产。",
-            "certificate_note": "此电子文档即為您的来源证明书，請妥善保管。"
+            "certificate_message": "我們很自豪能將這件非凡的作品傳遞給您，它承載着精心保存的手工藝遺產。",
+            "certificate_note": "此電子文檔即為您的來源證明書，請妥善保管。"
         },
         "ru": {
             "greeting_main": "Подлинность Вашего изделия",
@@ -2486,9 +2486,9 @@
         "tw": {
             "greeting_main": "您的留言已收到",
             "greeting_subtitle": "我們會以您應得的關注回覆您",
-            "contact_intro": "我們已收到您的請求，感谢您与我們聯繫。以下是您提供的信息副本：",
+            "contact_intro": "我們已收到您的請求，感謝您與我們聯繫。以下是您提供的信息副本：",
             "contact_info_title": "聯絡資訊",
-            "contact_email_label": "电子邮件地址",
+            "contact_email_label": "電子郵件地址",
             "order_reference_label": "訂單編號",
             "contact_attachment_label": "附件",
             "contact_message_title": "您的留言",
@@ -2706,15 +2706,15 @@
             "signature_thanks": "期待以应有的关注为您作答，"
         },
         "tw": {
-            "greeting_main": "您的請求已发送",
-            "greeting_subtitle": "我們会尽快回复您",
+            "greeting_main": "您的請求已發送",
+            "greeting_subtitle": "我們會盡快回复您",
             "dear_customer": "尊敬的 {firstname} {lastname} 先生/女士，",
             "contact_form_intro": "我們已收到您關於訂單的留言。以下是您提供的信息摘要：",
             "contact_form_summary": "您的請求摘要",
             "order_reference_label": "訂單編號",
             "contact_form_product_label": "相關產品",
             "contact_attachment_label": "附件",
-            "contact_form_promise": "我們非常重视每一条留言，並将尽快与您聯繫。",
+            "contact_form_promise": "我們非常重視每一條留言，並將盡快與您聯繫。",
             "contact_form_btn": "回到品牌之家",
             "signature_thanks": "期待以應有的關注為您作答，"
         },
@@ -2899,12 +2899,12 @@
         },
         "tw": {
             "greeting_main": "您的創作正在盛放",
-            "greeting_subtitle": "在我們的工坊中，它正焕发生机",
+            "greeting_subtitle": "在我們的工坊中，它正焕發生機",
             "dear_customer": "尊敬的 {firstname} {lastname} 先生/女士，",
             "craftsmanship_intro": "我們很高興通知您，您的訂單正在我們的工坊中推進。",
-            "craftsmanship_status_title": "当前阶段",
-            "craftsmanship_message": "我們的工匠倾注全部心血，為您打造独一无二的作品。我們会在每个阶段及时通知您。",
-            "craftsmanship_note": "您可以从您的客戶帳戶中跟蹤訂單進度。"
+            "craftsmanship_status_title": "當前階段",
+            "craftsmanship_message": "我們的工匠傾注全部心血，為您打造獨一無二的作品。我們會在每個階段及時通知您。",
+            "craftsmanship_note": "您可以從您的客戶帳戶中跟蹤訂單進度。"
         },
         "ru": {
             "greeting_main": "Ваше изделие расцветает",
@@ -3275,11 +3275,11 @@
         "tw": {
             "greeting_main": "限量商品再度到貨",
             "greeting_subtitle": "稀有之作重新上架",
-            "customer_qty_intro": "您曾对一款目前需求量很大的商品表示兴趣。我們很高興通知您，限量商品已重新到货。",
+            "customer_qty_intro": "您曾對一款目前需求量很大的商品表示興趣。我們很高興通知您，限量商品已重新到貨。",
             "customer_qty_product_title": "相關商品",
-            "customer_qty_back": "限量到货：",
+            "customer_qty_back": "限量到貨：",
             "customer_qty_btn": "查看商品",
-            "customer_qty_limited": "此优惠仅限现有庫存，售完即止。建议您尽快下单。",
+            "customer_qty_limited": "此優惠僅限現有庫存，售完即止。建議您盡快下單。",
             "dear_customer": "尊敬的顧客，"
         },
         "ru": {
@@ -4299,18 +4299,18 @@
             "gift_note": "如有任何关于礼品订单的问题，我们的团队随时为您服务。"
         },
         "tw": {
-            "greeting_main": "您的禮物已备好",
-            "greeting_subtitle": "為您的挚爱献上特别关怀",
+            "greeting_main": "您的禮物已備好",
+            "greeting_subtitle": "為您的挚愛獻上特别關懷",
             "dear_customer": "尊敬的 {firstname} {lastname} 先生/女士，",
             "gift_intro": "我們很高興確認您的禮品訂單正在精心準備中。",
-            "gift_details_title": "我們的承诺",
+            "gift_details_title": "我們的承諾",
             "gift_detail_1": "豪華禮品包裝",
-            "gift_detail_2": "根据您的指示定制留言",
-            "gift_detail_3": "安全且谨慎的配送",
-            "gift_detail_4": "1月31日前可换货或退货",
-            "gift_message": "每个细节都经过深思熟虑，旨在为收礼人提供独特的体验。",
+            "gift_detail_2": "根據您的指示定制留言",
+            "gift_detail_3": "安全且謹慎的配送",
+            "gift_detail_4": "1月31日前可換貨或退貨",
+            "gift_message": "每個細節都經過深思熟慮，旨在為收禮人提供獨特的體驗。",
             "gift_btn": "跟蹤我的訂單",
-            "gift_note": "如有任何關於禮品訂單的問題，我們的团队隨時為您服務。"
+            "gift_note": "如有任何關於禮品訂單的問題，我們的團隊隨時為您服務。"
         },
         "ru": {
             "greeting_main": "Ваш подарок готов",
@@ -5476,7 +5476,7 @@
             "greeting_main": "農曆新年快樂",
             "greeting_subtitle": "願這個新年充滿繁榮與光明",
             "dear_customer": "尊敬的顧客，",
-            "lunar_intro": "值此農曆新來臨之際，我們向您致以最溫暖的祝福。",
+            "lunar_intro": "值此農曆新年來臨之際，我們向您致以最溫暖的祝福。",
             "lunar_message": "願這個節日為您帶來幸福、健康，並祝您一切順利。",
             "lunar_btn": "發現我們的作品",
             "lunar_note": "特別關懷為您保留至節日結束。",
@@ -6701,12 +6701,12 @@
         },
         "tw": {
             "greeting_main": "您的歡迎代码",
-            "greeting_subtitle": "歡迎您订阅的赠礼",
-            "newsletter_voucher_intro": "感谢您订阅我們的通讯。作为歡迎礼，為您提供可享{discount}折扣的專屬代碼，用於您下一筆訂單。",
+            "greeting_subtitle": "歡迎您訂閱的贈禮",
+            "newsletter_voucher_intro": "感謝您訂閱我們的通訊。作為歡迎禮，為您提供可享{discount}折扣的專屬代碼，用於您下一筆訂單。",
             "newsletter_voucher_code_title": "您的邀請碼",
             "newsletter_voucher_usage": "此碼在我們的品牌全場有效期{validity_days}天，不可與其他禮遇疊加使用。",
             "newsletter_voucher_btn": "探索我們的作品",
-            "newsletter_voucher_next": "祝您发现我們独特作品的精彩。",
+            "newsletter_voucher_next": "祝您發現我們獨特作品的精彩。",
             "voucher_code": "專屬碼",
             "dear_customer": "尊敬的顧客，"
         },
@@ -8543,16 +8543,16 @@
             "outofstock_thanks": "为这极为罕见的延误向您致歉，"
         },
         "tw": {
-            "greeting_main": "您的珍品暂时离我們而去",
+            "greeting_main": "您的珍品暫時離我們而去",
             "greeting_subtitle": "您的訂單仍是我們的首要",
             "dear_customer": "尊敬的顧客，",
-            "outofstock_intro": "我們很遗憾地通知您，您訂單中的某件商品目前缺货。",
+            "outofstock_intro": "我們很遺憾地通知您，您訂單中的某件商品目前缺貨。",
             "order_details_title": "訂單",
-            "outofstock_info": "您訂單中的一件作品暂时缺货 — 这是非常罕见的情況，我們极其重视。",
-            "outofstock_apologies": "我們对这次延误深表歉意，它並不反映我們的标准。我們的团队将很快与您聯繫，共同商定最佳解决方案。",
-            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">您可以从客戶帳戶查看訂單详情。</a>",
-            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">如果您以訪客身份下单，請通過專用連結跟蹤訂單。</a>",
-            "outofstock_thanks": "为这极为罕见的延误向您致歉，"
+            "outofstock_info": "您訂單中的一件作品暫時缺貨 — 這是非常罕見的情況，我們極其重視。",
+            "outofstock_apologies": "我們對這次延誤深表歉意，它並不反映我們的標準。我們的團隊將很快與您聯繫，共同商定最佳解決方案。",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">您可以從客戶帳戶查看訂單詳情。</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">如果您以訪客身份下單，請通過專用連結跟蹤訂單。</a>",
+            "outofstock_thanks": "為這極為罕見的延誤向您致歉，"
         },
         "ru": {
             "greeting_main": "Ваше изделие временно ускользает",
@@ -9615,7 +9615,7 @@
             "care_message": "為了讓它隨著時間保持光澤與美麗，以下是一些保養建議。",
             "care_tips_title": "保養建議",
             "care_tip_1": "避免長時間暴露在直射光或強熱源下。",
-            "care_tip_2": "用柔軟的乾布輕輕擦拭。請勿使用任何化学品。",
+            "care_tip_2": "用柔軟的乾布輕輕擦拭。請勿使用任何化學品。",
             "care_tip_3": "不使用時，請存放在乾燥、無塵的地方。",
             "care_note": "如需更多資訊，我們的團隊隨時為您服務。",
             "signature_thanks": "作為您珍品的守護者，傾注我們全部的關懷，"
@@ -9815,7 +9815,7 @@
             "greeting_subtitle": "分享您的體驗",
             "dear_customer": "尊敬的顧客，",
             "review_intro": "希望您的作品已在您的家中找到了應有的位置。",
-            "review_message": "您對這次體驗的看法對我們來說無比珍貴。並非出於統計義務，而是因為信任我們的人的意见指引著我們的標準。",
+            "review_message": "您對這次體驗的看法對我們來說無比珍貴。並非出於統計義務，而是因為信任我們的人的意見指引著我們的標準。",
             "review_btn": "分享我的體驗",
             "review_note": "您的意見對我們很有價值。它有助於我們更好地理解您的期望。",
             "signature_thanks": "您的目光是我們最好的鏡子，"
@@ -10015,16 +10015,16 @@
             "signature_thanks": "期待能为您带来满意的喜悦，"
         },
         "tw": {
-            "greeting_main": "您的心愿正在成型",
+            "greeting_main": "您的心願正在成型",
             "greeting_subtitle": "我們的工匠正在全力制作",
             "dear_customer": "尊敬的顧客，",
-            "preparation_intro": "您的作品已交付我們的工匠手中。在他們手中，每一个動作都是对您選擇的致敬。",
+            "preparation_intro": "您的作品已交付我們的工匠手中。在他們手中，每一個動作都是對您選擇的致敬。",
             "order_details_title": "訂單",
             "preparation_status": "訂單",
-            "preparation_promise": "耐心培育的技艺，完全服務于您的期望 — 以及您所應得的。",
-            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">您可以从客戶帳戶跟蹤訂單的進展情況。</a>",
-            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">如果您以訪客身份下单，請通過專用連結跟蹤訂單。</a>",
-            "signature_thanks": "期待能為您带来满意的喜悦，"
+            "preparation_promise": "耐心培育的技藝，完全服務于您的期望 — 以及您所應得的。",
+            "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">您可以從客戶帳戶跟蹤訂單的進展情況。</a>",
+            "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">如果您以訪客身份下單，請通過專用連結跟蹤訂單。</a>",
+            "signature_thanks": "期待能為您帶來滿意的喜悦，"
         },
         "ru": {
             "greeting_main": "Ваши желания обретают форму",
@@ -25524,18 +25524,6 @@
             "gift_ideas_note": "这份甄选专为您而设，以感谢您一贯的忠诚与品味。",
             "signature_warm": "以全诚之心,"
         },
-        "zh-tw": {
-            "greeting_main": "為重要的人獻上靈感",
-            "greeting_subtitle": "精心甄選，專為饋贈",
-            "dear_customer": "尊貴的顧客，",
-            "gift_ideas_title": "為重要的人獻上靈感",
-            "gift_ideas_subtitle": "精心甄選，專為饋贈",
-            "gift_ideas_intro": "美好時節即將到來。在此之前，我們依據您的品味與您所珍視之人的喜好，精心準備了一批適合饋贈的臻選之物。",
-            "gift_ideas_message": "贈禮，是將心意延續。這份甄選中的每件作品，都是為了觸動收禮者的心靈，以您所期許的優雅相贈。",
-            "gift_ideas_cta": "探索甄選",
-            "gift_ideas_note": "這份甄選專為您而設，以感謝您一貫的忠誠與品味。",
-            "signature_warm": "以全誠之心,"
-        },
         "ru": {
             "greeting_main": "Идеи для тех, кто важен",
             "greeting_subtitle": "Подборка, созданная для дарения",
@@ -25621,16 +25609,16 @@
             "signature_warm": "Com toda a nossa delicadeza,"
         },
         "tw": {
-            "greeting_main": "为重要的人献上灵感",
-            "greeting_subtitle": "精心甄选，专为馈赠",
-            "dear_customer": "尊贵的顾客，",
-            "gift_ideas_title": "为重要的人献上灵感",
-            "gift_ideas_subtitle": "精心甄选，专为馈赠",
-            "gift_ideas_intro": "美好时节即将到来。在此之前，我们依据您的品味与您所珍视之人的喜好，精心准备了一批适合馈赠的臻选之物。",
-            "gift_ideas_message": "赠礼，是将心意延续。这份甄选中的每件作品，都是为了触动收礼者的心灵，以您所期许的优雅相赠。",
-            "gift_ideas_cta": "探索甄选",
-            "gift_ideas_note": "这份甄选专为您而设，以感谢您一贯的忠诚与品味。",
-            "signature_warm": "以全诚之心,"
+            "greeting_main": "為重要的人獻上靈感",
+            "greeting_subtitle": "精心甄選，專為饋贈",
+            "dear_customer": "尊貴的顧客，",
+            "gift_ideas_title": "為重要的人獻上靈感",
+            "gift_ideas_subtitle": "精心甄選，專為饋贈",
+            "gift_ideas_intro": "美好時節即將到來。在此之前，我們依據您的品味與您所珍視之人的喜好，精心準備了一批適合饋贈的臻選之物。",
+            "gift_ideas_message": "贈禮，是將心意延續。這份甄選中的每件作品，都是為了觸動收禮者的心靈，以您所期許的優雅相贈。",
+            "gift_ideas_cta": "探索甄選",
+            "gift_ideas_note": "這份甄選專為您而設，以感謝您一貫的忠誠與品味。",
+            "signature_warm": "以全誠之心,"
         }
     },
     "collection_completion": {
@@ -25754,17 +25742,6 @@
             "collection_completion_cta": "完成我的系列",
             "collection_completion_note": "此推荐基于您在此系列中的过往购买记录。"
         },
-        "zh-tw": {
-            "collection_completion_eyebrow": "您的系列",
-            "collection_completion_title": "只差一件就完整了",
-            "collection_completion_intro": "最困難的部分您已經完成了。只需再添一件，您的系列就能圓滿——我們想在它售罄前提醒您。",
-            "collection_completion_progress_label": "您的系列進度",
-            "collection_completion_pieces_bought": "已獲得的件數",
-            "collection_completion_one_left": "還差一件即可完整",
-            "collection_completion_missing_label": "缺失的那一件",
-            "collection_completion_cta": "完成我的系列",
-            "collection_completion_note": "此推薦基於您在此系列中的過往購買記錄。"
-        },
         "ru": {
             "collection_completion_eyebrow": "Ваша коллекция",
             "collection_completion_greeting": "Здравствуйте",
@@ -25853,13 +25830,13 @@
             "collection_completion_eyebrow": "您的系列",
             "collection_completion_greeting": "您好",
             "collection_completion_title": "只差一件就完整了",
-            "collection_completion_intro": "最难的部分您已经完成了。只需再添一件，您的系列就能圆满——我们想在它售罄前提醒您。",
-            "collection_completion_progress_label": "您的系列进度",
-            "collection_completion_pieces_bought": "已获得的件数",
-            "collection_completion_one_left": "还差一件即可完整",
+            "collection_completion_intro": "最困難的部分您已經完成了。只需再添一件，您的系列就能圓滿——我們想在它售罄前提醒您。",
+            "collection_completion_progress_label": "您的系列進度",
+            "collection_completion_pieces_bought": "已獲得的件數",
+            "collection_completion_one_left": "還差一件即可完整",
             "collection_completion_missing_label": "缺失的那一件",
             "collection_completion_cta": "完成我的系列",
-            "collection_completion_note": "此推荐基于您在此系列中的过往购买记录。"
+            "collection_completion_note": "此推薦基於您在此系列中的過往購買記錄。"
         }
     },
     "complete_your_look": {
@@ -25943,13 +25920,6 @@
             "complete_your_look_cta": "立即查看",
             "complete_your_look_note": "此推荐专为您精心策划，灵感来自您的近期购买。"
         },
-        "zh-tw": {
-            "complete_your_look_eyebrow": "為您精選",
-            "complete_your_look_title": "完善您的造型",
-            "complete_your_look_intro": "您的訂單剛剛到達——希望您喜歡。以下是幾件與您近期購買完美搭配的單品。",
-            "complete_your_look_cta": "立即查看",
-            "complete_your_look_note": "此推薦專為您精心策劃，靈感來自您的近期購買。"
-        },
         "ru": {
             "complete_your_look_eyebrow": "Подборка для вас",
             "complete_your_look_greeting": "Здравствуйте",
@@ -26007,12 +25977,12 @@
             "complete_your_look_note": "Esta seleção foi composta especialmente para si, em harmonia com a sua compra recente."
         },
         "tw": {
-            "complete_your_look_eyebrow": "为您精选",
+            "complete_your_look_eyebrow": "為您精選",
             "complete_your_look_greeting": "您好",
             "complete_your_look_title": "完善您的造型",
-            "complete_your_look_intro": "您的订单刚刚到达——希望您喜欢。以下是几件与您近期购买完美搭配的单品。",
+            "complete_your_look_intro": "您的訂單剛剛到達——希望您喜歡。以下是幾件與您近期購買完美搭配的單品。",
             "complete_your_look_cta": "立即查看",
-            "complete_your_look_note": "此推荐专为您精心策划，灵感来自您的近期购买。"
+            "complete_your_look_note": "此推薦專為您精心策劃，靈感來自您的近期購買。"
         }
     },
     "waitlist_available": {
