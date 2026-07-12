@@ -2223,6 +2223,7 @@ class EmailRenderer
             '{refund_amount}'      => '89,00 €',
             '{recycled_packaging_label}' => 'Non',
             '{shipped_items}'      => '<p><strong>Colis 1 / 2</strong> — Montre Élégance Neria · Colissimo 6A1234567890</p>',
+            '{shipped_items_txt}'  => 'Colis 1 / 2 — Montre Élégance Neria · Colissimo 6A1234567890',
             '{recipients}'         => '<p><strong>Sophie Durand</strong> — Colissimo 6A1234567890</p><p><strong>Jean Martin</strong> — Colissimo 6A0987654321</p>',
             '{meta_products}'      => '<p>Réf. NER-001 — Montre Élégance Neria × 1</p><p>Réf. NER-014 — Bracelet Cuir Atelier × 1</p>',
             // ── Retours ────────────────────────────────────────────

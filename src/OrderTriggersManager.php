@@ -243,7 +243,7 @@ class OrderTriggersManager
             if ($newStatus->shipped && !$newStatus->delivery && !$oldStatus->shipped) {
                 $result = \Mail::Send(
                     $idLang, 'order_partial_shipped', '',
-                    array_merge($common, ['{shipped_items}' => $this->buildItemsSummary($order)]),
+                    array_merge($common, $this->buildShippedItemsVars($order)),
                     $email, $toName, null, null, null, null,
                     _PS_MODULE_DIR_ . 'neria/mails/', false, $idShop
                 );
@@ -458,20 +458,63 @@ class OrderTriggersManager
     // HELPERS
     // ============================================================
 
-    private function buildItemsSummary(\Order $order): string
+    /**
+     * Construit {shipped_items} (HTML, <br> entre les lignes) et
+     * {shipped_items_txt} (texte brut, \n) pour order_partial_shipped — la
+     * seule variable initialement câblée ({shipped_items}) avait deux
+     * défauts : jamais de variante _txt (le .txt affichait le placeholder
+     * brut) et un formatage à base de "\n" seul, invisible dans un email
+     * HTML sans <br>. Ajoute aussi le transporteur/numéro de suivi réels
+     * (ps_order_carrier) — absents de la première version qui ne listait
+     * que les produits, sans aucune information d'expédition.
+     *
+     * @return array{'{shipped_items}': string, '{shipped_items_txt}': string}
+     */
+    private function buildShippedItemsVars(\Order $order): array
     {
         try {
             $products = $order->getProducts();
-            if (!is_array($products) || empty($products)) {
-                return '';
-            }
-            $lines = array_map(
-                fn($p) => '× ' . (int) $p['product_quantity'] . ' ' . $p['product_name'],
-                $products
+            $productLines = is_array($products)
+                ? array_map(
+                    fn($p) => '× ' . (int) $p['product_quantity'] . ' ' . $p['product_name'],
+                    $products
+                )
+                : [];
+
+            $carriers = \Db::getInstance()->executeS(
+                'SELECT oc.tracking_number, c.name AS carrier_name
+                 FROM `' . _DB_PREFIX_ . 'order_carrier` oc
+                 LEFT JOIN `' . _DB_PREFIX_ . 'carrier` c ON c.id_carrier = oc.id_carrier
+                 WHERE oc.id_order = ' . (int) $order->id . '
+                 ORDER BY oc.date_add ASC'
             );
-            return implode("\n", $lines);
+
+            $carrierLines = [];
+            if (is_array($carriers)) {
+                $total = count($carriers);
+                foreach ($carriers as $i => $row) {
+                    $label = ($total > 1)
+                        ? sprintf('Colis %d/%d', $i + 1, $total)
+                        : 'Colis';
+                    $carrierName = trim((string) ($row['carrier_name'] ?? '')) ?: '—';
+                    $tracking    = trim((string) ($row['tracking_number'] ?? ''));
+                    $carrierLines[] = $tracking !== ''
+                        ? sprintf('%s — %s %s', $label, $carrierName, $tracking)
+                        : sprintf('%s — %s', $label, $carrierName);
+                }
+            }
+
+            $allLines = array_merge($productLines, $carrierLines);
+            if (empty($allLines)) {
+                return ['{shipped_items}' => '', '{shipped_items_txt}' => ''];
+            }
+
+            return [
+                '{shipped_items}'     => '<p>' . implode('</p><p>', array_map('htmlspecialchars', $allLines)) . '</p>',
+                '{shipped_items_txt}' => implode("\n", $allLines),
+            ];
         } catch (\Throwable $e) {
-            return '';
+            return ['{shipped_items}' => '', '{shipped_items_txt}' => ''];
         }
     }
 
