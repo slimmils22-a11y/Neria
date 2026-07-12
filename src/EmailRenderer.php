@@ -961,6 +961,51 @@ class EmailRenderer
         }
     }
 
+    /**
+     * Journalise une variable résiduelle non résolue (filet de sécurité,
+     * cf. appelants). Escalade en `error` — donc alerte immédiate via
+     * WatchdogManager::sendImmediateAlert, throttlée à 1/heure — si la
+     * variable manquante est une VARIABLE PERSONNALISÉE du marchand
+     * (ConfigManager::CUSTOM_VARIABLE_KEYS) : 100% dans son contrôle,
+     * contrairement à un bug de code où seul le développeur peut agir
+     * (reste en `warning`, visible seulement au tableau de bord/digest).
+     *
+     * Complète checkCustomVarsCompleteness (contrôle Watchdog #67,
+     * réactif jusqu'à 24h) et le garde-fou de ManualSendManager (préventif
+     * mais uniquement pour le clic manuel) : ce point-ci est le seul qui
+     * couvre aussi les envois AUTOMATIQUES (crons, hooks commande), où
+     * aucun blocage préventif n'est possible.
+     */
+    private function logResidualVars(string $template, array $residualKeys): void
+    {
+        if (!class_exists('WatchdogManager')) {
+            return;
+        }
+
+        $isCustomVarIssue = false;
+        if (class_exists('ConfigManager')) {
+            foreach ($residualKeys as $residualKey) {
+                $bare = preg_replace('/_(html|txt)$/', '', trim($residualKey, '{}'));
+                if (in_array($bare, \ConfigManager::CUSTOM_VARIABLE_KEYS, true)) {
+                    $isCustomVarIssue = true;
+                    break;
+                }
+            }
+        }
+
+        $watchdog = new WatchdogManager($this->module);
+        $message  = WatchdogManager::i18nMsg('watchdog.residual_vars_stripped', [
+            'template' => $template,
+            'vars'     => implode(', ', $residualKeys),
+        ]);
+
+        if ($isCustomVarIssue) {
+            $watchdog->error($message, $template, 'EmailRenderer');
+        } else {
+            $watchdog->warning($message, $template, 'EmailRenderer');
+        }
+    }
+
     private function injectTimeGreeting(array &$templateVars, string $lang): void
     {
         try {
@@ -2481,16 +2526,7 @@ class EmailRenderer
         if (preg_match_all('/\{[a-z][a-z0-9_]*\}/i', $compiled, $residualMatches)) {
             $residualKeys = array_unique($residualMatches[0]);
             $compiled = preg_replace('/\{[a-z][a-z0-9_]*\}/i', '', $compiled);
-            if (class_exists('WatchdogManager')) {
-                (new WatchdogManager($this->module))->warning(
-                    WatchdogManager::i18nMsg('watchdog.residual_vars_stripped', [
-                        'template' => $template,
-                        'vars'     => implode(', ', $residualKeys),
-                    ]),
-                    $template,
-                    'EmailRenderer'
-                );
-            }
+            $this->logResidualVars($template, $residualKeys);
         }
 
         // ── Empreinte carbone — injecté avant CssInliner (DOMDocument déplace
@@ -2606,16 +2642,7 @@ class EmailRenderer
             if (preg_match_all('/\{[a-z][a-z0-9_]*\}/i', $compiledTxt, $residualTxtMatches)) {
                 $residualTxtKeys = array_unique($residualTxtMatches[0]);
                 $compiledTxt = preg_replace('/\{[a-z][a-z0-9_]*\}/i', '', $compiledTxt);
-                if (class_exists('WatchdogManager')) {
-                    (new WatchdogManager($this->module))->warning(
-                        WatchdogManager::i18nMsg('watchdog.residual_vars_stripped', [
-                            'template' => $template,
-                            'vars'     => implode(', ', $residualTxtKeys),
-                        ]),
-                        $template,
-                        'EmailRenderer'
-                    );
-                }
+                $this->logResidualVars($template, $residualTxtKeys);
             }
 
             // Slot du message personnalisé optionnel (vide par défaut, rempli
