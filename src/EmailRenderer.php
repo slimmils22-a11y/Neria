@@ -353,6 +353,17 @@ class EmailRenderer
                 $unsubTo = reset($unsubTo);
             }
             $params['templateVars']['{unsubscribe_url}'] = $this->module->getUnsubscribeUrl((string) $unsubTo, $lang);
+
+            // Lien du centre de préférences (pied de page du layout global) —
+            // même destinataire, résolu au client si connu (cf. resolveCustomerId).
+            if (class_exists('PreferencesManager') && (string) $unsubTo !== '') {
+                $pm = new PreferencesManager($this->module);
+                $params['templateVars']['{preferences_url}'] = $pm->getPreferencesUrl(
+                    (string) $unsubTo,
+                    $this->resolveCustomerId($params),
+                    $lang
+                );
+            }
         }
 
         // Lien du bon de retour (page Retours du compte client)
