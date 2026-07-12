@@ -232,6 +232,7 @@ class HealthCheckManager
             'residual_vars_recent'   => $this->checkRecentResidualVarsWarnings(),
             'sig_social_recent'      => $this->checkSignatureSocialRenderedRecently(),
             'action_banner_coverage' => $this->checkActionBannerCoverage(),
+            'orphan_placeholders'    => $this->checkOrphanPlaceholders(),
         ];
     }
 
@@ -3305,20 +3306,73 @@ class HealthCheckManager
     private function checkRecentResidualVarsWarnings(): array
     {
         $rows = $this->db->executeS(
-            'SELECT `template`, COUNT(*) AS n FROM `' . _DB_PREFIX_ . 'neria_log`
+            'SELECT `template`, `message` FROM `' . _DB_PREFIX_ . 'neria_log`
              WHERE `class` = \'EmailRenderer\'
                AND `message` LIKE \'%residual_vars_stripped%\'
-               AND `date_add` >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-             GROUP BY `template`
-             ORDER BY n DESC'
+               AND `date_add` >= DATE_SUB(NOW(), INTERVAL 7 DAY)'
         );
 
         if (empty($rows)) {
             return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.residual_recent_ok')];
         }
 
-        $templates = array_map(static fn ($r) => (string) $r['template'], (array) $rows);
-        $total     = array_sum(array_map(static fn ($r) => (int) $r['n'], (array) $rows));
+        // Distingue un défaut de câblage SYSTÉMIQUE (une variable jamais injectée
+        // nulle part, donc absente sur la quasi-totalité des templates — ex. le
+        // bug {preferences_url} du 2026-07-12, 125/125 templates identiquement
+        // touchés) d'une variable ponctuellement absente sur un template isolé.
+        // Le premier cas est un vrai bug de code à corriger, pas du bruit —
+        // il doit passer en erreur pour déclencher l'alerte immédiate.
+        $varTemplates      = [];
+        $templatesAffected = [];
+
+        foreach ((array) $rows as $row) {
+            $template = (string) $row['template'];
+            $templatesAffected[$template] = true;
+
+            if (preg_match('/"vars":"([^"]*)"/', (string) $row['message'], $m)) {
+                foreach (explode(', ', $m[1]) as $var) {
+                    $var = trim($var);
+                    if ($var !== '') {
+                        $varTemplates[$var][$template] = true;
+                    }
+                }
+            }
+        }
+
+        // {custom_message}/{custom_message_txt} sont volontairement optionnels
+        // (vides hors envoi manuel avec message personnalisé, cf. injectCustomMessage)
+        // — leur absence quasi-systématique est normale, pas un bug de câblage.
+        $knownOptional = ['{custom_message}', '{custom_message_txt}'];
+
+        $totalTemplates    = count($templatesAffected);
+        $systemicThreshold = max(10, (int) ceil($totalTemplates * 0.5));
+
+        $systemicVars = [];
+        foreach ($varTemplates as $var => $tpls) {
+            if (in_array($var, $knownOptional, true)) {
+                continue;
+            }
+            if (count($tpls) >= $systemicThreshold) {
+                $systemicVars[$var] = count($tpls);
+            }
+        }
+
+        if (!empty($systemicVars)) {
+            arsort($systemicVars);
+            $list = [];
+            foreach ($systemicVars as $var => $n) {
+                $list[] = $var . ' (' . $n . ')';
+            }
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.residual_systemic_error', [
+                    'list' => implode(', ', $list),
+                ]),
+            ];
+        }
+
+        $templates = array_keys($templatesAffected);
+        $total     = count($rows);
 
         return [
             'status' => self::STATUS_WARNING,
@@ -3524,6 +3578,98 @@ class HealthCheckManager
             }
         }
         return false;
+    }
+
+    /**
+     * #63 — Placeholders orphelins : variables {xxx} présentes dans les
+     * templates (layout + .html + .txt) mais jamais mentionnées nulle part
+     * dans le code PHP du module, donc jamais injectées lors d'un envoi réel.
+     *
+     * Contrôle statique proactif — détecte ce type de bug de câblage (ex.
+     * {preferences_url}, cf. commit b7871d3) AVANT même qu'un seul email
+     * ne parte, sans attendre l'accumulation de logs residual_vars_stripped.
+     *
+     * Filet volontairement large côté PHP : une variable citée ne serait-ce
+     * qu'une fois comme littéral '{xxx}' n'importe où dans src/ ou
+     * controllers/ est considérée "câblée", pour éviter les faux positifs
+     * sur les variables injectées par concaténation dynamique.
+     */
+    private function checkOrphanPlaceholders(): array
+    {
+        $mailsDir = _PS_MODULE_DIR_ . 'neria/mails/themes/neria_global';
+        if (!is_dir($mailsDir)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.orphan_vars_ok')];
+        }
+
+        $templateFiles = array_merge(
+            $this->globRecursive($mailsDir, '.html'),
+            $this->globRecursive($mailsDir, '.txt')
+        );
+
+        $usedVars = [];
+        foreach ($templateFiles as $file) {
+            $content = @file_get_contents($file);
+            if ($content === false) {
+                continue;
+            }
+            if (preg_match_all('/\{([a-z][a-z0-9_]*)\}/', $content, $m)) {
+                foreach ($m[1] as $var) {
+                    $usedVars[$var] = true;
+                }
+            }
+        }
+
+        if (empty($usedVars)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.orphan_vars_ok')];
+        }
+
+        $phpFiles = array_merge(
+            $this->globRecursive(_PS_MODULE_DIR_ . 'neria/src', '.php'),
+            $this->globRecursive(_PS_MODULE_DIR_ . 'neria/controllers', '.php')
+        );
+        $neriaRoot = _PS_MODULE_DIR_ . 'neria/neria.php';
+        if (is_file($neriaRoot)) {
+            $phpFiles[] = $neriaRoot;
+        }
+
+        $wiredVars = [];
+        foreach ($phpFiles as $file) {
+            $content = @file_get_contents($file);
+            if ($content === false) {
+                continue;
+            }
+            if (preg_match_all('/\{([a-z][a-z0-9_]*)\}/', $content, $m)) {
+                foreach ($m[1] as $var) {
+                    $wiredVars[$var] = true;
+                }
+            }
+        }
+
+        // Exclusion connue : les variantes "_txt" sont générées dynamiquement
+        // à partir de leur équivalent HTML par concaténation de chaîne
+        // ('{' . $key . '_txt}', cf. EmailRenderer::compileEmail) — jamais
+        // écrites en toutes lettres dans le code source, donc invisibles à ce
+        // grep statique bien qu'elles soient réellement câblées à l'exécution.
+        $orphans = array_values(array_filter(
+            array_diff(array_keys($usedVars), array_keys($wiredVars)),
+            static fn ($v) => !str_ends_with($v, '_txt')
+        ));
+        sort($orphans);
+
+        if (!empty($orphans)) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.orphan_vars_warning', [
+                    'count' => count($orphans),
+                    'list'  => implode(', ', array_map(static fn ($v) => '{' . $v . '}', array_slice($orphans, 0, 10))),
+                ]),
+            ];
+        }
+
+        return [
+            'status' => self::STATUS_OK,
+            'detail' => AdminTranslator::tVars('health.orphan_vars_ok_count', ['count' => count($usedVars)]),
+        ];
     }
 
     /**
