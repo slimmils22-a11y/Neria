@@ -3129,6 +3129,7 @@ class HealthCheckManager
     {
         $results = [
             'admin_trad_usage'  => $this->checkAdminTranslationKeyUsage(),
+            'trad_key_usage'    => $this->checkTradKeyUsage(),
             'class_references'  => $this->checkClassReferencesIntegrity(),
         ];
 
@@ -3196,6 +3197,113 @@ class HealthCheckManager
         return [
             'status' => self::STATUS_OK,
             'detail' => AdminTranslator::tVars('health.admin_trad_usage_ok', ['count' => count($usedKeys)]),
+        ];
+    }
+
+    /**
+     * Scanne les templates email (layout.html + core/*.html) à la recherche
+     * de clés {neria_trad key='...'} littérales absentes de
+     * data/translations.json — le marchand recevrait alors un email avec
+     * un bout de texte manquant chez le client.
+     *
+     * Résolution strictement scopée par template (TranslationEngine::get()
+     * ne tombe jamais sur le bloc d'un AUTRE template) : une clé de
+     * core/{tpl}.html doit exister dans translations.json[{tpl}], et une
+     * clé de layout.html (partagé par tous les envois) doit exister dans
+     * TOUS les blocs, sinon elle casserait le rendu de n'importe quel
+     * template ne la possédant pas.
+     */
+    private function checkTradKeyUsage(): array
+    {
+        $root       = rtrim($this->module->getLocalPath(), '/');
+        $jsonPath   = $root . '/data/translations.json';
+        $coreDir    = $root . '/mails/themes/neria_global/core';
+        $layoutPath = $root . '/mails/themes/neria_global/layout.html';
+
+        if (!is_file($jsonPath)) {
+            return ['status' => self::STATUS_ERROR, 'detail' => AdminTranslator::t('health.trad_key_usage_json_missing')];
+        }
+
+        $dict = json_decode((string) file_get_contents($jsonPath), true);
+        if (!is_array($dict)) {
+            return ['status' => self::STATUS_ERROR, 'detail' => AdminTranslator::t('health.trad_key_usage_json_missing')];
+        }
+
+        $extractKeys = static function (string $content): array {
+            $content = preg_replace('/\{\*.*?\*\}/s', '', $content) ?? $content;
+            $keys = [];
+            if (preg_match_all('/neria_trad\s+key=([\'"])([a-zA-Z0-9_.\-]+)\1/', $content, $m)) {
+                $keys = array_unique($m[2]);
+            }
+            return $keys;
+        };
+
+        $keyExistsInBlock = static function ($block, string $key): bool {
+            if (!is_array($block)) {
+                return false;
+            }
+            foreach ($block as $vals) {
+                if (is_array($vals) && array_key_exists($key, $vals)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        // Reproduit la vraie logique de résolution de TranslationEngine::get() :
+        // bloc du template en premier, puis repli sur le bloc partagé "_global"
+        // (footer, etc.) — sans ce repli, on obtiendrait un faux positif sur
+        // TOUTES les clés de layout.html partagées via _global.
+        $globalBlock = $dict['_global'] ?? null;
+        $keyResolvable = function ($block, string $key) use ($keyExistsInBlock, $globalBlock): bool {
+            return $keyExistsInBlock($block, $key) || $keyExistsInBlock($globalBlock, $key);
+        };
+
+        $missing = [];
+
+        // Clés spécifiques à chaque template
+        foreach ($this->globRecursive($coreDir, '.html') as $file) {
+            $tpl  = basename($file, '.html');
+            $keys = $extractKeys((string) file_get_contents($file));
+            foreach ($keys as $key) {
+                if (!$keyResolvable($dict[$tpl] ?? null, $key)) {
+                    $missing[$tpl . ':' . $key] = $tpl;
+                }
+            }
+        }
+
+        // Clés de layout.html : résolues via _global (partagé par tous les
+        // envois) ou, à défaut, doivent être dupliquées dans chaque bloc.
+        if (is_file($layoutPath)) {
+            foreach ($extractKeys((string) file_get_contents($layoutPath)) as $key) {
+                if ($keyExistsInBlock($globalBlock, $key)) {
+                    continue;
+                }
+                $missingIn = [];
+                foreach ($dict as $tpl => $block) {
+                    if ($tpl !== '_global' && !$keyExistsInBlock($block, $key)) {
+                        $missingIn[] = $tpl;
+                    }
+                }
+                if (!empty($missingIn)) {
+                    $missing['layout:' . $key] = 'layout (' . count($missingIn) . ' templates)';
+                }
+            }
+        }
+
+        if ($missing) {
+            $count     = count($missing);
+            $sample    = array_slice(array_keys($missing), 0, 5);
+            $sampleStr = implode(', ', $sample) . ($count > 5 ? '… (' . ($count - 5) . ' autres)' : '');
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.trad_key_usage_missing', ['count' => $count, 'sample' => $sampleStr]),
+            ];
+        }
+
+        return [
+            'status' => self::STATUS_OK,
+            'detail' => AdminTranslator::t('health.trad_key_usage_ok'),
         ];
     }
 
