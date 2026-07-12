@@ -54445,5 +54445,26 @@
         "no": "{count} tilpasset(e) variabel/variabler brukes av en mal, men er ikke fylt ut: {list} → Hva du bør gjøre: fyll dem ut under Konfigurer → Tilpassede variabler, ellers vises tilhørende tekst tom i den sendte e-posten.",
         "da": "{count} brugerdefineret/-e variabel/variabler bruges af en skabelon, men er ikke udfyldt: {list} → Hvad du skal gøre: udfyld dem under Konfigurer → Brugerdefinerede variabler, ellers vises den tilsvarende tekst tom i den sendte e-mail.",
         "nl": "{count} aangepaste variabele(n) gebruikt door een sjabloon maar niet ingevuld: {list} → Wat te doen: vul ze in onder Configureren → Aangepaste variabelen, anders verschijnt de bijbehorende tekst leeg in de verzonden e-mail."
+    },
+    "msg.send_blocked_missing_vars": {
+        "fr": "Envoi bloqué : ce template utilise des variables personnalisées non renseignées : {list} → remplissez-les dans Configurer → Variables personnalisées avant d'envoyer.",
+        "en": "Send blocked: this template uses custom variables that are not filled in: {list} → fill them in under Configure → Custom variables before sending.",
+        "de": "Versand blockiert: Diese Vorlage verwendet benutzerdefinierte Variablen, die nicht ausgefüllt sind: {list} → füllen Sie sie unter Konfigurieren → Benutzerdefinierte Variablen aus, bevor Sie senden.",
+        "it": "Invio bloccato: questo modello utilizza variabili personalizzate non compilate: {list} → compilale in Configura → Variabili personalizzate prima di inviare.",
+        "es": "Envío bloqueado: esta plantilla usa variables personalizadas no completadas: {list} → complételas en Configurar → Variables personalizadas antes de enviar.",
+        "pt": "Envio bloqueado: este modelo usa variáveis personalizadas não preenchidas: {list} → preencha-as em Configurar → Variáveis personalizadas antes de enviar.",
+        "br": "Envio bloqueado: este modelo usa variáveis personalizadas não preenchidas: {list} → preencha-as em Configurar → Variáveis personalizadas antes de enviar.",
+        "gb": "Send blocked: this template uses custom variables that are not filled in: {list} → fill them in under Configure → Custom variables before sending.",
+        "ar": "تم حظر الإرسال: يستخدم هذا القالب متغيرات مخصصة غير مُعبّأة: {list} → املؤوها من \"إعداد\" ← \"المتغيرات المخصصة\" قبل الإرسال.",
+        "ja": "送信がブロックされました：このテンプレートは未入力のカスタム変数を使用しています：{list} → 送信前に「設定」→「カスタム変数」で入力してください。",
+        "ko": "발송이 차단되었습니다: 이 템플릿은 입력되지 않은 사용자 지정 변수를 사용합니다: {list} → 발송 전에 \"설정\" → \"사용자 지정 변수\"에서 입력하세요.",
+        "zh": "发送已阻止：此模板使用了尚未填写的自定义变量：{list} → 请在发送前于\"配置\"→\"自定义变量\"中填写。",
+        "tw": "寄送已阻止：此範本使用了尚未填寫的自訂變數：{list} → 請在寄送前於「設定」→「自訂變數」中填寫。",
+        "ru": "Отправка заблокирована: этот шаблон использует незаполненные пользовательские переменные: {list} → заполните их в разделе «Настройка» → «Пользовательские переменные» перед отправкой.",
+        "tr": "Gönderim engellendi: bu şablon doldurulmamış özel değişkenler kullanıyor: {list} → göndermeden önce bunları Yapılandır → Özel değişkenler bölümünden doldurun.",
+        "sv": "Utskick blockerat: den här mallen använder anpassade variabler som inte är ifyllda: {list} → fyll i dem under Konfigurera → Anpassade variabler innan du skickar.",
+        "no": "Utsending blokkert: denne malen bruker tilpassede variabler som ikke er fylt ut: {list} → fyll dem ut under Konfigurer → Tilpassede variabler før du sender.",
+        "da": "Afsendelse blokeret: denne skabelon bruger brugerdefinerede variabler, der ikke er udfyldt: {list} → udfyld dem under Konfigurer → Brugerdefinerede variabler før afsendelse.",
+        "nl": "Verzending geblokkeerd: deze sjabloon gebruikt aangepaste variabelen die niet zijn ingevuld: {list} → vul ze in onder Configureren → Aangepaste variabelen voordat u verzendt."
     }
 }

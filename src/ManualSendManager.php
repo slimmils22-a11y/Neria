@@ -584,6 +584,30 @@ class ManualSendManager
             }
         }
 
+        // ── Garde-fou variables personnalisées manquantes ──────────────────
+        // Bloque l'envoi si ce template utilise une variable personnalisée
+        // (Configurer → Variables personnalisées) restée vide — sinon
+        // l'email part avec un texte tronqué/vide (ex. "Sous  jours à
+        // compter de..."). Un champ fourni directement dans $contentVars
+        // pour CET envoi (même clé, normalisée comme ci-dessous) prime sur
+        // la variable persistée.
+        if (class_exists('ConfigManager')) {
+            $overrideKeys = [];
+            foreach (array_keys($contentVars) as $k) {
+                $normalized = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $k));
+                if ($normalized !== '') {
+                    $overrideKeys[] = $normalized;
+                }
+            }
+            $missingVars = (new \ConfigManager($this->module))->findMissingCustomVarsForTemplate($template, $overrideKeys);
+            if (!empty($missingVars)) {
+                return [
+                    'ok'      => false,
+                    'message' => AdminTranslator::tVars('msg.send_blocked_missing_vars', ['list' => implode(', ', $missingVars)]),
+                ];
+            }
+        }
+
         // Contexte de base
         $vars = [
             '{firstname}'   => $customer['firstname'] ?? '',

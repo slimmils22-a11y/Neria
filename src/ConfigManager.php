@@ -1085,6 +1085,77 @@ class ConfigManager
     }
 
     /**
+     * Liste, parmi les variables personnalisées RÉELLEMENT utilisées par un
+     * template donné (translations.json), celles qui n'ont ni valeur
+     * persistée (Configurer → Variables personnalisées) ni valeur fournie
+     * pour cet envoi précis via $overrideKeys — utilisé à la fois par
+     * ManualSendManager (garde-fou avant envoi) et HealthCheckManager
+     * (contrôle Watchdog #67, vision globale tous templates).
+     *
+     * @param string $template     Nom du template (ex. 'return_slip')
+     * @param array  $overrideKeys Clés déjà normalisées (minuscules, [a-z0-9_])
+     *                             fournies pour CET envoi (contentVars du BO)
+     * @return string[] Clés manquantes (ex. ['return_deadline_days'])
+     */
+    public function findMissingCustomVarsForTemplate(string $template, array $overrideKeys = []): array
+    {
+        $jsonPath = _PS_MODULE_DIR_ . 'neria/data/translations.json';
+        if (!is_file($jsonPath)) {
+            return [];
+        }
+
+        $dict  = json_decode((string) file_get_contents($jsonPath), true);
+        $block = is_array($dict) ? ($dict[$template] ?? null) : null;
+        if (!is_array($block)) {
+            return [];
+        }
+
+        $usedKeys = [];
+        foreach ($block as $vals) {
+            if (!is_array($vals)) {
+                continue;
+            }
+            foreach ($vals as $val) {
+                if (!is_string($val)) {
+                    continue;
+                }
+                foreach (self::CUSTOM_VARIABLE_KEYS as $key) {
+                    if (isset($usedKeys[$key])) {
+                        continue;
+                    }
+                    if (strpos($val, '{' . $key . '}') !== false
+                        || strpos($val, '{' . $key . '_html}') !== false
+                        || strpos($val, '{' . $key . '_txt}') !== false
+                    ) {
+                        $usedKeys[$key] = true;
+                    }
+                }
+            }
+        }
+
+        if (empty($usedKeys)) {
+            return [];
+        }
+
+        $filled = [];
+        foreach ($this->getCustomVariables() as $row) {
+            if (trim((string) ($row['variable_value'] ?? '')) !== '') {
+                $filled[$row['variable_key']] = true;
+            }
+        }
+
+        $missing = [];
+        foreach (array_keys($usedKeys) as $key) {
+            if (in_array($key, $overrideKeys, true) || isset($filled[$key])) {
+                continue;
+            }
+            $missing[] = $key;
+        }
+
+        return $missing;
+    }
+
+    /**
      * Met à jour une variable personnalisée
      *
      * @param string $key   Clé de la variable (ex: maison_name)
