@@ -97,6 +97,43 @@ class MonthlyReportManager
         return $this->deliverReport($report);
     }
 
+    /**
+     * Aperçu BO (onglets Design/Traductions) — même assemblage de données que
+     * l'envoi réel (mois en cours, données live), mais sans envoi ni écriture
+     * disque. Ce template a son propre rendu HTML autonome (renderHtml, page
+     * complète indépendante de layout.html/core/*.html) : c'est pourquoi
+     * l'aperçu générique (EmailRenderer::renderPreviewHtml) délègue ici plutôt
+     * que de compiler core/monthly_report.html — fichier hérité d'une
+     * architecture antérieure, jamais utilisé par l'envoi réel.
+     */
+    public function previewHtml(string $lang = 'fr'): string
+    {
+        $year  = (int) date('Y');
+        $month = (int) date('n');
+        $prevYear  = $month === 1 ? $year - 1 : $year;
+        $prevMonth = $month === 1 ? 12 : $month - 1;
+
+        $report     = $this->buildReport($year, $month);
+        $prevReport = $this->buildReport($prevYear, $prevMonth);
+
+        $report['prev']            = $prevReport;
+        $report['recommendations'] = $this->generateRecommendations($report, $prevReport);
+        $report['month_label']     = $this->formatMonthLabel($year, $month);
+
+        $originalLang = class_exists('AdminTranslator') ? \AdminTranslator::currentLang() : null;
+        if (class_exists('AdminTranslator')) {
+            \AdminTranslator::setLang($lang);
+        }
+
+        try {
+            return $this->renderHtml($report, $lang);
+        } finally {
+            if ($originalLang !== null && class_exists('AdminTranslator')) {
+                \AdminTranslator::setLang($originalLang);
+            }
+        }
+    }
+
     // ============================================================
     // CONSTRUCTION DU RAPPORT
     // ============================================================

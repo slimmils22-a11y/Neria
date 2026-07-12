@@ -1895,6 +1895,20 @@ class EmailRenderer
      */
     public function renderPreviewHtml(string $template, string $lang, array $designOverride = [], bool $variantB = false): string
     {
+        // monthly_report a son propre rendu HTML autonome (page complète
+        // indépendante de layout.html/core/*.html, cf. MonthlyReportManager::
+        // renderHtml) — core/monthly_report.html est un fichier hérité d'une
+        // architecture antérieure et ne contient pas les vraies données.
+        if ($template === 'monthly_report' && class_exists('MonthlyReportManager')) {
+            try {
+                return (new \MonthlyReportManager($this->module))->previewHtml($lang);
+            } catch (\Throwable $e) {
+                return '<p style="padding:40px;font-family:sans-serif;color:#a33;">'
+                    . AdminTranslator::tVars('watchdog.preview_unavailable', ['template' => htmlspecialchars($template)])
+                    . '</p>';
+            }
+        }
+
         $design   = array_merge($this->config->getDesignConfig(), $designOverride);
         $abtestMgr = ($variantB && class_exists('ABTestManager')) ? new \ABTestManager($this->module) : null;
         // Les fausses valeurs de démo (dont {shop_url}, {history_url}...) et le
