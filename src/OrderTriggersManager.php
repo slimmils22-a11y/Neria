@@ -26,6 +26,37 @@ class OrderTriggersManager
     // Paliers de commandes pour le template milestone_order
     const MILESTONES = [5, 10, 25, 50, 100];
 
+    // Ordinal localisé de chaque palier, pour {milestone_count} — utilisé
+    // en tant qu'ADJECTIF juste avant "commande/order/..." dans le texte
+    // traduit (ex. fr "votre {milestone_count} commande", ja "{milestone_count}
+    // のご注文"). Table figée plutôt qu'un algorithme d'ordinaux générique :
+    // MILESTONES est un ensemble fixe et restreint (5 valeurs), et plusieurs
+    // langues (ar/ja/ko/zh/tw) ont des règles d'ordinaux trop spécifiques
+    // (accord grammatical, compteurs dédiés) pour être fiables à calculer
+    // dynamiquement — chaque valeur ci-dessous a été vérifiée manuellement
+    // contre la phrase exacte de milestone_intro dans translations.json.
+    const MILESTONE_ORDINALS = [
+        'fr' => [5 => '5e', 10 => '10e', 25 => '25e', 50 => '50e', 100 => '100e'],
+        'en' => [5 => '5th', 10 => '10th', 25 => '25th', 50 => '50th', 100 => '100th'],
+        'gb' => [5 => '5th', 10 => '10th', 25 => '25th', 50 => '50th', 100 => '100th'],
+        'de' => [5 => '5.', 10 => '10.', 25 => '25.', 50 => '50.', 100 => '100.'],
+        'it' => [5 => '5°', 10 => '10°', 25 => '25°', 50 => '50°', 100 => '100°'],
+        'es' => [5 => '5º', 10 => '10º', 25 => '25º', 50 => '50º', 100 => '100º'],
+        'pt' => [5 => '5º', 10 => '10º', 25 => '25º', 50 => '50º', 100 => '100º'],
+        'br' => [5 => '5º', 10 => '10º', 25 => '25º', 50 => '50º', 100 => '100º'],
+        'ar' => [5 => 'الخامس', 10 => 'العاشر', 25 => 'الخامس والعشرون', 50 => 'الخمسون', 100 => 'المئة'],
+        'ja' => [5 => '5回目', 10 => '10回目', 25 => '25回目', 50 => '50回目', 100 => '100回目'],
+        'ko' => [5 => '5번째', 10 => '10번째', 25 => '25번째', 50 => '50번째', 100 => '100번째'],
+        'zh' => [5 => '第5次', 10 => '第10次', 25 => '第25次', 50 => '第50次', 100 => '第100次'],
+        'tw' => [5 => '第5次', 10 => '第10次', 25 => '第25次', 50 => '第50次', 100 => '第100次'],
+        'ru' => [5 => '5-й', 10 => '10-й', 25 => '25-й', 50 => '50-й', 100 => '100-й'],
+        'tr' => [5 => '5.', 10 => '10.', 25 => '25.', 50 => '50.', 100 => '100.'],
+        'sv' => [5 => '5:e', 10 => '10:e', 25 => '25:e', 50 => '50:e', 100 => '100:e'],
+        'no' => [5 => '5.', 10 => '10.', 25 => '25.', 50 => '50.', 100 => '100.'],
+        'da' => [5 => '5.', 10 => '10.', 25 => '25.', 50 => '50.', 100 => '100.'],
+        'nl' => [5 => '5e', 10 => '10e', 25 => '25e', 50 => '50e', 100 => '100e'],
+    ];
+
     // Paliers fidélité : nb commandes → nom du tier
     const LOYALTY_TIERS = [
         3  => 'Bronze',
@@ -52,6 +83,17 @@ class OrderTriggersManager
             $this->watchdog = new \WatchdogManager($this->module);
         }
         return $this->watchdog;
+    }
+
+    /**
+     * Résout {milestone_count} : ordinal localisé (cf. MILESTONE_ORDINALS)
+     * si le palier et la langue sont couverts, repli sur le nombre brut
+     * sinon (jamais de valeur vide envoyée dans un email réel).
+     */
+    private function formatMilestoneOrdinal(int $count, int $idLang): string
+    {
+        $iso = \Language::getIsoById($idLang) ?: 'fr';
+        return self::MILESTONE_ORDINALS[$iso][$count] ?? (string) $count;
     }
 
     // ============================================================
@@ -94,7 +136,10 @@ class OrderTriggersManager
             try {
                 $result = \Mail::Send(
                     $idLang, 'milestone_order', '',
-                    array_merge($common, ['{order_count}' => (string) $count]),
+                    array_merge($common, [
+                        '{milestone_count}' => $this->formatMilestoneOrdinal($count, $idLang),
+                        '{order_count}'     => (string) $count,
+                    ]),
                     $customer->email, $toName, null, null, null, null,
                     _PS_MODULE_DIR_ . 'neria/mails/', false, $idShop
                 );

@@ -236,6 +236,7 @@ class HealthCheckManager
             'action_banner_coverage' => $this->checkActionBannerCoverage(),
             'orphan_placeholders'    => $this->checkOrphanPlaceholders(),
             'render_canary_recent'   => $this->checkRenderCanaryRecent(),
+            'milestone_order_health' => $this->checkMilestoneOrderHealth(),
         ];
     }
 
@@ -783,6 +784,65 @@ class HealthCheckManager
         return [
             'status' => self::STATUS_OK,
             'detail' => AdminTranslator::tVars('health.template_files_ok', ['count' => count($templates)]),
+        ];
+    }
+
+    /**
+     * #65 — Palier de fidélisation milestone_order : deux angles.
+     * 1. Statique : OrderTriggersManager::MILESTONE_ORDINALS doit couvrir
+     *    CHAQUE combinaison (palier × langue) — sinon {milestone_count}
+     *    retombe silencieusement sur le nombre brut (repli volontaire côté
+     *    code pour ne jamais envoyer de variable vide, mais qui doit rester
+     *    visible ici plutôt que passer inaperçu si MILESTONES est étendu un
+     *    jour sans mettre à jour la table).
+     * 2. Récent : erreurs/avertissements réels des 7 derniers jours sur ce
+     *    déclencheur précis (échec d'envoi, exception pendant le calcul).
+     */
+    private function checkMilestoneOrderHealth(): array
+    {
+        if (!class_exists('OrderTriggersManager') || !class_exists('TranslationEngine')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.milestone_order_ok')];
+        }
+
+        $milestones = \OrderTriggersManager::MILESTONES;
+        $ordinals   = \OrderTriggersManager::MILESTONE_ORDINALS;
+        $langs      = \TranslationEngine::SUPPORTED_LANGS;
+
+        $missingCombos = [];
+        foreach ($langs as $lang) {
+            foreach ($milestones as $milestone) {
+                if (!isset($ordinals[$lang][$milestone])) {
+                    $missingCombos[] = $lang . ':' . $milestone;
+                }
+            }
+        }
+
+        if (!empty($missingCombos)) {
+            $count  = count($missingCombos);
+            $sample = implode(', ', array_slice($missingCombos, 0, 8));
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.milestone_order_ordinals_missing', ['count' => $count, 'sample' => $sample]),
+            ];
+        }
+
+        $recentIssues = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_log`
+             WHERE `template` = 'milestone_order' AND `class` = 'OrderTriggers'
+               AND `level` IN ('error', 'warning')
+               AND `date_add` >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+        );
+
+        if ($recentIssues > 0) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.milestone_order_recent_issues', ['count' => $recentIssues]),
+            ];
+        }
+
+        return [
+            'status' => self::STATUS_OK,
+            'detail' => AdminTranslator::t('health.milestone_order_ok'),
         ];
     }
 
