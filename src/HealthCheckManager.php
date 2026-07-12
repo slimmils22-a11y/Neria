@@ -23,6 +23,8 @@ class HealthCheckManager
     const CONFIG_LAST_RUN  = 'NERIA_HEALTH_LAST_RUN';
     const CONFIG_RESULTS   = 'NERIA_HEALTH_RESULTS';
     const CONFIG_HDR_LAST  = 'NERIA_DISPLAY_HEADER_LAST_RUN';
+    const CONFIG_RENDER_CANARY_LAST_RUN = 'NERIA_RENDER_CANARY_LAST_RUN';
+    const RENDER_CANARY_THROTTLE_SECONDS = 86400; // 1x/jour max
     const THROTTLE_SECONDS = 86400; // 24 h
 
     // Clés de suivi des crons individuels
@@ -233,6 +235,7 @@ class HealthCheckManager
             'sig_social_recent'      => $this->checkSignatureSocialRenderedRecently(),
             'action_banner_coverage' => $this->checkActionBannerCoverage(),
             'orphan_placeholders'    => $this->checkOrphanPlaceholders(),
+            'render_canary_recent'   => $this->checkRenderCanaryRecent(),
         ];
     }
 
@@ -3136,6 +3139,163 @@ class HealthCheckManager
         $this->logResultsToWatchdog($results);
 
         return $results;
+    }
+
+    /**
+     * "Canari" de rendu — appelé une fois par jour depuis le cron
+     * (cf. Neria::runBackgroundJobs, jamais sur chaque visiteur front,
+     * throttlé via CONFIG_RENDER_CANARY_LAST_RUN). Rend CHAQUE template en
+     * mode aperçu (données fictives de buildPreviewFakes, aucune donnée
+     * client réelle) et capture tout warning/notice/deprecated PHP déclenché
+     * pendant la compilation.
+     *
+     * Classe d'erreurs différente de orphan_placeholders/trad_key_usage :
+     * ceux-ci détectent des VARIABLES manquantes (statique, sans exécuter
+     * le code) ; le canari détecte des bugs de CODE qui se déclenchent
+     * seulement à l'exécution (accès à un index de tableau non défini,
+     * appel de méthode sur null…) et qui ne laissent souvent aucune trace
+     * visible dans le HTML compilé — donc invisibles aux deux autres
+     * contrôles, comme le warning "Undefined array key" repéré dans les
+     * logs PHP lors d'un test manuel du 2026-07-12.
+     */
+    public function runRenderCanary(): void
+    {
+        if (!class_exists('EmailRenderer') || !class_exists('NeriaTools')) {
+            return;
+        }
+
+        $renderer  = new \EmailRenderer($this->module);
+        $templates = array_keys(\NeriaTools::getTemplateLabels());
+
+        $warnFindings  = []; // template => [issue strings] (warning/notice/deprecated)
+        $fatalFindings = []; // template => exception message (rendu cassé)
+
+        static $levelLabels = [
+            E_WARNING       => 'Warning',
+            E_NOTICE        => 'Notice',
+            E_DEPRECATED    => 'Deprecated',
+            E_USER_WARNING  => 'Warning',
+            E_USER_NOTICE   => 'Notice',
+            E_USER_DEPRECATED => 'Deprecated',
+            E_STRICT        => 'Strict',
+        ];
+
+        foreach ($templates as $tpl) {
+            $issues = [];
+            $prevHandler = set_error_handler(static function ($errno, $errstr, $errfile) use (&$issues, $levelLabels) {
+                // Ignore tout ce qui ne vient pas du code Neria lui-même
+                // (dépréciations du cœur PrestaShop/vendor, hors périmètre).
+                if (stripos((string) $errfile, 'neria') === false) {
+                    return false;
+                }
+                $label    = $levelLabels[$errno] ?? ('PHP#' . $errno);
+                $issues[] = $label . ': ' . $errstr;
+                return true;
+            });
+
+            try {
+                $renderer->renderPreviewHtml($tpl, 'fr', [], false);
+            } catch (\Throwable $e) {
+                $fatalFindings[$tpl] = get_class($e) . ' — ' . $e->getMessage();
+            } finally {
+                set_error_handler($prevHandler);
+            }
+
+            if (!empty($issues)) {
+                $warnFindings[$tpl] = array_unique($issues);
+            }
+        }
+
+        if (!empty($fatalFindings)) {
+            $count  = count($fatalFindings);
+            $sample = [];
+            $i = 0;
+            foreach ($fatalFindings as $tpl => $msg) {
+                $sample[] = $tpl . ' (' . $msg . ')';
+                if (++$i >= 3) {
+                    break;
+                }
+            }
+            $this->watchdog->error(
+                \WatchdogManager::i18nMsg('watchdog.render_canary_fatal', [
+                    'count'  => $count,
+                    'sample' => implode(' | ', $sample),
+                ]),
+                '',
+                'RenderCanary'
+            );
+        }
+
+        if (!empty($warnFindings)) {
+            $count  = count($warnFindings);
+            $sample = [];
+            $i = 0;
+            foreach ($warnFindings as $tpl => $issues) {
+                $sample[] = $tpl . ' (' . $issues[0] . ')';
+                if (++$i >= 5) {
+                    break;
+                }
+            }
+            $this->watchdog->warning(
+                \WatchdogManager::i18nMsg('watchdog.render_canary_warning', [
+                    'count'  => $count,
+                    'sample' => implode(', ', $sample),
+                ]),
+                '',
+                'RenderCanary'
+            );
+        }
+
+        $this->watchdog->cronHeartbeat('render_canary', 'ok', count($templates));
+    }
+
+    /**
+     * Lance le canari de rendu si le throttle quotidien est écoulé —
+     * appelé depuis Neria::runBackgroundJobs(), jamais directement sur du
+     * trafic front sans throttle (125 rendus complets par appel : coûteux,
+     * volontairement absent des 64 contrôles automatiques légers).
+     */
+    public function runRenderCanaryIfDue(): void
+    {
+        $last = (int) \Configuration::get(self::CONFIG_RENDER_CANARY_LAST_RUN);
+        if ($last && (time() - $last) < self::RENDER_CANARY_THROTTLE_SECONDS) {
+            return;
+        }
+        \Configuration::updateValue(self::CONFIG_RENDER_CANARY_LAST_RUN, time());
+        $this->runRenderCanary();
+    }
+
+    /**
+     * #64 — Résultats récents du canari de rendu (fenêtre 48h, plus large
+     * que le throttle 24h pour tolérer un cron occasionnellement en retard
+     * sans faux positif de type "jamais exécuté").
+     */
+    private function checkRenderCanaryRecent(): array
+    {
+        $rows = $this->db->executeS(
+            'SELECT `level`, COUNT(*) AS n FROM `' . _DB_PREFIX_ . 'neria_log`
+             WHERE `class` = \'RenderCanary\'
+               AND `date_add` >= DATE_SUB(NOW(), INTERVAL 48 HOUR)
+             GROUP BY `level`'
+        );
+
+        if (empty($rows)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.render_canary_ok')];
+        }
+
+        $hasError = false;
+        $total    = 0;
+        foreach ((array) $rows as $row) {
+            $total += (int) $row['n'];
+            if ($row['level'] === 'error') {
+                $hasError = true;
+            }
+        }
+
+        return [
+            'status' => $hasError ? self::STATUS_ERROR : self::STATUS_WARNING,
+            'detail' => AdminTranslator::tVars('health.render_canary_recent_warning', ['count' => $total]),
+        ];
     }
 
     /**

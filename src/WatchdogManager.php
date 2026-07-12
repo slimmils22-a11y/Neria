@@ -41,6 +41,7 @@ class WatchdogManager
         'upsell_conversions' => ['label_key' => 'health.cron_label_upsell_conversions', 'threshold_hours' => 25],
         'seasonal_campaigns' => ['label_key' => 'health.cron_label_seasonal_campaigns', 'threshold_hours' => 25],
         'loyalty_recaps'     => ['label_key' => 'health.cron_label_loyalty_recaps',     'threshold_hours' => 25, 'enabled_cfg' => 'NERIA_LOYALTY_ENABLED'],
+        'render_canary'      => ['label_key' => 'health.cron_label_render_canary',      'threshold_hours' => 30],
     ];
 
     // ── Alertes email ──────────────────────────────────────────────

@@ -1349,6 +1349,17 @@ class Neria extends Module
         $health->runAutoChecksIfDue();
         $ran['health_checks'] = true;
 
+        // ── Canari de rendu (1x/jour, throttle interne) ────────────────
+        // Rend chaque template en mode aperçu et capture les warnings PHP
+        // déclenchés pendant la compilation — volontairement séparé des 64
+        // contrôles automatiques légers ci-dessus (125 rendus complets par
+        // exécution, cf. HealthCheckManager::runRenderCanary).
+        try {
+            $health->runRenderCanaryIfDue();
+        } catch (\Throwable $e) {
+            // best-effort — ne bloque jamais le front
+        }
+
         // ── Queue d'envoi (toutes les 5 min) — emails programmés à l'heure
         // préférée du client (fenêtre d'achat), relances comportementales…
         if (class_exists('QueueManager')) {
