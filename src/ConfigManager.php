@@ -31,6 +31,21 @@ class ConfigManager
     // CONSTANTES — Clés de configuration
     // ============================================================
 
+    // ── Variables personnalisées (mono-langue, saisies par le marchand) ──
+    // Source unique pour saveCustomVariables() ET
+    // HealthCheckManager::checkCustomVarsCompleteness() — évite que les
+    // deux listes divergent au fil du temps.
+    const CUSTOM_VARIABLE_KEYS = [
+        'maison_name',
+        'slogan',
+        'signature_closing',
+        'founder_name',
+        'founder_title',
+        'return_address',
+        'return_deadline_days',
+        'return_processing_days',
+    ];
+
     // ── Design global ────────────────────────────────────────────
     const KEY_COLOR_BACKGROUND  = 'NERIA_COLOR_BACKGROUND';
     const KEY_COLOR_CONTAINER   = 'NERIA_COLOR_CONTAINER';
@@ -1107,19 +1122,9 @@ class ConfigManager
      */
     public function saveCustomVariables(array $data): bool
     {
-        $success          = true;
-        $allowedVariables = [
-            'maison_name',
-            'slogan',
-            'signature_closing',
-            'founder_name',
-            'founder_title',
-            'return_address',
-            'return_deadline_days',
-            'return_processing_days',
-        ];
+        $success = true;
 
-        foreach ($allowedVariables as $varKey) {
+        foreach (self::CUSTOM_VARIABLE_KEYS as $varKey) {
             if (array_key_exists($varKey, $data)) {
                 $success = $success && $this->setCustomVariable(
                     $varKey,

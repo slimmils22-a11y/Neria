@@ -237,6 +237,7 @@ class HealthCheckManager
             'orphan_placeholders'    => $this->checkOrphanPlaceholders(),
             'render_canary_recent'   => $this->checkRenderCanaryRecent(),
             'milestone_order_health' => $this->checkMilestoneOrderHealth(),
+            'custom_vars_completeness' => $this->checkCustomVarsCompleteness(),
         ];
     }
 
@@ -843,6 +844,104 @@ class HealthCheckManager
         return [
             'status' => self::STATUS_OK,
             'detail' => AdminTranslator::t('health.milestone_order_ok'),
+        ];
+    }
+
+    /**
+     * #67 — Variables personnalisées (marchand) utilisées par au moins un
+     * template mais jamais renseignées en BO — {maison_name}, {founder_name},
+     * {return_deadline_days}, etc. Un template qui référence une de ces
+     * variables sans qu'elle soit remplie affiche un texte tronqué/vide
+     * (ex. "Sous  jours" sans le nombre) — cf. l'audit du 2026-07-12 qui a
+     * confirmé injectCustomVars() correctement câblée, mais aucun contrôle
+     * ne vérifiait jusqu'ici que le marchand ait bien REMPLI ces champs.
+     *
+     * Ne signale que les variables réellement UTILISÉES par au moins un
+     * template (translations.json) — jamais celles inutilisées, pour ne
+     * pas réclamer une donnée dont aucun email n'a besoin.
+     */
+    private function checkCustomVarsCompleteness(): array
+    {
+        if (!class_exists('ConfigManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.custom_vars_ok')];
+        }
+
+        $jsonPath = rtrim($this->module->getLocalPath(), '/') . '/data/translations.json';
+        if (!is_file($jsonPath)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.custom_vars_ok')];
+        }
+
+        $dict = json_decode((string) file_get_contents($jsonPath), true);
+        if (!is_array($dict)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.custom_vars_ok')];
+        }
+
+        // Variables réellement référencées par au moins un template, toutes
+        // langues confondues (une valeur suffit à prouver l'usage).
+        $usedKeys = [];
+        foreach ($dict as $block) {
+            if (!is_array($block)) {
+                continue;
+            }
+            foreach ($block as $vals) {
+                if (!is_array($vals)) {
+                    continue;
+                }
+                foreach ($vals as $val) {
+                    if (!is_string($val)) {
+                        continue;
+                    }
+                    foreach (\ConfigManager::CUSTOM_VARIABLE_KEYS as $key) {
+                        if (isset($usedKeys[$key])) {
+                            continue;
+                        }
+                        if (strpos($val, '{' . $key . '}') !== false
+                            || strpos($val, '{' . $key . '_html}') !== false
+                            || strpos($val, '{' . $key . '_txt}') !== false
+                        ) {
+                            $usedKeys[$key] = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (empty($usedKeys)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.custom_vars_ok')];
+        }
+
+        // Valeurs actuellement renseignées par le marchand
+        $filled = [];
+        $rows = $this->db->executeS(
+            'SELECT `variable_key`, `variable_value` FROM `' . _DB_PREFIX_ . 'neria_custom_variable`
+             WHERE `id_shop` = ' . $this->idShop
+        );
+        foreach ((array) $rows as $row) {
+            if (trim((string) $row['variable_value']) !== '') {
+                $filled[$row['variable_key']] = true;
+            }
+        }
+
+        $missing = [];
+        foreach (array_keys($usedKeys) as $key) {
+            if (!isset($filled[$key])) {
+                $missing[] = $key;
+            }
+        }
+
+        if (!empty($missing)) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.custom_vars_missing', [
+                    'count' => count($missing),
+                    'list'  => implode(', ', $missing),
+                ]),
+            ];
+        }
+
+        return [
+            'status' => self::STATUS_OK,
+            'detail' => AdminTranslator::tVars('health.custom_vars_ok_count', ['count' => count($usedKeys)]),
         ];
     }
 
