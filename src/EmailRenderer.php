@@ -366,11 +366,6 @@ class EmailRenderer
             }
         }
 
-        // Lien du bon de retour (page Retours du compte client)
-        if ($template === 'return_slip') {
-            $this->injectReturnSlipUrl($params['templateVars'], (int) ($params['idLang'] ?? 0));
-        }
-
         // newsletter_voucher : ps_emailsubscription passe le CODE du bon dans
         // {discount}. On remet le code dans {voucher_code} (ligne « Code : … »)
         // et on calcule le vrai taux/montant du bon pour {discount} (intro).
@@ -1155,33 +1150,6 @@ class EmailRenderer
 
         $templateVars['{custom_message_txt}'] =
             "\n--------------------------------\n" . $raw . "\n";
-    }
-
-    /**
-     * Injecte le lien du bon de retour ({return_slip_url}) pointant vers la
-     * page « Retours marchandise » du compte client (order-follow).
-     * Fallback : page historique des commandes.
-     *
-     * @param array $templateVars Variables Smarty (passé par référence)
-     */
-    private function injectReturnSlipUrl(array &$templateVars, int $idLang = 0): void
-    {
-        if (!empty($templateVars['{return_slip_url}'])) {
-            return;
-        }
-
-        // id_lang explicite — même correctif que {history_url} plus haut :
-        // sans lui, ce lien restait dans la langue du contexte admin/cron
-        // ("/fr/suivi-commande") au lieu de la langue réelle de l'email.
-        $urlIdLang = $idLang > 0 ? $idLang : null;
-
-        try {
-            $url = $this->context->link->getPageLink('order-follow', true, $urlIdLang);
-        } catch (\Throwable $e) {
-            $url = $this->context->link->getPageLink('history', true, $urlIdLang);
-        }
-
-        $templateVars['{return_slip_url}'] = $url;
     }
 
     /**
@@ -2195,7 +2163,6 @@ class EmailRenderer
             '{discounts}'          => '',
             '{items}'              => '<p>Réf. NER-001 — Montre Élégance Neria × 1 — 89,00 €</p>',
             '{return_address_html}' => 'Neria Retours<br>15 rue du Commerce<br>75015 Paris<br>France',
-            '{return_slip_url}'    => '#',
             // ── Géré ailleurs / vide ───────────────────────────────
             '{custom_message}'     => '',
             '{validity_days}'      => (string) $this->config->getVoucherValidity(),
@@ -2261,7 +2228,6 @@ class EmailRenderer
             // ── Retours ────────────────────────────────────────────
             '{return_id}'          => '1',
             '{id_order_return}'    => '42',
-            '{return_slip_reason}' => 'Article ne correspondant pas à mes attentes',
             '{state_order_return}' => 'Retour reçu',
             '{return_state_name}'  => 'Retour reçu',
             '{order_return_state}' => 'Retour reçu',

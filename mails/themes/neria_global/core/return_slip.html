@@ -3,18 +3,19 @@
 {block name='neria_content'}
 
 <!-- TITRE PRINCIPAL -->
-<h1 class="neria-title-main">{neria_trad key='greeting_main'}</h1>
-<p class="neria-title-sub">{neria_trad key='greeting_subtitle'}</p>
+<h1 class="neria-title-main">{neria_trad key='return_slip_admin_title'}</h1>
+<p class="neria-title-sub">{neria_trad key='return_slip_admin_subtitle'}</p>
 
-<!-- SALUTATION -->
-<p class="neria-text">{neria_trad key='dear_customer'}</p>
-<p class="neria-text">{neria_trad key='return_slip_intro'}</p>
+<!-- INTRO -->
+<p class="neria-text">{neria_trad key='return_slip_admin_intro'}</p>
 
-<!-- RÉFÉRENCES -->
+<!-- INFOS CLIENT -->
+<div class="neria-section-title">{neria_trad key='return_slip_client_title'}</div>
 <div class="neria-info-box">
+  <p><strong>{neria_trad key='return_slip_name_label'} :</strong> {firstname} {lastname}</p>
+  <p><strong>{neria_trad key='return_slip_email_label'} :</strong> <a href="mailto:{email}" style="color:{$neria_color_accent};font-weight:600;">{email}</a></p>
   <p><strong>{neria_trad key='return_slip_order_label'} :</strong> {order_name}</p>
-  <p><strong>{neria_trad key='return_slip_rma_label'} :</strong> {id_order_return}</p>
-  <p><strong>{neria_trad key='return_slip_deadline_label'} :</strong> {neria_trad key='return_slip_deadline'}</p>
+  <p><strong>{neria_trad key='return_slip_date_label'} :</strong> {date}</p>
 </div>
 
 <!-- ARTICLES -->
@@ -22,46 +23,33 @@
 <table class="neria-products-table" cellpadding="0" cellspacing="0" width="100%">
   <thead>
     <tr>
-      <th width="12%" style="white-space:nowrap;">{neria_trad key='col_reference'}</th>
-      <th width="45%">{neria_trad key='col_product'}</th>
-      <th width="15%" style="text-align:right; white-space:nowrap;">{neria_trad key='col_unit_price'}</th>
-      <th width="10%" style="text-align:center; white-space:nowrap;">{neria_trad key='col_quantity'}</th>
-      <th width="18%" style="text-align:right; white-space:nowrap;">{neria_trad key='col_total_price'}</th>
+      <th width="20%" style="white-space:nowrap;">{neria_trad key='col_reference'}</th>
+      <th width="60%">{neria_trad key='col_product'}</th>
+      <th width="20%" style="text-align:center; white-space:nowrap;">{neria_trad key='col_quantity'}</th>
     </tr>
   </thead>
   <tbody>
-    {products}
+    {items}
   </tbody>
 </table>
 
-<!-- MOTIF -->
-<p class="neria-text"><strong>{neria_trad key='return_slip_reason_label'} :</strong> {return_slip_reason}</p>
-
-<!-- INSTRUCTIONS D'ENVOI -->
-<div class="neria-section-title">{neria_trad key='return_slip_instructions_title'}</div>
-<div class="neria-info-box">
-  <p><strong>{neria_trad key='return_slip_address_label'} :</strong></p>
-  <p>{return_address_html}</p>
-  <p style="margin-top:14px;">{neria_trad key='return_slip_rma_note'} <strong>{id_order_return}</strong></p>
-  <p>{neria_trad key='return_slip_carrier_info'}</p>
-  <p>{neria_trad key='return_slip_shipping_cost'}</p>
+<!-- MESSAGE CLIENT -->
+<div class="neria-section-title">{neria_trad key='return_slip_message_title'}</div>
+<div class="neria-info-box" style="background-color:#f9f6f0;">
+  <p style="white-space:pre-wrap;">{message}</p>
 </div>
 
-<!-- DÉLAIS & REMBOURSEMENT -->
-<p class="neria-text">{neria_trad key='return_slip_processing_delay'}</p>
-<p class="neria-text">{neria_trad key='return_slip_refund_method'}</p>
+<!-- ADRESSE DE LIVRAISON -->
+<div class="neria-section-title">{neria_trad key='return_slip_delivery_title'}</div>
+<div class="neria-info-box">
+  <p>{delivery_block_html}</p>
+</div>
 
-<!-- BOUTON TÉLÉCHARGEMENT -->
-<p style="text-align:center; margin:28px 0;">
-  <a href="{return_slip_url}" class="neria-btn">{neria_trad key='return_slip_download_btn'}</a>
-</p>
-
-<!-- CONTACT -->
-<p class="neria-text-note">{neria_trad key='return_slip_contact_info'}</p>
+<!-- NOTE -->
+<p class="neria-text-note" style="margin-top:20px;">{neria_trad key='return_slip_admin_note'}</p>
 
 <!-- SIGNATURE -->
 <div class="neria-signature">
-  {neria_trad key='signature_thanks'}<br />
   <strong>{shop_name}</strong>
 </div>
 

@@ -1,41 +1,30 @@
 {shop_name}
 
-{neria_trad key='dear_customer'}
+{neria_trad key='return_slip_admin_title'}
+{neria_trad key='return_slip_admin_subtitle'}
 
-{neria_trad key='return_slip_intro'}
+{neria_trad key='return_slip_admin_intro'}
 
+{neria_trad key='return_slip_client_title'}
+--------------------------------
+{neria_trad key='return_slip_name_label'} : {firstname} {lastname}
+{neria_trad key='return_slip_email_label'} : {email}
 {neria_trad key='return_slip_order_label'} : {order_name}
-
-{neria_trad key='return_slip_rma_label'} : {id_order_return}
-
-{neria_trad key='return_slip_deadline_label'} : {neria_trad key='return_slip_deadline'}
+{neria_trad key='return_slip_date_label'} : {date}
 
 {neria_trad key='return_slip_articles_title'}
 --------------------------------
-{products_txt}
+{items}
 
-{neria_trad key='return_slip_reason_label'} : {return_slip_reason}
-
-{neria_trad key='return_slip_instructions_title'}
+{neria_trad key='return_slip_message_title'}
 --------------------------------
-{neria_trad key='return_slip_address_label'} :
-{return_address_txt}
+{message}
 
-{neria_trad key='return_slip_rma_note'} {id_order_return}
+{neria_trad key='return_slip_delivery_title'}
+--------------------------------
+{delivery_block_txt}
 
-{neria_trad key='return_slip_carrier_info'}
-
-{neria_trad key='return_slip_shipping_cost'}
-
-{neria_trad key='return_slip_processing_delay'}
-
-{neria_trad key='return_slip_refund_method'}
-
-{neria_trad key='return_slip_download_btn'} : {return_slip_url}
-
-{neria_trad key='return_slip_contact_info'}
-
-{neria_trad key='signature_thanks'}
+{neria_trad key='return_slip_admin_note'}
 
 {shop_name}
 {shop_url}
