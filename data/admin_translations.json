@@ -3382,7 +3382,7 @@
     },
     "cert.body_hint": {
         "fr": "Ce texte apparaîtra au centre du certificat PDF.",
-        "en": "This text will appear in the centre of the PDF certificate.",
+        "en": "This text will appear in the center of the PDF certificate.",
         "de": "Dieser Text wird in der Mitte des PDF-Zertifikats angezeigt.",
         "it": "Questo testo apparirà al centro del certificato PDF.",
         "es": "Este texto aparecerá en el centro del certificado PDF.",
@@ -8295,9 +8295,9 @@
         "gb": "Email preference centre"
     },
     "configure.report_desc": {
-        "fr": "Envoyez automatiquement un rapport de performance email au debut de chaque mois : top/flop templates, taux d'ouverture, CA attribue et recommandations.",
+        "fr": "Envoyez automatiquement un rapport de performance email au début de chaque mois : top/flop templates, taux d'ouverture, CA attribué et recommandations.",
         "en": "Automatically send an email performance report at the start of each month: top/flop templates, open rates, attributed revenue and recommendations.",
-        "de": "Senden Sie automatisch einen E-Mail-Leistungsbericht zu Monatsbeginn: Top/Flop-Templates, Oeffnungsraten, Umsatz und Empfehlungen.",
+        "de": "Senden Sie automatisch einen E-Mail-Leistungsbericht zu Monatsbeginn: Top/Flop-Templates, Öffnungsraten, Umsatz und Empfehlungen.",
         "it": "Invia automaticamente un report di performance email a inizio mese: template top/flop, tassi di apertura, ricavi attribuiti e raccomandazioni.",
         "es": "Envia automaticamente un informe de rendimiento email a principios de mes: top/flop, tasas de apertura, ingresos atribuidos y recomendaciones.",
         "pt": "Envie automaticamente um relatório de desempenho de email no início de cada mês: top/flop de templates, taxas de abertura, receita atribuída e recomendações.",
@@ -8358,7 +8358,7 @@
         "gb": "Last sent:"
     },
     "configure.report_recipients_hint": {
-        "fr": "Par defaut : email principal de la boutique. Plusieurs adresses separees par des virgules.",
+        "fr": "Par défaut : email principal de la boutique. Plusieurs adresses séparées par des virgules.",
         "en": "Default: shop main email. Multiple addresses separated by commas.",
         "de": "Standard: Haupt-E-Mail des Shops. Mehrere Adressen mit Komma trennen.",
         "it": "Predefinito: email principale del negozio. Piu indirizzi separati da virgole.",
@@ -8381,7 +8381,7 @@
     "configure.report_recipients_label": {
         "fr": "Destinataire(s) du rapport",
         "en": "Report recipient(s)",
-        "de": "Berichtsempfanger",
+        "de": "Berichtsempfänger",
         "it": "Destinatario/i del report",
         "es": "Destinatario(s) del informe",
         "pt": "Destinatário(s) do relatório",
@@ -8421,7 +8421,7 @@
         "gb": "email@shop.com, other@email.com"
     },
     "configure.report_send_now": {
-        "fr": "Envoyer le rapport maintenant (mois precedent)",
+        "fr": "Envoyer le rapport maintenant (mois précédent)",
         "en": "Send report now (previous month)",
         "de": "Bericht jetzt senden (Vormonat)",
         "it": "Invia il report ora (mese precedente)",
@@ -8586,7 +8586,7 @@
         "no": "Et lokalisert avsendernavn forbedrer åpningsraten — spamfiltre favoriserer e-poster hvis navn mottakeren kjenner igjen.",
         "da": "Et lokaliseret afsendernavn forbedrer åbningsraten — spamfiltre favoriserer e-mails, hvis navn modtageren genkender.",
         "nl": "Een gelokaliseerde afzendernaam verbetert het openingspercentage — spamfilters geven de voorkeur aan e-mails waarvan de naam door de ontvanger wordt herkend.",
-        "gb": "A localized sender name improves open rates — spam filters favor emails whose name the recipient recognizes."
+        "gb": "A localised sender name improves open rates — spam filters favour emails whose name the recipient recognises."
     },
     "configure.senders_card1_title": {
         "fr": "Délivrabilité",
@@ -8885,7 +8885,7 @@
     "configure.senders_why_body": {
         "fr": "Un client japonais qui reçoit un email de <strong>contact@votreboutique.fr</strong> aura moins confiance qu'un email venant de <strong>japan@votreboutique.jp</strong>. Le multi-expéditeur permet d'adapter l'identité de l'expéditeur selon la langue du destinataire, sans toucher à votre configuration email principale.",
         "en": "A Japanese customer receiving an email from <strong>contact@yourshop.fr</strong> will trust it less than one from <strong>japan@yourshop.jp</strong>. Multi-sender lets you adapt the sender identity to the recipient's language, without touching your main email configuration.",
-        "de": "Ein japanischer Kunde, der eine E-Mail von <strong>contact@ihrshop.fr</strong> erhält, vertraut ihr weniger als einer E-Mail von <strong>japan@ihrshop.jp</strong>. Mit Mehreren Absendern passen Sie die Absenderidentität an die Sprache des Empfängers an, ohne Ihre Haupt-E-Mail-Konfiguration zu ändern.",
+        "de": "Ein japanischer Kunde, der eine E-Mail von <strong>contact@ihrshop.fr</strong> erhält, vertraut ihr weniger als einer E-Mail von <strong>japan@ihrshop.jp</strong>. Mit mehreren Absendern passen Sie die Absenderidentität an die Sprache des Empfängers an, ohne Ihre Haupt-E-Mail-Konfiguration zu ändern.",
         "it": "Un cliente giapponese che riceve un'email da <strong>contact@iltuonegozio.fr</strong> si fiderà meno rispetto a un'email proveniente da <strong>japan@iltuonegozio.jp</strong>. Il multi-mittente permette di adattare l'identità del mittente in base alla lingua del destinatario, senza toccare la configurazione email principale.",
         "es": "Un cliente japonés que recibe un correo de <strong>contact@sutienda.fr</strong> confiará menos que si proviene de <strong>japan@sutienda.jp</strong>. El multi-remitente permite adaptar la identidad del remitente según el idioma del destinatario, sin tocar su configuración de correo principal.",
         "pt": "Um cliente japonês que recebe um email de <strong>contact@asualoja.fr</strong> confiará menos do que um email vindo de <strong>japan@asualoja.jp</strong>. O multi-remetente permite adaptar a identidade do remetente consoante o idioma do destinatário, sem tocar na sua configuração de email principal.",
@@ -17409,9 +17409,9 @@
         "gb": "translations.json not found."
     },
     "health.trad_keys_lang_gaps": {
-        "fr": "{count} clé(s) avec langues manquantes dans translations.json. ",
-        "en": "{count} key(s) with missing languages in translations.json. ",
-        "de": "{count} Schlüssel mit fehlenden Sprachen in translations.json. ",
+        "fr": "{count} clé(s) avec langues manquantes dans translations.json.",
+        "en": "{count} key(s) with missing languages in translations.json.",
+        "de": "{count} Schlüssel mit fehlenden Sprachen in translations.json.",
         "it": "{count} chiave/i con lingue mancanti in translations.json. ",
         "es": "{count} clave(s) con idiomas faltantes en translations.json. ",
         "pt": "{count} chave(s) com idiomas em falta em translations.json.",
@@ -17427,7 +17427,7 @@
         "no": "{count} nøkkel/nøkler med manglende språk i translations.json.",
         "da": "{count} nøgle(r) med manglende sprog i translations.json.",
         "nl": "{count} sleutel(s) met ontbrekende talen in translations.json. ",
-        "gb": "{count} key(s) with missing languages in translations.json. "
+        "gb": "{count} key(s) with missing languages in translations.json."
     },
     "health.trad_keys_ok": {
         "fr": "{count} clés de traduction présentes et complètes.",
@@ -29709,7 +29709,7 @@
         "gb": "Men only (Mr.)"
     },
     "seasonal.gender_women": {
-        "fr": "Femmes uniquement (Mme.)",
+        "fr": "Femmes uniquement (Mme)",
         "en": "Women only (Mrs.)",
         "de": "Nur Frauen (Frau)",
         "it": "Solo donne (Sig.ra)",
@@ -30025,8 +30025,8 @@
     },
     "seasonal.name_placeholder": {
         "fr": "Black Friday, Noël, Soldes d'été…",
-        "en": "Black Friday, Noël, Soldes d'été…",
-        "de": "Black Friday, Noël, Soldes d'été…",
+        "en": "Black Friday, Christmas, Summer Sale…",
+        "de": "Black Friday, Weihnachten, Sommerschlussverkauf…",
         "it": "Black Friday, Noël, Soldes d'été…",
         "es": "Black Friday, Noël, Soldes d'été…",
         "pt": "Black Friday, Noël, Soldes d'été…",
@@ -30042,7 +30042,7 @@
         "no": "Black Friday, Jul, Sommersalg…",
         "da": "Black Friday, Noël, Soldes d'été…",
         "nl": "Black Friday, Noël, Soldes d'été…",
-        "gb": "Black Friday, Noël, Soldes d'été…"
+        "gb": "Black Friday, Christmas, Summer Sale…"
     },
     "seasonal.save_edit_btn": {
         "fr": "Enregistrer les modifications",
@@ -37123,7 +37123,7 @@
     },
     "stats.lifespan_howto_tip": {
         "fr": "<strong>Conseil :</strong> anticipez de 7 à 14 jours pour laisser le temps de la livraison. Si un client a déjà racheté le produit entre-temps, l'email est annulé automatiquement.",
-        "en": "<strong>Tip:</strong> allow 7 to 14 days to leave time for delivery. If a customer has already repurchased the product in the meantime, the email is automatically cancelled.",
+        "en": "<strong>Tip:</strong> allow 7 to 14 days to leave time for delivery. If a customer has already repurchased the product in the meantime, the email is automatically canceled.",
         "de": "<strong>Tipp:</strong> planen Sie 7 bis 14 Tage im Voraus, um Zeit für die Lieferung zu lassen. Hat der Kunde das Produkt in der Zwischenzeit bereits nachgekauft, wird die E-Mail automatisch storniert.",
         "it": "<strong>Consiglio:</strong> anticipa di 7-14 giorni per lasciare il tempo per la consegna. Se un cliente ha già riacquistato il prodotto nel frattempo, l'email viene annullata automaticamente.",
         "es": "<strong>Consejo:</strong> adelántese de 7 a 14 días para dejar tiempo para la entrega. Si un cliente ya ha vuelto a comprar el producto mientras tanto, el email se cancela automáticamente.",
@@ -39706,7 +39706,7 @@
     },
     "stats.reconciliation_howto_body": {
         "fr": "Dès qu'un remboursement est enregistré dans PrestaShop, Neria planifie une séquence de 3 emails discrets : <strong>J+1</strong> (confirmation personnelle), <strong>J+3</strong> (attention exclusive), <strong>J+7</strong> (invitation douce au retour). La séquence est automatiquement annulée si le client passe une nouvelle commande entre-temps.",
-        "en": "As soon as a refund is recorded in PrestaShop, Neria schedules a sequence of 3 discreet emails: <strong>day 1</strong> (personal confirmation), <strong>day 3</strong> (exclusive attention), <strong>day 7</strong> (gentle invitation to return). The sequence is automatically cancelled if the customer places a new order in the meantime.",
+        "en": "As soon as a refund is recorded in PrestaShop, Neria schedules a sequence of 3 discreet emails: <strong>day 1</strong> (personal confirmation), <strong>day 3</strong> (exclusive attention), <strong>day 7</strong> (gentle invitation to return). The sequence is automatically canceled if the customer places a new order in the meantime.",
         "de": "Sobald eine Rückerstattung in PrestaShop erfasst wird, plant Neria eine Sequenz von 3 dezenten E-Mails: <strong>Tag 1</strong> (persönliche Bestätigung), <strong>Tag 3</strong> (exklusive Aufmerksamkeit), <strong>Tag 7</strong> (sanfte Einladung zur Rückkehr). Die Sequenz wird automatisch abgebrochen, wenn der Kunde in der Zwischenzeit eine neue Bestellung aufgibt.",
         "it": "Non appena un rimborso viene registrato in PrestaShop, Neria pianifica una sequenza di 3 email discrete: <strong>Giorno 1</strong> (conferma personale), <strong>Giorno 3</strong> (attenzione esclusiva), <strong>Giorno 7</strong> (invito discreto a tornare). La sequenza viene annullata automaticamente se il cliente effettua un nuovo ordine nel frattempo.",
         "es": "En cuanto se registra un reembolso en PrestaShop, Neria programa una secuencia de 3 emails discretos: <strong>día 1</strong> (confirmación personal), <strong>día 3</strong> (atención exclusiva), <strong>día 7</strong> (invitación suave a volver). La secuencia se cancela automáticamente si el cliente hace un nuevo pedido mientras tanto.",
@@ -39748,7 +39748,7 @@
     },
     "stats.reconciliation_kpi_cancelled": {
         "fr": "ANNULÉES (rachat)",
-        "en": "CANCELLED (repurchase)",
+        "en": "CANCELED (repurchase)",
         "de": "STORNIERT (Nachkauf)",
         "it": "ANNULLATE (riacquisto)",
         "es": "CANCELADAS (recompra)",
@@ -40168,7 +40168,7 @@
     },
     "stats.revenue_howto_window": {
         "fr": "<strong>Fenêtre d'analyse :</strong> les 90 derniers jours. Un même client peut générer plusieurs conversions sur des templates différents. Les commandes annulées ou remboursées sont exclues du calcul.",
-        "en": "<strong>Analysis window:</strong> the last 90 days. A single customer can generate several conversions across different templates. Cancelled or refunded orders are excluded from the calculation.",
+        "en": "<strong>Analysis window:</strong> the last 90 days. A single customer can generate several conversions across different templates. Canceled or refunded orders are excluded from the calculation.",
         "de": "<strong>Analysezeitraum:</strong> die letzten 90 Tage. Ein und derselbe Kunde kann mehrere Conversions über verschiedene Vorlagen hinweg erzeugen. Stornierte oder erstattete Bestellungen werden von der Berechnung ausgeschlossen.",
         "it": "<strong>Finestra di analisi:</strong> gli ultimi 90 giorni. Uno stesso cliente può generare più conversioni su modelli diversi. Gli ordini annullati o rimborsati sono esclusi dal calcolo.",
         "es": "<strong>Ventana de análisis:</strong> los últimos 90 días. Un mismo cliente puede generar varias conversiones en plantillas diferentes. Los pedidos cancelados o reembolsados quedan excluidos del cálculo.",
@@ -42309,7 +42309,7 @@
         "gb": "3. Bestseller"
     },
     "stats.upsell_criteria3_desc": {
-        "fr": "de la même catégorie.",
+        "fr": "de la même catégorie",
         "en": "from the same category.",
         "de": "aus derselben Kategorie.",
         "it": "della stessa categoria.",
@@ -43738,7 +43738,7 @@
     },
     "translations.howto_title": {
         "fr": "Comment personnaliser un email ?",
-        "en": "How to customise an email?",
+        "en": "How to customize an email?",
         "de": "Wie passe ich eine E-Mail an?",
         "it": "Come personalizzare un'email?",
         "es": "¿Cómo personalizar un email?",
@@ -43843,7 +43843,7 @@
     },
     "translations.page_title": {
         "fr": "Personnalisation des textes",
-        "en": "Text customisation",
+        "en": "Text customization",
         "de": "Textanpassung",
         "it": "Personalizzazione dei testi",
         "es": "Personalización de textos",
@@ -47580,9 +47580,9 @@
         "gb": "Email rendered successfully — variant {variant}"
     },
     "watchdog.render_unexpected": {
-        "fr": "Erreur inattendue lors du rendu de [email template] — {cause}",
-        "en": "Unexpected error while rendering [email template] — {cause}",
-        "de": "Unerwarteter Fehler beim Rendern von [email template] — {cause}",
+        "fr": "Erreur inattendue lors du rendu de [{template}] — {cause}",
+        "en": "Unexpected error while rendering [{template}] — {cause}",
+        "de": "Unerwarteter Fehler beim Rendern von [{template}] — {cause}",
         "it": "Errore inatteso durante il rendering di [email template] — {cause}",
         "es": "Error inesperado al renderizar [email template] — {cause}",
         "pt": "Erro inesperado ao renderizar [email template] — {cause}",
@@ -47598,7 +47598,7 @@
         "no": "Uventet feil ved rendering av [email template] — {cause}",
         "da": "Uventet fejl ved rendering af [email template] — {cause}",
         "nl": "Onverwachte fout bij het renderen van [email template] — {cause}",
-        "gb": "Unexpected error while rendering [email template] — {cause}"
+        "gb": "Unexpected error while rendering [{template}] — {cause}"
     },
     "watchdog.report_failed_mail": {
         "fr": "Échec d'envoi du rapport mensuel {month} vers « {email} ». Vérifier que le serveur mail de l'hébergement fonctionne.",
@@ -48966,7 +48966,7 @@
         "gb": "Endpoint configuration"
     },
     "webhook.desc": {
-        "fr": "Neria notifie automatiquement vos outils externes (CRM, ERP, Zapier, Make…) à chaque événement important — sans que ces outils n'aient à interroger Neria.",
+        "fr": "Neria notifie automatiquement vos outils externes (CRM, ERP, Zapier, Make…) à chaque événement important — sans que ces outils aient à interroger Neria.",
         "en": "Neria automatically notifies your external tools (CRM, ERP, Zapier, Make…) on every key event — without those tools needing to poll Neria.",
         "de": "Neria benachrichtigt automatisch Ihre externen Tools (CRM, ERP, Zapier, Make…) bei jedem wichtigen Ereignis — ohne dass diese Tools Neria abfragen müssen.",
         "it": "Neria notifica automaticamente i Suoi strumenti esterni (CRM, ERP, Zapier, Make…) ad ogni evento importante — senza che questi strumenti debbano interrogare Neria.",
@@ -49241,7 +49241,7 @@
     "webhook.howto_step3": {
         "fr": "Choisissez les événements à écouter, enregistrez, puis cliquez sur « Tester » pour valider la connexion.",
         "en": "Select the events to listen to, save, then click \"Test\" to validate the connection.",
-        "de": "Wählen Sie die zu hörenden Ereignisse aus, speichern Sie und klicken Sie auf «Testen», um die Verbindung zu validieren.",
+        "de": "Wählen Sie die gewünschten Ereignisse aus, speichern Sie und klicken Sie auf „Testen“, um die Verbindung zu validieren.",
         "it": "Selezioni gli eventi da ascoltare, salvi, poi clicchi su \"Testa\" per validare la connessione.",
         "es": "Seleccione los eventos a escuchar, guarde y luego haga clic en «Probar» para validar la conexión.",
         "pt": "Selecione os eventos a ouvir, guarde, depois clique em «Testar» para validar a ligação.",
@@ -50919,7 +50919,7 @@
         "gb": "Postmaster Tools [{domain}]: MEDIUM reputation — monitoring recommended."
     },
     "watchdog.postmaster_spam_critical": {
-        "fr": "Postmaster Tools [{domain}] : taux de spam {rate}% (seuil critique >0,3%) — action immédiate requise.",
+        "fr": "Postmaster Tools [{domain}] : taux de spam {rate} % (seuil critique >0,3 %) — action immédiate requise.",
         "en": "Postmaster Tools [{domain}]: spam rate {rate}% (critical threshold >0.3%) — immediate action required.",
         "de": "Postmaster Tools [{domain}]: Spam-Rate {rate}% (kritischer Schwellenwert >0,3%) — sofortiges Handeln erforderlich.",
         "it": "Postmaster Tools [{domain}]: tasso di spam {rate}% (soglia critica >0,3%) — azione immediata richiesta.",
@@ -50940,7 +50940,7 @@
         "gb": "Postmaster Tools [{domain}]: spam rate {rate}% (critical threshold >0.3%) — immediate action required."
     },
     "watchdog.postmaster_spam_attention": {
-        "fr": "Postmaster Tools [{domain}] : taux de spam {rate}% (zone d'attention >0,1%).",
+        "fr": "Postmaster Tools [{domain}] : taux de spam {rate} % (zone d'attention >0,1 %).",
         "en": "Postmaster Tools [{domain}]: spam rate {rate}% (attention zone >0.1%).",
         "de": "Postmaster Tools [{domain}]: Spam-Rate {rate}% (Beobachtungsbereich >0,1%).",
         "it": "Postmaster Tools [{domain}]: tasso di spam {rate}% (zona di attenzione >0,1%).",
