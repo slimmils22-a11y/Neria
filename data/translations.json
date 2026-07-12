@@ -2501,7 +2501,8 @@
             "order_reference_label": "Référence commande",
             "contact_attachment_label": "Fichier joint",
             "contact_message_title": "Votre message",
-            "contact_btn_reply": "Répondre par email"
+            "contact_btn_reply": "Répondre par email",
+            "dear_customer": "Madame, Monsieur,"
         },
         "en": {
             "greeting_main": "Your voice has been heard",
@@ -2512,7 +2513,8 @@
             "order_reference_label": "Order reference",
             "contact_attachment_label": "Attached file",
             "contact_message_title": "Your message",
-            "contact_btn_reply": "Reply by email"
+            "contact_btn_reply": "Reply by email",
+            "dear_customer": "Dear Valued Client,"
         },
         "de": {
             "greeting_main": "Ihre Stimme wurde gehört",
@@ -2523,7 +2525,8 @@
             "order_reference_label": "Bestellreferenz",
             "contact_attachment_label": "Angehängte Datei",
             "contact_message_title": "Ihre Nachricht",
-            "contact_btn_reply": "Per E-Mail antworten"
+            "contact_btn_reply": "Per E-Mail antworten",
+            "dear_customer": "Sehr geehrte Damen und Herren,"
         },
         "it": {
             "greeting_main": "La Vostra voce è stata ascoltata",
@@ -2534,7 +2537,8 @@
             "order_reference_label": "Riferimento ordine",
             "contact_attachment_label": "File allegato",
             "contact_message_title": "Il Vostro messaggio",
-            "contact_btn_reply": "Rispondi via email"
+            "contact_btn_reply": "Rispondi via email",
+            "dear_customer": "Gentile Cliente,"
         },
         "es": {
             "greeting_main": "Su voz ha sido escuchada",
@@ -2545,7 +2549,8 @@
             "order_reference_label": "Referencia del pedido",
             "contact_attachment_label": "Archivo adjunto",
             "contact_message_title": "Su mensaje",
-            "contact_btn_reply": "Responder por correo"
+            "contact_btn_reply": "Responder por correo",
+            "dear_customer": "Estimado cliente,"
         },
         "pt": {
             "greeting_main": "A sua voz foi ouvida",
@@ -2556,7 +2561,8 @@
             "order_reference_label": "Referência da encomenda",
             "contact_attachment_label": "Ficheiro anexo",
             "contact_message_title": "A sua mensagem",
-            "contact_btn_reply": "Responder por e-mail"
+            "contact_btn_reply": "Responder por e-mail",
+            "dear_customer": "Estimado cliente,"
         },
         "br": {
             "greeting_main": "Sua voz foi ouvida",
@@ -2567,7 +2573,8 @@
             "order_reference_label": "Referência do pedido",
             "contact_attachment_label": "Arquivo anexo",
             "contact_message_title": "Sua mensagem",
-            "contact_btn_reply": "Responder por e-mail"
+            "contact_btn_reply": "Responder por e-mail",
+            "dear_customer": "Prezado cliente,"
         },
         "ar": {
             "greeting_main": "تم استلام رسالتكم",
@@ -2578,7 +2585,8 @@
             "order_reference_label": "مرجع الطلب",
             "contact_attachment_label": "الملف المرفق",
             "contact_message_title": "رسالتكم",
-            "contact_btn_reply": "الرد عبر البريد الإلكتروني"
+            "contact_btn_reply": "الرد عبر البريد الإلكتروني",
+            "dear_customer": "عزيزنا العميل،"
         },
         "ja": {
             "greeting_main": "お問い合わせを受け付けました",
@@ -2589,7 +2597,8 @@
             "order_reference_label": "注文番号",
             "contact_attachment_label": "添付ファイル",
             "contact_message_title": "お問い合わせ内容",
-            "contact_btn_reply": "メールで返信"
+            "contact_btn_reply": "メールで返信",
+            "dear_customer": "拝啓 お客様"
         },
         "ko": {
             "greeting_main": "문의하신 내용을 접수했습니다",
@@ -2600,7 +2609,8 @@
             "order_reference_label": "주문 참조 번호",
             "contact_attachment_label": "첨부 파일",
             "contact_message_title": "문의 내용",
-            "contact_btn_reply": "이메일로 답장"
+            "contact_btn_reply": "이메일로 답장",
+            "dear_customer": "존경하는 고객님,"
         },
         "zh": {
             "greeting_main": "您的留言已收到",
@@ -2611,7 +2621,8 @@
             "order_reference_label": "订单编号",
             "contact_attachment_label": "附件",
             "contact_message_title": "您的留言",
-            "contact_btn_reply": "通过电子邮件回复"
+            "contact_btn_reply": "通过电子邮件回复",
+            "dear_customer": "尊敬的客户，"
         },
         "tw": {
             "greeting_main": "您的留言已收到",
@@ -2622,7 +2633,8 @@
             "order_reference_label": "訂單編號",
             "contact_attachment_label": "附件",
             "contact_message_title": "您的留言",
-            "contact_btn_reply": "透過電子郵件回覆"
+            "contact_btn_reply": "透過電子郵件回覆",
+            "dear_customer": "尊敬的客戶，"
         },
         "ru": {
             "greeting_main": "Ваше сообщение получено",
@@ -2633,7 +2645,8 @@
             "order_reference_label": "Номер заказа",
             "contact_attachment_label": "Вложенный файл",
             "contact_message_title": "Ваше сообщение",
-            "contact_btn_reply": "Ответить по электронной почте"
+            "contact_btn_reply": "Ответить по электронной почте",
+            "dear_customer": "Уважаемый клиент,"
         },
         "tr": {
             "greeting_main": "Mesajınız alındı",
@@ -2644,7 +2657,8 @@
             "order_reference_label": "Sipariş referansı",
             "contact_attachment_label": "Ekli dosya",
             "contact_message_title": "Mesajınız",
-            "contact_btn_reply": "E-posta ile yanıtla"
+            "contact_btn_reply": "E-posta ile yanıtla",
+            "dear_customer": "Sayın müşterimiz,"
         },
         "sv": {
             "greeting_main": "Ditt meddelande har tagits emot",
@@ -2655,7 +2669,8 @@
             "order_reference_label": "Beställningsreferens",
             "contact_attachment_label": "Bifogad fil",
             "contact_message_title": "Ditt meddelande",
-            "contact_btn_reply": "Svara via e-post"
+            "contact_btn_reply": "Svara via e-post",
+            "dear_customer": "Bäste kund,"
         },
         "no": {
             "greeting_main": "Meldingen din er mottatt",
@@ -2666,7 +2681,8 @@
             "order_reference_label": "Bestillingsreferanse",
             "contact_attachment_label": "Vedlagt fil",
             "contact_message_title": "Din melding",
-            "contact_btn_reply": "Svar via e-post"
+            "contact_btn_reply": "Svar via e-post",
+            "dear_customer": "Kjære kunde,"
         },
         "da": {
             "greeting_main": "Din besked er modtaget",
@@ -2677,7 +2693,8 @@
             "order_reference_label": "Ordrereference",
             "contact_attachment_label": "Vedhæftet fil",
             "contact_message_title": "Din besked",
-            "contact_btn_reply": "Svar via e-mail"
+            "contact_btn_reply": "Svar via e-mail",
+            "dear_customer": "Kære kunde,"
         },
         "nl": {
             "greeting_main": "Uw bericht is ontvangen",
@@ -2688,7 +2705,8 @@
             "order_reference_label": "Orderreferentie",
             "contact_attachment_label": "Bijgevoegd bestand",
             "contact_message_title": "Uw bericht",
-            "contact_btn_reply": "Antwoord per e-mail"
+            "contact_btn_reply": "Antwoord per e-mail",
+            "dear_customer": "Geachte klant,"
         },
         "gb": {
             "greeting_main": "Your voice has been heard",
@@ -2699,7 +2717,8 @@
             "order_reference_label": "Order reference",
             "contact_attachment_label": "Attached file",
             "contact_message_title": "Your message",
-            "contact_btn_reply": "Reply by email"
+            "contact_btn_reply": "Reply by email",
+            "dear_customer": "Dear Valued Client,"
         }
     },
     "contact_form": {
