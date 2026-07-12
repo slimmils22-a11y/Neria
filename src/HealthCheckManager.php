@@ -749,7 +749,17 @@ class HealthCheckManager
         $templates = \NeriaTools::getTemplateLabels();
         $missing = [];
 
+        // monthly_report a son propre rendu HTML autonome, totalement
+        // indépendant de layout.html/core/*.html (cf. MonthlyReportManager::
+        // renderHtml + EmailRenderer::renderPreviewHtml) — contrairement à
+        // log_alert/neria_fallback (autres templates "internes") qui, eux,
+        // fusionnent bien leur core/*.html via compileNeriaTemplate.
+        $noCoreFileNeeded = ['monthly_report'];
+
         foreach (array_keys($templates) as $tpl) {
+            if (in_array($tpl, $noCoreFileNeeded, true)) {
+                continue;
+            }
             if (!file_exists($mailsDir . $tpl . '.html')) {
                 $missing[] = $tpl . '.html';
             }
