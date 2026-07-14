@@ -660,10 +660,20 @@ class HealthCheckManager
         $dict = $raw !== false ? (json_decode($raw, true) ?: []) : [];
         $totalKeys = count($dict);
 
+        // Clés volontairement vides pour certaines langues (pas un oubli) —
+        // ex. gdpr.local_law_note n'a de contenu que pour les langues où le
+        // libellé de l'onglet RGPD a été localisé (ja/ko/zh/tw/ru/tr/ar/en),
+        // cf. gdpr.tpl. Sans cette exclusion, ce contrôle générique les
+        // signale à tort comme des trous de traduction.
+        static $intentionallyEmptyKeys = ['gdpr.local_law_note'];
+
         $gaps = [];
         foreach ($langs as $lang) {
             $missing = 0;
-            foreach ($dict as $translations) {
+            foreach ($dict as $key => $translations) {
+                if (in_array($key, $intentionallyEmptyKeys, true)) {
+                    continue;
+                }
                 if (empty($translations[$lang])) {
                     $missing++;
                 }
