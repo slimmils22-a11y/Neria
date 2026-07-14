@@ -166,6 +166,8 @@ class HealthCheckManager
             'class_override'       => $this->checkClassOverride(),
             'smarty_compile_check' => $this->checkSmartyCompileCheck(),
             'upgrade_script_safety' => $this->checkUpgradeScriptSafety(),
+            'known_regressions_guard' => $this->checkKnownRegressionsGuard(),
+            'txt_placeholder_coverage' => $this->checkTxtPlaceholderCoverage(),
             'template_files'       => $this->checkTemplateFiles(),
             'trad_keys'            => $this->checkTradKeys(),
             'open_rate_7d'         => $this->checkOpenRate7d(),
@@ -476,6 +478,167 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.upgrade_safety_ok')];
+    }
+
+    /**
+     * Garde-fou statique contre 3 régressions précises trouvées le 2026-07-14
+     * via un rapport de test externe (Claude Cowork) — un canari dynamique
+     * s'est révélé trop bruyant (variables métier légitimement absentes des
+     * données factices d'aperçu, cf. mémoire), donc contrôle ciblé sur le
+     * code source plutôt qu'un scan générique de résidus :
+     *  1. La boucle de substitution d'EmailRenderer ne doit plus exclure les
+     *     valeurs vides ($value !== '') — sinon {subject}/{custom_message}
+     *     redeviennent invisibles dès qu'ils sont légitimement vides (le cas
+     *     le plus courant).
+     *  2. {products_txt} doit rester fourni par sendAbandonedCarts().
+     *  3. ManualSendManager doit continuer à interroger ps_log pour la vraie
+     *     cause d'échec plutôt que d'afficher le message générique masquant.
+     */
+    private function checkKnownRegressionsGuard(): array
+    {
+        $offenders = [];
+
+        $rendererFile = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
+        $rendererSrc  = is_file($rendererFile) ? (file_get_contents($rendererFile) ?: '') : '';
+        if ($rendererSrc === '') {
+            $offenders[] = 'EmailRenderer.php introuvable';
+        } else {
+            if (preg_match('/is_string\(\$value\)\s*&&\s*\$value\s*!==\s*\'\'/', $rendererSrc)) {
+                $offenders[] = 'EmailRenderer : substitution filtre à nouveau les valeurs vides';
+            }
+            if (strpos($rendererSrc, "\$params['templateVars']['{subject}']") === false) {
+                $offenders[] = 'EmailRenderer : {subject} n\'est plus injecté sur les envois réels';
+            }
+        }
+
+        $cronFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
+        $cronSrc  = is_file($cronFile) ? (file_get_contents($cronFile) ?: '') : '';
+        if ($cronSrc === '' || strpos($cronSrc, '{products_txt}') === false) {
+            $offenders[] = 'BehavioralCronManager : {products_txt} n\'est plus fourni sur les paniers abandonnés';
+        }
+
+        $manualFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
+        $manualSrc  = is_file($manualFile) ? (file_get_contents($manualFile) ?: '') : '';
+        if ($manualSrc === '' || strpos($manualSrc, "FROM `' . _DB_PREFIX_ . 'log`") === false) {
+            $offenders[] = 'ManualSendManager : ne recherche plus la vraie cause d\'échec dans ps_log';
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.known_regressions_error', ['list' => implode(' | ', $offenders)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.known_regressions_ok')];
+    }
+
+    /**
+     * Contrôle statique dédié aux templates .txt (le bug {products_txt} du
+     * 2026-07-14 n'a été trouvé que parce qu'un rapport de test externe a
+     * ouvert la version texte d'un email — aucun contrôle n'inspectait ce
+     * fichier avant). Pour chaque placeholder {xxx} présent dans un .txt,
+     * vérifie qu'il est bien "connu" : soit couvert par les données factices
+     * de l'aperçu (EmailRenderer::buildPreviewFakes(), le référentiel le plus
+     * complet des variables gérées), soit assigné littéralement quelque part
+     * dans le code source (variables injectées dynamiquement par la logique
+     * métier — upsell, fidélité, bon de réduction... — qui n'apparaissent pas
+     * dans l'aperçu générique mais existent bien dans le code réel).
+     * Ne scanne QUE les .txt (le HTML est déjà couvert par render_canary +
+     * residual_vars_recent sur les vrais envois).
+     */
+    private function checkTxtPlaceholderCoverage(): array
+    {
+        if (!class_exists('EmailRenderer')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.txt_coverage_ok')];
+        }
+
+        $coreDir = _PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core';
+        $txtFiles = glob($coreDir . '/*.txt') ?: [];
+        if (empty($txtFiles)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.txt_coverage_ok')];
+        }
+
+        // Référentiel 1 : toutes les variables connues de l'aperçu.
+        $renderer = new \EmailRenderer($this->module);
+        $refClass = new \ReflectionClass($renderer);
+        $fakesMethod = $refClass->getMethod('buildPreviewFakes');
+        $fakesMethod->setAccessible(true);
+        $knownVars = [];
+        try {
+            $knownVars = array_keys($fakesMethod->invoke($renderer, '', 'fr'));
+        } catch (\Throwable $e) {
+            // Non bloquant — se rabat sur le seul référentiel 2 ci-dessous.
+        }
+
+        // Référentiel 2 : toute variable '{xxx}' assignée littéralement dans
+        // le code source (couvre les variables injectées dynamiquement par la
+        // logique métier, absentes de l'aperçu générique par nature).
+        $sourceVars = [];
+        foreach (glob(_PS_MODULE_DIR_ . $this->module->name . '/src/*.php') ?: [] as $srcFile) {
+            $content = file_get_contents($srcFile) ?: '';
+            if (preg_match_all('/\'(\{[a-z][a-z0-9_]*\})\'/i', $content, $m)) {
+                $sourceVars = array_merge($sourceVars, $m[1]);
+            }
+        }
+        $sourceVars = array_unique($sourceVars);
+
+        // Mots-clés de contrôle Smarty pouvant apparaître seuls sous forme
+        // "{mot}" (ex. {else} dans un bloc {if}...{else}...{/if}) — ne sont
+        // pas des variables de contenu, à exclure du scan.
+        static $smartyKeywords = ['else', 'if', 'foreach', 'capture', 'block', 'literal'];
+
+        // Templates qui remplacent un email NATIF PrestaShop — cœur (cf.
+        // mails/en/*.txt) OU module natif bundlé (ps_emailalerts : new_order,
+        // return_slip, productcoverage... — confirmé le 2026-07-14 via les
+        // traductions BO PrestaShop 9, "E-mails des modules"). Leurs variables
+        // (dont les variantes _txt) sont fournies par ce code natif tiers,
+        // jamais par Neria — les scanner ici produirait un faux positif
+        // systématique, par nature (les variables n'existent délibérément
+        // pas côté Neria).
+        static $nativeOverrides = [
+            'account', 'backoffice_order', 'bankwire', 'contact', 'contact_form',
+            'credit_slip', 'download_product', 'employee_password', 'forward_msg',
+            'guest_to_customer', 'import', 'in_transit', 'log_alert', 'newsletter',
+            'order_canceled', 'order_changed', 'order_conf', 'order_customer_comment',
+            'order_return_state', 'outofstock', 'password', 'password_query',
+            // ps_emailalerts (module natif) :
+            'new_order', 'return_slip', 'productcoverage', 'customer_qty',
+            'payment', 'payment_error', 'preparation', 'productoutofstock', 'refund',
+            'reply_msg', 'shipped', 'cheque', 'voucher', 'voucher_new',
+        ];
+
+        $offenders = [];
+        foreach ($txtFiles as $txtFile) {
+            $template = basename($txtFile, '.txt');
+            if (in_array($template, $nativeOverrides, true)) {
+                continue;
+            }
+            $content  = file_get_contents($txtFile) ?: '';
+            if (!preg_match_all('/\{[a-z][a-z0-9_]*\}/i', $content, $m)) {
+                continue;
+            }
+            foreach (array_unique($m[0]) as $placeholder) {
+                $bare = strtolower(trim($placeholder, '{}'));
+                if (in_array($bare, $smartyKeywords, true)) {
+                    continue;
+                }
+                if (!in_array($placeholder, $knownVars, true) && !in_array($placeholder, $sourceVars, true)) {
+                    $offenders[] = $template . ' : ' . $placeholder;
+                }
+            }
+        }
+
+        if ($offenders) {
+            $count  = count($offenders);
+            $sample = implode(', ', array_slice($offenders, 0, 6));
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.txt_coverage_warning', ['count' => $count, 'sample' => $sample]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.txt_coverage_ok')];
     }
 
     /**

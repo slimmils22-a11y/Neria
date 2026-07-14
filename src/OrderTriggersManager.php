@@ -514,13 +514,19 @@ class OrderTriggersManager
                      ON od.id_order_detail = ord.id_order_detail
                  WHERE ord.id_order_return = ' . (int) $orderReturn->id
             );
-            $summary = '';
+            $summary    = '';
+            $summaryTxt = '';
             if (is_array($rows) && !empty($rows)) {
                 $lines = array_map(
                     fn($r) => '× ' . (int) $r['product_quantity'] . ' ' . $r['product_name'],
                     $rows
                 );
-                $summary = implode("\n", $lines);
+                $summary    = implode("\n", $lines);
+                // {meta_products_txt} — bug trouvé le 2026-07-14 (contrôle
+                // Watchdog txt_placeholder_coverage) : jamais fourni, {summary}
+                // et sa version txt étant en réalité identiques (texte brut
+                // déjà), on réutilise les mêmes lignes.
+                $summaryTxt = $summary;
             }
 
             $result = \Mail::Send(
@@ -528,11 +534,12 @@ class OrderTriggersManager
                 'return_received',
                 '',
                 [
-                    '{firstname}'     => $customer->firstname,
-                    '{lastname}'      => $customer->lastname,
-                    '{order_name}'    => $order->reference,
-                    '{meta_products}' => $summary,
-                    '{shop_name}'     => \Configuration::get('PS_SHOP_NAME'),
+                    '{firstname}'         => $customer->firstname,
+                    '{lastname}'          => $customer->lastname,
+                    '{order_name}'        => $order->reference,
+                    '{meta_products}'     => $summary,
+                    '{meta_products_txt}' => $summaryTxt,
+                    '{shop_name}'         => \Configuration::get('PS_SHOP_NAME'),
                 ],
                 $customer->email,
                 trim($customer->firstname . ' ' . $customer->lastname) ?: null,
