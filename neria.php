@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.22';
+    const VERSION = '1.0.24';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -969,6 +969,8 @@ class Neria extends Module
         $this->createUpsellTableIfNeeded();
         $this->createLoyaltyTablesIfNeeded();
         $this->createSeasonalCampaignTableIfNeeded();
+        $this->createBirthdayVoucherTableIfNeeded();
+        $this->createMilestoneVoucherTableIfNeeded();
 
         // Réputation de domaine — refresh auto côté BO (même throttle 24h que front)
         if (class_exists('DomainReputationManager')) {
@@ -1135,6 +1137,52 @@ class Neria extends Module
         );
 
         Configuration::updateValue('NERIA_CREATED_LOYALTY_TABLES', 1);
+    }
+
+    private function createBirthdayVoucherTableIfNeeded(): void
+    {
+        if (Configuration::get('NERIA_CREATED_BIRTHDAY_VOUCHER_TABLE')) {
+            return;
+        }
+
+        Db::getInstance()->execute(
+            'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'neria_birthday_voucher` (
+                `id_voucher`   INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+                `id_customer`  INT UNSIGNED  NOT NULL,
+                `year`         SMALLINT UNSIGNED NOT NULL,
+                `id_cart_rule` INT UNSIGNED  NOT NULL DEFAULT 0,
+                `voucher_code` VARCHAR(50)   NOT NULL DEFAULT \'\',
+                `created_at`   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id_voucher`),
+                UNIQUE KEY `uq_customer_year` (`id_customer`, `year`),
+                KEY `idx_customer` (`id_customer`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+
+        Configuration::updateValue('NERIA_CREATED_BIRTHDAY_VOUCHER_TABLE', 1);
+    }
+
+    private function createMilestoneVoucherTableIfNeeded(): void
+    {
+        if (Configuration::get('NERIA_CREATED_MILESTONE_VOUCHER_TABLE')) {
+            return;
+        }
+
+        Db::getInstance()->execute(
+            'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'neria_milestone_voucher` (
+                `id_voucher`   INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+                `id_customer`  INT UNSIGNED  NOT NULL,
+                `milestone`    SMALLINT UNSIGNED NOT NULL,
+                `id_cart_rule` INT UNSIGNED  NOT NULL DEFAULT 0,
+                `voucher_code` VARCHAR(50)   NOT NULL DEFAULT \'\',
+                `created_at`   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id_voucher`),
+                UNIQUE KEY `uq_customer_milestone` (`id_customer`, `milestone`),
+                KEY `idx_customer` (`id_customer`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+
+        Configuration::updateValue('NERIA_CREATED_MILESTONE_VOUCHER_TABLE', 1);
     }
 
     private function createSeasonalCampaignTableIfNeeded(): void
@@ -2596,6 +2644,28 @@ class Neria extends Module
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
+        // ── Action : montant du bon de réduction anniversaire ─────
+        if (Tools::getValue('neria_action') === 'save_birthday_voucher') {
+            $amount = (float) str_replace(',', '.', (string) Tools::getValue('neria_birthday_voucher_amount', 10));
+            $isPercent = (int) Tools::getValue('neria_birthday_voucher_percent', 1) === 1;
+            $amount = max(0, $isPercent ? min(100, $amount) : $amount);
+            Configuration::updateValue(self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_AMOUNT', $amount);
+            Configuration::updateValue(self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_PERCENT', $isPercent ? 1 : 0);
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+        }
+
+        // ── Action : bon de réduction sur paliers de commandes ────
+        if (Tools::getValue('neria_action') === 'save_milestone_voucher') {
+            $enabled   = (int) Tools::getValue('neria_milestone_voucher_enabled', 0) === 1;
+            $amount    = (float) str_replace(',', '.', (string) Tools::getValue('neria_milestone_voucher_amount', 10));
+            $isPercent = (int) Tools::getValue('neria_milestone_voucher_percent', 1) === 1;
+            $amount    = max(0, $isPercent ? min(100, $amount) : $amount);
+            Configuration::updateValue(self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_ENABLED', $enabled ? 1 : 0);
+            Configuration::updateValue(self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_AMOUNT', $amount);
+            Configuration::updateValue(self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_PERCENT', $isPercent ? 1 : 0);
+            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+        }
+
         if (Tools::getValue('neria_action') === 'save_target_countries') {
             $raw      = Tools::getValue('neria_target_countries', []);
             $selected = is_array($raw) ? array_filter(array_map('strval', $raw)) : [];
@@ -2955,6 +3025,46 @@ class Neria extends Module
                 $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.translations_reloaded_from_source'));
             } else {
                 $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.translations_reload_failed'));
+            }
+        }
+
+        // ── Action : relancer les scripts d'upgrade en attente ─────────
+        // Réparation explicite (jamais silencieuse) : Module::runUpgradeModule()
+        // désactive le module si un script échoue en cours de route — trop
+        // risqué pour un auto-fix invisible dans un contrôle Watchdog, mais
+        // c'est exactement le geste attendu si NERIA_INSTALLED_VERSION est en
+        // retard (ex: fichiers mis à jour par FTP sans repasser par la liste
+        // des modules, qui déclenche habituellement l'upgrade automatiquement).
+        if (Tools::getValue('neria_action') === 'repair_module_version') {
+            $before = (string) Configuration::get('NERIA_INSTALLED_VERSION');
+            \Module::needUpgrade($this);
+            $result = $this->runUpgradeModule();
+            $after  = (string) Configuration::get('NERIA_INSTALLED_VERSION');
+
+            if (!empty($result['success']) || $after === $this->version) {
+                $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.version_repair_success', ['version' => $after]));
+            } else {
+                $this->context->smarty->assign('neria_error', AdminTranslator::tVars('msg.version_repair_failed', ['before' => $before]));
+            }
+        }
+
+        // ── Action : relancer la vérification des bounces IMAP ─────────
+        // Réparation explicite (jamais silencieuse) : contrairement aux
+        // auto-réparations DB-only du Watchdog, celle-ci ouvre une vraie
+        // connexion réseau à la boîte IMAP configurée par le marchand — trop
+        // coûteux/risqué (timeout) pour être déclenché en silence à chaque
+        // passage automatique des contrôles.
+        if (Tools::getValue('neria_action') === 'repair_bounces_check' && class_exists('BounceManager')) {
+            $result = (new BounceManager($this))->checkBounceMailbox();
+            if (empty($result['errors'])) {
+                $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.bounces_check_success', [
+                    'processed' => $result['processed'] ?? 0,
+                    'bounces'   => $result['bounces'] ?? 0,
+                ]));
+            } else {
+                $this->context->smarty->assign('neria_error', AdminTranslator::tVars('msg.bounces_check_failed', [
+                    'error' => implode(' ', $result['errors']),
+                ]));
             }
         }
 
@@ -4615,6 +4725,11 @@ class Neria extends Module
             'log_internal_enabled' => $config->isInternalLogEnabled(),
             'archive_email'        => (string) Configuration::getGlobalValue('NERIA_ARCHIVE_EMAIL'),
             'voucher_validity'        => $config->getVoucherValidity(),
+            'birthday_voucher_amount'  => $config->getBirthdayVoucherAmount(),
+            'birthday_voucher_percent' => $config->isBirthdayVoucherPercent(),
+            'milestone_voucher_enabled' => $config->isMilestoneVoucherEnabled(),
+            'milestone_voucher_amount'  => $config->getMilestoneVoucherAmount(),
+            'milestone_voucher_percent' => $config->isMilestoneVoucherPercent(),
             'firstname_fallbacks'          => $config->getFirstnameFallbacks(),
             'firstname_fallback_enabled'   => $config->isFirstnameFallbackEnabled(),
             'time_greetings'               => $config->getTimeGreetings(),
@@ -5662,7 +5777,7 @@ class Neria extends Module
                 'fonts_by_script' => 'Polices par script',
             ],
             'send' => [
-                'templates_list' => 'Liste des templates',
+                'send_templates' => 'Liste des templates',
                 'currency_symbol' => 'Symbole devise',
             ],
             'abtest' => [
@@ -5845,7 +5960,16 @@ class Neria extends Module
      * Importe translations.json en base de données
      * Délégué à TranslationInstaller pour le bulk insert optimisé
      */
-    private function importTranslations(): bool
+    /**
+     * Publique : appelée en interne par install(), mais aussi par
+     * upgrade-1.0.5.php pour importer les traductions du template ajouté à
+     * cette version — bug latent découvert le 2026-07-12 en testant
+     * runUpgradeModule() en conditions réelles pour la première fois
+     * (Module::runUpgradeModule() désactive le module si un script d'upgrade
+     * plante, donc rester private aurait cassé toute mise à jour depuis une
+     * version ≤1.0.4 via le flux natif PrestaShop/Addons).
+     */
+    public function importTranslations(): bool
     {
         if (!class_exists('TranslationInstaller')) {
             $this->_errors[] = AdminTranslator::t('msg.translation_installer_missing');
@@ -5894,6 +6018,11 @@ class Neria extends Module
             'NERIA_PROPENSITY_ENABLED'               => 1,
             'NERIA_PURCHASE_WINDOW_ENABLED'          => 1,
             self::CONFIG_PREFIX . 'VOUCHER_VALIDITY'          => 30,
+            self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_AMOUNT'   => 10,
+            self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_PERCENT'  => 1,
+            self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_ENABLED' => 0,
+            self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_AMOUNT'  => 10,
+            self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_PERCENT' => 1,
             self::CONFIG_PREFIX . 'INSTALLED_AT'               => date('Y-m-d H:i:s'),
             MonthlyReportManager::CONFIG_ENABLED               => 1,
             MonthlyReportManager::CONFIG_RECIPIENTS            => '',
@@ -5947,6 +6076,13 @@ class Neria extends Module
             self::CONFIG_PREFIX . 'AUTO_LANG',
             self::CONFIG_PREFIX . 'LOG_INTERNAL',
             self::CONFIG_PREFIX . 'VOUCHER_VALIDITY',
+            self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_AMOUNT',
+            self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_PERCENT',
+            'NERIA_CREATED_BIRTHDAY_VOUCHER_TABLE',
+            self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_ENABLED',
+            self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_AMOUNT',
+            self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_PERCENT',
+            'NERIA_CREATED_MILESTONE_VOUCHER_TABLE',
             self::CONFIG_PREFIX . 'INSTALLED_AT',
             MonthlyReportManager::CONFIG_ENABLED,
             MonthlyReportManager::CONFIG_RECIPIENTS,

@@ -184,17 +184,117 @@ class BehavioralCronManager
                )'
         );
 
+        $config = new \ConfigManager($this->module);
+
         foreach ((array) $rows as $r) {
+            $idCustomer = (int) $r['id_customer'];
+            try {
+                $code = $this->generateBirthdayVoucher($idCustomer, $config);
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.birthday_voucher_error', [
+                        'customer' => $idCustomer, 'error' => $e->getMessage(),
+                    ]),
+                    'birthday',
+                    'BehavioralCron'
+                );
+                continue;
+            }
+
+            if ($code === '') {
+                // Réservation perdue face à une requête concurrente (rare,
+                // cron exécuté deux fois le même jour) — comportement
+                // attendu, pas une erreur : on ne renvoie pas ce client.
+                continue;
+            }
+
             $this->send(
                 'birthday',
                 $r,
                 [
-                    '{voucher_code}' => '',
+                    '{voucher_code}' => $code,
                     '{shop_url}'     => \Tools::getShopDomainSsl(true),
                 ],
                 $year
             );
         }
+    }
+
+    /**
+     * Génère un vrai bon de réduction PrestaShop (CartRule) pour l'anniversaire
+     * d'un client, selon le montant/type configuré par le marchand
+     * (ConfigManager::getBirthdayVoucherAmount() / isBirthdayVoucherPercent()).
+     * Réservation atomique anti-doublon via ps_neria_birthday_voucher (UNIQUE
+     * id_customer+year), sur le même principe que LoyaltyManager::generateVoucher().
+     *
+     * @return string Le code du bon, ou '' si déjà réservé par une requête concurrente.
+     */
+    private function generateBirthdayVoucher(int $idCustomer, \ConfigManager $config): string
+    {
+        $year = (int) date('Y');
+
+        $reserved = $this->db->execute(
+            'INSERT IGNORE INTO `' . $this->prefix . 'neria_birthday_voucher`
+                (id_customer, year, id_cart_rule, voucher_code, created_at)
+             VALUES (' . (int) $idCustomer . ', ' . $year . ', 0, \'\', NOW())'
+        );
+
+        if (!$reserved || (int) $this->db->Affected_Rows() === 0) {
+            return '';
+        }
+
+        $amount    = $config->getBirthdayVoucherAmount();
+        $isPercent = $config->isBirthdayVoucherPercent();
+        $code      = 'NERIA-BDAY-' . strtoupper(\Tools::passwdGen(6));
+
+        $cartRule = new \CartRule();
+        $cartRule->name                    = ['1' => $code];
+        $langs = \Language::getLanguages(false);
+        $names = [];
+        foreach ($langs as $l) {
+            $names[(int) $l['id_lang']] = $code;
+        }
+        $cartRule->name                    = $names;
+        $cartRule->code                    = $code;
+        $cartRule->id_customer             = $idCustomer;
+        $cartRule->quantity                = 1;
+        $cartRule->quantity_per_user       = 1;
+        $cartRule->active                  = 1;
+        $cartRule->date_from               = date('Y-m-d H:i:s');
+        $cartRule->date_to                 = date('Y-m-d H:i:s', strtotime('+' . $config->getVoucherValidity() . ' days'));
+        $cartRule->minimum_amount          = 0;
+        $cartRule->minimum_amount_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT');
+        $cartRule->highlight               = false;
+        $cartRule->free_shipping           = false;
+
+        if ($isPercent) {
+            $cartRule->reduction_percent = $amount;
+            $cartRule->reduction_amount  = 0;
+        } else {
+            $cartRule->reduction_amount   = $amount;
+            $cartRule->reduction_percent  = 0;
+            $cartRule->reduction_tax      = 1;
+            $cartRule->reduction_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT');
+        }
+
+        if (!$cartRule->add()) {
+            // Libère la réservation pour permettre une nouvelle tentative
+            // au prochain passage du cron (sinon ce client resterait sans
+            // bon d'anniversaire à vie pour cette année).
+            $this->db->execute(
+                'DELETE FROM `' . $this->prefix . 'neria_birthday_voucher`
+                 WHERE id_customer = ' . (int) $idCustomer . ' AND year = ' . $year . ' AND id_cart_rule = 0'
+            );
+            throw new \RuntimeException('CartRule::add() failed for customer ' . $idCustomer);
+        }
+
+        $this->db->execute(
+            'UPDATE `' . $this->prefix . 'neria_birthday_voucher`
+             SET id_cart_rule = ' . (int) $cartRule->id . ', voucher_code = \'' . pSQL($code) . '\'
+             WHERE id_customer = ' . (int) $idCustomer . ' AND year = ' . $year
+        );
+
+        return $code;
     }
 
     // ============================================================
@@ -446,8 +546,9 @@ class BehavioralCronManager
                 $template,
                 $r,
                 [
-                    '{cart_url}' => $cartUrl,
-                    '{products}' => $products,
+                    '{cart_url}'     => $cartUrl,
+                    '{products}'     => $products,
+                    '{products_txt}' => $this->buildCartProductsTxt($idCart),
                 ],
                 $idCart
             );
@@ -717,7 +818,12 @@ class BehavioralCronManager
         ];
     }
 
-    private function sendQuoteExpiryReminders(): void
+    /**
+     * Publique (contrairement aux autres send*()) : appelée directement par
+     * HealthCheckManager::checkQuoteRemindersStuck() pour forcer l'envoi des
+     * relances en retard sans attendre le prochain passage du cron complet.
+     */
+    public function sendQuoteExpiryReminders(): void
     {
         if (!\Configuration::getGlobalValue('NERIA_QUOTE_REMINDERS_ENABLED')) {
             return;
@@ -1348,6 +1454,38 @@ class BehavioralCronManager
                 $rows
             );
             return '<ul style="margin:0;padding:0 0 0 18px;">' . implode('', $lines) . '</ul>';
+        } catch (\Throwable $e) {
+            return '';
+        }
+    }
+
+    /**
+     * Équivalent texte de buildCartProducts(), pour {products_txt} (fallback
+     * TXT des templates abandoned_cart_1/2/3) — bug trouvé le 2026-07-13 via
+     * un rapport de test externe : jamais généré jusqu'ici, seul {products}
+     * (HTML) existait.
+     */
+    private function buildCartProductsTxt(int $idCart): string
+    {
+        try {
+            $rows = $this->db->executeS(
+                'SELECT p.reference, pl.name, cp.quantity
+                 FROM `' . $this->prefix . 'cart_product` cp
+                 JOIN `' . $this->prefix . 'product` p ON p.id_product = cp.id_product
+                 JOIN `' . $this->prefix . 'product_lang` pl
+                      ON pl.id_product = cp.id_product
+                     AND pl.id_lang = (SELECT id_lang FROM `' . $this->prefix . 'cart`
+                                       WHERE id_cart = ' . $idCart . ' LIMIT 1)
+                 WHERE cp.id_cart = ' . $idCart
+            );
+            if (!is_array($rows) || empty($rows)) {
+                return '';
+            }
+            $lines = array_map(
+                fn($r) => '- ' . (int) $r['quantity'] . ' x ' . $r['name'],
+                $rows
+            );
+            return implode("\n", $lines);
         } catch (\Throwable $e) {
             return '';
         }

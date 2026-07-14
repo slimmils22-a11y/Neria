@@ -14,10 +14,15 @@
     <p class="neria-section__desc" style="margin-top:4px;">
       {neria_admin key='gdpr.desc'}
     </p>
+    {if $neria_bo_lang == 'en' || $neria_bo_lang == 'ja' || $neria_bo_lang == 'ko' || $neria_bo_lang == 'zh' || $neria_bo_lang == 'tw' || $neria_bo_lang == 'ru' || $neria_bo_lang == 'tr' || $neria_bo_lang == 'ar'}
+      <p class="neria-section__desc" style="margin-top:6px;font-style:italic;">
+        {neria_admin key='gdpr.local_law_note'}
+      </p>
+    {/if}
   </div>
   <a href="{$smarty.server.REQUEST_URI}&neria_action=gdpr_pdf"
      target="_blank"
-     class="neria-btn neria-btn--secondary neria-btn--sm">
+     class="neria-btn neria-btn--primary neria-btn--sm">
     {neria_admin key='gdpr.download_pdf'}
   </a>
 </div>

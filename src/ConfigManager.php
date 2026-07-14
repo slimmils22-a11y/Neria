@@ -95,6 +95,11 @@ class ConfigManager
     const KEY_AUTO_LANG         = 'NERIA_AUTO_LANG';
     const KEY_VOUCHER_VALIDITY  = 'NERIA_VOUCHER_VALIDITY';
     const KEY_LOG_INTERNAL      = 'NERIA_LOG_INTERNAL';
+    const KEY_BIRTHDAY_VOUCHER_AMOUNT  = 'NERIA_BIRTHDAY_VOUCHER_AMOUNT';
+    const KEY_BIRTHDAY_VOUCHER_PERCENT = 'NERIA_BIRTHDAY_VOUCHER_PERCENT';
+    const KEY_MILESTONE_VOUCHER_ENABLED = 'NERIA_MILESTONE_VOUCHER_ENABLED';
+    const KEY_MILESTONE_VOUCHER_AMOUNT  = 'NERIA_MILESTONE_VOUCHER_AMOUNT';
+    const KEY_MILESTONE_VOUCHER_PERCENT = 'NERIA_MILESTONE_VOUCHER_PERCENT';
 
     // ── Mode Silence (anti-doublon) ───────────────────────────────
     const KEY_COOLDOWN_ENABLED      = 'NERIA_COOLDOWN_ENABLED';
@@ -166,6 +171,11 @@ class ConfigManager
         self::KEY_AUTO_LANG           => 1,
         self::KEY_VOUCHER_VALIDITY    => 30,
         self::KEY_LOG_INTERNAL        => 0,
+        self::KEY_BIRTHDAY_VOUCHER_AMOUNT  => 10,
+        self::KEY_BIRTHDAY_VOUCHER_PERCENT => 1,
+        self::KEY_MILESTONE_VOUCHER_ENABLED => 0,
+        self::KEY_MILESTONE_VOUCHER_AMOUNT  => 10,
+        self::KEY_MILESTONE_VOUCHER_PERCENT => 1,
         self::KEY_COOLDOWN_ENABLED    => 0,
         self::KEY_COOLDOWN_MINUTES    => 10,
         self::KEY_CARBON_ENABLED      => 0,
@@ -645,6 +655,54 @@ class ConfigManager
     public function getVoucherValidity(): int
     {
         return (int) $this->get(self::KEY_VOUCHER_VALIDITY, 30);
+    }
+
+    /**
+     * Montant du bon de réduction anniversaire (variable {voucher_code}),
+     * en pourcentage ou en montant fixe selon isBirthdayVoucherPercent().
+     *
+     * @return float
+     */
+    public function getBirthdayVoucherAmount(): float
+    {
+        return (float) $this->get(self::KEY_BIRTHDAY_VOUCHER_AMOUNT, 10);
+    }
+
+    /**
+     * Indique si le montant du bon anniversaire est un pourcentage (true)
+     * ou un montant fixe dans la devise de la boutique (false).
+     *
+     * @return bool
+     */
+    public function isBirthdayVoucherPercent(): bool
+    {
+        return (bool) $this->get(self::KEY_BIRTHDAY_VOUCHER_PERCENT, 1);
+    }
+
+    /**
+     * Indique si le marchand a activé le bon de réduction sur les paliers
+     * de commandes (milestone_order). Désactivé par défaut : sans ce toggle,
+     * milestone_order reste un email de pure reconnaissance sans bon promis.
+     */
+    public function isMilestoneVoucherEnabled(): bool
+    {
+        return (bool) $this->get(self::KEY_MILESTONE_VOUCHER_ENABLED, 0);
+    }
+
+    /**
+     * Montant du bon de réduction par palier de commandes (variable
+     * {voucher_code} de milestone_order), en pourcentage ou en montant fixe
+     * selon isMilestoneVoucherPercent().
+     */
+    public function getMilestoneVoucherAmount(): float
+    {
+        return (float) $this->get(self::KEY_MILESTONE_VOUCHER_AMOUNT, 10);
+    }
+
+    /** Indique si le montant du bon palier est un pourcentage (true) ou un montant fixe (false). */
+    public function isMilestoneVoucherPercent(): bool
+    {
+        return (bool) $this->get(self::KEY_MILESTONE_VOUCHER_PERCENT, 1);
     }
 
     /** Retourne les fallbacks firstname par langue (tableau ['fr'=>'Cher Invité', ...]) */

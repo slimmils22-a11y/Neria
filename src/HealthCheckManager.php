@@ -163,6 +163,9 @@ class HealthCheckManager
             'sent_reconciliation'  => $this->checkSentReconciliation(),
             'pixel_in_html'        => $this->checkPixelInHtml(),
             'theme_override'       => $this->checkThemeOverride(),
+            'class_override'       => $this->checkClassOverride(),
+            'smarty_compile_check' => $this->checkSmartyCompileCheck(),
+            'upgrade_script_safety' => $this->checkUpgradeScriptSafety(),
             'template_files'       => $this->checkTemplateFiles(),
             'trad_keys'            => $this->checkTradKeys(),
             'open_rate_7d'         => $this->checkOpenRate7d(),
@@ -325,8 +328,15 @@ class HealthCheckManager
 
     /**
      * #4 — Surcharges de thème
-     * Une surcharge dans themes/ prend le dessus sur les fichiers recompilés
-     * — c'est presque toujours un piège pour l'architecture Neria.
+     * `Mail::getTemplateBasePath()` (classes/Mail.php) vérifie TOUJOURS
+     * themes/{theme}/modules/neria/mails/ AVANT modules/neria/mails/, même
+     * quand Neria passe explicitement son propre chemin à Mail::Send() (PS
+     * ignore ce paramètre et le régénère lui-même à partir du nom de module
+     * détecté dans le chemin). Confirmé en conditions réelles le 2026-07-12 :
+     * un tel dossier existait sur cet environnement, avec un contenu différent
+     * (donc périmé) du dossier module — passé en ERROR (pas WARNING) car ça
+     * peut rendre INVISIBLE n'importe quel correctif déployé, sans qu'aucun
+     * test qui rend en mémoire (renderPreviewHtml, etc.) ne le détecte.
      */
     private function checkThemeOverride(): array
     {
@@ -341,12 +351,131 @@ class HealthCheckManager
 
         if ($found) {
             return [
-                'status' => self::STATUS_WARNING,
+                'status' => self::STATUS_ERROR,
                 'detail' => AdminTranslator::tVars('health.theme_warning', ['paths' => implode(', ', $found)]),
             ];
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.theme_ok')];
+    }
+
+    /**
+     * Surcharges de CLASSE PHP (mécanisme `override/` de PrestaShop) —
+     * jumeau du contrôle #4 ci-dessus, mais pour le code au lieu des
+     * templates : un fichier dans override/classes/ ou override/modules/neria/
+     * remplace ENTIÈREMENT une classe du module (logique métier, contrôles
+     * de sécurité, tout) — silencieusement, sans qu'aucun test en mémoire ne
+     * le détecte. Ajouté le 2026-07-13 après la découverte du bug de
+     * surcharge de thème (piège structurellement identique, mécanisme PS
+     * différent). Rien à auto-corriger : supprimer un fichier de code sans
+     * que le marchand le sache serait aussi risqué que le problème lui-même.
+     */
+    private function checkClassOverride(): array
+    {
+        $overrideDir = rtrim(_PS_ROOT_DIR_, '/') . '/override';
+        $found       = [];
+
+        $moduleOverrideDir = $overrideDir . '/modules/neria';
+        if (is_dir($moduleOverrideDir)) {
+            foreach (glob($moduleOverrideDir . '/*.php') ?: [] as $file) {
+                $found[] = str_replace(_PS_ROOT_DIR_ . '/', '', $file);
+            }
+        }
+
+        $classesDir = $overrideDir . '/classes';
+        if (is_dir($classesDir)) {
+            $neriaClassFiles = array_map(
+                fn (string $p): string => basename($p),
+                glob(__DIR__ . '/*.php') ?: []
+            );
+            $neriaClassFiles[] = 'Neria.php';
+
+            foreach ($neriaClassFiles as $className) {
+                $candidate = $classesDir . '/' . $className;
+                if (is_file($candidate)) {
+                    $found[] = str_replace(_PS_ROOT_DIR_ . '/', '', $candidate);
+                }
+            }
+        }
+
+        if ($found) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.class_override_error', ['paths' => implode(', ', $found)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.class_override_ok')];
+    }
+
+    /**
+     * Vérification du cache de compilation Smarty (`PS_SMARTY_FORCE_COMPILE`,
+     * réglage natif PrestaShop) — troisième variante du même piège que les
+     * deux contrôles ci-dessus. Si ce réglage est sur "0" (ne jamais
+     * recompiler, optimisation courante en hébergement mutualisé), Smarty
+     * arrête de comparer les dates des fichiers source : un template modifié
+     * peut continuer à servir sa version compilée périmée jusqu'à un vidage
+     * de cache manuel. Vérifié dans config/smarty.config.inc.php :
+     * compile_check = ON seulement si PS_SMARTY_FORCE_COMPILE >= 1.
+     */
+    private function checkSmartyCompileCheck(): array
+    {
+        $value = (int) \Configuration::get('PS_SMARTY_FORCE_COMPILE');
+
+        if ($value < 1) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::t('health.smarty_compile_check_off'),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.smarty_compile_check_ok')];
+    }
+
+    /**
+     * Sécurité statique des scripts d'upgrade — analyse le CODE SOURCE de
+     * chaque upgrade-X.Y.Z.php (sans les exécuter) pour détecter un appel à
+     * une méthode `private`/`protected` de Neria depuis une fonction globale
+     * upgrade_module_X_Y_Z() : ce pattern précis a fait planter
+     * upgrade-1.0.5.php le 2026-07-12 (Call to private method
+     * Neria::importTranslations from global scope) — et
+     * `Module::runUpgradeModule()` DÉSACTIVE le module quand un script
+     * échoue en cours de chaîne. Détecte le bug AVANT qu'un vrai rejeu (à
+     * l'install d'une mise à jour marchande) ne le déclenche.
+     */
+    private function checkUpgradeScriptSafety(): array
+    {
+        $upgradeDir = _PS_MODULE_DIR_ . $this->module->name . '/upgrade';
+        if (!is_dir($upgradeDir)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.upgrade_safety_ok')];
+        }
+
+        // Méthodes non-publiques de Neria — un appel `$module->methode()`
+        // dans un script d'upgrade planterait de la même façon.
+        $neriaSource = file_get_contents(_PS_MODULE_DIR_ . $this->module->name . '/neria.php') ?: '';
+        $nonPublic   = [];
+        if (preg_match_all('/\b(?:private|protected)\s+function\s+([a-zA-Z0-9_]+)\s*\(/', $neriaSource, $m)) {
+            $nonPublic = $m[1];
+        }
+
+        $offenders = [];
+        foreach (glob($upgradeDir . '/*.php') ?: [] as $file) {
+            $content = file_get_contents($file) ?: '';
+            foreach ($nonPublic as $method) {
+                if (preg_match('/\$module\s*->\s*' . preg_quote($method, '/') . '\s*\(/', $content)) {
+                    $offenders[] = basename($file) . ' → ' . $method . '()';
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.upgrade_safety_error', ['list' => implode(', ', $offenders)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.upgrade_safety_ok')];
     }
 
     /**
@@ -1065,22 +1194,44 @@ class HealthCheckManager
         }
 
         if ($missingCore || $missingSecondary) {
+            $allMissing = array_merge($missingCore, $missingSecondary);
+            $registered = [];
+            foreach ($allMissing as $hookName) {
+                if ($this->module->registerHook($hookName)) {
+                    $registered[] = $hookName;
+                }
+            }
+            $stillMissing = array_diff($allMissing, $registered);
+
+            if (empty($stillMissing)) {
+                return [
+                    'status'     => self::STATUS_WARNING,
+                    'detail'     => AdminTranslator::tVars('health.hooks_fixed', [
+                        'count' => count($registered),
+                        'hooks' => implode(', ', $registered),
+                    ]),
+                    'auto_fixed' => true,
+                ];
+            }
+
+            $stillMissingCore      = array_intersect($stillMissing, $missingCore);
+            $stillMissingSecondary = array_intersect($stillMissing, $missingSecondary);
             $parts = [];
-            if ($missingCore) {
+            if ($stillMissingCore) {
                 $parts[] = AdminTranslator::tVars('health.hooks_core_missing', [
-                    'count' => count($missingCore),
-                    'hooks' => implode(', ', $missingCore),
+                    'count' => count($stillMissingCore),
+                    'hooks' => implode(', ', $stillMissingCore),
                 ]);
             }
-            if ($missingSecondary) {
+            if ($stillMissingSecondary) {
                 $parts[] = AdminTranslator::tVars('health.hooks_secondary_missing', [
-                    'count' => count($missingSecondary),
-                    'hooks' => implode(', ', $missingSecondary),
+                    'count' => count($stillMissingSecondary),
+                    'hooks' => implode(', ', $stillMissingSecondary),
                 ]);
             }
 
             return [
-                'status'  => $missingCore ? self::STATUS_ERROR : self::STATUS_WARNING,
+                'status'  => $stillMissingCore ? self::STATUS_ERROR : self::STATUS_WARNING,
                 'detail'  => implode(' ', $parts) . ' ' . AdminTranslator::t('health.hooks_missing_advice'),
             ];
         }
@@ -1682,9 +1833,36 @@ class HealthCheckManager
             ];
         }
 
+        // Auto-réparation : force le traitement immédiat de la file plutôt que
+        // d'attendre le prochain passage du cron (jusqu'à 24h via le filet de
+        // sécurité hookDisplayHeader). QueueManager::processQueue() est déjà
+        // ce que ce filet appelle automatiquement — on l'invoque juste plus tôt.
+        $processed = 0;
+        if (class_exists('QueueManager')) {
+            try {
+                $processed = (new \QueueManager($this->module))->processQueue();
+            } catch (\Throwable $e) {
+                // best-effort — on retombe sur le rapport d'erreur ci-dessous
+            }
+        }
+
+        $stillBlocked = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}`
+             WHERE `send_at` < DATE_SUB(NOW(), INTERVAL 2 HOUR)
+               AND `status` = 'pending'"
+        );
+
+        if ($stillBlocked === 0) {
+            return [
+                'status'     => self::STATUS_WARNING,
+                'detail'     => AdminTranslator::tVars('health.queue_blocked_fixed', ['count' => $processed]),
+                'auto_fixed' => true,
+            ];
+        }
+
         return [
             'status' => self::STATUS_ERROR,
-            'detail' => AdminTranslator::tVars('health.queue_blocked_critical', ['blocked' => $blocked]),
+            'detail' => AdminTranslator::tVars('health.queue_blocked_critical', ['blocked' => $stillBlocked]),
         ];
     }
 
@@ -1913,9 +2091,49 @@ class HealthCheckManager
             ];
         }
 
+        // Auto-réparation : remet les webhooks en échec en file (statut
+        // 'pending', compteur de tentatives à 0) et force le traitement
+        // immédiat, plutôt que de les laisser en échec permanent jusqu'à
+        // une action manuelle du marchand.
+        $failedIds = $this->db->executeS(
+            "SELECT id_webhook FROM `{$table}`
+             WHERE `status` = '" . pSQL(\WebhookManager::STATUS_FAILED) . "'
+               AND `date_add` > DATE_SUB(NOW(), INTERVAL 48 HOUR)"
+        ) ?: [];
+
+        $webhookMgr = new \WebhookManager($this->module);
+        $requeued = 0;
+        foreach ($failedIds as $row) {
+            if ($webhookMgr->retryOne((int) $row['id_webhook'])) {
+                $requeued++;
+            }
+        }
+        if ($requeued > 0) {
+            try {
+                $webhookMgr->processQueue();
+            } catch (\Throwable $e) {
+                // best-effort — le statut 'pending' reste correct, un futur
+                // passage du cron retentera l'envoi
+            }
+        }
+
+        $stillFailed = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}`
+             WHERE `status` = '" . pSQL(\WebhookManager::STATUS_FAILED) . "'
+               AND `date_add` > DATE_SUB(NOW(), INTERVAL 48 HOUR)"
+        );
+
+        if ($stillFailed === 0) {
+            return [
+                'status'     => self::STATUS_WARNING,
+                'detail'     => AdminTranslator::tVars('health.webhooks_fixed', ['count' => $requeued]),
+                'auto_fixed' => true,
+            ];
+        }
+
         return [
             'status' => self::STATUS_ERROR,
-            'detail' => AdminTranslator::tVars('health.webhooks_failed', ['failed' => $failed]),
+            'detail' => AdminTranslator::tVars('health.webhooks_failed', ['failed' => $stillFailed]),
         ];
     }
 
@@ -2192,11 +2410,25 @@ class HealthCheckManager
         }
 
         if ($missing) {
+            $recreated = $this->recreateMissingTables($missing);
+            $stillMissing = array_diff($missing, $recreated);
+
+            if (empty($stillMissing)) {
+                return [
+                    'status'     => self::STATUS_WARNING,
+                    'detail'     => AdminTranslator::tVars('health.db_tables_fixed', [
+                        'count' => count($recreated),
+                        'list'  => implode(', ', $recreated),
+                    ]),
+                    'auto_fixed' => true,
+                ];
+            }
+
             return [
                 'status' => self::STATUS_ERROR,
                 'detail' => AdminTranslator::tVars('health.db_tables_missing', [
-                    'count' => count($missing),
-                    'list'  => implode(', ', $missing),
+                    'count' => count($stillMissing),
+                    'list'  => implode(', ', $stillMissing),
                 ]),
             ];
         }
@@ -2205,6 +2437,44 @@ class HealthCheckManager
             'status' => self::STATUS_OK,
             'detail' => AdminTranslator::tVars('health.db_tables_ok', ['count' => count($expected)]),
         ];
+    }
+
+    /**
+     * Recrée UNIQUEMENT les instructions `CREATE TABLE IF NOT EXISTS` des
+     * tables manquantes, extraites de sql/install.sql — jamais les `INSERT`
+     * du même fichier (certains sont des `INSERT INTO` bruts, sans
+     * `IGNORE`, sur des tables comme `neria_custom_variable` : les rejouer
+     * dupliquerait ou écraserait la config déjà personnalisée du marchand).
+     *
+     * @param array $missingTables Noms de tables (sans préfixe) à recréer
+     * @return array Noms de tables effectivement recréées
+     */
+    private function recreateMissingTables(array $missingTables): array
+    {
+        $sqlFile = _PS_MODULE_DIR_ . $this->module->name . '/sql/install.sql';
+        if (!is_file($sqlFile)) {
+            return [];
+        }
+
+        $content = file_get_contents($sqlFile);
+        if ($content === false) {
+            return [];
+        }
+
+        $recreated = [];
+        foreach ($missingTables as $table) {
+            // Capture le bloc CREATE TABLE IF NOT EXISTS `PREFIX_table` ( ... ) ENGINE=... ; en entier
+            $pattern = '/CREATE TABLE IF NOT EXISTS `PREFIX_' . preg_quote($table, '/') . '`.*?ENGINE=InnoDB[^;]*;/is';
+            if (!preg_match($pattern, $content, $m)) {
+                continue;
+            }
+            $statement = str_replace('PREFIX_', _DB_PREFIX_, $m[0]);
+            if (\Db::getInstance()->execute($statement)) {
+                $recreated[] = $table;
+            }
+        }
+
+        return $recreated;
     }
 
     /**
@@ -2308,16 +2578,16 @@ class HealthCheckManager
 
         // Clients en attente non notifiés depuis plus de 48h,
         // dont le produit est actuellement en stock (quantity > 0)
-        $backlog = (int) $this->db->getValue(
-            "SELECT COUNT(*) FROM `{$table}` w
+        $backlogProducts = $this->db->executeS(
+            "SELECT DISTINCT w.id_product, w.id_shop FROM `{$table}` w
              JOIN `" . _DB_PREFIX_ . "stock_available` s
                   ON s.id_product = w.id_product AND s.id_product_attribute = 0
              WHERE w.notified_at IS NULL
                AND w.registered_at < DATE_SUB(NOW(), INTERVAL 48 HOUR)
                AND s.quantity > 0"
-        );
+        ) ?: [];
 
-        if ($backlog === 0) {
+        if (empty($backlogProducts)) {
             $total = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$table}` WHERE notified_at IS NULL");
             return [
                 'status' => self::STATUS_OK,
@@ -2325,9 +2595,24 @@ class HealthCheckManager
             ];
         }
 
+        // Auto-réparation : notifie immédiatement les clients en attente sur
+        // ces produits, plutôt que d'attendre le prochain passage du cron
+        // qui aurait dû le faire — WaitlistManager::notifyProduct() est déjà
+        // la méthode utilisée en conditions normales, on l'invoque juste ici.
+        $notified = 0;
+        $waitlistMgr = new \WaitlistManager($this->module);
+        foreach ($backlogProducts as $row) {
+            try {
+                $notified += $waitlistMgr->notifyProduct((int) $row['id_product'], (int) $row['id_shop']);
+            } catch (\Throwable $e) {
+                // best-effort — on continue avec les autres produits
+            }
+        }
+
         return [
-            'status' => self::STATUS_WARNING,
-            'detail' => AdminTranslator::tVars('health.waitlist_warning', ['backlog' => $backlog]),
+            'status'     => self::STATUS_WARNING,
+            'detail'     => AdminTranslator::tVars('health.waitlist_fixed', ['count' => $notified, 'products' => count($backlogProducts)]),
+            'auto_fixed' => true,
         ];
     }
 
@@ -2735,17 +3020,16 @@ class HealthCheckManager
 
         $decoded = json_decode($raw, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+            // Réinitialise à vide plutôt que de laisser un JSON corrompu en
+            // place : tous les emails repartent avec l'expéditeur par défaut
+            // de la boutique (comportement identique au cas "non configuré"),
+            // sans perte de données puisque la valeur était déjà inexploitable.
+            \Configuration::updateValue('NERIA_SENDERS_JSON', '');
             return [
-                'status' => self::STATUS_ERROR,
-                'detail' => AdminTranslator::tVars('health.multisender_invalid_json', ['err' => json_last_error_msg()]),
-            ];
-        }
-
-        if (!is_array($decoded)) {
-            return [
-                'status' => self::STATUS_ERROR,
-                'detail' => AdminTranslator::t('health.multisender_not_array'),
+                'status'     => self::STATUS_WARNING,
+                'detail'     => AdminTranslator::t('health.multisender_fixed'),
+                'auto_fixed' => true,
             ];
         }
 
@@ -2772,6 +3056,20 @@ class HealthCheckManager
         $recipient = trim((string) \Configuration::get(\MonthlyReportManager::CONFIG_RECIPIENTS));
 
         if ($recipient === '') {
+            // MonthlyReportManager::getRecipients() se replie sur PS_SHOP_EMAIL
+            // quand aucun destinataire n'est explicitement configuré — l'envoi
+            // réel n'est donc pas silencieusement perdu tant que cette valeur
+            // existe. Avant ce correctif, ce contrôle affichait un WARNING
+            // laissant croire à un envoi cassé/perdu, alors que le rapport
+            // partait bien vers l'email de la boutique.
+            $shopEmail = trim((string) \Configuration::get('PS_SHOP_EMAIL'));
+            if ($shopEmail !== '' && filter_var($shopEmail, FILTER_VALIDATE_EMAIL)) {
+                return [
+                    'status' => self::STATUS_OK,
+                    'detail' => AdminTranslator::tVars('health.monthly_report_fallback', ['recipient' => $shopEmail]),
+                ];
+            }
+
             return [
                 'status' => self::STATUS_WARNING,
                 'detail' => AdminTranslator::t('health.monthly_report_no_recipient'),
@@ -2956,28 +3254,28 @@ class HealthCheckManager
             'SELECT MAX(`computed_at`) FROM `' . _DB_PREFIX_ . 'neria_customer_segment`'
         );
 
-        if (!$lastRun) {
-            return [
-                'status' => self::STATUS_WARNING,
-                'detail' => AdminTranslator::t('health.segment_never'),
-            ];
+        $needsRecompute = !$lastRun || (time() - strtotime($lastRun)) / 3600 > 48;
+
+        if ($needsRecompute) {
+            try {
+                $updated = (new \SegmentManager($this->module))->recomputeAll();
+                return [
+                    'status'     => self::STATUS_WARNING,
+                    'detail'     => AdminTranslator::tVars('health.segment_fixed', ['count' => $updated]),
+                    'auto_fixed' => true,
+                ];
+            } catch (\Throwable $e) {
+                return [
+                    'status' => self::STATUS_ERROR,
+                    'detail' => AdminTranslator::tVars('health.segment_critical', [
+                        'ageH'    => $lastRun ? round((time() - strtotime($lastRun)) / 3600, 1) : 'N/A',
+                        'lastRun' => $lastRun ?: '—',
+                    ]),
+                ];
+            }
         }
 
         $ageH = round((time() - strtotime($lastRun)) / 3600, 1);
-
-        if ($ageH > 72) {
-            return [
-                'status' => self::STATUS_ERROR,
-                'detail' => AdminTranslator::tVars('health.segment_critical', ['ageH' => $ageH, 'lastRun' => $lastRun]),
-            ];
-        }
-
-        if ($ageH > 48) {
-            return [
-                'status' => self::STATUS_WARNING,
-                'detail' => AdminTranslator::tVars('health.segment_late', ['ageH' => $ageH]),
-            ];
-        }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.segment_ok', ['ageH' => $ageH])];
     }
@@ -2999,28 +3297,30 @@ class HealthCheckManager
             SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_churn_score`
         ');
 
-        if ($count === 0) {
-            return [
-                'status' => self::STATUS_WARNING,
-                'detail' => AdminTranslator::t('health.clv_no_scores'),
-            ];
-        }
-
-        $lastCalc = $db->getValue('
+        $lastCalc = $count > 0 ? $db->getValue('
             SELECT MAX(computed_at) FROM `' . _DB_PREFIX_ . 'neria_churn_score`
-        ');
+        ') : null;
 
-        if (!$lastCalc) {
-            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.clv_active_no_calc', ['count' => $count])];
-        }
+        $ageH = $lastCalc ? round((time() - strtotime($lastCalc)) / 3600, 1) : null;
 
-        $ageH = round((time() - strtotime($lastCalc)) / 3600, 1);
-
-        if ($ageH > 72) {
-            return [
-                'status' => self::STATUS_WARNING,
-                'detail' => AdminTranslator::tVars('health.clv_stale', ['ageH' => $ageH, 'count' => $count]),
-            ];
+        if ($count === 0 || $ageH > 72) {
+            if (!class_exists('ChurnScoreManager')) {
+                return $count === 0
+                    ? ['status' => self::STATUS_WARNING, 'detail' => AdminTranslator::t('health.clv_no_scores')]
+                    : ['status' => self::STATUS_WARNING, 'detail' => AdminTranslator::tVars('health.clv_stale', ['ageH' => $ageH, 'count' => $count])];
+            }
+            try {
+                $updated = (new \ChurnScoreManager($this->module))->recomputeAll();
+                return [
+                    'status'     => self::STATUS_WARNING,
+                    'detail'     => AdminTranslator::tVars('health.clv_fixed', ['count' => $updated]),
+                    'auto_fixed' => true,
+                ];
+            } catch (\Throwable $e) {
+                return $count === 0
+                    ? ['status' => self::STATUS_WARNING, 'detail' => AdminTranslator::t('health.clv_no_scores')]
+                    : ['status' => self::STATUS_WARNING, 'detail' => AdminTranslator::tVars('health.clv_stale', ['ageH' => $ageH, 'count' => $count])];
+            }
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.clv_ok', ['count' => $count, 'ageH' => $ageH])];
@@ -3050,9 +3350,35 @@ class HealthCheckManager
         ');
 
         if ($stuck > 0) {
+            // Auto-réparation : force l'envoi des relances en retard tout de
+            // suite plutôt que d'attendre le prochain passage du cron complet.
+            try {
+                (new \BehavioralCronManager($this->module))->sendQuoteExpiryReminders();
+            } catch (\Throwable $e) {
+                return [
+                    'status' => self::STATUS_WARNING,
+                    'detail' => AdminTranslator::tVars('health.quote_stuck', ['stuck' => $stuck]),
+                ];
+            }
+
+            $stillStuck = (int) \Db::getInstance()->getValue('
+                SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_quote`
+                WHERE status = \'active\'
+                  AND sent_48h = 0
+                  AND date_add < DATE_SUB(NOW(), INTERVAL 7 DAY)
+            ');
+
+            if ($stillStuck === 0) {
+                return [
+                    'status'     => self::STATUS_WARNING,
+                    'detail'     => AdminTranslator::tVars('health.quote_fixed', ['count' => $stuck]),
+                    'auto_fixed' => true,
+                ];
+            }
+
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => AdminTranslator::tVars('health.quote_stuck', ['stuck' => $stuck]),
+                'detail' => AdminTranslator::tVars('health.quote_stuck', ['stuck' => $stillStuck]),
             ];
         }
 
@@ -3706,21 +4032,44 @@ class HealthCheckManager
 
         $mailsDir  = rtrim($this->module->getLocalPath(), '/') . '/mails/';
         $offenders = [];
+        $paths     = [];
 
         foreach ((array) $rows as $row) {
             $tpl   = (string) $row['template'];
             $langs = $row['lang'] !== '' ? [(string) $row['lang']] : \TranslationEngine::SUPPORTED_LANGS;
             foreach ($langs as $lang) {
-                if (is_file($mailsDir . $lang . '/' . $tpl . '.html') || is_file($mailsDir . $lang . '/' . $tpl . '.txt')) {
-                    $offenders[] = $tpl . ' (' . $lang . ')';
+                foreach (['.html', '.txt'] as $ext) {
+                    $path = $mailsDir . $lang . '/' . $tpl . $ext;
+                    if (is_file($path)) {
+                        $offenders[] = $tpl . ' (' . $lang . ')';
+                        $paths[]     = $path;
+                    }
                 }
             }
         }
 
         if ($offenders) {
+            $deleted = 0;
+            foreach ($paths as $path) {
+                if (@unlink($path)) {
+                    $deleted++;
+                }
+            }
             $offenders = array_unique($offenders);
             $count     = count($offenders);
-            $list      = implode(', ', array_slice($offenders, 0, 8));
+
+            if ($deleted === count($paths)) {
+                return [
+                    'status'     => self::STATUS_WARNING,
+                    'detail'     => AdminTranslator::tVars('health.blacklist_stale_fixed', [
+                        'count' => $count,
+                        'list'  => implode(', ', array_slice($offenders, 0, 8)),
+                    ]),
+                    'auto_fixed' => true,
+                ];
+            }
+
+            $list = implode(', ', array_slice($offenders, 0, 8));
             return [
                 'status' => self::STATUS_ERROR,
                 'detail' => AdminTranslator::tVars('health.blacklist_stale_error', ['count' => $count, 'list' => $list]),
@@ -3743,7 +4092,7 @@ class HealthCheckManager
     private function checkRecentResidualVarsWarnings(): array
     {
         $rows = $this->db->executeS(
-            'SELECT `template`, `message` FROM `' . _DB_PREFIX_ . 'neria_log`
+            'SELECT `template`, `message`, `date_add` FROM `' . _DB_PREFIX_ . 'neria_log`
              WHERE `class` = \'EmailRenderer\'
                AND `message` LIKE \'%residual_vars_stripped%\'
                AND `date_add` >= DATE_SUB(NOW(), INTERVAL 7 DAY)'
@@ -3752,6 +4101,22 @@ class HealthCheckManager
         if (empty($rows)) {
             return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.residual_recent_ok')];
         }
+
+        // La détection SYSTÉMIQUE (ci-dessous) utilise une fenêtre plus courte
+        // (24h, alignée sur le rythme des autres seuils du module — cron_health,
+        // throttle du render_canary) que le signal informatif isolé (7 jours,
+        // plus bas) : un vrai bug de code produit des occurrences en continu,
+        // 24h suffit largement à le détecter. Une fenêtre de 7 jours ferait
+        // crier au bug pendant une semaine après chaque correction, sur du
+        // bruit historique déjà résolu — piège rencontré en pratique le
+        // 2026-07-12 avec {preferences_url} (fix commit b7871d3, 08h17) :
+        // 251 occurrences du 11/07 (avant fix) encore dans la fenêtre de 7j,
+        // et même une fenêtre de 48h les incluait encore (32-36h d'écart) —
+        // seule une fenêtre de 24h les exclut correctement, confirmé par un
+        // second contrôle direct (0 occurrence dans les 24h suivant le fix).
+        $recentRows = array_values(array_filter((array) $rows, function ($row) {
+            return isset($row['date_add']) && strtotime($row['date_add']) >= strtotime('-24 hours');
+        }));
 
         // Distingue un défaut de câblage SYSTÉMIQUE (une variable jamais injectée
         // nulle part, donc absente sur la quasi-totalité des templates — ex. le
@@ -3776,16 +4141,35 @@ class HealthCheckManager
             }
         }
 
+        // Recalcul dédié à la détection systémique, sur la fenêtre courte
+        // (48h) uniquement — voir commentaire plus haut.
+        $recentVarTemplates      = [];
+        $recentTemplatesAffected = [];
+
+        foreach ($recentRows as $row) {
+            $template = (string) $row['template'];
+            $recentTemplatesAffected[$template] = true;
+
+            if (preg_match('/"vars":"([^"]*)"/', (string) $row['message'], $m)) {
+                foreach (explode(', ', $m[1]) as $var) {
+                    $var = trim($var);
+                    if ($var !== '') {
+                        $recentVarTemplates[$var][$template] = true;
+                    }
+                }
+            }
+        }
+
         // {custom_message}/{custom_message_txt} sont volontairement optionnels
         // (vides hors envoi manuel avec message personnalisé, cf. injectCustomMessage)
         // — leur absence quasi-systématique est normale, pas un bug de câblage.
         $knownOptional = ['{custom_message}', '{custom_message_txt}'];
 
-        $totalTemplates    = count($templatesAffected);
+        $totalTemplates    = count($recentTemplatesAffected);
         $systemicThreshold = max(10, (int) ceil($totalTemplates * 0.5));
 
         $systemicVars = [];
-        foreach ($varTemplates as $var => $tpls) {
+        foreach ($recentVarTemplates as $var => $tpls) {
             if (in_array($var, $knownOptional, true)) {
                 continue;
             }

@@ -418,6 +418,33 @@
                 </span>
               {/if}
               {$result.detail|default:''|escape:'html'|regex_replace:'/→ Que faire :/':"<br><strong style=\"color:#BA7517;\">→ Que faire :</strong>"}
+              {if $checkKey === 'trad_keys' && $hStatus !== 'ok'}
+                <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:8px;">
+                  <input type="hidden" name="neria_action" value="reload_all_translations">
+                  <input type="hidden" name="neria_tab"    value="help">
+                  <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm">
+                    ↺ {neria_admin key='translations.reload_all'}
+                  </button>
+                </form>
+              {/if}
+              {if $checkKey === 'version_sync' && $hStatus !== 'ok'}
+                <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:8px;">
+                  <input type="hidden" name="neria_action" value="repair_module_version">
+                  <input type="hidden" name="neria_tab"    value="help">
+                  <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm">
+                    ↺ {neria_admin key='help.health_fix_version_btn'}
+                  </button>
+                </form>
+              {/if}
+              {if $checkKey === 'bounces_unprocessed' && $hStatus !== 'ok'}
+                <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:8px;">
+                  <input type="hidden" name="neria_action" value="repair_bounces_check">
+                  <input type="hidden" name="neria_tab"    value="help">
+                  <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm">
+                    ↺ {neria_admin key='help.health_fix_bounces_btn'}
+                  </button>
+                </form>
+              {/if}
             </li>
           </ul>
         </div>

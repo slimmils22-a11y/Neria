@@ -824,179 +824,6 @@
             "signature_thanks": "The house is delighted to count you among its own,"
         }
     },
-    "back_in_stock": {
-        "fr": {
-            "greeting_main": "La rareté s'offre à vous de nouveau",
-            "greeting_subtitle": "Votre pièce est de retour",
-            "dear_customer": "Madame, Monsieur,",
-            "back_in_stock_intro": "Vous avez manifesté votre intérêt pour une pièce actuellement indisponible. Nous sommes heureux de vous informer qu'elle est de nouveau accessible.",
-            "back_in_stock_available": "Cette pièce est de nouveau accessible. Sa disponibilité demeure limitée.",
-            "back_in_stock_btn": "Découvrir la pièce",
-            "back_in_stock_note": "Ce lien est unique et valable 7 jours. Passé ce délai, nous ne pouvons garantir la disponibilité."
-        },
-        "en": {
-            "greeting_main": "Rarity graces you once more",
-            "greeting_subtitle": "Your piece has returned",
-            "dear_customer": "Dear Valued Guest,",
-            "back_in_stock_intro": "You have expressed interest in a piece that was temporarily unavailable. We are pleased to inform you that it is now accessible again.",
-            "back_in_stock_available": "This piece is once again available. Its availability remains limited.",
-            "back_in_stock_btn": "Discover the piece",
-            "back_in_stock_note": "This link is unique and valid for 7 days. After that, we cannot guarantee availability."
-        },
-        "de": {
-            "greeting_main": "Die Seltenheit kehrt zu Ihnen zurück",
-            "greeting_subtitle": "Ihr Stück ist wieder verfügbar",
-            "dear_customer": "Sehr geehrte Damen und Herren,",
-            "back_in_stock_intro": "Sie haben Interesse an einem derzeit nicht verfügbaren Stück bekundet. Wir freuen uns, Ihnen mitteilen zu können, dass es wieder zugänglich ist.",
-            "back_in_stock_available": "Dieses Stück ist wieder verfügbar. Seine Verfügbarkeit bleibt begrenzt.",
-            "back_in_stock_btn": "Das Stück entdecken",
-            "back_in_stock_note": "Dieser Link ist einzigartig und 7 Tage lang gültig. Danach können wir die Verfügbarkeit nicht garantieren."
-        },
-        "it": {
-            "greeting_main": "La rarità torna a Vostra disposizione",
-            "greeting_subtitle": "Il Vostro pezzo è di ritorno",
-            "dear_customer": "Gentile Cliente,",
-            "back_in_stock_intro": "Avete manifestato interesse per un pezzo attualmente non disponibile. Siamo lieti di informarVi che è di nuovo accessibile.",
-            "back_in_stock_available": "Questo pezzo è di nuovo accessibile. La sua disponibilità rimane limitata.",
-            "back_in_stock_btn": "Scoprire il pezzo",
-            "back_in_stock_note": "Questo link è unico e valido per 7 giorni. Trascorso questo termine, non possiamo garantire la disponibilità."
-        },
-        "es": {
-            "greeting_main": "La rareza se ofrece de nuevo",
-            "greeting_subtitle": "Su pieza ha vuelto",
-            "dear_customer": "Estimado cliente,",
-            "back_in_stock_intro": "Ha mostrado interés en una pieza actualmente no disponible. Nos complace informarle que vuelve a estar accesible.",
-            "back_in_stock_available": "Esta pieza vuelve a estar disponible. Su disponibilidad sigue siendo limitada.",
-            "back_in_stock_btn": "Descubrir la pieza",
-            "back_in_stock_note": "Este enlace es único y válido durante 7 días. Pasado ese plazo, no podemos garantizar la disponibilidad."
-        },
-        "pt": {
-            "greeting_main": "A raridade volta a estar disponível",
-            "greeting_subtitle": "A sua peça está de volta",
-            "dear_customer": "Prezado Cliente,",
-            "back_in_stock_intro": "Manifestou interesse numa peça atualmente indisponível. Temos o prazer de o informar que está novamente acessível.",
-            "back_in_stock_available": "Esta peça está novamente disponível. A sua disponibilidade permanece limitada.",
-            "back_in_stock_btn": "Descobrir a peça",
-            "back_in_stock_note": "Este link é único e válido por 7 dias. Após esse prazo, não podemos garantir a disponibilidade."
-        },
-        "br": {
-            "greeting_main": "A raridade volta a estar disponível",
-            "greeting_subtitle": "Sua peça está de volta",
-            "dear_customer": "Prezado Cliente,",
-            "back_in_stock_intro": "Você manifestou interesse em uma peça atualmente indisponível. Temos o prazer de informá-lo que ela está novamente acessível.",
-            "back_in_stock_available": "Esta peça está novamente disponível. Sua disponibilidade permanece limitada.",
-            "back_in_stock_btn": "Descobrir a peça",
-            "back_in_stock_note": "Este link é único e válido por 7 dias. Após esse prazo, não podemos garantir a disponibilidade."
-        },
-        "ar": {
-            "greeting_main": "النادر يعود إليكم من جديد",
-            "greeting_subtitle": "قطعتكم عادت",
-            "dear_customer": "ضيفنا الكريم،",
-            "back_in_stock_intro": "لقد أبديتم اهتماماً بقطعة غير متاحة حالياً. يسرنا إعلامكم أنها أصبحت متاحة مرة أخرى.",
-            "back_in_stock_available": "هذه القطعة متاحة مجدداً. وتبقى كميتها محدودة.",
-            "back_in_stock_btn": "اكتشف القطعة",
-            "back_in_stock_note": "هذا الرابط فريد وصالح لمدة 7 أيام. بعد ذلك، لا يمكننا ضمان التوفر."
-        },
-        "ja": {
-            "greeting_main": "稀少な逸品が再び手に入ります",
-            "greeting_subtitle": "お客様の逸品が戻ってまいりました",
-            "dear_customer": "{lastname} {firstname} 様",
-            "back_in_stock_intro": "現在入手困難な一品にご関心をお寄せいただいておりました。再びご利用いただけるようになったことをお知らせいたします。",
-            "back_in_stock_available": "このピースが再びお求めいただけるようになりました。ご用意できる数量は限られております。",
-            "back_in_stock_btn": "逸品を見る",
-            "back_in_stock_note": "こちらのリンクは有効期限が7日間です。期限切れ後は在庫を保証できません。"
-        },
-        "ko": {
-            "greeting_main": "희소한 작품이 다시 만나집니다",
-            "greeting_subtitle": "고객님의 작품이 돌아왔습니다",
-            "dear_customer": "{lastname} {firstname} 고객님께,",
-            "back_in_stock_intro": "현재 구매 불가능한 제품에 관심을 보여주셨습니다. 다시 이용 가능해졌음을 알려드리게 되어 기쁩니다.",
-            "back_in_stock_available": "이 작품이 다시 구매 가능해졌습니다. 수량이 한정되어 있습니다.",
-            "back_in_stock_btn": "제품 보기",
-            "back_in_stock_note": "이 링크는 7일 동안 유효합니다. 이후에는 재고를 보장할 수 없습니다."
-        },
-        "zh": {
-            "greeting_main": "珍稀再度向您敞开",
-            "greeting_subtitle": "您的珍品已回归",
-            "dear_customer": "尊敬的客人，",
-            "back_in_stock_intro": "您曾对一件暂时缺货的商品表示兴趣。我们很高兴通知您，该商品现已重新上架。",
-            "back_in_stock_available": "这件作品再次可供购买。数量依然有限。",
-            "back_in_stock_btn": "查看商品",
-            "back_in_stock_note": "此链接有效期为7天，过期后无法保证库存。"
-        },
-        "tw": {
-            "greeting_main": "珍稀再度向您敞開",
-            "greeting_subtitle": "您的珍品已回歸",
-            "dear_customer": "尊敬的客人，",
-            "back_in_stock_intro": "您曾對一件暫時缺貨的商品表示興趣。我們很高興通知您，該商品現已重新上架。",
-            "back_in_stock_available": "這件作品再次可供購買。數量依然有限。",
-            "back_in_stock_btn": "查看商品",
-            "back_in_stock_note": "此連結有效期為7天，過期後無法保證庫存。"
-        },
-        "ru": {
-            "greeting_main": "Редкость снова к Вашим услугам",
-            "greeting_subtitle": "Ваше изделие вернулось",
-            "dear_customer": "Уважаемый гость,",
-            "back_in_stock_intro": "Вы проявляли интерес к изделию, которое в данный момент было недоступно. Мы рады сообщить, что оно снова доступно.",
-            "back_in_stock_available": "Это изделие снова доступно. Его наличие по-прежнему ограничено.",
-            "back_in_stock_btn": "Посмотреть изделие",
-            "back_in_stock_note": "Эта ссылка действительна в течение 7 дней. После этого мы не можем гарантировать наличие."
-        },
-        "tr": {
-            "greeting_main": "Nadirlik yeniden size sunuluyor",
-            "greeting_subtitle": "Parçanız geri döndü",
-            "dear_customer": "Sayın Değerli Misafirimiz,",
-            "back_in_stock_intro": "Şu anda mevcut olmayan bir ürüne ilgi gösterdiniz. Tekrar erişilebilir olduğunu bildirmekten mutluluk duyarız.",
-            "back_in_stock_available": "Bu parça yeniden erişilebilir. Mevcudiyeti sınırlı kalmaya devam etmektedir.",
-            "back_in_stock_btn": "Ürünü keşfedin",
-            "back_in_stock_note": "Bu bağlantı 7 gün geçerlidir. Süre sonunda mevcudiyeti garanti edemeyiz."
-        },
-        "sv": {
-            "greeting_main": "Sällsyntheten erbjuds dig igen",
-            "greeting_subtitle": "Ditt stycke har återvänt",
-            "dear_customer": "Bästa kund,",
-            "back_in_stock_intro": "Du har visat intresse för en produkt som för närvarande inte är tillgänglig. Vi är glada att meddela att den åter är tillgänglig.",
-            "back_in_stock_available": "Denna pjäs är återigen tillgänglig. Tillgängligheten förblir begränsad.",
-            "back_in_stock_btn": "Upptäck produkten",
-            "back_in_stock_note": "Denna länk är unik och giltig i 7 dagar. Därefter kan vi inte garantera tillgänglighet."
-        },
-        "no": {
-            "greeting_main": "Sjeldenhet tilbys deg igjen",
-            "greeting_subtitle": "Ditt stykke har kommet tilbake",
-            "dear_customer": "Kjære kunde,",
-            "back_in_stock_intro": "Du har vist interesse for et produkt som for øyeblikket ikke er tilgjengelig. Vi er glade for å kunne informere om at det igjen er tilgjengelig.",
-            "back_in_stock_available": "Dette stykket er igjen tilgjengelig. Tilgjengeligheten forblir begrenset.",
-            "back_in_stock_btn": "Oppdag produktet",
-            "back_in_stock_note": "Denne lenken er unik og gyldig i 7 dager. Etter det kan vi ikke garantere tilgjengelighet."
-        },
-        "da": {
-            "greeting_main": "Sjældenheden tilbydes dig igen",
-            "greeting_subtitle": "Dit stykke er vendt tilbage",
-            "dear_customer": "Kære kunde,",
-            "back_in_stock_intro": "Du har vist interesse for et produkt, der i øjeblikket ikke er tilgængeligt. Vi er glade for at kunne oplyse, at det igen er tilgængeligt.",
-            "back_in_stock_available": "Dette stykke er igen tilgængeligt. Tilgængeligheden forbliver begrænset.",
-            "back_in_stock_btn": "Opdag produktet",
-            "back_in_stock_note": "Dette link er unikt og gyldigt i 7 dage. Derefter kan vi ikke garantere tilgængelighed."
-        },
-        "nl": {
-            "greeting_main": "Zeldzaamheid wordt u opnieuw aangeboden",
-            "greeting_subtitle": "Uw stuk is teruggekeerd",
-            "dear_customer": "Geachte klant,",
-            "back_in_stock_intro": "U heeft interesse getoond in een stuk dat momenteel niet beschikbaar was. Wij zijn verheugd u te kunnen meedelen dat het weer toegankelijk is.",
-            "back_in_stock_available": "Dit stuk is opnieuw beschikbaar. De beschikbaarheid blijft beperkt.",
-            "back_in_stock_btn": "Ontdek het stuk",
-            "back_in_stock_note": "Deze link is uniek en 7 dagen geldig. Daarna kunnen we de beschikbaarheid niet garanderen."
-        },
-        "gb": {
-            "greeting_main": "Rarity graces you once more",
-            "greeting_subtitle": "Your piece has returned",
-            "dear_customer": "Dear Valued Guest,",
-            "back_in_stock_intro": "You have expressed interest in a piece that was temporarily unavailable. We are pleased to inform you that it is now accessible again.",
-            "back_in_stock_available": "This piece is once again available. Its availability remains limited.",
-            "back_in_stock_btn": "Discover the piece",
-            "back_in_stock_note": "This link is unique and valid for 7 days. After that, we cannot guarantee availability."
-        }
-    },
     "backoffice_order": {
         "fr": {
             "greeting_main": "Mise à jour de votre commande",
@@ -14700,504 +14527,6 @@
             "order_reference_label": "Order reference"
         }
     },
-    "order_address_updated": {
-        "fr": {
-            "greeting_main": "Votre adresse de livraison a été mise à jour",
-            "greeting_subtitle": "Nous avons bien pris en compte votre modification",
-            "dear_customer": "Madame, Monsieur,",
-            "address_update_intro": "Nous confirmons que l'adresse de livraison de votre commande a été modifiée avec succès.",
-            "address_update_details": "Détails de l'adresse mise à jour",
-            "address_update_new": "Nouvelle adresse de livraison",
-            "address_update_old": "Ancienne adresse (pour information)",
-            "address_update_btn": "Voir ma commande",
-            "address_update_note": "Si cette modification n'était pas souhaitée, veuillez nous contacter rapidement.",
-            "address_update_signature": "Avec toute notre attention,",
-            "order_reference_label": "Référence commande"
-        },
-        "en": {
-            "greeting_main": "Your delivery address has been updated",
-            "greeting_subtitle": "We have successfully registered your change",
-            "dear_customer": "Dear Valued Guest,",
-            "address_update_intro": "We confirm that the delivery address for your order has been successfully modified.",
-            "address_update_details": "Updated address details",
-            "address_update_new": "New delivery address",
-            "address_update_old": "Previous address (for reference)",
-            "address_update_btn": "View my order",
-            "address_update_note": "If this change was not intended, please contact us promptly.",
-            "address_update_signature": "With all our attention,",
-            "order_reference_label": "Order reference"
-        },
-        "de": {
-            "greeting_main": "Ihre Lieferadresse wurde aktualisiert",
-            "greeting_subtitle": "Wir haben Ihre Änderung erfolgreich registriert",
-            "dear_customer": "Sehr geehrte Damen und Herren,",
-            "address_update_intro": "Wir bestätigen, dass die Lieferadresse für Ihre Bestellung erfolgreich geändert wurde.",
-            "address_update_details": "Details der aktualisierten Adresse",
-            "address_update_new": "Neue Lieferadresse",
-            "address_update_old": "Bisherige Adresse (zur Information)",
-            "address_update_btn": "Meine Bestellung anzeigen",
-            "address_update_note": "Wenn diese Änderung nicht beabsichtigt war, kontaktieren Sie uns bitte umgehend.",
-            "address_update_signature": "Mit all unserer Aufmerksamkeit,",
-            "order_reference_label": "Bestellreferenz"
-        },
-        "it": {
-            "greeting_main": "Il Vostro indirizzo di consegna è stato aggiornato",
-            "greeting_subtitle": "Abbiamo registrato con successo la Vostra modifica",
-            "dear_customer": "Gentile Cliente,",
-            "address_update_intro": "Confermiamo che l'indirizzo di consegna del Vostro ordine è stato modificato con successo.",
-            "address_update_details": "Dettagli dell'indirizzo aggiornato",
-            "address_update_new": "Nuovo indirizzo di consegna",
-            "address_update_old": "Indirizzo precedente (per riferimento)",
-            "address_update_btn": "Visualizza il mio ordine",
-            "address_update_note": "Se questa modifica non era desiderata, contattateci tempestivamente.",
-            "address_update_signature": "Con tutta la nostra attenzione,",
-            "order_reference_label": "Riferimento ordine"
-        },
-        "es": {
-            "greeting_main": "Su dirección de entrega ha sido actualizada",
-            "greeting_subtitle": "Hemos registrado su cambio con éxito",
-            "dear_customer": "Estimado cliente,",
-            "address_update_intro": "Confirmamos que la dirección de entrega de su pedido ha sido modificada con éxito.",
-            "address_update_details": "Detalles de la dirección actualizada",
-            "address_update_new": "Nueva dirección de entrega",
-            "address_update_old": "Dirección anterior (para referencia)",
-            "address_update_btn": "Ver mi pedido",
-            "address_update_note": "Si este cambio no fue deseado, por favor contáctenos rápidamente.",
-            "address_update_signature": "Con toda nuestra atención,",
-            "order_reference_label": "Referencia del pedido"
-        },
-        "pt": {
-            "greeting_main": "A sua morada de entrega foi atualizada",
-            "greeting_subtitle": "Registámos com sucesso a sua alteração",
-            "dear_customer": "Prezado Cliente,",
-            "address_update_intro": "Confirmamos que a morada de entrega da sua encomenda foi modificada com sucesso.",
-            "address_update_details": "Detalhes da morada atualizada",
-            "address_update_new": "Nova morada de entrega",
-            "address_update_old": "Morada anterior (para referência)",
-            "address_update_btn": "Ver a minha encomenda",
-            "address_update_note": "Se esta alteração não foi desejada, contacte-nos rapidamente.",
-            "address_update_signature": "Com toda a nossa atenção,",
-            "order_reference_label": "Referência da encomenda"
-        },
-        "br": {
-            "greeting_main": "Seu endereço de entrega foi atualizado",
-            "greeting_subtitle": "Registramos sua alteração com sucesso",
-            "dear_customer": "Prezado Cliente,",
-            "address_update_intro": "Confirmamos que o endereço de entrega do seu pedido foi modificado com sucesso.",
-            "address_update_details": "Detalhes do endereço atualizado",
-            "address_update_new": "Novo endereço de entrega",
-            "address_update_old": "Endereço anterior (para referência)",
-            "address_update_btn": "Ver meu pedido",
-            "address_update_note": "Se esta alteração não foi desejada, entre em contato conosco rapidamente.",
-            "address_update_signature": "Com toda a nossa atenção,",
-            "order_reference_label": "Referência do pedido"
-        },
-        "ar": {
-            "greeting_main": "تم تحديث عنوان التوصيل الخاص بكم",
-            "greeting_subtitle": "سجلنا تعديلكم بنجاح",
-            "dear_customer": "ضيفنا الكريم،",
-            "address_update_intro": "نؤكد أنه تم تعديل عنوان توصيل طلبكم بنجاح.",
-            "address_update_details": "تفاصيل العنوان المحدث",
-            "address_update_new": "عنوان التوصيل الجديد",
-            "address_update_old": "العنوان السابق (للعلم)",
-            "address_update_btn": "عرض طلبي",
-            "address_update_note": "إذا لم يكن هذا التعديل مرغوباً، يرجى الاتصال بنا سريعاً.",
-            "address_update_signature": "بكل اهتمامنا،",
-            "order_reference_label": "مرجع الطلب"
-        },
-        "ja": {
-            "greeting_main": "配送先住所が更新されました",
-            "greeting_subtitle": "変更を正常に登録しました",
-            "dear_customer": "{lastname} {firstname} 様",
-            "address_update_intro": "ご注文の配送先住所が正常に変更されたことを確認します。",
-            "address_update_details": "更新された住所の詳細",
-            "address_update_new": "新しい配送先住所",
-            "address_update_old": "以前の住所（参考用）",
-            "address_update_btn": "注文を見る",
-            "address_update_note": "この変更が意図されたものでない場合は、速やかにご連絡ください。",
-            "address_update_signature": "細心の注意を払って、",
-            "order_reference_label": "注文番号"
-        },
-        "ko": {
-            "greeting_main": "배송 주소가 업데이트되었습니다",
-            "greeting_subtitle": "변경 사항을 성공적으로 등록했습니다",
-            "dear_customer": "{lastname} {firstname} 고객님께,",
-            "address_update_intro": "주문의 배송 주소가 성공적으로 변경되었음을 확인합니다.",
-            "address_update_details": "업데이트된 주소 세부 정보",
-            "address_update_new": "새 배송 주소",
-            "address_update_old": "이전 주소 (참고용)",
-            "address_update_btn": "주문 보기",
-            "address_update_note": "이 변경이 의도된 것이 아닌 경우 신속히 연락해 주십시오.",
-            "address_update_signature": "모든 주의를 기울여,",
-            "order_reference_label": "주문 참조 번호"
-        },
-        "zh": {
-            "greeting_main": "您的送货地址已更新",
-            "greeting_subtitle": "我们已成功登记您的更改",
-            "dear_customer": "尊敬的客人，",
-            "address_update_intro": "我们确认您的订单送货地址已成功修改。",
-            "address_update_details": "更新后的地址详情",
-            "address_update_new": "新送货地址",
-            "address_update_old": "旧地址（供参考）",
-            "address_update_btn": "查看我的订单",
-            "address_update_note": "如果此更改并非您本意，请尽快联系我们。",
-            "address_update_signature": "我们全心全意，",
-            "order_reference_label": "订单编号"
-        },
-        "tw": {
-            "greeting_main": "您的送貨地址已更新",
-            "greeting_subtitle": "我們已成功登記您的更改",
-            "dear_customer": "尊敬的客人，",
-            "address_update_intro": "我們確認您的訂單送貨地址已成功修改。",
-            "address_update_details": "更新後的地址詳情",
-            "address_update_new": "新送貨地址",
-            "address_update_old": "舊地址（供參考）",
-            "address_update_btn": "查看我的訂單",
-            "address_update_note": "如果此更改並非您本意，請盡快聯繫我們。",
-            "address_update_signature": "我們全心全意，",
-            "order_reference_label": "訂單編號"
-        },
-        "ru": {
-            "greeting_main": "Ваш адрес доставки был обновлён",
-            "greeting_subtitle": "Мы успешно зарегистрировали Ваше изменение",
-            "dear_customer": "Уважаемый гость,",
-            "address_update_intro": "Мы подтверждаем, что адрес доставки Вашего заказа был успешно изменён.",
-            "address_update_details": "Детали обновлённого адреса",
-            "address_update_new": "Новый адрес доставки",
-            "address_update_old": "Предыдущий адрес (для справки)",
-            "address_update_btn": "Посмотреть мой заказ",
-            "address_update_note": "Если это изменение не предполагалось, пожалуйста, свяжитесь с нами оперативно.",
-            "address_update_signature": "Со всем нашим вниманием,",
-            "order_reference_label": "Номер заказа"
-        },
-        "tr": {
-            "greeting_main": "Teslimat adresiniz güncellendi",
-            "greeting_subtitle": "Değişikliğinizi başarıyla kaydettik",
-            "dear_customer": "Sayın Değerli Misafirimiz,",
-            "address_update_intro": "Siparişinizin teslimat adresinin başarıyla değiştirildiğini onaylıyoruz.",
-            "address_update_details": "Güncellenmiş adres detayları",
-            "address_update_new": "Yeni teslimat adresi",
-            "address_update_old": "Önceki adres (bilgi için)",
-            "address_update_btn": "Siparişimi görüntüle",
-            "address_update_note": "Bu değişiklik istenmediyse lütfen hızlıca bizimle iletişime geçin.",
-            "address_update_signature": "Tüm dikkatimizle,",
-            "order_reference_label": "Sipariş referansı"
-        },
-        "sv": {
-            "greeting_main": "Din leveransadress har uppdaterats",
-            "greeting_subtitle": "Vi har framgångsrikt registrerat din ändring",
-            "dear_customer": "Bästa kund,",
-            "address_update_intro": "Vi bekräftar att leveransadressen för din beställning har ändrats.",
-            "address_update_details": "Uppdaterad adressinformation",
-            "address_update_new": "Ny leveransadress",
-            "address_update_old": "Tidigare adress (för referens)",
-            "address_update_btn": "Visa min beställning",
-            "address_update_note": "Om denna ändring inte var avsedd, vänligen kontakta oss omgående.",
-            "address_update_signature": "Med all vår uppmärksamhet,",
-            "order_reference_label": "Beställningsreferens"
-        },
-        "no": {
-            "greeting_main": "Leveringsadressen din er oppdatert",
-            "greeting_subtitle": "Vi har registrert endringen din",
-            "dear_customer": "Kjære kunde,",
-            "address_update_intro": "Vi bekrefter at leveringsadressen for bestillingen din er endret.",
-            "address_update_details": "Oppdatert adressedetaljer",
-            "address_update_new": "Ny leveringsadresse",
-            "address_update_old": "Tidligere adresse (for referanse)",
-            "address_update_btn": "Se bestillingen min",
-            "address_update_note": "Hvis denne endringen ikke var tilsiktet, vennligst kontakt oss raskt.",
-            "address_update_signature": "Med all vår oppmerksomhet,",
-            "order_reference_label": "Bestillingsreferanse"
-        },
-        "da": {
-            "greeting_main": "Din leveringsadresse er blevet opdateret",
-            "greeting_subtitle": "Vi har registreret din ændring",
-            "dear_customer": "Kære kunde,",
-            "address_update_intro": "Vi bekræfter, at leveringsadressen for din ordre er ændret.",
-            "address_update_details": "Opdaterede adressedetaljer",
-            "address_update_new": "Ny leveringsadresse",
-            "address_update_old": "Tidligere adresse (til reference)",
-            "address_update_btn": "Se min ordre",
-            "address_update_note": "Hvis denne ændring ikke var tilsigtet, bedes du kontakte os hurtigt.",
-            "address_update_signature": "Med al vores opmærksomhed,",
-            "order_reference_label": "Ordrereference"
-        },
-        "nl": {
-            "greeting_main": "Uw leveringsadres is bijgewerkt",
-            "greeting_subtitle": "We hebben uw wijziging succesvol geregistreerd",
-            "dear_customer": "Geachte klant,",
-            "address_update_intro": "We bevestigen dat het leveringsadres voor uw bestelling is gewijzigd.",
-            "address_update_details": "Bijgewerkte adresgegevens",
-            "address_update_new": "Nieuw leveringsadres",
-            "address_update_old": "Vorige adres (ter referentie)",
-            "address_update_btn": "Mijn bestelling bekijken",
-            "address_update_note": "Als deze wijziging niet de bedoeling was, neem dan snel contact met ons op.",
-            "address_update_signature": "Met al onze aandacht,",
-            "order_reference_label": "Orderreferentie"
-        },
-        "gb": {
-            "greeting_main": "Your delivery address has been updated",
-            "greeting_subtitle": "We have successfully registered your change",
-            "dear_customer": "Dear Valued Guest,",
-            "address_update_intro": "We confirm that the delivery address for your order has been successfully modified.",
-            "address_update_details": "Updated address details",
-            "address_update_new": "New delivery address",
-            "address_update_old": "Previous address (for reference)",
-            "address_update_btn": "View my order",
-            "address_update_note": "If this change was not intended, please contact us promptly.",
-            "address_update_signature": "With all our attention,",
-            "order_reference_label": "Order reference"
-        }
-    },
-    "digital_gift_card": {
-        "fr": {
-            "greeting_main": "Vous avez reçu un présent numérique",
-            "greeting_subtitle": "Une carte cadeau personnelle pour vous",
-            "dear_customer": "Madame, Monsieur,",
-            "gift_card_intro": "Nous avons l'honneur de vous adresser ce présent numérique en lieu et place d'un objet physique.",
-            "gift_card_details": "Détails de votre carte cadeau",
-            "gift_card_amount": "Montant",
-            "gift_card_code": "Code de la carte",
-            "gift_card_usage": "Instructions d'utilisation",
-            "gift_card_btn": "Découvrir le site",
-            "gift_card_note": "Cette carte cadeau est valable pendant une durée déterminée. Veuillez vous référer aux conditions générales.",
-            "gift_card_signature": "Avec toute notre considération,"
-        },
-        "en": {
-            "greeting_main": "You have received a digital gift",
-            "greeting_subtitle": "A personal gift card for you",
-            "dear_customer": "Dear Valued Guest,",
-            "gift_card_intro": "We are honoured to send you this digital gift in place of a physical object.",
-            "gift_card_details": "Your gift card details",
-            "gift_card_amount": "Amount",
-            "gift_card_code": "Card code",
-            "gift_card_usage": "Instructions for use",
-            "gift_card_btn": "Visit the website",
-            "gift_card_note": "This gift card is valid for a limited time. Please refer to the terms and conditions.",
-            "gift_card_signature": "With all our consideration,"
-        },
-        "de": {
-            "greeting_main": "Sie haben ein digitales Geschenk erhalten",
-            "greeting_subtitle": "Eine persönliche Geschenkkarte für Sie",
-            "dear_customer": "Sehr geehrte Damen und Herren,",
-            "gift_card_intro": "Wir haben die Ehre, Ihnen dieses digitale Geschenk anstelle eines physischen Gegenstandes zu senden.",
-            "gift_card_details": "Details Ihrer Geschenkkarte",
-            "gift_card_amount": "Betrag",
-            "gift_card_code": "Karten-Code",
-            "gift_card_usage": "Gebrauchsanweisung",
-            "gift_card_btn": "Website besuchen",
-            "gift_card_note": "Diese Geschenkkarte ist für einen begrenzten Zeitraum gültig. Bitte beachten Sie die allgemeinen Geschäftsbedingungen.",
-            "gift_card_signature": "Mit all unserer Wertschätzung,"
-        },
-        "it": {
-            "greeting_main": "Avete ricevuto un regalo digitale",
-            "greeting_subtitle": "Una carta regalo personale per voi",
-            "dear_customer": "Gentile Cliente,",
-            "gift_card_intro": "Siamo onorati di inviarVi questo regalo digitale al posto di un oggetto fisico.",
-            "gift_card_details": "Dettagli della Vostra carta regalo",
-            "gift_card_amount": "Importo",
-            "gift_card_code": "Codice carta",
-            "gift_card_usage": "Istruzioni per l'uso",
-            "gift_card_btn": "Visita il sito web",
-            "gift_card_note": "Questa carta regalo è valida per un periodo limitato. Si prega di fare riferimento ai termini e condizioni.",
-            "gift_card_signature": "Con tutta la nostra considerazione,"
-        },
-        "es": {
-            "greeting_main": "Ha recibido un regalo digital",
-            "greeting_subtitle": "Una tarjeta regalo personal para usted",
-            "dear_customer": "Estimado cliente,",
-            "gift_card_intro": "Nos honra enviarle este regalo digital en lugar de un objeto físico.",
-            "gift_card_details": "Detalles de su tarjeta regalo",
-            "gift_card_amount": "Importe",
-            "gift_card_code": "Código de la tarjeta",
-            "gift_card_usage": "Instrucciones de uso",
-            "gift_card_btn": "Visitar el sitio web",
-            "gift_card_note": "Esta tarjeta regalo es válida por un tiempo limitado. Consulte los términos y condiciones.",
-            "gift_card_signature": "Con toda nuestra consideración,"
-        },
-        "pt": {
-            "greeting_main": "Recebeu um presente digital",
-            "greeting_subtitle": "Um cartão presente pessoal para si",
-            "dear_customer": "Prezado Cliente,",
-            "gift_card_intro": "Temos a honra de lhe enviar este presente digital em vez de um objeto físico.",
-            "gift_card_details": "Detalhes do seu cartão presente",
-            "gift_card_amount": "Montante",
-            "gift_card_code": "Código do cartão",
-            "gift_card_usage": "Instruções de utilização",
-            "gift_card_btn": "Visitar o site",
-            "gift_card_note": "Este cartão presente é válido por um período limitado. Consulte os termos e condições.",
-            "gift_card_signature": "Com toda a nossa consideração,"
-        },
-        "br": {
-            "greeting_main": "Você recebeu um presente digital",
-            "greeting_subtitle": "Um cartão-presente pessoal para você",
-            "dear_customer": "Prezado Cliente,",
-            "gift_card_intro": "Temos a honra de enviar-lhe este presente digital em vez de um objeto físico.",
-            "gift_card_details": "Detalhes do seu cartão-presente",
-            "gift_card_amount": "Valor",
-            "gift_card_code": "Código do cartão",
-            "gift_card_usage": "Instruções de uso",
-            "gift_card_btn": "Visitar o site",
-            "gift_card_note": "Este cartão-presente é válido por um período limitado. Consulte os termos e condições.",
-            "gift_card_signature": "Com toda a nossa consideração,"
-        },
-        "ar": {
-            "greeting_main": "لقد تلقيت هدية رقمية",
-            "greeting_subtitle": "بطاقة هدايا شخصية لكم",
-            "dear_customer": "ضيفنا الكريم،",
-            "gift_card_intro": "نشرف بإرسال هذه الهدية الرقمية إليكم بدلاً من شيء مادي.",
-            "gift_card_details": "تفاصيل بطاقة الهدايا الخاصة بكم",
-            "gift_card_amount": "المبلغ",
-            "gift_card_code": "رمز البطاقة",
-            "gift_card_usage": "تعليمات الاستخدام",
-            "gift_card_btn": "زيارة الموقع الإلكتروني",
-            "gift_card_note": "هذه البطاقة الهدية صالحة لمدة محدودة. يرجى الرجوع إلى الشروط والأحكام.",
-            "gift_card_signature": "بكل تقديرنا،"
-        },
-        "ja": {
-            "greeting_main": "デジタルギフトをお受け取りになりました",
-            "greeting_subtitle": "お客様専用のギフトカード",
-            "dear_customer": "{lastname} {firstname} 様",
-            "gift_card_intro": "物理的な品物の代わりに、このデジタルギフトをお送りできることを光栄に存じます。",
-            "gift_card_details": "ギフトカードの詳細",
-            "gift_card_amount": "金額",
-            "gift_card_code": "カードコード",
-            "gift_card_usage": "利用手順",
-            "gift_card_btn": "ウェブサイトを訪問",
-            "gift_card_note": "このギフトカードは期間限定で有効です。利用規約をご参照ください。",
-            "gift_card_signature": "心からの敬意を込めて、"
-        },
-        "ko": {
-            "greeting_main": "디지털 선물을 받으셨습니다",
-            "greeting_subtitle": "고객님을 위한 개인 기프트 카드",
-            "dear_customer": "{lastname} {firstname} 고객님께,",
-            "gift_card_intro": "물리적 물건 대신 이 디지털 선물을 보내드리게 되어 영광입니다.",
-            "gift_card_details": "기프트 카드 세부 정보",
-            "gift_card_amount": "금액",
-            "gift_card_code": "카드 코드",
-            "gift_card_usage": "사용 지침",
-            "gift_card_btn": "웹사이트 방문",
-            "gift_card_note": "이 기프트 카드는 한정된 기간 동안 유효합니다. 이용약관을 참조하십시오.",
-            "gift_card_signature": "깊은 존경을 담아,"
-        },
-        "zh": {
-            "greeting_main": "您收到了一份数字礼物",
-            "greeting_subtitle": "一张专属您的礼品卡",
-            "dear_customer": "尊敬的客人，",
-            "gift_card_intro": "我们很荣幸以数字礼物的形式向您致赠，而非实物。",
-            "gift_card_details": "您的礼品卡详情",
-            "gift_card_amount": "金额",
-            "gift_card_code": "卡号",
-            "gift_card_usage": "使用说明",
-            "gift_card_btn": "访问网站",
-            "gift_card_note": "此礼品卡有效期有限。请参阅相关条款与条件。",
-            "gift_card_signature": "致以我们全部的敬意，"
-        },
-        "tw": {
-            "greeting_main": "您收到了一份數字禮物",
-            "greeting_subtitle": "一張專屬您的禮品卡",
-            "dear_customer": "尊敬的客人，",
-            "gift_card_intro": "我們很榮幸以數字禮物的形式向您致贈，而非實物。",
-            "gift_card_details": "您的禮品卡詳情",
-            "gift_card_amount": "金額",
-            "gift_card_code": "卡號",
-            "gift_card_usage": "使用說明",
-            "gift_card_btn": "訪問網站",
-            "gift_card_note": "此禮品卡有效期有限。請參閱相關條款與條件。",
-            "gift_card_signature": "致以我們全部的敬意，"
-        },
-        "ru": {
-            "greeting_main": "Вы получили цифровой подарок",
-            "greeting_subtitle": "Персональная подарочная карта для Вас",
-            "dear_customer": "Уважаемый гость,",
-            "gift_card_intro": "Мы имеем честь отправить Вам этот цифровой подарок вместо физического предмета.",
-            "gift_card_details": "Детали Вашей подарочной карты",
-            "gift_card_amount": "Сумма",
-            "gift_card_code": "Код карты",
-            "gift_card_usage": "Инструкции по использованию",
-            "gift_card_btn": "Посетить веб-сайт",
-            "gift_card_note": "Эта подарочная карта действительна в течение ограниченного времени. Пожалуйста, ознакомьтесь с условиями.",
-            "gift_card_signature": "С искренним уважением,"
-        },
-        "tr": {
-            "greeting_main": "Dijital bir hediye aldınız",
-            "greeting_subtitle": "Sizin için kişisel bir hediye kartı",
-            "dear_customer": "Sayın Değerli Misafirimiz,",
-            "gift_card_intro": "Fiziksel bir nesne yerine bu dijital hediyeyi size göndermekten onur duyarız.",
-            "gift_card_details": "Hediye kartınızın detayları",
-            "gift_card_amount": "Tutar",
-            "gift_card_code": "Kart kodu",
-            "gift_card_usage": "Kullanım talimatları",
-            "gift_card_btn": "Web sitesini ziyaret edin",
-            "gift_card_note": "Bu hediye kartı sınırlı bir süre için geçerlidir. Lütfen hüküm ve koşullara bakın.",
-            "gift_card_signature": "Tüm saygımızla,"
-        },
-        "sv": {
-            "greeting_main": "Du har fått en digital gåva",
-            "greeting_subtitle": "Ett personligt presentkort för dig",
-            "dear_customer": "Bästa kund,",
-            "gift_card_intro": "Vi har äran att skicka denna digitala gåva till dig i stället för ett fysiskt föremål.",
-            "gift_card_details": "Ditt presentkorts detaljer",
-            "gift_card_amount": "Belopp",
-            "gift_card_code": "Kortkod",
-            "gift_card_usage": "Instruktioner för användning",
-            "gift_card_btn": "Besök webbplatsen",
-            "gift_card_note": "Detta presentkort är giltigt under en begränsad tid. Se villkoren.",
-            "gift_card_signature": "Med all vår respekt,"
-        },
-        "no": {
-            "greeting_main": "Du har mottatt en digital gave",
-            "greeting_subtitle": "Et personlig gavekort for deg",
-            "dear_customer": "Kjære kunde,",
-            "gift_card_intro": "Vi har den ære å sende denne digitale gaven til deg i stedet for en fysisk gjenstand.",
-            "gift_card_details": "Detaljer om gavekortet ditt",
-            "gift_card_amount": "Beløp",
-            "gift_card_code": "Kortkode",
-            "gift_card_usage": "Bruksanvisning",
-            "gift_card_btn": "Besøk nettstedet",
-            "gift_card_note": "Dette gavekortet er gyldig i en begrenset periode. Vennligst se vilkårene og betingelsene.",
-            "gift_card_signature": "Med all vår respekt,"
-        },
-        "da": {
-            "greeting_main": "Du har modtaget en digital gave",
-            "greeting_subtitle": "Et personligt gavekort til dig",
-            "dear_customer": "Kære kunde,",
-            "gift_card_intro": "Vi har den ære at sende denne digitale gave til dig i stedet for en fysisk genstand.",
-            "gift_card_details": "Dit gavekorts detaljer",
-            "gift_card_amount": "Beløb",
-            "gift_card_code": "Kortkode",
-            "gift_card_usage": "Brugsanvisning",
-            "gift_card_btn": "Besøg hjemmesiden",
-            "gift_card_note": "Dette gavekort er gyldigt i en begrænset periode. Se venligst vilkårene og betingelserne.",
-            "gift_card_signature": "Med al vores respekt,"
-        },
-        "nl": {
-            "greeting_main": "U heeft een digitaal geschenk ontvangen",
-            "greeting_subtitle": "Een persoonlijke cadeaukaart voor u",
-            "dear_customer": "Geachte klant,",
-            "gift_card_intro": "We zijn vereerd u dit digitale geschenk te sturen in plaats van een fysiek object.",
-            "gift_card_details": "Details van uw cadeaukaart",
-            "gift_card_amount": "Bedrag",
-            "gift_card_code": "Kaartcode",
-            "gift_card_usage": "Gebruiksaanwijzing",
-            "gift_card_btn": "Bezoek de website",
-            "gift_card_note": "Deze cadeaukaart is gedurende een beperkte tijd geldig. Raadpleeg de algemene voorwaarden.",
-            "gift_card_signature": "Met alle respect,"
-        },
-        "gb": {
-            "greeting_main": "You have received a digital gift",
-            "greeting_subtitle": "A personal gift card for you",
-            "dear_customer": "Dear Valued Guest,",
-            "gift_card_intro": "We are honoured to send you this digital gift in place of a physical object.",
-            "gift_card_details": "Your gift card details",
-            "gift_card_amount": "Amount",
-            "gift_card_code": "Card code",
-            "gift_card_usage": "Instructions for use",
-            "gift_card_btn": "Visit the website",
-            "gift_card_note": "This gift card is valid for a limited time. Please refer to the terms and conditions.",
-            "gift_card_signature": "With all our consideration,"
-        }
-    },
     "unboxing_guide": {
         "fr": {
             "greeting_main": "L'art de découvrir votre pièce",
@@ -17865,198 +17194,6 @@
             "end_of_year_signature": "With all our gratitude,"
         }
     },
-    "referral_invitation": {
-        "fr": {
-            "greeting_main": "Partagez l'exception",
-            "greeting_subtitle": "Invitez ceux qui vous sont chers",
-            "dear_customer": "Madame, Monsieur,",
-            "referral_intro": "Vous appréciez notre maison. Pourquoi ne pas en faire profiter ceux qui partagent vos goûts ?",
-            "referral_message": "Parrainez un ami ou un proche et offrez-lui une première expérience privilégiée.",
-            "referral_btn": "Inviter un proche",
-            "referral_note": "Votre geste sera récompensé. Nous vous remercions par avance.",
-            "referral_signature": "Avec toute notre reconnaissance,"
-        },
-        "en": {
-            "greeting_main": "Share the exceptional",
-            "greeting_subtitle": "Invite those dear to you",
-            "dear_customer": "Dear Valued Guest,",
-            "referral_intro": "You appreciate our house. Why not let those who share your tastes enjoy it too?",
-            "referral_message": "Refer a friend or a loved one and offer them a first privileged experience.",
-            "referral_btn": "Invite a loved one",
-            "referral_note": "Your gesture will be rewarded. We thank you in advance.",
-            "referral_signature": "With all our gratitude,"
-        },
-        "de": {
-            "greeting_main": "Teilen Sie das Außergewöhnliche",
-            "greeting_subtitle": "Laden Sie diejenigen ein, die Ihnen am Herzen liegen",
-            "dear_customer": "Sehr geehrte Damen und Herren,",
-            "referral_intro": "Sie schätzen unser Haus. Warum nicht auch denen, die Ihren Geschmack teilen, etwas Gutes tun?",
-            "referral_message": "Empfehlen Sie einen Freund oder Angehörigen und schenken Sie ihm eine erste privilegierte Erfahrung.",
-            "referral_btn": "Angehörigen einladen",
-            "referral_note": "Ihre Geste wird belohnt. Wir danken Ihnen im Voraus.",
-            "referral_signature": "Mit all unserer Dankbarkeit,"
-        },
-        "it": {
-            "greeting_main": "Condividete l'eccezione",
-            "greeting_subtitle": "Invitare coloro che Vi sono cari",
-            "dear_customer": "Gentile Cliente,",
-            "referral_intro": "Apprezzate la nostra casa. Perché non farne partecipi anche coloro che condividono i Vostri gusti?",
-            "referral_message": "Segnalate un amico o un caro e offritegli una prima esperienza privilegiata.",
-            "referral_btn": "Invita una persona cara",
-            "referral_note": "Il Vostro gesto sarà ricompensato. Vi ringraziamo in anticipo.",
-            "referral_signature": "Con tutta la nostra riconoscenza,"
-        },
-        "es": {
-            "greeting_main": "Comparta lo excepcional",
-            "greeting_subtitle": "Invite a quienes le son queridos",
-            "dear_customer": "Estimado cliente,",
-            "referral_intro": "Aprecia nuestra casa. ¿Por qué no hacer partícipes también a quienes comparten sus gustos?",
-            "referral_message": "Recomiende a un amigo o ser querido y ofrézcale una primera experiencia privilegiada.",
-            "referral_btn": "Invitar a un ser querido",
-            "referral_note": "Su gesto será recompensado. Le agradecemos de antemano.",
-            "referral_signature": "Con todo nuestro agradecimiento,"
-        },
-        "pt": {
-            "greeting_main": "Partilhe o excecional",
-            "greeting_subtitle": "Convide aqueles que lhe são queridos",
-            "dear_customer": "Prezado Cliente,",
-            "referral_intro": "Aprecia a nossa casa. Por que não fazer participar também aqueles que partilham os seus gostos?",
-            "referral_message": "Recomende um amigo ou ente querido e ofereça-lhe uma primeira experiência privilegiada.",
-            "referral_btn": "Convidar um ente querido",
-            "referral_note": "O seu gesto será recompensado. Agradecemos-lhe antecipadamente.",
-            "referral_signature": "Com toda a nossa gratidão,"
-        },
-        "br": {
-            "greeting_main": "Compartilhe o excepcional",
-            "greeting_subtitle": "Convide aqueles que lhe são queridos",
-            "dear_customer": "Prezado Cliente,",
-            "referral_intro": "Você aprecia nossa casa. Por que não fazer participar também aqueles que compartilham seus gostos?",
-            "referral_message": "Indique um amigo ou ente querido e ofereça-lhe uma primeira experiência privilegiada.",
-            "referral_btn": "Convidar um ente querido",
-            "referral_note": "Seu gesto será recompensado. Agradecemos-lhe antecipadamente.",
-            "referral_signature": "Com toda a nossa gratidão,"
-        },
-        "ar": {
-            "greeting_main": "شاركوا الاستثنائي",
-            "greeting_subtitle": "ادعوا من تحبون",
-            "dear_customer": "ضيفنا الكريم،",
-            "referral_intro": "أنتم تقدرون دارنا. لماذا لا تشركون من يشاركونكم أذواقكم في ذلك؟",
-            "referral_message": "رشحوا صديقاً أو عزيزاً وامنحوه تجربة أولى متميزة.",
-            "referral_btn": "دعوة عزيز",
-            "referral_note": "سيتم مكافأة مبادرتكم. نشكركم مقدماً.",
-            "referral_signature": "بكل امتناننا،"
-        },
-        "ja": {
-            "greeting_main": "特別な体験を共有しましょう",
-            "greeting_subtitle": "大切な方々をご招待ください",
-            "dear_customer": "{lastname} {firstname} 様",
-            "referral_intro": "当店にご満足いただいているなら、同じ趣味を持つ方々にもその喜びを伝えてみませんか。",
-            "referral_message": "ご友人やご家族をご紹介ください。最初の特別な体験をプレゼントいたします。",
-            "referral_btn": "大切な方を招待",
-            "referral_note": "お客様のご厚意に感謝いたします。",
-            "referral_signature": "心からの感謝を込めて、"
-        },
-        "ko": {
-            "greeting_main": "특별함을 공유하세요",
-            "greeting_subtitle": "소중한 분들을 초대하세요",
-            "dear_customer": "{lastname} {firstname} 고객님께,",
-            "referral_intro": "저희 하우스를 좋아하신다면, 취향을 공유하는 분들에게도 이 기쁨을 전해보세요.",
-            "referral_message": "친구나 가까운 분을 추천하고 그들에게 첫 번째 특별한 경험을 선물하세요.",
-            "referral_btn": "소중한 분 초대하기",
-            "referral_note": "고객님의 정성에 보답하겠습니다. 미리 감사드립니다.",
-            "referral_signature": "깊은 감사를 담아,"
-        },
-        "zh": {
-            "greeting_main": "分享非凡",
-            "greeting_subtitle": "邀请您珍视的人",
-            "dear_customer": "尊敬的客人，",
-            "referral_intro": "您欣赏我们的店铺。何不让与您品味相投的人也一同感受？",
-            "referral_message": "推荐一位朋友或亲人，让他们获得首次尊享体验。",
-            "referral_btn": "邀请亲人",
-            "referral_note": "您的善举将获回馈。在此先行致谢。",
-            "referral_signature": "致以我们全部的感谢，"
-        },
-        "tw": {
-            "greeting_main": "分享非凡",
-            "greeting_subtitle": "邀請您珍視的人",
-            "dear_customer": "尊敬的客人，",
-            "referral_intro": "您欣賞我們的店鋪。何不讓與您品味相投的人也一同感受？",
-            "referral_message": "推薦一位朋友或親人，讓他們獲得首次尊享體驗。",
-            "referral_btn": "邀請親人",
-            "referral_note": "您的善舉將獲回饋。在此先行致謝。",
-            "referral_signature": "致以我們全部的感謝，"
-        },
-        "ru": {
-            "greeting_main": "Поделитесь исключительным",
-            "greeting_subtitle": "Пригласите тех, кто Вам дорог",
-            "dear_customer": "Уважаемый гость,",
-            "referral_intro": "Вы цените наш дом. Почему бы не дать возможность и тем, кто разделяет Ваши вкусы, тоже насладиться?",
-            "referral_message": "Порекомендуйте друга или близкого человека и подарите ему первый привилегированный опыт.",
-            "referral_btn": "Пригласить близкого человека",
-            "referral_note": "Ваш жест будет вознаграждён. Заранее благодарим Вас.",
-            "referral_signature": "Со всей нашей благодарностью,"
-        },
-        "tr": {
-            "greeting_main": "Olağanüstüyü paylaşın",
-            "greeting_subtitle": "Sevdiklerinizi davet edin",
-            "dear_customer": "Sayın Değerli Misafirimiz,",
-            "referral_intro": "Evimizi beğeniyorsunuz. Neden zevklerinizi paylaşanları da bu deneyime ortak etmiyorsunuz?",
-            "referral_message": "Bir arkadaşınıza veya sevdiğiniz birine referans olun ve ilk ayrıcalıklı deneyimi ona hediye edin.",
-            "referral_btn": "Sevdiğinizi davet edin",
-            "referral_note": "Bu jestiniz ödüllendirilecektir. Şimdiden teşekkür ederiz.",
-            "referral_signature": "Tüm şükranlarımızla,"
-        },
-        "sv": {
-            "greeting_main": "Dela det exceptionella",
-            "greeting_subtitle": "Bjud in dem som är kära för dig",
-            "dear_customer": "Bästa kund,",
-            "referral_intro": "Du uppskattar vårt hus. Varför inte låta dem som delar din smak också ta del av det?",
-            "referral_message": "Rekommendera en vän eller närstående och ge dem en första privilegierad upplevelse.",
-            "referral_btn": "Bjud in en närstående",
-            "referral_note": "Din gest kommer att belönas. Vi tackar dig i förväg.",
-            "referral_signature": "Med all vår tacksamhet,"
-        },
-        "no": {
-            "greeting_main": "Del det eksepsjonelle",
-            "greeting_subtitle": "Inviter dem som er kjære for deg",
-            "dear_customer": "Kjære kunde,",
-            "referral_intro": "Du setter pris på huset vårt. Hvorfor ikke la de som deler smaken din få nyte det også?",
-            "referral_message": "Referer en venn eller en kjær og gi dem en første privilegert opplevelse.",
-            "referral_btn": "Inviter en kjær",
-            "referral_note": "Gesten din vil bli belønnet. Vi takker deg på forhånd.",
-            "referral_signature": "Med all vår takknemlighet,"
-        },
-        "da": {
-            "greeting_main": "Del det enestående",
-            "greeting_subtitle": "Inviter dem, der er kære for dig",
-            "dear_customer": "Kære kunde,",
-            "referral_intro": "Du sætter pris på vores hus. Hvorfor ikke lade dem, der deler din smag, også nyde det?",
-            "referral_message": "Anbefal en ven eller en, der er kær for dig, og giv dem en første privilegeret oplevelse.",
-            "referral_btn": "Inviter en kær",
-            "referral_note": "Din gestus vil blive belønnet. Vi takker dig på forhånd.",
-            "referral_signature": "Med al vores taknemmelighed,"
-        },
-        "nl": {
-            "greeting_main": "Deel het uitzonderlijke",
-            "greeting_subtitle": "Nodig degenen uit die u dierbaar zijn",
-            "dear_customer": "Geachte klant,",
-            "referral_intro": "U waardeert ons huis. Waarom zou u degenen die uw smaak delen er niet ook van laten genieten?",
-            "referral_message": "Verwijs een vriend of dierbare door en geef hem of haar een eerste bevoorrechte ervaring.",
-            "referral_btn": "Nodig een dierbare uit",
-            "referral_note": "Uw gebaar zal worden beloond. Wij danken u bij voorbaat.",
-            "referral_signature": "Met al onze dankbaarheid,"
-        },
-        "gb": {
-            "greeting_main": "Share the exceptional",
-            "greeting_subtitle": "Invite those dear to you",
-            "dear_customer": "Dear Valued Guest,",
-            "referral_intro": "You appreciate our house. Why not let those who share your tastes enjoy it too?",
-            "referral_message": "Refer a friend or a loved one and offer them a first privileged experience.",
-            "referral_btn": "Invite a loved one",
-            "referral_note": "Your gesture will be rewarded. We thank you in advance.",
-            "referral_signature": "With all our gratitude,"
-        }
-    },
     "wishlist_reminder": {
         "fr": {
             "greeting_main": "Votre pièce de cœur est disponible",
@@ -18448,6 +17585,7 @@
             "dear_customer": "Madame, Monsieur,",
             "milestone_intro": "Nous avons le plaisir de vous informer que vous venez de passer votre {milestone_count} commande chez nous. Un cap symbolique.",
             "milestone_message": "Chaque commande est pour nous un signe de confiance. Celle-ci, en particulier, en est une de plus, et nous vous en remercions chaleureusement.",
+            "milestone_voucher_value": "Votre bon de réduction",
             "milestone_btn": "Découvrir ma sélection",
             "milestone_note": "Nous réservons une attention particulière à nos hôtes qui franchissent ces étapes.",
             "milestone_signature": "Avec toute notre reconnaissance,"
@@ -18458,6 +17596,7 @@
             "dear_customer": "Dear Valued Guest,",
             "milestone_intro": "We are pleased to inform you that you have just placed your {milestone_count} order with us. A symbolic milestone.",
             "milestone_message": "Every order is a sign of trust for us. This one, in particular, is another one, and we warmly thank you for it.",
+            "milestone_voucher_value": "Your reward voucher",
             "milestone_btn": "Discover my selection",
             "milestone_note": "We reserve special attention for our guests who reach these milestones.",
             "milestone_signature": "With all our gratitude,"
@@ -18468,6 +17607,7 @@
             "dear_customer": "Sehr geehrte Damen und Herren,",
             "milestone_intro": "Wir freuen uns, Ihnen mitzuteilen, dass Sie gerade Ihre {milestone_count} Bestellung bei uns aufgegeben haben. Ein symbolischer Meilenstein.",
             "milestone_message": "Jede Bestellung ist für uns ein Zeichen des Vertrauens. Diese hier ist ein weiteres, und wir danken Ihnen herzlich dafür.",
+            "milestone_voucher_value": "Ihr Rabattgutschein",
             "milestone_btn": "Meine Auswahl entdecken",
             "milestone_note": "Wir widmen unseren Gästen, die diese Meilensteine erreichen, besondere Aufmerksamkeit.",
             "milestone_signature": "Mit all unserer Dankbarkeit,"
@@ -18478,6 +17618,7 @@
             "dear_customer": "Gentile Cliente,",
             "milestone_intro": "Siamo lieti di informarVi che avete appena effettuato il Vostro {milestone_count} ordine presso di noi. Una pietra miliare simbolica.",
             "milestone_message": "Ogni ordine è per noi un segno di fiducia. Questo, in particolare, è un ulteriore segno, e ve ne ringraziamo sentitamente.",
+            "milestone_voucher_value": "Il Vostro buono sconto",
             "milestone_btn": "Scoprire la mia selezione",
             "milestone_note": "Riserviamo una particolare attenzione ai nostri ospiti che raggiungono queste tappe.",
             "milestone_signature": "Con tutta la nostra gratitudine,"
@@ -18488,6 +17629,7 @@
             "dear_customer": "Estimado cliente,",
             "milestone_intro": "Nos complace informarle que acaba de realizar su {milestone_count} pedido con nosotros. Un hito simbólico.",
             "milestone_message": "Cada pedido es para nosotros una señal de confianza. Este, en particular, lo es aún más, y le agradecemos sinceramente.",
+            "milestone_voucher_value": "Su bono de descuento",
             "milestone_btn": "Descubrir mi selección",
             "milestone_note": "Reservamos una atención especial a nuestros huéspedes que alcanzan estos hitos.",
             "milestone_signature": "Con todo nuestro agradecimiento,"
@@ -18498,6 +17640,7 @@
             "dear_customer": "Prezado Cliente,",
             "milestone_intro": "Temos o prazer de o informar que acaba de fazer a sua {milestone_count} encomenda connosco. Um marco simbólico.",
             "milestone_message": "Cada encomenda é para nós um sinal de confiança. Esta, em particular, é mais uma, e agradecemos-lhe sinceramente.",
+            "milestone_voucher_value": "O seu vale de desconto",
             "milestone_btn": "Descobrir a minha seleção",
             "milestone_note": "Reservamos uma atenção especial aos nossos hóspedes que atingem estes marcos.",
             "milestone_signature": "Com toda a nossa gratidão,"
@@ -18508,6 +17651,7 @@
             "dear_customer": "Prezado Cliente,",
             "milestone_intro": "Temos o prazer de o informar que acaba de fazer o seu {milestone_count} pedido connosco. Um marco simbólico.",
             "milestone_message": "Cada pedido é para nós um sinal de confiança. Este, em particular, é mais um, e agradecemos-lhe sinceramente.",
+            "milestone_voucher_value": "Seu vale de desconto",
             "milestone_btn": "Descobrir a minha seleção",
             "milestone_note": "Reservamos atenção especial aos nossos convidados que alcançam essas etapas.",
             "milestone_signature": "Com toda a nossa gratidão,"
@@ -18518,6 +17662,7 @@
             "dear_customer": "ضيفنا الكريم،",
             "milestone_intro": "يسعدنا إعلامكم أنكم قمتم للتو بتقديم طلبكم {milestone_count} لدينا. معلم رمزي.",
             "milestone_message": "كل طلب هو علامة ثقة بالنسبة لنا. هذا الطلب تحديداً هو علامة أخرى، ونشكركم بحرارة عليه.",
+            "milestone_voucher_value": "قسيمة مكافأتكم",
             "milestone_btn": "اكتشف مجموعتي",
             "milestone_note": "نحتفظ باهتمام خاص لضيوفنا الذين يتجاوزون هذه المراحل.",
             "milestone_signature": "بكل امتناننا،"
@@ -18528,6 +17673,7 @@
             "dear_customer": "{lastname} {firstname} 様",
             "milestone_intro": "お客様が当店で{milestone_count}のご注文をいただきましたことをお知らせいたします。象徴的な節目です。",
             "milestone_message": "すべてのご注文は信頼の証です。今回は特に、その一つを重ねていただき、心より感謝申し上げます。",
+            "milestone_voucher_value": "特典クーポンコード",
             "milestone_btn": "セレクションを見る",
             "milestone_note": "このような節目を迎えてくださるお客様に、特別な感謝をお贈りしております。",
             "milestone_signature": "心からの感謝を込めて、"
@@ -18538,6 +17684,7 @@
             "dear_customer": "{lastname} {firstname} 고객님께,",
             "milestone_intro": "저희에게 {milestone_count} 주문을 해주셨음을 알리게 되어 기쁩니다. 상징적인 이정표입니다.",
             "milestone_message": "모든 주문은 신뢰의 표시입니다. 특히 이번 주문은 또 하나의 표시이며, 진심으로 감사드립니다.",
+            "milestone_voucher_value": "리워드 쿠폰 코드",
             "milestone_btn": "내 선택 발견하기",
             "milestone_note": "이런 이정표에 도달하신 고객님들께 특별한 관심을 드립니다.",
             "milestone_signature": "깊은 감사를 담아,"
@@ -18548,6 +17695,7 @@
             "dear_customer": "尊敬的客人，",
             "milestone_intro": "我们很高兴地通知您，您已在我们这里完成了{milestone_count}订单。一个具有象征意义的里程碑。",
             "milestone_message": "每一次订单都是信任的体现。而这一次，更是又一次的信任，我们由衷感谢您。",
+            "milestone_voucher_value": "您的专属优惠券",
             "milestone_btn": "发现我的精选",
             "milestone_note": "我们为达到这些里程碑的贵宾保留特别的关注。",
             "milestone_signature": "致以我们全部的感谢，"
@@ -18558,6 +17706,7 @@
             "dear_customer": "尊敬的客人，",
             "milestone_intro": "我們很高興地通知您，您已在我們這裡完成了{milestone_count}訂單。一個具有象徵意義的里程碑。",
             "milestone_message": "每一次訂單都是信任的體現。而這一次，更是又一次的信任，我們由衷感謝您。",
+            "milestone_voucher_value": "您的專屬優惠券",
             "milestone_btn": "發現我的精選",
             "milestone_note": "我們為達到這些里程碑的貴賓保留特別的關注。",
             "milestone_signature": "致以我們全部的感謝，"
@@ -18568,6 +17717,7 @@
             "dear_customer": "Уважаемый гость,",
             "milestone_intro": "Мы рады сообщить Вам, что Вы только что разместили свой {milestone_count} заказ у нас. Символическая веха.",
             "milestone_message": "Каждый заказ для нас — знак доверия. Этот, в частности, ещё один, и мы сердечно благодарим Вас за него.",
+            "milestone_voucher_value": "Ваш купон на скидку",
             "milestone_btn": "Открыть мою подборку",
             "milestone_note": "Мы уделяем особое внимание нашим гостям, достигающим этих этапов.",
             "milestone_signature": "Со всей нашей благодарностью,"
@@ -18578,6 +17728,7 @@
             "dear_customer": "Sayın Değerli Misafirimiz,",
             "milestone_intro": "Sizinle ilgili olarak {milestone_count} siparişinizi verdiğinizi bildirmekten mutluluk duyarız. Sembolik bir dönüm noktası.",
             "milestone_message": "Her sipariş bizim için bir güven işaretidir. Bu, özellikle bir tane daha ve size içtenlikle teşekkür ediyoruz.",
+            "milestone_voucher_value": "Ödül kuponunuz",
             "milestone_btn": "Seçkimi keşfet",
             "milestone_note": "Bu kilometre taşlarına ulaşan konuklarımıza özel bir ilgi gösteriyoruz.",
             "milestone_signature": "Tüm şükranlarımızla,"
@@ -18588,6 +17739,7 @@
             "dear_customer": "Bästa kund,",
             "milestone_intro": "Vi är glada att informera dig om att du precis har lagt din {milestone_count} beställning hos oss. En symbolisk milstolpe.",
             "milestone_message": "Varje beställning är ett tecken på förtroende för oss. Denna, i synnerhet, är ännu ett, och vi tackar dig varmt för det.",
+            "milestone_voucher_value": "Din rabattkupong",
             "milestone_btn": "Upptäck mitt urval",
             "milestone_note": "Vi reserverar speciell uppmärksamhet för våra gäster som når dessa milstolpar.",
             "milestone_signature": "Med all vår tacksamhet,"
@@ -18598,6 +17750,7 @@
             "dear_customer": "Kjære kunde,",
             "milestone_intro": "Vi er glade for å informere deg om at du nettopp har lagt inn din {milestone_count} bestilling hos oss. En symbolsk milepæl.",
             "milestone_message": "Hver bestilling er et tegn på tillit for oss. Denne er spesielt nok en, og vi takker deg varmt for den.",
+            "milestone_voucher_value": "Din rabattkupong",
             "milestone_btn": "Oppdag mitt utvalg",
             "milestone_note": "Vi reserverer spesiell oppmerksomhet for gjestene våre som når disse milepælene.",
             "milestone_signature": "Med all vår takknemlighet,"
@@ -18608,6 +17761,7 @@
             "dear_customer": "Kære kunde,",
             "milestone_intro": "Vi er glade for at informere dig om, at du netop har afgivet din {milestone_count} ordre hos os. En symbolsk milepæl.",
             "milestone_message": "Hver ordre er et tegn på tillid for os. Denne er især endnu en, og vi takker dig varmt for den.",
+            "milestone_voucher_value": "Din rabatkupon",
             "milestone_btn": "Opdag mit udvalg",
             "milestone_note": "Vi reserverer særlig opmærksomhed til vores gæster, der når disse milepæle.",
             "milestone_signature": "Med al vores taknemmelighed,"
@@ -18618,6 +17772,7 @@
             "dear_customer": "Geachte klant,",
             "milestone_intro": "Wij zijn verheugd u te kunnen meedelen dat u zojuist uw {milestone_count} bestelling bij ons heeft geplaatst. Een symbolische mijlpaal.",
             "milestone_message": "Elke bestelling is voor ons een teken van vertrouwen. Deze in het bijzonder is er weer een, en we danken u er hartelijk voor.",
+            "milestone_voucher_value": "Uw kortingsbon",
             "milestone_btn": "Ontdek mijn selectie",
             "milestone_note": "Wij reserveren speciale aandacht voor onze gasten die deze mijlpalen bereiken.",
             "milestone_signature": "Met al onze dankbaarheid,"
@@ -18628,201 +17783,10 @@
             "dear_customer": "Dear Valued Guest,",
             "milestone_intro": "We are pleased to inform you that you have just placed your {milestone_count} order with us. A symbolic milestone.",
             "milestone_message": "Every order is a sign of trust for us. This one, in particular, is another one, and we warmly thank you for it.",
+            "milestone_voucher_value": "Your reward voucher",
             "milestone_btn": "Discover my selection",
             "milestone_note": "We reserve special attention for our guests who reach these milestones.",
             "milestone_signature": "With all our gratitude,"
-        }
-    },
-    "product_waitlist_confirm": {
-        "fr": {
-            "greeting_main": "Vous êtes sur la liste d'attente",
-            "greeting_subtitle": "Nous vous tiendrons informé",
-            "dear_customer": "Madame, Monsieur,",
-            "waitlist_intro": "Vous avez manifesté votre intérêt pour une pièce actuellement indisponible. Votre inscription sur notre liste d'attente a bien été enregistrée.",
-            "waitlist_details": "Pièce concernée",
-            "waitlist_btn": "Voir la pièce",
-            "waitlist_note": "Nous vous contacterons dès que la pièce sera de nouveau disponible.",
-            "waitlist_signature": "Avec toute notre attention,"
-        },
-        "en": {
-            "greeting_main": "You are on the waiting list",
-            "greeting_subtitle": "We will keep you informed",
-            "dear_customer": "Dear Valued Guest,",
-            "waitlist_intro": "You have expressed interest in a piece that is currently unavailable. Your registration on our waiting list has been successfully recorded.",
-            "waitlist_details": "Piece concerned",
-            "waitlist_btn": "View the piece",
-            "waitlist_note": "We will contact you as soon as the piece becomes available again.",
-            "waitlist_signature": "With all our attention,"
-        },
-        "de": {
-            "greeting_main": "Sie sind auf der Warteliste",
-            "greeting_subtitle": "Wir halten Sie auf dem Laufenden",
-            "dear_customer": "Sehr geehrte Damen und Herren,",
-            "waitlist_intro": "Sie haben Interesse an einem derzeit nicht verfügbaren Stück bekundet. Ihre Anmeldung auf unserer Warteliste wurde erfolgreich registriert.",
-            "waitlist_details": "Betroffenes Stück",
-            "waitlist_btn": "Das Stück ansehen",
-            "waitlist_note": "Wir werden Sie kontaktieren, sobald das Stück wieder verfügbar ist.",
-            "waitlist_signature": "Mit all unserer Aufmerksamkeit,"
-        },
-        "it": {
-            "greeting_main": "Siete nella lista d'attesa",
-            "greeting_subtitle": "Vi terremo aggiornati",
-            "dear_customer": "Gentile Cliente,",
-            "waitlist_intro": "Avete manifestato interesse per un pezzo attualmente non disponibile. La Vostra iscrizione alla nostra lista d'attesa è stata registrata con successo.",
-            "waitlist_details": "Pezzo interessato",
-            "waitlist_btn": "Vedi il pezzo",
-            "waitlist_note": "Vi contatteremo non appena il pezzo sarà di nuovo disponibile.",
-            "waitlist_signature": "Con tutta la nostra attenzione,"
-        },
-        "es": {
-            "greeting_main": "Está en la lista de espera",
-            "greeting_subtitle": "Le mantendremos informado",
-            "dear_customer": "Estimado cliente,",
-            "waitlist_intro": "Ha mostrado interés en una pieza actualmente no disponible. Su inscripción en nuestra lista de espera ha sido registrada con éxito.",
-            "waitlist_details": "Pieza afectada",
-            "waitlist_btn": "Ver la pieza",
-            "waitlist_note": "Le contactaremos en cuanto la pieza vuelva a estar disponible.",
-            "waitlist_signature": "Con toda nuestra atención,"
-        },
-        "pt": {
-            "greeting_main": "Está na lista de espera",
-            "greeting_subtitle": "Mantê-lo-emos informado",
-            "dear_customer": "Prezado Cliente,",
-            "waitlist_intro": "Manifestou interesse numa peça atualmente indisponível. A sua inscrição na nossa lista de espera foi registada com sucesso.",
-            "waitlist_details": "Peça em causa",
-            "waitlist_btn": "Ver a peça",
-            "waitlist_note": "Contactá-lo-emos assim que a peça estiver novamente disponível.",
-            "waitlist_signature": "Com toda a nossa atenção,"
-        },
-        "br": {
-            "greeting_main": "Está na lista de espera",
-            "greeting_subtitle": "Manteremos você informado",
-            "dear_customer": "Prezado Cliente,",
-            "waitlist_intro": "Você manifestou interesse em uma peça atualmente indisponível. Sua inscrição na nossa lista de espera foi registrada com sucesso.",
-            "waitlist_details": "Peça em causa",
-            "waitlist_btn": "Ver a peça",
-            "waitlist_note": "Vamos entrar em contato assim que a peça estiver disponível novamente.",
-            "waitlist_signature": "Com toda a nossa atenção,"
-        },
-        "ar": {
-            "greeting_main": "أنتم على قائمة الانتظار",
-            "greeting_subtitle": "سنبقيكم على اطلاع",
-            "dear_customer": "ضيفنا الكريم،",
-            "waitlist_intro": "لقد أبديتم اهتماماً بقطعة غير متاحة حالياً. تم تسجيل اشتراككم في قائمة الانتظار لدينا بنجاح.",
-            "waitlist_details": "القطعة المعنية",
-            "waitlist_btn": "عرض القطعة",
-            "waitlist_note": "سنتواصل معكم بمجرد أن تصبح القطعة متاحة مرة أخرى.",
-            "waitlist_signature": "بكل اهتمامنا،"
-        },
-        "ja": {
-            "greeting_main": "お客様は待機リストに登録されています",
-            "greeting_subtitle": "最新情報をお知らせします",
-            "dear_customer": "{lastname} {firstname} 様",
-            "waitlist_intro": "現在入手困難な作品にご関心をお寄せいただきました。待機リストへの登録が完了しました。",
-            "waitlist_details": "該当作品",
-            "waitlist_btn": "作品を見る",
-            "waitlist_note": "作品が再び入手可能になり次第、ご連絡いたします。",
-            "waitlist_signature": "細心の注意を払って、"
-        },
-        "ko": {
-            "greeting_main": "대기자 명단에 등록되었습니다",
-            "greeting_subtitle": "알려드리겠습니다",
-            "dear_customer": "{lastname} {firstname} 고객님께,",
-            "waitlist_intro": "현재 구매 불가능한 작품에 관심을 보여주셨습니다. 대기자 명단 등록이 성공적으로 완료되었습니다.",
-            "waitlist_details": "해당 작품",
-            "waitlist_btn": "작품 보기",
-            "waitlist_note": "작품을 다시 구매할 수 있게 되면 연락드리겠습니다.",
-            "waitlist_signature": "모든 주의를 기울여,"
-        },
-        "zh": {
-            "greeting_main": "您已加入候补名单",
-            "greeting_subtitle": "我们会及时通知您",
-            "dear_customer": "尊敬的客人，",
-            "waitlist_intro": "您对一件暂时缺货的作品表示了兴趣。您的候补名单登记已成功记录。",
-            "waitlist_details": "相关作品",
-            "waitlist_btn": "查看作品",
-            "waitlist_note": "作品重新上架后我们将立即与您联系。",
-            "waitlist_signature": "我们全心全意，"
-        },
-        "tw": {
-            "greeting_main": "您已加入候補名單",
-            "greeting_subtitle": "我們會及時通知您",
-            "dear_customer": "尊敬的客人，",
-            "waitlist_intro": "您對一件暫時缺貨的作品表示了興趣。您的候補名單登記已成功記錄。",
-            "waitlist_details": "相關作品",
-            "waitlist_btn": "查看作品",
-            "waitlist_note": "作品重新上架後我們將立即與您聯繫。",
-            "waitlist_signature": "我們全心全意，"
-        },
-        "ru": {
-            "greeting_main": "Вы в листе ожидания",
-            "greeting_subtitle": "Мы будем держать Вас в курсе",
-            "dear_customer": "Уважаемый гость,",
-            "waitlist_intro": "Вы проявили интерес к изделию, которое в настоящее время недоступно. Ваша регистрация в нашем листе ожидания была успешно записана.",
-            "waitlist_details": "Соответствующее изделие",
-            "waitlist_btn": "Посмотреть изделие",
-            "waitlist_note": "Мы свяжемся с Вами, как только изделие снова станет доступным.",
-            "waitlist_signature": "Со всем нашим вниманием,"
-        },
-        "tr": {
-            "greeting_main": "Bekleme listesindesiniz",
-            "greeting_subtitle": "Sizi bilgilendireceğiz",
-            "dear_customer": "Sayın Değerli Misafirimiz,",
-            "waitlist_intro": "Şu anda mevcut olmayan bir parçaya ilgi gösterdiniz. Bekleme listemize kaydınız başarıyla gerçekleştirildi.",
-            "waitlist_details": "İlgili parça",
-            "waitlist_btn": "Parçayı görüntüle",
-            "waitlist_note": "Parça tekrar kullanılabilir olduğunda sizinle iletişime geçeceğiz.",
-            "waitlist_signature": "Tüm dikkatimizle,"
-        },
-        "sv": {
-            "greeting_main": "Du är på väntelistan",
-            "greeting_subtitle": "Vi håller dig informerad",
-            "dear_customer": "Bästa kund,",
-            "waitlist_intro": "Du har visat intresse för en produkt som för närvarande inte är tillgänglig. Din registrering på vår väntelista har registrerats.",
-            "waitlist_details": "Berört stycke",
-            "waitlist_btn": "Visa stycket",
-            "waitlist_note": "Vi kontaktar dig så snart stycket är tillgängligt igen.",
-            "waitlist_signature": "Med all vår uppmärksamhet,"
-        },
-        "no": {
-            "greeting_main": "Du er på ventelisten",
-            "greeting_subtitle": "Vi holder deg oppdatert",
-            "dear_customer": "Kjære kunde,",
-            "waitlist_intro": "Du har vist interesse for en gjenstand som for øyeblikket ikke er tilgjengelig. Din registrering på ventelisten vår er registrert.",
-            "waitlist_details": "Aktuell gjenstand",
-            "waitlist_btn": "Vis gjenstanden",
-            "waitlist_note": "Vi kontakter deg så snart gjenstanden er tilgjengelig igjen.",
-            "waitlist_signature": "Med all vår oppmerksomhet,"
-        },
-        "da": {
-            "greeting_main": "Du er på ventelisten",
-            "greeting_subtitle": "Vi holder dig orienteret",
-            "dear_customer": "Kære kunde,",
-            "waitlist_intro": "Du har vist interesse for et stykke, der i øjeblikket ikke er tilgængeligt. Din tilmelding til vores venteliste er registreret.",
-            "waitlist_details": "Berørt stykke",
-            "waitlist_btn": "Vis stykket",
-            "waitlist_note": "Vi kontakter dig, så snart stykket igen er tilgængeligt.",
-            "waitlist_signature": "Med al vores opmærksomhed,"
-        },
-        "nl": {
-            "greeting_main": "U staat op de wachtlijst",
-            "greeting_subtitle": "We houden u op de hoogte",
-            "dear_customer": "Geachte klant,",
-            "waitlist_intro": "U heeft interesse getoond in een stuk dat momenteel niet beschikbaar is. Uw inschrijving op onze wachtlijst is geregistreerd.",
-            "waitlist_details": "Betrokken stuk",
-            "waitlist_btn": "Bekijk het stuk",
-            "waitlist_note": "We nemen contact met u op zodra het stuk weer beschikbaar is.",
-            "waitlist_signature": "Met al onze aandacht,"
-        },
-        "gb": {
-            "greeting_main": "You are on the waiting list",
-            "greeting_subtitle": "We will keep you informed",
-            "dear_customer": "Dear Valued Guest,",
-            "waitlist_intro": "You have expressed interest in a piece that is currently unavailable. Your registration on our waiting list has been successfully recorded.",
-            "waitlist_details": "Piece concerned",
-            "waitlist_btn": "View the piece",
-            "waitlist_note": "We will contact you as soon as the piece becomes available again.",
-            "waitlist_signature": "With all our attention,"
         }
     },
     "loyalty_reward_expiry": {
@@ -21623,217 +20587,6 @@
             "order_reference_label": "Order reference"
         }
     },
-    "multi_recipient_shipped": {
-        "fr": {
-            "greeting_main": "Vos colis sont en route",
-            "greeting_subtitle": "Expédition vers plusieurs destinataires",
-            "dear_customer": "Madame, Monsieur,",
-            "multi_recipient_intro": "Les colis correspondant à votre commande multi-destinataire ont été expédiés. Chacun d'eux voyage vers son bénéficiaire.",
-            "multi_recipient_details": "Détails des destinataires",
-            "multi_recipient_btn": "Suivre les colis",
-            "multi_recipient_note": "Vous recevrez une confirmation distincte pour chaque destinataire.",
-            "multi_recipient_signature": "Nous espérons que chaque pièce trouvera son propriétaire,",
-            "order_reference_label": "Référence commande"
-        },
-        "en": {
-            "greeting_main": "Your packages are on their way",
-            "greeting_subtitle": "Shipping to multiple recipients",
-            "dear_customer": "Dear Valued Guest,",
-            "multi_recipient_intro": "The packages for your multi-recipient order have been shipped. Each one is on its way to its beneficiary.",
-            "multi_recipient_details": "Recipient details",
-            "multi_recipient_btn": "Track the packages",
-            "multi_recipient_note": "You will receive a separate confirmation for each recipient.",
-            "multi_recipient_signature": "We hope each piece finds its owner,",
-            "order_reference_label": "Order reference"
-        },
-        "de": {
-            "greeting_main": "Ihre Pakete sind unterwegs",
-            "greeting_subtitle": "Versand an mehrere Empfänger",
-            "dear_customer": "Sehr geehrte Damen und Herren,",
-            "multi_recipient_intro": "Die Pakete für Ihre Bestellung mit mehreren Empfängern wurden versandt. Jedes ist auf dem Weg zu seinem Begünstigten.",
-            "multi_recipient_details": "Empfängerdetails",
-            "multi_recipient_btn": "Pakete verfolgen",
-            "multi_recipient_note": "Sie erhalten für jeden Empfänger eine separate Bestätigung.",
-            "multi_recipient_signature": "Wir hoffen, dass jedes Stück seinen Besitzer findet,",
-            "order_reference_label": "Bestellreferenz"
-        },
-        "it": {
-            "greeting_main": "I Vostri pacchi sono in viaggio",
-            "greeting_subtitle": "Spedizione a più destinatari",
-            "dear_customer": "Gentile Cliente,",
-            "multi_recipient_intro": "I pacchi per il Vostro ordine multi-destinatario sono stati spediti. Ognuno di essi è in viaggio verso il suo beneficiario.",
-            "multi_recipient_details": "Dettagli dei destinatari",
-            "multi_recipient_btn": "Traccia i pacchi",
-            "multi_recipient_note": "Riceverete una conferma separata per ogni destinatario.",
-            "multi_recipient_signature": "Speriamo che ogni pezzo trovi il suo proprietario,",
-            "order_reference_label": "Riferimento ordine"
-        },
-        "es": {
-            "greeting_main": "Sus paquetes están en camino",
-            "greeting_subtitle": "Envío a múltiples destinatarios",
-            "dear_customer": "Estimado cliente,",
-            "multi_recipient_intro": "Los paquetes de su pedido con múltiples destinatarios han sido enviados. Cada uno viaja hacia su beneficiario.",
-            "multi_recipient_details": "Detalles de los destinatarios",
-            "multi_recipient_btn": "Seguir los paquetes",
-            "multi_recipient_note": "Recibirá una confirmación separada para cada destinatario.",
-            "multi_recipient_signature": "Esperamos que cada pieza encuentre a su dueño,",
-            "order_reference_label": "Referencia del pedido"
-        },
-        "pt": {
-            "greeting_main": "As suas encomendas estão a caminho",
-            "greeting_subtitle": "Envio para vários destinatários",
-            "dear_customer": "Prezado Cliente,",
-            "multi_recipient_intro": "As encomendas do seu pedido com vários destinatários foram enviadas. Cada uma viaja para o seu beneficiário.",
-            "multi_recipient_details": "Detalhes dos destinatários",
-            "multi_recipient_btn": "Acompanhar as encomendas",
-            "multi_recipient_note": "Receberá uma confirmação separada para cada destinatário.",
-            "multi_recipient_signature": "Esperamos que cada peça encontre o seu dono,",
-            "order_reference_label": "Referência da encomenda"
-        },
-        "br": {
-            "greeting_main": "Seus pedidos estão a caminho",
-            "greeting_subtitle": "Envio para vários destinatários",
-            "dear_customer": "Prezado Cliente,",
-            "multi_recipient_intro": "Os pacotes do seu pedido com vários destinatários foram enviados. Cada um viaja até o seu destinatário.",
-            "multi_recipient_details": "Detalhes dos destinatários",
-            "multi_recipient_btn": "Acompanhar os pedidos",
-            "multi_recipient_note": "Você receberá uma confirmação separada para cada destinatário.",
-            "multi_recipient_signature": "Esperamos que cada peça encontre o seu dono,",
-            "order_reference_label": "Referência do pedido"
-        },
-        "ar": {
-            "greeting_main": "طردكم في طريقه",
-            "greeting_subtitle": "شحن إلى عدة مستلمين",
-            "dear_customer": "ضيفنا الكريم،",
-            "multi_recipient_intro": "تم شحن الطرود الخاصة بطلبكم متعدد المستلمين. كل واحد منها في طريقه إلى مستفيده.",
-            "multi_recipient_details": "تفاصيل المستلمين",
-            "multi_recipient_btn": "تتبع الطرود",
-            "multi_recipient_note": "ستتلقون تأكيداً منفصلاً لكل مستلم.",
-            "multi_recipient_signature": "نأمل أن تجد كل قطعة مالكها،",
-            "order_reference_label": "مرجع الطلب"
-        },
-        "ja": {
-            "greeting_main": "お荷物が発送されました",
-            "greeting_subtitle": "複数の受取人への発送",
-            "dear_customer": "{lastname} {firstname} 様",
-            "multi_recipient_intro": "複数の受取人へのご注文の荷物が発送されました。それぞれが受取人の元へ向かっています。",
-            "multi_recipient_details": "受取人の詳細",
-            "multi_recipient_btn": "荷物を追跡",
-            "multi_recipient_note": "受取人ごとに個別の確認書をお送りします。",
-            "multi_recipient_signature": "それぞれの作品が持ち主に見つかりますように、",
-            "order_reference_label": "注文番号"
-        },
-        "ko": {
-            "greeting_main": "고객님의 소포가 발송되었습니다",
-            "greeting_subtitle": "여러 수신자에게 배송",
-            "dear_customer": "{lastname} {firstname} 고객님께,",
-            "multi_recipient_intro": "여러 수신자에 대한 주문의 소포가 발송되었습니다. 각각은 해당 수혜자를 향해 이동 중입니다.",
-            "multi_recipient_details": "수신자 세부 정보",
-            "multi_recipient_btn": "소포 추적",
-            "multi_recipient_note": "각 수신자에 대해 별도의 확인을 받게 됩니다.",
-            "multi_recipient_signature": "각 작품이 주인을 찾기를 바랍니다,",
-            "order_reference_label": "주문 참조 번호"
-        },
-        "zh": {
-            "greeting_main": "您的包裹正在途中",
-            "greeting_subtitle": "发送至多个收件人",
-            "dear_customer": "尊敬的客人，",
-            "multi_recipient_intro": "您多收件人订单的包裹已发货。每个包裹都在前往各自收件人的途中。",
-            "multi_recipient_details": "收件人详情",
-            "multi_recipient_btn": "追踪包裹",
-            "multi_recipient_note": "您将为每位收件人收到单独的确认。",
-            "multi_recipient_signature": "希望每件作品都能找到它的主人，",
-            "order_reference_label": "订单编号"
-        },
-        "tw": {
-            "greeting_main": "您的包裹正在途中",
-            "greeting_subtitle": "發送至多個收件人",
-            "dear_customer": "尊敬的客人，",
-            "multi_recipient_intro": "您多收件人訂單的包裹已發貨。每個包裹都在前往各自收件人的途中。",
-            "multi_recipient_details": "收件人詳情",
-            "multi_recipient_btn": "追蹤包裹",
-            "multi_recipient_note": "您將為每位收件人收到單獨的確認。",
-            "multi_recipient_signature": "希望每件作品都能找到它的主人，",
-            "order_reference_label": "訂單編號"
-        },
-        "ru": {
-            "greeting_main": "Ваши посылки в пути",
-            "greeting_subtitle": "Отправка нескольким получателям",
-            "dear_customer": "Уважаемый гость,",
-            "multi_recipient_intro": "Посылки для Вашего заказа с несколькими получателями были отправлены. Каждая из них направляется к своему бенефициару.",
-            "multi_recipient_details": "Детали получателей",
-            "multi_recipient_btn": "Отследить посылки",
-            "multi_recipient_note": "Вы получите отдельное подтверждение для каждого получателя.",
-            "multi_recipient_signature": "Надеемся, что каждое изделие найдёт своего владельца,",
-            "order_reference_label": "Номер заказа"
-        },
-        "tr": {
-            "greeting_main": "Kargolarınız yolda",
-            "greeting_subtitle": "Birden fazla alıcıya gönderim",
-            "dear_customer": "Sayın Değerli Misafirimiz,",
-            "multi_recipient_intro": "Birden fazla alıcılı siparişinizin kargoları gönderildi. Her biri alıcısına doğru yolda.",
-            "multi_recipient_details": "Alıcı detayları",
-            "multi_recipient_btn": "Kargoları takip et",
-            "multi_recipient_note": "Her alıcı için ayrı bir onay alacaksınız.",
-            "multi_recipient_signature": "Umarız her parça sahibini bulur,",
-            "order_reference_label": "Sipariş referansı"
-        },
-        "sv": {
-            "greeting_main": "Dina paket är på väg",
-            "greeting_subtitle": "Frakt till flera mottagare",
-            "dear_customer": "Bästa kund,",
-            "multi_recipient_intro": "Paketen för din beställning med flera mottagare har skickats. Var och en är på väg till sin mottagare.",
-            "multi_recipient_details": "Mottagardetaljer",
-            "multi_recipient_btn": "Spåra paketen",
-            "multi_recipient_note": "Du kommer att få en separat bekräftelse för varje mottagare.",
-            "multi_recipient_signature": "Vi hoppas att varje stycke finner sin ägare,",
-            "order_reference_label": "Beställningsreferens"
-        },
-        "no": {
-            "greeting_main": "Pakkene dine er på vei",
-            "greeting_subtitle": "Frakt til flere mottakere",
-            "dear_customer": "Kjære kunde,",
-            "multi_recipient_intro": "Pakkene for bestillingen din med flere mottakere er sendt. Hver av dem er på vei til sin mottaker.",
-            "multi_recipient_details": "Mottakerdetaljer",
-            "multi_recipient_btn": "Spor pakkene",
-            "multi_recipient_note": "Du vil motta en separat bekreftelse for hver mottaker.",
-            "multi_recipient_signature": "Vi håper hver gjenstand finner sin eier,",
-            "order_reference_label": "Bestillingsreferanse"
-        },
-        "da": {
-            "greeting_main": "Dine pakker er på vej",
-            "greeting_subtitle": "Forsendelse til flere modtagere",
-            "dear_customer": "Kære kunde,",
-            "multi_recipient_intro": "Pakkerne til din ordre med flere modtagere er afsendt. Hver af dem er på vej til sin modtager.",
-            "multi_recipient_details": "Modtagerdetaljer",
-            "multi_recipient_btn": "Spor pakkerne",
-            "multi_recipient_note": "Du vil modtage en separat bekræftelse for hver modtager.",
-            "multi_recipient_signature": "Vi håber, at hvert stykke finder sin ejer,",
-            "order_reference_label": "Ordrereference"
-        },
-        "nl": {
-            "greeting_main": "Uw pakketten zijn onderweg",
-            "greeting_subtitle": "Verzending naar meerdere ontvangers",
-            "dear_customer": "Geachte klant,",
-            "multi_recipient_intro": "De pakketten voor uw bestelling met meerdere ontvangers zijn verzonden. Elk ervan is op weg naar zijn begunstigde.",
-            "multi_recipient_details": "Ontvangerdetails",
-            "multi_recipient_btn": "De pakketten volgen",
-            "multi_recipient_note": "U ontvangt een aparte bevestiging voor elke ontvanger.",
-            "multi_recipient_signature": "We hopen dat elk stuk zijn eigenaar vindt,",
-            "order_reference_label": "Orderreferentie"
-        },
-        "gb": {
-            "greeting_main": "Your packages are on their way",
-            "greeting_subtitle": "Shipping to multiple recipients",
-            "dear_customer": "Dear Valued Guest,",
-            "multi_recipient_intro": "The packages for your multi-recipient order have been shipped. Each one is on its way to its beneficiary.",
-            "multi_recipient_details": "Recipient details",
-            "multi_recipient_btn": "Track the packages",
-            "multi_recipient_note": "You will receive a separate confirmation for each recipient.",
-            "multi_recipient_signature": "We hope each piece finds its owner,",
-            "order_reference_label": "Order reference"
-        }
-    },
     "order_shipped_delay": {
         "fr": {
             "greeting_main": "Un léger retard pour votre commande",
@@ -22714,217 +21467,6 @@
             "refund_processed_signature": "At your service,",
             "order_reference_label": "Order reference",
             "refund_amount_label": "Refunded amount"
-        }
-    },
-    "subscription_confirmation": {
-        "fr": {
-            "greeting_main": "Votre inscription est confirmée",
-            "greeting_subtitle": "Bienvenue dans notre cercle privilégié",
-            "dear_customer": "Madame, Monsieur,",
-            "subscription_confirm_intro": "Nous avons le plaisir de vous confirmer votre inscription à notre service de lettres d'information. Vous ferez désormais partie des premiers informés.",
-            "subscription_confirm_details": "Détails de votre inscription",
-            "subscription_confirm_btn": "Gérer mes préférences",
-            "subscription_confirm_note": "Nous vous remercions de votre confiance. Nous ne partagerons jamais vos données.",
-            "subscription_confirm_signature": "Avec toute notre gratitude,",
-            "account_email_label": "Adresse e-mail"
-        },
-        "en": {
-            "greeting_main": "Your subscription is confirmed",
-            "greeting_subtitle": "Welcome to our privileged circle",
-            "dear_customer": "Dear Valued Guest,",
-            "subscription_confirm_intro": "We are pleased to confirm your subscription to our newsletter service. You will now be among the first to know.",
-            "subscription_confirm_details": "Your subscription details",
-            "subscription_confirm_btn": "Manage my preferences",
-            "subscription_confirm_note": "We thank you for your trust. We will never share your data.",
-            "subscription_confirm_signature": "With all our gratitude,",
-            "account_email_label": "Email address"
-        },
-        "de": {
-            "greeting_main": "Ihre Anmeldung ist bestätigt",
-            "greeting_subtitle": "Willkommen in unserem privilegierten Kreis",
-            "dear_customer": "Sehr geehrte Damen und Herren,",
-            "subscription_confirm_intro": "Wir freuen uns, Ihre Anmeldung für unseren Newsletter zu bestätigen. Sie werden nun zu den Ersten gehören, die informiert werden.",
-            "subscription_confirm_details": "Details Ihrer Anmeldung",
-            "subscription_confirm_btn": "Meine Einstellungen verwalten",
-            "subscription_confirm_note": "Wir danken Ihnen für Ihr Vertrauen. Wir geben Ihre Daten niemals weiter.",
-            "subscription_confirm_signature": "Mit all unserer Dankbarkeit,",
-            "account_email_label": "E-Mail-Adresse"
-        },
-        "it": {
-            "greeting_main": "La Vostra iscrizione è confermata",
-            "greeting_subtitle": "Benvenuti nel nostro circolo privilegiato",
-            "dear_customer": "Gentile Cliente,",
-            "subscription_confirm_intro": "Siamo lieti di confermare la Vostra iscrizione alla nostra newsletter. D'ora in poi sarete tra i primi a sapere.",
-            "subscription_confirm_details": "Dettagli della Vostra iscrizione",
-            "subscription_confirm_btn": "Gestisci le mie preferenze",
-            "subscription_confirm_note": "Vi ringraziamo per la Vostra fiducia. Non condivideremo mai i Vostri dati.",
-            "subscription_confirm_signature": "Con tutta la nostra gratitudine,",
-            "account_email_label": "Indirizzo email"
-        },
-        "es": {
-            "greeting_main": "Su suscripción está confirmada",
-            "greeting_subtitle": "Bienvenido a nuestro círculo privilegiado",
-            "dear_customer": "Estimado cliente,",
-            "subscription_confirm_intro": "Nos complace confirmar su suscripción a nuestro boletín. Ahora será de los primeros en enterarse.",
-            "subscription_confirm_details": "Detalles de su suscripción",
-            "subscription_confirm_btn": "Gestionar mis preferencias",
-            "subscription_confirm_note": "Le agradecemos su confianza. Nunca compartiremos sus datos.",
-            "subscription_confirm_signature": "Con todo nuestro agradecimiento,",
-            "account_email_label": "Dirección de correo electrónico"
-        },
-        "pt": {
-            "greeting_main": "A sua subscrição está confirmada",
-            "greeting_subtitle": "Bem-vindo ao nosso círculo privilegiado",
-            "dear_customer": "Prezado Cliente,",
-            "subscription_confirm_intro": "Temos o prazer de confirmar a sua subscrição ao nosso boletim. Passará a ser dos primeiros a saber.",
-            "subscription_confirm_details": "Detalhes da sua subscrição",
-            "subscription_confirm_btn": "Gerir as minhas preferências",
-            "subscription_confirm_note": "Agradecemos a sua confiança. Nunca partilharemos os seus dados.",
-            "subscription_confirm_signature": "Com toda a nossa gratidão,",
-            "account_email_label": "Endereço de e-mail"
-        },
-        "br": {
-            "greeting_main": "A sua subscrição está confirmada",
-            "greeting_subtitle": "Bem-vindo ao nosso círculo privilegiado",
-            "dear_customer": "Prezado Cliente,",
-            "subscription_confirm_intro": "Temos o prazer de confirmar sua inscrição em nossa newsletter. Você será um dos primeiros a saber das novidades.",
-            "subscription_confirm_details": "Detalhes da sua subscrição",
-            "subscription_confirm_btn": "Gerir as minhas preferências",
-            "subscription_confirm_note": "Agradecemos a sua confiança. Nunca vamos compartilhar seus dados.",
-            "subscription_confirm_signature": "Com toda a nossa gratidão,",
-            "account_email_label": "Endereço de e-mail"
-        },
-        "ar": {
-            "greeting_main": "تم تأكيد اشتراككم",
-            "greeting_subtitle": "مرحباً بكم في دائرتنا المتميزة",
-            "dear_customer": "ضيفنا الكريم،",
-            "subscription_confirm_intro": "يسعدنا تأكيد اشتراككم في خدمة نشرتنا الإخبارية. ستصبحون الآن من بين أول من يعلم.",
-            "subscription_confirm_details": "تفاصيل اشتراككم",
-            "subscription_confirm_btn": "إدارة تفضيلاتي",
-            "subscription_confirm_note": "شكراً لثقتكم. لن نشارك بياناتكم أبداً.",
-            "subscription_confirm_signature": "بكل امتناننا،",
-            "account_email_label": "عنوان البريد الإلكتروني"
-        },
-        "ja": {
-            "greeting_main": "登録が確定しました",
-            "greeting_subtitle": "特権サークルへようこそ",
-            "dear_customer": "{lastname} {firstname} 様",
-            "subscription_confirm_intro": "ニュースレターの購読登録が完了したことをお知らせします。今後は情報をいち早く受け取ることができます。",
-            "subscription_confirm_details": "登録の詳細",
-            "subscription_confirm_btn": "設定を管理",
-            "subscription_confirm_note": "ご信頼に感謝いたします。お客様のデータを共有することはありません。",
-            "subscription_confirm_signature": "心から感謝申し上げます、",
-            "account_email_label": "メールアドレス"
-        },
-        "ko": {
-            "greeting_main": "구독이 확인되었습니다",
-            "greeting_subtitle": "특별 서클에 오신 것을 환영합니다",
-            "dear_customer": "{lastname} {firstname} 고객님께,",
-            "subscription_confirm_intro": "뉴스레터 구독이 확인되었음을 알려드립니다. 이제 가장 먼저 정보를 받아보실 수 있습니다.",
-            "subscription_confirm_details": "구독 세부 정보",
-            "subscription_confirm_btn": "내 기본 설정 관리",
-            "subscription_confirm_note": "신뢰해 주셔서 감사합니다. 귀하의 데이터를 공유하지 않습니다.",
-            "subscription_confirm_signature": "깊은 감사를 드립니다,",
-            "account_email_label": "이메일 주소"
-        },
-        "zh": {
-            "greeting_main": "您的订阅已确认",
-            "greeting_subtitle": "欢迎加入我们的专属圈子",
-            "dear_customer": "尊敬的客人，",
-            "subscription_confirm_intro": "我们很高兴确认您已成功订阅我们的通讯服务。您将是最先获取信息的人之一。",
-            "subscription_confirm_details": "您的订阅详情",
-            "subscription_confirm_btn": "管理我的偏好",
-            "subscription_confirm_note": "感谢您的信任。我们绝不会分享您的数据。",
-            "subscription_confirm_signature": "致以我们全部的感谢，",
-            "account_email_label": "电子邮件地址"
-        },
-        "tw": {
-            "greeting_main": "您的訂閱已確認",
-            "greeting_subtitle": "歡迎加入我們的專屬圈子",
-            "dear_customer": "尊敬的客人，",
-            "subscription_confirm_intro": "我們很高興確認您已成功訂閱我們的通訊服務。您將是最先獲取信息的人之一。",
-            "subscription_confirm_details": "您的訂閱詳情",
-            "subscription_confirm_btn": "管理我的偏好",
-            "subscription_confirm_note": "感謝您的信任。我們絕不會分享您的數據。",
-            "subscription_confirm_signature": "致以我們全部的感謝，",
-            "account_email_label": "電子郵件地址"
-        },
-        "ru": {
-            "greeting_main": "Ваша подписка подтверждена",
-            "greeting_subtitle": "Добро пожаловать в наш привилегированный круг",
-            "dear_customer": "Уважаемый гость,",
-            "subscription_confirm_intro": "Мы рады подтвердить Вашу подписку на нашу рассылку. Теперь Вы будете в числе первых, кто узнаёт новости.",
-            "subscription_confirm_details": "Детали Вашей подписки",
-            "subscription_confirm_btn": "Управлять моими предпочтениями",
-            "subscription_confirm_note": "Благодарим за Ваше доверие. Мы никогда не будем делиться Вашими данными.",
-            "subscription_confirm_signature": "Со всей нашей благодарностью,",
-            "account_email_label": "Адрес электронной почты"
-        },
-        "tr": {
-            "greeting_main": "Aboneliğiniz onaylandı",
-            "greeting_subtitle": "Ayrıcalıklı çevremize hoş geldiniz",
-            "dear_customer": "Sayın Değerli Misafirimiz,",
-            "subscription_confirm_intro": "Bülten hizmetimize aboneliğinizi onaylamaktan mutluluk duyarız. Artık ilk bilenler arasında olacaksınız.",
-            "subscription_confirm_details": "Abonelik detayları",
-            "subscription_confirm_btn": "Tercihlerimi yönet",
-            "subscription_confirm_note": "Güveniniz için teşekkür ederiz. Verilerinizi asla paylaşmayız.",
-            "subscription_confirm_signature": "Tüm şükranlarımızla,",
-            "account_email_label": "E-posta adresi"
-        },
-        "sv": {
-            "greeting_main": "Din prenumeration är bekräftad",
-            "greeting_subtitle": "Välkommen till vår privilegierade krets",
-            "dear_customer": "Bästa kund,",
-            "subscription_confirm_intro": "Vi är glada att bekräfta din prenumeration på vårt nyhetsbrev. Du kommer nu att vara bland de första att få veta.",
-            "subscription_confirm_details": "Din prenumerationsdetaljer",
-            "subscription_confirm_btn": "Hantera mina inställningar",
-            "subscription_confirm_note": "Vi tackar dig för ditt förtroende. Vi kommer aldrig att dela dina data.",
-            "subscription_confirm_signature": "Med all vår tacksamhet,",
-            "account_email_label": "E-postadress"
-        },
-        "no": {
-            "greeting_main": "Abonnementet ditt er bekreftet",
-            "greeting_subtitle": "Velkommen til vår privilegerte krets",
-            "dear_customer": "Kjære kunde,",
-            "subscription_confirm_intro": "Vi er glade for å bekrefte abonnementet ditt på nyhetsbrevet vårt. Du vil nå være blant de første som får vite det.",
-            "subscription_confirm_details": "Abonnementsdetaljer",
-            "subscription_confirm_btn": "Administrer innstillingene mine",
-            "subscription_confirm_note": "Vi takker deg for tilliten din. Vi vil aldri dele dataene dine.",
-            "subscription_confirm_signature": "Med all vår takknemlighet,",
-            "account_email_label": "E-postadresse"
-        },
-        "da": {
-            "greeting_main": "Dit abonnement er bekræftet",
-            "greeting_subtitle": "Velkommen til vores privilegerede kreds",
-            "dear_customer": "Kære kunde,",
-            "subscription_confirm_intro": "Vi er glade for at bekræfte dit abonnement på vores nyhedsbrev. Du vil nu være blandt de første til at vide det.",
-            "subscription_confirm_details": "Dine abonnementsdetaljer",
-            "subscription_confirm_btn": "Administrer mine præferencer",
-            "subscription_confirm_note": "Vi takker dig for din tillid. Vi vil aldrig dele dine data.",
-            "subscription_confirm_signature": "Med al vores taknemmelighed,",
-            "account_email_label": "E-mailadresse"
-        },
-        "nl": {
-            "greeting_main": "Uw abonnement is bevestigd",
-            "greeting_subtitle": "Welkom in onze bevoorrechte kring",
-            "dear_customer": "Geachte klant,",
-            "subscription_confirm_intro": "Wij zijn verheugd uw abonnement op onze nieuwsbrief te bevestigen. U zult nu tot de eersten behoren die het weten.",
-            "subscription_confirm_details": "Uw abonnementsgegevens",
-            "subscription_confirm_btn": "Mijn voorkeuren beheren",
-            "subscription_confirm_note": "Wij danken u voor uw vertrouwen. Wij delen uw gegevens nooit.",
-            "subscription_confirm_signature": "Met al onze dankbaarheid,",
-            "account_email_label": "E-mailadres"
-        },
-        "gb": {
-            "greeting_main": "Your subscription is confirmed",
-            "greeting_subtitle": "Welcome to our privileged circle",
-            "dear_customer": "Dear Valued Guest,",
-            "subscription_confirm_intro": "We are pleased to confirm your subscription to our newsletter service. You will now be among the first to know.",
-            "subscription_confirm_details": "Your subscription details",
-            "subscription_confirm_btn": "Manage my preferences",
-            "subscription_confirm_note": "We thank you for your trust. We will never share your data.",
-            "subscription_confirm_signature": "With all our gratitude,",
-            "account_email_label": "Email address"
         }
     },
     "loyalty_tier_upgrade": {
@@ -23864,179 +22406,6 @@
             "first_anniversary_btn": "Discover my attention",
             "first_anniversary_note": "Thank you for being part of the story of our house.",
             "first_anniversary_signature": "With all our gratitude,"
-        }
-    },
-    "review_request": {
-        "fr": {
-            "greeting_main": "Votre regard sur cette pièce",
-            "greeting_subtitle": "Partagez votre expérience, en toute discrétion",
-            "dear_customer": "Madame, Monsieur,",
-            "review_request_intro": "Nous espérons que votre pièce a trouvé sa place chez vous. Si vous le souhaitez, nous serions heureux de recueillir votre impression sur cette expérience.",
-            "review_request_btn": "Partager mon avis",
-            "review_request_note": "Seule une poignée de nos hôtes sont invités à partager leur regard. Votre opinion compte.",
-            "review_request_signature": "À votre écoute,"
-        },
-        "en": {
-            "greeting_main": "Your perspective on this piece",
-            "greeting_subtitle": "Share your experience, discreetly",
-            "dear_customer": "Dear Valued Guest,",
-            "review_request_intro": "We hope your piece has found its place in your home. If you wish, we would be delighted to hear your impression of this experience.",
-            "review_request_btn": "Share my review",
-            "review_request_note": "Only a handful of our guests are invited to share their perspective. Your opinion matters.",
-            "review_request_signature": "At your disposal,"
-        },
-        "de": {
-            "greeting_main": "Ihre Sicht auf dieses Stück",
-            "greeting_subtitle": "Teilen Sie Ihre Erfahrung, diskret",
-            "dear_customer": "Sehr geehrte Damen und Herren,",
-            "review_request_intro": "Wir hoffen, dass Ihr Stück seinen Platz in Ihrem Zuhause gefunden hat. Wenn Sie möchten, würden wir uns freuen, Ihren Eindruck von dieser Erfahrung zu hören.",
-            "review_request_btn": "Meine Bewertung teilen",
-            "review_request_note": "Nur eine Handvoll unserer Gäste wird eingeladen, ihre Meinung zu teilen. Ihre Meinung zählt.",
-            "review_request_signature": "Zu Ihren Diensten,"
-        },
-        "it": {
-            "greeting_main": "Il Vostro sguardo su questo pezzo",
-            "greeting_subtitle": "Condividi la Vostra esperienza, con discrezione",
-            "dear_customer": "Gentile Cliente,",
-            "review_request_intro": "Speriamo che il Vostro pezzo abbia trovato il suo posto a casa Vostra. Se lo desiderate, saremmo lieti di ascoltare la Vostra impressione su questa esperienza.",
-            "review_request_btn": "Condividi la mia opinione",
-            "review_request_note": "Solo un ristretto numero dei nostri ospiti è invitato a condividere il proprio sguardo. La Vostra opinione conta.",
-            "review_request_signature": "A Vostra disposizione,"
-        },
-        "es": {
-            "greeting_main": "Su mirada sobre esta pieza",
-            "greeting_subtitle": "Comparta su experiencia, con discreción",
-            "dear_customer": "Estimado cliente,",
-            "review_request_intro": "Esperamos que su pieza haya encontrado su lugar en su hogar. Si lo desea, nos encantaría conocer su impresión sobre esta experiencia.",
-            "review_request_btn": "Compartir mi opinión",
-            "review_request_note": "Solo un puñado de nuestros huéspedes son invitados a compartir su perspectiva. Su opinión importa.",
-            "review_request_signature": "A su disposición,"
-        },
-        "pt": {
-            "greeting_main": "O seu olhar sobre esta peça",
-            "greeting_subtitle": "Partilhe a sua experiência, com discrição",
-            "dear_customer": "Prezado Cliente,",
-            "review_request_intro": "Esperamos que a sua peça tenha encontrado o seu lugar em sua casa. Se desejar, teremos todo o gosto em ouvir a sua impressão sobre esta experiência.",
-            "review_request_btn": "Partilhar a minha opinião",
-            "review_request_note": "Apenas um punhado dos nossos hóspedes são convidados a partilhar a sua perspetiva. A sua opinião importa.",
-            "review_request_signature": "Ao seu dispor,"
-        },
-        "br": {
-            "greeting_main": "O seu olhar sobre esta peça",
-            "greeting_subtitle": "Partilhe a sua experiência, com discrição",
-            "dear_customer": "Prezado Cliente,",
-            "review_request_intro": "Esperamos que sua peça tenha encontrado seu lugar em sua casa. Se quiser, teremos o maior prazer em ouvir sua opinião sobre esta experiência.",
-            "review_request_btn": "Compartilhar minha opinião",
-            "review_request_note": "Apenas um grupo seleto de nossos convidados é convidado a compartilhar sua opinião. Ela é muito importante para nós.",
-            "review_request_signature": "Ao seu dispor,"
-        },
-        "ar": {
-            "greeting_main": "نظرتكم إلى هذه القطعة",
-            "greeting_subtitle": "شاركونا تجربتكم، بكل سرية",
-            "dear_customer": "ضيفنا الكريم،",
-            "review_request_intro": "نأمل أن تكون قطعتكم قد وجدت مكانها في منزلكم. إذا أردتم، يسعدنا أن نسمع انطباعكم عن هذه التجربة.",
-            "review_request_btn": "مشاركة رأيي",
-            "review_request_note": "نحن ندعو قلة من ضيوفنا فقط لمشاركة نظرتهم. رأيكم يهمنا.",
-            "review_request_signature": "في خدمتكم،"
-        },
-        "ja": {
-            "greeting_main": "この作品に対するお客様のご意見",
-            "greeting_subtitle": "ご経験をこっそりと共有してください",
-            "dear_customer": "{lastname} {firstname} 様",
-            "review_request_intro": "お客様の作品がお宅で落ち着いたことを願っております。もしよろしければ、この体験に関するお客様の印象を伺いたく存じます。",
-            "review_request_btn": "意見を共有する",
-            "review_request_note": "ほんのひとにぎりのお客様だけに、ご意見をお聞かせいただいております。お客様のお声は大切にしております。",
-            "review_request_signature": "お客様の声をお待ちしております、"
-        },
-        "ko": {
-            "greeting_main": "이 작품에 대한 고객님의 시선",
-            "greeting_subtitle": "경험을 조용히 공유해 주세요",
-            "dear_customer": "{lastname} {firstname} 고객님께,",
-            "review_request_intro": "고객님의 작품이 집에서 자리를 잡았기를 바랍니다. 원하신다면, 이 경험에 대한 고객님의 소감을 듣고 싶습니다.",
-            "review_request_btn": "내 의견 공유하기",
-            "review_request_note": "저희는 소수의 고객님께만 의견을 나눠주실 것을 요청드립니다. 고객님의 의견은 소중합니다.",
-            "review_request_signature": "도와드리겠습니다,"
-        },
-        "zh": {
-            "greeting_main": "您对这件作品的看法",
-            "greeting_subtitle": "请谨慎地分享您的体验",
-            "dear_customer": "尊敬的客人，",
-            "review_request_intro": "希望您的作品已在您家中找到了它的位置。如果您愿意，我们很乐意倾听您对这次体验的印象。",
-            "review_request_btn": "分享我的意见",
-            "review_request_note": "我们只邀请极少数贵宾分享他们的看法。您的意见至关重要。",
-            "review_request_signature": "随时为您服务，"
-        },
-        "tw": {
-            "greeting_main": "您對這件作品的看法",
-            "greeting_subtitle": "請謹慎地分享您的體驗",
-            "dear_customer": "尊敬的客人，",
-            "review_request_intro": "希望您的作品已在您家中找到了它的位置。如果您願意，我們很樂意傾聽您對這次體驗的印象。",
-            "review_request_btn": "分享我的意見",
-            "review_request_note": "我們只邀請極少數貴賓分享他們的看法。您的意見至關重要。",
-            "review_request_signature": "隨時為您服務，"
-        },
-        "ru": {
-            "greeting_main": "Ваш взгляд на это изделие",
-            "greeting_subtitle": "Поделитесь своим опытом, сдержанно",
-            "dear_customer": "Уважаемый гость,",
-            "review_request_intro": "Мы надеемся, что Ваше изделие нашло своё место в Вашем доме. Если Вы захотите, мы будем рады узнать Ваше впечатление от этого опыта.",
-            "review_request_btn": "Поделиться моим отзывом",
-            "review_request_note": "Лишь немногие из наших гостей приглашаются поделиться своим взглядом. Ваше мнение ценно.",
-            "review_request_signature": "К Вашим услугам,"
-        },
-        "tr": {
-            "greeting_main": "Bu parçaya dair bakış açınız",
-            "greeting_subtitle": "Deneyiminizi paylaşın, göze çarpmadan",
-            "dear_customer": "Sayın Değerli Misafirimiz,",
-            "review_request_intro": "Parçanızın evinizde yerini bulduğunu umuyoruz. İsterseniz, bu deneyim hakkındaki izlenimlerinizi duymaktan mutluluk duyarız.",
-            "review_request_btn": "Görüşümü paylaş",
-            "review_request_note": "Yalnızca bir avuç konuğumuz bakış açılarını paylaşmaya davet ediliyor. Görüşünüz önemlidir.",
-            "review_request_signature": "Hizmetinizde,"
-        },
-        "sv": {
-            "greeting_main": "Din syn på detta stycke",
-            "greeting_subtitle": "Dela din upplevelse, diskret",
-            "dear_customer": "Bästa kund,",
-            "review_request_intro": "Vi hoppas att ditt stycke har hittat sin plats i ditt hem. Om du vill, skulle vi bli glada att höra ditt intryck av denna upplevelse.",
-            "review_request_btn": "Dela min åsikt",
-            "review_request_note": "Endast en handfull av våra gäster bjuds in att dela sina åsikter. Din åsikt räknas.",
-            "review_request_signature": "Till din tjänst,"
-        },
-        "no": {
-            "greeting_main": "Ditt syn på denne gjenstanden",
-            "greeting_subtitle": "Del opplevelsen din, diskret",
-            "dear_customer": "Kjære kunde,",
-            "review_request_intro": "Vi håper gjenstanden din har funnet sin plass i hjemmet ditt. Hvis du ønsker, vil vi gjerne høre ditt inntrykk av denne opplevelsen.",
-            "review_request_btn": "Del min mening",
-            "review_request_note": "Bare en håndfull av gjestene våre inviteres til å dele sitt syn. Din mening teller.",
-            "review_request_signature": "Til din tjeneste,"
-        },
-        "da": {
-            "greeting_main": "Dit syn på dette stykke",
-            "greeting_subtitle": "Del din oplevelse, diskret",
-            "dear_customer": "Kære kunde,",
-            "review_request_intro": "Vi håber, at dit stykke har fundet sin plads i dit hjem. Hvis du ønsker, vil vi gerne høre dit indtryk af denne oplevelse.",
-            "review_request_btn": "Del min mening",
-            "review_request_note": "Kun en håndfuld af vores gæster inviteres til at dele deres perspektiv. Din mening tæller.",
-            "review_request_signature": "Til din rådighed,"
-        },
-        "nl": {
-            "greeting_main": "Uw kijk op dit stuk",
-            "greeting_subtitle": "Deel uw ervaring, discreet",
-            "dear_customer": "Geachte klant,",
-            "review_request_intro": "We hopen dat uw stuk zijn plaats heeft gevonden in uw huis. Als u wilt, horen we graag uw indruk van deze ervaring.",
-            "review_request_btn": "Deel mijn mening",
-            "review_request_note": "Slechts een handvol van onze gasten wordt uitgenodigd hun perspectief te delen. Uw mening telt.",
-            "review_request_signature": "Tot uw dienst,"
-        },
-        "gb": {
-            "greeting_main": "Your perspective on this piece",
-            "greeting_subtitle": "Share your experience, discreetly",
-            "dear_customer": "Dear Valued Guest,",
-            "review_request_intro": "We hope your piece has found its place in your home. If you wish, we would be delighted to hear your impression of this experience.",
-            "review_request_btn": "Share my review",
-            "review_request_note": "Only a handful of our guests are invited to share their perspective. Your opinion matters.",
-            "review_request_signature": "At your disposal,"
         }
     },
     "bespoke_ready": {

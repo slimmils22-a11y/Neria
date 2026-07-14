@@ -49,3 +49,5 @@ DROP TABLE IF EXISTS `PREFIX_neria_preferences`;
 DROP TABLE IF EXISTS `PREFIX_neria_abtest_history`;
 DROP TABLE IF EXISTS `PREFIX_neria_cron_health`;
 DROP TABLE IF EXISTS `PREFIX_neria_voice_profile`;
+DROP TABLE IF EXISTS `PREFIX_neria_birthday_voucher`;
+DROP TABLE IF EXISTS `PREFIX_neria_milestone_voucher`;

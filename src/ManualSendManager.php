@@ -644,6 +644,13 @@ class ManualSendManager
 
         $toName = trim(($customer['firstname'] ?? '') . ' ' . ($customer['lastname'] ?? ''));
 
+        // Horodatage juste avant l'appel — sert de repère pour retrouver la
+        // vraie cause d'un échec dans le log natif PrestaShop (ps_log), cf.
+        // ci-dessous : Mail::Send() y écrit la raison précise (adresse
+        // invalide, sujet invalide, erreur SMTP réelle...) via dieOrLog(),
+        // mais ne la retourne jamais à l'appelant — juste `false`.
+        $sendAttemptedAt = date('Y-m-d H:i:s');
+
         $sent = \Mail::Send(
             $idLang,
             $template,
@@ -686,14 +693,31 @@ class ManualSendManager
             ];
         }
 
+        // Retrouve la vraie cause dans le log natif PrestaShop (ps_log) plutôt
+        // que d'afficher un message générique "vérifiez la config SMTP" qui
+        // masque le vrai problème (adresse invalide, sujet invalide, échec
+        // SwiftMailer réel, etc.) — bug trouvé le 2026-07-13 via un rapport
+        // de test externe.
+        $realReason = (string) $this->db->getValue(
+            'SELECT `message` FROM `' . _DB_PREFIX_ . 'log`
+             WHERE `date_add` >= \'' . pSQL($sendAttemptedAt) . '\'
+             ORDER BY `id_log` DESC'
+        );
+
         $this->watchdog()->error(
-            WatchdogManager::i18nMsg('watchdog.manual_send_failed', ['template' => $template, 'email' => $email]),
+            WatchdogManager::i18nMsg('watchdog.manual_send_failed', [
+                'template' => $template,
+                'email'    => $email,
+                'reason'   => $realReason !== '' ? $realReason : AdminTranslator::t('msg.send_failed_reason_unknown'),
+            ]),
             $template,
             'ManualSendManager'
         );
         return [
             'ok'      => false,
-            'message' => AdminTranslator::t('msg.send_failed'),
+            'message' => $realReason !== ''
+                ? AdminTranslator::tVars('msg.send_failed_reason', ['reason' => $realReason])
+                : AdminTranslator::t('msg.send_failed'),
         ];
     }
 

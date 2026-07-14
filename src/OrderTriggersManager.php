@@ -57,24 +57,20 @@ class OrderTriggersManager
         'nl' => [5 => '5e', 10 => '10e', 25 => '25e', 50 => '50e', 100 => '100e'],
     ];
 
-    // Paliers fidélité : nb commandes → nom du tier
-    const LOYALTY_TIERS = [
-        3  => 'Bronze',
-        10 => 'Silver',
-        25 => 'Gold',
-        50 => 'Platinum',
-    ];
-
     // IDs des statuts PS standards (1–13) — on n'envoie order_on_hold /
     // order_partial_shipped que pour des statuts custom créés par le marchand
     const STANDARD_STATUS_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
     private \Neria $module;
+    private \Db $db;
+    private string $prefix;
     private ?\WatchdogManager $watchdog = null;
 
     public function __construct(\Neria $module)
     {
         $this->module = $module;
+        $this->db     = \Db::getInstance();
+        $this->prefix = _DB_PREFIX_;
     }
 
     private function watchdog(): \WatchdogManager
@@ -94,6 +90,124 @@ class OrderTriggersManager
     {
         $iso = \Language::getIsoById($idLang) ?: 'fr';
         return self::MILESTONE_ORDINALS[$iso][$count] ?? (string) $count;
+    }
+
+    /**
+     * Génère un vrai bon de réduction PrestaShop (CartRule) pour un palier de
+     * commandes atteint, uniquement si le marchand a activé
+     * ConfigManager::isMilestoneVoucherEnabled() (désactivé par défaut).
+     * Anti-doublon atomique via ps_neria_milestone_voucher (UNIQUE
+     * id_customer+milestone), même principe que BehavioralCronManager::
+     * generateBirthdayVoucher().
+     *
+     * @return string Le code du bon, ou '' si déjà réservé par une requête concurrente.
+     */
+    private function generateMilestoneVoucher(int $idCustomer, int $milestone, \ConfigManager $config): string
+    {
+        $reserved = $this->db->execute(
+            'INSERT IGNORE INTO `' . $this->prefix . 'neria_milestone_voucher`
+                (id_customer, milestone, id_cart_rule, voucher_code, created_at)
+             VALUES (' . (int) $idCustomer . ', ' . (int) $milestone . ', 0, \'\', NOW())'
+        );
+
+        if (!$reserved || (int) $this->db->Affected_Rows() === 0) {
+            return '';
+        }
+
+        $amount    = $config->getMilestoneVoucherAmount();
+        $isPercent = $config->isMilestoneVoucherPercent();
+        $code      = 'NERIA-MLST-' . strtoupper(\Tools::passwdGen(6));
+
+        $cartRule = new \CartRule();
+        $langs = \Language::getLanguages(false);
+        $names = [];
+        foreach ($langs as $l) {
+            $names[(int) $l['id_lang']] = $code;
+        }
+        $cartRule->name                    = $names;
+        $cartRule->code                    = $code;
+        $cartRule->id_customer             = $idCustomer;
+        $cartRule->quantity                = 1;
+        $cartRule->quantity_per_user       = 1;
+        $cartRule->active                  = 1;
+        $cartRule->date_from               = date('Y-m-d H:i:s');
+        $cartRule->date_to                 = date('Y-m-d H:i:s', strtotime('+' . $config->getVoucherValidity() . ' days'));
+        $cartRule->minimum_amount          = 0;
+        $cartRule->minimum_amount_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT');
+        $cartRule->highlight               = false;
+        $cartRule->free_shipping           = false;
+
+        if ($isPercent) {
+            $cartRule->reduction_percent = $amount;
+            $cartRule->reduction_amount  = 0;
+        } else {
+            $cartRule->reduction_amount   = $amount;
+            $cartRule->reduction_percent  = 0;
+            $cartRule->reduction_tax      = 1;
+            $cartRule->reduction_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT');
+        }
+
+        if (!$cartRule->add()) {
+            // Libère la réservation pour permettre une nouvelle tentative
+            // (sinon ce client resterait sans bon pour ce palier à vie).
+            $this->db->execute(
+                'DELETE FROM `' . $this->prefix . 'neria_milestone_voucher`
+                 WHERE id_customer = ' . (int) $idCustomer . ' AND milestone = ' . (int) $milestone . ' AND id_cart_rule = 0'
+            );
+            throw new \RuntimeException('CartRule::add() failed for customer ' . $idCustomer . ' milestone ' . $milestone);
+        }
+
+        $this->db->execute(
+            'UPDATE `' . $this->prefix . 'neria_milestone_voucher`
+             SET id_cart_rule = ' . (int) $cartRule->id . ', voucher_code = \'' . pSQL($code) . '\'
+             WHERE id_customer = ' . (int) $idCustomer . ' AND milestone = ' . (int) $milestone
+        );
+
+        return $code;
+    }
+
+    /**
+     * Bloc HTML du bon de réduction palier, injecté à la place du
+     * placeholder {milestone_voucher_block} — vide si aucun bon (toggle
+     * désactivé ou échec de génération), auquel cas le template reste un
+     * simple email de reconnaissance sans bloc bon de réduction.
+     */
+    private function buildMilestoneVoucherHtmlBlock(string $voucherCode, string $iso): string
+    {
+        if ($voucherCode === '') {
+            return '';
+        }
+
+        $engine = new \TranslationEngine($this->module);
+        $label  = htmlspecialchars(
+            $engine->get('milestone_order', 'milestone_voucher_value', $iso),
+            ENT_QUOTES
+        );
+        $accent = htmlspecialchars(
+            (new \ConfigManager($this->module))->getDesignConfig()['color_accent'] ?? '#b38b59',
+            ENT_QUOTES
+        );
+        $code = htmlspecialchars($voucherCode, ENT_QUOTES);
+
+        return '<div style="text-align:center;margin:28px 0;padding:24px;border:2px solid ' . $accent . ';background:#fefefe;">'
+            . '<p style="font-size:20px;font-weight:700;color:' . $accent . ';margin:0;letter-spacing:0.06em;">' . $code . '</p>'
+            . '<p style="margin:12px 0 0 0;">' . $label . '</p>'
+            . '</div>';
+    }
+
+    /**
+     * Équivalent texte, injecté à la place de {milestone_voucher_block_txt}.
+     */
+    private function buildMilestoneVoucherTxtBlock(string $voucherCode, string $iso): string
+    {
+        if ($voucherCode === '') {
+            return '';
+        }
+
+        $engine = new \TranslationEngine($this->module);
+        $label  = $engine->get('milestone_order', 'milestone_voucher_value', $iso);
+
+        return "\n" . $label . ' : ' . $voucherCode . "\n";
     }
 
     // ============================================================
@@ -134,11 +248,31 @@ class OrderTriggersManager
         // milestone_order
         if (in_array($count, self::MILESTONES, true)) {
             try {
+                $config      = new \ConfigManager($this->module);
+                $voucherCode = '';
+                if ($config->isMilestoneVoucherEnabled()) {
+                    try {
+                        $voucherCode = $this->generateMilestoneVoucher($idCustomer, $count, $config);
+                    } catch (\Throwable $e) {
+                        $this->watchdog()->error(
+                            \WatchdogManager::i18nMsg('watchdog.milestone_voucher_error', ['count' => $count, 'email' => $customer->email, 'error' => $e->getMessage()]),
+                            'milestone_order', 'OrderTriggers'
+                        );
+                    }
+                }
+
+                $iso = \Language::getIsoById($idLang) ?: 'fr';
+                $voucherBlockHtml = $this->buildMilestoneVoucherHtmlBlock($voucherCode, $iso);
+                $voucherBlockTxt  = $this->buildMilestoneVoucherTxtBlock($voucherCode, $iso);
+
                 $result = \Mail::Send(
                     $idLang, 'milestone_order', '',
                     array_merge($common, [
-                        '{milestone_count}' => $this->formatMilestoneOrdinal($count, $idLang),
-                        '{order_count}'     => (string) $count,
+                        '{milestone_count}'        => $this->formatMilestoneOrdinal($count, $idLang),
+                        '{order_count}'            => (string) $count,
+                        '{voucher_code}'           => $voucherCode,
+                        '{milestone_voucher_block}'     => $voucherBlockHtml,
+                        '{milestone_voucher_block_txt}' => $voucherBlockTxt,
                     ]),
                     $customer->email, $toName, null, null, null, null,
                     _PS_MODULE_DIR_ . 'neria/mails/', false, $idShop
@@ -162,39 +296,12 @@ class OrderTriggersManager
             }
         }
 
-        // loyalty_tier_upgrade
-        if (isset(self::LOYALTY_TIERS[$count])) {
-            try {
-                $tierName   = self::LOYALTY_TIERS[$count];
-                $historyUrl = \Context::getContext()->link->getPageLink('history', true, $idLang);
-
-                $result = \Mail::Send(
-                    $idLang, 'loyalty_tier_upgrade', '',
-                    array_merge($common, [
-                        '{new_tier_name}' => $tierName,
-                        '{history_url}'   => $historyUrl,
-                    ]),
-                    $customer->email, $toName, null, null, null, null,
-                    _PS_MODULE_DIR_ . 'neria/mails/', false, $idShop
-                );
-                if ($result) {
-                    $this->watchdog()->info(
-                        \WatchdogManager::i18nMsg('watchdog.loyalty_tier_sent', ['tier' => $tierName, 'email' => $customer->email]),
-                        'loyalty_tier_upgrade', 'OrderTriggers'
-                    );
-                } else {
-                    $this->watchdog()->warning(
-                        \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'loyalty_tier_upgrade', 'email' => $customer->email]),
-                        'loyalty_tier_upgrade', 'OrderTriggers'
-                    );
-                }
-            } catch (\Throwable $e) {
-                $this->watchdog()->error(
-                    \WatchdogManager::i18nMsg('watchdog.loyalty_tier_error', ['tier' => $tierName, 'email' => $customer->email, 'error' => $e->getMessage()]),
-                    'loyalty_tier_upgrade', 'OrderTriggers'
-                );
-            }
-        }
+        // Note : le déclenchement "loyalty_tier_upgrade" par nombre de commandes
+        // (paliers 3/10/25/50) a été retiré le 2026-07-13 — doublon incomplet
+        // du programme de fidélité réel (LoyaltyManager, par points d'engagement,
+        // avec vrai bon de réduction généré) : celui-ci envoyait le même template
+        // sans jamais fournir {voucher_code}/{total_points}, ni générer de bon.
+        // Voir [[project_loyalty_tier_duplicate_fix]] en mémoire.
     }
 
     // ============================================================

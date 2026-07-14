@@ -281,6 +281,24 @@
 {* ── Bons de réduction ──────────────────────────────────────── *}
 <div class="neria-section" id="neria-cfg-vouchers">
   <h2 class="neria-section__title">{neria_admin key='configure.voucher_title'}</h2>
+
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:16px 0;">
+    <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:14px;">
+      <div style="font-size:20px;margin-bottom:6px;">🗓️</div>
+      <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:4px;">{neria_admin key='configure.voucher_card_validity_title'}</div>
+      <div style="font-size:12px;color:#7a6a5a;line-height:1.5;">
+        {neria_admin key='configure.voucher_card_validity_desc'}
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:14px;">
+      <div style="font-size:20px;margin-bottom:6px;">🎂</div>
+      <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:4px;">{neria_admin key='configure.voucher_card_birthday_title'}</div>
+      <div style="font-size:12px;color:#7a6a5a;line-height:1.5;">
+        {neria_admin key='configure.voucher_card_birthday_desc'}
+      </div>
+    </div>
+  </div>
+
   <p class="neria-section__desc">
     {neria_admin key='configure.voucher_desc'}
   </p>
@@ -296,6 +314,125 @@
       <input type="number" id="neria-voucher-validity" name="neria_voucher_validity"
              class="neria-input" min="1" max="365" style="max-width:140px;"
              value="{$voucher_validity|default:30}">
+    </div>
+
+    <div style="margin-top:16px;">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+        {neria_admin key='common.register'}
+      </button>
+    </div>
+  </form>
+
+  <hr style="margin:24px 0;border:none;border-top:1px solid #e8d5b0;">
+
+  <h3 style="margin:0 0 6px 0;font-size:13px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#2c2c2c;">
+    {neria_admin key='configure.birthday_voucher_subtitle'}
+  </h3>
+  <p class="neria-section__desc">
+    {neria_admin key='configure.birthday_voucher_desc'}
+  </p>
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <input type="hidden" name="neria_action" value="save_birthday_voucher">
+    <input type="hidden" name="neria_tab"    value="configure">
+
+    <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+      <div class="neria-form-group">
+        <label class="neria-label" for="neria-birthday-voucher-amount">
+          {neria_admin key='configure.birthday_voucher_amount_label'}
+        </label>
+        <input type="number" id="neria-birthday-voucher-amount" name="neria_birthday_voucher_amount"
+               class="neria-input" min="0" step="0.01" style="max-width:140px;"
+               value="{$birthday_voucher_amount|default:10}">
+      </div>
+
+      <div class="neria-form-group">
+        <label class="neria-label" for="neria-birthday-voucher-percent">
+          {neria_admin key='configure.birthday_voucher_type_label'}
+        </label>
+        <select id="neria-birthday-voucher-percent" name="neria_birthday_voucher_percent"
+                class="neria-input" style="max-width:180px;">
+          <option value="1" {if $birthday_voucher_percent}selected{/if}>{neria_admin key='configure.birthday_voucher_type_percent'}</option>
+          <option value="0" {if !$birthday_voucher_percent}selected{/if}>{neria_admin key='configure.birthday_voucher_type_amount'}</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
+        {neria_admin key='common.register'}
+      </button>
+    </div>
+  </form>
+
+  <hr style="margin:24px 0;border:none;border-top:1px solid #e8d5b0;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:6px;">
+    <h3 style="margin:0;font-size:13px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#2c2c2c;">
+      {neria_admin key='configure.milestone_voucher_subtitle'}
+    </h3>
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" id="neria-milestone-voucher-toggle-form" style="display:inline;">
+      <input type="hidden" name="neria_action" value="save_milestone_voucher">
+      <input type="hidden" name="neria_tab"    value="configure">
+      <input type="hidden" name="neria_milestone_voucher_enabled" id="neria-milestone-voucher-enabled-input" value="{if $milestone_voucher_enabled}1{else}0{/if}">
+      <input type="hidden" name="neria_milestone_voucher_amount"  id="neria-milestone-voucher-toggle-amount"  value="{$milestone_voucher_amount|default:10}">
+      <input type="hidden" name="neria_milestone_voucher_percent" id="neria-milestone-voucher-toggle-percent" value="{if $milestone_voucher_percent}1{else}0{/if}">
+      <button type="button" id="neria-milestone-voucher-toggle-btn"
+              onclick="document.getElementById('neria-milestone-voucher-enabled-input').value = document.getElementById('neria-milestone-voucher-enabled-input').value === '1' ? '0' : '1'; this.form.submit();"
+              style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px;
+                     background:{if $milestone_voucher_enabled}#1a7a40{else}#c0392b{/if};
+                     color:#fff; border:none; border-radius:4px; font-size:12px;
+                     font-weight:700; cursor:pointer; letter-spacing:.04em;">
+        {if $milestone_voucher_enabled}● {neria_admin key='help.cron_toggle_on'}{else}○ {neria_admin key='help.cron_toggle_off'}{/if}
+      </button>
+    </form>
+  </div>
+  <p class="neria-section__desc">
+    {neria_admin key='configure.milestone_voucher_desc'}
+  </p>
+
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:16px 0;">
+    <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:14px;">
+      <div style="font-size:20px;margin-bottom:6px;">🎯</div>
+      <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:4px;">{neria_admin key='configure.milestone_voucher_card1_title'}</div>
+      <div style="font-size:12px;color:#7a6a5a;line-height:1.5;">
+        {neria_admin key='configure.milestone_voucher_card1_desc'}
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:14px;">
+      <div style="font-size:20px;margin-bottom:6px;">🔗</div>
+      <div style="font-weight:700;font-size:13px;color:#5c3d1e;margin-bottom:4px;">{neria_admin key='configure.milestone_voucher_card2_title'}</div>
+      <div style="font-size:12px;color:#7a6a5a;line-height:1.5;">
+        {neria_admin key='configure.milestone_voucher_card2_desc'}
+      </div>
+    </div>
+  </div>
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <input type="hidden" name="neria_action" value="save_milestone_voucher">
+    <input type="hidden" name="neria_tab"    value="configure">
+    <input type="hidden" name="neria_milestone_voucher_enabled" value="{if $milestone_voucher_enabled}1{else}0{/if}">
+
+    <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+      <div class="neria-form-group">
+        <label class="neria-label" for="neria-milestone-voucher-amount">
+          {neria_admin key='configure.milestone_voucher_amount_label'}
+        </label>
+        <input type="number" id="neria-milestone-voucher-amount" name="neria_milestone_voucher_amount"
+               class="neria-input" min="0" step="0.01" style="max-width:140px;"
+               value="{$milestone_voucher_amount|default:10}">
+      </div>
+
+      <div class="neria-form-group">
+        <label class="neria-label" for="neria-milestone-voucher-percent">
+          {neria_admin key='configure.birthday_voucher_type_label'}
+        </label>
+        <select id="neria-milestone-voucher-percent" name="neria_milestone_voucher_percent"
+                class="neria-input" style="max-width:180px;">
+          <option value="1" {if $milestone_voucher_percent}selected{/if}>{neria_admin key='configure.birthday_voucher_type_percent'}</option>
+          <option value="0" {if !$milestone_voucher_percent}selected{/if}>{neria_admin key='configure.birthday_voucher_type_amount'}</option>
+        </select>
+      </div>
     </div>
 
     <div style="margin-top:16px;">

@@ -892,5 +892,41 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_voice_profile` (
     `date_upd`         DATETIME     NOT NULL,
     PRIMARY KEY (`id_voice_profile`),
     UNIQUE KEY `uq_shop_lang` (`id_shop`, `lang`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- TABLE 37 : neria_birthday_voucher
+-- Bon de réduction anniversaire (CartRule PS réel) — anti-doublon
+-- par (id_customer, year) : un seul bon généré par client et par an.
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `PREFIX_neria_birthday_voucher` (
+    `id_voucher`   INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+    `id_customer`  INT UNSIGNED  NOT NULL,
+    `year`         SMALLINT UNSIGNED NOT NULL,
+    `id_cart_rule` INT UNSIGNED  NOT NULL DEFAULT 0 COMMENT 'ID CartRule PS créée',
+    `voucher_code` VARCHAR(50)   NOT NULL DEFAULT '',
+    `created_at`   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id_voucher`),
+    UNIQUE KEY `uq_customer_year` (`id_customer`, `year`),
+    KEY `idx_customer` (`id_customer`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Empreinte vocale de la marque par langue — mots bannis/préférés, ton cible';
+COMMENT='Bon de réduction anniversaire (CartRule PS), anti-doublon par client et par année';
+
+-- ------------------------------------------------------------
+-- TABLE 38 : neria_milestone_voucher
+-- Bon de réduction sur palier de commandes (CartRule PS réel, optionnel,
+-- activé par le marchand) — anti-doublon par (id_customer, milestone) :
+-- un seul bon généré par client et par palier atteint (5/10/25/50/100).
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `PREFIX_neria_milestone_voucher` (
+    `id_voucher`   INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+    `id_customer`  INT UNSIGNED  NOT NULL,
+    `milestone`    SMALLINT UNSIGNED NOT NULL,
+    `id_cart_rule` INT UNSIGNED  NOT NULL DEFAULT 0 COMMENT 'ID CartRule PS créée',
+    `voucher_code` VARCHAR(50)   NOT NULL DEFAULT '',
+    `created_at`   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id_voucher`),
+    UNIQUE KEY `uq_customer_milestone` (`id_customer`, `milestone`),
+    KEY `idx_customer` (`id_customer`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Bon de réduction par palier de commandes (CartRule PS), anti-doublon par client et par palier';

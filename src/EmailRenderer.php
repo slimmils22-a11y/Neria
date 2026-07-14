@@ -342,6 +342,14 @@ class EmailRenderer
         // Message personnalisé optionnel (envoi manuel) — versions HTML et TXT
         $this->injectCustomMessage($params['templateVars']);
 
+        // {subject} — utilisé dans le <title> de layout.html ; jamais injecté
+        // en dehors de l'aperçu/fallback jusqu'ici, laissant un "{subject}"
+        // brut dans le <title> de tous les envois réels (bug trouvé le
+        // 2026-07-13 via un rapport de test externe, cf. mémoire).
+        if (is_array($params['templateVars'])) {
+            $params['templateVars']['{subject}'] = (string) ($params['subject'] ?? '');
+        }
+
         // Durée de validité des bons (variable {validity_days}, réglage marchand)
         if (is_array($params['templateVars'])) {
             $params['templateVars']['{validity_days}'] = (string) $this->config->getVoucherValidity();
@@ -2445,7 +2453,7 @@ class EmailRenderer
         // Les vars déjà résolues par psCommon (shop_url, etc.) ne sont plus
         // présentes dans $compiled — le str_replace est un no-op pour elles.
         foreach ($templateVars as $key => $value) {
-            if (is_string($value) && $value !== '') {
+            if (is_string($value)) {
                 $compiled = str_replace($key, $value, $compiled);
             }
         }
@@ -2597,7 +2605,7 @@ class EmailRenderer
             // le filet de sécurité qui suit.
             $compiledTxt = str_replace(array_keys($psCommon), array_values($psCommon), $compiledTxt);
             foreach ($templateVars as $key => $value) {
-                if (is_string($value) && $value !== '') {
+                if (is_string($value)) {
                     $compiledTxt = str_replace($key, $value, $compiledTxt);
                 }
             }
