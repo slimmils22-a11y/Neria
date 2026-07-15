@@ -403,7 +403,25 @@
       'history_table_size'   => 'help.health_check_history_table_size',
       'abtest_trad_gaps'     => 'help.health_check_abtest_trad_gaps',
       'managers_available'   => 'help.health_check_managers_available',
-      'active_cron'          => 'help.health_check_active_cron'
+      'active_cron'          => 'help.health_check_active_cron',
+      'class_override'       => 'help.health_check_class_override',
+      'smarty_compile_check' => 'help.health_check_smarty_compile_check',
+      'upgrade_script_safety' => 'help.health_check_upgrade_script_safety',
+      'known_regressions_guard' => 'help.health_check_known_regressions_guard',
+      'txt_placeholder_coverage' => 'help.health_check_txt_placeholder_coverage',
+      'orphaned_voucher_reservations' => 'help.health_check_orphaned_voucher_reservations',
+      'encoded_residual_links' => 'help.health_check_encoded_residual_links',
+      'crypto_key_health'    => 'help.health_check_crypto_key_health',
+      'html_txt_pairs'       => 'help.health_check_html_txt_pairs',
+      'template_staleness'   => 'help.health_check_template_staleness',
+      'blacklist_stale_files' => 'help.health_check_blacklist_stale_files',
+      'residual_vars_recent' => 'help.health_check_residual_vars_recent',
+      'sig_social_recent'    => 'help.health_check_sig_social_recent',
+      'action_banner_coverage' => 'help.health_check_action_banner_coverage',
+      'orphan_placeholders'  => 'help.health_check_orphan_placeholders',
+      'render_canary_recent' => 'help.health_check_render_canary_recent',
+      'milestone_order_health' => 'help.health_check_milestone_order_health',
+      'custom_vars_completeness' => 'help.health_check_custom_vars_completeness'
     ]}
     <div class="neria-diag-grid">
       {foreach $health_results as $checkKey => $result}
