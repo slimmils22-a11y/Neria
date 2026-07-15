@@ -168,6 +168,10 @@ class HealthCheckManager
             'upgrade_script_safety' => $this->checkUpgradeScriptSafety(),
             'known_regressions_guard' => $this->checkKnownRegressionsGuard(),
             'txt_placeholder_coverage' => $this->checkTxtPlaceholderCoverage(),
+            'orphaned_voucher_reservations' => $this->checkOrphanedVoucherReservations(),
+            'encoded_residual_links' => $this->checkEncodedResidualLinks(),
+            'crypto_key_health' => $this->checkCryptoKeyHealth(),
+            'html_txt_pairs' => $this->checkHtmlTxtPairs(),
             'template_files'       => $this->checkTemplateFiles(),
             'trad_keys'            => $this->checkTradKeys(),
             'open_rate_7d'         => $this->checkOpenRate7d(),
@@ -639,6 +643,182 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.txt_coverage_ok')];
+    }
+
+    /**
+     * Réservations de bons de réduction orphelines — BehavioralCronManager::
+     * generateBirthdayVoucher() / OrderTriggersManager::generateMilestoneVoucher()
+     * réservent une ligne (id_cart_rule=0) avant de créer le vrai CartRule, pour
+     * l'anti-doublon. Si CartRule::add() échoue, le code libère la réservation ;
+     * mais un crash PHP entre les deux (rare mais possible) laisserait la ligne
+     * bloquée à id_cart_rule=0 pour toujours — ce client ne recevrait plus
+     * jamais son bon pour ce palier/cette année. Auto-réparation : au-delà de
+     * 24h, une réservation à id_cart_rule=0 est forcément un échec, jamais un
+     * envoi en cours (le cycle complet dure quelques secondes) — supprimable
+     * sans risque pour débloquer une nouvelle tentative au prochain cron.
+     */
+    private function checkOrphanedVoucherReservations(): array
+    {
+        $db     = \Db::getInstance();
+        $tables = ['neria_birthday_voucher', 'neria_milestone_voucher'];
+        $fixed  = 0;
+
+        foreach ($tables as $table) {
+            if (!$this->tableExists($table)) {
+                continue;
+            }
+            $count = (int) $db->getValue(
+                'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . $table . '`
+                 WHERE `id_cart_rule` = 0 AND `created_at` < DATE_SUB(NOW(), INTERVAL 24 HOUR)'
+            );
+            if ($count > 0) {
+                $db->execute(
+                    'DELETE FROM `' . _DB_PREFIX_ . $table . '`
+                     WHERE `id_cart_rule` = 0 AND `created_at` < DATE_SUB(NOW(), INTERVAL 24 HOUR)'
+                );
+                $fixed += $count;
+            }
+        }
+
+        if ($fixed > 0) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.orphaned_vouchers_fixed', ['count' => $fixed]),
+                'auto_fixed' => true,
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.orphaned_vouchers_ok')];
+    }
+
+    private function tableExists(string $table): bool
+    {
+        $row = \Db::getInstance()->executeS(
+            "SHOW TABLES LIKE '" . pSQL(_DB_PREFIX_ . $table) . "'"
+        );
+        return !empty($row);
+    }
+
+    /**
+     * Clé de chiffrement AES-256-GCM (CryptoManager) — si NERIA_ENCRYPTION_KEY
+     * disparaissait ou se corrompait (mauvaise migration, erreur de config),
+     * TOUTES les données chiffrées en base deviendraient illisibles d'un coup
+     * (variables de rendu snapshot, secrets webhook...). Test réel d'aller-
+     * retour chiffrement/déchiffrement, pas seulement une vérification de
+     * présence — une clé présente mais corrompue casserait aussi le décryptage.
+     */
+    private function checkCryptoKeyHealth(): array
+    {
+        if (!class_exists('CryptoManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.crypto_key_ok')];
+        }
+
+        $key = (string) \Configuration::get(\CryptoManager::CONFIG_KEY);
+        if ($key === '') {
+            return ['status' => self::STATUS_ERROR, 'detail' => AdminTranslator::t('health.crypto_key_missing')];
+        }
+
+        try {
+            $probe     = 'neria-health-check-' . bin2hex(random_bytes(8));
+            $encrypted = \CryptoManager::encrypt($probe);
+            $decrypted = \CryptoManager::decrypt($encrypted);
+        } catch (\Throwable $e) {
+            return ['status' => self::STATUS_ERROR, 'detail' => AdminTranslator::tVars('health.crypto_key_error', ['error' => $e->getMessage()])];
+        }
+
+        if ($decrypted !== $probe) {
+            return ['status' => self::STATUS_ERROR, 'detail' => AdminTranslator::t('health.crypto_key_broken')];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.crypto_key_ok')];
+    }
+
+    /**
+     * Chaque template email doit avoir SES DEUX fichiers (.html ET .txt) —
+     * une désynchronisation silencieuse est possible si un template est ajouté
+     * ou modifié à moitié (ex. un .txt supprimé par erreur, ou jamais créé
+     * pour un nouveau template). Sans le .txt, le client dont le lecteur mail
+     * n'affiche que le texte brut recevrait un email vide.
+     */
+    private function checkHtmlTxtPairs(): array
+    {
+        $coreDir = _PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core';
+        $htmlFiles = array_map(fn($f) => basename($f, '.html'), glob($coreDir . '/*.html') ?: []);
+        $txtFiles  = array_map(fn($f) => basename($f, '.txt'), glob($coreDir . '/*.txt') ?: []);
+
+        $missingTxt  = array_diff($htmlFiles, $txtFiles);
+        $missingHtml = array_diff($txtFiles, $htmlFiles);
+        $offenders   = array_merge(
+            array_map(fn($t) => $t . ' (.txt manquant)', $missingTxt),
+            array_map(fn($t) => $t . ' (.html manquant)', $missingHtml)
+        );
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.html_txt_pairs_warning', [
+                    'count' => count($offenders),
+                    'list'  => implode(', ', $offenders),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.html_txt_pairs_ok', ['count' => count($htmlFiles)])];
+    }
+
+    /**
+     * Résidus de placeholders {xxx} percent-encodés (%7Bxxx%7D) dans les liens
+     * — si un placeholder non résolu se retrouve dans un attribut href/src au
+     * moment du passage par CssInliner (DOMDocument), il est encodé et devient
+     * invisible au filet de sécurité qui ne cherche que des accolades brutes.
+     * Garde-fou de régression : rejoue la compilation réelle (même chemin
+     * qu'un vrai envoi) pour chaque template avec des données factices
+     * réalistes, et vérifie qu'aucun %7B/%7b ne subsiste dans le résultat.
+     */
+    private function checkEncodedResidualLinks(): array
+    {
+        if (!class_exists('EmailRenderer') || !class_exists('NeriaTools')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.encoded_links_ok')];
+        }
+
+        $renderer  = new \EmailRenderer($this->module);
+        $refClass  = new \ReflectionClass($renderer);
+        $fakes     = $refClass->getMethod('buildPreviewFakes');
+        $fakes->setAccessible(true);
+        $compile   = $refClass->getMethod('compileNeriaTemplate');
+        $compile->setAccessible(true);
+
+        $templates = array_keys(\NeriaTools::getTemplateLabels());
+        $offenders = [];
+
+        foreach ($templates as $tpl) {
+            try {
+                $demoVars = $fakes->invoke($renderer, $tpl, 'fr');
+                $outFile  = $compile->invoke($renderer, $tpl, 'fr', 'fr', $demoVars);
+                if ($outFile && is_file($outFile)) {
+                    $content = file_get_contents($outFile) ?: '';
+                    if (stripos($content, '%7b') !== false) {
+                        $offenders[] = $tpl;
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Non bloquant — un échec de compilation isolé est déjà
+                // couvert par render_canary, pas la responsabilité de ce
+                // contrôle.
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.encoded_links_error', [
+                    'count' => count($offenders),
+                    'list'  => implode(', ', array_slice($offenders, 0, 8)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.encoded_links_ok')];
     }
 
     /**
