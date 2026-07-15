@@ -150,7 +150,16 @@
                      min="480" max="800" step="10"
                      value="{$design.container_width|default:620}"
                      class="neria-range"
+                     list="container_width_ticks"
                      data-sync-input="container_width">
+              <datalist id="container_width_ticks">
+                <option value="480"></option>
+                <option value="560"></option>
+                <option value="620"></option>
+                <option value="680"></option>
+                <option value="740"></option>
+                <option value="800"></option>
+              </datalist>
               <input type="number" id="container_width" name="container_width"
                      class="neria-input neria-input--number"
                      min="480" max="800"
@@ -169,7 +178,15 @@
                      min="80" max="320" step="10"
                      value="{$design.logo_width|default:160}"
                      class="neria-range"
+                     list="logo_width_ticks"
                      data-sync-input="logo_width">
+              <datalist id="logo_width_ticks">
+                <option value="80"></option>
+                <option value="140"></option>
+                <option value="200"></option>
+                <option value="260"></option>
+                <option value="320"></option>
+              </datalist>
               <input type="number" id="logo_width" name="logo_width"
                      class="neria-input neria-input--number"
                      min="80" max="320"
@@ -185,12 +202,15 @@
                 {neria_admin key='design.dark_mode_hint'}
               </span>
             </label>
-            <label class="neria-toggle">
-              <input type="checkbox" name="dark_mode" value="1"
-                     {if $design.dark_mode}checked{/if}>
-              <span class="neria-toggle__slider"></span>
-              <span class="neria-toggle__label">{neria_admin key='common.enabled'}</span>
-            </label>
+            <input type="hidden" name="dark_mode" id="dark_mode_input" value="{if $design.dark_mode}1{else}0{/if}">
+            <button type="button" id="dark_mode_toggle_btn"
+                    onclick="var inp=document.getElementById('dark_mode_input'); inp.value = inp.value === '1' ? '0' : '1'; document.getElementById('neria-design-form').submit();"
+                    style="display:inline-flex; width:auto; align-self:flex-start; align-items:center; gap:8px; padding:8px 16px;
+                           background:{if $design.dark_mode}#16a34a{else}#dc2626{/if};
+                           color:#fff; border:none; border-radius:4px; font-size:12px;
+                           font-weight:700; cursor:pointer; letter-spacing:.04em;">
+              {if $design.dark_mode}● {neria_admin key='help.cron_toggle_on'}{else}○ {neria_admin key='help.cron_toggle_off'}{/if}
+            </button>
           </div>
         </div>
 
@@ -222,7 +242,7 @@
                      style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;"
                      accept=".png,.jpg,.jpeg,.webp"
                      data-default-text="{neria_admin key='design.logo_no_file'}">
-              <label for="logo_upload" class="neria-btn neria-btn--ghost neria-file-field__btn">
+              <label for="logo_upload" class="neria-btn neria-btn--primary neria-file-field__btn">
                 {neria_admin key='design.logo_choose'}
               </label>
               <span class="neria-file-field__name">{neria_admin key='design.logo_no_file'}</span>
@@ -427,7 +447,7 @@
         </div>
 
         <div class="neria-form-actions neria-form-actions--sticky">
-          <button type="button" class="neria-btn neria-btn--ghost"
+          <button type="button" class="neria-btn neria-btn--danger"
                   id="neria-design-reset"
                   data-confirm="{neria_admin key='design.reset_confirm'}">
             {neria_admin key='design.reset'}

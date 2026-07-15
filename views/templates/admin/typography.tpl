@@ -40,15 +40,22 @@
                    class="neria-range"
                    name="font_size"
                    min="12" max="16" step="1"
+                   list="font_size_ticks"
                    data-sync-input="font_size_number"
                    value="{$typography_font_size|default:14}">
+            <datalist id="font_size_ticks">
+              <option value="12"></option>
+              <option value="13"></option>
+              <option value="14"></option>
+              <option value="15"></option>
+              <option value="16"></option>
+            </datalist>
             <span class="neria-slider-label">16px</span>
             <input type="number"
                    id="font_size_number"
                    class="neria-input neria-input--small"
                    min="12" max="16" step="1"
-                   value="{$typography_font_size|default:14}"
-                   readonly>
+                   value="{$typography_font_size|default:14}">
             <span class="neria-slider-unit">px</span>
           </div>
         </div>
@@ -71,15 +78,21 @@
                    class="neria-range"
                    name="line_height"
                    min="1.4" max="2.0" step="0.1"
+                   list="line_height_ticks"
                    data-sync-input="line_height_number"
                    value="{$typography_line_height|default:1.8}">
+            <datalist id="line_height_ticks">
+              <option value="1.4"></option>
+              <option value="1.6"></option>
+              <option value="1.8"></option>
+              <option value="2.0"></option>
+            </datalist>
             <span class="neria-slider-label">2.0</span>
             <input type="number"
                    id="line_height_number"
                    class="neria-input neria-input--small"
                    min="1.4" max="2.0" step="0.1"
-                   value="{$typography_line_height|default:1.8}"
-                   readonly>
+                   value="{$typography_line_height|default:1.8}">
           </div>
         </div>
 
