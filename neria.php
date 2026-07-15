@@ -3068,6 +3068,47 @@ class Neria extends Module
             }
         }
 
+        // ── Zone de danger : reset global de la configuration ─────────
+        // Vide et recrée toutes les tables du module (campagnes, segments,
+        // webhooks, points de fidélité, traductions personnalisées...) et
+        // remet Configuration à ses valeurs par défaut — sans désinstaller
+        // le module (hooks/onglet BO conservés). Ne touche ni la clé de
+        // chiffrement, ni les tokens (cron/urgence), volontairement laissés
+        // intacts pour ne pas casser une intégration externe déjà en place.
+        // Confirmation par mot de passe de l'employé connecté + case à
+        // cocher, puis journalisation CRITICAL (qui/quand) dans le Watchdog.
+        if (Tools::getValue('neria_action') === 'reset_all_data') {
+            $password = (string) Tools::getValue('neria_reset_password', '');
+            $confirmed = (int) Tools::getValue('neria_reset_confirm', 0) === 1;
+            $employee  = $this->context->employee;
+
+            if (!$confirmed || $password === '') {
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('help.danger_zone_error_incomplete'));
+            } elseif (!Validate::isLoadedObject($employee) || !(new Employee())->getByEmail($employee->email, $password)) {
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('help.danger_zone_error_password'));
+            } else {
+                $ok = $this->executeSqlFile('uninstall.sql')
+                    && $this->executeSqlFile('install.sql')
+                    && $this->importTranslations()
+                    && $this->setDefaultConfiguration();
+
+                if ($ok && class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this))->critical(
+                        WatchdogManager::i18nMsg('watchdog.global_reset_done', [
+                            'employee' => trim($employee->firstname . ' ' . $employee->lastname) . ' <' . $employee->email . '>',
+                        ]),
+                        '', 'DangerZone'
+                    );
+                }
+
+                if ($ok) {
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('help.danger_zone_success'));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('help.danger_zone_error_sql'));
+                }
+            }
+        }
+
         // ── Export CSV traductions ────────────────────────────────────
         if ($tradAction === 'export_translations_csv') {
             $tplKey  = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));

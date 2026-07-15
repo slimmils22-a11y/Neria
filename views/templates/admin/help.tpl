@@ -916,6 +916,39 @@
   </div>
 </div>
 
+{* ── Zone de danger ───────────────────────────────────────────── *}
+<div class="neria-section" id="neria-help-danger-zone" style="border:1px solid #dc2626;">
+  <h2 class="neria-section__title" style="color:#dc2626;">⚠ {neria_admin key='help.danger_zone_title'}</h2>
+  <p class="neria-section__desc">{neria_admin key='help.danger_zone_desc'}</p>
+
+  <form method="post" action="{$smarty.server.REQUEST_URI}"
+        onsubmit="return confirm('{neria_admin key='help.danger_zone_confirm_js' esc='javascript'}');">
+    <input type="hidden" name="neria_action" value="reset_all_data">
+    <input type="hidden" name="neria_tab"    value="help">
+
+    <div class="neria-form-group">
+      <label class="neria-label" for="neria-reset-password">
+        {neria_admin key='help.danger_zone_password_label'}
+      </label>
+      <input type="password" id="neria-reset-password" name="neria_reset_password"
+             class="neria-input" style="max-width:280px;" autocomplete="current-password" required>
+    </div>
+
+    <div class="neria-form-group" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="neria-reset-confirm" name="neria_reset_confirm" value="1" required>
+      <label for="neria-reset-confirm" style="margin:0;font-size:12px;color:#5c3d1e;">
+        {neria_admin key='help.danger_zone_checkbox_label'}
+      </label>
+    </div>
+
+    <div style="margin-top:14px;">
+      <button type="submit" class="neria-btn neria-btn--danger neria-btn--sm">
+        {neria_admin key='help.danger_zone_btn'}
+      </button>
+    </div>
+  </form>
+</div>
+
 {* ── PDF + Partage : JS ─────────────────────────────────────── *}
 <script>
 window.NERIA_HELP_L10N = {

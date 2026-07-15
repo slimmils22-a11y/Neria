@@ -300,6 +300,7 @@
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-emergency">🚨 {neria_admin key='nav.sub_emergency'}</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-log">📋 {neria_admin key='nav.sub_log'}</a></li>
           <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-quickguide">📖 {neria_admin key='nav.sub_quickguide'}</a></li>
+          <li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=help#neria-help-danger-zone">⚠ {neria_admin key='nav.sub_danger_zone'}</a></li>
         </ul>
       </li>
 
