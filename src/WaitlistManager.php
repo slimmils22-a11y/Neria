@@ -71,6 +71,19 @@ class WaitlistManager
         );
         if (!is_array($rows) || empty($rows)) return 0;
 
+        // Ne notifie jamais plus d'inscrits que la quantité réellement
+        // disponible — sans cette limite, un réapprovisionnement de 2 unités
+        // envoyait la même promesse "de retour en stock" à tous les inscrits
+        // (parfois des dizaines), alors qu'une seule personne pourrait
+        // réellement acheter. Premier inscrit, premier notifié (déjà trié
+        // par registered_at ASC) ; les autres restent en attente pour le
+        // prochain réapprovisionnement.
+        $availableQty = (int) \StockAvailable::getQuantityAvailableByProduct($idProduct, 0, $idShop);
+        if ($availableQty > 0) {
+            $rows = array_slice($rows, 0, $availableQty);
+        }
+        if (empty($rows)) return 0;
+
         $sent = 0;
         foreach ($rows as $row) {
             $idCustomer = (int) $row['id_customer'];
