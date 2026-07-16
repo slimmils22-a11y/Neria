@@ -413,15 +413,26 @@ class GdprAuditManager
                 continue;
             }
 
-            $total = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$table}`");
+            // Certaines tables n'ont pas de colonne id_shop — sur celles qui
+            // en ont une, on scope l'audit à la boutique courante comme le
+            // fait déjà purgeTable(), sinon le rapport d'une boutique compte
+            // aussi les données d'une autre boutique sur une install
+            // multi-boutiques (chiffres faussés, désaccord avec la purge).
+            $hasShopCol = (bool) $this->db->executeS(
+                "SHOW COLUMNS FROM `{$table}` LIKE 'id_shop'"
+            );
+            $shopFilter = $hasShopCol ? " AND `id_shop` = {$this->idShop}" : '';
+            $shopWhere  = $hasShopCol ? " WHERE `id_shop` = {$this->idShop}" : '';
+
+            $total = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$table}`{$shopWhere}");
 
             $oldest = $this->db->getValue(
-                "SELECT MIN(`{$dcol}`) FROM `{$table}`"
+                "SELECT MIN(`{$dcol}`) FROM `{$table}`{$shopWhere}"
             );
 
             $overdue = (int) $this->db->getValue(
                 "SELECT COUNT(*) FROM `{$table}`
-                 WHERE `{$dcol}` < DATE_SUB(NOW(), INTERVAL {$months} MONTH)"
+                 WHERE `{$dcol}` < DATE_SUB(NOW(), INTERVAL {$months} MONTH){$shopFilter}"
             );
 
             $isIssue = $overdue > 0;
