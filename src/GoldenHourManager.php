@@ -65,68 +65,55 @@ class GoldenHourManager
         $table    = _DB_PREFIX_ . self::TABLE;
         $dateFrom = pSQL(date('Y-m-d', strtotime("-{$days} days")));
 
-        // Agrège les ouvertures par (lang, jour_semaine, heure)
+        // Le taux par créneau doit répondre à "si j'envoie à cette heure,
+        // quelle proportion de mes emails est ouverte ?" — pas "combien
+        // d'ouvertures se produisent à cette heure" (un email envoyé à 8h
+        // peut très bien être ouvert à 14h : ce n'est pas le même
+        // événement). On relie donc chaque ouverture à l'heure d'ENVOI de
+        // son propre email via tracking_token (jointure), et on groupe par
+        // (lang, jour, heure) de l'envoi — pas de l'ouverture.
         $rows = $this->db->executeS(
             "SELECT
-                `lang`,
-                DAYOFWEEK(`date_add`)       AS dow,
-                HOUR(`date_add`)             AS hour,
-                COUNT(*)                     AS opens
-             FROM `{$table}`
-             WHERE `event_type` = 'sent'
-               AND `id_shop`    = {$this->idShop}
-               AND `date_add`   >= '{$dateFrom}'
-               AND `lang`       != ''
-             GROUP BY `lang`, dow, hour
-             ORDER BY `lang`, opens DESC"
+                s.`lang`,
+                DAYOFWEEK(s.`date_add`) AS dow,
+                HOUR(s.`date_add`)      AS hour,
+                COUNT(DISTINCT s.`tracking_token`) AS sent_count,
+                COUNT(DISTINCT o.`tracking_token`) AS opened_count
+             FROM `{$table}` s
+             LEFT JOIN `{$table}` o
+                    ON o.`tracking_token` = s.`tracking_token`
+                   AND o.`event_type`     = 'open'
+                   AND o.`is_mpp`         = 0
+             WHERE s.`event_type` = 'sent'
+               AND s.`id_shop`    = {$this->idShop}
+               AND s.`date_add`   >= '{$dateFrom}'
+               AND s.`lang`       != ''
+             GROUP BY s.`lang`, dow, hour"
         );
 
-        // Cherche aussi les opens réels
-        $openRows = $this->db->executeS(
-            "SELECT
-                `lang`,
-                DAYOFWEEK(`date_add`)       AS dow,
-                HOUR(`date_add`)             AS hour,
-                COUNT(*)                     AS opens
-             FROM `{$table}`
-             WHERE `event_type` = 'open'
-               AND `id_shop`    = {$this->idShop}
-               AND `date_add`   >= '{$dateFrom}'
-               AND `lang`       != ''
-             GROUP BY `lang`, dow, hour
-             ORDER BY `lang`, opens DESC"
-        );
-
-        if (!$openRows) {
+        if (!$rows) {
             return [];
         }
 
-        // Construit un index opens par (lang, dow, hour) pour calcul taux
-        $sentIndex = [];
-        foreach ((is_array($rows) ? $rows : []) as $r) {
-            $key = $r['lang'] . '_' . $r['dow'] . '_' . $r['hour'];
-            $sentIndex[$key] = (int) $r['opens'];
-        }
-
-        // Agrège les totaux d'opens par langue
+        // Agrège les totaux d'ouvertures par langue
         $totalByLang = [];
         $peakByLang  = []; // [lang => best row by open rate]
 
-        foreach ($openRows as $r) {
-            $lang  = $r['lang'];
-            $opens = (int) $r['opens'];
+        foreach ($rows as $r) {
+            $lang        = $r['lang'];
+            $sentCount   = (int) $r['sent_count'];
+            $openedCount = (int) $r['opened_count'];
 
-            $totalByLang[$lang] = ($totalByLang[$lang] ?? 0) + $opens;
+            $totalByLang[$lang] = ($totalByLang[$lang] ?? 0) + $openedCount;
 
-            // Calcul open rate pour ce slot
-            $sentKey  = $lang . '_' . $r['dow'] . '_' . $r['hour'];
-            $sent     = $sentIndex[$sentKey] ?? 0;
-            $rate     = $sent > 0 ? ($opens / $sent) : 0;
+            $rate = $sentCount > 0 ? ($openedCount / $sentCount) : 0;
             $r['rate']  = $rate;
-            $r['opens'] = $opens;
+            $r['opens'] = $openedCount;
 
-            // Garde le meilleur slot par taux d'ouverture (min 3 opens pour ce slot)
-            if ($opens >= 3 && (!isset($peakByLang[$lang]) || $rate > $peakByLang[$lang]['rate'])) {
+            // Garde le meilleur créneau par taux d'ouverture (min 3 envois
+            // pour ce créneau, sinon le taux n'est pas significatif — un
+            // seul envoi ouvert donnerait 100% par pur hasard)
+            if ($sentCount >= 3 && (!isset($peakByLang[$lang]) || $rate > $peakByLang[$lang]['rate'])) {
                 $peakByLang[$lang] = $r;
             }
         }
