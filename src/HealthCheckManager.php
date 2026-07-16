@@ -247,6 +247,10 @@ class HealthCheckManager
             'render_canary_recent'   => $this->checkRenderCanaryRecent(),
             'milestone_order_health' => $this->checkMilestoneOrderHealth(),
             'custom_vars_completeness' => $this->checkCustomVarsCompleteness(),
+            // ── Ajouts 2026-07-16 (scan de couverture Watchdog) ────────
+            'churn_propensity_freshness'  => $this->checkChurnPropensityFreshness(),
+            'collection_look_products'    => $this->checkCollectionLookRulesProductValidity(),
+            'queue_failed_rate'           => $this->checkQueueFailedRate(),
         ];
     }
 
@@ -4843,6 +4847,174 @@ class HealthCheckManager
         return [
             'status' => self::STATUS_OK,
             'detail' => AdminTranslator::tVars('health.orphan_vars_ok_count', ['count' => count($usedVars)]),
+        ];
+    }
+
+    /**
+     * Fraîcheur des scores de churn (risque de désabonnement) et de propension
+     * (probabilité d'achat). Même logique que checkSegmentFreshness/checkClvFreshness :
+     * si le cron comportemental plante avant d'appeler recomputeAll()/recalculateAll(),
+     * les scores restent figés et affichent des alertes trompeuses sur les fiches client.
+     */
+    private function checkChurnPropensityFreshness(): array
+    {
+        $db = \Db::getInstance();
+
+        $issues = [];
+
+        if (class_exists('ChurnScoreManager')) {
+            $countChurn = (int) $db->getValue(
+                'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_churn_score`'
+            );
+            if ($countChurn > 0) {
+                $lastChurn = $db->getValue(
+                    'SELECT MAX(`computed_at`) FROM `' . _DB_PREFIX_ . 'neria_churn_score`'
+                );
+                $ageChurnH = $lastChurn ? (time() - strtotime($lastChurn)) / 3600 : 9999;
+                if ($ageChurnH > 48) {
+                    $issues[] = AdminTranslator::tVars('health.churn_stale', ['ageH' => round($ageChurnH, 1)]);
+                }
+            }
+        }
+
+        if (class_exists('PropensityScoreManager')) {
+            $countProp = (int) $db->getValue(
+                'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_propensity_score`'
+            );
+            if ($countProp > 0) {
+                $lastProp = $db->getValue(
+                    'SELECT MAX(`date_upd`) FROM `' . _DB_PREFIX_ . 'neria_propensity_score`'
+                );
+                $agePropH = $lastProp ? (time() - strtotime($lastProp)) / 3600 : 9999;
+                if ($agePropH > 48) {
+                    $issues[] = AdminTranslator::tVars('health.propensity_stale', ['ageH' => round($agePropH, 1)]);
+                }
+            }
+        }
+
+        if (!empty($issues)) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => implode(' / ', $issues),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.churn_propensity_ok')];
+    }
+
+    /**
+     * Vérifie que les règles actives "Collection" et "Complétez votre look"
+     * référencent encore des produits existants et actifs. Un produit
+     * supprimé/désactivé après la création de la règle la rend silencieusement
+     * inopérante (elle reste affichée "active" en BO mais ne matche plus rien).
+     */
+    private function checkCollectionLookRulesProductValidity(): array
+    {
+        $db = \Db::getInstance();
+        $broken = [];
+
+        if ($this->tableExists('neria_collection')) {
+            $rows = $db->executeS(
+                'SELECT `id_neria_collection`, `name`, `product_ids` FROM `' . _DB_PREFIX_ . 'neria_collection` WHERE `active` = 1'
+            );
+            foreach ((array) $rows as $row) {
+                $ids = json_decode((string) $row['product_ids'], true);
+                if (!is_array($ids) || empty($ids)) {
+                    continue;
+                }
+                $validCount = (int) $db->getValue(
+                    'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'product`
+                     WHERE `id_product` IN (' . implode(',', array_map('intval', $ids)) . ') AND `active` = 1'
+                );
+                if ($validCount < count($ids)) {
+                    $broken[] = $row['name'] . ' (' . $validCount . '/' . count($ids) . ')';
+                }
+            }
+        }
+
+        if ($this->tableExists('neria_look_rule')) {
+            $rows = $db->executeS(
+                'SELECT `id_neria_look_rule`, `id_category`, `product_ids` FROM `' . _DB_PREFIX_ . 'neria_look_rule` WHERE `active` = 1'
+            );
+            foreach ((array) $rows as $row) {
+                $ids = json_decode((string) $row['product_ids'], true);
+                if (!is_array($ids) || empty($ids)) {
+                    continue;
+                }
+                $validCount = (int) $db->getValue(
+                    'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'product`
+                     WHERE `id_product` IN (' . implode(',', array_map('intval', $ids)) . ') AND `active` = 1'
+                );
+                if ($validCount < count($ids)) {
+                    $broken[] = 'look_rule#' . $row['id_neria_look_rule'] . ' (cat.' . $row['id_category'] . ', ' . $validCount . '/' . count($ids) . ')';
+                }
+            }
+        }
+
+        if (!empty($broken)) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.collection_look_broken', [
+                    'count' => count($broken),
+                    'list'  => implode(', ', array_slice($broken, 0, 10)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.collection_look_ok')];
+    }
+
+    /**
+     * Taux d'échec de la file d'attente comportementale (neria_queue) sur 30 jours.
+     * Un email en 'failed' après MAX_ATTEMPTS n'est plus jamais retenté et
+     * disparaît silencieusement — contrairement aux 'pending' déjà surveillés
+     * par checkQueueBlocked/checkQueueOverflow.
+     */
+    private function checkQueueFailedRate(): array
+    {
+        if (!$this->tableExists('neria_queue')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.queue_failed_disabled')];
+        }
+
+        $db = \Db::getInstance();
+
+        $sent30d = (int) $db->getValue(
+            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_queue`
+             WHERE `status` = \'sent\' AND `sent_at` >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
+        );
+        $failed30d = (int) $db->getValue(
+            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_queue`
+             WHERE `status` = \'failed\' AND `created_at` >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
+        );
+
+        $total = $sent30d + $failed30d;
+        if ($total === 0) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.queue_failed_no_data')];
+        }
+
+        $rate = $failed30d / $total * 100;
+
+        if ($rate > 30) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.queue_failed_critical', [
+                    'rate' => round($rate, 1), 'failed' => $failed30d, 'total' => $total,
+                ]),
+            ];
+        }
+
+        if ($rate > 10) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.queue_failed_warning', [
+                    'rate' => round($rate, 1), 'failed' => $failed30d, 'total' => $total,
+                ]),
+            ];
+        }
+
+        return [
+            'status' => self::STATUS_OK,
+            'detail' => AdminTranslator::tVars('health.queue_failed_ok', ['rate' => round($rate, 1), 'total' => $total]),
         ];
     }
 

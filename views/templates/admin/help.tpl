@@ -421,7 +421,10 @@
       'orphan_placeholders'  => 'help.health_check_orphan_placeholders',
       'render_canary_recent' => 'help.health_check_render_canary_recent',
       'milestone_order_health' => 'help.health_check_milestone_order_health',
-      'custom_vars_completeness' => 'help.health_check_custom_vars_completeness'
+      'custom_vars_completeness' => 'help.health_check_custom_vars_completeness',
+      'churn_propensity_freshness' => 'help.health_check_churn_propensity_freshness',
+      'collection_look_products' => 'help.health_check_collection_look_products',
+      'queue_failed_rate'    => 'help.health_check_queue_failed_rate'
     ]}
     <div class="neria-diag-grid">
       {foreach $health_results as $checkKey => $result}

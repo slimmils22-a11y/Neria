@@ -122,6 +122,13 @@ class CertificateManager
         if (!$inserted) {
             // Doublon de clé unique sur serial_number (émissions quasi simultanées)
             // ou autre échec DB — on ne continue jamais avec un id_certificate invalide.
+            if (class_exists('WatchdogManager')) {
+                (new WatchdogManager($this->module))->warning(
+                    'Échec d\'émission de certificat : ' . $serialNumber . ' — ' . $productName
+                    . ' (commande #' . $idOrder . ', client : ' . $customerEmail . ')',
+                    '', 'CertificateManager'
+                );
+            }
             return 'Échec de l\'enregistrement du certificat en base (numéro de série peut-être déjà pris).';
         }
 
