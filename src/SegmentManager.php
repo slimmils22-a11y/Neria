@@ -401,7 +401,7 @@ class SegmentManager
 
         $filterParts = [];
         if (!empty($filters['slot']))       { $filterParts[] = 'slot=' . $filters['slot']; }
-        if (!empty($filters['id_lang']))    { $filterParts[] = 'lang=' . $filters['id_lang']; }
+        if (!empty($filters['lang_iso']))   { $filterParts[] = 'lang=' . $filters['lang_iso']; }
         if (!empty($filters['id_country'])) { $filterParts[] = 'country=' . $filters['id_country']; }
         $filterStr = $filterParts ? ' [filters: ' . implode(', ', $filterParts) . ']' : '';
 

@@ -69,22 +69,38 @@ class UpsellManager
         $alreadyBought = $idCustomer > 0 ? $this->getCustomerProductIds($idCustomer) : [];
         $excluded      = array_values(array_unique(array_merge($orderProducts, $alreadyBought)));
 
+        // enrich() peut renvoyer null si le produit trouvé n'a pas d'image
+        // (pas de bloc visuel possible) — dans ce cas, il ne faut PAS
+        // abandonner toute la suggestion : le tier suivant peut très bien
+        // avoir un produit avec une image valide. Le "return" immédiat
+        // d'origine court-circuitait les Tiers 2/3 dès qu'un simple produit
+        // Tier 1 sans photo était trouvé.
+
         // Tier 1 — accessoires définis dans le back-office produit
         $row = $this->findByAccessories($orderProducts, $excluded, $idLang);
         if ($row) {
-            return $this->enrich($row, $idLang, 'L\'accessoire parfait');
+            $result = $this->enrich($row, $idLang, 'L\'accessoire parfait');
+            if ($result) {
+                return $result;
+            }
         }
 
         // Tier 2 — co-achat (collaborative filtering léger)
         $row = $this->findByCoPurchase($orderProducts, $excluded, $idLang);
         if ($row) {
-            return $this->enrich($row, $idLang, 'Souvent acheté ensemble');
+            $result = $this->enrich($row, $idLang, 'Souvent acheté ensemble');
+            if ($result) {
+                return $result;
+            }
         }
 
         // Tier 3 — meilleur vendeur même catégorie
         $row = $this->findByCategoryBestseller($orderProducts, $excluded, $idLang);
         if ($row) {
-            return $this->enrich($row, $idLang, 'Notre suggestion pour vous');
+            $result = $this->enrich($row, $idLang, 'Notre suggestion pour vous');
+            if ($result) {
+                return $result;
+            }
         }
 
         return null;

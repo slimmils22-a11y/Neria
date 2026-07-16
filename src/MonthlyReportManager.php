@@ -407,26 +407,36 @@ class MonthlyReportManager
         // transactionnel explicite via id_order), sinon un client qui clique
         // sur "suivre ma commande" dans l'email de confirmation lui-même fait
         // compter deux fois le même montant (direct + attribué).
+        // StatsManager::recordClick() crée volontairement UN événement par
+        // clic (contrairement aux ouvertures, dédoublonnées) — un client qui
+        // clique plusieurs fois sur des liens de ce template avant de
+        // commander faisait joindre la MÊME commande plusieurs fois, et son
+        // montant était sommé autant de fois qu'il y avait de clics. La
+        // sous-requête DISTINCT ramène chaque (template, commande) à une
+        // seule ligne avant la somme — une commande née de deux clics sur le
+        // même template ne compte qu'une fois.
         $attributed = [];
         $rows2 = $this->db->executeS(
-            "SELECT s.template, SUM(o.total_paid_tax_incl) AS revenue
-             FROM `{$st}` s
-             JOIN `{$ord}` o
-               ON o.id_customer = s.id_customer
-              AND o.id_customer > 0
-              AND o.date_add >= s.date_add
-              AND o.date_add <= DATE_ADD(s.date_add, INTERVAL 7 DAY)
-             WHERE s.id_shop = {$this->idShop}
-               AND s.event_type = 'click'
-               AND s.date_add >= '{$dateFrom}'
-               AND s.date_add <= '{$dateTo} 23:59:59'
-               AND NOT EXISTS (
-                   SELECT 1 FROM `{$st}` s2
-                   WHERE s2.id_order   = o.id_order
-                     AND s2.event_type = 'sent'
-                     AND s2.id_order   > 0
-               )
-             GROUP BY s.template"
+            "SELECT template, SUM(total_paid_tax_incl) AS revenue FROM (
+                SELECT DISTINCT s.template, o.id_order, o.total_paid_tax_incl
+                FROM `{$st}` s
+                JOIN `{$ord}` o
+                  ON o.id_customer = s.id_customer
+                 AND o.id_customer > 0
+                 AND o.date_add >= s.date_add
+                 AND o.date_add <= DATE_ADD(s.date_add, INTERVAL 7 DAY)
+                WHERE s.id_shop = {$this->idShop}
+                  AND s.event_type = 'click'
+                  AND s.date_add >= '{$dateFrom}'
+                  AND s.date_add <= '{$dateTo} 23:59:59'
+                  AND NOT EXISTS (
+                      SELECT 1 FROM `{$st}` s2
+                      WHERE s2.id_order   = o.id_order
+                        AND s2.event_type = 'sent'
+                        AND s2.id_order   > 0
+                  )
+             ) dedup
+             GROUP BY template"
         ) ?: [];
         foreach ($rows2 as $row) {
             $attributed[$row['template']] = (float) $row['revenue'];
