@@ -40,8 +40,15 @@ class NeriaOauthModuleFrontController extends ModuleFrontController
         $state = (string) \Tools::getValue('state', '');
         $error = (string) \Tools::getValue('error', '');
 
-        // URL de retour stockée avant la redirection Google
-        $returnUrl = (string) \Configuration::get(\PostmasterManager::CONFIG_RETURN_URL);
+        if (!class_exists('PostmasterManager')) {
+            require_once _PS_MODULE_DIR_ . 'neria/src/PostmasterManager.php';
+        }
+        $manager = new \PostmasterManager($this->module);
+
+        // URL de retour associée à CE state précis (plusieurs flux OAuth
+        // peuvent être en attente simultanément — cf. PostmasterManager::
+        // resolveReturnUrl()), pas une valeur globale unique.
+        $returnUrl = $manager->resolveReturnUrl($state);
         if (!$returnUrl) {
             $returnUrl = $this->context->link->getAdminLink('AdminModules', true, [], [
                 'configure' => 'neria',
@@ -57,13 +64,8 @@ class NeriaOauthModuleFrontController extends ModuleFrontController
             \Tools::redirectAdmin($returnUrl . '&neria_error=' . urlencode(\AdminTranslator::t('msg.oauth_missing_params')));
         }
 
-        if (!class_exists('PostmasterManager')) {
-            require_once _PS_MODULE_DIR_ . 'neria/src/PostmasterManager.php';
-        }
-
         try {
-            $manager = new \PostmasterManager($this->module);
-            $ok      = $manager->handleCallback($code, $state);
+            $ok = $manager->handleCallback($code, $state);
         } catch (\Throwable $e) {
             if (class_exists('WatchdogManager')) {
                 try {

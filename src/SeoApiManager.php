@@ -224,7 +224,14 @@ class SeoApiManager
 
         $headers = array_map('trim', $rows[0]);
         $values  = array_map('trim', $rows[1]);
-        $row     = array_combine($headers, $values);
+        // array_combine() lève une ValueError (PHP 8+) au lieu de renvoyer
+        // false si les tailles diffèrent (colonne manquante/en trop dans
+        // l'export CSV Semrush) — vérifier avant l'appel plutôt que de
+        // planter toute la requête.
+        if (count($headers) !== count($values)) {
+            return null;
+        }
+        $row = array_combine($headers, $values);
         if (!$row) {
             return null;
         }
@@ -247,7 +254,11 @@ class SeoApiManager
             if (count($kwRows) > 1) {
                 $kwHeaders = array_map('trim', $kwRows[0]);
                 foreach (array_slice($kwRows, 1) as $kwRow) {
-                    $kwData = array_combine($kwHeaders, array_map('trim', $kwRow));
+                    $kwValues = array_map('trim', $kwRow);
+                    if (count($kwHeaders) !== count($kwValues)) {
+                        continue;
+                    }
+                    $kwData = array_combine($kwHeaders, $kwValues);
                     if ($kwData) {
                         $keywords[] = [
                             'keyword'  => $kwData['Keyword'] ?? '',

@@ -80,12 +80,19 @@ class PostmasterManager
 
     /**
      * Génère l'URL d'autorisation Google et stocke le state + l'URL de retour BO.
+     *
+     * Plusieurs flux peuvent être lancés avant qu'un premier ne se termine
+     * (deux onglets, double clic) — un seul state global écraserait le
+     * précédent et ferait échouer son retour même si Google a bien accepté
+     * l'autorisation. Stocke donc une petite liste {state: [return_url, ts]},
+     * avec purge des entrées de plus de 10 min à chaque appel.
      */
     public function getAuthUrl(string $returnUrl = ''): string
     {
-        $state = bin2hex(random_bytes(16));
-        \Configuration::updateValue(self::CONFIG_OAUTH_STATE,  $state);
-        \Configuration::updateValue(self::CONFIG_RETURN_URL,   $returnUrl);
+        $state   = bin2hex(random_bytes(16));
+        $pending = $this->loadPendingStates();
+        $pending[$state] = ['return_url' => $returnUrl, 'ts' => time()];
+        $this->savePendingStates($pending);
 
         return self::AUTH_URL . '?' . http_build_query([
             'client_id'     => (string) \Configuration::get(self::CONFIG_CLIENT_ID),
@@ -99,14 +106,56 @@ class PostmasterManager
     }
 
     /**
+     * Retourne l'URL de retour BO associée à ce state, sans consommer l'entrée
+     * (utilisé par le front controller avant même de savoir si le code est
+     * valide, y compris sur le chemin d'erreur Google).
+     */
+    public function resolveReturnUrl(string $state): string
+    {
+        $pending = $this->loadPendingStates();
+        return (string) ($pending[$state]['return_url'] ?? '');
+    }
+
+    private function loadPendingStates(): array
+    {
+        $raw = (string) \Configuration::get(self::CONFIG_OAUTH_STATE);
+        $data = $raw !== '' ? json_decode($raw, true) : [];
+        if (!is_array($data)) {
+            return [];
+        }
+        // Purge des flux de plus de 10 min (jamais terminés — abandon, échec)
+        $cutoff = time() - 600;
+        foreach ($data as $st => $entry) {
+            if (!is_array($entry) || (int) ($entry['ts'] ?? 0) < $cutoff) {
+                unset($data[$st]);
+            }
+        }
+        return $data;
+    }
+
+    private function savePendingStates(array $pending): void
+    {
+        \Configuration::updateValue(self::CONFIG_OAUTH_STATE, json_encode($pending));
+    }
+
+    /**
      * Échange le code d'autorisation contre les tokens. Appelé par le front controller oauth.
      */
     public function handleCallback(string $code, string $state): bool
     {
-        $savedState = (string) \Configuration::get(self::CONFIG_OAUTH_STATE);
-        if ($state === '' || $savedState === '' || !hash_equals($savedState, $state)) {
+        $pending = $this->loadPendingStates();
+        $matchedKey = null;
+        foreach (array_keys($pending) as $candidate) {
+            if ($state !== '' && hash_equals((string) $candidate, $state)) {
+                $matchedKey = $candidate;
+                break;
+            }
+        }
+        if ($matchedKey === null) {
             return false;
         }
+        unset($pending[$matchedKey]);
+        $this->savePendingStates($pending);
 
         $response = $this->httpPost(self::TOKEN_URL, [
             'code'          => $code,
@@ -132,7 +181,9 @@ class PostmasterManager
         \Configuration::updateValue(self::CONFIG_ACCESS_TOKEN,  \CryptoManager::encrypt($response['access_token']));
         \Configuration::updateValue(self::CONFIG_REFRESH_TOKEN, \CryptoManager::encrypt($response['refresh_token'] ?? ''));
         \Configuration::updateValue(self::CONFIG_TOKEN_EXPIRY,  time() + ($response['expires_in'] ?? 3600) - 60);
-        \Configuration::deleteByName(self::CONFIG_OAUTH_STATE);
+        // Le state a déjà été consommé (retiré de la liste des flux en
+        // attente) plus haut — ne PAS faire deleteByName ici, ça effacerait
+        // aussi les autres flux OAuth potentiellement encore en attente.
 
         $this->wd()->info(\WatchdogManager::i18nMsg('watchdog.postmaster_oauth_success'), '', 'PostmasterManager');
         return true;

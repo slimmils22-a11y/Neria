@@ -40,7 +40,15 @@ class NeriaOauthscModuleFrontController extends ModuleFrontController
         $state = (string) \Tools::getValue('state', '');
         $error = (string) \Tools::getValue('error', '');
 
-        $returnUrl = (string) \Configuration::get(\SearchConsoleManager::CONFIG_RETURN_URL);
+        if (!class_exists('SearchConsoleManager')) {
+            require_once _PS_MODULE_DIR_ . 'neria/src/SearchConsoleManager.php';
+        }
+        $manager = new \SearchConsoleManager($this->module);
+
+        // URL de retour associée à CE state précis (plusieurs flux OAuth
+        // peuvent être en attente simultanément — cf. SearchConsoleManager::
+        // resolveReturnUrl()), pas une valeur globale unique.
+        $returnUrl = $manager->resolveReturnUrl($state);
         if (!$returnUrl) {
             $returnUrl = $this->context->link->getAdminLink('AdminModules', true, [], [
                 'configure' => 'neria',
@@ -55,13 +63,8 @@ class NeriaOauthscModuleFrontController extends ModuleFrontController
             \Tools::redirectAdmin($returnUrl . '&neria_error=' . urlencode(\AdminTranslator::t('msg.oauth_missing_params')));
         }
 
-        if (!class_exists('SearchConsoleManager')) {
-            require_once _PS_MODULE_DIR_ . 'neria/src/SearchConsoleManager.php';
-        }
-
         try {
-            $manager = new \SearchConsoleManager($this->module);
-            $ok      = $manager->handleCallback($code, $state);
+            $ok = $manager->handleCallback($code, $state);
         } catch (\Throwable $e) {
             if (class_exists('WatchdogManager')) {
                 try {
