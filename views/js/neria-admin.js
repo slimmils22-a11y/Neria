@@ -102,7 +102,7 @@
             if (!target) return;
             target.scrollIntoView({ behavior: 'smooth', block: 'center' });
             target.classList.add('neria-glossary__item--flash');
-            setTimeout(function () { target.classList.remove('neria-glossary__item--flash'); }, 1500);
+            setTimeout(function () { target.classList.remove('neria-glossary__item--flash'); }, 4000);
         });
     }
 
