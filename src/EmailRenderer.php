@@ -2295,7 +2295,8 @@ class EmailRenderer
         string $template,
         string $lang,
         ?string $outIso = null,
-        array $templateVars = []
+        array $templateVars = [],
+        bool $suppressResidualLog = false
     ): ?string {
         $layoutPath = $this->module->getModulePath('mails/themes/neria_global/layout.html');
         $corePath   = $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html');
@@ -2501,7 +2502,9 @@ class EmailRenderer
         if (preg_match_all('/\{[a-z][a-z0-9_]*\}/i', $compiled, $residualMatches)) {
             $residualKeys = array_unique($residualMatches[0]);
             $compiled = preg_replace('/\{[a-z][a-z0-9_]*\}/i', '', $compiled);
-            $this->logResidualVars($template, $residualKeys);
+            if (!$suppressResidualLog) {
+                $this->logResidualVars($template, $residualKeys);
+            }
         }
 
         // ── Empreinte carbone — injecté avant CssInliner (DOMDocument déplace
@@ -2617,7 +2620,9 @@ class EmailRenderer
             if (preg_match_all('/\{[a-z][a-z0-9_]*\}/i', $compiledTxt, $residualTxtMatches)) {
                 $residualTxtKeys = array_unique($residualTxtMatches[0]);
                 $compiledTxt = preg_replace('/\{[a-z][a-z0-9_]*\}/i', '', $compiledTxt);
-                $this->logResidualVars($template, $residualTxtKeys);
+                if (!$suppressResidualLog) {
+                    $this->logResidualVars($template, $residualTxtKeys);
+                }
             }
 
             // Slot du message personnalisé optionnel (vide par défaut, rempli

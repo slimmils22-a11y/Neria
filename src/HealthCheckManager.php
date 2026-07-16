@@ -804,7 +804,15 @@ class HealthCheckManager
         foreach ($templates as $tpl) {
             try {
                 $demoVars = $fakes->invoke($renderer, $tpl, 'fr');
-                $outFile  = $compile->invoke($renderer, $tpl, 'fr', 'fr', $demoVars);
+                // $suppressResidualLog = true : ce test utilise des données de démo
+                // génériques (buildPreviewFakes), pas un vrai envoi client — sans ce
+                // flag, chaque exécution du diagnostic pollue le journal Watchdog
+                // réel avec de fausses alertes "variable manquante" sur presque
+                // tous les templates (variables métier dynamiques absentes des
+                // fakes par construction). Les vrais envois (ManualSendManager,
+                // crons, hooks PS) n'utilisent jamais ce flag et continuent de
+                // logger normalement.
+                $outFile  = $compile->invoke($renderer, $tpl, 'fr', 'fr', $demoVars, true);
                 if ($outFile && is_file($outFile)) {
                     $content = file_get_contents($outFile) ?: '';
                     if (stripos($content, '%7b') !== false) {
