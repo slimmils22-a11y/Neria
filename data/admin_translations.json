@@ -18311,6 +18311,27 @@
         "nl": " → Wat te doen: gebruik de knop \"Vertalingen herstellen\" in het tabblad Vertalingen.",
         "gb": " → What to do: Use the \"Repair translations\" button in the Translations tab."
     },
+    "health.trad_keys_import_incomplete": {
+        "fr": " Import de traductions incomplet : {actual}/{expected} lignes en base ({gap} manquantes) → l'import a probablement été interrompu (timeout hébergement). Que faire : relancez « Réinitialiser les textes » dans l'onglet Traductions.",
+        "en": " Incomplete translation import: {actual}/{expected} rows in database ({gap} missing) → the import was probably interrupted (hosting timeout). What to do: re-run \"Reset texts\" in the Translations tab.",
+        "de": " Unvollständiger Übersetzungsimport: {actual}/{expected} Zeilen in der Datenbank ({gap} fehlend) → der Import wurde wahrscheinlich unterbrochen (Hosting-Timeout). Was tun: Führen Sie „Texte zurücksetzen“ im Tab Übersetzungen erneut aus.",
+        "it": " Importazione traduzioni incompleta: {actual}/{expected} righe nel database ({gap} mancanti) → l'importazione è stata probabilmente interrotta (timeout dell'hosting). Cosa fare: rilancia \"Ripristina testi\" nella scheda Traduzioni.",
+        "es": " Importación de traducciones incompleta: {actual}/{expected} filas en la base de datos ({gap} faltantes) → la importación probablemente se interrumpió (tiempo de espera del hosting). Qué hacer: vuelva a ejecutar «Restablecer textos» en la pestaña Traducciones.",
+        "pt": " Importação de traduções incompleta: {actual}/{expected} linhas na base de dados ({gap} em falta) → a importação foi provavelmente interrompida (tempo limite do alojamento). O que fazer: reinicie «Repor textos» no separador Traduções.",
+        "br": " Importação de traduções incompleta: {actual}/{expected} linhas no banco de dados ({gap} faltando) → a importação provavelmente foi interrompida (tempo limite da hospedagem). O que fazer: reinicie «Redefinir textos» na aba Traduções.",
+        "ar": " استيراد الترجمات غير مكتمل: {actual}/{expected} سطر في قاعدة البيانات (ناقص {gap}) → من المحتمل أن الاستيراد قد تعطّل (انتهاء مهلة الاستضافة). ما العمل: أعيدوا تشغيل \"إعادة ضبط النصوص\" في تبويب الترجمات.",
+        "ja": " 翻訳のインポートが不完全です：{actual}/{expected}行（{gap}行不足）→ ホスティングのタイムアウトによりインポートが中断された可能性があります。対処法：翻訳タブで「テキストをリセット」を再実行してください。",
+        "ko": " 번역 가져오기가 불완전합니다: {actual}/{expected}행 (누락 {gap}행) → 가져오기가 중단되었을 가능성이 있습니다(호스팅 타임아웃). 조치 방법: 번역 탭에서 \"텍스트 재설정\"을 다시 실행하세요.",
+        "zh": " 翻译导入不完整：数据库中{actual}/{expected}行（缺少{gap}行）→ 导入可能已中断（主机超时）。处理方法：请在翻译标签中重新运行\"重置文本\"。",
+        "tw": " 翻譯匯入不完整：資料庫中{actual}/{expected}行（缺少{gap}行）→ 匯入可能已中斷（主機逾時）。處理方法：請在翻譯標籤中重新執行「重設文字」。",
+        "ru": " Неполный импорт переводов: {actual}/{expected} строк в базе данных (не хватает {gap}) → импорт, вероятно, был прерван (тайм-аут хостинга). Что делать: повторно запустите «Сбросить тексты» во вкладке Переводы.",
+        "tr": " Eksik çeviri içe aktarımı: veritabanında {actual}/{expected} satır ({gap} eksik) → içe aktarma muhtemelen kesintiye uğradı (barındırma zaman aşımı). Ne yapmalı: Çeviriler sekmesinde \"Metinleri sıfırla\"yı yeniden çalıştırın.",
+        "sv": " Ofullständig översättningsimport: {actual}/{expected} rader i databasen ({gap} saknas) → importen avbröts troligen (värdtjänstens timeout). Vad du ska göra: kör om \"Återställ texter\" i fliken Översättningar.",
+        "no": " Ufullstendig oversettelsesimport: {actual}/{expected} rader i databasen ({gap} mangler) → importen ble sannsynligvis avbrutt (hosting-tidsavbrudd). Hva du bør gjøre: kjør «Tilbakestill tekster» på nytt i fanen Oversettelser.",
+        "da": " Ufuldstændig oversættelsesimport: {actual}/{expected} rækker i databasen ({gap} mangler) → importen blev sandsynligvis afbrudt (hosting-timeout). Hvad du skal gøre: kør \"Nulstil tekster\" igen under fanen Oversættelser.",
+        "nl": " Onvolledige vertalingsimport: {actual}/{expected} rijen in de database ({gap} ontbrekend) → de import is waarschijnlijk onderbroken (hosting-timeout). Wat te doen: voer \"Teksten resetten\" opnieuw uit in het tabblad Vertalingen.",
+        "gb": " Incomplete translation import: {actual}/{expected} rows in database ({gap} missing) → the import was probably interrupted (hosting timeout). What to do: re-run \"Reset texts\" in the Translations tab."
+    },
     "health.trad_keys_db_gaps": {
         "fr": "{count} valeur(s) vide(s) en base ps_neria_translation.",
         "en": "{count} empty value(s) in the ps_neria_translation database table.",

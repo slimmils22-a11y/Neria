@@ -1481,7 +1481,34 @@ class HealthCheckManager
              WHERE `translation_value` = '' OR `translation_value` IS NULL"
         );
 
-        if (empty($missing) && $dbMissing === 0) {
+        // Import partiel (panne réseau/timeout à mi-parcours) : des lignes
+        // entières peuvent manquer sans être "vides" — le contrôle ci-dessus
+        // ne le détecte pas puisqu'il ne regarde que les lignes existantes.
+        // On compare donc le nombre total de triplets (template, langue, clé)
+        // déclarés dans le JSON au nombre réel de lignes non personnalisées en base.
+        $expectedTotal = 0;
+        foreach ($trad as $block) {
+            if (!is_array($block)) {
+                continue;
+            }
+            foreach ($block as $lang => $keys) {
+                if (is_array($keys)) {
+                    $expectedTotal += count($keys);
+                }
+            }
+        }
+
+        $actualTotal = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_translation` WHERE `is_custom` = 0"
+        );
+
+        $importGap = $expectedTotal - $actualTotal;
+        // Tolérance : quelques lignes d'écart peuvent venir de clés is_custom=1
+        // (remplacées par le marchand) — seul un vrai trou (>1%) indique un
+        // import réellement interrompu.
+        $importIncomplete = $expectedTotal > 0 && $importGap > max(20, (int) ($expectedTotal * 0.01));
+
+        if (empty($missing) && $dbMissing === 0 && !$importIncomplete) {
             return [
                 'status' => self::STATUS_OK,
                 'detail' => AdminTranslator::tVars('health.trad_keys_ok', ['count' => count($index)]),
@@ -1494,6 +1521,11 @@ class HealthCheckManager
         }
         if ($dbMissing > 0) {
             $detail .= AdminTranslator::tVars('health.trad_keys_db_gaps', ['count' => $dbMissing]);
+        }
+        if ($importIncomplete) {
+            $detail .= AdminTranslator::tVars('health.trad_keys_import_incomplete', [
+                'expected' => $expectedTotal, 'actual' => $actualTotal, 'gap' => $importGap,
+            ]);
         }
 
         return [
