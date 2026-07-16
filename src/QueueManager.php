@@ -354,7 +354,7 @@ class QueueManager
             'SELECT COUNT(*) FROM `' . $this->prefix . 'customer` WHERE active = 1 AND deleted = 0'
         );
         $withWindow = (int) $this->db->getValue(
-            'SELECT COUNT(*) FROM (
+            'SELECT COUNT(DISTINCT id_customer) FROM (
                SELECT id_customer
                FROM `' . $this->prefix . 'orders`
                WHERE valid = 1
