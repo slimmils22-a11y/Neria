@@ -406,7 +406,7 @@
 .neria-glossary { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px; margin:0; }
 .neria-glossary__item { background:var(--neria-light-bg); border:1px solid var(--neria-border); border-radius:var(--neria-radius); padding:14px 16px; scroll-margin-top:90px; }
 .neria-glossary__item:target,
-.neria-glossary__item--flash { border-color:var(--neria-accent); box-shadow:0 0 0 2px rgba(191,153,89,.35); transition:box-shadow .3s ease, border-color .3s ease; }
+.neria-glossary__item--flash { border-color:#2563eb !important; box-shadow:0 0 0 2px rgba(37,99,235,.35) !important; transition:box-shadow .3s ease, border-color .3s ease; }
 .neria-glossary__term { font-size:13px; font-weight:700; color:var(--neria-dark); margin:0 0 4px; }
 .neria-glossary__def { font-size:12.5px; line-height:1.6; color:var(--neria-text); margin:0; }
 .neria-log-term-link { color:var(--neria-accent); text-decoration:underline dotted; cursor:pointer; }
