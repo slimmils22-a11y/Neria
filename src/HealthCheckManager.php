@@ -257,6 +257,9 @@ class HealthCheckManager
             'abtest_variant_pair'         => $this->checkAbtestVariantPairIntegrity(),
             'milestone_voucher_cartrule'  => $this->checkMilestoneVoucherCartRuleValidity(),
             'css_inliner_failures'        => $this->checkCssInlinerSilentFailures(),
+            // ── Ajouts 2026-07-16 (3e passage de scan Watchdog) ────────
+            'stored_secrets_decryptable'  => $this->checkStoredSecretsDecryptable(),
+            'calendar_json_integrity'     => $this->checkCalendarJsonIntegrity(),
         ];
     }
 
@@ -5223,6 +5226,103 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.css_inliner_failures_ok')];
+    }
+
+    /**
+     * checkCryptoKeyHealth() ne prouve que la clé courante peut chiffrer/
+     * déchiffrer une valeur FRAÎCHE — pas que les secrets DÉJÀ STOCKÉS
+     * (mot de passe IMAP bounce, secrets webhook/OAuth, clé DeepL) restent
+     * déchiffrables avec elle. Si la clé a été régénérée/écrasée (restauration
+     * DB partielle, manipulation manuelle), CryptoManager::decrypt() renvoie
+     * silencieusement '' pour chaque secret — le marchand voit "configuration
+     * incomplète" et croit n'avoir jamais rempli le champ.
+     */
+    private function checkStoredSecretsDecryptable(): array
+    {
+        if (!class_exists('CryptoManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.stored_secrets_ok')];
+        }
+
+        $broken = [];
+        foreach (\CryptoManager::SENSITIVE_CONFIG_KEYS as $key) {
+            $stored = (string) \Configuration::get($key);
+            if ($stored === '' || !\CryptoManager::isEncrypted($stored)) {
+                continue;
+            }
+            $decrypted = \CryptoManager::decrypt($stored);
+            if ($decrypted === '') {
+                $broken[] = $key;
+            }
+        }
+
+        if (!empty($broken)) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.stored_secrets_broken', ['list' => implode(', ', $broken)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.stored_secrets_ok')];
+    }
+
+    /**
+     * CalendarManager::loadCalendarDates() fait un array_merge($builtIn, $data)
+     * — pas de fusion profonde. Si data/calendar.json contient une entrée mal
+     * formée pour une clé déjà connue (ex. 'eid' sans 'dates' suite à une
+     * édition manuelle ratée), elle remplace ENTIÈREMENT les dates de secours
+     * intégrées pour cette occasion, sans qu'aucun log ne signale la perte —
+     * le seul symptôme visible arrive bien plus tard, sans lien évident.
+     */
+    private function checkCalendarJsonIntegrity(): array
+    {
+        if (!class_exists('CalendarManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.calendar_json_ok')];
+        }
+
+        $jsonPath = rtrim($this->module->getLocalPath(), '/') . '/data/calendar.json';
+        if (!is_file($jsonPath)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.calendar_json_ok')];
+        }
+
+        $raw = trim((string) file_get_contents($jsonPath));
+        if ($raw === '') {
+            // Fichier vide = jamais utilisé par le marchand, pas corrompu —
+            // CalendarManager l'ignore silencieusement et garde les dates
+            // intégrées, sans aucun dommage. Ne pas confondre avec un JSON
+            // réellement invalide (contenu non vide mais mal formé).
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.calendar_json_ok')];
+        }
+
+        $data = json_decode($raw, true);
+        if (!is_array($data)) {
+            return ['status' => self::STATUS_WARNING, 'detail' => AdminTranslator::t('health.calendar_json_invalid')];
+        }
+
+        $r = new \ReflectionClass('CalendarManager');
+        $method = $r->getMethod('getBuiltInDates');
+        $method->setAccessible(true);
+        $builtIn = $method->invoke($r->newInstanceWithoutConstructor());
+
+        $broken = [];
+        foreach ($data as $key => $entry) {
+            if (!isset($builtIn[$key]) || !is_array($entry)) {
+                continue;
+            }
+            $hasRecurring = isset($entry['recurring']['month'], $entry['recurring']['day']);
+            $hasDates     = isset($entry['dates']) && is_array($entry['dates']) && !empty($entry['dates']);
+            if (!$hasRecurring && !$hasDates) {
+                $broken[] = (string) $key;
+            }
+        }
+
+        if (!empty($broken)) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.calendar_json_broken', ['list' => implode(', ', $broken)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.calendar_json_ok')];
     }
 
     /**

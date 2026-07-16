@@ -698,9 +698,17 @@ class ManualSendManager
         // masque le vrai problème (adresse invalide, sujet invalide, échec
         // SwiftMailer réel, etc.) — bug trouvé le 2026-07-13 via un rapport
         // de test externe.
+        // Filtre sur object_type='SwiftMessage' (cf. classes/Mail.php core PS,
+        // PrestaShopLogger::addLog('Swift Error: ...', 3, null, 'SwiftMessage'))
+        // ou sur le message "template manquant" — sans ce filtre, une entrée
+        // ps_log écrite par un tout autre module à la même seconde s'affichait
+        // comme "la vraie cause", potentiellement sans aucun rapport avec cet
+        // échec d'envoi. Un log absent/hors-sujet reste préférable à un log
+        // trompeur présenté comme fiable.
         $realReason = (string) $this->db->getValue(
             'SELECT `message` FROM `' . _DB_PREFIX_ . 'log`
              WHERE `date_add` >= \'' . pSQL($sendAttemptedAt) . '\'
+             AND (`object_type` = \'SwiftMessage\' OR `message` LIKE \'Error - The following e-mail template%\')
              ORDER BY `id_log` DESC'
         );
 

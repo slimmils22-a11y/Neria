@@ -429,7 +429,9 @@
       'crypto_unavailable_plain' => 'help.health_check_crypto_unavailable_plain',
       'abtest_variant_pair'  => 'help.health_check_abtest_variant_pair',
       'milestone_voucher_cartrule' => 'help.health_check_milestone_voucher_cartrule',
-      'css_inliner_failures' => 'help.health_check_css_inliner_failures'
+      'css_inliner_failures' => 'help.health_check_css_inliner_failures',
+      'stored_secrets_decryptable' => 'help.health_check_stored_secrets_decryptable',
+      'calendar_json_integrity' => 'help.health_check_calendar_json_integrity'
     ]}
     <div class="neria-diag-grid">
       {foreach $health_results as $checkKey => $result}
