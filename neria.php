@@ -322,7 +322,8 @@ class Neria extends Module
             $tpl = $params['template'] ?? '';
             $cdMgr = new CooldownManager();
             $cdMinutes = (new ConfigManager($this))->getCooldownMinutes();
-            if ($cdMgr->isDuplicate((string) $to, $tpl, $cdMinutes)) {
+            $cdIdOrder = (int) ($params['templateVars']['{id_order}'] ?? 0);
+            if ($cdMgr->isDuplicate((string) $to, $tpl, $cdMinutes, $cdIdOrder)) {
                 (new WatchdogManager($this))->info(
                     WatchdogManager::i18nMsg('watchdog.cooldown_blocked', ['template' => $tpl, 'to' => (string) $to]),
                     $tpl,

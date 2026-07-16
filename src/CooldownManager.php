@@ -40,12 +40,21 @@ class CooldownManager
      * Vérifie si un doublon existe pour ce template + destinataire dans la
      * fenêtre de cooldown.
      *
+     * Si $idOrder est fourni (> 0, ex. order_conf/payment/shipped...), le
+     * doublon n'est détecté que pour LA MÊME commande — un deuxième email du
+     * même template pour une commande DIFFÉRENTE (client qui repasse une
+     * vraie commande dans la fenêtre de cooldown) n'est jamais bloqué. Sans
+     * id_order (templates non liés à une commande), on retombe sur l'ancien
+     * comportement (template + client + fenêtre), qui reste pertinent pour
+     * ces cas-là.
+     *
      * @param string $toEmail       Adresse email du destinataire
      * @param string $template      Nom du template (ex. "order_conf")
      * @param int    $windowMinutes Durée de la fenêtre en minutes
+     * @param int    $idOrder       ID de la commande liée à cet envoi, si applicable (0 = non lié)
      * @return bool true = doublon détecté, bloquer l'envoi
      */
-    public function isDuplicate(string $toEmail, string $template, int $windowMinutes): bool
+    public function isDuplicate(string $toEmail, string $template, int $windowMinutes, int $idOrder = 0): bool
     {
         if (in_array($template, self::BYPASS_TEMPLATES, true)) {
             return false;
@@ -61,11 +70,15 @@ class CooldownManager
             return false; // invités : pas de cooldown
         }
 
+        $orderCondition = $idOrder > 0
+            ? ' AND `id_order` = ' . (int) $idOrder
+            : '';
+
         $count = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
              WHERE `id_customer` = ' . (int) $idCustomer . '
                AND `template`    = \'' . pSQL($template) . '\'
-               AND `event_type`  = \'sent\'
+               AND `event_type`  = \'sent\'' . $orderCondition . '
                AND `date_add`    > DATE_SUB(NOW(), INTERVAL ' . (int) $windowMinutes . ' MINUTE)'
         );
 
