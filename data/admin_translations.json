@@ -17744,6 +17744,27 @@
         "nl": "{count} sjablonen op de zwarte lijst hebben nog steeds een gecompileerd e-mailbestand op de schijf — klanten blijven de oude weergave ontvangen ondanks de deactivering: {list}",
         "gb": "{count} blacklisted template(s) still have a compiled email file on disk — customers keep receiving the old render despite being disabled: {list}"
     },
+    "health.blacklist_stale_info": {
+        "fr": "{count} fichier email compilé résiduel pour des templates désactivés : {list} → Information seulement — ces fichiers ne sont plus utilisés pour appliquer la blacklist (vérifiée directement au moment de l'envoi) et se régénèrent automatiquement au prochain envoi réel.",
+        "en": "{count} leftover compiled email file(s) for disabled templates: {list} → Informational only — these files are no longer used to enforce the blacklist (checked directly at send time) and regenerate automatically on the next real send.",
+        "de": "{count} übrig gebliebene(s) kompilierte(s) E-Mail-Datei(en) für deaktivierte Vorlagen: {list} → Nur informativ — diese Dateien werden nicht mehr zur Durchsetzung der Blacklist verwendet (direkt beim Versand geprüft) und werden beim nächsten echten Versand automatisch neu erzeugt.",
+        "it": "{count} file email compilato/i residuo/i per modelli disattivati: {list} → Solo informativo — questi file non sono più usati per applicare la blacklist (verificata direttamente all'invio) e si rigenerano automaticamente al prossimo invio reale.",
+        "es": "{count} archivo(s) de correo compilado(s) residual(es) para plantillas desactivadas: {list} → Solo informativo — estos archivos ya no se usan para aplicar la lista negra (verificada directamente al enviar) y se regeneran automáticamente en el próximo envío real.",
+        "pt": "{count} ficheiro(s) de email compilado(s) residual(is) para modelos desativados: {list} → Apenas informativo — estes ficheiros já não são usados para aplicar a lista negra (verificada diretamente no envio) e regeneram-se automaticamente no próximo envio real.",
+        "br": "{count} arquivo(s) de e-mail compilado(s) residual(is) para modelos desativados: {list} → Apenas informativo — esses arquivos não são mais usados para aplicar a lista negra (verificada diretamente no envio) e se regeneram automaticamente no próximo envio real.",
+        "ar": "يوجد {count} من ملفات البريد الإلكتروني المُجمَّعة المتبقية لقوالب معطَّلة: {list} → للعِلم فقط — لم تعد هذه الملفات تُستخدَم لتطبيق القائمة السوداء (يتم التحقق منها مباشرة عند الإرسال) وتتجدَّد تلقائيًا عند الإرسال الفعلي التالي.",
+        "ja": "無効化されたテンプレートのコンパイル済みメールファイルの残骸が{count}件あります：{list} → 情報提供のみ — これらのファイルはブラックリストの適用にはもう使われておらず（送信時に直接確認）、次回の実際の送信時に自動的に再生成されます。",
+        "ko": "비활성화된 템플릿의 남은 컴파일된 이메일 파일이 {count}개 있습니다: {list} → 정보 제공 목적일 뿐입니다 — 이 파일들은 더 이상 블랙리스트 적용에 사용되지 않으며(발송 시 직접 확인됨), 다음 실제 발송 시 자동으로 재생성됩니다.",
+        "zh": "有{count}个已停用模板的残留已编译邮件文件：{list} → 仅供参考 — 这些文件不再用于执行黑名单（在发送时直接检查），并会在下次真实发送时自动重新生成。",
+        "tw": "有{count}個已停用範本的殘留已編譯郵件檔案：{list} → 僅供參考 — 這些檔案不再用於執行黑名單（在寄送時直接檢查），並會在下次真實寄送時自動重新產生。",
+        "ru": "{count} оставшихся скомпилированных файлов писем для отключённых шаблонов: {list} → Только для информации — эти файлы больше не используются для применения чёрного списка (проверяется напрямую при отправке) и автоматически пересоздаются при следующей реальной отправке.",
+        "tr": "Devre dışı bırakılan şablonlar için {count} artık kullanılmayan derlenmiş e-posta dosyası: {list} → Yalnızca bilgi amaçlı — bu dosyalar artık kara listeyi uygulamak için kullanılmıyor (gönderim sırasında doğrudan kontrol edilir) ve bir sonraki gerçek gönderimde otomatik olarak yeniden oluşturulur.",
+        "sv": "{count} kvarvarande kompilerad(e) e-postfil(er) för inaktiverade mallar: {list} → Endast informativt — dessa filer används inte längre för att tillämpa svartlistan (kontrolleras direkt vid utskick) och återskapas automatiskt vid nästa verkliga utskick.",
+        "no": "{count} gjenværende kompilert(e) e-postfil(er) for deaktiverte maler: {list} → Kun informativt — disse filene brukes ikke lenger til å håndheve svartelisten (sjekkes direkte ved sending) og gjenskapes automatisk ved neste reelle sending.",
+        "da": "{count} tilbageværende kompileret(de) e-mailfil(er) til deaktiverede skabeloner: {list} → Kun informativt — disse filer bruges ikke længere til at håndhæve sortlisten (tjekkes direkte ved afsendelse) og gendannes automatisk ved næste reelle afsendelse.",
+        "nl": "{count} overgebleven gecompileerd(e) e-mailbestand(en) voor uitgeschakelde sjablonen: {list} → Alleen informatief — deze bestanden worden niet meer gebruikt om de zwarte lijst af te dwingen (rechtstreeks gecontroleerd bij verzending) en worden automatisch opnieuw gegenereerd bij de volgende echte verzending.",
+        "gb": "{count} leftover compiled email file(s) for disabled templates: {list} → Informational only — these files are no longer used to enforce the blacklist (checked directly at send time) and regenerate automatically on the next real send."
+    },
     "health.blacklist_stale_fixed": {
         "fr": "{count} fichier(s) email obsolète(s) supprimé(s) automatiquement (templates désactivés) : {list}. Les clients ne recevront plus l'ancien rendu.",
         "en": "{count} stale email file(s) automatically deleted (disabled templates): {list}. Customers will no longer receive the old render.",

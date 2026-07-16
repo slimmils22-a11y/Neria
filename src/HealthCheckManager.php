@@ -4436,9 +4436,25 @@ class HealthCheckManager
             return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.blacklist_stale_ok')];
         }
 
+        // `mails/{lang}/{template}` n'est pas un template source : c'est la
+        // sortie COMPILÉE du vrai pipeline d'envoi (EmailRenderer::
+        // compileNeriaTemplate(), régénérée à chaque envoi réel). Ce fichier
+        // était auparavant supprimé automatiquement (@unlink) dès qu'une
+        // règle de blacklist existait — mais CalendarManager::
+        // sendCalendarEmail() lit directement ce fichier comme condition
+        // d'envoi (file_exists avant Mail::Send) pour les occasions
+        // calendaires, sans jamais se reconstruire tout seul entre deux
+        // envois annuels. Une suppression pouvait donc bloquer
+        // silencieusement un envoi calendaire pendant des mois, sans
+        // qu'aucune régénération naturelle ne survienne, y compris après
+        // que le marchand ait retiré la règle de blacklist.
+        // Correctif adopté : sendCalendarEmail() vérifie désormais
+        // explicitement BlacklistManager::isBlacklisted() lui-même — la
+        // présence du fichier compilé n'a donc plus besoin d'être
+        // manipulée pour faire respecter la blacklist. Ce contrôle reste
+        // purement informatif (aucune suppression automatique).
         $mailsDir  = rtrim($this->module->getLocalPath(), '/') . '/mails/';
         $offenders = [];
-        $paths     = [];
 
         foreach ((array) $rows as $row) {
             $tpl   = (string) $row['template'];
@@ -4448,37 +4464,19 @@ class HealthCheckManager
                     $path = $mailsDir . $lang . '/' . $tpl . $ext;
                     if (is_file($path)) {
                         $offenders[] = $tpl . ' (' . $lang . ')';
-                        $paths[]     = $path;
                     }
                 }
             }
         }
 
         if ($offenders) {
-            $deleted = 0;
-            foreach ($paths as $path) {
-                if (@unlink($path)) {
-                    $deleted++;
-                }
-            }
             $offenders = array_unique($offenders);
-            $count     = count($offenders);
-
-            if ($deleted === count($paths)) {
-                return [
-                    'status'     => self::STATUS_WARNING,
-                    'detail'     => AdminTranslator::tVars('health.blacklist_stale_fixed', [
-                        'count' => $count,
-                        'list'  => implode(', ', array_slice($offenders, 0, 8)),
-                    ]),
-                    'auto_fixed' => true,
-                ];
-            }
-
-            $list = implode(', ', array_slice($offenders, 0, 8));
             return [
-                'status' => self::STATUS_ERROR,
-                'detail' => AdminTranslator::tVars('health.blacklist_stale_error', ['count' => $count, 'list' => $list]),
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.blacklist_stale_info', [
+                    'count' => count($offenders),
+                    'list'  => implode(', ', array_slice($offenders, 0, 8)),
+                ]),
             ];
         }
 

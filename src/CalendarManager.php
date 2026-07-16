@@ -485,11 +485,18 @@ class CalendarManager
                 return $this->calculateRamadanStart($year);
 
             case 'lunar_new_year':
-                return $this->calculateLunarNewYear($year);
-
             case 'seollal':
-                // Le Seollal coreen correspond au Nouvel An lunaire chinois
-                return $this->calculateLunarNewYear($year);
+                // calculateLunarNewYear() (NIVEAU 2) force systématiquement le
+                // mois à janvier avant d'appliquer le jour tabulé — pour la
+                // moitié des positions du cycle de Méton, le vrai mois est
+                // février (annoté dans getLunarNewYearDay() mais jamais
+                // utilisé), ce qui décale la date d'environ un mois. Comme la
+                // méthode retourne toujours une valeur non-null, le NIVEAU 3
+                // (table 2025-2035 vérifiée manuellement, dates correctes)
+                // n'était donc jamais consulté. On saute directement au
+                // NIVEAU 3 pour cet évènement plutôt que de rafistoler une
+                // approximation algorithmique qui n'a jamais été fiable.
+                return null;
 
             case 'mothers_day_fr':
                 return $this->calculateMothersDayFrance($year);
@@ -608,100 +615,6 @@ class CalendarManager
         );
 
         return $date ?: null;
-    }
-
-    /**
-     * Calcule le Nouvel An lunaire chinois pour une annee gregorienne
-     * Algorithme de Gregorian/Lunar basÃ© sur les cycles de 19 ans (Metonic)
-     *
-     * Precision : +/- 1-2 jours
-     * Pour une precision parfaite, utiliser l'override manuel
-     *
-     * @param int $year Annee gregorienne
-     * @return \DateTime|null
-     */
-    private function calculateLunarNewYear(int $year): ?\DateTime
-    {
-        // Calcul base sur le cycle lunaire de 29.530589 jours
-        // et l'alignement avec le calendrier solaire
-        $cycle  = $year - 2000;
-        $golden = ($cycle % 19) + 1;
-
-        // Calcul de la pleine lune la plus proche du 21 janvier
-        $epact = (11 * $golden + 20 + 203 - 11) % 30;
-        if ($epact < 0) {
-            $epact += 30;
-        }
-
-        // Date approximative du Nouvel An lunaire
-        $day = 21 - $epact;
-        if ($day < 0) {
-            $day += 30;
-            $month = 2;
-        } else {
-            // Ajustement pour janvier/fevrier
-            if ($day <= 21) {
-                $month = 1;
-                $day   = 21 + (29 - $epact);
-            } else {
-                $month = 2;
-                $day   = $day - 21 + 1;
-            }
-        }
-
-        // Correction empirique basee sur les donnees historiques
-        $month = 1;
-        $day   = $this->getLunarNewYearDay($year);
-
-        if (!$day) {
-            return null;
-        }
-
-        return \DateTime::createFromFormat('Y-n-j', "{$year}-{$month}-{$day}")
-            ?: null;
-    }
-
-    /**
-     * Retourne le jour de janvier/fevrier du Nouvel An lunaire
-     * Base sur des donnees tabulees pour la precision
-     * Algorithme de secours si les donnees pre-calculees sont absentes
-     *
-     * @param int $year Annee gregorienne
-     * @return int|null Jour du mois (dans la plage jan-fev)
-     */
-    private function getLunarNewYearDay(int $year): ?int
-    {
-        // Cycle de 19 ans (cycle de Meton)
-        // Le Nouvel An lunaire tombe entre le 21 jan et le 20 fev
-        $cyclePosition = ($year - 2000) % 19;
-        if ($cyclePosition < 0) {
-            $cyclePosition += 19;
-        }
-
-        // Decalage moyen par position dans le cycle
-        $offsets = [
-            0  => 26, // 26 jan
-            1  => 15, // 15 fev (mois 2)
-            2  => 5,  // 5 fev
-            3  => 25, // 25 jan
-            4  => 13, // 13 fev (mois 2)
-            5  => 3,  // 3 fev
-            6  => 23, // 23 jan
-            7  => 10, // 10 fev (mois 2)
-            8  => 31, // 31 jan
-            9  => 19, // 19 fev (mois 2) -- retourne null, utilise override
-            10 => 8,  // 8 fev
-            11 => 28, // 28 jan
-            12 => 16, // 16 fev (mois 2)
-            13 => 5,  // 5 fev
-            14 => 26, // 26 jan
-            15 => 14, // 14 fev (mois 2)
-            16 => 2,  // 2 fev
-            17 => 22, // 22 jan
-            18 => 10, // 10 fev (mois 2)
-        ];
-
-        return $offsets[$cyclePosition] ?? null;
     }
 
     /**
@@ -1041,6 +954,15 @@ class CalendarManager
         string $template,
         string $lang
     ): bool {
+        // Respecte explicitement la blacklist du marchand (Neria ne doit
+        // jamais envoyer un template désactivé) — auparavant, seul le test
+        // file_exists() ci-dessous jouait ce rôle indirectement, ce qui
+        // dépendait d'un fichier compilé potentiellement supprimé/absent
+        // pour de tout autres raisons (cf. checkBlacklistStaleFiles).
+        if (class_exists('BlacklistManager') && (new \BlacklistManager())->isBlacklisted($template, $lang)) {
+            return false;
+        }
+
         $idLang    = (int) $customer['id_lang'];
         $shopName  = \Configuration::get('PS_SHOP_NAME');
         $shopEmail = \Configuration::get('PS_SHOP_EMAIL');
