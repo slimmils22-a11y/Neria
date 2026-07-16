@@ -513,7 +513,12 @@ class BehavioralCronManager
 
     private function sendAbandonedCarts(string $template, int $hours): void
     {
-        $minAgo = $hours + 1;
+        // Fenêtre élargie à 24h : run() n'est déclenché qu'une fois par jour
+        // (garde-fou CRON_LAST_BEHAVIORAL dans neria.php), donc une fenêtre
+        // de seulement 1h manquait quasiment tous les paniers pour les
+        // templates à délai court (1h). La dédup via neria_behavioral_sent
+        // empêche tout renvoi.
+        $minAgo = $hours + 24;
         $rows   = $this->db->executeS(
             'SELECT ca.id_cart, ca.id_customer, ca.id_shop,
                     c.email, c.firstname, c.lastname, c.id_lang
@@ -603,7 +608,7 @@ class BehavioralCronManager
                AND ca.id_address_invoice > 0
                AND (SELECT COUNT(*) FROM `' . $this->prefix . 'cart_product` cp
                     WHERE cp.id_cart = ca.id_cart) > 0
-               AND ca.date_upd BETWEEN DATE_SUB(NOW(), INTERVAL ' . ($hours + 1) . ' HOUR)
+               AND ca.date_upd BETWEEN DATE_SUB(NOW(), INTERVAL ' . ($hours + 24) . ' HOUR)
                                    AND DATE_SUB(NOW(), INTERVAL ' . $hours . ' HOUR)
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'orders` o WHERE o.id_cart = ca.id_cart
