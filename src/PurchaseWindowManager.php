@@ -55,8 +55,13 @@ class PurchaseWindowManager
      */
     public function getWindowCoverageCount(): int
     {
+        // COUNT(*) comptait les LIGNES de la sous-requête (une par couple
+        // id_customer+heure satisfaisant le seuil), pas les clients
+        // distincts — un client avec 2 créneaux horaires suffisamment
+        // fréquents était compté deux fois, faussant à la hausse le nombre
+        // affiché en BO.
         return (int) $this->db->getValue(
-            'SELECT COUNT(*) FROM (
+            'SELECT COUNT(DISTINCT id_customer) FROM (
                SELECT id_customer
                FROM `' . $this->prefix . 'orders`
                WHERE valid = 1

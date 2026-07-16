@@ -213,6 +213,15 @@ class PropensityScoreManager
             return 0.0;
         }
 
+        // Sur un très petit échantillon (1-2 commandes au total), le ratio
+        // ne peut valoir que 0%, 50% ou 100% — une simple coïncidence de
+        // calendrier suffit alors à déclencher le score plein, sans aucune
+        // valeur prédictive réelle. On exige un minimum de commandes avant
+        // d'accorder des points de saisonnalité.
+        if ($total < 6) {
+            return 0.0;
+        }
+
         $currentMonth = (int) date('n');
         $inMonth = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'orders`
