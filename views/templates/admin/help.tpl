@@ -944,6 +944,26 @@
   </div>
 </div>
 
+{* ── Lexique des termes techniques ─────────────────────────────── *}
+<div class="neria-section" id="neria-help-glossary">
+  <h2 class="neria-section__title">📖&nbsp;{neria_admin key='help.glossary_title'}</h2>
+  <p class="neria-section__desc">{neria_admin key='help.glossary_intro'}</p>
+
+  {assign var="_glossaryTerms" value=[
+    'cartrule', 'hook', 'cron', 'webhook', 'hmac', 'oauth', 'token',
+    'swiftmessage', 'spf_dkim_dmarc', 'rbl', 'template', 'smarty', 'json',
+    'imap', 'ptr', 'smtp_quota', 'segment', 'churn', 'cache_ttl', 'encryption_key'
+  ]}
+  <dl class="neria-glossary">
+    {foreach $_glossaryTerms as $_term}
+      <div class="neria-glossary__item" id="neria-lex-{$_term}">
+        <dt class="neria-glossary__term">{neria_admin key="help.glossary_term_`$_term`"}</dt>
+        <dd class="neria-glossary__def">{neria_admin key="help.glossary_def_`$_term`"}</dd>
+      </div>
+    {/foreach}
+  </dl>
+</div>
+
 {* ── Zone de danger ───────────────────────────────────────────── *}
 <div class="neria-section" id="neria-help-danger-zone" style="border:1px solid #dc2626;">
   <h2 class="neria-section__title" style="color:#dc2626;">⚠ {neria_admin key='help.danger_zone_title'}</h2>

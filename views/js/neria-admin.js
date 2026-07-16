@@ -34,7 +34,77 @@
         initActionAnchor();
         initAlertAutoDismiss();
         initWatchdogAnalyze();
+        initGlossaryLinks();
     });
+
+    // ── Lexique : termes techniques cliquables dans le journal Watchdog ──
+    // Repère les termes techniques connus (CartRule, webhook, OAuth...) dans
+    // les messages du journal et les transforme en liens vers leur définition
+    // dans la section Lexique de la même page (ancre #neria-lex-<terme>).
+    function initGlossaryLinks() {
+        var table = document.getElementById('neria-log-table');
+        if (!table) return;
+
+        var terms = {
+            'CartRule': 'cartrule',
+            'SwiftMessage': 'swiftmessage',
+            'Swift Error': 'swiftmessage',
+            'Webhook': 'webhook',
+            'webhook': 'webhook',
+            'HMAC': 'hmac',
+            'OAuth': 'oauth',
+            'SPF': 'spf_dkim_dmarc',
+            'DKIM': 'spf_dkim_dmarc',
+            'DMARC': 'spf_dkim_dmarc',
+            'RBL': 'rbl',
+            'blacklist': 'rbl',
+            'IMAP': 'imap',
+            'PTR': 'ptr',
+            'cron': 'cron',
+            'JSON': 'json',
+            'Smarty': 'smarty',
+            'TTL': 'cache_ttl'
+        };
+
+        var keys = Object.keys(terms).sort(function (a, b) { return b.length - a.length; });
+        var escapeRe = function (s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); };
+        var escapeHtml = function (s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+        var pattern = new RegExp('\\b(' + keys.map(escapeRe).join('|') + ')\\b', 'gi');
+        var lookup = {};
+        keys.forEach(function (k) { lookup[k.toLowerCase()] = terms[k]; });
+
+        table.querySelectorAll('td.col-msg').forEach(function (cell) {
+            var text = cell.textContent;
+            pattern.lastIndex = 0;
+            if (!pattern.test(text)) return;
+            pattern.lastIndex = 0;
+
+            var html = '';
+            var lastIndex = 0;
+            var m;
+            while ((m = pattern.exec(text)) !== null) {
+                var matched = m[0];
+                var anchor = lookup[matched.toLowerCase()];
+                if (!anchor) continue;
+                html += escapeHtml(text.slice(lastIndex, m.index));
+                html += '<a href="#neria-lex-' + anchor + '" class="neria-log-term-link" data-glossary-jump="' + anchor + '">' + escapeHtml(matched) + '</a>';
+                lastIndex = m.index + matched.length;
+            }
+            html += escapeHtml(text.slice(lastIndex));
+            cell.innerHTML = html;
+        });
+
+        table.addEventListener('click', function (e) {
+            var link = e.target.closest ? e.target.closest('.neria-log-term-link') : null;
+            if (!link) return;
+            e.preventDefault();
+            var target = document.getElementById('neria-lex-' + link.getAttribute('data-glossary-jump'));
+            if (!target) return;
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            target.classList.add('neria-glossary__item--flash');
+            setTimeout(function () { target.classList.remove('neria-glossary__item--flash'); }, 1500);
+        });
+    }
 
     // ── Champ fichier personnalisé (affiche le nom choisi) ───────
     function initFileInputs() {
