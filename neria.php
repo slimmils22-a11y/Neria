@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.24';
+    const VERSION = '1.0.25';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -1411,37 +1411,65 @@ class Neria extends Module
 
         // ── Queue d'envoi (toutes les 5 min) — emails programmés à l'heure
         // préférée du client (fenêtre d'achat), relances comportementales…
+        //
+        // Le check-then-set sur Configuration n'est pas atomique : deux
+        // requêtes concurrentes (hookDisplayHeader d'un visiteur + cron
+        // serveur externe déclenché au même moment, ou deux visiteurs
+        // simultanés) peuvent toutes les deux lire un $lastQueue périmé
+        // avant que l'une n'ait eu le temps d'écrire sa mise à jour — les
+        // deux traitent alors la queue en parallèle, doublant les envois.
+        // GET_LOCK() est un verrou MySQL réellement atomique entre process.
         if (class_exists('QueueManager')) {
             $now      = time();
             $lastQueue = (int) \Configuration::get('neria_queue_last_process');
             if (($now - $lastQueue) >= 300) {
-                \Configuration::updateValue('neria_queue_last_process', $now);
-                try {
-                    $sent = (new QueueManager($this))->processQueue();
-                    $ran['queue'] = true;
-                    if (class_exists('WatchdogManager')) {
-                        (new WatchdogManager($this))->cronHeartbeat('queue', 'ok', $sent);
+                $db = \Db::getInstance();
+                if ((int) $db->getValue("SELECT GET_LOCK('neria_queue_process', 0)") === 1) {
+                    try {
+                        // Revérifie après obtention du verrou : un autre process a
+                        // pu terminer son propre traitement pendant qu'on attendait.
+                        $lastQueueRecheck = (int) \Configuration::get('neria_queue_last_process');
+                        if (($now - $lastQueueRecheck) >= 300) {
+                            \Configuration::updateValue('neria_queue_last_process', $now);
+                            $sent = (new QueueManager($this))->processQueue();
+                            $ran['queue'] = true;
+                            if (class_exists('WatchdogManager')) {
+                                (new WatchdogManager($this))->cronHeartbeat('queue', 'ok', $sent);
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        // best-effort — ne bloque jamais le front
+                    } finally {
+                        $db->execute("SELECT RELEASE_LOCK('neria_queue_process')");
                     }
-                } catch (\Throwable $e) {
-                    // best-effort — ne bloque jamais le front
                 }
             }
         }
 
         // ── Queue webhook (toutes les 5 min) ──────────────────────────
+        // Même garde-fou que la queue d'envoi ci-dessus : GET_LOCK() empêche
+        // deux process concurrents de traiter la file webhook en double.
         if (class_exists('WebhookManager')) {
             $now = time();
             $lastWebhook = (int) \Configuration::get('neria_webhook_last_process');
             if (($now - $lastWebhook) >= 300) {
-                \Configuration::updateValue('neria_webhook_last_process', $now);
-                try {
-                    (new WebhookManager($this))->processQueue();
-                    $ran['webhook'] = true;
-                    if (class_exists('WatchdogManager')) {
-                        (new WatchdogManager($this))->cronHeartbeat('webhook');
+                $db = \Db::getInstance();
+                if ((int) $db->getValue("SELECT GET_LOCK('neria_webhook_process', 0)") === 1) {
+                    try {
+                        $lastWebhookRecheck = (int) \Configuration::get('neria_webhook_last_process');
+                        if (($now - $lastWebhookRecheck) >= 300) {
+                            \Configuration::updateValue('neria_webhook_last_process', $now);
+                            (new WebhookManager($this))->processQueue();
+                            $ran['webhook'] = true;
+                            if (class_exists('WatchdogManager')) {
+                                (new WatchdogManager($this))->cronHeartbeat('webhook');
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        // best-effort — ne bloque jamais le front
+                    } finally {
+                        $db->execute("SELECT RELEASE_LOCK('neria_webhook_process')");
                     }
-                } catch (\Throwable $e) {
-                    // best-effort — ne bloque jamais le front
                 }
             }
         }

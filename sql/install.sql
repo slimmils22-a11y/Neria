@@ -826,7 +826,10 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_preferences` (
     `subscribed`    TINYINT(1) NOT NULL DEFAULT 1,
     `date_upd`      DATETIME NOT NULL,
     PRIMARY KEY (`id_preference`),
-    UNIQUE KEY `uq_shop_customer_cat` (`id_shop`,`id_customer`,`category`),
+    -- id_customer=0 (compte supprimé/RGPD, jamais inscrit) ne suffisait pas
+    -- à distinguer deux clients différents : la clé doit inclure l'email,
+    -- sinon la préférence d'un client "invité" écrase celle d'un autre.
+    UNIQUE KEY `uq_shop_customer_email_cat` (`id_shop`,`id_customer`,`email`,`category`),
     KEY `idx_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Centre de préférences email Neria — opt-in/out par catégorie';
