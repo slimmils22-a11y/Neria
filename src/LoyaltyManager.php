@@ -133,14 +133,27 @@ class LoyaltyManager
                     ? $tier['amount'] . '%'
                     : number_format((float) $tier['amount'], 2, ',', ' ') . "\u{202F}" . ($this->context->currency->sign ?? '€');
 
-                $this->sendRewardEmail($idCustomer, $tier, $code, $amount, $total);
-                $this->watchdog()->info(
-                    \WatchdogManager::i18nMsg('watchdog.loyalty_tier_reached', [
-                        'tier' => $tier['name'], 'customer' => $idCustomer, 'points' => $total, 'amount' => $amount, 'code' => $code,
-                    ]),
-                    'loyalty_tier_upgrade',
-                    'Loyalty'
-                );
+                $emailSent = $this->sendRewardEmail($idCustomer, $tier, $code, $amount, $total);
+                if ($emailSent) {
+                    $this->watchdog()->info(
+                        \WatchdogManager::i18nMsg('watchdog.loyalty_tier_reached', [
+                            'tier' => $tier['name'], 'customer' => $idCustomer, 'points' => $total, 'amount' => $amount, 'code' => $code,
+                        ]),
+                        'loyalty_tier_upgrade',
+                        'Loyalty'
+                    );
+                } else {
+                    // Le bon est déjà créé et le palier marqué "traité" (anti-doublon,
+                    // irréversible) — si l'email échoue ici, le client a un bon en
+                    // base mais ne le sait jamais sans ce log.
+                    $this->watchdog()->warning(
+                        \WatchdogManager::i18nMsg('watchdog.loyalty_reward_email_failed', [
+                            'tier' => $tier['name'], 'customer' => $idCustomer, 'code' => $code,
+                        ]),
+                        'loyalty_tier_upgrade',
+                        'Loyalty'
+                    );
+                }
             } catch (\Throwable $e) {
                 $this->watchdog()->error(
                     \WatchdogManager::i18nMsg('watchdog.loyalty_reward_error', [
@@ -246,16 +259,16 @@ class LoyaltyManager
         return $code;
     }
 
-    private function sendRewardEmail(int $idCustomer, array $tier, string $code, string $amount, int $points): void
+    private function sendRewardEmail(int $idCustomer, array $tier, string $code, string $amount, int $points): bool
     {
         $customer = new \Customer($idCustomer);
         if (!\Validate::isLoadedObject($customer)) {
-            return;
+            return false;
         }
 
         $idLang = (int) $customer->id_lang ?: (int) \Configuration::get('PS_LANG_DEFAULT');
 
-        \Mail::Send(
+        return (bool) \Mail::Send(
             $idLang,
             'loyalty_tier_upgrade',
             '',

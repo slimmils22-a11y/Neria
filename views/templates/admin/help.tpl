@@ -424,7 +424,12 @@
       'custom_vars_completeness' => 'help.health_check_custom_vars_completeness',
       'churn_propensity_freshness' => 'help.health_check_churn_propensity_freshness',
       'collection_look_products' => 'help.health_check_collection_look_products',
-      'queue_failed_rate'    => 'help.health_check_queue_failed_rate'
+      'queue_failed_rate'    => 'help.health_check_queue_failed_rate',
+      'json_config_integrity' => 'help.health_check_json_config_integrity',
+      'crypto_unavailable_plain' => 'help.health_check_crypto_unavailable_plain',
+      'abtest_variant_pair'  => 'help.health_check_abtest_variant_pair',
+      'milestone_voucher_cartrule' => 'help.health_check_milestone_voucher_cartrule',
+      'css_inliner_failures' => 'help.health_check_css_inliner_failures'
     ]}
     <div class="neria-diag-grid">
       {foreach $health_results as $checkKey => $result}

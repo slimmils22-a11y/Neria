@@ -251,6 +251,12 @@ class HealthCheckManager
             'churn_propensity_freshness'  => $this->checkChurnPropensityFreshness(),
             'collection_look_products'    => $this->checkCollectionLookRulesProductValidity(),
             'queue_failed_rate'           => $this->checkQueueFailedRate(),
+            // ── Ajouts 2026-07-16 (2e passage de scan Watchdog) ────────
+            'json_config_integrity'       => $this->checkJsonConfigIntegrity(),
+            'crypto_unavailable_plain'    => $this->checkCryptoUnavailableWithPlainData(),
+            'abtest_variant_pair'         => $this->checkAbtestVariantPairIntegrity(),
+            'milestone_voucher_cartrule'  => $this->checkMilestoneVoucherCartRuleValidity(),
+            'css_inliner_failures'        => $this->checkCssInlinerSilentFailures(),
         ];
     }
 
@@ -5048,6 +5054,167 @@ class HealthCheckManager
             'status' => self::STATUS_OK,
             'detail' => AdminTranslator::tVars('health.queue_failed_ok', ['rate' => round($rate, 1), 'total' => $total]),
         ];
+    }
+
+    /**
+     * Vérifie que les configurations JSON critiques (paliers fidélité,
+     * expéditeurs par langue) sont décodables. Un JSON corrompu (saisie BO
+     * tronquée) fait retomber silencieusement le code sur des valeurs par
+     * défaut — le marchand croit ses réglages personnalisés appliqués alors
+     * que non, sans aucun signal.
+     */
+    private function checkJsonConfigIntegrity(): array
+    {
+        $broken = [];
+
+        $tiersJson = (string) \Configuration::get('NERIA_LOYALTY_TIERS');
+        if ($tiersJson !== '') {
+            $decoded = json_decode($tiersJson, true);
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+                $broken[] = 'NERIA_LOYALTY_TIERS';
+            }
+        }
+
+        $sendersJson = (string) \Configuration::get('NERIA_SENDERS_JSON');
+        if ($sendersJson !== '') {
+            $decoded = json_decode($sendersJson, true);
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+                $broken[] = 'NERIA_SENDERS_JSON';
+            }
+        }
+
+        if (!empty($broken)) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.json_config_broken', ['list' => implode(', ', $broken)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.json_config_ok')];
+    }
+
+    /**
+     * Si OpenSSL/la clé de chiffrement est indisponible sur l'hébergement,
+     * GdprAuditManager::auditEncryption() reste silencieusement à "0 problème"
+     * même si des milliers de rendered_vars sont en clair — le score RGPD
+     * affiche A/B alors que rien n'est réellement chiffré.
+     */
+    private function checkCryptoUnavailableWithPlainData(): array
+    {
+        $opensslOk = class_exists('CryptoManager') && \CryptoManager::isAvailable();
+
+        if ($opensslOk) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.crypto_unavailable_ok')];
+        }
+
+        $plain = (int) \Db::getInstance()->getValue(
+            "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_stat`
+             WHERE `rendered_vars` IS NOT NULL AND `rendered_vars` != ''"
+        );
+
+        if ($plain > 0) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.crypto_unavailable_plain_data', ['count' => $plain]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.crypto_unavailable_ok')];
+    }
+
+    /**
+     * Un test A/B actif doit toujours avoir exactement ses 2 variantes (A+B).
+     * Si l'une est supprimée/désactivée séparément (bug ou manip BO directe),
+     * le BO affiche juste "durée inconnue" sans jamais signaler l'incohérence.
+     */
+    private function checkAbtestVariantPairIntegrity(): array
+    {
+        if (!$this->tableExists('neria_abtest')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.abtest_pair_disabled')];
+        }
+
+        $rows = \Db::getInstance()->executeS(
+            'SELECT `id_shop`, `template`, COUNT(*) AS cnt
+             FROM `' . _DB_PREFIX_ . 'neria_abtest`
+             WHERE `is_active` = 1
+             GROUP BY `id_shop`, `template`
+             HAVING COUNT(*) <> 2'
+        );
+
+        if (!empty($rows)) {
+            $list = implode(', ', array_map(
+                static fn ($r) => $r['template'] . ' (' . $r['cnt'] . ' variante(s))',
+                (array) $rows
+            ));
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.abtest_pair_broken', ['list' => $list]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.abtest_pair_ok')];
+    }
+
+    /**
+     * Un CartRule::add() peut renvoyer true alors que le bon créé est en
+     * réalité inutilisable (contrainte DB tardive, code dupliqué) — le bon
+     * de palier de commandes garde alors un id_cart_rule "valide" mais mort.
+     */
+    private function checkMilestoneVoucherCartRuleValidity(): array
+    {
+        if (!$this->tableExists('neria_milestone_voucher')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.milestone_voucher_cartrule_disabled')];
+        }
+
+        $db = \Db::getInstance();
+        $rows = $db->executeS(
+            'SELECT `id_voucher`, `id_cart_rule` FROM `' . _DB_PREFIX_ . 'neria_milestone_voucher`
+             WHERE `id_cart_rule` > 0
+             AND `created_at` >= DATE_SUB(NOW(), INTERVAL 90 DAY)'
+        );
+
+        $dead = [];
+        foreach ((array) $rows as $row) {
+            $exists = (int) $db->getValue(
+                'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'cart_rule` WHERE `id_cart_rule` = ' . (int) $row['id_cart_rule'] . ' AND `active` = 1'
+            );
+            if ($exists === 0) {
+                $dead[] = $row['id_voucher'] . ' (cart_rule#' . $row['id_cart_rule'] . ')';
+            }
+        }
+
+        if (!empty($dead)) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.milestone_voucher_cartrule_broken', [
+                    'count' => count($dead), 'list' => implode(', ', array_slice($dead, 0, 10)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.milestone_voucher_cartrule_ok')];
+    }
+
+    /**
+     * CssInliner::inline() avale silencieusement toute exception DOMDocument
+     * et renvoie le HTML non inliné — l'email part "avec succès" mais peut
+     * être illisible sur Gmail/Orange/Yahoo. Le compteur Configuration
+     * (incrémenté par CssInliner) est repris ici puis remis à zéro.
+     */
+    private function checkCssInlinerSilentFailures(): array
+    {
+        $count = (int) \Configuration::get('NERIA_CSS_INLINE_FAILURES');
+
+        if ($count > 0) {
+            \Configuration::updateValue('NERIA_CSS_INLINE_FAILURES', 0);
+            return [
+                'status'     => self::STATUS_WARNING,
+                'detail'     => AdminTranslator::tVars('health.css_inliner_failures_warning', ['count' => $count]),
+                'auto_fixed' => true,
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.css_inliner_failures_ok')];
     }
 
     /**

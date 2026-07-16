@@ -30,6 +30,15 @@ class CssInliner
         try {
             return self::process($html);
         } catch (\Throwable $e) {
+            // Échec silencieux jusqu'ici : l'email part sans styles inlinés
+            // (illisible sur Gmail/Orange/Yahoo) mais l'envoi "réussit" quand
+            // même techniquement. CssInliner est statique, sans accès à
+            // WatchdogManager (qui exige une instance Neria) — un compteur
+            // Configuration léger est repris par checkCssInlinerSilentFailures.
+            \Configuration::updateValue(
+                'NERIA_CSS_INLINE_FAILURES',
+                (int) \Configuration::get('NERIA_CSS_INLINE_FAILURES') + 1
+            );
             return $html;
         }
     }

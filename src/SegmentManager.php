@@ -352,6 +352,7 @@ class SegmentManager
 
         $customers = $this->getCustomersBySegment($segment, 500, 0, $filters);
         $sent = 0; $failed = 0; $skipped = 0;
+        $failureSamples = [];
 
         foreach ($customers as $c) {
             $customer = new \Customer((int) $c['id_customer']);
@@ -389,6 +390,12 @@ class SegmentManager
                 $ok ? $sent++ : $failed++;
             } catch (\Throwable $e) {
                 $failed++;
+                // Sans ceci, un "48 échecs" sur 500 clients ne donnait aucun
+                // moyen de diagnostiquer la cause réelle. Échantillon limité
+                // (5 messages distincts) pour ne pas gonfler le log.
+                if (count($failureSamples) < 5 && !in_array($e->getMessage(), $failureSamples, true)) {
+                    $failureSamples[] = $e->getMessage();
+                }
             }
         }
 
@@ -409,6 +416,16 @@ class SegmentManager
             ]),
             $template, 'SegmentManager'
         );
+
+        if (!empty($failureSamples)) {
+            $this->watchdog()->warning(
+                \WatchdogManager::i18nMsg('watchdog.segment_campaign_failure_samples', [
+                    'segment' => $segment, 'template' => $template,
+                    'samples' => implode(' | ', $failureSamples),
+                ]),
+                $template, 'SegmentManager'
+            );
+        }
 
         return ['sent' => $sent, 'failed' => $failed, 'skipped' => $skipped];
     }
