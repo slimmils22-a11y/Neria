@@ -1286,12 +1286,23 @@ class StatsManager
      */
     public function getMonthlyComparison(): array
     {
-        $table   = _DB_PREFIX_ . self::TABLE;
+        $table = _DB_PREFIX_ . self::TABLE;
+
+        // "Mois à date" : compare les N premiers jours du mois en cours aux
+        // N premiers jours du mois précédent (même quantième), pas au mois
+        // précédent en entier — sinon un mois en cours partiel (ex. le 16
+        // juillet) était systématiquement comparé à un mois complet (juin
+        // entier), affichant une "chute" fictive d'activité à volume
+        // constant, tant que le mois n'est pas terminé.
+        $dayOfMonth       = (int) date('j');
+        $prevMonthLastDay = (int) date('t', strtotime('first day of last month'));
+        $prevEndDay       = min($dayOfMonth, $prevMonthLastDay);
+
         $periods = [
             'current'  => [date('Y-m-01'), date('Y-m-d')],
             'previous' => [
                 date('Y-m-01', strtotime('first day of last month')),
-                date('Y-m-t',  strtotime('last day of last month')),
+                date('Y-m-', strtotime('first day of last month')) . str_pad((string) $prevEndDay, 2, '0', STR_PAD_LEFT),
             ],
         ];
 
