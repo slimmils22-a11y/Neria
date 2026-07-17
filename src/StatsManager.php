@@ -214,21 +214,36 @@ class StatsManager
         // points de fidélité qu'une seule fois par email envoyé, sinon le
         // programme de fidélité est trivialement exploitable (clics répétés
         // → points illimités → paliers de réduction obtenus gratuitement).
-        $awardPoints = !$this->eventExists($token, self::EVENT_CLICK);
+        //
+        // eventExists() + record() forment un check-then-act non atomique :
+        // deux requêtes de clic quasi simultanées (pré-fetch du client mail +
+        // clic réel, double-tap mobile) peuvent toutes deux lire "aucun clic
+        // existant" avant que l'une des deux n'ait inséré sa ligne, et donc
+        // toutes deux créditer des points. GET_LOCK sérialise la décision
+        // par token pour empêcher ce double crédit.
+        $lockKey  = 'neria_click_' . md5($token);
+        $gotLock  = (bool) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockKey) . "', 2)");
+        try {
+            $awardPoints = !$this->eventExists($token, self::EVENT_CLICK);
 
-        $this->record(
-            $sent['template'],
-            $sent['lang'],
-            $token,
-            self::EVENT_CLICK,
-            [
-                'id_customer'  => (int) $sent['id_customer'],
-                'id_order'     => (int) $sent['id_order'],
-                'country_code' => $sent['country_code'],
-                'abtest'       => $sent['abtest_variant'],
-            ],
-            $awardPoints
-        );
+            $this->record(
+                $sent['template'],
+                $sent['lang'],
+                $token,
+                self::EVENT_CLICK,
+                [
+                    'id_customer'  => (int) $sent['id_customer'],
+                    'id_order'     => (int) $sent['id_order'],
+                    'country_code' => $sent['country_code'],
+                    'abtest'       => $sent['abtest_variant'],
+                ],
+                $awardPoints
+            );
+        } finally {
+            if ($gotLock) {
+                $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockKey) . "')");
+            }
+        }
     }
 
     private function record(
