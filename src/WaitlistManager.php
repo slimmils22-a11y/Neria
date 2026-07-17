@@ -79,10 +79,16 @@ class WaitlistManager
         // par registered_at ASC) ; les autres restent en attente pour le
         // prochain réapprovisionnement.
         $availableQty = (int) \StockAvailable::getQuantityAvailableByProduct($idProduct, 0, $idShop);
-        if ($availableQty > 0) {
-            $rows = array_slice($rows, 0, $availableQty);
+        // availableQty <= 0 : rien de réellement disponible (stock à 0 au moment de
+        // l'appel, race condition avec la mise à jour, ou déclinaison sans stock géré) —
+        // ne rien envoyer plutôt que de traiter toute la file sans plafond. Ce hook est
+        // déclenché en synchrone dans la requête HTTP admin (actionUpdateQuantity) :
+        // sans ce garde-fou, une file de plusieurs milliers d'inscrits pouvait dépasser
+        // le timeout HTTP d'un hébergeur mutualisé.
+        if ($availableQty <= 0) {
+            return 0;
         }
-        if (empty($rows)) return 0;
+        $rows = array_slice($rows, 0, $availableQty);
 
         $sent = 0;
         foreach ($rows as $row) {
