@@ -64,15 +64,36 @@ class NeriaErrorHandler
             try {
                 $db  = \Db::getInstance();
                 $msg = pSQL(substr($message, 0, 2000));
+                $idShop = self::currentShopId();
                 $db->execute(
                     "INSERT INTO `" . _DB_PREFIX_ . "neria_log`
                      (id_shop, level, template, class, message, date_add)
-                     VALUES (1, 'critical', '', 'NeriaErrorHandler', '$msg', NOW())"
+                     VALUES ($idShop, 'critical', '', 'NeriaErrorHandler', '$msg', NOW())"
                 );
             } catch (\Throwable $t) {
                 // Ne jamais laisser le handler lui-même planter — silence total.
             }
         });
+    }
+
+    /**
+     * Résout l'id_shop courant pour les écritures de secours en DB
+     * (quand WatchdogManager, qui scope normalement ses logs par boutique,
+     * n'est lui-même plus chargeable). Retombe sur 1 seulement si le
+     * contexte boutique est indisponible (ex: shutdown très tardif).
+     */
+    private static function currentShopId(): int
+    {
+        try {
+            $context = \Context::getContext();
+            if ($context !== null && isset($context->shop->id) && (int) $context->shop->id > 0) {
+                return (int) $context->shop->id;
+            }
+        } catch (\Throwable $t) {
+            // Contexte indisponible — repli ci-dessous.
+        }
+
+        return 1;
     }
 
     /**
@@ -105,10 +126,11 @@ class NeriaErrorHandler
                 try {
                     $db  = \Db::getInstance();
                     $msg = pSQL(substr($e->getMessage(), 0, 500));
+                    $idShop = self::currentShopId();
                     $db->execute(
                         "INSERT INTO `" . _DB_PREFIX_ . "neria_log`
                          (id_shop, level, template, class, message, date_add)
-                         VALUES (1, 'critical', '', 'NeriaErrorHandler', '$msg', NOW())"
+                         VALUES ($idShop, 'critical', '', 'NeriaErrorHandler', '$msg', NOW())"
                     );
                 } catch (\Throwable $ignored) {}
             }
@@ -159,10 +181,11 @@ class NeriaErrorHandler
                 try {
                     $db  = \Db::getInstance();
                     $msg = pSQL(substr($e->getMessage(), 0, 500));
+                    $idShop = self::currentShopId();
                     $db->execute(
                         "INSERT INTO `" . _DB_PREFIX_ . "neria_log`
                          (id_shop, level, template, class, message, date_add)
-                         VALUES (1, 'critical', '', 'NeriaErrorHandler', '$msg', NOW())"
+                         VALUES ($idShop, 'critical', '', 'NeriaErrorHandler', '$msg', NOW())"
                     );
                 } catch (\Throwable $ignored) {}
             }
@@ -217,10 +240,11 @@ class NeriaErrorHandler
             try {
                 $db  = \Db::getInstance();
                 $msg = pSQL(substr($hookName . ' : ' . $e->getMessage(), 0, 500));
+                $idShop = self::currentShopId();
                 $db->execute(
                     "INSERT INTO `" . _DB_PREFIX_ . "neria_log`
                      (id_shop, level, template, class, message, date_add)
-                     VALUES (1, 'critical', '', 'NeriaErrorHandler', '$msg', NOW())"
+                     VALUES ($idShop, 'critical', '', 'NeriaErrorHandler', '$msg', NOW())"
                 );
             } catch (\Throwable $ignored) {
             }

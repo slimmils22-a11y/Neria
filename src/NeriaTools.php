@@ -514,9 +514,16 @@ class NeriaTools
 
         // Tables BDD (+20)
         $max += 20;
-        foreach ($report['database'] as $data) {
-            if ($data['exists']) {
-                $points += round(20 / count($report['database']));
+        $dbCount = count($report['database']);
+        if ($dbCount > 0) {
+            foreach ($report['database'] as $data) {
+                if ($data['exists']) {
+                    // Pas d'arrondi par item : arrondir ici gonfle le score des
+                    // categories partiellement completes (ex: round(20/8)=3,
+                    // 8*3=24 > 20 si les 8 tables existent, et surestime aussi
+                    // les cas partiels comme 4/8 -> 12 pts au lieu de 10).
+                    $points += 20 / $dbCount;
+                }
             }
         }
 
@@ -526,21 +533,27 @@ class NeriaTools
 
         // Fichiers (+15)
         $max += 15;
-        foreach ($report['files'] as $file) {
-            if ($file['exists']) {
-                $points += round(15 / count($report['files']));
+        $filesCount = count($report['files']);
+        if ($filesCount > 0) {
+            foreach ($report['files'] as $file) {
+                if ($file['exists']) {
+                    $points += 15 / $filesCount;
+                }
             }
         }
 
         // Hooks (+15)
         $max += 15;
-        foreach ($report['hooks'] as $registered) {
-            if ($registered) {
-                $points += round(15 / count($report['hooks']));
+        $hooksCount = count($report['hooks']);
+        if ($hooksCount > 0) {
+            foreach ($report['hooks'] as $registered) {
+                if ($registered) {
+                    $points += 15 / $hooksCount;
+                }
             }
         }
 
-        $score = min(100, (int) round(($points / $max) * 100));
+        $score = $max > 0 ? min(100, (int) round(($points / $max) * 100)) : 0;
 
         $status = match (true) {
             $score >= 90 => 'excellent',
