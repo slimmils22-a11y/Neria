@@ -2134,6 +2134,18 @@ class Neria extends Module
             if (!defined('_PS_MODE_DEV_') || _PS_MODE_DEV_ !== true) {
                 $this->context->smarty->assign('neria_error', AdminTranslator::t('help.regression_dev_only'));
             } else {
+                // Sous Apache (mod_php), PHP_BINARY pointe vers httpd.exe (le
+                // binaire qui HÉBERGE l'interpréteur PHP), pas vers un vrai
+                // exécutable CLI — l'utiliser pour shell_exec() ne lance donc
+                // rien. php.exe se trouve normalement dans le même dossier que
+                // le php.ini réellement chargé (aussi vrai en SAPI Apache).
+                $cliPhpBinary = PHP_BINARY;
+                if (stripos(basename($cliPhpBinary), 'php') !== 0) {
+                    $iniDir = dirname((string) php_ini_loaded_file());
+                    $candidate = $iniDir . DIRECTORY_SEPARATOR . 'php.exe';
+                    $cliPhpBinary = is_file($candidate) ? $candidate : $cliPhpBinary;
+                }
+
                 $regressionDir = $this->getLocalPath() . 'tests/regression';
                 $results = [];
                 $allPassed = true;
@@ -2143,9 +2155,21 @@ class Neria extends Module
                     foreach ($files as $file) {
                         $name = basename($file, '.php');
                         $runner = tempnam(sys_get_temp_dir(), 'neriaregtest_') . '.php';
-                        file_put_contents($runner, "<?php require '" . addslashes($file) . "'; echo json_encode(run_test());");
-                        $output = shell_exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($runner) . ' 2>&1');
+                        // json_encode(run_test()) est écrit dans un fichier de sortie
+                        // séparé plutôt que capturé sur STDOUT : appelé depuis une
+                        // requête Apache (mod_php/mpm_winnt), shell_exec() déclenche
+                        // une ligne de log Apache interne bénigne ("AH02965: Child:
+                        // Unable to retrieve my generation from the parent") qui
+                        // pollue STDOUT/STDERR et rend le JSON illisible — invisible
+                        // en CLI pur (run_all.php), reproductible uniquement via le
+                        // bouton BO.
+                        $resultFile = tempnam(sys_get_temp_dir(), 'neriaregres_') . '.json';
+                        file_put_contents($runner, "<?php require '" . addslashes($file) . "'; file_put_contents('" . addslashes($resultFile) . "', json_encode(run_test()));");
+                        $cmd = escapeshellarg($cliPhpBinary) . ' ' . escapeshellarg($runner) . ' > NUL 2>&1';
+                        shell_exec($cmd);
+                        $output = is_file($resultFile) ? file_get_contents($resultFile) : '';
                         @unlink($runner);
+                        @unlink($resultFile);
                         $decoded = json_decode((string) $output, true);
                         if (is_array($decoded) && isset($decoded['pass'])) {
                             $results[] = ['name' => $name, 'pass' => $decoded['pass'], 'message' => $decoded['message']];
