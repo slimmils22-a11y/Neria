@@ -4235,9 +4235,31 @@ class HealthCheckManager
         }
 
         $missing = [];
+        // Clés utilisées dont AU MOINS UNE langue supportée a une valeur vide
+        // (clé présente, donc invisible à la vérification d'existence
+        // ci-dessus, mais le marchand voit le texte de repli — souvent
+        // l'anglais — dans son BO au lieu de sa propre langue). C'est le
+        // trou exact qui a laissé passer gdpr.local_law_note vide dans 11
+        // langues sur 19 (dont le français) jusqu'à un audit manuel.
+        $emptyLangs = [];
+        $supportedLangs = class_exists('TranslationEngine') ? \TranslationEngine::SUPPORTED_LANGS : [];
         foreach ($usedKeys as $key => $inFiles) {
             if (!array_key_exists($key, $dict)) {
                 $missing[$key] = $inFiles[0];
+                continue;
+            }
+            $entry = $dict[$key];
+            if (!is_array($entry)) {
+                continue;
+            }
+            $emptyForKey = [];
+            foreach ($supportedLangs as $lang) {
+                if (!isset($entry[$lang]) || trim((string) $entry[$lang]) === '') {
+                    $emptyForKey[] = $lang;
+                }
+            }
+            if ($emptyForKey) {
+                $emptyLangs[$key] = $emptyForKey;
             }
         }
 
@@ -4255,6 +4277,23 @@ class HealthCheckManager
             return [
                 'status' => self::STATUS_ERROR,
                 'detail' => AdminTranslator::tVars('health.admin_trad_missing_keys', ['count' => $count, 'sample' => $sampleStr]),
+            ];
+        }
+
+        if ($emptyLangs) {
+            $count  = count($emptyLangs);
+            $sample = [];
+            $i = 0;
+            foreach ($emptyLangs as $key => $langs) {
+                $sample[] = "{$key} (" . implode(',', $langs) . ')';
+                if (++$i >= 5) {
+                    break;
+                }
+            }
+            $sampleStr = implode(', ', $sample) . ($count > 5 ? '… (' . ($count - 5) . ' autres)' : '');
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.admin_trad_empty_langs', ['count' => $count, 'sample' => $sampleStr]),
             ];
         }
 
@@ -4323,16 +4362,39 @@ class HealthCheckManager
             return $keyExistsInBlock($block, $key) || $keyExistsInBlock($globalBlock, $key);
         };
 
-        $missing = [];
+        $missing    = [];
+        // Même trou que checkAdminTranslationKeyUsage() : une clé peut exister
+        // dans le dictionnaire (donc ne jamais remonter dans $missing) tout en
+        // étant vide pour une ou plusieurs langues supportées — le client
+        // recevrait alors un email avec un repli (souvent l'anglais) au lieu
+        // du texte dans sa propre langue.
+        $supportedLangs = class_exists('TranslationEngine') ? \TranslationEngine::SUPPORTED_LANGS : [];
+        $emptyLangs = [];
+        $checkEmpty = function (string $refKey, $block) use ($supportedLangs, $globalBlock, &$emptyLangs) {
+            $emptyForKey = [];
+            foreach ($supportedLangs as $lang) {
+                $key = explode(':', $refKey, 2)[1] ?? $refKey;
+                $val = $block[$lang][$key] ?? $globalBlock[$lang][$key] ?? null;
+                if ($val === null || trim((string) $val) === '') {
+                    $emptyForKey[] = $lang;
+                }
+            }
+            if ($emptyForKey) {
+                $emptyLangs[$refKey] = $emptyForKey;
+            }
+        };
 
         // Clés spécifiques à chaque template
         foreach ($this->globRecursive($coreDir, '.html') as $file) {
             $tpl  = basename($file, '.html');
             $keys = $extractKeys((string) file_get_contents($file));
             foreach ($keys as $key) {
-                if (!$keyResolvable($dict[$tpl] ?? null, $key)) {
+                $block = $dict[$tpl] ?? null;
+                if (!$keyResolvable($block, $key)) {
                     $missing[$tpl . ':' . $key] = $tpl;
+                    continue;
                 }
+                $checkEmpty($tpl . ':' . $key, $block);
             }
         }
 
@@ -4351,7 +4413,9 @@ class HealthCheckManager
                 }
                 if (!empty($missingIn)) {
                     $missing['layout:' . $key] = 'layout (' . count($missingIn) . ' templates)';
+                    continue;
                 }
+                $checkEmpty('_global:' . $key, $globalBlock);
             }
         }
 
@@ -4362,6 +4426,23 @@ class HealthCheckManager
             return [
                 'status' => self::STATUS_ERROR,
                 'detail' => AdminTranslator::tVars('health.trad_key_usage_missing', ['count' => $count, 'sample' => $sampleStr]),
+            ];
+        }
+
+        if ($emptyLangs) {
+            $count     = count($emptyLangs);
+            $sample    = [];
+            $i = 0;
+            foreach ($emptyLangs as $refKey => $langs) {
+                $sample[] = "{$refKey} (" . implode(',', $langs) . ')';
+                if (++$i >= 5) {
+                    break;
+                }
+            }
+            $sampleStr = implode(', ', $sample) . ($count > 5 ? '… (' . ($count - 5) . ' autres)' : '');
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.trad_key_usage_empty_langs', ['count' => $count, 'sample' => $sampleStr]),
             ];
         }
 
