@@ -513,12 +513,16 @@ class BehavioralCronManager
 
     private function sendAbandonedCarts(string $template, int $hours): void
     {
-        // Fenêtre élargie à 24h : run() n'est déclenché qu'une fois par jour
-        // (garde-fou CRON_LAST_BEHAVIORAL dans neria.php), donc une fenêtre
-        // de seulement 1h manquait quasiment tous les paniers pour les
-        // templates à délai court (1h). La dédup via neria_behavioral_sent
-        // empêche tout renvoi.
-        $minAgo = $hours + 24;
+        // run() n'est déclenché qu'une fois par jour (garde-fou
+        // CRON_LAST_BEHAVIORAL dans neria.php). Pour les templates à délai
+        // court (1h), une fenêtre de seulement 1h manquait quasiment tous
+        // les paniers : élargie à 24h. Les délais plus longs (24h/72h)
+        // gardent une fenêtre étroite d'1h, car l'élargir créerait un
+        // chevauchement avec la fenêtre du palier suivant (ex: cart_1
+        // [1h,25h] chevaucherait cart_2 [24h,48h] et enverrait les deux
+        // emails pour le même panier). La dédup via neria_behavioral_sent
+        // empêche seulement le renvoi du MÊME template, pas ce chevauchement.
+        $minAgo = ($hours <= 1) ? 24 : $hours + 1;
         $rows   = $this->db->executeS(
             'SELECT ca.id_cart, ca.id_customer, ca.id_shop,
                     c.email, c.firstname, c.lastname, c.id_lang
@@ -613,7 +617,7 @@ class BehavioralCronManager
                AND ca.id_address_invoice > 0
                AND (SELECT COUNT(*) FROM `' . $this->prefix . 'cart_product` cp
                     WHERE cp.id_cart = ca.id_cart) > 0
-               AND ca.date_upd BETWEEN DATE_SUB(NOW(), INTERVAL ' . ($hours + 24) . ' HOUR)
+               AND ca.date_upd BETWEEN DATE_SUB(NOW(), INTERVAL 24 HOUR)
                                    AND DATE_SUB(NOW(), INTERVAL ' . $hours . ' HOUR)
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'orders` o WHERE o.id_cart = ca.id_cart
