@@ -683,16 +683,34 @@ class ManualSendManager
             );
 
             // Enregistrer les envois manuels d'anniversaire dans behavioral_sent
-            // pour que le garde-fou bidirectionnel fonctionne (cron + manuel).
+            // pour que le garde-fou bidirectionnel fonctionne (cron + manuel), ET
+            // pour que le cron ne renvoie pas le même email en double plus tard.
+            // ref_id doit utiliser EXACTEMENT la même clé que BehavioralCronManager,
+            // sinon la contrainte UNIQUE(customer, template, ref_id) ne matche pas
+            // et le cron considère l'anniversaire comme jamais envoyé :
+            //  - relationship_anniversary → année en cours (peut se redéclencher chaque année)
+            //  - first_anniversary        → id_order de la 1ère commande (une seule fois)
             if (in_array($template, ['first_anniversary', 'relationship_anniversary'], true)
                 && $customer
             ) {
-                $this->db->execute(
-                    'INSERT IGNORE INTO `' . _DB_PREFIX_ . 'neria_behavioral_sent`
-                     (id_customer, template, ref_id, sent_at)
-                     VALUES (' . (int) $customer['id_customer'] . ', \'' . pSQL($template) . '\', '
-                    . (int) date('Y') . ', NOW())'
-                );
+                if ($template === 'first_anniversary') {
+                    $refId = (int) $this->db->getValue(
+                        'SELECT MIN(id_order) FROM `' . _DB_PREFIX_ . 'orders`
+                         WHERE id_customer = ' . (int) $customer['id_customer'] . '
+                           AND valid = 1'
+                    );
+                } else {
+                    $refId = (int) date('Y');
+                }
+
+                if ($refId > 0) {
+                    $this->db->execute(
+                        'INSERT IGNORE INTO `' . _DB_PREFIX_ . 'neria_behavioral_sent`
+                         (id_customer, template, ref_id, sent_at)
+                         VALUES (' . (int) $customer['id_customer'] . ', \'' . pSQL($template) . '\', '
+                        . $refId . ', NOW())'
+                    );
+                }
             }
 
             return [
