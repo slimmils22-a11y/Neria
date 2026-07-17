@@ -614,7 +614,16 @@ class StatsManager
         $open  = $this->zTestProportions($a['total_open'],  $sentA, $b['total_open'],  $sentB);
         $click = $this->zTestProportions($a['total_click'], $sentA, $b['total_click'], $sentB);
 
-        $overall = $click['winner'] ?? $open['winner'];
+        // Le gagnant global doit venir de la métrique dont la confiance est
+        // la plus élevée, pas systématiquement du clic : `$click['winner'] ??
+        // $open['winner']` privilégiait aveuglément le clic dès qu'il
+        // atteignait 90%, même quand l'ouverture était bien plus
+        // significative (jusqu'à 99%) et désignait l'autre variante.
+        if ($click['winner'] !== null && $open['winner'] !== null) {
+            $overall = $click['confidence'] >= $open['confidence'] ? $click['winner'] : $open['winner'];
+        } else {
+            $overall = $click['winner'] ?? $open['winner'];
+        }
 
         return [
             'open'           => $open,
