@@ -578,7 +578,15 @@ class ManualSendManager
         // introuvable) — autant le dire clairement au marchand plutôt que de
         // laisser passer un message générique "vérifiez la config SMTP".
         if (class_exists('BlacklistManager')) {
-            $langIso = (string) (\Language::getIsoById($idLang) ?: '');
+            // Utilise langFromId() (code Neria normalisé), pas Language::getIsoById()
+            // brut : sinon les packs PS dont l'iso_code diffère du code Neria
+            // (us→en, pt-br→br, zh-tw/zh-hk→tw, zh-cn/cn→zh, nb/nn→no) ne
+            // matchent jamais une règle de blacklist enregistrée sous le code
+            // Neria normalisé, et le garde-fou blacklist est silencieusement
+            // inopérant pour ces langues.
+            $langIso = class_exists('TranslationEngine')
+                ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                : (string) (\Language::getIsoById($idLang) ?: '');
             if ((new \BlacklistManager())->isBlacklisted($template, $langIso)) {
                 return ['ok' => false, 'message' => AdminTranslator::tVars('msg.send_blocked_blacklist', ['template' => $template])];
             }
