@@ -546,9 +546,19 @@ class SignatureGenerator
         $signatures = [];
 
         foreach (glob($pattern) ?: [] as $file) {
-            $filename  = basename($file);
-            $parts     = explode('_', str_replace('.png', '', $filename));
-            $style     = isset($parts[2]) ? $parts[2] : 'unknown';
+            $filename = basename($file);
+            // Le style peut lui-meme contenir des underscores (ex: "great_vibes",
+            // "dancing_script", "pinyon_script") : un simple explode('_') coupe
+            // le style en plusieurs morceaux et ne recupere que le premier
+            // fragment ("great" au lieu de "great_vibes"). On retire uniquement
+            // le prefixe "signature_{idShop}_" connu et l'extension .png pour
+            // isoler le style complet.
+            $prefix = "signature_{$idShop}_";
+            $base   = str_replace('.png', '', $filename);
+            $style  = str_starts_with($base, $prefix) ? substr($base, strlen($prefix)) : 'unknown';
+            if ($style === '') {
+                $style = 'unknown';
+            }
 
             $signatures[] = [
                 'style'    => $style,
