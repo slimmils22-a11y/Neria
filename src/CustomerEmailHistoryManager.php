@@ -173,11 +173,15 @@ class CustomerEmailHistoryManager
         $alerts = [];
 
         if (!empty($emails)) {
+            // $emails est trié par date d'ENVOI décroissante, pas par date
+            // d'ouverture : un email envoyé plus tôt peut avoir été ouvert
+            // plus récemment qu'un email envoyé après. Il faut donc prendre
+            // le max des opened_at sur tout l'historique, pas le premier
+            // email ouvert rencontré dans l'ordre d'envoi.
             $lastOpen = null;
             foreach ($emails as $e) {
-                if ($e['opened']) {
+                if ($e['opened'] && ($lastOpen === null || strtotime($e['opened_at']) > strtotime($lastOpen))) {
                     $lastOpen = $e['opened_at'];
-                    break; // déjà trié du plus récent au plus ancien
                 }
             }
 
