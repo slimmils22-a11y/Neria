@@ -802,6 +802,7 @@ class BehavioralCronManager
 
     public function getQuoteStats(): array
     {
+        $idShop = (int) \Context::getContext()->shop->id;
         $row = $this->db->getRow(
             'SELECT
                 COUNT(*)                                          AS total_quotes,
@@ -809,7 +810,8 @@ class BehavioralCronManager
                 SUM(status = \'active\')                         AS quotes_active,
                 SUM(status IN (\'expired\',\'lost\'))            AS quotes_lost,
                 COALESCE(SUM(CASE WHEN status = \'won\' THEN quote_total ELSE 0 END), 0) AS revenue_won
-             FROM `' . $this->prefix . 'neria_quote`'
+             FROM `' . $this->prefix . 'neria_quote`
+             WHERE id_shop = ' . $idShop
         );
 
         $total   = (int)   ($row['total_quotes']  ?? 0);
@@ -1117,6 +1119,10 @@ class BehavioralCronManager
         );
 
         // Commandes passées dans les 48h suivant l'envoi (attribution last-click)
+        // neria_behavioral_sent n'a pas de colonne id_shop, mais orders en a une :
+        // sans filtre, une commande d'une autre boutique (install multi-boutiques)
+        // se retrouvait attribuée aux stats de la boutique courante.
+        $idShop = (int) \Context::getContext()->shop->id;
         $row = $this->db->getRow(
             'SELECT COUNT(DISTINCT o.id_order) AS orders_attributed,
                     COALESCE(SUM(o.total_paid_tax_incl), 0) AS revenue_attributed
@@ -1124,6 +1130,7 @@ class BehavioralCronManager
              JOIN `' . $this->prefix . 'orders` o
                   ON o.id_customer = bs.id_customer
                   AND o.valid = 1
+                  AND o.id_shop = ' . $idShop . '
                   AND o.date_add BETWEEN bs.sent_at AND DATE_ADD(bs.sent_at, INTERVAL 48 HOUR)
              WHERE bs.template = \'relationship_anniversary\''
         );
