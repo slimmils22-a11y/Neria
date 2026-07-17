@@ -850,9 +850,9 @@ class MonthlyReportManager
         $html .= '.inner{padding:36px 40px 44px;}';
         $html .= '.neria-title-main{font-size:20px;font-weight:bold;letter-spacing:0.04em;text-align:center;color:#2b2520;margin:0 0 24px;}';
         $html .= '.neria-text{font-size:14px;line-height:1.8;color:#3a3530;margin:8px 0;}';
-        $html .= '.neria-text-note{font-size:12px;color:#88837c;margin:12px 0;}';
-        $html .= '.footer{text-align:center;padding:20px;font-size:11px;color:#a09990;border-top:1px solid #f0e7db;line-height:2;}';
-        $html .= '.footer a{color:#a09990;}';
+        $html .= '.neria-text-note{font-size:12px;color:#6f6a62;margin:12px 0;}';
+        $html .= '.footer{text-align:center;padding:20px;font-size:11px;color:#6b6459;border-top:1px solid #f0e7db;line-height:2;}';
+        $html .= '.footer a{color:#6b6459;}';
         $html .= '</style></head><body>';
         $html .= '<div class="wrap"><table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">';
         $html .= '<table class="container" width="600" cellpadding="0" cellspacing="0">';

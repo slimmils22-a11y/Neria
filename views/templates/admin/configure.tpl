@@ -119,7 +119,7 @@
 
       <div style="margin-top:12px;">
         <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">{neria_admin key='configure.save_countries'}</button>
-        <span style="font-size:11px;color:#a09990;margin-left:10px;font-style:italic;">
+        <span style="font-size:11px;color:#6b6459;margin-left:10px;font-style:italic;">
           &#9432; {neria_admin key='configure.countries_empty_hint'}
         </span>
       </div>
@@ -187,7 +187,7 @@
 
     <div id="neria-tg-save-row" style="margin-top:16px;display:flex;align-items:center;gap:12px;">
       <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">{neria_admin key='common.register'}</button>
-      <span style="font-size:11px;color:#a09990;font-style:italic;">
+      <span style="font-size:11px;color:#6b6459;font-style:italic;">
         ✓ {neria_admin key='configure.tg_plugplay_hint'}
       </span>
     </div>
@@ -258,7 +258,7 @@
       {foreach $lang_labels as $code => $label}
         <div class="neria-form-group" style="margin:0;">
           <label class="neria-label" style="font-size:11px;margin-bottom:4px;">
-            {$lang_flags[$code]|default:''} {$label} <span style="color:#a09990;font-weight:400;">({$code})</span>
+            {$lang_flags[$code]|default:''} {$label} <span style="color:#6b6459;font-weight:400;">({$code})</span>
           </label>
           <input type="text" name="neria_fallback_{$code}" class="neria-input"
                  placeholder="{$firstname_fallbacks[$code]|default:''}"
@@ -271,7 +271,7 @@
       <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
         {neria_admin key='configure.save_fallbacks'}
       </button>
-      <span style="font-size:11px;color:#a09990;font-style:italic;">
+      <span style="font-size:11px;color:#6b6459;font-style:italic;">
         &#9432; {neria_admin key='configure.fallbacks_hint_pre'} <code>{ldelim}firstname{rdelim}</code> {neria_admin key='configure.fallbacks_hint_post'}
       </span>
     </div>

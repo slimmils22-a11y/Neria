@@ -137,7 +137,7 @@ class ConfigManager
         self::KEY_BTN_COLOR           => '#2b2520',
         self::KEY_COLOR_HEADER_BG     => '#ffffff',
         self::KEY_COLOR_FOOTER_BG     => '#ffffff',
-        self::KEY_COLOR_FOOTER_TEXT   => '#a09990',
+        self::KEY_COLOR_FOOTER_TEXT   => '#6b6459',
         self::KEY_SECTION_PADDING     => 40,
         self::KEY_BLOCK_SPACING       => 48,
         self::KEY_SEPARATOR_STYLE     => 'line',

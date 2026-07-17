@@ -154,7 +154,7 @@
     <canvas id="neriaRevenueChart"></canvas>
   </div>
   <div id="neria-chart-legend" style="display:flex;flex-wrap:wrap;gap:14px;margin-top:16px;font-size:12px;"></div>
-  <p style="margin:10px 0 0;font-size:11px;color:#a09990;font-style:italic;">
+  <p style="margin:10px 0 0;font-size:11px;color:#6b6459;font-style:italic;">
     &#9432; {neria_admin key='stats.chart_isolate_hint'}
   </p>
 
@@ -2247,13 +2247,13 @@ var _nCopyLbl = {
         <div style="text-align:center; min-width:100px;">
           <div style="font-size:56px; font-weight:700; line-height:1; color:{$d.color};">{$d.score}</div>
           <div style="font-size:24px; font-weight:600; color:{$d.color}; letter-spacing:0.1em;">{$d.grade}</div>
-          <div style="font-size:13px; color:#88837c; margin-top:4px;">{$d.label}</div>
+          <div style="font-size:13px; color:#6f6a62; margin-top:4px;">{$d.label}</div>
         </div>
         <div style="flex:1;">
           <div style="background:#f0e7db; border-radius:4px; height:12px; overflow:hidden;">
             <div style="width:{$d.score}%; height:100%; background:{$d.color}; border-radius:4px; transition:width 0.6s ease;"></div>
           </div>
-          <div style="display:flex; justify-content:space-between; font-size:11px; color:#a09990; margin-top:4px;">
+          <div style="display:flex; justify-content:space-between; font-size:11px; color:#6b6459; margin-top:4px;">
             <span>0 — {neria_admin key='stats.gauge_critical'}</span>
             <span>50 — {neria_admin key='stats.gauge_acceptable'}</span>
             <span>100 — {neria_admin key='stats.gauge_excellent'}</span>

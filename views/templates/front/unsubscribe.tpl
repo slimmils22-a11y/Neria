@@ -28,5 +28,5 @@
     </a>
   </p>
 
-  <p style="margin-top:28px; font-size:12px; color:#a09990;">{$neria_shop_name|escape:'html'}</p>
+  <p style="margin-top:28px; font-size:12px; color:#6b6459;">{$neria_shop_name|escape:'html'}</p>
 </section>

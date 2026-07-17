@@ -325,7 +325,7 @@
           <div class="neria-section__header">
             <h2 class="neria-section__title">{neria_admin key='design.header_footer_title'}</h2>
             <button type="button" class="neria-section-reset"
-                    data-reset="color_header_bg:#ffffff,color_footer_bg:#ffffff,color_footer_text:#a09990">
+                    data-reset="color_header_bg:#ffffff,color_footer_bg:#ffffff,color_footer_text:#6b6459">
               ↺ {neria_admin key='design.reset_defaults_btn'}
             </button>
           </div>
@@ -357,9 +357,9 @@
               <div class="neria-color-input-wrap">
                 <input type="color" id="color_footer_text" name="color_footer_text"
                        class="neria-color-picker" data-sync="color_footer_text"
-                       value="{$design.color_footer_text|default:'#a09990'}">
+                       value="{$design.color_footer_text|default:'#6b6459'}">
                 <input type="text" class="neria-input neria-input--hex"
-                       value="{$design.color_footer_text|default:'#a09990'}"
+                       value="{$design.color_footer_text|default:'#6b6459'}"
                        data-sync="color_footer_text">
               </div>
             </div>
