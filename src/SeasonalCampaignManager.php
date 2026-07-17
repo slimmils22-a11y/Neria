@@ -307,18 +307,20 @@ class SeasonalCampaignManager
             }
         }
 
-        // Filtre âge min
+        // Filtre âge min — TIMESTAMPDIFF (pas YEAR(NOW())-YEAR(birthday), qui
+        // ignore le mois/jour et surestime l'âge d'un an tant que
+        // l'anniversaire de l'année en cours n'est pas encore passé).
         $minAge = (int) ($campaign['min_age'] ?? 0);
         if ($minAge > 0) {
             $where[] = "c.birthday IS NOT NULL AND c.birthday != '0000-00-00'";
-            $where[] = "(YEAR(NOW()) - YEAR(c.birthday)) >= {$minAge}";
+            $where[] = "TIMESTAMPDIFF(YEAR, c.birthday, CURDATE()) >= {$minAge}";
         }
 
         // Filtre âge max
         $maxAge = (int) ($campaign['max_age'] ?? 0);
         if ($maxAge > 0) {
             $where[] = "c.birthday IS NOT NULL AND c.birthday != '0000-00-00'";
-            $where[] = "(YEAR(NOW()) - YEAR(c.birthday)) <= {$maxAge}";
+            $where[] = "TIMESTAMPDIFF(YEAR, c.birthday, CURDATE()) <= {$maxAge}";
         }
 
         $whereStr = $where ? ('AND ' . implode(' AND ', $where)) : '';
