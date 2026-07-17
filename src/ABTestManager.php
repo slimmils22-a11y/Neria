@@ -662,15 +662,22 @@ class ABTestManager
             return;
         }
 
+        // is_custom = 1 : le texte gagnant a été délibérément promu par le
+        // marchand, il doit être protégé comme toute personnalisation —
+        // sinon un "Réinitialiser les textes" (TranslationInstaller::
+        // importTemplate/clearDefaultTranslations, qui ne purge que
+        // is_custom = 0) écrase silencieusement la variante gagnante par
+        // le texte par défaut de Neria.
         $this->db->execute(
             "INSERT INTO `{$tableTrad}`
-                 (`template`, `lang`, `translation_key`, `translation_value`, `date_add`, `date_upd`)
+                 (`template`, `lang`, `translation_key`, `translation_value`, `is_custom`, `date_add`, `date_upd`)
              SELECT '" . pSQL($template) . "', `lang`, `translation_key`, `translation_value`,
-                    '{$now}', '{$now}'
+                    1, '{$now}', '{$now}'
              FROM `{$tableTradB}`
              WHERE `id_abtest` = {$idAbtestB}
              ON DUPLICATE KEY UPDATE
                 `translation_value` = VALUES(`translation_value`),
+                `is_custom`         = 1,
                 `date_upd`          = VALUES(`date_upd`)"
         );
 

@@ -515,11 +515,15 @@ class GdprAuditManager
         $active    = $opensslOk && $keyOk;
 
         $table     = _DB_PREFIX_ . 'neria_stat';
+        // neria_stat a une colonne id_shop — on scope l'audit à la boutique
+        // courante comme auditRetention()/purgeTable(), sinon le score RGPD
+        // d'une boutique dépend des données en clair d'une autre boutique
+        // sur une install multi-boutiques (chiffres et grade faussés).
         $totalVars = (int) $this->db->getValue(
-            "SELECT COUNT(*) FROM `{$table}` WHERE `rendered_vars` IS NOT NULL AND `rendered_vars` != ''"
+            "SELECT COUNT(*) FROM `{$table}` WHERE `rendered_vars` IS NOT NULL AND `rendered_vars` != '' AND `id_shop` = {$this->idShop}"
         );
         $encrypted = (int) $this->db->getValue(
-            "SELECT COUNT(*) FROM `{$table}` WHERE `rendered_vars` LIKE 'ENC:%'"
+            "SELECT COUNT(*) FROM `{$table}` WHERE `rendered_vars` LIKE 'ENC:%' AND `id_shop` = {$this->idShop}"
         );
         $plain = $totalVars - $encrypted;
 
