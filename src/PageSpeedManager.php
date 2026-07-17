@@ -218,13 +218,16 @@ class PageSpeedManager
             return null;
         }
         \AdminTranslator::setLang($prevLang);
-        \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
-        \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
 
         $data = json_decode($body, true);
         if (!is_array($data)) {
+            $this->recordError(\AdminTranslator::t('msg.pagespeed_invalid_request'));
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_http400', ['strategy' => $strategy, 'msg' => 'invalid JSON']), '', 'PageSpeedManager');
             return null;
         }
+
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
 
         return $this->parseResult($data);
     }

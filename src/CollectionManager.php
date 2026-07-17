@@ -95,7 +95,8 @@ class CollectionManager
 
         // Clients ayant acheté au moins $total-1 produits de la collection (parmi des commandes payées)
         $rows = $this->db->executeS("
-            SELECT o.id_customer, GROUP_CONCAT(DISTINCT od.product_id ORDER BY od.product_id) AS bought_ids
+            SELECT o.id_customer, MIN(o.id_shop) AS id_shop,
+                   GROUP_CONCAT(DISTINCT od.product_id ORDER BY od.product_id) AS bought_ids
             FROM `{$this->prefix}order_detail` od
             INNER JOIN `{$this->prefix}orders` o ON o.id_order = od.id_order AND o.valid = 1
             WHERE od.product_id IN ({$inList})
@@ -121,6 +122,7 @@ class CollectionManager
             if (!\Validate::isLoadedObject($customer)) continue;
 
             $idLang = $this->resolveLang($customer);
+            $idShop = (int) ($row['id_shop'] ?: \Context::getContext()->shop->id);
 
             // Récupérer le produit manquant
             $product = new \Product($missingId, false, $idLang);
@@ -131,7 +133,6 @@ class CollectionManager
             $productImage = $this->getProductImageUrl($missingId, $idLang);
             $productPrice = (float) $product->price;
 
-            $idShop = (int) \Context::getContext()->shop->id;
             $toName = trim($customer->firstname . ' ' . $customer->lastname) ?: null;
 
             $vars = [
@@ -210,6 +211,9 @@ class CollectionManager
 
     private function resolveLang(\Customer $customer): int
     {
+        if (!empty($customer->id_lang)) {
+            return (int) $customer->id_lang;
+        }
         $ctx = \Context::getContext();
         return (int) ($ctx->language->id ?? \Configuration::get('PS_LANG_DEFAULT'));
     }
