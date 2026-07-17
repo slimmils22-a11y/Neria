@@ -1184,7 +1184,7 @@ class BehavioralCronManager
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs2
                    WHERE bs2.id_customer = c.id_customer
                      AND bs2.template = \'first_anniversary\'
-                     AND bs2.ref_id = YEAR(NOW())
+                     AND YEAR(bs2.sent_at) = YEAR(NOW())
                )'
         );
 
