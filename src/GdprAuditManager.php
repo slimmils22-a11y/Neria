@@ -230,6 +230,24 @@ class GdprAuditManager
             'customer_col' => null,
             'has_pii'      => false,
         ],
+        [
+            'table'        => 'neria_birthday_voucher',
+            'date_col'     => 'created_at',
+            'months'       => 36,
+            'label'        => 'Bons de réduction anniversaire',
+            'note'         => 'Code de bon nominatif lié au client.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
+        ],
+        [
+            'table'        => 'neria_milestone_voucher',
+            'date_col'     => 'created_at',
+            'months'       => 36,
+            'label'        => 'Bons de réduction — paliers de commandes',
+            'note'         => 'Code de bon nominatif lié au client.',
+            'customer_col' => 'id_customer',
+            'has_pii'      => true,
+        ],
     ];
 
     /** Rétrocompatibilité — TABLES dérive de REGISTRY */

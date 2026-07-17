@@ -141,7 +141,7 @@ class CollectionManager
                 '{missing_product}'        => $productName,
                 '{missing_product_url}'    => $productLink,
                 '{missing_image_url}'      => $productImage,
-                '{missing_price}'          => number_format((float) $productPrice, 2, ',', ' '),
+                '{missing_price}'          => \Tools::displayPrice($productPrice, \Currency::getDefaultCurrency()),
                 '{bought_count}'           => (string) count($boughtIds),
                 '{total_count}'            => (string) $total,
                 '{shop_name}'              => \Configuration::get('PS_SHOP_NAME'),

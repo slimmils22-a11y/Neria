@@ -8,7 +8,7 @@
 --------------------------------------------------
 {neria_trad key='ghost_cart_product_label'}
 {product_name}
-{product_price} €
+{product_price}
 {product_url}
 --------------------------------------------------
 

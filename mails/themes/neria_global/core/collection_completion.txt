@@ -14,7 +14,7 @@
 --------
 
 {neria_trad key='collection_completion_missing_label'} : {missing_product}
-{missing_price} €
+{missing_price}
 
 {neria_trad key='collection_completion_cta'} :
 {missing_product_url}

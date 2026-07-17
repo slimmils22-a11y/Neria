@@ -11,7 +11,7 @@
 --------
 
 {product_name}
-{product_price} €
+{product_price}
 {product_url}
 
 --------

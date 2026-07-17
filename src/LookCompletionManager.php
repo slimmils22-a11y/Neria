@@ -232,7 +232,7 @@ class LookCompletionManager
                 'name'  => $product->name,
                 'url'   => \Context::getContext()->link->getProductLink($product),
                 'image' => $imageUrl,
-                'price' => number_format((float) $product->price, 2, ',', ' '),
+                'price' => \Tools::displayPrice((float) $product->price, \Currency::getDefaultCurrency()),
             ];
         }
         return $blocks;
