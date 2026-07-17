@@ -277,6 +277,25 @@ class BounceManager
      */
     public function processBounceWebhook(array $payload, string $source = 'generic'): bool
     {
+        // SendGrid regroupe systématiquement plusieurs événements dans un seul
+        // POST (tableau JSON) — traiter uniquement $payload[0] ignorait
+        // silencieusement tous les autres bounces du même lot (fréquent après
+        // un envoi de masse), aucun log, aucune erreur renvoyée à SendGrid.
+        if ($source === 'sendgrid' && array_is_list($payload) && isset($payload[0])) {
+            $recordedAny = false;
+            foreach ($payload as $event) {
+                if (!is_array($event)) {
+                    continue;
+                }
+                $result = $this->parseSendgrid($event);
+                if ($result !== null && $result['email'] !== '') {
+                    $this->recordBounce($result['email'], $result['type'], $result['reason'], 'webhook');
+                    $recordedAny = true;
+                }
+            }
+            return $recordedAny;
+        }
+
         $result = match ($source) {
             'mailgun'   => $this->parseMailgun($payload),
             'sendgrid'  => $this->parseSendgrid($payload),
