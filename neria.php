@@ -2123,6 +2123,48 @@ class Neria extends Module
             );
         }
 
+        // ── Action : lancer la suite de tests de régression (dev uniquement) ──
+        // Réservé à _PS_MODE_DEV_ = true (jamais actif sur une boutique
+        // marchand en production) : ces tests écrivent puis suppriment de
+        // vraies lignes en base (commandes, paniers, préférences...) pour
+        // reproduire les scénarios — inadapté à des données de production
+        // réelles, contrairement aux contrôles Watchdog qui sont en lecture
+        // seule. Voir tests/regression/README.md.
+        if (Tools::getValue('neria_action') === 'run_regression_tests') {
+            if (!defined('_PS_MODE_DEV_') || _PS_MODE_DEV_ !== true) {
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('help.regression_dev_only'));
+            } else {
+                $regressionDir = $this->getLocalPath() . 'tests/regression';
+                $results = [];
+                $allPassed = true;
+                if (is_dir($regressionDir)) {
+                    $files = glob($regressionDir . '/test_*.php');
+                    sort($files);
+                    foreach ($files as $file) {
+                        $name = basename($file, '.php');
+                        $runner = tempnam(sys_get_temp_dir(), 'neriaregtest_') . '.php';
+                        file_put_contents($runner, "<?php require '" . addslashes($file) . "'; echo json_encode(run_test());");
+                        $output = shell_exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($runner) . ' 2>&1');
+                        @unlink($runner);
+                        $decoded = json_decode((string) $output, true);
+                        if (is_array($decoded) && isset($decoded['pass'])) {
+                            $results[] = ['name' => $name, 'pass' => $decoded['pass'], 'message' => $decoded['message']];
+                            if (!$decoded['pass']) { $allPassed = false; }
+                        } else {
+                            $results[] = ['name' => $name, 'pass' => false, 'message' => trim((string) $output) ?: 'sortie invalide'];
+                            $allPassed = false;
+                        }
+                    }
+                }
+                $this->context->smarty->assign('regression_results', $results);
+                $this->context->smarty->assign('regression_last_run', date('d/m/Y H:i'));
+                $this->context->smarty->assign(
+                    $allPassed ? 'neria_success' : 'neria_error',
+                    AdminTranslator::tVars('help.regression_done', ['passed' => count(array_filter($results, fn($r) => $r['pass'])), 'total' => count($results)])
+                );
+            }
+        }
+
         // ── Action : envoyer le journal Watchdog par email (PDF) ─────
         if (Tools::getValue('neria_action') === 'send_log_email') {
             try {
@@ -4953,6 +4995,14 @@ class Neria extends Module
             'diagnostic'       => NeriaTools::getDiagnosticReport($this),
             'health_results'   => (new HealthCheckManager($this))->getLastResults(),
             'health_last_run'  => (string) Configuration::get(HealthCheckManager::CONFIG_LAST_RUN),
+
+            // Tests de régression — bouton visible uniquement en _PS_MODE_DEV_
+            // (jamais chez un marchand en production, écrit de vraies lignes
+            // en base pour reproduire les scénarios).
+            'is_regression_dev_mode' => defined('_PS_MODE_DEV_') && _PS_MODE_DEV_ === true,
+            'regression_test_count'  => is_dir($this->getLocalPath() . 'tests/regression')
+                ? count(glob($this->getLocalPath() . 'tests/regression/test_*.php'))
+                : 0,
 
             // Alertes email Watchdog
             'alert_email'      => (string) Configuration::getGlobalValue(WatchdogManager::CFG_ALERT_EMAIL),

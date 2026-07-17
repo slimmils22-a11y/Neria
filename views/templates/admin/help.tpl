@@ -564,6 +564,54 @@
   {/if}
 </div>
 
+{if $is_regression_dev_mode}
+{* ── Tests de régression (dev uniquement, _PS_MODE_DEV_) ─────── *}
+<div class="neria-section" id="neria-help-regression">
+  <h2 class="neria-section__title">
+    🧪 {neria_admin key='help.regression_title'}
+    {if $regression_last_run}
+      <span style="font-size:12px; font-weight:400; color:var(--neria-text-light); margin-left:10px;">
+        {neria_admin key='help.health_last_run'} {$regression_last_run}
+      </span>
+    {/if}
+  </h2>
+
+  <p style="font-size:12px; color:var(--neria-text-light); margin-bottom:16px;">
+    {neria_admin key='help.regression_desc'}
+  </p>
+
+  <div style="margin-bottom:20px;">
+    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+      <input type="hidden" name="neria_action" value="run_regression_tests">
+      <input type="hidden" name="neria_tab"    value="help">
+      <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm" style="gap:6px;">
+        <span>🧪</span> {neria_admin key='help.regression_btn'} ({$regression_test_count})
+      </button>
+    </form>
+  </div>
+
+  {if $regression_results}
+    <div class="neria-diag-grid">
+      {foreach $regression_results as $r}
+        <div class="neria-diag-block">
+          <h3 class="neria-diag-block__title">{$r.name|escape:'html'}</h3>
+          <ul class="neria-diag-list">
+            <li class="{if $r.pass}neria-diag--ok{else}neria-diag--err{/if}">
+              {$r.message|escape:'html'}
+            </li>
+          </ul>
+        </div>
+      {/foreach}
+    </div>
+  {else}
+    <div class="neria-empty-state">
+      <span class="neria-empty-state__icon">🧪</span>
+      <p>{neria_admin key='help.regression_pending'}</p>
+    </div>
+  {/if}
+</div>
+{/if}
+
 {* ── Alertes email Watchdog ─────────────────────────────────── *}
 <div class="neria-section" id="neria-help-alerts">
   <h2 class="neria-section__title">
