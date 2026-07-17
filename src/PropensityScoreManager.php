@@ -187,13 +187,13 @@ class PropensityScoreManager
     {
         $opens = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
-             WHERE id_customer = ' . $idCustomer . '
+             WHERE id_customer = ' . $idCustomer . ' AND id_shop = ' . $this->idShop . '
                AND event_type = \'open\'
                AND date_add >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
         );
         $clicks = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
-             WHERE id_customer = ' . $idCustomer . '
+             WHERE id_customer = ' . $idCustomer . ' AND id_shop = ' . $this->idShop . '
                AND event_type = \'click\'
                AND date_add >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
         );
