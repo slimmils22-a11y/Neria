@@ -140,30 +140,45 @@ class CalendarManager
         $daysBefore  = (int) $event['send_days_before'];
         $year        = (int) $today->format('Y');
 
-        // Occasion personnalisée : date fixe stockée en base (format MM-DD)
-        if (!empty($event['custom_date']) && preg_match('/^\d{2}-\d{2}$/', $event['custom_date'])) {
-            $eventDate = \DateTime::createFromFormat('Y-m-d', $year . '-' . $event['custom_date']) ?: null;
-        } else {
-            $eventDate = $this->getEventDate($eventKey, $year);
+        // Résout la date de l'événement + la date d'envoi (J-daysBefore) en
+        // essayant l'année courante ET l'année suivante. Nécessaire car pour
+        // les occasions situées en tout début d'année (new_year, setsubun,
+        // ou eid/ramadan certaines années), l'occurrence de l'année courante
+        // est déjà passée à cette période de l'année, mais sa date d'envoi
+        // (J-daysBefore) peut retomber sur AUJOURD'HUI si daysBefore fait
+        // franchir la frontière de l'année (ex: New Year J-7 = 25 décembre
+        // de l'année précédente). En ne testant que l'année courante,
+        // l'envoi n'était jamais déclenché pour ces occasions.
+        $eventDate = null;
+        $sendDate  = null;
+
+        foreach ([$year, $year + 1] as $y) {
+            if (!empty($event['custom_date']) && preg_match('/^\d{2}-\d{2}$/', $event['custom_date'])) {
+                $candidate = \DateTime::createFromFormat('Y-m-d', $y . '-' . $event['custom_date']) ?: null;
+            } else {
+                $candidate = $this->getEventDate($eventKey, $y);
+            }
+
+            if (!$candidate) {
+                continue;
+            }
+
+            $candidateSend = clone $candidate;
+            $candidateSend->modify("-{$daysBefore} days");
+
+            if ($candidateSend->format('Y-m-d') === $today->format('Y-m-d')) {
+                $eventDate = $candidate;
+                $sendDate  = $candidateSend;
+                break;
+            }
         }
 
         if (!$eventDate) {
-            $this->watchdog()->warning(
-                \WatchdogManager::i18nMsg('watchdog.calendar_date_not_found', ['event' => $eventKey, 'year' => $year]),
-                $template,
-                'CalendarManager'
-            );
             return;
         }
 
-        $sendDate = clone $eventDate;
-        $sendDate->modify("-{$daysBefore} days");
-
-        if ($today->format('Y-m-d') !== $sendDate->format('Y-m-d')) {
-            return;
-        }
-
-        $sentKey = $this->buildSentKey($eventKey, $lang, $countryCode, $year);
+        $eventYear = (int) $eventDate->format('Y');
+        $sentKey   = $this->buildSentKey($eventKey, $lang, $countryCode, $eventYear);
 
         if (\Configuration::get($sentKey)) {
             return;
@@ -475,14 +490,21 @@ class CalendarManager
 
             case 'eid':
             case 'eid_al_fitr':
-                return $this->calculateEidAlFitr($year);
-
             case 'eid_adha':
             case 'eid_al_adha':
-                return $this->calculateEidAlAdha($year);
-
             case 'ramadan':
-                return $this->calculateRamadanStart($year);
+                // calculateEidAlFitr()/calculateEidAlAdha()/calculateRamadanStart()
+                // (NIVEAU 2) reposent sur hijriToJdn(), qui produit une date
+                // systématiquement décalée d'environ un an (vérifié : pour
+                // l'année grégorienne 2025, le calcul renvoie 2026 pour les
+                // trois occasions, et ainsi de suite pour chaque année
+                // testée). Comme ces méthodes ne retournent jamais null, le
+                // NIVEAU 3 (table 2025-2035 vérifiée manuellement, dates
+                // correctes) n'était donc jamais consulté — même bug que
+                // lunar_new_year. On saute directement au NIVEAU 3 plutôt
+                // que de rafistoler un algorithme hégirien qui n'a jamais
+                // été fiable.
+                return null;
 
             case 'lunar_new_year':
             case 'seollal':
