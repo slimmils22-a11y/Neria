@@ -117,6 +117,25 @@ class WaitlistManager
                 '{shop_name}'          => \Configuration::get('PS_SHOP_NAME'),
             ];
 
+            // Réclamation atomique AVANT l'envoi : deux appels concurrents à
+            // notifyProduct() (hook actionUpdateQuantity + auto-réparation
+            // HealthCheckManager, ou deux mises à jour de stock rapprochées)
+            // pouvaient tous deux SELECT la même ligne non notifiée avant que
+            // l'un ou l'autre n'exécute l'UPDATE — le même client recevait
+            // alors l'email "de retour en stock" deux fois. L'UPDATE
+            // conditionné sur notified_at IS NULL agit comme un verrou
+            // compare-and-swap : un seul processus peut le remporter.
+            $claimed = $this->db->execute(
+                "UPDATE `{$this->prefix}" . self::TABLE . "`
+                 SET notified_at = NOW()
+                 WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
+                   AND notified_at IS NULL"
+            ) && $this->db->Affected_Rows() > 0;
+
+            if (!$claimed) {
+                continue; // un autre processus a déjà pris/prend cette notification
+            }
+
             try {
                 $mailed = \Mail::Send(
                     $idLang,
@@ -132,11 +151,6 @@ class WaitlistManager
                 );
 
                 if ($mailed) {
-                    $this->db->execute(
-                        "UPDATE `{$this->prefix}" . self::TABLE . "`
-                         SET notified_at = NOW()
-                         WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}"
-                    );
                     $sent++;
 
                     if (class_exists('WatchdogManager')) {
@@ -145,8 +159,21 @@ class WaitlistManager
                             'waitlist_available', 'WaitlistManager'
                         );
                     }
+                } else {
+                    // Envoi échoué : on libère la réclamation pour permettre un nouvel essai.
+                    $this->db->execute(
+                        "UPDATE `{$this->prefix}" . self::TABLE . "`
+                         SET notified_at = NULL
+                         WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}"
+                    );
                 }
             } catch (\Throwable $e) {
+                // Envoi en échec : on libère la réclamation pour permettre un nouvel essai.
+                $this->db->execute(
+                    "UPDATE `{$this->prefix}" . self::TABLE . "`
+                     SET notified_at = NULL
+                     WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}"
+                );
                 if (class_exists('WatchdogManager')) {
                     (new \WatchdogManager($this->module))->error(
                         'Waitlist notify error : ' . $e->getMessage(),
