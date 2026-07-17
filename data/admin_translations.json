@@ -12159,13 +12159,13 @@
         "gb": "Real-time analysis of Neria's compliance with the General Data Protection Regulation."
     },
     "gdpr.local_law_note": {
-        "fr": "",
+        "fr": "Ce tableau de bord applique les principes du RGPD (Règlement Général sur la Protection des Données) — durée de conservation limitée, chiffrement, droit à l'effacement — une norme de référence reconnue comme conforme à la plupart des lois de protection des données dans le monde, y compris le CCPA et les autres lois américaines sur la vie privée.",
         "en": "This dashboard applies GDPR (EU General Data Protection Regulation) principles — limited retention, encryption, right to erasure — a reference standard recognized as compliant with most data protection laws worldwide, including CCPA and other U.S. state privacy laws.",
-        "de": "",
-        "it": "",
-        "es": "",
-        "pt": "",
-        "br": "",
+        "de": "Dieses Dashboard wendet die Grundsätze der DSGVO (EU-Datenschutz-Grundverordnung) an — begrenzte Aufbewahrungsdauer, Verschlüsselung, Recht auf Löschung — ein Referenzstandard, der als konform mit den meisten Datenschutzgesetzen weltweit anerkannt ist, einschließlich CCPA und anderer US-Datenschutzgesetze.",
+        "it": "Questa dashboard applica i principi del GDPR (Regolamento generale sulla protezione dei dati UE) — conservazione limitata, crittografia, diritto alla cancellazione — uno standard di riferimento riconosciuto come conforme alla maggior parte delle leggi sulla protezione dei dati nel mondo, incluso il CCPA e altre leggi statunitensi sulla privacy.",
+        "es": "Este panel aplica los principios del RGPD (Reglamento General de Protección de Datos de la UE) — retención limitada, cifrado, derecho al olvido — un estándar de referencia reconocido como conforme con la mayoría de las leyes de protección de datos en el mundo, incluida la CCPA y otras leyes estadounidenses de privacidad.",
+        "pt": "Este painel aplica os princípios do RGPD (Regulamento Geral sobre a Proteção de Dados da UE) — retenção limitada, encriptação, direito ao apagamento — uma norma de referência reconhecida como conforme com a maioria das leis de proteção de dados no mundo, incluindo o CCPA e outras leis de privacidade dos EUA.",
+        "br": "Este painel aplica os princípios do RGPD (Regulamento Geral sobre a Proteção de Dados da UE) — retenção limitada, criptografia, direito ao apagamento — um padrão de referência reconhecido como compatível com a maioria das leis de proteção de dados no mundo, incluindo a CCPA e outras leis de privacidade dos EUA.",
         "ar": "تطبق هذه اللوحة مبادئ اللائحة العامة لحماية البيانات GDPR (فترة احتفاظ محدودة، تشفير، الحق في المحو) — وهو معيار مرجعي معترف به كمتوافق مع معظم قوانين حماية البيانات حول العالم، بما في ذلك قانون حماية البيانات الشخصية (PDPL).",
         "ja": "本ダッシュボードはGDPR（EU一般データ保護規則）の原則（保存期間の制限、暗号化、削除権）を適用しています。これは世界の多くの個人情報保護関連法（APPIを含む）と共通する基準として認識されています。",
         "ko": "이 대시보드는 GDPR(EU 일반 개인정보 보호 규정)의 원칙(제한된 보관 기간, 암호화, 삭제권)을 적용합니다. 이는 PIPA를 포함한 전 세계 대부분의 개인정보 보호법과 부합하는 기준으로 인정받고 있습니다.",
@@ -12173,11 +12173,11 @@
         "tw": "本儀表板套用了GDPR（歐盟一般資料保護規則）的原則（有限的保留期限、加密、刪除權）——這是全球公認的資料保護基準，與包括PDPA在內的大多數資料保護法規的要求相符。",
         "ru": "Эта панель применяет принципы GDPR (Общего регламента ЕС по защите данных): ограниченный срок хранения, шифрование, право на удаление — это эталонный стандарт, признанный соответствующим большинству законов о защите данных в мире, включая 152-ФЗ.",
         "tr": "Bu panel, GDPR (AB Genel Veri Koruma Yönetmeliği) ilkelerini uygular (sınırlı saklama süresi, şifreleme, silme hakkı) — bu, KVKK dahil olmak üzere dünya genelindeki çoğu veri koruma yasasıyla uyumlu kabul edilen bir referans standardıdır.",
-        "sv": "",
-        "no": "",
-        "da": "",
-        "nl": "",
-        "gb": ""
+        "sv": "Denna instrumentpanel tillämpar GDPR-principerna (EU:s allmänna dataskyddsförordning) — begränsad lagringstid, kryptering, rätt till radering — en referensstandard som erkänns som förenlig med de flesta dataskyddslagar i världen, inklusive CCPA och andra amerikanska integritetslagar.",
+        "no": "Dette dashbordet følger GDPR-prinsippene (EUs personvernforordning) — begrenset lagringstid, kryptering, rett til sletting — en referansestandard som anerkjennes som forenlig med de fleste personvernlover i verden, inkludert CCPA og andre amerikanske personvernlover.",
+        "da": "Dette dashboard anvender GDPR-principperne (EU's databeskyttelsesforordning) — begrænset opbevaringsperiode, kryptering, ret til sletning — en referencestandard, der anerkendes som forenelig med de fleste databeskyttelseslove i verden, herunder CCPA og andre amerikanske privatlivslove.",
+        "nl": "Dit dashboard past de AVG-principes toe (Algemene Verordening Gegevensbescherming) — beperkte bewaartermijn, versleuteling, recht op verwijdering — een referentienorm die wordt erkend als conform de meeste gegevensbeschermingswetten wereldwijd, waaronder de CCPA en andere Amerikaanse privacywetten.",
+        "gb": "This dashboard applies GDPR (EU General Data Protection Regulation) principles — limited retention, encryption, right to erasure — a reference standard recognised as compliant with most data protection laws worldwide, including CCPA and other U.S. state privacy laws."
     },
     "gdpr.disclaimer_body": {
         "fr": "Ce rapport est généré automatiquement par Neria à partir de l'analyse des fichiers et des données stockées. Il ne constitue pas un avis juridique et ne remplace pas l'intervention d'un délégué à la protection des données (DPO). La conformité RGPD dépend également de votre politique de confidentialité, de votre registre des traitements et de vos contrats sous-traitants.",
