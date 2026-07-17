@@ -34,9 +34,9 @@ class WaitlistManager
         $t   = $this->prefix . self::TABLE;
         $now = pSQL(date('Y-m-d H:i:s'));
         return $this->db->execute(
-            "INSERT INTO `{$t}` (id_customer, id_product, id_shop, registered_at, notified_at)
-             VALUES ({$idCustomer}, {$idProduct}, {$idShop}, '{$now}', NULL)
-             ON DUPLICATE KEY UPDATE registered_at = '{$now}', notified_at = NULL"
+            "INSERT INTO `{$t}` (id_customer, id_product, id_shop, registered_at, notified_at, claim_started_at)
+             VALUES ({$idCustomer}, {$idProduct}, {$idShop}, '{$now}', NULL, NULL)
+             ON DUPLICATE KEY UPDATE registered_at = '{$now}', notified_at = NULL, claim_started_at = NULL"
         );
     }
 
@@ -131,9 +131,16 @@ class WaitlistManager
             // alors l'email "de retour en stock" deux fois. L'UPDATE
             // conditionné sur notified_at IS NULL agit comme un verrou
             // compare-and-swap : un seul processus peut le remporter.
+            //
+            // claim_started_at (distincte de notified_at) pose la réclamation ;
+            // notified_at n'est posé qu'après confirmation réelle de l'envoi.
+            // Si le process meurt entre les deux, HealthCheckManager peut
+            // détecter sans ambiguïté un claim resté sans notified_at au-delà
+            // d'1h et le libérer — impossible à faire en toute sécurité avec
+            // notified_at seul, qui est aussi l'état de succès permanent.
             $claimed = $this->db->execute(
                 "UPDATE `{$this->prefix}" . self::TABLE . "`
-                 SET notified_at = NOW()
+                 SET claim_started_at = NOW()
                  WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
                    AND notified_at IS NULL"
             ) && $this->db->Affected_Rows() > 0;
@@ -157,6 +164,11 @@ class WaitlistManager
                 );
 
                 if ($mailed) {
+                    $this->db->execute(
+                        "UPDATE `{$this->prefix}" . self::TABLE . "`
+                         SET notified_at = NOW()
+                         WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}"
+                    );
                     $sent++;
 
                     if (class_exists('WatchdogManager')) {
@@ -169,7 +181,7 @@ class WaitlistManager
                     // Envoi échoué : on libère la réclamation pour permettre un nouvel essai.
                     $this->db->execute(
                         "UPDATE `{$this->prefix}" . self::TABLE . "`
-                         SET notified_at = NULL
+                         SET claim_started_at = NULL
                          WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}"
                     );
                 }
@@ -177,7 +189,7 @@ class WaitlistManager
                 // Envoi en échec : on libère la réclamation pour permettre un nouvel essai.
                 $this->db->execute(
                     "UPDATE `{$this->prefix}" . self::TABLE . "`
-                     SET notified_at = NULL
+                     SET claim_started_at = NULL
                      WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}"
                 );
                 if (class_exists('WatchdogManager')) {

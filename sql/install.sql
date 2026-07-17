@@ -806,6 +806,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_waitlist` (
     `id_shop`           INT UNSIGNED NOT NULL DEFAULT 1,
     `registered_at`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `notified_at`       DATETIME     NULL DEFAULT NULL,
+    `claim_started_at`  DATETIME     NULL DEFAULT NULL COMMENT 'Réservation posée avant envoi, distincte de notified_at (posée après confirmation) — permet de détecter un crash entre les deux sans risquer de redéclencher un envoi déjà réussi',
     PRIMARY KEY (`id_neria_waitlist`),
     UNIQUE KEY `uq_customer_product` (`id_customer`, `id_product`),
     KEY `idx_product`   (`id_product`),

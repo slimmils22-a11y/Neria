@@ -169,6 +169,7 @@ class HealthCheckManager
             'known_regressions_guard' => $this->checkKnownRegressionsGuard(),
             'txt_placeholder_coverage' => $this->checkTxtPlaceholderCoverage(),
             'orphaned_voucher_reservations' => $this->checkOrphanedVoucherReservations(),
+            'orphaned_waitlist_claims' => $this->checkOrphanedWaitlistClaims(),
             'encoded_residual_links' => $this->checkEncodedResidualLinks(),
             'crypto_key_health' => $this->checkCryptoKeyHealth(),
             'html_txt_pairs' => $this->checkHtmlTxtPairs(),
@@ -719,6 +720,50 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.orphaned_vouchers_ok')];
+    }
+
+    /**
+     * neria_waitlist::notifyProduct() pose claim_started_at avant l'envoi et
+     * ne pose notified_at qu'après confirmation réelle — distinction ajoutée
+     * en 1.0.26 précisément pour permettre ce nettoyage sans ambiguïté. Un
+     * crash entre les deux laisse claim_started_at posé sans notified_at ;
+     * au-delà d'1h (l'envoi d'un seul email prend quelques secondes), c'est
+     * forcément un échec, jamais un envoi encore en cours. On libère le
+     * claim (claim_started_at = NULL) pour permettre un nouvel essai au
+     * prochain retour en stock — jamais de suppression ni de manipulation
+     * de notified_at ici, donc aucun risque de redéclencher un envoi déjà
+     * réussi.
+     */
+    private function checkOrphanedWaitlistClaims(): array
+    {
+        if (!$this->tableExists('neria_waitlist')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.orphaned_waitlist_claims_ok')];
+        }
+
+        $db    = \Db::getInstance();
+        $count = (int) $db->getValue(
+            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_waitlist`
+             WHERE `notified_at` IS NULL
+               AND `claim_started_at` IS NOT NULL
+               AND `claim_started_at` < DATE_SUB(NOW(), INTERVAL 1 HOUR)'
+        );
+
+        if ($count > 0) {
+            $db->execute(
+                'UPDATE `' . _DB_PREFIX_ . 'neria_waitlist`
+                 SET `claim_started_at` = NULL
+                 WHERE `notified_at` IS NULL
+                   AND `claim_started_at` IS NOT NULL
+                   AND `claim_started_at` < DATE_SUB(NOW(), INTERVAL 1 HOUR)'
+            );
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.orphaned_waitlist_claims_fixed', ['count' => $count]),
+                'auto_fixed' => true,
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.orphaned_waitlist_claims_ok')];
     }
 
     private function tableExists(string $table): bool

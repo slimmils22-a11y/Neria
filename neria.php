@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.25';
+    const VERSION = '1.0.26';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -1337,7 +1337,7 @@ class Neria extends Module
         try {
             (new WaitlistManager($this))->notifyProduct($idProduct, $idShop);
         } catch (\Throwable $e) {
-            $this->log('WaitlistManager::notifyProduct() erreur : ' . $e->getMessage(), 'error');
+            $this->log('WaitlistManager::notifyProduct() erreur : ' . $e->getMessage(), 3);
         }
     }
 
