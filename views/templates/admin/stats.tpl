@@ -3266,7 +3266,7 @@ var _nCopyLbl = {
           <form method="post" style="margin:0;">
             <input type="hidden" name="neria_action" value="lifespan_delete" />
             <input type="hidden" name="lifespan_id" value="{$lp.id_lifespan}" />
-            <button type="button" data-confirm="{neria_admin key='stats.confirm_delete_product'}" onclick="neriaConfirmDelete(this);" style="background:none; border:none; cursor:pointer; color:#e74c3c; font-size:16px;">✕</button>
+            <button type="button" data-confirm="{neria_admin key='stats.confirm_delete_product'}" onclick="neriaConfirmDelete(this);" style="background:none; border:none; cursor:pointer; color:#e74c3c; font-size:16px;" title="{neria_admin key='stats.confirm_delete_product' esc='html'}" aria-label="{neria_admin key='stats.confirm_delete_product' esc='html'}">✕</button>
           </form>
         </td>
       </tr>

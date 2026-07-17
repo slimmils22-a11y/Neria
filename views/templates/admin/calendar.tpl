@@ -60,7 +60,7 @@
             <input type="hidden" name="cal_id"       value="{$ev.id_event|intval}">
             <input type="number" name="cal_days"     value="{$ev.send_days_before|intval}"
                    min="1" max="60" style="width:60px;" class="neria-input neria-input--sm">
-            <button type="submit" class="neria-btn neria-btn--xs">✓</button>
+            <button type="submit" class="neria-btn neria-btn--xs" title="{neria_admin key='common.save' esc='html'}" aria-label="{neria_admin key='common.save' esc='html'}">✓</button>
           </form>
         </td>
 

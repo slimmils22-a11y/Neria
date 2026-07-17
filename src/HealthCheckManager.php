@@ -693,6 +693,23 @@ class HealthCheckManager
             }
         }
 
+        // neria_loyalty_rewards suit le même pattern réserve/CartRule/update, mais
+        // sa colonne de date s'appelle `sent_at` (et non `created_at`) — traitée
+        // séparément pour cette raison, avec la même logique de nettoyage 24h.
+        if ($this->tableExists('neria_loyalty_rewards')) {
+            $count = (int) $db->getValue(
+                'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_loyalty_rewards`
+                 WHERE `id_cart_rule` = 0 AND `sent_at` < DATE_SUB(NOW(), INTERVAL 24 HOUR)'
+            );
+            if ($count > 0) {
+                $db->execute(
+                    'DELETE FROM `' . _DB_PREFIX_ . 'neria_loyalty_rewards`
+                     WHERE `id_cart_rule` = 0 AND `sent_at` < DATE_SUB(NOW(), INTERVAL 24 HOUR)'
+                );
+                $fixed += $count;
+            }
+        }
+
         if ($fixed > 0) {
             return [
                 'status' => self::STATUS_WARNING,

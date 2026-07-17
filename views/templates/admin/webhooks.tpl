@@ -36,8 +36,8 @@
 
         {* URL ──────────────────────────────────────────────────────── *}
         <div class="neria-form-group" style="grid-column:1/-1;">
-          <label class="neria-label">{neria_admin key='webhook.url_label'}</label>
-          <input type="url" name="webhook_url" class="neria-input"
+          <label class="neria-label" for="webhook-url-input">{neria_admin key='webhook.url_label'}</label>
+          <input type="url" id="webhook-url-input" name="webhook_url" class="neria-input"
                  value="{$webhook_url|escape:'html'}"
                  placeholder="https://hooks.zapier.com/hooks/catch/xxxxx/yyyyy/">
           <span class="neria-hint">{neria_admin key='webhook.url_hint'}</span>
@@ -45,7 +45,7 @@
 
         {* Secret HMAC ──────────────────────────────────────────────── *}
         <div class="neria-form-group" style="grid-column:1/-1;">
-          <label class="neria-label">{neria_admin key='webhook.secret_label'}</label>
+          <label class="neria-label" for="webhook-secret-input">{neria_admin key='webhook.secret_label'}</label>
           <div style="display:flex;gap:8px;align-items:center;">
             <input type="text" id="webhook-secret-input" name="webhook_secret" class="neria-input"
                    value="{$webhook_secret|escape:'html'}"

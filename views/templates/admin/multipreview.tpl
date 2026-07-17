@@ -42,7 +42,7 @@
       <span id="neria-mp-zoom-icon"></span>
       <span id="neria-mp-zoom-name"></span>
       <button type="button" id="neria-mp-zoom-dark-btn">{neria_admin key='multipreview.dark_mode_btn'}</button>
-      <button type="button" id="neria-mp-zoom-close">✕</button>
+      <button type="button" id="neria-mp-zoom-close" title="{neria_admin key='common.close' esc='html'}" aria-label="{neria_admin key='common.close' esc='html'}">✕</button>
     </div>
     <iframe id="neria-mp-zoom-frame" src="about:blank" sandbox="allow-same-origin" title="{neria_admin key='multipreview.zoom_title' esc='html'}"></iframe>
   </div>

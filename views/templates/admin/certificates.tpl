@@ -16,8 +16,12 @@
     <div class="neria-field-row" style="margin-bottom:18px;">
       <label class="neria-toggle-label" style="display:flex;align-items:center;gap:12px;cursor:pointer;">
         <div class="neria-toggle {if $cert_enabled}neria-toggle--on{/if}"
-             id="certToggle" style="position:relative;width:44px;height:24px;background:{if $cert_enabled}#1a1a2e{else}#ccc{/if};border-radius:12px;transition:background .2s;cursor:pointer;"
-             onclick="var cb=document.getElementById('certEnabledCb');cb.checked=!cb.checked;this.style.background=cb.checked?'#1a1a2e':'#ccc';this.querySelector('span').style.left=cb.checked?'22px':'2px';">
+             id="certToggle" role="switch" tabindex="0"
+             aria-checked="{if $cert_enabled}true{else}false{/if}"
+             aria-label="{neria_admin key='cert.toggle_label'}"
+             style="position:relative;width:44px;height:24px;background:{if $cert_enabled}#1a1a2e{else}#ccc{/if};border-radius:12px;transition:background .2s;cursor:pointer;"
+             onclick="var cb=document.getElementById('certEnabledCb');cb.checked=!cb.checked;this.style.background=cb.checked?'#1a1a2e':'#ccc';this.querySelector('span').style.left=cb.checked?'22px':'2px';this.setAttribute('aria-checked',cb.checked?'true':'false');"
+             onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();this.click();}">
           <span style="position:absolute;top:2px;left:{if $cert_enabled}22px{else}2px{/if};width:20px;height:20px;background:#fff;border-radius:50%;transition:left .2s;"></span>
         </div>
         <span style="font-weight:600;font-size:14px;">{neria_admin key='cert.toggle_label'}</span>

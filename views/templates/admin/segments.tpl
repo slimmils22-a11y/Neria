@@ -265,7 +265,7 @@
       <div class="neria-form-grid" style="grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
 
         <div class="neria-form-group" style="margin:0;">
-          <label class="neria-label">{neria_admin key='seg.campaign_segment'}</label>
+          <label class="neria-label" for="seg-segment-select">{neria_admin key='seg.campaign_segment'}</label>
           <select name="campaign_segment" id="seg-segment-select" class="neria-select"
                   onchange="neriaUpdateRecommended(this.value)">
             {foreach $segment_all as $seg}
@@ -277,7 +277,7 @@
         </div>
 
         <div class="neria-form-group" style="margin:0;">
-          <label class="neria-label">{neria_admin key='seg.campaign_template'}</label>
+          <label class="neria-label" for="seg-template-select">{neria_admin key='seg.campaign_template'}</label>
           <select name="campaign_template" id="seg-template-select" class="neria-select">
             {foreach $segment_campaign_templates as $tpl}
             <option value="{$tpl|escape:'html'}"
@@ -300,8 +300,8 @@
         <div class="neria-form-grid" style="grid-template-columns:1fr 1fr 1fr;gap:12px;">
 
           <div class="neria-form-group" style="margin:0;">
-            <label class="neria-label">{neria_admin key='seg.filter_slot'}</label>
-            <select name="campaign_slot" class="neria-select">
+            <label class="neria-label" for="seg-filter-slot-select">{neria_admin key='seg.filter_slot'}</label>
+            <select name="campaign_slot" id="seg-filter-slot-select" class="neria-select">
               <option value="">{neria_admin key='seg.filter_all_slots'}</option>
               {foreach $segment_slots as $slot_key => $slot_label}
               <option value="{$slot_key|escape:'html'}">{neria_admin key="seg.slot_{$slot_key}"}</option>
@@ -310,8 +310,8 @@
           </div>
 
           <div class="neria-form-group" style="margin:0;">
-            <label class="neria-label">{neria_admin key='seg.filter_lang'}</label>
-            <select name="campaign_lang" class="neria-select">
+            <label class="neria-label" for="seg-filter-lang-select">{neria_admin key='seg.filter_lang'}</label>
+            <select name="campaign_lang" id="seg-filter-lang-select" class="neria-select">
               <option value="">{neria_admin key='seg.filter_all_langs'}</option>
               {foreach $segment_languages as $lang}
               <option value="{$lang.iso|escape:'html'}">{$lang.name|escape:'html'}</option>
@@ -320,8 +320,8 @@
           </div>
 
           <div class="neria-form-group" style="margin:0;">
-            <label class="neria-label">{neria_admin key='seg.filter_country'}</label>
-            <select name="campaign_country" class="neria-select">
+            <label class="neria-label" for="seg-filter-country-select">{neria_admin key='seg.filter_country'}</label>
+            <select name="campaign_country" id="seg-filter-country-select" class="neria-select">
               <option value="">{neria_admin key='seg.filter_all_countries'}</option>
               {foreach $segment_countries as $country}
               <option value="{$country.id_country|intval}">{$country.name|escape:'html'}</option>
