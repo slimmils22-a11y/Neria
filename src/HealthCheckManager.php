@@ -1332,7 +1332,8 @@ class HealthCheckManager
 
         $recentIssues = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_log`
-             WHERE `template` = 'milestone_order' AND `class` = 'OrderTriggers'
+             WHERE `id_shop` = {$this->idShop}
+               AND `template` = 'milestone_order' AND `class` = 'OrderTriggers'
                AND `level` IN ('error', 'warning')
                AND `date_add` >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
         );
@@ -2483,13 +2484,14 @@ class HealthCheckManager
 
         $failed = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$table}`
-             WHERE `status` = '" . pSQL(WebhookManager::STATUS_FAILED) . "'
+             WHERE `id_shop`   = {$this->idShop}
+               AND `status`    = '" . pSQL(WebhookManager::STATUS_FAILED) . "'
                AND `date_add` > DATE_SUB(NOW(), INTERVAL 48 HOUR)"
         );
 
         if ($failed === 0) {
             $pending = (int) $this->db->getValue(
-                "SELECT COUNT(*) FROM `{$table}` WHERE `status` = 'pending'"
+                "SELECT COUNT(*) FROM `{$table}` WHERE `id_shop` = {$this->idShop} AND `status` = 'pending'"
             );
             return [
                 'status' => self::STATUS_OK,
@@ -2503,7 +2505,8 @@ class HealthCheckManager
         // une action manuelle du marchand.
         $failedIds = $this->db->executeS(
             "SELECT id_webhook FROM `{$table}`
-             WHERE `status` = '" . pSQL(\WebhookManager::STATUS_FAILED) . "'
+             WHERE `id_shop`   = {$this->idShop}
+               AND `status`    = '" . pSQL(\WebhookManager::STATUS_FAILED) . "'
                AND `date_add` > DATE_SUB(NOW(), INTERVAL 48 HOUR)"
         ) ?: [];
 
@@ -2525,7 +2528,8 @@ class HealthCheckManager
 
         $stillFailed = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$table}`
-             WHERE `status` = '" . pSQL(\WebhookManager::STATUS_FAILED) . "'
+             WHERE `id_shop`   = {$this->idShop}
+               AND `status`    = '" . pSQL(\WebhookManager::STATUS_FAILED) . "'
                AND `date_add` > DATE_SUB(NOW(), INTERVAL 48 HOUR)"
         );
 
@@ -2562,8 +2566,9 @@ class HealthCheckManager
 
         $stuck = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$table}`
-             WHERE `is_active` = 1
-               AND `date_add` < DATE_SUB(NOW(), INTERVAL 30 DAY)"
+             WHERE `id_shop`    = {$this->idShop}
+               AND `is_active`  = 1
+               AND `date_add`  < DATE_SUB(NOW(), INTERVAL 30 DAY)"
         );
 
         if ($stuck === 0) {
@@ -2698,7 +2703,8 @@ class HealthCheckManager
 
         $today = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$table}`
-             WHERE `event_type` = 'sent'
+             WHERE `id_shop`    = {$this->idShop}
+               AND `event_type` = 'sent'
                AND DATE(`date_add`) = CURDATE()"
         );
 
@@ -2710,7 +2716,8 @@ class HealthCheckManager
             "SELECT AVG(daily_count) FROM (
                 SELECT COUNT(*) AS daily_count
                 FROM `{$table}`
-                WHERE `event_type` = 'sent'
+                WHERE `id_shop`    = {$this->idShop}
+                  AND `event_type` = 'sent'
                   AND `date_add` >= DATE_SUB(CURDATE(), INTERVAL 8 DAY)
                   AND `date_add` < CURDATE()
                 GROUP BY DATE(`date_add`)
