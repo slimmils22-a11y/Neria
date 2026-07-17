@@ -45,6 +45,18 @@ class BehavioralCronManager
     // Statut PS « Expédié » (shipped=1)
     const STATUS_SHIPPED   = 4;
 
+    // Plafond de lignes traitées par méthode et par passage du cron. Chaque
+    // ligne déclenche un Mail::Send() synchrone (~2s mesuré en réel via
+    // QueueManager::processQueue() : 50 emails = 111s). Sans plafond, aucune
+    // des ~15 requêtes SELECT de ce fichier n'a de LIMIT : sur une base avec
+    // plusieurs milliers de clients éligibles le même jour (ex. campagne
+    // d'anniversaires un jour de forte natalité, franchise multi-boutiques),
+    // le cron peut tourner des heures dans une seule requête HTTP/CLI et
+    // dépasser max_execution_time. Les clients non traités ce jour restent
+    // éligibles (NOT EXISTS sur neria_behavioral_sent) et seront repris au
+    // prochain passage du cron — rien n'est perdu, juste étalé.
+    const MAX_BATCH_PER_RUN = 500;
+
     private \Neria $module;
     private \Db $db;
     private string $prefix;
@@ -181,7 +193,8 @@ class BehavioralCronManager
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = c.id_customer AND bs.template = \'birthday\'
                      AND bs.ref_id = ' . $year . '
-               )'
+               )
+             LIMIT ' . self::MAX_BATCH_PER_RUN
         );
 
         $config = new \ConfigManager($this->module);
@@ -315,7 +328,8 @@ class BehavioralCronManager
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = c.id_customer AND bs.template = \'first_anniversary\'
-               )'
+               )
+             LIMIT ' . self::MAX_BATCH_PER_RUN
         );
 
         foreach ((array) $rows as $r) {
@@ -349,7 +363,8 @@ class BehavioralCronManager
                    WHERE bs.id_customer = c.id_customer AND bs.template = \'reorder_reminder\'
                      AND bs.ref_id = o.id_order
                )
-             GROUP BY c.id_customer'
+             GROUP BY c.id_customer
+             LIMIT ' . self::MAX_BATCH_PER_RUN
         );
 
         foreach ((array) $rows as $r) {
@@ -386,7 +401,8 @@ class BehavioralCronManager
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = c.id_customer AND bs.template = \'win_back\'
                      AND bs.ref_id = ' . $year . '
-               )'
+               )
+             LIMIT ' . self::MAX_BATCH_PER_RUN
         );
 
         foreach ((array) $rows as $r) {
@@ -419,7 +435,8 @@ class BehavioralCronManager
                    WHERE bs.id_customer = cr.id_customer
                      AND bs.template = \'loyalty_reward_expiry\'
                      AND bs.ref_id = cr.id_cart_rule
-               )'
+               )
+             LIMIT ' . self::MAX_BATCH_PER_RUN
         );
 
         foreach ((array) $rows as $r) {
@@ -490,7 +507,8 @@ class BehavioralCronManager
                      AND od.product_id = wp2.id_product
                      AND o.valid = 1
                )
-             GROUP BY w.id_customer'
+             GROUP BY w.id_customer
+             LIMIT ' . self::MAX_BATCH_PER_RUN
         );
 
         foreach ((array) $rows as $r) {
@@ -543,7 +561,8 @@ class BehavioralCronManager
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = ca.id_customer AND bs.template = \'checkout_abandonment\'
                      AND bs.ref_id = ca.id_cart
-               )'
+               )
+             LIMIT ' . self::MAX_BATCH_PER_RUN
         );
 
         foreach ((array) $rows as $r) {
@@ -632,7 +651,8 @@ class BehavioralCronManager
                    WHERE bs.id_customer = ca.id_customer
                      AND bs.template IN (\'abandoned_cart_1\',\'abandoned_cart_2\',\'abandoned_cart_3\')
                      AND bs.ref_id = ca.id_cart
-               )'
+               )
+             LIMIT ' . self::MAX_BATCH_PER_RUN
         );
 
         foreach ((array) $rows as $r) {
@@ -674,7 +694,8 @@ class BehavioralCronManager
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = o.id_customer AND bs.template = \'' . pSQL($template) . '\'
                      AND bs.ref_id = o.id_order
-               )'
+               )
+             LIMIT ' . self::MAX_BATCH_PER_RUN
         );
 
         // Toggle BO respecté : l'upsell n'est instancié que s'il est activé.
@@ -782,7 +803,8 @@ class BehavioralCronManager
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = o.id_customer AND bs.template = \'order_shipped_delay\'
                      AND bs.ref_id = o.id_order
-               )'
+               )
+             LIMIT ' . self::MAX_BATCH_PER_RUN
         );
 
         $newDate = date('d/m/Y', strtotime('+7 days'));
@@ -854,7 +876,8 @@ class BehavioralCronManager
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = q.id_customer
              WHERE q.status = \'active\' AND q.sent_48h = 0
                AND DATE(q.expiry_date) = DATE(DATE_ADD(NOW(), INTERVAL 2 DAY))
-               AND c.active = 1 AND c.deleted = 0'
+               AND c.active = 1 AND c.deleted = 0
+             LIMIT ' . self::MAX_BATCH_PER_RUN
         );
         foreach ((array) $rows48h as $r) {
             $this->sendQuoteEmail('quote_expiry_48h', $r);
@@ -873,7 +896,8 @@ class BehavioralCronManager
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = q.id_customer
              WHERE q.status = \'active\' AND q.sent_day = 0
                AND DATE(q.expiry_date) = CURDATE()
-               AND c.active = 1 AND c.deleted = 0'
+               AND c.active = 1 AND c.deleted = 0
+             LIMIT ' . self::MAX_BATCH_PER_RUN
         );
         foreach ((array) $rowsDay as $r) {
             $this->sendQuoteEmail('quote_expiry_day', $r);
@@ -892,7 +916,8 @@ class BehavioralCronManager
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = q.id_customer
              WHERE q.status = \'active\' AND q.sent_extension = 0
                AND DATE(q.expiry_date) < CURDATE()
-               AND c.active = 1 AND c.deleted = 0'
+               AND c.active = 1 AND c.deleted = 0
+             LIMIT ' . self::MAX_BATCH_PER_RUN
         );
         foreach ((array) $rowsExt as $r) {
             $this->sendQuoteEmail('quote_extension_offer', $r, true);
@@ -952,7 +977,8 @@ class BehavioralCronManager
                    (r.sent_1 = 1 AND r.sent_2 = 0 AND r.send_2_date <= CURDATE()) OR
                    (r.sent_1 = 1 AND r.sent_2 = 1 AND r.sent_3 = 0 AND r.send_3_date <= CURDATE())
                )
-               AND c.active = 1 AND c.deleted = 0"
+               AND c.active = 1 AND c.deleted = 0
+             LIMIT " . self::MAX_BATCH_PER_RUN
         );
 
         foreach ((array) $rows as $r) {
@@ -1063,7 +1089,8 @@ class BehavioralCronManager
                    AND o.id_shop = {$product['id_shop']}
                    AND c.active = 1 AND c.deleted = 0
                    AND DATE(o.date_add) = DATE_SUB(CURDATE(), INTERVAL {$targetDay} DAY)
-                 GROUP BY c.id_customer, o.id_shop, o.id_order"
+                 GROUP BY c.id_customer, o.id_shop, o.id_order
+                 LIMIT " . self::MAX_BATCH_PER_RUN
             ) ?: [];
 
             foreach ($customers as $customer) {
@@ -1185,7 +1212,8 @@ class BehavioralCronManager
                    WHERE bs2.id_customer = c.id_customer
                      AND bs2.template = \'first_anniversary\'
                      AND YEAR(bs2.sent_at) = YEAR(NOW())
-               )'
+               )
+             LIMIT ' . self::MAX_BATCH_PER_RUN
         );
 
         $rows = (array) $rows;
@@ -1279,7 +1307,8 @@ class BehavioralCronManager
                )
              GROUP BY cp.id_product, ca.id_customer, ca.id_shop,
                       c.email, c.firstname, c.lastname, c.id_lang
-             HAVING COUNT(DISTINCT ca.id_cart) >= 3'
+             HAVING COUNT(DISTINCT ca.id_cart) >= 3
+             LIMIT ' . self::MAX_BATCH_PER_RUN
         );
 
         if (empty($rows)) {
