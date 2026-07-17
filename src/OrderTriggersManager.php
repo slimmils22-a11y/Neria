@@ -217,6 +217,26 @@ class OrderTriggersManager
 
     public function handleNewOrder(\Order $order): void
     {
+        $this->checkMilestone($order);
+    }
+
+    /**
+     * Vérifie si le nombre de commandes VALIDES du client vient d'atteindre
+     * un palier milestone, et envoie l'email/le bon associé si oui.
+     *
+     * Appelée à deux moments :
+     *  - handleNewOrder() (hookActionObjectOrderAddAfter) : couvre le cas où
+     *    la commande est valide dès sa création (paiement immédiat type CB).
+     *  - handleStatusChange() (hookActionOrderStatusPostUpdate), UNIQUEMENT
+     *    quand la commande bascule de non-valide à valide : couvre le cas,
+     *    largement majoritaire pour virement/chèque/COD, où Order::valid
+     *    (= OrderState::logable) passe à 1 après coup, plusieurs jours après
+     *    la création. Sans ce second appel, ce palier n'était quasiment
+     *    jamais atteint pour ces moyens de paiement — même défaut de fond
+     *    que abandoned_cart_1/checkout_abandonment corrigé plus tôt ce soir.
+     */
+    private function checkMilestone(\Order $order): void
+    {
         $idCustomer = (int) $order->id_customer;
         if ($idCustomer <= 0) {
             return;
@@ -320,7 +340,24 @@ class OrderTriggersManager
         int $idOrder
     ): void {
         try {
-            // Ignorer tous les statuts standards PrestaShop
+            // La commande vient de basculer de non-valide à valide (ex.
+            // virement/chèque/COD confirmé) : c'est le seul moment où ce
+            // type de commande peut faire franchir un palier milestone,
+            // puisqu'elle ne comptait pas encore lors de handleNewOrder().
+            // Ce contrôle doit avoir lieu AVANT le filtre "statuts standards"
+            // ci-dessous : la confirmation de paiement (ex. id 2 "Paiement
+            // accepté") est elle-même un statut STANDARD PrestaShop, donc le
+            // early-return suivant l'aurait rendue silencieusement
+            // inatteignable pour tous les moyens de paiement asynchrones.
+            if (!$oldStatus->logable && $newStatus->logable) {
+                $orderForMilestone = new \Order($idOrder);
+                if (\Validate::isLoadedObject($orderForMilestone)) {
+                    $this->checkMilestone($orderForMilestone);
+                }
+            }
+
+            // Ignorer tous les statuts standards PrestaShop pour les
+            // déclencheurs order_on_hold / order_partial_shipped ci-dessous
             if (in_array((int) $newStatus->id, self::STANDARD_STATUS_IDS, true)) {
                 return;
             }
