@@ -314,11 +314,14 @@ class SegmentManager
         if (!$issues && $recipientCount > 0) {
             $langsUsed = [];
             foreach ($customers as $c) {
-                $idLang = (int) ($c['id_lang'] ?? 0) ?: (int) \Configuration::get('PS_LANG_DEFAULT');
-                $langsUsed[$idLang] = true;
+                // getCustomersBySegment() ne sélectionne pas id_lang, seulement
+                // lang_code (iso) — lire c['id_lang'] ici renvoyait toujours 0
+                // et faisait retomber TOUS les clients sur PS_LANG_DEFAULT,
+                // rendant ce contrôle aveugle aux langues réellement utilisées.
+                $langCode = (string) ($c['lang_code'] ?? '') ?: (\Language::getIsoById((int) \Configuration::get('PS_LANG_DEFAULT')) ?: 'fr');
+                $langsUsed[$langCode] = true;
             }
-            foreach (array_keys($langsUsed) as $idLang) {
-                $langCode     = \Language::getIsoById($idLang) ?: 'fr';
+            foreach (array_keys($langsUsed) as $langCode) {
                 $templateFile = _PS_MODULE_DIR_ . 'neria/mails/' . $langCode . '/' . $template . '.html';
                 if (!file_exists($templateFile)) {
                     $missingLangFiles[] = $langCode;
