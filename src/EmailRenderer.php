@@ -396,7 +396,9 @@ class EmailRenderer
         // PrestaShop sert un autre fichier que la langue détectée et l'email
         // part dans la mauvaise langue.
         $outIso = \Language::getIsoById((int) ($params['idLang'] ?? 0)) ?: $lang;
-        $compiledPath = $this->compileNeriaTemplate($template, $lang, $outIso, $params['templateVars'] ?? []);
+        // silentIfCoreMissing=true : ce template peut être hors périmètre Neria
+        // (module tiers) — cf. docblock de compileNeriaTemplate().
+        $compiledPath = $this->compileNeriaTemplate($template, $lang, $outIso, $params['templateVars'] ?? [], false, true);
         if ($compiledPath !== null) {
             // ── Wrapping des liens pour le tracking de clics ─────────────
             if ($this->config->isStatsEnabled() && !empty($params['neria_token'])) {
@@ -2296,7 +2298,8 @@ class EmailRenderer
         string $lang,
         ?string $outIso = null,
         array $templateVars = [],
-        bool $suppressResidualLog = false
+        bool $suppressResidualLog = false,
+        bool $silentIfCoreMissing = false
     ): ?string {
         $layoutPath = $this->module->getModulePath('mails/themes/neria_global/layout.html');
         $corePath   = $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html');
@@ -2310,11 +2313,24 @@ class EmailRenderer
             return null;
         }
         if (!file_exists($corePath)) {
-            $this->watchdog()->error(
-                WatchdogManager::i18nMsg('watchdog.core_missing', ['template' => $template]),
-                $template,
-                'EmailRenderer'
-            );
+            // Appelé depuis applyNeriaRendering() pour CHAQUE email envoyé par
+            // PrestaShop, y compris ceux de modules tiers hors périmètre Neria
+            // (aucun fichier core/<template>.html) — c'est le fonctionnement
+            // normal documenté juste après (« un template hors périmètre Neria
+            // est laissé tel quel à PrestaShop »), pas une erreur. Journaliser
+            // ici en 'error' déclenchait une alerte immédiate (watchdog->error()
+            // envoie un email throttlé) à CHAQUE envoi d'un email non couvert
+            // par Neria — un simple email de formulaire de contact ou d'un
+            // module tiers spammait le marchand d'alertes. Seuls les appelants
+            // qui attendent un template Neria connu (secours, templates
+            // internes) veulent être avertis si son core manque réellement.
+            if (!$silentIfCoreMissing) {
+                $this->watchdog()->error(
+                    WatchdogManager::i18nMsg('watchdog.core_missing', ['template' => $template]),
+                    $template,
+                    'EmailRenderer'
+                );
+            }
             return null;
         }
 
