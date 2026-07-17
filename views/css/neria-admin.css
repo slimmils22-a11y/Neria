@@ -37,7 +37,6 @@
 .neria-header-label { font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--neria-text-light); white-space:nowrap; }
 .neria-header-sep { width:1px; height:24px; background:var(--neria-border); margin:0 4px; }
 .neria-test-send { display:inline-flex; align-items:center; gap:6px; }
-.neria-btn--sm { padding:6px 12px; font-size:11px; }
 .neria-status { display:flex; align-items:center; gap:6px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; }
 .neria-status__dot { width:8px; height:8px; border-radius:50%; }
 .neria-status--on .neria-status__dot { background:var(--neria-success); }
@@ -247,13 +246,13 @@
 .neria-slider-row { display:flex; align-items:center; gap:10px; margin-top:8px; }
 .neria-slider-label { font-size:11px; color:var(--neria-text-light); min-width:28px; text-align:center; }
 .neria-slider-unit { font-size:11px; color:var(--neria-text-light); }
-.neria-range { flex:1; -webkit-appearance:none; appearance:none; height:4px; border-radius:2px; outline:none; cursor:pointer;
+.neria-slider-row .neria-range { flex:1; -webkit-appearance:none; appearance:none; height:4px; border-radius:2px; outline:none; cursor:pointer;
   background-color:var(--neria-border);
   background-image:repeating-linear-gradient(to right, #8a7660 0, #8a7660 2px, transparent 2px, transparent calc(25% - 2px));
   background-repeat:no-repeat;
 }
-.neria-range::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:16px; height:16px; border-radius:50%; background:var(--neria-accent); cursor:pointer; }
-.neria-range::-moz-range-thumb { width:16px; height:16px; border-radius:50%; background:var(--neria-accent); cursor:pointer; border:none; }
+.neria-slider-row .neria-range::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:16px; height:16px; border-radius:50%; background:var(--neria-accent); cursor:pointer; }
+.neria-slider-row .neria-range::-moz-range-thumb { width:16px; height:16px; border-radius:50%; background:var(--neria-accent); cursor:pointer; border:none; }
 .neria-input--small { width:52px; text-align:center; padding:4px 6px; }
 
 /* Radio-cards poids titres */
