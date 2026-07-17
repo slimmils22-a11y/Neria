@@ -1486,6 +1486,7 @@ class StatsManager
         $templates = $this->db->executeS(
             "SELECT DISTINCT `template` FROM `{$table}`
              WHERE `event_type` = 'sent'
+               AND `id_shop`    = {$this->idShop}
                AND `date_add`  > DATE_SUB(NOW(), INTERVAL 14 DAY)"
         );
 
@@ -1531,9 +1532,10 @@ class StatsManager
         $sent = (int) $this->db->getValue(sprintf(
             "SELECT COUNT(*) FROM `{$t}`
              WHERE `template` = '%s' AND `event_type` = 'sent'
+               AND `id_shop`   = %d
                AND `date_add` > DATE_SUB(NOW(), INTERVAL %d DAY)
                AND `date_add` <= DATE_SUB(NOW(), INTERVAL %d DAY)",
-            pSQL($template), $daysBack, $daysOffset
+            pSQL($template), $this->idShop, $daysBack, $daysOffset
         ));
 
         if ($sent === 0) {
@@ -1547,17 +1549,19 @@ class StatsManager
         $opens = (int) $this->db->getValue(sprintf(
             "SELECT COUNT(*) FROM `{$t}`
              WHERE `template` = '%s' AND `event_type` = 'open' AND `is_mpp` = 0
+               AND `id_shop`   = %d
                AND `date_add` > DATE_SUB(NOW(), INTERVAL %d DAY)
                AND `date_add` <= DATE_SUB(NOW(), INTERVAL %d DAY)",
-            pSQL($template), $daysBack, $daysOffset
+            pSQL($template), $this->idShop, $daysBack, $daysOffset
         ));
 
         $clicks = (int) $this->db->getValue(sprintf(
             "SELECT COUNT(*) FROM `{$t}`
              WHERE `template` = '%s' AND `event_type` = 'click'
+               AND `id_shop`   = %d
                AND `date_add` > DATE_SUB(NOW(), INTERVAL %d DAY)
                AND `date_add` <= DATE_SUB(NOW(), INTERVAL %d DAY)",
-            pSQL($template), $daysBack, $daysOffset
+            pSQL($template), $this->idShop, $daysBack, $daysOffset
         ));
 
         return [
