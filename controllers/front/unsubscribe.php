@@ -97,14 +97,21 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
             return false;
         }
 
-        $db = Db::getInstance();
-        $e  = pSQL(Tools::strtolower($email));
-        $ok = false;
+        $db     = Db::getInstance();
+        $e      = pSQL(Tools::strtolower($email));
+        $idShop = (int) $this->context->shop->id;
+        $ok     = false;
 
-        // Newsletter des comptes clients
+        // Newsletter des comptes clients — scopé à la boutique courante :
+        // `customer` a une colonne id_shop et, en multiboutique sans partage
+        // de comptes, la même adresse email peut correspondre à des lignes
+        // client distinctes par boutique. Sans ce filtre, cliquer sur le
+        // lien de désabonnement reçu de la boutique A désabonnait aussi
+        // silencieusement le même email sur les boutiques B, C...
         try {
             $db->execute(
-                "UPDATE `" . _DB_PREFIX_ . "customer` SET `newsletter` = 0 WHERE LOWER(`email`) = '" . $e . "'"
+                "UPDATE `" . _DB_PREFIX_ . "customer` SET `newsletter` = 0
+                 WHERE LOWER(`email`) = '" . $e . "' AND `id_shop` = " . $idShop
             );
             $ok = true;
         } catch (\Throwable $ex) {
@@ -112,12 +119,14 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
         }
 
         // Newsletter des invités (module ps_emailsubscription), si la table existe
+        // — même raisonnement : la table est explicitement scopée par id_shop.
         try {
             $table = _DB_PREFIX_ . 'emailsubscription';
             $exists = $db->executeS("SHOW TABLES LIKE '" . pSQL($table) . "'");
             if (is_array($exists) && count($exists) > 0) {
                 $db->execute(
-                    "UPDATE `" . $table . "` SET `active` = 0 WHERE LOWER(`email`) = '" . $e . "'"
+                    "UPDATE `" . $table . "` SET `active` = 0
+                     WHERE LOWER(`email`) = '" . $e . "' AND `id_shop` = " . $idShop
                 );
                 $ok = true;
             }

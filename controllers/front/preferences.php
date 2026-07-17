@@ -61,10 +61,15 @@ class NeriaPreferencesModuleFrontController extends ModuleFrontController
         // `cid` fourni par le client sans vérifier qu'il correspond bien à cet
         // email, un client authentifié sur SA PROPRE adresse pourrait changer
         // `cid` pour écraser les préférences d'un autre client (IDOR en écriture).
+        // Scopé à la boutique courante : en multiboutique sans partage de
+        // comptes, la même adresse peut correspondre à des lignes client
+        // distinctes par boutique (colonne id_shop). Sans ce filtre, un
+        // lien de préférences reçu de la boutique A pouvait résoudre le
+        // compte client d'une autre boutique et lire/écrire ses préférences.
         $row = Db::getInstance()->getRow(
             "SELECT `id_customer` FROM `" . _DB_PREFIX_ . "customer`
              WHERE LOWER(`email`) = '" . pSQL(strtolower($email)) . "'
-             AND `deleted` = 0 LIMIT 1"
+             AND `deleted` = 0 AND `id_shop` = " . (int) $this->context->shop->id
         );
         $idCustomer = $row ? (int) $row['id_customer'] : 0;
 
