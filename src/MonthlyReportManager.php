@@ -470,14 +470,27 @@ class MonthlyReportManager
     // RECOMMANDATIONS AUTOMATIQUES
     // ============================================================
 
+    /**
+     * Construit les recommandations avec des CODES BRUTS (template, jour de la
+     * semaine) plutôt que des libellés déjà traduits : cette méthode est
+     * appelée UNE SEULE FOIS pour tout le rapport (avant la boucle sur les
+     * destinataires dans deliverReport()), alors que chaque destinataire peut
+     * avoir sa propre langue. Si on résolvait ici le libellé de template ou le
+     * nom du jour via AdminTranslator (état global dépendant de la langue
+     * courante au moment de l'appel — souvent celle du visiteur front qui a
+     * déclenché checkAndSend(), sans rapport avec la langue des employés
+     * destinataires), TOUS les destinataires recevraient ces bouts de texte
+     * dans la même langue figée, même si le reste de l'email est bien
+     * localisé par destinataire. La résolution finale a lieu dans
+     * renderHtml()/renderTxt(), appelées après que AdminTranslator::setLang()
+     * ait été positionné sur la langue du destinataire courant.
+     */
     private function generateRecommendations(array $report, array $prev): array
     {
         $recs   = [];
-        $lang   = class_exists('AdminTranslator') ? AdminTranslator::currentLang() : 'fr';
         $kpis   = $report['kpis'];
         $pkpis  = $prev['kpis'];
         $all    = $report['rankings']['all'];
-        $labels = class_exists('AdminTranslator') ? AdminTranslator::templateLabels() : [];
 
         // Évolution du volume global
         if ($pkpis['total_sent'] > 0 && $kpis['total_sent'] > 0) {
@@ -494,7 +507,7 @@ class MonthlyReportManager
             $top = $report['rankings']['top3'][0];
             if ((float) $top['rate_open'] >= 30) {
                 $recs[] = ['type' => 'success', 'key' => 'rec_star', 'vars' => [
-                    'template' => $labels[$top['template']] ?? $top['template'],
+                    'template' => $top['template'],
                     'rate'     => $top['rate_open'],
                 ]];
             }
@@ -504,7 +517,7 @@ class MonthlyReportManager
         foreach ($all as $row) {
             if ((int) $row['total_sent'] >= 20 && (float) $row['rate_open'] < 10) {
                 $recs[] = ['type' => 'error', 'key' => 'rec_low_open', 'vars' => [
-                    'template' => $labels[$row['template']] ?? $row['template'],
+                    'template' => $row['template'],
                     'rate'     => $row['rate_open'],
                 ]];
                 break;
@@ -515,7 +528,7 @@ class MonthlyReportManager
         foreach ($all as $row) {
             if ((float) $row['rate_open'] >= 25 && (float) $row['rate_click'] < 2 && (int) $row['total_sent'] >= 20) {
                 $recs[] = ['type' => 'warning', 'key' => 'rec_low_click', 'vars' => [
-                    'template' => $labels[$row['template']] ?? $row['template'],
+                    'template' => $row['template'],
                 ]];
                 break;
             }
@@ -525,8 +538,8 @@ class MonthlyReportManager
         $bt = $report['best_time'];
         if ($bt['best_day'] !== null && $bt['best_hour'] !== null) {
             $recs[] = ['type' => 'info', 'key' => 'rec_best_time', 'vars' => [
-                'day'  => $this->dayName($bt['best_day'], $lang),
-                'hour' => $bt['best_hour'] . 'h',
+                'day_dow' => $bt['best_day'], // résolu en texte à l'affichage (par destinataire)
+                'hour'    => $bt['best_hour'] . 'h',
             ]];
         }
 
@@ -534,7 +547,7 @@ class MonthlyReportManager
         foreach ($report['ab_summary'] as $ab) {
             if ((float) $ab['delta'] >= 5) {
                 $recs[] = ['type' => 'info', 'key' => 'rec_ab_winner', 'vars' => [
-                    'template' => $ab['label'],
+                    'template' => $ab['template'],
                     'winner'   => $ab['winner'],
                     'delta'    => $ab['delta'],
                 ]];
@@ -736,16 +749,23 @@ class MonthlyReportManager
             return ' <span style="color:' . $color . ';font-size:11px;">' . $arrow . ' ' . abs($pct) . '%</span>';
         };
 
+        // Résolus ICI (au rendu, par destinataire) plutôt qu'au moment du
+        // build du rapport : AdminTranslator::templateLabels()/dayName()
+        // dépendent de la langue globale courante, qui n'est positionnée sur
+        // celle du destinataire courant qu'à ce stade (cf. deliverReport()).
+        $labels = class_exists('AdminTranslator') ? AdminTranslator::templateLabels() : [];
+
         $thStyle    = 'padding:8px 12px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#8a8278;font-weight:normal;text-align:';
-        $renderRows = function (array $rows) use ($symbol): string {
+        $renderRows = function (array $rows) use ($symbol, $labels): string {
             $html = '';
             foreach ($rows as $i => $row) {
                 $num = ($i + 1) . '.';
+                $label = $labels[$row['template']] ?? ($row['label'] ?? $row['template']);
                 $rev = $row['revenue'] > 0
                     ? ' <span style="color:#b38b59;font-size:11px;">' . $symbol . number_format($row['revenue'], 0, ',', ' ') . '</span>'
                     : '';
                 $html .= '<tr>'
-                    . '<td style="padding:9px 12px;border-bottom:1px solid #f0ede6;font-size:13px;">' . $num . ' ' . htmlspecialchars($row['label']) . '</td>'
+                    . '<td style="padding:9px 12px;border-bottom:1px solid #f0ede6;font-size:13px;">' . $num . ' ' . htmlspecialchars($label) . '</td>'
                     . '<td style="padding:9px 12px;border-bottom:1px solid #f0ede6;text-align:center;font-size:13px;">' . $row['total_sent'] . '</td>'
                     . '<td style="padding:9px 12px;border-bottom:1px solid #f0ede6;text-align:center;font-size:13px;color:#1a7a40;font-weight:bold;">' . $row['rate_open'] . '%</td>'
                     . '<td style="padding:9px 12px;border-bottom:1px solid #f0ede6;text-align:center;font-size:13px;">' . $row['rate_click'] . '%' . $rev . '</td>'
@@ -758,7 +778,7 @@ class MonthlyReportManager
         $recsHtml  = '';
         foreach ($d['recommendations'] as $rec) {
             $bg       = $recColors[$rec['type']] ?? '#f5f5f5';
-            $msg      = $this->t('report.' . $rec['key'], $rec['vars']);
+            $msg      = $this->t('report.' . $rec['key'], $this->resolveRecVars($rec['vars'], $labels, $lang));
             $recsHtml .= '<p style="margin:6px 0;padding:10px 14px;background:' . $bg . ';border-radius:3px;font-size:13px;line-height:1.5;">' . htmlspecialchars($msg) . '</p>';
         }
 
@@ -766,8 +786,9 @@ class MonthlyReportManager
         foreach ($d['ab_summary'] as $ab) {
             $tickA  = $ab['winner'] === 'A' ? ' &check;' : '';
             $tickB  = $ab['winner'] === 'B' ? ' &check;' : '';
+            $abLabel = $labels[$ab['template']] ?? ($ab['label'] ?? $ab['template']);
             $abHtml .= '<tr>'
-                . '<td style="padding:9px 12px;border-bottom:1px solid #f0ede6;font-size:13px;">' . htmlspecialchars($ab['label']) . '</td>'
+                . '<td style="padding:9px 12px;border-bottom:1px solid #f0ede6;font-size:13px;">' . htmlspecialchars($abLabel) . '</td>'
                 . '<td style="padding:9px 12px;border-bottom:1px solid #f0ede6;text-align:center;font-size:13px;">' . $ab['A']['rate_open'] . '%' . $tickA . '</td>'
                 . '<td style="padding:9px 12px;border-bottom:1px solid #f0ede6;text-align:center;font-size:13px;">' . $ab['B']['rate_open'] . '%' . $tickB . '</td>'
                 . '<td style="padding:9px 12px;border-bottom:1px solid #f0ede6;text-align:center;font-size:13px;color:#b38b59;">+' . $ab['delta'] . '%</td>'
@@ -873,9 +894,10 @@ class MonthlyReportManager
         }
 
         if (!empty($d['recommendations'])) {
+            $labels = class_exists('AdminTranslator') ? AdminTranslator::templateLabels() : [];
             $lines[] = $t('section_recs');
             foreach ($d['recommendations'] as $rec) {
-                $lines[] = '- ' . $this->t('report.' . $rec['key'], $rec['vars']);
+                $lines[] = '- ' . $this->t('report.' . $rec['key'], $this->resolveRecVars($rec['vars'], $labels, $lang));
             }
         }
 
@@ -978,6 +1000,23 @@ class MonthlyReportManager
         ];
 
         return ($days[$lang] ?? $days['en'])[$dow] ?? (string) $dow;
+    }
+
+    /**
+     * Résout, au moment du rendu (langue déjà positionnée sur le
+     * destinataire courant), les codes bruts stockés dans generateRecommendations()
+     * : code de template -> libellé localisé, index de jour -> nom du jour localisé.
+     */
+    private function resolveRecVars(array $vars, array $labels, string $lang): array
+    {
+        if (isset($vars['template'])) {
+            $vars['template'] = $labels[$vars['template']] ?? $vars['template'];
+        }
+        if (isset($vars['day_dow'])) {
+            $vars['day'] = $this->dayName((int) $vars['day_dow'], $lang);
+            unset($vars['day_dow']);
+        }
+        return $vars;
     }
 
     private function t(string $key, array $vars = []): string
