@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Suas peças foram confiadas aos nossos artesãos. Em suas mãos, cada gesto é uma homenagem à sua escolha.
+
+Pedido
+--------------------------------
+O pedido PREVIEW001.
+
+Um saber fazer pacientemente cultivado, inteiramente a serviço do que você espera — e do que você merece.
+
+<a href="http://localhost/shop/br/historico-de-pedidos" style="color:#b38b59;">Você pode acompanhar a evolução do seu pedido a partir da sua conta de cliente</a> : http://localhost/shop/br/historico-de-pedidos
+
+<a href="http://localhost/shop/br/rastreamento-para-visitante" style="color:#b38b59;">Se fez seu pedido como convidado, acompanhe-o através do link dedicado</a> : http://localhost/shop/br/rastreamento-para-visitante
+
+Na esperança do prazer de satisfazê-lo,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

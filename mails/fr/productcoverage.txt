@@ -1,0 +1,17 @@
+Test Neria
+
+Cher(e) collaborateur(trice),
+
+Le système a détecté qu'un produit est proche de son seuil critique de couverture.
+
+État de couverture
+--------------------------------
+Couverture minimale : 7 jours
+
+Couverture actuelle : 3 jours
+
+Veuillez consulter votre stock et réapprovisionner si nécessaire.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

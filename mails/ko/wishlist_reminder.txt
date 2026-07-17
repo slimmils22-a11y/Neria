@@ -1,0 +1,19 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+위시리스트에 담아두신 작품 중 하나가 다시 구매 가능합니다.
+
+작품 세부 정보
+--------------------------------
+Montre Élégance Neria
+
+작품 보기 : http://localhost/shop/
+
+재고가 한정되어 있습니다. 서둘러 주시기 바랍니다.
+
+도와드리겠습니다,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,22 @@
+﻿Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+반품이 포함된 소포가 팀에 도착했음을 확인합니다. 필요한 모든 주의를 기울여 처리할 것입니다.
+
+주문 참조 번호 : PREVIEW001
+
+반품 세부 정보
+--------------------------------
+Réf. NER-001 — Montre Élégance Neria × 1
+Réf. NER-014 — Bracelet Cuir Atelier × 1
+
+반품 추적 : http://localhost/shop/ko/주문-내역
+
+처리 진행 상황을 알려드리겠습니다.
+
+도와드리겠습니다,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

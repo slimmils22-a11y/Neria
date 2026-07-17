@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Seu pedido está sendo processado pelas autoridades aduaneiras do país de destino.
+
+Referência do pedido : PREVIEW001
+
+Detalhes do alerta aduaneiro
+--------------------------------
+Status atual : En attente de dédouanement
+
+Ação recomendada : Aucune action requise de votre part.
+
+Rastrear meu pacote : http://localhost/shop/br/historico-de-pedidos
+
+Nossa equipe pode auxiliá-lo nos procedimentos, se necessário.
+
+Ao seu serviço para superar esta etapa,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

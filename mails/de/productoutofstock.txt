@@ -1,0 +1,21 @@
+Test Neria
+
+Liebe(r) Mitarbeiter(in),
+
+Ein Produkt in Ihrem Shop ist jetzt nicht vorrätig.
+
+Produktdetails
+--------------------------------
+Produkt : 
+
+Lagerbestandsschwelle erreicht : 
+
+Verbleibende Menge : 
+
+Wir empfehlen Ihnen, dieses Produkt so schnell wie möglich nachzubestellen.
+
+Diese Warnung ist automatisch. Überprüfen Sie Ihren Bestand.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

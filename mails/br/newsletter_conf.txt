@@ -1,0 +1,19 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Temos o prazer de recebê-lo entre nossos assinantes. Sua inscrição em nossa newsletter foi confirmada.
+
+Confirmação
+--------------------------------
+A partir de agora você receberá em primeira mão nossas novas coleções, convites privados e os momentos altos de nossa casa — compartilhados com aqueles que estimamos.
+
+Sua confiança é sagrada. Nós a protegemos como protegemos nossa reputação: com rigor e discrição.
+
+Você pode gerenciar suas preferências e cancelar a inscrição a qualquer momento em sua conta de cliente.
+
+Acessar meu espaço : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

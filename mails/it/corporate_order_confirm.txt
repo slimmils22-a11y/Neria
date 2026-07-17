@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Confermiamo la ricezione del Vostro ordine per conto della Vostra azienda. Sarà elaborato con tutta l'attenzione che un tale impegno merita.
+
+Riferimento ordine : #TEST00125
+
+Dettagli dell'ordine aziendale
+--------------------------------
+
+
+Traccia il mio ordine : http://localhost/shop/it/cronologia-ordini
+
+Il nostro team dedicato alle relazioni aziendali è a Vostra disposizione.
+
+Al Vostro servizio per questa partnership,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

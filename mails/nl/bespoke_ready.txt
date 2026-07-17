@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Wij zijn verheugd u te kunnen meedelen dat uw op maat gemaakte bestelling nu klaar is. Onze ambachtslieden hebben uw visie tot leven gebracht.
+
+Orderreferentie : PREVIEW001
+
+Details van uw stuk
+--------------------------------
+Montre Élégance Neria
+
+Volg de levering : http://localhost/shop/nl/besteloverzicht
+
+Wij danken u voor uw geduld. Dit unieke stuk is eindelijk klaar om u te bereiken.
+
+Trots dat we u hebben begeleid bij deze creatie,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

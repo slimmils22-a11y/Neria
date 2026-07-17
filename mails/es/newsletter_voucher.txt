@@ -1,0 +1,19 @@
+Test Neria
+
+Buenos días, Camille,
+
+Le agradecemos que se haya suscrito a nuestro boletín. Como gesto de bienvenida, aquí tiene un código exclusivo que le ofrece  de descuento en su próximo pedido.
+
+Su código de invitación
+--------------------------------
+Código exclusivo : 
+
+Este código es válido durante 30 días en toda nuestra maison. No puede combinarse con otras atenciones.
+
+Descubra nuestras creaciones : http://localhost/shop/
+
+Le deseamos un maravilloso descubrimiento de nuestras piezas únicas.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

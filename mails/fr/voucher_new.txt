@@ -1,0 +1,21 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous avons le plaisir de vous offrir une nouvelle attention particulière.
+
+Une attention à votre intention
+--------------------------------
+Nous avons préparé cette attention pour vous. Vous pourrez l'utiliser lors de votre prochaine visite.
+
+Code de l'attention : NERIA-VIP-2026
+
+Cette attention est valable 30 jours sur l'ensemble de notre maison. Elle ne peut être cumulée avec d'autres offres.
+
+Nous espérons que vous trouverez parmi nos créations de quoi vous faire plaisir.
+
+Avec le plaisir de vous offrir ce geste,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

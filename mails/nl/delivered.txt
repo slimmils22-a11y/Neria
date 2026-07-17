@@ -1,0 +1,23 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+We zijn blij u te bevestigen dat uw bestelling is bezorgd.
+
+Bestelling
+--------------------------------
+Uw bestelling PREVIEW001.
+
+We hopen dat dit stuk u evenveel vreugde brengt om te dragen als het onze ambachtslieden deed om het te maken.
+
+<a href="http://localhost/shop/nl/besteloverzicht" style="color:#b38b59;">Bekijk uw bestelgeschiedenis</a> : http://localhost/shop/nl/besteloverzicht
+
+<a href="http://localhost/shop/nl/bestelling-volgen-als-gast" style="color:#b38b59;">Gasttracking</a> : http://localhost/shop/nl/bestelling-volgen-als-gast
+
+Voor vragen over uw bestelling staat onze klantenservice voor u klaar.
+
+Met al onze dankbaarheid en trots,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

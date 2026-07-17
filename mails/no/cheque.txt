@@ -1,0 +1,33 @@
+Test Neria
+
+God morgen, Sophie,
+
+Bestillingen din er registrert. Den vil bli behandlet etter mottak av sjekken din.
+
+Bestilling PREVIEW001 — Venter på sjekk
+--------------------------------
+Takk for bestillingen PREVIEW001.
+
+Sjekkens sendeinformasjon
+--------------------------------
+Vennligst skriv ut sjekken til mottakeren nedenfor og send den til følgende adresse:
+
+Beløp : 89,00 €
+
+Sjekken utstedt til : Test Neria
+
+Sendingsadresse :
+12 rue de la Paix
+75001 Paris
+
+Vennligst oppgi referansen PREVIEW001.
+
+<a href="http://localhost/shop/no/ordrehistorikk" style="color:#b38b59;">Vis bestillingshistorikken din</a> : http://localhost/shop/no/ordrehistorikk
+
+<a href="http://localhost/shop/no/gjestesporing" style="color:#b38b59;">Gjestesporing</a> : http://localhost/shop/no/gjestesporing
+
+I påvente av din sjekk, med all vår tillit,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

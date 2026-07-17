@@ -1,0 +1,23 @@
+為您保留
+
+您好 Sophie,
+
+您等待了  天。我們沒有忘記。
+
+這件商品重新有貨了——因為您是最早登記的，我們為您提供獨家優先購買權。
+
+您的優先購買權有效期為  小時，之後將向所有人開放。
+
+--------
+
+Montre Élégance Neria
+ €
+http://localhost/shop/index.php?controller=product&id_product=1
+
+--------
+
+您收到此通知是因為您要求在此商品重新有貨時收到提醒。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,25 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+Each piece we offer comes with a certificate of provenance guaranteeing its authenticity and origin.
+
+Origin
+--------------------------------
+France — Atelier parisien, fondé en 1987
+
+Materials & techniques
+--------------------------------
+Cuir de veau pleine fleur, acier 316L, verre saphir
+
+Artisan / Workshop
+--------------------------------
+Maître Jean-Pierre Moreau, Meilleur Ouvrier de France
+
+We are proud to pass on to you this exceptional piece, bearing a carefully preserved artisanal heritage.
+
+This electronic document is your certificate of provenance. Please keep it safely.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

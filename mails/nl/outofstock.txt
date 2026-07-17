@@ -1,0 +1,21 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Wij betreuren het u te moeten meedelen dat een van de artikelen in uw bestelling momenteel niet beschikbaar is.
+
+Bestelling PREVIEW001
+--------------------------------
+Een van de stukken in uw bestelling ontwijkt ons tijdelijk — een zeer zeldzame situatie, die we zeer serieus nemen.
+
+Onze excuses voor deze vertraging, die niet onze standaarden weerspiegelt. Ons team zal binnenkort contact met u opnemen om samen de beste oplossing te bepalen.
+
+<a href="http://localhost/shop/nl/besteloverzicht" style="color:#b38b59;">U kunt de details van uw bestelling bekijken via uw klantenaccount</a> : http://localhost/shop/nl/besteloverzicht
+
+<a href="http://localhost/shop/nl/bestelling-volgen-als-gast" style="color:#b38b59;">Als u als gast heeft besteld, volg dan uw bestelling via de speciale link</a> : http://localhost/shop/nl/bestelling-volgen-als-gast
+
+Wij verontschuldigen ons voor deze zeer zeldzame vertraging,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

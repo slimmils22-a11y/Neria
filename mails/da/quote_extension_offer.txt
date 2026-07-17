@@ -1,0 +1,23 @@
+Test Neria
+
+God morgen, Sophie,
+
+Dit tilbud er udløbet, men vi ønsker at give dig mulighed for at gå videre. På en simpel anmodning kan vi forlænge dets gyldighed afhængigt af tilgængelighed.
+
+Tilbudsreference: 
+
+Beløb: 
+
+Forlængelse mulig til: 
+
+Anmod om en forlængelse : 
+
+Kontakt os i dag for at bekræfte dit tilbud under de oprindelige betingelser. Vores team vil gennemgå din anmodning med stor omhu.
+
+Dette forlængelsestilbud er afhængigt af varetilgængelighed og bekræftelse fra vores team.
+
+Med udmærket agtelse,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

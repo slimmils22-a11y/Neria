@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Boa noite, Camille,
+
+Neste dia dedicado aos avós, honramos a memória, a doçura e a sabedoria que eles semearam em si.
+
+Ofereça-lhes uma peça que carregue o tempo, a paciência e o amor que eles lhe deram.
+
+Descubra a nossa seleção : http://localhost/shop/
+
+Uma atenção especial está reservada para si até ao final da semana.
+
+Toda a equipa deseja-lhe um feliz dia dos avós.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

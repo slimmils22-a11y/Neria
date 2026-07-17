@@ -1,0 +1,19 @@
+Test Neria
+
+Buenos días, Camille,
+
+Hemos notado que estaba a punto de completar su pedido. A veces surge un problema técnico en el último momento — un error 3DS, un tiempo de espera de conexión o una duda de última hora.
+
+Su carrito está guardado y su selección le espera exactamente donde la dejó.
+
+Completar mi pedido : 
+
+Si tuvo algún problema con el pago, nuestro equipo está disponible para ayudarle a finalizar con total tranquilidad.
+
+No se requiere ninguna acción especial de su parte — su carrito está preservado.
+
+Con toda nuestra atención,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

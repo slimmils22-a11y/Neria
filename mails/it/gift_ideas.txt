@@ -1,0 +1,18 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Le grandi occasioni si avvicinano. Prima che arrivino, abbiamo preparato per Voi una selezione di pezzi da regalare — scelti in base ai Vostri gusti e a chi sembra tenere di più.
+
+Donare significa prolungare un'attenzione. Ogni pezzo di questa selezione è stato scelto per toccare chi lo riceve, con l'eleganza che Voi gli augurate.
+
+Scoprire la selezione : http://localhost/shop/
+
+Questa selezione è stata composta per Voi, in riconoscimento della Vostra fedeltà e sensibilità.
+
+
+Con tutta la nostra delicatezza,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

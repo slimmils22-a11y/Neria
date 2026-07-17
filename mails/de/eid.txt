@@ -1,0 +1,17 @@
+Test Neria
+
+Hallo, Camille,
+
+Aus Anlass des Eid-Festes möchten wir Ihnen unsere aufrichtigsten Wünsche übermitteln.
+
+Möge dieses heilige Fest Ihnen Glück, Gesundheit und wertvolle Momente im Kreise Ihrer Familie bescheren.
+
+Entdecken Sie unsere Auswahl : http://localhost/shop/
+
+Eine besondere Aufmerksamkeit ist für Sie bis Ende der Woche reserviert.
+
+Das gesamte Team wünscht Ihnen eine wunderschöne Feier.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

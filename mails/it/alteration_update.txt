@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Vi informiamo sull'avanzamento della modifica su misura del Vostro pezzo. Ecco le ultime notizie.
+
+Riferimento ordine : #TEST00125
+
+Dettagli del progresso
+--------------------------------
+Stato attuale : 
+
+Segui il progresso : http://localhost/shop/it/cronologia-ordini
+
+Il nostro team rimane a Vostra disposizione per ogni domanda.
+
+Al Vostro servizio,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

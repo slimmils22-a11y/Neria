@@ -1,0 +1,23 @@
+Test Neria
+
+Hallo, Camille,
+
+Ihr Angebot ist abgelaufen, aber wir möchten Ihnen die Möglichkeit geben, es doch noch umzusetzen. Auf einfache Anfrage können wir seine Gültigkeit vorbehaltlich Verfügbarkeit verlängern.
+
+Angebotsreferenz: 
+
+Betrag: 
+
+Verlängerung möglich bis: 
+
+Verlängerung beantragen : 
+
+Kontaktieren Sie uns noch heute, um Ihr Angebot zu den ursprünglichen Bedingungen zu bestätigen. Unser Team wird Ihre Anfrage mit größter Sorgfalt prüfen.
+
+Dieses Verlängerungsangebot hängt von der Verfügbarkeit der Artikel und der Bestätigung durch unser Team ab.
+
+Mit vorzüglicher Hochachtung,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

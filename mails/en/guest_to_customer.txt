@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+You recently placed an order as a guest. We invite you to convert your guest account into a permanent customer account to enjoy many benefits.
+
+Your account information
+--------------------------------
+Email address : test@test.com
+
+Set your password to activate your account and access your personal space.
+
+Activate my personal space : http://localhost/shop/
+
+Your personal space will allow you to find your privileges at any time: follow your creations in transit, consult the history of your choices, and prepare your future visits in the best conditions.
+
+Access my account : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

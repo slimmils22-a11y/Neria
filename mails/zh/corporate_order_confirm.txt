@@ -1,0 +1,21 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+我们已确认收到代表贵公司的订单。我们将以应有的谨慎进行处理。
+
+订单编号 : PREVIEW001
+
+企业订单详情
+--------------------------------
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+跟踪我的订单 : http://localhost/shop/zh/订单-历史
+
+我们的企业关系专属团队随时为您服务。
+
+为此次合作竭诚服务，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

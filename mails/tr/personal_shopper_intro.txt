@@ -1,0 +1,19 @@
+Test Neria
+
+Günaydın, Camille,
+
+Sizi seçimlerinizde yönlendirmeye ve arzularınızı karşılamaya adanmış kişisel danışmanınızı tanıtmaktan mutluluk duyarız.
+
+Size özel danışmanınız
+--------------------------------
+Danışmanınız : 
+
+Danışmanımla iletişime geç : http://localhost/shop/
+
+Zevklerinizi bilir ve size uygun parçalara yönlendirebilir.
+
+Hizmetinizde, özenle,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+Sizi düşündük ve iyi olduğunuzu umuyoruz. Kreasyonlarımız gelişmeye devam ediyor ve size onları yeniden tanıtmak istiyoruz.
+
+İlginizi çekebilecek bir seçki hazırladık. Nazik bir ilgi, taahhüt gerektirmez.
+
+Seçkimizi keşfedin : http://localhost/shop/
+
+Sizi tekrar ağırlamaktan mutluluk duyarız.
+
+Sizi tekrar görmeyi beklerken,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

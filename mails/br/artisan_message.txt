@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Por trás de cada peça que você recebe, há um olhar, uma mão, uma história. Aqui está uma mensagem pessoal do artesão que moldou a sua.
+
+Mensagem do artesão
+--------------------------------
+Sua peça nasceu da minha paixão e dos meus gestos. Espero que ela o acompanhe por muito tempo.
+
+  — Da parte de
+
+Descobrir a oficina : http://localhost/shop/
+
+Orgulhamo-nos de lhe apresentar aqueles que dão vida aos seus desejos.
+
+Com o calor das nossas oficinas,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

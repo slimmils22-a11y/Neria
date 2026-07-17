@@ -1,0 +1,17 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+Your refund has now been finalised. We hope everything has been handled to your satisfaction.
+
+Please know that our house is yours, and we will always be delighted to welcome you back, whenever you feel ready.
+
+Return to our house : http://localhost/shop/
+
+New arrivals have come since your last visit. Perhaps you will find something that appeals to you.
+
+With our warmest regards,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

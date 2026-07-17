@@ -1,0 +1,15 @@
+﻿Test Neria
+
+God morgon, Sophie,
+
+Vi har privilegiet att bjuda in dig till vår privatförsäljning, reserverad för våra mest värdefulla gäster.
+
+Njut av ett unikt urval av sällsynta föremål till privilegierade villkor.
+
+Få tillgång till den privata försäljningen : http://localhost/shop/vente-privee
+
+Detta erbjudande är strikt personligt och tidsbegränsat.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

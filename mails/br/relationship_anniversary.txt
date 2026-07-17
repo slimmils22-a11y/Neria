@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Há , você nos deu a sua confiança pela primeira vez. Não esquecemos.
+
+Sua fidelidade é nossa maior recompensa. Temos o prazer de tê-lo entre nossos clientes mais queridos.
+
+Ver minhas compras : http://localhost/shop/br/historico-de-pedidos
+
+Obrigado por fazer parte da nossa história.
+
+Com toda a nossa gratidão,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Sizinle ilgili olarak  siparişinizi verdiğinizi bildirmekten mutluluk duyarız. Sembolik bir dönüm noktası.
+
+Her sipariş bizim için bir güven işaretidir. Bu, özellikle bir tane daha ve size içtenlikle teşekkür ediyoruz.
+
+Seçkimi keşfet : http://localhost/shop/tr/siparis-gecmisi
+
+Bu kilometre taşlarına ulaşan konuklarımıza özel bir ilgi gösteriyoruz.
+
+Tüm şükranlarımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

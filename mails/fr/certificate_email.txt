@@ -1,0 +1,17 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous avons le plaisir de vous transmettre, en pièce jointe de cet email, le certificat d'authenticité de votre pièce.
+
+Pièce : Montre Élégance Neria
+
+Numéro de série : 
+
+Ce document certifie l'authenticité de votre pièce et constitue une pièce officielle. Conservez-le précieusement.
+
+Fiers de la qualité de notre savoir-faire,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

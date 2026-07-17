@@ -1,0 +1,21 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We are taking the time to verify every detail of your order before completing it.
+
+Order reference : PREVIEW001
+
+Here are the details of the situation:
+--------------------------------
+Reason for the hold : Vérification de votre paiement en cours
+
+Track my order : http://localhost/shop/en/order-history
+
+Our team remains available for any questions.
+
+With all our attention,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

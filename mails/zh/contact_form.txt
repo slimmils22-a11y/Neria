@@ -1,0 +1,23 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+我们已收到您关于订单的留言。以下是您提供的信息摘要：
+
+您的请求摘要
+--------------------------------
+订单编号 : PREVIEW001
+
+相关产品 : Montre Élégance Neria
+
+附件 : Aucun fichier joint
+
+我们非常重视每一条留言，并将尽快与您联系。
+
+回到品牌之家 : http://localhost/shop/
+
+期待以应有的关注为您作答，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

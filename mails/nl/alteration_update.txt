@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Wij informeren u over de voortgang van de op maat gemaakte aanpassing van uw stuk. Hier is het laatste nieuws.
+
+Orderreferentie : PREVIEW001
+
+Voortgangsdetails
+--------------------------------
+Huidige status : Retouche en cours de finition
+
+Voortgang volgen : http://localhost/shop/nl/besteloverzicht
+
+Ons team staat voor u klaar voor vragen.
+
+Tot uw dienst,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

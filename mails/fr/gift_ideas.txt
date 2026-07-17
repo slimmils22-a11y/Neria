@@ -1,0 +1,18 @@
+Test Neria
+
+Bonjour, Sophie,
+
+Les grandes occasions approchent. Avant qu'elles n'arrivent, nous avons préparé pour vous une sélection de pièces à offrir — choisies en regard de vos goûts et de ceux que vous semblez chérir.
+
+Offrir, c'est prolonger une attention. Chaque pièce de cette sélection a été pensée pour toucher ceux qui la reçoivent, avec l'élégance que vous leur souhaitez.
+
+Découvrir la sélection : http://localhost/shop/
+
+Cette sélection a été composée pour vous, selon votre fidélité et votre sensibilité.
+
+
+Avec toute notre délicatesse,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

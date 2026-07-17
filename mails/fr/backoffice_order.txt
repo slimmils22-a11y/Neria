@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Une modification a été apportée à votre commande par nos services. Nous vous invitons à consulter les nouvelles informations de paiement ci-dessous.
+
+Informations de paiement mises à jour
+--------------------------------
+Le montant ou les modalités de paiement ont été ajustés. Veuillez procéder à la régularisation en cliquant sur le bouton ci-dessous.
+
+Accéder au paiement : #
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

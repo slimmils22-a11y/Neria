@@ -1,0 +1,33 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Seu pedido foi registrado com sucesso. Será processado após o recebimento de sua transferência bancária.
+
+Pedido PREVIEW001 — Aguardando transferência
+--------------------------------
+Obrigado pelo seu pedido PREVIEW001.
+
+Dados bancários
+--------------------------------
+Efetue sua transferência para a conta abaixo indicada, mencionando obrigatoriamente a seguinte referência:
+
+Valor : 89,00 €
+
+Beneficiário : Test Neria SARL
+
+Detalhes da conta : IBAN : FR76 3000 6000 0112 3456 7890 189 — BIC : AGRIFRPP
+
+Endereço bancário : 12 rue de la Paix, 75001 Paris, France
+
+Por favor, mencione a referência PREVIEW001.
+
+<a href="http://localhost/shop/br/historico-de-pedidos" style="color:#b38b59;">Ver o histórico do seu pedido</a> : http://localhost/shop/br/historico-de-pedidos
+
+<a href="http://localhost/shop/br/rastreamento-para-visitante" style="color:#b38b59;">Rastreamento para convidado</a> : http://localhost/shop/br/rastreamento-para-visitante
+
+Aguardando sua transferência, com toda a nossa paciência,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

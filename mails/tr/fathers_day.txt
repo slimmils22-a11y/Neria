@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Babaları onurlandıran bu günde, köklerinizi, tutkularınızı, sessizliklerinizi şekillendiren kişiyi düşünüyoruz.
+
+Ona en nadir olanı sunun: kelimesiz, minnettarlığınızı anlatan bir parça.
+
+Seçkimizi keşfedin : http://localhost/shop/
+
+Hafta sonuna kadar özel bir ilgi sizi bekliyor.
+
+Tüm ekibimiz size mutlu bir babalar günü diler.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Vi er glade for at meddele, at din skræddersyede ordre nu er klar. Vores håndværkere har givet liv til din vision.
+
+Ordrereference : PREVIEW001
+
+Detaljer om dit stykke
+--------------------------------
+Montre Élégance Neria
+
+Spor leveringen : http://localhost/shop/da/ordrehistorik
+
+Vi takker dig for din tålmodighed. Dette unikke stykke er endelig klar til at nå dig.
+
+Stolte over at have fulgt dig i denne skabelse,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

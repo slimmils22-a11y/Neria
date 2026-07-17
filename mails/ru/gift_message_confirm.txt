@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Доброе утро, Sophie,
+
+Мы подтверждаем, что сообщение, которое Вы приложили к Вашему заказу подарка, было успешно зарегистрировано.
+
+Номер заказа : PREVIEW001
+
+Содержание сообщения
+--------------------------------
+« Joyeux anniversaire ma chère Sophie. Que cette année t apporte tout le bonheur que tu mérites. Avec tout mon amour. »
+
+Посмотреть мой заказ : http://localhost/shop/ru/order-history
+
+Получатель получит это сообщение вместе с посылкой.
+
+Со всем нашим вниманием,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

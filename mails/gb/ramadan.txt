@@ -1,0 +1,17 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+During this blessed month of Ramadan, we send you our warmest wishes.
+
+May this blessed month bring you serenity from within, the joy of sharing, and the grace that accompanies those who fast with faith.
+
+Discover our creations : http://localhost/shop/
+
+A special attention is reserved for you throughout the holy month.
+
+The entire team wishes you a blessed Ramadan.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

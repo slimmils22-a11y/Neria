@@ -1,0 +1,17 @@
+Test Neria
+
+Buenos días, Camille,
+
+Nos complace informarle que su pedido avanza en nuestro taller.
+
+Etapa actual
+--------------------------------
+
+
+Nuestro artesano dedica todo su cuidado a dar vida a su pieza única. Le mantendremos informado en cada etapa.
+
+Puede seguir el avance de su pedido desde su cuenta de cliente.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

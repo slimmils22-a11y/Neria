@@ -1,0 +1,23 @@
+Test Neria
+
+Boa tarde, Camille,
+
+O seu orçamento expira hoje. Convidamo-lo a confirmá-lo o mais brevemente possível para assegurar as condições acordadas.
+
+Referência do orçamento: 
+
+Valor: 
+
+Expira em: 
+
+Validar o meu orçamento agora : 
+
+Para qualquer questão urgente, a nossa equipa está disponível e pronta a ajudá-lo.
+
+Este orçamento expira hoje. Após o prazo, as condições tarifárias acordadas poderão estar sujeitas a alterações.
+
+Com a nossa consideração distinta,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

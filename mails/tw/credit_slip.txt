@@ -1,0 +1,15 @@
+﻿Test Neria
+
+早安, Sophie,
+
+訂單 PREVIEW001 — 貸項憑證
+--------------------------------
+已為您的訂單創建貸項憑證 PREVIEW001.
+
+您可在下次購物時使用此貸項憑證，詳情請訪問 : http://localhost/shop/tw/訂單記錄
+
+信守承諾，以真誠的敬意，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

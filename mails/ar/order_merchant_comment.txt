@@ -1,0 +1,19 @@
+﻿Test Neria
+
+مساء الخير, Sophie,
+
+لدى فريقنا رسالة لكم بخصوص طلبكم.
+
+الطلب PREVIEW001
+--------------------------------
+تمت إضافة رسالة جديدة إلى الطلب PREVIEW001.
+
+رسالة من فريقنا
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+يمكنكم عرض سجل طلبكم من حساب العميل الخاص بكم: http://localhost/shop/ar/سجل طلبات الشراء
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

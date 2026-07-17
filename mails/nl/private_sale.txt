@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Wij hebben het voorrecht u uit te nodigen voor onze privéverkoop, gereserveerd voor onze meest gewaardeerde gasten.
+
+Geniet van een unieke selectie zeldzame stukken tegen bevoorrechte voorwaarden.
+
+Toegang tot de privéverkoop : http://localhost/shop/vente-privee
+
+Deze aanbieding is strikt persoonlijk en beperkt in de tijd.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

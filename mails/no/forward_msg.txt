@@ -1,0 +1,20 @@
+﻿Test Neria
+
+Kjære ansatt,
+
+En kundemelding er videresendt til deg for behandling.
+
+Marie Lefebvre har videresendt følgende melding til deg.
+
+Samtalehistorikk
+--------------------------------
+Client : Bonjour, j'ai une question sur ma commande.
+Support : Bonjour, je regarde ça immédiatement.
+
+Marie Lefebvre har lagt til følgende kommentar : Client prioritaire — traiter en urgence.
+
+Vennligst ikke svar på denne automatiske e-posten. Logg inn i administrasjonen for å behandle forespørselen.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+Test Neria
+
+Buenos días, Camille,
+
+Nos complace confirmarle que su pedido ha sido entregado.
+
+Pedido
+--------------------------------
+Su pedido #TEST00125.
+
+Esperamos que esta pieza le brinde tanta alegría como la que sintieron nuestros artesanos al crearla.
+
+<a href="http://localhost/shop/es/historial-compra" style="color:#b38b59;">Ver el historial de su pedido</a> : http://localhost/shop/es/historial-compra
+
+<a href="http://localhost/shop/es/seguimiento-pedido-invitado" style="color:#b38b59;">Seguimiento para invitados</a> : http://localhost/shop/es/seguimiento-pedido-invitado
+
+Para cualquier pregunta sobre su pedido, nuestro servicio de atención al cliente está a su disposición.
+
+Con toda nuestra gratitud y orgullo,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,58 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+주문을 접수하게 되어 영광입니다. 고객님께서 선택하신 각 작품은 그에 걸맞은 — 그리고 고객님께 걸맞은 — 정성으로 준비될 것입니다.
+
+장인들이 대대로 이어온 유산이 이제 고객님의 창작물로 구현됩니다.
+
+주문 세부 정보
+--------------------------------
+주문 번호 : PREVIEW001
+
+날짜 : 11/07/2026 08:11:47
+
+결제 방법 : Carte bancaire
+
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+
+상품 합계 : 89,00 €
+
+할인 : 0,00 €
+
+배송비 : 0,00 €
+
+세금 : 14,83 €
+
+총 지불액 : 89,00 €
+
+배송
+--------------------------------
+배송사 : Colissimo
+
+배송 주소
+--------------------------------
+Sophie Durand
+12 rue de la Paix
+75001 Paris
+France
+
+청구 주소
+--------------------------------
+Sophie Durand
+12 rue de la Paix
+75001 Paris
+France
+
+<a href="http://localhost/shop/fr/historique-commandes" style="color:#b38b59;">고객 계정에서 소포의 진행 상황을 추적할 수 있습니다</a>
+
+<a href="http://localhost/shop/ko/주문-내역" style="color:#b38b59;">고객 계정에서 주문 내역을 확인하세요</a> : http://localhost/shop/ko/주문-내역
+
+<a href="http://localhost/shop/ko/비회원-추적" style="color:#b38b59;">게스트로 주문한 경우 전용 링크를 통해 주문을 추적하세요</a> : http://localhost/shop/ko/비회원-추적
+
+깊은 감사와 경의를 담아,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

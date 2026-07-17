@@ -1,0 +1,42 @@
+Test Neria
+
+Günaydın, Camille,
+
+Ürününüzle ilgilenmekten memnuniyet duyarız. Bize göndermeniz için gereken tüm bilgiler aşağıdadır.
+
+Sipariş : #TEST00125
+
+İade numarası : 
+
+Gönderim son tarihi : Bu e-postayı aldıktan sonra  gün içinde
+
+İlgili ürün(ler)
+--------------------------------
+
+
+Neden : 
+
+Gönderim talimatları
+--------------------------------
+İade adresi :
+
+
+Lütfen bu iade numarasını paketinizin üzerine yazın: 
+
+Önerilen kargo: içiniz rahat olsun diye takipli ve sigortalı gönderim.
+
+İade koşulları ve olası ücretler iade politikamızda belirtilmiştir.
+
+Ürününüz teslim alındıktan sonra  iş günü içinde incelenecektir.
+
+İade, orijinal ödeme yönteminize yapılacaktır.
+
+İade talebime eriş : http://localhost/shop/tr/siparis-takip
+
+Sorunuz mu var? Ekibimiz her zaman hizmetinizde.
+
+Tüm şükran ve gururumuzla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

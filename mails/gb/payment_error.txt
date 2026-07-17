@@ -1,0 +1,21 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+A technical interruption has interrupted the processing of your payment. We apologise and invite you to regularise it at your convenience.
+
+Order PREVIEW001
+--------------------------------
+Payment for order PREVIEW001.
+
+Your order is preserved and remains a priority. You can regularize your payment whenever you wish — we await you.
+
+Should this inconvenience persist, we invite you to consult the details of your order from your personal space.
+
+<a href="http://localhost/shop/gb/guest-tracking" style="color:#b38b59;">If you ordered as a guest, track your order via the dedicated link</a> : http://localhost/shop/gb/guest-tracking
+
+Thank you for your understanding,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

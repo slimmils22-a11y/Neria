@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Wir bestätigen, dass die Nachricht, die Sie Ihrer Geschenkbestellung beigefügt haben, erfolgreich registriert wurde.
+
+Bestellreferenz : #TEST00125
+
+Nachrichteninhalt
+--------------------------------
+«  »
+
+Meine Bestellung ansehen : http://localhost/shop/de/bestellungsverlauf
+
+Der Empfänger erhält diese Nachricht mit seinem Paket.
+
+Mit all unserer Aufmerksamkeit,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

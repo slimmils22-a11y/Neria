@@ -1,0 +1,17 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir haben in den letzten Tagen an Sie gedacht und möchten Ihnen für Ihre Geduld danken.
+
+Als Zeichen unserer Wertschätzung haben wir eine exklusive Aufmerksamkeit für Sie vorbereitet — ohne Bedingungen, ohne Druck.
+
+Unsere Einladung entdecken : http://localhost/shop/
+
+Diese Aufmerksamkeit ist für Sie reserviert. Unser Team steht Ihnen jederzeit zur Verfügung.
+
+Mit aufrichtigem Dank,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

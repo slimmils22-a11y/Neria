@@ -1,0 +1,15 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Det er gjort en endring i bestillingen din av teamet vårt. Vennligst se den oppdaterte betalingsinformasjonen nedenfor.
+
+Oppdatert betalingsinformasjon
+--------------------------------
+Beløpet eller betalingsbetingelsene er justert. Vennligst gjennomfør justeringen ved å klikke på knappen nedenfor.
+
+Gå til betalingen : http://localhost/shop/index.php?controller=order-detail&id_order=1
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

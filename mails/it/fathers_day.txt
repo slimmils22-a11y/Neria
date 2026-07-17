@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+In questo giorno che onora i padri, pensiamo a colui che ha plasmato le Vostre radici, le Vostre passioni, i Vostri silenzi.
+
+Offritegli ciò che c'è di più raro: un pezzo che racconta, senza una parola, la Vostra gratitudine.
+
+Scoprite la nostra selezione : http://localhost/shop/
+
+Un'attenzione speciale è riservata per Voi fino alla fine della settimana.
+
+Tutto il team Vi augura una buona festa del papà.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

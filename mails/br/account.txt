@@ -1,0 +1,31 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Sua presença nos honra. Seu espaço pessoal foi preparado com cuidado — ele aguarda você.
+
+Informações da sua conta
+--------------------------------
+Agora você pode gerenciar seus pedidos, acompanhar suas entregas e alterar seus dados pessoais.
+
+E-mail associado : test@test.com
+
+Segurança e confidencialidade
+--------------------------------
+Sua senha é criptografada e nunca é visível para nossa equipe.
+
+Nunca compartilhamos seus dados pessoais com terceiros.
+
+Você pode excluir sua conta a qualquer momento mediante simples solicitação.
+
+Para qualquer dúvida, nosso serviço está à sua disposição.
+
+Seu espaço pessoal está agora ativo. Convidamos você a adentrar.
+
+Acessar minha conta : http://localhost/shop/
+
+A casa tem o prazer de contar com você entre os seus,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

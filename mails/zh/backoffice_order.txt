@@ -1,0 +1,15 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+我们的团队已对您的订单进行了修改。请查看以下更新的付款信息。
+
+更新的付款信息
+--------------------------------
+金额或付款条件已调整。请点击下方按钮完成调整。
+
+前往付款 : http://localhost/shop/index.php?controller=order-detail&id_order=1
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,19 @@
+Test Neria
+
+Buenos días, Camille,
+
+Una de las piezas que destacó en su lista de deseos está de nuevo disponible.
+
+Detalles de la pieza
+--------------------------------
+Ivory Linen Dress
+
+Ver la pieza : http://localhost/shop/
+
+La disponibilidad es limitada. Le invitamos a no demorarse.
+
+A su servicio,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

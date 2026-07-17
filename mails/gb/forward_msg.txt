@@ -1,0 +1,20 @@
+﻿Test Neria
+
+Dear employee,
+
+A customer message has been forwarded to you for handling.
+
+Marie Lefebvre has forwarded the following message to you.
+
+Conversation history
+--------------------------------
+Client : Bonjour, j'ai une question sur ma commande.
+Support : Bonjour, je regarde ça immédiatement.
+
+Marie Lefebvre added the following comment : Client prioritaire — traiter en urgence.
+
+Please do not reply to this automatic email. Log in to the administration to process the request.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,19 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir freuen uns, Ihnen Ihren persönlichen Berater vorzustellen, der Sie bei Ihren Entscheidungen begleitet und auf Ihre Wünsche eingeht.
+
+Ihr persönlicher Berater
+--------------------------------
+Ihr Berater : 
+
+Meinen Berater kontaktieren : http://localhost/shop/
+
+Er oder sie kennt Ihren Geschmack und kann Sie zu passenden Stücken führen.
+
+Zu Ihren Diensten, mit Aufmerksamkeit,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+我们通知您，您的订单已进行修改。以下是修改详情。
+
+订单 PREVIEW001
+--------------------------------
+订单 PREVIEW001.
+
+此订单已根据您提供的信息进行更新。
+
+您可以从客户账户中查看此订单的详细信息。
+
+查看我的订单历史 : http://localhost/shop/zh/订单-历史
+
+<a href="http://localhost/shop/zh/客户跟踪" style="color:#b38b59;">如果您以访客身份下单，可通过专用链接追踪订单。</a> : http://localhost/shop/zh/客户跟踪
+
+致以我们全部的感谢与自豪，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

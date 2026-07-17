@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Camille,
+
+A sua encomenda foi dividida em várias embalagens para facilitar o envio. Parte dela já está a caminho de si.
+
+Referência da encomenda : #TEST00125
+
+Detalhes das embalagens enviadas
+--------------------------------
+
+
+Acompanhar as minhas embalagens : http://localhost/shop/pt/historico-de-encomendas
+
+Iremos mantê-lo informado do envio das restantes embalagens.
+
+Com toda a nossa atenção,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

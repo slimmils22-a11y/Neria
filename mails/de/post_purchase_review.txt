@@ -1,0 +1,18 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir hoffen, dass Ihr Stück bei Ihnen den Platz gefunden hat, den es verdient.
+
+Ihre Sicht auf diese Erfahrung ist für uns unendlich wertvoll. Nicht aus statistischer Verpflichtung, sondern weil die Meinung derer, die uns vertrauen, unseren Anspruch leitet.
+
+Meine Erfahrung teilen : 
+
+Ihre Meinung ist für uns wertvoll. Sie hilft uns, Ihre Erwartungen besser zu verstehen.
+
+
+Ihr Blick ist unser bester Spiegel,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

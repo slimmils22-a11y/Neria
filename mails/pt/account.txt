@@ -1,0 +1,31 @@
+Test Neria
+
+Boa tarde, Camille,
+
+A sua presença honra-nos. O seu espaço pessoal foi preparado com cuidado — aguarda por si.
+
+Informações da sua conta
+--------------------------------
+Pode agora gerir as suas encomendas, acompanhar as suas entregas e alterar os seus dados pessoais.
+
+Endereço de e-mail associado : test@test.com
+
+Segurança e confidencialidade
+--------------------------------
+A sua palavra-passe está encriptada e nunca é visível pela nossa equipa.
+
+Nunca partilhamos os seus dados pessoais com terceiros.
+
+Pode eliminar a sua conta a qualquer momento mediante simples pedido.
+
+Para qualquer questão, o nosso serviço está ao seu dispor.
+
+O seu espaço pessoal está agora ativo. Convidamo-lo a entrar.
+
+Aceder à minha conta : http://localhost/shop/
+
+A casa tem o prazer de o contar entre os seus,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

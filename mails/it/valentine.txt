@@ -1,0 +1,17 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+L'amore merita di essere celebrato con parole rare e pezzi d'eccezione. Noi ne facciamo la nostra vocazione.
+
+Ogni creazione della nostra casa è nata per questo: diventare il messaggero silenzioso di un sentimento che le sole parole non bastano a esprimere.
+
+Scopri le nostre creazioni : http://localhost/shop/
+
+Un'attenzione speciale è riservata per Voi fino al 14 febbraio.
+
+Tutto il team Vi augura una meravigliosa San Valentino.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

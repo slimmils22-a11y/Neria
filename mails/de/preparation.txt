@@ -1,0 +1,21 @@
+Test Neria
+
+Hallo, Camille,
+
+Ihre Stücke wurden unseren Handwerkern anvertraut. In ihren Händen ist jede Geste eine Hommage an Ihre Wahl.
+
+Bestellung
+--------------------------------
+Die Bestellung #TEST00125.
+
+Ein geduldig gepflegtes Know-how, ganz in den Dienst dessen gestellt, was Sie erwarten — und was Sie verdienen.
+
+<a href="http://localhost/shop/de/bestellungsverlauf" style="color:#b38b59;">Sie können den Fortschritt Ihrer Bestellung in Ihrem Kundenkonto verfolgen</a> : http://localhost/shop/de/bestellungsverlauf
+
+<a href="http://localhost/shop/de/auftragsverfolgung-gast" style="color:#b38b59;">Wenn Sie als Gast bestellt haben, verfolgen Sie Ihre Bestellung über den speziellen Link</a> : http://localhost/shop/de/auftragsverfolgung-gast
+
+In Erwartung der Freude, Sie zufriedenzustellen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

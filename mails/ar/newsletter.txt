@@ -1,0 +1,17 @@
+﻿Test Neria
+
+مساء الخير, Sophie,
+
+يسعدنا أن نشارككم آخر أخبارنا. اكتشفوا أدناه أحدث المعلومات من دارنا.
+
+محتوى النشرة
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+لكي لا يفوتكم أي من أخبارنا القادمة، ابقوا على تواصل.
+
+اكتشاف الدار : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

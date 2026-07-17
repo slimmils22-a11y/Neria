@@ -1,0 +1,17 @@
+Test Neria
+
+Kjære kollega,
+
+Systemet har oppdaget at et produkt nærmer seg sin kritiske dekningsgrense.
+
+Dekningsstatus
+--------------------------------
+Minimum dekning : 7 jours
+
+Gjeldende dekning : 3 jours
+
+Vennligst sjekk lageret ditt og etterfyll ved behov.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

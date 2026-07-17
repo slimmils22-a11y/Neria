@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Ihre Bestellung wird derzeit von den Zollbehörden des Ziellandes bearbeitet.
+
+Bestellreferenz : #TEST00125
+
+Zollwarnungsdetails
+--------------------------------
+Aktueller Status : 
+
+Empfohlene Maßnahme : 
+
+Sendung verfolgen : http://localhost/shop/de/bestellungsverlauf
+
+Unser Team kann Sie bei den Schritten unterstützen, falls nötig.
+
+Wir stehen Ihnen zur Seite, um diese Hürde zu nehmen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

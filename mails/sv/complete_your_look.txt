@@ -1,0 +1,26 @@
+Utvalt för dig
+
+Hej Sophie,
+
+Komplettera din look
+
+Din beställning har precis anlänt — vi hoppas att du gillar den. Här är några plagg som passar perfekt till ditt köp.
+
+--------
+
+1.  —  €
+
+
+2.  —  €
+
+
+3.  —  €
+
+
+--------
+
+Det här urvalet är speciellt sammanställt för dig, inspirerat av ditt senaste köp.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+Hallo, Camille,
+
+Ihre Rückerstattung ist nun abgeschlossen. Wir hoffen, dass alles zu Ihrer Zufriedenheit verlaufen ist.
+
+Bitte wissen Sie, dass unser Haus das Ihre ist und wir uns immer freuen, Sie wieder willkommen zu heißen, wann immer Sie bereit sind.
+
+Unser Haus besuchen : http://localhost/shop/
+
+Seit Ihrem letzten Besuch sind Neuheiten eingetroffen. Vielleicht finden Sie etwas, das Ihnen gefällt.
+
+Mit freundlichen Grüßen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

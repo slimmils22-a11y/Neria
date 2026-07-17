@@ -1,0 +1,23 @@
+Test Neria
+
+Hallo, Camille,
+
+Ihr Vertrauen bewegt uns. Als Zeichen unserer Dankbarkeit haben wir eine Aufmerksamkeit für Sie vorbereitet.
+
+Bestellung #TEST00125
+--------------------------------
+Für die Bestellung wurde ein Gutschein erstellt #TEST00125.
+
+Gutscheinbetrag : 
+
+Gutscheincode : 
+
+Dieser Gutschein ist 30 Tage in unserer gesamten Boutique gültig. Er kann nicht mit anderen Angeboten kombiniert werden.
+
+Wir hoffen, dass Sie in unseren Kreationen etwas nach Ihrem Geschmack finden.
+
+Als Zeichen unserer Dankbarkeit für Ihre Treue,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

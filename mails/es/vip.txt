@@ -1,0 +1,17 @@
+Test Neria
+
+Buenos días, Camille,
+
+Su excepcional lealtad nos llega profundamente. Es con sincera gratitud que le damos la bienvenida a nuestro círculo más exclusivo — el que reservamos para quienes nos honran con su confianza duradera.
+
+Su estatus VIP le abre puertas que mantenemos cerradas para el resto del mundo: preestrenos de nuestras nuevas creaciones, invitaciones privadas a nuestros eventos, ofertas a medida y acompañamiento personalizado.
+
+Descubrir sus privilegios : http://localhost/shop/
+
+Este estatus es un reflejo de su confianza. Lo llevamos con tanto cuidado como usted nos demuestra.
+
+Con todo nuestro agradecimiento y admiración,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

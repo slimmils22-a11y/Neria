@@ -1,0 +1,17 @@
+Test Neria
+
+Boa noite, Camille,
+
+Temos o prazer de o informar que a sua encomenda está a avançar na nossa oficina.
+
+Etapa atual
+--------------------------------
+
+
+O nosso artesão dedica todo o seu cuidado para dar vida à sua peça única. Iremos mantê-lo informado em cada etapa.
+
+Pode acompanhar o progresso da sua encomenda a partir da sua conta de cliente.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

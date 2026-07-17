@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Você faz parte do círculo muito restrito de pessoas para quem reservamos este convite. Ele não será renovado e não pode ser compartilhado.
+
+Em um quadro de exceção, longe do comércio comum, você descobrirá em primeira mão o que a nossa casa prepara para quem sabe olhar.
+
+Detalhes do evento
+--------------------------------
+Showroom Neria — 8 place Vendôme, 75001 Paris
+
+Vendredi 20 juin 2026, de 18h à 22h
+
+Sua presença seria uma honra para nós. Aguardamo-la.
+
+Confirmar minha presença : http://localhost/shop/index.php?controller=rsvp&token=preview
+
+Este convite é estritamente pessoal e intransferível.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

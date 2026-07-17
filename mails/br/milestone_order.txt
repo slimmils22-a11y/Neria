@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Temos o prazer de o informar que acaba de fazer o seu 5e pedido connosco. Um marco simbólico.
+
+Cada pedido é para nós um sinal de confiança. Este, em particular, é mais um, e agradecemos-lhe sinceramente.
+
+Descobrir a minha seleção : http://localhost/shop/br/historico-de-pedidos
+
+Reservamos atenção especial aos nossos convidados que alcançam essas etapas.
+
+Com toda a nossa gratidão,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

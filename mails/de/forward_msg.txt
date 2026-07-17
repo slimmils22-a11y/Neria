@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Liebe(r) Mitarbeiter(in),
+
+Eine Kundenanfrage wurde Ihnen zur Bearbeitung weitergeleitet.
+
+ hat Ihnen die folgende Nachricht weitergeleitet.
+
+Gesprächsverlauf
+--------------------------------
+
+
+ hat den folgenden Kommentar hinzugefügt : 
+
+Bitte antworten Sie nicht auf diese automatische E-Mail. Melden Sie sich im Backoffice an, um die Anfrage zu bearbeiten.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

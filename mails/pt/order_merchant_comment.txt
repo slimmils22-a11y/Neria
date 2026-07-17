@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+A nossa equipa tem uma mensagem para si sobre a sua encomenda.
+
+Encomenda #TEST00125
+--------------------------------
+Foi adicionada uma nova mensagem à encomenda #TEST00125.
+
+Mensagem da nossa equipa
+--------------------------------
+
+
+Pode consultar o histórico da sua encomenda a partir da sua conta de cliente: http://localhost/shop/pt/historico-de-encomendas
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

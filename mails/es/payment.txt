@@ -1,0 +1,21 @@
+Test Neria
+
+Buenos días, Camille,
+
+Hemos recibido su pago con gratitud. Su pedido entra ahora en la fase de creación.
+
+Pedido
+--------------------------------
+Pago del pedido #TEST00125.
+
+<a href="http://localhost/shop/es/historial-compra" style="color:#b38b59;">Puede ver el historial de su pedido desde su cuenta de cliente</a> : http://localhost/shop/es/historial-compra
+
+<a href="http://localhost/shop/es/seguimiento-pedido-invitado" style="color:#b38b59;">Si realizó su pedido como invitado, siga su pedido a través del enlace dedicado</a> : http://localhost/shop/es/seguimiento-pedido-invitado
+
+Nuestros artesanos se pondrán a trabajar con el respeto y el cuidado que inspira cada pieza de nuestra casa.
+
+Con nuestro más profundo agradecimiento,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

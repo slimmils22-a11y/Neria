@@ -1,0 +1,11 @@
+Test Neria
+
+Wij denken aan u
+
+Wij hebben uw verzoek ontvangen en behandelen het met alle vereiste aandacht. Ons team neemt contact met u op indien nodig.
+
+Met alle zorg,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Nous accusons réception de votre commande au nom de votre entreprise. Elle sera traitée avec toute l'attention qu'un tel engagement mérite.
+
+Référence commande : NR-000123
+
+Détails de la commande professionnelle
+--------------------------------
+
+
+Suivre ma commande : http://localhost/shop/fr/historique-commandes
+
+Notre équipe dédiée aux relations entreprises se tient à votre disposition.
+
+À votre service pour ce partenariat,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

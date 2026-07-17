@@ -1,0 +1,17 @@
+Test Neria
+
+早安, Sophie,
+
+值此佳節之際，我們謹向您致以最誠摯的祝福。
+
+願這個神聖的節日讓您充滿幸福、健康以及與家人共度的珍貴時光。
+
+探索我們的精選 : http://localhost/shop/
+
+一份特別的關懷為您保留至本週末。
+
+全體團隊祝您節日愉快。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

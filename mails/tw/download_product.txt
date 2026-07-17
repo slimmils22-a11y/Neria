@@ -1,0 +1,22 @@
+Test Neria
+
+早安, Sophie,
+
+感謝您的訂單。以下數位商品現已可供下載。
+
+訂單 PREVIEW001 — 下載
+--------------------------------
+您有 2 個商品可供下載.
+
+Patron de couture Neria Vol.1 — http://localhost/shop/download/1
+Guide d'entretien premium — http://localhost/shop/download/2
+
+<a href="http://localhost/shop/tw/訂單記錄" style="color:#b38b59;">查看訂單歷史</a> : http://localhost/shop/tw/訂單記錄
+
+<a href="http://localhost/shop/tw/訪客追蹤" style="color:#b38b59;">訪客追蹤</a> : http://localhost/shop/tw/訪客追蹤
+
+祝您享受這次精彩的購藏發現之旅，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

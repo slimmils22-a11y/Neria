@@ -1,0 +1,23 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We would like to remind you that your quote expires in less than 48 hours. We invite you to confirm it before expiration to benefit from the agreed terms.
+
+Quote reference: 
+
+Amount: 
+
+Expires on: 
+
+Confirm my order : 
+
+Our team remains fully available for any questions or adjustments before confirmation.
+
+This quote will expire on . After this date, the agreed pricing conditions may no longer apply.
+
+With our distinguished regards,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

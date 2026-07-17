@@ -1,0 +1,25 @@
+Test Neria
+
+Buenos días, Camille,
+
+Nos complace confirmarle que su pedido de regalo se está preparando con el máximo cuidado.
+
+Lo que garantizamos
+--------------------------------
+Envoltura de regalo de lujo
+
+Mensaje personalizado según sus instrucciones
+
+Entrega segura y discreta
+
+Posibilidad de cambio o devolución hasta el 31 de enero
+
+Cada detalle ha sido pensado para ofrecer una experiencia única a quien reciba este regalo.
+
+Seguir mi pedido : 
+
+Para cualquier consulta sobre su pedido de regalo, nuestro equipo está a su disposición.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

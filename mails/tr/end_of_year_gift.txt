@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Bu yılın sonunda, güveninize karşılık olarak size özel bir ilgi sunmak istiyoruz.
+
+Bu jest, sizinle olan değerli ilişkimizin bir yansımasıdır.
+--------------------------------
+İndirim kodunuz : 
+
+
+
+Tüm butiğimizde 30 gün geçerlidir. Diğer kampanyalarla birleştirilemez.
+
+Seçkimi keşfet : http://localhost/shop/
+
+Tüm şükranlarımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

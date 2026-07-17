@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Nous avons le plaisir de vous informer que votre garantie prolongée est désormais active pour la pièce concernée.
+
+Référence commande : NR-000123
+
+Détails de la garantie
+--------------------------------
+Montre Élégance Neria
+
+Voir les conditions : http://localhost/shop/fr/historique-commandes
+
+Cette garantie prolongée est valable pendant une durée déterminée. Conservez ce justificatif.
+
+À votre service,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

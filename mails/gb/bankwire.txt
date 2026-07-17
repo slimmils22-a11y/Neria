@@ -1,0 +1,33 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+Your order has been successfully registered. It will be processed upon receipt of your bank transfer.
+
+Order PREVIEW001 — Awaiting bank transfer
+--------------------------------
+Thank you for your order PREVIEW001.
+
+Bank details
+--------------------------------
+Please make your transfer to the account below, quoting the following reference:
+
+Amount : 89,00 €
+
+Beneficiary : Test Neria SARL
+
+Account details : IBAN : FR76 3000 6000 0112 3456 7890 189 — BIC : AGRIFRPP
+
+Bank address : 12 rue de la Paix, 75001 Paris, France
+
+Please quote the reference PREVIEW001.
+
+<a href="http://localhost/shop/gb/order-history" style="color:#b38b59;">View your order history</a> : http://localhost/shop/gb/order-history
+
+<a href="http://localhost/shop/gb/guest-tracking" style="color:#b38b59;">Guest tracking</a> : http://localhost/shop/gb/guest-tracking
+
+Awaiting your bank transfer, with all our patience,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

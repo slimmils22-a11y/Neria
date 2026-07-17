@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+아버지를 기리는 이 날, 당신의 뿌리, 열정, 침묵을 형성한 사람을 생각합니다.
+
+그에게 가장 드문 것을 선물하세요: 말 없이도 감사를 전하는 작품을.
+
+컬렉션 보기 : http://localhost/shop/
+
+주말까지 특별한 관심이 귀하를 위해 준비되어 있습니다.
+
+전 직원이 행복한 아버지의 날을 기원합니다.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

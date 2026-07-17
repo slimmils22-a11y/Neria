@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Bestelling PREVIEW001 — Creditnota
+--------------------------------
+Er is een creditnota aangemaakt voor uw bestelling PREVIEW001.
+
+U kunt deze creditnota bekijken en gebruiken bij uw volgende aankoop op : http://localhost/shop/nl/besteloverzicht
+
+Onze verbintenis nakomend, met alle waardering,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

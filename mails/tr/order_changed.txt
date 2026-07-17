@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Siparişinizde değişiklikler yapıldığını bildiririz. İşte bu değişikliğin detayları.
+
+Sipariş #TEST00125
+--------------------------------
+Sipariş #TEST00125.
+
+Bu sipariş, sağladığınız bilgilere göre güncellenmiştir.
+
+Bu siparişin detaylarını müşteri hesabınızdan görüntüleyebilirsiniz.
+
+Sipariş geçmişimi görüntüle : http://localhost/shop/tr/siparis-gecmisi
+
+<a href="http://localhost/shop/tr/ziyaretci-takibi" style="color:#b38b59;">Misafir olarak sipariş verdiyseniz, özel bağlantı üzerinden siparişinizi takip edin</a> : http://localhost/shop/tr/ziyaretci-takibi
+
+Tüm şükran ve gururumuzla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

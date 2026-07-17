@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Wir teilen Ihnen mit, dass Änderungen an Ihrer Bestellung vorgenommen wurden. Hier sind die Details dieser Änderung.
+
+Bestellung #TEST00125
+--------------------------------
+Die Bestellung #TEST00125.
+
+Diese Bestellung wurde gemäß den von Ihnen bereitgestellten Informationen aktualisiert.
+
+Sie können die Details dieser Bestellung in Ihrem Kundenkonto einsehen.
+
+Bestellverlauf anzeigen : http://localhost/shop/de/bestellungsverlauf
+
+<a href="http://localhost/shop/de/auftragsverfolgung-gast" style="color:#b38b59;">Wenn Sie als Gast bestellt haben, finden Sie die Sendungsverfolgung über den speziellen Link</a> : http://localhost/shop/de/auftragsverfolgung-gast
+
+Mit all unserer Dankbarkeit und unserem Stolz,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+En cette journée qui célèbre les mères, nous pensons à celle dont le regard a été votre premier refuge.
+
+Offrez-lui ce qui ressemble à son amour : une pièce unique, discrète et infiniment précieuse.
+
+Découvrir notre sélection : http://localhost/shop/
+
+Une attention particulière vous est réservée jusqu'à la fin de la semaine.
+
+Toute l'équipe vous souhaite une belle fête des mères.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

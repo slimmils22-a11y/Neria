@@ -1,0 +1,26 @@
+Curated for you
+
+Hello Sophie,
+
+Complete your look
+
+Your order has just arrived — we hope you love it. Here are a few pieces that pair perfectly with your recent purchase.
+
+--------
+
+1.  —  €
+
+
+2.  —  €
+
+
+3.  —  €
+
+
+--------
+
+This selection was curated especially for you, inspired by your recent purchase.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

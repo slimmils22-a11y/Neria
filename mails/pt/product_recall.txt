@@ -1,0 +1,23 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Identificámos um ponto que requer a sua atenção relativamente a um produto que possa ter adquirido connosco. Esta comunicação é um ato de transparência.
+
+Referência da encomenda : #TEST00125
+
+Detalhes da recolha
+--------------------------------
+Produto em causa : Ivory Linen Dress
+
+O que fazer?
+--------------------------------
+Saber mais : http://localhost/shop/pt/historico-de-encomendas
+
+A nossa equipa está à sua disposição para qualquer questão. Agradecemos a sua compreensão.
+
+Com toda a nossa consideração,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

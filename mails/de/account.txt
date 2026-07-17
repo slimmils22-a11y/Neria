@@ -1,0 +1,31 @@
+Test Neria
+
+Hallo, Camille,
+
+Ihre Anwesenheit ehrt uns. Ihr persönlicher Bereich wurde mit Sorgfalt vorbereitet — er erwartet Sie.
+
+Ihre Kontoinformationen
+--------------------------------
+Sie können nun Ihre Bestellungen verwalten, Ihre Lieferungen verfolgen und Ihre persönlichen Daten ändern.
+
+Hinterlegte E-Mail-Adresse : test@test.com
+
+Sicherheit & Vertraulichkeit
+--------------------------------
+Ihr Passwort ist verschlüsselt und für unser Team nie einsehbar.
+
+Wir geben Ihre persönlichen Daten niemals an Dritte weiter.
+
+Sie können Ihr Konto jederzeit auf einfache Anfrage löschen.
+
+Bei Fragen steht Ihnen unser Kundenservice gerne zur Verfügung.
+
+Ihr persönlicher Bereich ist nun aktiv. Wir laden Sie ein, einzutreten.
+
+Zu meinem Konto : http://localhost/shop/
+
+Das Haus freut sich, Sie zu den Seinen zählen zu dürfen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+Madame, Monsieur Durand,
+
+À l'occasion d'Halloween, nous avons préparé pour vous une atmosphère unique, mêlant mystère et élégance.
+
+Plongez dans un univers où chaque détail compte. Découvrez nos créations d'exception pour une soirée inoubliable.
+
+Découvrir nos créations : http://localhost/shop/
+
+Une attention délicate vous est réservée jusqu'au 31 octobre.
+
+Toute l'équipe vous souhaite une merveilleuse fête d'Halloween.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,25 @@
+Test Neria
+
+Madame, Monsieur Durand,
+
+Nous sommes heureux de vous confirmer que votre commande cadeau est en cours de préparation avec le plus grand soin.
+
+Ce que nous garantissons
+--------------------------------
+Emballage cadeau luxueux et soigné
+
+Message personnalisé selon vos instructions
+
+Livraison sécurisée et discrète
+
+Possibilité d'échange ou de retour jusqu'au 31 janvier
+
+Chaque détail a été pensé pour offrir une expérience unique à la personne qui recevra ce présent.
+
+Suivre ma commande : #
+
+Pour toute question relative à votre commande cadeau, notre équipe reste à votre disposition.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+﻿Test Neria
+
+God morgon, Sophie,
+
+Du är en del av den mycket begränsade kretsen av personligheter som vi reserverar denna inbjudan för. Den kommer inte att förnyas och kan inte delas.
+
+I en exceptionell miljö, långt från vanlig handel, kommer du att i förhandsvisning upptäcka vad vårt hus förbereder för dem som vet hur man ser.
+
+Evenemangsdetaljer
+--------------------------------
+Showroom Neria — 8 place Vendôme, 75001 Paris
+
+Vendredi 20 juin 2026, de 18h à 22h
+
+Din närvaro skulle vara en ära för oss. Vi väntar på den.
+
+Bekräfta min närvaro : http://localhost/shop/index.php?controller=rsvp&token=preview
+
+Denna inbjudan är strikt personlig och kan inte överföras.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

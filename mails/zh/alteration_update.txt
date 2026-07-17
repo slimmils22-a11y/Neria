@@ -1,0 +1,21 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+我们通知您关于作品定制的修改进度。以下是最新情况。
+
+订单编号 : PREVIEW001
+
+进度详情
+--------------------------------
+当前状态 : Retouche en cours de finition
+
+跟踪进度 : http://localhost/shop/zh/订单-历史
+
+如有任何疑问，我们的团队随时为您服务。
+
+随时为您服务，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

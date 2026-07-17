@@ -1,0 +1,21 @@
+Test Neria
+
+親愛的員工，
+
+您商店中的一款商品現已缺貨。
+
+商品詳情
+--------------------------------
+商品 : Montre Élégance Neria
+
+庫存預警閾值已達到 : 5
+
+剩餘數量 : 0
+
+請盡快補充該商品。
+
+此警報為自動。請檢查您的庫存狀態。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

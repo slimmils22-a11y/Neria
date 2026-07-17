@@ -1,0 +1,17 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+We bevestigen dat de terugbetaling voor uw bestelling is uitgevoerd.
+
+Orderreferentie : PREVIEW001
+
+<a href="http://localhost/shop/nl/besteloverzicht" style="color:#b38b59;">U kunt uw bestelgeschiedenis bekijken via uw klantenaccount</a> : http://localhost/shop/nl/besteloverzicht
+
+<a href="http://localhost/shop/nl/bestelling-volgen-als-gast" style="color:#b38b59;">Als u als gast heeft besteld, volg dan uw bestelling via de speciale link</a> : http://localhost/shop/nl/bestelling-volgen-als-gast
+
+Met onze diepste dank,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

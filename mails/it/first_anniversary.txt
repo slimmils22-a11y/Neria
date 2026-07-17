@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+È passato un anno da quando ci avete dato fiducia per la prima volta. Questo anno passato al Vostro fianco è fonte di infinita gratitudine.
+
+Abbiamo voluto celebrare questo primo anno con un'attenzione speciale. È riservata a Voi.
+
+Scoprire la mia attenzione : http://localhost/shop/it/cronologia-ordini
+
+Grazie per far parte della storia della nostra casa.
+
+Con tutta la nostra gratitudine,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

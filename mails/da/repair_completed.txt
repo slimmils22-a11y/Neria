@@ -1,0 +1,21 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi er glade for at informere dig om, at reparationen eller ændringen af dit stykke nu er fuldført.
+
+Ordrereference : PREVIEW001
+
+Indgrebsdetaljer
+--------------------------------
+Montre Élégance Neria
+
+Arranger retur : http://localhost/shop/da/ordrehistorik
+
+Vores team vil kontakte dig for at blive enige om returvilkårene.
+
+Vi er glade for at betjene dig,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

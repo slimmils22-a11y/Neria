@@ -1,0 +1,19 @@
+Test Neria
+
+Günaydın, Camille,
+
+Bu özel günde, tüm ekibimiz sizi düşünüyor. Olağanüstü bir kişinin doğum günü, hak ettiği parlaklıkla kutlanmayı hak eder.
+
+Size bu jesti sunmaktan mutluluk duyuyoruz; size duyduğumuz saygının ve sizi aramızda saymanın verdiği zevkin bir ifadesi olarak.
+
+Size özel ilgi kodunuz : 
+
+Tüm maisonda 30 gün geçerli. Bu ilgi diğer tekliflerle birleştirilemez.
+
+Seçkimi keşfet : http://localhost/shop/
+
+Tüm maison, en sevgili dileklerini sunar, sevgi ve zarafetle,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+Olağanüstü sadakatiniz bizi derinden etkiliyor. İçten şükranlarımızla, en özel çevremize hoş geldiniz — kalıcı güvenleriyle bizi onurlandıranlara ayırdığımız çevreye.
+
+VIP statünüz, dünyanın geri kalanına kapalı tuttuğumuz kapıları açar: yeni kreasyonlarımızın ön gösterimleri, etkinliklerimize özel davetler, kişiye özel teklifler ve kişiselleştirilmiş destek.
+
+Ayrıcalıklarımı keşfet : http://localhost/shop/
+
+Bu statü, güveninizin bir yansımasıdır. Onu, bize gösterdiğiniz özenle taşıyoruz.
+
+Tüm şükran ve hayranlığımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

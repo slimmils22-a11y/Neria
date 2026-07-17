@@ -1,0 +1,17 @@
+Test Neria
+
+Hallo, Camille,
+
+Im gesegneten Monat Ramadan senden wir Ihnen unsere herzlichsten Wünsche.
+
+Möge dieser gesegnete Monat Ihnen innere Gelassenheit, die Freude des Teilens und die Gnade bringen, die diejenigen begleitet, die mit Glauben fasten.
+
+Entdecken Sie unsere Kreationen : http://localhost/shop/
+
+Eine besondere Aufmerksamkeit ist für Sie während des gesamten heiligen Monats reserviert.
+
+Das gesamte Team wünscht Ihnen einen gesegneten Ramadan.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

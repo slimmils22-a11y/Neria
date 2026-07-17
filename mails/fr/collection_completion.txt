@@ -1,0 +1,28 @@
+Votre collection
+
+Bonjour Sophie,
+
+Il ne manque plus qu'une pièce
+
+Vous avez déjà fait le plus dur. Il ne reste qu'une pièce pour compléter votre collection — et nous voulions vous le rappeler avant qu'elle ne parte.
+
+--------
+
+Progression de votre collection : 
+Pièces déjà acquises — plus qu'une pour compléter
+
+--------
+
+La pièce manquante : 
+ €
+
+Compléter ma collection :
+
+
+--------
+
+Cette suggestion est basée sur vos achats précédents au sein de cette collection.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

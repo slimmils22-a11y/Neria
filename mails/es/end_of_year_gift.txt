@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Al final de este año, queremos ofrecerle una atención especial, en reconocimiento a su confianza.
+
+Este gesto refleja la valiosa relación que tenemos con usted.
+--------------------------------
+Su código de descuento : 
+
+
+
+Válido durante 30 días en toda nuestra boutique. No acumulable con otras ofertas.
+
+Descubrir mi selección : http://localhost/shop/
+
+Con todo nuestro agradecimiento,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

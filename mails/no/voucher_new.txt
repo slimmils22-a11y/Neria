@@ -1,0 +1,21 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi er glade for å tilby deg et nytt gavekort.
+
+En oppmerksomhet til deg
+--------------------------------
+Vi har forberedt denne oppmerksomheten for deg. Du kan bruke den ved neste besøk.
+
+Gavekortkode : NERIA-VIP-2026
+
+Dette gavekortet er gyldig i 30 dager i hele butikken vår. Kan ikke kombineres med andre tilbud.
+
+Vi håper du finner noe du liker blant kreasjonene våre.
+
+Med gleden av å tilby deg denne gesten,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

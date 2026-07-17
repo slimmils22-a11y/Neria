@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Ekibimiz tarafından siparişinizde bir değişiklik yapıldı. Lütfen güncellenmiş ödeme bilgilerini aşağıda inceleyin.
+
+Güncellenmiş ödeme bilgileri
+--------------------------------
+Tutar veya ödeme koşulları düzenlenmiştir. Aşağıdaki butona tıklayarak düzenlemeyi tamamlayınız.
+
+Ödemeye git : 
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Nous avons le plaisir de vous annoncer que votre commande sur-mesure est désormais prête. Nos artisans ont donné vie à votre vision.
+
+Référence commande : NR-000123
+
+Détails de votre pièce
+--------------------------------
+Montre Élégance Neria
+
+Suivre la livraison : http://localhost/shop/fr/historique-commandes
+
+Nous vous remercions de votre patience. Cette pièce unique est enfin prête à vous rejoindre.
+
+Fiers de vous avoir accompagné dans cette création,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

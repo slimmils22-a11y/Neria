@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+A sua seleção está agora a caminho de si. Aqui estão as peças envolvidas:
+
+
+
+Encomenda #TEST00125
+--------------------------------
+Encomenda #TEST00125.
+
+Encontra-se em trânsito e chegará dentro do prazo previsto.
+
+Acompanhar a minha encomenda : 
+
+<a href="http://localhost/shop/pt/historico-de-encomendas" style="color:#b38b59;">Consulte o histórico da sua encomenda na sua conta de cliente</a> : http://localhost/shop/pt/historico-de-encomendas
+
+<a href="http://localhost/shop/pt/seguimento-de-visitante" style="color:#b38b59;">Se fez a sua encomenda como convidado, acompanhe-a através do link dedicado</a> : http://localhost/shop/pt/seguimento-de-visitante
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

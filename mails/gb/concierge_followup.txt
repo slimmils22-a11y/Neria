@@ -1,0 +1,18 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+Our concierge service wishes to ensure that your experience with our house meets your expectations.
+
+In need of special attention?
+--------------------------------
+
+Contact my advisor : http://localhost/shop/
+
+We are available to assist you with every detail of your journey.
+
+At your service, in all circumstances,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

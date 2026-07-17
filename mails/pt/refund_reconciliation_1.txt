@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Gostaríamos de confirmar pessoalmente que o seu reembolso está a ser processado.
+
+O seu pedido foi recebido e asseguramo-nos de que é tratado com toda a atenção que merece.
+
+Consultar as minhas encomendas : http://localhost/shop/pt/historico-de-encomendas
+
+Se tiver alguma dúvida, a nossa equipa está ao seu dispor.
+
+Com toda a nossa consideração,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

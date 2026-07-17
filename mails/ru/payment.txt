@@ -1,0 +1,21 @@
+Test Neria
+
+Доброе утро, Sophie,
+
+Мы с благодарностью получили Вашу оплату. Ваш заказ теперь вступает в фазу создания.
+
+Заказ
+--------------------------------
+Оплата заказа PREVIEW001.
+
+<a href="http://localhost/shop/ru/order-history" style="color:#b38b59;">Вы можете просмотреть историю заказа из своего клиентского аккаунта</a> : http://localhost/shop/ru/order-history
+
+<a href="http://localhost/shop/ru/guest-tracking" style="color:#b38b59;">Если Вы оформляли заказ как гость, отслеживайте его по специальной ссылке</a> : http://localhost/shop/ru/guest-tracking
+
+Наши мастера приступят к работе с уважением и заботой, которые внушает каждое изделие нашего дома.
+
+С нашей самой глубокой благодарностью,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

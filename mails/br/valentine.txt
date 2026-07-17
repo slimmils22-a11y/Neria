@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+O amor merece ser celebrado com palavras raras e peças de exceção. Nós fazemos disso a nossa vocação.
+
+Cada criação da nossa casa nasceu para isto: tornar-se o mensageiro silencioso de um sentimento que as palavras por si só não bastam para expressar.
+
+Descubra as nossas criações : http://localhost/shop/
+
+Uma atenção especial está reservada para você até 14 de fevereiro.
+
+Toda a equipe deseja-lhe um maravilhoso Dia dos Namorados.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

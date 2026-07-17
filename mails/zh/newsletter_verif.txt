@@ -1,0 +1,17 @@
+Test Neria
+
+早上好, Sophie,
+
+要激活我们的通讯订阅，请点击下方链接确认您的电子邮件地址。
+
+验证
+--------------------------------
+此安全链接将确认您的订阅，并使您能够接收所有消息。
+
+确认我的订阅 : http://localhost/shop/index.php?controller=newsletter-verification&token=preview-verif-token
+
+如果您未发起此请求，请忽略此消息。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

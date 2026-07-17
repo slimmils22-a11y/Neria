@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Temos o prazer de informar que sua garantia estendida já está ativa para a peça em questão.
+
+Referência do pedido : PREVIEW001
+
+Detalhes da garantia
+--------------------------------
+Montre Élégance Neria
+
+Ver termos : http://localhost/shop/br/historico-de-pedidos
+
+Esta garantia estendida é válida por um período especificado. Guarde este comprovante.
+
+Ao seu serviço,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

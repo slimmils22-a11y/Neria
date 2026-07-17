@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+The reward you earned through our loyalty programme will soon expire.
+
+Reward details
+--------------------------------
+Expiry date : 30/06/2026
+
+Use my reward : http://localhost/shop/en/order-history
+
+This reward is valid until the indicated date. After that, it can no longer be used.
+
+We hope to please you,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

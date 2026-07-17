@@ -1,0 +1,19 @@
+Test Neria
+
+God morgon, Sophie,
+
+Som gäst bosatt utanför Europeiska Unionen är du berättigad till skatteåterbäring på dina köp.
+
+Uppgifter om din behörighet
+--------------------------------
+Beställningsreferens : PREVIEW001
+
+Starta proceduren : http://localhost/shop/
+
+Vårt team hjälper dig med de nödvändiga stegen.
+
+Till din tjänst,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

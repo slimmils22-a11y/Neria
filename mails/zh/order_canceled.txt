@@ -1,0 +1,25 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+我们确认收到您的取消请求。已以您的信任所要求的所有谨慎加以处理。
+
+订单
+--------------------------------
+订单 PREVIEW001.
+
+该订单已根据您的请求取消。不会向您收取任何费用。
+
+您可以从客户账户中查看此订单的详细信息。
+
+查看我的订单历史 : http://localhost/shop/zh/订单-历史
+
+<a href="http://localhost/shop/zh/客户跟踪" style="color:#b38b59;">如果您以访客身份下单，可通过专用链接追踪订单。</a> : http://localhost/shop/zh/客户跟踪
+
+我们希望能再次在您的方便之时，于我们的空间内欢迎您。
+
+致以我们最诚挚的遗憾和全部的敬意，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

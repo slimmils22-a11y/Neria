@@ -1,0 +1,33 @@
+Test Neria
+
+Madame, Monsieur Durand,
+
+Votre commande a été enregistrée avec succès. Elle sera traitée dès réception de votre virement bancaire.
+
+Commande NR-000123 — En attente de virement
+--------------------------------
+Nous vous remercions pour votre commande NR-000123.
+
+Coordonnées bancaires
+--------------------------------
+Veuillez effectuer votre virement à l'ordre du compte ci-dessous, en mentionnant impérativement la référence suivante :
+
+Montant : 189,00 €
+
+Bénéficiaire : Maison Neria SARL
+
+Détails du compte : IBAN : FR76 3000 6000 0112 3456 7890 189 — BIC : AGRIFRPP
+
+Adresse bancaire : 12 rue de la Paix, 75001 Paris, France
+
+Merci d'indiquer la référence NR-000123.
+
+<a href="http://localhost/shop/fr/historique-commandes" style="color:#b38b59;">Consultez l'historique de votre commande</a> : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/fr/suivi-commande-invite" style="color:#b38b59;">Suivi pour invité</a> : http://localhost/shop/fr/suivi-commande-invite
+
+Dans l'attente de votre virement, avec toute notre patience,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

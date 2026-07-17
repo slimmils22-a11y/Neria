@@ -1,0 +1,23 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+La Vostra fiducia ci commuove. In segno di gratitudine, abbiamo preparato per Voi un'attenzione particolare.
+
+Ordine #TEST00125
+--------------------------------
+È stato generato un buono acquisto per l'ordine #TEST00125.
+
+Importo del buono : 
+
+Codice buono : 
+
+Questo buono è valido 30 giorni in tutta la nostra boutique. Non può essere cumulato con altre offerte.
+
+Speriamo che troviate qualcosa di vostro gradimento tra le nostre creazioni.
+
+In segno della nostra riconoscenza per la Vostra fedeltà,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

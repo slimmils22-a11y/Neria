@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+고객님은 당사가 이 초대장을 드리는 매우 제한된 인사들의 서클에 속해 계십니다. 갱신되지 않으며, 공유할 수 없습니다.
+
+일상적인 상거래에서 먼 특별한 환경에서, 우리 집이 볼 줄 아는 사람들을 위해 준비하고 있는 것을 미리 발견하게 될 것입니다.
+
+이벤트 세부 정보
+--------------------------------
+Showroom Neria — 8 place Vendôme, 75001 Paris
+
+Vendredi 20 juin 2026, de 18h à 22h
+
+고객님의 참석은 우리에게 영광이 될 것입니다. 기다리겠습니다.
+
+참석 확인 : http://localhost/shop/index.php?controller=rsvp&token=preview
+
+이 초대장은 엄격히 개인용이며 양도할 수 없습니다.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

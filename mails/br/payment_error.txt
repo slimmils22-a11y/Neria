@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Uma interrupção técnica interrompeu o processamento do seu pagamento. Pedimos desculpas e convidamos você a regularizá-lo à sua conveniência.
+
+Pedido PREVIEW001
+--------------------------------
+Pagamento do pedido PREVIEW001.
+
+Seu pedido está conservado e continua prioritário. Você pode regularizar seu pagamento quando desejar — esperamos por você.
+
+Se este contratempo persistir, convidamos você a consultar os detalhes do seu pedido em seu espaço pessoal.
+
+<a href="http://localhost/shop/br/rastreamento-para-visitante" style="color:#b38b59;">Se fez seu pedido como convidado, acompanhe-o através do link dedicado</a> : http://localhost/shop/br/rastreamento-para-visitante
+
+Agradecemos sua compreensão,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

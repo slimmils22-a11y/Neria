@@ -1,0 +1,19 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Den belønning, du opnåede gennem vores loyalitetsprogram, udløber snart.
+
+Belønningsdetaljer
+--------------------------------
+Udløbsdato : 30/06/2026
+
+Brug min belønning : http://localhost/shop/da/ordrehistorik
+
+Denne belønning er gyldig indtil den angivne dato. Derefter kan den ikke længere bruges.
+
+Vi håber at kunne glæde dig,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

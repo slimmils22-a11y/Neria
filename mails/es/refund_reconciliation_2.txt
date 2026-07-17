@@ -1,0 +1,17 @@
+Test Neria
+
+Buenos días, Camille,
+
+Hemos pensado en usted durante estos días y queríamos agradecerle su paciencia.
+
+Como muestra de nuestra estima, hemos preparado un detalle exclusivo para usted — sin condiciones, sin presión.
+
+Descubrir nuestra invitación : http://localhost/shop/
+
+Este detalle está reservado para usted. Nuestro equipo permanece a su disposición para cualquier necesidad.
+
+Con nuestra sincera gratitud,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

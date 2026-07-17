@@ -1,0 +1,21 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We have received your request for repair or alteration of your piece.
+
+Order reference : PREVIEW001
+
+Request details
+--------------------------------
+Montre Élégance Neria
+
+Track my request : http://localhost/shop/gb/order-history
+
+Our team will contact you to confirm the terms of service.
+
+At your service,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

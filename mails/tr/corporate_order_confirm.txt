@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Şirketiniz adına verilen siparişinizi aldığımızı onaylıyoruz. Böyle bir taahhüdün hak ettiği özenle işleme alınacaktır.
+
+Sipariş referansı : #TEST00125
+
+Kurumsal sipariş detayları
+--------------------------------
+
+
+Siparişimi takip et : http://localhost/shop/tr/siparis-gecmisi
+
+Kurumsal ilişkiler konusunda uzman ekibimiz hizmetinizdedir.
+
+Bu ortaklık için hizmetinizde,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous avons la joie de vous confirmer que votre commande vous a été remise. Nous espérons que chaque détail soit à la hauteur de votre attente.
+
+Commande
+--------------------------------
+Votre commande NR-000123.
+
+Nous espérons que cette pièce vous apportera autant de plaisir à la porter qu'à nos artisans à la créer.
+
+<a href="http://localhost/shop/fr/historique-commandes" style="color:#b38b59;">Consultez l'historique de votre commande</a> : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/fr/suivi-commande-invite" style="color:#b38b59;">Suivi pour invité</a> : http://localhost/shop/fr/suivi-commande-invite
+
+Pour toute question concernant votre commande, notre service client est à votre disposition.
+
+Avec toute notre gratitude et notre fierté,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

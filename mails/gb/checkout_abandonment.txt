@@ -1,0 +1,19 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We noticed you were just about to complete your order. Sometimes a technical issue arises at the last moment — a 3DS error, a connection timeout, or a last-second hesitation.
+
+Your cart is saved and your selection is waiting exactly where you left it.
+
+Complete my order : http://localhost/shop/index.php?controller=cart
+
+If you encountered a payment issue, our team is available to help you complete your order with complete peace of mind.
+
+No action is required on your part — your cart is preserved.
+
+With our full attention,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

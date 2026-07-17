@@ -1,0 +1,17 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+Love deserves to be celebrated with rare words and exceptional pieces. We make this our calling.
+
+Each creation of our house was born for this: to become the silent messenger of a feeling that words alone cannot express.
+
+Discover our creations : http://localhost/shop/
+
+A delicate attention is reserved for you until February 14.
+
+The entire team wishes you a wonderful Valentine's Day.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

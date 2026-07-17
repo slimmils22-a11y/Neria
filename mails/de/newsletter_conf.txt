@@ -1,0 +1,19 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir freuen uns, Sie in unserem Abonnentenkreis willkommen zu heißen. Ihre Anmeldung zu unserem Newsletter wurde bestätigt.
+
+Bestätigung
+--------------------------------
+Sie erhalten nun als Erste unsere neuen Kollektionen, private Einladungen und die Highlights unseres Hauses — geteilt mit denen, die uns wichtig sind.
+
+Ihr Vertrauen ist heilig. Wir schützen es, wie wir unseren Ruf schützen: mit Strenge und Diskretion.
+
+Sie können Ihre Einstellungen verwalten und sich jederzeit über Ihr Kundenkonto abmelden.
+
+Zu meinem Bereich : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+在这个属于祖父母的节日里，我们缅怀他们播撒在您心中的记忆、温柔与智慧。
+
+送给他们一件承载着他们给予您的时光、耐心与爱的珍品。
+
+探索我们的精选 : http://localhost/shop/
+
+特别关怀为您保留至本周末。
+
+全体团队祝您祖父母节快乐。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

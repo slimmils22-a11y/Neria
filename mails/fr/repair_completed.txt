@@ -1,0 +1,21 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous avons le plaisir de vous informer que la réparation ou la retouche de votre pièce est désormais achevée.
+
+Référence commande : NR-000123
+
+Détails de l'intervention
+--------------------------------
+Montre Élégance Neria
+
+Organiser le retour : http://localhost/shop/fr/historique-commandes
+
+Notre équipe vous contactera pour convenir des modalités de retour.
+
+Nous sommes heureux de vous servir,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

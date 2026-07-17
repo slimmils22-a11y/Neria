@@ -1,0 +1,19 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Uma das peças que você destacou em sua lista de desejos está novamente disponível.
+
+Detalhes da peça
+--------------------------------
+Montre Élégance Neria
+
+Ver a peça : http://localhost/shop/
+
+A disponibilidade é limitada. Convidamos você a não demorar.
+
+À sua disposição,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

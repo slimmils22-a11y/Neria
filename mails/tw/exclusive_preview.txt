@@ -1,0 +1,18 @@
+﻿Test Neria
+
+早安, Sophie,
+
+我們很高興為您提供即將推出的新系列的搶先體驗。在向世界公開之前，獨家呈現。
+
+獨家預覽
+--------------------------------
+
+探索系列 : http://localhost/shop/
+
+此邀請為個人專屬，限時有效。
+
+感謝您的忠誠，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

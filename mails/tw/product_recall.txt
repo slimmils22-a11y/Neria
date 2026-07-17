@@ -1,0 +1,23 @@
+Test Neria
+
+早安, Sophie,
+
+我們發現了您可能從我們這裡購買的產品需要注意的一點。此通知是透明化的體現。
+
+訂單編號 : PREVIEW001
+
+召回詳情
+--------------------------------
+涉及產品 : Montre Élégance Neria
+
+如何處理？
+--------------------------------
+了解更多 : http://localhost/shop/tw/訂單記錄
+
+我們的團隊隨時為您解答疑問。感謝您的理解。
+
+致以我們全部的敬意，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

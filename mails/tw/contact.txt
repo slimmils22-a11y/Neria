@@ -1,0 +1,25 @@
+﻿Test Neria
+
+您的留言已收到
+
+早安, Sophie,
+
+我們已收到您的請求，感謝您與我們聯繫。以下是您提供的信息副本：
+
+聯絡資訊
+--------------------------------
+電子郵件地址 : test@test.com
+
+訂單編號 : PREVIEW001
+
+附件 : Aucun fichier joint
+
+您的留言
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+透過電子郵件回覆 : test@test.com
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

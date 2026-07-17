@@ -1,0 +1,28 @@
+Din kollektion
+
+Hej Sophie,
+
+Kun ét skridt tilbage
+
+Du har allerede klaret det sværeste. Kun ét element mangler for at fuldføre din kollektion — vi ville minde dig om det, inden det forsvinder.
+
+--------
+
+Din kollektions fremskridt : 
+Elementer du allerede ejer — kun ét tilbage for at fuldføre
+
+--------
+
+Det manglende element : 
+ €
+
+Fuldfør min kollektion :
+
+
+--------
+
+Dette forslag er baseret på dine tidligere køb i denne kollektion.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

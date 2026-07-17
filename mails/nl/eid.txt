@@ -1,0 +1,17 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Ter gelegenheid van Eid willen wij u onze meest oprechte wensen sturen.
+
+Moge deze heilige viering u vervullen met vreugde, gezondheid en kostbare momenten met uw gezin.
+
+Ontdek onze selectie : http://localhost/shop/
+
+Een bijzondere attentie is voor u beschikbaar tot het einde van de week.
+
+Het hele team wenst u een mooie viering.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

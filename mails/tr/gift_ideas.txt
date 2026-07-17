@@ -1,0 +1,18 @@
+Test Neria
+
+Günaydın, Camille,
+
+Büyük özel günler yaklaşıyor. Gelmeden önce, zevkleriniz ve değer verdiğiniz kişileri göz önünde bulundurarak hediye etmek için bir koleksiyon hazırladık.
+
+Hediye vermek, bir ilgiyi uzatmaktır. Bu koleksiyondaki her parça, alanın kalbine dokunmak için — onlara dilediğiniz zarafetle — özenle seçilmiştir.
+
+Koleksiyonu keşfet : http://localhost/shop/
+
+Bu koleksiyon, sadakatiniz ve hassasiyetinizin takdiri olarak sizin için hazırlandı.
+
+
+Tüm inceliğimizle,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Temos o prazer de anunciar que seu pedido sob medida já está pronto. Nossos artesãos deram vida à sua visão.
+
+Referência do pedido : PREVIEW001
+
+Detalhes da sua peça
+--------------------------------
+Montre Élégance Neria
+
+Acompanhar a entrega : http://localhost/shop/br/historico-de-pedidos
+
+Agradecemos a sua paciência. Esta peça única está finalmente pronta para você.
+
+Orgulhosos de ter acompanhado você nesta criação,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

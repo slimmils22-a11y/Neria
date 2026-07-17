@@ -1,0 +1,21 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir teilen Ihnen mit, dass der Versand Ihrer Bestellung eine unerwartete Verzögerung erfährt. Wir tun alles, um sie so schnell wie möglich zu beheben.
+
+Bestellreferenz : #TEST00125
+
+Verzögerungsdetails
+--------------------------------
+Neuer voraussichtlicher Termin : 
+
+Bestellung verfolgen : http://localhost/shop/de/bestellungsverlauf
+
+Wir halten Sie über alle Entwicklungen auf dem Laufenden. Wir bitten um Entschuldigung.
+
+Mit all unserer Wertschätzung,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

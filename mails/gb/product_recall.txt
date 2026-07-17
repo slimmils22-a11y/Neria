@@ -1,0 +1,23 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We have identified a point requiring your attention regarding a product you may have purchased from us. This communication is an act of transparency.
+
+Order reference : PREVIEW001
+
+Recall details
+--------------------------------
+Product concerned : Montre Élégance Neria
+
+What to do?
+--------------------------------
+Learn more : http://localhost/shop/gb/order-history
+
+Our team is at your disposal for any questions. We thank you for your understanding.
+
+With all our consideration,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

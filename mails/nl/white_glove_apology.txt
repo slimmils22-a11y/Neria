@@ -1,0 +1,25 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+We schrijven niet om onszelf te rechtvaardigen. We schrijven om volledig verantwoordelijkheid te nemen en onze excuses zonder voorbehoud aan te bieden.
+
+Incidentdetails
+--------------------------------
+Referentie : PREVIEW001
+
+Un retard de livraison exceptionnel est survenu sur votre commande.
+
+Deze vertraging weerspiegelt op geen enkele manier de normen die we onszelf opleggen. Wij zijn de eersten die worden getroffen en vastbesloten dat het een absolute uitzondering blijft.
+
+Een lid van ons team zal u binnen 24 uur persoonlijk contacteren om de meest geschikte oplossing af te spreken — een oplossing die, hopen we, uw vertrouwen zal herstellen.
+
+Neem contact op met onze service : http://localhost/shop/index.php?controller=contact
+
+Uw geduld en vriendelijkheid raken ons. We moeten ze nu verdienen.
+
+Met onze oprechtste berouw en absolute toewijding,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

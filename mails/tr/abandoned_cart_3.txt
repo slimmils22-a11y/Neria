@@ -1,0 +1,16 @@
+Test Neria
+
+Günaydın, Camille,
+
+Sepetinizin dosyasını usulca kapatıyoruz. Eğer bir gün seçiminizi yeniden bulmak isterseniz, zanaatkârlarımız sizi tekrar ağırlamaktan onur duyacaktır.
+
+--------------------------------
+
+
+Eve dön : 
+
+Sepetiniz artık aktif değil. Tüm kreasyonlarımız hizmetinize açıktır.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

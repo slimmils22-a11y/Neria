@@ -1,0 +1,21 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir nehmen uns die Zeit, jeden Detail Ihrer Bestellung zu prüfen, bevor wir sie abschließen.
+
+Bestellreferenz : #TEST00125
+
+Hier sind die Details der Situation:
+--------------------------------
+Grund für die Zurückstellung : 
+
+Bestellung verfolgen : http://localhost/shop/de/bestellungsverlauf
+
+Unser Team steht Ihnen für alle Fragen zur Verfügung.
+
+Mit all unserer Aufmerksamkeit,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

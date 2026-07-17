@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+La ricompensa che avete ottenuto attraverso il nostro programma fedeltà scadrà presto.
+
+Dettagli della ricompensa
+--------------------------------
+Data di scadenza : 
+
+Usa la mia ricompensa : http://localhost/shop/it/cronologia-ordini
+
+Questa ricompensa è valida fino alla data indicata. Dopodiché non potrà più essere utilizzata.
+
+Speriamo di farVi piacere,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

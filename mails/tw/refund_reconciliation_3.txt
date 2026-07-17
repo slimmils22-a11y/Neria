@@ -1,0 +1,17 @@
+Test Neria
+
+早安, Sophie,
+
+您的退款現已完成。我們希望一切都令您滿意。
+
+請知曉，我們的家園永遠是您的，我們隨時都將欣然迎接您的歸來。
+
+回到我們的家園 : http://localhost/shop/
+
+自您上次到訪以來，我們迎來了許多新品，或許您會有所喜歡。
+
+致以最誠摯的問候，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+La Vostra selezione è ora in viaggio verso di Voi. Ecco i pezzi interessati:
+
+
+
+Ordine #TEST00125
+--------------------------------
+Ordine #TEST00125.
+
+Attualmente è in transito e Vi giungerà nei tempi previsti.
+
+Traccia il mio ordine : 
+
+<a href="http://localhost/shop/it/cronologia-ordini" style="color:#b38b59;">Consultare lo storico del Vostro ordine nel Vostro account cliente</a> : http://localhost/shop/it/cronologia-ordini
+
+<a href="http://localhost/shop/it/tracciatura-ospite" style="color:#b38b59;">Se avete ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a> : http://localhost/shop/it/tracciatura-ospite
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

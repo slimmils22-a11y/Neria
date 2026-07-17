@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Informamos que o envio do seu pedido está sofrendo um atraso inesperado. Estamos fazendo tudo o que é possível para resolver isso o quanto antes.
+
+Referência do pedido : PREVIEW001
+
+Detalhes do atraso
+--------------------------------
+Nova data estimada : 15/06/2026
+
+Acompanhar meu pedido : http://localhost/shop/br/historico-de-pedidos
+
+Vamos manter você informado sobre qualquer novidade. Pedimos desculpas.
+
+Com toda a nossa consideração,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

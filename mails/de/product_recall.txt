@@ -1,0 +1,23 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir haben einen Punkt identifiziert, der Ihre Aufmerksamkeit erfordert, bezüglich eines Produkts, das Sie möglicherweise bei uns erworben haben. Diese Mitteilung ist ein Akt der Transparenz.
+
+Bestellreferenz : #TEST00125
+
+Rückrufdetails
+--------------------------------
+Betroffenes Produkt : Ivory Linen Dress
+
+Was tun?
+--------------------------------
+Mehr erfahren : http://localhost/shop/de/bestellungsverlauf
+
+Unser Team steht Ihnen für alle Fragen zur Verfügung. Wir danken Ihnen für Ihr Verständnis.
+
+Mit all unserer Wertschätzung,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

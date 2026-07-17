@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+Behind every piece you receive, there is a gaze, a hand, a story. Here is a personal message from the artisan who shaped yours.
+
+Message from the artisan
+--------------------------------
+Your piece was born from my passion and my gestures. I hope it will accompany you for a long time.
+
+  — From
+
+Discover the workshop : http://localhost/shop/
+
+We are proud to introduce you to those who bring your wishes to life.
+
+With the warmth of our workshops,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

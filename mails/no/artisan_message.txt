@@ -1,0 +1,21 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Bak hver gjenstand du mottar, er det et blikk, en hånd, en historie. Her er en personlig melding fra håndverkeren som formet din.
+
+Melding fra håndverkeren
+--------------------------------
+Gjenstanden din ble født av min lidenskap og mine gester. Jeg håper den vil følge deg lenge.
+
+  — Fra
+
+Oppdag verkstedet : http://localhost/shop/
+
+Vi er stolte av å introdusere deg for dem som gir liv til dine ønsker.
+
+Med varmen fra verkstedene våre,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

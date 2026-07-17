@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi bekrefter at refusjonen for bestillingen din er utført.
+
+Bestillingsreferanse : PREVIEW001
+
+<a href="http://localhost/shop/no/ordrehistorikk" style="color:#b38b59;">Du kan se bestillingshistorikken din fra kundekontoen din</a> : http://localhost/shop/no/ordrehistorikk
+
+<a href="http://localhost/shop/no/gjestesporing" style="color:#b38b59;">Hvis du bestilte som gjest, følg bestillingen din via den dedikerte lenken</a> : http://localhost/shop/no/gjestesporing
+
+Med vår dypeste takknemlighet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

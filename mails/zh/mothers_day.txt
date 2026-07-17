@@ -1,0 +1,17 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+在这个庆祝母亲的节日里，我们思念那个目光曾是你最初庇护所的人。
+
+赠予她与她的爱相似之物：一件独特、低调且无比珍贵的作品。
+
+探索我们的精选 : http://localhost/shop/
+
+特别关怀为您保留至本周末。
+
+全体团队祝您母亲节快乐。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

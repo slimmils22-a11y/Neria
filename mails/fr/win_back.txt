@@ -1,0 +1,17 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous avons pensé à vous, et nous espérons que vous allez bien. Nos créations continuent d'évoluer, et nous aimerions vous les faire redécouvrir.
+
+Nous avons préparé une sélection qui pourrait vous plaire. Une attention délicate, sans engagement.
+
+Découvrir notre sélection : http://localhost/shop/
+
+Nous serions heureux de vous accueillir de nouveau.
+
+Dans l'attente de vous retrouver,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

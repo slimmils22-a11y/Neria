@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Nos complace informarle que su fidelidad le ha permitido alcanzar el siguiente nivel de nuestro programa. Un nuevo hito en nuestra relación.
+
+Su nuevo estatus
+--------------------------------
+Nuevo nivel : 
+Total de puntos : 
+
+Su bono de descuento exclusivo
+ — Valor : 
+
+Descubrir mis nuevos privilegios : http://localhost/shop/es/historial-compra
+
+Este estatus le abre puertas que reservamos a los más fieles.
+
+Con todo nuestro agradecimiento,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

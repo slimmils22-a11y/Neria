@@ -1,0 +1,21 @@
+Test Neria
+
+Buenos días, Camille,
+
+Una interrupción técnica ha detenido el procesamiento de su pago. Nos disculpamos y le invitamos a regularizarlo a su conveniencia.
+
+Pedido #TEST00125
+--------------------------------
+Pago del pedido #TEST00125.
+
+Su pedido está conservado y sigue siendo prioritario. Puede regularizar su pago cuando lo desee — le esperamos.
+
+Si este contratiempo persistiera, le invitamos a consultar los detalles de su pedido desde su espacio personal.
+
+<a href="http://localhost/shop/es/seguimiento-pedido-invitado" style="color:#b38b59;">Si realizó su pedido como invitado, siga su pedido a través del enlace dedicado</a> : http://localhost/shop/es/seguimiento-pedido-invitado
+
+Gracias por su comprensión,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

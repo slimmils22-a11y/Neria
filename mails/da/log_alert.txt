@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Systemadvarsel
+
+Systemet har opdaget en usædvanlig begivenhed, der kræver din indgriben.
+
+Advarselsdetaljer
+--------------------------------
+Handling påkrævet
+
+Vi opfordrer dig til at se loggene for at forstå oprindelsen af denne advarsel og træffe de nødvendige foranstaltninger.
+
+Denne advarsel blev genereret automatisk. Kontroller din butiks status.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

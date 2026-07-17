@@ -1,0 +1,21 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Bag hvert stykke, du modtager, er der et blik, en hånd, en historie. Her er en personlig besked fra håndværkeren, der formede dit.
+
+Besked fra håndværkeren
+--------------------------------
+Dit stykke blev født af min passion og mine gestus. Jeg håber, det vil følge dig i lang tid.
+
+  — Fra
+
+Opdag værkstedet : http://localhost/shop/
+
+Vi er stolte af at introducere dig for dem, der bringer dine ønsker til live.
+
+Med varmen fra vores værksteder,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,28 @@
+Su colección
+
+Hola Camille,
+
+Solo falta una pieza
+
+Ya ha hecho lo más difícil. Solo falta una pieza para completar su colección — queríamos recordárselo antes de que desaparezca.
+
+--------
+
+Progreso de su colección : 
+Piezas ya adquiridas — solo falta una para completarla
+
+--------
+
+La pieza que falta : 
+ €
+
+Completar mi colección :
+
+
+--------
+
+Esta sugerencia se basa en sus compras anteriores dentro de esta colección.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

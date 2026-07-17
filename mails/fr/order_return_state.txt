@@ -1,0 +1,19 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous vous informons que le statut de votre demande de retour a évolué.
+
+Retour #42
+--------------------------------
+Le statut de votre retour a été mis à jour #42.
+
+Statut actuel : Retour reçu
+
+<a href="http://localhost/shop/fr/historique-commandes" style="color:#b38b59;">Vous pouvez consulter le détail de votre retour depuis votre espace client</a> : http://localhost/shop/fr/historique-commandes
+
+Avec toute notre gratitude et notre fierté,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

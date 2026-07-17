@@ -1,0 +1,22 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+We confirm that the package containing your return has reached our team. It will be handled with all due attention.
+
+Order reference : PREVIEW001
+
+Return details
+--------------------------------
+Réf. NER-001 — Montre Élégance Neria × 1
+Réf. NER-014 — Bracelet Cuir Atelier × 1
+
+Track my return : http://localhost/shop/gb/order-history
+
+We will keep you informed of the processing progress.
+
+At your service,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

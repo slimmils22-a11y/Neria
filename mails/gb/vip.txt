@@ -1,0 +1,17 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+Your exceptional loyalty moves us deeply. It is with sincere gratitude that we welcome you into our most exclusive circle — the one we reserve for those who honour us with their lasting trust.
+
+Your VIP status opens doors that we keep closed to the rest of the world: previews of our new creations, private invitations to our events, tailor-made offers and personalised support.
+
+Discover my privileges : http://localhost/shop/
+
+This status is a reflection of your trust. We carry it with as much care as you show us.
+
+With all our gratitude and admiration,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

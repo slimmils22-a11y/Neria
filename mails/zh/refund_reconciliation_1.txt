@@ -1,0 +1,17 @@
+Test Neria
+
+早上好, Sophie,
+
+我们希望亲自确认，您的退款目前正在处理中。
+
+您的请求已收到，我们正在确保其得到应有的关注与处理。
+
+查看我的订单 : http://localhost/shop/zh/订单-历史
+
+如有任何疑问，我们的团队随时为您服务。
+
+致以诚挚的问候，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

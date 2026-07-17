@@ -1,0 +1,11 @@
+Test Neria
+
+We are thinking of you
+
+We have received your request and are handling it with all due attention. Our team will contact you if necessary.
+
+With all our care,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

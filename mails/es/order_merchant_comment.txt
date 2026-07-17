@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Nuestro equipo tiene un mensaje para usted sobre su pedido.
+
+Pedido #TEST00125
+--------------------------------
+Se ha añadido un nuevo mensaje al pedido #TEST00125.
+
+Mensaje de nuestro equipo
+--------------------------------
+
+
+Puede ver el historial de su pedido desde su cuenta de cliente: http://localhost/shop/es/historial-compra
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

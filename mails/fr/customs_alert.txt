@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Votre commande est actuellement traitée par les services douaniers de son pays de destination.
+
+Référence commande : NR-000123
+
+Détails de l'alerte douanière
+--------------------------------
+Statut actuel : En attente de dédouanement
+
+Action recommandée : Aucune action requise de votre part.
+
+Suivre mon colis : http://localhost/shop/fr/historique-commandes
+
+Notre équipe peut vous assister dans les démarches si nécessaire.
+
+À votre service pour franchir cette étape,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

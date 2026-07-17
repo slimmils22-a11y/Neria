@@ -1,0 +1,19 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We are pleased to introduce your personal advisor, dedicated to guiding you in your choices and fulfilling your desires.
+
+Your dedicated advisor
+--------------------------------
+Your advisor : Marie-Claire Fontaine
+
+Contact my advisor : http://localhost/shop/
+
+He or she knows your tastes and can guide you towards pieces that suit you.
+
+At your service, with attention,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

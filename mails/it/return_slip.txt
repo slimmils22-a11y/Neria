@@ -1,0 +1,42 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Siamo lieti di prenderci cura del Vostro articolo. Ecco tutte le informazioni per farcelo pervenire.
+
+Ordine : #TEST00125
+
+Numero di reso : 
+
+Termine per la spedizione : Entro  giorni dalla ricezione di questa email
+
+Articolo/i interessato/i
+--------------------------------
+
+
+Motivo : 
+
+Istruzioni di spedizione
+--------------------------------
+Indirizzo di reso :
+
+
+Si prega di indicare questo numero di reso sul pacco: 
+
+Corriere consigliato: una spedizione tracciata e assicurata per viaggiare serenamente.
+
+Le modalità e gli eventuali costi di reso sono indicati nelle nostre condizioni di reso.
+
+Il Vostro articolo sarà esaminato entro  giorni lavorativi dalla ricezione.
+
+Il rimborso sarà effettuato sul Vostro metodo di pagamento originale.
+
+Accedi alla mia richiesta di reso : http://localhost/shop/it/segui-ordine
+
+Avete domande? Il nostro team resta a Vostra completa disposizione.
+
+Con tutta la nostra gratitudine e il nostro orgoglio,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

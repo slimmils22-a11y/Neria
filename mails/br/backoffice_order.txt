@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Uma alteração foi feita no seu pedido pela nossa equipe. Convidamos você a consultar as informações de pagamento atualizadas abaixo.
+
+Informações de pagamento atualizadas
+--------------------------------
+O valor ou as condições de pagamento foram ajustados. Proceda à regularização clicando no botão abaixo.
+
+Ir para o pagamento : http://localhost/shop/index.php?controller=order-detail&id_order=1
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

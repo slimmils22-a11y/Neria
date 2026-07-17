@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Votre voix a été entendue
+
+Madame, Monsieur,
+
+Nous accusons réception de votre demande et vous remercions de nous avoir contactés. Voici une copie des informations que vous nous avez communiquées :
+
+Informations de contact
+--------------------------------
+Adresse email : admin@test.com
+
+Référence commande : NR-000123
+
+Fichier joint : Aucun fichier joint
+
+Votre message
+--------------------------------
+Bonjour, je souhaite obtenir des informations sur ma commande.
+
+Répondre par email : admin@test.com
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

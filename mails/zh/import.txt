@@ -1,0 +1,17 @@
+﻿Test Neria
+
+亲爱的员工，
+
+您请求的导入已处理完毕。以下是详细结果。
+
+导入结果
+--------------------------------
+文件 : import_produits.csv
+
+导入已顺利完成，无差错。所有数据均已正确整合。
+
+如有任何疑问，请查阅管理后台的导入日志。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

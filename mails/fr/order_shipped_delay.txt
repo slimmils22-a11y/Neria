@@ -1,0 +1,21 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous vous informons que l'expédition de votre commande subit un retard inattendu. Nous mettons tout en œuvre pour le résoudre au plus vite.
+
+Référence commande : NR-000123
+
+Détails du retard
+--------------------------------
+Nouvelle date estimée : 15/06/2026
+
+Suivre ma commande : http://localhost/shop/fr/historique-commandes
+
+Nous vous tiendrons informé de toute évolution. Nous vous prions de bien vouloir nous excuser.
+
+Avec toute notre considération,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Wir bestätigen den Eingang Ihrer Stornierungsanfrage und haben diese mit der gebührenden Sorgfalt bearbeitet.
+
+Bestellung
+--------------------------------
+Die Bestellung #TEST00125.
+
+Diese Bestellung wurde gemäß Ihrer Anfrage storniert. Es wird kein Betrag abgebucht.
+
+Sie können die Details dieser Bestellung in Ihrem Kundenkonto einsehen.
+
+Bestellverlauf anzeigen : http://localhost/shop/de/bestellungsverlauf
+
+<a href="http://localhost/shop/de/auftragsverfolgung-gast" style="color:#b38b59;">Wenn Sie als Gast bestellt haben, finden Sie die Sendungsverfolgung über den speziellen Link</a> : http://localhost/shop/de/auftragsverfolgung-gast
+
+Wir hoffen, Sie wieder in unseren Mauern willkommen zu heißen — zu einem für Sie passenden Zeitpunkt.
+
+Mit unserem aufrichtigsten Bedauern und unserer ganzen Hochachtung,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

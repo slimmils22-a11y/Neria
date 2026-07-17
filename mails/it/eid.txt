@@ -1,0 +1,17 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+In occasione dell'Eid, desideriamo inviarVi i nostri più sinceri auguri.
+
+Che questa festa sacra Vi colmi di gioia, salute e momenti preziosi in famiglia.
+
+Scopri la nostra selezione : http://localhost/shop/
+
+Un'attenzione speciale è riservata per Voi fino alla fine della settimana.
+
+Tutto il team Vi augura una bellissima celebrazione.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

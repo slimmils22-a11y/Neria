@@ -1,0 +1,16 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Fechamos suavemente o capítulo do seu carrinho. Se alguma vez desejar reencontrar a sua seleção, os nossos artesãos ficariam honrados em recebê-lo novamente.
+
+--------------------------------
+
+
+Voltar à maison : 
+
+O seu carrinho já não está ativo. Todas as nossas criações permanecem à sua disposição.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

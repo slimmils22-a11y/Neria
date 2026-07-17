@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Abbiamo scelto di partecipare a questa giornata con sobrietà. Ecco una selezione di pezzi d'eccezione a condizioni privilegiate.
+
+Da noi, la rarità rimane discreta. Concedetevi un pezzo che forse stavate aspettando.
+
+Scoprire la selezione : http://localhost/shop/
+
+Questa offerta è limitata nel tempo e riservata esclusivamente ai nostri ospiti più attenti.
+
+Tutto il team vi augura il miglior incontro.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

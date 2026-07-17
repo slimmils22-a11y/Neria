@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+I anledning av Eid vil vi sende deg våre mest oppriktige ønsker.
+
+Må denne hellige høytiden fylle deg med glede, helse og dyrebare stunder med familien.
+
+Oppdag vårt utvalg : http://localhost/shop/
+
+En spesiell oppmerksomhet venter deg til slutten av uken.
+
+Hele teamet ønsker deg en flott feiring.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

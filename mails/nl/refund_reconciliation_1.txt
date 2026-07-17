@@ -1,0 +1,17 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Wij wilden u persoonlijk bevestigen dat uw terugbetaling momenteel wordt verwerkt.
+
+Uw verzoek is ontvangen en wij zorgen ervoor dat het met alle aandacht wordt behandeld die het verdient.
+
+Mijn bestellingen bekijken : http://localhost/shop/nl/besteloverzicht
+
+Als u vragen heeft, staat ons team altijd voor u klaar.
+
+Met vriendelijke groeten,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

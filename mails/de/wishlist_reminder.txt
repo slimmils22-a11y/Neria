@@ -1,0 +1,19 @@
+Test Neria
+
+Hallo, Camille,
+
+Eines der Stücke, die Sie auf Ihre Wunschliste gesetzt haben, ist wieder verfügbar.
+
+Details des Stücks
+--------------------------------
+Ivory Linen Dress
+
+Das Stück ansehen : http://localhost/shop/
+
+Die Verfügbarkeit ist begrenzt. Wir empfehlen Ihnen, nicht zu zögern.
+
+Zu Ihren Diensten,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

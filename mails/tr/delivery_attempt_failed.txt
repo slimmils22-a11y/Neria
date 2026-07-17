@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Kargonuzu teslim etmeye çalıştık, ancak teslim alacak kimse yoktu.
+
+Sipariş referansı : #TEST00125
+
+Teslim girişimi detayları
+--------------------------------
+Kargo durumu : 
+
+Şimdi ne yapmalı? : 
+
+Teslim alma seçeneklerini gör : http://localhost/shop/tr/siparis-gecmisi
+
+Kargo, sizin için bir teslim noktasında tutulmaktadır.
+
+Hizmetinizde olmayı beklerken,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

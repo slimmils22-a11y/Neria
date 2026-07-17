@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+It has been a year since you first trusted us. This year spent by your side is a source of infinite gratitude.
+
+We wished to celebrate this first year with a special attention. It is reserved for you.
+
+Discover my attention : http://localhost/shop/gb/order-history
+
+Thank you for being part of the story of our house.
+
+With all our gratitude,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

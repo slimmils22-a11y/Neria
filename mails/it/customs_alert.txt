@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Il Vostro ordine è attualmente in corso di elaborazione da parte delle autorità doganali del paese di destinazione.
+
+Riferimento ordine : #TEST00125
+
+Dettagli dell'alert doganale
+--------------------------------
+Stato attuale : 
+
+Azione raccomandata : 
+
+Traccia il mio pacco : http://localhost/shop/it/cronologia-ordini
+
+Il nostro team può assisterVi nelle procedure se necessario.
+
+Al Vostro servizio per superare questo passo,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

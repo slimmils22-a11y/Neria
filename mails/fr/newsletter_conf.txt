@@ -1,0 +1,19 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous sommes ravis de vous accueillir parmi nos abonnés. Votre inscription à notre lettre d'information a été confirmée.
+
+Confirmation
+--------------------------------
+Vous recevrez désormais en premier nos nouvelles collections, nos invitations privées et les moments forts de notre maison — partagés avec ceux que nous estimons.
+
+Votre confiance est sacrée. Nous la protégeons comme nous protégeons notre réputation : avec rigueur et discrétion.
+
+Vous pouvez gérer vos préférences et vous désabonner à tout moment depuis votre espace client.
+
+Accéder à mon espace : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

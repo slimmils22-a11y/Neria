@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi er glade for å kunne informere deg om at bestillingen din skrider frem i verkstedet vårt.
+
+Nåværende trinn
+--------------------------------
+Assemblage final en atelier
+
+Vår håndverker vier all sin omhu til å gi liv til din unike gjenstand. Vi vil holde deg oppdatert på hvert trinn.
+
+Du kan følge fremdriften av bestillingen din fra kundekontoen din.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

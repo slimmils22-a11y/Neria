@@ -1,0 +1,25 @@
+﻿Test Neria
+
+문의하신 내용을 접수했습니다
+
+Sophie님, 좋은 아침이에요.
+
+문의해 주셔서 감사합니다. 귀하께서 제공하신 정보의 사본입니다:
+
+연락처 정보
+--------------------------------
+이메일 주소 : test@test.com
+
+주문 참조 번호 : PREVIEW001
+
+첨부 파일 : Aucun fichier joint
+
+문의 내용
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+이메일로 답장 : test@test.com
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+작품의 맞춤형 수선 진행 상황을 알려드립니다. 최신 소식은 다음과 같습니다.
+
+주문 참조 번호 : PREVIEW001
+
+진행 세부 정보
+--------------------------------
+현재 상태 : Retouche en cours de finition
+
+진행 상황 추적 : http://localhost/shop/ko/주문-내역
+
+문의 사항은 저희 팀이 도와드리겠습니다.
+
+도와드리겠습니다,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

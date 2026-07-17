@@ -1,0 +1,19 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We are delighted to welcome you among our subscribers. Your subscription to our newsletter has been confirmed.
+
+Confirmation
+--------------------------------
+You will now receive first our new collections, private invitations and the highlights of our house — shared with those we value.
+
+Your trust is sacred. We protect it as we protect our reputation: with rigor and discretion.
+
+You can manage your preferences and unsubscribe at any time from your customer account.
+
+Access my space : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

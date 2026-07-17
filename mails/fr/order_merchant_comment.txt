@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Notre équipe a un message pour vous concernant votre commande.
+
+Commande NR-000123
+--------------------------------
+Un nouveau message a été ajouté à la commande NR-000123.
+
+Message de notre équipe
+--------------------------------
+Bonjour, je souhaite obtenir des informations sur ma commande.
+
+Vous pouvez consulter l'historique de votre commande depuis votre espace client : http://localhost/shop/fr/historique-commandes
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

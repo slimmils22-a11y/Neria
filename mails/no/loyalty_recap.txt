@@ -1,0 +1,24 @@
+Test Neria
+
+God morgen, Sophie,
+
+Her er ditt månedlige sammendrag av lojalitetspoeng. Hver åpning, hvert klikk og hvert kjøp bringer deg nærmere en belønning.
+
+--------------------------------
+Poeng tjent denne måneden : +
+Akkumulert totalt : 
+--------------------------------
+
+Din fremgang mot neste nivå
+
+Gratulerer — du har nådd vårt høyeste nivå.
+
+Oppdag våre nyheter : http://localhost/shop/
+
+Poengene dine krediteres automatisk ved hver interaksjon med e-postene våre.
+
+Med all vår takknemlighet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

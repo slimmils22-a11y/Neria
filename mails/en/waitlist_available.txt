@@ -1,0 +1,23 @@
+Reserved for you
+
+Hello Sophie,
+
+You waited  days. We haven't forgotten.
+
+This piece is back in stock — and because you were here before anyone else, we're giving you exclusive priority access.
+
+Your priority access is valid for  hours. After that, the product will be open to everyone.
+
+--------
+
+Montre Élégance Neria
+ €
+http://localhost/shop/index.php?controller=product&id_product=1
+
+--------
+
+You're receiving this notification because you asked to be alerted when this product came back in stock.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

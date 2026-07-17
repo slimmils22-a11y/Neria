@@ -1,0 +1,21 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Een technische onderbreking heeft de verwerking van uw betaling stopgezet. Wij verontschuldigen ons en nodigen u uit om deze te regelen wanneer het u uitkomt.
+
+Bestelling PREVIEW001
+--------------------------------
+Betaling voor bestelling PREVIEW001.
+
+Uw bestelling is bewaard en blijft prioritair. U kunt uw betaling regelen wanneer u wilt — wij wachten op u.
+
+Mocht dit ongemak aanhouden, nodigen wij u uit de details van uw bestelling in uw persoonlijke ruimte te bekijken.
+
+<a href="http://localhost/shop/nl/bestelling-volgen-als-gast" style="color:#b38b59;">Als u als gast heeft besteld, volg dan uw bestelling via de speciale link</a> : http://localhost/shop/nl/bestelling-volgen-als-gast
+
+Dank u voor uw begrip,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

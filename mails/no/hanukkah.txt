@@ -1,0 +1,17 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+I anledning av Hanukkah, lysfesten, sender vi deg våre mest oppriktige ønsker.
+
+Må denne hellige høytiden bringe deg varmen fra hjemmet, fred og ro.
+
+Oppdag våre kreasjoner : http://localhost/shop/
+
+En spesiell oppmerksomhet venter deg til slutten av uken.
+
+Hele teamet ønsker deg en fantastisk Hanukkah.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

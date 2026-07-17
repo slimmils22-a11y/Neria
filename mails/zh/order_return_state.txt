@@ -1,0 +1,19 @@
+Test Neria
+
+早上好, Sophie,
+
+我们通知您，您的退货请求状态已发生变化。
+
+退货 #42
+--------------------------------
+您的退货状态已更新 #42.
+
+当前状态 : Retour reçu
+
+<a href="http://localhost/shop/zh/订单-历史" style="color:#b38b59;">您可以从客户账户查看退货详情。</a> : http://localhost/shop/zh/订单-历史
+
+致以我们全部的感谢与自豪，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

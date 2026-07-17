@@ -1,0 +1,21 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi beklager å informere deg om at en av varene i bestillingen din for øyeblikket ikke er tilgjengelig.
+
+Bestilling PREVIEW001
+--------------------------------
+Ett av stykkene i bestillingen din unnslipper oss midlertidig — en svært sjelden situasjon, som vi tar på største alvor.
+
+Vi beklager denne forsinkelsen, som ikke gjenspeiler våre standarder. Teamet vårt vil kontakte deg snart for å bli enige om den beste løsningen sammen.
+
+<a href="http://localhost/shop/no/ordrehistorikk" style="color:#b38b59;">Du kan se detaljene for bestillingen din fra kundekontoen din</a> : http://localhost/shop/no/ordrehistorikk
+
+<a href="http://localhost/shop/no/gjestesporing" style="color:#b38b59;">Hvis du bestilte som gjest, følg bestillingen din via den dedikerte lenken</a> : http://localhost/shop/no/gjestesporing
+
+Vi ber om unnskyldning for denne svært sjeldne forsinkelsen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

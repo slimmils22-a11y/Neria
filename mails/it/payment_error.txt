@@ -1,0 +1,21 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Un'interruzione tecnica ha interrotto l'elaborazione del Vostro pagamento. Ce ne scusiamo e Vi invitiamo a regolarizzarlo a Vostra convenienza.
+
+Ordine #TEST00125
+--------------------------------
+Pagamento per l'ordine #TEST00125.
+
+Il Vostro ordine è conservato e rimane prioritario. Potete regolarizzare il Vostro pagamento quando desiderate — Vi aspettiamo.
+
+Se questo contrattempo dovesse persistere, Vi invitiamo a consultare i dettagli del Vostro ordine dal Vostro spazio personale.
+
+<a href="http://localhost/shop/it/tracciatura-ospite" style="color:#b38b59;">Se ha ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a> : http://localhost/shop/it/tracciatura-ospite
+
+Vi ringraziamo per la Vostra comprensione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

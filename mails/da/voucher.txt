@@ -1,0 +1,23 @@
+Test Neria
+
+God morgen, Sophie,
+
+Din tillid rører os. Som et tegn på vores taknemmelighed har vi forberedt en opmærksomhed til dig.
+
+Ordre PREVIEW001
+--------------------------------
+Der er genereret et gavekort til ordren PREVIEW001.
+
+Gavekortets beløb : 15,00 €
+
+Gavekortkode : NERIA-VIP-2026
+
+Dette gavekort er gyldigt i 30 dage i hele vores butik. Kan ikke kombineres med andre tilbud.
+
+Vi håber, du finder noget efter din smag blandt vores kreationer.
+
+Som tegn på vores taknemmelighed for din loyalitet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

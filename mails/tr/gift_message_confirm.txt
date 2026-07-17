@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Hediye siparişinize eklediğiniz mesajın başarıyla kaydedildiğini onaylıyoruz.
+
+Sipariş referansı : #TEST00125
+
+Mesaj içeriği
+--------------------------------
+«  »
+
+Siparişimi görüntüle : http://localhost/shop/tr/siparis-gecmisi
+
+Alıcı, bu mesajı kargosuyla birlikte alacaktır.
+
+Tüm dikkatimizle,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

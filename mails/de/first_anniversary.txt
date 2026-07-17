@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Es ist ein Jahr her, dass Sie uns zum ersten Mal vertraut haben. Dieses Jahr an Ihrer Seite ist eine Quelle unendlicher Dankbarkeit.
+
+Wir wollten dieses erste Jahr mit einer besonderen Aufmerksamkeit feiern. Sie ist Ihnen vorbehalten.
+
+Meine Aufmerksamkeit entdecken : http://localhost/shop/de/bestellungsverlauf
+
+Danke, dass Sie Teil der Geschichte unseres Hauses sind.
+
+Mit all unserer Dankbarkeit,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous espérons que votre pièce vous apporte toute la satisfaction que nous souhaitions.
+
+Pour qu'elle conserve son éclat et sa beauté au fil du temps, voici quelques conseils d'entretien.
+
+Conseils d'entretien
+--------------------------------
+Évitez l'exposition prolongée à la lumière directe ou à des sources de chaleur intense.
+
+Nettoyez délicatement avec un chiffon doux et sec. N'utilisez aucun produit chimique.
+
+Rangez votre pièce dans un endroit sec et à l'abri de la poussière lorsqu'elle n'est pas utilisée.
+
+Notre équipe reste à votre disposition pour tout complément d'information.
+
+En gardiens de vos pièces d'exception, avec tout notre soin,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

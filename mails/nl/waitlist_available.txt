@@ -1,0 +1,23 @@
+Voor u gereserveerd
+
+Hallo Sophie,
+
+U heeft  dagen gewacht. We zijn het niet vergeten.
+
+Dit artikel is weer op voorraad — en omdat u als eerste aanmeldde, geven we u exclusieve voorrangstoegang.
+
+Uw voorrangstoegang is  uur geldig. Daarna wordt het product voor iedereen beschikbaar.
+
+--------
+
+Montre Élégance Neria
+ €
+http://localhost/shop/index.php?controller=product&id_product=1
+
+--------
+
+U ontvangt deze melding omdat u heeft gevraagd gewaarschuwd te worden wanneer dit product weer beschikbaar zou zijn.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+On the occasion of Diwali, the festival of lights, we send you our warmest wishes.
+
+May this sacred festival bring clarity, prosperity and joy into your life.
+
+Discover our creations : http://localhost/shop/
+
+A special attention is reserved for you until the end of the week.
+
+The entire team wishes you a wonderful Diwali.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

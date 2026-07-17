@@ -1,0 +1,19 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Siamo lieti di presentarVi il Vostro consulente personale, dedicato a guidarVi nelle Vostre scelte e a soddisfare i Vostri desideri.
+
+Il Vostro consulente dedicato
+--------------------------------
+Il Vostro consulente : 
+
+Contatta il mio consulente : http://localhost/shop/
+
+Conosce i Vostri gusti e può guidarVi verso pezzi che Vi somigliano.
+
+Al Vostro servizio, con attenzione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

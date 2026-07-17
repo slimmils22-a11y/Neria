@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Parçanızın özel değişikliğinin ilerleyişi hakkında sizi bilgilendiriyoruz. İşte son gelişmeler.
+
+Sipariş referansı : #TEST00125
+
+İlerleme detayları
+--------------------------------
+Mevcut durum : 
+
+İlerlemeyi takip et : http://localhost/shop/tr/siparis-gecmisi
+
+Herhangi bir sorunuz için ekibimiz hizmetinizdedir.
+
+Hizmetinizde,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

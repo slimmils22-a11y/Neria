@@ -1,0 +1,23 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+Your quote has expired, but we would like to offer you the opportunity to proceed. Upon a simple request, we can extend its validity subject to availability.
+
+Quote reference: 
+
+Amount: 
+
+Extension possible until: 
+
+Request an extension : 
+
+Contact us today to confirm your quote under the original terms. Our team will review your request with the utmost care.
+
+This extension offer is subject to item availability and confirmation from our team.
+
+With our distinguished regards,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

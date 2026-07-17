@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+İadeniz artık tamamlandı. Her şeyin memnuniyetinize göre gerçekleştiğini umuyoruz.
+
+Mağazamızın her zaman size açık olduğunu ve sizi tekrar ağırlamaktan her zaman büyük mutluluk duyacağımızı bilin.
+
+Mağazamıza dönün : http://localhost/shop/
+
+Son ziyaretinizden bu yana yenilikler geldi. Belki hoşunuza gidecek bir şey bulabilirsiniz.
+
+En içten selamlarımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

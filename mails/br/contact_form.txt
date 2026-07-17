@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Recebemos sua mensagem sobre seu pedido. Segue um resumo das informações que nos forneceu:
+
+Resumo da sua solicitação
+--------------------------------
+Referência do pedido : PREVIEW001
+
+Produto em questão : Montre Élégance Neria
+
+Arquivo anexo : Aucun fichier joint
+
+Damos especial atenção a cada pedido e entraremos em contato com você muito em breve.
+
+Voltar à nossa maison : http://localhost/shop/
+
+Aguardando o momento de lhe responder com toda a atenção,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

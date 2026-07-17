@@ -1,0 +1,17 @@
+Test Neria
+
+Madame, Monsieur,
+
+Pour activer votre inscription à notre lettre d'information, veuillez confirmer votre adresse email en cliquant sur le lien ci-dessous.
+
+Vérification
+--------------------------------
+Ce lien sécurisé confirme votre inscription et vous donne accès à toutes nos actualités.
+
+Confirmer mon inscription : #
+
+Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer ce message.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

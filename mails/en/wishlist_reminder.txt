@@ -1,0 +1,19 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+One of the pieces you noted in your wish list is once again available.
+
+Piece details
+--------------------------------
+Montre Élégance Neria
+
+View the piece : http://localhost/shop/
+
+Availability is limited. We encourage you not to delay.
+
+At your service,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

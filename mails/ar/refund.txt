@@ -1,0 +1,17 @@
+Test Neria
+
+مساء الخير, Sophie,
+
+نؤكد أن استرداد مبلغ طلبكم قد تم بنجاح.
+
+مرجع الطلب : PREVIEW001
+
+<a href="http://localhost/shop/ar/سجل طلبات الشراء" style="color:#b38b59;">يمكنكم الاطلاع على سجل طلبكم من حساب العميل الخاص بكم</a> : http://localhost/shop/ar/سجل طلبات الشراء
+
+<a href="http://localhost/shop/ar/تتبع الطلب" style="color:#b38b59;">إذا قمتم بالطلب كضيوف، تابعوا طلبكم عبر الرابط المخصص</a> : http://localhost/shop/ar/تتبع الطلب
+
+بأسمى آيات الشكر والتقدير،
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

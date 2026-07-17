@@ -1,0 +1,23 @@
+Test Neria
+
+God morgen, Sophie,
+
+Det er med stolthet vi kunngjør at bestillingen din er sendt. Håndverkerne våre har forberedt den med den omsorg den fortjener — hver detalj, hver innpakning, hver gest.
+
+Bestilling
+--------------------------------
+Bestilling PREVIEW001.
+
+Den er nå i hendene på transportøren vår og vil nå deg innen forventet tid.
+
+<a href="http://localhost/shop/no/ordrehistorikk" style="color:#b38b59;">Du kan se bestillingshistorikken din fra kundekontoen din</a> : http://localhost/shop/no/ordrehistorikk
+
+<a href="http://localhost/shop/no/gjestesporing" style="color:#b38b59;">Hvis du bestilte som gjest, følg bestillingen din via den dedikerte lenken</a> : http://localhost/shop/no/gjestesporing
+
+Vi ønsker deg en mottakelse verdig den følelsen dette stykket bærer med seg.
+
+Med all vår stolthet og hengivenhet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Seu pedido foi dividido em vários pacotes para facilitar o envio. Parte dele já está a caminho.
+
+Referência do pedido : PREVIEW001
+
+Detalhes das embalagens enviadas
+--------------------------------
+Colis 1/2 — Montre Élégance Neria · Colissimo 6A1234567890
+
+Acompanhar as minhas embalagens : http://localhost/shop/br/historico-de-pedidos
+
+Vamos manter você informado sobre o envio dos demais pacotes.
+
+Com toda a nossa atenção,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

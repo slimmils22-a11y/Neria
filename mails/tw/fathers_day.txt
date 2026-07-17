@@ -1,0 +1,17 @@
+﻿Test Neria
+
+早安, Sophie,
+
+在這個致敬父親的節日裡，我們感念那個塑造了你根基、熱忱與沉默的人。
+
+贈予他最稀有的禮物：一件無需言語便能訴說感激的珍品。
+
+探索我們的精選 : http://localhost/shop/
+
+特別關懷為您保留至本週末。
+
+全體團隊祝您父親節快樂。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

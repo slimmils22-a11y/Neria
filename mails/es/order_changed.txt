@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Le informamos que se han realizado cambios en su pedido. A continuación, los detalles de esta modificación.
+
+Pedido #TEST00125
+--------------------------------
+El pedido #TEST00125.
+
+Este pedido se ha actualizado según la información que proporcionó.
+
+Puede ver el detalle de este pedido desde su cuenta de cliente.
+
+Ver el historial de mis pedidos : http://localhost/shop/es/historial-compra
+
+<a href="http://localhost/shop/es/seguimiento-pedido-invitado" style="color:#b38b59;">Si realizó su pedido como invitado, encuentre el seguimiento de su pedido a través del enlace dedicado</a> : http://localhost/shop/es/seguimiento-pedido-invitado
+
+Con todo nuestro agradecimiento y orgullo,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

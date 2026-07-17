@@ -1,0 +1,18 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+In riconoscenza della Vostra fedeltà, Vi apriamo l'accesso alla nostra nuova collezione prima della sua uscita ufficiale.
+
+Collezione in anteprima
+--------------------------------
+
+Accedi alla collezione : http://localhost/shop/
+
+Questo accesso anticipato è strettamente personale e limitato nel tempo.
+
+Siamo lieti di condividere questo momento con Voi,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

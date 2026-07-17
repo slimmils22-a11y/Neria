@@ -1,0 +1,19 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi er glade for å presentere din personlige rådgiver, dedikert til å veilede deg i valgene dine og oppfylle ønskene dine.
+
+Din dedikerte rådgiver
+--------------------------------
+Din rådgiver : Marie-Claire Fontaine
+
+Kontakt min rådgiver : http://localhost/shop/
+
+Han eller hun kjenner smaken din og kan veilede deg til gjenstander som passer deg.
+
+Til din tjeneste, med oppmerksomhet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

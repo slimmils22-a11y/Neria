@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Systemvarning
+
+Systemet har upptäckt en ovanlig händelse som kräver din intervention.
+
+Varningsdetaljer
+--------------------------------
+Åtgärd krävs
+
+Vi uppmanar dig att titta i loggarna för att förstå ursprunget till denna varning och vidta nödvändiga åtgärder.
+
+Denna varning genererades automatiskt. Kontrollera status för din butik.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

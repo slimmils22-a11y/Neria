@@ -1,0 +1,17 @@
+Test Neria
+
+早安, Sophie,
+
+在這個光明戰勝寒冷的季節，我們的店舖以特別的溫暖思念您。
+
+願這個節日為您帶來日常生活所罕有給予的：時間、溫柔，以及重要之人的陪伴。
+
+發現我們的傑作 : http://localhost/shop/
+
+一份特別的關懷為您保留至12月31日。
+
+全體團隊祝您節日愉快。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+Temos o prazer de anunciar que a sua encomenda à medida está agora pronta. Os nossos artesãos deram vida à sua visão.
+
+Referência da encomenda : #TEST00125
+
+Detalhes da sua peça
+--------------------------------
+Ivory Linen Dress
+
+Acompanhar a entrega : http://localhost/shop/pt/historico-de-encomendas
+
+Agradecemos a sua paciência. Esta peça única está finalmente pronta para o encontrar.
+
+Orgulhosos de o ter acompanhado nesta criação,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

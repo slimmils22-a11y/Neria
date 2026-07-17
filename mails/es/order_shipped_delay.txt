@@ -1,0 +1,21 @@
+Test Neria
+
+Buenos días, Camille,
+
+Le informamos que el envío de su pedido está sufriendo un retraso inesperado. Estamos haciendo todo lo posible para resolverlo lo antes posible.
+
+Referencia del pedido : #TEST00125
+
+Detalles del retraso
+--------------------------------
+Nueva fecha estimada : 
+
+Seguir mi pedido : http://localhost/shop/es/historial-compra
+
+Le mantendremos informado de cualquier novedad. Le pedimos disculpas.
+
+Con toda nuestra consideración,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

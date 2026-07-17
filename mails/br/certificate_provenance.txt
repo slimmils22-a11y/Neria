@@ -1,0 +1,25 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Cada peça que oferecemos é acompanhada por um certificado de procedência que garante sua autenticidade e origem.
+
+Procedência
+--------------------------------
+France — Atelier parisien, fondé en 1987
+
+Materiais & técnicas
+--------------------------------
+Cuir de veau pleine fleur, acier 316L, verre saphir
+
+Artesão / Ateliê
+--------------------------------
+Maître Jean-Pierre Moreau, Meilleur Ouvrier de France
+
+Temos orgulho de lhe entregar esta peça de exceção, portadora de um patrimônio artesanal meticulosamente preservado.
+
+Este documento eletrônico é seu certificado de procedência. Guarde-o cuidadosamente.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

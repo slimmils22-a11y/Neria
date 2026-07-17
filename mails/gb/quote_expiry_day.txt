@@ -1,0 +1,23 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+Your quote expires today. We invite you to confirm it at your earliest convenience to secure the agreed terms.
+
+Quote reference: 
+
+Amount: 
+
+Expires on: 
+
+Confirm my quote now : 
+
+For any urgent enquiry, our team is available and ready to assist you.
+
+This quote expires today. Once elapsed, the agreed pricing conditions may be subject to change.
+
+With our distinguished regards,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

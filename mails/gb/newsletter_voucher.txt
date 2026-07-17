@@ -1,0 +1,19 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+Thank you for subscribing to our newsletter. As a welcome gesture, here is an exclusive code offering  off your next order.
+
+Your invitation code
+--------------------------------
+Exclusive code : NERIA-PREVIEW-2026
+
+This code is valid for 30 days throughout our house. It cannot be combined with other attentions.
+
+Discover our creations : http://localhost/shop/
+
+We wish you a wonderful discovery of our unique pieces.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

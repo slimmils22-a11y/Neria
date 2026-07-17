@@ -1,0 +1,21 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+I Vostri pezzi sono stati affidati ai nostri artigiani. Nelle loro mani, ogni gesto è un omaggio alla Vostra scelta.
+
+Ordine
+--------------------------------
+L'ordine #TEST00125.
+
+Un know-how pazientemente coltivato, interamente al servizio di ciò che Vi aspettate — e di ciò che meritate.
+
+<a href="http://localhost/shop/it/cronologia-ordini" style="color:#b38b59;">Può seguire l'evoluzione del Vostro ordine dal Vostro account cliente</a> : http://localhost/shop/it/cronologia-ordini
+
+<a href="http://localhost/shop/it/tracciatura-ospite" style="color:#b38b59;">Se ha ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a> : http://localhost/shop/it/tracciatura-ospite
+
+Nell'attesa del piacere di soddisfarVi,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

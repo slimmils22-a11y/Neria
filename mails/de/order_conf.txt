@@ -1,0 +1,52 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir haben die Ehre, den Eingang Ihrer Bestellung zu bestätigen. Jedes von Ihnen ausgewählte Stück wird mit der Aufmerksamkeit behandelt, die es verdient — und Sie verdienen.
+
+Unsere Handwerker tragen ein Erbe in sich, das von Generation zu Generation weitergegeben wurde. Ihre Kreation ist nun der Ausdruck davon.
+
+Bestelldetails
+--------------------------------
+Bestellnummer : #TEST00125
+
+Datum : 
+
+Zahlungsmethode : 
+
+
+
+
+Gesamt Produkte : 
+
+Rabatte : 
+
+Versand : 
+
+Steuern : 
+
+Gesamt bezahlt : 
+
+Versand
+--------------------------------
+Versanddienstleister : 
+
+Lieferadresse
+--------------------------------
+
+
+Rechnungsadresse
+--------------------------------
+
+
+<a href="" style="color:#b38b59;">Sie können den Fortschritt Ihres Pakets in Ihrem Kundenkonto verfolgen</a>
+
+<a href="http://localhost/shop/de/bestellungsverlauf" style="color:#b38b59;">Bestellverlauf in Ihrem Kundenkonto anzeigen</a> : http://localhost/shop/de/bestellungsverlauf
+
+<a href="http://localhost/shop/de/auftragsverfolgung-gast" style="color:#b38b59;">Wenn Sie als Gast bestellt haben, verfolgen Sie Ihre Bestellung über den speziellen Link</a> : http://localhost/shop/de/auftragsverfolgung-gast
+
+Mit all unserer Dankbarkeit und unserem Stolz,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

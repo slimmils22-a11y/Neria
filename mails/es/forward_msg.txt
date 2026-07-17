@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Estimado empleado,
+
+Se le ha reenviado un mensaje de cliente para su gestión.
+
+ le ha reenviado el siguiente mensaje.
+
+Historial de la conversación
+--------------------------------
+
+
+ ha añadido el siguiente comentario : 
+
+No responda a este correo automático. Inicie sesión en la administración para gestionar la solicitud.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

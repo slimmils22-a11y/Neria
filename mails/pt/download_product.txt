@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Obrigado pela sua encomenda. Os seguintes produtos digitais estão agora disponíveis para descarregar.
+
+Encomenda #TEST00125 — Descarregamentos
+--------------------------------
+Tem  produto(s) disponível(eis) para descarregar.
+
+
+
+<a href="http://localhost/shop/pt/historico-de-encomendas" style="color:#b38b59;">Consultar o histórico da sua encomenda</a> : http://localhost/shop/pt/historico-de-encomendas
+
+<a href="http://localhost/shop/pt/seguimento-de-visitante" style="color:#b38b59;">Acompanhamento para convidado</a> : http://localhost/shop/pt/seguimento-de-visitante
+
+Boa descoberta da sua aquisição,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

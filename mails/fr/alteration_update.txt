@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Nous vous informons de l'évolution de la retouche sur mesure de votre pièce. Voici les dernières nouvelles.
+
+Référence commande : NR-000123
+
+Détails de l'avancement
+--------------------------------
+État actuel : Retouche en cours de finition
+
+Suivre l'avancement : http://localhost/shop/fr/historique-commandes
+
+Notre équipe reste à votre disposition pour toute question.
+
+À votre service,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

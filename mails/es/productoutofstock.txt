@@ -1,0 +1,21 @@
+Test Neria
+
+Estimado empleado,
+
+Un producto de su tienda está ahora agotado.
+
+Detalles del producto
+--------------------------------
+Producto : 
+
+Umbral de alerta de stock alcanzado : 
+
+Cantidad restante : 
+
+Le invitamos a reabastecer este producto lo antes posible.
+
+Esta alerta es automática. Verifique el estado de su stock.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

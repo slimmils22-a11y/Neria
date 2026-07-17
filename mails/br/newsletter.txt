@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Temos o prazer de compartilhar nossas últimas notícias com você. Descubra abaixo as informações mais recentes da nossa casa.
+
+Conteúdo da newsletter
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+Para não perder nenhuma de nossas futuras notícias, mantenha-se conectado.
+
+Descobrir a maison : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

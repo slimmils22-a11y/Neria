@@ -1,0 +1,24 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Sua seleção está agora a caminho de você. Aqui estão as peças envolvidas:
+
+Réf. NER-001 — Montre Élégance Neria × 1
+Réf. NER-014 — Bracelet Cuir Atelier × 1
+
+Pedido PREVIEW001
+--------------------------------
+Pedido PREVIEW001.
+
+Encontra-se em trânsito e chegará dentro do prazo previsto.
+
+Rastrear meu pedido : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/br/historico-de-pedidos" style="color:#b38b59;">Consulte o histórico do seu pedido na sua conta de cliente</a> : http://localhost/shop/br/historico-de-pedidos
+
+<a href="http://localhost/shop/br/rastreamento-para-visitante" style="color:#b38b59;">Se fez seu pedido como convidado, rastreie-o através do link dedicado</a> : http://localhost/shop/br/rastreamento-para-visitante
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

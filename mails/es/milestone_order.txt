@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Nos complace informarle que acaba de realizar su  pedido con nosotros. Un hito simbólico.
+
+Cada pedido es para nosotros una señal de confianza. Este, en particular, lo es aún más, y le agradecemos sinceramente.
+
+Descubrir mi selección : http://localhost/shop/es/historial-compra
+
+Reservamos una atención especial a nuestros huéspedes que alcanzan estos hitos.
+
+Con todo nuestro agradecimiento,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

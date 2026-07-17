@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Доброе утро, Sophie,
+
+У нашей команды есть сообщение для Вас касательно Вашего заказа.
+
+Заказ PREVIEW001
+--------------------------------
+К заказу добавлено новое сообщение PREVIEW001.
+
+Сообщение от нашей команды
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+Вы можете просмотреть историю заказа из своего клиентского аккаунта: http://localhost/shop/ru/order-history
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

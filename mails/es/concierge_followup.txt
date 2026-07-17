@@ -1,0 +1,18 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Nuestro servicio de conserjería desea asegurarse de que su experiencia con nuestra casa esté a la altura de sus expectativas.
+
+¿Necesita una atención especial?
+--------------------------------
+
+Contactar a mi asesor : http://localhost/shop/
+
+Estamos disponibles para acompañarle en cada detalle de su recorrido.
+
+A su servicio, en todas las circunstancias,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

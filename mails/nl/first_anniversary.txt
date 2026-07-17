@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Het is een jaar geleden dat u ons voor het eerst vertrouwde. Dit jaar aan uw zijde is een bron van oneindige dankbaarheid.
+
+We wilden dit eerste jaar vieren met een bijzondere attentie. Het is voor u gereserveerd.
+
+Ontdek onze attentie : http://localhost/shop/nl/besteloverzicht
+
+Dank u dat u deel uitmaakt van de geschiedenis van ons huis.
+
+Met al onze dankbaarheid,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

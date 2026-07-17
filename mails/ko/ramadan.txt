@@ -1,0 +1,17 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+축복된 라마단의 달에 가장 따뜻한 축하를 보냅니다.
+
+이 축복된 달이 내면의 평온, 나눔의 기쁨, 그리고 믿음으로 단식하는 자를 따르는 은혜를 가져다주길 바랍니다.
+
+작품 보기 : http://localhost/shop/
+
+거룩한 달 내내 특별한 관심이 귀하를 위해 준비되어 있습니다.
+
+전 직원이 축복된 라마단을 기원합니다.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

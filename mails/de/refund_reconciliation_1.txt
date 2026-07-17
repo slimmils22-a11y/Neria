@@ -1,0 +1,17 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir möchten Ihnen persönlich bestätigen, dass Ihre Rückerstattung derzeit bearbeitet wird.
+
+Ihre Anfrage wurde entgegengenommen und wir sorgen dafür, dass sie mit aller gebührenden Sorgfalt bearbeitet wird.
+
+Meine Bestellungen ansehen : http://localhost/shop/de/bestellungsverlauf
+
+Bei Fragen steht Ihnen unser Team jederzeit zur Verfügung.
+
+Mit freundlichen Grüßen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+Test Neria
+
+Buenos días, Camille,
+
+Su pedido se ha dividido en varios paquetes para facilitar el envío. Parte del mismo ya está en camino hacia usted.
+
+Referencia del pedido : #TEST00125
+
+Detalles de los paquetes enviados
+--------------------------------
+
+
+Seguir mis paquetes : http://localhost/shop/es/historial-compra
+
+Le mantendremos informado del envío de los paquetes restantes.
+
+Con toda nuestra atención,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

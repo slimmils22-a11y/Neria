@@ -1,0 +1,23 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi minner om at tilbudet ditt utløper om mindre enn 48 timer. Vi inviterer deg til å bekrefte det før utløp for å dra nytte av de avtalte betingelsene.
+
+Tilbudsreferanse: 
+
+Beløp: 
+
+Utløper: 
+
+Bekreft bestillingen min : 
+
+Teamet vårt er fullt tilgjengelig for spørsmål eller justeringer før bekreftelse.
+
+Dette tilbudet utløper den . Etter denne datoen kan de avtalte prisbetingelsene ikke garanteres.
+
+Med utmerket aktelse,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,16 @@
+Test Neria
+
+早安, Sophie,
+
+團隊回覆
+--------------------------------
+Bonjour, nous avons bien traité votre demande. Votre commande sera expédiée sous 48h. Cordialement, le service client Neria.
+
+請勿回覆此自動郵件。
+
+如有任何問題，請透過我們的網站聯絡我們。
+http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Identificamos um ponto que requer sua atenção em relação a um produto que você possa ter adquirido conosco. Esta comunicação é um ato de transparência.
+
+Referência do pedido : PREVIEW001
+
+Detalhes da recolha
+--------------------------------
+Produto em questão : Montre Élégance Neria
+
+O que fazer?
+--------------------------------
+Saber mais : http://localhost/shop/br/historico-de-pedidos
+
+Nossa equipe está à sua disposição para qualquer dúvida. Agradecemos a sua compreensão.
+
+Com toda a nossa consideração,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

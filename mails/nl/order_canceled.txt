@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+We bevestigen de ontvangst van uw annuleringsverzoek. Het is behandeld met alle zorg die uw vertrouwen vereist.
+
+Bestelling
+--------------------------------
+Bestelling PREVIEW001.
+
+Deze bestelling is geannuleerd volgens uw verzoek. Er wordt geen bedrag in rekening gebracht.
+
+U kunt de details van deze bestelling bekijken via uw klantenaccount.
+
+Bekijk mijn bestelgeschiedenis : http://localhost/shop/nl/besteloverzicht
+
+<a href="http://localhost/shop/nl/bestelling-volgen-als-gast" style="color:#b38b59;">Als u als gast heeft besteld, vindt u uw tracking via de speciale link</a> : http://localhost/shop/nl/bestelling-volgen-als-gast
+
+We hopen u weer te mogen verwelkomen binnen onze muren — op een tijdstip dat u uitkomt.
+
+Met onze oprechtste spijt en alle achting,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+Test Neria
+
+早上好, Sophie,
+
+技术中断导致您的付款处理中断。我们为此道歉，并请您在方便时予以解决。
+
+订单 PREVIEW001
+--------------------------------
+订单付款 PREVIEW001.
+
+您的订单已保留并保持优先。您可以随时完成付款 — 我们期待您的到来。
+
+若此不便持续，我们诚邀您从个人空间查看您的订单详情。
+
+<a href="http://localhost/shop/zh/客户跟踪" style="color:#b38b59;">如果您以访客身份下单，请通过专用链接跟踪订单。</a> : http://localhost/shop/zh/客户跟踪
+
+感谢您的理解，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

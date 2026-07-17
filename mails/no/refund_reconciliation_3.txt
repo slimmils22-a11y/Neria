@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+Refusjonen din er nå ferdigbehandlet. Vi håper alt har gått til din tilfredshet.
+
+Vet at huset vårt er ditt, og at vi alltid vil være glade for å ønske deg velkommen tilbake, når du er klar.
+
+Tilbake til huset vårt : http://localhost/shop/
+
+Det har kommet nyheter siden ditt siste besøk. Kanskje finner du noe du liker.
+
+Med vennligste hilsener,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

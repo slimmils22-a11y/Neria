@@ -1,0 +1,26 @@
+Sizin için seçilenler
+
+Merhaba Camille,
+
+Görünümünüzü tamamlayın
+
+Siparişiniz az önce ulaştı — umarız beğenirsiniz. İşte son alışverişinizle mükemmel uyum sağlayan birkaç parça.
+
+--------
+
+1.  —  €
+
+
+2.  —  €
+
+
+3.  —  €
+
+
+--------
+
+Bu seçki özellikle sizin için hazırlandı, son alışverişinizden ilham alındı.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

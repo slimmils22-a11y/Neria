@@ -1,0 +1,25 @@
+Test Neria
+
+早安, Sophie,
+
+我們提供的每件作品均附有來源證明書，保證其真實性和產地。
+
+產地
+--------------------------------
+France — Atelier parisien, fondé en 1987
+
+材料與工藝
+--------------------------------
+Cuir de veau pleine fleur, acier 316L, verre saphir
+
+工匠 / 工坊
+--------------------------------
+Maître Jean-Pierre Moreau, Meilleur Ouvrier de France
+
+我們很自豪能將這件非凡的作品傳遞給您，它承載着精心保存的手工藝遺產。
+
+此電子文檔即為您的來源證明書，請妥善保管。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

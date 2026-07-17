@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Sadakat programımız kapsamında kazandığınız ödül yakında sona erecek.
+
+Ödül detayları
+--------------------------------
+Son kullanma tarihi : 
+
+Ödülümü kullan : http://localhost/shop/tr/siparis-gecmisi
+
+Bu ödül belirtilen tarihe kadar geçerlidir. Bu tarihten sonra kullanılamaz.
+
+Sizi memnun etmeyi umuyoruz,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

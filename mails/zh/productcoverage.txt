@@ -1,0 +1,17 @@
+Test Neria
+
+亲爱的同事，
+
+系统检测到某商品接近其关键覆盖率阈值。
+
+覆盖率状态
+--------------------------------
+最小覆盖率 : 7 jours
+
+当前覆盖率 : 3 jours
+
+请检查您的库存，必要时进行补货。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

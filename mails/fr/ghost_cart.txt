@@ -1,0 +1,19 @@
+Bonjour test,
+
+Nous avons remarqué
+Cette pièce retient particulièrement votre attention
+
+Nous avons remarqué que vous avez ajouté cet article à votre panier à plusieurs reprises. Si quelque chose vous retient — une question sur la taille, les matières, les délais de livraison ou autre — notre équipe est disponible pour en parler avec vous.
+
+--------------------------------------------------
+La pièce qui vous intéresse :
+Affiche encadrée The best is yet to come
+29,00 €
+http://localhost/shop/fr/art/3-affiche-encadree-the-best-is-yet-to-come.html
+--------------------------------------------------
+
+Pas de pression — nous sommes simplement là si vous avez la moindre question.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

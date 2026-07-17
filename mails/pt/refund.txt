@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Confirmamos que o reembolso da sua encomenda foi efetuado com sucesso.
+
+Referência da encomenda : #TEST00125
+
+<a href="http://localhost/shop/pt/historico-de-encomendas" style="color:#b38b59;">Pode consultar o histórico da sua encomenda a partir da sua conta de cliente</a> : http://localhost/shop/pt/historico-de-encomendas
+
+<a href="http://localhost/shop/pt/seguimento-de-visitante" style="color:#b38b59;">Se fez a sua encomenda como convidado, acompanhe-a através do link dedicado</a> : http://localhost/shop/pt/seguimento-de-visitante
+
+Com o nosso mais profundo agradecimento,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

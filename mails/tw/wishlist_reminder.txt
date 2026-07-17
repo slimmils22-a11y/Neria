@@ -1,0 +1,19 @@
+Test Neria
+
+早安, Sophie,
+
+您願望清單中的一件作品再度有貨。
+
+作品詳情
+--------------------------------
+Montre Élégance Neria
+
+查看作品 : http://localhost/shop/
+
+庫存有限。建議您盡快下單。
+
+隨時為您服務，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

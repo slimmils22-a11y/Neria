@@ -1,0 +1,17 @@
+Test Neria
+
+早上好, Sophie,
+
+在尊贵的斋月之际，我们向您致以最温暖的祝福。
+
+愿这个吉祥的月份带给您内心的宁静、分享的喜悦，以及伴随虔诚斋戒者的恩典。
+
+发现我们的作品 : http://localhost/shop/
+
+整个神圣月份期间，特别关怀为您保留。
+
+全体团队祝您斋月吉庆。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

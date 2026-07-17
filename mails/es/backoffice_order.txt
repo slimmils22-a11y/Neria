@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Se ha realizado un cambio en su pedido por nuestro equipo. Le invitamos a consultar la información de pago actualizada a continuación.
+
+Información de pago actualizada
+--------------------------------
+El importe o las condiciones de pago han sido ajustados. Proceda a la regularización haciendo clic en el botón de abajo.
+
+Ir al pago : 
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

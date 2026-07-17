@@ -1,0 +1,33 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Il Vostro ordine è stato registrato con successo. Sarà elaborato al ricevimento del Vostro bonifico bancario.
+
+Ordine #TEST00125 — In attesa di bonifico
+--------------------------------
+Vi ringraziamo per il Vostro ordine #TEST00125.
+
+Coordinate bancarie
+--------------------------------
+Effettuate il Vostro bonifico sul conto qui sotto indicato, citando obbligatoriamente la seguente referenza:
+
+Importo : 
+
+Beneficiario : 
+
+Dettagli del conto : 
+
+Indirizzo bancario : 
+
+Vi preghiamo di citare la referenza #TEST00125.
+
+<a href="http://localhost/shop/it/cronologia-ordini" style="color:#b38b59;">Visualizza la cronologia del Vostro ordine</a> : http://localhost/shop/it/cronologia-ordini
+
+<a href="http://localhost/shop/it/tracciatura-ospite" style="color:#b38b59;">Tracciamento ospite</a> : http://localhost/shop/it/tracciatura-ospite
+
+In attesa del Vostro bonifico, con tutta la nostra pazienza,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

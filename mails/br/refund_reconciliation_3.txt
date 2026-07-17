@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Seu reembolso foi finalizado. Esperamos que tudo tenha ocorrido à sua satisfação.
+
+Saiba que nossa casa é a sua, e que teremos sempre muito prazer em recebê-lo(a) de volta, quando assim desejar.
+
+Voltar à nossa casa : http://localhost/shop/
+
+Novidades chegaram desde sua última visita. Talvez encontre algo do seu agrado.
+
+Com nossos mais cordiais cumprimentos,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

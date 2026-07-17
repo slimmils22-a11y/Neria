@@ -1,0 +1,17 @@
+Test Neria
+
+Caro/a colaborador/a,
+
+O sistema detectou que um produto está perto de seu limite crítico de cobertura.
+
+Status de cobertura
+--------------------------------
+Cobertura mínima : 7 jours
+
+Cobertura atual : 3 jours
+
+Verifique seu estoque e reabasteça se necessário.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

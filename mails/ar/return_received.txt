@@ -1,0 +1,22 @@
+﻿Test Neria
+
+مساء الخير, Sophie,
+
+نؤكد أن الطرد الذي يحتوي على إرجاعكم قد وصل إلى فريقنا. سيتم معالجته بكل العناية الواجبة.
+
+مرجع الطلب : PREVIEW001
+
+تفاصيل الإرجاع
+--------------------------------
+Réf. NER-001 — Montre Élégance Neria × 1
+Réf. NER-014 — Bracelet Cuir Atelier × 1
+
+تتبع إرجاعي : http://localhost/shop/ar/سجل طلبات الشراء
+
+سنبقيكم على اطلاع بتقدم المعالجة.
+
+في خدمتكم،
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+Cadılar Bayramı vesilesiyle sizin için gizem ve zarafeti birleştiren eşsiz bir atmosfer hazırladık.
+
+Her detayın önemli olduğu bir dünyaya dalın. Unutulmaz bir akşam için olağanüstü kreasyonlarımızı keşfedin.
+
+Özel kreasyonlarımızı keşfedin : http://localhost/shop/
+
+Özel bir ilgi 31 Ekim'e kadar sizi bekliyor.
+
+Tüm ekibimiz size harika bir Cadılar Bayramı diler.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

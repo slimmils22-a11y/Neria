@@ -1,0 +1,17 @@
+Test Neria
+
+Madame, Monsieur,
+
+Vous avez manifesté votre intérêt pour un produit actuellement très demandé. Nous sommes heureux de vous informer qu'une quantité limitée est de nouveau disponible.
+
+Produit concerné
+--------------------------------
+De retour en quantité limitée : Montre Élégance Neria.
+
+Voir le produit : #
+
+Cette offre est strictement limitée aux stocks disponibles. Nous vous invitons à ne pas tarder.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

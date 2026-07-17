@@ -1,0 +1,58 @@
+Test Neria
+
+新訂單等待您處理
+
+您商店收到一個新訂單。詳情如下。
+
+客戶 : Sophie Durand (test@test.com)
+
+訂單詳情
+--------------------------------
+訂單編號 : PREVIEW001
+
+日期 : 11/07/2026 09:32:13
+
+付款方式 : Carte bancaire
+
+Réf. NER-001  Montre Élégance Neria  x1
+
+
+商品總計 : 89,00 €
+
+折扣 : 0,00 €
+
+禮品包裝 : 0,00 €
+
+運費 : 0,00 €
+
+稅費 : 14,83 €
+
+應付總額 : 89,00 €
+
+配送
+--------------------------------
+承運商 : Colissimo
+
+送貨地址
+--------------------------------
+Sophie Durand
+12 rue de la Paix
+75001 Paris
+France
+
+帳單地址
+--------------------------------
+Sophie Durand
+12 rue de la Paix
+75001 Paris
+France
+
+客戶留言
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+前往後台，以應有的謹慎處理此訂單。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

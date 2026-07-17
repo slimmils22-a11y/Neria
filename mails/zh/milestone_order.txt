@@ -1,0 +1,17 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+我们很高兴地通知您，您已在我们这里完成了5e订单。一个具有象征意义的里程碑。
+
+每一次订单都是信任的体现。而这一次，更是又一次的信任，我们由衷感谢您。
+
+发现我的精选 : http://localhost/shop/zh/订单-历史
+
+我们为达到这些里程碑的贵宾保留特别的关注。
+
+致以我们全部的感谢，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+In occasione del Capodanno Lunare, Vi inviamo i nostri più calorosi auguri.
+
+Che questa celebrazione Vi porti felicità, salute e successo in tutti i Vostri progetti.
+
+Scoprite le nostre creazioni : http://localhost/shop/
+
+Un’attenzione speciale è riservata per Voi fino alla fine delle festività.
+
+Tutto il team Vi augura un meraviglioso Capodanno Lunare.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

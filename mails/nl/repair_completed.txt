@@ -1,0 +1,21 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Wij zijn verheugd u te kunnen meedelen dat de reparatie of aanpassing van uw stuk nu is voltooid.
+
+Orderreferentie : PREVIEW001
+
+Interventiedetails
+--------------------------------
+Montre Élégance Neria
+
+Retour regelen : http://localhost/shop/nl/besteloverzicht
+
+Ons team zal contact met u opnemen om de retourvoorwaarden af te spreken.
+
+Wij zijn blij u te kunnen dienen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

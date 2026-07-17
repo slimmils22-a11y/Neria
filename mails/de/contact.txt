@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Ihre Stimme wurde gehört
+
+Hallo, Camille,
+
+Wir bestätigen den Eingang Ihrer Anfrage und danken Ihnen, dass Sie uns kontaktiert haben. Hier eine Kopie der von Ihnen übermittelten Informationen:
+
+Kontaktinformationen
+--------------------------------
+E-Mail-Adresse : test@test.com
+
+Bestellreferenz : #TEST00125
+
+Angehängte Datei : 
+
+Ihre Nachricht
+--------------------------------
+
+
+Per E-Mail antworten : test@test.com
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

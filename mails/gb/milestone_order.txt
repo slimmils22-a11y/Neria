@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+We are pleased to inform you that you have just placed your 5e order with us. A symbolic milestone.
+
+Every order is a sign of trust for us. This one, in particular, is another one, and we warmly thank you for it.
+
+Discover my selection : http://localhost/shop/gb/order-history
+
+We reserve special attention for our guests who reach these milestones.
+
+With all our gratitude,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

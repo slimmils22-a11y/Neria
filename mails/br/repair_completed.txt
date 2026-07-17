@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Temos o prazer de informar que o reparo ou a modificação da sua peça já foi concluído.
+
+Referência do pedido : PREVIEW001
+
+Detalhes da intervenção
+--------------------------------
+Montre Élégance Neria
+
+Organizar a devolução : http://localhost/shop/br/historico-de-pedidos
+
+Nossa equipe entrará em contato com você para combinar as condições de devolução.
+
+Temos o prazer de atender você,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

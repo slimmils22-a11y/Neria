@@ -1,0 +1,23 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Sua confiança nos toca. Em sinal de gratidão, preparamos uma atenção especial para você.
+
+Pedido PREVIEW001
+--------------------------------
+Foi gerado um vale de compras para o pedido PREVIEW001.
+
+Valor do vale : 15,00 €
+
+Código do vale : NERIA-VIP-2026
+
+Este vale é válido por 30 dias em toda a nossa boutique. Não pode ser combinado com outras ofertas.
+
+Esperamos que encontre algo do seu agrado entre as nossas criações.
+
+Em testemunho de nossa gratidão pela sua fidelidade,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

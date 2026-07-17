@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Ihre Auswahl ist nun auf dem Weg zu Ihnen. Hier sind die betreffenden Stücke:
+
+
+
+Bestellung #TEST00125
+--------------------------------
+Bestellung #TEST00125.
+
+Sie ist derzeit unterwegs und wird Sie innerhalb der erwarteten Zeit erreichen.
+
+Bestellung verfolgen : 
+
+<a href="http://localhost/shop/de/bestellungsverlauf" style="color:#b38b59;">Verfolgen Sie den Bestellverlauf in Ihrem Kundenkonto</a> : http://localhost/shop/de/bestellungsverlauf
+
+<a href="http://localhost/shop/de/auftragsverfolgung-gast" style="color:#b38b59;">Wenn Sie als Gast bestellt haben, verfolgen Sie Ihre Bestellung über den speziellen Link</a> : http://localhost/shop/de/auftragsverfolgung-gast
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

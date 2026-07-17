@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Avviso di sistema
+
+Il sistema ha rilevato un evento insolito che richiede il Vostro intervento.
+
+Dettagli dell'avviso
+--------------------------------
+Azione richiesta
+
+Vi invitiamo a consultare i log per comprendere l'origine di questo avviso e adottare le misure necessarie.
+
+Questo avviso è stato generato automaticamente. Verificate lo stato del Vostro negozio.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

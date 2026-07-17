@@ -1,0 +1,18 @@
+Test Neria
+
+God morgen, Sophie,
+
+De stykker, du lagde mærke til, er stadig tilgængelige. Sjældenhed kan være flygtig — vi ville informere dig.
+
+--------------------------------
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+Vores team står til din rådighed for spørgsmål om dit udvalg.
+
+Tilbage til mit udvalg : http://localhost/shop/index.php?controller=cart
+
+Vi kan ikke garantere tilgængelighed efter denne invitation.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

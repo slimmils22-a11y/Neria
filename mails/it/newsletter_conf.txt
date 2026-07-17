@@ -1,0 +1,19 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Siamo lieti di accoglierVi tra i nostri iscritti. La Vostra iscrizione alla nostra newsletter è stata confermata.
+
+Conferma
+--------------------------------
+D'ora in poi riceverete per primi le nostre nuove collezioni, gli inviti privati e i momenti salienti della nostra casa — condivisi con coloro che stimiamo.
+
+La Vostra fiducia è sacra. La proteggiamo come proteggiamo la nostra reputazione: con rigore e discrezione.
+
+Potete gestire le Vostre preferenze e disiscrivervi in qualsiasi momento dal Vostro account cliente.
+
+Accedi al mio spazio : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

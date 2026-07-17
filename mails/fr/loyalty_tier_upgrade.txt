@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Nous avons le plaisir de vous informer que votre fidélité vous fait accéder au palier supérieur de notre programme. Une nouvelle étape dans notre relation.
+
+Votre nouveau statut
+--------------------------------
+Nouveau palier : Cercle Or
+Total de points : 
+
+Votre bon de réduction exclusif
+NERIA-VIP-2026 — Valeur : 15,00 €
+
+Découvrir mes nouveaux privilèges : http://localhost/shop/fr/historique-commandes
+
+Ce statut vous ouvre des portes que nous réservons aux plus fidèles.
+
+Avec toute notre reconnaissance,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+고객님을 생각하며, 잘 지내시길 바랍니다. 저희의 작품은 계속 진화하고 있으며, 다시 소개해 드리고 싶습니다.
+
+고객님께서 좋아하실 수 있는 컬렉션을 준비했습니다. 부드러운 관심입니다.
+
+컬렉션 보기 : http://localhost/shop/
+
+다시 모실 수 있기를 기대합니다.
+
+다시 뵙기를 기다리며,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

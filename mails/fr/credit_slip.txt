@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Madame, Monsieur Durand,
+
+Commande NR-000123 — Avoir
+--------------------------------
+Un avoir a été créé pour votre commande NR-000123.
+
+Vous pouvez consulter cet avoir et l'utiliser lors de votre prochain achat depuis : http://localhost/shop/fr/historique-commandes
+
+En honorant notre engagement, avec toute notre considération,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

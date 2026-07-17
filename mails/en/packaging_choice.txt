@@ -1,0 +1,19 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+Before shipment, we invite you to choose the packaging that will accompany your piece. A way to extend the experience.
+
+Available packaging options
+--------------------------------
+Various cases, pouches and gift boxes are available to enhance your piece.
+
+Choose my packaging : http://localhost/shop/
+
+We will pay special attention to your choice.
+
+At your service,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

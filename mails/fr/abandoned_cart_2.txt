@@ -1,0 +1,18 @@
+Test Neria
+
+Bonsoir, John,
+
+Les pièces que vous aviez distinguées sont toujours disponibles. La rareté est parfois éphémère — nous souhaitions vous en informer.
+
+--------------------------------
+
+
+Notre équipe reste à votre écoute pour toute question relative à votre sélection.
+
+Revenir à ma sélection : http://localhostindex.php?controller=order
+
+Nous ne pouvons garantir la disponibilité au-delà de cette invitation.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

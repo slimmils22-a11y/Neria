@@ -1,0 +1,21 @@
+Test Neria
+
+Hallo, Camille,
+
+Vielen Dank für Ihre Bestellung. Die folgenden digitalen Produkte stehen nun zum Download bereit.
+
+Bestellung #TEST00125 — Downloads
+--------------------------------
+Sie haben  Produkte zum Download verfügbar.
+
+
+
+<a href="http://localhost/shop/de/bestellungsverlauf" style="color:#b38b59;">Bestellverlauf anzeigen</a> : http://localhost/shop/de/bestellungsverlauf
+
+<a href="http://localhost/shop/de/auftragsverfolgung-gast" style="color:#b38b59;">Gastbestellungen verfolgen</a> : http://localhost/shop/de/auftragsverfolgung-gast
+
+Viel Freude bei der Entdeckung Ihres Erwerbs,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

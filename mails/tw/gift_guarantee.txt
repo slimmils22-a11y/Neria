@@ -1,0 +1,25 @@
+Test Neria
+
+早安, Sophie,
+
+我們很高興確認您的禮品訂單正在精心準備中。
+
+我們的承諾
+--------------------------------
+豪華禮品包裝
+
+根據您的指示定制留言
+
+安全且謹慎的配送
+
+1月31日前可換貨或退貨
+
+每個細節都經過深思熟慮，旨在為收禮人提供獨特的體驗。
+
+跟蹤我的訂單 : http://localhost/shop/fr/historique-commandes
+
+如有任何關於禮品訂單的問題，我們的團隊隨時為您服務。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

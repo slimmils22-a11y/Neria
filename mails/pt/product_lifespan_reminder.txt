@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Adquiriu Ivory Linen Dress há  dias. Segundo a nossa estimativa, o seu produto pode estar a acabar.
+
+Se desejar renovar a sua experiência, este é o momento ideal — antes que acabe.
+
+Renovar a minha compra : http://localhost
+
+Não há qualquer obrigação, claro — é simplesmente um lembrete amigável da nossa parte.
+
+Com toda a nossa atenção,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

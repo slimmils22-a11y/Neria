@@ -1,0 +1,19 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi tenkte på en gjenstand som kanskje kan komplettere samlingen din eller vekke en ny interesse i vårt hus.
+
+Foreslått gjenstand
+--------------------------------
+Montre Élégance Neria
+
+Vis gjenstanden : http://localhost/shop/
+
+Vi håper dette forslaget inspirerer deg.
+
+Til din tjeneste,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

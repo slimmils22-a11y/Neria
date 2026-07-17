@@ -1,0 +1,21 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous avons reçu votre règlement avec gratitude. Votre commande entre à présent dans la phase de création.
+
+Commande
+--------------------------------
+Le paiement de la commande NR-000123.
+
+<a href="http://localhost/shop/fr/historique-commandes" style="color:#b38b59;">Vous pouvez consulter l'historique de votre commande depuis votre espace client</a> : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/fr/suivi-commande-invite" style="color:#b38b59;">Si vous avez commandé en tant qu'invité, suivez votre commande via le lien dédié</a> : http://localhost/shop/fr/suivi-commande-invite
+
+Nos artisans se mettront à l'œuvre avec le respect et le soin qu'inspire chaque pièce de notre maison.
+
+Avec notre plus profonde reconnaissance,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Por ocasião do Eid, queremos enviar-lhe os nossos mais sinceros votos.
+
+Que esta celebração sagrada o preencha de felicidade, saúde e momentos preciosos em família.
+
+Descubra a nossa seleção : http://localhost/shop/
+
+Uma atenção especial está reservada para si até ao final da semana.
+
+Toda a equipa deseja-lhe uma bela celebração.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

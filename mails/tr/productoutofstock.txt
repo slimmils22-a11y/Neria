@@ -1,0 +1,21 @@
+Test Neria
+
+Değerli çalışanımız,
+
+Mağazanızdaki bir ürün artık stokta yok.
+
+Ürün detayları
+--------------------------------
+Ürün : 
+
+Stok uyarı eşiğine ulaşıldı : 
+
+Kalan miktar : 
+
+Bu ürünü mümkün olan en kısa sürede yeniden stoklamanızı öneririz.
+
+Bu uyarı otomatiktir. Stok durumunuzu kontrol edin.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

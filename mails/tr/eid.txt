@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+Bayram vesilesiyle size en içten dileklerimizi sunuyoruz.
+
+Bu mübarek bayram sizi mutluluk, sağlık ve ailenizle birlikte güzel anlarla doldursun.
+
+Seçkimizi keşfedin : http://localhost/shop/
+
+Özel bir ilgi hafta sonuna kadar sizi bekliyor.
+
+Tüm ekibimiz size güzel bir bayram diler.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

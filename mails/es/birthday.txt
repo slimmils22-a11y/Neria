@@ -1,0 +1,19 @@
+Test Neria
+
+Buenos días, Camille,
+
+En este día singular, todo nuestro equipo piensa en usted. El cumpleaños de una persona excepcional merece ser celebrado con el brillo que merece.
+
+Tenemos el placer de ofrecerle este gesto, en testimonio de la estima que le tenemos — y del gusto de contar con usted entre nosotros.
+
+Su código de atención : 
+
+Válido durante 30 días en toda nuestra maison. Esta atención no es acumulable.
+
+Descubrir mi selección : http://localhost/shop/
+
+Toda la maison le envía sus más queridos deseos, con afecto y elegancia,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

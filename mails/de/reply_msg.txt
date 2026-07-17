@@ -1,0 +1,16 @@
+Test Neria
+
+Hallo, Camille,
+
+Antwort von unserem Team
+--------------------------------
+
+
+Bitte antworten Sie nicht auf diese automatische E-Mail.
+
+Bei Fragen kontaktieren Sie uns bitte über unsere Website.
+
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

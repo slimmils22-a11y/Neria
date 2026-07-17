@@ -1,0 +1,21 @@
+Test Neria
+
+Beste medewerker,
+
+Een product in uw winkel is nu uit voorraad.
+
+Productdetails
+--------------------------------
+Product : Montre Élégance Neria
+
+Drempel voor voorraadwaarschuwing bereikt : 5
+
+Resterende hoeveelheid : 0
+
+Wij raden u aan dit product zo snel mogelijk aan te vullen.
+
+Deze waarschuwing is automatisch. Controleer uw voorraadstatus.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

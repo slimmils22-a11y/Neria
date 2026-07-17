@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+Det er  siden du første gang ga oss din tillit. Vi har ikke glemt det.
+
+Din lojalitet er vår største belønning. Vi er glade for å ha deg blant våre mest verdifulle kunder.
+
+Se mine kjøp : http://localhost/shop/no/ordrehistorikk
+
+Takk for at du er en del av vår historie.
+
+Med all vår takknemlighet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

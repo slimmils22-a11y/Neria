@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Sadakatinizin, programımızın bir sonraki kademesine ulaşmanızı sağladığını bildirmekten mutluluk duyarız. İlişkimizde yeni bir dönüm noktası.
+
+Yeni statünüz
+--------------------------------
+Yeni seviye : 
+Toplam puan : 
+
+Özel indirim kuponunuz
+ — Değer : 
+
+Yeni ayrıcalıklarımı keşfet : http://localhost/shop/tr/siparis-gecmisi
+
+Bu statü, en sadıklara ayırdığımız kapıları açar.
+
+Tüm şükranlarımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+Test Neria
+
+Dear employee,
+
+A product in your store is now out of stock.
+
+Product details
+--------------------------------
+Product : Montre Élégance Neria
+
+Stock alert threshold reached : 5
+
+Remaining quantity : 0
+
+We recommend you proceed with replenishment as soon as possible.
+
+This alert is automatic. Check your stock status.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

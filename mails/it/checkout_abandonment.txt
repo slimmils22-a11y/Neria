@@ -1,0 +1,19 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Abbiamo notato che stavate per completare il Vostro ordine. A volte un problema tecnico si presenta all'ultimo momento — un errore 3DS, un timeout di connessione o un'ultima esitazione.
+
+Il Vostro carrello è salvato e la Vostra selezione Vi aspetta esattamente dove l'avete lasciata.
+
+Completa il mio ordine : 
+
+Se avete incontrato un problema di pagamento, il nostro team è disponibile per aiutarVi a completare l'ordine in tutta tranquillità.
+
+Non è richiesta alcuna azione da parte Vostra — il Vostro carrello è preservato.
+
+Con tutta la nostra attenzione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

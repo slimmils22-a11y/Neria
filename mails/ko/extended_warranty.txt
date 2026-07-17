@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+해당 작품에 대한 연장 보증이 활성화되었음을 알려드립니다.
+
+주문 참조 번호 : PREVIEW001
+
+보증 세부 정보
+--------------------------------
+Montre Élégance Neria
+
+조건 보기 : http://localhost/shop/ko/주문-내역
+
+이 연장 보증은 지정된 기간 동안 유효합니다. 이 증명서를 보관하십시오.
+
+도와드리겠습니다,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

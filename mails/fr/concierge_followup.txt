@@ -1,0 +1,18 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Notre service conciergerie souhaite s'assurer que votre expérience avec notre maison est à la hauteur de vos attentes.
+
+Besoin d'une attention particulière ?
+--------------------------------
+
+Contacter mon conseiller : http://localhost/shop/
+
+Nous sommes disponibles pour vous accompagner dans chaque détail de votre parcours.
+
+À votre service, en toutes circonstances,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

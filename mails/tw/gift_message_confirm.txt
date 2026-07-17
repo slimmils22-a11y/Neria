@@ -1,0 +1,21 @@
+﻿Test Neria
+
+早安, Sophie,
+
+我們確認您附加在禮物訂單上的留言已成功登記。
+
+訂單編號 : PREVIEW001
+
+留言內容
+--------------------------------
+« Joyeux anniversaire ma chère Sophie. Que cette année t apporte tout le bonheur que tu mérites. Avec tout mon amour. »
+
+查看我的訂單 : http://localhost/shop/tw/訂單記錄
+
+收件人將隨包裹收到此留言。
+
+我們全心全意，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

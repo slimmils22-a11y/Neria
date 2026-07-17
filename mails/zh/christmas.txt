@@ -1,0 +1,17 @@
+Test Neria
+
+早上好, Sophie,
+
+在这个光明战胜寒冷的季节，我们的店铺以特别的温暖思念您。
+
+愿这个节日为您带来日常生活所罕有给予的：时间、温柔，以及重要之人的陪伴。
+
+发现我们的杰作 : http://localhost/shop/
+
+一份特别的关怀为您保留至12月31日。
+
+全体团队祝您节日愉快。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

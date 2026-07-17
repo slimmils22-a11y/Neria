@@ -1,0 +1,17 @@
+Test Neria
+
+Buenos días, Camille,
+
+Pensamos en usted y esperamos que se encuentre bien. Nuestras creaciones siguen evolucionando, y nos gustaría que las redescubriera.
+
+Hemos preparado una selección que podría interesarle. Una atención delicada, sin compromiso.
+
+Descubra nuestra selección : http://localhost/shop/
+
+Nos encantaría volver a acogerle.
+
+A la espera de volver a verle,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

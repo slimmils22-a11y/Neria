@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Siete parte della cerchia molto ristretta di personalità a cui riserviamo questo invito. Non sarà rinnovato, e non può essere condiviso.
+
+In una cornice d'eccezione, lontano dal commercio ordinario, scoprirete in anteprima ciò che la nostra casa sta preparando per coloro che sanno guardare.
+
+Dettagli dell'evento
+--------------------------------
+
+
+
+
+La Vostra presenza sarebbe un onore per noi. L'attendiamo.
+
+Conferma la mia presenza : 
+
+Questo invito è strettamente personale e non trasferibile.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,28 @@
+Your collection
+
+Hello Sophie,
+
+Just one piece away
+
+You've already done the hard part. Only one piece remains to complete your collection — and we wanted to remind you before it's gone.
+
+--------
+
+Your collection progress : 
+Pieces already acquired — just one left to complete
+
+--------
+
+The missing piece : 
+ €
+
+Complete my collection :
+
+
+--------
+
+This suggestion is based on your previous purchases within this collection.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

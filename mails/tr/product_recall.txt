@@ -1,0 +1,23 @@
+Test Neria
+
+Günaydın, Camille,
+
+Bizden satın almış olabileceğiniz bir ürünle ilgili dikkatinizi gerektiren bir nokta belirledik. Bu iletişim bir şeffaflık eylemidir.
+
+Sipariş referansı : #TEST00125
+
+Geri çağırma detayları
+--------------------------------
+İlgili ürün : Ivory Linen Dress
+
+Ne yapmalı?
+--------------------------------
+Daha fazla bilgi : http://localhost/shop/tr/siparis-gecmisi
+
+Herhangi bir sorunuz için ekibimiz hizmetinizdedir. Anlayışınız için teşekkür ederiz.
+
+Tüm saygımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

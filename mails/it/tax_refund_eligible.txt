@@ -1,0 +1,19 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+In qualità di ospite residente al di fuori dell'Unione Europea, avete diritto a un rimborso fiscale sui Vostri acquisti.
+
+Dettagli della Vostra idoneità
+--------------------------------
+Riferimento ordine : #TEST00125
+
+Avviare la procedura : http://localhost/shop/
+
+Il nostro team Vi assisterà nelle fasi necessarie.
+
+Al Vostro servizio,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

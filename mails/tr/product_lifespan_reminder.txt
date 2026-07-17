@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+Ivory Linen Dress ürününü  gün önce satın aldınız. Tahminimize göre ürününüz yakında tükenebilir.
+
+Deneyiminizi sürdürmek isterseniz, bitmeden önce şimdi yenilemenin tam zamanı.
+
+Satın almayı yenile : http://localhost
+
+Elbette hiçbir zorunluluk yok — bu sadece bizden dostane bir hatırlatma.
+
+Tüm ilgimizle,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

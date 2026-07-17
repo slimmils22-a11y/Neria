@@ -1,0 +1,21 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Vi bekræfter, at den besked, du vedhæftede din gavebestilling, er registreret.
+
+Ordrereference : PREVIEW001
+
+Beskedens indhold
+--------------------------------
+« Joyeux anniversaire ma chère Sophie. Que cette année t apporte tout le bonheur que tu mérites. Avec tout mon amour. »
+
+Se min ordre : http://localhost/shop/da/ordrehistorik
+
+Modtageren vil modtage denne besked sammen med sin pakke.
+
+Med al vores opmærksomhed,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

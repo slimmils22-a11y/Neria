@@ -1,0 +1,17 @@
+Test Neria
+
+God morgon, Sophie,
+
+Din återbetalning är nu slutförd. Vi hoppas att allt har gått till din belåtenhet.
+
+Vet att vårt hus är ditt, och att vi alltid kommer att vara glada att välkomna dig åter, när du är redo.
+
+Återvända till vårt hus : http://localhost/shop/
+
+Nyheter har anlänt sedan ditt senaste besök. Kanske hittar du något som tilltalar dig.
+
+Med vänligaste hälsningar,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

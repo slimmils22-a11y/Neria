@@ -1,0 +1,23 @@
+Test Neria
+
+Buenos días, Camille,
+
+Su presupuesto ha expirado, pero nos gustaría ofrecerle la oportunidad de llevarlo a cabo. Con una simple solicitud, podemos prorrogar su validez sujeto a disponibilidad.
+
+Referencia presupuesto: 
+
+Importe: 
+
+Prórroga posible hasta el: 
+
+Solicitar una prórroga : 
+
+Contáctenos hoy mismo para confirmar su presupuesto en las condiciones iniciales. Nuestro equipo estudiará su solicitud con la mayor atención.
+
+Esta oferta de prórroga está sujeta a la disponibilidad de los artículos y a la confirmación de nuestro equipo.
+
+Con nuestra distinguida consideración,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

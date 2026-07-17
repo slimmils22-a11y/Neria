@@ -1,0 +1,17 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Liefde verdient het om gevierd te worden met zeldzame woorden en uitzonderlijke stukken. Wij maken dit onze roeping.
+
+Elke creatie van ons huis is hiervoor geboren: om de stille boodschapper te worden van een gevoel dat woorden alleen niet kunnen uitdrukken.
+
+Ontdek onze creaties : http://localhost/shop/
+
+Een bijzondere attentie is voor u beschikbaar tot 14 februari.
+
+Het hele team wenst u een prachtige Valentijnsdag.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Nous sommes heureux de vous partager notre actualité. Découvrez ci-dessous les dernières informations de notre maison.
+
+Contenu de la lettre
+--------------------------------
+Bonjour, je souhaite obtenir des informations sur ma commande.
+
+Pour ne rien manquer de nos prochaines actualités, restez connecté.
+
+Rejoindre la maison : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

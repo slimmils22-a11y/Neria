@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+Aşk, nadir sözler ve olağanüstü parçalarla kutlanmayı hak eder. Biz bunu mesleğimiz yapıyoruz.
+
+Evimizin her kreasyonu bunun için doğdu: kelimelerin tek başına ifade etmeye yetmediği bir duygunun sessiz elçisi olmak.
+
+Kreasyonlarımızı keşfedin : http://localhost/shop/
+
+14 Şubat'a kadar özel bir ilgi sizi bekliyor.
+
+Tüm ekibimiz size harika bir Sevgililer Günü diler.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

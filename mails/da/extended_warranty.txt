@@ -1,0 +1,21 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Vi er glade for at informere dig om, at din udvidede garanti nu er aktiv for det pågældende stykke.
+
+Ordrereference : PREVIEW001
+
+Garantidetaljer
+--------------------------------
+Montre Élégance Neria
+
+Se vilkår : http://localhost/shop/da/ordrehistorik
+
+Denne udvidede garanti er gyldig i en specificeret periode. Gem dette bevis.
+
+Til din tjeneste,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

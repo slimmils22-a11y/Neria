@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Você mostrou interesse em um produto atualmente muito procurado. Temos o prazer de informá-lo que uma quantidade limitada está novamente disponível.
+
+Produto em questão
+--------------------------------
+De volta em quantidade limitada: Montre Élégance Neria.
+
+Ver produto : http://localhost/shop/index.php?controller=product&id_product=1
+
+Esta oferta está estritamente limitada ao estoque disponível. Convidamos você a não demorar.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

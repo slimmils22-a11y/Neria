@@ -1,0 +1,23 @@
+Test Neria
+
+God morgon, Sophie,
+
+Vi påminner om att ditt offert löper ut om mindre än 48 timmar. Vi inbjuder dig att bekräfta det innan det går ut för att dra nytta av de avtalade villkoren.
+
+Offertreferens: 
+
+Belopp: 
+
+Löper ut: 
+
+Bekräfta min beställning : 
+
+Vårt team är helt tillgängligt för alla frågor eller justeringar innan bekräftelse.
+
+Denna offert löper ut den . Efter detta datum kan de avtalade prisvillkoren inte garanteras.
+
+Med utmärkt aktning,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

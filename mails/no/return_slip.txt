@@ -1,0 +1,42 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi tar gjerne hånd om varen din. Her er all informasjonen du trenger for å sende den tilbake.
+
+Bestilling : PREVIEW001
+
+Returnummer : 42
+
+Frist for retur : Innen  dager etter at du mottok denne e-posten
+
+Berørt(e) vare(r)
+--------------------------------
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+Årsak : Article ne correspondant pas à mes attentes
+
+Forsendelsesinstruksjoner
+--------------------------------
+Returadresse :
+
+
+Vennligst skriv dette returnummeret på pakken din: 42
+
+Anbefalt frakt: en sporbar og forsikret forsendelse for din trygghet.
+
+Vilkår og eventuelle kostnader for retur er angitt i våre returvilkår.
+
+Varen din blir vurdert innen  virkedager etter mottak.
+
+Refusjonen utføres til din opprinnelige betalingsmåte.
+
+Gå til min returforespørsel : http://localhost/shop/no/ordre-følger
+
+Spørsmål? Teamet vårt står til din fulle disposisjon.
+
+Med all vår takknemlighet og stolthet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

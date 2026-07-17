@@ -1,0 +1,18 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Pareceu fazer uma pausa durante a sua visita. Conservámos as peças que tinha distinguido.
+
+--------------------------------
+
+
+A nossa equipa está inteiramente à sua disposição para qualquer questão sobre a sua seleção.
+
+Retomar a minha seleção : 
+
+A sua seleção está reservada para si durante 48 horas.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

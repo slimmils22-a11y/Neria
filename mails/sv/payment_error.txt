@@ -1,0 +1,21 @@
+Test Neria
+
+God morgon, Sophie,
+
+Ett tekniskt avbrott har stoppat behandlingen av din betalning. Vi ber om ursäkt och inbjuder dig att reglera den när det passar dig.
+
+Beställning PREVIEW001
+--------------------------------
+Betalning för beställning PREVIEW001.
+
+Din beställning är bevarad och förblir prioritet. Du kan reglera din betalning när du vill — vi väntar på dig.
+
+Om detta besvär kvarstår inbjuder vi dig att granska detaljerna i din beställning från ditt personliga utrymme.
+
+<a href="http://localhost/shop/sv/gastsparning" style="color:#b38b59;">Om du beställde som gäst, följ din beställning via den dedikerade länken</a> : http://localhost/shop/sv/gastsparning
+
+Tack för din förståelse,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

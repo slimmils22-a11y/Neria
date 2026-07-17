@@ -1,0 +1,17 @@
+Test Neria
+
+Kære kollega,
+
+Systemet har opdaget, at et produkt er tæt på sin kritiske dækningstærskel.
+
+Dækningsstatus
+--------------------------------
+Minimumsdækning : 7 jours
+
+Aktuel dækning : 3 jours
+
+Gennemgå dit lager og genopfyld om nødvendigt.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,19 @@
+Test Neria
+
+Günaydın, Camille,
+
+Gönderimden önce, parçanıza eşlik edecek ambalajı seçmenizi rica ediyoruz. Deneyimi uzatmanın bir yolu.
+
+Mevcut ambalaj seçenekleri
+--------------------------------
+Parçanızı yüceltmek için çeşitli kutular, keseler ve hediye kutuları mevcuttur.
+
+Ambalajımı seç : http://localhost/shop/
+
+Seçiminize özel önem vereceğiz.
+
+Hizmetinizde,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

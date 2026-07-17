@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Pensamos em você e esperamos que esteja tudo bem. Nossas criações continuam evoluindo e gostaríamos que você as redescobrisse.
+
+Preparamos uma seleção que pode ser do seu agrado. Uma atenção delicada, sem compromisso.
+
+Descubra nossa seleção : http://localhost/shop/
+
+Teríamos o maior prazer em receber você novamente.
+
+Na expectativa de reencontrar você,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

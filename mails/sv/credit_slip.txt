@@ -1,0 +1,15 @@
+﻿Test Neria
+
+God morgon, Sophie,
+
+Beställning PREVIEW001 — Kreditnota
+--------------------------------
+En kreditnota har skapats för din beställning PREVIEW001.
+
+Du kan se denna kreditnota och använda den vid ditt nästa köp från : http://localhost/shop/sv/bestallningshistorik
+
+I uppfyllandet av vårt åtagande, med all vår uppskattning,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

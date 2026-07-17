@@ -1,0 +1,19 @@
+﻿Test Neria
+
+God morgon, Sophie,
+
+Belöningen du fick genom vårt lojalitetsprogram kommer snart att upphöra.
+
+Belöningsdetaljer
+--------------------------------
+Utgångsdatum : 30/06/2026
+
+Använd min belöning : http://localhost/shop/sv/bestallningshistorik
+
+Denna belöning är giltig till angivet datum. Därefter kan den inte längre användas.
+
+Vi hoppas kunna glädja dig,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

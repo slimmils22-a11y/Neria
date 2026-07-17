@@ -1,0 +1,21 @@
+﻿Test Neria
+
+God morgon, Sophie,
+
+Du har nyligen lagt en beställning som gäst. Vi inbjuder dig att omvandla ditt gästkonto till ett permanent kundkonto för att njuta av många fördelar.
+
+Din kontoinformation
+--------------------------------
+E-postadress : test@test.com
+
+Ange ditt lösenord för att aktivera ditt konto och få tillgång till din personliga yta.
+
+Aktivera min personliga yta : http://localhost/shop/
+
+Ditt personliga utrymme låter dig hitta dina privilegier när som helst: följa dina kreationer under transport, konsultera historiken över dina val och förbereda dina framtida besök under de bästa förhållandena.
+
+Gå till mitt konto : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

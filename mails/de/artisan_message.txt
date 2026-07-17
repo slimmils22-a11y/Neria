@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Hinter jedem Stück, das Sie erhalten, steht ein Blick, eine Hand, eine Geschichte. Hier ist eine persönliche Nachricht des Handwerkers, der Ihres geformt hat.
+
+Nachricht des Handwerkers
+--------------------------------
+Ihr Stück wurde aus meiner Leidenschaft und meinen Gesten geboren. Ich hoffe, es wird Sie lange begleiten.
+
+  — Von
+
+Die Werkstatt entdecken : http://localhost/shop/
+
+Wir sind stolz, Ihnen diejenigen vorzustellen, die Ihre Wünsche zum Leben erwecken.
+
+Mit der Wärme unserer Werkstätten,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

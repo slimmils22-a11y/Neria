@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Há , nos concedeu a sua confiança pela primeira vez. Não esquecemos.
+
+A sua fidelidade é a nossa maior recompensa. Temos o prazer de tê-lo entre os nossos clientes mais prezados.
+
+Ver as minhas compras : http://localhost/shop/pt/historico-de-encomendas
+
+Obrigado por fazer parte da história da nossa casa.
+
+Com toda a nossa gratidão,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

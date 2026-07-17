@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Al inicio de este año, deseamos acompañarle con nuestros más sinceros deseos.
+
+Que este nuevo año sea para usted un camino de dulzura, éxito y hermosos descubrimientos.
+
+Descubra nuestras creaciones : http://localhost/shop/
+
+Un detalle exclusivo le espera hasta final de mes.
+
+Todo el equipo le desea un excelente año.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

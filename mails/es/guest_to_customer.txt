@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Recientemente realizó un pedido como invitado. Le invitamos a convertir su cuenta de invitado en una cuenta de cliente permanente para disfrutar de numerosos beneficios.
+
+Su cuenta
+--------------------------------
+Correo electrónico : test@test.com
+
+Establezca su contraseña para activar su cuenta y acceder a su espacio personal.
+
+Activar mi espacio personal : 
+
+Su espacio personal le permitirá encontrar sus privilegios en cualquier momento: seguir sus creaciones en tránsito, consultar el historial de sus elecciones y preparar sus futuras visitas en las mejores condiciones.
+
+Acceder a mi cuenta : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

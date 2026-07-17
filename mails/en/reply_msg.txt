@@ -1,0 +1,16 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+Reply from our team
+--------------------------------
+Bonjour, nous avons bien traité votre demande. Votre commande sera expédiée sous 48h. Cordialement, le service client Neria.
+
+Please do not reply to this automatic email.
+
+For any question, please contact us through our website.
+http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

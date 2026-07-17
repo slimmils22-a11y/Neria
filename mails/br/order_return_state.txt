@@ -1,0 +1,19 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Informamos que o status do seu pedido de devolução foi alterado.
+
+Devolução #42
+--------------------------------
+O status da sua devolução foi atualizado #42.
+
+Status atual : Retour reçu
+
+<a href="http://localhost/shop/br/historico-de-pedidos" style="color:#b38b59;">Você pode ver os detalhes da sua devolução a partir da sua conta de cliente</a> : http://localhost/shop/br/historico-de-pedidos
+
+Com toda a nossa gratidão e orgulho,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

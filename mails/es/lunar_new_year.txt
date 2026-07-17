@@ -1,0 +1,17 @@
+Test Neria
+
+Buenos días, Camille,
+
+Con motivo del Año Nuevo Lunar, le enviamos nuestros más cálidos deseos.
+
+Que esta celebración le traiga felicidad, salud y éxito en todos sus proyectos.
+
+Descubra nuestras creaciones : http://localhost/shop/
+
+Un detalle exclusivo le espera hasta el final de las festividades.
+
+Todo el equipo le desea un maravilloso Año Nuevo Lunar.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

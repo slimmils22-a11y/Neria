@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Wij bevestigen de ontvangst van uw bestelling namens uw bedrijf. Deze zal worden behandeld met alle aandacht die een dergelijke toezegging verdient.
+
+Orderreferentie : PREVIEW001
+
+Details van de zakelijke bestelling
+--------------------------------
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+Mijn bestelling volgen : http://localhost/shop/nl/besteloverzicht
+
+Ons toegewijde team voor bedrijfsrelaties staat tot uw beschikking.
+
+Tot uw dienst voor dit partnerschap,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

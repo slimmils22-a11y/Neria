@@ -1,0 +1,21 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Vi informiamo che la spedizione del Vostro ordine sta subendo un ritardo imprevisto. Stiamo facendo tutto il possibile per risolverlo al più presto.
+
+Riferimento ordine : #TEST00125
+
+Dettagli del ritardo
+--------------------------------
+Nuova data stimata : 
+
+Traccia il mio ordine : http://localhost/shop/it/cronologia-ordini
+
+Vi terremo aggiornati su eventuali sviluppi. Ci scusiamo per il disagio.
+
+Con tutta la nostra considerazione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

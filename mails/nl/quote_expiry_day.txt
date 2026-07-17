@@ -1,0 +1,23 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Uw offerte verloopt vandaag. We nodigen u uit deze zo snel mogelijk te bevestigen om de overeengekomen voorwaarden veilig te stellen.
+
+Offertereferentie: 
+
+Bedrag: 
+
+Verloopt op: 
+
+Mijn offerte nu bevestigen : 
+
+Voor dringende vragen is ons team direct beschikbaar.
+
+Deze offerte verloopt vandaag. Na verloop van tijd kunnen de overeengekomen prijsvoorwaarden worden gewijzigd.
+
+Met onze hoogachting,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

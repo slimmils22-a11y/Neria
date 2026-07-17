@@ -1,0 +1,23 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous avons identifié un point nécessitant votre attention concernant un produit que vous avez pu acquérir chez nous. Cette communication est un acte de transparence.
+
+Référence commande : NR-000123
+
+Détails du rappel
+--------------------------------
+Produit concerné : Montre Élégance Neria
+
+Que faire ?
+--------------------------------
+En savoir plus : http://localhost/shop/fr/historique-commandes
+
+Notre équipe est à votre disposition pour toute question. Nous vous remercions de votre compréhension.
+
+Avec toute notre considération,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

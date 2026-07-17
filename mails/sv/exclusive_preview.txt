@@ -1,0 +1,18 @@
+﻿Test Neria
+
+God morgon, Sophie,
+
+Vi är glada att erbjuda dig tidig tillgång till vår kommande kollektion. Exklusivt, innan den ens avslöjas för världen.
+
+Reserverad förhandsvisning
+--------------------------------
+
+Upptäck kollektionen : http://localhost/shop/
+
+Denna inbjudan är personlig och giltig under en begränsad tid.
+
+Tack för din lojalitet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

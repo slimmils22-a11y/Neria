@@ -1,0 +1,23 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+We hebben een punt geïdentificeerd dat uw aandacht vereist met betrekking tot een product dat u mogelijk bij ons heeft gekocht. Deze communicatie is een daad van transparantie.
+
+Orderreferentie : PREVIEW001
+
+Terugroepdetails
+--------------------------------
+Betrokken product : Montre Élégance Neria
+
+Wat te doen?
+--------------------------------
+Lees meer : http://localhost/shop/nl/besteloverzicht
+
+Ons team staat voor u klaar voor vragen. Wij danken u voor uw begrip.
+
+Met al onze achting,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

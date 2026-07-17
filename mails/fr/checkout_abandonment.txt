@@ -1,0 +1,19 @@
+Test Neria
+
+Cher(e) client(e),
+
+Nous avons remarqué que vous avez failli finaliser votre commande. Parfois, un problème technique survient au dernier moment — erreur 3DS, délai de connexion ou hésitation de dernière seconde.
+
+Votre panier est sauvegardé et votre sélection vous attend exactement là où vous l'avez laissée.
+
+Finaliser ma commande : #
+
+Si vous avez rencontré un problème lors du paiement, notre équipe est à votre disposition pour vous aider à finaliser en toute sérénité.
+
+Aucune action particulière n'est requise de votre part — votre panier est préservé.
+
+Avec toute notre attention,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

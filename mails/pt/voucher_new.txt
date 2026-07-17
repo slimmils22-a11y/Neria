@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Temos o prazer de lhe oferecer um novo vale de compra.
+
+Uma atenção para si
+--------------------------------
+Preparámos esta atenção para si. Poderá utilizá-la na sua próxima visita.
+
+Código do vale : 
+
+Este vale é válido por 30 dias em toda a nossa boutique. Não pode ser combinado com outras ofertas.
+
+Esperamos que encontre algo do seu agrado entre as nossas criações.
+
+Com o prazer de lhe oferecer este gesto,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

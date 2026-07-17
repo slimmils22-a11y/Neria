@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Il nostro team ha un messaggio per Voi riguardo al Vostro ordine.
+
+Ordine #TEST00125
+--------------------------------
+È stato aggiunto un nuovo messaggio all'ordine #TEST00125.
+
+Messaggio dal nostro team
+--------------------------------
+
+
+Può visualizzare lo storico del Vostro ordine dal Vostro account cliente: http://localhost/shop/it/cronologia-ordini
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

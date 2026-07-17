@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Nesta época em que a luz triunfa sobre o frio, a nossa casa pensa em si com um calor muito particular.
+
+Que estas festas lhe ofereçam o que o quotidiano concede demasiado raramente: tempo, doçura e a companhia de quem conta.
+
+Descubra as nossas criações : http://localhost/shop/
+
+Uma atenção especial está reservada para si até 31 de dezembro.
+
+Toda a equipa deseja-lhe boas festas.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

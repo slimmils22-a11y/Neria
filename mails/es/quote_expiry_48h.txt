@@ -1,0 +1,23 @@
+Test Neria
+
+Buenos días, Camille,
+
+Le recordamos que su presupuesto vence en menos de 48 horas. Le invitamos a confirmarlo antes de su vencimiento para beneficiarse de las condiciones acordadas.
+
+Referencia presupuesto: 
+
+Importe: 
+
+Vence el: 
+
+Confirmar mi pedido : 
+
+Nuestro equipo permanece a su entera disposición para cualquier pregunta o ajuste antes de la confirmación.
+
+Este presupuesto vencerá el . Transcurrido ese plazo, las condiciones tarifarias acordadas podrían no estar garantizadas.
+
+Con nuestra distinguida consideración,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

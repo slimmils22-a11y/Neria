@@ -1,0 +1,19 @@
+Test Neria
+
+早上好, Sophie,
+
+我们想到了一件可能完善您收藏或在我们精品店中激发新兴趣的作品。
+
+建议作品
+--------------------------------
+Montre Élégance Neria
+
+查看作品 : http://localhost/shop/
+
+希望此建议能给您带来灵感。
+
+随时为您服务，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

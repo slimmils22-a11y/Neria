@@ -1,0 +1,21 @@
+﻿Test Neria
+
+早安, Sophie,
+
+您最近以訪客身份下過訂單。我們邀請您將訪客帳戶轉換為永久客戶帳戶，以享受諸多優惠。
+
+您的帳戶資訊
+--------------------------------
+電子郵件地址 : test@test.com
+
+設定您的密碼以啟動帳戶並存取您的個人空間。
+
+啟用我的個人空間 : http://localhost/shop/
+
+您的專屬空間將讓您隨時享受您的專屬權益：追蹤運送中的訂製品、查閱您的選擇記錄，並以最佳狀態準備下次蒞臨。
+
+訪問我的帳戶 : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

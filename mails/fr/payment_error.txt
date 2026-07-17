@@ -1,0 +1,21 @@
+Test Neria
+
+Madame, Monsieur,
+
+Un contretemps technique a interrompu le traitement de votre règlement. Nous nous en excusons et vous invitons à le régulariser à votre convenance.
+
+Commande NR-000123
+--------------------------------
+Paiement de la commande NR-000123.
+
+Votre commande est conservée et reste prioritaire. Vous pouvez régulariser votre paiement dès que vous le souhaitez — nous vous attendons.
+
+Si ce contretemps persistait, nous vous invitons à consulter le détail de votre commande depuis votre espace.
+
+<a href="http://localhost/shop/fr/suivi-commande-invite" style="color:#b38b59;">Si vous avez commandé en tant qu'invité, suivez votre commande via le lien dédié</a> : http://localhost/shop/fr/suivi-commande-invite
+
+En vous remerciant pour votre compréhension,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

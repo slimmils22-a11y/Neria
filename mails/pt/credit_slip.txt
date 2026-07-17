@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+Encomenda #TEST00125 — Nota de crédito
+--------------------------------
+Foi criada uma nota de crédito para a sua encomenda #TEST00125.
+
+Pode consultar esta nota de crédito e utilizá-la na sua próxima compra em : http://localhost/shop/pt/historico-de-encomendas
+
+Honrando o nosso compromisso, com toda a nossa consideração,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

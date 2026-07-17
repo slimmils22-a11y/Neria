@@ -1,0 +1,32 @@
+Test Neria
+
+Boa tarde, Camille,
+
+A sua encomenda foi registada com sucesso. Será processada após a receção do seu cheque.
+
+Encomenda #TEST00125 — A aguardar cheque
+--------------------------------
+Obrigado pela sua encomenda #TEST00125.
+
+Coordenadas para envio do cheque
+--------------------------------
+Por favor, emita o seu cheque à ordem do beneficiário indicado abaixo e envie-o para a seguinte morada:
+
+Montante : 
+
+Cheque à ordem de : 
+
+Morada de envio :
+
+
+Por favor, mencione a referência #TEST00125.
+
+<a href="http://localhost/shop/pt/historico-de-encomendas" style="color:#b38b59;">Consultar o histórico da sua encomenda</a> : http://localhost/shop/pt/historico-de-encomendas
+
+<a href="http://localhost/shop/pt/seguimento-de-visitante" style="color:#b38b59;">Acompanhamento para convidado</a> : http://localhost/shop/pt/seguimento-de-visitante
+
+A aguardar o seu cheque, com toda a nossa confiança,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi bekræfter, at refusionen for din ordre er gennemført.
+
+Ordrereference : PREVIEW001
+
+<a href="http://localhost/shop/da/ordrehistorik" style="color:#b38b59;">Du kan se din ordrehistorik fra din kundekonto</a> : http://localhost/shop/da/ordrehistorik
+
+<a href="http://localhost/shop/da/Gaestesporing" style="color:#b38b59;">Hvis du bestilte som gæst, følg din ordre via det dedikerede link</a> : http://localhost/shop/da/Gaestesporing
+
+Med vores dybeste taknemmelighed,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Il Vostro preventivo è scaduto, ma desideriamo offrirVi la possibilità di concretizzarlo. Su semplice richiesta, possiamo prorogarne la validità nei limiti della disponibilità.
+
+Riferimento preventivo: 
+
+Importo: 
+
+Proroga possibile fino al: 
+
+Richiedere una proroga : 
+
+Contattateci oggi stesso per confermare il Vostro preventivo alle condizioni originali. Il nostro team esaminerà la Vostra richiesta con la massima attenzione.
+
+Questa offerta di proroga è soggetta alla disponibilità degli articoli e alla conferma del nostro team.
+
+Con la nostra distinta considerazione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

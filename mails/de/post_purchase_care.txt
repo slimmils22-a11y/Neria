@@ -1,0 +1,23 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir hoffen, dass Ihr Stück Ihnen die ganze Zufriedenheit bringt, die wir uns wünschen.
+
+Um seinen Glanz und seine Schönheit über die Zeit zu bewahren, hier einige Pflegetipps.
+
+Pflegetipps
+--------------------------------
+Vermeiden Sie längere direkte Lichteinwirkung oder intensive Hitzequellen.
+
+Reinigen Sie es vorsichtig mit einem weichen, trockenen Tuch. Verwenden Sie keine chemischen Produkte.
+
+Lagern Sie Ihr Stück an einem trockenen, staubgeschützten Ort, wenn es nicht in Gebrauch ist.
+
+Unser Team steht Ihnen für weitere Informationen gerne zur Verfügung.
+
+Als Hüter Ihrer außergewöhnlichen Stücke, mit all unserer Sorgfalt,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

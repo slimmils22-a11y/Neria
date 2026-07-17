@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+We inform you that changes have been made to your order. Here are the details of this modification.
+
+Order PREVIEW001
+--------------------------------
+The order PREVIEW001.
+
+This order has been updated according to the information you provided.
+
+You can view the details of this order from your customer account.
+
+View my order history : http://localhost/shop/gb/order-history
+
+<a href="http://localhost/shop/gb/guest-tracking" style="color:#b38b59;">If you ordered as a guest, find your order tracking via the dedicated link</a> : http://localhost/shop/gb/guest-tracking
+
+With all our gratitude and pride,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

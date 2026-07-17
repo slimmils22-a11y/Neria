@@ -1,0 +1,25 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Ogni pezzo che proponiamo è accompagnato da un certificato di provenienza che ne garantisce autenticità e origine.
+
+Provenienza
+--------------------------------
+
+
+Materiali & tecniche
+--------------------------------
+
+
+Artigiano / Laboratorio
+--------------------------------
+
+
+Siamo orgogliosi di affidarVi questo pezzo d'eccezione, portatore di un patrimonio artigianale meticolosamente preservato.
+
+Questo documento elettronico è il Vostro certificato di provenienza. Lo conservi con cura.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

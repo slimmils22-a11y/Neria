@@ -1,0 +1,23 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+为让您的作品历久弥新，我们特此提供一份根据其材质量身定制的个性化保养证书。
+
+保养证书
+--------------------------------
+相关产品 : Montre Élégance Neria
+
+材质 : Cuir de veau, acier inoxydable
+
+保养说明 : Éviter l'humidité. Nettoyer avec un chiffon doux.
+
+下载证书 : http://localhost/shop/
+
+请妥善保管此证书以备将来查阅。
+
+为我们的工艺品质感到自豪，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

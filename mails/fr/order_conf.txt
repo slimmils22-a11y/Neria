@@ -1,0 +1,52 @@
+
+
+Bonjour, ,
+
+Nous avons le privilège de confirmer la réception de votre commande. Chaque pièce que vous avez distinguée sera préparée avec l'attention qu'elle mérite — et que vous méritez.
+
+Nos artisans portent en eux un héritage transmis de génération en génération. Votre création en est désormais l'expression.
+
+Détails de votre commande
+--------------------------------
+Numéro de commande : 
+
+Date : 
+
+Mode de paiement : 
+
+
+
+
+Total produits : 
+
+Réductions : 
+
+Frais de livraison : 
+
+Taxes : 
+
+Total à payer : 
+
+Livraison
+--------------------------------
+Transporteur : 
+
+Adresse de livraison
+--------------------------------
+
+
+Adresse de facturation
+--------------------------------
+
+
+<a href="" style="color:#b38b59;">Vous pourrez suivre l'acheminement de votre colis depuis votre espace client</a>
+
+<a href="http://localhost/shop/fr/historique-commandes" style="color:#b38b59;">Consultez l'historique de votre commande dans votre espace client</a> : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/fr/suivi-commande-invite" style="color:#b38b59;">Si vous avez commandé en tant qu'invité, suivez votre commande via le lien dédié</a> : http://localhost/shop/fr/suivi-commande-invite
+
+Avec toute notre gratitude et notre fierté,
+
+
+http://localhost/shop/
+{custom_message_txt}

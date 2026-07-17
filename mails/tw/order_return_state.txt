@@ -1,0 +1,19 @@
+Test Neria
+
+早安, Sophie,
+
+我們通知您，您的退貨請求狀態已發生變化。
+
+退貨 #42
+--------------------------------
+您的退貨狀態已更新 #42.
+
+當前狀態 : Retour reçu
+
+<a href="http://localhost/shop/tw/訂單記錄" style="color:#b38b59;">您可以從客戶帳戶查看退貨詳情。</a> : http://localhost/shop/tw/訂單記錄
+
+致以我們全部的感謝與自豪，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

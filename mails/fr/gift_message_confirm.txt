@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Nous confirmons que le message que vous avez joint à votre commande cadeau a bien été enregistré.
+
+Référence commande : NR-000123
+
+Contenu du message
+--------------------------------
+« Joyeux anniversaire ma chère Sophie. Avec tout mon amour. »
+
+Voir ma commande : http://localhost/shop/fr/historique-commandes
+
+Le destinataire recevra ce message avec son colis.
+
+Avec toute notre attention,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+﻿Test Neria
+
+早安, Sophie,
+
+您第一次信任我們已有一年。與您共度的這一年，是我們無盡感激的源泉。
+
+我們想以特別的方式紀念這第一年。它是專為您準備的。
+
+探索我的關懷 : http://localhost/shop/tw/訂單記錄
+
+感謝您成為本店歷史的一部分。
+
+致以我們全部的感謝，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

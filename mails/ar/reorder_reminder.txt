@@ -1,0 +1,19 @@
+Test Neria
+
+مساء الخير, Sophie,
+
+فكّرنا في قطعة يمكن أن تكمل مجموعتكم أو تثير اهتماماً جديداً لديكم في دارنا.
+
+القطعة المقترحة
+--------------------------------
+Montre Élégance Neria
+
+عرض القطعة : http://localhost/shop/
+
+نأمل أن يلهمكم هذا الاقتراح.
+
+في خدمتكم،
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

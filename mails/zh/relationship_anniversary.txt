@@ -1,0 +1,17 @@
+Test Neria
+
+早上好, Sophie,
+
+前，您第一次给予了我们信任。我们没有忘记。
+
+您的忠诚是我们最大的奖励。我们很高兴您是我们最珍贵的客户之一。
+
+查看我的购买 : http://localhost/shop/zh/订单-历史
+
+感谢您成为我们故事的一部分。
+
+满怀感激，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

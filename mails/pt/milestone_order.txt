@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+Temos o prazer de o informar que acaba de fazer a sua  encomenda connosco. Um marco simbólico.
+
+Cada encomenda é para nós um sinal de confiança. Esta, em particular, é mais uma, e agradecemos-lhe sinceramente.
+
+Descobrir a minha seleção : http://localhost/shop/pt/historico-de-encomendas
+
+Reservamos uma atenção especial aos nossos hóspedes que atingem estes marcos.
+
+Com toda a nossa gratidão,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

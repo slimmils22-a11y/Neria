@@ -1,0 +1,33 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Uw bestelling is succesvol geregistreerd. Deze wordt verwerkt na ontvangst van uw cheque.
+
+Bestelling PREVIEW001 — Wachten op cheque
+--------------------------------
+Dank u voor uw bestelling PREVIEW001.
+
+Verzendgegevens voor de cheque
+--------------------------------
+Gelieve uw cheque uit te schrijven op naam van de hieronder vermelde begunstigde en deze naar het volgende adres te sturen:
+
+Bedrag : 89,00 €
+
+Begunstigde : Test Neria
+
+Verzendadres :
+12 rue de la Paix
+75001 Paris
+
+Gelieve de referentie te vermelden PREVIEW001.
+
+<a href="http://localhost/shop/nl/besteloverzicht" style="color:#b38b59;">Bekijk uw bestelgeschiedenis</a> : http://localhost/shop/nl/besteloverzicht
+
+<a href="http://localhost/shop/nl/bestelling-volgen-als-gast" style="color:#b38b59;">Gasttracking</a> : http://localhost/shop/nl/bestelling-volgen-als-gast
+
+In afwachting van uw cheque, met al ons vertrouwen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,19 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+In questo giorno singolare, tutta la nostra casa pensa a Voi. Il compleanno di una persona d'eccezione merita di essere celebrato con tutto lo splendore che merita.
+
+Abbiamo la gioia di offrirVi questo gesto, a testimonianza della stima che Vi portiamo — e del piacere di averVi tra noi.
+
+Il Vostro codice d'attenzione : 
+
+Valido 30 giorni in tutta la nostra maison. Questa attenzione non è cumulabile.
+
+Scoprire la mia selezione : http://localhost/shop/
+
+Tutta la maison Vi invia i suoi auguri più cari, con affetto ed eleganza,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

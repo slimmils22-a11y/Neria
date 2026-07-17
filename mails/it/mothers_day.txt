@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+In questa giornata che celebra le madri, pensiamo a colei il cui sguardo è stato il vostro primo rifugio.
+
+Offritele ciò che assomiglia al suo amore: un pezzo unico, discreto e infinitamente prezioso.
+
+Scoprite la nostra selezione : http://localhost/shop/
+
+Un'attenzione speciale è riservata per Voi fino alla fine della settimana.
+
+Tutto il team vi augura una buona festa della mamma.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

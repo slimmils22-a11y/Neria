@@ -1,0 +1,18 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Som anerkendelse af din loyalitet åbner vi adgangen til vores nye kollektion før den officielle lancering.
+
+Kollektion forhåndsvisning
+--------------------------------
+
+Få adgang til kollektionen : http://localhost/shop/
+
+Denne tidlige adgang er strengt personlig og tidsbegrænset.
+
+Vi er glade for at dele dette øjeblik med dig,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

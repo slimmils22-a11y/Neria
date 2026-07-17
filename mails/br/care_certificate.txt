@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Para que sua peça conserve todo o seu esplendor ao longo do tempo, aqui está um certificado de cuidado personalizado, especificamente adaptado aos seus materiais.
+
+Certificado de cuidado
+--------------------------------
+Produto em questão : Montre Élégance Neria
+
+Materiais : Cuir de veau, acier inoxydable
+
+Instruções de cuidado : Éviter l'humidité. Nettoyer avec un chiffon doux.
+
+Baixar o certificado : http://localhost/shop/
+
+Guarde este certificado para futuras consultas.
+
+Orgulhosos da qualidade do nosso artesanato,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

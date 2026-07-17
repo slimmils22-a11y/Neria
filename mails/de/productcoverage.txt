@@ -1,0 +1,17 @@
+Test Neria
+
+Liebes Team,
+
+Das System hat erkannt, dass ein Produkt sich seinem kritischen Deckungsschwellenwert nähert.
+
+Deckungsstatus
+--------------------------------
+Mindestdeckung : 
+
+Aktuelle Deckung : 
+
+Bitte überprüfen Sie Ihren Bestand und füllen Sie ihn bei Bedarf auf.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+We acknowledge receipt of your cancellation request. It has been handled with all the care your trust imposes on us.
+
+Order
+--------------------------------
+The order PREVIEW001.
+
+This order has been canceled in accordance with your request. No amount will be charged.
+
+You can view the details of this order from your customer account.
+
+View my order history : http://localhost/shop/en/order-history
+
+<a href="http://localhost/shop/en/guest-tracking" style="color:#b38b59;">If you ordered as a guest, find your order tracking via the dedicated link</a> : http://localhost/shop/en/guest-tracking
+
+We hope to welcome you again within our walls — at a time that suits you.
+
+With our sincerest regrets and all our esteem,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

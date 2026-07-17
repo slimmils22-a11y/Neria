@@ -1,0 +1,19 @@
+Hej Sophie,
+
+Vi lade märke till något
+Den här produkten har fångat din uppmärksamhet
+
+Vi lade märke till att du har lagt den här produkten i din varukorg flera gånger. Om något håller dig tillbaka — en fråga om storlek, material, leveranstider eller annat — är vårt team tillgängligt för att hjälpa dig.
+
+--------------------------------------------------
+Produkten du är intresserad av:
+Montre Élégance Neria
+ €
+http://localhost/shop/index.php?controller=product&id_product=1
+--------------------------------------------------
+
+Inget tryck — vi finns helt enkelt här om du har frågor.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

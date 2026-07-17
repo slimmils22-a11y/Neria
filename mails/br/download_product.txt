@@ -1,0 +1,22 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Obrigado pelo seu pedido. Os seguintes produtos digitais estão agora disponíveis para download.
+
+Pedido PREVIEW001 — Downloads
+--------------------------------
+Você tem 2 produto(s) disponível(eis) para download.
+
+Patron de couture Neria Vol.1 — http://localhost/shop/download/1
+Guide d'entretien premium — http://localhost/shop/download/2
+
+<a href="http://localhost/shop/br/historico-de-pedidos" style="color:#b38b59;">Ver o histórico do seu pedido</a> : http://localhost/shop/br/historico-de-pedidos
+
+<a href="http://localhost/shop/br/rastreamento-para-visitante" style="color:#b38b59;">Rastreamento para convidado</a> : http://localhost/shop/br/rastreamento-para-visitante
+
+Boa descoberta da sua aquisição,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

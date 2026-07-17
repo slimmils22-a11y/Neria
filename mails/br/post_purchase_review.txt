@@ -1,0 +1,18 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Esperamos que sua peça tenha encontrado, em sua casa, o lugar que merece.
+
+Seu olhar sobre esta experiência é infinitamente precioso para nós. Não por obrigação estatística, mas porque a opinião de quem confia em nós orienta nossa exigência.
+
+Compartilhar minha experiência : http://localhost/shop/index.php?controller=product&id_product=1#reviews
+
+Sua opinião é valiosa para nós. Ajuda-nos a entender melhor suas expectativas.
+
+
+Seu olhar é nosso melhor espelho,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

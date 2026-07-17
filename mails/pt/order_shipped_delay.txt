@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Informamos que o envio da sua encomenda está a sofrer um atraso inesperado. Estamos a fazer tudo o que podemos para o resolver o mais rapidamente possível.
+
+Referência da encomenda : #TEST00125
+
+Detalhes do atraso
+--------------------------------
+Nova data estimada : 
+
+Acompanhar a minha encomenda : http://localhost/shop/pt/historico-de-encomendas
+
+Iremos mantê-lo informado de qualquer evolução. Pedimos desculpa.
+
+Com toda a nossa consideração,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

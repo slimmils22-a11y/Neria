@@ -1,0 +1,42 @@
+Test Neria
+
+Buenos días, Camille,
+
+Nos complace ocuparnos de su artículo. Aquí tiene toda la información para hacérnoslo llegar.
+
+Pedido : #TEST00125
+
+Número de devolución : 
+
+Fecha límite de envío : En un plazo de  días desde la recepción de este correo
+
+Artículo(s) afectado(s)
+--------------------------------
+
+
+Motivo : 
+
+Instrucciones de envío
+--------------------------------
+Dirección de devolución :
+
+
+Por favor, indique este número de devolución en su paquete: 
+
+Transportista recomendado: un envío con seguimiento y asegurado para viajar con tranquilidad.
+
+Las condiciones y los posibles gastos de devolución se detallan en nuestra política de devoluciones.
+
+Su artículo será revisado en un plazo de  días hábiles tras su recepción.
+
+El reembolso se realizará en su método de pago original.
+
+Acceder a mi solicitud de devolución : http://localhost/shop/es/seguimiento-pedido
+
+¿Alguna pregunta? Nuestro equipo queda a su entera disposición.
+
+Con todo nuestro agradecimiento y orgullo,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

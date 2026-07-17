@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Ditt meddelande har tagits emot
+
+God morgon, Sophie,
+
+Vi bekräftar mottagandet av din förfrågan och tackar dig för att du kontaktade oss. Här är en kopia av den information du har lämnat:
+
+Kontaktinformation
+--------------------------------
+E-postadress : test@test.com
+
+Beställningsreferens : PREVIEW001
+
+Bifogad fil : Aucun fichier joint
+
+Ditt meddelande
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+Svara via e-post : test@test.com
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

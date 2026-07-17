@@ -1,0 +1,25 @@
+Test Neria
+
+God morgen, Sophie,
+
+Hver gjenstand vi tilbyr leveres med et opprinnelsessertifikat som garanterer dens autentisitet og opprinnelse.
+
+Opprinnelse
+--------------------------------
+France — Atelier parisien, fondé en 1987
+
+Materialer & teknikker
+--------------------------------
+Cuir de veau pleine fleur, acier 316L, verre saphir
+
+Håndverker / Verksted
+--------------------------------
+Maître Jean-Pierre Moreau, Meilleur Ouvrier de France
+
+Vi er stolte av å overlevere denne enestående gjenstanden til deg, som bærer på en nøye bevart håndverkstradisjon.
+
+Dette elektroniske dokumentet er ditt opprinnelsessertifikat. Oppbevar det trygt.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

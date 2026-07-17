@@ -1,0 +1,21 @@
+Test Neria
+
+Madame, Monsieur Durand,
+
+Nous vous remercions pour votre commande. Les produits numériques suivants sont désormais disponibles au téléchargement.
+
+Commande NR-000123 — Téléchargements
+--------------------------------
+Vous avez 2 produit(s) disponible(s) au téléchargement.
+
+
+
+<a href="http://localhost/shop/fr/historique-commandes" style="color:#b38b59;">Consultez l'historique de votre commande</a> : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/fr/suivi-commande-invite" style="color:#b38b59;">Suivi de commande invité</a> : http://localhost/shop/fr/suivi-commande-invite
+
+Bonne découverte de votre acquisition,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

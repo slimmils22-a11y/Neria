@@ -1,0 +1,18 @@
+﻿Test Neria
+
+God morgon, Sophie,
+
+Vår conciergetjänst vill försäkra sig om att din upplevelse med vårt hus motsvarar dina förväntningar.
+
+Behöver du särskild uppmärksamhet?
+--------------------------------
+
+Kontakta min rådgivare : http://localhost/shop/
+
+Vi finns tillgängliga för att hjälpa dig med varje detalj i din resa.
+
+Till din tjänst, under alla omständigheter,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

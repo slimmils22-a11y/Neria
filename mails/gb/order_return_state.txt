@@ -1,0 +1,19 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We inform you that the status of your return request has changed.
+
+Return #42
+--------------------------------
+The status of your return has been updated #42.
+
+Current status : Retour reçu
+
+<a href="http://localhost/shop/gb/order-history" style="color:#b38b59;">You can view the details of your return from your customer account</a> : http://localhost/shop/gb/order-history
+
+With all our gratitude and pride,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

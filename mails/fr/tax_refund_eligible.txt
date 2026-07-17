@@ -1,0 +1,19 @@
+Test Neria
+
+Madame, Monsieur,
+
+En tant qu'hôte résidant en dehors de l'Union Européenne, vous êtes éligible à une détaxe sur vos achats.
+
+Détails de votre éligibilité
+--------------------------------
+Référence commande : NR-000123
+
+Commencer la procédure : http://localhost/shop/
+
+Notre équipe vous accompagnera dans les démarches nécessaires.
+
+À votre service,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

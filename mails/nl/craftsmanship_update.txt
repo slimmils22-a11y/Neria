@@ -1,0 +1,17 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Wij zijn verheugd u te kunnen meedelen dat uw bestelling vordert in onze werkplaats.
+
+Huidige fase
+--------------------------------
+Assemblage final en atelier
+
+Onze ambachtsman besteedt al zijn zorg aan het tot leven brengen van uw unieke stuk. Wij zullen u op de hoogte houden van elke stap.
+
+U kunt de voortgang van uw bestelling volgen via uw klantenaccount.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

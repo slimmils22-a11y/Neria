@@ -1,0 +1,17 @@
+Test Neria
+
+Madame, Monsieur,
+
+Votre fidélité exceptionnelle nous touche profondément. C'est avec une gratitude sincère que nous vous accueillons dans notre cercle le plus restreint — celui que nous réservons à ceux qui nous font l'honneur de leur confiance durable.
+
+Votre statut VIP vous ouvre des portes que nous gardons closes pour le reste du monde : aperçus en avant-première de nos nouvelles créations, invitations privées à nos événements, offres sur-mesure et accompagnement personnalisé.
+
+Découvrir mes privilèges : http://localhost/shop/
+
+Ce statut est le reflet de votre confiance. Nous le portons avec autant de soin que vous nous en témoignez.
+
+Avec toute notre reconnaissance et notre admiration,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

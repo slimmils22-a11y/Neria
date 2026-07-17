@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Confirmamos o recebimento do seu pedido em nome da sua empresa. Ele será tratado com toda a atenção que esse compromisso merece.
+
+Referência do pedido : PREVIEW001
+
+Detalhes do pedido corporativo
+--------------------------------
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+Acompanhar meu pedido : http://localhost/shop/br/historico-de-pedidos
+
+Nossa equipe dedicada às relações corporativas está à sua disposição.
+
+À sua disposição para esta parceria,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

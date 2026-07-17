@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+İadenizin şu anda işleme alındığını size kişisel olarak bildirmek istedik.
+
+Talebiniz alındı ve gereken özenle işleme konulmasını sağlıyoruz.
+
+Siparişlerimi görüntüle : http://localhost/shop/tr/siparis-gecmisi
+
+Herhangi bir sorunuz olursa ekibimiz her zaman yanınızdadır.
+
+Saygılarımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi er glade for å bekrefte at bestillingen din er levert.
+
+Bestilling
+--------------------------------
+Bestillingen din PREVIEW001.
+
+Vi håper dette stykket gir deg like mye glede å bruke som det ga håndverkerne våre å lage.
+
+<a href="http://localhost/shop/no/ordrehistorikk" style="color:#b38b59;">Vis bestillingshistorikken din</a> : http://localhost/shop/no/ordrehistorikk
+
+<a href="http://localhost/shop/no/gjestesporing" style="color:#b38b59;">Gjestesporing</a> : http://localhost/shop/no/gjestesporing
+
+For spørsmål om bestillingen din er kundeservicen vår til din disposisjon.
+
+Med all vår takknemlighet og stolthet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+﻿Test Neria
+
+早安, Sophie,
+
+我們很高興通知您，您相關作品的延長保修現已生效。
+
+訂單編號 : PREVIEW001
+
+保修詳情
+--------------------------------
+Montre Élégance Neria
+
+查看條款 : http://localhost/shop/tw/訂單記錄
+
+此延長保修在指定期限內有效。請保存此憑證。
+
+隨時為您服務，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

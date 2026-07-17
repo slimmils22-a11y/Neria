@@ -1,0 +1,22 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Confirmamos que o pacote com sua devolução chegou à nossa equipe. Ele será tratado com toda a atenção devida.
+
+Referência do pedido : PREVIEW001
+
+Detalhes da devolução
+--------------------------------
+Réf. NER-001 — Montre Élégance Neria × 1
+Réf. NER-014 — Bracelet Cuir Atelier × 1
+
+Acompanhar a minha devolução : http://localhost/shop/br/historico-de-pedidos
+
+Vamos manter você informado sobre o andamento do processo.
+
+Ao seu serviço,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

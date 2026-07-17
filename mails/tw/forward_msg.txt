@@ -1,0 +1,20 @@
+﻿Test Neria
+
+親愛的員工，
+
+客戶留言已轉發給您處理。
+
+Marie Lefebvre 已將以下留言轉發給您.
+
+對話歷史
+--------------------------------
+Client : Bonjour, j'ai une question sur ma commande.
+Support : Bonjour, je regarde ça immédiatement.
+
+Marie Lefebvre 添加了以下評論 : Client prioritaire — traiter en urgence.
+
+請勿回覆此自動郵件。請登入後台處理請求。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

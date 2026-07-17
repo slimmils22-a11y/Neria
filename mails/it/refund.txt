@@ -1,0 +1,17 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Confermiamo che il rimborso del Vostro ordine è stato effettuato con successo.
+
+Riferimento ordine : #TEST00125
+
+<a href="http://localhost/shop/it/cronologia-ordini" style="color:#b38b59;">Può visualizzare lo storico del Vostro ordine dal Vostro account cliente</a> : http://localhost/shop/it/cronologia-ordini
+
+<a href="http://localhost/shop/it/tracciatura-ospite" style="color:#b38b59;">Se ha ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a> : http://localhost/shop/it/tracciatura-ospite
+
+Con la nostra più profonda gratitudine,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

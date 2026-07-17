@@ -1,0 +1,32 @@
+Test Neria
+
+Günaydın, Camille,
+
+Siparişiniz başarıyla kaydedildi. Çekinizin alınmasının ardından işleme alınacaktır.
+
+Sipariş #TEST00125 — Çek bekleniyor
+--------------------------------
+Siparişiniz için teşekkür ederiz #TEST00125.
+
+Çek gönderim bilgileri
+--------------------------------
+Lütfen çekinizi aşağıda belirtilen alıcı adına düzenleyin ve aşağıdaki adrese gönderin:
+
+Tutar : 
+
+Çek düzenlenen alıcı : 
+
+Gönderim adresi :
+
+
+Lütfen referansı belirtiniz #TEST00125.
+
+<a href="http://localhost/shop/tr/siparis-gecmisi" style="color:#b38b59;">Sipariş geçmişinizi görüntüleyin</a> : http://localhost/shop/tr/siparis-gecmisi
+
+<a href="http://localhost/shop/tr/ziyaretci-takibi" style="color:#b38b59;">Misafir takibi</a> : http://localhost/shop/tr/ziyaretci-takibi
+
+Çekinizi tüm güvenimizle beklerken,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

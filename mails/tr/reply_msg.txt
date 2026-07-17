@@ -1,0 +1,16 @@
+Test Neria
+
+Günaydın, Camille,
+
+Ekibimizden yanıt
+--------------------------------
+
+
+Lütfen bu otomatik e-postaya yanıt vermeyin.
+
+Herhangi bir sorunuz için lütfen web sitemiz üzerinden bize ulaşın.
+
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

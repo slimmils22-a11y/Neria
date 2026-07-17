@@ -1,0 +1,23 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Vi forsøgte at levere din pakke, men ingen var til stede til at modtage den.
+
+Ordrereference : PREVIEW001
+
+Leveringsforsøgsdetaljer
+--------------------------------
+Pakke status : Colissimo
+
+Hvad skal du gøre nu? : Tabac Presse — 5 rue de Rivoli, 75001 Paris
+
+Se afhentningsmuligheder : http://localhost/shop/da/ordrehistorik
+
+Pakken opbevares på et afhentningssted for dig.
+
+I forventning om at betjene dig,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

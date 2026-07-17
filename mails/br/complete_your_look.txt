@@ -1,0 +1,26 @@
+Seleção para você
+
+Olá Sophie,
+
+Complete o seu look
+
+Seu pedido acabou de chegar — esperamos que você goste. Aqui estão algumas peças que combinam perfeitamente com sua compra.
+
+--------
+
+1.  —  €
+
+
+2.  —  €
+
+
+3.  —  €
+
+
+--------
+
+Esta seleção foi montada especialmente para você, em harmonia com sua compra recente.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,33 @@
+Test Neria
+
+早安, Sophie,
+
+您的訂單已成功註冊。收到支票後我們將進行處理。
+
+訂單 PREVIEW001 — 等待支票
+--------------------------------
+感謝您的訂單 PREVIEW001.
+
+支票郵寄資訊
+--------------------------------
+請將支票開立至下方指定收款人抬頭，並郵寄至以下地址：
+
+金額 : 89,00 €
+
+支票抬頭 : Test Neria
+
+郵寄地址 :
+12 rue de la Paix
+75001 Paris
+
+請註明參考號 PREVIEW001.
+
+<a href="http://localhost/shop/tw/訂單記錄" style="color:#b38b59;">查看訂單歷史</a> : http://localhost/shop/tw/訂單記錄
+
+<a href="http://localhost/shop/tw/訪客追蹤" style="color:#b38b59;">訪客追蹤</a> : http://localhost/shop/tw/訪客追蹤
+
+期待您的支票，以全部信任靜候，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

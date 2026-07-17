@@ -1,0 +1,23 @@
+Test Neria
+
+早上好, Sophie,
+
+我们很高兴确认您的订单已成功送达。
+
+订单
+--------------------------------
+您的订单 PREVIEW001.
+
+希望这件作品能给您带来与工匠们创作时同样的喜悦。
+
+<a href="http://localhost/shop/zh/订单-历史" style="color:#b38b59;">查看订单历史</a> : http://localhost/shop/zh/订单-历史
+
+<a href="http://localhost/shop/zh/客户跟踪" style="color:#b38b59;">访客追踪</a> : http://localhost/shop/zh/客户跟踪
+
+如有任何关于订单的问题，我们的客服团队随时为您服务。
+
+致以我们全部的感激与骄傲，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

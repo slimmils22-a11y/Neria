@@ -1,0 +1,58 @@
+Test Neria
+
+Um novo pedido espera por você
+
+Você recebeu um novo pedido em sua loja. Eis os detalhes.
+
+Cliente : Sophie Durand (test@test.com)
+
+Detalhes do pedido
+--------------------------------
+Referência : PREVIEW001
+
+Data : 11/07/2026 14:21:19
+
+Pagamento : Carte bancaire
+
+Réf. NER-001  Montre Élégance Neria  x1
+
+
+Total produtos : 89,00 €
+
+Descontos : 0,00 €
+
+Embalagem de presente : 0,00 €
+
+Frete : 0,00 €
+
+Impostos : 14,83 €
+
+Total pago : 89,00 €
+
+Frete
+--------------------------------
+Transportadora : Colissimo
+
+Endereço de entrega
+--------------------------------
+Sophie Durand
+12 rue de la Paix
+75001 Paris
+France
+
+Endereço de faturamento
+--------------------------------
+Sophie Durand
+12 rue de la Paix
+75001 Paris
+France
+
+Mensagem do cliente
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+Vá à sua administração para processar este pedido com o cuidado que merece.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

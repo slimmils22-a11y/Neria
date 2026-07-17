@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+Neste dia que homenageia os pais, pensamos naquele que moldou as suas raízes, as suas paixões, os seus silêncios.
+
+Ofereça-lhe o que há de mais raro: uma peça que conta, sem uma palavra, a sua gratidão.
+
+Descubra a nossa seleção : http://localhost/shop/
+
+Uma atenção especial está reservada para si até ao final da semana.
+
+Toda a equipa deseja-lhe um feliz dia do pai.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

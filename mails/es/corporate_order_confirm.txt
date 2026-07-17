@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Acusamos recibo de su pedido en nombre de su empresa. Se procesará con toda la atención que tal compromiso merece.
+
+Referencia del pedido : #TEST00125
+
+Detalles del pedido corporativo
+--------------------------------
+
+
+Seguir mi pedido : http://localhost/shop/es/historial-compra
+
+Nuestro equipo dedicado a relaciones corporativas está a su disposición.
+
+A su servicio para esta asociación,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

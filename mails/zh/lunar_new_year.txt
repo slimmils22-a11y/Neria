@@ -1,0 +1,17 @@
+Test Neria
+
+早上好, Sophie,
+
+值此农历新年来临之际，我们向您致以最温暖的祝福。
+
+愿这个节日为您带来幸福、健康，并祝您一切顺利。
+
+发现我们的作品 : http://localhost/shop/
+
+特别关怀为您保留至节日结束。
+
+全体团队祝您农历新年快乐。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

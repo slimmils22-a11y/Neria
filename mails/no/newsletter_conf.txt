@@ -1,0 +1,19 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi er glade for å ønske deg velkommen blant våre abonnenter. Ditt abonnement på vårt nyhetsbrev er bekreftet.
+
+Bekreftelse
+--------------------------------
+Du vil nå motta våre nye kolleksjoner, private invitasjoner og høydepunktene fra huset vårt først — delt med dem vi setter pris på.
+
+Din tillit er hellig. Vi beskytter den som vi beskytter vårt rykte: med strenghet og diskresjon.
+
+Du kan administrere innstillingene dine og si opp abonnementet når som helst fra kundekontoen din.
+
+Gå til min plass : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

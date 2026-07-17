@@ -1,0 +1,25 @@
+Test Neria
+
+早安, Sophie,
+
+我們寫這封信不是為了辯解。我們是為了完全承擔責任，毫無保留地道歉。
+
+事件詳情
+--------------------------------
+訂單編號 : PREVIEW001
+
+Un retard de livraison exceptionnel est survenu sur votre commande.
+
+此延誤絕不反映我們自我要求的標準。我們首當其衝，並決心使其成為一個絕對的例外。
+
+我們的一位團隊成員將在24小時內親自與您聯繫，商定最合適的解決方案 — 我們希望這能恢復您的信任。
+
+聯繫我們的客服 : http://localhost/shop/index.php?controller=contact
+
+您的耐心和善意令我們感動。我們現在必須配得上它們。
+
+以我們最真誠的悔意和絕對的承諾，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

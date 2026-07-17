@@ -1,0 +1,24 @@
+Test Neria
+
+Günaydın, Camille,
+
+İşte aylık sadakat puanı özetiniz. Her açılış, her tıklama ve her satın alma sizi bir ödüle yaklaştırıyor.
+
+--------------------------------
+Bu ay kazanılan puanlar : +
+Birikimli toplam : 
+--------------------------------
+
+Sonraki seviyeye ilerlemeniz
+
+Tebrikler — en yüksek seviyemize ulaştınız.
+
+Yenilikleri keşfet : http://localhost/shop/
+
+Puanlarınız, e-postalarımızla her etkileşimde otomatik olarak yüklenir.
+
+Tüm şükranlarımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

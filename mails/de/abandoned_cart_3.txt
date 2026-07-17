@@ -1,0 +1,16 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir schließen das Kapitel Ihres Warenkorbs leise. Sollten Sie Ihre Auswahl wiederfinden wollen, wäre unser Team geehrt, Sie erneut willkommen zu heißen.
+
+--------------------------------
+
+
+Zurück zum Haus : 
+
+Ihr Warenkorb ist nicht mehr aktiv. Alle unsere Kreationen stehen Ihnen zur Verfügung.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

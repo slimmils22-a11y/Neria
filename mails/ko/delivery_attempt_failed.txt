@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+소포를 배송하려고 시도했지만, 수령인이 없었습니다.
+
+주문 참조 번호 : PREVIEW001
+
+배송 시도 세부 정보
+--------------------------------
+소포 상태 : Colissimo
+
+지금 어떻게 해야 하나요? : Tabac Presse — 5 rue de Rivoli, 75001 Paris
+
+픽업 옵션 보기 : http://localhost/shop/ko/주문-내역
+
+소포는 픽업 지점에 보관되어 있습니다.
+
+서비스를 제공하기 위해 기다리며,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

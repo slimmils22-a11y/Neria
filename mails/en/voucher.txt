@@ -1,0 +1,23 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+Your trust moves us. As a token of our gratitude, we have prepared an attention for you.
+
+Order PREVIEW001
+--------------------------------
+A voucher has been generated for order PREVIEW001.
+
+Voucher amount : 15,00 €
+
+Voucher code : NERIA-VIP-2026
+
+This voucher is valid for 30 days across our entire boutique. Cannot be combined with other offers.
+
+We hope you will find something to your liking among our creations.
+
+In token of our gratitude for your loyalty,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

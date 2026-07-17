@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Temos o privilégio de convidar você para nossa venda privada, reservada aos nossos convidados mais especiais.
+
+Desfrute de uma seleção única de peças raras em condições privilegiadas.
+
+Acessar a venda privada : http://localhost/shop/vente-privee
+
+Esta oferta é estritamente pessoal e limitada no tempo.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

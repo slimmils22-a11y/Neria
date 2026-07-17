@@ -1,0 +1,17 @@
+Test Neria
+
+早安, Sophie,
+
+要啟動我們的通訊訂閱，請點擊下方連結確認您的電子郵件地址。
+
+驗證
+--------------------------------
+此安全連結將確認您的訂閱，並使您能夠接收所有消息。
+
+確認我的訂閱 : http://localhost/shop/index.php?controller=newsletter-verification&token=preview-verif-token
+
+如果您未發起此請求，請忽略此訊息。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

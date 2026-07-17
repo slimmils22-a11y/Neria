@@ -1,0 +1,23 @@
+﻿Test Neria
+
+早安, Sophie,
+
+您的訂單目前正在由目的地國家的海關當局處理。
+
+訂單編號 : PREVIEW001
+
+海關警報詳情
+--------------------------------
+當前狀態 : En attente de dédouanement
+
+建議行動 : Aucune action requise de votre part.
+
+追蹤我的包裹 : http://localhost/shop/tw/訂單記錄
+
+如有需要，我們的團隊可以協助您辦理相關手續。
+
+為您服務，共同跨越這一階段，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

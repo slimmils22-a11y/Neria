@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Nous vous confirmons que le colis contenant votre retour est bien parvenu à notre équipe. Il sera traité avec toute l'attention requise.
+
+Référence commande : NR-000123
+
+Détails du retour
+--------------------------------
+
+
+Suivre mon retour : http://localhost/shop/fr/historique-commandes
+
+Nous vous tiendrons informé de l'avancement du traitement.
+
+À votre service,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

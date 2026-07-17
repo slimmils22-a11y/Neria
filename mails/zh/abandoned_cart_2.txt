@@ -1,0 +1,18 @@
+Test Neria
+
+早上好, Sophie,
+
+您曾经瞩目的作品仍然可及。稀有有时转瞬即逝 — 我们想告知您。
+
+--------------------------------
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+我们的团队随时为您解答关于您精选的任何疑问。
+
+返回我的精选 : http://localhost/shop/index.php?controller=cart
+
+超过此次邀请，我们无法保证可及性。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

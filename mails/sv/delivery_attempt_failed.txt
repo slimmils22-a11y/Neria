@@ -1,0 +1,23 @@
+﻿Test Neria
+
+God morgon, Sophie,
+
+Vi försökte leverera ditt paket, men ingen var närvarande för att ta emot det.
+
+Beställningsreferens : PREVIEW001
+
+Leveransförsöksdetaljer
+--------------------------------
+Paketstatus : Colissimo
+
+Vad ska du göra nu? : Tabac Presse — 5 rue de Rivoli, 75001 Paris
+
+Se upphämtningsalternativ : http://localhost/shop/sv/bestallningshistorik
+
+Paketet förvaras på ett upphämtningsställe för dig.
+
+I väntan på att betjäna dig,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Cher(e) collaborateur(trice),
+
+L'importation que vous avez demandée a été traitée. Voici le résultat détaillé.
+
+Résultat de l'importation
+--------------------------------
+Fichier : import_produits.csv
+
+L'opération s'est déroulée sans incident. Toutes les données ont été intégrées avec succès.
+
+Pour toute question, consultez les logs d'importation dans l'administration.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

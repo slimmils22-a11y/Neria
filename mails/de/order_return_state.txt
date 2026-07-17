@@ -1,0 +1,19 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir teilen Ihnen mit, dass sich der Status Ihres Rückgabeantrags geändert hat.
+
+Rückgabe #
+--------------------------------
+Der Status Ihrer Rückgabe wurde aktualisiert #.
+
+Aktueller Status : 
+
+<a href="http://localhost/shop/de/bestellungsverlauf" style="color:#b38b59;">Sie können die Details Ihrer Rückgabe in Ihrem Kundenkonto einsehen</a> : http://localhost/shop/de/bestellungsverlauf
+
+Mit all unserer Dankbarkeit und unserem Stolz,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

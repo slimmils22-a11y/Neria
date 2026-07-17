@@ -1,0 +1,17 @@
+Test Neria
+
+Buenos días, Camille,
+
+El amor merece ser celebrado con palabras raras y piezas excepcionales. Hacemos de ello nuestra vocación.
+
+Cada creación de nuestra casa nació para esto: convertirse en el mensajero silencioso de un sentimiento que las palabras por sí solas no bastan para expresar.
+
+Descubra nuestras creaciones : http://localhost/shop/
+
+Un detalle exclusivo le espera hasta el 14 de febrero.
+
+Todo el equipo le desea un maravilloso San Valentín.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

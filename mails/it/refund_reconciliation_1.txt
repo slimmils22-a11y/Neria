@@ -1,0 +1,17 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Desideriamo confermarVi personalmente che il Vostro rimborso è attualmente in fase di elaborazione.
+
+La Vostra richiesta è stata ricevuta e ci assicuriamo che venga trattata con tutta l'attenzione che merita.
+
+Consulta i miei ordini : http://localhost/shop/it/cronologia-ordini
+
+Per qualsiasi domanda, il nostro team rimane a Vostra disposizione.
+
+Con tutta la nostra considerazione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

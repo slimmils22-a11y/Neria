@@ -1,0 +1,23 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Abbiamo identificato un punto che richiede la Vostra attenzione riguardo a un prodotto che potreste aver acquistato presso di noi. Questa comunicazione è un atto di trasparenza.
+
+Riferimento ordine : #TEST00125
+
+Dettagli del richiamo
+--------------------------------
+Prodotto interessato : Ivory Linen Dress
+
+Cosa fare?
+--------------------------------
+Scopri di più : http://localhost/shop/it/cronologia-ordini
+
+Il nostro team è a Vostra disposizione per ogni domanda. Vi ringraziamo per la Vostra comprensione.
+
+Con tutta la nostra considerazione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

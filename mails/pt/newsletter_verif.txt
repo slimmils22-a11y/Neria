@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Para ativar a sua inscrição na nossa newsletter, confirme o seu endereço de e-mail clicando no link abaixo.
+
+Verificação
+--------------------------------
+Este link seguro confirma a sua inscrição e dá-lhe acesso a todas as nossas notícias.
+
+Confirmar a minha inscrição : 
+
+Se não solicitou esta inscrição, pode ignorar esta mensagem.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

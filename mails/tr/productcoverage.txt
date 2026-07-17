@@ -1,0 +1,17 @@
+Test Neria
+
+Sevgili meslektaşım,
+
+Sistem, bir ürünün kritik kapsam eşiğine yaklaştığını tespit etti.
+
+Kapsam durumu
+--------------------------------
+Minimum kapsam : 
+
+Mevcut kapsam : 
+
+Lütfen stoklarınızı gözden geçirin ve gerekirse yenileyin.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

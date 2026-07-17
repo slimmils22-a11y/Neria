@@ -1,0 +1,21 @@
+Test Neria
+
+مساء الخير, Sophie,
+
+نأخذ الوقت الكافي للتحقق من كل تفصيل طلبكم قبل إتمامه.
+
+مرجع الطلب : PREVIEW001
+
+إليكم تفاصيل الوضع:
+--------------------------------
+سبب الانتظار : Vérification de votre paiement en cours
+
+تتبع طلبي : http://localhost/shop/ar/سجل طلبات الشراء
+
+فريقنا رهن إشارتكم لأي استفسار.
+
+بكل اهتمامنا،
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

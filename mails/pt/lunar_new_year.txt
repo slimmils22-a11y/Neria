@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Por ocasião do Ano Novo Lunar, enviamos-lhe os nossos votos mais calorosos.
+
+Que esta celebração lhe traga felicidade, saúde e sucesso em todos os seus projetos.
+
+Descubra as nossas criações : http://localhost/shop/
+
+Uma atenção especial está reservada para si até ao final das festividades.
+
+Toda a equipa deseja-lhe um maravilhoso Ano Novo Lunar.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Neste bendito mês do Ramadan, enviamos-lhe os nossos votos mais calorosos.
+
+Que este mês bendito lhe traga serenidade interior, a alegria da partilha e a graça que acompanha quem jejua com fé.
+
+Descubra nossas criações : http://localhost/shop/
+
+Uma atenção especial está reservada para você durante todo o mês sagrado.
+
+Toda a equipe deseja-lhe um Ramadan abençoado.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

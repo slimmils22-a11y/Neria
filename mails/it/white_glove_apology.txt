@@ -1,0 +1,25 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Non scriviamo per giustificarci. Scriviamo per assumerci pienamente e presentare le nostre scuse senza riserve.
+
+Dettagli dell'incidente
+--------------------------------
+Riferimento : #TEST00125
+
+
+
+Questo contrattempo non riflette in alcun modo gli standard che ci imponiamo. Ne siamo i primi ad essere colpiti, e determinati a rimanga un'eccezione assoluta.
+
+Un membro del nostro team Vi contatterà personalmente entro 24 ore per concordare la soluzione più appropriata — una che, speriamo, ripristinerà la Vostra fiducia.
+
+Contatta il nostro servizio : 
+
+La Vostra pazienza e gentilezza ci toccano. Ora dobbiamo meritarVela.
+
+Con la nostra più sincera contrizione e il nostro impegno assoluto,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

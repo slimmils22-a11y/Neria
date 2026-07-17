@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Tenemos el privilegio de invitarle a nuestra venta privada, reservada para nuestros huéspedes más preciados.
+
+Disfrute de una selección única de piezas raras en condiciones privilegiadas.
+
+Acceder a la venta privada : 
+
+Esta oferta es estrictamente personal e intransferible.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,25 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi skriver ikke for at retfærdiggøre os. Vi skriver for at påtage os det fulde ansvar og fremlægge vores undskyldninger uden forbehold.
+
+Hændelsesdetaljer
+--------------------------------
+Reference : PREVIEW001
+
+Un retard de livraison exceptionnel est survenu sur votre commande.
+
+Denne forsinkelse afspejler på ingen måde de standarder, vi pålægger os selv. Vi er de første, der rammes, og beslutsomme på, at det forbliver en absolut undtagelse.
+
+Et medlem af vores team vil kontakte dig personligt inden for 24 timer for at blive enige om den mest passende løsning — en, som vi håber, vil genoprette din tillid.
+
+Kontakt vores service : http://localhost/shop/index.php?controller=contact
+
+Din tålmodighed og venlighed rører os. Vi må nu fortjene dem.
+
+Med vores mest oprigtige anger og absolutte forpligtelse,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

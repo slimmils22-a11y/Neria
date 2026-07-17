@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+In occasione di Diwali, la festa delle luci, Vi inviamo i nostri più calorosi auguri.
+
+Che questa festa sacra porti chiarezza, prosperità e gioia nella Vostra vita.
+
+Scoprite le nostre creazioni : http://localhost/shop/
+
+Un'attenzione speciale è riservata per Voi fino alla fine della settimana.
+
+Tutto il team Vi augura un meraviglioso Diwali.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

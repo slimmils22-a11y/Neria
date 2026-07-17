@@ -1,0 +1,19 @@
+Test Neria
+
+Günaydın, Camille,
+
+Bültenimize abone olduğunuz için teşekkür ederiz. Hoş geldiniz jesti olarak, bir sonraki siparişinizde  indirim sağlayan özel bir kod sunuyoruz.
+
+Davet kodunuz
+--------------------------------
+Özel kod : 
+
+Bu kod, maisonda 30 gün geçerlidir. Diğer iltifatlarla birleştirilemez.
+
+Kreasyonlarımızı keşfedin : http://localhost/shop/
+
+Eşsiz parçalarımızı keşfetmenizi dileriz.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

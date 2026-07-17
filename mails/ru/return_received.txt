@@ -1,0 +1,22 @@
+﻿Test Neria
+
+Доброе утро, Sophie,
+
+Мы подтверждаем, что посылка, содержащая Ваш возврат, поступила к нашей команде. Она будет обработана с должным вниманием.
+
+Номер заказа : PREVIEW001
+
+Детали возврата
+--------------------------------
+Réf. NER-001 — Montre Élégance Neria × 1
+Réf. NER-014 — Bracelet Cuir Atelier × 1
+
+Отследить мой возврат : http://localhost/shop/ru/order-history
+
+Мы будем держать Вас в курсе хода обработки.
+
+К Вашим услугам,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

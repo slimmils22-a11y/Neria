@@ -1,0 +1,23 @@
+﻿Test Neria
+
+God morgon, Sophie,
+
+Vi har mottagit ditt meddelande angående din beställning. Här är en sammanfattning av informationen du lämnat:
+
+Sammanfattning av din förfrågan
+--------------------------------
+Beställningsreferens : PREVIEW001
+
+Berörd produkt : Montre Élégance Neria
+
+Bifogad fil : Aucun fichier joint
+
+Vi lägger särskild vikt vid varje förfrågan och återkommer till dig mycket snart.
+
+Återvända till vårt hus : http://localhost/shop/
+
+I väntan på att svara dig med all vederbörlig uppmärksamhet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

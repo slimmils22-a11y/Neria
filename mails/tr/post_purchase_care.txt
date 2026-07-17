@@ -1,0 +1,23 @@
+Test Neria
+
+Günaydın, Camille,
+
+Parçanızın istediğimiz memnuniyeti size getirmesini umuyoruz.
+
+Zaman içinde parlaklığını ve güzelliğini korumak için işte bazı bakım ipuçları.
+
+Bakım ipuçları
+--------------------------------
+Doğrudan ışığa veya yoğun ısı kaynaklarına uzun süre maruz bırakmaktan kaçının.
+
+Yumuşak, kuru bir bezle nazikçe temizleyin. Hiçbir kimyasal ürün kullanmayın.
+
+Kullanmadığınızda parçanızı kuru, tozdan uzak bir yerde saklayın.
+
+Ek bilgi için ekibimiz hizmetinizdedir.
+
+İstisnai parçalarınızın koruyucusu olarak, tüm özenimizle,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

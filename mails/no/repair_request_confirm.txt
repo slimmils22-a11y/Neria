@@ -1,0 +1,21 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi har mottatt forespørselen din om reparasjon eller endring av gjenstanden din.
+
+Bestillingsreferanse : PREVIEW001
+
+Forespørselsdetaljer
+--------------------------------
+Montre Élégance Neria
+
+Følg forespørselen min : http://localhost/shop/no/ordrehistorikk
+
+Teamet vårt vil kontakte deg for å bekrefte vilkårene for tjenesten.
+
+Til din tjeneste,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

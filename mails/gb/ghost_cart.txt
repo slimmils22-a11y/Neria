@@ -1,0 +1,19 @@
+Hello Sophie,
+
+We noticed something
+This piece has caught your attention
+
+We noticed you've added this item to your cart several times. If something is holding you back — a question about sizing, materials, delivery times, or anything else — our team is here to help.
+
+--------------------------------------------------
+The piece you're interested in:
+Montre Élégance Neria
+ €
+http://localhost/shop/index.php?controller=product&id_product=1
+--------------------------------------------------
+
+No pressure — we're simply here if you have any questions.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

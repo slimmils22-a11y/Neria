@@ -1,0 +1,23 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Lembramos-lhe que o seu orçamento expira em menos de 48 horas. Convidamo-lo a confirmá-lo antes do prazo para beneficiar das condições acordadas.
+
+Referência do orçamento: 
+
+Valor: 
+
+Expira em: 
+
+Confirmar a minha encomenda : 
+
+A nossa equipa permanece inteiramente disponível para qualquer questão ou ajuste antes da confirmação.
+
+Este orçamento expirará a . Após essa data, as condições tarifárias acordadas poderão não ser garantidas.
+
+Com a nossa consideração distinta,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

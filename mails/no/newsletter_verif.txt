@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+For å aktivere abonnementet ditt på vårt nyhetsbrev, vennligst bekreft e-postadressen din ved å klikke på lenken nedenfor.
+
+Bekreftelse
+--------------------------------
+Denne sikre lenken bekrefter abonnementet ditt og gir deg tilgang til alle våre nyheter.
+
+Bekreft abonnementet mitt : http://localhost/shop/index.php?controller=newsletter-verification&token=preview-verif-token
+
+Hvis du ikke har bedt om dette, kan du ignorere denne meldingen.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

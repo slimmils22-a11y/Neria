@@ -1,0 +1,17 @@
+﻿Test Neria
+
+System alert
+
+The system has detected an unusual event that requires your intervention.
+
+Alert details
+--------------------------------
+Action required
+
+We invite you to consult the logs to understand the origin of this alert and take the necessary measures.
+
+This alert was automatically generated. Please check the status of your store.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

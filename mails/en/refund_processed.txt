@@ -1,0 +1,21 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We confirm that the refund procedure regarding your order has been successfully finalised.
+
+Order reference : PREVIEW001
+
+Refund details
+--------------------------------
+Refunded amount : 89,00 €
+
+View my order : http://localhost/shop/en/order-history
+
+The amount will be credited to your account according to your bank's usual timeline.
+
+At your service,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

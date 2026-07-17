@@ -1,0 +1,19 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Temos o prazer de apresentar a você seu consultor pessoal, dedicado a orientá-lo em suas escolhas e a atender seus desejos.
+
+O seu conselheiro dedicado
+--------------------------------
+O seu conselheiro : Marie-Claire Fontaine
+
+Contatar meu consultor : http://localhost/shop/
+
+Ele ou ela conhece seus gostos e pode indicar peças que combinam com você.
+
+Ao seu serviço, com atenção,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+Madame, Monsieur,
+
+Votre remboursement est désormais finalisé. Nous espérons que tout s'est déroulé à votre satisfaction.
+
+Sachez que notre maison est la vôtre, et que nous serons toujours heureux de vous accueillir, quand vous le jugerez bon.
+
+Retrouver notre maison : http://localhost/shop/
+
+Des nouveautés sont arrivées depuis votre dernière visite. Peut-être y trouverez-vous quelque chose qui vous plaît.
+
+Avec nos cordiales salutations,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

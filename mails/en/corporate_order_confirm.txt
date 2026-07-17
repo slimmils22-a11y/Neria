@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+We acknowledge receipt of your order on behalf of your company. It will be processed with all the attention such a commitment deserves.
+
+Order reference : PREVIEW001
+
+Corporate order details
+--------------------------------
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+Track my order : http://localhost/shop/en/order-history
+
+Our dedicated corporate relations team is at your disposal.
+
+At your service for this partnership,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

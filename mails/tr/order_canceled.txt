@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+İptal talebinizin alındığını onaylıyoruz. Güveninizin gerektirdiği özenle işleme alınmıştır.
+
+Sipariş
+--------------------------------
+Sipariş #TEST00125.
+
+Bu sipariş talebinize uygun olarak iptal edilmiştir. Herhangi bir ücret tahsil edilmeyecektir.
+
+Bu siparişin detaylarını müşteri hesabınızdan görüntüleyebilirsiniz.
+
+Sipariş geçmişimi görüntüle : http://localhost/shop/tr/siparis-gecmisi
+
+<a href="http://localhost/shop/tr/ziyaretci-takibi" style="color:#b38b59;">Misafir olarak sipariş verdiyseniz, özel bağlantı üzerinden siparişinizi takip edin</a> : http://localhost/shop/tr/ziyaretci-takibi
+
+Sizi yeniden duvarlarımız arasında ağırlamayı umuyoruz — size uygun bir zamanda.
+
+En içten üzüntümüz ve saygımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

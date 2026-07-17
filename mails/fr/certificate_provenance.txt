@@ -1,0 +1,25 @@
+Test Neria
+
+Madame, Monsieur Durand,
+
+Chaque pièce que nous proposons est accompagnée d'un certificat de provenance garantissant son authenticité et son origine.
+
+Origine
+--------------------------------
+France — Atelier parisien, fondé en 1987
+
+Matériaux & techniques
+--------------------------------
+Cuir de veau pleine fleur, acier 316L, verre saphir
+
+Artisan / Atelier
+--------------------------------
+Maître Jean-Pierre Moreau, Meilleur Ouvrier de France
+
+Nous sommes fiers de vous transmettre cette pièce d'exception, porteuse d'un héritage artisanal minutieusement préservé.
+
+Ce document électronique constitue votre certificat de provenance. Conservez-le précieusement.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

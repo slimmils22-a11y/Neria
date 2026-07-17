@@ -1,0 +1,19 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Een van de stukken die u op uw verlanglijstje hebt gezet, is opnieuw beschikbaar.
+
+Stukdetails
+--------------------------------
+Montre Élégance Neria
+
+Bekijk het stuk : http://localhost/shop/
+
+De beschikbaarheid is beperkt. We raden u aan niet te aarzelen.
+
+Tot uw dienst,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

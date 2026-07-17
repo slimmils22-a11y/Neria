@@ -1,0 +1,17 @@
+Test Neria
+
+Madame, Monsieur,
+
+Vous avez acquis Montre Élégance Neria il y a  jours. Selon notre estimation, votre produit approche peut-être de sa fin.
+
+Si vous souhaitez renouveler votre expérience, c'est le moment idéal pour le faire — avant d'en manquer.
+
+Renouveler mon achat : #
+
+Rien ne vous y oblige bien sûr — c'est simplement un rappel amical de notre part.
+
+Avec toute notre attention,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

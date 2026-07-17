@@ -1,0 +1,25 @@
+﻿Test Neria
+
+تم استلام رسالتكم
+
+مساء الخير, Sophie,
+
+نؤكد استلام طلبكم ونشكركم على تواصلكم معنا. إليكم نسخة من المعلومات التي قدمتموها:
+
+معلومات الاتصال
+--------------------------------
+البريد الإلكتروني : test@test.com
+
+مرجع الطلب : PREVIEW001
+
+الملف المرفق : Aucun fichier joint
+
+رسالتكم
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+الرد عبر البريد الإلكتروني : test@test.com
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

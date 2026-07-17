@@ -1,0 +1,33 @@
+Test Neria
+
+Buenos días, Camille,
+
+Su pedido ha sido registrado con éxito. Se procesará al recibir su transferencia bancaria.
+
+Pedido #TEST00125 — En espera de transferencia
+--------------------------------
+Gracias por su pedido #TEST00125.
+
+Datos bancarios
+--------------------------------
+Realice su transferencia a la cuenta indicada a continuación, citando obligatoriamente la siguiente referencia:
+
+Importe : 
+
+Beneficiario : 
+
+Detalles de la cuenta : 
+
+Dirección bancaria : 
+
+Por favor, cite la referencia #TEST00125.
+
+<a href="http://localhost/shop/es/historial-compra" style="color:#b38b59;">Ver el historial de su pedido</a> : http://localhost/shop/es/historial-compra
+
+<a href="http://localhost/shop/es/seguimiento-pedido-invitado" style="color:#b38b59;">Seguimiento para invitados</a> : http://localhost/shop/es/seguimiento-pedido-invitado
+
+A la espera de su transferencia, con toda nuestra paciencia,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

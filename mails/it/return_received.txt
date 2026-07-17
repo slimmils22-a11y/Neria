@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Confermiamo che il pacco contenente il Vostro reso è giunto al nostro team. Sarà gestito con tutta la dovuta attenzione.
+
+Riferimento ordine : #TEST00125
+
+Dettagli del reso
+--------------------------------
+
+
+Traccia il mio reso : http://localhost/shop/it/cronologia-ordini
+
+Vi terremo aggiornati sull'avanzamento della lavorazione.
+
+Al Vostro servizio,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

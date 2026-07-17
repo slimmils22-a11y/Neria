@@ -1,0 +1,16 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+장바구니의 장을 조용히 닫습니다. 만약 다시 선택을 찾고자 하신다면, 저희 장인들이 영광으로 모실 것입니다.
+
+--------------------------------
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+하우스로 돌아가기 : http://localhost/shop/index.php?controller=cart
+
+장바구니가 더 이상 활성화되지 않았습니다. 모든 창작물은 계속해서 이용 가능합니다.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

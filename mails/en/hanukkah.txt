@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+On the occasion of Hanukkah, the festival of lights, we send you our sincerest wishes.
+
+May this sacred celebration bring you the warmth of home, peace and serenity.
+
+Discover our creations : http://localhost/shop/
+
+A special attention is reserved for you until the end of the week.
+
+The entire team wishes you a wonderful Hanukkah.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

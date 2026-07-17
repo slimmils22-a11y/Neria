@@ -1,0 +1,19 @@
+Test Neria
+
+Hallo, Camille,
+
+Als Gast mit Wohnsitz außerhalb der Europäischen Union haben Sie Anspruch auf eine Steuererstattung für Ihre Einkäufe.
+
+Details Ihrer Berechtigung
+--------------------------------
+Bestellreferenz : #TEST00125
+
+Verfahren starten : http://localhost/shop/
+
+Unser Team wird Sie bei den notwendigen Schritten begleiten.
+
+Zu Ihren Diensten,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

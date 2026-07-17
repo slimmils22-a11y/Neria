@@ -1,0 +1,11 @@
+Test Neria
+
+Vi tänker på dig
+
+Vi har mottagit din förfrågan och hanterar den med all vederbörlig uppmärksamhet. Vårt team kontaktar dig vid behov.
+
+Med all vår omsorg,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

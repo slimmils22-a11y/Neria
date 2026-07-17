@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Siamo lieti di informarVi che avete appena effettuato il Vostro  ordine presso di noi. Una pietra miliare simbolica.
+
+Ogni ordine è per noi un segno di fiducia. Questo, in particolare, è un ulteriore segno, e ve ne ringraziamo sentitamente.
+
+Scoprire la mia selezione : http://localhost/shop/it/cronologia-ordini
+
+Riserviamo una particolare attenzione ai nostri ospiti che raggiungono queste tappe.
+
+Con tutta la nostra gratitudine,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

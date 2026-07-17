@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+We attempted to deliver your package, but no one was present to receive it.
+
+Order reference : PREVIEW001
+
+Delivery attempt details
+--------------------------------
+Package status : Colissimo
+
+What to do now? : Tabac Presse — 5 rue de Rivoli, 75001 Paris
+
+View pickup options : http://localhost/shop/en/order-history
+
+The package is held at a pickup point for you.
+
+Awaiting to serve you,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

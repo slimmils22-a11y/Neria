@@ -1,0 +1,21 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir freuen uns, Ihnen einen neuen Gutschein anzubieten.
+
+Eine Aufmerksamkeit für Sie
+--------------------------------
+Wir haben diese Aufmerksamkeit für Sie vorbereitet. Sie können sie bei Ihrem nächsten Besuch nutzen.
+
+Gutscheincode : 
+
+Dieser Gutschein ist 30 Tage in unserer gesamten Boutique gültig. Er kann nicht mit anderen Angeboten kombiniert werden.
+
+Wir hoffen, dass Sie in unseren Kreationen etwas nach Ihrem Geschmack finden.
+
+Mit dem Vergnügen, Ihnen diese Aufmerksamkeit zu schenken,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

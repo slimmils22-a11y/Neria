@@ -1,0 +1,21 @@
+Test Neria
+
+Günaydın, Camille,
+
+Siparişiniz için teşekkür ederiz. Aşağıdaki dijital ürünler indirilmeye hazırdır.
+
+Sipariş #TEST00125 — İndirilenler
+--------------------------------
+İndirilebilir ürünleriniz mevcuttur  indirilebilir ürün(ler).
+
+
+
+<a href="http://localhost/shop/tr/siparis-gecmisi" style="color:#b38b59;">Sipariş geçmişinizi görüntüleyin</a> : http://localhost/shop/tr/siparis-gecmisi
+
+<a href="http://localhost/shop/tr/ziyaretci-takibi" style="color:#b38b59;">Misafir sipariş takibi</a> : http://localhost/shop/tr/ziyaretci-takibi
+
+Satın aldığınızı keşfetmenizin tadını çıkarın,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

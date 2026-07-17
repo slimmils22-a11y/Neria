@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Intentamos entregar su paquete, pero no había nadie para recibirlo.
+
+Referencia del pedido : #TEST00125
+
+Detalles del intento de entrega
+--------------------------------
+Estado del paquete : 
+
+¿Qué hacer ahora? : 
+
+Ver opciones de recogida : http://localhost/shop/es/historial-compra
+
+El paquete está guardado en un punto de recogida para usted.
+
+A la espera de servirle,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

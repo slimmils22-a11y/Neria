@@ -1,0 +1,19 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Prima della spedizione, Vi invitiamo a scegliere l'imballaggio che accompagnerà il Vostro pezzo. Un modo per prolungare l'esperienza.
+
+Opzioni di imballaggio disponibili
+--------------------------------
+Diversi astucci, pochette e cofanetti sono disponibili per impreziosire il Vostro pezzo.
+
+Scegli il mio imballaggio : http://localhost/shop/
+
+Presteremo particolare attenzione alla Vostra scelta.
+
+Al Vostro servizio,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

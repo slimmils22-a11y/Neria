@@ -1,0 +1,19 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Wij zijn verheugd u uw persoonlijke adviseur voor te stellen, die u zal begeleiden bij uw keuzes en uw wensen zal vervullen.
+
+Uw toegewijde adviseur
+--------------------------------
+Uw adviseur : Marie-Claire Fontaine
+
+Neem contact op met mijn adviseur : http://localhost/shop/
+
+Hij of zij kent uw smaak en kan u naar stukken leiden die bij u passen.
+
+Tot uw dienst, met aandacht,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

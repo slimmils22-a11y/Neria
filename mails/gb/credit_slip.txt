@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+Order PREVIEW001 — Credit slip
+--------------------------------
+A credit slip has been created for your order PREVIEW001.
+
+You can view this credit slip and use it on your next purchase from : http://localhost/shop/gb/order-history
+
+Honouring our commitment, with all our consideration,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

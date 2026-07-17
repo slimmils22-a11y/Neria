@@ -1,0 +1,15 @@
+Test Neria
+
+Cher(e) collaborateur(trice),
+
+Résultat du test
+--------------------------------
+Ceci est un email de test envoyé par le module Neria.
+
+Si vous recevez ce message, cela signifie que le module est correctement configuré.
+
+Ce test est destiné à l'administration de la boutique. Vous pouvez supprimer cet email.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

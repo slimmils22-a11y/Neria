@@ -1,0 +1,19 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+我们的团队有关于您订单的消息。
+
+订单 PREVIEW001
+--------------------------------
+订单中已添加新消息 PREVIEW001.
+
+我们团队的消息
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+您可以从客户账户查看订单历史： http://localhost/shop/zh/订单-历史
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,25 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Temos o prazer de confirmar que a sua encomenda de presente está a ser preparada com o maior cuidado.
+
+O que garantimos
+--------------------------------
+Embalagem de presente de luxo
+
+Mensagem personalizada conforme as suas instruções
+
+Entrega segura e discreta
+
+Possibilidade de troca ou devolução até 31 de janeiro
+
+Cada detalhe foi pensado para oferecer uma experiência única a quem receber este presente.
+
+Acompanhar a minha encomenda : 
+
+Para qualquer questão sobre a sua encomenda de presente, a nossa equipa está ao seu dispor.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

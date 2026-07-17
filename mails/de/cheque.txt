@@ -1,0 +1,32 @@
+Test Neria
+
+Hallo, Camille,
+
+Ihre Bestellung wurde erfolgreich registriert. Sie wird nach Eingang Ihres Schecks bearbeitet.
+
+Bestellung #TEST00125 — Warten auf Scheck
+--------------------------------
+Vielen Dank für Ihre Bestellung #TEST00125.
+
+Details zur Scheckübersendung
+--------------------------------
+Bitte stellen Sie Ihren Scheck auf den unten genannten Zahlungsempfänger aus und senden Sie ihn an folgende Adresse:
+
+Betrag : 
+
+Zahlungsempfänger : 
+
+Adresse für die Zusendung :
+
+
+Bitte geben Sie die Referenz an #TEST00125.
+
+<a href="http://localhost/shop/de/bestellungsverlauf" style="color:#b38b59;">Bestellverlauf anzeigen</a> : http://localhost/shop/de/bestellungsverlauf
+
+<a href="http://localhost/shop/de/auftragsverfolgung-gast" style="color:#b38b59;">Gastverfolgung</a> : http://localhost/shop/de/auftragsverfolgung-gast
+
+In Erwartung Ihres Schecks, mit allem Vertrauen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

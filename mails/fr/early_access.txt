@@ -1,0 +1,18 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+En reconnaissance de votre fidélité, nous vous ouvrons l'accès à notre nouvelle collection avant sa sortie officielle.
+
+Collection en avant-première
+--------------------------------
+
+Accéder à la collection : http://localhost/shop/
+
+Cet accès anticipé est strictement personnel et limité dans le temps.
+
+Nous sommes heureux de partager ce moment avec vous,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

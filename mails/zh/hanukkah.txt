@@ -1,0 +1,17 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+值此光明节之际，我们向您致以最诚挚的祝福。
+
+愿这一神圣的节日带给您家的温暖、和平与安宁。
+
+发现我们的作品 : http://localhost/shop/
+
+特别关怀为您保留至本周末。
+
+全体团队祝您光明节快乐。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

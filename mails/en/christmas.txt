@@ -1,0 +1,17 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+In this season where light triumphs over cold, our house thinks of you with particular warmth.
+
+May these holidays offer you what daily life too rarely gives: time, gentleness, and the company of those who matter.
+
+Discover our creations : http://localhost/shop/
+
+A delicate attention awaits you until December 31.
+
+The entire team wishes you wonderful holidays.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We have received your payment with gratitude. Your order now enters the creation phase.
+
+Order
+--------------------------------
+Payment for order PREVIEW001.
+
+<a href="http://localhost/shop/gb/order-history" style="color:#b38b59;">You can view your order history from your customer account</a> : http://localhost/shop/gb/order-history
+
+<a href="http://localhost/shop/gb/guest-tracking" style="color:#b38b59;">If you ordered as a guest, track your order via the dedicated link</a> : http://localhost/shop/gb/guest-tracking
+
+Our artisans will set to work with the respect and care that every piece in our house inspires.
+
+With our deepest gratitude,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

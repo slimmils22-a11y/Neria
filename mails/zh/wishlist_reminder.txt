@@ -1,0 +1,19 @@
+Test Neria
+
+早上好, Sophie,
+
+您愿望清单中的一件作品再度有货。
+
+作品详情
+--------------------------------
+Montre Élégance Neria
+
+查看作品 : http://localhost/shop/
+
+库存有限。建议您尽快下单。
+
+随时为您服务，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

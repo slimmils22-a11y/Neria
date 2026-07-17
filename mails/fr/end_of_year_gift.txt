@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+En cette fin d'année, nous souhaitons vous offrir une attention particulière, en reconnaissance de votre confiance.
+
+Ce geste est le reflet de la relation précieuse que nous entretenons avec vous.
+--------------------------------
+Votre code d'attention : 15,00 €
+
+Saisissez ce code dans votre panier lors de votre prochaine commande.
+
+Valable 30 jours sur l'ensemble de notre maison. Offre non cumulable.
+
+Découvrir ma sélection : http://localhost/shop/
+
+Avec toute notre gratitude,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

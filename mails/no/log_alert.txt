@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Systemvarsel
+
+Systemet har oppdaget en uvanlig hendelse som krever din inngripen.
+
+Varseldetaljer
+--------------------------------
+Handling kreves
+
+Vi inviterer deg til å se i loggene for å forstå opprinnelsen til dette varselet og ta nødvendige tiltak.
+
+Dette varselet ble automatisk generert. Sjekk statusen til butikken din.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

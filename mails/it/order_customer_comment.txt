@@ -1,0 +1,21 @@
+Test Neria
+
+Un commento sul Vostro ordine
+
+Un cliente ha lasciato un commento sul suo ordine. Ecco le informazioni.
+
+Informazioni sull'ordine
+--------------------------------
+Riferimento : #TEST00125
+
+Cliente : Camille Dupont (test@test.com)
+
+Messaggio del cliente
+--------------------------------
+
+
+Può rispondere a questo messaggio dall'amministrazione del negozio.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

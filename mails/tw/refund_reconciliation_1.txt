@@ -1,0 +1,17 @@
+Test Neria
+
+早安, Sophie,
+
+我們希望親自確認，您的退款目前正在處理中。
+
+您的請求已收到，我們正在確保其得到應有的關注與處理。
+
+查看我的訂單 : http://localhost/shop/tw/訂單記錄
+
+如有任何疑問，我們的團隊隨時為您服務。
+
+致以誠摯的問候，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Confirmamos que o procedimento de reembolso referente ao seu pedido foi finalizado com sucesso.
+
+Referência do pedido : PREVIEW001
+
+Detalhes do reembolso
+--------------------------------
+Valor reembolsado : 89,00 €
+
+Ver meu pedido : http://localhost/shop/br/historico-de-pedidos
+
+O valor será creditado na sua conta de acordo com o prazo habitual do seu banco.
+
+Ao seu serviço,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

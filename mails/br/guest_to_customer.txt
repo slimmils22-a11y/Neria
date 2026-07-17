@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Você fez recentemente um pedido como convidado. Convidamos você a converter sua conta de convidado em uma conta de cliente permanente para desfrutar de inúmeras vantagens.
+
+Informações da sua conta
+--------------------------------
+Endereço de e-mail : test@test.com
+
+Defina sua senha para ativar sua conta e acessar seu espaço pessoal.
+
+Ativar meu espaço pessoal : http://localhost/shop/
+
+Seu espaço pessoal permitirá que você encontre seus privilégios a qualquer momento: acompanhar suas criações em trânsito, consultar o histórico de suas escolhas e preparar suas futuras visitas nas melhores condições.
+
+Acessar minha conta : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

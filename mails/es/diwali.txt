@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Con motivo de Diwali, el festival de las luces, le enviamos nuestros más cálidos deseos.
+
+Que esta sagrada celebración traiga claridad, prosperidad y alegría a su vida.
+
+Descubra nuestras creaciones : http://localhost/shop/
+
+Un detalle exclusivo le espera hasta final de semana.
+
+Todo el equipo le desea un maravilloso Diwali.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+Test Neria
+
+Günaydın, Camille,
+
+Siparişinizin gönderildiğini gururla duyuruyoruz. Zanaatkârlarımız onu hak ettiği özenle hazırladı — her detay, her ambalaj, her hareket.
+
+Sipariş
+--------------------------------
+Sipariş #TEST00125.
+
+Artık kargo şirketimizin elindedir ve beklenen süre içinde size ulaşacaktır.
+
+<a href="http://localhost/shop/tr/siparis-gecmisi" style="color:#b38b59;">Sipariş geçmişinizi müşteri hesabınızdan görüntüleyebilirsiniz</a> : http://localhost/shop/tr/siparis-gecmisi
+
+<a href="http://localhost/shop/tr/ziyaretci-takibi" style="color:#b38b59;">Misafir olarak sipariş verdiyseniz, özel bağlantı üzerinden siparişinizi takip edin</a> : http://localhost/shop/tr/ziyaretci-takibi
+
+Bu parçanın taşıdığı duyguya layık bir teslimat dileriz.
+
+Tüm gurur ve bağlılığımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Lamentamos informar que um dos itens do seu pedido não está disponível atualmente.
+
+Pedido PREVIEW001
+--------------------------------
+Uma das peças do seu pedido escapa-nos momentaneamente — uma situação raríssima, que levamos muito a sério.
+
+Pedimos desculpas por este contratempo que não reflete os nossos padrões. Nossa equipe entrará em contato com você em breve para juntos acordarmos a melhor solução.
+
+<a href="http://localhost/shop/br/historico-de-pedidos" style="color:#b38b59;">Você pode ver os detalhes do seu pedido a partir da sua conta de cliente</a> : http://localhost/shop/br/historico-de-pedidos
+
+<a href="http://localhost/shop/br/rastreamento-para-visitante" style="color:#b38b59;">Se fez seu pedido como convidado, acompanhe-o através do link dedicado</a> : http://localhost/shop/br/rastreamento-para-visitante
+
+Pedindo-lhe desculpas por este contratempo raríssimo,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

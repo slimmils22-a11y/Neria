@@ -1,0 +1,17 @@
+Test Neria
+
+Madame, Monsieur,
+
+En ce mois béni de Ramadan, nous vous adressons nos vœux les plus chaleureux.
+
+Que ce mois béni vous apporte la sérénité de l'intérieur, la joie du partage, et la grâce qui accompagne ceux qui jeûnent avec foi.
+
+Découvrir nos créations : http://localhost/shop/
+
+Une attention particulière vous est réservée durant tout le mois sacré.
+
+Toute l'équipe vous souhaite un Ramadan béni.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

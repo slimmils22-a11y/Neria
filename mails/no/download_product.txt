@@ -1,0 +1,22 @@
+Test Neria
+
+God morgen, Sophie,
+
+Takk for bestillingen. Følgende digitale produkter er nå tilgjengelige for nedlasting.
+
+Bestilling PREVIEW001 — Nedlastinger
+--------------------------------
+Du har 2 produkt(er) tilgjengelig for nedlasting.
+
+Patron de couture Neria Vol.1 — http://localhost/shop/download/1
+Guide d'entretien premium — http://localhost/shop/download/2
+
+<a href="http://localhost/shop/no/ordrehistorikk" style="color:#b38b59;">Vis bestillingshistorikken din</a> : http://localhost/shop/no/ordrehistorikk
+
+<a href="http://localhost/shop/no/gjestesporing" style="color:#b38b59;">Gjestesporing</a> : http://localhost/shop/no/gjestesporing
+
+Nyt oppdagelsen av ditt kjøp,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

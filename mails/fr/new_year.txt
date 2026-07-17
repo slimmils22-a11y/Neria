@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+En ce début d'année, nous souhaitons vous accompagner de nos vœux les plus sincères.
+
+Que cette nouvelle année soit pour vous un chemin de douceur, de réussite et de belles découvertes.
+
+Découvrir nos créations : http://localhost/shop/
+
+Une attention particulière vous est réservée jusqu'à la fin du mois.
+
+Toute l'équipe vous souhaite une excellente année.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

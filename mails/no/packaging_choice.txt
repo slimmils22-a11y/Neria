@@ -1,0 +1,19 @@
+Test Neria
+
+God morgen, Sophie,
+
+Før forsendelsen inviterer vi deg til å velge emballasjen som skal følge gjenstanden din. En måte å forlenge opplevelsen på.
+
+Tilgjengelige emballasjealternativer
+--------------------------------
+Ulike etuier, poser og gaveesker er tilgjengelige for å fremheve stykket ditt.
+
+Velg min emballasje : http://localhost/shop/
+
+Vi vil legge spesiell vekt på valget ditt.
+
+Til din tjeneste,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

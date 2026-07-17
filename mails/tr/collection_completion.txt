@@ -1,0 +1,28 @@
+Koleksiyonunuz
+
+Merhaba Camille,
+
+Sadece bir parça eksik
+
+En zor kısmı zaten tamamladınız. Koleksiyonunuzu tamamlamak için sadece bir parça daha gerekiyor — tükenmeden önce hatırlatmak istedik.
+
+--------
+
+Koleksiyonunuzun ilerlemesi : 
+Zaten edinilen parçalar — tamamlamak için bir tane daha
+
+--------
+
+Eksik parça : 
+ €
+
+Koleksiyonumu tamamla :
+
+
+--------
+
+Bu öneri, bu koleksiyondaki önceki satın alımlarınıza dayanmaktadır.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

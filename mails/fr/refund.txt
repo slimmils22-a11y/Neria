@@ -1,0 +1,17 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous vous confirmons que le remboursement de votre commande a été effectué avec succès.
+
+Référence commande : NR-000123
+
+<a href="http://localhost/shop/fr/historique-commandes" style="color:#b38b59;">Vous pouvez consulter l'historique de votre commande depuis votre espace client</a> : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/fr/suivi-commande-invite" style="color:#b38b59;">Si vous avez commandé en tant qu'invité, suivez votre commande via le lien dédié</a> : http://localhost/shop/fr/suivi-commande-invite
+
+Avec notre plus profonde reconnaissance,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

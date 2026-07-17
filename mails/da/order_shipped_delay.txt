@@ -1,0 +1,21 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi informerer dig om, at forsendelsen af din ordre oplever en uventet forsinkelse. Vi gør alt, hvad vi kan, for at løse det så hurtigt som muligt.
+
+Ordrereference : PREVIEW001
+
+Forsinkelsesdetaljer
+--------------------------------
+Ny forventet dato : 15/06/2026
+
+Spor min ordre : http://localhost/shop/da/ordrehistorik
+
+Vi holder dig orienteret om eventuelle ændringer. Vi beklager.
+
+Med al vores respekt,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

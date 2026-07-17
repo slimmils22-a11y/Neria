@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+고객님의 작품이 시간이 지나도 그 영광을 유지할 수 있도록, 재료에 맞게 특별히 조정된 맞춤형 관리 증명서를 제공합니다.
+
+관리 증명서
+--------------------------------
+해당 상품 : Montre Élégance Neria
+
+재료 : Cuir de veau, acier inoxydable
+
+관리 지침 : Éviter l'humidité. Nettoyer avec un chiffon doux.
+
+증명서 다운로드 : http://localhost/shop/
+
+이 증명서를 향후 참조를 위해 보관하십시오.
+
+저희 장인 정신의 질에 자부심을 가지고,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,28 @@
+La Vostra collezione
+
+Buongiorno Camille,
+
+Manca solo un pezzo
+
+Avete già fatto la parte più difficile. Manca solo un pezzo per completare la Vostra collezione — volevamo ricordarvelo prima che sparisse.
+
+--------
+
+Avanzamento della Vostra collezione : 
+Pezzi già acquisiti — ne manca uno solo
+
+--------
+
+Il pezzo mancante : 
+ €
+
+Completa la mia collezione :
+
+
+--------
+
+Questo suggerimento è basato sui Vostri acquisti precedenti all'interno di questa collezione.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

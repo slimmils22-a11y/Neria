@@ -1,0 +1,31 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Uw aanwezigheid is een eer voor ons. Uw persoonlijke ruimte is met zorg voorbereid — het wacht op u.
+
+Uw accountgegevens
+--------------------------------
+U kunt nu uw bestellingen beheren, leveringen volgen en uw persoonlijke gegevens wijzigen.
+
+Gekoppeld e-mailadres : test@test.com
+
+Veiligheid en vertrouwelijkheid
+--------------------------------
+Uw wachtwoord is versleuteld en nooit zichtbaar voor ons team.
+
+Wij delen uw persoonsgegevens nooit met derden.
+
+U kunt uw account op eenvoudig verzoek te allen tijde verwijderen.
+
+Voor vragen staat onze klantenservice voor u klaar.
+
+Uw persoonlijke ruimte is nu actief. Wij nodigen u uit om binnen te stappen.
+
+Ga naar mijn account : http://localhost/shop/
+
+Het huis is verheugd u tot de zijnen te mogen rekenen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

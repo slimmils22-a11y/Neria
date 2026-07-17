@@ -1,0 +1,19 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Antes do envio, convidamo-lo a escolher a embalagem que acompanhará a sua peça. Uma forma de prolongar a experiência.
+
+Opções de embalagem disponíveis
+--------------------------------
+Vários estojos, bolsas e caixas estão disponíveis para valorizar a sua peça.
+
+Escolher a minha embalagem : http://localhost/shop/
+
+Daremos especial atenção à sua escolha.
+
+Ao seu serviço,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

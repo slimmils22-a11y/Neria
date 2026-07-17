@@ -1,0 +1,19 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous vous remercions de vous être inscrit à notre lettre d'information. En signe de bienvenue, voici un code exclusif offrant 10% de réduction sur votre prochaine commande.
+
+Votre code d'invitation
+--------------------------------
+Code exclusif : NERIA-VIP-2026
+
+Ce code est valable 30 jours dans l'ensemble de notre maison. Il ne peut être cumulé avec d'autres attentions.
+
+Découvrir nos créations : http://localhost/shop/
+
+Nous vous souhaitons une belle découverte de nos pièces uniques.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

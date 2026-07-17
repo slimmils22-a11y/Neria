@@ -1,0 +1,17 @@
+Test Neria
+
+Buenos días, Camille,
+
+En este bendito mes de Ramadán, le enviamos nuestros más cálidos deseos.
+
+Que este bendito mes le traiga serenidad interior, la alegría de compartir y la gracia que acompaña a quienes ayunan con fe.
+
+Descubra nuestras creaciones : http://localhost/shop/
+
+Un detalle exclusivo le espera durante todo el mes sagrado.
+
+Todo el equipo le desea un Ramadán bendito.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

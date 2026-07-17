@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Achter elk stuk dat u ontvangt, schuilt een blik, een hand, een verhaal. Hier is een persoonlijk bericht van de ambachtsman die het uwe heeft gevormd.
+
+Bericht van de ambachtsman
+--------------------------------
+Uw stuk is geboren uit mijn passie en mijn gebaren. Ik hoop dat het u lange tijd zal vergezellen.
+
+  — Van
+
+Ontdek de werkplaats : http://localhost/shop/
+
+We zijn er trots op u voor te stellen aan degenen die uw wensen tot leven brengen.
+
+Met de warmte van onze werkplaatsen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

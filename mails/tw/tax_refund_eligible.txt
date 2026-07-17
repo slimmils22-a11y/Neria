@@ -1,0 +1,19 @@
+Test Neria
+
+早安, Sophie,
+
+作為居住在歐盟以外的貴賓，您有資格獲得購物退稅。
+
+您的資格詳情
+--------------------------------
+訂單編號 : PREVIEW001
+
+啟動程序 : http://localhost/shop/
+
+我們的團隊將協助您完成必要步驟。
+
+隨時為您服務，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

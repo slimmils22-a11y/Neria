@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+Informamos que foram feitas alterações à sua encomenda. Eis os detalhes desta modificação.
+
+Encomenda #TEST00125
+--------------------------------
+A encomenda #TEST00125.
+
+Esta encomenda foi atualizada de acordo com as informações que forneceu.
+
+Pode consultar os detalhes desta encomenda a partir da sua conta de cliente.
+
+Ver o histórico das minhas encomendas : http://localhost/shop/pt/historico-de-encomendas
+
+<a href="http://localhost/shop/pt/seguimento-de-visitante" style="color:#b38b59;">Se fez a sua encomenda como convidado, encontre o acompanhamento da sua encomenda através do link dedicado</a> : http://localhost/shop/pt/seguimento-de-visitante
+
+Com toda a nossa gratidão e orgulho,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

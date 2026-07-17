@@ -1,0 +1,21 @@
+Test Neria
+
+Um comentário sobre seu pedido
+
+Um cliente deixou um comentário sobre seu pedido. Eis as informações.
+
+Informações do pedido
+--------------------------------
+Referência : PREVIEW001
+
+Cliente : Sophie Durand (test@test.com)
+
+Mensagem do cliente
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+Você pode responder a esta mensagem a partir da administração da loja.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

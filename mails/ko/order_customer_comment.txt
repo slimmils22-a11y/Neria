@@ -1,0 +1,21 @@
+Test Neria
+
+주문에 대한 댓글
+
+고객이 주문에 대한 댓글을 남겼습니다. 정보는 다음과 같습니다.
+
+주문 정보
+--------------------------------
+주문 번호 : PREVIEW001
+
+고객 : Sophie Durand (test@test.com)
+
+고객 메시지
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+이 메시지는 관리자 페이지에서 답변할 수 있습니다.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

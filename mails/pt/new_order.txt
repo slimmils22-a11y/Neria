@@ -1,0 +1,51 @@
+Test Neria
+
+Uma nova encomenda espera por si
+
+Recebeu uma nova encomenda na sua loja. Eis os detalhes.
+
+Cliente : Camille Dupont (test@test.com)
+
+Detalhes da encomenda
+--------------------------------
+Referência : #TEST00125
+
+Data : 
+
+Pagamento : 
+
+
+
+Total produtos : 
+
+Descontos : 
+
+Embalagem de presente : 
+
+Envio : 
+
+Impostos : 
+
+Total pago : 
+
+Envio
+--------------------------------
+Transportadora : 
+
+Morada de entrega
+--------------------------------
+
+
+Morada de faturação
+--------------------------------
+
+
+Mensagem do cliente
+--------------------------------
+
+
+Vá à sua administração para tratar esta encomenda com o cuidado que merece.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+A change has been made to your order by our team. Please review the updated payment information below.
+
+Updated payment information
+--------------------------------
+The amount or payment terms have been adjusted. Please proceed with the adjustment by clicking the button below.
+
+Proceed to payment : http://localhost/shop/index.php?controller=order-detail&id_order=1
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

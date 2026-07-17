@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+Confirmamos a receção da sua encomenda em nome da sua empresa. Será tratada com toda a atenção que tal compromisso merece.
+
+Referência da encomenda : #TEST00125
+
+Detalhes da encomenda corporativa
+--------------------------------
+
+
+Acompanhar a minha encomenda : http://localhost/shop/pt/historico-de-encomendas
+
+A nossa equipa dedicada às relações corporativas está à sua disposição.
+
+Ao seu serviço para esta parceria,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

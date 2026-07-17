@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+We are pleased to inform you that your extended warranty is now active for the piece in question.
+
+Order reference : PREVIEW001
+
+Warranty details
+--------------------------------
+Montre Élégance Neria
+
+View terms : http://localhost/shop/gb/order-history
+
+This extended warranty is valid for a specified period. Keep this proof.
+
+At your service,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

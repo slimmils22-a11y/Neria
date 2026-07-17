@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+We zijn verheugd u te kunnen meedelen dat uw uitgebreide garantie nu actief is voor het betreffende stuk.
+
+Orderreferentie : PREVIEW001
+
+Garantiedetails
+--------------------------------
+Montre Élégance Neria
+
+Bekijk voorwaarden : http://localhost/shop/nl/besteloverzicht
+
+Deze uitgebreide garantie is geldig voor een bepaalde periode. Bewaar dit bewijs.
+
+Tot uw dienst,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

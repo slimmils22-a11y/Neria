@@ -1,0 +1,19 @@
+Test Neria
+
+Hallo, Camille,
+
+Vor dem Versand laden wir Sie ein, die Verpackung zu wählen, die Ihr Stück begleiten wird. Eine Möglichkeit, das Erlebnis zu verlängern.
+
+Verfügbare Verpackungsoptionen
+--------------------------------
+Verschiedene Etuis, Beutel und Geschenkboxen stehen zur Veredelung Ihres Stücks zur Auswahl.
+
+Meine Verpackung wählen : http://localhost/shop/
+
+Wir werden Ihrer Wahl besondere Aufmerksamkeit schenken.
+
+Zu Ihren Diensten,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+In questa giornata dedicata ai nonni, onoriamo la memoria, la dolcezza e la saggezza che hanno seminato in Voi.
+
+Offrite loro un pezzo che porta con sé il tempo, la pazienza e l'amore che Vi hanno donato.
+
+Scoprite la nostra selezione : http://localhost/shop/
+
+Un'attenzione speciale è riservata per Voi fino alla fine della settimana.
+
+Tutto il team Vi augura una buona festa dei nonni.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

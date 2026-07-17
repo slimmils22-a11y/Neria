@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Damit Ihr Stück mit der Zeit seine ganze Pracht behält, hier ein personalisiertes Pflegezertifikat, spezifisch auf seine Materialien abgestimmt.
+
+Pflegezertifikat
+--------------------------------
+Betroffenes Produkt : Ivory Linen Dress
+
+Materialien : 
+
+Pflegeanleitung : 
+
+Zertifikat herunterladen : http://localhost/shop/
+
+Bewahren Sie dieses Zertifikat für zukünftige Nachschläge auf.
+
+Stolz auf die Qualität unseres Handwerks,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

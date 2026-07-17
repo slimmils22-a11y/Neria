@@ -1,0 +1,21 @@
+Test Neria
+
+God morgen, Sophie,
+
+Stykkene dine har blitt betrodd til håndverkerne våre. I deres hender er hver gest en hyllest til ditt valg.
+
+Bestilling
+--------------------------------
+Bestilling PREVIEW001.
+
+En tålmodig dyrket kunnskap, fullt ut i tjeneste for hva du forventer — og hva du fortjener.
+
+<a href="http://localhost/shop/no/ordrehistorikk" style="color:#b38b59;">Du kan følge fremdriften av bestillingen din fra kundekontoen din</a> : http://localhost/shop/no/ordrehistorikk
+
+<a href="http://localhost/shop/no/gjestesporing" style="color:#b38b59;">Hvis du bestilte som gjest, følg bestillingen din via den dedikerte lenken</a> : http://localhost/shop/no/gjestesporing
+
+I påvente av gleden ved å tilfredsstille deg,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

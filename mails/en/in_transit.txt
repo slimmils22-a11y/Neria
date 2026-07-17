@@ -1,0 +1,24 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+Your selection is now on its journey to you. Here are the pieces concerned:
+
+Réf. NER-001 — Montre Élégance Neria × 1
+Réf. NER-014 — Bracelet Cuir Atelier × 1
+
+Order PREVIEW001
+--------------------------------
+Order PREVIEW001.
+
+It is currently in transit and will reach you within the expected time.
+
+Track my order : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/en/order-history" style="color:#b38b59;">View your order history in your customer account</a> : http://localhost/shop/en/order-history
+
+<a href="http://localhost/shop/en/guest-tracking" style="color:#b38b59;">If you ordered as a guest, track your order via the dedicated link</a> : http://localhost/shop/en/guest-tracking
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir bestätigen, dass das Rückerstattungsverfahren für Ihre Bestellung erfolgreich abgeschlossen wurde.
+
+Bestellreferenz : #TEST00125
+
+Rückerstattungsdetails
+--------------------------------
+Rückerstattungsbetrag : 
+
+Meine Bestellung ansehen : http://localhost/shop/de/bestellungsverlauf
+
+Der Betrag wird gemäß den üblichen Fristen Ihrer Bank auf Ihrem Konto gutgeschrieben.
+
+Zu Ihren Diensten,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

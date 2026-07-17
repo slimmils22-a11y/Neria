@@ -1,0 +1,16 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Antwoord van ons team
+--------------------------------
+Bonjour, nous avons bien traité votre demande. Votre commande sera expédiée sous 48h. Cordialement, le service client Neria.
+
+Reageer niet op deze automatische e-mail.
+
+Voor vragen kunt u via onze website contact met ons opnemen.
+http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Kära medarbetare,
+
+Den import du begärde har bearbetats. Här är det detaljerade resultatet.
+
+Importera resultat
+--------------------------------
+Fil : import_produits.csv
+
+Importen slutfördes utan incidenter. All data har integrerats.
+
+För frågor, se importloggarna i administrationen.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

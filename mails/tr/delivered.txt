@@ -1,0 +1,23 @@
+Test Neria
+
+Günaydın, Camille,
+
+Siparişinizin başarıyla teslim edildiğini bildirmekten memnuniyet duyarız.
+
+Sipariş
+--------------------------------
+Siparişiniz #TEST00125.
+
+Bu ürünün size ustalarımızın yaratırken hissettikleri kadar keyif vermesini umuyoruz.
+
+<a href="http://localhost/shop/tr/siparis-gecmisi" style="color:#b38b59;">Sipariş geçmişinizi görüntüleyin</a> : http://localhost/shop/tr/siparis-gecmisi
+
+<a href="http://localhost/shop/tr/ziyaretci-takibi" style="color:#b38b59;">Misafir takibi</a> : http://localhost/shop/tr/ziyaretci-takibi
+
+Siparişinizle ilgili sorularınız için müşteri hizmetlerimiz her zaman hizmetinizdedir.
+
+Tüm minnettarlığımız ve gururumuzla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

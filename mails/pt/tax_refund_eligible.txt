@@ -1,0 +1,19 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Como hóspede residente fora da União Europeia, é elegível para um reembolso fiscal nas suas compras.
+
+Detalhes da sua elegibilidade
+--------------------------------
+Referência da encomenda : #TEST00125
+
+Iniciar o procedimento : http://localhost/shop/
+
+A nossa equipa irá ajudá-lo nos passos necessários.
+
+Ao seu serviço,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

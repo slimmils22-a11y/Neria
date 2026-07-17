@@ -1,0 +1,25 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+당사가 제공하는 각 작품에는 진위성과 원산지를 보증하는 출처 증명서가 함께 제공됩니다.
+
+원산지
+--------------------------------
+France — Atelier parisien, fondé en 1987
+
+소재 및 기법
+--------------------------------
+Cuir de veau pleine fleur, acier 316L, verre saphir
+
+장인 / 작업실
+--------------------------------
+Maître Jean-Pierre Moreau, Meilleur Ouvrier de France
+
+세심하게 보존된 장인 정신의 유산을 지닌 이 특별한 작품을 전해드리게 되어 자랑스럽게 생각합니다.
+
+이 전자 문서는 귀하의 출처 증명서입니다. 잘 보관하시기 바랍니다.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

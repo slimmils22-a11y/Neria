@@ -1,0 +1,19 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Teamet vårt har en melding til deg angående bestillingen din.
+
+Bestilling PREVIEW001
+--------------------------------
+En ny melding er lagt til i bestillingen PREVIEW001.
+
+Melding fra teamet vårt
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+Du kan se bestillingshistorikken din fra kundekontoen din: http://localhost/shop/no/ordrehistorikk
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

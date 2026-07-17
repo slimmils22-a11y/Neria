@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+Recentemente fez uma encomenda como convidado. Convidamo-lo a converter a sua conta de convidado numa conta de cliente permanente para usufruir de inúmeras vantagens.
+
+Informações da sua conta
+--------------------------------
+Endereço de e-mail : test@test.com
+
+Defina a sua palavra-passe para ativar a sua conta e aceder ao seu espaço pessoal.
+
+Ativar o meu espaço pessoal : 
+
+O seu espaço pessoal permitir-lhe-á encontrar os seus privilégios a qualquer momento: acompanhar as suas criações em trânsito, consultar o histórico das suas escolhas e preparar as suas futuras visitas nas melhores condições.
+
+Aceder à minha conta : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

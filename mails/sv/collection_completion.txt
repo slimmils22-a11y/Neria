@@ -1,0 +1,28 @@
+Din kollektion
+
+Hej Sophie,
+
+Bara ett steg kvar
+
+Du har redan gjort det svåraste. Bara ett föremål återstår för att slutföra din kollektion — vi ville påminna dig innan det försvinner.
+
+--------
+
+Din kollektions framsteg : 
+Föremål du redan äger — bara ett kvar för att slutföra
+
+--------
+
+Det saknade föremålet : 
+ €
+
+Slutför min kollektion :
+
+
+--------
+
+Detta förslag baseras på dina tidigare köp inom denna kollektion.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

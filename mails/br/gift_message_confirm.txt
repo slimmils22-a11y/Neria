@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Confirmamos que a mensagem que você anexou ao seu pedido de presente foi registrada com sucesso.
+
+Referência do pedido : PREVIEW001
+
+Conteúdo da mensagem
+--------------------------------
+« Joyeux anniversaire ma chère Sophie. Que cette année t apporte tout le bonheur que tu mérites. Avec tout mon amour. »
+
+Ver meu pedido : http://localhost/shop/br/historico-de-pedidos
+
+O destinatário receberá esta mensagem junto com o pedido.
+
+Com toda a nossa atenção,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

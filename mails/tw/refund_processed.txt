@@ -1,0 +1,21 @@
+Test Neria
+
+早安, Sophie,
+
+我們確認您訂單的退款程序已成功完成。
+
+訂單編號 : PREVIEW001
+
+退款詳情
+--------------------------------
+退款金額 : 89,00 €
+
+查看我的訂單 : http://localhost/shop/tw/訂單記錄
+
+款項將根據您銀行通常的時間框架存入您的帳戶。
+
+隨時為您服務，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

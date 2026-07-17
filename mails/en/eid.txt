@@ -1,0 +1,17 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+On the occasion of Eid, we would like to send you our sincerest wishes.
+
+May this sacred celebration fill you with happiness, health, and precious moments with your family.
+
+Discover our selection : http://localhost/shop/
+
+A delicate attention is reserved for you until the end of the week.
+
+The entire team wishes you a wonderful celebration.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

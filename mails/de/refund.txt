@@ -1,0 +1,17 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir bestätigen, dass die Erstattung Ihrer Bestellung erfolgreich durchgeführt wurde.
+
+Bestellreferenz : #TEST00125
+
+<a href="http://localhost/shop/de/bestellungsverlauf" style="color:#b38b59;">Sie können den Bestellverlauf in Ihrem Kundenkonto einsehen</a> : http://localhost/shop/de/bestellungsverlauf
+
+<a href="http://localhost/shop/de/auftragsverfolgung-gast" style="color:#b38b59;">Wenn Sie als Gast bestellt haben, verfolgen Sie Ihre Bestellung über den speziellen Link</a> : http://localhost/shop/de/auftragsverfolgung-gast
+
+Mit unserem tiefsten Dank,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

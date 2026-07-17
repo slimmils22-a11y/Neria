@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Temos o prazer de o informar que a reparação ou alteração da sua peça está agora concluída.
+
+Referência da encomenda : #TEST00125
+
+Detalhes da intervenção
+--------------------------------
+Ivory Linen Dress
+
+Organizar a devolução : http://localhost/shop/pt/historico-de-encomendas
+
+A nossa equipa entrará em contacto consigo para acordar as condições de devolução.
+
+Temos o prazer de o servir,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

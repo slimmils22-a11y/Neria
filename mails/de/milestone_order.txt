@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Wir freuen uns, Ihnen mitzuteilen, dass Sie gerade Ihre  Bestellung bei uns aufgegeben haben. Ein symbolischer Meilenstein.
+
+Jede Bestellung ist für uns ein Zeichen des Vertrauens. Diese hier ist ein weiteres, und wir danken Ihnen herzlich dafür.
+
+Meine Auswahl entdecken : http://localhost/shop/de/bestellungsverlauf
+
+Wir widmen unseren Gästen, die diese Meilensteine erreichen, besondere Aufmerksamkeit.
+
+Mit all unserer Dankbarkeit,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

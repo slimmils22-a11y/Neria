@@ -1,0 +1,17 @@
+Test Neria
+
+Madame, Monsieur,
+
+L'amour mérite d'être célébré avec des mots rares et des pièces d'exception. Nous en faisons notre vocation.
+
+Chaque création de notre maison est née pour cela : devenir le messager silencieux d'un sentiment que les mots seuls ne suffisent pas à dire.
+
+Découvrir nos créations : http://localhost/shop/
+
+Une attention délicate vous est réservée jusqu'au 14 février.
+
+Toute l'équipe vous souhaite une merveilleuse Saint-Valentin.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

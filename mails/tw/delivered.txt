@@ -1,0 +1,23 @@
+Test Neria
+
+早安, Sophie,
+
+我們很高興確認您的訂單已成功送達。
+
+訂單
+--------------------------------
+您的訂單 PREVIEW001.
+
+希望這件作品能給您帶來與工匠們創作時同樣的喜悅。
+
+<a href="http://localhost/shop/tw/訂單記錄" style="color:#b38b59;">查看訂單歷史</a> : http://localhost/shop/tw/訂單記錄
+
+<a href="http://localhost/shop/tw/訪客追蹤" style="color:#b38b59;">訪客追蹤</a> : http://localhost/shop/tw/訪客追蹤
+
+如有任何關於訂單的問題，我們的客服團隊隨時為您服務。
+
+致以我們全部的感激與驕傲，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

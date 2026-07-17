@@ -1,0 +1,19 @@
+Test Neria
+
+Madame, Monsieur,
+
+L'une des pièces que vous avez distinguées dans votre liste de souhaits est de nouveau accessible.
+
+Détails de la pièce
+--------------------------------
+Montre Élégance Neria
+
+Voir la pièce : http://localhost/shop/
+
+Cette disponibilité est limitée. Nous vous invitons à ne pas tarder.
+
+À votre service,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

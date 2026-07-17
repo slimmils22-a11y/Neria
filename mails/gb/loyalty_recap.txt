@@ -1,0 +1,24 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+Here is your monthly loyalty points summary. Every open, every click and every purchase brings you closer to a reward.
+
+--------------------------------
+Points earned this month : +
+Cumulative total : 
+--------------------------------
+
+Your progress towards the next tier
+
+Congratulations — you have reached our highest tier.
+
+Discover our new arrivals : http://localhost/shop/
+
+Your points are automatically credited with each interaction with our emails.
+
+With all our gratitude,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

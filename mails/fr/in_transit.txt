@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Votre sélection est désormais en chemin vers vous. Voici les pièces concernées :
+
+
+
+Commande NR-000123
+--------------------------------
+La commande NR-000123.
+
+Elle est actuellement en transit et vous parviendra dans les délais prévus.
+
+Suivre ma commande : #
+
+<a href="http://localhost/shop/fr/historique-commandes" style="color:#b38b59;">Consultez l'historique de votre commande dans votre espace client</a> : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/fr/suivi-commande-invite" style="color:#b38b59;">Si vous avez commandé en tant qu'invité, suivez votre commande via le lien dédié</a> : http://localhost/shop/fr/suivi-commande-invite
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

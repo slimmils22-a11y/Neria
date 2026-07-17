@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Abbiamo tentato di consegnare il Vostro pacco, ma nessuno era presente per riceverlo.
+
+Riferimento ordine : #TEST00125
+
+Dettagli del tentativo di consegna
+--------------------------------
+Stato del pacco : 
+
+Cosa fare ora? : 
+
+Visualizza le opzioni di ritiro : http://localhost/shop/it/cronologia-ordini
+
+Il pacco è conservato presso un punto di ritiro a Vostra disposizione.
+
+In attesa di servirVi,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

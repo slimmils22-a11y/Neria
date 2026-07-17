@@ -1,0 +1,23 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Bestillingen din behandles for øyeblikket av tollmyndighetene i destinasjonslandet.
+
+Bestillingsreferanse : PREVIEW001
+
+Tollvarslingsdetaljer
+--------------------------------
+Nåværende status : En attente de dédouanement
+
+Anbefalt handling : Aucune action requise de votre part.
+
+Spor pakken min : http://localhost/shop/no/ordrehistorikk
+
+Teamet vårt kan hjelpe deg med prosedyrene om nødvendig.
+
+Til din tjeneste for å komme gjennom dette trinnet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

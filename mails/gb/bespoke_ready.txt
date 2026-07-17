@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+We are pleased to announce that your bespoke order is now ready. Our artisans have brought your vision to life.
+
+Order reference : PREVIEW001
+
+Your piece details
+--------------------------------
+Montre Élégance Neria
+
+Track delivery : http://localhost/shop/gb/order-history
+
+We thank you for your patience. This unique piece is finally ready to join you.
+
+Proud to have accompanied you in this creation,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

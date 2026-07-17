@@ -1,0 +1,23 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Vi ricordiamo che il Vostro preventivo scade tra meno di 48 ore. Vi invitiamo a confermarlo prima della scadenza per beneficiare delle condizioni concordate.
+
+Riferimento preventivo: 
+
+Importo: 
+
+Scade il: 
+
+Conferma il mio ordine : 
+
+Il nostro team è a Vostra completa disposizione per qualsiasi domanda o adeguamento prima della conferma.
+
+Questo preventivo scadrà il . Dopo tale data, le condizioni di prezzo concordate potrebbero non essere più garantite.
+
+Con la nostra distinta considerazione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

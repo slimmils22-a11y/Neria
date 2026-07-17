@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Confirmamos o recebimento do seu pedido de cancelamento. Foi tratado com todo o cuidado que a sua confiança nos impõe.
+
+Pedido
+--------------------------------
+O pedido PREVIEW001.
+
+Este pedido foi cancelado de acordo com sua solicitação. Nenhum valor será cobrado.
+
+Você pode ver os detalhes deste pedido a partir da sua conta de cliente.
+
+Ver o histórico dos meus pedidos : http://localhost/shop/br/historico-de-pedidos
+
+<a href="http://localhost/shop/br/rastreamento-para-visitante" style="color:#b38b59;">Se fez seu pedido como convidado, encontre o rastreamento do seu pedido através do link dedicado</a> : http://localhost/shop/br/rastreamento-para-visitante
+
+Esperamos recebê-lo novamente entre nossas paredes — no momento que melhor lhe convier.
+
+Com os nossos mais sinceros pesares e toda a nossa estima,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

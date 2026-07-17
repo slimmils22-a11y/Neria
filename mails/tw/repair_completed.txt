@@ -1,0 +1,21 @@
+Test Neria
+
+早安, Sophie,
+
+我們很高興通知您，您作品的維修或修改現已完成。
+
+訂單編號 : PREVIEW001
+
+處理詳情
+--------------------------------
+Montre Élégance Neria
+
+安排退送 : http://localhost/shop/tw/訂單記錄
+
+我們的團隊將與您聯繫，商定退送事宜。
+
+很高興為您服務，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

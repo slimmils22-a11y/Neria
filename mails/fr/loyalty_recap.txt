@@ -1,0 +1,24 @@
+
+
+Bonjour, ,
+
+Voici le résumé mensuel de vos points fidélité. Chaque ouverture, chaque clic et chaque achat vous rapproche d'une récompense.
+
+--------------------------------
+Points gagnés ce mois : +
+Total cumulé : 
+--------------------------------
+
+Votre progression vers le prochain palier
+
+Félicitations — vous avez atteint notre palier le plus élevé.
+
+Découvrir nos nouveautés : http://localhost/shop/
+
+Vos points sont automatiquement crédités à chaque interaction avec nos emails.
+
+Avec toute notre reconnaissance,
+
+
+http://localhost/shop/
+{custom_message_txt}

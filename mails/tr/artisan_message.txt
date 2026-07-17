@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Aldığınız her parçanın arkasında bir bakış, bir el, bir hikaye var. İşte sizinkini şekillendiren zanaatkârdan kişisel bir mesaj.
+
+Zanaatkârın mesajı
+--------------------------------
+Parçanız benim tutkumdan ve ellerimden doğdu. Umarım size uzun süre eşlik eder.
+
+  — Tarafından
+
+Atölyeyi keşfedin : http://localhost/shop/
+
+Hayallerinizi hayata geçirenleri size tanıtmaktan gurur duyuyoruz.
+
+Atölyelerimizin sıcaklığıyla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

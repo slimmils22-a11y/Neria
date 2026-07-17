@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Nossa equipe tem uma mensagem para você sobre seu pedido.
+
+Pedido PREVIEW001
+--------------------------------
+Uma nova mensagem foi adicionada ao pedido PREVIEW001.
+
+Mensagem da nossa equipe
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+Você pode ver o histórico do seu pedido a partir da sua conta de cliente: http://localhost/shop/br/historico-de-pedidos
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

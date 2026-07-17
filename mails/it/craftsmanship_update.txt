@@ -1,0 +1,17 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Siamo lieti di informarVi che il Vostro ordine sta avanzando nel nostro laboratorio.
+
+Fase attuale
+--------------------------------
+
+
+Il nostro artigiano dedica tutta la sua cura a dare vita al Vostro pezzo unico. Vi terremo aggiornati in ogni fase.
+
+Può seguire l'avanzamento del Vostro ordine dal Vostro account cliente.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

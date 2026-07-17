@@ -1,0 +1,23 @@
+﻿Test Neria
+
+早安, Sophie,
+
+我們通知您，您的訂單已進行修改。以下是修改詳情。
+
+訂單 PREVIEW001
+--------------------------------
+訂單 PREVIEW001.
+
+此訂單已根據您提供的資訊進行更新。
+
+您可以從客戶帳戶中查看此訂單的詳細資訊。
+
+查看我的訂單歷史 : http://localhost/shop/tw/訂單記錄
+
+<a href="http://localhost/shop/tw/訪客追蹤" style="color:#b38b59;">如果您以訪客身份下單，可通過專用連結追蹤訂單。</a> : http://localhost/shop/tw/訪客追蹤
+
+致以我們全部的感謝與自豪，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

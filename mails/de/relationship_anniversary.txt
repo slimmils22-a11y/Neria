@@ -1,0 +1,17 @@
+Test Neria
+
+Hallo, Camille,
+
+Vor  haben Sie uns zum ersten Mal Ihr Vertrauen geschenkt. Wir haben das nicht vergessen.
+
+Ihre Treue ist unsere schönste Belohnung. Wir freuen uns, Sie zu unseren wertvollsten Kunden zählen zu dürfen.
+
+Meine Käufe ansehen : http://localhost/shop/de/bestellungsverlauf
+
+Danke, dass Sie Teil unserer Geschichte sind.
+
+Mit aufrichtigem Dank,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

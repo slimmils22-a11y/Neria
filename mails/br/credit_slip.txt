@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Pedido PREVIEW001 — Nota de crédito
+--------------------------------
+Foi criada uma nota de crédito para o seu pedido PREVIEW001.
+
+Você pode consultar esta nota de crédito e usá-la na sua próxima compra em : http://localhost/shop/br/historico-de-pedidos
+
+Honrando nosso compromisso, com toda a nossa consideração,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

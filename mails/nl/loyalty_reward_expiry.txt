@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+De beloning die u via ons loyaliteitsprogramma heeft verkregen, loopt binnenkort af.
+
+Beloningsdetails
+--------------------------------
+Vervaldatum : 30/06/2026
+
+Mijn beloning gebruiken : http://localhost/shop/nl/besteloverzicht
+
+Deze beloning is geldig tot de aangegeven datum. Daarna kan deze niet meer worden gebruikt.
+
+We hopen u te kunnen verrassen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

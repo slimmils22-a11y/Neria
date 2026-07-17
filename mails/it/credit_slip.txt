@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Ordine #TEST00125 — Nota di credito
+--------------------------------
+È stata creata una nota di credito per il Vostro ordine #TEST00125.
+
+Può visualizzare questa nota di credito e utilizzarla al prossimo acquisto da : http://localhost/shop/it/cronologia-ordini
+
+Onorando il nostro impegno, con tutta la nostra considerazione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

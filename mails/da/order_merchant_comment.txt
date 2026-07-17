@@ -1,0 +1,19 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Vores team har en besked til dig vedrørende din ordre.
+
+Ordre PREVIEW001
+--------------------------------
+En ny besked er blevet tilføjet til ordren PREVIEW001.
+
+Besked fra vores team
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+Du kan se din ordrehistorik fra din kundekonto: http://localhost/shop/da/ordrehistorik
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

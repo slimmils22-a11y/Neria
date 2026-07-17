@@ -1,0 +1,17 @@
+Test Neria
+
+God morgon, Sophie,
+
+Vi är glada att meddela att din beställning fortskrider i vår verkstad.
+
+Aktuellt skede
+--------------------------------
+Assemblage final en atelier
+
+Vår hantverkare ägnar all sin omsorg åt att ge liv åt din unika pjäs. Vi kommer att hålla dig uppdaterad i varje steg.
+
+Du kan följa framstegen för din beställning från ditt kundkonto.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

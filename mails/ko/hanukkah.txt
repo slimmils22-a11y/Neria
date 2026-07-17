@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+빛의 축제 하누카를 맞이하여 가장 진실한 축하를 보냅니다.
+
+이 신성한 축제가 가정의 따뜻함, 평화, 평온을 가져다주길 바랍니다.
+
+작품 보기 : http://localhost/shop/
+
+주말까지 특별한 관심이 귀하를 위해 준비되어 있습니다.
+
+전 직원이 멋진 하누카를 기원합니다.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

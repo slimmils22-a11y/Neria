@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Caro collaboratore,
+
+Un messaggio cliente Vi è stato inoltrato per la gestione.
+
+ Vi ha inoltrato il seguente messaggio.
+
+Cronologia della conversazione
+--------------------------------
+
+
+ ha aggiunto il seguente commento : 
+
+Non rispondete a questa email automatica. Accedete all'amministrazione per gestire la richiesta.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

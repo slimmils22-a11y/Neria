@@ -1,0 +1,17 @@
+Test Neria
+
+Caro/a collaboratore/trice,
+
+Il sistema ha rilevato che un prodotto è vicino alla sua soglia critica di copertura.
+
+Stato copertura
+--------------------------------
+Copertura minima : 
+
+Copertura attuale : 
+
+Controllate il Vostro stock e rifornite se necessario.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

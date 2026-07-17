@@ -1,0 +1,26 @@
+Selezionato per Voi
+
+Buongiorno Camille,
+
+Completate il Vostro look
+
+Il Vostro ordine è appena arrivato — speriamo che Vi piaccia. Ecco alcuni pezzi che si abbinano perfettamente al Vostro acquisto.
+
+--------
+
+1.  —  €
+
+
+2.  —  €
+
+
+3.  —  €
+
+
+--------
+
+Questa selezione è stata composta appositamente per Voi, in armonia con il Vostro acquisto recente.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

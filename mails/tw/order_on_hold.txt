@@ -1,0 +1,21 @@
+Test Neria
+
+早安, Sophie,
+
+我們正仔細核實您訂單的每一個細節，以確保完美呈現。
+
+訂單編號 : PREVIEW001
+
+以下是當前情況的詳情：
+--------------------------------
+等待原因 : Vérification de votre paiement en cours
+
+跟蹤我的訂單 : http://localhost/shop/tw/訂單記錄
+
+如有任何疑問，我們的團隊隨時為您服務。
+
+我們全心全意，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

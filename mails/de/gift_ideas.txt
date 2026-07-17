@@ -1,0 +1,18 @@
+Test Neria
+
+Hallo, Camille,
+
+Die Festzeit naht. Bevor sie kommt, haben wir für Sie eine Auswahl an Stücken vorbereitet — gewählt im Einklang mit Ihrem Geschmack und denen, die Ihnen am Herzen liegen.
+
+Schenken bedeutet, Aufmerksamkeit zu verlängern. Jedes Stück dieser Auswahl wurde gewählt, um die Beschenkten zu berühren — mit der Eleganz, die Sie ihnen wünschen.
+
+Die Auswahl entdecken : http://localhost/shop/
+
+Diese Auswahl wurde für Sie zusammengestellt, in Anerkennung Ihrer Treue und Ihres Feingefühls.
+
+
+Mit aller Sorgfalt und Zuneigung,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+Test Neria
+
+Buenos días, Camille,
+
+Hemos identificado un punto que requiere su atención con respecto a un producto que puede haber adquirido de nosotros. Esta comunicación es un acto de transparencia.
+
+Referencia del pedido : #TEST00125
+
+Detalles de la retirada
+--------------------------------
+Producto afectado : Ivory Linen Dress
+
+¿Qué hacer?
+--------------------------------
+Saber más : http://localhost/shop/es/historial-compra
+
+Nuestro equipo está a su disposición para cualquier pregunta. Le agradecemos su comprensión.
+
+Con toda nuestra consideración,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

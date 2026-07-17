@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+Du købte Montre Élégance Neria for  dage siden. Ifølge vores estimat kan dit produkt snart være opbrugt.
+
+Hvis du ønsker at forny din oplevelse, er det nu det ideelle tidspunkt — inden det løber tørt.
+
+Forny mit køb : http://localhost/shop/index.php?controller=product&id_product=1
+
+Der er selvfølgelig ingen forpligtelse — det er blot en venlig påmindelse fra os.
+
+Med al vores opmærksomhed,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

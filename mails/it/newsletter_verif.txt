@@ -1,0 +1,17 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Per attivare la Vostra iscrizione alla nostra newsletter, confermate il Vostro indirizzo email cliccando sul link sottostante.
+
+Verifica
+--------------------------------
+Questo link sicuro conferma la Vostra iscrizione e Vi dà accesso a tutte le nostre notizie.
+
+Conferma la mia iscrizione : 
+
+Se non avete richiesto questa iscrizione, potete ignorare questo messaggio.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

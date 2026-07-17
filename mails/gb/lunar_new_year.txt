@@ -1,0 +1,17 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+On the occasion of the Lunar New Year, we send you our warmest wishes.
+
+May this celebration bring you happiness, health, and success in all your endeavors.
+
+Discover our creations : http://localhost/shop/
+
+A special attention is reserved for you until the end of the festivities.
+
+The entire team wishes you a wonderful Lunar New Year.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

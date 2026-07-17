@@ -1,0 +1,19 @@
+Test Neria
+
+God morgon, Sophie,
+
+Tack för att du prenumererar på vårt nyhetsbrev. Som välkomstgest här är en exklusiv kod för  rabatt på din nästa beställning.
+
+Din inbjudningskod
+--------------------------------
+Exklusiv kod : NERIA-PREVIEW-2026
+
+Denna kod är giltig i 30 dagar i hela vårt hus. Den kan inte kombineras med andra uppmärksamheter.
+
+Upptäck våra skapelser : http://localhost/shop/
+
+Vi önskar dig en underbar upptäckt av våra unika föremål.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

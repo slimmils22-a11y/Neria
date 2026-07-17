@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Nous accusons réception de votre demande d'annulation. Celle-ci a été traitée avec tout le soin que votre confiance nous impose.
+
+Commande
+--------------------------------
+La commande NR-000123.
+
+Cette commande a été annulée conformément à votre demande. Aucun montant ne vous sera prélevé.
+
+Vous pouvez consulter le détail de cette commande depuis votre espace client.
+
+Consulter l'historique de mes commandes : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/fr/suivi-commande-invite" style="color:#b38b59;">Si vous avez commandé en tant qu'invité, retrouvez le suivi de votre commande via le lien dédié</a> : http://localhost/shop/fr/suivi-commande-invite
+
+Nous gardons l'espoir de vous accueillir de nouveau entre nos murs — à l'heure qui vous conviendra.
+
+Avec nos plus sincères regrets et toute notre estime,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

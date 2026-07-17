@@ -1,0 +1,21 @@
+Test Neria
+
+Günaydın, Camille,
+
+Siparişiniz gönderimi kolaylaştırmak için birden fazla kargoya bölündü. Bir kısmı zaten size doğru yolda.
+
+Sipariş referansı : #TEST00125
+
+Gönderilen kargoların detayları
+--------------------------------
+
+
+Kargolarımı takip et : http://localhost/shop/tr/siparis-gecmisi
+
+Kalan kargoların gönderimi hakkında sizi bilgilendireceğiz.
+
+Tüm dikkatimizle,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

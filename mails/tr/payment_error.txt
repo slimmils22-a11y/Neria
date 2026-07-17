@@ -1,0 +1,21 @@
+Test Neria
+
+Günaydın, Camille,
+
+Teknik bir kesinti ödemenizin işlenmesini durdurdu. Özür dileriz ve uygun olduğunuzda düzeltmenizi rica ederiz.
+
+Sipariş #TEST00125
+--------------------------------
+Sipariş ödemesi #TEST00125.
+
+Siparişiniz korundu ve öncelikli olarak kaldı. Ödemenizi dilediğiniz zaman yapabilirsiniz — sizi bekliyoruz.
+
+Bu aksaklık devam ederse, kişisel alanınızdan siparişinizin ayrıntılarını incelemenizi davet ediyoruz.
+
+<a href="http://localhost/shop/tr/ziyaretci-takibi" style="color:#b38b59;">Misafir olarak sipariş verdiyseniz, özel bağlantı üzerinden siparişinizi takip edin</a> : http://localhost/shop/tr/ziyaretci-takibi
+
+Anlayışınız için teşekkür ederiz,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Afin que votre pièce conserve toute sa splendeur au fil du temps, voici un certificat d'entretien personnalisé, spécifiquement adapté à ses matériaux.
+
+Certificat d'entretien
+--------------------------------
+Produit concerné : Montre Élégance Neria
+
+Matériaux : Cuir de veau, acier inoxydable
+
+Instructions d'entretien : Éviter l'humidité. Nettoyer avec un chiffon doux.
+
+Télécharger le certificat : http://localhost/shop/
+
+Conservez ce certificat pour les futures consultations.
+
+Fiers de la qualité de notre savoir-faire,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

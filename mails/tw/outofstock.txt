@@ -1,0 +1,21 @@
+Test Neria
+
+早安, Sophie,
+
+我們很遺憾地通知您，您訂單中的某件商品目前缺貨。
+
+訂單 PREVIEW001
+--------------------------------
+您訂單中的一件作品暫時缺貨 — 這是非常罕見的情況，我們極其重視。
+
+我們對這次延誤深表歉意，它並不反映我們的標準。我們的團隊將很快與您聯繫，共同商定最佳解決方案。
+
+<a href="http://localhost/shop/tw/訂單記錄" style="color:#b38b59;">您可以從客戶帳戶查看訂單詳情。</a> : http://localhost/shop/tw/訂單記錄
+
+<a href="http://localhost/shop/tw/訪客追蹤" style="color:#b38b59;">如果您以訪客身份下單，請通過專用連結跟蹤訂單。</a> : http://localhost/shop/tw/訪客追蹤
+
+為這極為罕見的延誤向您致歉，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

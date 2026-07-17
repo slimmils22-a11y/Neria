@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Wir bestätigen den Eingang Ihrer Bestellung im Namen Ihres Unternehmens. Sie wird mit der ganzen Aufmerksamkeit bearbeitet, die ein solches Engagement verdient.
+
+Bestellreferenz : #TEST00125
+
+Details der Unternehmensbestellung
+--------------------------------
+
+
+Bestellung verfolgen : http://localhost/shop/de/bestellungsverlauf
+
+Unser Team für Unternehmensbeziehungen steht Ihnen zur Verfügung.
+
+Zu Ihren Diensten für diese Partnerschaft,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

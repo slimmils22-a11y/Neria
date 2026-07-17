@@ -1,0 +1,21 @@
+Test Neria
+
+Günaydın, Camille,
+
+Siparişinizdeki ürünlerden birinin şu anda mevcut olmadığını üzülerek bildiririz.
+
+Sipariş #TEST00125
+--------------------------------
+Siparişinizdeki parçalardan biri geçici olarak elimizden kaçıyor — son derece nadir bir durum ve bunu çok ciddiye alıyoruz.
+
+Bu gecikme için özür dileriz; standartlarımızı yansıtmamaktadır. Ekibimiz en kısa sürede sizinle iletişime geçerek en iyi çözümü birlikte belirleyecektir.
+
+<a href="http://localhost/shop/tr/siparis-gecmisi" style="color:#b38b59;">Siparişinizin detaylarını müşteri hesabınızdan görüntüleyebilirsiniz</a> : http://localhost/shop/tr/siparis-gecmisi
+
+<a href="http://localhost/shop/tr/ziyaretci-takibi" style="color:#b38b59;">Misafir olarak sipariş verdiyseniz, özel bağlantı üzerinden siparişinizi takip edin</a> : http://localhost/shop/tr/ziyaretci-takibi
+
+Bu son derece nadir gecikme için sizden özür dileriz,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

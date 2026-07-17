@@ -1,0 +1,16 @@
+Test Neria
+
+مساء الخير, Sophie,
+
+رد فريقنا
+--------------------------------
+Bonjour, nous avons bien traité votre demande. Votre commande sera expédiée sous 48h. Cordialement, le service client Neria.
+
+الرجاء عدم الرد على هذا البريد الإلكتروني التلقائي.
+
+لأي استفسار، يرجى الاتصال بنا عبر موقعنا.
+http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

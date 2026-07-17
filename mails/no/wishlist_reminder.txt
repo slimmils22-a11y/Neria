@@ -1,0 +1,19 @@
+Test Neria
+
+God morgen, Sophie,
+
+En av gjenstandene du la merke til på ønskelisten din er igjen tilgjengelig.
+
+Gjenstandsdetaljer
+--------------------------------
+Montre Élégance Neria
+
+Se gjenstanden : http://localhost/shop/
+
+Tilgjengeligheten er begrenset. Vi oppfordrer deg til ikke å nøle.
+
+Til din tjeneste,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

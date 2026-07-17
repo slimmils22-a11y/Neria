@@ -1,0 +1,19 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi informerer deg om at statusen for returforespørselen din har endret seg.
+
+Retur #42
+--------------------------------
+Statusen for returen din er oppdatert #42.
+
+Gjeldende status : Retour reçu
+
+<a href="http://localhost/shop/no/ordrehistorikk" style="color:#b38b59;">Du kan se detaljene for returen din fra kundekontoen din</a> : http://localhost/shop/no/ordrehistorikk
+
+Med all vår takknemlighet og stolthet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

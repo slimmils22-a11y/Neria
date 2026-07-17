@@ -1,0 +1,21 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir bedauern, Ihnen mitteilen zu müssen, dass einer der Artikel in Ihrer Bestellung derzeit nicht verfügbar ist.
+
+Bestellung #TEST00125
+--------------------------------
+Eines der Stücke in Ihrer Bestellung entzieht sich uns vorübergehend — eine äußerst seltene Situation, die wir sehr ernst nehmen.
+
+Wir entschuldigen uns für diese Verzögerung, die nicht unseren Standards entspricht. Unser Team wird Sie in Kürze kontaktieren, um gemeinsam die beste Lösung zu finden.
+
+<a href="http://localhost/shop/de/bestellungsverlauf" style="color:#b38b59;">Sie können die Details Ihrer Bestellung in Ihrem Kundenkonto einsehen</a> : http://localhost/shop/de/bestellungsverlauf
+
+<a href="http://localhost/shop/de/auftragsverfolgung-gast" style="color:#b38b59;">Wenn Sie als Gast bestellt haben, verfolgen Sie Ihre Bestellung über den speziellen Link</a> : http://localhost/shop/de/auftragsverfolgung-gast
+
+Wir bitten um Entschuldigung für diese äußerst seltene Verzögerung,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

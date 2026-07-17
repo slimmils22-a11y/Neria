@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Neste bendito mês do Ramadan, enviamos-lhe os nossos votos mais calorosos.
+
+Que este mês bendito lhe traga serenidade interior, a alegria da partilha e a graça que acompanha quem jejua com fé.
+
+Descubra as nossas criações : http://localhost/shop/
+
+Uma atenção especial está reservada para si durante todo o mês sagrado.
+
+Toda a equipa deseja-lhe um Ramadan abençoado.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

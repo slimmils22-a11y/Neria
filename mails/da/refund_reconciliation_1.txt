@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi ønskede personligt at bekræfte, at din refusion i øjeblikket behandles.
+
+Din anmodning er modtaget, og vi sikrer, at den behandles med al den opmærksomhed, den fortjener.
+
+Se mine ordrer : http://localhost/shop/da/ordrehistorik
+
+Hvis du har spørgsmål, er vores team altid til din rådighed.
+
+Med venlig hilsen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,42 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Teremos prazer em cuidar do seu item. Aqui estão as informações necessárias para nos enviá-lo.
+
+Pedido : PREVIEW001
+
+Número de devolução : 42
+
+Prazo de envio : Em até  dias após o recebimento deste e-mail
+
+Item(ns) em questão
+--------------------------------
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+Motivo : Article ne correspondant pas à mes attentes
+
+Instruções de envio
+--------------------------------
+Endereço de devolução :
+
+
+Por favor, indique este número de devolução no seu pacote: 42
+
+Transportadora recomendada: um envio rastreado e segurado para viajar com tranquilidade.
+
+As condições e eventuais custos de devolução estão descritos em nossa política de devoluções.
+
+Seu item será analisado em  dias úteis após o recebimento.
+
+O reembolso será feito no seu método de pagamento original.
+
+Acessar minha solicitação de devolução : http://localhost/shop/br/acompanhar-pedido
+
+Alguma dúvida? Nossa equipe permanece à sua inteira disposição.
+
+Com toda a nossa gratidão e orgulho,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

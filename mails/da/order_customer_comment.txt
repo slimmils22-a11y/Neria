@@ -1,0 +1,21 @@
+Test Neria
+
+En kommentar til din ordre
+
+En kunde har efterladt en kommentar om sin ordre. Her er oplysningerne.
+
+Ordreinformation
+--------------------------------
+Reference : PREVIEW001
+
+Kunde : Sophie Durand (test@test.com)
+
+Kundebesked
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+Du kan besvare denne besked fra butiksadministrationen.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

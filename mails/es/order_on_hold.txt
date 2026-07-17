@@ -1,0 +1,21 @@
+Test Neria
+
+Buenos días, Camille,
+
+Nos tomamos el tiempo de verificar cada detalle de su pedido antes de completarlo.
+
+Referencia del pedido : #TEST00125
+
+Aquí están los detalles de la situación:
+--------------------------------
+Motivo de la espera : 
+
+Seguir mi pedido : http://localhost/shop/es/historial-compra
+
+Nuestro equipo está a su disposición para cualquier pregunta.
+
+Con toda nuestra atención,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

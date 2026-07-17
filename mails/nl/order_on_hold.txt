@@ -1,0 +1,21 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Wij nemen de tijd om elk detail van uw bestelling te controleren voordat wij deze voltooien.
+
+Orderreferentie : PREVIEW001
+
+Hier zijn de details van de situatie:
+--------------------------------
+Reden van de wachttijd : Vérification de votre paiement en cours
+
+Mijn bestelling volgen : http://localhost/shop/nl/besteloverzicht
+
+Ons team staat voor u klaar voor vragen.
+
+Met al onze aandacht,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+Test Neria
+
+God morgon, Sophie,
+
+Ditt offert löper ut idag. Vi bjuder in dig att bekräfta det snarast möjligt för att säkra de avtalade villkoren.
+
+Offertreferens: 
+
+Belopp: 
+
+Löper ut: 
+
+Bekräfta min offert nu : 
+
+Vid brådskande frågor är vårt team omedelbart tillgängligt.
+
+Denna offert löper ut idag. Därefter kan de avtalade prisvillkoren komma att ändras.
+
+Med utmärkt aktning,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+Test Neria
+
+Günaydın, Camille,
+
+Güveniniz bizi dokuyor. Minnettarlığımızın bir işareti olarak, sizin için özel bir ilgi hazırladık.
+
+Sipariş #TEST00125
+--------------------------------
+Sipariş için bir hediye çeki oluşturuldu #TEST00125.
+
+Hediye çeki tutarı : 
+
+Hediye çeki kodu : 
+
+Bu hediye çeki tüm butiğimizde 30 gün geçerlidir. Diğer kampanyalarla birleştirilemez.
+
+Umarız kreasyonlarımız arasında beğeninize uygun bir şey bulursunuz.
+
+Sadakatinize duyduğumuz minnettarlığın kanıtı olarak,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

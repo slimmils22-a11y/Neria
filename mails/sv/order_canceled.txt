@@ -1,0 +1,25 @@
+﻿Test Neria
+
+God morgon, Sophie,
+
+Vi bekräftar mottagandet av din annulleringsbegäran. Den har hanterats med all den omsorg som ditt förtroende kräver.
+
+Beställning
+--------------------------------
+Beställning PREVIEW001.
+
+Denna beställning har avbrutits enligt din begäran. Inget belopp kommer att debiteras.
+
+Du kan se detaljerna för denna beställning från ditt kundkonto.
+
+Visa min beställningshistorik : http://localhost/shop/sv/bestallningshistorik
+
+<a href="http://localhost/shop/sv/gastsparning" style="color:#b38b59;">Om du beställde som gäst, hitta din spårning via den dedikerade länken</a> : http://localhost/shop/sv/gastsparning
+
+Vi hoppas få välkomna dig igen inom våra väggar — på en tid som passar dig.
+
+Med vår uppriktigaste beklagelse och all vår aktning,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

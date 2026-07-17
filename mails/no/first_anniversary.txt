@@ -1,0 +1,17 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Det har gått ett år siden du først stolte på oss. Dette året ved din side er en kilde til uendelig takknemlighet.
+
+Vi ønsket å feire dette første året med en spesiell oppmerksomhet. Den er reservert for deg.
+
+Oppdag min oppmerksomhet : http://localhost/shop/no/ordrehistorikk
+
+Takk for at du er en del av historien til huset vårt.
+
+Med all vår takknemlighet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

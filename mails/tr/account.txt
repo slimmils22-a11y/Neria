@@ -1,0 +1,31 @@
+Test Neria
+
+Günaydın, Camille,
+
+Varlığınız bizim için bir onurdur. Kişisel alanınız özenle hazırlandı — sizi bekliyor.
+
+Hesap bilgileriniz
+--------------------------------
+Artık siparişlerinizi yönetebilir, teslimatlarınızı takip edebilir ve kişisel bilgilerinizi değiştirebilirsiniz.
+
+İlişkili e-posta adresi : test@test.com
+
+Güvenlik ve gizlilik
+--------------------------------
+Şifreniz şifrelenmiştir ve ekibimiz tarafından asla görülemez.
+
+Kişisel verilerinizi asla üçüncü taraflarla paylaşmayız.
+
+Basit bir taleple hesabınızı istediğiniz zaman silebilirsiniz.
+
+Herhangi bir sorunuz için müşteri hizmetlerimiz hizmetinizdedir.
+
+Kişisel alanınız artık aktif. Sizi içeri davet ediyoruz.
+
+Hesabıma eriş : http://localhost/shop/
+
+Maison, sizi ailesinden saymaktan mutluluk duyuyor,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

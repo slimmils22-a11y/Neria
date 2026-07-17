@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+À l'occasion de Diwali, la fête des lumières, nous vous adressons nos vœux les plus chaleureux.
+
+Que cette fête sacrée apporte dans votre vie la clarté, la prospérité et la joie.
+
+Découvrir nos créations : http://localhost/shop/
+
+Une attention particulière vous est réservée jusqu'à la fin de la semaine.
+
+Toute l'équipe vous souhaite une merveilleuse Diwali.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

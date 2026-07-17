@@ -1,0 +1,17 @@
+Test Neria
+
+مساء الخير, Sophie,
+
+اقتنيتم Montre Élégance Neria منذ  يومًا. وفقًا لتقديرنا، قد يكون منتجكم على وشك النفاد.
+
+إذا كنتم ترغبون في تجديد تجربتكم، فهذا هو الوقت المثالي — قبل أن ينفد.
+
+تجديد شرائي : http://localhost/shop/index.php?controller=product&id_product=1
+
+لا يوجد أي إلزام بالطبع — هذه مجرد تذكرة ودية منا.
+
+باهتمامنا الكامل،
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

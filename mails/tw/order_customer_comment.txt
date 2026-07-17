@@ -1,0 +1,21 @@
+Test Neria
+
+關於您訂單的評論
+
+客戶對其訂單留下了評論。以下是資訊。
+
+訂單資訊
+--------------------------------
+訂單編號 : PREVIEW001
+
+客戶 : Sophie Durand (test@test.com)
+
+客戶留言
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+您可以從商店後台回覆此訊息。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

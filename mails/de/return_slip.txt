@@ -1,0 +1,42 @@
+Test Neria
+
+Hallo, Camille,
+
+Gerne kümmern wir uns um Ihren Artikel. Hier finden Sie alle Informationen für die Rücksendung.
+
+Bestellung : #TEST00125
+
+Rücksendenummer : 
+
+Rücksendefrist : Innerhalb von  Tagen nach Erhalt dieser E-Mail
+
+Betroffene(r) Artikel
+--------------------------------
+
+
+Grund : 
+
+Versandanweisungen
+--------------------------------
+Rücksendeadresse :
+
+
+Bitte vermerken Sie diese Rücksendenummer auf Ihrem Paket: 
+
+Empfohlener Versand: versichert und mit Sendungsverfolgung für ein sorgenfreies Versenden.
+
+Bedingungen und etwaige Rücksendekosten finden Sie in unseren Rückgabebedingungen.
+
+Ihr Artikel wird innerhalb von  Werktagen nach Eingang geprüft.
+
+Die Rückerstattung erfolgt auf Ihr ursprüngliches Zahlungsmittel.
+
+Zu meiner Rücksendeanfrage : http://localhost/shop/de/bestellverfolgung
+
+Fragen? Unser Team steht Ihnen jederzeit zur Verfügung.
+
+Mit all unserer Dankbarkeit und unserem Stolz,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Ci prendiamo il tempo per verificare ogni dettaglio del Vostro ordine prima di portarlo a termine.
+
+Riferimento ordine : #TEST00125
+
+Ecco i dettagli della situazione:
+--------------------------------
+Motivo dell'attesa : 
+
+Traccia il mio ordine : http://localhost/shop/it/cronologia-ordini
+
+Il nostro team rimane a Vostra disposizione per ogni domanda.
+
+Con tutta la nostra attenzione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

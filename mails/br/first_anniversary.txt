@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Já se passou um ano desde que você confiou em nós pela primeira vez. Este ano ao seu lado é motivo de imensa gratidão.
+
+Quisemos celebrar este primeiro ano com uma atenção especial. Ela está reservada para você.
+
+Descobrir minha atenção : http://localhost/shop/br/historico-de-pedidos
+
+Obrigado por fazer parte da história da nossa casa.
+
+Com toda a nossa gratidão,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

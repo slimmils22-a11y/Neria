@@ -1,0 +1,21 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi har mottatt betalingen din med takknemlighet. Bestillingen din går nå inn i skapelsesfasen.
+
+Bestilling
+--------------------------------
+Betaling for bestilling PREVIEW001.
+
+<a href="http://localhost/shop/no/ordrehistorikk" style="color:#b38b59;">Du kan se bestillingshistorikken din fra kundekontoen din</a> : http://localhost/shop/no/ordrehistorikk
+
+<a href="http://localhost/shop/no/gjestesporing" style="color:#b38b59;">Hvis du bestilte som gjest, følg bestillingen din via den dedikerte lenken</a> : http://localhost/shop/no/gjestesporing
+
+Håndverkerne våre vil sette i gang med den respekt og omsorg som hver gjenstand i huset vårt inspirerer.
+
+Med vår dypeste takknemlighet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

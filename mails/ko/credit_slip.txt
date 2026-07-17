@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+주문 PREVIEW001 — 크레딧 메모
+--------------------------------
+주문에 대한 크레딧 메모가 생성되었습니다 PREVIEW001.
+
+다음 구매 시 이 크레딧 메모를 사용하실 수 있습니다. 자세한 내용은 : http://localhost/shop/ko/주문-내역
+
+약속을 지키는 마음으로, 깊은 감사와 함께,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

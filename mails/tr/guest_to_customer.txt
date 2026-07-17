@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Geçtiğimiz günlerde misafir olarak bir sipariş verdiniz. Misafir hesabınızı kalıcı bir müşteri hesabına dönüştürerek birçok avantajdan yararlanmanızı öneririz.
+
+Hesap bilgileriniz
+--------------------------------
+E-posta adresi : test@test.com
+
+Hesabınızı etkinleştirmek ve kişisel alanınıza erişmek için şifrenizi belirleyin.
+
+Kişisel alanımı etkinleştir : 
+
+Kişisel alanınız, ayrıcalıklarınıza her zaman ulaşmanızı sağlayacak: transit halindeki kreasyonlarınızı takip etme, seçimlerinizin geçmişine bakma ve gelecekteki ziyaretlerinizi en iyi koşullarda hazırlama.
+
+Hesabıma eriş : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

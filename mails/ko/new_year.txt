@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+새해의 시작에, 가장 진실한 소망으로 여러분을 맞이합니다.
+
+이 새해가 당신에게 부드러움, 성공, 그리고 아름다운 발견의 길이 되기를 바랍니다.
+
+작품 보기 : http://localhost/shop/
+
+월말까지 특별한 관심이 귀하를 위해 준비되어 있습니다.
+
+전 직원이 훌륭한 한 해를 기원합니다.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

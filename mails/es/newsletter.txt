@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Nos complace compartir con usted nuestras últimas noticias. Descubra a continuación la información más reciente de nuestra casa.
+
+Contenido del boletín
+--------------------------------
+
+
+Para no perderse ninguna de nuestras futuras noticias, manténgase conectado.
+
+Descubrir la maison : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

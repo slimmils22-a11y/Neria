@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Ekibimizin siparişinizle ilgili bir mesajı var.
+
+Sipariş #TEST00125
+--------------------------------
+Siparişe yeni bir mesaj eklendi #TEST00125.
+
+Ekibimizden mesaj
+--------------------------------
+
+
+Sipariş geçmişinizi müşteri hesabınızdan görüntüleyebilirsiniz: http://localhost/shop/tr/siparis-gecmisi
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

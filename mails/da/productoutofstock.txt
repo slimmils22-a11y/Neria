@@ -1,0 +1,21 @@
+Test Neria
+
+Kære medarbejder,
+
+Et produkt i din butik er nu udsolgt.
+
+Produktdetaljer
+--------------------------------
+Produkt : Montre Élégance Neria
+
+Lageradvarselsgrænsen er nået : 5
+
+Resterende mængde : 0
+
+Vi opfordrer dig til at genopfylde dette produkt så hurtigt som muligt.
+
+Denne advarsel er automatisk. Kontroller din lagerstatus.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

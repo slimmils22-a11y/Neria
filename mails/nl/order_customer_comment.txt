@@ -1,0 +1,21 @@
+Test Neria
+
+Een opmerking over uw bestelling
+
+Een klant heeft een opmerking achtergelaten over zijn bestelling. Hier is de informatie.
+
+Bestellingsinformatie
+--------------------------------
+Referentie : PREVIEW001
+
+Klant : Sophie Durand (test@test.com)
+
+Klantbericht
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+U kunt dit bericht beantwoorden via het winkelbeheer.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

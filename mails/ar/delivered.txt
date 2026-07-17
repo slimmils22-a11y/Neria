@@ -1,0 +1,23 @@
+Test Neria
+
+مساء الخير, Sophie,
+
+يسعدنا تأكيد استلامكم لطلبكم.
+
+الطلب
+--------------------------------
+طلبكم PREVIEW001.
+
+نأمل أن تجلب هذه القطعة لكم نفس السعادة التي جلبها إبداعها لحرفيينا.
+
+<a href="http://localhost/shop/ar/سجل طلبات الشراء" style="color:#b38b59;">عرض سجل طلبكم</a> : http://localhost/shop/ar/سجل طلبات الشراء
+
+<a href="http://localhost/shop/ar/تتبع الطلب" style="color:#b38b59;">تتبع للضيف</a> : http://localhost/shop/ar/تتبع الطلب
+
+لأي استفسار حول طلبكم، فريق خدمة العملاء في خدمتكم.
+
+مع كامل امتناننا وفخرنا،
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

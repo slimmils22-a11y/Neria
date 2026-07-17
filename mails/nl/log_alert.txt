@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Systeemwaarschuwing
+
+Het systeem heeft een ongebruikelijke gebeurtenis gedetecteerd die uw tussenkomst vereist.
+
+Waarschuwingsdetails
+--------------------------------
+Actie vereist
+
+Wij nodigen u uit om de logs te raadplegen om de oorsprong van deze waarschuwing te begrijpen en de nodige maatregelen te nemen.
+
+Deze waarschuwing is automatisch gegenereerd. Controleer de status van uw winkel.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

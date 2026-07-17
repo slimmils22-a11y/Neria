@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Caro colaborador,
+
+A importação solicitada foi processada. Eis o resultado detalhado.
+
+Resultado da importação
+--------------------------------
+Ficheiro : 
+
+A importação foi concluída sem incidentes. Todos os dados foram integrados corretamente.
+
+Para qualquer questão, consulte os logs de importação na administração.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,19 @@
+Test Neria
+
+God morgen, Sophie,
+
+Som gæst bosiddende uden for Den Europæiske Union er du berettiget til skatterefusion på dine køb.
+
+Oplysninger om din berettigelse
+--------------------------------
+Ordrereference : PREVIEW001
+
+Start proceduren : http://localhost/shop/
+
+Vores team vil hjælpe dig med de nødvendige trin.
+
+Til din tjeneste,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

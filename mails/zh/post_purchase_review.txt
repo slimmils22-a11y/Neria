@@ -1,0 +1,18 @@
+Test Neria
+
+早上好, Sophie,
+
+希望您的作品已在您的家中找到了应有的位置。
+
+您对这次体验的看法对我们来说无比珍贵。并非出于统计义务，而是因为信任我们的人的意见指引着我们的标准。
+
+分享我的体验 : http://localhost/shop/index.php?controller=product&id_product=1#reviews
+
+您的意见对我们很有价值。它有助于我们更好地理解您的期望。
+
+
+您的目光是我们最好的镜子，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

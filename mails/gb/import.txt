@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Dear employee,
+
+The import you requested has been processed. Here is the detailed result.
+
+Import result
+--------------------------------
+File : import_produits.csv
+
+The operation was completed without incident. All data has been successfully integrated.
+
+For any question, please consult the import logs in the administration.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

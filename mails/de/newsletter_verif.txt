@@ -1,0 +1,17 @@
+Test Neria
+
+Hallo, Camille,
+
+Um Ihre Anmeldung zu unserem Newsletter zu aktivieren, bestätigen Sie bitte Ihre E-Mail-Adresse, indem Sie auf den untenstehenden Link klicken.
+
+Bestätigung
+--------------------------------
+Dieser sichere Link bestätigt Ihre Anmeldung und gibt Ihnen Zugang zu all unseren Nachrichten.
+
+Meine Anmeldung bestätigen : 
+
+Wenn Sie diese Anfrage nicht gestellt haben, können Sie diese Nachricht ignorieren.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

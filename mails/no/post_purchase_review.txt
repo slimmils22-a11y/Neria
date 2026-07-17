@@ -1,0 +1,18 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi håper at gjenstanden din har funnet plassen den fortjener i hjemmet ditt.
+
+Ditt syn på denne opplevelsen er uendelig verdifullt for oss. Ikke på grunn av statistisk forpliktelse, men fordi meningene til dem som stoler på oss veileder standardene våre.
+
+Del min opplevelse : http://localhost/shop/index.php?controller=product&id_product=1#reviews
+
+Din mening er verdifull for oss. Den hjelper oss å forstå forventningene dine bedre.
+
+
+Blikket ditt er vårt beste speil,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

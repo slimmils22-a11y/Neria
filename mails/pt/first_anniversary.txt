@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+Já passou um ano desde que nos confiou pela primeira vez. Este ano ao seu lado é uma fonte de infinita gratidão.
+
+Quisemos celebrar este primeiro ano com uma atenção especial. Está reservada para si.
+
+Descobrir a minha atenção : http://localhost/shop/pt/historico-de-encomendas
+
+Obrigado por fazer parte da história da nossa casa.
+
+Com toda a nossa gratidão,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

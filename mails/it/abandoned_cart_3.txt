@@ -1,0 +1,16 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Chiudiamo dolcemente il capitolo del Vostro carrello. Se mai desideraste ritrovare la Vostra selezione, i nostri artigiani sarebbero onorati di accogliervi di nuovo.
+
+--------------------------------
+
+
+Tornare alla maison : 
+
+Il Vostro carrello non è più attivo. Tutte le nostre creazioni rimangono a Vostra disposizione.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

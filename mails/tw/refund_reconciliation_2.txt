@@ -1,0 +1,17 @@
+Test Neria
+
+早安, Sophie,
+
+這幾天我們一直在想念您，並希望感謝您的耐心等待。
+
+作為我們心意的表達，我們為您準備了一份專屬禮遇——無條件，無壓力。
+
+查看我們的邀請 : http://localhost/shop/
+
+這份禮遇專屬於您。我們的團隊隨時為您提供所需幫助。
+
+致以誠摯的感謝，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Beste medewerker,
+
+De door u aangevraagde import is verwerkt. Hier is het gedetailleerde resultaat.
+
+Importresultaat
+--------------------------------
+Bestand : import_produits.csv
+
+De import is zonder incidenten voltooid. Alle gegevens zijn correct geïntegreerd.
+
+Raadpleeg voor vragen de importlogs in het beheerderspaneel.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

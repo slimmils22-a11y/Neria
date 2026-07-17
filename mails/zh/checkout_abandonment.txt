@@ -1,0 +1,19 @@
+Test Neria
+
+早上好, Sophie,
+
+我们注意到您刚刚准备完成订单时离开了。有时在最后一刻会出现技术问题——3DS错误、连接超时或最后一刻的犹豫。
+
+您的购物车已保存，您的选择正在原处等待您。
+
+完成我的订单 : http://localhost/shop/index.php?controller=cart
+
+如果您在支付时遇到问题，我们的团队随时为您提供帮助，确保您能顺利完成订单。
+
+您无需采取任何特别行动——您的购物车已被保留。
+
+致以诚挚的关怀，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

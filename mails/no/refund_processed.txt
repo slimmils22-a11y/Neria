@@ -1,0 +1,21 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi bekrefter at refusjonsprosedyren for bestillingen din er fullført.
+
+Bestillingsreferanse : PREVIEW001
+
+Refusjonsdetaljer
+--------------------------------
+Tilbakebetalt beløp : 89,00 €
+
+Se bestillingen min : http://localhost/shop/no/ordrehistorikk
+
+Beløpet vil bli kreditert kontoen din i henhold til bankens vanlige tidslinje.
+
+Til din tjeneste,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

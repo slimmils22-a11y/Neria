@@ -1,0 +1,26 @@
+Seleção para si
+
+Olá Camille,
+
+Complete o seu look
+
+A sua encomenda acabou de chegar — esperamos que goste. Aqui estão algumas peças que combinam perfeitamente com a sua compra.
+
+--------
+
+1.  —  €
+
+
+2.  —  €
+
+
+3.  —  €
+
+
+--------
+
+Esta seleção foi composta especialmente para si, em harmonia com a sua compra recente.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

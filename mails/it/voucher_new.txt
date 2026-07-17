@@ -1,0 +1,21 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Siamo lieti di offrirVi un nuovo buono acquisto.
+
+Un'attenzione per Voi
+--------------------------------
+Abbiamo preparato questa attenzione per Voi. Potrete utilizzarla durante la Vostra prossima visita.
+
+Codice buono : 
+
+Questo buono è valido 30 giorni in tutta la nostra boutique. Non può essere cumulato con altre offerte.
+
+Speriamo che troviate qualcosa di vostro gradimento tra le nostre creazioni.
+
+Con il piacere di offrirVi questo gesto,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

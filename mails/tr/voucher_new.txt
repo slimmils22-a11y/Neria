@@ -1,0 +1,21 @@
+Test Neria
+
+Günaydın, Camille,
+
+Size yeni bir hediye çeki sunmaktan mutluluk duyarız.
+
+Size özel bir ilgi
+--------------------------------
+Bu ilgiyi sizin için hazırladık. Bir sonraki ziyaretinizde kullanabilirsiniz.
+
+Hediye çeki kodu : 
+
+Bu hediye çeki tüm butiğimizde 30 gün geçerlidir. Diğer kampanyalarla birleştirilemez.
+
+Umarız kreasyonlarımız arasında beğeninize uygun bir şey bulursunuz.
+
+Bu jesti sunmanın zevkiyle,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

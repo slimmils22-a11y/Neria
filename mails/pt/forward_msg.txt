@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Caro colaborador,
+
+Foi-lhe reencaminhada uma mensagem de cliente para tratamento.
+
+ reencaminhou-lhe a seguinte mensagem.
+
+Histórico da conversa
+--------------------------------
+
+
+ adicionou o seguinte comentário : 
+
+Não responda a este e-mail automático. Aceda à administração para tratar o pedido.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

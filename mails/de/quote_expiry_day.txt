@@ -1,0 +1,23 @@
+Test Neria
+
+Hallo, Camille,
+
+Ihr Angebot läuft heute ab. Wir bitten Sie, es so schnell wie möglich zu bestätigen, um die vereinbarten Konditionen zu sichern.
+
+Angebotsreferenz: 
+
+Betrag: 
+
+Läuft ab am: 
+
+Mein Angebot jetzt bestätigen : 
+
+Bei dringenden Fragen steht Ihnen unser Team sofort zur Verfügung.
+
+Dieses Angebot läuft heute ab. Nach Ablauf können die vereinbarten Preisbedingungen Änderungen unterliegen.
+
+Mit vorzüglicher Hochachtung,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

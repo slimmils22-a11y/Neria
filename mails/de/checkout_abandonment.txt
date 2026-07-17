@@ -1,0 +1,19 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir haben bemerkt, dass Sie kurz davor waren, Ihre Bestellung abzuschließen. Manchmal tritt in letzter Sekunde ein technisches Problem auf — ein 3DS-Fehler, eine Verbindungsunterbrechung oder ein letzter Moment des Zögerns.
+
+Ihr Warenkorb ist gespeichert und Ihre Auswahl wartet genau dort, wo Sie sie gelassen haben.
+
+Bestellung abschließen : 
+
+Wenn Sie ein Zahlungsproblem hatten, steht Ihnen unser Team zur Verfügung, um Ihnen beim ruhigen Abschluss zu helfen.
+
+Ihrerseits ist keine besondere Aktion erforderlich — Ihr Warenkorb bleibt erhalten.
+
+Mit unserer vollen Aufmerksamkeit,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

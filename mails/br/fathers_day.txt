@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Neste dia que homenageia os pais, pensamos naquele que moldou suas raízes, suas paixões, seus silêncios.
+
+Ofereça a ele o que há de mais raro: uma peça que conta, sem uma palavra, sua gratidão.
+
+Descubra nossa seleção : http://localhost/shop/
+
+Uma atenção especial está reservada para você até o final da semana.
+
+Toda a equipe deseja-lhe um feliz dia dos pais.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

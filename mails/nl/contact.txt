@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Uw bericht is ontvangen
+
+Goedemiddag, Sophie,
+
+Wij bevestigen de ontvangst van uw verzoek en danken u voor uw contact. Hier is een kopie van de informatie die u hebt verstrekt:
+
+Contactgegevens
+--------------------------------
+E-mailadres : test@test.com
+
+Orderreferentie : PREVIEW001
+
+Bijgevoegd bestand : Aucun fichier joint
+
+Uw bericht
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+Antwoord per e-mail : test@test.com
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

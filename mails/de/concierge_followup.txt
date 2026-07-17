@@ -1,0 +1,18 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Unser Concierge-Service möchte sicherstellen, dass Ihre Erfahrung mit unserem Haus Ihren Erwartungen entspricht.
+
+Benötigen Sie besondere Aufmerksamkeit?
+--------------------------------
+
+Meinen Berater kontaktieren : http://localhost/shop/
+
+Wir sind verfügbar, um Sie bei jedem Detail Ihrer Reise zu begleiten.
+
+Zu Ihren Diensten, unter allen Umständen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

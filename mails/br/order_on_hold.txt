@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Tomamos o tempo necessário para verificar cada detalhe do seu pedido antes de concluí-lo.
+
+Referência do pedido : PREVIEW001
+
+Aqui estão os detalhes da situação:
+--------------------------------
+Motivo da espera : Vérification de votre paiement en cours
+
+Rastrear meu pedido : http://localhost/shop/br/historico-de-pedidos
+
+Nossa equipe está à sua disposição para qualquer dúvida.
+
+Com toda a nossa atenção,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

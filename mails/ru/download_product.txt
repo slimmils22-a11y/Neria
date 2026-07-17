@@ -1,0 +1,22 @@
+Test Neria
+
+Доброе утро, Sophie,
+
+Благодарим за Ваш заказ. Следующие цифровые товары теперь доступны для скачивания.
+
+Заказ PREVIEW001 — Загрузки
+--------------------------------
+У Вас 2 товар(а/ов) доступно для скачивания.
+
+Patron de couture Neria Vol.1 — http://localhost/shop/download/1
+Guide d'entretien premium — http://localhost/shop/download/2
+
+<a href="http://localhost/shop/ru/order-history" style="color:#b38b59;">Просмотреть историю заказа</a> : http://localhost/shop/ru/order-history
+
+<a href="http://localhost/shop/ru/guest-tracking" style="color:#b38b59;">Отслеживание для гостя</a> : http://localhost/shop/ru/guest-tracking
+
+Желаем Вам прекрасного открытия Вашего приобретения,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

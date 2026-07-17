@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Confirmamos que el mensaje que adjuntó a su pedido de regalo ha sido registrado con éxito.
+
+Referencia del pedido : #TEST00125
+
+Contenido del mensaje
+--------------------------------
+«  »
+
+Ver mi pedido : http://localhost/shop/es/historial-compra
+
+El destinatario recibirá este mensaje con su paquete.
+
+Con toda nuestra atención,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

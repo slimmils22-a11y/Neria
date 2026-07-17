@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Você adquiriu Montre Élégance Neria há  dias. Segundo nossa estimativa, seu produto pode estar acabando.
+
+Se desejar renovar sua experiência, agora é o momento ideal — antes que acabe.
+
+Renovar minha compra : http://localhost/shop/index.php?controller=product&id_product=1
+
+Não há nenhuma obrigação, claro — é apenas um lembrete amigável da nossa parte.
+
+Com toda a nossa atenção,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

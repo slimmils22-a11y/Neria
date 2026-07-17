@@ -1,0 +1,23 @@
+あなたのために確保しました
+
+Sophie様、こんにちは。
+
+日間お待ちいただきました。忘れておりません。
+
+この商品が再入荷しました。誰よりも早くご登録いただいたお礼に、優先的にご購入いただけます。
+
+優先アクセスは時間有効です。その後は一般公開されます。
+
+--------
+
+Montre Élégance Neria
+ €
+http://localhost/shop/index.php?controller=product&id_product=1
+
+--------
+
+この通知は、この商品の再入荷をご希望されたためお送りしています。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

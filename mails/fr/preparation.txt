@@ -1,0 +1,21 @@
+Test Neria
+
+Madame, Monsieur,
+
+Vos pièces ont été confiées à nos artisans. Entre leurs mains, chaque geste est un hommage rendu à votre choix.
+
+Commande
+--------------------------------
+La commande NR-000123.
+
+Un savoir-faire patiemment cultivé, entièrement mis au service de ce que vous attendez — et de ce que vous méritez.
+
+<a href="http://localhost/shop/fr/historique-commandes" style="color:#b38b59;">Vous pouvez suivre l'évolution de votre commande depuis votre espace client</a> : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/fr/suivi-commande-invite" style="color:#b38b59;">Si vous avez commandé en tant qu'invité, suivez votre commande via le lien dédié</a> : http://localhost/shop/fr/suivi-commande-invite
+
+Dans l'attente du plaisir de vous satisfaire,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

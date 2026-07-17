@@ -1,0 +1,31 @@
+Test Neria
+
+Madame, Monsieur,
+
+Votre présence nous honore. Votre espace personnel a été préparé avec soin — il vous attend.
+
+Informations de votre compte
+--------------------------------
+Vous pouvez dès à présent gérer vos commandes, suivre vos livraisons et modifier vos informations personnelles.
+
+Adresse email associée : admin@test.com
+
+Sécurité et confidentialité
+--------------------------------
+Votre mot de passe est crypté et n'est jamais visible par notre équipe.
+
+Nous ne partageons jamais vos données personnelles avec des tiers.
+
+Vous pouvez supprimer votre compte à tout moment sur simple demande.
+
+Pour toute question, notre service reste à votre écoute.
+
+Votre espace personnel est désormais actif. Nous vous invitons à en franchir les portes.
+
+Accéder à mon compte : http://localhost/shop/
+
+La maison est heureuse de vous compter parmi les siens,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

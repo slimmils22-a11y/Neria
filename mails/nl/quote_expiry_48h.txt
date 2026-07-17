@@ -1,0 +1,23 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+We herinneren u eraan dat uw offerte over minder dan 48 uur verloopt. We nodigen u uit om deze voor het verlopen te bevestigen en te profiteren van de overeengekomen voorwaarden.
+
+Offertereferentie: 
+
+Bedrag: 
+
+Verloopt op: 
+
+Mijn bestelling bevestigen : 
+
+Ons team staat volledig tot uw beschikking voor vragen of aanpassingen vóór bevestiging.
+
+Deze offerte verloopt op . Na deze datum kunnen de overeengekomen prijsvoorwaarden niet meer worden gegarandeerd.
+
+Met onze hoogachting,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

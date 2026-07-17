@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Siamo lieti di informarVi che la Vostra garanzia estesa è ora attiva per il pezzo in questione.
+
+Riferimento ordine : #TEST00125
+
+Dettagli della garanzia
+--------------------------------
+Ivory Linen Dress
+
+Visualizza i termini : http://localhost/shop/it/cronologia-ordini
+
+Questa garanzia estesa è valida per un periodo specificato. Conservare questa prova.
+
+Al Vostro servizio,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

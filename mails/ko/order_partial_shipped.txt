@@ -1,0 +1,21 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+배송을 용이하게 하기 위해 주문이 여러 소포로 분할되었습니다. 그 중 일부는 이미 발송되었습니다.
+
+주문 참조 번호 : PREVIEW001
+
+발송된 소포 세부 정보
+--------------------------------
+Colis 1/2 — Montre Élégance Neria · Colissimo 6A1234567890
+
+내 소포 추적 : http://localhost/shop/ko/주문-내역
+
+나머지 소포의 발송에 대해 알려드리겠습니다.
+
+모든 주의를 기울여,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

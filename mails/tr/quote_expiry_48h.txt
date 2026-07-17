@@ -1,0 +1,23 @@
+Test Neria
+
+Günaydın, Camille,
+
+Teklifinizin 48 saatten kısa bir süre içinde sona ereceğini hatırlatmak isteriz. Mutabık kalınan koşullardan yararlanmak için son kullanma tarihinden önce onaylamanızı rica ederiz.
+
+Teklif referansı: 
+
+Tutar: 
+
+Son geçerlilik tarihi: 
+
+Siparişimi onaylayın : 
+
+Ekibimiz, onay öncesinde her türlü soru veya düzenleme için tamamen hizmetinizdedir.
+
+Bu teklif  tarihinde sona erecektir. Bu tarihten sonra mutabık kalınan fiyat koşulları garanti edilemeyebilir.
+
+Saygılarımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

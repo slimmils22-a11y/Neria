@@ -1,0 +1,25 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We are pleased to confirm that your gift order is being prepared with the utmost care.
+
+What we guarantee
+--------------------------------
+Luxurious gift wrapping
+
+Personalised message as per your instructions
+
+Secure and discreet delivery
+
+Exchange or return possible until January 31st
+
+Every detail has been thought through to offer a unique experience to the person receiving this gift.
+
+Track my order : http://localhost/shop/fr/historique-commandes
+
+For any question regarding your gift order, our team remains at your disposal.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

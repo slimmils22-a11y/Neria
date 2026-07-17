@@ -1,0 +1,19 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Abbiamo pensato a un pezzo che potrebbe completare la Vostra collezione o suscitare un nuovo interesse nella nostra maison.
+
+Pezzo suggerito
+--------------------------------
+Ivory Linen Dress
+
+Vedi il pezzo : http://localhost/shop/
+
+Speriamo che questo suggerimento Vi ispiri.
+
+Al Vostro servizio,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

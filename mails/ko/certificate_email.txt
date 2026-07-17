@@ -1,0 +1,17 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+이 이메일에 첨부하여 고객님 제품의 진품 인증서를 보내드리게 되어 기쁩니다.
+
+제품 : Montre Élégance Neria
+
+일련번호 : 
+
+본 문서는 고객님 제품의 진품성을 증명하는 공식 문서입니다. 소중히 보관해 주세요.
+
+저희 장인 정신의 질에 자부심을 가지고,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

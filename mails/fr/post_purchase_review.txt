@@ -1,0 +1,18 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous espérons que votre pièce a trouvé, chez vous, la place qu'elle mérite.
+
+Votre regard sur cette expérience nous est infiniment précieux. Non par obligation de statistiques, mais parce que l'avis de ceux qui nous font confiance guide notre exigence.
+
+Partager mon expérience : #
+
+Votre opinion est précieuse pour nous. Elle nous aide à mieux comprendre vos attentes.
+
+
+Votre regard est notre meilleur miroir,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

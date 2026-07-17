@@ -1,0 +1,21 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+We bevestigen dat de terugbetalingsprocedure voor uw bestelling met succes is afgerond.
+
+Orderreferentie : PREVIEW001
+
+Terugbetalingsdetails
+--------------------------------
+Terugbetaald bedrag : 89,00 €
+
+Mijn bestelling bekijken : http://localhost/shop/nl/besteloverzicht
+
+Het bedrag wordt op uw rekening bijgeschreven volgens de gebruikelijke termijn van uw bank.
+
+Tot uw dienst,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

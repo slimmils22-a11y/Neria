@@ -1,0 +1,19 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+您通过我们的忠诚计划获得的奖励即将过期。
+
+奖励详情
+--------------------------------
+到期日期 : 30/06/2026
+
+使用我的奖励 : http://localhost/shop/zh/订单-历史
+
+此奖励在指定日期前有效。逾期将无法使用。
+
+希望您能喜欢，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

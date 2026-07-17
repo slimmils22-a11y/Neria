@@ -1,0 +1,17 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Om uw abonnement op onze nieuwsbrief te activeren, bevestig uw e-mailadres door op onderstaande link te klikken.
+
+Bevestiging
+--------------------------------
+Deze veilige link bevestigt uw abonnement en geeft u toegang tot al ons nieuws.
+
+Bevestig mijn abonnement : http://localhost/shop/index.php?controller=newsletter-verification&token=preview-verif-token
+
+Als u dit niet heeft aangevraagd, kunt u dit bericht negeren.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

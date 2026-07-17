@@ -1,0 +1,23 @@
+Test Neria
+
+Günaydın, Camille,
+
+Teklifinizin geçerlilik süresi doldu, ancak ilerleme fırsatı sunmak istiyoruz. Basit bir talep üzerine, stok durumuna bağlı olarak geçerliliğini uzatabiliriz.
+
+Teklif referansı: 
+
+Tutar: 
+
+Uzatma mümkün tarihe kadar: 
+
+Uzatma talep edin : 
+
+Teklifinizi orijinal koşullarda onaylamak için bugün bizimle iletişime geçin. Ekibimiz talebinizi özenle değerlendirecektir.
+
+Bu uzatma teklifi, ürün bulunurluğuna ve ekibimizin onayına tabidir.
+
+Saygılarımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

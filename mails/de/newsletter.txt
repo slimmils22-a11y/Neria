@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Wir freuen uns, Ihnen unsere neuesten Nachrichten mitzuteilen. Entdecken Sie unten die aktuellsten Informationen unseres Hauses.
+
+Newsletter-Inhalt
+--------------------------------
+
+
+Um keine unserer zukünftigen Nachrichten zu verpassen, bleiben Sie verbunden.
+
+Die Maison entdecken : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

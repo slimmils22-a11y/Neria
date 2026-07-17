@@ -1,0 +1,18 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+The season of celebration is approaching. Before it arrives, we have prepared a selection of pieces to give — chosen with your tastes and those you cherish in mind.
+
+To give is to extend an act of care. Each piece in this selection has been chosen to move those who receive it, with the elegance you wish for them.
+
+Discover the selection : http://localhost/shop/
+
+This selection has been composed for you, in recognition of your loyalty and sensibility.
+
+
+With all our thoughtfulness,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

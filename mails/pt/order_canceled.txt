@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+Confirmamos a receção do seu pedido de cancelamento. Foi tratado com todo o cuidado que a sua confiança nos impõe.
+
+Encomenda
+--------------------------------
+A encomenda #TEST00125.
+
+Esta encomenda foi cancelada de acordo com o seu pedido. Não será cobrado qualquer montante.
+
+Pode consultar os detalhes desta encomenda a partir da sua conta de cliente.
+
+Ver o histórico das minhas encomendas : http://localhost/shop/pt/historico-de-encomendas
+
+<a href="http://localhost/shop/pt/seguimento-de-visitante" style="color:#b38b59;">Se fez a sua encomenda como convidado, encontre o acompanhamento da sua encomenda através do link dedicado</a> : http://localhost/shop/pt/seguimento-de-visitante
+
+Esperamos voltar a recebê-lo entre as nossas paredes — no momento que melhor lhe convier.
+
+Com os nossos mais sinceros pesares e toda a nossa estima,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

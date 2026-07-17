@@ -1,0 +1,19 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi la merke til at du var i ferd med å fullføre bestillingen din. Noen ganger oppstår et teknisk problem i siste øyeblikk — en 3DS-feil, tilkoblingstimeout eller et siste nølende øyeblikk.
+
+Handlekurven din er lagret og valget ditt venter akkurat der du forlot det.
+
+Fullfør bestillingen min : http://localhost/shop/index.php?controller=cart
+
+Hvis du støtte på et betalingsproblem, er teamet vårt tilgjengelig for å hjelpe deg med å fullføre i ro og mak.
+
+Ingen spesiell handling kreves fra deg — handlekurven din er bevart.
+
+Med all vår oppmerksomhet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

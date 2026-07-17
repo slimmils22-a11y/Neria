@@ -1,0 +1,21 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Wij informeren u dat de verzending van uw bestelling een onverwachte vertraging oploopt. We doen er alles aan om dit zo snel mogelijk op te lossen.
+
+Orderreferentie : PREVIEW001
+
+Vertragingsdetails
+--------------------------------
+Nieuwe geschatte datum : 15/06/2026
+
+Mijn bestelling volgen : http://localhost/shop/nl/besteloverzicht
+
+We houden u op de hoogte van eventuele ontwikkelingen. Onze excuses.
+
+Met al onze achting,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

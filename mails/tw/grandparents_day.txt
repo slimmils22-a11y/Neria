@@ -1,0 +1,17 @@
+﻿Test Neria
+
+早安, Sophie,
+
+在這個屬於祖父母的節日裡，我們緬懷他們播撒在您心中的記憶、溫柔與智慧。
+
+送給他們一件承載著他們給予您的時光、耐心與愛的珍品。
+
+探索我們的精選 : http://localhost/shop/
+
+特別關懷為您保留至本週末。
+
+全體團隊祝您祖父母節快樂。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

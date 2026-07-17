@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+Şu anda çok talep gören bir ürüne ilgi gösterdiniz. Sınırlı bir miktarın tekrar stokta olduğunu bildirmekten mutluluk duyarız.
+
+İlgili ürün
+--------------------------------
+Sınırlı miktarda tekrar stokta: .
+
+Ürünü görüntüle : 
+
+Bu teklif mevcut stoklarla sınırlıdır. Gecikmemenizi öneririz.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

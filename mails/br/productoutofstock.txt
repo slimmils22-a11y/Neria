@@ -1,0 +1,21 @@
+Test Neria
+
+Caro colaborador,
+
+Um produto da sua loja está agora esgotado.
+
+Detalhes do produto
+--------------------------------
+Produto : Montre Élégance Neria
+
+Limite de alerta de estoque atingido : 5
+
+Quantidade restante : 0
+
+Convidamos você a reabastecer este produto o mais rápido possível.
+
+Este alerta é automático. Verifique o status do seu estoque.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

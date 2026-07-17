@@ -1,0 +1,51 @@
+Test Neria
+
+Un nuovo ordine Vi attende
+
+Avete ricevuto un nuovo ordine nel Vostro negozio. Ecco i dettagli.
+
+Cliente : Camille Dupont (test@test.com)
+
+Dettagli dell'ordine
+--------------------------------
+Riferimento : #TEST00125
+
+Data : 
+
+Pagamento : 
+
+
+
+Totale prodotti : 
+
+Sconti : 
+
+Confezione regalo : 
+
+Spedizione : 
+
+Tasse : 
+
+Totale pagato : 
+
+Spedizione
+--------------------------------
+Corriere : 
+
+Indirizzo di consegna
+--------------------------------
+
+
+Indirizzo di fatturazione
+--------------------------------
+
+
+Messaggio del cliente
+--------------------------------
+
+
+Andate alla Vostra amministrazione per gestire questo ordine con la cura che merita.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

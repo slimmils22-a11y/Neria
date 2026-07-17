@@ -1,0 +1,22 @@
+Test Neria
+
+God morgen, Sophie,
+
+Tak for din ordre. Følgende digitale produkter er nu tilgængelige til download.
+
+Ordre PREVIEW001 — Downloads
+--------------------------------
+Du har 2 produkt(er) tilgængelig til download.
+
+Patron de couture Neria Vol.1 — http://localhost/shop/download/1
+Guide d'entretien premium — http://localhost/shop/download/2
+
+<a href="http://localhost/shop/da/ordrehistorik" style="color:#b38b59;">Vis din ordrehistorik</a> : http://localhost/shop/da/ordrehistorik
+
+<a href="http://localhost/shop/da/Gaestesporing" style="color:#b38b59;">Gæstesporing</a> : http://localhost/shop/da/Gaestesporing
+
+Nyd opdagelsen af dit køb,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

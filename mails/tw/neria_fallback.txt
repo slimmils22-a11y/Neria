@@ -1,0 +1,11 @@
+Test Neria
+
+我們在想念您
+
+我們已收到您的請求，並正以應有的關注處理。如有必要，我們的團隊將與您聯繫。
+
+滿懷關懷，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

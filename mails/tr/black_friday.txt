@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Bu güne ölçülü bir şekilde katılmaya karar verdik. İşte ayrıcalıklı koşullarda seçkin parçalardan oluşan bir seçki.
+
+Bizde nadirlik gösterişsiz kalır. Belki de beklediğiniz bir parçayı kendinize hediye edin.
+
+Seçkiyi keşfedin : http://localhost/shop/
+
+Bu teklif zamanlıdır ve yalnızca en dikkatli konuklarımıza sunulmaktadır.
+
+Tüm ekibimiz size en iyi keşfi diler.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

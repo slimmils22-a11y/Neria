@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi er glade for at kunne informere dig om, at din ordre skrider frem i vores værksted.
+
+Nuværende trin
+--------------------------------
+Assemblage final en atelier
+
+Vores håndværker vier al sin omhu til at give liv til dit unikke stykke. Vi vil holde dig opdatert på hvert trin.
+
+Du kan følge fremskridtene for din ordre fra din kundekonto.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

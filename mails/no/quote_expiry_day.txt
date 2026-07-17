@@ -1,0 +1,23 @@
+Test Neria
+
+God morgen, Sophie,
+
+Tilbudet ditt utløper i dag. Vi inviterer deg til å bekrefte det så snart som mulig for å sikre de avtalte betingelsene.
+
+Tilbudsreferanse: 
+
+Beløp: 
+
+Utløper: 
+
+Bekreft tilbudet mitt nå : 
+
+For hastespørsmål er teamet vårt umiddelbart tilgjengelig.
+
+Dette tilbudet utløper i dag. Etter denne datoen kan de avtalte prisbetingelsene bli endret.
+
+Med utmerket aktelse,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

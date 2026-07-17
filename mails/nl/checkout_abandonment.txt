@@ -1,0 +1,19 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+We merkten dat u op het punt stond uw bestelling af te ronden. Soms doet zich op het laatste moment een technisch probleem voor — een 3DS-fout, een verbindingstime-out of een laatste twijfel.
+
+Uw winkelwagen is opgeslagen en uw selectie wacht precies waar u het hebt achtergelaten.
+
+Mijn bestelling voltooien : http://localhost/shop/index.php?controller=cart
+
+Als u een betalingsprobleem heeft gehad, staat ons team klaar om u te helpen uw bestelling in alle rust te voltooien.
+
+Er is geen speciale actie van uw kant vereist — uw winkelwagen is bewaard.
+
+Met alle aandacht,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

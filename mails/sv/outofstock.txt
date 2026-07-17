@@ -1,0 +1,21 @@
+Test Neria
+
+God morgon, Sophie,
+
+Vi beklagar att meddela dig att en av artiklarna i din beställning för närvarande inte är tillgänglig.
+
+Beställning PREVIEW001
+--------------------------------
+Ett av styckena i din beställning undviker oss tillfälligt — en mycket sällsynt situation, som vi tar på mycket stort allvar.
+
+Vi ber om ursäkt för denna försening, som inte speglar våra standarder. Vårt team kommer att kontakta dig inom kort för att tillsammans komma överens om den bästa lösningen.
+
+<a href="http://localhost/shop/sv/bestallningshistorik" style="color:#b38b59;">Du kan se detaljerna för din beställning från ditt kundkonto</a> : http://localhost/shop/sv/bestallningshistorik
+
+<a href="http://localhost/shop/sv/gastsparning" style="color:#b38b59;">Om du beställde som gäst, följ din beställning via den dedikerade länken</a> : http://localhost/shop/sv/gastsparning
+
+Vi ber om ursäkt för denna mycket sällsynta försening,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

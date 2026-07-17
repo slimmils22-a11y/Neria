@@ -1,0 +1,58 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We have the privilege of confirming the receipt of your order. Each piece you distinguished will be prepared with the attention it deserves — and you deserve.
+
+Our artisans carry a heritage passed down from generation to generation. Your creation is now the expression of it.
+
+Order details
+--------------------------------
+Order number : PREVIEW001
+
+Date : 11/07/2026 15:31:35
+
+Payment method : Carte bancaire
+
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+
+Total products : 89,00 €
+
+Discounts : 0,00 €
+
+Shipping : 0,00 €
+
+Tax : 14,83 €
+
+Total paid : 89,00 €
+
+Shipping
+--------------------------------
+Carrier : Colissimo
+
+Delivery address
+--------------------------------
+Sophie Durand
+12 rue de la Paix
+75001 Paris
+France
+
+Invoice address
+--------------------------------
+Sophie Durand
+12 rue de la Paix
+75001 Paris
+France
+
+<a href="http://localhost/shop/fr/historique-commandes" style="color:#b38b59;">You can track the progress of your package from your customer account</a>
+
+<a href="http://localhost/shop/gb/order-history" style="color:#b38b59;">View your order history in your customer account</a> : http://localhost/shop/gb/order-history
+
+<a href="http://localhost/shop/gb/guest-tracking" style="color:#b38b59;">If you ordered as a guest, track your order via the dedicated link</a> : http://localhost/shop/gb/guest-tracking
+
+With all our gratitude and pride,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+Test Neria
+
+A comment on your order
+
+A customer has left a comment regarding their order. Here is the information.
+
+Order information
+--------------------------------
+Reference : PREVIEW001
+
+Customer : Sophie Durand (test@test.com)
+
+Customer message
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+You can reply to this message from the store administration.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

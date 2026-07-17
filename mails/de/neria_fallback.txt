@@ -1,0 +1,11 @@
+
+
+Wir denken an Sie
+
+Wir haben Ihre Anfrage erhalten und bearbeiten sie mit der gebührenden Sorgfalt. Unser Team wird sich bei Bedarf mit Ihnen in Verbindung setzen.
+
+Mit aller Sorgfalt,
+
+
+http://localhost/shop/
+{custom_message_txt}

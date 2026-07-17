@@ -1,0 +1,20 @@
+﻿Test Neria
+
+Caro colaborador,
+
+Uma mensagem de cliente foi reencaminhada para você para tratamento.
+
+Marie Lefebvre reencaminhou a seguinte mensagem para você.
+
+Histórico da conversa
+--------------------------------
+Client : Bonjour, j'ai une question sur ma commande.
+Support : Bonjour, je regarde ça immédiatement.
+
+Marie Lefebvre adicionou o seguinte comentário : Client prioritaire — traiter en urgence.
+
+Não responda a este e-mail automático. Faça login na administração para processar a solicitação.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

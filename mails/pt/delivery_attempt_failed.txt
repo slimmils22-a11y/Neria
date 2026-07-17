@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+Tentámos entregar a sua encomenda, mas ninguém estava presente para a receber.
+
+Referência da encomenda : #TEST00125
+
+Detalhes da tentativa de entrega
+--------------------------------
+Estado da encomenda : 
+
+O que fazer agora? : 
+
+Ver opções de levantamento : http://localhost/shop/pt/historico-de-encomendas
+
+A encomenda está guardada num ponto de recolha para si.
+
+Na expectativa de o servir,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

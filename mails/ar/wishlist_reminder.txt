@@ -1,0 +1,19 @@
+Test Neria
+
+مساء الخير, Sophie,
+
+إحدى القطع التي ميّزتموها في قائمة رغباتكم أصبحت متاحة مجدداً.
+
+تفاصيل القطعة
+--------------------------------
+Montre Élégance Neria
+
+عرض القطعة : http://localhost/shop/
+
+التوفر محدود. ندعوكم إلى عدم التأخير.
+
+في خدمتكم،
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

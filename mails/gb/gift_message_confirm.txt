@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+We confirm that the message you attached to your gift order has been successfully recorded.
+
+Order reference : PREVIEW001
+
+Message content
+--------------------------------
+« Joyeux anniversaire ma chère Sophie. Que cette année t apporte tout le bonheur que tu mérites. Avec tout mon amour. »
+
+View my order : http://localhost/shop/gb/order-history
+
+The recipient will receive this message with their package.
+
+With all our attention,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

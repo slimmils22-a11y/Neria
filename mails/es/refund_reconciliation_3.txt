@@ -1,0 +1,17 @@
+Test Neria
+
+Buenos días, Camille,
+
+Su reembolso ya ha sido procesado. Esperamos que todo haya transcurrido a su entera satisfacción.
+
+Sepa que nuestra casa es la suya, y que siempre estaremos encantados de recibirle de nuevo, cuando lo considere oportuno.
+
+Volver a nuestra casa : http://localhost/shop/
+
+Han llegado novedades desde su última visita. Quizás encuentre algo que le guste.
+
+Con nuestros más cordiales saludos,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

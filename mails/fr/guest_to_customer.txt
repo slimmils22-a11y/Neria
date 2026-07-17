@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Madame, Monsieur Durand,
+
+Vous avez récemment passé commande en tant qu'invité. Nous vous invitons à transformer votre compte invité en espace personnel permanent pour profiter de nombreux privilèges.
+
+Informations de votre compte
+--------------------------------
+Adresse email : admin@test.com
+
+Définissez votre mot de passe pour activer votre compte et accéder à votre espace personnel.
+
+Activer mon espace personnel : #
+
+Votre espace personnel vous permettra de retrouver vos privilèges à tout moment : suivre vos créations en transit, consulter l'histoire de vos choix, et préparer vos prochaines visites dans les meilleures conditions.
+
+Accéder à mon compte : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

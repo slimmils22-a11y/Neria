@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Hemos elegido participar en este día con sobriedad. Aquí hay una selección de piezas excepcionales en condiciones privilegiadas.
+
+En nuestra casa, la rareza sigue siendo discreta. Regálate una pieza que quizás estabas esperando.
+
+Descubrir la selección : http://localhost/shop/
+
+Esta oferta es limitada en el tiempo y estrictamente reservada a nuestros huéspedes más atentos.
+
+Todo el equipo le desea el mejor encuentro.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

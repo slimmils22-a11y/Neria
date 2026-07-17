@@ -1,0 +1,21 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Uw bestelling is opgesplitst in meerdere pakketten om de verzending te vergemakkelijken. Een deel ervan is al naar u onderweg.
+
+Orderreferentie : PREVIEW001
+
+Details van verzonden pakketten
+--------------------------------
+Colis 1/2 — Montre Élégance Neria · Colissimo 6A1234567890
+
+Mijn pakketten volgen : http://localhost/shop/nl/besteloverzicht
+
+We houden u op de hoogte van de verzending van de resterende pakketten.
+
+Met al onze aandacht,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

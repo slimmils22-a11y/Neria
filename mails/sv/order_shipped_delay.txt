@@ -1,0 +1,21 @@
+Test Neria
+
+God morgon, Sophie,
+
+Vi informerar dig om att leveransen av din beställning drabbas av en oväntad försening. Vi gör allt vi kan för att lösa det så snabbt som möjligt.
+
+Beställningsreferens : PREVIEW001
+
+Förseningsdetaljer
+--------------------------------
+Nytt beräknat datum : 15/06/2026
+
+Spåra min beställning : http://localhost/shop/sv/bestallningshistorik
+
+Vi håller dig informerad om eventuella förändringar. Vi ber om ursäkt.
+
+Med all vår respekt,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

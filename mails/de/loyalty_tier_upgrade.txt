@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Wir freuen uns, Ihnen mitzuteilen, dass Ihre Treue Ihnen den Aufstieg in die nächste Stufe unseres Programms ermöglicht hat. Ein neuer Meilenstein in unserer Beziehung.
+
+Ihr neuer Status
+--------------------------------
+Neue Stufe : 
+Gesamtpunkte : 
+
+Ihr exklusiver Rabattgutschein
+ — Wert : 
+
+Meine neuen Privilegien entdecken : http://localhost/shop/de/bestellungsverlauf
+
+Dieser Status öffnet Ihnen Türen, die wir den treuesten vorbehalten.
+
+Mit all unserer Dankbarkeit,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

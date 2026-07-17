@@ -1,0 +1,23 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Lembramos que seu orçamento expira em menos de 48 horas. Convidamos você a confirmá-lo antes do vencimento para usufruir das condições acordadas.
+
+Referência do orçamento: 
+
+Valor: 
+
+Expira em: 
+
+Confirmar meu pedido : 
+
+Nossa equipe permanece à sua inteira disposição para qualquer dúvida ou ajuste antes da confirmação.
+
+Este orçamento expirará em . Após essa data, as condições tarifárias acordadas poderão não ser garantidas.
+
+Com nossa distinta consideração,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

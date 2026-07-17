@@ -1,0 +1,17 @@
+Test Neria
+
+Hallo, Camille,
+
+Ihre außergewöhnliche Treue berührt uns tief. Mit aufrichtiger Dankbarkeit heißen wir Sie in unserem exklusivsten Kreis willkommen — dem Kreis derer, die uns mit ihrem dauerhaften Vertrauen beehren.
+
+Ihr VIP-Status öffnet Ihnen Türen, die wir für den Rest der Welt geschlossen halten: Vorab-Einblicke in unsere neuen Kreationen, private Einladungen zu unseren Veranstaltungen, maßgeschneiderte Angebote und persönliche Betreuung.
+
+Meine Privilegien entdecken : http://localhost/shop/
+
+Dieser Status ist ein Spiegel Ihres Vertrauens. Wir tragen ihn mit der gleichen Sorgfalt, die Sie uns entgegenbringen.
+
+Mit all unserer Dankbarkeit und Bewunderung,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

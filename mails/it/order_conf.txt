@@ -1,0 +1,52 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Abbiamo il privilegio di confermare la ricezione del Vostro ordine. Ogni pezzo che avete distinto sarà preparato con l'attenzione che merita — e che Voi meritate.
+
+I nostri artigiani portano in sé un'eredità tramandata di generazione in generazione. La Vostra creazione ne è ora l'espressione.
+
+Dettagli dell'ordine
+--------------------------------
+Numero d'ordine : #TEST00125
+
+Data : 
+
+Metodo di pagamento : 
+
+
+
+
+Totale prodotti : 
+
+Sconti : 
+
+Spedizione : 
+
+Tasse : 
+
+Totale pagato : 
+
+Spedizione
+--------------------------------
+Corriere : 
+
+Indirizzo di consegna
+--------------------------------
+
+
+Indirizzo di fatturazione
+--------------------------------
+
+
+<a href="" style="color:#b38b59;">Può seguire l'avanzamento del Vostro pacco dal Vostro account cliente</a>
+
+<a href="http://localhost/shop/it/cronologia-ordini" style="color:#b38b59;">Visualizza lo storico del Vostro ordine nel Vostro account cliente</a> : http://localhost/shop/it/cronologia-ordini
+
+<a href="http://localhost/shop/it/tracciatura-ospite" style="color:#b38b59;">Se ha ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a> : http://localhost/shop/it/tracciatura-ospite
+
+Con tutta la nostra gratitudine e il nostro orgoglio,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

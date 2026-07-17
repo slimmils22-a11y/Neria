@@ -1,0 +1,19 @@
+您好 Sophie,
+
+我們注意到了
+這件商品吸引了您的目光
+
+我們注意到您多次將這件商品加入購物車。如果有任何疑慮——關於尺碼、材質、配送時間或其他問題——我們的團隊隨時為您解答。
+
+--------------------------------------------------
+您感興趣的商品：
+Montre Élégance Neria
+ €
+http://localhost/shop/index.php?controller=product&id_product=1
+--------------------------------------------------
+
+沒有任何壓力——我們只是在您需要時隨時待命。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

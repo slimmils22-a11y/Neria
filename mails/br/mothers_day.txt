@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Neste dia que celebra as mães, pensamos naquela cujo olhar foi seu primeiro refúgio.
+
+Ofereça a ela o que se assemelha ao seu amor: uma peça única, discreta e infinitamente preciosa.
+
+Descubra nossa seleção : http://localhost/shop/
+
+Uma atenção especial está reservada para você até o final da semana.
+
+Toda a equipe deseja-lhe um feliz dia das mães.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

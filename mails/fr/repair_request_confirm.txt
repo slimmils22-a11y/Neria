@@ -1,0 +1,21 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous avons bien reçu votre demande de prise en charge pour la réparation ou la retouche de votre pièce.
+
+Référence commande : NR-000123
+
+Détails de la demande
+--------------------------------
+Montre Élégance Neria
+
+Suivre ma demande : http://localhost/shop/fr/historique-commandes
+
+Notre équipe vous contactera pour confirmer les modalités de la prise en charge.
+
+À votre service,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

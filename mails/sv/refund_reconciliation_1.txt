@@ -1,0 +1,17 @@
+Test Neria
+
+God morgon, Sophie,
+
+Vi ville personligen bekräfta att din återbetalning för närvarande behandlas.
+
+Din begäran har mottagits och vi ser till att den behandlas med all den omsorg den förtjänar.
+
+Se mina beställningar : http://localhost/shop/sv/bestallningshistorik
+
+Om du har några frågor är vårt team alltid till din tjänst.
+
+Med vänliga hälsningar,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

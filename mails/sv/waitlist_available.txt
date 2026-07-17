@@ -1,0 +1,23 @@
+Reserverat för dig
+
+Hej Sophie,
+
+Du väntade  dagar. Vi har inte glömt.
+
+Den här produkten är tillbaka i lager — och eftersom du var här före alla andra ger vi dig exklusiv prioriterad tillgång.
+
+Din prioriterade tillgång gäller i  timmar. Därefter öppnas produkten för alla.
+
+--------
+
+Montre Élégance Neria
+ €
+http://localhost/shop/index.php?controller=product&id_product=1
+
+--------
+
+Du får detta meddelande för att du bad om att bli aviserad när produkten kom tillbaka i lager.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

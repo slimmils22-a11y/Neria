@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Confirmamos que o reembolso do seu pedido foi efetuado com sucesso.
+
+Referência do pedido : PREVIEW001
+
+<a href="http://localhost/shop/br/historico-de-pedidos" style="color:#b38b59;">Você pode ver o histórico do seu pedido a partir da sua conta de cliente</a> : http://localhost/shop/br/historico-de-pedidos
+
+<a href="http://localhost/shop/br/rastreamento-para-visitante" style="color:#b38b59;">Se fez seu pedido como convidado, acompanhe-o através do link dedicado</a> : http://localhost/shop/br/rastreamento-para-visitante
+
+Com o nosso mais profundo agradecimento,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,51 @@
+Test Neria
+
+Yeni sipariş sizi bekliyor
+
+Mağazanızda yeni bir sipariş aldınız. İşte detaylar.
+
+Müşteri : Camille Dupont (test@test.com)
+
+Sipariş detayları
+--------------------------------
+Referans : #TEST00125
+
+Tarih : 
+
+Ödeme : 
+
+
+
+Toplam ürün : 
+
+İndirimler : 
+
+Hediye paketleme : 
+
+Kargo : 
+
+Vergi : 
+
+Ödenen toplam : 
+
+Kargo
+--------------------------------
+Kargo şirketi : 
+
+Teslimat adresi
+--------------------------------
+
+
+Fatura adresi
+--------------------------------
+
+
+Müşteri mesajı
+--------------------------------
+
+
+Yönetim paneline gidin ve bu siparişi hak ettiği özenle işleme alın.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

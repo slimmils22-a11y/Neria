@@ -1,0 +1,52 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Temos o privilégio de confirmar a receção da sua encomenda. Cada peça que distinguiu será preparada com a atenção que merece — e que merece.
+
+Os nossos artesãos carregam um legado transmitido de geração em geração. A sua criação é agora a sua expressão.
+
+Detalhes da encomenda
+--------------------------------
+Número da encomenda : #TEST00125
+
+Data : 
+
+Método de pagamento : 
+
+
+
+
+Total produtos : 
+
+Descontos : 
+
+Envio : 
+
+Impostos : 
+
+Total pago : 
+
+Envio
+--------------------------------
+Transportadora : 
+
+Morada de entrega
+--------------------------------
+
+
+Morada de faturação
+--------------------------------
+
+
+<a href="" style="color:#b38b59;">Pode acompanhar o progresso da sua encomenda a partir da sua conta de cliente</a>
+
+<a href="http://localhost/shop/pt/historico-de-encomendas" style="color:#b38b59;">Consulte o histórico da sua encomenda na sua conta de cliente</a> : http://localhost/shop/pt/historico-de-encomendas
+
+<a href="http://localhost/shop/pt/seguimento-de-visitante" style="color:#b38b59;">Se fez a sua encomenda como convidado, acompanhe-a através do link dedicado</a> : http://localhost/shop/pt/seguimento-de-visitante
+
+Com toda a nossa gratidão e orgulho,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

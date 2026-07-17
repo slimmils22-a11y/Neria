@@ -1,0 +1,15 @@
+Test Neria
+
+Kære medarbejder,
+
+Testresultat
+--------------------------------
+Dette er en test-e-mail sendt af Neria-modulet.
+
+Hvis du modtager denne besked, betyder det, at modulet er konfigureret korrekt.
+
+Denne test er beregnet til butiksadministrationen. Du kan slette denne e-mail.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

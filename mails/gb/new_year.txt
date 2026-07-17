@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+At the beginning of this year, we wish to accompany you with our most sincere wishes.
+
+May this new year be for you a path of gentleness, success and beautiful discoveries.
+
+Discover our creations : http://localhost/shop/
+
+A special attention is reserved for you until the end of the month.
+
+The entire team wishes you an excellent year.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

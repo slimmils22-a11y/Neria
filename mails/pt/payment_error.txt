@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Uma interrupção técnica interrompeu o processamento do seu pagamento. Pedimos desculpa e convidamo-lo a regularizá-lo à sua conveniência.
+
+Encomenda #TEST00125
+--------------------------------
+Pagamento da encomenda #TEST00125.
+
+A sua encomenda está conservada e continua a ser prioritária. Pode regularizar o seu pagamento quando desejar — esperamos por si.
+
+Se este contratempo persistir, convidamo-lo a consultar os detalhes da sua encomenda no seu espaço pessoal.
+
+<a href="http://localhost/shop/pt/seguimento-de-visitante" style="color:#b38b59;">Se fez a sua encomenda como convidado, acompanhe-a através do link dedicado</a> : http://localhost/shop/pt/seguimento-de-visitante
+
+Agradecemos a sua compreensão,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

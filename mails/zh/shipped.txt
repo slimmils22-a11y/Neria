@@ -1,0 +1,23 @@
+Test Neria
+
+早上好, Sophie,
+
+我们自豪地宣布您的订单已发货。我们的工匠以应有的谨慎——每个细节、每个包装、每个动作——准备了它。
+
+订单
+--------------------------------
+订单 PREVIEW001.
+
+它现已交予承运商，将在预期时间内送达。
+
+<a href="http://localhost/shop/zh/订单-历史" style="color:#b38b59;">您可以从客户账户查看订单历史。</a> : http://localhost/shop/zh/订单-历史
+
+<a href="http://localhost/shop/zh/客户跟踪" style="color:#b38b59;">如果您以访客身份下单，请通过专用链接跟踪订单。</a> : http://localhost/shop/zh/客户跟踪
+
+愿您收到的时刻，配得上这件作品所承载的情感。
+
+怀着我们所有的自豪与奉献，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

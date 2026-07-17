@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+A sua encomenda está a ser processada pelas autoridades aduaneiras do país de destino.
+
+Referência da encomenda : #TEST00125
+
+Detalhes do alerta aduaneiro
+--------------------------------
+Estado atual : 
+
+Ação recomendada : 
+
+Acompanhar a minha encomenda : http://localhost/shop/pt/historico-de-encomendas
+
+A nossa equipa pode auxiliá-lo nos procedimentos, se necessário.
+
+Ao seu serviço para ultrapassar esta etapa,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

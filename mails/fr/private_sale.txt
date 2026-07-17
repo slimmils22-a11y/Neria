@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Nous avons le privilège de vous convier à notre vente privée, réservée à nos hôtes les plus précieux.
+
+Profitez d'une sélection unique de pièces rares à des conditions privilégiées.
+
+Accéder à la vente privée : #
+
+Cette offre est strictement personnelle et limitée dans le temps.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We thought of you, and hope you are well. Our creations continue to evolve, and we would like to reintroduce them to you.
+
+We have prepared a selection that might appeal to you. A delicate attention, with no obligation.
+
+Discover our selection : http://localhost/shop/
+
+We would be happy to welcome you again.
+
+Looking forward to seeing you again,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

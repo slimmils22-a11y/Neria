@@ -1,0 +1,21 @@
+Test Neria
+
+Buenos días, Camille,
+
+Sus piezas han sido confiadas a nuestros artesanos. En sus manos, cada gesto es un homenaje a su elección.
+
+Pedido
+--------------------------------
+El pedido #TEST00125.
+
+Un saber hacer pacientemente cultivado, enteramente al servicio de lo que espera — y de lo que merece.
+
+<a href="http://localhost/shop/es/historial-compra" style="color:#b38b59;">Puede seguir la evolución de su pedido desde su cuenta de cliente</a> : http://localhost/shop/es/historial-compra
+
+<a href="http://localhost/shop/es/seguimiento-pedido-invitado" style="color:#b38b59;">Si realizó su pedido como invitado, siga su pedido a través del enlace dedicado</a> : http://localhost/shop/es/seguimiento-pedido-invitado
+
+En espera del placer de satisfacerle,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

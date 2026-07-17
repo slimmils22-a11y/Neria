@@ -1,0 +1,21 @@
+Test Neria
+
+亲爱的员工，
+
+您商店中的一款商品现已缺货。
+
+商品详情
+--------------------------------
+商品 : Montre Élégance Neria
+
+库存预警阈值已达到 : 5
+
+剩余数量 : 0
+
+请尽快补充该商品。
+
+此警报为自动。请检查您的库存状态。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,24 @@
+﻿Test Neria
+
+God morgon, Sophie,
+
+Ditt urval är nu på resa. Här är de berörda styckena:
+
+Réf. NER-001 — Montre Élégance Neria × 1
+Réf. NER-014 — Bracelet Cuir Atelier × 1
+
+Beställning PREVIEW001
+--------------------------------
+Beställning PREVIEW001.
+
+Den är under transport och kommer att nå dig inom förväntad tid.
+
+Spåra min beställning : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/sv/bestallningshistorik" style="color:#b38b59;">Se din beställningshistorik i ditt kundkonto</a> : http://localhost/shop/sv/bestallningshistorik
+
+<a href="http://localhost/shop/sv/gastsparning" style="color:#b38b59;">Om du beställde som gäst, följ din beställning via den dedikerade länken</a> : http://localhost/shop/sv/gastsparning
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

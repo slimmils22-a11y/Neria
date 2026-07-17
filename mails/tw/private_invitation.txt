@@ -1,0 +1,23 @@
+﻿Test Neria
+
+早安, Sophie,
+
+您屬於我們保留此邀請的極少數人物圈子。它不會被更新，也無法分享。
+
+在遠離尋常商業的非凡環境中，您將搶先發現我們的店鋪為懂得欣賞的人所準備的。
+
+活動詳情
+--------------------------------
+Showroom Neria — 8 place Vendôme, 75001 Paris
+
+Vendredi 20 juin 2026, de 18h à 22h
+
+您的蒞臨將是我們莫大的榮幸。我們恭候。
+
+確認出席 : http://localhost/shop/index.php?controller=rsvp&token=preview
+
+此邀請嚴格個人專屬，不得轉讓。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

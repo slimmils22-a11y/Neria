@@ -1,0 +1,17 @@
+Test Neria
+
+Buenos días, Camille,
+
+Para activar su suscripción a nuestro boletín, confirme su dirección de correo electrónico haciendo clic en el siguiente enlace.
+
+Verificación
+--------------------------------
+Este enlace seguro confirma su suscripción y le da acceso a todas nuestras noticias.
+
+Confirmar mi suscripción : 
+
+Si no ha solicitado esta suscripción, puede ignorar este mensaje.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

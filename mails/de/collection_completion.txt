@@ -1,0 +1,28 @@
+Ihre Kollektion
+
+Hallo Camille,
+
+Nur noch ein Stück fehlt
+
+Sie haben das Schwierigste bereits geschafft. Nur noch ein Stück fehlt, um Ihre Kollektion zu vervollständigen — wir wollten Sie daran erinnern, bevor es vergriffen ist.
+
+--------
+
+Fortschritt Ihrer Kollektion : 
+Bereits erworbene Stücke — noch eines bis zur Vollständigkeit
+
+--------
+
+Das fehlende Stück : 
+ €
+
+Kollektion vervollständigen :
+
+
+--------
+
+Diese Empfehlung basiert auf Ihren bisherigen Käufen innerhalb dieser Kollektion.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

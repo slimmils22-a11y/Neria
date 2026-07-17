@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+I denne årstiden når lyset seirer over kulden, tenker huset vårt på deg med en spesiell varme.
+
+Må disse høytidene tilby deg hva hverdagen for sjelden gir: tid, mildhet og selskap av dem som betyr noe.
+
+Oppdag våre kreasjoner : http://localhost/shop/
+
+En spesiell oppmerksomhet venter deg til 31. desember.
+
+Hele teamet ønsker deg fantastiske høytider.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

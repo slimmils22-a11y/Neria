@@ -1,0 +1,21 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We inform you that the shipment of your order is experiencing an unexpected delay. We are doing everything we can to resolve it as quickly as possible.
+
+Order reference : PREVIEW001
+
+Delay details
+--------------------------------
+New estimated date : 15/06/2026
+
+Track my order : http://localhost/shop/en/order-history
+
+We will keep you informed of any developments. We apologize for the inconvenience.
+
+With all our consideration,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

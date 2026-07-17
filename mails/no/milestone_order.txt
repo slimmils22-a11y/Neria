@@ -1,0 +1,17 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Vi er glade for å informere deg om at du nettopp har lagt inn din 5e bestilling hos oss. En symbolsk milepæl.
+
+Hver bestilling er et tegn på tillit for oss. Denne er spesielt nok en, og vi takker deg varmt for den.
+
+Oppdag mitt utvalg : http://localhost/shop/no/ordrehistorikk
+
+Vi reserverer spesiell oppmerksomhet for gjestene våre som når disse milepælene.
+
+Med all vår takknemlighet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

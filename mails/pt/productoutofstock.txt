@@ -1,0 +1,21 @@
+Test Neria
+
+Caro colaborador,
+
+Um produto da sua loja está agora esgotado.
+
+Detalhes do produto
+--------------------------------
+Produto : 
+
+Limite de alerta de stock atingido : 
+
+Quantidade restante : 
+
+Convidamo-lo a reabastecer este produto o mais rapidamente possível.
+
+Este alerta é automático. Verifique o estado do seu stock.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

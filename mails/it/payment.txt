@@ -1,0 +1,21 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Abbiamo ricevuto il Vostro pagamento con gratitudine. Il Vostro ordine entra ora nella fase di creazione.
+
+Ordine
+--------------------------------
+Pagamento per l'ordine #TEST00125.
+
+<a href="http://localhost/shop/it/cronologia-ordini" style="color:#b38b59;">Può visualizzare lo storico del Vostro ordine dal Vostro account cliente</a> : http://localhost/shop/it/cronologia-ordini
+
+<a href="http://localhost/shop/it/tracciatura-ospite" style="color:#b38b59;">Se ha ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a> : http://localhost/shop/it/tracciatura-ospite
+
+I nostri artigiani si metteranno all'opera con il rispetto e la cura che ogni pezzo della nostra casa ispira.
+
+Con la nostra più profonda gratitudine,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

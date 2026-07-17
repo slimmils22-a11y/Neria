@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Temos o prazer de lhe oferecer um novo vale de compras.
+
+Uma atenção para você
+--------------------------------
+Preparamos esta atenção para você. Você poderá utilizá-la em sua próxima visita.
+
+Código do vale : NERIA-VIP-2026
+
+Este vale é válido por 30 dias em toda a nossa boutique. Não pode ser combinado com outras ofertas.
+
+Esperamos que encontre algo do seu agrado entre as nossas criações.
+
+Com o prazer de oferecer este gesto a você,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

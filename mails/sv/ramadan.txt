@@ -1,0 +1,17 @@
+Test Neria
+
+God morgon, Sophie,
+
+Under denna välsignade månad av Ramadan sänder vi dig våra varmaste önskningar.
+
+Må denne välsignade månad bringa dig inre frid, glädjen av att dela och den nåd som följer dem som fastar med tro.
+
+Upptäck våra skapelser : http://localhost/shop/
+
+En särskild uppmärksamhet väntar dig under hela den heliga månaden.
+
+Hela teamet önskar dig en välsignad Ramadan.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+早安, Sophie,
+
+愛，值得用罕見的言語和非凡的作品來慶祝。我們以此為使命。
+
+我們店鋪的每一件創作，皆為此而生：成為那唯有言語不足以表達之情感的沉默使者。
+
+發現我們的作品 : http://localhost/shop/
+
+特別關懷為您保留至2月14日。
+
+全體團隊祝您情人節快樂。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

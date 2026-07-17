@@ -1,0 +1,26 @@
+Udvalgt til dig
+
+Hej Sophie,
+
+Fuldfør dit look
+
+Din ordre er netop ankommet — vi håber, du er glad for den. Her er nogle stykker, der passer perfekt til dit køb.
+
+--------
+
+1.  —  €
+
+
+2.  —  €
+
+
+3.  —  €
+
+
+--------
+
+Dette udvalg er specielt sammensat til dig, inspireret af dit seneste køb.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

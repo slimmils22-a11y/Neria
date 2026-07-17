@@ -1,0 +1,17 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+You purchased Montre Élégance Neria  days ago. Based on our estimate, your product may be running low.
+
+If you wish to renew your experience, now is the perfect time — before you run out.
+
+Renew my purchase : http://localhost/shop/index.php?controller=product&id_product=1
+
+There is no obligation of course — this is simply a friendly reminder from us.
+
+With all our attention,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

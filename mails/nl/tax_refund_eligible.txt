@@ -1,0 +1,19 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Als gast woonachtig buiten de Europese Unie heeft u recht op btw-teruggave op uw aankopen.
+
+Details van uw geschiktheid
+--------------------------------
+Orderreferentie : PREVIEW001
+
+Start de procedure : http://localhost/shop/
+
+Ons team zal u begeleiden bij de nodige stappen.
+
+Tot uw dienst,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

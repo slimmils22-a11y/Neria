@@ -1,0 +1,17 @@
+Test Neria
+
+God morgon, Sophie,
+
+Du köpte Montre Élégance Neria för  dagar sedan. Enligt vår uppskattning kan din produkt snart ta slut.
+
+Om du vill förnya din upplevelse är det nu det ideala tillfället — innan det tar slut.
+
+Förnya mitt köp : http://localhost/shop/index.php?controller=product&id_product=1
+
+Det finns givetvis ingen skyldighet — det är helt enkelt en vänlig påminnelse från oss.
+
+Med all vår uppmärksamhet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Mesajınız alındı
+
+Günaydın, Camille,
+
+Talebinizi aldığımızı onaylıyor ve bizimle iletişime geçtiğiniz için teşekkür ediyoruz. İşte bize sağladığınız bilgilerin bir kopyası:
+
+İletişim bilgileri
+--------------------------------
+E-posta adresi : test@test.com
+
+Sipariş referansı : #TEST00125
+
+Ekli dosya : 
+
+Mesajınız
+--------------------------------
+
+
+E-posta ile yanıtla : test@test.com
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

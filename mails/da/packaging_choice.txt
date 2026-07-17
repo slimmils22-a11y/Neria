@@ -1,0 +1,19 @@
+Test Neria
+
+God morgen, Sophie,
+
+Inden forsendelsen inviterer vi dig til at vælge den emballage, der skal ledsage dit stykke. En måde at forlænge oplevelsen på.
+
+Tilgængelige emballagemuligheder
+--------------------------------
+Forskellige etuier, poser og gaveæsker er tilgængelige for at fremhæve dit stykke.
+
+Vælg min emballage : http://localhost/shop/
+
+Vi vil være særligt opmærksomme på dit valg.
+
+Til din tjeneste,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

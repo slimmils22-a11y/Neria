@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Avete recentemente effettuato un ordine come ospite. Vi invitiamo a convertire il Vostro account ospite in un account cliente permanente per godere di numerosi vantaggi.
+
+Informazioni del Vostro account
+--------------------------------
+Indirizzo email : test@test.com
+
+Impostate la Vostra password per attivare il Vostro account e accedere al Vostro spazio personale.
+
+Attiva il mio spazio personale : 
+
+Il Vostro spazio personale vi permetterà di ritrovare i Vostri privilegi in qualsiasi momento: seguire le Vostre creazioni in transito, consultare la storia delle Vostre scelte e preparare le Vostre future visite nelle migliori condizioni.
+
+Accedi al mio account : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

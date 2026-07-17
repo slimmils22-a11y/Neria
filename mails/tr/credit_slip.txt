@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Sipariş #TEST00125 — Alacak dekontu
+--------------------------------
+Siparişiniz için bir alacak dekontu oluşturuldu #TEST00125.
+
+Bu alacak dekontunu görüntüleyebilir ve bir sonraki alışverişinizde kullanabilirsiniz : http://localhost/shop/tr/siparis-gecmisi
+
+Taahhüdümüzü yerine getirerek, tam saygıyla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

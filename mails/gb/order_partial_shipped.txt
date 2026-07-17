@@ -1,0 +1,21 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+Your order has been split into several packages to facilitate shipping. Part of it is already on its way to you.
+
+Order reference : PREVIEW001
+
+Details of shipped packages
+--------------------------------
+Colis 1/2 — Montre Élégance Neria · Colissimo 6A1234567890
+
+Track my packages : http://localhost/shop/gb/order-history
+
+We will keep you informed of the shipment of the remaining packages.
+
+With all our attention,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+È con orgoglio che annunciamo la spedizione del Vostro ordine. I nostri artigiani l'hanno preparata con la cura che merita — ogni dettaglio, ogni imballaggio, ogni gesto.
+
+Ordine
+--------------------------------
+L'ordine #TEST00125.
+
+È ora nelle mani del nostro corriere e Vi giungerà nei tempi previsti.
+
+<a href="http://localhost/shop/it/cronologia-ordini" style="color:#b38b59;">Può visualizzare lo storico del Vostro ordine dal Vostro account cliente</a> : http://localhost/shop/it/cronologia-ordini
+
+<a href="http://localhost/shop/it/tracciatura-ospite" style="color:#b38b59;">Se ha ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a> : http://localhost/shop/it/tracciatura-ospite
+
+Vi auguriamo una ricezione all'altezza dell'emozione che questo pezzo porta con sé.
+
+Con tutto il nostro orgoglio e la nostra dedizione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

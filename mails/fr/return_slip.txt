@@ -1,0 +1,31 @@
+Test Neria
+
+Nouvelle demande de retour
+Commande NR-000123
+
+Un client vient de soumettre une demande de retour. Voici le détail de sa demande.
+
+Client
+--------------------------------
+Nom : Sophie Durand
+Email : admin@test.com
+Commande : NR-000123
+Date de la commande : 16/07/2026
+
+Article(s) concerné(s)
+--------------------------------
+<p>Réf. NER-001 — Montre Élégance Neria × 1 — 89,00 €</p>
+
+Message du client
+--------------------------------
+Bonjour, je souhaite obtenir des informations sur ma commande.
+
+Adresse de livraison
+--------------------------------
+
+
+Vous recevez cet email car votre adresse est enregistrée dans les notifications de retour (module Alertes email de PrestaShop).
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,19 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+고객님의 선택을 안내하고 소망을 충족시켜 드릴 개인 컨설턴트를 소개합니다.
+
+전담 컨설턴트
+--------------------------------
+담당 컨설턴트 : Marie-Claire Fontaine
+
+내 컨설턴트에게 연락 : http://localhost/shop/
+
+고객님의 취향을 알고 있으며, 고객님에게 맞는 작품을 안내할 수 있습니다.
+
+주의를 기울여 서비스를 제공합니다,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

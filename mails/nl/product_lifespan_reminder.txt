@@ -1,0 +1,17 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+U heeft Montre Élégance Neria  dagen geleden aangeschaft. Volgens onze schatting raakt uw product misschien binnenkort op.
+
+Als u uw ervaring wilt verlengen, is dit het ideale moment — voordat het op is.
+
+Mijn aankoop vernieuwen : http://localhost/shop/index.php?controller=product&id_product=1
+
+Er is uiteraard geen verplichting — dit is gewoon een vriendelijke herinnering van ons.
+
+Met alle aandacht van ons,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

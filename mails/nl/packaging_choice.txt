@@ -1,0 +1,19 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Voor de verzending nodigen wij u uit om de verpakking te kiezen die uw stuk zal vergezellen. Een manier om de ervaring te verlengen.
+
+Beschikbare verpakkingsopties
+--------------------------------
+Verschillende etuis, zakjes en geschenkdozen zijn beschikbaar om uw stuk te accentueren.
+
+Kies mijn verpakking : http://localhost/shop/
+
+Wij zullen bijzondere aandacht besteden aan uw keuze.
+
+Tot uw dienst,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

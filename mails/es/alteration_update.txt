@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Le informamos sobre el progreso de la modificación a medida de su pieza. Aquí están las últimas novedades.
+
+Referencia del pedido : #TEST00125
+
+Detalles del progreso
+--------------------------------
+Estado actual : 
+
+Seguir el progreso : http://localhost/shop/es/historial-compra
+
+Nuestro equipo está a su disposición para cualquier pregunta.
+
+A su servicio,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

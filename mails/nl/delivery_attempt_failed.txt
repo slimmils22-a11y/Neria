@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+We hebben geprobeerd uw pakket te bezorgen, maar er was niemand aanwezig om het te ontvangen.
+
+Orderreferentie : PREVIEW001
+
+Details van de bezorgpoging
+--------------------------------
+Pakketstatus : Colissimo
+
+Wat nu te doen? : Tabac Presse — 5 rue de Rivoli, 75001 Paris
+
+Afhaalmogelijkheden bekijken : http://localhost/shop/nl/besteloverzicht
+
+Het pakket wordt op een afhaalpunt voor u bewaard.
+
+In afwachting van u te kunnen bedienen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

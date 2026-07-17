@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+U maakt deel uit van de zeer beperkte kring van persoonlijkheden voor wie wij deze uitnodiging reserveren. Deze wordt niet verlengd en kan niet worden gedeeld.
+
+In een uitzonderlijke setting, ver van de gewone handel, ontdekt u in première wat ons huis voorbereidt voor degenen die weten hoe ze moeten kijken.
+
+Evenementdetails
+--------------------------------
+Showroom Neria — 8 place Vendôme, 75001 Paris
+
+Vendredi 20 juin 2026, de 18h à 22h
+
+Uw aanwezigheid zou een eer voor ons zijn. We wachten erop.
+
+Bevestig mijn aanwezigheid : http://localhost/shop/index.php?controller=rsvp&token=preview
+
+Deze uitnodiging is strikt persoonlijk en niet overdraagbaar.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

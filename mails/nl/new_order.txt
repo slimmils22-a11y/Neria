@@ -1,0 +1,58 @@
+Test Neria
+
+Een nieuwe bestelling wacht op u
+
+U hebt een nieuwe bestelling ontvangen in uw winkel. Hier zijn de details.
+
+Klant : Sophie Durand (test@test.com)
+
+Bestelgegevens
+--------------------------------
+Referentie : PREVIEW001
+
+Datum : 11/07/2026 14:04:29
+
+Betaling : Carte bancaire
+
+Réf. NER-001  Montre Élégance Neria  x1
+
+
+Totaal producten : 89,00 €
+
+Kortingen : 0,00 €
+
+Cadeauverpakking : 0,00 €
+
+Verzendkosten : 0,00 €
+
+Belasting : 14,83 €
+
+Totaal betaald : 89,00 €
+
+Verzending
+--------------------------------
+Vervoerder : Colissimo
+
+Leveringsadres
+--------------------------------
+Sophie Durand
+12 rue de la Paix
+75001 Paris
+France
+
+Factuuradres
+--------------------------------
+Sophie Durand
+12 rue de la Paix
+75001 Paris
+France
+
+Klantbericht
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+Ga naar uw beheerderspaneel om deze bestelling met de nodige zorg te behandelen.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

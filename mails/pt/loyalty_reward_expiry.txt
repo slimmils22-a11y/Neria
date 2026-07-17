@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+A recompensa que obteve através do nosso programa de fidelidade expirará em breve.
+
+Detalhes da recompensa
+--------------------------------
+Data de validade : 
+
+Usar a minha recompensa : http://localhost/shop/pt/historico-de-encomendas
+
+Esta recompensa é válida até à data indicada. Após essa data, não poderá mais ser utilizada.
+
+Esperamos satisfazê-lo,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

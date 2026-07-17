@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Ons team heeft een bericht voor u over uw bestelling.
+
+Bestelling PREVIEW001
+--------------------------------
+Er is een nieuw bericht toegevoegd aan de bestelling PREVIEW001.
+
+Bericht van ons team
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+U kunt uw bestelgeschiedenis bekijken via uw klantenaccount: http://localhost/shop/nl/besteloverzicht
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

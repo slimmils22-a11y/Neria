@@ -1,0 +1,18 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Als erkenning voor uw loyaliteit openen we de toegang tot onze nieuwe collectie vóór de officiële lancering.
+
+Collectie preview
+--------------------------------
+
+Toegang tot de collectie : http://localhost/shop/
+
+Deze vroege toegang is strikt persoonlijk en beperkt in de tijd.
+
+We zijn blij dit moment met u te delen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

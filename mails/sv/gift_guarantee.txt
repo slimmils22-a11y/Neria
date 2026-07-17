@@ -1,0 +1,25 @@
+Test Neria
+
+God morgon, Sophie,
+
+Vi är glade att kunna bekräfta att din presentbeställning förbereds med största omsorg.
+
+Vad vi garanterar
+--------------------------------
+Lyxig presentförpackning
+
+Personligt meddelande enligt dina instruktioner
+
+Säker och diskret leverans
+
+Möjlighet till byte eller retur fram till 31 januari
+
+Varje detalj är genomtänkt för att erbjuda en unik upplevelse till den som får denna gåva.
+
+Spåra min beställning : http://localhost/shop/fr/historique-commandes
+
+För frågor om din presentbeställning står vårt team till din tjänst.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

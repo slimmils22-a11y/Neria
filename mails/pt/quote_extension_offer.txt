@@ -1,0 +1,23 @@
+Test Neria
+
+Boa tarde, Camille,
+
+O seu orçamento expirou, mas gostaríamos de lhe oferecer a oportunidade de o concretizar. Mediante simples pedido, podemos prorrogar a sua validade sujeito a disponibilidade.
+
+Referência do orçamento: 
+
+Valor: 
+
+Prorrogação possível até: 
+
+Solicitar uma prorrogação : 
+
+Contacte-nos hoje mesmo para confirmar o seu orçamento nas condições iniciais. A nossa equipa analisará o seu pedido com a maior atenção.
+
+Esta oferta de prorrogação está sujeita à disponibilidade dos artigos e à confirmação da nossa equipa.
+
+Com a nossa consideração distinta,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

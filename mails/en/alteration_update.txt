@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+We inform you of the progress of the custom alteration of your piece. Here are the latest news.
+
+Order reference : PREVIEW001
+
+Progress details
+--------------------------------
+Current status : Retouche en cours de finition
+
+Track progress : http://localhost/shop/en/order-history
+
+Our team remains at your disposal for any questions.
+
+At your service,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

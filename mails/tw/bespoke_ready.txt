@@ -1,0 +1,21 @@
+﻿Test Neria
+
+早安, Sophie,
+
+我們很高興地宣佈，您的定制訂單現已完成。我們的工匠已將您的願景化為現實。
+
+訂單編號 : PREVIEW001
+
+您的作品詳情
+--------------------------------
+Montre Élégance Neria
+
+跟踪配送 : http://localhost/shop/tw/訂單記錄
+
+感謝您的耐心等待。這件獨一無二的作品終於準備好與您相伴。
+
+很榮幸陪伴您完成這次創作，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

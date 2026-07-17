@@ -1,0 +1,17 @@
+Test Neria
+
+Madame, Monsieur,
+
+Il y a , vous nous avez accordé votre confiance pour la première fois. Nous n'avons pas oublié.
+
+Cette fidélité est notre plus belle récompense. Nous sommes heureux de vous compter parmi nos clients les plus précieux.
+
+Voir mes achats : http://localhost/shop/fr/historique-commandes
+
+Merci de faire partie de l'histoire de notre maison.
+
+Avec toute notre reconnaissance,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

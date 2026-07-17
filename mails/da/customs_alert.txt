@@ -1,0 +1,23 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Din ordre behandles i øjeblikket af toldmyndighederne i destinationslandet.
+
+Ordrereference : PREVIEW001
+
+Toldadvarselsdetaljer
+--------------------------------
+Aktuel status : En attente de dédouanement
+
+Anbefalet handling : Aucune action requise de votre part.
+
+Spor min pakke : http://localhost/shop/da/ordrehistorik
+
+Vores team kan hjælpe dig med procedurerne, hvis det er nødvendigt.
+
+Til din tjeneste for at klare dette trin,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

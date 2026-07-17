@@ -1,0 +1,21 @@
+﻿Test Neria
+
+مساء الخير, Sophie,
+
+نؤكد أن الرسالة التي أرفقتموها بطلب الهدية الخاص بكم قد تم تسجيلها بنجاح.
+
+مرجع الطلب : PREVIEW001
+
+محتوى الرسالة
+--------------------------------
+« Joyeux anniversaire ma chère Sophie. Que cette année t apporte tout le bonheur que tu mérites. Avec tout mon amour. »
+
+عرض طلبي : http://localhost/shop/ar/سجل طلبات الشراء
+
+سيستلم المستلم هذه الرسالة مع طرده.
+
+بكل اهتمامنا،
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

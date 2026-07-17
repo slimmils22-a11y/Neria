@@ -1,0 +1,33 @@
+Test Neria
+
+Доброе утро, Sophie,
+
+Ваш заказ успешно зарегистрирован. Он будет обработан после получения чека.
+
+Заказ PREVIEW001 — Ожидание чека
+--------------------------------
+Благодарим за Ваш заказ PREVIEW001.
+
+Данные для отправки чека
+--------------------------------
+Пожалуйста, выпишите чек на имя указанного ниже получателя и отправьте его по следующему адресу:
+
+Сумма : 89,00 €
+
+Чек выписан на имя : Test Neria
+
+Адрес для отправки :
+12 rue de la Paix
+75001 Paris
+
+Пожалуйста, укажите референс PREVIEW001.
+
+<a href="http://localhost/shop/ru/order-history" style="color:#b38b59;">Просмотреть историю заказа</a> : http://localhost/shop/ru/order-history
+
+<a href="http://localhost/shop/ru/guest-tracking" style="color:#b38b59;">Отслеживание для гостя</a> : http://localhost/shop/ru/guest-tracking
+
+В ожидании Вашего чека, с полным доверием,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

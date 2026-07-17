@@ -1,0 +1,21 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We are pleased to offer you a new voucher.
+
+An attention for you
+--------------------------------
+We have prepared this attention for you. You may use it during your next visit.
+
+Voucher code : NERIA-VIP-2026
+
+This voucher is valid for 30 days across our entire boutique. Cannot be combined with other offers.
+
+We hope you will find something to your liking among our creations.
+
+With the pleasure of offering you this gesture,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

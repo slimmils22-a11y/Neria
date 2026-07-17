@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+I anledning av det måne-nyttåret sender vi deg våre varmeste ønsker.
+
+Må denne feiringen bringe deg lykke, helse og suksess i alle dine prosjekter.
+
+Oppdag våre kreasjoner : http://localhost/shop/
+
+En spesiell oppmerksomhet venter deg til slutten av festlighetene.
+
+Hele teamet ønsker deg et fantastisk måne-nyttår.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

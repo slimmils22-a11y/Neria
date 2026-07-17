@@ -1,0 +1,21 @@
+Test Neria
+
+God morgon, Sophie,
+
+Vi är glada att erbjuda dig ett nytt presentkort.
+
+En uppmärksamhet för dig
+--------------------------------
+Vi har förberett denna uppmärksamhet för dig. Du kan använda den vid ditt nästa besök.
+
+Presentkortskod : NERIA-VIP-2026
+
+Detta presentkort är giltigt i 30 dagar i hela vår butik. Kan inte kombineras med andra erbjudanden.
+
+Vi hoppas att du hittar något som faller dig i smaken bland våra skapelser.
+
+Med nöjet att erbjuda dig denna gest,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

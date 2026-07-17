@@ -1,0 +1,17 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous souhaitions vous confirmer personnellement que votre remboursement est en cours de traitement.
+
+Votre demande a été prise en compte et nous veillons à ce qu'elle soit traitée avec toute l'attention qu'elle mérite.
+
+Consulter mes commandes : http://localhost/shop/fr/historique-commandes
+
+Si vous avez la moindre question, notre équipe reste disponible pour vous.
+
+Avec toute notre considération,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

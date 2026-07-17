@@ -1,0 +1,25 @@
+Test Neria
+
+Buenos días, Camille,
+
+No escribimos para justificarnos. Escribimos para asumir plenamente y presentar nuestras disculpas sin reservas.
+
+Detalles del incidente
+--------------------------------
+Referencia : #TEST00125
+
+
+
+Este contratiempo no refleja en absoluto los estándares que nos imponemos. Somos los primeros afectados y estamos decididos a que siga siendo una excepción absoluta.
+
+Un miembro de nuestro equipo se pondrá en contacto con usted personalmente en un plazo de 24 horas para acordar la solución más adecuada — una que, esperamos, restaure su confianza.
+
+Contactar con nuestro servicio : 
+
+Su paciencia y amabilidad nos conmueven. Ahora debemos merecerlas.
+
+Con nuestra más sincera contrición y nuestro absoluto compromiso,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

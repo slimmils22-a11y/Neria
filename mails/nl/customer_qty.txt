@@ -1,0 +1,17 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+U heeft interesse getoond in een product dat momenteel zeer gewild is. Wij zijn verheugd u te kunnen meedelen dat een beperkte hoeveelheid weer beschikbaar is.
+
+Betrokken product
+--------------------------------
+Terug in beperkte hoeveelheid: Montre Élégance Neria.
+
+Bekijk product : http://localhost/shop/index.php?controller=product&id_product=1
+
+Deze aanbieding is strikt beperkt tot de beschikbare voorraad. Wij raden u aan niet te aarzelen.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+주문과 관련하여 보내주신 메시지를 받았습니다. 제공해 주신 정보 요약입니다:
+
+문의 요약
+--------------------------------
+주문 참조 번호 : PREVIEW001
+
+해당 상품 : Montre Élégance Neria
+
+첨부 파일 : Aucun fichier joint
+
+모든 문의에 세심한 주의를 기울이며, 곧 연락 드리겠습니다.
+
+메종으로 돌아가기 : http://localhost/shop/
+
+정성을 다해 답변드리기를 기대하며,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

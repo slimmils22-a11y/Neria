@@ -1,0 +1,17 @@
+Test Neria
+
+早安, Sophie,
+
+您購買 Montre Élégance Neria 已有  天了。根據我們的估算，您的產品可能即將用完。
+
+如果您希望延續這份體驗，現在是補貨的最佳時機——趁還沒用完。
+
+重新購買 : http://localhost/shop/index.php?controller=product&id_product=1
+
+當然沒有任何義務——這只是我們發出的一個友善提醒。
+
+致以我們全部的關注，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

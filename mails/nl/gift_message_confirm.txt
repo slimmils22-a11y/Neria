@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Wij bevestigen dat het bericht dat u aan uw cadeaubestelling heeft toegevoegd, is geregistreerd.
+
+Orderreferentie : PREVIEW001
+
+Berichtinhoud
+--------------------------------
+« Joyeux anniversaire ma chère Sophie. Que cette année t apporte tout le bonheur que tu mérites. Avec tout mon amour. »
+
+Mijn bestelling bekijken : http://localhost/shop/nl/besteloverzicht
+
+De ontvanger krijgt dit bericht samen met zijn pakket.
+
+Met al onze aandacht,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

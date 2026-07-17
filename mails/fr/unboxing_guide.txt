@@ -1,0 +1,23 @@
+Test Neria
+
+Madame, Monsieur,
+
+Votre pièce d'exception vous parviendra bientôt. Pour que l'instant soit à la hauteur de ce qu'elle incarne, voici quelques conseils.
+
+Guide de déballage
+--------------------------------
+Préparez un espace propre et doux pour recevoir votre colis.
+
+Ouvrez le colis avec délicatesse, comme on dévoile un secret.
+
+Prenez le temps d'admirer les détails avant de laisser la pièce s'installer dans votre intérieur.
+
+Partager l'émotion : http://localhost/shop/
+
+Nous serions ravis de connaître vos premières impressions.
+
+En attendant que cette pièce vous soit remise, avec toute notre gratitude,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

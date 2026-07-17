@@ -1,0 +1,19 @@
+Test Neria
+
+Buenos días, Camille,
+
+Antes del envío, le invitamos a elegir el embalaje que acompañará a su pieza. Una forma de prolongar la experiencia.
+
+Opciones de embalaje disponibles
+--------------------------------
+Dispone de varios estuches, fundas y cofres para realzar su pieza.
+
+Elegir mi embalaje : http://localhost/shop/
+
+Prestaremos especial atención a su elección.
+
+A su servicio,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

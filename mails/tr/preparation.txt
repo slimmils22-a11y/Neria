@@ -1,0 +1,21 @@
+Test Neria
+
+Günaydın, Camille,
+
+Parçalarınız zanaatkârlarımıza emanet edildi. Onların ellerinde her hareket, seçiminize bir saygı duruşudur.
+
+Sipariş
+--------------------------------
+Sipariş #TEST00125.
+
+Sabırla işlenmiş bir bilgi birikimi, tamamen sizin beklediklerinizin — ve hak ettiklerinizin — hizmetine sunulmuştur.
+
+<a href="http://localhost/shop/tr/siparis-gecmisi" style="color:#b38b59;">Siparişinizin ilerleyişini müşteri hesabınızdan takip edebilirsiniz</a> : http://localhost/shop/tr/siparis-gecmisi
+
+<a href="http://localhost/shop/tr/ziyaretci-takibi" style="color:#b38b59;">Misafir olarak sipariş verdiyseniz, özel bağlantı üzerinden siparişinizi takip edin</a> : http://localhost/shop/tr/ziyaretci-takibi
+
+Sizi memnun etme zevkini beklerken,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

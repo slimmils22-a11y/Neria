@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Vous faites partie du cercle très restreint des personnalités à qui nous réservons cette invitation. Elle ne sera pas renouvelée, et ne saurait être partagée.
+
+Dans un cadre d'exception, loin du commerce ordinaire, vous découvrirez en avant-première ce que notre maison prépare pour ceux qui savent regarder.
+
+Détails de l'événement
+--------------------------------
+Showroom Neria — 8 place Vendôme, 75001 Paris
+
+Vendredi 20 juin 2026, de 18h à 22h
+
+Votre présence serait pour nous un honneur. Nous l'attendons.
+
+Confirmer ma présence : #
+
+Cette invitation est strictement personnelle et non transférable.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

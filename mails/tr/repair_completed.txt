@@ -1,0 +1,21 @@
+Test Neria
+
+Günaydın, Camille,
+
+Parçanızın tamiri veya değişikliğinin tamamlandığını bildirmekten mutluluk duyarız.
+
+Sipariş referansı : #TEST00125
+
+Müdahale detayları
+--------------------------------
+Ivory Linen Dress
+
+İadeyi düzenle : http://localhost/shop/tr/siparis-gecmisi
+
+Ekibimiz, iade koşullarını kararlaştırmak için sizinle iletişime geçecektir.
+
+Size hizmet etmekten mutluluk duyuyoruz,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

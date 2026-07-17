@@ -1,0 +1,23 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir freuen uns, Ihnen zu bestätigen, dass Ihre Bestellung zugestellt wurde.
+
+Bestellung
+--------------------------------
+Ihre Bestellung #TEST00125.
+
+Wir hoffen, dass dieses Stück Ihnen genauso viel Freude bereitet wie unseren Handwerkern bei der Herstellung.
+
+<a href="http://localhost/shop/de/bestellungsverlauf" style="color:#b38b59;">Bestellverlauf anzeigen</a> : http://localhost/shop/de/bestellungsverlauf
+
+<a href="http://localhost/shop/de/auftragsverfolgung-gast" style="color:#b38b59;">Gastverfolgung</a> : http://localhost/shop/de/auftragsverfolgung-gast
+
+Bei Fragen zu Ihrer Bestellung steht Ihnen unser Kundenservice zur Verfügung.
+
+Mit unserer ganzen Dankbarkeit und Stolz,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

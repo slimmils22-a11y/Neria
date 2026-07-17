@@ -1,0 +1,21 @@
+Test Neria
+
+Buenos días, Camille,
+
+Confirmamos que el procedimiento de reembolso de su pedido se ha finalizado con éxito.
+
+Referencia del pedido : #TEST00125
+
+Detalles del reembolso
+--------------------------------
+Importe reembolsado : 
+
+Ver mi pedido : http://localhost/shop/es/historial-compra
+
+El importe se acreditará en su cuenta según el plazo habitual de su banco.
+
+A su servicio,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

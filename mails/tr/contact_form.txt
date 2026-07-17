@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Siparişinizle ilgili mesajınızı aldık. İşte bize sağladığınız bilgilerin bir özeti:
+
+Talebinizin özeti
+--------------------------------
+Sipariş referansı : #TEST00125
+
+İlgili ürün : Ivory Linen Dress
+
+Ekli dosya : 
+
+Her talebe özel önem veriyor ve en kısa sürede size geri dönüş yapıyoruz.
+
+Maisonumuza dönün : http://localhost/shop/
+
+Gereken özenle yanıt vermek için sabırsızlanarak,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

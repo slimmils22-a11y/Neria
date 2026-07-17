@@ -1,0 +1,33 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+주문이 성공적으로 등록되었습니다. 수표 접수 후 처리됩니다.
+
+주문 PREVIEW001 — 수표 대기 중
+--------------------------------
+주문해 주셔서 감사합니다 PREVIEW001.
+
+수표 발송 정보
+--------------------------------
+아래 수취인 앞으로 수표를 발행하신 후 다음 주소로 보내주시기 바랍니다.
+
+금액 : 89,00 €
+
+수표 지급 대상 : Test Neria
+
+발송 주소 :
+12 rue de la Paix
+75001 Paris
+
+참조 번호를 기재해 주세요 PREVIEW001.
+
+<a href="http://localhost/shop/ko/주문-내역" style="color:#b38b59;">주문 내역 보기</a> : http://localhost/shop/ko/주문-내역
+
+<a href="http://localhost/shop/ko/비회원-추적" style="color:#b38b59;">게스트 추적</a> : http://localhost/shop/ko/비회원-추적
+
+수표를 기다리며, 깊은 신뢰를 담아,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

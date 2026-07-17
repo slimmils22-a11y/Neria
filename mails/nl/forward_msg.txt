@@ -1,0 +1,20 @@
+﻿Test Neria
+
+Beste medewerker,
+
+Een klantbericht is doorgestuurd naar u voor verwerking.
+
+Marie Lefebvre heeft het volgende bericht naar u doorgestuurd.
+
+Gespreksgeschiedenis
+--------------------------------
+Client : Bonjour, j'ai une question sur ma commande.
+Support : Bonjour, je regarde ça immédiatement.
+
+Marie Lefebvre heeft de volgende opmerking toegevoegd : Client prioritaire — traiter en urgence.
+
+Reageer niet op deze automatische e-mail. Log in op de beheeromgeving om de aanvraag te verwerken.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

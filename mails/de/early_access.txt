@@ -1,0 +1,18 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Als Anerkennung für Ihre Treue gewähren wir Ihnen Zugang zu unserer neuen Kollektion vor der offiziellen Veröffentlichung.
+
+Kollektion in Vorschau
+--------------------------------
+
+Zugang zur Kollektion : http://localhost/shop/
+
+Dieser vorzeitige Zugang ist streng persönlich und zeitlich begrenzt.
+
+Wir freuen uns, diesen Moment mit Ihnen zu teilen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

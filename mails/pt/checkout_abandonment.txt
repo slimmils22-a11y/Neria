@@ -1,0 +1,19 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Notámos que estava prestes a finalizar a sua encomenda. Por vezes surge um problema técnico no último momento — erro 3DS, timeout de ligação ou uma hesitação de última hora.
+
+O seu carrinho está guardado e a sua seleção aguarda exatamente onde a deixou.
+
+Finalizar a minha encomenda : 
+
+Se teve algum problema de pagamento, a nossa equipa está disponível para o ajudar a finalizar com toda a tranquilidade.
+
+Não é necessária qualquer ação da sua parte — o seu carrinho está preservado.
+
+Com toda a nossa atenção,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

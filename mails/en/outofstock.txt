@@ -1,0 +1,21 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We regret to inform you that one of the items in your order is currently unavailable.
+
+Order PREVIEW001
+--------------------------------
+One of the pieces in your order momentarily eludes us — a very rare situation, which we take very seriously.
+
+We apologize for this delay which does not reflect our standards. Our team will contact you shortly to agree on the best solution together.
+
+<a href="http://localhost/shop/en/order-history" style="color:#b38b59;">You can view the details of your order from your customer account</a> : http://localhost/shop/en/order-history
+
+<a href="http://localhost/shop/en/guest-tracking" style="color:#b38b59;">If you ordered as a guest, track your order via the dedicated link</a> : http://localhost/shop/en/guest-tracking
+
+Asking your pardon for this very rare delay,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

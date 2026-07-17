@@ -1,0 +1,25 @@
+Test Neria
+
+Hallo, Camille,
+
+Jedes von uns angebotene Stück wird mit einem Herkunftszertifikat geliefert, das seine Authentizität und Herkunft garantiert.
+
+Herkunft
+--------------------------------
+
+
+Materialien & Techniken
+--------------------------------
+
+
+Handwerker / Atelier
+--------------------------------
+
+
+Wir sind stolz, Ihnen dieses außergewöhnliche Stück zu übergeben, das ein sorgfältig bewahrtes handwerkliches Erbe in sich trägt.
+
+Dieses elektronische Dokument ist Ihr Herkunftszertifikat. Bewahren Sie es sorgfältig auf.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

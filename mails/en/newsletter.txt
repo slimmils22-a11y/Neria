@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+We are pleased to share our latest news with you. Discover below the latest information from our house.
+
+Newsletter content
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+To not miss any of our future news, stay connected.
+
+Discover the house : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

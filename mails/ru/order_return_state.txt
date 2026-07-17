@@ -1,0 +1,19 @@
+Test Neria
+
+Доброе утро, Sophie,
+
+Сообщаем Вам, что статус Вашего запроса на возврат изменился.
+
+Возврат #42
+--------------------------------
+Статус Вашего возврата был обновлён #42.
+
+Текущий статус : Retour reçu
+
+<a href="http://localhost/shop/ru/order-history" style="color:#b38b59;">Вы можете увидеть детали Вашего возврата из своего клиентского аккаунта</a> : http://localhost/shop/ru/order-history
+
+Со всей нашей благодарностью и гордостью,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

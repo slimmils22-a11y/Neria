@@ -1,0 +1,19 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Temos o prazer de lhe apresentar o seu conselheiro pessoal, dedicado a guiá-lo nas suas escolhas e a satisfazer os seus desejos.
+
+O seu conselheiro dedicado
+--------------------------------
+O seu conselheiro : 
+
+Contactar o meu conselheiro : http://localhost/shop/
+
+Ele ou ela conhece os seus gostos e pode guiá-lo para peças que se adequam a si.
+
+Ao seu serviço, com atenção,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

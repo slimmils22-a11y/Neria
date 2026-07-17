@@ -1,0 +1,19 @@
+Test Neria
+
+早安, Sophie,
+
+感謝您訂閱我們的通訊。作為歡迎禮，為您提供可享折扣的專屬代碼，用於您下一筆訂單。
+
+您的邀請碼
+--------------------------------
+專屬碼 : NERIA-PREVIEW-2026
+
+此碼在我們的品牌全場有效期30天，不可與其他禮遇疊加使用。
+
+探索我們的作品 : http://localhost/shop/
+
+祝您發現我們獨特作品的精彩。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

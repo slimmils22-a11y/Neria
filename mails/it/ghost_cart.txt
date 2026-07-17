@@ -1,0 +1,19 @@
+Ciao Camille,
+
+Abbiamo notato qualcosa
+Questo articolo ha catturato la Vostra attenzione
+
+Abbiamo notato che avete aggiunto questo articolo al carrello più volte. Se qualcosa Vi trattiene — una domanda su taglie, materiali, tempi di consegna o altro — il nostro team è a Vostra disposizione.
+
+--------------------------------------------------
+L'articolo che Vi interessa:
+Ivory Linen Dress
+89.00 €
+http://localhost
+--------------------------------------------------
+
+Nessuna pressione — siamo semplicemente qui se avete domande.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

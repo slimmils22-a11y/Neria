@@ -1,0 +1,23 @@
+﻿Test Neria
+
+God morgon, Sophie,
+
+Din beställning bearbetas för närvarande av tullmyndigheterna i destinationslandet.
+
+Beställningsreferens : PREVIEW001
+
+Tullvarningsdetaljer
+--------------------------------
+Aktuell status : En attente de dédouanement
+
+Rekommenderad åtgärd : Aucune action requise de votre part.
+
+Spåra mitt paket : http://localhost/shop/sv/bestallningshistorik
+
+Vårt team kan hjälpa dig med procedurerna om det behövs.
+
+Till din tjänst för att klara detta steg,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

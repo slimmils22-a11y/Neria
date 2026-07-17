@@ -1,0 +1,17 @@
+Test Neria
+
+Estimado/a colaborador/a,
+
+El sistema ha detectado que un producto está cerca de su umbral crítico de cobertura.
+
+Estado de cobertura
+--------------------------------
+Cobertura mínima : 
+
+Cobertura actual : 
+
+Revise su stock y reponga si es necesario.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

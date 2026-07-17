@@ -1,0 +1,17 @@
+Test Neria
+
+早安, Sophie,
+
+在尊貴的齋月之際，我們向您致以最溫暖的祝福。
+
+願這個吉祥的月份帶給您內心的寧靜、分享的喜悅，以及伴隨虔誠齋戒者的恩典。
+
+發現我們的作品 : http://localhost/shop/
+
+整個神聖月份期間，特別關懷為您保留。
+
+全體團隊祝您齋月吉慶。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

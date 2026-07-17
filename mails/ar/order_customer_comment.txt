@@ -1,0 +1,21 @@
+Test Neria
+
+تعليق على طلبكم
+
+ترك عميل تعليقاً بخصوص طلبه. إليكم المعلومات.
+
+معلومات الطلب
+--------------------------------
+المرجع : PREVIEW001
+
+العميل : Sophie Durand (test@test.com)
+
+رسالة العميل
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+يمكنكم الرد على هذه الرسالة من خلال لوحة إدارة المتجر.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

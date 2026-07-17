@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Anneleri kutlayan bu günde, bakışları sizin ilk sığınağınız olan kişiyi düşünüyoruz.
+
+Ona sevgisine benzeyen bir şey sunun: eşsiz, gösterişsiz ve sonsuz değerli bir parça.
+
+Seçkimizi keşfedin : http://localhost/shop/
+
+Hafta sonuna kadar özel bir ilgi sizi bekliyor.
+
+Tüm ekibimiz size mutlu bir anneler günü diler.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

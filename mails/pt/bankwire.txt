@@ -1,0 +1,33 @@
+Test Neria
+
+Boa tarde, Camille,
+
+A sua encomenda foi registada com sucesso. Será processada após a receção da sua transferência bancária.
+
+Encomenda #TEST00125 — A aguardar transferência
+--------------------------------
+Obrigado pela sua encomenda #TEST00125.
+
+Coordenadas bancárias
+--------------------------------
+Efetue a sua transferência para a conta abaixo indicada, mencionando obrigatoriamente a seguinte referência:
+
+Montante : 
+
+Beneficiário : 
+
+Detalhes da conta : 
+
+Morada bancária : 
+
+Por favor, mencione a referência #TEST00125.
+
+<a href="http://localhost/shop/pt/historico-de-encomendas" style="color:#b38b59;">Consultar o histórico da sua encomenda</a> : http://localhost/shop/pt/historico-de-encomendas
+
+<a href="http://localhost/shop/pt/seguimento-de-visitante" style="color:#b38b59;">Acompanhamento para convidado</a> : http://localhost/shop/pt/seguimento-de-visitante
+
+A aguardar a sua transferência, com toda a nossa paciência,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

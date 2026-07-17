@@ -1,0 +1,33 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Uw bestelling is succesvol geregistreerd. Deze wordt verwerkt na ontvangst van uw bankoverschrijving.
+
+Bestelling PREVIEW001 — Wachten op overschrijving
+--------------------------------
+Dank u voor uw bestelling PREVIEW001.
+
+Bankgegevens
+--------------------------------
+Maak uw overschrijving over naar onderstaande rekening, onder vermelding van de volgende referentie:
+
+Bedrag : 89,00 €
+
+Begunstigde : Test Neria SARL
+
+Rekeningdetails : IBAN : FR76 3000 6000 0112 3456 7890 189 — BIC : AGRIFRPP
+
+Bankadres : 12 rue de la Paix, 75001 Paris, France
+
+Gelieve de referentie te vermelden PREVIEW001.
+
+<a href="http://localhost/shop/nl/besteloverzicht" style="color:#b38b59;">Bekijk uw bestelgeschiedenis</a> : http://localhost/shop/nl/besteloverzicht
+
+<a href="http://localhost/shop/nl/bestelling-volgen-als-gast" style="color:#b38b59;">Gasttracking</a> : http://localhost/shop/nl/bestelling-volgen-als-gast
+
+In afwachting van uw overschrijving, met alle geduld,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

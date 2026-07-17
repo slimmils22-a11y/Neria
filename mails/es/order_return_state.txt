@@ -1,0 +1,19 @@
+Test Neria
+
+Buenos días, Camille,
+
+Le informamos que el estado de su solicitud de devolución ha cambiado.
+
+Devolución #
+--------------------------------
+El estado de su devolución ha sido actualizado #.
+
+Estado actual : 
+
+<a href="http://localhost/shop/es/historial-compra" style="color:#b38b59;">Puede ver los detalles de su devolución desde su cuenta de cliente</a> : http://localhost/shop/es/historial-compra
+
+Con todo nuestro agradecimiento y orgullo,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

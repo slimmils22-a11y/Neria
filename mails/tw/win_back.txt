@@ -1,0 +1,17 @@
+Test Neria
+
+早安, Sophie,
+
+我們想起了您，希望您一切安好。我們的作品仍在不斷演進，希望您能重新發現它們。
+
+我們準備了一份您可能感興趣的精選。一份貼心的關懷，無需任何承諾。
+
+探索我們的精選 : http://localhost/shop/
+
+我們很高興再次歡迎您。
+
+期待與您重逢，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

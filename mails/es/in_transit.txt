@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Su selección está ahora en camino hacia usted. Aquí están las piezas:
+
+
+
+Pedido #TEST00125
+--------------------------------
+Pedido #TEST00125.
+
+Se encuentra en tránsito y le llegará en el plazo previsto.
+
+Seguir mi pedido : 
+
+<a href="http://localhost/shop/es/historial-compra" style="color:#b38b59;">Consulte el historial de su pedido en su cuenta de cliente</a> : http://localhost/shop/es/historial-compra
+
+<a href="http://localhost/shop/es/seguimiento-pedido-invitado" style="color:#b38b59;">Si realizó su pedido como invitado, sígalo a través del enlace dedicado</a> : http://localhost/shop/es/seguimiento-pedido-invitado
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

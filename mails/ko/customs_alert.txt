@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+고객님의 주문은 현재 목적지 국가의 세관 당국에 의해 처리되고 있습니다.
+
+주문 참조 번호 : PREVIEW001
+
+세관 경고 세부 정보
+--------------------------------
+현재 상태 : En attente de dédouanement
+
+권장 조치 : Aucune action requise de votre part.
+
+소포 추적 : http://localhost/shop/ko/주문-내역
+
+필요한 경우 저희 팀이 절차를 도와드릴 수 있습니다.
+
+이 단계를 지원하기 위해,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

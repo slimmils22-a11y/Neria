@@ -1,0 +1,18 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We hope that your piece has found, in your home, the place it deserves.
+
+Your perspective on this experience is infinitely precious to us. Not out of statistical obligation, but because the opinion of those who trust us guides our standards.
+
+Share my experience : http://localhost/shop/index.php?controller=product&id_product=1#reviews
+
+Your opinion is valuable to us. It helps us better understand your expectations.
+
+
+Your gaze is our best mirror,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

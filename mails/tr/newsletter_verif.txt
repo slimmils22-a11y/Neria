@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+Bültenimize aboneliğinizi aktifleştirmek için aşağıdaki bağlantıya tıklayarak e-posta adresinizi doğrulayın.
+
+Doğrulama
+--------------------------------
+Bu güvenli bağlantı aboneliğinizi onaylar ve tüm haberlerimize erişim sağlar.
+
+Aboneliğimi onayla : 
+
+Bu talebi siz yapmadıysanız bu mesajı dikkate almayın.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

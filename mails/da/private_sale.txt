@@ -1,0 +1,15 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Vi har privilegiet af at invitere dig til vores private salg, forbeholdt vores mest dyrebare gæster.
+
+Nyd et unikt udvalg af sjældne stykker på privilegerede betingelser.
+
+Få adgang til det private salg : http://localhost/shop/vente-privee
+
+Dette tilbud er strengt personligt og tidsbegrænset.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

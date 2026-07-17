@@ -1,0 +1,19 @@
+Test Neria
+
+早上好, Sophie,
+
+我们很高兴向您介绍您的专属顾问，致力于指导您的选择并满足您的愿望。
+
+您的专属顾问
+--------------------------------
+您的顾问 : Marie-Claire Fontaine
+
+联系我的顾问 : http://localhost/shop/
+
+他或她了解您的品味，可以引导您找到适合您的作品。
+
+竭诚为您服务，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,19 @@
+Test Neria
+
+早安, Sophie,
+
+我們很高興向您介紹您的專屬顧問，致力於指導您的選擇並滿足您的願望。
+
+您的專屬顧問
+--------------------------------
+您的顧問 : Marie-Claire Fontaine
+
+聯繫我的顧問 : http://localhost/shop/
+
+他或她了解您的品味，可以引導您找到適合您的作品。
+
+竭誠為您服務，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

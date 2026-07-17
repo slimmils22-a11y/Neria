@@ -1,0 +1,23 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Het is met trots dat wij de verzending van uw bestelling aankondigen. Onze ambachtslieden hebben het voorbereid met de zorg die het verdient — elk detail, elk gebaar.
+
+Bestelling
+--------------------------------
+Bestelling PREVIEW001.
+
+Het is nu in handen van onze vervoerder en zal u binnen de verwachte tijd bereiken.
+
+<a href="http://localhost/shop/nl/besteloverzicht" style="color:#b38b59;">U kunt uw bestelgeschiedenis bekijken via uw klantenaccount</a> : http://localhost/shop/nl/besteloverzicht
+
+<a href="http://localhost/shop/nl/bestelling-volgen-als-gast" style="color:#b38b59;">Als u als gast heeft besteld, volg dan uw bestelling via de speciale link</a> : http://localhost/shop/nl/bestelling-volgen-als-gast
+
+Wij wensen u een ontvangst die de emotie waardig is die dit stuk met zich meedraagt.
+
+Met al onze trots en toewijding,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

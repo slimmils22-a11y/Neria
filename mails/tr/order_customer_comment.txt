@@ -1,0 +1,21 @@
+Test Neria
+
+Siparişinizle ilgili bir yorum
+
+Bir müşteri siparişiyle ilgili bir yorum bıraktı. İşte bilgiler.
+
+Sipariş bilgileri
+--------------------------------
+Sipariş referansı : #TEST00125
+
+Müşteri : Camille Dupont (test@test.com)
+
+Müşteri mesajı
+--------------------------------
+
+
+Bu mesaja mağaza yönetiminden yanıt verebilirsiniz.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

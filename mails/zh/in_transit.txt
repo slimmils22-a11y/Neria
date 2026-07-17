@@ -1,0 +1,24 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+您的精选正在赶赴您的途中。以下是相关作品：
+
+Réf. NER-001 — Montre Élégance Neria × 1
+Réf. NER-014 — Bracelet Cuir Atelier × 1
+
+订单 PREVIEW001
+--------------------------------
+订单 PREVIEW001.
+
+目前正在运输中，将在预期时间内送达。
+
+跟踪我的订单 : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/zh/订单-历史" style="color:#b38b59;">请在您的客户账户中查看订单历史。</a> : http://localhost/shop/zh/订单-历史
+
+<a href="http://localhost/shop/zh/客户跟踪" style="color:#b38b59;">如果您以访客身份下单，请通过专用链接跟踪订单。</a> : http://localhost/shop/zh/客户跟踪
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

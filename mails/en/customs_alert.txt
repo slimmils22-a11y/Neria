@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+Your order is currently being processed by the customs authorities of its destination country.
+
+Order reference : PREVIEW001
+
+Customs alert details
+--------------------------------
+Current status : En attente de dédouanement
+
+Recommended action : Aucune action requise de votre part.
+
+Track my package : http://localhost/shop/en/order-history
+
+Our team can assist you with the procedures if needed.
+
+At your service to cross this step,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+Test Neria
+
+Hallo, Camille,
+
+Mit Stolz verkünden wir den Versand Ihrer Bestellung. Unsere Handwerker haben sie mit der Sorgfalt vorbereitet, die sie verdient — jedes Detail, jede Verpackung, jede Geste.
+
+Bestellung
+--------------------------------
+Die Bestellung #TEST00125.
+
+Sie ist nun in den Händen unseres Transporteurs und wird Sie innerhalb der erwarteten Zeit erreichen.
+
+<a href="http://localhost/shop/de/bestellungsverlauf" style="color:#b38b59;">Sie können den Bestellverlauf in Ihrem Kundenkonto einsehen</a> : http://localhost/shop/de/bestellungsverlauf
+
+<a href="http://localhost/shop/de/auftragsverfolgung-gast" style="color:#b38b59;">Wenn Sie als Gast bestellt haben, verfolgen Sie Ihre Bestellung über den speziellen Link</a> : http://localhost/shop/de/auftragsverfolgung-gast
+
+Wir wünschen Ihnen einen Empfang, der der Emotion würdig ist, die dieses Stück in sich trägt.
+
+Mit all unserem Stolz und unserer Hingabe,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

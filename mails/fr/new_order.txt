@@ -1,0 +1,51 @@
+Test Neria
+
+Une nouvelle commande vous attend
+
+Vous avez reçu une nouvelle commande sur votre boutique. Voici les détails.
+
+Client : Sophie Durand (admin@test.com)
+
+Détails de la commande
+--------------------------------
+Référence : NR-000123
+
+Date : 16/07/2026
+
+Paiement : Carte bancaire
+
+
+
+Total produits : 189,00 €
+
+Réductions : 0,00 €
+
+Emballage cadeau : 0,00 €
+
+Frais de livraison : 0,00 €
+
+Taxes : 31,50 €
+
+Total à payer : 189,00 €
+
+Livraison
+--------------------------------
+Transporteur : Colissimo
+
+Adresse de livraison
+--------------------------------
+
+
+Adresse de facturation
+--------------------------------
+
+
+Message du client
+--------------------------------
+Bonjour, je souhaite obtenir des informations sur ma commande.
+
+Rendez-vous dans votre administration pour traiter cette commande avec le soin qui lui est dû.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

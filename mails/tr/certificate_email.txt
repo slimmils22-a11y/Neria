@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+Parçanızın orijinallik sertifikasını bu e-postaya ekli olarak size iletmekten mutluluk duyarız.
+
+Parça : Ivory Linen Dress
+
+Seri numarası : 
+
+Bu belge, parçanızın orijinalliğini onaylar ve resmi bir belge niteliğindedir. Lütfen özenle saklayın.
+
+Zanaatımızın kalitesiyle gurur duyarak,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

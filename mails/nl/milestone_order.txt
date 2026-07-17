@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Wij zijn verheugd u te kunnen meedelen dat u zojuist uw 5e bestelling bij ons heeft geplaatst. Een symbolische mijlpaal.
+
+Elke bestelling is voor ons een teken van vertrouwen. Deze in het bijzonder is er weer een, en we danken u er hartelijk voor.
+
+Ontdek mijn selectie : http://localhost/shop/nl/besteloverzicht
+
+Wij reserveren speciale aandacht voor onze gasten die deze mijlpalen bereiken.
+
+Met al onze dankbaarheid,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

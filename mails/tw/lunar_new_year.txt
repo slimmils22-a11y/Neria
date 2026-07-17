@@ -1,0 +1,17 @@
+Test Neria
+
+早安, Sophie,
+
+值此農曆新年來臨之際，我們向您致以最溫暖的祝福。
+
+願這個節日為您帶來幸福、健康，並祝您一切順利。
+
+發現我們的作品 : http://localhost/shop/
+
+特別關懷為您保留至節日結束。
+
+全體團隊祝您農曆新年快樂。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

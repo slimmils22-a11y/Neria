@@ -1,0 +1,19 @@
+﻿Test Neria
+
+早安, Sophie,
+
+您通過我們的忠誠計劃獲得的獎勵即將過期。
+
+獎勵詳情
+--------------------------------
+到期日期 : 30/06/2026
+
+使用我的獎勵 : http://localhost/shop/tw/訂單記錄
+
+此獎勵在指定日期前有效。逾期將無法使用。
+
+希望您能喜歡，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

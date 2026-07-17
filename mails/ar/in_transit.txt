@@ -1,0 +1,24 @@
+﻿Test Neria
+
+مساء الخير, Sophie,
+
+اختياركم الآن في طريقه إليكم. إليكم القطع المعنية:
+
+Réf. NER-001 — Montre Élégance Neria × 1
+Réf. NER-014 — Bracelet Cuir Atelier × 1
+
+الطلب PREVIEW001
+--------------------------------
+الطلب PREVIEW001.
+
+هو حالياً قيد النقل وسيصل إليكم في الوقت المتوقع.
+
+تتبع طلبي : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/ar/سجل طلبات الشراء" style="color:#b38b59;">اطلع على سجل طلبكم في حساب العميل الخاص بكم</a> : http://localhost/shop/ar/سجل طلبات الشراء
+
+<a href="http://localhost/shop/ar/تتبع الطلب" style="color:#b38b59;">إذا قمتم بالطلب كضيوف، فتابع طلبك عبر الرابط المخصص</a> : http://localhost/shop/ar/تتبع الطلب
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

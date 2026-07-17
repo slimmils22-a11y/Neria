@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Bize ilk kez güvendiğinizden bu yana bir yıl geçti. Yanınızda geçirdiğimiz bu yıl sonsuz şükran kaynağıdır.
+
+Bu ilk yılı özel bir ilgiyle kutlamak istedik. Sizin için ayrıldı.
+
+İlgimi keşfet : http://localhost/shop/tr/siparis-gecmisi
+
+Evimizin hikayesinin bir parçası olduğunuz için teşekkür ederiz.
+
+Tüm şükranlarımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

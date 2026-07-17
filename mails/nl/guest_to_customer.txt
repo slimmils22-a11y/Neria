@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+U heeft onlangs een bestelling geplaatst als gast. Wij nodigen u uit om uw gastaccount om te zetten in een permanent klantenaccount om te genieten van vele voordelen.
+
+Uw accountgegevens
+--------------------------------
+E-mailadres : test@test.com
+
+Stel uw wachtwoord in om uw account te activeren en toegang te krijgen tot uw persoonlijke ruimte.
+
+Activeer mijn persoonlijke ruimte : http://localhost/shop/
+
+Uw persoonlijke ruimte stelt u in staat uw privileges op elk moment te vinden: uw creaties tijdens transport volgen, de geschiedenis van uw keuzes raadplegen en uw toekomstige bezoeken onder de beste omstandigheden voorbereiden.
+
+Ga naar mijn account : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

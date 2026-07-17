@@ -1,0 +1,22 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Vi bekræfter, at pakken med din retur er nået frem til vores team. Den vil blive behandlet med al den opmærksomhed, der er påkrævet.
+
+Ordrereference : PREVIEW001
+
+Returdetaljer
+--------------------------------
+Réf. NER-001 — Montre Élégance Neria × 1
+Réf. NER-014 — Bracelet Cuir Atelier × 1
+
+Spor min retur : http://localhost/shop/da/ordrehistorik
+
+Vi holder dig orienteret om behandlingens fremskridt.
+
+Til din tjeneste,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

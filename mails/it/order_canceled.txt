@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Confermiamo la ricezione della Vostra richiesta di annullamento. È stata gestita con tutta la cura che la Vostra fiducia ci impone.
+
+Ordine
+--------------------------------
+L'ordine #TEST00125.
+
+Questo ordine è stato annullato secondo la Vostra richiesta. Nessun importo Vi verrà addebitato.
+
+Può visualizzare i dettagli di questo ordine dal Vostro account cliente.
+
+Visualizza lo storico dei miei ordini : http://localhost/shop/it/cronologia-ordini
+
+<a href="http://localhost/shop/it/tracciatura-ospite" style="color:#b38b59;">Se ha ordinato come ospite, trova il tracciamento del Vostro ordine tramite il link dedicato</a> : http://localhost/shop/it/tracciatura-ospite
+
+Speriamo di accogliervi di nuovo tra le nostre mura — nel momento che Vi sarà più congeniale.
+
+Con i nostri più sinceri dispiaceri e tutta la nostra stima,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

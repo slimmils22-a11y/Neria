@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Nous avons choisi de participer à cette journée avec sobriété. Voici une sélection de pièces d'exception à des conditions privilégiées.
+
+Chez nous, la rareté reste discrète. Offrez-vous une pièce que vous auriez peut-être attendue.
+
+Découvrir la sélection : http://localhost/shop/
+
+Cette offre est limitée dans le temps et strictement réservée à nos hôtes les plus attentifs.
+
+Toute l'équipe vous souhaite de faire la meilleure rencontre.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Para ativar sua inscrição em nossa newsletter, confirme seu endereço de e-mail clicando no link abaixo.
+
+Verificação
+--------------------------------
+Este link seguro confirma sua inscrição e dá acesso a todas as nossas notícias.
+
+Confirmar minha inscrição : http://localhost/shop/index.php?controller=newsletter-verification&token=preview-verif-token
+
+Se você não solicitou esta inscrição, pode ignorar esta mensagem.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

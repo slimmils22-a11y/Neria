@@ -1,0 +1,16 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous fermons doucement le chapitre de votre panier. Si d'aventure vous souhaitiez retrouver votre sélection, nos artisans seraient honorés de vous accueillir de nouveau.
+
+--------------------------------
+
+
+Revenir à la maison : #
+
+Votre panier n'est plus actif. Toutes nos créations restent à votre disposition.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

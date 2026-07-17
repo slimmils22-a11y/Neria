@@ -1,0 +1,17 @@
+Test Neria
+
+مساء الخير, Sophie,
+
+لتفعيل اشتراككم في نشرتنا الإخبارية، يرجى تأكيد عنوان بريدكم الإلكتروني بالنقر على الرابط أدناه.
+
+التحقق
+--------------------------------
+هذا الرابط الآمن يؤكد اشتراككم ويمنحكم الوصول إلى جميع أخبارنا.
+
+تأكيد اشتراكي : http://localhost/shop/index.php?controller=newsletter-verification&token=preview-verif-token
+
+إذا لم تكونوا أنتم من قام بهذا الطلب، يمكنكم تجاهل هذه الرسالة.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

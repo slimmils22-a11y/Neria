@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Temos o prazer de informá-lo que seu pedido está avançando em nossa oficina.
+
+Etapa atual
+--------------------------------
+Assemblage final en atelier
+
+Nosso artesão dedica todo o seu cuidado para dar vida à sua peça única. Manteremos você informado em cada etapa.
+
+Você pode acompanhar o progresso do seu pedido a partir da sua conta de cliente.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

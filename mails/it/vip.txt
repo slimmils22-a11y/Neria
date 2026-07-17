@@ -1,0 +1,17 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+La Vostra eccezionale fedeltà ci tocca profondamente. È con sincera gratitudine che Vi accogliamo nel nostro circolo più esclusivo — quello che riserviamo a chi ci onora della propria fiducia duratura.
+
+Il Vostro status VIP Vi apre porte che teniamo chiuse per il resto del mondo: anteprime delle nostre nuove creazioni, inviti privati ai nostri eventi, offerte su misura e assistenza personalizzata.
+
+Scopri i miei privilegi : http://localhost/shop/
+
+Questo status è il riflesso della Vostra fiducia. Lo portiamo con la stessa cura che Voi ci dimostrate.
+
+Con tutta la nostra gratitudine e ammirazione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

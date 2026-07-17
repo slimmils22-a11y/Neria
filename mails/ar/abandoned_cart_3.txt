@@ -1,0 +1,16 @@
+Test Neria
+
+مساء الخير, Sophie,
+
+نغلق بهدوء فصل سلتك. إذا أردت يوماً استعادة اختيارك، سيكون شرفاً لحرفيينا أن يستقبلوك مجدداً.
+
+--------------------------------
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+العودة إلى الدار : http://localhost/shop/index.php?controller=cart
+
+سلتك لم تعد نشطة. جميع إبداعاتنا لا تزال في متناول يدك.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

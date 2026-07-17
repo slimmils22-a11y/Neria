@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+An Ihrer Bestellung wurde von unseren Services eine Änderung vorgenommen. Bitte überprüfen Sie die unten stehenden aktualisierten Zahlungsinformationen.
+
+Aktualisierte Zahlungsinformationen
+--------------------------------
+Der Betrag oder die Zahlungsbedingungen wurden angepasst. Bitte nehmen Sie die Anpassung vor, indem Sie auf die Schaltfläche unten klicken.
+
+Zur Zahlung : 
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

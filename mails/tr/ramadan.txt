@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+Mübarek Ramazan ayında size en içten dileklerimizi sunuyoruz.
+
+Bu mübarek ay size iç huzur, paylaşmanın sevinci ve imanla oruç tutanlara eşlik eden lütfu getirsin.
+
+Kreasyonlarımızı keşfedin : http://localhost/shop/
+
+Kutsal ay boyunca özel bir ilgi sizi bekliyor.
+
+Tüm ekibimiz size mübarek bir Ramazan diler.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

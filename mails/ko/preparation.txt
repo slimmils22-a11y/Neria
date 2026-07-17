@@ -1,0 +1,21 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+고객님의 작품은 이제 장인들의 손에 맡겨졌습니다. 그들의 손길 하나하나가 고객님의 선택에 대한 경의입니다.
+
+주문
+--------------------------------
+주문 PREVIEW001.
+
+인내심을 갖고 키워온 기술이, 당신이 기대하는 것 — 그리고 당신이 받을 자격이 있는 것 — 을 위해 전적으로 바쳐집니다.
+
+<a href="http://localhost/shop/ko/주문-내역" style="color:#b38b59;">고객 계정에서 주문 진행 상황을 확인할 수 있습니다</a> : http://localhost/shop/ko/주문-내역
+
+<a href="http://localhost/shop/ko/비회원-추적" style="color:#b38b59;">게스트로 주문한 경우 전용 링크를 통해 주문을 추적하세요</a> : http://localhost/shop/ko/비회원-추적
+
+고객님을 만족시킬 기쁨을 기다리며,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

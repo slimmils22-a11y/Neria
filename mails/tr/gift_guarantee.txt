@@ -1,0 +1,25 @@
+Test Neria
+
+Günaydın, Camille,
+
+Hediye siparişinizin en büyük özenle hazırlandığını onaylamaktan mutluluk duyarız.
+
+Garanti ettiklerimiz
+--------------------------------
+Lüks hediye paketleme
+
+Talimatlarınıza göre kişiselleştirilmiş mesaj
+
+Güvenli ve gizli teslimat
+
+31 Ocak'a kadar değişim veya iade imkanı
+
+Her ayrıntı, hediyeyi alan kişiye eşsiz bir deneyim sunmak için düşünülmüştür.
+
+Siparişimi takip et : 
+
+Hediye siparişinizle ilgili herhangi bir sorunuz için ekibimiz hizmetinizdedir.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

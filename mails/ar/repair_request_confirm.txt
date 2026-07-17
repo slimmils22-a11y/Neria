@@ -1,0 +1,21 @@
+Test Neria
+
+مساء الخير, Sophie,
+
+استلمنا طلبكم للإصلاح أو التعديل لقطعتكم.
+
+مرجع الطلب : PREVIEW001
+
+تفاصيل الطلب
+--------------------------------
+Montre Élégance Neria
+
+تتبع طلبي : http://localhost/shop/ar/سجل طلبات الشراء
+
+سيتواصل فريقنا معكم لتأكيد شروط الخدمة.
+
+في خدمتكم،
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Hanukkah, ışıklar festivali vesilesiyle size en içten dileklerimizi sunuyoruz.
+
+Bu kutsal kutlama size evin sıcaklığını, huzuru ve sükuneti getirsin.
+
+Kreasyonlarımızı keşfedin : http://localhost/shop/
+
+Hafta sonuna kadar özel bir ilgi sizi bekliyor.
+
+Tüm ekibimiz size harika bir Hanukkah diler.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

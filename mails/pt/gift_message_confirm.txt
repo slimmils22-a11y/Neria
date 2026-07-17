@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+Confirmamos que a mensagem que anexou à sua encomenda de presente foi registada com sucesso.
+
+Referência da encomenda : #TEST00125
+
+Conteúdo da mensagem
+--------------------------------
+«  »
+
+Ver a minha encomenda : http://localhost/shop/pt/historico-de-encomendas
+
+O destinatário receberá esta mensagem com a sua encomenda.
+
+Com toda a nossa atenção,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

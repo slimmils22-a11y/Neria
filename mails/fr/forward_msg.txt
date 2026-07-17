@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Cher(e) collaborateur(trice),
+
+Un message client vous a été transféré pour traitement.
+
+Marie Lefebvre vous a transféré le message suivant.
+
+Historique de la conversation
+--------------------------------
+
+
+Marie Lefebvre a ajouté le commentaire suivant : Client prioritaire — traiter en urgence.
+
+Veuillez ne pas répondre à cet email automatique. Connectez-vous à l'administration pour traiter la demande.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

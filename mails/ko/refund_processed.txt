@@ -1,0 +1,21 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+주문에 대한 환불 절차가 성공적으로 완료되었음을 확인합니다.
+
+주문 참조 번호 : PREVIEW001
+
+환불 세부 정보
+--------------------------------
+환불 금액 : 89,00 €
+
+주문 보기 : http://localhost/shop/ko/주문-내역
+
+금액은 은행의 일반적인 기간에 따라 계좌에 입금됩니다.
+
+도와드리겠습니다,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

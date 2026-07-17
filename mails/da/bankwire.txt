@@ -1,0 +1,33 @@
+Test Neria
+
+God morgen, Sophie,
+
+Din ordre er registreret. Den vil blive behandlet efter modtagelse af din bankoverførsel.
+
+Ordre PREVIEW001 — Venter på bankoverførsel
+--------------------------------
+Tak for din ordre PREVIEW001.
+
+Bankoplysninger
+--------------------------------
+Venligst overfør beløbet til kontoen nedenfor, og angiv følgende reference:
+
+Beløb : 89,00 €
+
+Modtager : Test Neria SARL
+
+Kontodetaljer : IBAN : FR76 3000 6000 0112 3456 7890 189 — BIC : AGRIFRPP
+
+Bankadresse : 12 rue de la Paix, 75001 Paris, France
+
+Venligst angiv referencen PREVIEW001.
+
+<a href="http://localhost/shop/da/ordrehistorik" style="color:#b38b59;">Vis din ordrehistorik</a> : http://localhost/shop/da/ordrehistorik
+
+<a href="http://localhost/shop/da/Gaestesporing" style="color:#b38b59;">Gæstesporing</a> : http://localhost/shop/da/Gaestesporing
+
+I afventning af din bankoverførsel, med al vores tålmodighed,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

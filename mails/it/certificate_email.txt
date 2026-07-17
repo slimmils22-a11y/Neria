@@ -1,0 +1,17 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Siamo lieti di inviarVi, in allegato a questa email, il certificato di autenticità del Vostro pezzo.
+
+Pezzo : Ivory Linen Dress
+
+Numero di serie : 
+
+Questo documento certifica l'autenticità del Vostro pezzo e costituisce un documento ufficiale. Conservatelo con cura.
+
+Orgogliosi della qualità della nostra maestria,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

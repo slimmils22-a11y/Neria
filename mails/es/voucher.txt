@@ -1,0 +1,23 @@
+Test Neria
+
+Buenos días, Camille,
+
+Su confianza nos conmueve. Como muestra de nuestra gratitud, hemos preparado una atención para usted.
+
+Pedido #TEST00125
+--------------------------------
+Se ha generado un vale de compra para el pedido #TEST00125.
+
+Importe del vale : 
+
+Código del vale : 
+
+Este vale es válido durante 30 días en toda nuestra boutique. No puede combinarse con otras ofertas.
+
+Esperamos que encuentre algo de su agrado entre nuestras creaciones.
+
+En testimonio de nuestra gratitud por su fidelidad,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

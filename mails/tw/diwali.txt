@@ -1,0 +1,17 @@
+﻿Test Neria
+
+早安, Sophie,
+
+值此排燈節（光明節）之際，我們向您致以最溫暖的祝福。
+
+願這個神聖的節日為您的生命帶來明晰、繁榮與喜悅。
+
+發現我們的作品 : http://localhost/shop/
+
+特別關懷為您保留至本週末。
+
+全體團隊祝您排燈節快樂。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

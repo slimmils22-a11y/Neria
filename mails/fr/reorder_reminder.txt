@@ -1,0 +1,19 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous avons pensé à une pièce qui pourrait compléter votre collection ou éveiller un nouvel intérêt au sein de notre maison.
+
+Pièce suggérée
+--------------------------------
+Montre Élégance Neria
+
+Voir la pièce : http://localhost/shop/
+
+Nous espérons que cette suggestion vous inspirera.
+
+À votre service,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

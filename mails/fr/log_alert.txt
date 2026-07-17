@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Alerte système
+
+Le système a détecté un événement inhabituel qui requiert votre intervention.
+
+Détails de l'alerte
+--------------------------------
+Une intervention est nécessaire
+
+Nous vous invitons à consulter les logs pour comprendre l'origine de cette alerte et prendre les mesures nécessaires.
+
+Cette alerte a été générée automatiquement. Vérifiez l'état de votre boutique.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

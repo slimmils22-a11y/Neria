@@ -1,0 +1,21 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Il Vostro ordine è stato suddiviso in più pacchi per facilitare la spedizione. Una parte di esso è già in viaggio verso di Voi.
+
+Riferimento ordine : #TEST00125
+
+Dettagli dei pacchi spediti
+--------------------------------
+
+
+Traccia i miei pacchi : http://localhost/shop/it/cronologia-ordini
+
+Vi terremo aggiornati sulla spedizione dei pacchi rimanenti.
+
+Con tutta la nostra attenzione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

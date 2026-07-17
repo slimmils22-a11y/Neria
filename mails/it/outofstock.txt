@@ -1,0 +1,21 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Ci dispiace informarVi che uno degli articoli del Vostro ordine non è attualmente disponibile.
+
+Ordine #TEST00125
+--------------------------------
+Uno dei pezzi del Vostro ordine ci sfugge momentaneamente — una situazione rarissima, che prendiamo molto seriamente.
+
+Ci scusiamo per questo contrattempo che non rispecchia i nostri standard. Il nostro team Vi contatterà a breve per concordare insieme la migliore soluzione.
+
+<a href="http://localhost/shop/it/cronologia-ordini" style="color:#b38b59;">Può visualizzare i dettagli del Vostro ordine dal Vostro account cliente</a> : http://localhost/shop/it/cronologia-ordini
+
+<a href="http://localhost/shop/it/tracciatura-ospite" style="color:#b38b59;">Se ha ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a> : http://localhost/shop/it/tracciatura-ospite
+
+ChiedendoVi perdono per questo contrattempo rarissimo,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

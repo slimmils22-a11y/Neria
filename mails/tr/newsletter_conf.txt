@@ -1,0 +1,19 @@
+Test Neria
+
+Günaydın, Camille,
+
+Sizi abonelerimiz arasında ağırlamaktan mutluluk duyarız. Bültenimize aboneliğiniz onaylanmıştır.
+
+Onay
+--------------------------------
+Artık yeni koleksiyonlarımızı, özel davetlerimizi ve evimizin öne çıkanlarını ilk siz alacaksınız — değer verdiklerimizle paylaştığımız şeyler.
+
+Güveniniz kutsaldır. Biz onu, itibarımızı koruduğumuz gibi koruruz: titizlik ve gizlilikle.
+
+Tercihlerinizi yönetebilir ve müşteri hesabınızdan istediğiniz zaman aboneliğinizi iptal edebilirsiniz.
+
+Alanıma eriş : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

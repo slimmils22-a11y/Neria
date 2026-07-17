@@ -1,0 +1,23 @@
+Test Neria
+
+God morgon, Sophie,
+
+Din offert har löpt ut, men vi vill erbjuda dig möjligheten att gå vidare. På enkel begäran kan vi förlänga dess giltighetstid beroende på tillgänglighet.
+
+Offertreferens: 
+
+Belopp: 
+
+Förlängning möjlig till: 
+
+Begär en förlängning : 
+
+Kontakta oss idag för att bekräfta din offert under de ursprungliga villkoren. Vårt team kommer att granska din begäran med yttersta omsorg.
+
+Detta förlängningserbjudande är beroende av artikelns tillgänglighet och bekräftelse från vårt team.
+
+Med utmärkt aktning,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

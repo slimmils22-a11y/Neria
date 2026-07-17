@@ -1,0 +1,23 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Vi har modtaget din besked vedrørende din ordre. Her er et resumé af de oplysninger, du har givet:
+
+Resumé af din forespørgsel
+--------------------------------
+Ordrereference : PREVIEW001
+
+Berørt produkt : Montre Élégance Neria
+
+Vedhæftet fil : Aucun fichier joint
+
+Vi lægger særlig vægt på hver enkelt forespørgsel og vender tilbage til dig meget snart.
+
+Vend tilbage til vores hus : http://localhost/shop/
+
+I forventning om at svare dig med al skyldig opmærksomhed,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

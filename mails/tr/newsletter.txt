@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Son haberlerimizi sizinle paylaşmaktan mutluluk duyarız. Aşağıda evimizin en son bilgilerini keşfedin.
+
+Bülten içeriği
+--------------------------------
+
+
+Gelecekteki haberlerimizi kaçırmamak için bağlantıda kalın.
+
+Maison'u keşfet : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+We have received your message regarding your order. Here is a summary of the information you provided:
+
+Summary of your request
+--------------------------------
+Order reference : PREVIEW001
+
+Product concerned : Montre Élégance Neria
+
+Attached file : Aucun fichier joint
+
+We pay special attention to every request and will get back to you very soon.
+
+Return to our house : http://localhost/shop/
+
+Looking forward to responding with all due attention,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,18 @@
+Test Neria
+
+Boa tarde, Camille,
+
+As grandes ocasiões aproximam-se. Antes que cheguem, preparámos para si uma seleção de peças para oferecer — escolhidas de acordo com os seus gostos e os de quem parece prezar.
+
+Oferecer é prolongar uma atenção. Cada peça desta seleção foi escolhida para tocar quem a recebe, com a elegância que lhes deseja.
+
+Descobrir a seleção : http://localhost/shop/
+
+Esta seleção foi composta para si, em reconhecimento da sua fidelidade e sensibilidade.
+
+
+Com toda a nossa delicadeza,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

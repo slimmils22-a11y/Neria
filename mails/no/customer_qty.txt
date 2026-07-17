@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+Du har vist interesse for et produkt som for øyeblikket er svært etterspurt. Vi er glade for å kunne informere om at en begrenset mengde igjen er tilgjengelig.
+
+Aktuelt produkt
+--------------------------------
+Tilbake i begrenset mengde: Montre Élégance Neria.
+
+Vis produkt : http://localhost/shop/index.php?controller=product&id_product=1
+
+Dette tilbudet er strengt begrenset til tilgjengelig lager. Vi oppfordrer deg til ikke å nøle.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,23 @@
+Test Neria
+
+Madame, Monsieur,
+
+C'est avec fierté que nous vous annonçons l'envoi de votre commande. Nos artisans l'ont préparée avec le soin qu'elle mérite — chaque détail, chaque emballage, chaque geste.
+
+Commande
+--------------------------------
+La commande NR-000123.
+
+Elle est désormais entre les mains de notre transporteur et vous parviendra dans les délais prévus.
+
+<a href="http://localhost/shop/fr/historique-commandes" style="color:#b38b59;">Vous pouvez consulter l'historique de votre commande depuis votre espace client</a> : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/fr/suivi-commande-invite" style="color:#b38b59;">Si vous avez commandé en tant qu'invité, suivez votre commande via le lien dédié</a> : http://localhost/shop/fr/suivi-commande-invite
+
+Nous vous souhaitons une réception à la hauteur de l'émotion que cette pièce porte en elle.
+
+Avec toute notre fierté et notre dévouement,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,18 @@
+Test Neria
+
+Buenos días, Camille,
+
+Las grandes ocasiones se acercan. Antes de que lleguen, hemos preparado para usted una selección de piezas para regalar — elegidas según sus gustos y los de quienes parece apreciar.
+
+Regalar es prolongar una atención. Cada pieza de esta selección ha sido elegida para conmover a quien la recibe, con la elegancia que usted les desea.
+
+Descubrir la selección : http://localhost/shop/
+
+Esta selección ha sido compuesta para usted, en reconocimiento de su fidelidad y sensibilidad.
+
+
+Con toda nuestra delicadeza,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

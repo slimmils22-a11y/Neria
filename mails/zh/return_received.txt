@@ -1,0 +1,22 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+我们确认包含您退货的包裹已送达我们的团队。它将得到应有的谨慎处理。
+
+订单编号 : PREVIEW001
+
+退货详情
+--------------------------------
+Réf. NER-001 — Montre Élégance Neria × 1
+Réf. NER-014 — Bracelet Cuir Atelier × 1
+
+跟踪我的退货 : http://localhost/shop/zh/订单-历史
+
+我们会及时通知您处理进展。
+
+随时为您服务，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,16 @@
+Test Neria
+
+Madame, Monsieur,
+
+Réponse de notre équipe
+--------------------------------
+Bonjour, nous avons bien traité votre demande. Cordialement, le service client.
+
+Merci de ne pas répondre à cet email automatique.
+
+Pour toute question, veuillez nous contacter via notre site.
+#
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,42 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We are pleased to take care of your item. Here is everything you need to send it back to us.
+
+Order : PREVIEW001
+
+Return reference : 42
+
+Return deadline : Within  days of receiving this email
+
+Item(s) concerned
+--------------------------------
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+Reason : Article ne correspondant pas à mes attentes
+
+Shipping instructions
+--------------------------------
+Return address :
+
+
+Please write this return reference on your parcel: 42
+
+Recommended carrier: a tracked and insured shipment for complete peace of mind.
+
+Any return terms and fees are detailed in our return policy.
+
+Your item will be reviewed within  business days of receipt.
+
+The refund will be issued to your original payment method.
+
+Access my return request : http://localhost/shop/gb/order-follow
+
+Any questions? Our team remains at your full disposal.
+
+With all our gratitude and pride,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

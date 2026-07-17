@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Büyükanne ve büyükbabalara adanan bu günde, size ektikleri anıyı, yumuşaklığı ve bilgeliği onurlandırıyoruz.
+
+Onlara, size verdikleri zamanı, sabrı ve sevgiyi taşıyan bir parça sunun.
+
+Seçkimizi keşfedin : http://localhost/shop/
+
+Hafta sonuna kadar özel bir ilgi sizi bekliyor.
+
+Tüm ekibimiz size mutlu bir büyükanne ve büyükbaba günü diler.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

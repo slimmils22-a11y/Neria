@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Er is een wijziging aangebracht in uw bestelling door ons team. Gelieve de bijgewerkte betalingsinformatie hieronder te bekijken.
+
+Bijgewerkte betalingsinformatie
+--------------------------------
+Het bedrag of de betalingsvoorwaarden zijn aangepast. Gelieve de aanpassing te voltooien door op onderstaande knop te klikken.
+
+Ga naar betaling : http://localhost/shop/index.php?controller=order-detail&id_order=1
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

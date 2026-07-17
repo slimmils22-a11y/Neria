@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Uw bestelling wordt momenteel verwerkt door de douaneautoriteiten van het land van bestemming.
+
+Orderreferentie : PREVIEW001
+
+Douanewaarschuwingsdetails
+--------------------------------
+Huidige status : En attente de dédouanement
+
+Aanbevolen actie : Aucune action requise de votre part.
+
+Mijn pakket volgen : http://localhost/shop/nl/besteloverzicht
+
+Ons team kan u helpen met de procedures indien nodig.
+
+Tot uw dienst om deze stap te overwinnen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

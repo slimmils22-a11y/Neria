@@ -1,0 +1,21 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Lamentamos informar que um dos artigos da sua encomenda não está disponível atualmente.
+
+Encomenda #TEST00125
+--------------------------------
+Uma das peças da sua encomenda escapa-nos momentaneamente — uma situação raríssima, que levamos muito a sério.
+
+Pedimos desculpa por este contratempo que não reflete os nossos padrões. A nossa equipa entrará em contacto consigo em breve para acordar juntos a melhor solução.
+
+<a href="http://localhost/shop/pt/historico-de-encomendas" style="color:#b38b59;">Pode consultar os detalhes da sua encomenda a partir da sua conta de cliente</a> : http://localhost/shop/pt/historico-de-encomendas
+
+<a href="http://localhost/shop/pt/seguimento-de-visitante" style="color:#b38b59;">Se fez a sua encomenda como convidado, acompanhe-a através do link dedicado</a> : http://localhost/shop/pt/seguimento-de-visitante
+
+Pedindo-lhe desculpa por este contratempo raríssimo,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

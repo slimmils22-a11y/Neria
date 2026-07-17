@@ -1,0 +1,21 @@
+Test Neria
+
+Доброе утро, Sophie,
+
+Ваши изделия были доверены нашим мастерам. В их руках каждое движение — это дань уважения Вашему выбору.
+
+Заказ
+--------------------------------
+Заказ PREVIEW001.
+
+Терпеливо взращённое мастерство, полностью посвящённое тому, что Вы ожидаете — и чего Вы заслуживаете.
+
+<a href="http://localhost/shop/ru/order-history" style="color:#b38b59;">Вы можете следить за ходом выполнения заказа из своего клиентского аккаунта</a> : http://localhost/shop/ru/order-history
+
+<a href="http://localhost/shop/ru/guest-tracking" style="color:#b38b59;">Если Вы оформляли заказ как гость, отслеживайте его по специальной ссылке</a> : http://localhost/shop/ru/guest-tracking
+
+В ожидании удовольствия Вас удовлетворить,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

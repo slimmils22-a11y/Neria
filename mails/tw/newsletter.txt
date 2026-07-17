@@ -1,0 +1,17 @@
+﻿Test Neria
+
+早安, Sophie,
+
+我們很高興與您分享我們的最新動態。請在下方了解本店的最新資訊。
+
+通訊內容
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+為了不錯過我們未來的任何消息，請保持關注。
+
+探索精品店 : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

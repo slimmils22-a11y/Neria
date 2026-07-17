@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Systemwarnung
+
+Das System hat ein ungewöhnliches Ereignis erkannt, das Ihr Eingreifen erfordert.
+
+Warnungsdetails
+--------------------------------
+Maßnahmen erforderlich
+
+Wir bitten Sie, die Logs zu konsultieren, um den Ursprung dieser Warnung zu verstehen und die notwendigen Maßnahmen zu ergreifen.
+
+Diese Warnung wurde automatisch generiert. Überprüfen Sie den Status Ihres Shops.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

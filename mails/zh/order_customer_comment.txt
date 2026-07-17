@@ -1,0 +1,21 @@
+Test Neria
+
+关于您订单的评论
+
+客户对其订单留下了评论。以下是信息。
+
+订单信息
+--------------------------------
+订单编号 : PREVIEW001
+
+客户 : Sophie Durand (test@test.com)
+
+客户留言
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+您可以从商店后台回复此消息。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

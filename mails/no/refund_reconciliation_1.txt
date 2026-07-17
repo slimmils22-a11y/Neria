@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi ønsket å bekrefte personlig at refusjonen din for øyeblikket behandles.
+
+Forespørselen din er mottatt og vi sørger for at den behandles med all den oppmerksomheten den fortjener.
+
+Se mine bestillinger : http://localhost/shop/no/ordrehistorikk
+
+Har du spørsmål, er teamet vårt alltid tilgjengelig for deg.
+
+Med vennlig hilsen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

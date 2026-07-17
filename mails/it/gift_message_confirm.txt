@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Confermiamo che il messaggio che avete allegato al Vostro ordine regalo è stato registrato con successo.
+
+Riferimento ordine : #TEST00125
+
+Contenuto del messaggio
+--------------------------------
+«  »
+
+Visualizza il mio ordine : http://localhost/shop/it/cronologia-ordini
+
+Il destinatario riceverà questo messaggio con il suo pacco.
+
+Con tutta la nostra attenzione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

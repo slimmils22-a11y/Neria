@@ -1,0 +1,33 @@
+Test Neria
+
+Hallo, Camille,
+
+Ihre Bestellung wurde erfolgreich registriert. Sie wird nach Eingang Ihrer Überweisung bearbeitet.
+
+Bestellung #TEST00125 — Warten auf Überweisung
+--------------------------------
+Vielen Dank für Ihre Bestellung #TEST00125.
+
+Bankverbindung
+--------------------------------
+Bitte überweisen Sie den Betrag auf das untenstehende Konto unter Angabe der folgenden Referenz:
+
+Betrag : 
+
+Begünstigter : 
+
+Kontodaten : 
+
+Bankadresse : 
+
+Bitte geben Sie die Referenz an #TEST00125.
+
+<a href="http://localhost/shop/de/bestellungsverlauf" style="color:#b38b59;">Bestellverlauf anzeigen</a> : http://localhost/shop/de/bestellungsverlauf
+
+<a href="http://localhost/shop/de/auftragsverfolgung-gast" style="color:#b38b59;">Gastverfolgung</a> : http://localhost/shop/de/auftragsverfolgung-gast
+
+In Erwartung Ihrer Überweisung, mit aller Geduld,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

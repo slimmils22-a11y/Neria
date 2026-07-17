@@ -1,0 +1,17 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir freuen uns, Ihnen mitteilen zu können, dass Ihre Bestellung in unserer Werkstatt voranschreitet.
+
+Aktueller Stand
+--------------------------------
+
+
+Unser Handwerker widmet seine ganze Sorgfalt der Erweckung Ihres einzigartigen Stücks zum Leben. Wir werden Sie bei jedem Schritt auf dem Laufenden halten.
+
+Sie können den Fortschritt Ihrer Bestellung in Ihrem Kundenkonto verfolgen.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

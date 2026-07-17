@@ -1,0 +1,25 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Siamo lieti di confermarVi che il Vostro ordine regalo viene preparato con la massima cura.
+
+Cosa garantiamo
+--------------------------------
+Confezione regalo di lusso
+
+Messaggio personalizzato secondo le Vostre indicazioni
+
+Consegna sicura e discreta
+
+Possibilità di cambio o reso entro il 31 gennaio
+
+Ogni dettaglio è pensato per offrire un'esperienza unica alla persona che riceverà questo dono.
+
+Traccia il mio ordine : 
+
+Per qualsiasi domanda sul Vostro ordine regalo, il nostro team è a Vostra disposizione.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

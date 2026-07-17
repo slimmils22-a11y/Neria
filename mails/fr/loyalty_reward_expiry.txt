@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+La récompense que vous avez obtenue dans le cadre de notre programme de fidélité expire bientôt.
+
+Détails de la récompense
+--------------------------------
+Date d'expiration : 30/06/2026
+
+Utiliser ma récompense : http://localhost/shop/fr/historique-commandes
+
+Cette récompense est valable jusqu'à la date indiquée. Passée cette date, elle ne pourra plus être utilisée.
+
+Nous espérons vous faire plaisir,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

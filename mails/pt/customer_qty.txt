@@ -1,0 +1,17 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Mostrou interesse num produto atualmente muito procurado. Temos o prazer de o informar que uma quantidade limitada está novamente disponível.
+
+Produto em causa
+--------------------------------
+De volta em quantidade limitada: .
+
+Ver produto : 
+
+Esta oferta está estritamente limitada ao stock disponível. Convidamo-lo a não demorar.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

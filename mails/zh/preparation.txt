@@ -1,0 +1,21 @@
+Test Neria
+
+早上好, Sophie,
+
+您的作品已交付我们的工匠手中。在他们手中，每一个动作都是对您选择的致敬。
+
+订单
+--------------------------------
+订单 PREVIEW001.
+
+耐心培育的技艺，完全服务于您的期望 — 以及您所应得的。
+
+<a href="http://localhost/shop/zh/订单-历史" style="color:#b38b59;">您可以从客户账户跟踪订单的进展情况。</a> : http://localhost/shop/zh/订单-历史
+
+<a href="http://localhost/shop/zh/客户跟踪" style="color:#b38b59;">如果您以访客身份下单，请通过专用链接跟踪订单。</a> : http://localhost/shop/zh/客户跟踪
+
+期待能为您带来满意的喜悦，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

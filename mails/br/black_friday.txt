@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Escolhemos participar neste dia com sobriedade. Aqui está uma seleção de peças de exceção em condições privilegiadas.
+
+Em nossa casa, a raridade permanece discreta. Mime-se com uma peça que talvez tenha estado à espera.
+
+Descobrir a seleção : http://localhost/shop/
+
+Esta oferta é limitada no tempo e estritamente reservada aos nossos convidados mais atentos.
+
+Toda a equipe deseja-lhe o melhor encontro.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

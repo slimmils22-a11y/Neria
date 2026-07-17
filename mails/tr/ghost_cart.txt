@@ -1,0 +1,19 @@
+Merhaba Camille,
+
+Bir şey fark ettik
+Bu ürün dikkatinizi çekiyor
+
+Bu ürünü birkaç kez sepetinize eklediğinizi fark ettik. Sizi durduran bir şey varsa — beden, malzeme, teslimat süresi veya başka bir konu hakkında sorunuz varsa — ekibimiz yardımcı olmaktan memnuniyet duyacaktır.
+
+--------------------------------------------------
+İlgilendiğiniz ürün:
+Ivory Linen Dress
+89.00 €
+http://localhost
+--------------------------------------------------
+
+Hiçbir baskı yok — sorularınız için buradayız.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

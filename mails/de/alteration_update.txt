@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Wir informieren Sie über den Fortschritt der maßgeschneiderten Änderung Ihres Stücks. Hier sind die neuesten Nachrichten.
+
+Bestellreferenz : #TEST00125
+
+Fortschrittsdetails
+--------------------------------
+Aktueller Status : 
+
+Fortschritt verfolgen : http://localhost/shop/de/bestellungsverlauf
+
+Unser Team steht Ihnen für alle Fragen zur Verfügung.
+
+Zu Ihren Diensten,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

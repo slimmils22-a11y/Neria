@@ -1,0 +1,21 @@
+Test Neria
+
+God morgon, Sophie,
+
+Dina stycken har anförtrotts åt våra hantverkare. I deras händer är varje gest en hyllning till ditt val.
+
+Beställning
+--------------------------------
+Beställning PREVIEW001.
+
+Ett tålmodigt odlat kunnande, helt i tjänst för vad du förväntar dig — och vad du förtjänar.
+
+<a href="http://localhost/shop/sv/bestallningshistorik" style="color:#b38b59;">Du kan följa din beställnings framsteg från ditt kundkonto</a> : http://localhost/shop/sv/bestallningshistorik
+
+<a href="http://localhost/shop/sv/gastsparning" style="color:#b38b59;">Om du beställde som gäst, följ din beställning via den dedikerade länken</a> : http://localhost/shop/sv/gastsparning
+
+I förväntan på nöjet att tillfredsställa dig,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

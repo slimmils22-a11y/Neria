@@ -1,0 +1,17 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+It has been  since you first trusted us. We have not forgotten.
+
+Your loyalty is our greatest reward. We are grateful to count you among our most cherished customers.
+
+View my purchases : http://localhost/shop/gb/order-history
+
+Thank you for being part of our story.
+
+With all our gratitude,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

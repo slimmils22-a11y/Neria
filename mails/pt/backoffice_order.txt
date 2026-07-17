@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+Foi feita uma alteração à sua encomenda pela nossa equipa. Convidamo-lo a consultar as informações de pagamento atualizadas abaixo.
+
+Informações de pagamento atualizadas
+--------------------------------
+O montante ou as condições de pagamento foram ajustados. Proceda à regularização clicando no botão abaixo.
+
+Ir para o pagamento : 
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

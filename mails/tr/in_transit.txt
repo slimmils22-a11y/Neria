@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Seçiminiz şimdi yolculuğunda. İşte ilgili parçalar:
+
+
+
+Sipariş #TEST00125
+--------------------------------
+Sipariş #TEST00125.
+
+Hâlihazırda yoldadır ve beklenen sürede size ulaşacaktır.
+
+Siparişimi takip et : 
+
+<a href="http://localhost/shop/tr/siparis-gecmisi" style="color:#b38b59;">Sipariş geçmişinizi müşteri hesabınızdan görüntüleyebilirsiniz</a> : http://localhost/shop/tr/siparis-gecmisi
+
+<a href="http://localhost/shop/tr/ziyaretci-takibi" style="color:#b38b59;">Misafir olarak sipariş verdiyseniz, özel bağlantı üzerinden siparişinizi takip edin</a> : http://localhost/shop/tr/ziyaretci-takibi
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

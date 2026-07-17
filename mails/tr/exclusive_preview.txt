@@ -1,0 +1,18 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Yaklaşan koleksiyonumuza erken erişim sunmaktan mutluluk duyarız. Dünyaya açıklanmadan önce, özel olarak.
+
+Ayrıcalıklı ön izleme
+--------------------------------
+
+Koleksiyonu keşfedin : http://localhost/shop/
+
+Bu davet kişiseldir ve sınırlı bir süre için geçerlidir.
+
+Sadakatiniz için teşekkür ederiz,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

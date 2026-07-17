@@ -1,0 +1,25 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Wij zijn verheugd te kunnen bevestigen dat uw cadeaubestelling met de grootste zorg wordt voorbereid.
+
+Wat wij garanderen
+--------------------------------
+Luxueuse cadeauverpakking
+
+Persoonlijke boodschap volgens uw instructies
+
+Veilige en discrete levering
+
+Mogelijkheid tot omruilen of retourneren tot 31 januari
+
+Elk detail is doordacht om de ontvanger van dit cadeau een unieke ervaring te bieden.
+
+Mijn bestelling volgen : http://localhost/shop/fr/historique-commandes
+
+Voor vragen over uw cadeaubestelling staat ons team voor u klaar.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

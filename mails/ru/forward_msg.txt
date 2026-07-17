@@ -1,0 +1,20 @@
+﻿Test Neria
+
+Уважаемый сотрудник,
+
+Сообщение клиента было перенаправлено Вам для обработки.
+
+Marie Lefebvre перенаправил(а) Вам следующее сообщение.
+
+История переписки
+--------------------------------
+Client : Bonjour, j'ai une question sur ma commande.
+Support : Bonjour, je regarde ça immédiatement.
+
+Marie Lefebvre добавил(а) следующий комментарий : Client prioritaire — traiter en urgence.
+
+Пожалуйста, не отвечайте на это автоматическое письмо. Войдите в административную панель для обработки запроса.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

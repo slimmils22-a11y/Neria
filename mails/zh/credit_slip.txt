@@ -1,0 +1,15 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+订单 PREVIEW001 — 贷项凭证
+--------------------------------
+已为您的订单创建贷项凭证 PREVIEW001.
+
+您可在下次购物时使用此贷项凭证，详情请访问 : http://localhost/shop/zh/订单-历史
+
+信守承诺，以真诚的敬意，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

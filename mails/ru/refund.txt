@@ -1,0 +1,17 @@
+Test Neria
+
+Доброе утро, Sophie,
+
+Подтверждаем, что возврат средств за Ваш заказ был успешно выполнен.
+
+Номер заказа : PREVIEW001
+
+<a href="http://localhost/shop/ru/order-history" style="color:#b38b59;">Вы можете просмотреть историю заказа из своего клиентского аккаунта</a> : http://localhost/shop/ru/order-history
+
+<a href="http://localhost/shop/ru/guest-tracking" style="color:#b38b59;">Если Вы оформляли заказ как гость, отслеживайте его по специальной ссылке</a> : http://localhost/shop/ru/guest-tracking
+
+С нашей самой глубокой благодарностью,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

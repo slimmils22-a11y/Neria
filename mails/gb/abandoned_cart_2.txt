@@ -1,0 +1,18 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+The pieces you distinguished are still available. Rarity can be fleeting — we wished to inform you.
+
+--------------------------------
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+Our team remains available for any questions regarding your selection.
+
+Return to my selection : http://localhost/shop/index.php?controller=cart
+
+We cannot guarantee availability beyond this invitation.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,25 @@
+Test Neria
+
+早上好, Sophie,
+
+我们很高兴确认您的礼品订单正在精心准备中。
+
+我们的承诺
+--------------------------------
+豪华礼品包装
+
+根据您的指示定制留言
+
+安全且谨慎的配送
+
+1月31日前可换货或退货
+
+每个细节都经过深思熟虑，旨在为收礼人提供独特的体验。
+
+跟踪我的订单 : http://localhost/shop/fr/historique-commandes
+
+如有任何关于礼品订单的问题，我们的团队随时为您服务。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

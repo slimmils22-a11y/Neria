@@ -1,0 +1,21 @@
+Test Neria
+
+Kära medarbetare,
+
+En produkt i din butik är nu slut i lager.
+
+Produktdetaljer
+--------------------------------
+Produkt : Montre Élégance Neria
+
+Lagervarningsgränsen nådd : 5
+
+Återstående kvantitet : 0
+
+Vi uppmanar dig att fylla på denna produkt så snart som möjligt.
+
+Denna varning är automatisk. Kontrollera ditt lagerstatus.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

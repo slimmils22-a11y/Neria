@@ -1,0 +1,21 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Du har for nylig afgivet en ordre som gæst. Vi inviterer dig til at konvertere din gæstekonto til en permanent kundekonto for at nyde mange fordele.
+
+Din kontoinformation
+--------------------------------
+E-mailadresse : test@test.com
+
+Indstil din adgangskode for at aktivere din konto og få adgang til din personlige plads.
+
+Aktiver min personlige plads : http://localhost/shop/
+
+Dit personlige rum giver dig mulighed for at finde dine privilegier til enhver tid: følge dine kreationer under transport, konsultere historikken over dine valg og forberede dine fremtidige besøg under de bedste forhold.
+
+Gå til min konto : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

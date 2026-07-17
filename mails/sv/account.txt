@@ -1,0 +1,31 @@
+Test Neria
+
+God morgon, Sophie,
+
+Din närvaro är en heder för oss. Ditt personliga utrymme har förberetts med omsorg — det väntar på dig.
+
+Din kontoinformation
+--------------------------------
+Du kan nu hantera dina beställningar, följa dina leveranser och ändra dina personuppgifter.
+
+Ansluten e-postadress : test@test.com
+
+Säkerhet och sekretess
+--------------------------------
+Ditt lösenord är krypterat och syns aldrig för vårt team.
+
+Vi delar aldrig dina personuppgifter med tredje part.
+
+Du kan radera ditt konto när som helst på enkel begäran.
+
+För frågor står vår kundservice till din tjänst.
+
+Ditt personliga utrymme är nu aktivt. Vi inbjuder dig att träda in.
+
+Gå till mitt konto : http://localhost/shop/
+
+Huset är glatt att räkna dig bland sina egna,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

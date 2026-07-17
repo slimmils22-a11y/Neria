@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Dietro ogni pezzo che ricevete, c'è uno sguardo, una mano, una storia. Ecco un messaggio personale dell'artigiano che ha plasmato il Vostro.
+
+Messaggio dell'artigiano
+--------------------------------
+Il Vostro pezzo è nato dalla mia passione e dai miei gesti. Spero che Vi accompagni a lungo.
+
+  — Da parte di
+
+Scoprire il laboratorio : http://localhost/shop/
+
+Siamo orgogliosi di farVi conoscere coloro che danno vita ai Vostri desideri.
+
+Con il calore dei nostri laboratori,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

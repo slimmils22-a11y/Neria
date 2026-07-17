@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+Ay Yılı vesilesiyle size en içten dileklerimizi sunuyoruz.
+
+Bu kutlama size mutluluk, sağlık ve tüm projelerinizde başarı getirsin.
+
+Kreasyonlarımızı keşfedin : http://localhost/shop/
+
+Özel bir ilgi kutlamaların sonuna kadar sizi bekliyor.
+
+Tüm ekibimiz size harika bir Ay Yılı diler.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

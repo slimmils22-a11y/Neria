@@ -1,0 +1,16 @@
+Test Neria
+
+Buenos días, Camille,
+
+Cerramos suavemente el capítulo de su cesta. Si alguna vez deseara recuperar su selección, nuestros artesanos estarían honrados de acogerle de nuevo.
+
+--------------------------------
+
+
+Volver a la maison : 
+
+Su cesta ya no está activa. Todas nuestras creaciones siguen a su disposición.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

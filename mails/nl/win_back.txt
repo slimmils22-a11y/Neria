@@ -1,0 +1,17 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+We dachten aan u en hopen dat het goed met u gaat. Onze creaties blijven evolueren en we zouden ze graag aan u willen voorstellen.
+
+We hebben een selectie voorbereid die u misschien leuk vindt. Een delicate attentie, zonder verplichtingen.
+
+Ontdek onze selectie : http://localhost/shop/
+
+We zouden u graag weer verwelkomen.
+
+In afwachting u weer te zien,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

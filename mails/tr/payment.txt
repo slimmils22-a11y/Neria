@@ -1,0 +1,21 @@
+Test Neria
+
+Günaydın, Camille,
+
+Ödemenizi şükranla aldık. Siparişiniz artık yaratım aşamasına giriyor.
+
+Sipariş
+--------------------------------
+Sipariş ödemesi #TEST00125.
+
+<a href="http://localhost/shop/tr/siparis-gecmisi" style="color:#b38b59;">Sipariş geçmişinizi müşteri hesabınızdan görüntüleyebilirsiniz</a> : http://localhost/shop/tr/siparis-gecmisi
+
+<a href="http://localhost/shop/tr/ziyaretci-takibi" style="color:#b38b59;">Misafir olarak sipariş verdiyseniz, özel bağlantı üzerinden siparişinizi takip edin</a> : http://localhost/shop/tr/ziyaretci-takibi
+
+Zanaatkârlarımız, evimizdeki her parçanın ilham verdiği saygı ve özenle işe koyulacaklar.
+
+En derin şükranlarımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

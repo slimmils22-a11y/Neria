@@ -1,0 +1,15 @@
+﻿Test Neria
+
+早安, Sophie,
+
+我們榮幸地邀請您參加我們的私享特賣會，這是專為我們最尊貴的賓客而設的。
+
+以優惠條件享受稀有作品的獨特精選。
+
+訪問私人銷售 : http://localhost/shop/vente-privee
+
+此優惠嚴格個人專屬，限時有效。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

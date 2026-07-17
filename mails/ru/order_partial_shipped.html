@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<?xml encoding="utf-8" ?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" dir="ltr">
+<head>
+  <title>Test Neria – Preview</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!--[if !mso]><!-->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet" type="text/css">
+  <!--<![endif]-->
+
+  <style type="text/css">
+    /* RESET */
+    body {
+      margin: 0;
+      padding: 0;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+      background-color: #f4f1eb;
+    }
+    table {
+      border-collapse: collapse;
+      mso-table-lspace: 0pt;
+      mso-table-rspace: 0pt;
+    }
+    img {
+      border: 0;
+      height: auto;
+      line-height: 100%;
+      outline: none;
+      text-decoration: none;
+      -ms-interpolation-mode: bicubic;
+    }
+    a {
+      color: #b38b59;
+      text-decoration: none;
+    }
+
+    /* TYPOGRAPHIE (surchargée par langue via EmailRenderer) */
+    body, table, td, p, a, li, blockquote {
+      font-family: 'PT Serif', Georgia, 'Times New Roman', serif;
+    }
+
+    /* STRUCTURE */
+    .neria-wrapper {
+      width: 100%;
+      background-color: #f4f1eb;
+      padding: 32px 0;
+    }
+    .neria-container {
+      width: 100%;
+      max-width: 620px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 4px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .neria-inner {
+      padding: 40px 48px 40px 48px;
+    }
+
+    /* TITRES */
+    .neria-title-main {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-align: center;
+      line-height: 1.6;
+      color: #2b2520;
+      margin: 0 0 8px 0;
+      font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    }
+    .neria-title-sub {
+      font-size: 15px;
+      text-align: center;
+      line-height: 1.7;
+      color: #5c554e;
+      margin: 0 0 28px 0;
+      font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    }
+    .neria-section-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-bottom: 1px solid #e3d7c7;
+      padding-bottom: 8px;
+      margin: 48px 0 18px 0;
+      color: #2b2520;
+    }
+
+    /* BOXES */
+    .neria-info-box {
+      background-color: #fefefe;
+      border: 1px solid #e8e0d5;
+      padding: 20px 24px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .neria-address-box {
+      background-color: #fefefe;
+      border: 1px solid #e8e0d5;
+      padding: 20px 24px;
+      font-size: 12px;
+      line-height: 1.4;
+      margin-top: 8px;
+    }
+
+    /* TEXTE */
+    .neria-text {
+      font-size: 12px;
+      line-height: 1.4;
+      color: #3a3530;
+    }
+    .neria-text-note {
+      font-size: 13px;
+      line-height: 1.7;
+      color: #6f6a62;
+    }
+
+    /* BOUTON */
+    .neria-btn {
+      display: inline-block;
+      padding: 14px 36px;
+      background-color: #2b2520;
+      color: #ffffff !important;
+      text-decoration: none;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 2px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* TABLEAU PRODUITS */
+    .neria-products-table {
+      width: 100%;
+      font-size: 13px;
+      line-height: 1.6;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+    .neria-products-table th {
+      font-weight: 600;
+      padding: 12px 8px;
+      border-bottom: 1px solid #e3d7c7;
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #8c857e;
+    }
+    .neria-products-table td {
+      padding: 12px 8px;
+      border-bottom: 1px solid #f0e7db;
+      vertical-align: top;
+    }
+    .neria-products-table .summary td {
+      font-weight: 600;
+      border-bottom: none;
+      padding: 6px 8px;
+    }
+    .neria-products-table .grand-total td {
+      font-weight: 600;
+      font-size: 16px;
+      border-top: 1px solid #e3d7c7;
+      padding-top: 14px;
+      font-size: 15px;
+    }
+
+    /* SIGNATURE */
+    .neria-signature {
+      margin-top: 56px;
+      padding-top: 32px;
+      border-top: 1px solid #f0e7db;
+      font-size: 12px;
+      line-height: 1.4;
+      text-align: left;
+      color: #2b2520;
+    }
+    .neria-brand-line {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #b38b59;
+      margin-top: 4px;
+    }
+
+    /* RÉSEAUX SOCIAUX */
+    .neria-social {
+      text-align: center;
+      padding: 16px 0 8px 0;
+    }
+    .neria-social a {
+      display: inline-block;
+      margin: 0 6px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #6b6459;
+      text-decoration: none;
+    }
+
+    /* HEADER / FOOTER */
+    .neria-header {
+      text-align: center;
+      padding: 30px 20px 20px 20px;
+      border-bottom: 1px solid #b38b59;
+      background-color: #ffffff;
+    }
+    .neria-footer {
+      text-align: center;
+      padding: 28px 20px 32px 20px;
+      font-size: 11px;
+      color: #6b6459;
+      line-height: 2;
+      border-top: 1px solid #f0e7db;
+      background-color: #ffffff;
+    }
+    .neria-footer a {
+      color: #6b6459;
+      text-decoration: underline;
+    }
+    .neria-footer__brand {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #b38b59;
+      margin-bottom: 8px;
+    }
+
+    /* SÉPARATEUR */
+    .neria-rule {
+      border:0; height:1px; background-color:#e3d7c7; margin:20px 40px;
+    }
+
+    /* DARK MODE – VERROUILLAGE FORCÉ */
+    @media (prefers-color-scheme: dark) {
+      body, .neria-wrapper { background-color: #f4f1eb !important; }
+      .neria-container { background-color: #ffffff !important; }
+      .neria-title-main, .neria-section-title, .neria-signature, .neria-text, .neria-title-sub { color: #2b2520 !important; }
+      .neria-info-box, .neria-address-box { background-color: #fefefe !important; border-color: #e8e0d5 !important; }
+      .neria-products-table th { color: #8c857e !important; }
+      .neria-products-table td { border-color: #f0e7db !important; }
+      a:not([style]) { color: #b38b59 !important; }
+      img { filter: none !important; }
+    }
+
+    /* RESPONSIVE */
+    @media only screen and (max-width: 480px) {
+      .neria-inner { padding: 24px 20px !important; }
+      .neria-rule { margin: 16px 20px !important; }
+      .neria-title-main { font-size: 20px !important; }
+    }
+  </style>
+</head>
+
+<body bgcolor="#f4f1eb" style="background-color: #f4f1eb; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">
+<div class="neria-wrapper" style="width: 100%; background-color: #f4f1eb; padding: 32px 0">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">
+    <tr>
+      <td align="center" valign="top" style="font-family: 'PT Serif', Georgia, 'Times New Roman', serif">
+        <!-- Centrage compatible tous clients email -->
+        <table border="0" cellpadding="0" cellspacing="0" width="620" style="width: 620px; max-width: 100%; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">
+          <tr><td style="font-family: 'PT Serif', Georgia, 'Times New Roman', serif">
+        <table class="neria-container" border="0" cellpadding="0" cellspacing="0" width="620" style="width: 620px; max-width: 100%; background-color: #ffffff; border-radius: 4px; margin: 0 auto; box-shadow: 0 20px 40px rgba(0,0,0,0.06); overflow: hidden; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">
+          <!-- HEADER LOGO -->
+          <tr>
+            <td class="neria-header" style="text-align: center; padding: 30px 20px 20px 20px; border-bottom: 1px solid #b38b59; background-color: #ffffff; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">
+              <a href="http://localhost/shop/ru/module/neria/track?t=4871e245a58f9393c27b373f005faed4d4ce11503f196e96cec406e59ba21c1a&e=click&url=http%3A%2F%2Flocalhost%2Fshop%2F" target="_blank" rel="noopener" style="color: #b38b59; text-decoration: none; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">
+                <img src="http://localhost/shop/img/logo.png" alt="Test Neria" width="160" style="max-width: 160px; width: 100%; height: auto; display: block; margin: 0 auto; border: 0; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic">
+              </a>
+            </td>
+          </tr>
+
+          <!-- CONTENU SPÉCIFIQUE -->
+          <tr>
+            <td class="neria-inner" style="padding: 40px 48px 40px 48px; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">
+              <!-- ORDER PARTIAL SHIPPED -->
+<h1 class="neria-title-main" style="font-size: 22px; font-weight: 600; letter-spacing: 0.04em; text-align: center; line-height: 1.6; color: #2b2520; margin: 0 0 8px 0; font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif">Ваш заказ отправляется несколькими посылками</h1>
+<p class="neria-title-sub" style="font-size: 15px; text-align: center; line-height: 1.7; color: #5c554e; margin: 0 0 28px 0; font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif">Часть Вашего выбора уже в пути</p>
+
+<!-- CORPS -->
+<p class="neria-text" style="font-size: 12px; line-height: 1.4; color: #3a3530; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">Доброе утро, Sophie,</p>
+<p class="neria-text" style="font-size: 12px; line-height: 1.4; color: #3a3530; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">Ваш заказ был разделён на несколько посылок для удобства отправки. Часть из них уже в пути к Вам.</p>
+
+<!-- RÉFÉRENCE COMMANDE -->
+<div class="neria-info-box" style="margin-top: 16px; background-color: #fefefe; border: 1px solid #e8e0d5; padding: 20px 24px; font-size: 12px; line-height: 1.4">
+  <p style="font-family: 'PT Serif', Georgia, 'Times New Roman', serif"><strong>Номер заказа :</strong> PREVIEW001</p>
+</div>
+
+<!-- SECTION -->
+<div class="neria-section-title" style="font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; border-bottom: 1px solid #e3d7c7; padding-bottom: 8px; margin: 48px 0 18px 0; color: #2b2520">Детали отправленных посылок</div>
+
+<div class="neria-info-box" style="background-color: #fefefe; border: 1px solid #e8e0d5; padding: 20px 24px; font-size: 12px; line-height: 1.4">
+  <p style="font-family: 'PT Serif', Georgia, 'Times New Roman', serif"><strong>Colis 1 / 2</strong> — Montre Élégance Neria · Colissimo 6A1234567890</p>
+</div>
+
+<!-- BOUTON -->
+<p style="text-align: center; margin: 28px 0; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">
+  <a href="http://localhost/shop/ru/module/neria/track?t=4871e245a58f9393c27b373f005faed4d4ce11503f196e96cec406e59ba21c1a&e=click&url=http%3A%2F%2Flocalhost%2Fshop%2Fru%2Forder-history" class="neria-btn" style="display: inline-block; padding: 14px 36px; background-color: #2b2520; color: #ffffff !important; text-decoration: none; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 2px; font-weight: 600; white-space: nowrap; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">Отследить мои посылки</a>
+</p>
+
+<p class="neria-text-note" style="font-size: 13px; line-height: 1.7; color: #6f6a62; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">Мы будем держать Вас в курсе отправки оставшихся посылок.</p>
+
+<!-- SIGNATURE -->
+<div class="neria-signature" style="margin-top: 56px; padding-top: 32px; border-top: 1px solid #f0e7db; font-size: 12px; line-height: 1.4; text-align: left; color: #2b2520">
+  Со всем нашим вниманием,<br>
+  <strong>Test Neria</strong>
+</div>
+              
+            </td>
+          </tr>
+
+          <!-- SIGNATURE MANUSCRITE -->
+          
+
+          <!-- RÉSEAUX SOCIAUX -->
+          
+
+          <tr><td style="font-family: 'PT Serif', Georgia, 'Times New Roman', serif"><hr class="neria-rule" style="border: 0; height: 1px; background-color: #e3d7c7; margin: 20px 40px"></td></tr>
+
+          <!-- EMPREINTE CARBONE -->
+          
+
+          <!-- FOOTER -->
+          <tr>
+            <td class="neria-footer" style="text-align: center; padding: 28px 20px 32px 20px; font-size: 11px; color: #6b6459; line-height: 2; border-top: 1px solid #f0e7db; background-color: #ffffff; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">
+              <div class="neria-footer__brand" style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #b38b59; margin-bottom: 8px">Test Neria</div>
+              <a href="http://localhost/shop/ru/module/neria/track?t=4871e245a58f9393c27b373f005faed4d4ce11503f196e96cec406e59ba21c1a&e=click&url=http%3A%2F%2Flocalhost%2Fshop%2F" style="color: #b38b59; text-decoration: none; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">Посетить наш дом</a>
+               · 
+              <a href="http://localhost/shop/ru/module/neria/track?t=4871e245a58f9393c27b373f005faed4d4ce11503f196e96cec406e59ba21c1a&e=click&url=http%3A%2F%2Flocalhost%2Fshop%2Fru%2Forder-history" style="color: #b38b59; text-decoration: none; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">История заказов</a>
+               · 
+              <a href="http://localhost/shop/ru/module/neria/track?t=4871e245a58f9393c27b373f005faed4d4ce11503f196e96cec406e59ba21c1a&e=click&url=http%3A%2F%2Flocalhost%2Fshop%2Fru%2Fguest-tracking" style="color: #b38b59; text-decoration: none; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">Отслеживание для гостей</a>
+              <br>
+              © Test Neria
+               · 
+              <a href="http://localhost/shop/ru/module/neria/track?t=4871e245a58f9393c27b373f005faed4d4ce11503f196e96cec406e59ba21c1a&e=click&url=http%3A%2F%2Flocalhost%2Fshop%2Fcontent%2Fmentions-legales" style="color: #b38b59; text-decoration: none; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">Правовая информация</a>
+               · 
+              <a href="" style="color: #b38b59; text-decoration: none; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">Управление предпочтениями</a>
+               · 
+              <a href="http://localhost/shop/fr/module/neria/unsubscribe?email=test%40test.com&amp;token=2798cc68a783e1f7b5b3c6101e500b6b&amp;neria_lang=ru" style="color: #b38b59; text-decoration: none; font-family: 'PT Serif', Georgia, 'Times New Roman', serif">Отписаться</a>
+            </td>
+          </tr>
+        </table>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
+
+
+<img src="http://localhost/shop/ru/module/neria/track?t=4871e245a58f9393c27b373f005faed4d4ce11503f196e96cec406e59ba21c1a&amp;e=open" width="1" height="1" style="display: block; width: 1px; height: 1px; border: 0; line-height: 100%; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic" alt="">
+
+</body>
+</html>

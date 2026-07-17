@@ -1,0 +1,23 @@
+Test Neria
+
+Buenos días, Camille,
+
+Su presupuesto vence hoy. Le invitamos a confirmarlo a la mayor brevedad posible para asegurar las condiciones acordadas.
+
+Referencia presupuesto: 
+
+Importe: 
+
+Vence el: 
+
+Validar mi presupuesto ahora : 
+
+Para cualquier consulta urgente, nuestro equipo está disponible y listo para ayudarle.
+
+Este presupuesto vence hoy. Una vez transcurrido el plazo, las condiciones tarifarias acordadas podrán estar sujetas a modificación.
+
+Con nuestra distinguida consideración,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

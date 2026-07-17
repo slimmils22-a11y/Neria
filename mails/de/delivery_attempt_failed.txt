@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Wir haben versucht, Ihr Paket zuzustellen, aber niemand war anwesend, um es zu empfangen.
+
+Bestellreferenz : #TEST00125
+
+Details zum Zustellversuch
+--------------------------------
+Paketstatus : 
+
+Was ist jetzt zu tun? : 
+
+Abholmöglichkeiten anzeigen : http://localhost/shop/de/bestellungsverlauf
+
+Das Paket wird in einer Abholstation für Sie bereitgehalten.
+
+In Erwartung, Sie zu bedienen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

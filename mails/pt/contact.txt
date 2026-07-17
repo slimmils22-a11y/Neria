@@ -1,0 +1,25 @@
+﻿Test Neria
+
+A sua voz foi ouvida
+
+Boa tarde, Camille,
+
+Confirmamos a receção da sua solicitação e agradecemos por nos contactar. Segue uma cópia das informações que nos forneceu:
+
+Informações de contacto
+--------------------------------
+Endereço de e-mail : test@test.com
+
+Referência da encomenda : #TEST00125
+
+Ficheiro anexo : 
+
+A sua mensagem
+--------------------------------
+
+
+Responder por e-mail : test@test.com
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

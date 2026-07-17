@@ -1,0 +1,24 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Uw selectie is nu op reis. Hier zijn de betrokken stukken:
+
+Réf. NER-001 — Montre Élégance Neria × 1
+Réf. NER-014 — Bracelet Cuir Atelier × 1
+
+Bestelling PREVIEW001
+--------------------------------
+Bestelling PREVIEW001.
+
+Deze is momenteel onderweg en zal u binnen de verwachte tijd bereiken.
+
+Mijn bestelling volgen : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/nl/besteloverzicht" style="color:#b38b59;">Bekijk uw bestelgeschiedenis in uw klantenaccount</a> : http://localhost/shop/nl/besteloverzicht
+
+<a href="http://localhost/shop/nl/bestelling-volgen-als-gast" style="color:#b38b59;">Als u als gast heeft besteld, volg dan uw bestelling via de speciale link</a> : http://localhost/shop/nl/bestelling-volgen-als-gast
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

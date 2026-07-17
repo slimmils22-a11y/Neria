@@ -1,0 +1,19 @@
+﻿Test Neria
+
+早安, Sophie,
+
+我們的團隊有關於您訂單的消息。
+
+訂單 PREVIEW001
+--------------------------------
+訂單中已添加新消息 PREVIEW001.
+
+我們團隊的消息
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+您可以從客戶帳戶查看訂單歷史： http://localhost/shop/tw/訂單記錄
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

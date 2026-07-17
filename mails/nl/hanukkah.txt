@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Ter gelegenheid van Hanukkah, het lichtfeest, sturen we u onze oprechtste wensen.
+
+Moge deze heilige viering u de warmte van het huis, vrede en sereniteit brengen.
+
+Ontdek onze creaties : http://localhost/shop/
+
+Een bijzondere attentie is voor u beschikbaar tot het einde van de week.
+
+Het hele team wenst u een prachtig Hanukkah.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

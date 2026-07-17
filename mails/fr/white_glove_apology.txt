@@ -1,0 +1,25 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous ne vous écrivons pas pour nous justifier. Nous vous écrivons pour assumer pleinement, et vous présenter nos excuses sans réserve.
+
+Détails de l'incident
+--------------------------------
+Référence : NR-000123
+
+Un retard de livraison exceptionnel est survenu sur votre commande.
+
+Ce contretemps ne reflète en rien les standards que nous nous imposons. Nous en sommes les premiers affectés, et déterminés à ce qu'il reste une exception absolue.
+
+Un membre de notre équipe vous contactera personnellement dans les 24 heures pour convenir avec vous de la solution la plus appropriée — celle qui, nous l'espérons, restaurera votre confiance.
+
+Contacter notre service : #
+
+Votre patience et votre bienveillance nous touchent. Nous les méritons maintenant.
+
+Avec notre contrition la plus sincère et notre engagement absolu,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

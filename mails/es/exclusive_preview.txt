@@ -1,0 +1,18 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Nos complace ofrecerle acceso anticipado a nuestra próxima colección. En exclusiva, antes incluso de que sea revelada al mundo.
+
+Avance reservado
+--------------------------------
+
+Descubrir la colección : http://localhost/shop/
+
+Esta invitación es personal y válida por un tiempo limitado.
+
+Gracias por su fidelidad,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

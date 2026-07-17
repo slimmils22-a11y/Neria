@@ -1,0 +1,19 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+EU 외 거주 고객님으로서 구매에 대한 세금 환급 자격이 있습니다.
+
+자격 세부 정보
+--------------------------------
+주문 참조 번호 : PREVIEW001
+
+절차 시작 : http://localhost/shop/
+
+저희 팀이 필요한 절차를 도와드리겠습니다.
+
+도와드리겠습니다,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

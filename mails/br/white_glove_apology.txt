@@ -1,0 +1,25 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Não escrevemos para nos justificar. Escrevemos para assumir plenamente e apresentar nossas desculpas sem reservas.
+
+Detalhes do incidente
+--------------------------------
+Referência : PREVIEW001
+
+Un retard de livraison exceptionnel est survenu sur votre commande.
+
+Este contratempo não reflete de forma alguma os padrões que nos impomos. Somos os primeiros afetados e determinados a que continue a ser uma exceção absoluta.
+
+Um membro de nossa equipe entrará em contato com você pessoalmente em até 24 horas para acordar a solução mais adequada — uma que, esperamos, restaure sua confiança.
+
+Contatar nosso serviço : http://localhost/shop/index.php?controller=contact
+
+Sua paciência e gentileza nos tocam. Agora devemos merecê-las.
+
+Com nossa mais sincera contrição e compromisso absoluto,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

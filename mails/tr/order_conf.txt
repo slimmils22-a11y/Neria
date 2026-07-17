@@ -1,0 +1,52 @@
+Test Neria
+
+Günaydın, Camille,
+
+Siparişinizi aldığımızı onaylamaktan onur duyarız. Seçtiğiniz her parça, hak ettiği — ve sizin hak ettiğiniz — özenle hazırlanacaktır.
+
+Zanaatkârlarımız nesilden nesile aktarılan bir mirası taşırlar. Kreasyonunuz artık bunun ifadesidir.
+
+Sipariş detayları
+--------------------------------
+Sipariş numarası : #TEST00125
+
+Tarih : 
+
+Ödeme yöntemi : 
+
+
+
+
+Toplam ürün : 
+
+İndirimler : 
+
+Kargo : 
+
+Vergi : 
+
+Ödenen toplam : 
+
+Kargo
+--------------------------------
+Kargo şirketi : 
+
+Teslimat adresi
+--------------------------------
+
+
+Fatura adresi
+--------------------------------
+
+
+<a href="" style="color:#b38b59;">Siparişinizin ilerleyişini müşteri hesabınızdan takip edebilirsiniz</a>
+
+<a href="http://localhost/shop/tr/siparis-gecmisi" style="color:#b38b59;">Sipariş geçmişinizi müşteri hesabınızdan görüntüleyin</a> : http://localhost/shop/tr/siparis-gecmisi
+
+<a href="http://localhost/shop/tr/ziyaretci-takibi" style="color:#b38b59;">Misafir olarak sipariş verdiyseniz, özel bağlantı üzerinden siparişinizi takip edin</a> : http://localhost/shop/tr/ziyaretci-takibi
+
+Tüm şükran ve gururumuzla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,24 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Hier is uw maandelijks overzicht van loyaliteitspunten. Elke opening, elke klik en elke aankoop brengt u dichter bij een beloning.
+
+--------------------------------
+Punten verdiend deze maand : +
+Gecumuleerd totaal : 
+--------------------------------
+
+Uw voortgang naar het volgende niveau
+
+Gefeliciteerd — u heeft ons hoogste niveau bereikt.
+
+Ontdek onze nieuwkomers : http://localhost/shop/
+
+Uw punten worden automatisch bijgeschreven bij elke interactie met onze e-mails.
+
+Met al onze dankbaarheid,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

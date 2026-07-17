@@ -1,0 +1,21 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Vi ringraziamo per il Vostro ordine. I seguenti prodotti digitali sono ora disponibili per il download.
+
+Ordine #TEST00125 — Download
+--------------------------------
+Voi avete  prodotto/i disponibile/i per il download.
+
+
+
+<a href="http://localhost/shop/it/cronologia-ordini" style="color:#b38b59;">Visualizza la cronologia del Vostro ordine</a> : http://localhost/shop/it/cronologia-ordini
+
+<a href="http://localhost/shop/it/tracciatura-ospite" style="color:#b38b59;">Tracciamento ordine ospite</a> : http://localhost/shop/it/tracciatura-ospite
+
+Buona scoperta del Vostro acquisto,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

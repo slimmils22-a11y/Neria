@@ -1,0 +1,42 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Wij ontfermen ons graag over uw artikel. Hier vindt u alle informatie om het naar ons terug te sturen.
+
+Bestelling : PREVIEW001
+
+Retournummer : 42
+
+Uiterste retourdatum : Binnen  dagen na ontvangst van deze e-mail
+
+Betrokken artikel(en)
+--------------------------------
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+Reden : Article ne correspondant pas à mes attentes
+
+Verzendinstructies
+--------------------------------
+Retouradres :
+
+
+Vermeld dit retournummer op uw pakket: 42
+
+Aanbevolen verzending: een traceerbare en verzekerde zending voor uw gemoedsrust.
+
+De voorwaarden en eventuele kosten voor retournering staan vermeld in ons retourbeleid.
+
+Uw artikel wordt binnen  werkdagen na ontvangst beoordeeld.
+
+De terugbetaling gebeurt op uw oorspronkelijke betaalmethode.
+
+Naar mijn retouraanvraag : http://localhost/shop/nl/bestelling-volgen
+
+Vragen? Ons team staat volledig tot uw beschikking.
+
+Met al onze dankbaarheid en trots,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

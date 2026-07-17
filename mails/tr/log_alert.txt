@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Sistem uyarısı
+
+Sistem, müdahalenizi gerektiren alışılmadık bir olay tespit etti.
+
+Uyarı detayları
+--------------------------------
+İşlem gerekli
+
+Bu uyarının kaynağını anlamak ve gerekli önlemleri almak için günlükleri incelemenizi öneririz.
+
+Bu uyarı otomatik olarak oluşturuldu. Mağazanızın durumunu kontrol edin.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

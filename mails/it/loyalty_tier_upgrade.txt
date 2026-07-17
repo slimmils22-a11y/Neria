@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Siamo lieti di informarVi che la Vostra fedeltà Vi ha permesso di raggiungere il livello successivo del nostro programma. Una nuova tappa nel nostro rapporto.
+
+Il Vostro nuovo status
+--------------------------------
+Nuovo livello : 
+Totale punti : 
+
+Il Vostro buono sconto esclusivo
+ — Valore : 
+
+Scopri i miei nuovi privilegi : http://localhost/shop/it/cronologia-ordini
+
+Questo status Vi apre porte che riserviamo ai più fedeli.
+
+Con tutta la nostra riconoscenza,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

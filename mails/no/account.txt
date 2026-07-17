@@ -1,0 +1,31 @@
+Test Neria
+
+God morgen, Sophie,
+
+Din tilstedeværelse er en ære for oss. Ditt personlige rom er klargjort med omhu — det venter på deg.
+
+Din kontoinformasjon
+--------------------------------
+Du kan nå administrere bestillingene dine, spore leveransene og endre dine personlige opplysninger.
+
+Tilknyttet e-postadresse : test@test.com
+
+Sikkerhet og konfidensialitet
+--------------------------------
+Passordet ditt er kryptert og er aldri synlig for teamet vårt.
+
+Vi deler aldri dine personopplysninger med tredjeparter.
+
+Du kan slette kontoen din når som helst på enkel forespørsel.
+
+For spørsmål står vår kundeservice til tjeneste.
+
+Ditt personlige rom er nå aktivt. Vi inviterer deg til å tre inn.
+
+Gå til min konto : http://localhost/shop/
+
+Huset er glad for å telle deg blant sine egne,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

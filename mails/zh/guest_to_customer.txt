@@ -1,0 +1,21 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+您最近以访客身份下过订单。我们邀请您将访客账户转换为永久客户账户，以享受诸多优惠。
+
+您的账户信息
+--------------------------------
+电子邮件地址 : test@test.com
+
+设置您的密码以激活账户并访问您的个人空间。
+
+激活我的个人空间 : http://localhost/shop/
+
+您的专属空间将让您随时享受您的专属权益：追踪运送中的定制品、查阅您的选择记录，并以最佳状态准备下次光临。
+
+访问我的账户 : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

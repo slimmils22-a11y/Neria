@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+저희의 프라이빗 세일에 초대할 수 있는 영광을 갖게 되었습니다. 이 세일은 저희의 가장 소중한 고객님들을 위해 마련되었습니다.
+
+특별한 조건으로 희귀한 작품의 독특한 선택을 즐기세요.
+
+프라이빗 세일 액세스 : http://localhost/shop/vente-privee
+
+이 오퍼는 엄격히 개인용이며 시간이 제한됩니다.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

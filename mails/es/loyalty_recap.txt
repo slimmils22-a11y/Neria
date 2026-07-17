@@ -1,0 +1,24 @@
+Test Neria
+
+Buenos días, Camille,
+
+Aquí tiene el resumen mensual de sus puntos de fidelidad. Cada apertura, cada clic y cada compra le acerca a una recompensa.
+
+--------------------------------
+Puntos ganados este mes : +
+Total acumulado : 
+--------------------------------
+
+Su progreso hacia el siguiente nivel
+
+Enhorabuena — ha alcanzado nuestro nivel más alto.
+
+Descubrir nuestras novedades : http://localhost/shop/
+
+Sus puntos se acreditan automáticamente con cada interacción con nuestros emails.
+
+Con todo nuestro agradecimiento,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

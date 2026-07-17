@@ -1,0 +1,21 @@
+Test Neria
+
+早上好, Sophie,
+
+我们确认您订单的退款程序已成功完成。
+
+订单编号 : PREVIEW001
+
+退款详情
+--------------------------------
+退款金额 : 89,00 €
+
+查看我的订单 : http://localhost/shop/zh/订单-历史
+
+款项将根据您银行通常的时间框架存入您的账户。
+
+随时为您服务，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

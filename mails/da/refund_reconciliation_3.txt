@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+Din refusion er nu afsluttet. Vi håber, at alt er forløbet til din tilfredshed.
+
+Husk, at vores hus er dit, og at vi altid vil glæde os til at byde dig velkommen igen, når du er klar.
+
+Vend tilbage til vores hus : http://localhost/shop/
+
+Der er kommet nyheder siden dit sidste besøg. Måske finder du noget, der tiltaler dig.
+
+Med venligste hilsener,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

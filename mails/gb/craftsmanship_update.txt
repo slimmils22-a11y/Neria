@@ -1,0 +1,17 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We are pleased to inform you that your order is progressing in our workshop.
+
+Current stage
+--------------------------------
+Assemblage final en atelier
+
+Our artisan is dedicating all their care to bringing your unique piece to life. We will keep you updated at every stage.
+
+You can track the progress of your order from your customer account.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

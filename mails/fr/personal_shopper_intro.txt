@@ -1,0 +1,19 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous avons le plaisir de vous présenter votre conseiller personnel, dédié à vous accompagner dans vos choix et à répondre à vos envies.
+
+Votre conseiller dédié
+--------------------------------
+Votre conseiller : Marie-Claire Fontaine
+
+Contacter mon conseiller : http://localhost/shop/
+
+Il ou elle connaît vos goûts et peut vous guider vers des pièces qui vous ressemblent.
+
+À votre service, avec attention,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

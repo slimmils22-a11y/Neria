@@ -1,0 +1,17 @@
+Test Neria
+
+Madame, Monsieur Durand,
+
+En cette saison où la lumière triomphe du froid, notre maison pense à vous avec une chaleur toute particulière.
+
+Que ces fêtes vous offrent ce que le quotidien donne trop rarement : du temps, de la douceur, et la compagnie de ceux qui comptent.
+
+Découvrir nos créations : http://localhost/shop/
+
+Une attention délicate vous est réservée jusqu'au 31 décembre.
+
+Toute l'équipe vous souhaite de merveilleuses fêtes.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

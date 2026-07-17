@@ -1,0 +1,23 @@
+Test Neria
+
+Boa tarde, Camille,
+
+É com orgulho que anunciamos o envio da sua encomenda. Os nossos artesãos prepararam-na com o cuidado que merece — cada detalhe, cada embalagem, cada gesto.
+
+Encomenda
+--------------------------------
+A encomenda #TEST00125.
+
+Está agora nas mãos da nossa transportadora e chegará dentro do prazo previsto.
+
+<a href="http://localhost/shop/pt/historico-de-encomendas" style="color:#b38b59;">Pode consultar o histórico da sua encomenda a partir da sua conta de cliente</a> : http://localhost/shop/pt/historico-de-encomendas
+
+<a href="http://localhost/shop/pt/seguimento-de-visitante" style="color:#b38b59;">Se fez a sua encomenda como convidado, acompanhe-a através do link dedicado</a> : http://localhost/shop/pt/seguimento-de-visitante
+
+Desejamos-lhe uma receção à altura da emoção que esta peça transporta consigo.
+
+Com todo o nosso orgulho e dedicação,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

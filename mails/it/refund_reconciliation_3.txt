@@ -1,0 +1,17 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Il Vostro rimborso è stato ora finalizzato. Speriamo che tutto si sia svolto a Vostra soddisfazione.
+
+Sappiate che la nostra casa è la Vostra, e saremo sempre lieti di accoglierVi di nuovo, quando lo riterrete opportuno.
+
+Ritornare alla nostra casa : http://localhost/shop/
+
+Delle novità sono arrivate dalla Vostra ultima visita. Forse troverete qualcosa che Vi piace.
+
+Con i nostri più cordiali saluti,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

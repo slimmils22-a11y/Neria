@@ -1,0 +1,19 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+As a guest residing outside the European Union, you are eligible for a tax refund on your purchases.
+
+Your eligibility details
+--------------------------------
+Order reference : PREVIEW001
+
+Start the procedure : http://localhost/shop/
+
+Our team will assist you with the necessary steps.
+
+At your service,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

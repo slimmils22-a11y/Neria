@@ -1,0 +1,19 @@
+Test Neria
+
+God morgon, Sophie,
+
+Vi märkte att du var på väg att slutföra din beställning. Ibland uppstår ett tekniskt problem i sista stund — ett 3DS-fel, anslutningsavbrott eller ett sista tvekande.
+
+Din varukorg är sparad och ditt val väntar precis där du lämnade det.
+
+Slutför min beställning : http://localhost/shop/index.php?controller=cart
+
+Om du stötte på ett betalningsproblem är vårt team tillgängligt för att hjälpa dig slutföra köpet i lugn och ro.
+
+Ingen särskild åtgärd krävs från din sida — din varukorg är bevarad.
+
+Med vår fulla uppmärksamhet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

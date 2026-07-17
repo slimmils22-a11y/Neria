@@ -1,0 +1,19 @@
+Olá Sophie,
+
+Percebemos algo
+Este produto chamou a sua atenção
+
+Percebemos que você adicionou este produto ao carrinho várias vezes. Se algo está te impedindo — uma dúvida sobre tamanho, materiais, prazo de entrega ou qualquer outra coisa — nossa equipe está disponível para ajudar.
+
+--------------------------------------------------
+O produto que te interessa:
+Montre Élégance Neria
+ €
+http://localhost/shop/index.php?controller=product&id_product=1
+--------------------------------------------------
+
+Sem pressão — estamos aqui caso tenha alguma dúvida.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

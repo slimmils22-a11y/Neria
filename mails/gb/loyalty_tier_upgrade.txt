@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+We are pleased to inform you that your loyalty has allowed you to reach the next tier of our programme. A new milestone in our relationship.
+
+Your new status
+--------------------------------
+New tier : Cercle Or
+Total points : 
+
+Your exclusive discount voucher
+NERIA-PREVIEW-2026 — Value : 15,00 €
+
+Discover my new privileges : http://localhost/shop/gb/order-history
+
+This status opens doors we reserve for the most loyal.
+
+With all our gratitude,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Your voice has been heard
+
+Good afternoon, Sophie,
+
+We acknowledge receipt of your request and thank you for contacting us. Here is a copy of the information you provided:
+
+Contact information
+--------------------------------
+Email address : test@test.com
+
+Order reference : PREVIEW001
+
+Attached file : Aucun fichier joint
+
+Your message
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+Reply by email : test@test.com
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

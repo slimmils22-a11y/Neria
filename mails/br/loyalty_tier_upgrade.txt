@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Temos o prazer de informar que sua fidelidade permitiu que você alcançasse o próximo nível do nosso programa. Um novo marco em nossa relação.
+
+O seu novo estatuto
+--------------------------------
+Novo nível : Cercle Or
+Total de pontos : 
+
+O seu voucher de desconto exclusivo
+NERIA-PREVIEW-2026 — Valor : 15,00 €
+
+Descobrir meus novos privilégios : http://localhost/shop/br/historico-de-pedidos
+
+Este status abre portas que reservamos aos mais fiéis.
+
+Com toda a nossa gratidão,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

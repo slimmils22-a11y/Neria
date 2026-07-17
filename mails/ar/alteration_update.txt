@@ -1,0 +1,21 @@
+﻿Test Neria
+
+مساء الخير, Sophie,
+
+نعلمكم بتقدم التعديل حسب الطلب لقطعتكم. إليكم آخر الأخبار.
+
+مرجع الطلب : PREVIEW001
+
+تفاصيل التقدم
+--------------------------------
+الحالة الحالية : Retouche en cours de finition
+
+تتبع التقدم : http://localhost/shop/ar/سجل طلبات الشراء
+
+فريقنا رهن إشارتكم لأي استفسار.
+
+في خدمتكم،
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

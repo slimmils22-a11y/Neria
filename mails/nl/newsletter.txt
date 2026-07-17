@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Wij zijn verheugd om ons laatste nieuws met u te delen. Ontdek hieronder de meest recente informatie van ons huis.
+
+Inhoud nieuwsbrief
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+Om geen van onze toekomstige nieuwtjes te missen, blijf verbonden.
+
+Het huis ontdekken : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

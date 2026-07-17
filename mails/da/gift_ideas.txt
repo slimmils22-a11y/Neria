@@ -1,0 +1,18 @@
+Test Neria
+
+God morgen, Sophie,
+
+De store lejligheder nærmer sig. Inden de ankommer, har vi forberedt et udvalg af genstande at give — valgt med udgangspunkt i din smag og dem, du synes at sætte pris på.
+
+At give er at forlænge en opmærksomhed. Hvert stykke i dette udvalg er valgt for at berøre den, der modtager det, med den elegance, du ønsker dem.
+
+Opdag udvalget : http://localhost/shop/
+
+Dette udvalg er sammensat til dig, som en anerkendelse af din loyalitet og følsomhed.
+
+
+Med al vores omsorg,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

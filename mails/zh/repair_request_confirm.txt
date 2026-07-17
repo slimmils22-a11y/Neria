@@ -1,0 +1,21 @@
+Test Neria
+
+早上好, Sophie,
+
+我们已收到您关于作品维修或修改的请求。
+
+订单编号 : PREVIEW001
+
+请求详情
+--------------------------------
+Montre Élégance Neria
+
+跟踪我的请求 : http://localhost/shop/zh/订单-历史
+
+我们的团队将与您联系，确认服务条款。
+
+随时为您服务，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

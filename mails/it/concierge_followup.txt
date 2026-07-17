@@ -1,0 +1,18 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Il nostro servizio concierge desidera assicurarsi che la Vostra esperienza con la nostra casa sia all'altezza delle Vostre aspettative.
+
+Bisogno di un'attenzione speciale?
+--------------------------------
+
+Contatta il mio consulente : http://localhost/shop/
+
+Siamo a disposizione per accompagnarVi in ogni dettaglio del Vostro percorso.
+
+Al Vostro servizio, in ogni circostanza,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Meldingen din er mottatt
+
+God morgen, Sophie,
+
+Vi bekrefter mottakelsen av din forespørsel og takker deg for at du kontaktet oss. Her er en kopi av informasjonen du har gitt:
+
+Kontaktinformasjon
+--------------------------------
+E-postadresse : test@test.com
+
+Bestillingsreferanse : PREVIEW001
+
+Vedlagt fil : Aucun fichier joint
+
+Din melding
+--------------------------------
+Bonjour, je souhaite obtenir des informations sur ma commande.
+
+Svar via e-post : test@test.com
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

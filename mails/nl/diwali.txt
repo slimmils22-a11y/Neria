@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Ter gelegenheid van Diwali, het lichtfestival, sturen we u onze hartelijke wensen.
+
+Moge dit heilige festival helderheid, voorspoed en vreugde in uw leven brengen.
+
+Ontdek onze creaties : http://localhost/shop/
+
+Een bijzondere attentie is voor u beschikbaar tot het einde van de week.
+
+Het hele team wenst u een prachtig Diwali.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

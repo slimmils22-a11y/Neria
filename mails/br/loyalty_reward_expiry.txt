@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+A recompensa que você obteve pelo nosso programa de fidelidade vai expirar em breve.
+
+Detalhes da recompensa
+--------------------------------
+Data de validade : 30/06/2026
+
+Usar minha recompensa : http://localhost/shop/br/historico-de-pedidos
+
+Esta recompensa é válida até a data indicada. Após essa data, ela não poderá mais ser utilizada.
+
+Esperamos satisfazer você,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

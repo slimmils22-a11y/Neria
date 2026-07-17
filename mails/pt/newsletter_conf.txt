@@ -1,0 +1,19 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Temos o prazer de o acolher entre os nossos subscritores. A sua inscrição na nossa newsletter foi confirmada.
+
+Confirmação
+--------------------------------
+Passará a receber em primeira mão as nossas novas coleções, convites privados e os momentos altos da nossa casa — partilhados com aqueles que estimamos.
+
+A sua confiança é sagrada. Protegemo-la como protegemos a nossa reputação: com rigor e discrição.
+
+Pode gerir as suas preferências e cancelar a subscrição a qualquer momento a partir da sua conta de cliente.
+
+Aceder ao meu espaço : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

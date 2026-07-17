@@ -1,0 +1,23 @@
+Test Neria
+
+Bonjour, Sophie,
+
+Votre devis arrive à expiration aujourd'hui. Nous vous invitons à le confirmer dans les meilleurs délais afin de bénéficier des conditions convenues.
+
+Référence devis : 
+
+Montant : 
+
+Expire le : 
+
+Valider mon devis maintenant : 
+
+Pour toute question urgente, notre équipe est disponible et prête à vous accompagner dans votre démarche.
+
+Ce devis expire aujourd'hui. Une fois le délai passé, les conditions tarifaires pourront être soumises à modification.
+
+Avec notre considération distinguée,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

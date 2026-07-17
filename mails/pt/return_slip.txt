@@ -1,0 +1,42 @@
+Test Neria
+
+Boa tarde, Camille,
+
+Teremos todo o prazer em cuidar do seu artigo. Aqui estão as informações necessárias para no-lo enviar.
+
+Encomenda : #TEST00125
+
+Número de devolução : 
+
+Prazo de envio : No prazo de  dias após a receção deste email
+
+Artigo(s) em causa
+--------------------------------
+
+
+Motivo : 
+
+Instruções de envio
+--------------------------------
+Morada de devolução :
+
+
+Por favor, indique este número de devolução na sua encomenda: 
+
+Transportadora recomendada: um envio rastreado e seguro para viajar com tranquilidade.
+
+As condições e eventuais custos de devolução estão indicados na nossa política de devoluções.
+
+O seu artigo será analisado no prazo de  dias úteis após a receção.
+
+O reembolso será efetuado no seu método de pagamento original.
+
+Aceder ao meu pedido de devolução : http://localhost/shop/pt/acompanhar-encomenda
+
+Alguma questão? A nossa equipa permanece à sua inteira disposição.
+
+Com toda a nossa gratidão e orgulho,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

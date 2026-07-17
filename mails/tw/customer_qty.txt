@@ -1,0 +1,17 @@
+Test Neria
+
+早安, Sophie,
+
+您曾對一款目前需求量很大的商品表示興趣。我們很高興通知您，限量商品已重新到貨。
+
+相關商品
+--------------------------------
+限量到貨： Montre Élégance Neria.
+
+查看商品 : http://localhost/shop/index.php?controller=product&id_product=1
+
+此優惠僅限現有庫存，售完即止。建議您盡快下單。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

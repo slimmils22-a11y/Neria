@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+Siparişinizin atölyemizde ilerlemekte olduğunu bildirmekten mutluluk duyarız.
+
+Mevcut aşama
+--------------------------------
+
+
+Zanaatkârımız, eşsiz parçanızı hayata geçirmek için tüm özenini göstermektedir. Her aşamada sizi bilgilendireceğiz.
+
+Siparişinizin ilerleyişini müşteri hesabınızdan takip edebilirsiniz.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

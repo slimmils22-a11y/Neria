@@ -1,0 +1,19 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Wij informeren u dat de status van uw retourverzoek is gewijzigd.
+
+Retour #42
+--------------------------------
+De status van uw retour is bijgewerkt #42.
+
+Huidige status : Retour reçu
+
+<a href="http://localhost/shop/nl/besteloverzicht" style="color:#b38b59;">U kunt de details van uw retour bekijken via uw klantenaccount</a> : http://localhost/shop/nl/besteloverzicht
+
+Met al onze dankbaarheid en trots,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

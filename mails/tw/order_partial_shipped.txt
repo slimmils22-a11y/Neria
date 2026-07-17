@@ -1,0 +1,21 @@
+Test Neria
+
+早安, Sophie,
+
+您的訂單已拆分為多個包裹以方便發貨。其中一部分已在前往您處的途中。
+
+訂單編號 : PREVIEW001
+
+已發貨包裹詳情
+--------------------------------
+Colis 1/2 — Montre Élégance Neria · Colissimo 6A1234567890
+
+追踪我的包裹 : http://localhost/shop/tw/訂單記錄
+
+我們會及時通知您剩餘包裹的發貨情況。
+
+我們全心全意，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,18 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+In recognition of your loyalty, we are opening access to our new collection before its official release.
+
+Collection preview
+--------------------------------
+
+Access the collection : http://localhost/shop/
+
+This early access is strictly personal and limited in time.
+
+We are delighted to share this moment with you,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

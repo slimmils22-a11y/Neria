@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Bu yılın başlangıcında, sizi en içten dileklerimizle selamlıyoruz.
+
+Bu yeni yıl sizin için bir yumuşaklık, başarı ve güzel keşifler yolu olsun.
+
+Kreasyonlarımızı keşfedin : http://localhost/shop/
+
+Ay sonuna kadar özel bir ilgi sizi bekliyor.
+
+Tüm ekibimiz size mükemmel bir yıl diler.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

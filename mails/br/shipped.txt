@@ -1,0 +1,23 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+É com orgulho que anunciamos o envio do seu pedido. Nossos artesãos o prepararam com o cuidado que merece — cada detalhe, cada embalagem, cada gesto.
+
+Pedido
+--------------------------------
+O pedido PREVIEW001.
+
+Agora está nas mãos da nossa transportadora e chegará dentro do prazo previsto.
+
+<a href="http://localhost/shop/br/historico-de-pedidos" style="color:#b38b59;">Você pode ver o histórico do seu pedido a partir da sua conta de cliente</a> : http://localhost/shop/br/historico-de-pedidos
+
+<a href="http://localhost/shop/br/rastreamento-para-visitante" style="color:#b38b59;">Se fez seu pedido como convidado, acompanhe-o através do link dedicado</a> : http://localhost/shop/br/rastreamento-para-visitante
+
+Desejamos a você uma recepção à altura da emoção que esta peça carrega com ela.
+
+Com todo o nosso orgulho e dedicação,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Wij zijn verheugd u een nieuwe cadeaubon aan te bieden.
+
+Een attentie voor u
+--------------------------------
+Wij hebben deze attentie voor u voorbereid. U kunt er gebruik van maken bij uw volgende bezoek.
+
+Cadeauboncode : NERIA-VIP-2026
+
+Deze cadeaubon is 30 dagen geldig in onze hele winkel. Kan niet worden gecombineerd met andere aanbiedingen.
+
+We hopen dat u iets naar uw zin vindt tussen onze creaties.
+
+Met het plezier u dit gebaar aan te bieden,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

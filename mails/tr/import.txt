@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Değerli çalışanımız,
+
+Talep ettiğiniz içe aktarma işlemi gerçekleştirildi. İşte ayrıntılı sonuç.
+
+İçe aktarma sonucu
+--------------------------------
+Dosya : 
+
+İçe aktarma hatasız tamamlandı. Tüm veriler başarıyla entegre edildi.
+
+Herhangi bir sorunuz için yönetim panelindeki içe aktarma günlüklerine bakın.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

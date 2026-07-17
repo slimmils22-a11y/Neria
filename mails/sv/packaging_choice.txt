@@ -1,0 +1,19 @@
+Test Neria
+
+God morgon, Sophie,
+
+Före leverans inbjuder vi dig att välja den förpackning som ska medfölja ditt stycke. Ett sätt att förlänga upplevelsen.
+
+Tillgängliga förpackningsalternativ
+--------------------------------
+Olika askar, påsar och presentförpackningar finns för att framhäva ditt stycke.
+
+Välj min förpackning : http://localhost/shop/
+
+Vi kommer att ägna särskild uppmärksamhet åt ditt val.
+
+Till din tjänst,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

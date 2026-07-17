@@ -1,0 +1,33 @@
+Test Neria
+
+早上好, Sophie,
+
+您的订单已成功注册。收到银行转账后我们将进行处理。
+
+订单 PREVIEW001 — 等待银行转账
+--------------------------------
+感谢您的订单 PREVIEW001.
+
+银行账户信息
+--------------------------------
+请将款项转入以下账户，并务必注明以下参考号：
+
+金额 : 89,00 €
+
+收款人 : Test Neria SARL
+
+账户详情 : IBAN : FR76 3000 6000 0112 3456 7890 189 — BIC : AGRIFRPP
+
+银行地址 : 12 rue de la Paix, 75001 Paris, France
+
+请注明参考号 PREVIEW001.
+
+<a href="http://localhost/shop/zh/订单-历史" style="color:#b38b59;">查看订单历史</a> : http://localhost/shop/zh/订单-历史
+
+<a href="http://localhost/shop/zh/客户跟踪" style="color:#b38b59;">访客追踪</a> : http://localhost/shop/zh/客户跟踪
+
+期待您的汇款，以全部耐心静候，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

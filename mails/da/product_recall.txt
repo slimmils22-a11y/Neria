@@ -1,0 +1,23 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi har identificeret et punkt, der kræver din opmærksomhed vedrørende et produkt, du muligvis har købt fra os. Denne meddelelse er en handling af gennemsigtighed.
+
+Ordrereference : PREVIEW001
+
+Tilbagekaldelsesdetaljer
+--------------------------------
+Berørt produkt : Montre Élégance Neria
+
+Hvad skal du gøre?
+--------------------------------
+Læs mere : http://localhost/shop/da/ordrehistorik
+
+Vores team står til din rådighed for spørgsmål. Vi takker dig for din forståelse.
+
+Med al vores respekt,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

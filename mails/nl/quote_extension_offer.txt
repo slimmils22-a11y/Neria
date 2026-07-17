@@ -1,0 +1,23 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Uw offerte is verlopen, maar we willen u de mogelijkheid bieden om verder te gaan. Op een eenvoudig verzoek kunnen we de geldigheid verlengen, afhankelijk van beschikbaarheid.
+
+Offertereferentie: 
+
+Bedrag: 
+
+Verlenging mogelijk tot: 
+
+Een verlenging aanvragen : 
+
+Neem vandaag contact met ons op om uw offerte onder de oorspronkelijke voorwaarden te bevestigen. Ons team zal uw verzoek met de grootste zorg bekijken.
+
+Dit verlengingsaanbod is afhankelijk van de beschikbaarheid van artikelen en bevestiging van ons team.
+
+Met onze hoogachting,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

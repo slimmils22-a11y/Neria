@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Nous avons tenté de vous livrer votre colis, mais personne n'était présent pour le recevoir.
+
+Référence commande : NR-000123
+
+Détails de la tentative de livraison
+--------------------------------
+État du colis : Colissimo
+
+Que faire maintenant ? : Tabac Presse — 5 rue de Rivoli, 75001 Paris
+
+Voir les options de retrait : http://localhost/shop/fr/historique-commandes
+
+Le colis est conservé dans un point relais à votre disposition.
+
+Dans l'attente de vous servir,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

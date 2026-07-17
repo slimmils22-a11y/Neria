@@ -1,0 +1,23 @@
+Test Neria
+
+Доброе утро, Sophie,
+
+Рады сообщить, что Ваш заказ успешно доставлен.
+
+Заказ
+--------------------------------
+Ваш заказ PREVIEW001.
+
+Надеемся, это изделие принесёт Вам столько же радости, сколько наши мастера вложили в его создание.
+
+<a href="http://localhost/shop/ru/order-history" style="color:#b38b59;">Просмотреть историю заказа</a> : http://localhost/shop/ru/order-history
+
+<a href="http://localhost/shop/ru/guest-tracking" style="color:#b38b59;">Отслеживание для гостя</a> : http://localhost/shop/ru/guest-tracking
+
+По любым вопросам о Вашем заказе наша служба поддержки готова Вам помочь.
+
+С искренней благодарностью и гордостью,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

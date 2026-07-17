@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Siparişiniz şu anda varış ülkesinin gümrük makamları tarafından işleme alınmaktadır.
+
+Sipariş referansı : #TEST00125
+
+Gümrük uyarı detayları
+--------------------------------
+Mevcut durum : 
+
+Önerilen işlem : 
+
+Kargomu takip et : http://localhost/shop/tr/siparis-gecmisi
+
+Ekibimiz, gerekirse prosedürler konusunda size yardımcı olabilir.
+
+Bu adımı aşmanıza yardımcı olmak için,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

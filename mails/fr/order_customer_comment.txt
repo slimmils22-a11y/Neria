@@ -1,0 +1,21 @@
+Test Neria
+
+Un commentaire sur votre commande
+
+Un client a laissé un commentaire concernant sa commande. Voici les informations.
+
+Informations de la commande
+--------------------------------
+Référence : NR-000123
+
+Client : Sophie Durand (admin@test.com)
+
+Message du client
+--------------------------------
+Bonjour, je souhaite obtenir des informations sur ma commande.
+
+Vous pouvez répondre à ce message depuis l'administration de la boutique.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

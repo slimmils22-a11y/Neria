@@ -1,0 +1,18 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Speriamo che il Vostro pezzo abbia trovato, nella Vostra casa, il posto che merita.
+
+Il Vostro sguardo su questa esperienza ci è infinitamente prezioso. Non per obbligo statistico, ma perché il parere di chi si fida di noi guida la nostra esigenza.
+
+Condividi la mia esperienza : 
+
+La Vostra opinione è preziosa per noi. Ci aiuta a capire meglio le Vostre aspettative.
+
+
+Il Vostro sguardo è il nostro miglior specchio,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

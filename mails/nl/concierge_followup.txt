@@ -1,0 +1,18 @@
+﻿Test Neria
+
+Goedemiddag, Sophie,
+
+Onze conciërgeservice wil er zeker van zijn dat uw ervaring met ons huis aan uw verwachtingen voldoet.
+
+Heeft u speciale aandacht nodig?
+--------------------------------
+
+Neem contact op met mijn adviseur : http://localhost/shop/
+
+We staan klaar om u te begeleiden bij elk detail van uw reis.
+
+Tot uw dienst, onder alle omstandigheden,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

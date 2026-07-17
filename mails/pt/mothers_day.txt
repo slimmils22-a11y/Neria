@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+Neste dia que celebra as mães, pensamos naquela cujo olhar foi o seu primeiro refúgio.
+
+Ofereça-lhe o que se assemelha ao seu amor: uma peça única, discreta e infinitamente preciosa.
+
+Descubra a nossa seleção : http://localhost/shop/
+
+Uma atenção especial está reservada para si até ao final da semana.
+
+Toda a equipa deseja-lhe um feliz dia da mãe.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

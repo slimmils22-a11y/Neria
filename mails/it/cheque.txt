@@ -1,0 +1,32 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Il Vostro ordine è stato registrato con successo. Sarà elaborato al ricevimento del Vostro assegno.
+
+Ordine #TEST00125 — In attesa di assegno
+--------------------------------
+Vi ringraziamo per il Vostro ordine #TEST00125.
+
+Coordinate per l'invio dell'assegno
+--------------------------------
+Vi preghiamo di intestare il Vostro assegno a favore del beneficiario indicato di seguito e di inviarlo all'indirizzo seguente:
+
+Importo : 
+
+Beneficiario : 
+
+Indirizzo di invio :
+
+
+Vi preghiamo di citare la referenza #TEST00125.
+
+<a href="http://localhost/shop/it/cronologia-ordini" style="color:#b38b59;">Visualizza la cronologia del Vostro ordine</a> : http://localhost/shop/it/cronologia-ordini
+
+<a href="http://localhost/shop/it/tracciatura-ospite" style="color:#b38b59;">Tracciamento ospite</a> : http://localhost/shop/it/tracciatura-ospite
+
+In attesa del Vostro assegno, con tutta la nostra fiducia,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

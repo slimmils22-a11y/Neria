@@ -1,0 +1,17 @@
+﻿Test Neria
+
+親愛的員工，
+
+您請求的導入已處理完畢。以下是詳細結果。
+
+導入結果
+--------------------------------
+檔案 : import_produits.csv
+
+導入已順利完成，無差錯。所有資料均已正確整合。
+
+如有任何疑問，請查閱管理後台的導入日誌。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

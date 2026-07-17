@@ -1,0 +1,21 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous sommes au regret de vous informer que l'un des articles de votre commande est actuellement indisponible.
+
+Commande NR-000123
+--------------------------------
+L'une des pièces de votre commande nous échappe momentanément — une situation rarissime, que nous prenons très au sérieux.
+
+Nous nous excusons de ce contretemps qui ne reflète pas nos standards. Notre équipe vous contactera dans les plus brefs délais pour convenir ensemble de la meilleure solution.
+
+<a href="http://localhost/shop/fr/historique-commandes" style="color:#b38b59;">Vous pouvez consulter le détail de votre commande depuis votre espace client</a> : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/fr/suivi-commande-invite" style="color:#b38b59;">Si vous avez commandé en tant qu'invité, suivez votre commande via le lien dédié</a> : http://localhost/shop/fr/suivi-commande-invite
+
+En vous demandant pardon pour ce contretemps rarissime,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

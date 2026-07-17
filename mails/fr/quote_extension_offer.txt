@@ -1,0 +1,23 @@
+Test Neria
+
+Bonjour, Sophie,
+
+Votre devis est arrivé à expiration, mais nous souhaitons vous offrir la possibilité de le concrétiser. Sur simple demande, nous pouvons prolonger sa validité sous réserve de disponibilité.
+
+Référence devis : 
+
+Montant : 
+
+Prolongation possible jusqu'au : 
+
+Demander une prolongation : 
+
+Contactez-nous dès aujourd'hui pour valider votre devis dans les conditions initiales. Notre équipe étudiera votre demande avec la plus grande attention.
+
+Cette offre de prolongation est soumise à la disponibilité des articles et à la confirmation de notre équipe.
+
+Avec notre considération distinguée,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

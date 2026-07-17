@@ -1,0 +1,23 @@
+Test Neria
+
+Madame, Monsieur,
+
+Votre confiance nous touche. En témoignage de notre gratitude, nous avons préparé une attention à votre intention.
+
+Commande NR-000123
+--------------------------------
+Une attention particulière a été générée pour la commande NR-000123.
+
+Montant de l'attention : 15,00 €
+
+Code de l'attention : NERIA-VIP-2026
+
+Cette attention est valable 30 jours sur l'ensemble de notre maison. Elle ne peut être cumulée avec d'autres offres.
+
+Nous espérons que vous trouverez parmi nos créations de quoi vous faire plaisir.
+
+En témoignage de notre reconnaissance pour votre fidélité,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+God morgen, Sophie,
+
+I anledning av Halloween har vi forberedt en unik atmosfære for deg, som blander mystikk og eleganse.
+
+Fordyp deg i en verden hvor hver detalj teller. Oppdag våre eksepsjonelle kreasjoner for en uforglemmelig kveld.
+
+Oppdag våre kreasjoner : http://localhost/shop/
+
+En spesiell oppmerksomhet venter deg til 31. oktober.
+
+Hele teamet ønsker deg en fantastisk Halloween.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

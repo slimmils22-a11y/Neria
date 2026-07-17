@@ -1,0 +1,23 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Vi informerer dig om, at der er foretaget ændringer i din ordre. Her er detaljerne for denne ændring.
+
+Ordre PREVIEW001
+--------------------------------
+Ordre PREVIEW001.
+
+Denne ordre er blevet opdateret i henhold til de oplysninger, du gav.
+
+Du kan se detaljerne for denne ordre fra din kundekonto.
+
+Se min ordrehistorik : http://localhost/shop/da/ordrehistorik
+
+<a href="http://localhost/shop/da/Gaestesporing" style="color:#b38b59;">Hvis du bestilte som gæst, find din sporing via det dedikerede link</a> : http://localhost/shop/da/Gaestesporing
+
+Med al vores taknemmelighed og stolthed,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

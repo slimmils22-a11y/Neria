@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Wir freuen uns, Ihnen mitzuteilen, dass Ihre maßgefertigte Bestellung nun bereit ist. Unsere Handwerker haben Ihrer Vision Leben eingehaucht.
+
+Bestellreferenz : #TEST00125
+
+Details Ihres Stücks
+--------------------------------
+Ivory Linen Dress
+
+Lieferung verfolgen : http://localhost/shop/de/bestellungsverlauf
+
+Wir danken Ihnen für Ihre Geduld. Dieses einzigartige Stück ist endlich bereit, Sie zu begleiten.
+
+Stolz, Sie bei dieser Kreation begleitet zu haben,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

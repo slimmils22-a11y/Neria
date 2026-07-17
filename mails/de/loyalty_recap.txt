@@ -1,0 +1,24 @@
+Test Neria
+
+Hallo, Camille,
+
+Hier ist Ihre monatliche Zusammenfassung der Treuepunkte. Jede Öffnung, jeder Klick und jeder Kauf bringt Sie einer Belohnung näher.
+
+--------------------------------
+Diesen Monat gesammelte Punkte : +
+Gesamtsumme : 
+--------------------------------
+
+Ihr Fortschritt zur nächsten Stufe
+
+Herzlichen Glückwunsch — Sie haben unsere höchste Stufe erreicht.
+
+Unsere Neuheiten entdecken : http://localhost/shop/
+
+Ihre Punkte werden bei jeder Interaktion mit unseren E-Mails automatisch gutgeschrieben.
+
+Mit all unserer Dankbarkeit,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

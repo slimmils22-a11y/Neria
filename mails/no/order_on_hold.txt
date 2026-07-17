@@ -1,0 +1,21 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi tar oss tid til å sjekke hver detalj i bestillingen din før vi fullfører den.
+
+Bestillingsreferanse : PREVIEW001
+
+Her er detaljene i situasjonen:
+--------------------------------
+Årsak til venting : Vérification de votre paiement en cours
+
+Spor bestillingen min : http://localhost/shop/no/ordrehistorikk
+
+Teamet vårt står til din tjeneste for spørsmål.
+
+Med all vår oppmerksomhet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

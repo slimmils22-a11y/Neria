@@ -1,0 +1,17 @@
+Test Neria
+
+Buenos días, Camille,
+
+En esta temporada donde la luz triunfa sobre el frío, nuestra casa piensa en usted con un calor muy particular.
+
+Que estas fiestas le ofrezcan lo que la rutina concede demasiado raramente: tiempo, ternura y la compañía de quienes cuentan.
+
+Descubra nuestras creaciones : http://localhost/shop/
+
+Un detalle exclusivo le espera hasta el 31 de diciembre.
+
+Todo el equipo le desea unas felices fiestas.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

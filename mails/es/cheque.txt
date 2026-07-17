@@ -1,0 +1,32 @@
+Test Neria
+
+Buenos días, Camille,
+
+Su pedido ha sido registrado con éxito. Se procesará al recibir su cheque.
+
+Pedido #TEST00125 — En espera de cheque
+--------------------------------
+Gracias por su pedido #TEST00125.
+
+Datos para el envío del cheque
+--------------------------------
+Por favor, extienda su cheque a la orden del beneficiario indicado a continuación y envíelo a la siguiente dirección:
+
+Importe : 
+
+Cheque a la orden de : 
+
+Dirección de envío :
+
+
+Por favor, cite la referencia #TEST00125.
+
+<a href="http://localhost/shop/es/historial-compra" style="color:#b38b59;">Ver el historial de su pedido</a> : http://localhost/shop/es/historial-compra
+
+<a href="http://localhost/shop/es/seguimiento-pedido-invitado" style="color:#b38b59;">Seguimiento para invitados</a> : http://localhost/shop/es/seguimiento-pedido-invitado
+
+A la espera de su cheque, con toda nuestra confianza,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

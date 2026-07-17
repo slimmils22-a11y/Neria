@@ -1,0 +1,23 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We are delighted to confirm that your order has been delivered. We hope every detail meets your expectations.
+
+Order
+--------------------------------
+Your order PREVIEW001.
+
+We hope this piece brings you as much joy to wear as it brought our artisans to create.
+
+<a href="http://localhost/shop/gb/order-history" style="color:#b38b59;">View your order history</a> : http://localhost/shop/gb/order-history
+
+<a href="http://localhost/shop/gb/guest-tracking" style="color:#b38b59;">Guest tracking</a> : http://localhost/shop/gb/guest-tracking
+
+For any questions regarding your order, our customer service team is at your disposal.
+
+With all our gratitude and pride,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

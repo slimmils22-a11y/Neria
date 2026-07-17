@@ -1,0 +1,21 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Confermiamo che la procedura di rimborso per il Vostro ordine è stata finalizzata con successo.
+
+Riferimento ordine : #TEST00125
+
+Dettagli del rimborso
+--------------------------------
+Importo rimborsato : 
+
+Visualizza il mio ordine : http://localhost/shop/it/cronologia-ordini
+
+L'importo verrà accreditato sul Vostro conto secondo i tempi abituali della Vostra banca.
+
+Al Vostro servizio,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

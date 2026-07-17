@@ -1,0 +1,17 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Vi er glade for å dele våre siste nyheter med deg. Oppdag nedenfor den nyeste informasjonen fra vårt hus.
+
+Nyhetsbrevets innhold
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+For ikke å gå glipp av våre fremtidige nyheter, hold deg tilkoblet.
+
+Utforsk huset : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

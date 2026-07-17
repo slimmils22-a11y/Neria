@@ -1,0 +1,19 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Notamos que você estava prestes a finalizar seu pedido. Às vezes surge um problema técnico no último momento — erro 3DS, timeout de conexão ou uma hesitação de última hora.
+
+Seu carrinho está salvo e sua seleção aguarda exatamente onde você a deixou.
+
+Finalizar meu pedido : http://localhost/shop/index.php?controller=cart
+
+Se você teve algum problema de pagamento, nossa equipe está disponível para ajudá-lo a finalizar com toda a tranquilidade.
+
+Nenhuma ação especial é necessária da sua parte — seu carrinho está preservado.
+
+Com toda a nossa atenção,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,18 @@
+Test Neria
+
+Günaydın, Camille,
+
+Ürününüzün evinizde hak ettiği yeri bulduğunu umuyoruz.
+
+Bu deneyime dair görüşünüz bizim için paha biçilmezdir. İstatistiksel bir zorunluluktan değil, bize güvenenlerin fikirleri standartlarımızı yönlendirdiği için.
+
+Deneyimimi paylaş : 
+
+Fikriniz bizim için değerli. Beklentilerinizi daha iyi anlamamıza yardımcı olur.
+
+
+Bakışınız bizim en iyi aynamızdır,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

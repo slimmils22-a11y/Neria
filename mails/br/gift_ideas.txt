@@ -1,0 +1,18 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+As grandes ocasiões estão chegando. Antes que cheguem, preparamos para você uma seleção de peças para presentear — escolhidas de acordo com seus gostos e os de quem você valoriza.
+
+Presentear é prolongar uma atenção. Cada peça desta seleção foi escolhida para tocar quem a recebe, com a elegância que você deseja para eles.
+
+Descobrir a seleção : http://localhost/shop/
+
+Esta seleção foi montada para você, em reconhecimento à sua fidelidade e sensibilidade.
+
+
+Com toda a nossa delicadeza,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

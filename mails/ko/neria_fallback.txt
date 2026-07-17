@@ -1,0 +1,11 @@
+Test Neria
+
+고객님을 생각하고 있습니다
+
+고객님의 요청을 접수했으며 정성껏 처리하고 있습니다. 필요한 경우 저희 팀이 연락드리겠습니다.
+
+정성을 다하여,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

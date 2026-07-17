@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Bonjour, Test,
+
+Nous avons le plaisir de vous informer que vous venez de passer votre 5e commande chez nous. Un cap symbolique.
+
+Chaque commande est pour nous un signe de confiance. Celle-ci, en particulier, en est une de plus, et nous vous en remercions chaleureusement.
+
+Découvrir ma sélection : http://localhost/shop/fr/historique-commandes
+
+Nous réservons une attention particulière à nos hôtes qui franchissent ces étapes.
+
+Avec toute notre reconnaissance,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

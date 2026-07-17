@@ -1,0 +1,17 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+我们选择以克制的方式参与这一天。以下是以优惠条件提供的非凡作品精选。
+
+在我们这里，稀有性保持低调。为自己奉上一件您可能一直期待的作品。
+
+探索精选 : http://localhost/shop/
+
+此优惠时间有限，仅面向我们最用心的贵宾。
+
+全体团队祝您找到心仪之物。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

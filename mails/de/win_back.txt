@@ -1,0 +1,17 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir haben an Sie gedacht und hoffen, dass es Ihnen gut geht. Unsere Kreationen entwickeln sich weiter, und wir möchten Sie wieder damit vertraut machen.
+
+Wir haben eine Auswahl vorbereitet, die Ihnen gefallen könnte. Eine diskrete Aufmerksamkeit, ohne Verpflichtung.
+
+Entdecken Sie unsere Auswahl : http://localhost/shop/
+
+Wir würden uns freuen, Sie wieder begrüßen zu dürfen.
+
+In Erwartung, Sie wiederzusehen,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,25 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Vi bekrefter mottakelsen av din kanselleringsforespørsel. Den er behandlet med all den omsorg som tilliten din krever.
+
+Bestilling
+--------------------------------
+Bestilling PREVIEW001.
+
+Denne bestillingen er kansellert i henhold til din forespørsel. Ingen sum vil bli belastet.
+
+Du kan se detaljene for denne bestillingen fra kundekontoen din.
+
+Vis bestillingshistorikken min : http://localhost/shop/no/ordrehistorikk
+
+<a href="http://localhost/shop/no/gjestesporing" style="color:#b38b59;">Hvis du bestilte som gjest, finn sporingen via den dedikerte lenken</a> : http://localhost/shop/no/gjestesporing
+
+Vi håper å kunne ønske deg velkommen igjen innenfor våre vegger — på et tidspunkt som passer deg.
+
+Med vår mest oppriktige beklagelse og all vår aktelse,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

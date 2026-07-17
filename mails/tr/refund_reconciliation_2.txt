@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+Bu günlerde sizi düşündük ve sabrınız için teşekkür etmek istedik.
+
+Takdirimizin bir ifadesi olarak, koşulsuz ve baskısız özel bir jest hazırladık.
+
+Davetimizi keşfedin : http://localhost/shop/
+
+Bu jest yalnızca size ayrılmıştır. Ekibimiz her ihtiyacınızda yanınızdadır.
+
+İçten minnettarlığımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

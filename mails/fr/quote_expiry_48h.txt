@@ -1,0 +1,23 @@
+
+
+Bonjour, ,
+
+Nous vous rappelons que votre devis arrive à son terme dans moins de 48 heures. Nous souhaitons vous permettre de le valider avant son expiration dans les meilleures conditions.
+
+Référence devis : 
+
+Montant : 
+
+Expire le : 
+
+Confirmer ma commande : 
+
+Notre équipe reste à votre entière disposition pour toute question ou ajustement avant validation.
+
+Ce devis expirera le . Passé ce délai, les conditions tarifaires convenues ne pourront être garanties.
+
+Avec notre considération distinguée,
+
+
+http://localhost/shop/
+{custom_message_txt}

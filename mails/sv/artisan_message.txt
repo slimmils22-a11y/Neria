@@ -1,0 +1,21 @@
+﻿Test Neria
+
+God morgon, Sophie,
+
+Bakom varje stycke du får finns en blick, en hand, en historia. Här är ett personligt meddelande från hantverkaren som formade ditt.
+
+Meddelande från hantverkaren
+--------------------------------
+Ditt stycke föddes ur min passion och mina gester. Jag hoppas att det följer dig länge.
+
+  — Från
+
+Upptäck verkstaden : http://localhost/shop/
+
+Vi är stolta över att introducera dig för dem som ger liv åt dina önskningar.
+
+Med värmen från våra verkstäder,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+En este día dedicado a los abuelos, honramos la memoria, la ternura y la sabiduría que han sembrado en ustedes.
+
+Regálenles una pieza que lleve consigo el tiempo, la paciencia y el amor que les han dado.
+
+Descubra nuestra selección : http://localhost/shop/
+
+Un detalle exclusivo le espera hasta final de semana.
+
+Todo el equipo le desea un feliz día de los abuelos.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

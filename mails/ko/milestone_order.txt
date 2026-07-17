@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+저희에게 5e 주문을 해주셨음을 알리게 되어 기쁩니다. 상징적인 이정표입니다.
+
+모든 주문은 신뢰의 표시입니다. 특히 이번 주문은 또 하나의 표시이며, 진심으로 감사드립니다.
+
+내 선택 발견하기 : http://localhost/shop/ko/주문-내역
+
+이런 이정표에 도달하신 고객님들께 특별한 관심을 드립니다.
+
+깊은 감사를 담아,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

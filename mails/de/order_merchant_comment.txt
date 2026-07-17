@@ -1,0 +1,19 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Unser Team hat eine Nachricht für Sie bezüglich Ihrer Bestellung.
+
+Bestellung #TEST00125
+--------------------------------
+Der Bestellung wurde eine neue Nachricht hinzugefügt #TEST00125.
+
+Nachricht von unserem Team
+--------------------------------
+
+
+Sie können den Bestellverlauf in Ihrem Kundenkonto einsehen: http://localhost/shop/de/bestellungsverlauf
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

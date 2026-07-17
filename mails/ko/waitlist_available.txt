@@ -1,0 +1,23 @@
+회원님을 위해 확보했습니다
+
+Sophie님, 안녕하세요.
+
+일을 기다리셨습니다. 잊지 않았습니다.
+
+이 제품이 다시 입고되었습니다. 누구보다 먼저 등록해 주신 덕분에 독점 우선 구매 기회를 드립니다.
+
+우선 구매 기회는 시간 동안 유효합니다. 이후에는 모든 고객에게 공개됩니다.
+
+--------
+
+Montre Élégance Neria
+ €
+http://localhost/shop/index.php?controller=product&id_product=1
+
+--------
+
+이 제품의 재입고 알림을 신청하셨기 때문에 이 알림을 받으셨습니다.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

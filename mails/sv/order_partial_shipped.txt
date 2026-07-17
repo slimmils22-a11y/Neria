@@ -1,0 +1,21 @@
+Test Neria
+
+God morgon, Sophie,
+
+Din beställning har delats upp i flera paket för att underlätta frakten. En del är redan på väg till dig.
+
+Beställningsreferens : PREVIEW001
+
+Detaljer för skickade paket
+--------------------------------
+Colis 1/2 — Montre Élégance Neria · Colissimo 6A1234567890
+
+Spåra mina paket : http://localhost/shop/sv/bestallningshistorik
+
+Vi håller dig informerad om leveransen av de återstående paketen.
+
+Med all vår uppmärksamhet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

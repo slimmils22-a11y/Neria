@@ -1,0 +1,23 @@
+Test Neria
+
+Günaydın, Camille,
+
+Teklifinizin geçerlilik süresi bugün sona eriyor. Mutabık kalınan koşulları güvence altına almak için lütfen en kısa sürede onaylayın.
+
+Teklif referansı: 
+
+Tutar: 
+
+Son geçerlilik tarihi: 
+
+Teklifimi şimdi onaylayın : 
+
+Acil sorularınız için ekibimiz hemen yardımcı olmaya hazırdır.
+
+Bu teklif bugün sona eriyor. Bu tarihten sonra mutabık kalınan fiyat koşulları değiştirilebilir.
+
+Saygılarımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

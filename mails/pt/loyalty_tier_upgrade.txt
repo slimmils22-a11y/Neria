@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+Temos o prazer de o informar que a sua fidelidade lhe permitiu alcançar o nível seguinte do nosso programa. Um novo marco na nossa relação.
+
+O seu novo estatuto
+--------------------------------
+Novo nível : 
+Total de pontos : 
+
+O seu voucher de desconto exclusivo
+ — Valor : 
+
+Descobrir os meus novos privilégios : http://localhost/shop/pt/historico-de-encomendas
+
+Este estatuto abre-lhe portas que reservamos aos mais fiéis.
+
+Com toda a nossa gratidão,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

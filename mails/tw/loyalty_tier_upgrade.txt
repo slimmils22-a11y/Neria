@@ -1,0 +1,23 @@
+﻿Test Neria
+
+早安, Sophie,
+
+我們很高興通知您，您的忠誠使您達到了我們計劃的下一等級。我們關係中的一個新里程碑。
+
+您的新身份
+--------------------------------
+新等級 : Cercle Or
+總積分 : 
+
+您的專屬折扣券
+NERIA-PREVIEW-2026 — 金額 : 15,00 €
+
+發現我的新特權 : http://localhost/shop/tw/訂單記錄
+
+此身份將為我們為最忠誠客戶保留的大門向您敞開。
+
+致以我們全部的感謝，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

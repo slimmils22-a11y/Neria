@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Vi informiamo che sono state apportate modifiche al Vostro ordine. Ecco i dettagli di questa modifica.
+
+Ordine #TEST00125
+--------------------------------
+L'ordine #TEST00125.
+
+Questo ordine è stato aggiornato in base alle informazioni che ha fornito.
+
+Può visualizzare i dettagli di questo ordine dal Vostro account cliente.
+
+Visualizza lo storico dei miei ordini : http://localhost/shop/it/cronologia-ordini
+
+<a href="http://localhost/shop/it/tracciatura-ospite" style="color:#b38b59;">Se ha ordinato come ospite, trova il tracciamento del Vostro ordine tramite il link dedicato</a> : http://localhost/shop/it/tracciatura-ospite
+
+Con tutta la nostra gratitudine e il nostro orgoglio,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

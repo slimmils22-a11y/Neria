@@ -1,0 +1,17 @@
+Test Neria
+
+Günaydın, Camille,
+
+ önce bize ilk kez güvendiniz. Bunu unutmadık.
+
+Sadakatiniz bizim en büyük ödülümüzdür. Sizi en değerli müşterilerimiz arasında saymaktan mutluluk duyuyoruz.
+
+Satın alımlarımı görüntüle : http://localhost/shop/tr/siparis-gecmisi
+
+Evimizin hikayesinin bir parçası olduğunuz için teşekkür ederiz.
+
+Tüm minnettarlığımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

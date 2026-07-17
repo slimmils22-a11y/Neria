@@ -1,0 +1,21 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+주문한 상품 중 하나가 현재 이용 불가능함을 알려드립니다.
+
+주문 PREVIEW001
+--------------------------------
+주문하신 작품 중 하나가 일시적으로 유실되었습니다 — 매우 드문 상황으로, 심각하게 받아들이고 있습니다.
+
+이 지연에 대해 사과드립니다. 이는 당사의 기준을 반영하지 않습니다. 팀이 곧 연락하여 최선의 해결책을 함께 논의할 것입니다.
+
+<a href="http://localhost/shop/ko/주문-내역" style="color:#b38b59;">주문 세부 정보는 고객 계정에서 확인할 수 있습니다</a> : http://localhost/shop/ko/주문-내역
+
+<a href="http://localhost/shop/ko/비회원-추적" style="color:#b38b59;">게스트로 주문한 경우 전용 링크를 통해 주문을 추적하세요</a> : http://localhost/shop/ko/비회원-추적
+
+이 드문 지연에 대해 양해를 구합니다,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

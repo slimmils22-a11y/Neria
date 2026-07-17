@@ -1,0 +1,17 @@
+Test Neria
+
+Dear colleague,
+
+The system has detected that a product is close to its critical coverage threshold.
+
+Coverage status
+--------------------------------
+Minimum coverage : 7 jours
+
+Current coverage : 3 jours
+
+Please review your stock and replenish if necessary.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

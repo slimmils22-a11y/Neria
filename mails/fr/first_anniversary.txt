@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Bonjour, test,
+
+Il y a un an, vous nous faisiez confiance pour la première fois. Cette année passée à vos côtés est une source de gratitude infinie.
+
+Nous avons souhaité célébrer cette première année avec une attention particulière. Elle vous est réservée.
+
+Découvrir mon attention : http://localhost/shop/fr/historique-commandes
+
+Merci de faire partie de l'histoire de notre maison.
+
+Avec toute notre reconnaissance,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Vi informerer deg om fremdriften for den skreddersydde endringen av gjenstanden din. Her er de siste nyhetene.
+
+Bestillingsreferanse : PREVIEW001
+
+Fremdriftsdetaljer
+--------------------------------
+Nåværende status : Retouche en cours de finition
+
+Følg fremdriften : http://localhost/shop/no/ordrehistorikk
+
+Teamet vårt står til din tjeneste for spørsmål.
+
+Til din tjeneste,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

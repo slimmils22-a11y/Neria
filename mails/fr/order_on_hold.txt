@@ -1,0 +1,21 @@
+Test Neria
+
+Madame, Monsieur,
+
+Nous prenons le temps de vérifier chaque détail de votre commande avant de la parachever.
+
+Référence commande : NR-000123
+
+Voici les détails de la situation :
+--------------------------------
+Raison de la mise en attente : Vérification de votre paiement en cours
+
+Suivre ma commande : http://localhost/shop/fr/historique-commandes
+
+Notre équipe reste à votre disposition pour toute question.
+
+Avec toute notre attention,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

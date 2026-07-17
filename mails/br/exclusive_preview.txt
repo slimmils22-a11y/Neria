@@ -1,0 +1,18 @@
+﻿Test Neria
+
+Boa tarde, Sophie,
+
+Temos o prazer de lhe oferecer acesso antecipado à nossa próxima coleção. Em exclusivo, antes mesmo de ser revelada ao mundo.
+
+Pré-estreia reservada
+--------------------------------
+
+Descubra a coleção : http://localhost/shop/
+
+Este convite é pessoal e válido por um período limitado.
+
+Obrigado pela sua fidelidade,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

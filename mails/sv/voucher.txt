@@ -1,0 +1,23 @@
+Test Neria
+
+God morgon, Sophie,
+
+Ditt förtroende rör oss. Som ett tecken på vår tacksamhet har vi förberett en uppmärksamhet för dig.
+
+Beställning PREVIEW001
+--------------------------------
+Ett presentkort har skapats för beställningen PREVIEW001.
+
+Presentkortets belopp : 15,00 €
+
+Presentkortskod : NERIA-VIP-2026
+
+Detta presentkort är giltigt i 30 dagar i hela vår butik. Kan inte kombineras med andra erbjudanden.
+
+Vi hoppas att du hittar något som faller dig i smaken bland våra skapelser.
+
+Som ett tecken på vår tacksamhet för din lojalitet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+I anledning af Diwali, lysfesten, sender vi dig vores varmeste ønsker.
+
+Må denne hellige højtid bringe klarhed, velstand og glæde ind i dit liv.
+
+Opdag vores kreationer : http://localhost/shop/
+
+En særlig opmærksomhed venter dig til slutten af ugen.
+
+Hele teamet ønsker dig en vidunderlig Diwali.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

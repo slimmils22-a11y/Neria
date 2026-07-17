@@ -1,0 +1,21 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi bekræfter, at refusionsproceduren for din ordre er afsluttet.
+
+Ordrereference : PREVIEW001
+
+Refusionsdetaljer
+--------------------------------
+Tilbagebetalingsbeløb : 89,00 €
+
+Se min ordre : http://localhost/shop/da/ordrehistorik
+
+Beløbet vil blive krediteret din konto i henhold til din banks sædvanlige tidsplan.
+
+Til din tjeneste,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Madame, Monsieur,
+
+Derrière chaque pièce que vous recevez, il y a un regard, une main, une histoire. Voici un message personnel de l'artisan qui a façonné la vôtre.
+
+Message de l'artisan
+--------------------------------
+Votre pièce est née de ma passion et de mes gestes. J'espère qu'elle vous accompagnera longtemps.
+
+  — De la part de
+
+Découvrir l'atelier : http://localhost/shop/
+
+Nous sommes fiers de vous faire découvrir ceux qui donnent vie à vos désirs.
+
+Avec la chaleur de nos ateliers,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

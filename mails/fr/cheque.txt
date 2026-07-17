@@ -1,0 +1,32 @@
+Test Neria
+
+Madame, Monsieur Durand,
+
+Votre commande a été enregistrée avec succès. Elle sera traitée dès réception de votre chèque.
+
+Commande NR-000123 — En attente de chèque
+--------------------------------
+Nous vous remercions pour votre commande NR-000123.
+
+Coordonnées pour l'envoi du chèque
+--------------------------------
+Veuillez libeller votre chèque à l'ordre du bénéficiaire indiqué ci-dessous, et nous l'adresser à l'adresse suivante :
+
+Montant : 189,00 €
+
+Chèque libellé à l'ordre de : Test Neria
+
+Adresse d'envoi :
+
+
+Merci d'indiquer la référence NR-000123.
+
+<a href="http://localhost/shop/fr/historique-commandes" style="color:#b38b59;">Consultez l'historique de votre commande</a> : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/fr/suivi-commande-invite" style="color:#b38b59;">Suivi pour invité</a> : http://localhost/shop/fr/suivi-commande-invite
+
+Dans l'attente de votre chèque, avec toute notre confiance,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

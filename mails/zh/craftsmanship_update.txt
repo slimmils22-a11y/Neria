@@ -1,0 +1,17 @@
+Test Neria
+
+早上好, Sophie,
+
+我们很高兴通知您，您的订单正在我们的工坊中推进。
+
+当前阶段
+--------------------------------
+Assemblage final en atelier
+
+我们的工匠倾注全部心血，为您打造独一无二的作品。我们会在每个阶段及时通知您。
+
+您可以从您的客户账户中跟踪订单进度。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

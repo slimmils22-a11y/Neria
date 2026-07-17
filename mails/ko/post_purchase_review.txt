@@ -1,0 +1,18 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+고객님의 작품이 집에서 마땅한 자리를 찾았기를 바랍니다.
+
+이 경험에 대한 고객님의 시선은 우리에게 무한히 소중합니다. 통계적 의무 때문이 아니라, 우리를 신뢰하는 분들의 의견이 우리의 기준을 이끌기 때문입니다.
+
+내 경험 공유하기 : http://localhost/shop/index.php?controller=product&id_product=1#reviews
+
+귀하의 의견은 우리에게 소중합니다. 귀하의 기대를 더 잘 이해하는 데 도움이 됩니다.
+
+
+고객님의 시선이 우리의 가장 좋은 거울입니다,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

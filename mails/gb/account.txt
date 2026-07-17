@@ -1,0 +1,31 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+Your presence honours us. Your personal space has been prepared with care — it awaits you.
+
+Your account information
+--------------------------------
+You can now manage your orders, track your deliveries and update your personal details.
+
+Associated email address : test@test.com
+
+Security & confidentiality
+--------------------------------
+Your password is encrypted and never visible to our team.
+
+We never share your personal data with third parties.
+
+You may delete your account at any time upon simple request.
+
+For any question, our client service remains at your disposal.
+
+Your personal space is now active. We invite you to step inside.
+
+Access my account : http://localhost/shop/
+
+The house is delighted to count you among its own,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

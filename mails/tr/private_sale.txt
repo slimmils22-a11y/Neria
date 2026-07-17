@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+En değerli konuklarımıza ayrılmış özel satışımıza sizi davet etme ayrıcalığına sahibiz.
+
+Nadir parçalardan oluşan benzersiz bir seçkinin ayrıcalıklı koşullarla tadını çıkarın.
+
+Özel satışa eriş : 
+
+Bu teklif kesinlikle kişiseldir ve süre sınırlıdır.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

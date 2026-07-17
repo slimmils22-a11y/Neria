@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Buon pomeriggio, Camille,
+
+Abbiamo ricevuto il Vostro messaggio riguardante il Vostro ordine. Ecco un riepilogo delle informazioni che ci avete fornito:
+
+Riepilogo della Vostra richiesta
+--------------------------------
+Riferimento ordine : #TEST00125
+
+Prodotto interessato : Ivory Linen Dress
+
+File allegato : 
+
+Diamo particolare attenzione a ogni richiesta e Vi ricontatteremo molto presto.
+
+Tornare alla nostra maison : http://localhost/shop/
+
+In attesa di risponderVi con tutta la dovuta attenzione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

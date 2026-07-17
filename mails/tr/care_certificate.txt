@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Günaydın, Camille,
+
+Parçanızın zaman içinde tüm ihtişamını koruması için, işte malzemelerine özel olarak uyarlanmış kişiselleştirilmiş bir bakım sertifikası.
+
+Bakım sertifikası
+--------------------------------
+İlgili ürün : Ivory Linen Dress
+
+Malzemeler : 
+
+Bakım talimatları : 
+
+Sertifikayı indir : http://localhost/shop/
+
+Bu sertifikayı gelecekte başvurmak üzere saklayın.
+
+Zanaatımızın kalitesiyle gurur duyarak,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

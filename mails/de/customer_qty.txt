@@ -1,0 +1,17 @@
+Test Neria
+
+Hallo, Camille,
+
+Sie haben Interesse an einem Produkt bekundet, das derzeit stark nachgefragt ist. Wir freuen uns, Ihnen mitteilen zu können, dass eine begrenzte Stückzahl wieder verfügbar ist.
+
+Betroffenes Produkt
+--------------------------------
+Zurück in begrenzter Stückzahl: .
+
+Zum Produkt : 
+
+Dieses Angebot ist streng auf die verfügbaren Bestände beschränkt. Wir empfehlen Ihnen, nicht zu zögern.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

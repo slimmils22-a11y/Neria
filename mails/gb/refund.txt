@@ -1,0 +1,17 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+We confirm that the refund for your order has been successfully processed.
+
+Order reference : PREVIEW001
+
+<a href="http://localhost/shop/gb/order-history" style="color:#b38b59;">You can view your order history from your customer account</a> : http://localhost/shop/gb/order-history
+
+<a href="http://localhost/shop/gb/guest-tracking" style="color:#b38b59;">If you ordered as a guest, track your order via the dedicated link</a> : http://localhost/shop/gb/guest-tracking
+
+With our deepest gratitude,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

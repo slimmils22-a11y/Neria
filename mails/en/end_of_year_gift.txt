@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Good afternoon, Sophie,
+
+At the end of this year, we wish to offer you a special attention, in recognition of your trust.
+
+This gesture reflects the precious relationship we share with you.
+--------------------------------
+Your discount code : 15,00 €
+
+Saisissez le code NERIA-VIP-2026 dans votre panier.
+
+Valid for 30 days across our entire boutique. Cannot be combined with other offers.
+
+Discover my selection : http://localhost/shop/
+
+With all our gratitude,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

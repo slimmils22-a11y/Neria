@@ -1,0 +1,17 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Uw terugbetaling is nu afgerond. Wij hopen dat alles naar uw tevredenheid is verlopen.
+
+Weet dat ons huis het uwe is en dat wij u altijd met plezier terug zullen verwelkomen, wanneer u daar klaar voor bent.
+
+Terugkeren naar ons huis : http://localhost/shop/
+
+Er zijn nieuwe items gearriveerd sinds uw laatste bezoek. Misschien vindt u iets dat u aanspreekt.
+
+Met vriendelijke groeten,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

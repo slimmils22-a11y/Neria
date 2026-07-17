@@ -1,0 +1,17 @@
+﻿Test Neria
+
+早安, Sophie,
+
+在新年伊始，我們謹以最真誠的祝福陪伴您。
+
+願這一年為您鋪展一條溫柔、成功與美好發現之路。
+
+發現我們的作品 : http://localhost/shop/
+
+特別關懷為您保留至月底。
+
+全體團隊祝您新年快樂。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,15 @@
+Test Neria
+
+Değerli çalışanımız,
+
+Test sonucu
+--------------------------------
+Bu, Neria modülü tarafından gönderilen bir test e-postasıdır.
+
+Bu mesajı alırsanız, modül doğru şekilde yapılandırılmıştır.
+
+Bu test mağaza yönetimi içindir. Bu e-postayı silebilirsiniz.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

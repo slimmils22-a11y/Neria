@@ -1,0 +1,17 @@
+﻿Test Neria
+
+Boa tarde, Camille,
+
+Por ocasião de Hanukkah, a festa das luzes, enviamos-lhe os nossos mais sinceros votos.
+
+Que esta celebração sagrada lhe traga o calor do lar, a paz e a serenidade.
+
+Descubra as nossas criações : http://localhost/shop/
+
+Uma atenção especial está reservada para si até ao final da semana.
+
+Toda a equipa deseja-lhe um maravilhoso Hanukkah.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

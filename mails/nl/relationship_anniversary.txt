@@ -1,0 +1,17 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Het is  geleden dat u ons voor het eerst uw vertrouwen schonk. We zijn het niet vergeten.
+
+Uw trouw is onze grootste beloning. We zijn blij u tot onze meest gewaardeerde klanten te mogen rekenen.
+
+Mijn aankopen bekijken : http://localhost/shop/nl/besteloverzicht
+
+Dank u dat u deel uitmaakt van ons verhaal.
+
+Met onze oprechte dankbaarheid,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+Test Neria
+
+Cher(e) collaborateur(trice),
+
+Un produit de votre boutique est maintenant en rupture de stock.
+
+Détails du produit
+--------------------------------
+Produit : Montre Élégance Neria
+
+Seuil d'alerte de stock atteint : 5
+
+Quantité restante : 0
+
+Nous vous recommandons de procéder au réapprovisionnement dans les meilleurs délais.
+
+Cette alerte est automatique. Vérifiez l'état de votre stock.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

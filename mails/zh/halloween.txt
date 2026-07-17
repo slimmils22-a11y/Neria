@@ -1,0 +1,17 @@
+Test Neria
+
+早上好, Sophie,
+
+值此万圣节之际，我们为您准备了神秘与优雅交融的独特氛围。
+
+沉浸在细节至上的世界中。探索我们非凡的创作，度过一个难忘的夜晚。
+
+发现我们的杰作 : http://localhost/shop/
+
+一份特别的关怀为您保留至10月31日。
+
+全体团队祝您万圣节快乐。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

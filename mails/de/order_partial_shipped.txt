@@ -1,0 +1,21 @@
+Test Neria
+
+Hallo, Camille,
+
+Ihre Bestellung wurde zur Erleichterung des Versands in mehrere Pakete aufgeteilt. Ein Teil davon ist bereits auf dem Weg zu Ihnen.
+
+Bestellreferenz : #TEST00125
+
+Details der versandten Pakete
+--------------------------------
+
+
+Meine Pakete verfolgen : http://localhost/shop/de/bestellungsverlauf
+
+Wir werden Sie über den Versand der restlichen Pakete auf dem Laufenden halten.
+
+Mit all unserer Aufmerksamkeit,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

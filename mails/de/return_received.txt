@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Wir bestätigen, dass das Paket mit Ihrer Rücksendung bei unserem Team eingetroffen ist. Es wird mit der gebührenden Sorgfalt bearbeitet.
+
+Bestellreferenz : #TEST00125
+
+Rücksendedetails
+--------------------------------
+
+
+Meine Rücksendung verfolgen : http://localhost/shop/de/bestellungsverlauf
+
+Wir werden Sie über den Fortschritt der Bearbeitung auf dem Laufenden halten.
+
+Zu Ihren Diensten,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

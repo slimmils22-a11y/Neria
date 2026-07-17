@@ -1,0 +1,18 @@
+Test Neria
+
+Günaydın, Camille,
+
+Ziyaretiniz sırasında kısa bir ara vermiş görünüyorsunuz. Dikkatinizi çeken parçaları özenle muhafaza ettik.
+
+--------------------------------
+
+
+Ekibimiz, seçiminizle ilgili her türlü soru için tamamen hizmetinizdedir.
+
+Seçimime devam et : 
+
+Seçiminiz 48 saat süreyle sizin için ayrılmıştır.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

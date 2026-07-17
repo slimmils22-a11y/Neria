@@ -1,0 +1,21 @@
+Test Neria
+
+Madame, Monsieur,
+
+Votre commande a été scindée en plusieurs colis pour faciliter l'expédition. Une partie de celle-ci est déjà en route vers vous.
+
+Référence commande : NR-000123
+
+Détails des colis expédiés
+--------------------------------
+Colis 1 / 2 — Montre Élégance Neria · Colissimo 6A1234567890
+
+Suivre mes colis : http://localhost/shop/fr/historique-commandes
+
+Nous vous tiendrons informé de l'envoi des colis restants.
+
+Avec toute notre attention,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

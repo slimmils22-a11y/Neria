@@ -1,0 +1,21 @@
+Test Neria
+
+God morgon, Sophie,
+
+Vi tar oss tid att kontrollera varje detalj i din beställning innan vi fulländar den.
+
+Beställningsreferens : PREVIEW001
+
+Här är detaljerna för situationen:
+--------------------------------
+Anledning till väntan : Vérification de votre paiement en cours
+
+Spåra min beställning : http://localhost/shop/sv/bestallningshistorik
+
+Vårt team står till din tjänst för frågor.
+
+Med all vår uppmärksamhet,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

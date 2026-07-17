@@ -1,0 +1,25 @@
+﻿Test Neria
+
+Sua voz foi ouvida
+
+Boa tarde, Sophie,
+
+Confirmamos o recebimento da sua solicitação e agradecemos por entrar em contato. Segue uma cópia das informações que você forneceu:
+
+Informações de contato
+--------------------------------
+Endereço de e-mail : test@test.com
+
+Referência do pedido : PREVIEW001
+
+Arquivo anexo : Aucun fichier joint
+
+Sua mensagem
+--------------------------------
+Bonjour, je souhaite obtenir des informations.
+
+Responder por e-mail : test@test.com
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,21 @@
+Test Neria
+
+早安, Sophie,
+
+我們滿懷感激地收到您的付款。您的訂單現已進入創作階段。
+
+訂單
+--------------------------------
+訂單付款 PREVIEW001.
+
+<a href="http://localhost/shop/tw/訂單記錄" style="color:#b38b59;">您可以從客戶帳戶查看訂單歷史。</a> : http://localhost/shop/tw/訂單記錄
+
+<a href="http://localhost/shop/tw/訪客追蹤" style="color:#b38b59;">如果您以訪客身份下單，請通過專用連結跟蹤訂單。</a> : http://localhost/shop/tw/訪客追蹤
+
+我們的工匠將以對本店每一件作品應有的尊重和謹慎開始工作。
+
+謹致以最誠摯的感謝，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

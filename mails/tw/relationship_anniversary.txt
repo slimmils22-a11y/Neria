@@ -1,0 +1,17 @@
+Test Neria
+
+早安, Sophie,
+
+前，您第一次給予了我們信任。我們沒有忘記。
+
+您的忠誠是我們最大的回報。我們很高興您是我們最珍貴的客戶之一。
+
+查看我的購買 : http://localhost/shop/tw/訂單記錄
+
+感謝您成為我們故事的一部分。
+
+滿懷感激，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

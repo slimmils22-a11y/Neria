@@ -1,0 +1,17 @@
+﻿Test Neria
+
+早上好, Sophie,
+
+在新年伊始，我们谨以最真诚的祝福陪伴您。
+
+愿新的一年为您铺展一条温柔、成功与美好发现之路。
+
+发现我们的作品 : http://localhost/shop/
+
+特别关怀为您保留至月底。
+
+全体团队祝您新年快乐。
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

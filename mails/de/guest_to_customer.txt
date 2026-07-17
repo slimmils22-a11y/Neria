@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Sie haben kürzlich eine Bestellung als Gast aufgegeben. Wir laden Sie ein, Ihr Gastkonto in ein permanentes Kundenkonto umzuwandeln, um viele Vorteile zu genießen.
+
+Ihre Kontoinformationen
+--------------------------------
+E-Mail-Adresse : test@test.com
+
+Legen Sie Ihr Passwort fest, um Ihr Konto zu aktivieren und auf Ihren persönlichen Bereich zuzugreifen.
+
+Meinen persönlichen Bereich aktivieren : 
+
+Ihr persönlicher Bereich ermöglicht es Ihnen, Ihre Privilegien jederzeit abzurufen: Ihre Kreationen auf dem Weg verfolgen, die Geschichte Ihrer Entscheidungen einsehen und Ihre künftigen Besuche in besten Bedingungen vorbereiten.
+
+Zu meinem Konto : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

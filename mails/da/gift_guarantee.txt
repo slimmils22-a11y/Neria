@@ -1,0 +1,25 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi er glade for at kunne bekræfte, at din gavebestilling bliver forberedt med største omhu.
+
+Hvad vi garanterer
+--------------------------------
+Luksuriøs gaveindpakning
+
+Personlig besked efter dine instruktioner
+
+Sikker og diskret levering
+
+Mulighed for bytte eller returnering indtil 31. januar
+
+Hver eneste detalje er gennemtænkt for at give modtageren en unik oplevelse.
+
+Spor min ordre : http://localhost/shop/fr/historique-commandes
+
+For spørgsmål om din gavebestilling står vores team til rådighed.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

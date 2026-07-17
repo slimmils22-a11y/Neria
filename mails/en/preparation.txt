@@ -1,0 +1,21 @@
+Test Neria
+
+Good afternoon, Sophie,
+
+Your pieces have been entrusted to our artisans. In their hands, every gesture is a tribute to your choice.
+
+Order
+--------------------------------
+The order PREVIEW001.
+
+A patiently cultivated know-how, entirely dedicated to what you expect — and what you deserve.
+
+<a href="http://localhost/shop/en/order-history" style="color:#b38b59;">You can follow the progress of your order from your customer account</a> : http://localhost/shop/en/order-history
+
+<a href="http://localhost/shop/en/guest-tracking" style="color:#b38b59;">If you ordered as a guest, track your order via the dedicated link</a> : http://localhost/shop/en/guest-tracking
+
+In anticipation of the pleasure of satisfying you,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

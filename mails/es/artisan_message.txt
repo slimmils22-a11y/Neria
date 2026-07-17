@@ -1,0 +1,21 @@
+﻿Test Neria
+
+Buenos días, Camille,
+
+Detrás de cada pieza que recibe, hay una mirada, una mano, una historia. Aquí tiene un mensaje personal del artesano que moldeó la suya.
+
+Mensaje del artesano
+--------------------------------
+Su pieza nació de mi pasión y mis gestos. Espero que le acompañe durante mucho tiempo.
+
+  — De parte de
+
+Descubrir el taller : http://localhost/shop/
+
+Estamos orgullosos de presentarle a quienes dan vida a sus deseos.
+
+Con el calor de nuestros talleres,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

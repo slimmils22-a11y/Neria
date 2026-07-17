@@ -1,0 +1,23 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Il Vostro preventivo scade oggi. Vi invitiamo a confermarlo al più presto per assicurarVi le condizioni concordate.
+
+Riferimento preventivo: 
+
+Importo: 
+
+Scade il: 
+
+Convalida il mio preventivo ora : 
+
+Per qualsiasi domanda urgente, il nostro team è disponibile e pronto ad assisterVi.
+
+Questo preventivo scade oggi. Una volta scaduto, le condizioni di prezzo concordate potranno essere soggette a modifiche.
+
+Con la nostra distinta considerazione,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

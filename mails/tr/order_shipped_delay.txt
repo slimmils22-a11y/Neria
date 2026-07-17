@@ -1,0 +1,21 @@
+Test Neria
+
+Günaydın, Camille,
+
+Siparişinizin gönderiminde beklenmedik bir gecikme olduğunu bildiririz. En kısa sürede çözmek için elimizden gelen her şeyi yapıyoruz.
+
+Sipariş referansı : #TEST00125
+
+Gecikme detayları
+--------------------------------
+Yeni tahmini tarih : 
+
+Siparişimi takip et : http://localhost/shop/tr/siparis-gecmisi
+
+Gelişmelerden sizi haberdar edeceğiz. Özür dileriz.
+
+Tüm saygımızla,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

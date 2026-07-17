@@ -1,0 +1,15 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Bestellung #TEST00125 — Gutschrift
+--------------------------------
+Für Ihre Bestellung wurde eine Gutschrift erstellt #TEST00125.
+
+Sie können diese Gutschrift einsehen und bei Ihrem nächsten Einkauf in : http://localhost/shop/de/bestellungsverlauf
+
+In Erfüllung unserer Verpflichtung, mit aller Wertschätzung,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

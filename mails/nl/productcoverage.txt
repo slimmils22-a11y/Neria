@@ -1,0 +1,17 @@
+Test Neria
+
+Beste collega,
+
+Het systeem heeft gedetecteerd dat een product zijn kritieke dekkingsdrempel nadert.
+
+Dekkingsstatus
+--------------------------------
+Minimale dekking : 7 jours
+
+Huidige dekking : 3 jours
+
+Controleer uw voorraad en vul indien nodig aan.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,19 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir danken Ihnen für Ihre Anmeldung zu unserem Newsletter. Als Willkommensgeste erhalten Sie hier einen exklusiven Code für  Rabatt auf Ihre nächste Bestellung.
+
+Ihr Einladungscode
+--------------------------------
+Exklusiver Code : 
+
+Dieser Code ist 30 Tage lang in unserem gesamten Haus gültig. Er kann nicht mit anderen Aufmerksamkeiten kombiniert werden.
+
+Entdecken Sie unsere Kreationen : http://localhost/shop/
+
+Wir wünschen Ihnen eine wunderbare Entdeckung unserer einzigartigen Stücke.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

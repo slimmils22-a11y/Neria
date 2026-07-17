@@ -1,0 +1,17 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+Abbiamo pensato a Voi e speriamo che stiate bene. Le nostre creazioni continuano ad evolversi e vorremmo farvele riscoprire.
+
+Abbiamo preparato una selezione che potrebbe piacervi. Un'attenzione delicata, senza impegno.
+
+Scopri la nostra selezione : http://localhost/shop/
+
+Saremmo lieti di accogliervi di nuovo.
+
+Nell'attesa di rivedervi,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

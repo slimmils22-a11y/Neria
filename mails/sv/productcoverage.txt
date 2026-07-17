@@ -1,0 +1,17 @@
+Test Neria
+
+Kära kollega,
+
+Systemet har upptäckt att en produkt närmar sig sin kritiska bevakningströskel.
+
+Bevakningsstatus
+--------------------------------
+Minsta bevakning : 7 jours
+
+Aktuell bevakning : 3 jours
+
+Kontrollera ditt lager och fyll på vid behov.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

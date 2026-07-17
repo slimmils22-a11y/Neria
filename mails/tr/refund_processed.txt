@@ -1,0 +1,21 @@
+Test Neria
+
+Günaydın, Camille,
+
+Siparişinizle ilgili para iadesi prosedürünün başarıyla tamamlandığını onaylıyoruz.
+
+Sipariş referansı : #TEST00125
+
+Para iadesi detayları
+--------------------------------
+İade tutarı : 
+
+Siparişimi görüntüle : http://localhost/shop/tr/siparis-gecmisi
+
+Tutar, bankanızın olağan zaman çizelgesine göre hesabınıza yatırılacaktır.
+
+Hizmetinizde,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

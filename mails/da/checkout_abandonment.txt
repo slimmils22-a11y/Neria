@@ -1,0 +1,19 @@
+Test Neria
+
+God morgen, Sophie,
+
+Vi lagde mærke til, at du var ved at fuldføre din ordre. Nogle gange opstår der et teknisk problem i sidste øjeblik — en 3DS-fejl, en forbindelses-timeout eller et sidste øjeblik af tvivl.
+
+Din indkøbskurv er gemt, og dit valg venter præcis der, hvor du forlod det.
+
+Fuldfør min ordre : http://localhost/shop/index.php?controller=cart
+
+Hvis du stødte på et betalingsproblem, er vores team til rådighed for at hjælpe dig med at fuldføre i ro og mag.
+
+Der kræves ingen særlig handling fra dig — din indkøbskurv er bevaret.
+
+Med al vores opmærksomhed,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

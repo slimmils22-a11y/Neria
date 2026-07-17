@@ -1,0 +1,23 @@
+Test Neria
+
+Hallo, Camille,
+
+Wir möchten Sie darauf hinweisen, dass Ihr Angebot in weniger als 48 Stunden abläuft. Wir laden Sie ein, es vor dem Ablauf zu bestätigen, um von den vereinbarten Konditionen zu profitieren.
+
+Angebotsreferenz: 
+
+Betrag: 
+
+Läuft ab am: 
+
+Meine Bestellung bestätigen : 
+
+Unser Team steht Ihnen für alle Fragen oder Anpassungen vor der Bestätigung zur Verfügung.
+
+Dieses Angebot läuft am  ab. Nach diesem Datum können die vereinbarten Preisbedingungen nicht mehr garantiert werden.
+
+Mit vorzüglicher Hochachtung,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

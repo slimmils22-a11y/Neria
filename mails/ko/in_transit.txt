@@ -1,0 +1,24 @@
+﻿Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+고객님의 선택품이 이제 여정 중입니다. 해당 작품들은 다음과 같습니다:
+
+Réf. NER-001 — Montre Élégance Neria × 1
+Réf. NER-014 — Bracelet Cuir Atelier × 1
+
+주문 PREVIEW001
+--------------------------------
+주문 PREVIEW001.
+
+현재 배송 중이며 예정된 기간 내에 도착할 것입니다.
+
+주문 추적 : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/ko/주문-내역" style="color:#b38b59;">고객 계정에서 주문 내역을 확인하세요</a> : http://localhost/shop/ko/주문-내역
+
+<a href="http://localhost/shop/ko/비회원-추적" style="color:#b38b59;">게스트로 주문한 경우 전용 링크를 통해 주문을 추적하세요</a> : http://localhost/shop/ko/비회원-추적
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

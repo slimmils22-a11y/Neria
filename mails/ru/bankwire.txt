@@ -1,0 +1,33 @@
+Test Neria
+
+Доброе утро, Sophie,
+
+Ваш заказ успешно зарегистрирован. Он будет обработан после получения банковского перевода.
+
+Заказ PREVIEW001 — Ожидание перевода
+--------------------------------
+Благодарим за Ваш заказ PREVIEW001.
+
+Банковские реквизиты
+--------------------------------
+Пожалуйста, переведите средства на указанный ниже счёт, обязательно указав следующий референс:
+
+Сумма : 89,00 €
+
+Получатель : Test Neria SARL
+
+Детали счёта : IBAN : FR76 3000 6000 0112 3456 7890 189 — BIC : AGRIFRPP
+
+Банковский адрес : 12 rue de la Paix, 75001 Paris, France
+
+Пожалуйста, укажите референс PREVIEW001.
+
+<a href="http://localhost/shop/ru/order-history" style="color:#b38b59;">Просмотреть историю заказа</a> : http://localhost/shop/ru/order-history
+
+<a href="http://localhost/shop/ru/guest-tracking" style="color:#b38b59;">Отслеживание для гостя</a> : http://localhost/shop/ru/guest-tracking
+
+В ожидании Вашего перевода, с полным терпением,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

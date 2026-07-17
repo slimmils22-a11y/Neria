@@ -1,0 +1,21 @@
+﻿Test Neria
+
+God morgen, Sophie,
+
+Vi bekræfter modtagelsen af din ordre på vegne af din virksomhed. Den vil blive behandlet med den opmærksomhed, som en sådan forpligtelse fortjener.
+
+Ordrereference : PREVIEW001
+
+Virksomhedsordredetaljer
+--------------------------------
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+Spor min ordre : http://localhost/shop/da/ordrehistorik
+
+Vores dedikerede team til virksomhedsrelationer står til din rådighed.
+
+Til din tjeneste for dette partnerskab,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

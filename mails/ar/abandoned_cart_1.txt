@@ -1,0 +1,18 @@
+Test Neria
+
+مساء الخير, Sophie,
+
+بدا أنكم توقفتم أثناء زيارتكم. لقد حرصنا على الحفاظ على القطع التي لفتت انتباهكم.
+
+--------------------------------
+Réf. NER-001   Montre Élégance Neria   Qté 1   89,00 €
+
+فريقنا رهن إشارتكم لأي سؤال حول اختياركم.
+
+استئناف اختياري : http://localhost/shop/index.php?controller=cart
+
+اختياركم محفوظ لكم لمدة 48 ساعة.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

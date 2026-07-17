@@ -1,0 +1,23 @@
+﻿Test Neria
+
+مساء الخير, Sophie,
+
+يتم حالياً معالجة طلبكم من قبل سلطات الجمارك في بلد الوجهة.
+
+مرجع الطلب : PREVIEW001
+
+تفاصيل التنبيه الجمركي
+--------------------------------
+الحالة الحالية : En attente de dédouanement
+
+الإجراء الموصى به : Aucune action requise de votre part.
+
+تتبع طردي : http://localhost/shop/ar/سجل طلبات الشراء
+
+يمكن لفريقنا مساعدتكم في الإجراءات إذا لزم الأمر.
+
+في خدمتكم لتجاوز هذه المرحلة،
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

@@ -1,0 +1,17 @@
+Test Neria
+
+Sophie님, 좋은 아침이에요.
+
+Montre Élégance Neria을(를) 구매하신 지 일이 지났습니다. 저희 추정으로는 제품이 곧 소진될 것 같습니다.
+
+경험을 이어가고 싶으시다면 지금이 최적의 타이밍입니다 — 소진되기 전에요.
+
+재구매하기 : http://localhost/shop/index.php?controller=product&id_product=1
+
+물론 의무는 없습니다 — 친근한 알림으로 보내드리는 것입니다.
+
+모든 관심을 담아,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

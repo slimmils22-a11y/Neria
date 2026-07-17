@@ -1,0 +1,24 @@
+﻿Test Neria
+
+Доброе утро, Sophie,
+
+Ваш выбор теперь в пути. Вот затронутые изделия:
+
+Réf. NER-001 — Montre Élégance Neria × 1
+Réf. NER-014 — Bracelet Cuir Atelier × 1
+
+Заказ PREVIEW001
+--------------------------------
+Заказ PREVIEW001.
+
+В настоящее время он находится в пути и прибудет в ожидаемый срок.
+
+Отследить заказ : http://localhost/shop/fr/historique-commandes
+
+<a href="http://localhost/shop/ru/order-history" style="color:#b38b59;">Посмотрите историю заказа в Вашем аккаунте</a> : http://localhost/shop/ru/order-history
+
+<a href="http://localhost/shop/ru/guest-tracking" style="color:#b38b59;">Если Вы оформляли заказ как гость, отслеживайте его по специальной ссылке</a> : http://localhost/shop/ru/guest-tracking
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

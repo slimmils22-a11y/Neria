@@ -1,0 +1,19 @@
+Test Neria
+
+Goedemiddag, Sophie,
+
+Wij zijn verheugd u te mogen verwelkomen onder onze abonnees. Uw abonnement op onze nieuwsbrief is bevestigd.
+
+Bevestiging
+--------------------------------
+U ontvangt nu als eerste onze nieuwe collecties, privé-uitnodigingen en de hoogtepunten van ons huis — gedeeld met degenen die we waarderen.
+
+Uw vertrouwen is heilig. We beschermen het zoals we onze reputatie beschermen: met strengheid en discretie.
+
+U kunt uw voorkeuren beheren en zich op elk moment uitschrijven via uw klantenaccount.
+
+Naar mijn ruimte : http://localhost/shop/
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

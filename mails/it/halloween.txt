@@ -1,0 +1,17 @@
+Test Neria
+
+Buon pomeriggio, Camille,
+
+In occasione di Halloween, abbiamo preparato per Voi un'atmosfera unica, che unisce mistero ed eleganza.
+
+Immergetevi in un universo dove ogni dettaglio conta. Scoprite le nostre creazioni d'eccezione per una serata indimenticabile.
+
+Scoprite le nostre creazioni : http://localhost/shop/
+
+Un'attenzione speciale è riservata per Voi fino al 31 ottobre.
+
+Tutto il team Vi augura una meravigliosa festa di Halloween.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

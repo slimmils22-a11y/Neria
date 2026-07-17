@@ -1,0 +1,23 @@
+﻿Test Neria
+
+早安, Sophie,
+
+我們試圖遞送您的包裹，但當時無人接收。
+
+訂單編號 : PREVIEW001
+
+遞送嘗試詳情
+--------------------------------
+包裹狀態 : Colissimo
+
+現在該怎麼做？ : Tabac Presse — 5 rue de Rivoli, 75001 Paris
+
+查看取件選項 : http://localhost/shop/tw/訂單記錄
+
+包裹在取件點為您保留。
+
+期待為您服務，
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

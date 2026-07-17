@@ -1,0 +1,23 @@
+﻿Test Neria
+
+Hallo, Camille,
+
+Wir haben Ihre Nachricht bezüglich Ihrer Bestellung erhalten. Hier eine Zusammenfassung der von Ihnen übermittelten Informationen:
+
+Zusammenfassung Ihrer Anfrage
+--------------------------------
+Bestellreferenz : #TEST00125
+
+Betroffenes Produkt : Ivory Linen Dress
+
+Angehängte Datei : 
+
+Wir schenken jeder Anfrage besondere Aufmerksamkeit und werden uns sehr bald bei Ihnen melden.
+
+Zurück zu unserem Haus : http://localhost/shop/
+
+In Erwartung unserer Antwort mit der gebührenden Sorgfalt,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

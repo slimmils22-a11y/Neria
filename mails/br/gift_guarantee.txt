@@ -1,0 +1,25 @@
+Test Neria
+
+Boa tarde, Sophie,
+
+Temos o prazer de confirmar que seu pedido de presente está sendo preparado com o maior cuidado.
+
+O que garantimos
+--------------------------------
+Embalagem de presente de luxo
+
+Mensagem personalizada conforme suas instruções
+
+Entrega segura e discreta
+
+Possibilidade de troca ou devolução até 31 de janeiro
+
+Cada detalhe foi pensado para oferecer uma experiência única a quem receber este presente.
+
+Rastrear meu pedido : http://localhost/shop/fr/historique-commandes
+
+Em caso de dúvidas sobre seu pedido de presente, nossa equipe está à sua disposição.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

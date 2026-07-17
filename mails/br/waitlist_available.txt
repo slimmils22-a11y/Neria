@@ -1,0 +1,23 @@
+Reservado para você
+
+Olá Sophie,
+
+Você esperou  dias. Não esquecemos.
+
+Esta peça voltou ao estoque — e porque você estava aqui antes de todo mundo, damos a você acesso prioritário exclusivo.
+
+Seu acesso prioritário é válido por  horas. Depois disso, o produto ficará disponível para todos.
+
+--------
+
+Montre Élégance Neria
+ €
+http://localhost/shop/index.php?controller=product&id_product=1
+
+--------
+
+Você recebe esta notificação porque pediu para ser avisado/a quando este produto voltasse ao estoque.
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}

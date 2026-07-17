@@ -1,0 +1,18 @@
+Test Neria
+
+God morgon, Sophie,
+
+Vi hoppas att ditt föremål har hittat den plats det förtjänar i ditt hem.
+
+Din syn på denna upplevelse är ovärderlig för oss. Inte på grund av statistisk skyldighet, utan för att åsikterna från dem som litar på oss vägleder våra krav.
+
+Dela min upplevelse : http://localhost/shop/index.php?controller=product&id_product=1#reviews
+
+Din åsikt är värdefull för oss. Den hjälper oss att bättre förstå dina förväntningar.
+
+
+Din blick är vår bästa spegel,
+
+Test Neria
+http://localhost/shop/
+{custom_message_txt}
