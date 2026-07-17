@@ -313,6 +313,41 @@ class Neria extends Module
             }
         }
 
+        // ── Centre de préférences : opt-out par catégorie ──────────
+        // isAllowed() n'était appelé que depuis BehavioralCronManager::send()
+        // — tous les autres émetteurs Neria (SeasonalCampaignManager,
+        // LoyaltyManager, OrderTriggersManager, WaitlistManager, QueueManager,
+        // CalendarManager, ManualSendManager…) passaient tous par ce même
+        // hook mais ignoraient totalement les opt-out du client, rendant le
+        // centre de préférences cosmétique pour ~40 des ~45 templates
+        // catégorisés (non-conformité RGPD réelle, pas juste un bug UX).
+        if (class_exists('PreferencesManager')) {
+            $tplPref = $params['template'] ?? '';
+            if (isset(PreferencesManager::TEMPLATE_CAT[$tplPref])) {
+                $toPref = $params['to'] ?? '';
+                if (is_array($toPref)) {
+                    $toPref = reset($toPref) ?: '';
+                }
+                $idCustPref = (int) ($params['templateVars']['{id_customer}'] ?? 0);
+                if ($idCustPref <= 0 && $toPref !== '') {
+                    $custRow = Db::getInstance()->getRow(
+                        'SELECT id_customer FROM `' . _DB_PREFIX_ . 'customer`
+                         WHERE email = \'' . pSQL((string) $toPref) . '\' AND deleted = 0
+                         ORDER BY id_customer DESC'
+                    );
+                    $idCustPref = (int) ($custRow['id_customer'] ?? 0);
+                }
+                if ($idCustPref > 0 && !(new PreferencesManager($this))->isAllowed($idCustPref, $tplPref)) {
+                    (new WatchdogManager($this))->info(
+                        WatchdogManager::i18nMsg('watchdog.send_cancelled_pref', ['id' => $idCustPref, 'template' => $tplPref]),
+                        $tplPref,
+                        'PreferencesManager'
+                    );
+                    return false;
+                }
+            }
+        }
+
         // ── Mode Silence : anti-doublon ───────────────────────────
         if ((new ConfigManager($this))->isCooldownEnabled() && class_exists('CooldownManager')) {
             $to = $params['to'] ?? '';
