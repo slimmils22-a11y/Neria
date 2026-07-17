@@ -2995,13 +2995,14 @@ class HealthCheckManager
             "SELECT DISTINCT w.id_product, w.id_shop FROM `{$table}` w
              JOIN `" . _DB_PREFIX_ . "stock_available` s
                   ON s.id_product = w.id_product AND s.id_product_attribute = 0
-             WHERE w.notified_at IS NULL
+             WHERE w.id_shop = {$this->idShop}
+               AND w.notified_at IS NULL
                AND w.registered_at < DATE_SUB(NOW(), INTERVAL 48 HOUR)
                AND s.quantity > 0"
         ) ?: [];
 
         if (empty($backlogProducts)) {
-            $total = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$table}` WHERE notified_at IS NULL");
+            $total = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$table}` WHERE id_shop = {$this->idShop} AND notified_at IS NULL");
             return [
                 'status' => self::STATUS_OK,
                 'detail' => AdminTranslator::tVars('health.waitlist_ok', ['total' => $total]),
@@ -3054,7 +3055,7 @@ class HealthCheckManager
 
         $today = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$table}`
-             WHERE `event_type` = 'sent' AND DATE(`date_add`) = CURDATE()"
+             WHERE `id_shop` = {$this->idShop} AND `event_type` = 'sent' AND DATE(`date_add`) = CURDATE()"
         );
 
         $pct = ($today / $quota) * 100;
@@ -3207,7 +3208,8 @@ class HealthCheckManager
 
         $opens = (int) $db->getValue('
             SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
-            WHERE event_type = \'open\'
+            WHERE id_shop = ' . $this->idShop . '
+              AND event_type = \'open\'
               AND date_add >= DATE_SUB(NOW(), INTERVAL 7 DAY)
         ');
 
@@ -3217,7 +3219,8 @@ class HealthCheckManager
 
         $clicks = (int) $db->getValue('
             SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
-            WHERE event_type = \'click\'
+            WHERE id_shop = ' . $this->idShop . '
+              AND event_type = \'click\'
               AND date_add >= DATE_SUB(NOW(), INTERVAL 7 DAY)
         ');
 
@@ -3250,7 +3253,8 @@ class HealthCheckManager
 
         $sent = (int) $db->getValue('
             SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
-            WHERE event_type = \'sent\'
+            WHERE id_shop = ' . $this->idShop . '
+              AND event_type = \'sent\'
               AND date_add >= DATE_SUB(NOW(), INTERVAL 7 DAY)
         ');
 
@@ -3260,7 +3264,8 @@ class HealthCheckManager
 
         $unsubs = (int) $db->getValue('
             SELECT COUNT(DISTINCT id_customer) FROM `' . _DB_PREFIX_ . 'neria_preferences`
-            WHERE subscribed = 0
+            WHERE id_shop = ' . $this->idShop . '
+              AND subscribed = 0
               AND date_upd >= DATE_SUB(NOW(), INTERVAL 7 DAY)
         ');
 
@@ -3371,7 +3376,8 @@ class HealthCheckManager
 
         $pending = (int) \Db::getInstance()->getValue('
             SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_queue`
-            WHERE status = \'pending\'
+            WHERE id_shop = ' . $this->idShop . '
+              AND status = \'pending\'
         ');
 
         if ($pending > 5000) {
@@ -3664,7 +3670,7 @@ class HealthCheckManager
         // segmentation. Ce contrôle rapportait donc systématiquement
         // "jamais exécuté", même la segmentation tournant chaque nuit.
         $lastRun = \Db::getInstance()->getValue(
-            'SELECT MAX(`computed_at`) FROM `' . _DB_PREFIX_ . 'neria_customer_segment`'
+            'SELECT MAX(`computed_at`) FROM `' . _DB_PREFIX_ . 'neria_customer_segment` WHERE `id_shop` = ' . $this->idShop
         );
 
         $needsRecompute = !$lastRun || (time() - strtotime($lastRun)) / 3600 > 48;
@@ -4918,11 +4924,11 @@ class HealthCheckManager
 
         if (class_exists('ChurnScoreManager')) {
             $countChurn = (int) $db->getValue(
-                'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_churn_score`'
+                'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_churn_score` WHERE `id_shop` = ' . $this->idShop
             );
             if ($countChurn > 0) {
                 $lastChurn = $db->getValue(
-                    'SELECT MAX(`computed_at`) FROM `' . _DB_PREFIX_ . 'neria_churn_score`'
+                    'SELECT MAX(`computed_at`) FROM `' . _DB_PREFIX_ . 'neria_churn_score` WHERE `id_shop` = ' . $this->idShop
                 );
                 $ageChurnH = $lastChurn ? (time() - strtotime($lastChurn)) / 3600 : 9999;
                 if ($ageChurnH > 48) {
@@ -4933,11 +4939,11 @@ class HealthCheckManager
 
         if (class_exists('PropensityScoreManager')) {
             $countProp = (int) $db->getValue(
-                'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_propensity_score`'
+                'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_propensity_score` WHERE `id_shop` = ' . $this->idShop
             );
             if ($countProp > 0) {
                 $lastProp = $db->getValue(
-                    'SELECT MAX(`date_upd`) FROM `' . _DB_PREFIX_ . 'neria_propensity_score`'
+                    'SELECT MAX(`date_upd`) FROM `' . _DB_PREFIX_ . 'neria_propensity_score` WHERE `id_shop` = ' . $this->idShop
                 );
                 $agePropH = $lastProp ? (time() - strtotime($lastProp)) / 3600 : 9999;
                 if ($agePropH > 48) {
@@ -5034,11 +5040,13 @@ class HealthCheckManager
 
         $sent30d = (int) $db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_queue`
-             WHERE `status` = \'sent\' AND `sent_at` >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
+             WHERE `id_shop` = ' . $this->idShop . '
+               AND `status` = \'sent\' AND `sent_at` >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
         );
         $failed30d = (int) $db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_queue`
-             WHERE `status` = \'failed\' AND `created_at` >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
+             WHERE `id_shop` = ' . $this->idShop . '
+               AND `status` = \'failed\' AND `created_at` >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
         );
 
         $total = $sent30d + $failed30d;
@@ -5125,7 +5133,8 @@ class HealthCheckManager
 
         $plain = (int) \Db::getInstance()->getValue(
             "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_stat`
-             WHERE `rendered_vars` IS NOT NULL AND `rendered_vars` != ''"
+             WHERE `id_shop` = {$this->idShop}
+               AND `rendered_vars` IS NOT NULL AND `rendered_vars` != ''"
         );
 
         if ($plain > 0) {
