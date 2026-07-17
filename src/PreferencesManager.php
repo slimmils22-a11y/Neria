@@ -28,6 +28,7 @@ class PreferencesManager
         'complete_your_look'        => 'post',
         'collection_completion'     => 'post',
         'product_lifespan_reminder' => 'post',
+        'order_shipped_delay'       => 'post',
         'refund_reconciliation_1'   => 'post',
         'refund_reconciliation_2'   => 'post',
         'refund_reconciliation_3'   => 'post',
