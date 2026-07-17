@@ -193,32 +193,46 @@ class WebhookManager
             return;
         }
 
-        $table = _DB_PREFIX_ . self::TABLE;
-
-        $rows = $this->db->executeS(sprintf(
-            "SELECT * FROM `%s`
-             WHERE `id_shop` = %d
-               AND `status`  = 'pending'
-               AND `attempts` < %d
-             ORDER BY `date_add` ASC
-             LIMIT %d",
-            $table, $this->idShop, self::MAX_ATTEMPTS, self::BATCH_SIZE
-        ));
-
-        if (!is_array($rows) || empty($rows)) {
-            return; // Queue vide — normal, aucun log nécessaire
+        // Verrou MySQL dédié à CETTE méthode (et non au seul appelant cron) :
+        // le bouton BO "Traiter la file maintenant" (neria.php, neria_action
+        // process_webhook_queue_now) appelle processQueue() directement, sans
+        // passer par le GET_LOCK('neria_webhook_process') de runBackgroundJobs().
+        // Sans ce verrou interne, un admin cliquant ce bouton pendant qu'un
+        // cron externe tourne au même moment peut faire lire aux deux process
+        // le même lot de lignes 'pending' avant que l'un des deux n'ait eu le
+        // temps d'incrémenter `attempts` — livrant chaque webhook deux fois.
+        $lockName = 'neria_webhook_process_queue_' . $this->idShop;
+        if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)") !== 1) {
+            return;
         }
 
-        $this->watchdog()->info(
-            \WatchdogManager::i18nMsg('watchdog.webhook_batch_start', ['n' => count($rows)]),
-            '', 'WebhookManager'
-        );
+        try {
+            $table = _DB_PREFIX_ . self::TABLE;
 
-        $now   = date('Y-m-d H:i:s');
-        $sent  = 0;
-        $definitivelyFailed = 0;
+            $rows = $this->db->executeS(sprintf(
+                "SELECT * FROM `%s`
+                 WHERE `id_shop` = %d
+                   AND `status`  = 'pending'
+                   AND `attempts` < %d
+                 ORDER BY `date_add` ASC
+                 LIMIT %d",
+                $table, $this->idShop, self::MAX_ATTEMPTS, self::BATCH_SIZE
+            ));
 
-        foreach ($rows as $row) {
+            if (!is_array($rows) || empty($rows)) {
+                return; // Queue vide — normal, aucun log nécessaire
+            }
+
+            $this->watchdog()->info(
+                \WatchdogManager::i18nMsg('watchdog.webhook_batch_start', ['n' => count($rows)]),
+                '', 'WebhookManager'
+            );
+
+            $now   = date('Y-m-d H:i:s');
+            $sent  = 0;
+            $definitivelyFailed = 0;
+
+            foreach ($rows as $row) {
             $id       = (int) $row['id_webhook'];
             $payload  = $row['payload'];
             $attempts = (int) $row['attempts'] + 1;
@@ -271,6 +285,9 @@ class WebhookManager
                 \WatchdogManager::i18nMsg('watchdog.webhook_batch_all_failed', ['total' => $total]),
                 '', 'WebhookManager'
             );
+        }
+        } finally {
+            $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
         }
     }
 
