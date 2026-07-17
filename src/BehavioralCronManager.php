@@ -567,6 +567,11 @@ class BehavioralCronManager
 
     public function getCheckoutAbandonmentStats(): array
     {
+        // neria_behavioral_sent n'a pas de colonne id_shop, mais la table
+        // orders jointe en a une : sans filtre, une commande récupérée sur
+        // une autre boutique (install multi-boutiques) se retrouvait comptée
+        // dans les stats de la boutique courante.
+        $idShop = (int) \Context::getContext()->shop->id;
         $row  = $this->db->getRow(
             'SELECT
                 COUNT(bs.id)                    AS emails_sent,
@@ -574,7 +579,7 @@ class BehavioralCronManager
                 COALESCE(SUM(o.total_paid_tax_incl), 0) AS revenue_recovered
              FROM `' . $this->prefix . 'neria_behavioral_sent` bs
              LEFT JOIN `' . $this->prefix . 'orders` o
-                ON o.id_cart = bs.ref_id AND o.date_add > bs.sent_at
+                ON o.id_cart = bs.ref_id AND o.date_add > bs.sent_at AND o.id_shop = ' . $idShop . '
              WHERE bs.template = \'checkout_abandonment\''
         );
 
