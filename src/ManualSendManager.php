@@ -781,11 +781,18 @@ class ManualSendManager
             return null;
         }
 
+        // relationship_anniversary stocke l'année en cours comme ref_id (peut
+        // se déclencher chaque année) — first_anniversary stocke l'id_order
+        // de la 1ère commande (ne se déclenche qu'une seule fois dans la vie
+        // du client) : filtrer par année pour ce dernier ne matche jamais un
+        // id_order réel et rendait ce sens du garde-fou totalement inopérant.
+        $refFilter = ($conflictTemplate === 'relationship_anniversary')
+            ? ' AND ref_id = ' . (int) date('Y')
+            : '';
         $alreadySent = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_behavioral_sent`
              WHERE id_customer = ' . (int) $customer['id_customer'] . '
-               AND template = \'' . pSQL($conflictTemplate) . '\'
-               AND ref_id = ' . (int) date('Y')
+               AND template = \'' . pSQL($conflictTemplate) . '\'' . $refFilter
         );
 
         if ($alreadySent > 0) {
@@ -827,11 +834,15 @@ class ManualSendManager
             return ['blocked' => false, 'sent' => false, 'message' => ''];
         }
 
+        // Voir commentaire dans checkAnniversaryConflict() : ref_id=année ne
+        // s'applique qu'à relationship_anniversary.
+        $refFilter = ($conflictTemplate === 'relationship_anniversary')
+            ? ' AND ref_id = ' . (int) date('Y')
+            : '';
         $conflictSent = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_behavioral_sent`
              WHERE id_customer = ' . (int) $customer['id_customer'] . '
-               AND template = \'' . pSQL($conflictTemplate) . '\'
-               AND ref_id = ' . (int) date('Y')
+               AND template = \'' . pSQL($conflictTemplate) . '\'' . $refFilter
         );
 
         $labels = [
