@@ -26,6 +26,7 @@ class QueueManager
     private \Neria $module;
     private \Db    $db;
     private string $prefix;
+    private int    $idShop;
     private ?\WatchdogManager $watchdog = null;
 
     public function __construct(\Neria $module)
@@ -33,6 +34,7 @@ class QueueManager
         $this->module = $module;
         $this->db     = \Db::getInstance();
         $this->prefix = _DB_PREFIX_;
+        $this->idShop = (int) \Context::getContext()->shop->id;
     }
 
     private function watchdog(): \WatchdogManager
@@ -172,7 +174,8 @@ class QueueManager
                     DATE_FORMAT(`send_at`, \'%d/%m/%Y %H:%i\') AS send_at_fmt,
                     `send_at`, `status`
              FROM `' . $this->prefix . 'neria_queue`
-             WHERE `ref_id` = 0
+             WHERE `id_shop` = ' . $this->idShop . '
+               AND `ref_id` = 0
                AND `status` = \'pending\'
              ORDER BY `send_at` ASC
              LIMIT 20'
@@ -189,7 +192,8 @@ class QueueManager
     {
         return (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . $this->prefix . 'neria_queue`
-             WHERE `ref_id` = 0 AND `status` = \'pending\''
+             WHERE `id_shop` = ' . $this->idShop . '
+               AND `ref_id` = 0 AND `status` = \'pending\''
         );
     }
 
@@ -329,35 +333,40 @@ class QueueManager
     public function getStats(): array
     {
         $pending = (int) $this->db->getValue(
-            'SELECT COUNT(*) FROM `' . $this->prefix . 'neria_queue` WHERE status = \'pending\''
+            'SELECT COUNT(*) FROM `' . $this->prefix . 'neria_queue`
+             WHERE id_shop = ' . $this->idShop . ' AND status = \'pending\''
         );
 
         $sent30d = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . $this->prefix . 'neria_queue`
-             WHERE status = \'sent\' AND sent_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
+             WHERE id_shop = ' . $this->idShop . '
+               AND status = \'sent\' AND sent_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
         );
 
         $failed30d = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . $this->prefix . 'neria_queue`
-             WHERE status = \'failed\' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
+             WHERE id_shop = ' . $this->idShop . '
+               AND status = \'failed\' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
         );
 
         $avgRaw = $this->db->getValue(
             'SELECT AVG(TIMESTAMPDIFF(MINUTE, created_at, sent_at))
              FROM `' . $this->prefix . 'neria_queue`
-             WHERE status = \'sent\' AND sent_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
+             WHERE id_shop = ' . $this->idShop . '
+               AND status = \'sent\' AND sent_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
         );
         $avgDelay = ($avgRaw !== false && $avgRaw !== null) ? (int) round((float) $avgRaw) : null;
 
         // % de clients actifs ayant une fenêtre détectable
         $totalActive = (int) $this->db->getValue(
-            'SELECT COUNT(*) FROM `' . $this->prefix . 'customer` WHERE active = 1 AND deleted = 0'
+            'SELECT COUNT(*) FROM `' . $this->prefix . 'customer`
+             WHERE id_shop = ' . $this->idShop . ' AND active = 1 AND deleted = 0'
         );
         $withWindow = (int) $this->db->getValue(
             'SELECT COUNT(DISTINCT id_customer) FROM (
                SELECT id_customer
                FROM `' . $this->prefix . 'orders`
-               WHERE valid = 1
+               WHERE valid = 1 AND id_shop = ' . $this->idShop . '
                GROUP BY id_customer, HOUR(date_add)
                HAVING COUNT(*) >= ' . \PurchaseWindowManager::MINIMUM_ORDERS . '
              ) sub'
@@ -369,7 +378,7 @@ class QueueManager
         $peakRow = $this->db->getRow(
             'SELECT HOUR(date_add) AS h, COUNT(*) AS cnt
              FROM `' . $this->prefix . 'orders`
-             WHERE valid = 1
+             WHERE valid = 1 AND id_shop = ' . $this->idShop . '
              GROUP BY HOUR(date_add)
              ORDER BY cnt DESC'
         );

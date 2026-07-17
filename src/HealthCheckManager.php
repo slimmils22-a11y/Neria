@@ -3714,10 +3714,12 @@ class HealthCheckManager
 
         $count = (int) $db->getValue('
             SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_churn_score`
+            WHERE id_shop = ' . $this->idShop . '
         ');
 
         $lastCalc = $count > 0 ? $db->getValue('
             SELECT MAX(computed_at) FROM `' . _DB_PREFIX_ . 'neria_churn_score`
+            WHERE id_shop = ' . $this->idShop . '
         ') : null;
 
         $ageH = $lastCalc ? round((time() - strtotime($lastCalc)) / 3600, 1) : null;
@@ -4720,7 +4722,7 @@ class HealthCheckManager
 
         $config = new \ConfigManager($this->module);
         $checkSignature = $config->isSignatureEnabled() && $this->db->getValue(
-            'SELECT 1 FROM `' . _DB_PREFIX_ . 'neria_signature` WHERE `is_active` = 1'
+            'SELECT 1 FROM `' . _DB_PREFIX_ . 'neria_signature` WHERE `is_active` = 1 AND `id_shop` = ' . $this->idShop
         );
         $socialLinks  = method_exists($config, 'getSocialLinks') ? $config->getSocialLinks() : [];
         $checkSocial  = !empty($socialLinks);
@@ -4732,7 +4734,7 @@ class HealthCheckManager
         $sigFile = '';
         if ($checkSignature) {
             $sigRow = $this->db->getRow(
-                'SELECT `image_path` FROM `' . _DB_PREFIX_ . 'neria_signature` WHERE `is_active` = 1'
+                'SELECT `image_path` FROM `' . _DB_PREFIX_ . 'neria_signature` WHERE `is_active` = 1 AND `id_shop` = ' . $this->idShop
             );
             $sigFile = $sigRow ? basename((string) $sigRow['image_path']) : '';
         }

@@ -252,7 +252,7 @@ class PropensityScoreManager
                     CONCAT(c.firstname, " ", c.lastname) AS customer_name,
                     c.email,
                     (SELECT MAX(o.date_add) FROM `' . _DB_PREFIX_ . 'orders` o
-                     WHERE o.id_customer = ps.id_customer AND o.valid = 1) AS last_order_date
+                     WHERE o.id_customer = ps.id_customer AND o.id_shop = ' . $this->idShop . ' AND o.valid = 1) AS last_order_date
              FROM `' . _DB_PREFIX_ . 'neria_propensity_score` ps
              JOIN `' . _DB_PREFIX_ . 'customer` c ON c.id_customer = ps.id_customer
              WHERE ps.id_shop = ' . $this->idShop . '
