@@ -368,6 +368,10 @@ class SearchConsoleManager
         $path = '/sites/' . urlencode($siteUrl) . '/searchAnalytics/query';
         $response = $this->apiPost($path, $token, $body);
 
+        if ($response === null) {
+            return null;
+        }
+
         return $response['rows'] ?? ($dimensions === [] ? [[
             'clicks'      => $response['clicks'] ?? 0,
             'impressions' => $response['impressions'] ?? 0,
@@ -467,7 +471,7 @@ class SearchConsoleManager
         return $data;
     }
 
-    private function apiPost(string $path, string $token, string $body): array
+    private function apiPost(string $path, string $token, string $body): ?array
     {
         $ch = curl_init(self::API_BASE . $path);
         curl_setopt_array($ch, [
@@ -482,14 +486,34 @@ class SearchConsoleManager
             ],
             \CURLOPT_SSL_VERIFYPEER => true,
         ]);
-        $resp = curl_exec($ch);
+        $resp     = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, \CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         if (!$resp) {
-            return [];
+            return null;
         }
         $data = json_decode($resp, true);
-        return is_array($data) ? $data : [];
+        if (!is_array($data)) {
+            return null;
+        }
+
+        // Comme apiGet() : Google renvoie un corps JSON valide même en erreur
+        // (403, 400...). Sans ce contrôle, une erreur d'API sur la requête
+        // searchAnalytics était silencieusement convertie en "0 clic / 0
+        // impression" par querySearchAnalytics(), masquant la vraie panne au
+        // lieu de la faire remonter dans le Watchdog / CONFIG_LAST_ERROR.
+        if ($httpCode >= 400 || isset($data['error'])) {
+            $msg = $data['error']['message'] ?? ('HTTP ' . $httpCode);
+            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
+                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+            }
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_api_error', ['error' => $msg]), '', 'SearchConsoleManager');
+            return null;
+        }
+
+        return $data;
     }
 
     private function httpPost(string $url, array $data): array
