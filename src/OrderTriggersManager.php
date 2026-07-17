@@ -260,10 +260,9 @@ class OrderTriggersManager
         $idLang = (int) $customer->id_lang ?: (int) \Configuration::get('PS_LANG_DEFAULT');
         $toName = trim($customer->firstname . ' ' . $customer->lastname) ?: null;
         $common = [
-            '{firstname}'   => $customer->firstname,
-            '{lastname}'    => $customer->lastname,
-            '{shop_name}'   => \Configuration::get('PS_SHOP_NAME'),
-            '{history_url}' => \Context::getContext()->link->getPageLink('history', true, $idLang),
+            '{firstname}' => $customer->firstname,
+            '{lastname}'  => $customer->lastname,
+            '{shop_name}' => \Configuration::get('PS_SHOP_NAME'),
         ];
 
         // milestone_order
@@ -378,11 +377,10 @@ class OrderTriggersManager
             $toName = trim($customer->firstname . ' ' . $customer->lastname) ?: null;
             $idShop = (int) $order->id_shop;
             $common = [
-                '{firstname}'   => $customer->firstname,
-                '{lastname}'    => $customer->lastname,
-                '{order_name}'  => $order->reference,
-                '{shop_name}'   => \Configuration::get('PS_SHOP_NAME'),
-                '{history_url}' => \Context::getContext()->link->getPageLink('history', true, $idLang),
+                '{firstname}'  => $customer->firstname,
+                '{lastname}'   => $customer->lastname,
+                '{order_name}' => $order->reference,
+                '{shop_name}'  => \Configuration::get('PS_SHOP_NAME'),
             ];
 
             // order_partial_shipped : expédition partielle
