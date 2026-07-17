@@ -3018,8 +3018,13 @@ class Neria extends Module
         // ── Onglet A/B Testing : création / désactivation ────────────
         if (Tools::getValue('neria_action') === 'create_abtest' && class_exists('ABTestManager')) {
             $tplKey      = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('abtest_template', ''));
-            $variantAName = pSQL(trim((string) Tools::getValue('variant_a_name', 'Variante A')));
-            $variantBName = pSQL(trim((string) Tools::getValue('variant_b_name', 'Variante B')));
+            // Pas de pSQL() ici : ABTestManager::createTest() échappe déjà ces
+            // valeurs avant de construire son propre SQL — un double pSQL()
+            // corrompait les noms de variante contenant une apostrophe (ex:
+            // "Ton d'urgence" devenait "Ton d\'urgence" en base, backslash
+            // visible dans tout le BO).
+            $variantAName = trim((string) Tools::getValue('variant_a_name', 'Variante A'));
+            $variantBName = trim((string) Tools::getValue('variant_b_name', 'Variante B'));
             $splitPercent = (int) Tools::getValue('split_percent', 50);
 
             if ($tplKey !== '') {
