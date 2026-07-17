@@ -516,6 +516,7 @@ class CertificateManager
         return $this->db->executeS(
             'SELECT * FROM `' . _DB_PREFIX_ . self::TABLE . '`
              WHERE `id_order` = ' . $idOrder . '
+               AND `id_shop` = ' . $this->idShop . '
              ORDER BY `date_issued` DESC'
         ) ?: [];
     }
