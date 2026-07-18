@@ -785,14 +785,108 @@ class EmailRenderer
                     $abManager = new ABTestManager($module);
                     $abValue   = $abManager->getVariantBValue($template, $lang, $key);
                     if ($abValue !== null) {
-                        return $abValue;
+                        return self::sanitizeTranslationHtml($abValue);
                     }
                 }
 
                 // Traduction standard
-                return $engine->get($template, $key, $lang);
+                return self::sanitizeTranslationHtml($engine->get($template, $key, $lang));
             }
         );
+    }
+
+    /**
+     * Neutralise le HTML dangereux d'une valeur de traduction avant de
+     * l'injecter dans un email.
+     *
+     * Les traductions livrées avec le module contiennent volontairement du
+     * HTML (ex: `<a href="{tracking_url}" style="color:#b38b59;">`) pour la
+     * mise en forme des liens — un htmlspecialchars() global casserait donc
+     * tous les emails. Mais `translation_value` peut aussi être écrasée par
+     * un import CSV de traduction (BO admin, neria.php action
+     * import_translations_csv / import_variant_b_csv) : le fichier importé
+     * est parsé et inséré tel quel (seul `pSQL($value, true)` est appliqué,
+     * qui échappe pour SQL, pas pour HTML). Un CSV contenant
+     * `<script>...</script>` ou `<img onerror=...>` dans une valeur de
+     * traduction se retrouvait donc injecté brut dans TOUS les emails
+     * utilisant cette clé — un stored XSS confirmé par test réel (voir
+     * audit du 2026-07-18 : payload `<script>alert(...)</script><img
+     * src=x onerror="alert(1)">` retrouvé tel quel dans le HTML compilé de
+     * renderPreviewHtml('test','fr')).
+     *
+     * Seule la balise `<a href="..." style="...">` étant réellement
+     * utilisée par les traductions légitimes (vérifié sur
+     * data/translations.json : aucune autre balise HTML n'y apparaît),
+     * la sanitisation se limite à :
+     * — retirer entièrement <script>/<style>/<iframe>/<object>/<embed> et
+     *   leur contenu ;
+     * — ne garder que les balises <a>, <br>, <b>, <strong>, <em>, <i>,
+     *   <u>, <span> (strip_tags) ;
+     * — sur ces balises, ne garder que les attributs href/style/target/rel
+     *   et rejeter tout attribut on*= résiduel, tout href autre que
+     *   http(s)/mailto/variable Neria ({xxx_url}), et tout style contenant
+     *   "expression(" ou "url(".
+     *
+     * @param string $value Valeur de traduction brute (déjà résolue)
+     * @return string       Valeur sûre à injecter dans le HTML de l'email
+     */
+    private static function sanitizeTranslationHtml(string $value): string
+    {
+        if ($value === '') {
+            return $value;
+        }
+
+        // Supprime entièrement les balises dangereuses et leur contenu
+        $value = preg_replace(
+            '#<(script|style|iframe|object|embed)\b[^>]*>.*?</\1\s*>#is',
+            '',
+            $value
+        );
+        // Au cas où une balise ouvrante orpheline (sans fermeture) subsiste
+        $value = preg_replace('#<(script|style|iframe|object|embed)\b[^>]*/?>#i', '', $value);
+
+        // Ne garde que les balises réellement utilisées par les traductions
+        $value = strip_tags($value, '<a><br><b><strong><em><i><u><span>');
+
+        // Sur les balises restantes, ne garde que des attributs whitelistés
+        // et neutralise tout gestionnaire d'événement (onclick, onerror...)
+        // ou protocole dangereux (javascript:, data:, vbscript:) qui aurait
+        // survécu dans un attribut autorisé.
+        $value = preg_replace_callback(
+            '#<([a-z]+)([^>]*)>#i',
+            static function (array $m): string {
+                $tag       = strtolower($m[1]);
+                $attrsRaw  = $m[2];
+                $safeAttrs = '';
+
+                if (preg_match_all('/([a-z-]+)\s*=\s*"([^"]*)"/i', $attrsRaw, $am, PREG_SET_ORDER)) {
+                    foreach ($am as $attr) {
+                        $name  = strtolower($attr[1]);
+                        $val   = $attr[2];
+
+                        if (!in_array($name, ['href', 'style', 'target', 'rel'], true)) {
+                            continue;
+                        }
+                        if ($name === 'href') {
+                            // Autorise http(s)/mailto/variables Neria ({tracking_url}...),
+                            // rejette javascript:/data:/vbscript: et tout schéma inconnu.
+                            if (!preg_match('#^(https?://|mailto:|\{[a-z0-9_]+\})#i', $val)) {
+                                continue;
+                            }
+                        }
+                        if ($name === 'style' && preg_match('/expression\s*\(|url\s*\(/i', $val)) {
+                            continue;
+                        }
+                        $safeAttrs .= ' ' . $name . '="' . htmlspecialchars($val, ENT_QUOTES) . '"';
+                    }
+                }
+
+                return '<' . $tag . $safeAttrs . '>';
+            },
+            $value
+        );
+
+        return $value;
     }
 
     // ============================================================
@@ -2048,10 +2142,10 @@ class EmailRenderer
                 if ($abtestMgr !== null) {
                     $vB = $abtestMgr->getVariantBValue($template, $lang, $mm[1]);
                     if ($vB !== null && $vB !== '') {
-                        return $vB;
+                        return self::sanitizeTranslationHtml($vB);
                     }
                 }
-                $v = $engine->get($template, $mm[1], $lang);
+                $v = self::sanitizeTranslationHtml($engine->get($template, $mm[1], $lang));
                 return $v !== '' ? $v : $mm[0];
             },
             $compiled
@@ -2401,7 +2495,7 @@ class EmailRenderer
             $compiled = preg_replace_callback(
                 '/\{neria_trad\s+key=[\'"]([a-z0-9_]*greeting)[\'"]\s*\}\s*\{firstname\},/',
                 function ($mm) use ($engine, $template, $lang, $h) {
-                    $g = $engine->get($template, $mm[1], $lang);
+                    $g = self::sanitizeTranslationHtml($engine->get($template, $mm[1], $lang));
                     return '{firstname}' . $h['suffix'] . $h['sep'] . $g . $h['end'];
                 },
                 $compiled
@@ -2411,7 +2505,7 @@ class EmailRenderer
         $compiled = preg_replace_callback(
             '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
             function ($m) use ($engine, $template, $lang) {
-                $v = $engine->get($template, $m[1], $lang);
+                $v = self::sanitizeTranslationHtml($engine->get($template, $m[1], $lang));
                 return $v !== '' ? $v : $m[0];
             },
             $compiled
