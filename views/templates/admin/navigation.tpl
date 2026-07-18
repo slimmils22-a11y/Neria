@@ -17,7 +17,7 @@
       <div>
         <h1 class="neria-bo-header__title">Neria</h1>
         <span class="neria-bo-header__version">
-          Luxury Email Suite · v{$neria_version}
+          v{$neria_version}
         </span>
       </div>
     </div>
