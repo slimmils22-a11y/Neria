@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.27';
+    const VERSION = '1.0.28';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -1290,11 +1290,12 @@ class Neria extends Module
         $idProduct  = (int) ($product['id_product'] ?? 0);
         $qty        = (int) ($product['quantity'] ?? 0);
         $idCustomer = (int) $this->context->customer->id;
+        $idShop     = (int) $this->context->shop->id;
 
         if ($qty > 0) return '';
 
         $mgr        = new WaitlistManager($this);
-        $registered = $idCustomer > 0 && $mgr->isRegistered($idCustomer, $idProduct);
+        $registered = $idCustomer > 0 && $mgr->isRegistered($idCustomer, $idProduct, $idShop);
 
         $actionUrl = $this->context->link->getModuleLink('neria', 'waitlist');
         $backUrl   = $this->context->link->getProductLink($idProduct);

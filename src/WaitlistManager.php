@@ -30,9 +30,13 @@ class WaitlistManager
 
     public function register(int $idCustomer, int $idProduct, int $idShop): bool
     {
-        if ($this->isRegistered($idCustomer, $idProduct)) return true;
+        if ($this->isRegistered($idCustomer, $idProduct, $idShop)) return true;
         $t   = $this->prefix . self::TABLE;
         $now = pSQL(date('Y-m-d H:i:s'));
+        // La clé unique porte sur (id_customer, id_product, id_shop) — un client
+        // multi-boutique doit pouvoir s'inscrire séparément sur chaque boutique
+        // où le même produit est en rupture, sans que l'inscription d'une
+        // boutique écrase celle d'une autre.
         return $this->db->execute(
             "INSERT INTO `{$t}` (id_customer, id_product, id_shop, registered_at, notified_at, claim_started_at)
              VALUES ({$idCustomer}, {$idProduct}, {$idShop}, '{$now}', NULL, NULL)
@@ -40,18 +44,18 @@ class WaitlistManager
         );
     }
 
-    public function unregister(int $idCustomer, int $idProduct): bool
+    public function unregister(int $idCustomer, int $idProduct, int $idShop): bool
     {
         return $this->db->delete(self::TABLE,
-            'id_customer = ' . $idCustomer . ' AND id_product = ' . $idProduct
+            'id_customer = ' . $idCustomer . ' AND id_product = ' . $idProduct . ' AND id_shop = ' . $idShop
         );
     }
 
-    public function isRegistered(int $idCustomer, int $idProduct): bool
+    public function isRegistered(int $idCustomer, int $idProduct, int $idShop): bool
     {
         return (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$this->prefix}" . self::TABLE . "`
-             WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
+             WHERE id_customer = {$idCustomer} AND id_product = {$idProduct} AND id_shop = {$idShop}
                AND notified_at IS NULL"
         ) > 0;
     }
@@ -66,6 +70,7 @@ class WaitlistManager
              FROM `{$this->prefix}" . self::TABLE . "` w
              INNER JOIN `{$this->prefix}customer` c ON c.id_customer = w.id_customer
              WHERE w.id_product = {$idProduct}
+               AND w.id_shop = {$idShop}
                AND w.notified_at IS NULL
              ORDER BY w.registered_at ASC"
         );

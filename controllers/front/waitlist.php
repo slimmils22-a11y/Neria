@@ -54,7 +54,7 @@ class NeriaWaitlistModuleFrontController extends ModuleFrontController
             if ($action === 'subscribe') {
                 $mgr->register($idCustomer, $idProduct, $idShop);
             } else {
-                $mgr->unregister($idCustomer, $idProduct);
+                $mgr->unregister($idCustomer, $idProduct, $idShop);
             }
         } catch (\Throwable $e) {
             if (class_exists('WatchdogManager')) {
