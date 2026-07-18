@@ -3,7 +3,7 @@
  *
  * NERIA — help.tpl
  * Onglet Aide — Documentation, diagnostic et support
- * i18n : libellés via {neria_admin key='...'} (18 langues, AdminTranslator)
+ * i18n : libellés via {neria_admin key='...'} (19 langues, AdminTranslator)
  *}
 
 {* ── Watchdog v2 — Score de santé global ────────────────────── *}

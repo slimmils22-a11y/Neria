@@ -460,7 +460,7 @@ class DeliverabilityScorer
         // strlen() (octets) des deux côtés — pas mb_strlen() pour le texte :
         // mélanger caractères (numérateur) et octets (dénominateur) fausse le
         // ratio pour les langues non-latines (japonais, arabe, chinois, coréen,
-        // russe — 6 des 18 langues du module), où chaque caractère visible
+        // russe — 6 des 19 langues du module), où chaque caractère visible
         // pèse 2-3 octets UTF-8 alors que le balisage HTML reste en ASCII.
         $visible = $this->visibleText($htmlContent);
         $textLen = strlen(trim($visible));

@@ -5,7 +5,7 @@
  * NERIA — Luxury Email Suite
  *
  * Module PrestaShop — Emails transactionnels & marketing haut de gamme
- * 18 langues · Adaptation culturelle · Typographie premium
+ * 19 langues · Adaptation culturelle · Typographie premium
  * Compatible PrestaShop 8.0.0 → 9.x
  *
  * @author    Neria
@@ -81,7 +81,7 @@ class Neria extends Module
         NeriaErrorHandler::register();
 
         $this->displayName = $this->l('Neria – Luxury Email Suite');
-        // Description et confirmation traduites (18 langues) via le dictionnaire
+        // Description et confirmation traduites (19 langues) via le dictionnaire
         $this->description      = AdminTranslator::t('msg.module_description');
         $this->confirmUninstall = AdminTranslator::t('msg.confirm_uninstall');
     }
@@ -1616,7 +1616,7 @@ class Neria extends Module
     /** Corps réel du panneau de configuration — appelé depuis getContent() via NeriaErrorHandler. */
     private function getContentImpl(): string
     {
-        // ── Traductions du back-office (18 langues) ───────────────
+        // ── Traductions du back-office (19 langues) ───────────────
         // Enregistre le helper Smarty {neria_admin key='...'} sur l'instance
         // courante. La langue affichée = celle de l'employé connecté.
         AdminTranslator::register($this->context->smarty);
@@ -4927,7 +4927,7 @@ class Neria extends Module
             'report_last_sent'  => (string) Configuration::get(MonthlyReportManager::CONFIG_LAST_SENT),
             'neria_tabs'       => $this->getBackOfficeTabs(),
 
-            // Libellés et drapeaux des 18 langues supportées
+            // Libellés et drapeaux des 19 langues supportées
             'lang_labels'      => NeriaTools::getLangLabels(),
             'lang_flags'       => NeriaTools::getLangFlags(),
 

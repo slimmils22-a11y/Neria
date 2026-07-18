@@ -285,7 +285,7 @@ class EmailRenderer
         // â”€â”€ Sujet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         // Si aucun sujet n'est fourni (ex. envoi manuel), on utilise le titre
         // principal du template (clé greeting_main) traduit dans la langue
-        // détectée — réutilise les traductions existantes (18 langues).
+        // détectée — réutilise les traductions existantes (19 langues).
         if (trim((string) ($params['subject'] ?? '')) === '') {
             $headline = $this->engine->get($template, 'greeting_main', $lang);
             if ($headline !== '') {

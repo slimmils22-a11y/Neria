@@ -4,14 +4,14 @@
  *
  * NERIA — AdminTranslator
  *
- * Traduction du back-office dans les 18 langues du module.
+ * Traduction du back-office dans les 19 langues du module.
  *
  * Contrairement aux emails (table SQL, éditables par le marchand), les libellés
  * de l'interface d'administration sont figés et vivent dans un dictionnaire JSON
  * livré avec le module : data/admin_translations.json.
  *
  * La langue affichée est celle de l'employé connecté au back-office
- * (Context::getContext()->language). Si elle ne fait pas partie des 18 langues
+ * (Context::getContext()->language). Si elle ne fait pas partie des 19 langues
  * supportées, on retombe sur l'anglais.
  *
  * Utilisation :
@@ -266,7 +266,7 @@ class AdminTranslator
 
         // Aperçu QA : &neria_bo_lang=XX force une langue (réservé au back-office,
         // déjà protégé par l'authentification admin). Permet de prévisualiser
-        // les 18 langues sans les installer dans la boutique.
+        // les 19 langues sans les installer dans la boutique.
         $override = strtolower((string) \Tools::getValue('neria_bo_lang'));
         if ($override !== '' && in_array($override, TranslationEngine::SUPPORTED_LANGS, true)) {
             return self::$lang = $override;
@@ -282,7 +282,7 @@ class AdminTranslator
             $iso = strtolower((string) $context->language->iso_code);
         }
 
-        // On ne garde que les 18 langues réellement traduites ; sinon anglais.
+        // On ne garde que les 19 langues réellement traduites ; sinon anglais.
         if (!in_array($iso, TranslationEngine::SUPPORTED_LANGS, true)) {
             $iso = self::FALLBACK_LANG;
         }

@@ -7,7 +7,7 @@
  * Génère et envoie le rapport mensuel de performance email au marchand.
  * Couvre : KPIs globaux, top/flop templates, langue championne, meilleur
  * moment d'envoi, résultats A/B tests, chiffre d'affaires attribué et
- * recommandations automatiques sur 18 langues.
+ * recommandations automatiques sur 19 langues.
  *
  * Déclenchement : hook displayHeader (front) vérifie le 1er de chaque mois
  * si le rapport du mois précédent n'a pas encore été envoyé.

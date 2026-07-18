@@ -5,7 +5,7 @@
  * Page d'accueil du back-office
  * Fix 2 : id unique sur le select signature
  * Fix 4 : $upcoming_events doit être assignée par neria.php
- * i18n : libellés via {neria_admin key='...'} (18 langues, AdminTranslator)
+ * i18n : libellés via {neria_admin key='...'} (19 langues, AdminTranslator)
  *}
 
 {* ── KPIs rapides ───────────────────────────────────────────── *}

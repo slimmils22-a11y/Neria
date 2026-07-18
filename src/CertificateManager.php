@@ -431,7 +431,7 @@ class CertificateManager
     /**
      * Envoie le certificat par email via le pipeline Neria standard
      * (Mail::Send → hook actionEmailSendBefore → EmailRenderer), comme tous
-     * les autres templates du module — design, traduction 18 langues et
+     * les autres templates du module — design, traduction 19 langues et
      * détection automatique de la langue du client comprises. Auparavant
      * cet envoi utilisait mail() natif avec un HTML entièrement codé en dur
      * en français : un client non-francophone recevait donc son certificat

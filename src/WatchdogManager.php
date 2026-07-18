@@ -28,7 +28,7 @@ class WatchdogManager
     const LEVEL_CRITICAL = 'critical';
 
     // ── Monitoring des crons ───────────────────────────────────────
-    // 'label_key' référence une clé AdminTranslator (18 langues) plutôt que
+    // 'label_key' référence une clé AdminTranslator (19 langues) plutôt que
     // du texte en dur — une constante de classe ne peut pas appeler de
     // fonction, la résolution se fait dans getCronHealth().
     const TABLE_CRON  = 'neria_cron_health';

@@ -4,7 +4,7 @@
  * NERIA — design.tpl
  * Onglet Design — Couleurs, logo, mode sombre, largeur conteneur
  * Fix 5 : iframe avec src par défaut (preview fonctionnel sans JS)
- * i18n : libellés via {neria_admin key='...'} (18 langues, AdminTranslator)
+ * i18n : libellés via {neria_admin key='...'} (19 langues, AdminTranslator)
  *}
 
 <div class="neria-design-wrap">
@@ -235,7 +235,7 @@
             </label>
             {* Champ fichier personnalisé : le texte natif du navigateur
                (« Aucun fichier… ») n'est pas traduisible ; on le remplace
-               par nos propres libellés (18 langues). *}
+               par nos propres libellés (19 langues). *}
             <div class="neria-file-field">
               <input type="file" id="logo_upload" name="logo"
                      class="neria-file-field__input"

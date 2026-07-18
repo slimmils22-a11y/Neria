@@ -84,7 +84,7 @@ class ManualSendManager
     /**
      * Libellés des rares champs sans clé de traduction dédiée dans leur
      * template (paragraphes autonomes ou titre partagé). Mots simples,
-     * fournis dans les 18 langues. La clé est le nom de variable.
+     * fournis dans les 19 langues. La clé est le nom de variable.
      */
     const FIELD_LABEL_I18N = [
         'invitation_location' => [

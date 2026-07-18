@@ -7,7 +7,7 @@
  * utilisait mail() natif avec un HTML codé en dur en français, entièrement
  * hors du système de traduction client — un client non-francophone recevait
  * son certificat en français quelle que soit sa langue. Nouveau template
- * certificate_email (18 langues), envoi désormais via Mail::Send() avec
+ * certificate_email (19 langues), envoi désormais via Mail::Send() avec
  * détection automatique de la langue du client, comme tous les autres
  * templates du module.
  */
