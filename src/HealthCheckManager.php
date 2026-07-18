@@ -404,9 +404,20 @@ class HealthCheckManager
 
         $classesDir = $overrideDir . '/classes';
         if (is_dir($classesDir)) {
-            $neriaClassFiles = array_map(
-                fn (string $p): string => basename($p),
-                glob(__DIR__ . '/*.php') ?: []
+            // index.php exclu : c'est le stub anti-listing standard que Neria
+            // place lui-même dans src/ (comme PrestaShop le fait dans chaque
+            // dossier, dont override/classes/) — pas une classe métier. Sans
+            // cette exclusion, la présence normale des DEUX stubs anti-listing
+            // (celui de Neria dans src/, celui de PS dans override/classes/)
+            // déclenchait un faux positif ERROR sur absolument toute
+            // installation du module, en confondant une coïncidence de nom
+            // de fichier avec une vraie surcharge de classe malveillante.
+            $neriaClassFiles = array_filter(
+                array_map(
+                    fn (string $p): string => basename($p),
+                    glob(__DIR__ . '/*.php') ?: []
+                ),
+                fn (string $name): bool => strtolower($name) !== 'index.php'
             );
             $neriaClassFiles[] = 'Neria.php';
 
