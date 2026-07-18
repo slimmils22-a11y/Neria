@@ -179,7 +179,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_stat` (
     INDEX `idx_token` (`tracking_token`),
     INDEX `idx_event` (`event_type`),
     INDEX `idx_date` (`date_add`),
-    INDEX `idx_shop_template_event` (`id_shop`, `template`, `event_type`)
+    INDEX `idx_shop_template_event` (`id_shop`, `template`, `event_type`, `date_add`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Statistiques d\'envoi, ouverture et clic des emails Neria';
 

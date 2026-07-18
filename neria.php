@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.26';
+    const VERSION = '1.0.27';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -4959,7 +4959,14 @@ class Neria extends Module
             'kpis'             => $stats->getKpis(30),
 
             // Rapports complets pour stats.tpl ($stats.kpis, $stats.global_30, etc.)
-            'stats'            => (function () use ($stats): array {
+            // Tous les blocs ci-dessous ne sont consommés QUE par stats.tpl (vérifié :
+            // aucune autre vue ne les référence) mais étaient calculés sans condition
+            // sur CHAQUE page BO Neria (segments, webhooks, calendar...), y compris
+            // quand stats.tpl n'est même pas affiché. Mesuré en réel : ~15 requêtes
+            // d'agrégation cumulées sur neria_stat, page BO passant de ~0,85s à
+            // plusieurs secondes dès 100 000 lignes, même sur un onglet sans rapport
+            // avec les statistiques. Restreint à l'onglet stats.
+            'stats'            => ($activeTab === 'stats') ? (function () use ($stats): array {
                 $statsDays = (int) Tools::getValue('stats_days', 30);
                 $cached    = $stats->getCachedReports();
                 // Injecte la clé 'kpis' selon la période sélectionnée
@@ -4971,28 +4978,28 @@ class Neria extends Module
                     $cached['kpis'] = $stats->getKpis($statsDays);
                 }
                 return $cached;
-            })(),
+            })() : [],
             'stats_days'       => (int) Tools::getValue('stats_days', 30),
             'golden_hour'      => (new GoldenHourManager())->getRecommendations(90),
-            'revenue'          => (new StatsManager($this))->getRevenueStats(90),
+            'revenue'          => ($activeTab === 'stats') ? (new StatsManager($this))->getRevenueStats(90) : [],
             'currency_symbol'  => $this->context->currency->sign ?? '€',
 
             // Graphique CA par catégorie — 4 périodes (stats.tpl)
-            'revenue_chart_7'   => json_encode($stats->getRevenueDailyByCategory(7)),
-            'revenue_chart_30'  => json_encode($stats->getRevenueDailyByCategory(30)),
-            'revenue_chart_90'  => json_encode($stats->getRevenueDailyByCategory(90)),
-            'revenue_chart_365' => json_encode($stats->getRevenueDailyByCategory(365)),
+            'revenue_chart_7'   => ($activeTab === 'stats') ? json_encode($stats->getRevenueDailyByCategory(7))   : '[]',
+            'revenue_chart_30'  => ($activeTab === 'stats') ? json_encode($stats->getRevenueDailyByCategory(30))  : '[]',
+            'revenue_chart_90'  => ($activeTab === 'stats') ? json_encode($stats->getRevenueDailyByCategory(90))  : '[]',
+            'revenue_chart_365' => ($activeTab === 'stats') ? json_encode($stats->getRevenueDailyByCategory(365)) : '[]',
 
             // Statistiques avancées — nouveaux blocs stats.tpl
-            'kpi_trends'              => $stats->getKpiTrends(),
-            'engagement_chart_30'     => json_encode($stats->getEngagementDailyChart(30)),
-            'engagement_chart_90'     => json_encode($stats->getEngagementDailyChart(90)),
-            'open_heatmap'            => json_encode($stats->getOpenHeatmap(90)),
-            'top_templates_open'      => $stats->getTopTemplatesByMetric('rate_open', 10),
-            'top_templates_click'     => $stats->getTopTemplatesByMetric('rate_click', 10),
-            'top_templates_revenue'   => $stats->getTopTemplatesByRevenue(10),
-            'monthly_comparison'      => $stats->getMonthlyComparison(),
-            'health_score'            => $stats->getHealthScore(),
+            'kpi_trends'              => ($activeTab === 'stats') ? $stats->getKpiTrends() : [],
+            'engagement_chart_30'     => ($activeTab === 'stats') ? json_encode($stats->getEngagementDailyChart(30)) : '[]',
+            'engagement_chart_90'     => ($activeTab === 'stats') ? json_encode($stats->getEngagementDailyChart(90)) : '[]',
+            'open_heatmap'            => ($activeTab === 'stats') ? json_encode($stats->getOpenHeatmap(90)) : '[]',
+            'top_templates_open'      => ($activeTab === 'stats') ? $stats->getTopTemplatesByMetric('rate_open', 10)  : [],
+            'top_templates_click'     => ($activeTab === 'stats') ? $stats->getTopTemplatesByMetric('rate_click', 10) : [],
+            'top_templates_revenue'   => ($activeTab === 'stats') ? $stats->getTopTemplatesByRevenue(10) : [],
+            'monthly_comparison'      => ($activeTab === 'stats') ? $stats->getMonthlyComparison() : [],
+            'health_score'            => ($activeTab === 'stats') ? $stats->getHealthScore() : [],
 
             // Prochaines occasions calendaires (onglet configure)
             'upcoming_events'  => $calendar->getUpcomingDates(),
