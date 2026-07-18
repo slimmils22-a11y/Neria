@@ -405,12 +405,25 @@ class Neria extends Module
             }
             $message = $params['message'];
 
-            // Destinataire (1re adresse du message)
+            // Destinataire (1re adresse du message) — deux formes possibles selon
+            // le transport mail sous-jacent :
+            //   - SwiftMailer (Swift_Message, PS legacy)      : ['email' => 'nom', ...]
+            //   - Symfony Mime (Symfony\Component\Mime\Email, PS9) : [0 => Address, ...]
+            // Utiliser systématiquement key($to) supposait le premier format ;
+            // sur PS9, key($to) retourne l'index numérique "0" (pas l'email), ce
+            // qui faisait échouer Validate::isEmail() et sortait la fonction
+            // AVANT d'ajouter le header — List-Unsubscribe ne se posait donc
+            // jamais sur PS9. Confirmé par test réel sur une installation PS9.
             $to = method_exists($message, 'getTo') ? $message->getTo() : null;
             if (!is_array($to) || empty($to)) {
                 return;
             }
-            $email = (string) key($to);
+            $firstTo = reset($to);
+            if (is_object($firstTo) && method_exists($firstTo, 'getAddress')) {
+                $email = (string) $firstTo->getAddress();
+            } else {
+                $email = (string) key($to);
+            }
             if ($email === '' || !Validate::isEmail($email)) {
                 return;
             }

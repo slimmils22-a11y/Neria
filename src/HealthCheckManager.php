@@ -1041,13 +1041,27 @@ class HealthCheckManager
     }
 
     /**
-     * #8 — Compatibilité API List-Unsubscribe (Swift_Message)
-     * Si PS migre vers Symfony Mailer, getHeaders()/addTextHeader() peuvent
-     * disparaître ou changer de signature silencieusement.
+     * #8 — Compatibilité API List-Unsubscribe (Swift_Message OU Symfony Mime)
+     *
+     * PS8 (legacy) passe un Swift_Message à actionMailAlterMessageBeforeSend ;
+     * PS9 passe un Symfony\Component\Mime\Email. Les deux exposent bien
+     * getHeaders()/getTo(), MAIS avec une forme de retour différente pour
+     * getTo() : Swift_Message retourne un tableau associatif [email => nom],
+     * Symfony\Mime\Email retourne un tableau numérique d'objets Address —
+     * une différence de FORME, pas de présence de méthode, qui ne se
+     * détecte pas par un simple class_exists()/hasMethod(). Ce check ne
+     * vérifiait auparavant que la classe Swift_Message, donnant un WARNING
+     * systématique et non informatif sur PS9 (où elle n'existe jamais)
+     * même quand hookActionMailAlterMessageBeforeSend() gère correctement
+     * les deux formes (corrigé le 2026-07-18, vérifié en réel sur PS9).
      */
     private function checkListUnsubscribeApi(): array
     {
-        if (!class_exists('Swift_Message')) {
+        $messageClass = class_exists('Symfony\\Component\\Mime\\Email')
+            ? 'Symfony\\Component\\Mime\\Email'
+            : (class_exists('Swift_Message') ? 'Swift_Message' : null);
+
+        if ($messageClass === null) {
             return [
                 'status' => self::STATUS_WARNING,
                 'detail' => AdminTranslator::t('health.swift_missing'),
@@ -1055,7 +1069,7 @@ class HealthCheckManager
         }
 
         try {
-            $ref     = new \ReflectionClass('Swift_Message');
+            $ref     = new \ReflectionClass($messageClass);
             $missing = [];
             foreach (['getHeaders', 'getTo'] as $method) {
                 if (!$ref->hasMethod($method)) {
