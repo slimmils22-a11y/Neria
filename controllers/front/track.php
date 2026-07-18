@@ -30,9 +30,10 @@ class NeriaTrackModuleFrontController extends ModuleFrontController
 
     public function initContent()
     {
-        $token = (string) Tools::getValue('t');
-        $event = Tools::strtolower((string) Tools::getValue('e', 'open'));
-        $url   = (string) Tools::getValue('url', '');
+        $token     = (string) Tools::getValue('t');
+        $event     = Tools::strtolower((string) Tools::getValue('e', 'open'));
+        $url       = (string) Tools::getValue('url', '');
+        $signature = (string) Tools::getValue('s', '');
 
         // Autorisation de redirection : liée à un token connu, jamais à l'URL
         // seule — sans ça, ce endpoint public devient un open redirect
@@ -102,8 +103,25 @@ class NeriaTrackModuleFrontController extends ModuleFrontController
 
         // La redirection (clic) doit se produire même si le tracking a échoué —
         // le client ne doit jamais tomber sur une page cassée à cause de nous —
-        // mais uniquement pour un token connu (cf. $redirectAllowed ci-dessus).
-        if ($event === 'click' && $redirectAllowed && $url !== '' && Validate::isAbsoluteUrl($url)) {
+        // mais uniquement pour un token connu (cf. $redirectAllowed ci-dessus)
+        // ET pour l'URL exacte qui a été signée (HMAC) au moment de l'envoi.
+        //
+        // Sans cette vérification de signature, un token de tracking valide
+        // (par ex. reçu légitimement par un attaquant dans un email qui lui
+        // est destiné) pourrait être rejoué avec n'importe quelle URL externe
+        // (?url=https://phishing...) : le endpoint deviendrait un open
+        // redirect exploitable via le domaine de confiance de la boutique,
+        // puisque $redirectAllowed n'était lié qu'à la validité du token, pas
+        // à l'URL. NeriaTools::verifyTrackingUrl() vérifie que CETTE URL a
+        // bien été associée à CE token par EmailRenderer::wrapLinksInFile().
+        if (
+            $event === 'click'
+            && $redirectAllowed
+            && $url !== ''
+            && Validate::isAbsoluteUrl($url)
+            && class_exists('NeriaTools')
+            && NeriaTools::verifyTrackingUrl($token, $url, $signature)
+        ) {
             header('Location: ' . $url, true, 302);
             exit;
         }

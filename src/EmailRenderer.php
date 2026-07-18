@@ -1395,7 +1395,15 @@ class EmailRenderer
                         $trackUrl = $this->context->link->getModuleLink(
                             'neria',
                             'track',
-                            ['t' => $token, 'e' => 'click', 'url' => $url],
+                            [
+                                't'   => $token,
+                                'e'   => 'click',
+                                'url' => $url,
+                                // Signature HMAC token+URL : empêche de rejouer un token
+                                // valide avec une URL de destination différente/arbitraire
+                                // (open redirect) — cf. NeriaTools::signTrackingUrl().
+                                's'   => NeriaTools::signTrackingUrl($token, $url),
+                            ],
                             true,
                             $wrapIdLang
                         );

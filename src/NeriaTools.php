@@ -799,6 +799,59 @@ class NeriaTools
     }
 
     /**
+     * Clé de signature stable pour les liens de clic trackés (HMAC).
+     *
+     * Réutilise NERIA_ENCRYPTION_KEY si disponible (générée par CryptoManager,
+     * 32 octets aléatoires), sinon retombe sur _COOKIE_KEY_/_NEW_COOKIE_KEY_
+     * (toujours présentes dans une install PrestaShop) pour ne jamais
+     * retourner de clé vide.
+     */
+    private static function trackingSignKey(): string
+    {
+        $hex = (string) \Configuration::get('NERIA_ENCRYPTION_KEY');
+        if (strlen($hex) === 64 && ($bin = @hex2bin($hex)) !== false) {
+            return $bin;
+        }
+
+        if (defined('_NEW_COOKIE_KEY_') && _NEW_COOKIE_KEY_ !== '') {
+            return _NEW_COOKIE_KEY_;
+        }
+        if (defined('_COOKIE_KEY_') && _COOKIE_KEY_ !== '') {
+            return _COOKIE_KEY_;
+        }
+
+        return 'neria-fallback-static-key';
+    }
+
+    /**
+     * Signe (HMAC-SHA256) le couple token+URL d'un lien de clic tracké.
+     *
+     * Empêche un open redirect : sans cette signature, n'importe quel token
+     * de tracking valide (par ex. reçu légitimement par l'attaquant lui-même
+     * dans un email qui lui est destiné) pourrait être combiné à n'importe
+     * quelle URL externe pour forger un lien de phishing hébergé sur le
+     * domaine de confiance de la boutique. La signature lie le token à
+     * l'URL précise qui a été effectivement injectée dans CET email.
+     */
+    public static function signTrackingUrl(string $token, string $url): string
+    {
+        return hash_hmac('sha256', $token . '|' . $url, self::trackingSignKey());
+    }
+
+    /**
+     * Vérifie la signature d'un lien de clic tracké (comparaison à temps
+     * constant).
+     */
+    public static function verifyTrackingUrl(string $token, string $url, string $signature): bool
+    {
+        if ($signature === '') {
+            return false;
+        }
+
+        return hash_equals(self::signTrackingUrl($token, $url), $signature);
+    }
+
+    /**
      * Retourne le temps ecoule depuis une date en format lisible
      * Ex: "il y a 3 jours", "il y a 2 heures"
      *
