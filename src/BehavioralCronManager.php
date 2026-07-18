@@ -1348,7 +1348,7 @@ class BehavioralCronManager
                     '{product_name}'  => $product->name,
                     '{product_url}'   => $productUrl,
                     '{product_image}' => $imageUrl,
-                    '{product_price}' => \Tools::displayPrice((float) $product->price, \Currency::getDefaultCurrency()),
+                    '{product_price}' => \NeriaTools::displayPrice((float) $product->price, \Currency::getDefaultCurrency()),
                     '{times_added}'   => (int) $r['times_added'],
                 ],
                 $idProduct

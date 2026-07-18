@@ -463,7 +463,7 @@ class OrderTriggersManager
                 $amount += (float) ($p['unit_price'] ?? 0) * (int) ($p['quantity'] ?? 0);
             }
             $currency = new \Currency((int) $order->id_currency);
-            $formatted = \Tools::displayPrice($amount, $currency);
+            $formatted = \NeriaTools::displayPrice($amount, $currency);
 
             $result = \Mail::Send(
                 $idLang,

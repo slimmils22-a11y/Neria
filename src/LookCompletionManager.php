@@ -232,7 +232,7 @@ class LookCompletionManager
                 'name'  => $product->name,
                 'url'   => \Context::getContext()->link->getProductLink($product),
                 'image' => $imageUrl,
-                'price' => \Tools::displayPrice((float) $product->price, \Currency::getDefaultCurrency()),
+                'price' => \NeriaTools::displayPrice((float) $product->price, \Currency::getDefaultCurrency()),
             ];
         }
         return $blocks;

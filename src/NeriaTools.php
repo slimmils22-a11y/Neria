@@ -921,4 +921,63 @@ class NeriaTools
     {
         return Neria::VERSION;
     }
+
+    /**
+     * Formate un montant avec le symbole/format de la devise donnée —
+     * remplacement compatible PS8/PS9 de \Tools::displayPrice().
+     *
+     * \Tools::displayPrice() a été entièrement retirée du cœur sur
+     * PrestaShop 9 (confirmé par method_exists() sur une vraie installation
+     * PS9, indépendamment du contexte CLI/web — ce n'est pas un problème de
+     * conteneur Symfony absent comme pour d'autres méthodes ce soir, la
+     * méthode n'existe simplement plus). Tout appel direct à
+     * \Tools::displayPrice() dans Neria échoue silencieusement sur PS9
+     * (catché par les try/catch "best-effort" des managers), empêchant
+     * l'envoi de l'email concerné sans aucune erreur visible au marchand.
+     *
+     * L'alternative PS9 recommandée (Context::getCurrentLocale()) nécessite
+     * elle-même le conteneur Symfony complet et retourne null en CLI/cron —
+     * donc pas fiable comme unique solution. Cette méthode utilise
+     * NumberFormatter (extension intl, présente sur les deux environnements
+     * testés ce soir) avec la locale de la langue courante, une solution
+     * qui fonctionne de façon identique en PS8, PS9, web et CLI.
+     *
+     * @param float    $amount   Montant à formater
+     * @param Currency $currency Devise cible
+     * @return string            Montant formaté (ex: "35,90 $", "29.99 €")
+     */
+    public static function displayPrice(float $amount, \Currency $currency): string
+    {
+        // PS8 (et versions antérieures) : délègue à l'implémentation native,
+        // comportement strictement identique à l'existant, zéro risque de
+        // régression sur les environnements où la méthode existe encore.
+        if (method_exists('Tools', 'displayPrice')) {
+            return \Tools::displayPrice($amount, $currency);
+        }
+
+        if (class_exists('NumberFormatter')) {
+            $localeIso = 'en-US';
+            try {
+                $lang = \Context::getContext()->language;
+                if ($lang && !empty($lang->locale)) {
+                    $localeIso = str_replace('_', '-', $lang->locale);
+                } elseif ($lang && !empty($lang->iso_code)) {
+                    $localeIso = $lang->iso_code;
+                }
+            } catch (\Throwable $e) {
+                // Repli sur en-US si le contexte langue n'est pas disponible.
+            }
+
+            $formatter = new \NumberFormatter($localeIso, \NumberFormatter::CURRENCY);
+            $formatted = $formatter->formatCurrency($amount, $currency->iso_code);
+            if ($formatted !== false) {
+                return $formatted;
+            }
+        }
+
+        // Dernier repli, sans extension intl : formatage manuel simple mais
+        // jamais faux (mieux qu'un montant absent de l'email).
+        $sign = $currency->sign ?: $currency->iso_code;
+        return number_format($amount, 2, ',', ' ') . ' ' . $sign;
+    }
 }
