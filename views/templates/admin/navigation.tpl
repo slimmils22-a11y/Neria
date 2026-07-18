@@ -13,11 +13,14 @@
   {* ── Header ─────────────────────────────────────────────────── *}
   <div class="neria-bo-header">
     <div class="neria-bo-header__brand">
-      <span class="neria-bo-header__logo">✦</span>
+      <span class="neria-bo-header__logo-wrap">
+        <span class="neria-bo-header__logo">✦</span>
+        <span class="neria-bo-header__logo-spark">✦</span>
+      </span>
       <div>
         <h1 class="neria-bo-header__title">Neria</h1>
         <span class="neria-bo-header__version">
-          v{$neria_version}
+          Luxury Email Suite · v{$neria_version}
         </span>
       </div>
     </div>
