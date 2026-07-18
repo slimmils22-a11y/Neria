@@ -6255,49 +6255,28 @@ class Neria extends Module
      * Supprime toutes les clés Configuration du module
      * Appelé lors de la désinstallation
      */
+    /**
+     * Supprime TOUTES les clés de configuration du module par motif de
+     * préfixe, plutôt qu'une liste figée maintenue à la main. La liste
+     * figée précédente (~34 clés) avait dérivé de la réalité au fil des
+     * sessions : 107 des 145 clés NERIA_* réellement présentes en base
+     * n'y figuraient jamais, laissant des entrées orphelines dans
+     * ps_configuration après chaque désinstallation — vérifié en réel.
+     * Toutes les clés du module utilisent bien le préfixe self::CONFIG_PREFIX
+     * ('NERIA_'), y compris celles définies dans d'autres classes
+     * (MonthlyReportManager, HealthCheckManager, etc.) — confirmé par
+     * grep exhaustif avant ce changement.
+     */
     private function deleteConfiguration(): bool
     {
-        $keys = [
-            self::CONFIG_PREFIX . 'ACTIVE',
-            self::CONFIG_PREFIX . 'COLOR_ACCENT',
-            self::CONFIG_PREFIX . 'COLOR_BACKGROUND',
-            self::CONFIG_PREFIX . 'DARK_MODE',
-            self::CONFIG_PREFIX . 'CONTAINER_WIDTH',
-            self::CONFIG_PREFIX . 'STATS_ENABLED',
-            self::CONFIG_PREFIX . 'ABTEST_ENABLED',
-            self::CONFIG_PREFIX . 'AUTO_LANG',
-            self::CONFIG_PREFIX . 'LOG_INTERNAL',
-            self::CONFIG_PREFIX . 'VOUCHER_VALIDITY',
-            self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_AMOUNT',
-            self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_PERCENT',
-            'NERIA_CREATED_BIRTHDAY_VOUCHER_TABLE',
-            self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_ENABLED',
-            self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_AMOUNT',
-            self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_PERCENT',
-            'NERIA_CREATED_MILESTONE_VOUCHER_TABLE',
-            self::CONFIG_PREFIX . 'INSTALLED_AT',
-            MonthlyReportManager::CONFIG_ENABLED,
-            MonthlyReportManager::CONFIG_RECIPIENTS,
-            MonthlyReportManager::CONFIG_LAST_SENT,
-            'NERIA_MIGRATED_RENDERED_VARS',
-            'NERIA_MIGRATED_REVENUE_COL',
-            'NERIA_MIGRATED_MPP_COL',
-            'NERIA_ENCRYPTION_KEY',
-            HealthCheckManager::CONFIG_LAST_RUN,
-            HealthCheckManager::CONFIG_HDR_LAST,
-            HealthCheckManager::CONFIG_RESULTS,
-            'NERIA_CHECKOUT_ABANDONMENT_ENABLED',
-            'NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED',
-            'NERIA_QUOTE_REMINDERS_ENABLED',
-            'NERIA_PURCHASE_WINDOW_ENABLED',
-            'NERIA_CRON_ENABLED',
-            'NERIA_CRON_TOKEN',
-            'NERIA_EMERGENCY_TOKEN',
-            'NERIA_ARCHIVE_EMAIL',
-        ];
+        $db   = \Db::getInstance();
+        $keys = $db->executeS(
+            'SELECT `name` FROM `' . _DB_PREFIX_ . 'configuration`
+             WHERE `name` LIKE \'' . pSQL(self::CONFIG_PREFIX) . '%\''
+        ) ?: [];
 
-        foreach ($keys as $key) {
-            Configuration::deleteByName($key);
+        foreach ($keys as $row) {
+            Configuration::deleteByName($row['name']);
         }
 
         return true;
