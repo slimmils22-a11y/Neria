@@ -739,8 +739,16 @@
         var action = alertEl.getAttribute('data-neria-action');
         if (!action) { return; }
 
-        // La valeur ne contient que [a-z_] : sélecteur d'attribut sûr.
-        var marker = document.querySelector('input[name="neria_action"][value="' + action + '"]');
+        // action vient de data-neria-action, lui-même reflété depuis le
+        // paramètre de requête neria_action (non restreint à [a-z_] malgré
+        // le commentaire d'origine — un guillemet dans l'URL suffit à casser
+        // un sélecteur construit par concaténation). On compare donc les
+        // valeurs en JS plutôt que d'injecter action dans une chaîne CSS.
+        var marker = null;
+        var candidates = document.querySelectorAll('input[name="neria_action"]');
+        for (var i = 0; i < candidates.length; i++) {
+            if (candidates[i].value === action) { marker = candidates[i]; break; }
+        }
         var section = marker && marker.closest ? marker.closest('.neria-section') : null;
         if (!section) { return; } // section non identifiée : la bannière reste en haut.
 
