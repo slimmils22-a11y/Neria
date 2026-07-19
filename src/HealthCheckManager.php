@@ -168,6 +168,7 @@ class HealthCheckManager
             'upgrade_script_safety' => $this->checkUpgradeScriptSafety(),
             'known_regressions_guard' => $this->checkKnownRegressionsGuard(),
             'sql_pattern_risks'     => $this->checkSqlPatternRisks(),
+            'i18n_pattern_risks'    => $this->checkI18nPatternRisks(),
             'txt_placeholder_coverage' => $this->checkTxtPlaceholderCoverage(),
             'orphaned_voucher_reservations' => $this->checkOrphanedVoucherReservations(),
             'orphaned_waitlist_claims' => $this->checkOrphanedWaitlistClaims(),
@@ -683,6 +684,69 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.sql_pattern_risks_ok')];
+    }
+
+    /**
+     * Contrôle statique PROSPECTIF (comme checkSqlPatternRisks()) sur deux
+     * pièges i18n/Smarty génériques documentés, réintroductibles par
+     * n'importe quel futur template ou correction de traduction :
+     *  1. `{neria_admin key='...'|modificateur}` / `{neria_trad key='...'
+     *     |modificateur}` — en Smarty, un modificateur après un paramètre
+     *     NOMMÉ s'applique à la VALEUR du paramètre, pas à la sortie de la
+     *     fonction (piège trouvé le 2026-07-04, 76 occurrences corrigées via
+     *     un paramètre `esc=` dédié, cf. feedback_smarty_modifier_binding).
+     *  2. Une clé de langue orpheline dans data/translations.json — un
+     *     ancien code de langue avec tiret (ex. "pt-br", "zh-tw") au lieu du
+     *     code court normalisé ("br", "tw") — jamais lue par
+     *     TranslationEngine, contient parfois une traduction correcte
+     *     abandonnée pendant que la vraie clé a dérivé (cf.
+     *     feedback_orphan_language_keys, 2 occurrences trouvées sur deux
+     *     chantiers de revue indépendants).
+     */
+    private function checkI18nPatternRisks(): array
+    {
+        $offenders = [];
+
+        $tplDir = _PS_MODULE_DIR_ . $this->module->name . '/views/templates';
+        $tplFiles = $this->globRecursive($tplDir, '.tpl');
+        $mailsDir = _PS_MODULE_DIR_ . $this->module->name . '/mails';
+        $mailFiles = $this->globRecursive($mailsDir, '.html');
+
+        foreach (array_merge($tplFiles, $mailFiles) as $file) {
+            $src = file_get_contents($file) ?: '';
+            if ($src === '') {
+                continue;
+            }
+            // Repère {neria_admin ...|xxx} ou {neria_trad ...|xxx} : un
+            // modificateur de type SORTIE (échappement/formatage) à
+            // l'intérieur de la même balise Smarty, après un paramètre
+            // nommé — signe du piège de liaison modificateur/paramètre
+            // exact du bug du 2026-07-04. Liste noire volontairement
+            // étroite (pas une liste blanche) : |default et |@count après
+            // un paramètre nommé sont des usages légitimes et courants
+            // ("clé de repli si vide", "calcule un nombre à passer en
+            // paramètre") — ce sont des modificateurs de PARAMÈTRE par
+            // nature, pas de sortie, donc jamais le piège documenté.
+            $outputModifiers = 'escape|replace|nl2br|strip_tags|truncate|upper|lower|ucfirst|capitalize|string_format|wordwrap|indent';
+            if (preg_match('/\{(?:neria_admin|neria_trad)\s+[^{}]*\|\s*(?:' . $outputModifiers . ')\b[^{}]*\}/', $src)) {
+                $offenders[] = basename($file) . ' : utilise un modificateur de sortie Smarty (escape/replace/...) après un paramètre nommé ({neria_admin/neria_trad ...|xxx}) — s\'applique au paramètre, pas à la sortie ; utiliser esc=\'...\' à la place';
+            }
+        }
+
+        $jsonPath = _PS_MODULE_DIR_ . $this->module->name . '/data/translations.json';
+        $jsonSrc  = is_file($jsonPath) ? (file_get_contents($jsonPath) ?: '') : '';
+        if ($jsonSrc !== '' && preg_match_all('/"[a-z]{2}-[a-z]{2}"\s*:/', $jsonSrc, $m)) {
+            $offenders[] = 'data/translations.json : ' . count($m[0]) . ' clé(s) de langue orpheline(s) détectée(s) (ancien code avec tiret, ex. "pt-br"/"zh-tw" — jamais lu par TranslationEngine)';
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.i18n_pattern_risks_warning', ['list' => implode(' | ', $offenders)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.i18n_pattern_risks_ok')];
     }
 
     /**
