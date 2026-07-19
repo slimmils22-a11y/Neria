@@ -410,6 +410,8 @@
       'known_regressions_guard' => 'help.health_check_known_regressions_guard',
       'sql_pattern_risks' => 'help.health_check_sql_pattern_risks',
       'i18n_pattern_risks' => 'help.health_check_i18n_pattern_risks',
+      'idlang_missing' => 'help.health_check_idlang_missing',
+      'version_files_sync' => 'help.health_check_version_files_sync',
       'txt_placeholder_coverage' => 'help.health_check_txt_placeholder_coverage',
       'orphaned_voucher_reservations' => 'help.health_check_orphaned_voucher_reservations',
       'encoded_residual_links' => 'help.health_check_encoded_residual_links',

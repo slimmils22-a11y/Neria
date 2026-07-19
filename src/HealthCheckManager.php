@@ -169,6 +169,8 @@ class HealthCheckManager
             'known_regressions_guard' => $this->checkKnownRegressionsGuard(),
             'sql_pattern_risks'     => $this->checkSqlPatternRisks(),
             'i18n_pattern_risks'    => $this->checkI18nPatternRisks(),
+            'idlang_missing'        => $this->checkMissingIdLangInLinks(),
+            'version_files_sync'    => $this->checkModuleVersionFilesSync(),
             'txt_placeholder_coverage' => $this->checkTxtPlaceholderCoverage(),
             'orphaned_voucher_reservations' => $this->checkOrphanedVoucherReservations(),
             'orphaned_waitlist_claims' => $this->checkOrphanedWaitlistClaims(),
@@ -747,6 +749,145 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.i18n_pattern_risks_ok')];
+    }
+
+    /**
+     * Contrôle statique PROSPECTIF : détecte tout appel à
+     * Link::getPageLink()/getModuleLink() dans src/*.php sans idLang
+     * explicite (6e/5e argument). Sans lui, PrestaShop retombe silencieusement
+     * sur la langue du CONTEXTE APPELANT (souvent le français du BO/cron),
+     * pas la langue réelle de l'email envoyé — piège trouvé et corrigé 12
+     * fois dans 8 fichiers différents le 2026-07-09 (cf.
+     * project_idlang_bug_pattern_audit). getWebhookUrl() (BounceManager) est
+     * volontairement exclu : URL système sans notion de langue.
+     */
+    private function checkMissingIdLangInLinks(): array
+    {
+        $offenders = [];
+        $srcDir = _PS_MODULE_DIR_ . $this->module->name . '/src';
+        $files = is_dir($srcDir) ? (glob($srcDir . '/*.php') ?: []) : [];
+
+        foreach ($files as $file) {
+            $base = basename($file);
+            if ($base === 'BounceManager.php') {
+                continue;
+            }
+            $rawFull = file_get_contents($file) ?: '';
+            if ($rawFull === '') {
+                continue;
+            }
+
+            // Retire uniquement les commentaires (pas les littéraux de chaîne,
+            // nécessaires pour repérer les parenthèses/virgules d'arguments) —
+            // sinon un commentaire mentionnant "->getPageLink(...)" en exemple
+            // (comme celui juste au-dessus) se compte comme un vrai appel.
+            $raw = '';
+            foreach (token_get_all($rawFull) as $token) {
+                if (is_array($token) && in_array($token[0], [T_COMMENT, T_DOC_COMMENT], true)) {
+                    continue;
+                }
+                $raw .= is_array($token) ? $token[1] : $token;
+            }
+
+            // Repère ->getPageLink(...) / ->getModuleLink(...) et compte les
+            // arguments de l'appel (jusqu'à la parenthèse fermante correspondante,
+            // en respectant l'imbrication de parenthèses internes).
+            if (!preg_match_all('/->(getPageLink|getModuleLink)\s*\(/', $raw, $calls, PREG_OFFSET_CAPTURE)) {
+                continue;
+            }
+            foreach ($calls[0] as $idx => $call) {
+                $methodName = $calls[1][$idx][0];
+                $start = $call[1] + strlen($call[0]);
+                $depth = 1;
+                $end = $start;
+                $len = strlen($raw);
+                while ($end < $len && $depth > 0) {
+                    if ($raw[$end] === '(') {
+                        ++$depth;
+                    } elseif ($raw[$end] === ')') {
+                        --$depth;
+                    }
+                    ++$end;
+                }
+                $argsStr = substr($raw, $start, $end - $start - 1);
+                // Découpage naïf sur les virgules de premier niveau (suffisant
+                // ici : les arguments de ces méthodes sont des scalaires/variables
+                // simples, pas des appels imbriqués complexes).
+                $depth = 0;
+                $argCount = trim($argsStr) === '' ? 0 : 1;
+                for ($i = 0, $l = strlen($argsStr); $i < $l; ++$i) {
+                    $c = $argsStr[$i];
+                    if ($c === '(' || $c === '[') {
+                        ++$depth;
+                    } elseif ($c === ')' || $c === ']') {
+                        --$depth;
+                    } elseif ($c === ',' && $depth === 0) {
+                        ++$argCount;
+                    }
+                }
+                // getPageLink($controller, $ssl, $idLang, ...) : idLang = 3e arg.
+                // getModuleLink($module, $controller, $params, $ssl, $idLang, ...) : idLang = 5e arg.
+                $minArgsForIdLang = $methodName === 'getPageLink' ? 3 : 5;
+                if ($argCount < $minArgsForIdLang) {
+                    $offenders[$base] = ($offenders[$base] ?? 0) + 1;
+                }
+            }
+        }
+
+        if ($offenders) {
+            $list = [];
+            foreach ($offenders as $file => $count) {
+                $list[] = "{$file} ({$count})";
+            }
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.idlang_missing_warning', ['list' => implode(' | ', $list)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.idlang_missing_ok')];
+    }
+
+    /**
+     * Contrôle statique : la version du module doit être identique dans
+     * neria.php (const VERSION) et config.xml (<version>) — sinon
+     * Module::needUpgrade() peut se baser sur une valeur désynchronisée et
+     * ignorer un upgrade réellement dû (cf. feedback_module_upgrade_scripts,
+     * qui documente les 2 endroits à synchroniser à chaque bump).
+     */
+    private function checkModuleVersionFilesSync(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+
+        $mainFile = $moduleDir . '/' . $this->module->name . '.php';
+        $mainSrc = is_file($mainFile) ? (file_get_contents($mainFile) ?: '') : '';
+        $codeVersion = null;
+        if ($mainSrc !== '' && preg_match('/const\s+VERSION\s*=\s*[\'"]([\d.]+)[\'"]/', $mainSrc, $m)) {
+            $codeVersion = $m[1];
+        }
+
+        $xmlFile = $moduleDir . '/config.xml';
+        $xmlSrc = is_file($xmlFile) ? (file_get_contents($xmlFile) ?: '') : '';
+        $xmlVersion = null;
+        if ($xmlSrc !== '' && preg_match('/<version>(?:<!\[CDATA\[)?([\d.]+)/', $xmlSrc, $m)) {
+            $xmlVersion = $m[1];
+        }
+
+        if ($codeVersion === null || $xmlVersion === null) {
+            return ['status' => self::STATUS_WARNING, 'detail' => AdminTranslator::t('health.version_files_sync_unreadable')];
+        }
+
+        if ($codeVersion !== $xmlVersion) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.version_files_sync_warning', [
+                    'code' => $codeVersion,
+                    'xml' => $xmlVersion,
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.version_files_sync_ok', ['version' => $codeVersion])];
     }
 
     /**
