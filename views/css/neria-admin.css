@@ -147,7 +147,29 @@
 .neria-color-input-wrap { display:flex; align-items:center; gap:8px; }
 .neria-color-picker { width:40px; height:36px; border:1px solid var(--neria-border); border-radius:var(--neria-radius); cursor:pointer; padding:2px; }
 .neria-range-wrap { display:flex; align-items:center; gap:10px; }
-.neria-range { flex:1; accent-color:var(--neria-accent); }
+/* Le thème admin hôte (PS9 new-theme) impose `input[type=number]{width:100%}`
+   avec une spécificité supérieure à .neria-input--number seul, ce qui force
+   le champ numérique à occuper tout l'espace flex et réduit le curseur à
+   0px de large. On verrouille explicitement les deux tailles dans ce
+   conteneur pour rester indépendant du thème admin. */
+.neria-range-wrap .neria-range { flex:1 1 0%; min-width:0; }
+.neria-range-wrap .neria-input--number { flex:0 0 80px; width:80px !important; }
+/* Curseur unifié (Design + Typographie) : rendu custom (appearance:none)
+   plutôt que le style natif du navigateur — évite toute dépendance au
+   thème admin hôte (cf. incident PS9 new-theme du 2026-07-19) et garantit
+   un rendu identique quel que soit l'onglet. Graduations décoratives (25%)
+   + remplissage proportionnel piloté par la variable --neria-range-progress
+   (mise à jour en JS, voir neria-admin.js). */
+.neria-range {
+  flex:1; -webkit-appearance:none; appearance:none;
+  height:4px; border-radius:2px; outline:none; cursor:pointer; min-width:0;
+  background-image:
+    repeating-linear-gradient(to right, rgba(0,0,0,.22) 0, rgba(0,0,0,.22) 2px, transparent 2px, transparent calc(25% - 2px)),
+    linear-gradient(to right, var(--neria-accent) 0%, var(--neria-accent) var(--neria-range-progress, 50%), var(--neria-border) var(--neria-range-progress, 50%), var(--neria-border) 100%);
+  background-repeat:no-repeat;
+}
+.neria-range::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:16px; height:16px; border-radius:50%; background:var(--neria-accent); cursor:pointer; }
+.neria-range::-moz-range-thumb { width:16px; height:16px; border-radius:50%; background:var(--neria-accent); cursor:pointer; border:none; }
 .neria-unit { font-size:12px; color:var(--neria-text-light); }
 .neria-toggle { display:flex; align-items:center; gap:10px; cursor:pointer; }
 .neria-toggle input { display:none; }
@@ -248,14 +270,17 @@
 .neria-slider-row { display:flex; align-items:center; gap:10px; margin-top:8px; }
 .neria-slider-label { font-size:11px; color:var(--neria-text-light); min-width:28px; text-align:center; }
 .neria-slider-unit { font-size:11px; color:var(--neria-text-light); }
-.neria-slider-row .neria-range { flex:1; -webkit-appearance:none; appearance:none; height:4px; border-radius:2px; outline:none; cursor:pointer;
-  background-color:var(--neria-border);
-  background-image:repeating-linear-gradient(to right, #8a7660 0, #8a7660 2px, transparent 2px, transparent calc(25% - 2px));
-  background-repeat:no-repeat;
-}
-.neria-slider-row .neria-range::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:16px; height:16px; border-radius:50%; background:var(--neria-accent); cursor:pointer; }
-.neria-slider-row .neria-range::-moz-range-thumb { width:16px; height:16px; border-radius:50%; background:var(--neria-accent); cursor:pointer; border:none; }
 .neria-input--small { width:52px; text-align:center; padding:4px 6px; }
+/* Même piège que .neria-range-wrap (cf. plus haut) : le thème admin hôte
+   (PS9 new-theme) impose input[type=number]{width:100%} avec une
+   spécificité supérieure à .neria-input--small seul, ce qui absorbe tout
+   l'espace flex de .neria-slider-row et réduit le curseur à 0px. */
+.neria-slider-row .neria-range { min-width:0; }
+/* Élargi (52→68px) pour laisser la place aux flèches natives
+   d'incrémentation du navigateur (~20px) en plus des chiffres — les
+   masquer entièrement (essayé puis annulé) les faisait disparaître aussi
+   sur PS8, où elles doivent rester. */
+.neria-slider-row .neria-input--small { flex:0 0 68px; width:68px !important; }
 
 /* Radio-cards poids titres */
 .neria-radio-row { display:flex; gap:12px; margin-top:8px; }

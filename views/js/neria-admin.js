@@ -163,10 +163,25 @@
     }
 
     // ── Synchronisation range ↔ champ number ─────────────────────
+    // updateRangeFill : calcule le % de remplissage (--neria-range-progress)
+    // consommé par le CSS pour dessiner la portion colorée à gauche du
+    // curseur — remplace le remplissage natif du navigateur (accent-color),
+    // dont on ne dépend plus depuis l'unification des styles Design/Typo.
+    function updateRangeFill(range) {
+        var min = parseFloat(range.min) || 0;
+        var max = parseFloat(range.max) || 100;
+        var val = parseFloat(range.value) || 0;
+        var pct = max > min ? ((val - min) / (max - min)) * 100 : 0;
+        pct = Math.min(100, Math.max(0, pct));
+        range.style.setProperty('--neria-range-progress', pct + '%');
+    }
+
     function initRangeSync() {
         var ranges = document.querySelectorAll('.neria-range');
 
         ranges.forEach(function (range) {
+            updateRangeFill(range);
+
             var targetId = range.getAttribute('data-sync-input');
             if (!targetId) return;
 
@@ -175,11 +190,13 @@
 
             range.addEventListener('input', function () {
                 numberInput.value = range.value;
+                updateRangeFill(range);
                 schedulePreviewUpdate();
             });
 
             numberInput.addEventListener('input', function () {
                 range.value = numberInput.value;
+                updateRangeFill(range);
                 schedulePreviewUpdate();
             });
         });
@@ -504,6 +521,7 @@
             var range = document.getElementById(field + '_range');
             if (range) {
                 range.value = val;
+                updateRangeFill(range);
                 var num = document.getElementById(field)
                        || document.getElementById(field + '_number');
                 if (num) num.value = val;
