@@ -10,7 +10,7 @@ compatibilité au hasard, mais par couverture méthodique.
 | # | Axe | Statut | Méthode |
 |---|-----|--------|---------|
 | 1 | Appels statiques du cœur PHP | ✅ Fait (2026-07-19) | `ps_core_diff.php` |
-| 2 | Objets reçus en paramètre de hook | 🟡 Partiel (1 cas connu) | À construire |
+| 2 | Objets reçus en paramètre de hook | ✅ Fait (2026-07-19) | Audit code + confirmation module officiel PS9 |
 | 3 | Schéma SQL des tables core | ✅ Fait (2026-07-19) | `ps_schema_diff.php` |
 | 4 | Existence/enregistrement des hooks | ✅ Fait (2026-07-19) | `neria_hooks_check.php` (ponctuel) |
 | 5 | Rendu BO (Smarty vs Twig) | 🟡 Vérifié empiriquement, pas formalisé | Checklist visuelle |
@@ -35,7 +35,7 @@ réflexion entre PS8 8.1.7 et PS9 9.0.2. 1 différence trouvée
 (`Tools::displayPrice` supprimée), déjà corrigée.
 Outil : `ps_core_diff.php`. Détail : `README.md`.
 
-### 2. Objets reçus en paramètre de hook — 🟡 Partiel
+### 2. Objets reçus en paramètre de hook — ✅ Fait
 
 **Risque** : un hook garde le même nom et se déclenche toujours, mais
 l'objet qu'il transmet change de classe ou de forme de retour sur ses
@@ -43,12 +43,29 @@ méthodes (cas réel trouvé : `actionMailAlterMessageBeforeSend` passe un
 `Symfony\Component\Mime\Email` sur PS9 au lieu d'un `Swift_Message`, mêmes
 noms de méthode `getTo()`/`getHeaders()` mais forme de retour différente).
 
-**Méthode à construire** : lister tous les hooks que Neria implémente
-(`grep -n "public function hook" neria.php`), puis pour chacun, sur PS9
-réel, logger temporairement `get_class($param)` pour chaque paramètre objet
-reçu et comparer à ce qui est supposé dans le code. Prioriser les hooks
-recevant des objets du cœur (Mail, Order, Customer, Cart) plutôt que des
-scalaires/tableaux simples.
+**Résultat (2026-07-19)** : audit des 6 hooks restants qui consomment un
+objet/tableau du cœur PS (les 8 autres ne manipulent que des scalaires) :
+
+- `actionObjectOrderAddAfter`, `actionOrderSlipAdd`,
+  `actionObjectOrderReturnAddAfter` : gardés par `instanceof Order` /
+  `instanceof OrderReturn` (neria.php:533, 656, 672) — si le type change,
+  retour silencieux sans crash ni comportement incorrect.
+- `displayAdminCustomersView`/`displayAdminCustomers` : `is_object()` avec
+  repli sur `id_customer` scalaire (neria.php:773-774) — robuste aux deux
+  formats (legacy objet vs Symfony id brut).
+- `actionDeleteGDPRCustomer` : cast `(array) $customer` (neria.php:1379) —
+  fonctionne quel que soit le type tant que les propriétés publiques
+  `id`/`email` existent.
+- `displayProductAdditionalInfo` : accès tableau `$params['product']['...']`
+  (neria.php:1303) — **confirmé identique** en inspectant le code source
+  réel du module officiel PS9 `ps_emailalerts.php` sur le serveur
+  (`$params['product']['minimal_quantity']`, même pattern exact).
+
+**Conclusion** : seul le hook Mail manquait une protection de type — aucun
+`instanceof`/`is_object()`, supposait directement l'ancienne forme du
+tableau `getTo()`. C'est précisément pourquoi il a cassé silencieusement.
+Tous les autres hooks à objets sont déjà défensifs par conception ; le
+risque résiduel de cette famille de bugs est donc considéré comme couvert.
 
 ### 3. Schéma SQL des tables core — ✅ Fait
 
