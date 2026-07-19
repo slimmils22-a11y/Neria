@@ -703,8 +703,10 @@ class StatsManager
                 $age = isset($data['computed_at'])
                     ? (time() - strtotime($data['computed_at']))
                     : PHP_INT_MAX;
-                // Cache valide pendant 5 minutes max
-                if ($age < 300) {
+                // Cache valide pendant 30 minutes max (5 min en dev, relevé
+                // pour la prod — le cron prend le relai pour les mises à jour
+                // fréquentes, pas besoin de recalculer à chaque visite BO).
+                if ($age < 1800) {
                     return $data;
                 }
             }
