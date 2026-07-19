@@ -510,11 +510,13 @@ class HealthCheckManager
     }
 
     /**
-     * Garde-fou statique contre 3 régressions précises trouvées le 2026-07-14
-     * via un rapport de test externe (Claude Cowork) — un canari dynamique
-     * s'est révélé trop bruyant (variables métier légitimement absentes des
-     * données factices d'aperçu, cf. mémoire), donc contrôle ciblé sur le
-     * code source plutôt qu'un scan générique de résidus :
+     * Garde-fou statique contre des régressions précises déjà trouvées et
+     * corrigées — un canari dynamique s'est révélé trop bruyant (variables
+     * métier légitimement absentes des données factices d'aperçu, cf.
+     * mémoire), donc contrôle ciblé sur le code source plutôt qu'un scan
+     * générique de résidus.
+     *
+     * Trouvées le 2026-07-14 (rapport de test externe, Claude Cowork) :
      *  1. La boucle de substitution d'EmailRenderer ne doit plus exclure les
      *     valeurs vides ($value !== '') — sinon {subject}/{custom_message}
      *     redeviennent invisibles dès qu'ils sont légitimement vides (le cas
@@ -522,6 +524,21 @@ class HealthCheckManager
      *  2. {products_txt} doit rester fourni par sendAbandonedCarts().
      *  3. ManualSendManager doit continuer à interroger ps_log pour la vraie
      *     cause d'échec plutôt que d'afficher le message générique masquant.
+     *
+     * Trouvées le 2026-07-19 (tests réels PS9, melleina.com) :
+     *  4. La recherche de la vraie cause (ManualSendManager) doit couvrir
+     *     'MailerMessage' (PS9/Symfony Mailer), pas seulement 'SwiftMessage'
+     *     (PS8) — sinon le bug #3 ci-dessus revient spécifiquement sur PS9
+     *     malgré le garde n°3 qui, lui, resterait vert (commit ef50c86).
+     *  5. Les tris SQL (ORDER BY) de StatsManager/MonthlyReportManager ne
+     *     doivent plus réutiliser l'alias d'une fonction d'agrégat dans une
+     *     expression arithmétique — MySQL (contrairement à MariaDB) lève
+     *     l'erreur 1247 dessus, cassait l'onglet Statistiques sur PS9
+     *     réel (commit ce37170).
+     *  6. `.neria-input--hex/--number/--small` doivent garder leur
+     *     `!important` — sans lui, le thème admin PS9 (new-theme) regagne
+     *     la spécificité et réduit les curseurs Design/Typographie à 0px de
+     *     large (commits fb0fefb, 96cd826).
      */
     private function checkKnownRegressionsGuard(): array
     {
@@ -550,6 +567,34 @@ class HealthCheckManager
         $manualSrc  = is_file($manualFile) ? (file_get_contents($manualFile) ?: '') : '';
         if ($manualSrc === '' || strpos($manualSrc, "FROM `' . _DB_PREFIX_ . 'log`") === false) {
             $offenders[] = 'ManualSendManager : ne recherche plus la vraie cause d\'échec dans ps_log';
+        }
+        if ($manualSrc !== '' && strpos($manualSrc, 'MailerMessage') === false) {
+            $offenders[] = 'ManualSendManager : ne couvre plus MailerMessage (PS9/Symfony Mailer) dans la recherche de la vraie cause';
+        }
+
+        $statsFile = _PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php';
+        $statsSrc  = is_file($statsFile) ? (file_get_contents($statsFile) ?: '') : '';
+        if ($statsSrc === '' || strpos($statsSrc, '$orderBy') === false || strpos($statsSrc, 'sentExpr') === false) {
+            $offenders[] = 'StatsManager : getTopTemplatesByMetric() pourrait de nouveau trier sur un alias d\'agrégat (erreur SQL 1247 sur MySQL)';
+        }
+
+        $monthlyFile = _PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php';
+        $monthlySrc  = is_file($monthlyFile) ? (file_get_contents($monthlyFile) ?: '') : '';
+        if ($monthlySrc !== '' && preg_match('/ORDER BY\s*\(total_open\s*\/\s*total_sent\)/', $monthlySrc)) {
+            $offenders[] = 'MonthlyReportManager : ORDER BY réutilise de nouveau les alias total_open/total_sent (erreur SQL 1247 sur MySQL)';
+        }
+
+        $cssFile = _PS_MODULE_DIR_ . $this->module->name . '/views/css/neria-admin.css';
+        $cssSrc  = is_file($cssFile) ? (file_get_contents($cssFile) ?: '') : '';
+        if ($cssSrc === '') {
+            $offenders[] = 'neria-admin.css introuvable';
+        } else {
+            foreach (['.neria-input--hex', '.neria-input--number', '.neria-input--small'] as $sel) {
+                $escaped = preg_quote($sel, '/');
+                if (!preg_match('/' . $escaped . '\s*\{[^}]*!important/s', $cssSrc)) {
+                    $offenders[] = "neria-admin.css : {$sel} a perdu son !important (le thème admin PS9 new-theme regagnerait la spécificité et écraserait la largeur)";
+                }
+            }
         }
 
         if ($offenders) {
