@@ -15,13 +15,13 @@ compatibilité au hasard, mais par couverture méthodique.
 | 4 | Existence/enregistrement des hooks | ✅ Fait (2026-07-19) | `neria_hooks_check.php` (ponctuel) |
 | 5 | Rendu BO (Smarty vs Twig) | 🟡 Vérifié empiriquement, pas formalisé | Checklist visuelle |
 | 6 | Système de traduction cœur | 🟢 Hors risque (Neria a son propre système) | — |
-| 7 | ObjectModel / ORM | ⬜ À faire (si Neria étend des classes core) | Vérifier héritages |
+| 7 | ObjectModel / ORM | 🟢 Sans objet (2026-07-19) | — |
 | 8 | ACL / permissions employé | ⬜ À faire | Vérifier `Profile`/`AdminController::viewAccess` |
 | 9 | Cron / tâches planifiées | 🟢 Testé réel sur PS9 | — |
 | 10 | Multi-boutique (`Shop::`) | 🟢 Couvert par axe 1 | — |
 | 11 | Dépendances vendor (TCPDF, etc.) | 🟢 Testé réel sur PS9 | — |
 | 12 | Typage PHP strict / fonctions dépréciées | 🟡 Partiel (trouvé via axe 1) | Continu |
-| 13 | Contrôleurs front/admin (signatures de base) | ⬜ À faire | Vérifier `ModuleFrontController`, `ModuleAdminController` |
+| 13 | Contrôleurs front/admin (signatures de base) | ✅ Fait (2026-07-19) | `ps_controllers_diff.php` |
 | 14 | Réseau sortant (SMTP, HTTP, DNS) | 🟢 Testé réel (webhooks OK, SMTP bloqué par pare-feu hébergeur, pas un bug Neria) | — |
 
 ---
@@ -102,15 +102,12 @@ lors de l'installation). Pas de checklist visuelle formalisée par écran.
 **Méthode à construire** (optionnelle, priorité basse) : capture d'écran de
 chaque onglet BO sur PS8 et PS9, comparaison visuelle manuelle.
 
-### 7. ObjectModel / ORM — ⬜ À faire
+### 7. ObjectModel / ORM — 🟢 Sans objet
 
-**Risque** : si une classe Neria étend `ObjectModel` (à vérifier — les
-Managers actuels utilisent `Db` directement, pas `ObjectModel`), un
-changement de signature dans les méthodes `ObjectModel::add/update/save`
-casserait silencieusement.
-
-**Méthode** : `grep -rn "extends.*ObjectModel" src/` — si aucun résultat,
-cet axe est sans objet et passe directement en 🟢.
+**Vérifié (2026-07-19)** : `grep -rn "extends.*ObjectModel" src/ neria.php
+controllers/` → aucun résultat. Tous les Managers Neria utilisent `Db`
+directement en SQL brut (couvert par l'axe 3), aucune classe n'étend
+`ObjectModel`. Aucun risque sur cet axe, rien à surveiller.
 
 ### 8. ACL / permissions employé — ⬜ À faire
 
@@ -122,16 +119,23 @@ un employé pourrait perdre l'accès aux pages Neria après upgrade.
 **Méthode** : vérifier manuellement sur PS9 réel qu'un profil employé
 non-SuperAdmin a bien accès aux onglets Neria après installation.
 
-### 13. Contrôleurs front/admin (signatures de base) — ⬜ À faire
+### 13. Contrôleurs front/admin (signatures de base) — ✅ Fait
 
-**Risque** : `controllers/front/track.php` étend `ModuleFrontController`.
-Si les méthodes `initContent()`, `postProcess()`, ou les propriétés
-attendues (`$context`, `$module`) changent de signature sur PS9, le
-contrôleur front casse.
+**Risque** : 8 contrôleurs front (`bounce`, `cron`, `oauth`, `oauthsc`,
+`preferences`, `track`, `unsubscribe`, `waitlist`) étendent
+`ModuleFrontController`, et `AdminNeriaController` étend
+`ModuleAdminController`. Si `initContent()`, `postProcess()`, `init()`
+changent de signature sur PS9, ces contrôleurs cassent.
 
-**Méthode** : même principe que l'axe 1, mais sur les classes
-`ModuleFrontController` / `ModuleAdminController` plutôt que sur les
-classes utilitaires statiques.
+**Résultat (2026-07-19)** : les 3 méthodes réellement surchargées par
+Neria (`init`, `initContent`, `postProcess` — identifiées par grep sur
+`controllers/`) comparées par réflexion sur les deux classes de base, PS8
+8.1.7 vs PS9 9.0.2 → **aucune différence de signature**. Confirmé aussi en
+usage réel : les 8 contrôleurs front et l'onglet BO fonctionnent tous sur
+melleina.com (tracking de clic, désinscription, préférences RGPD, waitlist
+testés en conditions réelles lors des sessions précédentes).
+
+Outil : `ps_controllers_diff.php`.
 
 ---
 
