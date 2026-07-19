@@ -408,6 +408,7 @@
       'smarty_compile_check' => 'help.health_check_smarty_compile_check',
       'upgrade_script_safety' => 'help.health_check_upgrade_script_safety',
       'known_regressions_guard' => 'help.health_check_known_regressions_guard',
+      'sql_pattern_risks' => 'help.health_check_sql_pattern_risks',
       'txt_placeholder_coverage' => 'help.health_check_txt_placeholder_coverage',
       'orphaned_voucher_reservations' => 'help.health_check_orphaned_voucher_reservations',
       'encoded_residual_links' => 'help.health_check_encoded_residual_links',

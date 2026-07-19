@@ -167,6 +167,7 @@ class HealthCheckManager
             'smarty_compile_check' => $this->checkSmartyCompileCheck(),
             'upgrade_script_safety' => $this->checkUpgradeScriptSafety(),
             'known_regressions_guard' => $this->checkKnownRegressionsGuard(),
+            'sql_pattern_risks'     => $this->checkSqlPatternRisks(),
             'txt_placeholder_coverage' => $this->checkTxtPlaceholderCoverage(),
             'orphaned_voucher_reservations' => $this->checkOrphanedVoucherReservations(),
             'orphaned_waitlist_claims' => $this->checkOrphanedWaitlistClaims(),
@@ -605,6 +606,83 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.known_regressions_ok')];
+    }
+
+    /**
+     * Contrôle statique PROSPECTIF (pas la re-détection d'un bug déjà
+     * corrigé comme checkKnownRegressionsGuard(), mais la prévention de deux
+     * pièges PrestaShop génériques documentés — n'importe quelle future
+     * requête/appel pourrait les réintroduire, sans lien avec un incident
+     * précis) :
+     *  1. `Db::getRow()` ajoute automatiquement `LIMIT 1` — un `LIMIT`
+     *     explicite dans la requête donne `LIMIT 1 LIMIT 1` (erreur SQL
+     *     silencieuse en prod, _PS_MODE_DEV_=false).
+     *  2. `Product::getPriceStatic()` fait un `die()` non catchable si appelé
+     *     sans employé NI panier en contexte (cron/CLI) — tue tout le script
+     *     hôte. Le seul point d'appel légitime doit rester protégé par un
+     *     panier transitoire (`UpsellManager::safeProductPrice()`).
+     */
+    private function checkSqlPatternRisks(): array
+    {
+        $offenders = [];
+        $srcDir = _PS_MODULE_DIR_ . $this->module->name . '/src';
+        $files = is_dir($srcDir) ? (glob($srcDir . '/*.php') ?: []) : [];
+
+        $priceStaticCallers = [];
+
+        foreach ($files as $file) {
+            $raw = file_get_contents($file) ?: '';
+            if ($raw === '') {
+                continue;
+            }
+            $base = basename($file);
+
+            // Retire commentaires et littéraux de chaîne AVANT analyse — sinon
+            // une simple mention en docblock ("Product::getPriceStatic() fait
+            // un die()") ou dans un message d'erreur se compte comme un vrai
+            // appel. token_get_all() est fiable ici (pas de regex fragile).
+            $codeOnly = '';
+            foreach (token_get_all($raw) as $token) {
+                if (is_array($token)) {
+                    if (in_array($token[0], [T_COMMENT, T_DOC_COMMENT, T_CONSTANT_ENCAPSED_STRING, T_ENCAPSED_AND_WHITESPACE], true)) {
+                        continue;
+                    }
+                    $codeOnly .= $token[1];
+                } else {
+                    $codeOnly .= $token;
+                }
+            }
+
+            // Piège 1 : getRow(...) contenant un LIMIT explicite dans la requête
+            // (recherché dans le code brut car la requête SQL elle-même est un
+            // littéral de chaîne, volontairement inclus ici malgré le filtre
+            // ci-dessus — on veut justement inspecter SON contenu).
+            if (preg_match('/->getRow\s*\(\s*(["\'])(?:(?!\1).)*?\bLIMIT\b(?:(?!\1).)*?\1/is', $raw)) {
+                $offenders[] = "{$base} : getRow() avec un LIMIT explicite (Db::getRow() en ajoute déjà un — risque de doublon SQL)";
+            }
+
+            // Piège 2 : appel direct à Product::getPriceStatic() hors du wrapper
+            // connu — cette fois sur le code réel uniquement (commentaires exclus).
+            if (preg_match_all('/\\\\?Product::getPriceStatic\s*\(/', $codeOnly, $m)) {
+                $priceStaticCallers[$base] = count($m[0]);
+            }
+        }
+
+        // Un seul point d'appel légitime toléré : UpsellManager::safeProductPrice().
+        foreach ($priceStaticCallers as $file => $count) {
+            if ($file !== 'UpsellManager.php' || $count > 1) {
+                $offenders[] = "{$file} : appel(le) Product::getPriceStatic() hors du wrapper protégé — risque de die() non catchable en cron/CLI sans employé ni panier";
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.sql_pattern_risks_warning', ['list' => implode(' | ', $offenders)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.sql_pattern_risks_ok')];
     }
 
     /**
