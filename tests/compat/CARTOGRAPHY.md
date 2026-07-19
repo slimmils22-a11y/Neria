@@ -12,7 +12,7 @@ compatibilité au hasard, mais par couverture méthodique.
 | 1 | Appels statiques du cœur PHP | ✅ Fait (2026-07-19) | `ps_core_diff.php` |
 | 2 | Objets reçus en paramètre de hook | 🟡 Partiel (1 cas connu) | À construire |
 | 3 | Schéma SQL des tables core | ✅ Fait (2026-07-19) | `ps_schema_diff.php` |
-| 4 | Existence/déclenchement des hooks | ⬜ À faire | Diff table `hook` + test réel |
+| 4 | Existence/enregistrement des hooks | ✅ Fait (2026-07-19) | `neria_hooks_check.php` (ponctuel) |
 | 5 | Rendu BO (Smarty vs Twig) | 🟡 Vérifié empiriquement, pas formalisé | Checklist visuelle |
 | 6 | Système de traduction cœur | 🟢 Hors risque (Neria a son propre système) | — |
 | 7 | ObjectModel / ORM | ⬜ À faire (si Neria étend des classes core) | Vérifier héritages |
@@ -72,17 +72,27 @@ ou cosmétique (élargissement de colonne, index renforcé).
 
 Outil : `ps_schema_diff.php`. Méthode : `grep -rhoE '\{\$this->prefix\}[a-z_]+' src/ | sort -u` (+ variante avec `.$this->prefix.'...'`) pour lister les tables, puis diff `SHOW COLUMNS` entre les deux versions.
 
-### 4. Existence/déclenchement des hooks — ⬜ À faire
+### 4. Existence/enregistrement des hooks — ✅ Fait (partiel — timing non couvert)
 
-**Risque** : un hook utilisé par Neria est renommé, supprimé, ou ne se
-déclenche plus au même moment sur PS9 (ex. changement d'ordre entre
-`actionOrderStatusUpdate` et `actionOrderStatusPostUpdate`).
+**Risque** : un hook utilisé par Neria est renommé, supprimé côté cœur PS,
+ou son `registerHook()` échoue silencieusement à l'installation
+(protection déjà présente dans `neria.php:198-200` : les échecs sont
+ignorés pour rester compatible entre versions, mais ça masque aussi un
+hook qui ne serait plus reconnu).
 
-**Méthode à construire** : lister les hooks enregistrés par Neria
-(`registerHook()` dans `install()`), vérifier sur chaque version via
-`SELECT * FROM ps_hook WHERE name = '...'` que le hook existe toujours dans
-le cœur, puis déclencher un scénario réel (ex. changement de statut de
-commande) et confirmer par log que le hook Neria est bien appelé.
+**Résultat (2026-07-19)** : les 14 hooks de `self::HOOKS` (neria.php:141)
+vérifiés un par un sur PS8 8.1.7 et PS9 9.0.2 réels via
+`Hook::getIdByName()` + requête sur `ps_hook_module` — **les 14 sont
+reconnus par le cœur ET effectivement enregistrés pour le module Neria sur
+les deux versions**. Aucune perte silencieuse.
+
+**Non couvert** (reste à faire si besoin) : le **timing réel** de
+déclenchement (ex. `actionOrderStatusPostUpdate` toujours appelé après la
+mise à jour effective du statut, pas avant) — seul un test de scénario réel
+en conditions de production peut le confirmer, pas une simple vérification
+d'existence. Plusieurs scénarios (changement de statut, avoir, retour) ont
+déjà été testés en conditions réelles lors des vagues de test précédentes
+(voir tâches complétées #9 OrderTriggersManager).
 
 ### 5. Rendu BO (Smarty vs Twig) — 🟡 Vérifié empiriquement
 
