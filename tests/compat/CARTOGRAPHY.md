@@ -16,7 +16,7 @@ compatibilité au hasard, mais par couverture méthodique.
 | 5 | Rendu BO (Smarty vs Twig) | 🟡 Vérifié empiriquement, pas formalisé | Checklist visuelle |
 | 6 | Système de traduction cœur | 🟢 Hors risque (Neria a son propre système) | — |
 | 7 | ObjectModel / ORM | 🟢 Sans objet (2026-07-19) | — |
-| 8 | ACL / permissions employé | ⬜ À faire | Vérifier `Profile`/`AdminController::viewAccess` |
+| 8 | ACL / permissions employé | ✅ Fait (2026-07-19) | Diff `ps_access`/`ps_authorization_role` |
 | 9 | Cron / tâches planifiées | 🟢 Testé réel sur PS9 | — |
 | 10 | Multi-boutique (`Shop::`) | 🟢 Couvert par axe 1 | — |
 | 11 | Dépendances vendor (TCPDF, etc.) | 🟢 Testé réel sur PS9 | — |
@@ -126,15 +126,31 @@ controllers/` → aucun résultat. Tous les Managers Neria utilisent `Db`
 directement en SQL brut (couvert par l'axe 3), aucune classe n'étend
 `ObjectModel`. Aucun risque sur cet axe, rien à surveiller.
 
-### 8. ACL / permissions employé — ⬜ À faire
+### 8. ACL / permissions employé — ✅ Fait
 
-**Risque** : les onglets BO de Neria déclarent des droits d'accès
-(`AdminController::viewAccess`, tables `ps_authorization_role`,
-`ps_module_access`). Si PS9 a changé le système de permissions par défaut,
-un employé pourrait perdre l'accès aux pages Neria après upgrade.
+**Risque** : les onglets BO de Neria déclarent des droits d'accès via
+`Tab::add()` (installTab(), neria.php:6039). Si PS9 avait changé le système
+de permissions par défaut, un employé non-SuperAdmin pourrait perdre
+l'accès aux pages Neria après upgrade sans que le marchand s'en aperçoive.
 
-**Méthode** : vérifier manuellement sur PS9 réel qu'un profil employé
-non-SuperAdmin a bien accès aux onglets Neria après installation.
+**Résultat (2026-07-19)** : découverte au passage — le schéma de la table
+`ps_access` a effectivement changé par rapport à l'ancien modèle CRUD
+(`view`/`add`/`edit`/`delete` par tab), remplacé par un modèle par rôles
+(`id_authorization_role` + slugs type `ROLE_MOD_TAB_ADMINNERIA_READ`).
+**Mais ce nouveau modèle est déjà celui utilisé sur PS8 8.1.7** (vérifié
+par diff direct des deux schémas et des mêmes rôles `ROLE_MOD_TAB_ADMINNERIA_*`)
+— ce n'est donc pas un changement PS8→PS9, pas une régression.
+
+Sur les deux versions : seul le profil `SuperAdmin` reçoit l'accès
+automatique aux 8 rôles Neria à l'installation ; les autres profils
+(`Logistician`/`Translator`/`Salesman` en PS9, `Logisticien`/`Traducteur`/
+`Commercial` en PS8) n'ont **aucun** accès par défaut. C'est le
+comportement standard du cœur PrestaShop (`Tab::add()` ne grant que
+SuperAdmin par défaut) — identique sur les deux versions, pas un bug Neria.
+Le marchand doit accorder l'accès manuellement via Employés → Permissions
+s'il veut qu'un profil non-SuperAdmin voie l'onglet Neria — attendu et
+documenté nulle part ailleurs dans Neria, à mentionner dans la doc
+utilisateur si besoin.
 
 ### 13. Contrôleurs front/admin (signatures de base) — ✅ Fait
 
