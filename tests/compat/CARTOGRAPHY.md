@@ -11,7 +11,7 @@ compatibilité au hasard, mais par couverture méthodique.
 |---|-----|--------|---------|
 | 1 | Appels statiques du cœur PHP | ✅ Fait (2026-07-19) | `ps_core_diff.php` |
 | 2 | Objets reçus en paramètre de hook | 🟡 Partiel (1 cas connu) | À construire |
-| 3 | Schéma SQL des tables core | ⬜ À faire | Diff `SHOW COLUMNS` |
+| 3 | Schéma SQL des tables core | ✅ Fait (2026-07-19) | `ps_schema_diff.php` |
 | 4 | Existence/déclenchement des hooks | ⬜ À faire | Diff table `hook` + test réel |
 | 5 | Rendu BO (Smarty vs Twig) | 🟡 Vérifié empiriquement, pas formalisé | Checklist visuelle |
 | 6 | Système de traduction cœur | 🟢 Hors risque (Neria a son propre système) | — |
@@ -50,7 +50,7 @@ reçu et comparer à ce qui est supposé dans le code. Prioriser les hooks
 recevant des objets du cœur (Mail, Order, Customer, Cart) plutôt que des
 scalaires/tableaux simples.
 
-### 3. Schéma SQL des tables core — ⬜ À faire
+### 3. Schéma SQL des tables core — ✅ Fait
 
 **Risque** : Neria interroge directement en SQL brut des tables core
 (`order_detail.product_id`, `orders.valid`, `customer.id_lang`, etc., déjà
@@ -58,10 +58,19 @@ un piège connu documenté dans les mémoires du projet). Une colonne
 renommée/supprimée entre PS8 et PS9 casse la requête sans passer par aucune
 méthode PHP scannée à l'axe 1.
 
-**Méthode à construire** : lister toutes les tables `ps_*` (core, pas
-`ps_neria_*`) référencées dans les requêtes SQL de Neria
-(`grep -rhoE "FROM \`\{?\\\$this->prefix\}?([a-z_]+)\`" src/`), puis sur
-chaque version PS lancer `SHOW COLUMNS FROM <table>` et diff.
+**Résultat (2026-07-19)** : 12 tables core comparées (`accessory`,
+`category`, `category_lang`, `category_product`, `customer`, `image`,
+`order_detail`, `order_history`, `orders`, `product`, `product_lang`,
+`stock_available`) entre PS8 8.1.7 et PS9 9.0.2 via `ps_schema_diff.php`.
+Différences trouvées : `category_lang.meta_keywords` et
+`product_lang.meta_keywords` supprimées sur PS9 ; `product.ean13` et
+`orders.reference` élargies ; `accessory` gagne une clé primaire composite
+(était un simple index) ; `category` gagne 2 colonnes (`redirect_type`,
+`id_type_redirected`). **Aucune n'affecte Neria** — colonnes supprimées
+jamais lues/écrites dans le code (vérifié par grep), reste purement additif
+ou cosmétique (élargissement de colonne, index renforcé).
+
+Outil : `ps_schema_diff.php`. Méthode : `grep -rhoE '\{\$this->prefix\}[a-z_]+' src/ | sort -u` (+ variante avec `.$this->prefix.'...'`) pour lister les tables, puis diff `SHOW COLUMNS` entre les deux versions.
 
 ### 4. Existence/déclenchement des hooks — ⬜ À faire
 
