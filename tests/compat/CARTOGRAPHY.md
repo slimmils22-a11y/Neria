@@ -13,7 +13,7 @@ compatibilité au hasard, mais par couverture méthodique.
 | 2 | Objets reçus en paramètre de hook | ✅ Fait (2026-07-19) | Audit code + confirmation module officiel PS9 |
 | 3 | Schéma SQL des tables core | ✅ Fait (2026-07-19) | `ps_schema_diff.php` |
 | 4 | Existence/enregistrement des hooks | ✅ Fait (2026-07-19) | `neria_hooks_check.php` (ponctuel) |
-| 5 | Rendu BO (Smarty vs Twig) | 🟡 Vérifié empiriquement, pas formalisé | Checklist visuelle |
+| 5 | Rendu BO (Smarty vs Twig) | 🟡 Bloqué structurellement (mur de connexion) | Nécessite participation utilisateur |
 | 6 | Système de traduction cœur | 🟢 Hors risque (Neria a son propre système) | — |
 | 7 | ObjectModel / ORM | 🟢 Sans objet (2026-07-19) | — |
 | 8 | ACL / permissions employé | ✅ Fait (2026-07-19) | Diff `ps_access`/`ps_authorization_role` |
@@ -111,13 +111,25 @@ d'existence. Plusieurs scénarios (changement de statut, avoir, retour) ont
 déjà été testés en conditions réelles lors des vagues de test précédentes
 (voir tâches complétées #9 OrderTriggersManager).
 
-### 5. Rendu BO (Smarty vs Twig) — 🟡 Vérifié empiriquement
+### 5. Rendu BO (Smarty vs Twig) — 🟡 Vérifié empiriquement (blocage structurel)
 
-Tous les onglets BO de Neria chargent sans erreur sur PS9 réel (vérifié
-lors de l'installation). Pas de checklist visuelle formalisée par écran.
+Tous les onglets BO de Neria (21 templates) chargent sans erreur sur PS9
+réel (vérifié lors de l'installation, tâche complétée #17). Pas de
+checklist visuelle pixel-par-pixel formalisée par écran.
 
-**Méthode à construire** (optionnelle, priorité basse) : capture d'écran de
-chaque onglet BO sur PS8 et PS9, comparaison visuelle manuelle.
+**Tenté le 2026-07-19** : comparaison visuelle automatisée bloquée par
+construction — les pages BO sont derrière un mur de connexion employé, et
+Claude ne doit jamais saisir de mot de passe (règle absolue, même en local
+sur Laragon). Impossible de s'authentifier soi-même pour capturer les
+écrans des deux versions.
+
+**Pour aller plus loin** (si jugé utile) : nécessite la participation de
+l'utilisateur — soit il se connecte et laisse une session active pour que
+Claude observe/capture ensuite, soit il fournit lui-même des captures
+d'écran des deux versions à comparer. Vu la priorité basse (purement
+cosmétique, aucun bug fonctionnel possible sur cet axe) et l'absence de
+tout signal de problème visuel remonté jusqu'ici, ce travail n'est pas
+poursuivi pour l'instant.
 
 ### 7. ObjectModel / ORM — 🟢 Sans objet
 
@@ -172,9 +184,16 @@ Outil : `ps_controllers_diff.php`.
 
 ---
 
-## Prochaine session
+## Bilan (2026-07-19)
 
-Prioriser dans l'ordre : axe 3 (schéma SQL — le plus mécanisable et le plus
-dangereux, requêtes silencieusement cassées), puis axe 2 (hooks — déjà 1 bug
-réel trouvé, probable qu'il y en ait d'autres), puis axes 4/13 (contrôleurs
-et déclenchement des hooks).
+13 axes sur 14 traités. Seul l'axe 5 reste ouvert, bloqué structurellement
+(voir détail ci-dessus) et de priorité basse. **Aucun nouveau bug de
+compatibilité PS8/PS9 trouvé au-delà de celui déjà corrigé** (List-Unsubscribe,
+`actionMailAlterMessageBeforeSend`, commit `0f11189`) — la cartographie
+confirme que ce bug était un cas isolé plutôt que la partie visible d'un
+problème plus large. Neria peut être considéré comme solidement vérifié
+pour la compatibilité PS9 sur tous les axes à risque fonctionnel réel.
+
+À rejouer intégralement (axes 1, 3, 4, 8, 13 sont mécanisables via les
+scripts de ce dossier) à chaque nouvelle montée de version PrestaShop
+majeure future (PS10, etc.).
