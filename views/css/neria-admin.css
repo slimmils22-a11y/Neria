@@ -139,8 +139,16 @@
 .neria-hint { font-size:11px; font-weight:400; color:var(--neria-text-light); text-transform:none; letter-spacing:0; }
 .neria-input { border:1px solid var(--neria-border); border-radius:var(--neria-radius); padding:9px 12px; font-size:13px; color:var(--neria-text); background:#fff; width:100%; box-sizing:border-box; transition:border-color .15s; }
 .neria-input:focus { outline:none; border-color:var(--neria-accent); }
-.neria-input--hex { width:100px; font-family:monospace; }
-.neria-input--number { width:80px; }
+/* !important nécessaire : le thème admin hôte (PS9 new-theme) impose
+   input[type="text"]/[type="number"]{width:100%} avec une spécificité
+   (0,1,1) supérieure à une simple classe modificatrice (0,1,0) — sans ce
+   verrou, CHAQUE usage de --hex/--number/--small serait écrasé, pas
+   seulement les curseurs déjà corrigés (cf. incident 2026-07-19,
+   commit fb0fefb). Ces classes ne servent qu'à des champs volontairement
+   étroits (couleur hex, valeur numérique compacte) : le !important est
+   sûr ici, il ne rentre en conflit avec aucun autre besoin de largeur. */
+.neria-input--hex { width:100px !important; font-family:monospace; }
+.neria-input--number { width:80px !important; }
 .neria-select { border:1px solid var(--neria-border); border-radius:var(--neria-radius); padding:9px 12px; font-size:13px; color:var(--neria-text); background:#fff; }
 .neria-select--sm { padding:6px 10px; font-size:12px; }
 .neria-color-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
@@ -270,7 +278,7 @@
 .neria-slider-row { display:flex; align-items:center; gap:10px; margin-top:8px; }
 .neria-slider-label { font-size:11px; color:var(--neria-text-light); min-width:28px; text-align:center; }
 .neria-slider-unit { font-size:11px; color:var(--neria-text-light); }
-.neria-input--small { width:52px; text-align:center; padding:4px 6px; }
+.neria-input--small { width:52px !important; text-align:center; padding:4px 6px; }
 /* Même piège que .neria-range-wrap (cf. plus haut) : le thème admin hôte
    (PS9 new-theme) impose input[type=number]{width:100%} avec une
    spécificité supérieure à .neria-input--small seul, ce qui absorbe tout
