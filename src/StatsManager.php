@@ -1245,9 +1245,14 @@ class StatsManager
         $table    = _DB_PREFIX_ . self::TABLE;
         $dateFrom = pSQL(date('Y-m-d', strtotime('-30 days')));
 
+        // MySQL interdit de référencer l'alias d'une fonction d'agrégat dans
+        // une expression arithmétique d'ORDER BY (erreur 1247 "reference to
+        // group function") — on répète donc l'expression COUNT() complète
+        // plutôt que l'alias.
+        $sentExpr = "COUNT(CASE WHEN event_type = 'sent' THEN 1 END)";
         $orderBy = $metric === 'rate_click'
-            ? 'clicks / NULLIF(sent, 0) DESC'
-            : 'opens  / NULLIF(sent, 0) DESC';
+            ? "COUNT(CASE WHEN event_type = 'click' THEN 1 END) / NULLIF({$sentExpr}, 0) DESC"
+            : "COUNT(CASE WHEN event_type = 'open' AND is_mpp=0 THEN 1 END) / NULLIF({$sentExpr}, 0) DESC";
 
         $rows = $this->db->executeS("
             SELECT template,

@@ -321,7 +321,7 @@ class MonthlyReportManager
                AND s.date_add <= '{$dateTo} 23:59:59'
              GROUP BY DAYOFWEEK(s.date_add), HOUR(s.date_add)
              HAVING total_sent >= 3
-             ORDER BY (total_open / total_sent) DESC
+             ORDER BY (SUM(CASE WHEN o.id_stat IS NOT NULL THEN 1 ELSE 0 END) / COUNT(*)) DESC
              LIMIT 1"
         ) ?: [];
 
