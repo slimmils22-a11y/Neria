@@ -2308,11 +2308,32 @@ class EmailRenderer
      * natif PrestaShop (mails/<iso>/ à la racine du shop, traductions PS
      * standard) au lieu du rendu stylé/traduit Neria.
      */
-    public function ensureInternalTemplateCompiled(string $template, int $idLang): ?string
+    public function ensureInternalTemplateCompiled(string $template, int $idLang, string $subject = ''): ?string
     {
         $lang = $this->engine->langFromId($idLang);
         $iso  = \Language::getIsoById($idLang) ?: $lang;
-        $templateVars = ['{shop_name}' => (string) \Configuration::get('PS_SHOP_NAME')];
+
+        // Destinataire réel de ces templates internes : le marchand
+        // lui-même (adresse boutique), pas un client — les liens
+        // désabonnement/préférences pointent donc vers SA propre fiche.
+        // Sans ça, layout.html (partagé avec les emails clients) affiche
+        // des liens vides (href="") dans le pied de page — cassés, pas
+        // juste absents, contrairement aux autres variables qui sont
+        // simplement retirées par le filet de sécurité (cf. bug trouvé
+        // le 2026-07-20 via le journal Watchdog : log_alert manquait
+        // {subject}/{unsubscribe_url}/{preferences_url}/{custom_message}
+        // depuis au moins le 18/07, chemin de compilation séparé de
+        // applyNeriaRendering() qui les injecte pour tout envoi normal).
+        $adminEmail = (string) \Configuration::get('PS_SHOP_EMAIL');
+        $templateVars = [
+            '{shop_name}'       => (string) \Configuration::get('PS_SHOP_NAME'),
+            '{subject}'         => $subject,
+            '{custom_message}'  => '',
+            '{unsubscribe_url}' => $this->module->getUnsubscribeUrl($adminEmail, $lang),
+            '{preferences_url}' => class_exists('PreferencesManager')
+                ? (new \PreferencesManager($this->module))->getPreferencesUrl($adminEmail, 0, $lang)
+                : '',
+        ];
         return $this->compileNeriaTemplate($template, $lang, $iso, $templateVars) !== null
             ? _PS_MODULE_DIR_ . 'neria/mails/'
             : null;

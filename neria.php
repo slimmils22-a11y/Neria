@@ -286,7 +286,8 @@ class Neria extends Module
                 try {
                     $templatePath = (new EmailRenderer($this))->ensureInternalTemplateCompiled(
                         $tplName,
-                        (int) ($params['idLang'] ?? 0)
+                        (int) ($params['idLang'] ?? 0),
+                        (string) ($params['subject'] ?? '')
                     );
                     if ($templatePath !== null) {
                         $params['templatePath'] = $templatePath;
