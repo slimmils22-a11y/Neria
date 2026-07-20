@@ -2392,7 +2392,10 @@ class EmailRenderer
 
         $plugTimeGreeting = $templateVars['{time_greeting}'] ?? '';
         if ($plugTimeGreeting !== '') {
-            $plugFirstname = $templateVars['{firstname}'] ?? '';
+            // Insère directement la valeur (pas un token {firstname} à
+            // résoudre plus tard) — échappement nécessaire ici même,
+            // symétrique à celui appliqué plus bas pour le reste du HTML.
+            $plugFirstname = htmlspecialchars((string) ($templateVars['{firstname}'] ?? ''), ENT_QUOTES, 'UTF-8');
             if (isset($nameHonorifics[$lang])) {
                 $h = $nameHonorifics[$lang];
                 $plugSalutation = ($plugFirstname !== '' ? $plugFirstname . $h['suffix'] . $h['sep'] : '')
@@ -2498,7 +2501,23 @@ class EmailRenderer
         // Les clés dans templateVars ont déjà les accolades : '{firstname}'.
         // Les vars déjà résolues par psCommon (shop_url, etc.) ne sont plus
         // présentes dans $compiled — le str_replace est un no-op pour elles.
-        foreach ($templateVars as $key => $value) {
+        //
+        // Durcissement défensif (HTML uniquement — $templateVars original
+        // reste intact pour la version .txt plus bas, qui ne doit jamais
+        // afficher d'entités HTML) : {firstname}/{lastname} sont normalement
+        // filtrés par Validate::isName() du cœur PS (rejette < > { } " etc.)
+        // à l'inscription/l'édition BO, donc pas de vecteur d'injection connu
+        // aujourd'hui — mais ce sont les deux seules variables directement
+        // dérivées d'un champ éditable par le client à finir non échappées
+        // dans le HTML compilé. Échappées ici en filet de sécurité contre un
+        // futur contournement de cette validation (import CSV, migration...).
+        $htmlTemplateVars = $templateVars;
+        foreach (['{firstname}', '{lastname}'] as $nameKey) {
+            if (isset($htmlTemplateVars[$nameKey]) && is_string($htmlTemplateVars[$nameKey])) {
+                $htmlTemplateVars[$nameKey] = htmlspecialchars($htmlTemplateVars[$nameKey], ENT_QUOTES, 'UTF-8');
+            }
+        }
+        foreach ($htmlTemplateVars as $key => $value) {
             if (is_string($value)) {
                 $compiled = str_replace($key, $value, $compiled);
             }
