@@ -1132,21 +1132,11 @@ class HealthCheckManager
     private function checkBareTemplateVarKeys(): array
     {
         $offenders = [];
-        $file = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
-        $raw = is_file($file) ? (file_get_contents($file) ?: '') : '';
-        if ($raw === '') {
-            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.bare_template_var_keys_ok')];
-        }
-
-        // Retire commentaires/docblocks avant analyse (même piège que
-        // checkSqlPatternRisks : un exemple en commentaire se compte sinon
-        // comme un vrai offender).
-        $codeOnly = '';
-        foreach (token_get_all($raw) as $token) {
-            if (is_array($token) && in_array($token[0], [T_COMMENT, T_DOC_COMMENT], true)) {
-                continue;
-            }
-            $codeOnly .= is_array($token) ? $token[1] : $token;
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $files = glob($moduleDir . '/src/*.php') ?: [];
+        $mainFile = $moduleDir . '/' . $this->module->name . '.php';
+        if (is_file($mainFile)) {
+            $files[] = $mainFile;
         }
 
         // Clés bien pontées vers {$neria_xxx} dans compileNeriaTemplate(), OU
@@ -1160,26 +1150,45 @@ class HealthCheckManager
             'neria_has_social', 'neria_has_signature',
         ];
 
-        // Écritures directes : $templateVars['xxx'] = ... / $params['templateVars']['xxx'] = ...
-        if (preg_match_all(
-            '/\$(?:templateVars|params\[[\'"]templateVars[\'"]\])\[[\'"]([a-z][a-z0-9_]*)[\'"]\]\s*=(?!=)/',
-            $codeOnly,
-            $m
-        )) {
-            foreach (array_unique($m[1]) as $key) {
-                if (!in_array($key, $allowlist, true)) {
-                    $offenders[] = "\$templateVars['{$key}'] (écriture directe)";
+        foreach ($files as $file) {
+            $base = basename($file);
+            $raw = file_get_contents($file) ?: '';
+            if ($raw === '') {
+                continue;
+            }
+
+            // Retire commentaires/docblocks avant analyse (même piège que
+            // checkSqlPatternRisks : un exemple en commentaire se compte sinon
+            // comme un vrai offender).
+            $codeOnly = '';
+            foreach (token_get_all($raw) as $token) {
+                if (is_array($token) && in_array($token[0], [T_COMMENT, T_DOC_COMMENT], true)) {
+                    continue;
+                }
+                $codeOnly .= is_array($token) ? $token[1] : $token;
+            }
+
+            // Écritures directes : $templateVars['xxx'] = ... / $params['templateVars']['xxx'] = ...
+            if (preg_match_all(
+                '/\$(?:templateVars|params\[[\'"]templateVars[\'"]\])\[[\'"]([a-z][a-z0-9_]*)[\'"]\]\s*=(?!=)/',
+                $codeOnly,
+                $m
+            )) {
+                foreach (array_unique($m[1]) as $key) {
+                    if (!in_array($key, $allowlist, true)) {
+                        $offenders[] = "{$base} : \$templateVars['{$key}'] (écriture directe)";
+                    }
                 }
             }
-        }
 
-        // Fusion : $templateVars = array_merge($templateVars, [ 'xxx' => ..., ... ])
-        if (preg_match_all('/array_merge\s*\(\s*\$templateVars\s*,\s*\[(.*?)\]\s*\)/s', $codeOnly, $blocks)) {
-            foreach ($blocks[1] as $block) {
-                if (preg_match_all('/[\'"]([a-z][a-z0-9_]*)[\'"]\s*=>/', $block, $bm)) {
-                    foreach (array_unique($bm[1]) as $key) {
-                        if (!in_array($key, $allowlist, true)) {
-                            $offenders[] = "'{$key}' (array_merge dans \$templateVars)";
+            // Fusion : $templateVars = array_merge($templateVars, [ 'xxx' => ..., ... ])
+            if (preg_match_all('/array_merge\s*\(\s*\$templateVars\s*,\s*\[(.*?)\]\s*\)/s', $codeOnly, $blocks)) {
+                foreach ($blocks[1] as $block) {
+                    if (preg_match_all('/[\'"]([a-z][a-z0-9_]*)[\'"]\s*=>/', $block, $bm)) {
+                        foreach (array_unique($bm[1]) as $key) {
+                            if (!in_array($key, $allowlist, true)) {
+                                $offenders[] = "{$base} : '{$key}' (array_merge dans \$templateVars)";
+                            }
                         }
                     }
                 }
