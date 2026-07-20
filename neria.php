@@ -281,8 +281,19 @@ class Neria extends Module
             // contraire à la promesse du module (traductions luxueuses partout).
             // On (re)compile la version Neria dans la bonne langue et on
             // redirige explicitement Mail::Send() vers le dossier du module.
+            //
+            // UNIQUEMENT log_alert ici — neria_fallback fixe déjà lui-même son
+            // templatePath (EmailRenderer::sendFallbackEmail()) et compile son
+            // propre fichier avec les vraies variables du DESTINATAIRE réel
+            // (client, pas le marchand). Rappeler ensureInternalTemplateCompiled()
+            // ici lors du Mail::Send() récursif de neria_fallback écrasait ce
+            // fichier correct par une version utilisant PS_SHOP_EMAIL (l'email
+            // de la boutique) au lieu de celui du client — bug réel trouvé le
+            // 2026-07-20 : le lien "Se désabonner"/"Gérer mes préférences" de
+            // l'email de secours pointait vers le compte du marchand, jamais
+            // celui du destinataire réel.
             $tplName = $params['template'] ?? '';
-            if (in_array($tplName, ['log_alert', 'neria_fallback'], true) && class_exists('EmailRenderer')) {
+            if ($tplName === 'log_alert' && class_exists('EmailRenderer')) {
                 try {
                     $templatePath = (new EmailRenderer($this))->ensureInternalTemplateCompiled(
                         $tplName,

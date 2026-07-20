@@ -651,17 +651,6 @@ class EmailRenderer
             }
             $outIso = \Language::getIsoById($idLang) ?: $lang;
 
-            // ── Compile le template de secours ──────────────────────────
-            // Écrit les .html/.txt plats que Mail::send lira dans mails/<iso>/
-            if ($this->compileNeriaTemplate('neria_fallback', $lang, $outIso) === null) {
-                $this->watchdog()->critical(
-                    WatchdogManager::i18nMsg('watchdog.fallback_no_template'),
-                    'neria_fallback',
-                    'EmailRenderer'
-                );
-                return false;
-            }
-
             // ── Sujet (clé fallback_subject), repli sur le nom de boutique
             $subject = trim(strip_tags(
                 $this->engine->get('neria_fallback', 'fallback_subject', $lang)
@@ -671,6 +660,12 @@ class EmailRenderer
             }
 
             // ── Variables minimales attendues par le layout ─────────────
+            // Construites AVANT la compilation (voir plus bas) : le fichier
+            // .html/.txt écrit sur disque est ce que Mail::Send() lit et
+            // envoie tel quel — passer des variables vides ici puis
+            // espérer une résolution ultérieure via Swift ne fonctionne
+            // pas, les placeholders {xxx} non résolus sont déjà retirés
+            // (filet de sécurité) au moment de l'écriture du fichier.
             $templateVars = [
                 '{shop_name}'          => (string) \Configuration::get('PS_SHOP_NAME'),
                 '{shop_url}'           => $this->context->link->getBaseLink(),
@@ -680,7 +675,33 @@ class EmailRenderer
                 '{custom_message_txt}' => '',
                 '{subject}'            => $subject,
                 '{unsubscribe_url}'    => $this->module->getUnsubscribeUrl($to, $lang),
+                // {preferences_url} manquait ici — layout.html (partagé avec
+                // le flux normal) rend alors un lien "Gérer mes préférences"
+                // cassé (href="") dans CHAQUE email de secours, exactement
+                // le même défaut que celui trouvé et corrigé le 2026-07-20
+                // sur ensureInternalTemplateCompiled() (log_alert), ici plus
+                // gênant encore : l'email de secours part déjà dans une
+                // situation dégradée (échec du rendu normal).
+                '{preferences_url}'    => class_exists('PreferencesManager')
+                    ? (new \PreferencesManager($this->module))->getPreferencesUrl($to, $this->resolveCustomerId($params), $lang)
+                    : '',
             ];
+
+            // ── Compile le template de secours ──────────────────────────
+            // Écrit les .html/.txt plats que Mail::send lira dans mails/<iso>/
+            // — avec les VRAIES variables du destinataire (bug trouvé le
+            // 2026-07-20 : cet appel se faisait avant sans aucune variable,
+            // laissant le fichier compilé avec des placeholders déjà
+            // retirés/vidés, jamais résolus par la suite malgré le
+            // $templateVars passé à Mail::Send() plus bas).
+            if ($this->compileNeriaTemplate('neria_fallback', $lang, $outIso, $templateVars) === null) {
+                $this->watchdog()->critical(
+                    WatchdogManager::i18nMsg('watchdog.fallback_no_template'),
+                    'neria_fallback',
+                    'EmailRenderer'
+                );
+                return false;
+            }
 
             // ── Envoi (anti-récursion via le drapeau statique) ──────────
             self::$inFallback = true;
