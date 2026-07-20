@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.28';
+    const VERSION = '1.0.29';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -4701,6 +4701,13 @@ class Neria extends Module
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=configure&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-loyalty-section');
         }
 
+        // ── Fidélité : cumul transversal boutiques (multi-boutique) ────
+        if (Tools::getValue('neria_action') === 'loyalty_cross_shop_toggle') {
+            $current = (bool) Configuration::getGlobalValue('NERIA_LOYALTY_CROSS_SHOP_ENABLED');
+            Configuration::updateGlobalValue('NERIA_LOYALTY_CROSS_SHOP_ENABLED', $current ? 0 : 1);
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=configure&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-loyalty-section');
+        }
+
         // ── Fidélité : sauvegarde des paliers ─────────────────
         if (Tools::getValue('neria_action') === 'save_loyalty_tiers' && class_exists('LoyaltyManager')) {
             $tiers = [];
@@ -5393,6 +5400,7 @@ class Neria extends Module
 
             // Variables pour la section Fidélité dans configure.tpl
             'loyalty_enabled'     => (bool) Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED'),
+            'loyalty_cross_shop_enabled' => (bool) Configuration::getGlobalValue('NERIA_LOYALTY_CROSS_SHOP_ENABLED'),
             'loyalty_tiers'       => class_exists('LoyaltyManager')
                 ? (new LoyaltyManager($this))->getTiers()
                 : LoyaltyManager::DEFAULT_TIERS,

@@ -100,6 +100,7 @@ class ConfigManager
     const KEY_MILESTONE_VOUCHER_ENABLED = 'NERIA_MILESTONE_VOUCHER_ENABLED';
     const KEY_MILESTONE_VOUCHER_AMOUNT  = 'NERIA_MILESTONE_VOUCHER_AMOUNT';
     const KEY_MILESTONE_VOUCHER_PERCENT = 'NERIA_MILESTONE_VOUCHER_PERCENT';
+    const KEY_LOYALTY_CROSS_SHOP_ENABLED = 'NERIA_LOYALTY_CROSS_SHOP_ENABLED';
 
     // ── Mode Silence (anti-doublon) ───────────────────────────────
     const KEY_COOLDOWN_ENABLED      = 'NERIA_COOLDOWN_ENABLED';
@@ -176,6 +177,7 @@ class ConfigManager
         self::KEY_MILESTONE_VOUCHER_ENABLED => 0,
         self::KEY_MILESTONE_VOUCHER_AMOUNT  => 10,
         self::KEY_MILESTONE_VOUCHER_PERCENT => 1,
+        self::KEY_LOYALTY_CROSS_SHOP_ENABLED => 1,
         self::KEY_COOLDOWN_ENABLED    => 0,
         self::KEY_COOLDOWN_MINUTES    => 10,
         self::KEY_CARBON_ENABLED      => 0,
@@ -677,6 +679,20 @@ class ConfigManager
     public function isBirthdayVoucherPercent(): bool
     {
         return (bool) $this->get(self::KEY_BIRTHDAY_VOUCHER_PERCENT, 1);
+    }
+
+    /**
+     * Indique si les points/paliers de fidélité se cumulent sur TOUTES les
+     * boutiques du marchand (activé par défaut — comportement historique du
+     * module) ou séparément par boutique. Réglage demandé explicitement
+     * par l'utilisateur le 2026-07-20 après avoir découvert que
+     * getCustomerPoints() sommait déjà globalement sans distinction de
+     * boutique, contrairement au reste du module (désabonnement,
+     * préférences, liste d'attente...) déjà cloisonné par boutique.
+     */
+    public function isLoyaltyCrossShopEnabled(): bool
+    {
+        return (bool) $this->get(self::KEY_LOYALTY_CROSS_SHOP_ENABLED, 1);
     }
 
     /**

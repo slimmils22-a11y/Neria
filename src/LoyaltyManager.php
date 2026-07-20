@@ -80,20 +80,27 @@ class LoyaltyManager
             return;
         }
 
+        // Boutique réelle de CET événement de tracking (le clic/l'ouverture
+        // arrive sur le domaine de la boutique concernée) — nécessaire pour
+        // le cumul par boutique quand NERIA_LOYALTY_CROSS_SHOP_ENABLED est
+        // désactivé par le marchand.
+        $idShop = (int) \Context::getContext()->shop->id;
+
         $inserted = $this->db->execute(
             "INSERT IGNORE INTO `{$this->prefix}" . self::TABLE_POINTS . "`
-                (id_customer, id_stat, event_type, points, date_add)
+                (id_customer, id_stat, event_type, points, id_shop, date_add)
              VALUES (
                 " . (int) $idCustomer . ",
                 " . (int) $idStat . ",
                 '" . pSQL($eventType) . "',
                 " . (int) $points . ",
+                " . $idShop . ",
                 NOW()
              )"
         );
 
         if ($inserted && $this->db->Affected_Rows() > 0) {
-            $this->checkAndReward($idCustomer);
+            $this->checkAndReward($idCustomer, $idShop);
         }
     }
 
@@ -101,9 +108,23 @@ class LoyaltyManager
      * Vérifie si un palier est atteint et envoie le bon de récompense.
      * Chaque palier n'est récompensé qu'une seule fois par client.
      */
-    public function checkAndReward(int $idCustomer): void
+    public function checkAndReward(int $idCustomer, ?int $idShop = null): void
     {
-        $total  = $this->getCustomerPoints($idCustomer);
+        $idShop = $idShop ?? (int) \Context::getContext()->shop->id;
+        // Cumul transversal (défaut, comportement historique) : le total ET
+        // la vérification "déjà récompensé" ignorent la boutique réelle, au
+        // profit d'une valeur sentinelle 0 — nécessaire pour que la clé
+        // UNIQUE (id_customer, tier_key, id_shop) de neria_loyalty_rewards
+        // bloque bien un 2e bon quelle que soit la boutique d'origine :
+        // sans sentinelle fixe, deux boutiques traitant le même client au
+        // même moment réserveraient chacune SA propre ligne (id_shop
+        // différent), créant deux CartRule pour un seul palier franchi.
+        // Mode séparé (réglage marchand) : chaque boutique utilise sa vraie
+        // id_shop, avec son propre total et son propre palier —
+        // cf. ConfigManager::isLoyaltyCrossShopEnabled().
+        $crossShop = (new \ConfigManager($this->module))->isLoyaltyCrossShopEnabled();
+        $reservationShopId = $crossShop ? 0 : $idShop;
+        $total = $this->getCustomerPoints($idCustomer, $crossShop ? null : $idShop);
         $tiers  = $this->getTiers();
 
         foreach ($tiers as $tier) {
@@ -111,11 +132,13 @@ class LoyaltyManager
                 continue;
             }
 
-            // Déjà récompensé pour ce palier ?
+            // Déjà récompensé pour ce palier ? (sentinelle 0 en mode cumul
+            // transversal, vraie boutique en mode séparé — voir ci-dessus)
             $alreadySent = (int) $this->db->getValue(
                 "SELECT COUNT(*) FROM `{$this->prefix}" . self::TABLE_REWARDS . "`
                  WHERE id_customer = " . (int) $idCustomer . "
-                   AND tier_key = '" . pSQL($tier['key']) . "'"
+                   AND tier_key = '" . pSQL($tier['key']) . "'
+                   AND id_shop = " . $reservationShopId
             );
             if ($alreadySent > 0) {
                 continue;
@@ -123,7 +146,7 @@ class LoyaltyManager
 
             // Génère le bon et envoie l'email
             try {
-                $code = $this->generateVoucher($idCustomer, $tier);
+                $code = $this->generateVoucher($idCustomer, $tier, $reservationShopId, $total);
                 if ($code === '') {
                     // Réservation perdue face à une requête concurrente —
                     // comportement attendu (anti-doublon), pas une erreur.
@@ -170,26 +193,28 @@ class LoyaltyManager
     // GÉNÉRATION DU BON PS (CartRule)
     // ============================================================
 
-    private function generateVoucher(int $idCustomer, array $tier): string
+    private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward): string
     {
         // Réservation atomique du palier AVANT de créer un vrai bon de
-        // réduction : la contrainte UNIQUE (id_customer, tier_key) sur
-        // neria_loyalty_rewards est le véritable garde-fou anti-course.
+        // réduction : la contrainte UNIQUE (id_customer, tier_key, id_shop)
+        // sur neria_loyalty_rewards est le véritable garde-fou anti-course.
         // Sans cette réservation en premier, deux requêtes quasi simultanées
         // (ex : ouverture + clic sur deux appareils au même moment) pourraient
         // chacune passer le contrôle "déjà récompensé ?" fait plus haut dans
         // checkAndReward() et créer chacune un CartRule réel et valide pour
         // le même palier, avant que la contrainte d'unicité n'intervienne.
+        // $reservationShopId est la sentinelle 0 en mode cumul transversal,
+        // ou la vraie boutique en mode séparé (voir checkAndReward()).
         $reserved = $this->db->execute(
             "INSERT IGNORE INTO `{$this->prefix}" . self::TABLE_REWARDS . "`
                 (id_customer, tier_key, tier_name, points_at_reward, id_cart_rule,
-                 voucher_code, voucher_amount, is_percent, sent_at)
+                 voucher_code, voucher_amount, is_percent, id_shop, sent_at)
              VALUES (
                 " . (int) $idCustomer . ",
                 '" . pSQL($tier['key'])  . "',
                 '" . pSQL($tier['name']) . "',
-                " . (int) $this->getCustomerPoints($idCustomer) . ",
-                0, '', " . (float) $tier['amount'] . ", " . (int) $tier['is_percent'] . ", NOW()
+                " . (int) $pointsAtReward . ",
+                0, '', " . (float) $tier['amount'] . ", " . (int) $tier['is_percent'] . ", " . $reservationShopId . ", NOW()
              )"
         );
 
@@ -329,12 +354,19 @@ class LoyaltyManager
     // STATISTIQUES CLIENT
     // ============================================================
 
-    public function getCustomerPoints(int $idCustomer): int
+    /**
+     * @param int|null $idShop Si fourni, ne compte que les points gagnés
+     *                         dans CETTE boutique — sinon (défaut, comportement
+     *                         historique) cumule sur toutes les boutiques.
+     *                         Cf. ConfigManager::isLoyaltyCrossShopEnabled().
+     */
+    public function getCustomerPoints(int $idCustomer, ?int $idShop = null): int
     {
+        $shopFilter = $idShop !== null ? (' AND id_shop = ' . (int) $idShop) : '';
         return (int) $this->db->getValue(
             "SELECT COALESCE(SUM(points), 0)
              FROM `{$this->prefix}" . self::TABLE_POINTS . "`
-             WHERE id_customer = " . (int) $idCustomer
+             WHERE id_customer = " . (int) $idCustomer . $shopFilter
         );
     }
 

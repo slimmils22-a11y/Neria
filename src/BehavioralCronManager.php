@@ -109,27 +109,48 @@ class BehavioralCronManager
 
         // Chaque tâche est isolée : l'échec de l'une (ex: sendBirthdays())
         // ne doit jamais empêcher les 19 autres de s'exécuter le même jour.
-        $this->runStep('sendBirthdays',                 fn () => $this->sendBirthdays());
-        $this->runStep('sendFirstAnniversaries',         fn () => $this->sendFirstAnniversaries());
-        $this->runStep('sendRelationshipAnniversaries',  fn () => $this->sendRelationshipAnniversaries());
-        $this->runStep('sendReorderReminders',           fn () => $this->sendReorderReminders());
-        $this->runStep('sendWinBacks',                   fn () => $this->sendWinBacks());
-        $this->runStep('sendRewardExpiryAlerts',         fn () => $this->sendRewardExpiryAlerts());
-        $this->runStep('sendWishlistReminders',          fn () => $this->sendWishlistReminders());
-        $this->runStep('sendAbandonedCarts(1)',          fn () => $this->sendAbandonedCarts('abandoned_cart_1', self::DELAY_CART_1_HOURS));
-        $this->runStep('sendAbandonedCarts(2)',          fn () => $this->sendAbandonedCarts('abandoned_cart_2', self::DELAY_CART_2_HOURS));
-        $this->runStep('sendAbandonedCarts(3)',          fn () => $this->sendAbandonedCarts('abandoned_cart_3', self::DELAY_CART_3_HOURS));
-        $this->runStep('sendCheckoutAbandonment',        fn () => $this->sendCheckoutAbandonment());
-        $this->runStep('sendQuoteExpiryReminders',       fn () => $this->sendQuoteExpiryReminders());
-        $this->runStep('sendRefundReconciliations',      fn () => $this->sendRefundReconciliations());
-        $this->runStep('sendLifespanReminders',          fn () => $this->sendLifespanReminders());
+        //
+        // Toutes les méthodes ci-dessous filtrent désormais leurs requêtes par
+        // Context::getContext()->shop->id (isolation multi-boutique). Or run()
+        // n'est appelé qu'UNE fois par jour, par le premier visiteur front qui
+        // déclenche le hook — dans le contexte de LA boutique qu'il visite. Sans
+        // la boucle ci-dessous, les autres boutiques d'une install multi-shop
+        // ne recevraient donc plus JAMAIS ces emails comportementaux. On boucle
+        // ici sur chaque boutique active en basculant temporairement le contexte
+        // PrestaShop, pour que chaque boutique soit traitée exactement une fois.
+        $originalShop = \Context::getContext()->shop;
+        $shops = \Shop::getShops(true, null, true) ?: [(int) $originalShop->id];
+
+        foreach ($shops as $idShop) {
+            \Context::getContext()->shop = new \Shop((int) $idShop);
+
+            $this->runStep('sendBirthdays',                 fn () => $this->sendBirthdays());
+            $this->runStep('sendFirstAnniversaries',         fn () => $this->sendFirstAnniversaries());
+            $this->runStep('sendRelationshipAnniversaries',  fn () => $this->sendRelationshipAnniversaries());
+            $this->runStep('sendReorderReminders',           fn () => $this->sendReorderReminders());
+            $this->runStep('sendWinBacks',                   fn () => $this->sendWinBacks());
+            $this->runStep('sendRewardExpiryAlerts',         fn () => $this->sendRewardExpiryAlerts());
+            $this->runStep('sendWishlistReminders',          fn () => $this->sendWishlistReminders());
+            $this->runStep('sendAbandonedCarts(1)',          fn () => $this->sendAbandonedCarts('abandoned_cart_1', self::DELAY_CART_1_HOURS));
+            $this->runStep('sendAbandonedCarts(2)',          fn () => $this->sendAbandonedCarts('abandoned_cart_2', self::DELAY_CART_2_HOURS));
+            $this->runStep('sendAbandonedCarts(3)',          fn () => $this->sendAbandonedCarts('abandoned_cart_3', self::DELAY_CART_3_HOURS));
+            $this->runStep('sendCheckoutAbandonment',        fn () => $this->sendCheckoutAbandonment());
+            $this->runStep('sendQuoteExpiryReminders',       fn () => $this->sendQuoteExpiryReminders());
+            $this->runStep('sendRefundReconciliations',      fn () => $this->sendRefundReconciliations());
+            $this->runStep('sendLifespanReminders',          fn () => $this->sendLifespanReminders());
+            $this->runStep('sendPostPurchase(care)',         fn () => $this->sendPostPurchase('post_purchase_care',   self::DELAY_POST_CARE_DAYS));
+            $this->runStep('sendPostPurchase(review)',       fn () => $this->sendPostPurchase('post_purchase_review', self::DELAY_POST_REVIEW_DAYS));
+            $this->runStep('sendShippedDelayAlerts',         fn () => $this->sendShippedDelayAlerts());
+            $this->runStep('sendGhostCarts',                 fn () => $this->sendGhostCarts());
+        }
+
+        \Context::getContext()->shop = $originalShop;
+
+        // Tâches globales (non scopées par boutique, dédup propre via
+        // id_order — déjà rattaché à une seule boutique) : une seule fois.
         $this->runStep('recalculatePropensityScores',    fn () => $this->recalculatePropensityScores());
-        $this->runStep('sendPostPurchase(care)',         fn () => $this->sendPostPurchase('post_purchase_care',   self::DELAY_POST_CARE_DAYS));
-        $this->runStep('sendPostPurchase(review)',       fn () => $this->sendPostPurchase('post_purchase_review', self::DELAY_POST_REVIEW_DAYS));
-        $this->runStep('sendShippedDelayAlerts',         fn () => $this->sendShippedDelayAlerts());
         $this->runStep('sendCollectionCompletions',      fn () => $this->sendCollectionCompletions());
         $this->runStep('sendLookCompletions',            fn () => $this->sendLookCompletions());
-        $this->runStep('sendGhostCarts',                 fn () => $this->sendGhostCarts());
 
         // ── Segmentation comportementale (recalcul quotidien) ─────────
         if (class_exists('SegmentManager')) {
@@ -182,17 +203,18 @@ class BehavioralCronManager
 
     private function sendBirthdays(): void
     {
-        $year = (int) date('Y');
+        $year   = (int) date('Y');
+        $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             'SELECT c.id_customer, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop
              FROM `' . $this->prefix . 'customer` c
-             WHERE c.active = 1 AND c.deleted = 0
+             WHERE c.active = 1 AND c.deleted = 0 AND c.id_shop = ' . $idShop . '
                AND c.birthday IS NOT NULL AND c.birthday != \'0000-00-00\'
                AND DAY(c.birthday) = DAY(NOW()) AND MONTH(c.birthday) = MONTH(NOW())
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = c.id_customer AND bs.template = \'birthday\'
-                     AND bs.ref_id = ' . $year . '
+                     AND bs.ref_id = ' . $year . ' AND bs.id_shop = ' . $idShop . '
                )
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
@@ -202,7 +224,7 @@ class BehavioralCronManager
         foreach ((array) $rows as $r) {
             $idCustomer = (int) $r['id_customer'];
             try {
-                $code = $this->generateBirthdayVoucher($idCustomer, $config);
+                $code = $this->generateBirthdayVoucher($idCustomer, $config, $idShop);
             } catch (\Throwable $e) {
                 $this->watchdog()->error(
                     \WatchdogManager::i18nMsg('watchdog.birthday_voucher_error', [
@@ -242,14 +264,14 @@ class BehavioralCronManager
      *
      * @return string Le code du bon, ou '' si déjà réservé par une requête concurrente.
      */
-    private function generateBirthdayVoucher(int $idCustomer, \ConfigManager $config): string
+    private function generateBirthdayVoucher(int $idCustomer, \ConfigManager $config, int $idShop): string
     {
         $year = (int) date('Y');
 
         $reserved = $this->db->execute(
             'INSERT IGNORE INTO `' . $this->prefix . 'neria_birthday_voucher`
-                (id_customer, year, id_cart_rule, voucher_code, created_at)
-             VALUES (' . (int) $idCustomer . ', ' . $year . ', 0, \'\', NOW())'
+                (id_customer, year, id_cart_rule, voucher_code, id_shop, created_at)
+             VALUES (' . (int) $idCustomer . ', ' . $year . ', 0, \'\', ' . $idShop . ', NOW())'
         );
 
         if (!$reserved || (int) $this->db->Affected_Rows() === 0) {
@@ -317,17 +339,23 @@ class BehavioralCronManager
 
     private function sendFirstAnniversaries(): void
     {
+        $idShop = (int) \Context::getContext()->shop->id;
+        // Filtre sur o.id_shop (pas c.id_shop) : un client partagé entre
+        // boutiques peut avoir sa 1ère commande sur une AUTRE boutique que
+        // celle où il a été créé — c'est bien "1ère commande DE CETTE
+        // boutique" qui doit déclencher l'email à l'image de CETTE boutique.
         $rows = $this->db->executeS(
             'SELECT c.id_customer, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop,
                     MIN(o.id_order) AS id_first_order
              FROM `' . $this->prefix . 'customer` c
-             JOIN `' . $this->prefix . 'orders` o ON o.id_customer = c.id_customer AND o.valid = 1
+             JOIN `' . $this->prefix . 'orders` o ON o.id_customer = c.id_customer AND o.valid = 1 AND o.id_shop = ' . $idShop . '
              WHERE c.active = 1 AND c.deleted = 0
              GROUP BY c.id_customer
              HAVING DATE(MIN(o.date_add)) = DATE(DATE_SUB(NOW(), INTERVAL 1 YEAR))
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = c.id_customer AND bs.template = \'first_anniversary\'
+                     AND bs.id_shop = ' . $idShop . '
                )
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
@@ -344,24 +372,25 @@ class BehavioralCronManager
 
     private function sendReorderReminders(): void
     {
-        $days = self::DELAY_REORDER_DAYS;
+        $days   = self::DELAY_REORDER_DAYS;
+        $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             'SELECT c.id_customer, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop,
                     o.id_order, od.product_name
              FROM `' . $this->prefix . 'customer` c
              JOIN `' . $this->prefix . 'orders` o
-                  ON o.id_customer = c.id_customer AND o.valid = 1
+                  ON o.id_customer = c.id_customer AND o.valid = 1 AND o.id_shop = ' . $idShop . '
              JOIN `' . $this->prefix . 'order_detail` od ON od.id_order = o.id_order
              WHERE c.active = 1 AND c.deleted = 0
                AND DATE(o.date_add) = DATE(DATE_SUB(NOW(), INTERVAL ' . $days . ' DAY))
                AND o.id_order = (
                    SELECT MAX(o2.id_order) FROM `' . $this->prefix . 'orders` o2
-                   WHERE o2.id_customer = c.id_customer AND o2.valid = 1
+                   WHERE o2.id_customer = c.id_customer AND o2.valid = 1 AND o2.id_shop = ' . $idShop . '
                )
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = c.id_customer AND bs.template = \'reorder_reminder\'
-                     AND bs.ref_id = o.id_order
+                     AND bs.ref_id = o.id_order AND bs.id_shop = ' . $idShop . '
                )
              GROUP BY c.id_customer
              LIMIT ' . self::MAX_BATCH_PER_RUN
@@ -387,20 +416,21 @@ class BehavioralCronManager
 
     private function sendWinBacks(): void
     {
-        $days = self::DELAY_WIN_BACK_DAYS;
-        $year = (int) date('Y');
+        $days   = self::DELAY_WIN_BACK_DAYS;
+        $year   = (int) date('Y');
+        $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             'SELECT c.id_customer, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop
              FROM `' . $this->prefix . 'customer` c
-             WHERE c.active = 1 AND c.deleted = 0
+             WHERE c.active = 1 AND c.deleted = 0 AND c.id_shop = ' . $idShop . '
                AND (
                    SELECT MAX(o.date_add) FROM `' . $this->prefix . 'orders` o
-                   WHERE o.id_customer = c.id_customer AND o.valid = 1
+                   WHERE o.id_customer = c.id_customer AND o.valid = 1 AND o.id_shop = ' . $idShop . '
                ) <= DATE_SUB(NOW(), INTERVAL ' . $days . ' DAY)
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = c.id_customer AND bs.template = \'win_back\'
-                     AND bs.ref_id = ' . $year . '
+                     AND bs.ref_id = ' . $year . ' AND bs.id_shop = ' . $idShop . '
                )
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
@@ -423,18 +453,21 @@ class BehavioralCronManager
 
     private function sendRewardExpiryAlerts(): void
     {
+        // ps_cart_rule n'a pas de colonne id_shop native — on scope via le
+        // client (c.id_shop), seul rattachement disponible.
+        $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             'SELECT cr.id_cart_rule, cr.id_customer, cr.date_to,
                     c.email, c.firstname, c.lastname, c.id_lang, c.id_shop
              FROM `' . $this->prefix . 'cart_rule` cr
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = cr.id_customer
-             WHERE cr.active = 1 AND cr.id_customer > 0
+             WHERE cr.active = 1 AND cr.id_customer > 0 AND c.id_shop = ' . $idShop . '
                AND DATE(cr.date_to) = DATE(DATE_ADD(NOW(), INTERVAL 7 DAY))
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = cr.id_customer
                      AND bs.template = \'loyalty_reward_expiry\'
-                     AND bs.ref_id = cr.id_cart_rule
+                     AND bs.ref_id = cr.id_cart_rule AND bs.id_shop = ' . $idShop . '
                )
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
@@ -473,7 +506,8 @@ class BehavioralCronManager
             return;
         }
 
-        $refId = (int) date('Y') * 100 + (int) date('n');
+        $refId  = (int) date('Y') * 100 + (int) date('n');
+        $idShop = (int) \Context::getContext()->shop->id;
 
         $rows = $this->db->executeS(
             'SELECT w.id_customer, w.id_shop,
@@ -490,12 +524,12 @@ class BehavioralCronManager
                   ON wp.id_wishlist_product = first_item.min_id
              JOIN `' . $this->prefix . 'product_lang` pl
                   ON pl.id_product = wp.id_product AND pl.id_lang = c.id_lang
-             WHERE c.active = 1 AND c.deleted = 0
+             WHERE c.active = 1 AND c.deleted = 0 AND w.id_shop = ' . $idShop . '
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = w.id_customer
                      AND bs.template = \'wishlist_reminder\'
-                     AND bs.ref_id = ' . $refId . '
+                     AND bs.ref_id = ' . $refId . ' AND bs.id_shop = ' . $idShop . '
                )
                AND NOT EXISTS (
                    SELECT 1
@@ -541,12 +575,13 @@ class BehavioralCronManager
         // emails pour le même panier). La dédup via neria_behavioral_sent
         // empêche seulement le renvoi du MÊME template, pas ce chevauchement.
         $minAgo = ($hours <= 1) ? 24 : $hours + 1;
+        $idShop = (int) \Context::getContext()->shop->id;
         $rows   = $this->db->executeS(
             'SELECT ca.id_cart, ca.id_customer, ca.id_shop,
                     c.email, c.firstname, c.lastname, c.id_lang
              FROM `' . $this->prefix . 'cart` ca
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = ca.id_customer
-             WHERE ca.id_customer > 0 AND c.active = 1 AND c.deleted = 0
+             WHERE ca.id_customer > 0 AND c.active = 1 AND c.deleted = 0 AND ca.id_shop = ' . $idShop . '
                AND ca.date_upd BETWEEN DATE_SUB(NOW(), INTERVAL ' . $minAgo . ' HOUR)
                                    AND DATE_SUB(NOW(), INTERVAL ' . $hours . ' HOUR)
                AND NOT EXISTS (
@@ -555,12 +590,12 @@ class BehavioralCronManager
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = ca.id_customer AND bs.template = \'' . pSQL($template) . '\'
-                     AND bs.ref_id = ca.id_cart
+                     AND bs.ref_id = ca.id_cart AND bs.id_shop = ' . $idShop . '
                )
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = ca.id_customer AND bs.template = \'checkout_abandonment\'
-                     AND bs.ref_id = ca.id_cart
+                     AND bs.ref_id = ca.id_cart AND bs.id_shop = ' . $idShop . '
                )
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
@@ -624,13 +659,14 @@ class BehavioralCronManager
             return;
         }
 
-        $hours = self::DELAY_CHECKOUT_HOURS;
+        $hours  = self::DELAY_CHECKOUT_HOURS;
+        $idShop = (int) \Context::getContext()->shop->id;
         $rows  = $this->db->executeS(
             'SELECT ca.id_cart, ca.id_customer, ca.id_shop,
                     c.email, c.firstname, c.lastname, c.id_lang
              FROM `' . $this->prefix . 'cart` ca
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = ca.id_customer
-             WHERE ca.id_customer > 0 AND c.active = 1 AND c.deleted = 0
+             WHERE ca.id_customer > 0 AND c.active = 1 AND c.deleted = 0 AND ca.id_shop = ' . $idShop . '
                AND ca.id_carrier > 0
                AND ca.id_address_delivery > 0
                AND ca.id_address_invoice > 0
@@ -644,13 +680,13 @@ class BehavioralCronManager
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = ca.id_customer AND bs.template = \'checkout_abandonment\'
-                     AND bs.ref_id = ca.id_cart
+                     AND bs.ref_id = ca.id_cart AND bs.id_shop = ' . $idShop . '
                )
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = ca.id_customer
                      AND bs.template IN (\'abandoned_cart_1\',\'abandoned_cart_2\',\'abandoned_cart_3\')
-                     AND bs.ref_id = ca.id_cart
+                     AND bs.ref_id = ca.id_cart AND bs.id_shop = ' . $idShop . '
                )
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
@@ -678,12 +714,13 @@ class BehavioralCronManager
 
     private function sendPostPurchase(string $template, int $days): void
     {
+        $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             'SELECT o.id_order, o.id_customer, o.id_shop,
                     c.email, c.firstname, c.lastname, c.id_lang
              FROM `' . $this->prefix . 'orders` o
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = o.id_customer
-             WHERE c.active = 1 AND c.deleted = 0 AND o.valid = 1
+             WHERE c.active = 1 AND c.deleted = 0 AND o.valid = 1 AND o.id_shop = ' . $idShop . '
                AND EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'order_history` oh
                    WHERE oh.id_order = o.id_order
@@ -693,7 +730,7 @@ class BehavioralCronManager
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = o.id_customer AND bs.template = \'' . pSQL($template) . '\'
-                     AND bs.ref_id = o.id_order
+                     AND bs.ref_id = o.id_order AND bs.id_shop = ' . $idShop . '
                )
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
@@ -780,13 +817,14 @@ class BehavioralCronManager
 
     private function sendShippedDelayAlerts(): void
     {
-        $days = self::DELAY_SHIPPED_DELAY_DAYS;
+        $days   = self::DELAY_SHIPPED_DELAY_DAYS;
+        $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             'SELECT o.id_order, o.reference, o.id_customer, o.id_shop,
                     c.email, c.firstname, c.lastname, c.id_lang
              FROM `' . $this->prefix . 'orders` o
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = o.id_customer
-             WHERE c.active = 1 AND c.deleted = 0 AND o.valid = 1
+             WHERE c.active = 1 AND c.deleted = 0 AND o.valid = 1 AND o.id_shop = ' . $idShop . '
                AND EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'order_history` oh
                    JOIN `' . $this->prefix . 'order_state` os ON os.id_order_state = oh.id_order_state
@@ -802,7 +840,7 @@ class BehavioralCronManager
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = o.id_customer AND bs.template = \'order_shipped_delay\'
-                     AND bs.ref_id = o.id_order
+                     AND bs.ref_id = o.id_order AND bs.id_shop = ' . $idShop . '
                )
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
@@ -867,6 +905,8 @@ class BehavioralCronManager
             return;
         }
 
+        $idShop = (int) \Context::getContext()->shop->id;
+
         // ── 1. Rappel 48h avant expiration ───────────────────────
         $rows48h = $this->db->executeS(
             'SELECT q.id_quote, q.id_customer, q.id_shop, q.quote_ref, q.quote_total,
@@ -874,7 +914,7 @@ class BehavioralCronManager
                     c.email, c.firstname, c.lastname, c.id_lang
              FROM `' . $this->prefix . 'neria_quote` q
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = q.id_customer
-             WHERE q.status = \'active\' AND q.sent_48h = 0
+             WHERE q.status = \'active\' AND q.sent_48h = 0 AND q.id_shop = ' . $idShop . '
                AND DATE(q.expiry_date) = DATE(DATE_ADD(NOW(), INTERVAL 2 DAY))
                AND c.active = 1 AND c.deleted = 0
              LIMIT ' . self::MAX_BATCH_PER_RUN
@@ -894,7 +934,7 @@ class BehavioralCronManager
                     c.email, c.firstname, c.lastname, c.id_lang
              FROM `' . $this->prefix . 'neria_quote` q
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = q.id_customer
-             WHERE q.status = \'active\' AND q.sent_day = 0
+             WHERE q.status = \'active\' AND q.sent_day = 0 AND q.id_shop = ' . $idShop . '
                AND DATE(q.expiry_date) = CURDATE()
                AND c.active = 1 AND c.deleted = 0
              LIMIT ' . self::MAX_BATCH_PER_RUN
@@ -914,7 +954,7 @@ class BehavioralCronManager
                     c.email, c.firstname, c.lastname, c.id_lang
              FROM `' . $this->prefix . 'neria_quote` q
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = q.id_customer
-             WHERE q.status = \'active\' AND q.sent_extension = 0
+             WHERE q.status = \'active\' AND q.sent_extension = 0 AND q.id_shop = ' . $idShop . '
                AND DATE(q.expiry_date) < CURDATE()
                AND c.active = 1 AND c.deleted = 0
              LIMIT ' . self::MAX_BATCH_PER_RUN
@@ -966,12 +1006,13 @@ class BehavioralCronManager
             return;
         }
 
-        $table = $this->prefix . 'neria_reconciliation';
-        $rows  = $this->db->executeS(
+        $table  = $this->prefix . 'neria_reconciliation';
+        $idShop = (int) \Context::getContext()->shop->id;
+        $rows   = $this->db->executeS(
             "SELECT r.*, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop AS c_shop
              FROM `{$table}` r
              JOIN `{$this->prefix}customer` c ON c.id_customer = r.id_customer
-             WHERE r.status = 'active'
+             WHERE r.status = 'active' AND r.id_shop = {$idShop}
                AND (
                    (r.sent_1 = 0 AND r.send_1_date <= CURDATE()) OR
                    (r.sent_1 = 1 AND r.sent_2 = 0 AND r.send_2_date <= CURDATE()) OR
@@ -991,6 +1032,7 @@ class BehavioralCronManager
                 "SELECT COUNT(*) FROM `{$this->prefix}orders`
                  WHERE id_customer = {$idCustomer}
                    AND valid = 1
+                   AND id_shop = {$idShop}
                    AND id_order > {$idOrder}"
             );
             if ($hasReordered > 0) {
@@ -1099,7 +1141,8 @@ class BehavioralCronManager
                     "SELECT COUNT(*) FROM `{$this->prefix}neria_behavioral_sent`
                      WHERE id_customer = " . (int) $customer['id_customer'] . "
                        AND template = 'product_lifespan_reminder'
-                       AND ref_id = {$idProduct}"
+                       AND ref_id = {$idProduct}
+                       AND id_shop = " . (int) $customer['id_shop']
                 );
                 if ($alreadySent > 0) {
                     continue;
@@ -1112,6 +1155,7 @@ class BehavioralCronManager
                      WHERE o.id_customer = " . (int) $customer['id_customer'] . "
                        AND od.product_id = {$idProduct}
                        AND o.valid = 1
+                       AND o.id_shop = " . (int) $customer['id_shop'] . "
                        AND o.id_order > " . (int) $customer['id_order']
                 );
                 if ($hasReordered > 0) {
@@ -1190,13 +1234,14 @@ class BehavioralCronManager
 
         // Clients dont la date du 1er achat tombe aujourd'hui (mois+jour)
         // et qui ont passé commande il y a au moins 1 an.
+        $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             'SELECT c.id_customer, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop,
                     MIN(o.date_add) AS first_order_date,
                     MIN(o.id_order) AS id_first_order,
                     TIMESTAMPDIFF(YEAR, MIN(o.date_add), NOW()) AS years
              FROM `' . $this->prefix . 'customer` c
-             JOIN `' . $this->prefix . 'orders` o ON o.id_customer = c.id_customer AND o.valid = 1
+             JOIN `' . $this->prefix . 'orders` o ON o.id_customer = c.id_customer AND o.valid = 1 AND o.id_shop = ' . $idShop . '
              WHERE c.active = 1 AND c.deleted = 0
              GROUP BY c.id_customer
              HAVING DATE_FORMAT(MIN(o.date_add), \'%m-%d\') = DATE_FORMAT(NOW(), \'%m-%d\')
@@ -1206,12 +1251,14 @@ class BehavioralCronManager
                    WHERE bs.id_customer = c.id_customer
                      AND bs.template = \'relationship_anniversary\'
                      AND bs.ref_id = YEAR(NOW())
+                     AND bs.id_shop = ' . $idShop . '
                )
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs2
                    WHERE bs2.id_customer = c.id_customer
                      AND bs2.template = \'first_anniversary\'
                      AND YEAR(bs2.sent_at) = YEAR(NOW())
+                     AND bs2.id_shop = ' . $idShop . '
                )
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
@@ -1282,13 +1329,14 @@ class BehavioralCronManager
             return;
         }
 
+        $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             'SELECT cp.id_product, ca.id_customer, ca.id_shop,
                     c.email, c.firstname, c.lastname, c.id_lang,
                     COUNT(DISTINCT ca.id_cart) AS times_added
              FROM `' . $this->prefix . 'cart_product` cp
              JOIN `' . $this->prefix . 'cart` ca
-                  ON ca.id_cart = cp.id_cart AND ca.id_customer > 0
+                  ON ca.id_cart = cp.id_cart AND ca.id_customer > 0 AND ca.id_shop = ' . $idShop . '
              JOIN `' . $this->prefix . 'customer` c
                   ON c.id_customer = ca.id_customer AND c.active = 1 AND c.deleted = 0
              WHERE ca.date_upd >= DATE_SUB(NOW(), INTERVAL 60 DAY)
@@ -1304,6 +1352,7 @@ class BehavioralCronManager
                    WHERE bs.id_customer = ca.id_customer
                      AND bs.template = \'ghost_cart\'
                      AND bs.ref_id = cp.id_product
+                     AND bs.id_shop = ' . $idShop . '
                )
              GROUP BY cp.id_product, ca.id_customer, ca.id_shop,
                       c.email, c.firstname, c.lastname, c.id_lang
@@ -1420,9 +1469,9 @@ class BehavioralCronManager
                     // Inscrire en dedup immédiatement : le cron ne repassera pas dessus demain.
                     $this->db->execute(
                         'INSERT IGNORE INTO `' . $this->prefix . 'neria_behavioral_sent`
-                         (id_customer, template, ref_id, sent_at)
+                         (id_customer, template, ref_id, id_shop, sent_at)
                          VALUES (' . (int) $customer['id_customer'] . ', \'' . pSQL($template) . '\', '
-                        . (int) $refId . ', NOW())'
+                        . (int) $refId . ', ' . $idShop . ', NOW())'
                     );
                     return;
                 }
@@ -1455,9 +1504,9 @@ class BehavioralCronManager
             if ($sent) {
                 $this->db->execute(
                     'INSERT IGNORE INTO `' . $this->prefix . 'neria_behavioral_sent`
-                     (id_customer, template, ref_id, sent_at)
+                     (id_customer, template, ref_id, id_shop, sent_at)
                      VALUES (' . (int) $customer['id_customer'] . ', \'' . pSQL($template) . '\', '
-                    . (int) $refId . ', NOW())'
+                    . (int) $refId . ', ' . $idShop . ', NOW())'
                 );
                 $this->watchdog()->info(
                     \WatchdogManager::i18nMsg('watchdog.send_ok', ['template' => $template, 'email' => $email, 'ref' => $refId]),

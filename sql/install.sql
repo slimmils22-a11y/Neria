@@ -334,8 +334,12 @@ VALUES
 -- ------------------------------------------------------------
 -- TABLE 12 : neria_behavioral_sent
 -- Déduplication des emails comportementaux (crons Vague 2)
--- UNIQUE sur (id_customer, template, ref_id) pour éviter les
--- doublons même en cas d'exécution parallèle du cron.
+-- UNIQUE sur (id_customer, template, ref_id, id_shop) pour éviter les
+-- doublons même en cas d'exécution parallèle du cron, ET pour permettre
+-- une déduplication distincte par boutique en multi-boutique (même motif
+-- que neria_waitlist, upgrade 1.0.28) — sans id_shop, un client partagé
+-- entre boutiques ne recevait l'email comportemental QUE de la première
+-- boutique dont le cron tournait ce jour-là, jamais des suivantes.
 -- ref_id sémantique : YEAR pour birthday/win_back,
 --                     id_order pour post_purchase/anniversary,
 --                     id_cart pour abandoned_cart_*
@@ -345,9 +349,10 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_behavioral_sent` (
     `id_customer`   INT UNSIGNED        NOT NULL,
     `template`      VARCHAR(100)        NOT NULL,
     `ref_id`        INT UNSIGNED        NOT NULL DEFAULT 0,
+    `id_shop`       INT UNSIGNED        NOT NULL DEFAULT 1,
     `sent_at`       DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_customer_template_ref` (`id_customer`, `template`, `ref_id`),
+    UNIQUE KEY `uq_customer_template_ref_shop` (`id_customer`, `template`, `ref_id`, `id_shop`),
     INDEX `idx_sent_at` (`sent_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Déduplication des emails comportementaux Neria (crons Vague 2)';
@@ -482,7 +487,11 @@ COMMENT='Journal upsell post-achat Neria — suggestions et conversions';
 -- TABLE 18 : neria_loyalty_points
 -- Historique de chaque attribution de points fidélité.
 -- Clé UNIQUE (id_stat, event_type) pour l'idempotence :
--- un même événement ne peut créditer qu'une fois.
+-- un même événement ne peut créditer qu'une fois. id_shop conservé pour
+-- permettre le cumul PAR boutique quand le marchand désactive le cumul
+-- transversal (NERIA_LOYALTY_CROSS_SHOP_ENABLED) — un id_stat donné
+-- appartient déjà à une seule boutique, donc pas besoin dans la clé
+-- UNIQUE elle-même, seulement pour les requêtes SUM() scopées.
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `PREFIX_neria_loyalty_points` (
     `id_point`    INT UNSIGNED  NOT NULL AUTO_INCREMENT,
@@ -490,6 +499,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_loyalty_points` (
     `id_stat`     INT UNSIGNED  NOT NULL COMMENT 'Événement de tracking source',
     `event_type`  ENUM('open','click','conversion') NOT NULL,
     `points`      TINYINT       NOT NULL DEFAULT 0,
+    `id_shop`     INT UNSIGNED  NOT NULL DEFAULT 1,
     `date_add`    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id_point`),
     UNIQUE KEY `uq_stat_event` (`id_stat`, `event_type`),
@@ -502,7 +512,12 @@ COMMENT='Points fidélité Neria attribués par événement email';
 -- ------------------------------------------------------------
 -- TABLE 19 : neria_loyalty_rewards
 -- Bons de réduction envoyés lorsqu'un palier est atteint.
--- Un seul enregistrement par (id_customer, tier_key).
+-- Un seul enregistrement par (id_customer, tier_key, id_shop) — id_shop
+-- toujours présent dans la clé ; en mode cumul transversal (réglage
+-- NERIA_LOYALTY_CROSS_SHOP_ENABLED activé), la vérification applicative
+-- ignore volontairement id_shop pour bloquer un 2e bon quelle que soit la
+-- boutique d'origine ; en mode séparé, elle le respecte pour autoriser un
+-- bon distinct par boutique.
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `PREFIX_neria_loyalty_rewards` (
     `id_reward`        INT UNSIGNED  NOT NULL AUTO_INCREMENT,
@@ -514,9 +529,10 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_loyalty_rewards` (
     `voucher_code`     VARCHAR(50)   NOT NULL DEFAULT '',
     `voucher_amount`   DECIMAL(8,2)  NOT NULL DEFAULT 0.00,
     `is_percent`       TINYINT(1)    NOT NULL DEFAULT 0,
+    `id_shop`          INT UNSIGNED  NOT NULL DEFAULT 1,
     `sent_at`          DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id_reward`),
-    UNIQUE KEY `uq_customer_tier` (`id_customer`, `tier_key`),
+    UNIQUE KEY `uq_customer_tier_shop` (`id_customer`, `tier_key`, `id_shop`),
     KEY `idx_customer` (`id_customer`),
     KEY `idx_tier`     (`tier_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -901,7 +917,9 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_voice_profile` (
 -- ------------------------------------------------------------
 -- TABLE 37 : neria_birthday_voucher
 -- Bon de réduction anniversaire (CartRule PS réel) — anti-doublon
--- par (id_customer, year) : un seul bon généré par client et par an.
+-- par (id_customer, year, id_shop) : un seul bon généré par client, par
+-- an ET par boutique — cohérent avec sendBirthdays() (BehavioralCronManager)
+-- qui n'envoie déjà l'email qu'aux clients de la boutique courante.
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `PREFIX_neria_birthday_voucher` (
     `id_voucher`   INT UNSIGNED  NOT NULL AUTO_INCREMENT,
@@ -909,18 +927,25 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_birthday_voucher` (
     `year`         SMALLINT UNSIGNED NOT NULL,
     `id_cart_rule` INT UNSIGNED  NOT NULL DEFAULT 0 COMMENT 'ID CartRule PS créée',
     `voucher_code` VARCHAR(50)   NOT NULL DEFAULT '',
+    `id_shop`      INT UNSIGNED  NOT NULL DEFAULT 1,
     `created_at`   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id_voucher`),
-    UNIQUE KEY `uq_customer_year` (`id_customer`, `year`),
+    UNIQUE KEY `uq_customer_year_shop` (`id_customer`, `year`, `id_shop`),
     KEY `idx_customer` (`id_customer`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Bon de réduction anniversaire (CartRule PS), anti-doublon par client et par année';
+COMMENT='Bon de réduction anniversaire (CartRule PS), anti-doublon par client, année et boutique';
 
 -- ------------------------------------------------------------
 -- TABLE 38 : neria_milestone_voucher
 -- Bon de réduction sur palier de commandes (CartRule PS réel, optionnel,
--- activé par le marchand) — anti-doublon par (id_customer, milestone) :
--- un seul bon généré par client et par palier atteint (5/10/25/50/100).
+-- activé par le marchand) — anti-doublon par (id_customer, milestone,
+-- id_shop) : un seul bon généré par client, par palier atteint (5/10/25/
+-- 50/100) ET par boutique — cohérent avec OrderTriggersManager::
+-- handleNewOrder() qui compte déjà les commandes du palier UNIQUEMENT
+-- pour la boutique courante (WHERE id_shop = ...), donc "palier 5" en
+-- boutique A et "palier 5" en boutique B sont deux jalons distincts, pas
+-- le même — contrairement aux points de fidélité (cumul transversal
+-- configurable), pas d'ambiguïté ici : toujours par boutique.
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `PREFIX_neria_milestone_voucher` (
     `id_voucher`   INT UNSIGNED  NOT NULL AUTO_INCREMENT,
@@ -928,9 +953,10 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_milestone_voucher` (
     `milestone`    SMALLINT UNSIGNED NOT NULL,
     `id_cart_rule` INT UNSIGNED  NOT NULL DEFAULT 0 COMMENT 'ID CartRule PS créée',
     `voucher_code` VARCHAR(50)   NOT NULL DEFAULT '',
+    `id_shop`      INT UNSIGNED  NOT NULL DEFAULT 1,
     `created_at`   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id_voucher`),
-    UNIQUE KEY `uq_customer_milestone` (`id_customer`, `milestone`),
+    UNIQUE KEY `uq_customer_milestone_shop` (`id_customer`, `milestone`, `id_shop`),
     KEY `idx_customer` (`id_customer`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Bon de réduction par palier de commandes (CartRule PS), anti-doublon par client et par palier';
+COMMENT='Bon de réduction par palier de commandes (CartRule PS), anti-doublon par client, palier et boutique';

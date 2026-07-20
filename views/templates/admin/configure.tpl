@@ -1195,6 +1195,27 @@
   </div>
   {/if}
 
+  <div class="neria-notice" style="background:#f9f6f1; border:1px solid #e8d5b0; border-radius:6px; padding:20px 24px; margin-bottom:24px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+      <div>
+        <p style="font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; opacity:.6; margin:0 0 6px 0;">
+          {neria_admin key='configure.loyalty_cross_shop_title'}
+        </p>
+        <p style="font-size:13px; line-height:1.75; color:#4a3f35; margin:0;">
+          {neria_admin key='configure.loyalty_cross_shop_desc'}
+        </p>
+      </div>
+      <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;flex-shrink:0;">
+        <input type="hidden" name="neria_action" value="loyalty_cross_shop_toggle">
+        <button type="submit"
+                style="padding:8px 20px; border-radius:20px; border:none; font-size:13px; font-weight:700;
+                       background:{if $loyalty_cross_shop_enabled}#16a34a{else}#dc2626{/if}; color:#fff;">
+          {if $loyalty_cross_shop_enabled}● {neria_admin key='configure.loyalty_cross_shop_on'}{else}○ {neria_admin key='configure.loyalty_cross_shop_off'}{/if}
+        </button>
+      </form>
+    </div>
+  </div>
+
   <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_loyalty_tiers">
 

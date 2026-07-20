@@ -97,17 +97,21 @@ class OrderTriggersManager
      * commandes atteint, uniquement si le marchand a activé
      * ConfigManager::isMilestoneVoucherEnabled() (désactivé par défaut).
      * Anti-doublon atomique via ps_neria_milestone_voucher (UNIQUE
-     * id_customer+milestone), même principe que BehavioralCronManager::
-     * generateBirthdayVoucher().
+     * id_customer+milestone+id_shop), même principe que
+     * BehavioralCronManager::generateBirthdayVoucher(). id_shop toujours
+     * la vraie boutique (jamais de sentinelle, contrairement aux points de
+     * fidélité) : handleNewOrder() compte déjà les commandes du palier
+     * UNIQUEMENT pour la boutique de LA commande — "palier 5" en boutique A
+     * et "palier 5" en boutique B sont deux jalons distincts par nature.
      *
      * @return string Le code du bon, ou '' si déjà réservé par une requête concurrente.
      */
-    private function generateMilestoneVoucher(int $idCustomer, int $milestone, \ConfigManager $config): string
+    private function generateMilestoneVoucher(int $idCustomer, int $milestone, \ConfigManager $config, int $idShop): string
     {
         $reserved = $this->db->execute(
             'INSERT IGNORE INTO `' . $this->prefix . 'neria_milestone_voucher`
-                (id_customer, milestone, id_cart_rule, voucher_code, created_at)
-             VALUES (' . (int) $idCustomer . ', ' . (int) $milestone . ', 0, \'\', NOW())'
+                (id_customer, milestone, id_cart_rule, voucher_code, id_shop, created_at)
+             VALUES (' . (int) $idCustomer . ', ' . (int) $milestone . ', 0, \'\', ' . (int) $idShop . ', NOW())'
         );
 
         if (!$reserved || (int) $this->db->Affected_Rows() === 0) {
@@ -152,7 +156,8 @@ class OrderTriggersManager
             // (sinon ce client resterait sans bon pour ce palier à vie).
             $this->db->execute(
                 'DELETE FROM `' . $this->prefix . 'neria_milestone_voucher`
-                 WHERE id_customer = ' . (int) $idCustomer . ' AND milestone = ' . (int) $milestone . ' AND id_cart_rule = 0'
+                 WHERE id_customer = ' . (int) $idCustomer . ' AND milestone = ' . (int) $milestone . '
+                   AND id_shop = ' . (int) $idShop . ' AND id_cart_rule = 0'
             );
             throw new \RuntimeException('CartRule::add() failed for customer ' . $idCustomer . ' milestone ' . $milestone);
         }
@@ -160,7 +165,8 @@ class OrderTriggersManager
         $this->db->execute(
             'UPDATE `' . $this->prefix . 'neria_milestone_voucher`
              SET id_cart_rule = ' . (int) $cartRule->id . ', voucher_code = \'' . pSQL($code) . '\'
-             WHERE id_customer = ' . (int) $idCustomer . ' AND milestone = ' . (int) $milestone
+             WHERE id_customer = ' . (int) $idCustomer . ' AND milestone = ' . (int) $milestone . '
+               AND id_shop = ' . (int) $idShop
         );
 
         return $code;
@@ -272,7 +278,7 @@ class OrderTriggersManager
                 $voucherCode = '';
                 if ($config->isMilestoneVoucherEnabled()) {
                     try {
-                        $voucherCode = $this->generateMilestoneVoucher($idCustomer, $count, $config);
+                        $voucherCode = $this->generateMilestoneVoucher($idCustomer, $count, $config, $idShop);
                     } catch (\Throwable $e) {
                         $this->watchdog()->error(
                             \WatchdogManager::i18nMsg('watchdog.milestone_voucher_error', ['count' => $count, 'email' => $customer->email, 'error' => $e->getMessage()]),
