@@ -769,8 +769,17 @@ class HealthCheckManager
     private function checkMissingIdLangInLinks(): array
     {
         $offenders = [];
-        $srcDir = _PS_MODULE_DIR_ . $this->module->name . '/src';
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $srcDir = $moduleDir . '/src';
         $files = is_dir($srcDir) ? (glob($srcDir . '/*.php') ?: []) : [];
+        // Le fichier principal du module (racine, hors src/) contient aussi
+        // des appels getPageLink/getModuleLink — angle mort trouvé le
+        // 2026-07-20 : getUnsubscribeUrl() y était affecté sans que ce
+        // contrôle, scopé à src/ jusque-là, ne le détecte.
+        $mainFile = $moduleDir . '/' . $this->module->name . '.php';
+        if (is_file($mainFile)) {
+            $files[] = $mainFile;
+        }
 
         foreach ($files as $file) {
             $base = basename($file);
@@ -781,6 +790,19 @@ class HealthCheckManager
             if ($rawFull === '') {
                 continue;
             }
+
+            // Exception explicite et documentée : un lien front-office rendu
+            // pour le visiteur EN COURS (pas un email à un destinataire
+            // distinct) veut légitimement la langue ambiante du contexte —
+            // le marqueur "idLang volontairement omis" juste au-dessus de
+            // l'appel neutralise la ligne suivante avant analyse.
+            $rawFull = preg_replace_callback(
+                '/idLang volontairement omis(?:[^\n]*\n\s*\/\/[^\n]*)*[^\n]*\n((?:\s*\/\/[^\n]*\n)*)(\s*)([^\n]*(?:getPageLink|getModuleLink)[^\n]*)\n/u',
+                static function ($m) {
+                    return "idLang volontairement omis (exclu du contrôle)\n" . $m[1] . $m[2] . "/* neutralisé par exception documentée */\n";
+                },
+                $rawFull
+            );
 
             // Retire uniquement les commentaires (pas les littéraux de chaîne,
             // nécessaires pour repérer les parenthèses/virgules d'arguments) —

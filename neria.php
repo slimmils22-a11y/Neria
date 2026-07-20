@@ -1319,6 +1319,10 @@ class Neria extends Module
         $mgr        = new WaitlistManager($this);
         $registered = $idCustomer > 0 && $mgr->isRegistered($idCustomer, $idProduct, $idShop);
 
+        // idLang volontairement omis : lien front-office rendu directement
+        // pour le visiteur EN COURS sur la page qu'il consulte — contrairement
+        // aux emails (destinataire distinct du contexte BO/cron déclencheur),
+        // la langue ambiante du contexte est ici la bonne langue par nature.
         $actionUrl = $this->context->link->getModuleLink('neria', 'waitlist');
         $backUrl   = $this->context->link->getProductLink($idProduct);
 
