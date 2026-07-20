@@ -322,6 +322,13 @@ class WebhookManager
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_FOLLOWLOCATION => false,
+            // isPublicUrl() ne résout et ne valide que les enregistrements
+            // IPv4 (gethostbynamel) — sans forcer cURL à se connecter en
+            // IPv4 lui aussi, un domaine avec un A public (validé) ET un
+            // AAAA privé (::1, fc00::/7, fe80::/10...) pourrait contourner
+            // la protection SSRF si le serveur préfère IPv6 (bypass
+            // "dual-stack" classique).
+            CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
         ]);
 
         $response = curl_exec($ch);
@@ -394,6 +401,13 @@ class WebhookManager
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_FOLLOWLOCATION => false,
+            // isPublicUrl() ne résout et ne valide que les enregistrements
+            // IPv4 (gethostbynamel) — sans forcer cURL à se connecter en
+            // IPv4 lui aussi, un domaine avec un A public (validé) ET un
+            // AAAA privé (::1, fc00::/7, fe80::/10...) pourrait contourner
+            // la protection SSRF si le serveur préfère IPv6 (bypass
+            // "dual-stack" classique).
+            CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
         ]);
 
         $body     = (string) curl_exec($ch);
