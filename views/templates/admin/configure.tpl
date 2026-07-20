@@ -1207,9 +1207,12 @@
       </div>
       <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;flex-shrink:0;">
         <input type="hidden" name="neria_action" value="loyalty_cross_shop_toggle">
+        <input type="hidden" name="neria_tab"    value="configure">
         <button type="submit"
-                style="padding:8px 20px; border-radius:20px; border:none; font-size:13px; font-weight:700;
-                       background:{if $loyalty_cross_shop_enabled}#16a34a{else}#dc2626{/if}; color:#fff;">
+                style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px;
+                       background:{if $loyalty_cross_shop_enabled}#1a7a40{else}#c0392b{/if};
+                       color:#fff; border:none; border-radius:4px; font-size:12px;
+                       font-weight:700; cursor:pointer; letter-spacing:.04em;">
           {if $loyalty_cross_shop_enabled}● {neria_admin key='configure.loyalty_cross_shop_on'}{else}○ {neria_admin key='configure.loyalty_cross_shop_off'}{/if}
         </button>
       </form>
