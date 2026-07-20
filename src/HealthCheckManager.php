@@ -173,6 +173,8 @@ class HealthCheckManager
             'version_files_sync'    => $this->checkModuleVersionFilesSync(),
             'translation_dict_coverage' => $this->checkTranslationDictionaryCoverage(),
             'clickable_tracking_links'  => $this->checkClickableTrackingLinks(),
+            'dev_tool_residue'          => $this->checkDevToolResidue(),
+            'fragile_neriaconfig_usage' => $this->checkFragileNeriaConfigUsage(),
             'txt_placeholder_coverage' => $this->checkTxtPlaceholderCoverage(),
             'orphaned_voucher_reservations' => $this->checkOrphanedVoucherReservations(),
             'orphaned_waitlist_claims' => $this->checkOrphanedWaitlistClaims(),
@@ -1018,6 +1020,78 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.clickable_tracking_links_ok')];
+    }
+
+    /**
+     * Contrôle statique : aucune trace d'outil de dev (Mailpit, "Tester
+     * maintenant"...) ne doit rester dans les templates/JS livrés — un
+     * module premium vendu 199€ ne doit jamais exposer ces éléments à un
+     * marchand. Cf. feedback_cleanup_dev_tools.
+     */
+    private function checkDevToolResidue(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $offenders = [];
+
+        $files = array_merge(
+            $this->globRecursive($moduleDir . '/views/templates', '.tpl'),
+            $this->globRecursive($moduleDir . '/views/js', '.js')
+        );
+
+        foreach ($files as $file) {
+            $src = file_get_contents($file) ?: '';
+            if ($src === '') {
+                continue;
+            }
+            if (stripos($src, 'mailpit') !== false) {
+                $offenders[] = basename($file) . ' (mailpit)';
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.dev_tool_residue_warning', ['list' => implode(', ', $offenders)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.dev_tool_residue_ok')];
+    }
+
+    /**
+     * Contrôle statique : détecte l'usage de neriaConfig.adminUrl /
+     * neriaConfig.moduleName dans les templates BO — cette variable est
+     * injectée par data-URI (HooksManager::onDisplayBackOfficeHeader()) et
+     * souvent bloquée par le CSP du back-office, laissant un bouton "qui ne
+     * fait rien" sans erreur visible (exception synchrone avant le fetch).
+     * Cf. feedback_bo_ajax_neriaconfig_csp — pattern recommandé : construire
+     * l'URL depuis window.location.href.
+     */
+    private function checkFragileNeriaConfigUsage(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $offenders = [];
+
+        $files = $this->globRecursive($moduleDir . '/views/templates', '.tpl');
+
+        foreach ($files as $file) {
+            $src = file_get_contents($file) ?: '';
+            if ($src === '') {
+                continue;
+            }
+            if (preg_match('/neriaConfig\s*\.\s*(adminUrl|moduleName)/', $src)) {
+                $offenders[] = basename($file);
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.fragile_neriaconfig_warning', ['list' => implode(', ', $offenders)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.fragile_neriaconfig_ok')];
     }
 
     /**

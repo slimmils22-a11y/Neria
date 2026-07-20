@@ -414,6 +414,8 @@
       'version_files_sync' => 'help.health_check_version_files_sync',
       'translation_dict_coverage' => 'help.health_check_translation_dict_coverage',
       'clickable_tracking_links' => 'help.health_check_clickable_tracking_links',
+      'dev_tool_residue' => 'help.health_check_dev_tool_residue',
+      'fragile_neriaconfig_usage' => 'help.health_check_fragile_neriaconfig_usage',
       'txt_placeholder_coverage' => 'help.health_check_txt_placeholder_coverage',
       'orphaned_voucher_reservations' => 'help.health_check_orphaned_voucher_reservations',
       'encoded_residual_links' => 'help.health_check_encoded_residual_links',
