@@ -32,8 +32,13 @@ class NeriaWaitlistModuleFrontController extends ModuleFrontController
             $decodedBack = urldecode($back);
             // N'accepte qu'un chemin relatif interne (commence par un seul "/") —
             // jamais une URL absolue ou protocol-relative ("//host/..."), sinon
-            // ce endpoint devient un open redirect vers un domaine externe.
-            if (strpos($decodedBack, '/') === 0 && strpos($decodedBack, '//') !== 0) {
+            // ce endpoint devient un open redirect vers un domaine externe. Les
+            // navigateurs normalisent "\" en "/" lors du parsing d'URL (spec
+            // WHATWG) — "/\evil.com" est donc traité comme "//evil.com" et
+            // contournerait cette protection si on ne rejetait pas aussi le
+            // backslash en tête.
+            $normalizedBack = str_replace('\\', '/', $decodedBack);
+            if (strpos($normalizedBack, '/') === 0 && strpos($normalizedBack, '//') !== 0) {
                 $redirect = $decodedBack;
             }
         }
