@@ -175,6 +175,7 @@ class HealthCheckManager
             'clickable_tracking_links'  => $this->checkClickableTrackingLinks(),
             'dev_tool_residue'          => $this->checkDevToolResidue(),
             'fragile_neriaconfig_usage' => $this->checkFragileNeriaConfigUsage(),
+            'bare_template_var_keys'    => $this->checkBareTemplateVarKeys(),
             'txt_placeholder_coverage' => $this->checkTxtPlaceholderCoverage(),
             'orphaned_voucher_reservations' => $this->checkOrphanedVoucherReservations(),
             'orphaned_waitlist_claims' => $this->checkOrphanedWaitlistClaims(),
@@ -1092,6 +1093,85 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.fragile_neriaconfig_ok')];
+    }
+
+    /**
+     * Contrôle statique : détecte toute clé BRUTE (sans accolades) écrite
+     * dans $templateVars/$params['templateVars'] par EmailRenderer.php —
+     * en dehors d'une liste blanche étroite de clés légitimement "pontées"
+     * vers le système {$neria_xxx} par compileNeriaTemplate(). Une clé brute
+     * non consommée atteint intacte le Swift_Plugins_DecoratorPlugin du
+     * cœur PrestaShop dans Mail::send(), qui fait un str_replace() BRUT sur
+     * tout le corps de l'email compilé — un mot générique comme "neria_lang"
+     * corrompt alors toute occurrence coïncidente ailleurs dans l'email (le
+     * bug réel : {unsubscribe_url} contenant "...&neria_lang=ar" devenait
+     * "...&ar=ar", cf. injectDesignVars() supprimé le 2026-07-20).
+     */
+    private function checkBareTemplateVarKeys(): array
+    {
+        $offenders = [];
+        $file = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
+        $raw = is_file($file) ? (file_get_contents($file) ?: '') : '';
+        if ($raw === '') {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.bare_template_var_keys_ok')];
+        }
+
+        // Retire commentaires/docblocks avant analyse (même piège que
+        // checkSqlPatternRisks : un exemple en commentaire se compte sinon
+        // comme un vrai offender).
+        $codeOnly = '';
+        foreach (token_get_all($raw) as $token) {
+            if (is_array($token) && in_array($token[0], [T_COMMENT, T_DOC_COMMENT], true)) {
+                continue;
+            }
+            $codeOnly .= is_array($token) ? $token[1] : $token;
+        }
+
+        // Clés bien pontées vers {$neria_xxx} dans compileNeriaTemplate(), OU
+        // consommées directement en brut par les blocs conditionnels
+        // {if isset($x) && $x}...{/if} de mails/themes/neria_global/layout.html
+        // (neria_has_social, neria_has_signature) — seules exceptions tolérées
+        // à la règle "clé brute interdite".
+        $allowlist = [
+            'neria_tracking_pixel', 'neria_tracking_token', 'neria_social_links',
+            'neria_signature_url', 'neria_signature_name', 'neria_signature_title',
+            'neria_has_social', 'neria_has_signature',
+        ];
+
+        // Écritures directes : $templateVars['xxx'] = ... / $params['templateVars']['xxx'] = ...
+        if (preg_match_all(
+            '/\$(?:templateVars|params\[[\'"]templateVars[\'"]\])\[[\'"]([a-z][a-z0-9_]*)[\'"]\]\s*=(?!=)/',
+            $codeOnly,
+            $m
+        )) {
+            foreach (array_unique($m[1]) as $key) {
+                if (!in_array($key, $allowlist, true)) {
+                    $offenders[] = "\$templateVars['{$key}'] (écriture directe)";
+                }
+            }
+        }
+
+        // Fusion : $templateVars = array_merge($templateVars, [ 'xxx' => ..., ... ])
+        if (preg_match_all('/array_merge\s*\(\s*\$templateVars\s*,\s*\[(.*?)\]\s*\)/s', $codeOnly, $blocks)) {
+            foreach ($blocks[1] as $block) {
+                if (preg_match_all('/[\'"]([a-z][a-z0-9_]*)[\'"]\s*=>/', $block, $bm)) {
+                    foreach (array_unique($bm[1]) as $key) {
+                        if (!in_array($key, $allowlist, true)) {
+                            $offenders[] = "'{$key}' (array_merge dans \$templateVars)";
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.bare_template_var_keys_warning', ['list' => implode(' | ', $offenders)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.bare_template_var_keys_ok')];
     }
 
     /**

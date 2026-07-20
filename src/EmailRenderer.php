@@ -918,14 +918,8 @@ class EmailRenderer
         }
 
         $templateVars = array_merge($templateVars, [
-            'neria_social_instagram' => $links['instagram'] ?? '',
-            'neria_social_pinterest' => $links['pinterest'] ?? '',
-            'neria_social_facebook'  => $links['facebook']  ?? '',
-            'neria_social_twitter'   => $links['twitter']   ?? '',
-            'neria_social_youtube'   => $links['youtube']   ?? '',
-            'neria_social_tiktok'    => $links['tiktok']    ?? '',
-            'neria_social_links'     => $html,
-            'neria_has_social'       => !empty($links),
+            'neria_social_links' => $html,
+            'neria_has_social'   => !empty($links),
         ]);
     }
 
