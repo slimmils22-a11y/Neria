@@ -593,6 +593,43 @@ class HealthCheckManager
             $offenders[] = 'MonthlyReportManager : ORDER BY réutilise de nouveau les alias total_open/total_sent (erreur SQL 1247 sur MySQL)';
         }
 
+        $mainFile = _PS_MODULE_DIR_ . $this->module->name . '/' . $this->module->name . '.php';
+        $mainSrc  = is_file($mainFile) ? (file_get_contents($mainFile) ?: '') : '';
+        if ($mainSrc === '') {
+            $offenders[] = 'neria.php introuvable';
+        } else {
+            // Bug du 2026-07-20 : neria_fallback (email envoyé au CLIENT) et
+            // log_alert (envoyé au marchand) étaient traités de façon
+            // identique — le hook rappelait ensureInternalTemplateCompiled()
+            // pour les deux, ce qui écrasait le fichier .html de
+            // neria_fallback (compilé avec les vraies variables du client
+            // par sendFallbackEmail()) par une version utilisant
+            // PS_SHOP_EMAIL. Résultat réel confirmé : lien "Se désabonner"
+            // d'un email de secours pointant vers l'admin, pas le client.
+            if (preg_match(
+                "/in_array\\(\\\$tplName,\\s*\\['log_alert',\\s*'neria_fallback'\\]/",
+                $mainSrc
+            )) {
+                $offenders[] = 'neria.php : ensureInternalTemplateCompiled() est de nouveau appelé pour neria_fallback (écrase les variables du VRAI destinataire par celles du marchand)';
+            }
+        }
+
+        $rendererSrc2 = $rendererSrc;
+        if ($rendererSrc2 !== '') {
+            // Même bug, second volet : sendFallbackEmail() doit compiler le
+            // template AVEC les vraies variables ({unsubscribe_url},
+            // {preferences_url}...), pas les injecter après coup en comptant
+            // sur Mail::Send()/Swift pour les résoudre — le fichier écrit sur
+            // disque est ce qui part tel quel, les placeholders non résolus
+            // sont déjà retirés au moment de la compilation.
+            if (preg_match(
+                "/compileNeriaTemplate\\(\\s*'neria_fallback',\\s*\\\$lang,\\s*\\\$outIso\\s*\\)/",
+                $rendererSrc2
+            )) {
+                $offenders[] = 'EmailRenderer : sendFallbackEmail() compile de nouveau neria_fallback sans templateVars (liens désabonnement/préférences vides dans l\'email de secours)';
+            }
+        }
+
         $cssFile = _PS_MODULE_DIR_ . $this->module->name . '/views/css/neria-admin.css';
         $cssSrc  = is_file($cssFile) ? (file_get_contents($cssFile) ?: '') : '';
         if ($cssSrc === '') {
