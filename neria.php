@@ -485,11 +485,20 @@ class Neria extends Module
             $params['neria_lang'] = $lang;
         }
 
+        // Sans idLang explicite, getModuleLink() utilise la langue du
+        // CONTEXTE courant (BO/cron déclenchant l'envoi) pour préfixer
+        // l'URL — pas celle réelle du destinataire (bug idLang manquant,
+        // même famille que project_idlang_bug_pattern_audit).
+        $idLang = isset($params['neria_lang'])
+            ? (int) Language::getIdByIso($params['neria_lang'])
+            : null;
+
         return $this->context->link->getModuleLink(
             'neria',
             'unsubscribe',
             $params,
-            true
+            true,
+            $idLang ?: null
         );
     }
 

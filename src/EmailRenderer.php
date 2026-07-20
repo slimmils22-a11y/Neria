@@ -306,9 +306,6 @@ class EmailRenderer
         // â”€â”€ Enregistre {neria_trad} dans Smarty â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         $this->registerSmartyFunction($template, $lang, $variant);
 
-        // â”€â”€ Injecte les variables de design dans Smarty â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        $this->injectDesignVars($lang, $params['templateVars']);
-
         // â”€â”€ Injecte les liens rÃ©seaux sociaux â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         // Reformate le tableau produits PrestaShop
         $this->reformatProductsHtml($params['templateVars']);
@@ -893,70 +890,6 @@ class EmailRenderer
     // VARIABLES DE DESIGN
     // ============================================================
 
-    /**
-     * Injecte les variables CSS de design dans les templateVars Smarty
-     * Disponibles dans les templates sous {$neria_color_accent}, etc.
-     *
-     * @param string $lang         Code langue (pour la police)
-     * @param array  $templateVars Variables Smarty (passÃ© par rÃ©fÃ©rence)
-     */
-    private function injectDesignVars(string $lang, &$templateVars): void
-    {
-        if (!is_array($templateVars)) {
-            $templateVars = [];
-        }
-        $design = $this->config->getDesignConfig();
-
-
-        $templateVars = array_merge($templateVars, [
-            // Couleurs
-            'neria_color_background'    => $design['color_background'],
-            'neria_color_container'     => $design['color_container'],
-            'neria_color_accent'        => $design['color_accent'],
-            'neria_color_text'          => $design['color_text'],
-            'neria_color_header_bg'     => $design['color_header_bg']   ?? '#ffffff',
-            'neria_color_footer_bg'     => $design['color_footer_bg']   ?? '#ffffff',
-            'neria_color_footer_text'   => $design['color_footer_text'] ?? '#a09990',
-
-            // Mode sombre
-            'neria_dark_mode'           => $design['dark_mode'] ? 'true' : 'false',
-
-            // Mise en page
-            'neria_container_width'     => $design['container_width'],
-            'neria_logo_width'          => $design['logo_width'],
-            'neria_logo_url'            => $this->resolveLogoUrl($design['logo_path']),
-
-            // Typographie
-            'neria_font_family'         => $this->fonts()->getCssFamilyForLang($lang),
-            'neria_font_heading_family' => $this->config->getHeadingFontFamily($design['font_heading'] ?? 'Cormorant Garamond'),
-            'neria_google_font_link'    => $this->googleFontLinks($lang, $design['font_heading'] ?? 'Cormorant Garamond'),
-
-            // Bouton
-            'neria_btn_radius'          => (int) ($design['btn_radius'] ?? 2),
-            'neria_btn_color'           => $design['btn_color'] ?? '#2b2520',
-
-            // Espacement
-            'neria_section_padding'     => (int) ($design['section_padding'] ?? 40),
-            'neria_block_spacing'       => (int) ($design['block_spacing']   ?? 48),
-
-            // Séparateur et ombre
-            'neria_separator_css'       => \ConfigManager::getSeparatorCss($design['separator_style'] ?? 'line'),
-            'neria_card_shadow'         => \ConfigManager::getCardShadowCss($design['card_shadow'] ?? 'soft'),
-
-            // Typographie corps
-            'neria_font_size'           => (int) ($design['font_size'] ?? 14),
-            'neria_line_height'         => number_format((float) ($design['line_height'] ?? 1.8), 1, '.', ''),
-            'neria_heading_weight'      => (int) ($design['heading_weight'] ?? 600),
-
-            // RTL
-            'neria_dir'                 => $this->engine->isRtl($lang) ? 'rtl' : 'ltr',
-            'neria_text_align'          => $this->engine->isRtl($lang) ? 'right' : 'left',
-            'neria_is_rtl'              => $this->engine->isRtl($lang),
-
-            // Langue
-            'neria_lang'                => $lang,
-        ]);
-    }
 
     /**
      * Injecte les liens rÃ©seaux sociaux dans les templateVars
