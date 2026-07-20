@@ -261,7 +261,7 @@
             {$lang_flags[$code]|default:''} {$label} <span style="color:#6b6459;font-weight:400;">({$code})</span>
           </label>
           <input type="text" name="neria_fallback_{$code}" class="neria-input"
-                 placeholder="{$firstname_fallbacks[$code]|default:''}"
+                 placeholder="{$firstname_fallbacks[$code]|default:''|escape:'html'}"
                  value="{$firstname_fallbacks[$code]|default:''|escape:'html'}">
         </div>
       {/foreach}
