@@ -162,7 +162,7 @@ window.neriaAjaxUrl = function(action, extra) {
       <input type="hidden" name="neria_action" value="save_deepl_key">
       <input type="password" name="deepl_key" id="neria-deepl-key-input" class="neria-input"
              placeholder="{neria_admin key='translations.deepl_key_placeholder' esc='html'}"
-             value="{$deepl_key|default:''}">
+             value="{$deepl_key|default:''|escape:'html'}">
       <button type="button" id="neria-deepl-toggle-vis" class="neria-btn neria-btn--secondary neria-btn--sm"
               title="{neria_admin key='translations.toggle_visibility_title' esc='html'}"
               onclick="var f=document.getElementById('neria-deepl-key-input');f.type=f.type==='password'?'text':'password';">👁</button>

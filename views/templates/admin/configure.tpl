@@ -599,7 +599,7 @@
       </label>
       <input type="url" id="neria-carbon-link" name="neria_carbon_link"
              class="neria-input" placeholder="https://…"
-             value="{$carbon_link|default:''}">
+             value="{$carbon_link|default:''|escape:'html'}">
     </div>
 
     <p class="neria-hint" style="margin-top:10px;">
@@ -836,7 +836,7 @@
       <input type="email" id="neria-report-recipients" name="neria_report_recipients"
              class="neria-input" style="max-width:380px;"
              placeholder="{neria_admin key='configure.report_recipients_placeholder'}"
-             value="{$report_recipients|default:''}">
+             value="{$report_recipients|default:''|escape:'html'}">
       <p class="neria-hint">{neria_admin key='configure.report_recipients_hint'}</p>
     </div>
 
