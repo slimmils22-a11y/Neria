@@ -171,6 +171,8 @@ class HealthCheckManager
             'i18n_pattern_risks'    => $this->checkI18nPatternRisks(),
             'idlang_missing'        => $this->checkMissingIdLangInLinks(),
             'version_files_sync'    => $this->checkModuleVersionFilesSync(),
+            'translation_dict_coverage' => $this->checkTranslationDictionaryCoverage(),
+            'clickable_tracking_links'  => $this->checkClickableTrackingLinks(),
             'txt_placeholder_coverage' => $this->checkTxtPlaceholderCoverage(),
             'orphaned_voucher_reservations' => $this->checkOrphanedVoucherReservations(),
             'orphaned_waitlist_claims' => $this->checkOrphanedWaitlistClaims(),
@@ -888,6 +890,134 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.version_files_sync_ok', ['version' => $codeVersion])];
+    }
+
+    /**
+     * Contrôle statique : les 4 dictionnaires de traduction indépendants du
+     * module (translations.json, admin_translations.json,
+     * template_labels_i18n.json, academy/{lang}.json) doivent tous couvrir
+     * l'intégralité de TranslationEngine::SUPPORTED_LANGS. Compare l'UNION
+     * des langues présentes dans tout le fichier (pas clé par clé — d'autres
+     * contrôles couvrent déjà les clés isolées manquantes) pour détecter
+     * spécifiquement un bloc de langue entier oublié dans un dictionnaire —
+     * exactement le bug du 2026-07-11 (chantier en-GB : translations.json
+     * traité mais admin_translations.json resté sans aucun bloc "gb", BO
+     * d'un marchand UK resté en anglais américain malgré des emails
+     * corrects). Cf. feedback_check_all_translation_dictionaries.
+     */
+    private function checkTranslationDictionaryCoverage(): array
+    {
+        $expected = TranslationEngine::SUPPORTED_LANGS;
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $offenders = [];
+
+        $collectUnionDepth2 = function (string $path) {
+            $data = is_file($path) ? json_decode(file_get_contents($path) ?: '', true) : null;
+            $langs = [];
+            if (is_array($data)) {
+                foreach ($data as $entry) {
+                    if (is_array($entry)) {
+                        foreach (array_keys($entry) as $k) {
+                            $langs[$k] = true;
+                        }
+                    }
+                }
+            }
+            return array_keys($langs);
+        };
+
+        $dictionaries = [
+            'translations.json' => $collectUnionDepth2($moduleDir . '/data/translations.json'),
+            'admin_translations.json' => (function () use ($moduleDir) {
+                $data = json_decode(file_get_contents($moduleDir . '/data/admin_translations.json') ?: '', true);
+                $langs = [];
+                if (is_array($data)) {
+                    foreach ($data as $entry) {
+                        if (is_array($entry)) {
+                            foreach (array_keys($entry) as $k) {
+                                $langs[$k] = true;
+                            }
+                        }
+                    }
+                }
+                return array_keys($langs);
+            })(),
+            'template_labels_i18n.json' => $collectUnionDepth2($moduleDir . '/data/template_labels_i18n.json'),
+        ];
+
+        foreach ($dictionaries as $file => $langsFound) {
+            $missing = array_diff($expected, $langsFound);
+            if ($missing) {
+                $offenders[] = "{$file} : " . implode(', ', $missing);
+            }
+        }
+
+        $academyMissing = [];
+        foreach ($expected as $lang) {
+            if (!is_file($moduleDir . "/data/academy/{$lang}.json")) {
+                $academyMissing[] = $lang;
+            }
+        }
+        if ($academyMissing) {
+            $offenders[] = 'academy/ : ' . implode(', ', $academyMissing);
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.translation_dict_coverage_warning', ['list' => implode(' | ', $offenders)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.translation_dict_coverage_ok')];
+    }
+
+    /**
+     * Contrôle statique : les clés history_info / guest_tracking_info /
+     * tracking_info de translations.json doivent contenir un lien cliquable
+     * (<a href>), pas du texte brut — sinon le client ne peut pas suivre sa
+     * commande depuis l'email. Cf. feedback_clickable_links (validé lors du
+     * test du template cheque le 2026-06-07).
+     */
+    private function checkClickableTrackingLinks(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $path = $moduleDir . '/data/translations.json';
+        $data = is_file($path) ? json_decode(file_get_contents($path) ?: '', true) : null;
+        $offenders = [];
+
+        $watchedKeys = ['history_info', 'guest_tracking_info', 'tracking_info'];
+
+        if (is_array($data)) {
+            foreach ($data as $template => $byLang) {
+                if (!is_array($byLang)) {
+                    continue;
+                }
+                foreach ($byLang as $lang => $keys) {
+                    if (!is_array($keys)) {
+                        continue;
+                    }
+                    foreach ($watchedKeys as $wk) {
+                        if (isset($keys[$wk]) && is_string($keys[$wk]) && $keys[$wk] !== '' && stripos($keys[$wk], '<a href') === false) {
+                            $offenders[] = "{$template}/{$lang}/{$wk}";
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($offenders) {
+            $sample = array_slice($offenders, 0, 8);
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.clickable_tracking_links_warning', [
+                    'count' => count($offenders),
+                    'sample' => implode(', ', $sample),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.clickable_tracking_links_ok')];
     }
 
     /**
