@@ -251,10 +251,12 @@
         <div class="ns-option-card__label">{neria_admin key='seasonal.status_label'}</div>
         <input type="hidden" id="ns-is-active-val" name="seasonal_is_active" value="{if !$is_edit || $seasonal_edit.is_active}1{else}0{/if}">
         <button type="button" id="ns-btn-active"
-          onclick="nsToggleBtn(this,'ns-is-active-val','{neria_admin key='seasonal.active_label' esc='javascript'}','{neria_admin key='seasonal.inactive_label' esc='javascript'}','#16a34a','#dc2626')"
-          style="padding:8px 20px;border-radius:20px;border:none;cursor:pointer;font-size:13px;font-weight:700;
-                 background:{if !$is_edit || $seasonal_edit.is_active}#16a34a{else}#dc2626{/if};color:#fff;">
-          {if !$is_edit || $seasonal_edit.is_active}● {neria_admin key='seasonal.active_label'}{else}○ {neria_admin key='seasonal.inactive_label'}{/if}
+          onclick="nsToggleBtn(this,'ns-is-active-val','{neria_admin key='stats.toggle_active_off' esc='javascript'}','{neria_admin key='stats.toggle_inactive_on' esc='javascript'}','#1a7a40','#c0392b')"
+          style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px;
+                 background:{if !$is_edit || $seasonal_edit.is_active}#1a7a40{else}#c0392b{/if};
+                 color:#fff; border:none; border-radius:4px; font-size:12px;
+                 font-weight:700; cursor:pointer; letter-spacing:.04em;">
+          {if !$is_edit || $seasonal_edit.is_active}{neria_admin key='stats.toggle_active_off'}{else}{neria_admin key='stats.toggle_inactive_on'}{/if}
         </button>
         <p class="neria-hint" style="margin-top:8px;">{neria_admin key='seasonal.status_hint'}</p>
       </div>
@@ -264,10 +266,12 @@
         <div class="ns-option-card__label">{neria_admin key='seasonal.gift_mode_label'}</div>
         <input type="hidden" id="ns-gift-mode-val" name="seasonal_gift_mode" value="{if $is_edit && $seasonal_edit.gift_mode}1{else}0{/if}">
         <button type="button" id="ns-btn-gift"
-          onclick="nsToggleBtn(this,'ns-gift-mode-val','{neria_admin key='seasonal.enabled_label' esc='javascript'}','{neria_admin key='seasonal.disabled_label' esc='javascript'}','#16a34a','#dc2626')"
-          style="padding:8px 20px;border-radius:20px;border:none;cursor:pointer;font-size:13px;font-weight:700;
-                 background:{if $is_edit && $seasonal_edit.gift_mode}#16a34a{else}#dc2626{/if};color:#fff;">
-          {if $is_edit && $seasonal_edit.gift_mode}● {neria_admin key='seasonal.enabled_label'}{else}○ {neria_admin key='seasonal.disabled_label'}{/if}
+          onclick="nsToggleBtn(this,'ns-gift-mode-val','{neria_admin key='stats.toggle_active_off' esc='javascript'}','{neria_admin key='stats.toggle_inactive_on' esc='javascript'}','#1a7a40','#c0392b')"
+          style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px;
+                 background:{if $is_edit && $seasonal_edit.gift_mode}#1a7a40{else}#c0392b{/if};
+                 color:#fff; border:none; border-radius:4px; font-size:12px;
+                 font-weight:700; cursor:pointer; letter-spacing:.04em;">
+          {if $is_edit && $seasonal_edit.gift_mode}{neria_admin key='stats.toggle_active_off'}{else}{neria_admin key='stats.toggle_inactive_on'}{/if}
         </button>
         <p class="neria-hint" style="margin-top:8px;">
           {neria_admin key='seasonal.gift_mode_hint'}
@@ -441,10 +445,13 @@
 
 <script>
 function nsToggleBtn(btn, inputId, labelOn, labelOff, colorOn, colorOff) {
+  // labelOn/labelOff sont les libellés standard du module ("● Actif —
+  // Désactiver" / "○ Inactif — Activer"), puce déjà incluse — ne pas la
+  // rajouter ici, sinon elle apparaît en double après un clic.
   var input = document.getElementById(inputId);
   var isOn  = input.value === '1';
   input.value       = isOn ? '0' : '1';
-  btn.textContent   = isOn ? '○ ' + labelOff : '● ' + labelOn;
+  btn.textContent   = isOn ? labelOff : labelOn;
   btn.style.background = isOn ? colorOff : colorOn;
 }
 
