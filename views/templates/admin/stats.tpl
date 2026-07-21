@@ -1416,7 +1416,6 @@ var _nhmLbl = {
     {/if}
   </div>
 </div>
-</div>
 {/if}
 
 {if $neria_menu_visible.search_console}
