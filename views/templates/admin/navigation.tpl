@@ -128,7 +128,7 @@
           {if $neria_menu_visible.multi_sender}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-senders">✉ {neria_admin key='nav.sub_senders'}</a></li>{/if}
           {if $neria_menu_visible.blacklist}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-blacklist">🚫 {neria_admin key='nav.sub_blacklist'}</a></li>{/if}
           {if $neria_menu_visible.monthly_report}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-report">📅 {neria_admin key='nav.sub_report'}</a></li>{/if}
-          {if $neria_menu_visible.upcoming_events}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-upcoming">🎉 {neria_admin key='nav.sub_upcoming'}</a></li>{/if}
+          {if $neria_menu_visible.upcoming_events && $neria_has_upcoming_events}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-upcoming">🎉 {neria_admin key='nav.sub_upcoming'}</a></li>{/if}
           {if $neria_menu_visible.custom_vars}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-customvars">⚙ {neria_admin key='nav.sub_customvars'}</a></li>{/if}
           {if $neria_menu_visible.signature}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-signature">✍ {neria_admin key='nav.sub_signature'}</a></li>{/if}
           {if $neria_menu_visible.preferences}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=configure#neria-cfg-preferences">✉ {neria_admin key='nav.sub_preferences'}</a></li>{/if}
@@ -179,7 +179,7 @@
           {if $neria_menu_visible.health_kpi}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-health-kpi-banner">🛡 {neria_admin key='nav.sub_health_kpi'}</a></li>{/if}
           {if $neria_menu_visible.engagement}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-engagement-chart-section">📊 {neria_admin key='nav.sub_engagement'}</a></li>{/if}
           {if $neria_menu_visible.heatmap}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-heatmap-section">🌡 {neria_admin key='nav.sub_heatmap'}</a></li>{/if}
-          {if $neria_menu_visible.monthly_comparison}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-monthly-comparison">📅 {neria_admin key='nav.sub_monthly_comparison'}</a></li>{/if}
+          {if $neria_menu_visible.monthly_comparison && $neria_has_monthly_comparison}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-monthly-comparison">📅 {neria_admin key='nav.sub_monthly_comparison'}</a></li>{/if}
           {if $neria_menu_visible.revenue_attribution}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-revenue-attribution">◈ {neria_admin key='nav.sub_revenue_attribution'}</a></li>{/if}
           {if $neria_has_active_abtest}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-abtest-focus">⇋ {neria_admin key='nav.sub_abtest_focus'}</a></li>{/if}
           {if $neria_menu_visible.domain_rep}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-domain-rep">🔒 {neria_admin key='nav.sub_domain_rep'}</a></li>{/if}
@@ -193,7 +193,7 @@
           {if $neria_menu_visible.relationship_anniversary}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-relationship-anniversary-section">🎂 {neria_admin key='nav.sub_relationship_anniversary'}</a></li>{/if}
           {if $neria_menu_visible.upsell}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-upsell-section">⬆ {neria_admin key='nav.sub_upsell'}</a></li>{/if}
           {if $neria_menu_visible.propensity}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-propensity-section">🎯 {neria_admin key='nav.sub_propensity'}</a></li>{/if}
-          {if $neria_menu_visible.golden_hour}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-golden-hour-section">✦ {neria_admin key='nav.sub_golden_hour'}</a></li>{/if}
+          {if $neria_menu_visible.golden_hour && $neria_has_golden_hour_data}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-golden-hour-section">✦ {neria_admin key='nav.sub_golden_hour'}</a></li>{/if}
           {if $neria_menu_visible.purchase_window}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-purchase-window-section">⏰ {neria_admin key='nav.sub_purchase_window'}</a></li>{/if}
           {if $neria_menu_visible.lifespan}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-lifespan-section">⏳ {neria_admin key='nav.sub_lifespan'}</a></li>{/if}
           {if $neria_menu_visible.reconciliation}<li><a class="neria-nav-dropdown__item" href="{$neria_tab_base}&neria_tab=stats#neria-reconciliation-section">↩ {neria_admin key='nav.sub_reconciliation'}</a></li>{/if}

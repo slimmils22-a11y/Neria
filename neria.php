@@ -5041,7 +5041,16 @@ class Neria extends Module
                 return $cached;
             })() : [],
             'stats_days'       => (int) Tools::getValue('stats_days', 30),
-            'golden_hour'      => (new GoldenHourManager())->getRecommendations(90),
+            'golden_hour'      => $goldenHourData = (new GoldenHourManager())->getRecommendations(90),
+            // Réutilisés par navigation.tpl pour masquer les liens de menu
+            // "L'Heure d'Or" / "Comparatif mensuel" quand ils n'ont encore
+            // aucune donnée à afficher — même bug que celui trouvé sur le
+            // lien A/B Testing (ancre absente du DOM, clic sans effet
+            // visible). Ces deux sections restent conditionnelles dans
+            // stats.tpl lui-même ({if isset($golden_hour)&&count>0} /
+            // {if $mc && isset($mc.current)}) : ce booléen doit refléter
+            // exactement la même condition, pas une approximation.
+            'neria_has_golden_hour_data' => !empty($goldenHourData),
             'revenue'          => ($activeTab === 'stats') ? (new StatsManager($this))->getRevenueStats(90) : [],
             'currency_symbol'  => $this->context->currency->sign ?? '€',
 
@@ -5059,11 +5068,25 @@ class Neria extends Module
             'top_templates_open'      => ($activeTab === 'stats') ? $stats->getTopTemplatesByMetric('rate_open', 10)  : [],
             'top_templates_click'     => ($activeTab === 'stats') ? $stats->getTopTemplatesByMetric('rate_click', 10) : [],
             'top_templates_revenue'   => ($activeTab === 'stats') ? $stats->getTopTemplatesByRevenue(10) : [],
-            'monthly_comparison'      => ($activeTab === 'stats') ? $stats->getMonthlyComparison() : [],
+            // Calculé sans condition sur $activeTab (contrairement aux autres
+            // blocs stats.tpl ci-dessus) : navigation.tpl est rendu sur TOUS
+            // les onglets, pas seulement Stats, et a besoin de savoir si la
+            // section a de vraies données AVANT que le marchand n'y clique —
+            // sinon neria_has_monthly_comparison serait toujours false hors
+            // de l'onglet Stats (tableau vide par défaut), masquant le lien
+            // à tort même quand la comparaison existe réellement.
+            'monthly_comparison'      => $monthlyComparisonData = $stats->getMonthlyComparison(),
+            'neria_has_monthly_comparison' => isset($monthlyComparisonData['current']),
             'health_score'            => ($activeTab === 'stats') ? $stats->getHealthScore() : [],
 
             // Prochaines occasions calendaires (onglet configure)
-            'upcoming_events'  => $calendar->getUpcomingDates(),
+            'upcoming_events'  => $upcomingEventsData = $calendar->getUpcomingDates(),
+            // Même besoin que golden_hour/monthly_comparison ci-dessus : la
+            // section "Prochaines occasions" de configure.tpl est elle aussi
+            // conditionnelle sur les données ({if isset($upcoming_events) &&
+            // count>0}), et navigation.tpl doit refléter exactement la même
+            // condition pour ne pas afficher un lien de menu mort.
+            'neria_has_upcoming_events' => !empty($upcomingEventsData),
 
             // Polices : $font_scripts = metadata scripts, $fonts_by_script = polices par script
             'font_scripts'     => $fonts->getAllScripts(),

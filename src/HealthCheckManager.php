@@ -683,6 +683,48 @@ class HealthCheckManager
             }
         }
 
+        // Bug du 2026-07-21 : plusieurs liens du menu déroulant (Stats et
+        // Accueil) pointent vers des ancres à l'intérieur de sections qui ne
+        // sont rendues QUE si des données existent (L'Heure d'Or, Comparatif
+        // mensuel, Prochaines occasions — même constat déjà fait pour le
+        // lien A/B Testing). Sans un booléen dédié reflétant EXACTEMENT la
+        // même condition que stats.tpl/configure.tpl, le lien de menu reste
+        // affiché même quand l'ancre n'existe pas dans le DOM : le clic
+        // ramène en haut de page sans aucune indication pour le marchand.
+        $navFile = _PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/navigation.tpl';
+        $navSrc  = is_file($navFile) ? (file_get_contents($navFile) ?: '') : '';
+        if ($navSrc === '') {
+            $offenders[] = 'navigation.tpl introuvable';
+        } else {
+            $conditionalNavLinks = [
+                'neria-golden-hour-section' => 'neria_has_golden_hour_data',
+                'neria-monthly-comparison'  => 'neria_has_monthly_comparison',
+                'neria-cfg-upcoming'        => 'neria_has_upcoming_events',
+                'neria-abtest-focus'        => 'neria_has_active_abtest',
+            ];
+            foreach ($conditionalNavLinks as $anchor => $flag) {
+                // Le lien tient sur une seule ligne ({if ...}<li><a ...
+                // #anchor...>...</a></li>{/if}) — chercher la ligne complète
+                // contenant l'ancre, PAS juste l'intérieur du {if ...} (qui se
+                // termine par sa propre accolade fermante avant même que
+                // l'ancre n'apparaisse dans le href).
+                foreach (preg_split('/\r\n|\r|\n/', $navSrc) as $line) {
+                    if (strpos($line, $anchor) === false || strpos($line, '{if') === false) {
+                        continue;
+                    }
+                    if (strpos($line, $flag) === false) {
+                        $offenders[] = "navigation.tpl : le lien vers #{$anchor} n'est plus gardé par \${$flag} (section conditionnelle sur des données — lien mort possible)";
+                    }
+                    break;
+                }
+            }
+            if (strpos($mainSrc, 'neria_has_golden_hour_data') === false
+                || strpos($mainSrc, 'neria_has_monthly_comparison') === false
+                || strpos($mainSrc, 'neria_has_upcoming_events') === false) {
+                $offenders[] = 'neria.php : un des booléens neria_has_golden_hour_data/neria_has_monthly_comparison/neria_has_upcoming_events a disparu';
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
