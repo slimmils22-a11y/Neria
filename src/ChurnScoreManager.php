@@ -106,6 +106,26 @@ class ChurnScoreManager
             return 0;
         }
 
+        // Bug du 2026-07-21 : un client tout juste inscrit (aucun envoi
+        // au-delà des 30 derniers jours, donc sent_p2 = sent_p3 = 0) n'a
+        // logiquement pas encore ouvert grand-chose — mais computeScore()
+        // traitait ce manque de données comme un signal de risque MAXIMAL
+        // (récence=40 car jamais ouvert, taux récent=30 car 0 ouverture,
+        // tendance=10 par défaut) : score ≈ 80, "risque élevé" immédiat.
+        // Un score de CHURN suppose un déclin depuis un engagement passé —
+        // sans au moins 30 jours d'historique antérieur, il n'y a rien à
+        // comparer. On exclut donc ces clients du recalcul (aucune ligne
+        // insérée = getCustomerScore()/getHighRiskCustomers() les ignorent
+        // naturellement), plutôt que de leur assigner un faux risque élevé
+        // qui pollue la liste des clients réellement à relancer.
+        $rows = array_values(array_filter($rows, function (array $r): bool {
+            return (int) $r['sent_p2'] > 0 || (int) $r['sent_p3'] > 0;
+        }));
+
+        if (empty($rows)) {
+            return 0;
+        }
+
         $table    = _DB_PREFIX_ . self::TABLE;
         $now      = date('Y-m-d H:i:s');
         $inserted = 0;
