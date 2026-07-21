@@ -725,6 +725,30 @@ class HealthCheckManager
             }
         }
 
+        // Bug du 2026-07-21 : help.tpl fermait lui-même les wrappers
+        // .neria-bo-content/.neria-bo-wrap (résidu d'avant le refactor des
+        // onglets), alors que neria.php::getContent() les ouvre/ferme UNE
+        // seule fois autour du rendu de l'onglet actif. Ces 2 </div> en trop
+        // fermaient prématurément le conteneur parent, cassant l'imbrication
+        // DOM (même symptôme que le bug de largeur déjà corrigé sur
+        // stats.tpl : sections rendues en frère de .neria-bo-wrap au lieu
+        // d'être imbriquées dans .neria-bo-content). Contrôle générique, PAR
+        // COMPTAGE (pas par recherche de chaîne — la classe .neria-bo-wrap
+        // est aussi réutilisée localement, ex. seasonal.tpl, sans rapport
+        // avec le wrapper global) : chaque template admin doit contenir
+        // exactement autant de <div> que de </div>. Un déséquilibre signifie
+        // qu'un template ferme (ou ouvre) une balise qui ne lui appartient
+        // pas.
+        $adminTplDir = _PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/';
+        foreach (glob($adminTplDir . '*.tpl') ?: [] as $tplFile) {
+            $tplSrc = file_get_contents($tplFile) ?: '';
+            $opens  = preg_match_all('/<div\b/', $tplSrc);
+            $closes = preg_match_all('/<\/div>/', $tplSrc);
+            if ($opens !== $closes) {
+                $offenders[] = basename($tplFile) . " : {$opens} <div> pour {$closes} </div> (balises déséquilibrées — imbrication DOM potentiellement cassée)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,

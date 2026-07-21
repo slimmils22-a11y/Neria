@@ -1327,6 +1327,3 @@ window.NERIA_HELP_L10N = {
 </script>
 {/literal}
 
-{* ── Fermeture du wrapper principal (ouvert dans navigation.tpl) *}
-  </div>{* .neria-bo-content *}
-</div>{* .neria-bo-wrap *}
