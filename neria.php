@@ -5139,7 +5139,13 @@ class Neria extends Module
 
             // Variables pour abtest.tpl
             'eligible_templates' => (new ABTestManager($this))->getEligibleTemplates(),
-            'tests_status'       => $this->getAbtestStatusMap(new ABTestManager($this)),
+            'tests_status'       => $abtestStatusMap = $this->getAbtestStatusMap(new ABTestManager($this)),
+            // Réutilisé par navigation.tpl pour masquer le lien "A/B Testing"
+            // du menu déroulant Stats quand aucun test n'est actif — sans ça
+            // le lien pointe vers une ancre absente du DOM (section
+            // conditionnelle dans stats.tpl) et le clic ne fait rien de
+            // visible, sans aucune indication pour le marchand.
+            'neria_has_active_abtest' => in_array('active', $abtestStatusMap, true),
             'tests_data'         => $this->getAbtestDataMap(new ABTestManager($this)),
             'ab_reports'         => $this->getAbtestReportsMap($stats, new ABTestManager($this)),
             'ab_history'         => class_exists('ABTestManager') ? (new ABTestManager($this))->getHistory(30) : [],
