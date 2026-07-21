@@ -380,6 +380,9 @@ class MultiClientPreviewManager
     public function pollLitmus(string $testId): array
     {
         $key = \CryptoManager::decrypt(trim((string) \Configuration::get(self::CONFIG_LITMUS_KEY)));
+        if (!$key) {
+            return [];
+        }
 
         $ch = curl_init("https://api.litmus.com/v1/tests/{$testId}/results");
         curl_setopt_array($ch, [
@@ -463,6 +466,9 @@ class MultiClientPreviewManager
     public function pollEmailOnAcid(string $testId): array
     {
         $key = \CryptoManager::decrypt(trim((string) \Configuration::get(self::CONFIG_EOA_KEY)));
+        if (!$key) {
+            return [];
+        }
 
         $ch = curl_init("https://api.emailonacid.com/v6/emails/{$testId}/results");
         curl_setopt_array($ch, [
