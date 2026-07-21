@@ -110,12 +110,21 @@ class UpsellManager
      * Raccourci pour les campagnes saisonnières "idées cadeaux" :
      * cherche la dernière commande valide du client et retourne le bloc HTML upsell.
      * Retourne une chaîne vide si aucun produit ne peut être suggéré.
+     *
+     * $idShop obligatoire : sans ce filtre, un client partagé entre
+     * boutiques (compte client mutualisé) reçoit une suggestion basée sur
+     * sa dernière commande TOUTES boutiques confondues — produit pouvant
+     * être absent du catalogue de la boutique qui envoie la campagne
+     * (image/lien cassés), ou simple fuite d'information entre boutiques.
+     * Même raisonnement que le scope id_shop déjà appliqué partout ailleurs
+     * dans BehavioralCronManager.
      */
-    public function renderUpsellBlock(int $idCustomer, int $idLang): string
+    public function renderUpsellBlock(int $idCustomer, int $idLang, int $idShop): string
     {
         $row = $this->db->getRow(
             "SELECT id_order FROM `{$this->prefix}orders`
              WHERE id_customer = " . (int) $idCustomer . "
+               AND id_shop = " . (int) $idShop . "
                AND valid = 1
              ORDER BY date_add DESC"
         );
@@ -128,7 +137,7 @@ class UpsellManager
             return '';
         }
 
-        $config = new \ConfigManager();
+        $config = new \ConfigManager($this->module);
         return $this->buildHtmlBlock($upsell, $config);
     }
 

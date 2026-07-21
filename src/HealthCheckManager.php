@@ -751,6 +751,35 @@ class HealthCheckManager
             }
         }
 
+        // Bug du 2026-07-21 : deux régressions trouvées en généralisant la
+        // vérification id_shop à UpsellManager::renderUpsellBlock() (appelé
+        // par les campagnes saisonnières "idées cadeaux") :
+        // 1. `new \ConfigManager()` sans argument — le constructeur exige
+        //    un Neria $module. Cette erreur fatale était silencieusement
+        //    avalée par le try/catch de SeasonalCampaignManager, donc
+        //    JAMAIS remontée au marchand : le mode cadeaux envoyait ses
+        //    emails sans jamais inclure le bloc suggestion de produit,
+        //    depuis la création de la fonctionnalité.
+        // 2. La recherche de la dernière commande valide du client
+        //    n'était pas filtrée par id_shop — un client partagé entre
+        //    boutiques pouvait recevoir une suggestion basée sur une
+        //    commande d'une AUTRE boutique (produit hors catalogue,
+        //    fuite d'information entre boutiques).
+        $upsellFile = _PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php';
+        $upsellSrc  = is_file($upsellFile) ? (file_get_contents($upsellFile) ?: '') : '';
+        if ($upsellSrc === '') {
+            $offenders[] = 'UpsellManager.php introuvable';
+        } else {
+            if (preg_match('/new\s+\\\\?ConfigManager\s*\(\s*\)/', $upsellSrc)) {
+                $offenders[] = 'UpsellManager : new ConfigManager() est de nouveau appelé sans le module (erreur fatale silencieuse — le bloc suggestion du mode cadeaux ne serait plus jamais inclus)';
+            }
+            if (!preg_match('/function\s+renderUpsellBlock\s*\([^)]*int\s+\$idShop/', $upsellSrc)) {
+                $offenders[] = 'UpsellManager : renderUpsellBlock() n\'a plus de paramètre $idShop (suggestion potentiellement basée sur une commande d\'une autre boutique)';
+            } elseif (!preg_match('/renderUpsellBlock[\s\S]{0,400}?AND\s+id_shop\s*=/', $upsellSrc)) {
+                $offenders[] = 'UpsellManager : renderUpsellBlock() ne filtre plus la recherche de commande par id_shop';
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,

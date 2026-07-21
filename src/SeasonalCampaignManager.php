@@ -210,7 +210,7 @@ class SeasonalCampaignManager
                     if ($isGiftMode && class_exists('UpsellManager')) {
                         try {
                             $upsellHtml = (new \UpsellManager($this->module))
-                                ->renderUpsellBlock((int) $idCustomer, $idLang);
+                                ->renderUpsellBlock((int) $idCustomer, $idLang, (int) $this->idShop);
                         } catch (\Throwable $ue) {
                             // Pas bloquant — on envoie sans le bloc
                         }
