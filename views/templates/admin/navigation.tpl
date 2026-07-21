@@ -98,7 +98,17 @@
   <nav class="neria-bo-nav">
     <ul class="neria-bo-nav__list">
 
+      {* Retire aussi neria_success/neria_error/neria_action/neria_msg_action de
+         l'URL courante avant de reconstruire les liens de menu — sinon un
+         message de confirmation (ex: "Fonctionnalité activée.") issu d'un
+         precedent toggle reste coince dans la query string et reapparait
+         sur CHAQUE onglet visite ensuite, indefiniment, jusqu'a ce que
+         l'utilisateur recharge une URL sans ces parametres a la main. *}
       {assign var="neria_tab_base" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''}
+      {assign var="neria_tab_base" value=$neria_tab_base|regex_replace:'/&neria_success=[^&]*/':''}
+      {assign var="neria_tab_base" value=$neria_tab_base|regex_replace:'/&neria_error=[^&]*/':''}
+      {assign var="neria_tab_base" value=$neria_tab_base|regex_replace:'/&neria_action=[^&]*/':''}
+      {assign var="neria_tab_base" value=$neria_tab_base|regex_replace:'/&neria_msg_action=[^&]*/':''}
       <li class="neria-bo-nav__item neria-bo-nav__item--has-sub">
         <a href="{$neria_tab_base}&neria_tab=configure"
            class="neria-bo-nav__link {if $neria_active_tab === 'configure'}neria-bo-nav__link--active{/if}">
