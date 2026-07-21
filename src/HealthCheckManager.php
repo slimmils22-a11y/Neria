@@ -271,6 +271,8 @@ class HealthCheckManager
             // ── Ajouts 2026-07-16 (3e passage de scan Watchdog) ────────
             'stored_secrets_decryptable'  => $this->checkStoredSecretsDecryptable(),
             'calendar_json_integrity'     => $this->checkCalendarJsonIntegrity(),
+            // ── Ajout 2026-07-21 : checklist de première installation ──
+            'first_install_checklist'     => $this->checkFirstInstallChecklist(),
         ];
     }
 
@@ -6462,6 +6464,59 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.calendar_json_ok')];
+    }
+
+    /**
+     * Checklist de première installation — 2026-07-21.
+     *
+     * Suite au passage de Certificat/Upsell/Fidélité en actifs par défaut
+     * (v1.0.30), un marchand qui n'a jamais ouvert le module peut se
+     * retrouver à envoyer de vrais emails avec un contenu 100% générique
+     * (certificat en français neutre, paliers de fidélité par défaut sans
+     * rapport avec ses marges réelles) sans même le savoir. Ce contrôle
+     * n'est PAS un garde-fou de régression (il ne détecte pas un bug de
+     * code) : c'est un rappel informatif qui ne dégrade jamais le score
+     * de santé en continu — il s'efface de lui-même dès que le marchand
+     * personnalise le réglage concerné, OU après la fenêtre d'onboarding
+     * de 30 jours (au-delà, on cesse de le rappeler pour ne pas polluer
+     * un diagnostic par ailleurs propre sur une install ancienne qui a
+     * délibérément gardé les valeurs par défaut).
+     */
+    private function checkFirstInstallChecklist(): array
+    {
+        $installedAt = (string) \Configuration::get('NERIA_INSTALLED_AT');
+        $daysOld     = $installedAt ? (time() - (int) strtotime($installedAt)) / 86400 : 9999;
+
+        if ($daysOld > 30) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.first_install_past_window')];
+        }
+
+        $pending = [];
+
+        if ((bool) \Configuration::get('NERIA_CERT_ENABLED')
+            && class_exists('CertificateManager')
+            && \Configuration::get(\CertificateManager::CFG_TITLE) === false
+            && \Configuration::get(\CertificateManager::CFG_SUBTITLE) === false
+            && \Configuration::get(\CertificateManager::CFG_BODY) === false
+        ) {
+            $pending[] = AdminTranslator::t('health.first_install_cert_generic');
+        }
+
+        if ((bool) \Configuration::get('NERIA_LOYALTY_ENABLED')
+            && class_exists('LoyaltyManager')
+            && \Configuration::get(\LoyaltyManager::CONFIG_TIERS) === false
+        ) {
+            $pending[] = AdminTranslator::t('health.first_install_loyalty_default_tiers');
+        }
+
+        if (empty($pending)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.first_install_all_customized')];
+        }
+
+        return [
+            'status' => self::STATUS_WARNING,
+            'detail' => AdminTranslator::tVars('health.first_install_pending', ['list' => implode(' | ', $pending)]),
+        ];
     }
 
     /**

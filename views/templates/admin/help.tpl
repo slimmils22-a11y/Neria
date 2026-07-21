@@ -440,7 +440,8 @@
       'milestone_voucher_cartrule' => 'help.health_check_milestone_voucher_cartrule',
       'css_inliner_failures' => 'help.health_check_css_inliner_failures',
       'stored_secrets_decryptable' => 'help.health_check_stored_secrets_decryptable',
-      'calendar_json_integrity' => 'help.health_check_calendar_json_integrity'
+      'calendar_json_integrity' => 'help.health_check_calendar_json_integrity',
+      'first_install_checklist' => 'help.health_check_first_install_checklist'
     ]}
     <div class="neria-diag-grid">
       {foreach $health_results as $checkKey => $result}
