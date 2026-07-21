@@ -167,6 +167,7 @@ class HealthCheckManager
             'smarty_compile_check' => $this->checkSmartyCompileCheck(),
             'upgrade_script_safety' => $this->checkUpgradeScriptSafety(),
             'known_regressions_guard' => $this->checkKnownRegressionsGuard(),
+            'control_center_defaults_consistency' => $this->checkControlCenterDefaultsConsistency(),
             'sql_pattern_risks'     => $this->checkSqlPatternRisks(),
             'i18n_pattern_risks'    => $this->checkI18nPatternRisks(),
             'idlang_missing'        => $this->checkMissingIdLangInLinks(),
@@ -690,6 +691,175 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.known_regressions_ok')];
+    }
+
+    /**
+     * Contrôle statique PROSPECTIF, générique — pas la re-détection d'un bug
+     * déjà connu (cf. checkKnownRegressionsGuard()), mais la prévention de
+     * la FAMILLE de bug trouvée le 2026-07-21 sur le centre de contrôle
+     * pour TOUTE future entrée ajoutée à ConfigManager::CONTROL_CENTER_REGISTRY,
+     * pas seulement les 6 entrées déjà corrigées. Deux pièges génériques :
+     *
+     * 1. Clé fantôme : un 'enabled_key' déclaré dans le registre mais jamais
+     *    lu ni écrit ailleurs dans le code (comme NERIA_ATTRIBUTION_ENABLED)
+     *    — la feature est en réalité toujours active, sans interrupteur réel,
+     *    et devrait utiliser 'enabled_key' => null plutôt qu'une fausse clé.
+     * 2. Défaut incohérent : un 'enabled_key' dont le getter ConfigManager
+     *    correspondant (isXxxEnabled()) déclare un défaut à 1, mais dont la
+     *    clé n'est pas semée dans neria.php::setDefaultConfiguration() ET
+     *    sans 'default_if_unset' => true dans le registre — sur une install
+     *    jamais configurée, Configuration::getGlobalValue() renverrait false
+     *    et le centre de contrôle afficherait à tort "Inactif".
+     */
+    private function checkControlCenterDefaultsConsistency(): array
+    {
+        if (!class_exists('ConfigManager') || !defined('ConfigManager::CONTROL_CENTER_REGISTRY')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.cc_defaults_ok')];
+        }
+
+        $moduleDir  = _PS_MODULE_DIR_ . $this->module->name;
+        $configFile = $moduleDir . '/src/ConfigManager.php';
+        $mainFile   = $moduleDir . '/' . $this->module->name . '.php';
+        $configSrc  = is_file($configFile) ? (file_get_contents($configFile) ?: '') : '';
+        $mainSrc    = is_file($mainFile) ? (file_get_contents($mainFile) ?: '') : '';
+
+        if ($configSrc === '' || $mainSrc === '') {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.cc_defaults_ok')];
+        }
+
+        // Le reste du module référence souvent une clé de config via une
+        // CONSTANTE de classe (ex: BounceManager::CFG_ENABLED) plutôt que la
+        // chaîne littérale 'NERIA_BOUNCE_ENABLED' — grep sur tous les
+        // fichiers src/*.php pour retrouver, pour une clé donnée, tout nom de
+        // constante qui lui est égal, sans quoi la détection "clé fantôme"
+        // ci-dessous donnerait des faux positifs sur ces raccourcis courants.
+        // Retire uniquement les commentaires (docblocs inclus) avant analyse —
+        // sinon une clé morte simplement MENTIONNÉE dans un commentaire
+        // l'expliquant (comme ci-dessus pour NERIA_ATTRIBUTION_ENABLED) se
+        // compterait à tort comme un usage réel. Les littéraux de chaîne
+        // sont conservés : c'est justement ce qu'on cherche à compter.
+        $stripComments = static function (string $code): string {
+            $out = '';
+            foreach (token_get_all($code) as $token) {
+                if (is_array($token)) {
+                    if (in_array($token[0], [T_COMMENT, T_DOC_COMMENT], true)) {
+                        continue;
+                    }
+                    $out .= $token[1];
+                } else {
+                    $out .= $token;
+                }
+            }
+            return $out;
+        };
+
+        $srcFiles = glob($moduleDir . '/src/*.php') ?: [];
+        $allSrc   = ['ConfigManager.php' => $stripComments($configSrc), 'neria.php' => $stripComments($mainSrc)];
+        foreach ($srcFiles as $f) {
+            $base = basename($f);
+            if (!isset($allSrc[$base])) {
+                $allSrc[$base] = $stripComments(file_get_contents($f) ?: '');
+            }
+        }
+        $wholeModuleSrc = implode("\n", $allSrc);
+
+        // ── Map constante KEY_X => 'NERIA_X' (ConfigManager) ────────────
+        $constMap = [];
+        if (preg_match_all("/const\\s+(KEY_\\w+)\\s*=\\s*'([^']+)'/", $configSrc, $m, PREG_SET_ORDER)) {
+            foreach ($m as $mm) {
+                $constMap[$mm[1]] = $mm[2];
+            }
+        }
+
+        // ── Map clé de config => défaut déclaré par son getter isXxxEnabled() ──
+        $getterDefault = [];
+        if (preg_match_all(
+            "/return\\s*\\(bool\\)\\s*\\\$this->get\\(self::(KEY_\\w+),\\s*(\\d+)\\)/",
+            $configSrc,
+            $m2,
+            PREG_SET_ORDER
+        )) {
+            foreach ($m2 as $mm) {
+                if (isset($constMap[$mm[1]])) {
+                    $getterDefault[$constMap[$mm[1]]] = (int) $mm[2];
+                }
+            }
+        }
+
+        // ── Clés effectivement semées à l'installation (setDefaultConfiguration) ──
+        // Deux formes possibles dans le tableau $defaults : littérale
+        // ('NERIA_X' => ...) ou concaténée (self::CONFIG_PREFIX . 'X' => ...).
+        $seeded = [];
+        if (preg_match('/setDefaultConfiguration\(\)[^{]*\{(.*?)foreach\s*\(\s*\$defaults/s', $mainSrc, $blockMatch)) {
+            preg_match_all("/'(NERIA_[A-Z0-9_]+)'\\s*=>/", $blockMatch[1], $m3);
+            $seeded = $m3[1];
+            if (preg_match("/const\\s+CONFIG_PREFIX\\s*=\\s*'([^']+)'/", $mainSrc, $mp)) {
+                preg_match_all(
+                    "/self::CONFIG_PREFIX\\s*\\.\\s*'([A-Z0-9_]+)'\\s*=>/",
+                    $blockMatch[1],
+                    $m4
+                );
+                foreach ($m4[1] as $suffix) {
+                    $seeded[] = $mp[1] . $suffix;
+                }
+            }
+        }
+
+        // ── Trouve, pour une clé de config donnée, tout nom de CONSTANTE de
+        // classe (dans n'importe quel fichier src/*.php) qui lui est égale,
+        // puis vérifie si cette constante est utilisée ailleurs (Xxx::CONST
+        // ou self::CONST) — c'est la vraie détection d'usage, la clé brute
+        // n'apparaissant parfois qu'une fois, dans sa propre déclaration.
+        $isKeyReferencedElsewhere = function (string $key) use ($allSrc, $wholeModuleSrc): bool {
+            // Usage direct de la chaîne littérale (Configuration::get('NERIA_X') ...)
+            $literalOccurrences = substr_count($wholeModuleSrc, "'{$key}'");
+            if ($literalOccurrences >= 2) {
+                return true;
+            }
+            // Usage via une constante de classe qui vaut cette chaîne.
+            foreach ($allSrc as $src) {
+                if (preg_match_all("/const\\s+(\\w+)\\s*=\\s*'" . preg_quote($key, '/') . "'/", $src, $cm)) {
+                    foreach ($cm[1] as $constName) {
+                        if (preg_match('/\\w+::' . preg_quote($constName, '/') . '\\b/', $wholeModuleSrc)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        };
+
+        $offenders = [];
+
+        foreach (ConfigManager::CONTROL_CENTER_REGISTRY as $item) {
+            $key = $item['enabled_key'] ?? null;
+            if ($key === null) {
+                continue;
+            }
+
+            // 1. Clé fantôme : aucun usage réel trouvé ailleurs dans le module.
+            if (!$isKeyReferencedElsewhere($key)) {
+                $offenders[] = "{$item['key']} : {$key} n'est référencée nulle part ailleurs dans le module (clé fantôme probable — vérifier si cette feature a un vrai interrupteur, sinon enabled_key => null)";
+                continue;
+            }
+
+            // 2. Défaut incohérent : getter à 1, jamais semé, pas de fallback déclaré.
+            $trueDefault = $getterDefault[$key] ?? null;
+            $isSeeded    = in_array($key, $seeded, true);
+            $hasFallback = (bool) ($item['default_if_unset'] ?? false);
+            if ($trueDefault === 1 && !$isSeeded && !$hasFallback) {
+                $offenders[] = "{$item['key']} : {$key} est actif par défaut selon son getter ConfigManager mais n'est ni semé à l'install ni couvert par 'default_if_unset' (afficherait Inactif sur une boutique jamais configurée)";
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.cc_defaults_warning', ['list' => implode(' | ', $offenders)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.cc_defaults_ok')];
     }
 
     /**
