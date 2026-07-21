@@ -738,7 +738,12 @@ class ConfigManager
         // le centre de contrôle affiche alors la pastille Actif d'office.
         ['key' => 'monthly_comparison',   'scope' => 'stats_section', 'anchor' => 'neria-monthly-comparison',        'enabled_key' => null,                        'label_key' => 'nav.sub_monthly_comparison'],
         ['key' => 'health_kpi',           'scope' => 'stats_section', 'anchor' => 'neria-health-kpi-banner',         'enabled_key' => null,                        'label_key' => 'nav.sub_health_kpi'],
-        ['key' => 'revenue_attribution',  'scope' => 'stats_section', 'anchor' => 'neria-revenue-attribution',       'enabled_key' => 'NERIA_ATTRIBUTION_ENABLED', 'label_key' => 'nav.sub_revenue_attribution'],
+        // NERIA_ATTRIBUTION_ENABLED est une clé fantôme héritée : l'attribution
+        // de revenus (last-click 24h) est en réalité toujours active, sans
+        // interrupteur marchand — le cookie neria_ref est posé sans condition
+        // (cf. HealthCheckManager::checkAttributionCoverage(), même constat
+        // déjà fait et corrigé côté Watchdog pour ce même flag mort).
+        ['key' => 'revenue_attribution',  'scope' => 'stats_section', 'anchor' => 'neria-revenue-attribution',       'enabled_key' => null, 'label_key' => 'nav.sub_revenue_attribution'],
         ['key' => 'engagement',           'scope' => 'stats_section', 'anchor' => 'neria-engagement-chart-section',  'enabled_key' => null,                        'label_key' => 'nav.sub_engagement'],
         ['key' => 'heatmap',              'scope' => 'stats_section', 'anchor' => 'neria-heatmap-section',           'enabled_key' => null,                        'label_key' => 'nav.sub_heatmap'],
         ['key' => 'domain_rep',           'scope' => 'stats_section', 'anchor' => 'neria-domain-rep',                'enabled_key' => null,                        'label_key' => 'nav.sub_domain_rep'],
@@ -752,18 +757,29 @@ class ConfigManager
 
         // ── Onglet Accueil (configure.tpl) : sections du sous-menu ──────
         ['key' => 'auto_lang',            'scope' => 'configure_section', 'anchor' => 'neria-cfg-autolang',           'enabled_key' => self::KEY_AUTO_LANG,               'label_key' => 'nav.sub_autolang'],
-        ['key' => 'time_greeting',        'scope' => 'configure_section', 'anchor' => 'neria-cfg-time-greetings',     'enabled_key' => self::KEY_TIME_GREETING_ENABLED,   'label_key' => 'nav.sub_time_greetings'],
-        ['key' => 'firstname_fallback',   'scope' => 'configure_section', 'anchor' => 'neria-cfg-firstname-fallbacks','enabled_key' => self::KEY_FIRSTNAME_FALLBACK_ENABLED, 'label_key' => 'nav.sub_firstname_fallbacks'],
+        // 'default_if_unset' : ces 4 réglages sont actifs PAR DÉFAUT (chaque
+        // getter ConfigManager::isXEnabled() passe un défaut=1), mais ne sont
+        // jamais semés dans setDefaultConfiguration() — une install neuve
+        // n'a donc aucune ligne ps_configuration pour ces clés tant que le
+        // marchand n'a jamais touché le bouton. Sans ce fallback, une lecture
+        // brute Configuration::getGlobalValue() renvoie false et affiche
+        // à tort "Inactif" pour une feature qui fonctionne bien en Actif
+        // partout ailleurs dans le module.
+        ['key' => 'time_greeting',        'scope' => 'configure_section', 'anchor' => 'neria-cfg-time-greetings',     'enabled_key' => self::KEY_TIME_GREETING_ENABLED,   'default_if_unset' => true, 'label_key' => 'nav.sub_time_greetings'],
+        ['key' => 'firstname_fallback',   'scope' => 'configure_section', 'anchor' => 'neria-cfg-firstname-fallbacks','enabled_key' => self::KEY_FIRSTNAME_FALLBACK_ENABLED, 'default_if_unset' => true, 'label_key' => 'nav.sub_firstname_fallbacks'],
         ['key' => 'vouchers',             'scope' => 'configure_section', 'anchor' => 'neria-cfg-vouchers',           'enabled_key' => self::KEY_MILESTONE_VOUCHER_ENABLED, 'label_key' => 'nav.sub_vouchers'],
         ['key' => 'cooldown',             'scope' => 'configure_section', 'anchor' => 'neria-cfg-cooldown',           'enabled_key' => self::KEY_COOLDOWN_ENABLED,        'label_key' => 'nav.sub_cooldown'],
         ['key' => 'silent_witness',       'scope' => 'configure_section', 'anchor' => 'neria-cfg-archive',            'enabled_key' => null,                              'label_key' => 'nav.sub_silent_witness'],
         ['key' => 'carbon',               'scope' => 'configure_section', 'anchor' => 'neria-cfg-carbon',             'enabled_key' => self::KEY_CARBON_ENABLED,          'label_key' => 'nav.sub_carbon'],
-        ['key' => 'multi_sender',         'scope' => 'configure_section', 'anchor' => 'neria-cfg-senders',            'enabled_key' => self::KEY_MULTI_SENDER_ENABLED,    'label_key' => 'nav.sub_senders'],
+        ['key' => 'multi_sender',         'scope' => 'configure_section', 'anchor' => 'neria-cfg-senders',            'enabled_key' => self::KEY_MULTI_SENDER_ENABLED,    'default_if_unset' => true, 'label_key' => 'nav.sub_senders'],
         ['key' => 'blacklist',            'scope' => 'configure_section', 'anchor' => 'neria-cfg-blacklist',          'enabled_key' => null,                              'label_key' => 'nav.sub_blacklist'],
-        ['key' => 'monthly_report',       'scope' => 'configure_section', 'anchor' => 'neria-cfg-report',             'enabled_key' => 'NERIA_REPORT_ENABLED',            'label_key' => 'nav.sub_report'],
+        // NERIA_REPORT_ENABLED est également auto-réparé au premier appel de
+        // getReportEnabledConfig() (qui l'initialise à 1 si absent) — même
+        // besoin de fallback ici pour rester correct avant ce premier appel.
+        ['key' => 'monthly_report',       'scope' => 'configure_section', 'anchor' => 'neria-cfg-report',             'enabled_key' => 'NERIA_REPORT_ENABLED',            'default_if_unset' => true, 'label_key' => 'nav.sub_report'],
         ['key' => 'upcoming_events',      'scope' => 'configure_section', 'anchor' => 'neria-cfg-upcoming',           'enabled_key' => null,                              'label_key' => 'nav.sub_upcoming'],
         ['key' => 'custom_vars',          'scope' => 'configure_section', 'anchor' => 'neria-cfg-customvars',         'enabled_key' => null,                              'label_key' => 'nav.sub_customvars'],
-        ['key' => 'signature',            'scope' => 'configure_section', 'anchor' => 'neria-cfg-signature',          'enabled_key' => self::KEY_SIGNATURE_ENABLED,       'label_key' => 'nav.sub_signature'],
+        ['key' => 'signature',            'scope' => 'configure_section', 'anchor' => 'neria-cfg-signature',          'enabled_key' => self::KEY_SIGNATURE_ENABLED,       'default_if_unset' => true, 'label_key' => 'nav.sub_signature'],
         ['key' => 'preferences',          'scope' => 'configure_section', 'anchor' => 'neria-cfg-preferences',        'enabled_key' => null,                              'label_key' => 'nav.sub_preferences'],
         ['key' => 'loyalty',              'scope' => 'configure_section', 'anchor' => 'neria-loyalty-section',        'enabled_key' => 'NERIA_LOYALTY_ENABLED',           'label_key' => 'nav.sub_loyalty'],
     ];

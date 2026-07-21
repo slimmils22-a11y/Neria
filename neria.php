@@ -5969,9 +5969,23 @@ class Neria extends Module
             // toujours affichée Active dans le tableau, sur demande explicite
             // de l'utilisateur (2026-07-21), plutôt que de laisser un statut
             // ambigu pour une fonctionnalité qui n'a jamais été "désactivable".
-            $active = $item['enabled_key'] === null
-                ? true
-                : (bool) Configuration::getGlobalValue($item['enabled_key']);
+            if ($item['enabled_key'] === null) {
+                $active = true;
+            } else {
+                $raw = Configuration::getGlobalValue($item['enabled_key']);
+                // Certains réglages (time_greeting, firstname_fallback,
+                // multi_sender, signature, monthly_report) sont actifs par
+                // défaut selon leur propre getter ConfigManager, mais ne sont
+                // jamais semés dans setDefaultConfiguration() — sur une
+                // install jamais touchée par le marchand, $raw vaut false
+                // (aucune ligne en base) alors que la feature fonctionne
+                // réellement en Actif partout ailleurs. 'default_if_unset'
+                // restaure le vrai défaut dans ce cas précis, sans changer
+                // le comportement des réglages réellement opt-in (bounces,
+                // upsell, loyalty...) qui restent Inactif tant que $raw
+                // est absent.
+                $active = ($raw !== false) ? (bool) $raw : (bool) ($item['default_if_unset'] ?? false);
+            }
             $items[] = [
                 'key'     => $item['key'],
                 'label'   => AdminTranslator::t($item['label_key']),

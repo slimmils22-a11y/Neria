@@ -643,6 +643,45 @@ class HealthCheckManager
             }
         }
 
+        $configFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php';
+        $configSrc  = is_file($configFile) ? (file_get_contents($configFile) ?: '') : '';
+        if ($configSrc === '') {
+            $offenders[] = 'ConfigManager.php introuvable';
+        } else {
+            // Bug du 2026-07-21 : le centre de contrôle affichait "Inactif"
+            // pour des features réellement actives par défaut, pour deux
+            // raisons distinctes trouvées en réel :
+            // 1. revenue_attribution pointait vers NERIA_ATTRIBUTION_ENABLED,
+            //    une clé fantôme jamais écrite nulle part (l'attribution de
+            //    revenus est en réalité toujours active, sans interrupteur —
+            //    même constat déjà fait côté checkAttributionCoverage()).
+            if (preg_match(
+                "/'key'\\s*=>\\s*'revenue_attribution'.*?'enabled_key'\\s*=>\\s*'NERIA_ATTRIBUTION_ENABLED'/s",
+                $configSrc
+            )) {
+                $offenders[] = 'ConfigManager : revenue_attribution pointe de nouveau vers NERIA_ATTRIBUTION_ENABLED (clé fantôme jamais écrite — cette feature est toujours active, sans interrupteur réel)';
+            }
+            // 2. time_greeting/firstname_fallback/multi_sender/signature/
+            //    monthly_report sont actifs par défaut selon leur propre
+            //    getter ConfigManager (défaut=1), mais jamais semés dans
+            //    setDefaultConfiguration() — sans 'default_if_unset', une
+            //    install jamais touchée par le marchand les affiche à tort
+            //    Inactif.
+            foreach (['time_greeting', 'firstname_fallback', 'multi_sender', 'signature', 'monthly_report'] as $fk) {
+                if (!preg_match("/'key'\\s*=>\\s*'{$fk}'.*?'default_if_unset'\\s*=>\\s*true/s", $configSrc)) {
+                    $offenders[] = "ConfigManager : {$fk} a perdu son 'default_if_unset' => true (afficherait à tort Inactif sur une install jamais configurée)";
+                }
+            }
+        }
+
+        if ($mainSrc !== '') {
+            // Même bug, second volet : getControlCenterItems() doit exploiter
+            // ce 'default_if_unset', pas relire la config brute directement.
+            if (strpos($mainSrc, 'default_if_unset') === false) {
+                $offenders[] = 'neria.php : getControlCenterItems() n\'utilise plus default_if_unset (statut Actif/Inactif du centre de contrôle de nouveau faux sur install jamais configurée)';
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
