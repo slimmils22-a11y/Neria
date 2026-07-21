@@ -4703,7 +4703,12 @@ class Neria extends Module
 
         // ── Fidélité : cumul transversal boutiques (multi-boutique) ────
         if (Tools::getValue('neria_action') === 'loyalty_cross_shop_toggle') {
-            $current = (bool) Configuration::getGlobalValue('NERIA_LOYALTY_CROSS_SHOP_ENABLED');
+            // Lu via ConfigManager::isLoyaltyCrossShopEnabled() (défaut=true
+            // si jamais réglé), pas Configuration::getGlobalValue() brut —
+            // sinon une install jamais configurée lirait faux "Inactif" et
+            // le clic sur "Activer" ne ferait que confirmer l'état déjà
+            // actif au lieu de le désactiver comme le marchand le demande.
+            $current = (new ConfigManager($this))->isLoyaltyCrossShopEnabled();
             Configuration::updateGlobalValue('NERIA_LOYALTY_CROSS_SHOP_ENABLED', $current ? 0 : 1);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=configure&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-loyalty-section');
         }
@@ -5449,7 +5454,7 @@ class Neria extends Module
 
             // Variables pour la section Fidélité dans configure.tpl
             'loyalty_enabled'     => (bool) Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED'),
-            'loyalty_cross_shop_enabled' => (bool) Configuration::getGlobalValue('NERIA_LOYALTY_CROSS_SHOP_ENABLED'),
+            'loyalty_cross_shop_enabled' => (new ConfigManager($this))->isLoyaltyCrossShopEnabled(),
             'loyalty_tiers'       => class_exists('LoyaltyManager')
                 ? (new LoyaltyManager($this))->getTiers()
                 : LoyaltyManager::DEFAULT_TIERS,
@@ -6361,6 +6366,7 @@ class Neria extends Module
             'NERIA_CERT_ENABLED'                     => 1,
             'NERIA_UPSELL_ENABLED'                   => 1,
             'NERIA_LOYALTY_ENABLED'                  => 1,
+            'NERIA_LOYALTY_CROSS_SHOP_ENABLED'       => 1,
             self::CONFIG_PREFIX . 'VOUCHER_VALIDITY'          => 30,
             self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_AMOUNT'   => 10,
             self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_PERCENT'  => 1,
