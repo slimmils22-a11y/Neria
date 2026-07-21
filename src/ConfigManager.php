@@ -719,10 +719,10 @@ class ConfigManager
     const CONTROL_CENTER_REGISTRY = [
         ['key' => 'abtest',                   'scope' => 'tab',           'tab' => 'abtest',       'enabled_key' => self::KEY_ABTEST_ENABLED,        'label_key' => 'nav.abtest'],
         ['key' => 'bounces',                  'scope' => 'tab',           'tab' => 'bounces',      'enabled_key' => 'NERIA_BOUNCE_ENABLED',          'label_key' => 'nav.bounces'],
-        ['key' => 'certificates',             'scope' => 'tab',           'tab' => 'certificates', 'enabled_key' => 'NERIA_CERT_ENABLED',            'label_key' => 'nav.certificates'],
+        ['key' => 'certificates',             'scope' => 'tab',           'tab' => 'certificates', 'enabled_key' => 'NERIA_CERT_ENABLED',            'label_key' => 'nav.certificates', 'default_if_unset' => true],
         ['key' => 'checkout_abandonment',     'scope' => 'stats_section', 'anchor' => 'neria-checkout-abandonment-section',    'enabled_key' => 'NERIA_CHECKOUT_ABANDONMENT_ENABLED',   'label_key' => 'nav.sub_checkout_abandonment'],
         ['key' => 'relationship_anniversary', 'scope' => 'stats_section', 'anchor' => 'neria-relationship-anniversary-section', 'enabled_key' => 'NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED', 'label_key' => 'nav.sub_relationship_anniversary'],
-        ['key' => 'upsell',                   'scope' => 'stats_section', 'anchor' => 'neria-upsell-section',                   'enabled_key' => 'NERIA_UPSELL_ENABLED',                 'label_key' => 'nav.sub_upsell'],
+        ['key' => 'upsell',                   'scope' => 'stats_section', 'anchor' => 'neria-upsell-section',                   'enabled_key' => 'NERIA_UPSELL_ENABLED',                 'label_key' => 'nav.sub_upsell', 'default_if_unset' => true],
         ['key' => 'propensity',               'scope' => 'stats_section', 'anchor' => 'neria-propensity-section',               'enabled_key' => 'NERIA_PROPENSITY_ENABLED',             'label_key' => 'nav.sub_propensity'],
         ['key' => 'purchase_window',          'scope' => 'stats_section', 'anchor' => 'neria-purchase-window-section',          'enabled_key' => 'NERIA_PURCHASE_WINDOW_ENABLED',        'label_key' => 'nav.sub_purchase_window'],
         ['key' => 'lifespan',                 'scope' => 'stats_section', 'anchor' => 'neria-lifespan-section',                 'enabled_key' => 'NERIA_LIFESPAN_ENABLED',               'label_key' => 'nav.sub_lifespan'],
@@ -781,7 +781,7 @@ class ConfigManager
         ['key' => 'custom_vars',          'scope' => 'configure_section', 'anchor' => 'neria-cfg-customvars',         'enabled_key' => null,                              'label_key' => 'nav.sub_customvars'],
         ['key' => 'signature',            'scope' => 'configure_section', 'anchor' => 'neria-cfg-signature',          'enabled_key' => self::KEY_SIGNATURE_ENABLED,       'default_if_unset' => true, 'label_key' => 'nav.sub_signature'],
         ['key' => 'preferences',          'scope' => 'configure_section', 'anchor' => 'neria-cfg-preferences',        'enabled_key' => null,                              'label_key' => 'nav.sub_preferences'],
-        ['key' => 'loyalty',              'scope' => 'configure_section', 'anchor' => 'neria-loyalty-section',        'enabled_key' => 'NERIA_LOYALTY_ENABLED',           'label_key' => 'nav.sub_loyalty'],
+        ['key' => 'loyalty',              'scope' => 'configure_section', 'anchor' => 'neria-loyalty-section',        'enabled_key' => 'NERIA_LOYALTY_ENABLED',           'label_key' => 'nav.sub_loyalty', 'default_if_unset' => true],
     ];
 
     /** @return array<int,string> Clés des features actuellement masquées du menu BO. */

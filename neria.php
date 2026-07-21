@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.29';
+    const VERSION = '1.0.30';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -6358,6 +6358,9 @@ class Neria extends Module
             'NERIA_LIFESPAN_ENABLED'                 => 1,
             'NERIA_PROPENSITY_ENABLED'               => 1,
             'NERIA_PURCHASE_WINDOW_ENABLED'          => 1,
+            'NERIA_CERT_ENABLED'                     => 1,
+            'NERIA_UPSELL_ENABLED'                   => 1,
+            'NERIA_LOYALTY_ENABLED'                  => 1,
             self::CONFIG_PREFIX . 'VOUCHER_VALIDITY'          => 30,
             self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_AMOUNT'   => 10,
             self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_PERCENT'  => 1,
