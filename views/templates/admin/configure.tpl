@@ -38,6 +38,7 @@
 </div>
 
 {* ── Détection automatique de la langue ─────────────────────── *}
+{if $neria_menu_visible.auto_lang}
 <div class="neria-section" id="neria-cfg-autolang">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
     <h2 class="neria-section__title" style="margin:0;">{neria_admin key='configure.autolang_title'}</h2>
@@ -57,8 +58,10 @@
     {neria_admin key='configure.autolang_desc'}
   </p>
 </div>
+{/if}
 
 {* ── Smart Salutation — section unifiée ─────────────────────── *}
+{if $neria_menu_visible.time_greeting}
 <div class="neria-section" id="neria-cfg-time-greetings">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
     <h2 class="neria-section__title" style="margin:0;">⏱ {neria_admin key='configure.time_greetings_title'}</h2>
@@ -228,8 +231,10 @@
   </div>
   </div>{* /Formules par langue *}
 </div>
+{/if}
 
 {* ── Smart Fallbacks — prénom manquant ─────────────────────── *}
+{if $neria_menu_visible.firstname_fallback}
 <div class="neria-section" id="neria-cfg-firstname-fallbacks">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
     <h2 class="neria-section__title" style="margin:0;">✦ {neria_admin key='configure.firstname_fallbacks_title'}</h2>
@@ -277,8 +282,10 @@
     </div>
   </form>
 </div>
+{/if}
 
 {* ── Bons de réduction ──────────────────────────────────────── *}
+{if $neria_menu_visible.vouchers}
 <div class="neria-section" id="neria-cfg-vouchers">
   <h2 class="neria-section__title">{neria_admin key='configure.voucher_title'}</h2>
 
@@ -442,8 +449,10 @@
     </div>
   </form>
 </div>
+{/if}
 
 {* ── Mode Silence — anti-doublon ────────────────────────────── *}
+{if $neria_menu_visible.cooldown}
 <div class="neria-section" id="neria-cfg-cooldown">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
     <h2 class="neria-section__title" style="margin:0;">{neria_admin key='configure.cooldown_title'}</h2>
@@ -541,8 +550,10 @@
     </form>
   </div>
 </div>
+{/if}
 
 {* ── Témoin silencieux (archive BCC) ───────────────────────── *}
+{if $neria_menu_visible.silent_witness}
 <div class="neria-section" id="neria-cfg-archive">
   <h2 class="neria-section__title">✦ {neria_admin key='configure.archive_title'}</h2>
   <p class="neria-section__desc">{neria_admin key='configure.archive_desc'}</p>
@@ -572,8 +583,10 @@
     </div>
   </form>
 </div>
+{/if}
 
 {* ── Empreinte carbone ──────────────────────────────────── *}
+{if $neria_menu_visible.carbon}
 <div class="neria-section" id="neria-cfg-carbon">
   <h2 class="neria-section__title">{neria_admin key='configure.carbon_title'}</h2>
   <p class="neria-section__desc">{neria_admin key='configure.carbon_desc'}</p>
@@ -613,8 +626,10 @@
     </div>
   </form>
 </div>
+{/if}
 
 {* ── Multi-expéditeur par langue ────────────────────────── *}
+{if $neria_menu_visible.multi_sender}
 <div class="neria-section" id="neria-cfg-senders">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
     <h2 class="neria-section__title" style="margin:0;">{neria_admin key='configure.senders_title'}</h2>
@@ -704,8 +719,10 @@
     </div>
   </form>
 </div>
+{/if}
 
 {* ── Blacklist templates ─────────────────────────────────── *}
+{if $neria_menu_visible.blacklist}
 <div class="neria-section" id="neria-cfg-blacklist">
   <h2 class="neria-section__title">{neria_admin key='configure.blacklist_title'}</h2>
   <p class="neria-section__desc">{neria_admin key='configure.blacklist_desc'}</p>
@@ -806,8 +823,10 @@
     </p>
   {/if}
 </div>
+{/if}
 
 {* ── Rapport mensuel automatique ───────────────────────────── *}
+{if $neria_menu_visible.monthly_report}
 <div class="neria-section" id="neria-cfg-report">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
     <h2 class="neria-section__title" style="margin:0;">{neria_admin key='configure.report_title'}</h2>
@@ -860,9 +879,11 @@
     </button>
   </form>
 </div>
+{/if}
 
 {* ── Prochaines occasions calendaires ───────────────────────── *}
 {* $upcoming_events est assignée par neria.php via CalendarManager::getUpcomingDates() *}
+{if $neria_menu_visible.upcoming_events}
 {if isset($upcoming_events) && $upcoming_events|@count > 0}
 <div class="neria-section" id="neria-cfg-upcoming">
   <h2 class="neria-section__title">
@@ -893,8 +914,10 @@
   </div>
 </div>
 {/if}
+{/if}
 
 {* ── Variables personnalisées ───────────────────────────────── *}
+{if $neria_menu_visible.custom_vars}
 <div class="neria-section" id="neria-cfg-customvars">
   <h2 class="neria-section__title">
     {neria_admin key='configure.customvars_title'}
@@ -1005,8 +1028,10 @@
     </div>
   </form>
 </div>
+{/if}
 
 {* ── Signature manuscrite ───────────────────────────────────── *}
+{if $neria_menu_visible.signature}
 <div class="neria-section" id="neria-cfg-signature">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
     <h2 class="neria-section__title" style="margin:0;">{neria_admin key='configure.signature_title'}</h2>
@@ -1088,8 +1113,10 @@
 
   </form>
 </div>
+{/if}
 
 {* ── Centre de préférences email ───────────────────────────── *}
+{if $neria_menu_visible.preferences}
 <div class="neria-section" id="neria-cfg-preferences">
   <h2 class="neria-section__title">{neria_admin key='configure.preferences_title'}</h2>
   <p class="neria-section__desc">{neria_admin key='configure.preferences_desc'}</p>
@@ -1141,8 +1168,10 @@
   <p style="font-size:13px;color:var(--neria-muted);font-style:italic;">{neria_admin key='configure.pref_empty'}</p>
   {/if}
 </div>
+{/if}
 
 {* ── Section Programme de Fidélité ───────────────────────── *}
+{if $neria_menu_visible.loyalty}
 <div class="neria-section" id="neria-loyalty-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
@@ -1296,4 +1325,5 @@
   {/if}
 
 </div>
+{/if}
 

@@ -9,6 +9,7 @@
 {* ══════════════════════════════════════════════════════════════
    SCORE DE SANTÉ GLOBAL + BANDEAU KPI TENDANCES
    ══════════════════════════════════════════════════════════════ *}
+{if $neria_menu_visible.health_kpi}
 <div class="neria-section" id="neria-health-kpi-banner" style="padding:20px 24px;">
 
   {* ── Score de santé ── *}
@@ -94,8 +95,10 @@
 
   </div>
 </div>
+{/if}
 
 {* ── Revenus Attribués — graphique + KPIs + tableau ─────────── *}
+{if $neria_menu_visible.revenue_attribution}
 <div class="neria-section" id="neria-revenue-attribution">
 
   {* Bloc explicatif last-click *}
@@ -195,6 +198,7 @@
   {/if}
   <p class="neria-hint" style="margin-top:8px;">{neria_admin key='stats.revenue_hint'}</p>
 </div>
+{/if}
 
 <script>
 // Assigné hors des blocs Smarty "literal" plus bas (les variables Smarty n'y
@@ -595,6 +599,7 @@ var _nrc = {
 {* ══════════════════════════════════════════════════════════════
    GRAPHIQUE ENGAGEMENT EMAIL — Envois / Ouvertures / Clics
    ══════════════════════════════════════════════════════════════ *}
+{if $neria_menu_visible.engagement}
 <div class="neria-section" id="neria-engagement-chart-section">
   <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
     <div>
@@ -610,6 +615,7 @@ var _nrc = {
     <canvas id="neriaEngagementChart"></canvas>
   </div>
 </div>
+{/if}
 
 <script>
 var _nec = {
@@ -701,6 +707,7 @@ var _nec = {
 {* ══════════════════════════════════════════════════════════════
    HEATMAP HORAIRE DES OUVERTURES (7j × 24h)
    ══════════════════════════════════════════════════════════════ *}
+{if $neria_menu_visible.heatmap}
 <div class="neria-section" id="neria-heatmap-section">
   <h2 class="neria-section__title" style="margin:0 0 6px;">{neria_admin key='stats.heatmap_title'} ◈</h2>
   <p class="neria-section__desc" style="margin:0 0 20px;">{neria_admin key='stats.heatmap_desc'}</p>
@@ -884,8 +891,10 @@ var _nhmLbl = {
   {/foreach}
 </div>
 {/if}
+{/if}
 
 {* ── Réputation de domaine ──────────────────────────────────── *}
+{if $neria_menu_visible.domain_rep}
 <div class="neria-section" id="neria-domain-rep">
 
   <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
@@ -1203,25 +1212,22 @@ var _nhmLbl = {
   {/if}
 
 </div>
+{/if}
 
 {* ══════════════════════════════════════════════════════════════
    VISIBILITÉ BOUTIQUE — PageSpeed + Search Console + SEO API
    ══════════════════════════════════════════════════════════════ *}
+{if $neria_menu_visible.pagespeed}
 <div class="neria-section" id="neria-visibility-section">
-  <h2 class="neria-section__title">🌐 {neria_admin key='stats.visibility_title'}</h2>
+  <h2 class="neria-section__title">⚡ Google PageSpeed Insights</h2>
   <p class="neria-section__desc">
-    {neria_admin key='stats.visibility_desc'}
+    {neria_admin key='stats.pagespeed_subtitle'}
   </p>
 
   {* ── 1. PAGESPEED INSIGHTS ────────────────────────────────── *}
-  <div style="border:1px solid var(--neria-border);border-radius:8px;padding:20px 24px;margin-bottom:20px;">
+  <div>
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
       <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:20px;">⚡</span>
-        <div>
-          <div style="font-size:14px;font-weight:700;color:var(--neria-dark);">Google PageSpeed Insights</div>
-          <div style="font-size:11px;color:var(--neria-muted);">{neria_admin key='stats.pagespeed_subtitle'}</div>
-        </div>
       </div>
       {if $pagespeed_configured}
         <div style="display:flex;gap:8px;align-items:center;">
@@ -1409,16 +1415,21 @@ var _nhmLbl = {
       </div>
     {/if}
   </div>
+</div>
+</div>
+{/if}
+
+{if $neria_menu_visible.search_console}
+<div class="neria-section" id="neria-search-console-section">
+  <h2 class="neria-section__title">🔍 Google Search Console</h2>
+  <p class="neria-section__desc">
+    {neria_admin key='stats.searchconsole_subtitle'}
+  </p>
 
   {* ── 2. GOOGLE SEARCH CONSOLE ─────────────────────────────── *}
-  <div id="neria-search-console-section" style="border:1px solid var(--neria-border);border-radius:8px;padding:20px 24px;margin-bottom:20px;">
+  <div>
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
       <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:20px;">🔍</span>
-        <div>
-          <div style="font-size:14px;font-weight:700;color:var(--neria-dark);">Google Search Console</div>
-          <div style="font-size:11px;color:var(--neria-muted);">{neria_admin key='stats.searchconsole_subtitle'}</div>
-        </div>
       </div>
       {if $searchconsole_connected}
         <div style="display:flex;gap:8px;align-items:center;">
@@ -1672,16 +1683,21 @@ var _nhmLbl = {
     {/if}
     {/if}
   </div>
+</div>
+</div>
+{/if}
+
+{if $neria_menu_visible.seo_api}
+<div class="neria-section" id="neria-seo-api-section">
+  <h2 class="neria-section__title">📊 {neria_admin key='stats.seo_api_title'} <span style="font-size:12px;font-weight:400;color:var(--neria-muted);">{neria_admin key='stats.optional_label'}</span></h2>
+  <p class="neria-section__desc">
+    {neria_admin key='stats.seo_api_subtitle'}
+  </p>
 
   {* ── 3. API SEO PAYANTE (Semrush / Moz) ──────────────────── *}
-  <div id="neria-seo-api-section" style="border:1px solid var(--neria-border);border-radius:8px;padding:20px 24px;">
+  <div>
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
       <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:20px;">📊</span>
-        <div>
-          <div style="font-size:14px;font-weight:700;color:var(--neria-dark);">{neria_admin key='stats.seo_api_title'} <span style="font-size:11px;font-weight:400;color:var(--neria-muted);">{neria_admin key='stats.optional_label'}</span></div>
-          <div style="font-size:11px;color:var(--neria-muted);">{neria_admin key='stats.seo_api_subtitle'}</div>
-        </div>
       </div>
       {if $seo_configured}
         <div style="display:flex;gap:8px;align-items:center;">
@@ -1852,6 +1868,7 @@ var _nhmLbl = {
     {/if}
   </div>
 </div>
+{/if}
 
 <script>
 var _nCopyLbl = {
@@ -1909,6 +1926,7 @@ var _nCopyLbl = {
 {/literal}
 
 {* ── Google Postmaster Tools — intégration OAuth ────────────── *}
+{if $neria_menu_visible.postmaster}
 <div class="neria-section" id="neria-postmaster-tools">
   <h2 class="neria-section__title">🔭 Google Postmaster Tools</h2>
   <p class="neria-section__desc">
@@ -2166,33 +2184,35 @@ var _nCopyLbl = {
   </div>
   {/if}
 
-  {* ── Microsoft SNDS — guide statique ──────────────────────── *}
-  <div id="neria-snds-section" style="margin-top:20px;background:#fff;border:1px solid #e8d5b0;border-radius:8px;padding:20px;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <span style="font-size:24px;">🪟</span>
-      <div>
-        <div style="font-weight:700;font-size:14px;color:#5c3d1e;">Microsoft SNDS</div>
-        <div style="font-size:11px;color:#7a6a5a;">sendersupport.olc.protection.outlook.com/snds</div>
-      </div>
-    </div>
-    <p style="font-size:12px;color:#7a6a5a;line-height:1.6;margin:0 0 14px;">
-      {neria_admin key='stats.snds_desc'}
-    </p>
-    <div style="font-size:12px;background:#f9f6f1;border-radius:6px;padding:10px 12px;color:#5c3d1e;line-height:1.6;">
-      <strong>{neria_admin key='stats.snds_howto_title'}</strong><br>
-      1. {neria_admin key='stats.snds_step1'}<br>
-      2. {neria_admin key='stats.snds_step2'}<br>
-      3. {neria_admin key='stats.snds_step3'}<br>
-      4. {neria_admin key='stats.snds_step4'}
-    </div>
-  </div>
-
   <div style="margin-top:14px;padding:12px 16px;background:#fef9f0;border:1px solid #e8d5b0;border-radius:6px;font-size:12px;color:#7a6a5a;line-height:1.6;">
     💡 <strong>{neria_admin key='seasonal.tip_label'}</strong> {neria_admin key='stats.pm_tip'}
   </div>
 </div>
+{/if}
+
+{if $neria_menu_visible.snds}
+<div class="neria-section" id="neria-snds-section">
+  <h2 class="neria-section__title">🪟 Microsoft SNDS</h2>
+  <p class="neria-section__desc">
+    sendersupport.olc.protection.outlook.com/snds
+  </p>
+
+  {* ── Microsoft SNDS — guide statique ──────────────────────── *}
+  <p style="font-size:12px;color:#7a6a5a;line-height:1.6;margin:0 0 14px;">
+    {neria_admin key='stats.snds_desc'}
+  </p>
+  <div style="font-size:12px;background:#f9f6f1;border-radius:6px;padding:10px 12px;color:#5c3d1e;line-height:1.6;">
+    <strong>{neria_admin key='stats.snds_howto_title'}</strong><br>
+    1. {neria_admin key='stats.snds_step1'}<br>
+    2. {neria_admin key='stats.snds_step2'}<br>
+    3. {neria_admin key='stats.snds_step3'}<br>
+    4. {neria_admin key='stats.snds_step4'}
+  </div>
+</div>
+{/if}
 
 {* ── Score de délivrabilité ─────────────────────────────────── *}
+{if $neria_menu_visible.score_panel}
 <div class="neria-section" id="neria-score-panel">
 
   <h2 class="neria-section__title">{neria_admin key='stats.score_title'}</h2>
@@ -2660,8 +2680,10 @@ var _nCopyLbl = {
   {/if}
 
 </div>
+{/if}
 
 {* ── L'Heure d'Or ───────────────────────────────────────────── *}
+{if $neria_menu_visible.golden_hour}
 {if isset($golden_hour) && $golden_hour|@count > 0}
 <div class="neria-section" id="neria-golden-hour-section">
   <h2 class="neria-section__title">{neria_admin key='stats.golden_hour_title'} ✦</h2>
@@ -2723,10 +2745,12 @@ var _nCopyLbl = {
   <p class="neria-hint" style="margin-top:8px;">{neria_admin key='stats.golden_hour_note'}</p>
 </div>
 {/if}
+{/if}
 
 {* Revenue Attribution fusionné dans #neria-revenue-attribution en tête du fichier *}
 
 {* ── Abandon de caisse ─────────────────────────────────────── *}
+{if $neria_menu_visible.checkout_abandonment}
 <div class="neria-section" id="neria-checkout-abandonment-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
@@ -2775,8 +2799,10 @@ var _nCopyLbl = {
     </div>
   </div>
 </div>
+{/if}
 
 {* ── Anniversaire de la relation client ─────────────────────── *}
+{if $neria_menu_visible.relationship_anniversary}
 <div class="neria-section" id="neria-relationship-anniversary-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
@@ -2835,8 +2861,10 @@ var _nCopyLbl = {
     </div>
   </div>
 </div>
+{/if}
 
 {* ── Upsell Intelligent ────────────────────────────────────── *}
+{if $neria_menu_visible.upsell}
 <div class="neria-section" id="neria-upsell-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
@@ -2991,9 +3019,11 @@ var _nCopyLbl = {
   </p>
   {/if}
 </div>
+{/if}
 
 {* ── Rappel fin de vie produit ─────────────────────────────── *}
 {* ── Score de propension à l'achat ─────────────────────────── *}
+{if $neria_menu_visible.propensity}
 <div class="neria-section" id="neria-propensity-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
@@ -3105,7 +3135,9 @@ var _nCopyLbl = {
     </div>
   {/if}
 </div>
+{/if}
 
+{if $neria_menu_visible.purchase_window}
 <div class="neria-section" id="neria-purchase-window-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
@@ -3182,7 +3214,9 @@ var _nCopyLbl = {
     </div>
   {/if}
 </div>
+{/if}
 
+{if $neria_menu_visible.lifespan}
 <div class="neria-section" id="neria-lifespan-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
@@ -3279,8 +3313,10 @@ var _nCopyLbl = {
   </p>
   {/if}
 </div>
+{/if}
 
 {* ── Réconciliation post-remboursement ─────────────────────── *}
+{if $neria_menu_visible.reconciliation}
 <div class="neria-section" id="neria-reconciliation-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
@@ -3328,8 +3364,10 @@ var _nCopyLbl = {
     </div>
   </div>
 </div>
+{/if}
 
 {* ── Devis B2B — Relances automatiques ────────────────────── *}
+{if $neria_menu_visible.quote}
 <div class="neria-section" id="neria-quote-section">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
     <div>
@@ -3494,8 +3532,10 @@ var _nCopyLbl = {
   </p>
   {/if}
 </div>
+{/if}
 
 {* ── Complétion de collection ───────────────────────────────── *}
+{if $neria_menu_visible.collection}
 <div class="neria-section" id="neria-collection-section">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
     <div>
@@ -3621,8 +3661,10 @@ var _nCopyLbl = {
   </p>
   {/if}
 </div>
+{/if}
 
 {* ── Complétez votre look ───────────────────────────────────── *}
+{if $neria_menu_visible.look}
 <div class="neria-section" id="neria-look-section">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
     <div>
@@ -3749,8 +3791,10 @@ var _nCopyLbl = {
   </p>
   {/if}
 </div>
+{/if}
 
 {* ── Liste d'attente produits ───────────────────────────────── *}
+{if $neria_menu_visible.waitlist}
 <div class="neria-section" id="neria-waitlist-section">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
     <div>
@@ -3850,8 +3894,10 @@ var _nCopyLbl = {
   </p>
   {/if}
 </div>
+{/if}
 
 {* ── Panier fantôme récurrent ────────────────────────────────── *}
+{if $neria_menu_visible.ghost_cart}
 <div class="neria-section" id="neria-ghost-cart-section">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
     <div>
@@ -3881,6 +3927,7 @@ var _nCopyLbl = {
     </p>
   </div>
 </div>
+{/if}
 
 <script>
 var _nUpsellMsg = {
@@ -3936,6 +3983,7 @@ function neriaPreviewUpsell() {
 {* ══════════════════════════════════════════════════════════════
    COMPARATIF MENSUEL — M vs M-1
    ══════════════════════════════════════════════════════════════ *}
+{if $neria_menu_visible.monthly_comparison}
 {assign var="mc" value=$monthly_comparison}
 {if $mc && isset($mc.current)}
 <div class="neria-section" id="neria-monthly-comparison">
@@ -4012,4 +4060,5 @@ function neriaPreviewUpsell() {
     <span class="neria-empty-state__icon">◫</span>
     <p>{neria_admin key='stats.empty'}</p>
   </div>
+{/if}
 {/if}

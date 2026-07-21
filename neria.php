@@ -4708,6 +4708,19 @@ class Neria extends Module
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=configure&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-loyalty-section');
         }
 
+        // ── Centre de contrôle : visibilité d'une feature dans le menu ──
+        // Whitelist stricte contre le registre : n'affecte jamais l'état
+        // actif/inactif réel de la feature, uniquement l'affichage de son
+        // lien de menu (cf. ConfigManager::CONTROL_CENTER_REGISTRY).
+        if (Tools::getValue('neria_action') === 'menu_visibility_toggle') {
+            $item = (string) Tools::getValue('item');
+            $validKeys = array_column(ConfigManager::CONTROL_CENTER_REGISTRY, 'key');
+            if (in_array($item, $validKeys, true)) {
+                (new ConfigManager($this))->toggleMenuItemVisibility($item);
+            }
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=control_center');
+        }
+
         // ── Fidélité : sauvegarde des paliers ─────────────────
         if (Tools::getValue('neria_action') === 'save_loyalty_tiers' && class_exists('LoyaltyManager')) {
             $tiers = [];
@@ -4971,6 +4984,8 @@ class Neria extends Module
             'report_recipients' => (string) Configuration::get(MonthlyReportManager::CONFIG_RECIPIENTS),
             'report_last_sent'  => (string) Configuration::get(MonthlyReportManager::CONFIG_LAST_SENT),
             'neria_tabs'       => $this->getBackOfficeTabs(),
+            'neria_menu_visible'   => $this->getMenuVisibilityMap($config),
+            'control_center_items' => $this->getControlCenterItems($config),
 
             // Libellés et drapeaux des 19 langues supportées
             'lang_labels'      => NeriaTools::getLangLabels(),
@@ -5923,8 +5938,48 @@ class Neria extends Module
             'gdpr'             => 'RGPD',
             'academy'          => AdminTranslator::t('nav.academy'),
             'certificates'     => AdminTranslator::t('nav.certificates'),
+            'control_center'   => AdminTranslator::t('nav.control_center'),
             'help'           => AdminTranslator::t('nav.help'),
         ];
+    }
+
+    /**
+     * @return array<string,bool> Clé de feature => visible dans le menu (true par défaut).
+     *                              Consommé par navigation.tpl pour masquer les <li> concernés.
+     */
+    private function getMenuVisibilityMap(ConfigManager $config): array
+    {
+        $map = [];
+        foreach (ConfigManager::CONTROL_CENTER_REGISTRY as $item) {
+            $map[$item['key']] = $config->isMenuItemVisible($item['key']);
+        }
+        return $map;
+    }
+
+    /**
+     * Données du registre enrichies du statut réel (actif/inactif) et de
+     * la visibilité menu, pour l'affichage de l'onglet Centre de contrôle.
+     */
+    private function getControlCenterItems(ConfigManager $config): array
+    {
+        $items = [];
+        foreach (ConfigManager::CONTROL_CENTER_REGISTRY as $item) {
+            // enabled_key === null : la feature n'a pas de réglage marche/arrêt
+            // dédié (ex : Blacklist de templates, Score de délivrabilité) —
+            // toujours affichée Active dans le tableau, sur demande explicite
+            // de l'utilisateur (2026-07-21), plutôt que de laisser un statut
+            // ambigu pour une fonctionnalité qui n'a jamais été "désactivable".
+            $active = $item['enabled_key'] === null
+                ? true
+                : (bool) Configuration::getGlobalValue($item['enabled_key']);
+            $items[] = [
+                'key'     => $item['key'],
+                'label'   => AdminTranslator::t($item['label_key']),
+                'active'  => $active,
+                'visible' => $config->isMenuItemVisible($item['key']),
+            ];
+        }
+        return $items;
     }
 
     /**

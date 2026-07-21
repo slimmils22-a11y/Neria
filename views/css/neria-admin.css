@@ -243,6 +243,8 @@
 .neria-badge--accent  { background:#faf3ea; color:var(--neria-accent); }
 .neria-badge--neutral { background:var(--neria-light-bg); color:var(--neria-text-light); border:1px solid var(--neria-border); }
 .neria-badge--mpp     { background:#f0eefa; color:#5b3fa8; border:1px solid #c9b8f0; cursor:help; }
+.neria-badge--on      { background:#eaf5ec; color:#16a34a; }
+.neria-badge--off     { background:#fbeaea; color:#dc2626; }
 .neria-lang-chip { display:inline-flex; align-items:center; gap:3px; font-size:11px; background:var(--neria-light-bg); border:1px solid var(--neria-border); border-radius:10px; padding:2px 7px; }
 .neria-var-tag { font-family:monospace; font-size:11px; background:var(--neria-light-bg); border:1px solid var(--neria-border); border-radius:3px; padding:1px 6px; color:var(--neria-accent); }
 

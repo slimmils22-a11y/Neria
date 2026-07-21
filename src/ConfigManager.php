@@ -102,6 +102,9 @@ class ConfigManager
     const KEY_MILESTONE_VOUCHER_PERCENT = 'NERIA_MILESTONE_VOUCHER_PERCENT';
     const KEY_LOYALTY_CROSS_SHOP_ENABLED = 'NERIA_LOYALTY_CROSS_SHOP_ENABLED';
 
+    // ── Centre de contrôle (visibilité menu BO) ────────────────────
+    const KEY_MENU_HIDDEN_ITEMS = 'NERIA_MENU_HIDDEN_ITEMS';
+
     // ── Mode Silence (anti-doublon) ───────────────────────────────
     const KEY_COOLDOWN_ENABLED      = 'NERIA_COOLDOWN_ENABLED';
     const KEY_COOLDOWN_MINUTES      = 'NERIA_COOLDOWN_MINUTES';
@@ -178,6 +181,7 @@ class ConfigManager
         self::KEY_MILESTONE_VOUCHER_AMOUNT  => 10,
         self::KEY_MILESTONE_VOUCHER_PERCENT => 1,
         self::KEY_LOYALTY_CROSS_SHOP_ENABLED => 1,
+        self::KEY_MENU_HIDDEN_ITEMS  => '[]',
         self::KEY_COOLDOWN_ENABLED    => 0,
         self::KEY_COOLDOWN_MINUTES    => 10,
         self::KEY_CARBON_ENABLED      => 0,
@@ -693,6 +697,110 @@ class ConfigManager
     public function isLoyaltyCrossShopEnabled(): bool
     {
         return (bool) $this->get(self::KEY_LOYALTY_CROSS_SHOP_ENABLED, 1);
+    }
+
+    // ================================================================
+    // CENTRE DE CONTRÔLE — visibilité des features dans le menu BO
+    // ================================================================
+    //
+    // Chaque entrée ci-dessous correspond à une feature qui a déjà son
+    // propre réglage actif/inactif (NERIA_X_ENABLED) ailleurs dans le
+    // module — le centre de contrôle ne duplique jamais cette logique,
+    // il ajoute uniquement un contrôle d'AFFICHAGE du lien de menu
+    // correspondant. Masquer une feature ici n'a donc jamais d'effet sur
+    // son fonctionnement réel (crons, emails) : seul son lien disparaît
+    // du menu BO, exactement comme masquer une appli sur un écran
+    // d'accueil iPhone n'arrête pas l'appli elle-même.
+    //
+    // 'scope' vaut 'tab' (onglet principal du menu) ou 'stats_section'
+    // (ancre à l'intérieur de la page Stats). 'label_key' réutilise les
+    // clés de traduction nav.* déjà existantes — aucune nouvelle clé de
+    // libellé n'est nécessaire.
+    const CONTROL_CENTER_REGISTRY = [
+        ['key' => 'abtest',                   'scope' => 'tab',           'tab' => 'abtest',       'enabled_key' => self::KEY_ABTEST_ENABLED,        'label_key' => 'nav.abtest'],
+        ['key' => 'bounces',                  'scope' => 'tab',           'tab' => 'bounces',      'enabled_key' => 'NERIA_BOUNCE_ENABLED',          'label_key' => 'nav.bounces'],
+        ['key' => 'certificates',             'scope' => 'tab',           'tab' => 'certificates', 'enabled_key' => 'NERIA_CERT_ENABLED',            'label_key' => 'nav.certificates'],
+        ['key' => 'checkout_abandonment',     'scope' => 'stats_section', 'anchor' => 'neria-checkout-abandonment-section',    'enabled_key' => 'NERIA_CHECKOUT_ABANDONMENT_ENABLED',   'label_key' => 'nav.sub_checkout_abandonment'],
+        ['key' => 'relationship_anniversary', 'scope' => 'stats_section', 'anchor' => 'neria-relationship-anniversary-section', 'enabled_key' => 'NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED', 'label_key' => 'nav.sub_relationship_anniversary'],
+        ['key' => 'upsell',                   'scope' => 'stats_section', 'anchor' => 'neria-upsell-section',                   'enabled_key' => 'NERIA_UPSELL_ENABLED',                 'label_key' => 'nav.sub_upsell'],
+        ['key' => 'propensity',               'scope' => 'stats_section', 'anchor' => 'neria-propensity-section',               'enabled_key' => 'NERIA_PROPENSITY_ENABLED',             'label_key' => 'nav.sub_propensity'],
+        ['key' => 'purchase_window',          'scope' => 'stats_section', 'anchor' => 'neria-purchase-window-section',          'enabled_key' => 'NERIA_PURCHASE_WINDOW_ENABLED',        'label_key' => 'nav.sub_purchase_window'],
+        ['key' => 'lifespan',                 'scope' => 'stats_section', 'anchor' => 'neria-lifespan-section',                 'enabled_key' => 'NERIA_LIFESPAN_ENABLED',               'label_key' => 'nav.sub_lifespan'],
+        ['key' => 'reconciliation',           'scope' => 'stats_section', 'anchor' => 'neria-reconciliation-section',           'enabled_key' => 'NERIA_REFUND_RECONCILIATION_ENABLED',  'label_key' => 'nav.sub_reconciliation'],
+        ['key' => 'quote',                    'scope' => 'stats_section', 'anchor' => 'neria-quote-section',                    'enabled_key' => 'NERIA_QUOTE_REMINDERS_ENABLED',        'label_key' => 'nav.sub_quote'],
+        ['key' => 'collection',               'scope' => 'stats_section', 'anchor' => 'neria-collection-section',               'enabled_key' => 'NERIA_COLLECTION_COMPLETION_ENABLED',  'label_key' => 'nav.sub_collection'],
+        ['key' => 'look',                     'scope' => 'stats_section', 'anchor' => 'neria-look-section',                     'enabled_key' => 'NERIA_LOOK_COMPLETION_ENABLED',        'label_key' => 'nav.sub_look'],
+        ['key' => 'waitlist',                 'scope' => 'stats_section', 'anchor' => 'neria-waitlist-section',                 'enabled_key' => 'NERIA_WAITLIST_ENABLED',               'label_key' => 'nav.sub_waitlist'],
+        ['key' => 'ghost_cart',               'scope' => 'stats_section', 'anchor' => 'neria-ghost-cart-section',               'enabled_key' => 'NERIA_GHOST_CART_ENABLED',             'label_key' => 'nav.sub_ghost_cart'],
+
+        // ── Stats : sections sans réglage ENABLED dédié — 'enabled_key' à
+        // null signifie "toujours active" (pas de concept marche/arrêt),
+        // le centre de contrôle affiche alors la pastille Actif d'office.
+        ['key' => 'monthly_comparison',   'scope' => 'stats_section', 'anchor' => 'neria-monthly-comparison',        'enabled_key' => null,                        'label_key' => 'nav.sub_monthly_comparison'],
+        ['key' => 'health_kpi',           'scope' => 'stats_section', 'anchor' => 'neria-health-kpi-banner',         'enabled_key' => null,                        'label_key' => 'nav.sub_health_kpi'],
+        ['key' => 'revenue_attribution',  'scope' => 'stats_section', 'anchor' => 'neria-revenue-attribution',       'enabled_key' => 'NERIA_ATTRIBUTION_ENABLED', 'label_key' => 'nav.sub_revenue_attribution'],
+        ['key' => 'engagement',           'scope' => 'stats_section', 'anchor' => 'neria-engagement-chart-section',  'enabled_key' => null,                        'label_key' => 'nav.sub_engagement'],
+        ['key' => 'heatmap',              'scope' => 'stats_section', 'anchor' => 'neria-heatmap-section',           'enabled_key' => null,                        'label_key' => 'nav.sub_heatmap'],
+        ['key' => 'domain_rep',           'scope' => 'stats_section', 'anchor' => 'neria-domain-rep',                'enabled_key' => null,                        'label_key' => 'nav.sub_domain_rep'],
+        ['key' => 'pagespeed',            'scope' => 'stats_section', 'anchor' => 'neria-visibility-section',        'enabled_key' => null,                        'label_key' => 'nav.sub_visibility'],
+        ['key' => 'search_console',       'scope' => 'stats_section', 'anchor' => 'neria-search-console-section',    'enabled_key' => null,                        'label_key' => 'nav.sub_search_console'],
+        ['key' => 'seo_api',              'scope' => 'stats_section', 'anchor' => 'neria-seo-api-section',           'enabled_key' => null,                        'label_key' => 'nav.sub_seo_api'],
+        ['key' => 'postmaster',           'scope' => 'stats_section', 'anchor' => 'neria-postmaster-tools',          'enabled_key' => null,                        'label_key' => 'nav.sub_postmaster'],
+        ['key' => 'snds',                 'scope' => 'stats_section', 'anchor' => 'neria-snds-section',              'enabled_key' => null,                        'label_key' => 'nav.sub_snds'],
+        ['key' => 'score_panel',          'scope' => 'stats_section', 'anchor' => 'neria-score-panel',               'enabled_key' => null,                        'label_key' => 'nav.sub_score'],
+        ['key' => 'golden_hour',          'scope' => 'stats_section', 'anchor' => 'neria-golden-hour-section',       'enabled_key' => null,                        'label_key' => 'nav.sub_golden_hour'],
+
+        // ── Onglet Accueil (configure.tpl) : sections du sous-menu ──────
+        ['key' => 'auto_lang',            'scope' => 'configure_section', 'anchor' => 'neria-cfg-autolang',           'enabled_key' => self::KEY_AUTO_LANG,               'label_key' => 'nav.sub_autolang'],
+        ['key' => 'time_greeting',        'scope' => 'configure_section', 'anchor' => 'neria-cfg-time-greetings',     'enabled_key' => self::KEY_TIME_GREETING_ENABLED,   'label_key' => 'nav.sub_time_greetings'],
+        ['key' => 'firstname_fallback',   'scope' => 'configure_section', 'anchor' => 'neria-cfg-firstname-fallbacks','enabled_key' => self::KEY_FIRSTNAME_FALLBACK_ENABLED, 'label_key' => 'nav.sub_firstname_fallbacks'],
+        ['key' => 'vouchers',             'scope' => 'configure_section', 'anchor' => 'neria-cfg-vouchers',           'enabled_key' => self::KEY_MILESTONE_VOUCHER_ENABLED, 'label_key' => 'nav.sub_vouchers'],
+        ['key' => 'cooldown',             'scope' => 'configure_section', 'anchor' => 'neria-cfg-cooldown',           'enabled_key' => self::KEY_COOLDOWN_ENABLED,        'label_key' => 'nav.sub_cooldown'],
+        ['key' => 'silent_witness',       'scope' => 'configure_section', 'anchor' => 'neria-cfg-archive',            'enabled_key' => null,                              'label_key' => 'nav.sub_silent_witness'],
+        ['key' => 'carbon',               'scope' => 'configure_section', 'anchor' => 'neria-cfg-carbon',             'enabled_key' => self::KEY_CARBON_ENABLED,          'label_key' => 'nav.sub_carbon'],
+        ['key' => 'multi_sender',         'scope' => 'configure_section', 'anchor' => 'neria-cfg-senders',            'enabled_key' => self::KEY_MULTI_SENDER_ENABLED,    'label_key' => 'nav.sub_senders'],
+        ['key' => 'blacklist',            'scope' => 'configure_section', 'anchor' => 'neria-cfg-blacklist',          'enabled_key' => null,                              'label_key' => 'nav.sub_blacklist'],
+        ['key' => 'monthly_report',       'scope' => 'configure_section', 'anchor' => 'neria-cfg-report',             'enabled_key' => 'NERIA_REPORT_ENABLED',            'label_key' => 'nav.sub_report'],
+        ['key' => 'upcoming_events',      'scope' => 'configure_section', 'anchor' => 'neria-cfg-upcoming',           'enabled_key' => null,                              'label_key' => 'nav.sub_upcoming'],
+        ['key' => 'custom_vars',          'scope' => 'configure_section', 'anchor' => 'neria-cfg-customvars',         'enabled_key' => null,                              'label_key' => 'nav.sub_customvars'],
+        ['key' => 'signature',            'scope' => 'configure_section', 'anchor' => 'neria-cfg-signature',          'enabled_key' => self::KEY_SIGNATURE_ENABLED,       'label_key' => 'nav.sub_signature'],
+        ['key' => 'preferences',          'scope' => 'configure_section', 'anchor' => 'neria-cfg-preferences',        'enabled_key' => null,                              'label_key' => 'nav.sub_preferences'],
+        ['key' => 'loyalty',              'scope' => 'configure_section', 'anchor' => 'neria-loyalty-section',        'enabled_key' => 'NERIA_LOYALTY_ENABLED',           'label_key' => 'nav.sub_loyalty'],
+    ];
+
+    /** @return array<int,string> Clés des features actuellement masquées du menu BO. */
+    public function getHiddenMenuItems(): array
+    {
+        $json = (string) $this->get(self::KEY_MENU_HIDDEN_ITEMS, '[]');
+        $decoded = json_decode($json, true);
+        return (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) ? $decoded : [];
+    }
+
+    public function isMenuItemVisible(string $key): bool
+    {
+        return !in_array($key, $this->getHiddenMenuItems(), true);
+    }
+
+    /**
+     * Bascule la visibilité d'une feature dans le menu BO (n'affecte jamais
+     * son état actif/inactif réel, cf. commentaire du registre ci-dessus).
+     * Ignore silencieusement toute clé absente du registre — appelant
+     * responsable de valider contre CONTROL_CENTER_REGISTRY en amont.
+     */
+    public function toggleMenuItemVisibility(string $key): void
+    {
+        $hidden = $this->getHiddenMenuItems();
+        if (in_array($key, $hidden, true)) {
+            $hidden = array_values(array_diff($hidden, [$key]));
+        } else {
+            $hidden[] = $key;
+        }
+        $encoded = json_encode(array_values($hidden));
+        \Configuration::updateGlobalValue(self::KEY_MENU_HIDDEN_ITEMS, $encoded);
+        // Invalide le cache mémoire local : sans ça, un appel à
+        // isMenuItemVisible()/getHiddenMenuItems() sur cette même instance
+        // juste après le toggle renverrait encore l'ancienne valeur.
+        $this->cache[self::KEY_MENU_HIDDEN_ITEMS] = $encoded;
     }
 
     /**
