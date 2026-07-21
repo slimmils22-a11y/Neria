@@ -4715,10 +4715,15 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'menu_visibility_toggle') {
             $item = (string) Tools::getValue('item');
             $validKeys = array_column(ConfigManager::CONTROL_CENTER_REGISTRY, 'key');
+            $msg = '';
             if (in_array($item, $validKeys, true)) {
-                (new ConfigManager($this))->toggleMenuItemVisibility($item);
+                $configMgr = new ConfigManager($this);
+                $configMgr->toggleMenuItemVisibility($item);
+                $msg = $configMgr->isMenuItemVisible($item)
+                    ? AdminTranslator::t('msg.menu_item_shown')
+                    : AdminTranslator::t('msg.menu_item_hidden');
             }
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=control_center');
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=control_center' . ($msg !== '' ? '&neria_success=' . urlencode($msg) : ''));
         }
 
         // ── Fidélité : sauvegarde des paliers ─────────────────
