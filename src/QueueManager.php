@@ -199,37 +199,56 @@ class QueueManager
 
     public function processQueue(): int
     {
-        $rows = $this->db->executeS(
-            'SELECT * FROM `' . $this->prefix . 'neria_queue`
-             WHERE status = \'pending\'
-               AND send_at <= NOW()
-               AND attempts < ' . self::MAX_ATTEMPTS . '
-             ORDER BY send_at ASC
-             LIMIT ' . self::BATCH_SIZE
-        );
-
-        if (empty($rows)) {
+        // Verrou MySQL : cette méthode est appelée depuis PLUSIEURS points
+        // d'entrée indépendants (BehavioralCronManager::run() sur le cron
+        // frontend, HealthCheckManager, et le bouton BO "Traiter la file
+        // maintenant" dans neria.php) — même risque déjà identifié et
+        // corrigé pour WebhookManager::processQueue() : sans ce verrou, deux
+        // exécutions concurrentes peuvent lire le même lot de lignes
+        // 'pending' avant que l'une des deux n'ait eu le temps d'incrémenter
+        // `attempts`, envoyant chaque email en double au client. Verrou
+        // global (pas par boutique) : cette méthode traite déjà toutes les
+        // boutiques en un seul appel (le id_shop par ligne est utilisé pour
+        // l'envoi, pas pour filtrer la sélection).
+        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_queue_process_queue', 0)") !== 1) {
             return 0;
         }
 
-        $sent   = 0;
-        $failed = 0;
+        try {
+            $rows = $this->db->executeS(
+                'SELECT * FROM `' . $this->prefix . 'neria_queue`
+                 WHERE status = \'pending\'
+                   AND send_at <= NOW()
+                   AND attempts < ' . self::MAX_ATTEMPTS . '
+                 ORDER BY send_at ASC
+                 LIMIT ' . self::BATCH_SIZE
+            );
 
-        foreach ((array) $rows as $row) {
-            if ($this->processSingle($row)) {
-                $sent++;
-            } else {
-                $failed++;
+            if (empty($rows)) {
+                return 0;
             }
+
+            $sent   = 0;
+            $failed = 0;
+
+            foreach ((array) $rows as $row) {
+                if ($this->processSingle($row)) {
+                    $sent++;
+                } else {
+                    $failed++;
+                }
+            }
+
+            $this->watchdog()->info(
+                \WatchdogManager::i18nMsg('watchdog.queue_processed_summary', ['sent' => $sent, 'failed' => $failed]),
+                '',
+                'QueueManager'
+            );
+
+            return $sent;
+        } finally {
+            $this->db->execute("SELECT RELEASE_LOCK('neria_queue_process_queue')");
         }
-
-        $this->watchdog()->info(
-            \WatchdogManager::i18nMsg('watchdog.queue_processed_summary', ['sent' => $sent, 'failed' => $failed]),
-            '',
-            'QueueManager'
-        );
-
-        return $sent;
     }
 
     private function processSingle(array $row): bool

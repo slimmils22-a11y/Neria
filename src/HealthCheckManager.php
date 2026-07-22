@@ -832,6 +832,25 @@ class HealthCheckManager
             $offenders[] = 'neria.php : appelle de nouveau CooldownManager::isDuplicate() sans lui passer id_shop';
         }
 
+        // Bug du 2026-07-22 : QueueManager::processQueue() est appelé depuis
+        // PLUSIEURS points d'entrée indépendants (cron frontend via
+        // BehavioralCronManager, HealthCheckManager, bouton BO "Traiter la
+        // file maintenant") sans aucun verrou — même risque déjà identifié
+        // et corrigé pour WebhookManager::processQueue() (GET_LOCK). Sans
+        // verrou, deux exécutions concurrentes lisent le même lot de lignes
+        // 'pending' avant que l'une des deux n'ait incrémenté `attempts`,
+        // envoyant chaque email en double au client. Vérifié en réel avec 2
+        // connexions MySQL distinctes : la seconde est bien bloquée tant que
+        // la première détient le verrou, puis processQueue() lui-même
+        // retourne 0 sans traiter si le verrou est déjà pris ailleurs.
+        $queueMgrFile = _PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php';
+        $queueMgrSrc  = is_file($queueMgrFile) ? (file_get_contents($queueMgrFile) ?: '') : '';
+        if ($queueMgrSrc === '') {
+            $offenders[] = 'QueueManager.php introuvable';
+        } elseif (!preg_match('/function\s+processQueue[\s\S]{0,1200}?GET_LOCK/', $queueMgrSrc)) {
+            $offenders[] = 'QueueManager : processQueue() n\'utilise plus GET_LOCK (deux exécutions concurrentes pourraient de nouveau envoyer chaque email en double)';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
