@@ -88,42 +88,64 @@ class CalendarManager
     {
         \Configuration::updateValue(\HealthCheckManager::CRON_LAST_CALENDAR, date('Y-m-d H:i:s'));
 
+        // Verrou MySQL : contrairement au cron comportemental (throttle 24h)
+        // et au rapport mensuel (fenêtre 1-7 du mois), cette méthode n'a
+        // AUCUN garde-fou de fréquence — elle s'exécute sur CHAQUE page
+        // front, toute la journée. processEvent() suit un schéma
+        // "vérifier via Configuration::get($sentKey), envoyer à TOUT le lot
+        // de clients éligibles, PUIS marquer envoyé" (updateValue($sentKey)
+        // seulement après la boucle d'envoi complète) — sans ce verrou,
+        // n'importe quelle paire de visiteurs concurrents pendant toute la
+        // durée du lot d'envoi peut déclencher le même email calendaire à
+        // TOUT le segment de clients éligibles deux fois. Même piège déjà
+        // corrigé pour la queue d'envoi, la queue webhook, le cron
+        // comportemental et le rapport mensuel — mais la fenêtre de course
+        // la plus large des cinq, faute de throttle externe.
+        $db = $this->db;
+        if ((int) $db->getValue("SELECT GET_LOCK('neria_calendar_check', 0)") !== 1) {
+            return;
+        }
+
         try {
-            $this->loadCalendarDates();
-            $events = $this->getActiveEvents();
-        } catch (\Throwable $e) {
-            $this->watchdog()->error(
-                \WatchdogManager::i18nMsg('watchdog.calendar_load_failed', ['error' => $e->getMessage()]),
-                '', 'CalendarManager'
-            );
-            return;
-        }
-
-        if (empty($events)) {
-            return;
-        }
-
-        $today = new \DateTime('today');
-
-        foreach ($events as $event) {
             try {
-                $this->processEvent($event, $today);
+                $this->loadCalendarDates();
+                $events = $this->getActiveEvents();
             } catch (\Throwable $e) {
-                $this->module->log(
-                    sprintf(
-                        'CalendarManager: erreur [%s][%s] : %s',
-                        $event['event_key'],
-                        $event['lang'],
-                        $e->getMessage()
-                    ),
-                    2
-                );
                 $this->watchdog()->error(
-                    \WatchdogManager::i18nMsg('watchdog.calendar_send_error', ['error' => $e->getMessage()]),
-                    $event['template'] ?? '',
-                    'CalendarManager'
+                    \WatchdogManager::i18nMsg('watchdog.calendar_load_failed', ['error' => $e->getMessage()]),
+                    '', 'CalendarManager'
                 );
+                return;
             }
+
+            if (empty($events)) {
+                return;
+            }
+
+            $today = new \DateTime('today');
+
+            foreach ($events as $event) {
+                try {
+                    $this->processEvent($event, $today);
+                } catch (\Throwable $e) {
+                    $this->module->log(
+                        sprintf(
+                            'CalendarManager: erreur [%s][%s] : %s',
+                            $event['event_key'],
+                            $event['lang'],
+                            $e->getMessage()
+                        ),
+                        2
+                    );
+                    $this->watchdog()->error(
+                        \WatchdogManager::i18nMsg('watchdog.calendar_send_error', ['error' => $e->getMessage()]),
+                        $event['template'] ?? '',
+                        'CalendarManager'
+                    );
+                }
+            }
+        } finally {
+            $db->execute("SELECT RELEASE_LOCK('neria_calendar_check')");
         }
     }
 

@@ -892,6 +892,23 @@ class HealthCheckManager
             $offenders[] = 'MonthlyReportManager : checkAndSend() n\'utilise plus GET_LOCK (deux visites concurrentes pendant la fenêtre du 1er au 7 du mois pourraient de nouveau envoyer le rapport mensuel en double)';
         }
 
+        // Bug du 2026-07-22 : CalendarManager::checkAndSendDailyEvents() est
+        // la fenêtre de course la plus large des cinq de cette série — AUCUN
+        // throttle externe (contrairement au cron comportemental ou au
+        // rapport mensuel), elle s'exécute sur CHAQUE page front, toute la
+        // journée. processEvent() vérifie Configuration::get($sentKey), puis
+        // envoie à TOUT le lot de clients éligibles pour la langue/pays,
+        // PUIS marque envoyé — sans verrou, deux visiteurs concurrents
+        // pendant la durée de l'envoi du lot peuvent déclencher le même
+        // email calendaire à tout un segment de clients deux fois.
+        $calendarFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php';
+        $calendarSrc  = is_file($calendarFile) ? (file_get_contents($calendarFile) ?: '') : '';
+        if ($calendarSrc === '') {
+            $offenders[] = 'CalendarManager.php introuvable';
+        } elseif (!preg_match('/function\s+checkAndSendDailyEvents[\s\S]{0,1400}?GET_LOCK\(.neria_calendar_check./', $calendarSrc)) {
+            $offenders[] = 'CalendarManager : checkAndSendDailyEvents() n\'utilise plus GET_LOCK (deux visiteurs concurrents pourraient de nouveau envoyer le même email calendaire à tout un segment de clients en double)';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
