@@ -909,6 +909,26 @@ class HealthCheckManager
             $offenders[] = 'CalendarManager : checkAndSendDailyEvents() n\'utilise plus GET_LOCK (deux visiteurs concurrents pourraient de nouveau envoyer le même email calendaire à tout un segment de clients en double)';
         }
 
+        // Bug du 2026-07-22 : SegmentManager classait tout client 0-ouverture
+        // en 'ghost' — y compris un client tout juste inscrit sans avoir eu
+        // la moindre chance d'ouvrir son premier email — au même titre
+        // qu'un client réellement inactif depuis des mois. 'ghost' est le
+        // segment recommandé pour les campagnes de réactivation ('win_back'),
+        // donc un nouvel inscrit pouvait recevoir un email "vous nous
+        // manquez" le jour même de son inscription. Même famille de bug que
+        // ChurnScoreManager (données insuffisantes traitées comme pire cas).
+        // Vérifié en réel : client inscrit il y a 2h -> aucune ligne segment
+        // (pas encore 'ghost') ; même client avec premier envoi vieux de 30
+        // jours -> correctement classé 'ghost'.
+        $segmentFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php';
+        $segmentSrc  = is_file($segmentFile) ? (file_get_contents($segmentFile) ?: '') : '';
+        if ($segmentSrc === '') {
+            $offenders[] = 'SegmentManager.php introuvable';
+        } elseif (!preg_match('/NEW_CUSTOMER_GRACE_DAYS/', $segmentSrc)
+               || !preg_match('/recomputeAll[\s\S]{0,4500}?first_sent\s*>=\s*DATE_SUB/', $segmentSrc)) {
+            $offenders[] = 'SegmentManager : recomputeAll() ne protège plus les clients tout juste inscrits contre un classement immédiat en \'ghost\' (segment recommandé pour les campagnes win_back)';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,

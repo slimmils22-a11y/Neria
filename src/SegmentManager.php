@@ -41,6 +41,10 @@ class SegmentManager
     const LOYAL_MIN_OPENS            = 2;
     const LOYAL_MIN_CONVERSIONS      = 1;
     const DORMANT_THRESHOLD_DAYS     = 90;
+    // Délai de grâce avant de classer un client 0-ouverture en 'ghost' —
+    // laisse le temps réaliste d'ouvrir un premier email avant de le
+    // considérer comme un vrai désengagement (cf. commentaire recomputeAll()).
+    const NEW_CUSTOMER_GRACE_DAYS    = 14;
 
     // Templates recommandés par segment (suggestion dans le formulaire de campagne)
     const RECOMMENDED_TEMPLATES = [
@@ -101,6 +105,22 @@ class SegmentManager
         $lConv  = self::LOYAL_MIN_CONVERSIONS;
         $dDays  = self::DORMANT_THRESHOLD_DAYS;
 
+        // Bug du 2026-07-22 : un client tout juste inscrit (0 ouverture,
+        // premier envoi il y a quelques heures) tombait dans le ELSE
+        // 'ghost' faute d'avoir eu la moindre chance d'ouvrir son premier
+        // email — au même titre qu'un client réellement inactif depuis des
+        // mois. Impact réel : 'ghost' est le segment recommandé pour les
+        // campagnes de réactivation ('win_back', cf. RECOMMENDED_TEMPLATES)
+        // — un nouvel inscrit pouvait recevoir un email "vous nous
+        // manquez" le jour même de son inscription. On exclut donc du
+        // recalcul les clients dont le tout premier envoi date de moins de
+        // {$newCustomerGraceDays} jours et qui n'ont encore rien ouvert :
+        // ils n'obtiennent simplement pas encore de ligne de segment (même
+        // logique que ChurnScoreManager pour les clients trop récents),
+        // et se classeront correctement au prochain recalcul une fois
+        // cette période de grâce passée.
+        $newCustomerGraceDays = self::NEW_CUSTOMER_GRACE_DAYS;
+
         $sql = "
             INSERT INTO `{$table}`
                 (`id_shop`, `id_customer`, `segment`,
@@ -139,11 +159,16 @@ class SegmentManager
                     SUM(event_type = 'click')       AS total_clicks,
                     SUM(event_type = 'conversion')  AS total_conv,
                     MAX(CASE WHEN event_type = 'open'       THEN date_add END) AS last_open,
-                    MAX(CASE WHEN event_type = 'conversion' THEN date_add END) AS last_conv
+                    MAX(CASE WHEN event_type = 'conversion' THEN date_add END) AS last_conv,
+                    MIN(CASE WHEN event_type = 'sent'       THEN date_add END) AS first_sent
                 FROM `{$stat}`
                 WHERE id_shop = {$shop} AND id_customer > 0
                 GROUP BY id_customer
             ) m
+            WHERE NOT (
+                m.total_opens = 0
+                AND m.first_sent >= DATE_SUB(NOW(), INTERVAL {$newCustomerGraceDays} DAY)
+            )
             ON DUPLICATE KEY UPDATE
                 `segment`           = VALUES(`segment`),
                 `total_sent`        = VALUES(`total_sent`),
