@@ -325,11 +325,30 @@ class LoyaltyManager
         $json = \Configuration::get(self::CONFIG_TIERS);
         if ($json) {
             $tiers = json_decode($json, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($tiers)) {
+            // is_array() seul ne suffit pas : un JSON valide mais mal formé
+            // (ex : {"custom":true}, ou une entrée de config corrompue/d'un
+            // autre usage) passerait ce contrôle tout en donnant des éléments
+            // qui ne sont pas des tableaux de palier — plantant ensuite en
+            // cascade tout ce qui itère dessus (getCustomerTier, checkAndReward,
+            // sendMonthlyRecaps…) avec un TypeError au lieu d'un repli propre.
+            if (json_last_error() === JSON_ERROR_NONE && is_array($tiers) && $this->looksLikeTiers($tiers)) {
                 return $this->sortTiersByPoints($tiers);
             }
         }
         return self::DEFAULT_TIERS;
+    }
+
+    private function looksLikeTiers(array $tiers): bool
+    {
+        if (empty($tiers)) {
+            return false;
+        }
+        foreach ($tiers as $tier) {
+            if (!is_array($tier) || !isset($tier['key'], $tier['name'], $tier['points'])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -370,9 +389,9 @@ class LoyaltyManager
         );
     }
 
-    public function getCustomerTier(int $idCustomer): ?array
+    public function getCustomerTier(int $idCustomer, ?int $idShop = null): ?array
     {
-        $total  = $this->getCustomerPoints($idCustomer);
+        $total  = $this->getCustomerPoints($idCustomer, $idShop);
         $tiers  = $this->getTiers();
         $current = null;
 
@@ -385,9 +404,9 @@ class LoyaltyManager
         return $current;
     }
 
-    public function getNextTier(int $idCustomer): ?array
+    public function getNextTier(int $idCustomer, ?int $idShop = null): ?array
     {
-        $total = $this->getCustomerPoints($idCustomer);
+        $total = $this->getCustomerPoints($idCustomer, $idShop);
         foreach ($this->getTiers() as $tier) {
             if ($total < $tier['points']) {
                 return $tier;
@@ -493,38 +512,85 @@ class LoyaltyManager
         // Comparaison par mois calendaire (comme MonthlyReportManager::isDue())
         // plutôt qu'une fenêtre glissante de 28 jours, qui dérive avec le temps
         // et peut finir par envoyer le récap 13 fois par an au lieu de 12.
-        $lastSent = (string) \Configuration::get(self::CONFIG_RECAP_LAST_SENT);
         $thisMonth = date('Y-m');
-        if ($lastSent === $thisMonth) {
-            return 0; // Déjà envoyé ce mois-ci
-        }
 
-        $customers = $this->db->executeS(
-            "SELECT DISTINCT id_customer
-             FROM `{$this->prefix}" . self::TABLE_POINTS . "`
-             WHERE id_customer > 0"
-        ) ?: [];
-
-        $sent = 0;
-        foreach ($customers as $row) {
-            try {
-                if ($this->sendRecapToCustomer((int) $row['id_customer'])) {
-                    $sent++;
-                }
-            } catch (\Throwable $e) {
-                $this->watchdog()->error(
-                    \WatchdogManager::i18nMsg('watchdog.loyalty_recap_error', ['customer' => (int) $row['id_customer'], 'error' => $e->getMessage()]),
-                    'loyalty_recap', 'Loyalty'
-                );
+        // Mode cumul transversal (défaut) : comportement historique inchangé —
+        // un seul passage, un throttle global, un total tous magasins confondus.
+        $crossShop = (new \ConfigManager($this->module))->isLoyaltyCrossShopEnabled();
+        if ($crossShop) {
+            $lastSent = (string) \Configuration::get(self::CONFIG_RECAP_LAST_SENT);
+            if ($lastSent === $thisMonth) {
+                return 0; // Déjà envoyé ce mois-ci
             }
+
+            $customers = $this->db->executeS(
+                "SELECT DISTINCT id_customer
+                 FROM `{$this->prefix}" . self::TABLE_POINTS . "`
+                 WHERE id_customer > 0"
+            ) ?: [];
+
+            $sent = 0;
+            foreach ($customers as $row) {
+                try {
+                    if ($this->sendRecapToCustomer((int) $row['id_customer'])) {
+                        $sent++;
+                    }
+                } catch (\Throwable $e) {
+                    $this->watchdog()->error(
+                        \WatchdogManager::i18nMsg('watchdog.loyalty_recap_error', ['customer' => (int) $row['id_customer'], 'error' => $e->getMessage()]),
+                        'loyalty_recap', 'Loyalty'
+                    );
+                }
+            }
+
+            \Configuration::updateValue(self::CONFIG_RECAP_LAST_SENT, $thisMonth);
+
+            return $sent;
         }
 
-        \Configuration::updateValue(self::CONFIG_RECAP_LAST_SENT, $thisMonth);
+        // Mode séparé (réglage marchand) : sans cette boucle, la boutique qui
+        // envoie son récap en premier écrirait un throttle global (clé sans
+        // suffixe id_shop) qui bloquerait silencieusement le récap de TOUTES
+        // les autres boutiques ce mois-ci — et le total de points utilisé
+        // serait quand même cumulé toutes boutiques confondues, contredisant
+        // le réglage. Chaque boutique a donc son propre throttle et son
+        // propre périmètre client/points — même schéma que checkAndReward().
+        $sent = 0;
+        $shops = \Shop::getShops(true, null, true) ?: [(int) \Context::getContext()->shop->id];
+        foreach ($shops as $idShop) {
+            $idShop = (int) $idShop;
+            $lastSentKey = self::CONFIG_RECAP_LAST_SENT . '_' . $idShop;
+            $lastSent = (string) \Configuration::get($lastSentKey);
+            if ($lastSent === $thisMonth) {
+                continue; // Déjà envoyé ce mois-ci pour cette boutique
+            }
+
+            $customers = $this->db->executeS(
+                "SELECT DISTINCT id_customer
+                 FROM `{$this->prefix}" . self::TABLE_POINTS . "`
+                 WHERE id_customer > 0 AND id_shop = " . $idShop
+            ) ?: [];
+
+            foreach ($customers as $row) {
+                try {
+                    if ($this->sendRecapToCustomer((int) $row['id_customer'], $idShop)) {
+                        $sent++;
+                    }
+                } catch (\Throwable $e) {
+                    $this->watchdog()->error(
+                        \WatchdogManager::i18nMsg('watchdog.loyalty_recap_error', ['customer' => (int) $row['id_customer'], 'error' => $e->getMessage()]),
+                        'loyalty_recap', 'Loyalty'
+                    );
+                }
+            }
+
+            \Configuration::updateValue($lastSentKey, $thisMonth);
+        }
 
         return $sent;
     }
 
-    private function sendRecapToCustomer(int $idCustomer): bool
+    private function sendRecapToCustomer(int $idCustomer, ?int $idShop = null): bool
     {
         $customer = new \Customer($idCustomer);
         if (!\Validate::isLoadedObject($customer) || !$customer->active) {
@@ -532,11 +598,12 @@ class LoyaltyManager
         }
 
         // Points gagnés dans les 30 derniers jours
+        $shopFilter = $idShop !== null ? (' AND id_shop = ' . (int) $idShop) : '';
         $pointsMonth = (int) $this->db->getValue(
             "SELECT COALESCE(SUM(points), 0)
              FROM `{$this->prefix}" . self::TABLE_POINTS . "`
              WHERE id_customer = " . (int) $idCustomer . "
-               AND date_add >= DATE_SUB(NOW(), INTERVAL 30 DAY)"
+               AND date_add >= DATE_SUB(NOW(), INTERVAL 30 DAY)" . $shopFilter
         );
 
         // Pas de points ce mois → pas d'email (évite le spam pour inactifs)
@@ -544,9 +611,9 @@ class LoyaltyManager
             return false;
         }
 
-        $total    = $this->getCustomerPoints($idCustomer);
-        $nextTier = $this->getNextTier($idCustomer);
-        $currTier = $this->getCustomerTier($idCustomer);
+        $total    = $this->getCustomerPoints($idCustomer, $idShop);
+        $nextTier = $this->getNextTier($idCustomer, $idShop);
+        $currTier = $this->getCustomerTier($idCustomer, $idShop);
 
         $prevPoints  = $currTier ? $currTier['points'] : 0;
         $progressPct = 0;

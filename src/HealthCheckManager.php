@@ -929,6 +929,39 @@ class HealthCheckManager
             $offenders[] = 'SegmentManager : recomputeAll() ne protège plus les clients tout juste inscrits contre un classement immédiat en \'ghost\' (segment recommandé pour les campagnes win_back)';
         }
 
+        // Bug du 2026-07-22 : LoyaltyManager::sendMonthlyRecaps() n'avait
+        // jamais reçu le passage au multi-boutique fait pour le reste du
+        // programme fidélité (points/récompenses, cf. plus haut). En mode
+        // "cumul séparé" (NERIA_LOYALTY_CROSS_SHOP_ENABLED désactivé), la
+        // 1ère boutique à envoyer son récap du mois écrivait un throttle
+        // GLOBAL (sans suffixe id_shop) qui bloquait silencieusement le
+        // récap de TOUTES les autres boutiques ce mois-ci — et le total de
+        // points utilisé restait cumulé toutes boutiques confondues, à
+        // l'encontre même du réglage. Vérifié en réel : deux "boutiques"
+        // avec des points distincts -> total shop-scopé différent du total
+        // transversal, et le throttle d'une boutique ne bloque pas l'autre.
+        $loyaltyFile = _PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php';
+        $loyaltySrc  = is_file($loyaltyFile) ? (file_get_contents($loyaltyFile) ?: '') : '';
+        if ($loyaltySrc === '') {
+            $offenders[] = 'LoyaltyManager.php introuvable';
+        } else {
+            if (!preg_match('/function\s+sendMonthlyRecaps[\s\S]{0,2000}?isLoyaltyCrossShopEnabled/', $loyaltySrc)) {
+                $offenders[] = 'LoyaltyManager : sendMonthlyRecaps() ne respecte plus le réglage de cumul séparé (le récap mensuel pourrait de nouveau se bloquer entre boutiques en mode séparé)';
+            }
+            if (!preg_match('/CONFIG_RECAP_LAST_SENT\s*\.\s*.\_.\s*\.\s*\$idShop/', $loyaltySrc)) {
+                $offenders[] = 'LoyaltyManager : sendMonthlyRecaps() n\'utilise plus de throttle par boutique (une boutique pourrait de nouveau bloquer le récap mensuel de toutes les autres)';
+            }
+            // Bug du 2026-07-22 (même fichier) : getTiers() acceptait toute
+            // valeur JSON valide sans vérifier qu'elle ressemblait à des
+            // paliers — une config corrompue (ex : {"custom":true}) passait
+            // is_array() et faisait planter en cascade (TypeError) tout ce
+            // qui itère sur les paliers (getCustomerTier, checkAndReward,
+            // sendMonthlyRecaps) au lieu de se replier sur DEFAULT_TIERS.
+            if (!preg_match('/function\s+looksLikeTiers/', $loyaltySrc)) {
+                $offenders[] = 'LoyaltyManager : getTiers() ne valide plus la structure des paliers (une config corrompue pourrait de nouveau faire planter tout le programme fidélité au lieu de se replier sur les paliers par défaut)';
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
