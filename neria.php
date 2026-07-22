@@ -5700,6 +5700,18 @@ class Neria extends Module
             }
         }
 
+        // ── Bannière de contexte boutique (installations multi-boutique) ──
+        // Tous les indicateurs Neria (stats, fidélité, rapport mensuel…)
+        // filtrent sur Context::getContext()->shop->id — jamais de vue
+        // agrégée. Or quand l'employé sélectionne "Toutes les boutiques" ou
+        // un groupe dans le sélecteur PS en haut de page, PrestaShop retombe
+        // en interne sur la boutique par défaut (PS_SHOP_DEFAULT) sans le
+        // signaler — le commerçant croyait alors voir un total, alors qu'il
+        // ne voyait qu'une seule boutique sans le savoir. Sur une install
+        // mono-boutique (l'immense majorité), Shop::isFeatureActive() est
+        // faux et cette bannière ne s'affiche jamais.
+        $this->assignShopContextBanner();
+
         // ── Rendu navigation + contenu ────────────────────────────
         $navigation = $this->renderTemplate('navigation.tpl');
         $content    = $this->renderTab($activeTab);
@@ -6212,6 +6224,27 @@ class Neria extends Module
         $templatePath = 'module:neria/views/templates/admin/' . $template;
 
         return $this->context->smarty->fetch($templatePath);
+    }
+
+    /**
+     * Assigne les variables de la bannière de contexte boutique affichée
+     * en haut de navigation.tpl (voir appel dans getContentImpl()).
+     * N'affiche rien sur une install mono-boutique.
+     */
+    private function assignShopContextBanner(): void
+    {
+        if (!\Shop::isFeatureActive()) {
+            return;
+        }
+
+        $shopContext = \Shop::getContext();
+        $activeShopName = (string) $this->context->shop->name;
+
+        $this->context->smarty->assign([
+            'neria_shop_ctx_active'      => true,
+            'neria_shop_ctx_is_single'   => $shopContext === \Shop::CONTEXT_SHOP,
+            'neria_shop_ctx_active_name' => $activeShopName,
+        ]);
     }
 
     // ============================================================

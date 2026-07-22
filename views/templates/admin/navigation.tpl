@@ -79,6 +79,21 @@
     </div>
   </div>
 
+  {* ── Contexte boutique (installations multi-boutique uniquement) ── *}
+  {if isset($neria_shop_ctx_active) && $neria_shop_ctx_active}
+    {if $neria_shop_ctx_is_single}
+      <div class="neria-alert neria-alert--shopctx">
+        <span class="neria-alert__icon">🏬</span>
+        {neria_admin key='nav.shop_context_single'} <strong>{$neria_shop_ctx_active_name|escape:'html'}</strong>
+      </div>
+    {else}
+      <div class="neria-alert neria-alert--warning">
+        <span class="neria-alert__icon">⚠</span>
+        {neria_admin key='nav.shop_context_no_aggregate'} <strong>{$neria_shop_ctx_active_name|escape:'html'}</strong>.
+      </div>
+    {/if}
+  {/if}
+
   {* ── Alertes ────────────────────────────────────────────────── *}
   {if isset($neria_success) && $neria_success}
     <div class="neria-alert neria-alert--success" data-neria-alert data-neria-action="{$neria_msg_action|default:''|escape:'html'}">
