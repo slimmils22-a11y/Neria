@@ -781,28 +781,45 @@ class StatsManager
      */
     public function recordConversion(string $token, int $idOrder, float $amount): void
     {
-        if ($this->eventExists($token, self::EVENT_CONVERSION)) {
-            return; // déjà attribuée
-        }
-
         $sent = $this->getSentByToken($token);
         if (!$sent) {
             return;
         }
 
-        $this->record(
-            $sent['template'],
-            $sent['lang'],
-            $token,
-            self::EVENT_CONVERSION,
-            [
-                'id_customer'   => (int) $sent['id_customer'],
-                'id_order'      => $idOrder,
-                'country_code'  => $sent['country_code'],
-                'abtest'        => $sent['abtest_variant'],
-                'revenue'       => $amount,
-            ]
-        );
+        // Même piège de course que recordOpen()/recordClick() (voir leurs
+        // commentaires) : record() crédite des points de fidélité pour un
+        // événement 'conversion' au même titre qu'un 'open'/'click', et
+        // eventExists()+record() n'est pas atomique. hookActionOrderStatusPostUpdate
+        // peut se déclencher plusieurs fois de suite pour la même commande
+        // (module de paiement traversant plusieurs statuts rapidement, mise
+        // à jour groupée en BO) — sans verrou, deux déclenchements quasi
+        // simultanés pouvaient tous deux lire "aucune conversion existante"
+        // et créditer des points en double pour un seul achat réel.
+        $lockKey = 'neria_conv_' . md5($token);
+        $gotLock = (bool) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockKey) . "', 2)");
+        try {
+            if ($this->eventExists($token, self::EVENT_CONVERSION)) {
+                return; // déjà attribuée
+            }
+
+            $this->record(
+                $sent['template'],
+                $sent['lang'],
+                $token,
+                self::EVENT_CONVERSION,
+                [
+                    'id_customer'   => (int) $sent['id_customer'],
+                    'id_order'      => $idOrder,
+                    'country_code'  => $sent['country_code'],
+                    'abtest'        => $sent['abtest_variant'],
+                    'revenue'       => $amount,
+                ]
+            );
+        } finally {
+            if ($gotLock) {
+                $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockKey) . "')");
+            }
+        }
 
         $this->webhook()->trigger('conversion', [
             'template'       => $sent['template'],

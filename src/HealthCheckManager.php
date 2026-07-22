@@ -1037,6 +1037,8 @@ class HealthCheckManager
             $offenders[] = 'StatsManager.php introuvable';
         } elseif (!preg_match('/function\s+recordOpen[\s\S]{0,1000}?.neria_open_.[\s\S]{0,300}?GET_LOCK/', $statsSrc)) {
             $offenders[] = 'StatsManager : recordOpen() n\'utilise plus GET_LOCK (une ouverture rechargée/préchargée pourrait de nouveau créditer des points de fidélité en double)';
+        } elseif (!preg_match('/function\s+recordConversion[\s\S]{0,1000}?.neria_conv_.[\s\S]{0,300}?GET_LOCK/', $statsSrc)) {
+            $offenders[] = 'StatsManager : recordConversion() n\'utilise plus GET_LOCK (un déclenchement en double de hookActionOrderStatusPostUpdate pourrait de nouveau créditer des points de fidélité en double)';
         }
 
         if ($offenders) {
