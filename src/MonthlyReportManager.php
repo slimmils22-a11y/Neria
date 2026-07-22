@@ -55,22 +55,46 @@ class MonthlyReportManager
             return;
         }
 
-        $prev  = new \DateTime('first day of last month');
-        $year  = (int) $prev->format('Y');
-        $month = (int) $prev->format('n');
+        // Verrou MySQL : contrairement au cron comportemental (fenêtre de
+        // course d'une fraction de seconde autour du seuil des 24h),
+        // isDue() reste vrai pendant TOUTE la fenêtre de rattrapage (du 1er
+        // au 7 du mois) — n'importe quelle paire de visites concurrentes
+        // pendant ces 7 jours peut toutes les deux passer isDue() avant que
+        // markSent() n'ait eu le temps de s'exécuter (le temps de générer +
+        // envoyer le rapport), envoyant le rapport mensuel deux fois au
+        // marchand. Même piège déjà corrigé pour la queue d'envoi, la queue
+        // webhook et le cron comportemental.
+        $db = $this->db;
+        if ((int) $db->getValue("SELECT GET_LOCK('neria_monthly_report_check', 0)") !== 1) {
+            return;
+        }
 
         try {
-            if ($this->sendReport($year, $month)) {
-                $this->markSent($year, $month);
+            // Revérifie après obtention du verrou : un autre process a pu
+            // terminer son propre envoi pendant qu'on attendait.
+            if (!$this->isDue()) {
+                return;
             }
-        } catch (\Throwable $e) {
-            if (class_exists('WatchdogManager')) {
-                (new WatchdogManager($this->module))->error(
-                    WatchdogManager::i18nMsg('watchdog.monthly_report_send_failed', ['error' => $e->getMessage()]),
-                    '',
-                    'MonthlyReportManager'
-                );
+
+            $prev  = new \DateTime('first day of last month');
+            $year  = (int) $prev->format('Y');
+            $month = (int) $prev->format('n');
+
+            try {
+                if ($this->sendReport($year, $month)) {
+                    $this->markSent($year, $month);
+                }
+            } catch (\Throwable $e) {
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this->module))->error(
+                        WatchdogManager::i18nMsg('watchdog.monthly_report_send_failed', ['error' => $e->getMessage()]),
+                        '',
+                        'MonthlyReportManager'
+                    );
+                }
             }
+        } finally {
+            $db->execute("SELECT RELEASE_LOCK('neria_monthly_report_check')");
         }
     }
 

@@ -872,6 +872,26 @@ class HealthCheckManager
             $offenders[] = 'neria.php : le déclenchement du cron comportemental quotidien n\'utilise plus GET_LOCK (deux exécutions concurrentes pourraient de nouveau envoyer chaque email comportemental en double)';
         }
 
+        // Bug du 2026-07-22 : MonthlyReportManager::checkAndSend() (déclenché
+        // depuis hookDisplayHeader sur CHAQUE page front) souffre du même
+        // check-then-set non atomique, mais avec une fenêtre de course
+        // BIEN PLUS LARGE que le cron comportemental : isDue() reste vrai
+        // pendant TOUTE la fenêtre de rattrapage (du 1er au 7 du mois), pas
+        // une fraction de seconde autour d'un seuil de 24h. N'importe quelle
+        // paire de visites concurrentes pendant ces 7 jours pouvait envoyer
+        // le rapport mensuel deux fois au marchand avant que markSent() n'ait
+        // eu le temps de s'exécuter. Vérifié en réel (isDue() forcé à true
+        // temporairement) : verrou externe déjà détenu -> rapport non
+        // envoyé (NERIA_REPORT_LAST_SENT inchangé) ; sans verrou -> envoi
+        // normal et marquage correct.
+        $monthlyFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php';
+        $monthlySrc2  = is_file($monthlyFile2) ? (file_get_contents($monthlyFile2) ?: '') : '';
+        if ($monthlySrc2 === '') {
+            $offenders[] = 'MonthlyReportManager.php introuvable';
+        } elseif (!preg_match('/function\s+checkAndSend[\s\S]{0,1200}?GET_LOCK\(.neria_monthly_report_check./', $monthlySrc2)) {
+            $offenders[] = 'MonthlyReportManager : checkAndSend() n\'utilise plus GET_LOCK (deux visites concurrentes pendant la fenêtre du 1er au 7 du mois pourraient de nouveau envoyer le rapport mensuel en double)';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
