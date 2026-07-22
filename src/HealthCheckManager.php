@@ -1041,6 +1041,21 @@ class HealthCheckManager
             $offenders[] = 'StatsManager : recordConversion() n\'utilise plus GET_LOCK (un déclenchement en double de hookActionOrderStatusPostUpdate pourrait de nouveau créditer des points de fidélité en double)';
         }
 
+        // Bug du 2026-07-22 : BounceManager::recordBounce() faisait un SELECT
+        // puis un INSERT/UPDATE séparés (non atomique), alors qu'il est appelé
+        // à la fois par le webhook ESP (SendGrid/Mailgun retentent la livraison
+        // d'un webhook non acquitté assez vite) et par la vérification IMAP
+        // manuelle — deux notifications quasi simultanées pour la même adresse
+        // pouvaient doublonner l'incrément de bounce_count, rapprochant
+        // artificiellement l'adresse du seuil de mise en liste noire.
+        $bounceFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php';
+        $bounceSrc  = is_file($bounceFile) ? (file_get_contents($bounceFile) ?: '') : '';
+        if ($bounceSrc === '') {
+            $offenders[] = 'BounceManager.php introuvable';
+        } elseif (!preg_match('/function\s+recordBounce[\s\S]{0,1500}?ON DUPLICATE KEY UPDATE/', $bounceSrc)) {
+            $offenders[] = 'BounceManager : recordBounce() n\'utilise plus un INSERT...ON DUPLICATE KEY UPDATE atomique (deux notifications de rebond simultanées pour la même adresse pourraient de nouveau doublonner le compteur)';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,

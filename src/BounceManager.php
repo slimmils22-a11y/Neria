@@ -399,33 +399,31 @@ class BounceManager
         $now    = date('Y-m-d H:i:s');
 
         $db  = \Db::getInstance();
-        $exists = $db->getValue(
-            'SELECT `id` FROM `' . _DB_PREFIX_ . self::TABLE . '`
-             WHERE `email` = \'' . pSQL($email) . '\''
-        );
 
-        if ($exists) {
-            // Mise à jour : incrémente compteur, remonte vers hard si besoin
-            $db->execute(
-                'UPDATE `' . _DB_PREFIX_ . self::TABLE . '`
-                 SET `bounce_count` = `bounce_count` + 1,
-                     `last_bounce_at` = \'' . pSQL($now) . '\',
-                     `reason` = \'' . pSQL($reason) . '\',
-                     `type` = IF(`type` = \'hard\', \'hard\', \'' . pSQL($type) . '\')
-                 WHERE `email` = \'' . pSQL($email) . '\''
-            );
-        } else {
-            $db->insert(self::TABLE, [
-                'email'          => pSQL($email),
-                'type'           => pSQL($type),
-                'reason'         => pSQL($reason),
-                'source'         => pSQL($source),
-                'bounce_count'   => 1,
-                'last_bounce_at' => pSQL($now),
-                'status'         => 'active',
-                'date_add'       => pSQL($now),
-            ]);
-        }
+        // INSERT ... ON DUPLICATE KEY UPDATE (atomique, appuyé sur la contrainte
+        // UNIQUE `uq_email`) plutôt qu'un SELECT puis INSERT/UPDATE séparés :
+        // ce dernier n'était pas atomique, et recordBounce() est appelé à la
+        // fois par le webhook ESP (processBounceWebhook — les ESP comme
+        // SendGrid/Mailgun retentent automatiquement la livraison d'un webhook
+        // non acquitté assez vite) et par la vérification IMAP manuelle. Deux
+        // notifications quasi simultanées pour la même adresse pouvaient
+        // toutes deux lire "n'existe pas" et entrer en conflit sur l'INSERT,
+        // ou toutes deux lire "existe" et incrémenter bounce_count deux fois
+        // pour un seul rebond réel — rapprochant artificiellement l'adresse
+        // du seuil de mise en liste noire (soft bounce).
+        $db->execute(
+            'INSERT INTO `' . _DB_PREFIX_ . self::TABLE . '`
+                (`email`, `type`, `reason`, `source`, `bounce_count`, `last_bounce_at`, `status`, `date_add`)
+             VALUES (
+                \'' . pSQL($email) . '\', \'' . pSQL($type) . '\', \'' . pSQL($reason) . '\',
+                \'' . pSQL($source) . '\', 1, \'' . pSQL($now) . '\', \'active\', \'' . pSQL($now) . '\'
+             )
+             ON DUPLICATE KEY UPDATE
+                `bounce_count`   = `bounce_count` + 1,
+                `last_bounce_at` = VALUES(`last_bounce_at`),
+                `reason`         = VALUES(`reason`),
+                `type`           = IF(`type` = \'hard\', \'hard\', VALUES(`type`))'
+        );
 
         if (class_exists('WatchdogManager')) {
             (new \WatchdogManager($this->module))->warning(
