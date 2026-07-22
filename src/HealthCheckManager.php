@@ -1056,6 +1056,29 @@ class HealthCheckManager
             $offenders[] = 'BounceManager : recordBounce() n\'utilise plus un INSERT...ON DUPLICATE KEY UPDATE atomique (deux notifications de rebond simultanées pour la même adresse pourraient de nouveau doublonner le compteur)';
         }
 
+        // Bug du 2026-07-22 : DomainReputationManager::getSenderDomain() et
+        // WebhookManager::trigger() décodaient NERIA_SENDERS_JSON /
+        // NERIA_WEBHOOK_EVENTS puis appelaient array_key_first()/in_array()
+        // sans vérifier is_array() — un JSON valide mais corrompu (une simple
+        // chaîne ou un nombre, suite à une écriture partielle) décode sans
+        // erreur en scalaire non-null, et ces fonctions lèvent alors un
+        // TypeError fatal en PHP 8. Un self-healing Watchdog existe déjà pour
+        // ces deux clés, mais seulement lors de son passage périodique — pas
+        // au moment réel de l'usage. Vérifié en réel (config forcée à une
+        // chaîne JSON valide non-tableau) : plantait avant, ne plante plus.
+        $domRepSrc2 = $domRepSrc; // déjà chargé plus haut dans ce fichier
+        if ($domRepSrc2 !== '' && !preg_match('/function\s+getSenderDomain[\s\S]{0,1300}?is_array\(\s*\$senders\s*\)/', $domRepSrc2)) {
+            $offenders[] = 'DomainReputationManager : getSenderDomain() ne valide plus is_array() sur NERIA_SENDERS_JSON décodé (une config corrompue pourrait de nouveau planter le contrôle de réputation domaine avec un TypeError)';
+        }
+
+        $webhookFile = _PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php';
+        $webhookSrc  = is_file($webhookFile) ? (file_get_contents($webhookFile) ?: '') : '';
+        if ($webhookSrc === '') {
+            $offenders[] = 'WebhookManager.php introuvable';
+        } elseif (!preg_match('/function\s+trigger[\s\S]{0,1000}?is_array\(\s*\$enabled\s*\)/', $webhookSrc)) {
+            $offenders[] = 'WebhookManager : trigger() ne valide plus is_array() sur NERIA_WEBHOOK_EVENTS décodé (une config corrompue pourrait de nouveau bloquer tous les webhooks avec un TypeError)';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,

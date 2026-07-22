@@ -486,7 +486,18 @@ class DomainReputationManager
         // 1. Multi-expéditeur Neria — sélecteur FR ou premier défini
         $sendersJson = \Configuration::get('NERIA_SENDERS_JSON');
         if ($sendersJson) {
-            $senders = json_decode($sendersJson, true) ?? [];
+            $senders = json_decode($sendersJson, true);
+            // is_array() est indispensable ici, pas seulement "?? []" : un
+            // JSON valide mais corrompu (ex: une simple chaîne ou un nombre,
+            // suite à une écriture partielle) décode sans erreur en un
+            // scalaire non-null — array_key_first() sur ce scalaire lève un
+            // TypeError fatal en PHP 8, plantant tout le contrôle de
+            // réputation domaine. HealthCheckManager::checkMultiSenderJson()
+            // répare cette config de façon autonome, mais seulement lors de
+            // son passage périodique — pas au moment réel de l'usage ici.
+            if (!is_array($senders)) {
+                $senders = [];
+            }
             foreach (['fr', 'en', array_key_first($senders)] as $lang) {
                 if (!empty($senders[$lang]['from'])) {
                     $d = $this->extractDomain($senders[$lang]['from']);

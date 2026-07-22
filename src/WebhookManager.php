@@ -146,7 +146,15 @@ class WebhookManager
 
         // Filtre par événements activés ([] = tous activés)
         $enabledJson = (string) \Configuration::get(self::CONFIG_EVENTS);
-        $enabled = ($enabledJson !== '') ? (json_decode($enabledJson, true) ?? []) : [];
+        $enabled = ($enabledJson !== '') ? json_decode($enabledJson, true) : [];
+        // is_array() est indispensable, pas seulement "?? []" : un JSON valide
+        // mais corrompu (ex: une simple chaîne, suite à une écriture partielle
+        // de la config) décode sans erreur en un scalaire non-null —
+        // in_array() sur ce scalaire lève un TypeError fatal en PHP 8, ce qui
+        // bloquerait TOUS les webhooks (l'appelant ne catch pas cette erreur).
+        if (!is_array($enabled)) {
+            $enabled = [];
+        }
         if (!empty($enabled) && !in_array($event, $enabled, true)) {
             return;
         }
