@@ -48,13 +48,22 @@ class CooldownManager
      * comportement (template + client + fenêtre), qui reste pertinent pour
      * ces cas-là.
      *
+     * $idShop obligatoire : sans ce filtre, un client partagé entre
+     * boutiques (compte mutualisé) recevant le même template sur DEUX
+     * boutiques différentes dans la fenêtre de cooldown voit le second
+     * envoi — pourtant légitime, une commande réelle sur une autre
+     * boutique — silencieusement bloqué comme "doublon" de l'envoi de
+     * la première boutique. Même raisonnement que le scope id_shop
+     * déjà appliqué partout ailleurs dans BehavioralCronManager.
+     *
      * @param string $toEmail       Adresse email du destinataire
      * @param string $template      Nom du template (ex. "order_conf")
      * @param int    $windowMinutes Durée de la fenêtre en minutes
+     * @param int    $idShop        Boutique à l'origine de cet envoi
      * @param int    $idOrder       ID de la commande liée à cet envoi, si applicable (0 = non lié)
      * @return bool true = doublon détecté, bloquer l'envoi
      */
-    public function isDuplicate(string $toEmail, string $template, int $windowMinutes, int $idOrder = 0): bool
+    public function isDuplicate(string $toEmail, string $template, int $windowMinutes, int $idShop, int $idOrder = 0): bool
     {
         if (in_array($template, self::BYPASS_TEMPLATES, true)) {
             return false;
@@ -77,6 +86,7 @@ class CooldownManager
         $count = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
              WHERE `id_customer` = ' . (int) $idCustomer . '
+               AND `id_shop`     = ' . (int) $idShop . '
                AND `template`    = \'' . pSQL($template) . '\'
                AND `event_type`  = \'sent\'' . $orderCondition . '
                AND `date_add`    > DATE_SUB(NOW(), INTERVAL ' . (int) $windowMinutes . ' MINUTE)'

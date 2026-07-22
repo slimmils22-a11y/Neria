@@ -807,6 +807,31 @@ class HealthCheckManager
             $offenders[] = 'BehavioralCronManager : appelle de nouveau getPreferredHour() sans lui passer $idShop';
         }
 
+        // Bug du 2026-07-22 : CooldownManager::isDuplicate() (Mode Silence,
+        // appelé sur CHAQUE email via le hook actionEmailSendBefore) ne
+        // filtrait la recherche de doublon par id_shop nulle part — un
+        // client partagé entre boutiques recevant le même template sur
+        // DEUX boutiques différentes dans la fenêtre de cooldown voyait le
+        // second envoi, pourtant légitime (ex. confirmation de commande
+        // réelle sur l'autre boutique), silencieusement bloqué comme
+        // "doublon". Vérifié en réel : envoi shop 1 -> doublon shop 1
+        // detecté (true) ; même template shop 2 -> pas de doublon (false),
+        // correctement isolés après le fix.
+        $cooldownFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CooldownManager.php';
+        $cooldownSrc  = is_file($cooldownFile) ? (file_get_contents($cooldownFile) ?: '') : '';
+        if ($cooldownSrc === '') {
+            $offenders[] = 'CooldownManager.php introuvable';
+        } else {
+            if (!preg_match('/function\s+isDuplicate\s*\([^)]*int\s+\$idShop/', $cooldownSrc)) {
+                $offenders[] = 'CooldownManager : isDuplicate() n\'a plus de paramètre $idShop (blocage de doublon potentiellement basé sur une autre boutique)';
+            } elseif (!preg_match('/isDuplicate[\s\S]{0,1200}?id_shop.\s*=/', $cooldownSrc)) {
+                $offenders[] = 'CooldownManager : isDuplicate() ne filtre plus la recherche de doublon par id_shop';
+            }
+        }
+        if ($mainSrc !== '' && preg_match('/isDuplicate\(\(string\)\s*\$to,\s*\$tpl,\s*\$cdMinutes,\s*\$cdIdOrder\)/', $mainSrc)) {
+            $offenders[] = 'neria.php : appelle de nouveau CooldownManager::isDuplicate() sans lui passer id_shop';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
