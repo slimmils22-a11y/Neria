@@ -4731,6 +4731,20 @@ class Neria extends Module
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=control_center' . ($msg !== '' ? '&neria_success=' . urlencode($msg) : ''));
         }
 
+        // ── Centre de contrôle : afficher/masquer TOUTES les features ──
+        if (Tools::getValue('neria_action') === 'menu_visibility_bulk') {
+            $mode = (string) Tools::getValue('mode');
+            if (in_array($mode, ['show', 'hide'], true)) {
+                (new ConfigManager($this))->setAllMenuItemsVisibility($mode === 'show');
+                $msg = $mode === 'show'
+                    ? AdminTranslator::t('msg.menu_all_shown')
+                    : AdminTranslator::t('msg.menu_all_hidden');
+            } else {
+                $msg = '';
+            }
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=control_center' . ($msg !== '' ? '&neria_success=' . urlencode($msg) : ''));
+        }
+
         // ── Fidélité : sauvegarde des paliers ─────────────────
         if (Tools::getValue('neria_action') === 'save_loyalty_tiers' && class_exists('LoyaltyManager')) {
             $tiers = [];

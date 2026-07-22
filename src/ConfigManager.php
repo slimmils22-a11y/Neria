@@ -820,6 +820,22 @@ class ConfigManager
     }
 
     /**
+     * Affiche ou masque TOUTES les features du menu BO en un seul appel
+     * (bouton "Tout afficher"/"Tout masquer" du centre de contrôle).
+     * $visible = true  → NERIA_MENU_HIDDEN_ITEMS vidé (tout affiché).
+     * $visible = false → NERIA_MENU_HIDDEN_ITEMS rempli avec la totalité
+     * des clés du registre (tout masqué). N'affecte jamais l'état
+     * actif/inactif réel des features, uniquement l'affichage du menu.
+     */
+    public function setAllMenuItemsVisibility(bool $visible): void
+    {
+        $hidden  = $visible ? [] : array_column(self::CONTROL_CENTER_REGISTRY, 'key');
+        $encoded = json_encode(array_values($hidden));
+        \Configuration::updateGlobalValue(self::KEY_MENU_HIDDEN_ITEMS, $encoded);
+        $this->cache[self::KEY_MENU_HIDDEN_ITEMS] = $encoded;
+    }
+
+    /**
      * Indique si le marchand a activé le bon de réduction sur les paliers
      * de commandes (milestone_order). Désactivé par défaut : sans ce toggle,
      * milestone_order reste un email de pure reconnaissance sans bon promis.
