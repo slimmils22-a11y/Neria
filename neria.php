@@ -1581,43 +1581,74 @@ class Neria extends Module
 
         // ── Tâches quotidiennes comportementales (fallback sans cron serveur) ─
         // CRON_LAST_BEHAVIORAL est mis à jour par BehavioralCronManager::run() lui-même
+        //
+        // Le check-then-set sur Configuration n'est pas atomique (même piège
+        // déjà corrigé pour la queue d'envoi et la queue webhook ci-dessus) :
+        // deux visiteurs déclenchant hookDisplayHeader au même moment, une
+        // fois par 24h seulement, peuvent tous deux lire un $lastBehavioral
+        // périmé avant que BehavioralCronManager::run() n'ait eu le temps de
+        // mettre à jour le timestamp — les deux exécutent alors TOUTE la
+        // journée comportementale en parallèle. Contrairement au voucher
+        // anniversaire (protégé par une réservation atomique INSERT IGNORE),
+        // la plupart des ~20 méthodes d'envoi de BehavioralCronManager
+        // suivent un schéma "envoyer PUIS marquer envoyé" (send() insère
+        // dans neria_behavioral_sent seulement APRÈS Mail::Send()) : sans ce
+        // verrou, un client peut recevoir le même email comportemental deux
+        // fois (relance panier, post-achat, réactivation...). GET_LOCK()
+        // protège l'ensemble du bloc (cron comportemental + conversions
+        // upsell + récaps fidélité + campagnes saisonnières), qui partagent
+        // tous le même déclencheur quotidien.
         if (class_exists('BehavioralCronManager')) {
             $lastBehavioral = (int) strtotime(
                 (string) \Configuration::get(HealthCheckManager::CRON_LAST_BEHAVIORAL)
             );
             if ((time() - $lastBehavioral) >= 86400) {
-                try {
-                    (new BehavioralCronManager($this))->run();
-                    $ran['behavioral'] = true;
-                } catch (\Throwable $e) {
-                    // best-effort — ne bloque jamais le front
-                }
-                if (class_exists('UpsellManager')) {
+                $db = \Db::getInstance();
+                if ((int) $db->getValue("SELECT GET_LOCK('neria_behavioral_cron_run', 0)") === 1) {
                     try {
-                        (new UpsellManager($this))->checkConversions();
-                        $ran['upsell_conversions'] = true;
-                        if (class_exists('WatchdogManager')) {
-                            (new WatchdogManager($this))->cronHeartbeat('upsell_conversions');
+                        // Revérifie après obtention du verrou : un autre process a pu
+                        // terminer son propre traitement pendant qu'on attendait.
+                        $lastBehavioralRecheck = (int) strtotime(
+                            (string) \Configuration::get(HealthCheckManager::CRON_LAST_BEHAVIORAL)
+                        );
+                        if ((time() - $lastBehavioralRecheck) >= 86400) {
+                            try {
+                                (new BehavioralCronManager($this))->run();
+                                $ran['behavioral'] = true;
+                            } catch (\Throwable $e) {
+                                // best-effort — ne bloque jamais le front
+                            }
+                            if (class_exists('UpsellManager')) {
+                                try {
+                                    (new UpsellManager($this))->checkConversions();
+                                    $ran['upsell_conversions'] = true;
+                                    if (class_exists('WatchdogManager')) {
+                                        (new WatchdogManager($this))->cronHeartbeat('upsell_conversions');
+                                    }
+                                } catch (\Throwable $e) {}
+                            }
+                            if (class_exists('LoyaltyManager') && \Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')) {
+                                try {
+                                    (new LoyaltyManager($this))->sendMonthlyRecaps();
+                                    $ran['loyalty_recaps'] = true;
+                                    if (class_exists('WatchdogManager')) {
+                                        (new WatchdogManager($this))->cronHeartbeat('loyalty_recaps');
+                                    }
+                                } catch (\Throwable $e) {}
+                            }
+                            if (class_exists('SeasonalCampaignManager')) {
+                                try {
+                                    (new SeasonalCampaignManager($this))->runDueCampaigns();
+                                    $ran['seasonal_campaigns'] = true;
+                                    if (class_exists('WatchdogManager')) {
+                                        (new WatchdogManager($this))->cronHeartbeat('seasonal_campaigns');
+                                    }
+                                } catch (\Throwable $e) {}
+                            }
                         }
-                    } catch (\Throwable $e) {}
-                }
-                if (class_exists('LoyaltyManager') && \Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')) {
-                    try {
-                        (new LoyaltyManager($this))->sendMonthlyRecaps();
-                        $ran['loyalty_recaps'] = true;
-                        if (class_exists('WatchdogManager')) {
-                            (new WatchdogManager($this))->cronHeartbeat('loyalty_recaps');
-                        }
-                    } catch (\Throwable $e) {}
-                }
-                if (class_exists('SeasonalCampaignManager')) {
-                    try {
-                        (new SeasonalCampaignManager($this))->runDueCampaigns();
-                        $ran['seasonal_campaigns'] = true;
-                        if (class_exists('WatchdogManager')) {
-                            (new WatchdogManager($this))->cronHeartbeat('seasonal_campaigns');
-                        }
-                    } catch (\Throwable $e) {}
+                    } finally {
+                        $db->execute("SELECT RELEASE_LOCK('neria_behavioral_cron_run')");
+                    }
                 }
             }
         }

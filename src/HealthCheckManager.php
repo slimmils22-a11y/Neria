@@ -851,6 +851,27 @@ class HealthCheckManager
             $offenders[] = 'QueueManager : processQueue() n\'utilise plus GET_LOCK (deux exécutions concurrentes pourraient de nouveau envoyer chaque email en double)';
         }
 
+        // Bug du 2026-07-22 : le déclenchement quotidien du cron
+        // comportemental (neria.php, hookDisplayHeader) reposait sur un
+        // check-then-set non atomique sur CRON_LAST_BEHAVIORAL — même piège
+        // déjà corrigé pour la queue d'envoi et la queue webhook. Deux
+        // visiteurs déclenchant hookDisplayHeader au même moment (une fois
+        // par 24h seulement, mais un site à trafic élevé peut y arriver)
+        // pouvaient tous deux lire un timestamp périmé avant que
+        // BehavioralCronManager::run() n'ait eu le temps de le mettre à
+        // jour — les deux exécutent alors TOUTE la journée comportementale
+        // en parallèle. Contrairement au voucher anniversaire (protégé par
+        // une réservation atomique INSERT IGNORE), la plupart des ~20
+        // méthodes d'envoi suivent un schéma "envoyer PUIS marquer envoyé" :
+        // sans ce verrou, un client peut recevoir le même email
+        // comportemental deux fois. Vérifié en réel via hookDisplayHeaderImpl()
+        // avec un verrou externe déjà détenu : le cron ne s'exécute pas
+        // (timestamp inchangé) ; sans verrou externe, il s'exécute
+        // normalement (timestamp mis à jour).
+        if ($mainSrc !== '' && !preg_match('/CRON_LAST_BEHAVIORAL[\s\S]{0,600}?GET_LOCK\(.neria_behavioral_cron_run./', $mainSrc)) {
+            $offenders[] = 'neria.php : le déclenchement du cron comportemental quotidien n\'utilise plus GET_LOCK (deux exécutions concurrentes pourraient de nouveau envoyer chaque email comportemental en double)';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
