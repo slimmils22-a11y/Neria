@@ -962,6 +962,22 @@ class HealthCheckManager
             }
         }
 
+        // Bug du 2026-07-22 : même famille que le récap fidélité ci-dessus,
+        // dans MonthlyReportManager. Le rapport lui-même est entièrement
+        // scopé par $this->idShop (tous les KPI filtrent par id_shop), mais
+        // isDue()/markSent() utilisaient un throttle GLOBAL : la 1ère
+        // boutique dont un visiteur déclenchait le hook recevait bien SON
+        // rapport, mais marquait le mois "envoyé" pour TOUTES les boutiques —
+        // les autres ne recevaient alors plus jamais leur rapport mensuel.
+        $reportFile = _PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php';
+        $reportSrc  = is_file($reportFile) ? (file_get_contents($reportFile) ?: '') : '';
+        if ($reportSrc === '') {
+            $offenders[] = 'MonthlyReportManager.php introuvable';
+        } elseif (!preg_match('/function\s+checkAndSend[\s\S]{0,2500}?Shop::getShops/', $reportSrc)
+               || !preg_match('/CONFIG_LAST_SENT\s*\.\s*.\_.\s*\.\s*\$idShop/', $reportSrc)) {
+            $offenders[] = 'MonthlyReportManager : checkAndSend() n\'itère plus sur chaque boutique avec un throttle dédié (une boutique pourrait de nouveau bloquer le rapport mensuel de toutes les autres)';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,

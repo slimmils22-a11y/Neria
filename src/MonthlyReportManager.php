@@ -51,9 +51,10 @@ class MonthlyReportManager
         if (!(int) \Configuration::get(self::CONFIG_ENABLED)) {
             return;
         }
-        if (!$this->isDue()) {
-            return;
-        }
+
+        // Pas de "fast exit" global ici : isDue() est désormais par boutique
+        // (voir plus bas), une seule boutique "à jour" ne doit pas empêcher
+        // les autres d'être vérifiées.
 
         // Verrou MySQL : contrairement au cron comportemental (fenêtre de
         // course d'une fraction de seconde autour du seuil des 24h),
@@ -70,29 +71,49 @@ class MonthlyReportManager
         }
 
         try {
-            // Revérifie après obtention du verrou : un autre process a pu
-            // terminer son propre envoi pendant qu'on attendait.
-            if (!$this->isDue()) {
-                return;
-            }
-
             $prev  = new \DateTime('first day of last month');
             $year  = (int) $prev->format('Y');
             $month = (int) $prev->format('n');
 
-            try {
-                if ($this->sendReport($year, $month)) {
-                    $this->markSent($year, $month);
+            // Le rapport lui-même est entièrement scopé sur $this->idShop
+            // (tous les KPI/requêtes ci-dessous filtrent par id_shop) — mais
+            // isDue()/markSent() utilisaient un throttle GLOBAL (sans suffixe
+            // id_shop). En multi-boutique, la 1ère boutique dont un visiteur
+            // déclenchait ce hook recevait bien SON rapport, mais marquait le
+            // mois comme "envoyé" pour TOUTES les boutiques — les autres ne
+            // recevaient alors plus jamais leur rapport mensuel. On boucle
+            // donc ici sur chaque boutique active, comme BehavioralCronManager
+            // le fait déjà pour ses tâches comportementales.
+            $originalShop = \Context::getContext()->shop;
+            $shops = \Shop::getShops(true, null, true) ?: [(int) $originalShop->id];
+
+            foreach ($shops as $idShop) {
+                $idShop = (int) $idShop;
+                \Context::getContext()->shop = new \Shop($idShop);
+                $this->idShop = $idShop;
+
+                // Revérifie après obtention du verrou : un autre process a pu
+                // terminer son propre envoi pendant qu'on attendait.
+                if (!$this->isDue($idShop)) {
+                    continue;
                 }
-            } catch (\Throwable $e) {
-                if (class_exists('WatchdogManager')) {
-                    (new WatchdogManager($this->module))->error(
-                        WatchdogManager::i18nMsg('watchdog.monthly_report_send_failed', ['error' => $e->getMessage()]),
-                        '',
-                        'MonthlyReportManager'
-                    );
+
+                try {
+                    if ($this->sendReport($year, $month)) {
+                        $this->markSent($year, $month, $idShop);
+                    }
+                } catch (\Throwable $e) {
+                    if (class_exists('WatchdogManager')) {
+                        (new WatchdogManager($this->module))->error(
+                            WatchdogManager::i18nMsg('watchdog.monthly_report_send_failed', ['error' => $e->getMessage()]),
+                            '',
+                            'MonthlyReportManager'
+                        );
+                    }
                 }
             }
+
+            \Context::getContext()->shop = $originalShop;
         } finally {
             $db->execute("SELECT RELEASE_LOCK('neria_monthly_report_check')");
         }
@@ -932,9 +953,10 @@ class MonthlyReportManager
     // UTILITAIRES
     // ============================================================
 
-    public function isDue(): bool
+    public function isDue(?int $idShop = null): bool
     {
-        $last   = (string) \Configuration::get(self::CONFIG_LAST_SENT);
+        $key    = $idShop !== null ? (self::CONFIG_LAST_SENT . '_' . $idShop) : self::CONFIG_LAST_SENT;
+        $last   = (string) \Configuration::get($key);
         $target = date('Y-m', strtotime('last month'));
 
         if ($last === $target) {
@@ -945,10 +967,11 @@ class MonthlyReportManager
         return (int) date('j') <= 7;
     }
 
-    private function markSent(int $year, int $month): void
+    private function markSent(int $year, int $month, ?int $idShop = null): void
     {
+        $key = $idShop !== null ? (self::CONFIG_LAST_SENT . '_' . $idShop) : self::CONFIG_LAST_SENT;
         \Configuration::updateValue(
-            self::CONFIG_LAST_SENT,
+            $key,
             sprintf('%04d-%02d', $year, $month)
         );
     }
