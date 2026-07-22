@@ -109,7 +109,14 @@ class PageSpeedManager
         $cacheTime = (int) \Configuration::get(self::CONFIG_CACHE_TIME);
         if ($cacheTime && (time() - $cacheTime) < self::CACHE_TTL) {
             $data = $this->getCachedReport();
-            if ($data) {
+            // Le cache est stocké en config GLOBALE (pas par boutique) : sur
+            // une install multi-boutique où chaque boutique a sa propre URL
+            // cible (voir getTargetUrl()), la boutique A déclenchait l'analyse
+            // et mettait en cache SON url, puis la boutique B lisait ce même
+            // cache pendant 24h — affichant le score PageSpeed du site de A
+            // comme si c'était le sien (même famille de bug que
+            // DomainReputationManager::getCachedReport()).
+            if ($data && ($data['url'] ?? null) === $this->getTargetUrl()) {
                 return $data;
             }
         }

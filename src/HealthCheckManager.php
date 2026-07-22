@@ -992,6 +992,37 @@ class HealthCheckManager
             $offenders[] = 'DomainReputationManager : getCachedReport() ne vérifie plus que le domaine caché correspond au domaine actuel (une boutique pourrait de nouveau afficher la réputation d\'une autre boutique)';
         }
 
+        // Bug du 2026-07-22 (même famille que DomainReputationManager
+        // ci-dessus) : PageSpeedManager, SearchConsoleManager et
+        // SeoApiManager mettaient tous les trois en cache leur rapport
+        // (score PageSpeed, stats Search Console, autorité SEMrush/Moz) en
+        // config GLOBALE sans jamais vérifier qu'il correspondait au domaine
+        // actuel. Sur une install multi-boutique à domaines distincts, une
+        // boutique pouvait afficher pendant 24h les données d'une autre.
+        $pageSpeedFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PageSpeedManager.php';
+        $pageSpeedSrc  = is_file($pageSpeedFile) ? (file_get_contents($pageSpeedFile) ?: '') : '';
+        if ($pageSpeedSrc === '') {
+            $offenders[] = 'PageSpeedManager.php introuvable';
+        } elseif (!preg_match('/function\s+getReport[\s\S]{0,1000}?\[.url.\]\s*\?\?\s*null\)\s*===\s*\$this->getTargetUrl\(\)/', $pageSpeedSrc)) {
+            $offenders[] = 'PageSpeedManager : getReport() ne vérifie plus que le cache correspond à l\'URL cible actuelle (une boutique pourrait de nouveau afficher le score PageSpeed d\'une autre boutique)';
+        }
+
+        $searchConsoleFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php';
+        $searchConsoleSrc  = is_file($searchConsoleFile) ? (file_get_contents($searchConsoleFile) ?: '') : '';
+        if ($searchConsoleSrc === '') {
+            $offenders[] = 'SearchConsoleManager.php introuvable';
+        } elseif (!preg_match('/function\s+getStats[\s\S]{0,1300}?stripos\([\s\S]{0,80}?site_url[\s\S]{0,80}?getShopHost\(\)/', $searchConsoleSrc)) {
+            $offenders[] = 'SearchConsoleManager : getStats() ne vérifie plus que le cache correspond au domaine actuel (une boutique pourrait de nouveau afficher les stats Search Console d\'une autre boutique)';
+        }
+
+        $seoApiFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SeoApiManager.php';
+        $seoApiSrc  = is_file($seoApiFile) ? (file_get_contents($seoApiFile) ?: '') : '';
+        if ($seoApiSrc === '') {
+            $offenders[] = 'SeoApiManager.php introuvable';
+        } elseif (!preg_match('/function\s+getReport[\s\S]{0,1300}?\[.domain.\]\s*\?\?\s*null\)\s*===\s*\$currentDomain/', $seoApiSrc)) {
+            $offenders[] = 'SeoApiManager : getReport() ne vérifie plus que le cache correspond au domaine actuel (une boutique pourrait de nouveau afficher l\'autorité SEO d\'une autre boutique)';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,

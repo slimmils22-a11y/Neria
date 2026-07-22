@@ -148,7 +148,15 @@ class SeoApiManager
         $cacheTime = (int) \Configuration::get(self::CONFIG_CACHE_TIME);
         if ($cacheTime && (time() - $cacheTime) < self::CACHE_TTL) {
             $data = $this->getCachedReport();
-            if ($data) {
+            // Le cache est stocké en config GLOBALE (pas par boutique) : sur
+            // une install multi-boutique où chaque boutique a son propre
+            // domaine, la boutique A déclenchait l'appel SEMrush/Moz et
+            // mettait en cache SON domaine, puis la boutique B lisait ce même
+            // cache pendant 24h — affichant l'autorité/trafic du domaine de A
+            // comme si c'était le sien (même famille de bug que
+            // DomainReputationManager).
+            $currentDomain = parse_url(\Tools::getShopDomainSsl(true), PHP_URL_HOST);
+            if ($data && ($data['domain'] ?? null) === $currentDomain) {
                 return $data;
             }
         }

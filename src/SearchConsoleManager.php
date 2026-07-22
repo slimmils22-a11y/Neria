@@ -236,12 +236,26 @@ class SearchConsoleManager
             $cached = \Configuration::get(self::CONFIG_CACHE);
             if ($cached) {
                 $data = json_decode($cached, true);
-                if (is_array($data)) {
+                // Le cache est stocké en config GLOBALE (pas par boutique) :
+                // sur une install multi-boutique où chaque boutique a son
+                // propre domaine, la boutique A déclenchait la récupération
+                // et mettait en cache SES stats Search Console, puis la
+                // boutique B lisait ce même cache pendant 24h — affichant les
+                // clics/impressions du site de A comme si c'était les siens
+                // (même famille de bug que DomainReputationManager).
+                if (is_array($data)
+                    && stripos((string) ($data['site_url'] ?? ''), $this->getShopHost()) !== false
+                ) {
                     return $data;
                 }
             }
         }
         return $this->fetchAndCache();
+    }
+
+    private function getShopHost(): string
+    {
+        return (string) parse_url(\Tools::getShopDomainSsl(true), PHP_URL_HOST);
     }
 
     public function getCachedStats(): ?array
