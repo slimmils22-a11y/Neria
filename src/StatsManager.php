@@ -168,36 +168,53 @@ class StatsManager
             return;
         }
 
-        if ($this->eventExists($token, self::EVENT_OPEN)) {
-            return;
-        }
+        // Même piège de course que recordClick() (voir son commentaire) :
+        // eventExists() + record() ne sont pas atomiques, et record() crédite
+        // des points de fidélité pour un événement 'open' au même titre qu'un
+        // 'click'. De nombreux clients mail préchargent ou rechargent le pixel
+        // de tracking (proxy image Gmail, plusieurs appareils synchronisés
+        // ouvrant l'email au même instant) — sans verrou, deux requêtes
+        // quasi simultanées peuvent toutes deux lire "aucune ouverture
+        // existante" avant que l'une n'ait inséré sa ligne, créditant des
+        // points en double pour une seule ouverture réelle.
+        $lockKey = 'neria_open_' . md5($token);
+        $gotLock = (bool) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockKey) . "', 2)");
+        try {
+            if ($this->eventExists($token, self::EVENT_OPEN)) {
+                return;
+            }
 
-        $isMpp = $this->detectMpp(
-            $_SERVER['HTTP_USER_AGENT'] ?? '',
-            $sent['date_add']
-        );
+            $isMpp = $this->detectMpp(
+                $_SERVER['HTTP_USER_AGENT'] ?? '',
+                $sent['date_add']
+            );
 
-        $this->record(
-            $sent['template'],
-            $sent['lang'],
-            $token,
-            self::EVENT_OPEN,
-            [
-                'id_customer'  => (int) $sent['id_customer'],
-                'id_order'     => (int) $sent['id_order'],
-                'country_code' => $sent['country_code'],
-                'abtest'       => $sent['abtest_variant'],
-                'is_mpp'       => $isMpp ? 1 : 0,
-            ]
-        );
+            $this->record(
+                $sent['template'],
+                $sent['lang'],
+                $token,
+                self::EVENT_OPEN,
+                [
+                    'id_customer'  => (int) $sent['id_customer'],
+                    'id_order'     => (int) $sent['id_order'],
+                    'country_code' => $sent['country_code'],
+                    'abtest'       => $sent['abtest_variant'],
+                    'is_mpp'       => $isMpp ? 1 : 0,
+                ]
+            );
 
-        if (!$isMpp) {
-            $this->webhook()->trigger('email_opened', [
-                'template'       => $sent['template'],
-                'lang'           => $sent['lang'],
-                'customer_id'    => (int) $sent['id_customer'],
-                'tracking_token' => $token,
-            ]);
+            if (!$isMpp) {
+                $this->webhook()->trigger('email_opened', [
+                    'template'       => $sent['template'],
+                    'lang'           => $sent['lang'],
+                    'customer_id'    => (int) $sent['id_customer'],
+                    'tracking_token' => $token,
+                ]);
+            }
+        } finally {
+            if ($gotLock) {
+                $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockKey) . "')");
+            }
         }
     }
 

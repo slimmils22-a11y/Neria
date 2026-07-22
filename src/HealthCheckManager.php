@@ -1023,6 +1023,22 @@ class HealthCheckManager
             $offenders[] = 'SeoApiManager : getReport() ne vérifie plus que le cache correspond au domaine actuel (une boutique pourrait de nouveau afficher l\'autorité SEO d\'une autre boutique)';
         }
 
+        // Bug du 2026-07-22 : StatsManager::recordOpen() créditait des points
+        // de fidélité (même famille que recordClick(), déjà protégé) sans
+        // aucun verrou — eventExists()+record() n'est pas atomique. De
+        // nombreux clients mail préchargent/rechargent le pixel de tracking
+        // (proxy image Gmail, plusieurs appareils synchronisés) : deux
+        // requêtes quasi simultanées pouvaient toutes deux lire "aucune
+        // ouverture existante" et créditer des points en double pour une
+        // seule ouverture réelle.
+        $statsFile = _PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php';
+        $statsSrc  = is_file($statsFile) ? (file_get_contents($statsFile) ?: '') : '';
+        if ($statsSrc === '') {
+            $offenders[] = 'StatsManager.php introuvable';
+        } elseif (!preg_match('/function\s+recordOpen[\s\S]{0,1000}?.neria_open_.[\s\S]{0,300}?GET_LOCK/', $statsSrc)) {
+            $offenders[] = 'StatsManager : recordOpen() n\'utilise plus GET_LOCK (une ouverture rechargée/préchargée pourrait de nouveau créditer des points de fidélité en double)';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
