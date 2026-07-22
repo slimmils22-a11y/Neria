@@ -140,7 +140,18 @@ class DomainReputationManager
             if ($json) {
                 $data = json_decode($json, true);
                 if (is_array($data)) {
-                    return $data;
+                    // Le cache est stocké en config GLOBALE (pas par boutique) :
+                    // sur une install multi-boutique où chaque boutique envoie
+                    // depuis un domaine différent (expéditeurs distincts par
+                    // boutique), la boutique A déclenchait la vérification,
+                    // mettait en cache SON domaine, puis la boutique B lisait
+                    // ce même cache pendant 24h — affichant la réputation du
+                    // domaine de A comme si c'était la sienne. On vérifie donc
+                    // que le domaine caché correspond bien au domaine actuel
+                    // avant de servir le cache.
+                    if (($data['domain'] ?? null) === $this->getSenderDomain()) {
+                        return $data;
+                    }
                 }
             }
         }

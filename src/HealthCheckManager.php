@@ -978,6 +978,20 @@ class HealthCheckManager
             $offenders[] = 'MonthlyReportManager : checkAndSend() n\'itère plus sur chaque boutique avec un throttle dédié (une boutique pourrait de nouveau bloquer le rapport mensuel de toutes les autres)';
         }
 
+        // Bug du 2026-07-22 : le cache 24h de DomainReputationManager est
+        // stocké en config GLOBALE. Sur une install multi-boutique où chaque
+        // boutique envoie depuis un domaine différent, la boutique A
+        // déclenchait la vérification et mettait en cache SON domaine ; la
+        // boutique B lisait ensuite ce même cache pendant 24h, affichant la
+        // réputation du domaine de A comme si c'était la sienne.
+        $domRepFile = _PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php';
+        $domRepSrc  = is_file($domRepFile) ? (file_get_contents($domRepFile) ?: '') : '';
+        if ($domRepSrc === '') {
+            $offenders[] = 'DomainReputationManager.php introuvable';
+        } elseif (!preg_match('/function\s+getCachedReport[\s\S]{0,1300}?\[.domain.\]\s*\?\?\s*null\)\s*===\s*\$this->getSenderDomain\(\)/', $domRepSrc)) {
+            $offenders[] = 'DomainReputationManager : getCachedReport() ne vérifie plus que le domaine caché correspond au domaine actuel (une boutique pourrait de nouveau afficher la réputation d\'une autre boutique)';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
