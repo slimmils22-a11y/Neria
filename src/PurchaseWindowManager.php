@@ -31,14 +31,24 @@ class PurchaseWindowManager
     /**
      * Retourne l'heure préférée d'achat (0–23) d'un client,
      * ou null si les données sont insuffisantes (< MINIMUM_ORDERS commandes à la même heure).
+     *
+     * $idShop obligatoire : sans ce filtre, un client partagé entre
+     * boutiques (compte client mutualisé) voit sa fenêtre d'achat
+     * calculée sur TOUTES ses commandes toutes boutiques confondues —
+     * un email envoyé par la boutique A pouvait être mis en file
+     * d'attente jusqu'à l'heure où ce client achète habituellement sur
+     * la boutique B. Même raisonnement que le scope id_shop déjà
+     * appliqué partout ailleurs dans BehavioralCronManager.
      */
-    public function getPreferredHour(int $idCustomer): ?int
+    public function getPreferredHour(int $idCustomer, int $idShop): ?int
     {
         // getRow() ajoute LIMIT 1 automatiquement — pas de LIMIT dans la requête.
         $row = $this->db->getRow(
             'SELECT HOUR(date_add) AS h, COUNT(*) AS cnt
              FROM `' . $this->prefix . 'orders`
-             WHERE id_customer = ' . (int) $idCustomer . ' AND valid = 1
+             WHERE id_customer = ' . (int) $idCustomer . '
+               AND id_shop = ' . (int) $idShop . '
+               AND valid = 1
              GROUP BY HOUR(date_add)
              ORDER BY cnt DESC, h ASC'
         );
@@ -53,7 +63,7 @@ class PurchaseWindowManager
     /**
      * Nombre de clients actifs ayant une fenêtre détectée (≥ MINIMUM_ORDERS à la même heure).
      */
-    public function getWindowCoverageCount(): int
+    public function getWindowCoverageCount(int $idShop): int
     {
         // COUNT(*) comptait les LIGNES de la sous-requête (une par couple
         // id_customer+heure satisfaisant le seuil), pas les clients
@@ -64,7 +74,7 @@ class PurchaseWindowManager
             'SELECT COUNT(DISTINCT id_customer) FROM (
                SELECT id_customer
                FROM `' . $this->prefix . 'orders`
-               WHERE valid = 1
+               WHERE valid = 1 AND id_shop = ' . (int) $idShop . '
                GROUP BY id_customer, HOUR(date_add)
                HAVING COUNT(*) >= ' . self::MINIMUM_ORDERS . '
              ) sub'
@@ -77,12 +87,12 @@ class PurchaseWindowManager
      *
      * @return array<int, int>  [hour => count]
      */
-    public function getHourDistribution(): array
+    public function getHourDistribution(int $idShop): array
     {
         $rows = $this->db->executeS(
             'SELECT HOUR(date_add) AS h, COUNT(DISTINCT id_customer) AS cnt
              FROM `' . $this->prefix . 'orders`
-             WHERE valid = 1
+             WHERE valid = 1 AND id_shop = ' . (int) $idShop . '
              GROUP BY HOUR(date_add)
              ORDER BY h ASC'
         );

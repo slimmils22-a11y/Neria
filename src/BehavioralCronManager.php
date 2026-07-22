@@ -1463,7 +1463,7 @@ class BehavioralCronManager
                 && class_exists('PurchaseWindowManager')
                 && class_exists('QueueManager')
             ) {
-                $preferredHour = (new \PurchaseWindowManager())->getPreferredHour((int) $customer['id_customer']);
+                $preferredHour = (new \PurchaseWindowManager())->getPreferredHour((int) $customer['id_customer'], $idShop);
                 if ($preferredHour !== null) {
                     (new \QueueManager($this->module))->enqueue($template, $customer, $extraVars, $refId, $preferredHour);
                     // Inscrire en dedup immédiatement : le cron ne repassera pas dessus demain.

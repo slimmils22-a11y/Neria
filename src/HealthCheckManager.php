@@ -780,6 +780,33 @@ class HealthCheckManager
             }
         }
 
+        // Bug du 2026-07-22 : PurchaseWindowManager::getPreferredHour(),
+        // appelée par BehavioralCronManager pour CHAQUE email
+        // comportemental quand la feature "fenêtre d'achat" est activée,
+        // ne filtrait la recherche de commandes par id_shop nulle part —
+        // un client partagé entre boutiques (compte mutualisé) voyait sa
+        // fenêtre d'achat calculée sur ses commandes TOUTES boutiques
+        // confondues : un email envoyé par la boutique A pouvait être mis
+        // en file jusqu'à l'heure où ce client achète habituellement sur
+        // la boutique B. Vérifié en réel : shop 1 -> heure 10h, shop 2 ->
+        // heure 22h, correctement isolées après le fix.
+        $pwmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PurchaseWindowManager.php';
+        $pwmSrc  = is_file($pwmFile) ? (file_get_contents($pwmFile) ?: '') : '';
+        if ($pwmSrc === '') {
+            $offenders[] = 'PurchaseWindowManager.php introuvable';
+        } else {
+            if (!preg_match('/function\s+getPreferredHour\s*\([^)]*int\s+\$idShop/', $pwmSrc)) {
+                $offenders[] = 'PurchaseWindowManager : getPreferredHour() n\'a plus de paramètre $idShop (fenêtre d\'achat potentiellement calculée sur une autre boutique)';
+            } elseif (!preg_match('/getPreferredHour[\s\S]{0,400}?id_shop\s*=/', $pwmSrc)) {
+                $offenders[] = 'PurchaseWindowManager : getPreferredHour() ne filtre plus la recherche de commandes par id_shop';
+            }
+        }
+        $behavioralFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
+        $behavioralSrc  = is_file($behavioralFile) ? (file_get_contents($behavioralFile) ?: '') : '';
+        if ($behavioralSrc !== '' && preg_match('/getPreferredHour\(\s*\(int\)\s*\$customer\[.id_customer.\]\s*\)/', $behavioralSrc)) {
+            $offenders[] = 'BehavioralCronManager : appelle de nouveau getPreferredHour() sans lui passer $idShop';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
