@@ -54,14 +54,11 @@ class LicenseManager
 
     /**
      * Clé PUBLIQUE Ed25519 (base64) de vérification de signature — non
-     * secrète, cf. cahier des charges section 8bis.
-     *
-     * ⚠️ PLACEHOLDER DE DÉVELOPPEMENT — générée localement le temps de
-     * construire le serveur NeriaSoftware. À REMPLACER par la clé
-     * publique réelle une fois la paire définitive générée côté serveur,
-     * avant toute mise en production ou soumission Addons.
+     * secrète, cf. cahier des charges section 8bis. Clé de production
+     * réelle, générée sur le serveur neriasoftware.com (clé privée
+     * conservée hors webroot, jamais exposée).
      */
-    const PUBLIC_KEY_B64 = 'vI825RPJiOi44UmmGLq84o1t/a6YWD4L6nNk1ntrewg=';
+    const PUBLIC_KEY_B64 = 'bZP6dNVzJM1QpqeYp3WK9EWHJLrINnvvVl98L+JxpNs=';
 
     /** @var Neria */
     private $module;
