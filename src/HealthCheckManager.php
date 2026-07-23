@@ -1698,6 +1698,78 @@ class HealthCheckManager
     }
 
     /**
+     * Détecte les clés de data/admin_translations.json qui n'apparaissent
+     * plus littéralement nulle part dans le code (.php) ni les templates
+     * (.tpl) du module — reste d'une feature retirée sans nettoyage du
+     * dictionnaire, comme les 6 clés help.regression_* trouvées et
+     * retirées manuellement le 2026-07-23 avant ce contrôle.
+     *
+     * Volontairement permissif : une clé compte comme "utilisée" dès
+     * qu'elle apparaît N'IMPORTE OÙ dans le code sous forme de chaîne
+     * littérale (y compris dans un tableau de mapping Smarty comme
+     * {assign var='_checks' value=[...]}), pas seulement dans un appel
+     * direct AdminTranslator::t()/tVars() ou {neria_admin key=...} — ceci
+     * pour ne jamais signaler à tort une clé réellement utilisée via une
+     * clé dynamique/concaténée (ex: 'history.' . $alert['key'] dans
+     * neria.php), au prix de laisser passer un très petit nombre de
+     * vrais orphelins si leur nom ressemblait par coïncidence à un
+     * fragment de code non lié — risque jugé acceptable face au risque
+     * inverse (suppression d'une clé encore utilisée).
+     */
+    private function checkOrphanedAdminTranslationKeys(): array
+    {
+        $root = rtrim($this->module->getLocalPath(), '/');
+        $jsonPath = $root . '/data/admin_translations.json';
+
+        if (!is_file($jsonPath)) {
+            return ['status' => self::STATUS_WARNING, 'detail' => AdminTranslator::t('health.orphaned_admin_trad_keys_unreadable')];
+        }
+
+        $dict = json_decode((string) file_get_contents($jsonPath), true);
+        if (!is_array($dict)) {
+            return ['status' => self::STATUS_WARNING, 'detail' => AdminTranslator::t('health.orphaned_admin_trad_keys_unreadable')];
+        }
+
+        $files = array_merge(
+            $this->collectModulePhpFiles($root),
+            $this->globRecursive($root . '/views', '.tpl')
+        );
+
+        $haystack = '';
+        foreach ($files as $file) {
+            $haystack .= file_get_contents($file) ?: '';
+            $haystack .= "\n";
+        }
+
+        $orphaned = [];
+        foreach (array_keys($dict) as $key) {
+            if (strpos($haystack, "'" . $key . "'") === false && strpos($haystack, '"' . $key . '"') === false) {
+                $orphaned[] = $key;
+            }
+        }
+
+        if ($orphaned) {
+            $count = count($orphaned);
+            $sample = implode(', ', array_slice($orphaned, 0, 8));
+            if ($count > 8) {
+                $sample .= '… (' . ($count - 8) . ' autres)';
+            }
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.orphaned_admin_trad_keys_warning', [
+                    'count' => $count,
+                    'sample' => $sample,
+                ]),
+            ];
+        }
+
+        return [
+            'status' => self::STATUS_OK,
+            'detail' => AdminTranslator::tVars('health.orphaned_admin_trad_keys_ok', ['count' => count($dict)]),
+        ];
+    }
+
+    /**
      * Liste tous les .php du module, hors tests/ (scripts de test dédiés,
      * jamais exécutés en production) et upgrade/ n'est PAS exclu — un
      * pattern dangereux dans un script d'upgrade s'exécute bel et bien
@@ -5575,6 +5647,7 @@ class HealthCheckManager
             'admin_trad_usage'  => $this->checkAdminTranslationKeyUsage(),
             'trad_key_usage'    => $this->checkTradKeyUsage(),
             'class_references'  => $this->checkClassReferencesIntegrity(),
+            'orphaned_admin_trad_keys' => $this->checkOrphanedAdminTranslationKeys(),
         ];
 
         $this->logResultsToWatchdog($results);

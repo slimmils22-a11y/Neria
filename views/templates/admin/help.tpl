@@ -554,7 +554,8 @@
   {if $code_diag_results}
     {assign var='_codeChecks' value=[
       'admin_trad_usage' => 'help.code_scan_trad_usage',
-      'class_references' => 'help.code_scan_class_refs'
+      'class_references' => 'help.code_scan_class_refs',
+      'orphaned_admin_trad_keys' => 'help.code_scan_orphaned_trad'
     ]}
     <div class="neria-diag-grid">
       {foreach $code_diag_results as $checkKey => $result}
