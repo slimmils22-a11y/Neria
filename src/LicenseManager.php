@@ -1,10 +1,10 @@
 <?php
 /**
- * © 2026 Neria.software - All rights reserved
+ * © 2026 NeriaSoftware - All rights reserved
  *
  * NERIA — LicenseManager
  *
- * Vérification de licence auprès du serveur externe neria.software/api.
+ * Vérification de licence auprès du serveur externe NeriaSoftware.
  *
  * Principe fondateur (non négociable) : une panne du serveur de licences
  * ne devient JAMAIS un incident chez le client. Si le serveur est
@@ -46,7 +46,7 @@ class LicenseManager
     const CONFIG_REVOKED_AT   = 'NERIA_LICENSE_REVOKED_AT';
     const CONFIG_LAST_ERROR   = 'NERIA_LICENSE_LAST_ERROR';
 
-    const API_BASE = 'https://neria.software/api';
+    const API_BASE = 'https://neriasoftware.com/api';
 
     const CACHE_TTL           = 86400;       // 24h avant nouvelle vérification réseau
     const GRACE_NEVER_ACTIVATED_DAYS = 30;    // Scénario A
@@ -57,7 +57,7 @@ class LicenseManager
      * secrète, cf. cahier des charges section 8bis.
      *
      * ⚠️ PLACEHOLDER DE DÉVELOPPEMENT — générée localement le temps de
-     * construire le serveur neria.software/api. À REMPLACER par la clé
+     * construire le serveur NeriaSoftware. À REMPLACER par la clé
      * publique réelle une fois la paire définitive générée côté serveur,
      * avant toute mise en production ou soumission Addons.
      */
