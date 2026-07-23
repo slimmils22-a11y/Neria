@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.30';
+    const VERSION = '1.0.31';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -1901,7 +1901,7 @@ class Neria extends Module
                     ]),
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_TIMEOUT        => 15,
-                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYPEER => true,
                     CURLOPT_HTTPHEADER     => [
                         'Authorization: DeepL-Auth-Key ' . $deeplKey,
                         'Accept: application/json',
@@ -2067,7 +2067,7 @@ class Neria extends Module
                     ]),
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_TIMEOUT        => 15,
-                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYPEER => true,
                     CURLOPT_HTTPHEADER     => [
                         'Authorization: DeepL-Auth-Key ' . $deeplKey,
                         'Accept: application/json',
