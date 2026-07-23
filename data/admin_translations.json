@@ -20213,132 +20213,6 @@
         "nl": "Nog geen scan uitgevoerd. Klik hierboven op \"Code scannen\".",
         "gb": "No scan performed yet. Click \"Scan code\" above."
     },
-    "help.regression_title": {
-        "fr": "Tests de régression (environnement de développement)",
-        "en": "Regression tests (development environment)",
-        "de": "Regressionstests (Entwicklungsumgebung)",
-        "it": "Test di regressione (ambiente di sviluppo)",
-        "es": "Pruebas de regresión (entorno de desarrollo)",
-        "pt": "Testes de regressão (ambiente de desenvolvimento)",
-        "br": "Testes de regressão (ambiente de desenvolvimento)",
-        "ar": "اختبارات الانحدار (بيئة التطوير)",
-        "ja": "リグレッションテスト（開発環境）",
-        "ko": "회귀 테스트 (개발 환경)",
-        "zh": "回归测试（开发环境）",
-        "tw": "回歸測試（開發環境）",
-        "ru": "Регрессионные тесты (среда разработки)",
-        "tr": "Regresyon testleri (geliştirme ortamı)",
-        "sv": "Regressionstester (utvecklingsmiljö)",
-        "no": "Regresjonstester (utviklingsmiljø)",
-        "da": "Regressionstest (udviklingsmiljø)",
-        "nl": "Regressietests (ontwikkelomgeving)",
-        "gb": "Regression tests (development environment)"
-    },
-    "help.regression_desc": {
-        "fr": "Rejoue les scénarios des bugs déjà corrigés pour détecter toute récidive. Écrit puis supprime de vraies lignes en base — réservé à l'environnement de développement (_PS_MODE_DEV_), jamais visible en production.",
-        "en": "Replays the scenarios of already-fixed bugs to detect any recurrence. Writes and deletes real database rows — restricted to the development environment (_PS_MODE_DEV_), never visible in production.",
-        "de": "Spielt die Szenarien bereits behobener Fehler erneut ab, um ein erneutes Auftreten zu erkennen. Schreibt und löscht echte Datenbankzeilen — nur in der Entwicklungsumgebung (_PS_MODE_DEV_), nie in der Produktion sichtbar.",
-        "it": "Riproduce gli scenari dei bug già corretti per rilevare eventuali recidive. Scrive ed elimina righe reali del database — riservato all'ambiente di sviluppo (_PS_MODE_DEV_), mai visibile in produzione.",
-        "es": "Reproduce los escenarios de los errores ya corregidos para detectar cualquier reincidencia. Escribe y elimina filas reales de la base de datos — reservado al entorno de desarrollo (_PS_MODE_DEV_), nunca visible en producción.",
-        "pt": "Reproduz os cenários dos erros já corrigidos para detetar qualquer reincidência. Escreve e elimina linhas reais da base de dados — reservado ao ambiente de desenvolvimento (_PS_MODE_DEV_), nunca visível em produção.",
-        "br": "Reproduz os cenários dos bugs já corrigidos para detectar qualquer reincidência. Grava e exclui linhas reais do banco de dados — reservado ao ambiente de desenvolvimento (_PS_MODE_DEV_), nunca visível em produção.",
-        "ar": "يعيد تشغيل سيناريوهات الأخطاء التي تم إصلاحها بالفعل لاكتشاف أي تكرار. يكتب ويحذف صفوفًا حقيقية في قاعدة البيانات — مخصص لبيئة التطوير (_PS_MODE_DEV_) فقط، ولا يظهر أبدًا في بيئة الإنتاج.",
-        "ja": "すでに修正されたバグのシナリオを再実行し、再発を検出します。データベースに実際の行を書き込んでから削除します — 開発環境（_PS_MODE_DEV_）専用で、本番環境には決して表示されません。",
-        "ko": "이미 수정된 버그의 시나리오를 재생하여 재발을 감지합니다. 실제 데이터베이스 행을 작성한 후 삭제합니다 — 개발 환경(_PS_MODE_DEV_) 전용이며 프로덕션에는 표시되지 않습니다.",
-        "zh": "重放已修复错误的场景以检测是否复发。会写入并删除数据库中的真实行——仅限开发环境（_PS_MODE_DEV_），在生产环境中永不可见。",
-        "tw": "重放已修復錯誤的場景以偵測是否復發。會寫入並刪除資料庫中的真實資料列——僅限開發環境（_PS_MODE_DEV_），在正式環境中永不可見。",
-        "ru": "Повторяет сценарии уже исправленных ошибок для обнаружения рецидивов. Записывает и удаляет реальные строки в базе данных — доступно только в среде разработки (_PS_MODE_DEV_), никогда не отображается в продакшене.",
-        "tr": "Zaten düzeltilmiş hataların senaryolarını yeniden oynatarak herhangi bir tekrarı tespit eder. Veritabanına gerçek satırlar yazar ve siler — yalnızca geliştirme ortamında (_PS_MODE_DEV_) kullanılabilir, üretimde asla görünmez.",
-        "sv": "Spelar upp scenarierna för redan åtgärdade buggar för att upptäcka återfall. Skriver och tar bort riktiga databasrader — endast för utvecklingsmiljön (_PS_MODE_DEV_), aldrig synlig i produktion.",
-        "no": "Spiller av scenarioene for allerede rettede feil for å oppdage eventuelle tilbakefall. Skriver og sletter ekte databaserader — kun for utviklingsmiljøet (_PS_MODE_DEV_), aldri synlig i produksjon.",
-        "da": "Genafspiller scenarierne for allerede rettede fejl for at opdage eventuelle tilbagefald. Skriver og sletter rigtige databaserækker — kun til udviklingsmiljøet (_PS_MODE_DEV_), aldrig synligt i produktion.",
-        "nl": "Speelt de scenario's van reeds opgeloste bugs opnieuw af om eventuele terugval te detecteren. Schrijft en verwijdert echte databaserijen — uitsluitend voor de ontwikkelomgeving (_PS_MODE_DEV_), nooit zichtbaar in productie.",
-        "gb": "Replays the scenarios of already-fixed bugs to detect any recurrence. Writes and deletes real database rows — restricted to the development environment (_PS_MODE_DEV_), never visible in production."
-    },
-    "help.regression_btn": {
-        "fr": "Lancer les tests de régression",
-        "en": "Run regression tests",
-        "de": "Regressionstests ausführen",
-        "it": "Esegui i test di regressione",
-        "es": "Ejecutar pruebas de regresión",
-        "pt": "Executar testes de regressão",
-        "br": "Executar testes de regressão",
-        "ar": "تشغيل اختبارات الانحدار",
-        "ja": "リグレッションテストを実行",
-        "ko": "회귀 테스트 실행",
-        "zh": "运行回归测试",
-        "tw": "執行回歸測試",
-        "ru": "Запустить регрессионные тесты",
-        "tr": "Regresyon testlerini çalıştır",
-        "sv": "Kör regressionstester",
-        "no": "Kjør regresjonstester",
-        "da": "Kør regressionstest",
-        "nl": "Regressietests uitvoeren",
-        "gb": "Run regression tests"
-    },
-    "help.regression_pending": {
-        "fr": "Aucun test lancé. Cliquez sur « Lancer les tests de régression » ci-dessus.",
-        "en": "No tests run yet. Click \"Run regression tests\" above.",
-        "de": "Noch keine Tests ausgeführt. Klicken Sie oben auf „Regressionstests ausführen“.",
-        "it": "Nessun test eseguito. Faccia clic su \"Esegui i test di regressione\" sopra.",
-        "es": "No se ha ejecutado ninguna prueba. Haga clic en \"Ejecutar pruebas de regresión\" arriba.",
-        "pt": "Nenhum teste executado. Clique em \"Executar testes de regressão\" acima.",
-        "br": "Nenhum teste executado. Clique em \"Executar testes de regressão\" acima.",
-        "ar": "لم يتم تشغيل أي اختبار بعد. انقروا على \"تشغيل اختبارات الانحدار\" أعلاه.",
-        "ja": "まだテストが実行されていません。上の「リグレッションテストを実行」をクリックしてください。",
-        "ko": "아직 테스트가 실행되지 않았습니다. 위의 \"회귀 테스트 실행\"을 클릭하세요.",
-        "zh": "尚未运行测试。请点击上方的\"运行回归测试\"。",
-        "tw": "尚未執行測試。請點擊上方的「執行回歸測試」。",
-        "ru": "Тесты ещё не запускались. Нажмите «Запустить регрессионные тесты» выше.",
-        "tr": "Henüz test çalıştırılmadı. Yukarıdaki \"Regresyon testlerini çalıştır\"a tıklayın.",
-        "sv": "Inga tester körda ännu. Klicka på \"Kör regressionstester\" ovan.",
-        "no": "Ingen tester kjørt ennå. Klikk på «Kjør regresjonstester» ovenfor.",
-        "da": "Ingen test kørt endnu. Klik på \"Kør regressionstest\" ovenfor.",
-        "nl": "Nog geen tests uitgevoerd. Klik hierboven op \"Regressietests uitvoeren\".",
-        "gb": "No tests run yet. Click \"Run regression tests\" above."
-    },
-    "help.regression_dev_only": {
-        "fr": "Les tests de régression écrivent de vraies données en base — réservés à l'environnement de développement (_PS_MODE_DEV_ = true). Action bloquée sur cette installation.",
-        "en": "Regression tests write real data to the database — restricted to the development environment (_PS_MODE_DEV_ = true). Action blocked on this installation.",
-        "de": "Regressionstests schreiben echte Daten in die Datenbank — nur in der Entwicklungsumgebung (_PS_MODE_DEV_ = true) erlaubt. Aktion auf dieser Installation blockiert.",
-        "it": "I test di regressione scrivono dati reali nel database — riservati all'ambiente di sviluppo (_PS_MODE_DEV_ = true). Azione bloccata su questa installazione.",
-        "es": "Las pruebas de regresión escriben datos reales en la base de datos — reservadas al entorno de desarrollo (_PS_MODE_DEV_ = true). Acción bloqueada en esta instalación.",
-        "pt": "Os testes de regressão escrevem dados reais na base de dados — reservados ao ambiente de desenvolvimento (_PS_MODE_DEV_ = true). Ação bloqueada nesta instalação.",
-        "br": "Os testes de regressão gravam dados reais no banco de dados — reservados ao ambiente de desenvolvimento (_PS_MODE_DEV_ = true). Ação bloqueada nesta instalação.",
-        "ar": "تكتب اختبارات الانحدار بيانات حقيقية في قاعدة البيانات — مخصصة لبيئة التطوير (_PS_MODE_DEV_ = true) فقط. تم حظر الإجراء على هذا التثبيت.",
-        "ja": "リグレッションテストはデータベースに実際のデータを書き込みます — 開発環境（_PS_MODE_DEV_ = true）専用です。このインストールではアクションがブロックされました。",
-        "ko": "회귀 테스트는 데이터베이스에 실제 데이터를 기록합니다 — 개발 환경(_PS_MODE_DEV_ = true) 전용입니다. 이 설치에서는 작업이 차단되었습니다.",
-        "zh": "回归测试会向数据库写入真实数据——仅限开发环境（_PS_MODE_DEV_ = true）。此安装已阻止该操作。",
-        "tw": "回歸測試會向資料庫寫入真實資料——僅限開發環境（_PS_MODE_DEV_ = true）。此安裝已封鎖該操作。",
-        "ru": "Регрессионные тесты записывают реальные данные в базу данных — доступно только в среде разработки (_PS_MODE_DEV_ = true). Действие заблокировано на этой установке.",
-        "tr": "Regresyon testleri veritabanına gerçek veri yazar — yalnızca geliştirme ortamında (_PS_MODE_DEV_ = true) kullanılabilir. Bu kurulumda işlem engellendi.",
-        "sv": "Regressionstester skriver riktig data till databasen — endast tillåtet i utvecklingsmiljön (_PS_MODE_DEV_ = true). Åtgärden blockerad på denna installation.",
-        "no": "Regresjonstester skriver ekte data til databasen — kun tillatt i utviklingsmiljøet (_PS_MODE_DEV_ = true). Handlingen er blokkert på denne installasjonen.",
-        "da": "Regressionstest skriver rigtige data til databasen — kun tilladt i udviklingsmiljøet (_PS_MODE_DEV_ = true). Handlingen er blokeret på denne installation.",
-        "nl": "Regressietests schrijven echte gegevens naar de database — uitsluitend toegestaan in de ontwikkelomgeving (_PS_MODE_DEV_ = true). Actie geblokkeerd op deze installatie.",
-        "gb": "Regression tests write real data to the database — restricted to the development environment (_PS_MODE_DEV_ = true). Action blocked on this installation."
-    },
-    "help.regression_done": {
-        "fr": "Tests de régression terminés : {passed}/{total} réussis.",
-        "en": "Regression tests completed: {passed}/{total} passed.",
-        "de": "Regressionstests abgeschlossen: {passed}/{total} bestanden.",
-        "it": "Test di regressione completati: {passed}/{total} superati.",
-        "es": "Pruebas de regresión completadas: {passed}/{total} superadas.",
-        "pt": "Testes de regressão concluídos: {passed}/{total} bem-sucedidos.",
-        "br": "Testes de regressão concluídos: {passed}/{total} aprovados.",
-        "ar": "اكتملت اختبارات الانحدار: نجح {passed}/{total}.",
-        "ja": "リグレッションテスト完了：{passed}/{total}件合格。",
-        "ko": "회귀 테스트 완료: {passed}/{total}개 통과.",
-        "zh": "回归测试完成：{passed}/{total}项通过。",
-        "tw": "回歸測試完成：{passed}/{total}項通過。",
-        "ru": "Регрессионные тесты завершены: пройдено {passed}/{total}.",
-        "tr": "Regresyon testleri tamamlandı: {passed}/{total} başarılı.",
-        "sv": "Regressionstester slutförda: {passed}/{total} godkända.",
-        "no": "Regresjonstester fullført: {passed}/{total} bestått.",
-        "da": "Regressionstest afsluttet: {passed}/{total} bestået.",
-        "nl": "Regressietests voltooid: {passed}/{total} geslaagd.",
-        "gb": "Regression tests completed: {passed}/{total} passed."
-    },
     "help.code_scan_php_syntax": {
         "fr": "Syntaxe PHP",
         "en": "PHP syntax",
@@ -24375,7 +24249,25 @@
         "gb": "Some journal messages use technical terms. Click an underlined term in the journal to jump directly to its definition here."
     },
     "help.glossary_term_cartrule": {
-        "fr": "CartRule (bon de réduction)", "en": "CartRule (voucher)", "de": "CartRule (Gutschein)", "it": "CartRule (buono)", "es": "CartRule (bono)", "pt": "CartRule (vale)", "br": "CartRule (cupom)", "ar": "CartRule (قسيمة)", "ja": "CartRule（クーポン）", "ko": "CartRule(쿠폰)", "zh": "CartRule（优惠券）", "tw": "CartRule（優惠券）", "ru": "CartRule (купон)", "tr": "CartRule (kupon)", "sv": "CartRule (kupong)", "no": "CartRule (kupong)", "da": "CartRule (kupon)", "nl": "CartRule (coupon)", "gb": "CartRule (voucher)"
+        "fr": "CartRule (bon de réduction)",
+        "en": "CartRule (voucher)",
+        "de": "CartRule (Gutschein)",
+        "it": "CartRule (buono)",
+        "es": "CartRule (bono)",
+        "pt": "CartRule (vale)",
+        "br": "CartRule (cupom)",
+        "ar": "CartRule (قسيمة)",
+        "ja": "CartRule（クーポン）",
+        "ko": "CartRule(쿠폰)",
+        "zh": "CartRule（优惠券）",
+        "tw": "CartRule（優惠券）",
+        "ru": "CartRule (купон)",
+        "tr": "CartRule (kupon)",
+        "sv": "CartRule (kupong)",
+        "no": "CartRule (kupong)",
+        "da": "CartRule (kupon)",
+        "nl": "CartRule (coupon)",
+        "gb": "CartRule (voucher)"
     },
     "help.glossary_def_cartrule": {
         "fr": "Bon de réduction PrestaShop (code promo) généré automatiquement par Neria — fidélité, palier de commandes, anniversaire...",
@@ -24399,7 +24291,25 @@
         "gb": "PrestaShop discount voucher (promo code) generated automatically by Neria — loyalty, order milestone, birthday..."
     },
     "help.glossary_term_hook": {
-        "fr": "Hook (point d'accroche)", "en": "Hook", "de": "Hook", "it": "Hook", "es": "Hook", "pt": "Hook", "br": "Hook", "ar": "Hook (نقطة ربط)", "ja": "フック（Hook）", "ko": "훅(Hook)", "zh": "钩子（Hook）", "tw": "掛鉤（Hook）", "ru": "Хук (Hook)", "tr": "Hook (kanca noktası)", "sv": "Hook (krok)", "no": "Hook (krok)", "da": "Hook (krog)", "nl": "Hook (haakpunt)", "gb": "Hook"
+        "fr": "Hook (point d'accroche)",
+        "en": "Hook",
+        "de": "Hook",
+        "it": "Hook",
+        "es": "Hook",
+        "pt": "Hook",
+        "br": "Hook",
+        "ar": "Hook (نقطة ربط)",
+        "ja": "フック（Hook）",
+        "ko": "훅(Hook)",
+        "zh": "钩子（Hook）",
+        "tw": "掛鉤（Hook）",
+        "ru": "Хук (Hook)",
+        "tr": "Hook (kanca noktası)",
+        "sv": "Hook (krok)",
+        "no": "Hook (krok)",
+        "da": "Hook (krog)",
+        "nl": "Hook (haakpunt)",
+        "gb": "Hook"
     },
     "help.glossary_def_hook": {
         "fr": "Point précis de PrestaShop où un module vient s'exécuter automatiquement (ex. à la validation d'une commande, à la suppression d'un client).",
@@ -24423,7 +24333,25 @@
         "gb": "A specific point in PrestaShop where a module runs automatically (e.g. when an order is validated, when a customer is deleted)."
     },
     "help.glossary_term_cron": {
-        "fr": "Cron (tâche planifiée)", "en": "Cron (scheduled task)", "de": "Cron (geplante Aufgabe)", "it": "Cron (attività pianificata)", "es": "Cron (tarea programada)", "pt": "Cron (tarefa agendada)", "br": "Cron (tarefa agendada)", "ar": "Cron (مهمة مجدولة)", "ja": "Cron（定期実行タスク）", "ko": "크론(예약 작업)", "zh": "Cron（计划任务）", "tw": "Cron（排程任務）", "ru": "Cron (запланированная задача)", "tr": "Cron (zamanlanmış görev)", "sv": "Cron (schemalagd uppgift)", "no": "Cron (planlagt oppgave)", "da": "Cron (planlagt opgave)", "nl": "Cron (geplande taak)", "gb": "Cron (scheduled task)"
+        "fr": "Cron (tâche planifiée)",
+        "en": "Cron (scheduled task)",
+        "de": "Cron (geplante Aufgabe)",
+        "it": "Cron (attività pianificata)",
+        "es": "Cron (tarea programada)",
+        "pt": "Cron (tarefa agendada)",
+        "br": "Cron (tarefa agendada)",
+        "ar": "Cron (مهمة مجدولة)",
+        "ja": "Cron（定期実行タスク）",
+        "ko": "크론(예약 작업)",
+        "zh": "Cron（计划任务）",
+        "tw": "Cron（排程任務）",
+        "ru": "Cron (запланированная задача)",
+        "tr": "Cron (zamanlanmış görev)",
+        "sv": "Cron (schemalagd uppgift)",
+        "no": "Cron (planlagt oppgave)",
+        "da": "Cron (planlagt opgave)",
+        "nl": "Cron (geplande taak)",
+        "gb": "Cron (scheduled task)"
     },
     "help.glossary_def_cron": {
         "fr": "Tâche automatique qui s'exécute à intervalles réguliers (ex. toutes les nuits), sans aucune action du marchand.",
@@ -24447,7 +24375,25 @@
         "gb": "Automatic task that runs at regular intervals (e.g. every night), without any action from the merchant."
     },
     "help.glossary_term_webhook": {
-        "fr": "Webhook", "en": "Webhook", "de": "Webhook", "it": "Webhook", "es": "Webhook", "pt": "Webhook", "br": "Webhook", "ar": "Webhook (رابط استدعاء)", "ja": "Webhook", "ko": "웹훅(Webhook)", "zh": "Webhook（网络钩子）", "tw": "Webhook（網路掛鉤）", "ru": "Вебхук (Webhook)", "tr": "Webhook", "sv": "Webhook", "no": "Webhook", "da": "Webhook", "nl": "Webhook", "gb": "Webhook"
+        "fr": "Webhook",
+        "en": "Webhook",
+        "de": "Webhook",
+        "it": "Webhook",
+        "es": "Webhook",
+        "pt": "Webhook",
+        "br": "Webhook",
+        "ar": "Webhook (رابط استدعاء)",
+        "ja": "Webhook",
+        "ko": "웹훅(Webhook)",
+        "zh": "Webhook（网络钩子）",
+        "tw": "Webhook（網路掛鉤）",
+        "ru": "Вебхук (Webhook)",
+        "tr": "Webhook",
+        "sv": "Webhook",
+        "no": "Webhook",
+        "da": "Webhook",
+        "nl": "Webhook",
+        "gb": "Webhook"
     },
     "help.glossary_def_webhook": {
         "fr": "Notification automatique envoyée à un service externe (le vôtre) dès qu'un événement se produit (email ouvert, converti, etc.).",
@@ -24471,7 +24417,25 @@
         "gb": "Automatic notification sent to an external service (yours) as soon as an event occurs (email opened, converted, etc.)."
     },
     "help.glossary_term_hmac": {
-        "fr": "Signature HMAC", "en": "HMAC signature", "de": "HMAC-Signatur", "it": "Firma HMAC", "es": "Firma HMAC", "pt": "Assinatura HMAC", "br": "Assinatura HMAC", "ar": "توقيع HMAC", "ja": "HMAC署名", "ko": "HMAC 서명", "zh": "HMAC签名", "tw": "HMAC簽章", "ru": "Подпись HMAC", "tr": "HMAC imzası", "sv": "HMAC-signatur", "no": "HMAC-signatur", "da": "HMAC-signatur", "nl": "HMAC-handtekening", "gb": "HMAC signature"
+        "fr": "Signature HMAC",
+        "en": "HMAC signature",
+        "de": "HMAC-Signatur",
+        "it": "Firma HMAC",
+        "es": "Firma HMAC",
+        "pt": "Assinatura HMAC",
+        "br": "Assinatura HMAC",
+        "ar": "توقيع HMAC",
+        "ja": "HMAC署名",
+        "ko": "HMAC 서명",
+        "zh": "HMAC签名",
+        "tw": "HMAC簽章",
+        "ru": "Подпись HMAC",
+        "tr": "HMAC imzası",
+        "sv": "HMAC-signatur",
+        "no": "HMAC-signatur",
+        "da": "HMAC-signatur",
+        "nl": "HMAC-handtekening",
+        "gb": "HMAC signature"
     },
     "help.glossary_def_hmac": {
         "fr": "Signature cryptographique jointe à un webhook, qui prouve à votre serveur que la notification vient bien de Neria et n'a pas été modifiée.",
@@ -24495,7 +24459,25 @@
         "gb": "Cryptographic signature attached to a webhook, proving to your server that the notification really came from Neria and was not altered."
     },
     "help.glossary_term_oauth": {
-        "fr": "OAuth", "en": "OAuth", "de": "OAuth", "it": "OAuth", "es": "OAuth", "pt": "OAuth", "br": "OAuth", "ar": "OAuth", "ja": "OAuth", "ko": "OAuth", "zh": "OAuth", "tw": "OAuth", "ru": "OAuth", "tr": "OAuth", "sv": "OAuth", "no": "OAuth", "da": "OAuth", "nl": "OAuth", "gb": "OAuth"
+        "fr": "OAuth",
+        "en": "OAuth",
+        "de": "OAuth",
+        "it": "OAuth",
+        "es": "OAuth",
+        "pt": "OAuth",
+        "br": "OAuth",
+        "ar": "OAuth",
+        "ja": "OAuth",
+        "ko": "OAuth",
+        "zh": "OAuth",
+        "tw": "OAuth",
+        "ru": "OAuth",
+        "tr": "OAuth",
+        "sv": "OAuth",
+        "no": "OAuth",
+        "da": "OAuth",
+        "nl": "OAuth",
+        "gb": "OAuth"
     },
     "help.glossary_def_oauth": {
         "fr": "Protocole standard qui autorise Neria à accéder à un service externe (Google Search Console, Postmaster...) sans jamais connaître votre mot de passe.",
@@ -24519,7 +24501,25 @@
         "gb": "Standard protocol that authorizes Neria to access an external service (Google Search Console, Postmaster...) without ever knowing your password."
     },
     "help.glossary_term_token": {
-        "fr": "Jeton (token)", "en": "Token", "de": "Token", "it": "Token", "es": "Token", "pt": "Token", "br": "Token", "ar": "رمز (Token)", "ja": "トークン", "ko": "토큰(Token)", "zh": "令牌（Token）", "tw": "權杖（Token）", "ru": "Токен", "tr": "Belirteç (token)", "sv": "Token", "no": "Token", "da": "Token", "nl": "Token", "gb": "Token"
+        "fr": "Jeton (token)",
+        "en": "Token",
+        "de": "Token",
+        "it": "Token",
+        "es": "Token",
+        "pt": "Token",
+        "br": "Token",
+        "ar": "رمز (Token)",
+        "ja": "トークン",
+        "ko": "토큰(Token)",
+        "zh": "令牌（Token）",
+        "tw": "權杖（Token）",
+        "ru": "Токен",
+        "tr": "Belirteç (token)",
+        "sv": "Token",
+        "no": "Token",
+        "da": "Token",
+        "nl": "Token",
+        "gb": "Token"
     },
     "help.glossary_def_token": {
         "fr": "Clé d'accès temporaire qui prouve qu'une connexion à un service externe est autorisée, sans réutiliser votre mot de passe.",
@@ -24543,7 +24543,25 @@
         "gb": "Temporary access key that proves a connection to an external service is authorized, without reusing your password."
     },
     "help.glossary_term_swiftmessage": {
-        "fr": "Erreur d'envoi (SwiftMessage)", "en": "Send error (SwiftMessage)", "de": "Versandfehler (SwiftMessage)", "it": "Errore di invio (SwiftMessage)", "es": "Error de envío (SwiftMessage)", "pt": "Erro de envio (SwiftMessage)", "br": "Erro de envio (SwiftMessage)", "ar": "خطأ إرسال (SwiftMessage)", "ja": "送信エラー（SwiftMessage）", "ko": "발송 오류(SwiftMessage)", "zh": "发送错误（SwiftMessage）", "tw": "寄送錯誤（SwiftMessage）", "ru": "Ошибка отправки (SwiftMessage)", "tr": "Gönderim hatası (SwiftMessage)", "sv": "Sändningsfel (SwiftMessage)", "no": "Sendefeil (SwiftMessage)", "da": "Sendefejl (SwiftMessage)", "nl": "Verzendfout (SwiftMessage)", "gb": "Send error (SwiftMessage)"
+        "fr": "Erreur d'envoi (SwiftMessage)",
+        "en": "Send error (SwiftMessage)",
+        "de": "Versandfehler (SwiftMessage)",
+        "it": "Errore di invio (SwiftMessage)",
+        "es": "Error de envío (SwiftMessage)",
+        "pt": "Erro de envio (SwiftMessage)",
+        "br": "Erro de envio (SwiftMessage)",
+        "ar": "خطأ إرسال (SwiftMessage)",
+        "ja": "送信エラー（SwiftMessage）",
+        "ko": "발송 오류(SwiftMessage)",
+        "zh": "发送错误（SwiftMessage）",
+        "tw": "寄送錯誤（SwiftMessage）",
+        "ru": "Ошибка отправки (SwiftMessage)",
+        "tr": "Gönderim hatası (SwiftMessage)",
+        "sv": "Sändningsfel (SwiftMessage)",
+        "no": "Sendefeil (SwiftMessage)",
+        "da": "Sendefejl (SwiftMessage)",
+        "nl": "Verzendfout (SwiftMessage)",
+        "gb": "Send error (SwiftMessage)"
     },
     "help.glossary_def_swiftmessage": {
         "fr": "Composant interne de PrestaShop qui envoie réellement les emails via votre serveur SMTP — une erreur ici indique un vrai problème d'envoi (adresse invalide, SMTP mal configuré, etc.).",
@@ -24567,7 +24585,25 @@
         "gb": "Internal PrestaShop component that actually sends emails via your SMTP server — an error here indicates a real send problem (invalid address, misconfigured SMTP, etc.)."
     },
     "help.glossary_term_spf_dkim_dmarc": {
-        "fr": "SPF / DKIM / DMARC", "en": "SPF / DKIM / DMARC", "de": "SPF / DKIM / DMARC", "it": "SPF / DKIM / DMARC", "es": "SPF / DKIM / DMARC", "pt": "SPF / DKIM / DMARC", "br": "SPF / DKIM / DMARC", "ar": "SPF / DKIM / DMARC", "ja": "SPF / DKIM / DMARC", "ko": "SPF / DKIM / DMARC", "zh": "SPF / DKIM / DMARC", "tw": "SPF / DKIM / DMARC", "ru": "SPF / DKIM / DMARC", "tr": "SPF / DKIM / DMARC", "sv": "SPF / DKIM / DMARC", "no": "SPF / DKIM / DMARC", "da": "SPF / DKIM / DMARC", "nl": "SPF / DKIM / DMARC", "gb": "SPF / DKIM / DMARC"
+        "fr": "SPF / DKIM / DMARC",
+        "en": "SPF / DKIM / DMARC",
+        "de": "SPF / DKIM / DMARC",
+        "it": "SPF / DKIM / DMARC",
+        "es": "SPF / DKIM / DMARC",
+        "pt": "SPF / DKIM / DMARC",
+        "br": "SPF / DKIM / DMARC",
+        "ar": "SPF / DKIM / DMARC",
+        "ja": "SPF / DKIM / DMARC",
+        "ko": "SPF / DKIM / DMARC",
+        "zh": "SPF / DKIM / DMARC",
+        "tw": "SPF / DKIM / DMARC",
+        "ru": "SPF / DKIM / DMARC",
+        "tr": "SPF / DKIM / DMARC",
+        "sv": "SPF / DKIM / DMARC",
+        "no": "SPF / DKIM / DMARC",
+        "da": "SPF / DKIM / DMARC",
+        "nl": "SPF / DKIM / DMARC",
+        "gb": "SPF / DKIM / DMARC"
     },
     "help.glossary_def_spf_dkim_dmarc": {
         "fr": "Trois standards qui prouvent aux boîtes mail (Gmail, Outlook...) que vos emails sont légitimes et non du spam ou de l'usurpation.",
@@ -24591,7 +24627,25 @@
         "gb": "Three standards that prove to mailboxes (Gmail, Outlook...) that your emails are legitimate and not spam or spoofing."
     },
     "help.glossary_term_rbl": {
-        "fr": "Liste noire (RBL)", "en": "Blacklist (RBL)", "de": "Blacklist (RBL)", "it": "Lista nera (RBL)", "es": "Lista negra (RBL)", "pt": "Lista negra (RBL)", "br": "Lista negra (RBL)", "ar": "القائمة السوداء (RBL)", "ja": "ブラックリスト（RBL）", "ko": "블랙리스트(RBL)", "zh": "黑名单（RBL）", "tw": "黑名單（RBL）", "ru": "Чёрный список (RBL)", "tr": "Kara liste (RBL)", "sv": "Svart lista (RBL)", "no": "Svarteliste (RBL)", "da": "Sortliste (RBL)", "nl": "Zwarte lijst (RBL)", "gb": "Blacklist (RBL)"
+        "fr": "Liste noire (RBL)",
+        "en": "Blacklist (RBL)",
+        "de": "Blacklist (RBL)",
+        "it": "Lista nera (RBL)",
+        "es": "Lista negra (RBL)",
+        "pt": "Lista negra (RBL)",
+        "br": "Lista negra (RBL)",
+        "ar": "القائمة السوداء (RBL)",
+        "ja": "ブラックリスト（RBL）",
+        "ko": "블랙리스트(RBL)",
+        "zh": "黑名单（RBL）",
+        "tw": "黑名單（RBL）",
+        "ru": "Чёрный список (RBL)",
+        "tr": "Kara liste (RBL)",
+        "sv": "Svart lista (RBL)",
+        "no": "Svarteliste (RBL)",
+        "da": "Sortliste (RBL)",
+        "nl": "Zwarte lijst (RBL)",
+        "gb": "Blacklist (RBL)"
     },
     "help.glossary_def_rbl": {
         "fr": "Liste noire publique de serveurs email suspects, consultée par les boîtes mail pour filtrer le spam — y figurer nuit gravement à la délivrabilité.",
@@ -24615,7 +24669,25 @@
         "gb": "Public blacklist of suspicious email servers, checked by mailboxes to filter spam — being listed severely harms deliverability."
     },
     "help.glossary_term_template": {
-        "fr": "Template (modèle d'email)", "en": "Template", "de": "Vorlage (Template)", "it": "Template (modello)", "es": "Plantilla (template)", "pt": "Modelo (template)", "br": "Modelo (template)", "ar": "قالب (Template)", "ja": "テンプレート", "ko": "템플릿", "zh": "模板（Template）", "tw": "範本（Template）", "ru": "Шаблон", "tr": "Şablon", "sv": "Mall (template)", "no": "Mal (template)", "da": "Skabelon (template)", "nl": "Sjabloon (template)", "gb": "Template"
+        "fr": "Template (modèle d'email)",
+        "en": "Template",
+        "de": "Vorlage (Template)",
+        "it": "Template (modello)",
+        "es": "Plantilla (template)",
+        "pt": "Modelo (template)",
+        "br": "Modelo (template)",
+        "ar": "قالب (Template)",
+        "ja": "テンプレート",
+        "ko": "템플릿",
+        "zh": "模板（Template）",
+        "tw": "範本（Template）",
+        "ru": "Шаблон",
+        "tr": "Şablon",
+        "sv": "Mall (template)",
+        "no": "Mal (template)",
+        "da": "Skabelon (template)",
+        "nl": "Sjabloon (template)",
+        "gb": "Template"
     },
     "help.glossary_def_template": {
         "fr": "Modèle d'email (mise en page + texte) utilisé pour un type d'envoi précis (confirmation de commande, panier abandonné, etc.).",
@@ -24639,7 +24711,25 @@
         "gb": "Email model (layout + text) used for a specific type of send (order confirmation, abandoned cart, etc.)."
     },
     "help.glossary_term_json": {
-        "fr": "JSON (format de données)", "en": "JSON (data format)", "de": "JSON (Datenformat)", "it": "JSON (formato dati)", "es": "JSON (formato de datos)", "pt": "JSON (formato de dados)", "br": "JSON (formato de dados)", "ar": "JSON (تنسيق بيانات)", "ja": "JSON（データ形式）", "ko": "JSON(데이터 형식)", "zh": "JSON（数据格式）", "tw": "JSON（資料格式）", "ru": "JSON (формат данных)", "tr": "JSON (veri biçimi)", "sv": "JSON (dataformat)", "no": "JSON (dataformat)", "da": "JSON (dataformat)", "nl": "JSON (gegevensformaat)", "gb": "JSON (data format)"
+        "fr": "JSON (format de données)",
+        "en": "JSON (data format)",
+        "de": "JSON (Datenformat)",
+        "it": "JSON (formato dati)",
+        "es": "JSON (formato de datos)",
+        "pt": "JSON (formato de dados)",
+        "br": "JSON (formato de dados)",
+        "ar": "JSON (تنسيق بيانات)",
+        "ja": "JSON（データ形式）",
+        "ko": "JSON(데이터 형식)",
+        "zh": "JSON（数据格式）",
+        "tw": "JSON（資料格式）",
+        "ru": "JSON (формат данных)",
+        "tr": "JSON (veri biçimi)",
+        "sv": "JSON (dataformat)",
+        "no": "JSON (dataformat)",
+        "da": "JSON (dataformat)",
+        "nl": "JSON (gegevensformaat)",
+        "gb": "JSON (data format)"
     },
     "help.glossary_def_json": {
         "fr": "Format de texte structuré utilisé pour stocker des réglages (paliers de fidélité, expéditeurs par langue...) ou échanger des données entre systèmes.",
@@ -24663,7 +24753,25 @@
         "gb": "Structured text format used to store settings (loyalty tiers, per-language senders...) or exchange data between systems."
     },
     "help.glossary_term_imap": {
-        "fr": "IMAP", "en": "IMAP", "de": "IMAP", "it": "IMAP", "es": "IMAP", "pt": "IMAP", "br": "IMAP", "ar": "IMAP", "ja": "IMAP", "ko": "IMAP", "zh": "IMAP", "tw": "IMAP", "ru": "IMAP", "tr": "IMAP", "sv": "IMAP", "no": "IMAP", "da": "IMAP", "nl": "IMAP", "gb": "IMAP"
+        "fr": "IMAP",
+        "en": "IMAP",
+        "de": "IMAP",
+        "it": "IMAP",
+        "es": "IMAP",
+        "pt": "IMAP",
+        "br": "IMAP",
+        "ar": "IMAP",
+        "ja": "IMAP",
+        "ko": "IMAP",
+        "zh": "IMAP",
+        "tw": "IMAP",
+        "ru": "IMAP",
+        "tr": "IMAP",
+        "sv": "IMAP",
+        "no": "IMAP",
+        "da": "IMAP",
+        "nl": "IMAP",
+        "gb": "IMAP"
     },
     "help.glossary_def_imap": {
         "fr": "Protocole qui permet à Neria de lire une boîte mail existante — utilisé pour détecter les emails de rebond (adresses invalides).",
@@ -24687,7 +24795,25 @@
         "gb": "Protocol that allows Neria to read an existing mailbox — used to detect bounce emails (invalid addresses)."
     },
     "help.glossary_term_ptr": {
-        "fr": "Enregistrement PTR", "en": "PTR record", "de": "PTR-Eintrag", "it": "Record PTR", "es": "Registro PTR", "pt": "Registo PTR", "br": "Registro PTR", "ar": "سجل PTR", "ja": "PTRレコード", "ko": "PTR 레코드", "zh": "PTR记录", "tw": "PTR記錄", "ru": "PTR-запись", "tr": "PTR kaydı", "sv": "PTR-post", "no": "PTR-post", "da": "PTR-post", "nl": "PTR-record", "gb": "PTR record"
+        "fr": "Enregistrement PTR",
+        "en": "PTR record",
+        "de": "PTR-Eintrag",
+        "it": "Record PTR",
+        "es": "Registro PTR",
+        "pt": "Registo PTR",
+        "br": "Registro PTR",
+        "ar": "سجل PTR",
+        "ja": "PTRレコード",
+        "ko": "PTR 레코드",
+        "zh": "PTR记录",
+        "tw": "PTR記錄",
+        "ru": "PTR-запись",
+        "tr": "PTR kaydı",
+        "sv": "PTR-post",
+        "no": "PTR-post",
+        "da": "PTR-post",
+        "nl": "PTR-record",
+        "gb": "PTR record"
     },
     "help.glossary_def_ptr": {
         "fr": "Réglage technique qui associe l'adresse IP de votre serveur à son nom de domaine — vérifié par les boîtes mail comme signe de confiance.",
@@ -24711,7 +24837,25 @@
         "gb": "Technical setting that links your server's IP address to its domain name — checked by mailboxes as a sign of trust."
     },
     "help.glossary_term_smtp_quota": {
-        "fr": "Quota SMTP", "en": "SMTP quota", "de": "SMTP-Kontingent", "it": "Quota SMTP", "es": "Cuota SMTP", "pt": "Quota SMTP", "br": "Cota SMTP", "ar": "حصة SMTP", "ja": "SMTPクォータ", "ko": "SMTP 할당량", "zh": "SMTP配额", "tw": "SMTP配額", "ru": "Квота SMTP", "tr": "SMTP kotası", "sv": "SMTP-kvot", "no": "SMTP-kvote", "da": "SMTP-kvote", "nl": "SMTP-quotum", "gb": "SMTP quota"
+        "fr": "Quota SMTP",
+        "en": "SMTP quota",
+        "de": "SMTP-Kontingent",
+        "it": "Quota SMTP",
+        "es": "Cuota SMTP",
+        "pt": "Quota SMTP",
+        "br": "Cota SMTP",
+        "ar": "حصة SMTP",
+        "ja": "SMTPクォータ",
+        "ko": "SMTP 할당량",
+        "zh": "SMTP配额",
+        "tw": "SMTP配額",
+        "ru": "Квота SMTP",
+        "tr": "SMTP kotası",
+        "sv": "SMTP-kvot",
+        "no": "SMTP-kvote",
+        "da": "SMTP-kvote",
+        "nl": "SMTP-quotum",
+        "gb": "SMTP quota"
     },
     "help.glossary_def_smtp_quota": {
         "fr": "Limite du nombre d'emails que votre hébergeur autorise à envoyer par heure ou par jour — la dépasser bloque temporairement les envois.",
@@ -24735,7 +24879,25 @@
         "gb": "Limit on the number of emails your host allows you to send per hour or day — exceeding it temporarily blocks sending."
     },
     "help.glossary_term_segment": {
-        "fr": "Segment client", "en": "Customer segment", "de": "Kundensegment", "it": "Segmento cliente", "es": "Segmento de cliente", "pt": "Segmento de cliente", "br": "Segmento de cliente", "ar": "شريحة عملاء", "ja": "顧客セグメント", "ko": "고객 세그먼트", "zh": "客户细分", "tw": "客戶區隔", "ru": "Сегмент клиентов", "tr": "Müşteri segmenti", "sv": "Kundsegment", "no": "Kundesegment", "da": "Kundesegment", "nl": "Klantsegment", "gb": "Customer segment"
+        "fr": "Segment client",
+        "en": "Customer segment",
+        "de": "Kundensegment",
+        "it": "Segmento cliente",
+        "es": "Segmento de cliente",
+        "pt": "Segmento de cliente",
+        "br": "Segmento de cliente",
+        "ar": "شريحة عملاء",
+        "ja": "顧客セグメント",
+        "ko": "고객 세그먼트",
+        "zh": "客户细分",
+        "tw": "客戶區隔",
+        "ru": "Сегмент клиентов",
+        "tr": "Müşteri segmenti",
+        "sv": "Kundsegment",
+        "no": "Kundesegment",
+        "da": "Kundesegment",
+        "nl": "Klantsegment",
+        "gb": "Customer segment"
     },
     "help.glossary_def_segment": {
         "fr": "Groupe de clients réunis automatiquement selon leur comportement (ex. clients fidèles, inactifs depuis longtemps) pour cibler des campagnes.",
@@ -24759,7 +24921,25 @@
         "gb": "Group of customers automatically gathered based on their behavior (e.g. loyal customers, long-inactive) to target campaigns."
     },
     "help.glossary_term_churn": {
-        "fr": "Score de désabonnement (churn)", "en": "Churn score", "de": "Abwanderungs-Score (Churn)", "it": "Punteggio di abbandono (churn)", "es": "Puntuación de baja (churn)", "pt": "Pontuação de churn", "br": "Pontuação de churn", "ar": "درجة خطر إلغاء الاشتراك (Churn)", "ja": "解約リスクスコア（チャーン）", "ko": "이탈 점수(Churn)", "zh": "流失评分（Churn）", "tw": "流失評分（Churn）", "ru": "Показатель оттока (churn)", "tr": "Kayıp puanı (churn)", "sv": "Avhoppspoäng (churn)", "no": "Frafallsscore (churn)", "da": "Frafaldsscore (churn)", "nl": "Churn-score", "gb": "Churn score"
+        "fr": "Score de désabonnement (churn)",
+        "en": "Churn score",
+        "de": "Abwanderungs-Score (Churn)",
+        "it": "Punteggio di abbandono (churn)",
+        "es": "Puntuación de baja (churn)",
+        "pt": "Pontuação de churn",
+        "br": "Pontuação de churn",
+        "ar": "درجة خطر إلغاء الاشتراك (Churn)",
+        "ja": "解約リスクスコア（チャーン）",
+        "ko": "이탈 점수(Churn)",
+        "zh": "流失评分（Churn）",
+        "tw": "流失評分（Churn）",
+        "ru": "Показатель оттока (churn)",
+        "tr": "Kayıp puanı (churn)",
+        "sv": "Avhoppspoäng (churn)",
+        "no": "Frafallsscore (churn)",
+        "da": "Frafaldsscore (churn)",
+        "nl": "Churn-score",
+        "gb": "Churn score"
     },
     "help.glossary_def_churn": {
         "fr": "Score qui estime le risque qu'un client cesse d'acheter ou se désabonne, calculé à partir de l'évolution de son taux d'ouverture des emails.",
@@ -24783,7 +24963,25 @@
         "gb": "Score that estimates the risk of a customer stopping purchases or unsubscribing, calculated from the trend in their email open rate."
     },
     "help.glossary_term_cache_ttl": {
-        "fr": "Cache / TTL", "en": "Cache / TTL", "de": "Cache / TTL", "it": "Cache / TTL", "es": "Caché / TTL", "pt": "Cache / TTL", "br": "Cache / TTL", "ar": "التخزين المؤقت / TTL", "ja": "キャッシュ / TTL", "ko": "캐시 / TTL", "zh": "缓存 / TTL", "tw": "快取 / TTL", "ru": "Кэш / TTL", "tr": "Önbellek / TTL", "sv": "Cache / TTL", "no": "Cache / TTL", "da": "Cache / TTL", "nl": "Cache / TTL", "gb": "Cache / TTL"
+        "fr": "Cache / TTL",
+        "en": "Cache / TTL",
+        "de": "Cache / TTL",
+        "it": "Cache / TTL",
+        "es": "Caché / TTL",
+        "pt": "Cache / TTL",
+        "br": "Cache / TTL",
+        "ar": "التخزين المؤقت / TTL",
+        "ja": "キャッシュ / TTL",
+        "ko": "캐시 / TTL",
+        "zh": "缓存 / TTL",
+        "tw": "快取 / TTL",
+        "ru": "Кэш / TTL",
+        "tr": "Önbellek / TTL",
+        "sv": "Cache / TTL",
+        "no": "Cache / TTL",
+        "da": "Cache / TTL",
+        "nl": "Cache / TTL",
+        "gb": "Cache / TTL"
     },
     "help.glossary_def_cache_ttl": {
         "fr": "Durée pendant laquelle une donnée déjà calculée reste mémorisée avant d'être recalculée — évite de refaire le même calcul à chaque page.",
@@ -24807,7 +25005,25 @@
         "gb": "Duration during which an already computed value stays cached before being recalculated — avoids redoing the same calculation on every page."
     },
     "help.glossary_term_encryption_key": {
-        "fr": "Clé de chiffrement", "en": "Encryption key", "de": "Verschlüsselungsschlüssel", "it": "Chiave di crittografia", "es": "Clave de cifrado", "pt": "Chave de encriptação", "br": "Chave de criptografia", "ar": "مفتاح التشفير", "ja": "暗号化キー", "ko": "암호화 키", "zh": "加密密钥", "tw": "加密金鑰", "ru": "Ключ шифрования", "tr": "Şifreleme anahtarı", "sv": "Krypteringsnyckel", "no": "Krypteringsnøkkel", "da": "Krypteringsnøgle", "nl": "Versleutelingssleutel", "gb": "Encryption key"
+        "fr": "Clé de chiffrement",
+        "en": "Encryption key",
+        "de": "Verschlüsselungsschlüssel",
+        "it": "Chiave di crittografia",
+        "es": "Clave de cifrado",
+        "pt": "Chave de encriptação",
+        "br": "Chave de criptografia",
+        "ar": "مفتاح التشفير",
+        "ja": "暗号化キー",
+        "ko": "암호화 키",
+        "zh": "加密密钥",
+        "tw": "加密金鑰",
+        "ru": "Ключ шифрования",
+        "tr": "Şifreleme anahtarı",
+        "sv": "Krypteringsnyckel",
+        "no": "Krypteringsnøkkel",
+        "da": "Krypteringsnøgle",
+        "nl": "Versleutelingssleutel",
+        "gb": "Encryption key"
     },
     "help.glossary_def_encryption_key": {
         "fr": "Clé secrète qui protège les données sensibles stockées en base (mots de passe, jetons d'accès) — si elle change, ces données deviennent illisibles.",
@@ -24831,7 +25047,25 @@
         "gb": "Secret key that protects sensitive data stored in the database (passwords, access tokens) — if it changes, that data becomes unreadable."
     },
     "help.glossary_term_smarty": {
-        "fr": "Smarty (moteur de modèles)", "en": "Smarty (template engine)", "de": "Smarty (Template-Engine)", "it": "Smarty (motore di template)", "es": "Smarty (motor de plantillas)", "pt": "Smarty (motor de modelos)", "br": "Smarty (motor de modelos)", "ar": "Smarty (محرك القوالب)", "ja": "Smarty（テンプレートエンジン）", "ko": "Smarty(템플릿 엔진)", "zh": "Smarty（模板引擎）", "tw": "Smarty（範本引擎）", "ru": "Smarty (шаблонизатор)", "tr": "Smarty (şablon motoru)", "sv": "Smarty (mallmotor)", "no": "Smarty (malmotor)", "da": "Smarty (skabelonmotor)", "nl": "Smarty (sjabloon-engine)", "gb": "Smarty (template engine)"
+        "fr": "Smarty (moteur de modèles)",
+        "en": "Smarty (template engine)",
+        "de": "Smarty (Template-Engine)",
+        "it": "Smarty (motore di template)",
+        "es": "Smarty (motor de plantillas)",
+        "pt": "Smarty (motor de modelos)",
+        "br": "Smarty (motor de modelos)",
+        "ar": "Smarty (محرك القوالب)",
+        "ja": "Smarty（テンプレートエンジン）",
+        "ko": "Smarty(템플릿 엔진)",
+        "zh": "Smarty（模板引擎）",
+        "tw": "Smarty（範本引擎）",
+        "ru": "Smarty (шаблонизатор)",
+        "tr": "Smarty (şablon motoru)",
+        "sv": "Smarty (mallmotor)",
+        "no": "Smarty (malmotor)",
+        "da": "Smarty (skabelonmotor)",
+        "nl": "Smarty (sjabloon-engine)",
+        "gb": "Smarty (template engine)"
     },
     "help.glossary_def_smarty": {
         "fr": "Moteur de modèles utilisé par PrestaShop pour générer les pages du BO et certains emails — les erreurs de compilation Smarty affichent une page cassée au lieu du contenu attendu.",
