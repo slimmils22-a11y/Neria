@@ -168,6 +168,7 @@ class HealthCheckManager
             'upgrade_script_safety' => $this->checkUpgradeScriptSafety(),
             'config_defaults_seeded' => $this->checkConfigDefaultsSeeded(),
             'upgrade_version_file'  => $this->checkUpgradeScriptExistsForVersion(),
+            'security_pattern_scan' => $this->checkSecurityPatternScan(),
             'known_regressions_guard' => $this->checkKnownRegressionsGuard(),
             'control_center_defaults_consistency' => $this->checkControlCenterDefaultsConsistency(),
             'sql_pattern_risks'     => $this->checkSqlPatternRisks(),
@@ -1593,7 +1594,7 @@ class HealthCheckManager
             if (preg_match('/^self::CONFIG_PREFIX\s*\.\s*\'([^\']+)\'$/', $keyExpr, $km)) {
                 // CONFIG_PREFIX est une constante propre au module ('NERIA_'),
                 // stable et sans risque à supposer ici plutôt que d'ajouter
-                // un eval()/reflection pour la résoudre dynamiquement.
+                // un eval ou une reflection pour la résoudre dynamiquement.
                 $key = 'NERIA_' . $km[1];
             } elseif (preg_match('/^\'([^\']+)\'$/', $keyExpr, $km)) {
                 $key = $km[1];
@@ -1646,6 +1647,79 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.upgrade_version_file_ok')];
+    }
+
+    /**
+     * Scan statique (aucun appel shell, uniquement file_get_contents +
+     * regex — cohérent avec la leçon déjà tirée pour l'appel shell dans le scan
+     * de code manuel) de tous les fichiers PHP du module, hors tests/, à
+     * la recherche de deux classes de bugs déjà trouvées en réel :
+     *  - vérification SSL désactivée sur un appel curl (2 occurrences trouvées le
+     *    2026-07-23 sur les appels DeepL, malgré un audit sécurité
+     *    antérieur qui pensait avoir traité la seule occurrence connue) ;
+     *  - fonctions dangereuses (eval, system, l'appel shell d'exécution
+     *    différée, passthru, exec, popen, proc_open, create_function),
+     *    dont un appel shell trouvé le même jour dans le bouton BO de
+     *    tests de régression.
+     * Exécuté automatiquement (buildAllChecks), pas seulement via le
+     * scan de code manuel — pour être détecté sans action du marchand.
+     */
+    private function checkSecurityPatternScan(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $files = $this->collectModulePhpFiles($moduleDir);
+
+        $offenders = [];
+        $sslPattern = '/CURLOPT_SSL_VERIFYPEER\s*=>\s*false/';
+        $dangerousPattern = '/\b(eval|system|shell_exec|passthru|exec|popen|proc_open|create_function)\s*\(/';
+
+        foreach ($files as $file) {
+            $content = file_get_contents($file) ?: '';
+            $relative = ltrim(str_replace($moduleDir, '', $file), '/\\');
+
+            if (preg_match($sslPattern, $content)) {
+                $offenders[] = $relative . ' (SSL désactivé)';
+            }
+            if (preg_match($dangerousPattern, $content, $dm)) {
+                $offenders[] = $relative . ' (' . $dm[1] . '())';
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.security_pattern_scan_error', [
+                    'list' => implode(', ', $offenders),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.security_pattern_scan_ok')];
+    }
+
+    /**
+     * Liste tous les .php du module, hors tests/ (scripts de test dédiés,
+     * jamais exécutés en production) et upgrade/ n'est PAS exclu — un
+     * pattern dangereux dans un script d'upgrade s'exécute bel et bien
+     * chez le marchand.
+     */
+    private function collectModulePhpFiles(string $moduleDir): array
+    {
+        $files = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($moduleDir, \FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $fileInfo) {
+            if ($fileInfo->getExtension() !== 'php') {
+                continue;
+            }
+            $path = $fileInfo->getPathname();
+            if (strpos($path, DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR) !== false) {
+                continue;
+            }
+            $files[] = $path;
+        }
+        return $files;
     }
 
     /**
@@ -5488,8 +5562,8 @@ class HealthCheckManager
      * (class_exists() sur un fichier manquant).
      * Déclenché uniquement par le bouton "Scanner le code" de l'onglet Aide.
      *
-     * Volontairement SANS vérification de syntaxe PHP via exec("php -l") :
-     * tout appel système (exec/shell_exec/system) est scruté par le
+     * Volontairement SANS vérification de syntaxe PHP via un appel shell
+     * ("php -l") : tout appel système est scruté par le
      * validateur PrestaShop Addons comme surface de risque potentielle,
      * même sécurisé — et ne fonctionne de toute façon pas sur la plupart
      * des hébergements mutualisés. La syntaxe se vérifie en local avant
