@@ -166,6 +166,8 @@ class HealthCheckManager
             'class_override'       => $this->checkClassOverride(),
             'smarty_compile_check' => $this->checkSmartyCompileCheck(),
             'upgrade_script_safety' => $this->checkUpgradeScriptSafety(),
+            'config_defaults_seeded' => $this->checkConfigDefaultsSeeded(),
+            'upgrade_version_file'  => $this->checkUpgradeScriptExistsForVersion(),
             'known_regressions_guard' => $this->checkKnownRegressionsGuard(),
             'control_center_defaults_consistency' => $this->checkControlCenterDefaultsConsistency(),
             'sql_pattern_risks'     => $this->checkSqlPatternRisks(),
@@ -1557,6 +1559,93 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.version_files_sync_ok', ['version' => $codeVersion])];
+    }
+
+    /**
+     * Vérifie que chaque clé de config listée dans setDefaultConfiguration()
+     * existe réellement en base sur CETTE installation. Une clé absente
+     * (Configuration::get() renvoie false) signale qu'une feature a été
+     * ajoutée au tableau des défauts sans script d'upgrade correspondant
+     * pour les installations déjà existantes — ce contrôle n'existait pas
+     * lorsque ce cas de figure s'est produit pour de vrai avec les clés
+     * NERIA_LICENSE_* (corrigé par upgrade-1.0.31.php).
+     */
+    private function checkConfigDefaultsSeeded(): array
+    {
+        $mainFile = _PS_MODULE_DIR_ . $this->module->name . '/' . $this->module->name . '.php';
+        $src = is_file($mainFile) ? (file_get_contents($mainFile) ?: '') : '';
+
+        if (!preg_match('/\$defaults\s*=\s*\[(.*?)\n\s*\];/s', $src, $m)) {
+            return ['status' => self::STATUS_WARNING, 'detail' => AdminTranslator::t('health.config_defaults_seeded_unreadable')];
+        }
+
+        $lines = explode("\n", $m[1]);
+        $missing = [];
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if ($line === '' || strpos($line, '=>') === false) {
+                continue;
+            }
+            $keyExpr = trim(substr($line, 0, strpos($line, '=>')));
+            $key = null;
+
+            if (preg_match('/^self::CONFIG_PREFIX\s*\.\s*\'([^\']+)\'$/', $keyExpr, $km)) {
+                // CONFIG_PREFIX est une constante propre au module ('NERIA_'),
+                // stable et sans risque à supposer ici plutôt que d'ajouter
+                // un eval()/reflection pour la résoudre dynamiquement.
+                $key = 'NERIA_' . $km[1];
+            } elseif (preg_match('/^\'([^\']+)\'$/', $keyExpr, $km)) {
+                $key = $km[1];
+            } elseif (preg_match('/^([A-Za-z_][A-Za-z0-9_]*)::([A-Za-z_][A-Za-z0-9_]*)$/', $keyExpr, $km)) {
+                $const = $km[1] . '::' . $km[2];
+                if (defined($const)) {
+                    $key = (string) constant($const);
+                }
+            }
+
+            if ($key !== null && \Configuration::get($key) === false) {
+                $missing[] = $key;
+            }
+        }
+
+        if ($missing) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.config_defaults_seeded_warning', [
+                    'list' => implode(', ', $missing),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.config_defaults_seeded_ok')];
+    }
+
+    /**
+     * Vérifie qu'un script upgrade-{VERSION}.php existe pour la version
+     * actuelle du module — sinon toute clé/table ajoutée dans cette version
+     * ne sera jamais appliquée aux installations déjà existantes (seul
+     * setDefaultConfiguration()/install.sql en bénéficient, jamais rejoués
+     * après l'installation initiale).
+     */
+    private function checkUpgradeScriptExistsForVersion(): array
+    {
+        $upgradeDir = _PS_MODULE_DIR_ . $this->module->name . '/upgrade';
+        if (!is_dir($upgradeDir)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.upgrade_version_file_ok')];
+        }
+
+        $version = (string) $this->module->version;
+        $expectedFile = $upgradeDir . '/upgrade-' . $version . '.php';
+
+        if (!is_file($expectedFile)) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.upgrade_version_file_warning', ['version' => $version]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.upgrade_version_file_ok')];
     }
 
     /**

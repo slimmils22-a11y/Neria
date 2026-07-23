@@ -407,6 +407,8 @@
       'class_override'       => 'help.health_check_class_override',
       'smarty_compile_check' => 'help.health_check_smarty_compile_check',
       'upgrade_script_safety' => 'help.health_check_upgrade_script_safety',
+      'config_defaults_seeded' => 'help.health_check_config_defaults_seeded',
+      'upgrade_version_file' => 'help.health_check_upgrade_version_file',
       'known_regressions_guard' => 'help.health_check_known_regressions_guard',
       'sql_pattern_risks' => 'help.health_check_sql_pattern_risks',
       'i18n_pattern_risks' => 'help.health_check_i18n_pattern_risks',
