@@ -847,7 +847,7 @@ class HealthCheckManager
         $queueMgrSrc  = is_file($queueMgrFile) ? (file_get_contents($queueMgrFile) ?: '') : '';
         if ($queueMgrSrc === '') {
             $offenders[] = 'QueueManager.php introuvable';
-        } elseif (!preg_match('/function\s+processQueue[\s\S]{0,1200}?GET_LOCK/', $queueMgrSrc)) {
+        } elseif (!preg_match('/function\s+processQueue[\s\S]{0,1700}?GET_LOCK/', $queueMgrSrc)) {
             $offenders[] = 'QueueManager : processQueue() n\'utilise plus GET_LOCK (deux exécutions concurrentes pourraient de nouveau envoyer chaque email en double)';
         }
 

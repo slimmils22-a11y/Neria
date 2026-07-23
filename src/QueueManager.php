@@ -199,6 +199,16 @@ class QueueManager
 
     public function processQueue(): int
     {
+        // Point de vérification dispersé #2 : les emails déjà en file
+        // restent en attente (jamais perdus) tant que la licence est
+        // bloquée — ils partiront normalement dès que le verrou se lève
+        // (réactivation, ou simple fin du délai de grâce reconnue par le
+        // serveur). Vérification locale uniquement (cf. LicenseManager::
+        // isEmailSendingAllowed()), aucun appel réseau ici.
+        if (class_exists('LicenseManager') && !(new \LicenseManager($this->module))->isEmailSendingAllowed()) {
+            return 0;
+        }
+
         // Verrou MySQL : cette méthode est appelée depuis PLUSIEURS points
         // d'entrée indépendants (BehavioralCronManager::run() sur le cron
         // frontend, HealthCheckManager, et le bouton BO "Traiter la file

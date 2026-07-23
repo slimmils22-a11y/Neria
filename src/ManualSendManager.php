@@ -532,6 +532,14 @@ class ManualSendManager
             return ['ok' => false, 'message' => AdminTranslator::t('msg.send_not_allowed')];
         }
 
+        // Point de vérification dispersé #5 : même verrou que les autres
+        // envois, avec un message explicite ici (contrairement au blocage
+        // silencieux des crons) puisque c'est un marchand qui vient de
+        // cliquer "Envoyer" et doit comprendre pourquoi rien ne part.
+        if (class_exists('LicenseManager') && !(new \LicenseManager($this->module))->isEmailSendingAllowed()) {
+            return ['ok' => false, 'message' => AdminTranslator::t('msg.send_blocked_license')];
+        }
+
         $email = trim($email);
         if ($email === '' || !\Validate::isEmail($email)) {
             return ['ok' => false, 'message' => AdminTranslator::t('msg.send_invalid_email')];

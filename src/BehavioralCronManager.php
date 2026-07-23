@@ -118,39 +118,55 @@ class BehavioralCronManager
         // ne recevraient donc plus JAMAIS ces emails comportementaux. On boucle
         // ici sur chaque boutique active en basculant temporairement le contexte
         // PrestaShop, pour que chaque boutique soit traitée exactement une fois.
+        // Point de vérification dispersé #3 : les tâches ci-dessous génèrent
+        // presque exclusivement des envois d'emails comportementaux — inutile
+        // de faire tout ce travail de calcul (requêtes, dédup) si le verrou
+        // de licence bloquera de toute façon l'email au moment de l'envoi
+        // (déjà garanti universellement par hookActionEmailSendBefore).
+        // Vérification locale uniquement, aucun appel réseau ici. Les tâches
+        // purement calculatoires (recalculatePropensityScores, segmentation,
+        // churn) ne sont PAS concernées : elles ne bloquent aucun email.
+        $emailSendingAllowed = !class_exists('LicenseManager')
+            || (new \LicenseManager($this->module))->isEmailSendingAllowed();
+
         $originalShop = \Context::getContext()->shop;
         $shops = \Shop::getShops(true, null, true) ?: [(int) $originalShop->id];
 
-        foreach ($shops as $idShop) {
-            \Context::getContext()->shop = new \Shop((int) $idShop);
+        if ($emailSendingAllowed) {
+            foreach ($shops as $idShop) {
+                \Context::getContext()->shop = new \Shop((int) $idShop);
 
-            $this->runStep('sendBirthdays',                 fn () => $this->sendBirthdays());
-            $this->runStep('sendFirstAnniversaries',         fn () => $this->sendFirstAnniversaries());
-            $this->runStep('sendRelationshipAnniversaries',  fn () => $this->sendRelationshipAnniversaries());
-            $this->runStep('sendReorderReminders',           fn () => $this->sendReorderReminders());
-            $this->runStep('sendWinBacks',                   fn () => $this->sendWinBacks());
-            $this->runStep('sendRewardExpiryAlerts',         fn () => $this->sendRewardExpiryAlerts());
-            $this->runStep('sendWishlistReminders',          fn () => $this->sendWishlistReminders());
-            $this->runStep('sendAbandonedCarts(1)',          fn () => $this->sendAbandonedCarts('abandoned_cart_1', self::DELAY_CART_1_HOURS));
-            $this->runStep('sendAbandonedCarts(2)',          fn () => $this->sendAbandonedCarts('abandoned_cart_2', self::DELAY_CART_2_HOURS));
-            $this->runStep('sendAbandonedCarts(3)',          fn () => $this->sendAbandonedCarts('abandoned_cart_3', self::DELAY_CART_3_HOURS));
-            $this->runStep('sendCheckoutAbandonment',        fn () => $this->sendCheckoutAbandonment());
-            $this->runStep('sendQuoteExpiryReminders',       fn () => $this->sendQuoteExpiryReminders());
-            $this->runStep('sendRefundReconciliations',      fn () => $this->sendRefundReconciliations());
-            $this->runStep('sendLifespanReminders',          fn () => $this->sendLifespanReminders());
-            $this->runStep('sendPostPurchase(care)',         fn () => $this->sendPostPurchase('post_purchase_care',   self::DELAY_POST_CARE_DAYS));
-            $this->runStep('sendPostPurchase(review)',       fn () => $this->sendPostPurchase('post_purchase_review', self::DELAY_POST_REVIEW_DAYS));
-            $this->runStep('sendShippedDelayAlerts',         fn () => $this->sendShippedDelayAlerts());
-            $this->runStep('sendGhostCarts',                 fn () => $this->sendGhostCarts());
+                $this->runStep('sendBirthdays',                 fn () => $this->sendBirthdays());
+                $this->runStep('sendFirstAnniversaries',         fn () => $this->sendFirstAnniversaries());
+                $this->runStep('sendRelationshipAnniversaries',  fn () => $this->sendRelationshipAnniversaries());
+                $this->runStep('sendReorderReminders',           fn () => $this->sendReorderReminders());
+                $this->runStep('sendWinBacks',                   fn () => $this->sendWinBacks());
+                $this->runStep('sendRewardExpiryAlerts',         fn () => $this->sendRewardExpiryAlerts());
+                $this->runStep('sendWishlistReminders',          fn () => $this->sendWishlistReminders());
+                $this->runStep('sendAbandonedCarts(1)',          fn () => $this->sendAbandonedCarts('abandoned_cart_1', self::DELAY_CART_1_HOURS));
+                $this->runStep('sendAbandonedCarts(2)',          fn () => $this->sendAbandonedCarts('abandoned_cart_2', self::DELAY_CART_2_HOURS));
+                $this->runStep('sendAbandonedCarts(3)',          fn () => $this->sendAbandonedCarts('abandoned_cart_3', self::DELAY_CART_3_HOURS));
+                $this->runStep('sendCheckoutAbandonment',        fn () => $this->sendCheckoutAbandonment());
+                $this->runStep('sendQuoteExpiryReminders',       fn () => $this->sendQuoteExpiryReminders());
+                $this->runStep('sendRefundReconciliations',      fn () => $this->sendRefundReconciliations());
+                $this->runStep('sendLifespanReminders',          fn () => $this->sendLifespanReminders());
+                $this->runStep('sendPostPurchase(care)',         fn () => $this->sendPostPurchase('post_purchase_care',   self::DELAY_POST_CARE_DAYS));
+                $this->runStep('sendPostPurchase(review)',       fn () => $this->sendPostPurchase('post_purchase_review', self::DELAY_POST_REVIEW_DAYS));
+                $this->runStep('sendShippedDelayAlerts',         fn () => $this->sendShippedDelayAlerts());
+                $this->runStep('sendGhostCarts',                 fn () => $this->sendGhostCarts());
+            }
         }
 
         \Context::getContext()->shop = $originalShop;
 
         // Tâches globales (non scopées par boutique, dédup propre via
         // id_order — déjà rattaché à une seule boutique) : une seule fois.
+        // recalculatePropensityScores() n'envoie aucun email — jamais gaté.
         $this->runStep('recalculatePropensityScores',    fn () => $this->recalculatePropensityScores());
-        $this->runStep('sendCollectionCompletions',      fn () => $this->sendCollectionCompletions());
-        $this->runStep('sendLookCompletions',            fn () => $this->sendLookCompletions());
+        if ($emailSendingAllowed) {
+            $this->runStep('sendCollectionCompletions',      fn () => $this->sendCollectionCompletions());
+            $this->runStep('sendLookCompletions',            fn () => $this->sendLookCompletions());
+        }
 
         // ── Segmentation comportementale (recalcul quotidien) ─────────
         if (class_exists('SegmentManager')) {

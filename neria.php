@@ -270,6 +270,18 @@ class Neria extends Module
             }
         }
 
+        // ── Verrou de licence ──────────────────────────────────────────
+        // Point de vérification dispersé #1 (le principal) : bloque TOUT
+        // nouvel envoi si la licence n'est ni valide ni dans son délai de
+        // grâce. N'appelle jamais le réseau ici (LicenseManager::
+        // isEmailSendingAllowed() lit uniquement le jeton signé en cache) —
+        // la revalidation réseau se fait ailleurs (cron), avec tolérance de
+        // panne totale : cf. cahier des charges section 2.
+        if (class_exists('LicenseManager') && !(new LicenseManager($this))->isEmailSendingAllowed()) {
+            $this->softLogLicenseBlock($params['template'] ?? '');
+            return false;
+        }
+
         // Templates internes Neria : on laisse PS envoyer directement sans
         // passer par l'EmailRenderer (ils ont leur propre rendu autonome).
         $internalTemplates = ['monthly_report', 'log_alert', 'neria_fallback'];
@@ -1471,6 +1483,20 @@ class Neria extends Module
         $health->recordDisplayHeaderRun();
         $health->runAutoChecksIfDue();
         $ran['health_checks'] = true;
+
+        // ── Licence : revalidation réseau (cache 24h interne à validateLicense()) ──
+        // Tolérance de panne totale : une erreur réseau ne modifie jamais le
+        // jeton en cache (cf. LicenseManager::validateLicense()).
+        if (class_exists('LicenseManager')) {
+            try {
+                $license = new LicenseManager($this);
+                $license->validateLicense();
+                $license->checkDomainChange();
+                $ran['license_check'] = true;
+            } catch (\Throwable $e) {
+                // best-effort — ne bloque jamais le front
+            }
+        }
 
         // ── Canari de rendu (1x/jour, throttle interne) ────────────────
         // Rend chaque template en mode aperçu et capture les warnings PHP
@@ -3270,6 +3296,17 @@ class Neria extends Module
                 $this->context->smarty->assign('neria_error', AdminTranslator::tVars('msg.bounces_check_failed', [
                     'error' => implode(' ', $result['errors']),
                 ]));
+            }
+        }
+
+        // ── Action : activation d'une clé de licence ──────────────────
+        if (Tools::getValue('neria_action') === 'activate_license' && class_exists('LicenseManager')) {
+            $rawKey = (string) Tools::getValue('license_key', '');
+            $result = (new LicenseManager($this))->activateLicense($rawKey);
+            if ($result['ok']) {
+                $this->context->smarty->assign('neria_success', AdminTranslator::t($result['message_key']));
+            } else {
+                $this->context->smarty->assign('neria_error', AdminTranslator::t($result['message_key']));
             }
         }
 
@@ -5711,6 +5748,7 @@ class Neria extends Module
         // mono-boutique (l'immense majorité), Shop::isFeatureActive() est
         // faux et cette bannière ne s'affiche jamais.
         $this->assignShopContextBanner();
+        $this->assignLicenseBanner();
 
         // ── Rendu navigation + contenu ────────────────────────────
         $navigation = $this->renderTemplate('navigation.tpl');
@@ -6219,6 +6257,30 @@ class Neria extends Module
      *
      * @param string $template Nom du fichier .tpl
      */
+    /**
+     * Log Watchdog (une seule fois par jour) quand le verrou de licence
+     * bloque un envoi — évite de noyer le journal si la boutique envoie
+     * beaucoup d'emails pendant que la licence est bloquée.
+     */
+    private function softLogLicenseBlock(string $template): void
+    {
+        $lastLogged = (int) Configuration::get('NERIA_LICENSE_BLOCK_LOGGED_AT');
+        if ((time() - $lastLogged) < 86400) {
+            return;
+        }
+        Configuration::updateGlobalValue('NERIA_LICENSE_BLOCK_LOGGED_AT', time());
+        if (class_exists('WatchdogManager')) {
+            try {
+                (new WatchdogManager($this))->warning(
+                    WatchdogManager::i18nMsg('watchdog.license_blocking_sends'),
+                    $template,
+                    'LicenseManager'
+                );
+            } catch (\Throwable $ignored) {
+            }
+        }
+    }
+
     private function renderTemplate(string $template): string
     {
         $templatePath = 'module:neria/views/templates/admin/' . $template;
@@ -6244,6 +6306,33 @@ class Neria extends Module
             'neria_shop_ctx_active'      => true,
             'neria_shop_ctx_is_single'   => $shopContext === \Shop::CONTEXT_SHOP,
             'neria_shop_ctx_active_name' => $activeShopName,
+        ]);
+    }
+
+    /**
+     * Assigne les variables de la bannière de licence affichée en haut de
+     * navigation.tpl. Jamais bloquant en dehors du verrou d'envoi lui-même
+     * (cf. cahier des charges section 3) — uniquement informatif ici.
+     * Lecture cache seule, aucun appel réseau (la revalidation se fait dans
+     * runBackgroundJobs()).
+     */
+    private function assignLicenseBanner(): void
+    {
+        if (!class_exists('LicenseManager')) {
+            return;
+        }
+
+        $status = (new LicenseManager($this))->getStatusForDisplay();
+
+        // Rien à signaler : licence active, pas dans son délai de grâce,
+        // pas d'expiration proche.
+        if ($status['sending_allowed'] && !$status['in_grace_period'] && !$status['expires_soon']) {
+            return;
+        }
+
+        $this->context->smarty->assign([
+            'neria_license_active'  => true,
+            'neria_license_status'  => $status,
         ]);
     }
 
@@ -6452,6 +6541,12 @@ class Neria extends Module
             self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_AMOUNT'  => 10,
             self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_PERCENT' => 1,
             self::CONFIG_PREFIX . 'INSTALLED_AT'               => date('Y-m-d H:i:s'),
+            LicenseManager::CONFIG_KEY                         => '',
+            LicenseManager::CONFIG_TOKEN                       => '',
+            LicenseManager::CONFIG_LAST_CHECK                  => 0,
+            LicenseManager::CONFIG_EXPIRES                     => 0,
+            LicenseManager::CONFIG_PLAN                        => '',
+            LicenseManager::CONFIG_SOURCE                      => '',
             MonthlyReportManager::CONFIG_ENABLED               => 1,
             MonthlyReportManager::CONFIG_RECIPIENTS            => '',
             HealthCheckManager::CONFIG_LAST_RUN                => '',

@@ -243,6 +243,15 @@ class OrderTriggersManager
      */
     private function checkMilestone(\Order $order): void
     {
+        // Point de vérification dispersé #4 : évite de générer un bon de
+        // réduction (CartRule réel, coût métier) pour un email qui de toute
+        // façon ne partira pas — le verrou effectif reste
+        // hookActionEmailSendBefore (universel), celui-ci économise le
+        // travail en amont. Vérification locale uniquement.
+        if (class_exists('LicenseManager') && !(new \LicenseManager($this->module))->isEmailSendingAllowed()) {
+            return;
+        }
+
         $idCustomer = (int) $order->id_customer;
         if ($idCustomer <= 0) {
             return;
