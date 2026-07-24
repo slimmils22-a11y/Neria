@@ -1,16 +1,1 @@
-connect-src neriasoftware.com
-
-# Déclaration de dépendance externe — module Neria
-#
-# Domaine : neriasoftware.com
-# Finalité : vérification périodique de licence (activation et
-# revalidation, ~1x/24h via cache local), aucune donnée personnelle
-# client transmise (uniquement clé de licence, domaine de la boutique,
-# version du module).
-# Tolérance de panne : le module reste entièrement fonctionnel si ce
-# serveur est temporairement injoignable — le dernier statut connu en
-# cache local reste valable indéfiniment, aucun blocage du BO ni des
-# fonctions RGPD/données ; seul le verrou porte sur les nouveaux envois
-# d'emails après un délai de grâce (30 jours si jamais activé, 7 jours
-# si révoqué après activation).
-# Code de vérification : src/LicenseManager.php (lisible, non obfusqué).
+neriasoftware.com
