@@ -752,6 +752,25 @@ class HealthCheckManager
             if ($opens !== $closes) {
                 $offenders[] = basename($tplFile) . " : {$opens} <div> pour {$closes} </div> (balises déséquilibrées — imbrication DOM potentiellement cassée)";
             }
+
+            // Bug du 2026-07-24 : Smarty interprète TOUT {...} à l'intérieur
+            // d'un bloc {capture}...{/capture} comme sa propre syntaxe — un
+            // quantificateur regex {4} ou des accolades JS { } littéraux y
+            // sont silencieusement avalés, sans aucune erreur PHP/Smarty (le
+            // HTML produit reste valide, juste sémantiquement faux). Trouvé
+            // en réel sur navigation.tpl : pattern="...[A-Za-z0-9]{4}..."
+            // rendu sans le {4}, cassant la validation native du champ de
+            // clé de licence. Contrôle statique : tout {N} numérique brut
+            // (non échappé via {ldelim}N{rdelim}) à l'intérieur d'un bloc
+            // capture est presque certainement ce bug.
+            if (preg_match_all('/\{capture\b.*?\}(.*?)\{\/capture\}/s', $tplSrc, $captureMatches)) {
+                foreach ($captureMatches[1] as $captureBody) {
+                    if (preg_match('/(?<!ldelim)\{[0-9]+\}/', $captureBody)) {
+                        $offenders[] = basename($tplFile) . ' : un bloc {capture} contient un {N} numérique non échappé (probable quantificateur regex ou accolade JS avalé par Smarty — utiliser {ldelim}N{rdelim})';
+                        break;
+                    }
+                }
+            }
         }
 
         // Bug du 2026-07-21 : deux régressions trouvées en généralisant la
