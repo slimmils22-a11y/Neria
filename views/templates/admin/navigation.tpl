@@ -97,10 +97,25 @@
   {* ── Licence ──────────────────────────────────────────────────── *}
   {if isset($neria_license_active) && $neria_license_active}
     {assign var="ls" value=$neria_license_status}
+    {* Champ de saisie de clé — réutilisé sur toutes les bannières où le
+       marchand doit pouvoir corriger la situation immédiatement (jamais
+       activé, révoqué, expire bientôt, ou bloqué), pas seulement le cas
+       "jamais activé" qui était le seul à l'avoir jusqu'ici. *}
+    {capture "neria_license_key_form"}
+      <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline-flex;gap:8px;align-items:center;margin-left:10px;">
+        <input type="text" name="license_key" placeholder="NERIA-XXXX-XXXX-XXXX"
+               pattern="NERIA-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}"
+               class="neria-select neria-select--sm" style="width:220px;text-transform:uppercase;" required>
+        <button type="submit" name="neria_action" value="activate_license" class="neria-btn neria-btn--primary neria-btn--sm">
+          {neria_admin key='license.activate_btn'}
+        </button>
+      </form>
+    {/capture}
     {if !$ls.sending_allowed}
       <div class="neria-alert neria-alert--error">
         <span class="neria-alert__icon">⚠</span>
         {neria_admin key='license.banner_blocked'}
+        {$smarty.capture.neria_license_key_form}
       </div>
     {elseif $ls.in_grace_period && !$ls.has_key}
       <div class="neria-alert neria-alert--shopctx">
@@ -109,14 +124,7 @@
         {if $ls.grace_days_left !== null}
           {neria_admin key='license.banner_days_left' n=$ls.grace_days_left}
         {/if}
-        <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline-flex;gap:8px;align-items:center;margin-left:10px;">
-          <input type="text" name="license_key" placeholder="NERIA-XXXX-XXXX-XXXX"
-                 pattern="NERIA-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}"
-                 class="neria-select neria-select--sm" style="width:220px;text-transform:uppercase;" required>
-          <button type="submit" name="neria_action" value="activate_license" class="neria-btn neria-btn--primary neria-btn--sm">
-            {neria_admin key='license.activate_btn'}
-          </button>
-        </form>
+        {$smarty.capture.neria_license_key_form}
       </div>
     {elseif $ls.in_grace_period && $ls.revoked}
       <div class="neria-alert neria-alert--warning">
@@ -125,11 +133,13 @@
         {if $ls.grace_days_left !== null}
           {neria_admin key='license.banner_days_left' n=$ls.grace_days_left}
         {/if}
+        {$smarty.capture.neria_license_key_form}
       </div>
     {elseif $ls.expires_soon}
       <div class="neria-alert neria-alert--warning">
         <span class="neria-alert__icon">⏳</span>
         {neria_admin key='license.banner_expires_soon'} <strong>{$ls.expires_at}</strong>.
+        {$smarty.capture.neria_license_key_form}
       </div>
     {/if}
   {/if}

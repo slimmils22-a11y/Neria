@@ -217,7 +217,7 @@ class LicenseManager
         }
 
         if (empty($response['ok'])) {
-            return ['ok' => false, 'message_key' => (string) ($response['error_key'] ?? 'license.activation_failed')];
+            return ['ok' => false, 'message_key' => $this->mapServerErrorKey((string) ($response['error_key'] ?? ''))];
         }
 
         $this->storeToken($response);
@@ -230,6 +230,29 @@ class LicenseManager
         );
 
         return ['ok' => true, 'message_key' => 'license.activation_success'];
+    }
+
+    /**
+     * Traduit un error_key brut renvoyé par le serveur (ex: 'key_revoked')
+     * en une clé de traduction complète du dictionnaire BO. Le serveur
+     * envoie des codes courts non préfixés — sans cette table de
+     * correspondance, AdminTranslator::t() ne trouve aucune entrée et
+     * affiche la clé brute non traduite à l'écran (bug trouvé le
+     * 2026-07-24 : aucune des clés déjà en usage n'avait jamais eu de
+     * traduction associée).
+     */
+    private function mapServerErrorKey(string $errorKey): string
+    {
+        $map = [
+            'key_not_found'              => 'license.error_key_not_found',
+            'key_revoked'                => 'license.error_key_revoked',
+            'key_expired'                => 'license.error_key_expired',
+            'invalid_domain'             => 'license.error_invalid_domain',
+            'reassignment_too_soon'      => 'license.error_reassignment_too_soon',
+            'reassignment_limit_reached' => 'license.error_reassignment_limit_reached',
+        ];
+
+        return $map[$errorKey] ?? 'license.activation_failed';
     }
 
     /**
