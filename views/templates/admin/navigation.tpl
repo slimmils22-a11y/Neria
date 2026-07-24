@@ -104,7 +104,8 @@
     {capture "neria_license_key_form"}
       <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline-flex;gap:8px;align-items:center;margin-left:10px;">
         <input type="text" name="license_key" placeholder="NERIA-XXXX-XXXX-XXXX"
-               pattern="NERIA-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}"
+               pattern="NERIA-[A-Za-z0-9]{ldelim}4{rdelim}-[A-Za-z0-9]{ldelim}4{rdelim}-[A-Za-z0-9]{ldelim}4{rdelim}"
+               oninput="this.value = this.value.trim();" onpaste="var el=this; setTimeout(function(){ldelim} el.value = el.value.trim(); {rdelim}, 0);"
                class="neria-select neria-select--sm" style="width:220px;text-transform:uppercase;" required>
         <button type="submit" name="neria_action" value="activate_license" class="neria-btn neria-btn--primary neria-btn--sm">
           {neria_admin key='license.activate_btn'}
