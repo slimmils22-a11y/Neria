@@ -6454,6 +6454,7 @@ class HealthCheckManager
             'connect_postmaster', 'connect_searchconsole', 'watchdog_refresh',
             'dismiss_design_wizard', 'process_queue_now', 'send_report_now',
             'run_full_diagnostic', 'run_code_diagnostic', 'send_test', 'search_customers',
+            'load_translations',
         ];
 
         preg_match_all(
@@ -6633,14 +6634,21 @@ class HealthCheckManager
         $issues = [];
 
         if (class_exists('ChurnScoreManager')) {
-            $countChurn = (int) $db->getValue(
-                'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_churn_score` WHERE `id_shop` = ' . $this->idShop
-            );
-            if ($countChurn > 0) {
-                $lastChurn = $db->getValue(
-                    'SELECT MAX(`computed_at`) FROM `' . _DB_PREFIX_ . 'neria_churn_score` WHERE `id_shop` = ' . $this->idShop
-                );
-                $ageChurnH = $lastChurn ? (time() - strtotime($lastChurn)) / 3600 : 9999;
+            // Le recalcul quotidien peut légitimement ne mettre à jour
+            // aucune ligne (boutique trop jeune : aucun client n'a encore
+            // 30 jours d'historique passé à comparer, cf. ChurnScoreManager::
+            // recomputeAll()) — dans ce cas computed_at des lignes
+            // existantes ne bouge jamais alors que le cron tourne bien.
+            // NERIA_CHURN_LAST_RUN, lui, est écrit à chaque exécution
+            // quel que soit le nombre de lignes touchées : c'est le seul
+            // repère fiable pour distinguer "rien à recalculer" d'un cron
+            // réellement en échec.
+            // Pas de repère du tout = cron jamais encore passé (install
+            // récente) : rien à signaler, pas plus que l'ancien comportement
+            // qui se taisait tant qu'aucune ligne n'existait.
+            $lastRun = \Configuration::get('NERIA_CHURN_LAST_RUN', null, null, $this->idShop);
+            if ($lastRun) {
+                $ageChurnH = (time() - strtotime($lastRun)) / 3600;
                 if ($ageChurnH > 48) {
                     $issues[] = AdminTranslator::tVars('health.churn_stale', ['ageH' => round($ageChurnH, 1)]);
                 }

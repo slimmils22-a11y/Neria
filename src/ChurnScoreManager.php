@@ -122,6 +122,14 @@ class ChurnScoreManager
             return (int) $r['sent_p2'] > 0 || (int) $r['sent_p3'] > 0;
         }));
 
+        // Le cron a bien tourné même si aucun client n'a encore 30 jours
+        // d'historique passé à comparer (boutique jeune ou faible volume) —
+        // on le trace pour que checkChurnPropensityFreshness() distingue
+        // "rien à recalculer pour l'instant" d'un cron réellement en échec,
+        // plutôt que de se fier uniquement à computed_at des lignes
+        // existantes, qui ne bouge jamais dans ce cas.
+        \Configuration::updateValue('NERIA_CHURN_LAST_RUN', date('Y-m-d H:i:s'), false, null, $this->idShop);
+
         if (empty($rows)) {
             return 0;
         }
