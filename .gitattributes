@@ -5,3 +5,36 @@
 tests/            export-ignore
 .gitattributes    export-ignore
 .gitignore        export-ignore
+
+# mails/{lang}/*.html|.txt sont du cache COMPILE (branding + variables
+# resolues) regenere par EmailRenderer::compileNeriaTemplate() a chaque
+# envoi reel (hook actionEmailSendBefore, cf. neria.php). Le contenu
+# actuellement sur disque refletait la derniere compilation locale de
+# dev (marque "Test Neria", URLs localhost) - jamais a livrer tel quel
+# a un client. Seul mails/themes/ (source canonique avec {tags}) doit
+# etre expedie ; l'absence des fichiers par langue est deja un etat
+# gere nativement par le code (BlacklistManager les supprime en
+# fonctionnement normal, neria.php:2294-2312) - ils se regenerent
+# seuls, avec les VRAIES donnees du client, des le premier envoi reel.
+# Liste explicite (pas de wildcard mails/**) : une tentative avec
+# mails/** + reversion -export-ignore sur mails/themes/** a exclu
+# themes/ aussi par erreur - verifie a l'usage, jamais reproduire.
+mails/ar/   export-ignore
+mails/br/   export-ignore
+mails/da/   export-ignore
+mails/de/   export-ignore
+mails/en/   export-ignore
+mails/es/   export-ignore
+mails/fr/   export-ignore
+mails/gb/   export-ignore
+mails/it/   export-ignore
+mails/ja/   export-ignore
+mails/ko/   export-ignore
+mails/nl/   export-ignore
+mails/no/   export-ignore
+mails/pt/   export-ignore
+mails/ru/   export-ignore
+mails/sv/   export-ignore
+mails/tr/   export-ignore
+mails/tw/   export-ignore
+mails/zh/   export-ignore
