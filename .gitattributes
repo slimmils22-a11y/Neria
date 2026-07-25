@@ -1,0 +1,7 @@
+# Fichiers suivis par Git mais jamais inclus dans un `git archive`
+# (donc jamais dans le zip de distribution, quel que soit qui le
+# génère et quand — voir bin/package.ps1). CHANGELOG.md est
+# volontairement inclus dans le zip, utile au commerçant.
+tests/            export-ignore
+.gitattributes    export-ignore
+.gitignore        export-ignore
