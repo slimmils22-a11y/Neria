@@ -91,6 +91,14 @@ class PropensityScoreManager
             }
         }
 
+        // Le cron a bien tourné même sans aucun client à commande valide
+        // (boutique jeune ou faible volume) — tracé pour que
+        // checkChurnPropensityFreshness() distingue "rien à recalculer pour
+        // l'instant" d'un cron réellement en échec, plutôt que de se fier
+        // uniquement à date_upd des lignes existantes, qui ne bouge jamais
+        // dans ce cas (même correctif que ChurnScoreManager::recomputeAll()).
+        \Configuration::updateValue('NERIA_PROPENSITY_LAST_RUN', date('Y-m-d H:i:s'), false, null, $this->idShop);
+
         $alerts = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_propensity_score`
              WHERE score >= ' . self::ALERT_THRESHOLD . ' AND id_shop = ' . $this->idShop

@@ -6656,14 +6656,14 @@ class HealthCheckManager
         }
 
         if (class_exists('PropensityScoreManager')) {
-            $countProp = (int) $db->getValue(
-                'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_propensity_score` WHERE `id_shop` = ' . $this->idShop
-            );
-            if ($countProp > 0) {
-                $lastProp = $db->getValue(
-                    'SELECT MAX(`date_upd`) FROM `' . _DB_PREFIX_ . 'neria_propensity_score` WHERE `id_shop` = ' . $this->idShop
-                );
-                $agePropH = $lastProp ? (time() - strtotime($lastProp)) / 3600 : 9999;
+            // Même raisonnement que pour NERIA_CHURN_LAST_RUN ci-dessus :
+            // recalculateAll() peut légitimement ne toucher aucune ligne
+            // (aucun client à commande valide pour l'instant) sans que le
+            // cron ait échoué — NERIA_PROPENSITY_LAST_RUN est écrit à
+            // chaque exécution, contrairement à date_upd des lignes.
+            $lastPropRun = \Configuration::get('NERIA_PROPENSITY_LAST_RUN', null, null, $this->idShop);
+            if ($lastPropRun) {
+                $agePropH = (time() - strtotime($lastPropRun)) / 3600;
                 if ($agePropH > 48) {
                     $issues[] = AdminTranslator::tVars('health.propensity_stale', ['ageH' => round($agePropH, 1)]);
                 }
