@@ -16,8 +16,16 @@ if ($token === '' || $clientId === '') {
     exit;
 }
 
-$previewDir = $root . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR
-            . 'cache' . DIRECTORY_SEPARATOR . 'neria_previews' . DIRECTORY_SEPARATOR;
+$previewDirRaw = $root . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR
+               . 'cache' . DIRECTORY_SEPARATOR . 'neria_previews';
+
+// realpath() sur les deux chemins pour éviter tout mismatch de symlinks (O2switch, etc.)
+$previewDir = realpath($previewDirRaw);
+if ($previewDir === false) {
+    http_response_code(404);
+    exit;
+}
+$previewDir .= DIRECTORY_SEPARATOR;
 
 $file = realpath($previewDir . $clientId . '_' . $token . '.html');
 
