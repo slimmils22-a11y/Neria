@@ -203,6 +203,14 @@
       </li>
 
       <li class="neria-bo-nav__item">
+        <a href="{$neria_tab_base}&neria_tab=automations"
+           class="neria-bo-nav__link {if $neria_active_tab === 'automations'}neria-bo-nav__link--active{/if}">
+          <span class="neria-bo-nav__icon">⚙</span>
+          {neria_admin key='nav.automations'}
+        </a>
+      </li>
+
+      <li class="neria-bo-nav__item">
         <a href="{$neria_tab_base}&neria_tab=design"
            class="neria-bo-nav__link {if $neria_active_tab === 'design'}neria-bo-nav__link--active{/if}">
           <span class="neria-bo-nav__icon">◈</span>

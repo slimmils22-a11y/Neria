@@ -449,14 +449,14 @@ S.push(
 S.push(
   h1("11. Empreinte vocale de la marque"),
   p("L'empreinte vocale permet de définir par langue les mots bannis, les mots préférés, et les notes de ton éditorial. Neria scanne automatiquement les traductions existantes et signale les incohérences, sans recourir à une IA externe."),
-  capture("C11-01 — Section Empreinte vocale dans l'onglet Traductions ou Accueil"),
+  img('image-vocal.png', 1911, 935, 500),
   step(1, "Dans la section Empreinte vocale, sélectionnez la langue."),
   step(2, "Saisissez les Mots bannis (ex. : « pas cher », « promo », « solde ») séparés par des virgules."),
   step(3, "Saisissez les Mots préférés (ex. : « exclusif », « artisanal », « sur-mesure »)."),
   step(4, "Ajoutez des Notes de ton (ex. : « vouvoiement systématique », « pas de point d'exclamation »)."),
   step(5, "Cliquez sur Lancer l'audit rétroactif pour analyser tous les templates existants dans cette langue."),
   step(6, "Neria affiche la liste des templates contenant des mots bannis, avec le contexte."),
-  capture("C11-02 — Rapport d'audit rétroactif de l'empreinte vocale"),
+  img('image-vocal2.png', 1911, 935, 500),
   new Paragraph({ children: [new PageBreak()] })
 );
 
@@ -775,6 +775,7 @@ S.push(
   img('image-stats18.png', 1911, 935, 500),
   img('image-stats19.png', 1911, 935, 500),
   img('image-stats20.png', 1911, 935, 500),
+  img('image-stats21.png', 1911, 935, 500),
   new Paragraph({ children: [new PageBreak()] })
 );
 
@@ -872,16 +873,15 @@ S.push(
 S.push(
   h1("30. Certificats d'authenticité"),
   p("Neria génère et joint automatiquement un certificat d'authenticité en PDF à l'email de confirmation de commande pour les boutiques vendant des pièces uniques ou numérotées."),
-  capture("C30-01 — Onglet Certificats avec configuration et liste des certificats émis"),
+  img('image-cert.png', 1911, 935, 500),
   h2("30.1 Configuration"),
   step(1, "Dans l'onglet Certificats, activez la génération automatique."),
   step(2, "Personnalisez : titre, sous-titre, corps de texte, logo, signature."),
   step(3, "Choisissez si un QR code est inclus (renvoie vers une page de vérification en ligne)."),
   step(4, "Sélectionnez le format de numérotation automatique (ex. : CERT-2026-00001)."),
-  capture("C30-02 — Formulaire de configuration du certificat avec aperçu du PDF"),
+  img('image-cert2.png', 1911, 935, 500),
   h2("30.2 Émettre un certificat manuellement"),
   p("Depuis la fiche commande PrestaShop (bloc Neria en bas de page), un bouton Émettre un certificat permet de générer et envoyer le PDF manuellement pour une commande spécifique."),
-  capture("C30-03 — Bloc Neria sur la fiche commande PS avec bouton Émettre un certificat"),
   warning("Chaque certificat contient un numéro de série unique. Ne jamais dupliquer ou réutiliser un certificat entre boutiques."),
   new Paragraph({ children: [new PageBreak()] })
 );
@@ -996,28 +996,33 @@ S.push(
 S.push(
   h1("38. Onglet Aide — Watchdog & Diagnostics"),
   p("Neria embarque un système de surveillance interne (Watchdog) qui vérifie en continu plus de 76 points de contrôle et journalise tout dans neria_log. L'onglet Aide est le centre de contrôle de la santé du module."),
-  capture("C38-01 — Onglet Aide complet (journal, diagnostic, token cron)"),
+  img('image-aide.png', 1911, 935, 500),
   h2("38.1 Journal des événements"),
   p("Le journal affiche tous les événements avec trois niveaux de gravité :"),
   bullet("INFO — Fonctionnement normal, envois confirmés, purges effectuées."),
   bullet("WARNING — Point à surveiller, sans impact immédiat (ex. : score délivrabilité en baisse)."),
   bullet("ERROR — Anomalie à corriger (ex. : échec d'envoi, erreur de rendu)."),
-  capture("C38-02 — Journal Watchdog filtré sur les niveaux WARNING et ERROR"),
+  img('image-aide2.png', 1911, 935, 500),
+  img('image-aide3.png', 1911, 935, 500),
   h2("38.2 Alertes automatiques"),
   bullet("Toute erreur de niveau ERROR déclenche un email d'alerte immédiat au marchand."),
   bullet("Les avertissements WARNING sont regroupés dans un digest quotidien pour éviter la saturation de la boîte mail."),
+  img('image-aide4.png', 1911, 935, 500),
   h2("38.3 Auto-réparation"),
   p("Certaines anomalies mineures — scores comportementaux non recalculés, segmentation obsolète, cache de traduction expiré — sont corrigées automatiquement par le Watchdog sans intervention. Ces corrections sont mentionnées dans le journal avec la mention « autocorrigé »."),
+  img('image-aide5.png', 1911, 935, 500),
   h2("38.4 Diagnostic complet"),
   step(1, "Dans l'onglet Aide, cliquez sur Lancer le diagnostic complet."),
   step(2, "Neria exécute les 76+ contrôles de santé et affiche un rapport détaillé : hooks enregistrés, état des tables, licences, cron, configuration."),
-  capture("C38-03 — Rapport de diagnostic complet avec les 76 contrôles"),
+  img('image-aide6.png', 1911, 935, 500),
+  img('image-aide7.png', 1911, 935, 500),
   h2("38.5 Page d'urgence"),
   p("En cas de plantage critique du back-office PrestaShop, une page de diagnostic autonome est disponible à l'URL : https://votre-boutique.com/modules/neria/neria-emergency.php?token=VOTRE_TOKEN. Elle fonctionne indépendamment de PrestaShop."),
   step(1, "Récupérez le token d'urgence dans Aide → Token d'urgence."),
   step(2, "Accédez à l'URL ci-dessus avec votre token."),
   step(3, "La page affiche l'état du module, les dernières erreurs, et des boutons de réparation rapide."),
-  capture("C38-04 — Page d'urgence Neria accessible hors PS avec les outils de réparation"),
+  img('image-aide8.png', 1911, 935, 500),
+  img('image-aide9.png', 1911, 935, 500),
   new Paragraph({ children: [new PageBreak()] })
 );
 
@@ -1025,10 +1030,13 @@ S.push(
 S.push(
   h1("39. Centre de contrôle"),
   p("Le Centre de contrôle permet au marchand d'afficher ou masquer les liens de chaque fonctionnalité dans le menu Neria, sans modifier leur état actif/inactif réel. Utile pour simplifier le menu si certaines fonctionnalités avancées ne sont pas utilisées."),
-  capture("C39-01 — Onglet Centre de contrôle avec les bascules de visibilité par fonctionnalité"),
+  img('image-ctrl.png', 1911, 935, 500),
   step(1, "Pour chaque fonctionnalité, la pastille de couleur indique son statut réel (vert = actif, rouge = inactif)."),
   step(2, "Le bouton bascule à droite contrôle la visibilité du lien dans le menu (indépendamment du statut)."),
   step(3, "Masquer un lien ne désactive pas la fonctionnalité — elle continue de fonctionner en arrière-plan."),
+  img('image-ctrl2.png', 1911, 935, 500),
+  img('image-ctrl3.png', 1911, 935, 500),
+  img('image-ctrl4.png', 1911, 935, 500),
   new Paragraph({ children: [new PageBreak()] })
 );
 

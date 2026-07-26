@@ -276,6 +276,9 @@ class HealthCheckManager
             'calendar_json_integrity'     => $this->checkCalendarJsonIntegrity(),
             // ── Ajout 2026-07-21 : checklist de première installation ──
             'first_install_checklist'     => $this->checkFirstInstallChecklist(),
+            // ── Ajouts 2026-07-26 : tableau de bord Automatisations ────
+            'all_email_crons_disabled'    => $this->checkAllEmailCronsDisabled(),
+            'behavioral_silence'          => $this->checkBehavioralSilence(),
         ];
     }
 
@@ -7130,5 +7133,118 @@ class HealthCheckManager
         }
 
         return $result;
+    }
+
+    /**
+     * #68 — Tous les crons email désactivés simultanément
+     * Si le marchand désactive par erreur tous les toggles depuis l'onglet
+     * Automatisations, plus aucun email comportemental n'est envoyé et
+     * aucun autre mécanisme ne le signale.
+     */
+    private function checkAllEmailCronsDisabled(): array
+    {
+        $emailCronKeys = [
+            'NERIA_BIRTHDAY_ENABLED', 'NERIA_FIRST_ANNIVERSARY_ENABLED',
+            'NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED', 'NERIA_REORDER_ENABLED',
+            'NERIA_WIN_BACK_ENABLED', 'NERIA_REWARD_EXPIRY_ENABLED',
+            'NERIA_WISHLIST_ENABLED', 'NERIA_ABANDONED_CART_ENABLED',
+            'NERIA_CHECKOUT_ABANDONMENT_ENABLED', 'NERIA_POST_PURCHASE_ENABLED',
+            'NERIA_SHIPPED_DELAY_ENABLED', 'NERIA_GHOST_CART_ENABLED',
+            'NERIA_QUOTE_REMINDERS_ENABLED', 'NERIA_REFUND_RECONCILIATION_ENABLED',
+            'NERIA_LIFESPAN_ENABLED', 'NERIA_COLLECTION_COMPLETION_ENABLED',
+            'NERIA_LOOK_COMPLETION_ENABLED', 'NERIA_PURCHASE_WINDOW_ENABLED',
+        ];
+
+        $activeCount = 0;
+        foreach ($emailCronKeys as $key) {
+            if ((bool) \Configuration::getGlobalValue($key)) {
+                $activeCount++;
+            }
+        }
+
+        if ($activeCount === 0) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::t('health.all_email_crons_disabled_error'),
+            ];
+        }
+
+        $total = count($emailCronKeys);
+        if ($activeCount < (int) round($total * 0.5)) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.all_email_crons_disabled_warning', [
+                    'active' => $activeCount,
+                    'total'  => $total,
+                ]),
+            ];
+        }
+
+        return [
+            'status' => self::STATUS_OK,
+            'detail' => AdminTranslator::tVars('health.all_email_crons_disabled_ok', [
+                'active' => $activeCount,
+                'total'  => $total,
+            ]),
+        ];
+    }
+
+    /**
+     * #69 — Silence comportemental anormal
+     * Si le cron tourne (CRON_LAST_BEHAVIORAL récent) mais qu'aucun email
+     * comportemental n'a été envoyé depuis 7 jours alors que la boutique a
+     * des commandes récentes, c'est le signe d'un problème de configuration
+     * ou d'éligibilité systématiquement nulle (base de clients trop petite,
+     * conditions trop restrictives, cooldown trop long…).
+     * On ne déclenche le WARNING que si la boutique a ≥10 clients actifs
+     * pour éviter les faux positifs sur les boutiques vides ou en test.
+     */
+    private function checkBehavioralSilence(): array
+    {
+        $db     = \Db::getInstance();
+        $prefix = _DB_PREFIX_;
+
+        // Le cron est-il passé récemment (7 derniers jours) ?
+        $lastRun = (string) \Configuration::getGlobalValue(self::CRON_LAST_BEHAVIORAL);
+        if (!$lastRun || (time() - (int) strtotime($lastRun)) > 7 * 86400) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.behavioral_silence_cron_not_run')];
+        }
+
+        // Combien d'emails comportementaux dans les 7 derniers jours ?
+        $sent7d = (int) $db->getValue(
+            'SELECT COUNT(*) FROM `' . $prefix . 'neria_behavioral_sent`
+             WHERE sent_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)'
+        );
+
+        if ($sent7d > 0) {
+            return [
+                'status' => self::STATUS_OK,
+                'detail' => AdminTranslator::tVars('health.behavioral_silence_ok', ['count' => $sent7d]),
+            ];
+        }
+
+        // 0 envoi — vérifier si la boutique a suffisamment de clients pour que ce soit anormal
+        $activeCustomers = (int) $db->getValue(
+            'SELECT COUNT(*) FROM `' . $prefix . 'customer` WHERE active = 1 AND deleted = 0'
+        );
+
+        if ($activeCustomers < 10) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.behavioral_silence_few_customers')];
+        }
+
+        // Vérifier si au moins un cron email est actif
+        $atLeastOneActive = (bool) \Configuration::getGlobalValue('NERIA_BIRTHDAY_ENABLED')
+            || (bool) \Configuration::getGlobalValue('NERIA_REORDER_ENABLED')
+            || (bool) \Configuration::getGlobalValue('NERIA_WIN_BACK_ENABLED')
+            || (bool) \Configuration::getGlobalValue('NERIA_ABANDONED_CART_ENABLED');
+
+        if (!$atLeastOneActive) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.behavioral_silence_all_off')];
+        }
+
+        return [
+            'status' => self::STATUS_WARNING,
+            'detail' => AdminTranslator::tVars('health.behavioral_silence_warning', ['customers' => $activeCustomers]),
+        ];
     }
 }

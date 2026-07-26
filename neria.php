@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.31';
+    const VERSION = '1.0.32';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -4747,6 +4747,39 @@ class Neria extends Module
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=control_center' . ($msg !== '' ? '&neria_success=' . urlencode($msg) : ''));
         }
 
+        // ── Automatisations : toggle individuel ──────────────────
+        if (Tools::getValue('neria_action') === 'auto_toggle') {
+            $allowedAutoKeys = [
+                'NERIA_BIRTHDAY_ENABLED', 'NERIA_FIRST_ANNIVERSARY_ENABLED',
+                'NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED', 'NERIA_REORDER_ENABLED',
+                'NERIA_WIN_BACK_ENABLED', 'NERIA_REWARD_EXPIRY_ENABLED',
+                'NERIA_WISHLIST_ENABLED', 'NERIA_ABANDONED_CART_ENABLED',
+                'NERIA_CHECKOUT_ABANDONMENT_ENABLED', 'NERIA_POST_PURCHASE_ENABLED',
+                'NERIA_SHIPPED_DELAY_ENABLED', 'NERIA_GHOST_CART_ENABLED',
+                'NERIA_QUOTE_REMINDERS_ENABLED', 'NERIA_REFUND_RECONCILIATION_ENABLED',
+                'NERIA_LIFESPAN_ENABLED', 'NERIA_COLLECTION_COMPLETION_ENABLED',
+                'NERIA_LOOK_COMPLETION_ENABLED', 'NERIA_PURCHASE_WINDOW_ENABLED',
+            ];
+            $key = (string) Tools::getValue('auto_key');
+            if (in_array($key, $allowedAutoKeys, true)) {
+                $current = (bool) Configuration::getGlobalValue($key);
+                Configuration::updateGlobalValue($key, $current ? 0 : 1);
+            }
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=automations&neria_success=' . urlencode(AdminTranslator::t($current ?? false ? 'msg.feature_disabled' : 'msg.feature_enabled')));
+        }
+
+        // ── Automatisations : forcer l'exécution du cron ─────────
+        if (Tools::getValue('neria_action') === 'auto_force_run') {
+            if (class_exists('BehavioralCronManager')) {
+                try {
+                    (new BehavioralCronManager($this))->run();
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('auto.force_run_success'));
+                } catch (\Throwable $e) {
+                    $this->context->smarty->assign('neria_error', $e->getMessage());
+                }
+            }
+        }
+
         // ── Fidélité : sauvegarde des paliers ─────────────────
         if (Tools::getValue('neria_action') === 'save_loyalty_tiers' && class_exists('LoyaltyManager')) {
             $tiers = [];
@@ -5571,6 +5604,224 @@ class Neria extends Module
             }
         }
 
+        // ── Automatisations comportementales ─────────────────────
+        if ($activeTab === 'automations') {
+            $lastRun = (string) Configuration::getGlobalValue(HealthCheckManager::CRON_LAST_BEHAVIORAL);
+            $db = Db::getInstance();
+            $prefix = _DB_PREFIX_;
+
+            // Compteurs par template : aujourd'hui et total
+            $statsRows = $db->executeS(
+                'SELECT template, COUNT(*) AS total,
+                 SUM(DATE(sent_at) = CURDATE()) AS today
+                 FROM `' . $prefix . 'neria_behavioral_sent`
+                 GROUP BY template'
+            ) ?: [];
+            $cronStats = [];
+            foreach ($statsRows as $row) {
+                $cronStats[$row['template']] = [
+                    'today' => (int) $row['today'],
+                    'total' => (int) $row['total'],
+                ];
+            }
+
+            $getCronStat = static function (array $templates) use ($cronStats): array {
+                $today = 0;
+                $total = 0;
+                foreach ($templates as $tpl) {
+                    $today += $cronStats[$tpl]['today'] ?? 0;
+                    $total += $cronStats[$tpl]['total'] ?? 0;
+                }
+                return ['today' => $today, 'total' => $total];
+            };
+
+            $crons = [
+                [
+                    'icon' => '🎂',
+                    'label' => AdminTranslator::t('auto.cron_birthday'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_birthday'),
+                    'config_key' => 'NERIA_BIRTHDAY_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_BIRTHDAY_ENABLED'),
+                ] + $getCronStat(['birthday']),
+                [
+                    'icon' => '🎉',
+                    'label' => AdminTranslator::t('auto.cron_first_anniversary'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_first_anniversary'),
+                    'config_key' => 'NERIA_FIRST_ANNIVERSARY_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_FIRST_ANNIVERSARY_ENABLED'),
+                ] + $getCronStat(['first_anniversary']),
+                [
+                    'icon' => '💝',
+                    'label' => AdminTranslator::t('auto.cron_relationship_anniversary'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_relationship_anniversary'),
+                    'config_key' => 'NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED'),
+                ] + $getCronStat(['relationship_anniversary']),
+                [
+                    'icon' => '🔄',
+                    'label' => AdminTranslator::t('auto.cron_reorder'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_reorder'),
+                    'config_key' => 'NERIA_REORDER_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_REORDER_ENABLED'),
+                ] + $getCronStat(['reorder_reminder']),
+                [
+                    'icon' => '💤',
+                    'label' => AdminTranslator::t('auto.cron_win_back'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_win_back'),
+                    'config_key' => 'NERIA_WIN_BACK_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_WIN_BACK_ENABLED'),
+                ] + $getCronStat(['win_back']),
+                [
+                    'icon' => '⭐',
+                    'label' => AdminTranslator::t('auto.cron_reward_expiry'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_reward_expiry'),
+                    'config_key' => 'NERIA_REWARD_EXPIRY_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_REWARD_EXPIRY_ENABLED'),
+                ] + $getCronStat(['reward_expiry']),
+                [
+                    'icon' => '🔔',
+                    'label' => AdminTranslator::t('auto.cron_wishlist'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_wishlist'),
+                    'config_key' => 'NERIA_WISHLIST_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_WISHLIST_ENABLED'),
+                ] + $getCronStat(['wishlist_reminder']),
+                [
+                    'icon' => '🛒',
+                    'label' => AdminTranslator::t('auto.cron_abandoned_cart'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_abandoned_cart'),
+                    'config_key' => 'NERIA_ABANDONED_CART_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_ABANDONED_CART_ENABLED'),
+                ] + $getCronStat(['abandoned_cart_1', 'abandoned_cart_2', 'abandoned_cart_3']),
+                [
+                    'icon' => '💳',
+                    'label' => AdminTranslator::t('auto.cron_checkout_abandonment'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_checkout_abandonment'),
+                    'config_key' => 'NERIA_CHECKOUT_ABANDONMENT_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_CHECKOUT_ABANDONMENT_ENABLED'),
+                ] + $getCronStat(['checkout_abandonment']),
+                [
+                    'icon' => '📦',
+                    'label' => AdminTranslator::t('auto.cron_post_purchase'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_post_purchase'),
+                    'config_key' => 'NERIA_POST_PURCHASE_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_POST_PURCHASE_ENABLED'),
+                ] + $getCronStat(['post_purchase_care', 'post_purchase_review']),
+                [
+                    'icon' => '🚚',
+                    'label' => AdminTranslator::t('auto.cron_shipped_delay'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_shipped_delay'),
+                    'config_key' => 'NERIA_SHIPPED_DELAY_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_SHIPPED_DELAY_ENABLED'),
+                ] + $getCronStat(['order_shipped_delay']),
+                [
+                    'icon' => '👻',
+                    'label' => AdminTranslator::t('auto.cron_ghost_cart'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_ghost_cart'),
+                    'config_key' => 'NERIA_GHOST_CART_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_GHOST_CART_ENABLED'),
+                ] + $getCronStat(['ghost_cart']),
+                [
+                    'icon' => '📄',
+                    'label' => AdminTranslator::t('auto.cron_quote'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_quote'),
+                    'config_key' => 'NERIA_QUOTE_REMINDERS_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_QUOTE_REMINDERS_ENABLED'),
+                ] + $getCronStat(['quote_reminder_1', 'quote_reminder_2', 'quote_reminder_3']),
+                [
+                    'icon' => '↩',
+                    'label' => AdminTranslator::t('auto.cron_refund'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_refund'),
+                    'config_key' => 'NERIA_REFUND_RECONCILIATION_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_REFUND_RECONCILIATION_ENABLED'),
+                ] + $getCronStat(['refund_reconciliation']),
+                [
+                    'icon' => '⏳',
+                    'label' => AdminTranslator::t('auto.cron_lifespan'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_lifespan'),
+                    'config_key' => 'NERIA_LIFESPAN_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_LIFESPAN_ENABLED'),
+                ] + $getCronStat(['lifespan_reminder']),
+                [
+                    'icon' => '🧩',
+                    'label' => AdminTranslator::t('auto.cron_collection'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_collection'),
+                    'config_key' => 'NERIA_COLLECTION_COMPLETION_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_COLLECTION_COMPLETION_ENABLED'),
+                ] + $getCronStat(['collection_completion']),
+                [
+                    'icon' => '👗',
+                    'label' => AdminTranslator::t('auto.cron_look'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_look'),
+                    'config_key' => 'NERIA_LOOK_COMPLETION_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_LOOK_COMPLETION_ENABLED'),
+                ] + $getCronStat(['look_completion']),
+                [
+                    'icon' => '⏰',
+                    'label' => AdminTranslator::t('auto.cron_purchase_window'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_purchase_window'),
+                    'config_key' => 'NERIA_PURCHASE_WINDOW_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_PURCHASE_WINDOW_ENABLED'),
+                    'calc_only' => false,
+                ] + $getCronStat([]),
+                [
+                    'icon' => '🎯',
+                    'label' => AdminTranslator::t('auto.cron_propensity'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_propensity'),
+                    'config_key' => 'NERIA_PROPENSITY_ENABLED',
+                    'enabled' => (bool) Configuration::getGlobalValue('NERIA_PROPENSITY_ENABLED'),
+                    'calc_only' => true,
+                    'today' => 0,
+                    'total' => 0,
+                ],
+                [
+                    'icon' => '◈',
+                    'label' => AdminTranslator::t('auto.cron_segments'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_segments'),
+                    'config_key' => '',
+                    'enabled' => true,
+                    'calc_only' => true,
+                    'today' => 0,
+                    'total' => 0,
+                ],
+                [
+                    'icon' => '📉',
+                    'label' => AdminTranslator::t('auto.cron_churn'),
+                    'desc' => '',
+                    'trigger' => AdminTranslator::t('auto.trigger_churn'),
+                    'config_key' => '',
+                    'enabled' => true,
+                    'calc_only' => true,
+                    'today' => 0,
+                    'total' => 0,
+                ],
+            ];
+
+            $this->context->smarty->assign([
+                'auto_last_run' => ($lastRun && $lastRun !== '0') ? $lastRun : '',
+                'auto_crons'    => $crons,
+            ]);
+        }
+
         // ── Réseaux sociaux ───────────────────────────────────────
         $this->context->smarty->assign('social_networks', [
             'instagram' => [
@@ -5981,6 +6232,7 @@ class Neria extends Module
     {
         return [
             'configure'      => AdminTranslator::t('nav.home'),
+            'automations'    => AdminTranslator::t('nav.automations'),
             'design'         => AdminTranslator::t('nav.design'),
             'typography'     => AdminTranslator::t('nav.typography'),
             'translations'   => AdminTranslator::t('nav.translations'),
@@ -6452,6 +6704,15 @@ class Neria extends Module
             'NERIA_WAITLIST_ENABLED'                     => 1,
             'NERIA_WAITLIST_RESERVATION_HOURS'           => 4,
             'NERIA_GHOST_CART_ENABLED'                   => 1,
+            'NERIA_BIRTHDAY_ENABLED'                 => 1,
+            'NERIA_FIRST_ANNIVERSARY_ENABLED'        => 1,
+            'NERIA_REORDER_ENABLED'                  => 1,
+            'NERIA_WIN_BACK_ENABLED'                 => 1,
+            'NERIA_REWARD_EXPIRY_ENABLED'            => 1,
+            'NERIA_WISHLIST_ENABLED'                 => 1,
+            'NERIA_ABANDONED_CART_ENABLED'           => 1,
+            'NERIA_POST_PURCHASE_ENABLED'            => 1,
+            'NERIA_SHIPPED_DELAY_ENABLED'            => 1,
             'NERIA_REFUND_RECONCILIATION_ENABLED'    => 1,
             'NERIA_LIFESPAN_ENABLED'                 => 1,
             'NERIA_PROPENSITY_ENABLED'               => 1,

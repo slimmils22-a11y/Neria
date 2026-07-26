@@ -219,6 +219,9 @@ class BehavioralCronManager
 
     private function sendBirthdays(): void
     {
+        if (!\Configuration::getGlobalValue('NERIA_BIRTHDAY_ENABLED')) {
+            return;
+        }
         $year   = (int) date('Y');
         $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
@@ -355,6 +358,9 @@ class BehavioralCronManager
 
     private function sendFirstAnniversaries(): void
     {
+        if (!\Configuration::getGlobalValue('NERIA_FIRST_ANNIVERSARY_ENABLED')) {
+            return;
+        }
         $idShop = (int) \Context::getContext()->shop->id;
         // Filtre sur o.id_shop (pas c.id_shop) : un client partagé entre
         // boutiques peut avoir sa 1ère commande sur une AUTRE boutique que
@@ -388,6 +394,9 @@ class BehavioralCronManager
 
     private function sendReorderReminders(): void
     {
+        if (!\Configuration::getGlobalValue('NERIA_REORDER_ENABLED')) {
+            return;
+        }
         $days   = self::DELAY_REORDER_DAYS;
         $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
@@ -432,6 +441,9 @@ class BehavioralCronManager
 
     private function sendWinBacks(): void
     {
+        if (!\Configuration::getGlobalValue('NERIA_WIN_BACK_ENABLED')) {
+            return;
+        }
         $days   = self::DELAY_WIN_BACK_DAYS;
         $year   = (int) date('Y');
         $idShop = (int) \Context::getContext()->shop->id;
@@ -469,6 +481,9 @@ class BehavioralCronManager
 
     private function sendRewardExpiryAlerts(): void
     {
+        if (!\Configuration::getGlobalValue('NERIA_REWARD_EXPIRY_ENABLED')) {
+            return;
+        }
         // ps_cart_rule n'a pas de colonne id_shop native — on scope via le
         // client (c.id_shop), seul rattachement disponible.
         $idShop = (int) \Context::getContext()->shop->id;
@@ -512,6 +527,9 @@ class BehavioralCronManager
 
     private function sendWishlistReminders(): void
     {
+        if (!\Configuration::getGlobalValue('NERIA_WISHLIST_ENABLED')) {
+            return;
+        }
         // Passer silencieusement si le module blockwishlist n'est pas installé
         $tableExists = $this->db->executeS(
             'SELECT 1 FROM information_schema.tables
@@ -581,6 +599,9 @@ class BehavioralCronManager
 
     private function sendAbandonedCarts(string $template, int $hours): void
     {
+        if (!\Configuration::getGlobalValue('NERIA_ABANDONED_CART_ENABLED')) {
+            return;
+        }
         // run() n'est déclenché qu'une fois par jour (garde-fou
         // CRON_LAST_BEHAVIORAL dans neria.php). Pour les templates à délai
         // court (1h), une fenêtre de seulement 1h manquait quasiment tous
@@ -730,6 +751,9 @@ class BehavioralCronManager
 
     private function sendPostPurchase(string $template, int $days): void
     {
+        if (!\Configuration::getGlobalValue('NERIA_POST_PURCHASE_ENABLED')) {
+            return;
+        }
         $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             'SELECT o.id_order, o.id_customer, o.id_shop,
@@ -833,6 +857,9 @@ class BehavioralCronManager
 
     private function sendShippedDelayAlerts(): void
     {
+        if (!\Configuration::getGlobalValue('NERIA_SHIPPED_DELAY_ENABLED')) {
+            return;
+        }
         $days   = self::DELAY_SHIPPED_DELAY_DAYS;
         $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
