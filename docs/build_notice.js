@@ -498,62 +498,55 @@ S.push(
 // ══════════════════════════ 14. AUTOMATISATIONS COMPORTEMENTALES ═══════════════
 S.push(
   h1("14. Automatisations comportementales"),
-  p("Le cron comportemental de Neria s'exécute automatiquement une fois par jour (via crontab serveur ou en fallback via hookDisplayHeader) et envoie des emails ciblés selon le comportement réel de chaque client. Chaque automatisation dispose de son propre interrupteur dans l'onglet concerné."),
-  capture("C14-01 — Section Automatisations comportementales dans l'onglet Accueil avec liste des crons et leur statut"),
+  p("L'onglet ⚙ Automatisations regroupe l'ensemble des 21 tâches quotidiennes déclenchées par le cron comportemental de Neria. Chaque automatisation dispose de son propre interrupteur ON/OFF, d'un compteur d'emails envoyés aujourd'hui et au total, et d'un indicateur de déclencheur."),
+  img('image-auto.png', 1536, 768, 500),
+  img('image-auto2.png', 1536, 768, 500),
+  note("Le bouton « Forcer l'exécution maintenant » déclenche immédiatement tous les crons actifs pour la boutique courante. Les 3 dernières lignes (Score de propension, Segmentation, Score de risque) n'envoient pas d'emails : elles recalculent des scores internes en base de données et affichent « ⚙ calcul » à la place du bouton."),
+
   h2("14.1 Configuration du cron serveur"),
-  p("Pour garantir l'exécution quotidienne, configurez une tâche cron sur votre serveur. Le token d'authentification est disponible dans Aide → Configuration cron."),
-  capture("C14-02 — Section Aide → Token cron avec la commande à copier"),
+  p("Pour garantir l'exécution quotidienne, configurez une tâche cron sur votre serveur. Le token d'authentification est disponible dans l'onglet Aide → Configuration cron."),
   note("Sur O2switch, ajoutez la tâche depuis cPanel → Tâches Cron. Fréquence recommandée : 1 fois/jour à 8h00."),
 
   h2("14.2 Anniversaires clients"),
   p("Trois emails d'anniversaire sont disponibles, chacun avec son propre interrupteur :"),
   bullet("Anniversaire client (birthday) : envoyé le jour de l'anniversaire du client, avec bon de réduction configurable."),
-  bullet("Premier anniversaire (first_anniversary) : envoyé exactement 1 an après la première commande."),
+  bullet("Premier anniversaire de commande (first_anniversary) : envoyé exactement 1 an après la première commande."),
   bullet("Anniversaire de la relation (relationship_anniversary) : envoyé chaque année à la date du premier achat (2 ans, 3 ans…)."),
-  capture("C14-03 — Paramètres des 3 emails d'anniversaire avec bascule actif/inactif et montant du bon"),
 
   h2("14.3 Panier abandonné — 3 vagues"),
   p("Trois relances sont envoyées automatiquement après un abandon de panier, avec déduplication stricte (un client ne reçoit jamais deux relances pour le même panier) :"),
   bullet("Vague 1 — abandoned_cart_1 : 1 heure après l'abandon (rappel doux)."),
   bullet("Vague 2 — abandoned_cart_2 : 24 heures après l'abandon (relance avec incentive optionnel)."),
   bullet("Vague 3 — abandoned_cart_3 : 72 heures après l'abandon (dernière chance)."),
-  capture("C14-04 — Paramètres des 3 vagues de panier abandonné (délais et activation)"),
   note("Si le client finalise sa commande entre deux vagues, les vagues suivantes sont automatiquement annulées."),
 
   h2("14.4 Abandon de paiement"),
   p("L'email checkout_abandonment est déclenché 1 heure après que le client a sélectionné une adresse et un transporteur, sans aller jusqu'au paiement. Signal plus précoce que le panier abandonné classique."),
-  capture("C14-05 — Paramètre Abandon de paiement avec délai configurable"),
 
   h2("14.5 Suivi post-achat"),
   bullet("Soin du produit (post_purchase_care) : envoyé 7 jours après livraison confirmée. Email de conseil d'entretien et prise en charge."),
   bullet("Demande d'avis (post_purchase_review) : envoyé 14 jours après livraison. Email de sollicitation d'avis, avec lien direct vers la fiche produit."),
-  capture("C14-06 — Paramètres des emails post-achat (délais et activation)"),
 
   h2("14.6 Relance de réachat"),
   p("L'email reorder_reminder est envoyé 30 jours après la dernière commande pour les produits à consommation récurrente (cosmétiques, alimentation, consommables). Peut être filtré par catégorie de produits."),
-  capture("C14-07 — Paramètre Relance de réachat avec délai et filtre catégorie"),
 
   h2("14.7 Reconquête (Win-back)"),
   p("L'email win_back est envoyé 90 jours après la dernière commande aux clients inactifs. Inclut optionnellement un bon de réduction de reconquête."),
-  capture("C14-08 — Paramètre Win-back avec délai et bon de réduction"),
 
   h2("14.8 Retard de livraison"),
   p("L'email order_shipped_delay est envoyé si une commande marquée Expédié n'a reçu aucun accusé de livraison 7 jours après l'expédition. Email proactif informant le client et proposant de contacter le transporteur."),
 
   h2("14.9 Panier fantôme"),
   p("L'email ghost_cart cible les paniers créés depuis plus de N jours (configurable) sans avoir abouti à une commande ni fait l'objet d'une relance panier abandonné. Relance silencieuse pour les clients ayant créé un panier mais sans jamais l'avoir actif au moment du cron standard."),
-  capture("C14-09 — Paramètre Panier fantôme avec délai configurable"),
   new Paragraph({ children: [new PageBreak()] })
 );
 
 // ══════════════════════════ 15. DÉCLENCHEURS COMMANDE ═════════════════════════
 S.push(
   h1("15. Déclencheurs commande"),
-  p("Les déclencheurs commande sont des emails envoyés automatiquement lors d'événements précis dans le cycle de vie d'une commande, en complément des notifications natives de PrestaShop."),
-  capture("C15-01 — Section Déclencheurs commande dans le BO Neria"),
+  p("Les déclencheurs commande sont des emails envoyés automatiquement en arrière-plan, sans aucune configuration nécessaire dans le BO. Ils s'activent via des hooks PrestaShop dès que l'événement correspondant se produit sur la boutique."),
   h2("15.1 Paliers de commande (milestone_order)"),
   p("Email de félicitation envoyé au client lorsqu'il atteint un palier symbolique : 5e, 10e, 25e, 50e ou 100e commande. Le message met en valeur la fidélité du client et peut inclure un bon de réduction."),
-  capture("C15-02 — Configuration des paliers de commande avec montants des bons"),
   h2("15.2 Mise en attente de commande"),
   p("Email informatif envoyé automatiquement lorsqu'une commande passe dans un statut configuré comme « bloquant » (ex. : en attente de paiement complémentaire, problème douanier)."),
   h2("15.3 Expédition partielle"),
@@ -561,8 +554,8 @@ S.push(
   h2("15.4 Remboursement traité"),
   p("L'email refund_processed est envoyé automatiquement lors de la création d'un avoir. Trois emails de suivi de réconciliation post-remboursement (refund_reconciliation_1/2/3) sont envoyés à J+1, J+3, J+7 pour fidéliser le client malgré l'incident."),
   h2("15.5 Retour reçu"),
-  p("L'email return_received est envoyé automatiquement à la réception physique du retour marchandise (hook actionObjectOrderReturnAddAfter), confirmant que le retour est bien enregistré."),
-  capture("C15-03 — Paramètres des déclencheurs Remboursement et Retour"),
+  p("L'email return_received est envoyé automatiquement à la réception physique du retour marchandise, confirmant que le retour est bien enregistré. Aucune action marchand n'est requise : le hook PrestaShop déclenche l'envoi dès que le retour est créé en base."),
+  note("Ces déclencheurs n'ont pas d'interface de configuration dédiée. Pour vérifier qu'un envoi a eu lieu, consultez l'historique email du client concerné dans l'onglet Historique clients."),
   new Paragraph({ children: [new PageBreak()] })
 );
 
@@ -605,27 +598,26 @@ S.push(
 S.push(
   h1("18. Programme de fidélité"),
   p("Neria intègre un système complet de fidélité par email : points cumulés à chaque interaction, paliers récompensés, récapitulatif mensuel automatique."),
-  capture("C18-01 — Section Fidélité dans le BO Neria (paliers et configuration)"),
+  img('image-fidelite.png', 1536, 768, 500),
   h2("18.1 Attribution des points"),
   bullet("Ouverture d'email : +1 point"),
   bullet("Clic dans un email : +3 points"),
   bullet("Achat validé : +10 points (configurable)"),
+  p("Les métriques en temps réel (clients actifs, points distribués, bons envoyés, ouvertures, clics, achats trackés) sont visibles en haut de la section."),
   h2("18.2 Paliers de fidélité"),
-  p("Trois paliers sont configurables (nom, seuil de points, récompense) :"),
-  bullet("Palier 1 — Bronze : 50 points (par défaut)"),
-  bullet("Palier 2 — Argent : 150 points (par défaut)"),
-  bullet("Palier 3 — Or : 300 points (par défaut)"),
-  step(1, "Dans la section Fidélité, cliquez sur Modifier les paliers."),
-  step(2, "Personnalisez le nom, le seuil et la récompense (bon de réduction, montant, durée de validité) de chaque palier."),
-  step(3, "Cliquez sur Enregistrer."),
-  capture("C18-02 — Formulaire de configuration des 3 paliers avec récompenses"),
+  p("Trois paliers sont configurables (seuil de points, récompense en montant fixe ou en pourcentage) :"),
+  bullet("Bronze : 50 points — bon de 5 € (par défaut)"),
+  bullet("Argent : 150 points — bon de 10 € (par défaut)"),
+  bullet("Or : 300 points — bon de 20 € (par défaut)"),
+  step(1, "Modifiez le seuil et le montant de récompense de chaque palier."),
+  step(2, "Cochez « Réduction en % » si vous préférez un pourcentage plutôt qu'un montant fixe."),
+  step(3, "Cliquez sur Enregistrer les paliers."),
   h2("18.3 Emails de fidélité"),
-  bullet("loyalty_tier_upgrade : email automatique dès qu'un client franchit un palier, avec son bon de récompense en pièce jointe ou en code."),
-  bullet("loyalty_recap : récapitulatif périodique des points du client (mensuel par défaut)."),
-  bullet("loyalty_reward_expiry : alerte quand un bon de récompense arrive à expiration."),
+  bullet("loyalty_tier_upgrade : email automatique dès qu'un client franchit un palier, avec son bon de récompense."),
+  bullet("loyalty_recap : récapitulatif mensuel des points du client."),
+  bullet("loyalty_reward_expiry : alerte envoyée 7 jours avant l'expiration d'un bon de récompense."),
   h2("18.4 Cumul multi-boutique"),
-  p("Sur une installation multi-boutique, le cumul est global par défaut (tous les achats toutes boutiques confondus). Activez le Cumul séparé par boutique dans les paramètres pour isoler les points par boutique."),
-  capture("C18-03 — Bascule Cumul global / Cumul séparé par boutique"),
+  p("Sur une installation multi-boutique, la bascule « Cumul entre boutiques » permet de choisir si les points se cumulent toutes boutiques confondues ou restent isolés par boutique. Par défaut : cumulé sur toutes les boutiques."),
   new Paragraph({ children: [new PageBreak()] })
 );
 
@@ -650,8 +642,8 @@ S.push(
 S.push(
   h1("20. Golden Hour — Meilleure heure d'envoi"),
   p("La fonctionnalité Golden Hour analyse les ouvertures d'emails par jour de la semaine et par heure, par langue, pour déterminer la plage horaire où vos clients sont le plus susceptibles d'ouvrir un email."),
-  capture("C20-01 — Visualisation Golden Hour dans l'onglet Statistiques (heatmap heures × jours)"),
-  p("Les résultats sont affichés sous forme de carte thermique (heatmap). Un indicateur de confiance basé sur le volume de données collectées précise la fiabilité de la recommandation."),
+  img('image-golden.png', 1536, 234, 500),
+  p("Les cases les plus foncées indiquent les créneaux avec le plus d'ouvertures. La légende Moins → Plus d'ouvertures en bas de la heatmap permet de calibrer la lecture. Un indicateur de confiance basé sur le volume de données collectées précise la fiabilité de la recommandation."),
   note("Golden Hour est informatif : il ne modifie pas automatiquement l'heure d'envoi des crons comportementaux. Utilisez ces données pour configurer manuellement l'heure de votre cron serveur."),
   new Paragraph({ children: [new PageBreak()] })
 );
@@ -659,12 +651,13 @@ S.push(
 // ══════════════════════════ 21. FENÊTRE D'ACHAT INDIVIDUELLE ══════════════════
 S.push(
   h1("21. Fenêtre d'achat individuelle"),
-  p("La fenêtre d'achat individuelle détecte l'heure préférée d'achat de chaque client (de 0 à 23h) à partir de l'historique de ses commandes. Les emails comportementaux mis en file d'attente (QueueManager) sont alors envoyés à cette heure optimale plutôt qu'au moment de l'exécution du cron."),
-  capture("C21-01 — Fenêtre d'achat sur la fiche client ou dans l'onglet Stats"),
+  p("La fenêtre d'achat individuelle détecte l'heure préférée d'achat de chaque client à partir de l'historique de ses commandes. Les emails comportementaux sont mis en file d'attente et délivrés à cette heure optimale — pas une heure globale, une heure par client."),
+  img('image-fenetre.png', 1536, 350, 500),
+  p("Le tableau de bord affiche en temps réel : emails en attente, envoyés sur 30 jours, délai moyen, pourcentage de clients avec fenêtre détectée et heure de pointe globale."),
   h2("21.1 Activer la file d'attente"),
   step(1, "Dans Accueil → Paramètres généraux, activez la bascule Envoi à l'heure préférée du client."),
   step(2, "Les emails comportementaux sont désormais mis en file d'attente et envoyés à l'heure d'achat historique de chaque destinataire."),
-  note("Si un client n'a pas d'historique suffisant (moins de 3 commandes), l'email est envoyé sans délai, à l'heure normale d'exécution du cron."),
+  note("À partir de 2 achats validés à la même heure, le pattern est considéré fiable. Les clients sans fenêtre détectée reçoivent leurs emails immédiatement, sans délai."),
   new Paragraph({ children: [new PageBreak()] })
 );
 
@@ -672,23 +665,27 @@ S.push(
 S.push(
   h1("22. Upsell et complétion de collection"),
   h2("22.1 Upsell intelligent"),
-  p("Le moteur d'upsell sélectionne automatiquement un produit à suggérer dans les emails post-achat selon 3 niveaux de priorité :"),
-  bullet("Niveau 1 : accessoires définis manuellement par le marchand dans la fiche produit PrestaShop."),
-  bullet("Niveau 2 : co-achats (produits statistiquement commandés ensemble par d'autres clients)."),
-  bullet("Niveau 3 : bestseller de la même catégorie (fallback garanti)."),
-  capture("C22-01 — Bloc upsell dans l'aperçu d'un email post-achat"),
-  h2("22.2 Complétion de look"),
-  p("48h après livraison confirmée, l'email look_completion suggère 2 à 3 produits complémentaires selon les règles d'association catégorie → produits définies par le marchand dans le BO."),
-  step(1, "Dans Accueil → Complétion de look, cliquez sur Gérer les associations."),
-  step(2, "Pour chaque catégorie source, ajoutez les produits à suggérer."),
-  step(3, "Activez la bascule et enregistrez."),
-  capture("C22-02 — Interface de gestion des associations Complétion de look"),
+  p("Le moteur d'upsell sélectionne automatiquement un produit à suggérer dans les emails post-achat (J+14 après livraison) selon 3 niveaux de priorité :"),
+  bullet("Niveau 1 — Accessoire : produit associé manuellement dans la fiche produit PrestaShop."),
+  bullet("Niveau 2 — Co-achat : produit statistiquement commandé ensemble par d'autres clients."),
+  bullet("Niveau 3 — Meilleure vente : bestseller de la même catégorie (fallback garanti)."),
+  img('image-upsell.png', 1536, 530, 500),
+  p("Le tableau de bord affiche suggestions, clics, conversions, CA généré et panier moyen. La section Prévisualiser permet de simuler le bloc upsell pour n'importe quelle commande livrée sans envoyer d'email réel."),
+  note("Les produits déjà achetés par le client et les articles hors stock sont automatiquement exclus de la suggestion."),
+  h2("22.2 Complétez votre look"),
+  p("48h après livraison confirmée, l'email look_completion suggère 2 à 3 produits complémentaires selon les règles d'association catégorie → produits définies dans le BO."),
+  img('image-look.png', 1536, 430, 500),
+  step(1, "Sélectionnez une catégorie déclencheur dans le menu déroulant."),
+  step(2, "Saisissez les IDs produits suggérés (2 à 3, séparés par des virgules)."),
+  step(3, "Cliquez sur Ajouter. La règle est active immédiatement."),
+  note("Un seul email par commande — déduplication automatique. L'email arrive quand le client a le produit entre les mains, au meilleur moment pour une suggestion complémentaire."),
   h2("22.3 Complétion de collection"),
-  p("Si le marchand définit des collections (groupes de produits cohérents), Neria envoie l'email collection_completion dès qu'un client a acheté N-1 pièces d'une collection de N. Il invite à compléter la série."),
-  step(1, "Dans Accueil → Collections, cliquez sur Nouvelle collection."),
-  step(2, "Nommez la collection et ajoutez les produits qui la composent."),
-  step(3, "Activez et enregistrez."),
-  capture("C22-03 — Interface de gestion des collections"),
+  p("Neria détecte les clients à une pièce de compléter une collection et leur envoie automatiquement un email avec le produit manquant mis en avant."),
+  img('image-collection.png', 1536, 430, 500),
+  step(1, "Saisissez le nom de la collection (ex. : Trio Soin Visage)."),
+  step(2, "Entrez les IDs produits qui composent la collection, séparés par des virgules."),
+  step(3, "Cliquez sur Ajouter. Neria surveille les commandes dès le lendemain."),
+  note("Un seul email par client et par collection, même si le client continue d'acheter d'autres pièces par la suite."),
   new Paragraph({ children: [new PageBreak()] })
 );
 
@@ -696,15 +693,14 @@ S.push(
 S.push(
   h1("23. Liste d'attente produits"),
   p("Quand un produit est en rupture de stock, Neria affiche un bouton « Prévenir quand disponible » sur la fiche produit. Dès que le stock est réapprovisionné, un email unique est envoyé au client avec une réservation temporelle."),
-  capture("C23-01 — Bouton « Prévenir quand disponible » sur une fiche produit en rupture (vue front)"),
+  img('image-attente.png', 1436, 520, 500),
   h2("23.1 Configuration"),
   step(1, "Dans Accueil → Liste d'attente, activez la fonctionnalité."),
   step(2, "Configurez la durée de réservation (temps pendant lequel le produit est « réservé » pour le client avant de redevenir disponible publiquement)."),
   step(3, "Personnalisez le texte du bouton (par langue) dans l'onglet Traductions."),
-  capture("C23-02 — Paramètres Liste d'attente : durée de réservation et activation"),
+  img('image-attente2.png', 1536, 650, 500),
   h2("23.2 Gérer les inscriptions"),
-  p("L'onglet Liste d'attente affiche toutes les inscriptions actives par produit, avec le nombre de clients en attente et la date d'inscription. Un bouton Notifier maintenant permet de déclencher l'email manuellement pour un produit donné."),
-  capture("C23-03 — Tableau des inscriptions en liste d'attente par produit"),
+  p("La page Liste d'attente affiche les statistiques globales (clients en attente, produits surveillés, notifiés) ainsi que le tableau par produit avec le nombre d'inscrits et la durée d'attente maximale."),
   new Paragraph({ children: [new PageBreak()] })
 );
 
@@ -799,12 +795,12 @@ S.push(
 S.push(
   h1("26. Rapport mensuel automatique"),
   p("Le 1er de chaque mois, Neria envoie automatiquement un rapport complet de performance email au(x) destinataire(s) configuré(s). Ce rapport inclut : KPIs globaux du mois, top et flop templates, langue championne, meilleur moment d'envoi, résultats A/B, chiffre d'affaires attribué, et 3 recommandations automatiques générées à partir des données."),
-  capture("C26-01 — Aperçu du rapport mensuel envoyé par email"),
+  img('image-rapport.png', 1536, 768, 500),
   h2("26.1 Configuration"),
   step(1, "Dans Accueil → Rapport mensuel, saisissez les adresses email des destinataires (plusieurs adresses séparées par des virgules)."),
   step(2, "Choisissez la langue du rapport."),
   step(3, "Activez la bascule et enregistrez."),
-  capture("C26-02 — Paramètres du rapport mensuel (destinataires, langue, activation)"),
+  img('image-rapport2.png', 1536, 400, 500),
   new Paragraph({ children: [new PageBreak()] })
 );
 
@@ -812,7 +808,7 @@ S.push(
 S.push(
   h1("27. Réputation du domaine d'envoi"),
   p("Neria vérifie quotidiennement la réputation de votre domaine d'envoi via 4 axes : SPF, DKIM (17 sélecteurs testés), DMARC, et 42 listes noires DNS (RBL). Les résultats sont mis en cache 24h et affichés dans l'onglet Statistiques."),
-  capture("C27-01 — Tableau de réputation du domaine dans l'onglet Statistiques"),
+  img('image-reputation.png', 1536, 768, 500),
   h2("27.1 Interpréter les résultats"),
   bullet("SPF ✅ : votre domaine autorise le serveur d'envoi. Indispensable."),
   bullet("DKIM ✅ : la signature cryptographique est valide. Fortement recommandé."),
@@ -830,18 +826,18 @@ S.push(
   step(1, "Dans Statistiques → Postmaster, cliquez sur Connecter avec Google."),
   step(2, "Autorisez Neria à accéder à vos données Postmaster (lecture seule)."),
   step(3, "Les données s'affichent dans le tableau de bord Postmaster."),
-  capture("C28-01 — Tableau de bord Postmaster Tools dans l'onglet Statistiques"),
+  img('image-seo.png', 1536, 768, 500),
   h2("28.2 Google Search Console"),
   p("Intégration OAuth 2.0 avec l'API Google Search Console v3. Affiche impressions, clics, CTR, position moyenne, top requêtes et top pages de votre boutique. Données directement dans le BO Neria."),
   step(1, "Dans Statistiques → Search Console, cliquez sur Connecter avec Google."),
   step(2, "Autorisez l'accès (lecture seule)."),
   step(3, "Sélectionnez votre propriété Search Console dans la liste."),
-  capture("C28-02 — Tableau de bord Search Console dans l'onglet Statistiques"),
+  img('image-seo2.png', 1536, 768, 500),
   h2("28.3 Google PageSpeed Insights"),
   p("Neria récupère les scores Lighthouse et Core Web Vitals (LCP, CLS, TBT) pour mobile et desktop via l'API PageSpeed Insights v5 (clé API gratuite Google Cloud). Cache 24h."),
   step(1, "Dans Accueil → Paramètres → Clé API PageSpeed, saisissez votre clé (obtenue sur console.cloud.google.com, quota gratuit)."),
   step(2, "Dans Statistiques → PageSpeed, cliquez sur Analyser maintenant."),
-  capture("C28-03 — Résultats PageSpeed Insights dans le BO Neria"),
+  img('image-seo3.png', 1536, 768, 500),
   h2("28.4 Semrush et Moz (optionnel)"),
   p("Intégration optionnelle avec Semrush (trafic, mots-clés, backlinks) et Moz (Domain Authority, Page Authority, spam score). Ces outils nécessitent une clé API payante."),
   step(1, "Dans Accueil → Paramètres → Intégrations SEO, saisissez votre clé Semrush et/ou Moz."),
@@ -890,7 +886,7 @@ S.push(
 S.push(
   h1("31. Centre de préférences client"),
   p("Chaque email envoyé par Neria inclut un lien « Gérer mes préférences » permettant au client de choisir précisément les catégories d'emails qu'il souhaite recevoir, sans se désabonner totalement."),
-  capture("C31-01 — Page de préférences email vue par le client (front-office)"),
+  p("La page de préférences est accessible via le lien « Gérer mes préférences » présent en pied de chaque email. Elle s'affiche dans le thème de la boutique et permet au client d'activer ou désactiver chaque catégorie d'email indépendamment."),
   h2("31.1 Catégories de préférences"),
   bullet("Emails transactionnels : confirmation de commande, expédition, livraison (toujours activés, non désactivables)."),
   bullet("Emails marketing : campagnes, occasions calendaires."),
@@ -901,7 +897,7 @@ S.push(
   bullet("Emails B2B : devis, relances professionnelles."),
   h2("31.2 Désabonnement global"),
   p("La page de désabonnement (accessible via le lien en pied d'email) permet un désabonnement total sécurisé par jeton HMAC-SHA256. Compatible avec le désabonnement en un clic RFC 8058 (Gmail, Yahoo)."),
-  capture("C31-02 — Page de désabonnement sécurisée (front-office)"),
+  p("La page de désabonnement est sécurisée par un jeton HMAC-SHA256 unique par client. Elle s'affiche dans le thème de la boutique et propose un désabonnement total en un clic, compatible RFC 8058 (Gmail, Yahoo Mail)."),
   new Paragraph({ children: [new PageBreak()] })
 );
 
@@ -928,14 +924,29 @@ S.push(
 // ══════════════════════════ 33. CHIFFREMENT AES-256-GCM ═══════════════════════
 S.push(
   h1("33. Chiffrement des données sensibles"),
-  p("Neria chiffre les données sensibles stockées en base de données (snapshots JSON des emails, tokens, variables injectées) via AES-256-GCM, l'algorithme de chiffrement symétrique authentifié le plus robuste disponible en PHP."),
-  h2("33.1 Fonctionnement"),
-  bullet("La clé de chiffrement est générée automatiquement à l'installation et stockée dans la configuration PrestaShop (hors base de données)."),
-  bullet("Les données sont chiffrées avant insertion et déchiffrées à la lecture. Le chiffrement est transparent pour toutes les autres fonctionnalités du module."),
-  bullet("Un IV (vecteur d'initialisation) aléatoire est généré pour chaque enregistrement, garantissant qu'un même message produit des chiffrés différents."),
-  h2("33.2 Migration rétroactive"),
-  p("Si le chiffrement est activé sur une installation existante, un bouton Migrer les données existantes dans Accueil → Sécurité chiffre en une seule opération toutes les données en clair déjà présentes en base."),
-  capture("C33-01 — Section Sécurité / Chiffrement dans l'onglet Accueil avec statut et bouton de migration"),
+  p("Neria chiffre automatiquement l'ensemble des données sensibles stockées en base via AES-256-GCM — l'algorithme de chiffrement symétrique authentifié le plus robuste disponible en PHP. Le marchand en est informé dès l'ouverture du back-office via un bandeau de statut en haut de l'onglet Accueil."),
+  img('image-crypto.png', 1536, 200, 500),
+  p("En cas de problème (clé absente, OpenSSL indisponible), le bandeau passe au rouge avec le détail de l'anomalie :"),
+  img('image-crypto2.png', 1536, 200, 500),
+  h2("33.1 Ce qui est chiffré"),
+  bullet("Clés API tierces : DeepL, Google PageSpeed, SEMrush, Moz (access ID + secret), Litmus, Email on Acid."),
+  bullet("OAuth Google : client secrets, access tokens et refresh tokens — Postmaster Tools et Search Console."),
+  bullet("Sécurité webhooks et bounces : secret HMAC-SHA256 des webhooks sortants, mot de passe IMAP de gestion des bounces."),
+  bullet("Historique emails clients : champ rendered_vars — variables personnalisées de chaque email archivé (prénom, montant, références commande…)."),
+  bullet("Données RGPD : exports d'audit générés par GdprAuditManager — données personnelles extraites pour les rapports de conformité."),
+  h2("33.2 Fonctionnement"),
+  bullet("La clé AES-256 est générée automatiquement à l'installation et stockée dans la configuration PrestaShop, hors base de données."),
+  bullet("Un vecteur d'initialisation (IV) aléatoire est généré pour chaque enregistrement : un même message produit des chiffrés différents."),
+  bullet("Chiffrement avant insertion, déchiffrement à la lecture — entièrement transparent pour les autres fonctionnalités."),
+  h2("33.3 Surveillance par le Watchdog"),
+  p("Le Watchdog exécute 4 contrôles distincts sur le chiffrement à chaque diagnostic :"),
+  bullet("Test aller-retour : chiffre une chaîne aléatoire et la déchiffre immédiatement pour vérifier que la clé fonctionne."),
+  bullet("Test sur données réelles : déchiffre un échantillon de secrets déjà stockés en base — détecte si la clé a été écrasée après une restauration."),
+  bullet("Contrôle proactif : vérifie que chaque secret de la liste centralisée est bien chiffré et non stocké en clair."),
+  bullet("Contrôle de cohérence : si OpenSSL est absent du serveur mais que des données chiffrées existent — alerte immédiate."),
+  p("Si un problème est détecté, le bandeau de statut passe au rouge dans le back-office, et une alerte email est envoyée au marchand."),
+  h2("33.4 Migration rétroactive"),
+  p("Si la clé de chiffrement est configurée sur une installation existante, toutes les données en clair déjà présentes en base sont migrées automatiquement au premier démarrage. Aucune action manuelle n'est requise."),
   new Paragraph({ children: [new PageBreak()] })
 );
 
@@ -943,7 +954,7 @@ S.push(
 S.push(
   h1("34. Onglet Webhooks — Intégrations tierces"),
   p("Neria peut notifier des applications tierces (CRM, Zapier, Make, n8n…) via HTTP POST signé HMAC-SHA256 lors de 5 événements clés."),
-  img('image-webhook.png', 1911, 935, 500),
+  img('image-webhook.png', 1536, 768, 500),
   h2("34.1 Événements disponibles"),
   bullet("email_sent : email envoyé avec succès."),
   bullet("email_opened : email ouvert par le destinataire."),
@@ -956,7 +967,6 @@ S.push(
   step(3, "Sélectionnez les événements à notifier."),
   step(4, "Copiez le secret HMAC affiché pour valider la signature côté récepteur."),
   step(5, "Cliquez sur Tester pour envoyer un événement de test."),
-  img('image-webhook2.png', 1911, 935, 500),
   note("En cas d'échec de livraison (timeout ou erreur HTTP), Neria effectue 3 tentatives automatiques avec délai exponentiel avant d'abandonner. Les échecs sont loggués dans le journal Watchdog."),
   new Paragraph({ children: [new PageBreak()] })
 );
