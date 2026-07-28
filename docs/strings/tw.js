@@ -27,7 +27,7 @@ module.exports = {
     h_auto: "1.2 Neria 自動執行的作業",
     p_auto: "啟用後，Neria 會透過 actionEmailSendBefore 掛勾（hook）攔截 PrestaShop 或其他已安裝模組所寄出的每一封郵件。它會辨識範本、判斷收件人的實際語言、套用品牌設計（顏色、標誌、字型排版），並注入強化變數（追蹤、A/B 測試、忠誠度、社群媒體等），再將強化後的郵件交還給 PrestaShop 的原生寄送機制。標準交易郵件無需任何額外設定，即可立即享有全新渲染效果。",
     h_network: "1.3 對外網路連線",
-    p_network: "Neria 僅會與自身的授權伺服器（neria.software）建立一項對外網路連線，最多每 24 小時一次，用以驗證授權金鑰的有效性。傳送的資料包括：授權金鑰、網域名稱、模組版本。不會傳送任何客戶個人資料。若伺服器暫時無法使用，最近一次快取的驗證結果將無限期維持有效——絕不會因開發商端的故障而中斷郵件寄送。",
+    p_network: "Neria 僅會與自身的授權伺服器（neriasoftware.com）建立一項對外網路連線，最多每 24 小時一次，用以驗證授權金鑰的有效性。傳送的資料包括：授權金鑰、網域名稱、模組版本。不會傳送任何客戶個人資料。若伺服器暫時無法使用，最近一次快取的驗證結果將無限期維持有效——絕不會因開發商端的故障而中斷郵件寄送。",
   },
 
   s2: {
@@ -740,13 +740,13 @@ module.exports = {
     q5: "此模組是否會拖慢我的店家速度？",
     a5: "不會：郵件渲染結果會於資料庫端快取，僅在實際寄送或設定發生變更時重新產生。自動化作業透過排程以背景任務形式執行，絕不會於訪客瀏覽期間執行。",
     q6: "如何取得協助？",
-    a6: "您可透過電子郵件 support@neria.software（工作日 24 小時內回覆）與我們聯繫，或透過 PrestaShop Addons → 您的帳戶 → 說明 → Neria 取得支援。請註明模組版本號（可於 模組 → Neria 中查看），若可能，請附上 Watchdog 紀錄的相關片段。",
+    a6: "您可透過電子郵件 support@neriasoftware.com（工作日 24 小時內回覆）與我們聯繫，或透過 PrestaShop Addons → 您的帳戶 → 說明 → Neria 取得支援。請註明模組版本號（可於 模組 → Neria 中查看），若可能，請附上 Watchdog 紀錄的相關片段。",
   },
 
   s43: {
     title: "43. 技術支援與業務關懷",
     h_support: "43.1 技術支援",
-    b1: "電子郵件：support@neria.software",
+    b1: "電子郵件：support@neriasoftware.com",
     b2: "保證回覆時間：24 個工作小時內（週一至週五）。",
     b3: "支援語言：法語及英語。",
     h_care: "43.2 業務關懷 — 含 12 個月服務",
@@ -771,6 +771,6 @@ module.exports = {
     bl1: "TCPDF — 作者 Nicola Asuni，遵循 LGPL 2.1+ 授權條款（用於產生 PDF 證書）。",
     bl2: "其他可能存在的相依項目皆列於模組的 composer.json 檔案中。",
     h_privacy: "A.5 個人資料",
-    p_privacy: "如需查閱完整的個人資料處理政策，請造訪 neria.software/privacy 上的專屬頁面。",
+    p_privacy: "如需查閱完整的個人資料處理政策，請造訪 neriasoftware.com/privacy 上的專屬頁面。",
   },
 };

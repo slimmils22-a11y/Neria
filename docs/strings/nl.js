@@ -27,7 +27,7 @@ module.exports = {
     h_auto: "1.2 Wat Neria automatisch doet",
     p_auto: "Zodra u de module activeert, onderschept Neria via de hook actionEmailSendBefore elke e-mail die door PrestaShop of een andere geïnstalleerde module wordt verzonden. De module identificeert het sjabloon, bepaalt de werkelijke taal van de ontvanger, past het merkontwerp toe (kleuren, logo, typografie), voegt verrijkende variabelen toe (tracking, A/B-testen, loyaliteit, sociale media, enz.) en stuurt de verrijkte e-mail terug naar het native verzendmechanisme van PrestaShop. Er is geen extra configuratie nodig om standaard transactionele e-mails onmiddellijk van deze nieuwe weergave te laten profiteren.",
     h_network: "1.3 Externe netwerkverbindingen",
-    p_network: "Neria maakt slechts één externe netwerkverbinding met de eigen licentieserver (neria.software), maximaal eenmaal per 24 uur, om de geldigheid van de sleutel te controleren. Verzonden gegevens: licentiesleutel, domeinnaam, moduleversie. Er worden geen persoonsgegevens van klanten verzonden. Als de server tijdelijk niet beschikbaar is, blijft de laatst gecachte controle onbeperkt geldig — het verzenden van e-mails wordt nooit onderbroken door een storing aan de kant van de uitgever.",
+    p_network: "Neria maakt slechts één externe netwerkverbinding met de eigen licentieserver (neriasoftware.com), maximaal eenmaal per 24 uur, om de geldigheid van de sleutel te controleren. Verzonden gegevens: licentiesleutel, domeinnaam, moduleversie. Er worden geen persoonsgegevens van klanten verzonden. Als de server tijdelijk niet beschikbaar is, blijft de laatst gecachte controle onbeperkt geldig — het verzenden van e-mails wordt nooit onderbroken door een storing aan de kant van de uitgever.",
   },
 
   s2: {
@@ -740,13 +740,13 @@ module.exports = {
     q5: "Vertraagt de module mijn winkel?",
     a5: "Nee: de weergave van e-mails wordt gecacht aan de databasezijde en alleen opnieuw gegenereerd bij een echte verzending of een configuratiewijziging. De automatiseringen draaien als achtergrondtaak via cron, nooit tijdens het navigeren van een bezoeker.",
     q6: "Hoe kan ik hulp krijgen?",
-    a6: "Via e-mail support@neria.software (antwoord binnen 24 werkuren) of via PrestaShop Addons → Uw account → Help → Neria. Vermeld de versie van de module (zichtbaar onder Modules → Neria) en voeg indien mogelijk een uittreksel van het Watchdog-logboek toe.",
+    a6: "Via e-mail support@neriasoftware.com (antwoord binnen 24 werkuren) of via PrestaShop Addons → Uw account → Help → Neria. Vermeld de versie van de module (zichtbaar onder Modules → Neria) en voeg indien mogelijk een uittreksel van het Watchdog-logboek toe.",
   },
 
   s43: {
     title: "43. Ondersteuning en Business Care",
     h_support: "43.1 Technische ondersteuning",
-    b1: "E-mail: support@neria.software",
+    b1: "E-mail: support@neriasoftware.com",
     b2: "Gegarandeerde reactietijd: 24 werkuren (van maandag tot vrijdag).",
     b3: "Talen: Frans en Engels.",
     h_care: "43.2 Business Care — 12 maanden inbegrepen",
@@ -771,6 +771,6 @@ module.exports = {
     bl1: "TCPDF — Nicola Asuni, licentie LGPL 2.1+ (generatie van PDF-certificaten).",
     bl2: "Eventuele andere afhankelijkheden staan vermeld in het bestand composer.json van de module.",
     h_privacy: "A.5 Persoonsgegevens",
-    p_privacy: "Voor het volledige beleid inzake de verwerking van persoonsgegevens raadpleegt u de speciale pagina op neria.software/privacy.",
+    p_privacy: "Voor het volledige beleid inzake de verwerking van persoonsgegevens raadpleegt u de speciale pagina op neriasoftware.com/privacy.",
   },
 };

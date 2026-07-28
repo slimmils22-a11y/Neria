@@ -27,7 +27,7 @@ module.exports = {
     h_auto: "1.2 Neria'nın Otomatik Olarak Yaptıkları",
     p_auto: "Etkinleştirildiği andan itibaren Neria, actionEmailSendBefore kancası (hook) aracılığıyla PrestaShop veya kurulu diğer herhangi bir modül tarafından gönderilen her e-postayı yakalar. Şablonu belirler, alıcının gerçek dilini çözümler, marka tasarımını (renkler, logo, tipografi) uygular, zenginleştirme değişkenlerini (izleme, A/B testi, sadakat, sosyal medya vb.) ekler ve zenginleştirilmiş e-postayı PrestaShop'un yerel gönderim mekanizmasına geri iletir. Standart işlem e-postalarının bu yeni görünümden anında yararlanabilmesi için ek bir yapılandırma gerekmez.",
     h_network: "1.3 Harici Ağ Bağlantıları",
-    p_network: "Neria, lisans anahtarının geçerliliğini doğrulamak amacıyla, en fazla 24 saatte bir kendi lisans sunucusuna (neria.software) tek bir harici ağ bağlantısı kurar. İletilen veriler: lisans anahtarı, alan adı, modül sürümü. Hiçbir müşteri kişisel verisi aktarılmaz. Sunucunun geçici olarak erişilemez olması durumunda, önbelleğe alınan son doğrulama sonucu süresiz olarak geçerli kalır — yayıncı tarafındaki bir arıza e-posta gönderimlerini asla kesintiye uğratmaz.",
+    p_network: "Neria, lisans anahtarının geçerliliğini doğrulamak amacıyla, en fazla 24 saatte bir kendi lisans sunucusuna (neriasoftware.com) tek bir harici ağ bağlantısı kurar. İletilen veriler: lisans anahtarı, alan adı, modül sürümü. Hiçbir müşteri kişisel verisi aktarılmaz. Sunucunun geçici olarak erişilemez olması durumunda, önbelleğe alınan son doğrulama sonucu süresiz olarak geçerli kalır — yayıncı tarafındaki bir arıza e-posta gönderimlerini asla kesintiye uğratmaz.",
   },
 
   s2: {
@@ -740,13 +740,13 @@ module.exports = {
     q5: "Modül mağazamı yavaşlatıyor mu?",
     a5: "Hayır: e-posta görüntülemesi veritabanı tarafında önbelleğe alınır ve yalnızca gerçek bir gönderim veya yapılandırma değişikliği sırasında yeniden oluşturulur. Otomasyonlar, cron aracılığıyla bir arka plan görevi olarak çalışır, hiçbir zaman bir ziyaretçinin gezinmesi sırasında değil.",
     q6: "Nasıl yardım alabilirim?",
-    a6: "support@neria.software e-posta adresi üzerinden (24 iş saati içinde yanıt) veya PrestaShop Addons → Hesabınız → Yardım → Neria üzerinden. Modülün sürümünü (Modüller → Neria bölümünde görülebilir) belirtin ve mümkünse Watchdog günlüğünden bir alıntı ekleyin.",
+    a6: "support@neriasoftware.com e-posta adresi üzerinden (24 iş saati içinde yanıt) veya PrestaShop Addons → Hesabınız → Yardım → Neria üzerinden. Modülün sürümünü (Modüller → Neria bölümünde görülebilir) belirtin ve mümkünse Watchdog günlüğünden bir alıntı ekleyin.",
   },
 
   s43: {
     title: "43. Destek ve İş Bakımı",
     h_support: "43.1 Teknik Destek",
-    b1: "E-posta: support@neria.software",
+    b1: "E-posta: support@neriasoftware.com",
     b2: "Garantili yanıt süresi: 24 iş saati (Pazartesi'den Cuma'ya).",
     b3: "Diller: Fransızca ve İngilizce.",
     h_care: "43.2 İş Bakımı — 12 Ay Dahil",
@@ -771,6 +771,6 @@ module.exports = {
     bl1: "TCPDF — Nicola Asuni, LGPL 2.1+ lisansı (PDF sertifikalarının oluşturulması).",
     bl2: "Diğer olası bağımlılıklar, modülün composer.json dosyasında listelenmiştir.",
     h_privacy: "A.5 Kişisel Veriler",
-    p_privacy: "Kişisel verilerin işlenmesine ilişkin tam politika için, neria.software/privacy adresindeki özel sayfaya başvurun.",
+    p_privacy: "Kişisel verilerin işlenmesine ilişkin tam politika için, neriasoftware.com/privacy adresindeki özel sayfaya başvurun.",
   },
 };

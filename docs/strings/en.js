@@ -27,7 +27,7 @@ module.exports = {
     h_auto: "1.2 What Neria does automatically",
     p_auto: "Upon activation, Neria intercepts via the actionEmailSendBefore hook every email sent by PrestaShop or any other installed module. It identifies the template, resolves the recipient's actual language, applies the brand design (colours, logo, typography), injects enrichment variables (tracking, A/B, loyalty, social…), and forwards the enriched email to PrestaShop's native sending mechanism. No additional configuration is needed for standard transactional emails to immediately benefit from the new design.",
     h_network: "1.3 External network calls",
-    p_network: "Neria makes a single external network call to its own licence server (neria.software), at most once every 24 hours, to verify the validity of the key. Data transmitted: licence key, domain name, module version. No personal customer data is transmitted. If the server is unavailable, the last cached verification remains valid indefinitely — email delivery is never interrupted by a publisher-side outage.",
+    p_network: "Neria makes a single external network call to its own licence server (neriasoftware.com), at most once every 24 hours, to verify the validity of the key. Data transmitted: licence key, domain name, module version. No personal customer data is transmitted. If the server is unavailable, the last cached verification remains valid indefinitely — email delivery is never interrupted by a publisher-side outage.",
   },
 
   s2: {
@@ -740,13 +740,13 @@ module.exports = {
     q5: "Does the module slow down my store?",
     a5: "No: email rendering is cached in the database and only regenerated upon a real send or configuration change. Automations run as background tasks via cron, never during a visitor's browsing session.",
     q6: "How do I get help?",
-    a6: "Via email at support@neria.software (response within 24 business hours) or via PrestaShop Addons → Your account → Help → Neria. Please specify the module version (visible in Modules → Neria) and attach an extract from the Watchdog log if available.",
+    a6: "Via email at support@neriasoftware.com (response within 24 business hours) or via PrestaShop Addons → Your account → Help → Neria. Please specify the module version (visible in Modules → Neria) and attach an extract from the Watchdog log if available.",
   },
 
   s43: {
     title: "43. Support & Business Care",
     h_support: "43.1 Technical support",
-    b1: "Email: support@neria.software",
+    b1: "Email: support@neriasoftware.com",
     b2: "Guaranteed response time: 24 business hours (Monday to Friday).",
     b3: "Languages: French and English.",
     h_care: "43.2 Business Care — 12 months included",
@@ -771,6 +771,6 @@ module.exports = {
     bl1: "TCPDF — Nicola Asuni, LGPL 2.1+ licence (PDF certificate generation).",
     bl2: "Any other dependencies are listed in the module's composer.json file.",
     h_privacy: "A.5 Personal data",
-    p_privacy: "For the complete personal data processing policy, visit the dedicated page at neria.software/privacy.",
+    p_privacy: "For the complete personal data processing policy, visit the dedicated page at neriasoftware.com/privacy.",
   },
 };

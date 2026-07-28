@@ -27,7 +27,7 @@ module.exports = {
     h_auto: "1.2 Neria 自动执行的操作",
     p_auto: "一旦激活，Neria 便通过 actionEmailSendBefore 钩子拦截 PrestaShop 或任何其他已安装模块发送的每一封邮件。它会识别模板、解析收件人的实际语言、应用品牌设计（颜色、徽标、字体排印），注入增强变量（追踪、A/B 测试、忠诚度、社交媒体等），然后将增强后的邮件交还给 PrestaShop 的原生发送机制。标准交易邮件无需任何额外配置即可立即享受全新渲染效果。",
     h_network: "1.3 外部网络连接",
-    p_network: "Neria 仅与其自有许可证服务器（neria.software）建立一项外部网络连接，最多每 24 小时一次，用于验证密钥有效性。传输的数据包括：许可证密钥、域名、模块版本。不会传输任何客户个人数据。若服务器暂时不可用，最近一次缓存的验证结果将无限期保持有效——发行方一侧的故障绝不会中断邮件发送。",
+    p_network: "Neria 仅与其自有许可证服务器（neriasoftware.com）建立一项外部网络连接，最多每 24 小时一次，用于验证密钥有效性。传输的数据包括：许可证密钥、域名、模块版本。不会传输任何客户个人数据。若服务器暂时不可用，最近一次缓存的验证结果将无限期保持有效——发行方一侧的故障绝不会中断邮件发送。",
   },
 
   s2: {
@@ -740,13 +740,13 @@ module.exports = {
     q5: "该模块是否会拖慢我的店铺速度？",
     a5: "不会：邮件渲染结果会在数据库端缓存，仅在实际发送或配置发生变更时重新生成。自动化任务通过 cron 以后台任务形式运行，绝不会在访客浏览期间执行。",
     q6: "如何获取帮助？",
-    a6: "您可通过邮箱 support@neria.software（工作日 24 小时内回复）联系我们，或通过 PrestaShop Addons → 您的账户 → 帮助 → Neria 获取支持。请注明模块版本号（可在 模块 → Neria 中查看），如可能，请附上 Watchdog 日志的相关片段。",
+    a6: "您可通过邮箱 support@neriasoftware.com（工作日 24 小时内回复）联系我们，或通过 PrestaShop Addons → 您的账户 → 帮助 → Neria 获取支持。请注明模块版本号（可在 模块 → Neria 中查看），如可能，请附上 Watchdog 日志的相关片段。",
   },
 
   s43: {
     title: "43. 技术支持与业务关怀",
     h_support: "43.1 技术支持",
-    b1: "邮箱：support@neria.software",
+    b1: "邮箱：support@neriasoftware.com",
     b2: "保证响应时间：24 个工作小时内（周一至周五）。",
     b3: "支持语言：法语及英语。",
     h_care: "43.2 业务关怀 — 含 12 个月服务",
@@ -771,6 +771,6 @@ module.exports = {
     bl1: "TCPDF — 作者 Nicola Asuni，遵循 LGPL 2.1+ 许可协议（用于生成 PDF 证书）。",
     bl2: "其他可能存在的依赖项均列于模块的 composer.json 文件中。",
     h_privacy: "A.5 个人数据",
-    p_privacy: "如需查阅完整的个人数据处理政策，请访问 neria.software/privacy 上的专属页面。",
+    p_privacy: "如需查阅完整的个人数据处理政策，请访问 neriasoftware.com/privacy 上的专属页面。",
   },
 };

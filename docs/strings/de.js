@@ -27,7 +27,7 @@
     h_auto: "1.2 Was Neria automatisch erledigt",
     p_auto: "Nach der Aktivierung fängt Neria über den Hook actionEmailSendBefore jede von PrestaShop oder einem anderen installierten Modul gesendete E-Mail ab. Es identifiziert die Vorlage, ermittelt die tatsächliche Sprache des Empfängers, wendet das Markendesign an (Farben, Logo, Typografie), injiziert Anreicherungsvariablen (Tracking, A/B, Treue, Social…) und leitet die angereicherte E-Mail an den nativen Versandmechanismus von PrestaShop weiter. Keine zusätzliche Konfiguration ist erforderlich, damit Standard-Transaktions-E-Mails sofort vom neuen Design profitieren.",
     h_network: "1.3 Externe Netzwerkanrufe",
-    p_network: "Neria führt einen einzigen externen Netzwerkanruf an seinen eigenen Lizenzserver (neria.software) durch, maximal einmal alle 24 Stunden, um die Gültigkeit des Schlüssels zu überprüfen. Übertragene Daten: Lizenzschlüssel, Domainname, Modulversion. Es werden keine persönlichen Kundendaten übertragen. Bei Nichtverfügbarkeit des Servers bleibt die letzte gecachte Überprüfung unbegrenzt gültig — der E-Mail-Versand wird durch einen Ausfall auf Herausgeberseite niemals unterbrochen.",
+    p_network: "Neria führt einen einzigen externen Netzwerkanruf an seinen eigenen Lizenzserver (neriasoftware.com) durch, maximal einmal alle 24 Stunden, um die Gültigkeit des Schlüssels zu überprüfen. Übertragene Daten: Lizenzschlüssel, Domainname, Modulversion. Es werden keine persönlichen Kundendaten übertragen. Bei Nichtverfügbarkeit des Servers bleibt die letzte gecachte Überprüfung unbegrenzt gültig — der E-Mail-Versand wird durch einen Ausfall auf Herausgeberseite niemals unterbrochen.",
   },
 
   s2: {
@@ -740,13 +740,13 @@
     q5: "Verlangsamt das Modul meinen Shop?",
     a5: "Nein: Das E-Mail-Rendering wird in der Datenbank gecacht und nur bei einem echten Versand oder einer Konfigurationsänderung neu generiert. Automatisierungen laufen als Hintergrundaufgaben über Cron, niemals während einer Besuchersitzung.",
     q6: "Wie erhalte ich Hilfe?",
-    a6: "Per E-Mail an support@neria.software (Antwort innerhalb von 24 Werktagen) oder über PrestaShop Addons → Ihr Konto → Hilfe → Neria. Bitte geben Sie die Modulversion an (sichtbar unter Module → Neria) und fügen Sie bei Verfügbarkeit einen Auszug aus dem Watchdog-Protokoll bei.",
+    a6: "Per E-Mail an support@neriasoftware.com (Antwort innerhalb von 24 Werktagen) oder über PrestaShop Addons → Ihr Konto → Hilfe → Neria. Bitte geben Sie die Modulversion an (sichtbar unter Module → Neria) und fügen Sie bei Verfügbarkeit einen Auszug aus dem Watchdog-Protokoll bei.",
   },
 
   s43: {
     title: "43. Support & Business Care",
     h_support: "43.1 Technischer Support",
-    b1: "E-Mail: support@neria.software",
+    b1: "E-Mail: support@neriasoftware.com",
     b2: "Garantierte Antwortzeit: 24 Werktage (Montag bis Freitag).",
     b3: "Sprachen: Französisch und Englisch.",
     h_care: "43.2 Business Care — 12 Monate inklusive",
@@ -771,6 +771,6 @@
     bl1: "TCPDF — Nicola Asuni, LGPL 2.1+-Lizenz (PDF-Zertifikatsgenerierung).",
     bl2: "Weitere Abhängigkeiten sind in der Datei composer.json des Moduls aufgeführt.",
     h_privacy: "A.5 Personenbezogene Daten",
-    p_privacy: "Die vollständige Datenschutzrichtlinie finden Sie auf der entsprechenden Seite unter neria.software/privacy.",
+    p_privacy: "Die vollständige Datenschutzrichtlinie finden Sie auf der entsprechenden Seite unter neriasoftware.com/privacy.",
   },
 };

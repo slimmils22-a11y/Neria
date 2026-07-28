@@ -27,7 +27,7 @@ module.exports = {
     h_auto: "1.2 Vad Neria gör automatiskt",
     p_auto: "Så snart modulen aktiveras fångar Neria upp varje e-postmeddelande som skickas av PrestaShop eller någon annan installerad modul via kroken actionEmailSendBefore. Den identifierar mallen, fastställer mottagarens faktiska språk, tillämpar varumärkesdesignen (färger, logotyp, typografi), infogar berikande variabler (spårning, A/B-test, lojalitet, sociala medier med mera) och skickar tillbaka det berikade e-postmeddelandet till PrestaShops inbyggda utskicksmekanism. Ingen ytterligare konfiguration krävs för att standardtransaktionsmeddelanden omedelbart ska dra nytta av den nya renderingen.",
     h_network: "1.3 Externa nätverksanrop",
-    p_network: "Neria gör endast ett externt nätverksanrop till sin egen licensserver (neria.software), högst en gång var 24:e timme, för att kontrollera nyckelns giltighet. Data som överförs: licensnyckel, domännamn, modulversion. Ingen personlig kunddata överförs. Om servern är otillgänglig fortsätter den senaste cachade kontrollen att gälla på obestämd tid — e-postutskick avbryts aldrig på grund av ett driftstopp hos leverantören.",
+    p_network: "Neria gör endast ett externt nätverksanrop till sin egen licensserver (neriasoftware.com), högst en gång var 24:e timme, för att kontrollera nyckelns giltighet. Data som överförs: licensnyckel, domännamn, modulversion. Ingen personlig kunddata överförs. Om servern är otillgänglig fortsätter den senaste cachade kontrollen att gälla på obestämd tid — e-postutskick avbryts aldrig på grund av ett driftstopp hos leverantören.",
   },
 
   s2: {
@@ -740,13 +740,13 @@ module.exports = {
     q5: "Saktar modulen ner min butik?",
     a5: "Nej: renderingen av e-postmeddelanden cachas i databasen och genereras endast om vid ett verkligt utskick eller en konfigurationsändring. Automatiseringarna körs som en bakgrundsuppgift via cron, aldrig under en besökares navigering.",
     q6: "Hur får jag hjälp?",
-    a6: "Via e-post support@neria.software (svar inom 24 arbetstimmar) eller via PrestaShop Addons → Ditt konto → Hjälp → Neria. Ange modulens version (synlig under Moduler → Neria) och bifoga ett utdrag ur Watchdog-loggen om möjligt.",
+    a6: "Via e-post support@neriasoftware.com (svar inom 24 arbetstimmar) eller via PrestaShop Addons → Ditt konto → Hjälp → Neria. Ange modulens version (synlig under Moduler → Neria) och bifoga ett utdrag ur Watchdog-loggen om möjligt.",
   },
 
   s43: {
     title: "43. Support och Business Care",
     h_support: "43.1 Teknisk support",
-    b1: "E-post: support@neria.software",
+    b1: "E-post: support@neriasoftware.com",
     b2: "Garanterad svarstid: 24 arbetstimmar (måndag till fredag).",
     b3: "Språk: franska och engelska.",
     h_care: "43.2 Business Care — 12 månader ingår",
@@ -771,6 +771,6 @@ module.exports = {
     bl1: "TCPDF — Nicola Asuni, licens LGPL 2.1+ (generering av PDF-certifikat).",
     bl2: "Övriga eventuella beroenden listas i modulens composer.json-fil.",
     h_privacy: "A.5 Personuppgifter",
-    p_privacy: "För den fullständiga policyn för behandling av personuppgifter, se den dedikerade sidan på neria.software/privacy.",
+    p_privacy: "För den fullständiga policyn för behandling av personuppgifter, se den dedikerade sidan på neriasoftware.com/privacy.",
   },
 };
