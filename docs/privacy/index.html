@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Politique de confidentialité — Neria</title>
+<style>
+  :root {
+    --bronze: #B38B59;
+    --cream: #F9F6F1;
+    --border: #E8D5B0;
+    --text: #2B2620;
+    --text-light: #6B6255;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--cream);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+    line-height: 1.7;
+  }
+  header {
+    background: #1a1712;
+    color: #F9F6F1;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 1.9rem;
+    letter-spacing: 0.05em;
+    color: var(--bronze);
+  }
+  header p {
+    margin: 0.5rem 0 0;
+    color: #cfc6b8;
+    font-size: 0.95rem;
+  }
+  .lang-switch {
+    text-align: center;
+    padding: 1rem;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .lang-switch select {
+    font-family: Arial, sans-serif;
+    font-size: 0.95rem;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    background: var(--cream);
+  }
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+  section { margin-bottom: 2.5rem; }
+  h2 {
+    color: var(--bronze);
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 0.4rem;
+    font-size: 1.3rem;
+    margin-top: 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.92rem;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  [dir="rtl"] th, [dir="rtl"] td { text-align: right; }
+  th { background: #fff; color: var(--bronze); }
+  .note {
+    background: #fff;
+    border-left: 4px solid var(--bronze);
+    padding: 0.9rem 1.1rem;
+    font-size: 0.92rem;
+    margin: 1rem 0;
+  }
+  [dir="rtl"] .note { border-left: none; border-right: 4px solid var(--bronze); }
+  a { color: var(--bronze); }
+  footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-light);
+    font-size: 0.85rem;
+    font-family: Arial, sans-serif;
+  }
+  .lang-block { display: none; }
+  .lang-block.active { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>NERIA</h1>
+  <p id="tagline">Luxury Email Suite — Politique de confidentialité</p>
+</header>
+
+<div class="lang-switch">
+  <select id="langSelect" onchange="show(this.value)">
+    <option value="fr">Français</option>
+    <option value="en">English</option>
+    <option value="de">Deutsch</option>
+    <option value="it">Italiano</option>
+    <option value="es">Español</option>
+    <option value="pt">Português</option>
+    <option value="br">Português (BR)</option>
+    <option value="gb">English (GB)</option>
+    <option value="ar">العربية</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="zh">简体中文</option>
+    <option value="tw">繁體中文</option>
+    <option value="ru">Русский</option>
+    <option value="tr">Türkçe</option>
+    <option value="sv">Svenska</option>
+    <option value="no">Norsk</option>
+    <option value="da">Dansk</option>
+    <option value="nl">Nederlands</option>
+  </select>
+</div>
+
+<main>
+
+<div id="fr" class="lang-block active">
+<section><h2>1. Qui sommes-nous</h2>
+<p>Ce site (<strong>neriasoftware.com</strong>) est édité par l'auteur du module Neria — Luxury Email Suite pour PrestaShop. Pour toute question relative à cette politique ou à vos données personnelles, contactez <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>.</p>
+<div class="note">Identité légale complète de l'éditeur (raison sociale, forme juridique, SIRET, adresse) : à compléter avant publication définitive.</div></section>
+<section><h2>2. Ce que le module Neria ne fait jamais</h2>
+<p>Neria est un module installé dans votre propre boutique PrestaShop. Il fonctionne exclusivement sur votre serveur et dans votre base de données. <strong>Neriasoftware.com n'héberge, ne reçoit ni ne consulte jamais les données de vos clients</strong> (noms, emails, commandes, historique, adresses...). Ces données restent intégralement sur votre infrastructure, sous votre seule responsabilité de responsable de traitement.</p></section>
+<section><h2>3. Données traitées par le serveur de licences</h2>
+<p>Le module effectue un unique appel réseau externe vers neriasoftware.com, au maximum une fois toutes les 24 heures, pour vérifier la validité de votre licence :</p>
+<table><tr><th>Donnée</th><th>Finalité</th><th>Base légale</th></tr>
+<tr><td>Clé de licence</td><td>Identifier votre licence</td><td>Exécution du contrat</td></tr>
+<tr><td>Nom de domaine</td><td>Lier la licence à votre boutique</td><td>Exécution du contrat</td></tr>
+<tr><td>Version du module</td><td>Statistiques, compatibilité</td><td>Intérêt légitime</td></tr>
+<tr><td>Email d'achat</td><td>Confirmation changement de domaine, support</td><td>Exécution du contrat</td></tr></table>
+<p><strong>Aucune donnée personnelle de vos clients n'est jamais transmise.</strong></p></section>
+<section><h2>4. Tolérance de panne</h2>
+<p>En cas d'indisponibilité temporaire du serveur, le module conserve la dernière vérification en cache et continue de fonctionner normalement. Une panne côté éditeur ne bloque jamais l'envoi de vos emails.</p></section>
+<section><h2>5. Services tiers optionnels activés par vous</h2>
+<p>Neria propose des intégrations optionnelles (DeepL, Google Postmaster Tools, Google Search Console, PageSpeed Insights, Semrush, Moz), jamais activées par défaut : c'est vous qui choisissez de les connecter avec vos propres identifiants API.</p></section>
+<section><h2>6. Durée de conservation</h2>
+<p>Les données de licence sont conservées pendant toute la durée de vie de la licence, puis archivées le temps légalement requis avant suppression définitive.</p></section>
+<section><h2>7. Hébergement</h2>
+<p>Le serveur de licences est hébergé chez O2switch (France), aucun transfert hors de l'Union européenne n'est effectué.</p></section>
+<section><h2>8. Vos droits</h2>
+<p>Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation et de portabilité, ainsi que d'un droit d'opposition. Contactez <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>. Vous pouvez aussi introduire une réclamation auprès de la CNIL (www.cnil.fr).</p></section>
+<section><h2>9. Cookies</h2>
+<p>Le site utilise uniquement un cookie de session technique, nécessaire à l'authentification à l'espace d'administration. Aucun cookie publicitaire ou de traçage tiers.</p></section>
+<section><h2>10. Modifications</h2>
+<p>Cette politique peut être mise à jour ; la date figure en pied de page. Toute modification substantielle sera communiquée aux titulaires de licence actifs.</p></section>
+</div>
+
+<div id="en" class="lang-block">
+<section><h2>1. Who we are</h2>
+<p>This site (<strong>neriasoftware.com</strong>) is published by the author of the Neria — Luxury Email Suite module for PrestaShop. For any question, contact <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>.</p>
+<div class="note">Full legal identity of the publisher (company name, legal form, registration number, address): to be completed before final publication.</div></section>
+<section><h2>2. What the Neria module never does</h2>
+<p>Neria runs exclusively on your own server and database. <strong>Neriasoftware.com never hosts, receives, or accesses your customers' data.</strong> This data remains entirely under your own responsibility as data controller.</p></section>
+<section><h2>3. Data processed by the license server</h2>
+<p>The module makes a single external call to neriasoftware.com, at most once every 24 hours, to verify your license:</p>
+<table><tr><th>Data</th><th>Purpose</th><th>Legal basis</th></tr>
+<tr><td>License key</td><td>Identify your license</td><td>Contract performance</td></tr>
+<tr><td>Domain name</td><td>Bind license to your store</td><td>Contract performance</td></tr>
+<tr><td>Module version</td><td>Statistics, compatibility</td><td>Legitimate interest</td></tr>
+<tr><td>Purchase email</td><td>Domain-change confirmation, support</td><td>Contract performance</td></tr></table>
+<p><strong>No customer personal data is ever transmitted.</strong></p></section>
+<section><h2>4. Fault tolerance</h2>
+<p>If the server is temporarily unavailable, the module keeps the last cached check and keeps working normally. A failure never blocks your email sending.</p></section>
+<section><h2>5. Optional third-party services activated by you</h2>
+<p>Neria offers optional integrations (DeepL, Google Postmaster Tools, Search Console, PageSpeed Insights, Semrush, Moz), never enabled by default: you choose to connect them with your own API credentials.</p></section>
+<section><h2>6. Retention period</h2>
+<p>License data is kept for the license lifetime, then archived as legally required before final deletion.</p></section>
+<section><h2>7. Hosting</h2>
+<p>The license server is hosted by O2switch (France); no data leaves the European Union.</p></section>
+<section><h2>8. Your rights</h2>
+<p>Under GDPR, you have rights of access, rectification, erasure, restriction, portability and objection. Contact <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>. You may also lodge a complaint with your data protection authority.</p></section>
+<section><h2>9. Cookies</h2>
+<p>Only a technical session cookie is used, required for authentication to the admin area. No advertising or third-party tracking cookies.</p></section>
+<section><h2>10. Changes</h2>
+<p>This policy may be updated; the last change date appears in the footer. Substantial changes will be notified to active license holders.</p></section>
+</div>
+
+<div id="de" class="lang-block">
+<section><h2>1. Wer wir sind</h2>
+<p>Diese Website (<strong>neriasoftware.com</strong>) wird vom Autor des Moduls Neria — Luxury Email Suite für PrestaShop betrieben. Bei Fragen wenden Sie sich an <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>.</p>
+<div class="note">Vollständige rechtliche Identität des Herausgebers (Firmenname, Rechtsform, Handelsregisternummer, Anschrift): vor endgültiger Veröffentlichung zu ergänzen.</div></section>
+<section><h2>2. Was das Neria-Modul niemals tut</h2>
+<p>Neria läuft ausschließlich auf Ihrem eigenen Server und in Ihrer Datenbank. <strong>Neriasoftware.com speichert, empfängt oder greift niemals auf die Daten Ihrer Kunden zu.</strong> Diese Daten verbleiben vollständig in Ihrer eigenen Verantwortung als Verantwortlicher.</p></section>
+<section><h2>3. Vom Lizenzserver verarbeitete Daten</h2>
+<p>Das Modul führt höchstens einmal alle 24 Stunden einen einzigen externen Netzwerkaufruf an neriasoftware.com durch, um die Gültigkeit Ihrer Lizenz zu prüfen:</p>
+<table><tr><th>Daten</th><th>Zweck</th><th>Rechtsgrundlage</th></tr>
+<tr><td>Lizenzschlüssel</td><td>Identifikation Ihrer Lizenz</td><td>Vertragserfüllung</td></tr>
+<tr><td>Domainname</td><td>Bindung der Lizenz an Ihren Shop</td><td>Vertragserfüllung</td></tr>
+<tr><td>Modulversion</td><td>Statistik, Kompatibilität</td><td>Berechtigtes Interesse</td></tr>
+<tr><td>Kauf-E-Mail-Adresse</td><td>Bestätigung bei Domainwechsel, Support</td><td>Vertragserfüllung</td></tr></table>
+<p><strong>Es werden niemals personenbezogene Daten Ihrer Kunden übermittelt.</strong></p></section>
+<section><h2>4. Ausfalltoleranz</h2>
+<p>Bei vorübergehender Nichterreichbarkeit des Servers behält das Modul die zuletzt zwischengespeicherte Prüfung bei und funktioniert normal weiter. Eine Störung führt niemals zur Blockierung Ihres E-Mail-Versands.</p></section>
+<section><h2>5. Optionale Drittanbieterdienste, die Sie selbst aktivieren</h2>
+<p>Neria bietet optionale Integrationen (DeepL, Google Postmaster Tools, Search Console, PageSpeed Insights, Semrush, Moz), die nie standardmäßig aktiviert sind: Sie entscheiden selbst, diese mit Ihren eigenen API-Zugangsdaten zu verbinden.</p></section>
+<section><h2>6. Aufbewahrungsdauer</h2>
+<p>Lizenzdaten werden für die gesamte Laufzeit der Lizenz gespeichert, danach für den gesetzlich vorgeschriebenen Zeitraum archiviert und anschließend endgültig gelöscht.</p></section>
+<section><h2>7. Hosting</h2>
+<p>Der Lizenzserver wird bei O2switch (Frankreich) gehostet; es findet keine Datenübermittlung außerhalb der Europäischen Union statt.</p></section>
+<section><h2>8. Ihre Rechte</h2>
+<p>Gemäß DSGVO haben Sie ein Recht auf Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch. Kontakt: <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>. Sie können sich auch bei Ihrer zuständigen Datenschutzbehörde beschweren.</p></section>
+<section><h2>9. Cookies</h2>
+<p>Die Website verwendet nur ein technisches Session-Cookie, das für die Authentifizierung im Verwaltungsbereich erforderlich ist. Keine Werbe- oder Tracking-Cookies Dritter.</p></section>
+<section><h2>10. Änderungen</h2>
+<p>Diese Richtlinie kann aktualisiert werden; das Datum der letzten Änderung steht in der Fußzeile. Wesentliche Änderungen werden aktiven Lizenzinhabern mitgeteilt.</p></section>
+</div>
+
+<div id="it" class="lang-block">
+<section><h2>1. Chi siamo</h2>
+<p>Questo sito (<strong>neriasoftware.com</strong>) è pubblicato dall'autore del modulo Neria — Luxury Email Suite per PrestaShop. Per qualsiasi domanda, contattare <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>.</p>
+<div class="note">Identità legale completa dell'editore (ragione sociale, forma giuridica, numero di registrazione, indirizzo): da completare prima della pubblicazione definitiva.</div></section>
+<section><h2>2. Ciò che il modulo Neria non fa mai</h2>
+<p>Neria funziona esclusivamente sul vostro server e nel vostro database. <strong>Neriasoftware.com non ospita, riceve o consulta mai i dati dei vostri clienti.</strong> Questi dati restano interamente sotto la vostra responsabilità di titolare del trattamento.</p></section>
+<section><h2>3. Dati trattati dal server delle licenze</h2>
+<p>Il modulo effettua un'unica chiamata di rete esterna verso neriasoftware.com, al massimo una volta ogni 24 ore, per verificare la validità della licenza:</p>
+<table><tr><th>Dato</th><th>Finalità</th><th>Base giuridica</th></tr>
+<tr><td>Chiave di licenza</td><td>Identificare la licenza</td><td>Esecuzione del contratto</td></tr>
+<tr><td>Nome di dominio</td><td>Collegare la licenza al negozio</td><td>Esecuzione del contratto</td></tr>
+<tr><td>Versione del modulo</td><td>Statistiche, compatibilità</td><td>Interesse legittimo</td></tr>
+<tr><td>Email di acquisto</td><td>Conferma cambio dominio, assistenza</td><td>Esecuzione del contratto</td></tr></table>
+<p><strong>Nessun dato personale dei vostri clienti viene mai trasmesso.</strong></p></section>
+<section><h2>4. Tolleranza ai guasti</h2>
+<p>In caso di indisponibilità temporanea del server, il modulo conserva l'ultima verifica in cache e continua a funzionare normalmente. Un guasto lato editore non blocca mai l'invio delle email.</p></section>
+<section><h2>5. Servizi di terze parti opzionali attivati da voi</h2>
+<p>Neria offre integrazioni opzionali (DeepL, Google Postmaster Tools, Search Console, PageSpeed Insights, Semrush, Moz), mai attive di default: siete voi a scegliere di collegarle con le vostre credenziali API.</p></section>
+<section><h2>6. Periodo di conservazione</h2>
+<p>I dati di licenza sono conservati per tutta la durata della licenza, poi archiviati per il periodo legalmente richiesto prima della cancellazione definitiva.</p></section>
+<section><h2>7. Hosting</h2>
+<p>Il server delle licenze è ospitato presso O2switch (Francia); nessun trasferimento di dati avviene fuori dall'Unione Europea.</p></section>
+<section><h2>8. I vostri diritti</h2>
+<p>Ai sensi del GDPR, avete diritto di accesso, rettifica, cancellazione, limitazione, portabilità e opposizione. Contattate <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>. Potete anche presentare reclamo alla vostra autorità di controllo.</p></section>
+<section><h2>9. Cookie</h2>
+<p>Il sito utilizza solo un cookie di sessione tecnico, necessario per l'autenticazione all'area di amministrazione. Nessun cookie pubblicitario o di tracciamento di terze parti.</p></section>
+<section><h2>10. Modifiche</h2>
+<p>Questa informativa può essere aggiornata; la data dell'ultima modifica è indicata in fondo alla pagina. Le modifiche sostanziali saranno comunicate ai titolari di licenza attivi.</p></section>
+</div>
+
+<div id="es" class="lang-block">
+<section><h2>1. Quiénes somos</h2>
+<p>Este sitio (<strong>neriasoftware.com</strong>) está publicado por el autor del módulo Neria — Luxury Email Suite para PrestaShop. Para cualquier consulta, contacte con <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>.</p>
+<div class="note">Identidad legal completa del editor (razón social, forma jurídica, número de registro, dirección): pendiente de completar antes de la publicación definitiva.</div></section>
+<section><h2>2. Lo que el módulo Neria nunca hace</h2>
+<p>Neria funciona exclusivamente en su propio servidor y base de datos. <strong>Neriasoftware.com nunca aloja, recibe ni consulta los datos de sus clientes.</strong> Estos datos permanecen íntegramente bajo su responsabilidad como responsable del tratamiento.</p></section>
+<section><h2>3. Datos tratados por el servidor de licencias</h2>
+<p>El módulo realiza una única llamada de red externa a neriasoftware.com, como máximo una vez cada 24 horas, para verificar la validez de su licencia:</p>
+<table><tr><th>Dato</th><th>Finalidad</th><th>Base jurídica</th></tr>
+<tr><td>Clave de licencia</td><td>Identificar la licencia</td><td>Ejecución del contrato</td></tr>
+<tr><td>Nombre de dominio</td><td>Vincular la licencia a su tienda</td><td>Ejecución del contrato</td></tr>
+<tr><td>Versión del módulo</td><td>Estadísticas, compatibilidad</td><td>Interés legítimo</td></tr>
+<tr><td>Email de compra</td><td>Confirmación de cambio de dominio, soporte</td><td>Ejecución del contrato</td></tr></table>
+<p><strong>Nunca se transmiten datos personales de sus clientes.</strong></p></section>
+<section><h2>4. Tolerancia a fallos</h2>
+<p>En caso de indisponibilidad temporal del servidor, el módulo conserva la última verificación en caché y sigue funcionando con normalidad. Un fallo del editor nunca bloquea el envío de sus correos.</p></section>
+<section><h2>5. Servicios de terceros opcionales activados por usted</h2>
+<p>Neria ofrece integraciones opcionales (DeepL, Google Postmaster Tools, Search Console, PageSpeed Insights, Semrush, Moz), nunca activadas por defecto: es usted quien decide conectarlas con sus propias credenciales API.</p></section>
+<section><h2>6. Plazo de conservación</h2>
+<p>Los datos de licencia se conservan durante toda la vigencia de la licencia, y después se archivan el tiempo legalmente exigido antes de su eliminación definitiva.</p></section>
+<section><h2>7. Alojamiento</h2>
+<p>El servidor de licencias está alojado en O2switch (Francia); no se realiza ninguna transferencia fuera de la Unión Europea.</p></section>
+<section><h2>8. Sus derechos</h2>
+<p>Conforme al RGPD, tiene derecho de acceso, rectificación, supresión, limitación, portabilidad y oposición. Contacte con <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>. También puede presentar una reclamación ante su autoridad de control.</p></section>
+<section><h2>9. Cookies</h2>
+<p>El sitio utiliza únicamente una cookie de sesión técnica, necesaria para la autenticación en el área de administración. Ninguna cookie publicitaria ni de seguimiento de terceros.</p></section>
+<section><h2>10. Modificaciones</h2>
+<p>Esta política puede actualizarse; la fecha de la última modificación figura al pie de página. Los cambios sustanciales se comunicarán a los titulares de licencia activos.</p></section>
+</div>
+
+<div id="pt" class="lang-block">
+<section><h2>1. Quem somos</h2>
+<p>Este site (<strong>neriasoftware.com</strong>) é publicado pelo autor do módulo Neria — Luxury Email Suite para PrestaShop. Para qualquer questão, contacte <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>.</p>
+<div class="note">Identidade legal completa do editor (denominação social, forma jurídica, número de registo, morada): a completar antes da publicação definitiva.</div></section>
+<section><h2>2. O que o módulo Neria nunca faz</h2>
+<p>O Neria funciona exclusivamente no seu próprio servidor e base de dados. <strong>O Neriasoftware.com nunca aloja, recebe nem consulta os dados dos seus clientes.</strong> Esses dados permanecem integralmente sob a sua responsabilidade enquanto responsável pelo tratamento.</p></section>
+<section><h2>3. Dados tratados pelo servidor de licenças</h2>
+<p>O módulo efetua uma única chamada de rede externa para neriasoftware.com, no máximo uma vez a cada 24 horas, para verificar a validade da licença:</p>
+<table><tr><th>Dado</th><th>Finalidade</th><th>Base jurídica</th></tr>
+<tr><td>Chave de licença</td><td>Identificar a licença</td><td>Execução do contrato</td></tr>
+<tr><td>Nome de domínio</td><td>Associar a licença à loja</td><td>Execução do contrato</td></tr>
+<tr><td>Versão do módulo</td><td>Estatísticas, compatibilidade</td><td>Interesse legítimo</td></tr>
+<tr><td>Email de compra</td><td>Confirmação de mudança de domínio, suporte</td><td>Execução do contrato</td></tr></table>
+<p><strong>Nenhum dado pessoal dos seus clientes é alguma vez transmitido.</strong></p></section>
+<section><h2>4. Tolerância a falhas</h2>
+<p>Em caso de indisponibilidade temporária do servidor, o módulo mantém a última verificação em cache e continua a funcionar normalmente. Uma falha do lado do editor nunca bloqueia o envio dos seus emails.</p></section>
+<section><h2>5. Serviços de terceiros opcionais ativados por si</h2>
+<p>O Neria oferece integrações opcionais (DeepL, Google Postmaster Tools, Search Console, PageSpeed Insights, Semrush, Moz), nunca ativadas por predefinição: é o comerciante que escolhe ligá-las com as suas próprias credenciais API.</p></section>
+<section><h2>6. Prazo de conservação</h2>
+<p>Os dados de licença são conservados durante toda a vigência da licença, sendo depois arquivados pelo período legalmente exigido antes da eliminação definitiva.</p></section>
+<section><h2>7. Alojamento</h2>
+<p>O servidor de licenças está alojado na O2switch (França); não é efetuada qualquer transferência para fora da União Europeia.</p></section>
+<section><h2>8. Os seus direitos</h2>
+<p>Nos termos do RGPD, tem direito de acesso, retificação, apagamento, limitação, portabilidade e oposição. Contacte <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>. Pode também apresentar reclamação junto da sua autoridade de controlo.</p></section>
+<section><h2>9. Cookies</h2>
+<p>O site utiliza apenas um cookie de sessão técnico, necessário para a autenticação na área de administração. Nenhum cookie publicitário ou de rastreamento de terceiros.</p></section>
+<section><h2>10. Alterações</h2>
+<p>Esta política pode ser atualizada; a data da última alteração consta no rodapé. Alterações substanciais serão comunicadas aos titulares de licença ativos.</p></section>
+</div>
+
+<div id="br" class="lang-block">
+<section><h2>1. Quem somos</h2>
+<p>Este site (<strong>neriasoftware.com</strong>) é publicado pelo autor do módulo Neria — Luxury Email Suite para PrestaShop. Para qualquer dúvida, entre em contato pelo <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>.</p>
+<div class="note">Identidade legal completa do editor (razão social, forma jurídica, CNPJ/número de registro, endereço): a ser completada antes da publicação definitiva.</div></section>
+<section><h2>2. O que o módulo Neria nunca faz</h2>
+<p>O Neria funciona exclusivamente no seu próprio servidor e banco de dados. <strong>O Neriasoftware.com nunca hospeda, recebe nem acessa os dados dos seus clientes.</strong> Esses dados permanecem integralmente sob sua responsabilidade como controlador dos dados.</p></section>
+<section><h2>3. Dados tratados pelo servidor de licenças</h2>
+<p>O módulo faz uma única chamada de rede externa para neriasoftware.com, no máximo uma vez a cada 24 horas, para verificar a validade da licença:</p>
+<table><tr><th>Dado</th><th>Finalidade</th><th>Base legal</th></tr>
+<tr><td>Chave de licença</td><td>Identificar a licença</td><td>Execução do contrato</td></tr>
+<tr><td>Nome de domínio</td><td>Vincular a licença à loja</td><td>Execução do contrato</td></tr>
+<tr><td>Versão do módulo</td><td>Estatísticas, compatibilidade</td><td>Interesse legítimo</td></tr>
+<tr><td>Email de compra</td><td>Confirmação de troca de domínio, suporte</td><td>Execução do contrato</td></tr></table>
+<p><strong>Nenhum dado pessoal dos seus clientes é transmitido em nenhum momento.</strong></p></section>
+<section><h2>4. Tolerância a falhas</h2>
+<p>Em caso de indisponibilidade temporária do servidor, o módulo mantém a última verificação em cache e continua funcionando normalmente. Uma falha do lado do editor nunca bloqueia o envio dos seus emails.</p></section>
+<section><h2>5. Serviços de terceiros opcionais ativados por você</h2>
+<p>O Neria oferece integrações opcionais (DeepL, Google Postmaster Tools, Search Console, PageSpeed Insights, Semrush, Moz), nunca ativadas por padrão: é o lojista quem escolhe conectá-las com suas próprias credenciais de API.</p></section>
+<section><h2>6. Prazo de retenção</h2>
+<p>Os dados de licença são mantidos durante toda a vigência da licença, sendo depois arquivados pelo prazo legalmente exigido antes da exclusão definitiva.</p></section>
+<section><h2>7. Hospedagem</h2>
+<p>O servidor de licenças está hospedado na O2switch (França); nenhuma transferência de dados ocorre para fora da União Europeia.</p></section>
+<section><h2>8. Seus direitos</h2>
+<p>Em conformidade com a LGPD, você tem direito de acesso, retificação, exclusão, limitação, portabilidade e oposição. Entre em contato pelo <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>. Você também pode apresentar reclamação junto à ANPD.</p></section>
+<section><h2>9. Cookies</h2>
+<p>O site utiliza apenas um cookie de sessão técnico, necessário para a autenticação na área de administração. Nenhum cookie publicitário ou de rastreamento de terceiros.</p></section>
+<section><h2>10. Alterações</h2>
+<p>Esta política pode ser atualizada; a data da última alteração consta no rodapé. Alterações substanciais serão comunicadas aos titulares de licença ativos.</p></section>
+</div>
+
+<div id="gb" class="lang-block">
+<section><h2>1. Who we are</h2>
+<p>This site (<strong>neriasoftware.com</strong>) is published by the author of the Neria — Luxury Email Suite module for PrestaShop. For any question, contact <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>.</p>
+<div class="note">Full legal identity of the publisher (company name, legal form, registration number, address): to be completed before final publication.</div></section>
+<section><h2>2. What the Neria module never does</h2>
+<p>Neria runs exclusively on your own server and database. <strong>Neriasoftware.com never hosts, receives, or accesses your customers' data.</strong> This data remains entirely under your own responsibility as data controller.</p></section>
+<section><h2>3. Data processed by the licence server</h2>
+<p>The module makes a single external call to neriasoftware.com, at most once every 24 hours, to verify your licence:</p>
+<table><tr><th>Data</th><th>Purpose</th><th>Legal basis</th></tr>
+<tr><td>Licence key</td><td>Identify your licence</td><td>Contract performance</td></tr>
+<tr><td>Domain name</td><td>Bind licence to your store</td><td>Contract performance</td></tr>
+<tr><td>Module version</td><td>Statistics, compatibility</td><td>Legitimate interest</td></tr>
+<tr><td>Purchase email</td><td>Domain-change confirmation, support</td><td>Contract performance</td></tr></table>
+<p><strong>No customer personal data is ever transmitted.</strong></p></section>
+<section><h2>4. Fault tolerance</h2>
+<p>If the server is temporarily unavailable, the module keeps the last cached check and carries on working normally. A failure never blocks your email sending.</p></section>
+<section><h2>5. Optional third-party services activated by you</h2>
+<p>Neria offers optional integrations (DeepL, Google Postmaster Tools, Search Console, PageSpeed Insights, Semrush, Moz), never enabled by default: you choose to connect them using your own API credentials.</p></section>
+<section><h2>6. Retention period</h2>
+<p>Licence data is kept for the licence lifetime, then archived as legally required before final deletion.</p></section>
+<section><h2>7. Hosting</h2>
+<p>The licence server is hosted by O2switch (France); no data leaves the European Union.</p></section>
+<section><h2>8. Your rights</h2>
+<p>Under UK GDPR, you have rights of access, rectification, erasure, restriction, portability and objection. Contact <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>. You may also lodge a complaint with the ICO.</p></section>
+<section><h2>9. Cookies</h2>
+<p>Only a technical session cookie is used, required for authentication to the admin area. No advertising or third-party tracking cookies.</p></section>
+<section><h2>10. Changes</h2>
+<p>This policy may be updated; the last change date appears in the footer. Substantial changes will be notified to active licence holders.</p></section>
+</div>
+
+<div id="ar" class="lang-block" dir="rtl">
+<section><h2>1. من نحن</h2>
+<p>هذا الموقع (<strong>neriasoftware.com</strong>) ينشره مؤلف وحدة Neria — Luxury Email Suite لمنصة PrestaShop. لأي استفسار، يُرجى التواصل عبر <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>.</p>
+<div class="note">الهوية القانونية الكاملة للناشر (الاسم التجاري، الشكل القانوني، رقم التسجيل، العنوان): سيتم استكمالها قبل النشر النهائي.</div></section>
+<section><h2>2. ما لا تقوم به وحدة Neria أبدًا</h2>
+<p>تعمل Neria حصريًا على خادمكم وقاعدة بياناتكم الخاصة. <strong>لا يستضيف neriasoftware.com ولا يستلم ولا يطّلع أبدًا على بيانات عملائكم.</strong> تبقى هذه البيانات بالكامل تحت مسؤوليتكم بصفتكم المتحكم في المعالجة.</p></section>
+<section><h2>3. البيانات التي يعالجها خادم التراخيص</h2>
+<p>تُجري الوحدة اتصالاً شبكيًا خارجيًا واحدًا فقط بـ neriasoftware.com، مرة واحدة كل 24 ساعة كحد أقصى، للتحقق من صلاحية ترخيصكم:</p>
+<table><tr><th>البيانات</th><th>الغرض</th><th>الأساس القانوني</th></tr>
+<tr><td>مفتاح الترخيص</td><td>تحديد الترخيص</td><td>تنفيذ العقد</td></tr>
+<tr><td>اسم النطاق</td><td>ربط الترخيص بمتجركم</td><td>تنفيذ العقد</td></tr>
+<tr><td>إصدار الوحدة</td><td>إحصائيات، توافقية</td><td>مصلحة مشروعة</td></tr>
+<tr><td>بريد الشراء</td><td>تأكيد تغيير النطاق، الدعم</td><td>تنفيذ العقد</td></tr></table>
+<p><strong>لا تُنقل أي بيانات شخصية لعملائكم على الإطلاق.</strong></p></section>
+<section><h2>4. التسامح مع الأعطال</h2>
+<p>في حال عدم توفر الخادم مؤقتًا، تحتفظ الوحدة بآخر تحقق مخزّن مؤقتًا وتستمر في العمل بشكل طبيعي. لا يؤدي أي عطل من جهة الناشر أبدًا إلى حظر إرسال رسائلكم الإلكترونية.</p></section>
+<section><h2>5. خدمات خارجية اختيارية تُفعّلونها بأنفسكم</h2>
+<p>تقدّم Neria تكاملات اختيارية (DeepL، Google Postmaster Tools، Search Console، PageSpeed Insights، Semrush، Moz)، غير مُفعّلة افتراضيًا أبدًا: أنتم من يختار ربطها ببيانات اعتماد API الخاصة بكم.</p></section>
+<section><h2>6. مدة الاحتفاظ</h2>
+<p>تُحفظ بيانات الترخيص طوال مدة سريان الترخيص، ثم تُؤرشف للمدة المطلوبة قانونيًا قبل حذفها نهائيًا.</p></section>
+<section><h2>7. الاستضافة</h2>
+<p>يُستضاف خادم التراخيص لدى O2switch (فرنسا)؛ ولا يتم أي نقل للبيانات خارج الاتحاد الأوروبي.</p></section>
+<section><h2>8. حقوقكم</h2>
+<p>وفقًا للائحة العامة لحماية البيانات (GDPR)، لكم الحق في الوصول والتصحيح والحذف والتقييد ونقل البيانات والاعتراض. تواصلوا عبر <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>. يمكنكم أيضًا تقديم شكوى لدى الهيئة الرقابية المختصة.</p></section>
+<section><h2>9. ملفات تعريف الارتباط</h2>
+<p>يستخدم الموقع فقط ملف تعريف ارتباط تقني للجلسة، ضروري للمصادقة على مساحة الإدارة. لا توجد ملفات تعريف ارتباط إعلانية أو تتبع من أطراف ثالثة.</p></section>
+<section><h2>10. التعديلات</h2>
+<p>يمكن تحديث هذه السياسة؛ يظهر تاريخ آخر تعديل في أسفل الصفحة. سيتم إبلاغ حاملي التراخيص الفعّالة بأي تعديل جوهري.</p></section>
+</div>
+
+<div id="ja" class="lang-block">
+<section><h2>1. 運営者について</h2>
+<p>本サイト（<strong>neriasoftware.com</strong>）は、PrestaShop 向けモジュール Neria — Luxury Email Suite の作者が運営しています。ご質問は <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a> までお問い合わせください。</p>
+<div class="note">発行者の完全な法的情報（会社名、法的形態、登録番号、住所）：正式公開前に記載予定です。</div></section>
+<section><h2>2. Neriaモジュールが決して行わないこと</h2>
+<p>Neriaはお客様ご自身のサーバーおよびデータベース上でのみ動作します。<strong>neriasoftware.com がお客様の顧客データを保存・受信・閲覧することは一切ありません。</strong>これらのデータは、データ管理者としてのお客様の責任のもとに完全に保持されます。</p></section>
+<section><h2>3. ライセンスサーバーが処理するデータ</h2>
+<p>モジュールは、ライセンスの有効性を確認するため、最大24時間に1回、neriasoftware.comへの外部通信を1件のみ行います：</p>
+<table><tr><th>データ</th><th>目的</th><th>法的根拠</th></tr>
+<tr><td>ライセンスキー</td><td>ライセンスの識別</td><td>契約の履行</td></tr>
+<tr><td>ドメイン名</td><td>ライセンスと店舗の紐付け</td><td>契約の履行</td></tr>
+<tr><td>モジュールバージョン</td><td>統計、互換性</td><td>正当な利益</td></tr>
+<tr><td>購入時のメールアドレス</td><td>ドメイン変更確認、サポート</td><td>契約の履行</td></tr></table>
+<p><strong>お客様の顧客の個人情報が送信されることは一切ございません。</strong></p></section>
+<section><h2>4. 障害耐性</h2>
+<p>サーバーが一時的に利用できない場合、モジュールは最後にキャッシュされた確認結果を保持し、通常どおり動作を継続します。開発元側の障害によってメール送信が妨げられることはございません。</p></section>
+<section><h2>5. お客様ご自身が有効化する任意の第三者サービス</h2>
+<p>Neriaは任意の連携機能（DeepL、Gmail Postmaster Tools、Search Console、PageSpeed Insights、Semrush、Moz）を提供していますが、これらは初期状態では有効化されておらず、お客様ご自身のAPI認証情報を用いて接続するかどうかを選択いただけます。</p></section>
+<section><h2>6. 保存期間</h2>
+<p>ライセンスデータはライセンスの有効期間中保存され、その後法的に required な期間アーカイブされたのち、完全に削除されます。</p></section>
+<section><h2>7. ホスティング</h2>
+<p>ライセンスサーバーはO2switch（フランス）にホスティングされており、欧州連合域外へのデータ移転は一切行われません。</p></section>
+<section><h2>8. お客様の権利</h2>
+<p>GDPRに基づき、お客様にはアクセス権、訂正権、削除権、処理制限権、データポータビリティの権利、および異議申立権があります。<a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>までご連絡ください。所管のデータ保護当局への申し立ても可能です。</p></section>
+<section><h2>9. Cookie（クッキー）</h2>
+<p>本サイトでは、管理画面への認証に必要な技術的セッションCookieのみを使用しています。広告目的や第三者による追跡Cookieは一切使用しておりません。</p></section>
+<section><h2>10. 変更</h2>
+<p>本ポリシーは更新されることがあります。最終更新日はページ下部に記載します。重要な変更については、有効なライセンス保有者にお知らせいたします。</p></section>
+</div>
+
+<div id="ko" class="lang-block">
+<section><h2>1. 운영자 소개</h2>
+<p>본 사이트(<strong>neriasoftware.com</strong>)는 PrestaShop용 모듈 Neria — Luxury Email Suite의 제작자가 운영합니다. 문의 사항은 <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>으로 연락해 주십시오.</p>
+<div class="note">발행자의 완전한 법적 정보(상호, 법적 형태, 등록번호, 주소): 정식 공개 전 기재 예정입니다.</div></section>
+<section><h2>2. Neria 모듈이 절대 하지 않는 것</h2>
+<p>Neria는 귀하의 서버와 데이터베이스에서만 작동합니다. <strong>neriasoftware.com은 귀하의 고객 데이터를 저장, 수신, 열람하지 않습니다.</strong> 이러한 데이터는 데이터 컨트롤러로서 귀하의 책임하에 전적으로 유지됩니다.</p></section>
+<section><h2>3. 라이선스 서버가 처리하는 데이터</h2>
+<p>모듈은 라이선스 유효성을 확인하기 위해 최대 24시간에 한 번, neriasoftware.com으로 단 한 건의 외부 통신을 수행합니다:</p>
+<table><tr><th>데이터</th><th>목적</th><th>법적 근거</th></tr>
+<tr><td>라이선스 키</td><td>라이선스 식별</td><td>계약 이행</td></tr>
+<tr><td>도메인 이름</td><td>라이선스와 매장 연결</td><td>계약 이행</td></tr>
+<tr><td>모듈 버전</td><td>통계, 호환성</td><td>정당한 이익</td></tr>
+<tr><td>구매 이메일</td><td>도메인 변경 확인, 지원</td><td>계약 이행</td></tr></table>
+<p><strong>귀하의 고객 개인정보는 어떠한 경우에도 전송되지 않습니다.</strong></p></section>
+<section><h2>4. 장애 허용</h2>
+<p>서버가 일시적으로 사용할 수 없는 경우, 모듈은 마지막으로 캐시된 확인 결과를 유지하며 정상적으로 계속 작동합니다. 개발사 측 장애로 인해 이메일 발송이 차단되는 일은 없습니다.</p></section>
+<section><h2>5. 귀하가 직접 활성화하는 선택적 제3자 서비스</h2>
+<p>Neria는 선택적 연동 기능(DeepL, Gmail Postmaster Tools, Search Console, PageSpeed Insights, Semrush, Moz)을 제공하지만 기본적으로 활성화되지 않으며, 귀하가 직접 API 자격 증명을 사용하여 연결 여부를 선택합니다.</p></section>
+<section><h2>6. 보관 기간</h2>
+<p>라이선스 데이터는 라이선스 유효 기간 동안 보관되며, 이후 법적으로 요구되는 기간 동안 보관된 후 완전히 삭제됩니다.</p></section>
+<section><h2>7. 호스팅</h2>
+<p>라이선스 서버는 O2switch(프랑스)에서 호스팅되며, 유럽연합 역외로의 데이터 이전은 이루어지지 않습니다.</p></section>
+<section><h2>8. 귀하의 권리</h2>
+<p>GDPR에 따라 귀하는 열람, 정정, 삭제, 처리 제한, 데이터 이동권 및 반대 권리를 가집니다. <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>으로 연락해 주십시오. 관할 데이터 보호 당국에 이의를 제기할 수도 있습니다.</p></section>
+<section><h2>9. 쿠키</h2>
+<p>본 사이트는 관리자 페이지 인증에 필요한 기술적 세션 쿠키만 사용합니다. 광고 또는 제3자 추적 쿠키는 사용하지 않습니다.</p></section>
+<section><h2>10. 변경 사항</h2>
+<p>본 정책은 업데이트될 수 있으며, 최종 변경일은 하단에 표시됩니다. 중대한 변경 사항은 유효한 라이선스 보유자에게 통지됩니다.</p></section>
+</div>
+
+<div id="zh" class="lang-block">
+<section><h2>1. 关于我们</h2>
+<p>本网站（<strong>neriasoftware.com</strong>）由 PrestaShop 模块 Neria — Luxury Email Suite 的作者运营。如有任何疑问，请联系 <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>。</p>
+<div class="note">发行方完整法律信息（公司名称、法律形式、注册号、地址）：将在正式发布前补充。</div></section>
+<section><h2>2. Neria 模块绝不会做的事</h2>
+<p>Neria 仅在您自己的服务器和数据库中运行。<strong>neriasoftware.com 绝不会存储、接收或查看您客户的数据。</strong>这些数据完全由您作为数据控制者自行负责保管。</p></section>
+<section><h2>3. 许可证服务器所处理的数据</h2>
+<p>该模块最多每 24 小时向 neriasoftware.com 发起一次外部网络请求，以验证您的许可证有效性：</p>
+<table><tr><th>数据</th><th>用途</th><th>法律依据</th></tr>
+<tr><td>许可证密钥</td><td>识别您的许可证</td><td>合同履行</td></tr>
+<tr><td>域名</td><td>将许可证与店铺绑定</td><td>合同履行</td></tr>
+<tr><td>模块版本</td><td>统计、兼容性</td><td>合法利益</td></tr>
+<tr><td>购买邮箱</td><td>域名变更确认、客户支持</td><td>合同履行</td></tr></table>
+<p><strong>绝不会传输您客户的任何个人数据。</strong></p></section>
+<section><h2>4. 容错机制</h2>
+<p>若服务器暂时不可用，模块将保留最近一次缓存的验证结果，并继续正常运作。开发方一侧的故障绝不会阻止您的邮件发送。</p></section>
+<section><h2>5. 由您自行启用的可选第三方服务</h2>
+<p>Neria 提供可选集成（DeepL、Google Postmaster Tools、Search Console、PageSpeed Insights、Semrush、Moz），默认从不启用：由您自行决定是否使用您自己的 API 凭证进行连接。</p></section>
+<section><h2>6. 保留期限</h2>
+<p>许可证数据将在许可证有效期内保留，此后按法律要求的期限归档，最终予以彻底删除。</p></section>
+<section><h2>7. 托管</h2>
+<p>许可证服务器托管于 O2switch（法国），不会向欧盟以外传输任何数据。</p></section>
+<section><h2>8. 您的权利</h2>
+<p>依据 GDPR，您享有访问权、更正权、删除权、限制处理权、数据可携带权及反对权。请联系 <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>。您也可以向所在地数据保护主管机构投诉。</p></section>
+<section><h2>9. Cookie</h2>
+<p>本网站仅使用管理后台身份验证所必需的技术性会话 Cookie，不使用任何广告或第三方追踪 Cookie。</p></section>
+<section><h2>10. 变更</h2>
+<p>本政策可能会更新，最近一次修改日期显示于页脚。重大变更将通知有效许可证持有者。</p></section>
+</div>
+
+<div id="tw" class="lang-block">
+<section><h2>1. 關於我們</h2>
+<p>本網站（<strong>neriasoftware.com</strong>）由 PrestaShop 模組 Neria — Luxury Email Suite 的作者營運。如有任何疑問，請聯繫 <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>。</p>
+<div class="note">發行方完整法律資訊（公司名稱、法律形式、統一編號、地址）：將於正式發布前補充。</div></section>
+<section><h2>2. Neria 模組絕不會做的事</h2>
+<p>Neria 僅在您自己的伺服器與資料庫中運作。<strong>neriasoftware.com 絕不會儲存、接收或檢視您客戶的資料。</strong>這些資料完全由您以資料控管者身份自行負責保管。</p></section>
+<section><h2>3. 授權伺服器所處理的資料</h2>
+<p>此模組最多每 24 小時向 neriasoftware.com 發出一次外部網路請求，以驗證您的授權有效性：</p>
+<table><tr><th>資料</th><th>用途</th><th>法律依據</th></tr>
+<tr><td>授權金鑰</td><td>識別您的授權</td><td>合約履行</td></tr>
+<tr><td>網域名稱</td><td>將授權與店家綁定</td><td>合約履行</td></tr>
+<tr><td>模組版本</td><td>統計、相容性</td><td>合法利益</td></tr>
+<tr><td>購買信箱</td><td>網域變更確認、客戶支援</td><td>合約履行</td></tr></table>
+<p><strong>絕不會傳送您客戶的任何個人資料。</strong></p></section>
+<section><h2>4. 容錯機制</h2>
+<p>若伺服器暫時無法使用，模組將保留最近一次快取的驗證結果，並持續正常運作。開發方一側的故障絕不會阻擋您的郵件寄送。</p></section>
+<section><h2>5. 由您自行啟用的選用第三方服務</h2>
+<p>Neria 提供選用整合（DeepL、Google Postmaster Tools、Search Console、PageSpeed Insights、Semrush、Moz），預設從不啟用：由您自行決定是否使用您自己的 API 憑證進行連接。</p></section>
+<section><h2>6. 保存期限</h2>
+<p>授權資料將於授權有效期間內保存，此後按法律要求的期限歸檔，最終予以徹底刪除。</p></section>
+<section><h2>7. 託管</h2>
+<p>授權伺服器託管於 O2switch（法國），不會向歐盟以外傳輸任何資料。</p></section>
+<section><h2>8. 您的權利</h2>
+<p>依據 GDPR，您享有查閱權、更正權、刪除權、限制處理權、資料可攜權及反對權。請聯繫 <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>。您也可以向所在地資料保護主管機關提出申訴。</p></section>
+<section><h2>9. Cookie</h2>
+<p>本網站僅使用管理後台身分驗證所必需的技術性工作階段 Cookie，不使用任何廣告或第三方追蹤 Cookie。</p></section>
+<section><h2>10. 變更</h2>
+<p>本政策可能會更新，最近一次修改日期顯示於頁尾。重大變更將通知有效授權持有者。</p></section>
+</div>
+
+<div id="ru" class="lang-block">
+<section><h2>1. Кто мы</h2>
+<p>Этот сайт (<strong>neriasoftware.com</strong>) публикуется автором модуля Neria — Luxury Email Suite для PrestaShop. По любым вопросам обращайтесь на <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>.</p>
+<div class="note">Полные юридические данные издателя (название компании, организационно-правовая форма, регистрационный номер, адрес): будут добавлены перед окончательной публикацией.</div></section>
+<section><h2>2. Что модуль Neria никогда не делает</h2>
+<p>Neria работает исключительно на вашем собственном сервере и в вашей базе данных. <strong>Neriasoftware.com никогда не хранит, не получает и не просматривает данные ваших клиентов.</strong> Эти данные полностью остаются под вашей ответственностью как оператора данных.</p></section>
+<section><h2>3. Данные, обрабатываемые сервером лицензий</h2>
+<p>Модуль выполняет единственное внешнее сетевое подключение к neriasoftware.com, максимум раз в 24 часа, для проверки действительности лицензии:</p>
+<table><tr><th>Данные</th><th>Цель</th><th>Правовое основание</th></tr>
+<tr><td>Лицензионный ключ</td><td>Идентификация лицензии</td><td>Исполнение договора</td></tr>
+<tr><td>Доменное имя</td><td>Привязка лицензии к магазину</td><td>Исполнение договора</td></tr>
+<tr><td>Версия модуля</td><td>Статистика, совместимость</td><td>Законный интерес</td></tr>
+<tr><td>Email покупки</td><td>Подтверждение смены домена, поддержка</td><td>Исполнение договора</td></tr></table>
+<p><strong>Персональные данные ваших клиентов никогда не передаются.</strong></p></section>
+<section><h2>4. Устойчивость к сбоям</h2>
+<p>При временной недоступности сервера модуль сохраняет последнюю кэшированную проверку и продолжает работать в обычном режиме. Сбой на стороне разработчика никогда не блокирует отправку ваших писем.</p></section>
+<section><h2>5. Дополнительные сторонние сервисы, включаемые вами</h2>
+<p>Neria предлагает дополнительные интеграции (DeepL, Gmail Postmaster Tools, Search Console, PageSpeed Insights, Semrush, Moz), которые никогда не включены по умолчанию: вы сами решаете подключать их с помощью собственных учётных данных API.</p></section>
+<section><h2>6. Срок хранения</h2>
+<p>Данные лицензии хранятся в течение всего срока действия лицензии, затем архивируются на срок, требуемый законом, после чего окончательно удаляются.</p></section>
+<section><h2>7. Хостинг</h2>
+<p>Сервер лицензий размещён у O2switch (Франция); передача данных за пределы Европейского союза не осуществляется.</p></section>
+<section><h2>8. Ваши права</h2>
+<p>В соответствии с GDPR вы имеете право на доступ, исправление, удаление, ограничение обработки, переносимость данных и возражение. Обращайтесь на <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>. Вы также можете подать жалобу в соответствующий надзорный орган.</p></section>
+<section><h2>9. Файлы cookie</h2>
+<p>Сайт использует только технический сеансовый файл cookie, необходимый для аутентификации в панели администрирования. Никаких рекламных или сторонних файлов отслеживания.</p></section>
+<section><h2>10. Изменения</h2>
+<p>Данная политика может обновляться; дата последнего изменения указана внизу страницы. О существенных изменениях будут уведомлены активные держатели лицензий.</p></section>
+</div>
+
+<div id="tr" class="lang-block">
+<section><h2>1. Biz kimiz</h2>
+<p>Bu site (<strong>neriasoftware.com</strong>), PrestaShop için Neria — Luxury Email Suite modülünün yazarı tarafından yayınlanmaktadır. Herhangi bir sorunuz için <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a> adresiyle iletişime geçin.</p>
+<div class="note">Yayıncının tam yasal kimliği (şirket adı, hukuki yapı, sicil numarası, adres): nihai yayından önce tamamlanacaktır.</div></section>
+<section><h2>2. Neria modülünün asla yapmadığı şeyler</h2>
+<p>Neria yalnızca kendi sunucunuzda ve veritabanınızda çalışır. <strong>Neriasoftware.com, müşterilerinizin verilerini asla barındırmaz, almaz veya görüntülemez.</strong> Bu veriler, veri sorumlusu olarak sizin sorumluluğunuzda tamamen kalır.</p></section>
+<section><h2>3. Lisans sunucusu tarafından işlenen veriler</h2>
+<p>Modül, lisansınızın geçerliliğini doğrulamak için en fazla 24 saatte bir, neriasoftware.com'a tek bir harici ağ bağlantısı kurar:</p>
+<table><tr><th>Veri</th><th>Amaç</th><th>Hukuki dayanak</th></tr>
+<tr><td>Lisans anahtarı</td><td>Lisansınızı belirlemek</td><td>Sözleşmenin ifası</td></tr>
+<tr><td>Alan adı</td><td>Lisansı mağazanıza bağlamak</td><td>Sözleşmenin ifası</td></tr>
+<tr><td>Modül sürümü</td><td>İstatistik, uyumluluk</td><td>Meşru menfaat</td></tr>
+<tr><td>Satın alma e-postası</td><td>Alan adı değişikliği onayı, destek</td><td>Sözleşmenin ifası</td></tr></table>
+<p><strong>Müşterilerinizin kişisel verileri hiçbir zaman aktarılmaz.</strong></p></section>
+<section><h2>4. Arıza toleransı</h2>
+<p>Sunucunun geçici olarak erişilemez olması durumunda, modül son önbelleğe alınmış kontrolü korur ve normal şekilde çalışmaya devam eder. Yayıncı tarafındaki bir arıza, e-posta gönderiminizi asla engellemez.</p></section>
+<section><h2>5. Sizin etkinleştirdiğiniz isteğe bağlı üçüncü taraf hizmetleri</h2>
+<p>Neria, varsayılan olarak asla etkinleştirilmeyen isteğe bağlı entegrasyonlar sunar (DeepL, Gmail Postmaster Tools, Search Console, PageSpeed Insights, Semrush, Moz): bunları kendi API kimlik bilgilerinizle bağlamayı siz seçersiniz.</p></section>
+<section><h2>6. Saklama süresi</h2>
+<p>Lisans verileri, lisansın tüm süresi boyunca saklanır, ardından yasal olarak gereken süre kadar arşivlenir ve nihayetinde kalıcı olarak silinir.</p></section>
+<section><h2>7. Barındırma</h2>
+<p>Lisans sunucusu O2switch'te (Fransa) barındırılmaktadır; Avrupa Birliği dışına hiçbir veri aktarımı yapılmaz.</p></section>
+<section><h2>8. Haklarınız</h2>
+<p>GDPR uyarınca; erişim, düzeltme, silme, işlemeyi kısıtlama, veri taşınabilirliği ve itiraz hakkına sahipsiniz. <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a> ile iletişime geçin. Ayrıca yetkili veri koruma otoritesine şikayette bulunabilirsiniz.</p></section>
+<section><h2>9. Çerezler</h2>
+<p>Site yalnızca yönetim alanına kimlik doğrulama için gerekli teknik bir oturum çerezi kullanır. Reklam veya üçüncü taraf izleme çerezi kullanılmaz.</p></section>
+<section><h2>10. Değişiklikler</h2>
+<p>Bu politika güncellenebilir; son değişiklik tarihi altbilgide belirtilir. Önemli değişiklikler aktif lisans sahiplerine bildirilecektir.</p></section>
+</div>
+
+<div id="sv" class="lang-block">
+<section><h2>1. Vem vi är</h2>
+<p>Denna webbplats (<strong>neriasoftware.com</strong>) publiceras av upphovsmannen till modulen Neria — Luxury Email Suite för PrestaShop. Vid frågor, kontakta <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>.</p>
+<div class="note">Utgivarens fullständiga juridiska identitet (företagsnamn, juridisk form, registreringsnummer, adress): kompletteras före slutlig publicering.</div></section>
+<section><h2>2. Vad Neria-modulen aldrig gör</h2>
+<p>Neria körs uteslutande på er egen server och i er egen databas. <strong>Neriasoftware.com lagrar, tar aldrig emot eller granskar era kunders data.</strong> Dessa data förblir helt under ert eget ansvar som personuppgiftsansvarig.</p></section>
+<section><h2>3. Data som behandlas av licensservern</h2>
+<p>Modulen gör ett enda externt nätverksanrop till neriasoftware.com, högst en gång var 24:e timme, för att kontrollera er licens giltighet:</p>
+<table><tr><th>Data</th><th>Syfte</th><th>Rättslig grund</th></tr>
+<tr><td>Licensnyckel</td><td>Identifiera er licens</td><td>Fullgörande av avtal</td></tr>
+<tr><td>Domännamn</td><td>Koppla licensen till er butik</td><td>Fullgörande av avtal</td></tr>
+<tr><td>Modulversion</td><td>Statistik, kompatibilitet</td><td>Berättigat intresse</td></tr>
+<tr><td>Köp-e-post</td><td>Bekräftelse vid domänbyte, support</td><td>Fullgörande av avtal</td></tr></table>
+<p><strong>Era kunders personuppgifter överförs aldrig.</strong></p></section>
+<section><h2>4. Feltolerans</h2>
+<p>Om servern tillfälligt är otillgänglig behåller modulen den senast cachade kontrollen och fortsätter fungera normalt. Ett driftsstopp hos utgivaren blockerar aldrig era e-postutskick.</p></section>
+<section><h2>5. Valfria tredjepartstjänster som ni själva aktiverar</h2>
+<p>Neria erbjuder valfria integrationer (DeepL, Gmail Postmaster Tools, Search Console, PageSpeed Insights, Semrush, Moz), som aldrig är aktiverade som standard: ni väljer själva att ansluta dem med era egna API-uppgifter.</p></section>
+<section><h2>6. Lagringstid</h2>
+<p>Licensdata sparas under hela licensens livstid, arkiveras sedan under den lagstadgade perioden innan slutgiltig radering.</p></section>
+<section><h2>7. Hosting</h2>
+<p>Licensservern är hostad hos O2switch (Frankrike); ingen dataöverföring sker utanför Europeiska unionen.</p></section>
+<section><h2>8. Era rättigheter</h2>
+<p>Enligt GDPR har ni rätt till tillgång, rättelse, radering, begränsning, dataportabilitet och invändning. Kontakta <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>. Ni kan även lämna in ett klagomål till er tillsynsmyndighet.</p></section>
+<section><h2>9. Cookies</h2>
+<p>Webbplatsen använder endast en teknisk sessionscookie, nödvändig för autentisering till administrationsområdet. Inga reklam- eller tredjepartsspårningscookies.</p></section>
+<section><h2>10. Ändringar</h2>
+<p>Denna policy kan uppdateras; datumet för senaste ändring anges i sidfoten. Väsentliga ändringar kommer att meddelas till aktiva licensinnehavare.</p></section>
+</div>
+
+<div id="no" class="lang-block">
+<section><h2>1. Hvem vi er</h2>
+<p>Dette nettstedet (<strong>neriasoftware.com</strong>) publiseres av opphavspersonen bak modulen Neria — Luxury Email Suite for PrestaShop. Ved spørsmål, kontakt <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>.</p>
+<div class="note">Utgiverens fullstendige juridiske identitet (firmanavn, juridisk form, organisasjonsnummer, adresse): fylles ut før endelig publisering.</div></section>
+<section><h2>2. Hva Neria-modulen aldri gjør</h2>
+<p>Neria kjører utelukkende på din egen server og database. <strong>Neriasoftware.com lagrer, mottar eller innser aldri dine kunders data.</strong> Disse dataene forblir fullstendig under ditt eget ansvar som behandlingsansvarlig.</p></section>
+<section><h2>3. Data som behandles av lisensserveren</h2>
+<p>Modulen gjør ett enkelt eksternt nettverkskall til neriasoftware.com, maksimalt én gang hver 24. time, for å kontrollere lisensens gyldighet:</p>
+<table><tr><th>Data</th><th>Formål</th><th>Rettslig grunnlag</th></tr>
+<tr><td>Lisensnøkkel</td><td>Identifisere lisensen</td><td>Oppfyllelse av avtale</td></tr>
+<tr><td>Domenenavn</td><td>Knytte lisensen til butikken</td><td>Oppfyllelse av avtale</td></tr>
+<tr><td>Modulversjon</td><td>Statistikk, kompatibilitet</td><td>Berettiget interesse</td></tr>
+<tr><td>Kjøps-e-post</td><td>Bekreftelse ved domeneendring, support</td><td>Oppfyllelse av avtale</td></tr></table>
+<p><strong>Dine kunders personopplysninger overføres aldri.</strong></p></section>
+<section><h2>4. Feiltoleranse</h2>
+<p>Hvis serveren midlertidig er utilgjengelig, beholder modulen den sist bufrede kontrollen og fortsetter å fungere normalt. En feil hos utgiveren blokkerer aldri e-postutsendingene dine.</p></section>
+<section><h2>5. Valgfrie tredjepartstjenester du selv aktiverer</h2>
+<p>Neria tilbyr valgfrie integrasjoner (DeepL, Gmail Postmaster Tools, Search Console, PageSpeed Insights, Semrush, Moz), som aldri er aktivert som standard: du velger selv å koble dem til med dine egne API-legitimasjoner.</p></section>
+<section><h2>6. Lagringstid</h2>
+<p>Lisensdata lagres i hele lisensens levetid, arkiveres deretter i den lovpålagte perioden før endelig sletting.</p></section>
+<section><h2>7. Hosting</h2>
+<p>Lisensserveren er hostet hos O2switch (Frankrike); ingen dataoverføring skjer utenfor EU/EØS.</p></section>
+<section><h2>8. Dine rettigheter</h2>
+<p>I henhold til GDPR har du rett til innsyn, retting, sletting, begrensning, dataportabilitet og innsigelse. Kontakt <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>. Du kan også klage til din tilsynsmyndighet.</p></section>
+<section><h2>9. Informasjonskapsler</h2>
+<p>Nettstedet bruker kun en teknisk øktinformasjonskapsel, nødvendig for autentisering til administrasjonsområdet. Ingen reklame- eller tredjeparts sporingskapsler.</p></section>
+<section><h2>10. Endringer</h2>
+<p>Denne policyen kan oppdateres; datoen for siste endring vises i bunnteksten. Vesentlige endringer vil bli varslet til aktive lisensinnehavere.</p></section>
+</div>
+
+<div id="da" class="lang-block">
+<section><h2>1. Hvem vi er</h2>
+<p>Dette websted (<strong>neriasoftware.com</strong>) udgives af ophavsmanden til modulet Neria — Luxury Email Suite til PrestaShop. Ved spørgsmål, kontakt <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>.</p>
+<div class="note">Udgiverens fuldstændige juridiske identitet (firmanavn, juridisk form, CVR-nummer, adresse): udfyldes inden endelig offentliggørelse.</div></section>
+<section><h2>2. Hvad Neria-modulet aldrig gør</h2>
+<p>Neria kører udelukkende på din egen server og database. <strong>Neriasoftware.com opbevarer, modtager eller tilgår aldrig dine kunders data.</strong> Disse data forbliver fuldt ud under dit eget ansvar som dataansvarlig.</p></section>
+<section><h2>3. Data behandlet af licensserveren</h2>
+<p>Modulet foretager ét enkelt eksternt netværkskald til neriasoftware.com, højst én gang hver 24. time, for at kontrollere din licens gyldighed:</p>
+<table><tr><th>Data</th><th>Formål</th><th>Retsgrundlag</th></tr>
+<tr><td>Licensnøgle</td><td>Identificere din licens</td><td>Opfyldelse af aftale</td></tr>
+<tr><td>Domænenavn</td><td>Knytte licensen til din butik</td><td>Opfyldelse af aftale</td></tr>
+<tr><td>Modulversion</td><td>Statistik, kompatibilitet</td><td>Legitim interesse</td></tr>
+<tr><td>Køb-e-mail</td><td>Bekræftelse ved domæneskift, support</td><td>Opfyldelse af aftale</td></tr></table>
+<p><strong>Dine kunders personoplysninger overføres aldrig.</strong></p></section>
+<section><h2>4. Fejltolerance</h2>
+<p>Hvis serveren midlertidigt er utilgængelig, bevarer modulet den senest cachelagrede kontrol og fortsætter med at fungere normalt. En fejl hos udgiveren blokerer aldrig dine e-mailudsendelser.</p></section>
+<section><h2>5. Valgfrie tredjepartstjenester du selv aktiverer</h2>
+<p>Neria tilbyder valgfrie integrationer (DeepL, Gmail Postmaster Tools, Search Console, PageSpeed Insights, Semrush, Moz), som aldrig er aktiveret som standard: du vælger selv at forbinde dem med dine egne API-oplysninger.</p></section>
+<section><h2>6. Opbevaringsperiode</h2>
+<p>Licensdata opbevares i hele licensens levetid, arkiveres derefter i den lovpligtige periode inden endelig sletning.</p></section>
+<section><h2>7. Hosting</h2>
+<p>Licensserveren hostes hos O2switch (Frankrig); der overføres ingen data uden for EU.</p></section>
+<section><h2>8. Dine rettigheder</h2>
+<p>I henhold til GDPR har du ret til indsigt, berigtigelse, sletning, begrænsning, dataportabilitet og indsigelse. Kontakt <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>. Du kan også indgive en klage til din tilsynsmyndighed.</p></section>
+<section><h2>9. Cookies</h2>
+<p>Webstedet bruger kun en teknisk sessionscookie, nødvendig for autentificering til administrationsområdet. Ingen reklame- eller tredjeparts sporingscookies.</p></section>
+<section><h2>10. Ændringer</h2>
+<p>Denne politik kan opdateres; datoen for seneste ændring fremgår af sidefoden. Væsentlige ændringer vil blive meddelt aktive licensindehavere.</p></section>
+</div>
+
+<div id="nl" class="lang-block">
+<section><h2>1. Wie wij zijn</h2>
+<p>Deze site (<strong>neriasoftware.com</strong>) wordt gepubliceerd door de auteur van de module Neria — Luxury Email Suite voor PrestaShop. Voor vragen, neem contact op via <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>.</p>
+<div class="note">Volledige juridische identiteit van de uitgever (bedrijfsnaam, rechtsvorm, registratienummer, adres): wordt aangevuld vóór definitieve publicatie.</div></section>
+<section><h2>2. Wat de Neria-module nooit doet</h2>
+<p>Neria draait uitsluitend op uw eigen server en database. <strong>Neriasoftware.com slaat de gegevens van uw klanten nooit op, ontvangt of raadpleegt deze nooit.</strong> Deze gegevens blijven volledig onder uw eigen verantwoordelijkheid als verwerkingsverantwoordelijke.</p></section>
+<section><h2>3. Gegevens verwerkt door de licentieserver</h2>
+<p>De module maakt hooguit eenmaal per 24 uur één externe netwerkverbinding met neriasoftware.com om de geldigheid van uw licentie te controleren:</p>
+<table><tr><th>Gegeven</th><th>Doel</th><th>Rechtsgrond</th></tr>
+<tr><td>Licentiesleutel</td><td>Uw licentie identificeren</td><td>Uitvoering van de overeenkomst</td></tr>
+<tr><td>Domeinnaam</td><td>Licentie koppelen aan uw winkel</td><td>Uitvoering van de overeenkomst</td></tr>
+<tr><td>Moduleversie</td><td>Statistieken, compatibiliteit</td><td>Gerechtvaardigd belang</td></tr>
+<tr><td>Aankoop-e-mail</td><td>Bevestiging bij domeinwijziging, support</td><td>Uitvoering van de overeenkomst</td></tr></table>
+<p><strong>Persoonsgegevens van uw klanten worden nooit verzonden.</strong></p></section>
+<section><h2>4. Storingstolerantie</h2>
+<p>Als de server tijdelijk niet beschikbaar is, behoudt de module de laatst gecachte controle en blijft deze normaal functioneren. Een storing aan de kant van de uitgever blokkeert nooit het verzenden van uw e-mails.</p></section>
+<section><h2>5. Optionele diensten van derden die u zelf activeert</h2>
+<p>Neria biedt optionele integraties (DeepL, Gmail Postmaster Tools, Search Console, PageSpeed Insights, Semrush, Moz), nooit standaard geactiveerd: u kiest zelf of u deze koppelt met uw eigen API-gegevens.</p></section>
+<section><h2>6. Bewaartermijn</h2>
+<p>Licentiegegevens worden bewaard voor de duur van de licentie, daarna gearchiveerd voor de wettelijk verplichte periode voordat ze definitief worden verwijderd.</p></section>
+<section><h2>7. Hosting</h2>
+<p>De licentieserver wordt gehost bij O2switch (Frankrijk); er vindt geen gegevensoverdracht buiten de Europese Unie plaats.</p></section>
+<section><h2>8. Uw rechten</h2>
+<p>Conform de AVG heeft u recht op inzage, rectificatie, verwijdering, beperking, overdraagbaarheid en bezwaar. Neem contact op via <a href="mailto:support@neriasoftware.com">support@neriasoftware.com</a>. U kunt ook een klacht indienen bij uw toezichthoudende autoriteit.</p></section>
+<section><h2>9. Cookies</h2>
+<p>De site gebruikt uitsluitend een technische sessiecookie, noodzakelijk voor authenticatie bij het beheergedeelte. Geen advertentie- of trackingcookies van derden.</p></section>
+<section><h2>10. Wijzigingen</h2>
+<p>Dit beleid kan worden bijgewerkt; de datum van de laatste wijziging staat in de voettekst. Substantiële wijzigingen worden gemeld aan actieve licentiehouders.</p></section>
+</div>
+
+</main>
+
+<footer>
+  © 2026 Neria.software — <span id="lastUpdate">Dernière mise à jour : 28 juillet 2026</span>
+</footer>
+
+<script>
+var taglines = {
+  fr: "Luxury Email Suite — Politique de confidentialité", en: "Luxury Email Suite — Privacy Policy",
+  de: "Luxury Email Suite — Datenschutzerklärung", it: "Luxury Email Suite — Informativa sulla privacy",
+  es: "Luxury Email Suite — Política de privacidad", pt: "Luxury Email Suite — Política de privacidade",
+  br: "Luxury Email Suite — Política de privacidade", gb: "Luxury Email Suite — Privacy Policy",
+  ar: "Luxury Email Suite — سياسة الخصوصية", ja: "Luxury Email Suite — プライバシーポリシー",
+  ko: "Luxury Email Suite — 개인정보처리방침", zh: "Luxury Email Suite — 隐私政策",
+  tw: "Luxury Email Suite — 隱私權政策", ru: "Luxury Email Suite — Политика конфиденциальности",
+  tr: "Luxury Email Suite — Gizlilik Politikası", sv: "Luxury Email Suite — Integritetspolicy",
+  no: "Luxury Email Suite — Personvernerklæring", da: "Luxury Email Suite — Privatlivspolitik",
+  nl: "Luxury Email Suite — Privacybeleid"
+};
+var footers = {
+  fr: "Dernière mise à jour : 28 juillet 2026", en: "Last updated: 28 July 2026",
+  de: "Letzte Aktualisierung: 28. Juli 2026", it: "Ultimo aggiornamento: 28 luglio 2026",
+  es: "Última actualización: 28 de julio de 2026", pt: "Última atualização: 28 de julho de 2026",
+  br: "Última atualização: 28 de julho de 2026", gb: "Last updated: 28 July 2026",
+  ar: "آخر تحديث: 28 يوليو 2026", ja: "最終更新日：2026年7月28日",
+  ko: "최종 업데이트: 2026년 7월 28일", zh: "最后更新日期：2026年7月28日",
+  tw: "最後更新日期：2026年7月28日", ru: "Последнее обновление: 28 июля 2026 г.",
+  tr: "Son güncelleme: 28 Temmuz 2026", sv: "Senast uppdaterad: 28 juli 2026",
+  no: "Sist oppdatert: 28. juli 2026", da: "Sidst opdateret: 28. juli 2026",
+  nl: "Laatst bijgewerkt: 28 juli 2026"
+};
+function show(lang) {
+  document.querySelectorAll('.lang-block').forEach(function(el){ el.classList.remove('active'); });
+  document.getElementById(lang).classList.add('active');
+  document.getElementById('tagline').textContent = taglines[lang];
+  document.getElementById('lastUpdate').textContent = footers[lang];
+  document.documentElement.lang = lang;
+  document.body.dir = (lang === 'ar') ? 'rtl' : 'ltr';
+}
+</script>
+
+</body>
+</html>
