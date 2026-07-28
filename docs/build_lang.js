@@ -3,10 +3,10 @@
 //          node build_lang.js de
 
 const {
-  Document, Packer, Paragraph, TextRun, HeadingLevel, TableOfContents,
+  Document, Packer, Paragraph, TextRun, HeadingLevel,
   PageBreak, AlignmentType, BorderStyle, Table, TableRow, TableCell,
   WidthType, LevelFormat, convertInchesToTwip, ImageRun, Header, Footer,
-  PageNumber, NumberFormat
+  PageNumber, NumberFormat, Bookmark, InternalHyperlink, TabStopType, TabStopPosition
 } = require("docx");
 const fs   = require("fs");
 const path = require("path");
@@ -30,12 +30,26 @@ const logoData = fs.readFileSync(path.join(__dirname, '..', 'logo.png'));
 
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 
-function h1(text) {
-  return new Paragraph({ text, heading: HeadingLevel.HEADING_1, spacing: { before: 500, after: 200 }, pageBreakBefore: true });
+// Entrées du sommaire, collectées au fil de la construction du document.
+// Le champ TOC dynamique de Word n'est pas recalculé par LibreOffice en
+// conversion PDF headless : le sommaire sortait vide. On construit donc un
+// sommaire statique à partir de ces entrées, avec des signets cliquables.
+const tocEntries = [];
+let bookmarkSeq = 0;
+
+function heading(text, level) {
+  const id = `sec${++bookmarkSeq}`;
+  tocEntries.push({ id, text, level });
+  const opts = level === 1
+    ? { heading: HeadingLevel.HEADING_1, spacing: { before: 500, after: 200 }, pageBreakBefore: true }
+    : { heading: HeadingLevel.HEADING_2, spacing: { before: 320, after: 140 } };
+  return new Paragraph({
+    ...opts,
+    children: [new Bookmark({ id, children: [new TextRun(text)] })],
+  });
 }
-function h2(text) {
-  return new Paragraph({ text, heading: HeadingLevel.HEADING_2, spacing: { before: 320, after: 140 } });
-}
+function h1(text) { return heading(text, 1); }
+function h2(text) { return heading(text, 2); }
 function h3(text) {
   return new Paragraph({ text, heading: HeadingLevel.HEADING_3, spacing: { before: 220, after: 100 } });
 }
@@ -182,8 +196,12 @@ S.push(
 
 // ══════════════════════════ TABLE OF CONTENTS ════════════════════════════════
 S.push(
-  new Paragraph({ text: T.meta.toc_title, heading: HeadingLevel.HEADING_1, spacing: { before: 400, after: 200 } }),
-  new TableOfContents(T.meta.toc_title, { hyperlink: true, headingStyleRange: "1-2" }),
+  new Paragraph({ text: T.meta.toc_title, heading: HeadingLevel.HEADING_1, spacing: { before: 400, after: 200 } })
+);
+// Le contenu du sommaire est inséré ici une fois toutes les sections
+// construites (tocEntries n'est rempli qu'à ce moment-là).
+const TOC_INSERT_AT = S.length;
+S.push(
   new Paragraph({ children: [new PageBreak()] })
 );
 
@@ -824,6 +842,29 @@ S.push(
   h2(X.h_privacy), p(X.p_privacy),
   new Paragraph({ children: [new PageBreak()] })
 ); }
+
+// ══════════════════════════ TOC CONTENT ═════════════════════════════════════
+// Sommaire statique : une ligne cliquable par titre (niveaux 1 et 2), avec un
+// point de tabulation à droite. Contrairement au champ TOC de Word, ce rendu
+// est figé dans le document et survit à la conversion PDF par LibreOffice.
+S.splice(TOC_INSERT_AT, 0, ...tocEntries.map((e) =>
+  new Paragraph({
+    spacing: { after: e.level === 1 ? 60 : 20 },
+    indent: { left: e.level === 1 ? 0 : 340 },
+    tabStops: [{ type: TabStopType.RIGHT, position: TabStopPosition.MAX, leader: "dot" }],
+    children: [
+      new InternalHyperlink({
+        anchor: e.id,
+        children: [new TextRun({
+          text: e.text,
+          bold: e.level === 1,
+          size: e.level === 1 ? 22 : 20,
+          color: e.level === 1 ? DARK : GREY,
+        })],
+      }),
+    ],
+  })
+));
 
 // ══════════════════════════ DOCUMENT GENERATION ═════════════════════════════
 
