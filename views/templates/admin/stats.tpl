@@ -712,16 +712,49 @@ var _nec = {
   <h2 class="neria-section__title" style="margin:0 0 6px;">{neria_admin key='stats.heatmap_title'} ◈</h2>
   <p class="neria-section__desc" style="margin:0 0 20px;">{neria_admin key='stats.heatmap_desc'}</p>
 
-  <div id="neria-heatmap-wrap" style="overflow-x:auto;">
-    <table id="neria-heatmap-table" style="border-collapse:separate;border-spacing:3px;font-size:11px;">
-      <thead id="neria-heatmap-head"></thead>
-      <tbody id="neria-heatmap-body"></tbody>
-    </table>
-  </div>
-  <div style="margin-top:14px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--neria-muted);">
-    <span>{neria_admin key='stats.heatmap_less'}</span>
-    <span id="neria-heatmap-legend" style="display:flex;gap:2px;"></span>
-    <span>{neria_admin key='stats.heatmap_more'}</span>
+  <div style="display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap;">
+    <div style="flex:1;min-width:560px;">
+      <div id="neria-heatmap-wrap" style="overflow-x:auto;">
+        <table id="neria-heatmap-table" style="border-collapse:separate;border-spacing:4px;font-size:11px;width:100%;">
+          <thead id="neria-heatmap-head"></thead>
+          <tbody id="neria-heatmap-body"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:14px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--neria-muted);">
+        <span>{neria_admin key='stats.heatmap_less'}</span>
+        <span id="neria-heatmap-legend" style="display:flex;gap:2px;"></span>
+        <span>{neria_admin key='stats.heatmap_more'}</span>
+      </div>
+    </div>
+
+    {* ── Panneau d'insights (comble le vide à droite de la grille sur les
+       écrans larges + donne une lecture immédiate sans avoir à scanner
+       les 168 cellules) ────────────────────────────────────────────── *}
+    <div id="neria-heatmap-insights" style="width:230px;flex-shrink:0;display:none;">
+      <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:16px;margin-bottom:12px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#b38b59;margin-bottom:4px;">
+          {neria_admin key='stats.heatmap_best_slot_label'}
+        </div>
+        <div id="neria-heatmap-best-slot" style="font-size:20px;font-weight:700;color:#1a1a2e;line-height:1.2;"></div>
+        <div id="neria-heatmap-best-slot-count" style="font-size:11px;color:#888;margin-top:2px;"></div>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:12px;">
+        <div style="flex:1;background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:12px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#888;margin-bottom:4px;">{neria_admin key='stats.heatmap_best_day_label'}</div>
+          <div id="neria-heatmap-best-day" style="font-size:15px;font-weight:700;color:#1a1a2e;"></div>
+        </div>
+        <div style="flex:1;background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:12px;text-align:center;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#888;margin-bottom:4px;">{neria_admin key='stats.heatmap_best_hour_label'}</div>
+          <div id="neria-heatmap-best-hour" style="font-size:15px;font-weight:700;color:#1a1a2e;"></div>
+        </div>
+      </div>
+      <div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:16px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#888;margin-bottom:10px;">
+          {neria_admin key='stats.heatmap_top_slots_label'}
+        </div>
+        <ol id="neria-heatmap-top-slots" style="margin:0;padding-left:18px;font-size:12px;line-height:2;color:#4a3f35;"></ol>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -738,7 +771,8 @@ var _nhmLbl = {
     "{neria_admin key='stats.day_abbr_sun' esc='javascript'}"
   ],
   openSingular: "{neria_admin key='stats.heatmap_open_singular' esc='javascript'}",
-  openPlural:   "{neria_admin key='stats.heatmap_open_plural' esc='javascript'}"
+  openPlural:   "{neria_admin key='stats.heatmap_open_plural' esc='javascript'}",
+  noData:       "{neria_admin key='stats.heatmap_no_data' esc='javascript'}"
 };
 </script>
 {literal}
@@ -762,9 +796,9 @@ var _nhmLbl = {
     // En-tête heures
     var thead = document.getElementById('neria-heatmap-head');
     if (!thead) return;
-    var headRow = '<tr><th style="width:36px;"></th>';
+    var headRow = '<tr><th style="width:44px;"></th>';
     for (var h = 0; h < 24; h++) {
-      headRow += '<th style="width:22px;text-align:center;font-size:9px;color:#aaa;padding:0 1px;">' + (h % 3 === 0 ? h + 'h' : '') + '</th>';
+      headRow += '<th style="width:' + (100 / 24) + '%;text-align:center;font-size:11px;color:#aaa;padding:0 1px;">' + (h % 3 === 0 ? h + 'h' : '') + '</th>';
     }
     headRow += '</tr>';
     thead.innerHTML = headRow;
@@ -774,12 +808,12 @@ var _nhmLbl = {
     if (!tbody) return;
     var bodyHtml = '';
     for (var d = 0; d < 7; d++) {
-      bodyHtml += '<tr><td style="font-size:10px;font-weight:600;color:#888;padding-right:6px;white-space:nowrap;">' + days[d] + '</td>';
+      bodyHtml += '<tr><td style="font-size:12px;font-weight:600;color:#888;padding-right:6px;white-space:nowrap;">' + days[d] + '</td>';
       for (var hr = 0; hr < 24; hr++) {
         var cnt = (grid[d] && grid[d][hr]) ? grid[d][hr] : 0;
         var bg  = getColor(cnt);
         var tip = days[d] + ' ' + hr + 'h : ' + cnt + ' ' + (cnt > 1 ? _nhmLbl.openPlural : _nhmLbl.openSingular);
-        bodyHtml += '<td title="' + tip + '" style="width:22px;height:20px;background:' + bg + ';border-radius:3px;cursor:default;"></td>';
+        bodyHtml += '<td title="' + tip + '" style="width:' + (100 / 24) + '%;height:30px;background:' + bg + ';border-radius:3px;cursor:default;"></td>';
       }
       bodyHtml += '</tr>';
     }
@@ -792,6 +826,53 @@ var _nhmLbl = {
         return '<span style="display:inline-block;width:16px;height:12px;background:' + c + ';border-radius:2px;"></span>';
       }).join('');
     }
+
+    // ── Panneau d'insights ────────────────────────────────────────
+    var panel = document.getElementById('neria-heatmap-insights');
+    if (!panel) return;
+
+    var slots = []; // [{d, h, cnt}]
+    var dayTotals  = [0, 0, 0, 0, 0, 0, 0];
+    var hourTotals = new Array(24).fill(0);
+    var grandTotal = 0;
+
+    for (var dd = 0; dd < 7; dd++) {
+      for (var hh = 0; hh < 24; hh++) {
+        var c = (grid[dd] && grid[dd][hh]) ? grid[dd][hh] : 0;
+        slots.push({ d: dd, h: hh, cnt: c });
+        dayTotals[dd]  += c;
+        hourTotals[hh] += c;
+        grandTotal     += c;
+      }
+    }
+
+    if (grandTotal === 0) {
+      panel.style.display = '';
+      panel.innerHTML = '<div style="background:#f9f6f1;border:1px solid #e8d5b0;border-radius:6px;padding:16px;font-size:12px;color:#888;text-align:center;">' + _nhmLbl.noData + '</div>';
+      return;
+    }
+
+    slots.sort(function(a, b) { return b.cnt - a.cnt; });
+
+    var bestDayIdx  = dayTotals.indexOf(Math.max.apply(null, dayTotals));
+    var bestHourIdx = hourTotals.indexOf(Math.max.apply(null, hourTotals));
+
+    document.getElementById('neria-heatmap-best-slot').textContent = days[slots[0].d] + ' · ' + slots[0].h + 'h';
+    document.getElementById('neria-heatmap-best-slot-count').textContent = slots[0].cnt + ' ' + (slots[0].cnt > 1 ? _nhmLbl.openPlural : _nhmLbl.openSingular);
+    document.getElementById('neria-heatmap-best-day').textContent  = days[bestDayIdx];
+    document.getElementById('neria-heatmap-best-hour').textContent = bestHourIdx + 'h';
+
+    var topList = document.getElementById('neria-heatmap-top-slots');
+    var topHtml = '';
+    var shown = 0;
+    for (var i = 0; i < slots.length && shown < 3; i++) {
+      if (slots[i].cnt === 0) break;
+      topHtml += '<li>' + days[slots[i].d] + ' ' + slots[i].h + 'h — <strong>' + slots[i].cnt + '</strong></li>';
+      shown++;
+    }
+    topList.innerHTML = topHtml;
+
+    panel.style.display = '';
   });
 })();
 </script>

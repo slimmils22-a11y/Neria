@@ -886,7 +886,7 @@
   <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:16px;">
     <input type="hidden" name="neria_action" value="send_report_now">
     <input type="hidden" name="neria_tab"    value="configure">
-    <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm">
+    <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
       {neria_admin key='configure.report_send_now'}
     </button>
   </form>
