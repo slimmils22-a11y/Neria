@@ -9,6 +9,19 @@
   <h2 class="neria-section-title">📜 {neria_admin key='cert.config_title'}</h2>
   <p class="neria-section-desc">{neria_admin key='cert.config_desc'}</p>
 
+  {* ── Mode d'emploi ──────────────────────────────────────────────── *}
+  <div class="neria-card" style="margin:20px 0 24px;background:var(--neria-bg-subtle,#f9f7f4);border-left:3px solid var(--neria-accent,#b8976a);padding:18px 24px;">
+    <h4 style="margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--neria-accent,#b8976a);">{neria_admin key='cert.howto_title'}</h4>
+    <ol style="margin:0;padding-left:18px;line-height:1.9;font-size:13px;color:var(--neria-text-muted,#888);">
+      <li>{neria_admin key='cert.howto_step1'}</li>
+      <li>{neria_admin key='cert.howto_step2'}</li>
+      <li>{neria_admin key='cert.howto_step3'}</li>
+    </ol>
+    <p style="margin:12px 0 0;font-size:12px;color:var(--neria-text-muted,#aaa);">
+      💡 {neria_admin key='cert.howto_footer'}
+    </p>
+  </div>
+
   <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html':'UTF-8'}">
     <input type="hidden" name="neria_action" value="cert_save_config">
 
