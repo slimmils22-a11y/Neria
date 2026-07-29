@@ -239,6 +239,16 @@ class CertificateManager
         $title    = (string) \Configuration::get(self::CFG_TITLE)    ?: 'Certificat d\'Authenticité';
         $subtitle = (string) \Configuration::get(self::CFG_SUBTITLE) ?: 'Document officiel émis par ' . $shopName;
         $bodyText = (string) \Configuration::get(self::CFG_BODY)     ?: 'Ce certificat atteste que la pièce décrite ci-dessus est authentique et a été fabriquée artisanalement par ' . $shopName . '.';
+
+        // Substitution de {shop_name} même lorsque le marchand a personnalisé
+        // ces champs — auparavant seule la valeur par défaut (fallback) était
+        // interpolée, une valeur configurée manuellement affichait la variable
+        // brute non résolue.
+        $pdfVars  = ['{shop_name}' => $shopName];
+        $title    = strtr($title, $pdfVars);
+        $subtitle = strtr($subtitle, $pdfVars);
+        $bodyText = strtr($bodyText, $pdfVars);
+
         $qrEnabled = (bool) \Configuration::get(self::CFG_QR_ENABLED);
         $qrBaseUrl = (string) \Configuration::get(self::CFG_QR_URL) ?: $shopDomain;
 
