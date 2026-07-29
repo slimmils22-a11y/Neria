@@ -3563,6 +3563,9 @@ var _nCopyLbl = {
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8d5b0;">
       {neria_admin key='stats.collection_howto_dedup'}
     </div>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e8d5b0;font-style:italic;color:#7a6a5a;">
+      💡 {neria_admin key='stats.collection_howto_example'}
+    </div>
   </div>
 
   {* KPIs *}
@@ -3588,20 +3591,35 @@ var _nCopyLbl = {
   {/if}
 
   {* Formulaire d'ajout *}
-  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-collection-section" style="margin-bottom:24px;">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-collection-section" style="margin-bottom:24px;" onsubmit="return neriaCollectionSyncHidden();">
     <input type="hidden" name="neria_action" value="collection_add">
     <input type="hidden" name="neria_tab"    value="stats">
-    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
+    <input type="hidden" name="collection_product_ids" id="neria-collection-product-ids" value="">
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:12px;">
       <div style="flex:1;min-width:200px;">
         <label class="neria-label">{neria_admin key='stats.label_collection_name'}</label>
-        <input type="text" name="collection_name" class="neria-input" placeholder="ex : Trio soin visage" style="width:100%;">
+        <input type="text" name="collection_name" id="neria-collection-name" class="neria-input" placeholder="ex : Trio soin visage" style="width:100%;">
       </div>
-      <div style="flex:2;min-width:260px;">
-        <label class="neria-label">{neria_admin key='stats.label_product_ids_comma'}</label>
-        <input type="text" name="collection_product_ids" class="neria-input" placeholder="ex : 12, 47, 83" style="width:100%;">
+      <div style="flex:2;min-width:260px;position:relative;">
+        <label class="neria-label">{neria_admin key='stats.collection_search_label'}</label>
+        <input type="text" id="neria-collection-product-search" class="neria-input" autocomplete="off"
+               placeholder="{neria_admin key='stats.collection_search_placeholder' esc='html'}" style="width:100%;">
+        <div id="neria-collection-search-results"
+             style="display:none;position:absolute;z-index:20;top:100%;left:0;right:0;margin-top:2px;
+                    background:#fff;border:1px solid #e8d5b0;border-radius:6px;max-height:260px;overflow-y:auto;
+                    box-shadow:0 4px 14px rgba(0,0,0,.08);"></div>
       </div>
       <div>
         <button type="submit" class="neria-btn neria-btn--primary">{neria_admin key='stats.add_btn'}</button>
+      </div>
+    </div>
+
+    <div>
+      <p style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px;">
+        {neria_admin key='stats.collection_selected_label'}
+      </p>
+      <div id="neria-collection-chips" style="display:flex;flex-wrap:wrap;gap:8px;min-height:32px;">
+        <span id="neria-collection-chips-empty" style="font-size:12px;color:#aaa;">{neria_admin key='stats.collection_min2_hint'}</span>
       </div>
     </div>
   </form>
@@ -3624,7 +3642,20 @@ var _nCopyLbl = {
         {assign var="colPids" value=$col.product_ids|json_decode}
         <tr>
           <td style="font-weight:600;">{$col.name|escape:'html'}</td>
-          <td style="font-size:12px;color:#7a6a5a;">{$col.product_ids|escape:'html'}</td>
+          <td style="font-size:12px;color:#7a6a5a;">
+            {if $col.product_details}
+              <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                {foreach $col.product_details as $pd}
+                  <span style="display:inline-flex;align-items:center;gap:5px;background:#faf6f0;border:1px solid #e8d8c0;border-radius:14px;padding:2px 10px 2px 2px;font-size:11px;color:#4a3f35;">
+                    {if $pd.image}<img src="{$pd.image|escape:'html'}" width="18" height="18" style="border-radius:50%;object-fit:cover;">{/if}
+                    {$pd.name|escape:'html'|truncate:24:'…'}
+                  </span>
+                {/foreach}
+              </div>
+            {else}
+              <span style="color:#c0392b;">{neria_admin key='stats.collection_products_deleted'}</span>
+            {/if}
+          </td>
           <td style="text-align:center;">
             <span class="neria-badge">{$colPids|@count}</span>
           </td>
@@ -3660,6 +3691,132 @@ var _nCopyLbl = {
   </p>
   {/if}
 </div>
+
+<script>
+var _nCollectionMsg = {
+  noResults:    "{neria_admin key='stats.collection_search_no_results' esc='javascript'}",
+  unreachable:  "{neria_admin key='stats.js_server_unreachable' esc='javascript'}",
+  minHint:      "{neria_admin key='stats.collection_min2_hint' esc='javascript'}",
+  removeLabel:  "{neria_admin key='stats.collection_remove_product' esc='javascript'}"
+};
+</script>
+<script>
+{literal}
+(function () {
+  var selected = [];   // [{id, name, reference, image}]
+  var searchTimer = null;
+
+  function buildAjaxUrl(action, params) {
+    var base = window.location.href.split('#')[0]
+               .replace(/&(neria_action|q)=[^&]*/g, '');
+    var url = base + (base.indexOf('?') === -1 ? '?' : '&') + 'neria_action=' + action;
+    for (var k in params) {
+      url += '&' + k + '=' + encodeURIComponent(params[k]);
+    }
+    return url;
+  }
+
+  function renderChips() {
+    var wrap = document.getElementById('neria-collection-chips');
+    var empty = document.getElementById('neria-collection-chips-empty');
+    var chips = wrap.querySelectorAll('.neria-collection-chip');
+    for (var i = 0; i < chips.length; i++) chips[i].remove();
+
+    if (selected.length === 0) {
+      empty.style.display = '';
+      return;
+    }
+    empty.style.display = 'none';
+
+    selected.forEach(function (p) {
+      var chip = document.createElement('span');
+      chip.className = 'neria-collection-chip';
+      chip.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:#1a1a2e;color:#fff;' +
+        'border-radius:14px;padding:4px 8px 4px 4px;font-size:12px;';
+      var img = '';
+      if (p.image) img = '<img src="' + p.image + '" width="20" height="20" style="border-radius:50%;object-fit:cover;">';
+      chip.innerHTML = img + '<span>' + p.name.replace(/</g, '&lt;') + '</span>';
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.setAttribute('aria-label', _nCollectionMsg.removeLabel);
+      btn.textContent = '✕';
+      btn.style.cssText = 'background:none;border:none;color:#b38b59;cursor:pointer;font-size:11px;padding:0 2px;';
+      btn.onclick = function () {
+        selected = selected.filter(function (x) { return x.id !== p.id; });
+        renderChips();
+      };
+      chip.appendChild(btn);
+      wrap.appendChild(chip);
+    });
+  }
+
+  window.neriaCollectionSyncHidden = function () {
+    document.getElementById('neria-collection-product-ids').value = selected.map(function (p) { return p.id; }).join(',');
+    return true;
+  };
+
+  function showResults(items) {
+    var box = document.getElementById('neria-collection-search-results');
+    box.innerHTML = '';
+    if (items.length === 0) {
+      box.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:#aaa;">' + _nCollectionMsg.noResults + '</div>';
+      box.style.display = '';
+      return;
+    }
+    items.forEach(function (p) {
+      if (selected.some(function (x) { return x.id === p.id; })) return;
+      var row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #f0e8d8;';
+      var img = p.image ? '<img src="' + p.image + '" width="24" height="24" style="border-radius:3px;object-fit:cover;">' : '';
+      row.innerHTML = img + '<span>' + p.name.replace(/</g, '&lt;') + (p.reference ? ' <span style="color:#aaa;">[' + p.reference.replace(/</g, '&lt;') + ']</span>' : '') + '</span>';
+      row.onmouseover = function () { row.style.background = '#faf6f0'; };
+      row.onmouseout  = function () { row.style.background = ''; };
+      row.onclick = function () {
+        selected.push(p);
+        renderChips();
+        document.getElementById('neria-collection-product-search').value = '';
+        box.style.display = 'none';
+      };
+      box.appendChild(row);
+    });
+    box.style.display = '';
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var input = document.getElementById('neria-collection-product-search');
+    var box   = document.getElementById('neria-collection-search-results');
+    if (!input) return;
+
+    input.addEventListener('input', function () {
+      var q = input.value.trim();
+      clearTimeout(searchTimer);
+      if (q.length < 2) {
+        box.style.display = 'none';
+        return;
+      }
+      searchTimer = setTimeout(function () {
+        fetch(buildAjaxUrl('product_search', { q: q }), { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (items) { showResults(items || []); })
+          .catch(function () {
+            box.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:#b0392b;">' + _nCollectionMsg.unreachable + '</div>';
+            box.style.display = '';
+          });
+      }, 300);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (e.target !== input && !box.contains(e.target)) {
+        box.style.display = 'none';
+      }
+    });
+
+    renderChips();
+  });
+})();
+{/literal}
+</script>
 {/if}
 
 {* ── Complétez votre look ───────────────────────────────────── *}

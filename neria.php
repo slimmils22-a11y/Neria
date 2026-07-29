@@ -4684,6 +4684,19 @@ class Neria extends Module
             die(json_encode($result));
         }
 
+        // ── Collection : recherche de produits (AJAX, sélecteur avec
+        // auto-complétion du formulaire d'ajout) ─────────────────
+        if (Tools::getValue('neria_action') === 'product_search' && class_exists('CollectionManager')) {
+            $q = trim((string) Tools::getValue('q', ''));
+            $results = CollectionManager::searchProducts(
+                $q,
+                (int) $this->context->language->id,
+                (int) $this->context->shop->id
+            );
+            header('Content-Type: application/json');
+            die(json_encode($results));
+        }
+
         // ── RGPD : chiffrement des enregistrements existants ─────
         if (Tools::getValue('neria_action') === 'gdpr_encrypt_all' && class_exists('GdprAuditManager')) {
             $done = (new GdprAuditManager(__DIR__))->encryptExistingRecords();
@@ -5378,7 +5391,7 @@ class Neria extends Module
 
             // Variables pour la section Complétion de collection
             'collections'      => class_exists('CollectionManager')
-                ? (new CollectionManager($this))->getAll()
+                ? (new CollectionManager($this))->getAllWithProductDetails((int) $this->context->language->id)
                 : [],
             'collection_stats' => class_exists('CollectionManager')
                 ? (new CollectionManager($this))->getStats()

@@ -66,6 +66,117 @@ class CollectionManager
         return $this->db->delete('neria_collection', '`id_neria_collection` = ' . $id);
     }
 
+    /**
+     * Variante de getAll() qui résout les IDs produits stockés en JSON vers
+     * leur nom/référence/image — évite d'afficher une liste brute de nombres
+     * dans le back-office (peu lisible pour un marchand).
+     */
+    public function getAllWithProductDetails(int $idLang): array
+    {
+        $rows = $this->getAll();
+        foreach ($rows as &$row) {
+            $ids = json_decode($row['product_ids'], true);
+            $row['product_details'] = is_array($ids) ? self::resolveProducts($ids, $idLang) : [];
+        }
+        unset($row);
+        return $rows;
+    }
+
+    /**
+     * Recherche de produits par nom ou référence, pour le sélecteur avec
+     * auto-complétion du formulaire d'ajout de collection (AJAX).
+     */
+    public static function searchProducts(string $query, int $idLang, int $idShop, int $limit = 20): array
+    {
+        $query = trim($query);
+        if (mb_strlen($query) < 2) {
+            return [];
+        }
+
+        $db     = \Db::getInstance();
+        $prefix = _DB_PREFIX_;
+        $like   = pSQL($query);
+
+        $rows = $db->executeS(
+            "SELECT p.id_product, pl.name, p.reference
+             FROM `{$prefix}product` p
+             INNER JOIN `{$prefix}product_lang` pl
+                     ON pl.id_product = p.id_product AND pl.id_lang = " . (int) $idLang . " AND pl.id_shop = " . (int) $idShop . "
+             WHERE (pl.name LIKE '%{$like}%' OR p.reference LIKE '%{$like}%')
+               AND p.active = 1
+             ORDER BY pl.name ASC
+             LIMIT " . (int) $limit
+        );
+
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $results = [];
+        foreach ($rows as $r) {
+            $idProduct = (int) $r['id_product'];
+            $results[] = [
+                'id'        => $idProduct,
+                'name'      => $r['name'],
+                'reference' => $r['reference'],
+                'image'     => self::getProductThumbUrl($idProduct),
+            ];
+        }
+        return $results;
+    }
+
+    /**
+     * Résout une liste d'IDs produits vers name/reference/image, en
+     * préservant l'ordre d'origine. Les produits supprimés depuis sont
+     * omis silencieusement (pas d'exception qui casserait l'affichage).
+     */
+    private static function resolveProducts(array $ids, int $idLang): array
+    {
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+        if (empty($ids)) {
+            return [];
+        }
+
+        $prefix = _DB_PREFIX_;
+        $inList = implode(',', $ids);
+        $rows = \Db::getInstance()->executeS(
+            "SELECT p.id_product, pl.name, p.reference
+             FROM `{$prefix}product` p
+             INNER JOIN `{$prefix}product_lang` pl
+                     ON pl.id_product = p.id_product AND pl.id_lang = " . (int) $idLang . "
+             WHERE p.id_product IN ({$inList})"
+        );
+        $byId = [];
+        if (is_array($rows)) {
+            foreach ($rows as $r) {
+                $byId[(int) $r['id_product']] = $r;
+            }
+        }
+
+        $out = [];
+        foreach ($ids as $id) {
+            if (!isset($byId[$id])) {
+                continue; // produit supprimé depuis la création de la collection
+            }
+            $out[] = [
+                'id'        => $id,
+                'name'      => $byId[$id]['name'],
+                'reference' => $byId[$id]['reference'],
+                'image'     => self::getProductThumbUrl($id),
+            ];
+        }
+        return $out;
+    }
+
+    private static function getProductThumbUrl(int $idProduct): string
+    {
+        $cover = \Product::getCover($idProduct);
+        if (!$cover) {
+            return '';
+        }
+        return \Context::getContext()->link->getImageLink('', (int) $cover['id_image'], \ImageType::getFormattedName('small_default'));
+    }
+
     // ── CRON : détection + envoi ──────────────────────────────────────────
 
     public function runDailyCheck(): int
