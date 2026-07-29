@@ -1104,6 +1104,31 @@ class HealthCheckManager
             $offenders[] = 'WebhookManager : trigger() ne valide plus is_array() sur NERIA_WEBHOOK_EVENTS décodé (une config corrompue pourrait de nouveau bloquer tous les webhooks avec un TypeError)';
         }
 
+        // Bug du 2026-07-29 : CertificateManager::generatePdf() lisait
+        // NERIA_CERT_TITLE/SUBTITLE/BODY depuis Configuration et les
+        // utilisait tels quels dans le PDF (TCPDF::Cell()). La substitution
+        // de {shop_name} n'était appliquée QUE sur la valeur par défaut
+        // (fallback quand le champ est vide) — dès qu'un marchand
+        // personnalisait un de ces trois champs avec {shop_name}, la
+        // variable brute non résolue apparaissait telle quelle dans le
+        // certificat PDF envoyé au client. Trouvé en testant réellement la
+        // génération d'un certificat (sous-titre "Official document issued
+        // by {shop_name}" affiché mot pour mot). Contrôle statique : les
+        // trois substitutions strtr(..., $pdfVars) doivent rester présentes
+        // juste après la lecture de Configuration, avant toute utilisation
+        // de $title/$subtitle/$bodyText dans le rendu.
+        $certFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
+        $certSrc  = is_file($certFile) ? (file_get_contents($certFile) ?: '') : '';
+        if ($certSrc === '') {
+            $offenders[] = 'CertificateManager.php introuvable';
+        } else {
+            foreach (['title', 'subtitle', 'bodyText'] as $var) {
+                if (!preg_match('/\$' . $var . '\s*=\s*strtr\(\s*\$' . $var . '\s*,\s*\$pdfVars\s*\)/', $certSrc)) {
+                    $offenders[] = "CertificateManager : \${$var} n'est plus passé par strtr(..., \$pdfVars) (une valeur personnalisée contenant {shop_name} s'afficherait de nouveau non résolue dans le certificat PDF)";
+                }
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
