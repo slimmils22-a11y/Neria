@@ -173,6 +173,7 @@ class HealthCheckManager
             'control_center_defaults_consistency' => $this->checkControlCenterDefaultsConsistency(),
             'sql_pattern_risks'     => $this->checkSqlPatternRisks(),
             'i18n_pattern_risks'    => $this->checkI18nPatternRisks(),
+            'hardcoded_french_text' => $this->checkHardcodedFrenchText(),
             'idlang_missing'        => $this->checkMissingIdLangInLinks(),
             'version_files_sync'    => $this->checkModuleVersionFilesSync(),
             'translation_dict_coverage' => $this->checkTranslationDictionaryCoverage(),
@@ -1473,6 +1474,110 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.i18n_pattern_risks_ok')];
+    }
+
+    /**
+     * Contrôle statique GÉNÉRIQUE (contrairement à checkKnownRegressionsGuard,
+     * ciblé sur 3 lignes précises déjà corrigées) : scanne src/*.php à la
+     * recherche de texte français codé en dur dans un littéral de chaîne,
+     * hors commentaires, qui n'est pas passé par TranslationEngine::get()/
+     * AdminTranslator::t()/tVars() sur la même ligne — le motif exact du bug
+     * du 2026-07-29 (signature/pied de page du certificat PDF restés en
+     * français dans les autres langues). Liste de mots volontairement
+     * étroite (texte destiné au client, pas des termes techniques/clés de
+     * config) pour limiter les faux positifs.
+     */
+    private function checkHardcodedFrenchText(): array
+    {
+        $offenders = [];
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $srcDir    = $moduleDir . '/src';
+        $files     = is_dir($srcDir) ? (glob($srcDir . '/*.php') ?: []) : [];
+
+        // Fichiers volontairement exclus : français légitime et attendu, pas
+        // un texte client codé en dur au lieu d'une traduction.
+        //  - ConfigManager : table de salutations horaires indexée PAR LANGUE
+        //    (la clé 'fr' y est une VALEUR légitime, pas un oubli de trad).
+        //  - DeliverabilityScorer : dictionnaire de mots-déclencheurs anti-spam
+        //    EN FRANÇAIS par construction (détecte du spam dans du texte FR).
+        //  - EmailRenderer : jeu de données FICTIVES pour l'aperçu BO (le
+        //    marchand voit toujours un exemple, jamais envoyé à un client).
+        //  - NeriaTools : libellés internes de la liste des templates côté BO
+        //    (interface d'administration, pas du contenu client).
+        //  - HealthCheckManager : ce fichier lui-même — checkKnownRegressionsGuard()
+        //    contient délibérément les anciennes chaînes françaises en dur
+        //    comme motif de non-régression, pas une régression réelle.
+        $excludedFiles = [
+            'ConfigManager.php', 'DeliverabilityScorer.php', 'EmailRenderer.php',
+            'NeriaTools.php', 'HealthCheckManager.php',
+        ];
+        $files = array_filter($files, static fn($f) => !in_array(basename($f), $excludedFiles, true));
+
+        $frenchPhrases = [
+            'veuillez', 'merci de', 'cher client', 'chère cliente', 'bonjour',
+            'cordialement', 'félicitations', 'certificat officiel',
+            'signature officielle', 'émis par', 'scannez ce', 'télécharg',
+            'ce document est', 'votre commande', 'code de réduction',
+            'numéro de commande', 'à bientôt', "n'hésitez pas",
+        ];
+        $wordsAlt = implode('|', array_map(static fn($w) => preg_quote($w, '/'), $frenchPhrases));
+        // Chaîne littérale (simple ou double quotes) contenant une des
+        // expressions ci-dessus.
+        $stringPattern = '/[\'"][^\'"]*(?:' . $wordsAlt . ')[^\'"]*[\'"]/iu';
+        // Un des appelants sûrs présents plus tôt sur la même ligne neutralise
+        // le signalement (texte = clé source de traduction, pas la sortie).
+        $safeCallerPattern = '/(?:AdminTranslator::t(?:Vars)?|TranslationEngine::get|->get\(\s*[\'"][a-z_]+[\'"]\s*,)\s*\(/i';
+
+        foreach ($files as $file) {
+            $rawFull = file_get_contents($file) ?: '';
+            if ($rawFull === '') {
+                continue;
+            }
+
+            $lines = preg_split('/\r\n|\r|\n/', $rawFull);
+            $inBlockComment = false;
+            foreach ($lines as $i => $line) {
+                $code = $line;
+                if ($inBlockComment) {
+                    $end = strpos($code, '*/');
+                    if ($end === false) {
+                        continue;
+                    }
+                    $code = substr($code, $end + 2);
+                    $inBlockComment = false;
+                }
+                $blockStart = strpos($code, '/*');
+                if ($blockStart !== false && strpos($code, '*/', $blockStart) === false) {
+                    $code = substr($code, 0, $blockStart);
+                    $inBlockComment = true;
+                }
+                $lineCommentPos = strpos($code, '//');
+                if ($lineCommentPos !== false) {
+                    $code = substr($code, 0, $lineCommentPos);
+                }
+
+                if (trim($code) === '' || !preg_match($stringPattern, $code)) {
+                    continue;
+                }
+                if (preg_match($safeCallerPattern, $code)) {
+                    continue;
+                }
+
+                $offenders[] = basename($file) . ':' . ($i + 1);
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.hardcoded_french_text_warning', [
+                    'count' => count($offenders),
+                    'list'  => implode(' | ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.hardcoded_french_text_ok')];
     }
 
     /**
