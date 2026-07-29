@@ -1155,6 +1155,30 @@ class HealthCheckManager
                     $offenders[] = "CertificateManager : la phrase française « {$hardcodedFrench} » est de nouveau codée en dur dans le PDF (devrait passer par le dictionnaire certificate_email)";
                 }
             }
+
+            // Bug du 2026-07-29, troisième volet (trouvé par le nouveau
+            // contrôle générique checkHardcodedFrenchText()) : les valeurs
+            // PAR DÉFAUT du titre/sous-titre/corps (utilisées tant que le
+            // marchand n'a pas personnalisé ces 3 champs en configuration)
+            // étaient elles aussi codées en dur en français, indépendamment
+            // de $lang. Corrigé via 3 nouvelles clés certificate_email
+            // (19 langues) ; vérifie que les 3 appels sont bien utilisés et
+            // que les anciennes valeurs françaises par défaut ne sont pas
+            // revenues en dur.
+            foreach (['certificate_pdf_default_title', 'certificate_pdf_default_subtitle', 'certificate_pdf_default_body'] as $key) {
+                if (strpos($certSrc, "'certificate_email', '{$key}'") === false) {
+                    $offenders[] = "CertificateManager : la clé traduite '{$key}' n'est plus utilisée (valeur par défaut du certificat PDF potentiellement de nouveau figée en français)";
+                }
+            }
+            foreach ([
+                "'Certificat d\\'Authenticité'",
+                'Document officiel émis par ',
+                'Ce certificat atteste que la pièce décrite ci-dessus est authentique',
+            ] as $hardcodedFrenchDefault) {
+                if (strpos($certSrc, $hardcodedFrenchDefault) !== false) {
+                    $offenders[] = "CertificateManager : la valeur par défaut française « {$hardcodedFrenchDefault} » est de nouveau codée en dur (devrait passer par le dictionnaire certificate_email)";
+                }
+            }
         }
 
         if ($offenders) {

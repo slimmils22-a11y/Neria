@@ -236,9 +236,17 @@ class CertificateManager
         $dateStr    = (new \DateTime($order->date_add))->format('d/m/Y');
         $issuedStr  = date('d/m/Y');
 
-        $title    = (string) \Configuration::get(self::CFG_TITLE)    ?: 'Certificat d\'Authenticité';
-        $subtitle = (string) \Configuration::get(self::CFG_SUBTITLE) ?: 'Document officiel émis par ' . $shopName;
-        $bodyText = (string) \Configuration::get(self::CFG_BODY)     ?: 'Ce certificat atteste que la pièce décrite ci-dessus est authentique et a été fabriquée artisanalement par ' . $shopName . '.';
+        // Instancié ici (et non plus seulement plus bas pour les libellés du
+        // tableau) car les valeurs PAR DÉFAUT du titre/sous-titre/corps
+        // doivent elles aussi être traduites — auparavant codées en dur en
+        // français, elles s'affichaient dans cette langue quelle que soit
+        // celle du client tant que le marchand n'avait pas personnalisé ces
+        // 3 champs en configuration.
+        $engine = new \TranslationEngine($this->module);
+
+        $title    = (string) \Configuration::get(self::CFG_TITLE)    ?: $engine->get('certificate_email', 'certificate_pdf_default_title', $lang);
+        $subtitle = (string) \Configuration::get(self::CFG_SUBTITLE) ?: $engine->get('certificate_email', 'certificate_pdf_default_subtitle', $lang);
+        $bodyText = (string) \Configuration::get(self::CFG_BODY)     ?: $engine->get('certificate_email', 'certificate_pdf_default_body', $lang);
 
         // Substitution de {shop_name} même lorsque le marchand a personnalisé
         // ces champs — auparavant seule la valeur par défaut (fallback) était
@@ -331,7 +339,6 @@ class CertificateManager
             $y += 14;
 
             // ── Tableau des informations ──────────────────────────
-            $engine = new \TranslationEngine($this->module);
             $fields = [
                 $engine->get('certificate_email', 'certificate_pdf_label_product', $lang)       => $productName,
                 $engine->get('certificate_email', 'certificate_pdf_label_serial', $lang)         => $serial,
