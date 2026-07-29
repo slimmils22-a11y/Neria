@@ -82,7 +82,7 @@
       </div>
     </div>
 
-    <button type="submit" class="neria-btn">
+    <button type="submit" class="neria-btn neria-btn--primary">
       {neria_admin key='cert.save_config'}
     </button>
   </form>
