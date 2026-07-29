@@ -385,7 +385,7 @@ class CertificateManager
                 $pdf->SetFont('helvetica', '', 7);
                 $pdf->SetTextColor(150, 150, 150);
                 $pdf->SetXY(55, $y + 8);
-                $pdf->Cell(130, 5, 'Scannez ce QR code pour vérifier l\'authenticité de ce certificat', 0, 0, 'L');
+                $pdf->Cell(130, 5, $engine->get('certificate_email', 'certificate_pdf_qr_hint', $lang), 0, 0, 'L');
                 $pdf->SetXY(55, $y + 14);
                 $pdf->Cell(130, 5, $qrUrl, 0, 0, 'L');
                 $y += 32;
@@ -405,13 +405,13 @@ class CertificateManager
             $pdf->SetFont('helvetica', 'I', 9);
             $pdf->SetTextColor(100, 80, 40);
             $pdf->SetXY(20, $y);
-            $pdf->Cell(170, 6, $shopName . ' — Signature officielle', 0, 1, 'C');
+            $pdf->Cell(170, 6, strtr($engine->get('certificate_email', 'certificate_pdf_signature', $lang), $pdfVars), 0, 1, 'C');
 
             // ── Pied de page ──────────────────────────────────────
             $pdf->SetFont('helvetica', '', 7);
             $pdf->SetTextColor(180, 160, 130);
             $pdf->SetXY(20, 270);
-            $pdf->Cell(170, 5, 'Ce document est un certificat officiel émis par ' . $shopName . ' via Neria Luxury Email Suite.', 0, 0, 'C');
+            $pdf->Cell(170, 5, strtr($engine->get('certificate_email', 'certificate_pdf_footer', $lang), $pdfVars), 0, 0, 'C');
 
             $pdfContent = $pdf->Output('certificate_' . $serial . '.pdf', 'S');
 

@@ -1127,6 +1127,33 @@ class HealthCheckManager
                     $offenders[] = "CertificateManager : \${$var} n'est plus passé par strtr(..., \$pdfVars) (une valeur personnalisée contenant {shop_name} s'afficherait de nouveau non résolue dans le certificat PDF)";
                 }
             }
+
+            // Bug du 2026-07-29, second volet : trois libellés fixes du PDF
+            // (aide QR code, mention de signature, pied de page) étaient
+            // écrits en dur en français dans le code — un certificat généré
+            // en anglais (ou toute autre langue) affichait malgré tout ces
+            // trois phrases en français. Trouvé en réel en comparant un
+            // certificat anglais généré sur la boutique de test : "Signature
+            // officielle" et "Ce document est un certificat officiel émis
+            // par..." apparaissaient au milieu d'un document par ailleurs
+            // entièrement en anglais. Corrigé via 3 nouvelles clés du
+            // dictionnaire certificate_email (19 langues) : vérifie que les
+            // 3 appels $engine->get() sont bien utilisés, ET que les phrases
+            // françaises exactes ne sont pas revenues en dur.
+            foreach (['certificate_pdf_qr_hint', 'certificate_pdf_signature', 'certificate_pdf_footer'] as $key) {
+                if (strpos($certSrc, "'certificate_email', '{$key}'") === false) {
+                    $offenders[] = "CertificateManager : la clé traduite '{$key}' n'est plus utilisée (texte du certificat PDF potentiellement de nouveau figé dans une seule langue)";
+                }
+            }
+            foreach ([
+                'Scannez ce QR code pour vérifier',
+                'Signature officielle\'',
+                'Ce document est un certificat officiel émis par',
+            ] as $hardcodedFrench) {
+                if (strpos($certSrc, $hardcodedFrench) !== false) {
+                    $offenders[] = "CertificateManager : la phrase française « {$hardcodedFrench} » est de nouveau codée en dur dans le PDF (devrait passer par le dictionnaire certificate_email)";
+                }
+            }
         }
 
         if ($offenders) {

@@ -25993,7 +25993,10 @@
             "certificate_pdf_label_order_date": "Date de commande",
             "certificate_pdf_label_certified_date": "Certifié le",
             "certificate_pdf_label_owner": "Propriétaire",
-            "certificate_pdf_label_order": "Commande"
+            "certificate_pdf_label_order": "Commande",
+        "certificate_pdf_qr_hint": "Scannez ce QR code pour vérifier l'authenticité de ce certificat",
+        "certificate_pdf_signature": "{shop_name} — Signature officielle",
+        "certificate_pdf_footer": "Ce document est un certificat officiel émis par {shop_name} via Neria Luxury Email Suite."
         },
         "en": {
             "greeting_main": "Your Certificate of Authenticity",
@@ -26009,7 +26012,10 @@
             "certificate_pdf_label_order_date": "Order date",
             "certificate_pdf_label_certified_date": "Certified on",
             "certificate_pdf_label_owner": "Owner",
-            "certificate_pdf_label_order": "Order"
+            "certificate_pdf_label_order": "Order",
+        "certificate_pdf_qr_hint": "Scan this QR code to verify the authenticity of this certificate",
+        "certificate_pdf_signature": "{shop_name} — Official Signature",
+        "certificate_pdf_footer": "This document is an official certificate issued by {shop_name} via Neria Luxury Email Suite."
         },
         "de": {
             "greeting_main": "Ihr Echtheitszertifikat",
@@ -26025,7 +26031,10 @@
             "certificate_pdf_label_order_date": "Bestelldatum",
             "certificate_pdf_label_certified_date": "Zertifiziert am",
             "certificate_pdf_label_owner": "Eigentümer",
-            "certificate_pdf_label_order": "Bestellung"
+            "certificate_pdf_label_order": "Bestellung",
+        "certificate_pdf_qr_hint": "Scannen Sie diesen QR-Code, um die Echtheit dieses Zertifikats zu überprüfen",
+        "certificate_pdf_signature": "{shop_name} — Offizielle Unterschrift",
+        "certificate_pdf_footer": "Dieses Dokument ist ein offizielles Zertifikat, ausgestellt von {shop_name} über Neria Luxury Email Suite."
         },
         "it": {
             "greeting_main": "Il Vostro Certificato di Autenticità",
@@ -26041,7 +26050,10 @@
             "certificate_pdf_label_order_date": "Data ordine",
             "certificate_pdf_label_certified_date": "Certificato il",
             "certificate_pdf_label_owner": "Proprietario",
-            "certificate_pdf_label_order": "Ordine"
+            "certificate_pdf_label_order": "Ordine",
+        "certificate_pdf_qr_hint": "Scansiona questo codice QR per verificare l'autenticità di questo certificato",
+        "certificate_pdf_signature": "{shop_name} — Firma ufficiale",
+        "certificate_pdf_footer": "Questo documento è un certificato ufficiale emesso da {shop_name} tramite Neria Luxury Email Suite."
         },
         "es": {
             "greeting_main": "Su Certificado de Autenticidad",
@@ -26057,7 +26069,10 @@
             "certificate_pdf_label_order_date": "Fecha del pedido",
             "certificate_pdf_label_certified_date": "Certificado el",
             "certificate_pdf_label_owner": "Propietario",
-            "certificate_pdf_label_order": "Pedido"
+            "certificate_pdf_label_order": "Pedido",
+        "certificate_pdf_qr_hint": "Escanee este código QR para verificar la autenticidad de este certificado",
+        "certificate_pdf_signature": "{shop_name} — Firma oficial",
+        "certificate_pdf_footer": "Este documento es un certificado oficial emitido por {shop_name} a través de Neria Luxury Email Suite."
         },
         "pt": {
             "greeting_main": "O seu Certificado de Autenticidade",
@@ -26073,7 +26088,10 @@
             "certificate_pdf_label_order_date": "Data da encomenda",
             "certificate_pdf_label_certified_date": "Certificado em",
             "certificate_pdf_label_owner": "Proprietário",
-            "certificate_pdf_label_order": "Encomenda"
+            "certificate_pdf_label_order": "Encomenda",
+        "certificate_pdf_qr_hint": "Digitalize este código QR para verificar a autenticidade deste certificado",
+        "certificate_pdf_signature": "{shop_name} — Assinatura oficial",
+        "certificate_pdf_footer": "Este documento é um certificado oficial emitido por {shop_name} através do Neria Luxury Email Suite."
         },
         "br": {
             "greeting_main": "Seu Certificado de Autenticidade",
@@ -26089,7 +26107,10 @@
             "certificate_pdf_label_order_date": "Data do pedido",
             "certificate_pdf_label_certified_date": "Certificado em",
             "certificate_pdf_label_owner": "Proprietário",
-            "certificate_pdf_label_order": "Pedido"
+            "certificate_pdf_label_order": "Pedido",
+        "certificate_pdf_qr_hint": "Escaneie este código QR para verificar a autenticidade deste certificado",
+        "certificate_pdf_signature": "{shop_name} — Assinatura oficial",
+        "certificate_pdf_footer": "Este documento é um certificado oficial emitido por {shop_name} via Neria Luxury Email Suite."
         },
         "ar": {
             "greeting_main": "شهادة الأصالة الخاصة بك",
@@ -26105,7 +26126,10 @@
             "certificate_pdf_label_order_date": "تاريخ الطلب",
             "certificate_pdf_label_certified_date": "تاريخ التصديق",
             "certificate_pdf_label_owner": "المالك",
-            "certificate_pdf_label_order": "الطلب"
+            "certificate_pdf_label_order": "الطلب",
+        "certificate_pdf_qr_hint": "امسحوا رمز QR هذا للتحقق من صحة هذه الشهادة",
+        "certificate_pdf_signature": "{shop_name} — التوقيع الرسمي",
+        "certificate_pdf_footer": "هذه الوثيقة شهادة رسمية صادرة عن {shop_name} عبر Neria Luxury Email Suite."
         },
         "ja": {
             "greeting_main": "お客様の真正性証明書",
@@ -26121,7 +26145,10 @@
             "certificate_pdf_label_order_date": "注文日",
             "certificate_pdf_label_certified_date": "認証日",
             "certificate_pdf_label_owner": "所有者",
-            "certificate_pdf_label_order": "注文"
+            "certificate_pdf_label_order": "注文",
+        "certificate_pdf_qr_hint": "このQRコードをスキャンして、本証明書の真正性をご確認ください",
+        "certificate_pdf_signature": "{shop_name} — 公式署名",
+        "certificate_pdf_footer": "本書類は、Neria Luxury Email Suiteを通じて{shop_name}が発行した正式な証明書です。"
         },
         "ko": {
             "greeting_main": "고객님의 진품 인증서",
@@ -26137,7 +26164,10 @@
             "certificate_pdf_label_order_date": "주문일",
             "certificate_pdf_label_certified_date": "인증일",
             "certificate_pdf_label_owner": "소유자",
-            "certificate_pdf_label_order": "주문"
+            "certificate_pdf_label_order": "주문",
+        "certificate_pdf_qr_hint": "이 QR 코드를 스캔하여 본 인증서의 진위 여부를 확인하십시오",
+        "certificate_pdf_signature": "{shop_name} — 공식 서명",
+        "certificate_pdf_footer": "본 문서는 Neria Luxury Email Suite를 통해 {shop_name}이(가) 발급한 공식 인증서입니다."
         },
         "zh": {
             "greeting_main": "您的真品证书",
@@ -26153,7 +26183,10 @@
             "certificate_pdf_label_order_date": "订单日期",
             "certificate_pdf_label_certified_date": "认证日期",
             "certificate_pdf_label_owner": "所有者",
-            "certificate_pdf_label_order": "订单"
+            "certificate_pdf_label_order": "订单",
+        "certificate_pdf_qr_hint": "扫描此二维码以验证本证书的真实性",
+        "certificate_pdf_signature": "{shop_name} — 官方签名",
+        "certificate_pdf_footer": "本文件是由 {shop_name} 通过 Neria Luxury Email Suite 签发的正式证书。"
         },
         "tw": {
             "greeting_main": "您的真品證書",
@@ -26169,7 +26202,10 @@
             "certificate_pdf_label_order_date": "訂單日期",
             "certificate_pdf_label_certified_date": "認證日期",
             "certificate_pdf_label_owner": "所有者",
-            "certificate_pdf_label_order": "訂單"
+            "certificate_pdf_label_order": "訂單",
+        "certificate_pdf_qr_hint": "掃描此 QR Code 以驗證本證書的真實性",
+        "certificate_pdf_signature": "{shop_name} — 官方簽名",
+        "certificate_pdf_footer": "本文件是由 {shop_name} 透過 Neria Luxury Email Suite 簽發的正式證書。"
         },
         "ru": {
             "greeting_main": "Ваш сертификат подлинности",
@@ -26185,7 +26221,10 @@
             "certificate_pdf_label_order_date": "Дата заказа",
             "certificate_pdf_label_certified_date": "Сертифицировано",
             "certificate_pdf_label_owner": "Владелец",
-            "certificate_pdf_label_order": "Заказ"
+            "certificate_pdf_label_order": "Заказ",
+        "certificate_pdf_qr_hint": "Отсканируйте этот QR-код, чтобы проверить подлинность данного сертификата",
+        "certificate_pdf_signature": "{shop_name} — Официальная подпись",
+        "certificate_pdf_footer": "Этот документ является официальным сертификатом, выданным {shop_name} через Neria Luxury Email Suite."
         },
         "tr": {
             "greeting_main": "Orijinallik Sertifikanız",
@@ -26201,7 +26240,10 @@
             "certificate_pdf_label_order_date": "Sipariş tarihi",
             "certificate_pdf_label_certified_date": "Onay tarihi",
             "certificate_pdf_label_owner": "Sahip",
-            "certificate_pdf_label_order": "Sipariş"
+            "certificate_pdf_label_order": "Sipariş",
+        "certificate_pdf_qr_hint": "Bu sertifikanın gerçekliğini doğrulamak için bu QR kodunu tarayın",
+        "certificate_pdf_signature": "{shop_name} — Resmi İmza",
+        "certificate_pdf_footer": "Bu belge, Neria Luxury Email Suite aracılığıyla {shop_name} tarafından düzenlenmiş resmi bir sertifikadır."
         },
         "sv": {
             "greeting_main": "Ditt äkthetscertifikat",
@@ -26217,7 +26259,10 @@
             "certificate_pdf_label_order_date": "Orderdatum",
             "certificate_pdf_label_certified_date": "Certifierad den",
             "certificate_pdf_label_owner": "Ägare",
-            "certificate_pdf_label_order": "Order"
+            "certificate_pdf_label_order": "Order",
+        "certificate_pdf_qr_hint": "Skanna denna QR-kod för att verifiera äktheten av detta certifikat",
+        "certificate_pdf_signature": "{shop_name} — Officiell signatur",
+        "certificate_pdf_footer": "Detta dokument är ett officiellt certifikat utfärdat av {shop_name} via Neria Luxury Email Suite."
         },
         "no": {
             "greeting_main": "Ditt ekthetssertifikat",
@@ -26233,7 +26278,10 @@
             "certificate_pdf_label_order_date": "Bestillingsdato",
             "certificate_pdf_label_certified_date": "Sertifisert den",
             "certificate_pdf_label_owner": "Eier",
-            "certificate_pdf_label_order": "Bestilling"
+            "certificate_pdf_label_order": "Bestilling",
+        "certificate_pdf_qr_hint": "Skann denne QR-koden for å bekrefte ektheten til dette sertifikatet",
+        "certificate_pdf_signature": "{shop_name} — Offisiell signatur",
+        "certificate_pdf_footer": "Dette dokumentet er et offisielt sertifikat utstedt av {shop_name} via Neria Luxury Email Suite."
         },
         "da": {
             "greeting_main": "Dit ægthedscertifikat",
@@ -26249,7 +26297,10 @@
             "certificate_pdf_label_order_date": "Bestillingsdato",
             "certificate_pdf_label_certified_date": "Certificeret den",
             "certificate_pdf_label_owner": "Ejer",
-            "certificate_pdf_label_order": "Bestilling"
+            "certificate_pdf_label_order": "Bestilling",
+        "certificate_pdf_qr_hint": "Scan denne QR-kode for at bekræfte ægtheden af dette certifikat",
+        "certificate_pdf_signature": "{shop_name} — Officiel underskrift",
+        "certificate_pdf_footer": "Dette dokument er et officielt certifikat udstedt af {shop_name} via Neria Luxury Email Suite."
         },
         "nl": {
             "greeting_main": "Uw echtheidscertificaat",
@@ -26265,7 +26316,10 @@
             "certificate_pdf_label_order_date": "Besteldatum",
             "certificate_pdf_label_certified_date": "Gecertificeerd op",
             "certificate_pdf_label_owner": "Eigenaar",
-            "certificate_pdf_label_order": "Bestelling"
+            "certificate_pdf_label_order": "Bestelling",
+        "certificate_pdf_qr_hint": "Scan deze QR-code om de echtheid van dit certificaat te verifiëren",
+        "certificate_pdf_signature": "{shop_name} — Officiële handtekening",
+        "certificate_pdf_footer": "Dit document is een officieel certificaat, uitgegeven door {shop_name} via Neria Luxury Email Suite."
         },
         "gb": {
             "greeting_main": "Your Certificate of Authenticity",
@@ -26281,7 +26335,10 @@
             "certificate_pdf_label_order_date": "Order date",
             "certificate_pdf_label_certified_date": "Certified on",
             "certificate_pdf_label_owner": "Owner",
-            "certificate_pdf_label_order": "Order"
+            "certificate_pdf_label_order": "Order",
+        "certificate_pdf_qr_hint": "Scan this QR code to verify the authenticity of this certificate",
+        "certificate_pdf_signature": "{shop_name} — Official Signature",
+        "certificate_pdf_footer": "This document is an official certificate issued by {shop_name} via Neria Luxury Email Suite."
         }
     }
 }
