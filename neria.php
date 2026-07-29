@@ -5091,6 +5091,13 @@ class Neria extends Module
             // KPIs des 30 derniers jours (onglet configure)
             'kpis'             => $stats->getKpis(30),
 
+            // Statut chiffrement AES-256-GCM
+            'crypto_status'    => [
+                'available' => CryptoManager::isAvailable(),
+                'key_set'   => strlen((string) Configuration::get(CryptoManager::CONFIG_KEY)) === 64,
+                'algo'      => 'AES-256-GCM',
+            ],
+
             // Rapports complets pour stats.tpl ($stats.kpis, $stats.global_30, etc.)
             // Tous les blocs ci-dessous ne sont consommés QUE par stats.tpl (vérifié :
             // aucune autre vue ne les référence) mais étaient calculés sans condition

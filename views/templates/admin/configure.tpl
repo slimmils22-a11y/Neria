@@ -8,6 +8,18 @@
  * i18n : libellés via {neria_admin key='...'} (19 langues, AdminTranslator)
  *}
 
+{* ── Statut chiffrement AES-256-GCM ─────────────────────────── *}
+<div style="margin:0 0 16px;padding:12px 18px;border-radius:6px;border:1px solid {if $crypto_status.available && $crypto_status.key_set}#c6e9c6{else}#f5c6cb{/if};background:{if $crypto_status.available && $crypto_status.key_set}#f0faf0{else}#fff0f0{/if};display:flex;align-items:center;gap:12px;">
+  <span style="font-size:18px;">{if $crypto_status.available && $crypto_status.key_set}&#128274;{else}&#9888;{/if}</span>
+  <div>
+    <strong style="font-size:0.85rem;color:{if $crypto_status.available && $crypto_status.key_set}#1a7a40{else}#a00{/if};">
+      {if $crypto_status.available && $crypto_status.key_set}{neria_admin key="crypto.status_active"}{else}{neria_admin key="crypto.status_unavailable"}{/if}
+    </strong>
+    <span style="font-size:0.76rem;color:#666;margin-left:8px;">
+      {if $crypto_status.available && $crypto_status.key_set}{neria_admin key="crypto.status_desc_active"}{else}{neria_admin key="crypto.status_desc_unavailable"}{/if}
+    </span>
+  </div>
+</div>
 {* ── KPIs rapides ───────────────────────────────────────────── *}
 <div class="neria-section" id="neria-cfg-dashboard">
   <h2 class="neria-section__title">
