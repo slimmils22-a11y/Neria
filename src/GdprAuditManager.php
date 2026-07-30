@@ -759,9 +759,20 @@ class GdprAuditManager
     @page { margin: 1.5cm; }
     .no-print { display: none !important; }
   }
+  .print-btn {
+    position: fixed; top: 20px; right: 20px;
+    background: #1a1a1a; color: #fff; border: none; border-radius: 6px;
+    padding: 10px 18px; font-family: Georgia, 'Times New Roman', serif;
+    font-size: 12px; letter-spacing: .04em; cursor: pointer;
+  }
+  .print-btn:hover { background: #333; }
 </style>
 </head>
 <body>
+
+<button type="button" class="print-btn no-print" onclick="window.print();">
+  ⬇ Enregistrer en PDF
+</button>
 
 <div class="header">
   <div>
