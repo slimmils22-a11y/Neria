@@ -53,7 +53,8 @@
         <a id="neria-test-send-btn"
            href="{$neria_test_base}&neria_action=send_test&neria_test_lang={$neria_bo_lang|default:'fr'}"
            class="neria-btn neria-btn--primary neria-btn--sm"
-           title="{neria_admin key='nav.send_test_title'}">
+           title="{neria_admin key='nav.send_test_title'}"
+           onclick="return neriaPostLink(event, this);">
           ✉ {neria_admin key='nav.email_test'}
         </a>
       </span>
@@ -467,6 +468,37 @@
     neriaConfirmAction(link.getAttribute('data-confirm'), function() {
       window.location.href = link.href;
     });
+    return false;
+  }
+  // Pour les liens <a href> qui déclenchent une action d'écriture côté
+  // serveur (neria_action mutant l'état) : reconstruit une soumission POST
+  // à partir des paramètres de l'URL au lieu de naviguer en GET — le
+  // dispatch PHP exige désormais REQUEST_METHOD === 'POST' pour ces
+  // actions (durcissement anti-CSRF-via-lien). Si data-confirm est présent,
+  // affiche la modale de confirmation avant de soumettre.
+  function neriaPostLink(event, link) {
+    event.preventDefault();
+    var doSubmit = function () {
+      var url  = new URL(link.href, window.location.href);
+      var form = document.createElement('form');
+      form.method = 'post';
+      form.action = url.origin + url.pathname;
+      url.searchParams.forEach(function (value, key) {
+        var input = document.createElement('input');
+        input.type  = 'hidden';
+        input.name  = key;
+        input.value = value;
+        form.appendChild(input);
+      });
+      document.body.appendChild(form);
+      form.submit();
+    };
+    var confirmMsg = link.getAttribute('data-confirm');
+    if (confirmMsg) {
+      neriaConfirmAction(confirmMsg, doSubmit);
+    } else {
+      doSubmit();
+    }
     return false;
   }
   function neriaCloseDeleteModal() {

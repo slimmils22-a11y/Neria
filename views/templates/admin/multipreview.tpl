@@ -344,7 +344,13 @@ function neriaMpAjaxUrl(action, extra) {
 }
 
 function neriaMpEscHtml(s) {
-  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Échappe aussi les guillemets : ces valeurs sont utilisées à la fois comme
+  // texte et comme attributs HTML (src=, alt=) plus bas — sans ça, un
+  // guillemet dans une réponse Litmus/Email on Acid permet une sortie
+  // d'attribut et l'injection de balises via innerHTML.
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 function neriaMpRunThirdPartyTest(provider) {
@@ -364,7 +370,7 @@ function neriaMpRunThirdPartyTest(provider) {
   var submitUrl = neriaMpAjaxUrl('multipreview_submit_' + provider,
     '&mp_template=' + encodeURIComponent(tpl) + '&mp_lang=' + encodeURIComponent(lang));
 
-  fetch(submitUrl, { credentials: 'same-origin' })
+  fetch(submitUrl, { method: 'POST', credentials: 'same-origin' })
     .then(function (r) { return r.json(); })
     .then(function (d) {
       if (!d || d.error || !d.id) {

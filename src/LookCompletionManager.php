@@ -16,9 +16,16 @@ class LookCompletionManager
     private string $prefix;
     private        $module;
 
-    /** Fenêtre de détection : entre 48h et 72h après livraison */
+    /**
+     * Fenêtre de détection : à partir de 48h après livraison.
+     * Bornée haute large (30 jours) pour rattraper un cron manqué/retardé —
+     * la dédup par commande (alreadySent) empêche tout double envoi.
+     */
     const DELAY_MIN_HOURS = 48;
-    const DELAY_MAX_HOURS = 72;
+    const DELAY_MAX_HOURS = 24 * 30;
+
+    /** Nombre max de commandes traitées par exécution du cron */
+    const MAX_BATCH_PER_RUN = 500;
 
     public function __construct($module)
     {
@@ -93,6 +100,8 @@ class LookCompletionManager
             WHERE oh.id_order_state = {$deliveredStateId}
               AND oh.date_add >= DATE_SUB(NOW(), INTERVAL " . self::DELAY_MAX_HOURS . " HOUR)
               AND oh.date_add <  DATE_SUB(NOW(), INTERVAL " . self::DELAY_MIN_HOURS . " HOUR)
+            ORDER BY oh.date_add ASC
+            LIMIT " . self::MAX_BATCH_PER_RUN . "
         ");
 
         if (!is_array($orders)) return 0;

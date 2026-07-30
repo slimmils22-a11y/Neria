@@ -239,6 +239,12 @@ class TranslationInstaller
         $now   = date('Y-m-d H:i:s');
 
         foreach ($all[$template] as $lang => $fields) {
+            // Un bloc de langue malformé (scalaire au lieu d'un tableau de clés)
+            // ne doit pas faire planter un simple "réinitialiser ce template"
+            // dans le BO — même garde-fou que importFromJson().
+            if (!is_array($fields)) {
+                continue;
+            }
             foreach ($fields as $key => $value) {
                 if (is_string($value)) {
                     $batch[] = $this->buildRow($template, $lang, $key, $value, $now);

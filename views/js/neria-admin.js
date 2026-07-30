@@ -633,7 +633,7 @@
         // keepalive: la requête doit survivre même si le marchand recharge
         // ou quitte la page juste après avoir cliqué — sans ça, un fetch()
         // normal peut être interrompu en plein vol par la navigation.
-        fetch(url, { credentials: 'same-origin', keepalive: true }).catch(function () { /* silencieux */ });
+        fetch(url, { method: 'POST', credentials: 'same-origin', keepalive: true }).catch(function () { /* silencieux */ });
     }
 
     // ── Assistant de rédaction de sujet — Variante B (onglet Traductions) ──

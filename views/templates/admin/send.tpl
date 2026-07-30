@@ -564,7 +564,7 @@ window.NERIA_SEND_L10N = {
     processQueueBtn.addEventListener('click', function () {
       processQueueBtn.disabled = true;
       processQueueBtn.textContent = NERIA_SEND_L10N.processingLabel;
-      fetch(ajaxUrl('process_queue_now'), { credentials: 'same-origin' })
+      fetch(ajaxUrl('process_queue_now'), { method: 'POST', credentials: 'same-origin' })
         .then(function (r) { return r.json(); })
         .then(function (d) {
           if (processQueueResult) {

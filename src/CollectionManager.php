@@ -12,6 +12,8 @@ if (!defined('_PS_VERSION_')) exit;
 
 class CollectionManager
 {
+    private const MAX_BATCH_PER_RUN = 500;
+
     private \Db    $db;
     private string $prefix;
     private        $module;
@@ -204,15 +206,18 @@ class CollectionManager
         $sent    = 0;
         $inList  = implode(',', $productIds);
 
-        // Clients ayant acheté au moins $total-1 produits de la collection (parmi des commandes payées)
+        // Clients ayant acheté au moins $total-1 produits de la collection dans une même boutique
+        // (parmi des commandes payées) — groupé par boutique pour ne pas mélanger les catalogues
+        // multi-boutiques, et borné pour éviter un timeout sur un gros volume.
         $rows = $this->db->executeS("
-            SELECT o.id_customer, MIN(o.id_shop) AS id_shop,
+            SELECT o.id_customer, o.id_shop,
                    GROUP_CONCAT(DISTINCT od.product_id ORDER BY od.product_id) AS bought_ids
             FROM `{$this->prefix}order_detail` od
             INNER JOIN `{$this->prefix}orders` o ON o.id_order = od.id_order AND o.valid = 1
             WHERE od.product_id IN ({$inList})
-            GROUP BY o.id_customer
+            GROUP BY o.id_customer, o.id_shop
             HAVING COUNT(DISTINCT od.product_id) = " . ($total - 1) . "
+            LIMIT " . self::MAX_BATCH_PER_RUN . "
         ");
 
         if (!is_array($rows)) return 0;

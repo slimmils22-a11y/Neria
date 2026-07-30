@@ -96,16 +96,19 @@ class CryptoManager
         }
 
         if (!self::isAvailable()) {
+            self::logDecryptFailure('openssl indisponible');
             return '';
         }
 
         $key = self::loadKey();
         if ($key === '') {
+            self::logDecryptFailure('clé de chiffrement absente ou illisible');
             return '';
         }
 
         $raw = base64_decode(substr($value, strlen(self::PREFIX)), true);
         if ($raw === false || strlen($raw) < self::IV_LEN + self::TAG_LEN + 1) {
+            self::logDecryptFailure('valeur chiffrée corrompue (base64/longueur invalide)');
             return '';
         }
 
@@ -114,7 +117,37 @@ class CryptoManager
         $ct    = substr($raw, self::IV_LEN, strlen($raw) - self::IV_LEN - self::TAG_LEN);
         $plain = openssl_decrypt($ct, self::CIPHER, $key, OPENSSL_RAW_DATA, $iv, $tag);
 
-        return $plain !== false ? $plain : '';
+        if ($plain === false) {
+            self::logDecryptFailure('échec openssl_decrypt (clé rotée/corrompue ou tag GCM invalide)');
+            return '';
+        }
+
+        return $plain;
+    }
+
+    /**
+     * Un échec de déchiffrement ne doit jamais être silencieux : sans trace,
+     * il est indiscernable d'une valeur simplement vide dans les stats/audits.
+     * Journalisé via le logger natif PrestaShop (toujours disponible, aucune
+     * dépendance au contexte module) — au plus une fois par requête pour
+     * éviter un flood si de nombreuses valeurs échouent d'un coup.
+     */
+    private static function logDecryptFailure(string $reason): void
+    {
+        static $alreadyLogged = false;
+        if ($alreadyLogged || !class_exists('\PrestaShopLogger')) {
+            return;
+        }
+        $alreadyLogged = true;
+
+        \PrestaShopLogger::addLog(
+            '[Neria] CryptoManager::decrypt() a échoué : ' . $reason,
+            3,
+            null,
+            'Configuration',
+            null,
+            true
+        );
     }
 
     public static function isEncrypted(string $value): bool

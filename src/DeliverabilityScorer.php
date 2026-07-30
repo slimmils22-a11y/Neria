@@ -441,7 +441,10 @@ class DeliverabilityScorer
         $subjectLower     = mb_strtolower($subject);
         $subjectSpamFound = [];
         foreach ($this->subjectSpamTriggers as $trigger) {
-            if (str_contains($subjectLower, mb_strtolower($trigger))) {
+            // Même garde-fou que le corps (critère 4 plus bas) : un déclencheur
+            // de 2-3 lettres peut matcher en sous-chaîne dans un mot ordinaire
+            // d'une autre langue et générer un faux positif de score spam.
+            if (mb_strlen($trigger) >= 4 && str_contains($subjectLower, mb_strtolower($trigger))) {
                 $subjectSpamFound[] = $trigger;
             }
         }

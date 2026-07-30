@@ -83,7 +83,13 @@ class WaitlistManager
         // réellement acheter. Premier inscrit, premier notifié (déjà trié
         // par registered_at ASC) ; les autres restent en attente pour le
         // prochain réapprovisionnement.
-        $availableQty = (int) \StockAvailable::getQuantityAvailableByProduct($idProduct, 0, $idShop);
+        // id_product_attribute=null (et non 0) : neria_waitlist est une liste
+        // d'attente au niveau produit, pas par déclinaison. Passer 0 ne lisait
+        // que le stock de la combinaison "sans attribut" et retournait 0 pour
+        // tout produit géré par déclinaisons même quand une déclinaison précise
+        // était de retour en stock — plus aucune notification ne partait jamais.
+        // null fait sommer le stock disponible sur toutes les déclinaisons.
+        $availableQty = (int) \StockAvailable::getQuantityAvailableByProduct($idProduct, null, $idShop);
         // availableQty <= 0 : rien de réellement disponible (stock à 0 au moment de
         // l'appel, race condition avec la mise à jour, ou déclinaison sans stock géré) —
         // ne rien envoyer plutôt que de traiter toute la file sans plafond. Ce hook est

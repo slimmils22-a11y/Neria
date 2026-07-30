@@ -91,7 +91,8 @@
         {* Toggle actif ─────────────────────────────────────────── *}
         <td style="text-align:center;">
           <a href="{$smarty.server.REQUEST_URI}&neria_action=toggle_calendar_event&neria_tab=calendar&cal_id={$ev.id_event|intval}"
-             class="neria-badge {if $ev.is_active}neria-badge--on{else}neria-badge--off{/if}">
+             class="neria-badge {if $ev.is_active}neria-badge--on{else}neria-badge--off{/if}"
+             onclick="return neriaPostLink(event, this);">
             {if $ev.is_active}{neria_admin key='common.enabled'}{else}{neria_admin key='common.disabled'}{/if}
           </a>
         </td>
@@ -107,7 +108,7 @@
           <a href="{$smarty.server.REQUEST_URI}&neria_action=delete_calendar_event&neria_tab=calendar&cal_id={$ev.id_event|intval}"
              class="neria-btn neria-btn--danger neria-btn--xs"
              data-confirm="{neria_admin key='calendar.delete_confirm' esc='html'}"
-             onclick="return neriaConfirmLink(event, this);">✕</a>
+             onclick="return neriaPostLink(event, this);">✕</a>
         </td>
       </tr>
       {/foreach}

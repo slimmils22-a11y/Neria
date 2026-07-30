@@ -1747,7 +1747,7 @@ class Neria extends Module
 
         // ── AJAX : fermeture définitive de l'assistant de démarrage
         //    Design ("Nouveau sur Neria ?") ─────────────────────────
-        if (Tools::getValue('neria_action') === 'dismiss_design_wizard' && class_exists('ConfigManager')) {
+        if (Tools::getValue('neria_action') === 'dismiss_design_wizard' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('ConfigManager')) {
             while (ob_get_level() > 0) { ob_end_clean(); }
             if (!headers_sent()) { header('Content-Type: application/json; charset=utf-8'); }
             (new ConfigManager($this))->set(ConfigManager::KEY_DESIGN_WIZARD_SEEN, 1);
@@ -1815,7 +1815,7 @@ class Neria extends Module
             exit;
         }
 
-        if ($earlyAction === 'auto_translate_template') {
+        if ($earlyAction === 'auto_translate_template' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Content-Type: application/json; charset=utf-8');
             $tplKey  = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
             $tplLang = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
@@ -1981,7 +1981,7 @@ class Neria extends Module
         }
 
         // ── Action : traduction DeepL automatique — Variante B ────────
-        if ($earlyAction === 'auto_translate_variant_b') {
+        if ($earlyAction === 'auto_translate_variant_b' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Content-Type: application/json; charset=utf-8');
             $tplKey    = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
             $tplLang   = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
@@ -2123,7 +2123,7 @@ class Neria extends Module
         }
 
         // ── Action : envoi d'un email de test ─────────────────────
-        if (Tools::getValue('neria_action') === 'send_test') {
+        if (Tools::getValue('neria_action') === 'send_test' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->sendTestEmail();
         }
 
@@ -2139,7 +2139,7 @@ class Neria extends Module
         }
 
         // ── Action : sauvegarder config alertes email ──────────────
-        if (Tools::getValue('neria_action') === 'save_alert_config') {
+        if (Tools::getValue('neria_action') === 'save_alert_config' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $alertEmail     = trim(Tools::getValue('neria_alert_email'));
             $alertImmediate = (int) (bool) Tools::getValue('neria_alert_immediate');
             $alertDigest    = (int) (bool) Tools::getValue('neria_alert_digest');
@@ -2155,7 +2155,7 @@ class Neria extends Module
         }
 
         // ── Action : sauvegarder l'email du Témoin silencieux ───────
-        if (Tools::getValue('neria_action') === 'save_archive_config') {
+        if (Tools::getValue('neria_action') === 'save_archive_config' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $archiveEmail = trim(Tools::getValue('neria_archive_email'));
             if ($archiveEmail !== '' && !Validate::isEmail($archiveEmail)) {
                 $this->context->smarty->assign('neria_error', AdminTranslator::t('configure.archive_invalid_email'));
@@ -2174,17 +2174,20 @@ class Neria extends Module
         }
 
         // ── Action : régénérer le token d'urgence ─────────────────
-        if (Tools::getValue('neria_action') === 'regenerate_emergency_token') {
+        // Exige un vrai POST (le formulaire de help.tpl en est un) : ces deux
+        // actions invalident silencieusement l'URL d'accès d'urgence/cron déjà
+        // en usage — pas question qu'un simple lien GET puisse les déclencher.
+        if (Tools::getValue('neria_action') === 'regenerate_emergency_token' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             Configuration::updateGlobalValue('NERIA_EMERGENCY_TOKEN', bin2hex(random_bytes(24)));
             $this->context->smarty->assign('neria_success', AdminTranslator::t('help.emergency_token_regenerated'));
         }
 
-        if (Tools::getValue('neria_action') === 'regenerate_cron_token') {
+        if (Tools::getValue('neria_action') === 'regenerate_cron_token' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             Configuration::updateGlobalValue('NERIA_CRON_TOKEN', bin2hex(random_bytes(24)));
             $this->context->smarty->assign('neria_success', AdminTranslator::t('help.cron_token_regenerated'));
         }
 
-        if (Tools::getValue('neria_action') === 'cron_toggle') {
+        if (Tools::getValue('neria_action') === 'cron_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::getGlobalValue('NERIA_CRON_ENABLED');
             Configuration::updateGlobalValue('NERIA_CRON_ENABLED', $current ? 0 : 1);
             $this->context->smarty->assign('neria_success', AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled'));
@@ -2220,7 +2223,7 @@ class Neria extends Module
         }
 
         // ── Action : envoyer le journal Watchdog par email (PDF) ─────
-        if (Tools::getValue('neria_action') === 'send_log_email') {
+        if (Tools::getValue('neria_action') === 'send_log_email' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $err = $this->sendWatchdogLogByEmail();
                 if ($err === '') {
@@ -2240,14 +2243,14 @@ class Neria extends Module
         }
 
         // ── Action : vider le journal watchdog ────────────────────
-        if (Tools::getValue('neria_action') === 'clear_logs') {
+        if (Tools::getValue('neria_action') === 'clear_logs' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $watchdog = new WatchdogManager($this);
             $watchdog->clearLogs();
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.logs_cleared'));
         }
 
         // ── Action : détection automatique de la langue ───────────
-        if (Tools::getValue('neria_action') === 'toggle_autolang') {
+        if (Tools::getValue('neria_action') === 'toggle_autolang' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::get(self::CONFIG_PREFIX . 'AUTO_LANG');
             $enabled = !$current;
             Configuration::updateValue(self::CONFIG_PREFIX . 'AUTO_LANG', (int) $enabled);
@@ -2257,7 +2260,7 @@ class Neria extends Module
         }
 
         // ── Action : journalisation des emails internes ───────────
-        if (Tools::getValue('neria_action') === 'save_log_internal') {
+        if (Tools::getValue('neria_action') === 'save_log_internal' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             Configuration::updateValue(
                 self::CONFIG_PREFIX . 'LOG_INTERNAL',
                 (int) Tools::getValue('neria_log_internal', 0)
@@ -2266,7 +2269,7 @@ class Neria extends Module
         }
 
         // ── Action : configuration du rapport mensuel ─────────────
-        if (Tools::getValue('neria_action') === 'toggle_report') {
+        if (Tools::getValue('neria_action') === 'toggle_report' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::get(MonthlyReportManager::CONFIG_ENABLED);
             $enabled = !$current;
             Configuration::updateValue(MonthlyReportManager::CONFIG_ENABLED, (int) $enabled);
@@ -2275,14 +2278,14 @@ class Neria extends Module
             ]));
         }
 
-        if (Tools::getValue('neria_action') === 'save_report_config') {
+        if (Tools::getValue('neria_action') === 'save_report_config' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $recipients = strip_tags((string) Tools::getValue('neria_report_recipients', ''));
             Configuration::updateValue(MonthlyReportManager::CONFIG_RECIPIENTS, $recipients);
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
         // ── Action : envoi manuel du rapport ──────────────────────
-        if (Tools::getValue('neria_action') === 'send_report_now') {
+        if (Tools::getValue('neria_action') === 'send_report_now' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             if (class_exists('MonthlyReportManager')) {
                 $rm    = new MonthlyReportManager($this);
                 $year  = (int) date('Y', strtotime('last month'));
@@ -2292,7 +2295,7 @@ class Neria extends Module
         }
 
         // ── Action : blacklist templates ──────────────────────────
-        if (Tools::getValue('neria_action') === 'add_blacklist') {
+        if (Tools::getValue('neria_action') === 'add_blacklist' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $tpl  = trim((string) Tools::getValue('neria_bl_template'));
             $lang = trim((string) Tools::getValue('neria_bl_lang'));
             if ($tpl !== '' && (new BlacklistManager())->add($tpl, $lang)) {
@@ -2316,7 +2319,7 @@ class Neria extends Module
             }
         }
 
-        if (Tools::getValue('neria_action') === 'remove_blacklist') {
+        if (Tools::getValue('neria_action') === 'remove_blacklist' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int) Tools::getValue('neria_bl_id');
             if ($id > 0 && (new BlacklistManager())->remove($id)) {
                 $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.blacklist_removed'));
@@ -2325,13 +2328,13 @@ class Neria extends Module
             }
         }
 
-        if (Tools::getValue('neria_action') === 'reset_blacklist') {
+        if (Tools::getValue('neria_action') === 'reset_blacklist' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             (new BlacklistManager())->reset();
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.blacklist_reset'));
         }
 
         // ── Action : mode silence (anti-doublon) ──────────────────
-        if (Tools::getValue('neria_action') === 'toggle_cooldown') {
+        if (Tools::getValue('neria_action') === 'toggle_cooldown' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $cfg     = new ConfigManager($this);
             $enabled = !$cfg->isCooldownEnabled();
             $cfg->setCooldownEnabled($enabled);
@@ -2340,21 +2343,21 @@ class Neria extends Module
             ]));
         }
 
-        if (Tools::getValue('neria_action') === 'save_cooldown') {
+        if (Tools::getValue('neria_action') === 'save_cooldown' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $minutes = (int) Tools::getValue('neria_cooldown_minutes', 10);
             $minutes = max(1, min(60, $minutes));
             Configuration::updateValue(self::CONFIG_PREFIX . 'COOLDOWN_MINUTES', $minutes);
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
-        if (Tools::getValue('neria_action') === 'save_smtp_quota') {
+        if (Tools::getValue('neria_action') === 'save_smtp_quota' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $quota = max(0, (int) Tools::getValue('neria_smtp_quota', 0));
             Configuration::updateValue('NERIA_SMTP_DAILY_QUOTA', $quota);
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.smtp_quota_saved'));
         }
 
         // ── Google Postmaster Tools : sauvegarde credentials ─────
-        if (Tools::getValue('neria_action') === 'save_postmaster_config' && class_exists('PostmasterManager')) {
+        if (Tools::getValue('neria_action') === 'save_postmaster_config' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('PostmasterManager')) {
             $clientId     = trim((string) Tools::getValue('postmaster_client_id', ''));
             $clientSecret = trim((string) Tools::getValue('postmaster_client_secret', ''));
             Configuration::updateValue(PostmasterManager::CONFIG_CLIENT_ID,     $clientId);
@@ -2377,13 +2380,13 @@ class Neria extends Module
         }
 
         // ── Google Postmaster Tools : déconnexion ─────────────────
-        if (Tools::getValue('neria_action') === 'disconnect_postmaster' && class_exists('PostmasterManager')) {
+        if (Tools::getValue('neria_action') === 'disconnect_postmaster' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('PostmasterManager')) {
             (new PostmasterManager($this))->disconnect();
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.google_account_disconnected'));
         }
 
         // ── Google Postmaster Tools : rafraîchissement forcé ──────
-        if (Tools::getValue('neria_action') === 'refresh_postmaster' && class_exists('PostmasterManager')) {
+        if (Tools::getValue('neria_action') === 'refresh_postmaster' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('PostmasterManager')) {
             $manager = new PostmasterManager($this);
             Configuration::deleteByName(PostmasterManager::CONFIG_CACHE);
             Configuration::deleteByName(PostmasterManager::CONFIG_CACHE_TIME);
@@ -2428,7 +2431,7 @@ class Neria extends Module
         }
 
         // ── PageSpeed Insights : sauvegarde clé API + URL ────────
-        if (Tools::getValue('neria_action') === 'save_pagespeed_key') {
+        if (Tools::getValue('neria_action') === 'save_pagespeed_key' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $key       = trim((string) Tools::getValue('pagespeed_api_key', ''));
             $targetUrl = trim((string) Tools::getValue('pagespeed_target_url', ''));
             $urlError  = '';
@@ -2455,7 +2458,7 @@ class Neria extends Module
         }
 
         // ── PageSpeed Insights : rafraîchissement forcé ───────────
-        if (Tools::getValue('neria_action') === 'refresh_pagespeed' && class_exists('PageSpeedManager')) {
+        if (Tools::getValue('neria_action') === 'refresh_pagespeed' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('PageSpeedManager')) {
             $mgr    = new PageSpeedManager($this);
             $report = $mgr->runCheck();
             if ($report) {
@@ -2470,7 +2473,7 @@ class Neria extends Module
         }
 
         // ── Search Console : sauvegarde credentials ───────────────
-        if (Tools::getValue('neria_action') === 'save_searchconsole_config') {
+        if (Tools::getValue('neria_action') === 'save_searchconsole_config' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $clientId     = trim((string) Tools::getValue('sc_client_id', ''));
             $clientSecret = trim((string) Tools::getValue('sc_client_secret', ''));
             Configuration::updateValue(SearchConsoleManager::CONFIG_CLIENT_ID,     $clientId);
@@ -2494,13 +2497,13 @@ class Neria extends Module
         }
 
         // ── Search Console : déconnexion ──────────────────────────
-        if (Tools::getValue('neria_action') === 'disconnect_searchconsole' && class_exists('SearchConsoleManager')) {
+        if (Tools::getValue('neria_action') === 'disconnect_searchconsole' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('SearchConsoleManager')) {
             (new SearchConsoleManager($this))->disconnect();
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.searchconsole_disconnected'));
         }
 
         // ── Search Console : rafraîchissement forcé ───────────────
-        if (Tools::getValue('neria_action') === 'refresh_searchconsole' && class_exists('SearchConsoleManager')) {
+        if (Tools::getValue('neria_action') === 'refresh_searchconsole' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('SearchConsoleManager')) {
             $mgr    = new SearchConsoleManager($this);
             Configuration::deleteByName(SearchConsoleManager::CONFIG_CACHE);
             Configuration::deleteByName(SearchConsoleManager::CONFIG_CACHE_TIME);
@@ -2517,7 +2520,7 @@ class Neria extends Module
         }
 
         // ── SEO API payante : sauvegarde config ───────────────────
-        if (Tools::getValue('neria_action') === 'save_seo_config') {
+        if (Tools::getValue('neria_action') === 'save_seo_config' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $provider  = in_array(Tools::getValue('seo_provider'), ['semrush', 'moz', ''], true)
                 ? (string) Tools::getValue('seo_provider')
                 : '';
@@ -2540,7 +2543,7 @@ class Neria extends Module
         }
 
         // ── SEO API payante : rafraîchissement forcé ──────────────
-        if (Tools::getValue('neria_action') === 'refresh_seo_api' && class_exists('SeoApiManager')) {
+        if (Tools::getValue('neria_action') === 'refresh_seo_api' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('SeoApiManager')) {
             $mgr    = new SeoApiManager($this);
             $report = $mgr->runCheck();
             if ($report) {
@@ -2555,7 +2558,7 @@ class Neria extends Module
         }
 
         // ── Action : empreinte carbone ────────────────────────────
-        if (Tools::getValue('neria_action') === 'save_carbon') {
+        if (Tools::getValue('neria_action') === 'save_carbon' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             Configuration::updateValue(
                 self::CONFIG_PREFIX . 'CARBON_ENABLED',
                 (int) Tools::getValue('neria_carbon_enabled', 0)
@@ -2568,7 +2571,7 @@ class Neria extends Module
         }
 
         // ── Réseaux sociaux : sauvegarde ──────────────────────────
-        if (Tools::getValue('neria_action') === 'save_social' && class_exists('ConfigManager')) {
+        if (Tools::getValue('neria_action') === 'save_social' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('ConfigManager')) {
             $socialData = [
                 'social_instagram' => (string) Tools::getValue('social_instagram', ''),
                 'social_pinterest' => (string) Tools::getValue('social_pinterest', ''),
@@ -2582,7 +2585,7 @@ class Neria extends Module
         }
 
         // ── Onglet Design : sauvegarde ─────────────────────────────
-        if (Tools::getValue('neria_action') === 'save_design' && class_exists('ConfigManager')) {
+        if (Tools::getValue('neria_action') === 'save_design' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('ConfigManager')) {
             $designMgr  = new ConfigManager($this);
             $designData = [
                 'color_background'  => (string) Tools::getValue('color_background', ''),
@@ -2621,13 +2624,13 @@ class Neria extends Module
         // ── Onglet Design : réinitialisation (couleurs/police/bouton/
         //    espacement/séparateur/ombre uniquement — ni logo, ni les
         //    réglages des autres onglets) ─────────────────────────
-        if (Tools::getValue('neria_action') === 'reset_design' && class_exists('ConfigManager')) {
+        if (Tools::getValue('neria_action') === 'reset_design' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('ConfigManager')) {
             (new ConfigManager($this))->resetDesignConfig();
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
         // ── Onglet Typographie : sauvegarde ────────────────────────
-        if (Tools::getValue('neria_action') === 'save_typography' && class_exists('ConfigManager')) {
+        if (Tools::getValue('neria_action') === 'save_typography' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('ConfigManager')) {
             $typoData = [
                 'font_latin'               => (string) Tools::getValue('font_latin', ''),
                 'font_arabic'              => (string) Tools::getValue('font_arabic', ''),
@@ -2644,7 +2647,7 @@ class Neria extends Module
         }
 
         // ── Variables personnalisées : sauvegarde ──────────────────
-        if (Tools::getValue('neria_action') === 'save_custom_vars' && class_exists('ConfigManager')) {
+        if (Tools::getValue('neria_action') === 'save_custom_vars' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('ConfigManager')) {
             $varsData = [
                 'maison_name'            => (string) Tools::getValue('maison_name', ''),
                 'slogan'                 => (string) Tools::getValue('slogan', ''),
@@ -2660,7 +2663,7 @@ class Neria extends Module
         }
 
         // ── Signature manuscrite : génération ──────────────────────
-        if (Tools::getValue('neria_action') === 'generate_signature'
+        if (Tools::getValue('neria_action') === 'generate_signature' && $_SERVER['REQUEST_METHOD'] === 'POST'
             && class_exists('SignatureGenerator') && class_exists('ConfigManager')
         ) {
             $sigStyle = (string) Tools::getValue('sig_style', 'great_vibes');
@@ -2710,7 +2713,7 @@ class Neria extends Module
         }
 
         // ── Actions : calendrier des occasions ───────────────────
-        if (Tools::getValue('neria_action') === 'add_calendar_event') {
+        if (Tools::getValue('neria_action') === 'add_calendar_event' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             // Si l'occasion est personnalisée, on lit le champ texte libre
             $rawKey    = (string) Tools::getValue('cal_event_key', '');
             $eventKey  = $rawKey === '__custom__'
@@ -2740,7 +2743,7 @@ class Neria extends Module
             }
         }
 
-        if (Tools::getValue('neria_action') === 'save_calendar_event') {
+        if (Tools::getValue('neria_action') === 'save_calendar_event' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idEvent = (int) Tools::getValue('cal_id', 0);
             $days    = max(1, min(60, (int) Tools::getValue('cal_days', 7)));
             if ($idEvent > 0) {
@@ -2753,7 +2756,7 @@ class Neria extends Module
             }
         }
 
-        if (Tools::getValue('neria_action') === 'toggle_calendar_event') {
+        if (Tools::getValue('neria_action') === 'toggle_calendar_event' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idEvent = (int) Tools::getValue('cal_id', 0);
             if ($idEvent > 0) {
                 Db::getInstance()->execute(
@@ -2765,7 +2768,7 @@ class Neria extends Module
             }
         }
 
-        if (Tools::getValue('neria_action') === 'delete_calendar_event') {
+        if (Tools::getValue('neria_action') === 'delete_calendar_event' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idEvent = (int) Tools::getValue('cal_id', 0);
             if ($idEvent > 0) {
                 Db::getInstance()->execute(
@@ -2777,7 +2780,7 @@ class Neria extends Module
         }
 
         // ── Action : multi-expéditeur par langue ──────────────────
-        if (Tools::getValue('neria_action') === 'save_senders') {
+        if (Tools::getValue('neria_action') === 'save_senders' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $senders = [];
             foreach (TranslationEngine::SUPPORTED_LANGS as $iso) {
                 $name  = trim((string) Tools::getValue('neria_sender_name_' . $iso, ''));
@@ -2797,7 +2800,7 @@ class Neria extends Module
         }
 
         // ── Action : durée de validité des bons ───────────────────
-        if (Tools::getValue('neria_action') === 'save_voucher_validity') {
+        if (Tools::getValue('neria_action') === 'save_voucher_validity' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $days = (int) Tools::getValue('neria_voucher_validity', 30);
             $days = max(1, min(365, $days));
             Configuration::updateValue(self::CONFIG_PREFIX . 'VOUCHER_VALIDITY', $days);
@@ -2805,7 +2808,7 @@ class Neria extends Module
         }
 
         // ── Action : montant du bon de réduction anniversaire ─────
-        if (Tools::getValue('neria_action') === 'save_birthday_voucher') {
+        if (Tools::getValue('neria_action') === 'save_birthday_voucher' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $amount = (float) str_replace(',', '.', (string) Tools::getValue('neria_birthday_voucher_amount', 10));
             $isPercent = (int) Tools::getValue('neria_birthday_voucher_percent', 1) === 1;
             $amount = max(0, $isPercent ? min(100, $amount) : $amount);
@@ -2815,7 +2818,7 @@ class Neria extends Module
         }
 
         // ── Action : bon de réduction sur paliers de commandes ────
-        if (Tools::getValue('neria_action') === 'save_milestone_voucher') {
+        if (Tools::getValue('neria_action') === 'save_milestone_voucher' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $enabled   = (int) Tools::getValue('neria_milestone_voucher_enabled', 0) === 1;
             $amount    = (float) str_replace(',', '.', (string) Tools::getValue('neria_milestone_voucher_amount', 10));
             $isPercent = (int) Tools::getValue('neria_milestone_voucher_percent', 1) === 1;
@@ -2826,7 +2829,7 @@ class Neria extends Module
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
-        if (Tools::getValue('neria_action') === 'save_target_countries') {
+        if (Tools::getValue('neria_action') === 'save_target_countries' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $raw      = Tools::getValue('neria_target_countries', []);
             $selected = is_array($raw) ? array_filter(array_map('strval', $raw)) : [];
             (new ConfigManager($this))->saveTargetCountries($selected);
@@ -2838,7 +2841,7 @@ class Neria extends Module
             $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.target_countries_saved', ['n' => $count]));
         }
 
-        if (Tools::getValue('neria_action') === 'save_time_greetings') {
+        if (Tools::getValue('neria_action') === 'save_time_greetings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $langs    = TranslationEngine::SUPPORTED_LANGS;
             $slots    = ['morning', 'afternoon', 'evening', 'night'];
             $greetings = [];
@@ -2854,12 +2857,12 @@ class Neria extends Module
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.time_greetings_saved'));
         }
 
-        if (Tools::getValue('neria_action') === 'reset_time_greetings_all') {
+        if (Tools::getValue('neria_action') === 'reset_time_greetings_all' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             (new ConfigManager($this))->resetTimeGreetings();
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.time_greetings_reset_all'));
         }
 
-        if (Tools::getValue('neria_action') === 'reset_time_greetings_lang') {
+        if (Tools::getValue('neria_action') === 'reset_time_greetings_lang' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $lang = trim((string) Tools::getValue('neria_reset_lang'));
             if ($lang && in_array($lang, TranslationEngine::SUPPORTED_LANGS, true)) {
                 (new ConfigManager($this))->resetTimeGreetings($lang);
@@ -2869,7 +2872,7 @@ class Neria extends Module
             }
         }
 
-        if (Tools::getValue('neria_action') === 'toggle_time_greeting') {
+        if (Tools::getValue('neria_action') === 'toggle_time_greeting' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $cfg     = new ConfigManager($this);
             $enabled = !$cfg->isTimeGreetingEnabled();
             $cfg->setTimeGreetingEnabled($enabled);
@@ -2878,7 +2881,7 @@ class Neria extends Module
             ]));
         }
 
-        if (Tools::getValue('neria_action') === 'toggle_multi_sender') {
+        if (Tools::getValue('neria_action') === 'toggle_multi_sender' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $cfg     = new ConfigManager($this);
             $enabled = !$cfg->isMultiSenderEnabled();
             $cfg->setMultiSenderEnabled($enabled);
@@ -2887,7 +2890,7 @@ class Neria extends Module
             ]));
         }
 
-        if (Tools::getValue('neria_action') === 'toggle_signature') {
+        if (Tools::getValue('neria_action') === 'toggle_signature' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $cfg     = new ConfigManager($this);
             $enabled = !$cfg->isSignatureEnabled();
             $cfg->setSignatureEnabled($enabled);
@@ -2896,7 +2899,7 @@ class Neria extends Module
             ]));
         }
 
-        if (Tools::getValue('neria_action') === 'toggle_firstname_fallback') {
+        if (Tools::getValue('neria_action') === 'toggle_firstname_fallback' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $cfg     = new ConfigManager($this);
             $enabled = !$cfg->isFirstnameFallbackEnabled();
             $cfg->setFirstnameFallbackEnabled($enabled);
@@ -2905,7 +2908,7 @@ class Neria extends Module
             ]));
         }
 
-        if (Tools::getValue('neria_action') === 'save_firstname_fallbacks') {
+        if (Tools::getValue('neria_action') === 'save_firstname_fallbacks' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $langs     = TranslationEngine::SUPPORTED_LANGS;
             $fallbacks = [];
             foreach ($langs as $lang) {
@@ -2973,7 +2976,7 @@ class Neria extends Module
         }
 
         // ── AJAX : traitement manuel de la file d'attente ────────────────
-        if (Tools::getValue('neria_action') === 'process_queue_now') {
+        if (Tools::getValue('neria_action') === 'process_queue_now' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             while (ob_get_level() > 0) { ob_end_clean(); }
             if (!headers_sent()) { header('Content-Type: application/json; charset=utf-8'); }
             try {
@@ -3005,7 +3008,7 @@ class Neria extends Module
             die(json_encode($status));
         }
 
-        if (Tools::getValue('neria_action') === 'send_manual') {
+        if (Tools::getValue('neria_action') === 'send_manual' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $manual      = new ManualSendManager($this);
             $contentVars = Tools::getValue('neria_var');
             if (!is_array($contentVars)) {
@@ -3038,7 +3041,7 @@ class Neria extends Module
 
         // ── Action : score de délivrabilité (onglet Statistiques) ──
         // ── Réputation de domaine : rafraîchissement manuel ──────────
-        if (Tools::getValue('neria_action') === 'refresh_domain_reputation' && class_exists('DomainReputationManager')) {
+        if (Tools::getValue('neria_action') === 'refresh_domain_reputation' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('DomainReputationManager')) {
             try {
                 $domRep = (new DomainReputationManager($this))->runFullCheck();
                 $this->context->smarty->assign('domain_reputation', $domRep);
@@ -3112,7 +3115,7 @@ class Neria extends Module
         }
 
         // ── Onglet A/B Testing : création / désactivation ────────────
-        if (Tools::getValue('neria_action') === 'create_abtest' && class_exists('ABTestManager')) {
+        if (Tools::getValue('neria_action') === 'create_abtest' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('ABTestManager')) {
             $tplKey      = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('abtest_template', ''));
             // Pas de pSQL() ici : ABTestManager::createTest() échappe déjà ces
             // valeurs avant de construire son propre SQL — un double pSQL()
@@ -3136,7 +3139,7 @@ class Neria extends Module
             }
         }
 
-        if (Tools::getValue('neria_action') === 'deactivate_abtest' && class_exists('ABTestManager')) {
+        if (Tools::getValue('neria_action') === 'deactivate_abtest' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('ABTestManager')) {
             $tplKey = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('abtest_template', ''));
             if ($tplKey !== '') {
                 $ab     = new ABTestManager($this);
@@ -3150,7 +3153,7 @@ class Neria extends Module
             }
         }
 
-        if (Tools::getValue('neria_action') === 'apply_abtest_winner' && class_exists('ABTestManager')) {
+        if (Tools::getValue('neria_action') === 'apply_abtest_winner' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('ABTestManager')) {
             $tplKey = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('abtest_template', ''));
             $winner = Tools::getValue('abtest_winner', '');
             $winner = in_array($winner, ['A', 'B'], true) ? $winner : '';
@@ -3183,7 +3186,7 @@ class Neria extends Module
         // utile pour récupérer des corrections de texte livrées avec une mise
         // à jour du module sans attendre un bump de version qui déclenche
         // l'upgrade automatique.
-        if ($tradAction === 'reload_all_translations' && class_exists('TranslationInstaller')) {
+        if ($tradAction === 'reload_all_translations' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('TranslationInstaller')) {
             $installer = new TranslationInstaller($this);
             $ok = $installer->importFromJson(_PS_MODULE_DIR_ . 'neria/data/translations.json');
             if ($ok) {
@@ -3200,7 +3203,7 @@ class Neria extends Module
         // c'est exactement le geste attendu si NERIA_INSTALLED_VERSION est en
         // retard (ex: fichiers mis à jour par FTP sans repasser par la liste
         // des modules, qui déclenche habituellement l'upgrade automatiquement).
-        if (Tools::getValue('neria_action') === 'repair_module_version') {
+        if (Tools::getValue('neria_action') === 'repair_module_version' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $before = (string) Configuration::get('NERIA_INSTALLED_VERSION');
             \Module::needUpgrade($this);
             $result = $this->runUpgradeModule();
@@ -3219,7 +3222,7 @@ class Neria extends Module
         // connexion réseau à la boîte IMAP configurée par le marchand — trop
         // coûteux/risqué (timeout) pour être déclenché en silence à chaque
         // passage automatique des contrôles.
-        if (Tools::getValue('neria_action') === 'repair_bounces_check' && class_exists('BounceManager')) {
+        if (Tools::getValue('neria_action') === 'repair_bounces_check' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('BounceManager')) {
             $result = (new BounceManager($this))->checkBounceMailbox();
             if (empty($result['errors'])) {
                 $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.bounces_check_success', [
@@ -3234,7 +3237,7 @@ class Neria extends Module
         }
 
         // ── Action : activation d'une clé de licence ──────────────────
-        if (Tools::getValue('neria_action') === 'activate_license' && class_exists('LicenseManager')) {
+        if (Tools::getValue('neria_action') === 'activate_license' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('LicenseManager')) {
             $rawKey = (string) Tools::getValue('license_key', '');
             $result = (new LicenseManager($this))->activateLicense($rawKey);
             if ($result['ok']) {
@@ -3253,7 +3256,7 @@ class Neria extends Module
         // intacts pour ne pas casser une intégration externe déjà en place.
         // Confirmation par mot de passe de l'employé connecté + case à
         // cocher, puis journalisation CRITICAL (qui/quand) dans le Watchdog.
-        if (Tools::getValue('neria_action') === 'reset_all_data') {
+        if (Tools::getValue('neria_action') === 'reset_all_data' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $password = (string) Tools::getValue('neria_reset_password', '');
             $confirmed = (int) Tools::getValue('neria_reset_confirm', 0) === 1;
             $employee  = $this->context->employee;
@@ -3331,7 +3334,7 @@ class Neria extends Module
         }
 
         // ── Import CSV traductions ────────────────────────────────────
-        if ($tradAction === 'import_translations_csv') {
+        if ($tradAction === 'import_translations_csv' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $tplKey  = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
             $tplLang = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
 
@@ -3407,7 +3410,7 @@ class Neria extends Module
         }
 
         // ── Import CSV Variante B ────────────────────────────────────
-        if ($tradAction === 'import_variant_b_csv') {
+        if ($tradAction === 'import_variant_b_csv' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $tplKey    = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
             $tplLang   = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
             $idAbtestB = (int) Tools::getValue('id_abtest_b', 0);
@@ -3440,7 +3443,7 @@ class Neria extends Module
         }
 
         // ── Réinitialiser ce template dans TOUTES les langues ─────────
-        if ($tradAction === 'reset_template_all_langs') {
+        if ($tradAction === 'reset_template_all_langs' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $tplKey    = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
             $tableTrad = _DB_PREFIX_ . 'neria_translation';
             $jsonPath  = __DIR__ . '/data/translations.json';
@@ -3480,7 +3483,7 @@ class Neria extends Module
         }
 
         // ── Réinitialiser TOUT (tous templates, toutes langues) ───────
-        if ($tradAction === 'reset_all_translations') {
+        if ($tradAction === 'reset_all_translations' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $tableTrad = _DB_PREFIX_ . 'neria_translation';
             $jsonPath  = __DIR__ . '/data/translations.json';
             $jsonData  = is_file($jsonPath) ? json_decode(file_get_contents($jsonPath), true) : [];
@@ -3526,7 +3529,7 @@ class Neria extends Module
         }
 
         // ── Empreinte vocale : sauvegarde du profil ───────────────────
-        if ($tradAction === 'save_voice_profile' && class_exists('VoiceProfileManager')) {
+        if ($tradAction === 'save_voice_profile' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('VoiceProfileManager')) {
             $voiceLang = preg_replace('/[^a-z]/i', '', (string) Tools::getValue('trad_lang', 'fr'));
             $banned    = (string) Tools::getValue('voice_banned_words', '');
             $preferred = (string) Tools::getValue('voice_preferred_words', '');
@@ -3558,7 +3561,7 @@ class Neria extends Module
         }
 
         // ── Sauvegarde clé DeepL ──────────────────────────────────────
-        if ($tradAction === 'save_deepl_key') {
+        if ($tradAction === 'save_deepl_key' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $key = trim((string) Tools::getValue('deepl_key', ''));
             (new ConfigManager($this))->set(ConfigManager::KEY_DEEPL_KEY, CryptoManager::encrypt($key));
             if (class_exists('WatchdogManager')) {
@@ -3572,7 +3575,7 @@ class Neria extends Module
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.deepl_key_saved'));
         }
 
-        if (in_array($tradAction, ['load_translations', 'save_translations', 'reset_template', 'save_variant_b', 'restore_translation', 'reset_variant_b', 'restore_variant_b', 'delete_history'], true)) {
+        if (in_array($tradAction, ['load_translations', 'save_translations', 'reset_template', 'save_variant_b', 'restore_translation', 'reset_variant_b', 'restore_variant_b', 'delete_history'], true) && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $tplKey  = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('trad_template', ''));
             $tplLang = preg_replace('/[^a-z]/i', '',    (string) Tools::getValue('trad_lang', 'fr'));
 
@@ -4063,7 +4066,7 @@ class Neria extends Module
         }
 
         // ── Prévisualisation multi-client : rendu simulé (form POST) ─
-        if (Tools::getValue('neria_action') === 'multipreview_render' && class_exists('MultiClientPreviewManager') && class_exists('EmailRenderer')) {
+        if (Tools::getValue('neria_action') === 'multipreview_render' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('MultiClientPreviewManager') && class_exists('EmailRenderer')) {
             $mpTemplate = preg_replace('/[^a-z0-9_\-]/i', '', (string) Tools::getValue('mp_template', 'order_conf'));
             $mpLang     = preg_replace('/[^a-z\-]/i', '',   (string) Tools::getValue('mp_lang', 'fr'));
             if ($mpTemplate === '') { $mpTemplate = 'order_conf'; }
@@ -4134,14 +4137,19 @@ class Neria extends Module
         // Endpoints JSON purs, en dehors du try/catch général : re-rendent le
         // HTML depuis mp_template/mp_lang (pas besoin de session côté serveur)
         // et relaient l'appel à l'API tierce configurée par le marchand.
-        if (in_array(Tools::getValue('neria_action'), [
-            'multipreview_submit_litmus', 'multipreview_poll_litmus',
-            'multipreview_submit_eoa', 'multipreview_poll_eoa',
-        ], true) && class_exists('MultiClientPreviewManager')) {
+        $mpEarlyAction = Tools::getValue('neria_action');
+        $mpIsSubmit    = in_array($mpEarlyAction, ['multipreview_submit_litmus', 'multipreview_submit_eoa'], true);
+        $mpIsPoll      = in_array($mpEarlyAction, ['multipreview_poll_litmus', 'multipreview_poll_eoa'], true);
+        // Les actions "submit_" consomment un crédit sur l'API tierce payante
+        // (Litmus / Email on Acid) à chaque appel — elles exigent donc POST
+        // comme toute action à effet de bord, contrairement au simple sondage
+        // ("poll_") qui ne fait que relire un statut déjà soumis, sans coût,
+        // et peut rester accessible en GET.
+        if ((($mpIsSubmit && $_SERVER['REQUEST_METHOD'] === 'POST') || $mpIsPoll) && class_exists('MultiClientPreviewManager')) {
             while (ob_get_level() > 0) { ob_end_clean(); }
             if (!headers_sent()) { header('Content-Type: application/json; charset=utf-8'); }
 
-            $mpAction = Tools::getValue('neria_action');
+            $mpAction = $mpEarlyAction;
             $mgr      = new MultiClientPreviewManager();
 
             try {
@@ -4172,7 +4180,7 @@ class Neria extends Module
         }
 
         // ── Prévisualisation multi-client : sauvegarde clés API ──
-        if (Tools::getValue('neria_action') === 'save_multipreview_keys') {
+        if (Tools::getValue('neria_action') === 'save_multipreview_keys' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $litmusKey = trim((string) Tools::getValue('litmus_key', ''));
             $eoaKey    = trim((string) Tools::getValue('eoa_key', ''));
             if (class_exists('MultiClientPreviewManager')) {
@@ -4183,7 +4191,7 @@ class Neria extends Module
         }
 
         // ── Webhooks : sauvegarde ─────────────────────────────────
-        if (Tools::getValue('neria_action') === 'save_webhooks') {
+        if (Tools::getValue('neria_action') === 'save_webhooks' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $whUrl    = trim((string) Tools::getValue('webhook_url', ''));
             $whSecret = trim((string) Tools::getValue('webhook_secret', ''));
             $whEvents = Tools::getValue('webhook_events', []);
@@ -4207,7 +4215,7 @@ class Neria extends Module
         }
 
         // ── Webhooks : test de livraison ──────────────────────────
-        if (Tools::getValue('neria_action') === 'test_webhook') {
+        if (Tools::getValue('neria_action') === 'test_webhook' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = (new WebhookManager($this))->sendTest();
             if ($result['ok']) {
                 $this->context->smarty->assign(
@@ -4224,7 +4232,7 @@ class Neria extends Module
         }
 
         // ── Webhooks : traiter la file maintenant ──────────────────
-        if (Tools::getValue('neria_action') === 'process_webhook_queue_now' && class_exists('WebhookManager')) {
+        if (Tools::getValue('neria_action') === 'process_webhook_queue_now' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('WebhookManager')) {
             try {
                 (new WebhookManager($this))->processQueue();
                 $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.webhook_queue_processed'));
@@ -4234,7 +4242,7 @@ class Neria extends Module
         }
 
         // ── Webhooks : relance manuelle d'une livraison échouée ─────
-        if (Tools::getValue('neria_action') === 'retry_webhook' && class_exists('WebhookManager')) {
+        if (Tools::getValue('neria_action') === 'retry_webhook' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('WebhookManager')) {
             $idWebhook = (int) Tools::getValue('id_webhook', 0);
             if ($idWebhook > 0 && (new WebhookManager($this))->retryOne($idWebhook)) {
                 $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.webhook_requeued'));
@@ -4244,7 +4252,7 @@ class Neria extends Module
         }
 
         // ── Churn : recalcul manuel ─────────────────────────────────
-        if (Tools::getValue('neria_action') === 'recompute_churn') {
+        if (Tools::getValue('neria_action') === 'recompute_churn' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             if (class_exists('ChurnScoreManager')) {
                 try {
                     $n = (new ChurnScoreManager($this))->recomputeAll();
@@ -4262,7 +4270,7 @@ class Neria extends Module
         }
 
         // ── Segments : calcul manuel ────────────────────────────────
-        if (Tools::getValue('neria_action') === 'recompute_segments') {
+        if (Tools::getValue('neria_action') === 'recompute_segments' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             if (class_exists('SegmentManager')) {
                 try {
                     $n = (new SegmentManager($this))->recomputeAll();
@@ -4280,7 +4288,7 @@ class Neria extends Module
         }
 
         // ── Segments : envoi de campagne ────────────────────────────
-        if (Tools::getValue('neria_action') === 'send_segment_campaign') {
+        if (Tools::getValue('neria_action') === 'send_segment_campaign' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $seg      = (string) Tools::getValue('campaign_segment', '');
             $template = (string) Tools::getValue('campaign_template', '');
             $filters  = array_filter([
@@ -4313,7 +4321,11 @@ class Neria extends Module
         }
 
         // ── RGPD : purge d'une table ──────────────────────────────
-        if (Tools::getValue('neria_action') === 'gdpr_purge' && class_exists('GdprAuditManager')) {
+        // Action destructive et irréversible : exige un vrai POST (le
+        // formulaire de gdpr.tpl en est un), pas un simple lien/GET, pour
+        // ne pas être déclenchable via un lien cliqué par un admin connecté.
+        if (Tools::getValue('neria_action') === 'gdpr_purge'
+            && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('GdprAuditManager')) {
             $gdprTable   = preg_replace('/[^a-z0-9_]/i', '', (string) Tools::getValue('gdpr_table', ''));
             $gdprDateCol = preg_replace('/[^a-z0-9_]/i', '', (string) Tools::getValue('gdpr_date_col', ''));
             $gdprMonths  = max(1, (int) Tools::getValue('gdpr_months', 36));
@@ -4343,89 +4355,89 @@ class Neria extends Module
         }
 
         // ── Anniversaire relation client : toggle ─────────────────
-        if (Tools::getValue('neria_action') === 'relationship_anniversary_toggle') {
+        if (Tools::getValue('neria_action') === 'relationship_anniversary_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::getGlobalValue('NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED');
             Configuration::updateGlobalValue('NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED', $current ? 0 : 1);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-relationship-anniversary-section');
         }
 
         // ── Checkout Abandonment : toggle activer/désactiver ─────
-        if (Tools::getValue('neria_action') === 'checkout_abandonment_toggle') {
+        if (Tools::getValue('neria_action') === 'checkout_abandonment_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::getGlobalValue('NERIA_CHECKOUT_ABANDONMENT_ENABLED');
             Configuration::updateGlobalValue('NERIA_CHECKOUT_ABANDONMENT_ENABLED', $current ? 0 : 1);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-checkout-abandonment-section');
         }
 
         // ── Liste d'attente : toggle activer/désactiver ──────────
-        if (Tools::getValue('neria_action') === 'waitlist_toggle') {
+        if (Tools::getValue('neria_action') === 'waitlist_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::getGlobalValue('NERIA_WAITLIST_ENABLED');
             Configuration::updateGlobalValue('NERIA_WAITLIST_ENABLED', $current ? 0 : 1);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-waitlist-section');
         }
 
-        if (Tools::getValue('neria_action') === 'waitlist_reservation_save') {
+        if (Tools::getValue('neria_action') === 'waitlist_reservation_save' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $hours = max(1, min(72, (int) Tools::getValue('waitlist_reservation_hours')));
             Configuration::updateGlobalValue('NERIA_WAITLIST_RESERVATION_HOURS', $hours);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t('msg.saved')) . '#neria-waitlist-section');
         }
 
         // ── Panier fantôme : toggle activer/désactiver ───────────
-        if (Tools::getValue('neria_action') === 'ghost_cart_toggle') {
+        if (Tools::getValue('neria_action') === 'ghost_cart_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::getGlobalValue('NERIA_GHOST_CART_ENABLED');
             Configuration::updateGlobalValue('NERIA_GHOST_CART_ENABLED', $current ? 0 : 1);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-ghost-cart-section');
         }
 
         // ── Complétion de collection : toggle activer/désactiver ─
-        if (Tools::getValue('neria_action') === 'collection_completion_toggle') {
+        if (Tools::getValue('neria_action') === 'collection_completion_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::getGlobalValue('NERIA_COLLECTION_COMPLETION_ENABLED');
             Configuration::updateGlobalValue('NERIA_COLLECTION_COMPLETION_ENABLED', $current ? 0 : 1);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-collection-section');
         }
 
         // ── Complétez votre look : toggle activer/désactiver ─────
-        if (Tools::getValue('neria_action') === 'look_completion_toggle') {
+        if (Tools::getValue('neria_action') === 'look_completion_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::getGlobalValue('NERIA_LOOK_COMPLETION_ENABLED');
             Configuration::updateGlobalValue('NERIA_LOOK_COMPLETION_ENABLED', $current ? 0 : 1);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-look-section');
         }
 
         // ── Devis B2B : toggle ───────────────────────────────────
-        if (Tools::getValue('neria_action') === 'quote_reminder_toggle') {
+        if (Tools::getValue('neria_action') === 'quote_reminder_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::getGlobalValue('NERIA_QUOTE_REMINDERS_ENABLED');
             Configuration::updateGlobalValue('NERIA_QUOTE_REMINDERS_ENABLED', $current ? 0 : 1);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-quote-section');
         }
 
         // ── Réconciliation post-remboursement : toggle ────────────
-        if (Tools::getValue('neria_action') === 'reconciliation_toggle') {
+        if (Tools::getValue('neria_action') === 'reconciliation_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::getGlobalValue('NERIA_REFUND_RECONCILIATION_ENABLED');
             Configuration::updateGlobalValue('NERIA_REFUND_RECONCILIATION_ENABLED', $current ? 0 : 1);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-reconciliation-section');
         }
 
         // ── Score de propension : toggle ──────────────────────────────
-        if (Tools::getValue('neria_action') === 'propensity_toggle') {
+        if (Tools::getValue('neria_action') === 'propensity_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::getGlobalValue('NERIA_PROPENSITY_ENABLED');
             Configuration::updateGlobalValue('NERIA_PROPENSITY_ENABLED', $current ? 0 : 1);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-propensity-section');
         }
 
         // ── Rappel fin de vie produit : toggle ───────────────────────
-        if (Tools::getValue('neria_action') === 'lifespan_toggle') {
+        if (Tools::getValue('neria_action') === 'lifespan_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::getGlobalValue('NERIA_LIFESPAN_ENABLED');
             Configuration::updateGlobalValue('NERIA_LIFESPAN_ENABLED', $current ? 0 : 1);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-lifespan-section');
         }
 
-        if (Tools::getValue('neria_action') === 'purchase_window_toggle') {
+        if (Tools::getValue('neria_action') === 'purchase_window_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::getGlobalValue('NERIA_PURCHASE_WINDOW_ENABLED');
             Configuration::updateGlobalValue('NERIA_PURCHASE_WINDOW_ENABLED', $current ? 0 : 1);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-purchase-window-section');
         }
 
         // ── Rappel fin de vie produit : ajouter ──────────────────────
-        if (Tools::getValue('neria_action') === 'lifespan_add') {
+        if (Tools::getValue('neria_action') === 'lifespan_add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idProduct    = (int) Tools::getValue('lifespan_id_product');
             $lifespanDays = (int) Tools::getValue('lifespan_days');
             $alertDays    = max(1, (int) Tools::getValue('lifespan_alert_days'));
@@ -4445,7 +4457,7 @@ class Neria extends Module
         }
 
         // ── Rappel fin de vie produit : supprimer ─────────────────────
-        if (Tools::getValue('neria_action') === 'lifespan_delete') {
+        if (Tools::getValue('neria_action') === 'lifespan_delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idLifespan = (int) Tools::getValue('lifespan_id');
             if ($idLifespan > 0) {
                 Db::getInstance()->execute(
@@ -4457,7 +4469,7 @@ class Neria extends Module
         }
 
         // ── Devis B2B : ajouter un devis ─────────────────────────
-        if (Tools::getValue('neria_action') === 'quote_add') {
+        if (Tools::getValue('neria_action') === 'quote_add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             // Le champ « client » accepte un ID numérique OU un email :
             // le marchand connaît souvent l'email de son client B2B, pas l'ID PS.
             $custInput  = trim((string) Tools::getValue('quote_id_customer'));
@@ -4518,7 +4530,7 @@ class Neria extends Module
         }
 
         // ── Devis B2B : marquer comme gagné ──────────────────────
-        if (Tools::getValue('neria_action') === 'quote_mark_won') {
+        if (Tools::getValue('neria_action') === 'quote_mark_won' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idQuote = (int) Tools::getValue('id_quote');
             if ($idQuote > 0) {
                 Db::getInstance()->execute(
@@ -4531,7 +4543,7 @@ class Neria extends Module
         }
 
         // ── Devis B2B : marquer comme perdu ──────────────────────
-        if (Tools::getValue('neria_action') === 'quote_mark_lost') {
+        if (Tools::getValue('neria_action') === 'quote_mark_lost' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idQuote = (int) Tools::getValue('id_quote');
             if ($idQuote > 0) {
                 Db::getInstance()->execute(
@@ -4544,7 +4556,7 @@ class Neria extends Module
         }
 
         // ── Devis B2B : supprimer ─────────────────────────────────
-        if (Tools::getValue('neria_action') === 'quote_delete') {
+        if (Tools::getValue('neria_action') === 'quote_delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idQuote = (int) Tools::getValue('id_quote');
             if ($idQuote > 0) {
                 Db::getInstance()->execute(
@@ -4558,7 +4570,7 @@ class Neria extends Module
 
 
         // ── Look completion : ajouter règle ──────────────────────
-        if (Tools::getValue('neria_action') === 'look_rule_add' && class_exists('LookCompletionManager')) {
+        if (Tools::getValue('neria_action') === 'look_rule_add' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('LookCompletionManager')) {
             $idCat = (int) Tools::getValue('look_category_id');
             $rawIds  = trim((string) Tools::getValue('look_product_ids'));
             $pids    = array_filter(array_map('intval', explode(',', $rawIds)));
@@ -4572,7 +4584,7 @@ class Neria extends Module
         }
 
         // ── Look completion : activer/désactiver règle ────────────
-        if (Tools::getValue('neria_action') === 'look_rule_toggle' && class_exists('LookCompletionManager')) {
+        if (Tools::getValue('neria_action') === 'look_rule_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('LookCompletionManager')) {
             $id  = (int) Tools::getValue('look_rule_id');
             $mgr = new LookCompletionManager($this);
             $r   = $mgr->getRuleById($id);
@@ -4585,7 +4597,7 @@ class Neria extends Module
         }
 
         // ── Look completion : supprimer règle ─────────────────────
-        if (Tools::getValue('neria_action') === 'look_rule_delete' && class_exists('LookCompletionManager')) {
+        if (Tools::getValue('neria_action') === 'look_rule_delete' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('LookCompletionManager')) {
             $id = (int) Tools::getValue('look_rule_id');
             if ($id > 0) {
                 (new LookCompletionManager($this))->deleteRule($id);
@@ -4594,7 +4606,7 @@ class Neria extends Module
         }
 
         // ── Collection : ajouter ─────────────────────────────────
-        if (Tools::getValue('neria_action') === 'collection_add' && class_exists('CollectionManager')) {
+        if (Tools::getValue('neria_action') === 'collection_add' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('CollectionManager')) {
             $name       = trim((string) Tools::getValue('collection_name'));
             $rawIds     = trim((string) Tools::getValue('collection_product_ids'));
             $productIds = array_filter(array_map('intval', explode(',', $rawIds)));
@@ -4608,7 +4620,7 @@ class Neria extends Module
         }
 
         // ── Collection : activer/désactiver ──────────────────────
-        if (Tools::getValue('neria_action') === 'collection_toggle' && class_exists('CollectionManager')) {
+        if (Tools::getValue('neria_action') === 'collection_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('CollectionManager')) {
             $id  = (int) Tools::getValue('collection_id');
             $mgr = new CollectionManager($this);
             $col = $mgr->getById($id);
@@ -4621,7 +4633,7 @@ class Neria extends Module
         }
 
         // ── Collection : supprimer ────────────────────────────────
-        if (Tools::getValue('neria_action') === 'collection_delete' && class_exists('CollectionManager')) {
+        if (Tools::getValue('neria_action') === 'collection_delete' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('CollectionManager')) {
             $id = (int) Tools::getValue('collection_id');
             if ($id > 0) {
                 (new CollectionManager($this))->delete($id);
@@ -4630,7 +4642,7 @@ class Neria extends Module
         }
 
         // ── Upsell : toggle activer/désactiver ───────────────────
-        if (Tools::getValue('neria_action') === 'upsell_toggle') {
+        if (Tools::getValue('neria_action') === 'upsell_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::getGlobalValue('NERIA_UPSELL_ENABLED');
             Configuration::updateGlobalValue('NERIA_UPSELL_ENABLED', $current ? 0 : 1);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-upsell-section');
@@ -4698,7 +4710,7 @@ class Neria extends Module
         }
 
         // ── RGPD : chiffrement des enregistrements existants ─────
-        if (Tools::getValue('neria_action') === 'gdpr_encrypt_all' && class_exists('GdprAuditManager')) {
+        if (Tools::getValue('neria_action') === 'gdpr_encrypt_all' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('GdprAuditManager')) {
             $done = (new GdprAuditManager(__DIR__))->encryptExistingRecords();
             if (class_exists('WatchdogManager')) {
                 (new WatchdogManager($this))->info(
@@ -4710,14 +4722,14 @@ class Neria extends Module
         }
 
         // ── Fidélité : activation / désactivation ────────────────
-        if (Tools::getValue('neria_action') === 'loyalty_toggle') {
+        if (Tools::getValue('neria_action') === 'loyalty_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED');
             Configuration::updateGlobalValue('NERIA_LOYALTY_ENABLED', $current ? 0 : 1);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=configure&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-loyalty-section');
         }
 
         // ── Fidélité : cumul transversal boutiques (multi-boutique) ────
-        if (Tools::getValue('neria_action') === 'loyalty_cross_shop_toggle') {
+        if (Tools::getValue('neria_action') === 'loyalty_cross_shop_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             // Lu via ConfigManager::isLoyaltyCrossShopEnabled() (défaut=true
             // si jamais réglé), pas Configuration::getGlobalValue() brut —
             // sinon une install jamais configurée lirait faux "Inactif" et
@@ -4732,7 +4744,7 @@ class Neria extends Module
         // Whitelist stricte contre le registre : n'affecte jamais l'état
         // actif/inactif réel de la feature, uniquement l'affichage de son
         // lien de menu (cf. ConfigManager::CONTROL_CENTER_REGISTRY).
-        if (Tools::getValue('neria_action') === 'menu_visibility_toggle') {
+        if (Tools::getValue('neria_action') === 'menu_visibility_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $item = (string) Tools::getValue('item');
             $validKeys = array_column(ConfigManager::CONTROL_CENTER_REGISTRY, 'key');
             $msg = '';
@@ -4747,7 +4759,7 @@ class Neria extends Module
         }
 
         // ── Centre de contrôle : afficher/masquer TOUTES les features ──
-        if (Tools::getValue('neria_action') === 'menu_visibility_bulk') {
+        if (Tools::getValue('neria_action') === 'menu_visibility_bulk' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $mode = (string) Tools::getValue('mode');
             if (in_array($mode, ['show', 'hide'], true)) {
                 (new ConfigManager($this))->setAllMenuItemsVisibility($mode === 'show');
@@ -4761,7 +4773,7 @@ class Neria extends Module
         }
 
         // ── Automatisations : toggle individuel ──────────────────
-        if (Tools::getValue('neria_action') === 'auto_toggle') {
+        if (Tools::getValue('neria_action') === 'auto_toggle' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $allowedAutoKeys = [
                 'NERIA_BIRTHDAY_ENABLED', 'NERIA_FIRST_ANNIVERSARY_ENABLED',
                 'NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED', 'NERIA_REORDER_ENABLED',
@@ -4782,7 +4794,7 @@ class Neria extends Module
         }
 
         // ── Automatisations : forcer l'exécution du cron ─────────
-        if (Tools::getValue('neria_action') === 'auto_force_run') {
+        if (Tools::getValue('neria_action') === 'auto_force_run' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             if (class_exists('BehavioralCronManager')) {
                 try {
                     (new BehavioralCronManager($this))->run();
@@ -4794,7 +4806,7 @@ class Neria extends Module
         }
 
         // ── Fidélité : sauvegarde des paliers ─────────────────
-        if (Tools::getValue('neria_action') === 'save_loyalty_tiers' && class_exists('LoyaltyManager')) {
+        if (Tools::getValue('neria_action') === 'save_loyalty_tiers' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('LoyaltyManager')) {
             $tiers = [];
             $keys  = ['bronze', 'silver', 'gold'];
             foreach ($keys as $k) {
@@ -4811,7 +4823,7 @@ class Neria extends Module
         }
 
         // ── Campagnes saisonnières : créer / modifier ─────────────
-        if (Tools::getValue('neria_action') === 'save_seasonal_campaign' && class_exists('SeasonalCampaignManager')) {
+        if (Tools::getValue('neria_action') === 'save_seasonal_campaign' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('SeasonalCampaignManager')) {
             $mgr = new SeasonalCampaignManager($this);
             $id  = (int) Tools::getValue('id_campaign', 0);
             $data = [
@@ -4837,7 +4849,7 @@ class Neria extends Module
         }
 
         // ── Campagnes saisonnières : supprimer ────────────────────
-        if (Tools::getValue('neria_action') === 'delete_seasonal_campaign' && class_exists('SeasonalCampaignManager')) {
+        if (Tools::getValue('neria_action') === 'delete_seasonal_campaign' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('SeasonalCampaignManager')) {
             $id = (int) Tools::getValue('id_campaign', 0);
             if ($id > 0) {
                 (new SeasonalCampaignManager($this))->delete($id);
@@ -4846,7 +4858,7 @@ class Neria extends Module
         }
 
         // ── Campagnes saisonnières : activer / désactiver ─────────
-        if (Tools::getValue('neria_action') === 'toggle_seasonal_campaign' && class_exists('SeasonalCampaignManager')) {
+        if (Tools::getValue('neria_action') === 'toggle_seasonal_campaign' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('SeasonalCampaignManager')) {
             $id = (int) Tools::getValue('id_campaign', 0);
             if ($id > 0) {
                 (new SeasonalCampaignManager($this))->toggle($id);
@@ -4855,7 +4867,7 @@ class Neria extends Module
         }
 
         // ── Bounces : sauvegarde configuration ───────────────────────
-        if (Tools::getValue('neria_action') === 'save_bounce_config' && class_exists('BounceManager')) {
+        if (Tools::getValue('neria_action') === 'save_bounce_config' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('BounceManager')) {
             Configuration::updateValue(BounceManager::CFG_ENABLED,        (int)    Tools::getValue('bounce_enabled', 0));
             Configuration::updateValue(BounceManager::CFG_IMAP_HOST,      (string) Tools::getValue('bounce_imap_host', ''));
             Configuration::updateValue(BounceManager::CFG_IMAP_PORT,      (int)    Tools::getValue('bounce_imap_port', 993));
@@ -4875,7 +4887,7 @@ class Neria extends Module
         }
 
         // ── Bounces : test connexion IMAP (AJAX) ─────────────────────
-        if (Tools::getValue('neria_action') === 'test_imap_connection' && class_exists('BounceManager')) {
+        if (Tools::getValue('neria_action') === 'test_imap_connection' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('BounceManager')) {
             // Précharge les valeurs du formulaire avant de tester
             Configuration::updateValue(BounceManager::CFG_IMAP_HOST,   (string) Tools::getValue('bounce_imap_host', ''));
             Configuration::updateValue(BounceManager::CFG_IMAP_PORT,   (int)    Tools::getValue('bounce_imap_port', 993));
@@ -4896,13 +4908,13 @@ class Neria extends Module
         }
 
         // ── Bounces : lancer le check IMAP maintenant ────────────────
-        if (Tools::getValue('neria_action') === 'run_bounce_check' && class_exists('BounceManager')) {
+        if (Tools::getValue('neria_action') === 'run_bounce_check' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('BounceManager')) {
             $result = (new BounceManager($this))->checkBounceMailbox();
             $this->context->smarty->assign('bounce_run_result', $result);
         }
 
         // ── Bounces : ajouter manuellement ───────────────────────────
-        if (Tools::getValue('neria_action') === 'add_manual_bounce' && class_exists('BounceManager')) {
+        if (Tools::getValue('neria_action') === 'add_manual_bounce' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('BounceManager')) {
             $email = trim((string) Tools::getValue('bounce_email', ''));
             $type  = Tools::getValue('bounce_type', 'hard') === 'soft' ? 'soft' : 'hard';
             if ($email !== '' && Validate::isEmail($email)) {
@@ -4913,6 +4925,7 @@ class Neria extends Module
 
         // ── Bounces : ignorer / réactiver / supprimer ────────────────
         if (in_array(Tools::getValue('neria_action'), ['ignore_bounce', 'reactivate_bounce', 'delete_bounce'], true)
+            && $_SERVER['REQUEST_METHOD'] === 'POST'
             && class_exists('BounceManager')) {
             $email = trim((string) Tools::getValue('bounce_email', ''));
             $mgr   = new BounceManager($this);
@@ -4933,7 +4946,7 @@ class Neria extends Module
         }
 
         // ── Certificat : configuration ────────────────────────────
-        if (Tools::getValue('neria_action') === 'cert_save_config' && class_exists('CertificateManager')) {
+        if (Tools::getValue('neria_action') === 'cert_save_config' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('CertificateManager')) {
             Configuration::updateGlobalValue(CertificateManager::CFG_ENABLED,       (int)    Tools::getValue('cert_enabled', 0));
             Configuration::updateGlobalValue(CertificateManager::CFG_SERIAL_PREFIX, pSQL(trim((string) Tools::getValue('cert_prefix', 'CERT'))));
             Configuration::updateGlobalValue(CertificateManager::CFG_TITLE,         pSQL(trim((string) Tools::getValue('cert_title', ''))));
@@ -4945,7 +4958,7 @@ class Neria extends Module
         }
 
         // ── Certificat : émission depuis fiche commande ───────────
-        if (Tools::getValue('neria_action') === 'cert_issue' && class_exists('CertificateManager')) {
+        if (Tools::getValue('neria_action') === 'cert_issue' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('CertificateManager')) {
             $idOrder       = (int) Tools::getValue('cert_id_order', 0);
             $idProduct     = (int) Tools::getValue('cert_id_product', 0);
             $idOrderDetail = (int) Tools::getValue('cert_id_order_detail', 0);
@@ -4983,7 +4996,7 @@ class Neria extends Module
         }
 
         // ── Certificat : suppression ──────────────────────────────
-        if (Tools::getValue('neria_action') === 'cert_delete' && class_exists('CertificateManager')) {
+        if (Tools::getValue('neria_action') === 'cert_delete' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('CertificateManager')) {
             $idCert = (int) Tools::getValue('id_certificate', 0);
             if ($idCert > 0) {
                 (new CertificateManager($this))->delete($idCert);

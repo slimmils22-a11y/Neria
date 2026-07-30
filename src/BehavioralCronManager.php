@@ -1135,14 +1135,21 @@ class BehavioralCronManager
             return;
         }
 
+        // Le nom produit récupéré ici n'est qu'un filet de secours (voir plus bas,
+        // le nom réel est re-résolu dans la langue du client) : on utilise la
+        // langue par défaut de la boutique plutôt qu'un id_lang=1 codé en dur,
+        // pour ne pas exclure des produits via l'INNER JOIN si la langue 1
+        // n'est pas installée/active sur cette boutique.
+        $defaultLang = (int) \Configuration::get('PS_LANG_DEFAULT') ?: 1;
+
         $table    = $this->prefix . 'neria_product_lifespan';
         $products = $this->db->executeS(
             "SELECT pl.id_product, pl.id_shop, pl.lifespan_days, pl.alert_days,
                     p.reference, pl2.name AS product_name
              FROM `{$table}` pl
              JOIN `{$this->prefix}product` p ON p.id_product = pl.id_product
-             JOIN `{$this->prefix}product_lang` pl2
-                  ON pl2.id_product = pl.id_product AND pl2.id_lang = 1 AND pl2.id_shop = pl.id_shop"
+             LEFT JOIN `{$this->prefix}product_lang` pl2
+                  ON pl2.id_product = pl.id_product AND pl2.id_lang = {$defaultLang} AND pl2.id_shop = pl.id_shop"
         ) ?: [];
 
         if (empty($products)) {

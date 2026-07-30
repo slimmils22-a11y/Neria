@@ -993,7 +993,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btnTranslate.disabled = true;
         translateStatus.textContent = '{neria_admin key='translations.translating_progress' esc='javascript'}';
         var url = window.neriaAjaxUrl('auto_translate_template') + '&trad_template=' + encodeURIComponent(tpl) + '&trad_lang=' + encodeURIComponent(lang);
-        fetch(url).then(function(r){ return r.json(); }).then(function(data) {
+        fetch(url, { method: 'POST', credentials: 'same-origin' }).then(function(r){ return r.json(); }).then(function(data) {
           btnTranslate.disabled = false;
           if (data.error) {
             translateStatus.textContent = '❌ ' + data.error;
@@ -1028,7 +1028,7 @@ document.addEventListener('DOMContentLoaded', function() {
               + '&trad_template=' + encodeURIComponent(tpl)
               + '&trad_lang='     + encodeURIComponent(lang)
               + '&id_abtest_b='   + encodeURIComponent(idAbtest);
-      fetch(url).then(function(r){ return r.json(); }).then(function(data) {
+      fetch(url, { method: 'POST', credentials: 'same-origin' }).then(function(r){ return r.json(); }).then(function(data) {
         btnTranslateB.disabled = false;
         if (data.error) {
           translateStatusB.textContent = '❌ ' + data.error;
