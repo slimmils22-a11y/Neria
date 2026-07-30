@@ -931,10 +931,21 @@ class EmailRenderer
             'youtube'   => 'YouTube',
             'tiktok'    => 'TikTok',
         ];
+
+        // Badges circulaires monogramme (ton bronze de la marque) plutôt que
+        // les logos officiels des réseaux — évite toute question de droits
+        // sur les logos de marques tierces, cohérent avec l'identité visuelle
+        // luxe du module. alt=$label conservé pour les clients email qui
+        // bloquent les images par défaut (comportement courant).
+        $iconBaseUrl = rtrim($this->context->link->getBaseLink(), '/')
+            . '/modules/' . $this->module->name . '/views/img/social/';
+
         $html = '';
         foreach ($labels as $key => $label) {
             if (!empty($links[$key])) {
-                $html .= '<a href="' . htmlspecialchars($links[$key], ENT_QUOTES, 'UTF-8') . '" target="_blank">' . $label . '</a>';
+                $html .= '<a href="' . htmlspecialchars($links[$key], ENT_QUOTES, 'UTF-8') . '" target="_blank">'
+                    . '<img src="' . $iconBaseUrl . $key . '.png" width="28" height="28" alt="' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '" style="display:inline-block;vertical-align:middle;border:0;border-radius:50%;">'
+                    . '</a>';
             }
         }
 

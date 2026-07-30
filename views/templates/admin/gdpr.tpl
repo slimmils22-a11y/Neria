@@ -116,7 +116,7 @@
             <input type="hidden" name="gdpr_table"       value="{$row.table|escape:'html'}">
             <input type="hidden" name="gdpr_date_col"    value="{$row.date_col|escape:'html'}">
             <input type="hidden" name="gdpr_months"      value="{$row.months|intval}">
-            <button type="button" class="neria-btn neria-btn--ghost neria-btn--xs"
+            <button type="button" class="neria-btn neria-btn--danger neria-btn--xs"
                     data-confirm="{neria_admin key='gdpr.purge_confirm_prefix'} {$row.overdue} {neria_admin key='gdpr.purge_confirm_records_of'} {$row.label|escape:'html'} {neria_admin key='gdpr.purge_confirm_older_than'} {$row.months} {neria_admin key='gdpr.purge_confirm_months_q'}"
                     onclick="neriaConfirmDelete(this);">
               {neria_admin key='gdpr.purge_btn'}

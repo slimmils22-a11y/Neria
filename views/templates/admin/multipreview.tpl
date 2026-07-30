@@ -27,11 +27,15 @@
 .neria-mp-card__issue-detail ul{margin:0;padding-left:16px;}
 
 @media print {
+  /* Réduit les marges par défaut du navigateur (souvent ~2,5 cm), qui
+     donnaient un rendu très aéré façon "fax" avec beaucoup de vide autour
+     d'un aperçu client relativement petit. */
+  @page { margin: 10mm; }
   .neria-section, #neria-mp-zoom-overlay, .neria-mp-card__viewport { cursor:default !important; }
   .neria-mp-card__viewport .neria-mp-frame { pointer-events:auto; }
   form, .neria-mp-toolbar, #neria-mp-zoom-overlay { display:none !important; }
   .neria-mp-grid { display:block !important; }
-  .neria-mp-card { break-inside:avoid; page-break-inside:avoid; margin-bottom:24px; border:1px solid #ccc; }
+  .neria-mp-card { width:100% !important; break-inside:avoid; page-break-inside:avoid; margin-bottom:16mm; border:1px solid #ccc; }
 }
 </style>{/literal}
 
@@ -97,9 +101,6 @@
   <div class="neria-mp-toolbar">
     <button type="button" id="neria-mp-dark-toggle" class="neria-btn neria-btn--primary neria-btn--sm">
       {neria_admin key='multipreview.dark_sim_btn'}
-    </button>
-    <button type="button" id="neria-mp-export-btn" class="neria-btn neria-btn--primary neria-btn--sm">
-      {neria_admin key='multipreview.export_pdf_btn'}
     </button>
     {if isset($mp_has_litmus) && $mp_has_litmus}
     <button type="button" id="neria-mp-litmus-btn" class="neria-btn neria-btn--secondary neria-btn--sm"
@@ -307,12 +308,6 @@ document.getElementById('neria-mp-zoom-dark-btn').addEventListener('click', func
   var zoomFrame = document.getElementById('neria-mp-zoom-frame');
   try { neriaApplyDarkSim(zoomFrame.contentDocument, neriaMpDarkGlobal); } catch (err) {}
 });
-
-// ── Export PDF (impression navigateur) ──────────────────────────
-var exportBtn = document.getElementById('neria-mp-export-btn');
-if (exportBtn) {
-  exportBtn.addEventListener('click', function () { window.print(); });
-}
 
 // Bloque les liens à l'intérieur de l'aperçu agrandi sans empêcher le scroll
 document.getElementById('neria-mp-zoom-frame').addEventListener('load', function () {
