@@ -169,6 +169,7 @@ class HealthCheckManager
             'config_defaults_seeded' => $this->checkConfigDefaultsSeeded(),
             'upgrade_version_file'  => $this->checkUpgradeScriptExistsForVersion(),
             'security_pattern_scan' => $this->checkSecurityPatternScan(),
+            'destructive_actions_post' => $this->checkDestructiveActionsRequirePost(),
             'known_regressions_guard' => $this->checkKnownRegressionsGuard(),
             'control_center_defaults_consistency' => $this->checkControlCenterDefaultsConsistency(),
             'sql_pattern_risks'     => $this->checkSqlPatternRisks(),
@@ -274,6 +275,7 @@ class HealthCheckManager
             'css_inliner_failures'        => $this->checkCssInlinerSilentFailures(),
             // ── Ajouts 2026-07-16 (3e passage de scan Watchdog) ────────
             'stored_secrets_decryptable'  => $this->checkStoredSecretsDecryptable(),
+            'stats_snapshot_decryptable'  => $this->checkStatsSnapshotDecryptable(),
             'calendar_json_integrity'     => $this->checkCalendarJsonIntegrity(),
             // ── Ajout 2026-07-21 : checklist de première installation ──
             'first_install_checklist'     => $this->checkFirstInstallChecklist(),
@@ -1898,6 +1900,122 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.security_pattern_scan_ok')];
+    }
+
+    /**
+     * Scan statique de neria.php : pour chaque dispatch d'action
+     * `if (Tools::getValue('neria_action') === '...')` ou
+     * `if (in_array(Tools::getValue('neria_action'), [...], true))`
+     * dont le bloc effectue une vraie écriture (Configuration::updateGlobalValue,
+     * ->insert(, ->update(, ->delete(, régénération de jeton via
+     * bin2hex(random_bytes(), vérifie que la condition exige bien
+     * $_SERVER['REQUEST_METHOD'] === 'POST'.
+     *
+     * Trouvé en réel le 2026-07-30 : 108 actions d'écriture du BO étaient
+     * déclenchables via un simple lien GET (CSRF-via-lien) — corrigées
+     * d'un coup après une revue manuelle à 3 agents. Ce contrôle existe
+     * pour qu'une future action ajoutée sans le même réflexe soit détectée
+     * automatiquement plutôt que de dépendre d'une nouvelle revue complète.
+     *
+     * Analyse par appariement de parenthèses/accolades (pas de simple
+     * regex ligne à ligne, sous peine de rater les blocs `in_array(...)`
+     * multi-lignes ou de mal apparier une accolade imbriquée). Volontairement
+     * permissif : un dispatch dont le déclencheur est une variable
+     * intermédiaire (ex: `$mpEarlyAction = Tools::getValue(...)` puis un
+     * `if` séparé plus loin, cas des actions multipreview_submit_ et
+     * multipreview_poll_) n'est pas couvert — pour ne jamais signaler à tort un bloc correctement gardé
+     * ailleurs, au prix de laisser passer ce cas plus rare.
+     */
+    private function checkDestructiveActionsRequirePost(): array
+    {
+        $file = _PS_MODULE_DIR_ . $this->module->name . '/neria.php';
+        if (!is_file($file)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.destructive_actions_post_ok')];
+        }
+
+        $content = file_get_contents($file) ?: '';
+        $len     = strlen($content);
+
+        $writePattern = '/Configuration::updateGlobalValue\(|->insert\(|->update\(|->delete\(|bin2hex\(random_bytes\(/';
+
+        $offenders = [];
+        $searchFrom = 0;
+
+        while (($pos = strpos($content, "Tools::getValue('neria_action')", $searchFrom)) !== false) {
+            $searchFrom = $pos + 1;
+
+            $ifPos = strrpos(substr($content, 0, $pos), 'if (');
+            if ($ifPos === false || $pos - $ifPos > 60) {
+                continue; // pas un dispatch d'action direct — hors scope volontaire
+            }
+
+            // Apparie la parenthèse fermante de la condition du if
+            $condStart = $ifPos + 3;
+            $depth = 0;
+            $condEnd = null;
+            for ($i = $condStart; $i < $len; $i++) {
+                if ($content[$i] === '(') {
+                    $depth++;
+                } elseif ($content[$i] === ')') {
+                    $depth--;
+                    if ($depth === 0) {
+                        $condEnd = $i;
+                        break;
+                    }
+                }
+            }
+            if ($condEnd === null || $pos < $condStart || $pos > $condEnd) {
+                continue; // paren non apparié ou occurrence hors de cette condition
+            }
+            $condition = substr($content, $condStart, $condEnd - $condStart + 1);
+
+            // Apparie l'accolade du bloc pour en lire le contenu
+            $bracePos = strpos($content, '{', $condEnd);
+            if ($bracePos === false || $bracePos - $condEnd > 5) {
+                continue;
+            }
+            $depth = 0;
+            $blockEnd = null;
+            for ($i = $bracePos; $i < $len; $i++) {
+                if ($content[$i] === '{') {
+                    $depth++;
+                } elseif ($content[$i] === '}') {
+                    $depth--;
+                    if ($depth === 0) {
+                        $blockEnd = $i;
+                        break;
+                    }
+                }
+            }
+            if ($blockEnd === null) {
+                continue;
+            }
+            $block = substr($content, $bracePos, $blockEnd - $bracePos + 1);
+
+            if (!preg_match($writePattern, $block)) {
+                continue; // bloc en lecture seule — pas concerné
+            }
+            if (str_contains($condition, 'REQUEST_METHOD')) {
+                continue; // déjà gardé
+            }
+
+            preg_match_all("/'([a-z_0-9]+)'/i", $condition, $m);
+            $names = array_slice(array_unique($m[1] ?? []), 0, 3);
+            $line  = substr_count(substr($content, 0, $ifPos), "\n") + 1;
+            $offenders[] = (implode('/', $names) ?: '?') . ' (L' . $line . ')';
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.destructive_actions_post_error', [
+                    'n'    => count($offenders),
+                    'list' => implode(', ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.destructive_actions_post_ok')];
     }
 
     /**
@@ -7179,6 +7297,64 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.stored_secrets_ok')];
+    }
+
+    /**
+     * checkStoredSecretsDecryptable() ne couvre que les ~15 clés de
+     * CryptoManager::SENSITIVE_CONFIG_KEYS — pas le volume, bien plus
+     * important, de snapshots chiffrés dans `neria_stat.rendered_vars`
+     * (un par email envoyé, lu par l'historique client/audit RGPD/stats).
+     * Trouvé en réel le 2026-07-30 : CryptoManager::decrypt() renvoyait ''
+     * en silence sur tout échec (clé rotée/corrompue, tag GCM invalide) —
+     * indiscernable d'un snapshot simplement absent. Un journal a été
+     * ajouté dans decrypt() lui-même, mais ce contrôle vérifie activement
+     * un échantillon de données RÉELLEMENT stockées (pas une simple sonde
+     * fraîche comme checkCryptoKeyHealth) pour détecter le problème avant
+     * qu'un marchand ne le découvre par hasard dans l'historique client.
+     */
+    private function checkStatsSnapshotDecryptable(): array
+    {
+        if (!class_exists('CryptoManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.stats_snapshot_ok')];
+        }
+
+        $table = _DB_PREFIX_ . 'neria_stat';
+        $rows = $this->db->executeS(
+            'SELECT `rendered_vars` FROM `' . $table . '`
+             WHERE `rendered_vars` IS NOT NULL AND `rendered_vars` != \'\'
+             ORDER BY `id_stat` DESC LIMIT 20'
+        );
+        if (!is_array($rows) || empty($rows)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.stats_snapshot_ok')];
+        }
+
+        $checked = 0;
+        $broken  = 0;
+        foreach ($rows as $row) {
+            $value = (string) ($row['rendered_vars'] ?? '');
+            if (!\CryptoManager::isEncrypted($value)) {
+                continue; // donnée pré-chiffrement, non concernée
+            }
+            $checked++;
+            if (\CryptoManager::decrypt($value) === '') {
+                $broken++;
+            }
+        }
+
+        if ($checked === 0) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.stats_snapshot_ok')];
+        }
+
+        if ($broken > 0) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.stats_snapshot_broken', [
+                    'broken' => $broken, 'checked' => $checked,
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.stats_snapshot_ok')];
     }
 
     /**
