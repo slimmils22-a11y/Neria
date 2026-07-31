@@ -328,7 +328,7 @@ class GdprAuditManager
             'score'        => $score,
             'grade_color'  => $gradeColors[$score] ?? '#888',
             'issues'       => $issues,
-            'generated_at' => date('d/m/Y à H:i'),
+            'generated_at' => \NeriaTools::formatDate('now', \AdminTranslator::currentLang(), true),
         ];
     }
 
@@ -463,7 +463,7 @@ class GdprAuditManager
                 'note'    => $def['note'],
                 'months'  => $months,
                 'total'   => $total,
-                'oldest'  => $oldest ? date('d/m/Y', strtotime($oldest)) : '—',
+                'oldest'  => $oldest ? \NeriaTools::formatDate($oldest, \AdminTranslator::currentLang()) : '—',
                 'overdue' => $overdue,
                 'ok'      => !$isIssue,
             ];

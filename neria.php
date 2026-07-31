@@ -2198,7 +2198,7 @@ class Neria extends Module
             $hcm     = new HealthCheckManager($this);
             $results = $hcm->runFullDiagnostic();
             $this->context->smarty->assign('health_results', $results);
-            $this->context->smarty->assign('health_last_run', date('d/m/Y H:i'));
+            $this->context->smarty->assign('health_last_run', NeriaTools::formatDate('now', AdminTranslator::currentLang(), true));
             $this->context->smarty->assign('neria_success', AdminTranslator::t('help.diagnostic_done'));
         }
 
@@ -2207,7 +2207,7 @@ class Neria extends Module
             $hcm     = new HealthCheckManager($this);
             $results = $hcm->runCodeDiagnostic();
             $this->context->smarty->assign('code_diag_results', $results);
-            $this->context->smarty->assign('code_diag_last_run', date('d/m/Y H:i'));
+            $this->context->smarty->assign('code_diag_last_run', NeriaTools::formatDate('now', AdminTranslator::currentLang(), true));
             $anyIssue = false;
             foreach ($results as $r) {
                 if (($r['status'] ?? 'ok') !== 'ok') {
@@ -3987,7 +3987,7 @@ class Neria extends Module
                 if (class_exists('TranslationHistoryManager')) {
                     $rawHistory = (new TranslationHistoryManager())->getHistoryForTemplate($tplKey, $tplLang, 40);
                     foreach ($rawHistory as $entry) {
-                        $entry['date_formatted'] = date('d/m/Y H:i', strtotime($entry['date_add']));
+                        $entry['date_formatted'] = NeriaTools::formatDate($entry['date_add'], AdminTranslator::currentLang(), true);
                         $translationHistory[]    = $entry;
                     }
                 }
@@ -4047,7 +4047,7 @@ class Neria extends Module
                             if (class_exists('TranslationHistoryManager')) {
                                 $rawHistB = (new TranslationHistoryManager())->getHistoryForTemplate('variantb_' . $tplKey, $tplLang, 40);
                                 foreach ($rawHistB as $entry) {
-                                    $entry['date_formatted'] = date('d/m/Y H:i', strtotime($entry['date_add']));
+                                    $entry['date_formatted'] = NeriaTools::formatDate($entry['date_add'], AdminTranslator::currentLang(), true);
                                     $translationHistoryB[]   = $entry;
                                 }
                             }
@@ -6033,7 +6033,7 @@ class Neria extends Module
 
         $shopName   = (string) Configuration::get('PS_SHOP_NAME');
         $shopDomain = Tools::getShopDomainSsl(true);
-        $now        = date('d/m/Y H:i');
+        $now        = NeriaTools::formatDate('now', AdminTranslator::currentLang(), true);
 
         // Génère le HTML du tableau
         $rows = '';

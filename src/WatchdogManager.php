@@ -313,7 +313,7 @@ class WatchdogManager
             . '<tr style="background:#fafafa;"><td style="padding:8px;color:#888;vertical-align:top;">' . AdminTranslator::t('wd_alert.message_label') . '</td>'
             . '<td style="padding:8px;line-height:1.5;">' . $cleanMsg . '</td></tr>'
             . '<tr><td style="padding:8px;color:#888;">' . AdminTranslator::t('wd_alert.date_label') . '</td>'
-            . '<td style="padding:8px;">' . date('d/m/Y H:i:s') . '</td></tr>'
+            . '<td style="padding:8px;">' . \NeriaTools::formatDate('now', AdminTranslator::currentLang(), true) . '</td></tr>'
             . '</table>'
             . ($emergencyUrl
                 ? '<a href="' . htmlspecialchars($emergencyUrl) . '" style="display:inline-block;background:#b38b59;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;">' . AdminTranslator::t('wd_alert.open_emergency') . '</a>'
@@ -405,7 +405,7 @@ class WatchdogManager
             . '<div style="background:#1a1a2e;padding:20px 24px;">'
             . '<p style="color:#b38b59;margin:0;font-size:11px;letter-spacing:.1em;text-transform:uppercase;">Neria · ' . htmlspecialchars($shopName) . '</p>'
             . '<h1 style="color:#fff;margin:8px 0 0;font-size:18px;">' . AdminTranslator::t('wd_digest.title') . '</h1>'
-            . '<p style="color:#aaa;margin:6px 0 0;font-size:12px;">' . AdminTranslator::tVars('wd_digest.subtitle', ['date' => date('d/m/Y')]) . '</p>'
+            . '<p style="color:#aaa;margin:6px 0 0;font-size:12px;">' . AdminTranslator::tVars('wd_digest.subtitle', ['date' => \NeriaTools::formatDate('now', AdminTranslator::currentLang())]) . '</p>'
             . '</div>'
             . '<div style="padding:20px 24px;">'
             . '<div style="display:flex;gap:16px;margin-bottom:20px;">'

@@ -230,7 +230,7 @@ class CalendarManager
             sprintf(
                 'CalendarManager: [%s][%s] : %d/%d emails envoyes (J-%d avant %s)',
                 $eventKey, $lang, $sent, $total, $daysBefore,
-                $eventDate->format('d/m/Y')
+                \NeriaTools::formatDate($eventDate->format('Y-m-d'), $lang)
             ),
             1
         );
@@ -307,9 +307,10 @@ class CalendarManager
             }
         }
 
+        $boLang = \AdminTranslator::currentLang();
         return [
-            'next_event_date' => $eventDate ? $eventDate->format('d/m/Y') : null,
-            'next_send_date'  => $sendDate  ? $sendDate->format('d/m/Y')  : null,
+            'next_event_date' => $eventDate ? \NeriaTools::formatDate($eventDate->format('Y-m-d'), $boLang) : null,
+            'next_send_date'  => $sendDate  ? \NeriaTools::formatDate($sendDate->format('Y-m-d'), $boLang)  : null,
             'last_sent'       => $lastSent,
         ];
     }

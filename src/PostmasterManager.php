@@ -332,7 +332,7 @@ class PostmasterManager
 
             return [
                 'domain'             => $domainName,
-                'date'               => date('d/m/Y', strtotime("-{$i} days")),
+                'date'               => \NeriaTools::formatDate("-{$i} days", \AdminTranslator::currentLang()),
                 'domain_reputation'  => $stat['domainReputation'] ?? null,
                 'spam_rate'          => $this->extractSpamRate($stat),
                 'spf_success'        => isset($stat['spfSuccessRatio'])  ? round((float) $stat['spfSuccessRatio']  * 100, 1) : null,

@@ -203,11 +203,12 @@ class NeriaTools
      * Formate une date pour l'affichage dans un email
      * Adapte le format selon la langue
      *
-     * @param string $date Date au format Y-m-d ou timestamp
-     * @param string $lang Langue cible
+     * @param string $date     Date au format Y-m-d, chaîne relative (ex: 'now', '+7 days') ou timestamp
+     * @param string $lang     Langue cible
+     * @param bool   $withTime Ajoute l'heure (H:i, 24h) après la date localisée
      * @return string Date formatee
      */
-    public static function formatDate(string $date, string $lang = 'fr'): string
+    public static function formatDate(string $date, string $lang = 'fr', bool $withTime = false): string
     {
         $ts = is_numeric($date) ? (int) $date : strtotime($date);
 
@@ -238,6 +239,9 @@ class NeriaTools
         ];
 
         $format = $formats[$lang] ?? 'd/m/Y';
+        if ($withTime) {
+            $format .= ' H:i';
+        }
         return date($format, $ts);
     }
 

@@ -155,7 +155,7 @@ class PageSpeedManager
             'url'        => $shopUrl,
             'mobile'     => $mobile,
             'desktop'    => $desktop,
-            'checked_at' => date('d/m/Y H:i'),
+            'checked_at' => \NeriaTools::formatDate('now', \AdminTranslator::currentLang(), true),
         ];
 
         \Configuration::updateValue(self::CONFIG_CACHE,      json_encode($result, JSON_UNESCAPED_UNICODE));

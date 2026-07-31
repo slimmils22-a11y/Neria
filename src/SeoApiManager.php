@@ -184,7 +184,7 @@ class SeoApiManager
         }
 
         $result['provider']   = $provider;
-        $result['checked_at'] = date('d/m/Y H:i');
+        $result['checked_at'] = \NeriaTools::formatDate('now', \AdminTranslator::currentLang(), true);
 
         \Configuration::updateValue(self::CONFIG_CACHE,      json_encode($result, JSON_UNESCAPED_UNICODE));
         \Configuration::updateValue(self::CONFIG_CACHE_TIME, time());

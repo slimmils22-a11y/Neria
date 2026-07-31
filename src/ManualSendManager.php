@@ -1042,7 +1042,7 @@ class ManualSendManager
 
         return [
             'ok'      => true,
-            'message' => AdminTranslator::tVars('msg.scheduled_success', ['date' => date('d/m/Y \à H:i', strtotime($sendAt))]),
+            'message' => AdminTranslator::tVars('msg.scheduled_success', ['date' => NeriaTools::formatDate($sendAt, AdminTranslator::currentLang(), true)]),
         ];
     }
 }

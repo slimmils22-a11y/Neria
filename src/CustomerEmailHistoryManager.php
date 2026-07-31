@@ -119,7 +119,7 @@ class CustomerEmailHistoryManager
 
         foreach ($rows as &$row) {
             $row['opened']       = !empty($row['opened_at']);
-            $row['sent_at_fmt']  = date('d/m/Y H:i', strtotime($row['sent_at']));
+            $row['sent_at_fmt']  = \NeriaTools::formatDate($row['sent_at'], \AdminTranslator::currentLang(), true);
             $row['has_snapshot'] = !empty($row['rendered_vars']);
         }
 

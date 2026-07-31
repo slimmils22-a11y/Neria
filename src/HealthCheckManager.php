@@ -170,6 +170,10 @@ class HealthCheckManager
             'upgrade_version_file'  => $this->checkUpgradeScriptExistsForVersion(),
             'security_pattern_scan' => $this->checkSecurityPatternScan(),
             'destructive_actions_post' => $this->checkDestructiveActionsRequirePost(),
+            'hardcoded_date_format'    => $this->checkHardcodedDateFormat(),
+            'rtl_hardcoded_align'      => $this->checkRtlHardcodedAlignment(),
+            'display_price_missing_lang' => $this->checkDisplayPriceMissingLang(),
+            'tpl_js_escape_missing'    => $this->checkTplJsEscapeMissing(),
             'known_regressions_guard' => $this->checkKnownRegressionsGuard(),
             'control_center_defaults_consistency' => $this->checkControlCenterDefaultsConsistency(),
             'sql_pattern_risks'     => $this->checkSqlPatternRisks(),
@@ -1914,7 +1918,11 @@ class HealthCheckManager
 
         foreach ($files as $file) {
             $content = file_get_contents($file) ?: '';
-            $relative = ltrim(str_replace($moduleDir, '', $file), '/\\');
+            // _PS_MODULE_DIR_ mélange '\' et '/' sur Windows (concaténation de
+            // _PS_ROOT_DIR_ en backslash + '/modules/' littéral) — normaliser
+            // avant comparaison, sinon str_replace ne matche rien et le chemin
+            // relatif affiché reste l'absolu complet, illisible dans le rapport.
+            $relative = ltrim(str_replace(str_replace('\\', '/', $moduleDir), '', str_replace('\\', '/', $file)), '/');
 
             if (preg_match($sslPattern, $content)) {
                 $offenders[] = $relative . ' (SSL désactivé)';
@@ -2053,6 +2061,271 @@ class HealthCheckManager
     }
 
     /**
+     * Scan statique de src/*.php : date('d/m/Y'...) ou ->format('d/m/Y'...)
+     * codé en dur dans un email envoyé au client, au lieu de passer par
+     * NeriaTools::formatDate() (localisée par langue destinataire).
+     *
+     * Trouvé en réel le 2026-07-31 dans BehavioralCronManager.php et
+     * CertificateManager.php : un client japonais ou anglais recevait une
+     * date au format français quel que soit son destinataire. Exclut
+     * NeriaTools.php lui-même (où formatDate() est définie et où le format
+     * 'd/m/Y' est un repli légitime, pas un bug).
+     */
+    private function checkHardcodedDateFormat(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $files = $this->collectModulePhpFiles($moduleDir);
+
+        $offenders = [];
+        foreach ($files as $file) {
+            $base = basename($file);
+            // NeriaTools.php : y définit formatDate() (repli 'd/m/Y' légitime).
+            // HealthCheckManager.php : le docblock de CE contrôle cite
+            // littéralement le motif recherché à titre d'exemple — auto-match.
+            if ($base === 'NeriaTools.php' || $base === 'HealthCheckManager.php') {
+                continue;
+            }
+            $content = file_get_contents($file) ?: '';
+            // _PS_MODULE_DIR_ mélange '\' et '/' sur Windows (concaténation de
+            // _PS_ROOT_DIR_ en backslash + '/modules/' littéral) — normaliser
+            // avant comparaison, sinon str_replace ne matche rien et le chemin
+            // relatif affiché reste l'absolu complet, illisible dans le rapport.
+            $relative = ltrim(str_replace(str_replace('\\', '/', $moduleDir), '', str_replace('\\', '/', $file)), '/');
+
+            if (preg_match_all('/\bdate\s*\(\s*[\'"]d\/m\/Y|->format\s*\(\s*[\'"]d\/m\/Y/', $content, $m, PREG_OFFSET_CAPTURE)) {
+                foreach ($m[0] as $match) {
+                    $line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
+                    $offenders[] = $relative . ':' . $line;
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.hardcoded_date_format_warning', [
+                    'n'    => count($offenders),
+                    'list' => implode(', ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.hardcoded_date_format_ok')];
+    }
+
+    /**
+     * Scan statique de mails/themes/**\/*.html : text-align:left / float:left
+     * codé en dur en style inline, au lieu de {$neria_text_align}/{$neria_dir}
+     * — casse la mise en page pour l'arabe (RTL), invisible tant que
+     * personne n'inspecte spécifiquement le rendu arabe.
+     *
+     * Trouvé en réel le 2026-07-31 sur 4 templates (collection_completion,
+     * complete_your_look, ghost_cart, waitlist_available) : titre forcé à
+     * gauche malgré un corps d'email en RTL. Volontairement permissif :
+     * ne signale que text-align/float, pas tout usage de "left" (ex.
+     * "margin-left" sur un élément décoratif symétrique n'est pas concerné).
+     */
+    private function checkRtlHardcodedAlignment(): array
+    {
+        $mailsDir = _PS_MODULE_DIR_ . $this->module->name . '/mails/themes';
+        if (!is_dir($mailsDir)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.rtl_hardcoded_align_ok')];
+        }
+
+        $offenders = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($mailsDir, \FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $fileInfo) {
+            if ($fileInfo->getExtension() !== 'html') {
+                continue;
+            }
+            $path = $fileInfo->getPathname();
+            $content = file_get_contents($path) ?: '';
+            $relative = ltrim(str_replace(str_replace('\\', '/', $mailsDir), '', str_replace('\\', '/', $path)), '/');
+
+            if (preg_match_all('/(?:text-align|float)\s*:\s*left\b/i', $content, $m, PREG_OFFSET_CAPTURE)) {
+                foreach ($m[0] as $match) {
+                    $line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
+                    $offenders[] = $relative . ':' . $line;
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.rtl_hardcoded_align_warning', [
+                    'n'    => count($offenders),
+                    'list' => implode(', ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.rtl_hardcoded_align_ok')];
+    }
+
+    /**
+     * Scan statique de src/*.php : appels à NeriaTools::displayPrice() sans
+     * le 3e argument optionnel $idLang, dans les gestionnaires de cron
+     * comportemental — le contexte de langue ambiant (Context::getContext()
+     * ->language) y est celui de la dernière requête web/admin, pas
+     * forcément celui du client destinataire de l'email.
+     *
+     * Trouvé en réel le 2026-07-31 dans 5 endroits (BehavioralCronManager,
+     * CollectionManager, LookCompletionManager, WaitlistManager,
+     * OrderTriggersManager), corrigés en ajoutant $idLang partout.
+     * Volontairement scopé aux fichiers *CronManager.php et aux managers
+     * connus pour construire des emails hors requête HTTP directe — un appel
+     * à displayPrice() dans le flux front-office classique (où le contexte
+     * langue est déjà correct) n'a pas besoin de ce 3e argument, d'où une
+     * vérification par appariement de parenthèses plutôt qu'un blocage
+     * générique sur toute occurrence du nom de la méthode.
+     */
+    private function checkDisplayPriceMissingLang(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $files = $this->collectModulePhpFiles($moduleDir);
+
+        $offenders = [];
+        foreach ($files as $file) {
+            $base = basename($file);
+            // NeriaTools.php : le code de displayPrice() lui-même. HealthCheckManager.php :
+            // le docblock/code de CE contrôle cite littéralement 'NeriaTools::displayPrice('
+            // à titre d'exemple/motif recherché — auto-match sinon.
+            if ($base === 'NeriaTools.php' || $base === 'HealthCheckManager.php') {
+                continue;
+            }
+            $content = file_get_contents($file) ?: '';
+            // _PS_MODULE_DIR_ mélange '\' et '/' sur Windows (concaténation de
+            // _PS_ROOT_DIR_ en backslash + '/modules/' littéral) — normaliser
+            // avant comparaison, sinon str_replace ne matche rien et le chemin
+            // relatif affiché reste l'absolu complet, illisible dans le rapport.
+            $relative = ltrim(str_replace(str_replace('\\', '/', $moduleDir), '', str_replace('\\', '/', $file)), '/');
+            $len = strlen($content);
+
+            $searchFrom = 0;
+            while (($pos = strpos($content, 'NeriaTools::displayPrice(', $searchFrom)) !== false) {
+                $callStart = $pos + strlen('NeriaTools::displayPrice');
+                $searchFrom = $pos + 1;
+
+                // Apparie la parenthèse fermante de l'appel
+                $depth = 0;
+                $argsEnd = null;
+                for ($i = $callStart; $i < $len; $i++) {
+                    if ($content[$i] === '(') {
+                        $depth++;
+                    } elseif ($content[$i] === ')') {
+                        $depth--;
+                        if ($depth === 0) {
+                            $argsEnd = $i;
+                            break;
+                        }
+                    }
+                }
+                if ($argsEnd === null) {
+                    continue;
+                }
+                $args = substr($content, $callStart + 1, $argsEnd - $callStart - 1);
+
+                // Compte les virgules au niveau 0 de profondeur (hors parenthèses
+                // imbriquées d'un éventuel appel de fonction en argument)
+                $argDepth = 0;
+                $commaCount = 0;
+                for ($i = 0, $al = strlen($args); $i < $al; $i++) {
+                    if ($args[$i] === '(') {
+                        $argDepth++;
+                    } elseif ($args[$i] === ')') {
+                        $argDepth--;
+                    } elseif ($args[$i] === ',' && $argDepth === 0) {
+                        $commaCount++;
+                    }
+                }
+
+                if ($commaCount < 2 && trim($args) !== '') {
+                    $line = substr_count(substr($content, 0, $pos), "\n") + 1;
+                    $offenders[] = $relative . ':' . $line;
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.display_price_missing_lang_warning', [
+                    'n'    => count($offenders),
+                    'list' => implode(', ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.display_price_missing_lang_ok')];
+    }
+
+    /**
+     * Scan statique des .tpl : interpolation Smarty {$var} à l'intérieur
+     * d'une chaîne JavaScript à guillemets simples (souvent pour construire
+     * un id DOM, ex. document.getElementById('trad_field_{$key}')) sans le
+     * modificateur |escape:'javascript'. Une valeur contenant un guillemet
+     * simple casse alors la totalité du bloc <script> de la page BO.
+     *
+     * Trouvé en réel le 2026-07-31 : 12 occurrences dans translations.tpl
+     * (variable {$key}, techniquement développeur-contrôlée aujourd'hui,
+     * mais le motif est le vrai risque à surveiller pour tout futur ajout).
+     * Volontairement scopé au motif getElementById/getElementsBy — pas une
+     * vérification générale de tout {$var} en contexte JS, pour rester
+     * permissif et ne pas noyer un vrai signal dans du bruit.
+     */
+    private function checkTplJsEscapeMissing(): array
+    {
+        $root = rtrim($this->module->getLocalPath(), '/');
+        $tplDir = $root . '/views/templates/admin';
+        if (!is_dir($tplDir)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.tpl_js_escape_ok')];
+        }
+
+        $offenders = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($tplDir, \FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $fileInfo) {
+            if ($fileInfo->getExtension() !== 'tpl') {
+                continue;
+            }
+            $path = $fileInfo->getPathname();
+            $content = file_get_contents($path) ?: '';
+            $relative = ltrim(str_replace(str_replace('\\', '/', $tplDir), '', str_replace('\\', '/', $path)), '/');
+
+            if (preg_match_all(
+                "/getElement(?:ById|sByClassName|sByName)\\(\\s*'[^']*\\{\\\$[a-zA-Z_][a-zA-Z0-9_]*\\}[^']*'/",
+                $content,
+                $m,
+                PREG_OFFSET_CAPTURE
+            )) {
+                foreach ($m[0] as $match) {
+                    if (strpos($match[0], "escape:'javascript'") !== false || strpos($match[0], 'escape:"javascript"') !== false) {
+                        continue;
+                    }
+                    $line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
+                    $offenders[] = $relative . ':' . $line;
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.tpl_js_escape_warning', [
+                    'n'    => count($offenders),
+                    'list' => implode(', ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.tpl_js_escape_ok')];
+    }
+
+    /**
      * Détecte les clés de data/admin_translations.json qui n'apparaissent
      * plus littéralement nulle part dans le code (.php) ni les templates
      * (.tpl) du module — reste d'une feature retirée sans nettoyage du
@@ -2142,6 +2415,21 @@ class HealthCheckManager
             }
             $path = $fileInfo->getPathname();
             if (strpos($path, DIRECTORY_SEPARATOR . 'tests' . DIRECTORY_SEPARATOR) !== false) {
+                continue;
+            }
+            // .claude/ : dossier interne de l'outillage Claude Code (worktrees
+            // d'agents, etc.), jamais livré (.gitignore) mais parfois présent
+            // physiquement dans une copie locale — jamais du code du module.
+            if (strpos($path, DIRECTORY_SEPARATOR . '.claude' . DIRECTORY_SEPARATOR) !== false) {
+                continue;
+            }
+            // modules/neria/Neria/... : trouvé en réel le 2026-07-31, une copie
+            // complète et périmée du dépôt imbriquée par erreur dans une
+            // synchronisation précédente (604 Mo sur Laragon/F:) — jamais dans
+            // le dépôt source. Aucun sous-dossier réel du module ne s'appelle
+            // "Neria" à la racine (src/, docs/, views/, mails/, sql/...), donc
+            // cette exclusion ne peut pas masquer du vrai code.
+            if (strpos($path, DIRECTORY_SEPARATOR . 'Neria' . DIRECTORY_SEPARATOR) !== false) {
                 continue;
             }
             $files[] = $path;
