@@ -1755,8 +1755,14 @@ class HealthCheckManager
         }
 
         if ($codeVersion !== $xmlVersion) {
+            // ERROR (et non WARNING) : trouvé en réel le 2026-07-31 — une version
+            // bumpée dans neria.php sans toucher config.xml (commit du 2026-07-26)
+            // est restée désynchronisée 5 jours sans être vue, le WARNING partant
+            // seulement dans le digest quotidien groupé. config.xml est le fichier
+            // que PrestaShop Addons valide au moment de la soumission du zip —
+            // une désync doit être remontée immédiatement, pas noyée dans un digest.
             return [
-                'status' => self::STATUS_WARNING,
+                'status' => self::STATUS_ERROR,
                 'detail' => AdminTranslator::tVars('health.version_files_sync_warning', [
                     'code' => $codeVersion,
                     'xml' => $xmlVersion,

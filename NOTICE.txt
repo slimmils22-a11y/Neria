@@ -1,5 +1,5 @@
 NERIA — Luxury Email Suite
-© 2026 Neria.software - All rights reserved
+© 2026 Neriasoftware - All rights reserved
 
 This notice applies to the entire content of this module, including but not
 limited to all PHP source files, Smarty templates, JavaScript, CSS, and data
