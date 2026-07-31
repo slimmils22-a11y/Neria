@@ -431,6 +431,21 @@ class SearchConsoleManager
         ]);
 
         if (empty($response['access_token'])) {
+            $errCode = $response['error'] ?? '';
+            $msg = $response['error_description'] ?? $errCode ?: 'unknown error';
+            // Même canal d'erreur que apiGet()/apiPost(), lu par
+            // HealthCheckManager::checkOAuthFreshness().
+            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
+                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+            }
+            // 'invalid_grant' = accès révoqué côté Google — jamais transitoire.
+            // On efface le refresh token pour qu'isConnected() cesse de
+            // prétendre "connecté" alors que les données ne se rafraîchissent
+            // plus silencieusement depuis la révocation.
+            if ($errCode === 'invalid_grant') {
+                \Configuration::deleteByName(self::CONFIG_REFRESH_TOKEN);
+            }
             $this->wd()->error(\WatchdogManager::i18nMsg('watchdog.gsc_token_invalid'), '', 'SearchConsoleManager');
             return null;
         }

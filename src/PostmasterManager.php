@@ -391,6 +391,24 @@ class PostmasterManager
         ]);
 
         if (empty($response['access_token'])) {
+            $errCode = $response['error'] ?? '';
+            $msg = $response['error_description'] ?? $errCode ?: 'unknown error';
+            // Même canal d'erreur que apiGet()/apiPost(), lu par
+            // HealthCheckManager::checkOAuthFreshness() — sans ça, un
+            // rafraîchissement échoué en boucle chaque nuit ne remontait que
+            // dans le journal Watchdog, jamais dans le statut lu par le BO.
+            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
+                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+            }
+            // 'invalid_grant' = le marchand a révoqué l'accès côté Google (ou
+            // le refresh token a expiré) — jamais transitoire, un nouveau
+            // rafraîchissement échouera à l'identique indéfiniment. On efface
+            // le refresh token pour qu'isConnected() cesse de mentir "connecté"
+            // et que le BO invite explicitement à ré-autoriser.
+            if ($errCode === 'invalid_grant') {
+                \Configuration::deleteByName(self::CONFIG_REFRESH_TOKEN);
+            }
             $this->wd()->error(\WatchdogManager::i18nMsg('watchdog.postmaster_token_invalid'), '', 'PostmasterManager');
             return null;
         }

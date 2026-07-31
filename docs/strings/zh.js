@@ -1,11 +1,11 @@
 module.exports = {
   meta: {
-    version: "1.0.32",
+    version: "1.0.33",
     lang_name: "简体中文",
     doc_title: "完整用户指南",
-    doc_subtitle: "PrestaShop 8 & 9 模块 — 版本 1.0.32",
+    doc_subtitle: "PrestaShop 8 & 9 模块 — 版本 1.0.33",
     doc_tagline: "19种语言  ·  117个模板  ·  88项功能",
-    header_text: "NERIA — Luxury Email Suite  |  用户指南 v1.0.32",
+    header_text: "NERIA — Luxury Email Suite  |  用户指南 v1.0.33",
     footer_text: "© 2026 Neriasoftware — 保留所有权利",
     toc_title: "目录",
     cover_name: "NERIA",

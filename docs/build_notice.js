@@ -110,7 +110,7 @@ const pageHeader = new Header({
     new Paragraph({
       children: [
         new ImageRun({ data: logoData, transformation: { width: 36, height: 36 } }),
-        new TextRun({ text: "   NERIA — Luxury Email Suite  |  Notice d'utilisation v1.0.32", size: 16, color: LGREY }),
+        new TextRun({ text: "   NERIA — Luxury Email Suite  |  Notice d'utilisation v1.0.33", size: 16, color: LGREY }),
       ],
       border: { bottom: { style: BorderStyle.SINGLE, size: 3, color: ACCENT } },
       spacing: { after: 80 },
@@ -160,7 +160,7 @@ S.push(
   }),
   new Paragraph({
     alignment: AlignmentType.CENTER,
-    children: [new TextRun({ text: "Module PrestaShop 8 & 9 — Version 1.0.32", size: 24, color: GREY })],
+    children: [new TextRun({ text: "Module PrestaShop 8 & 9 — Version 1.0.33", size: 24, color: GREY })],
     spacing: { after: 160 },
   }),
   new Paragraph({

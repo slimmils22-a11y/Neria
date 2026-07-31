@@ -179,7 +179,11 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_stat` (
     INDEX `idx_token` (`tracking_token`),
     INDEX `idx_event` (`event_type`),
     INDEX `idx_date` (`date_add`),
-    INDEX `idx_shop_template_event` (`id_shop`, `template`, `event_type`, `date_add`)
+    INDEX `idx_shop_template_event` (`id_shop`, `template`, `event_type`, `date_add`),
+    -- Complémentaire à idx_shop_template_event : couvre les requêtes de revenus
+    -- (StatsManager::getRevenueStats/getRevenueDailyByCategory) qui filtrent
+    -- sur id_shop+event_type+date_add SANS template — cf. upgrade-1.0.33.php.
+    INDEX `idx_shop_event_date` (`id_shop`, `event_type`, `date_add`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Statistiques d\'envoi, ouverture et clic des emails Neria';
 

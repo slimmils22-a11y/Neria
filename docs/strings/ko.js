@@ -1,11 +1,11 @@
 module.exports = {
   meta: {
-    version: "1.0.32",
+    version: "1.0.33",
     lang_name: "한국어",
     doc_title: "종합 사용자 가이드",
-    doc_subtitle: "PrestaShop 8 & 9 모듈 — 버전 1.0.32",
+    doc_subtitle: "PrestaShop 8 & 9 모듈 — 버전 1.0.33",
     doc_tagline: "19개 언어  ·  117개 템플릿  ·  88개 기능",
-    header_text: "NERIA — Luxury Email Suite  |  사용자 가이드 v1.0.32",
+    header_text: "NERIA — Luxury Email Suite  |  사용자 가이드 v1.0.33",
     footer_text: "© 2026 Neriasoftware — 모든 권리 보유",
     toc_title: "목차",
     cover_name: "NERIA",

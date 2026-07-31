@@ -1,11 +1,11 @@
 module.exports = {
   meta: {
-    version: "1.0.32",
+    version: "1.0.33",
     lang_name: "Svenska",
     doc_title: "Fullständig användarhandbok",
-    doc_subtitle: "PrestaShop 8 & 9-modul — Version 1.0.32",
+    doc_subtitle: "PrestaShop 8 & 9-modul — Version 1.0.33",
     doc_tagline: "19 språk  ·  117 mallar  ·  88 funktioner",
-    header_text: "NERIA — Luxury Email Suite  |  Användarhandbok v1.0.32",
+    header_text: "NERIA — Luxury Email Suite  |  Användarhandbok v1.0.33",
     footer_text: "© 2026 Neriasoftware — Alla rättigheter förbehållna",
     toc_title: "Innehållsförteckning",
     cover_name: "NERIA",

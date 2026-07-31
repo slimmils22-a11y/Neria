@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.32';
+    const VERSION = '1.0.33';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -1884,23 +1884,36 @@ class Neria extends Module
             $author   = trim($employee->firstname . ' ' . $employee->lastname) ?: 'DeepL';
 
             $skipped = 0;
+            $pending = [];
             foreach ($rows as $row) {
                 // Ne pas écraser un champ déjà personnalisé manuellement par le marchand
                 if (isset($customizedKeys[$row['translation_key']])) { $skipped++; continue; }
-                $text = $row['translation_value'];
-                if (trim($text) === '') { continue; }
+                if (trim($row['translation_value']) === '') { continue; }
+                $pending[] = $row;
+            }
+
+            // Un appel DeepL par lot de 50 textes (limite documentée de l'API)
+            // au lieu d'un appel séquentiel par clé — un template à 30-50 clés
+            // pouvait auparavant enchaîner autant d'appels à 15s de timeout
+            // chacun sans aucun budget de temps global, au risque de dépasser
+            // max_execution_time en pleine série sur un simple clic marchand.
+            foreach (array_chunk($pending, 50) as $batch) {
+                $textParts = [];
+                foreach ($batch as $row) {
+                    $textParts[] = 'text=' . rawurlencode($row['translation_value']);
+                }
+                $body = implode('&', $textParts) . '&' . http_build_query([
+                    'source_lang'  => 'FR',
+                    'target_lang'  => $deeplTarget,
+                    'tag_handling' => 'html',
+                ]);
 
                 $ch = curl_init("https://{$apiHost}/v2/translate");
                 curl_setopt_array($ch, [
                     CURLOPT_POST           => true,
-                    CURLOPT_POSTFIELDS     => http_build_query([
-                        'text'        => $text,
-                        'source_lang' => 'FR',
-                        'target_lang' => $deeplTarget,
-                        'tag_handling'=> 'html',
-                    ]),
+                    CURLOPT_POSTFIELDS     => $body,
                     CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_TIMEOUT        => 15,
+                    CURLOPT_TIMEOUT        => 30,
                     CURLOPT_SSL_VERIFYPEER => true,
                     CURLOPT_HTTPHEADER     => [
                         'Authorization: DeepL-Auth-Key ' . $deeplKey,
@@ -1917,28 +1930,36 @@ class Neria extends Module
                         $firstErrCode = $code;
                         $firstErrBody = $curlErr ?: (string) $resp;
                     }
-                    $errors[] = $row['translation_key'];
-                    continue;
+                    // Un lot entier en échec (quota/429, panne) — inutile
+                    // d'enchaîner les lots suivants sur la même erreur : on les
+                    // marque en échec et on arrête plutôt que de marteler l'API.
+                    foreach ($batch as $row) { $errors[] = $row['translation_key']; }
+                    break;
                 }
-                $json   = json_decode($resp, true);
-                $result = $json['translations'][0]['text'] ?? null;
-                if ($result === null) { $errors[] = $row['translation_key']; continue; }
 
-                // Une clé en échec (DB, historique) ne doit jamais interrompre
-                // le lot entier — les autres clés doivent quand même se traduire.
-                try {
-                    if ($histMgr !== null) {
-                        $histMgr->record($tplKey, $tplLang, $row['translation_key'], $currentVals[$row['translation_key']] ?? '', $result, $author . ' (DeepL)');
+                $json = json_decode($resp, true);
+                $translations = $json['translations'] ?? [];
+
+                foreach ($batch as $i => $row) {
+                    $result = $translations[$i]['text'] ?? null;
+                    if ($result === null) { $errors[] = $row['translation_key']; continue; }
+
+                    // Une clé en échec (DB, historique) ne doit jamais interrompre
+                    // le lot entier — les autres clés doivent quand même se traduire.
+                    try {
+                        if ($histMgr !== null) {
+                            $histMgr->record($tplKey, $tplLang, $row['translation_key'], $currentVals[$row['translation_key']] ?? '', $result, $author . ' (DeepL)');
+                        }
+
+                        Db::getInstance()->execute(
+                            "INSERT INTO `{$tableTrad}` (`template`,`lang`,`translation_key`,`translation_value`,`is_custom`,`date_add`,`date_upd`)
+                             VALUES ('" . pSQL($tplKey) . "','" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "',1,'{$now}','{$now}')
+                             ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($result, true) . "', `is_custom`=1, `date_upd`='{$now}'"
+                        );
+                        $translated++;
+                    } catch (\Throwable $e) {
+                        $errors[] = $row['translation_key'];
                     }
-
-                    Db::getInstance()->execute(
-                        "INSERT INTO `{$tableTrad}` (`template`,`lang`,`translation_key`,`translation_value`,`is_custom`,`date_add`,`date_upd`)
-                         VALUES ('" . pSQL($tplKey) . "','" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "',1,'{$now}','{$now}')
-                         ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($result, true) . "', `is_custom`=1, `date_upd`='{$now}'"
-                    );
-                    $translated++;
-                } catch (\Throwable $e) {
-                    $errors[] = $row['translation_key'];
                 }
             }
 
@@ -2051,22 +2072,32 @@ class Neria extends Module
             $firstErrCode = null;
             $firstErrBody = null;
 
+            $pending = [];
             foreach ($rows as $row) {
                 if (isset($customBKeys[$row['translation_key']])) { $skipped++; continue; }
-                $text = $row['translation_value'];
-                if (trim($text) === '') { continue; }
+                if (trim($row['translation_value']) === '') { continue; }
+                $pending[] = $row;
+            }
+
+            // Un appel DeepL par lot de 50 textes au lieu d'un par clé — voir
+            // le commentaire équivalent dans auto_translate_template ci-dessus.
+            foreach (array_chunk($pending, 50) as $batch) {
+                $textParts = [];
+                foreach ($batch as $row) {
+                    $textParts[] = 'text=' . rawurlencode($row['translation_value']);
+                }
+                $body = implode('&', $textParts) . '&' . http_build_query([
+                    'source_lang'  => 'FR',
+                    'target_lang'  => $deeplTarget,
+                    'tag_handling' => 'html',
+                ]);
 
                 $ch = curl_init("https://{$apiHost}/v2/translate");
                 curl_setopt_array($ch, [
                     CURLOPT_POST           => true,
-                    CURLOPT_POSTFIELDS     => http_build_query([
-                        'text'        => $text,
-                        'source_lang' => 'FR',
-                        'target_lang' => $deeplTarget,
-                        'tag_handling'=> 'html',
-                    ]),
+                    CURLOPT_POSTFIELDS     => $body,
                     CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_TIMEOUT        => 15,
+                    CURLOPT_TIMEOUT        => 30,
                     CURLOPT_SSL_VERIFYPEER => true,
                     CURLOPT_HTTPHEADER     => [
                         'Authorization: DeepL-Auth-Key ' . $deeplKey,
@@ -2080,22 +2111,26 @@ class Neria extends Module
 
                 if ($code !== 200 || !$resp) {
                     if ($firstErrCode === null) { $firstErrCode = $code; $firstErrBody = $curlErr ?: (string) $resp; }
-                    $errors[] = $row['translation_key'];
-                    continue;
+                    foreach ($batch as $row) { $errors[] = $row['translation_key']; }
+                    break;
                 }
-                $json   = json_decode($resp, true);
-                $result = $json['translations'][0]['text'] ?? null;
-                if ($result === null) { $errors[] = $row['translation_key']; continue; }
+                $json = json_decode($resp, true);
+                $translations = $json['translations'] ?? [];
 
-                try {
-                    Db::getInstance()->execute(
-                        "INSERT INTO `{$tableTradB}` (`id_abtest`,`lang`,`translation_key`,`translation_value`,`date_add`,`date_upd`)
-                         VALUES ({$idAbtestB},'" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "','{$now}','{$now}')
-                         ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($result, true) . "', `date_upd`='{$now}'"
-                    );
-                    $translated++;
-                } catch (\Throwable $e) {
-                    $errors[] = $row['translation_key'];
+                foreach ($batch as $i => $row) {
+                    $result = $translations[$i]['text'] ?? null;
+                    if ($result === null) { $errors[] = $row['translation_key']; continue; }
+
+                    try {
+                        Db::getInstance()->execute(
+                            "INSERT INTO `{$tableTradB}` (`id_abtest`,`lang`,`translation_key`,`translation_value`,`date_add`,`date_upd`)
+                             VALUES ({$idAbtestB},'" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "','{$now}','{$now}')
+                             ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($result, true) . "', `date_upd`='{$now}'"
+                        );
+                        $translated++;
+                    } catch (\Throwable $e) {
+                        $errors[] = $row['translation_key'];
+                    }
                 }
             }
 
@@ -5198,8 +5233,11 @@ class Neria extends Module
             'signature_styles' => SignatureGenerator::STYLES,
             'current_signature' => $config->getSignatureConfig(),
 
-            // Diagnostic complet pour l'onglet Aide
-            'diagnostic'       => NeriaTools::getDiagnosticReport($this),
+            // Diagnostic complet pour l'onglet Aide — calculé uniquement sur cet
+            // onglet (~9 scans complets de table dont neria_stat) plutôt qu'à
+            // chaque chargement de n'importe quelle page BO, même pattern déjà
+            // appliqué ci-dessus pour l'onglet Stats.
+            'diagnostic'       => ($activeTab === 'help') ? NeriaTools::getDiagnosticReport($this) : [],
             'health_results'   => (new HealthCheckManager($this))->getLastResults(),
             'health_last_run'  => (string) Configuration::get(HealthCheckManager::CONFIG_LAST_RUN),
 

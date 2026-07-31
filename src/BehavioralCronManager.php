@@ -1158,7 +1158,17 @@ class BehavioralCronManager
             return;
         }
 
+        // MAX_BATCH_PER_RUN était déjà appliqué à la requête clients de CHAQUE
+        // produit individuellement, mais rien ne plafonnait le total sur
+        // l'ensemble des produits configurés — une boutique avec beaucoup de
+        // produits à durée de vie pouvait générer plusieurs fois ce volume de
+        // requêtes en une seule exécution du cron. Compteur global en plus.
+        $totalSentThisRun = 0;
+
         foreach ($products as $product) {
+            if ($totalSentThisRun >= self::MAX_BATCH_PER_RUN) {
+                break;
+            }
             $idProduct   = (int) $product['id_product'];
             $lifespanDays = (int) $product['lifespan_days'];
             $alertDays   = (int) $product['alert_days'];
@@ -1188,6 +1198,9 @@ class BehavioralCronManager
             ) ?: [];
 
             foreach ($customers as $customer) {
+                if ($totalSentThisRun >= self::MAX_BATCH_PER_RUN) {
+                    break;
+                }
                 // Déduplication via neria_behavioral_sent
                 $alreadySent = (int) $this->db->getValue(
                     "SELECT COUNT(*) FROM `{$this->prefix}neria_behavioral_sent`
@@ -1229,6 +1242,7 @@ class BehavioralCronManager
                     '{product_url}'    => $productUrl,
                     '{estimated_days}' => (string) $lifespanDays,
                 ], $idProduct);
+                $totalSentThisRun++;
             }
         }
     }

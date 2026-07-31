@@ -38,6 +38,21 @@ class BounceManager
         $this->module = $module;
     }
 
+    /**
+     * imap_open() n'a aucun timeout par défaut — sans ce réglage préalable,
+     * un serveur IMAP lent/injoignable (pare-feu, panne) bloque le handshake
+     * TCP/SSL sur le délai par défaut du système (souvent 60-120s+), gelant
+     * tout le worker PHP-FPM à la fois pour le cron quotidien et le bouton
+     * BO « Tester la connexion IMAP ». À appeler avant CHAQUE imap_open().
+     */
+    private static function applyImapTimeouts(): void
+    {
+        @imap_timeout(IMAP_OPENTIMEOUT, 10);
+        @imap_timeout(IMAP_READTIMEOUT, 15);
+        @imap_timeout(IMAP_WRITETIMEOUT, 15);
+        @imap_timeout(IMAP_CLOSETIMEOUT, 10);
+    }
+
     // ══════════════════════════════════════════════════════════════════════
     // 1. VÉRIFICATION AVANT ENVOI
     // ══════════════════════════════════════════════════════════════════════
@@ -109,6 +124,7 @@ class BounceManager
         $mailbox = '{' . $host . ':' . $port . $flags . '}' . $folder;
 
         $errors  = [];
+        self::applyImapTimeouts();
         $mbox    = @imap_open($mailbox, $user, $pass, 0, 1);
         if ($mbox === false) {
             return ['processed' => 0, 'bounces' => 0, 'errors' => [\AdminTranslator::tVars('msg.bounce_imap_connection_failed', ['error' => imap_last_error()])]];
@@ -534,6 +550,7 @@ class BounceManager
 
         $flags   = $ssl ? '/imap/ssl' : '/imap/notls';
         $mailbox = '{' . $host . ':' . $port . $flags . '}' . $folder;
+        self::applyImapTimeouts();
         $mbox    = @imap_open($mailbox, $user, $pass, OP_HALFOPEN, 1);
 
         if ($mbox === false) {
