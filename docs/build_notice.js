@@ -1,8 +1,8 @@
 const {
-  Document, Packer, Paragraph, TextRun, HeadingLevel, TableOfContents,
+  Document, Packer, Paragraph, TextRun, HeadingLevel,
   PageBreak, AlignmentType, BorderStyle, Table, TableRow, TableCell,
   WidthType, LevelFormat, convertInchesToTwip, ImageRun, Header, Footer,
-  PageNumber, NumberFormat
+  PageNumber, NumberFormat, Bookmark, InternalHyperlink
 } = require("docx");
 const fs = require("fs");
 const path = require("path");
@@ -16,8 +16,25 @@ const logoData = fs.readFileSync(path.join(__dirname, '..', 'logo.png'));
 
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 
+// Sommaire cliquable : chaque h1() pose un signet et s'enregistre dans
+// tocEntries — la liste de liens du Sommaire est construite à la toute fin
+// (une fois toutes les sections traitées) puis insérée à sa place. Un champ
+// TableOfContents natif Word a été essayé d'abord, mais LibreOffice
+// (utilisé pour générer le PDF de contrôle qualité) ne met pas ce champ à
+// jour lors d'une conversion --headless : la page Sommaire ressortait
+// vide dans le PDF. Des signets + liens internes, eux, sont du contenu
+// statique — identiques dans Word et dans le PDF, sans étape de rafraîchissement.
+const tocEntries = [];
+let bookmarkSeq = 0;
 function h1(text) {
-  return new Paragraph({ text, heading: HeadingLevel.HEADING_1, spacing: { before: 500, after: 200 }, pageBreakBefore: true });
+  const bookmarkId = "sec" + (bookmarkSeq++);
+  tocEntries.push({ id: bookmarkId, text });
+  return new Paragraph({
+    heading: HeadingLevel.HEADING_1,
+    spacing: { before: 500, after: 200 },
+    pageBreakBefore: true,
+    children: [new Bookmark({ id: bookmarkId, children: [new TextRun({ text })] })],
+  });
 }
 function h2(text) {
   return new Paragraph({ text, heading: HeadingLevel.HEADING_2, spacing: { before: 320, after: 140 } });
@@ -159,11 +176,13 @@ S.push(
 );
 
 // ══════════════════════════ SOMMAIRE ════════════════════════════════════════
+// Le contenu réel (liens vers chaque section) est inséré ici après coup,
+// une fois tocEntries rempli par tous les appels à h1() plus bas — voir la
+// fin du fichier, juste avant la construction du Document.
 S.push(
-  new Paragraph({ text: "Sommaire", heading: HeadingLevel.HEADING_1, spacing: { before: 400, after: 200 } }),
-  new TableOfContents("Sommaire", { hyperlink: true, headingStyleRange: "1-2" }),
-  new Paragraph({ children: [new PageBreak()] })
+  new Paragraph({ text: "Sommaire", heading: HeadingLevel.HEADING_1, spacing: { before: 400, after: 200 } })
 );
+const sommaireInsertIndex = S.length;
 
 // ══════════════════════════ 1. À PROPOS ══════════════════════════════════════
 S.push(
@@ -1020,7 +1039,7 @@ S.push(
   img('image-aide5.png', 1907, 861, 500),
   h2("38.4 Diagnostic complet"),
   step(1, "Dans l'onglet Aide, cliquez sur Lancer le diagnostic complet."),
-  step(2, "Neria exécute les 76+ contrôles de santé et affiche un rapport détaillé : hooks enregistrés, état des tables, licences, cron, configuration."),
+  step(2, "Neria exécute les 100+ contrôles de santé et affiche un rapport détaillé : hooks enregistrés, état des tables, licences, cron, configuration."),
   img('image-aide6.png', 1910, 856, 500),
   img('image-aide7.png', 1904, 852, 500),
   h2("38.5 Page d'urgence"),
@@ -1144,6 +1163,22 @@ S.push(
   p("Pour la politique complète de traitement des données personnelles, consultez la page dédiée sur neriasoftware.com/privacy."),
   new Paragraph({ children: [new PageBreak()] })
 );
+
+// ══════════════════════════ SOMMAIRE (contenu réel) ══════════════════════════
+// tocEntries est maintenant complet (toutes les sections ont été traitées) —
+// on construit la liste de liens et on l'insère à l'emplacement réservé plus haut.
+const tocParagraphs = tocEntries.map(entry =>
+  new Paragraph({
+    spacing: { after: 100 },
+    children: [
+      new InternalHyperlink({
+        anchor: entry.id,
+        children: [new TextRun({ text: entry.text, color: ACCENT, underline: {} })],
+      }),
+    ],
+  })
+);
+S.splice(sommaireInsertIndex, 0, ...tocParagraphs, new Paragraph({ children: [new PageBreak()] }));
 
 // ══════════════════════════ GÉNÉRATION DU DOCUMENT ════════════════════════════
 
