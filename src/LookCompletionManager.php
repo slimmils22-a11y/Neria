@@ -241,7 +241,7 @@ class LookCompletionManager
                 'name'  => $product->name,
                 'url'   => \Context::getContext()->link->getProductLink($product),
                 'image' => $imageUrl,
-                'price' => \NeriaTools::displayPrice((float) $product->price, \Currency::getDefaultCurrency()),
+                'price' => \NeriaTools::displayPrice((float) $product->price, \Currency::getDefaultCurrency(), $idLang),
             ];
         }
         return $blocks;

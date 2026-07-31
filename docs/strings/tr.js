@@ -1,11 +1,11 @@
 module.exports = {
   meta: {
-    version: "1.0.31",
+    version: "1.0.32",
     lang_name: "Türkçe",
     doc_title: "Kapsamlı Kullanım Kılavuzu",
-    doc_subtitle: "PrestaShop 8 & 9 Modülü — Sürüm 1.0.31",
+    doc_subtitle: "PrestaShop 8 & 9 Modülü — Sürüm 1.0.32",
     doc_tagline: "19 dil  ·  117 şablon  ·  88 özellik",
-    header_text: "NERIA — Luxury Email Suite  |  Kullanım Kılavuzu v1.0.31",
+    header_text: "NERIA — Luxury Email Suite  |  Kullanım Kılavuzu v1.0.32",
     footer_text: "© 2026 Neriasoftware — Tüm hakları saklıdır",
     toc_title: "İçindekiler",
     cover_name: "NERIA",

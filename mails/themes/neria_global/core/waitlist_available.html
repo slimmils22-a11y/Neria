@@ -2,7 +2,7 @@
 {block name='neria_content'}
 <p class="neria-section-title" style="margin-top:0;">{neria_trad key='waitlist_eyebrow'}</p>
 <p class="neria-text">{neria_trad key='waitlist_greeting'} {firstname},</p>
-<h1 class="neria-title-main" style="text-align:left;">{neria_trad key='waitlist_title'}</h1>
+<h1 class="neria-title-main">{neria_trad key='waitlist_title'}</h1>
 <p class="neria-text">{neria_trad key='waitlist_intro'}</p>
 
 <div class="neria-info-box" style="margin-top:20px;">
@@ -17,7 +17,7 @@
              style="display:block;border-radius:4px;border:1px solid #e8e0d5;">
       </a>
     </td>
-    <td style="padding:20px 20px 20px 0;" valign="middle">
+    <td style="padding:{$neria_img_text_pad};" valign="middle">
       <p class="neria-text" style="margin:0 0 8px;font-weight:600;">{product_name}</p>
       <p class="neria-text" style="margin:0 0 16px;font-weight:600;">{product_price}</p>
       <a href="{product_url}" class="neria-btn">{neria_trad key='waitlist_cta'}</a>

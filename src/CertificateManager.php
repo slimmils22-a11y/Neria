@@ -252,8 +252,8 @@ class CertificateManager
 
         $shopName   = (string) \Configuration::get('PS_SHOP_NAME');
         $shopDomain = \Tools::getShopDomainSsl(true);
-        $dateStr    = (new \DateTime($order->date_add))->format('d/m/Y');
-        $issuedStr  = date('d/m/Y');
+        $dateStr    = \NeriaTools::formatDate($order->date_add, $lang);
+        $issuedStr  = \NeriaTools::formatDate('now', $lang);
 
         // Instancié ici (et non plus seulement plus bas pour les libellés du
         // tableau) car les valeurs PAR DÉFAUT du titre/sous-titre/corps

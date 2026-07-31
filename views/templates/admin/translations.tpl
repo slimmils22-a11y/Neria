@@ -474,12 +474,12 @@ window.neriaAjaxUrl = function(action, extra) {
                   var lang  = '{$selected_lang|default:'en'}';
                   var NSA_L = {$nsa_labels_json|default:'{}'};
                   var L = NSA_L[lang] || NSA_L['en'];
-                  var field  = document.getElementById('trad_field_{$key}');
-                  var eTitle = document.getElementById('nsa_title_{$key}');
-                  var eChars = document.getElementById('nsa_chars_{$key}');
-                  var eBar   = document.getElementById('nsa_bar_{$key}');
-                  var eScore = document.getElementById('nsa_score_{$key}');
-                  var eSpam  = document.getElementById('nsa_spam_{$key}');
+                  var field  = document.getElementById('trad_field_{$key|escape:'javascript'}');
+                  var eTitle = document.getElementById('nsa_title_{$key|escape:'javascript'}');
+                  var eChars = document.getElementById('nsa_chars_{$key|escape:'javascript'}');
+                  var eBar   = document.getElementById('nsa_bar_{$key|escape:'javascript'}');
+                  var eScore = document.getElementById('nsa_score_{$key|escape:'javascript'}');
+                  var eSpam  = document.getElementById('nsa_spam_{$key|escape:'javascript'}');
                   if (!field || !eChars) return;
                   if (eTitle) eTitle.textContent = '✦ ' + L.t;
                   function isCJK(str) { return /[　-鿿가-힯぀-ヿ＀-￯؀-ۿ]/.test(str); }
@@ -739,12 +739,12 @@ window.neriaAjaxUrl = function(action, extra) {
                   var lang  = '{$selected_lang|default:'en'}';
                   var NSA_L = {$nsa_labels_json|default:'{}'};
                   var L = NSA_L[lang] || NSA_L['en'];
-                  var field  = document.getElementById('trad_b_{$key}');
-                  var eTitle = document.getElementById('nsa_b_title_{$key}');
-                  var eChars = document.getElementById('nsa_b_chars_{$key}');
-                  var eBar   = document.getElementById('nsa_b_bar_{$key}');
-                  var eScore = document.getElementById('nsa_b_score_{$key}');
-                  var eSpam  = document.getElementById('nsa_b_spam_{$key}');
+                  var field  = document.getElementById('trad_b_{$key|escape:'javascript'}');
+                  var eTitle = document.getElementById('nsa_b_title_{$key|escape:'javascript'}');
+                  var eChars = document.getElementById('nsa_b_chars_{$key|escape:'javascript'}');
+                  var eBar   = document.getElementById('nsa_b_bar_{$key|escape:'javascript'}');
+                  var eScore = document.getElementById('nsa_b_score_{$key|escape:'javascript'}');
+                  var eSpam  = document.getElementById('nsa_b_spam_{$key|escape:'javascript'}');
                   if (!field || !eChars) return;
                   if (eTitle) eTitle.textContent = '✦ ' + L.t;
                   function isCJK(str) { return /[　-鿿가-힯぀-ヿ＀-￯؀-ۿ]/.test(str); }

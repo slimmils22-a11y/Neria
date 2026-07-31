@@ -2118,6 +2118,12 @@ class EmailRenderer
             '{$neria_font_family}'      => $this->fonts()->getCssFamilyForLang($lang),
             '{$neria_dir}'              => $this->engine->isRtl($lang) ? 'rtl' : 'ltr',
             '{$neria_text_align}'       => $this->engine->isRtl($lang) ? 'right' : 'left',
+            // Padding d'une cellule de tableau image+texte (image collée d'un
+            // côté, texte de l'autre) : le côté "collé à l'image" doit passer
+            // à droite en RTL au lieu de rester à gauche — sinon le titre/texte
+            // se retrouve avec un espace du mauvais côté par rapport à l'image
+            // (trouvé en réel sur waitlist_available.html/collection_completion.html).
+            '{$neria_img_text_pad}'     => $this->engine->isRtl($lang) ? '20px 0 20px 20px' : '20px 20px 20px 0',
             '{$neria_container_width}'  => (string) $design['container_width'],
             '{$neria_logo_width}'       => (string) $design['logo_width'],
             '{$neria_logo_url}'         => $this->resolveLogoUrl($design['logo_path']),
@@ -2504,6 +2510,12 @@ class EmailRenderer
             '{$neria_font_family}'      => $this->fonts()->getCssFamilyForLang($lang),
             '{$neria_dir}'              => $this->engine->isRtl($lang) ? 'rtl' : 'ltr',
             '{$neria_text_align}'       => $this->engine->isRtl($lang) ? 'right' : 'left',
+            // Padding d'une cellule de tableau image+texte (image collée d'un
+            // côté, texte de l'autre) : le côté "collé à l'image" doit passer
+            // à droite en RTL au lieu de rester à gauche — sinon le titre/texte
+            // se retrouve avec un espace du mauvais côté par rapport à l'image
+            // (trouvé en réel sur waitlist_available.html/collection_completion.html).
+            '{$neria_img_text_pad}'     => $this->engine->isRtl($lang) ? '20px 0 20px 20px' : '20px 20px 20px 0',
             '{$neria_container_width}'  => (string) $design['container_width'],
             '{$neria_logo_width}'       => (string) $design['logo_width'],
             '{$neria_logo_url}'         => $this->resolveLogoUrl($design['logo_path']),

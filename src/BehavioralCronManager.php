@@ -504,7 +504,7 @@ class BehavioralCronManager
         );
 
         foreach ((array) $rows as $r) {
-            $expiryDate = date('d/m/Y', strtotime($r['date_to']));
+            $expiryDate = \NeriaTools::formatDate($r['date_to'], \Language::getIsoById((int) $r['id_lang']) ?: 'fr');
             $historyUrl = $this->historyUrl((int) $r['id_lang']);
 
             $this->send(
@@ -888,8 +888,8 @@ class BehavioralCronManager
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
 
-        $newDate = date('d/m/Y', strtotime('+7 days'));
         foreach ((array) $rows as $r) {
+            $newDate = \NeriaTools::formatDate('+7 days', \Language::getIsoById((int) $r['id_lang']) ?: 'fr');
             $this->send(
                 'order_shipped_delay',
                 $r,
@@ -1016,10 +1016,12 @@ class BehavioralCronManager
     {
         $idCurrency = (int) ($r['id_currency'] ?: \Configuration::get('PS_CURRENCY_DEFAULT'));
         $currency   = new \Currency($idCurrency);
-        $total      = number_format((float) $r['quote_total'], 2, ',', ' ') . ' ' . ($currency->sign ?? '€');
-        $expiry     = date('d/m/Y', strtotime($r['expiry_date']));
+        $idLang     = (int) ($r['id_lang'] ?? 0);
+        $langIso    = \Language::getIsoById($idLang) ?: 'fr';
+        $total      = \NeriaTools::displayPrice((float) $r['quote_total'], $currency, $idLang ?: null);
+        $expiry     = \NeriaTools::formatDate($r['expiry_date'], $langIso);
         $newExpiry  = $withExtension
-            ? date('d/m/Y', strtotime($r['expiry_date'] . ' +7 days'))
+            ? \NeriaTools::formatDate($r['expiry_date'] . ' +7 days', $langIso)
             : '';
 
         $this->send(
@@ -1447,7 +1449,7 @@ class BehavioralCronManager
                     '{product_name}'  => $product->name,
                     '{product_url}'   => $productUrl,
                     '{product_image}' => $imageUrl,
-                    '{product_price}' => \NeriaTools::displayPrice((float) $product->price, \Currency::getDefaultCurrency()),
+                    '{product_price}' => \NeriaTools::displayPrice((float) $product->price, \Currency::getDefaultCurrency(), $idLang),
                     '{times_added}'   => (int) $r['times_added'],
                 ],
                 $idProduct

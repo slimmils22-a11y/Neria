@@ -200,39 +200,6 @@ class NeriaTools
     }
 
     /**
-     * Formate un montant pour l'affichage dans un email
-     * Respecte le separateur decimal et le symbole monnaie
-     *
-     * @param float  $amount   Montant
-     * @param string $currency Symbole monnaie (ex: '€', '$')
-     * @param string $lang     Langue pour le formatage
-     * @return string Montant formate (ex: '189,00 €')
-     */
-    public static function formatPrice(
-        float  $amount,
-        string $currency = '€',
-        string $lang     = 'fr'
-    ): string {
-        // Separateur decimal selon la langue
-        $decimalSep = in_array($lang, ['en','ja','ko','zh','tw'], true)
-            ? '.'
-            : ',';
-
-        $thousandSep = in_array($lang, ['en','ja','ko','zh','tw'], true)
-            ? ','
-            : ' ';
-
-        $formatted = number_format($amount, 2, $decimalSep, $thousandSep);
-
-        // Placement du symbole selon la langue
-        $symbolAfter = in_array($lang, ['fr','de','it','es','pt','br','nl'], true);
-
-        return $symbolAfter
-            ? $formatted . ' ' . $currency
-            : $currency . $formatted;
-    }
-
-    /**
      * Formate une date pour l'affichage dans un email
      * Adapte le format selon la langue
      *
@@ -955,38 +922,63 @@ class NeriaTools
      * @param Currency $currency Devise cible
      * @return string            Montant formaté (ex: "35,90 $", "29.99 €")
      */
-    public static function displayPrice(float $amount, \Currency $currency): string
+    /**
+     * $idLang optionnel : la locale de formatage (position du symbole,
+     * séparateur décimal) suit sinon Context::getContext()->language, qui
+     * en contexte cron (BehavioralCronManager, WaitlistManager,
+     * CollectionManager, LookCompletionManager...) est celle de la dernière
+     * requête web/admin ayant tourné dans ce process — PAS forcément celle
+     * du client destinataire de l'email. Passer explicitement l'id_lang du
+     * destinataire pour un prix correctement localisé même en cron.
+     */
+    public static function displayPrice(float $amount, \Currency $currency, ?int $idLang = null): string
     {
-        // PS8 (et versions antérieures) : délègue à l'implémentation native,
-        // comportement strictement identique à l'existant, zéro risque de
-        // régression sur les environnements où la méthode existe encore.
-        if (method_exists('Tools', 'displayPrice')) {
-            return \Tools::displayPrice($amount, $currency);
+        $context = \Context::getContext();
+        $originalLang = null;
+        if ($idLang !== null && \Validate::isUnsignedId($idLang)) {
+            $lang = new \Language($idLang);
+            if (\Validate::isLoadedObject($lang) && (int) $lang->id !== (int) ($context->language->id ?? 0)) {
+                $originalLang = $context->language;
+                $context->language = $lang;
+            }
         }
 
-        if (class_exists('NumberFormatter')) {
-            $localeIso = 'en-US';
-            try {
-                $lang = \Context::getContext()->language;
-                if ($lang && !empty($lang->locale)) {
-                    $localeIso = str_replace('_', '-', $lang->locale);
-                } elseif ($lang && !empty($lang->iso_code)) {
-                    $localeIso = $lang->iso_code;
+        try {
+            // PS8 (et versions antérieures) : délègue à l'implémentation native,
+            // comportement strictement identique à l'existant, zéro risque de
+            // régression sur les environnements où la méthode existe encore.
+            if (method_exists('Tools', 'displayPrice')) {
+                return \Tools::displayPrice($amount, $currency);
+            }
+
+            if (class_exists('NumberFormatter')) {
+                $localeIso = 'en-US';
+                try {
+                    $lang = $context->language;
+                    if ($lang && !empty($lang->locale)) {
+                        $localeIso = str_replace('_', '-', $lang->locale);
+                    } elseif ($lang && !empty($lang->iso_code)) {
+                        $localeIso = $lang->iso_code;
+                    }
+                } catch (\Throwable $e) {
+                    // Repli sur en-US si le contexte langue n'est pas disponible.
                 }
-            } catch (\Throwable $e) {
-                // Repli sur en-US si le contexte langue n'est pas disponible.
+
+                $formatter = new \NumberFormatter($localeIso, \NumberFormatter::CURRENCY);
+                $formatted = $formatter->formatCurrency($amount, $currency->iso_code);
+                if ($formatted !== false) {
+                    return $formatted;
+                }
             }
 
-            $formatter = new \NumberFormatter($localeIso, \NumberFormatter::CURRENCY);
-            $formatted = $formatter->formatCurrency($amount, $currency->iso_code);
-            if ($formatted !== false) {
-                return $formatted;
+            // Dernier repli, sans extension intl : formatage manuel simple mais
+            // jamais faux (mieux qu'un montant absent de l'email).
+            $sign = $currency->sign ?: $currency->iso_code;
+            return number_format($amount, 2, ',', ' ') . ' ' . $sign;
+        } finally {
+            if ($originalLang !== null) {
+                $context->language = $originalLang;
             }
         }
-
-        // Dernier repli, sans extension intl : formatage manuel simple mais
-        // jamais faux (mieux qu'un montant absent de l'email).
-        $sign = $currency->sign ?: $currency->iso_code;
-        return number_format($amount, 2, ',', ' ') . ' ' . $sign;
     }
 }

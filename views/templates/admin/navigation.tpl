@@ -452,6 +452,7 @@
     _neriaConfirmCallback = null;
     document.getElementById('neria-delete-modal-msg').textContent = btn.getAttribute('data-confirm');
     document.getElementById('neria-delete-modal-key').textContent = btn.getAttribute('data-key') || '';
+    document.getElementById('neria-delete-modal-confirm').disabled = false;
     document.getElementById('neria-delete-modal-overlay').classList.add('active');
   }
   function neriaConfirmAction(message, callback) {
@@ -459,6 +460,7 @@
     _neriaConfirmCallback = callback;
     document.getElementById('neria-delete-modal-msg').textContent = message;
     document.getElementById('neria-delete-modal-key').textContent = '';
+    document.getElementById('neria-delete-modal-confirm').disabled = false;
     document.getElementById('neria-delete-modal-overlay').classList.add('active');
   }
   // Pour les liens <a href> (GET) au lieu d'un <form> — appeler avec
@@ -503,11 +505,16 @@
   }
   function neriaCloseDeleteModal() {
     document.getElementById('neria-delete-modal-overlay').classList.remove('active');
+    document.getElementById('neria-delete-modal-confirm').disabled = false;
     _neriaDeleteForm = null;
     _neriaConfirmCallback = null;
   }
   document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('neria-delete-modal-confirm').addEventListener('click', function() {
+    document.getElementById('neria-delete-modal-confirm').addEventListener('click', function(e) {
+      // Garde contre le double-clic rapide : sans ça, un clic répété avant la
+      // fermeture de la modale pouvait soumettre le même formulaire deux fois.
+      if (e.currentTarget.disabled) { return; }
+      e.currentTarget.disabled = true;
       if (_neriaDeleteForm) { _neriaDeleteForm.submit(); }
       if (_neriaConfirmCallback) { _neriaConfirmCallback(); }
       neriaCloseDeleteModal();

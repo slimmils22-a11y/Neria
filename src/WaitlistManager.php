@@ -128,7 +128,7 @@ class WaitlistManager
                 '{product_name}'       => $product->name,
                 '{product_url}'        => \Context::getContext()->link->getProductLink($product),
                 '{product_image}'      => $imageUrl,
-                '{product_price}'      => \NeriaTools::displayPrice((float) $product->price, new \Currency((int) \Context::getContext()->currency->id)),
+                '{product_price}'      => \NeriaTools::displayPrice((float) $product->price, new \Currency((int) \Context::getContext()->currency->id), $idLang),
                 '{days_waited}'        => $daysWaited,
                 '{reservation_hours}'  => (int) \Configuration::getGlobalValue('NERIA_WAITLIST_RESERVATION_HOURS') ?: self::RESERVATION_HOURS,
                 '{shop_name}'          => \Configuration::get('PS_SHOP_NAME'),

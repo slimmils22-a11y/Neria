@@ -1727,10 +1727,18 @@ class HealthCheckManager
 
     /**
      * Contrôle statique : la version du module doit être identique dans
-     * neria.php (const VERSION) et config.xml (<version>) — sinon
-     * Module::needUpgrade() peut se baser sur une valeur désynchronisée et
-     * ignorer un upgrade réellement dû (cf. feedback_module_upgrade_scripts,
-     * qui documente les 2 endroits à synchroniser à chaque bump).
+     * neria.php (const VERSION), config.xml (<version>) ET les 19 fichiers
+     * docs/strings/*.js (notice multilingue, chacun porte son propre
+     * `version: "X.Y.Z"`) — sinon Module::needUpgrade() peut se baser sur
+     * une valeur désynchronisée et ignorer un upgrade réellement dû (cf.
+     * feedback_module_upgrade_scripts), ou la notice livrée avec le module
+     * affiche un numéro de version périmé.
+     *
+     * Généralisé à une LISTE de fichiers porteurs de version (pas une simple
+     * comparaison à deux) le 2026-07-31 : après avoir corrigé le désync
+     * neria.php/config.xml, les 19 fichiers docs/strings/*.js se sont
+     * révélés être exactement le même bug, non couvert par la version
+     * précédente de ce contrôle qui ne comparait que neria.php et config.xml.
      */
     private function checkModuleVersionFilesSync(): array
     {
@@ -1742,19 +1750,35 @@ class HealthCheckManager
         if ($mainSrc !== '' && preg_match('/const\s+VERSION\s*=\s*[\'"]([\d.]+)[\'"]/', $mainSrc, $m)) {
             $codeVersion = $m[1];
         }
-
-        $xmlFile = $moduleDir . '/config.xml';
-        $xmlSrc = is_file($xmlFile) ? (file_get_contents($xmlFile) ?: '') : '';
-        $xmlVersion = null;
-        if ($xmlSrc !== '' && preg_match('/<version>(?:<!\[CDATA\[)?([\d.]+)/', $xmlSrc, $m)) {
-            $xmlVersion = $m[1];
-        }
-
-        if ($codeVersion === null || $xmlVersion === null) {
+        if ($codeVersion === null) {
             return ['status' => self::STATUS_WARNING, 'detail' => AdminTranslator::t('health.version_files_sync_unreadable')];
         }
 
-        if ($codeVersion !== $xmlVersion) {
+        // Chaque entrée : chemin relatif au module + regex capturant le numéro
+        // de version (1er groupe). Ajouter ici tout nouveau fichier qui embarque
+        // sa propre copie du numéro de version du module.
+        $versionFiles = [
+            'config.xml' => '/<version>(?:<!\[CDATA\[)?([\d.]+)/',
+        ];
+        foreach (glob($moduleDir . '/docs/strings/*.js') ?: [] as $stringsFile) {
+            $versionFiles['docs/strings/' . basename($stringsFile)] = '/version:\s*"([\d.]+)"/';
+        }
+
+        $mismatched = [];
+        $unreadable = 0;
+        foreach ($versionFiles as $relPath => $pattern) {
+            $fullPath = $moduleDir . '/' . $relPath;
+            $src = is_file($fullPath) ? (file_get_contents($fullPath) ?: '') : '';
+            if ($src === '' || !preg_match($pattern, $src, $m)) {
+                $unreadable++;
+                continue;
+            }
+            if ($m[1] !== $codeVersion) {
+                $mismatched[] = $relPath . ' (' . $m[1] . ')';
+            }
+        }
+
+        if ($mismatched) {
             // ERROR (et non WARNING) : trouvé en réel le 2026-07-31 — une version
             // bumpée dans neria.php sans toucher config.xml (commit du 2026-07-26)
             // est restée désynchronisée 5 jours sans être vue, le WARNING partant
@@ -1765,9 +1789,13 @@ class HealthCheckManager
                 'status' => self::STATUS_ERROR,
                 'detail' => AdminTranslator::tVars('health.version_files_sync_warning', [
                     'code' => $codeVersion,
-                    'xml' => $xmlVersion,
+                    'xml'  => implode(', ', $mismatched),
                 ]),
             ];
+        }
+
+        if ($unreadable === count($versionFiles)) {
+            return ['status' => self::STATUS_WARNING, 'detail' => AdminTranslator::t('health.version_files_sync_unreadable')];
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.version_files_sync_ok', ['version' => $codeVersion])];
@@ -3656,6 +3684,17 @@ class HealthCheckManager
             '1.0.19' => ['type' => 'config_global_set', 'name' => 'NERIA_CRON_ENABLED'],
             '1.0.20' => ['type' => 'table',  'name' => 'neria_voice_profile'],
             '1.0.21' => ['type' => 'translation_template', 'name' => 'certificate_email'],
+            '1.0.22' => ['type' => 'translation_lang', 'name' => 'gb'],
+            '1.0.23' => ['type' => 'table',  'name' => 'neria_birthday_voucher'],
+            '1.0.24' => ['type' => 'table',  'name' => 'neria_milestone_voucher'],
+            '1.0.25' => ['type' => 'index_column', 'table' => 'neria_preferences', 'index' => 'uq_shop_customer_email_cat', 'name' => 'email'],
+            '1.0.26' => ['type' => 'column', 'table' => 'neria_waitlist', 'name' => 'claim_started_at'],
+            '1.0.27' => ['type' => 'index_column', 'table' => 'neria_stat', 'index' => 'idx_shop_template_event', 'name' => 'date_add'],
+            '1.0.28' => ['type' => 'index',  'table' => 'neria_waitlist', 'name' => 'uq_customer_product_shop'],
+            '1.0.29' => ['type' => 'column', 'table' => 'neria_loyalty_points', 'name' => 'id_shop'],
+            '1.0.30' => ['type' => 'config', 'name' => 'NERIA_CERT_ENABLED'],
+            '1.0.31' => ['type' => 'config_exists', 'name' => 'NERIA_LICENSE_KEY'],
+            '1.0.32' => ['type' => 'config', 'name' => 'NERIA_BIRTHDAY_ENABLED'],
         ];
 
         $failures = [];
@@ -3723,6 +3762,40 @@ class HealthCheckManager
                     "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_translation`
                      WHERE `template` = '" . pSQL($rule['name']) . "'"
                 );
+
+            case 'translation_lang':
+                return (bool) $this->db->getValue(
+                    "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_translation`
+                     WHERE `lang` = '" . pSQL($rule['name']) . "'"
+                );
+
+            case 'index':
+                return (bool) $this->db->getValue(
+                    "SELECT COUNT(*) FROM information_schema.STATISTICS
+                     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '" . _DB_PREFIX_ . $rule['table'] . "'
+                       AND INDEX_NAME = '" . pSQL($rule['name']) . "'"
+                );
+
+            case 'index_column':
+                // Vérifie qu'une colonne fait bien partie d'un index nommé —
+                // distinct de 'index' (existence seule) : un index peut exister
+                // sous le même nom avant/après un upgrade qui ne fait qu'y
+                // AJOUTER une colonne (ex: 1.0.27), auquel cas seule cette
+                // vérification plus précise prouve que l'upgrade a eu son effet.
+                return (bool) $this->db->getValue(
+                    "SELECT COUNT(*) FROM information_schema.STATISTICS
+                     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '" . _DB_PREFIX_ . $rule['table'] . "'
+                       AND INDEX_NAME = '" . pSQL($rule['index']) . "'
+                       AND COLUMN_NAME = '" . pSQL($rule['name']) . "'"
+                );
+
+            case 'config_exists':
+                // Distinct de 'config' (qui exige une valeur non vide) : certaines
+                // clés semées par un upgrade ont légitimement '' comme valeur par
+                // défaut (ex: NERIA_LICENSE_KEY tant que le marchand n'a pas encore
+                // activé sa licence) — seule la présence de la ligne en base prouve
+                // que l'upgrade a tourné, pas son contenu.
+                return \Configuration::get($rule['name']) !== false;
 
             default:
                 return true;
