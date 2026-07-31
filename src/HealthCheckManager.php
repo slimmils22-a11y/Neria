@@ -174,6 +174,8 @@ class HealthCheckManager
             'rtl_hardcoded_align'      => $this->checkRtlHardcodedAlignment(),
             'display_price_missing_lang' => $this->checkDisplayPriceMissingLang(),
             'tpl_js_escape_missing'    => $this->checkTplJsEscapeMissing(),
+            'imap_timeout_missing'     => $this->checkImapTimeoutMissing(),
+            'oauth_refresh_error_surfaced' => $this->checkOAuthRefreshErrorSurfaced(),
             'known_regressions_guard' => $this->checkKnownRegressionsGuard(),
             'control_center_defaults_consistency' => $this->checkControlCenterDefaultsConsistency(),
             'sql_pattern_risks'     => $this->checkSqlPatternRisks(),
@@ -2323,6 +2325,169 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.tpl_js_escape_ok')];
+    }
+
+    /**
+     * Scan statique de src/*.php : appel à imap_open() sans imap_timeout()
+     * posé avant dans le même fichier. imap_open() n'a aucun délai par
+     * défaut — sans ce réglage préalable, un serveur IMAP lent/injoignable
+     * bloque le handshake TCP/SSL indéfiniment (souvent 60-120s+ selon l'OS),
+     * gelant tout le worker PHP-FPM, que ce soit un cron ou un bouton BO
+     * synchrone (« Tester la connexion »).
+     *
+     * Trouvé en réel le 2026-07-31 dans BounceManager.php (les 2 seuls
+     * appels imap_open() du module), corrigé en ajoutant imap_timeout()
+     * avant chaque appel. Ce contrôle existe pour qu'une future intégration
+     * IMAP/POP3 ne retombe pas dans le même piège.
+     */
+    private function checkImapTimeoutMissing(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $files = $this->collectModulePhpFiles($moduleDir);
+
+        $offenders = [];
+        foreach ($files as $file) {
+            $base = basename($file);
+            // HealthCheckManager.php : le code/docblock de CE contrôle cite
+            // littéralement 'imap_open(' et 'imap_timeout(' comme motifs
+            // recherchés — auto-match sinon.
+            if ($base === 'HealthCheckManager.php') {
+                continue;
+            }
+            $rawContent = file_get_contents($file) ?: '';
+            if (strpos($rawContent, 'imap_open(') === false) {
+                continue;
+            }
+            // Neutralise les commentaires (le nom de la fonction y est parfois
+            // cité en toutes lettres pour expliquer le correctif, comme dans
+            // BounceManager::applyImapTimeouts() lui-même) en conservant les
+            // retours à la ligne, pour que les numéros de ligne restent exacts.
+            $content = preg_replace_callback('#/\*.*?\*/#s', function ($m) {
+                return preg_replace('/[^\n]/', ' ', $m[0]);
+            }, $rawContent);
+            $content = preg_replace_callback('#//[^\n]*#', function ($m) {
+                return str_repeat(' ', strlen($m[0]));
+            }, $content);
+            if (strpos($content, 'imap_open(') === false) {
+                continue; // ne restait que des mentions en commentaire
+            }
+            $relative = ltrim(str_replace(str_replace('\\', '/', $moduleDir), '', str_replace('\\', '/', $file)), '/');
+
+            if (strpos($content, 'imap_timeout(') === false) {
+                // Aucun imap_timeout() nulle part dans le fichier — chaque
+                // appel imap_open() qu'il contient est concerné.
+                $searchFrom = 0;
+                while (($pos = strpos($content, 'imap_open(', $searchFrom)) !== false) {
+                    $searchFrom = $pos + 1;
+                    $line = substr_count(substr($content, 0, $pos), "\n") + 1;
+                    $offenders[] = $relative . ':' . $line;
+                }
+                continue;
+            }
+
+            // imap_timeout() existe dans le fichier : vérifie qu'il apparaît
+            // bien AVANT chaque imap_open() (un réglage global en fin de
+            // fichier ou après l'appel ne protège pas cet appel-là).
+            $firstTimeoutPos = strpos($content, 'imap_timeout(');
+            $searchFrom = 0;
+            while (($pos = strpos($content, 'imap_open(', $searchFrom)) !== false) {
+                $searchFrom = $pos + 1;
+                if ($pos < $firstTimeoutPos) {
+                    $line = substr_count(substr($content, 0, $pos), "\n") + 1;
+                    $offenders[] = $relative . ':' . $line;
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.imap_timeout_missing_warning', [
+                    'n'    => count($offenders),
+                    'list' => implode(', ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.imap_timeout_missing_ok')];
+    }
+
+    /**
+     * Scan statique de src/*.php : une classe qui définit sa propre constante
+     * CONFIG_LAST_ERROR (motif d'intégration OAuth du type Postmaster/Search
+     * Console — canal d'erreur lu par checkOAuthFreshness()) doit aussi
+     * écrire dans ce canal depuis sa méthode refreshAccessToken() en cas
+     * d'échec, pas seulement journaliser dans le Watchdog.
+     *
+     * Trouvé en réel le 2026-07-31 : PostmasterManager/SearchConsoleManager
+     * ne le faisaient pas — un rafraîchissement OAuth échoué (accès révoqué
+     * par le marchand côté Google) restait invisible du statut BO lu par
+     * checkOAuthFreshness(), qui continuait d'afficher "connecté" alors que
+     * les données ne se rafraîchissaient plus silencieusement depuis des
+     * jours. Corrigé sur les 2 fichiers concernés ; ce contrôle existe pour
+     * qu'une future intégration OAuth du même moule ne retombe pas dans le
+     * même piège.
+     *
+     * Volontairement scopé aux classes qui définissent CONFIG_LAST_ERROR
+     * (le motif déjà établi dans ce module pour ce type d'intégration), pas
+     * une vérification générale de tout code OAuth — pour rester permissif
+     * et ne pas signaler à tort une intégration construite différemment.
+     */
+    private function checkOAuthRefreshErrorSurfaced(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $files = $this->collectModulePhpFiles($moduleDir);
+
+        $offenders = [];
+        foreach ($files as $file) {
+            $content = file_get_contents($file) ?: '';
+            if (strpos($content, 'CONFIG_LAST_ERROR') === false
+                || !preg_match('/function\s+refreshAccessToken\s*\(/', $content, $m, PREG_OFFSET_CAPTURE)) {
+                continue;
+            }
+
+            $relative = ltrim(str_replace(str_replace('\\', '/', $moduleDir), '', str_replace('\\', '/', $file)), '/');
+
+            // Isole le corps de refreshAccessToken() par appariement d'accolades
+            $bracePos = strpos($content, '{', $m[0][1]);
+            if ($bracePos === false) {
+                continue;
+            }
+            $depth = 0;
+            $bodyEnd = null;
+            for ($i = $bracePos, $len = strlen($content); $i < $len; $i++) {
+                if ($content[$i] === '{') {
+                    $depth++;
+                } elseif ($content[$i] === '}') {
+                    $depth--;
+                    if ($depth === 0) {
+                        $bodyEnd = $i;
+                        break;
+                    }
+                }
+            }
+            if ($bodyEnd === null) {
+                continue;
+            }
+            $body = substr($content, $bracePos, $bodyEnd - $bracePos + 1);
+
+            if (strpos($body, 'CONFIG_LAST_ERROR') === false) {
+                $line = substr_count(substr($content, 0, $m[0][1]), "\n") + 1;
+                $offenders[] = $relative . ':' . $line;
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.oauth_refresh_error_warning', [
+                    'n'    => count($offenders),
+                    'list' => implode(', ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.oauth_refresh_error_ok')];
     }
 
     /**
