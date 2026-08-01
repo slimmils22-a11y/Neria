@@ -4618,10 +4618,15 @@ class Neria extends Module
                      WHERE id_customer = ' . (int) $custInput . ' AND deleted = 0'
                 );
             } elseif ($custInput !== '' && Validate::isEmail($custInput)) {
-                // Saisie email → résoudre vers l'id_customer.
+                // Saisie email → résoudre vers l'id_customer. Scopé par
+                // id_shop : en multiboutique sans partage de comptes, la
+                // même adresse peut correspondre à des lignes client
+                // distinctes par boutique — sans ce filtre, le devis B2B
+                // pouvait être rattaché au client d'une AUTRE boutique.
                 $idCustomer = (int) Db::getInstance()->getValue(
                     'SELECT id_customer FROM `' . _DB_PREFIX_ . 'customer`
                      WHERE email = \'' . pSQL($custInput) . '\' AND deleted = 0
+                       AND id_shop = ' . (int) $this->context->shop->id . '
                      ORDER BY id_customer DESC'
                 );
             }

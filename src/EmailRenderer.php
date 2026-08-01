@@ -1649,11 +1649,22 @@ class EmailRenderer
             return 0;
         }
 
+        // Scopé par id_shop : en multiboutique sans partage de comptes, la
+        // même adresse peut correspondre à des lignes client distinctes par
+        // boutique — sans ce filtre, ORDER BY id_customer DESC pouvait
+        // résoudre le client d'une AUTRE boutique, faussant la détection de
+        // langue/pays de CET envoi (et toute décision downstream basée sur
+        // ce résultat, ex: getPreferencesUrl()). Même correctif déjà
+        // appliqué à unsubscribe.php/preferences.php et au hook centre de
+        // préférences de neria.php.
+        $idShop = (int) ($params['idShop'] ?? $this->context->shop->id);
+
         return (int) \Db::getInstance()->getValue(
             'SELECT `id_customer`
              FROM `' . _DB_PREFIX_ . 'customer`
              WHERE `email` = \'' . pSQL($to) . '\'
                AND `deleted` = 0
+               AND `id_shop` = ' . $idShop . '
              ORDER BY `id_customer` DESC'
         );
     }

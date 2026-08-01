@@ -203,6 +203,7 @@ class HealthCheckManager
             'display_price_missing_lang' => 'checkDisplayPriceMissingLang',
             'hardcoded_decimal_format' => 'checkHardcodedDecimalFormat',
             'chained_str_replace'   => 'checkChainedStrReplace',
+            'customer_email_shop_scope' => 'checkCustomerEmailLookupMissingShop',
             'cron_loop_try_catch'     => 'checkCronLoopMissingTryCatch',
             'tpl_js_escape_missing'    => 'checkTplJsEscapeMissing',
             'imap_timeout_missing'     => 'checkImapTimeoutMissing',
@@ -2399,6 +2400,73 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.chained_str_replace_ok')];
+    }
+
+    /**
+     * Scan statique : requête SQL sur la table `customer` avec une condition
+     * sur `email`, sans filtre `id_shop` dans la même requête. Motif trouvé
+     * et corrigé de façon récurrente (unsubscribe.php, preferences.php,
+     * neria.php centre de préférences, neria.php devis B2B,
+     * EmailRenderer::resolveCustomerId(), le 01/08/2026) : en multiboutique
+     * sans partage de comptes, la même adresse email peut correspondre à
+     * des lignes client distinctes par boutique — sans ce filtre,
+     * `ORDER BY id_customer DESC` peut résoudre le client d'une AUTRE
+     * boutique (contournement RGPD, mauvais rattachement de devis/commande,
+     * mauvaise détection de langue).
+     *
+     * Heuristique volontairement prudente (fenêtre de caractères autour du
+     * mot "email", pas un vrai parseur SQL) : signale un candidat à vérifier
+     * manuellement, pas une certitude. Exclut le motif
+     * Shop::addSqlRestriction()/$shopRestriction, idiome natif PS déjà
+     * correct pour ce même besoin (ManualSendManager::findCustomer()).
+     */
+    private function checkCustomerEmailLookupMissingShop(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $files = $this->collectModulePhpFiles($moduleDir);
+
+        $offenders = [];
+        foreach ($files as $file) {
+            $base = basename($file);
+            if ($base === 'HealthCheckManager.php') {
+                continue;
+            }
+            $content = file_get_contents($file) ?: '';
+            $relative = ltrim(str_replace(str_replace('\\', '/', $moduleDir), '', str_replace('\\', '/', $file)), '/');
+
+            if (!preg_match_all(
+                '/customer`([\s\S]{0,200}?)\bemail\b[^=\n]{0,15}=([\s\S]{0,200})/i',
+                $content,
+                $m,
+                PREG_OFFSET_CAPTURE
+            )) {
+                continue;
+            }
+
+            foreach ($m[0] as $i => $fullMatch) {
+                $combined = $m[1][$i][0] . $m[2][$i][0];
+                if (stripos($combined, 'id_shop') !== false) {
+                    continue;
+                }
+                if (stripos($combined, 'shopRestriction') !== false || stripos($combined, 'addSqlRestriction') !== false) {
+                    continue;
+                }
+                $line = substr_count(substr($content, 0, $fullMatch[1]), "\n") + 1;
+                $offenders[] = $relative . ':' . $line;
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.customer_email_shop_scope_warning', [
+                    'n'    => count($offenders),
+                    'list' => implode(', ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.customer_email_shop_scope_ok')];
     }
 
     /**
