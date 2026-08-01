@@ -2559,8 +2559,7 @@ class Neria extends Module
             } else {
                 Configuration::updateValue(PageSpeedManager::CONFIG_API_KEY,    CryptoManager::encrypt($key));
                 Configuration::updateValue(PageSpeedManager::CONFIG_TARGET_URL, $targetUrl);
-                Configuration::deleteByName(PageSpeedManager::CONFIG_CACHE);
-                Configuration::deleteByName(PageSpeedManager::CONFIG_CACHE_TIME);
+                (new PageSpeedManager($this))->invalidateCache();
                 Configuration::deleteByName('NERIA_PAGESPEED_LAST_ERROR');
                 $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.pagespeed_config_saved'));
             }
@@ -2646,8 +2645,7 @@ class Neria extends Module
             if ($mozSecret !== '') {
                 Configuration::updateValue(SeoApiManager::CONFIG_MOZ_SECRET, CryptoManager::encrypt($mozSecret));
             }
-            Configuration::deleteByName(SeoApiManager::CONFIG_CACHE);
-            Configuration::deleteByName(SeoApiManager::CONFIG_CACHE_TIME);
+            (new SeoApiManager($this))->invalidateCache();
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.seo_config_saved'));
         }
 

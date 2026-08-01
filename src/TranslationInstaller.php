@@ -109,6 +109,22 @@ class TranslationInstaller
             return false;
         }
 
+        // json_last_error() ne détecte QUE les erreurs de syntaxe — un JSON
+        // syntaxiquement valide mais dont la racine n'est pas un objet/tableau
+        // (null, un nombre, une chaîne — ex: fichier vidé par erreur, réponse
+        // d'erreur d'un CDN livrée à la place du vrai fichier) passe cette
+        // vérification. Sans ce garde-fou, le foreach ci-dessous ne s'exécute
+        // simplement pas (aucune erreur PHP fatale), $failed reste false, la
+        // transaction est COMMIT — effaçant silencieusement tout le
+        // dictionnaire par défaut sans jamais réinsérer quoi que ce soit.
+        if (!is_array($translations)) {
+            $this->module->log(
+                'TranslationInstaller: structure JSON invalide (racine non-tableau) → ' . $jsonPath,
+                3
+            );
+            return false;
+        }
+
         // ── 3-5. Purge + import par lots, DANS UNE TRANSACTION ────
         // Auparavant clearDefaultTranslations() vidait la table
         // IMMÉDIATEMENT, avant même la première tentative d'insertion, et
@@ -248,14 +264,6 @@ class TranslationInstaller
             return false;
         }
 
-        // Supprime uniquement les traductions par défaut de ce template
-        // NB : Db::delete() préfixe lui-même la table — passer self::TABLE
-        // SANS _DB_PREFIX_ (sinon double préfixe → table inexistante).
-        $this->db->delete(
-            self::TABLE,
-            '`template` = \'' . pSQL($template) . '\' AND `is_custom` = 0'
-        );
-
         $batch = [];
         $now   = date('Y-m-d H:i:s');
 
@@ -273,7 +281,27 @@ class TranslationInstaller
             }
         }
 
-        return !empty($batch) ? $this->flushBatch($batch) : true;
+        // Suppression + réinsertion encadrées par une transaction — même
+        // correctif que importFromJson() (cf. son commentaire) : sans elle,
+        // un échec de flushBatch() après la suppression laissait ce
+        // template sans AUCUNE traduction par défaut, cassant les envois
+        // qui l'utilisent tant qu'un nouvel essai réussi n'était pas
+        // relancé. NB : Db::delete() préfixe lui-même la table — passer
+        // self::TABLE SANS _DB_PREFIX_ (sinon double préfixe → table
+        // inexistante).
+        $this->db->execute('START TRANSACTION');
+        $this->db->delete(
+            self::TABLE,
+            '`template` = \'' . pSQL($template) . '\' AND `is_custom` = 0'
+        );
+        $ok = !empty($batch) ? $this->flushBatch($batch) : true;
+        if ($ok) {
+            $this->db->execute('COMMIT');
+        } else {
+            $this->db->execute('ROLLBACK');
+        }
+
+        return $ok;
     }
 
     // ============================================================

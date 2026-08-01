@@ -86,9 +86,20 @@ class SeoApiManager
         return false;
     }
 
+    /**
+     * Clé de cache suffixée par boutique — le contrôle sur `domain` dans
+     * getReport() limitait déjà l'affichage croisé en lecture, mais deux
+     * boutiques écrivant en parallèle (runCheck() concurrent) partageaient
+     * la même ligne ps_configuration et pouvaient s'écraser mutuellement.
+     */
+    private function cacheKey(string $base): string
+    {
+        return $base . '_' . (int) \Context::getContext()->shop->id;
+    }
+
     public function getCachedReport(): ?array
     {
-        $cached = \Configuration::get(self::CONFIG_CACHE);
+        $cached = \Configuration::get($this->cacheKey(self::CONFIG_CACHE));
         if (!$cached) {
             return null;
         }
@@ -98,8 +109,17 @@ class SeoApiManager
 
     public function getCacheAge(): ?int
     {
-        $t = (int) \Configuration::get(self::CONFIG_CACHE_TIME);
+        $t = (int) \Configuration::get($this->cacheKey(self::CONFIG_CACHE_TIME));
         return $t ? (int) round((time() - $t) / 60) : null;
+    }
+
+    /**
+     * Invalide le cache de LA BOUTIQUE courante (fournisseur/clé modifié en BO).
+     */
+    public function invalidateCache(): void
+    {
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_CACHE));
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_CACHE_TIME));
     }
 
     /**
@@ -145,16 +165,9 @@ class SeoApiManager
         if (!$this->isConfigured()) {
             return null;
         }
-        $cacheTime = (int) \Configuration::get(self::CONFIG_CACHE_TIME);
+        $cacheTime = (int) \Configuration::get($this->cacheKey(self::CONFIG_CACHE_TIME));
         if ($cacheTime && (time() - $cacheTime) < self::CACHE_TTL) {
             $data = $this->getCachedReport();
-            // Le cache est stocké en config GLOBALE (pas par boutique) : sur
-            // une install multi-boutique où chaque boutique a son propre
-            // domaine, la boutique A déclenchait l'appel SEMrush/Moz et
-            // mettait en cache SON domaine, puis la boutique B lisait ce même
-            // cache pendant 24h — affichant l'autorité/trafic du domaine de A
-            // comme si c'était le sien (même famille de bug que
-            // DomainReputationManager).
             $currentDomain = parse_url(\Tools::getShopDomainSsl(true), PHP_URL_HOST);
             if ($data && ($data['domain'] ?? null) === $currentDomain) {
                 return $data;
@@ -186,8 +199,8 @@ class SeoApiManager
         $result['provider']   = $provider;
         $result['checked_at'] = \NeriaTools::formatDate('now', \AdminTranslator::currentLang(), true);
 
-        \Configuration::updateValue(self::CONFIG_CACHE,      json_encode($result, JSON_UNESCAPED_UNICODE));
-        \Configuration::updateValue(self::CONFIG_CACHE_TIME, time());
+        \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),      json_encode($result, JSON_UNESCAPED_UNICODE));
+        \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_TIME), time());
         $this->clearError();
 
         return $result;
@@ -268,25 +281,43 @@ class SeoApiManager
                     }
                     $kwData = array_combine($kwHeaders, $kwValues);
                     if ($kwData) {
+                        // Même mismatch que ci-dessus : export_columns
+                        // demandait les codes courts 'Ph,Po,Nq,Cp,Ur', pas
+                        // les libellés complets.
                         $keywords[] = [
-                            'keyword'  => $kwData['Keyword'] ?? '',
-                            'position' => (int) ($kwData['Position'] ?? 0),
-                            'volume'   => (int) ($kwData['Search Volume'] ?? 0),
-                            'url'      => $kwData['URL'] ?? '',
+                            'keyword'  => $kwData['Ph'] ?? '',
+                            'position' => (int) ($kwData['Po'] ?? 0),
+                            'volume'   => (int) ($kwData['Nq'] ?? 0),
+                            'url'      => $kwData['Ur'] ?? '',
                         ];
                     }
                 }
             }
         }
 
+        // Les en-têtes CSV renvoyés par Semrush sont les CODES COURTS
+        // demandés dans export_columns ('Dn,Rk,Or,Ot,Oc,Ad,At,Ac' ci-dessus),
+        // PAS les libellés complets ('Rank', 'Organic Keywords'...) — ce
+        // code lisait les mauvaises clés depuis le début : $row['Rank']
+        // etc. étaient TOUJOURS absentes, donc ?? 0 déclenchait
+        // systématiquement, affichant "0 partout" en silence quel que soit
+        // le vrai trafic du domaine, sans jamais lever d'erreur.
+        $expectedKeys = ['Rk', 'Or', 'Ot', 'Oc', 'Ad', 'At'];
+        if (count(array_intersect($expectedKeys, array_keys($row))) === 0) {
+            $this->wd()->warning(
+                \WatchdogManager::i18nMsg('watchdog.semrush_unexpected_columns', ['headers' => implode(',', array_keys($row))]),
+                '', 'SeoApiManager'
+            );
+        }
+
         $result = [
             'domain'           => $domain,
-            'authority_score'  => (int) ($row['Rank'] ?? 0),
-            'organic_keywords' => (int) ($row['Organic Keywords'] ?? 0),
-            'organic_traffic'  => (int) ($row['Organic Traffic'] ?? 0),
-            'organic_cost'     => (float) ($row['Organic Cost'] ?? 0),
-            'paid_keywords'    => (int) ($row['Adwords Keywords'] ?? 0),
-            'paid_traffic'     => (int) ($row['Adwords Traffic'] ?? 0),
+            'authority_score'  => (int) ($row['Rk'] ?? 0),
+            'organic_keywords' => (int) ($row['Or'] ?? 0),
+            'organic_traffic'  => (int) ($row['Ot'] ?? 0),
+            'organic_cost'     => (float) ($row['Oc'] ?? 0),
+            'paid_keywords'    => (int) ($row['Ad'] ?? 0),
+            'paid_traffic'     => (int) ($row['At'] ?? 0),
             'keywords'         => $keywords,
         ];
 
@@ -327,12 +358,17 @@ class SeoApiManager
         ]);
         $body     = curl_exec($ch);
         $httpCode = (int) curl_getinfo($ch, \CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
         curl_close($ch);
 
         if (!$body || $httpCode !== 200) {
+            // curl_error() capturé — même motif que httpGet() (Semrush) :
+            // sans lui, un timeout/échec DNS/certificat invalide affichait
+            // toujours "HTTP 0" au marchand, impossible à diagnostiquer sans
+            // accès aux logs serveur.
             $prevLang = \AdminTranslator::currentLang();
             \AdminTranslator::setLang(\WatchdogManager::shopLang());
-            $this->recordError(\AdminTranslator::tVars('msg.moz_http_error', ['code' => $httpCode]));
+            $this->recordError($curlErr !== '' ? $curlErr : \AdminTranslator::tVars('msg.moz_http_error', ['code' => $httpCode]));
             \AdminTranslator::setLang($prevLang);
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.moz_http_error', ['code' => $httpCode]), '', 'SeoApiManager');
             return null;

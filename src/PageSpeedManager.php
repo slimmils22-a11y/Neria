@@ -54,9 +54,21 @@ class PageSpeedManager
         return (string) \Configuration::get(self::CONFIG_API_KEY) !== '';
     }
 
+    /**
+     * Clé de cache suffixée par boutique — le contrôle sur `url` dans
+     * getReport() limitait déjà l'affichage croisé en lecture, mais deux
+     * boutiques écrivant en parallèle (runCheck() concurrent) partageaient
+     * la même ligne ps_configuration et pouvaient s'écraser mutuellement.
+     * Une clé distincte par boutique élimine la fenêtre de course.
+     */
+    private function cacheKey(string $base): string
+    {
+        return $base . '_' . (int) \Context::getContext()->shop->id;
+    }
+
     public function getCachedReport(): ?array
     {
-        $cached = \Configuration::get(self::CONFIG_CACHE);
+        $cached = \Configuration::get($this->cacheKey(self::CONFIG_CACHE));
         if (!$cached) {
             return null;
         }
@@ -66,8 +78,17 @@ class PageSpeedManager
 
     public function getCacheAge(): ?int
     {
-        $t = (int) \Configuration::get(self::CONFIG_CACHE_TIME);
+        $t = (int) \Configuration::get($this->cacheKey(self::CONFIG_CACHE_TIME));
         return $t ? (int) round((time() - $t) / 60) : null;
+    }
+
+    /**
+     * Invalide le cache de LA BOUTIQUE courante (clé/URL modifiée en BO).
+     */
+    public function invalidateCache(): void
+    {
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_CACHE));
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_CACHE_TIME));
     }
 
     /**
@@ -106,16 +127,9 @@ class PageSpeedManager
      */
     public function getReport(): ?array
     {
-        $cacheTime = (int) \Configuration::get(self::CONFIG_CACHE_TIME);
+        $cacheTime = (int) \Configuration::get($this->cacheKey(self::CONFIG_CACHE_TIME));
         if ($cacheTime && (time() - $cacheTime) < self::CACHE_TTL) {
             $data = $this->getCachedReport();
-            // Le cache est stocké en config GLOBALE (pas par boutique) : sur
-            // une install multi-boutique où chaque boutique a sa propre URL
-            // cible (voir getTargetUrl()), la boutique A déclenchait l'analyse
-            // et mettait en cache SON url, puis la boutique B lisait ce même
-            // cache pendant 24h — affichant le score PageSpeed du site de A
-            // comme si c'était le sien (même famille de bug que
-            // DomainReputationManager::getCachedReport()).
             if ($data && ($data['url'] ?? null) === $this->getTargetUrl()) {
                 return $data;
             }
@@ -137,8 +151,24 @@ class PageSpeedManager
 
     public function runCheck(): ?array
     {
-        $key = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_API_KEY));
+        $rawKey = (string) \Configuration::get(self::CONFIG_API_KEY);
+        $key    = \CryptoManager::decrypt($rawKey);
         if ($key === '') {
+            // Distingue "jamais configuré" (rawKey vide, silence normal) de
+            // "clé enregistrée mais illisible" (decrypt() a échoué — clé de
+            // chiffrement maîtresse altérée) : sans ce contrôle, un
+            // marchand voyant "pas de données PageSpeed" n'avait aucun
+            // indice pour diagnostiquer lequel des deux cas s'appliquait.
+            if ($rawKey !== '') {
+                $prevLang = \AdminTranslator::currentLang();
+                \AdminTranslator::setLang(\WatchdogManager::shopLang());
+                $this->recordError(\AdminTranslator::t('msg.pagespeed_key_unreadable'));
+                \AdminTranslator::setLang($prevLang);
+                $this->wd()->warning(
+                    \WatchdogManager::i18nMsg('watchdog.pagespeed_key_unreadable'),
+                    '', 'PageSpeedManager'
+                );
+            }
             return null;
         }
 
@@ -158,8 +188,8 @@ class PageSpeedManager
             'checked_at' => \NeriaTools::formatDate('now', \AdminTranslator::currentLang(), true),
         ];
 
-        \Configuration::updateValue(self::CONFIG_CACHE,      json_encode($result, JSON_UNESCAPED_UNICODE));
-        \Configuration::updateValue(self::CONFIG_CACHE_TIME, time());
+        \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),      json_encode($result, JSON_UNESCAPED_UNICODE));
+        \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_TIME), time());
 
         $perfM = $result['mobile']['perf']   ?? '—';
         $perfD = $result['desktop']['perf']  ?? '—';

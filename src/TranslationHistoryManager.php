@@ -79,11 +79,17 @@ class TranslationHistoryManager
     {
         $table = _DB_PREFIX_ . self::TABLE;
 
+        // Départage sur id_history DESC en cas de date_add identique
+        // (résolution à la seconde) : sans lui, un import en masse dans la
+        // même seconde pouvait faire exclure du top MAX_PER_KEY conservé
+        // la ligne réellement la plus récente (ordre non déterministe entre
+        // lignes de date_add égale), qui était alors supprimée par le
+        // DELETE ci-dessous au lieu d'une entrée plus ancienne.
         $keep = $this->db->executeS(sprintf(
             "SELECT `id_history` FROM `%s`
              WHERE `id_shop` = %d AND `template_key` = '%s'
                AND `lang_code` = '%s' AND `translation_key` = '%s'
-             ORDER BY `date_add` DESC
+             ORDER BY `date_add` DESC, `id_history` DESC
              LIMIT %d",
             $table,
             $this->idShop,

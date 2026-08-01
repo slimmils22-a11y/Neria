@@ -131,8 +131,16 @@ class LookCompletionManager
             $productIds = json_decode($rule['product_ids'], true);
             if (!is_array($productIds) || empty($productIds)) continue;
 
+            // Exclut tout produit déjà acheté par ce client (commande
+            // courante ou précédentes) — sans ce filtre, une règle statique
+            // définie par le marchand peut re-suggérer un article que le
+            // client possède déjà.
+            $alreadyBought = $this->getCustomerPurchasedProductIds($idCustomer);
+            $productIds    = array_values(array_diff($productIds, $alreadyBought));
+            if (empty($productIds)) continue;
+
             // Récupérer les infos des produits suggérés (max 3)
-            $products = $this->buildProductBlocks(array_slice($productIds, 0, 3), $idLang);
+            $products = $this->buildProductBlocks(array_slice($productIds, 0, 3), $idLang, $idShop);
             if (empty($products)) continue;
 
             $customer = new \Customer($idCustomer);
@@ -196,12 +204,17 @@ class LookCompletionManager
      */
     private function getOrderCategoryIds(int $idOrder): array
     {
+        // p.id_category_default IS NOT NULL exclut les produits orphelins
+        // (donnée corrompue) — sans ce filtre, un NULL castait en 0 dans
+        // findMatchingRule() (IN (0, ...)), polluant la liste FIELD() et
+        // pouvant décaler l'ordre de priorité des règles.
         $rows = $this->db->executeS("
             SELECT p.id_category_default,
                    SUM(od.unit_price_tax_incl * od.product_quantity) AS category_value
             FROM `{$this->prefix}order_detail` od
             INNER JOIN `{$this->prefix}product` p ON p.id_product = od.product_id
             WHERE od.id_order = {$idOrder}
+              AND p.id_category_default IS NOT NULL
             GROUP BY p.id_category_default
             ORDER BY category_value DESC
         ");
@@ -230,31 +243,72 @@ class LookCompletionManager
         return $row ?: null;
     }
 
-    private function buildProductBlocks(array $productIds, int $idLang): array
+    /**
+     * Tous les id_product déjà achetés par ce client (commandes valides,
+     * toutes boutiques confondues — un article acheté sur une autre
+     * boutique du groupe reste un article déjà possédé par le client).
+     */
+    private function getCustomerPurchasedProductIds(int $idCustomer): array
     {
+        $rows = $this->db->executeS("
+            SELECT DISTINCT od.product_id
+            FROM `{$this->prefix}order_detail` od
+            INNER JOIN `{$this->prefix}orders` o ON o.id_order = od.id_order AND o.valid = 1
+            WHERE o.id_customer = {$idCustomer}
+        ");
+        return is_array($rows) ? array_map('intval', array_column($rows, 'product_id')) : [];
+    }
+
+    private function buildProductBlocks(array $productIds, int $idLang, int $idShop): array
+    {
+        // Devise par défaut de LA BOUTIQUE du client, pas celle du contexte
+        // global — même correctif que CollectionManager::processCollection().
+        $currency = new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop));
+
         $blocks = [];
         foreach ($productIds as $pid) {
+            $pid = (int) $pid;
             // Actif uniquement — même correctif que CollectionManager : un
             // produit désactivé/retiré du catalogue ne doit plus être
             // suggéré dans l'email "Complétez votre look" avec un lien mort.
-            $product = new \Product((int) $pid, false, $idLang);
+            $product = new \Product($pid, false, $idLang);
             if (!\Validate::isLoadedObject($product) || !$product->active) continue;
 
-            $cover = \Product::getCover((int) $pid);
+            // Ignore un produit en rupture sans backorder possible — même
+            // correctif que CollectionManager.
+            if (!\StockAvailable::getQuantityAvailableByProduct($pid, null, $idShop)
+                && !\Product::isAvailableWhenOutOfStock($product->out_of_stock)
+            ) {
+                continue;
+            }
+
+            $cover = \Product::getCover($pid);
             $imageUrl = '';
-            if ($cover) {
-                $imageUrl = \Context::getContext()->link->getImageLink(
-                    $product->link_rewrite,
-                    (int) $cover['id_image'],
-                    \ImageType::getFormattedName('home')
-                );
+
+            // Lien/image générés dans le contexte de LA BOUTIQUE du client
+            // (id_shop de la commande), pas celui du contexte d'exécution
+            // courant du cron — même correctif que CollectionManager.
+            $context = \Context::getContext();
+            $originalShop = $context->shop;
+            $context->shop = new \Shop($idShop);
+            try {
+                if ($cover) {
+                    $imageUrl = $context->link->getImageLink(
+                        $product->link_rewrite,
+                        (int) $cover['id_image'],
+                        \ImageType::getFormattedName('home')
+                    );
+                }
+                $productUrl = $context->link->getProductLink($product, null, null, null, $idLang, $idShop);
+            } finally {
+                $context->shop = $originalShop;
             }
 
             $blocks[] = [
                 'name'  => $product->name,
-                'url'   => \Context::getContext()->link->getProductLink($product),
+                'url'   => $productUrl,
                 'image' => $imageUrl,
-                'price' => \NeriaTools::displayPrice((float) $product->price, \Currency::getDefaultCurrency(), $idLang),
+                'price' => \NeriaTools::displayPrice((float) $product->price, $currency, $idLang),
             ];
         }
         return $blocks;

@@ -258,9 +258,25 @@ class CollectionManager
             $product = new \Product($missingId, false, $idLang);
             if (!\Validate::isLoadedObject($product) || !$product->active) continue;
 
+            // Ignore un produit actif mais en rupture (et sans commande en
+            // backorder possible) — sans ça, l'email « il ne vous manque
+            // que X » invite le client à acheter un produit qu'il ne peut
+            // pas réellement commander.
+            if (!\StockAvailable::getQuantityAvailableByProduct($missingId, null, $idShop)
+                && !\Product::isAvailableWhenOutOfStock($product->out_of_stock)
+            ) {
+                continue;
+            }
+
+            // Lien généré dans le contexte de LA BOUTIQUE du client (id_shop
+            // de la commande), pas celui du contexte d'exécution courant du
+            // cron — sur une install multi-boutiques avec domaines
+            // distincts, un client de la boutique 2 recevait sinon un lien
+            // pointant vers le domaine/catalogue de la boutique 1 (celui
+            // chargé au moment où le cron a démarré).
+            $productLink  = \Context::getContext()->link->getProductLink($product, null, null, null, $idLang, $idShop);
             $productName  = $product->name;
-            $productLink  = \Context::getContext()->link->getProductLink($product);
-            $productImage = $this->getProductImageUrl($missingId, $idLang);
+            $productImage = $this->getProductImageUrl($missingId, $idLang, $idShop);
             $productPrice = (float) $product->price;
 
             $toName = trim($customer->firstname . ' ' . $customer->lastname) ?: null;
@@ -271,7 +287,16 @@ class CollectionManager
                 '{missing_product}'        => $productName,
                 '{missing_product_url}'    => $productLink,
                 '{missing_image_url}'      => $productImage,
-                '{missing_price}'          => \NeriaTools::displayPrice($productPrice, \Currency::getDefaultCurrency(), $idLang),
+                // Devise par défaut de LA BOUTIQUE du client ($idShop), pas
+                // celle du contexte global d'exécution du cron — sur une
+                // install multi-devises/multi-boutiques, Currency::
+                // getDefaultCurrency() ignorait toujours la devise réelle
+                // de la boutique où le client a acheté.
+                '{missing_price}'          => \NeriaTools::displayPrice(
+                    $productPrice,
+                    new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop)),
+                    $idLang
+                ),
                 '{bought_count}'           => (string) count($boughtIds),
                 '{total_count}'            => (string) $total,
                 '{shop_name}'              => \Configuration::get('PS_SHOP_NAME'),
@@ -359,11 +384,25 @@ class CollectionManager
         return (int) ($ctx->language->id ?? \Configuration::get('PS_LANG_DEFAULT'));
     }
 
-    private function getProductImageUrl(int $idProduct, int $idLang): string
+    private function getProductImageUrl(int $idProduct, int $idLang, int $idShop): string
     {
         $cover = \Product::getCover($idProduct);
         if (!$cover) return '';
-        return \Context::getContext()->link->getImageLink('', (int) $cover['id_image'], \ImageType::getFormattedName('home'));
+
+        // getImageLink() ne prend pas id_shop en paramètre — le domaine
+        // utilisé dépend du Context::shop courant. Même motif déjà établi
+        // dans BehavioralCronManager/MonthlyReportManager : bascule
+        // temporaire du contexte le temps de générer CE lien, restauration
+        // immédiate après. Sans ça, l'image pointait vers le domaine de la
+        // boutique du contexte d'exécution du cron, pas celle du client.
+        $context = \Context::getContext();
+        $originalShop = $context->shop;
+        $context->shop = new \Shop($idShop);
+        try {
+            return $context->link->getImageLink('', (int) $cover['id_image'], \ImageType::getFormattedName('home'));
+        } finally {
+            $context->shop = $originalShop;
+        }
     }
 
     // ── Statistiques ──────────────────────────────────────────────────────
