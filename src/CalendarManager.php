@@ -320,21 +320,32 @@ class CalendarManager
     // ============================================================
 
     /**
-     * Résout une date personnalisée "MM-DD" pour une année donnée, en gérant
-     * le cas du 29 février sur une année NON bissextile.
+     * Résout une date mois/jour pour une année donnée, en gérant le cas du
+     * 29 février sur une année NON bissextile.
      *
      * DateTime::createFromFormat('Y-m-d', '2027-02-29') échoue silencieusement
      * (retourne false) sur une année non bissextile — un événement configuré
-     * sur cette date précise (ex. anniversaire d'ouverture de boutique)
+     * sur cette date précise (custom_date du marchand, OU date récurrente
+     * intégrée type "Noël, Saint-Valentin" chargée depuis le calendrier)
      * n'était donc JAMAIS envoyé 3 années sur 4, sans erreur ni log visible.
      * Repli sur le 28 février (convention usuelle pour les dates du 29/02).
      */
+    private function resolveMonthDay(int $year, int $month, int $day): ?\DateTime
+    {
+        if ($month === 2 && $day === 29 && !\checkdate(2, 29, $year)) {
+            $day = 28;
+        }
+        return \DateTime::createFromFormat('Y-n-j', "{$year}-{$month}-{$day}") ?: null;
+    }
+
+    /**
+     * Résout une date personnalisée au format "MM-DD" (custom_date saisi par
+     * le marchand) — délègue à resolveMonthDay() ci-dessus.
+     */
     private function resolveCustomDate(int $year, string $monthDay): ?\DateTime
     {
-        if ($monthDay === '02-29' && !\checkdate(2, 29, $year)) {
-            $monthDay = '02-28';
-        }
-        return \DateTime::createFromFormat('Y-m-d', $year . '-' . $monthDay) ?: null;
+        [$month, $day] = array_map('intval', explode('-', $monthDay, 2));
+        return $this->resolveMonthDay($year, $month, $day);
     }
 
     /**
@@ -368,20 +379,14 @@ class CalendarManager
             // NIVEAU 4 : date fixe recurrente (Noel, Valentine, etc.)
             if (isset($data['recurring'])) {
                 $r = $data['recurring'];
-                return \DateTime::createFromFormat(
-                    'Y-n-j',
-                    "{$year}-{$r['month']}-{$r['day']}"
-                ) ?: null;
+                return $this->resolveMonthDay($year, (int) $r['month'], (int) $r['day']);
             }
 
             // NIVEAU 3 : date pre-calculee pour cette annee
             if (isset($data['dates'])) {
                 foreach ($data['dates'] as $date) {
                     if ((int) $date['year'] === $year) {
-                        return \DateTime::createFromFormat(
-                            'Y-n-j',
-                            "{$year}-{$date['month']}-{$date['day']}"
-                        ) ?: null;
+                        return $this->resolveMonthDay($year, (int) $date['month'], (int) $date['day']);
                     }
                 }
             }
