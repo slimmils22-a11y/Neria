@@ -264,12 +264,20 @@ class AdminTranslator
             return self::$lang;
         }
 
-        // Aperçu QA : &neria_bo_lang=XX force une langue (réservé au back-office,
-        // déjà protégé par l'authentification admin). Permet de prévisualiser
-        // les 19 langues sans les installer dans la boutique.
-        $override = strtolower((string) \Tools::getValue('neria_bo_lang'));
-        if ($override !== '' && in_array($override, TranslationEngine::SUPPORTED_LANGS, true)) {
-            return self::$lang = $override;
+        // Aperçu QA : &neria_bo_lang=XX force une langue — le commentaire
+        // d'origine supposait ce paramètre "réservé au back-office, déjà
+        // protégé par l'authentification admin", mais currentLang() est
+        // aussi appelée côté FRONT (controllers/front/preferences.php,
+        // unsubscribe.php), où aucune authentification n'existe. Sans cette
+        // vérification, un visiteur anonyme pouvait forcer la langue
+        // affichée sur une page publique via ce paramètre. Employee connecté
+        // = garde réelle de contexte back-office.
+        $employee = \Context::getContext()->employee ?? null;
+        if ($employee !== null && \Validate::isLoadedObject($employee)) {
+            $override = strtolower((string) \Tools::getValue('neria_bo_lang'));
+            if ($override !== '' && in_array($override, TranslationEngine::SUPPORTED_LANGS, true)) {
+                return self::$lang = $override;
+            }
         }
 
         $iso = self::FALLBACK_LANG;

@@ -266,7 +266,18 @@ class ChurnScoreManager
         }
 
         // Composante 2 — Taux récent inversé (0-30 pts)
-        $recentRisk = (1.0 - $rate1) * 30;
+        if ((int) $r['sent_p1'] === 0) {
+            // Aucun envoi dans les 30 derniers jours (client simplement pas
+            // ciblé récemment — segmentation, pause volontaire...) : $rate1
+            // vaut mécaniquement 0.0, ce qui plaçait cette composante à son
+            // maximum (30 pts, "n'ouvre jamais") sans qu'aucune ouverture
+            // manquée ne se soit réellement produite. Même traitement que
+            // la composante Tendance ci-dessous pour sent_p3 === 0 : risque
+            // modéré par défaut plutôt que le pire cas.
+            $recentRisk = 15.0;
+        } else {
+            $recentRisk = (1.0 - $rate1) * 30;
+        }
 
         // Composante 3 — Tendance de déclin P3 → P1 (0-30 pts)
         if ((int) $r['sent_p3'] === 0) {

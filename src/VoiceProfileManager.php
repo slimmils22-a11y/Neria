@@ -128,6 +128,21 @@ class VoiceProfileManager
             if ($word === '') {
                 continue;
             }
+
+            // CJK (chinois/japonais/coréen) : pas de séparateur entre les
+            // mots d'une phrase, donc un mot banni est presque toujours
+            // directement collé à d'autres idéogrammes (eux aussi \p{L}) —
+            // les frontières (?<![\p{L}\p{N}])/(?![\p{L}\p{N}]) échouent
+            // alors systématiquement et le mot n'est jamais détecté,
+            // silencieusement. Correspondance directe par sous-chaîne pour
+            // ces scripts, sans notion de frontière de mot.
+            if (preg_match('/\p{Han}|\p{Hiragana}|\p{Katakana}|\p{Hangul}/u', $word)) {
+                if (mb_stripos($plainText, $word) !== false) {
+                    $found[] = $word;
+                }
+                continue;
+            }
+
             $pattern = '/(?<![\p{L}\p{N}])' . preg_quote($word, '/') . '(?![\p{L}\p{N}])/ui';
             if (@preg_match($pattern, $plainText) === 1) {
                 $found[] = $word;

@@ -296,10 +296,25 @@ class MonthlyReportManager
         $byOpen = $rows;
         usort($byOpen, fn($a, $b) => $b['rate_open'] <=> $a['rate_open']);
 
+        $top3 = array_slice($byOpen, 0, 3);
+
+        // Exclut du flop3 tout template déjà retenu dans top3 — sans ce
+        // filtre, dès que moins de 6 templates atteignaient MIN_SENDS ce
+        // mois-ci (fréquent sur une petite boutique ou un mois calme), les
+        // deux listes se chevauchaient : un même template apparaissait à la
+        // fois "top performer" et "flop performer" dans le rapport envoyé
+        // au marchand.
+        $top3Templates = array_column($top3, 'template');
+        $flopPool = array_values(array_filter(
+            $byOpen,
+            fn($row) => !in_array($row['template'], $top3Templates, true)
+        ));
+        $flop3 = array_slice(array_reverse($flopPool), 0, 3);
+
         return [
             'all'   => $rows,
-            'top3'  => array_slice($byOpen, 0, 3),
-            'flop3' => array_slice(array_reverse($byOpen), 0, 3),
+            'top3'  => $top3,
+            'flop3' => $flop3,
         ];
     }
 
