@@ -140,41 +140,57 @@ class WatchdogManager
             ? "'" . pSQL(json_encode($context, JSON_UNESCAPED_UNICODE)) . "'"
             : 'NULL';
 
-        // Consolidation : même message+class dans la dernière heure → incrémenter au lieu d'insérer
-        $existing = (int) $this->db->getValue(sprintf(
-            "SELECT `id_log` FROM `%s`
-             WHERE `id_shop` = %d AND `level` = '%s' AND `class` = '%s'
-               AND `message` = '%s'
-               AND `date_add` > DATE_SUB(NOW(), INTERVAL 1 HOUR)
-             ORDER BY `date_add` DESC",
-            $table,
-            $this->idShop,
-            pSQL($level),
-            pSQL($class),
-            pSQL($message)
-        ));
+        // Consolidation : même message+class dans la dernière heure → incrémenter au lieu d'insérer.
+        // Verrou nommé (même motif que QueueManager/WebhookManager::processQueue) :
+        // sans lui, deux écritures concurrentes du même message dans la même
+        // seconde (rafale d'erreurs identiques) peuvent toutes deux ne rien
+        // trouver au SELECT et créer 2 lignes distinctes au lieu d'une seule
+        // consolidée à occurrence_count=2. Pas de fenêtre de temps fixe
+        // exploitable en ON DUPLICATE KEY (la fenêtre "dernière heure" glisse),
+        // donc un verrou explicite est la protection appropriée ici.
+        $lockName = 'neria_log_' . md5($this->idShop . '|' . $level . '|' . $class . '|' . $message);
+        $locked   = (int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 1)") === 1;
 
-        if ($existing > 0) {
-            $this->db->execute(
-                "UPDATE `{$table}` SET `occurrence_count` = `occurrence_count` + 1
-                 WHERE `id_log` = {$existing}"
-            );
-            return;
+        try {
+            $existing = (int) $this->db->getValue(sprintf(
+                "SELECT `id_log` FROM `%s`
+                 WHERE `id_shop` = %d AND `level` = '%s' AND `class` = '%s'
+                   AND `message` = '%s'
+                   AND `date_add` > DATE_SUB(NOW(), INTERVAL 1 HOUR)
+                 ORDER BY `date_add` DESC",
+                $table,
+                $this->idShop,
+                pSQL($level),
+                pSQL($class),
+                pSQL($message)
+            ));
+
+            if ($existing > 0) {
+                $this->db->execute(
+                    "UPDATE `{$table}` SET `occurrence_count` = `occurrence_count` + 1
+                     WHERE `id_log` = {$existing}"
+                );
+                return;
+            }
+
+            $this->db->execute(sprintf(
+                "INSERT INTO `%s`
+                    (`id_shop`, `level`, `template`, `class`, `message`, `context`, `occurrence_count`, `date_add`)
+                 VALUES (%d, '%s', '%s', '%s', '%s', %s, 1, '%s')",
+                $table,
+                $this->idShop,
+                pSQL($level),
+                pSQL($template),
+                pSQL($class),
+                pSQL($message),
+                $contextSql,
+                date('Y-m-d H:i:s')
+            ));
+        } finally {
+            if ($locked) {
+                $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
+            }
         }
-
-        $this->db->execute(sprintf(
-            "INSERT INTO `%s`
-                (`id_shop`, `level`, `template`, `class`, `message`, `context`, `occurrence_count`, `date_add`)
-             VALUES (%d, '%s', '%s', '%s', '%s', %s, 1, '%s')",
-            $table,
-            $this->idShop,
-            pSQL($level),
-            pSQL($template),
-            pSQL($class),
-            pSQL($message),
-            $contextSql,
-            date('Y-m-d H:i:s')
-        ));
 
         // Purge probabiliste (1 tentative sur 10) plutôt qu'à CHAQUE nouvelle
         // ligne distincte insérée — MAX_LOGS borne déjà la table de façon
@@ -272,7 +288,11 @@ class WatchdogManager
             return;
         }
 
-        $lastSent = (int) \Configuration::getGlobalValue(self::CFG_ALERT_LAST_SENT);
+        // Clé suffixée par boutique : sans ça, sur une install multi-boutiques,
+        // une alerte critique sur la boutique A consommait le throttle global
+        // et faisait taire silencieusement une alerte critique déclenchée sur
+        // la boutique B quelques minutes plus tard.
+        $lastSent = (int) \Configuration::getGlobalValue(self::CFG_ALERT_LAST_SENT . '_' . $this->idShop);
         if ((time() - $lastSent) < self::ALERT_THROTTLE) {
             return;
         }
@@ -296,7 +316,7 @@ class WatchdogManager
                AND date_add >= \'' . date('Y-m-d H:i:s', $lastSent ?: (time() - 86400)) . '\''
         );
 
-        \Configuration::updateGlobalValue(self::CFG_ALERT_LAST_SENT, time());
+        \Configuration::updateGlobalValue(self::CFG_ALERT_LAST_SENT . '_' . $this->idShop, time());
 
         // Rendu dans la langue de la boutique (le marchand configure la même
         // langue pour le BO et le front) plutôt que celle du contexte courant
@@ -380,7 +400,13 @@ class WatchdogManager
             return;
         }
 
-        $lastDigest = (int) \Configuration::getGlobalValue(self::CFG_DIGEST_LAST);
+        // Même correctif que sendImmediateAlert() : clé suffixée par boutique,
+        // sinon une seule boutique par jour (la première dont le hook déclenche
+        // sendDailyDigestIfDue()) recevait effectivement un digest — les
+        // autres boutiques voyaient leur fenêtre de 24h "consommée" sans
+        // jamais recevoir leur propre résumé, alors que leurs logs existent
+        // bien en base avec leur id_shop respectif.
+        $lastDigest = (int) \Configuration::getGlobalValue(self::CFG_DIGEST_LAST . '_' . $this->idShop);
         if ((time() - $lastDigest) < 86400) {
             return;
         }
@@ -397,7 +423,7 @@ class WatchdogManager
         );
 
         if (empty($rows)) {
-            \Configuration::updateGlobalValue(self::CFG_DIGEST_LAST, time());
+            \Configuration::updateGlobalValue(self::CFG_DIGEST_LAST . '_' . $this->idShop, time());
             return;
         }
 

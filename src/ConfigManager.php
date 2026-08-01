@@ -189,6 +189,15 @@ class ConfigManager
         self::KEY_CARBON_ENABLED      => 0,
         self::KEY_CARBON_LINK         => '',
         self::KEY_SENDERS_JSON        => '',
+        // Ces 4 toggles étaient absents de DEFAULTS alors que leurs getters
+        // (isTimeGreetingEnabled() etc.) lisent bien un défaut applicatif de
+        // 1 — sans cette entrée, resetToDefaults() (bouton "Réinitialiser"
+        // du BO) ne les réécrivait jamais, et deleteAll() laissait leur
+        // ligne ps_configuration orpheline après suppression de la config.
+        self::KEY_TIME_GREETING_ENABLED     => 1,
+        self::KEY_FIRSTNAME_FALLBACK_ENABLED => 1,
+        self::KEY_MULTI_SENDER_ENABLED      => 1,
+        self::KEY_SIGNATURE_ENABLED         => 1,
     ];
 
     // Polices disponibles pour le sélecteur back-office (corps de texte)
@@ -437,20 +446,26 @@ class ConfigManager
      */
     public function get(string $key, $default = null)
     {
-        // Cache mémoire
+        // Le cache mémoire ne conserve QUE la valeur brute lue en base, pas
+        // le résultat final après application de $default — sinon le premier
+        // appel à get($key, $defaultA) fige un $default qu'un appel ultérieur
+        // get($key, $defaultB) sur la même clé recevrait à tort (le cache
+        // renverrait la résolution figée par le premier appelant, ignorant
+        // $defaultB). Latent aujourd'hui (aucun appelant actuel ne varie le
+        // default d'une même clé dans une même requête), mais un piège pour
+        // tout futur appel qui le ferait.
         if (array_key_exists($key, $this->cache)) {
-            return $this->cache[$key];
+            $value = $this->cache[$key];
+        } else {
+            $value = \Configuration::get($key);
+            $this->cache[$key] = $value;
         }
-
-        // Lecture depuis Configuration
-        $value = \Configuration::get($key);
 
         // Si vide, utilise le default fourni ou celui des DEFAULTS
         if ($value === false || $value === '') {
             $value = $default ?? self::DEFAULTS[$key] ?? '';
         }
 
-        $this->cache[$key] = $value;
         return $value;
     }
 

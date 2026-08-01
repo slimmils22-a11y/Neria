@@ -131,11 +131,20 @@ class LicenseManager
         // scénario A ci-dessous ne s'applique jamais) se retrouvait bloqué
         // immédiatement, sans aucune marge — contrairement au principe
         // annoncé en en-tête de ce fichier ("une panne du serveur de
-        // licences ne devient JAMAIS un incident chez le client"). On
-        // accorde le même délai que le scénario de révocation, basé sur la
-        // DERNIÈRE vérification réussie plutôt que sur l'installation.
+        // licences ne devient JAMAIS un incident chez le client").
+        //
+        // lastCheck > 0 suffit ici, SANS plafond de durée : cette valeur
+        // n'est écrite que par une validation serveur réussie (validateLicense()/
+        // storeToken()), donc sa seule présence prouve que ce client a déjà
+        // eu une licence valide. Un plafond de GRACE_REVOKED_DAYS (7j) faisait
+        // retomber toute panne serveur prolongée sur le calcul `installedAt`
+        // à 30j — qui échoue nécessairement pour une boutique en prod depuis
+        // longtemps, bloquant les envois d'un client payant en règle sur la
+        // seule base d'une panne côté Neria, en contradiction directe avec
+        // le principe documenté. La révocation explicite (CONFIG_REVOKED_AT,
+        // ci-dessus) reste le seul mécanisme qui plafonne réellement la grâce.
         $lastCheck = (int) \Configuration::get(self::CONFIG_LAST_CHECK);
-        if ($lastCheck > 0 && (time() - $lastCheck) < (self::GRACE_REVOKED_DAYS * 86400)) {
+        if ($lastCheck > 0) {
             return true;
         }
 
@@ -312,7 +321,6 @@ class LicenseManager
 
         if (!empty($response['ok'])) {
             $this->storeToken($response);
-            \Configuration::updateGlobalValue(self::CONFIG_LAST_CHECK, time());
 
             if (empty($response['valid']) && !\Configuration::get(self::CONFIG_REVOKED_AT)) {
                 // Transition valide → invalide détectée par le serveur
@@ -398,6 +406,15 @@ class LicenseManager
         \Configuration::updateGlobalValue(self::CONFIG_EXPIRES, (int) ($response['expires'] ?? 0));
         \Configuration::updateGlobalValue(self::CONFIG_PLAN, (string) ($response['plan'] ?? ''));
         \Configuration::updateGlobalValue(self::CONFIG_SOURCE, (string) ($response['source'] ?? 'direct'));
+
+        // storeToken() est appelée par activateLicense() ET validateLicense()
+        // sur succès — auparavant seule validateLicense() renseignait
+        // CONFIG_LAST_CHECK. Une activation réussie suivie d'une panne réseau
+        // avant le premier passage cron de validateLicense() laissait
+        // lastCheck à 0, faisant retomber isWithinGracePeriod() directement
+        // sur le calcul installedAt (30j) — qui échoue immédiatement pour une
+        // boutique ancienne malgré une activation qui vient de réussir.
+        \Configuration::updateGlobalValue(self::CONFIG_LAST_CHECK, time());
     }
 
     // ============================================================

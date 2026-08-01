@@ -63040,5 +63040,26 @@
         "da": "Segmentkampagne \"{segment}\" (skabelon {template}): grænsen på 500 modtagere er nået, nogle kunder i segmentet modtog ikke denne kampagne.",
         "nl": "Segmentcampagne \"{segment}\" (sjabloon {template}): limiet van 500 ontvangers bereikt, sommige klanten in het segment hebben deze campagne niet ontvangen.",
         "gb": "Segment campaign \"{segment}\" (template {template}): 500-recipient cap reached, some customers in the segment did not receive this campaign."
+    },
+    "msg.bounce_imap_read_failed": {
+        "fr": "Lecture de ce message échouée (erreur réseau IMAP transitoire) — ignoré, il sera relu au prochain passage.",
+        "en": "Failed to read this message (transient IMAP network error) — skipped, it will be re-read on the next pass.",
+        "de": "Diese Nachricht konnte nicht gelesen werden (vorübergehender IMAP-Netzwerkfehler) — übersprungen, wird beim nächsten Durchlauf erneut gelesen.",
+        "it": "Lettura di questo messaggio non riuscita (errore di rete IMAP temporaneo) — ignorato, verrà riletto al prossimo passaggio.",
+        "es": "No se pudo leer este mensaje (error de red IMAP transitorio) — omitido, se volverá a leer en el próximo ciclo.",
+        "pt": "Falha ao ler esta mensagem (erro de rede IMAP transitório) — ignorada, será relida na próxima passagem.",
+        "br": "Falha ao ler esta mensagem (erro de rede IMAP transitório) — ignorada, será relida na próxima execução.",
+        "ar": "فشلت قراءة هذه الرسالة (خطأ شبكة IMAP مؤقت) — تم تجاهلها، وستتم إعادة قراءتها في المرة القادمة.",
+        "ja": "このメッセージの読み取りに失敗しました（一時的なIMAPネットワークエラー）。スキップされ、次回に再読み込みされます。",
+        "ko": "이 메시지를 읽지 못했습니다(일시적인 IMAP 네트워크 오류) — 건너뛰었으며 다음 실행 시 다시 읽습니다.",
+        "zh": "读取此邮件失败（IMAP 网络临时错误）——已跳过，将在下次处理时重新读取。",
+        "tw": "讀取此郵件失敗（IMAP 網路暫時性錯誤）——已略過，將於下次處理時重新讀取。",
+        "ru": "Не удалось прочитать это сообщение (временная сетевая ошибка IMAP) — пропущено, будет прочитано повторно при следующем проходе.",
+        "tr": "Bu mesaj okunamadı (geçici IMAP ağ hatası) — atlandı, bir sonraki geçişte yeniden okunacak.",
+        "sv": "Det gick inte att läsa det här meddelandet (tillfälligt IMAP-nätverksfel) — hoppades över, läses igen vid nästa körning.",
+        "no": "Kunne ikke lese denne meldingen (forbigående IMAP-nettverksfeil) — hoppet over, leses på nytt ved neste kjøring.",
+        "da": "Kunne ikke læse denne besked (forbigående IMAP-netværksfejl) — sprunget over, læses igen ved næste kørsel.",
+        "nl": "Dit bericht kon niet worden gelezen (tijdelijke IMAP-netwerkfout) — overgeslagen, wordt bij de volgende run opnieuw gelezen.",
+        "gb": "Failed to read this message (transient IMAP network error) — skipped, it will be re-read on the next pass."
     }
 }

@@ -183,6 +183,16 @@ class BounceManager
                 $header = imap_headerinfo($mbox, $uid);
                 $body   = imap_fetchbody($mbox, $uid, '');
 
+                // Échec réseau transitoire (pas une exception PHP) : imap_headerinfo()/
+                // imap_fetchbody() renvoient simplement false. Sans ce contrôle, le
+                // message passait déjà par \Seen (ci-dessus) puis était traité comme
+                // "ne ressemble pas à un bounce" (sujet/from vides) — ignoré en
+                // silence, sans apparaître dans $errors contrairement aux exceptions.
+                if ($header === false || $body === false) {
+                    $errors[] = 'UID ' . $uid . ': ' . \AdminTranslator::t('msg.bounce_imap_read_failed');
+                    continue;
+                }
+
                 $subject = isset($header->subject) ? imap_utf8($header->subject) : '';
                 $from    = isset($header->from[0]) ? ($header->from[0]->mailbox . '@' . $header->from[0]->host) : '';
 

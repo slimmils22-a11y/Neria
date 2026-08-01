@@ -955,11 +955,16 @@ class ManualSendManager
         if ($email === '' || $template === '') {
             return ['blocked' => false, 'message' => ''];
         }
+        // Échappe les métacaractères LIKE (%, _) présents dans l'email avant
+        // de l'utiliser comme motif — sans ça, un email contenant un "_"
+        // (fréquent, ex. jean_dupont@x.com) matche n'importe quel caractère
+        // à cette position dans le log, faussant le comptage de doublons.
+        $likeSafeEmail = addcslashes($email, '%_');
         $count = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_log`
              WHERE `class` = \'ManualSendManager\'
                AND `template` = \'' . pSQL($template) . '\'
-               AND `message` LIKE \'%' . pSQL($email) . '%\'
+               AND `message` LIKE \'%' . pSQL($likeSafeEmail) . '%\'
                AND `date_add` >= DATE_SUB(NOW(), INTERVAL 7 DAY)'
         );
         if ($count > 0) {
@@ -1004,6 +1009,29 @@ class ManualSendManager
             return ['ok' => false, 'message' => 'QueueManager non disponible.'];
         }
 
+        // Mêmes garde-fous que send() (blacklist, conflit anniversaire) —
+        // sans eux, scheduleManual() était une porte de contournement
+        // complète des protections du module : un template blacklisté ou en
+        // conflit avec l'autre palier d'anniversaire pouvait quand même être
+        // planifié puis parti via la Queue. La licence n'a PAS besoin d'être
+        // revérifiée ici : QueueManager::processQueue() la vérifie déjà au
+        // moment de l'envoi réel (les lignes restent en attente, jamais
+        // perdues, tant que la licence est bloquée).
+        if ($template === 'first_anniversary'
+            && \Configuration::getGlobalValue('NERIA_RELATIONSHIP_ANNIVERSARY_ENABLED')
+        ) {
+            $guard = $this->checkAnniversaryConflict($email, 'relationship_anniversary');
+            if ($guard !== null) {
+                return ['ok' => false, 'message' => $guard];
+            }
+        }
+        if ($template === 'relationship_anniversary') {
+            $guard = $this->checkAnniversaryConflict($email, 'first_anniversary');
+            if ($guard !== null) {
+                return ['ok' => false, 'message' => $guard];
+            }
+        }
+
         $customer = $this->findCustomer($email) ?? [
             'id_customer' => 0,
             'id_lang'     => (int) \Configuration::get('PS_LANG_DEFAULT'),
@@ -1013,6 +1041,33 @@ class ManualSendManager
             'id_shop'     => (int) \Context::getContext()->shop->id,
         ];
         $customer['email'] = $email;
+        $idLang = (int) $customer['id_lang'];
+
+        if (class_exists('BlacklistManager')) {
+            $langIso = class_exists('TranslationEngine')
+                ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                : (string) (\Language::getIsoById($idLang) ?: '');
+            if ((new \BlacklistManager())->isBlacklisted($template, $langIso)) {
+                return ['ok' => false, 'message' => AdminTranslator::tVars('msg.send_blocked_blacklist', ['template' => $template])];
+            }
+        }
+
+        if (class_exists('ConfigManager')) {
+            $overrideKeys = [];
+            foreach (array_keys($contentVars) as $k) {
+                $normalized = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $k));
+                if ($normalized !== '') {
+                    $overrideKeys[] = $normalized;
+                }
+            }
+            $missingVars = (new \ConfigManager($this->module))->findMissingCustomVarsForTemplate($template, $overrideKeys);
+            if (!empty($missingVars)) {
+                return [
+                    'ok'      => false,
+                    'message' => AdminTranslator::tVars('msg.send_blocked_missing_vars', ['list' => implode(', ', $missingVars)]),
+                ];
+            }
+        }
 
         $vars = [
             '{firstname}'   => $customer['firstname'] ?? '',

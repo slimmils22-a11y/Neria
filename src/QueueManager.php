@@ -352,6 +352,38 @@ class QueueManager
                      SET status = \'sent\', sent_at = NOW()
                      WHERE id_neria_queue = ' . $id
                 );
+
+                // Miroir de ManualSendManager::send() : un envoi anniversaire
+                // planifié (scheduleManual() → cette file) doit être
+                // enregistré dans neria_behavioral_sent au moment de l'envoi
+                // RÉEL (pas à la planification, qui peut échouer/être
+                // retentée) — sinon BehavioralCronManager considère
+                // l'anniversaire comme jamais envoyé et le renvoie en double.
+                // ref_id doit utiliser EXACTEMENT la même clé que
+                // BehavioralCronManager/ManualSendManager::send().
+                if (in_array($row['template'], ['first_anniversary', 'relationship_anniversary'], true)
+                    && (int) $row['id_customer'] > 0
+                ) {
+                    if ($row['template'] === 'first_anniversary') {
+                        $refId = (int) $this->db->getValue(
+                            'SELECT MIN(id_order) FROM `' . $this->prefix . 'orders`
+                             WHERE id_customer = ' . (int) $row['id_customer'] . '
+                               AND valid = 1'
+                        );
+                    } else {
+                        $refId = (int) date('Y');
+                    }
+
+                    if ($refId > 0) {
+                        $this->db->execute(
+                            'INSERT IGNORE INTO `' . $this->prefix . 'neria_behavioral_sent`
+                             (id_customer, template, ref_id, id_shop, sent_at)
+                             VALUES (' . (int) $row['id_customer'] . ', \'' . pSQL($row['template']) . '\', '
+                            . $refId . ', ' . $idShop . ', NOW())'
+                        );
+                    }
+                }
+
                 $this->watchdog()->info(
                     \WatchdogManager::i18nMsg('watchdog.queue_sent_to', ['template' => $row['template'], 'email' => $row['recipient_email'], 'id' => $id]),
                     $row['template'],
