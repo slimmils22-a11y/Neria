@@ -1,6 +1,6 @@
 module.exports = {
   meta: {
-    version: "1.0.33",
+    version: "1.0.34",
     lang_name: "Italiano",
     doc_title: "Manuale Utente Completo",
     doc_subtitle: "Modulo PrestaShop 8 & 9 — Versione 1.0.33",

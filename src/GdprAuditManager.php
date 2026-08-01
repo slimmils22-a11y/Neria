@@ -641,6 +641,40 @@ class GdprAuditManager
     }
 
     /**
+     * Purge automatiquement TOUTES les tables du registre selon leur durée
+     * de rétention (`months`) — appelée quotidiennement par
+     * BehavioralCronManager::run() si NERIA_GDPR_AUTO_PURGE_ENABLED est
+     * activé (activé par défaut).
+     *
+     * Avant ce correctif, aucun mécanisme automatique n'existait : le seul
+     * chemin de purge réel était le bouton manuel du BO (une table à la
+     * fois), et StatsManager::cleanup()/DEFAULT_RETENTION_DAYS (365 jours)
+     * n'était appelée nulle part dans le module — code mort, supprimé.
+     * neria_stat pouvait donc grossir indéfiniment sur une boutique jamais
+     * entretenue manuellement, aggravant directement les coûts de requêtes
+     * qui en dépendent (CLV, score de churn, audit RGPD lui-même).
+     *
+     * @return array<string,int> table (sans préfixe) => nombre de lignes purgées
+     */
+    public function purgeAllRegistryTables(): array
+    {
+        $results = [];
+        foreach (self::getTables() as $def) {
+            $table = _DB_PREFIX_ . $def['table'];
+            $exists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($table) . "'");
+            if (!is_array($exists) || empty($exists)) {
+                continue;
+            }
+            $purged = $this->purgeTable($def['table'], $def['date_col'], $def['months']);
+            if ($purged > 0) {
+                $results[$def['table']] = $purged;
+            }
+        }
+
+        return $results;
+    }
+
+    /**
      * Purge toutes les données personnelles Neria d'un client (hook RGPD PS).
      * Appelé par hookActionDeleteGDPRCustomer quand un marchand supprime un compte.
      */
@@ -699,7 +733,8 @@ class GdprAuditManager
             }
         }
         // neria_webhook_queue : payload JSON peut contenir des PII mais sans référence client directe
-        // → purgé automatiquement par ancienneté via purgeTable() dans le cron quotidien
+        // → purgé automatiquement par ancienneté via purgeAllRegistryTables() dans le cron
+        // quotidien (BehavioralCronManager::run()), si NERIA_GDPR_AUTO_PURGE_ENABLED est activé.
         return $total;
     }
 

@@ -4289,6 +4289,7 @@ class HealthCheckManager
             '1.0.31' => ['type' => 'config_exists', 'name' => 'NERIA_LICENSE_KEY'],
             '1.0.32' => ['type' => 'config', 'name' => 'NERIA_BIRTHDAY_ENABLED'],
             '1.0.33' => ['type' => 'index',  'table' => 'neria_stat', 'name' => 'idx_shop_event_date'],
+            '1.0.34' => ['type' => 'index',  'table' => 'neria_stat', 'name' => 'idx_shop_date'],
         ];
 
         $failures = [];

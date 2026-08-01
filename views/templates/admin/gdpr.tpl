@@ -27,6 +27,25 @@
   </a>
 </div>
 
+{* ── Purge automatique — cron quotidien selon la durée de rétention par table ── *}
+<div class="neria-section" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
+  <div>
+    <div style="font-weight:700;font-size:13px;color:#5c3d1e;">{neria_admin key='gdpr.auto_purge_title'}</div>
+    <div style="font-size:12px;color:#7a6a5a;margin-top:2px;">{neria_admin key='gdpr.auto_purge_desc'}</div>
+  </div>
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
+    <input type="hidden" name="neria_action" value="toggle_gdpr_auto_purge">
+    <input type="hidden" name="neria_tab"    value="gdpr">
+    <button type="submit"
+            style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px;
+                   background:{if $gdpr_auto_purge_enabled}#1a7a40{else}#c0392b{/if};
+                   color:#fff; border:none; border-radius:4px; font-size:12px;
+                   font-weight:700; cursor:pointer; letter-spacing:.04em;">
+      {if $gdpr_auto_purge_enabled}● {neria_admin key='help.cron_toggle_on'}{else}○ {neria_admin key='help.cron_toggle_off'}{/if}
+    </button>
+  </form>
+</div>
+
 {* ── Score global ──────────────────────────────────────────── *}
 <div class="neria-section neria-gdpr-score-card">
   <div style="display:flex;align-items:center;gap:20px;">

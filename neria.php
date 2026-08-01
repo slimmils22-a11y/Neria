@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.33';
+    const VERSION = '1.0.34';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -2291,6 +2291,15 @@ class Neria extends Module
         }
 
         // ── Action : détection automatique de la langue ───────────
+        if (Tools::getValue('neria_action') === 'toggle_gdpr_auto_purge' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+            $current = (bool) Configuration::get('NERIA_GDPR_AUTO_PURGE_ENABLED');
+            $enabled = !$current;
+            Configuration::updateValue('NERIA_GDPR_AUTO_PURGE_ENABLED', (int) $enabled);
+            $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.gdpr_auto_purge_toggled', [
+                'state' => AdminTranslator::t($enabled ? 'msg.state_enabled' : 'msg.state_disabled'),
+            ]));
+        }
+
         if (Tools::getValue('neria_action') === 'toggle_autolang' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $current = (bool) Configuration::get(self::CONFIG_PREFIX . 'AUTO_LANG');
             $enabled = !$current;
@@ -6010,10 +6019,10 @@ class Neria extends Module
 
         // ── RGPD : audit chargé à la demande (onglet actif uniquement) ──
         if ($activeTab === 'gdpr' && class_exists('GdprAuditManager')) {
-            $this->context->smarty->assign(
-                'gdpr_audit',
-                (new GdprAuditManager(__DIR__))->runAudit()
-            );
+            $this->context->smarty->assign([
+                'gdpr_audit'            => (new GdprAuditManager(__DIR__))->runAudit(),
+                'gdpr_auto_purge_enabled' => (bool) Configuration::get('NERIA_GDPR_AUTO_PURGE_ENABLED'),
+            ]);
         }
 
         // Feedback transmis en GET (redirect post-toggle, callback OAuth
@@ -6846,6 +6855,7 @@ class Neria extends Module
             self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_AMOUNT'  => 10,
             self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_PERCENT' => 1,
             self::CONFIG_PREFIX . 'VOUCHER_FIXED_CAP'          => 10000,
+            'NERIA_GDPR_AUTO_PURGE_ENABLED'                    => 1,
             self::CONFIG_PREFIX . 'INSTALLED_AT'               => date('Y-m-d H:i:s'),
             LicenseManager::CONFIG_KEY                         => '',
             LicenseManager::CONFIG_TOKEN                       => '',

@@ -37,8 +37,6 @@ class StatsManager
     const EVENT_CLICK      = 'click';
     const EVENT_CONVERSION = 'conversion';
 
-    const DEFAULT_RETENTION_DAYS = 365;
-
     private Neria $module;
     private \Db $db;
     private int $idShop;
@@ -739,31 +737,6 @@ class StatsManager
             'kpis_7'        => $this->getKpis(7),
             'computed_at'   => date('Y-m-d H:i:s'),
         ];
-    }
-
-    // ============================================================
-    // MAINTENANCE
-    // ============================================================
-
-    public function cleanup(int $days = self::DEFAULT_RETENTION_DAYS): int
-    {
-        $table     = _DB_PREFIX_ . self::TABLE;
-        $dateLimit = date('Y-m-d', strtotime("-{$days} days"));
-
-        $this->db->execute(
-            "DELETE FROM `{$table}`
-             WHERE `id_shop`  = {$this->idShop}
-               AND `date_add` < '{$dateLimit}'"
-        );
-
-        $deleted = (int) $this->db->Affected_Rows();
-
-        $this->watchdog()->info(
-            \WatchdogManager::i18nMsg('watchdog.stats_cleanup', ['n' => $deleted, 'days' => $days]),
-            '', 'StatsManager'
-        );
-
-        return $deleted;
     }
 
     /**
@@ -1520,30 +1493,62 @@ class StatsManager
      * Compare les taux d'ouverture/clic cette semaine vs la semaine précédente.
      * Retourne la liste des templates avec une chute > 20 %.
      */
+    /**
+     * Version batch (1 requête SQL, quel que soit le nombre de templates) —
+     * la version précédente faisait 1 requête pour lister les templates puis
+     * 2 appels par template (semaine courante / semaine précédente), chacun
+     * 3 COUNT(*) séparés (sent/open/click) = jusqu'à 600 requêtes pour ~100
+     * templates actifs. Ici, tous les compteurs sont calculés en une seule
+     * requête groupée par template, avec CASE WHEN pour distinguer les deux
+     * fenêtres de 7 jours — le reste (comparaison, calcul des taux) reste en
+     * PHP sans nouvel accès DB.
+     */
     public function detectAnomalies(): array
     {
         $table = _DB_PREFIX_ . 'neria_stat';
 
-        $templates = $this->db->executeS(
-            "SELECT DISTINCT `template` FROM `{$table}`
-             WHERE `event_type` = 'sent'
-               AND `id_shop`    = {$this->idShop}
-               AND `date_add`  > DATE_SUB(NOW(), INTERVAL 14 DAY)"
-        );
-
-        if (empty($templates)) {
-            return [];
-        }
+        $rows = $this->db->executeS(
+            "SELECT `template`,
+                    SUM(CASE WHEN `date_add` > DATE_SUB(NOW(), INTERVAL 7 DAY)
+                              AND `event_type` = 'sent' THEN 1 ELSE 0 END) AS sent_this,
+                    SUM(CASE WHEN `date_add` > DATE_SUB(NOW(), INTERVAL 7 DAY)
+                              AND `event_type` = 'open' AND `is_mpp` = 0 THEN 1 ELSE 0 END) AS opens_this,
+                    SUM(CASE WHEN `date_add` > DATE_SUB(NOW(), INTERVAL 7 DAY)
+                              AND `event_type` = 'click' THEN 1 ELSE 0 END) AS clicks_this,
+                    SUM(CASE WHEN `date_add` <= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                              AND `date_add` > DATE_SUB(NOW(), INTERVAL 14 DAY)
+                              AND `event_type` = 'sent' THEN 1 ELSE 0 END) AS sent_last,
+                    SUM(CASE WHEN `date_add` <= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                              AND `date_add` > DATE_SUB(NOW(), INTERVAL 14 DAY)
+                              AND `event_type` = 'open' AND `is_mpp` = 0 THEN 1 ELSE 0 END) AS opens_last,
+                    SUM(CASE WHEN `date_add` <= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                              AND `date_add` > DATE_SUB(NOW(), INTERVAL 14 DAY)
+                              AND `event_type` = 'click' THEN 1 ELSE 0 END) AS clicks_last
+             FROM `{$table}`
+             WHERE `id_shop`   = {$this->idShop}
+               AND `date_add` > DATE_SUB(NOW(), INTERVAL 14 DAY)
+             GROUP BY `template`"
+        ) ?: [];
 
         $anomalies = [];
-        foreach ($templates as $tpl) {
-            $template = $tpl['template'];
-            $thisWeek = $this->getTemplateWeekRates($template, 7, 0);
-            $lastWeek = $this->getTemplateWeekRates($template, 14, 7);
+        foreach ($rows as $r) {
+            $sentThis = (int) $r['sent_this'];
+            $sentLast = (int) $r['sent_last'];
 
-            if (!$thisWeek || !$lastWeek || $lastWeek['sent'] < 10 || $thisWeek['sent'] < 5) {
+            if ($sentLast < 10 || $sentThis < 5) {
                 continue;
             }
+
+            $thisWeek = [
+                'sent'       => $sentThis,
+                'open_rate'  => round((int) $r['opens_this']  / $sentThis * 100, 1),
+                'click_rate' => round((int) $r['clicks_this'] / $sentThis * 100, 1),
+            ];
+            $lastWeek = [
+                'sent'       => $sentLast,
+                'open_rate'  => round((int) $r['opens_last']  / $sentLast * 100, 1),
+                'click_rate' => round((int) $r['clicks_last'] / $sentLast * 100, 1),
+            ];
 
             $openDrop  = $lastWeek['open_rate']  > 0
                 ? round(($lastWeek['open_rate']  - $thisWeek['open_rate'])  / $lastWeek['open_rate']  * 100, 1)
@@ -1554,7 +1559,7 @@ class StatsManager
 
             if ($openDrop >= 20 || $clickDrop >= 20) {
                 $anomalies[] = [
-                    'template'   => $template,
+                    'template'   => $r['template'],
                     'open_drop'  => $openDrop,
                     'click_drop' => $clickDrop,
                     'this_week'  => $thisWeek,
@@ -1564,51 +1569,5 @@ class StatsManager
         }
 
         return $anomalies;
-    }
-
-    private function getTemplateWeekRates(string $template, int $daysBack, int $daysOffset): ?array
-    {
-        $t = _DB_PREFIX_ . 'neria_stat';
-
-        $sent = (int) $this->db->getValue(sprintf(
-            "SELECT COUNT(*) FROM `{$t}`
-             WHERE `template` = '%s' AND `event_type` = 'sent'
-               AND `id_shop`   = %d
-               AND `date_add` > DATE_SUB(NOW(), INTERVAL %d DAY)
-               AND `date_add` <= DATE_SUB(NOW(), INTERVAL %d DAY)",
-            pSQL($template), $this->idShop, $daysBack, $daysOffset
-        ));
-
-        if ($sent === 0) {
-            return null;
-        }
-
-        // COUNT(*) événement (pas COUNT(DISTINCT id_customer)) pour rester
-        // comparable au taux affiché partout ailleurs dans ce fichier
-        // (getGlobalReport, getKpis...) — et exclusion des pré-chargements
-        // Apple Mail Privacy Protection (is_mpp), comme ces mêmes méthodes.
-        $opens = (int) $this->db->getValue(sprintf(
-            "SELECT COUNT(*) FROM `{$t}`
-             WHERE `template` = '%s' AND `event_type` = 'open' AND `is_mpp` = 0
-               AND `id_shop`   = %d
-               AND `date_add` > DATE_SUB(NOW(), INTERVAL %d DAY)
-               AND `date_add` <= DATE_SUB(NOW(), INTERVAL %d DAY)",
-            pSQL($template), $this->idShop, $daysBack, $daysOffset
-        ));
-
-        $clicks = (int) $this->db->getValue(sprintf(
-            "SELECT COUNT(*) FROM `{$t}`
-             WHERE `template` = '%s' AND `event_type` = 'click'
-               AND `id_shop`   = %d
-               AND `date_add` > DATE_SUB(NOW(), INTERVAL %d DAY)
-               AND `date_add` <= DATE_SUB(NOW(), INTERVAL %d DAY)",
-            pSQL($template), $this->idShop, $daysBack, $daysOffset
-        ));
-
-        return [
-            'sent'       => $sent,
-            'open_rate'  => round($opens  / $sent * 100, 1),
-            'click_rate' => round($clicks / $sent * 100, 1),
-        ];
     }
 }

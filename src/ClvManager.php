@@ -205,6 +205,15 @@ class ClvManager
     /**
      * Retourne les CLV de tous les clients, triés par valeur décroissante.
      * Utilisé pour l'onglet Segments.
+     *
+     * Version batch (5 requêtes SQL au total, quel que soit le nombre de
+     * candidats) — la version précédente appelait getCustomerClv() dans la
+     * boucle, soit ~5 requêtes SQL PAR CLIENT (jusqu'à ~1000 requêtes pour
+     * 200 candidats), chacune filtrant potentiellement plusieurs millions de
+     * lignes de neria_stat sur une boutique ancienne. Ici, les 4 sources de
+     * données (commandes, engagement email, segment, score de churn) sont
+     * chacune récupérées en UNE requête groupée sur l'ensemble des candidats,
+     * puis la formule CLV est appliquée en PHP sans nouvel accès DB.
      */
     public function getTopCustomers(int $limit = 20): array
     {
@@ -227,12 +236,87 @@ class ClvManager
              LIMIT 200'
         ) ?: [];
 
+        if (empty($customers)) {
+            return [];
+        }
+
+        $idList = implode(',', array_map(fn($row) => (int) $row['id_customer'], $customers));
+        $symbol = \Context::getContext()->currency->sign ?? '€';
+
+        // ── 1 requête : agrégats de commandes pour TOUS les candidats ──────
+        $ordersAgg = [];
+        foreach ($this->db->executeS(
+            'SELECT o.`id_customer`,
+                    COUNT(*) AS order_count,
+                    MIN(o.`date_add`) AS first_date,
+                    SUM(o.`total_paid_tax_incl` / o.`conversion_rate`) AS total_revenue
+             FROM `' . _DB_PREFIX_ . 'orders` o
+             WHERE o.`id_customer` IN (' . $idList . ')
+               AND o.`id_shop` = ' . $this->idShop . ' AND o.`valid` = 1
+             GROUP BY o.`id_customer`'
+        ) ?: [] as $r) {
+            $ordersAgg[(int) $r['id_customer']] = $r;
+        }
+
+        // ── 1 requête : engagement email (sent/open) pour TOUS les candidats ──
+        $engagementAgg = [];
+        foreach ($this->db->executeS(
+            'SELECT `id_customer`,
+                    SUM(`event_type` = \'sent\') AS sent,
+                    SUM(`event_type` = \'open\')  AS opened
+             FROM `' . _DB_PREFIX_ . 'neria_stat`
+             WHERE `id_customer` IN (' . $idList . ') AND `id_shop` = ' . $this->idShop . '
+             GROUP BY `id_customer`'
+        ) ?: [] as $r) {
+            $engagementAgg[(int) $r['id_customer']] = $r;
+        }
+
+        // ── 1 requête : segment comportemental pour TOUS les candidats ─────
+        $segmentAgg = [];
+        if (class_exists('SegmentManager')) {
+            foreach ($this->db->executeS(
+                'SELECT `id_customer`, `segment`
+                 FROM `' . _DB_PREFIX_ . 'neria_customer_segment`
+                 WHERE `id_customer` IN (' . $idList . ') AND `id_shop` = ' . $this->idShop
+            ) ?: [] as $r) {
+                $segmentAgg[(int) $r['id_customer']] = (string) $r['segment'];
+            }
+        }
+
+        // ── 1 requête : score de churn pour TOUS les candidats ─────────────
+        $churnAgg = [];
+        if (class_exists('ChurnScoreManager')) {
+            foreach ($this->db->executeS(
+                'SELECT `id_customer`, `score`
+                 FROM `' . _DB_PREFIX_ . 'neria_churn_score`
+                 WHERE `id_customer` IN (' . $idList . ') AND `id_shop` = ' . $this->idShop
+            ) ?: [] as $r) {
+                $churnAgg[(int) $r['id_customer']] = (int) $r['score'];
+            }
+        }
+
         $results = [];
         foreach ($customers as $row) {
-            $clv = $this->getCustomerClv((int) $row['id_customer']);
-            if ($clv['order_count'] === 0) {
+            $idCustomer = (int) $row['id_customer'];
+            $agg = $ordersAgg[$idCustomer] ?? null;
+            if ($agg === null || (int) $agg['order_count'] === 0) {
                 continue;
             }
+
+            $sent   = (int) ($engagementAgg[$idCustomer]['sent'] ?? 0);
+            $opened = (int) ($engagementAgg[$idCustomer]['opened'] ?? 0);
+            $engagementRate = $sent > 0 ? min(1.0, $opened / $sent) : 0.0;
+
+            $clv = $this->assembleClv(
+                (int) $agg['order_count'],
+                (float) $agg['total_revenue'],
+                (string) $agg['first_date'],
+                $engagementRate,
+                $segmentAgg[$idCustomer] ?? null,
+                $churnAgg[$idCustomer] ?? 0,
+                $symbol
+            );
+
             $results[] = array_merge($row, $clv);
         }
 
@@ -241,20 +325,108 @@ class ClvManager
         return array_slice($results, 0, $limit);
     }
 
+    /**
+     * Applique la formule CLV à partir de données déjà agrégées (utilisée par
+     * getTopCustomers() en mode batch). Factorisée depuis computeClv() pour
+     * ne pas dupliquer la formule entre le chemin "un client" et le chemin
+     * "plusieurs clients d'un coup".
+     */
+    private function assembleClv(
+        int $orderCount,
+        float $totalRevenue,
+        string $firstDate,
+        float $engagementRate,
+        ?string $segment,
+        int $churnScore,
+        string $symbol
+    ): array {
+        $avgOrder = $totalRevenue / $orderCount;
+
+        $firstDateObj = new \DateTime($firstDate);
+        $now          = new \DateTime();
+        $monthsActive = max(1, (int) $firstDateObj->diff($now)->days / 30.44);
+
+        $frequencyMonthly = $orderCount / $monthsActive;
+
+        if ($engagementRate >= self::ENGAGEMENT_HIGH) {
+            $engagementMult  = 1.20;
+            $engagementLabel = 'high';
+        } elseif ($engagementRate >= self::ENGAGEMENT_MEDIUM) {
+            $engagementMult  = 1.00;
+            $engagementLabel = 'medium';
+        } else {
+            $engagementMult  = 0.85;
+            $engagementLabel = 'low';
+        }
+
+        $map = [
+            'ambassador' => [1.25, 'ambassador'],
+            'loyal'      => [1.10, 'loyal'],
+            'warm'       => [1.00, 'warm'],
+            'dormant'    => [0.80, 'dormant'],
+            'ghost'      => [0.55, 'ghost'],
+        ];
+        [$segmentMult, $segmentLabel] = $map[$segment] ?? [1.0, $segment ?: 'unknown'];
+
+        if ($churnScore >= self::CHURN_HIGH) {
+            $churnMult  = 0.70;
+            $churnLabel = 'high';
+        } elseif ($churnScore >= self::CHURN_MEDIUM) {
+            $churnMult  = 0.85;
+            $churnLabel = 'medium';
+        } else {
+            $churnMult  = 1.00;
+            $churnLabel = 'low';
+        }
+
+        $base  = $avgOrder * $frequencyMonthly * 12;
+        $clv12 = $base * $engagementMult * $segmentMult * $churnMult;
+        $clv12 = max(0, round($clv12, 2));
+
+        if ($clv12 >= $avgOrder * 3) {
+            $label = 'high';
+        } elseif ($clv12 >= $avgOrder) {
+            $label = 'medium';
+        } else {
+            $label = 'low';
+        }
+
+        return [
+            'clv_12m'           => $clv12,
+            'clv_label'         => $label,
+            'avg_order'         => round($avgOrder, 2),
+            'order_count'       => $orderCount,
+            'total_revenue'     => round($totalRevenue, 2),
+            'frequency_monthly' => round($frequencyMonthly, 2),
+            'months_active'     => (int) $monthsActive,
+            'engagement_rate'   => round($engagementRate * 100, 1),
+            'engagement_mult'   => $engagementMult,
+            'engagement_label'  => $engagementLabel,
+            'segment_label'     => $segmentLabel,
+            'segment_mult'      => $segmentMult,
+            'churn_score'       => $churnScore,
+            'churn_mult'        => $churnMult,
+            'churn_label'       => $churnLabel,
+            'currency_symbol'   => $symbol,
+            'base_projection'   => round($base, 2),
+        ];
+    }
+
     // ============================================================
     // HELPERS PRIVÉS
     // ============================================================
 
     private function getEngagementRate(int $idCustomer): float
     {
-        $sent = (int) $this->db->getValue(
-            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
-             WHERE `id_customer` = ' . $idCustomer . ' AND `id_shop` = ' . $this->idShop . ' AND `event_type` = \'sent\''
+        // Une seule requête agrégée au lieu de deux COUNT(*) séparés sur la
+        // même table avec les mêmes filtres id_customer/id_shop.
+        $row = $this->db->getRow(
+            'SELECT SUM(`event_type` = \'sent\') AS sent, SUM(`event_type` = \'open\') AS opened
+             FROM `' . _DB_PREFIX_ . 'neria_stat`
+             WHERE `id_customer` = ' . $idCustomer . ' AND `id_shop` = ' . $this->idShop
         );
-        $opened = (int) $this->db->getValue(
-            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
-             WHERE `id_customer` = ' . $idCustomer . ' AND `id_shop` = ' . $this->idShop . ' AND `event_type` = \'open\''
-        );
+        $sent   = (int) ($row['sent'] ?? 0);
+        $opened = (int) ($row['opened'] ?? 0);
 
         return $sent > 0 ? min(1.0, $opened / $sent) : 0.0;
     }

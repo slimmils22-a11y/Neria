@@ -63,8 +63,17 @@ class ChurnScoreManager
         $stat  = _DB_PREFIX_ . 'neria_stat';
         $shop  = $this->idShop;
 
-        // Récupère les métriques par période + tranches horaires pour tous les clients
-        $rows = $this->db->executeS("
+        // Métriques sent/open par période (0-90 j) — scindées en une requête
+        // BORNÉE par date_add, séparée de la requête "tous temps" ci-dessous.
+        // Auparavant une seule requête sans aucune borne de date scannait la
+        // table neria_stat ENTIÈRE à chaque exécution du cron quotidien
+        // (le filtre par période était fait via CASE WHEN dans le SELECT,
+        // pas dans le WHERE), alors que sent_p1/p2/p3 et open_p1/p2/p3 ne
+        // portent que sur les 90 derniers jours. Sur une boutique de
+        // plusieurs années avec des millions de lignes, ce cron scannait
+        // chaque jour l'intégralité de l'historique au lieu des 90 derniers
+        // jours seulement — coût croissant indéfiniment avec l'ancienneté.
+        $rowsPeriods = $this->db->executeS("
             SELECT
                 id_customer,
                 -- Période 1 : 0-30 j (la plus récente)
@@ -85,25 +94,42 @@ class ChurnScoreManager
                           AND event_type = 'sent' THEN 1 ELSE 0 END) AS sent_p3,
                 SUM(CASE WHEN date_add < DATE_SUB(NOW(), INTERVAL 60 DAY)
                           AND date_add >= DATE_SUB(NOW(), INTERVAL 90 DAY)
-                          AND event_type = 'open' THEN 1 ELSE 0 END) AS open_p3,
-                MAX(CASE WHEN event_type = 'open' THEN date_add END)  AS last_open,
-                -- Tranches horaires d'ouverture (tous temps)
-                SUM(CASE WHEN event_type = 'open' AND HOUR(date_add) >= 6
-                          AND HOUR(date_add) < 12 THEN 1 ELSE 0 END) AS open_morning,
-                SUM(CASE WHEN event_type = 'open' AND HOUR(date_add) >= 12
-                          AND HOUR(date_add) < 18 THEN 1 ELSE 0 END) AS open_afternoon,
-                SUM(CASE WHEN event_type = 'open' AND HOUR(date_add) >= 18
-                          AND HOUR(date_add) < 23 THEN 1 ELSE 0 END) AS open_evening,
-                SUM(CASE WHEN event_type = 'open'
-                          AND (HOUR(date_add) >= 23 OR HOUR(date_add) < 6)
-                          THEN 1 ELSE 0 END) AS open_night
+                          AND event_type = 'open' THEN 1 ELSE 0 END) AS open_p3
             FROM `{$stat}`
             WHERE id_shop = {$shop} AND id_customer > 0
+              AND date_add >= DATE_SUB(NOW(), INTERVAL 90 DAY)
             GROUP BY id_customer
         ");
 
-        if (!is_array($rows) || empty($rows)) {
+        if (!is_array($rowsPeriods) || empty($rowsPeriods)) {
             return 0;
+        }
+
+        // last_open et tranches horaires : nécessitent bien tout l'historique
+        // ("tous temps", cf. calcul du créneau d'envoi préféré) — mais scopés
+        // à event_type = 'open' uniquement (sous-ensemble bien plus restreint
+        // que la table entière), pas de régression de comportement par
+        // rapport à l'ancienne requête combinée.
+        $rowsOpenAllTime = [];
+        foreach ($this->db->executeS("
+            SELECT
+                id_customer,
+                MAX(date_add) AS last_open,
+                SUM(HOUR(date_add) >= 6  AND HOUR(date_add) < 12) AS open_morning,
+                SUM(HOUR(date_add) >= 12 AND HOUR(date_add) < 18) AS open_afternoon,
+                SUM(HOUR(date_add) >= 18 AND HOUR(date_add) < 23) AS open_evening,
+                SUM(HOUR(date_add) >= 23 OR HOUR(date_add) < 6)   AS open_night
+            FROM `{$stat}`
+            WHERE id_shop = {$shop} AND id_customer > 0 AND event_type = 'open'
+            GROUP BY id_customer
+        ") ?: [] as $r) {
+            $rowsOpenAllTime[(int) $r['id_customer']] = $r;
+        }
+
+        $emptyOpenStats = ['last_open' => null, 'open_morning' => 0, 'open_afternoon' => 0, 'open_evening' => 0, 'open_night' => 0];
+        $rows = [];
+        foreach ($rowsPeriods as $r) {
+            $rows[] = $r + ($rowsOpenAllTime[(int) $r['id_customer']] ?? $emptyOpenStats);
         }
 
         // Bug du 2026-07-21 : un client tout juste inscrit (aucun envoi

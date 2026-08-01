@@ -1,6 +1,6 @@
 module.exports = {
   meta: {
-    version: "1.0.33",
+    version: "1.0.34",
     lang_name: "繁體中文",
     doc_title: "完整使用手冊",
     doc_subtitle: "PrestaShop 8 & 9 模組 — 版本 1.0.33",

@@ -192,6 +192,32 @@ class BehavioralCronManager
             }
         }
 
+        // ── Purge RGPD automatique (rétention par table du registre) ─────
+        // Avant ce correctif, aucun mécanisme automatique ne purgeait les
+        // tables du registre GdprAuditManager — neria_stat notamment pouvait
+        // grossir indéfiniment sur une boutique jamais entretenue
+        // manuellement (voir GdprAuditManager::purgeAllRegistryTables()).
+        if (class_exists('GdprAuditManager') && (bool) \Configuration::get('NERIA_GDPR_AUTO_PURGE_ENABLED')) {
+            try {
+                $purged = (new \GdprAuditManager($this->module->getLocalPath()))->purgeAllRegistryTables();
+                $total  = array_sum($purged);
+                if ($total > 0) {
+                    $this->watchdog()->info(
+                        \WatchdogManager::i18nMsg('watchdog.gdpr_auto_purge_summary', [
+                            'total'  => $total,
+                            'tables' => implode(', ', array_keys($purged)),
+                        ]),
+                        '', 'BehavioralCron'
+                    );
+                }
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.gdpr_auto_purge_error', ['error' => $e->getMessage()]),
+                    '', 'BehavioralCron'
+                );
+            }
+        }
+
         $this->watchdog()->cronHeartbeat('behavioral', 'ok');
         $this->watchdog()->info(\WatchdogManager::i18nMsg('watchdog.behavioral_cron_done'), '', 'BehavioralCron');
     }

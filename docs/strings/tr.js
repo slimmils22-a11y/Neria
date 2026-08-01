@@ -1,6 +1,6 @@
 module.exports = {
   meta: {
-    version: "1.0.33",
+    version: "1.0.34",
     lang_name: "Türkçe",
     doc_title: "Kapsamlı Kullanım Kılavuzu",
     doc_subtitle: "PrestaShop 8 & 9 Modülü — Sürüm 1.0.33",

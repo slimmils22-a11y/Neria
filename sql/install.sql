@@ -183,7 +183,10 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_stat` (
     -- Complémentaire à idx_shop_template_event : couvre les requêtes de revenus
     -- (StatsManager::getRevenueStats/getRevenueDailyByCategory) qui filtrent
     -- sur id_shop+event_type+date_add SANS template — cf. upgrade-1.0.33.php.
-    INDEX `idx_shop_event_date` (`id_shop`, `event_type`, `date_add`)
+    INDEX `idx_shop_event_date` (`id_shop`, `event_type`, `date_add`),
+    -- Complémentaire aux deux précédents : couvre GdprAuditManager::auditRetention()
+    -- qui filtre sur id_shop+date_add SANS event_type — cf. upgrade-1.0.34.php.
+    INDEX `idx_shop_date` (`id_shop`, `date_add`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Statistiques d\'envoi, ouverture et clic des emails Neria';
 
