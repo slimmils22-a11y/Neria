@@ -173,6 +173,8 @@ class HealthCheckManager
             'hardcoded_date_format'    => $this->checkHardcodedDateFormat(),
             'rtl_hardcoded_align'      => $this->checkRtlHardcodedAlignment(),
             'display_price_missing_lang' => $this->checkDisplayPriceMissingLang(),
+            'hardcoded_decimal_format' => $this->checkHardcodedDecimalFormat(),
+            'cron_loop_try_catch'     => $this->checkCronLoopMissingTryCatch(),
             'tpl_js_escape_missing'    => $this->checkTplJsEscapeMissing(),
             'imap_timeout_missing'     => $this->checkImapTimeoutMissing(),
             'oauth_refresh_error_surfaced' => $this->checkOAuthRefreshErrorSurfaced(),
@@ -2262,6 +2264,144 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.display_price_missing_lang_ok')];
+    }
+
+    /**
+     * Scan statique de src/*.php : number_format($x, 2, ',', ...) codé en
+     * dur — sépare décimales par une virgule quelle que soit la langue du
+     * destinataire de l'email, au lieu de NeriaTools::displayPrice()/
+     * NumberFormatter (locale-aware).
+     *
+     * Trouvé en réel le 2026-08-01, 3 occurrences indépendantes dans le même
+     * round de bug-hunting (EmailRenderer::voucherRateFromCode, UpsellManager
+     * ::enrich, LoyaltyManager tier reward) : un même défaut réintroduit à
+     * chaque nouvelle formule de montant écrite à la main plutôt qu'en
+     * passant par le helper localisé. Ne signale QUE le 3e argument littéral
+     * ',' (séparateur décimal) — pas le 4e (séparateur de milliers), qui a
+     * des usages légitimes non liés à la langue (ex. regroupement visuel).
+     */
+    private function checkHardcodedDecimalFormat(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $files = $this->collectModulePhpFiles($moduleDir);
+
+        $offenders = [];
+        foreach ($files as $file) {
+            $base = basename($file);
+            // NeriaTools.php : son propre dernier repli sans intl (légitime,
+            // documenté). HealthCheckManager.php : ce docblock/code cite le
+            // motif recherché à titre d'exemple — auto-match sinon.
+            if ($base === 'NeriaTools.php' || $base === 'HealthCheckManager.php') {
+                continue;
+            }
+            $content = file_get_contents($file) ?: '';
+            $relative = ltrim(str_replace(str_replace('\\', '/', $moduleDir), '', str_replace('\\', '/', $file)), '/');
+
+            if (preg_match_all('/number_format\s*\([^,]+,\s*\d+\s*,\s*[\'"],[\'"]/', $content, $m, PREG_OFFSET_CAPTURE)) {
+                foreach ($m[0] as $match) {
+                    $line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
+                    $offenders[] = $relative . ':' . $line;
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.hardcoded_decimal_format_warning', [
+                    'n'    => count($offenders),
+                    'list' => implode(', ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.hardcoded_decimal_format_ok')];
+    }
+
+    /**
+     * Scan statique de src/*CronManager.php et src/*Manager.php : méthodes
+     * contenant une boucle foreach() qui appelle $this->send(...) (envoi
+     * d'email comportemental) SANS aucun bloc try/catch dans le corps de la
+     * méthode entière — une exception sur UN enregistrement (deadlock MySQL,
+     * etc.) fait alors remonter l'exception hors de la méthode, empêchant
+     * silencieusement le traitement des lignes suivantes du même lot.
+     *
+     * Trouvé en réel le 2026-08-01 dans BehavioralCronManager (relances
+     * devis/remboursement/durée de vie produit) ; corrigé en ajoutant un
+     * try/catch par itération. Volontairement prudent (moins précis que
+     * checkHardcodedDecimalFormat) : signale seulement l'ABSENCE TOTALE de
+     * "try {" dans toute la méthode contenant le foreach, pas la structure
+     * exacte de la protection — un try/catch positionné ailleurs dans la
+     * méthode (ex. autour d'un bloc englobant plus large) ne sera donc pas
+     * signalé à tort, au prix de rater un try/catch mal placé (silence
+     * préféré au bruit, cf. le canari dynamique abandonné pour 21 faux
+     * positifs).
+     */
+    private function checkCronLoopMissingTryCatch(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name . '/src';
+        if (!is_dir($moduleDir)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.cron_loop_try_catch_ok')];
+        }
+        $files = glob($moduleDir . '/*Manager.php') ?: [];
+
+        $offenders = [];
+        foreach ($files as $file) {
+            $base = basename($file);
+            if ($base === 'HealthCheckManager.php') {
+                continue;
+            }
+            $content = file_get_contents($file) ?: '';
+            $relative = 'src/' . $base;
+
+            // Découpe approximative par méthode (private/protected/public function ... { ... })
+            if (!preg_match_all('/(?:private|protected|public)\s+function\s+(\w+)\s*\([^)]*\)(?:\s*:\s*[\?\\\\\w]+)?\s*\{/', $content, $m, PREG_OFFSET_CAPTURE)) {
+                continue;
+            }
+            $starts = $m[0];
+            $count = count($starts);
+            for ($i = 0; $i < $count; $i++) {
+                $bodyStart = $starts[$i][1] + strlen($starts[$i][0]);
+                // Appariement d'accolades pour trouver la fin réelle de la méthode
+                $depth = 1;
+                $bodyEnd = null;
+                for ($p = $bodyStart, $len = strlen($content); $p < $len; $p++) {
+                    if ($content[$p] === '{') {
+                        $depth++;
+                    } elseif ($content[$p] === '}') {
+                        $depth--;
+                        if ($depth === 0) {
+                            $bodyEnd = $p;
+                            break;
+                        }
+                    }
+                }
+                if ($bodyEnd === null) {
+                    continue;
+                }
+                $body = substr($content, $bodyStart, $bodyEnd - $bodyStart);
+
+                $hasLoopSend = preg_match('/foreach\s*\([^)]*\)[\s\S]{0,400}?\$this->send\s*\(/', $body) === 1;
+                $hasTryCatch = strpos($body, 'try {') !== false || strpos($body, 'try{') !== false;
+
+                if ($hasLoopSend && !$hasTryCatch) {
+                    $line = substr_count(substr($content, 0, $starts[$i][1]), "\n") + 1;
+                    $offenders[] = $relative . ':' . $line . ' (' . $m[1][$i][0] . ')';
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.cron_loop_try_catch_warning', [
+                    'n'    => count($offenders),
+                    'list' => implode(', ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.cron_loop_try_catch_ok')];
     }
 
     /**
