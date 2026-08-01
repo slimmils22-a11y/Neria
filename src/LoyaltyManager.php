@@ -252,6 +252,36 @@ class LoyaltyManager
      * déjà émis mais jamais utilisé si le total de points actuel du client
      * est repassé sous le seuil qui l'avait déclenché.
      */
+    /**
+     * Recrédite les points de fidélité d'une commande précédemment
+     * clawback-ée (annulation/remboursement) si la commande redevient
+     * valide (litige résolu en faveur du marchand, ré-expédition après
+     * annulation...). awardPoints() est idempotent (INSERT IGNORE sur
+     * id_stat+event_type) : sans effet si les points n'avaient jamais été
+     * retirés, donc sûr à appeler à chaque fois qu'une commande redevient
+     * "logable", pas seulement après un clawback confirmé.
+     *
+     * Avant ce correctif, aucun mécanisme ne recréditait les points après
+     * un clawback annulé — un client perdait définitivement ses points
+     * même si le litige à l'origine du remboursement était finalement
+     * tranché en sa défaveur... pour le marchand (commande ré-livrée).
+     */
+    public function restoreForOrder(int $idOrder, int $idCustomer): void
+    {
+        if ($idOrder <= 0 || $idCustomer <= 0) {
+            return;
+        }
+
+        $statTable = $this->prefix . 'neria_stat';
+        $statRows  = $this->db->executeS(
+            "SELECT id_stat FROM `{$statTable}`
+             WHERE id_order = {$idOrder} AND event_type = 'conversion'"
+        );
+        foreach ((array) $statRows as $row) {
+            $this->awardPoints($idCustomer, (int) $row['id_stat'], 'conversion');
+        }
+    }
+
     private function revokeUnusedRewardsBelowThreshold(int $idCustomer, int $idShop): void
     {
         $crossShop = (new \ConfigManager($this->module))->isLoyaltyCrossShopEnabled();

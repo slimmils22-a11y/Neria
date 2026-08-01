@@ -695,7 +695,9 @@ class Neria extends Module
             if (!$order instanceof Order) {
                 return;
             }
-            (new OrderTriggersManager($this))->handleRefund($order, $params['productList'] ?? []);
+            $orderSlip  = $params['orderSlip'] ?? null;
+            $idOrderSlip = ($orderSlip instanceof OrderSlip) ? (int) $orderSlip->id : 0;
+            (new OrderTriggersManager($this))->handleRefund($order, $params['productList'] ?? [], $idOrderSlip);
         }, $this);
     }
 
@@ -6894,7 +6896,15 @@ class Neria extends Module
             'NERIA_INSTALLED_VERSION'                          => self::VERSION,
             WatchdogManager::CFG_ALERT_EMAIL                   => (string) Configuration::get('PS_SHOP_EMAIL'),
             WatchdogManager::CFG_ALERT_IMMEDIATE               => 1,
-            WatchdogManager::CFG_ALERT_DIGEST                  => 0,
+            // Activé par défaut à l'installation (nouvelles installs
+            // uniquement — ne change rien pour une install existante dont
+            // la valeur est déjà stockée en base) : le digest quotidien est
+            // le seul filet de sécurité pour les WARNING, qui ne déclenchent
+            // jamais l'alerte immédiate. Désactivé par défaut jusqu'ici, un
+            // marchand qui n'activait pas ce toggle n'avait aucun moyen de
+            // savoir qu'un warning répété (ex. template cassé) s'accumulait
+            // silencieusement.
+            WatchdogManager::CFG_ALERT_DIGEST                  => 1,
             WatchdogManager::CFG_ALERT_LAST_SENT               => 0,
             WatchdogManager::CFG_DIGEST_LAST                   => 0,
         ];

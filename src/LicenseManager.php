@@ -45,6 +45,7 @@ class LicenseManager
     const CONFIG_GRACE_UNTIL  = 'NERIA_LICENSE_GRACE_UNTIL';
     const CONFIG_REVOKED_AT   = 'NERIA_LICENSE_REVOKED_AT';
     const CONFIG_LAST_ERROR   = 'NERIA_LICENSE_LAST_ERROR';
+    const CONFIG_EXPIRY_WARNED_FOR = 'NERIA_LICENSE_EXPIRY_WARNED_FOR';
 
     const API_BASE = 'https://neriasoftware.com/api';
 
@@ -124,6 +125,20 @@ class LicenseManager
             return (time() - $revokedAt) < (self::GRACE_REVOKED_DAYS * 86400);
         }
 
+        // Jeton expiré naturellement (fin d'abonnement) pile au moment où le
+        // serveur de licences est injoignable pour confirmer un renouvellement
+        // : sans ce cas, un client établi (NERIA_INSTALLED_AT ancien, donc le
+        // scénario A ci-dessous ne s'applique jamais) se retrouvait bloqué
+        // immédiatement, sans aucune marge — contrairement au principe
+        // annoncé en en-tête de ce fichier ("une panne du serveur de
+        // licences ne devient JAMAIS un incident chez le client"). On
+        // accorde le même délai que le scénario de révocation, basé sur la
+        // DERNIÈRE vérification réussie plutôt que sur l'installation.
+        $lastCheck = (int) \Configuration::get(self::CONFIG_LAST_CHECK);
+        if ($lastCheck > 0 && (time() - $lastCheck) < (self::GRACE_REVOKED_DAYS * 86400)) {
+            return true;
+        }
+
         $installedAt = (int) strtotime((string) \Configuration::get('NERIA_INSTALLED_AT'));
         if ($installedAt <= 0) {
             // Pas de date d'installation exploitable (install très ancienne
@@ -146,9 +161,15 @@ class LicenseManager
         if (!function_exists('sodium_crypto_sign_verify_detached')) {
             // Extension sodium indisponible (hébergement très ancien) —
             // fail-closed sur la signature spécifiquement : le jeton est
-            // traité comme non vérifiable, mais isEmailSendingAllowed()
-            // retombe alors sur le délai de grâce, jamais un blocage
-            // immédiat pour une simple absence d'extension serveur.
+            // traité comme non vérifiable, isEmailSendingAllowed() retombe
+            // alors sur isWithinGracePeriod(). Pour un marchand installé
+            // depuis plus de 30 jours (donc hors du scénario A ci-dessous),
+            // ce repli restait auparavant sans effet — blocage permanent dès
+            // le 31e jour, malgré une licence valide. Depuis l'ajout du
+            // scénario basé sur CONFIG_LAST_CHECK (dernière vérification
+            // réseau réussie, indépendante de sodium — validateLicense() ne
+            // l'utilise jamais), le marchand reste en grâce roulante tant
+            // que cette vérification périodique continue de réussir.
             return false;
         }
 
@@ -302,6 +323,40 @@ class LicenseManager
                     \WatchdogManager::i18nMsg('watchdog.license_revoked'),
                     '', 'LicenseManager'
                 );
+            } elseif (!empty($response['valid']) && \Configuration::get(self::CONFIG_REVOKED_AT)) {
+                // Transition inverse (revalidation) — auparavant jamais
+                // gérée : seule activateLicense() effaçait CONFIG_REVOKED_AT,
+                // pas cette vérification périodique. Un incident résolu côté
+                // serveur (ex. facturation régularisée) SANS ré-activation
+                // manuelle de la clé laissait le marchand voir un badge
+                // "révoqué"/compte à rebours de grâce en BO indéfiniment,
+                // alors que ses emails repartaient normalement.
+                \Configuration::deleteByName(self::CONFIG_REVOKED_AT);
+                $this->wd()->info(
+                    \WatchdogManager::i18nMsg('watchdog.license_revalidated'),
+                    '', 'LicenseManager'
+                );
+            }
+
+            // Alerte proactive avant expiration naturelle — auparavant
+            // 'expires_soon' n'était consommé que par le bandeau passif du
+            // BO (navigation.tpl) : un marchand qui n'ouvre pas cette page
+            // ne recevait aucune notification avant l'expiration. Un seul
+            // avertissement par échéance (CONFIG_EXPIRY_WARNED_FOR mémorise
+            // la date déjà signalée) — se réarme automatiquement si le
+            // marchand renouvelle (nouvelle date d'expiration différente).
+            $expires = (int) \Configuration::get(self::CONFIG_EXPIRES);
+            if ($expires > 0 && ($expires - time()) < (15 * 86400) && $expires > time()) {
+                $alreadyWarnedFor = (int) \Configuration::get(self::CONFIG_EXPIRY_WARNED_FOR);
+                if ($alreadyWarnedFor !== $expires) {
+                    \Configuration::updateGlobalValue(self::CONFIG_EXPIRY_WARNED_FOR, $expires);
+                    $this->wd()->warning(
+                        \WatchdogManager::i18nMsg('watchdog.license_expiring_soon', [
+                            'date' => date('Y-m-d', $expires),
+                        ]),
+                        '', 'LicenseManager'
+                    );
+                }
             }
         } else {
             // Réponse serveur explicite mais négative (ex: clé introuvable) —

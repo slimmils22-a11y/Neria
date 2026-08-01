@@ -176,7 +176,17 @@ class WatchdogManager
             date('Y-m-d H:i:s')
         ));
 
-        $this->pruneOldLogs();
+        // Purge probabiliste (1 tentative sur 10) plutôt qu'à CHAQUE nouvelle
+        // ligne distincte insérée — MAX_LOGS borne déjà la table de façon
+        // sûre (pas de croissance incontrôlée), mais une rafale de messages
+        // tous légèrement différents (ex. contenant un ID de commande
+        // variable, fréquent avec les vars i18n de neria.php) échappe à la
+        // consolidation ci-dessus et déclenchait un DELETE+COUNT à chaque
+        // insertion. Le tirage probabiliste répartit ce coût sans changer le
+        // comportement de purge à moyen terme.
+        if (random_int(1, 10) === 1) {
+            $this->pruneOldLogs();
+        }
     }
 
     // ============================================================
@@ -272,6 +282,20 @@ class WatchdogManager
             return;
         }
 
+        // Compte les ERROR/CRITICAL survenus depuis la DERNIÈRE alerte
+        // envoyée (avant de mettre à jour ce timestamp ci-dessous) — sans
+        // ça, une rafale (ex. panne DB de 10 minutes générant 50 erreurs)
+        // ne produisait qu'UN SEUL email pour la 1ère erreur : les 49
+        // suivantes étaient absorbées par le throttle sans jamais être
+        // mentionnées nulle part, laissant croire au marchand à un
+        // incident isolé alors qu'une vraie panne était en cours.
+        $burstCount = (int) $this->db->getValue(
+            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . self::TABLE . '`
+             WHERE id_shop = ' . $this->idShop . '
+               AND level IN (\'' . self::LEVEL_ERROR . '\', \'' . self::LEVEL_CRITICAL . '\')
+               AND date_add >= \'' . date('Y-m-d H:i:s', $lastSent ?: (time() - 86400)) . '\''
+        );
+
         \Configuration::updateGlobalValue(self::CFG_ALERT_LAST_SENT, time());
 
         // Rendu dans la langue de la boutique (le marchand configure la même
@@ -287,7 +311,9 @@ class WatchdogManager
         $shopDomain = \Tools::getShopDomainSsl(true);
         $levelUpper = strtoupper($level);
         $color      = $level === self::LEVEL_CRITICAL ? '#7a0000' : '#a32d2d';
-        $subject    = str_replace(["\r", "\n"], '', AdminTranslator::tVars('wd_alert.subject', ['level' => $levelUpper, 'shop' => $shopName]));
+        $subject    = $burstCount > 1
+            ? str_replace(["\r", "\n"], '', AdminTranslator::tVars('wd_alert.subject_burst', ['level' => $levelUpper, 'shop' => $shopName, 'n' => $burstCount]))
+            : str_replace(["\r", "\n"], '', AdminTranslator::tVars('wd_alert.subject', ['level' => $levelUpper, 'shop' => $shopName]));
 
         $emergencyToken = (string) \Configuration::getGlobalValue('NERIA_EMERGENCY_TOKEN');
         $emergencyUrl   = $emergencyToken
@@ -315,6 +341,10 @@ class WatchdogManager
             . '<tr><td style="padding:8px;color:#888;">' . AdminTranslator::t('wd_alert.date_label') . '</td>'
             . '<td style="padding:8px;">' . \NeriaTools::formatDate('now', AdminTranslator::currentLang(), true) . '</td></tr>'
             . '</table>'
+            . ($burstCount > 1
+                ? '<p style="margin:0 0 16px;padding:10px 14px;background:#fff3f3;border-left:3px solid ' . $color . ';font-size:12px;color:#7a2d2d;">'
+                  . AdminTranslator::tVars('wd_alert.burst_notice', ['n' => $burstCount]) . '</p>'
+                : '')
             . ($emergencyUrl
                 ? '<a href="' . htmlspecialchars($emergencyUrl) . '" style="display:inline-block;background:#b38b59;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;">' . AdminTranslator::t('wd_alert.open_emergency') . '</a>'
                 : '')
@@ -328,7 +358,16 @@ class WatchdogManager
                    . "From: Neria <" . $fromEmail . ">\r\n"
                    . "X-Mailer: Neria-WatchdogAlert/1.0\r\n";
 
-        @mail($email, $subject, $body, $headers);
+        // Le retour n'était jusqu'ici jamais vérifié : un SMTP/sendmail local
+        // en panne (précisément le cas où cette alerte est la plus utile)
+        // échouait silencieusement, sans trace nulle part. error_log() ici
+        // délibérément — PAS un nouveau log Watchdog (critical()/error()) :
+        // ça créerait un risque de boucle (un échec d'alerte redéclenchant
+        // une tentative d'alerte). Le journal serveur reste le seul canal
+        // sûr pour signaler l'échec de CE mécanisme précis.
+        if (!@mail($email, $subject, $body, $headers)) {
+            error_log('[Neria WatchdogManager] Échec envoi alerte email vers ' . $email);
+        }
     }
 
     /**
@@ -435,7 +474,16 @@ class WatchdogManager
                    . "From: Neria <" . $fromEmail . ">\r\n"
                    . "X-Mailer: Neria-WatchdogDigest/1.0\r\n";
 
-        @mail($email, $subject, $body, $headers);
+        // Le retour n'était jusqu'ici jamais vérifié : un SMTP/sendmail local
+        // en panne (précisément le cas où cette alerte est la plus utile)
+        // échouait silencieusement, sans trace nulle part. error_log() ici
+        // délibérément — PAS un nouveau log Watchdog (critical()/error()) :
+        // ça créerait un risque de boucle (un échec d'alerte redéclenchant
+        // une tentative d'alerte). Le journal serveur reste le seul canal
+        // sûr pour signaler l'échec de CE mécanisme précis.
+        if (!@mail($email, $subject, $body, $headers)) {
+            error_log('[Neria WatchdogManager] Échec envoi alerte email vers ' . $email);
+        }
     }
 
     private function getAlertEmail(): string
@@ -669,9 +717,16 @@ class WatchdogManager
                 $rc[$r['level']] = (int) $r['cnt'];
             }
         }
-        $score -= min(15, $rc['warning']  * 2);
-        $score -= min(30, $rc['error']    * 5);
-        $score -= min(40, $rc['critical'] * 10);
+        // Pas de plafond par catégorie — auparavant min(15, warning*2) etc.
+        // figeait la pénalité dès 8 warnings (16 plafonné à 15), et toute
+        // aggravation au-delà (20, 30 templates cassés...) n'était plus du
+        // tout reflétée : le score pouvait afficher "Bon" (>=70) en pleine
+        // dégradation massive. Seul le plancher final (max(0, ...) plus bas)
+        // borne désormais le score affiché — chaque événement supplémentaire
+        // continue de faire baisser le score jusqu'à 0.
+        $score -= $rc['warning']  * 2;
+        $score -= $rc['error']    * 5;
+        $score -= $rc['critical'] * 10;
         if ($rc['error'] > 0 || $rc['critical'] > 0) {
             $tot = $rc['error'] + $rc['critical'];
             $issues[] = $tot . ' erreur(s)/critique(s) dans les 24 dernières heures';

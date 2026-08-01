@@ -368,6 +368,52 @@ class OrderTriggersManager
                 $orderForMilestone = new \Order($idOrder);
                 if (\Validate::isLoadedObject($orderForMilestone)) {
                     $this->checkMilestone($orderForMilestone);
+
+                    // Recrédite les points si cette commande avait été
+                    // clawback-ée (annulation, remboursement) et redevient
+                    // valide — ex. litige résolu en faveur du marchand,
+                    // ré-expédition après une annulation. Sans effet si
+                    // aucun clawback n'avait eu lieu (idempotent).
+                    if (class_exists('LoyaltyManager') && \Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')) {
+                        try {
+                            (new \LoyaltyManager($this->module))->restoreForOrder(
+                                $idOrder, (int) $orderForMilestone->id_customer
+                            );
+                        } catch (\Throwable $e) {
+                            $this->watchdog()->error(
+                                \WatchdogManager::i18nMsg('watchdog.loyalty_clawback_error', ['order' => $orderForMilestone->reference, 'error' => $e->getMessage()]),
+                                'order_restored', 'OrderTriggers'
+                            );
+                        }
+                    }
+                }
+            }
+
+            // Annulation d'une commande auparavant valide (logable), SANS
+            // création d'avoir — le seul clawback existant (handleRefund())
+            // n'est déclenché que par actionOrderSlipAdd (création d'un
+            // avoir/CartRule), jamais par un simple changement de statut.
+            // Un marchand qui annule une commande payée directement via le
+            // statut BO (flux PrestaShop tout à fait normal, sans passer par
+            // un avoir) laissait le client garder définitivement les points
+            // de fidélité gagnés sur une commande pourtant annulée. Placé
+            // AVANT le filtre "statuts standards" ci-dessous, comme le check
+            // milestone, puisque "Annulée" est elle-même un statut standard.
+            if ($oldStatus->logable && !$newStatus->logable
+                && class_exists('LoyaltyManager') && \Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')
+            ) {
+                $orderForCancel = new \Order($idOrder);
+                if (\Validate::isLoadedObject($orderForCancel)) {
+                    try {
+                        (new \LoyaltyManager($this->module))->clawbackForOrder(
+                            $idOrder, (int) $orderForCancel->id_customer, (int) $orderForCancel->id_shop
+                        );
+                    } catch (\Throwable $e) {
+                        $this->watchdog()->error(
+                            \WatchdogManager::i18nMsg('watchdog.loyalty_clawback_error', ['order' => $orderForCancel->reference, 'error' => $e->getMessage()]),
+                            'order_canceled', 'OrderTriggers'
+                        );
+                    }
                 }
             }
 
@@ -462,9 +508,23 @@ class OrderTriggersManager
     // Déclenché par : hookActionOrderSlipAdd
     // ============================================================
 
-    public function handleRefund(\Order $order, array $productList): void
+    public function handleRefund(\Order $order, array $productList, int $idOrderSlip = 0): void
     {
         try {
+            // Verrou par avoir (pas seulement par commande) : rien n'empêchait
+            // auparavant un double déclenchement du hook actionOrderSlipAdd
+            // (rejeu, module tiers, double dispatch PrestaShop) de renvoyer
+            // deux fois l'email refund_processed pour LE MÊME avoir. Sans
+            // id_order_slip disponible (hook appelé sans orderSlip dans
+            // $params, cas rare), on ne peut pas déduper — on continue alors
+            // sans verrou plutôt que de bloquer un remboursement légitime.
+            if ($idOrderSlip > 0) {
+                $lockName = 'neria_refund_slip_' . $idOrderSlip;
+                if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)") !== 1) {
+                    return;
+                }
+            }
+
             $customer = new \Customer((int) $order->id_customer);
             if (!\Validate::isLoadedObject($customer)) {
                 return;
@@ -512,7 +572,31 @@ class OrderTriggersManager
             }
 
             // ── Retrait des points/bons fidélité gagnés par cette commande ──
-            if (class_exists('LoyaltyManager') && \Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')) {
+            // Les points de fidélité sont attribués à taux FIXE par commande
+            // (LoyaltyManager::POINTS_CONVERSION = 10 points, pas un taux par
+            // euro dépensé) — clawbackForOrder() retire donc TOUJOURS la
+            // totalité des points de la commande, sans notion de proportion.
+            // Auparavant appelé pour TOUT avoir, même un remboursement
+            // partiel mineur (ex. 20€ sur une commande de 200€ pour un
+            // article défectueux) : le client perdait 100% de ses points
+            // pour 10% de remboursement. On ne clawback désormais que si
+            // l'avoir couvre la quasi-totalité de la commande (>= 90% du
+            // montant payé) — un remboursement réellement partiel ne
+            // déclenche plus le retrait, cohérent avec le fait qu'un achat
+            // réel a bien eu lieu sur la part non remboursée.
+            // Cumul de TOUS les avoirs de la commande (pas seulement celui-ci) :
+            // un marchand qui rembourse en 2 avoirs successifs (50% + 50%)
+            // doit bien déclencher le clawback une fois le cumul proche du
+            // total — un calcul basé sur le seul avoir courant manquerait ce
+            // cas (chaque avoir individuellement < 90%, jamais de clawback).
+            $orderTotal   = (float) $order->total_paid_tax_incl;
+            $totalRefunded = (float) $this->db->getValue(
+                'SELECT SUM(total_products_tax_incl + total_shipping_tax_incl)
+                 FROM `' . _DB_PREFIX_ . 'order_slip`
+                 WHERE id_order = ' . (int) $order->id
+            );
+            $refundRatio  = $orderTotal > 0 ? ($totalRefunded / $orderTotal) : 1.0;
+            if ($refundRatio >= 0.9 && class_exists('LoyaltyManager') && \Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')) {
                 try {
                     (new \LoyaltyManager($this->module))->clawbackForOrder(
                         (int) $order->id, (int) $customer->id, (int) $order->id_shop
@@ -549,6 +633,10 @@ class OrderTriggersManager
                 \WatchdogManager::i18nMsg('watchdog.refund_error', ['order' => $order->reference, 'error' => $e->getMessage()]),
                 'refund_processed', 'OrderTriggers'
             );
+        } finally {
+            if ($idOrderSlip > 0) {
+                $this->db->execute("SELECT RELEASE_LOCK('" . pSQL('neria_refund_slip_' . $idOrderSlip) . "')");
+            }
         }
     }
 
