@@ -541,13 +541,19 @@ class TranslationEngine
         // Charge les variables custom si pas encore fait
         $this->loadCustomVars();
 
-        // Résout les variables custom du marchand
+        // Résout les variables custom du marchand — strtr() (et non
+        // str_replace() avec des tableaux) : str_replace() enchaîne les
+        // remplacements SÉQUENTIELLEMENT sur le résultat déjà transformé.
+        // Si la valeur saisie par le marchand pour UNE variable contient
+        // littéralement le texte "{autre_variable}" (champ libre BO, aucune
+        // validation contre ce motif), ce texte injecté se faisait à son
+        // tour remplacer par la valeur de l'autre variable — comportement
+        // silencieux dépendant de l'ordre d'itération du tableau, capable
+        // de corrompre un texte affiché au client. strtr() avec un tableau
+        // effectue un seul passage simultané sur le texte ORIGINAL, sans
+        // jamais rescanner une portion déjà substituée.
         if (!empty($this->customVarsCache)) {
-            $text = str_replace(
-                array_keys($this->customVarsCache),
-                array_values($this->customVarsCache),
-                $text
-            );
+            $text = strtr($text, $this->customVarsCache);
         }
 
         return $text;

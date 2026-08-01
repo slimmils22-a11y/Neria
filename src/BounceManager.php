@@ -128,15 +128,27 @@ class BounceManager
             return ['processed' => 0, 'bounces' => 0, 'errors' => [\AdminTranslator::t('msg.bounce_imap_extension_missing')]];
         }
 
-        $host      = (string) \Configuration::get(self::CFG_IMAP_HOST);
-        $port      = (int)   \Configuration::get(self::CFG_IMAP_PORT)   ?: 993;
-        $user      = (string) \Configuration::get(self::CFG_IMAP_USER);
-        $pass      = \CryptoManager::decrypt((string) \Configuration::get(self::CFG_IMAP_PASS));
-        $ssl       = (bool)   \Configuration::get(self::CFG_IMAP_SSL);
-        $folder    = (string) \Configuration::get(self::CFG_IMAP_FOLDER) ?: 'INBOX';
+        $host          = (string) \Configuration::get(self::CFG_IMAP_HOST);
+        $port          = (int)   \Configuration::get(self::CFG_IMAP_PORT)   ?: 993;
+        $user          = (string) \Configuration::get(self::CFG_IMAP_USER);
+        $passRawStored = (string) \Configuration::get(self::CFG_IMAP_PASS);
+        $pass          = \CryptoManager::decrypt($passRawStored);
+        $ssl           = (bool)   \Configuration::get(self::CFG_IMAP_SSL);
+        $folder        = (string) \Configuration::get(self::CFG_IMAP_FOLDER) ?: 'INBOX';
 
-        if ($host === '' || $user === '' || $pass === '') {
+        // Distingue "mot de passe jamais renseigné" (config vide) de "clé de
+        // chiffrement maîtresse illisible" (une valeur chiffrée existe en
+        // base mais decrypt() a échoué et retourné ''). Auparavant les deux
+        // cas produisaient le même message "configuration incomplète" —
+        // trompeur dans le 2e cas : l'admin ressaisit un mot de passe
+        // pourtant correct en pensant qu'il était simplement vide, alors que
+        // le vrai problème (clé maîtresse illisible) persiste et touche
+        // aussi tous les autres secrets du module.
+        if ($host === '' || $user === '' || ($pass === '' && $passRawStored === '')) {
             return ['processed' => 0, 'bounces' => 0, 'errors' => [\AdminTranslator::t('msg.bounce_imap_incomplete_config')]];
+        }
+        if ($pass === '') {
+            return ['processed' => 0, 'bounces' => 0, 'errors' => [\AdminTranslator::t('msg.bounce_imap_secret_unreadable')]];
         }
 
         $flags   = $ssl ? '/imap/ssl' : '/imap/notls';

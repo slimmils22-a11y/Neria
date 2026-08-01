@@ -186,7 +186,12 @@ class CryptoManager
     private static function loadKey(): string
     {
         $hex = (string) \Configuration::get(self::CONFIG_KEY);
-        if (strlen($hex) !== 64) {
+        // ctype_xdigit() en plus de la longueur — une clé corrompue en base
+        // (édition manuelle, restauration partielle) mais conservant 64
+        // caractères non-hexadécimaux faisait émettre un warning PHP par
+        // hex2bin() ("Hexadecimal input string is not well-formed"), visible
+        // dans le BO si display_errors est activé côté hébergement.
+        if (strlen($hex) !== 64 || !ctype_xdigit($hex)) {
             return '';
         }
         return (string) hex2bin($hex);

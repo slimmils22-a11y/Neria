@@ -155,24 +155,40 @@ class MultiClientPreviewManager
         }
     }
 
-    private function transformGmail(string $html): string
+    /**
+     * Supprime les blocs <style> et les <link> CSS externes — comportement
+     * partagé par Gmail/Orange/QQ Mail/Naver, qui utilisent tous le même
+     * modèle strict "pas de CSS externe/interne" côté webmail. Auparavant
+     * dupliqué à l'identique dans 4 méthodes séparées (transformOrange,
+     * transformQqMail, transformNaver) sous un nom différent à chaque fois,
+     * laissant croire à une simulation propre à chaque client alors que le
+     * rendu produit était rigoureusement identique — un marchand qui
+     * choisissait "Orange" pour vérifier un rendu spécifique voyait en
+     * réalité le même résultat que "Gmail" sans le savoir. Centralisé ici
+     * comme un choix explicite et documenté, pas une coïncidence de code.
+     */
+    private function stripStyleAndLinkTags(string $html): string
     {
-        // Gmail supprime tous les blocs <style> et les <link> CSS
         $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
         $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html);
-        return $this->addBanner($html, 'gmail');
+        return $html;
+    }
+
+    private function transformGmail(string $html): string
+    {
+        return $this->addBanner($this->stripStyleAndLinkTags($html), 'gmail');
     }
 
     private function transformOutlook(string $html): string
     {
         // Supprime background-image dans les attributs style
-        $html = preg_replace('/background-image\s*:[^;"\'}]+[;"\'}]/i', '', $html);
+        $html = preg_replace('/background-image\s*:[^;"\'}]+;?/i', '', $html);
         // Supprime border-radius
-        $html = preg_replace('/border-radius\s*:[^;"\'}]+[;"\'}]/i', '', $html);
+        $html = preg_replace('/border-radius\s*:[^;"\'}]+;?/i', '', $html);
         // Supprime display:flex
-        $html = preg_replace('/display\s*:\s*flex[^;"\'}]*[;"\'}]/i', 'display:block;', $html);
+        $html = preg_replace('/display\s*:\s*flex[^;"\'}]*;?/i', 'display:block;', $html);
         // Supprime gap
-        $html = preg_replace('/\bgap\s*:[^;"\'}]+[;"\'}]/i', '', $html);
+        $html = preg_replace('/\bgap\s*:[^;"\'}]+;?/i', '', $html);
 
         // Transforme aussi les blocs <style>
         $html = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/si', function ($m) {
@@ -189,44 +205,63 @@ class MultiClientPreviewManager
 
     private function transformOrange(string $html): string
     {
-        $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
-        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html);
-        return $this->addBanner($html, 'orange');
+        return $this->addBanner($this->stripStyleAndLinkTags($html), 'orange');
+    }
+
+    /**
+     * Supprime uniquement les @media queries en conservant le reste du CSS
+     * — comportement partagé par Yahoo/AOL Mail (même groupe Verizon Media/
+     * Yahoo historiquement, moteur de rendu apparenté).
+     */
+    private function stripMediaQueries(string $html): string
+    {
+        return preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/si', function ($m) {
+            $css = preg_replace('/@media\b[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/si', '', $m[1]);
+            return '<style>' . $css . '</style>';
+        }, $html);
     }
 
     private function transformYahoo(string $html): string
     {
-        // Yahoo conserve les styles mais supprime les @media queries
-        $html = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/si', function ($m) {
-            $css = preg_replace('/@media\b[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/si', '', $m[1]);
-            return '<style>' . $css . '</style>';
-        }, $html);
-        return $this->addBanner($html, 'yahoo');
+        return $this->addBanner($this->stripMediaQueries($html), 'yahoo');
+    }
+
+    /**
+     * Supprime les <link> CSS externes + text-shadow/box-shadow — comportement
+     * partagé par Hotmail/Outlook.com et GMX/Web.de (webmails européens au
+     * support CSS restreint similaire).
+     */
+    private function stripLinkTagsAndShadows(string $html): string
+    {
+        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html);
+        $html = preg_replace('/(?:text|box)-shadow\s*:[^;"\'}]+;?/i', '', $html);
+        return $html;
     }
 
     private function transformHotmail(string $html): string
     {
-        // Hotmail/Outlook.com supprime les <link> CSS externes
-        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html);
-        // Supprime text-shadow et box-shadow (non supportés)
-        $html = preg_replace('/(?:text|box)-shadow\s*:[^;"\'}]+[;"\'}]/i', '', $html);
-        return $this->addBanner($html, 'hotmail');
+        return $this->addBanner($this->stripLinkTagsAndShadows($html), 'hotmail');
     }
 
     private function transformQqMail(string $html): string
     {
-        // QQ Mail supprime les blocs <style> et <link> CSS, comme Gmail
+        return $this->addBanner($this->stripStyleAndLinkTags($html), 'qq_mail');
+    }
+
+    /**
+     * Supprime les blocs <style> et le background-image — comportement
+     * partagé par Mail.ru et Yandex Mail (webmails russes au même moteur).
+     */
+    private function stripStyleAndBackgroundImage(string $html): string
+    {
         $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
-        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html);
-        return $this->addBanner($html, 'qq_mail');
+        $html = preg_replace('/background-image\s*:[^;"\'}]+;?/i', '', $html);
+        return $html;
     }
 
     private function transformMailru(string $html): string
     {
-        // Mail.ru supprime les blocs <style> et le background-image
-        $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
-        $html = preg_replace('/background-image\s*:[^;"\'}]+[;"\'}]/i', '', $html);
-        return $this->addBanner($html, 'mailru');
+        return $this->addBanner($this->stripStyleAndBackgroundImage($html), 'mailru');
     }
 
     private function transformSamsungEmail(string $html): string
@@ -242,44 +277,30 @@ class MultiClientPreviewManager
 
     private function transformGmx(string $html): string
     {
-        // GMX / Web.de supprime les <link> CSS externes et les shadows
-        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html);
-        $html = preg_replace('/(?:text|box)-shadow\s*:[^;"\'}]+[;"\'}]/i', '', $html);
-        return $this->addBanner($html, 'gmx');
+        return $this->addBanner($this->stripLinkTagsAndShadows($html), 'gmx');
     }
 
     private function transformNaver(string $html): string
     {
-        // Naver Mail supprime les blocs <style> et <link> CSS
-        $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
-        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html);
-        return $this->addBanner($html, 'naver');
+        return $this->addBanner($this->stripStyleAndLinkTags($html), 'naver');
     }
 
     private function transformYandex(string $html): string
     {
-        // Yandex Mail supprime les blocs <style> et le background-image
-        $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
-        $html = preg_replace('/background-image\s*:[^;"\'}]+[;"\'}]/i', '', $html);
-        return $this->addBanner($html, 'yandex');
+        return $this->addBanner($this->stripStyleAndBackgroundImage($html), 'yandex');
     }
 
     private function transformAol(string $html): string
     {
-        // AOL Mail supprime les @media queries, comme Yahoo
-        $html = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/si', function ($m) {
-            $css = preg_replace('/@media\b[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/si', '', $m[1]);
-            return '<style>' . $css . '</style>';
-        }, $html);
-        return $this->addBanner($html, 'aol');
+        return $this->addBanner($this->stripMediaQueries($html), 'aol');
     }
 
     private function transformProtonMail(string $html): string
     {
         // ProtonMail (sécurité) : supprime border-radius, shadows et position (anti-tracking)
-        $html = preg_replace('/border-radius\s*:[^;"\'}]+[;"\'}]/i', '', $html);
-        $html = preg_replace('/(?:text|box)-shadow\s*:[^;"\'}]+[;"\'}]/i', '', $html);
-        $html = preg_replace('/\bposition\s*:[^;"\'}]+[;"\'}]/i', '', $html);
+        $html = preg_replace('/border-radius\s*:[^;"\'}]+;?/i', '', $html);
+        $html = preg_replace('/(?:text|box)-shadow\s*:[^;"\'}]+;?/i', '', $html);
+        $html = preg_replace('/\bposition\s*:[^;"\'}]+;?/i', '', $html);
         $html = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/si', function ($m) {
             $css = preg_replace('/border-radius\s*:[^;{}]+;?/i', '', $m[1]);
             $css = preg_replace('/(?:text|box)-shadow\s*:[^;{}]+;?/i', '', $css);
@@ -394,7 +415,36 @@ class MultiClientPreviewManager
         ]);
 
         $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
         curl_close($ch);
+
+        // Contrairement à submitToLitmus() ci-dessus, cette méthode ignorait
+        // totalement le code HTTP et les erreurs cURL — une API indisponible,
+        // une clé expirée en cours de route, ou un timeout réseau pendant le
+        // sondage (interrogé toutes les 4s pendant 60s côté BO) retournait
+        // silencieusement [], indiscernable d'un test simplement "pas encore
+        // prêt". Le marchand ne voyait que "délai dépassé" sans jamais
+        // savoir que le service avait répondu une erreur. On journalise
+        // désormais l'échec (diagnostic Watchdog) — la structure de retour
+        // (tableau vide) reste inchangée pour ne pas casser le contrat JS
+        // existant (multipreview.tpl itère un tableau de previews).
+        if ($curlErr !== '' || $httpCode < 200 || $httpCode >= 300) {
+            if (class_exists('WatchdogManager') && class_exists('Module')) {
+                $module = \Module::getInstanceByName('neria');
+                if ($module) {
+                    (new \WatchdogManager($module))->warning(
+                        \WatchdogManager::i18nMsg('watchdog.multipreview_poll_failed', [
+                            'provider' => 'Litmus',
+                            'code'     => $httpCode,
+                            'error'    => $curlErr !== '' ? $curlErr : mb_substr((string) $response, 0, 200),
+                        ]),
+                        '', 'MultiClientPreviewManager'
+                    );
+                }
+            }
+            return [];
+        }
 
         $data   = json_decode((string) $response, true);
         $result = [];
@@ -480,7 +530,27 @@ class MultiClientPreviewManager
         ]);
 
         $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
         curl_close($ch);
+
+        // Même correctif que pollLitmus() ci-dessus.
+        if ($curlErr !== '' || $httpCode < 200 || $httpCode >= 300) {
+            if (class_exists('WatchdogManager') && class_exists('Module')) {
+                $module = \Module::getInstanceByName('neria');
+                if ($module) {
+                    (new \WatchdogManager($module))->warning(
+                        \WatchdogManager::i18nMsg('watchdog.multipreview_poll_failed', [
+                            'provider' => 'Email on Acid',
+                            'code'     => $httpCode,
+                            'error'    => $curlErr !== '' ? $curlErr : mb_substr((string) $response, 0, 200),
+                        ]),
+                        '', 'MultiClientPreviewManager'
+                    );
+                }
+            }
+            return [];
+        }
 
         $data   = json_decode((string) $response, true);
         $result = [];

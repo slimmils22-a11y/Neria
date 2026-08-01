@@ -109,14 +109,27 @@ class TranslationInstaller
             return false;
         }
 
-        // ── 3. Vide la table avant import (installation propre) ──
-        // On vide uniquement si la table est vide ou si c'est
-        // une réinstallation (is_custom = 0 uniquement)
+        // ── 3-5. Purge + import par lots, DANS UNE TRANSACTION ────
+        // Auparavant clearDefaultTranslations() vidait la table
+        // IMMÉDIATEMENT, avant même la première tentative d'insertion, et
+        // rien n'encadrait l'ensemble (pas de START TRANSACTION/ROLLBACK).
+        // Un échec d'un seul lot en cours de route (timeout hébergement,
+        // verrou transitoire — ce cas est appelé aussi bien à l'install
+        // qu'au clic BO "Réinitialiser les textes") arrêtait l'import net :
+        // les lots déjà traités restaient en base, mais tous les
+        // templates/langues suivants dans l'ordre du foreach n'étaient
+        // jamais réinsérés — table dans un état PIRE qu'avant l'appel,
+        // avec des blocs de texte manquants pouvant partir en production
+        // avant que quiconque s'en aperçoive. La transaction garantit
+        // désormais que soit TOUT l'import réussit, soit rien n'est modifié
+        // (la table retrouve son état d'avant l'appel).
+        $this->db->execute('START TRANSACTION');
+
         $this->clearDefaultTranslations();
 
-        // ── 4. Import par lots ───────────────────────────────────
         $batch = [];
         $now   = date('Y-m-d H:i:s');
+        $failed = false;
 
         foreach ($translations as $template => $langs) {
             // Vérifie que la structure est valide
@@ -150,7 +163,8 @@ class TranslationInstaller
                     // Flush le batch quand il atteint BATCH_SIZE
                     if (count($batch) >= self::BATCH_SIZE) {
                         if (!$this->flushBatch($batch)) {
-                            return false;
+                            $failed = true;
+                            break 3;
                         }
                         $batch = [];
                     }
@@ -158,12 +172,19 @@ class TranslationInstaller
             }
         }
 
-        // ── 5. Flush le dernier batch (< BATCH_SIZE lignes) ─────
-        if (!empty($batch)) {
+        // Flush le dernier batch (< BATCH_SIZE lignes)
+        if (!$failed && !empty($batch)) {
             if (!$this->flushBatch($batch)) {
-                return false;
+                $failed = true;
             }
         }
+
+        if ($failed) {
+            $this->db->execute('ROLLBACK');
+            return false;
+        }
+
+        $this->db->execute('COMMIT');
 
         // ── 6. Log du résultat ───────────────────────────────────
         $this->module->log(
@@ -346,7 +367,15 @@ class TranslationInstaller
         $result = $this->db->execute($sql);
 
         if ($result) {
-            $this->countInserted += count($batch);
+            // Affected_Rows() reflète le nombre RÉEL de lignes insérées par
+            // ce INSERT IGNORE, pas count($batch) — auparavant tout le lot
+            // était compté comme inséré même si une partie avait été
+            // silencieusement ignorée pour cause de doublon de clé unique
+            // (template+lang+translation_key). Le résumé BO pouvait ainsi
+            // annoncer plus de traductions importées qu'il n'y en avait
+            // réellement, masquant une perte de données sans que le
+            // marchand ni le Watchdog ne la détectent.
+            $this->countInserted += (int) $this->db->Affected_Rows();
         } else {
             $this->countErrors += count($batch);
             $this->module->log(

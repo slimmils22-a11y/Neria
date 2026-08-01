@@ -201,6 +201,25 @@ class WebhookManager
             return;
         }
 
+        // save_webhooks (neria.php) génère TOUJOURS un secret dès qu'une URL
+        // est configurée — donc si une URL existe mais que $secret est vide
+        // ici, ce n'est jamais un état "volontairement non signé" : c'est
+        // que la clé de chiffrement maîtresse est devenue illisible
+        // (CryptoManager::decrypt() a échoué). Auparavant, ce cas dégradait
+        // silencieusement vers un envoi SANS en-tête de signature au lieu
+        // d'annuler l'envoi — un récepteur qui vérifie la signature HMAC
+        // n'avait aucun moyen de distinguer "vérification désactivée côté
+        // Neria" de "secret illisible côté Neria". On bloque désormais
+        // l'envoi et on alerte, comme le fait déjà BounceManager pour un
+        // mot de passe IMAP illisible.
+        if ($secret === '') {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.webhook_secret_unreadable'),
+                '', 'WebhookManager'
+            );
+            return;
+        }
+
         // Verrou MySQL dédié à CETTE méthode (et non au seul appelant cron) :
         // le bouton BO "Traiter la file maintenant" (neria.php, neria_action
         // process_webhook_queue_now) appelle processQueue() directement, sans
@@ -378,6 +397,15 @@ class WebhookManager
 
         if ($url === '' || !self::isPublicUrl($url)) {
             return ['ok' => false, 'error' => AdminTranslator::t('msg.webhook_url_invalid')];
+        }
+
+        // Même garde-fou que processQueue() : une URL configurée implique
+        // toujours un secret généré (save_webhooks) — un secret vide ici
+        // signifie que la clé de chiffrement maîtresse est illisible, pas
+        // qu'aucun secret n'a été défini. On ne teste jamais un envoi non
+        // signé silencieusement.
+        if ($secret === '') {
+            return ['ok' => false, 'error' => AdminTranslator::t('msg.webhook_secret_unreadable')];
         }
 
         if (!function_exists('curl_init')) {
