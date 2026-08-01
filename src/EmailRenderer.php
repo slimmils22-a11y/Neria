@@ -2179,12 +2179,17 @@ class EmailRenderer
             '{$neria_social_links}'     => '',
             '{$neria_lang}'             => $lang,
         ];
-        $compiled = str_replace(array_keys($tplVars), array_values($tplVars), $compiled);
+        // strtr() (et non str_replace() avec des tableaux) : évite qu'une
+        // valeur BO (nom de marque, slogan, texte personnalisé) contenant
+        // littéralement "{autre_variable}" ne se fasse re-substituer selon
+        // l'ordre d'itération — même correctif que TranslationEngine::
+        // resolveVariables().
+        $compiled = strtr($compiled, $tplVars);
 
         // ── Placeholders génériques {xxx} (shop_url, fausses valeurs d'aperçu,
         // snapshot d'historique...) — résolus ICI, avant CssInliner (cf. docblock).
         if (!empty($extraReplacements)) {
-            $compiled = str_replace(array_keys($extraReplacements), array_values($extraReplacements), $compiled);
+            $compiled = strtr($compiled, $extraReplacements);
         }
 
         // ── Blocs conditionnels {if var}...{else}...{/if} (sans isset()) —
@@ -2574,7 +2579,12 @@ class EmailRenderer
             '{$neria_signature_title}'  => $templateVars['neria_signature_title'] ?? '',
             '{$neria_lang}'             => $lang,
         ];
-        $compiled = str_replace(array_keys($tplVars), array_values($tplVars), $compiled);
+        // strtr() (et non str_replace() avec des tableaux) : évite qu'une
+        // valeur BO (nom de marque, slogan, texte personnalisé) contenant
+        // littéralement "{autre_variable}" ne se fasse re-substituer selon
+        // l'ordre d'itération — même correctif que TranslationEngine::
+        // resolveVariables().
+        $compiled = strtr($compiled, $tplVars);
 
         // ── Variables PS communes garanties ──────────────────────────────────
         // Appliquées EN PREMIER pour garantir la valeur correcte (shop_url
@@ -2594,7 +2604,7 @@ class EmailRenderer
             '{history_url}'        => $this->context->link->getPageLink('history', true, $urlIdLang),
             '{guest_tracking_url}' => $this->context->link->getPageLink('guest-tracking', true, $urlIdLang),
         ];
-        $compiled = str_replace(array_keys($psCommon), array_values($psCommon), $compiled);
+        $compiled = strtr($compiled, $psCommon);
 
         // ── Résoudre les variables PS-style {var} restantes ──────────────────
         // Les clés dans templateVars ont déjà les accolades : '{firstname}'.
@@ -2772,7 +2782,7 @@ class EmailRenderer
             // ci-dessus (qui injecte elle-même un nouveau "{firstname}" dans le
             // texte) pour que ce tag fraîchement inséré soit bien résolu avant
             // le filet de sécurité qui suit.
-            $compiledTxt = str_replace(array_keys($psCommon), array_values($psCommon), $compiledTxt);
+            $compiledTxt = strtr($compiledTxt, $psCommon);
             foreach ($templateVars as $key => $value) {
                 if (is_string($value)) {
                     $compiledTxt = str_replace($key, $value, $compiledTxt);

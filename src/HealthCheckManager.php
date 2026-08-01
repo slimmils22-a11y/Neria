@@ -202,6 +202,7 @@ class HealthCheckManager
             'rtl_hardcoded_align'      => 'checkRtlHardcodedAlignment',
             'display_price_missing_lang' => 'checkDisplayPriceMissingLang',
             'hardcoded_decimal_format' => 'checkHardcodedDecimalFormat',
+            'chained_str_replace'   => 'checkChainedStrReplace',
             'cron_loop_try_catch'     => 'checkCronLoopMissingTryCatch',
             'tpl_js_escape_missing'    => 'checkTplJsEscapeMissing',
             'imap_timeout_missing'     => 'checkImapTimeoutMissing',
@@ -2344,6 +2345,60 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.hardcoded_decimal_format_ok')];
+    }
+
+    /**
+     * Scan statique de src/*.php : str_replace(array_keys($x), array_values($x), ...)
+     * — substitution de variables par tableaux parallèles, qui enchaîne les
+     * remplacements SÉQUENTIELLEMENT sur le résultat déjà transformé. Si la
+     * valeur d'UNE variable contient littéralement le texte "{autre_clé}"
+     * (champ libre BO — nom de marque, slogan, texte personnalisé — sans
+     * validation contre ce motif), ce texte injecté se fait à son tour
+     * remplacer selon l'ordre d'itération du tableau, corrompant
+     * silencieusement le texte affiché au client.
+     *
+     * Trouvé en réel le 2026-08-01 dans TranslationEngine::resolveVariables()
+     * (corrigé) ET 5 fois dans EmailRenderer.php (corrigées dans la même
+     * session) — le moteur de compilation le plus critique du module.
+     * Corrigé partout en remplaçant par strtr($text, $array), qui effectue
+     * un seul passage simultané sans jamais rescanner une portion déjà
+     * substituée.
+     */
+    private function checkChainedStrReplace(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $files = $this->collectModulePhpFiles($moduleDir);
+
+        $offenders = [];
+        foreach ($files as $file) {
+            $base = basename($file);
+            // HealthCheckManager.php : ce docblock cite littéralement le
+            // motif recherché à titre d'exemple — auto-match sinon.
+            if ($base === 'HealthCheckManager.php') {
+                continue;
+            }
+            $content = file_get_contents($file) ?: '';
+            $relative = ltrim(str_replace(str_replace('\\', '/', $moduleDir), '', str_replace('\\', '/', $file)), '/');
+
+            if (preg_match_all('/str_replace\s*\(\s*array_keys\s*\(/i', $content, $m, PREG_OFFSET_CAPTURE)) {
+                foreach ($m[0] as $match) {
+                    $line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
+                    $offenders[] = $relative . ':' . $line;
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.chained_str_replace_warning', [
+                    'n'    => count($offenders),
+                    'list' => implode(', ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.chained_str_replace_ok')];
     }
 
     /**
