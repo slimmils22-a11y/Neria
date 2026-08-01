@@ -605,12 +605,16 @@ class MonthlyReportManager
             $recs[] = ['type' => 'warning', 'key' => 'rec_unsub_high', 'vars' => ['n' => $report['unsub']]];
         }
 
-        // CA attribué notable
+        // CA attribué notable — montant brut stocké tel quel, formaté plus
+        // tard dans resolveRecVars() au moment du rendu PAR DESTINATAIRE (même
+        // logique que 'day_dow'/'template' ci-dessus) : ce rapport est envoyé
+        // à plusieurs destinataires potentiellement dans des langues
+        // différentes (NERIA_MONTHLY_REPORT_RECIPIENTS), donc un formatage
+        // figé ici (virgule française codée en dur) serait faux pour tous
+        // les destinataires non francophones.
         if ($report['revenue_total'] > 0) {
-            $currency = \Currency::getDefaultCurrency();
-            $symbol   = $currency ? $currency->sign : '€';
             $recs[] = ['type' => 'success', 'key' => 'rec_revenue', 'vars' => [
-                'amount' => $symbol . number_format($report['revenue_total'], 0, ',', ' '),
+                'amount_raw' => (float) $report['revenue_total'],
             ]];
         }
 
@@ -785,6 +789,13 @@ class MonthlyReportManager
         $prev     = $d['prev']['kpis'];
         $currency = \Currency::getDefaultCurrency();
         $symbol   = $currency ? $currency->sign : 'EUR';
+        // Formatage localisé du CA (séparateur décimal + position du symbole
+        // selon $lang) — auparavant number_format(..., ',', ' ') codé en dur,
+        // faux pour tout destinataire non francophone de ce rapport mensuel.
+        $idLangReport = (int) \Language::getIdByIso($lang) ?: (int) \Configuration::get('PS_LANG_DEFAULT');
+        $fmtAmount    = function (float $amount) use ($currency, $idLangReport, $symbol): string {
+            return $currency ? \NeriaTools::displayPrice($amount, $currency, $idLangReport) : $symbol . $amount;
+        };
 
         $delta = static function (float $curr, float $prev): string {
             if ($prev == 0 || $curr == $prev) { return ''; }
@@ -801,13 +812,13 @@ class MonthlyReportManager
         $labels = class_exists('AdminTranslator') ? AdminTranslator::templateLabels() : [];
 
         $thStyle    = 'padding:8px 12px;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#8a8278;font-weight:normal;text-align:';
-        $renderRows = function (array $rows) use ($symbol, $labels): string {
+        $renderRows = function (array $rows) use ($fmtAmount, $labels): string {
             $html = '';
             foreach ($rows as $i => $row) {
                 $num = ($i + 1) . '.';
                 $label = $labels[$row['template']] ?? ($row['label'] ?? $row['template']);
                 $rev = $row['revenue'] > 0
-                    ? ' <span style="color:#b38b59;font-size:11px;">' . $symbol . number_format($row['revenue'], 0, ',', ' ') . '</span>'
+                    ? ' <span style="color:#b38b59;font-size:11px;">' . $fmtAmount((float) $row['revenue']) . '</span>'
                     : '';
                 $html .= '<tr>'
                     . '<td style="padding:9px 12px;border-bottom:1px solid #f0ede6;font-size:13px;">' . $num . ' ' . htmlspecialchars($label) . '</td>'
@@ -849,7 +860,7 @@ class MonthlyReportManager
         $h .= '<td style="text-align:center;padding:12px 6px;border-left:1px solid #f0ede6;"><strong style="font-size:24px;color:#1a7a40;">' . $kpis['rate_open'] . '%</strong><br><span style="font-size:11px;color:#8a8278;">' . $t('kpi_open_rate') . '</span>' . $delta((float)$kpis['rate_open'], (float)$prev['rate_open']) . '</td>';
         $h .= '<td style="text-align:center;padding:12px 6px;border-left:1px solid #f0ede6;"><strong style="font-size:24px;color:#b38b59;">' . $kpis['rate_click'] . '%</strong><br><span style="font-size:11px;color:#8a8278;">' . $t('kpi_click_rate') . '</span>' . $delta((float)$kpis['rate_click'], (float)$prev['rate_click']) . '</td>';
         if ($d['revenue_total'] > 0) {
-            $h .= '<td style="text-align:center;padding:12px 6px;border-left:1px solid #f0ede6;"><strong style="font-size:20px;color:#b38b59;">' . $symbol . number_format($d['revenue_total'], 2, ',', ' ') . '</strong><br><span style="font-size:11px;color:#8a8278;">' . $t('kpi_revenue') . '</span></td>';
+            $h .= '<td style="text-align:center;padding:12px 6px;border-left:1px solid #f0ede6;"><strong style="font-size:20px;color:#b38b59;">' . $fmtAmount((float) $d['revenue_total']) . '</strong><br><span style="font-size:11px;color:#8a8278;">' . $t('kpi_revenue') . '</span></td>';
         }
         $h .= '</tr></table>';
 
@@ -1062,6 +1073,14 @@ class MonthlyReportManager
         if (isset($vars['day_dow'])) {
             $vars['day'] = $this->dayName((int) $vars['day_dow'], $lang);
             unset($vars['day_dow']);
+        }
+        if (isset($vars['amount_raw'])) {
+            $currency = \Currency::getDefaultCurrency();
+            $idLang   = (int) \Language::getIdByIso($lang) ?: (int) \Configuration::get('PS_LANG_DEFAULT');
+            $vars['amount'] = $currency
+                ? \NeriaTools::displayPrice((float) $vars['amount_raw'], $currency, $idLang)
+                : (string) $vars['amount_raw'];
+            unset($vars['amount_raw']);
         }
         return $vars;
     }

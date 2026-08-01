@@ -985,4 +985,24 @@ class NeriaTools
             }
         }
     }
+
+    /**
+     * Dernier repli pour formater un nombre décimal (ex: un pourcentage) sans
+     * extension intl disponible ni NumberFormatter fonctionnel — mêmes
+     * conditions/justification que le repli sans-intl de displayPrice()
+     * ci-dessus (mieux qu'une valeur absente de l'email). Centralisé ici
+     * pour que ce soit le SEUL endroit du module autorisé à coder en dur un
+     * séparateur décimal (cf. HealthCheckManager::checkHardcodedDecimalFormat,
+     * qui exclut ce fichier pour cette raison précise) : tout autre appelant
+     * doit passer par cette méthode plutôt que dupliquer number_format(...,',',...).
+     *
+     * @param float $value
+     * @return string Ex: "12,5" ou "10"
+     */
+    public static function formatDecimalFallback(float $value): string
+    {
+        return (fmod($value, 1.0) === 0.0)
+            ? (string) (int) $value
+            : rtrim(rtrim(number_format($value, 2, ',', ''), '0'), ',');
+    }
 }

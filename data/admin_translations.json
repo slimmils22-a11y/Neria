@@ -62599,5 +62599,26 @@
         "da": "{n} metode(r) med en cron-afsendelsesloop uden try/catch registreret: {list} → Hvad du skal gøre: en undtagelse for ÉN post kan lydløst blokere resten af batchen — omslut hver iteration i en try/catch, der logger fejlen og fortsætter.",
         "nl": "{n} methode(n) met een cron-verzendlus zonder try/catch gedetecteerd: {list} → Wat te doen: een uitzondering bij ÉÉN record kan de rest van de batch stilzwijgend blokkeren — omsluit elke iteratie met een try/catch die de fout logt en doorgaat.",
         "gb": "{n} method(s) with a cron send loop missing try/catch detected: {list} → What to do: an exception on ONE record can silently block the rest of the batch — wrap each iteration in a try/catch that logs the error and continues."
+    },
+    "watchdog.behavioral_send_error": {
+        "fr": "Échec de l'envoi {template} au client {customer} : {error}",
+        "en": "Failed to send {template} to customer {customer}: {error}",
+        "de": "Versand von {template} an Kunde {customer} fehlgeschlagen: {error}",
+        "it": "Invio di {template} al cliente {customer} non riuscito: {error}",
+        "es": "Error al enviar {template} al cliente {customer}: {error}",
+        "pt": "Falha ao enviar {template} ao cliente {customer}: {error}",
+        "br": "Falha ao enviar {template} ao cliente {customer}: {error}",
+        "ar": "فشل إرسال {template} إلى العميل {customer}: {error}",
+        "ja": "顧客 {customer} への {template} 送信に失敗しました: {error}",
+        "ko": "고객 {customer}에게 {template} 전송 실패: {error}",
+        "zh": "向客户 {customer} 发送 {template} 失败：{error}",
+        "tw": "向客戶 {customer} 發送 {template} 失敗：{error}",
+        "ru": "Не удалось отправить {template} клиенту {customer}: {error}",
+        "tr": "{customer} müşterisine {template} gönderimi başarısız oldu: {error}",
+        "sv": "Misslyckades att skicka {template} till kund {customer}: {error}",
+        "no": "Kunne ikke sende {template} til kunde {customer}: {error}",
+        "da": "Kunne ikke sende {template} til kunde {customer}: {error}",
+        "nl": "Verzenden van {template} naar klant {customer} mislukt: {error}",
+        "gb": "Failed to send {template} to customer {customer}: {error}"
     }
 }

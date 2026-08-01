@@ -383,7 +383,19 @@ class BehavioralCronManager
         );
 
         foreach ((array) $rows as $r) {
-            $this->send('first_anniversary', $r, [], (int) $r['id_first_order']);
+            try {
+                $this->send('first_anniversary', $r, [], (int) $r['id_first_order']);
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.behavioral_send_error', [
+                        'template' => 'first_anniversary',
+                        'customer' => $r['id_customer'] ?? '?',
+                        'error'    => $e->getMessage(),
+                    ]),
+                    'first_anniversary',
+                    'BehavioralCron'
+                );
+            }
         }
     }
 
@@ -422,15 +434,27 @@ class BehavioralCronManager
         );
 
         foreach ((array) $rows as $r) {
-            $this->send(
-                'reorder_reminder',
-                $r,
-                [
-                    '{product_name}' => $r['product_name'],
-                    '{shop_url}'     => \Tools::getShopDomainSsl(true),
-                ],
-                (int) $r['id_order']
-            );
+            try {
+                $this->send(
+                    'reorder_reminder',
+                    $r,
+                    [
+                        '{product_name}' => $r['product_name'],
+                        '{shop_url}'     => \Tools::getShopDomainSsl(true),
+                    ],
+                    (int) $r['id_order']
+                );
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.behavioral_send_error', [
+                        'template' => 'reorder_reminder',
+                        'customer' => $r['id_customer'] ?? '?',
+                        'error'    => $e->getMessage(),
+                    ]),
+                    'reorder_reminder',
+                    'BehavioralCron'
+                );
+            }
         }
     }
 
@@ -464,12 +488,24 @@ class BehavioralCronManager
         );
 
         foreach ((array) $rows as $r) {
-            $this->send(
-                'win_back',
-                $r,
-                ['{shop_url}' => \Tools::getShopDomainSsl(true)],
-                $year
-            );
+            try {
+                $this->send(
+                    'win_back',
+                    $r,
+                    ['{shop_url}' => \Tools::getShopDomainSsl(true)],
+                    $year
+                );
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.behavioral_send_error', [
+                        'template' => 'win_back',
+                        'customer' => $r['id_customer'] ?? '?',
+                        'error'    => $e->getMessage(),
+                    ]),
+                    'win_back',
+                    'BehavioralCron'
+                );
+            }
         }
     }
 
@@ -504,18 +540,30 @@ class BehavioralCronManager
         );
 
         foreach ((array) $rows as $r) {
-            $expiryDate = \NeriaTools::formatDate($r['date_to'], \Language::getIsoById((int) $r['id_lang']) ?: 'fr');
-            $historyUrl = $this->historyUrl((int) $r['id_lang']);
+            try {
+                $expiryDate = \NeriaTools::formatDate($r['date_to'], \Language::getIsoById((int) $r['id_lang']) ?: 'fr');
+                $historyUrl = $this->historyUrl((int) $r['id_lang']);
 
-            $this->send(
-                'loyalty_reward_expiry',
-                $r,
-                [
-                    '{reward_expiry_date}' => $expiryDate,
-                    '{history_url}'        => $historyUrl,
-                ],
-                (int) $r['id_cart_rule']
-            );
+                $this->send(
+                    'loyalty_reward_expiry',
+                    $r,
+                    [
+                        '{reward_expiry_date}' => $expiryDate,
+                        '{history_url}'        => $historyUrl,
+                    ],
+                    (int) $r['id_cart_rule']
+                );
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.behavioral_send_error', [
+                        'template' => 'loyalty_reward_expiry',
+                        'customer' => $r['id_customer'] ?? '?',
+                        'error'    => $e->getMessage(),
+                    ]),
+                    'loyalty_reward_expiry',
+                    'BehavioralCron'
+                );
+            }
         }
     }
 
@@ -580,15 +628,27 @@ class BehavioralCronManager
         );
 
         foreach ((array) $rows as $r) {
-            $this->send(
-                'wishlist_reminder',
-                $r,
-                [
-                    '{product_name}' => $r['product_name'],
-                    '{shop_url}'     => \Tools::getShopDomainSsl(true),
-                ],
-                $refId
-            );
+            try {
+                $this->send(
+                    'wishlist_reminder',
+                    $r,
+                    [
+                        '{product_name}' => $r['product_name'],
+                        '{shop_url}'     => \Tools::getShopDomainSsl(true),
+                    ],
+                    $refId
+                );
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.behavioral_send_error', [
+                        'template' => 'wishlist_reminder',
+                        'customer' => $r['id_customer'] ?? '?',
+                        'error'    => $e->getMessage(),
+                    ]),
+                    'wishlist_reminder',
+                    'BehavioralCron'
+                );
+            }
         }
     }
 
@@ -638,20 +698,32 @@ class BehavioralCronManager
         );
 
         foreach ((array) $rows as $r) {
-            $idCart   = (int) $r['id_cart'];
-            $cartUrl  = \Tools::getShopDomainSsl(true) . 'index.php?controller=order';
-            $products = $this->buildCartProducts($idCart);
+            try {
+                $idCart   = (int) $r['id_cart'];
+                $cartUrl  = \Tools::getShopDomainSsl(true) . 'index.php?controller=order';
+                $products = $this->buildCartProducts($idCart);
 
-            $this->send(
-                $template,
-                $r,
-                [
-                    '{cart_url}'     => $cartUrl,
-                    '{products}'     => $products,
-                    '{products_txt}' => $this->buildCartProductsTxt($idCart),
-                ],
-                $idCart
-            );
+                $this->send(
+                    $template,
+                    $r,
+                    [
+                        '{cart_url}'     => $cartUrl,
+                        '{products}'     => $products,
+                        '{products_txt}' => $this->buildCartProductsTxt($idCart),
+                    ],
+                    $idCart
+                );
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.behavioral_send_error', [
+                        'template' => $template,
+                        'customer' => $r['id_customer'] ?? '?',
+                        'error'    => $e->getMessage(),
+                    ]),
+                    $template,
+                    'BehavioralCron'
+                );
+            }
         }
     }
 
@@ -729,18 +801,30 @@ class BehavioralCronManager
         );
 
         foreach ((array) $rows as $r) {
-            $idCart  = (int) $r['id_cart'];
-            $cartUrl = \Tools::getShopDomainSsl(true) . 'index.php?controller=order';
+            try {
+                $idCart  = (int) $r['id_cart'];
+                $cartUrl = \Tools::getShopDomainSsl(true) . 'index.php?controller=order';
 
-            $this->send(
-                'checkout_abandonment',
-                $r,
-                [
-                    '{cart_url}' => $cartUrl,
-                    '{products}' => $this->buildCartProducts($idCart),
-                ],
-                $idCart
-            );
+                $this->send(
+                    'checkout_abandonment',
+                    $r,
+                    [
+                        '{cart_url}' => $cartUrl,
+                        '{products}' => $this->buildCartProducts($idCart),
+                    ],
+                    $idCart
+                );
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.behavioral_send_error', [
+                        'template' => 'checkout_abandonment',
+                        'customer' => $r['id_customer'] ?? '?',
+                        'error'    => $e->getMessage(),
+                    ]),
+                    'checkout_abandonment',
+                    'BehavioralCron'
+                );
+            }
         }
     }
 
@@ -889,16 +973,28 @@ class BehavioralCronManager
         );
 
         foreach ((array) $rows as $r) {
-            $newDate = \NeriaTools::formatDate('+7 days', \Language::getIsoById((int) $r['id_lang']) ?: 'fr');
-            $this->send(
-                'order_shipped_delay',
-                $r,
-                [
-                    '{order_name}'        => $r['reference'],
-                    '{new_shipping_date}' => $newDate,
-                ],
-                (int) $r['id_order']
-            );
+            try {
+                $newDate = \NeriaTools::formatDate('+7 days', \Language::getIsoById((int) $r['id_lang']) ?: 'fr');
+                $this->send(
+                    'order_shipped_delay',
+                    $r,
+                    [
+                        '{order_name}'        => $r['reference'],
+                        '{new_shipping_date}' => $newDate,
+                    ],
+                    (int) $r['id_order']
+                );
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.behavioral_send_error', [
+                        'template' => 'order_shipped_delay',
+                        'customer' => $r['id_customer'] ?? '?',
+                        'error'    => $e->getMessage(),
+                    ]),
+                    'order_shipped_delay',
+                    'BehavioralCron'
+                );
+            }
         }
     }
 

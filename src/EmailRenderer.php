@@ -1304,10 +1304,7 @@ class EmailRenderer
                     // Repli ci-dessous.
                 }
             }
-            $p = (fmod($p, 1.0) === 0.0)
-                ? (string) (int) $p
-                : rtrim(rtrim(number_format($p, 2, ',', ''), '0'), ',');
-            return $p . ' %';
+            return \NeriaTools::formatDecimalFallback($p) . ' %';
         }
 
         if ((float) $rule->reduction_amount > 0) {
