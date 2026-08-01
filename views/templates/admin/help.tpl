@@ -180,6 +180,7 @@
     pctSuffix:              "{neria_admin key='help.wd_anomaly_pct_suffix' esc='javascript'}",
     updatedAt:              "{neria_admin key='help.wd_updated_at' esc='javascript'}",
     analyzing:              "{neria_admin key='help.wd_analyzing' esc='javascript'}",
+    refreshError:           "{neria_admin key='help.wd_refresh_error' esc='javascript'}",
     analyzeBtn:             "{neria_admin key='help.wd_analyze_btn' esc='javascript'}"
   };
   </script>

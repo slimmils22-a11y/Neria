@@ -63208,5 +63208,26 @@
         "da": "{n} forekomst(er) af Currency::getDefaultCurrency() registreret: {list} → Hvad du skal gøre: gennemgå hver forekomst manuelt — det er korrekt i en forhandler-/BO-kontekst (f.eks. en rapports samlede omsætning), men forkert for en pris, der vises til en KUNDE (brug i stedet butiksspecifik valuta via Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop)). Fundet og rettet 3 gange identisk i produkt-e-mails (CollectionManager, LookCompletionManager, BehavioralCronManager).",
         "nl": "{n} voorkomen(s) van Currency::getDefaultCurrency() gedetecteerd: {list} → Wat te doen: controleer elk voorkomen handmatig — dit is correct in een handelaar-/BO-context (bijv. de geaggregeerde omzet van een rapport), maar onjuist voor een prijs die aan een KLANT wordt getoond (gebruik in plaats daarvan de winkelgebonden valuta via Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop)). 3 keer identiek gevonden en opgelost in productmails (CollectionManager, LookCompletionManager, BehavioralCronManager).",
         "gb": "{n} Currency::getDefaultCurrency() occurrence(s) detected: {list} → What to do: review each occurrence by hand — it's correct in a merchant/BO context (e.g. a report's aggregate revenue), but wrong for a price shown to a CUSTOMER (use the shop-scoped currency via Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop) instead). Found and fixed 3 times identically in product emails (CollectionManager, LookCompletionManager, BehavioralCronManager)."
+    },
+    "help.wd_refresh_error": {
+        "fr": "Échec de l'analyse — réessayez.",
+        "en": "Analysis failed — please retry.",
+        "de": "Analyse fehlgeschlagen — bitte erneut versuchen.",
+        "it": "Analisi non riuscita — riprova.",
+        "es": "Error en el análisis — inténtelo de nuevo.",
+        "pt": "Falha na análise — tente novamente.",
+        "br": "Falha na análise — tente novamente.",
+        "ar": "فشل التحليل — أعد المحاولة.",
+        "ja": "分析に失敗しました — もう一度お試しください。",
+        "ko": "분석에 실패했습니다 — 다시 시도해 주세요.",
+        "zh": "分析失败——请重试。",
+        "tw": "分析失敗——請重試。",
+        "ru": "Ошибка анализа — повторите попытку.",
+        "tr": "Analiz başarısız oldu — lütfen tekrar deneyin.",
+        "sv": "Analysen misslyckades — försök igen.",
+        "no": "Analysen mislyktes — prøv igjen.",
+        "da": "Analysen mislykkedes — prøv igen.",
+        "nl": "Analyse mislukt — probeer het opnieuw.",
+        "gb": "Analysis failed — please retry."
     }
 }

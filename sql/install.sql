@@ -758,9 +758,12 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_queue` (
     KEY `idx_customer`       (`id_customer`),
     KEY `idx_status`         (`status`),
     -- Anti-doublon : un même événement (client+template+référence, ex. un
-    -- même panier abandonné) ne doit être mis en file qu'une fois — cf.
+    -- même panier abandonné) ne doit être mis en file qu'une fois PAR
+    -- BOUTIQUE — id_shop inclus (même motif que neria_behavioral_sent) :
+    -- sans lui, un client partagé entre boutiques ne recevait l'événement
+    -- que de la première boutique dont l'INSERT IGNORE réussissait — cf.
     -- upgrade-1.0.36.php.
-    UNIQUE KEY `uq_customer_template_ref` (`id_customer`, `template`, `ref_id`)
+    UNIQUE KEY `uq_customer_template_ref_shop` (`id_customer`, `template`, `ref_id`, `id_shop`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='File d\'attente d\'emails Neria — envoi à la fenêtre d\'achat individuelle';
 

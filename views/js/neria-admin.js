@@ -841,14 +841,33 @@
             var base = window.location.href.split('#')[0].replace(/&neria_action=[^&]*/g, '');
             var url  = base + '&neria_action=watchdog_refresh';
 
+            var hadError = false;
             fetch(url, { credentials: 'same-origin' })
-                .then(function (r) { return r.json(); })
+                .then(function (r) {
+                    if (!r.ok) { throw new Error('HTTP ' + r.status); }
+                    return r.json();
+                })
                 .then(function (d) { applyWatchdogData(d); })
-                .catch(function () { /* silencieux */ })
+                .catch(function () {
+                    // Un échec silencieux ici laissait le marchand cliquer
+                    // "Analyser" sans jamais comprendre pourquoi rien ne se
+                    // passait (panne backend, session expirée...).
+                    hadError = true;
+                    if (label) label.textContent = wdL.refreshError || originalLabel;
+                    if (icon)  icon.textContent   = '⚠️';
+                })
                 .finally(function () {
                     btn.disabled = false;
-                    if (icon)  { icon.style.animation = ''; icon.textContent = '🔄'; }
-                    if (label) label.textContent = originalLabel;
+                    if (icon)  icon.style.animation = '';
+                    if (!hadError) {
+                        if (icon)  icon.textContent = '🔄';
+                        if (label) label.textContent = originalLabel;
+                        return;
+                    }
+                    setTimeout(function () {
+                        if (icon)  icon.textContent = '🔄';
+                        if (label) label.textContent = originalLabel;
+                    }, 4000);
                 });
         });
     }

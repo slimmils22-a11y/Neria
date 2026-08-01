@@ -4500,7 +4500,7 @@ class HealthCheckManager
             '1.0.33' => ['type' => 'index',  'table' => 'neria_stat', 'name' => 'idx_shop_event_date'],
             '1.0.34' => ['type' => 'index',  'table' => 'neria_stat', 'name' => 'idx_shop_date'],
             '1.0.35' => ['type' => 'column', 'table' => 'neria_upsell', 'name' => 'id_shop'],
-            '1.0.36' => ['type' => 'index',  'table' => 'neria_queue', 'name' => 'uq_customer_template_ref'],
+            '1.0.36' => ['type' => 'index',  'table' => 'neria_queue', 'name' => 'uq_customer_template_ref_shop'],
         ];
 
         $failures = [];
