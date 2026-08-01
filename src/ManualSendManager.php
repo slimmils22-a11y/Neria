@@ -714,9 +714,9 @@ class ManualSendManager
                 if ($refId > 0) {
                     $this->db->execute(
                         'INSERT IGNORE INTO `' . _DB_PREFIX_ . 'neria_behavioral_sent`
-                         (id_customer, template, ref_id, sent_at)
+                         (id_customer, template, ref_id, id_shop, sent_at)
                          VALUES (' . (int) $customer['id_customer'] . ', \'' . pSQL($template) . '\', '
-                        . $refId . ', NOW())'
+                        . $refId . ', ' . $idShop . ', NOW())'
                     );
                 }
             }
