@@ -234,8 +234,11 @@ class LookCompletionManager
     {
         $blocks = [];
         foreach ($productIds as $pid) {
+            // Actif uniquement — même correctif que CollectionManager : un
+            // produit désactivé/retiré du catalogue ne doit plus être
+            // suggéré dans l'email "Complétez votre look" avec un lien mort.
             $product = new \Product((int) $pid, false, $idLang);
-            if (!\Validate::isLoadedObject($product)) continue;
+            if (!\Validate::isLoadedObject($product) || !$product->active) continue;
 
             $cover = \Product::getCover((int) $pid);
             $imageUrl = '';

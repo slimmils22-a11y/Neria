@@ -26,6 +26,7 @@ class BounceManager
     const CFG_IMAP_SSL        = 'NERIA_BOUNCE_IMAP_SSL';
     const CFG_IMAP_FOLDER     = 'NERIA_BOUNCE_IMAP_FOLDER';
     const CFG_SOFT_THRESHOLD  = 'NERIA_BOUNCE_SOFT_THRESHOLD';
+    const CFG_SOFT_EXPIRY_MONTHS = 'NERIA_BOUNCE_SOFT_EXPIRY_MONTHS';
     const CFG_WEBHOOK_SECRET  = 'NERIA_BOUNCE_WEBHOOK_SECRET';
     const CFG_ENABLED         = 'NERIA_BOUNCE_ENABLED';
 
@@ -69,7 +70,7 @@ class BounceManager
         }
 
         $row = \Db::getInstance()->getRow(
-            'SELECT `type`, `bounce_count`, `status` FROM `' . _DB_PREFIX_ . self::TABLE . '`
+            'SELECT `type`, `bounce_count`, `status`, `last_bounce_at` FROM `' . _DB_PREFIX_ . self::TABLE . '`
              WHERE `email` = \'' . pSQL($email) . '\''
         );
 
@@ -77,8 +78,26 @@ class BounceManager
             return false;
         }
 
+        // Hard bounce : jamais de réhabilitation automatique — une adresse
+        // réellement inexistante/invalide le reste (contrairement à un soft
+        // bounce, qui reflète un problème temporaire). Seule la réactivation
+        // manuelle (reactivateBounce()) débloque un hard bounce.
         if ($row['type'] === 'hard') {
             return true;
+        }
+
+        // Soft bounce expiré (aucun nouveau bounce depuis N mois) : réhabilité
+        // automatiquement, sans intervention marchand. Avant ce correctif,
+        // bounce_count n'était jamais décrémenté ni remis à zéro et aucun
+        // mécanisme n'expirait les vieux soft bounces — une adresse qui avait
+        // eu 3 boîtes pleines en janvier restait bloquée à vie même si tout
+        // fonctionnait normalement depuis des mois.
+        $expiryMonths = (int) \Configuration::get(self::CFG_SOFT_EXPIRY_MONTHS) ?: 6;
+        if (!empty($row['last_bounce_at'])) {
+            $ageMonths = (strtotime('now') - strtotime($row['last_bounce_at'])) / (86400 * 30.44);
+            if ($ageMonths >= $expiryMonths) {
+                return false;
+            }
         }
 
         // Soft bounce : bloquer uniquement si seuil dépassé
@@ -136,6 +155,19 @@ class BounceManager
 
         foreach ($uids as $uid) {
             try {
+                // Marqué \Seen EN PREMIER, avant tout traitement — auparavant
+                // posé seulement après le parsing complet + recordBounce().
+                // Si deux exécutions du cron se chevauchent (cron lent puis
+                // relancé, deux workers), les deux lisaient le même UID
+                // encore UNSEEN et appelaient chacune recordBounce() pour le
+                // MÊME message physique, incrémentant bounce_count deux fois
+                // pour un seul rebond réel — rapprochant artificiellement une
+                // adresse du seuil de blocage. Poser le flag en premier
+                // réduit drastiquement cette fenêtre de course (au prix d'un
+                // message non retraité si une exception survient après —
+                // compromis acceptable pour un flux de bounces indépendants).
+                imap_setflag_full($mbox, (string) $uid, '\\Seen');
+
                 $header = imap_headerinfo($mbox, $uid);
                 $body   = imap_fetchbody($mbox, $uid, '');
 
@@ -146,12 +178,22 @@ class BounceManager
                     continue;
                 }
 
-                $parsed = $this->parseDsnBody($body);
-                if (!$parsed) {
-                    $parsed = $this->parseBodyFallback($body, $subject);
+                // parseDsnBody() retourne un destinataire par échec détecté
+                // dans le DSN (peut être plusieurs sur un envoi groupé) ; si
+                // aucun DSN structuré n'est trouvé, repli sur un seul résultat
+                // best-effort via parseBodyFallback().
+                $parsedList = $this->parseDsnBody($body);
+                if (empty($parsedList)) {
+                    $single = $this->parseBodyFallback($body, $subject);
+                    if ($single) {
+                        $parsedList = [$single];
+                    }
                 }
 
-                if ($parsed && isset($parsed['email']) && $parsed['email'] !== '') {
+                foreach ($parsedList as $parsed) {
+                    if (!isset($parsed['email']) || $parsed['email'] === '') {
+                        continue;
+                    }
                     $this->recordBounce(
                         $parsed['email'],
                         $parsed['type'] ?? 'hard',
@@ -161,7 +203,6 @@ class BounceManager
                     $bounces++;
                 }
 
-                imap_setflag_full($mbox, (string) $uid, '\\Seen');
                 $processed++;
             } catch (\Throwable $e) {
                 $errors[] = 'UID ' . $uid . ': ' . $e->getMessage();
@@ -215,47 +256,61 @@ class BounceManager
      * Parse une notification de livraison DSN (RFC 3464).
      * Recherche le bloc MIME de type message/delivery-status.
      *
-     * @return array{email: string, type: string, reason: string}|null
+     * Un DSN groupe peut contenir PLUSIEURS blocs "par destinataire" (un par
+     * adresse en échec) — auparavant un seul destinataire était extrait
+     * (le premier), les autres adresses en échec d'un même envoi BCC/multi-
+     * destinataires n'étaient jamais enregistrées (faux négatif silencieux :
+     * pas de blocage à tort, mais lacune de détection). On découpe désormais
+     * le bloc delivery-status sur chaque occurrence de "Final-Recipient" pour
+     * traiter chaque destinataire indépendamment.
+     *
+     * @return array<int,array{email: string, type: string, reason: string}>
      */
-    private function parseDsnBody(string $body): ?array
+    private function parseDsnBody(string $body): array
     {
         // Cherche la section delivery-status dans le corps multipart
         if (!preg_match('/Content-Type:\s*message\/delivery-status.*?(?=Content-Type:|$)/si', $body, $m)) {
-            return null;
+            return [];
         }
         $dsnBlock = $m[0];
 
-        $email  = '';
-        $type   = 'hard';
-        $reason = '';
+        $chunks  = preg_split('/(?=Final-Recipient:)/i', $dsnBlock) ?: [];
+        $results = [];
 
-        // Final-Recipient: rfc822; user@example.com
-        if (preg_match('/Final-Recipient:\s*(?:rfc822;\s*)?([^\s\r\n]+)/i', $dsnBlock, $m)) {
-            $email = mb_strtolower(trim($m[1], '<> '));
-        }
+        foreach ($chunks as $chunk) {
+            // Final-Recipient: rfc822; user@example.com
+            if (!preg_match('/Final-Recipient:\s*(?:rfc822;\s*)?([^\s\r\n]+)/i', $chunk, $m)) {
+                continue;
+            }
+            $email  = mb_strtolower(trim($m[1], '<> '));
+            $type   = 'hard';
+            $reason = '';
 
-        // Status: 5.x.x (hard) ou 4.x.x (soft)
-        if (preg_match('/Status:\s*([45]\.\d+\.\d+)/i', $dsnBlock, $m)) {
-            $type   = str_starts_with($m[1], '4.') ? 'soft' : 'hard';
-            $reason = 'Status DSN : ' . $m[1];
-        }
+            // Status: 5.x.x (hard) ou 4.x.x (soft)
+            if (preg_match('/Status:\s*([45]\.\d+\.\d+)/i', $chunk, $m)) {
+                $type   = str_starts_with($m[1], '4.') ? 'soft' : 'hard';
+                $reason = 'Status DSN : ' . $m[1];
+            }
 
-        // Action: failed | delayed | delivered
-        if (preg_match('/Action:\s*(\w+)/i', $dsnBlock, $m)) {
-            $action = mb_strtolower(trim($m[1]));
-            if ($action === 'delayed') {
-                $type = 'soft';
-            } elseif ($action === 'failed') {
-                // garder le type déjà déterminé par Status
+            // Action: failed | delayed | delivered
+            if (preg_match('/Action:\s*(\w+)/i', $chunk, $m)) {
+                $action = mb_strtolower(trim($m[1]));
+                if ($action === 'delayed') {
+                    $type = 'soft';
+                }
+            }
+
+            // Diagnostic-Code pour la raison lisible
+            if (preg_match('/Diagnostic-Code:\s*(?:smtp;\s*)?(.*?)(?=\r?\n[A-Za-z]|$)/si', $chunk, $m)) {
+                $reason = trim(preg_replace('/\s+/', ' ', $m[1]));
+            }
+
+            if ($email !== '') {
+                $results[] = compact('email', 'type', 'reason');
             }
         }
 
-        // Diagnostic-Code pour la raison lisible
-        if (preg_match('/Diagnostic-Code:\s*(?:smtp;\s*)?(.*?)(?=\r?\n[A-Za-z]|$)/si', $dsnBlock, $m)) {
-            $reason = trim(preg_replace('/\s+/', ' ', $m[1]));
-        }
-
-        return $email !== '' ? compact('email', 'type', 'reason') : null;
+        return $results;
     }
 
     /**
@@ -263,16 +318,37 @@ class BounceManager
      */
     private function parseBodyFallback(string $body, string $subject): ?array
     {
-        // Patterns typiques dans les corps de bounce non-DSN
-        $patterns = [
+        // Patterns typiques dans les corps de bounce non-DSN permanents (adresse invalide)
+        $hardPatterns = [
             '/(?:failed|invalid|rejected|unknown|no such)\s+(?:user|address|recipient).*?[\s<]([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})[\s>]/i',
             '/The\s+(?:address|email)\s+["\']?([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})["\']?\s+(?:does not exist|was not found|is invalid)/i',
             '/550[- ][^\r\n]*?([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})/i',
         ];
 
-        foreach ($patterns as $pattern) {
+        foreach ($hardPatterns as $pattern) {
             if (preg_match($pattern, $body, $m)) {
                 return ['email' => mb_strtolower($m[1]), 'type' => 'hard', 'reason' => $subject];
+            }
+        }
+
+        // Patterns typiques de bounce TEMPORAIRE en texte libre non-DSN —
+        // fréquent chez certains fournisseurs qui n'envoient pas de DSN
+        // structuré. Auparavant absents : ces messages ne correspondaient à
+        // aucun motif et repartaient marqués lus sans être enregistrés,
+        // perdant silencieusement l'information ("boîte pleine" ne comptait
+        // jamais dans bounce_count, alors qu'un vrai hard bounce du même
+        // fournisseur, lui, était bien détecté).
+        $softPatterns = [
+            '/(?:mailbox|quota)\s+(?:is\s+)?full.*?[\s<]([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})(?:[\s>]|$)/i',
+            '/quota\s+exceeded.*?[\s<]([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})(?:[\s>]|$)/i',
+            '/over\s+quota.*?[\s<]([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})(?:[\s>]|$)/i',
+            '/4(?:2[0-9]|5[0-9])[- ][^\r\n]*?([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})/i',
+            '/(?:temporarily\s+(?:unavailable|deferred)|try\s+again\s+later).*?[\s<]([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})(?:[\s>]|$)/i',
+        ];
+
+        foreach ($softPatterns as $pattern) {
+            if (preg_match($pattern, $body, $m)) {
+                return ['email' => mb_strtolower($m[1]), 'type' => 'soft', 'reason' => $subject];
             }
         }
 
@@ -353,8 +429,35 @@ class BounceManager
             return null;
         }
         $email  = mb_strtolower($p['email'] ?? '');
-        $type   = ($p['type'] ?? '') === 'blocked' ? 'soft' : 'hard';
-        $reason = $p['reason'] ?? $p['status'] ?? "SendGrid $event";
+        $reason = (string) ($p['reason'] ?? $p['status'] ?? "SendGrid $event");
+
+        // L'événement "dropped" de SendGrid ne signifie PAS toujours une
+        // adresse invalide — contrairement à "bounce" — il couvre aussi des
+        // motifs sans rapport avec la délivrabilité de l'adresse elle-même :
+        // désabonnement antérieur, plainte spam antérieure, quota de compte
+        // dépassé, en-tête SMTPAPI invalide. Classer tout "dropped" en hard
+        // bounce (comportement précédent, sauf type==='blocked') bloquait à
+        // tort ces clients de façon PERMANENTE. On ignore désormais les
+        // motifs clairement non liés à l'adresse (aucun enregistrement), et
+        // on classe les "dropped" ambigus en soft plutôt que hard — un faux
+        // positif soft se rattrape (seuil + réactivation), un faux positif
+        // hard bloque définitivement.
+        if ($event === 'dropped') {
+            $reasonLower = mb_strtolower($reason);
+            $notAnAddressIssue = [
+                'unsubscribed', 'spam report', 'invalid smtpapi',
+                'over package quota', 'over quota',
+            ];
+            foreach ($notAnAddressIssue as $needle) {
+                if (str_contains($reasonLower, $needle)) {
+                    return null;
+                }
+            }
+            $type = str_contains($reasonLower, 'bounced address') ? 'hard' : 'soft';
+        } else {
+            $type = ($p['type'] ?? '') === 'blocked' ? 'soft' : 'hard';
+        }
+
         return compact('email', 'type', 'reason');
     }
 

@@ -457,7 +457,15 @@ class CertificateManager
             $path = 'certificates/' . $file;
         }
 
-        return ['content' => $pdfContent, 'path' => $path, 'filename' => 'certificat_' . $serial . '.pdf'];
+        // Même assainissement que $file ci-dessus (whitelist alphanumérique)
+        // — auparavant $serial brut était utilisé ici, sans assainissement,
+        // alors qu'il est saisi librement par l'admin en BO (cert_serial).
+        // Un guillemet dans le numéro de série pouvait rompre l'attribut
+        // filename="..." de l'en-tête Content-Disposition au téléchargement
+        // (neria.php, action cert_download).
+        $safeSerial = preg_replace('/[^a-z0-9_\-]/i', '_', $serial);
+
+        return ['content' => $pdfContent, 'path' => $path, 'filename' => 'certificat_' . $safeSerial . '.pdf'];
     }
 
     // ============================================================

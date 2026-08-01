@@ -249,9 +249,14 @@ class CollectionManager
             $idLang = $this->resolveLang($customer);
             $idShop = (int) ($row['id_shop'] ?: \Context::getContext()->shop->id);
 
-            // Récupérer le produit manquant
+            // Récupérer le produit manquant — actif uniquement. Contrairement
+            // à getCategories()/searchProducts() qui filtrent déjà p.active=1,
+            // ce chargement individuel n'excluait pas les produits désactivés
+            // (fin de série retirée du catalogue sans mise à jour de la règle
+            // de collection) : le cron continuait d'envoyer "il ne vous manque
+            // que X" avec un lien produit indisponible.
             $product = new \Product($missingId, false, $idLang);
-            if (!\Validate::isLoadedObject($product)) continue;
+            if (!\Validate::isLoadedObject($product) || !$product->active) continue;
 
             $productName  = $product->name;
             $productLink  = \Context::getContext()->link->getProductLink($product);
