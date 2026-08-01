@@ -1686,7 +1686,17 @@ class BehavioralCronManager
                     '{product_name}'  => $product->name,
                     '{product_url}'   => $productUrl,
                     '{product_image}' => $imageUrl,
-                    '{product_price}' => \NeriaTools::displayPrice((float) $product->price, \Currency::getDefaultCurrency(), $idLang),
+                    // Devise par défaut de LA BOUTIQUE du client (id_shop du
+                    // panier), pas celle du contexte global — même correctif
+                    // que CollectionManager/LookCompletionManager (round
+                    // précédent) : l'ancienne devise par défaut globale
+                    // ignorait toujours la devise réelle de la boutique du
+                    // client sur une install multi-devises/multi-boutiques.
+                    '{product_price}' => \NeriaTools::displayPrice(
+                        (float) $product->price,
+                        new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, (int) $r['id_shop'])),
+                        $idLang
+                    ),
                     '{times_added}'   => (int) $r['times_added'],
                 ],
                 $idProduct

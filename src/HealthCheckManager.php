@@ -204,6 +204,7 @@ class HealthCheckManager
             'hardcoded_decimal_format' => 'checkHardcodedDecimalFormat',
             'chained_str_replace'   => 'checkChainedStrReplace',
             'customer_email_shop_scope' => 'checkCustomerEmailLookupMissingShop',
+            'default_currency_usage' => 'checkDefaultCurrencyUsage',
             'cron_loop_try_catch'     => 'checkCronLoopMissingTryCatch',
             'tpl_js_escape_missing'    => 'checkTplJsEscapeMissing',
             'imap_timeout_missing'     => 'checkImapTimeoutMissing',
@@ -2467,6 +2468,63 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.customer_email_shop_scope_ok')];
+    }
+
+    /**
+     * Scan statique : occurrences de Currency::getDefaultCurrency(), qui
+     * ignore toujours la devise réelle de la boutique du destinataire au
+     * profit de la devise par défaut GLOBALE. Motif trouvé et corrigé 3 fois
+     * à l'identique (CollectionManager, LookCompletionManager,
+     * BehavioralCronManager ghost_cart le 01/08/2026) dans des prix affichés
+     * à un CLIENT — mais un usage légitime existe aussi (MonthlyReportManager,
+     * CA agrégé du rapport envoyé au MARCHAND, où la devise de la boutique
+     * est justement la bonne référence).
+     *
+     * Volontairement non tranché automatiquement (impossible à distinguer de
+     * façon fiable par un scan statique — contexte client vs contexte BO) :
+     * liste chaque occurrence pour relecture manuelle plutôt qu'un verdict
+     * "bug"/"pas bug". Le volume est faible (5 occurrences dans tout le
+     * module au 01/08/2026), donc cette relecture reste rapide à chaque
+     * exécution — c'est ce qui rend ce contrôle praticable malgré l'absence
+     * de verdict automatique.
+     */
+    private function checkDefaultCurrencyUsage(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name . '/src';
+        if (!is_dir($moduleDir)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.default_currency_usage_ok')];
+        }
+        $files = $this->collectModulePhpFiles($moduleDir);
+
+        $offenders = [];
+        foreach ($files as $file) {
+            // Ce fichier cite littéralement le motif recherché dans son
+            // propre docblock (à titre d'exemple) — auto-match sinon.
+            if (basename($file) === 'HealthCheckManager.php') {
+                continue;
+            }
+            $content = file_get_contents($file) ?: '';
+            $relative = ltrim(str_replace(str_replace('\\', '/', _PS_MODULE_DIR_ . $this->module->name), '', str_replace('\\', '/', $file)), '/');
+
+            if (preg_match_all('/Currency::getDefaultCurrency\s*\(\s*\)/i', $content, $m, PREG_OFFSET_CAPTURE)) {
+                foreach ($m[0] as $match) {
+                    $line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
+                    $offenders[] = $relative . ':' . $line;
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.default_currency_usage_warning', [
+                    'n'    => count($offenders),
+                    'list' => implode(', ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.default_currency_usage_ok')];
     }
 
     /**
