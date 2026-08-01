@@ -437,13 +437,23 @@ class BehavioralCronManager
         }
         $days   = self::DELAY_REORDER_DAYS;
         $idShop = (int) \Context::getContext()->shop->id;
+        // o.id_order est déjà déterminé de façon unique par client via la
+        // sous-requête MAX(o2.id_order) — mais une commande a souvent
+        // plusieurs lignes de produits, donc JOIN order_detail + GROUP BY
+        // c.id_customer n'est PAS valide en SQL strict (ONLY_FULL_GROUP_BY,
+        // défaut MySQL 5.7.5+/8.x) : product_name n'est fonctionnellement
+        // dépendant ni de c.id_customer ni de o.id_order. Remplacé par une
+        // sous-requête corrélée déterministe (1ère ligne de la commande) —
+        // plus de GROUP BY nécessaire, un seul id_order par client déjà.
         $rows = $this->db->executeS(
             'SELECT c.id_customer, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop,
-                    o.id_order, od.product_name
+                    o.id_order,
+                    (SELECT od2.product_name FROM `' . $this->prefix . 'order_detail` od2
+                     WHERE od2.id_order = o.id_order
+                     ORDER BY od2.id_order_detail ASC LIMIT 1) AS product_name
              FROM `' . $this->prefix . 'customer` c
              JOIN `' . $this->prefix . 'orders` o
                   ON o.id_customer = c.id_customer AND o.valid = 1 AND o.id_shop = ' . $idShop . '
-             JOIN `' . $this->prefix . 'order_detail` od ON od.id_order = o.id_order
              WHERE c.active = 1 AND c.deleted = 0
                AND DATE(o.date_add) = DATE(DATE_SUB(NOW(), INTERVAL ' . $days . ' DAY))
                AND o.id_order = (
@@ -455,7 +465,6 @@ class BehavioralCronManager
                    WHERE bs.id_customer = c.id_customer AND bs.template = \'reorder_reminder\'
                      AND bs.ref_id = o.id_order AND bs.id_shop = ' . $idShop . '
                )
-             GROUP BY c.id_customer
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
 
@@ -617,11 +626,23 @@ class BehavioralCronManager
         $refId  = (int) date('Y') * 100 + (int) date('n');
         $idShop = (int) \Context::getContext()->shop->id;
 
+        // Un client peut avoir plusieurs lignes dans `wishlist` (plusieurs
+        // listes) : sans restreindre à UNE SEULE ligne par client avant le
+        // GROUP BY, product_name n'est fonctionnellement dépendant ni de
+        // w.id_customer ni d'aucune colonne groupée — invalide en SQL strict
+        // (ONLY_FULL_GROUP_BY). first_wishlist fixe une wishlist déterministe
+        // par client (la plus ancienne), rendant le GROUP BY inutile.
         $rows = $this->db->executeS(
             'SELECT w.id_customer, w.id_shop,
                     c.email, c.firstname, c.lastname, c.id_lang,
                     pl.name AS product_name
-             FROM `' . $this->prefix . 'wishlist` w
+             FROM (
+                 SELECT w2.id_customer, MIN(w2.id_wishlist) AS min_wishlist
+                 FROM `' . $this->prefix . 'wishlist` w2
+                 WHERE w2.id_shop = ' . $idShop . '
+                 GROUP BY w2.id_customer
+             ) first_wishlist
+             JOIN `' . $this->prefix . 'wishlist` w ON w.id_wishlist = first_wishlist.min_wishlist
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = w.id_customer
              JOIN (
                  SELECT wp.id_wishlist, MIN(wp.id_wishlist_product) AS min_id
@@ -649,7 +670,6 @@ class BehavioralCronManager
                      AND od.product_id = wp2.id_product
                      AND o.valid = 1
                )
-             GROUP BY w.id_customer
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
 
@@ -688,16 +708,23 @@ class BehavioralCronManager
         if (!\Configuration::getGlobalValue('NERIA_ABANDONED_CART_ENABLED')) {
             return;
         }
-        // run() n'est déclenché qu'une fois par jour (garde-fou
-        // CRON_LAST_BEHAVIORAL dans neria.php). Pour les templates à délai
-        // court (1h), une fenêtre de seulement 1h manquait quasiment tous
-        // les paniers : élargie à 24h. Les délais plus longs (24h/72h)
-        // gardent une fenêtre étroite d'1h, car l'élargir créerait un
-        // chevauchement avec la fenêtre du palier suivant (ex: cart_1
-        // [1h,25h] chevaucherait cart_2 [24h,48h] et enverrait les deux
-        // emails pour le même panier). La dédup via neria_behavioral_sent
-        // empêche seulement le renvoi du MÊME template, pas ce chevauchement.
-        $minAgo = ($hours <= 1) ? 24 : $hours + 1;
+        // run() n'est déclenché qu'une fois par jour, à une heure non
+        // maîtrisée (premier visiteur front du jour) — garde-fou
+        // CRON_LAST_BEHAVIORAL dans neria.php. Une fenêtre étroite d'1h
+        // pour cart_2/cart_3 (ex: [24h,25h]) n'était donc quasiment jamais
+        // atteinte par ce passage quotidien à heure variable : ces deux
+        // relances ne partaient presque jamais, silencieusement.
+        // Fenêtre élargie jusqu'au seuil du palier suivant (non inclus) —
+        // ex: cart_1 couvre [1h,24h), cart_2 [24h,72h), cart_3 [72h,30j].
+        // Pas de risque de double-envoi pour un même palier : chaque tier a
+        // sa propre déduplication (bs.template = ce template précis), et
+        // les fenêtres ne se chevauchent pas entre elles.
+        $nextTierHours = [
+            self::DELAY_CART_1_HOURS => self::DELAY_CART_2_HOURS,
+            self::DELAY_CART_2_HOURS => self::DELAY_CART_3_HOURS,
+            self::DELAY_CART_3_HOURS => 24 * 30, // dernier palier : plafonné à 30 jours
+        ];
+        $minAgo = $nextTierHours[$hours] ?? ($hours + 1);
         $idShop = (int) \Context::getContext()->shop->id;
         $rows   = $this->db->executeS(
             'SELECT ca.id_cart, ca.id_customer, ca.id_shop,

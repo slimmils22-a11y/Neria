@@ -397,9 +397,18 @@ class DeliverabilityScorer
     /**
      * Point d'entrée principal : analyse un email et retourne le score.
      *
+     * Le dictionnaire anti-spam ($spamTriggers/$subjectSpamTriggers) couvre
+     * volontairement toutes les langues à la fois dans un seul tableau plat
+     * (un email en français peut aussi contenir des déclencheurs anglais) —
+     * il n'existe donc aucun sous-ensemble par langue à sélectionner ici.
+     * Un paramètre $lang était accepté sans jamais être utilisé dans le
+     * corps de la méthode (AdminTranslator::t() résout déjà les libellés
+     * dans la langue de l'admin BO, pas dans celle de l'email analysé) —
+     * retiré pour ne pas laisser croire à un scoring contextualisé par
+     * langue qui n'existe pas.
+     *
      * @param string $htmlContent HTML complet de l'email rendu
      * @param string $subject     Sujet de l'email
-     * @param string $lang        Code langue (contexte)
      * @return array {score:int, grade:string, color:string, label:string,
      *               criteria:array, recommendations:array}
      */
@@ -408,7 +417,7 @@ class DeliverabilityScorer
         return $this->subjectSpamTriggers;
     }
 
-    public function score(string $htmlContent, string $subject, string $lang = 'fr'): array
+    public function score(string $htmlContent, string $subject): array
     {
         $score    = 100;
         $criteria = [];
@@ -732,11 +741,19 @@ class DeliverabilityScorer
         $result = ['spf' => false, 'dmarc' => false, 'dkim' => false];
 
         try {
+            // Comparaisons insensibles à la casse : la casse du tag "v="
+            // n'est pas garantie chez tous les fournisseurs DNS/ESP — même
+            // constat déjà pris en compte par DomainReputationManager::
+            // checkDkim() (strtolower) pour ce même type de vérification.
+            // Sans ceci, un enregistrement valide écrit "v=dkim1"/"v=dmarc1"
+            // était signalé à tort comme absent (faux négatif, score de
+            // délivrabilité faussement bas).
+
             // SPF : enregistrement TXT commençant par "v=spf1"
             $records = @dns_get_record($domain, DNS_TXT);
             if (is_array($records)) {
                 foreach ($records as $r) {
-                    if (isset($r['txt']) && str_starts_with(trim($r['txt']), 'v=spf1')) {
+                    if (isset($r['txt']) && stripos(trim($r['txt']), 'v=spf1') === 0) {
                         $result['spf'] = true;
                         break;
                     }
@@ -747,7 +764,7 @@ class DeliverabilityScorer
             $records = @dns_get_record('_dmarc.' . $domain, DNS_TXT);
             if (is_array($records)) {
                 foreach ($records as $r) {
-                    if (isset($r['txt']) && str_contains($r['txt'], 'v=DMARC1')) {
+                    if (isset($r['txt']) && stripos($r['txt'], 'v=DMARC1') !== false) {
                         $result['dmarc'] = true;
                         break;
                     }
@@ -763,7 +780,7 @@ class DeliverabilityScorer
                 $records = @dns_get_record($sel . '._domainkey.' . $domain, DNS_TXT);
                 if (is_array($records) && !empty($records)) {
                     foreach ($records as $r) {
-                        if (isset($r['txt']) && str_contains($r['txt'], 'v=DKIM1')) {
+                        if (isset($r['txt']) && stripos($r['txt'], 'v=DKIM1') !== false) {
                             $result['dkim'] = true;
                             break 2;
                         }

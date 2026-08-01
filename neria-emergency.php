@@ -20,6 +20,15 @@ $startTime = microtime(true);
 @ini_set('display_errors', '0');
 @error_reporting(0);
 
+// Le token vit dans l'URL (?token=...) par nécessité — cette page doit
+// rester accessible sans session PrestaShop, donc pas d'alternative POST
+// bookmarkable. Ces deux en-têtes réduisent le résidu d'exposition réel :
+// Cache-Control empêche un proxy/navigateur de conserver l'URL (donc le
+// token) en cache ; Referrer-Policy empêche sa fuite via l'en-tête Referer
+// si un lien externe venait à être ajouté un jour sur cette page.
+header('Cache-Control: no-store, no-cache, must-revalidate, private');
+header('Referrer-Policy: no-referrer');
+
 // ── Langue (page autonome, sans AdminTranslator/PrestaShop) ──────
 // Résolue via ?lang=xx (même URL que ?token=xx), repli sur l'anglais.
 // Traductions embarquées directement ici — cette page doit rester

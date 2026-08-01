@@ -3152,7 +3152,7 @@ class Neria extends Module
                     $subject  = trim(strip_tags($engine->get($scoreTemplate, 'greeting_main', $scoreLang)));
 
                     $scorer = new DeliverabilityScorer();
-                    $result = $scorer->score($html, $subject, $scoreLang);
+                    $result = $scorer->score($html, $subject);
 
                     $this->context->smarty->assign('neria_deliverability', $result);
 
