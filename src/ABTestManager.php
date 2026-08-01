@@ -95,9 +95,20 @@ class ABTestManager
      *
      * @param string $template   Nom du template (ex: abandoned_cart_1)
      * @param int    $idCustomer ID client PrestaShop (0 = invite)
+     * @param string $email      Email destinataire — sert de clé de
+     *                           répartition quand id_customer=0 (invité).
+     *                           Avant ce correctif, TOUS les invités
+     *                           recevaient systématiquement la variante A
+     *                           (aucune répartition), gonflant artificiellement
+     *                           son volume et biaisant le calcul du "gagnant"
+     *                           sur les boutiques à forte proportion d'achats
+     *                           invités — un email est toujours connu au
+     *                           moment de l'envoi, avec ou sans compte client,
+     *                           donc c'est une clé stable disponible dans
+     *                           tous les cas, contrairement à id_customer.
      * @return string 'A', 'B' ou ''
      */
-    public function getVariantForEmail(string $template, int $idCustomer): string
+    public function getVariantForEmail(string $template, int $idCustomer, string $email = ''): string
     {
         // Charge les tests actifs si pas encore fait
         $this->loadActiveTests();
@@ -109,14 +120,18 @@ class ABTestManager
 
         $test = $this->activeTestsCache[$template];
 
-        // Clients invites (id=0) : toujours variante A
-        // (pas d'identifiant stable pour garantir la coherence)
-        if ($idCustomer === 0) {
+        // Clé de répartition : id_customer si connu, sinon l'email (stable
+        // même pour un invité) ; repli sur le nom du template seul (toujours
+        // variante A pour CE template précis) uniquement si aucun des deux
+        // n'est disponible — cas résiduel qui ne devrait jamais survenir en
+        // pratique puisqu'un email destinataire est toujours connu à l'envoi.
+        $key = $idCustomer > 0 ? (string) $idCustomer : trim($email);
+        if ($key === '') {
             return self::VARIANT_A;
         }
 
         // Algorithme de repartition deterministe
-        $variant = $this->assignVariant($template, $idCustomer, (int) $test['split_percent']);
+        $variant = $this->assignVariant($template, $key, (int) $test['split_percent']);
 
         $this->wd()->info(
             \WatchdogManager::i18nMsg('watchdog.abtest_assigned', ['template' => $template, 'customer' => $idCustomer, 'variant' => $variant]),
@@ -145,11 +160,11 @@ class ABTestManager
      */
     private function assignVariant(
         string $template,
-        int    $idCustomer,
+        string $key,
         int    $splitPercent
     ): string {
         // crc32 produit un entier signe â€” abs() pour le positiver
-        $hash    = abs(crc32($template . '|' . $idCustomer));
+        $hash    = abs(crc32($template . '|' . $key));
         $bucket  = $hash % 100; // Valeur entre 0 et 99
 
         return $bucket < $splitPercent

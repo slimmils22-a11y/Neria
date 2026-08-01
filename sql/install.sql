@@ -471,6 +471,7 @@ COMMENT='Changelog des textes emails Neria (Git simplifie)';
 CREATE TABLE IF NOT EXISTS `PREFIX_neria_upsell` (
     `id_upsell`          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
     `id_customer`        INT UNSIGNED  NOT NULL DEFAULT 0,
+    `id_shop`            INT UNSIGNED  NOT NULL DEFAULT 1 COMMENT 'Boutique d\'origine de la suggestion — cf. upgrade-1.0.35.php',
     `id_order_source`    INT UNSIGNED  NOT NULL DEFAULT 0 COMMENT 'Commande déclenchante',
     `id_product_upsell`  INT UNSIGNED  NOT NULL DEFAULT 0 COMMENT 'Produit suggéré',
     `product_name`       VARCHAR(255)  NOT NULL DEFAULT '',
@@ -483,6 +484,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_upsell` (
     `conversion_amount`  DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     PRIMARY KEY (`id_upsell`),
     KEY `idx_customer`    (`id_customer`),
+    KEY `idx_shop`        (`id_shop`),
     KEY `idx_order_src`   (`id_order_source`),
     KEY `idx_product`     (`id_product_upsell`),
     KEY `idx_clicked`     (`clicked_at`)

@@ -1,6 +1,6 @@
 module.exports = {
   meta: {
-    version: "1.0.34",
+    version: "1.0.35",
     lang_name: "Svenska",
     doc_title: "Fullständig användarhandbok",
     doc_subtitle: "PrestaShop 8 & 9-modul — Version 1.0.33",

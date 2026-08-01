@@ -592,14 +592,26 @@ class StatsManager
             return;
         }
 
+        // Format stocké : "gagnant|confiance" — auparavant seule la confiance
+        // était comparée, jamais le gagnant. Si la tendance s'inversait après
+        // le premier seuil de significativité atteint (B devient gagnant
+        // après A), la confiance restait proche du seuil déjà loggé et le
+        // garde-fou bloquait tout nouveau webhook/log : le marchand continuait
+        // de voir l'ancien gagnant comme vérité, sans alerte de correction.
         $cfgKey = 'NERIA_SIG_LOGGED_' . strtoupper(preg_replace('/[^A-Za-z0-9]/', '_', $template));
-        $logged = (int) \Configuration::get($cfgKey);
+        $logged = (string) \Configuration::get($cfgKey);
+        $loggedWinner = null;
+        $loggedConf   = 0.0;
+        if (strpos($logged, '|') !== false) {
+            [$loggedWinner, $loggedConfStr] = explode('|', $logged, 2);
+            $loggedConf = (float) $loggedConfStr;
+        }
 
-        if ($logged >= $conf) {
+        if ($loggedWinner === $winner && $loggedConf >= $conf) {
             return;
         }
 
-        \Configuration::updateValue($cfgKey, $conf);
+        \Configuration::updateValue($cfgKey, $winner . '|' . $conf);
 
         (new WatchdogManager($this->module))->info(
             WatchdogManager::i18nMsg('watchdog.abtest_significance_reached', ['template' => $template, 'conf' => $conf, 'winner' => $winner]),

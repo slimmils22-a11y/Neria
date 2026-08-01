@@ -4290,6 +4290,7 @@ class HealthCheckManager
             '1.0.32' => ['type' => 'config', 'name' => 'NERIA_BIRTHDAY_ENABLED'],
             '1.0.33' => ['type' => 'index',  'table' => 'neria_stat', 'name' => 'idx_shop_event_date'],
             '1.0.34' => ['type' => 'index',  'table' => 'neria_stat', 'name' => 'idx_shop_date'],
+            '1.0.35' => ['type' => 'column', 'table' => 'neria_upsell', 'name' => 'id_shop'],
         ];
 
         $failures = [];

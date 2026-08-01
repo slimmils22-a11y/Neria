@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.34';
+    const VERSION = '1.0.35';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -6875,7 +6875,19 @@ class Neria extends Module
             WatchdogManager::CFG_DIGEST_LAST                   => 0,
         ];
 
+        // N'écrase QUE les clés absentes (sauf NERIA_INSTALLED_VERSION, qui
+        // doit toujours refléter la version du code installé). Avant ce
+        // correctif, un install() rappelé sur une installation déjà active
+        // (désync ps_module réparée manuellement, migration, tout flux BO qui
+        // rappelle install() sans passer par uninstall()) écrasait
+        // silencieusement TOUTE la configuration existante — y compris la
+        // clé de licence active (LicenseManager::CONFIG_KEY réinitialisée à
+        // '', coupant l'envoi d'emails via le verrou de licence) et tous les
+        // toggles de fonctionnalités déjà personnalisés par le marchand.
         foreach ($defaults as $key => $value) {
+            if ($key !== 'NERIA_INSTALLED_VERSION' && Configuration::get($key) !== false) {
+                continue;
+            }
             if (!Configuration::updateValue($key, $value)) {
                 return false;
             }
@@ -6989,11 +7001,21 @@ class Neria extends Module
         }
 
         // Sauvegarde de l'état précédent (pour restauration à la désinstallation)
-        $prevTemplate = is_array($orderState->template)
-            ? (string) reset($orderState->template)
-            : (string) $orderState->template;
-        Configuration::updateValue(self::CONFIG_PREFIX . 'OSD_SEND', (int) $orderState->send_email);
-        Configuration::updateValue(self::CONFIG_PREFIX . 'OSD_TPL', $prevTemplate);
+        // — UNIQUEMENT si pas déjà sauvegardée. Sans cette garde, un install()
+        // rappelé sur une installation déjà active (cf. setDefaultConfiguration()
+        // ci-dessus) relisait l'état DÉJÀ configuré par Neria (template
+        // 'delivered', send_email=true) et écrasait la vraie sauvegarde
+        // d'origine du marchand avec cet état — restoreDeliveredStatus() à la
+        // désinstallation restaurait alors le template Neria au lieu du
+        // template natif PrestaShop d'origine, laissant un état incohérent
+        // persistant après désinstallation complète.
+        if (Configuration::get(self::CONFIG_PREFIX . 'OSD_TPL') === false) {
+            $prevTemplate = is_array($orderState->template)
+                ? (string) reset($orderState->template)
+                : (string) $orderState->template;
+            Configuration::updateValue(self::CONFIG_PREFIX . 'OSD_SEND', (int) $orderState->send_email);
+            Configuration::updateValue(self::CONFIG_PREFIX . 'OSD_TPL', $prevTemplate);
+        }
 
         // Active l'email + template `delivered` pour toutes les langues
         $orderState->send_email = true;

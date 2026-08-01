@@ -1543,9 +1543,11 @@ class EmailRenderer
         }
 
         $abManager = new ABTestManager($this->module);
+        $toEmail   = is_array($params['to'] ?? null) ? (string) reset($params['to']) : (string) ($params['to'] ?? '');
         return $abManager->getVariantForEmail(
             $template,
-            (int) ($params['idCustomer'] ?? 0)
+            (int) ($params['idCustomer'] ?? 0),
+            $toEmail
         );
     }
 

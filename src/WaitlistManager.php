@@ -217,19 +217,32 @@ class WaitlistManager
 
     // ── Stats BO ─────────────────────────────────────────────────
 
-    public function getStats(): array
+    /**
+     * @param int|null $idShop Boutique à filtrer — par défaut la boutique du
+     *                         contexte courant. Auparavant sans filtre du
+     *                         tout : sur une install multi-boutiques, les
+     *                         compteurs BO ("Liste d'attente") incluaient les
+     *                         inscriptions de TOUTES les boutiques du module.
+     */
+    public function getStats(?int $idShop = null): array
     {
+        $idShop = $idShop ?? (int) \Context::getContext()->shop->id;
         $t = $this->prefix . self::TABLE;
         return [
-            'subscribers' => (int) $this->db->getValue("SELECT COUNT(*) FROM `{$t}` WHERE notified_at IS NULL"),
-            'products'    => (int) $this->db->getValue("SELECT COUNT(DISTINCT id_product) FROM `{$t}` WHERE notified_at IS NULL"),
-            'notified'    => (int) $this->db->getValue("SELECT COUNT(*) FROM `{$t}` WHERE notified_at IS NOT NULL"),
-            'notified30'  => (int) $this->db->getValue("SELECT COUNT(*) FROM `{$t}` WHERE notified_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)"),
+            'subscribers' => (int) $this->db->getValue("SELECT COUNT(*) FROM `{$t}` WHERE notified_at IS NULL AND id_shop = {$idShop}"),
+            'products'    => (int) $this->db->getValue("SELECT COUNT(DISTINCT id_product) FROM `{$t}` WHERE notified_at IS NULL AND id_shop = {$idShop}"),
+            'notified'    => (int) $this->db->getValue("SELECT COUNT(*) FROM `{$t}` WHERE notified_at IS NOT NULL AND id_shop = {$idShop}"),
+            'notified30'  => (int) $this->db->getValue("SELECT COUNT(*) FROM `{$t}` WHERE notified_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) AND id_shop = {$idShop}"),
         ];
     }
 
-    public function getTopProducts(int $limit = 10): array
+    /**
+     * @param int|null $idShop Boutique à filtrer — par défaut la boutique du
+     *                         contexte courant. Même correctif que getStats().
+     */
+    public function getTopProducts(int $limit = 10, ?int $idShop = null): array
     {
+        $idShop = $idShop ?? (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             "SELECT w.id_product, COUNT(*) AS nb,
                     pl.name AS product_name,
@@ -238,7 +251,7 @@ class WaitlistManager
              LEFT JOIN `{$this->prefix}product_lang` pl
                 ON pl.id_product = w.id_product
                AND pl.id_lang = " . (int) \Configuration::get('PS_LANG_DEFAULT') . "
-             WHERE w.notified_at IS NULL
+             WHERE w.notified_at IS NULL AND w.id_shop = {$idShop}
              GROUP BY w.id_product, pl.name
              ORDER BY nb DESC
              LIMIT " . (int) $limit

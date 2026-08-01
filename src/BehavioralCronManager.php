@@ -912,7 +912,7 @@ class BehavioralCronManager
 
                     if ($upsell !== null) {
                         $idUpsell = $upsellMgr->recordSuggestion(
-                            (int) $r['id_customer'], $idOrder, $upsell
+                            (int) $r['id_customer'], $idOrder, $upsell, (int) $r['id_shop']
                         );
                         if ($idUpsell > 0) {
                             $sep = (strpos($upsell['product_url'], '?') !== false) ? '&' : '?';

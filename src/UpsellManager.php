@@ -431,7 +431,14 @@ class UpsellManager
      * Enregistre la suggestion dans ps_neria_upsell.
      * Retourne l'id_upsell généré, ou 0 en cas d'échec.
      */
-    public function recordSuggestion(int $idCustomer, int $idOrderSource, array $upsell): int
+    /**
+     * @param int $idShop Boutique d'origine de la suggestion — cf.
+     *                     checkConversions() qui filtre désormais dessus pour
+     *                     éviter qu'un achat du même produit sur une AUTRE
+     *                     boutique (client partagé multi-boutiques) ne
+     *                     s'attribue à tort à une suggestion envoyée ici.
+     */
+    public function recordSuggestion(int $idCustomer, int $idOrderSource, array $upsell, int $idShop): int
     {
         $tierMap = [
             'L\'accessoire parfait'       => 'accessory',
@@ -442,9 +449,10 @@ class UpsellManager
 
         $this->db->execute(
             "INSERT INTO `{$this->prefix}neria_upsell`
-                (id_customer, id_order_source, id_product_upsell, product_name, tier, reason, sent_at)
+                (id_customer, id_shop, id_order_source, id_product_upsell, product_name, tier, reason, sent_at)
              VALUES (
                 " . (int) $idCustomer . ",
+                " . (int) $idShop . ",
                 " . (int) $idOrderSource . ",
                 " . (int) $upsell['id_product'] . ",
                 '" . pSQL($upsell['name']) . "',
@@ -493,7 +501,7 @@ class UpsellManager
     {
         $table  = $this->prefix . 'neria_upsell';
         $rows   = $this->db->executeS(
-            "SELECT u.id_upsell, u.id_customer, u.id_product_upsell, u.clicked_at
+            "SELECT u.id_upsell, u.id_customer, u.id_shop, u.id_product_upsell, u.clicked_at
              FROM `{$table}` u
              WHERE u.clicked_at IS NOT NULL
                AND u.id_order_converted IS NULL
@@ -506,6 +514,12 @@ class UpsellManager
             // lignes order_detail de la même commande (attributs différents,
             // quantités multiples) — prendre une seule ligne sous-évaluait le
             // revenu réellement attribué à l'upsell.
+            //
+            // Filtre o.id_shop = u.id_shop : sur une install multi-boutiques,
+            // un client partagé entre boutiques qui rachète le même produit
+            // sur une AUTRE boutique dans la fenêtre de 7 jours ne doit pas
+            // faire attribuer cette conversion/ce revenu à la suggestion
+            // envoyée par CETTE boutique.
             $match = $this->db->getRow(
                 "SELECT o.id_order,
                         SUM(od.unit_price_tax_incl * od.product_quantity) AS revenue
@@ -514,6 +528,7 @@ class UpsellManager
                       ON od.id_order = o.id_order
                       AND od.product_id = " . (int) $row['id_product_upsell'] . "
                  WHERE o.id_customer = " . (int) $row['id_customer'] . "
+                   AND o.id_shop = " . (int) $row['id_shop'] . "
                    AND o.date_add   >  '" . pSQL($row['clicked_at']) . "'
                    AND o.date_add   <= DATE_ADD('" . pSQL($row['clicked_at']) . "', INTERVAL 7 DAY)
                    AND o.valid = 1
