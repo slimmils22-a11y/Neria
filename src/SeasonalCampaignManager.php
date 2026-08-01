@@ -325,6 +325,12 @@ class SeasonalCampaignManager
 
         $whereStr = $where ? ('AND ' . implode(' AND ', $where)) : '';
 
+        // c.id_shop obligatoire : sans lui, une campagne sans segment ciblé
+        // (cas fréquent) n'avait AUCUNE contrainte de boutique et partait à
+        // tous les clients actifs de TOUTES les boutiques de l'install —
+        // fuite de ciblage cross-boutique (RGPD/branding), même avec un
+        // segment renseigné (le JOIN restreint mais ne remplace pas un
+        // filtre client manquant sur ses propres colonnes).
         return $this->db->executeS(
             "SELECT DISTINCT c.id_customer, c.id_lang, c.firstname, c.lastname, c.email
              FROM `{$this->prefix}customer` c
@@ -333,6 +339,7 @@ class SeasonalCampaignManager
                AND c.deleted  = 0
                AND c.is_guest = 0
                AND c.email    != ''
+               AND c.id_shop  = " . (int) $this->idShop . "
                {$whereStr}
              ORDER BY c.id_customer ASC"
         ) ?: [];

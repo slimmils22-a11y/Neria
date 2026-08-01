@@ -100,13 +100,33 @@ class Neria extends Module
      */
     public function install(): bool
     {
-        return parent::install()
+        $ok = parent::install()
             && $this->executeSqlFile('install.sql')
             && $this->registerHooks()
             && $this->installTab()
             && $this->importTranslations()
             && $this->setDefaultConfiguration()
             && $this->configureDeliveredStatus();
+
+        if ($ok) {
+            return true;
+        }
+
+        // Échec partiel (ex: data/translations.json corrompu/absent) : sans
+        // ce rollback, parent::install() avait déjà marqué le module
+        // "installé" dans ps_module AVANT la création des tables — PS ne
+        // relance jamais uninstall() automatiquement sur un échec
+        // d'install(). Le module restait alors dans un état incohérent
+        // (tables/hooks partiellement en place, aucune config par défaut,
+        // statut "Livré" jamais configuré), nécessitant une intervention
+        // manuelle en base avant de pouvoir réessayer depuis le BO.
+        // uninstall() lui-même est tolérant à un état partiel (executeSqlFile
+        // avec DROP TABLE IF EXISTS, uninstallTab()/deleteConfiguration()
+        // sans effet si rien à supprimer), donc sûr à appeler ici même si
+        // seule une partie des étapes ci-dessus a réussi.
+        $this->uninstall();
+
+        return false;
     }
 
     // ============================================================
@@ -122,11 +142,31 @@ class Neria extends Module
      */
     public function uninstall(): bool
     {
+        // Fichiers de prévisualisation multipreview (var/cache/neria_previews/,
+        // écrits HORS du dossier du module) — sans ce nettoyage, ils restaient
+        // sur le serveur indéfiniment après désinstallation, même en cochant
+        // « supprimer les fichiers du module » dans le BO PS (qui ne supprime
+        // que modules/neria/). Peuvent contenir du contenu email/client réel.
+        $this->cleanupPreviewCache();
+
         return $this->restoreDeliveredStatus()
             && $this->executeSqlFile('uninstall.sql')
             && $this->uninstallTab()
             && $this->deleteConfiguration()
             && parent::uninstall();
+    }
+
+    private function cleanupPreviewCache(): void
+    {
+        $previewDir = _PS_ROOT_DIR_ . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR
+                    . 'cache' . DIRECTORY_SEPARATOR . 'neria_previews' . DIRECTORY_SEPARATOR;
+        if (!is_dir($previewDir)) {
+            return;
+        }
+        foreach (glob($previewDir . '*.html') ?: [] as $file) {
+            @unlink($file);
+        }
+        @rmdir($previewDir);
     }
 
     // ============================================================
@@ -7096,6 +7136,18 @@ class Neria extends Module
     {
         $idState = (int) Configuration::get('PS_OS_DELIVERED');
         if (!$idState) {
+            return true;
+        }
+
+        // OSD_TPL absent = configureDeliveredStatus() n'a jamais tourné pour
+        // cette installation (ex: install() interrompu avant cette étape,
+        // maintenant nettoyé par le rollback d'install()) — Neria n'a donc
+        // JAMAIS touché ce statut « Livré ». Sans cette garde, la suite
+        // écrasait quand même send_email/template avec des valeurs vides
+        // (repli de Configuration::get() sur false/''), effaçant la
+        // configuration native du marchand pour un statut que Neria n'a
+        // jamais réellement modifié.
+        if (Configuration::get(self::CONFIG_PREFIX . 'OSD_TPL') === false) {
             return true;
         }
 

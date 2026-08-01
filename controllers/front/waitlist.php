@@ -47,7 +47,31 @@ class NeriaWaitlistModuleFrontController extends ModuleFrontController
             Tools::redirect($redirect);
         }
 
+        // Exige POST pour toute action qui modifie l'état — un lien/image
+        // externe (<img src="...?action=unsubscribe...">) ne peut déclencher
+        // qu'une requête GET, jamais un POST : cette contrainte ferme le
+        // vecteur CSRF le plus trivial (visite d'une page tierce désabonnant
+        // silencieusement un client connecté) sans dépendre d'un schéma de
+        // token spécifique côté thème appelant.
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            Tools::redirect($redirect);
+        }
+
         if (!class_exists('WaitlistManager')) {
+            Tools::redirect($redirect);
+        }
+
+        // Vérifie que le produit existe réellement et appartient à la
+        // boutique courante avant toute insertion — sans ça, un id_product
+        // inexistant ou d'une autre boutique (multi-shop) pouvait être
+        // inséré dans neria_waitlist (aucune contrainte FK sur cette table),
+        // créant des lignes orphelines/incohérentes qui faussent les
+        // statistiques et les relances de réapprovisionnement. Le 4e
+        // paramètre du constructeur Product (id_shop) charge le produit
+        // dans le contexte de CETTE boutique — s'il n'y existe pas,
+        // Validate::isLoadedObject() renvoie false.
+        $product = new Product($idProduct, false, null, (int) $this->context->shop->id);
+        if (!Validate::isLoadedObject($product)) {
             Tools::redirect($redirect);
         }
 
