@@ -22,9 +22,13 @@ function run_test(): array
         );
         neria_assert($guardFires === 1, "le garde-fou sur YEAR(sent_at) ne détecte plus l'envoi first_anniversary — régression du bug corrigé le 17/07/2026 (commit db43ff2)");
 
+        // $currentYear est calculé une fois en PHP côté appelant puis
+        // interpolé dans la requête (équivalent fonctionnel de YEAR(NOW())
+        // mais pas la même chaîne littérale) — la recherche doit correspondre
+        // au code réel, pas à une forme SQL qui n'a jamais existé ici.
         $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/BehavioralCronManager.php');
         neria_assert(
-            str_contains($src, 'YEAR(bs2.sent_at) = YEAR(NOW())'),
+            str_contains($src, 'YEAR(bs2.sent_at) = \' . $currentYear . \''),
             "sendRelationshipAnniversaries() ne compare plus YEAR(sent_at) — régression possible"
         );
 
