@@ -238,6 +238,16 @@ class ABTestManager
         );
 
         if (!$this->db->execute($sqlB)) {
+            // La variante A a déjà été insérée avec succès — sans ce
+            // nettoyage, elle restait orpheline en base (is_active=0, jamais
+            // référencée par aucun test complet) tant qu'un futur appel
+            // deleteTests()+createTest() sur ce même template ne la
+            // supprimait pas incidemment. Pollution transitoire des
+            // compteurs BO (getTemplatesWithTests()/getTestsByTemplate()),
+            // sans effet fonctionnel réel, mais autant garder createTest()
+            // atomique de son propre point de vue : soit A et B existent
+            // tous les deux, soit aucun des deux.
+            $this->db->execute("DELETE FROM `{$table}` WHERE `id_abtest` = {$idAbtestA}");
             return false;
         }
 

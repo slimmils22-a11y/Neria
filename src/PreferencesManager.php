@@ -86,8 +86,18 @@ class PreferencesManager
     /**
      * Retourne true si l'envoi est autorisé pour ce client/template.
      * Opt-in par défaut : aucune ligne = autorisé.
+     *
+     * @param int|null $idShop Boutique du DESTINATAIRE — par défaut la
+     *                         boutique du contexte courant. Un appelant qui
+     *                         traite des clients de plusieurs boutiques dans
+     *                         un même contexte figé (ex: cron itérant sur
+     *                         $shops) DOIT passer explicitement l'id_shop du
+     *                         client traité, sinon la requête cherche ses
+     *                         préférences sous la mauvaise boutique, ne
+     *                         trouve aucune ligne, et retombe sur "opt-in par
+     *                         défaut" — contournement RGPD silencieux.
      */
-    public function isAllowed(int $idCustomer, string $template): bool
+    public function isAllowed(int $idCustomer, string $template, ?int $idShop = null): bool
     {
         if ($idCustomer <= 0) {
             return true;
@@ -97,9 +107,10 @@ class PreferencesManager
             return true; // template non classé → toujours envoyé
         }
 
+        $shop = $idShop ?? $this->idShop;
         $row = $this->db->getRow(
             "SELECT `subscribed` FROM `" . _DB_PREFIX_ . self::TABLE . "`
-             WHERE `id_shop`    = {$this->idShop}
+             WHERE `id_shop`    = {$shop}
                AND `id_customer`= {$idCustomer}
                AND `category`  = '" . pSQL($cat) . "'"
         );

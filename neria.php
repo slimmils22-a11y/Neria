@@ -348,20 +348,30 @@ class Neria extends Module
         if (class_exists('PreferencesManager')) {
             $tplPref = $params['template'] ?? '';
             if (isset(PreferencesManager::TEMPLATE_CAT[$tplPref])) {
-                $toPref = $params['to'] ?? '';
+                $toPref    = $params['to'] ?? '';
                 if (is_array($toPref)) {
                     $toPref = reset($toPref) ?: '';
                 }
+                $idShopPref = (int) ($params['idShop'] ?? $this->context->shop->id);
                 $idCustPref = (int) ($params['templateVars']['{id_customer}'] ?? 0);
                 if ($idCustPref <= 0 && $toPref !== '') {
+                    // Scopé par id_shop — en multiboutique sans partage de
+                    // comptes, la même adresse email peut correspondre à des
+                    // lignes client distinctes par boutique (même défaut
+                    // déjà corrigé dans controllers/front/unsubscribe.php et
+                    // preferences.php) : sans ce filtre, ORDER BY id_customer
+                    // DESC pouvait résoudre le client d'une AUTRE boutique et
+                    // vérifier ses préférences à la place de celles du
+                    // véritable destinataire de CET envoi.
                     $custRow = Db::getInstance()->getRow(
                         'SELECT id_customer FROM `' . _DB_PREFIX_ . 'customer`
                          WHERE email = \'' . pSQL((string) $toPref) . '\' AND deleted = 0
+                           AND id_shop = ' . $idShopPref . '
                          ORDER BY id_customer DESC'
                     );
                     $idCustPref = (int) ($custRow['id_customer'] ?? 0);
                 }
-                if ($idCustPref > 0 && !(new PreferencesManager($this))->isAllowed($idCustPref, $tplPref)) {
+                if ($idCustPref > 0 && !(new PreferencesManager($this))->isAllowed($idCustPref, $tplPref, $idShopPref)) {
                     (new WatchdogManager($this))->info(
                         WatchdogManager::i18nMsg('watchdog.send_cancelled_pref', ['id' => $idCustPref, 'template' => $tplPref]),
                         $tplPref,

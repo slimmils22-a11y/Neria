@@ -1723,7 +1723,7 @@ class BehavioralCronManager
             // Vérifier les préférences email du client avant envoi
             if ($idCust > 0 && class_exists('PreferencesManager')) {
                 $pm = new PreferencesManager($this->module);
-                if (!$pm->isAllowed($idCust, $template)) {
+                if (!$pm->isAllowed($idCust, $template, $idShop)) {
                     $this->watchdog()->info(
                         \WatchdogManager::i18nMsg('watchdog.send_cancelled_pref', ['id' => $idCust, 'template' => $template]),
                         $template,
