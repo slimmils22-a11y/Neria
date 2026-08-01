@@ -25,6 +25,7 @@ class PostmasterManager
     const CONFIG_TOKEN_EXPIRY  = 'NERIA_POSTMASTER_TOKEN_EXPIRY';
     const CONFIG_CACHE         = 'NERIA_POSTMASTER_CACHE';
     const CONFIG_CACHE_TIME    = 'NERIA_POSTMASTER_CACHE_TIME';
+    const CONFIG_CACHE_HOST    = 'NERIA_POSTMASTER_CACHE_HOST';
     const CONFIG_RETURN_URL    = 'NERIA_POSTMASTER_RETURN_URL';
     const CONFIG_OAUTH_STATE   = 'NERIA_POSTMASTER_OAUTH_STATE';
     const CONFIG_LAST_ERROR    = 'NERIA_POSTMASTER_LAST_ERROR';
@@ -214,16 +215,33 @@ class PostmasterManager
     {
         $cacheTime = (int) \Configuration::get(self::CONFIG_CACHE_TIME);
         if ($cacheTime && (time() - $cacheTime) < self::CACHE_TTL) {
-            $cached = \Configuration::get(self::CONFIG_CACHE);
-            if ($cached) {
-                $data = json_decode($cached, true);
-                if (is_array($data)) {
-                    return $data;
+            // Le cache est stocké en config GLOBALE (pas par boutique) : sur
+            // une install multi-boutique où chaque boutique a un domaine
+            // différent, la boutique A déclenchait la récupération et
+            // mettait en cache SES domaines Postmaster, puis la boutique B
+            // lisait ce même cache pendant 1h — affichant le score de
+            // réputation d'envoi de A comme si c'était le sien, pouvant
+            // déclencher de fausses alertes Watchdog sur B. Même bug déjà
+            // trouvé et corrigé dans SearchConsoleManager::getStats(), non
+            // répliqué ici jusqu'à présent.
+            $cachedHost = (string) \Configuration::get(self::CONFIG_CACHE_HOST);
+            if ($cachedHost !== '' && $cachedHost === $this->getShopHost()) {
+                $cached = \Configuration::get(self::CONFIG_CACHE);
+                if ($cached) {
+                    $data = json_decode($cached, true);
+                    if (is_array($data)) {
+                        return $data;
+                    }
                 }
             }
         }
 
         return $this->fetchAndCache();
+    }
+
+    private function getShopHost(): string
+    {
+        return (string) parse_url(\Tools::getShopDomainSsl(true), PHP_URL_HOST);
     }
 
     public function getCachedStats(): ?array
@@ -284,10 +302,24 @@ class PostmasterManager
             return [];
         }
 
-        $results = [];
+        // Ne retient que le(s) domaine(s) correspondant à la boutique
+        // courante — auparavant TOUS les domaines vérifiés du compte
+        // Google Postmaster Tools du marchand étaient récupérés et mélangés
+        // sans filtre. Si le marchand a plusieurs sites/domaines enregistrés
+        // sous le même compte Google (fréquent), les réputations d'envoi de
+        // domaines n'ayant rien à voir avec CETTE boutique se retrouvaient
+        // affichées ensemble, et $results[0] (ordre non garanti par l'API)
+        // servait de base au log Watchdog — potentiellement le mauvais
+        // domaine.
+        $shopHost = $this->getShopHost();
+        $results  = [];
         foreach ($domains['domains'] as $domain) {
             $name = $domain['name'] ?? '';
             if (!$name) {
+                continue;
+            }
+            $domainName = str_replace('domains/', '', $name);
+            if ($shopHost !== '' && stripos($shopHost, $domainName) === false && stripos($domainName, $shopHost) === false) {
                 continue;
             }
             $stats = $this->fetchDomainStats($name, $token);
@@ -296,8 +328,13 @@ class PostmasterManager
             }
         }
 
+        if (empty($results)) {
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.postmaster_no_matching_domain', ['host' => $shopHost]), '', 'PostmasterManager');
+        }
+
         \Configuration::updateValue(self::CONFIG_CACHE,      json_encode($results, JSON_UNESCAPED_UNICODE));
         \Configuration::updateValue(self::CONFIG_CACHE_TIME, time());
+        \Configuration::updateValue(self::CONFIG_CACHE_HOST, $shopHost);
 
         if (!empty($results)) {
             $first = $results[0];

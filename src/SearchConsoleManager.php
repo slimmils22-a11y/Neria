@@ -300,9 +300,16 @@ class SearchConsoleManager
             }
         }
         if (!$siteUrl) {
-            $siteUrl = $sitesData['siteEntry'][0]['siteUrl'] ?? null;
-        }
-        if (!$siteUrl) {
+            // Auparavant repli silencieux sur la première propriété du
+            // compte Google (ordre non garanti par l'API), sans rapport
+            // garanti avec cette boutique — un marchand avec plusieurs
+            // propriétés Search Console pouvait voir les clics/impressions
+            // d'un tout autre site affichés comme "ses" statistiques SEO,
+            // sans aucune indication que ce n'était pas son domaine.
+            $this->wd()->warning(
+                \WatchdogManager::i18nMsg('watchdog.gsc_no_matching_site', ['host' => parse_url($shopUrl, PHP_URL_HOST)]),
+                '', 'SearchConsoleManager'
+            );
             return [];
         }
 

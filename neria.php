@@ -6302,7 +6302,14 @@ class Neria extends Module
         $override = [];
         foreach (['color_background', 'color_container', 'color_accent', 'color_text'] as $field) {
             $value = (string) Tools::getValue('preview_' . $field, '');
-            if ($value !== '' && preg_match('/^#?[0-9a-fA-F]{3,8}$/', $value)) {
+            // Même regex stricte que ConfigManager::sanitizeColor() (#fff ou
+            // #ffffff uniquement) — auparavant plus permissive ici
+            // (longueurs 3 à 8 acceptées, # optionnel), incohérente avec la
+            // validation de sauvegarde réelle. N'affecte que cet aperçu BO
+            // (jamais les emails réellement envoyés, qui lisent toujours la
+            // config sauvegardée), mais une valeur bricolée dans l'URL de
+            // l'iframe d'aperçu pouvait casser son rendu CSS.
+            if ($value !== '' && preg_match('/^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $value)) {
                 $override[$field] = $value;
             }
         }
@@ -6332,7 +6339,14 @@ class Neria extends Module
         // que le formulaire accepterait réellement à la sauvegarde.
         foreach (['btn_color', 'color_header_bg', 'color_footer_bg', 'color_footer_text'] as $field) {
             $value = (string) Tools::getValue('preview_' . $field, '');
-            if ($value !== '' && preg_match('/^#?[0-9a-fA-F]{3,8}$/', $value)) {
+            // Même regex stricte que ConfigManager::sanitizeColor() (#fff ou
+            // #ffffff uniquement) — auparavant plus permissive ici
+            // (longueurs 3 à 8 acceptées, # optionnel), incohérente avec la
+            // validation de sauvegarde réelle. N'affecte que cet aperçu BO
+            // (jamais les emails réellement envoyés, qui lisent toujours la
+            // config sauvegardée), mais une valeur bricolée dans l'URL de
+            // l'iframe d'aperçu pouvait casser son rendu CSS.
+            if ($value !== '' && preg_match('/^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $value)) {
                 $override[$field] = $value;
             }
         }

@@ -283,14 +283,21 @@ class GdprAuditManager
     ];
 
     // ── Variables PS contenant des données personnelles ──────────
+    // Liste codée en dur, non dérivée automatiquement des templates réels —
+    // à mettre à jour manuellement si un futur template introduit une
+    // nouvelle variable nominative (aucune source de vérité commune avec le
+    // moteur de rendu). {shopper_name} ajouté le 2026-08-01 (nom complet du
+    // client, trouvé utilisé dans plusieurs templates sans être couvert
+    // jusqu'ici par cette cartographie).
     const PII_VARS = [
-        '{firstname}'  => 'Prénom',
-        '{lastname}'   => 'Nom de famille',
-        '{email}'      => 'Adresse e-mail',
-        '{phone}'      => 'Téléphone',
-        '{address1}'   => 'Adresse postale',
-        '{address2}'   => 'Complément d\'adresse',
-        '{birthday}'   => 'Date de naissance',
+        '{firstname}'     => 'Prénom',
+        '{lastname}'      => 'Nom de famille',
+        '{shopper_name}'  => 'Nom complet (prénom + nom)',
+        '{email}'         => 'Adresse e-mail',
+        '{phone}'         => 'Téléphone',
+        '{address1}'      => 'Adresse postale',
+        '{address2}'      => 'Complément d\'adresse',
+        '{birthday}'      => 'Date de naissance',
     ];
 
     private \Db   $db;
@@ -316,7 +323,28 @@ class GdprAuditManager
         $crypto    = $this->auditEncryption();
 
         $issues = $unsub['issues'] + $retention['issues'] + $pii['issues'] + $crypto['issues'];
-        $score  = $this->grade($issues);
+
+        // Grade basé sur l'axe le PLUS DÉGRADÉ (pourcentage d'issues sur le
+        // nombre de contrôles réels de CET axe), pas sur la somme brute des
+        // 4 axes. Auparavant un axe à 3 checks (désabonnement) et un axe à
+        // ~26 checks (rétention, une entrée par table du registre) étaient
+        // additionnés au même niveau : l'absence totale du header
+        // List-Unsubscribe (RFC 8058, obligatoire Gmail/Outlook) ne comptait
+        // que pour 2 points sur 4 axes → grade "B" trompeur, alors que l'axe
+        // légalement le plus critique du module était en échec quasi total.
+        // À l'inverse, 6 tables juste au-delà de leur seuil de rétention
+        // (issue mineure, purge automatique existante) pouvait à elle seule
+        // faire tomber le score en "D", pire note que le cas précédent.
+        $axisPct = function (int $axisIssues, int $axisTotal): float {
+            return $axisTotal > 0 ? max(0.0, 1 - $axisIssues / $axisTotal) * 100 : 100.0;
+        };
+        $worstAxisPct = min(
+            $axisPct($unsub['issues'], 3),
+            $axisPct($retention['issues'], max(1, count($retention['rows']))),
+            $axisPct($pii['issues'], 1),
+            $axisPct($crypto['issues'], 1)
+        );
+        $score = $this->gradeFromPercent($worstAxisPct);
 
         $gradeColors = ['A' => '#4a9e6b', 'B' => '#b8600a', 'C' => '#e05c5c', 'D' => '#8b0000'];
 
@@ -732,9 +760,53 @@ class GdprAuditManager
                 $total += $n;
             }
         }
-        // neria_webhook_queue : payload JSON peut contenir des PII mais sans référence client directe
-        // → purgé automatiquement par ancienneté via purgeAllRegistryTables() dans le cron
-        // quotidien (BehavioralCronManager::run()), si NERIA_GDPR_AUTO_PURGE_ENABLED est activé.
+        // neria_attribution : pas de colonne id_customer directe, mais
+        // id_order l'est — même situation que neria_certificate ci-dessus,
+        // via JOIN sur orders. Auparavant non purgée du tout : le token de
+        // tracking et l'id_order du client restaient en base jusqu'à 36 mois
+        // (retention du registre) malgré une demande RGPD explicite.
+        $fullAttr = _DB_PREFIX_ . 'neria_attribution';
+        $attrExists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($fullAttr) . "'");
+        if (is_array($attrExists) && !empty($attrExists)) {
+            $n = (int) $this->db->getValue(
+                "SELECT COUNT(*) FROM `{$fullAttr}` na
+                 INNER JOIN `" . _DB_PREFIX_ . "orders` o ON o.id_order = na.id_order
+                 WHERE o.id_customer = " . (int) $idCustomer
+            );
+            if ($n > 0) {
+                $this->db->execute(
+                    "DELETE na FROM `{$fullAttr}` na
+                     INNER JOIN `" . _DB_PREFIX_ . "orders` o ON o.id_order = na.id_order
+                     WHERE o.id_customer = " . (int) $idCustomer
+                );
+                $total += $n;
+            }
+        }
+
+        // neria_webhook_queue : pas de référence client directe, mais le
+        // payload JSON peut contenir l'email du client (has_pii=true dans
+        // REGISTRY). Purge best-effort par recherche de l'email dans le
+        // payload — auparavant SEULE la purge automatique par ancienneté
+        // (12 mois, si NERIA_GDPR_AUTO_PURGE_ENABLED activé) y touchait,
+        // jamais une demande RGPD explicite : ce n'est pas un substitut
+        // légal au droit à l'effacement immédiat.
+        if ($email !== '') {
+            $emailSql = pSQL(strtolower($email));
+            $fullWh = _DB_PREFIX_ . 'neria_webhook_queue';
+            $whExists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($fullWh) . "'");
+            if (is_array($whExists) && !empty($whExists)) {
+                $n = (int) $this->db->getValue(
+                    "SELECT COUNT(*) FROM `{$fullWh}` WHERE LOWER(`payload`) LIKE '%{$emailSql}%'"
+                );
+                if ($n > 0) {
+                    $this->db->execute(
+                        "DELETE FROM `{$fullWh}` WHERE LOWER(`payload`) LIKE '%{$emailSql}%'"
+                    );
+                    $total += $n;
+                }
+            }
+        }
+
         return $total;
     }
 
@@ -929,11 +1001,15 @@ class GdprAuditManager
     // SCORE
     // ============================================================
 
-    private function grade(int $issues): string
+    /**
+     * Grade à partir d'un pourcentage de conformité de l'axe le plus
+     * dégradé (cf. runAudit()). 100% = tous les contrôles de cet axe OK.
+     */
+    private function gradeFromPercent(float $pct): string
     {
-        if ($issues === 0) { return 'A'; }
-        if ($issues <= 2)  { return 'B'; }
-        if ($issues <= 5)  { return 'C'; }
+        if ($pct >= 100.0) { return 'A'; }
+        if ($pct >= 65.0)  { return 'B'; }
+        if ($pct >= 35.0)  { return 'C'; }
         return 'D';
     }
 
