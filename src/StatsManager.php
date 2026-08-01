@@ -764,10 +764,22 @@ class StatsManager
      * Stocke l'id_order et le montant dans rendered_vars (JSON) pour éviter
      * toute migration de schéma.
      */
-    public function recordConversion(string $token, int $idOrder, float $amount): void
+    public function recordConversion(string $token, int $idOrder, float $amount, int $idShop = 0): void
     {
         $sent = $this->getSentByToken($token);
         if (!$sent) {
+            return;
+        }
+
+        // Le cookie neria_ref n'a pas d'attribut domain explicite (host-only
+        // par défaut), mais sur une install multi-boutiques dont plusieurs
+        // id_shop partagent le même domaine (mode "shop URL" plutôt que
+        // sous-domaines distincts), un clic sur un email envoyé par la
+        // boutique A reste lisible côté boutique B. Sans cette vérification,
+        // un achat sur B dans la fenêtre 24h attribuait à tort son revenu à
+        // une campagne envoyée par A. On ne crédite la conversion que si la
+        // boutique de la commande correspond à celle de l'envoi tracké.
+        if ($idShop > 0 && isset($sent['id_shop']) && (int) $sent['id_shop'] !== $idShop) {
             return;
         }
 
@@ -846,13 +858,24 @@ class StatsManager
              ORDER BY revenue DESC"
         );
 
+        // Chaque montant est arrondi ICI, avant cumul — auparavant le total
+        // était arrondi une seule fois à la fin à partir des valeurs BRUTES,
+        // pendant que chaque ligne de $byTemplate restait non arrondie
+        // (arrondie séparément à l'affichage côté template BO). Deux
+        // arrondis indépendants sur les mêmes données brutes peuvent
+        // diverger d'un centime (ex. 10.005 + 10.005 = 20.01 arrondi, mais
+        // chaque ligne arrondie séparément donne 10.01 + 10.01 = 20.02) : le
+        // marchand voyait un total qui ne correspondait pas exactement à la
+        // somme des lignes du tableau juste en dessous. En arrondissant
+        // chaque montant avant le cumul, le total est désormais la vraie
+        // somme des valeurs affichées.
         $totalRevenue = 0.0;
         $totalOrders  = 0;
         $byTemplate   = [];
 
         foreach ((is_array($rows) ? $rows : []) as $r) {
-            $rev = (float) $r['revenue'];
-            $ord = (int)   $r['orders'];
+            $rev = round((float) $r['revenue'], 2);
+            $ord = (int) $r['orders'];
             $totalRevenue += $rev;
             $totalOrders  += $ord;
             $byTemplate[$r['template']] = ['revenue' => $rev, 'orders' => $ord];
@@ -920,9 +943,15 @@ class StatsManager
         }
         $total = array_fill_keys($dates, 0.0);
 
+        // Même correctif que getRevenueStats() : $rev est arrondi UNE FOIS
+        // ici, avant d'être cumulé à la fois dans $series et $total — les
+        // deux accumulateurs partent donc de la même valeur déjà arrondie
+        // par ligne, au lieu d'accumuler chacun leur propre valeur brute
+        // puis d'arrondir séparément à la fin (risque d'écart d'1 centime
+        // entre la courbe "total" et la somme empilée des séries).
         foreach ((is_array($rows) ? $rows : []) as $r) {
             $d   = $r['d'];
-            $rev = (float) $r['rev'];
+            $rev = round((float) $r['rev'], 2);
             $cat = $tplTocat[$r['template']] ?? 'other';
             if (isset($series[$cat][$d])) {
                 $series[$cat][$d] += $rev;
@@ -950,7 +979,7 @@ class StatsManager
         $table = _DB_PREFIX_ . self::TABLE;
 
         $row = $this->db->getRow(
-            "SELECT `template`, `lang`, `country_code`,
+            "SELECT `template`, `lang`, `country_code`, `id_shop`,
                     `id_customer`, `id_order`, `abtest_variant`, `date_add`
              FROM `{$table}`
              WHERE `tracking_token` = '" . pSQL($token) . "'
@@ -1324,10 +1353,18 @@ class StatsManager
             LIMIT " . (int) $limit
         );
 
+        // Champ renommé 'orders_with_revenue' (au lieu de 'orders') : cette
+        // méthode filtre `revenue > 0` dans le WHERE, contrairement à
+        // getRevenueStats() qui compte TOUTES les conversions (y compris
+        // les commandes à 0€ — offertes, avoirs...) sous le même nom de
+        // champ 'orders'. Les deux méthodes exposaient donc un champ au nom
+        // identique mais à la définition différente, risquant de faire
+        // croire à une incohérence de données si les deux blocs BO sont
+        // comparés côte à côte pour un même template.
         return array_map(fn($r) => [
-            'template' => $r['template'],
-            'orders'   => (int) $r['orders'],
-            'revenue'  => round((float) $r['revenue'], 2),
+            'template'             => $r['template'],
+            'orders_with_revenue'  => (int) $r['orders'],
+            'revenue'              => round((float) $r['revenue'], 2),
         ], is_array($rows) ? $rows : []);
     }
 

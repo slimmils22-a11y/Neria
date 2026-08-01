@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.35';
+    const VERSION = '1.0.36';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -663,7 +663,8 @@ class Neria extends Module
             $amount = 0.0;
         }
 
-        (new StatsManager($this))->recordConversion($token, $idOrder, $amount);
+        $idShopForAttribution = isset($order) ? (int) $order->id_shop : 0;
+        (new StatsManager($this))->recordConversion($token, $idOrder, $amount, $idShopForAttribution);
 
         if (class_exists('WatchdogManager')) {
             (new WatchdogManager($this))->info(

@@ -66,8 +66,13 @@ class QueueManager
         $toName    = trim(($customer['firstname'] ?? '') . ' ' . ($customer['lastname'] ?? ''));
         $varsJson  = json_encode($extraVars, JSON_UNESCAPED_UNICODE);
 
+        // INSERT IGNORE appuyé sur la contrainte UNIQUE (id_customer,
+        // template, ref_id) — cf. upgrade-1.0.36.php. Auparavant un simple
+        // INSERT sans aucune protection : un même événement mis en file deux
+        // fois (double exécution de cron, webhook rejoué) faisait recevoir
+        // au client le même email en double à l'heure programmée.
         $this->db->execute(
-            'INSERT INTO `' . $this->prefix . 'neria_queue`
+            'INSERT IGNORE INTO `' . $this->prefix . 'neria_queue`
              (id_customer, id_shop, id_lang, template, recipient_email, recipient_name,
               vars_json, ref_id, send_at, status, created_at)
              VALUES (
@@ -84,6 +89,12 @@ class QueueManager
                NOW()
              )'
         );
+
+        if ($this->db->Affected_Rows() === 0) {
+            // Doublon ignoré — événement déjà en file (ou déjà traité) pour
+            // ce couple client/template/référence.
+            return;
+        }
 
         $this->watchdog()->info(
             \WatchdogManager::i18nMsg('watchdog.queue_scheduled', [
@@ -147,7 +158,12 @@ class QueueManager
         $now    = new \DateTime();
         $target = new \DateTime('today ' . sprintf('%02d:00:00', $hour));
 
-        if ($target <= $now) {
+        // `<` et non `<=` : si l'heure cible tombe pile à la seconde actuelle
+        // (cas limite très rare), elle reste programmée pour AUJOURD'HUI —
+        // processQueue() la sélectionnera immédiatement (send_at <= NOW())
+        // au lieu de la reporter inutilement à demain pour une égalité à la
+        // seconde près.
+        if ($target < $now) {
             $target->modify('+1 day');
         }
 
@@ -230,7 +246,7 @@ class QueueManager
                  WHERE status = \'pending\'
                    AND send_at <= NOW()
                    AND attempts < ' . self::MAX_ATTEMPTS . '
-                 ORDER BY send_at ASC
+                 ORDER BY send_at ASC, id_neria_queue ASC
                  LIMIT ' . self::BATCH_SIZE
             );
 
@@ -257,8 +273,27 @@ class QueueManager
 
             return $sent;
         } finally {
+            // Purge des lignes terminales anciennes — auparavant absente :
+            // les lignes 'sent'/'failed' s'accumulaient indéfiniment dans
+            // ps_neria_queue. Probabiliste (1 tentative sur 10) plutôt qu'à
+            // chaque appel, même logique que WatchdogManager::pruneOldLogs().
+            // Fenêtre de 60 jours (le double des 30 jours déjà utilisés par
+            // getStats()) pour ne jamais purger une donnée encore affichée
+            // dans les statistiques BO.
+            if (random_int(1, 10) === 1) {
+                $this->purgeOldEntries();
+            }
             $this->db->execute("SELECT RELEASE_LOCK('neria_queue_process_queue')");
         }
+    }
+
+    private function purgeOldEntries(): void
+    {
+        $this->db->execute(
+            'DELETE FROM `' . $this->prefix . 'neria_queue`
+             WHERE status IN (\'sent\', \'failed\')
+               AND created_at < DATE_SUB(NOW(), INTERVAL 60 DAY)'
+        );
     }
 
     private function processSingle(array $row): bool
@@ -342,10 +377,27 @@ class QueueManager
     private function markFailedOrRetry(int $id, int $attempts, string $error): void
     {
         $status = $attempts >= self::MAX_ATTEMPTS ? 'failed' : 'pending';
+
+        // Délai de recul avant la prochaine tentative — auparavant `send_at`
+        // n'était jamais repoussé : une ligne repassée en 'pending' restait
+        // sélectionnable IMMÉDIATEMENT au prochain passage du cron (send_at
+        // déjà dans le passé). Sur un cron toutes les 5-15 min, les 3
+        // tentatives pouvaient s'épuiser en moins d'une heure lors d'une
+        // simple panne SMTP transitoire de quelques heures, clôturant
+        // définitivement l'email sans lui laisser de vraie chance de
+        // récupération. Recul exponentiel : 2h après le 1er échec, 4h après
+        // le 2e — ne s'applique qu'en cas de nouvelle tentative (status
+        // toujours 'pending'), pas sur l'échec final ('failed').
+        $sendAtSql = '';
+        if ($status === 'pending') {
+            $backoffHours = 2 * $attempts;
+            $sendAtSql = ", send_at = DATE_ADD(NOW(), INTERVAL {$backoffHours} HOUR)";
+        }
+
         $this->db->execute(
             'UPDATE `' . $this->prefix . 'neria_queue`
              SET status = \'' . $status . '\',
-                 error  = \'' . pSQL(substr($error, 0, 500)) . '\'
+                 error  = \'' . pSQL(substr($error, 0, 500)) . '\'' . $sendAtSql . '
              WHERE id_neria_queue = ' . $id
         );
     }

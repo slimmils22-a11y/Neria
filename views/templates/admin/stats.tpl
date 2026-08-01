@@ -2644,7 +2644,7 @@ var _nCopyLbl = {
             {if $i==0}🥇{elseif $i==1}🥈{elseif $i==2}🥉{else}{$i+1}{/if}
           </td>
           <td><span class="neria-template-label">{$template_labels[$row.template]|default:$row.template}</span></td>
-          <td class="neria-table__num">{$row.orders}</td>
+          <td class="neria-table__num">{$row.orders_with_revenue}</td>
           <td class="neria-table__num" style="font-weight:700;color:var(--neria-accent);">
             {$row.revenue|string_format:"%.2f"} {$currency_symbol}
           </td>

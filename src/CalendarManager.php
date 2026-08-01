@@ -176,7 +176,7 @@ class CalendarManager
 
         foreach ([$year, $year + 1] as $y) {
             if (!empty($event['custom_date']) && preg_match('/^\d{2}-\d{2}$/', $event['custom_date'])) {
-                $candidate = \DateTime::createFromFormat('Y-m-d', $y . '-' . $event['custom_date']) ?: null;
+                $candidate = $this->resolveCustomDate($y, $event['custom_date']);
             } else {
                 $candidate = $this->getEventDate($eventKey, $y);
             }
@@ -271,7 +271,7 @@ class CalendarManager
 
         $resolveDate = function (int $y) use ($event, $eventKey) {
             if (!empty($event['custom_date']) && preg_match('/^\d{2}-\d{2}$/', $event['custom_date'])) {
-                return \DateTime::createFromFormat('Y-m-d', $y . '-' . $event['custom_date']) ?: null;
+                return $this->resolveCustomDate($y, $event['custom_date']);
             }
             return $this->getEventDate($eventKey, $y);
         };
@@ -318,6 +318,24 @@ class CalendarManager
     // ============================================================
     // RESOLUTION DES DATES â€” 4 NIVEAUX
     // ============================================================
+
+    /**
+     * Résout une date personnalisée "MM-DD" pour une année donnée, en gérant
+     * le cas du 29 février sur une année NON bissextile.
+     *
+     * DateTime::createFromFormat('Y-m-d', '2027-02-29') échoue silencieusement
+     * (retourne false) sur une année non bissextile — un événement configuré
+     * sur cette date précise (ex. anniversaire d'ouverture de boutique)
+     * n'était donc JAMAIS envoyé 3 années sur 4, sans erreur ni log visible.
+     * Repli sur le 28 février (convention usuelle pour les dates du 29/02).
+     */
+    private function resolveCustomDate(int $year, string $monthDay): ?\DateTime
+    {
+        if ($monthDay === '02-29' && !\checkdate(2, 29, $year)) {
+            $monthDay = '02-28';
+        }
+        return \DateTime::createFromFormat('Y-m-d', $year . '-' . $monthDay) ?: null;
+    }
 
     /**
      * Point d'entree de la resolution de date
