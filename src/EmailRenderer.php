@@ -1281,6 +1281,29 @@ class EmailRenderer
 
         if ((float) $rule->reduction_percent > 0) {
             $p = (float) $rule->reduction_percent;
+            // Séparateur décimal selon la langue courante — auparavant codé
+            // en dur avec une virgule française, affichant "12,5 %" même
+            // dans un email en anglais/japonais/allemand (18 langues sur 19).
+            if (class_exists('NumberFormatter')) {
+                try {
+                    $ctx       = \Context::getContext();
+                    $localeIso = 'en-US';
+                    $lang      = $ctx->language ?? null;
+                    if ($lang && !empty($lang->locale)) {
+                        $localeIso = str_replace('_', '-', $lang->locale);
+                    } elseif ($lang && !empty($lang->iso_code)) {
+                        $localeIso = $lang->iso_code;
+                    }
+                    $formatter = new \NumberFormatter($localeIso, \NumberFormatter::DECIMAL);
+                    $formatter->setAttribute(\NumberFormatter::MAX_FRACTION_DIGITS, 2);
+                    $formatted = $formatter->format($p);
+                    if ($formatted !== false) {
+                        return $formatted . ' %';
+                    }
+                } catch (\Throwable $e) {
+                    // Repli ci-dessous.
+                }
+            }
             $p = (fmod($p, 1.0) === 0.0)
                 ? (string) (int) $p
                 : rtrim(rtrim(number_format($p, 2, ',', ''), '0'), ',');
@@ -1288,14 +1311,18 @@ class EmailRenderer
         }
 
         if ((float) $rule->reduction_amount > 0) {
+            $ctx = \Context::getContext();
             try {
-                $ctx = \Context::getContext();
                 return \Tools::getContextLocale($ctx)->formatPrice(
                     (float) $rule->reduction_amount,
                     $ctx->currency->iso_code
                 );
             } catch (\Throwable $e) {
-                return number_format((float) $rule->reduction_amount, 2, ',', ' ') . ' €';
+                // Repli sans "€" ni virgule codés en dur (faux hors zone euro/FR) —
+                // NeriaTools::displayPrice utilise la devise réelle du contexte et
+                // la locale de la langue courante (NumberFormatter), avec son
+                // propre dernier repli minimal si l'extension intl est absente.
+                return \NeriaTools::displayPrice((float) $rule->reduction_amount, $ctx->currency);
             }
         }
 
@@ -2572,12 +2599,15 @@ class EmailRenderer
         // afficher d'entités HTML) : {firstname}/{lastname} sont normalement
         // filtrés par Validate::isName() du cœur PS (rejette < > { } " etc.)
         // à l'inscription/l'édition BO, donc pas de vecteur d'injection connu
-        // aujourd'hui — mais ce sont les deux seules variables directement
-        // dérivées d'un champ éditable par le client à finir non échappées
-        // dans le HTML compilé. Échappées ici en filet de sécurité contre un
-        // futur contournement de cette validation (import CSV, migration...).
+        // aujourd'hui — mais ce sont des variables directement dérivées d'un
+        // champ éditable par le client (ou saisi librement, pour
+        // message/comment/gift_message — formulaire de contact, message
+        // cadeau) qui finissaient non échappées dans le HTML compilé. Un
+        // visiteur pouvait y injecter du HTML/JS actif rendu ensuite par le
+        // client mail du destinataire (marchand ou client selon le
+        // template). Échappées ici en filet de sécurité.
         $htmlTemplateVars = $templateVars;
-        foreach (['{firstname}', '{lastname}'] as $nameKey) {
+        foreach (['{firstname}', '{lastname}', '{message}', '{comment}', '{gift_message}'] as $nameKey) {
             if (isset($htmlTemplateVars[$nameKey]) && is_string($htmlTemplateVars[$nameKey])) {
                 $htmlTemplateVars[$nameKey] = htmlspecialchars($htmlTemplateVars[$nameKey], ENT_QUOTES, 'UTF-8');
             }

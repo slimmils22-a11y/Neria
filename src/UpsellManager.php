@@ -351,9 +351,12 @@ class UpsellManager
             );
         }
 
-        $price        = $this->safeProductPrice($idProduct, $idLang);
-        $currencySign = $this->context->currency->sign ?? '€';
-        $priceFormatted = number_format($price, 2, ',', ' ') . "\u{202F}" . $currencySign;
+        $price = $this->safeProductPrice($idProduct, $idLang);
+        // Formatage localisé (séparateur décimal + position du symbole selon
+        // la langue) — auparavant une virgule française codée en dur,
+        // affichée dans le bloc upsell de CHAQUE confirmation de commande,
+        // y compris pour les 18 langues non-FR.
+        $priceFormatted = \NeriaTools::displayPrice($price, $this->context->currency, $idLang);
 
         $productUrl = $this->context->link->getProductLink(
             $idProduct, null, null, null, $idLang

@@ -963,11 +963,28 @@ class BehavioralCronManager
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
         foreach ((array) $rows48h as $r) {
-            $this->sendQuoteEmail('quote_expiry_48h', $r);
-            $this->db->execute(
-                'UPDATE `' . $this->prefix . 'neria_quote`
-                 SET sent_48h = 1, date_upd = NOW() WHERE id_quote = ' . (int) $r['id_quote']
-            );
+            // Try/catch par ligne : sans ça, une exception sur UN devis (ex.
+            // deadlock MySQL — ce cron tourne en même temps que
+            // SegmentManager/ChurnScoreManager sur les mêmes tables) faisait
+            // remonter l'exception hors de sendQuoteExpiryReminders() entière,
+            // empêchant silencieusement les sections 2 et 3 ci-dessous de
+            // s'exécuter CE jour-là pour TOUS les clients, sans alerte dédiée.
+            try {
+                $this->sendQuoteEmail('quote_expiry_48h', $r);
+                $this->db->execute(
+                    'UPDATE `' . $this->prefix . 'neria_quote`
+                     SET sent_48h = 1, date_upd = NOW() WHERE id_quote = ' . (int) $r['id_quote']
+                );
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.quote_reminder_error', [
+                        'quote' => $r['quote_ref'] ?? ('#' . ($r['id_quote'] ?? '?')),
+                        'error' => $e->getMessage(),
+                    ]),
+                    'quote_expiry_48h',
+                    'BehavioralCron'
+                );
+            }
         }
 
         // ── 2. Rappel Jour J ──────────────────────────────────────
@@ -983,11 +1000,22 @@ class BehavioralCronManager
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
         foreach ((array) $rowsDay as $r) {
-            $this->sendQuoteEmail('quote_expiry_day', $r);
-            $this->db->execute(
-                'UPDATE `' . $this->prefix . 'neria_quote`
-                 SET sent_day = 1, date_upd = NOW() WHERE id_quote = ' . (int) $r['id_quote']
-            );
+            try {
+                $this->sendQuoteEmail('quote_expiry_day', $r);
+                $this->db->execute(
+                    'UPDATE `' . $this->prefix . 'neria_quote`
+                     SET sent_day = 1, date_upd = NOW() WHERE id_quote = ' . (int) $r['id_quote']
+                );
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.quote_reminder_error', [
+                        'quote' => $r['quote_ref'] ?? ('#' . ($r['id_quote'] ?? '?')),
+                        'error' => $e->getMessage(),
+                    ]),
+                    'quote_expiry_day',
+                    'BehavioralCron'
+                );
+            }
         }
 
         // ── 3. Offre de prolongation (J+1 ou après) ──────────────
@@ -1003,12 +1031,23 @@ class BehavioralCronManager
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
         foreach ((array) $rowsExt as $r) {
-            $this->sendQuoteEmail('quote_extension_offer', $r, true);
-            $this->db->execute(
-                'UPDATE `' . $this->prefix . 'neria_quote`
-                 SET sent_extension = 1, status = \'expired\', date_upd = NOW()
-                 WHERE id_quote = ' . (int) $r['id_quote']
-            );
+            try {
+                $this->sendQuoteEmail('quote_extension_offer', $r, true);
+                $this->db->execute(
+                    'UPDATE `' . $this->prefix . 'neria_quote`
+                     SET sent_extension = 1, status = \'expired\', date_upd = NOW()
+                     WHERE id_quote = ' . (int) $r['id_quote']
+                );
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.quote_reminder_error', [
+                        'quote' => $r['quote_ref'] ?? ('#' . ($r['id_quote'] ?? '?')),
+                        'error' => $e->getMessage(),
+                    ]),
+                    'quote_extension_offer',
+                    'BehavioralCron'
+                );
+            }
         }
     }
 
@@ -1072,48 +1111,62 @@ class BehavioralCronManager
             $idCustomer       = (int) $r['id_customer'];
             $idOrder          = (int) $r['id_order'];
 
-            // Annuler si le client a passé une nouvelle commande depuis le remboursement
-            $hasReordered = (int) $this->db->getValue(
-                "SELECT COUNT(*) FROM `{$this->prefix}orders`
-                 WHERE id_customer = {$idCustomer}
-                   AND valid = 1
-                   AND id_shop = {$idShop}
-                   AND id_order > {$idOrder}"
-            );
-            if ($hasReordered > 0) {
-                $this->db->execute(
-                    "UPDATE `{$table}` SET status = 'cancelled' WHERE id_reconciliation = {$idReconciliation}"
+            try {
+                // Annuler si le client a passé une nouvelle commande depuis le remboursement
+                $hasReordered = (int) $this->db->getValue(
+                    "SELECT COUNT(*) FROM `{$this->prefix}orders`
+                     WHERE id_customer = {$idCustomer}
+                       AND valid = 1
+                       AND id_shop = {$idShop}
+                       AND id_order > {$idOrder}"
                 );
-                $this->watchdog()->info(
-                    \WatchdogManager::i18nMsg('watchdog.reconciliation_cancelled', ['id' => $idReconciliation, 'customer' => $idCustomer]),
-                    'refund_reconciliation', 'BehavioralCron'
-                );
-                continue;
-            }
+                if ($hasReordered > 0) {
+                    $this->db->execute(
+                        "UPDATE `{$table}` SET status = 'cancelled' WHERE id_reconciliation = {$idReconciliation}"
+                    );
+                    $this->watchdog()->info(
+                        \WatchdogManager::i18nMsg('watchdog.reconciliation_cancelled', ['id' => $idReconciliation, 'customer' => $idCustomer]),
+                        'refund_reconciliation', 'BehavioralCron'
+                    );
+                    continue;
+                }
 
-            $customer = [
-                'id_customer' => $idCustomer,
-                'email'       => $r['email'],
-                'firstname'   => $r['firstname'],
-                'lastname'    => $r['lastname'],
-                'id_lang'     => $r['id_lang'],
-                'id_shop'     => $r['id_shop'],
-            ];
+                $customer = [
+                    'id_customer' => $idCustomer,
+                    'email'       => $r['email'],
+                    'firstname'   => $r['firstname'],
+                    'lastname'    => $r['lastname'],
+                    'id_lang'     => $r['id_lang'],
+                    'id_shop'     => $r['id_shop'],
+                ];
 
-            if (!$r['sent_1']) {
-                $this->send('refund_reconciliation_1', $customer, ['{order_name}' => ''], $idOrder);
-                $this->db->execute(
-                    "UPDATE `{$table}` SET sent_1 = 1 WHERE id_reconciliation = {$idReconciliation}"
-                );
-            } elseif (!$r['sent_2']) {
-                $this->send('refund_reconciliation_2', $customer, ['{order_name}' => ''], $idOrder);
-                $this->db->execute(
-                    "UPDATE `{$table}` SET sent_2 = 1 WHERE id_reconciliation = {$idReconciliation}"
-                );
-            } elseif (!$r['sent_3']) {
-                $this->send('refund_reconciliation_3', $customer, ['{order_name}' => ''], $idOrder);
-                $this->db->execute(
-                    "UPDATE `{$table}` SET sent_3 = 1 WHERE id_reconciliation = {$idReconciliation}"
+                if (!$r['sent_1']) {
+                    $this->send('refund_reconciliation_1', $customer, ['{order_name}' => ''], $idOrder);
+                    $this->db->execute(
+                        "UPDATE `{$table}` SET sent_1 = 1 WHERE id_reconciliation = {$idReconciliation}"
+                    );
+                } elseif (!$r['sent_2']) {
+                    $this->send('refund_reconciliation_2', $customer, ['{order_name}' => ''], $idOrder);
+                    $this->db->execute(
+                        "UPDATE `{$table}` SET sent_2 = 1 WHERE id_reconciliation = {$idReconciliation}"
+                    );
+                } elseif (!$r['sent_3']) {
+                    $this->send('refund_reconciliation_3', $customer, ['{order_name}' => ''], $idOrder);
+                    $this->db->execute(
+                        "UPDATE `{$table}` SET sent_3 = 1 WHERE id_reconciliation = {$idReconciliation}"
+                    );
+                }
+            } catch (\Throwable $e) {
+                // Try/catch par ligne — sans ça, une exception sur UNE relance
+                // (ex. deadlock MySQL) empêchait toutes les lignes suivantes du
+                // lot d'être traitées ce jour-là, sans alerte dédiée.
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.reconciliation_error', [
+                        'id'    => $idReconciliation,
+                        'error' => $e->getMessage(),
+                    ]),
+                    'refund_reconciliation',
+                    'BehavioralCron'
                 );
             }
         }
@@ -1201,48 +1254,62 @@ class BehavioralCronManager
                 if ($totalSentThisRun >= self::MAX_BATCH_PER_RUN) {
                     break;
                 }
-                // Déduplication via neria_behavioral_sent
-                $alreadySent = (int) $this->db->getValue(
-                    "SELECT COUNT(*) FROM `{$this->prefix}neria_behavioral_sent`
-                     WHERE id_customer = " . (int) $customer['id_customer'] . "
-                       AND template = 'product_lifespan_reminder'
-                       AND ref_id = {$idProduct}
-                       AND id_shop = " . (int) $customer['id_shop']
-                );
-                if ($alreadySent > 0) {
-                    continue;
+                try {
+                    // Déduplication via neria_behavioral_sent
+                    $alreadySent = (int) $this->db->getValue(
+                        "SELECT COUNT(*) FROM `{$this->prefix}neria_behavioral_sent`
+                         WHERE id_customer = " . (int) $customer['id_customer'] . "
+                           AND template = 'product_lifespan_reminder'
+                           AND ref_id = {$idProduct}
+                           AND id_shop = " . (int) $customer['id_shop']
+                    );
+                    if ($alreadySent > 0) {
+                        continue;
+                    }
+
+                    // Annuler si le client a déjà racheté ce produit après son achat initial
+                    $hasReordered = (int) $this->db->getValue(
+                        "SELECT COUNT(*) FROM `{$this->prefix}orders` o
+                         JOIN `{$this->prefix}order_detail` od ON od.id_order = o.id_order
+                         WHERE o.id_customer = " . (int) $customer['id_customer'] . "
+                           AND od.product_id = {$idProduct}
+                           AND o.valid = 1
+                           AND o.id_shop = " . (int) $customer['id_shop'] . "
+                           AND o.id_order > " . (int) $customer['id_order']
+                    );
+                    if ($hasReordered > 0) {
+                        continue;
+                    }
+
+                    $idLang      = (int) $customer['id_lang'] ?: (int) \Configuration::get('PS_LANG_DEFAULT');
+                    $productName = $this->db->getValue(
+                        "SELECT name FROM `{$this->prefix}product_lang`
+                         WHERE id_product = {$idProduct} AND id_lang = {$idLang} LIMIT 1"
+                    ) ?: $product['product_name'];
+
+                    $productUrl = \Context::getContext()->link->getProductLink(
+                        $idProduct, null, null, null, $idLang, (int) $customer['id_shop']
+                    );
+
+                    $this->send('product_lifespan_reminder', $customer, [
+                        '{product_name}'   => $productName,
+                        '{product_url}'    => $productUrl,
+                        '{estimated_days}' => (string) $lifespanDays,
+                    ], $idProduct);
+                    $totalSentThisRun++;
+                } catch (\Throwable $e) {
+                    // Try/catch par client — sans ça, une exception sur UN
+                    // client empêchait les clients suivants (et les produits
+                    // suivants de la boucle englobante) d'être traités.
+                    $this->watchdog()->error(
+                        \WatchdogManager::i18nMsg('watchdog.lifespan_reminder_error', [
+                            'product' => $idProduct,
+                            'error'   => $e->getMessage(),
+                        ]),
+                        'product_lifespan_reminder',
+                        'BehavioralCron'
+                    );
                 }
-
-                // Annuler si le client a déjà racheté ce produit après son achat initial
-                $hasReordered = (int) $this->db->getValue(
-                    "SELECT COUNT(*) FROM `{$this->prefix}orders` o
-                     JOIN `{$this->prefix}order_detail` od ON od.id_order = o.id_order
-                     WHERE o.id_customer = " . (int) $customer['id_customer'] . "
-                       AND od.product_id = {$idProduct}
-                       AND o.valid = 1
-                       AND o.id_shop = " . (int) $customer['id_shop'] . "
-                       AND o.id_order > " . (int) $customer['id_order']
-                );
-                if ($hasReordered > 0) {
-                    continue;
-                }
-
-                $idLang      = (int) $customer['id_lang'] ?: (int) \Configuration::get('PS_LANG_DEFAULT');
-                $productName = $this->db->getValue(
-                    "SELECT name FROM `{$this->prefix}product_lang`
-                     WHERE id_product = {$idProduct} AND id_lang = {$idLang} LIMIT 1"
-                ) ?: $product['product_name'];
-
-                $productUrl = \Context::getContext()->link->getProductLink(
-                    $idProduct, null, null, null, $idLang, (int) $customer['id_shop']
-                );
-
-                $this->send('product_lifespan_reminder', $customer, [
-                    '{product_name}'   => $productName,
-                    '{product_url}'    => $productUrl,
-                    '{estimated_days}' => (string) $lifespanDays,
-                ], $idProduct);
-                $totalSentThisRun++;
             }
         }
     }
@@ -1301,6 +1368,13 @@ class BehavioralCronManager
         // Clients dont la date du 1er achat tombe aujourd'hui (mois+jour)
         // et qui ont passé commande il y a au moins 1 an.
         $idShop = (int) \Context::getContext()->shop->id;
+        // Année calculée côté PHP (et non YEAR(NOW()) côté MySQL) pour rester
+        // cohérente avec l'insertion plus bas dans send() qui utilise
+        // (int) date('Y') — sans ça, un décalage de fuseau horaire entre PHP
+        // et la session MySQL pouvait faire diverger les deux valeurs autour
+        // de minuit le 31/12, cassant la déduplication et permettant un
+        // second envoi du même email d'anniversaire de relation.
+        $currentYear = (int) date('Y');
         $rows = $this->db->executeS(
             'SELECT c.id_customer, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop,
                     MIN(o.date_add) AS first_order_date,
@@ -1316,14 +1390,14 @@ class BehavioralCronManager
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = c.id_customer
                      AND bs.template = \'relationship_anniversary\'
-                     AND bs.ref_id = YEAR(NOW())
+                     AND bs.ref_id = ' . $currentYear . '
                      AND bs.id_shop = ' . $idShop . '
                )
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs2
                    WHERE bs2.id_customer = c.id_customer
                      AND bs2.template = \'first_anniversary\'
-                     AND YEAR(bs2.sent_at) = YEAR(NOW())
+                     AND YEAR(bs2.sent_at) = ' . $currentYear . '
                      AND bs2.id_shop = ' . $idShop . '
                )
              LIMIT ' . self::MAX_BATCH_PER_RUN

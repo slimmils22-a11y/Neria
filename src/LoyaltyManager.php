@@ -152,9 +152,18 @@ class LoyaltyManager
                     // comportement attendu (anti-doublon), pas une erreur.
                     continue;
                 }
-                $amount = $tier['is_percent']
-                    ? $tier['amount'] . '%'
-                    : number_format((float) $tier['amount'], 2, ',', ' ') . "\u{202F}" . ($this->context->currency->sign ?? '€');
+                if ($tier['is_percent']) {
+                    $amount = $tier['amount'] . '%';
+                } else {
+                    // Formatage localisé (séparateur + devise réelle) — auparavant
+                    // une virgule française et un repli "€" codés en dur, faux
+                    // pour toute langue non-FR ou boutique en devise non-euro.
+                    $idLangCustomer = (int) $this->db->getValue(
+                        'SELECT id_lang FROM `' . $this->prefix . 'customer`
+                         WHERE id_customer = ' . $idCustomer
+                    ) ?: (int) \Configuration::get('PS_LANG_DEFAULT');
+                    $amount = \NeriaTools::displayPrice((float) $tier['amount'], $this->context->currency, $idLangCustomer);
+                }
 
                 $emailSent = $this->sendRewardEmail($idCustomer, $tier, $code, $amount, $total);
                 if ($emailSent) {
