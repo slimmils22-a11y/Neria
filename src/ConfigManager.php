@@ -100,6 +100,7 @@ class ConfigManager
     const KEY_MILESTONE_VOUCHER_ENABLED = 'NERIA_MILESTONE_VOUCHER_ENABLED';
     const KEY_MILESTONE_VOUCHER_AMOUNT  = 'NERIA_MILESTONE_VOUCHER_AMOUNT';
     const KEY_MILESTONE_VOUCHER_PERCENT = 'NERIA_MILESTONE_VOUCHER_PERCENT';
+    const KEY_VOUCHER_FIXED_CAP = 'NERIA_VOUCHER_FIXED_CAP';
     const KEY_LOYALTY_CROSS_SHOP_ENABLED = 'NERIA_LOYALTY_CROSS_SHOP_ENABLED';
 
     // ── Centre de contrôle (visibilité menu BO) ────────────────────
@@ -179,6 +180,7 @@ class ConfigManager
         self::KEY_BIRTHDAY_VOUCHER_PERCENT => 1,
         self::KEY_MILESTONE_VOUCHER_ENABLED => 0,
         self::KEY_MILESTONE_VOUCHER_AMOUNT  => 10,
+        self::KEY_VOUCHER_FIXED_CAP  => 10000,
         self::KEY_MILESTONE_VOUCHER_PERCENT => 1,
         self::KEY_LOYALTY_CROSS_SHOP_ENABLED => 1,
         self::KEY_MENU_HIDDEN_ITEMS  => '[]',
@@ -683,6 +685,19 @@ class ConfigManager
     public function isBirthdayVoucherPercent(): bool
     {
         return (bool) $this->get(self::KEY_BIRTHDAY_VOUCHER_PERCENT, 1);
+    }
+
+    /**
+     * Plafond de sécurité (devise boutique) appliqué aux bons de réduction en
+     * mode montant fixe (anniversaire, paliers, fidélité) — réglable par le
+     * marchand pour éviter qu'une faute de frappe ("1000" au lieu de "10")
+     * ne crée un bon d'un montant disproportionné, auto-envoyé aux clients.
+     *
+     * @return float
+     */
+    public function getVoucherFixedCap(): float
+    {
+        return (float) $this->get(self::KEY_VOUCHER_FIXED_CAP, 10000);
     }
 
     /**

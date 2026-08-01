@@ -519,6 +519,22 @@ class UpsellManager
             );
 
             if ($match) {
+                // Si le même produit a été suggéré plusieurs fois au même
+                // client (plusieurs lignes neria_upsell non converties), la
+                // requête ci-dessus retrouve la MÊME commande pour chacune —
+                // sans ce garde-fou, un seul achat réel faisait attribuer le
+                // même revenu à chaque suggestion, doublant le total dans
+                // getStats()/ROI.
+                $alreadyClaimed = (int) $this->db->getValue(
+                    "SELECT COUNT(*) FROM `{$table}`
+                     WHERE id_order_converted = " . (int) $match['id_order'] . "
+                       AND id_product_upsell  = " . (int) $row['id_product_upsell'] . "
+                       AND id_customer        = " . (int) $row['id_customer']
+                );
+                if ($alreadyClaimed > 0) {
+                    continue;
+                }
+
                 $this->db->execute(
                     "UPDATE `{$table}`
                      SET id_order_converted = " . (int) $match['id_order'] . ",

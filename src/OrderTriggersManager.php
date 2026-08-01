@@ -511,6 +511,20 @@ class OrderTriggersManager
                 );
             }
 
+            // ── Retrait des points/bons fidélité gagnés par cette commande ──
+            if (class_exists('LoyaltyManager') && \Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')) {
+                try {
+                    (new \LoyaltyManager($this->module))->clawbackForOrder(
+                        (int) $order->id, (int) $customer->id, (int) $order->id_shop
+                    );
+                } catch (\Throwable $e) {
+                    $this->watchdog()->error(
+                        \WatchdogManager::i18nMsg('watchdog.loyalty_clawback_error', ['order' => $order->reference, 'error' => $e->getMessage()]),
+                        'refund_processed', 'OrderTriggers'
+                    );
+                }
+            }
+
             // ── Planifier la séquence de réconciliation (J+1/J+3/J+7) ──
             // Une seule séquence par commande (UNIQUE KEY uniq_order).
             // INSERT IGNORE évite les doublons si l'admin crée plusieurs avoirs.

@@ -326,13 +326,27 @@
     <input type="hidden" name="neria_action" value="save_voucher_validity">
     <input type="hidden" name="neria_tab"    value="configure">
 
-    <div class="neria-form-group">
-      <label class="neria-label" for="neria-voucher-validity">
-        {neria_admin key='configure.voucher_validity_label'}
-      </label>
-      <input type="number" id="neria-voucher-validity" name="neria_voucher_validity"
-             class="neria-input" min="1" max="365" style="max-width:140px;"
-             value="{$voucher_validity|default:30}">
+    <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+      <div class="neria-form-group">
+        <label class="neria-label" for="neria-voucher-validity">
+          {neria_admin key='configure.voucher_validity_label'}
+        </label>
+        <input type="number" id="neria-voucher-validity" name="neria_voucher_validity"
+               class="neria-input" min="1" max="365" style="max-width:140px;"
+               value="{$voucher_validity|default:30}">
+      </div>
+
+      <div class="neria-form-group">
+        <label class="neria-label" for="neria-voucher-fixed-cap">
+          {neria_admin key='configure.voucher_fixed_cap_label'}
+        </label>
+        <input type="number" id="neria-voucher-fixed-cap" name="neria_voucher_fixed_cap"
+               class="neria-input" min="1" max="1000000" step="0.01" style="max-width:160px;"
+               value="{$voucher_fixed_cap|default:10000}">
+        <div style="font-size:11px;color:#7a6a5a;margin-top:4px;max-width:260px;">
+          {neria_admin key='configure.voucher_fixed_cap_help'}
+        </div>
+      </div>
     </div>
 
     <div style="margin-top:16px;">

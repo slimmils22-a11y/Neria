@@ -652,7 +652,13 @@ class Neria extends Module
 
         try {
             $order = new Order($idOrder);
-            $amount = (float) $order->total_paid_tax_incl;
+            // conversion_rate ramène le montant à la devise par défaut de la
+            // boutique — sinon, sur une boutique multi-devises, les tableaux
+            // de bord de revenus (SUM(revenue) sur ps_neria_stat) mélangent
+            // des montants dans des devises différentes sous un seul symbole,
+            // un chiffre de ROI visiblement faux sur lequel le marchand agit.
+            $rate = (float) ($order->conversion_rate ?: 1.0);
+            $amount = (float) $order->total_paid_tax_incl / ($rate ?: 1.0);
         } catch (\Throwable $e) {
             $amount = 0.0;
         }
@@ -2834,11 +2840,21 @@ class Neria extends Module
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
-        // ── Action : durée de validité des bons ───────────────────
+        // ── Action : durée de validité des bons + plafond montant fixe ──
         if (Tools::getValue('neria_action') === 'save_voucher_validity' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $days = (int) Tools::getValue('neria_voucher_validity', 30);
             $days = max(1, min(365, $days));
             Configuration::updateValue(self::CONFIG_PREFIX . 'VOUCHER_VALIDITY', $days);
+
+            // Plafond réglable par le marchand pour les bons en mode montant
+            // fixe (anniversaire / paliers / fidélité) — 10 000 par défaut,
+            // mais un marchand vendant des pièces à quelques dizaines d'euros
+            // peut vouloir un plafond bien plus bas pour se protéger d'une
+            // faute de frappe ("1000" au lieu de "10").
+            $cap = (float) str_replace(',', '.', (string) Tools::getValue('neria_voucher_fixed_cap', 10000));
+            $cap = max(1, min(1000000, $cap));
+            Configuration::updateValue(self::CONFIG_PREFIX . 'VOUCHER_FIXED_CAP', $cap);
+
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
@@ -2846,7 +2862,13 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'save_birthday_voucher' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $amount = (float) str_replace(',', '.', (string) Tools::getValue('neria_birthday_voucher_amount', 10));
             $isPercent = (int) Tools::getValue('neria_birthday_voucher_percent', 1) === 1;
-            $amount = max(0, $isPercent ? min(100, $amount) : $amount);
+            // Plafond de sécurité aussi en mode montant fixe, réglable par le
+            // marchand (neria_voucher_fixed_cap, 10 000 par défaut) — jusqu'ici
+            // seule la branche pourcentage était plafonnée ; une faute de
+            // frappe marchand ("1000" au lieu de "10") créait un bon fixe
+            // sans limite, auto-envoyé à chaque anniversaire client.
+            $fixedCap = (new ConfigManager($this))->getVoucherFixedCap();
+            $amount = max(0, $isPercent ? min(100, $amount) : min($fixedCap, $amount));
             Configuration::updateValue(self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_AMOUNT', $amount);
             Configuration::updateValue(self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_PERCENT', $isPercent ? 1 : 0);
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
@@ -2857,7 +2879,9 @@ class Neria extends Module
             $enabled   = (int) Tools::getValue('neria_milestone_voucher_enabled', 0) === 1;
             $amount    = (float) str_replace(',', '.', (string) Tools::getValue('neria_milestone_voucher_amount', 10));
             $isPercent = (int) Tools::getValue('neria_milestone_voucher_percent', 1) === 1;
-            $amount    = max(0, $isPercent ? min(100, $amount) : $amount);
+            // Même plafond de sécurité réglable que le bon anniversaire ci-dessus.
+            $fixedCap  = (new ConfigManager($this))->getVoucherFixedCap();
+            $amount    = max(0, $isPercent ? min(100, $amount) : min($fixedCap, $amount));
             Configuration::updateValue(self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_ENABLED', $enabled ? 1 : 0);
             Configuration::updateValue(self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_AMOUNT', $amount);
             Configuration::updateValue(self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_PERCENT', $isPercent ? 1 : 0);
@@ -4831,11 +4855,23 @@ class Neria extends Module
         // ── Automatisations : forcer l'exécution du cron ─────────
         if (Tools::getValue('neria_action') === 'auto_force_run' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             if (class_exists('BehavioralCronManager')) {
-                try {
-                    (new BehavioralCronManager($this))->run();
-                    $this->context->smarty->assign('neria_success', AdminTranslator::t('auto.force_run_success'));
-                } catch (\Throwable $e) {
-                    $this->context->smarty->assign('neria_error', $e->getMessage());
+                // Même verrou GET_LOCK que le cron de secours (voir plus haut) —
+                // sans ça, un admin cliquant « Forcer l'exécution » pile au
+                // moment où le vrai cron serveur tourne fait exécuter
+                // BehavioralCronManager::run() deux fois en parallèle, donc un
+                // client peut recevoir le même email comportemental en double.
+                $db = \Db::getInstance();
+                if ((int) $db->getValue("SELECT GET_LOCK('neria_behavioral_cron_run', 0)") === 1) {
+                    try {
+                        (new BehavioralCronManager($this))->run();
+                        $this->context->smarty->assign('neria_success', AdminTranslator::t('auto.force_run_success'));
+                    } catch (\Throwable $e) {
+                        $this->context->smarty->assign('neria_error', $e->getMessage());
+                    } finally {
+                        $db->execute("SELECT RELEASE_LOCK('neria_behavioral_cron_run')");
+                    }
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('auto.force_run_already_running'));
                 }
             }
         }
@@ -4844,13 +4880,23 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'save_loyalty_tiers' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('LoyaltyManager')) {
             $tiers = [];
             $keys  = ['bronze', 'silver', 'gold'];
+            $fixedCap = (new ConfigManager($this))->getVoucherFixedCap();
             foreach ($keys as $k) {
+                $isPercent = (bool) Tools::getValue('loyalty_percent_' . $k, 0);
+                $amount    = max(0.01, (float) Tools::getValue('loyalty_amount_' . $k, 5));
+                // Plafond en mode pourcentage — même garde-fou que les bons
+                // anniversaire/palier de commande. Sans ça, une faute de
+                // frappe marchand ("500" au lieu de "50") crée un CartRule à
+                // reduction_percent=500, auto-envoyé à chaque client atteignant
+                // ce palier — commandes effectivement gratuites. En mode
+                // montant fixe, même plafond réglable que les autres bons.
+                $amount = $isPercent ? min(100, $amount) : min($fixedCap, $amount);
                 $tiers[] = [
                     'key'        => $k,
                     'name'       => pSQL(Tools::getValue('loyalty_name_' . $k, ucfirst($k))),
                     'points'     => max(1, (int) Tools::getValue('loyalty_points_' . $k, 50)),
-                    'amount'     => max(0.01, (float) Tools::getValue('loyalty_amount_' . $k, 5)),
-                    'is_percent' => (bool) Tools::getValue('loyalty_percent_' . $k, 0),
+                    'amount'     => $amount,
+                    'is_percent' => $isPercent,
                 ];
             }
             (new LoyaltyManager($this))->saveTiers($tiers);
@@ -5080,6 +5126,7 @@ class Neria extends Module
             'log_internal_enabled' => $config->isInternalLogEnabled(),
             'archive_email'        => (string) Configuration::getGlobalValue('NERIA_ARCHIVE_EMAIL'),
             'voucher_validity'        => $config->getVoucherValidity(),
+            'voucher_fixed_cap'        => $config->getVoucherFixedCap(),
             'birthday_voucher_amount'  => $config->getBirthdayVoucherAmount(),
             'birthday_voucher_percent' => $config->isBirthdayVoucherPercent(),
             'milestone_voucher_enabled' => $config->isMilestoneVoucherEnabled(),
@@ -6798,6 +6845,7 @@ class Neria extends Module
             self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_ENABLED' => 0,
             self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_AMOUNT'  => 10,
             self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_PERCENT' => 1,
+            self::CONFIG_PREFIX . 'VOUCHER_FIXED_CAP'          => 10000,
             self::CONFIG_PREFIX . 'INSTALLED_AT'               => date('Y-m-d H:i:s'),
             LicenseManager::CONFIG_KEY                         => '',
             LicenseManager::CONFIG_TOKEN                       => '',

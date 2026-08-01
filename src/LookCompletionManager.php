@@ -112,8 +112,13 @@ class LookCompletionManager
             $idLang     = (int) $order['id_lang'] ?: (int) \Configuration::get('PS_LANG_DEFAULT');
             $idShop     = (int) $order['id_shop'];
 
-            // Dédup : un seul email par commande
-            if ($this->alreadySent($idOrder)) continue;
+            // Réservation atomique AVANT l'envoi (voir le commentaire
+            // équivalent dans CollectionManager::processCollection()) : deux
+            // déclenchements quasi simultanés du cron pouvaient auparavant
+            // tous deux passer le test alreadySent() et envoyer l'email en
+            // double, même si la clé UNIQUE (uq_order) empêchait bien la
+            // double ligne en base.
+            if (!$this->claimSend($idOrder, $idCustomer)) continue;
 
             // Catégories des produits de cette commande
             $categoryIds = $this->getOrderCategoryIds($idOrder);
@@ -150,7 +155,6 @@ class LookCompletionManager
                 );
 
                 if ($mailed) {
-                    $this->markSent($idOrder, $idCustomer);
                     $sent++;
 
                     if (class_exists('WatchdogManager')) {
@@ -162,8 +166,14 @@ class LookCompletionManager
                             'complete_your_look', 'LookCompletion'
                         );
                     }
+                } else {
+                    // Envoi échoué sans exception : libère la réservation
+                    // pour permettre une nouvelle tentative au prochain
+                    // passage du cron.
+                    $this->releaseSendClaim($idOrder, $idCustomer);
                 }
             } catch (\Throwable $e) {
+                $this->releaseSendClaim($idOrder, $idCustomer);
                 if (class_exists('WatchdogManager')) {
                     (new \WatchdogManager($this->module))->error(
                         \WatchdogManager::i18nMsg('watchdog.look_completion_item_error', ['error' => $e->getMessage()]),
@@ -279,20 +289,25 @@ class LookCompletionManager
         return $vars;
     }
 
-    private function alreadySent(int $idOrder): bool
+    /**
+     * Réservation atomique compare-and-swap — voir le commentaire dans
+     * l'appelant. true si CE process a remporté la réservation.
+     */
+    private function claimSend(int $idOrder, int $idCustomer): bool
     {
-        return (int) $this->db->getValue(
-            "SELECT COUNT(*) FROM `{$this->prefix}neria_look_sent` WHERE `id_order` = {$idOrder}"
-        ) > 0;
+        $this->db->execute(
+            "INSERT IGNORE INTO `{$this->prefix}neria_look_sent`
+                (`id_order`, `id_customer`, `sent_at`)
+             VALUES ({$idOrder}, {$idCustomer}, '" . date('Y-m-d H:i:s') . "')"
+        );
+        return $this->db->Affected_Rows() > 0;
     }
 
-    private function markSent(int $idOrder, int $idCustomer): void
+    private function releaseSendClaim(int $idOrder, int $idCustomer): void
     {
-        $this->db->insert('neria_look_sent', [
-            'id_order'    => $idOrder,
-            'id_customer' => $idCustomer,
-            'sent_at'     => date('Y-m-d H:i:s'),
-        ]);
+        $this->db->delete('neria_look_sent',
+            '`id_order` = ' . $idOrder . ' AND `id_customer` = ' . $idCustomer
+        );
     }
 
     // ── Statistiques ─────────────────────────────────────────────────────

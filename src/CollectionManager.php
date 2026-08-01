@@ -230,8 +230,17 @@ class CollectionManager
             if (empty($missing)) continue;
             $missingId = $missing[0];
 
-            // Dédup : ne pas renvoyer pour la même collection + client
-            if ($this->alreadySent($colId, $idCustomer)) continue;
+            // Réservation atomique AVANT l'envoi (et non plus une simple
+            // lecture suivie d'un INSERT après coup) : deux déclenchements
+            // quasi simultanés du cron (fallback + serveur, ou double clic
+            // sur « Forcer l'exécution ») passaient tous deux le test
+            // alreadySent() avant que l'un ou l'autre n'ait eu le temps
+            // d'insérer sa ligne — l'email pouvait alors partir deux fois
+            // même si la clé UNIQUE empêchait bien la double ligne en base.
+            // INSERT IGNORE sur (id_neria_collection, id_customer) agit
+            // comme un verrou compare-and-swap : un seul processus le
+            // remporte.
+            if (!$this->claimSend($colId, $idCustomer)) continue;
 
             // Récupérer les infos client + langue
             $customer = new \Customer($idCustomer);
@@ -278,7 +287,6 @@ class CollectionManager
                 );
 
                 if ($mailed) {
-                    $this->markSent($colId, $idCustomer);
                     $sent++;
 
                     if (class_exists('WatchdogManager')) {
@@ -291,8 +299,15 @@ class CollectionManager
                             'collection_completion', 'CollectionManager'
                         );
                     }
+                } else {
+                    // Envoi échoué (retourné false, sans exception) : libère
+                    // la réservation pour permettre une nouvelle tentative au
+                    // prochain passage du cron, plutôt que de perdre
+                    // silencieusement ce client pour toujours.
+                    $this->releaseSendClaim($colId, $idCustomer);
                 }
             } catch (\Throwable $e) {
+                $this->releaseSendClaim($colId, $idCustomer);
                 if (class_exists('WatchdogManager')) {
                     (new \WatchdogManager($this->module))->error(
                         \WatchdogManager::i18nMsg('watchdog.collection_item_error', ['error' => $e->getMessage()]),
@@ -307,22 +322,27 @@ class CollectionManager
 
     // ── Helpers ───────────────────────────────────────────────────────────
 
-    private function alreadySent(int $colId, int $idCustomer): bool
+    /**
+     * Réservation atomique compare-and-swap : true si CE process a bien
+     * remporté la réservation (l'email peut/doit partir), false si un autre
+     * process l'a déjà (ou l'envoi a déjà réussi lors d'un passage
+     * précédent) — voir le commentaire dans processCollection().
+     */
+    private function claimSend(int $colId, int $idCustomer): bool
     {
-        $r = $this->db->getValue(
-            "SELECT COUNT(*) FROM `{$this->prefix}neria_collection_sent`
-             WHERE `id_neria_collection` = {$colId} AND `id_customer` = {$idCustomer}"
+        $this->db->execute(
+            "INSERT IGNORE INTO `{$this->prefix}neria_collection_sent`
+                (`id_neria_collection`, `id_customer`, `sent_at`)
+             VALUES ({$colId}, {$idCustomer}, '" . date('Y-m-d H:i:s') . "')"
         );
-        return (int) $r > 0;
+        return $this->db->Affected_Rows() > 0;
     }
 
-    private function markSent(int $colId, int $idCustomer): void
+    private function releaseSendClaim(int $colId, int $idCustomer): void
     {
-        $this->db->insert('neria_collection_sent', [
-            'id_neria_collection' => $colId,
-            'id_customer'         => $idCustomer,
-            'sent_at'             => date('Y-m-d H:i:s'),
-        ]);
+        $this->db->delete('neria_collection_sent',
+            '`id_neria_collection` = ' . $colId . ' AND `id_customer` = ' . $idCustomer
+        );
     }
 
     private function resolveLang(\Customer $customer): int

@@ -104,7 +104,7 @@ class ClvManager
 
         // ── Historique d'achats ───────────────────────────────────
         $orders = $this->db->executeS(
-            'SELECT o.`id_order`, o.`total_paid_tax_incl`, o.`date_add`
+            'SELECT o.`id_order`, o.`total_paid_tax_incl`, o.`conversion_rate`, o.`date_add`
              FROM `' . _DB_PREFIX_ . 'orders` o
              WHERE o.`id_customer` = ' . $idCustomer . '
                AND o.`id_shop` = ' . $this->idShop . '
@@ -113,7 +113,17 @@ class ClvManager
         ) ?: [];
 
         $orderCount  = count($orders);
-        $totalRevenue = array_sum(array_column($orders, 'total_paid_tax_incl'));
+        // conversion_rate (posé par PrestaShop au moment de chaque commande)
+        // ramène chaque montant à la devise par défaut de la boutique avant
+        // de sommer — sans ça, sur une boutique multi-devises, additionner
+        // total_paid_tax_incl brut mélange des unités différentes (ex. 100
+        // USD + 100 EUR devient silencieusement "200"), faussant le CLV et
+        // le classement Top 20 utilisé pour le ciblage de segments.
+        $totalRevenue = 0.0;
+        foreach ($orders as $o) {
+            $rate = (float) ($o['conversion_rate'] ?: 1.0);
+            $totalRevenue += (float) $o['total_paid_tax_incl'] / ($rate ?: 1.0);
+        }
 
         if ($orderCount === 0) {
             return $this->emptyResult($symbol);
@@ -213,7 +223,7 @@ class ClvManager
              WHERE o.`id_shop` = ' . $this->idShop . ' AND o.`valid` = 1
                AND c.`deleted` = 0
              GROUP BY o.`id_customer`, c.`firstname`, c.`lastname`, c.`email`
-             ORDER BY SUM(o.`total_paid_tax_incl`) DESC
+             ORDER BY SUM(o.`total_paid_tax_incl` / o.`conversion_rate`) DESC
              LIMIT 200'
         ) ?: [];
 

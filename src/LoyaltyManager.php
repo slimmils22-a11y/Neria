@@ -189,6 +189,101 @@ class LoyaltyManager
         }
     }
 
+    /**
+     * Retrait des points fidélité gagnés par la conversion d'une commande
+     * remboursée — trouvé en réel le 2026-08-01 : un client pouvait
+     * atteindre un palier et recevoir un vrai bon de réduction, puis se
+     * faire rembourser intégralement la commande sans jamais perdre ni les
+     * points ni le bon déjà émis. Appelée depuis
+     * OrderTriggersManager::handleRefund().
+     *
+     * Portée volontairement limitée : supprime les points liés à CETTE
+     * commande, puis révoque uniquement les bons de palier déjà émis mais
+     * PAS ENCORE UTILISÉS si le nouveau total repasse sous leur seuil — un
+     * bon déjà appliqué sur une autre commande n'est jamais annulé
+     * rétroactivement (la remise a déjà été accordée, impossible à défaire
+     * proprement sans re-facturer le client).
+     */
+    public function clawbackForOrder(int $idOrder, int $idCustomer, int $idShop): void
+    {
+        if ($idOrder <= 0 || $idCustomer <= 0) {
+            return;
+        }
+
+        $statTable = $this->prefix . 'neria_stat';
+        $statIds = $this->db->executeS(
+            "SELECT id_stat FROM `{$statTable}`
+             WHERE id_order = {$idOrder} AND event_type = 'conversion'"
+        );
+        if (empty($statIds)) {
+            return;
+        }
+        $statIdList = implode(',', array_map('intval', array_column($statIds, 'id_stat')));
+
+        $removed = $this->db->execute(
+            "DELETE FROM `{$this->prefix}" . self::TABLE_POINTS . "`
+             WHERE id_customer = {$idCustomer} AND id_stat IN ({$statIdList})"
+        );
+        if (!$removed || $this->db->Affected_Rows() === 0) {
+            return;
+        }
+
+        $this->watchdog()->info(
+            \WatchdogManager::i18nMsg('watchdog.loyalty_points_clawed_back', [
+                'customer' => $idCustomer, 'order' => $idOrder,
+            ]),
+            'refund_processed', 'Loyalty'
+        );
+
+        $this->revokeUnusedRewardsBelowThreshold($idCustomer, $idShop);
+    }
+
+    /**
+     * Révoque (désactive, sans supprimer l'historique) tout bon de palier
+     * déjà émis mais jamais utilisé si le total de points actuel du client
+     * est repassé sous le seuil qui l'avait déclenché.
+     */
+    private function revokeUnusedRewardsBelowThreshold(int $idCustomer, int $idShop): void
+    {
+        $crossShop = (new \ConfigManager($this->module))->isLoyaltyCrossShopEnabled();
+        $reservationShopId = $crossShop ? 0 : $idShop;
+        $total = $this->getCustomerPoints($idCustomer, $crossShop ? null : $idShop);
+
+        $rewards = $this->db->executeS(
+            "SELECT id_reward, tier_key, points_at_reward, id_cart_rule
+             FROM `{$this->prefix}" . self::TABLE_REWARDS . "`
+             WHERE id_customer = {$idCustomer} AND id_shop = {$reservationShopId}
+               AND points_at_reward > {$total}"
+        );
+
+        foreach ((array) $rewards as $reward) {
+            $idCartRule = (int) $reward['id_cart_rule'];
+            if ($idCartRule <= 0) {
+                continue;
+            }
+            $cartRule = new \CartRule($idCartRule);
+            if (!\Validate::isLoadedObject($cartRule)) {
+                continue;
+            }
+            // Un bon déjà consommé (quantité restante épuisée) ne doit
+            // jamais être touché — la remise a déjà été accordée.
+            if ((int) $cartRule->quantity <= 0) {
+                continue;
+            }
+            $cartRule->active = 0;
+            $cartRule->update();
+
+            $this->db->delete(self::TABLE_REWARDS, 'id_reward = ' . (int) $reward['id_reward']);
+
+            $this->watchdog()->info(
+                \WatchdogManager::i18nMsg('watchdog.loyalty_reward_revoked', [
+                    'customer' => $idCustomer, 'tier' => $reward['tier_key'],
+                ]),
+                'refund_processed', 'Loyalty'
+            );
+        }
+    }
+
     // ============================================================
     // GÉNÉRATION DU BON PS (CartRule)
     // ============================================================
@@ -251,7 +346,10 @@ class LoyaltyManager
         $cartRule->free_shipping           = false;
 
         if ($tier['is_percent']) {
-            $cartRule->reduction_percent = (float) $tier['amount'];
+            // Plafond de sécurité en dernier rempart (déjà appliqué à la saisie
+            // dans neria.php) — une valeur non plafonnée déjà en base avant ce
+            // correctif ne doit pas produire un CartRule à 500% de réduction.
+            $cartRule->reduction_percent = min(100.0, (float) $tier['amount']);
             $cartRule->reduction_amount  = 0;
         } else {
             $cartRule->reduction_amount  = (float) $tier['amount'];
