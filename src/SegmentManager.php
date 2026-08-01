@@ -165,9 +165,15 @@ class SegmentManager
                 WHERE id_shop = {$shop} AND id_customer > 0
                 GROUP BY id_customer
             ) m
+            -- COALESCE(m.first_sent, '1970-01-01') : sans elle, un client sans
+            -- aucun événement 'sent' (données de tracking orphelines — un
+            -- open/click/conversion importé sans son 'sent' d'origine) a
+            -- first_sent NULL, et `NULL >= ...` vaut NULL en SQL, faisant
+            -- échouer tout le WHERE pour cette ligne : le client disparaissait
+            -- silencieusement de neria_segment, invisible pour toute campagne.
             WHERE NOT (
                 m.total_opens = 0
-                AND m.first_sent >= DATE_SUB(NOW(), INTERVAL {$newCustomerGraceDays} DAY)
+                AND COALESCE(m.first_sent, '1970-01-01') >= DATE_SUB(NOW(), INTERVAL {$newCustomerGraceDays} DAY)
             )
             ON DUPLICATE KEY UPDATE
                 `segment`           = VALUES(`segment`),
@@ -327,7 +333,11 @@ class SegmentManager
             $blockingCount++;
         }
 
-        $customers = $this->getCustomersBySegment($segment, 500, 0, $filters);
+        $customers = $this->getCustomersBySegment($segment, 501, 0, $filters);
+        $capped = count($customers) > 500;
+        if ($capped) {
+            $customers = array_slice($customers, 0, 500);
+        }
         $recipientCount = count($customers);
 
         if ($recipientCount === 0) {
@@ -335,8 +345,15 @@ class SegmentManager
             $blockingCount++;
         }
 
+        if ($capped) {
+            // Non bloquant : l'envoi continue quand même, plafonné à 500 — mais
+            // le marchand doit le savoir AVANT de lancer la campagne, sinon il
+            // croit avoir touché tout le segment alors qu'il en existe plus.
+            $issues[] = \AdminTranslator::tVars('msg.segment_recipient_cap_exceeded', ['segment' => $segment]);
+        }
+
         $missingLangFiles = [];
-        if (!$issues && $recipientCount > 0) {
+        if ($blockingCount === 0 && $recipientCount > 0) {
             $langsUsed = [];
             foreach ($customers as $c) {
                 // getCustomersBySegment() ne sélectionne pas id_lang, seulement
@@ -360,8 +377,9 @@ class SegmentManager
         }
 
         return [
-            'ok'               => empty($issues) || (count($issues) === 1 && $missingLangFiles),
+            'ok'               => $blockingCount === 0,
             'blocking'         => $blockingCount > 0,
+            'capped'           => $capped,
             'recipient_count'  => $recipientCount,
             'issues'           => $issues,
         ];
@@ -378,7 +396,16 @@ class SegmentManager
             return ['sent' => 0, 'failed' => 0, 'skipped' => 0, 'error' => 'preflight_failed', 'preflight' => $preflight];
         }
 
-        $customers = $this->getCustomersBySegment($segment, 500, 0, $filters);
+        // Demande 1 de plus que le plafond réel pour détecter un dépassement
+        // sans avoir à faire un second COUNT(*) séparé — sans ceci, un segment
+        // de plus de 500 clients était tronqué en silence : seuls les 500
+        // premiers (triés par engagement) recevaient la campagne, sans que
+        // le rapport final n'indique qu'il y avait plus de destinataires réels.
+        $customers = $this->getCustomersBySegment($segment, 501, 0, $filters);
+        $capped = count($customers) > 500;
+        if ($capped) {
+            $customers = array_slice($customers, 0, 500);
+        }
         $sent = 0; $failed = 0; $skipped = 0;
         $failureSamples = [];
 
@@ -455,7 +482,16 @@ class SegmentManager
             );
         }
 
-        return ['sent' => $sent, 'failed' => $failed, 'skipped' => $skipped];
+        if ($capped) {
+            $this->watchdog()->warning(
+                \WatchdogManager::i18nMsg('watchdog.segment_campaign_capped', [
+                    'segment' => $segment, 'template' => $template,
+                ]),
+                $template, 'SegmentManager'
+            );
+        }
+
+        return ['sent' => $sent, 'failed' => $failed, 'skipped' => $skipped, 'capped' => $capped];
     }
 
     // ============================================================

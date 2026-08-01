@@ -152,7 +152,7 @@ class WaitlistManager
             $claimed = $this->db->execute(
                 "UPDATE `{$this->prefix}" . self::TABLE . "`
                  SET claim_started_at = NOW()
-                 WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
+                 WHERE id_customer = {$idCustomer} AND id_product = {$idProduct} AND id_shop = {$idShop}
                    AND notified_at IS NULL"
             ) && $this->db->Affected_Rows() > 0;
 
@@ -178,7 +178,7 @@ class WaitlistManager
                     $this->db->execute(
                         "UPDATE `{$this->prefix}" . self::TABLE . "`
                          SET notified_at = NOW()
-                         WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}"
+                         WHERE id_customer = {$idCustomer} AND id_product = {$idProduct} AND id_shop = {$idShop}"
                     );
                     $sent++;
 
@@ -193,7 +193,7 @@ class WaitlistManager
                     $this->db->execute(
                         "UPDATE `{$this->prefix}" . self::TABLE . "`
                          SET claim_started_at = NULL
-                         WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}"
+                         WHERE id_customer = {$idCustomer} AND id_product = {$idProduct} AND id_shop = {$idShop}"
                     );
                 }
             } catch (\Throwable $e) {
@@ -201,7 +201,7 @@ class WaitlistManager
                 $this->db->execute(
                     "UPDATE `{$this->prefix}" . self::TABLE . "`
                      SET claim_started_at = NULL
-                     WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}"
+                     WHERE id_customer = {$idCustomer} AND id_product = {$idProduct} AND id_shop = {$idShop}"
                 );
                 if (class_exists('WatchdogManager')) {
                     (new \WatchdogManager($this->module))->error(

@@ -236,11 +236,17 @@ class WebhookManager
         try {
             $table = _DB_PREFIX_ . self::TABLE;
 
+            // Backoff exponentiel (2^attempts minutes) via last_attempt : sans lui,
+            // les 3 tentatives d'un webhook contre un endpoint en panne
+            // transitoire pouvaient être consommées en quelques minutes au
+            // prochain passage du cron, sans laisser le temps à l'incident de
+            // se résorber.
             $rows = $this->db->executeS(sprintf(
                 "SELECT * FROM `%s`
                  WHERE `id_shop` = %d
                    AND `status`  = 'pending'
                    AND `attempts` < %d
+                   AND (`last_attempt` IS NULL OR `last_attempt` <= DATE_SUB(NOW(), INTERVAL POW(2, `attempts`) MINUTE))
                  ORDER BY `date_add` ASC
                  LIMIT %d",
                 $table, $this->idShop, self::MAX_ATTEMPTS, self::BATCH_SIZE
@@ -510,8 +516,12 @@ class WebhookManager
     public function retryOne(int $idWebhook): bool
     {
         $table = _DB_PREFIX_ . self::TABLE;
+        // status = 'failed' obligatoire : sans ce filtre, n'importe quel
+        // id_webhook de la boutique (même 'done', déjà livré avec succès)
+        // pouvait être remis en file par un clic admin sur un mauvais ID —
+        // renvoyant deux fois le même événement à un système tiers.
         $row = $this->db->getRow(sprintf(
-            "SELECT id_webhook FROM `%s` WHERE id_webhook = %d AND id_shop = %d",
+            "SELECT id_webhook FROM `%s` WHERE id_webhook = %d AND id_shop = %d AND status = 'failed'",
             $table, $idWebhook, $this->idShop
         ));
         if (!$row) {
@@ -519,8 +529,8 @@ class WebhookManager
         }
 
         $this->db->execute(sprintf(
-            "UPDATE `%s` SET `status` = 'pending', `attempts` = 0 WHERE `id_webhook` = %d",
-            $table, $idWebhook
+            "UPDATE `%s` SET `status` = 'pending', `attempts` = 0 WHERE `id_webhook` = %d AND id_shop = %d",
+            $table, $idWebhook, $this->idShop
         ));
 
         $this->watchdog()->info(

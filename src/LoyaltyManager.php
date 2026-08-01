@@ -554,12 +554,19 @@ class LoyaltyManager
 
     /**
      * Toutes les données de fidélité d'un client pour l'affichage BO.
+     *
+     * Respecte NERIA_LOYALTY_CROSS_SHOP_ENABLED comme checkAndReward() : en
+     * mode séparé, sans ce filtre la fiche client affichait le total/palier
+     * cumulé toutes boutiques alors que les bons sont attribués par boutique.
      */
     public function getCustomerStats(int $idCustomer): array
     {
-        $total    = $this->getCustomerPoints($idCustomer);
-        $tier     = $this->getCustomerTier($idCustomer);
-        $next     = $this->getNextTier($idCustomer);
+        $crossShop = (new \ConfigManager($this->module))->isLoyaltyCrossShopEnabled();
+        $idShop    = $crossShop ? null : (int) \Context::getContext()->shop->id;
+
+        $total    = $this->getCustomerPoints($idCustomer, $idShop);
+        $tier     = $this->getCustomerTier($idCustomer, $idShop);
+        $next     = $this->getNextTier($idCustomer, $idShop);
         $tiers    = $this->getTiers();
 
         // Barre de progression vers le prochain palier
@@ -574,11 +581,13 @@ class LoyaltyManager
             $progressPct = 100;
         }
 
+        $shopFilter = $idShop !== null ? (' AND id_shop = ' . (int) $idShop) : '';
+
         // Historique récent (10 derniers événements)
         $history = $this->db->executeS(
             "SELECT event_type, points, date_add
              FROM `{$this->prefix}" . self::TABLE_POINTS . "`
-             WHERE id_customer = " . (int) $idCustomer . "
+             WHERE id_customer = " . (int) $idCustomer . $shopFilter . "
              ORDER BY date_add DESC
              LIMIT 10"
         ) ?: [];
@@ -587,7 +596,7 @@ class LoyaltyManager
         $rewards = $this->db->executeS(
             "SELECT tier_name, voucher_code, voucher_amount, is_percent, sent_at
              FROM `{$this->prefix}" . self::TABLE_REWARDS . "`
-             WHERE id_customer = " . (int) $idCustomer . "
+             WHERE id_customer = " . (int) $idCustomer . $shopFilter . "
              ORDER BY sent_at DESC"
         ) ?: [];
 
@@ -605,11 +614,17 @@ class LoyaltyManager
 
     /**
      * Statistiques globales pour l'onglet Configure.
+     *
+     * Respecte NERIA_LOYALTY_CROSS_SHOP_ENABLED : en mode séparé, sans ce
+     * filtre l'onglet Configure d'une boutique affichait en fait les
+     * statistiques cumulées de toutes les boutiques du module.
      */
     public function getGlobalStats(): array
     {
-        $ptable = $this->prefix . self::TABLE_POINTS;
-        $rtable = $this->prefix . self::TABLE_REWARDS;
+        $ptable    = $this->prefix . self::TABLE_POINTS;
+        $rtable    = $this->prefix . self::TABLE_REWARDS;
+        $crossShop = (new \ConfigManager($this->module))->isLoyaltyCrossShopEnabled();
+        $shopFilter = $crossShop ? '' : (' WHERE id_shop = ' . (int) \Context::getContext()->shop->id);
 
         $row = $this->db->getRow(
             "SELECT
@@ -618,10 +633,10 @@ class LoyaltyManager
                 SUM(event_type = 'open')                          AS cnt_open,
                 SUM(event_type = 'click')                         AS cnt_click,
                 SUM(event_type = 'conversion')                    AS cnt_conversion
-             FROM `{$ptable}`"
+             FROM `{$ptable}`{$shopFilter}"
         ) ?: [];
 
-        $rewards = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$rtable}`");
+        $rewards = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$rtable}`{$shopFilter}");
 
         return [
             'total_points'      => (int) ($row['total_points']      ?? 0),
@@ -798,16 +813,23 @@ class LoyaltyManager
 
     /**
      * Top clients par points (pour affichage BO).
+     *
+     * Respecte NERIA_LOYALTY_CROSS_SHOP_ENABLED : en mode séparé, un total
+     * cumulé toutes boutiques classait un client "top 1" sur une boutique
+     * alors que la totalité de ses points venait d'une autre boutique.
      */
     public function getTopCustomers(int $limit = 10): array
     {
-        $ptable = $this->prefix . self::TABLE_POINTS;
+        $ptable    = $this->prefix . self::TABLE_POINTS;
+        $crossShop = (new \ConfigManager($this->module))->isLoyaltyCrossShopEnabled();
+        $shopFilter = $crossShop ? '' : (' AND p.id_shop = ' . (int) \Context::getContext()->shop->id);
 
         return $this->db->executeS(
             "SELECT p.id_customer, SUM(p.points) AS total,
                     c.firstname, c.lastname, c.email
              FROM `{$ptable}` p
              JOIN `{$this->prefix}customer` c ON c.id_customer = p.id_customer
+             WHERE 1=1{$shopFilter}
              GROUP BY p.id_customer
              ORDER BY total DESC
              LIMIT " . (int) $limit
