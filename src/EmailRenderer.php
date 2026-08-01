@@ -1145,9 +1145,17 @@ class EmailRenderer
 
     private function getTimeSlot(int $hour): string
     {
+        // Bornes alignées sur ChurnScoreManager::recomputeAll() (18h-23h pour
+        // "evening", 23h-6h pour "night") — auparavant "evening" s'arrêtait
+        // ici à 22h au lieu de 23h. Un client classé "evening" par
+        // ChurnScoreManager (et ciblable comme tel via SegmentManager pour
+        // une campagne BO) recevait une salutation "night" générique dans
+        // ses emails s'il ouvrait entre 22h et 23h — même mot "evening"
+        // utilisé par le marchand pour cibler, mais deux définitions
+        // différentes de la tranche horaire selon la fonctionnalité.
         if ($hour >= 6 && $hour < 12) return 'morning';
         if ($hour >= 12 && $hour < 18) return 'afternoon';
-        if ($hour >= 18 && $hour < 22) return 'evening';
+        if ($hour >= 18 && $hour < 23) return 'evening';
         return 'night';
     }
 

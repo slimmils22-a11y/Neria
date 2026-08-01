@@ -84,6 +84,26 @@ class NeriaPreferencesModuleFrontController extends ModuleFrontController
             try {
                 $manager->saveByCustomer($idCustomer, $email, $submitted);
                 $saved = true;
+
+                // Synchronise ps_customer.newsletter avec la catégorie
+                // 'newsletter' Neria — sans ce pont, les deux systèmes de
+                // désabonnement (natif PrestaShop / Neria) représentaient
+                // deux "vérités" distinctes et jamais synchronisées : un
+                // client qui désactivait tout ici gardait newsletter=1 côté
+                // PrestaShop natif (et tout module tiers qui s'y fie), et
+                // inversement (cf. le correctif symétrique dans
+                // unsubscribe.php côté one-click RFC 8058).
+                if ($idCustomer > 0) {
+                    try {
+                        Db::getInstance()->execute(
+                            "UPDATE `" . _DB_PREFIX_ . "customer` SET `newsletter` = " . (int) $submitted['newsletter'] . "
+                             WHERE `id_customer` = " . $idCustomer . " AND `id_shop` = " . (int) $this->context->shop->id
+                        );
+                    } catch (\Throwable $ex) {
+                        // best-effort : les préférences Neria restent la source
+                        // de vérité prioritaire même si cette synchro échoue
+                    }
+                }
                 if (class_exists('WatchdogManager')) {
                     $optOut = array_keys(array_filter($submitted, fn($v) => $v === 0));
                     $prevLang = AdminTranslator::currentLang();

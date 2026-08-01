@@ -118,6 +118,38 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
             // ignoré : on tente quand même la newsletter invités
         }
 
+        // Catégories Neria (ps_neria_preferences) — TOUTES à 0. Auparavant
+        // absent : ce contrôleur ne touchait que ps_customer.newsletter (et
+        // ps_emailsubscription pour les invités), jamais neria_preferences.
+        // Or c'est EXCLUSIVEMENT neria_preferences que consulte
+        // PreferencesManager::isAllowed() avant chaque envoi Neria — un
+        // client qui cliquait sur "se désabonner" (ou dont le client mail
+        // envoyait le POST one-click RFC 8058) voyait une confirmation de
+        // désabonnement tout en continuant à recevoir la totalité des
+        // emails comportementaux/saisonniers/fidélité/B2B, puisque
+        // isAllowed() reste "true" par défaut tant qu'aucune ligne
+        // neria_preferences n'existe. Toutes les catégories sont mises à 0
+        // (pas seulement celle du template d'origine) : un désabonnement
+        // "un clic" doit être total, conformément à la RFC 8058.
+        if (class_exists('PreferencesManager')) {
+            try {
+                $customerId = (int) $db->getValue(
+                    "SELECT `id_customer` FROM `" . _DB_PREFIX_ . "customer`
+                     WHERE LOWER(`email`) = '" . $e . "' AND `id_shop` = " . $idShop
+                );
+                if ($customerId > 0) {
+                    (new \PreferencesManager($this->module))->saveByCustomer(
+                        $customerId,
+                        $email,
+                        array_fill_keys(\PreferencesManager::CATEGORIES, 0)
+                    );
+                    $ok = true;
+                }
+            } catch (\Throwable $ex) {
+                // ignoré : les autres canaux de désabonnement ci-dessus restent traités
+            }
+        }
+
         // Newsletter des invités (module ps_emailsubscription), si la table existe
         // — même raisonnement : la table est explicitement scopée par id_shop.
         try {

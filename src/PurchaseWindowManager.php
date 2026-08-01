@@ -42,14 +42,22 @@ class PurchaseWindowManager
      */
     public function getPreferredHour(int $idCustomer, int $idShop): ?int
     {
+        // Regroupement par créneau de 2h (FLOOR(HOUR/2)) plutôt que par heure
+        // exacte — un client commandant régulièrement en fin de matinée mais
+        // à cheval sur deux heures entières (10h58, 11h34, 11h05) n'atteignait
+        // jamais MINIMUM_ORDERS sur une même heure exacte malgré un vrai
+        // pattern horaire cohérent, et retombait systématiquement sur l'envoi
+        // immédiat par défaut. La borne basse du créneau (heure paire) sert
+        // d'heure de référence retournée — approximation suffisante pour
+        // programmer l'envoi dans la bonne fenêtre du client.
         // getRow() ajoute LIMIT 1 automatiquement — pas de LIMIT dans la requête.
         $row = $this->db->getRow(
-            'SELECT HOUR(date_add) AS h, COUNT(*) AS cnt
+            'SELECT FLOOR(HOUR(date_add) / 2) * 2 AS h, COUNT(*) AS cnt
              FROM `' . $this->prefix . 'orders`
              WHERE id_customer = ' . (int) $idCustomer . '
                AND id_shop = ' . (int) $idShop . '
                AND valid = 1
-             GROUP BY HOUR(date_add)
+             GROUP BY FLOOR(HOUR(date_add) / 2)
              ORDER BY cnt DESC, h ASC'
         );
 
@@ -70,12 +78,15 @@ class PurchaseWindowManager
         // distincts — un client avec 2 créneaux horaires suffisamment
         // fréquents était compté deux fois, faussant à la hausse le nombre
         // affiché en BO.
+        // Même regroupement par créneau de 2h que getPreferredHour(), pour que
+        // ce compteur BO reflète bien le nombre de clients pour lesquels une
+        // fenêtre sera effectivement détectée par getPreferredHour().
         return (int) $this->db->getValue(
             'SELECT COUNT(DISTINCT id_customer) FROM (
                SELECT id_customer
                FROM `' . $this->prefix . 'orders`
                WHERE valid = 1 AND id_shop = ' . (int) $idShop . '
-               GROUP BY id_customer, HOUR(date_add)
+               GROUP BY id_customer, FLOOR(HOUR(date_add) / 2)
                HAVING COUNT(*) >= ' . self::MINIMUM_ORDERS . '
              ) sub'
         );

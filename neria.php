@@ -4507,10 +4507,17 @@ class Neria extends Module
         // ── Rappel fin de vie produit : ajouter ──────────────────────
         if (Tools::getValue('neria_action') === 'lifespan_add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idProduct    = (int) Tools::getValue('lifespan_id_product');
-            $lifespanDays = (int) Tools::getValue('lifespan_days');
+            // lifespan_days alimente une colonne SMALLINT UNSIGNED (max 65535,
+            // sql/install.sql) — auparavant sans plafond côté PHP (contrairement
+            // à alert_days qui a déjà max(1,...)). Une saisie excessive
+            // ("999999" au lieu de "99") faisait échouer l'INSERT en mode SQL
+            // strict, mais le retour de Db::execute() n'était jamais vérifié :
+            // le message "enregistré" s'affichait quand même, laissant croire
+            // au marchand que la config était prise en compte.
+            $lifespanDays = min(65535, (int) Tools::getValue('lifespan_days'));
             $alertDays    = max(1, (int) Tools::getValue('lifespan_alert_days'));
             if ($idProduct > 0 && $lifespanDays > 0) {
-                Db::getInstance()->execute(
+                $ok = Db::getInstance()->execute(
                     'INSERT INTO `' . _DB_PREFIX_ . 'neria_product_lifespan`
                      (id_shop, id_product, lifespan_days, alert_days, date_add, date_upd)
                      VALUES (' . (int) $this->context->shop->id . ', ' . $idProduct . ', '
@@ -4518,7 +4525,11 @@ class Neria extends Module
                      ON DUPLICATE KEY UPDATE lifespan_days = ' . $lifespanDays . ',
                      alert_days = ' . $alertDays . ', date_upd = NOW()'
                 );
-                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.lifespan_product_added'));
+                if ($ok) {
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.lifespan_product_added'));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.lifespan_invalid_input'));
+                }
             } else {
                 $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.lifespan_invalid_input'));
             }
@@ -4916,17 +4927,30 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'save_seasonal_campaign' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('SeasonalCampaignManager')) {
             $mgr = new SeasonalCampaignManager($this);
             $id  = (int) Tools::getValue('id_campaign', 0);
+            // days_before : borné à [0, 365] — une valeur négative ou énorme
+            // décale la fenêtre d'envoi de façon incohérente sans erreur visible.
+            $daysBefore = max(0, min(365, (int) Tools::getValue('seasonal_days_before', 0)));
+            // min_age/max_age : bornés à [0, 120] et remis dans l'ordre si
+            // inversés — auparavant aucune validation : un min_age=80 avec
+            // max_age=10 rendait le ciblage silencieusement vide en
+            // permanence (la campagne "s'active" en BO mais n'envoie jamais
+            // rien, sans alerte au marchand).
+            $minAge = max(0, min(120, (int) Tools::getValue('seasonal_min_age', 0)));
+            $maxAge = max(0, min(120, (int) Tools::getValue('seasonal_max_age', 0)));
+            if ($maxAge > 0 && $minAge > $maxAge) {
+                [$minAge, $maxAge] = [$maxAge, $minAge];
+            }
             $data = [
                 'name'           => Tools::getValue('seasonal_name', ''),
                 'template'       => Tools::getValue('seasonal_template', ''),
                 'annual_date'    => Tools::getValue('seasonal_annual_date', '01-01'),
-                'days_before'    => (int) Tools::getValue('seasonal_days_before', 0),
+                'days_before'    => $daysBefore,
                 'is_active'      => (int) (bool) Tools::getValue('seasonal_is_active', 1),
                 'target_segment' => implode(',', array_filter((array) Tools::getValue('seasonal_segments', []))),
                 'target_gender'  => (int) Tools::getValue('seasonal_gender', 0),
                 'target_lang'    => implode(',', array_filter((array) Tools::getValue('seasonal_langs', []))),
-                'min_age'        => (int) Tools::getValue('seasonal_min_age', 0),
-                'max_age'        => (int) Tools::getValue('seasonal_max_age', 0),
+                'min_age'        => $minAge,
+                'max_age'        => $maxAge,
                 'gift_mode'      => (int) (bool) Tools::getValue('seasonal_gift_mode', 0),
             ];
             if ($id > 0) {
