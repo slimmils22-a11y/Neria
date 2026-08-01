@@ -35,6 +35,32 @@ class NeriaTrackModuleFrontController extends ModuleFrontController
         $url       = (string) Tools::getValue('url', '');
         $signature = (string) Tools::getValue('s', '');
 
+        // Endpoint public, non authentifié, sans throttling jusqu'ici : un
+        // bot pouvait le bombarder avec un token connu (ou deviné) autant de
+        // fois par seconde qu'il le souhaitait. Le pixel ne peut jamais être
+        // compté deux fois (dédup + GET_LOCK dans StatsManager::recordOpen/
+        // recordClick), mais CHAQUE requête déclenchait quand même la chaîne
+        // complète verrou+SELECT+INSERT — vecteur d'épuisement DB/CPU sans
+        // authentification. On ne bloque JAMAIS le pixel/la redirection eux-
+        // mêmes (philosophie de ce fichier), on saute uniquement l'écriture
+        // en base (la partie coûteuse) au-delà du seuil. Fail-open si APCu
+        // n'est pas disponible (best-effort, jamais bloquant).
+        $trackingWriteAllowed = true;
+        if (function_exists('apcu_enabled') && apcu_enabled()) {
+            $ip  = (string) (\Tools::getRemoteAddr() ?: '0.0.0.0');
+            $key = 'neria_track_rl_' . md5($ip);
+            $hits = (int) apcu_fetch($key, $ok);
+            if (!$ok) {
+                apcu_store($key, 1, 10);
+            } else {
+                $hits++;
+                apcu_store($key, $hits, 10);
+                if ($hits > 30) {
+                    $trackingWriteAllowed = false;
+                }
+            }
+        }
+
         // Autorisation de redirection : liée à un token connu, jamais à l'URL
         // seule — sans ça, ce endpoint public devient un open redirect
         // (n'importe qui peut forger track.php?e=click&url=https://phishing…
@@ -52,25 +78,32 @@ class NeriaTrackModuleFrontController extends ModuleFrontController
                 $stats = new StatsManager($this->module);
 
                 if ($event === 'click') {
+                    // getRefDataByToken() reste appelée même sous throttling :
+                    // simple SELECT indexé (idx_token), nécessaire pour
+                    // déterminer la redirection en toute sécurité — seule
+                    // l'écriture (recordClick, verrou+INSERT) est sautée.
                     $ref = $stats->getRefDataByToken($token);
                     if ($ref) {
                         $redirectAllowed = true;
-                        $stats->recordClick($token, $url);
 
-                        // Cookie d'attribution : template:lang:token (24h)
-                        // Permet à hookActionOrderStatusPostUpdate d'attribuer la commande.
-                        $cookieVal = implode(':', [$ref['template'], $ref['lang'], $token]);
-                        setcookie('neria_ref', $cookieVal, [
-                            'expires'  => time() + 86400,
-                            'path'     => '/',
-                            'secure'   => isset($_SERVER['HTTPS']),
-                            'httponly' => true,
-                            'samesite' => 'Lax',
-                        ]);
+                        if ($trackingWriteAllowed) {
+                            $stats->recordClick($token, $url);
+
+                            // Cookie d'attribution : template:lang:token (24h)
+                            // Permet à hookActionOrderStatusPostUpdate d'attribuer la commande.
+                            $cookieVal = implode(':', [$ref['template'], $ref['lang'], $token]);
+                            setcookie('neria_ref', $cookieVal, [
+                                'expires'  => time() + 86400,
+                                'path'     => '/',
+                                'secure'   => isset($_SERVER['HTTPS']),
+                                'httponly' => true,
+                                'samesite' => 'Lax',
+                            ]);
+                        }
                     }
 
                     // Tracking upsell : détecte neria_ur dans l'URL cible
-                    if ($url !== '' && class_exists('UpsellManager')) {
+                    if ($trackingWriteAllowed && $url !== '' && class_exists('UpsellManager')) {
                         $parsed = parse_url($url);
                         if (!empty($parsed['query'])) {
                             parse_str($parsed['query'], $qp);
@@ -80,7 +113,7 @@ class NeriaTrackModuleFrontController extends ModuleFrontController
                             }
                         }
                     }
-                } else {
+                } elseif ($trackingWriteAllowed) {
                     $stats->recordOpen($token);
                 }
             }
