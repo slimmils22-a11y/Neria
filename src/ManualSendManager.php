@@ -624,6 +624,29 @@ class ManualSendManager
             }
         }
 
+        // ── Garde-fou contexte commande ─────────────────────────────────────
+        // {order_name} et {order_url} sont listés dans AUTO_VARS (donc exclus
+        // du formulaire "champs à remplir" par getEditableVars()) mais ne sont
+        // en réalité injectés QUE si $orderRef pointe vers une commande
+        // valide (ci-dessous). Sans ce garde-fou, un template qui les utilise
+        // (alteration_update, gift_guarantee...) partait avec le placeholder
+        // brut non résolu dès que le marchand envoyait sans lier de commande
+        // — bug réel observé en production (watchdog.residual_vars_stripped
+        // sur alteration_update/{order_name} et gift_guarantee/{order_url},
+        // 30/07/2026), le marchand n'ayant lui-même aucun champ de secours
+        // pour ces clés puisqu'elles sont considérées "automatiques".
+        $order = ($orderRef !== '') ? $this->findOrder($orderRef) : null;
+        if (!$order) {
+            $placeholders   = $this->extractPlaceholders($template);
+            $needsOrderVars = array_intersect(['order_name', 'order_url'], $placeholders);
+            if (!empty($needsOrderVars)) {
+                return [
+                    'ok'      => false,
+                    'message' => AdminTranslator::tVars('msg.send_blocked_missing_order', ['list' => implode(', ', $needsOrderVars)]),
+                ];
+            }
+        }
+
         // Contexte de base
         $vars = [
             '{firstname}'   => $customer['firstname'] ?? '',
@@ -635,12 +658,12 @@ class ManualSendManager
         ];
 
         // Commande optionnelle (contexte + détection langue via {id_order})
-        if ($orderRef !== '') {
-            $order = $this->findOrder($orderRef);
-            if ($order) {
-                $vars['{order_name}'] = $order['reference'];
-                $vars['{id_order}']   = (int) $order['id_order'];
-            }
+        if ($order) {
+            $vars['{order_name}'] = $order['reference'];
+            $vars['{id_order}']   = (int) $order['id_order'];
+            $vars['{order_url}']  = \Context::getContext()->link->getPageLink(
+                'order-detail', true, $idLang, ['id_order' => (int) $order['id_order']]
+            );
         }
 
         // Champs de contenu remplis par le marchand (clés nettoyées)

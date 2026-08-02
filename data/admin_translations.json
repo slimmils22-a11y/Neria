@@ -59891,6 +59891,27 @@
         "da": "Afsendelse blokeret: denne skabelon bruger brugerdefinerede variabler, der ikke er udfyldt: {list} → udfyld dem under Konfigurer → Brugerdefinerede variabler før afsendelse.",
         "nl": "Verzending geblokkeerd: deze sjabloon gebruikt aangepaste variabelen die niet zijn ingevuld: {list} → vul ze in onder Configureren → Aangepaste variabelen voordat u verzendt."
     },
+    "msg.send_blocked_missing_order": {
+        "fr": "Envoi bloqué : ce template a besoin d'une commande liée pour remplir {list} → renseignez une référence de commande valide avant d'envoyer.",
+        "en": "Send blocked: this template needs a linked order to fill {list} → provide a valid order reference before sending.",
+        "de": "Versand blockiert: Diese Vorlage benötigt eine verknüpfte Bestellung, um {list} auszufüllen → geben Sie vor dem Senden eine gültige Bestellreferenz an.",
+        "it": "Invio bloccato: questo modello richiede un ordine collegato per compilare {list} → fornisci un riferimento ordine valido prima di inviare.",
+        "es": "Envío bloqueado: esta plantilla necesita un pedido vinculado para completar {list} → indique una referencia de pedido válida antes de enviar.",
+        "pt": "Envio bloqueado: este modelo precisa de uma encomenda associada para preencher {list} → indique uma referência de encomenda válida antes de enviar.",
+        "br": "Envio bloqueado: este modelo precisa de um pedido vinculado para preencher {list} → informe uma referência de pedido válida antes de enviar.",
+        "gb": "Send blocked: this template needs a linked order to fill {list} → provide a valid order reference before sending.",
+        "ar": "تم حظر الإرسال: يحتاج هذا القالب إلى طلب مرتبط لملء {list} → أدخل رقم طلب صالحًا قبل الإرسال.",
+        "ja": "送信がブロックされました：このテンプレートは{list}を埋めるために紐づく注文が必要です → 送信前に有効な注文番号を入力してください。",
+        "ko": "발송이 차단되었습니다: 이 템플릿은 {list}를 채우려면 연결된 주문이 필요합니다 → 발송 전에 유효한 주문 참조 번호를 입력하세요.",
+        "zh": "发送已阻止：此模板需要关联订单才能填写 {list} → 请在发送前提供有效的订单编号。",
+        "tw": "寄送已阻止：此範本需要關聯訂單才能填寫 {list} → 請在寄送前提供有效的訂單編號。",
+        "ru": "Отправка заблокирована: этому шаблону нужен связанный заказ для заполнения {list} → укажите действительный номер заказа перед отправкой.",
+        "tr": "Gönderim engellendi: bu şablon {list} alanını doldurmak için bağlı bir sipariş gerektiriyor → göndermeden önce geçerli bir sipariş referansı girin.",
+        "sv": "Utskick blockerat: den här mallen behöver en länkad order för att fylla i {list} → ange en giltig orderreferens innan du skickar.",
+        "no": "Utsending blokkert: denne malen trenger en tilknyttet ordre for å fylle ut {list} → oppgi en gyldig ordrereferanse før du sender.",
+        "da": "Afsendelse blokeret: denne skabelon kræver en tilknyttet ordre for at udfylde {list} → angiv en gyldig ordrereference før afsendelse.",
+        "nl": "Verzending geblokkeerd: deze sjabloon heeft een gekoppelde bestelling nodig om {list} in te vullen → geef een geldige bestelreferentie op voordat u verzendt."
+    },
     "help.health_check_config_defaults_seeded": {
         "fr": "Configuration par défaut semée",
         "en": "Default configuration seeded",
