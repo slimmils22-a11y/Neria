@@ -249,6 +249,17 @@ class CollectionManager
             $idLang = $this->resolveLang($customer);
             $idShop = (int) ($row['id_shop'] ?: \Context::getContext()->shop->id);
 
+            // Aucun filtre de préférence n'était appliqué ici — un client
+            // ayant désactivé la catégorie 'post' (post-achat) recevait
+            // quand même cette suggestion, en contradiction avec son choix.
+            // Même garde-fou que BehavioralCronManager/SegmentManager/
+            // CalendarManager/SeasonalCampaignManager/LookCompletionManager.
+            if (class_exists('PreferencesManager')
+                && !(new \PreferencesManager($this->module))->isAllowed($idCustomer, 'collection_completion', $idShop)
+            ) {
+                continue;
+            }
+
             // Récupérer le produit manquant — actif uniquement. Contrairement
             // à getCategories()/searchProducts() qui filtrent déjà p.active=1,
             // ce chargement individuel n'excluait pas les produits désactivés

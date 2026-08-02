@@ -120,6 +120,17 @@ class LookCompletionManager
             // double ligne en base.
             if (!$this->claimSend($idOrder, $idCustomer)) continue;
 
+            // Aucun filtre de préférence n'était appliqué ici — un client
+            // ayant désactivé la catégorie 'post' (post-achat) recevait
+            // quand même cette suggestion, en contradiction avec son choix.
+            // Même garde-fou que BehavioralCronManager/SegmentManager/
+            // CalendarManager/SeasonalCampaignManager.
+            if (class_exists('PreferencesManager')
+                && !(new \PreferencesManager($this->module))->isAllowed($idCustomer, 'complete_your_look', $idShop)
+            ) {
+                continue;
+            }
+
             // Catégories des produits de cette commande
             $categoryIds = $this->getOrderCategoryIds($idOrder);
             if (empty($categoryIds)) continue;
