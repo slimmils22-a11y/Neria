@@ -623,9 +623,25 @@ class Neria extends Module
             return;
         }
 
-        // milestone_order : email au palier 5/10/25/50/100 commandes
+        // milestone_order : email au palier 5/10/25/50/100 commandes.
+        // Isolé dans son propre try/catch — même motif que
+        // hookActionOrderStatusPostUpdateImpl ci-dessous : sans lui, une
+        // exception ici bloquait aussi l'attribution de revenus (cookie
+        // neria_ref → DB) juste en dessous.
         if (class_exists('OrderTriggersManager')) {
-            (new OrderTriggersManager($this))->handleNewOrder($order);
+            try {
+                (new OrderTriggersManager($this))->handleNewOrder($order);
+            } catch (\Throwable $e) {
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this))->error(
+                        WatchdogManager::i18nMsg('watchdog.order_triggers_new_order_error', [
+                            'order' => (int) $order->id,
+                            'error' => $e->getMessage(),
+                        ]),
+                        '', 'OrderTriggersManager'
+                    );
+                }
+            }
         }
 
         // Attribution de revenus : cookie neria_ref → DB
@@ -679,9 +695,26 @@ class Neria extends Module
         $oldStatus = $params['oldOrderStatus'] ?? null;
         $idOrder   = (int) ($params['id_order'] ?? 0);
 
-        // order_on_hold / order_partial_shipped : statuts custom marchand
+        // order_on_hold / order_partial_shipped : statuts custom marchand.
+        // Isolé dans son propre try/catch : sans ça, une exception ici
+        // (ex. statut custom marchand mal configuré) interrompait TOUTE la
+        // méthode, y compris la logique d'attribution de revenus juste en
+        // dessous — qui ne se déclenche qu'une fois sur la transition vers
+        // "payé" et n'est jamais rejouée automatiquement si court-circuitée.
         if ($newStatus && $oldStatus && $idOrder > 0 && class_exists('OrderTriggersManager')) {
-            (new OrderTriggersManager($this))->handleStatusChange($newStatus, $oldStatus, $idOrder);
+            try {
+                (new OrderTriggersManager($this))->handleStatusChange($newStatus, $oldStatus, $idOrder);
+            } catch (\Throwable $e) {
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this))->error(
+                        WatchdogManager::i18nMsg('watchdog.order_triggers_status_change_error', [
+                            'order' => $idOrder,
+                            'error' => $e->getMessage(),
+                        ]),
+                        '', 'OrderTriggersManager'
+                    );
+                }
+            }
         }
 
         // Attribution de revenus : déclenché uniquement sur statut payé
@@ -716,11 +749,28 @@ class Neria extends Module
             $rate = (float) ($order->conversion_rate ?: 1.0);
             $amount = (float) $order->total_paid_tax_incl / ($rate ?: 1.0);
         } catch (\Throwable $e) {
-            $amount = 0.0;
+            // Échec de chargement de la commande (verrou DB transitoire,
+            // cache PS corrompu...) : ne PAS continuer avec un montant/
+            // id_shop bidon. Auparavant le code poursuivait quand même avec
+            // $amount=0.0 et id_shop=0, enregistrait une "conversion" à 0€
+            // polluant le dashboard ROI multi-boutique, PUIS supprimait
+            // définitivement la ligne d'attribution — perte irrémédiable du
+            // token alors que l'attribution n'avait jamais été enregistrée
+            // correctement. On abandonne cette tentative : la ligne reste en
+            // base pour être retentée au prochain changement de statut.
+            if (class_exists('WatchdogManager')) {
+                (new WatchdogManager($this))->error(
+                    WatchdogManager::i18nMsg('watchdog.attribution_order_load_failed', [
+                        'order' => $idOrder,
+                        'error' => $e->getMessage(),
+                    ]),
+                    '', 'Attribution'
+                );
+            }
+            return;
         }
 
-        $idShopForAttribution = isset($order) ? (int) $order->id_shop : 0;
-        (new StatsManager($this))->recordConversion($token, $idOrder, $amount, $idShopForAttribution);
+        (new StatsManager($this))->recordConversion($token, $idOrder, $amount, (int) $order->id_shop);
 
         if (class_exists('WatchdogManager')) {
             (new WatchdogManager($this))->info(
@@ -1446,14 +1496,30 @@ class Neria extends Module
 
         $idProduct = (int) ($params['id_product'] ?? 0);
         $quantity  = (int) ($params['quantity']   ?? 0);
-        $idShop    = (int) ($params['id_shop']    ?? $this->context->shop->id);
 
         if ($idProduct <= 0 || $quantity <= 0) return;
 
-        try {
-            (new WaitlistManager($this))->notifyProduct($idProduct, $idShop);
-        } catch (\Throwable $e) {
-            $this->log('WaitlistManager::notifyProduct() erreur : ' . $e->getMessage(), 3);
+        // StockAvailable::setQuantity() laisse id_shop à NULL quand le stock
+        // est PARTAGÉ au niveau du groupe (Shop::getContext() ==
+        // Shop::CONTEXT_GROUP) — cas normal pour une mise à jour groupée.
+        // `??` se déclenche dès que la clé vaut explicitement null (pas
+        // seulement absente) : sans cette distinction, la boutique de
+        // l'admin qui a déclenché la mise à jour était utilisée à tort,
+        // notifiant les mauvais inscrits (ou en manquant certains) sur les
+        // autres boutiques du groupe pour qui le stock est pourtant
+        // disponible. En stock partagé, on notifie donc TOUTES les
+        // boutiques concernées, pas seulement celle du contexte courant.
+        $shopsToNotify = array_key_exists('id_shop', $params) && $params['id_shop'] === null
+            ? (\Shop::getShops(true, null, true) ?: [(int) $this->context->shop->id])
+            : [(int) ($params['id_shop'] ?? $this->context->shop->id)];
+
+        $mgr = new WaitlistManager($this);
+        foreach ($shopsToNotify as $idShop) {
+            try {
+                $mgr->notifyProduct($idProduct, (int) $idShop);
+            } catch (\Throwable $e) {
+                $this->log('WaitlistManager::notifyProduct() erreur : ' . $e->getMessage(), 3);
+            }
         }
     }
 

@@ -37,7 +37,7 @@
       {/if}
     </div>
   </div>
-  <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''}&neria_tab=send"
+  <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''|escape:'html'}&neria_tab=send"
      class="neria-btn neria-btn--sm" style="background:{if $churn_level === 'critical'}#c0392b{else}#b8600a{/if};color:#fff;">
     ✉ {neria_admin key='churn.send_reengagement'}
   </a>
@@ -236,7 +236,7 @@
     <div class="neria-timeline-item {if $email.opened}neria-timeline-item--opened{else}neria-timeline-item--sent{/if}">
       <div class="neria-timeline-dot"></div>
       <div class="neria-timeline-content">
-        <span class="neria-timeline-template">{$email.template}</span>
+        <span class="neria-timeline-template">{$email.template|escape:'html'}</span>
         <span class="neria-timeline-lang">[{$email.lang|upper}]</span>
         <span class="neria-timeline-date">{$email.sent_at_fmt}</span>
         <span class="neria-timeline-status">
@@ -267,7 +267,7 @@
   <select id="neria-history-filter-template" class="neria-select" style="max-width:220px;">
     <option value="">{neria_admin key='history.filter_all_templates'}</option>
     {foreach $neria_history.templates_list as $tpl}
-      <option value="{$tpl|escape:'html'}">{$tpl}</option>
+      <option value="{$tpl|escape:'html'}">{$tpl|escape:'html'}</option>
     {/foreach}
   </select>
   <select id="neria-history-filter-status" class="neria-select" style="max-width:180px;">
@@ -290,7 +290,7 @@
     {foreach $neria_history.emails as $email}
       <tr data-template="{$email.template|escape:'html'}" data-status="{if $email.opened}opened{else}sent{/if}">
         <td>{$email.sent_at_fmt}</td>
-        <td>{$email.template}</td>
+        <td>{$email.template|escape:'html'}</td>
         <td>{$email.lang|upper}</td>
         <td>
           {if $email.opened}
@@ -319,7 +319,7 @@
     </button>
   {/if}
   <a class="neria-btn neria-btn--ghost neria-btn--sm"
-     href="{$smarty.server.REQUEST_URI}{if $smarty.server.QUERY_STRING}&{else}?{/if}neria_export_csv=1&id_customer={$neria_customer_id}">
+     href="{$smarty.server.REQUEST_URI|escape:'html'}{if $smarty.server.QUERY_STRING}&{else}?{/if}neria_export_csv=1&id_customer={$neria_customer_id|intval}">
     {neria_admin key='history.export_csv'}
   </a>
 </div>
@@ -337,7 +337,7 @@
 </div>
 
 {* ── Formulaire de renvoi (caché, rempli par JS) ─────────────── *}
-<form method="post" action="{$smarty.server.REQUEST_URI}" id="neria-resend-form" style="display:none;">
+<form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" id="neria-resend-form" style="display:none;">
   <input type="hidden" name="neria_resend_email" value="1">
   <input type="hidden" name="id_customer" value="{$neria_customer_id}">
   <input type="hidden" name="id_stat" id="neria-resend-id-stat" value="">
