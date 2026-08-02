@@ -57161,6 +57161,27 @@
         "nl": "Certificaatconfiguratie opgeslagen.",
         "gb": "Certificate configuration saved."
     },
+    "msg.certificate_qr_url_invalid": {
+        "fr": "URL du QR code invalide : elle doit être une adresse https:// valide.",
+        "en": "Invalid QR code URL: it must be a valid https:// address.",
+        "de": "Ungültige QR-Code-URL: Sie muss eine gültige https://-Adresse sein.",
+        "it": "URL del codice QR non valido: deve essere un indirizzo https:// valido.",
+        "es": "URL del código QR no válida: debe ser una dirección https:// válida.",
+        "pt": "URL do código QR inválido: deve ser um endereço https:// válido.",
+        "br": "URL do código QR inválida: deve ser um endereço https:// válido.",
+        "ar": "رابط رمز QR غير صالح: يجب أن يكون عنوان https:// صالحًا.",
+        "ja": "QRコードのURLが無効です。有効なhttps://アドレスを指定してください。",
+        "ko": "QR 코드 URL이 유효하지 않습니다. 올바른 https:// 주소여야 합니다.",
+        "zh": "二维码网址无效：必须是有效的 https:// 地址。",
+        "tw": "QR Code 網址無效：必須是有效的 https:// 網址。",
+        "ru": "Недопустимый URL QR-кода: адрес должен быть корректным https://.",
+        "tr": "Geçersiz QR kodu URL'si: geçerli bir https:// adresi olmalıdır.",
+        "sv": "Ogiltig QR-kod-URL: den måste vara en giltig https://-adress.",
+        "no": "Ugyldig QR-kode-URL: den må være en gyldig https://-adresse.",
+        "da": "Ugyldig QR-kode-URL: den skal være en gyldig https://-adresse.",
+        "nl": "Ongeldige QR-code-URL: het moet een geldig https://-adres zijn.",
+        "gb": "Invalid QR code URL: it must be a valid https:// address."
+    },
     "msg.certificate_issued": {
         "fr": "Certificat émis avec succès.",
         "en": "Certificate issued successfully.",

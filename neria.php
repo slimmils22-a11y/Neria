@@ -2479,12 +2479,22 @@ class Neria extends Module
                 // continue de réutiliser tel quel l'ancien rendu Neria (signature,
                 // design...) au lieu de retomber sur l'envoi natif, et la blacklist
                 // n'a alors aucun effet tant qu'un envoi n'a pas régénéré le fichier.
-                $langsToClear = $lang !== '' ? [$lang] : TranslationEngine::SUPPORTED_LANGS;
-                foreach ($langsToClear as $iso) {
-                    foreach (['.html', '.txt'] as $ext) {
-                        $path = _PS_MODULE_DIR_ . 'neria/mails/' . $iso . '/' . $tpl . $ext;
-                        if (is_file($path)) {
-                            @unlink($path);
+                //
+                // $tpl et $lang doivent être strictement filtrés avant d'entrer dans
+                // un chemin de fichier passé à unlink() : sans ce filtre, une valeur
+                // du type '../../../../var/www/html/somefile' permet une suppression
+                // de fichier arbitraire hors de mails/ (path traversal).
+                $safeTpl = preg_replace('/[^a-z0-9_\-]/i', '', $tpl);
+                $langsToClear = ($lang !== '' && in_array($lang, TranslationEngine::SUPPORTED_LANGS, true))
+                    ? [$lang]
+                    : TranslationEngine::SUPPORTED_LANGS;
+                if ($safeTpl !== '') {
+                    foreach ($langsToClear as $iso) {
+                        foreach (['.html', '.txt'] as $ext) {
+                            $path = _PS_MODULE_DIR_ . 'neria/mails/' . $iso . '/' . $safeTpl . $ext;
+                            if (is_file($path)) {
+                                @unlink($path);
+                            }
                         }
                     }
                 }
@@ -5195,8 +5205,18 @@ class Neria extends Module
             Configuration::updateGlobalValue(CertificateManager::CFG_SUBTITLE,      pSQL(trim((string) Tools::getValue('cert_subtitle', ''))));
             Configuration::updateGlobalValue(CertificateManager::CFG_BODY,          pSQL(trim((string) Tools::getValue('cert_body', ''))));
             Configuration::updateGlobalValue(CertificateManager::CFG_QR_ENABLED,    (int) Tools::getValue('cert_qr_enabled', 0));
-            Configuration::updateGlobalValue(CertificateManager::CFG_QR_URL,        pSQL(trim((string) Tools::getValue('cert_qr_url', ''))));
-            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.certificate_config_saved'));
+
+            // Un QR code sur un certificat imprimé/PDF ne doit jamais pointer
+            // vers une URL non chiffrée ni une valeur invalide saisie par
+            // erreur — sans ce contrôle, une URL http:// ou mal formée était
+            // enregistrée telle quelle et encodée directement dans le QR code.
+            $qrUrl = trim((string) Tools::getValue('cert_qr_url', ''));
+            if ($qrUrl !== '' && (!Validate::isUrl($qrUrl) || stripos($qrUrl, 'https://') !== 0)) {
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.certificate_qr_url_invalid'));
+            } else {
+                Configuration::updateGlobalValue(CertificateManager::CFG_QR_URL, pSQL($qrUrl));
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.certificate_config_saved'));
+            }
         }
 
         // ── Certificat : émission depuis fiche commande ───────────

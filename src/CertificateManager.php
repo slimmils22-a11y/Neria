@@ -236,6 +236,52 @@ class CertificateManager
         return $engine->resolveOptimalLang($idLang, $countryIso, $postcode);
     }
 
+    /**
+     * Choisit les polices TCPDF adaptées au script de la langue. Les
+     * polices core (helvetica/times) sont limitées à l'encodage WinAnsi :
+     * arabe, CJK et cyrillique s'y affichent en rectangles vides. Les
+     * polices ci-dessous sont fournies avec TCPDF (fonts/*.php), aucun
+     * fichier ni dépendance à ajouter au module.
+     *
+     * @return array{0: string, 1: string, 2: bool} [$fontSans, $fontSerif, $isRtl]
+     */
+    private function pdfFontsForLang(string $lang): array
+    {
+        switch ($lang) {
+            case 'ar':
+                // Police arabe (script RTL) — un seul style disponible,
+                // voir pdfSetFont() qui ignore B/I pour cette police.
+                return ['aealarabiya', 'aealarabiya', true];
+            case 'zh':
+                return ['cid0cs', 'cid0cs', false]; // chinois simplifié
+            case 'tw':
+                return ['cid0ct', 'cid0ct', false]; // chinois traditionnel
+            case 'ja':
+                return ['cid0jp', 'cid0jp', false];
+            case 'ko':
+                return ['cid0kr', 'cid0kr', false];
+            case 'ru':
+                // Cyrillique : dejavusans (styles complets) + freeserif
+                return ['dejavusans', 'freeserif', false];
+            default:
+                return ['helvetica', 'times', false];
+        }
+    }
+
+    /**
+     * Applique une police/taille en tenant compte des polices non-Latin
+     * (aealarabiya, cid0*) qui ne fournissent qu'un seul style TCPDF —
+     * demander 'B' ou 'I' sur ces polices lève une erreur TCPDF.
+     */
+    private function pdfSetFont(\TCPDF $pdf, string $family, string $style, int $size): void
+    {
+        $singleStyleFamilies = ['aealarabiya', 'cid0cs', 'cid0ct', 'cid0jp', 'cid0kr'];
+        if (in_array($family, $singleStyleFamilies, true)) {
+            $style = '';
+        }
+        $pdf->SetFont($family, $style, $size);
+    }
+
     private function generatePdf(
         string $serial,
         \Order $order,
@@ -278,6 +324,14 @@ class CertificateManager
 
         $qrEnabled = (bool) \Configuration::get(self::CFG_QR_ENABLED);
         $qrBaseUrl = (string) \Configuration::get(self::CFG_QR_URL) ?: $shopDomain;
+        // getShopDomainSsl(true) peut malgré tout retourner du http:// si le
+        // SSL n'est pas activé côté PS (PS_SSL_ENABLED) — un QR code sur un
+        // certificat imprimé/PDF ne doit jamais pointer vers une URL non
+        // chiffrée. cert_qr_url (BO) est déjà validé en https:// à
+        // l'enregistrement ; ce garde-fou ne couvre donc que le fallback.
+        if (stripos($qrBaseUrl, 'http://') === 0) {
+            $qrBaseUrl = 'https://' . substr($qrBaseUrl, 7);
+        }
 
         // Signature manuscrite
         $sigPath  = '';
@@ -300,6 +354,13 @@ class CertificateManager
             $logoPath = $psLogo;
         }
 
+        // ── Police adaptée au script de la langue ──────────────────
+        // Les polices core TCPDF (helvetica/times) sont limitées à
+        // l'encodage WinAnsi : arabe, CJK et cyrillique s'affichent en
+        // rectangles vides avec elles. Les polices ci-dessous sont fournies
+        // avec TCPDF (aucune dépendance externe) et couvrent ces scripts.
+        [$fontSans, $fontSerif, $isRtl] = $this->pdfFontsForLang($lang);
+
         // ── PDF ───────────────────────────────────────────────────
         try {
             $pdf = new \TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
@@ -310,6 +371,7 @@ class CertificateManager
             $pdf->SetAutoPageBreak(true, 20);
             $pdf->setPrintHeader(false);
             $pdf->setPrintFooter(false);
+            $pdf->setRTL($isRtl);
             $pdf->AddPage();
 
             // ── Fond luxe (rectangle or pâle) ────────────────────
@@ -330,7 +392,7 @@ class CertificateManager
                 $pdf->Image($logoPath, 85, $y, 40, 0, '', '', '', false, 300);
                 $y += 28;
             } else {
-                $pdf->SetFont('helvetica', 'B', 16);
+                $this->pdfSetFont($pdf, $fontSans, 'B', 16);
                 $pdf->SetTextColor(26, 26, 46);
                 $pdf->SetXY(20, $y);
                 $pdf->Cell(170, 10, $shopName, 0, 1, 'C');
@@ -344,14 +406,14 @@ class CertificateManager
             $y += 6;
 
             // ── Titre ─────────────────────────────────────────────
-            $pdf->SetFont('times', 'B', 22);
+            $this->pdfSetFont($pdf, $fontSerif, 'B', 22);
             $pdf->SetTextColor(26, 26, 46);
             $pdf->SetXY(20, $y);
             $pdf->Cell(170, 10, mb_strtoupper($title), 0, 1, 'C');
             $y += 12;
 
             // ── Sous-titre ────────────────────────────────────────
-            $pdf->SetFont('times', 'I', 11);
+            $this->pdfSetFont($pdf, $fontSerif, 'I', 11);
             $pdf->SetTextColor(100, 80, 40);
             $pdf->SetXY(20, $y);
             $pdf->Cell(170, 8, $subtitle, 0, 1, 'C');
@@ -368,12 +430,12 @@ class CertificateManager
             ];
 
             foreach ($fields as $label => $value) {
-                $pdf->SetFont('helvetica', 'B', 9);
+                $this->pdfSetFont($pdf, $fontSans, 'B', 9);
                 $pdf->SetTextColor(130, 100, 50);
                 $pdf->SetXY(25, $y);
                 $pdf->Cell(50, 7, mb_strtoupper($label), 0, 0, 'L');
 
-                $pdf->SetFont('helvetica', '', 10);
+                $this->pdfSetFont($pdf, $fontSans, '', 10);
                 $pdf->SetTextColor(26, 26, 46);
                 $pdf->SetXY(75, $y);
                 $pdf->Cell(115, 7, $value, 0, 1, 'L');
@@ -389,7 +451,7 @@ class CertificateManager
 
             // ── Note de l'artisan ─────────────────────────────────
             if ($artisanNote !== '') {
-                $pdf->SetFont('times', 'I', 10);
+                $this->pdfSetFont($pdf, $fontSerif, 'I', 10);
                 $pdf->SetTextColor(80, 60, 30);
                 $pdf->SetXY(25, $y);
                 $pdf->MultiCell(160, 6, '"' . $artisanNote . '"', 0, 'C');
@@ -397,7 +459,7 @@ class CertificateManager
             }
 
             // ── Corps du texte ────────────────────────────────────
-            $pdf->SetFont('helvetica', '', 9);
+            $this->pdfSetFont($pdf, $fontSans, '', 9);
             $pdf->SetTextColor(100, 100, 100);
             $pdf->SetXY(25, $y);
             $pdf->MultiCell(160, 5, $bodyText, 0, 'C');
@@ -408,7 +470,7 @@ class CertificateManager
                 $qrUrl = rtrim($qrBaseUrl, '/') . '?cert=' . urlencode($serial);
                 $pdf->write2DBarcode($qrUrl, 'QRCODE,H', 25, $y, 28, 28);
 
-                $pdf->SetFont('helvetica', '', 7);
+                $this->pdfSetFont($pdf, $fontSans, '', 7);
                 $pdf->SetTextColor(150, 150, 150);
                 $pdf->SetXY(55, $y + 8);
                 $pdf->Cell(130, 5, $engine->get('certificate_email', 'certificate_pdf_qr_hint', $lang), 0, 0, 'L');
@@ -428,13 +490,13 @@ class CertificateManager
                 $y += 22;
             }
 
-            $pdf->SetFont('helvetica', 'I', 9);
+            $this->pdfSetFont($pdf, $fontSans, 'I', 9);
             $pdf->SetTextColor(100, 80, 40);
             $pdf->SetXY(20, $y);
             $pdf->Cell(170, 6, strtr($engine->get('certificate_email', 'certificate_pdf_signature', $lang), $pdfVars), 0, 1, 'C');
 
             // ── Pied de page ──────────────────────────────────────
-            $pdf->SetFont('helvetica', '', 7);
+            $this->pdfSetFont($pdf, $fontSans, '', 7);
             $pdf->SetTextColor(180, 160, 130);
             $pdf->SetXY(20, 270);
             $pdf->Cell(170, 5, strtr($engine->get('certificate_email', 'certificate_pdf_footer', $lang), $pdfVars), 0, 0, 'C');
@@ -453,8 +515,19 @@ class CertificateManager
             @mkdir($dir, 0755, true);
         }
         if (is_dir($dir)) {
-            file_put_contents($dir . $file, $pdfContent);
-            $path = 'certificates/' . $file;
+            // file_put_contents() peut échouer silencieusement (disque plein,
+            // permissions, quota) — sans vérifier son retour, $path était
+            // enregistré en DB même si le fichier n'existait pas ou était
+            // tronqué, sans que rien ne le détecte ni ne le journalise.
+            $written = @file_put_contents($dir . $file, $pdfContent);
+            if ($written !== false && $written === strlen($pdfContent)) {
+                $path = 'certificates/' . $file;
+            } elseif (class_exists('WatchdogManager')) {
+                (new \WatchdogManager($this->module))->warning(
+                    'Échec d\'écriture du PDF certificat sur disque : ' . $dir . $file,
+                    '', 'CertificateManager'
+                );
+            }
         }
 
         // Même assainissement que $file ci-dessus (whitelist alphanumérique)

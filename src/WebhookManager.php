@@ -86,18 +86,34 @@ class WebhookManager
      */
     public static function isPublicUrl(string $url): bool
     {
+        return self::resolvePublicIp($url) !== null;
+    }
+
+    /**
+     * Valide l'URL comme dans isPublicUrl() et retourne en plus la première
+     * IPv4 publique résolue pour l'hôte, ou null si l'URL est invalide/privée.
+     *
+     * Cette IP doit être pinnée dans l'appel cURL réel (CURLOPT_RESOLVE) :
+     * revalider puis laisser cURL refaire sa propre résolution DNS laisse
+     * une fenêtre de DNS rebinding (le domaine peut répondre une IP
+     * publique à cette résolution-ci puis une IP privée quelques
+     * millisecondes plus tard à la résolution de cURL). Pinner l'IP déjà
+     * validée ferme complètement cette fenêtre.
+     */
+    public static function resolvePublicIp(string $url): ?string
+    {
         if (!\Validate::isAbsoluteUrl($url)) {
-            return false;
+            return null;
         }
 
         $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
         if (!in_array($scheme, ['http', 'https'], true)) {
-            return false;
+            return null;
         }
 
         $host = (string) parse_url($url, PHP_URL_HOST);
         if ($host === '') {
-            return false;
+            return null;
         }
 
         // Résout tous les enregistrements A/AAAA de l'hôte — un domaine peut
@@ -113,7 +129,7 @@ class WebhookManager
         }
 
         if (empty($ips)) {
-            return false;
+            return null;
         }
 
         foreach ($ips as $ip) {
@@ -122,11 +138,11 @@ class WebhookManager
                 FILTER_VALIDATE_IP,
                 FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
             )) {
-                return false;
+                return null;
             }
         }
 
-        return true;
+        return $ips[0];
     }
 
     // ============================================================
@@ -320,6 +336,15 @@ class WebhookManager
             );
         }
         } finally {
+            // Purge des lignes terminales anciennes — cleanup() existait déjà
+            // mais n'était appelée nulle part : ps_neria_webhook_queue
+            // s'accumulait indéfiniment. Placé dans ce finally (et non après
+            // le traitement du batch) pour tourner même quand la file est
+            // vide (return précoce ligne ~272). Probabiliste (1 sur 10),
+            // même logique que QueueManager::purgeOldEntries().
+            if (random_int(1, 10) === 1) {
+                $this->cleanup();
+            }
             $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
         }
     }
@@ -328,9 +353,38 @@ class WebhookManager
     // HTTP FIRE
     // ============================================================
 
+    /**
+     * Construit l'entrée CURLOPT_RESOLVE ("host:port:ip") qui force cURL à
+     * se connecter à l'IP déjà validée par isPublicUrl()/resolvePublicIp(),
+     * sans laisser cURL refaire sa propre résolution DNS (fenêtre de DNS
+     * rebinding). Retourne null si l'URL n'est plus valide/publique.
+     */
+    private function buildResolveOption(string $url): ?string
+    {
+        $ip = self::resolvePublicIp($url);
+        if ($ip === null) {
+            return null;
+        }
+
+        $host   = (string) parse_url($url, PHP_URL_HOST);
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        $port   = (int) (parse_url($url, PHP_URL_PORT) ?: ($scheme === 'https' ? 443 : 80));
+
+        return $host . ':' . $port . ':' . $ip;
+    }
+
     private function fire(string $url, string $secret, string $payload): bool
     {
         if (!function_exists('curl_init')) {
+            return false;
+        }
+
+        // Pinne l'IP déjà validée par isPublicUrl() (appelée juste avant, dans
+        // processQueue()) : sans ça, cURL refait sa propre résolution DNS au
+        // moment de curl_exec(), ce qui laisse une fenêtre de DNS rebinding
+        // entre la validation et l'envoi réel malgré la revalidation.
+        $resolveOpt = $this->buildResolveOption($url);
+        if ($resolveOpt === null) {
             return false;
         }
 
@@ -362,6 +416,7 @@ class WebhookManager
             // la protection SSRF si le serveur préfère IPv6 (bypass
             // "dual-stack" classique).
             CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
+            CURLOPT_RESOLVE        => [$resolveOpt],
         ]);
 
         $response = curl_exec($ch);
@@ -418,6 +473,13 @@ class WebhookManager
             return ['ok' => false, 'error' => AdminTranslator::t('msg.curl_unavailable')];
         }
 
+        // Même pin d'IP que fire() : ferme la fenêtre de DNS rebinding entre
+        // la validation ci-dessus et la connexion cURL réelle.
+        $resolveOpt = $this->buildResolveOption($url);
+        if ($resolveOpt === null) {
+            return ['ok' => false, 'error' => AdminTranslator::t('msg.webhook_url_invalid')];
+        }
+
         $payload = json_encode([
             'event'     => 'test',
             'shop_id'   => $this->idShop,
@@ -450,6 +512,7 @@ class WebhookManager
             // la protection SSRF si le serveur préfère IPv6 (bypass
             // "dual-stack" classique).
             CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
+            CURLOPT_RESOLVE        => [$resolveOpt],
         ]);
 
         $body     = (string) curl_exec($ch);
