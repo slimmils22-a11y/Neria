@@ -35,7 +35,39 @@
         initAlertAutoDismiss();
         initWatchdogAnalyze();
         initGlossaryLinks();
+        initRadioCardGroups();
     });
+
+    // ── Cartes radio stylées (rayon de bouton, séparateur, ombre) ─────
+    // Ces trois groupes (design.tpl) sont des <input type="radio"> masqués
+    // dans un <label> — le clic bascule bien l'input caché (comportement
+    // natif du navigateur), mais RIEN ne mettait à jour l'apparence de la
+    // carte (bordure/fond) en conséquence : ce style était uniquement
+    // calculé par Smarty au chargement de la page, à partir de la valeur
+    // déjà enregistrée en base. Le clic semblait donc "ne rien faire" —
+    // aucun retour visuel avant un rechargement post-sauvegarde. Bug réel
+    // confirmé (vérifié également sur la boutique de production) et
+    // indépendant de tout autre correctif de cette session.
+    function initRadioCardGroups() {
+        var selectors = ['.neria-radius-radio', '.neria-sep-radio', '.neria-shadow-radio'];
+        selectors.forEach(function (sel) {
+            document.querySelectorAll(sel).forEach(function (radio) {
+                radio.addEventListener('change', function () {
+                    document.querySelectorAll('input[name="' + radio.name + '"]').forEach(function (r) {
+                        var card = r.nextElementSibling;
+                        if (!card) return;
+                        if (r.checked) {
+                            card.style.borderColor = '#b38b59';
+                            card.style.background  = '#f9f4ef';
+                        } else {
+                            card.style.borderColor = '#e8d5b0';
+                            card.style.background  = '#fff';
+                        }
+                    });
+                });
+            });
+        });
+    }
 
     // ── Lexique : termes techniques cliquables dans le journal Watchdog ──
     // Repère les termes techniques connus (CartRule, webhook, OAuth...) dans
