@@ -598,8 +598,13 @@ class StatsManager
         // après A), la confiance restait proche du seuil déjà loggé et le
         // garde-fou bloquait tout nouveau webhook/log : le marchand continuait
         // de voir l'ancien gagnant comme vérité, sans alerte de correction.
+        // Scopé par boutique — sans ça, sur un multi-boutiques où le même nom
+        // de template A/B existe sur plusieurs boutiques, un seuil de
+        // signification déjà atteint sur la Boutique A pouvait faire taire à
+        // tort la notification "gagnant atteint" d'un résultat pourtant
+        // nouveau et différent sur la Boutique B.
         $cfgKey = 'NERIA_SIG_LOGGED_' . strtoupper(preg_replace('/[^A-Za-z0-9]/', '_', $template));
-        $logged = (string) \Configuration::get($cfgKey);
+        $logged = (string) \Configuration::get($cfgKey, null, null, $this->idShop);
         $loggedWinner = null;
         $loggedConf   = 0.0;
         if (strpos($logged, '|') !== false) {
@@ -611,7 +616,7 @@ class StatsManager
             return;
         }
 
-        \Configuration::updateValue($cfgKey, $winner . '|' . $conf);
+        \Configuration::updateValue($cfgKey, $winner . '|' . $conf, false, null, $this->idShop);
 
         (new WatchdogManager($this->module))->info(
             WatchdogManager::i18nMsg('watchdog.abtest_significance_reached', ['template' => $template, 'conf' => $conf, 'winner' => $winner]),
@@ -714,15 +719,24 @@ class StatsManager
             'computed_at'   => date('Y-m-d H:i:s'),
         ];
 
+        // Scopé par boutique (5e argument) — sans lui, cette valeur est écrite
+        // comme une clé de config GLOBALE : sur une install multi-boutiques,
+        // un employé consultant l'onglet Stats en contexte Boutique A écrit
+        // ici les chiffres de A, puis un employé basculant sur la Boutique B
+        // dans la fenêtre de cache (30 min) récupérait telles quelles les
+        // données de A (CA, taux d'ouverture, répartition pays) affichées
+        // comme si elles étaient celles de B — fuite de données commerciales
+        // entre boutiques.
         \Configuration::updateValue(
             'NERIA_STATS_CACHE',
-            json_encode($reports, JSON_UNESCAPED_UNICODE)
+            json_encode($reports, JSON_UNESCAPED_UNICODE),
+            false, null, $this->idShop
         );
     }
 
     public function getCachedReports(): array
     {
-        $cached = \Configuration::get('NERIA_STATS_CACHE');
+        $cached = \Configuration::get('NERIA_STATS_CACHE', null, null, $this->idShop);
 
         if ($cached) {
             $data = json_decode($cached, true);

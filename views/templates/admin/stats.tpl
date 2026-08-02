@@ -1407,7 +1407,7 @@ var _nhmLbl = {
               <circle cx="24" cy="24" r="18" fill="none" stroke="{$sc.color}" stroke-width="5"
                       stroke-dasharray="{math equation='113 * v / 100' v=$sc.val} 113"
                       stroke-dashoffset="28" stroke-linecap="round" transform="rotate(-90 24 24)"/>
-              <text x="24" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="{$sc.color}">{$sc.val}</text>
+              <text x="24" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="{$sc.color}">{$sc.val|escape:'html'}</text>
               {else}
               <text x="24" y="28" text-anchor="middle" font-size="11" fill="#ccc">—</text>
               {/if}
@@ -1430,7 +1430,7 @@ var _nhmLbl = {
             <div style="font-size:10px;font-weight:700;color:var(--neria-muted);text-transform:uppercase;margin-bottom:3px;"
                  title="{$cwv.hint}">{$cwv.label}</div>
             <div style="font-size:14px;font-weight:700;color:{if $cwv.status == 'good'}#16a34a{elseif $cwv.status == 'needs-improvement'}#d97706{else}#dc2626{/if};">
-              {$cwv.val}
+              {$cwv.val|escape:'html'}
             </div>
           </div>
           {/foreach}
@@ -1457,7 +1457,7 @@ var _nhmLbl = {
               <circle cx="24" cy="24" r="18" fill="none" stroke="{$sc.color}" stroke-width="5"
                       stroke-dasharray="{math equation='113 * v / 100' v=$sc.val} 113"
                       stroke-dashoffset="28" stroke-linecap="round" transform="rotate(-90 24 24)"/>
-              <text x="24" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="{$sc.color}">{$sc.val}</text>
+              <text x="24" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="{$sc.color}">{$sc.val|escape:'html'}</text>
               {else}
               <text x="24" y="28" text-anchor="middle" font-size="11" fill="#ccc">—</text>
               {/if}
@@ -1477,7 +1477,7 @@ var _nhmLbl = {
                       border:1px solid {if $cwv.status == 'good'}#c3e6cb{elseif $cwv.status == 'needs-improvement'}#ffe082{else}#f5c6cb{/if};">
             <div style="font-size:10px;font-weight:700;color:var(--neria-muted);text-transform:uppercase;margin-bottom:3px;">{$cwv.label}</div>
             <div style="font-size:14px;font-weight:700;color:{if $cwv.status == 'good'}#16a34a{elseif $cwv.status == 'needs-improvement'}#d97706{else}#dc2626{/if};">
-              {$cwv.val}
+              {$cwv.val|escape:'html'}
             </div>
           </div>
           {/foreach}
@@ -2226,7 +2226,7 @@ var _nCopyLbl = {
               {elseif $ipRep === 'BAD'}
                 <span style="background:#721c24;color:#fff;padding:3px 10px;border-radius:12px;font-size:11px;">💀 BAD</span>
               {else}
-                <span style="background:#f9f6f1;color:#7a6a5a;padding:3px 10px;border-radius:12px;font-size:11px;">○ {$ipRep}</span>
+                <span style="background:#f9f6f1;color:#7a6a5a;padding:3px 10px;border-radius:12px;font-size:11px;">○ {$ipRep|escape:'html'}</span>
               {/if}
             {/foreach}
           </div>
@@ -2239,7 +2239,7 @@ var _nCopyLbl = {
           <div style="font-size:11px;font-weight:600;color:#856404;margin-bottom:4px;">⚠️ {neria_admin key='stats.delivery_errors_label'}</div>
           {foreach $ps.delivery_errors as $de}
           <div style="font-size:11px;color:#856404;line-height:1.5;">
-            {$de.errorClass|default:'UNKNOWN'} — {$de.errorType|default:''} ({$de.errorRatio|default:0|string_format:"%.3f"}%)
+            {$de.errorClass|default:'UNKNOWN'|escape:'html'} — {$de.errorType|default:''|escape:'html'} ({$de.errorRatio|default:0|string_format:"%.3f"}%)
           </div>
           {/foreach}
         </div>

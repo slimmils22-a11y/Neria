@@ -212,8 +212,22 @@ class SeoApiManager
 
     private function fetchSemrush(string $domain): ?array
     {
-        $key = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_SEMRUSH_KEY));
+        $rawKey = (string) \Configuration::get(self::CONFIG_SEMRUSH_KEY);
+        $key    = \CryptoManager::decrypt($rawKey);
         if ($key === '') {
+            // Distingue "jamais configuré" (rawKey vide, silence normal) de
+            // "clé enregistrée mais illisible" (decrypt() a échoué — clé de
+            // chiffrement maîtresse altérée), même correctif que
+            // PageSpeedManager::runCheck() — sans lui, CONFIG_LAST_ERROR
+            // restait vide et le marchand ne voyait qu'un message générique
+            // "jamais rafraîchi" au lieu de la vraie cause.
+            if ($rawKey !== '') {
+                $this->recordError('decrypt_failed: SEMrush key unreadable');
+                $this->wd()->warning(
+                    \WatchdogManager::i18nMsg('watchdog.seo_key_unreadable'),
+                    '', 'SeoApiManager'
+                );
+            }
             return null;
         }
 
@@ -335,9 +349,21 @@ class SeoApiManager
 
     private function fetchMoz(string $domain): ?array
     {
-        $accessId  = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_MOZ_ACCESS));
-        $secretKey = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_MOZ_SECRET));
+        $rawAccess = (string) \Configuration::get(self::CONFIG_MOZ_ACCESS);
+        $rawSecret = (string) \Configuration::get(self::CONFIG_MOZ_SECRET);
+        $accessId  = \CryptoManager::decrypt($rawAccess);
+        $secretKey = \CryptoManager::decrypt($rawSecret);
         if ($accessId === '' || $secretKey === '') {
+            // Même distinction "jamais configuré" vs "illisible" que
+            // fetchSemrush() — ne se déclenche que si au moins l'une des deux
+            // valeurs brutes était non vide (sinon c'est juste "pas configuré").
+            if ($rawAccess !== '' || $rawSecret !== '') {
+                $this->recordError('decrypt_failed: Moz credentials unreadable');
+                $this->wd()->warning(
+                    \WatchdogManager::i18nMsg('watchdog.seo_key_unreadable'),
+                    '', 'SeoApiManager'
+                );
+            }
             return null;
         }
 

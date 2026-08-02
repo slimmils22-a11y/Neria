@@ -3337,6 +3337,22 @@ class Neria extends Module
 
             if ($tplKey !== '') {
                 $ab = new ABTestManager($this);
+
+                // Contrairement à deactivate_abtest, ce chemin appelait
+                // directement deleteTests() sans jamais archiver — un test
+                // actif ayant déjà accumulé des résultats significatifs
+                // (double-clic, resoumission accidentelle du formulaire)
+                // disparaissait définitivement sans laisser de trace dans
+                // neria_abtest_history, sans confirmation dédiée à cette
+                // action destructrice.
+                if ($ab->hasActiveTest($tplKey)) {
+                    $report = (new StatsManager($this))->getABTestReport($tplKey, 9999);
+                    $sig    = $report['significance'] ?? [];
+                    $winner = (string) ($sig['overall_winner'] ?? '');
+                    $conf   = (int) max($sig['open']['confidence'] ?? 0, $sig['click']['confidence'] ?? 0);
+                    $ab->archiveTest($tplKey, $report, $winner, $conf, false);
+                }
+
                 $ab->deleteTests($tplKey);
                 $idA = $ab->createTest($tplKey, $variantAName, $variantBName, $splitPercent);
                 if ($idA) {

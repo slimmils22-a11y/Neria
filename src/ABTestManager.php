@@ -378,6 +378,28 @@ class ABTestManager
              WHERE `id_abtest` IN ({$idList})"
         );
 
+        // Les événements déjà enregistrés dans neria_stat (sent/open/click/
+        // conversion) ne sont rattachés qu'à `template` + `abtest_variant`
+        // ('A'/'B'), jamais à un id_abtest précis — rien ne distingue "ancien
+        // test" de "nouveau test" sur ce même template. Sans cette purge, un
+        // nouveau test relancé des mois plus tard sur le même template
+        // récupère automatiquement les centaines d'anciens événements dans
+        // son calcul de significativité (StatsManager::getABTestReport() /
+        // computeSignificance()) — un "gagnant" peut être déclaré et
+        // appliqué en production après seulement quelques envois du nouveau
+        // test, sur la base de résultats appartenant en réalité à l'ancien.
+        // On désétiquette (abtest_variant = NULL) plutôt que de supprimer
+        // les lignes : les événements bruts restent disponibles pour les
+        // statistiques globales du template, seule leur participation aux
+        // calculs A/B (filtrés sur abtest_variant IN ('A','B')) est retirée.
+        $this->db->execute(
+            "UPDATE `" . _DB_PREFIX_ . "neria_stat`
+             SET `abtest_variant` = NULL
+             WHERE `id_shop`  = {$this->idShop}
+               AND `template` = '" . pSQL($template) . "'
+               AND `abtest_variant` IN ('A', 'B')"
+        );
+
         $this->cacheLoaded = false;
         $this->activeTestsCache = [];
 

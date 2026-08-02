@@ -415,8 +415,25 @@ class PostmasterManager
 
     private function refreshAccessToken(): ?string
     {
-        $refresh = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_REFRESH_TOKEN));
+        $rawRefresh = (string) \Configuration::get(self::CONFIG_REFRESH_TOKEN);
+        $refresh    = \CryptoManager::decrypt($rawRefresh);
         if ($refresh === '') {
+            // Distingue "jamais connecté" (rawRefresh vide, silence normal)
+            // de "token enregistré mais illisible" (decrypt() a échoué — clé
+            // de chiffrement maîtresse altérée) : sans ce contrôle, ce cas
+            // échouait silencieusement, CONFIG_LAST_ERROR restait vide et
+            // HealthCheckManager::checkOAuthFreshness() n'affichait que le
+            // message générique "jamais rafraîchi" au lieu de la vraie cause.
+            if ($rawRefresh !== '') {
+                \Configuration::updateValue(self::CONFIG_LAST_ERROR, 'decrypt_failed: refresh token unreadable');
+                if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
+                    \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+                }
+                $this->wd()->warning(
+                    \WatchdogManager::i18nMsg('watchdog.postmaster_key_unreadable'),
+                    '', 'PostmasterManager'
+                );
+            }
             return null;
         }
 
