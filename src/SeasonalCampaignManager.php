@@ -205,6 +205,19 @@ class SeasonalCampaignManager
                     $link     = \Context::getContext()->link;
                     $template = $isGiftMode ? 'gift_ideas' : $campaign['template'];
 
+                    // getEligibleCustomers() ne filtre QUE sur les critères de
+                    // ciblage (genre/langue/âge/segment) — aucun filtre de
+                    // préférence, pas même le flag newsletter global. Sans ce
+                    // contrôle, un client désabonné recevait quand même
+                    // n'importe quelle campagne saisonnière correspondant à
+                    // son ciblage. Même garde-fou que
+                    // BehavioralCronManager/SegmentManager/CalendarManager.
+                    if (class_exists('PreferencesManager')
+                        && !(new \PreferencesManager($this->module))->isAllowed($idCustomer, $template, $this->idShop)
+                    ) {
+                        continue;
+                    }
+
                     // Bloc upsell injecté pour le mode cadeaux
                     $upsellHtml = '';
                     $upsellTxt  = '';
