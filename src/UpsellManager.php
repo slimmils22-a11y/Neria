@@ -121,6 +121,31 @@ class UpsellManager
      */
     public function renderUpsellBlock(int $idCustomer, int $idLang, int $idShop): string
     {
+        $upsell = $this->findUpsellForCustomer($idCustomer, $idLang, $idShop);
+        if (!$upsell) {
+            return '';
+        }
+
+        $config = new \ConfigManager($this->module);
+        return $this->buildHtmlBlock($upsell, $config);
+    }
+
+    /**
+     * Équivalent TXT de renderUpsellBlock() — même produit suggéré, à
+     * injecter à la place de {upsell_block_txt} dans la version texte.
+     */
+    public function renderUpsellBlockTxt(int $idCustomer, int $idLang, int $idShop): string
+    {
+        $upsell = $this->findUpsellForCustomer($idCustomer, $idLang, $idShop);
+        if (!$upsell) {
+            return '';
+        }
+
+        return $this->buildTxtBlock($upsell);
+    }
+
+    private function findUpsellForCustomer(int $idCustomer, int $idLang, int $idShop): ?array
+    {
         $row = $this->db->getRow(
             "SELECT id_order FROM `{$this->prefix}orders`
              WHERE id_customer = " . (int) $idCustomer . "
@@ -129,16 +154,10 @@ class UpsellManager
              ORDER BY date_add DESC"
         );
         if (!$row) {
-            return '';
+            return null;
         }
 
-        $upsell = $this->getUpsellProduct((int) $row['id_order'], $idLang);
-        if (!$upsell) {
-            return '';
-        }
-
-        $config = new \ConfigManager($this->module);
-        return $this->buildHtmlBlock($upsell, $config);
+        return $this->getUpsellProduct((int) $row['id_order'], $idLang);
     }
 
     // ============================================================

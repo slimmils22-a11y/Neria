@@ -207,10 +207,12 @@ class SeasonalCampaignManager
 
                     // Bloc upsell injecté pour le mode cadeaux
                     $upsellHtml = '';
+                    $upsellTxt  = '';
                     if ($isGiftMode && class_exists('UpsellManager')) {
                         try {
-                            $upsellHtml = (new \UpsellManager($this->module))
-                                ->renderUpsellBlock((int) $idCustomer, $idLang, (int) $this->idShop);
+                            $upsellMgr = new \UpsellManager($this->module);
+                            $upsellHtml = $upsellMgr->renderUpsellBlock((int) $idCustomer, $idLang, (int) $this->idShop);
+                            $upsellTxt  = $upsellMgr->renderUpsellBlockTxt((int) $idCustomer, $idLang, (int) $this->idShop);
                         } catch (\Throwable $ue) {
                             // Pas bloquant — on envoie sans le bloc
                         }
@@ -228,6 +230,7 @@ class SeasonalCampaignManager
                             '{history_url}'   => $link->getPageLink('history', true, $idLang),
                             '{campaign_name}' => $campaign['name'],
                             '{upsell_block}'  => $upsellHtml,
+                            '{upsell_block_txt}' => $upsellTxt,
                         ],
                         $customer['email'],
                         $customer['firstname'] . ' ' . $customer['lastname'],
