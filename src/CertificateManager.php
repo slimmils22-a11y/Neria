@@ -712,12 +712,20 @@ class CertificateManager
     {
         $prefix = (string) \Configuration::get(self::CFG_SERIAL_PREFIX) ?: 'CERT';
         $year   = date('Y');
-        // Scopé à la boutique courante : sur une install multi-boutiques, la
-        // numérotation d'une boutique ne doit pas dépendre du volume émis
-        // par une autre.
-        $last   = (int) $this->db->getValue(
-            'SELECT MAX(`id_certificate`) FROM `' . _DB_PREFIX_ . self::TABLE . '`
-             WHERE `id_shop` = ' . $this->idShop
+        // Volontairement NON scopé par id_shop : serial_number porte une
+        // contrainte UNIQUE GLOBALE (toutes boutiques confondues, cf.
+        // createTable()) que serialExists() vérifie elle aussi sans filtre
+        // id_shop. Une numérotation scopée par boutique faisait
+        // naturellement converger deux boutiques vers les mêmes suffixes
+        // (chacune recommençant à 000001) — collision quasi systématique
+        // dès la 2e boutique, provoquant un échec d'émission récurrent
+        // (les 5 tentatives avec offset croissant de issue() se heurtaient
+        // toutes à des numéros déjà pris par la boutique la plus active).
+        // Basé sur le MAX global, la suite ne collisionne jamais entre
+        // boutiques — seul le "chaque boutique recommence à 1" cosmétique
+        // est perdu, au profit d'une émission qui ne bloque plus jamais.
+        $last = (int) $this->db->getValue(
+            'SELECT MAX(`id_certificate`) FROM `' . _DB_PREFIX_ . self::TABLE . '`'
         );
         return strtoupper($prefix) . '-' . $year . '-' . str_pad($last + 1 + $offset, 6, '0', STR_PAD_LEFT);
     }

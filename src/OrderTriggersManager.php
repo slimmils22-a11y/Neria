@@ -377,7 +377,7 @@ class OrderTriggersManager
                     if (class_exists('LoyaltyManager') && \Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')) {
                         try {
                             (new \LoyaltyManager($this->module))->restoreForOrder(
-                                $idOrder, (int) $orderForMilestone->id_customer
+                                $idOrder, (int) $orderForMilestone->id_customer, (int) $orderForMilestone->id_shop
                             );
                         } catch (\Throwable $e) {
                             $this->watchdog()->error(

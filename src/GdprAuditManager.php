@@ -600,6 +600,25 @@ class GdprAuditManager
             return 0;
         }
 
+        // CryptoManager::encrypt() retourne la valeur EN CLAIR inchangée si la
+        // clé maîtresse est illisible (absente/corrompue) — sans ce contrôle,
+        // la boucle ci-dessous réécrit indéfiniment les mêmes lignes non
+        // préfixées 'ENC:%' (la condition de sortie du WHERE n'est jamais
+        // satisfaite), bloquant la requête BO jusqu'au timeout serveur.
+        $keyProbe = \CryptoManager::encrypt('neria_key_probe');
+        if (!\CryptoManager::isEncrypted($keyProbe)) {
+            if (class_exists('WatchdogManager') && class_exists('Module')) {
+                $neria = \Module::getInstanceByName('neria');
+                if ($neria) {
+                    (new \WatchdogManager($neria))->error(
+                        'Chiffrement rétroactif RGPD annulé : clé de chiffrement illisible (NERIA_ENCRYPTION_KEY absente ou corrompue).',
+                        '', 'GdprAuditManager'
+                    );
+                }
+            }
+            return 0;
+        }
+
         $table = _DB_PREFIX_ . 'neria_stat';
         $done  = 0;
 
@@ -618,6 +637,13 @@ class GdprAuditManager
 
             foreach ($rows as $row) {
                 $encrypted = \CryptoManager::encrypt($row['rendered_vars']);
+                // Garde-fou supplémentaire (défense en profondeur) : si le
+                // chiffrement n'a produit aucun changement malgré la sonde
+                // ci-dessus (ex: clé devenue illisible EN COURS de boucle),
+                // on arrête immédiatement plutôt que de tourner sans fin.
+                if ($encrypted === $row['rendered_vars']) {
+                    return $done;
+                }
                 $this->db->execute(
                     "UPDATE `{$table}` SET `rendered_vars` = '" . pSQL($encrypted) . "'
                      WHERE `id_stat` = " . (int) $row['id_stat']

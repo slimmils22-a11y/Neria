@@ -408,12 +408,24 @@ class SegmentManager
         }
         $sent = 0; $failed = 0; $skipped = 0;
         $failureSamples = [];
+        $preferences = class_exists('PreferencesManager') ? new \PreferencesManager($this->module) : null;
 
         foreach ($customers as $c) {
             $customer = new \Customer((int) $c['id_customer']);
             $idLang   = $customer->id
                 ? ((int) $customer->id_lang ?: (int) \Configuration::get('PS_LANG_DEFAULT'))
                 : (int) \Configuration::get('PS_LANG_DEFAULT');
+
+            // getCustomersBySegment() ne filtre que active=1/deleted=0 — un
+            // client désabonné (one-click ou préférences) reste dans son
+            // segment (le recalcul quotidien de segment est indépendant de
+            // l'abonnement) et recevait donc quand même la campagne, en
+            // contradiction directe avec sa demande de désabonnement. Même
+            // garde-fou que BehavioralCronManager avant chaque envoi.
+            if ($preferences !== null && !$preferences->isAllowed((int) $c['id_customer'], $template, $this->idShop)) {
+                $skipped++;
+                continue;
+            }
 
             $langCode     = \Language::getIsoById($idLang) ?: 'fr';
             $templateFile = _PS_MODULE_DIR_ . 'neria/mails/' . $langCode . '/' . $template . '.html';

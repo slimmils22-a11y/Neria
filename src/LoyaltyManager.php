@@ -63,7 +63,7 @@ class LoyaltyManager
      * Attribue des points à un client après un événement de tracking.
      * Idempotent : la clé UNIQUE (id_stat, event_type) empêche les doublons.
      */
-    public function awardPoints(int $idCustomer, int $idStat, string $eventType): void
+    public function awardPoints(int $idCustomer, int $idStat, string $eventType, ?int $idShop = null): void
     {
         if ($idCustomer <= 0 || $idStat <= 0) {
             return;
@@ -80,11 +80,15 @@ class LoyaltyManager
             return;
         }
 
-        // Boutique réelle de CET événement de tracking (le clic/l'ouverture
-        // arrive sur le domaine de la boutique concernée) — nécessaire pour
-        // le cumul par boutique quand NERIA_LOYALTY_CROSS_SHOP_ENABLED est
-        // désactivé par le marchand.
-        $idShop = (int) \Context::getContext()->shop->id;
+        // Boutique réelle de CET événement — pour un tracking en direct
+        // (StatsManager), c'est bien le contexte courant (le clic/l'ouverture
+        // arrive sur le domaine de la boutique concernée). Mais pour un
+        // recrédit après remboursement (restoreForOrder), la boutique réelle
+        // est celle de LA COMMANDE, pas celle du contexte BO de l'employé qui
+        // traite le remboursement — d'où ce paramètre explicite, nécessaire
+        // pour le cumul par boutique quand NERIA_LOYALTY_CROSS_SHOP_ENABLED
+        // est désactivé par le marchand.
+        $idShop = $idShop ?? (int) \Context::getContext()->shop->id;
 
         $inserted = $this->db->execute(
             "INSERT IGNORE INTO `{$this->prefix}" . self::TABLE_POINTS . "`
@@ -266,7 +270,7 @@ class LoyaltyManager
      * même si le litige à l'origine du remboursement était finalement
      * tranché en sa défaveur... pour le marchand (commande ré-livrée).
      */
-    public function restoreForOrder(int $idOrder, int $idCustomer): void
+    public function restoreForOrder(int $idOrder, int $idCustomer, int $idShop): void
     {
         if ($idOrder <= 0 || $idCustomer <= 0) {
             return;
@@ -278,7 +282,11 @@ class LoyaltyManager
              WHERE id_order = {$idOrder} AND event_type = 'conversion'"
         );
         foreach ((array) $statRows as $row) {
-            $this->awardPoints($idCustomer, (int) $row['id_stat'], 'conversion');
+            // $idShop explicite (boutique réelle de LA COMMANDE) — sans lui,
+            // awardPoints() retombait sur le contexte BO courant de
+            // l'employé, potentiellement une autre boutique que celle de
+            // cette commande en environnement multi-boutiques isolé.
+            $this->awardPoints($idCustomer, (int) $row['id_stat'], 'conversion', $idShop);
         }
     }
 
@@ -288,14 +296,33 @@ class LoyaltyManager
         $reservationShopId = $crossShop ? 0 : $idShop;
         $total = $this->getCustomerPoints($idCustomer, $crossShop ? null : $idShop);
 
+        // Index par clé de palier -> seuil réel configuré (tier['points']).
+        // points_at_reward n'est qu'un SNAPSHOT du total au moment de
+        // l'émission du bon — il peut être largement supérieur au seuil du
+        // palier si le client avait déjà accumulé plus de points que
+        // nécessaire. Comparer $total à ce snapshot (ancien comportement)
+        // révoquait des bons pourtant toujours valides au regard de leur
+        // seuil réel après un remboursement partiel qui ne fait que
+        // ramener le total sous le snapshot, pas sous le seuil du palier.
+        $thresholds = [];
+        foreach ($this->getTiers() as $tier) {
+            if (isset($tier['key'], $tier['points'])) {
+                $thresholds[$tier['key']] = (int) $tier['points'];
+            }
+        }
+
         $rewards = $this->db->executeS(
             "SELECT id_reward, tier_key, points_at_reward, id_cart_rule
              FROM `{$this->prefix}" . self::TABLE_REWARDS . "`
-             WHERE id_customer = {$idCustomer} AND id_shop = {$reservationShopId}
-               AND points_at_reward > {$total}"
+             WHERE id_customer = {$idCustomer} AND id_shop = {$reservationShopId}"
         );
 
         foreach ((array) $rewards as $reward) {
+            $threshold = $thresholds[$reward['tier_key']] ?? (int) $reward['points_at_reward'];
+            if ($total >= $threshold) {
+                continue; // le client conserve toujours le droit à ce palier
+            }
+
             $idCartRule = (int) $reward['id_cart_rule'];
             if ($idCartRule <= 0) {
                 continue;
