@@ -169,7 +169,7 @@ class LoyaltyManager
                     $amount = \NeriaTools::displayPrice((float) $tier['amount'], $this->context->currency, $idLangCustomer);
                 }
 
-                $emailSent = $this->sendRewardEmail($idCustomer, $tier, $code, $amount, $total);
+                $emailSent = $this->sendRewardEmail($idCustomer, $tier, $code, $amount, $total, $idShop);
                 if ($emailSent) {
                     $this->watchdog()->info(
                         \WatchdogManager::i18nMsg('watchdog.loyalty_tier_reached', [
@@ -448,10 +448,20 @@ class LoyaltyManager
         return $code;
     }
 
-    private function sendRewardEmail(int $idCustomer, array $tier, string $code, string $amount, int $points): bool
+    private function sendRewardEmail(int $idCustomer, array $tier, string $code, string $amount, int $points, int $idShop): bool
     {
         $customer = new \Customer($idCustomer);
         if (!\Validate::isLoadedObject($customer)) {
+            return false;
+        }
+
+        // Aucun filtre de préférence n'était appliqué ici — un client ayant
+        // désactivé la catégorie 'loyalty' recevait quand même cette
+        // notification de palier atteint (avec code de bon). Même
+        // garde-fou que les autres managers corrigés aujourd'hui.
+        if (class_exists('PreferencesManager')
+            && !(new \PreferencesManager($this->module))->isAllowed($idCustomer, 'loyalty_tier_upgrade', $idShop)
+        ) {
             return false;
         }
 
@@ -773,6 +783,16 @@ class LoyaltyManager
     {
         $customer = new \Customer($idCustomer);
         if (!\Validate::isLoadedObject($customer) || !$customer->active) {
+            return false;
+        }
+
+        // Aucun filtre de préférence n'était appliqué ici — un client ayant
+        // désactivé la catégorie 'loyalty' recevait quand même le récap
+        // mensuel de points. Même garde-fou que les autres managers
+        // corrigés aujourd'hui.
+        if (class_exists('PreferencesManager')
+            && !(new \PreferencesManager($this->module))->isAllowed($idCustomer, 'loyalty_recap', $idShop)
+        ) {
             return false;
         }
 
