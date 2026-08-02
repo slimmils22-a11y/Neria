@@ -205,6 +205,7 @@ class HealthCheckManager
             'chained_str_replace'   => 'checkChainedStrReplace',
             'customer_email_shop_scope' => 'checkCustomerEmailLookupMissingShop',
             'default_currency_usage' => 'checkDefaultCurrencyUsage',
+            'upgrade_unique_key_shop_scope' => 'checkUpgradeUniqueKeyShopScope',
             'cron_loop_try_catch'     => 'checkCronLoopMissingTryCatch',
             'tpl_js_escape_missing'    => 'checkTplJsEscapeMissing',
             'imap_timeout_missing'     => 'checkImapTimeoutMissing',
@@ -2525,6 +2526,59 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.default_currency_usage_ok')];
+    }
+
+    /**
+     * Scan statique de upgrade/*.php : déclarations UNIQUE KEY dont la
+     * liste de colonnes ne contient pas id_shop. Motif trouvé et corrigé
+     * 2 fois à l'identique (neria_behavioral_sent en upgrade-1.0.29.php, puis
+     * neria_queue en upgrade-1.0.36.php le 01/08/2026 — la contrainte
+     * corrigée en 1.0.29 a été réintroduite sans id_shop dans un script
+     * ultérieur) : sur une install multi-boutiques avec clients partagés,
+     * une clé d'unicité sans id_shop bloque à tort l'INSERT IGNORE d'une
+     * seconde boutique pour le même client/référence — un email jamais
+     * envoyé, sans erreur ni log.
+     *
+     * Volontairement non tranché automatiquement : plusieurs clés
+     * existantes n'ont légitimement pas besoin d'id_shop (ex. uq_order sur
+     * id_order, déjà unique par nature puisqu'une commande n'appartient
+     * qu'à une boutique) — liste chaque occurrence pour relecture manuelle,
+     * comme checkDefaultCurrencyUsage() ci-dessus.
+     */
+    private function checkUpgradeUniqueKeyShopScope(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name . '/upgrade';
+        if (!is_dir($moduleDir)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.upgrade_unique_key_shop_ok')];
+        }
+
+        $offenders = [];
+        foreach (glob($moduleDir . '/upgrade-*.php') ?: [] as $file) {
+            $content = file_get_contents($file) ?: '';
+            $relative = 'upgrade/' . basename($file);
+
+            if (preg_match_all('/UNIQUE\s+KEY\s+`?[a-z0-9_]*`?\s*\(([^)]*)\)/i', $content, $m, PREG_OFFSET_CAPTURE)) {
+                foreach ($m[1] as $i => $colsMatch) {
+                    if (stripos($colsMatch[0], 'id_shop') !== false) {
+                        continue;
+                    }
+                    $line = substr_count(substr($content, 0, $m[0][$i][1]), "\n") + 1;
+                    $offenders[] = $relative . ':' . $line;
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.upgrade_unique_key_shop_warning', [
+                    'n'    => count($offenders),
+                    'list' => implode(', ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.upgrade_unique_key_shop_ok')];
     }
 
     /**
