@@ -7540,7 +7540,7 @@
             "recycled_packaging_label": "Emballage recyclé",
             "delivery_address_title": "Adresse de livraison",
             "invoice_address_title": "Adresse de facturation",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">Vous pourrez suivre l'acheminement de votre colis depuis votre espace client</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Vous pourrez suivre l'acheminement de votre colis depuis votre espace client</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Consultez l'historique de votre commande dans votre espace client</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Si vous avez commandé en tant qu'invité, suivez votre commande via le lien dédié</a>",
             "signature_thanks": "Avec toute notre gratitude et notre fierté,"
@@ -7571,7 +7571,7 @@
             "recycled_packaging_label": "Recycled packaging",
             "delivery_address_title": "Delivery address",
             "invoice_address_title": "Invoice address",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">You can track the progress of your package from your customer account</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">You can track the progress of your package from your customer account</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">View your order history in your customer account</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">If you ordered as a guest, track your order via the dedicated link</a>",
             "signature_thanks": "With all our gratitude and pride,"
@@ -7602,7 +7602,7 @@
             "recycled_packaging_label": "Recycelte Verpackung",
             "delivery_address_title": "Lieferadresse",
             "invoice_address_title": "Rechnungsadresse",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">Sie können den Fortschritt Ihres Pakets in Ihrem Kundenkonto verfolgen</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Sie können den Fortschritt Ihres Pakets in Ihrem Kundenkonto verfolgen</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Bestellverlauf in Ihrem Kundenkonto anzeigen</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Wenn Sie als Gast bestellt haben, verfolgen Sie Ihre Bestellung über den speziellen Link</a>",
             "signature_thanks": "Mit all unserer Dankbarkeit und unserem Stolz,"
@@ -7633,7 +7633,7 @@
             "recycled_packaging_label": "Imballaggio riciclato",
             "delivery_address_title": "Indirizzo di consegna",
             "invoice_address_title": "Indirizzo di fatturazione",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">Può seguire l'avanzamento del Vostro pacco dal Vostro account cliente</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Può seguire l'avanzamento del Vostro pacco dal Vostro account cliente</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Visualizza lo storico del Vostro ordine nel Vostro account cliente</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se ha ordinato come ospite, traccia il Vostro ordine tramite il link dedicato</a>",
             "signature_thanks": "Con tutta la nostra gratitudine e il nostro orgoglio,"
@@ -7664,7 +7664,7 @@
             "recycled_packaging_label": "Embalaje reciclado",
             "delivery_address_title": "Dirección de entrega",
             "invoice_address_title": "Dirección de facturación",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">Puede seguir el progreso de su paquete desde su cuenta de cliente</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Puede seguir el progreso de su paquete desde su cuenta de cliente</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Consulte el historial de su pedido en su cuenta de cliente</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Si realizó su pedido como invitado, siga su pedido a través del enlace dedicado</a>",
             "signature_thanks": "Con todo nuestro agradecimiento y orgullo,"
@@ -7695,7 +7695,7 @@
             "recycled_packaging_label": "Embalagem reciclada",
             "delivery_address_title": "Morada de entrega",
             "invoice_address_title": "Morada de faturação",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">Pode acompanhar o progresso da sua encomenda a partir da sua conta de cliente</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Pode acompanhar o progresso da sua encomenda a partir da sua conta de cliente</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Consulte o histórico da sua encomenda na sua conta de cliente</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se fez a sua encomenda como convidado, acompanhe-a através do link dedicado</a>",
             "signature_thanks": "Com toda a nossa gratidão e orgulho,"
@@ -7726,7 +7726,7 @@
             "recycled_packaging_label": "Embalagem reciclada",
             "delivery_address_title": "Endereço de entrega",
             "invoice_address_title": "Endereço de faturamento",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">Você pode acompanhar o progresso do seu pedido a partir da sua conta de cliente</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Você pode acompanhar o progresso do seu pedido a partir da sua conta de cliente</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Consulte o histórico do seu pedido na sua conta de cliente</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Se fez seu pedido como convidado, acompanhe-o através do link dedicado</a>",
             "signature_thanks": "Com toda a nossa gratidão e orgulho,"
@@ -7757,7 +7757,7 @@
             "recycled_packaging_label": "تغليف معاد تدوير",
             "delivery_address_title": "عنوان التوصيل",
             "invoice_address_title": "عنوان الفاتورة",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">يمكنكم تتبع تقدم طردكم من حساب العميل الخاص بكم</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">يمكنكم تتبع تقدم طردكم من حساب العميل الخاص بكم</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">اطلع على سجل طلبكم في حساب العميل الخاص بكم</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">إذا قمتم بالطلب كضيوف، تابعوا طلبكم عبر الرابط المخصص</a>",
             "signature_thanks": "بكل امتناننا وفخرنا،"
@@ -7788,7 +7788,7 @@
             "recycled_packaging_label": "リサイクル梱包",
             "delivery_address_title": "配送先住所",
             "invoice_address_title": "請求先住所",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">マイアカウントから荷物の進捗を追跡できます。</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">マイアカウントから荷物の進捗を追跡できます。</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">ご注文履歴をマイアカウントでご確認ください。</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">ゲストとして注文された場合は、専用リンクからご追跡ください。</a>",
             "signature_thanks": "心より感謝申し上げます。"
@@ -7819,7 +7819,7 @@
             "recycled_packaging_label": "재활용 포장",
             "delivery_address_title": "배송 주소",
             "invoice_address_title": "청구 주소",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">고객 계정에서 소포의 진행 상황을 추적할 수 있습니다</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">고객 계정에서 소포의 진행 상황을 추적할 수 있습니다</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">고객 계정에서 주문 내역을 확인하세요</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">게스트로 주문한 경우 전용 링크를 통해 주문을 추적하세요</a>",
             "signature_thanks": "깊은 감사와 경의를 담아,"
@@ -7850,7 +7850,7 @@
             "recycled_packaging_label": "回收包装",
             "delivery_address_title": "送货地址",
             "invoice_address_title": "账单地址",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">您可以从客户账户追踪包裹的进度。</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">您可以从客户账户追踪包裹的进度。</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">在您的客户账户中查看订单历史。</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">如果您以访客身份下单，请通过专用链接追踪订单。</a>",
             "signature_thanks": "致以我们全部的感谢与自豪，"
@@ -7881,7 +7881,7 @@
             "recycled_packaging_label": "環保包裝",
             "delivery_address_title": "送貨地址",
             "invoice_address_title": "帳單地址",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">您可以從客戶帳戶追蹤包裹的進度。</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">您可以從客戶帳戶追蹤包裹的進度。</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">在您的客戶帳戶中查看訂單歷史。</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">如果您以訪客身份下單，請通過專用連結跟蹤訂單。</a>",
             "signature_thanks": "致以我們全部的感謝與自豪，"
@@ -7912,7 +7912,7 @@
             "recycled_packaging_label": "Переработанная упаковка",
             "delivery_address_title": "Адрес доставки",
             "invoice_address_title": "Адрес выставления счёта",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">Вы можете отслеживать ход доставки Вашей посылки из своего клиентского аккаунта</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Вы можете отслеживать ход доставки Вашей посылки из своего клиентского аккаунта</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Просмотрите историю заказа в своём клиентском аккаунте</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Если Вы оформляли заказ как гость, отслеживайте его по специальной ссылке</a>",
             "signature_thanks": "Со всей нашей благодарностью и гордостью,"
@@ -7943,7 +7943,7 @@
             "recycled_packaging_label": "Geri dönüştürülebilir ambalaj",
             "delivery_address_title": "Teslimat adresi",
             "invoice_address_title": "Fatura adresi",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">Siparişinizin ilerleyişini müşteri hesabınızdan takip edebilirsiniz</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Siparişinizin ilerleyişini müşteri hesabınızdan takip edebilirsiniz</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Sipariş geçmişinizi müşteri hesabınızdan görüntüleyin</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Misafir olarak sipariş verdiyseniz, özel bağlantı üzerinden siparişinizi takip edin</a>",
             "signature_thanks": "Tüm şükran ve gururumuzla,"
@@ -7974,7 +7974,7 @@
             "recycled_packaging_label": "Återvunnen förpackning",
             "delivery_address_title": "Leveransadress",
             "invoice_address_title": "Fakturaadress",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">Du kan följa ditt pakets framsteg från ditt kundkonto</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Du kan följa ditt pakets framsteg från ditt kundkonto</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Se din beställningshistorik i ditt kundkonto</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Om du beställde som gäst, följ din beställning via den dedikerade länken</a>",
             "signature_thanks": "Med all vår tacksamhet och stolthet,"
@@ -8005,7 +8005,7 @@
             "recycled_packaging_label": "Resirkulert emballasje",
             "delivery_address_title": "Leveringsadresse",
             "invoice_address_title": "Fakturaadresse",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">Du kan følge pakkens fremdrift fra kundekontoen din</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Du kan følge pakkens fremdrift fra kundekontoen din</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Se bestillingshistorikken din i kundekontoen din</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Hvis du bestilte som gjest, følg bestillingen din via den dedikerte lenken</a>",
             "signature_thanks": "Med all vår takknemlighet og stolthet,"
@@ -8036,7 +8036,7 @@
             "recycled_packaging_label": "Genanvendt emballage",
             "delivery_address_title": "Leveringsadresse",
             "invoice_address_title": "Fakturaadresse",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">Du kan følge din pakkes fremskridt fra din kundekonto</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Du kan følge din pakkes fremskridt fra din kundekonto</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Se din ordrehistorik i din kundekonto</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Hvis du bestilte som gæst, følg din ordre via det dedikerede link</a>",
             "signature_thanks": "Med al vores taknemmelighed og stolthed,"
@@ -8067,7 +8067,7 @@
             "recycled_packaging_label": "Gerecyclede verpakking",
             "delivery_address_title": "Leveringsadres",
             "invoice_address_title": "Factuuradres",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">U kunt de voortgang van uw bestelling volgen via uw klantenaccount</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">U kunt de voortgang van uw bestelling volgen via uw klantenaccount</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">Bekijk uw bestelgeschiedenis in uw klantenaccount</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">Als u als gast heeft besteld, volg dan uw bestelling via de speciale link</a>",
             "signature_thanks": "Met al onze dankbaarheid en trots,"
@@ -8098,7 +8098,7 @@
             "recycled_packaging_label": "Recycled packaging",
             "delivery_address_title": "Delivery address",
             "invoice_address_title": "Invoice address",
-            "tracking_info": "<a href=\"{tracking_url}\" style=\"color:#b38b59;\">You can track the progress of your package from your customer account</a>",
+            "tracking_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">You can track the progress of your package from your customer account</a>",
             "history_info": "<a href=\"{history_url}\" style=\"color:#b38b59;\">View your order history in your customer account</a>",
             "guest_tracking_info": "<a href=\"{guest_tracking_url}\" style=\"color:#b38b59;\">If you ordered as a guest, track your order via the dedicated link</a>",
             "signature_thanks": "With all our gratitude and pride,"
@@ -25994,12 +25994,12 @@
             "certificate_pdf_label_certified_date": "Certifié le",
             "certificate_pdf_label_owner": "Propriétaire",
             "certificate_pdf_label_order": "Commande",
-        "certificate_pdf_qr_hint": "Scannez ce QR code pour vérifier l'authenticité de ce certificat",
-        "certificate_pdf_signature": "{shop_name} — Signature officielle",
-        "certificate_pdf_footer": "Ce document est un certificat officiel émis par {shop_name} via Neria Luxury Email Suite.",
-        "certificate_pdf_default_title": "Certificat d'Authenticité",
-        "certificate_pdf_default_subtitle": "Document officiel émis par {shop_name}",
-        "certificate_pdf_default_body": "Ce certificat atteste que la pièce décrite ci-dessus est authentique et a été fabriquée artisanalement par {shop_name}."
+            "certificate_pdf_qr_hint": "Scannez ce QR code pour vérifier l'authenticité de ce certificat",
+            "certificate_pdf_signature": "{shop_name} — Signature officielle",
+            "certificate_pdf_footer": "Ce document est un certificat officiel émis par {shop_name} via Neria Luxury Email Suite.",
+            "certificate_pdf_default_title": "Certificat d'Authenticité",
+            "certificate_pdf_default_subtitle": "Document officiel émis par {shop_name}",
+            "certificate_pdf_default_body": "Ce certificat atteste que la pièce décrite ci-dessus est authentique et a été fabriquée artisanalement par {shop_name}."
         },
         "en": {
             "greeting_main": "Your Certificate of Authenticity",
@@ -26016,12 +26016,12 @@
             "certificate_pdf_label_certified_date": "Certified on",
             "certificate_pdf_label_owner": "Owner",
             "certificate_pdf_label_order": "Order",
-        "certificate_pdf_qr_hint": "Scan this QR code to verify the authenticity of this certificate",
-        "certificate_pdf_signature": "{shop_name} — Official Signature",
-        "certificate_pdf_footer": "This document is an official certificate issued by {shop_name} via Neria Luxury Email Suite.",
-        "certificate_pdf_default_title": "Certificate of Authenticity",
-        "certificate_pdf_default_subtitle": "Official document issued by {shop_name}",
-        "certificate_pdf_default_body": "This certificate attests that the piece described above is authentic and was handcrafted by {shop_name}."
+            "certificate_pdf_qr_hint": "Scan this QR code to verify the authenticity of this certificate",
+            "certificate_pdf_signature": "{shop_name} — Official Signature",
+            "certificate_pdf_footer": "This document is an official certificate issued by {shop_name} via Neria Luxury Email Suite.",
+            "certificate_pdf_default_title": "Certificate of Authenticity",
+            "certificate_pdf_default_subtitle": "Official document issued by {shop_name}",
+            "certificate_pdf_default_body": "This certificate attests that the piece described above is authentic and was handcrafted by {shop_name}."
         },
         "de": {
             "greeting_main": "Ihr Echtheitszertifikat",
@@ -26038,12 +26038,12 @@
             "certificate_pdf_label_certified_date": "Zertifiziert am",
             "certificate_pdf_label_owner": "Eigentümer",
             "certificate_pdf_label_order": "Bestellung",
-        "certificate_pdf_qr_hint": "Scannen Sie diesen QR-Code, um die Echtheit dieses Zertifikats zu überprüfen",
-        "certificate_pdf_signature": "{shop_name} — Offizielle Unterschrift",
-        "certificate_pdf_footer": "Dieses Dokument ist ein offizielles Zertifikat, ausgestellt von {shop_name} über Neria Luxury Email Suite.",
-        "certificate_pdf_default_title": "Echtheitszertifikat",
-        "certificate_pdf_default_subtitle": "Offizielles Dokument, ausgestellt von {shop_name}",
-        "certificate_pdf_default_body": "Dieses Zertifikat bestätigt, dass das oben beschriebene Stück authentisch ist und von {shop_name} handwerklich gefertigt wurde."
+            "certificate_pdf_qr_hint": "Scannen Sie diesen QR-Code, um die Echtheit dieses Zertifikats zu überprüfen",
+            "certificate_pdf_signature": "{shop_name} — Offizielle Unterschrift",
+            "certificate_pdf_footer": "Dieses Dokument ist ein offizielles Zertifikat, ausgestellt von {shop_name} über Neria Luxury Email Suite.",
+            "certificate_pdf_default_title": "Echtheitszertifikat",
+            "certificate_pdf_default_subtitle": "Offizielles Dokument, ausgestellt von {shop_name}",
+            "certificate_pdf_default_body": "Dieses Zertifikat bestätigt, dass das oben beschriebene Stück authentisch ist und von {shop_name} handwerklich gefertigt wurde."
         },
         "it": {
             "greeting_main": "Il Vostro Certificato di Autenticità",
@@ -26060,12 +26060,12 @@
             "certificate_pdf_label_certified_date": "Certificato il",
             "certificate_pdf_label_owner": "Proprietario",
             "certificate_pdf_label_order": "Ordine",
-        "certificate_pdf_qr_hint": "Scansiona questo codice QR per verificare l'autenticità di questo certificato",
-        "certificate_pdf_signature": "{shop_name} — Firma ufficiale",
-        "certificate_pdf_footer": "Questo documento è un certificato ufficiale emesso da {shop_name} tramite Neria Luxury Email Suite.",
-        "certificate_pdf_default_title": "Certificato di Autenticità",
-        "certificate_pdf_default_subtitle": "Documento ufficiale emesso da {shop_name}",
-        "certificate_pdf_default_body": "Questo certificato attesta che il pezzo sopra descritto è autentico ed è stato realizzato artigianalmente da {shop_name}."
+            "certificate_pdf_qr_hint": "Scansiona questo codice QR per verificare l'autenticità di questo certificato",
+            "certificate_pdf_signature": "{shop_name} — Firma ufficiale",
+            "certificate_pdf_footer": "Questo documento è un certificato ufficiale emesso da {shop_name} tramite Neria Luxury Email Suite.",
+            "certificate_pdf_default_title": "Certificato di Autenticità",
+            "certificate_pdf_default_subtitle": "Documento ufficiale emesso da {shop_name}",
+            "certificate_pdf_default_body": "Questo certificato attesta che il pezzo sopra descritto è autentico ed è stato realizzato artigianalmente da {shop_name}."
         },
         "es": {
             "greeting_main": "Su Certificado de Autenticidad",
@@ -26082,12 +26082,12 @@
             "certificate_pdf_label_certified_date": "Certificado el",
             "certificate_pdf_label_owner": "Propietario",
             "certificate_pdf_label_order": "Pedido",
-        "certificate_pdf_qr_hint": "Escanee este código QR para verificar la autenticidad de este certificado",
-        "certificate_pdf_signature": "{shop_name} — Firma oficial",
-        "certificate_pdf_footer": "Este documento es un certificado oficial emitido por {shop_name} a través de Neria Luxury Email Suite.",
-        "certificate_pdf_default_title": "Certificado de Autenticidad",
-        "certificate_pdf_default_subtitle": "Documento oficial emitido por {shop_name}",
-        "certificate_pdf_default_body": "Este certificado acredita que la pieza descrita anteriormente es auténtica y fue elaborada artesanalmente por {shop_name}."
+            "certificate_pdf_qr_hint": "Escanee este código QR para verificar la autenticidad de este certificado",
+            "certificate_pdf_signature": "{shop_name} — Firma oficial",
+            "certificate_pdf_footer": "Este documento es un certificado oficial emitido por {shop_name} a través de Neria Luxury Email Suite.",
+            "certificate_pdf_default_title": "Certificado de Autenticidad",
+            "certificate_pdf_default_subtitle": "Documento oficial emitido por {shop_name}",
+            "certificate_pdf_default_body": "Este certificado acredita que la pieza descrita anteriormente es auténtica y fue elaborada artesanalmente por {shop_name}."
         },
         "pt": {
             "greeting_main": "O seu Certificado de Autenticidade",
@@ -26104,12 +26104,12 @@
             "certificate_pdf_label_certified_date": "Certificado em",
             "certificate_pdf_label_owner": "Proprietário",
             "certificate_pdf_label_order": "Encomenda",
-        "certificate_pdf_qr_hint": "Digitalize este código QR para verificar a autenticidade deste certificado",
-        "certificate_pdf_signature": "{shop_name} — Assinatura oficial",
-        "certificate_pdf_footer": "Este documento é um certificado oficial emitido por {shop_name} através do Neria Luxury Email Suite.",
-        "certificate_pdf_default_title": "Certificado de Autenticidade",
-        "certificate_pdf_default_subtitle": "Documento oficial emitido por {shop_name}",
-        "certificate_pdf_default_body": "Este certificado atesta que a peça acima descrita é autêntica e foi fabricada artesanalmente por {shop_name}."
+            "certificate_pdf_qr_hint": "Digitalize este código QR para verificar a autenticidade deste certificado",
+            "certificate_pdf_signature": "{shop_name} — Assinatura oficial",
+            "certificate_pdf_footer": "Este documento é um certificado oficial emitido por {shop_name} através do Neria Luxury Email Suite.",
+            "certificate_pdf_default_title": "Certificado de Autenticidade",
+            "certificate_pdf_default_subtitle": "Documento oficial emitido por {shop_name}",
+            "certificate_pdf_default_body": "Este certificado atesta que a peça acima descrita é autêntica e foi fabricada artesanalmente por {shop_name}."
         },
         "br": {
             "greeting_main": "Seu Certificado de Autenticidade",
@@ -26126,12 +26126,12 @@
             "certificate_pdf_label_certified_date": "Certificado em",
             "certificate_pdf_label_owner": "Proprietário",
             "certificate_pdf_label_order": "Pedido",
-        "certificate_pdf_qr_hint": "Escaneie este código QR para verificar a autenticidade deste certificado",
-        "certificate_pdf_signature": "{shop_name} — Assinatura oficial",
-        "certificate_pdf_footer": "Este documento é um certificado oficial emitido por {shop_name} via Neria Luxury Email Suite.",
-        "certificate_pdf_default_title": "Certificado de Autenticidade",
-        "certificate_pdf_default_subtitle": "Documento oficial emitido por {shop_name}",
-        "certificate_pdf_default_body": "Este certificado atesta que a peça descrita acima é autêntica e foi confeccionada artesanalmente por {shop_name}."
+            "certificate_pdf_qr_hint": "Escaneie este código QR para verificar a autenticidade deste certificado",
+            "certificate_pdf_signature": "{shop_name} — Assinatura oficial",
+            "certificate_pdf_footer": "Este documento é um certificado oficial emitido por {shop_name} via Neria Luxury Email Suite.",
+            "certificate_pdf_default_title": "Certificado de Autenticidade",
+            "certificate_pdf_default_subtitle": "Documento oficial emitido por {shop_name}",
+            "certificate_pdf_default_body": "Este certificado atesta que a peça descrita acima é autêntica e foi confeccionada artesanalmente por {shop_name}."
         },
         "ar": {
             "greeting_main": "شهادة الأصالة الخاصة بك",
@@ -26148,12 +26148,12 @@
             "certificate_pdf_label_certified_date": "تاريخ التصديق",
             "certificate_pdf_label_owner": "المالك",
             "certificate_pdf_label_order": "الطلب",
-        "certificate_pdf_qr_hint": "امسحوا رمز QR هذا للتحقق من صحة هذه الشهادة",
-        "certificate_pdf_signature": "{shop_name} — التوقيع الرسمي",
-        "certificate_pdf_footer": "هذه الوثيقة شهادة رسمية صادرة عن {shop_name} عبر Neria Luxury Email Suite.",
-        "certificate_pdf_default_title": "شهادة أصالة",
-        "certificate_pdf_default_subtitle": "وثيقة رسمية صادرة عن {shop_name}",
-        "certificate_pdf_default_body": "تشهد هذه الشهادة بأن القطعة الموصوفة أعلاه أصلية وقد صُنعت يدويًا بواسطة {shop_name}."
+            "certificate_pdf_qr_hint": "امسحوا رمز QR هذا للتحقق من صحة هذه الشهادة",
+            "certificate_pdf_signature": "{shop_name} — التوقيع الرسمي",
+            "certificate_pdf_footer": "هذه الوثيقة شهادة رسمية صادرة عن {shop_name} عبر Neria Luxury Email Suite.",
+            "certificate_pdf_default_title": "شهادة أصالة",
+            "certificate_pdf_default_subtitle": "وثيقة رسمية صادرة عن {shop_name}",
+            "certificate_pdf_default_body": "تشهد هذه الشهادة بأن القطعة الموصوفة أعلاه أصلية وقد صُنعت يدويًا بواسطة {shop_name}."
         },
         "ja": {
             "greeting_main": "お客様の真正性証明書",
@@ -26170,12 +26170,12 @@
             "certificate_pdf_label_certified_date": "認証日",
             "certificate_pdf_label_owner": "所有者",
             "certificate_pdf_label_order": "注文",
-        "certificate_pdf_qr_hint": "このQRコードをスキャンして、本証明書の真正性をご確認ください",
-        "certificate_pdf_signature": "{shop_name} — 公式署名",
-        "certificate_pdf_footer": "本書類は、Neria Luxury Email Suiteを通じて{shop_name}が発行した正式な証明書です。",
-        "certificate_pdf_default_title": "真正性証明書",
-        "certificate_pdf_default_subtitle": "{shop_name}が発行した公式文書",
-        "certificate_pdf_default_body": "本証明書は、上記に記載された製品が本物であり、{shop_name}によって手作業で製作されたことを証明するものです。"
+            "certificate_pdf_qr_hint": "このQRコードをスキャンして、本証明書の真正性をご確認ください",
+            "certificate_pdf_signature": "{shop_name} — 公式署名",
+            "certificate_pdf_footer": "本書類は、Neria Luxury Email Suiteを通じて{shop_name}が発行した正式な証明書です。",
+            "certificate_pdf_default_title": "真正性証明書",
+            "certificate_pdf_default_subtitle": "{shop_name}が発行した公式文書",
+            "certificate_pdf_default_body": "本証明書は、上記に記載された製品が本物であり、{shop_name}によって手作業で製作されたことを証明するものです。"
         },
         "ko": {
             "greeting_main": "고객님의 진품 인증서",
@@ -26192,12 +26192,12 @@
             "certificate_pdf_label_certified_date": "인증일",
             "certificate_pdf_label_owner": "소유자",
             "certificate_pdf_label_order": "주문",
-        "certificate_pdf_qr_hint": "이 QR 코드를 스캔하여 본 인증서의 진위 여부를 확인하십시오",
-        "certificate_pdf_signature": "{shop_name} — 공식 서명",
-        "certificate_pdf_footer": "본 문서는 Neria Luxury Email Suite를 통해 {shop_name}이(가) 발급한 공식 인증서입니다.",
-        "certificate_pdf_default_title": "진품 인증서",
-        "certificate_pdf_default_subtitle": "{shop_name}이(가) 발급한 공식 문서",
-        "certificate_pdf_default_body": "본 인증서는 위에 기재된 제품이 진품이며 {shop_name}에 의해 수작업으로 제작되었음을 증명합니다."
+            "certificate_pdf_qr_hint": "이 QR 코드를 스캔하여 본 인증서의 진위 여부를 확인하십시오",
+            "certificate_pdf_signature": "{shop_name} — 공식 서명",
+            "certificate_pdf_footer": "본 문서는 Neria Luxury Email Suite를 통해 {shop_name}이(가) 발급한 공식 인증서입니다.",
+            "certificate_pdf_default_title": "진품 인증서",
+            "certificate_pdf_default_subtitle": "{shop_name}이(가) 발급한 공식 문서",
+            "certificate_pdf_default_body": "본 인증서는 위에 기재된 제품이 진품이며 {shop_name}에 의해 수작업으로 제작되었음을 증명합니다."
         },
         "zh": {
             "greeting_main": "您的真品证书",
@@ -26214,12 +26214,12 @@
             "certificate_pdf_label_certified_date": "认证日期",
             "certificate_pdf_label_owner": "所有者",
             "certificate_pdf_label_order": "订单",
-        "certificate_pdf_qr_hint": "扫描此二维码以验证本证书的真实性",
-        "certificate_pdf_signature": "{shop_name} — 官方签名",
-        "certificate_pdf_footer": "本文件是由 {shop_name} 通过 Neria Luxury Email Suite 签发的正式证书。",
-        "certificate_pdf_default_title": "真伪证书",
-        "certificate_pdf_default_subtitle": "由 {shop_name} 签发的正式文件",
-        "certificate_pdf_default_body": "本证书证明上述物品为正品，由 {shop_name} 手工制作。"
+            "certificate_pdf_qr_hint": "扫描此二维码以验证本证书的真实性",
+            "certificate_pdf_signature": "{shop_name} — 官方签名",
+            "certificate_pdf_footer": "本文件是由 {shop_name} 通过 Neria Luxury Email Suite 签发的正式证书。",
+            "certificate_pdf_default_title": "真伪证书",
+            "certificate_pdf_default_subtitle": "由 {shop_name} 签发的正式文件",
+            "certificate_pdf_default_body": "本证书证明上述物品为正品，由 {shop_name} 手工制作。"
         },
         "tw": {
             "greeting_main": "您的真品證書",
@@ -26236,12 +26236,12 @@
             "certificate_pdf_label_certified_date": "認證日期",
             "certificate_pdf_label_owner": "所有者",
             "certificate_pdf_label_order": "訂單",
-        "certificate_pdf_qr_hint": "掃描此 QR Code 以驗證本證書的真實性",
-        "certificate_pdf_signature": "{shop_name} — 官方簽名",
-        "certificate_pdf_footer": "本文件是由 {shop_name} 透過 Neria Luxury Email Suite 簽發的正式證書。",
-        "certificate_pdf_default_title": "真偽證書",
-        "certificate_pdf_default_subtitle": "由 {shop_name} 簽發的正式文件",
-        "certificate_pdf_default_body": "本證書證明上述物品為正品，由 {shop_name} 手工製作。"
+            "certificate_pdf_qr_hint": "掃描此 QR Code 以驗證本證書的真實性",
+            "certificate_pdf_signature": "{shop_name} — 官方簽名",
+            "certificate_pdf_footer": "本文件是由 {shop_name} 透過 Neria Luxury Email Suite 簽發的正式證書。",
+            "certificate_pdf_default_title": "真偽證書",
+            "certificate_pdf_default_subtitle": "由 {shop_name} 簽發的正式文件",
+            "certificate_pdf_default_body": "本證書證明上述物品為正品，由 {shop_name} 手工製作。"
         },
         "ru": {
             "greeting_main": "Ваш сертификат подлинности",
@@ -26258,12 +26258,12 @@
             "certificate_pdf_label_certified_date": "Сертифицировано",
             "certificate_pdf_label_owner": "Владелец",
             "certificate_pdf_label_order": "Заказ",
-        "certificate_pdf_qr_hint": "Отсканируйте этот QR-код, чтобы проверить подлинность данного сертификата",
-        "certificate_pdf_signature": "{shop_name} — Официальная подпись",
-        "certificate_pdf_footer": "Этот документ является официальным сертификатом, выданным {shop_name} через Neria Luxury Email Suite.",
-        "certificate_pdf_default_title": "Сертификат подлинности",
-        "certificate_pdf_default_subtitle": "Официальный документ, выданный {shop_name}",
-        "certificate_pdf_default_body": "Настоящий сертификат подтверждает, что описанное выше изделие является подлинным и было изготовлено вручную компанией {shop_name}."
+            "certificate_pdf_qr_hint": "Отсканируйте этот QR-код, чтобы проверить подлинность данного сертификата",
+            "certificate_pdf_signature": "{shop_name} — Официальная подпись",
+            "certificate_pdf_footer": "Этот документ является официальным сертификатом, выданным {shop_name} через Neria Luxury Email Suite.",
+            "certificate_pdf_default_title": "Сертификат подлинности",
+            "certificate_pdf_default_subtitle": "Официальный документ, выданный {shop_name}",
+            "certificate_pdf_default_body": "Настоящий сертификат подтверждает, что описанное выше изделие является подлинным и было изготовлено вручную компанией {shop_name}."
         },
         "tr": {
             "greeting_main": "Orijinallik Sertifikanız",
@@ -26280,12 +26280,12 @@
             "certificate_pdf_label_certified_date": "Onay tarihi",
             "certificate_pdf_label_owner": "Sahip",
             "certificate_pdf_label_order": "Sipariş",
-        "certificate_pdf_qr_hint": "Bu sertifikanın gerçekliğini doğrulamak için bu QR kodunu tarayın",
-        "certificate_pdf_signature": "{shop_name} — Resmi İmza",
-        "certificate_pdf_footer": "Bu belge, Neria Luxury Email Suite aracılığıyla {shop_name} tarafından düzenlenmiş resmi bir sertifikadır.",
-        "certificate_pdf_default_title": "Orijinallik Sertifikası",
-        "certificate_pdf_default_subtitle": "{shop_name} tarafından düzenlenmiş resmi belge",
-        "certificate_pdf_default_body": "Bu sertifika, yukarıda açıklanan parçanın orijinal olduğunu ve {shop_name} tarafından el yapımı olarak üretildiğini onaylar."
+            "certificate_pdf_qr_hint": "Bu sertifikanın gerçekliğini doğrulamak için bu QR kodunu tarayın",
+            "certificate_pdf_signature": "{shop_name} — Resmi İmza",
+            "certificate_pdf_footer": "Bu belge, Neria Luxury Email Suite aracılığıyla {shop_name} tarafından düzenlenmiş resmi bir sertifikadır.",
+            "certificate_pdf_default_title": "Orijinallik Sertifikası",
+            "certificate_pdf_default_subtitle": "{shop_name} tarafından düzenlenmiş resmi belge",
+            "certificate_pdf_default_body": "Bu sertifika, yukarıda açıklanan parçanın orijinal olduğunu ve {shop_name} tarafından el yapımı olarak üretildiğini onaylar."
         },
         "sv": {
             "greeting_main": "Ditt äkthetscertifikat",
@@ -26302,12 +26302,12 @@
             "certificate_pdf_label_certified_date": "Certifierad den",
             "certificate_pdf_label_owner": "Ägare",
             "certificate_pdf_label_order": "Order",
-        "certificate_pdf_qr_hint": "Skanna denna QR-kod för att verifiera äktheten av detta certifikat",
-        "certificate_pdf_signature": "{shop_name} — Officiell signatur",
-        "certificate_pdf_footer": "Detta dokument är ett officiellt certifikat utfärdat av {shop_name} via Neria Luxury Email Suite.",
-        "certificate_pdf_default_title": "Äkthetscertifikat",
-        "certificate_pdf_default_subtitle": "Officiellt dokument utfärdat av {shop_name}",
-        "certificate_pdf_default_body": "Detta certifikat intygar att den ovan beskrivna produkten är äkta och tillverkades för hand av {shop_name}."
+            "certificate_pdf_qr_hint": "Skanna denna QR-kod för att verifiera äktheten av detta certifikat",
+            "certificate_pdf_signature": "{shop_name} — Officiell signatur",
+            "certificate_pdf_footer": "Detta dokument är ett officiellt certifikat utfärdat av {shop_name} via Neria Luxury Email Suite.",
+            "certificate_pdf_default_title": "Äkthetscertifikat",
+            "certificate_pdf_default_subtitle": "Officiellt dokument utfärdat av {shop_name}",
+            "certificate_pdf_default_body": "Detta certifikat intygar att den ovan beskrivna produkten är äkta och tillverkades för hand av {shop_name}."
         },
         "no": {
             "greeting_main": "Ditt ekthetssertifikat",
@@ -26324,12 +26324,12 @@
             "certificate_pdf_label_certified_date": "Sertifisert den",
             "certificate_pdf_label_owner": "Eier",
             "certificate_pdf_label_order": "Bestilling",
-        "certificate_pdf_qr_hint": "Skann denne QR-koden for å bekrefte ektheten til dette sertifikatet",
-        "certificate_pdf_signature": "{shop_name} — Offisiell signatur",
-        "certificate_pdf_footer": "Dette dokumentet er et offisielt sertifikat utstedt av {shop_name} via Neria Luxury Email Suite.",
-        "certificate_pdf_default_title": "Ekthetssertifikat",
-        "certificate_pdf_default_subtitle": "Offisielt dokument utstedt av {shop_name}",
-        "certificate_pdf_default_body": "Dette sertifikatet bekrefter at produktet beskrevet ovenfor er ekte og ble håndlaget av {shop_name}."
+            "certificate_pdf_qr_hint": "Skann denne QR-koden for å bekrefte ektheten til dette sertifikatet",
+            "certificate_pdf_signature": "{shop_name} — Offisiell signatur",
+            "certificate_pdf_footer": "Dette dokumentet er et offisielt sertifikat utstedt av {shop_name} via Neria Luxury Email Suite.",
+            "certificate_pdf_default_title": "Ekthetssertifikat",
+            "certificate_pdf_default_subtitle": "Offisielt dokument utstedt av {shop_name}",
+            "certificate_pdf_default_body": "Dette sertifikatet bekrefter at produktet beskrevet ovenfor er ekte og ble håndlaget av {shop_name}."
         },
         "da": {
             "greeting_main": "Dit ægthedscertifikat",
@@ -26346,12 +26346,12 @@
             "certificate_pdf_label_certified_date": "Certificeret den",
             "certificate_pdf_label_owner": "Ejer",
             "certificate_pdf_label_order": "Bestilling",
-        "certificate_pdf_qr_hint": "Scan denne QR-kode for at bekræfte ægtheden af dette certifikat",
-        "certificate_pdf_signature": "{shop_name} — Officiel underskrift",
-        "certificate_pdf_footer": "Dette dokument er et officielt certifikat udstedt af {shop_name} via Neria Luxury Email Suite.",
-        "certificate_pdf_default_title": "Ægthedscertifikat",
-        "certificate_pdf_default_subtitle": "Officielt dokument udstedt af {shop_name}",
-        "certificate_pdf_default_body": "Dette certifikat bekræfter, at det ovenfor beskrevne stykke er ægte og blev håndlavet af {shop_name}."
+            "certificate_pdf_qr_hint": "Scan denne QR-kode for at bekræfte ægtheden af dette certifikat",
+            "certificate_pdf_signature": "{shop_name} — Officiel underskrift",
+            "certificate_pdf_footer": "Dette dokument er et officielt certifikat udstedt af {shop_name} via Neria Luxury Email Suite.",
+            "certificate_pdf_default_title": "Ægthedscertifikat",
+            "certificate_pdf_default_subtitle": "Officielt dokument udstedt af {shop_name}",
+            "certificate_pdf_default_body": "Dette certifikat bekræfter, at det ovenfor beskrevne stykke er ægte og blev håndlavet af {shop_name}."
         },
         "nl": {
             "greeting_main": "Uw echtheidscertificaat",
@@ -26368,12 +26368,12 @@
             "certificate_pdf_label_certified_date": "Gecertificeerd op",
             "certificate_pdf_label_owner": "Eigenaar",
             "certificate_pdf_label_order": "Bestelling",
-        "certificate_pdf_qr_hint": "Scan deze QR-code om de echtheid van dit certificaat te verifiëren",
-        "certificate_pdf_signature": "{shop_name} — Officiële handtekening",
-        "certificate_pdf_footer": "Dit document is een officieel certificaat, uitgegeven door {shop_name} via Neria Luxury Email Suite.",
-        "certificate_pdf_default_title": "Echtheidscertificaat",
-        "certificate_pdf_default_subtitle": "Officieel document uitgegeven door {shop_name}",
-        "certificate_pdf_default_body": "Dit certificaat bevestigt dat het hierboven beschreven stuk authentiek is en met de hand vervaardigd werd door {shop_name}."
+            "certificate_pdf_qr_hint": "Scan deze QR-code om de echtheid van dit certificaat te verifiëren",
+            "certificate_pdf_signature": "{shop_name} — Officiële handtekening",
+            "certificate_pdf_footer": "Dit document is een officieel certificaat, uitgegeven door {shop_name} via Neria Luxury Email Suite.",
+            "certificate_pdf_default_title": "Echtheidscertificaat",
+            "certificate_pdf_default_subtitle": "Officieel document uitgegeven door {shop_name}",
+            "certificate_pdf_default_body": "Dit certificaat bevestigt dat het hierboven beschreven stuk authentiek is en met de hand vervaardigd werd door {shop_name}."
         },
         "gb": {
             "greeting_main": "Your Certificate of Authenticity",
@@ -26390,12 +26390,12 @@
             "certificate_pdf_label_certified_date": "Certified on",
             "certificate_pdf_label_owner": "Owner",
             "certificate_pdf_label_order": "Order",
-        "certificate_pdf_qr_hint": "Scan this QR code to verify the authenticity of this certificate",
-        "certificate_pdf_signature": "{shop_name} — Official Signature",
-        "certificate_pdf_footer": "This document is an official certificate issued by {shop_name} via Neria Luxury Email Suite.",
-        "certificate_pdf_default_title": "Certificate of Authenticity",
-        "certificate_pdf_default_subtitle": "Official document issued by {shop_name}",
-        "certificate_pdf_default_body": "This certificate attests that the piece described above is authentic and was handcrafted by {shop_name}."
+            "certificate_pdf_qr_hint": "Scan this QR code to verify the authenticity of this certificate",
+            "certificate_pdf_signature": "{shop_name} — Official Signature",
+            "certificate_pdf_footer": "This document is an official certificate issued by {shop_name} via Neria Luxury Email Suite.",
+            "certificate_pdf_default_title": "Certificate of Authenticity",
+            "certificate_pdf_default_subtitle": "Official document issued by {shop_name}",
+            "certificate_pdf_default_body": "This certificate attests that the piece described above is authentic and was handcrafted by {shop_name}."
         }
     }
 }
