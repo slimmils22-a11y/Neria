@@ -2348,7 +2348,6 @@ class EmailRenderer
             '{hold_reason}'        => 'Vérification de votre paiement en cours',
             '{new_shipping_date}'  => '15/06/2026',
             '{refund_amount}'      => '89,00 €',
-            '{recycled_packaging_label}' => 'Non',
             '{shipped_items}'      => '<p><strong>Colis 1 / 2</strong> — Montre Élégance Neria · Colissimo 6A1234567890</p>',
             '{shipped_items_txt}'  => 'Colis 1 / 2 — Montre Élégance Neria · Colissimo 6A1234567890',
             '{recipients}'         => '<p><strong>Sophie Durand</strong> — Colissimo 6A1234567890</p><p><strong>Jean Martin</strong> — Colissimo 6A0987654321</p>',

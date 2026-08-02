@@ -8,13 +8,13 @@
 
 --------
 
-1. {product1_name} — {product1_price} €
+1. {product1_name} — {product1_price}
 {product1_url}
 
-2. {product2_name} — {product2_price} €
+2. {product2_name} — {product2_price}
 {product2_url}
 
-3. {product3_name} — {product3_price} €
+3. {product3_name} — {product3_price}
 {product3_url}
 
 --------

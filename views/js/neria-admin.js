@@ -64,6 +64,12 @@
                             card.style.background  = '#fff';
                         }
                     });
+                    // L'infrastructure d'aperçu live existe déjà (couleurs,
+                    // curseurs) et buildPreviewParams() lit déjà ces 3
+                    // groupes via ':checked' — il ne manquait que cet appel
+                    // pour que le clic rafraîchisse aussi l'iframe d'aperçu,
+                    // sans attendre la sauvegarde.
+                    schedulePreviewUpdate();
                 });
             });
         });
