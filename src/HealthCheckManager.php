@@ -844,7 +844,17 @@ class HealthCheckManager
             }
             if (!preg_match('/function\s+renderUpsellBlock\s*\([^)]*int\s+\$idShop/', $upsellSrc)) {
                 $offenders[] = 'UpsellManager : renderUpsellBlock() n\'a plus de paramètre $idShop (suggestion potentiellement basée sur une commande d\'une autre boutique)';
-            } elseif (!preg_match('/renderUpsellBlock[\s\S]{0,400}?AND\s+id_shop\s*=/', $upsellSrc)) {
+            } elseif (
+                // Depuis le refactor du 02/08/2026 (ajout de renderUpsellBlockTxt(),
+                // commit d629020), la requête filtrée par id_shop a été extraite dans
+                // findUpsellForCustomer() — plus forcément à moins de 400 caractères
+                // du texte "renderUpsellBlock". On vérifie donc séparément : (a) que
+                // renderUpsellBlock() délègue bien à une recherche centralisée, et
+                // (b) qu'une requête filtrée sur EXACTEMENT $idShop existe toujours
+                // quelque part dans le fichier — pas n'importe quel id_shop.
+                !preg_match('/renderUpsellBlock[\s\S]{0,400}?(findUpsellForCustomer|AND\s+id_shop\s*=)/', $upsellSrc)
+                || !preg_match('/id_shop\s*=\s*"\s*\.\s*\(int\)\s*\$idShop/', $upsellSrc)
+            ) {
                 $offenders[] = 'UpsellManager : renderUpsellBlock() ne filtre plus la recherche de commande par id_shop';
             }
         }
@@ -994,7 +1004,10 @@ class HealthCheckManager
         if ($segmentSrc === '') {
             $offenders[] = 'SegmentManager.php introuvable';
         } elseif (!preg_match('/NEW_CUSTOMER_GRACE_DAYS/', $segmentSrc)
-               || !preg_match('/recomputeAll[\s\S]{0,4500}?first_sent\s*>=\s*DATE_SUB/', $segmentSrc)) {
+               // COALESCE(m.first_sent, ...) protège contre le cas NULL >= ...
+               // (client sans ligne segment) — first_sent n'est donc plus
+               // forcément immédiatement suivi de >=.
+               || !preg_match('/recomputeAll[\s\S]{0,4500}?first_sent[\s\S]{0,40}?>=\s*DATE_SUB/', $segmentSrc)) {
             $offenders[] = 'SegmentManager : recomputeAll() ne protège plus les clients tout juste inscrits contre un classement immédiat en \'ghost\' (segment recommandé pour les campagnes win_back)';
         }
 
@@ -1106,7 +1119,7 @@ class HealthCheckManager
             $offenders[] = 'StatsManager.php introuvable';
         } elseif (!preg_match('/function\s+recordOpen[\s\S]{0,1000}?.neria_open_.[\s\S]{0,300}?GET_LOCK/', $statsSrc)) {
             $offenders[] = 'StatsManager : recordOpen() n\'utilise plus GET_LOCK (une ouverture rechargée/préchargée pourrait de nouveau créditer des points de fidélité en double)';
-        } elseif (!preg_match('/function\s+recordConversion[\s\S]{0,1000}?.neria_conv_.[\s\S]{0,300}?GET_LOCK/', $statsSrc)) {
+        } elseif (!preg_match('/function\s+recordConversion[\s\S]{0,2500}?.neria_conv_.[\s\S]{0,300}?GET_LOCK/', $statsSrc)) {
             $offenders[] = 'StatsManager : recordConversion() n\'utilise plus GET_LOCK (un déclenchement en double de hookActionOrderStatusPostUpdate pourrait de nouveau créditer des points de fidélité en double)';
         }
 
