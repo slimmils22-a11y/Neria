@@ -28,7 +28,7 @@
   <div class="neria-card" style="margin-top:28px;">
     <h3 class="neria-card__title">{neria_admin key='webhook.config_title'}</h3>
 
-    <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
       <input type="hidden" name="neria_action" value="save_webhooks">
       <input type="hidden" name="neria_tab"    value="webhooks">
 
@@ -85,14 +85,14 @@
 
     {* Bouton test (formulaire séparé pour éviter la double soumission) *}
     {if $webhook_url}
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:12px;display:inline-block;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin-top:12px;display:inline-block;">
       <input type="hidden" name="neria_action" value="test_webhook">
       <input type="hidden" name="neria_tab"    value="webhooks">
       <button type="submit" class="neria-btn neria-btn--sm">
         ⚡ {neria_admin key='webhook.test_btn'}
       </button>
     </form>
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:12px;display:inline-block;margin-left:8px;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin-top:12px;display:inline-block;margin-left:8px;">
       <input type="hidden" name="neria_action" value="process_webhook_queue_now">
       <input type="hidden" name="neria_tab"    value="webhooks">
       <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
@@ -160,7 +160,7 @@
           <td style="font-size:12px;color:var(--neria-text-muted,#888);">{$d.date_add|escape:'html'}</td>
           <td>
             {if $d.status === 'failed'}
-            <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+            <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
               <input type="hidden" name="neria_action" value="retry_webhook">
               <input type="hidden" name="neria_tab"    value="webhooks">
               <input type="hidden" name="id_webhook"   value="{$d.id_webhook|intval}">

@@ -5,7 +5,7 @@
  * Campagnes saisonnières automatiques
  *}
 
-{assign var="base_url" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_action=[^&]*/':''}
+{assign var="base_url" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_action=[^&]*/':''|escape:'html'}
 {assign var="base_url" value=$base_url|regex_replace:'/&id_campaign=[^&]*/':''}
 {assign var="base_url" value=$base_url|regex_replace:'/&edit_campaign=[^&]*/':''}
 {assign var="base_url" value=$base_url|regex_replace:'/&neria_tab=[^&]*/':''}

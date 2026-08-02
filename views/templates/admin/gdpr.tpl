@@ -20,7 +20,7 @@
       </p>
     {/if}
   </div>
-  <a href="{$smarty.server.REQUEST_URI}&neria_action=gdpr_pdf"
+  <a href="{$smarty.server.REQUEST_URI|escape:'html'}&neria_action=gdpr_pdf"
      target="_blank"
      class="neria-btn neria-btn--primary neria-btn--sm">
     {neria_admin key='gdpr.download_pdf'}
@@ -129,7 +129,7 @@
         </td>
         <td>
           {if $row.overdue > 0}
-          <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;">
+          <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin:0;">
             <input type="hidden" name="neria_action"    value="gdpr_purge">
             <input type="hidden" name="neria_tab"        value="gdpr">
             <input type="hidden" name="gdpr_table"       value="{$row.table|escape:'html'}">
@@ -248,7 +248,7 @@
   {/if}
 
   {if $gdpr_audit.crypto.active && $gdpr_audit.crypto.plain > 0}
-  <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin:0;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
     <input type="hidden" name="neria_action" value="gdpr_encrypt_all">
     <input type="hidden" name="neria_tab"    value="gdpr">
     <button type="button" class="neria-btn neria-btn--primary neria-btn--sm"

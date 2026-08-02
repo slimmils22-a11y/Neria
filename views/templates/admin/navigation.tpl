@@ -28,7 +28,7 @@
     <div class="neria-bo-header__actions">
 
       {* ── Sélecteur de langue de l'aperçu BO ──────────────────── *}
-      {assign var="neria_bo_base" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_bo_lang=[^&]*/':''}
+      {assign var="neria_bo_base" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_bo_lang=[^&]*/':''|escape:'html'}
       <label class="neria-header-label" for="neria-bo-lang-select">{neria_admin key='common.interface_language'}</label>
       <select id="neria-bo-lang-select" class="neria-select neria-select--sm"
               onchange="if(this.value)window.location.href=this.value;"
@@ -41,7 +41,7 @@
       <span class="neria-header-sep"></span>
 
       {* ── Envoi email de test ──────────────────────────────────── *}
-      {assign var="neria_test_base" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_action=[^&]*/':''}
+      {assign var="neria_test_base" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_action=[^&]*/':''|escape:'html'}
       {assign var="neria_test_base" value=$neria_test_base|regex_replace:'/&neria_test_lang=[^&]*/':''}
       <span class="neria-test-send">
         <label class="neria-header-label" for="neria-test-lang-select">{neria_admin key='nav.email_test'}</label>
@@ -171,7 +171,7 @@
          precedent toggle reste coince dans la query string et reapparait
          sur CHAQUE onglet visite ensuite, indefiniment, jusqu'a ce que
          l'utilisateur recharge une URL sans ces parametres a la main. *}
-      {assign var="neria_tab_base" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''}
+      {assign var="neria_tab_base" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''|escape:'html'}
       {assign var="neria_tab_base" value=$neria_tab_base|regex_replace:'/&neria_success=[^&]*/':''}
       {assign var="neria_tab_base" value=$neria_tab_base|regex_replace:'/&neria_error=[^&]*/':''}
       {assign var="neria_tab_base" value=$neria_tab_base|regex_replace:'/&neria_action=[^&]*/':''}

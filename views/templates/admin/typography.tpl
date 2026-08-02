@@ -11,7 +11,7 @@
     {* ── Panneau de configuration ─────────────────────────────── *}
     <div class="neria-design-panel">
 
-      <form method="post" action="{$smarty.server.REQUEST_URI}"
+      <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}"
             id="neria-typography-form">
         <input type="hidden" name="neria_action" value="save_typography">
         <input type="hidden" name="neria_tab"    value="typography">
@@ -238,7 +238,7 @@
 
         <iframe id="neria-preview-frame"
                 class="neria-preview-frame"
-                src="{$smarty.server.REQUEST_URI}&neria_action=preview&neria_template=order_conf&neria_lang=fr"
+                src="{$smarty.server.REQUEST_URI|escape:'html'}&neria_action=preview&neria_template=order_conf&neria_lang=fr"
                 frameborder="0"
                 scrolling="yes">
         </iframe>

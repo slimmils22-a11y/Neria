@@ -41,7 +41,7 @@
           {if ($hs.error|default:0)   > 0} · <span style="color:#dc2626;">{$hs.error} {neria_admin key='stats.health_errors_suffix'}</span>{/if}
           / {$hs_total} {neria_admin key='stats.chart_total_btn'}
         </div>
-        <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''}&neria_tab=help"
+        <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''|escape:'html'}&neria_tab=help"
            style="font-size:11px;color:var(--neria-accent);text-decoration:none;margin-top:4px;display:inline-block;">
           → {neria_admin key='stats.health_diag_link'}
         </a>
@@ -888,7 +888,7 @@ var _nhmLbl = {
 <div class="neria-section" id="neria-abtest-focus">
   <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
     <h2 class="neria-section__title" style="margin:0;">{neria_admin key='nav.abtest'}</h2>
-    <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&abtest_template=[^&]*/':''}&neria_tab=abtest"
+    <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&abtest_template=[^&]*/':''|escape:'html'}&neria_tab=abtest"
        class="neria-btn neria-btn--ghost neria-btn--sm" style="margin-left:auto;">
       ← {neria_admin key='nav.abtest'}
     </a>
@@ -984,7 +984,7 @@ var _nhmLbl = {
     </h2>
     <div class="neria-stats-filters" style="margin:0;">
       {foreach [7, 30, 90] as $period}
-        <a href="{$smarty.server.REQUEST_URI}&neria_tab=stats&stats_days={$period}"
+        <a href="{$smarty.server.REQUEST_URI|escape:'html'}&neria_tab=stats&stats_days={$period}"
            class="neria-period-btn {if $stats_days == $period}neria-period-btn--active{/if}">
           {$period} {neria_admin key='common.days'}
         </a>
@@ -993,7 +993,7 @@ var _nhmLbl = {
         {neria_admin key='stats.computed_on'} {$stats.computed_at|default:'—'}
       </span>
     </div>
-    <form method="post" action="{$smarty.server.REQUEST_URI}#neria-domain-rep" style="flex-shrink:0;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-domain-rep" style="flex-shrink:0;">
       <input type="hidden" name="neria_action" value="refresh_domain_reputation">
       <input type="hidden" name="neria_tab"    value="stats">
       <button type="submit" id="neria-domain-rep-btn"
@@ -1315,7 +1315,7 @@ var _nhmLbl = {
           {if $pagespeed_cache_age !== null}
             <span style="font-size:11px;color:var(--neria-muted);">{neria_admin key='stats.cache_age_prefix'} {$pagespeed_cache_age} {neria_admin key='stats.cache_age_suffix'}</span>
           {/if}
-          <form method="post" action="{$smarty.server.REQUEST_URI}#neria-visibility-section" style="display:inline;">
+          <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-visibility-section" style="display:inline;">
             <input type="hidden" name="neria_action" value="refresh_pagespeed">
             <input type="hidden" name="neria_tab"    value="stats">
             <button type="submit" style="padding:5px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;"
@@ -1351,7 +1351,7 @@ var _nhmLbl = {
         2. {neria_admin key='stats.pagespeed_getkey_step2'}
       </div>
       {/if}
-      <form method="post" action="{$smarty.server.REQUEST_URI}#neria-visibility-section">
+      <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-visibility-section">
         <input type="hidden" name="neria_action" value="save_pagespeed_key">
         <input type="hidden" name="neria_tab"    value="stats">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
@@ -1516,7 +1516,7 @@ var _nhmLbl = {
           {if $searchconsole_cache_age !== null}
             <span style="font-size:11px;color:var(--neria-muted);">{neria_admin key='stats.cache_age_prefix'} {$searchconsole_cache_age} {neria_admin key='stats.cache_age_suffix'}</span>
           {/if}
-          <form method="post" action="{$smarty.server.REQUEST_URI}#neria-search-console-section" style="display:inline;">
+          <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-search-console-section" style="display:inline;">
             <input type="hidden" name="neria_action" value="refresh_searchconsole">
             <input type="hidden" name="neria_tab"    value="stats">
             <button type="submit" style="padding:5px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;"
@@ -1524,7 +1524,7 @@ var _nhmLbl = {
               ↻ {neria_admin key='common.refresh'}
             </button>
           </form>
-          <form method="post" action="{$smarty.server.REQUEST_URI}#neria-search-console-section" style="display:inline;">
+          <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-search-console-section" style="display:inline;">
             <input type="hidden" name="neria_action" value="disconnect_searchconsole">
             <input type="hidden" name="neria_tab"    value="stats">
             <button type="submit" class="neria-btn neria-btn--danger neria-btn--sm">
@@ -1617,7 +1617,7 @@ var _nhmLbl = {
       </div>
 
       <div style="border-top:1px solid #e8d5b0;padding-top:16px;margin-bottom:16px;">
-      <form method="post" action="{$smarty.server.REQUEST_URI}#neria-search-console-section">
+      <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-search-console-section">
         <input type="hidden" name="neria_action" value="save_searchconsole_config">
         <input type="hidden" name="neria_tab"    value="stats">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
@@ -1649,14 +1649,14 @@ var _nhmLbl = {
         <div style="font-weight:700;font-size:13px;color:#5c3d1e;">{neria_admin key='stats.creds_saved_authreq'}</div>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <form method="post" action="{$smarty.server.REQUEST_URI}#neria-search-console-section">
+        <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-search-console-section">
           <input type="hidden" name="neria_action" value="connect_searchconsole">
           <input type="hidden" name="neria_tab"    value="stats">
           <button type="submit" style="background:#1a7a40;color:#fff;border:none;border-radius:5px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;">
             🔗 {neria_admin key='stats.connect_google_btn'}
           </button>
         </form>
-        <form method="post" action="{$smarty.server.REQUEST_URI}#neria-search-console-section">
+        <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-search-console-section">
           <input type="hidden" name="neria_action" value="save_searchconsole_config">
           <input type="hidden" name="neria_tab"    value="stats">
           <input type="hidden" name="sc_client_id"     value="">
@@ -1784,7 +1784,7 @@ var _nhmLbl = {
           {if $seo_cache_age !== null}
             <span style="font-size:11px;color:var(--neria-muted);">{neria_admin key='stats.cache_age_prefix'} {$seo_cache_age} {neria_admin key='stats.cache_age_suffix'}</span>
           {/if}
-          <form method="post" action="{$smarty.server.REQUEST_URI}#neria-seo-api-section" style="display:inline;">
+          <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-seo-api-section" style="display:inline;">
             <input type="hidden" name="neria_action" value="refresh_seo_api">
             <input type="hidden" name="neria_tab"    value="stats">
             <button type="submit" style="padding:5px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;"
@@ -1817,7 +1817,7 @@ var _nhmLbl = {
     </div>
 
     {* Formulaire de configuration *}
-    <form method="post" action="{$smarty.server.REQUEST_URI}#neria-seo-api-section">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-seo-api-section">
       <input type="hidden" name="neria_action" value="save_seo_config">
       <input type="hidden" name="neria_tab"    value="stats">
 
@@ -2040,7 +2040,7 @@ var _nCopyLbl = {
       5. {neria_admin key='stats.pm_step5'}<br>
       <span style="display:block;margin-top:8px;font-size:11px;opacity:.75;">{neria_admin key='stats.pm_domain_verified_warning'}</span>
     </div>
-    <form method="post" action="{$smarty.server.REQUEST_URI}#neria-postmaster-tools">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-postmaster-tools">
       <input type="hidden" name="neria_action" value="save_postmaster_config">
       <input type="hidden" name="neria_tab"    value="stats">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
@@ -2078,14 +2078,14 @@ var _nCopyLbl = {
       {neria_admin key='stats.pm_authorize_body'}
     </p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <form method="post" action="{$smarty.server.REQUEST_URI}#neria-postmaster-tools">
+      <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-postmaster-tools">
         <input type="hidden" name="neria_action" value="connect_postmaster">
         <input type="hidden" name="neria_tab"    value="stats">
         <button type="submit" style="background:#1a7a40;color:#fff;border:none;border-radius:5px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;">
           🔗 {neria_admin key='stats.connect_google_btn'}
         </button>
       </form>
-      <form method="post" action="{$smarty.server.REQUEST_URI}#neria-postmaster-tools">
+      <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-postmaster-tools">
         <input type="hidden" name="neria_action" value="save_postmaster_config">
         <input type="hidden" name="neria_tab"    value="stats">
         <input type="hidden" name="postmaster_client_id"     value="">
@@ -2114,14 +2114,14 @@ var _nCopyLbl = {
         </div>
       </div>
       <div style="display:flex;gap:8px;">
-        <form method="post" action="{$smarty.server.REQUEST_URI}#neria-postmaster-tools" style="display:inline;">
+        <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-postmaster-tools" style="display:inline;">
           <input type="hidden" name="neria_action" value="refresh_postmaster">
           <input type="hidden" name="neria_tab"    value="stats">
           <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
             ↺ {neria_admin key='common.refresh'}
           </button>
         </form>
-        <form method="post" action="{$smarty.server.REQUEST_URI}#neria-postmaster-tools" style="display:inline;">
+        <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-postmaster-tools" style="display:inline;">
           <input type="hidden" name="neria_action" value="disconnect_postmaster">
           <input type="hidden" name="neria_tab"    value="stats">
           <button type="submit" class="neria-btn neria-btn--danger neria-btn--sm">
@@ -2308,7 +2308,7 @@ var _nCopyLbl = {
     </div>
   </div>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}#neria-score-panel">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-score-panel">
     <input type="hidden" name="neria_action" value="deliverability_score">
     <input type="hidden" name="neria_tab"    value="stats">
 

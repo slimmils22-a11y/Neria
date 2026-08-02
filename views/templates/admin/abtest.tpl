@@ -118,14 +118,14 @@
           </div>{* /.neria-abtest-results *}
 
           <div class="neria-abtest-card__actions">
-            <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''}&neria_tab=stats&abtest_template={$key|escape:'url'}#neria-ab-{$key|escape:'url'}"
+            <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''|escape:'html'}&neria_tab=stats&abtest_template={$key|escape:'url'}#neria-ab-{$key|escape:'url'}"
                class="neria-btn neria-btn--ghost neria-btn--sm">
               {neria_admin key='abtest.view_stats'}
             </a>
 
             {* Bouton "Appliquer le gagnant" — visible seulement si significativité ≥ 95% *}
             {if isset($conf) && $conf >= 95 && $winner}
-            <form method="post" action="{$smarty.server.REQUEST_URI}"
+            <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}"
                   id="neria-abtest-apply-{$key}" style="display:inline">
               <input type="hidden" name="neria_action"    value="apply_abtest_winner">
               <input type="hidden" name="neria_tab"       value="abtest">
@@ -140,7 +140,7 @@
             </form>
             {/if}
 
-            <form method="post" action="{$smarty.server.REQUEST_URI}"
+            <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}"
                   id="neria-abtest-stop-{$key}" style="display:inline">
               <input type="hidden" name="neria_action"     value="deactivate_abtest">
               <input type="hidden" name="neria_tab"        value="abtest">
@@ -156,7 +156,7 @@
         {else}
 
           {* Fix 11 : id unique sur chaque formulaire de création *}
-          <form method="post" action="{$smarty.server.REQUEST_URI}"
+          <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}"
                 id="neria-abtest-form-{$key}"
                 class="neria-abtest-create-form">
             <input type="hidden" name="neria_action"    value="create_abtest">

@@ -17,7 +17,7 @@
   <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:24px;">
     {foreach $segment_all as $seg}
     {assign var="seg_count" value=$segment_counts[$seg]|default:0}
-    <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&filter_segment=[^&]*/':''}&neria_tab=segments&filter_segment={$seg}"
+    <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&filter_segment=[^&]*/':''|escape:'html'}&neria_tab=segments&filter_segment={$seg}"
        style="text-decoration:none;">
       <div class="neria-card" style="text-align:center;padding:20px 12px;border-top:3px solid {$seg_colors[$seg]};cursor:pointer;{if $segment_filter === $seg}box-shadow:0 0 0 2px {$seg_colors[$seg]};{/if}">
         <div style="font-size:24px;margin-bottom:6px;">{$seg_icons[$seg]}</div>
@@ -32,7 +32,7 @@
 
   {* ── Recalcul manuel ─────────────────────────────────────────── *}
   <div style="margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-    <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
       <input type="hidden" name="neria_action" value="recompute_segments">
       <input type="hidden" name="neria_tab"    value="segments">
       <input type="hidden" name="filter_segment" value="{$segment_filter|escape:'html'}">
@@ -132,7 +132,7 @@
     <p class="neria-hint" style="margin-bottom:16px;font-style:italic;">{neria_admin key='seg.churn_allcustomers'}</p>
 
     {* Bouton recalcul *}
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-bottom:16px;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin-bottom:16px;">
       <input type="hidden" name="neria_action" value="recompute_churn">
       <input type="hidden" name="neria_tab"    value="segments">
       <button type="submit" class="neria-btn neria-btn--sm">
@@ -257,7 +257,7 @@
       <p style="margin:0;color:#888;font-size:12px;">💡 {neria_admin key='seg.howto_tip'}</p>
     </div>
 
-    <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
       <input type="hidden" name="neria_action" value="send_segment_campaign">
       <input type="hidden" name="neria_tab"    value="segments">
 

@@ -293,7 +293,7 @@ window.neriaAjaxUrl = function(action, extra) {
     </div>
   {/if}
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_voice_profile">
     <input type="hidden" name="neria_tab"    value="translations">
     <input type="hidden" name="trad_template" value="{$selected_template|escape:'html'}">
@@ -420,7 +420,7 @@ window.neriaAjaxUrl = function(action, extra) {
           </div>
         </div>
 
-        <form method="post" action="{$smarty.server.REQUEST_URI}" id="neria-trad-form">
+        <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" id="neria-trad-form">
           <input type="hidden" name="neria_action"   value="save_translations">
           <input type="hidden" name="neria_tab"       value="translations">
           <input type="hidden" name="trad_template"   value="{$selected_template}">
@@ -562,7 +562,7 @@ window.neriaAjaxUrl = function(action, extra) {
                   <td class="neria-changelog__val">{$entry.new_value|truncate:90|escape:'html'}</td>
                   <td class="neria-changelog__author">{$entry.author|escape:'html'}</td>
                   <td class="neria-changelog__action" style="white-space:nowrap;display:flex;gap:6px;">
-                    <form method="post" action="{$smarty.server.REQUEST_URI}#neria-changelog" style="margin:0;">
+                    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-changelog" style="margin:0;">
                       <input type="hidden" name="neria_action"  value="restore_translation">
                       <input type="hidden" name="neria_tab"      value="translations">
                       <input type="hidden" name="trad_template"  value="{$selected_template|escape:'html'}">
@@ -574,7 +574,7 @@ window.neriaAjaxUrl = function(action, extra) {
                         {neria_admin key='translations.restore_btn'}
                       </button>
                     </form>
-                    <form method="post" action="{$smarty.server.REQUEST_URI}#neria-changelog" style="margin:0;" class="neria-delete-history-form">
+                    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-changelog" style="margin:0;" class="neria-delete-history-form">
                       <input type="hidden" name="neria_action"  value="delete_history">
                       <input type="hidden" name="neria_tab"      value="translations">
                       <input type="hidden" name="trad_template"  value="{$selected_template|escape:'html'}">
@@ -691,7 +691,7 @@ window.neriaAjaxUrl = function(action, extra) {
             </div>
           </div>
         </div>
-        <form method="post" action="{$smarty.server.REQUEST_URI}">
+        <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
           <input type="hidden" name="neria_action"   value="save_variant_b">
           <input type="hidden" name="neria_tab"       value="translations">
           <input type="hidden" name="trad_template"   value="{$selected_template}">
@@ -823,7 +823,7 @@ window.neriaAjaxUrl = function(action, extra) {
                   <td class="neria-changelog__val">{$entry.new_value|truncate:90|escape:'html'}</td>
                   <td class="neria-changelog__author">{$entry.author|escape:'html'}</td>
                   <td class="neria-changelog__action" style="white-space:nowrap;display:flex;gap:6px;">
-                    <form method="post" action="{$smarty.server.REQUEST_URI}#neria-changelog-b" style="margin:0;">
+                    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-changelog-b" style="margin:0;">
                       <input type="hidden" name="neria_action"  value="restore_variant_b">
                       <input type="hidden" name="neria_tab"      value="translations">
                       <input type="hidden" name="trad_template"  value="{$selected_template|escape:'html'}">
@@ -836,7 +836,7 @@ window.neriaAjaxUrl = function(action, extra) {
                         {neria_admin key='translations.restore_btn'}
                       </button>
                     </form>
-                    <form method="post" action="{$smarty.server.REQUEST_URI}#neria-changelog-b" style="margin:0;" class="neria-delete-history-form">
+                    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}#neria-changelog-b" style="margin:0;" class="neria-delete-history-form">
                       <input type="hidden" name="neria_action"  value="delete_history">
                       <input type="hidden" name="neria_tab"      value="translations">
                       <input type="hidden" name="trad_template"  value="{$selected_template|escape:'html'}">
@@ -895,7 +895,7 @@ window.neriaAjaxUrl = function(action, extra) {
         </div>
       </div>
       <iframe id="neria-trad-preview"
-              src="{$smarty.server.REQUEST_URI}&neria_action=preview&neria_template={$selected_template}&neria_lang={$selected_lang}"
+              src="{$smarty.server.REQUEST_URI|escape:'html'}&neria_action=preview&neria_template={$selected_template}&neria_lang={$selected_lang}"
               frameborder="0" scrolling="auto"
               style="width:100%;height:1200px;border:1px solid var(--neria-border,#e8d5b0);border-radius:4px;background:#fff;display:block;"></iframe>
     </div>

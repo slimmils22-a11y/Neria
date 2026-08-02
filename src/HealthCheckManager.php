@@ -206,6 +206,7 @@ class HealthCheckManager
             'customer_email_shop_scope' => 'checkCustomerEmailLookupMissingShop',
             'default_currency_usage' => 'checkDefaultCurrencyUsage',
             'upgrade_unique_key_shop_scope' => 'checkUpgradeUniqueKeyShopScope',
+            'tpl_request_uri_escape' => 'checkTplRequestUriEscape',
             'cron_loop_try_catch'     => 'checkCronLoopMissingTryCatch',
             'tpl_js_escape_missing'    => 'checkTplJsEscapeMissing',
             'imap_timeout_missing'     => 'checkImapTimeoutMissing',
@@ -2579,6 +2580,60 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.upgrade_unique_key_shop_ok')];
+    }
+
+    /**
+     * Scan statique de views/templates/**\/*.tpl : $smarty.server.REQUEST_URI
+     * utilisé sans |escape (ni |json_encode, sûr dans un contexte JS). Motif
+     * trouvé le 01/08/2026 dans 18 fichiers / 100 occurrences d'un coup :
+     * la grande majorité des formulaires/liens BO du module réinjectaient
+     * l'URL courante (query string comprise) dans un attribut HTML sans
+     * échappement, alors qu'une minorité de fichiers l'échappait déjà
+     * correctement — incohérence, pas un oubli isolé. Risque XSS réfléchie
+     * si un admin clique un lien forgé vers une page du module contenant un
+     * payload dans la query string.
+     */
+    private function checkTplRequestUriEscape(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name . '/views/templates';
+        if (!is_dir($moduleDir)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.tpl_request_uri_escape_ok')];
+        }
+
+        $offenders = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($moduleDir, \FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $fileInfo) {
+            if ($fileInfo->getExtension() !== 'tpl') {
+                continue;
+            }
+            $file = $fileInfo->getPathname();
+            $content = file_get_contents($file) ?: '';
+            $relative = ltrim(str_replace(str_replace('\\', '/', _PS_MODULE_DIR_ . $this->module->name), '', str_replace('\\', '/', $file)), '/');
+
+            if (preg_match_all('/\$smarty\.server\.REQUEST_URI[^}]*\}/', $content, $m, PREG_OFFSET_CAPTURE)) {
+                foreach ($m[0] as $match) {
+                    if (stripos($match[0], '|escape') !== false || stripos($match[0], '|json_encode') !== false) {
+                        continue;
+                    }
+                    $line = substr_count(substr($content, 0, $match[1]), "\n") + 1;
+                    $offenders[] = $relative . ':' . $line;
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.tpl_request_uri_escape_warning', [
+                    'n'    => count($offenders),
+                    'list' => implode(', ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.tpl_request_uri_escape_ok')];
     }
 
     /**

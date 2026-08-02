@@ -333,7 +333,7 @@
 
   {* Bouton diagnostic complet *}
   <div style="margin-bottom:20px;">
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
       <input type="hidden" name="neria_action" value="run_full_diagnostic">
       <input type="hidden" name="neria_tab"    value="help">
       <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm" style="gap:6px;">
@@ -461,7 +461,7 @@
               {/if}
               {$result.detail|default:''|escape:'html'|regex_replace:'/→ Que faire :/':"<br><strong style=\"color:#BA7517;\">→ Que faire :</strong>"}
               {if $checkKey === 'trad_keys' && $hStatus !== 'ok'}
-                <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:8px;">
+                <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin-top:8px;">
                   <input type="hidden" name="neria_action" value="reload_all_translations">
                   <input type="hidden" name="neria_tab"    value="help">
                   <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm">
@@ -470,7 +470,7 @@
                 </form>
               {/if}
               {if $checkKey === 'version_sync' && $hStatus !== 'ok'}
-                <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:8px;">
+                <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin-top:8px;">
                   <input type="hidden" name="neria_action" value="repair_module_version">
                   <input type="hidden" name="neria_tab"    value="help">
                   <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm">
@@ -479,7 +479,7 @@
                 </form>
               {/if}
               {if $checkKey === 'bounces_unprocessed' && $hStatus !== 'ok'}
-                <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:8px;">
+                <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin-top:8px;">
                   <input type="hidden" name="neria_action" value="repair_bounces_check">
                   <input type="hidden" name="neria_tab"    value="help">
                   <button type="submit" class="neria-btn neria-btn--secondary neria-btn--sm">
@@ -514,7 +514,7 @@
       </div>
     {/if}
 
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
       <input type="hidden" name="neria_action" value="health_pixel_test">
       <input type="hidden" name="neria_tab"    value="help">
       <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
@@ -540,7 +540,7 @@
   </p>
 
   <div style="margin-bottom:20px;">
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
       <input type="hidden" name="neria_action" value="run_code_diagnostic">
       <input type="hidden" name="neria_tab"    value="help">
       <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm" style="gap:6px;">
@@ -670,7 +670,7 @@
   </script>
 
   <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
       <input type="hidden" name="neria_action" value="regenerate_emergency_token">
       <input type="hidden" name="neria_tab"    value="help">
       <button type="button" class="neria-btn neria-btn--danger neria-btn--sm"
@@ -691,7 +691,7 @@
     <h2 class="neria-section__title" style="margin-bottom:0;">
       ⏱ {neria_admin key='help.cron_title'}
     </h2>
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
       <input type="hidden" name="neria_action" value="cron_toggle">
       <input type="hidden" name="neria_tab"    value="help">
       <button type="submit"
@@ -760,7 +760,7 @@
   </script>
 
   <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
       <input type="hidden" name="neria_action" value="regenerate_cron_token">
       <input type="hidden" name="neria_tab"    value="help">
       <button type="button" class="neria-btn neria-btn--danger neria-btn--sm"
@@ -782,7 +782,7 @@
   </h2>
 
   {* Réglage : inclure ou non les emails internes (administrateur) *}
-  <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-bottom:18px;">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin-bottom:18px;">
     <input type="hidden" name="neria_action"       value="save_log_internal">
     <input type="hidden" name="neria_tab"          value="help">
     <input type="hidden" name="neria_log_internal" value="0">
@@ -834,7 +834,7 @@
       {/foreach}
     </select>
 
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline">
       <input type="hidden" name="neria_action" value="clear_logs">
       <input type="hidden" name="neria_tab" value="help">
       <button type="button" class="neria-btn neria-watchdog-btn neria-watchdog-btn--danger"
@@ -848,7 +848,7 @@
       ⬇ {neria_admin key='help.log_pdf'}
     </button>
 
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
       <input type="hidden" name="neria_action" value="send_log_email">
       <input type="hidden" name="neria_tab" value="help">
       <button type="submit" class="neria-btn neria-watchdog-btn"
@@ -985,7 +985,7 @@
   <h2 class="neria-section__title" style="color:#dc2626;">⚠ {neria_admin key='help.danger_zone_title'}</h2>
   <p class="neria-section__desc">{neria_admin key='help.danger_zone_desc'}</p>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}"
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}"
         onsubmit="return confirm('{neria_admin key='help.danger_zone_confirm_js' esc='javascript'}');">
     <input type="hidden" name="neria_action" value="reset_all_data">
     <input type="hidden" name="neria_tab"    value="help">

@@ -325,7 +325,7 @@
   </div>
 
   {* ── Section 1 : Configuration IMAP ─────────────────────────────── *}
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_bounce_config">
     <input type="hidden" name="neria_tab" value="bounces">
 
@@ -441,7 +441,7 @@
     <div class="nb-section__title">📋 {neria_admin key='bounces.list_title'} ({$bounce_count|intval})</div>
 
     {* Ajouter manuellement *}
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-bottom:18px;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin-bottom:18px;">
       <input type="hidden" name="neria_action" value="add_manual_bounce">
       <input type="hidden" name="neria_tab" value="bounces">
       <div class="nb-add-row">
@@ -455,7 +455,7 @@
     </form>
 
     {* Recherche *}
-    <form method="get" action="{$smarty.server.REQUEST_URI}">
+    <form method="get" action="{$smarty.server.REQUEST_URI|escape:'html'}">
       <input type="hidden" name="configure" value="AdminModules">
       <input type="hidden" name="module_name" value="neria">
       <input type="hidden" name="neria_tab" value="bounces">
@@ -492,7 +492,7 @@
             <td><span class="nb-badge nb-badge--{$b.status}">{$b.status}</span></td>
             <td>
               <div class="nb-actions">
-                <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+                <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
                   <input type="hidden" name="neria_action" value="{if $b.status === 'active'}ignore_bounce{else}reactivate_bounce{/if}">
                   <input type="hidden" name="neria_tab" value="bounces">
                   <input type="hidden" name="bounce_email" value="{$b.email|escape:'html'}">
@@ -500,7 +500,7 @@
                     {if $b.status === 'active'}{neria_admin key='bounces.ignore_btn'}{else}{neria_admin key='bounces.reactivate_btn'}{/if}
                   </button>
                 </form>
-                <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+                <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline;">
                   <input type="hidden" name="neria_action" value="delete_bounce">
                   <input type="hidden" name="neria_tab" value="bounces">
                   <input type="hidden" name="bounce_email" value="{$b.email|escape:'html'}">
@@ -537,7 +537,7 @@
   </div>
 
   {* ── Bouton lancer le check manuellement ─────────────────────────── *}
-  <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:4px;">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin-top:4px;">
     <input type="hidden" name="neria_action" value="run_bounce_check">
     <input type="hidden" name="neria_tab" value="bounces">
     <button type="submit" class="nb-btn nb-btn--test">↩ {neria_admin key='bounces.run_check_btn'}</button>

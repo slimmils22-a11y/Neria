@@ -6,7 +6,7 @@
  * segmentation, fidélité/upsell, A/B testing, panier abandonné) — multilingue via {$ac}
  *}
 
-{assign var="na_base" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''}
+{assign var="na_base" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''|escape:'html'}
 
 <style>
 /* ── Neria Academy (na- prefix) ──────────────────────────────── */

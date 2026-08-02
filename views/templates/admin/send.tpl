@@ -12,7 +12,7 @@
     {neria_admin key='send.desc'}
   </p>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}" id="neria-send-form">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" id="neria-send-form">
     <input type="hidden" name="neria_action" value="send_manual">
     <input type="hidden" name="neria_tab"    value="send">
     <input type="hidden" name="neria_send_at" id="neria-send-at-hidden" value="">

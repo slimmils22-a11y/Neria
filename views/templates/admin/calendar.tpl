@@ -54,7 +54,7 @@
 
         {* Délai inline ─────────────────────────────────────────── *}
         <td style="text-align:center;">
-          <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline-flex;gap:4px;align-items:center;">
+          <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="display:inline-flex;gap:4px;align-items:center;">
             <input type="hidden" name="neria_action" value="save_calendar_event">
             <input type="hidden" name="neria_tab"    value="calendar">
             <input type="hidden" name="cal_id"       value="{$ev.id_event|intval}">
@@ -90,7 +90,7 @@
 
         {* Toggle actif ─────────────────────────────────────────── *}
         <td style="text-align:center;">
-          <a href="{$smarty.server.REQUEST_URI}&neria_action=toggle_calendar_event&neria_tab=calendar&cal_id={$ev.id_event|intval}"
+          <a href="{$smarty.server.REQUEST_URI|escape:'html'}&neria_action=toggle_calendar_event&neria_tab=calendar&cal_id={$ev.id_event|intval}"
              class="neria-badge {if $ev.is_active}neria-badge--on{else}neria-badge--off{/if}"
              onclick="return neriaPostLink(event, this);">
             {if $ev.is_active}{neria_admin key='common.enabled'}{else}{neria_admin key='common.disabled'}{/if}
@@ -105,7 +105,7 @@
                   data-template="{$ev.template|escape:'html'}"
                   data-days="{$ev.send_days_before|intval}"
                   title="{neria_admin key='calendar.duplicate_btn'}">⎘</button>
-          <a href="{$smarty.server.REQUEST_URI}&neria_action=delete_calendar_event&neria_tab=calendar&cal_id={$ev.id_event|intval}"
+          <a href="{$smarty.server.REQUEST_URI|escape:'html'}&neria_action=delete_calendar_event&neria_tab=calendar&cal_id={$ev.id_event|intval}"
              class="neria-btn neria-btn--danger neria-btn--xs"
              data-confirm="{neria_admin key='calendar.delete_confirm' esc='html'}"
              onclick="return neriaPostLink(event, this);">✕</a>
@@ -122,7 +122,7 @@
   <div class="neria-card" id="cal-add-form" style="margin-top:32px;">
     <h3 class="neria-card__title">{neria_admin key='calendar.add_title'}</h3>
 
-    <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
       <input type="hidden" name="neria_action" value="add_calendar_event">
       <input type="hidden" name="neria_tab"    value="calendar">
 

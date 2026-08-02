@@ -54,7 +54,7 @@
 
 {* ── Formulaire de sélection ────────────────────────────────── *}
 <div class="neria-section">
-  <form method="post" action="{$smarty.server.REQUEST_URI}" id="mp-form">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" id="mp-form">
     <input type="hidden" name="neria_action" value="multipreview_render">
     <input type="hidden" name="neria_tab"    value="multipreview">
 
@@ -179,7 +179,7 @@
   <h2 class="neria-section__title">{neria_admin key='multipreview.api_title'}</h2>
   <p class="neria-section__desc">{neria_admin key='multipreview.api_desc'}</p>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_multipreview_keys">
     <input type="hidden" name="neria_tab"    value="multipreview">
 

@@ -36,7 +36,7 @@
     </p>
   </div>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_social">
     <input type="hidden" name="neria_tab"    value="social">
 

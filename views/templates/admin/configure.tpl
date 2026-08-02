@@ -77,7 +77,7 @@
 <div class="neria-section" id="neria-cfg-time-greetings">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
     <h2 class="neria-section__title" style="margin:0;">⏱ {neria_admin key='configure.time_greetings_title'}</h2>
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin:0;">
       <input type="hidden" name="neria_action" value="toggle_time_greeting">
       <input type="hidden" name="neria_tab"    value="configure">
       <button type="submit"
@@ -102,7 +102,7 @@
       {neria_admin key='configure.target_countries_desc'}
     </p>
 
-    <form method="post" action="{$smarty.server.REQUEST_URI}" id="neria-countries-form">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" id="neria-countries-form">
       <input type="hidden" name="neria_action" value="save_target_countries">
       <input type="hidden" name="neria_tab"    value="configure">
 
@@ -169,7 +169,7 @@
   {assign var="tg_slots" value=['morning','afternoon','evening','night']}
 
   {* ── Tableau des salutations ─────────────────────────────────────── *}
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_time_greetings">
     <input type="hidden" name="neria_tab"    value="configure">
 
@@ -213,7 +213,7 @@
     <span style="font-size:12px;color:#7a6f65;font-weight:600;white-space:nowrap;">🔄 {neria_admin key='configure.tg_reset_label'}</span>
 
     {* Toutes les langues *}
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin:0;">
       <input type="hidden" name="neria_action" value="reset_time_greetings_all">
       <input type="hidden" name="neria_tab"    value="configure">
       <button type="button" class="neria-btn neria-btn--sm"
@@ -225,7 +225,7 @@
     </form>
 
     {* Une langue au choix *}
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;display:flex;align-items:center;gap:8px;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin:0;display:flex;align-items:center;gap:8px;">
       <input type="hidden" name="neria_action" value="reset_time_greetings_lang">
       <input type="hidden" name="neria_tab"    value="configure">
       <select name="neria_reset_lang" class="neria-input" style="font-size:12px;padding:4px 8px;height:auto;">
@@ -250,7 +250,7 @@
 <div class="neria-section" id="neria-cfg-firstname-fallbacks">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
     <h2 class="neria-section__title" style="margin:0;">✦ {neria_admin key='configure.firstname_fallbacks_title'}</h2>
-    <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin:0;">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin:0;">
       <input type="hidden" name="neria_action" value="toggle_firstname_fallback">
       <input type="hidden" name="neria_tab"    value="configure">
       <button type="submit"
@@ -267,7 +267,7 @@
     {neria_admin key='configure.firstname_fallbacks_desc_post'}
   </p>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_firstname_fallbacks">
     <input type="hidden" name="neria_tab"    value="configure">
 
@@ -322,7 +322,7 @@
     {neria_admin key='configure.voucher_desc'}
   </p>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_voucher_validity">
     <input type="hidden" name="neria_tab"    value="configure">
 
@@ -365,7 +365,7 @@
     {neria_admin key='configure.birthday_voucher_desc'}
   </p>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_birthday_voucher">
     <input type="hidden" name="neria_tab"    value="configure">
 
@@ -441,7 +441,7 @@
     </div>
   </div>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_milestone_voucher">
     <input type="hidden" name="neria_tab"    value="configure">
     <input type="hidden" name="neria_milestone_voucher_enabled" value="{if $milestone_voucher_enabled}1{else}0{/if}">
@@ -520,7 +520,7 @@
     </div>
   </div>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_cooldown">
     <input type="hidden" name="neria_tab"    value="configure">
 
@@ -556,7 +556,7 @@
       {neria_admin key='configure.smtp_quota_howto_body'}
     </div>
 
-    <form method="post" action="{$smarty.server.REQUEST_URI}">
+    <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
       <input type="hidden" name="neria_action" value="save_smtp_quota">
       <input type="hidden" name="neria_tab"    value="configure">
       <div class="neria-form-group">
@@ -591,7 +591,7 @@
     </div>
   </div>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_archive_config">
     <input type="hidden" name="neria_tab"    value="configure">
     <div class="neria-form-group">
@@ -617,7 +617,7 @@
   <h2 class="neria-section__title">{neria_admin key='configure.carbon_title'}</h2>
   <p class="neria-section__desc">{neria_admin key='configure.carbon_desc'}</p>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_carbon">
     <input type="hidden" name="neria_tab"    value="configure">
 
@@ -692,14 +692,14 @@
     </div>
     <div style="margin-top:14px;padding-top:12px;border-top:1px solid #e8d5b0;font-size:12px;color:#4a3f35;">
       💡 {neria_admin key='configure.senders_tip_pre'}
-      <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''}&neria_tab=stats#neria-domain-rep"
+      <a href="{$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''|escape:'html'}&neria_tab=stats#neria-domain-rep"
          style="color:#b38b59;font-weight:700;text-decoration:underline;">
         → {neria_admin key='configure.senders_tip_link'}
       </a>
     </div>
   </div>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_senders">
     <input type="hidden" name="neria_tab"    value="configure">
 
@@ -754,7 +754,7 @@
   <p class="neria-section__desc">{neria_admin key='configure.blacklist_desc'}</p>
 
   {* Formulaire d'ajout *}
-  <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-bottom:20px;">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin-bottom:20px;">
     <input type="hidden" name="neria_action" value="add_blacklist">
     <input type="hidden" name="neria_tab"    value="configure">
     <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">
@@ -829,7 +829,7 @@
               </td>
               <td style="font-size:12px;color:var(--neria-text-light);">{$rule.date_add|date_format:'%d/%m/%Y'}</td>
               <td>
-                <form method="post" action="{$smarty.server.REQUEST_URI}">
+                <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
                   <input type="hidden" name="neria_action" value="remove_blacklist">
                   <input type="hidden" name="neria_tab"    value="configure">
                   <input type="hidden" name="neria_bl_id"  value="{$rule.id_blacklist}">
@@ -870,7 +870,7 @@
   </div>
   <p class="neria-section__desc">{neria_admin key='configure.report_desc'}</p>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_report_config">
     <input type="hidden" name="neria_tab"    value="configure">
 
@@ -897,7 +897,7 @@
     </div>
   </form>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}" style="margin-top:16px;">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" style="margin-top:16px;">
     <input type="hidden" name="neria_action" value="send_report_now">
     <input type="hidden" name="neria_tab"    value="configure">
     <button type="submit" class="neria-btn neria-btn--primary neria-btn--sm">
@@ -952,7 +952,7 @@
     {neria_admin key='configure.customvars_desc'}
   </p>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}">
     <input type="hidden" name="neria_action" value="save_custom_vars">
     <input type="hidden" name="neria_tab"    value="configure">
 
@@ -1077,7 +1077,7 @@
     {neria_admin key='configure.signature_desc'}
   </p>
 
-  <form method="post" action="{$smarty.server.REQUEST_URI}" id="neria-signature-form">
+  <form method="post" action="{$smarty.server.REQUEST_URI|escape:'html'}" id="neria-signature-form">
     <input type="hidden" name="neria_action" value="generate_signature">
     <input type="hidden" name="neria_tab"    value="configure">
 
