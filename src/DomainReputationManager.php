@@ -161,22 +161,35 @@ class DomainReputationManager
     /**
      * Exécute la vérification complète, met en cache et retourne le rapport.
      */
+    /**
+     * Budget de temps total (secondes) au-delà duquel checkDkim()/checkBlacklists()
+     * arrêtent d'interroger de nouveaux serveurs DNS et retournent leurs résultats
+     * partiels. dns_get_record() n'a pas de timeout applicatif — un résolveur lent
+     * ou injoignable peut prendre plusieurs secondes PAR requête, et ce contrôle
+     * tourne dans le chemin d'exécution d'un visiteur front (hookDisplayHeader,
+     * fallback sans cron serveur) : sans cette limite, les 17 sélecteurs DKIM +
+     * 42 RBL peuvent cumuler plusieurs minutes de blocage pour ce visiteur.
+     */
+    private const DNS_TIME_BUDGET_SECS = 8.0;
+
     public function runFullCheck(): array
     {
         \Configuration::updateValue(\HealthCheckManager::CRON_LAST_DOMREP, date('Y-m-d H:i:s'));
         @set_time_limit(120);
 
+        $deadline = microtime(true) + self::DNS_TIME_BUDGET_SECS;
+
         $domain = $this->getSenderDomain();
         $ip     = $domain ? $this->resolveIp($domain) : null;
 
         $spf    = $this->checkSpf($domain);
-        $dkim   = $this->checkDkim($domain);
+        $dkim   = $this->checkDkim($domain, $deadline);
         $dmarc  = $this->checkDmarc($domain);
         $mx     = $this->checkMx($domain);
         $ptr    = ($ip && !$this->isPrivateIp($ip)) ? $this->checkPtr($ip) : ['found' => false, 'hostname' => null, 'skipped' => true];
         $bimi   = $this->checkBimi($domain, $dmarc);
         $bl     = ($ip && !$this->isPrivateIp($ip))
-            ? $this->checkBlacklists($ip)
+            ? $this->checkBlacklists($ip, $deadline)
             : ['checked' => 0, 'hits' => [], 'clean' => 0, 'skipped' => true];
 
         $score = $this->computeScore($spf, $dkim, $dmarc, $ptr, $bl);
@@ -248,13 +261,16 @@ class DomainReputationManager
         return ['found' => false, 'record' => null, 'policy' => null];
     }
 
-    private function checkDkim(string $domain): array
+    private function checkDkim(string $domain, ?float $deadline = null): array
     {
         if (!$domain) {
             return ['found' => false, 'selector' => null, 'record' => null];
         }
 
         foreach (self::DKIM_SELECTORS as $selector) {
+            if ($deadline !== null && microtime(true) >= $deadline) {
+                break; // budget de temps DNS épuisé — résultat partiel plutôt qu'un blocage prolongé
+            }
             $host    = $selector . '._domainkey.' . $domain;
             $records = @dns_get_record($host, DNS_TXT) ?: [];
             foreach ($records as $r) {
@@ -371,7 +387,7 @@ class DomainReputationManager
     // VÉRIFICATION BLACKLISTS (42 RBL)
     // ============================================================
 
-    private function checkBlacklists(string $ip): array
+    private function checkBlacklists(string $ip, ?float $deadline = null): array
     {
         $parts = explode('.', $ip);
         if (count($parts) !== 4) {
@@ -383,6 +399,9 @@ class DomainReputationManager
         $checked  = 0;
 
         foreach (self::RBL_LIST as $rbl) {
+            if ($deadline !== null && microtime(true) >= $deadline) {
+                break; // budget de temps DNS épuisé — résultat partiel plutôt qu'un blocage prolongé
+            }
             $host = $reversed . '.' . $rbl;
             // dns_get_record retourne false en cas d'erreur réseau,
             // tableau vide si NXDOMAIN (= non listé), tableau non vide si listé.

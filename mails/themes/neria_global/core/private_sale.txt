@@ -6,7 +6,7 @@
 
 {neria_trad key='private_sale_message'}
 
-{neria_trad key='private_sale_btn'} : {sale_url}
+{neria_trad key='private_sale_btn'} : {history_url}
 
 {neria_trad key='private_sale_note'}
 

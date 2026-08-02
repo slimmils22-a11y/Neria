@@ -1610,10 +1610,14 @@ class Neria extends Module
     {
         $ran = [];
 
-        $health = new HealthCheckManager($this);
-        $health->recordDisplayHeaderRun();
-        $health->runAutoChecksIfDue();
-        $ran['health_checks'] = true;
+        try {
+            $health = new HealthCheckManager($this);
+            $health->recordDisplayHeaderRun();
+            $health->runAutoChecksIfDue();
+            $ran['health_checks'] = true;
+        } catch (\Throwable $e) {
+            // best-effort — ne bloque jamais le front, ni les jobs suivants
+        }
 
         // ── Licence : revalidation réseau (cache 24h interne à validateLicense()) ──
         // Tolérance de panne totale : une erreur réseau ne modifie jamais le
@@ -1706,11 +1710,15 @@ class Neria extends Module
         }
 
         if (class_exists('CalendarManager')) {
-            $calendar = new CalendarManager($this);
-            $calendar->checkAndSendDailyEvents();
-            $ran['calendar'] = true;
-            if (class_exists('WatchdogManager')) {
-                try { (new WatchdogManager($this))->cronHeartbeat('calendar'); } catch (\Throwable $e) {}
+            try {
+                $calendar = new CalendarManager($this);
+                $calendar->checkAndSendDailyEvents();
+                $ran['calendar'] = true;
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this))->cronHeartbeat('calendar');
+                }
+            } catch (\Throwable $e) {
+                // best-effort — ne bloque jamais le front, ni les jobs suivants
             }
         }
 
