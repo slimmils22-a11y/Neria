@@ -1031,6 +1031,19 @@ class CalendarManager
             return false;
         }
 
+        // La sélection en amont ne filtre que customer.newsletter = 1 (flag
+        // global PS) — un client ayant désactivé spécifiquement la catégorie
+        // Neria de CE template (préférences granulaires par catégorie) tout
+        // en gardant la case "newsletter" générale cochée recevait quand
+        // même l'email, en contradiction avec son choix explicite. Même
+        // garde-fou que BehavioralCronManager/SegmentManager avant chaque
+        // envoi.
+        if (class_exists('PreferencesManager')
+            && !(new \PreferencesManager($this->module))->isAllowed((int) $customer['id_customer'], $template, $this->idShop)
+        ) {
+            return false;
+        }
+
         $idLang    = (int) $customer['id_lang'];
         $shopName  = \Configuration::get('PS_SHOP_NAME');
         $shopEmail = \Configuration::get('PS_SHOP_EMAIL');
