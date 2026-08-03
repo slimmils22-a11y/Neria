@@ -1379,6 +1379,16 @@ class HealthCheckManager
             if (strpos($seasonalSrc, "getPageLink('history', true, \$idLang, null, false, \$this->idShop)") === false) {
                 $offenders[] = "SeasonalCampaignManager : {history_url} n'utilise plus \$this->idShop (getPageLink())";
             }
+
+            // Bug du 2026-08-03 : date('m-d', ...) ne peut jamais produire
+            // '02-29' un jour où l'année courante n'est pas bissextile — une
+            // campagne configurée sur cette date précise ne se déclenchait
+            // jamais 3 années sur 4, sans erreur ni log visible. Même bug déjà
+            // corrigé dans CalendarManager::resolveMonthDay(), répercuté ici
+            // via le repli checkdate(2, 29, ...) → 28 février.
+            if (strpos($seasonalSrc, "\\checkdate(2, 29, (int) date('Y', \$targetTs))") === false) {
+                $offenders[] = "SeasonalCampaignManager : runDueCampaigns() n'a plus le repli checkdate(2,29,...) pour les campagnes du 29 février (jamais déclenchées 3 années sur 4)";
+            }
         }
 
         if ($offenders) {
