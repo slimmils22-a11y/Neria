@@ -54,7 +54,7 @@ class UpsellManager
      * @return array|null  ['name', 'price_formatted', 'image_url', 'product_url',
      *                      'category', 'reason']
      */
-    public function getUpsellProduct(int $idOrder, int $idLang): ?array
+    public function getUpsellProduct(int $idOrder, int $idLang, ?int $idShop = null): ?array
     {
         if ($idLang <= 0) {
             $idLang = (int) \Configuration::get('PS_LANG_DEFAULT');
@@ -79,7 +79,7 @@ class UpsellManager
         // Tier 1 — accessoires définis dans le back-office produit
         $row = $this->findByAccessories($orderProducts, $excluded, $idLang);
         if ($row) {
-            $result = $this->enrich($row, $idLang, 'L\'accessoire parfait');
+            $result = $this->enrich($row, $idLang, 'L\'accessoire parfait', $idShop);
             if ($result) {
                 return $result;
             }
@@ -88,7 +88,7 @@ class UpsellManager
         // Tier 2 — co-achat (collaborative filtering léger)
         $row = $this->findByCoPurchase($orderProducts, $excluded, $idLang);
         if ($row) {
-            $result = $this->enrich($row, $idLang, 'Souvent acheté ensemble');
+            $result = $this->enrich($row, $idLang, 'Souvent acheté ensemble', $idShop);
             if ($result) {
                 return $result;
             }
@@ -97,7 +97,7 @@ class UpsellManager
         // Tier 3 — meilleur vendeur même catégorie
         $row = $this->findByCategoryBestseller($orderProducts, $excluded, $idLang);
         if ($row) {
-            $result = $this->enrich($row, $idLang, 'Notre suggestion pour vous');
+            $result = $this->enrich($row, $idLang, 'Notre suggestion pour vous', $idShop);
             if ($result) {
                 return $result;
             }
@@ -157,7 +157,7 @@ class UpsellManager
             return null;
         }
 
-        return $this->getUpsellProduct((int) $row['id_order'], $idLang);
+        return $this->getUpsellProduct((int) $row['id_order'], $idLang, $idShop);
     }
 
     // ============================================================
@@ -352,11 +352,11 @@ class UpsellManager
     // ENRICHISSEMENT — prix, image, URL
     // ============================================================
 
-    private function enrich(array $row, int $idLang, string $reason): ?array
+    private function enrich(array $row, int $idLang, string $reason, ?int $idShop = null): ?array
     {
         $idProduct = (int) $row['id_product'];
 
-        $imageUrl = $this->getProductImageUrl($idProduct);
+        $imageUrl = $this->getProductImageUrl($idProduct, $idShop);
         if (!$imageUrl) {
             return null; // Pas d'image → pas de bloc visuel
         }
@@ -419,7 +419,7 @@ class UpsellManager
         }
     }
 
-    private function getProductImageUrl(int $idProduct): ?string
+    private function getProductImageUrl(int $idProduct, ?int $idShop = null): ?string
     {
         $cover = \Image::getCover($idProduct);
         if (empty($cover['id_image'])) {
@@ -436,8 +436,14 @@ class UpsellManager
         // URL directe (non conviviale) : résout toujours en HTTP 200, sans
         // dépendre de la réécriture .htaccess des images du marchand —
         // indispensable pour l'affichage dans les emails (Gmail, Outlook…).
+        // $idShop transmis à getBaseLink() quand disponible : sans lui,
+        // getBaseLink(null, ...) résout le domaine de LA BOUTIQUE DU
+        // CONTEXTE d'exécution (souvent celle où le cron a démarré), pas
+        // celle du client réel — sur une install multi-boutiques à domaines
+        // distincts, l'image de l'email upsell pointait vers le mauvais
+        // domaine.
         $ssl  = (bool) \Configuration::get('PS_SSL_ENABLED');
-        $base = $this->context->link->getBaseLink(null, $ssl);
+        $base = $this->context->link->getBaseLink($idShop, $ssl);
 
         return $base . 'img/p/' . $folder . $idImage . '-' . $type . '.jpg';
     }

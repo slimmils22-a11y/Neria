@@ -69,10 +69,10 @@ class BehavioralCronManager
         $this->prefix = _DB_PREFIX_;
     }
 
-    private function historyUrl(int $idLang = 0): string
+    private function historyUrl(int $idLang = 0, ?int $idShop = null): string
     {
         $ctx = \Context::getContext();
-        return ($ctx && $ctx->link) ? $ctx->link->getPageLink('history', true, $idLang > 0 ? $idLang : null) : '';
+        return ($ctx && $ctx->link) ? $ctx->link->getPageLink('history', true, $idLang > 0 ? $idLang : null, null, false, $idShop) : '';
     }
 
     private function watchdog(): \WatchdogManager
@@ -589,7 +589,7 @@ class BehavioralCronManager
         foreach ((array) $rows as $r) {
             try {
                 $expiryDate = \NeriaTools::formatDate($r['date_to'], \Language::getIsoById((int) $r['id_lang']) ?: 'fr');
-                $historyUrl = $this->historyUrl((int) $r['id_lang']);
+                $historyUrl = $this->historyUrl((int) $r['id_lang'], $idShop);
 
                 $this->send(
                     'loyalty_reward_expiry',
@@ -949,7 +949,7 @@ class BehavioralCronManager
 
             if ($upsellMgr !== null) {
                 try {
-                    $upsell = $upsellMgr->getUpsellProduct($idOrder, $idLang);
+                    $upsell = $upsellMgr->getUpsellProduct($idOrder, $idLang, (int) $r['id_shop']);
 
                     if ($upsell !== null) {
                         $idUpsell = $upsellMgr->recordSuggestion(
@@ -1819,7 +1819,7 @@ class BehavioralCronManager
                     '{firstname}'   => $customer['firstname'],
                     '{lastname}'    => $customer['lastname'],
                     '{shop_name}'   => \Configuration::get('PS_SHOP_NAME'),
-                    '{history_url}' => $this->historyUrl($idLang),
+                    '{history_url}' => $this->historyUrl($idLang, $idShop),
                 ],
                 $extraVars
             );

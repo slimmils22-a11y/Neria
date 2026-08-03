@@ -439,7 +439,7 @@ class SegmentManager
                 '{firstname}'   => $c['firstname'],
                 '{lastname}'    => $c['lastname'],
                 '{shop_name}'   => \Configuration::get('PS_SHOP_NAME'),
-                '{history_url}' => \Context::getContext()->link->getPageLink('history', true, $idLang),
+                '{history_url}' => \Context::getContext()->link->getPageLink('history', true, $idLang, null, false, $this->idShop),
                 '{shop_url}'    => \Tools::getShopDomainSsl(true),
             ];
 
