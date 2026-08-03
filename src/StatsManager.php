@@ -275,7 +275,6 @@ class StatsManager
         }
 
         $table = _DB_PREFIX_ . self::TABLE;
-        $now   = date('Y-m-d H:i:s');
 
         $renderedVars = $extra['rendered_vars'] ?? null;
         if ($renderedVars !== null && class_exists('CryptoManager')) {
@@ -299,7 +298,7 @@ class StatsManager
                  `id_customer`, `id_order`, `ref_scope`, `tracking_token`,
                  `event_type`, `is_mpp`, `abtest_variant`, `rendered_vars`,
                  `revenue`, `ip_address`, `user_agent`, `date_add`)
-             VALUES (%d, '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', %d, '%s', %s, %.2f, '%s', '%s', '%s')",
+             VALUES (%d, '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', %d, '%s', %s, %.2f, '%s', '%s', NOW())",
             $table,
             $this->idShop,
             pSQL($template),
@@ -315,8 +314,7 @@ class StatsManager
             $renderedVars !== null ? "'" . pSQL($renderedVars) . "'" : 'NULL',
             $revenue,
             pSQL($this->anonymizeIp($this->getClientIp())),
-            pSQL(substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255)),
-            $now
+            pSQL(substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255))
         );
 
         $ok = $this->db->execute($sql);
