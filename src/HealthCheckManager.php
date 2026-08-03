@@ -1712,6 +1712,15 @@ class HealthCheckManager
         $srcDir = _PS_MODULE_DIR_ . $this->module->name . '/src';
         $files = is_dir($srcDir) ? (glob($srcDir . '/*.php') ?: []) : [];
 
+        // Inclut aussi neria.php (racine du module) — trouvé en réel le
+        // 2026-08-03 avec 8 occurrences (imports/exports CSV traductions,
+        // auto-traduction DeepL, restauration d'historique), alors que la
+        // version initiale de ce contrôle ne scannait que src/*.php.
+        $rootFile = _PS_MODULE_DIR_ . $this->module->name . '/neria.php';
+        if (is_file($rootFile)) {
+            $files[] = $rootFile;
+        }
+
         foreach ($files as $file) {
             $base = basename($file);
             if ($base === 'HealthCheckManager.php') {

