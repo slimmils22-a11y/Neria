@@ -941,6 +941,50 @@ class NeriaTools
      * du client destinataire de l'email. Passer explicitement l'id_lang du
      * destinataire pour un prix correctement localisé même en cron.
      */
+    /**
+     * Formate un prix via l'extension intl (NumberFormatter) — chemin de
+     * repli utilisé par displayPrice() UNIQUEMENT quand Tools::displayPrice()
+     * n'existe plus côté cœur PS. Extraite en méthode séparée pour rester
+     * testable en isolation par un test de régression : sur toute version PS
+     * actuelle (8, 9), Tools::displayPrice() existe encore et court-circuite
+     * displayPrice() avant d'atteindre ce code — sans cette extraction, la
+     * table de correspondance iso_code→locale ICU ci-dessous ne serait
+     * vérifiable que sur une hypothétique future version de PS qui aurait
+     * supprimé Tools::displayPrice().
+     *
+     * @return string|null null si NumberFormatter échoue (repli manuel appelant)
+     */
+    public static function formatPriceWithIntl(float $amount, \Currency $currency, ?\Language $lang): ?string
+    {
+        $localeIso = 'en-US';
+        // iso_code interne PS ne correspond pas toujours à un identifiant de
+        // locale ICU valide (ex: 'gb', 'br', 'tw' ne sont pas des codes ISO
+        // 639 — les vrais identifiants ICU attendus sont 'en-GB', 'pt-BR',
+        // 'zh-TW'). Sans cette table, NumberFormatter('gb', ...) construisait
+        // une locale ICU non standard et retombait sur des règles de repli
+        // proches de en-US, produisant un prix mal formaté (position du
+        // symbole, séparateur) pour ces langues — silencieux, pas de crash.
+        static $isoToIcu = [
+            'gb' => 'en-GB',
+            'br' => 'pt-BR',
+            'tw' => 'zh-TW',
+        ];
+        try {
+            if ($lang && !empty($lang->locale)) {
+                $localeIso = str_replace('_', '-', $lang->locale);
+            } elseif ($lang && !empty($lang->iso_code)) {
+                $isoLower  = strtolower($lang->iso_code);
+                $localeIso = $isoToIcu[$isoLower] ?? $lang->iso_code;
+            }
+        } catch (\Throwable $e) {
+            // Repli sur en-US si le contexte langue n'est pas disponible.
+        }
+
+        $formatter = new \NumberFormatter($localeIso, \NumberFormatter::CURRENCY);
+        $formatted = $formatter->formatCurrency($amount, $currency->iso_code);
+        return $formatted !== false ? $formatted : null;
+    }
+
     public static function displayPrice(float $amount, \Currency $currency, ?int $idLang = null): string
     {
         $context = \Context::getContext();
@@ -962,35 +1006,8 @@ class NeriaTools
             }
 
             if (class_exists('NumberFormatter')) {
-                $localeIso = 'en-US';
-                // iso_code interne PS ne correspond pas toujours à un
-                // identifiant de locale ICU valide (ex: 'gb', 'br', 'tw' ne
-                // sont pas des codes ISO 639 — les vrais identifiants ICU
-                // attendus sont 'en-GB', 'pt-BR', 'zh-TW'). Sans cette table,
-                // NumberFormatter('gb', ...) construisait une locale ICU non
-                // standard et retombait sur des règles de repli proches de
-                // en-US, produisant un prix mal formaté (position du symbole,
-                // séparateur) pour ces langues — silencieux, pas de crash.
-                static $isoToIcu = [
-                    'gb' => 'en-GB',
-                    'br' => 'pt-BR',
-                    'tw' => 'zh-TW',
-                ];
-                try {
-                    $lang = $context->language;
-                    if ($lang && !empty($lang->locale)) {
-                        $localeIso = str_replace('_', '-', $lang->locale);
-                    } elseif ($lang && !empty($lang->iso_code)) {
-                        $isoLower  = strtolower($lang->iso_code);
-                        $localeIso = $isoToIcu[$isoLower] ?? $lang->iso_code;
-                    }
-                } catch (\Throwable $e) {
-                    // Repli sur en-US si le contexte langue n'est pas disponible.
-                }
-
-                $formatter = new \NumberFormatter($localeIso, \NumberFormatter::CURRENCY);
-                $formatted = $formatter->formatCurrency($amount, $currency->iso_code);
-                if ($formatted !== false) {
+                $formatted = self::formatPriceWithIntl($amount, $currency, $context->language ?? null);
+                if ($formatted !== null) {
                     return $formatted;
                 }
             }
