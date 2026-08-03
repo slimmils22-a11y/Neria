@@ -1348,8 +1348,24 @@ class HealthCheckManager
         $cronSrc2  = is_file($cronFile2) ? (file_get_contents($cronFile2) ?: '') : '';
         if ($cronSrc2 === '') {
             $offenders[] = 'BehavioralCronManager.php introuvable (2e vérification)';
-        } elseif (strpos($cronSrc2, "getPageLink('history', true, \$idLang > 0 ? \$idLang : null, null, false, \$idShop)") === false) {
-            $offenders[] = "BehavioralCronManager : historyUrl() n'utilise plus \$idShop pour {history_url}";
+        } else {
+            if (strpos($cronSrc2, "getPageLink('history', true, \$idLang > 0 ? \$idLang : null, null, false, \$idShop)") === false) {
+                $offenders[] = "BehavioralCronManager : historyUrl() n'utilise plus \$idShop pour {history_url}";
+            }
+
+            // Bug du 2026-08-03 : même défaut 29 février que
+            // CalendarManager/SeasonalCampaignManager, trouvé dans
+            // sendBirthdays() (DAY(c.birthday)=DAY(NOW()) ne matche jamais
+            // pour un client né un 29/02 une année non bissextile — email
+            // d'anniversaire jamais envoyé 3 années sur 4) et
+            // sendRelationshipAnniversaries() (même défaut via
+            // DATE_FORMAT(...,'%m-%d')). Repli via DAY(LAST_DAY(NOW()))=28.
+            if (strpos($cronSrc2, 'MONTH(c.birthday) = 2 AND DAY(c.birthday) = 29') === false) {
+                $offenders[] = "BehavioralCronManager : sendBirthdays() a perdu son repli 29/02 → 28/02 — anniversaire client jamais envoyé 3 années sur 4";
+            }
+            if (strpos($cronSrc2, "DATE_FORMAT(MIN(o.date_add), \\'%m-%d\\') = \\'02-29\\'") === false) {
+                $offenders[] = "BehavioralCronManager : sendRelationshipAnniversaries() a perdu son repli 29/02 → 28/02 — anniversaire de relation jamais envoyé 3 années sur 4";
+            }
         }
 
         $queueFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php';
