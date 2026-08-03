@@ -940,7 +940,11 @@ class ManualSendManager
         if (strlen($q) < 2) {
             return [];
         }
-        $safe = pSQL($q);
+        // Échappe les métacaractères LIKE (%, _) avant pSQL() — sans ça, un
+        // "_" dans la recherche (fréquent, ex. jean_dupont) matche n'importe
+        // quel caractère et pollue la liste de destinataires avec des
+        // clients non pertinents. Même correctif que checkDuplicate() plus bas.
+        $safe = pSQL(addcslashes($q, '%_'));
         // Respecte le mode de partage client PrestaShop (boutique isolée ou
         // partagée au sein d'un groupe) — évite qu'un employé restreint à
         // une boutique retrouve des clients d'une autre boutique isolée,

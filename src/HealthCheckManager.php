@@ -1506,14 +1506,21 @@ class HealthCheckManager
      *
      * Trouvé en réel le 2026-08-03 dans GdprAuditManager::purgeCustomerData()
      * (purge RGPD de neria_webhook_queue par email dans le payload — pouvait
-     * supprimer les données d'un tiers) et CollectionManager::searchProducts()
-     * (bruit dans l'auto-complétion produit). Corrigés en échappant % et _
-     * via str_replace() avant pSQL().
+     * supprimer les données d'un tiers), CollectionManager::searchProducts()
+     * et BounceManager::getBounceList()/getBounceCount() (bruit dans la
+     * recherche BO). Corrigés en échappant % et _ via str_replace() (ou
+     * addcslashes()) avant pSQL().
      *
      * likeVarIsEscaped() suit la chaîne d'affectation sur 2 niveaux
      * d'indirection (ex. $emailSql = pSQL($emailLike) où l'échappement est
      * fait sur $emailLike, pas $emailSql) pour éviter un faux positif sur
-     * ce correctif même.
+     * ce correctif même, et reconnaît aussi bien str_replace() qu'addcslashes().
+     *
+     * Les deux regex tolèrent un guillemet PHP échappé (\') autour du motif
+     * LIKE — la requête SQL est souvent elle-même imbriquée dans une chaîne
+     * à guillemets simples (ex. `. \'%' . $var . '%\' .`), ce qui a fait
+     * rater ManualSendManager::searchCustomers() à la première version de ce
+     * contrôle (trouvé en réel le 2026-08-03, corrigé depuis).
      */
     private function checkUnescapedLikeMetachars(): array
     {
@@ -1536,10 +1543,10 @@ class HealthCheckManager
             }
 
             $vars = [];
-            if (preg_match_all('/LIKE\s*\'%\{?\$(\w+)\}?%\'/', $raw, $m1)) {
+            if (preg_match_all('/LIKE\s*\\\\?\'%\{?\$(\w+)\}?%\\\\?\'/', $raw, $m1)) {
                 $vars = array_merge($vars, $m1[1]);
             }
-            if (preg_match_all('/LIKE\s*\'%\'\s*\.\s*\$(\w+)\s*\.\s*\'%\'/', $raw, $m2)) {
+            if (preg_match_all('/LIKE\s*\\\\?\'%\\\\?\'\s*\.\s*\$(\w+)\s*\.\s*\\\\?\'%\\\\?\'/', $raw, $m2)) {
                 $vars = array_merge($vars, $m2[1]);
             }
             if (!$vars) {
@@ -1565,7 +1572,8 @@ class HealthCheckManager
 
     /**
      * Suit la chaîne d'affectation de $varName dans $raw (max 2 niveaux
-     * d'indirection) à la recherche d'un str_replace() échappant '%' et '_'.
+     * d'indirection) à la recherche d'un échappement des métacaractères LIKE
+     * (% et _) via str_replace() ou addcslashes().
      */
     private function likeVarIsEscaped(string $raw, string $varName, int $depth = 0): bool
     {
@@ -1579,6 +1587,12 @@ class HealthCheckManager
             if (stripos($expr, 'str_replace') !== false
                 && strpos($expr, "'%'") !== false
                 && strpos($expr, "'_'") !== false
+            ) {
+                return true;
+            }
+            if (stripos($expr, 'addcslashes') !== false
+                && strpos($expr, '%') !== false
+                && strpos($expr, '_') !== false
             ) {
                 return true;
             }
