@@ -906,7 +906,8 @@ class StatsManager
     private static $CHART_CATEGORIES = [
         'cart'    => ['abandoned_cart_1','abandoned_cart_2','abandoned_cart_3',
                       'checkout_abandonment','ghost_cart'],
-        'post'    => ['post_purchase_review','complete_your_look','collection_completion',
+        'post'    => ['post_purchase_care','post_purchase_review','complete_your_look','collection_completion',
+                      'order_on_hold','order_partial_shipped','refund_processed','return_received',
                       'product_lifespan_reminder','refund_reconciliation_1',
                       'refund_reconciliation_2','refund_reconciliation_3',
                       'waitlist_available','wishlist_reminder','back_in_stock'],
