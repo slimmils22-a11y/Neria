@@ -1239,6 +1239,37 @@ class HealthCheckManager
                     $offenders[] = "CertificateManager : la valeur par défaut française « {$hardcodedFrenchDefault} » est de nouveau codée en dur (devrait passer par le dictionnaire certificate_email)";
                 }
             }
+
+            // Bug du 2026-08-03 : cert_qr_url n'est validée qu'avec
+            // Validate::isUrl() + préfixe https:// côté BO — rien n'empêche
+            // une URL contenant déjà une query string (ex.
+            // https://x.fr/verify?ref=y). Concaténer systématiquement
+            // '?cert=' produisait alors '...?ref=y?cert=...', un QR cassé
+            // sur TOUS les certificats émis avec cette config.
+            if ($certSrc !== ''
+                && strpos($certSrc, "'?cert=' . urlencode(\$serial)") !== false
+                && strpos($certSrc, 'strpos($qrBaseUrl') === false
+            ) {
+                $offenders[] = "CertificateManager : le QR code concatène de nouveau '?cert=' sans détecter une query string déjà présente dans cert_qr_url (lien cassé)";
+            }
+        }
+
+        $churnFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php';
+        $churnSrc  = is_file($churnFile) ? (file_get_contents($churnFile) ?: '') : '';
+        if ($churnSrc === '') {
+            $offenders[] = 'ChurnScoreManager.php introuvable';
+        } else {
+            // Bug du 2026-08-03 : recomputeAll() ne recalculait que les
+            // clients avec activité dans les 90 derniers jours mais ne
+            // purgeait jamais les lignes neria_churn_score des clients
+            // sortis de cette fenêtre — un score "risque élevé" figé restait
+            // affiché indéfiniment sur la fiche BO sans jamais être ni
+            // recalculé ni retiré, sans que checkChurnPropensityFreshness()
+            // (qui ne vérifie que la fraîcheur du dernier RUN, pas des
+            // lignes individuelles) ne le détecte.
+            if (strpos($churnSrc, 'DELETE FROM `{$table}` WHERE `id_shop` = {$shop}') === false) {
+                $offenders[] = 'ChurnScoreManager::recomputeAll() ne purge plus les clients sortis de la fenêtre de 90 jours (scores de risque figés indéfiniment)';
+            }
         }
 
         if ($offenders) {
