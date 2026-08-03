@@ -177,7 +177,13 @@ class NeriaTools
             return $text;
         }
 
-        $truncated = mb_substr($text, 0, $length - mb_strlen($suffix));
+        // max(0, ...) : si $length est inférieur ou égal à la longueur du
+        // suffixe, $length - mb_strlen($suffix) devient négatif — mb_substr()
+        // avec une longueur négative ne tronque pas "à 0 caractère moins N"
+        // comme on pourrait le croire, mais retire les N DERNIERS caractères
+        // du texte, produisant l'effet inverse de celui recherché (texte
+        // quasiment pas tronqué au lieu d'être coupé très court).
+        $truncated = mb_substr($text, 0, max(0, $length - mb_strlen($suffix)));
         $lastSpace = mb_strrpos($truncated, ' ');
 
         if ($lastSpace !== false) {
@@ -957,12 +963,26 @@ class NeriaTools
 
             if (class_exists('NumberFormatter')) {
                 $localeIso = 'en-US';
+                // iso_code interne PS ne correspond pas toujours à un
+                // identifiant de locale ICU valide (ex: 'gb', 'br', 'tw' ne
+                // sont pas des codes ISO 639 — les vrais identifiants ICU
+                // attendus sont 'en-GB', 'pt-BR', 'zh-TW'). Sans cette table,
+                // NumberFormatter('gb', ...) construisait une locale ICU non
+                // standard et retombait sur des règles de repli proches de
+                // en-US, produisant un prix mal formaté (position du symbole,
+                // séparateur) pour ces langues — silencieux, pas de crash.
+                static $isoToIcu = [
+                    'gb' => 'en-GB',
+                    'br' => 'pt-BR',
+                    'tw' => 'zh-TW',
+                ];
                 try {
                     $lang = $context->language;
                     if ($lang && !empty($lang->locale)) {
                         $localeIso = str_replace('_', '-', $lang->locale);
                     } elseif ($lang && !empty($lang->iso_code)) {
-                        $localeIso = $lang->iso_code;
+                        $isoLower  = strtolower($lang->iso_code);
+                        $localeIso = $isoToIcu[$isoLower] ?? $lang->iso_code;
                     }
                 } catch (\Throwable $e) {
                     // Repli sur en-US si le contexte langue n'est pas disponible.

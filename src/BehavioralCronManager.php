@@ -1107,10 +1107,20 @@ class BehavioralCronManager
              FROM `' . $this->prefix . 'neria_quote` q
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = q.id_customer
              WHERE q.status = \'active\' AND q.sent_48h = 0 AND q.id_shop = ' . $idShop . '
-               AND DATE(q.expiry_date) = DATE(DATE_ADD(NOW(), INTERVAL 2 DAY))
+               AND DATE(q.expiry_date) BETWEEN CURDATE() AND DATE(DATE_ADD(NOW(), INTERVAL 2 DAY))
                AND c.active = 1 AND c.deleted = 0
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
+        // BETWEEN (et non plus une égalité stricte sur DATE_ADD(NOW(), 2 DAY))
+        // : si le cron ne tourne pas exactement le jour J-2 (panne serveur,
+        // maintenance), la fenêtre était ratée pour toujours — sent_48h
+        // restait à 0 indéfiniment, sans rattrapage possible. Le check santé
+        // checkQuoteRemindersStuck() rappelle sendQuoteExpiryReminders() sur
+        // les devis bloqués, mais avec l'égalité stricte, un devis déjà en
+        // retard de plusieurs jours ne matchait plus NI la requête 48h NI la
+        // requête Jour J ci-dessous — seule la requête d'extension (moins
+        // stricte, `<`) matchait, sautant silencieusement les 2 relances
+        // intermédiaires tout en faisant croire à un "auto-fixed" complet.
         foreach ((array) $rows48h as $r) {
             // Try/catch par ligne : sans ça, une exception sur UN devis (ex.
             // deadlock MySQL — ce cron tourne en même temps que
@@ -1144,10 +1154,15 @@ class BehavioralCronManager
              FROM `' . $this->prefix . 'neria_quote` q
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = q.id_customer
              WHERE q.status = \'active\' AND q.sent_day = 0 AND q.id_shop = ' . $idShop . '
-               AND DATE(q.expiry_date) = CURDATE()
+               AND DATE(q.expiry_date) <= CURDATE()
                AND c.active = 1 AND c.deleted = 0
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
+        // <= (et non plus une égalité stricte) : même rattrapage que la
+        // relance 48h ci-dessus — un devis dont le "jour J" est déjà passé
+        // sans que sent_day n'ait jamais été mis à 1 reçoit la relance dès
+        // le prochain passage du cron, au lieu de sauter directement à
+        // l'offre de prolongation (section 3).
         foreach ((array) $rowsDay as $r) {
             try {
                 $this->sendQuoteEmail('quote_expiry_day', $r);
@@ -1394,10 +1409,18 @@ class BehavioralCronManager
                    AND o.valid = 1
                    AND o.id_shop = {$product['id_shop']}
                    AND c.active = 1 AND c.deleted = 0
-                   AND DATE(o.date_add) = DATE_SUB(CURDATE(), INTERVAL {$targetDay} DAY)
+                   AND DATE(o.date_add) <= DATE_SUB(CURDATE(), INTERVAL {$targetDay} DAY)
                  GROUP BY c.id_customer, o.id_shop, o.id_order
                  LIMIT " . self::MAX_BATCH_PER_RUN
             ) ?: [];
+            // <= (et non plus une égalité stricte) : sans rattrapage, un achat
+            // dont le "jour cible" tombait un jour où le cron ne tournait pas
+            // (panne, maintenance) sortait silencieusement de la fenêtre pour
+            // toujours — contrairement aux relances de devis B2B ci-dessus,
+            // aucun contrôle Watchdog ne surveille ce cas, donc rien ne le
+            // signalait. La déduplication via neria_behavioral_sent (ligne
+            // ~1423) protège déjà contre un double envoi — élargir la
+            // fenêtre est donc sûr : chaque client n'est notifié qu'une fois.
 
             foreach ($customers as $customer) {
                 if ($totalSentThisRun >= self::MAX_BATCH_PER_RUN) {

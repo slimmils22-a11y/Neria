@@ -573,18 +573,56 @@ class GdprAuditManager
         );
         $plain = $totalVars - $encrypted;
 
-        // Issue si openssl est dispo mais la clé manque, ou si des enregistrements restent en clair
-        $issues = ($opensslOk && (!$keyOk || $plain > 0)) ? 1 : 0;
+        // Issue si la clé n'est pas opérationnelle (ce qui couvre aussi le cas
+        // openssl indisponible, puisque $keyOk = $opensslOk && ...) ou si des
+        // enregistrements restent en clair. Auparavant, `$opensslOk &&` en
+        // tête neutralisait l'issue à 0 précisément quand openssl est
+        // indisponible — le pire des cas (aucune capacité de chiffrement)
+        // était donc reporté comme "conforme" (0 issue), faisant afficher un
+        // grade A/100% trompeur sur l'axe légalement le plus sensible
+        // (chiffrement des données au repos).
+        $issues = (!$keyOk || $plain > 0) ? 1 : 0;
+
+        // Portée réelle de cet axe : seule neria_stat.rendered_vars supporte le
+        // chiffrement (déchiffrable à la volée pour l'affichage BO). Plusieurs
+        // autres tables du REGISTRY contiennent pourtant de la donnée
+        // personnelle en clair par nécessité fonctionnelle (email utilisé pour
+        // les recherches/jointures — le chiffrer casserait ces requêtes sans
+        // une refonte majeure hors de portée d'un simple correctif). Sans
+        // cette liste, le marchand pouvait lire "100% chiffré" sur cet axe et
+        // en conclure à tort que TOUTES les données personnelles du module le
+        // sont — informatif seulement, non compté dans $issues (l'écart est
+        // documenté et intentionnel, pas une anomalie corrigible ici).
+        // Filtre resserré sur les notes documentant explicitement un champ
+        // texte email/nom en clair — pas simplement `has_pii` (bien plus
+        // large : quasi toutes les tables ont un `id_customer`, ce qui les
+        // rend "personnelles" au sens RGPD mais ne signifie pas qu'elles
+        // stockent une adresse email en texte brut hors structure).
+        $otherPiiTables = [];
+        foreach (self::REGISTRY as $entry) {
+            if ($entry['table'] === 'neria_stat') {
+                continue;
+            }
+            $note = $entry['note'] ?? '';
+            if (($entry['has_pii'] ?? false) && (stripos($note, 'email') !== false || stripos($note, 'clair') !== false)) {
+                $otherPiiTables[] = [
+                    'table' => $entry['table'],
+                    'label' => $entry['label'],
+                    'note'  => $note,
+                ];
+            }
+        }
 
         return [
-            'openssl_ok' => $opensslOk,
-            'key_ok'     => $keyOk,
-            'active'     => $active,
-            'cipher'     => 'AES-256-GCM',
-            'total'      => $totalVars,
-            'encrypted'  => $encrypted,
-            'plain'      => $plain,
-            'issues'     => $issues,
+            'openssl_ok'        => $opensslOk,
+            'key_ok'            => $keyOk,
+            'active'            => $active,
+            'cipher'            => 'AES-256-GCM',
+            'total'             => $totalVars,
+            'encrypted'         => $encrypted,
+            'plain'             => $plain,
+            'issues'            => $issues,
+            'other_pii_tables'  => $otherPiiTables,
         ];
     }
 

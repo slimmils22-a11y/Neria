@@ -265,6 +265,18 @@
   {elseif !$gdpr_audit.crypto.openssl_ok}
   <p style="font-size:13px;color:var(--neria-text-muted,#888);">{neria_admin key='gdpr.encrypt_unavailable'}</p>
   {/if}
+
+  {if $gdpr_audit.crypto.other_pii_tables|@count > 0}
+  <div style="margin-top:14px;padding:12px 14px;background:#fff8ec;border:1px solid #f0d9a8;border-radius:6px;">
+    <p style="font-size:12px;color:#8a6d1a;font-weight:600;margin:0 0 6px;">ℹ️ {neria_admin key='gdpr.crypto_scope_note_title'}</p>
+    <p style="font-size:12px;color:#8a6d1a;margin:0 0 6px;line-height:1.6;">{neria_admin key='gdpr.crypto_scope_note_body'}</p>
+    <ul style="font-size:12px;color:#8a6d1a;margin:0;padding-left:18px;line-height:1.7;">
+      {foreach $gdpr_audit.crypto.other_pii_tables as $ot}
+      <li><strong>{$ot.table|escape:'html'}</strong> — {$ot.note|escape:'html'}</li>
+      {/foreach}
+    </ul>
+  </div>
+  {/if}
 </div>
 
 {* ── Avertissement ─────────────────────────────────────────── *}
