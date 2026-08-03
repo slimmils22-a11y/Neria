@@ -1315,6 +1315,70 @@ class HealthCheckManager
             )) {
                 $offenders[] = 'LoyaltyManager : ' . count($mLoyalty[0]) . " appel(s) Mail::Send() retombe(nt) de nouveau sur Context::getContext()->shop->id au lieu du \$idShop réel du client";
             }
+
+            // Bug du 2026-08-03, second volet : même famille que ci-dessus
+            // mais sur getBaseLink()/getPageLink() (liens {shop_url}/
+            // {history_url}) plutôt que Mail::Send() — les deux appels
+            // doivent transmettre $idShop (avec repli légitime "?? (int)
+            // Context::getContext()->shop->id" quand il est nullable).
+            if (strpos($loyaltySrc, "getBaseLink(\$idShop ?? (int) \\Context::getContext()->shop->id)") === false) {
+                $offenders[] = "LoyaltyManager : sendRecapToCustomer() n'utilise plus \$idShop pour {shop_url} (getBaseLink())";
+            }
+            if (strpos($loyaltySrc, "getPageLink('history', true, \$idLang, null, false, \$idShop ?? (int) \\Context::getContext()->shop->id)") === false) {
+                $offenders[] = "LoyaltyManager : sendRecapToCustomer() n'utilise plus \$idShop pour {history_url} (getPageLink())";
+            }
+            if (strpos($loyaltySrc, "getPageLink('history', true, \$idLang, null, false, \$idShop)") === false) {
+                $offenders[] = "LoyaltyManager : sendRewardEmail() n'utilise plus \$idShop pour {history_url} (getPageLink())";
+            }
+        }
+
+        // Bug du 2026-08-03, même famille (idShop reçu/utilisé pour la
+        // logique métier mais ignoré au moment du lien/image final) —
+        // trouvé dans 5 fichiers supplémentaires en cherchant systématiquement
+        // le même motif que LoyaltyManager ci-dessus.
+        $upsellFile = _PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php';
+        $upsellSrc  = is_file($upsellFile) ? (file_get_contents($upsellFile) ?: '') : '';
+        if ($upsellSrc === '') {
+            $offenders[] = 'UpsellManager.php introuvable';
+        } elseif (strpos($upsellSrc, 'getBaseLink($idShop, $ssl)') === false) {
+            $offenders[] = "UpsellManager : getProductImageUrl() n'utilise plus \$idShop pour getBaseLink() (image upsell pointant vers la mauvaise boutique en multi-shop)";
+        }
+
+        $cronFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
+        $cronSrc2  = is_file($cronFile2) ? (file_get_contents($cronFile2) ?: '') : '';
+        if ($cronSrc2 === '') {
+            $offenders[] = 'BehavioralCronManager.php introuvable (2e vérification)';
+        } elseif (strpos($cronSrc2, "getPageLink('history', true, \$idLang > 0 ? \$idLang : null, null, false, \$idShop)") === false) {
+            $offenders[] = "BehavioralCronManager : historyUrl() n'utilise plus \$idShop pour {history_url}";
+        }
+
+        $queueFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php';
+        $queueSrc2  = is_file($queueFile2) ? (file_get_contents($queueFile2) ?: '') : '';
+        if ($queueSrc2 === '') {
+            $offenders[] = 'QueueManager.php introuvable (2e vérification)';
+        } elseif (strpos($queueSrc2, "getPageLink('history', true, \$idLang, null, false, \$idShop)") === false) {
+            $offenders[] = "QueueManager : processSingle() n'utilise plus \$idShop pour {history_url}";
+        }
+
+        $segmentFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php';
+        $segmentSrc  = is_file($segmentFile) ? (file_get_contents($segmentFile) ?: '') : '';
+        if ($segmentSrc === '') {
+            $offenders[] = 'SegmentManager.php introuvable';
+        } elseif (strpos($segmentSrc, "getPageLink('history', true, \$idLang, null, false, \$this->idShop)") === false) {
+            $offenders[] = "SegmentManager : sendToSegment() n'utilise plus \$this->idShop pour {history_url}";
+        }
+
+        $seasonalFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php';
+        $seasonalSrc  = is_file($seasonalFile) ? (file_get_contents($seasonalFile) ?: '') : '';
+        if ($seasonalSrc === '') {
+            $offenders[] = 'SeasonalCampaignManager.php introuvable';
+        } else {
+            if (strpos($seasonalSrc, 'getBaseLink($this->idShop)') === false) {
+                $offenders[] = "SeasonalCampaignManager : {shop_url} n'utilise plus \$this->idShop (getBaseLink())";
+            }
+            if (strpos($seasonalSrc, "getPageLink('history', true, \$idLang, null, false, \$this->idShop)") === false) {
+                $offenders[] = "SeasonalCampaignManager : {history_url} n'utilise plus \$this->idShop (getPageLink())";
+            }
         }
 
         if ($offenders) {
