@@ -224,14 +224,13 @@ class TranslationEngine
         string $value
     ): bool {
         $table = _DB_PREFIX_ . self::TABLE;
-        $now   = date('Y-m-d H:i:s');
 
         // INSERT OR UPDATE (ON DUPLICATE KEY)
         $sql = sprintf(
             "INSERT INTO `%s`
                 (`template`, `lang`, `translation_key`, `translation_value`,
                  `is_custom`, `date_add`, `date_upd`)
-             VALUES ('%s', '%s', '%s', '%s', 1, '%s', '%s')
+             VALUES ('%s', '%s', '%s', '%s', 1, NOW(), NOW())
              ON DUPLICATE KEY UPDATE
                 `translation_value` = VALUES(`translation_value`),
                 `is_custom`         = 1,
@@ -240,9 +239,7 @@ class TranslationEngine
             pSQL($template),
             pSQL($lang),
             pSQL($key),
-            pSQL($value, true),
-            $now,
-            $now
+            pSQL($value, true)
         );
 
         $result = $this->db->execute($sql);

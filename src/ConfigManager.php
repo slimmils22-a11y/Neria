@@ -1409,21 +1409,18 @@ class ConfigManager
     public function setCustomVariable(string $key, string $value): bool
     {
         $table = _DB_PREFIX_ . 'neria_custom_variable';
-        $now   = date('Y-m-d H:i:s');
 
         $sql = sprintf(
             "INSERT INTO `%s`
                 (`id_shop`, `variable_key`, `variable_value`, `description`, `date_add`, `date_upd`)
-             VALUES (%d, '%s', '%s', '', '%s', '%s')
+             VALUES (%d, '%s', '%s', '', NOW(), NOW())
              ON DUPLICATE KEY UPDATE
                 `variable_value` = VALUES(`variable_value`),
                 `date_upd`       = VALUES(`date_upd`)",
             $table,
             $this->idShop,
             pSQL($key),
-            pSQL($value),
-            $now,
-            $now
+            pSQL($value)
         );
 
         return $this->db->execute($sql) !== false;

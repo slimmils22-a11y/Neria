@@ -217,6 +217,7 @@ class HealthCheckManager
             'sql_pattern_risks'     => 'checkSqlPatternRisks',
             'unescaped_like_metachars' => 'checkUnescapedLikeMetachars',
             'template_cat_mapping_complete' => 'checkTemplateCategoryMappingComplete',
+            'php_mysql_clock_mismatch' => 'checkPhpMysqlClockMismatch',
             'i18n_pattern_risks'    => 'checkI18nPatternRisks',
             'hardcoded_french_text' => 'checkHardcodedFrenchText',
             'idlang_missing'        => 'checkMissingIdLangInLinks',
@@ -1672,6 +1673,83 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.template_cat_mapping_ok')];
+    }
+
+    /**
+     * Contrôle statique PROSPECTIF : une colonne `date_add`/`created_at`
+     * insérée via l'horloge PHP (date('Y-m-d H:i:s')) plutôt que via NOW()
+     * côté SQL. Convention constante ailleurs dans le module
+     * (BlacklistManager, BehavioralCronManager, ChurnScoreManager...) :
+     * ces colonnes sont TOUJOURS écrites avec NOW() précisément parce
+     * qu'elles sont ensuite comparées via NOW()/DATE_SUB(NOW(), ...) côté
+     * SQL ailleurs dans le code. Mélanger horloge PHP (écriture) et horloge
+     * MySQL (lecture) sur la même colonne casse silencieusement toute
+     * fenêtre de temps calculée dessus dès que les deux serveurs ne
+     * partagent pas le même fuseau horaire (hébergement mutualisé/managé
+     * fréquent).
+     *
+     * Trouvé en réel le 2026-08-03 dans StatsManager::record() —
+     * date_add de neria_stat était stampée en PHP alors que
+     * CooldownManager::isDuplicate() (Mode Silence) et
+     * StatsManager::detectAnomalies() la comparent via NOW()/DATE_SUB(NOW())
+     * ; un décalage d'1h+ entre serveur web et serveur DB faussait
+     * silencieusement la fenêtre de cooldown et les alertes d'anomalie.
+     * Corrigé en stampant via NOW() à l'insertion.
+     *
+     * Heuristique par fenêtre glissante (comme checkCronStrictDateEquality) :
+     * pour chaque affectation `$var = date('Y-m-d H:i:s')`, on regarde les
+     * ~2500 caractères suivants — si ce voisinage contient une colonne
+     * `date_add`/`created_at` dans un INSERT ET la variable elle-même
+     * (probablement passée en argument de la requête) SANS que NOW()
+     * n'apparaisse dans ce même voisinage, on signale un risque de mélange
+     * d'horloges. Faux positif possible si $var sert à autre chose dans la
+     * fenêtre (ex. log) sans être réellement liée à la colonne — accepté,
+     * dans le même esprit que les autres contrôles prospectifs de ce fichier.
+     */
+    private function checkPhpMysqlClockMismatch(): array
+    {
+        $offenders = [];
+        $srcDir = _PS_MODULE_DIR_ . $this->module->name . '/src';
+        $files = is_dir($srcDir) ? (glob($srcDir . '/*.php') ?: []) : [];
+
+        foreach ($files as $file) {
+            $base = basename($file);
+            if ($base === 'HealthCheckManager.php') {
+                continue;
+            }
+            $raw = file_get_contents($file) ?: '';
+            if ($raw === '' || stripos($raw, "date('Y-m-d H:i:s')") === false) {
+                continue;
+            }
+
+            if (!preg_match_all('/\$(\w+)\s*=\s*date\(\s*\'Y-m-d H:i:s\'\s*\)\s*;/', $raw, $m, PREG_OFFSET_CAPTURE)) {
+                continue;
+            }
+
+            foreach ($m[1] as $match) {
+                $varName = $match[0];
+                $pos     = $match[1];
+                $window  = substr($raw, $pos, 2500);
+
+                $hasDateAddColumn = (bool) preg_match('/`(date_add|created_at)`/', $window);
+                $hasVarUsage      = (bool) preg_match('/\$' . preg_quote($varName, '/') . '\b/', substr($window, strlen($varName) + 20));
+                $hasNow           = strpos($window, 'NOW()') !== false;
+
+                if ($hasDateAddColumn && $hasVarUsage && !$hasNow) {
+                    $line = substr_count(substr($raw, 0, $pos), "\n") + 1;
+                    $offenders[] = "{$base}:{$line} : \${$varName} = date('Y-m-d H:i:s') utilisé près d'une colonne date_add/created_at sans NOW()";
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.php_mysql_clock_mismatch_warning', ['list' => implode(' | ', $offenders)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.php_mysql_clock_mismatch_ok')];
     }
 
     /**

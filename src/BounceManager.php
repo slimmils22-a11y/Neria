@@ -69,8 +69,16 @@ class BounceManager
             return false;
         }
 
+        // months_since_bounce calculé côté SQL (TIMESTAMPDIFF, horloge MySQL)
+        // plutôt qu'en PHP (strtotime('now') - strtotime(last_bounce_at)) —
+        // last_bounce_at est désormais stampée avec NOW() à l'écriture
+        // (recordBounce()), donc comparer avec l'horloge PHP introduirait le
+        // même risque de décalage serveur web/serveur DB que celui corrigé
+        // pour neria_stat.date_add.
         $row = \Db::getInstance()->getRow(
-            'SELECT `type`, `bounce_count`, `status`, `last_bounce_at` FROM `' . _DB_PREFIX_ . self::TABLE . '`
+            'SELECT `type`, `bounce_count`, `status`,
+                    TIMESTAMPDIFF(MONTH, `last_bounce_at`, NOW()) AS months_since_bounce
+             FROM `' . _DB_PREFIX_ . self::TABLE . '`
              WHERE `email` = \'' . pSQL($email) . '\''
         );
 
@@ -93,11 +101,8 @@ class BounceManager
         // eu 3 boîtes pleines en janvier restait bloquée à vie même si tout
         // fonctionnait normalement depuis des mois.
         $expiryMonths = (int) \Configuration::get(self::CFG_SOFT_EXPIRY_MONTHS) ?: 6;
-        if (!empty($row['last_bounce_at'])) {
-            $ageMonths = (strtotime('now') - strtotime($row['last_bounce_at'])) / (86400 * 30.44);
-            if ($ageMonths >= $expiryMonths) {
-                return false;
-            }
+        if ($row['months_since_bounce'] !== null && (int) $row['months_since_bounce'] >= $expiryMonths) {
+            return false;
         }
 
         // Soft bounce : bloquer uniquement si seuil dépassé
@@ -537,7 +542,6 @@ class BounceManager
         $type   = in_array($type, ['hard', 'soft'], true) ? $type : 'hard';
         $source = in_array($source, ['imap', 'webhook', 'manual'], true) ? $source : 'manual';
         $reason = mb_substr($reason, 0, 500);
-        $now    = date('Y-m-d H:i:s');
 
         $db  = \Db::getInstance();
 
@@ -557,7 +561,7 @@ class BounceManager
                 (`email`, `type`, `reason`, `source`, `bounce_count`, `last_bounce_at`, `status`, `date_add`)
              VALUES (
                 \'' . pSQL($email) . '\', \'' . pSQL($type) . '\', \'' . pSQL($reason) . '\',
-                \'' . pSQL($source) . '\', 1, \'' . pSQL($now) . '\', \'active\', \'' . pSQL($now) . '\'
+                \'' . pSQL($source) . '\', 1, NOW(), \'active\', NOW()
              )
              ON DUPLICATE KEY UPDATE
                 `bounce_count`   = `bounce_count` + 1,

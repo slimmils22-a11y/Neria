@@ -197,7 +197,6 @@ class ABTestManager
         $splitPercent = max(10, min(90, $splitPercent));
 
         $table = _DB_PREFIX_ . self::TABLE;
-        $now   = date('Y-m-d H:i:s');
 
         // Cree la variante A
         $sqlA = sprintf(
@@ -205,14 +204,13 @@ class ABTestManager
                 (`id_shop`, `template`, `variant`, `variant_name`,
                  `description`, `split_percent`, `is_active`,
                  `date_add`, `date_upd`)
-             VALUES (%d, '%s', 'A', '%s', '%s', %d, 0, '%s', '%s')",
+             VALUES (%d, '%s', 'A', '%s', '%s', %d, 0, NOW(), NOW())",
             $table,
             $this->idShop,
             pSQL($template),
             pSQL($variantAName),
             pSQL($description),
-            $splitPercent,
-            $now, $now
+            $splitPercent
         );
 
         if (!$this->db->execute($sqlA)) {
@@ -227,14 +225,13 @@ class ABTestManager
                 (`id_shop`, `template`, `variant`, `variant_name`,
                  `description`, `split_percent`, `is_active`,
                  `date_add`, `date_upd`)
-             VALUES (%d, '%s', 'B', '%s', '%s', %d, 0, '%s', '%s')",
+             VALUES (%d, '%s', 'B', '%s', '%s', %d, 0, NOW(), NOW())",
             $table,
             $this->idShop,
             pSQL($template),
             pSQL($variantBName),
             pSQL($description),
-            100 - $splitPercent, // Complement pour B
-            $now, $now
+            100 - $splitPercent // Complement pour B
         );
 
         if (!$this->db->execute($sqlB)) {
@@ -275,12 +272,11 @@ class ABTestManager
     public function activateTest(string $template): bool
     {
         $table = _DB_PREFIX_ . self::TABLE;
-        $now   = date('Y-m-d H:i:s');
 
         // Desactive les anciens tests actifs sur ce template
         $this->db->execute(
             "UPDATE `{$table}`
-             SET `is_active` = 0, `date_upd` = '{$now}'
+             SET `is_active` = 0, `date_upd` = NOW()
              WHERE `id_shop`  = {$this->idShop}
                AND `template` = '" . pSQL($template) . "'
                AND `is_active` = 1"
@@ -290,8 +286,8 @@ class ABTestManager
         $result = $this->db->execute(
             "UPDATE `{$table}`
              SET `is_active`  = 1,
-                 `date_start` = '{$now}',
-                 `date_upd`   = '{$now}'
+                 `date_start` = NOW(),
+                 `date_upd`   = NOW()
              WHERE `id_shop`  = {$this->idShop}
                AND `template` = '" . pSQL($template) . "'"
         );
@@ -317,13 +313,12 @@ class ABTestManager
     public function deactivateTest(string $template): bool
     {
         $table = _DB_PREFIX_ . self::TABLE;
-        $now   = date('Y-m-d H:i:s');
 
         $result = $this->db->execute(
             "UPDATE `{$table}`
              SET `is_active` = 0,
-                 `date_end`  = '{$now}',
-                 `date_upd`  = '{$now}'
+                 `date_end`  = NOW(),
+                 `date_upd`  = NOW()
              WHERE `id_shop`  = {$this->idShop}
                AND `template` = '" . pSQL($template) . "'"
         );
@@ -425,7 +420,6 @@ class ABTestManager
         array  $fields
     ): bool {
         $table = _DB_PREFIX_ . self::TABLE_TRAD;
-        $now   = date('Y-m-d H:i:s');
         $batch = [];
 
         foreach ($fields as $key => $value) {
@@ -434,13 +428,11 @@ class ABTestManager
             }
 
             $batch[] = sprintf(
-                "(%d, '%s', '%s', '%s', '%s', '%s')",
+                "(%d, '%s', '%s', '%s', NOW(), NOW())",
                 $idAbtest,
                 pSQL($lang),
                 pSQL($key),
-                pSQL($value, true),
-                $now,
-                $now
+                pSQL($value, true)
             );
         }
 
@@ -695,7 +687,6 @@ class ABTestManager
         $tableAb    = _DB_PREFIX_ . self::TABLE;
         $tableTradB = _DB_PREFIX_ . self::TABLE_TRAD;
         $tableTrad  = _DB_PREFIX_ . 'neria_translation';
-        $now        = date('Y-m-d H:i:s');
 
         $idAbtestB = (int) $this->db->getValue(
             "SELECT `id_abtest` FROM `{$tableAb}`
@@ -719,7 +710,7 @@ class ABTestManager
             "INSERT INTO `{$tableTrad}`
                  (`template`, `lang`, `translation_key`, `translation_value`, `is_custom`, `date_add`, `date_upd`)
              SELECT '" . pSQL($template) . "', `lang`, `translation_key`, `translation_value`,
-                    1, '{$now}', '{$now}'
+                    1, NOW(), NOW()
              FROM `{$tableTradB}`
              WHERE `id_abtest` = {$idAbtestB}
              ON DUPLICATE KEY UPDATE
