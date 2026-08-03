@@ -583,7 +583,11 @@ class BounceManager
     {
         $where = '';
         if ($filter !== '') {
-            $f     = pSQL($filter);
+            // Échapper les métacaractères LIKE (% et _) avant pSQL() : pSQL()
+            // n'échappe pas la sémantique LIKE, et '_' matche n'importe quel
+            // caractère — sans échappement, une recherche sur "a_b" remonte
+            // aussi "axb" (bruit dans la liste des bounces).
+            $f     = pSQL(str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $filter));
             $where = " AND (`email` LIKE '%$f%' OR `reason` LIKE '%$f%')";
         }
         return \Db::getInstance()->executeS(
@@ -598,7 +602,11 @@ class BounceManager
     {
         $where = '';
         if ($filter !== '') {
-            $f     = pSQL($filter);
+            // Échapper les métacaractères LIKE (% et _) avant pSQL() : pSQL()
+            // n'échappe pas la sémantique LIKE, et '_' matche n'importe quel
+            // caractère — sans échappement, une recherche sur "a_b" remonte
+            // aussi "axb" (bruit dans la liste des bounces).
+            $f     = pSQL(str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $filter));
             $where = " AND (`email` LIKE '%$f%' OR `reason` LIKE '%$f%')";
         }
         return (int) \Db::getInstance()->getValue(

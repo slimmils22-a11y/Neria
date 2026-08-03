@@ -215,6 +215,7 @@ class HealthCheckManager
             'known_regressions_guard' => 'checkKnownRegressionsGuard',
             'control_center_defaults_consistency' => 'checkControlCenterDefaultsConsistency',
             'sql_pattern_risks'     => 'checkSqlPatternRisks',
+            'unescaped_like_metachars' => 'checkUnescapedLikeMetachars',
             'i18n_pattern_risks'    => 'checkI18nPatternRisks',
             'hardcoded_french_text' => 'checkHardcodedFrenchText',
             'idlang_missing'        => 'checkMissingIdLangInLinks',
@@ -1492,6 +1493,104 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.sql_pattern_risks_ok')];
+    }
+
+    /**
+     * Contrôle statique PROSPECTIF : requête `LIKE '%{$var}%'` (ou
+     * `LIKE '%' . $var . '%'`) où $var n'est jamais passé dans un
+     * str_replace() échappant les métacaractères LIKE (% et _) avant
+     * d'être inséré dans le motif. pSQL() échappe guillemets/backslashes
+     * mais PAS la sémantique LIKE — un '_' est un caractère valide dans une
+     * adresse email (ex. john_doe@…) et matche n'importe quel caractère
+     * unique dans le motif, causant une sur-correspondance.
+     *
+     * Trouvé en réel le 2026-08-03 dans GdprAuditManager::purgeCustomerData()
+     * (purge RGPD de neria_webhook_queue par email dans le payload — pouvait
+     * supprimer les données d'un tiers) et CollectionManager::searchProducts()
+     * (bruit dans l'auto-complétion produit). Corrigés en échappant % et _
+     * via str_replace() avant pSQL().
+     *
+     * likeVarIsEscaped() suit la chaîne d'affectation sur 2 niveaux
+     * d'indirection (ex. $emailSql = pSQL($emailLike) où l'échappement est
+     * fait sur $emailLike, pas $emailSql) pour éviter un faux positif sur
+     * ce correctif même.
+     */
+    private function checkUnescapedLikeMetachars(): array
+    {
+        $offenders = [];
+        $srcDir = _PS_MODULE_DIR_ . $this->module->name . '/src';
+        $files = is_dir($srcDir) ? (glob($srcDir . '/*.php') ?: []) : [];
+
+        foreach ($files as $file) {
+            $base = basename($file);
+            // Exclu : ce fichier contient le texte source des regex de
+            // détection ci-dessous (docblock + littéraux), qui matche sa
+            // propre recherche de motif LIKE — faux positif garanti sur
+            // lui-même, comme checkCronLoopMissingTryCatch() s'exclut déjà.
+            if ($base === 'HealthCheckManager.php') {
+                continue;
+            }
+            $raw = file_get_contents($file) ?: '';
+            if ($raw === '' || stripos($raw, 'LIKE') === false) {
+                continue;
+            }
+
+            $vars = [];
+            if (preg_match_all('/LIKE\s*\'%\{?\$(\w+)\}?%\'/', $raw, $m1)) {
+                $vars = array_merge($vars, $m1[1]);
+            }
+            if (preg_match_all('/LIKE\s*\'%\'\s*\.\s*\$(\w+)\s*\.\s*\'%\'/', $raw, $m2)) {
+                $vars = array_merge($vars, $m2[1]);
+            }
+            if (!$vars) {
+                continue;
+            }
+
+            foreach (array_unique($vars) as $varName) {
+                if (!$this->likeVarIsEscaped($raw, $varName)) {
+                    $offenders[] = "{$base} : LIKE '%\${$varName}%' sans échappement des métacaractères % et _ avant pSQL()";
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.unescaped_like_metachars_warning', ['list' => implode(' | ', $offenders)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.unescaped_like_metachars_ok')];
+    }
+
+    /**
+     * Suit la chaîne d'affectation de $varName dans $raw (max 2 niveaux
+     * d'indirection) à la recherche d'un str_replace() échappant '%' et '_'.
+     */
+    private function likeVarIsEscaped(string $raw, string $varName, int $depth = 0): bool
+    {
+        if ($depth > 2) {
+            return false;
+        }
+        if (!preg_match_all('/\$' . preg_quote($varName, '/') . '\s*=([^;]*);/s', $raw, $assigns)) {
+            return false;
+        }
+        foreach ($assigns[1] as $expr) {
+            if (stripos($expr, 'str_replace') !== false
+                && strpos($expr, "'%'") !== false
+                && strpos($expr, "'_'") !== false
+            ) {
+                return true;
+            }
+            if (preg_match_all('/\$(\w+)/', $expr, $refs)) {
+                foreach (array_unique($refs[1]) as $ref) {
+                    if ($ref !== $varName && $this->likeVarIsEscaped($raw, $ref, $depth + 1)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**
