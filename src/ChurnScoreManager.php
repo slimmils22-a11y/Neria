@@ -156,11 +156,28 @@ class ChurnScoreManager
         // existantes, qui ne bouge jamais dans ce cas.
         \Configuration::updateValue('NERIA_CHURN_LAST_RUN', date('Y-m-d H:i:s'), false, null, $this->idShop);
 
+        $table = _DB_PREFIX_ . self::TABLE;
+
+        // Purge les lignes des clients qui ne sont PLUS dans le recalcul de
+        // ce run (plus aucun envoi/ouverture dans la fenêtre de 90 jours, ou
+        // historique insuffisant filtré ci-dessus) — sans ça, une ligne
+        // neria_churn_score reste figée indéfiniment avec le dernier score
+        // calculé alors que le client est sorti de la fenêtre d'analyse. Un
+        // client resté au-dessus de HIGH_RISK_THRESHOLD la dernière fois
+        // qu'il était dans la fenêtre continuait sinon à apparaître dans
+        // getHighRiskCustomers() (fiche BO "clients à risque") pendant des
+        // mois/années sans jamais être ni recalculé ni retiré.
+        $keepIds = array_map(static fn (array $r): int => (int) $r['id_customer'], $rows);
+        $purgeSql = "DELETE FROM `{$table}` WHERE `id_shop` = {$shop}";
+        if (!empty($keepIds)) {
+            $purgeSql .= ' AND `id_customer` NOT IN (' . implode(',', $keepIds) . ')';
+        }
+        $this->db->execute($purgeSql);
+
         if (empty($rows)) {
             return 0;
         }
 
-        $table    = _DB_PREFIX_ . self::TABLE;
         $now      = date('Y-m-d H:i:s');
         $inserted = 0;
 

@@ -467,7 +467,14 @@ class CertificateManager
 
             // ── QR code (optionnel) ───────────────────────────────
             if ($qrEnabled) {
-                $qrUrl = rtrim($qrBaseUrl, '/') . '?cert=' . urlencode($serial);
+                // cert_qr_url n'est validée qu'avec Validate::isUrl() + préfixe
+                // https:// (BO) — rien n'empêche un marchand d'y saisir une URL
+                // contenant déjà une query string (ex. https://x.fr/verify?ref=y).
+                // Concaténer '?cert=' dans ce cas produit une URL invalide
+                // ('...?ref=y?cert=...') : le QR de TOUS les certificats émis
+                // avec cette config pointe vers un lien cassé.
+                $qrSeparator = strpos($qrBaseUrl, '?') !== false ? '&' : '?';
+                $qrUrl = rtrim($qrBaseUrl, '/') . $qrSeparator . 'cert=' . urlencode($serial);
                 $pdf->write2DBarcode($qrUrl, 'QRCODE,H', 25, $y, 28, 28);
 
                 $this->pdfSetFont($pdf, $fontSans, '', 7);
