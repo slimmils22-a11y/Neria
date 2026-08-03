@@ -155,8 +155,19 @@ class SeasonalCampaignManager
             }
 
             // La campagne se déclenche si : date(today + days_before) = annual_date
-            $fireDate = date('m-d', strtotime('+' . (int) $campaign['days_before'] . ' days'));
-            if ($fireDate !== $campaign['annual_date']) {
+            $targetTs   = strtotime('+' . (int) $campaign['days_before'] . ' days');
+            $fireDate   = date('m-d', $targetTs);
+            $annualDate = $campaign['annual_date'];
+            // Repli sur le 28 février une année NON bissextile (même correctif
+            // que CalendarManager::resolveMonthDay()) : date('m-d', ...) ne
+            // peut jamais produire '02-29' un jour où l'année courante n'a pas
+            // de 29 février — une campagne configurée sur cette date précise
+            // n'était donc jamais déclenchée 3 années sur 4, sans erreur ni
+            // log visible.
+            if ($annualDate === '02-29' && !\checkdate(2, 29, (int) date('Y', $targetTs))) {
+                $annualDate = '02-28';
+            }
+            if ($fireDate !== $annualDate) {
                 continue;
             }
 
