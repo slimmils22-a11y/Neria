@@ -387,6 +387,11 @@ class BehavioralCronManager
         if (!\Configuration::getGlobalValue('NERIA_FIRST_ANNIVERSARY_ENABLED')) {
             return;
         }
+        // <= (et non plus une égalité stricte) sur la date déclencheuse ci-
+        // dessous : un cron qui rate son jour exact perdait cette relance
+        // pour toujours. Sûr grâce à la déduplication NOT EXISTS déjà en
+        // place — même pattern que les relances devis/durée de vie
+        // (commit af86c15).
         $idShop = (int) \Context::getContext()->shop->id;
         // Filtre sur o.id_shop (pas c.id_shop) : un client partagé entre
         // boutiques peut avoir sa 1ère commande sur une AUTRE boutique que
@@ -399,7 +404,7 @@ class BehavioralCronManager
              JOIN `' . $this->prefix . 'orders` o ON o.id_customer = c.id_customer AND o.valid = 1 AND o.id_shop = ' . $idShop . '
              WHERE c.active = 1 AND c.deleted = 0
              GROUP BY c.id_customer
-             HAVING DATE(MIN(o.date_add)) = DATE(DATE_SUB(NOW(), INTERVAL 1 YEAR))
+             HAVING DATE(MIN(o.date_add)) <= DATE(DATE_SUB(NOW(), INTERVAL 1 YEAR))
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = c.id_customer AND bs.template = \'first_anniversary\'
@@ -435,6 +440,8 @@ class BehavioralCronManager
         if (!\Configuration::getGlobalValue('NERIA_REORDER_ENABLED')) {
             return;
         }
+        // <= sur la date déclencheuse ci-dessous, même correctif que
+        // sendFirstAnniversaries() — cf. commit af86c15.
         $days   = self::DELAY_REORDER_DAYS;
         $idShop = (int) \Context::getContext()->shop->id;
         // o.id_order est déjà déterminé de façon unique par client via la
@@ -455,7 +462,7 @@ class BehavioralCronManager
              JOIN `' . $this->prefix . 'orders` o
                   ON o.id_customer = c.id_customer AND o.valid = 1 AND o.id_shop = ' . $idShop . '
              WHERE c.active = 1 AND c.deleted = 0
-               AND DATE(o.date_add) = DATE(DATE_SUB(NOW(), INTERVAL ' . $days . ' DAY))
+               AND DATE(o.date_add) <= DATE(DATE_SUB(NOW(), INTERVAL ' . $days . ' DAY))
                AND o.id_order = (
                    SELECT MAX(o2.id_order) FROM `' . $this->prefix . 'orders` o2
                    WHERE o2.id_customer = c.id_customer AND o2.valid = 1 AND o2.id_shop = ' . $idShop . '
@@ -557,6 +564,11 @@ class BehavioralCronManager
         }
         // ps_cart_rule n'a pas de colonne id_shop native — on scope via le
         // client (c.id_shop), seul rattachement disponible.
+        // BETWEEN (et non plus une égalité stricte) sur la date d'expiration
+        // ci-dessous : un cron qui rate son jour exact perdait cette alerte
+        // pour toujours. Borné à CURDATE() en bas de plage pour ne jamais
+        // alerter "expire dans 7 jours" sur un bon déjà expiré — cf. commit
+        // af86c15.
         $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             'SELECT cr.id_cart_rule, cr.id_customer, cr.date_to,
@@ -564,7 +576,7 @@ class BehavioralCronManager
              FROM `' . $this->prefix . 'cart_rule` cr
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = cr.id_customer
              WHERE cr.active = 1 AND cr.id_customer > 0 AND c.id_shop = ' . $idShop . '
-               AND DATE(cr.date_to) = DATE(DATE_ADD(NOW(), INTERVAL 7 DAY))
+               AND DATE(cr.date_to) BETWEEN CURDATE() AND DATE(DATE_ADD(NOW(), INTERVAL 7 DAY))
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = cr.id_customer
@@ -891,6 +903,8 @@ class BehavioralCronManager
         if (!\Configuration::getGlobalValue('NERIA_POST_PURCHASE_ENABLED')) {
             return;
         }
+        // <= sur la date de livraison ci-dessous, même correctif que
+        // sendFirstAnniversaries()/sendReorderReminders() — cf. commit af86c15.
         $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             'SELECT o.id_order, o.id_customer, o.id_shop,
@@ -902,7 +916,7 @@ class BehavioralCronManager
                    SELECT 1 FROM `' . $this->prefix . 'order_history` oh
                    WHERE oh.id_order = o.id_order
                      AND oh.id_order_state = ' . self::STATUS_DELIVERED . '
-                     AND DATE(oh.date_add) = DATE(DATE_SUB(NOW(), INTERVAL ' . $days . ' DAY))
+                     AND DATE(oh.date_add) <= DATE(DATE_SUB(NOW(), INTERVAL ' . $days . ' DAY))
                )
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs

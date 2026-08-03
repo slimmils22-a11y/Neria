@@ -207,6 +207,7 @@ class HealthCheckManager
             'default_currency_usage' => 'checkDefaultCurrencyUsage',
             'upgrade_unique_key_shop_scope' => 'checkUpgradeUniqueKeyShopScope',
             'tpl_request_uri_escape' => 'checkTplRequestUriEscape',
+            'cron_strict_date_equality' => 'checkCronStrictDateEquality',
             'cron_loop_try_catch'     => 'checkCronLoopMissingTryCatch',
             'tpl_js_escape_missing'    => 'checkTplJsEscapeMissing',
             'imap_timeout_missing'     => 'checkImapTimeoutMissing',
@@ -2647,6 +2648,81 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.tpl_request_uri_escape_ok')];
+    }
+
+    /**
+     * Scan statique de src/*.php : requête SQL comparant une date de
+     * déclenchement de cron à CURDATE()/DATE_ADD()/DATE_SUB() par ÉGALITÉ
+     * STRICTE (`DATE(col) = DATE(...)`) plutôt qu'une plage. Si le cron ne
+     * tourne pas exactement le jour visé (panne serveur, maintenance), la
+     * fenêtre est ratée et ne se représente jamais — contrairement à une
+     * comparaison `<=`/`BETWEEN`, qui permet un rattrapage au prochain
+     * passage sans risque de doublon grâce à la déduplication déjà en place
+     * (neria_behavioral_sent / flags sent_*) sur chacun de ces crons.
+     *
+     * Trouvé en réel le 02/08/2026 : 6 occurrences dans BehavioralCronManager
+     * (first_anniversary, reorder_reminder, loyalty_reward_expiry,
+     * post_purchase_care/review) et les relances de devis B2B — toutes
+     * corrigées (commits af86c15 et suivant). Regex testée sur le vrai
+     * codebase avant intégration : zéro faux positif (contrairement à une
+     * précédente tentative de contrôle générique sur Mail::Send() dans une
+     * boucle, abandonnée pour 207 faux positifs) — ce motif précis ne
+     * matche que le vrai pattern de bug.
+     */
+    private function checkCronStrictDateEquality(): array
+    {
+        $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
+        $files = $this->collectModulePhpFiles($moduleDir);
+        $offenders = [];
+
+        foreach ($files as $file) {
+            $content = file_get_contents($file) ?: '';
+            // (?&lt;!SUM\() : exclut SUM(DATE(col) = CURDATE()) — un motif
+            // légitime de comptage d'affichage BO ("X envoyés aujourd'hui"),
+            // recalculé à chaque chargement de page, pas une condition de
+            // déclenchement de cron (faux positif réel trouvé le
+            // 02/08/2026 dans neria.php, onglet Automatisations).
+            // Le groupe interne ([^()]*(\([^()]*\))?[^()]*) tolère UN niveau
+            // de parenthèses imbriquées dans l'argument de DATE(...) — ex.
+            // DATE(MIN(o.date_add)) — sans quoi ce cas précis (bug réel
+            // first_anniversary) échappait totalement à la détection.
+            if (preg_match_all(
+                '/(?<!SUM\()DATE\(([^()]*(\([^()]*\))?[^()]*)\)\s*=\s*(CURDATE\(\)|DATE\(DATE_ADD|DATE\(DATE_SUB)/',
+                $content,
+                $m,
+                PREG_OFFSET_CAPTURE
+            )) {
+                $relative = str_replace(_PS_MODULE_DIR_ . $this->module->name . '/', '', str_replace('\\', '/', $file));
+                foreach ($m[0] as $match) {
+                    $pos = $match[1];
+                    // Exclut aussi COUNT(*)/SUM( plus en amont dans la même
+                    // requête (ex. "SELECT COUNT(*) FROM ... WHERE ... AND
+                    // DATE(date_add) = CURDATE()") — un compteur "combien
+                    // aujourd'hui" pour un dashboard/health check, pas une
+                    // condition de déclenchement de cron (2e faux positif
+                    // réel trouvé le 02/08/2026, cette fois dans
+                    // HealthCheckManager lui-même — checkSendVolumeSpike).
+                    $before = substr($content, max(0, $pos - 300), min(300, $pos));
+                    if (stripos($before, 'COUNT(*)') !== false || stripos($before, 'SUM(') !== false) {
+                        continue;
+                    }
+                    $line = substr_count(substr($content, 0, $pos), "\n") + 1;
+                    $offenders[] = $relative . ':' . $line;
+                }
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.cron_strict_date_equality_warning', [
+                    'n'    => count($offenders),
+                    'list' => implode(', ', array_slice($offenders, 0, 15)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.cron_strict_date_equality_ok')];
     }
 
     /**
