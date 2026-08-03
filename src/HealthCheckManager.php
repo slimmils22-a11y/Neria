@@ -1272,6 +1272,51 @@ class HealthCheckManager
             }
         }
 
+        $wdFile = _PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php';
+        $wdSrc  = is_file($wdFile) ? (file_get_contents($wdFile) ?: '') : '';
+        if ($wdSrc === '') {
+            $offenders[] = 'WatchdogManager.php introuvable';
+        } else {
+            // Bug du 2026-08-03 : sendDailyDigestIfDue() lit bien le throttle
+            // "1x/24h" sur une clé scopée par boutique (CFG_DIGEST_LAST . '_'
+            // . $this->idShop), mais la branche qui envoie effectivement le
+            // digest (logs à signaler) écrivait la mise à jour SANS suffixe
+            // boutique — seule la branche "rien à signaler" écrivait la
+            // bonne clé. Résultat réel : le throttle ne s'appliquait jamais
+            // sur le chemin normal, renvoyant un digest à chaque hit
+            // hookDisplayHeader au lieu d'un par 24h (spam d'alertes).
+            if (preg_match(
+                "/self::CFG_DIGEST_LAST\\s*,\\s*time\\(\\)\\s*\\)\\s*;/",
+                $wdSrc
+            )) {
+                $offenders[] = "WatchdogManager : sendDailyDigestIfDue() écrit de nouveau le throttle du digest sur la clé globale non scopée par boutique (spam d'alertes possible)";
+            }
+        }
+
+        $loyaltyFile = _PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php';
+        $loyaltySrc  = is_file($loyaltyFile) ? (file_get_contents($loyaltyFile) ?: '') : '';
+        if ($loyaltySrc === '') {
+            $offenders[] = 'LoyaltyManager.php introuvable';
+        } else {
+            // Bug du 2026-08-03 : sendRewardEmail()/sendRecapToCustomer()
+            // reçoivent un $idShop explicite, correctement utilisé pour
+            // PreferencesManager::isAllowed(), mais Mail::Send() retombait
+            // sur Context::getContext()->shop->id — sur un cron traitant
+            // plusieurs boutiques dans un seul process PHP (mode séparé),
+            // l'email partait sous l'identité de la boutique du CONTEXTE
+            // d'exécution plutôt que celle du client réel. Le lookbehind
+            // négatif exclut le repli légitime "$idShop ?? (int)
+            // Context::getContext()->shop->id" (utilisé quand $idShop est
+            // nullable) — seul un usage SANS repli sur $idShop est un bug.
+            if (preg_match_all(
+                '/\\n\\s*(?<!\\?\\? )\\(int\\)\\s*\\\\Context::getContext\\(\\)->shop->id\\s*\\n\\s*\\);/',
+                $loyaltySrc,
+                $mLoyalty
+            )) {
+                $offenders[] = 'LoyaltyManager : ' . count($mLoyalty[0]) . " appel(s) Mail::Send() retombe(nt) de nouveau sur Context::getContext()->shop->id au lieu du \$idShop réel du client";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
