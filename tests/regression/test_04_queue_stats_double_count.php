@@ -36,10 +36,22 @@ function run_test(): array
         );
         neria_assert($buggy === 2 && $fixed === 1, "comptage inattendu (buggy={$buggy}, fixed={$fixed}) — le jeu de test ne reproduit plus le scénario");
 
-        $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/QueueManager.php');
+        // Depuis le 03/08/2026, QueueManager::getStats() ne duplique plus cette
+        // requête en interne : il délègue à PurchaseWindowManager::getWindowCoverageCount(),
+        // qui porte désormais la protection COUNT(DISTINCT id_customer) (et le
+        // regroupement par créneau de 2h, corrigé séparément). On vérifie donc
+        // les deux : que QueueManager appelle bien ce manager, et que la
+        // protection anti-double-comptage existe toujours dans son implémentation.
+        $queueSrc = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/QueueManager.php');
         neria_assert(
-            str_contains($src, 'SELECT COUNT(DISTINCT id_customer) FROM ('),
-            "QueueManager::getStats() n'utilise plus COUNT(DISTINCT id_customer) — régression du bug corrigé le 17/07/2026"
+            str_contains($queueSrc, 'PurchaseWindowManager()') && str_contains($queueSrc, 'getWindowCoverageCount('),
+            "QueueManager::getStats() ne délègue plus à PurchaseWindowManager::getWindowCoverageCount() — vérifier que le calcul de couverture n'a pas été réintroduit en double"
+        );
+
+        $pwmSrc = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/PurchaseWindowManager.php');
+        neria_assert(
+            str_contains($pwmSrc, 'SELECT COUNT(DISTINCT id_customer) FROM ('),
+            "PurchaseWindowManager::getWindowCoverageCount() n'utilise plus COUNT(DISTINCT id_customer) — régression du bug corrigé le 17/07/2026"
         );
 
         return ['pass' => true, 'message' => 'QueueManager::getStats() toujours protégé contre le double comptage'];

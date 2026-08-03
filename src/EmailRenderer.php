@@ -209,8 +209,27 @@ class EmailRenderer
             return true;
         }
 
+        // Scopé par boutique via employee_shop : sans ce filtre, un email
+        // envoyé à un client de la boutique A partageant la même adresse
+        // qu'un employé de la boutique B (install multi-boutiques, espaces
+        // employés séparés) était classé "interne" à tort pour la boutique A.
+        // La clause NOT EXISTS préserve le comportement existant pour les
+        // employés SANS ligne employee_shop (superadmin à accès global en
+        // PrestaShop, qui n'ont pas d'entrée par boutique) : ceux-là restent
+        // détectés comme internes sur toutes les boutiques, comme avant.
+        $idShop = (int) ($params['idShop'] ?? \Context::getContext()->shop->id);
+
         return (int) \Db::getInstance()->getValue(
-            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'employee` WHERE `email` = \'' . pSQL($to) . '\''
+            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'employee` e
+             LEFT JOIN `' . _DB_PREFIX_ . 'employee_shop` es ON es.`id_employee` = e.`id_employee`
+             WHERE e.`email` = \'' . pSQL($to) . '\'
+               AND (
+                   es.`id_shop` = ' . $idShop . '
+                OR NOT EXISTS (
+                       SELECT 1 FROM `' . _DB_PREFIX_ . 'employee_shop` es2
+                       WHERE es2.`id_employee` = e.`id_employee`
+                   )
+               )'
         ) > 0;
     }
 

@@ -319,9 +319,17 @@ class QueueManager
             // ne persiste que $extraVars) — sans ce lookup, tout email comportemental
             // passé par la fenêtre d'achat individuelle afficherait "{firstname}" brut
             // au client, quel que soit le template.
-            $customer   = new \Customer((int) $row['id_customer']);
-            $firstname  = \Validate::isLoadedObject($customer) ? $customer->firstname : '';
-            $lastname   = \Validate::isLoadedObject($customer) ? $customer->lastname : '';
+            // id_customer = 0 pour les entrées d'envoi manuel sans client rattaché
+            // (cf. enqueue()) — inutile d'instancier Customer(0) (aller-retour DB
+            // qui échouera systématiquement à se charger) pour ces lignes-là.
+            $idCustomerRow = (int) $row['id_customer'];
+            $firstname = '';
+            $lastname  = '';
+            if ($idCustomerRow > 0) {
+                $customer  = new \Customer($idCustomerRow);
+                $firstname = \Validate::isLoadedObject($customer) ? $customer->firstname : '';
+                $lastname  = \Validate::isLoadedObject($customer) ? $customer->lastname : '';
+            }
 
             $allVars = array_merge(
                 [
@@ -475,15 +483,16 @@ class QueueManager
             'SELECT COUNT(*) FROM `' . $this->prefix . 'customer`
              WHERE id_shop = ' . $this->idShop . ' AND active = 1 AND deleted = 0'
         );
-        $withWindow = (int) $this->db->getValue(
-            'SELECT COUNT(DISTINCT id_customer) FROM (
-               SELECT id_customer
-               FROM `' . $this->prefix . 'orders`
-               WHERE valid = 1 AND id_shop = ' . $this->idShop . '
-               GROUP BY id_customer, HOUR(date_add)
-               HAVING COUNT(*) >= ' . \PurchaseWindowManager::MINIMUM_ORDERS . '
-             ) sub'
-        );
+        // Ne pas dupliquer ce calcul ici : la requête inline précédente
+        // groupait par HOUR(date_add) exacte, alors que
+        // PurchaseWindowManager a depuis corrigé sa propre détection pour
+        // grouper par créneau de 2h (FLOOR(HOUR/2)*2) — un client commandant
+        // à cheval sur deux heures entières n'atteignait jamais
+        // MINIMUM_ORDERS et n'était jamais compté comme couvert. La requête
+        // dupliquée ici n'avait pas suivi ce correctif, faussant à la baisse
+        // le % de couverture affiché en BO par rapport à la vraie logique
+        // utilisée pour programmer les envois (getPreferredHour()).
+        $withWindow = (new \PurchaseWindowManager())->getWindowCoverageCount($this->idShop);
         $coveragePct = $totalActive > 0 ? (int) round($withWindow / $totalActive * 100) : 0;
 
         // Heure de pointe globale (pour l'histogramme simplifié)
