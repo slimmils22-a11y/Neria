@@ -248,6 +248,13 @@ class BehavioralCronManager
         if (!\Configuration::getGlobalValue('NERIA_BIRTHDAY_ENABLED')) {
             return;
         }
+        // Repli 29/02 → 28/02 les années NON bissextiles dans la clause OR
+        // ci-dessous (même correctif que CalendarManager::resolveMonthDay()
+        // et SeasonalCampaignManager::runDueCampaigns()) : DAY(NOW()) ne peut
+        // jamais valoir 29 en février une année non bissextile, donc un
+        // client né le 29/02 ne recevait jamais son email d'anniversaire.
+        // DAY(LAST_DAY(NOW())) = 28 confirme que février n'a que 28 jours
+        // cette année-ci.
         $year   = (int) date('Y');
         $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
@@ -255,7 +262,12 @@ class BehavioralCronManager
              FROM `' . $this->prefix . 'customer` c
              WHERE c.active = 1 AND c.deleted = 0 AND c.id_shop = ' . $idShop . '
                AND c.birthday IS NOT NULL AND c.birthday != \'0000-00-00\'
-               AND DAY(c.birthday) = DAY(NOW()) AND MONTH(c.birthday) = MONTH(NOW())
+               AND (
+                   (DAY(c.birthday) = DAY(NOW()) AND MONTH(c.birthday) = MONTH(NOW()))
+                   OR (MONTH(c.birthday) = 2 AND DAY(c.birthday) = 29
+                       AND MONTH(NOW()) = 2 AND DAY(NOW()) = 28
+                       AND DAY(LAST_DAY(NOW())) = 28)
+               )
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = c.id_customer AND bs.template = \'birthday\'
@@ -1553,6 +1565,11 @@ class BehavioralCronManager
 
         // Clients dont la date du 1er achat tombe aujourd'hui (mois+jour)
         // et qui ont passé commande il y a au moins 1 an.
+        // Repli 29/02 → 28/02 les années NON bissextiles dans la clause OR
+        // ci-dessous (même correctif que sendBirthdays() ci-dessus,
+        // CalendarManager et SeasonalCampaignManager) : un client dont la
+        // 1re commande a été passée un 29/02 n'atteint jamais
+        // DATE_FORMAT(NOW(),'%m-%d') = '02-29' les années non bissextiles.
         $idShop = (int) \Context::getContext()->shop->id;
         // Année calculée côté PHP (et non YEAR(NOW()) côté MySQL) pour rester
         // cohérente avec l'insertion plus bas dans send() qui utilise
@@ -1570,7 +1587,12 @@ class BehavioralCronManager
              JOIN `' . $this->prefix . 'orders` o ON o.id_customer = c.id_customer AND o.valid = 1 AND o.id_shop = ' . $idShop . '
              WHERE c.active = 1 AND c.deleted = 0
              GROUP BY c.id_customer
-             HAVING DATE_FORMAT(MIN(o.date_add), \'%m-%d\') = DATE_FORMAT(NOW(), \'%m-%d\')
+             HAVING (
+                   DATE_FORMAT(MIN(o.date_add), \'%m-%d\') = DATE_FORMAT(NOW(), \'%m-%d\')
+                   OR (DATE_FORMAT(MIN(o.date_add), \'%m-%d\') = \'02-29\'
+                       AND DATE_FORMAT(NOW(), \'%m-%d\') = \'02-28\'
+                       AND DAY(LAST_DAY(NOW())) = 28)
+               )
                AND TIMESTAMPDIFF(YEAR, MIN(o.date_add), NOW()) >= 1
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
