@@ -910,7 +910,7 @@ class StatsManager
                       'checkout_abandonment','ghost_cart'],
         'post'    => ['post_purchase_care','post_purchase_review','complete_your_look','collection_completion',
                       'order_on_hold','order_partial_shipped','refund_processed','return_received',
-                      'product_lifespan_reminder','refund_reconciliation_1',
+                      'order_shipped_delay','product_lifespan_reminder','refund_reconciliation_1',
                       'refund_reconciliation_2','refund_reconciliation_3',
                       'waitlist_available','wishlist_reminder','back_in_stock'],
         'loyalty' => ['loyalty_tier_upgrade','loyalty_recap','loyalty_reward_expiry',

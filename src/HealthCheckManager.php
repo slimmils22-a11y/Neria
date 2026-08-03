@@ -216,6 +216,7 @@ class HealthCheckManager
             'control_center_defaults_consistency' => 'checkControlCenterDefaultsConsistency',
             'sql_pattern_risks'     => 'checkSqlPatternRisks',
             'unescaped_like_metachars' => 'checkUnescapedLikeMetachars',
+            'template_cat_mapping_complete' => 'checkTemplateCategoryMappingComplete',
             'i18n_pattern_risks'    => 'checkI18nPatternRisks',
             'hardcoded_french_text' => 'checkHardcodedFrenchText',
             'idlang_missing'        => 'checkMissingIdLangInLinks',
@@ -1568,6 +1569,109 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.unescaped_like_metachars_ok')];
+    }
+
+    /**
+     * Contrôle statique PROSPECTIF : tout template réellement envoyé dans le
+     * code (via Mail::Send(...) ou le wrapper $this->send(...) de
+     * BehavioralCronManager) doit être présent à la fois dans
+     * PreferencesManager::TEMPLATE_CAT et StatsManager::$CHART_CATEGORIES —
+     * sinon les préférences client ne s'y appliquent jamais (TEMPLATE_CAT
+     * absent → isAllowed() retourne toujours true) et/ou son revenu est mal
+     * attribué dans les stats par catégorie (bucket "other").
+     *
+     * Reprend l'esprit de test_16_preferences_template_cat_complete.php
+     * (régression ciblée sur BehavioralCronManager uniquement) mais en
+     * continu sur TOUT src/*.php et visible dans l'onglet Santé du BO, pas
+     * seulement au lancement manuel de la suite de tests — trouvé en réel
+     * le 2026-08-03 pour 5 templates (post_purchase_care, order_on_hold,
+     * order_partial_shipped, refund_processed, return_received), absents
+     * depuis leur création faute d'un tel garde-fou permanent.
+     */
+    private function checkTemplateCategoryMappingComplete(): array
+    {
+        $srcDir = _PS_MODULE_DIR_ . $this->module->name . '/src';
+        if (!is_dir($srcDir) || !class_exists('PreferencesManager')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.template_cat_mapping_ok')];
+        }
+
+        $sent = [];
+        foreach (glob($srcDir . '/*.php') ?: [] as $file) {
+            // Exclu : ce fichier contient lui-même le texte source des motifs
+            // recherchés ci-dessous (docblock), faux positif garanti sur
+            // lui-même — même exclusion que checkUnescapedLikeMetachars().
+            if (basename($file) === 'HealthCheckManager.php') {
+                continue;
+            }
+            $raw = file_get_contents($file) ?: '';
+            if ($raw === '') {
+                continue;
+            }
+            if (preg_match_all('/Mail::Send\(\s*\$\w+,\s*\'([a-z_0-9]+)\'/', $raw, $m)) {
+                $sent = array_merge($sent, $m[1]);
+            }
+            if (preg_match_all('/->send\(\s*\'([a-z_0-9]+)\'/', $raw, $m)) {
+                $sent = array_merge($sent, $m[1]);
+            }
+        }
+        // Templates système/transactionnels volontairement HORS mapping
+        // catégorie, par conception (même famille que les emails PS core
+        // order_conf/payment/order_shipped — jamais préférence-gated) :
+        // certificate_email (justificatif rattaché à une commande précise,
+        // pas une catégorie marketing), neria_fallback (filet de sécurité
+        // technique, déjà exempté du Mode Silence via
+        // CooldownManager::BYPASS_TEMPLATES), monthly_report (rapport
+        // adressé au MARCHAND, pas au client — aucune notion de préférence
+        // ni d'attribution de revenu par catégorie n'a de sens ici).
+        $sent = array_diff(array_unique($sent), ['certificate_email', 'neria_fallback', 'monthly_report']);
+
+        // Extraction manifestement cassée (refactor ayant changé les deux
+        // motifs ci-dessus) : se taire plutôt que de signaler massivement
+        // des faux positifs sur la totalité des templates du module.
+        if (count($sent) < 10) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.template_cat_mapping_ok')];
+        }
+
+        $prefCat = \PreferencesManager::TEMPLATE_CAT;
+
+        // StatsManager::$CHART_CATEGORIES est privée statique : parsée depuis
+        // le code source plutôt que par réflexion, comme les autres contrôles
+        // statiques de ce fichier.
+        $statsFile = $srcDir . '/StatsManager.php';
+        $statsRaw = is_file($statsFile) ? (file_get_contents($statsFile) ?: '') : '';
+        $statsCats = [];
+        if (preg_match('/\$CHART_CATEGORIES\s*=\s*\[(.*?)\n\s*\];/s', $statsRaw, $block)) {
+            preg_match_all('/\'([a-z_0-9]+)\'/', $block[1], $mm);
+            $statsCats = $mm[1];
+        }
+
+        $missingPref  = [];
+        $missingStats = [];
+        foreach ($sent as $tpl) {
+            if (!isset($prefCat[$tpl])) {
+                $missingPref[] = $tpl;
+            }
+            if ($statsCats && !in_array($tpl, $statsCats, true)) {
+                $missingStats[] = $tpl;
+            }
+        }
+
+        $offenders = [];
+        if ($missingPref) {
+            $offenders[] = 'PreferencesManager::TEMPLATE_CAT : ' . implode(', ', $missingPref);
+        }
+        if ($missingStats) {
+            $offenders[] = 'StatsManager::$CHART_CATEGORIES : ' . implode(', ', $missingStats);
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.template_cat_mapping_warning', ['list' => implode(' | ', $offenders)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.template_cat_mapping_ok')];
     }
 
     /**
