@@ -161,6 +161,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_stat` (
     `country_code`      VARCHAR(3)      NOT NULL DEFAULT '' COMMENT 'Code pays ISO (ex: FR, JP)',
     `id_customer`       INT(11)         NOT NULL DEFAULT 0 COMMENT '0 = invité',
     `id_order`          INT(11)         NOT NULL DEFAULT 0 COMMENT 'Commande liée si applicable',
+    `ref_scope`         VARCHAR(40)     NOT NULL DEFAULT '' COMMENT 'Portée du Mode Silence pour les envois non liés à une commande (ex: product:123, collection:45)',
     `tracking_token`    VARCHAR(64)     NOT NULL COMMENT 'Token unique SHA256 pour le pixel',
     `event_type`        ENUM('sent','open','click','conversion')
                                         NOT NULL DEFAULT 'sent',

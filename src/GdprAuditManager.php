@@ -855,7 +855,13 @@ class GdprAuditManager
         // jamais une demande RGPD explicite : ce n'est pas un substitut
         // légal au droit à l'effacement immédiat.
         if ($email !== '') {
-            $emailSql = pSQL(strtolower($email));
+            // Échapper les métacaractères LIKE (% et _) avant pSQL() : pSQL()
+            // échappe guillemets/backslashes mais pas la sémantique LIKE, et
+            // '_' est un caractère valide dans une adresse email (ex.
+            // john_doe@…) — sans échappement il matche n'importe quel
+            // caractère et peut faire purger les données d'un tiers.
+            $emailLike = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], strtolower($email));
+            $emailSql = pSQL($emailLike);
             $fullWh = _DB_PREFIX_ . 'neria_webhook_queue';
             $whExists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($fullWh) . "'");
             if (is_array($whExists) && !empty($whExists)) {

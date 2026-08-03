@@ -158,6 +158,12 @@ class LookCompletionManager
             if (!\Validate::isLoadedObject($customer)) continue;
 
             $vars = $this->buildVars($customer, $products, $rule['category_name'] ?? '');
+            // {id_order} scope le Mode Silence sur CETTE commande (cf.
+            // CooldownManager::isDuplicate) — sans lui, deux suggestions
+            // "complétez votre look" légitimes pour deux commandes
+            // différentes du même client dans la fenêtre de cooldown se
+            // bloquaient mutuellement à tort.
+            $vars['{id_order}'] = $idOrder;
 
             try {
                 $mailed = \Mail::Send(

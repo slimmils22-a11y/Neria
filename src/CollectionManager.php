@@ -97,7 +97,9 @@ class CollectionManager
 
         $db     = \Db::getInstance();
         $prefix = _DB_PREFIX_;
-        $like   = pSQL($query);
+        // Échapper les métacaractères LIKE (% et _) pour éviter des résultats
+        // bruités : pSQL() n'échappe pas la sémantique LIKE.
+        $like   = pSQL(str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query));
 
         $rows = $db->executeS(
             "SELECT p.id_product, pl.name, p.reference
@@ -311,6 +313,11 @@ class CollectionManager
                 '{bought_count}'           => (string) count($boughtIds),
                 '{total_count}'            => (string) $total,
                 '{shop_name}'              => \Configuration::get('PS_SHOP_NAME'),
+                // Scope le Mode Silence par collection (cf. CooldownManager)
+                // — sans lui, une notification légitime pour une DEUXIÈME
+                // collection complétée dans la fenêtre de cooldown était
+                // bloquée à tort comme doublon de la première.
+                '{cooldown_scope}'         => 'collection:' . $colId,
             ];
 
             try {

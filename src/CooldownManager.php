@@ -43,10 +43,18 @@ class CooldownManager
      * Si $idOrder est fourni (> 0, ex. order_conf/payment/shipped...), le
      * doublon n'est détecté que pour LA MÊME commande — un deuxième email du
      * même template pour une commande DIFFÉRENTE (client qui repasse une
-     * vraie commande dans la fenêtre de cooldown) n'est jamais bloqué. Sans
-     * id_order (templates non liés à une commande), on retombe sur l'ancien
-     * comportement (template + client + fenêtre), qui reste pertinent pour
-     * ces cas-là.
+     * vraie commande dans la fenêtre de cooldown) n'est jamais bloqué.
+     *
+     * Pour les templates non liés à une commande mais tout de même scopés
+     * par entité (ex. waitlist_available par produit, collection_completion
+     * par collection), $refScope joue le même rôle qu'$idOrder : sans lui,
+     * deux notifications légitimes sur deux entités différentes du même
+     * client dans la fenêtre de cooldown se bloquaient mutuellement à tort.
+     * $idOrder est prioritaire s'il est fourni (les deux ne sont normalement
+     * jamais renseignés en même temps).
+     *
+     * Sans $idOrder NI $refScope, on retombe sur l'ancien comportement
+     * (template + client + fenêtre), qui reste pertinent pour ces cas-là.
      *
      * $idShop obligatoire : sans ce filtre, un client partagé entre
      * boutiques (compte mutualisé) recevant le même template sur DEUX
@@ -61,9 +69,10 @@ class CooldownManager
      * @param int    $windowMinutes Durée de la fenêtre en minutes
      * @param int    $idShop        Boutique à l'origine de cet envoi
      * @param int    $idOrder       ID de la commande liée à cet envoi, si applicable (0 = non lié)
+     * @param string $refScope      Portée générique (ex. "product:123"), si applicable et sans idOrder
      * @return bool true = doublon détecté, bloquer l'envoi
      */
-    public function isDuplicate(string $toEmail, string $template, int $windowMinutes, int $idShop, int $idOrder = 0): bool
+    public function isDuplicate(string $toEmail, string $template, int $windowMinutes, int $idShop, int $idOrder = 0, string $refScope = ''): bool
     {
         if (in_array($template, self::BYPASS_TEMPLATES, true)) {
             return false;
@@ -79,16 +88,20 @@ class CooldownManager
             return false; // invités : pas de cooldown
         }
 
-        $orderCondition = $idOrder > 0
-            ? ' AND `id_order` = ' . (int) $idOrder
-            : '';
+        if ($idOrder > 0) {
+            $scopeCondition = ' AND `id_order` = ' . (int) $idOrder;
+        } elseif ($refScope !== '') {
+            $scopeCondition = ' AND `ref_scope` = \'' . pSQL($refScope) . '\'';
+        } else {
+            $scopeCondition = '';
+        }
 
         $count = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
              WHERE `id_customer` = ' . (int) $idCustomer . '
                AND `id_shop`     = ' . (int) $idShop . '
                AND `template`    = \'' . pSQL($template) . '\'
-               AND `event_type`  = \'sent\'' . $orderCondition . '
+               AND `event_type`  = \'sent\'' . $scopeCondition . '
                AND `date_add`    > DATE_SUB(NOW(), INTERVAL ' . (int) $windowMinutes . ' MINUTE)'
         );
 

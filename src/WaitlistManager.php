@@ -132,6 +132,11 @@ class WaitlistManager
                 '{days_waited}'        => $daysWaited,
                 '{reservation_hours}'  => (int) \Configuration::getGlobalValue('NERIA_WAITLIST_RESERVATION_HOURS') ?: self::RESERVATION_HOURS,
                 '{shop_name}'          => \Configuration::get('PS_SHOP_NAME'),
+                // Scope le Mode Silence par produit (cf. CooldownManager) —
+                // sans lui, une notification "de retour en stock" légitime
+                // pour un DEUXIÈME produit dans la fenêtre de cooldown était
+                // bloquée à tort comme doublon de la première.
+                '{cooldown_scope}'     => 'product:' . $idProduct,
             ];
 
             // Réclamation atomique AVANT l'envoi : deux appels concurrents à

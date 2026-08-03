@@ -90,6 +90,7 @@ class StatsManager
             [
                 'id_customer'   => $idCustomer,
                 'id_order'      => (int) ($params['idOrder']       ?? 0),
+                'ref_scope'     => (string) ($params['templateVars']['{cooldown_scope}'] ?? ''),
                 'abtest'        => $params['neria_variant']        ?? '',
                 'rendered_vars' => $this->buildSnapshot($params['templateVars'] ?? []),
             ]
@@ -295,10 +296,10 @@ class StatsManager
         $sql = sprintf(
             "INSERT INTO `%s`
                 (`id_shop`, `template`, `lang`, `country_code`,
-                 `id_customer`, `id_order`, `tracking_token`,
+                 `id_customer`, `id_order`, `ref_scope`, `tracking_token`,
                  `event_type`, `is_mpp`, `abtest_variant`, `rendered_vars`,
                  `revenue`, `ip_address`, `user_agent`, `date_add`)
-             VALUES (%d, '%s', '%s', '%s', %d, %d, '%s', '%s', %d, '%s', %s, %.2f, '%s', '%s', '%s')",
+             VALUES (%d, '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', %d, '%s', %s, %.2f, '%s', '%s', '%s')",
             $table,
             $this->idShop,
             pSQL($template),
@@ -306,6 +307,7 @@ class StatsManager
             pSQL($extra['country_code'] ?? $this->resolveCountryCode()),
             (int) ($extra['id_customer'] ?? 0),
             (int) ($extra['id_order']    ?? 0),
+            pSQL($extra['ref_scope']     ?? ''),
             pSQL($token),
             pSQL($event),
             $isMpp,

@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.36';
+    const VERSION = '1.0.37';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -432,13 +432,14 @@ class Neria extends Module
             $cdMgr = new CooldownManager();
             $cdMinutes = (new ConfigManager($this))->getCooldownMinutes();
             $cdIdOrder = (int) ($params['templateVars']['{id_order}'] ?? 0);
+            $cdRefScope = (string) ($params['templateVars']['{cooldown_scope}'] ?? '');
             // Même résolution que le bloc préférences ci-dessus ($idShopPref) :
             // toujours latent aujourd'hui (aucun appelant ne passe idShop dans
             // $params), mais un futur cron/webhook multi-boutique qui le
             // ferait recevrait sinon le shop du Context courant au lieu du
             // shop réel de l'envoi, faussant la détection de doublon.
             $cdIdShop = (int) ($params['idShop'] ?? $this->context->shop->id);
-            if ($cdMgr->isDuplicate((string) $to, $tpl, $cdMinutes, $cdIdShop, $cdIdOrder)) {
+            if ($cdMgr->isDuplicate((string) $to, $tpl, $cdMinutes, $cdIdShop, $cdIdOrder, $cdRefScope)) {
                 (new WatchdogManager($this))->info(
                     WatchdogManager::i18nMsg('watchdog.cooldown_blocked', ['template' => $tpl, 'to' => (string) $to]),
                     $tpl,
