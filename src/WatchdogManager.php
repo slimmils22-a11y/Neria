@@ -432,7 +432,13 @@ class WatchdogManager
             return;
         }
 
-        \Configuration::updateGlobalValue(self::CFG_DIGEST_LAST, time());
+        // Même clé suffixée par boutique que la lecture ci-dessus (L409) et
+        // que la branche "rien à signaler" (L426) — écrire ici la clé SANS
+        // suffixe (bug réel) faisait relire $lastDigest toujours à 0 pour
+        // cette boutique au prochain appel de sendDailyDigestIfDue()
+        // (déclenché à chaque hit hookDisplayHeader), renvoyant un nouveau
+        // digest en boucle au lieu d'un seul par 24h.
+        \Configuration::updateGlobalValue(self::CFG_DIGEST_LAST . '_' . $this->idShop, time());
 
         $prevLang = AdminTranslator::currentLang();
         AdminTranslator::setLang($this->getShopLang());

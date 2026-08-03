@@ -486,7 +486,7 @@ class LoyaltyManager
             null, null, null, null,
             _PS_MODULE_DIR_ . 'neria/mails/',
             false,
-            (int) \Context::getContext()->shop->id
+            $idShop
         );
     }
 
@@ -852,7 +852,7 @@ class LoyaltyManager
             null, null, null, null,
             _PS_MODULE_DIR_ . 'neria/mails/',
             false,
-            (int) \Context::getContext()->shop->id
+            $idShop ?? (int) \Context::getContext()->shop->id
         );
 
         return true;
