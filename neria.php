@@ -411,7 +411,14 @@ class Neria extends Module
                     );
                     $idCustPref = (int) ($custRow['id_customer'] ?? 0);
                 }
-                if ($idCustPref > 0 && !(new PreferencesManager($this))->isAllowed($idCustPref, $tplPref, $idShopPref)) {
+                // Pas de garde $idCustPref > 0 : un destinataire sans compte
+                // (newsletter/newsletter_voucher, id_customer=0) doit aussi
+                // être vérifié — isAllowed() consulte alors la ligne par
+                // email. Sans ce correctif, le centre de préférences était
+                // un no-op permanent pour cette population (non-conformité
+                // RGPD/CAN-SPAM démontrable : "préférences enregistrées"
+                // affiché côté client, catégorie décochée jamais respectée).
+                if (!(new PreferencesManager($this))->isAllowed($idCustPref, $tplPref, $idShopPref, (string) $toPref)) {
                     (new WatchdogManager($this))->info(
                         WatchdogManager::i18nMsg('watchdog.send_cancelled_pref', ['id' => $idCustPref, 'template' => $tplPref]),
                         $tplPref,

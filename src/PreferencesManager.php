@@ -102,17 +102,45 @@ class PreferencesManager
      *                         trouve aucune ligne, et retombe sur "opt-in par
      *                         défaut" — contournement RGPD silencieux.
      */
-    public function isAllowed(int $idCustomer, string $template, ?int $idShop = null): bool
+    /**
+     * @param string $email Destinataire sans compte client (id_customer=0 —
+     *                       newsletter/newsletter_voucher envoyés à des
+     *                       inscrits ps_emailsubscription qui ne sont pas
+     *                       forcément des clients PrestaShop). Sans cet
+     *                       argument, TOUT destinataire résolu à
+     *                       id_customer=0 retombait sur "opt-in par défaut"
+     *                       en permanence, quoi que le centre de préférences
+     *                       ait enregistré pour son email (saveByCustomer()
+     *                       écrit pourtant bien une ligne avec id_customer=0
+     *                       + email — jamais relue faute de ce paramètre).
+     *                       Non-conformité RGPD/CAN-SPAM démontrable : le
+     *                       client voyait "préférences enregistrées" mais
+     *                       continuait de recevoir la catégorie décochée.
+     */
+    public function isAllowed(int $idCustomer, string $template, ?int $idShop = null, string $email = ''): bool
     {
-        if ($idCustomer <= 0) {
-            return true;
-        }
         $cat = self::TEMPLATE_CAT[$template] ?? null;
         if ($cat === null) {
             return true; // template non classé → toujours envoyé
         }
 
         $shop = $idShop ?? $this->idShop;
+
+        if ($idCustomer <= 0) {
+            $email = trim(strtolower($email));
+            if ($email === '') {
+                return true;
+            }
+            $row = $this->db->getRow(
+                "SELECT `subscribed` FROM `" . _DB_PREFIX_ . self::TABLE . "`
+                 WHERE `id_shop`     = {$shop}
+                   AND `id_customer` = 0
+                   AND `email`       = '" . pSQL($email) . "'
+                   AND `category`    = '" . pSQL($cat) . "'"
+            );
+            return $row === false || (bool) $row['subscribed'];
+        }
+
         $row = $this->db->getRow(
             "SELECT `subscribed` FROM `" . _DB_PREFIX_ . self::TABLE . "`
              WHERE `id_shop`    = {$shop}
@@ -128,10 +156,27 @@ class PreferencesManager
      * Retourne les préférences d'un client (toutes catégories).
      * Valeur par défaut : 1 (souscrit).
      */
-    public function getByCustomer(int $idCustomer): array
+    public function getByCustomer(int $idCustomer, string $email = ''): array
     {
         $prefs = array_fill_keys(self::CATEGORIES, 1);
+
         if ($idCustomer <= 0) {
+            $email = trim(strtolower($email));
+            if ($email === '') {
+                return $prefs;
+            }
+            $rows = $this->db->executeS(
+                "SELECT `category`, `subscribed` FROM `" . _DB_PREFIX_ . self::TABLE . "`
+                 WHERE `id_shop`     = {$this->idShop}
+                   AND `id_customer` = 0
+                   AND `email`       = '" . pSQL($email) . "'"
+            );
+            foreach ((is_array($rows) ? $rows : []) as $row) {
+                $cat = $row['category'];
+                if (array_key_exists($cat, $prefs)) {
+                    $prefs[$cat] = (int) $row['subscribed'];
+                }
+            }
             return $prefs;
         }
 

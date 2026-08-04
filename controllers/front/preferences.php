@@ -130,7 +130,7 @@ class NeriaPreferencesModuleFrontController extends ModuleFrontController
         }
 
         try {
-            $prefs = $manager->getByCustomer($idCustomer);
+            $prefs = $manager->getByCustomer($idCustomer, $email);
         } catch (\Throwable $e) {
             if (class_exists('WatchdogManager')) {
                 try {
