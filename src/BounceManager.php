@@ -257,11 +257,20 @@ class BounceManager
         $subjectLower = mb_strtolower($subject);
         $fromLower    = mb_strtolower($from);
 
+        // Mots-clés composés, pas des mots isolés : 'échec', 'refusé', 'rejet'
+        // seuls matchaient aussi des emails clients légitimes tout à fait
+        // courants ("Votre demande de remboursement a été refusée", "Échec
+        // du paiement", "Colis refusé par le destinataire") — un client
+        // répondant à une campagne avec un tel objet était alors traité
+        // comme un bounce, rapprochant artificiellement son adresse du seuil
+        // de blocage automatique (bounce_count).
         $subjectKeywords = [
             'delivery', 'undeliverable', 'delivery status notification',
             'delivery failure', 'delivery failed', 'returned mail',
             'mail delivery failed', 'bounce', 'non-delivery', 'ndnr',
-            'échec', 'non remis', 'refusé', 'rejet', 'nicht zustellbar',
+            'échec de la remise', 'échec de livraison', 'échec d\'envoi',
+            'non remis', 'message refusé', 'message rejeté',
+            'destinataire refusé', 'nicht zustellbar',
         ];
         foreach ($subjectKeywords as $kw) {
             if (str_contains($subjectLower, $kw)) {
