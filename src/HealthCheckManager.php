@@ -1161,6 +1161,56 @@ class HealthCheckManager
             $offenders[] = "BounceManager : looksLikeBounce() utilise de nouveau le mot-clé isolé 'échec' (faux positifs sur des emails clients légitimes)";
         }
 
+        // Bug du 2026-08-04 : le produit du certificat PDF était chargé avec
+        // Context::getContext()->language->id (langue du BO de l'employé)
+        // au lieu de la langue résolue du CLIENT — incohérent avec les
+        // polices choisies pour le PDF, pouvant afficher le nom produit en
+        // rectangles vides (arabe/CJK) sur un certificat en français.
+        $certFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
+        $certSrc2  = is_file($certFile2) ? (file_get_contents($certFile2) ?: '') : '';
+        if ($certSrc2 === '') {
+            $offenders[] = 'CertificateManager.php introuvable (2e vérification)';
+        } elseif (strpos($certSrc2, 'new \Product($idProduct, false, $idLangProduct)') === false) {
+            $offenders[] = "CertificateManager : issue() ne charge plus le produit avec la langue résolue du client (\$idLangProduct) — retour possible à la langue du BO de l'employé";
+        }
+
+        // Bug du 2026-08-04 : sanitizeHtml() ne retirait que les balises non
+        // autorisées (strip_tags), jamais leurs attributs — un
+        // <a href="javascript:..."> ou <span onmouseover="..."> passait
+        // intégralement à travers malgré le nom de la fonction.
+        $neriaToolsFile = _PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php';
+        $neriaToolsSrc  = is_file($neriaToolsFile) ? (file_get_contents($neriaToolsFile) ?: '') : '';
+        if ($neriaToolsSrc === '') {
+            $offenders[] = 'NeriaTools.php introuvable';
+        } elseif (strpos($neriaToolsSrc, "preg_replace('/\son\w+\s*=") === false) {
+            $offenders[] = "NeriaTools : sanitizeHtml() ne retire plus les attributs event handler (on*=) — XSS latent sur les balises autorisées";
+        }
+
+        // Bug du 2026-08-04 : sanitizeLang() ne normalisait pas la casse en
+        // sortie (le filtre /i n'agit qu'en entrée) — un appel avec 'FR'
+        // retournait 'FR' non normalisé, cassant silencieusement des
+        // comparaisons strictes ailleurs dans le module.
+        $voiceFile = _PS_MODULE_DIR_ . $this->module->name . '/src/VoiceProfileManager.php';
+        $voiceSrc  = is_file($voiceFile) ? (file_get_contents($voiceFile) ?: '') : '';
+        if ($voiceSrc === '') {
+            $offenders[] = 'VoiceProfileManager.php introuvable';
+        } elseif (!preg_match('/function\s+sanitizeLang[\s\S]{0,500}?mb_strtolower/', $voiceSrc)) {
+            $offenders[] = "VoiceProfileManager : sanitizeLang() ne normalise plus la casse en sortie (mb_strtolower)";
+        }
+
+        // Bug du 2026-08-04 : les regex de suppression de propriété CSS
+        // (background-image, border-radius, display:flex, gap, shadows,
+        // position) s'appliquaient sur le HTML entier plutôt que sur les
+        // attributs style="..." uniquement — un texte VISIBLE mentionnant
+        // littéralement une déclaration CSS était tronqué dans l'aperçu.
+        $previewFile = _PS_MODULE_DIR_ . $this->module->name . '/src/MultiClientPreviewManager.php';
+        $previewSrc  = is_file($previewFile) ? (file_get_contents($previewFile) ?: '') : '';
+        if ($previewSrc === '') {
+            $offenders[] = 'MultiClientPreviewManager.php introuvable';
+        } elseif (strpos($previewSrc, 'private function replaceInInlineStyles(string $html, array $patterns): string') === false) {
+            $offenders[] = "MultiClientPreviewManager : replaceInInlineStyles() a disparu — les règles CSS risquent de nouveau de s'appliquer sur le HTML entier (texte visible tronqué dans l'aperçu)";
+        }
+
         // Bug du 2026-07-22 : StatsManager::recordOpen() créditait des points
         // de fidélité (même famille que recordClick(), déjà protégé) sans
         // aucun verrou — eventExists()+record() n'est pas atomique. De
