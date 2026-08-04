@@ -3224,6 +3224,23 @@ class Neria extends Module
             die(json_encode($status));
         }
 
+        // ── Bandeau informatif Mode Silence : vérification AJAX ───────────
+        // Jamais bloquant (contrairement à check_preferences_guard ci-dessus)
+        // — se contente de signaler une limitation déjà existante de
+        // CooldownManager pour les destinataires sans compte client.
+        if (Tools::getValue('neria_action') === 'check_cooldown_guest_notice') {
+            $email = trim((string) Tools::getValue('neria_email'));
+            try {
+                $status = class_exists('ManualSendManager')
+                    ? (new ManualSendManager($this))->getCooldownGuestNoticeStatus($email)
+                    : ['notice' => false, 'message' => ''];
+            } catch (\Throwable $e) {
+                $status = ['notice' => false, 'message' => ''];
+            }
+            header('Content-Type: application/json');
+            die(json_encode($status));
+        }
+
         // ── Action : envoi manuel d'un template à un client ───────
         // ── Garde-fou anniversaire : vérification AJAX ───────────────
         if (Tools::getValue('neria_action') === 'check_anniversary_guard') {

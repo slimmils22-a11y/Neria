@@ -58673,6 +58673,27 @@
         "nl": "Verzending geblokkeerd: sjabloon \"{template}\" is uitgeschakeld (zwarte lijst).",
         "gb": "Send blocked: template \"{template}\" is disabled (blacklist)."
     },
+    "msg.cooldown_guest_notice": {
+        "fr": "Info : {email} n'a pas de compte client — le Mode Silence (anti-doublon) ne peut pas s'appliquer à ce destinataire, il pourrait recevoir ce template plusieurs fois en peu de temps.",
+        "en": "Info: {email} has no customer account — Silence Mode (duplicate protection) cannot apply to this recipient, they may receive this template more than once in a short time.",
+        "de": "Info: {email} hat kein Kundenkonto — der Stille Modus (Duplikatschutz) kann für diesen Empfänger nicht angewendet werden, er könnte diese Vorlage mehrfach in kurzer Zeit erhalten.",
+        "it": "Info: {email} non ha un account cliente — la Modalità Silenzio (protezione duplicati) non può essere applicata a questo destinatario, potrebbe ricevere questo template più volte in poco tempo.",
+        "es": "Info: {email} no tiene cuenta de cliente — el Modo Silencio (protección contra duplicados) no puede aplicarse a este destinatario, podría recibir esta plantilla varias veces en poco tiempo.",
+        "pt": "Info: {email} não tem conta de cliente — o Modo Silêncio (proteção contra duplicados) não pode aplicar-se a este destinatário, que pode receber este modelo várias vezes num curto período.",
+        "br": "Info: {email} não possui conta de cliente — o Modo Silêncio (proteção contra duplicados) não pode ser aplicado a este destinatário, que pode receber este template várias vezes em pouco tempo.",
+        "ar": "معلومة: {email} ليس لديه حساب عميل — لا يمكن تطبيق وضع الصمت (الحماية من التكرار) على هذا المستلم، وقد يتلقى هذا القالب عدة مرات خلال فترة قصيرة.",
+        "ja": "情報：{email} には顧客アカウントがありません。サイレントモード（重複防止）はこの受信者には適用できず、短期間に同じテンプレートを複数回受け取る可能性があります。",
+        "ko": "정보: {email}에는 고객 계정이 없습니다 — 사일런트 모드(중복 방지)가 이 수신자에게 적용될 수 없으며, 짧은 시간 내에 이 템플릿을 여러 번 받을 수 있습니다.",
+        "zh": "提示：{email} 没有客户账户 — 静默模式（防重复保护）无法应用于此收件人，短时间内可能会多次收到此模板。",
+        "tw": "提示：{email} 沒有客戶帳戶 — 靜默模式（防重複保護）無法套用於此收件人，短時間內可能會多次收到此範本。",
+        "ru": "Инфо: у {email} нет учётной записи клиента — режим тишины (защита от дублей) не может применяться к этому получателю, он может получить этот шаблон несколько раз за короткое время.",
+        "tr": "Bilgi: {email} bir müşteri hesabına sahip değil — Sessiz Mod (yinelenen koruması) bu alıcıya uygulanamaz, kısa sürede bu şablonu birden fazla kez alabilir.",
+        "sv": "Info: {email} har inget kundkonto — Tyst läge (dubblettskydd) kan inte tillämpas på denna mottagare, personen kan få denna mall flera gånger inom kort tid.",
+        "no": "Info: {email} har ingen kundekonto — Stillemodus (duplikatbeskyttelse) kan ikke brukes på denne mottakeren, vedkommende kan motta denne malen flere ganger på kort tid.",
+        "da": "Info: {email} har ingen kundekonto — Stille tilstand (dubletbeskyttelse) kan ikke anvendes på denne modtager, personen kan modtage denne skabelon flere gange på kort tid.",
+        "nl": "Info: {email} heeft geen klantaccount — Stille modus (dubbele bescherming) kan niet worden toegepast op deze ontvanger, die deze template mogelijk meerdere keren in korte tijd ontvangt.",
+        "gb": "Info: {email} has no customer account — Silence Mode (duplicate protection) cannot apply to this recipient, they may receive this template more than once in a short time."
+    },
     "msg.send_blocked_bounce": {
         "fr": "Envoi bloqué : {email} est marqué comme adresse invalide (bounce).",
         "en": "Send blocked: {email} is marked as an invalid address (bounce).",

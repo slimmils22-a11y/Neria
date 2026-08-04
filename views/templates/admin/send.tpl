@@ -90,6 +90,17 @@
                     border-radius:4px; font-size:12px; line-height:1.6;">
           <span id="neria-preferences-guard-text"></span>
         </div>
+
+        {* Bandeau informatif Mode Silence (chargé en AJAX) — jamais
+           bloquant, se contente de prévenir le marchand d'une limitation
+           déjà existante (pas de colonne email sur neria_stat) pour les
+           destinataires sans compte client. *}
+        <div id="neria-cooldown-notice"
+             style="display:none; margin-top:10px; padding:11px 14px;
+                    border-radius:4px; font-size:12px; line-height:1.6;
+                    background:#eef6fb; border-left:3px solid #3b82f6; color:#1e3a5f;">
+          <span id="neria-cooldown-notice-text"></span>
+        </div>
       </div>
 
       {* ── Sujet ──────────────────────────────────────────────── *}
@@ -302,6 +313,8 @@ window.NERIA_SEND_L10N = {
   var dupGuardText = document.getElementById('neria-duplicate-guard-text');
   var prefGuardBox  = document.getElementById('neria-preferences-guard');
   var prefGuardText = document.getElementById('neria-preferences-guard-text');
+  var cooldownNoticeBox  = document.getElementById('neria-cooldown-notice');
+  var cooldownNoticeText = document.getElementById('neria-cooldown-notice-text');
 
   // Customer card + autocomplete
   var dropdown   = document.getElementById('neria-autocomplete-dropdown');
@@ -415,16 +428,35 @@ window.NERIA_SEND_L10N = {
      .catch(function () { hideBox(prefGuardBox); });
   }
 
+  // ── AJAX : bandeau informatif Mode Silence (jamais bloquant) ───
+  function checkCooldownNotice() {
+    var email = (emailInput ? emailInput.value : '').trim();
+    if (!email || email.indexOf('@') === -1) { hideBox(cooldownNoticeBox); return; }
+    fetch(ajaxUrl('check_cooldown_guest_notice',
+      '&neria_email=' + encodeURIComponent(email)),
+      { credentials: 'same-origin' }
+    ).then(function (r) { return r.json(); })
+     .then(function (d) {
+       if (!cooldownNoticeBox || !cooldownNoticeText) { return; }
+       if (!d.notice || !d.message) { cooldownNoticeBox.style.display = 'none'; return; }
+       cooldownNoticeText.innerHTML = d.message;
+       cooldownNoticeBox.style.display = '';
+     })
+     .catch(function () { hideBox(cooldownNoticeBox); });
+  }
+
   function checkAllGuards() {
     setBlocked(false);
     hideBox(dupGuardBox);
     hideBox(annGuardBox);
     hideBox(prefGuardBox);
+    hideBox(cooldownNoticeBox);
     clearTimeout(ajaxTimer);
     ajaxTimer = setTimeout(function () {
       checkDuplicate();
       checkAnniversaryGuard();
       checkPreferencesGuard();
+      checkCooldownNotice();
     }, 500);
   }
 

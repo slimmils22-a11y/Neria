@@ -916,6 +916,33 @@ class ManualSendManager
     }
 
     /**
+     * Bandeau INFORMATIF (jamais bloquant, contrairement à
+     * getPreferencesGuardStatus()) : signale à l'opérateur BO que le Mode
+     * Silence (CooldownManager) ne s'applique pas aux destinataires sans
+     * compte client — neria_stat n'a pas de colonne email, seulement
+     * id_customer (0 = invité), donc CooldownManager::isDuplicate() ne peut
+     * structurellement pas retrouver l'historique d'envoi de ce destinataire
+     * pour appliquer la fenêtre anti-doublon. Ne modifie ni ne contourne
+     * CooldownManager — n'informe que sur une limitation déjà existante,
+     * pour que le marchand en ait conscience avant d'envoyer manuellement
+     * (risque de recevoir le même template plusieurs fois en peu de temps
+     * si plusieurs envois manuels/automatiques se chevauchent).
+     */
+    public function getCooldownGuestNoticeStatus(string $email): array
+    {
+        if (!class_exists('ConfigManager') || !(new \ConfigManager($this->module))->isCooldownEnabled()) {
+            return ['notice' => false, 'message' => ''];
+        }
+        if ($this->findCustomer($email) !== null) {
+            return ['notice' => false, 'message' => ''];
+        }
+        return [
+            'notice'  => true,
+            'message' => AdminTranslator::tVars('msg.cooldown_guest_notice', ['email' => $email]),
+        ];
+    }
+
+    /**
      * Vérification AJAX du garde-fou pour le front BO (bidirectionnel).
      * $template = template que le marchand veut envoyer (first_anniversary ou relationship_anniversary)
      * Retourne ['blocked' => bool, 'sent' => bool, 'message' => string]
