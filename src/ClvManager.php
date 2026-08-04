@@ -129,6 +129,28 @@ class ClvManager
             return $this->emptyResult($symbol);
         }
 
+        // Remboursements (avoirs) déduits du CA — sans ça, un client remboursé
+        // à 90%+ sur chaque commande obtenait le même CLV qu'un client fidèle
+        // sans aucun remboursement, faussant le ciblage marketing vers des
+        // clients à forte valeur apparente mais rentabilité réelle négative.
+        // Une commande intégralement remboursée passe généralement à
+        // valid=0 (déjà exclue par le filtre ci-dessus) ; ce cumul couvre
+        // donc surtout les remboursements PARTIELS, qui laissent la commande
+        // valid=1 avec son total_paid_tax_incl d'origine non réduit. Même
+        // colonnes que le clawback fidélité déjà en place dans
+        // OrderTriggersManager::hookActionOrderSlipAdd(). order_slip n'a pas
+        // de colonne id_shop propre — restreint aux id_order déjà filtrés
+        // par boutique ci-dessus, pas à id_customer seul (sinon un client
+        // partagé entre boutiques verrait ses remboursements d'UNE AUTRE
+        // boutique déduits à tort de ce CLV-ci).
+        $orderIds = implode(',', array_map(static fn ($o) => (int) $o['id_order'], $orders));
+        $totalRefunded = (float) $this->db->getValue(
+            'SELECT SUM((os.`total_products_tax_incl` + os.`total_shipping_tax_incl`) / IF(os.`conversion_rate` = 0, 1, os.`conversion_rate`))
+             FROM `' . _DB_PREFIX_ . 'order_slip` os
+             WHERE os.`id_order` IN (' . $orderIds . ')'
+        );
+        $totalRevenue = max(0.0, $totalRevenue - $totalRefunded);
+
         $avgOrder = $totalRevenue / $orderCount;
 
         // Ancienneté en mois (minimum 1)
@@ -258,6 +280,23 @@ class ClvManager
             $ordersAgg[(int) $r['id_customer']] = $r;
         }
 
+        // ── 1 requête : remboursements (avoirs) pour TOUS les candidats ──────
+        // Même correctif que computeClv() ci-dessus : order_slip n'a pas de
+        // colonne id_shop propre, d'où le JOIN sur orders pour rester scopé
+        // à cette boutique (et non aux remboursements toutes boutiques d'un
+        // client partagé).
+        $refundAgg = [];
+        foreach ($this->db->executeS(
+            'SELECT o.`id_customer`,
+                    SUM((os.`total_products_tax_incl` + os.`total_shipping_tax_incl`) / IF(os.`conversion_rate` = 0, 1, os.`conversion_rate`)) AS total_refunded
+             FROM `' . _DB_PREFIX_ . 'order_slip` os
+             INNER JOIN `' . _DB_PREFIX_ . 'orders` o ON o.`id_order` = os.`id_order`
+             WHERE o.`id_customer` IN (' . $idList . ') AND o.`id_shop` = ' . $this->idShop . '
+             GROUP BY o.`id_customer`'
+        ) ?: [] as $r) {
+            $refundAgg[(int) $r['id_customer']] = (float) $r['total_refunded'];
+        }
+
         // ── 1 requête : engagement email (sent/open) pour TOUS les candidats ──
         $engagementAgg = [];
         foreach ($this->db->executeS(
@@ -314,7 +353,8 @@ class ClvManager
                 $engagementRate,
                 $segmentAgg[$idCustomer] ?? null,
                 $churnAgg[$idCustomer] ?? 0,
-                $symbol
+                $symbol,
+                $refundAgg[$idCustomer] ?? 0.0
             );
 
             $results[] = array_merge($row, $clv);
@@ -338,8 +378,10 @@ class ClvManager
         float $engagementRate,
         ?string $segment,
         int $churnScore,
-        string $symbol
+        string $symbol,
+        float $totalRefunded = 0.0
     ): array {
+        $totalRevenue = max(0.0, $totalRevenue - $totalRefunded);
         $avgOrder = $totalRevenue / $orderCount;
 
         $firstDateObj = new \DateTime($firstDate);
