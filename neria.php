@@ -1172,7 +1172,11 @@ class Neria extends Module
 
         // Réputation de domaine — refresh auto côté BO (même throttle 24h que front)
         if (class_exists('DomainReputationManager')) {
-            $lastCheck = (int) Configuration::get('NERIA_DOMAIN_REP_LAST_CHECK');
+            // Scopé par boutique, cohérent avec DomainReputationManager (cache
+            // désormais par id_shop) — sinon cette lecture globale relançait
+            // runFullCheck() à chaque chargement BO malgré un cache scopé
+            // déjà frais pour la boutique courante.
+            $lastCheck = (int) Configuration::get('NERIA_DOMAIN_REP_LAST_CHECK', null, null, (int) $this->context->shop->id);
             if ((time() - $lastCheck) >= 86400) {
                 try {
                     (new DomainReputationManager($this))->runFullCheck();

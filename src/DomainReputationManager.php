@@ -97,10 +97,12 @@ class DomainReputationManager
 
     private Neria $module;
     private ?\WatchdogManager $watchdog = null;
+    private int $idShop;
 
     public function __construct(Neria $module)
     {
         $this->module = $module;
+        $this->idShop = (int) \Context::getContext()->shop->id;
     }
 
     private function watchdog(): \WatchdogManager
@@ -134,24 +136,21 @@ class DomainReputationManager
      */
     public function getCachedReport(): ?array
     {
-        $lastCheck = (int) \Configuration::get(self::CONFIG_LAST_CHECK);
+        // Cache scopé par boutique (id_shop en 4e paramètre) : un cache
+        // GLOBAL comparé a posteriori par domaine (ancien correctif) évite
+        // bien la fuite cross-boutique, mais sur une install multi-boutique
+        // à domaines distincts, chaque alternance de boutique invalidait le
+        // cache de l'autre — relançant runFullCheck() (jusqu'à 8s de DNS
+        // bloquants, cf. DNS_TIME_BUDGET_SECS) dans le chemin de rendu du
+        // visiteur front à CHAQUE changement de boutique, au lieu d'une fois
+        // par 24h. Scoper directement la clé élimine ce cache thrashing.
+        $lastCheck = (int) \Configuration::get(self::CONFIG_LAST_CHECK, null, null, $this->idShop);
         if ($lastCheck && (time() - $lastCheck) < self::CACHE_TTL) {
-            $json = \Configuration::get(self::CONFIG_CACHE);
+            $json = \Configuration::get(self::CONFIG_CACHE, null, null, $this->idShop);
             if ($json) {
                 $data = json_decode($json, true);
                 if (is_array($data)) {
-                    // Le cache est stocké en config GLOBALE (pas par boutique) :
-                    // sur une install multi-boutique où chaque boutique envoie
-                    // depuis un domaine différent (expéditeurs distincts par
-                    // boutique), la boutique A déclenchait la vérification,
-                    // mettait en cache SON domaine, puis la boutique B lisait
-                    // ce même cache pendant 24h — affichant la réputation du
-                    // domaine de A comme si c'était la sienne. On vérifie donc
-                    // que le domaine caché correspond bien au domaine actuel
-                    // avant de servir le cache.
-                    if (($data['domain'] ?? null) === $this->getSenderDomain()) {
-                        return $data;
-                    }
+                    return $data;
                 }
             }
         }
@@ -212,8 +211,8 @@ class DomainReputationManager
             'timestamp'  => time(),
         ];
 
-        \Configuration::updateValue(self::CONFIG_CACHE, json_encode($report));
-        \Configuration::updateValue(self::CONFIG_LAST_CHECK, time());
+        \Configuration::updateValue(self::CONFIG_CACHE, json_encode($report), false, null, $this->idShop);
+        \Configuration::updateValue(self::CONFIG_LAST_CHECK, time(), false, null, $this->idShop);
 
         $rblHits = count($bl['hits'] ?? []);
         $msgVars = ['domain' => $domain ?: '?', 'score' => $score, 'grade' => $grade];
