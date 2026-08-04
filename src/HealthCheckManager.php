@@ -1145,6 +1145,22 @@ class HealthCheckManager
             $offenders[] = "PostmasterManager : n'a plus de cache scopé par boutique (cacheKey()) — cache thrashing en multi-boutique, appels API Gmail Postmaster répétés (API sensible aux quotas)";
         }
 
+        // Bug du 2026-08-04 : looksLikeBounce() utilisait des mots-clés
+        // FRANÇAIS ISOLÉS ('échec', 'refusé', 'rejet') qui matchaient aussi
+        // des sujets d'emails clients légitimes ("Votre demande de
+        // remboursement a été refusée", "Échec du paiement") — un client
+        // répondant à une campagne était alors traité comme un bounce,
+        // rapprochant artificiellement son adresse du seuil de blocage
+        // automatique. Remplacés par des phrases composées propres aux
+        // notifications de bounce réelles.
+        $bounceFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php';
+        $bounceSrc  = is_file($bounceFile) ? (file_get_contents($bounceFile) ?: '') : '';
+        if ($bounceSrc === '') {
+            $offenders[] = 'BounceManager.php introuvable';
+        } elseif (preg_match("/\\\$subjectKeywords\\s*=\\s*\\[[^\\]]*'échec'\\s*,/su", $bounceSrc)) {
+            $offenders[] = "BounceManager : looksLikeBounce() utilise de nouveau le mot-clé isolé 'échec' (faux positifs sur des emails clients légitimes)";
+        }
+
         // Bug du 2026-07-22 : StatsManager::recordOpen() créditait des points
         // de fidélité (même famille que recordClick(), déjà protégé) sans
         // aucun verrou — eventExists()+record() n'est pas atomique. De
