@@ -411,6 +411,22 @@ class LoyaltyManager
         $cartRule->highlight               = false;
         $cartRule->free_shipping           = false;
 
+        // Restreint le bon à LA BOUTIQUE réelle du client en mode séparé
+        // (NERIA_LOYALTY_CROSS_SHOP_ENABLED désactivé) — sans ça, PrestaShop
+        // rend un CartRule utilisable sur TOUTES les boutiques de
+        // l'installation par défaut. Un client de la boutique A atteignant
+        // un palier obtenait un code utilisable au checkout de la boutique
+        // B (catalogue/devise différents), alors que la réservation
+        // anti-doublon (neria_loyalty_rewards) ne contrôle que l'UNICITÉ de
+        // l'émission, pas la validité d'usage du bon. En mode cumul
+        // transversal ($reservationShopId = sentinelle 0), le bon reste
+        // volontairement utilisable sur toutes les boutiques — c'est le
+        // comportement voulu de ce mode.
+        if ($reservationShopId > 0 && \Shop::isFeatureActive()) {
+            $cartRule->shop_restriction = 1;
+            $cartRule->id_shop_list     = [$reservationShopId];
+        }
+
         if ($tier['is_percent']) {
             // Plafond de sécurité en dernier rempart (déjà appliqué à la saisie
             // dans neria.php) — une valeur non plafonnée déjà en base avant ce
@@ -421,7 +437,13 @@ class LoyaltyManager
             $cartRule->reduction_amount  = (float) $tier['amount'];
             $cartRule->reduction_percent = 0;
             $cartRule->reduction_tax     = 1;
-            $cartRule->reduction_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT');
+            // Devise par défaut de LA BOUTIQUE réelle en mode séparé, pas la
+            // devise globale de l'installation — sinon un montant fixe
+            // (ex. "10") s'appliquait dans la mauvaise devise sur une
+            // boutique B en USD alors qu'il a été calculé en EUR côté A.
+            $cartRule->reduction_currency = $reservationShopId > 0
+                ? (int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $reservationShopId)
+                : (int) \Configuration::get('PS_CURRENCY_DEFAULT');
         }
 
         if (!$cartRule->add()) {

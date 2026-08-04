@@ -359,6 +359,17 @@ class BehavioralCronManager
         $cartRule->highlight               = false;
         $cartRule->free_shipping           = false;
 
+        // Restreint le bon à LA BOUTIQUE réelle du client — sans ça,
+        // PrestaShop rend un CartRule utilisable sur TOUTES les boutiques de
+        // l'installation par défaut. La réservation anti-doublon
+        // (neria_birthday_voucher) ne contrôle que l'unicité de l'émission,
+        // pas la validité d'usage du bon sur une autre boutique
+        // (catalogue/devise différents).
+        if ($idShop > 0 && \Shop::isFeatureActive()) {
+            $cartRule->shop_restriction = 1;
+            $cartRule->id_shop_list     = [$idShop];
+        }
+
         if ($isPercent) {
             $cartRule->reduction_percent = $amount;
             $cartRule->reduction_amount  = 0;
@@ -366,7 +377,7 @@ class BehavioralCronManager
             $cartRule->reduction_amount   = $amount;
             $cartRule->reduction_percent  = 0;
             $cartRule->reduction_tax      = 1;
-            $cartRule->reduction_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT');
+            $cartRule->reduction_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop);
         }
 
         if (!$cartRule->add()) {
