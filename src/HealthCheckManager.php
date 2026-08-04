@@ -1261,6 +1261,34 @@ class HealthCheckManager
             }
         }
 
+        // Bug du 2026-08-04 : isAllowed()/getByCustomer() retournaient un
+        // opt-in aveugle pour tout destinataire résolu à id_customer=0
+        // (newsletter/newsletter_voucher, pas forcément des clients
+        // PrestaShop) sans jamais consulter la ligne par email — le centre
+        // de préférences était un no-op permanent pour cette population
+        // (non-conformité RGPD/CAN-SPAM : "préférences enregistrées"
+        // affiché côté client, catégorie décochée jamais respectée).
+        $prefFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/PreferencesManager.php';
+        $prefSrc2  = is_file($prefFile2) ? (file_get_contents($prefFile2) ?: '') : '';
+        if ($prefSrc2 === '') {
+            $offenders[] = 'PreferencesManager.php introuvable (2e vérification)';
+        } else {
+            if (!preg_match('/function\s+isAllowed[\s\S]{0,900}?`id_customer`\s*=\s*0[\s\S]{0,200}?`email`\s*=/', $prefSrc2)) {
+                $offenders[] = "PreferencesManager : isAllowed() ne consulte plus la ligne par email pour les destinataires sans compte (id_customer=0) — centre de préférences de nouveau sans effet pour cette population";
+            }
+            if (!preg_match('/function\s+getByCustomer[\s\S]{0,600}?`id_customer`\s*=\s*0[\s\S]{0,200}?`email`\s*=/', $prefSrc2)) {
+                $offenders[] = "PreferencesManager : getByCustomer() ne consulte plus la ligne par email pour les destinataires sans compte (id_customer=0)";
+            }
+        }
+
+        $mainFile2 = _PS_MODULE_DIR_ . $this->module->name . '/' . $this->module->name . '.php';
+        $mainSrc2  = is_file($mainFile2) ? (file_get_contents($mainFile2) ?: '') : '';
+        if ($mainSrc2 === '') {
+            $offenders[] = 'neria.php introuvable (2e vérification)';
+        } elseif (strpos($mainSrc2, 'if ($idCustPref > 0 && !(new PreferencesManager($this))->isAllowed(') !== false) {
+            $offenders[] = "neria.php : le hook central a de nouveau le garde \$idCustPref > 0 devant isAllowed() — court-circuite la vérification des préférences pour les destinataires sans compte";
+        }
+
         // Bug du 2026-07-22 : StatsManager::recordOpen() créditait des points
         // de fidélité (même famille que recordClick(), déjà protégé) sans
         // aucun verrou — eventExists()+record() n'est pas atomique. De
