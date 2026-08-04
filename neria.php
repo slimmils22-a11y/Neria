@@ -3209,6 +3209,21 @@ class Neria extends Module
             exit;
         }
 
+        // ── Garde-fou préférences : vérification AJAX (bandeau proactif) ──
+        if (Tools::getValue('neria_action') === 'check_preferences_guard') {
+            $email    = trim((string) Tools::getValue('neria_email'));
+            $template = trim((string) Tools::getValue('neria_template'));
+            try {
+                $status = class_exists('ManualSendManager')
+                    ? (new ManualSendManager($this))->getPreferencesGuardStatus($email, $template)
+                    : ['blocked' => false, 'message' => ''];
+            } catch (\Throwable $e) {
+                $status = ['blocked' => false, 'message' => ''];
+            }
+            header('Content-Type: application/json');
+            die(json_encode($status));
+        }
+
         // ── Action : envoi manuel d'un template à un client ───────
         // ── Garde-fou anniversaire : vérification AJAX ───────────────
         if (Tools::getValue('neria_action') === 'check_anniversary_guard') {

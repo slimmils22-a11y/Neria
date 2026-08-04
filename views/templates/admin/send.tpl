@@ -79,6 +79,17 @@
                     border-radius:4px; font-size:12px; line-height:1.6;">
           <span id="neria-anniversary-guard-text"></span>
         </div>
+
+        {* Avertissement centre de préférences (chargé en AJAX) — le client
+           a désactivé la catégorie de ce template : le hook central bloque
+           déjà réellement l'envoi (le client ne recevra rien), ce bandeau
+           informe l'opérateur AVANT de cliquer "Envoyer" plutôt qu'après
+           coup dans le journal Watchdog. *}
+        <div id="neria-preferences-guard"
+             style="display:none; margin-top:10px; padding:11px 14px;
+                    border-radius:4px; font-size:12px; line-height:1.6;">
+          <span id="neria-preferences-guard-text"></span>
+        </div>
       </div>
 
       {* ── Sujet ──────────────────────────────────────────────── *}
@@ -289,6 +300,8 @@ window.NERIA_SEND_L10N = {
   var annGuardText = document.getElementById('neria-anniversary-guard-text');
   var dupGuardBox  = document.getElementById('neria-duplicate-guard');
   var dupGuardText = document.getElementById('neria-duplicate-guard-text');
+  var prefGuardBox  = document.getElementById('neria-preferences-guard');
+  var prefGuardText = document.getElementById('neria-preferences-guard-text');
 
   // Customer card + autocomplete
   var dropdown   = document.getElementById('neria-autocomplete-dropdown');
@@ -385,14 +398,33 @@ window.NERIA_SEND_L10N = {
      .catch(function () { hideBox(annGuardBox); setBlocked(false); });
   }
 
+  // ── AJAX : garde centre de préférences ─────────────────────────
+  function checkPreferencesGuard() {
+    var tpl = sel.value;
+    var email = (emailInput ? emailInput.value : '').trim();
+    if (!email || email.indexOf('@') === -1) { hideBox(prefGuardBox); return; }
+    fetch(ajaxUrl('check_preferences_guard',
+      '&neria_email=' + encodeURIComponent(email)
+      + '&neria_template=' + encodeURIComponent(tpl)),
+      { credentials: 'same-origin' }
+    ).then(function (r) { return r.json(); })
+     .then(function (d) {
+       showBox(prefGuardBox, prefGuardText, d, false);
+       if (d.blocked) { setBlocked(true); }
+     })
+     .catch(function () { hideBox(prefGuardBox); });
+  }
+
   function checkAllGuards() {
     setBlocked(false);
     hideBox(dupGuardBox);
     hideBox(annGuardBox);
+    hideBox(prefGuardBox);
     clearTimeout(ajaxTimer);
     ajaxTimer = setTimeout(function () {
       checkDuplicate();
       checkAnniversaryGuard();
+      checkPreferencesGuard();
     }, 500);
   }
 

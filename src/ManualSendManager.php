@@ -600,6 +600,20 @@ class ManualSendManager
             }
         }
 
+        // ── Garde-fou préférences ────────────────────────────────────────
+        // Le hook central actionEmailSendBefore (neria.php) applique déjà
+        // isAllowed() à ce Mail::Send() — le client est donc déjà protégé
+        // sans ce garde-fou. Mais Mail::Send() retourne TOUJOURS true quand
+        // un hook annule l'envoi (comportement documenté du cœur PrestaShop,
+        // cf. garde-fou bounce ci-dessus) : sans cette vérification explicite
+        // ICI, le marchand voyait "Email envoyé" alors que rien n'était
+        // réellement parti — bloqué silencieusement par le hook.
+        if (class_exists('PreferencesManager')
+            && !(new \PreferencesManager($this->module))->isAllowed($customer ? (int) $customer['id_customer'] : 0, $template, $idShop, $email)
+        ) {
+            return ['ok' => false, 'message' => AdminTranslator::tVars('msg.send_blocked_preferences', ['email' => $email])];
+        }
+
         // ── Garde-fou variables personnalisées manquantes ──────────────────
         // Bloque l'envoi si ce template utilise une variable personnalisée
         // (Configurer → Variables personnalisées) restée vide — sinon
@@ -869,6 +883,39 @@ class ManualSendManager
     }
 
     /**
+     * Vérification AJAX proactive du centre de préférences, pour afficher un
+     * bandeau d'avertissement AVANT que le marchand ne clique "Envoyer" — le
+     * garde-fou bloquant réel vit dans send()/scheduleManual() (et, en
+     * amont, le hook central actionEmailSendBefore), cette méthode ne fait
+     * que refléter ce que ce garde-fou décidera pour informer l'opérateur
+     * BO, qui ne verrait sinon la vraie cause qu'après coup dans le journal
+     * Watchdog (Mail::Send() retourne toujours true même quand le hook
+     * annule l'envoi).
+     *
+     * Retourne ['blocked' => bool, 'message' => string]
+     */
+    public function getPreferencesGuardStatus(string $email, string $template): array
+    {
+        if (!class_exists('PreferencesManager') || !isset(\PreferencesManager::TEMPLATE_CAT[$template])) {
+            return ['blocked' => false, 'message' => ''];
+        }
+
+        $customer  = $this->findCustomer($email);
+        $idShop    = (int) \Context::getContext()->shop->id;
+        $idCustomer = $customer ? (int) $customer['id_customer'] : 0;
+
+        $allowed = (new \PreferencesManager($this->module))->isAllowed($idCustomer, $template, $idShop, $email);
+        if ($allowed) {
+            return ['blocked' => false, 'message' => ''];
+        }
+
+        return [
+            'blocked' => true,
+            'message' => AdminTranslator::tVars('msg.send_blocked_preferences', ['email' => $email]),
+        ];
+    }
+
+    /**
      * Vérification AJAX du garde-fou pour le front BO (bidirectionnel).
      * $template = template que le marchand veut envoyer (first_anniversary ou relationship_anniversary)
      * Retourne ['blocked' => bool, 'sent' => bool, 'message' => string]
@@ -1069,6 +1116,10 @@ class ManualSendManager
         ];
         $customer['email'] = $email;
         $idLang = (int) $customer['id_lang'];
+        // findCustomer() (client réel) ne retourne pas de colonne id_shop —
+        // contrairement au pseudo-client par défaut ci-dessus — donc
+        // $customer['id_shop'] serait indéfini pour un vrai client.
+        $idShopManual = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
 
         if (class_exists('BlacklistManager')) {
             $langIso = class_exists('TranslationEngine')
@@ -1077,6 +1128,22 @@ class ManualSendManager
             if ((new \BlacklistManager())->isBlacklisted($template, $langIso)) {
                 return ['ok' => false, 'message' => AdminTranslator::tVars('msg.send_blocked_blacklist', ['template' => $template])];
             }
+        }
+
+        // ── Garde-fou préférences ────────────────────────────────────────
+        // Le hook central actionEmailSendBefore (neria.php) applique déjà
+        // isAllowed() à TOUT Mail::Send(), y compris l'envoi réel déclenché
+        // plus tard par QueueManager::processQueue() pour ce planifié — le
+        // client est donc déjà protégé sans ce garde-fou. Mais Mail::Send()
+        // retourne TOUJOURS true quand un hook annule l'envoi (comportement
+        // documenté du cœur PrestaShop, cf. garde-fou bounce ci-dessus) :
+        // sans cette vérification explicite ICI, au moment de la
+        // PLANIFICATION, le marchand n'a aucun moyen de savoir que son envoi
+        // planifié ne partira jamais réellement le jour J.
+        if (class_exists('PreferencesManager')
+            && !(new \PreferencesManager($this->module))->isAllowed((int) ($customer['id_customer'] ?? 0), $template, $idShopManual, $email)
+        ) {
+            return ['ok' => false, 'message' => AdminTranslator::tVars('msg.send_blocked_preferences', ['email' => $email])];
         }
 
         if (class_exists('ConfigManager')) {

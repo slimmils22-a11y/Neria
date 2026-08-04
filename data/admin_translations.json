@@ -58694,6 +58694,27 @@
         "nl": "Verzending geblokkeerd: {email} is gemarkeerd als ongeldig adres (bounce).",
         "gb": "Send blocked: {email} is marked as an invalid address (bounce)."
     },
+    "msg.send_blocked_preferences": {
+        "fr": "Envoi bloqué : {email} a désactivé cette catégorie d'emails dans son centre de préférences.",
+        "en": "Send blocked: {email} has opted out of this email category in their preference center.",
+        "de": "Versand blockiert: {email} hat diese E-Mail-Kategorie im Präferenzzentrum deaktiviert.",
+        "it": "Invio bloccato: {email} ha disattivato questa categoria di email nel proprio centro preferenze.",
+        "es": "Envío bloqueado: {email} ha desactivado esta categoría de correos en su centro de preferencias.",
+        "pt": "Envio bloqueado: {email} desativou esta categoria de emails no seu centro de preferências.",
+        "br": "Envio bloqueado: {email} desativou esta categoria de e-mails no seu centro de preferências.",
+        "ar": "تم حظر الإرسال: قام {email} بإلغاء الاشتراك في فئة البريد الإلكتروني هذه في مركز التفضيلات الخاص به.",
+        "ja": "送信がブロックされました：{email} はこのメールカテゴリを設定センターで無効にしています。",
+        "ko": "발송이 차단되었습니다: {email}가 환경설정 센터에서 이 이메일 카테고리를 비활성화했습니다.",
+        "zh": "发送已阻止：{email} 已在其偏好设置中心停用此邮件类别。",
+        "tw": "傳送已封鎖：{email} 已在其偏好設定中心停用此郵件類別。",
+        "ru": "Отправка заблокирована: {email} отключил эту категорию писем в своём центре настроек.",
+        "tr": "Gönderim engellendi: {email} tercih merkezinde bu e-posta kategorisini devre dışı bıraktı.",
+        "sv": "Utskick blockerat: {email} har inaktiverat denna e-postkategori i sitt inställningscenter.",
+        "no": "Utsending blokkert: {email} har deaktivert denne e-postkategorien i sitt preferansesenter.",
+        "da": "Afsendelse blokeret: {email} har deaktiveret denne e-mailkategori i deres præferencecenter.",
+        "nl": "Verzending geblokkeerd: {email} heeft deze e-mailcategorie uitgeschakeld in het voorkeurscentrum.",
+        "gb": "Send blocked: {email} has opted out of this email category in their preference center."
+    },
     "msg.bounce_deleted": {
         "fr": "Bounce supprimé.",
         "en": "Bounce deleted.",
