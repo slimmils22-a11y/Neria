@@ -1064,18 +1064,31 @@ class HealthCheckManager
             $offenders[] = 'MonthlyReportManager : checkAndSend() n\'itère plus sur chaque boutique avec un throttle dédié (une boutique pourrait de nouveau bloquer le rapport mensuel de toutes les autres)';
         }
 
-        // Bug du 2026-07-22 : le cache 24h de DomainReputationManager est
+        // Bug du 2026-07-22 : le cache 24h de DomainReputationManager était
         // stocké en config GLOBALE. Sur une install multi-boutique où chaque
         // boutique envoie depuis un domaine différent, la boutique A
         // déclenchait la vérification et mettait en cache SON domaine ; la
         // boutique B lisait ensuite ce même cache pendant 24h, affichant la
-        // réputation du domaine de A comme si c'était la sienne.
+        // réputation du domaine de A comme si c'était la sienne. Corrigé une
+        // 1re fois (2026-07-22) par une comparaison de domaine a posteriori,
+        // puis une 2e fois (2026-08-04) en scopant DIRECTEMENT la clé de
+        // cache par id_shop (4e paramètre Configuration::get/updateValue) —
+        // la comparaison de domaine est devenue redondante et a été retirée ;
+        // ce contrôle vérifie désormais le vrai scope id_shop, pas l'ancienne
+        // comparaison. Sans ce scope : cache thrashing en multi-boutique,
+        // relançant runFullCheck() (jusqu'à 8s de DNS bloquants) DANS LE
+        // CHEMIN DE RENDU du visiteur front à chaque changement de boutique.
         $domRepFile = _PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php';
         $domRepSrc  = is_file($domRepFile) ? (file_get_contents($domRepFile) ?: '') : '';
         if ($domRepSrc === '') {
             $offenders[] = 'DomainReputationManager.php introuvable';
-        } elseif (!preg_match('/function\s+getCachedReport[\s\S]{0,1300}?\[.domain.\]\s*\?\?\s*null\)\s*===\s*\$this->getSenderDomain\(\)/', $domRepSrc)) {
-            $offenders[] = 'DomainReputationManager : getCachedReport() ne vérifie plus que le domaine caché correspond au domaine actuel (une boutique pourrait de nouveau afficher la réputation d\'une autre boutique)';
+        } else {
+            if (strpos($domRepSrc, 'Configuration::get(self::CONFIG_LAST_CHECK, null, null, $this->idShop)') === false) {
+                $offenders[] = "DomainReputationManager : getCachedReport() n'utilise plus le cache scopé par \$this->idShop (cache thrashing en multi-boutique, latence DNS front)";
+            }
+            if (strpos($domRepSrc, 'Configuration::updateValue(self::CONFIG_CACHE, json_encode($report), false, null, $this->idShop)') === false) {
+                $offenders[] = "DomainReputationManager : runFullCheck() n'écrit plus le cache scopé par \$this->idShop";
+            }
         }
 
         // Bug du 2026-07-22 (même famille que DomainReputationManager
@@ -1404,6 +1417,22 @@ class HealthCheckManager
             // via le repli checkdate(2, 29, ...) → 28 février.
             if (strpos($seasonalSrc, "\\checkdate(2, 29, (int) date('Y', \$targetTs))") === false) {
                 $offenders[] = "SeasonalCampaignManager : runDueCampaigns() n'a plus le repli checkdate(2,29,...) pour les campagnes du 29 février (jamais déclenchées 3 années sur 4)";
+            }
+        }
+
+        $clvFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php';
+        $clvSrc  = is_file($clvFile) ? (file_get_contents($clvFile) ?: '') : '';
+        if ($clvSrc === '') {
+            $offenders[] = 'ClvManager.php introuvable';
+        } else {
+            // Bug du 2026-08-04 : ni computeClv() ni assembleClv() (chemin
+            // batch de getTopCustomers()) ne déduisaient les remboursements
+            // (order_slip) du chiffre d'affaires utilisé pour le CLV — un
+            // client remboursé à 90%+ sur chaque commande obtenait le même
+            // CLV qu'un client fidèle sans remboursement, faussant le
+            // ciblage marketing (Top 20, segments).
+            if (substr_count($clvSrc, "'order_slip` os") < 2) {
+                $offenders[] = "ClvManager : la déduction des remboursements (order_slip) a disparu d'un des deux chemins de calcul (computeClv()/assembleClv())";
             }
         }
 
