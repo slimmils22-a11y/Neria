@@ -74,8 +74,19 @@ class CertificateManager
         $customerName = trim($customer->firstname . ' ' . $customer->lastname);
         $customerEmail = $customer->email;
 
+        // ── Langue du client (même algorithme que EmailRenderer pour l'email,
+        //    afin que le PDF joint corresponde à la langue de l'email) ──────
+        // Résolue AVANT de charger le produit ci-dessous : le nom produit
+        // doit être chargé dans CETTE langue, pas celle du contexte BO de
+        // l'employé qui déclenche l'émission — sinon un marchand dont le BO
+        // est en arabe/chinois mais qui certifie une commande d'un client
+        // français voyait "PRODUIT" s'afficher en rectangles vides (police
+        // WinAnsi choisie pour $lang='fr' ne sait pas rendre l'arabe/CJK).
+        $lang = $this->resolveCertificateLang($order, (int) $customer->id_lang);
+
         // ── Produit ───────────────────────────────────────────────
-        $product = new \Product($idProduct, false, \Context::getContext()->language->id);
+        $idLangProduct = (int) (\Language::getIdByIso($lang) ?: \Context::getContext()->language->id);
+        $product = new \Product($idProduct, false, $idLangProduct);
         $productName = $product->name ?: 'Produit #' . $idProduct;
 
         // ── Numéro de série ───────────────────────────────────────
@@ -106,10 +117,6 @@ class CertificateManager
                 return AdminTranslator::tVars('msg.certificate_serial_exists', ['serial' => $serialNumber]);
             }
         }
-
-        // ── Langue du client (même algorithme que EmailRenderer pour l'email,
-        //    afin que le PDF joint corresponde à la langue de l'email) ──────
-        $lang = $this->resolveCertificateLang($order, (int) $customer->id_lang);
 
         // ── Génère le PDF ─────────────────────────────────────────
         $pdfResult = $this->generatePdf(
