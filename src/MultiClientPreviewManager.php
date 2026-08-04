@@ -174,6 +174,34 @@ class MultiClientPreviewManager
         return $html;
     }
 
+    /**
+     * Applique une ou plusieurs règles de suppression/remplacement de
+     * propriété CSS UNIQUEMENT à l'intérieur des attributs style="..." —
+     * pas sur le HTML entier. Les regex ci-dessous (ex. /background-image
+     * :[^;"'}]+;?/i) appliquées directement sur tout $html matchaient aussi
+     * du texte VISIBLE mentionnant littéralement une déclaration CSS (ex.
+     * un article/guide technique inclus dans l'email), le tronquant dans
+     * l'aperçu. Impact limité (outil de prévisualisation uniquement, ne
+     * touche jamais l'email réellement envoyé) mais corrigé pour rester
+     * fidèle au HTML source.
+     *
+     * @param array<string,string> $patterns [regex => remplacement]
+     */
+    private function replaceInInlineStyles(string $html, array $patterns): string
+    {
+        return preg_replace_callback(
+            '/(\sstyle\s*=\s*)(["\'])(.*?)\2/is',
+            function (array $m) use ($patterns): string {
+                $css = $m[3];
+                foreach ($patterns as $pattern => $replacement) {
+                    $css = preg_replace($pattern, $replacement, $css);
+                }
+                return $m[1] . $m[2] . $css . $m[2];
+            },
+            $html
+        ) ?? $html;
+    }
+
     private function transformGmail(string $html): string
     {
         return $this->addBanner($this->stripStyleAndLinkTags($html), 'gmail');
@@ -181,14 +209,14 @@ class MultiClientPreviewManager
 
     private function transformOutlook(string $html): string
     {
-        // Supprime background-image dans les attributs style
-        $html = preg_replace('/background-image\s*:[^;"\'}]+;?/i', '', $html);
-        // Supprime border-radius
-        $html = preg_replace('/border-radius\s*:[^;"\'}]+;?/i', '', $html);
-        // Supprime display:flex
-        $html = preg_replace('/display\s*:\s*flex[^;"\'}]*;?/i', 'display:block;', $html);
-        // Supprime gap
-        $html = preg_replace('/\bgap\s*:[^;"\'}]+;?/i', '', $html);
+        // Supprime background-image/border-radius/gap et neutralise
+        // display:flex, uniquement dans les attributs style="..."
+        $html = $this->replaceInInlineStyles($html, [
+            '/background-image\s*:[^;"\'}]+;?/i' => '',
+            '/border-radius\s*:[^;"\'}]+;?/i'     => '',
+            '/display\s*:\s*flex[^;"\'}]*;?/i'    => 'display:block;',
+            '/\bgap\s*:[^;"\'}]+;?/i'             => '',
+        ]);
 
         // Transforme aussi les blocs <style>
         $html = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/si', function ($m) {
@@ -234,7 +262,9 @@ class MultiClientPreviewManager
     private function stripLinkTagsAndShadows(string $html): string
     {
         $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html);
-        $html = preg_replace('/(?:text|box)-shadow\s*:[^;"\'}]+;?/i', '', $html);
+        $html = $this->replaceInInlineStyles($html, [
+            '/(?:text|box)-shadow\s*:[^;"\'}]+;?/i' => '',
+        ]);
         return $html;
     }
 
@@ -255,7 +285,9 @@ class MultiClientPreviewManager
     private function stripStyleAndBackgroundImage(string $html): string
     {
         $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
-        $html = preg_replace('/background-image\s*:[^;"\'}]+;?/i', '', $html);
+        $html = $this->replaceInInlineStyles($html, [
+            '/background-image\s*:[^;"\'}]+;?/i' => '',
+        ]);
         return $html;
     }
 
@@ -298,9 +330,11 @@ class MultiClientPreviewManager
     private function transformProtonMail(string $html): string
     {
         // ProtonMail (sécurité) : supprime border-radius, shadows et position (anti-tracking)
-        $html = preg_replace('/border-radius\s*:[^;"\'}]+;?/i', '', $html);
-        $html = preg_replace('/(?:text|box)-shadow\s*:[^;"\'}]+;?/i', '', $html);
-        $html = preg_replace('/\bposition\s*:[^;"\'}]+;?/i', '', $html);
+        $html = $this->replaceInInlineStyles($html, [
+            '/border-radius\s*:[^;"\'}]+;?/i'       => '',
+            '/(?:text|box)-shadow\s*:[^;"\'}]+;?/i' => '',
+            '/\bposition\s*:[^;"\'}]+;?/i'          => '',
+        ]);
         $html = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/si', function ($m) {
             $css = preg_replace('/border-radius\s*:[^;{}]+;?/i', '', $m[1]);
             $css = preg_replace('/(?:text|box)-shadow\s*:[^;{}]+;?/i', '', $css);

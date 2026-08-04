@@ -43,7 +43,28 @@ class NeriaTools
     public static function sanitizeHtml(string $text): string
     {
         $allowed = '<b><strong><i><em><u><br><p><span><a>';
-        return strip_tags($text, $allowed);
+        $text = strip_tags($text, $allowed);
+
+        // strip_tags() ne retire QUE les balises non autorisées, jamais les
+        // attributs des balises conservées — un <a href="javascript:..."> ou
+        // <span onmouseover="..."> passait intégralement à travers malgré le
+        // nom de la fonction. On retire tout attribut event handler (on*=)
+        // sur toutes les balises, et on ne garde sur <a> que href pointant
+        // vers un schéma sûr (http(s)/mailto) ; tout autre attribut/schéma
+        // est neutralisé.
+        $text = (string) preg_replace('/\son\w+\s*=\s*(".*?"|\'.*?\'|[^\s>]+)/i', '', $text);
+        $text = (string) preg_replace_callback(
+            '/<a\b[^>]*>/i',
+            static function (array $m): string {
+                if (preg_match('/href\s*=\s*(["\'])((?:https?:|mailto:)[^"\']*)\1/i', $m[0], $href)) {
+                    return '<a href="' . $href[2] . '">';
+                }
+                return '<a>';
+            },
+            $text
+        );
+
+        return $text;
     }
 
     /**

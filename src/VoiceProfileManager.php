@@ -223,6 +223,10 @@ class VoiceProfileManager
 
     private function sanitizeLang(string $lang): string
     {
-        return (string) preg_replace('/[^a-z]/i', '', $lang);
+        // Force la casse en sortie (le filtre /i n'agit qu'en entrée) — un
+        // appelant passant 'FR' obtenait sinon 'FR' non normalisé, cassant
+        // silencieusement les comparaisons strictes ailleurs dans le module
+        // (TranslationEngine::SUPPORTED_LANGS toujours en minuscule).
+        return mb_strtolower((string) preg_replace('/[^a-z]/i', '', $lang));
     }
 }
