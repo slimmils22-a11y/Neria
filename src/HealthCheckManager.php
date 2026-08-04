@@ -1603,6 +1603,21 @@ class HealthCheckManager
             }
         }
 
+        $calendarFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php';
+        $calendarSrc  = is_file($calendarFile) ? (file_get_contents($calendarFile) ?: '') : '';
+        if ($calendarSrc !== '') {
+            // Bug du 2026-08-05 : buildSentKey() (marqueur "campagne
+            // calendaire déjà envoyée" pour Aïd/Noël/etc.) n'incluait pas
+            // idShop — sur une install multi-boutique, la Boutique A pose
+            // le marqueur en posant Configuration::updateValue() sans scope
+            // boutique, et la Boutique B (même event/langue/pays) le trouve
+            // déjà positionné : elle n'envoie jamais sa propre campagne à
+            // ses clients, silencieusement, sans erreur ni log.
+            if (!preg_match('/private function buildSentKey\([^)]*\)\s*:\s*string\s*\{.*?idShop.*?\}/s', $calendarSrc)) {
+                $offenders[] = 'CalendarManager : buildSentKey() n\'inclut plus idShop — marqueur d\'envoi calendaire de nouveau partagé entre boutiques';
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,

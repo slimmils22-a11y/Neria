@@ -1251,10 +1251,20 @@ class CalendarManager
         string $countryCode,
         int    $year
     ): string {
+        // idShop inclus dans la clé : Configuration::get/updateValue sont
+        // appelés ici sans argument de scope boutique (le 3e/4e argument de
+        // Configuration sert à idLang/idShop mais ne correspond pas à cet
+        // usage). Sans idShop dans la clé elle-même, le marqueur "déjà
+        // envoyé" est partagé entre TOUTES les boutiques d'une install
+        // multi-boutique : la Boutique A envoie sa campagne calendaire et
+        // pose le marqueur, puis la Boutique B (même event/langue/pays) le
+        // trouve déjà positionné et n'envoie jamais rien à ses propres
+        // clients — silencieusement, sans erreur ni log.
         return self::SENT_PREFIX
             . strtoupper($eventKey)              . '_'
             . strtoupper($lang)                  . '_'
             . strtoupper($countryCode ?: 'ALL')  . '_'
-            . $year;
+            . $year                              . '_'
+            . 'SHOP' . $this->idShop;
     }
 }
