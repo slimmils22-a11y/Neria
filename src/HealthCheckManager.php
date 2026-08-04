@@ -1211,6 +1211,56 @@ class HealthCheckManager
             $offenders[] = "MultiClientPreviewManager : replaceInInlineStyles() a disparu — les règles CSS risquent de nouveau de s'appliquer sur le HTML entier (texte visible tronqué dans l'aperçu)";
         }
 
+        // Bug du 2026-08-04 : les 3 générateurs de bons (fidélité,
+        // anniversaire, palier) créaient un CartRule sans jamais restreindre
+        // id_shop_list/shop_restriction — PrestaShop rend un CartRule
+        // utilisable sur TOUTES les boutiques de l'installation par défaut.
+        // Un client de la boutique A atteignant un palier obtenait un code
+        // utilisable au checkout de la boutique B (catalogue/devise
+        // différents).
+        $loyaltyFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php';
+        $loyaltySrc2  = is_file($loyaltyFile2) ? (file_get_contents($loyaltyFile2) ?: '') : '';
+        if ($loyaltySrc2 === '') {
+            $offenders[] = 'LoyaltyManager.php introuvable (2e vérification)';
+        } elseif (strpos($loyaltySrc2, '$cartRule->id_shop_list     = [$reservationShopId];') === false) {
+            $offenders[] = "LoyaltyManager : generateVoucher() ne restreint plus le CartRule à la boutique réelle (id_shop_list) — bon de fidélité utilisable sur n'importe quelle boutique";
+        }
+
+        $cronFile3 = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
+        $cronSrc3  = is_file($cronFile3) ? (file_get_contents($cronFile3) ?: '') : '';
+        if ($cronSrc3 === '') {
+            $offenders[] = 'BehavioralCronManager.php introuvable (3e vérification)';
+        } elseif (strpos($cronSrc3, '$cartRule->id_shop_list     = [$idShop];') === false) {
+            $offenders[] = "BehavioralCronManager : generateBirthdayVoucher() ne restreint plus le CartRule à la boutique réelle (id_shop_list) — bon d'anniversaire utilisable sur n'importe quelle boutique";
+        }
+
+        $orderTrigFile = _PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php';
+        $orderTrigSrc  = is_file($orderTrigFile) ? (file_get_contents($orderTrigFile) ?: '') : '';
+        if ($orderTrigSrc === '') {
+            $offenders[] = 'OrderTriggersManager.php introuvable';
+        } elseif (strpos($orderTrigSrc, '$cartRule->id_shop_list     = [$idShop];') === false) {
+            $offenders[] = "OrderTriggersManager : generateMilestoneVoucher() ne restreint plus le CartRule à la boutique réelle (id_shop_list) — bon de palier utilisable sur n'importe quelle boutique";
+        }
+
+        // Bug du 2026-08-04 : retryOne() remettait status='pending' et
+        // attempts=0 mais ne réinitialisait jamais last_attempt —
+        // processQueue() ne sélectionne que WHERE last_attempt IS NULL OR
+        // last_attempt <= DATE_SUB(NOW(), INTERVAL POW(2, attempts) MINUTE),
+        // un clic admin "Relancer" moins d'une minute après le dernier échec
+        // laissait le webhook invisible au prochain passage du cron.
+        $webhookFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php';
+        $webhookSrc2  = is_file($webhookFile2) ? (file_get_contents($webhookFile2) ?: '') : '';
+        if ($webhookSrc2 === '') {
+            $offenders[] = 'WebhookManager.php introuvable';
+        } else {
+            if (!preg_match('/function\s+retryOne[\s\S]{0,1500}?`last_attempt`\s*=\s*NULL/', $webhookSrc2)) {
+                $offenders[] = "WebhookManager : retryOne() ne réinitialise plus last_attempt — relance manuelle inopérante avant 1 minute";
+            }
+            if (strpos($webhookSrc2, "'sequence' => \$idWebhook") === false) {
+                $offenders[] = "WebhookManager : trigger() n'injecte plus de numéro de séquence dans le payload — inversion d'ordre non détectable par les intégrateurs";
+            }
+        }
+
         // Bug du 2026-07-22 : StatsManager::recordOpen() créditait des points
         // de fidélité (même famille que recordClick(), déjà protégé) sans
         // aucun verrou — eventExists()+record() n'est pas atomique. De
