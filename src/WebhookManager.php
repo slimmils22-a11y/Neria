@@ -188,16 +188,40 @@ class WebhookManager
             return;
         }
 
+        $table = _DB_PREFIX_ . self::TABLE;
         $this->db->execute(sprintf(
             "INSERT INTO `%s`
                 (`id_shop`, `event`, `payload`, `status`, `attempts`, `date_add`)
              VALUES (%d, '%s', '%s', 'pending', 0, '%s')",
-            _DB_PREFIX_ . self::TABLE,
+            $table,
             $this->idShop,
             pSQL($event),
             pSQL($payload),
             date('Y-m-d H:i:s')
         ));
+
+        // Numéro de séquence (id_webhook, auto-incrémenté) réinjecté dans le
+        // payload après insertion — le backoff exponentiel est appliqué PAR
+        // LIGNE indépendamment (processQueue()) : un événement plus ancien
+        // en échec transitoire peut être livré APRÈS un événement plus
+        // récent qui a réussi du premier coup, potentiellement plusieurs
+        // minutes plus tard. Sans marqueur d'ordre explicite dans le
+        // payload, un intégrateur qui reconstruit un historique client à
+        // partir des webhooks reçus ne peut pas détecter/corriger cette
+        // inversion (ex. une conversion reçue sans email_sent préalable).
+        $idWebhook = (int) $this->db->Insert_ID();
+        if ($idWebhook > 0) {
+            $payloadWithSeq = json_encode(
+                array_merge(json_decode($payload, true) ?: [], ['sequence' => $idWebhook]),
+                JSON_UNESCAPED_UNICODE
+            );
+            if ($payloadWithSeq !== false) {
+                $this->db->execute(sprintf(
+                    "UPDATE `%s` SET `payload` = '%s' WHERE `id_webhook` = %d",
+                    $table, pSQL($payloadWithSeq), $idWebhook
+                ));
+            }
+        }
     }
 
     // ============================================================
@@ -591,8 +615,14 @@ class WebhookManager
             return false;
         }
 
+        // last_attempt remis à NULL en plus de attempts=0 : processQueue()
+        // ne sélectionne que WHERE last_attempt IS NULL OR last_attempt <=
+        // DATE_SUB(NOW(), INTERVAL POW(2, attempts) MINUTE) — sans ce reset,
+        // un clic admin "Relancer" moins d'une minute après le dernier échec
+        // enregistré (POW(2,0) = 1 minute) laissait le webhook invisible au
+        // prochain passage du cron malgré le message de succès affiché.
         $this->db->execute(sprintf(
-            "UPDATE `%s` SET `status` = 'pending', `attempts` = 0 WHERE `id_webhook` = %d AND id_shop = %d",
+            "UPDATE `%s` SET `status` = 'pending', `attempts` = 0, `last_attempt` = NULL WHERE `id_webhook` = %d AND id_shop = %d",
             $table, $idWebhook, $this->idShop
         ));
 
