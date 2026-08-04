@@ -1110,8 +1110,16 @@ class HealthCheckManager
         $searchConsoleSrc  = is_file($searchConsoleFile) ? (file_get_contents($searchConsoleFile) ?: '') : '';
         if ($searchConsoleSrc === '') {
             $offenders[] = 'SearchConsoleManager.php introuvable';
-        } elseif (!preg_match('/function\s+getStats[\s\S]{0,1300}?stripos\([\s\S]{0,80}?site_url[\s\S]{0,80}?getShopHost\(\)/', $searchConsoleSrc)) {
-            $offenders[] = 'SearchConsoleManager : getStats() ne vérifie plus que le cache correspond au domaine actuel (une boutique pourrait de nouveau afficher les stats Search Console d\'une autre boutique)';
+        } else {
+            // Bug du 2026-08-04 : la comparaison de domaine a posteriori
+            // (stripos(...site_url...getShopHost())) évitait la fuite entre
+            // boutiques mais provoquait un cache thrashing en multi-boutique
+            // (même défaut que DomainReputationManager, corrigé le même
+            // jour) — remplacée par un vrai scope id_shop sur la clé de
+            // cache (cacheKey()), comme PageSpeedManager/SeoApiManager.
+            if (strpos($searchConsoleSrc, "private function cacheKey(string \$base): string") === false) {
+                $offenders[] = "SearchConsoleManager : n'a plus de cache scopé par boutique (cacheKey()) — cache thrashing en multi-boutique, appels API Google Search Console répétés";
+            }
         }
 
         $seoApiFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SeoApiManager.php';
@@ -1120,6 +1128,21 @@ class HealthCheckManager
             $offenders[] = 'SeoApiManager.php introuvable';
         } elseif (!preg_match('/function\s+getReport[\s\S]{0,1300}?\[.domain.\]\s*\?\?\s*null\)\s*===\s*\$currentDomain/', $seoApiSrc)) {
             $offenders[] = 'SeoApiManager : getReport() ne vérifie plus que le cache correspond au domaine actuel (une boutique pourrait de nouveau afficher l\'autorité SEO d\'une autre boutique)';
+        }
+
+        // Bug du 2026-08-04 (même famille, découvert en auditant à froid le
+        // garde-fou ci-dessus qui omettait totalement PostmasterManager,
+        // alors même que le code de PostmasterManager reconnaissait
+        // explicitement le même défaut non répliqué depuis
+        // SearchConsoleManager) : cache Gmail Postmaster Tools en config
+        // GLOBALE, comparaison de domaine a posteriori (CONFIG_CACHE_HOST)
+        // remplacée par un vrai scope id_shop.
+        $postmasterFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php';
+        $postmasterSrc  = is_file($postmasterFile) ? (file_get_contents($postmasterFile) ?: '') : '';
+        if ($postmasterSrc === '') {
+            $offenders[] = 'PostmasterManager.php introuvable';
+        } elseif (strpos($postmasterSrc, "private function cacheKey(string \$base): string") === false) {
+            $offenders[] = "PostmasterManager : n'a plus de cache scopé par boutique (cacheKey()) — cache thrashing en multi-boutique, appels API Gmail Postmaster répétés (API sensible aux quotas)";
         }
 
         // Bug du 2026-07-22 : StatsManager::recordOpen() créditait des points

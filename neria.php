@@ -2562,8 +2562,7 @@ class Neria extends Module
             Configuration::deleteByName(PostmasterManager::CONFIG_ACCESS_TOKEN);
             Configuration::deleteByName(PostmasterManager::CONFIG_REFRESH_TOKEN);
             Configuration::deleteByName(PostmasterManager::CONFIG_TOKEN_EXPIRY);
-            Configuration::deleteByName(PostmasterManager::CONFIG_CACHE);
-            Configuration::deleteByName(PostmasterManager::CONFIG_CACHE_TIME);
+            (new PostmasterManager($this))->clearCache();
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.google_credentials_saved'));
         }
 
@@ -2584,8 +2583,7 @@ class Neria extends Module
         // ── Google Postmaster Tools : rafraîchissement forcé ──────
         if (Tools::getValue('neria_action') === 'refresh_postmaster' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('PostmasterManager')) {
             $manager = new PostmasterManager($this);
-            Configuration::deleteByName(PostmasterManager::CONFIG_CACHE);
-            Configuration::deleteByName(PostmasterManager::CONFIG_CACHE_TIME);
+            $manager->clearCache();
             $stats = $manager->getStats();
             if ($stats !== null) {
                 $this->context->smarty->assign([
@@ -2676,8 +2674,9 @@ class Neria extends Module
             Configuration::deleteByName(SearchConsoleManager::CONFIG_ACCESS_TOKEN);
             Configuration::deleteByName(SearchConsoleManager::CONFIG_REFRESH_TOKEN);
             Configuration::deleteByName(SearchConsoleManager::CONFIG_TOKEN_EXPIRY);
-            Configuration::deleteByName(SearchConsoleManager::CONFIG_CACHE);
-            Configuration::deleteByName(SearchConsoleManager::CONFIG_CACHE_TIME);
+            if (class_exists('SearchConsoleManager')) {
+                (new SearchConsoleManager($this))->clearCache();
+            }
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.searchconsole_credentials_saved'));
         }
 
@@ -2700,8 +2699,7 @@ class Neria extends Module
         // ── Search Console : rafraîchissement forcé ───────────────
         if (Tools::getValue('neria_action') === 'refresh_searchconsole' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('SearchConsoleManager')) {
             $mgr    = new SearchConsoleManager($this);
-            Configuration::deleteByName(SearchConsoleManager::CONFIG_CACHE);
-            Configuration::deleteByName(SearchConsoleManager::CONFIG_CACHE_TIME);
+            $mgr->clearCache();
             $stats = $mgr->getStats();
             if ($stats !== null) {
                 $this->context->smarty->assign([

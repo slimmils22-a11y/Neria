@@ -74,9 +74,23 @@ class SearchConsoleManager
             . 'index.php?fc=module&module=neria&controller=oauthsc';
     }
 
+    /**
+     * Clé de cache suffixée par boutique — même correctif que PageSpeedManager
+     * (déjà appliqué) et DomainReputationManager (2026-08-04) : sans ce
+     * scope, la comparaison de domaine a posteriori évite la fuite de
+     * données entre boutiques mais provoque un cache thrashing sur une
+     * install multi-boutique (chaque alternance de boutique invalide et
+     * réécrit le cache de l'autre, déclenchant un appel API Google réel à
+     * chaque chargement BO au lieu d'une fois par TTL).
+     */
+    private function cacheKey(string $base): string
+    {
+        return $base . '_' . (int) \Context::getContext()->shop->id;
+    }
+
     public function getCacheAge(): ?int
     {
-        $t = (int) \Configuration::get(self::CONFIG_CACHE_TIME);
+        $t = (int) \Configuration::get($this->cacheKey(self::CONFIG_CACHE_TIME));
         return $t ? (int) round((time() - $t) / 60) : null;
     }
 
@@ -211,18 +225,29 @@ class SearchConsoleManager
         return true;
     }
 
+    /**
+     * Invalide le cache de LA BOUTIQUE courante — à utiliser à la place d'un
+     * Configuration::deleteByName(SearchConsoleManager::CONFIG_CACHE) direct,
+     * qui viserait la clé non scopée (dont la donnée réelle vit désormais
+     * sous une clé suffixée par id_shop).
+     */
+    public function clearCache(): void
+    {
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_CACHE));
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_CACHE_TIME));
+    }
+
     public function disconnect(): void
     {
         foreach ([
             self::CONFIG_ACCESS_TOKEN,
             self::CONFIG_REFRESH_TOKEN,
             self::CONFIG_TOKEN_EXPIRY,
-            self::CONFIG_CACHE,
-            self::CONFIG_CACHE_TIME,
             self::CONFIG_OAUTH_STATE,
         ] as $key) {
             \Configuration::deleteByName($key);
         }
+        $this->clearCache();
     }
 
     // ============================================================
@@ -231,21 +256,12 @@ class SearchConsoleManager
 
     public function getStats(): ?array
     {
-        $cacheTime = (int) \Configuration::get(self::CONFIG_CACHE_TIME);
+        $cacheTime = (int) \Configuration::get($this->cacheKey(self::CONFIG_CACHE_TIME));
         if ($cacheTime && (time() - $cacheTime) < self::CACHE_TTL) {
-            $cached = \Configuration::get(self::CONFIG_CACHE);
+            $cached = \Configuration::get($this->cacheKey(self::CONFIG_CACHE));
             if ($cached) {
                 $data = json_decode($cached, true);
-                // Le cache est stocké en config GLOBALE (pas par boutique) :
-                // sur une install multi-boutique où chaque boutique a son
-                // propre domaine, la boutique A déclenchait la récupération
-                // et mettait en cache SES stats Search Console, puis la
-                // boutique B lisait ce même cache pendant 24h — affichant les
-                // clics/impressions du site de A comme si c'était les siens
-                // (même famille de bug que DomainReputationManager).
-                if (is_array($data)
-                    && stripos((string) ($data['site_url'] ?? ''), $this->getShopHost()) !== false
-                ) {
+                if (is_array($data)) {
                     return $data;
                 }
             }
@@ -253,14 +269,9 @@ class SearchConsoleManager
         return $this->fetchAndCache();
     }
 
-    private function getShopHost(): string
-    {
-        return (string) parse_url(\Tools::getShopDomainSsl(true), PHP_URL_HOST);
-    }
-
     public function getCachedStats(): ?array
     {
-        $cached = \Configuration::get(self::CONFIG_CACHE);
+        $cached = \Configuration::get($this->cacheKey(self::CONFIG_CACHE));
         if (!$cached) {
             return null;
         }
@@ -362,8 +373,8 @@ class SearchConsoleManager
             'checked_at' => \NeriaTools::formatDate('now', \AdminTranslator::currentLang(), true),
         ];
 
-        \Configuration::updateValue(self::CONFIG_CACHE,      json_encode($result, JSON_UNESCAPED_UNICODE));
-        \Configuration::updateValue(self::CONFIG_CACHE_TIME, time());
+        \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),      json_encode($result, JSON_UNESCAPED_UNICODE));
+        \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_TIME), time());
 
         $this->wd()->info(
             \WatchdogManager::i18nMsg('watchdog.gsc_loaded', [

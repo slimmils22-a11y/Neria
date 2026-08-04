@@ -190,18 +190,41 @@ class PostmasterManager
         return true;
     }
 
+    /**
+     * Clé de cache suffixée par boutique — même correctif que PageSpeedManager/
+     * SearchConsoleManager/DomainReputationManager (2026-08-04) : la
+     * comparaison de domaine a posteriori (CONFIG_CACHE_HOST) évite la fuite
+     * de données entre boutiques mais provoque un cache thrashing sur une
+     * install multi-boutique (chaque alternance de boutique invalide et
+     * réécrit le cache de l'autre, déclenchant un appel API Postmaster réel
+     * à chaque chargement BO au lieu d'une fois par TTL — API sensible aux
+     * quotas).
+     */
+    private function cacheKey(string $base): string
+    {
+        return $base . '_' . (int) \Context::getContext()->shop->id;
+    }
+
+    /**
+     * Invalide le cache de LA BOUTIQUE courante.
+     */
+    public function clearCache(): void
+    {
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_CACHE));
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_CACHE_TIME));
+    }
+
     public function disconnect(): void
     {
         foreach ([
             self::CONFIG_ACCESS_TOKEN,
             self::CONFIG_REFRESH_TOKEN,
             self::CONFIG_TOKEN_EXPIRY,
-            self::CONFIG_CACHE,
-            self::CONFIG_CACHE_TIME,
             self::CONFIG_OAUTH_STATE,
         ] as $key) {
             \Configuration::deleteByName($key);
         }
+        $this->clearCache();
     }
 
     // ============================================================
@@ -213,25 +236,13 @@ class PostmasterManager
      */
     public function getStats(): ?array
     {
-        $cacheTime = (int) \Configuration::get(self::CONFIG_CACHE_TIME);
+        $cacheTime = (int) \Configuration::get($this->cacheKey(self::CONFIG_CACHE_TIME));
         if ($cacheTime && (time() - $cacheTime) < self::CACHE_TTL) {
-            // Le cache est stocké en config GLOBALE (pas par boutique) : sur
-            // une install multi-boutique où chaque boutique a un domaine
-            // différent, la boutique A déclenchait la récupération et
-            // mettait en cache SES domaines Postmaster, puis la boutique B
-            // lisait ce même cache pendant 1h — affichant le score de
-            // réputation d'envoi de A comme si c'était le sien, pouvant
-            // déclencher de fausses alertes Watchdog sur B. Même bug déjà
-            // trouvé et corrigé dans SearchConsoleManager::getStats(), non
-            // répliqué ici jusqu'à présent.
-            $cachedHost = (string) \Configuration::get(self::CONFIG_CACHE_HOST);
-            if ($cachedHost !== '' && $cachedHost === $this->getShopHost()) {
-                $cached = \Configuration::get(self::CONFIG_CACHE);
-                if ($cached) {
-                    $data = json_decode($cached, true);
-                    if (is_array($data)) {
-                        return $data;
-                    }
+            $cached = \Configuration::get($this->cacheKey(self::CONFIG_CACHE));
+            if ($cached) {
+                $data = json_decode($cached, true);
+                if (is_array($data)) {
+                    return $data;
                 }
             }
         }
@@ -246,7 +257,7 @@ class PostmasterManager
 
     public function getCachedStats(): ?array
     {
-        $cached = \Configuration::get(self::CONFIG_CACHE);
+        $cached = \Configuration::get($this->cacheKey(self::CONFIG_CACHE));
         if (!$cached) {
             return null;
         }
@@ -256,7 +267,7 @@ class PostmasterManager
 
     public function getCacheAge(): ?int
     {
-        $t = (int) \Configuration::get(self::CONFIG_CACHE_TIME);
+        $t = (int) \Configuration::get($this->cacheKey(self::CONFIG_CACHE_TIME));
         return $t ? (int) round((time() - $t) / 60) : null;
     }
 
