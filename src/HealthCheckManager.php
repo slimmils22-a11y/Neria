@@ -1008,10 +1008,15 @@ class HealthCheckManager
         if ($segmentSrc === '') {
             $offenders[] = 'SegmentManager.php introuvable';
         } elseif (!preg_match('/NEW_CUSTOMER_GRACE_DAYS/', $segmentSrc)
-               // COALESCE(m.first_sent, ...) protège contre le cas NULL >= ...
-               // (client sans ligne segment) — first_sent n'est donc plus
-               // forcément immédiatement suivi de >=.
-               || !preg_match('/recomputeAll[\s\S]{0,4500}?first_sent[\s\S]{0,40}?>=\s*DATE_SUB/', $segmentSrc)) {
+               // strpos plutot qu'une regex a double quantificateur paresseux :
+               // first_sent apparait d'abord comme alias de colonne (AS
+               // first_sent) bien avant son usage reel dans la clause WHERE
+               // (COALESCE(m.first_sent, ...) >= DATE_SUB(...)) ; l'ecart entre
+               // les deux occurrences force un backtracking qui peut depasser
+               // la limite PCRE, faisant renvoyer false (erreur) a preg_match,
+               // ce que !preg_match() interprete alors a tort comme "correctif absent".
+               || strpos($segmentSrc, 'COALESCE(m.first_sent') === false
+               || strpos($segmentSrc, '>= DATE_SUB(NOW(), INTERVAL {$newCustomerGraceDays} DAY)') === false) {
             $offenders[] = 'SegmentManager : recomputeAll() ne protège plus les clients tout juste inscrits contre un classement immédiat en \'ghost\' (segment recommandé pour les campagnes win_back)';
         }
 
@@ -1256,8 +1261,14 @@ class HealthCheckManager
             if (!preg_match('/function\s+retryOne[\s\S]{0,1500}?`last_attempt`\s*=\s*NULL/', $webhookSrc2)) {
                 $offenders[] = "WebhookManager : retryOne() ne réinitialise plus last_attempt — relance manuelle inopérante avant 1 minute";
             }
-            if (strpos($webhookSrc2, "'sequence' => \$idWebhook") === false) {
-                $offenders[] = "WebhookManager : trigger() n'injecte plus de numéro de séquence dans le payload — inversion d'ordre non détectable par les intégrateurs";
+            // Depuis le round 49, le numéro de séquence n'est plus injecté
+            // dans le payload au moment de trigger() (payload 'sequence' =>
+            // $idWebhook, qui exigeait un second UPDATE après l'INSERT) mais
+            // à la volée dans processQueue(), juste avant l'envoi, à partir
+            // de la colonne id_webhook déjà connue — cf. le check plus bas
+            // qui vérifie l'absence de second UPDATE post-INSERT.
+            if (strpos($webhookSrc2, "\$decodedForSeq['sequence'] = \$id") === false) {
+                $offenders[] = "WebhookManager : processQueue() n'injecte plus de numéro de séquence dans le payload avant l'envoi — inversion d'ordre non détectable par les intégrateurs";
             }
         }
 
