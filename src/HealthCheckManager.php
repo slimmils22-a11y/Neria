@@ -1841,6 +1841,19 @@ class HealthCheckManager
             $offenders[] = 'ConfigManager : saveTypographyConfig() ne valide plus les polices contre FontManager::FONT_CATALOG — une police invalide pourrait de nouveau être enregistrée "avec succès" sans effet réel sur les emails';
         }
 
+        // Bug du 2026-08-05 (mise en place PHPStan) :
+        // hookActionDeleteGDPRCustomerImpl() appelait `new GdprAuditManager
+        // ($this)` au lieu de `new GdprAuditManager($this->getLocalPath())`
+        // — GdprAuditManager attend un string (chemin du module), pas
+        // l'objet module. Sans __toString() sur Neria, ce hook levait une
+        // TypeError fatale à CHAQUE suppression RGPD d'un client via le
+        // bouton natif PrestaShop "Supprimer + effacer les données
+        // personnelles", empêchant toute purge des données Neria pour ce
+        // client. Détecté par PHPStan, jamais remarqué en usage réel.
+        if ($mainSrc2 !== '' && strpos($mainSrc2, 'new GdprAuditManager($this))') !== false) {
+            $offenders[] = 'neria.php : hookActionDeleteGDPRCustomerImpl() appelle de nouveau new GdprAuditManager($this) au lieu de $this->getLocalPath() — TypeError fatale garantie à chaque suppression RGPD d\'un client';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
