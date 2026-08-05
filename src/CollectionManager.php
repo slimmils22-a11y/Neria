@@ -208,6 +208,17 @@ class CollectionManager
         $sent    = 0;
         $inList  = implode(',', $productIds);
 
+        // group_concat_max_len par défaut MySQL = 1024 octets — largement
+        // suffisant pour une petite collection, mais une collection de 150+
+        // produits peut faire dépasser GROUP_CONCAT(od.product_id) cette
+        // limite : la chaîne est alors tronquée SILENCIEUSEMENT (pas
+        // d'erreur SQL), et bought_ids ci-dessous ne contient plus qu'une
+        // liste partielle. array_diff() calcule alors un "produit manquant"
+        // potentiellement faux (un produit déjà acheté par le client, ou
+        // omet le vrai produit manquant) — élargi à 1 Mo, largement au-delà
+        // de toute collection réaliste.
+        $this->db->execute('SET SESSION group_concat_max_len = 1000000');
+
         // Clients ayant acheté au moins $total-1 produits de la collection dans une même boutique
         // (parmi des commandes payées) — groupé par boutique pour ne pas mélanger les catalogues
         // multi-boutiques, et borné pour éviter un timeout sur un gros volume.
