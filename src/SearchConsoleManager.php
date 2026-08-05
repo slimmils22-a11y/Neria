@@ -214,15 +214,27 @@ class SearchConsoleManager
             return false;
         }
 
-        \Configuration::updateValue(self::CONFIG_ACCESS_TOKEN,  \CryptoManager::encrypt($response['access_token']));
-        \Configuration::updateValue(self::CONFIG_REFRESH_TOKEN, \CryptoManager::encrypt($response['refresh_token'] ?? ''));
-        \Configuration::updateValue(self::CONFIG_TOKEN_EXPIRY,  time() + ($response['expires_in'] ?? 3600) - 60);
+        $this->applyTokenResponse($response);
         // Le state a déjà été consommé (retiré de la liste des flux en
         // attente) plus haut — ne PAS faire deleteByName ici, ça effacerait
         // aussi les autres flux OAuth potentiellement encore en attente.
 
         $this->wd()->info(\WatchdogManager::i18nMsg('watchdog.gsc_oauth_success'), '', 'SearchConsoleManager');
         return true;
+    }
+
+    /**
+     * Applique la réponse d'échange de token OAuth à la config — même
+     * correctif et même raisonnement que PostmasterManager::applyTokenResponse()
+     * (voir tests/regression/test_48_oauth_refresh_token_preserved.php).
+     */
+    private function applyTokenResponse(array $response): void
+    {
+        \Configuration::updateValue(self::CONFIG_ACCESS_TOKEN, \CryptoManager::encrypt($response['access_token']));
+        if (!empty($response['refresh_token'])) {
+            \Configuration::updateValue(self::CONFIG_REFRESH_TOKEN, \CryptoManager::encrypt($response['refresh_token']));
+        }
+        \Configuration::updateValue(self::CONFIG_TOKEN_EXPIRY, time() + ($response['expires_in'] ?? 3600) - 60);
     }
 
     /**
