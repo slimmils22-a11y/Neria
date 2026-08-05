@@ -1738,6 +1738,7 @@ class BehavioralCronManager
                    WHERE o.id_customer = ca.id_customer
                      AND od.product_id = cp.id_product
                      AND o.valid = 1
+                     AND o.id_shop = ' . $idShop . '
                )
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
