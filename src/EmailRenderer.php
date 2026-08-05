@@ -1844,11 +1844,23 @@ class EmailRenderer
         if (in_array($template, self::EXCLUDED_TEMPLATES, true)) {
             return true;
         }
-        // Résolution rapide de la langue (idLang uniquement, sans lookup client)
-        $lang = '';
-        if (!empty($params['idLang'])) {
-            $lang = $this->engine->langFromId((int) $params['idLang']);
-        }
+        // Résolution rapide de la langue (idLang uniquement, sans lookup
+        // client — la résolution complète via resolveEmailLang() n'est pas
+        // encore possible ici, $this->currentInternal n'étant posé que
+        // plus loin dans applyNeriaRendering()). Repli sur la langue par
+        // défaut de la boutique (PS_LANG_DEFAULT) si idLang est absent des
+        // $params : sans ce repli, $lang restait '' et BlacklistManager::
+        // isBlacklisted() ne matchait alors JAMAIS une règle ciblée sur une
+        // langue précise (seules les règles "toutes langues" s'appliquaient)
+        // — un template blacklisté pour 'fr' partait quand même à un client
+        // francophone si idLang n'était pas transmis dans ce contexte
+        // d'appel précis. Repli imparfait (n'aide pas si le client n'est
+        // pas dans la langue par défaut), mais referme la fenêtre la plus
+        // fréquente sans risquer de réordonner le flux de rendu principal.
+        $idLang = !empty($params['idLang'])
+            ? (int) $params['idLang']
+            : (int) \Configuration::get('PS_LANG_DEFAULT');
+        $lang = $idLang > 0 ? $this->engine->langFromId($idLang) : '';
         return (new BlacklistManager())->isBlacklisted($template, $lang);
     }
 
