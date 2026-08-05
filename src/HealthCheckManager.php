@@ -1675,6 +1675,19 @@ class HealthCheckManager
             $offenders[] = 'SegmentManager : recomputeAll() ne filtre plus is_mpp=0 sur total_opens/last_open — de nouveau incohérent avec StatsManager, un client sans ouverture réelle (MPP Apple) pourrait être classé ambassador/loyal';
         }
 
+        // Bug du 2026-08-05 : DomainReputationManager::getSenderDomain()
+        // lisait la clé 'from' au lieu de 'email' dans NERIA_SENDERS_JSON —
+        // le contrôle de réputation domaine retombait toujours sur le
+        // domaine boutique par défaut, jamais sur le vrai domaine d'un
+        // expéditeur multi-langue configuré.
+        $domainRepFile = _PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php';
+        $domainRepSrc  = is_file($domainRepFile) ? (file_get_contents($domainRepFile) ?: '') : '';
+        if ($domainRepSrc === '') {
+            $offenders[] = 'DomainReputationManager.php introuvable';
+        } elseif (preg_match('/\$senders\[\$lang\]\[.from.\]/', $domainRepSrc)) {
+            $offenders[] = 'DomainReputationManager : getSenderDomain() lit de nouveau la clé \'from\' au lieu de \'email\' — le contrôle de réputation ignorerait de nouveau tout expéditeur multi-langue configuré';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
