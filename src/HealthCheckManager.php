@@ -1963,6 +1963,64 @@ class HealthCheckManager
             $offenders[] = 'PropensityScoreManager : recalculateAll() ne purge plus les scores obsolètes — un client sorti du périmètre (commande annulée) réapparaîtrait de nouveau indéfiniment dans getAlertCustomers()';
         }
 
+        // Rattrapage 2026-08-05 : 5 correctifs de la période de développement
+        // initial (avant le 17/07/2026, avant la méthode "chasse aux bugs")
+        // n'avaient jamais reçu de protection, alors que leurs fichiers
+        // restent parmi les plus actifs du projet.
+
+        // Commit 2fba1c1 (03/07/2026) : ConfigManager — dépôt de logo BO,
+        // RCE potentielle si l'extension du fichier sauvegardé était de
+        // nouveau dérivée du nom fourni par le client (webshell via un
+        // fichier polyglotte "logo.php" au contenu image valide) au lieu du
+        // type MIME validé côté serveur.
+        if ($configSrc !== '' && strpos($configSrc, '$ext        = $extByMime[$mime];') === false) {
+            $offenders[] = 'ConfigManager : le dépôt de logo BO ne dérive plus l\'extension du fichier depuis le MIME validé — RCE potentielle via un fichier polyglotte nommé "logo.php"';
+        }
+
+        // Commit 88c480e (03/07/2026) : LoyaltyManager::generateVoucher() —
+        // sans la réservation atomique AVANT création du CartRule, deux
+        // requêtes quasi simultanées pouvaient créer chacune un bon de
+        // réduction valide pour le même palier de fidélité (fraude aux
+        // points).
+        $loyaltyFile = _PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php';
+        $loyaltySrc  = is_file($loyaltyFile) ? (file_get_contents($loyaltyFile) ?: '') : '';
+        if ($loyaltySrc === '') {
+            $offenders[] = 'LoyaltyManager.php introuvable';
+        } elseif (!preg_match('/function generateVoucher[\s\S]{0,1200}?INSERT IGNORE INTO/', $loyaltySrc)) {
+            $offenders[] = 'LoyaltyManager : generateVoucher() ne réserve plus le palier via INSERT IGNORE avant de créer le CartRule — deux requêtes concurrentes pourraient de nouveau créer chacune un bon valide pour le même palier';
+        }
+
+        // Commit bb99e9d (03/07/2026) : ClvManager — agrégation des
+        // remboursements sans filtre id_shop, exposant en multi-boutique
+        // les remboursements d'un client partagé faits sur UNE AUTRE
+        // boutique.
+        $clvFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php';
+        $clvSrc  = is_file($clvFile) ? (file_get_contents($clvFile) ?: '') : '';
+        if ($clvSrc === '') {
+            $offenders[] = 'ClvManager.php introuvable';
+        } elseif (strpos($clvSrc, 'o.`id_shop` = ' . '\' . $this->idShop') === false) {
+            $offenders[] = 'ClvManager : l\'agrégation des remboursements ne filtre plus par id_shop — un client partagé entre boutiques verrait de nouveau ses remboursements d\'une AUTRE boutique déduits à tort de son CLV';
+        }
+
+        // Commit 9d1f17f (07/07/2026) : EmailRenderer — signature manuscrite
+        // et réseaux sociaux jamais affichés dans un email réellement
+        // envoyé (bloc {if isset($var) && $var}...{/if} supprimé
+        // aveuglément par le nettoyage générique avant résolution).
+        if ($rendererSrc3 !== '' && strpos($rendererSrc3, "'neria_social_links' => \$html,") === false) {
+            $offenders[] = 'EmailRenderer : neria_social_links n\'est plus injecté dans tplVars — la signature/les réseaux sociaux redeviendraient invisibles dans les emails réellement envoyés';
+        }
+        if ($rendererSrc3 !== '' && strpos($rendererSrc3, "'{\$neria_signature_url}'    => \$templateVars['neria_signature_url']  ?? '',") === false) {
+            $offenders[] = 'EmailRenderer : {$neria_signature_url} n\'est plus résolu depuis templateVars — le lien de signature redeviendrait cassé ({$http://...} littéral) dans les emails réels';
+        }
+
+        // Commit 571c21b (09/07/2026) : EmailRenderer — le compile TXT
+        // n'avait aucun filet de sécurité équivalent au HTML pour les
+        // variables jamais résolues, affichées brutes ({days_waited}) dans
+        // l'email texte livré au client.
+        if ($rendererSrc3 !== '' && strpos($rendererSrc3, '$residualTxtKeys = array_unique($residualTxtMatches[0]);') === false) {
+            $offenders[] = 'EmailRenderer : le filet de sécurité sur les variables résiduelles a disparu du chemin TXT — un client pourrait de nouveau recevoir un email texte avec une variable non résolue affichée brute';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
