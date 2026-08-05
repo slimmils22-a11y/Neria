@@ -1688,6 +1688,136 @@ class HealthCheckManager
             $offenders[] = 'DomainReputationManager : getSenderDomain() lit de nouveau la clé \'from\' au lieu de \'email\' — le contrôle de réputation ignorerait de nouveau tout expéditeur multi-langue configuré';
         }
 
+        // Bug du 2026-08-05 (round 48) : MonthlyReportManager::getMonthKpis()
+        // ne filtrait pas is_mpp=0 sur les ouvertures, incohérent avec
+        // StatsManager partout ailleurs sur le dashboard BO live.
+        $monthlyFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php';
+        $monthlySrc2  = is_file($monthlyFile2) ? (file_get_contents($monthlyFile2) ?: '') : '';
+        if ($monthlySrc2 === '') {
+            $offenders[] = 'MonthlyReportManager.php introuvable';
+        } else {
+            if (preg_match('/CASE WHEN event_type = .open.  THEN 1 END\) AS total_open/', $monthlySrc2)) {
+                $offenders[] = 'MonthlyReportManager : total_open ne filtre de nouveau plus is_mpp=0 — incohérent avec StatsManager, gonfle le taux d\'ouverture affiché au marchand';
+            }
+            // Round 48 : le seuil HAVING du résumé A/B (getABTestSummary) doit
+            // rester aligné sur StatsManager::SIG_MIN_SAMPLE (100) — un seuil
+            // rabaissé (ex. retour à 5) annoncerait un gagnant A/B sur un
+            // échantillon trop petit pour être autre chose que du bruit.
+            if (!preg_match('/HAVING total_sent >= .\s*\.\s*StatsManager::SIG_MIN_SAMPLE/', $monthlySrc2)) {
+                $offenders[] = 'MonthlyReportManager : getABTestSummary() n\'utilise plus StatsManager::SIG_MIN_SAMPLE comme seuil — un gagnant A/B pourrait de nouveau être annoncé sur un échantillon trop petit';
+            }
+        }
+
+        // Bug du 2026-08-05 (round 48) : WaitlistManager::notifyProduct() —
+        // le verrou anti-doublon ne testait que notified_at IS NULL (posé
+        // seulement après envoi réussi) : deux appels concurrents pendant la
+        // fenêtre d'envoi remportaient tous deux le "verrou" et envoyaient
+        // le même email deux fois.
+        $waitlistFile = _PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php';
+        $waitlistSrc  = is_file($waitlistFile) ? (file_get_contents($waitlistFile) ?: '') : '';
+        if ($waitlistSrc === '') {
+            $offenders[] = 'WaitlistManager.php introuvable';
+        } elseif (!preg_match('/notified_at IS NULL\s*\n\s*AND \(claim_started_at IS NULL/', $waitlistSrc)) {
+            $offenders[] = 'WaitlistManager : le verrou anti-doublon de notifyProduct() ne teste plus claim_started_at — deux appels concurrents pourraient de nouveau envoyer le même email "de retour en stock" deux fois';
+        }
+
+        // Bug du 2026-08-05 (round 48) : GdprAuditManager::auditEncryption()
+        // validait la clé de chiffrement sur sa seule longueur, désynchronisé
+        // de CryptoManager::loadKey() (longueur + ctype_xdigit) — une clé
+        // corrompue en base pouvait afficher "actif/Grade A" avec un
+        // déchiffrement en réalité cassé sur toutes les données.
+        $gdprFile = _PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php';
+        $gdprSrc  = is_file($gdprFile) ? (file_get_contents($gdprFile) ?: '') : '';
+        if ($gdprSrc === '') {
+            $offenders[] = 'GdprAuditManager.php introuvable';
+        } elseif (!preg_match('/auditEncryption[\s\S]{0,800}?ctype_xdigit\(\$rawKey\)/', $gdprSrc)) {
+            $offenders[] = 'GdprAuditManager : auditEncryption() ne vérifie plus ctype_xdigit() sur la clé — une clé corrompue en base pourrait de nouveau afficher un chiffrement "actif" alors qu\'il est réellement cassé';
+        }
+
+        // Bug du 2026-08-05 (round 48) : QueueManager::processSingle()
+        // recalculait le ref_id de first_anniversary sans filtre id_shop,
+        // incohérent avec BehavioralCronManager qui scope explicitement par
+        // boutique — cassait la traçabilité neria_behavioral_sent en
+        // multi-boutique.
+        $queueFile = _PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php';
+        $queueSrc  = is_file($queueFile) ? (file_get_contents($queueFile) ?: '') : '';
+        if ($queueSrc === '') {
+            $offenders[] = 'QueueManager.php introuvable';
+        } elseif (preg_match('/SELECT MIN\(id_order\) FROM[\s\S]{0,300}?AND valid = 1(?! AND id_shop)/', $queueSrc)) {
+            $offenders[] = 'QueueManager : le recalcul du ref_id first_anniversary a de nouveau perdu son filtre id_shop — traçabilité neria_behavioral_sent de nouveau incohérente en multi-boutique';
+        }
+
+        // Bug du 2026-08-05 (round 48) : StatsManager::recordConversion() —
+        // le garde anti cross-shop était entièrement court-circuité quand
+        // id_shop de la commande valait 0 (commande orpheline/legacy),
+        // réintroduisant la fuite qu'il visait à éliminer.
+        $statsFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php';
+        $statsSrc2  = is_file($statsFile2) ? (file_get_contents($statsFile2) ?: '') : '';
+        if ($statsSrc2 === '') {
+            $offenders[] = 'StatsManager.php introuvable (2e vérification)';
+        } elseif (preg_match('/if \(\$idShop > 0 && isset\(\$sent\[.id_shop.\]\)/', $statsSrc2)) {
+            $offenders[] = 'StatsManager : recordConversion() a de nouveau réintroduit le garde $idShop > 0 — la vérification cross-shop serait de nouveau court-circuitée quand id_shop de la commande vaut 0';
+        }
+
+        // Bug du 2026-08-05 (round 49) : BehavioralCronManager::run()
+        // appelait SegmentManager/ChurnScoreManager/PropensityScoreManager
+        // UNE SEULE FOIS après restauration du contexte boutique d'origine,
+        // au lieu de rester dans la boucle par boutique — seule la boutique
+        // du contexte cron d'origine avait ses segments/scores recalculés
+        // chaque jour sur une install multi-boutiques.
+        $cronFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
+        $cronSrc2  = is_file($cronFile2) ? (file_get_contents($cronFile2) ?: '') : '';
+        if ($cronSrc2 === '') {
+            $offenders[] = 'BehavioralCronManager.php introuvable (2e vérification)';
+        } else {
+            $shopsLoopPos = strpos($cronSrc2, 'foreach ($shops as $idShop) {');
+            $segmentCallPos = strpos($cronSrc2, "SegmentManager(\$this->module))->recomputeAll()");
+            $churnCallPos   = strpos($cronSrc2, "ChurnScoreManager(\$this->module))->recomputeAll()");
+            $propensityCallPos = strpos($cronSrc2, "'recalculatePropensityScores'");
+            $lastShopsForeach = strrpos($cronSrc2, 'foreach ($shops as $idShop) {');
+            if ($shopsLoopPos === false || $segmentCallPos === false || $churnCallPos === false || $propensityCallPos === false) {
+                $offenders[] = 'BehavioralCronManager : structure de run() modifiée de façon inattendue — vérifier manuellement que Segment/Churn/Propensity restent dans la boucle multi-boutique';
+            } elseif ($segmentCallPos < $lastShopsForeach || $churnCallPos < $lastShopsForeach || $propensityCallPos < $lastShopsForeach) {
+                $offenders[] = 'BehavioralCronManager : SegmentManager/ChurnScoreManager/PropensityScoreManager ne sont plus appelés à l\'intérieur de la boucle multi-boutique — recalcul limité à une seule boutique sur une install multi-shop';
+            }
+        }
+
+        // Bug du 2026-08-05 (round 49) : restauration de traduction
+        // (restore_translation/restore_variant_b, neria.php) sans vérifier
+        // que l'entrée d'historique récupérée appartient au bon
+        // template/langue affiché (getById() ne filtre que par id_shop) —
+        // pouvait écraser silencieusement une traduction sans rapport.
+        $mainFile2 = _PS_MODULE_DIR_ . $this->module->name . '/' . $this->module->name . '.php';
+        $mainSrc2  = is_file($mainFile2) ? (file_get_contents($mainFile2) ?: '') : '';
+        if ($mainSrc2 === '') {
+            $offenders[] = 'neria.php introuvable (2e vérification)';
+        } else {
+            $restoreCount = substr_count($mainSrc2, "entry['template_key'] ?? null)");
+            if ($restoreCount < 2) {
+                $offenders[] = 'neria.php : la vérification template_key/lang_code sur la restauration d\'historique de traduction (restore_translation et/ou restore_variant_b) a disparu — un id_history d\'un autre template/langue pourrait de nouveau écraser une traduction sans rapport';
+            }
+        }
+
+        // Bug du 2026-08-05 (round 49) : EmailRenderer — le nom d'expéditeur
+        // multi-langue (NERIA_SENDERS_JSON, champ libre non validé) était
+        // injecté dans fromName sans neutralisation CR/LF.
+        if ($rendererSrc3 !== '' && !preg_match('/str_replace\(\["\\\\r", "\\\\n"\], .., \$sender\[.name.\]\)/', $rendererSrc3)) {
+            $offenders[] = 'EmailRenderer : fromName (expéditeur multi-langue) n\'est plus neutralisé des CR/LF avant injection';
+        }
+
+        // Bug du 2026-08-05 (round 49) : WebhookManager::trigger() posait le
+        // numéro de séquence via un SECOND UPDATE après l'INSERT initial —
+        // un process tué entre les deux laissait la ligne définitivement
+        // sans marqueur d'ordre. Corrigé en l'injectant à la volée dans
+        // processQueue() à partir de id_webhook (une seule écriture).
+        $webhookFile = _PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php';
+        $webhookSrc  = is_file($webhookFile) ? (file_get_contents($webhookFile) ?: '') : '';
+        if ($webhookSrc === '') {
+            $offenders[] = 'WebhookManager.php introuvable';
+        } elseif (strpos($webhookSrc, 'idWebhook = (int) $this->db->Insert_ID()') !== false) {
+            $offenders[] = 'WebhookManager : trigger() pose de nouveau le numéro de séquence via un second UPDATE après l\'INSERT — une ligne pourrait de nouveau rester définitivement sans marqueur d\'ordre si le process meurt entre les deux requêtes';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
