@@ -1618,6 +1618,63 @@ class HealthCheckManager
             }
         }
 
+        // Bug du 2026-08-05 : la substitution des variables client
+        // (firstname/message/gift_message...) via str_replace() en boucle
+        // au lieu de strtr() réintroduisait la fuite de cross-substitution
+        // déjà corrigée pour les variables de design — une valeur cliente
+        // contenant littéralement "{autre_variable}" pouvait se faire
+        // re-substituer selon l'ordre d'itération du foreach.
+        $rendererFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
+        $rendererSrc3  = is_file($rendererFile2) ? (file_get_contents($rendererFile2) ?: '') : '';
+        if ($rendererSrc3 === '') {
+            $offenders[] = 'EmailRenderer.php introuvable (2e vérification)';
+        } elseif (preg_match('/foreach\s*\(\s*\$htmlTemplateVars\s+as\s+\$key\s*=>\s*\$value\s*\)\s*\{\s*if\s*\(is_string\(\$value\)\)\s*\{\s*\$compiled\s*=\s*str_replace/s', $rendererSrc3)
+               || preg_match('/foreach\s*\(\s*\$templateVars\s+as\s+\$key\s*=>\s*\$value\s*\)\s*\{\s*if\s*\(is_string\(\$value\)\)\s*\{\s*\$compiledTxt\s*=\s*str_replace/s', $rendererSrc3)) {
+            $offenders[] = 'EmailRenderer : les variables client (HTML et/ou TXT) sont de nouveau substituées via str_replace() en boucle au lieu de strtr() — fuite de cross-substitution possible entre variables';
+        }
+
+        // Bug du 2026-08-05 : 3 requêtes de suggestion UpsellManager ne
+        // regardaient que le stock "sans attribut" (id_product_attribute=0),
+        // excluant systématiquement tout produit géré par déclinaisons des
+        // suggestions upsell — même famille de bug que WaitlistManager.
+        $upsellFile = _PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php';
+        $upsellSrc  = is_file($upsellFile) ? (file_get_contents($upsellFile) ?: '') : '';
+        if ($upsellSrc === '') {
+            $offenders[] = 'UpsellManager.php introuvable';
+        } elseif (preg_match('/id_product_attribute\s*=\s*0\s+AND\s+sa\.quantity\s*>\s*0/', $upsellSrc)) {
+            $offenders[] = 'UpsellManager : une requête de suggestion filtre de nouveau sur id_product_attribute=0 — les produits gérés par déclinaisons seraient de nouveau exclus des suggestions même en stock';
+        }
+
+        // Bug du 2026-08-05 : le retour de Mail::Send() n'était pas vérifié
+        // dans SeasonalCampaignManager::runDueCampaigns() — un échec SMTP
+        // transitoire posait quand même la déduplication annuelle,
+        // excluant le client de la campagne pour le reste de l'année sans
+        // aucune alerte.
+        $seasonalFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php';
+        $seasonalSrc  = is_file($seasonalFile) ? (file_get_contents($seasonalFile) ?: '') : '';
+        if ($seasonalSrc === '') {
+            $offenders[] = 'SeasonalCampaignManager.php introuvable';
+        } else {
+            $okAssignPos = strpos($seasonalSrc, 'Mail::Send(');
+            $continuePos = $okAssignPos !== false ? strpos($seasonalSrc, 'if (!$ok) {', $okAssignPos) : false;
+            if ($okAssignPos === false
+                || strpos($seasonalSrc, '$ok = ') === false
+                || $continuePos === false
+                || ($continuePos - $okAssignPos) > 2000
+            ) {
+                $offenders[] = 'SeasonalCampaignManager : runDueCampaigns() ne vérifie plus le retour de Mail::Send() avant de poser la déduplication annuelle — un échec d\'envoi exclurait le client de la campagne pour le reste de l\'année';
+            }
+        }
+
+        // Bug du 2026-08-05 : SegmentManager::recomputeAll() ne filtrait pas
+        // is_mpp=0 sur les ouvertures, contrairement à StatsManager partout
+        // ailleurs — un client n'ouvrant jamais réellement ses emails
+        // (pré-chargement Apple Mail Privacy Protection) pouvait être classé
+        // ambassador/loyal au lieu de ghost/dormant.
+        if ($segmentSrc !== '' && preg_match('/function\s+recomputeAll[\s\S]{0,6000}?SUM\(event_type\s*=\s*.open.\)\s+AS\s+total_opens/', $segmentSrc)) {
+            $offenders[] = 'SegmentManager : recomputeAll() ne filtre plus is_mpp=0 sur total_opens/last_open — de nouveau incohérent avec StatsManager, un client sans ouverture réelle (MPP Apple) pourrait être classé ambassador/loyal';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
