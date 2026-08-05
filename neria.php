@@ -2742,12 +2742,22 @@ class Neria extends Module
             $mozAccess  = trim((string) Tools::getValue('seo_moz_access', ''));
             $mozSecret  = trim((string) Tools::getValue('seo_moz_secret', ''));
             Configuration::updateValue(SeoApiManager::CONFIG_PROVIDER,    $provider);
-            if ($semrushKey !== '') {
-                Configuration::updateValue(SeoApiManager::CONFIG_SEMRUSH_KEY, CryptoManager::encrypt($semrushKey));
-            }
-            if ($mozAccess !== '') {
-                Configuration::updateValue(SeoApiManager::CONFIG_MOZ_ACCESS, CryptoManager::encrypt($mozAccess));
-            }
+            // seo_semrush_key et seo_moz_access sont pré-remplis avec la
+            // vraie valeur déchiffrée dans le formulaire (stats.tpl) : un
+            // champ vide à la soumission signifie donc que le marchand l'a
+            // VOLONTAIREMENT vidé pour révoquer l'accès — écraser
+            // systématiquement (comme PageSpeed) permet cette révocation,
+            // au lieu de conserver silencieusement l'ancienne clé en base.
+            Configuration::updateValue(SeoApiManager::CONFIG_SEMRUSH_KEY, CryptoManager::encrypt($semrushKey));
+            Configuration::updateValue(SeoApiManager::CONFIG_MOZ_ACCESS, CryptoManager::encrypt($mozAccess));
+            // seo_moz_secret, à l'inverse, est un champ <input type="password">
+            // JAMAIS pré-rempli (bonne pratique : ne pas réafficher un secret
+            // déjà enregistré) — il est donc TOUJOURS vide à la soumission
+            // sauf si le marchand vient de le retaper. Écraser
+            // systématiquement comme les deux champs ci-dessus effacerait le
+            // secret à CHAQUE sauvegarde du formulaire, même pour une raison
+            // sans rapport (ex. changer juste le provider). On ne met à jour
+            // que s'il a été explicitement resaisi.
             if ($mozSecret !== '') {
                 Configuration::updateValue(SeoApiManager::CONFIG_MOZ_SECRET, CryptoManager::encrypt($mozSecret));
             }
