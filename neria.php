@@ -1922,7 +1922,13 @@ class Neria extends Module
                 $sigName  = (string) Tools::getValue('sig_name', '');
                 $sigTitle = (string) Tools::getValue('sig_title', '');
                 $sigStyle = (string) Tools::getValue('sig_style', 'great_vibes');
-                $sigColor = (string) Tools::getValue('sig_color', '#b38b59');
+                // sanitizeColor() valide le format hex et retombe sur la
+            // couleur par défaut si invalide — sans ça, un format hors
+            // norme (longueur différente de 3/6, caractères non hexa)
+            // faisait rendre la signature en noir/couleur incohérente,
+            // silencieusement, dans SignatureGenerator::hexToRgb()
+            // (substr()/hexdec('') sur une chaîne mal formée).
+            $sigColor = NeriaTools::sanitizeColor((string) Tools::getValue('sig_color', '#b38b59'), '#b38b59');
 
                 if ($sigName === '') {
                     $sigName = trim((string) Configuration::get('PS_SHOP_NAME')) ?: 'Signature';
@@ -2874,7 +2880,13 @@ class Neria extends Module
             && class_exists('SignatureGenerator') && class_exists('ConfigManager')
         ) {
             $sigStyle = (string) Tools::getValue('sig_style', 'great_vibes');
-            $sigColor = (string) Tools::getValue('sig_color', '#b38b59');
+            // sanitizeColor() valide le format hex et retombe sur la
+            // couleur par défaut si invalide — sans ça, un format hors
+            // norme (longueur différente de 3/6, caractères non hexa)
+            // faisait rendre la signature en noir/couleur incohérente,
+            // silencieusement, dans SignatureGenerator::hexToRgb()
+            // (substr()/hexdec('') sur une chaîne mal formée).
+            $sigColor = NeriaTools::sanitizeColor((string) Tools::getValue('sig_color', '#b38b59'), '#b38b59');
 
             // Le nom/titre viennent des Variables personnalisées déjà enregistrées
             // (formulaire séparé sur la même page) — pas de champs dédiés dans
