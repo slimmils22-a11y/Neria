@@ -1818,6 +1818,29 @@ class HealthCheckManager
             $offenders[] = 'WebhookManager : trigger() pose de nouveau le numéro de séquence via un second UPDATE après l\'INSERT — une ligne pourrait de nouveau rester définitivement sans marqueur d\'ordre si le process meurt entre les deux requêtes';
         }
 
+        // Bug du 2026-08-05 (round 50) : EmailRenderer::wrapLinksInFile()
+        // capturait une URL déjà HTML-échappée (attribut href du fichier
+        // compilé) sans la décoder — un lien produit avec un paramètre
+        // existant (ex. déclinaison) contenait "&amp;" littéral, corrompant
+        // ensuite la clé neria_ur lue par parse_str() dans track.php.
+        // UpsellManager::recordClick() n'était alors jamais appelé pour ces
+        // produits.
+        if ($rendererSrc3 !== '' && strpos($rendererSrc3, 'html_entity_decode($am[2], ENT_QUOTES)') === false) {
+            $offenders[] = 'EmailRenderer : wrapLinksInFile() ne décode plus l\'URL capturée avec html_entity_decode() — le tracking upsell (et tout lien avec un paramètre d\'URL existant) serait de nouveau cassé par la corruption de "&amp;" lors du parse_str() dans track.php';
+        }
+
+        // Bug du 2026-08-05 (round 50) : ConfigManager::saveTypographyConfig()
+        // n'avait pas de whitelist contre FontManager::FONT_CATALOG pour les
+        // polices non-titre — une valeur hors catalogue était enregistrée
+        // "avec succès" côté BO mais sans aucun effet réel sur les emails.
+        $configFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php';
+        $configSrc  = is_file($configFile) ? (file_get_contents($configFile) ?: '') : '';
+        if ($configSrc === '') {
+            $offenders[] = 'ConfigManager.php introuvable';
+        } elseif (strpos($configSrc, "array_keys(\\FontManager::FONT_CATALOG)") === false) {
+            $offenders[] = 'ConfigManager : saveTypographyConfig() ne valide plus les polices contre FontManager::FONT_CATALOG — une police invalide pourrait de nouveau être enregistrée "avec succès" sans effet réel sur les emails';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
