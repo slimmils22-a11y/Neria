@@ -2193,6 +2193,21 @@ class HealthCheckManager
             $offenders[] = 'BehavioralCronManager::sendGhostCarts() ne filtre plus o.id_shop dans son NOT EXISTS sur les commandes — un achat validé sur une autre boutique pourrait de nouveau masquer silencieusement un panier abandonné réel';
         }
 
+        // Round 56 (2026-08-05) : LoyaltyManager::generateVoucher() complétait
+        // la réservation de palier (UPDATE id_cart_rule/voucher_code) filtrée
+        // uniquement par id_customer + tier_key, sans id_shop — contrairement
+        // à l'INSERT et au DELETE de rollback juste au-dessus. En mode séparé,
+        // deux boutiques réservant quasi simultanément le même palier pour un
+        // même client voyaient l'UPDATE de l'une écraser la réservation de
+        // l'autre avec un id_cart_rule/voucher_code invalide pour elle.
+        $loyaltyFile = _PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php';
+        $loyaltySrc  = is_file($loyaltyFile) ? (file_get_contents($loyaltyFile) ?: '') : '';
+        if ($loyaltySrc === '') {
+            $offenders[] = 'src/LoyaltyManager.php introuvable';
+        } elseif (strpos($loyaltySrc, "AND tier_key = '\" . pSQL(\$tier['key']) . \"'\n               AND id_shop = \" . \$reservationShopId") === false) {
+            $offenders[] = 'LoyaltyManager::generateVoucher() ne filtre plus id_shop dans l\'UPDATE final de la réservation de palier — deux boutiques réservant le même palier pour le même client pourraient de nouveau s\'écraser mutuellement leur bon';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
