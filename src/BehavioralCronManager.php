@@ -1868,13 +1868,17 @@ class BehavioralCronManager
                 $preferredHour = (new \PurchaseWindowManager())->getPreferredHour((int) $customer['id_customer'], $idShop);
                 if ($preferredHour !== null) {
                     (new \QueueManager($this->module))->enqueue($template, $customer, $extraVars, $refId, $preferredHour);
-                    // Inscrire en dedup immédiatement : le cron ne repassera pas dessus demain.
-                    $this->db->execute(
-                        'INSERT IGNORE INTO `' . $this->prefix . 'neria_behavioral_sent`
-                         (id_customer, template, ref_id, id_shop, sent_at)
-                         VALUES (' . (int) $customer['id_customer'] . ', \'' . pSQL($template) . '\', '
-                        . (int) $refId . ', ' . $idShop . ', NOW())'
-                    );
+                    // La dédup n'est PLUS posée ici, à la mise en file — elle
+                    // l'est désormais par QueueManager::processSingle() au
+                    // moment de l'envoi RÉEL, une fois confirmé réussi (voir
+                    // son commentaire). Poser la dédup ici, avant même la
+                    // tentative d'envoi, marquait le template "déjà envoyé"
+                    // pour de bon même si les 3 tentatives de la file
+                    // échouaient définitivement (SMTP en panne) — le client
+                    // ne recevait alors jamais l'email et le cron ne le
+                    // retentait plus jamais, silencieusement (round 51).
+                    // enqueue() protège déjà contre la mise en file en
+                    // double via sa propre contrainte UNIQUE.
                     return;
                 }
             }

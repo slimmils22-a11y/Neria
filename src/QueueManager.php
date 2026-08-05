@@ -361,17 +361,24 @@ class QueueManager
                      WHERE id_neria_queue = ' . $id
                 );
 
-                // Miroir de ManualSendManager::send() : un envoi anniversaire
-                // planifié (scheduleManual() → cette file) doit être
-                // enregistré dans neria_behavioral_sent au moment de l'envoi
-                // RÉEL (pas à la planification, qui peut échouer/être
-                // retentée) — sinon BehavioralCronManager considère
-                // l'anniversaire comme jamais envoyé et le renvoie en double.
-                // ref_id doit utiliser EXACTEMENT la même clé que
-                // BehavioralCronManager/ManualSendManager::send().
-                if (in_array($row['template'], ['first_anniversary', 'relationship_anniversary'], true)
-                    && (int) $row['id_customer'] > 0
-                ) {
+                // Miroir de ManualSendManager::send() : un envoi comportemental
+                // planifié via la fenêtre d'achat (BehavioralCronManager::send()
+                // → enqueue() → cette file) doit être enregistré dans
+                // neria_behavioral_sent au moment de l'envoi RÉEL (pas à la
+                // planification, qui peut échouer/être retentée jusqu'à 3
+                // fois puis passer en status='failed' sans jamais être
+                // repris) — sinon un template dont l'envoi échoue
+                // définitivement (SMTP en panne) est quand même marqué
+                // "déjà envoyé" et ne sera plus jamais retenté, silencieusement,
+                // pour TOUT template routé par cette file (pas seulement les
+                // anniversaires, seul cas traité jusqu'ici — round 51).
+                //
+                // first_anniversary/relationship_anniversary recalculent leur
+                // propre ref_id (règle spécifique, voir ci-dessous) ; tous les
+                // autres templates utilisent directement row['ref_id'], déjà
+                // stocké tel quel à l'enqueue — c'est EXACTEMENT la même
+                // valeur que BehavioralCronManager::send() aurait utilisée.
+                if ((int) $row['id_customer'] > 0) {
                     if ($row['template'] === 'first_anniversary') {
                         // AND id_shop = $idShop : BehavioralCronManager::
                         // sendFirstAnniversaries() calcule id_first_order en
@@ -388,8 +395,10 @@ class QueueManager
                              WHERE id_customer = ' . (int) $row['id_customer'] . '
                                AND valid = 1 AND id_shop = ' . (int) $idShop
                         );
-                    } else {
+                    } elseif ($row['template'] === 'relationship_anniversary') {
                         $refId = (int) date('Y');
+                    } else {
+                        $refId = (int) $row['ref_id'];
                     }
 
                     if ($refId > 0) {
