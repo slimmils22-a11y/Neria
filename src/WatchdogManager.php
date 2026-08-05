@@ -445,14 +445,33 @@ class WatchdogManager
 
         $shopName   = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_NAME'));
         $shopDomain = \Tools::getShopDomainSsl(true);
-        $counts     = ['warning' => 0, 'error' => 0, 'critical' => 0];
-        foreach ($rows as $r) {
-            if (isset($counts[$r['level']])) {
-                $counts[$r['level']]++;
+
+        // Compteurs réels (GROUP BY, SANS LIMIT) — $rows ci-dessus est
+        // plafonné à 50 lignes pour l'affichage détaillé du tableau, donc
+        // compter/dériver le sujet depuis $rows uniquement donnait une
+        // image tronquée dès qu'une rafale dépassait 50 événements en 24h
+        // (ex. panne DB) : le marchand voyait "50 événements" avec une
+        // répartition partielle (parfois aucun 'critical' visible si les
+        // plus anciens ont été exclus par le LIMIT), pensant l'incident
+        // contenu alors qu'il ne voyait qu'une fraction de la réalité.
+        $countRows = $this->db->executeS(
+            "SELECT `level`, COUNT(*) AS n
+             FROM `{$table}`
+             WHERE `id_shop` = {$this->idShop}
+               AND `level` IN ('warning','error','critical')
+               AND `date_add` > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+             GROUP BY `level`"
+        ) ?: [];
+        $counts    = ['warning' => 0, 'error' => 0, 'critical' => 0];
+        $totalReal = 0;
+        foreach ($countRows as $cr) {
+            if (isset($counts[$cr['level']])) {
+                $counts[$cr['level']] = (int) $cr['n'];
+                $totalReal += (int) $cr['n'];
             }
         }
 
-        $subject = str_replace(["\r", "\n"], '', AdminTranslator::tVars('wd_digest.subject', ['count' => count($rows), 'shop' => $shopName]));
+        $subject = str_replace(["\r", "\n"], '', AdminTranslator::tVars('wd_digest.subject', ['count' => $totalReal, 'shop' => $shopName]));
 
         $emergencyToken = (string) \Configuration::getGlobalValue('NERIA_EMERGENCY_TOKEN');
         $emergencyUrl   = $emergencyToken
