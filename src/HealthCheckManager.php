@@ -2021,6 +2021,83 @@ class HealthCheckManager
             $offenders[] = 'EmailRenderer : le filet de sécurité sur les variables résiduelles a disparu du chemin TXT — un client pourrait de nouveau recevoir un email texte avec une variable non résolue affichée brute';
         }
 
+        // Round 51 (2026-08-05) : ManualSendManager::scheduleManual()
+        // ignorait $orderRef — un envoi PLANIFIÉ d'un template utilisant
+        // {order_name}/{order_url} sans commande liée partait avec le
+        // placeholder brut non résolu, sans que le marchand ne puisse s'en
+        // apercevoir au moment de la planification.
+        $manualFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
+        $manualSrc2  = is_file($manualFile2) ? (file_get_contents($manualFile2) ?: '') : '';
+        if ($manualSrc2 === '') {
+            $offenders[] = 'ManualSendManager.php introuvable (2e vérification)';
+        } else {
+            if (strpos($manualSrc2, 'function scheduleManual(') !== false
+                && substr_count($manualSrc2, "\$order = (\$orderRef !== '') ? \$this->findOrder(\$orderRef) : null;") < 2
+            ) {
+                $offenders[] = 'ManualSendManager : scheduleManual() n\'applique plus le garde-fou "contexte commande" — un envoi planifié sans commande liée repartirait avec {order_name}/{order_url} non résolus';
+            }
+            // Round 51 : checkDuplicate() comptait les lignes de neria_log
+            // (COUNT(*)) au lieu de sommer occurrence_count — un doublon
+            // consolidé par WatchdogManager::record() (même message dans
+            // l'heure) ne remontait jamais comme doublon.
+            if (strpos($manualSrc2, 'COALESCE(SUM(`occurrence_count`), 0)') === false) {
+                $offenders[] = 'ManualSendManager : checkDuplicate() ne somme plus occurrence_count — un doublon d\'envoi manuel consolidé par le Watchdog ne serait de nouveau jamais détecté';
+            }
+        }
+
+        // Round 51 : BehavioralCronManager posait la dédup
+        // neria_behavioral_sent AVANT l'envoi réel via la file d'attente
+        // (fenêtre d'achat), pour tout template — pas seulement les
+        // anniversaires. Un échec définitif d'envoi (SMTP en panne)
+        // marquait quand même le template "déjà envoyé" à vie.
+        if ($cronSrc2 !== '' && strpos($cronSrc2, 'La dédup n\'est PLUS posée ici') === false) {
+            $offenders[] = 'BehavioralCronManager : la dédup comportementale est de nouveau posée à la mise en file (avant l\'envoi réel) — un échec SMTP définitif marquerait à tort un template "déjà envoyé" pour de bon';
+        }
+        $queueFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php';
+        $queueSrc2  = is_file($queueFile2) ? (file_get_contents($queueFile2) ?: '') : '';
+        if ($queueSrc2 === '') {
+            $offenders[] = 'QueueManager.php introuvable (2e vérification)';
+        } elseif (strpos($queueSrc2, '$refId = (int) $row[\'ref_id\'];') === false) {
+            $offenders[] = 'QueueManager : processSingle() ne généralise plus la dédup post-envoi via row[\'ref_id\'] aux templates non-anniversaires — régression du round 51';
+        }
+
+        // Round 51 : CollectionManager::processCollection() n'élargissait
+        // pas group_concat_max_len — une grande collection (150+ produits)
+        // pouvait tronquer silencieusement GROUP_CONCAT(od.product_id),
+        // faussant le calcul du produit manquant.
+        if ($collectionSrc !== '' && strpos($collectionSrc, 'SET SESSION group_concat_max_len') === false) {
+            $offenders[] = 'CollectionManager : processCollection() n\'élargit plus group_concat_max_len — une grande collection pourrait de nouveau tronquer silencieusement la liste des produits déjà achetés';
+        }
+
+        // Round 51 : PostmasterManager/SearchConsoleManager écrasaient un
+        // refresh_token OAuth valide par une chaîne vide quand Google n'en
+        // renvoyait pas à l'échange du code.
+        $postmasterFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php';
+        $postmasterSrc  = is_file($postmasterFile) ? (file_get_contents($postmasterFile) ?: '') : '';
+        if ($postmasterSrc === '') {
+            $offenders[] = 'PostmasterManager.php introuvable';
+        } elseif (!preg_match('/function applyTokenResponse[\s\S]{0,300}?if \(!empty\(\$response\[.refresh_token.\]\)\)/', $postmasterSrc)) {
+            $offenders[] = 'PostmasterManager : applyTokenResponse() n\'a plus de garde sur refresh_token vide — un refresh_token valide pourrait de nouveau être écrasé par une chaîne vide';
+        }
+        $gscFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php';
+        $gscSrc  = is_file($gscFile) ? (file_get_contents($gscFile) ?: '') : '';
+        if ($gscSrc === '') {
+            $offenders[] = 'SearchConsoleManager.php introuvable';
+        } elseif (!preg_match('/function applyTokenResponse[\s\S]{0,300}?if \(!empty\(\$response\[.refresh_token.\]\)\)/', $gscSrc)) {
+            $offenders[] = 'SearchConsoleManager : applyTokenResponse() n\'a plus de garde sur refresh_token vide — un refresh_token valide pourrait de nouveau être écrasé par une chaîne vide';
+        }
+
+        // Round 51 : BounceManager::reactivateBounce() ne remettait pas
+        // bounce_count à 0 — la réactivation manuelle était pratiquement
+        // inopérante pour toute adresse au-dessus du seuil.
+        $bounceFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php';
+        $bounceSrc  = is_file($bounceFile) ? (file_get_contents($bounceFile) ?: '') : '';
+        if ($bounceSrc === '') {
+            $offenders[] = 'BounceManager.php introuvable';
+        } elseif (!preg_match('/function reactivateBounce[\s\S]{0,900}?bounce_count\` = 0/', $bounceSrc)) {
+            $offenders[] = 'BounceManager : reactivateBounce() ne remet plus bounce_count à 0 — la réactivation manuelle redeviendrait pratiquement inopérante pour toute adresse au-dessus du seuil';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
