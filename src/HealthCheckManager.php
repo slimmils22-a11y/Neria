@@ -2233,6 +2233,28 @@ class HealthCheckManager
             $offenders[] = 'SeasonalCampaignManager::runDueCampaigns() ne filtre/écrit plus id_shop dans sa déduplication annuelle (neria_behavioral_sent) — un client partagé entre boutiques pourrait de nouveau recevoir une campagne saisonnière en double, ou sa dédup être purgée/conservée à tort selon la boutique';
         }
 
+        // Round 58 (2026-08-05) : BehavioralCronManager::run() appelait
+        // GdprAuditManager::purgeAllRegistryTables() une seule fois, APRÈS
+        // restauration du contexte d'origine, hors de la boucle par
+        // boutique — alors que GdprAuditManager scope toutes ses requêtes
+        // de purge par $this->idShop capturé à la construction. Seule la
+        // boutique du contexte d'origine (typiquement la première visitée)
+        // voyait ses tables purgées ; les autres dépassaient silencieusement
+        // leur rétention RGPD configurée sur une install multi-boutiques.
+        $cronFile3b = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
+        $cronSrc3b  = is_file($cronFile3b) ? (file_get_contents($cronFile3b) ?: '') : '';
+        if ($cronSrc3b === '') {
+            $offenders[] = 'src/BehavioralCronManager.php introuvable (purge RGPD)';
+        } else {
+            $posLoopStart = strpos($cronSrc3b, 'foreach ($shops as $idShop) {');
+            $posPurgeCall = strpos($cronSrc3b, 'purgeAllRegistryTables()');
+            $posRestore   = strpos($cronSrc3b, '\Context::getContext()->shop = $originalShop;');
+            if ($posLoopStart === false || $posPurgeCall === false || $posRestore === false
+                || !($posPurgeCall > $posLoopStart && $posPurgeCall < $posRestore)) {
+                $offenders[] = "BehavioralCronManager::run() n'appelle plus purgeAllRegistryTables() à l'intérieur de la boucle par boutique — seule la boutique du contexte d'origine serait de nouveau purgée automatiquement (RGPD)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
