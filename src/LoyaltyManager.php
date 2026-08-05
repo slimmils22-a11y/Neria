@@ -459,12 +459,20 @@ class LoyaltyManager
         }
 
         // Complète la réservation avec le vrai bon de réduction généré.
+        // id_shop doit être filtré comme pour l'INSERT/DELETE ci-dessus :
+        // sans lui, un même client atteignant le même palier quasi
+        // simultanément sur deux boutiques distinctes (mode séparé) voit
+        // cet UPDATE toucher les DEUX lignes de réservation, écrasant la
+        // ligne de l'autre boutique avec ce id_cart_rule/voucher_code —
+        // alors que le CartRule vient d'être restreint à la seule boutique
+        // $reservationShopId juste au-dessus.
         $this->db->execute(
             "UPDATE `{$this->prefix}" . self::TABLE_REWARDS . "`
              SET id_cart_rule = " . (int) $cartRule->id . ",
                  voucher_code = '" . pSQL($code) . "'
              WHERE id_customer = " . (int) $idCustomer . "
-               AND tier_key = '" . pSQL($tier['key']) . "'"
+               AND tier_key = '" . pSQL($tier['key']) . "'
+               AND id_shop = " . $reservationShopId
         );
 
         return $code;
