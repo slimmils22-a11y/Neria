@@ -246,7 +246,10 @@ class CollectionManager
 
             // Récupérer les infos client + langue
             $customer = new \Customer($idCustomer);
-            if (!\Validate::isLoadedObject($customer)) continue;
+            if (!\Validate::isLoadedObject($customer)) {
+                $this->releaseSendClaim($colId, $idCustomer);
+                continue;
+            }
 
             $idLang = $this->resolveLang($customer);
             $idShop = (int) ($row['id_shop'] ?: \Context::getContext()->shop->id);
@@ -256,9 +259,19 @@ class CollectionManager
             // quand même cette suggestion, en contradiction avec son choix.
             // Même garde-fou que BehavioralCronManager/SegmentManager/
             // CalendarManager/SeasonalCampaignManager/LookCompletionManager.
+            //
+            // Libère la réservation sur chaque sortie anticipée ci-dessous :
+            // la réservation n'a de sens que pour empêcher un double ENVOI,
+            // pas pour bloquer définitivement un client qui n'a temporairement
+            // pas reçu l'email (préférences, produit désactivé, rupture de
+            // stock) — sans releaseSendClaim() ici, la clé UNIQUE empêchait
+            // tout INSERT IGNORE ultérieur même une fois la condition levée
+            // (produit réapprovisionné, préférences réactivées), excluant le
+            // client à vie de cette notification.
             if (class_exists('PreferencesManager')
                 && !(new \PreferencesManager($this->module))->isAllowed($idCustomer, 'collection_completion', $idShop)
             ) {
+                $this->releaseSendClaim($colId, $idCustomer);
                 continue;
             }
 
@@ -269,7 +282,10 @@ class CollectionManager
             // de collection) : le cron continuait d'envoyer "il ne vous manque
             // que X" avec un lien produit indisponible.
             $product = new \Product($missingId, false, $idLang);
-            if (!\Validate::isLoadedObject($product) || !$product->active) continue;
+            if (!\Validate::isLoadedObject($product) || !$product->active) {
+                $this->releaseSendClaim($colId, $idCustomer);
+                continue;
+            }
 
             // Ignore un produit actif mais en rupture (et sans commande en
             // backorder possible) — sans ça, l'email « il ne vous manque
@@ -278,6 +294,7 @@ class CollectionManager
             if (!\StockAvailable::getQuantityAvailableByProduct($missingId, null, $idShop)
                 && !\Product::isAvailableWhenOutOfStock($product->out_of_stock)
             ) {
+                $this->releaseSendClaim($colId, $idCustomer);
                 continue;
             }
 

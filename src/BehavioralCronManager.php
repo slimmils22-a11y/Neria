@@ -1146,7 +1146,7 @@ class BehavioralCronManager
              FROM `' . $this->prefix . 'neria_quote` q
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = q.id_customer
              WHERE q.status = \'active\' AND q.sent_48h = 0 AND q.id_shop = ' . $idShop . '
-               AND DATE(q.expiry_date) BETWEEN CURDATE() AND DATE(DATE_ADD(NOW(), INTERVAL 2 DAY))
+               AND DATE(q.expiry_date) BETWEEN DATE(DATE_ADD(NOW(), INTERVAL 1 DAY)) AND DATE(DATE_ADD(NOW(), INTERVAL 2 DAY))
                AND c.active = 1 AND c.deleted = 0
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
@@ -1160,6 +1160,11 @@ class BehavioralCronManager
         // requête Jour J ci-dessous — seule la requête d'extension (moins
         // stricte, `<`) matchait, sautant silencieusement les 2 relances
         // intermédiaires tout en faisant croire à un "auto-fixed" complet.
+        // Borne basse à J+1 (et non CURDATE()) : un devis qui expire
+        // AUJOURD'HUI matchait à la fois cette requête 48h ET la requête
+        // Jour J ci-dessous (`expiry_date <= CURDATE()`), envoyant les deux
+        // emails contradictoires ("expire dans moins de 48h" + "expire
+        // aujourd'hui") dans le même passage de cron.
         foreach ((array) $rows48h as $r) {
             // Try/catch par ligne : sans ça, une exception sur UN devis (ex.
             // deadlock MySQL — ce cron tourne en même temps que
@@ -1228,11 +1233,20 @@ class BehavioralCronManager
                     c.email, c.firstname, c.lastname, c.id_lang
              FROM `' . $this->prefix . 'neria_quote` q
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = q.id_customer
-             WHERE q.status = \'active\' AND q.sent_extension = 0 AND q.id_shop = ' . $idShop . '
+             WHERE q.status = \'active\' AND q.sent_extension = 0 AND q.sent_day = 1 AND q.id_shop = ' . $idShop . '
                AND DATE(q.expiry_date) < CURDATE()
                AND c.active = 1 AND c.deleted = 0
              LIMIT ' . self::MAX_BATCH_PER_RUN
         );
+        // sent_day = 1 obligatoire : sans ce filtre, un devis dont l'envoi du
+        // rappel Jour J avait échoué (exception silencieuse dans le
+        // try/catch ci-dessus, sent_day resté à 0) matchait quand même cette
+        // requête d'extension (moins stricte, expiry_date < CURDATE() sans
+        // condition sur sent_day) dès le passage de cron suivant. Le devis
+        // recevait alors directement "offre de prolongation" sans être
+        // jamais passé par le rappel Jour J, ET status passait
+        // irréversiblement à 'expired' — bloquant à vie tout futur envoi de
+        // quote_expiry_day (qui exige status='active').
         foreach ((array) $rowsExt as $r) {
             try {
                 $this->sendQuoteEmail('quote_extension_offer', $r, true);

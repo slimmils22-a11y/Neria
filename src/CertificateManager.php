@@ -131,7 +131,14 @@ class CertificateManager
 
         // ── Sauvegarde en DB ──────────────────────────────────────
         $inserted = $this->db->insert(self::TABLE, [
-            'id_shop'         => $this->idShop,
+            // id_shop de LA COMMANDE, pas $this->idShop (contexte BO de
+            // l'employé qui déclenche l'émission) : un employé en contexte
+            // "toutes les boutiques" (ou dont le contexte BO courant diffère
+            // de la boutique de la commande) émettant un certificat pour une
+            // commande d'une AUTRE boutique enregistrait sinon le certificat
+            // sous la mauvaise boutique — invisible dans getByOrder()/
+            // getAll() de la vraie boutique, polluant les stats de l'autre.
+            'id_shop'         => (int) $order->id_shop,
             'id_order'        => $idOrder,
             'id_product'      => $idProduct,
             'id_order_detail' => $idOrderDetail,

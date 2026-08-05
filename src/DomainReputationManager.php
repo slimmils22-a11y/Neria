@@ -522,8 +522,17 @@ class DomainReputationManager
             // retire ce null plutôt que de le laisser dans la liste.
             $langsToTry = array_unique(array_filter(['fr', 'en', array_key_first($senders)]));
             foreach ($langsToTry as $lang) {
-                if (!empty($senders[$lang]['from'])) {
-                    $d = $this->extractDomain($senders[$lang]['from']);
+                // Clé 'email' (et non 'from') : c'est celle utilisée partout
+                // ailleurs pour NERIA_SENDERS_JSON (neria.php, ConfigManager
+                // ::getSenderForLang()). Avec 'from', cette condition n'était
+                // jamais vraie et le contrôle de réputation domaine retombait
+                // systématiquement sur PS_SHOP_EMAIL — un marchand utilisant
+                // un expéditeur multi-langue dédié (ex. no-reply@newsletter
+                // -fr.com) voyait son domaine RÉELLEMENT utilisé pour l'envoi
+                // jamais vérifié (SPF/DKIM/blacklist), remplacé silencieusement
+                // par le domaine boutique par défaut.
+                if (!empty($senders[$lang]['email'])) {
+                    $d = $this->extractDomain($senders[$lang]['email']);
                     if ($d) return $d;
                 }
             }

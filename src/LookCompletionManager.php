@@ -125,22 +125,39 @@ class LookCompletionManager
             // quand même cette suggestion, en contradiction avec son choix.
             // Même garde-fou que BehavioralCronManager/SegmentManager/
             // CalendarManager/SeasonalCampaignManager.
+            //
+            // Libère la réservation sur chaque sortie anticipée ci-dessous —
+            // voir le commentaire équivalent dans
+            // CollectionManager::processCollection() : sans releaseSendClaim(),
+            // la clé UNIQUE (uq_order) bloquait à vie tout nouvel essai pour
+            // cette commande même une fois la condition levée (préférences
+            // réactivées, règle ajoutée après coup par le marchand...).
             if (class_exists('PreferencesManager')
                 && !(new \PreferencesManager($this->module))->isAllowed($idCustomer, 'complete_your_look', $idShop)
             ) {
+                $this->releaseSendClaim($idOrder, $idCustomer);
                 continue;
             }
 
             // Catégories des produits de cette commande
             $categoryIds = $this->getOrderCategoryIds($idOrder);
-            if (empty($categoryIds)) continue;
+            if (empty($categoryIds)) {
+                $this->releaseSendClaim($idOrder, $idCustomer);
+                continue;
+            }
 
             // Trouver la première règle active qui correspond à une catégorie de la commande
             $rule = $this->findMatchingRule($categoryIds);
-            if (!$rule) continue;
+            if (!$rule) {
+                $this->releaseSendClaim($idOrder, $idCustomer);
+                continue;
+            }
 
             $productIds = json_decode($rule['product_ids'], true);
-            if (!is_array($productIds) || empty($productIds)) continue;
+            if (!is_array($productIds) || empty($productIds)) {
+                $this->releaseSendClaim($idOrder, $idCustomer);
+                continue;
+            }
 
             // Exclut tout produit déjà acheté par ce client (commande
             // courante ou précédentes) — sans ce filtre, une règle statique
@@ -148,14 +165,23 @@ class LookCompletionManager
             // client possède déjà.
             $alreadyBought = $this->getCustomerPurchasedProductIds($idCustomer);
             $productIds    = array_values(array_diff($productIds, $alreadyBought));
-            if (empty($productIds)) continue;
+            if (empty($productIds)) {
+                $this->releaseSendClaim($idOrder, $idCustomer);
+                continue;
+            }
 
             // Récupérer les infos des produits suggérés (max 3)
             $products = $this->buildProductBlocks(array_slice($productIds, 0, 3), $idLang, $idShop);
-            if (empty($products)) continue;
+            if (empty($products)) {
+                $this->releaseSendClaim($idOrder, $idCustomer);
+                continue;
+            }
 
             $customer = new \Customer($idCustomer);
-            if (!\Validate::isLoadedObject($customer)) continue;
+            if (!\Validate::isLoadedObject($customer)) {
+                $this->releaseSendClaim($idOrder, $idCustomer);
+                continue;
+            }
 
             $vars = $this->buildVars($customer, $products, $rule['category_name'] ?? '');
             // {id_order} scope le Mode Silence sur CETTE commande (cf.

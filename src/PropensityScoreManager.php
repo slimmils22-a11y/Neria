@@ -99,6 +99,20 @@ class PropensityScoreManager
         // dans ce cas (même correctif que ChurnScoreManager::recomputeAll()).
         \Configuration::updateValue('NERIA_PROPENSITY_LAST_RUN', date('Y-m-d H:i:s'), false, null, $this->idShop);
 
+        // Purge les lignes des clients qui ne sont PLUS dans le recalcul de
+        // ce run (plus aucune commande valide) — même correctif que
+        // ChurnScoreManager::recomputeAll(). Sans ça, un client dont la
+        // commande a été annulée/remboursée intégralement (sortie du
+        // périmètre de la requête ci-dessus) gardait indéfiniment son
+        // dernier score de propension calculé, continuant à apparaître dans
+        // getAlertCustomers() avec une donnée totalement périmée.
+        $keepIds = array_map(static fn (array $r): int => (int) $r['id_customer'], $customers);
+        $purgeSql = 'DELETE FROM `' . _DB_PREFIX_ . 'neria_propensity_score` WHERE id_shop = ' . $this->idShop;
+        if (!empty($keepIds)) {
+            $purgeSql .= ' AND id_customer NOT IN (' . implode(',', $keepIds) . ')';
+        }
+        $this->db->execute($purgeSql);
+
         $alerts = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_propensity_score`
              WHERE score >= ' . self::ALERT_THRESHOLD . ' AND id_shop = ' . $this->idShop

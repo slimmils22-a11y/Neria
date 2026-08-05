@@ -106,7 +106,18 @@ class OrderTriggersManager
      *
      * @return string Le code du bon, ou '' si déjà réservé par une requête concurrente.
      */
-    private function generateMilestoneVoucher(int $idCustomer, int $milestone, \ConfigManager $config, int $idShop): string
+    /**
+     * Réservation atomique (id_customer, milestone, id_shop) — sert à la
+     * fois de verrou anti-doublon pour l'EMAIL milestone_order lui-même
+     * (voir checkMilestone()) et, si le bon est activé, de réservation pour
+     * generateMilestoneVoucher(). Avant ce correctif, seule la génération du
+     * bon était dédupliquée : quand le toggle bon de réduction était
+     * désactivé, ou quand une commande repassait de non-valide à valide
+     * puis retrouvait le même palier (ex. annulation suivie d'un
+     * rétablissement de statut), rien n'empêchait un second envoi de
+     * l'email de félicitations pour le même palier.
+     */
+    private function claimMilestone(int $idCustomer, int $milestone, int $idShop): bool
     {
         $reserved = $this->db->execute(
             'INSERT IGNORE INTO `' . $this->prefix . 'neria_milestone_voucher`
@@ -114,10 +125,11 @@ class OrderTriggersManager
              VALUES (' . (int) $idCustomer . ', ' . (int) $milestone . ', 0, \'\', ' . (int) $idShop . ', NOW())'
         );
 
-        if (!$reserved || (int) $this->db->Affected_Rows() === 0) {
-            return '';
-        }
+        return (bool) $reserved && (int) $this->db->Affected_Rows() > 0;
+    }
 
+    private function generateMilestoneVoucher(int $idCustomer, int $milestone, \ConfigManager $config, int $idShop): string
+    {
         $amount    = $config->getMilestoneVoucherAmount();
         $isPercent = $config->isMilestoneVoucherPercent();
         $code      = 'NERIA-MLST-' . strtoupper(\Tools::passwdGen(6));
@@ -293,6 +305,11 @@ class OrderTriggersManager
 
         // milestone_order
         if (in_array($count, self::MILESTONES, true)) {
+            // Réservation anti-doublon de l'EMAIL lui-même, indépendante du
+            // toggle bon de réduction — voir claimMilestone().
+            if (!$this->claimMilestone($idCustomer, $count, $idShop)) {
+                return;
+            }
             try {
                 $config      = new \ConfigManager($this->module);
                 $voucherCode = '';
