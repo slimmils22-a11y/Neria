@@ -200,28 +200,14 @@ class WebhookManager
             date('Y-m-d H:i:s')
         ));
 
-        // Numéro de séquence (id_webhook, auto-incrémenté) réinjecté dans le
-        // payload après insertion — le backoff exponentiel est appliqué PAR
-        // LIGNE indépendamment (processQueue()) : un événement plus ancien
-        // en échec transitoire peut être livré APRÈS un événement plus
-        // récent qui a réussi du premier coup, potentiellement plusieurs
-        // minutes plus tard. Sans marqueur d'ordre explicite dans le
-        // payload, un intégrateur qui reconstruit un historique client à
-        // partir des webhooks reçus ne peut pas détecter/corriger cette
-        // inversion (ex. une conversion reçue sans email_sent préalable).
-        $idWebhook = (int) $this->db->Insert_ID();
-        if ($idWebhook > 0) {
-            $payloadWithSeq = json_encode(
-                array_merge(json_decode($payload, true) ?: [], ['sequence' => $idWebhook]),
-                JSON_UNESCAPED_UNICODE
-            );
-            if ($payloadWithSeq !== false) {
-                $this->db->execute(sprintf(
-                    "UPDATE `%s` SET `payload` = '%s' WHERE `id_webhook` = %d",
-                    $table, pSQL($payloadWithSeq), $idWebhook
-                ));
-            }
-        }
+        // Numéro de séquence : PAS réinjecté ici par un second UPDATE après
+        // l'INSERT (id_webhook n'est connu qu'une fois la ligne insérée) —
+        // un process tué entre les deux requêtes laissait auparavant la
+        // ligne définitivement sans `sequence` dans le payload. Le marqueur
+        // d'ordre est désormais ajouté à la volée dans processQueue(), juste
+        // avant l'envoi, à partir de la colonne `id_webhook` déjà connue :
+        // une seule écriture est nécessaire et aucune fenêtre de mort du
+        // process ne peut plus produire un payload sans séquence.
     }
 
     // ============================================================
@@ -307,8 +293,19 @@ class WebhookManager
 
             foreach ($rows as $row) {
             $id       = (int) $row['id_webhook'];
-            $payload  = $row['payload'];
             $attempts = (int) $row['attempts'] + 1;
+
+            // Séquence d'ordre injectée ici (à l'envoi) plutôt qu'à l'écriture :
+            // id_webhook (auto-incrémenté, donc strictement croissant) sert de
+            // marqueur d'ordre fiable sans dépendre d'une seconde requête après
+            // l'INSERT initial. Voir le commentaire dans trigger().
+            $decodedForSeq = json_decode($row['payload'], true);
+            if (!is_array($decodedForSeq)) {
+                $decodedForSeq = [];
+            }
+            $decodedForSeq['sequence'] = $id;
+            $payloadWithSeq = json_encode($decodedForSeq, JSON_UNESCAPED_UNICODE);
+            $payload = ($payloadWithSeq !== false) ? $payloadWithSeq : $row['payload'];
 
             // Incrémenter les tentatives avant l'envoi (évite les doublons parallèles)
             $this->db->execute(

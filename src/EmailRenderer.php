@@ -294,7 +294,12 @@ class EmailRenderer
         if ($this->config->isMultiSenderEnabled()) {
             $sender = $this->config->getSenderForLang($lang);
             if (!empty($sender['name'])) {
-                $params['fromName'] = $sender['name'];
+                // Neutralise CR/LF : 'name' vient du champ libre JSON
+                // NERIA_SENDERS_JSON saisi en BO sans validation de format
+                // (contrairement à 'email', validé par Validate::isEmail())
+                // — un retour chariot copié/collé par erreur pouvait sinon
+                // se retrouver dans l'en-tête From: généré en aval.
+                $params['fromName'] = str_replace(["\r", "\n"], '', $sender['name']);
             }
             if (!empty($sender['email']) && \Validate::isEmail($sender['email'])) {
                 $params['from'] = $sender['email'];

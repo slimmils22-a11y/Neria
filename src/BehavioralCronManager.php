@@ -157,39 +157,56 @@ class BehavioralCronManager
             }
         }
 
+        // ── Segmentation comportementale + score de risque de désabonnement
+        // (recalcul quotidien) — DOIVENT rester dans la boucle par boutique
+        // ci-dessus (ou une boucle équivalente), pas s'exécuter une seule
+        // fois après restauration du contexte d'origine. SegmentManager et
+        // ChurnScoreManager capturent tous deux Context::getContext()->
+        // shop->id dans leur constructeur et scopent TOUTES leurs requêtes
+        // par id_shop — un appel unique hors boucle ne recalculait donc
+        // jamais que la boutique du contexte d'origine (typiquement la
+        // première visitée), laissant les segments et scores de churn de
+        // toutes les AUTRES boutiques figés indéfiniment sur une install
+        // multi-boutiques. Même raisonnement appliqué à
+        // recalculatePropensityScores() ci-dessous (également scopée par
+        // id_shop du contexte).
+        foreach ($shops as $idShop) {
+            \Context::getContext()->shop = new \Shop((int) $idShop);
+
+            if (class_exists('SegmentManager')) {
+                try {
+                    (new \SegmentManager($this->module))->recomputeAll();
+                } catch (\Throwable $e) {
+                    $this->watchdog()->error(
+                        \WatchdogManager::i18nMsg('watchdog.segment_recompute_failed', ['error' => $e->getMessage()]),
+                        '', 'BehavioralCron'
+                    );
+                }
+            }
+
+            if (class_exists('ChurnScoreManager')) {
+                try {
+                    (new \ChurnScoreManager($this->module))->recomputeAll();
+                } catch (\Throwable $e) {
+                    $this->watchdog()->error(
+                        \WatchdogManager::i18nMsg('watchdog.churn_recompute_failed', ['error' => $e->getMessage()]),
+                        '', 'BehavioralCron'
+                    );
+                }
+            }
+
+            // PropensityScoreManager scope lui aussi TOUTES ses requêtes par
+            // id_shop du contexte (voir son constructeur) — même raison que
+            // Segment/Churn ci-dessus, déplacé dans la boucle par boutique
+            // pour la même correction (round 49).
+            $this->runStep('recalculatePropensityScores', fn () => $this->recalculatePropensityScores());
+        }
+
         \Context::getContext()->shop = $originalShop;
 
-        // Tâches globales (non scopées par boutique, dédup propre via
-        // id_order — déjà rattaché à une seule boutique) : une seule fois.
-        // recalculatePropensityScores() n'envoie aucun email — jamais gaté.
-        $this->runStep('recalculatePropensityScores',    fn () => $this->recalculatePropensityScores());
         if ($emailSendingAllowed) {
             $this->runStep('sendCollectionCompletions',      fn () => $this->sendCollectionCompletions());
             $this->runStep('sendLookCompletions',            fn () => $this->sendLookCompletions());
-        }
-
-        // ── Segmentation comportementale (recalcul quotidien) ─────────
-        if (class_exists('SegmentManager')) {
-            try {
-                (new \SegmentManager($this->module))->recomputeAll();
-            } catch (\Throwable $e) {
-                $this->watchdog()->error(
-                    \WatchdogManager::i18nMsg('watchdog.segment_recompute_failed', ['error' => $e->getMessage()]),
-                    '', 'BehavioralCron'
-                );
-            }
-        }
-
-        // ── Score de risque de désabonnement (recalcul quotidien) ─────
-        if (class_exists('ChurnScoreManager')) {
-            try {
-                (new \ChurnScoreManager($this->module))->recomputeAll();
-            } catch (\Throwable $e) {
-                $this->watchdog()->error(
-                    \WatchdogManager::i18nMsg('watchdog.churn_recompute_failed', ['error' => $e->getMessage()]),
-                    '', 'BehavioralCron'
-                );
-            }
         }
 
         // ── Purge RGPD automatique (rétention par table du registre) ─────

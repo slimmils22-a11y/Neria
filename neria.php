@@ -4100,7 +4100,12 @@ class Neria extends Module
                     if ($idHistory > 0 && $this->abtestBelongsToShop($idAbtestB)) {
                         $histMgr = new TranslationHistoryManager();
                         $entry   = $histMgr->getById($idHistory);
-                        if ($entry) {
+                        // getById() ne filtre que par id_shop, jamais par
+                        // template/langue — voir le correctif identique sur
+                        // restore_translation plus bas.
+                        if ($entry && ($entry['template_key'] ?? null) === 'variantb_' . $tplKey
+                            && ($entry['lang_code'] ?? null) === $tplLang
+                        ) {
                             $restoreKey = $entry['translation_key'];
                             $restoreVal = $entry['old_value'];
                             $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';
@@ -4138,7 +4143,18 @@ class Neria extends Module
                     if ($idHistory > 0) {
                         $histMgr = new TranslationHistoryManager();
                         $entry   = $histMgr->getById($idHistory);
-                        if ($entry) {
+                        // getById() ne filtre que par id_shop, jamais par
+                        // template/langue — sans cette vérification, un
+                        // id_history pointant vers un AUTRE template ou une
+                        // AUTRE langue que celui/celle actuellement affiché
+                        // (onglet changé sans rechargement, id manipulé)
+                        // écrivait la valeur restaurée dans la clé du
+                        // template/langue COURANT, corrompant une traduction
+                        // sans rapport.
+                        if ($entry
+                            && ($entry['template_key'] ?? null) === $tplKey
+                            && ($entry['lang_code'] ?? null) === $tplLang
+                        ) {
                             $restoreKey = $entry['translation_key'];
                             $restoreVal = $entry['old_value'];
                             $employee   = $this->context->employee;
