@@ -25,9 +25,16 @@ class NeriaWaitlistModuleFrontController extends ModuleFrontController
         $action    = Tools::getValue('action');
         $idProduct = (int) Tools::getValue('id_product');
         $back      = Tools::getValue('back');
-        $redirect  = $idProduct
-            ? $this->context->link->getProductLink($idProduct)
-            : 'index.php?controller=my-account';
+        // Repli par défaut TOUJOURS sûr — ne dépend pas de $idProduct :
+        // getProductLink($idProduct) avec un id_product inexistant/d'une
+        // autre boutique génère quand même une URL "valide en apparence"
+        // (PrestaShop ne vérifie pas l'existence pour construire le lien),
+        // et c'était vers CETTE URL 404 que l'utilisateur était redirigé à
+        // chaque sortie anticipée ci-dessous — au lieu du repli my-account
+        // déjà prévu pour le cas $idProduct absent. Le lien produit n'est
+        // recalculé ci-dessous QUE si le produit est réellement validé.
+        $redirect  = 'index.php?controller=my-account';
+        $backUsed  = false;
         if ($back) {
             $decodedBack = urldecode($back);
             // N'accepte qu'un chemin relatif interne (commence par un seul "/") —
@@ -40,6 +47,7 @@ class NeriaWaitlistModuleFrontController extends ModuleFrontController
             $normalizedBack = str_replace('\\', '/', $decodedBack);
             if (strpos($normalizedBack, '/') === 0 && strpos($normalizedBack, '//') !== 0) {
                 $redirect = $decodedBack;
+                $backUsed = true;
             }
         }
 
@@ -73,6 +81,13 @@ class NeriaWaitlistModuleFrontController extends ModuleFrontController
         $product = new Product($idProduct, false, null, (int) $this->context->shop->id);
         if (!Validate::isLoadedObject($product)) {
             Tools::redirect($redirect);
+        }
+
+        // Produit confirmé valide : le lien produit devient le repli
+        // pertinent pour le reste du traitement (sauf si $back a fourni un
+        // chemin de retour explicite, qui reste prioritaire).
+        if (!$backUsed) {
+            $redirect = $this->context->link->getProductLink($product);
         }
 
         try {
