@@ -524,8 +524,8 @@ class MonthlyReportManager
                       WHERE s3.id_customer  = o.id_customer
                         AND s3.event_type   = 'click'
                         AND s3.id_shop      = {$this->idShop}
-                        AND s3.date_add    &lt;= o.date_add
-                        AND s3.date_add    &gt;= DATE_SUB(o.date_add, INTERVAL 7 DAY)
+                        AND s3.date_add    <= o.date_add
+                        AND s3.date_add    >= DATE_SUB(o.date_add, INTERVAL 7 DAY)
                   )
                 GROUP BY o.id_order, s.template
              ) winner

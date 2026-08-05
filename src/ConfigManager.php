@@ -1239,12 +1239,24 @@ class ConfigManager
             'font_cyrillic'            => self::KEY_FONT_CYRILLIC,
         ];
 
+        // Validation whitelist contre FontManager::FONT_CATALOG — contrairement
+        // à font_heading (saveDesignConfig(), validé contre HEADING_FONT_OPTIONS),
+        // ces clés n'étaient protégées que par Tools::safeOutput() (anti-XSS),
+        // sans vérifier que la police existe réellement dans le catalogue. Une
+        // valeur hors catalogue était enregistrée "avec succès" côté BO, mais
+        // FontManager::getFontNameForLang() ne la reconnaissait jamais et
+        // retombait silencieusement sur la police par défaut — la config
+        // affichée comme sauvegardée n'avait alors aucun effet réel sur les
+        // emails envoyés.
+        $validFonts = class_exists('FontManager') ? array_keys(\FontManager::FONT_CATALOG) : null;
+
         foreach ($fontKeys as $postKey => $configKey) {
             if (!empty($data[$postKey])) {
-                $success = $success && $this->set(
-                    $configKey,
-                    \Tools::safeOutput($data[$postKey])
-                );
+                $value = \Tools::safeOutput($data[$postKey]);
+                if ($validFonts !== null && !in_array($value, $validFonts, true)) {
+                    continue;
+                }
+                $success = $success && $this->set($configKey, $value);
             }
         }
 

@@ -1492,7 +1492,20 @@ class EmailRenderer
                     '/\bhref=(["\'])(https?:\/\/[^"\'>\s]+)\1/i',
                     function ($am) use ($token, $wrapIdLang) {
                         $quote = $am[1];
-                        $url   = $am[2];
+                        // html_entity_decode() : $am[2] est capturé dans le HTML
+                        // DÉJÀ compilé (attribut href déjà échappé) — une URL de
+                        // produit avec un paramètre existant (ex. déclinaison,
+                        // ?id_product_attribute=5) contient donc "&amp;" littéral
+                        // à ce stade. Sans décodage, ce fragment de 5 caractères
+                        // finit tel quel comme DONNÉE dans le paramètre `url` du
+                        // lien de tracking généré plus bas ; au clic, track.php
+                        // fait parse_str() sur cette valeur et coupe sur le vrai
+                        // caractère `&` contenu dans "&amp;", donnant une clé
+                        // corrompue "amp;neria_ur" au lieu de "neria_ur" —
+                        // UpsellManager::recordClick() n'était alors jamais
+                        // appelé pour aucun produit suggéré dont l'URL avait déjà
+                        // un paramètre de requête.
+                        $url = html_entity_decode($am[2], ENT_QUOTES);
                         if (
                             strpos($url, 'controller=track')    !== false ||
                             strpos($url, '/neria/track')        !== false ||
