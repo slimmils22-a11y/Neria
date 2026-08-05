@@ -2098,6 +2098,36 @@ class HealthCheckManager
             $offenders[] = 'BounceManager : reactivateBounce() ne remet plus bounce_count à 0 — la réactivation manuelle redeviendrait pratiquement inopérante pour toute adresse au-dessus du seuil';
         }
 
+        // Round 52 (2026-08-05) : sendDailyDigestIfDue() dérivait ses
+        // compteurs et le total du sujet des 50 lignes plafonnées
+        // (affichage détaillé) au lieu de la totalité des événements des
+        // 24 dernières heures.
+        $watchdogFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php';
+        $watchdogSrc2  = is_file($watchdogFile2) ? (file_get_contents($watchdogFile2) ?: '') : '';
+        if ($watchdogSrc2 === '') {
+            $offenders[] = 'WatchdogManager.php introuvable (2e vérification)';
+        } elseif (!preg_match('/function sendDailyDigestIfDue[\s\S]{0,5000}?GROUP BY `level`/', $watchdogSrc2)) {
+            $offenders[] = 'WatchdogManager : sendDailyDigestIfDue() n\'utilise plus de requête de comptage séparée (GROUP BY level, sans LIMIT) — les compteurs du digest redeviendraient plafonnés à 50 événements';
+        }
+
+        // Round 52 : sig_color (aperçu + sauvegarde signature) n'était pas
+        // validé via NeriaTools::sanitizeColor() avant d'atteindre
+        // SignatureGenerator::hexToRgb().
+        if ($mainSrc2 !== '' && substr_count($mainSrc2, "NeriaTools::sanitizeColor((string) Tools::getValue('sig_color'") < 2) {
+            $offenders[] = 'neria.php : sig_color n\'est plus validé via NeriaTools::sanitizeColor() aux 2 points d\'entrée (aperçu AJAX + sauvegarde) — une couleur mal formée rendrait de nouveau la signature en noir/couleur incohérente';
+        }
+
+        // Round 52 : QueueManager::enqueueAt() ne vérifiait pas le résultat
+        // de l'INSERT — un envoi manuel planifié en doublon (contrainte
+        // UNIQUE) échouait silencieusement, ManualSendManager annonçant
+        // quand même "programmé avec succès".
+        if ($queueSrc2 !== '' && strpos($queueSrc2, "INSERT IGNORE INTO `' . \$this->prefix . 'neria_queue`\n             (id_customer, id_shop, id_lang, template, recipient_email, recipient_name,\n              vars_json, ref_id, send_at, status, created_at)") === false) {
+            $offenders[] = 'QueueManager : enqueueAt() n\'utilise plus INSERT IGNORE — un envoi manuel planifié en doublon échouerait de nouveau silencieusement sans que ManualSendManager ne le détecte';
+        }
+        if ($manualSrc2 !== '' && strpos($manualSrc2, '$queued = (new \QueueManager($this->module))->enqueueAt(') === false) {
+            $offenders[] = 'ManualSendManager : scheduleManual() ne vérifie plus le retour d\'enqueueAt() — annoncerait de nouveau "programmé avec succès" pour un envoi jamais réellement mis en file';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
