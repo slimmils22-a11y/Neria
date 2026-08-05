@@ -1854,6 +1854,115 @@ class HealthCheckManager
             $offenders[] = 'neria.php : hookActionDeleteGDPRCustomerImpl() appelle de nouveau new GdprAuditManager($this) au lieu de $this->getLocalPath() — TypeError fatale garantie à chaque suppression RGPD d\'un client';
         }
 
+        // Rattrapage 2026-08-05 : 11 correctifs des rounds 46-47 n'avaient
+        // reçu aucun garde-fou dédié (contrairement aux rounds 48-50).
+
+        // Round 46 : UpsellManager::checkConversions() — fenêtre de
+        // présélection des clics trop juste (7j pile, identique à la
+        // fenêtre d'attribution) pouvait perdre une conversion si le cron
+        // tournait en retard. Marge de sécurité portée à 14j.
+        if ($upsellSrc !== '' && strpos($upsellSrc, 'clicked_at >= DATE_SUB(NOW(), INTERVAL 14 DAY)') === false) {
+            $offenders[] = 'UpsellManager : checkConversions() n\'a plus sa marge de sécurité de 14j sur la présélection des clics — un cron en retard pourrait de nouveau perdre une conversion proche de la limite';
+        }
+
+        // Round 46 : BehavioralCronManager::getCheckoutAbandonmentStats() —
+        // attribution de revenu sans borne temporelle supérieure, une
+        // commande passée des mois après sur le même panier était comptée
+        // comme "récupérée", gonflant le ROI affiché.
+        if ($cronSrc2 !== '' && strpos($cronSrc2, 'DATE_ADD(bs.sent_at, INTERVAL 7 DAY)') === false) {
+            $offenders[] = 'BehavioralCronManager : getCheckoutAbandonmentStats() n\'a plus de borne temporelle sur l\'attribution de revenu — une commande tardive sur le même panier gonflerait de nouveau le ROI affiché';
+        }
+
+        // Round 46 : ABTestManager::getVariantForEmail() — clé de
+        // répartition A/B changeait quand un invité créait un compte.
+        $abtestFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php';
+        $abtestSrc  = is_file($abtestFile) ? (file_get_contents($abtestFile) ?: '') : '';
+        if ($abtestSrc === '') {
+            $offenders[] = 'ABTestManager.php introuvable';
+        } elseif (strpos($abtestSrc, "trim(\$email) !== '' ? trim(\$email)") === false) {
+            $offenders[] = 'ABTestManager : getVariantForEmail() ne priorise plus l\'email comme clé de répartition — un client passant d\'invité à compte changerait de nouveau de variante A/B entre deux envois';
+        }
+
+        // Round 46 : DeliverabilityScorer::getSubjectSpamTriggers() exposait
+        // la liste brute sans le filtre de longueur utilisé par score().
+        $deliverFile = _PS_MODULE_DIR_ . $this->module->name . '/src/DeliverabilityScorer.php';
+        $deliverSrc  = is_file($deliverFile) ? (file_get_contents($deliverFile) ?: '') : '';
+        if ($deliverSrc === '') {
+            $offenders[] = 'DeliverabilityScorer.php introuvable';
+        } elseif (!preg_match('/function getSubjectSpamTriggers[\s\S]{0,800}?mb_strlen\(\$trigger\) >= 4/', $deliverSrc)) {
+            $offenders[] = 'DeliverabilityScorer : getSubjectSpamTriggers() ne filtre plus les triggers courts (< 4 caractères) — de nouveau incohérent avec score(), faux positifs possibles';
+        }
+
+        // Round 46 : DomainReputationManager — array_key_first() sur un
+        // tableau vide testait 'fr' deux fois dans la liste de repli.
+        if ($domainRepSrc !== '' && strpos($domainRepSrc, "array_unique(array_filter(['fr', 'en'") === false) {
+            $offenders[] = 'DomainReputationManager : la liste de repli des expéditeurs ne dédoublonne plus via array_unique/array_filter — array_key_first() sur un tableau vide testerait de nouveau \'fr\' deux fois';
+        }
+
+        // Round 47 : BehavioralCronManager::sendQuoteExpiryReminders() —
+        // fenêtres 48h/Jour J se chevauchaient sur expiry_date=CURDATE(),
+        // et l'offre de prolongation pouvait s'exécuter sans être passée
+        // par le rappel Jour J.
+        if ($cronSrc2 !== '' && strpos($cronSrc2, 'BETWEEN DATE(DATE_ADD(NOW(), INTERVAL 1 DAY))') === false) {
+            $offenders[] = 'BehavioralCronManager : la fenêtre de relance devis 48h chevauche de nouveau la fenêtre Jour J (expiry_date=CURDATE()) — double email contradictoire possible';
+        }
+        if ($cronSrc2 !== '' && strpos($cronSrc2, 'sent_extension = 0 AND q.sent_day = 1') === false) {
+            $offenders[] = 'BehavioralCronManager : l\'offre de prolongation devis ne vérifie plus sent_day=1 — un devis pourrait de nouveau passer directement à "expired" sans jamais recevoir le rappel Jour J';
+        }
+
+        // Round 47 : CollectionManager/LookCompletionManager — la
+        // réservation anti-doublon (claimSend) n'était jamais libérée sur
+        // un continue intermédiaire, bloquant le client à vie même une
+        // fois la condition levée (stock revenu, préférences réactivées).
+        $collectionFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php';
+        $collectionSrc  = is_file($collectionFile) ? (file_get_contents($collectionFile) ?: '') : '';
+        if ($collectionSrc === '') {
+            $offenders[] = 'CollectionManager.php introuvable';
+        } elseif (substr_count($collectionSrc, 'releaseSendClaim($colId, $idCustomer)') < 4) {
+            $offenders[] = 'CollectionManager : releaseSendClaim() n\'est plus appelé sur toutes les sorties anticipées de processCollection() — un client temporairement bloqué (stock, préférences) resterait de nouveau exclu à vie';
+        }
+
+        $lookFile = _PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php';
+        $lookSrc  = is_file($lookFile) ? (file_get_contents($lookFile) ?: '') : '';
+        if ($lookSrc === '') {
+            $offenders[] = 'LookCompletionManager.php introuvable';
+        } elseif (substr_count($lookSrc, 'releaseSendClaim($idOrder, $idCustomer)') < 6) {
+            $offenders[] = 'LookCompletionManager : releaseSendClaim() n\'est plus appelé sur toutes les sorties anticipées de runDailyCheck() — un client temporairement bloqué resterait de nouveau exclu à vie pour cette commande';
+        }
+
+        // Round 47 : OrderTriggersManager::checkMilestone() — seule la
+        // génération du bon (optionnelle) était dédupliquée, pas l'email
+        // milestone_order lui-même.
+        $otFile = _PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php';
+        $otSrc  = is_file($otFile) ? (file_get_contents($otFile) ?: '') : '';
+        if ($otSrc === '') {
+            $offenders[] = 'OrderTriggersManager.php introuvable';
+        } elseif (strpos($otSrc, 'private function claimMilestone(') === false
+               || strpos($otSrc, 'if (!$this->claimMilestone($idCustomer, $count, $idShop)) {') === false
+        ) {
+            $offenders[] = 'OrderTriggersManager : checkMilestone() n\'utilise plus claimMilestone() avant l\'envoi — un doublon d\'email milestone_order redeviendrait possible (commande annulée puis rétablie)';
+        }
+
+        // Round 47 : CertificateManager::issue() enregistrait l'id_shop du
+        // contexte BO de l'employé au lieu de celui de la commande.
+        $certFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
+        $certSrc  = is_file($certFile) ? (file_get_contents($certFile) ?: '') : '';
+        if ($certSrc === '') {
+            $offenders[] = 'CertificateManager.php introuvable (3e vérification)';
+        } elseif (strpos($certSrc, "'id_shop'         => (int) \$order->id_shop,") === false) {
+            $offenders[] = 'CertificateManager : issue() n\'enregistre plus id_shop depuis la commande — un certificat émis pour une autre boutique redeviendrait invisible dans getByOrder()/getAll() de la vraie boutique';
+        }
+
+        // Round 47 : PropensityScoreManager::recalculateAll() ne purgeait
+        // jamais les scores des clients sortis du périmètre.
+        $propFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PropensityScoreManager.php';
+        $propSrc  = is_file($propFile) ? (file_get_contents($propFile) ?: '') : '';
+        if ($propSrc === '') {
+            $offenders[] = 'PropensityScoreManager.php introuvable';
+        } elseif (strpos($propSrc, "DELETE FROM `' . _DB_PREFIX_ . 'neria_propensity_score`") === false) {
+            $offenders[] = 'PropensityScoreManager : recalculateAll() ne purge plus les scores obsolètes — un client sorti du périmètre (commande annulée) réapparaîtrait de nouveau indéfiniment dans getAlertCustomers()';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
