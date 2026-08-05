@@ -2128,6 +2128,37 @@ class HealthCheckManager
             $offenders[] = 'ManualSendManager : scheduleManual() ne vérifie plus le retour d\'enqueueAt() — annoncerait de nouveau "programmé avec succès" pour un envoi jamais réellement mis en file';
         }
 
+        // Round 53 (2026-08-05) : CooldownManager::BYPASS_TEMPLATES
+        // contenait des noms de templates morts ('password_reset',
+        // 'account_guest') et omettait le vrai template 'password'.
+        $cooldownFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CooldownManager.php';
+        $cooldownSrc  = is_file($cooldownFile) ? (file_get_contents($cooldownFile) ?: '') : '';
+        if ($cooldownSrc === '') {
+            $offenders[] = 'CooldownManager.php introuvable';
+        } elseif (!preg_match("/const BYPASS_TEMPLATES = \[[\s\S]{0,150}?'password',/", $cooldownSrc)) {
+            $offenders[] = 'CooldownManager : BYPASS_TEMPLATES n\'exempte plus le vrai template \'password\' — un client qui double-soumet son nouveau mot de passe verrait de nouveau le 2e email silencieusement bloqué';
+        }
+
+        // Round 53 : seo_semrush_key/seo_moz_access redevenus protégés par
+        // un if (empêchant leur révocation volontaire), OU seo_moz_secret
+        // écrasé sans condition (effacerait le secret à chaque sauvegarde
+        // du formulaire, ce champ n'étant jamais pré-rempli).
+        if ($mainSrc2 !== '') {
+            if (preg_match("/if \(\\\$semrushKey !== .{2}\)\s*\{\s*Configuration::updateValue\(SeoApiManager::CONFIG_SEMRUSH_KEY/", $mainSrc2)) {
+                $offenders[] = 'neria.php : seo_semrush_key est de nouveau protégé par un if — la révocation volontaire d\'une clé Semrush redeviendrait impossible';
+            }
+            if (!preg_match("/if \(\\\$mozSecret !== .{2}\)\s*\{\s*Configuration::updateValue\(SeoApiManager::CONFIG_MOZ_SECRET/", $mainSrc2)) {
+                $offenders[] = 'neria.php : seo_moz_secret n\'est plus protégé par un if — ce champ password jamais pré-rempli effacerait le secret à chaque sauvegarde du formulaire SEO';
+            }
+        }
+
+        // Round 53 : hookDisplayBackOfficeHeaderImpl() réenregistrait 4
+        // hooks à chaque page BO sans garde — une désactivation manuelle
+        // admin via l'onglet "Hooks" était silencieusement annulée.
+        if ($mainSrc2 !== '' && strpos($mainSrc2, "Configuration::get('NERIA_HOOKS_MIGRATED_V2')") === false) {
+            $offenders[] = 'neria.php : hookDisplayBackOfficeHeaderImpl() n\'a plus le flag NERIA_HOOKS_MIGRATED_V2 — les 4 hooks seraient de nouveau réenregistrés à chaque page BO, annulant toute désactivation manuelle admin';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
