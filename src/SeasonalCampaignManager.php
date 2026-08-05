@@ -200,12 +200,21 @@ class SeasonalCampaignManager
             foreach ($customers as $customer) {
                 $idCustomer = (int) $customer['id_customer'];
 
-                // Déduplication annuelle
+                // Déduplication annuelle — id_shop obligatoire : sans lui,
+                // ces lignes tombent toutes sur le défaut id_shop=1 de la
+                // colonne (voir sql/install.sql, table 12), qu'on soit sur
+                // la boutique 1 ou non. Conséquence sur une install
+                // multi-boutiques : purger la boutique 1 (RGPD) supprime
+                // au passage la dédup de TOUTES les autres boutiques (client
+                // partagé) qui reçoit alors deux fois la même campagne
+                // saisonnière la même année ; et purger une autre boutique
+                // que la 1 ne nettoie jamais ces lignes mal étiquetées.
                 $alreadySent = (int) $this->db->getValue(
                     "SELECT COUNT(*) FROM `{$this->prefix}neria_behavioral_sent`
                      WHERE id_customer = {$idCustomer}
                        AND template    = '" . pSQL($sentKey) . "'
-                       AND ref_id      = {$year}"
+                       AND ref_id      = {$year}
+                       AND id_shop     = " . (int) $this->idShop
                 );
                 if ($alreadySent > 0) {
                     continue;
@@ -276,8 +285,8 @@ class SeasonalCampaignManager
 
                     $this->db->execute(
                         "INSERT IGNORE INTO `{$this->prefix}neria_behavioral_sent`
-                            (id_customer, template, ref_id, sent_at)
-                         VALUES ({$idCustomer}, '" . pSQL($sentKey) . "', {$year}, NOW())"
+                            (id_customer, template, ref_id, id_shop, sent_at)
+                         VALUES ({$idCustomer}, '" . pSQL($sentKey) . "', {$year}, " . (int) $this->idShop . ", NOW())"
                     );
 
                     $sentCount++;
