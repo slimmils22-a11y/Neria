@@ -834,7 +834,9 @@ class BehavioralCronManager
                 COALESCE(SUM(o.total_paid_tax_incl), 0) AS revenue_recovered
              FROM `' . $this->prefix . 'neria_behavioral_sent` bs
              LEFT JOIN `' . $this->prefix . 'orders` o
-                ON o.id_cart = bs.ref_id AND o.date_add > bs.sent_at AND o.id_shop = ' . $idShop . '
+                ON o.id_cart = bs.ref_id AND o.date_add > bs.sent_at
+                   AND o.date_add <= DATE_ADD(bs.sent_at, INTERVAL 7 DAY)
+                   AND o.id_shop = ' . $idShop . '
              WHERE bs.template = \'checkout_abandonment\''
         );
 

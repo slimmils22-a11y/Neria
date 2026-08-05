@@ -516,7 +516,12 @@ class DomainReputationManager
             if (!is_array($senders)) {
                 $senders = [];
             }
-            foreach (['fr', 'en', array_key_first($senders)] as $lang) {
+            // array_key_first(): sur $senders = [] retourne null, ce qui
+            // rendait 'fr' faussement testé deux fois et ne tentait jamais
+            // vraiment un autre expéditeur configuré. array_unique + filter
+            // retire ce null plutôt que de le laisser dans la liste.
+            $langsToTry = array_unique(array_filter(['fr', 'en', array_key_first($senders)]));
+            foreach ($langsToTry as $lang) {
                 if (!empty($senders[$lang]['from'])) {
                     $d = $this->extractDomain($senders[$lang]['from']);
                     if ($d) return $d;

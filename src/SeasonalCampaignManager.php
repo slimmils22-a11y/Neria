@@ -242,7 +242,7 @@ class SeasonalCampaignManager
                         }
                     }
 
-                    \Mail::Send(
+                    $ok = \Mail::Send(
                         $idLang,
                         $template,
                         '',
@@ -264,7 +264,16 @@ class SeasonalCampaignManager
                         $this->idShop
                     );
 
-                    // Enregistre la déduplication
+                    // Ne pose la déduplication annuelle que si l'envoi a
+                    // réellement réussi — sinon (échec SMTP transitoire,
+                    // config mail invalide) le client était marqué "déjà
+                    // servi" pour l'année et ne recevait plus jamais cette
+                    // campagne saisonnière, sans qu'aucune alerte ne le
+                    // signale.
+                    if (!$ok) {
+                        continue;
+                    }
+
                     $this->db->execute(
                         "INSERT IGNORE INTO `{$this->prefix}neria_behavioral_sent`
                             (id_customer, template, ref_id, sent_at)

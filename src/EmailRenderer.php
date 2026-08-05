@@ -2658,11 +2658,13 @@ class EmailRenderer
                 $htmlTemplateVars[$nameKey] = htmlspecialchars($htmlTemplateVars[$nameKey], ENT_QUOTES, 'UTF-8');
             }
         }
-        foreach ($htmlTemplateVars as $key => $value) {
-            if (is_string($value)) {
-                $compiled = str_replace($key, $value, $compiled);
-            }
-        }
+        // strtr() (et non str_replace() en boucle) : une valeur cliente
+        // (prénom, message de contact, message cadeau...) contenant
+        // littéralement "{autre_variable}" ne doit pas se faire re-substituer
+        // selon l'ordre d'itération du foreach — même correctif que pour
+        // $tplVars ci-dessus.
+        $htmlStrtrVars = array_filter($htmlTemplateVars, 'is_string');
+        $compiled = strtr($compiled, $htmlStrtrVars);
 
         // ── Résoudre les blocs conditionnels {if isset($var) && $var}...{/if}
         // (signature manuscrite, réseaux sociaux) selon la valeur réelle de
@@ -2812,11 +2814,11 @@ class EmailRenderer
             // texte) pour que ce tag fraîchement inséré soit bien résolu avant
             // le filet de sécurité qui suit.
             $compiledTxt = strtr($compiledTxt, $psCommon);
-            foreach ($templateVars as $key => $value) {
-                if (is_string($value)) {
-                    $compiledTxt = str_replace($key, $value, $compiledTxt);
-                }
-            }
+            // strtr() plutôt que str_replace() en boucle — voir correctif
+            // identique sur la version HTML ci-dessus (évite la
+            // re-substitution en chaîne d'une valeur cliente contenant
+            // littéralement "{autre_variable}").
+            $compiledTxt = strtr($compiledTxt, array_filter($templateVars, 'is_string'));
 
             // ── Filet de sécurité : variable de contenu manquante ─────────────
             // Même logique que la version HTML (voir plus haut) — sans cette

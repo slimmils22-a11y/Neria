@@ -414,7 +414,15 @@ class DeliverabilityScorer
      */
     public function getSubjectSpamTriggers(): array
     {
-        return $this->subjectSpamTriggers;
+        // Même filtre de longueur (>= 4 caractères) que score() ci-dessous —
+        // sans lui, un appelant utilisant cette liste brute (ex. vérificateur
+        // de mots-spam en direct pendant la saisie du sujet en BO) signalait
+        // des fragments de 2-3 lettres que le scoring réel ignore, produisant
+        // des faux positifs incohérents avec le score effectivement affiché.
+        return array_values(array_filter(
+            $this->subjectSpamTriggers,
+            static fn ($trigger) => mb_strlen($trigger) >= 4
+        ));
     }
 
     public function score(string $htmlContent, string $subject): array

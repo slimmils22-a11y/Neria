@@ -155,10 +155,16 @@ class SegmentManager
                 SELECT
                     id_customer,
                     SUM(event_type = 'sent')        AS total_sent,
-                    SUM(event_type = 'open')        AS total_opens,
+                    -- is_mpp = 0 : exclut les pré-chargements automatiques
+                    -- d'Apple Mail Privacy Protection (déclenchent le pixel
+                    -- sans lecture réelle) — même filtre que StatsManager
+                    -- partout ailleurs. Sans lui, un client qui n'ouvre
+                    -- jamais réellement ses emails pouvait être classé
+                    -- ambassador/loyal au lieu de ghost/dormant.
+                    SUM(event_type = 'open' AND is_mpp = 0)        AS total_opens,
                     SUM(event_type = 'click')       AS total_clicks,
                     SUM(event_type = 'conversion')  AS total_conv,
-                    MAX(CASE WHEN event_type = 'open'       THEN date_add END) AS last_open,
+                    MAX(CASE WHEN event_type = 'open' AND is_mpp = 0 THEN date_add END) AS last_open,
                     MAX(CASE WHEN event_type = 'conversion' THEN date_add END) AS last_conv,
                     MIN(CASE WHEN event_type = 'sent'       THEN date_add END) AS first_sent
                 FROM `{$stat}`

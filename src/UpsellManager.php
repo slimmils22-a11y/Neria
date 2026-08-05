@@ -277,11 +277,17 @@ class UpsellManager
                   ON a.id_product_2 = p.id_product AND p.active = 1
              JOIN `{$this->prefix}product_lang` pl
                   ON p.id_product = pl.id_product AND pl.id_lang = " . (int) $idLang . "
-             JOIN `{$this->prefix}stock_available` sa
-                  ON sa.id_product = p.id_product AND sa.id_product_attribute = 0 AND sa.quantity > 0
              JOIN `{$this->prefix}category_product` cp ON p.id_product = cp.id_product
              WHERE a.id_product_1 IN ({$inProducts})
                {$notIn}
+               -- Somme le stock sur toutes les déclinaisons (pas seulement
+               -- id_product_attribute=0) : un produit géré par déclinaisons
+               -- n'a quasiment jamais de stock sur la ligne 'sans attribut',
+               -- ce qui excluait systématiquement tout produit à déclinaisons
+               -- des suggestions, même largement disponible. Voir correctif
+               -- identique dans WaitlistManager::notifyProduct().
+               AND (SELECT SUM(sa.quantity) FROM `{$this->prefix}stock_available` sa
+                    WHERE sa.id_product = p.id_product) > 0
              GROUP BY p.id_product
              ORDER BY p.id_product ASC"
         ) ?: null;
@@ -302,11 +308,13 @@ class UpsellManager
                   ON od2.product_id = p.id_product AND p.active = 1
              JOIN `{$this->prefix}product_lang` pl
                   ON p.id_product = pl.id_product AND pl.id_lang = " . (int) $idLang . "
-             JOIN `{$this->prefix}stock_available` sa
-                  ON sa.id_product = p.id_product AND sa.id_product_attribute = 0 AND sa.quantity > 0
              JOIN `{$this->prefix}category_product` cp ON p.id_product = cp.id_product
              WHERE od1.product_id IN ({$inProducts})
                {$notIn}
+               -- Somme le stock sur toutes les déclinaisons — voir correctif
+               -- identique dans findByAccessories() ci-dessus.
+               AND (SELECT SUM(sa.quantity) FROM `{$this->prefix}stock_available` sa
+                    WHERE sa.id_product = p.id_product) > 0
              GROUP BY od2.product_id
              ORDER BY freq DESC"
         ) ?: null;
@@ -337,10 +345,12 @@ class UpsellManager
                   ON cp.id_product = p.id_product AND p.active = 1
              JOIN `{$this->prefix}product_lang` pl
                   ON p.id_product = pl.id_product AND pl.id_lang = " . (int) $idLang . "
-             JOIN `{$this->prefix}stock_available` sa
-                  ON sa.id_product = p.id_product AND sa.id_product_attribute = 0 AND sa.quantity > 0
              WHERE cp.id_category IN ({$inCats})
                {$notIn}
+               -- Somme le stock sur toutes les déclinaisons — voir correctif
+               -- identique dans findByAccessories() plus haut.
+               AND (SELECT SUM(sa.quantity) FROM `{$this->prefix}stock_available` sa
+                    WHERE sa.id_product = p.id_product) > 0
              ORDER BY (
                  SELECT COUNT(*) FROM `{$this->prefix}order_detail` od
                  WHERE od.product_id = p.id_product
@@ -530,7 +540,14 @@ class UpsellManager
              FROM `{$table}` u
              WHERE u.clicked_at IS NOT NULL
                AND u.id_order_converted IS NULL
-               AND u.clicked_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+               -- Marge de sécurité (14j, alors que la fenêtre d'attribution
+               -- réelle vérifiée plus bas est de 7j) : si le cron quotidien
+               -- rate une exécution (échec, maintenance), un clic proche de
+               -- la limite des 7 jours ne doit pas sortir de cette
+               -- présélection avant que sa propre fenêtre de conversion soit
+               -- réellement épuisée, sous peine de perdre silencieusement la
+               -- conversion et le revenu attribué.
+               AND u.clicked_at >= DATE_SUB(NOW(), INTERVAL 14 DAY)"
         ) ?: [];
 
         $count = 0;

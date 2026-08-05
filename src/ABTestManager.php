@@ -120,12 +120,14 @@ class ABTestManager
 
         $test = $this->activeTestsCache[$template];
 
-        // Clé de répartition : id_customer si connu, sinon l'email (stable
-        // même pour un invité) ; repli sur le nom du template seul (toujours
-        // variante A pour CE template précis) uniquement si aucun des deux
-        // n'est disponible — cas résiduel qui ne devrait jamais survenir en
-        // pratique puisqu'un email destinataire est toujours connu à l'envoi.
-        $key = $idCustomer > 0 ? (string) $idCustomer : trim($email);
+        // Clé de répartition : l'email en priorité (stable dans tous les
+        // cas — invité comme compte), repli sur id_customer si l'email n'est
+        // pas fourni. Un client qui achète d'abord en invité (clé = email)
+        // puis crée un compte plus tard changeait de clé (id_customer) avec
+        // ce hash différent, donc potentiellement de variante d'un envoi à
+        // l'autre, alors que le principe du module est qu'un même
+        // destinataire reçoit toujours la même variante.
+        $key = trim($email) !== '' ? trim($email) : ($idCustomer > 0 ? (string) $idCustomer : '');
         if ($key === '') {
             return self::VARIANT_A;
         }
