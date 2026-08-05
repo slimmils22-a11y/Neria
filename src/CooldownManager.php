@@ -18,13 +18,18 @@ if (!defined('_PS_VERSION_')) {
 class CooldownManager
 {
     // Templates exemptés du cooldown (user-triggered ou critiques)
+    // 'password' (confirmation de nouveau mot de passe, PasswordController)
+    // manquait — seul 'password_query' (email de demande) était exempté.
+    // 'password_reset'/'account_guest' ne correspondent à AUCUN template PS
+    // réel (cf. classes/Customer.php, controllers/front/*Controller.php) —
+    // du code mort qui ne bypassait jamais rien, retiré. 'account' reste
+    // le vrai nom du template de confirmation d'inscription.
     const BYPASS_TEMPLATES = [
         'password_query',
-        'password_reset',
+        'password',
         'contact',
         'guest_to_customer',
         'account',
-        'account_guest',
         'neria_fallback',
     ];
 
