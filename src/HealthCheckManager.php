@@ -2178,6 +2178,21 @@ class HealthCheckManager
             $offenders[] = 'EmailRenderer : isExcluded() ne retombe plus sur PS_LANG_DEFAULT quand idLang est absent — une règle de blacklist ciblée par langue pourrait de nouveau être contournée silencieusement';
         }
 
+        // Round 55 (2026-08-05) : sendGhostCarts() excluait un client de la
+        // relance panier fantôme si N'IMPORTE QUELLE boutique avait une
+        // commande validée pour ce produit (NOT EXISTS non scopé par
+        // id_shop), contrairement au reste du fichier. Sur une install
+        // multi-boutiques à compte client mutualisé, un achat ancien sur
+        // une autre boutique masquait silencieusement un panier abandonné
+        // réel sur la boutique courante.
+        $cronFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
+        $cronSrc2  = is_file($cronFile2) ? (file_get_contents($cronFile2) ?: '') : '';
+        if ($cronSrc2 === '') {
+            $offenders[] = 'src/BehavioralCronManager.php introuvable';
+        } elseif (!preg_match('/function sendGhostCarts\(\).*?o\.valid = 1\s*AND o\.id_shop = \' \. \$idShop \. \'/s', $cronSrc2)) {
+            $offenders[] = 'BehavioralCronManager::sendGhostCarts() ne filtre plus o.id_shop dans son NOT EXISTS sur les commandes — un achat validé sur une autre boutique pourrait de nouveau masquer silencieusement un panier abandonné réel';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
