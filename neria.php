@@ -1565,7 +1565,15 @@ class Neria extends Module
             return;
         }
 
-        $purged = (new GdprAuditManager($this))->purgeCustomerData($idCustomer, $email);
+        // GdprAuditManager::__construct() attend le CHEMIN du module (string),
+        // pas l'objet module lui-même — passer $this ici levait une TypeError
+        // fatale ("must be of type string, Neria given") à CHAQUE suppression
+        // RGPD d'un client via le BO (bouton natif PrestaShop "Supprimer +
+        // effacer les données personnelles"), empêchant toute purge des
+        // données Neria (stats, comportemental, fidélité...) pour ce client.
+        // Détecté par PHPStan (mise en place le 05/08/2026), jamais remarqué
+        // en usage réel faute de test couvrant ce hook.
+        $purged = (new GdprAuditManager($this->getLocalPath()))->purgeCustomerData($idCustomer, $email);
 
         if (class_exists('WatchdogManager')) {
             (new WatchdogManager($this))->info(

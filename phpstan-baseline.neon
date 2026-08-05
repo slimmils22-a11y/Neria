@@ -1,0 +1,571 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/front/bounce.php
+
+		-
+			message: '#^Call to an undefined method Module\:\:runBackgroundJobs\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: controllers/front/cron.php
+
+		-
+			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 2
+			path: controllers/front/cron.php
+
+		-
+			message: '#^Parameter \#1 \$module of class PostmasterManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/front/oauth.php
+
+		-
+			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/front/oauth.php
+
+		-
+			message: '#^Parameter \#1 \$module of class SearchConsoleManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/front/oauthsc.php
+
+		-
+			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/front/oauthsc.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: controllers/front/preferences.php
+
+		-
+			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 4
+			path: controllers/front/preferences.php
+
+		-
+			message: '#^Parameter \#1 \$module of class StatsManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/front/track.php
+
+		-
+			message: '#^Parameter \#1 \$module of class UpsellManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/front/track.php
+
+		-
+			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/front/track.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-string and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: controllers/front/track.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: controllers/front/unsubscribe.php
+
+		-
+			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/front/unsubscribe.php
+
+		-
+			message: '#^Parameter \#1 \$module of class WebhookManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/front/unsubscribe.php
+
+		-
+			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 1
+			path: controllers/front/waitlist.php
+
+		-
+			message: '#^Comparison operation "\<\=" between int\<min, 0\> and 0 is always true\.$#'
+			identifier: smallerOrEqual.alwaysTrue
+			count: 1
+			path: neria.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: neria.php
+
+		-
+			message: '#^Offset ''detail'' on array\{html\: string, issues\: mixed, detail\: list\<''@media queries…''\|''Attributs style\=""…''\|''background\-image…''\|''Balises \<style\>…''\|''border\-radius…''\|''display\:flex…''\|''gap \(flexbox\)…''\|''Liens \<link\> CSS…''\|''position supprimée''\|''text\-shadow / box…''\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: neria.php
+
+		-
+			message: '#^Offset ''html'' on array\{html\: string, issues\: mixed, detail\: list\<''@media queries…''\|''Attributs style\=""…''\|''background\-image…''\|''Balises \<style\>…''\|''border\-radius…''\|''display\:flex…''\|''gap \(flexbox\)…''\|''Liens \<link\> CSS…''\|''position supprimée''\|''text\-shadow / box…''\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: neria.php
+
+		-
+			message: '#^Property TabCore\:\:\$active \(bool\) does not accept int\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: neria.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-falsy\-string and ''0'' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: neria.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between null and null will always evaluate to true\.$#'
+			identifier: identical.alwaysTrue
+			count: 2
+			path: neria.php
+
+		-
+			message: '#^Variable \$health might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: neria.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$idCustomer$#'
+			identifier: parameter.notFound
+			count: 1
+			path: src/ABTestManager.php
+
+		-
+			message: '#^Parameter \#2 \$ids of method LinkCore\:\:getImageLink\(\) expects string, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/BehavioralCronManager.php
+
+		-
+			message: '#^Property CartRuleCore\:\:\$active \(bool\) does not accept int\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/BehavioralCronManager.php
+
+		-
+			message: '#^Property CartRuleCore\:\:\$reduction_tax \(bool\) does not accept int\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/BehavioralCronManager.php
+
+		-
+			message: '#^Property CartRuleCore\:\:\$shop_restriction \(bool\) does not accept int\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/BehavioralCronManager.php
+
+		-
+			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/BounceManager.php
+
+		-
+			message: '#^Method CalendarManager\:\:calculateEidAlAdha\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/CalendarManager.php
+
+		-
+			message: '#^Method CalendarManager\:\:calculateEidAlFitr\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/CalendarManager.php
+
+		-
+			message: '#^Method CalendarManager\:\:calculateRamadanStart\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/CalendarManager.php
+
+		-
+			message: '#^Parameter \#1 \$module of class TranslationEngine constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/CertificateManager.php
+
+		-
+			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/CertificateManager.php
+
+		-
+			message: '#^Parameter \#1 \$string of function str_pad expects string, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/CertificateManager.php
+
+		-
+			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/ClvManager.php
+
+		-
+			message: '#^Parameter \#2 \$ids of method LinkCore\:\:getImageLink\(\) expects string, int given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/CollectionManager.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$htmlContent$#'
+			identifier: parameter.notFound
+			count: 1
+			path: src/DeliverabilityScorer.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$subject$#'
+			identifier: parameter.notFound
+			count: 1
+			path: src/DeliverabilityScorer.php
+
+		-
+			message: '#^Call to an undefined method DOMNode\:\:getAttribute\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/EmailRenderer.php
+
+		-
+			message: '#^Call to an undefined method DOMNode\:\:getElementsByTagName\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/EmailRenderer.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments string, array\{\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: src/EmailRenderer.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 5
+			path: src/EmailRenderer.php
+
+		-
+			message: '#^Offset string on array\{\} on left side of \?\? does not exist\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/EmailRenderer.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$params$#'
+			identifier: parameter.notFound
+			count: 1
+			path: src/EmailRenderer.php
+
+		-
+			message: '#^Property FontManager\:\:\$module is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/FontManager.php
+
+		-
+			message: '#^Offset ''has_pii'' on array\{table\: ''neria_abtest'', date_col\: ''date_add'', months\: 36, label\: ''Tests A/B'', note\: ''Configuration des…'', customer_col\: null, has_pii\: false\}\|array\{table\: ''neria_attribution'', date_col\: ''created_at'', months\: 36, label\: ''Attribution de…'', note\: ''Pivot id_order →…'', customer_col\: null, has_pii\: true\}\|array\{table\: ''neria_behavioral…'', date_col\: ''sent_at'', months\: 36, label\: ''Emails…'', note\: ''Horodatages d\\''envoi…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_birthday…'', date_col\: ''created_at'', months\: 36, label\: ''Bons de réduction…'', note\: ''Code de bon…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_bounces'', date_col\: ''date_add'', months\: 36, label\: ''Adresses en rebond …'', note\: ''Emails invalides…'', customer_col\: null, has_pii\: true\}\|array\{table\: ''neria_certificate'', date_col\: ''date_add'', months\: 60, label\: ''Certificats d…'', note\: ''Contient le nom…'', customer_col\: null, has_pii\: true\}\|array\{table\: ''neria_churn_score'', date_col\: ''computed_at'', months\: 36, label\: ''Scores de churn…'', note\: ''Scores de risque…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_collection…'', date_col\: ''sent_at'', months\: 36, label\: ''Complétion…'', note\: ''Horodatages d\\''envoi…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_customer…'', date_col\: ''computed_at'', months\: 36, label\: ''Segments…'', note\: ''Profils de…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_log'', date_col\: ''date_add'', months\: 12, label\: ''Journal système …'', note\: ''Journaux techniques…'', customer_col\: null, has_pii\: false\}\|array\{table\: ''neria_look_sent'', date_col\: ''sent_at'', months\: 36, label\: ''Complétez votre…'', note\: ''Horodatages d\\''envoi…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_loyalty_points'', date_col\: ''date_add'', months\: 36, label\: ''Points de fidélité…'', note\: ''Solde et historique…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_loyalty…'', date_col\: ''sent_at'', months\: 36, label\: ''Récompenses…'', note\: ''Bons de réduction…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_milestone…'', date_col\: ''created_at'', months\: 36, label\: ''Bons de réduction —…'', note\: ''Code de bon…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_preferences'', date_col\: ''date_upd'', months\: 36, label\: ''Préférences email…'', note\: ''Choix opt\-in/out…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_propensity…'', date_col\: ''date_upd'', months\: 36, label\: ''Scores de…'', note\: ''Scores…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_queue'', date_col\: ''send_at'', months\: 3, label\: ''File d\\''envoi …'', note\: ''Emails en attente d…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_quote'', date_col\: ''date_add'', months\: 60, label\: ''Devis B2B'', note\: ''Devis suivis…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_reconciliation'', date_col\: ''date_add'', months\: 36, label\: ''Réconciliation…'', note\: ''Suivi des emails de…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_seasonal…'', date_col\: ''date_add'', months\: 36, label\: ''Campagnes…'', note\: ''Configuration des…'', customer_col\: null, has_pii\: false\}\|array\{table\: ''neria_stat'', date_col\: ''date_add'', months\: 36, label\: ''Statistiques d…'', note\: ''Données…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_translation…'', date_col\: ''date_add'', months\: 36, label\: ''Historique des…'', note\: ''Changelog interne —…'', customer_col\: null, has_pii\: false\}\|array\{table\: ''neria_upsell'', date_col\: ''sent_at'', months\: 36, label\: ''Upsell post\-achat …'', note\: ''Enregistrements d…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_waitlist'', date_col\: ''registered_at'', months\: 24, label\: ''Liste d\\''attente…'', note\: ''Demandes de…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_webhook_queue'', date_col\: ''date_add'', months\: 12, label\: ''File d\\''attente…'', note\: ''Payload JSON peut…'', customer_col\: null, has_pii\: true\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/GdprAuditManager.php
+
+		-
+			message: '#^Offset ''note'' on array\{table\: ''neria_abtest'', date_col\: ''date_add'', months\: 36, label\: ''Tests A/B'', note\: ''Configuration des…'', customer_col\: null, has_pii\: false\}\|array\{table\: ''neria_attribution'', date_col\: ''created_at'', months\: 36, label\: ''Attribution de…'', note\: ''Pivot id_order →…'', customer_col\: null, has_pii\: true\}\|array\{table\: ''neria_behavioral…'', date_col\: ''sent_at'', months\: 36, label\: ''Emails…'', note\: ''Horodatages d\\''envoi…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_birthday…'', date_col\: ''created_at'', months\: 36, label\: ''Bons de réduction…'', note\: ''Code de bon…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_bounces'', date_col\: ''date_add'', months\: 36, label\: ''Adresses en rebond …'', note\: ''Emails invalides…'', customer_col\: null, has_pii\: true\}\|array\{table\: ''neria_certificate'', date_col\: ''date_add'', months\: 60, label\: ''Certificats d…'', note\: ''Contient le nom…'', customer_col\: null, has_pii\: true\}\|array\{table\: ''neria_churn_score'', date_col\: ''computed_at'', months\: 36, label\: ''Scores de churn…'', note\: ''Scores de risque…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_collection…'', date_col\: ''sent_at'', months\: 36, label\: ''Complétion…'', note\: ''Horodatages d\\''envoi…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_customer…'', date_col\: ''computed_at'', months\: 36, label\: ''Segments…'', note\: ''Profils de…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_log'', date_col\: ''date_add'', months\: 12, label\: ''Journal système …'', note\: ''Journaux techniques…'', customer_col\: null, has_pii\: false\}\|array\{table\: ''neria_look_sent'', date_col\: ''sent_at'', months\: 36, label\: ''Complétez votre…'', note\: ''Horodatages d\\''envoi…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_loyalty_points'', date_col\: ''date_add'', months\: 36, label\: ''Points de fidélité…'', note\: ''Solde et historique…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_loyalty…'', date_col\: ''sent_at'', months\: 36, label\: ''Récompenses…'', note\: ''Bons de réduction…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_milestone…'', date_col\: ''created_at'', months\: 36, label\: ''Bons de réduction —…'', note\: ''Code de bon…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_preferences'', date_col\: ''date_upd'', months\: 36, label\: ''Préférences email…'', note\: ''Choix opt\-in/out…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_propensity…'', date_col\: ''date_upd'', months\: 36, label\: ''Scores de…'', note\: ''Scores…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_queue'', date_col\: ''send_at'', months\: 3, label\: ''File d\\''envoi …'', note\: ''Emails en attente d…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_quote'', date_col\: ''date_add'', months\: 60, label\: ''Devis B2B'', note\: ''Devis suivis…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_reconciliation'', date_col\: ''date_add'', months\: 36, label\: ''Réconciliation…'', note\: ''Suivi des emails de…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_seasonal…'', date_col\: ''date_add'', months\: 36, label\: ''Campagnes…'', note\: ''Configuration des…'', customer_col\: null, has_pii\: false\}\|array\{table\: ''neria_stat'', date_col\: ''date_add'', months\: 36, label\: ''Statistiques d…'', note\: ''Données…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_translation…'', date_col\: ''date_add'', months\: 36, label\: ''Historique des…'', note\: ''Changelog interne —…'', customer_col\: null, has_pii\: false\}\|array\{table\: ''neria_upsell'', date_col\: ''sent_at'', months\: 36, label\: ''Upsell post\-achat …'', note\: ''Enregistrements d…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_waitlist'', date_col\: ''registered_at'', months\: 24, label\: ''Liste d\\''attente…'', note\: ''Demandes de…'', customer_col\: ''id_customer'', has_pii\: true\}\|array\{table\: ''neria_webhook_queue'', date_col\: ''date_add'', months\: 12, label\: ''File d\\''attente…'', note\: ''Payload JSON peut…'', customer_col\: null, has_pii\: true\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/GdprAuditManager.php
+
+		-
+			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/GdprAuditManager.php
+
+		-
+			message: '#^Call to an undefined method SegmentManager\:\:getSegmentCustomerCount\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/HealthCheckManager.php
+
+		-
+			message: '#^Call to function in_array\(\) with arguments non\-empty\-string, array\{\} and true will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: src/HealthCheckManager.php
+
+		-
+			message: '#^Call to function method_exists\(\) with ConfigManager and ''getSocialLinks'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/HealthCheckManager.php
+
+		-
+			message: '#^Offset 1 on array\{list\<string\>, list\<non\-empty\-string\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/HealthCheckManager.php
+
+		-
+			message: '#^Offset 5\|10\|25\|50\|100 on array\{5\: ''5\-й'', 10\: ''10\-й'', 25\: ''25\-й'', 50\: ''50\-й'', 100\: ''100\-й''\}\|array\{5\: ''5\.'', 10\: ''10\.'', 25\: ''25\.'', 50\: ''50\.'', 100\: ''100\.''\}\|array\{5\: ''5\:e'', 10\: ''10\:e'', 25\: ''25\:e'', 50\: ''50\:e'', 100\: ''100\:e''\}\|array\{5\: ''5e'', 10\: ''10e'', 25\: ''25e'', 50\: ''50e'', 100\: ''100e''\}\|array\{5\: ''5th'', 10\: ''10th'', 25\: ''25th'', 50\: ''50th'', 100\: ''100th''\}\|array\{5\: ''5°'', 10\: ''10°'', 25\: ''25°'', 50\: ''50°'', 100\: ''100°''\}\|array\{5\: ''5º'', 10\: ''10º'', 25\: ''25º'', 50\: ''50º'', 100\: ''100º''\}\|array\{5\: ''5回目'', 10\: ''10回目'', 25\: ''25回目'', 50\: ''50回目'', 100\: ''100回目''\}\|array\{5\: ''5번째'', 10\: ''10번째'', 25\: ''25번째'', 50\: ''50번째'', 100\: ''100번째''\}\|array\{5\: ''الخامس'', 10\: ''العاشر'', 25\: ''الخامس والعشرون'', 50\: ''الخمسون'', 100\: ''المئة''\}\|array\{5\: ''第5次'', 10\: ''第10次'', 25\: ''第25次'', 50\: ''第50次'', 100\: ''第100次''\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/HealthCheckManager.php
+
+		-
+			message: '#^Parameter \#1 \$objectOrClass of class ReflectionClass constructor expects class\-string\<Swift_Message\|Symfony\\Component\\Mime\\Email\>\|Swift_Message\|Symfony\\Component\\Mime\\Email, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/HealthCheckManager.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-string and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/HealthCheckManager.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-string and false will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/HealthCheckManager.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between non\-empty\-string and false will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 4
+			path: src/HealthCheckManager.php
+
+		-
+			message: '#^Variable \$http_response_header on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.variable
+			count: 1
+			path: src/HealthCheckManager.php
+
+		-
+			message: '#^Variable \$missingCombos in empty\(\) always exists and is always falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: src/HealthCheckManager.php
+
+		-
+			message: '#^Property LicenseManager\:\:\$db is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/LicenseManager.php
+
+		-
+			message: '#^Parameter \#2 \$ids of method LinkCore\:\:getImageLink\(\) expects string, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/LookCompletionManager.php
+
+		-
+			message: '#^Property CartRuleCore\:\:\$active \(bool\) does not accept int\.$#'
+			identifier: assign.propertyType
+			count: 2
+			path: src/LoyaltyManager.php
+
+		-
+			message: '#^Property CartRuleCore\:\:\$reduction_tax \(bool\) does not accept int\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/LoyaltyManager.php
+
+		-
+			message: '#^Property CartRuleCore\:\:\$shop_restriction \(bool\) does not accept int\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/LoyaltyManager.php
+
+		-
+			message: '#^Offset ''en'' on array\{fr\: ''Conditions d…'', en\: ''Terms of use'', gb\: ''Terms of use'', de\: ''Nutzungsbedingungen'', it\: ''Condizioni d\\''uso'', es\: ''Condiciones de uso'', pt\: ''Condições de uso'', br\: ''Condições de uso'', \.\.\.\}\|array\{fr\: ''Dates'', en\: ''Dates'', gb\: ''Dates'', de\: ''Termine'', it\: ''Date'', es\: ''Fechas'', pt\: ''Datas'', br\: ''Datas'', \.\.\.\}\|array\{fr\: ''Durée \(ex \: deux…'', en\: ''Duration \(e\.g\. two…'', gb\: ''Duration \(e\.g\. two…'', de\: ''Dauer \(z\.B\. zwei…'', it\: ''Durata \(es\. due…'', es\: ''Duración \(ej\. dos…'', pt\: ''Duração \(ex\. dois…'', br\: ''Duração \(ex\. dois…'', \.\.\.\}\|array\{fr\: ''Lieu'', en\: ''Location'', gb\: ''Location'', de\: ''Ort'', it\: ''Luogo'', es\: ''Lugar'', pt\: ''Local'', br\: ''Local'', \.\.\.\}\|array\{fr\: ''URL de confirmation…'', en\: ''RSVP confirmation…'', gb\: ''RSVP confirmation…'', de\: ''Bestätigungs\-URL …'', it\: ''URL di conferma …'', es\: ''URL de confirmación…'', pt\: ''URL de confirmação …'', br\: ''URL de confirmação …'', \.\.\.\}\|array\{fr\: ''URL de la commande'', en\: ''Order URL'', gb\: ''Order URL'', de\: ''Bestell\-URL'', it\: ''URL dell\\''ordine'', es\: ''URL del pedido'', pt\: ''URL do pedido'', br\: ''URL do pedido'', \.\.\.\}\|array\{fr\: ''URL de la page avis'', en\: ''Review page URL'', gb\: ''Review page URL'', de\: ''URL der…'', it\: ''URL della pagina…'', es\: ''URL de la página de…'', pt\: ''URL da página de…'', br\: ''URL da página de…'', \.\.\.\}\|array\{fr\: ''URL de la vente…'', en\: ''Private sale URL'', gb\: ''Private sale URL'', de\: ''URL des…'', it\: ''URL della vendita…'', es\: ''URL de la venta…'', pt\: ''URL da venda privada'', br\: ''URL da venda privada'', \.\.\.\}\|array\{fr\: ''URL de vérification…'', en\: ''Email verification…'', gb\: ''Email verification…'', de\: ''E\-Mail…'', it\: ''URL di verifica…'', es\: ''URL de verificación…'', pt\: ''URL de verificação…'', br\: ''URL de verificação…'', \.\.\.\}\|array\{fr\: ''URL du bon de retour'', en\: ''Return slip URL'', gb\: ''Return slip URL'', de\: ''Rückgabeschein\-URL'', it\: ''URL del documento…'', es\: ''URL del albarán de…'', pt\: ''URL da guia de…'', br\: ''URL da guia de…'', \.\.\.\}\|array\{fr\: ''URL du formulaire…'', en\: ''Contact form URL'', gb\: ''Contact form URL'', de\: ''Kontaktformular\-URL'', it\: ''URL del modulo di…'', es\: ''URL del formulario…'', pt\: ''URL do formulário…'', br\: ''URL do formulário…'', \.\.\.\}\|array\{fr\: ''URL du panier…'', en\: ''Abandoned cart URL'', gb\: ''Abandoned cart URL'', de\: ''URL des…'', it\: ''URL del carrello…'', es\: ''URL del carrito…'', pt\: ''URL do carrinho…'', br\: ''URL do carrinho…'', \.\.\.\}\|array\{fr\: ''URL du produit'', en\: ''Product URL'', gb\: ''Product URL'', de\: ''Produkt\-URL'', it\: ''URL del prodotto'', es\: ''URL del producto'', pt\: ''URL do produto'', br\: ''URL do produto'', \.\.\.\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/ManualSendManager.php
+
+		-
+			message: '#^Offset 1 on array\{non\-empty\-list\<string\>, non\-empty\-list\<non\-empty\-string\>\} in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.offset
+			count: 1
+			path: src/ManualSendManager.php
+
+		-
+			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/MultiClientPreviewManager.php
+
+		-
+			message: '#^Offset ''file'' on array\{type\: int, message\: string, file\: string, line\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/NeriaErrorHandler.php
+
+		-
+			message: '#^Call to function method_exists\(\) with ''Tools'' and ''displayPrice'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/NeriaTools.php
+
+		-
+			message: '#^Comparison operation "\>" between 100 and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: src/NeriaTools.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between ''phpstan\-fake\-cookie…'' and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/NeriaTools.php
+
+		-
+			message: '#^Property CartRuleCore\:\:\$active \(bool\) does not accept int\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/OrderTriggersManager.php
+
+		-
+			message: '#^Property CartRuleCore\:\:\$reduction_tax \(bool\) does not accept int\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/OrderTriggersManager.php
+
+		-
+			message: '#^Property CartRuleCore\:\:\$shop_restriction \(bool\) does not accept int\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/OrderTriggersManager.php
+
+		-
+			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/PropensityScoreManager.php
+
+		-
+			message: '#^Method SignatureGenerator\:\:createImage\(\) never returns resource so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/SignatureGenerator.php
+
+		-
+			message: '#^Parameter \#1 \$image of function imagecolorallocatealpha expects GdImage, resource given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/SignatureGenerator.php
+
+		-
+			message: '#^Parameter \#1 \$image of function imagecolorsforindex expects GdImage, resource given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/SignatureGenerator.php
+
+		-
+			message: '#^Parameter \#1 \$image of function imageline expects GdImage, resource given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/SignatureGenerator.php
+
+		-
+			message: '#^Parameter \#1 \$image of function imagesetthickness expects GdImage, resource given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/SignatureGenerator.php
+
+		-
+			message: '#^Parameter \#1 \$image of function imagestring expects GdImage, resource given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/SignatureGenerator.php
+
+		-
+			message: '#^Parameter \#1 \$image of function imagettftext expects GdImage, resource given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/SignatureGenerator.php
+
+		-
+			message: '#^Parameter \#1 \$image of method SignatureGenerator\:\:drawParaphe\(\) expects resource, \(GdImage\|false\) given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/SignatureGenerator.php
+
+		-
+			message: '#^Parameter \#1 \$image of method SignatureGenerator\:\:drawTitle\(\) expects resource, \(GdImage\|false\) given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/SignatureGenerator.php
+
+		-
+			message: '#^Access to an undefined property Customer\:\:\$id_address_delivery\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/StatsManager.php
+
+		-
+			message: '#^Parameter \#2 \$ids of method LinkCore\:\:getImageLink\(\) expects string, int\<1, max\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/UpsellManager.php
+
+		-
+			message: '#^Property VoiceProfileManager\:\:\$module is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/VoiceProfileManager.php
+
+		-
+			message: '#^Parameter \#2 \$ids of method LinkCore\:\:getImageLink\(\) expects string, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/WaitlistManager.php
+
+		-
+			message: '#^Offset ''threshold_hours'' on array\{label_key\: ''health\.cron_label…'', threshold_hours\: 25, enabled_cfg\: ''NERIA_LOYALTY…''\}\|array\{label_key\: ''health\.cron_label…'', threshold_hours\: 25\}\|array\{label_key\: ''health\.cron_label…'', threshold_hours\: 2\}\|array\{label_key\: ''health\.cron_label…'', threshold_hours\: 30\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/WatchdogManager.php
+
+		-
+			message: '#^Property WatchdogManager\:\:\$module is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/WatchdogManager.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between non\-empty\-string and '''' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/WebhookManager.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between 0 and 0 will always evaluate to true\.$#'
+			identifier: identical.alwaysTrue
+			count: 1
+			path: src/WebhookManager.php

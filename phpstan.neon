@@ -1,0 +1,26 @@
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    level: 5
+    paths:
+        - src
+        - neria.php
+        - controllers
+    scanDirectories:
+        - C:/laragon/www/shop/classes
+        - C:/laragon/www/shop/controllers
+        - C:/laragon/www/shop/src/PrestaShopBundle
+        - C:/laragon/www/shop/src/Core
+        - C:/laragon/www/shop/vendor/smarty/smarty/libs
+        - C:/laragon/www/shop/vendor/tecnickcom/tcpdf
+    scanFiles:
+        - bin/phpstan/ps-alias-stubs.php
+    excludePaths:
+        - dist/*
+        - docs/*
+        - .claude/*
+    bootstrapFiles:
+        - phpstan-bootstrap.php
+    reportUnmatchedIgnoredErrors: false
+    treatPhpDocTypesAsCertain: false
