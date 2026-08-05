@@ -111,20 +111,33 @@ class QueueManager
     /**
      * Ajoute un email avec une date/heure précise (envoi manuel planifié depuis le BO).
      */
+    /**
+     * @return bool true si la ligne a bien été insérée en file.
+     */
     public function enqueueAt(
         string $template,
         array  $customer,
         array  $extraVars,
         int    $refId,
         string $sendAt
-    ): void {
+    ): bool {
         $idLang   = (int) ($customer['id_lang'] ?? \Configuration::get('PS_LANG_DEFAULT'));
         $idShop   = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
         $toName   = trim(($customer['firstname'] ?? '') . ' ' . ($customer['lastname'] ?? ''));
         $varsJson = json_encode($extraVars, JSON_UNESCAPED_UNICODE);
 
-        $this->db->execute(
-            'INSERT INTO `' . $this->prefix . 'neria_queue`
+        // INSERT IGNORE (appuyé sur la même contrainte UNIQUE (id_customer,
+        // template, ref_id, id_shop) qu'enqueue(), cf. upgrade-1.0.36.php) +
+        // vérification du résultat — auparavant un simple INSERT sans
+        // aucune vérification : la contrainte UNIQUE ajoutée depuis a rendu
+        // cet INSERT capable d'échouer silencieusement (2e envoi manuel du
+        // même template au même client, ref_id toujours à 0 ici), et
+        // l'appelant (ManualSendManager::scheduleManual()) journalisait
+        // quand même "succès" et retournait ok=true sans que la ligne
+        // n'existe réellement en file — l'admin voyait "programmé" pour un
+        // envoi qui ne partirait jamais, sans trace d'erreur exploitable.
+        $ok = $this->db->execute(
+            'INSERT IGNORE INTO `' . $this->prefix . 'neria_queue`
              (id_customer, id_shop, id_lang, template, recipient_email, recipient_name,
               vars_json, ref_id, send_at, status, created_at)
              VALUES (
@@ -140,13 +153,23 @@ class QueueManager
                \'pending\',
                NOW()
              )'
-        );
+        ) && (int) $this->db->Affected_Rows() > 0;
 
-        $this->watchdog()->info(
-            \WatchdogManager::i18nMsg('watchdog.queue_manual_scheduled', ['template' => $template, 'email' => $customer['email'] ?? '?', 'sendAt' => $sendAt]),
-            $template,
-            'QueueManager'
-        );
+        if ($ok) {
+            $this->watchdog()->info(
+                \WatchdogManager::i18nMsg('watchdog.queue_manual_scheduled', ['template' => $template, 'email' => $customer['email'] ?? '?', 'sendAt' => $sendAt]),
+                $template,
+                'QueueManager'
+            );
+        } else {
+            $this->watchdog()->warning(
+                \WatchdogManager::i18nMsg('watchdog.queue_manual_scheduled_duplicate', ['template' => $template, 'email' => $customer['email'] ?? '?']),
+                $template,
+                'QueueManager'
+            );
+        }
+
+        return $ok;
     }
 
     /**

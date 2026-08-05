@@ -1245,7 +1245,16 @@ class ManualSendManager
             }
         }
 
-        (new \QueueManager($this->module))->enqueueAt($template, $customer, $vars, 0, $sendAt);
+        $queued = (new \QueueManager($this->module))->enqueueAt($template, $customer, $vars, 0, $sendAt);
+        if (!$queued) {
+            // La contrainte UNIQUE (id_customer, template, ref_id=0, id_shop)
+            // empêche un 2e envoi manuel planifié du même template au même
+            // client tant que le premier n'a pas été traité (ou l'a déjà
+            // été — la ligne reste en base) — sans cette vérification,
+            // l'admin voyait "programmé avec succès" pour un envoi qui
+            // n'avait en réalité jamais été inséré en file.
+            return ['ok' => false, 'message' => AdminTranslator::t('msg.scheduled_duplicate')];
+        }
 
         $this->watchdog()->info(
             WatchdogManager::i18nMsg('watchdog.manual_send_scheduled', [
