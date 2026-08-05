@@ -1060,9 +1060,18 @@ class ManualSendManager
         // de l'utiliser comme motif — sans ça, un email contenant un "_"
         // (fréquent, ex. jean_dupont@x.com) matche n'importe quel caractère
         // à cette position dans le log, faussant le comptage de doublons.
+        // SUM(occurrence_count) et non COUNT(*) : WatchdogManager::record()
+        // consolide toute entrée identique (même message) survenue dans la
+        // dernière heure en incrémentant occurrence_count sur la ligne
+        // existante au lieu d'insérer une nouvelle ligne. Deux envois
+        // manuels du même template au même client dans la même heure
+        // produisent le même message ('watchdog.manual_send_ok', mêmes
+        // vars) et sont donc consolidés en UNE seule ligne — un COUNT(*)
+        // renvoyait alors 1 malgré 2 envois réels, ne détectant jamais le
+        // doublon.
         $likeSafeEmail = addcslashes($email, '%_');
         $count = (int) $this->db->getValue(
-            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_log`
+            'SELECT COALESCE(SUM(`occurrence_count`), 0) FROM `' . _DB_PREFIX_ . 'neria_log`
              WHERE `class` = \'ManualSendManager\'
                AND `template` = \'' . pSQL($template) . '\'
                AND `message` LIKE \'%' . pSQL($likeSafeEmail) . '%\'
@@ -1133,6 +1142,27 @@ class ManualSendManager
             }
         }
 
+        // ── Garde-fou contexte commande ───────────────────────────────────
+        // Même garde-fou que send() (voir son commentaire détaillé) —
+        // {order_name}/{order_url} ne sont résolus QUE si $orderRef pointe
+        // vers une commande valide. scheduleManual() ne l'appliquait pas :
+        // un envoi PLANIFIÉ (via la file d'attente) sans commande liée
+        // partait quand même, des jours plus tard, avec le placeholder brut
+        // non résolu pour alteration_update/gift_guarantee — sans que le
+        // marchand n'ait la moindre chance de s'en apercevoir au moment de
+        // la planification.
+        $order = ($orderRef !== '') ? $this->findOrder($orderRef) : null;
+        if (!$order) {
+            $placeholders   = $this->extractPlaceholders($template);
+            $needsOrderVars = array_intersect(['order_name', 'order_url'], $placeholders);
+            if (!empty($needsOrderVars)) {
+                return [
+                    'ok'      => false,
+                    'message' => AdminTranslator::tVars('msg.send_blocked_missing_order', ['list' => implode(', ', $needsOrderVars)]),
+                ];
+            }
+        }
+
         $customer = $this->findCustomer($email) ?? [
             'id_customer' => 0,
             'id_lang'     => (int) \Configuration::get('PS_LANG_DEFAULT'),
@@ -1196,7 +1226,18 @@ class ManualSendManager
             '{email}'       => $email,
             '{shop_name}'   => (string) \Configuration::get('PS_SHOP_NAME'),
             '{shop_url}'    => \Tools::getShopDomainSsl(true, true),
+            '{history_url}' => \Context::getContext()->link->getPageLink('history', true, $idLang),
         ];
+
+        // Commande optionnelle — même résolution que send() (voir plus haut).
+        if ($order) {
+            $vars['{order_name}'] = $order['reference'];
+            $vars['{id_order}']   = (int) $order['id_order'];
+            $vars['{order_url}']  = \Context::getContext()->link->getPageLink(
+                'order-detail', true, $idLang, ['id_order' => (int) $order['id_order']]
+            );
+        }
+
         foreach ($contentVars as $key => $value) {
             $key = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $key));
             if ($key !== '') {
