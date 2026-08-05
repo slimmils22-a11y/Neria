@@ -2159,6 +2159,25 @@ class HealthCheckManager
             $offenders[] = 'neria.php : hookDisplayBackOfficeHeaderImpl() n\'a plus le flag NERIA_HOOKS_MIGRATED_V2 — les 4 hooks seraient de nouveau réenregistrés à chaque page BO, annulant toute désactivation manuelle admin';
         }
 
+        // Round 54 (2026-08-05) : controllers/front/waitlist.php calculait
+        // son repli par défaut ($redirect) avec l'id_product brut avant
+        // toute validation — redirection vers un produit invalide (404) au
+        // lieu du repli my-account.
+        $waitlistCtrlFile = _PS_MODULE_DIR_ . $this->module->name . '/controllers/front/waitlist.php';
+        $waitlistCtrlSrc  = is_file($waitlistCtrlFile) ? (file_get_contents($waitlistCtrlFile) ?: '') : '';
+        if ($waitlistCtrlSrc === '') {
+            $offenders[] = 'controllers/front/waitlist.php introuvable';
+        } elseif (strpos($waitlistCtrlSrc, "\$redirect  = 'index.php?controller=my-account';") === false) {
+            $offenders[] = 'controllers/front/waitlist.php : le repli \$redirect par défaut dépend de nouveau de \$idProduct — redirection possible vers un produit invalide (404) au lieu de my-account';
+        }
+
+        // Round 54 : EmailRenderer::isExcluded() laissait $lang = '' quand
+        // idLang était absent des params — une règle de blacklist ciblée
+        // sur une langue précise ne matchait jamais.
+        if ($rendererSrc3 !== '' && strpos($rendererSrc3, "\\Configuration::get('PS_LANG_DEFAULT');\n        \$lang = \$idLang > 0") === false) {
+            $offenders[] = 'EmailRenderer : isExcluded() ne retombe plus sur PS_LANG_DEFAULT quand idLang est absent — une règle de blacklist ciblée par langue pourrait de nouveau être contournée silencieusement';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
