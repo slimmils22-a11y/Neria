@@ -234,7 +234,7 @@ class MonthlyReportManager
         $row = $this->db->getRow(
             "SELECT
                 COUNT(CASE WHEN event_type = 'sent'  THEN 1 END) AS total_sent,
-                COUNT(CASE WHEN event_type = 'open'  THEN 1 END) AS total_open,
+                COUNT(CASE WHEN event_type = 'open' AND is_mpp = 0 THEN 1 END) AS total_open,
                 COUNT(CASE WHEN event_type = 'click' THEN 1 END) AS total_click,
                 COUNT(DISTINCT CASE WHEN event_type = 'sent' THEN template END) AS templates_used,
                 COUNT(DISTINCT CASE WHEN event_type = 'sent' THEN lang     END) AS langs_used
@@ -273,7 +273,7 @@ class MonthlyReportManager
             "SELECT
                 template,
                 COUNT(CASE WHEN event_type = 'sent'  THEN 1 END) AS total_sent,
-                COUNT(CASE WHEN event_type = 'open'  THEN 1 END) AS total_open,
+                COUNT(CASE WHEN event_type = 'open' AND is_mpp = 0 THEN 1 END) AS total_open,
                 COUNT(CASE WHEN event_type = 'click' THEN 1 END) AS total_click
              FROM `{$t}`
              WHERE id_shop = {$this->idShop}
@@ -326,7 +326,7 @@ class MonthlyReportManager
             "SELECT
                 lang,
                 COUNT(CASE WHEN event_type = 'sent'  THEN 1 END) AS total_sent,
-                COUNT(CASE WHEN event_type = 'open'  THEN 1 END) AS total_open,
+                COUNT(CASE WHEN event_type = 'open' AND is_mpp = 0 THEN 1 END) AS total_open,
                 COUNT(CASE WHEN event_type = 'click' THEN 1 END) AS total_click
              FROM `{$t}`
              WHERE id_shop = {$this->idShop}
@@ -365,23 +365,32 @@ class MonthlyReportManager
         // par dimension pouvait recommander une combinaison qui n'existe même
         // pas dans les données réelles (ex: mardi meilleur jour toutes heures
         // confondues, mais 14h jamais un bon moment le mardi spécifiquement).
+        // COUNT(DISTINCT s.tracking_token)/(... s.tracking_token END) plutôt
+        // que COUNT(*)/SUM(CASE...) sur les lignes jointes : un même envoi
+        // rechargeant plusieurs fois le pixel de tracking (fréquent) produit
+        // plusieurs lignes 'open' pour le même tracking_token — le LEFT JOIN
+        // les multipliait toutes, gonflant à la fois total_sent (!) et
+        // total_open, et faussant le "meilleur moment d'envoi" recommandé.
+        // is_mpp=0 : exclut les pré-chargements Apple Mail Privacy
+        // Protection, cohérent avec StatsManager partout ailleurs.
         $combos = $this->db->executeS(
             "SELECT
                 DAYOFWEEK(s.date_add) AS dow,
                 HOUR(s.date_add)      AS hour_of_day,
-                COUNT(*) AS total_sent,
-                SUM(CASE WHEN o.id_stat IS NOT NULL THEN 1 ELSE 0 END) AS total_open
+                COUNT(DISTINCT s.tracking_token) AS total_sent,
+                COUNT(DISTINCT CASE WHEN o.tracking_token IS NOT NULL THEN s.tracking_token END) AS total_open
              FROM `{$t}` s
              LEFT JOIN `{$t}` o
                 ON o.tracking_token = s.tracking_token
                AND o.event_type = 'open'
+               AND o.is_mpp = 0
              WHERE s.id_shop = {$this->idShop}
                AND s.event_type = 'sent'
                AND s.date_add >= '{$dateFrom}'
                AND s.date_add <= '{$dateTo} 23:59:59'
              GROUP BY DAYOFWEEK(s.date_add), HOUR(s.date_add)
              HAVING total_sent >= 3
-             ORDER BY (SUM(CASE WHEN o.id_stat IS NOT NULL THEN 1 ELSE 0 END) / COUNT(*)) DESC
+             ORDER BY (COUNT(DISTINCT CASE WHEN o.tracking_token IS NOT NULL THEN s.tracking_token END) / COUNT(DISTINCT s.tracking_token)) DESC
              LIMIT 1"
         ) ?: [];
 
@@ -395,12 +404,19 @@ class MonthlyReportManager
     {
         $t = _DB_PREFIX_ . StatsManager::TABLE;
 
+        // Seuil HAVING aligné sur StatsManager::SIG_MIN_SAMPLE (100) — la
+        // valeur précédente (5 envois) déclarait un "gagnant" dans le
+        // rapport mensuel sur un échantillon bien trop petit pour être
+        // autre chose que du bruit statistique, alors que StatsManager
+        // exige lui un z-test avec au moins 100 envois par variante avant
+        // toute annonce de significativité côté dashboard BO. Incohérent
+        // entre les deux, potentiellement trompeur pour le marchand.
         $rows = $this->db->executeS(
             "SELECT
                 template,
                 abtest_variant,
                 COUNT(CASE WHEN event_type = 'sent'  THEN 1 END) AS total_sent,
-                COUNT(CASE WHEN event_type = 'open'  THEN 1 END) AS total_open,
+                COUNT(CASE WHEN event_type = 'open' AND is_mpp = 0 THEN 1 END) AS total_open,
                 COUNT(CASE WHEN event_type = 'click' THEN 1 END) AS total_click
              FROM `{$t}`
              WHERE id_shop = {$this->idShop}
@@ -408,7 +424,7 @@ class MonthlyReportManager
                AND date_add >= '{$dateFrom}'
                AND date_add <= '{$dateTo} 23:59:59'
              GROUP BY template, abtest_variant
-             HAVING total_sent >= 5"
+             HAVING total_sent >= " . StatsManager::SIG_MIN_SAMPLE
         ) ?: [];
 
         $labels = class_exists('AdminTranslator') ? AdminTranslator::templateLabels() : [];
@@ -475,10 +491,18 @@ class MonthlyReportManager
         // sous-requête DISTINCT ramène chaque (template, commande) à une
         // seule ligne avant la somme — une commande née de deux clics sur le
         // même template ne compte qu'une fois.
+        // Un client qui clique sur DEUX templates différents avant de passer
+        // la même commande faisait auparavant compter cette commande pour
+        // CHAQUE template (DISTINCT (template, id_order) laisse passer une
+        // ligne par template) — le CA total du rapport (somme de toutes les
+        // lignes) pouvait alors dépasser le CA réellement généré. On ne
+        // retient désormais que le clic le PLUS RÉCENT avant la commande
+        // (last-click), cohérent avec le principe déjà appliqué par
+        // AttributionManager pour l'attribution de revenus.
         $attributed = [];
         $rows2 = $this->db->executeS(
-            "SELECT template, SUM(total_paid_tax_incl) AS revenue FROM (
-                SELECT DISTINCT s.template, o.id_order, o.total_paid_tax_incl
+            "SELECT winner.template, SUM(winner.total_paid_tax_incl) AS revenue FROM (
+                SELECT s.template, o.id_order, o.total_paid_tax_incl
                 FROM `{$st}` s
                 JOIN `{$ord}` o
                   ON o.id_customer = s.id_customer
@@ -495,8 +519,17 @@ class MonthlyReportManager
                         AND s2.event_type = 'sent'
                         AND s2.id_order   > 0
                   )
-             ) dedup
-             GROUP BY template"
+                  AND s.date_add = (
+                      SELECT MAX(s3.date_add) FROM `{$st}` s3
+                      WHERE s3.id_customer  = o.id_customer
+                        AND s3.event_type   = 'click'
+                        AND s3.id_shop      = {$this->idShop}
+                        AND s3.date_add    &lt;= o.date_add
+                        AND s3.date_add    &gt;= DATE_SUB(o.date_add, INTERVAL 7 DAY)
+                  )
+                GROUP BY o.id_order, s.template
+             ) winner
+             GROUP BY winner.template"
         ) ?: [];
         foreach ($rows2 as $row) {
             $attributed[$row['template']] = (float) $row['revenue'];

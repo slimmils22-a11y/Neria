@@ -154,11 +154,22 @@ class WaitlistManager
             // détecter sans ambiguïté un claim resté sans notified_at au-delà
             // d'1h et le libérer — impossible à faire en toute sécurité avec
             // notified_at seul, qui est aussi l'état de succès permanent.
+            // AND claim_started_at IS NULL (ou expiré depuis plus d'1h)
+            // manquait ici : la condition ne testait que notified_at IS NULL,
+            // qui ne se pose qu'APRÈS l'envoi réussi. Pendant toute la
+            // fenêtre entre ce premier claim et Mail::Send() ci-dessous,
+            // notified_at restait NULL — un second appel concurrent (le
+            // scénario exact que ce verrou est censé empêcher, décrit dans
+            // le commentaire ci-dessus) matchait la même ligne et obtenait
+            // lui aussi Affected_Rows() > 0, envoyant le même email deux
+            // fois. Le délai d'1h permet de récupérer un claim orphelin
+            // (process mort avant notified_at) sans bloquer le client à vie.
             $claimed = $this->db->execute(
                 "UPDATE `{$this->prefix}" . self::TABLE . "`
                  SET claim_started_at = NOW()
                  WHERE id_customer = {$idCustomer} AND id_product = {$idProduct} AND id_shop = {$idShop}
-                   AND notified_at IS NULL"
+                   AND notified_at IS NULL
+                   AND (claim_started_at IS NULL OR claim_started_at < DATE_SUB(NOW(), INTERVAL 1 HOUR))"
             ) && $this->db->Affected_Rows() > 0;
 
             if (!$claimed) {

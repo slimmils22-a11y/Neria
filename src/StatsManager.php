@@ -793,7 +793,14 @@ class StatsManager
         // un achat sur B dans la fenêtre 24h attribuait à tort son revenu à
         // une campagne envoyée par A. On ne crédite la conversion que si la
         // boutique de la commande correspond à celle de l'envoi tracké.
-        if ($idShop > 0 && isset($sent['id_shop']) && (int) $sent['id_shop'] !== $idShop) {
+        // Le garde $idShop > 0 court-circuitait entièrement cette
+        // vérification quand $order->id_shop valait 0 (commande orpheline/
+        // legacy, objet Order mal chargé) — la conversion était alors
+        // créditée sans AUCUNE vérification de boutique, réintroduisant
+        // exactement la fuite cross-shop que ce correctif visait à éliminer.
+        // id_shop=1 étant le minimum valide sur une install PrestaShop, 0
+        // n'est jamais une vraie boutique légitime : pas besoin de ce garde.
+        if (isset($sent['id_shop']) && (int) $sent['id_shop'] !== $idShop) {
             return;
         }
 

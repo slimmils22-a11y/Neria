@@ -557,7 +557,15 @@ class GdprAuditManager
     public function auditEncryption(): array
     {
         $opensslOk = class_exists('CryptoManager') && \CryptoManager::isAvailable();
-        $keyOk     = $opensslOk && strlen((string) \Configuration::get(\CryptoManager::CONFIG_KEY)) === 64;
+        // ctype_xdigit() en plus de la longueur : CryptoManager::loadKey()
+        // (privée, non appelable ici) exige les deux avant de considérer la
+        // clé utilisable — se contenter de la longueur faisait déclarer
+        // "actif"/Grade A un chiffrement en réalité cassé (clé corrompue en
+        // base mais toujours longue de 64 caractères), alors que decrypt()
+        // échoue systématiquement et rend les stats déjà chiffrées
+        // définitivement illisibles, silencieusement.
+        $rawKey    = (string) \Configuration::get(\CryptoManager::CONFIG_KEY);
+        $keyOk     = $opensslOk && strlen($rawKey) === 64 && ctype_xdigit($rawKey);
         $active    = $opensslOk && $keyOk;
 
         $table     = _DB_PREFIX_ . 'neria_stat';
