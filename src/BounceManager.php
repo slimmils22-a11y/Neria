@@ -653,9 +653,17 @@ class BounceManager
 
     public function reactivateBounce(string $email): bool
     {
+        // bounce_count remis à 0 (pas seulement status='active') : sans ça,
+        // une adresse ayant dépassé le seuil (ex. bounce_count=5, seuil=3)
+        // repassait "active" mais gardait son compteur élevé — le tout
+        // premier nouveau soft bounce (panne transitoire, boîte pleine un
+        // instant) le faisait remonter à 6 via recordBounce()
+        // (bounce_count = bounce_count + 1) et isBounced() rebloquait
+        // aussitôt l'adresse, rendant la réactivation manuelle pratiquement
+        // inopérante pour toute adresse au-dessus du seuil.
         return (bool) \Db::getInstance()->execute(
             'UPDATE `' . _DB_PREFIX_ . self::TABLE . '`
-             SET `status` = \'active\'
+             SET `status` = \'active\', `bounce_count` = 0
              WHERE `email` = \'' . pSQL(mb_strtolower(trim($email))) . '\''
         );
     }
