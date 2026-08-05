@@ -2219,6 +2219,20 @@ class HealthCheckManager
             $offenders[] = 'LoyaltyManager::generateVoucher() ne filtre plus id_shop dans l\'UPDATE final de la réservation de palier — deux boutiques réservant le même palier pour le même client pourraient de nouveau s\'écraser mutuellement leur bon';
         }
 
+        // Round 57 (2026-08-05) : SeasonalCampaignManager::runDueCampaigns()
+        // lisait/écrivait neria_behavioral_sent (dédup annuelle) sans jamais
+        // préciser id_shop — contrairement à tous les autres appelants de
+        // cette table. Toute ligne tombait sur le défaut id_shop=1 de la
+        // colonne, quelle que soit la vraie boutique.
+        $seasonalFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php';
+        $seasonalSrc  = is_file($seasonalFile) ? (file_get_contents($seasonalFile) ?: '') : '';
+        if ($seasonalSrc === '') {
+            $offenders[] = 'src/SeasonalCampaignManager.php introuvable';
+        } elseif (strpos($seasonalSrc, "AND ref_id      = {\$year}\n                       AND id_shop     = \" . (int) \$this->idShop") === false
+               || strpos($seasonalSrc, "(id_customer, template, ref_id, id_shop, sent_at)") === false) {
+            $offenders[] = 'SeasonalCampaignManager::runDueCampaigns() ne filtre/écrit plus id_shop dans sa déduplication annuelle (neria_behavioral_sent) — un client partagé entre boutiques pourrait de nouveau recevoir une campagne saisonnière en double, ou sa dédup être purgée/conservée à tort selon la boutique';
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
