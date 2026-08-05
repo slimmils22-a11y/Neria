@@ -1197,15 +1197,27 @@ class Neria extends Module
         // existantes : à enregistrer explicitement, sinon PrestaShop ne les
         // appelle jamais (pas d'entrée en ps_hook_module). registerHook()
         // est idempotent — sans risque de double-enregistrement.
-        $this->registerHook('displayAdminCustomersView');
-        $this->registerHook('displayAdminCustomers');
-        $this->registerHook('actionOrderStatusPostUpdate');
-        $this->registerHook('actionObjectOrderAddAfter');
+        //
+        // Protégé par un flag (même pattern que les migrations ci-dessus) :
+        // sans lui, ces 4 register/unregisterHook() tournaient à CHAQUE
+        // chargement de page back-office — coût de requêtes inutile, et un
+        // admin qui désactive manuellement l'un de ces hooks via l'onglet
+        // natif PrestaShop "Hooks" le voyait silencieusement réinstallé dès
+        // la page BO suivante, sans comprendre pourquoi son changement ne
+        // "tenait" pas.
+        if (!Configuration::get('NERIA_HOOKS_MIGRATED_V2')) {
+            $this->registerHook('displayAdminCustomersView');
+            $this->registerHook('displayAdminCustomers');
+            $this->registerHook('actionOrderStatusPostUpdate');
+            $this->registerHook('actionObjectOrderAddAfter');
 
-        // Nettoyage : 'actionEmailSendAfter' n'est pas un hook PrestaShop
-        // réel (absent du cœur, jamais déclenché) — on retire l'entrée
-        // fantôme laissée par une version antérieure du module.
-        $this->unregisterHook('actionEmailSendAfter');
+            // Nettoyage : 'actionEmailSendAfter' n'est pas un hook PrestaShop
+            // réel (absent du cœur, jamais déclenché) — on retire l'entrée
+            // fantôme laissée par une version antérieure du module.
+            $this->unregisterHook('actionEmailSendAfter');
+
+            Configuration::updateValue('NERIA_HOOKS_MIGRATED_V2', 1);
+        }
     }
 
     /**
