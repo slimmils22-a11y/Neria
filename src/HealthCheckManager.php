@@ -2430,6 +2430,22 @@ class HealthCheckManager
             $offenders[] = "CalendarManager::getEligibleCustomers() ne détecte/journalise plus le dépassement du plafond de 500 destinataires — les clients au-delà des 500 premiers pourraient de nouveau ne jamais recevoir de campagne calendaire, silencieusement";
         }
 
+        // Round 70 (2026-08-06) : ClvManager::getTopCustomers() présélectionne
+        // un pool de 200 candidats triés par CA BRUT (simple proxy du vrai
+        // CLV), sans détecter/journaliser quand le nombre réel de clients
+        // candidats dépasse ce pool — un client hors des 200 premiers en CA
+        // brut mais au profil très favorable (engagement/segment/churn)
+        // pouvait avoir un CLV réel supérieur à un client du pool, exclu du
+        // Top N sans que l'admin n'en soit jamais informé.
+        $clvFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php';
+        $clvSrc2  = is_file($clvFile2) ? (file_get_contents($clvFile2) ?: '') : '';
+        if ($clvSrc2 === '') {
+            $offenders[] = 'src/ClvManager.php introuvable (pool Top 200)';
+        } elseif (strpos($clvSrc2, 'SELECT COUNT(DISTINCT o.`id_customer`)') === false
+               || strpos($clvSrc2, "\\WatchdogManager::i18nMsg('watchdog.clv_top_pool_capped'") === false) {
+            $offenders[] = "ClvManager::getTopCustomers() ne détecte/journalise plus le dépassement du pool de 200 candidats — le Top 20 CLV pourrait de nouveau exclure silencieusement des clients à forte valeur réelle mal classés par CA brut";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
