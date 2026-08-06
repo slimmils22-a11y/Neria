@@ -2399,6 +2399,21 @@ class HealthCheckManager
             $offenders[] = "neria.php concatène de nouveau '?action=...' en dur sur le résultat de getModuleLink() pour les liens waitlist — cassé sur une boutique avec l'URL rewriting désactivé";
         }
 
+        // Round 68 (2026-08-06) : FontManager::generateFontCss() injectait
+        // accentColor tel quel dans du CSS, sans passer par
+        // NeriaTools::sanitizeColor() — défense en profondeur absente (non
+        // exploitable aujourd'hui via l'admin, ConfigManager::
+        // saveDesignConfig() validant déjà ce format à l'écriture, mais sans
+        // second contrôle si la valeur en base était altérée par un autre
+        // chemin).
+        $fontFile = _PS_MODULE_DIR_ . $this->module->name . '/src/FontManager.php';
+        $fontSrc  = is_file($fontFile) ? (file_get_contents($fontFile) ?: '') : '';
+        if ($fontSrc === '') {
+            $offenders[] = 'src/FontManager.php introuvable';
+        } elseif (strpos($fontSrc, 'NeriaTools::sanitizeColor(') === false) {
+            $offenders[] = "FontManager::generateFontCss() n'appelle plus NeriaTools::sanitizeColor() sur accentColor avant injection CSS — défense en profondeur retirée";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
