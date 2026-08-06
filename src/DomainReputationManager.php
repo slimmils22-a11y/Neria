@@ -194,7 +194,7 @@ class DomainReputationManager
         if (!empty($bl['timed_out'])) {
             $this->watchdog()->warning(
                 \WatchdogManager::i18nMsg('watchdog.domain_reputation_rbl_timed_out', [
-                    'domain'  => $domain ?? '?',
+                    'domain'  => $domain,
                     'checked' => $bl['checked'],
                     'total'   => count(self::RBL_LIST),
                 ]),
