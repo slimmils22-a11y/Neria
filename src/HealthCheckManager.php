@@ -1929,7 +1929,10 @@ class HealthCheckManager
         $collectionSrc  = is_file($collectionFile) ? (file_get_contents($collectionFile) ?: '') : '';
         if ($collectionSrc === '') {
             $offenders[] = 'CollectionManager.php introuvable';
-        } elseif (substr_count($collectionSrc, 'releaseSendClaim($colId, $idCustomer)') < 4) {
+        } elseif (substr_count($collectionSrc, 'releaseSendClaim($colId, $idCustomer, $idShop)') < 4) {
+            // Signature élargie à 3 arguments depuis l'upgrade 1.0.38 (round
+            // 60, id_shop dans la réservation) — même vérification, motif
+            // mis à jour en conséquence.
             $offenders[] = 'CollectionManager : releaseSendClaim() n\'est plus appelé sur toutes les sorties anticipées de processCollection() — un client temporairement bloqué (stock, préférences) resterait de nouveau exclu à vie';
         }
 
@@ -2269,6 +2272,23 @@ class HealthCheckManager
         } elseif (strpos($clvSrc, "ORDER BY SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` = 0, 1, o.`conversion_rate`)) DESC") === false
                || strpos($clvSrc, "SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` = 0, 1, o.`conversion_rate`)) AS total_revenue") === false) {
             $offenders[] = "ClvManager::getTopCustomers() ne protège plus ses divisions par o.conversion_rate contre 0 — un client avec une commande à conversion_rate=0 pourrait de nouveau être exclu du Top 20 CLV ou voir son CA écrasé à 0";
+        }
+
+        // Round 60 (2026-08-06) : CollectionManager::claimSend()/
+        // releaseSendClaim() (réservation anti-doublon de neria_collection_
+        // sent) n'étaient pas scopés par id_shop, alors que
+        // processCollection() groupe déjà les achats par (customer, shop)
+        // pour ne pas mélanger les catalogues multi-boutiques. Un même
+        // client complétant réellement la même collection sur deux
+        // boutiques distinctes voyait sa 2e complétion bloquée à tort par
+        // la réservation posée pour la 1re (upgrade 1.0.38).
+        $collectionFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php';
+        $collectionSrc  = is_file($collectionFile) ? (file_get_contents($collectionFile) ?: '') : '';
+        if ($collectionSrc === '') {
+            $offenders[] = 'src/CollectionManager.php introuvable';
+        } elseif (strpos($collectionSrc, 'private function claimSend(int $colId, int $idCustomer, int $idShop): bool') === false
+               || strpos($collectionSrc, 'private function releaseSendClaim(int $colId, int $idCustomer, int $idShop): void') === false) {
+            $offenders[] = "CollectionManager::claimSend()/releaseSendClaim() ne sont plus scopés par id_shop — un même client complétant réellement la même collection sur deux boutiques distinctes pourrait de nouveau voir sa 2e complétion bloquée à tort";
         }
 
         if ($offenders) {
