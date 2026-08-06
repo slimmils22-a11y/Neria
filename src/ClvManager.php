@@ -245,6 +245,12 @@ class ClvManager
         // plutôt qu'un sous-ensemble arbitraire des plus anciens id_customer
         // (bug précédent : un client à forte valeur mais inscrit récemment
         // pouvait être exclu du Top 20 sur une boutique de > 200 clients).
+        // IF(conversion_rate = 0, 1, ...) : même garde-fou que les
+        // remboursements plus bas et que computeClv() en PHP (ligne 124) —
+        // une commande à conversion_rate=0 (donnée legacy/import) rend le
+        // SUM() de tout le client NULL en SQL (division par zéro), le
+        // classant en dernier dans l'ORDER BY et écrasant son CA réel à 0
+        // dans total_revenue plus bas, malgré un historique d'achat non nul.
         $customers = $this->db->executeS(
             'SELECT o.`id_customer`,
                     CONCAT(c.`firstname`, " ", c.`lastname`) AS customer_name,
@@ -254,7 +260,7 @@ class ClvManager
              WHERE o.`id_shop` = ' . $this->idShop . ' AND o.`valid` = 1
                AND c.`deleted` = 0
              GROUP BY o.`id_customer`, c.`firstname`, c.`lastname`, c.`email`
-             ORDER BY SUM(o.`total_paid_tax_incl` / o.`conversion_rate`) DESC
+             ORDER BY SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` = 0, 1, o.`conversion_rate`)) DESC
              LIMIT 200'
         ) ?: [];
 
@@ -271,7 +277,7 @@ class ClvManager
             'SELECT o.`id_customer`,
                     COUNT(*) AS order_count,
                     MIN(o.`date_add`) AS first_date,
-                    SUM(o.`total_paid_tax_incl` / o.`conversion_rate`) AS total_revenue
+                    SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` = 0, 1, o.`conversion_rate`)) AS total_revenue
              FROM `' . _DB_PREFIX_ . 'orders` o
              WHERE o.`id_customer` IN (' . $idList . ')
                AND o.`id_shop` = ' . $this->idShop . ' AND o.`valid` = 1
