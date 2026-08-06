@@ -50357,6 +50357,27 @@
         "nl": "Domeinreputatie {domain} — score {score}/100 (cijfer {grade}) — {n} zwarte lijst(en)",
         "gb": "Domain reputation {domain} — score {score}/100 (grade {grade}) — {n} blacklist(s)"
     },
+    "watchdog.domain_reputation_rbl_timed_out": {
+        "fr": "Réputation domaine {domain} : vérification RBL incomplète ({checked}/{total} listes noires interrogées, budget DNS épuisé) — le score de cette composante peut être trompeur.",
+        "en": "Domain reputation {domain}: incomplete blacklist check ({checked}/{total} RBLs queried, DNS time budget exhausted) — this component's score may be misleading.",
+        "de": "Domain-Reputation {domain}: unvollständige Blacklist-Prüfung ({checked}/{total} RBLs abgefragt, DNS-Zeitbudget erschöpft) — die Wertung dieser Komponente kann irreführend sein.",
+        "it": "Reputazione dominio {domain}: controllo blacklist incompleto ({checked}/{total} RBL interrogate, budget DNS esaurito) — il punteggio di questa componente potrebbe essere fuorviante.",
+        "es": "Reputación del dominio {domain}: verificación de listas negras incompleta ({checked}/{total} RBL consultadas, presupuesto DNS agotado) — la puntuación de este componente puede ser engañosa.",
+        "pt": "Reputação do domínio {domain}: verificação de listas negras incompleta ({checked}/{total} RBL consultadas, orçamento DNS esgotado) — a pontuação deste componente pode ser enganosa.",
+        "br": "Reputação do domínio {domain}: verificação de listas negras incompleta ({checked}/{total} RBL consultadas, orçamento DNS esgotado) — a pontuação deste componente pode ser enganosa.",
+        "ar": "سمعة النطاق {domain}: فحص القوائم السوداء غير مكتمل (تم الاستعلام عن {checked}/{total} من قوائم RBL، انتهت ميزانية DNS الزمنية) — قد تكون نتيجة هذا العنصر مضللة.",
+        "ja": "ドメインの評判 {domain}：ブラックリストチェックが不完全です（{checked}/{total}件のRBLを照会、DNS時間予算を消費）— このコンポーネントのスコアは誤解を招く可能性があります。",
+        "ko": "도메인 평판 {domain}: 블랙리스트 확인이 불완전합니다({checked}/{total}개의 RBL 조회, DNS 시간 예산 소진) — 이 구성 요소의 점수는 오해의 소지가 있을 수 있습니다.",
+        "zh": "域名信誉 {domain}：黑名单检查不完整（已查询 {checked}/{total} 个RBL，DNS时间预算已耗尽）——此组件的得分可能具有误导性。",
+        "tw": "網域信譽 {domain}：黑名單檢查不完整（已查詢 {checked}/{total} 個RBL，DNS時間預算已耗盡）——此元件的分數可能具有誤導性。",
+        "ru": "Репутация домена {domain}: неполная проверка чёрных списков (запрошено {checked}/{total} RBL, DNS-бюджет времени исчерпан) — оценка этого компонента может быть недостоверной.",
+        "tr": "Alan adı itibarı {domain}: eksik kara liste kontrolü ({checked}/{total} RBL sorgulandı, DNS zaman bütçesi tükendi) — bu bileşenin puanı yanıltıcı olabilir.",
+        "sv": "Domänrykte {domain}: ofullständig svartlistekontroll ({checked}/{total} RBL:er kontrollerade, DNS-tidsbudget slut) — poängen för denna komponent kan vara missvisande.",
+        "no": "Domeneomdømme {domain}: ufullstendig svartelistekontroll ({checked}/{total} RBL-er sjekket, DNS-tidsbudsjett brukt opp) — poengsummen for denne komponenten kan være misvisende.",
+        "da": "Domæneomdømme {domain}: ufuldstændig sortlistekontrol ({checked}/{total} RBL'er forespurgt, DNS-tidsbudget opbrugt) — denne komponents score kan være misvisende.",
+        "nl": "Domeinreputatie {domain}: onvolledige zwarte lijst-controle ({checked}/{total} RBL's opgevraagd, DNS-tijdsbudget uitgeput) — de score van dit onderdeel kan misleidend zijn.",
+        "gb": "Domain reputation {domain}: incomplete blacklist check ({checked}/{total} RBLs queried, DNS time budget exhausted) — this component's score may be misleading."
+    },
     "watchdog.domain_reputation_rbl_hits": {
         "fr": " — {n} liste(s) noire(s)",
         "en": " — {n} blacklist(s)",

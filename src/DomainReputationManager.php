@@ -191,6 +191,17 @@ class DomainReputationManager
             ? $this->checkBlacklists($ip, $deadline)
             : ['checked' => 0, 'hits' => [], 'clean' => 0, 'skipped' => true];
 
+        if (!empty($bl['timed_out'])) {
+            $this->watchdog()->warning(
+                \WatchdogManager::i18nMsg('watchdog.domain_reputation_rbl_timed_out', [
+                    'domain'  => $domain ?? '?',
+                    'checked' => $bl['checked'],
+                    'total'   => count(self::RBL_LIST),
+                ]),
+                '', 'DomainReputationManager'
+            );
+        }
+
         $score = $this->computeScore($spf, $dkim, $dmarc, $ptr, $bl);
         $grade = $this->computeGrade($score);
 
@@ -412,9 +423,16 @@ class DomainReputationManager
         }
 
         return [
-            'checked' => $checked,
-            'hits'    => $hits,
-            'clean'   => $checked - count($hits),
+            'checked'   => $checked,
+            'hits'      => $hits,
+            'clean'     => $checked - count($hits),
+            // true si le budget de temps DNS a coupé la boucle avant
+            // d'avoir interrogé toutes les RBL (distinct d'un "0 hit après
+            // vérification complète" — computeScore() ne doit pas accorder
+            // les points pleins dans ce cas, sinon un domaine réellement
+            // blacklisté sur une RBL non atteinte obtient un score parfait
+            // sur cette composante).
+            'timed_out' => $checked < count(self::RBL_LIST),
         ];
     }
 
@@ -466,6 +484,13 @@ class DomainReputationManager
         $blScore = max(0, 25 - ($hits * 5));
         if (!empty($bl['skipped'])) {
             $blScore = 25; // IP privée — pas pénalisée
+        } elseif (!empty($bl['timed_out'])) {
+            // Vérification incomplète (budget DNS épuisé avant la fin de la
+            // boucle RBL) : "0 hit" ne veut ici rien dire de fiable — un
+            // domaine réellement blacklisté sur une RBL non atteinte
+            // donnerait pourtant hits=[] comme un domaine vraiment propre.
+            // Score neutre (ni plein ni nul) plutôt qu'une fausse assurance.
+            $blScore = 12;
         }
         $score += $blScore;
 
