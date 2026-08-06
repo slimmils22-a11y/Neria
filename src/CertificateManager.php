@@ -592,8 +592,29 @@ class CertificateManager
             return AdminTranslator::t('msg.certificate_recipient_invalid');
         }
 
-        $idShop   = (int) \Context::getContext()->shop->id;
+        // id_shop DE LA COMMANDE, pas Context::getContext()->shop (contexte
+        // BO de l'employé qui déclenche l'émission) — même correctif que
+        // l'INSERT en base dans issue() ci-dessus : un employé en contexte
+        // "toutes les boutiques" (ou dont le contexte BO courant diffère de
+        // la boutique de la commande) émettant un certificat pour une
+        // commande d'une AUTRE boutique envoyait sinon l'email avec la
+        // config SMTP/expéditeur de la MAUVAISE boutique (Mail::Send() lit
+        // $idShop pour résoudre la config d'envoi par boutique).
+        $idShop   = (int) $order->id_shop;
         $filename = 'certificat_' . preg_replace('/[^a-z0-9_\-]/i', '_', $serial) . '.pdf';
+
+        // getShopDomainSsl() est lié au CONTEXTE courant, pas à un id_shop
+        // passé en paramètre (contrairement à Mail::Send() ci-dessous) —
+        // bascule temporaire vers la vraie boutique de la commande, le temps
+        // de résoudre {shop_url}, même pattern que BehavioralCronManager.
+        // Sans ça, {shop_url} pointait vers le domaine du contexte BO de
+        // l'employé au lieu de celui de la boutique réelle de la commande.
+        $originalShop = \Context::getContext()->shop;
+        if ((int) $originalShop->id !== $idShop) {
+            \Context::getContext()->shop = new \Shop($idShop);
+        }
+        $shopUrl = \Tools::getShopDomainSsl(true, true);
+        \Context::getContext()->shop = $originalShop;
 
         $vars = [
             '{firstname}'      => $customerName,
@@ -603,7 +624,7 @@ class CertificateManager
             '{id_order}'       => (int) $order->id,
             '{order_name}'     => $order->reference,
             '{shop_name}'      => (string) \Configuration::get('PS_SHOP_NAME'),
-            '{shop_url}'       => \Tools::getShopDomainSsl(true, true),
+            '{shop_url}'       => $shopUrl,
         ];
 
         $sent = \Mail::Send(
