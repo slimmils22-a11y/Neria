@@ -2525,6 +2525,21 @@ class HealthCheckManager
             $offenders[] = "WatchdogManager::getQueueHealth() ne filtre plus id_shop sur ses 3 requêtes (stuck/failed/total_pending) — le widget de santé de chaque boutique agrégerait de nouveau les emails bloqués/échoués de toutes les boutiques";
         }
 
+        // Round 74 (2026-08-06) : CertificateManager::sendCertificateEmail()
+        // calculait \$idShop depuis le contexte BO courant de l'employé au
+        // lieu de \$order->id_shop (la vraie boutique de la commande) —
+        // contrairement à l'INSERT en base dans issue(), déjà corrigé. Un
+        // employé en contexte différent de la boutique de la commande
+        // envoyait l'email de certificat avec la config SMTP/expéditeur de
+        // la mauvaise boutique.
+        $certFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
+        $certSrc  = is_file($certFile) ? (file_get_contents($certFile) ?: '') : '';
+        if ($certSrc === '') {
+            $offenders[] = 'src/CertificateManager.php introuvable (email scopé boutique)';
+        } elseif (strpos($certSrc, '$idShop   = (int) $order->id_shop;') === false) {
+            $offenders[] = "CertificateManager::sendCertificateEmail() ne calcule plus \$idShop depuis \$order->id_shop — l'email de certificat pourrait de nouveau être envoyé avec la config SMTP/expéditeur du contexte BO de l'employé au lieu de la vraie boutique de la commande";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
