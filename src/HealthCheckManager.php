@@ -2414,6 +2414,22 @@ class HealthCheckManager
             $offenders[] = "FontManager::generateFontCss() n'appelle plus NeriaTools::sanitizeColor() sur accentColor avant injection CSS — défense en profondeur retirée";
         }
 
+        // Round 69 (2026-08-06) : CalendarManager::getEligibleCustomers()
+        // plafonnait silencieusement à 500 destinataires (ORDER BY
+        // id_customer ASC), sans aucune détection ni journalisation du
+        // dépassement — sur une boutique dépassant 500 clients éligibles,
+        // ce tri déterministe renvoyait toujours les 500 premiers
+        // id_customer, privant les clients inscrits après les 500 premiers
+        // de toute campagne calendaire, année après année.
+        $calFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php';
+        $calSrc  = is_file($calFile) ? (file_get_contents($calFile) ?: '') : '';
+        if ($calSrc === '') {
+            $offenders[] = 'src/CalendarManager.php introuvable';
+        } elseif (strpos($calSrc, 'LIMIT " . (self::MAX_RECIPIENTS_PER_EVENT + 1);') === false
+               || strpos($calSrc, "\\WatchdogManager::i18nMsg('watchdog.calendar_recipient_cap_exceeded'") === false) {
+            $offenders[] = "CalendarManager::getEligibleCustomers() ne détecte/journalise plus le dépassement du plafond de 500 destinataires — les clients au-delà des 500 premiers pourraient de nouveau ne jamais recevoir de campagne calendaire, silencieusement";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
