@@ -2510,6 +2510,21 @@ class HealthCheckManager
             }
         }
 
+        // Round 73 (2026-08-06) : WatchdogManager::getQueueHealth() (3
+        // requêtes stuck/failed/total_pending sur neria_queue) n'étaient pas
+        // scopées par id_shop, contrairement à toutes les autres requêtes de
+        // cette classe. Sur une install multi-boutiques, le widget de santé
+        // de CHAQUE boutique agrégeait les emails bloqués/échoués de TOUTES
+        // les boutiques — fausse alerte sur une boutique saine si une autre
+        // a une panne SMTP transitoire.
+        $wdFile = _PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php';
+        $wdSrc  = is_file($wdFile) ? (file_get_contents($wdFile) ?: '') : '';
+        if ($wdSrc === '') {
+            $offenders[] = 'src/WatchdogManager.php introuvable (getQueueHealth id_shop)';
+        } elseif (substr_count($wdSrc, "AND `id_shop` = {\$this->idShop}") < 3) {
+            $offenders[] = "WatchdogManager::getQueueHealth() ne filtre plus id_shop sur ses 3 requêtes (stuck/failed/total_pending) — le widget de santé de chaque boutique agrégerait de nouveau les emails bloqués/échoués de toutes les boutiques";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
