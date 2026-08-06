@@ -493,11 +493,19 @@ class OrderTriggersManager
             $email  = $customer->email;
             $toName = trim($customer->firstname . ' ' . $customer->lastname) ?: null;
             $idShop = (int) $order->id_shop;
+            // {cooldown_scope} scope le Mode Silence sur CETTE commande (cf.
+            // CooldownManager, neria.php hookActionEmailSendBefore) — sans
+            // lui, order_partial_shipped/order_on_hold pour une commande B
+            // pouvait être bloqué à tort par le cooldown posé pour une
+            // commande A totalement différente du même client, dans la même
+            // fenêtre. Même correctif que LookCompletionManager.
             $common = [
-                '{firstname}'  => $customer->firstname,
-                '{lastname}'   => $customer->lastname,
-                '{order_name}' => $order->reference,
-                '{shop_name}'  => \Configuration::get('PS_SHOP_NAME'),
+                '{firstname}'      => $customer->firstname,
+                '{lastname}'       => $customer->lastname,
+                '{order_name}'     => $order->reference,
+                '{shop_name}'      => \Configuration::get('PS_SHOP_NAME'),
+                '{id_order}'       => (int) $order->id,
+                '{cooldown_scope}' => 'order:' . (int) $order->id,
             ];
 
             // order_partial_shipped : expédition partielle
@@ -601,11 +609,18 @@ class OrderTriggersManager
                 'refund_processed',
                 '',
                 [
-                    '{firstname}'     => $customer->firstname,
-                    '{lastname}'      => $customer->lastname,
-                    '{order_name}'    => $order->reference,
-                    '{refund_amount}' => $formatted,
-                    '{shop_name}'     => \Configuration::get('PS_SHOP_NAME'),
+                    '{firstname}'      => $customer->firstname,
+                    '{lastname}'       => $customer->lastname,
+                    '{order_name}'     => $order->reference,
+                    '{refund_amount}'  => $formatted,
+                    '{shop_name}'      => \Configuration::get('PS_SHOP_NAME'),
+                    // Scope le Mode Silence sur CETTE commande — sans lui, un
+                    // client remboursé sur deux commandes distinctes dans la
+                    // même fenêtre de cooldown ne recevait qu'un seul des
+                    // deux emails refund_processed, le second étant bloqué à
+                    // tort comme doublon.
+                    '{id_order}'       => (int) $order->id,
+                    '{cooldown_scope}' => 'order:' . (int) $order->id,
                 ],
                 $customer->email,
                 trim($customer->firstname . ' ' . $customer->lastname) ?: null,
@@ -750,6 +765,14 @@ class OrderTriggersManager
                     '{meta_products}'     => $summary,
                     '{meta_products_txt}' => $summaryTxt,
                     '{shop_name}'         => \Configuration::get('PS_SHOP_NAME'),
+                    // Scope le Mode Silence sur CETTE commande — même
+                    // correctif que refund_processed/order_on_hold/
+                    // order_partial_shipped ci-dessus : sans lui, un retour
+                    // sur une commande B pouvait être bloqué à tort par le
+                    // cooldown posé pour un retour sur une commande A
+                    // différente du même client, dans la même fenêtre.
+                    '{id_order}'          => (int) $order->id,
+                    '{cooldown_scope}'    => 'order:' . (int) $order->id,
                 ],
                 $customer->email,
                 trim($customer->firstname . ' ' . $customer->lastname) ?: null,
