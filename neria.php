@@ -1760,15 +1760,31 @@ class Neria extends Module
         }
 
         if (class_exists('CalendarManager')) {
-            try {
-                $calendar = new CalendarManager($this);
-                $calendar->checkAndSendDailyEvents();
-                $ran['calendar'] = true;
-                if (class_exists('WatchdogManager')) {
-                    (new WatchdogManager($this))->cronHeartbeat('calendar');
+            // CalendarManager capture $this->idShop dans son constructeur et
+            // scope TOUTES ses requêtes (sélection des clients éligibles,
+            // throttle "déjà envoyé" par événement/jour) sur cette seule
+            // boutique — même raison que Segment/Churn/Propensity
+            // (BehavioralCronManager::run(), correctif round 49) : sans
+            // boucle par boutique ici, seule la boutique du premier visiteur
+            // front du jour recevait les emails calendaires (anniversaires,
+            // occasions saisonnières...), les autres boutiques n'en
+            // recevant JAMAIS, aucun jour, faute d'être un jour traitées
+            // avec leur propre id_shop.
+            $originalShopCalendar = \Context::getContext()->shop;
+            $shopsCalendar = \Shop::getShops(true, null, true) ?: [(int) $originalShopCalendar->id];
+            foreach ($shopsCalendar as $idShopCalendar) {
+                \Context::getContext()->shop = new \Shop((int) $idShopCalendar);
+                try {
+                    $calendar = new CalendarManager($this);
+                    $calendar->checkAndSendDailyEvents();
+                    $ran['calendar'] = true;
+                } catch (\Throwable $e) {
+                    // best-effort — ne bloque jamais le front, ni les jobs suivants
                 }
-            } catch (\Throwable $e) {
-                // best-effort — ne bloque jamais le front, ni les jobs suivants
+            }
+            \Context::getContext()->shop = $originalShopCalendar;
+            if (isset($ran['calendar']) && class_exists('WatchdogManager')) {
+                (new WatchdogManager($this))->cronHeartbeat('calendar');
             }
         }
 
