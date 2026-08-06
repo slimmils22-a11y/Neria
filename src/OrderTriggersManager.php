@@ -128,6 +128,27 @@ class OrderTriggersManager
         return (bool) $reserved && (int) $this->db->Affected_Rows() > 0;
     }
 
+    /**
+     * Libère la réservation posée par claimMilestone() — appelée depuis
+     * checkMilestone() en cas d'échec de l'envoi (silent fail ou exception),
+     * pour permettre un futur re-déclenchement de ce palier plutôt que
+     * perdre définitivement le client (aucun cron de retry n'existe pour
+     * milestone_order, contrairement aux relances comportementales).
+     * `id_cart_rule = 0` dans le WHERE est la même protection que celle déjà
+     * utilisée dans generateMilestoneVoucher() ci-dessus : si un vrai bon a
+     * entre-temps été créé et associé à cette réservation, le DELETE ne
+     * matche rien et la réservation/le bon restent intacts — on ne veut
+     * jamais recréer un second CartRule au prochain passage.
+     */
+    private function releaseMilestoneClaim(int $idCustomer, int $milestone, int $idShop): void
+    {
+        $this->db->execute(
+            'DELETE FROM `' . $this->prefix . 'neria_milestone_voucher`
+             WHERE id_customer = ' . (int) $idCustomer . ' AND milestone = ' . (int) $milestone . '
+               AND id_shop = ' . (int) $idShop . ' AND id_cart_rule = 0'
+        );
+    }
+
     private function generateMilestoneVoucher(int $idCustomer, int $milestone, \ConfigManager $config, int $idShop): string
     {
         $amount    = $config->getMilestoneVoucherAmount();
@@ -346,12 +367,19 @@ class OrderTriggersManager
                         'milestone_order', 'OrderTriggers'
                     );
                 } else {
+                    // Libère la réservation (si aucun bon réel n'a été créé)
+                    // pour permettre un futur re-déclenchement de ce palier —
+                    // sans cela, un échec d'envoi ponctuel (SMTP indisponible)
+                    // privait ce client de milestone_order à vie, sans aucun
+                    // mécanisme de retry pour ce template.
+                    $this->releaseMilestoneClaim($idCustomer, $count, $idShop);
                     $this->watchdog()->warning(
                         \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'milestone_order', 'email' => $customer->email]),
                         'milestone_order', 'OrderTriggers'
                     );
                 }
             } catch (\Throwable $e) {
+                $this->releaseMilestoneClaim($idCustomer, $count, $idShop);
                 $this->watchdog()->error(
                     \WatchdogManager::i18nMsg('watchdog.milestone_error', ['count' => $count, 'email' => $customer->email, 'error' => $e->getMessage()]),
                     'milestone_order', 'OrderTriggers'
