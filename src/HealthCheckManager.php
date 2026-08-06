@@ -2382,6 +2382,23 @@ class HealthCheckManager
             $offenders[] = "BlacklistManager::add()/remove() ne vérifient plus Affected_Rows() — un doublon ou un id déjà supprimé afficherait de nouveau un faux message de succès côté BO";
         }
 
+        // Round 67 (2026-08-06) : les liens waitlist subscribe/unsubscribe
+        // concaténaient en dur '?action=...&id_product=...&back=...' sur le
+        // résultat de getModuleLink(). Avec l'URL rewriting désactivé
+        // (PS_REWRITING_SETTINGS=0), getModuleLink() retourne déjà une URL
+        // porteuse d'un '?' — le second '?' concaténé fusionnait 'action=...'
+        // dans la VALEUR du paramètre précédent : le contrôleur ne voyait
+        // jamais l'action demandée, le lien ne faisait plus rien,
+        // silencieusement.
+        $waitlistFile = _PS_MODULE_DIR_ . $this->module->name . '/neria.php';
+        $waitlistSrc  = is_file($waitlistFile) ? (file_get_contents($waitlistFile) ?: '') : '';
+        if ($waitlistSrc === '') {
+            $offenders[] = 'neria.php introuvable (liens waitlist)';
+        } elseif (strpos($waitlistSrc, "'?action=unsubscribe&id_product='") !== false
+               || strpos($waitlistSrc, "'?action=subscribe&id_product='") !== false) {
+            $offenders[] = "neria.php concatène de nouveau '?action=...' en dur sur le résultat de getModuleLink() pour les liens waitlist — cassé sur une boutique avec l'URL rewriting désactivé";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
