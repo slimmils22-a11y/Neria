@@ -2324,6 +2324,22 @@ class HealthCheckManager
             $offenders[] = "QueueManager::processSingle() recalcule de nouveau ref_id via date('Y') pour relationship_anniversary au lieu d'utiliser row['ref_id'] figé à l'enqueue — un envoi reporté à cheval sur le Nouvel An écrirait de nouveau le mauvais millésime, cassant la déduplication l'année suivante";
         }
 
+        // Round 63 (2026-08-06) : order_partial_shipped, order_on_hold,
+        // refund_processed et return_received (OrderTriggersManager) ne
+        // fournissaient jamais {id_order} dans templateVars — alors que
+        // neria.php (hookActionEmailSendBefore) lit cette clé pour scoper
+        // CooldownManager::isDuplicate() à UNE commande précise. Un client
+        // avec deux commandes distinctes déclenchant le même type d'email
+        // dans la même fenêtre de cooldown voyait le second bloqué à tort
+        // comme doublon du premier.
+        $otFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php';
+        $otSrc2  = is_file($otFile2) ? (file_get_contents($otFile2) ?: '') : '';
+        if ($otSrc2 === '') {
+            $offenders[] = 'src/OrderTriggersManager.php introuvable (id_order cooldown)';
+        } elseif (preg_match_all('/\'\{id_order\}\'\s*=>\s*\(int\)\s*\$order->id/', $otSrc2) !== 3) {
+            $offenders[] = "OrderTriggersManager ne fournit plus {id_order} dans templateVars pour order_partial_shipped/order_on_hold/refund_processed/return_received — le Mode Silence pourrait de nouveau bloquer à tort un email légitime pour une commande différente du même client dans la même fenêtre de cooldown";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
