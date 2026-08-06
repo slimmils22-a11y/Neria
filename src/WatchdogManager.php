@@ -716,18 +716,26 @@ class WatchdogManager
             return ['exists' => false, 'status' => 'ok', 'stuck' => 0, 'failed' => 0, 'total_pending' => 0];
         }
 
+        // AND id_shop = $this->idShop sur les 3 requêtes : sans lui (comme
+        // partout ailleurs dans cette classe, cf. getCronHealth() ci-dessous),
+        // le widget de santé de CHAQUE boutique agrégeait les emails
+        // bloqués/échoués de TOUTES les boutiques — fausse alerte sur une
+        // boutique saine si une autre boutique a une panne SMTP, ou
+        // inversement un vrai problème dilué/masqué dans un total global
+        // jamais attribué à la bonne boutique.
         $stuck = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$table}`
              WHERE `status` = 'pending'
-               AND `send_at` < DATE_SUB(NOW(), INTERVAL 2 HOUR)"
+               AND `send_at` < DATE_SUB(NOW(), INTERVAL 2 HOUR)
+               AND `id_shop` = {$this->idShop}"
         );
 
         $failed = (int) $this->db->getValue(
-            "SELECT COUNT(*) FROM `{$table}` WHERE `status` = 'failed'"
+            "SELECT COUNT(*) FROM `{$table}` WHERE `status` = 'failed' AND `id_shop` = {$this->idShop}"
         );
 
         $totalPending = (int) $this->db->getValue(
-            "SELECT COUNT(*) FROM `{$table}` WHERE `status` = 'pending'"
+            "SELECT COUNT(*) FROM `{$table}` WHERE `status` = 'pending' AND `id_shop` = {$this->idShop}"
         );
 
         return [
