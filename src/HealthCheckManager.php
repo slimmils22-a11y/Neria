@@ -2462,6 +2462,29 @@ class HealthCheckManager
             $offenders[] = "DomainReputationManager ne distingue plus un budget DNS épuisé d'un '0 hit' réel sur la composante blacklist — un domaine réellement blacklisté pourrait de nouveau obtenir un score de réputation parfait sans alerte si checkDkim() épuise le budget avant checkBlacklists()";
         }
 
+        // Round 72 (2026-08-06) : vip, private_invitation, voucher et
+        // voucher_new (envoi manuel ManualSendManager::WAVE1_TEMPLATES,
+        // éligibles A/B testing ABTestManager::getEligibleTemplates())
+        // étaient absents de PreferencesManager::TEMPLATE_CAT — isAllowed()
+        // les traitait comme "non classés" et autorisait TOUJOURS leur
+        // envoi, même à un client ayant explicitement désactivé la
+        // catégorie correspondante.
+        $prefFile3 = _PS_MODULE_DIR_ . $this->module->name . '/src/PreferencesManager.php';
+        $prefSrc3  = is_file($prefFile3) ? (file_get_contents($prefFile3) ?: '') : '';
+        if ($prefSrc3 === '') {
+            $offenders[] = 'src/PreferencesManager.php introuvable (TEMPLATE_CAT vip/voucher)';
+        } else {
+            $missingCat = [];
+            foreach (['vip', 'private_invitation', 'voucher', 'voucher_new'] as $tpl) {
+                if (!preg_match('/\'' . preg_quote($tpl, '/') . '\'\s*=>\s*\'behav\'/', $prefSrc3)) {
+                    $missingCat[] = $tpl;
+                }
+            }
+            if ($missingCat) {
+                $offenders[] = "PreferencesManager::TEMPLATE_CAT ne couvre plus " . implode(', ', $missingCat) . " — ces templates seraient de nouveau envoyés sans respecter les préférences client (catégorie 'behav')";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
