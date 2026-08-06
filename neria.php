@@ -1486,8 +1486,26 @@ class Neria extends Module
         // pour le visiteur EN COURS sur la page qu'il consulte — contrairement
         // aux emails (destinataire distinct du contexte BO/cron déclencheur),
         // la langue ambiante du contexte est ici la bonne langue par nature.
-        $actionUrl = $this->context->link->getModuleLink('neria', 'waitlist');
-        $backUrl   = $this->context->link->getProductLink($idProduct);
+        $backUrl = $this->context->link->getProductLink($idProduct);
+
+        // Paramètres passés via le 3e argument de getModuleLink() (et non
+        // concaténés en dur en '?clé=valeur...') : sans ça, une boutique
+        // avec l'URL rewriting désactivé (PS_REWRITING_SETTINGS=0) reçoit
+        // de getModuleLink() une URL déjà porteuse d'un '?' (ex.
+        // "index.php?fc=module&module=neria&controller=waitlist&id_lang=1"),
+        // et concaténer un second '?action=...' dessus produit une URL
+        // invalide : 'action' se retrouve fusionné dans la VALEUR du
+        // paramètre précédent au lieu d'être une clé distincte — le
+        // contrôleur ne voit alors jamais 'action' et le lien
+        // d'inscription/désinscription ne fait plus rien, silencieusement.
+        // Link/Dispatcher gèrent eux-mêmes l'encodage correct de chaque
+        // paramètre (dont 'back'), quel que soit le mode d'URL.
+        $commonParams = [
+            'id_product' => $idProduct,
+            'back'       => $backUrl,
+        ];
+        $subscribeUrl   = $this->context->link->getModuleLink('neria', 'waitlist', array_merge($commonParams, ['action' => 'subscribe']));
+        $unsubscribeUrl = $this->context->link->getModuleLink('neria', 'waitlist', array_merge($commonParams, ['action' => 'unsubscribe']));
 
         if (class_exists('AdminTranslator')) {
             AdminTranslator::setLang((string) ($this->context->language->iso_code ?? ''));
@@ -1498,8 +1516,8 @@ class Neria extends Module
             'waitlist_oos'             => true,
             'waitlist_registered'      => $registered,
             'waitlist_id_product'      => $idProduct,
-            'waitlist_subscribe_url'   => $actionUrl,
-            'waitlist_unsubscribe_url' => $actionUrl . '?action=unsubscribe&id_product=' . $idProduct . '&back=' . urlencode($backUrl),
+            'waitlist_subscribe_url'   => $subscribeUrl,
+            'waitlist_unsubscribe_url' => $unsubscribeUrl,
             'waitlist_back_url'        => $backUrl,
         ]);
 
