@@ -2555,6 +2555,26 @@ class HealthCheckManager
             $offenders[] = "ManualSendManager ne résout plus {shop_url}/{history_url} d'après la vraie boutique du client (findCustomer()/resolveShopUrl()) — send()/scheduleManual() pourraient de nouveau utiliser le contexte BO de l'employé";
         }
 
+        // Round 76 (2026-08-06) : neria.php::runBackgroundJobs() instanciait
+        // CalendarManager UNE SEULE FOIS, sans boucle multi-boutique — même
+        // défaut déjà corrigé au round 49 pour Segment/Churn/Propensity.
+        // Seule la boutique du premier visiteur front du jour recevait les
+        // emails calendaires ; les autres boutiques n'en recevaient jamais,
+        // aucun jour.
+        $neriaFile2 = _PS_MODULE_DIR_ . $this->module->name . '/neria.php';
+        $neriaSrc2  = is_file($neriaFile2) ? (file_get_contents($neriaFile2) ?: '') : '';
+        if ($neriaSrc2 === '') {
+            $offenders[] = 'neria.php introuvable (boucle multi-boutique CalendarManager)';
+        } else {
+            $posCal = strpos($neriaSrc2, "if (class_exists('CalendarManager')) {");
+            $blockCal = $posCal !== false ? substr($neriaSrc2, $posCal, 1400) : '';
+            if ($posCal === false
+                || strpos($blockCal, 'foreach ($shopsCalendar as $idShopCalendar) {') === false
+                || strpos($blockCal, 'new CalendarManager($this)') === false) {
+                $offenders[] = "neria.php::runBackgroundJobs() n'instancie plus CalendarManager dans une boucle par boutique — les boutiques autres que celle du premier visiteur du jour pourraient de nouveau ne jamais recevoir de campagne calendaire";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
