@@ -917,16 +917,30 @@ class StatsManager
                       'order_on_hold','order_partial_shipped','refund_processed','return_received',
                       'order_shipped_delay','product_lifespan_reminder','refund_reconciliation_1',
                       'refund_reconciliation_2','refund_reconciliation_3',
-                      'waitlist_available','wishlist_reminder','back_in_stock'],
+                      'waitlist_available','wishlist_reminder','back_in_stock',
+                      // Round 72b — miroir de PreferencesManager::TEMPLATE_CAT (mêmes
+                      // 17 templates WAVE1 "Artisanat/service" + "Logistique/incidents").
+                      'artisan_message','craftsmanship_update','alteration_update','bespoke_ready',
+                      'repair_completed','repair_request_confirm','care_certificate',
+                      'certificate_provenance','extended_warranty','white_glove_apology',
+                      'product_recall','customs_alert','delivery_attempt_failed','packaging_choice',
+                      'tax_refund_eligible','gift_message_confirm','unboxing_guide'],
         'loyalty' => ['loyalty_tier_upgrade','loyalty_recap','loyalty_reward_expiry',
                       'milestone_order','referral_invitation'],
         'behav'   => ['birthday','relationship_anniversary','win_back',
-                      'reorder_reminder','vip_invitation','private_sale','first_anniversary'],
+                      'reorder_reminder','vip_invitation','private_sale','first_anniversary',
+                      // Round 72 (vip/private_invitation/voucher/voucher_new, commit
+                      // 072212b) et round 72b (personal_shopper_intro/concierge_followup/
+                      // gift_guarantee) — miroir de PreferencesManager::TEMPLATE_CAT,
+                      // oublié ici lors du fix round 72.
+                      'vip','private_invitation','voucher','voucher_new',
+                      'personal_shopper_intro','concierge_followup','gift_guarantee'],
         'season'  => ['christmas','valentine','halloween','eid','ramadan',
                       'diwali','lunar_new_year','nowruz','black_friday','new_year',
                       'hanukkah','fathers_day','mothers_day','grandparents_day',
                       'end_of_year_gift','early_access','exclusive_preview'],
-        'b2b'     => ['quote_expiry_48h','quote_expiry_day','quote_extension_offer'],
+        // Round 72b : corporate_order_confirm, miroir de PreferencesManager::TEMPLATE_CAT.
+        'b2b'     => ['quote_expiry_48h','quote_expiry_day','quote_extension_offer','corporate_order_confirm'],
     ];
 
     public function getRevenueDailyByCategory(int $days = 30): array

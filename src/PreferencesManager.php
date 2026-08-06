@@ -62,6 +62,38 @@ class PreferencesManager
         'private_invitation'        => 'behav',
         'voucher'                   => 'behav',
         'voucher_new'               => 'behav',
+        // Round 72b (garde-fou étendu à ManualSendManager::WAVE1_TEMPLATES et
+        // ABTestManager::getEligibleTemplates() en entier) : 21 autres
+        // templates du même catalogue WAVE1, tout aussi non classés et donc
+        // toujours envoyés sans respecter les préférences. Catégorisés selon
+        // le regroupement déjà en commentaire dans WAVE1_TEMPLATES lui-même
+        // (ManualSendManager.php) : "Artisanat / service" et
+        // "Logistique / incidents" → post (même famille que
+        // order_shipped_delay/refund_processed, suivis liés à UNE commande
+        // précise) ; le reste du groupe "VIP / marketing" → behav (même
+        // famille que vip/private_invitation ci-dessus) ; "Divers" réparti
+        // selon sa nature réelle.
+        'artisan_message'           => 'post',
+        'craftsmanship_update'      => 'post',
+        'alteration_update'         => 'post',
+        'bespoke_ready'             => 'post',
+        'repair_completed'          => 'post',
+        'repair_request_confirm'    => 'post',
+        'care_certificate'          => 'post',
+        'certificate_provenance'    => 'post',
+        'extended_warranty'         => 'post',
+        'white_glove_apology'       => 'post',
+        'product_recall'            => 'post',
+        'customs_alert'             => 'post',
+        'delivery_attempt_failed'   => 'post',
+        'packaging_choice'          => 'post',
+        'tax_refund_eligible'       => 'post',
+        'gift_message_confirm'      => 'post',
+        'unboxing_guide'            => 'post',
+        'personal_shopper_intro'    => 'behav',
+        'concierge_followup'        => 'behav',
+        'gift_guarantee'            => 'behav',
+        'corporate_order_confirm'   => 'b2b',
         'christmas'                 => 'season',
         'valentine'                 => 'season',
         'halloween'                 => 'season',

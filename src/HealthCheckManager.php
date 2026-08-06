@@ -2859,6 +2859,27 @@ class HealthCheckManager
                 $sent = array_merge($sent, $m[1]);
             }
         }
+        // ManualSendManager::WAVE1_TEMPLATES et ABTestManager::getEligibleTemplates()
+        // sont des catalogues de templates sélectionnables DYNAMIQUEMENT par le
+        // marchand (envoi manuel BO / test A/B) — le template littéral n'apparaît
+        // jamais dans un Mail::Send()/->send() en dur, donc invisible au scan
+        // ci-dessus. Trouvé en réel au round 72 (commit 072212b) : vip,
+        // private_invitation, voucher, voucher_new présents dans ces deux
+        // catalogues mais absents de TEMPLATE_CAT — un client ayant désactivé la
+        // catégorie correspondante recevait quand même l'email lors d'un envoi
+        // manuel ou d'un test A/B, sans qu'aucun garde-fou ne l'ait détecté avant
+        // une chasse manuelle. On les ajoute donc à $sent pour qu'ils passent par
+        // le même contrôle de mapping.
+        if (class_exists('ManualSendManager') && defined('ManualSendManager::WAVE1_TEMPLATES')) {
+            $sent = array_merge($sent, \ManualSendManager::WAVE1_TEMPLATES);
+        }
+        $abtestFile = $srcDir . '/ABTestManager.php';
+        $abtestRaw = is_file($abtestFile) ? (file_get_contents($abtestFile) ?: '') : '';
+        if (preg_match('/\$eligible\s*=\s*\[(.*?)\n\s*\];/s', $abtestRaw, $block)) {
+            preg_match_all('/\'([a-z_0-9]+)\'/', $block[1], $mm);
+            $sent = array_merge($sent, $mm[1]);
+        }
+
         // Templates système/transactionnels volontairement HORS mapping
         // catégorie, par conception (même famille que les emails PS core
         // order_conf/payment/order_shipped — jamais préférence-gated) :
@@ -2867,8 +2888,11 @@ class HealthCheckManager
         // technique, déjà exempté du Mode Silence via
         // CooldownManager::BYPASS_TEMPLATES), monthly_report (rapport
         // adressé au MARCHAND, pas au client — aucune notion de préférence
-        // ni d'attribution de revenu par catégorie n'a de sens ici).
-        $sent = array_diff(array_unique($sent), ['certificate_email', 'neria_fallback', 'monthly_report']);
+        // ni d'attribution de revenu par catégorie n'a de sens ici),
+        // newsletter_conf (confirmation double opt-in — transactionnel par
+        // nature, listé dans ABTestManager::getEligibleTemplates() mais
+        // jamais destiné à être préférence-gaté, comme les trois précédents).
+        $sent = array_diff(array_unique($sent), ['certificate_email', 'neria_fallback', 'monthly_report', 'newsletter_conf']);
 
         // Extraction manifestement cassée (refactor ayant changé les deux
         // motifs ci-dessus) : se taire plutôt que de signaler massivement
