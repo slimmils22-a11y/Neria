@@ -2291,6 +2291,23 @@ class HealthCheckManager
             $offenders[] = "CollectionManager::claimSend()/releaseSendClaim() ne sont plus scopés par id_shop — un même client complétant réellement la même collection sur deux boutiques distinctes pourrait de nouveau voir sa 2e complétion bloquée à tort";
         }
 
+        // Round 61 (2026-08-06) : OrderTriggersManager::checkMilestone() ne
+        // libérait jamais sa réservation anti-doublon (neria_milestone_
+        // voucher) en cas d'échec d'envoi de milestone_order (silent fail
+        // ou exception) — contrairement à generateMilestoneVoucher() qui
+        // libère bien la sienne si CartRule::add() échoue. Aucun cron de
+        // retry n'existe pour ce template : un client franchissant un
+        // palier au moment d'une panne SMTP transitoire perdait
+        // définitivement l'email et son bon.
+        $otFile = _PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php';
+        $otSrc  = is_file($otFile) ? (file_get_contents($otFile) ?: '') : '';
+        if ($otSrc === '') {
+            $offenders[] = 'src/OrderTriggersManager.php introuvable';
+        } elseif (!preg_match('/private function releaseMilestoneClaim/', $otSrc)
+               || substr_count($otSrc, 'releaseMilestoneClaim($idCustomer, $count, $idShop)') < 2) {
+            $offenders[] = "OrderTriggersManager::checkMilestone() ne libère plus sa réservation milestone en cas d'échec d'envoi — un client franchissant un palier au moment d'une panne d'envoi transitoire perdrait de nouveau définitivement l'email milestone_order et son bon, sans aucun mécanisme de retry";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
