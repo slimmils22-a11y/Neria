@@ -396,11 +396,26 @@ class QueueManager
                 // pour TOUT template routé par cette file (pas seulement les
                 // anniversaires, seul cas traité jusqu'ici — round 51).
                 //
-                // first_anniversary/relationship_anniversary recalculent leur
-                // propre ref_id (règle spécifique, voir ci-dessous) ; tous les
-                // autres templates utilisent directement row['ref_id'], déjà
-                // stocké tel quel à l'enqueue — c'est EXACTEMENT la même
-                // valeur que BehavioralCronManager::send() aurait utilisée.
+                // Seul first_anniversary recalcule son propre ref_id (règle
+                // spécifique, voir ci-dessous) ; tous les autres templates,
+                // y compris relationship_anniversary depuis ce correctif,
+                // utilisent directement row['ref_id'], déjà stocké tel quel
+                // à l'enqueue — c'est EXACTEMENT la même valeur que
+                // BehavioralCronManager::send() aurait utilisée.
+                //
+                // relationship_anniversary utilisait (int) date('Y') recalculé
+                // ICI, au moment de l'envoi réel, au lieu de row['ref_id']
+                // (le millésime déjà figé à l'enqueue) — un envoi reporté au
+                // lendemain par la fenêtre d'achat individuelle (heure
+                // préférée déjà passée) à cheval sur le Nouvel An (ex. 1er
+                // achat un 31/12, cron déclenché le 31/12/2026, préférence
+                // horaire dépassée → planifié pour le 01/01/2027) écrivait
+                // alors ref_id=2027 dans neria_behavioral_sent au lieu de
+                // 2026. Un an plus tard, sendRelationshipAnniversaries()
+                // vérifiait NOT EXISTS(... ref_id = 2027 ...) — qui matchait
+                // déjà à tort la ligne mal datée de l'an dernier : le client
+                // ne recevait alors jamais son email d'anniversaire de
+                // relation 2027, silencieusement.
                 if ((int) $row['id_customer'] > 0) {
                     if ($row['template'] === 'first_anniversary') {
                         // AND id_shop = $idShop : BehavioralCronManager::
@@ -418,8 +433,6 @@ class QueueManager
                              WHERE id_customer = ' . (int) $row['id_customer'] . '
                                AND valid = 1 AND id_shop = ' . (int) $idShop
                         );
-                    } elseif ($row['template'] === 'relationship_anniversary') {
-                        $refId = (int) date('Y');
                     } else {
                         $refId = (int) $row['ref_id'];
                     }
