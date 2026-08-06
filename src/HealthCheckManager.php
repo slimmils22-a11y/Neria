@@ -2485,6 +2485,31 @@ class HealthCheckManager
             }
         }
 
+        // Round 72b (06/08/2026) : checkTemplateCategoryMappingComplete()
+        // scannait uniquement les Mail::Send()/->send() littéraux — les
+        // catalogues DYNAMIQUEMENT sélectionnables par le marchand
+        // (ManualSendManager::WAVE1_TEMPLATES, ABTestManager::$eligible)
+        // étaient invisibles au scan, ce qui a laissé passer 21 templates
+        // (vip, private_invitation, voucher, voucher_new au round 72, puis
+        // 21 de plus au round 72b) sans catégorie de préférence pendant des
+        // semaines. Le fix EST le renforcement du scan lui-même — ce garde-
+        // fou vérifie donc que ce scan étendu n'a pas été silencieusement
+        // retiré par un futur refactor, pas les templates un par un (déjà
+        // couvert par checkTemplateCategoryMappingComplete() lui-même de
+        // façon prospective, pour tout futur ajout à ces deux catalogues).
+        $selfFile = _PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php';
+        $selfSrc  = is_file($selfFile) ? (file_get_contents($selfFile) ?: '') : '';
+        if ($selfSrc === '') {
+            $offenders[] = 'src/HealthCheckManager.php introuvable (auto-vérification scan WAVE1/ABTest)';
+        } else {
+            if (strpos($selfSrc, 'ManualSendManager::WAVE1_TEMPLATES') === false) {
+                $offenders[] = 'HealthCheckManager : checkTemplateCategoryMappingComplete() ne scanne plus ManualSendManager::WAVE1_TEMPLATES — les templates d\'envoi manuel non catégorisés redeviendraient invisibles à ce contrôle';
+            }
+            if (strpos($selfSrc, "\\\$eligible\\s*=\\s*\\[") === false) {
+                $offenders[] = 'HealthCheckManager : checkTemplateCategoryMappingComplete() ne scanne plus $eligible d\'ABTestManager — les templates éligibles A/B non catégorisés redeviendraient invisibles à ce contrôle';
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
