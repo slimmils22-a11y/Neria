@@ -50063,6 +50063,27 @@
         "nl": "Gelegenheid \"{event}\": limiet van 500 ontvangers bereikt (taal: {lang}), sommige in aanmerking komende klanten hebben deze campagne niet ontvangen.",
         "gb": "Occasion \"{event}\": 500-recipient cap reached (language: {lang}), some eligible customers did not receive this campaign."
     },
+    "watchdog.clv_top_pool_capped": {
+        "fr": "Top clients CLV : {total} clients ont commandé, mais seuls les 200 premiers (triés par chiffre d'affaires brut) sont pris en compte pour le calcul — le classement peut être approximatif au-delà de ce seuil.",
+        "en": "CLV Top customers: {total} customers have ordered, but only the first 200 (sorted by gross revenue) are used for the calculation — the ranking may be approximate beyond this threshold.",
+        "de": "CLV-Top-Kunden: {total} Kunden haben bestellt, aber nur die ersten 200 (sortiert nach Bruttoumsatz) werden für die Berechnung berücksichtigt — die Rangliste kann jenseits dieser Schwelle ungenau sein.",
+        "it": "Top clienti CLV: {total} clienti hanno ordinato, ma solo i primi 200 (ordinati per fatturato lordo) sono considerati nel calcolo — la classifica può essere approssimativa oltre questa soglia.",
+        "es": "Top clientes CLV: {total} clientes han realizado pedidos, pero solo los primeros 200 (ordenados por facturación bruta) se tienen en cuenta para el cálculo — la clasificación puede ser aproximada más allá de este umbral.",
+        "pt": "Top clientes CLV: {total} clientes fizeram encomendas, mas apenas os primeiros 200 (ordenados por faturação bruta) são considerados no cálculo — a classificação pode ser aproximada além deste limite.",
+        "br": "Top clientes CLV: {total} clientes fizeram pedidos, mas apenas os primeiros 200 (ordenados por faturamento bruto) são considerados no cálculo — a classificação pode ser aproximada além deste limite.",
+        "ar": "أفضل عملاء CLV: قام {total} عميل بالطلب، لكن يتم أخذ أول 200 فقط (مرتبين حسب الإيرادات الإجمالية) بعين الاعتبار في الحساب — قد يكون الترتيب تقريبيًا بعد هذا الحد.",
+        "ja": "CLVトップ顧客：{total}人の顧客が注文していますが、計算には売上高（総額）順の上位200人のみが考慮されます。この閾値を超えるとランキングは近似値になる可能性があります。",
+        "ko": "CLV 상위 고객: {total}명의 고객이 주문했지만, 계산에는 총매출 기준 상위 200명만 반영됩니다 — 이 기준을 초과하면 순위가 근사치일 수 있습니다.",
+        "zh": "CLV顶级客户：{total}位客户已下单，但计算仅考虑按总营业额排序的前200位——超出此阈值后排名可能不准确。",
+        "tw": "CLV頂級客戶：{total}位客戶已下單，但計算僅考慮按總營業額排序的前200位——超出此閾值後排名可能不準確。",
+        "ru": "Топ клиентов по CLV: заказы сделали {total} клиентов, но для расчёта учитываются только первые 200 (по валовой выручке) — рейтинг может быть приблизительным сверх этого порога.",
+        "tr": "CLV En İyi Müşteriler: {total} müşteri sipariş verdi, ancak hesaplamada yalnızca ilk 200 (brüt ciroya göre sıralanmış) dikkate alınıyor — bu eşiğin ötesinde sıralama yaklaşık olabilir.",
+        "sv": "CLV topplista: {total} kunder har handlat, men endast de första 200 (sorterade efter bruttoomsättning) beaktas i beräkningen — rangordningen kan vara approximativ över denna gräns.",
+        "no": "CLV toppkunder: {total} kunder har handlet, men bare de første 200 (sortert etter brutto omsetning) tas med i beregningen — rangeringen kan være omtrentlig utover denne grensen.",
+        "da": "CLV topkunder: {total} kunder har handlet, men kun de første 200 (sorteret efter bruttoomsætning) indgår i beregningen — rangeringen kan være omtrentlig ud over denne grænse.",
+        "nl": "CLV topklanten: {total} klanten hebben besteld, maar alleen de eerste 200 (gesorteerd op bruto-omzet) worden meegenomen in de berekening — de rangschikking kan bij benadering zijn boven deze drempel.",
+        "gb": "CLV Top customers: {total} customers have ordered, but only the first 200 (sorted by gross revenue) are used for the calculation — the ranking may be approximate beyond this threshold."
+    },
     "watchdog.calendar_no_customers_country": {
         "fr": "Occasion \"{event}\" : 0 client éligible (langue : {lang}, pays : {country}). Vérifiez que la langue est installée et que des clients y sont abonnés à la newsletter.",
         "en": "Occasion \"{event}\": 0 eligible customers (language: {lang}, country: {country}). Check that the language is installed and that customers are subscribed to the newsletter.",

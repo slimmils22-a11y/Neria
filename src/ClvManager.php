@@ -268,6 +268,32 @@ class ClvManager
             return [];
         }
 
+        // Détecte (sans changer le comportement) un pool de pré-sélection
+        // insuffisant : le tri ci-dessus se fait par CA BRUT, un simple
+        // proxy du vrai CLV (calculé plus bas avec des multiplicateurs
+        // engagement/segment/churn pouvant aller de ×0.33 à ×1.5). Un client
+        // hors des 200 premiers en CA brut mais au profil très favorable
+        // peut légitimement avoir un CLV réel supérieur à un client présent
+        // dans le pool — il est alors exclu du Top N AVANT même que sa vraie
+        // CLV ne soit calculée, sans que l'admin n'en soit jamais informé.
+        // Même famille de correctif que CalendarManager/SegmentManager
+        // (détection de dépassement de plafond, round 69).
+        if (count($customers) >= 200) {
+            $totalCandidates = (int) $this->db->getValue(
+                'SELECT COUNT(DISTINCT o.`id_customer`)
+                 FROM `' . _DB_PREFIX_ . 'orders` o
+                 INNER JOIN `' . _DB_PREFIX_ . 'customer` c ON c.`id_customer` = o.`id_customer`
+                 WHERE o.`id_shop` = ' . $this->idShop . ' AND o.`valid` = 1
+                   AND c.`deleted` = 0'
+            );
+            if ($totalCandidates > 200) {
+                $this->watchdog()->warning(
+                    \WatchdogManager::i18nMsg('watchdog.clv_top_pool_capped', ['total' => $totalCandidates]),
+                    '', 'ClvManager'
+                );
+            }
+        }
+
         $idList = implode(',', array_map(fn($row) => (int) $row['id_customer'], $customers));
         $symbol = \Context::getContext()->currency->sign ?? '€';
 
