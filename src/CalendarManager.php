@@ -206,7 +206,8 @@ class CalendarManager
             return;
         }
 
-        $customers = $this->getEligibleCustomers($lang, $countryCode);
+        $capped    = false;
+        $customers = $this->getEligibleCustomers($lang, $countryCode, $capped);
 
         if (empty($customers)) {
             $this->watchdog()->warning(
@@ -217,6 +218,14 @@ class CalendarManager
                 'CalendarManager'
             );
             return;
+        }
+
+        if ($capped) {
+            $this->watchdog()->warning(
+                \WatchdogManager::i18nMsg('watchdog.calendar_recipient_cap_exceeded', ['event' => $eventKey, 'lang' => strtoupper($lang)]),
+                $template,
+                'CalendarManager'
+            );
         }
 
         $total  = count($customers);
@@ -929,9 +938,11 @@ class CalendarManager
 
     private function getEligibleCustomers(
         string $lang,
-        string $countryCode
+        string $countryCode,
+        bool &$capped = false
     ): array {
         $idLang = $this->getIdLangFromCode($lang);
+        $capped = false;
 
         if (!$idLang) {
             return [];
@@ -953,6 +964,14 @@ class CalendarManager
             }
         }
 
+        // LIMIT +1 (comme SegmentManager::preflightCheck()) pour détecter un
+        // dépassement du plafond plutôt que de le tronquer silencieusement :
+        // sans cela, ORDER BY id_customer ASC renvoyait déterministement
+        // toujours les 500 PREMIERS clients éligibles, année après année —
+        // les clients inscrits après les 500 premiers ne recevaient jamais
+        // aucune campagne calendaire, sans que le marchand ne le sache
+        // (aucune trace Watchdog, aucun compteur BO ne signalait ce
+        // plafonnement).
         $sql = "SELECT c.`id_customer`, c.`email`,
                        c.`firstname`, c.`lastname`, c.`id_lang`
                 FROM `" . _DB_PREFIX_ . "customer` c
@@ -963,10 +982,17 @@ class CalendarManager
                   AND c.`id_shop`    = {$this->idShop}
                   {$countryFilter}
                 ORDER BY c.`id_customer` ASC
-                LIMIT " . self::MAX_RECIPIENTS_PER_EVENT;
+                LIMIT " . (self::MAX_RECIPIENTS_PER_EVENT + 1);
 
         $rows = $this->db->executeS($sql);
-        return is_array($rows) ? $rows : [];
+        $rows = is_array($rows) ? $rows : [];
+
+        $capped = count($rows) > self::MAX_RECIPIENTS_PER_EVENT;
+        if ($capped) {
+            $rows = array_slice($rows, 0, self::MAX_RECIPIENTS_PER_EVENT);
+        }
+
+        return $rows;
     }
 
     private function getIdLangFromCode(string $lang): int

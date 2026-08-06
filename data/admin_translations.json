@@ -50042,6 +50042,27 @@
         "nl": "Gelegenheid \"{event}\": 0 in aanmerking komende klanten (taal: {lang}). Controleer of de taal is geïnstalleerd en klanten zijn ingeschreven voor de nieuwsbrief.",
         "gb": "Occasion \"{event}\": 0 eligible customers (language: {lang}). Check that the language is installed and that customers are subscribed to the newsletter."
     },
+    "watchdog.calendar_recipient_cap_exceeded": {
+        "fr": "Occasion \"{event}\" : plafond de 500 destinataires atteint (langue : {lang}), certains clients éligibles n'ont pas reçu cette campagne.",
+        "en": "Occasion \"{event}\": 500-recipient cap reached (language: {lang}), some eligible customers did not receive this campaign.",
+        "de": "Anlass „{event}\\\": Limit von 500 Empfängern erreicht (Sprache: {lang}), einige berechtigte Kunden haben diese Kampagne nicht erhalten.",
+        "it": "Occasione \"{event}\": raggiunto il limite di 500 destinatari (lingua: {lang}), alcuni clienti idonei non hanno ricevuto questa campagna.",
+        "es": "Ocasión \"{event}\": límite de 500 destinatarios alcanzado (idioma: {lang}), algunos clientes elegibles no recibieron esta campaña.",
+        "pt": "Ocasião \"{event}\": limite de 500 destinatários atingido (idioma: {lang}), alguns clientes elegíveis não receberam esta campanha.",
+        "br": "Ocasião \"{event}\": limite de 500 destinatários atingido (idioma: {lang}), alguns clientes elegíveis não receberam esta campanha.",
+        "ar": "المناسبة \"{event}\": تم بلوغ الحد الأقصى البالغ 500 مستلم (اللغة: {lang})، ولم يتلقَّ بعض العملاء المؤهلين هذه الحملة.",
+        "ja": "記念日「{event}」：受信者数の上限500件に達しました（言語：{lang}）。一部の対象顧客はこのキャンペーンを受信できませんでした。",
+        "ko": "이벤트 \"{event}\": 500명 수신자 한도에 도달했습니다(언어: {lang}). 일부 대상 고객이 이 캠페인을 받지 못했습니다.",
+        "zh": "纪念日\"{event}\"：已达到500个收件人上限（语言：{lang}），部分符合条件的客户未收到此活动。",
+        "tw": "紀念日「{event}」：已達到500位收件人上限（語言：{lang}），部分符合條件的客戶未收到此活動。",
+        "ru": "Событие «{event}»: достигнут лимит в 500 получателей (язык: {lang}), некоторые подходящие клиенты не получили эту кампанию.",
+        "tr": "\"{event}\" özel günü: 500 alıcı sınırına ulaşıldı (dil: {lang}), uygun müşterilerden bazıları bu kampanyayı almadı.",
+        "sv": "Tillfället \"{event}\": gränsen på 500 mottagare har nåtts (språk: {lang}), vissa berättigade kunder fick inte denna kampanj.",
+        "no": "Anledningen \"{event}\": grensen på 500 mottakere er nådd (språk: {lang}), enkelte kvalifiserte kunder mottok ikke denne kampanjen.",
+        "da": "Lejligheden \"{event}\": grænsen på 500 modtagere er nået (sprog: {lang}), nogle berettigede kunder modtog ikke denne kampagne.",
+        "nl": "Gelegenheid \"{event}\": limiet van 500 ontvangers bereikt (taal: {lang}), sommige in aanmerking komende klanten hebben deze campagne niet ontvangen.",
+        "gb": "Occasion \"{event}\": 500-recipient cap reached (language: {lang}), some eligible customers did not receive this campaign."
+    },
     "watchdog.calendar_no_customers_country": {
         "fr": "Occasion \"{event}\" : 0 client éligible (langue : {lang}, pays : {country}). Vérifiez que la langue est installée et que des clients y sont abonnés à la newsletter.",
         "en": "Occasion \"{event}\": 0 eligible customers (language: {lang}, country: {country}). Check that the language is installed and that customers are subscribed to the newsletter.",
