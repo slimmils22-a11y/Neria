@@ -2446,6 +2446,22 @@ class HealthCheckManager
             $offenders[] = "ClvManager::getTopCustomers() ne détecte/journalise plus le dépassement du pool de 200 candidats — le Top 20 CLV pourrait de nouveau exclure silencieusement des clients à forte valeur réelle mal classés par CA brut";
         }
 
+        // Round 71 (2026-08-06) : DomainReputationManager::checkBlacklists()
+        // ne distinguait pas un budget DNS épuisé (checked=0, aucune RBL
+        // réellement interrogée) d'un "0 hit après vérification complète" —
+        // computeScore() accordait les points pleins (25/25) sur la
+        // composante blacklist dans les deux cas, un domaine réellement
+        // blacklisté au moment du check pouvant obtenir un score parfait
+        // sans aucune alerte.
+        $domRepFile = _PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php';
+        $domRepSrc  = is_file($domRepFile) ? (file_get_contents($domRepFile) ?: '') : '';
+        if ($domRepSrc === '') {
+            $offenders[] = 'src/DomainReputationManager.php introuvable';
+        } elseif (strpos($domRepSrc, "'timed_out' => \$checked < count(self::RBL_LIST),") === false
+               || strpos($domRepSrc, "} elseif (!empty(\$bl['timed_out'])) {") === false) {
+            $offenders[] = "DomainReputationManager ne distingue plus un budget DNS épuisé d'un '0 hit' réel sur la composante blacklist — un domaine réellement blacklisté pourrait de nouveau obtenir un score de réputation parfait sans alerte si checkDkim() épuise le budget avant checkBlacklists()";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
