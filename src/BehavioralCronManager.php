@@ -1379,18 +1379,33 @@ class BehavioralCronManager
                     'id_shop'     => $r['id_shop'],
                 ];
 
+                // {id_order}/{cooldown_scope} scopent le Mode Silence sur
+                // CETTE commande (cf. CooldownManager, neria.php
+                // hookActionEmailSendBefore) — même correctif exhaustif que
+                // order_partial_shipped/order_on_hold/refund_processed/
+                // return_received (round 63), qui manquait encore ici. Sans
+                // eux, un client remboursé sur deux commandes distinctes
+                // voyait la relance de la 2e bloquée à tort comme doublon de
+                // la 1re si les deux tombaient dans la même fenêtre de
+                // cooldown. {order_name} retiré : jamais utilisé par ces 3
+                // templates (vérifié dans mails/themes/neria_global/core/),
+                // résidu sans effet.
+                $reconciliationVars = [
+                    '{id_order}'       => $idOrder,
+                    '{cooldown_scope}' => 'order:' . $idOrder,
+                ];
                 if (!$r['sent_1']) {
-                    $this->send('refund_reconciliation_1', $customer, ['{order_name}' => ''], $idOrder);
+                    $this->send('refund_reconciliation_1', $customer, $reconciliationVars, $idOrder);
                     $this->db->execute(
                         "UPDATE `{$table}` SET sent_1 = 1 WHERE id_reconciliation = {$idReconciliation}"
                     );
                 } elseif (!$r['sent_2']) {
-                    $this->send('refund_reconciliation_2', $customer, ['{order_name}' => ''], $idOrder);
+                    $this->send('refund_reconciliation_2', $customer, $reconciliationVars, $idOrder);
                     $this->db->execute(
                         "UPDATE `{$table}` SET sent_2 = 1 WHERE id_reconciliation = {$idReconciliation}"
                     );
                 } elseif (!$r['sent_3']) {
-                    $this->send('refund_reconciliation_3', $customer, ['{order_name}' => ''], $idOrder);
+                    $this->send('refund_reconciliation_3', $customer, $reconciliationVars, $idOrder);
                     $this->db->execute(
                         "UPDATE `{$table}` SET sent_3 = 1 WHERE id_reconciliation = {$idReconciliation}"
                     );
