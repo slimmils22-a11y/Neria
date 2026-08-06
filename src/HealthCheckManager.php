@@ -2369,6 +2369,19 @@ class HealthCheckManager
             $offenders[] = "OrderTriggersManager::handleReturn() ne pose plus (ou ne libère plus) son verrou anti-doublon GET_LOCK('neria_return_' . id) — un double déclenchement du hook actionObjectOrderReturnAddAfter pourrait de nouveau envoyer return_received deux fois pour le même retour";
         }
 
+        // Round 66 (2026-08-06) : BlacklistManager::add()/remove()
+        // renvoyaient toujours true dès lors que execute() n'échouait pas,
+        // même si 0 ligne n'était réellement affectée (doublon ignoré par
+        // INSERT IGNORE, ou id déjà supprimé) — faux message de succès côté
+        // BO, sans perte de données.
+        $blFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BlacklistManager.php';
+        $blSrc  = is_file($blFile) ? (file_get_contents($blFile) ?: '') : '';
+        if ($blSrc === '') {
+            $offenders[] = 'src/BlacklistManager.php introuvable';
+        } elseif (substr_count($blSrc, 'return (bool) $ok && (int) $this->db->Affected_Rows() > 0;') !== 2) {
+            $offenders[] = "BlacklistManager::add()/remove() ne vérifient plus Affected_Rows() — un doublon ou un id déjà supprimé afficherait de nouveau un faux message de succès côté BO";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
