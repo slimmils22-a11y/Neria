@@ -2340,6 +2340,20 @@ class HealthCheckManager
             $offenders[] = "OrderTriggersManager ne fournit plus {id_order} dans templateVars pour order_partial_shipped/order_on_hold/refund_processed/return_received — le Mode Silence pourrait de nouveau bloquer à tort un email légitime pour une commande différente du même client dans la même fenêtre de cooldown";
         }
 
+        // Round 64 (2026-08-06) : BehavioralCronManager::
+        // sendRefundReconciliations() (relances refund_reconciliation_1/2/3)
+        // ne fournissait jamais {id_order} dans templateVars — même pattern
+        // que le round 63, qui manquait encore ici. Un client remboursé sur
+        // deux commandes distinctes voyait la relance de la 2e bloquée à
+        // tort comme doublon de la 1re dans la même fenêtre de cooldown.
+        $cronFile4 = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
+        $cronSrc4  = is_file($cronFile4) ? (file_get_contents($cronFile4) ?: '') : '';
+        if ($cronSrc4 === '') {
+            $offenders[] = 'src/BehavioralCronManager.php introuvable (refund_reconciliation cooldown)';
+        } elseif (preg_match_all('/\$this->send\(\'refund_reconciliation_\d\', \$customer, \$reconciliationVars, \$idOrder\)/', $cronSrc4) !== 3) {
+            $offenders[] = "BehavioralCronManager::sendRefundReconciliations() ne fournit plus {id_order} dans templateVars pour refund_reconciliation_1/2/3 — le Mode Silence pourrait de nouveau bloquer à tort une relance légitime pour une commande différente du même client dans la même fenêtre de cooldown";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
