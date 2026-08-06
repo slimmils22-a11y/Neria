@@ -577,7 +577,14 @@ class ManualSendManager
 
         $customer = $this->findCustomer($email);
         $idLang   = $customer ? (int) $customer['id_lang'] : (int) \Configuration::get('PS_LANG_DEFAULT');
-        $idShop   = (int) \Context::getContext()->shop->id;
+        // id_shop DU CLIENT réel, pas Context::getContext()->shop (contexte
+        // BO de l'employé qui déclenche l'envoi) — même correctif que
+        // scheduleManual() (\$idShopManual) et CertificateManager (round 74) :
+        // un opérateur en contexte "Boutique A" envoyant manuellement à un
+        // client de la "Boutique B" utilisait sinon la config
+        // SMTP/expéditeur/préférences ET les liens ({shop_url},
+        // {history_url}) de la MAUVAISE boutique.
+        $idShop   = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
 
         // ── Garde-fou blacklist ───────────────────────────────────────────
         // Un template blacklisté ne peut plus être rendu par Neria ; comme les
@@ -667,8 +674,8 @@ class ManualSendManager
             '{lastname}'    => $customer['lastname'] ?? '',
             '{email}'       => $email,
             '{shop_name}'   => (string) \Configuration::get('PS_SHOP_NAME'),
-            '{shop_url}'    => \Tools::getShopDomainSsl(true, true),
-            '{history_url}' => \Context::getContext()->link->getPageLink('history', true, $idLang),
+            '{shop_url}'    => $this->resolveShopUrl($idShop),
+            '{history_url}' => \Context::getContext()->link->getPageLink('history', true, $idLang, null, false, $idShop),
         ];
 
         // Commande optionnelle (contexte + détection langue via {id_order})
@@ -805,16 +812,36 @@ class ManualSendManager
     }
 
     /**
+     * Tools::getShopDomainSsl() est lié au CONTEXTE courant, pas à un
+     * id_shop passé en paramètre — bascule temporaire vers la vraie
+     * boutique du client, le temps de résoudre le domaine, même pattern
+     * que CertificateManager::sendCertificateEmail() (round 74). Sans ça,
+     * {shop_url} pointait vers le domaine du contexte BO de l'employé au
+     * lieu de celui de la boutique réelle du client.
+     */
+    private function resolveShopUrl(int $idShop): string
+    {
+        $originalShop = \Context::getContext()->shop;
+        if ((int) $originalShop->id !== $idShop) {
+            \Context::getContext()->shop = new \Shop($idShop);
+        }
+        $shopUrl = \Tools::getShopDomainSsl(true, true);
+        \Context::getContext()->shop = $originalShop;
+
+        return $shopUrl;
+    }
+
+    /**
      * Trouve un client par email (non supprimé).
      *
      * @param string $email
-     * @return array|null [id_customer, id_lang, firstname, lastname]
+     * @return array|null [id_customer, id_lang, firstname, lastname, id_shop]
      */
     private function findCustomer(string $email): ?array
     {
         $shopRestriction = \Shop::addSqlRestriction(\Shop::SHARE_CUSTOMER);
         $row = $this->db->getRow(
-            'SELECT `id_customer`, `id_lang`, `firstname`, `lastname`
+            'SELECT `id_customer`, `id_lang`, `firstname`, `lastname`, `id_shop`
              FROM `' . _DB_PREFIX_ . 'customer`
              WHERE `email` = \'' . pSQL($email) . '\'
                AND `deleted` = 0
@@ -1225,8 +1252,8 @@ class ManualSendManager
             '{lastname}'    => $customer['lastname'] ?? '',
             '{email}'       => $email,
             '{shop_name}'   => (string) \Configuration::get('PS_SHOP_NAME'),
-            '{shop_url}'    => \Tools::getShopDomainSsl(true, true),
-            '{history_url}' => \Context::getContext()->link->getPageLink('history', true, $idLang),
+            '{shop_url}'    => $this->resolveShopUrl($idShopManual),
+            '{history_url}' => \Context::getContext()->link->getPageLink('history', true, $idLang, null, false, $idShopManual),
         ];
 
         // Commande optionnelle — même résolution que send() (voir plus haut).
