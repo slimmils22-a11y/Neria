@@ -2354,6 +2354,21 @@ class HealthCheckManager
             $offenders[] = "BehavioralCronManager::sendRefundReconciliations() ne fournit plus {id_order} dans templateVars pour refund_reconciliation_1/2/3 — le Mode Silence pourrait de nouveau bloquer à tort une relance légitime pour une commande différente du même client dans la même fenêtre de cooldown";
         }
 
+        // Round 65 (2026-08-06) : OrderTriggersManager::handleReturn()
+        // n'avait aucun verrou anti-doublon contrairement à handleRefund()
+        // (verrouillé par avoir via GET_LOCK) — un double déclenchement du
+        // hook actionObjectOrderReturnAddAfter (rejeu, module tiers, double
+        // dispatch PrestaShop) pouvait renvoyer deux fois return_received
+        // pour le même retour.
+        $otFile3 = _PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php';
+        $otSrc3  = is_file($otFile3) ? (file_get_contents($otFile3) ?: '') : '';
+        if ($otSrc3 === '') {
+            $offenders[] = 'src/OrderTriggersManager.php introuvable (verrou return)';
+        } elseif (strpos($otSrc3, "GET_LOCK('\" . pSQL(\$lockName) . \"', 0)") === false
+               || strpos($otSrc3, "RELEASE_LOCK('\" . pSQL(\$lockName) . \"')") === false) {
+            $offenders[] = "OrderTriggersManager::handleReturn() ne pose plus (ou ne libère plus) son verrou anti-doublon GET_LOCK('neria_return_' . id) — un double déclenchement du hook actionObjectOrderReturnAddAfter pourrait de nouveau envoyer return_received deux fois pour le même retour";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
