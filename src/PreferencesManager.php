@@ -52,6 +52,16 @@ class PreferencesManager
         'vip_invitation'            => 'behav',
         'private_sale'              => 'behav',
         'first_anniversary'         => 'behav',
+        // Templates envoi manuel (ManualSendManager::WAVE1_TEMPLATES,
+        // groupe "VIP / marketing", même famille que vip_invitation/
+        // private_sale ci-dessus) et A/B testing (ABTestManager) —
+        // absents jusqu'ici de cette table, isAllowed() les traitait comme
+        // "non classés" et autorisait TOUJOURS leur envoi, même à un client
+        // ayant explicitement désactivé la catégorie 'behav'.
+        'vip'                       => 'behav',
+        'private_invitation'        => 'behav',
+        'voucher'                   => 'behav',
+        'voucher_new'               => 'behav',
         'christmas'                 => 'season',
         'valentine'                 => 'season',
         'halloween'                 => 'season',
