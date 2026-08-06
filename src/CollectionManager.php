@@ -243,6 +243,8 @@ class CollectionManager
             if (empty($missing)) continue;
             $missingId = $missing[0];
 
+            $idShop = (int) ($row['id_shop'] ?: \Context::getContext()->shop->id);
+
             // Réservation atomique AVANT l'envoi (et non plus une simple
             // lecture suivie d'un INSERT après coup) : deux déclenchements
             // quasi simultanés du cron (fallback + serveur, ou double clic
@@ -250,20 +252,25 @@ class CollectionManager
             // alreadySent() avant que l'un ou l'autre n'ait eu le temps
             // d'insérer sa ligne — l'email pouvait alors partir deux fois
             // même si la clé UNIQUE empêchait bien la double ligne en base.
-            // INSERT IGNORE sur (id_neria_collection, id_customer) agit
-            // comme un verrou compare-and-swap : un seul processus le
-            // remporte.
-            if (!$this->claimSend($colId, $idCustomer)) continue;
+            // INSERT IGNORE sur (id_neria_collection, id_customer, id_shop)
+            // agit comme un verrou compare-and-swap : un seul processus le
+            // remporte. id_shop fait partie de la clé (upgrade 1.0.38) :
+            // la boucle ci-dessus groupe déjà les achats par (customer,
+            // shop) pour ne pas mélanger les catalogues multi-boutiques,
+            // mais sans id_shop dans la clé, un même client complétant
+            // RÉELLEMENT la même collection sur deux boutiques distinctes
+            // voyait la 2e complétion bloquée à tort par la réservation de
+            // la 1re — email jamais envoyé pour la 2e boutique, sans erreur.
+            if (!$this->claimSend($colId, $idCustomer, $idShop)) continue;
 
             // Récupérer les infos client + langue
             $customer = new \Customer($idCustomer);
             if (!\Validate::isLoadedObject($customer)) {
-                $this->releaseSendClaim($colId, $idCustomer);
+                $this->releaseSendClaim($colId, $idCustomer, $idShop);
                 continue;
             }
 
             $idLang = $this->resolveLang($customer);
-            $idShop = (int) ($row['id_shop'] ?: \Context::getContext()->shop->id);
 
             // Aucun filtre de préférence n'était appliqué ici — un client
             // ayant désactivé la catégorie 'post' (post-achat) recevait
@@ -282,7 +289,7 @@ class CollectionManager
             if (class_exists('PreferencesManager')
                 && !(new \PreferencesManager($this->module))->isAllowed($idCustomer, 'collection_completion', $idShop)
             ) {
-                $this->releaseSendClaim($colId, $idCustomer);
+                $this->releaseSendClaim($colId, $idCustomer, $idShop);
                 continue;
             }
 
@@ -294,7 +301,7 @@ class CollectionManager
             // que X" avec un lien produit indisponible.
             $product = new \Product($missingId, false, $idLang);
             if (!\Validate::isLoadedObject($product) || !$product->active) {
-                $this->releaseSendClaim($colId, $idCustomer);
+                $this->releaseSendClaim($colId, $idCustomer, $idShop);
                 continue;
             }
 
@@ -305,7 +312,7 @@ class CollectionManager
             if (!\StockAvailable::getQuantityAvailableByProduct($missingId, null, $idShop)
                 && !\Product::isAvailableWhenOutOfStock($product->out_of_stock)
             ) {
-                $this->releaseSendClaim($colId, $idCustomer);
+                $this->releaseSendClaim($colId, $idCustomer, $idShop);
                 continue;
             }
 
@@ -380,10 +387,10 @@ class CollectionManager
                     // la réservation pour permettre une nouvelle tentative au
                     // prochain passage du cron, plutôt que de perdre
                     // silencieusement ce client pour toujours.
-                    $this->releaseSendClaim($colId, $idCustomer);
+                    $this->releaseSendClaim($colId, $idCustomer, $idShop);
                 }
             } catch (\Throwable $e) {
-                $this->releaseSendClaim($colId, $idCustomer);
+                $this->releaseSendClaim($colId, $idCustomer, $idShop);
                 if (class_exists('WatchdogManager')) {
                     (new \WatchdogManager($this->module))->error(
                         \WatchdogManager::i18nMsg('watchdog.collection_item_error', ['error' => $e->getMessage()]),
@@ -404,20 +411,20 @@ class CollectionManager
      * process l'a déjà (ou l'envoi a déjà réussi lors d'un passage
      * précédent) — voir le commentaire dans processCollection().
      */
-    private function claimSend(int $colId, int $idCustomer): bool
+    private function claimSend(int $colId, int $idCustomer, int $idShop): bool
     {
         $this->db->execute(
             "INSERT IGNORE INTO `{$this->prefix}neria_collection_sent`
-                (`id_neria_collection`, `id_customer`, `sent_at`)
-             VALUES ({$colId}, {$idCustomer}, '" . date('Y-m-d H:i:s') . "')"
+                (`id_neria_collection`, `id_customer`, `id_shop`, `sent_at`)
+             VALUES ({$colId}, {$idCustomer}, {$idShop}, '" . date('Y-m-d H:i:s') . "')"
         );
         return $this->db->Affected_Rows() > 0;
     }
 
-    private function releaseSendClaim(int $colId, int $idCustomer): void
+    private function releaseSendClaim(int $colId, int $idCustomer, int $idShop): void
     {
         $this->db->delete('neria_collection_sent',
-            '`id_neria_collection` = ' . $colId . ' AND `id_customer` = ' . $idCustomer
+            '`id_neria_collection` = ' . $colId . ' AND `id_customer` = ' . $idCustomer . ' AND `id_shop` = ' . $idShop
         );
     }
 

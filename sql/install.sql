@@ -785,15 +785,20 @@ COMMENT='Collections produits Neria — suggestion de complétion';
 
 -- ------------------------------------------------------------
 -- TABLE 29 : neria_collection_sent
--- Déduplication : un email par collection × client.
+-- Déduplication : un email par collection × client × boutique.
+-- id_shop dans la clé (upgrade 1.0.38) : sans lui, un même client
+-- complétant RÉELLEMENT la même collection sur deux boutiques distinctes
+-- (catalogues différents, groupés séparément par processCollection()) se
+-- voyait bloquer sa 2e complétion par la réservation de la 1re.
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `PREFIX_neria_collection_sent` (
     `id`                  INT UNSIGNED     NOT NULL AUTO_INCREMENT,
     `id_neria_collection` INT UNSIGNED     NOT NULL,
     `id_customer`         INT UNSIGNED     NOT NULL,
+    `id_shop`             INT UNSIGNED     NOT NULL DEFAULT 1,
     `sent_at`             DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_col_customer` (`id_neria_collection`, `id_customer`),
+    UNIQUE KEY `uq_col_customer_shop` (`id_neria_collection`, `id_customer`, `id_shop`),
     KEY `idx_customer`    (`id_customer`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Déduplication des emails de complétion de collection Neria';
