@@ -73,13 +73,18 @@ class BlacklistManager
             return false;
         }
 
+        // Vérifie Affected_Rows(), pas seulement le résultat de execute() :
+        // INSERT IGNORE sur un doublon (contrainte UNIQUE id_shop+template+
+        // lang) exécute la requête SANS erreur (0 ligne insérée) — execute()
+        // retourne quand même true, faisant afficher un faux message de
+        // succès côté BO pour une règle qui existait déjà.
         $ok = $this->db->execute(
             'INSERT IGNORE INTO `' . _DB_PREFIX_ . self::TABLE . '`
              (`id_shop`, `template`, `lang`, `date_add`)
              VALUES (' . (int) $this->idShop . ", '" . $template . "', '" . $lang . "', NOW())"
         );
         $this->cache = null;
-        return (bool) $ok;
+        return (bool) $ok && (int) $this->db->Affected_Rows() > 0;
     }
 
     /**
@@ -90,13 +95,18 @@ class BlacklistManager
      */
     public function remove(int $id): bool
     {
+        // Vérifie Affected_Rows(), pas seulement le résultat de execute() :
+        // un DELETE sur un id déjà supprimé (double clic, id d'une autre
+        // boutique) s'exécute SANS erreur (0 ligne supprimée) — execute()
+        // retourne quand même true, faisant afficher un faux message de
+        // succès côté BO alors qu'aucune règle n'a réellement été retirée.
         $ok = $this->db->execute(
             'DELETE FROM `' . _DB_PREFIX_ . self::TABLE . '`
              WHERE `id_blacklist` = ' . (int) $id . '
                AND `id_shop` = ' . (int) $this->idShop
         );
         $this->cache = null;
-        return (bool) $ok;
+        return (bool) $ok && (int) $this->db->Affected_Rows() > 0;
     }
 
     public function reset(): bool
