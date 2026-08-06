@@ -2540,6 +2540,21 @@ class HealthCheckManager
             $offenders[] = "CertificateManager::sendCertificateEmail() ne calcule plus \$idShop depuis \$order->id_shop — l'email de certificat pourrait de nouveau être envoyé avec la config SMTP/expéditeur du contexte BO de l'employé au lieu de la vraie boutique de la commande";
         }
 
+        // Round 75 (2026-08-06) : ManualSendManager::send()/scheduleManual()
+        // résolvaient {shop_url}/{history_url} (et pour send(), isAllowed()/
+        // Mail::Send() aussi) d'après le contexte BO de l'employé au lieu de
+        // la vraie boutique du client — même défaut que CertificateManager
+        // (round 74). findCustomer() ne sélectionnait même pas id_shop.
+        $msFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
+        $msSrc  = is_file($msFile) ? (file_get_contents($msFile) ?: '') : '';
+        if ($msSrc === '') {
+            $offenders[] = 'src/ManualSendManager.php introuvable (liens scopés boutique client)';
+        } elseif (strpos($msSrc, "SELECT `id_customer`, `id_lang`, `firstname`, `lastname`, `id_shop`") === false
+               || strpos($msSrc, 'private function resolveShopUrl(int $idShop): string') === false
+               || substr_count($msSrc, '$this->resolveShopUrl($idShop') < 2) {
+            $offenders[] = "ManualSendManager ne résout plus {shop_url}/{history_url} d'après la vraie boutique du client (findCustomer()/resolveShopUrl()) — send()/scheduleManual() pourraient de nouveau utiliser le contexte BO de l'employé";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
