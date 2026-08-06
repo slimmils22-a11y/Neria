@@ -2255,6 +2255,22 @@ class HealthCheckManager
             }
         }
 
+        // Round 59 (2026-08-06) : ClvManager::getTopCustomers() divisait par
+        // o.conversion_rate sans protection contre 0 dans son ORDER BY de
+        // présélection et son agrégat total_revenue — contrairement aux
+        // remboursements de cette même méthode et à computeClv(). Une seule
+        // commande à conversion_rate=0 (donnée legacy/import) rendait le
+        // SUM() de tout le client NULL en SQL, l'excluant du pool des 200
+        // candidats et/ou écrasant son CA réel à 0 dans le Top 20 CLV.
+        $clvFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php';
+        $clvSrc  = is_file($clvFile) ? (file_get_contents($clvFile) ?: '') : '';
+        if ($clvSrc === '') {
+            $offenders[] = 'src/ClvManager.php introuvable';
+        } elseif (strpos($clvSrc, "ORDER BY SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` = 0, 1, o.`conversion_rate`)) DESC") === false
+               || strpos($clvSrc, "SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` = 0, 1, o.`conversion_rate`)) AS total_revenue") === false) {
+            $offenders[] = "ClvManager::getTopCustomers() ne protège plus ses divisions par o.conversion_rate contre 0 — un client avec une commande à conversion_rate=0 pourrait de nouveau être exclu du Top 20 CLV ou voir son CA écrasé à 0";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
