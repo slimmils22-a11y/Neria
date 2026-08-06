@@ -313,7 +313,17 @@ class FontManager
         $cssFamily  = $fontData['css_family'];
         $fallback   = $fontData['fallback'];
         $googleUrl  = $fontData['google_url'];
-        $accentColor = $this->config->get(ConfigManager::KEY_COLOR_ACCENT);
+        // sanitizeColor() en défense en profondeur : ConfigManager::
+        // saveDesignConfig() valide déjà ce format à l'écriture (non
+        // exploitable aujourd'hui via l'admin), mais sans ce filtre ici,
+        // toute valeur qui atteindrait cette clé de config par un autre
+        // chemin (import direct, script d'upgrade, accès DB) serait
+        // injectée telle quelle dans du CSS sans second contrôle — même
+        // garde-fou que sig_color ailleurs dans le module.
+        $accentColor = NeriaTools::sanitizeColor(
+            (string) $this->config->get(ConfigManager::KEY_COLOR_ACCENT),
+            '#b38b59'
+        );
 
         // Bloc CSS avec import Google Fonts + fallback Outlook
         $css = <<<CSS
