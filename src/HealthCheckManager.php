@@ -2308,6 +2308,22 @@ class HealthCheckManager
             $offenders[] = "OrderTriggersManager::checkMilestone() ne libère plus sa réservation milestone en cas d'échec d'envoi — un client franchissant un palier au moment d'une panne d'envoi transitoire perdrait de nouveau définitivement l'email milestone_order et son bon, sans aucun mécanisme de retry";
         }
 
+        // Round 62 (2026-08-06) : QueueManager::processSingle() recalculait
+        // ref_id = (int) date('Y') pour relationship_anniversary au moment
+        // de l'envoi réel, au lieu d'utiliser row['ref_id'] (le millésime
+        // déjà figé à l'enqueue). Un envoi reporté au lendemain par la
+        // fenêtre d'achat individuelle à cheval sur le Nouvel An écrivait
+        // alors le mauvais millésime dans neria_behavioral_sent, cassant la
+        // déduplication l'année suivante (client privé de son email).
+        $queueFile = _PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php';
+        $queueSrc  = is_file($queueFile) ? (file_get_contents($queueFile) ?: '') : '';
+        if ($queueSrc === '') {
+            $offenders[] = 'src/QueueManager.php introuvable';
+        } elseif (strpos($queueSrc, "elseif (\$row['template'] === 'relationship_anniversary')") !== false
+               || strpos($queueSrc, "\$refId = (int) date('Y');") !== false) {
+            $offenders[] = "QueueManager::processSingle() recalcule de nouveau ref_id via date('Y') pour relationship_anniversary au lieu d'utiliser row['ref_id'] figé à l'enqueue — un envoi reporté à cheval sur le Nouvel An écrirait de nouveau le mauvais millésime, cassant la déduplication l'année suivante";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
