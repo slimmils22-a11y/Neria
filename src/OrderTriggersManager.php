@@ -718,6 +718,20 @@ class OrderTriggersManager
 
     public function handleReturn(\OrderReturn $orderReturn): void
     {
+        // Verrou par retour (même raison que handleRefund() ci-dessus, qui
+        // verrouille par avoir) : rien n'empêchait auparavant un double
+        // déclenchement du hook actionObjectOrderReturnAddAfter (rejeu,
+        // module tiers, double dispatch PrestaShop) de renvoyer deux fois
+        // l'email return_received pour LE MÊME retour. Le scope Mode
+        // Silence ({id_order}/{cooldown_scope} ci-dessous) atténue le risque
+        // mais reste un contrôle non-atomique (lecture puis écriture) —
+        // insuffisant contre deux appels quasi simultanés.
+        $idOrderReturn = (int) $orderReturn->id;
+        $lockName = 'neria_return_' . $idOrderReturn;
+        if ($idOrderReturn > 0 && (int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)") !== 1) {
+            return;
+        }
+
         try {
             $order = new \Order((int) $orderReturn->id_order);
             if (!\Validate::isLoadedObject($order)) {
@@ -798,6 +812,10 @@ class OrderTriggersManager
                 \WatchdogManager::i18nMsg('watchdog.return_error', ['return' => $orderReturn->id, 'error' => $e->getMessage()]),
                 'return_received', 'OrderTriggers'
             );
+        } finally {
+            if ($idOrderReturn > 0) {
+                $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
+            }
         }
     }
 
