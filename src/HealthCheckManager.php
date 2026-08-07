@@ -3038,6 +3038,28 @@ class HealthCheckManager
             $offenders[] = "SearchConsoleManager::matchesShopHost() ne compare plus par frontière DNS — pourrait de nouveau accepter à tort un domaine non apparenté";
         }
 
+        // Round 103 (2026-08-07) : WaitlistManager::notifyProduct() générait
+        // {product_url}/{product_image} via Context::getContext()->link SANS
+        // $idShop — contrairement à Mail::Send(), déjà correctement scopé
+        // plus bas dans la même méthode. hookActionUpdateQuantity() appelle
+        // notifyProduct() en boucle sur toutes les boutiques d'un groupe à
+        // stock partagé, mais Context::getContext()->shop reste fixé à la
+        // boutique du BO admin pendant toute la boucle : un client d'une
+        // autre boutique recevait un lien/image produit pointant vers le
+        // mauvais domaine.
+        $wl2File = _PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php';
+        $wl2Src  = is_file($wl2File) ? (file_get_contents($wl2File) ?: '') : '';
+        if ($wl2Src === '') {
+            $offenders[] = 'WaitlistManager.php introuvable (product_url/product_image scopés par idShop)';
+        } else {
+            if (strpos($wl2Src, '$context->shop = new \Shop($idShop);') === false) {
+                $offenders[] = "WaitlistManager::notifyProduct() ne bascule plus temporairement Context::getContext()->shop sur \$idShop — {product_url}/{product_image} pourraient de nouveau pointer vers le mauvais domaine";
+            }
+            if (strpos($wl2Src, 'getProductLink($product, null, null, null, $idLang, $idShop)') === false) {
+                $offenders[] = "WaitlistManager::notifyProduct() ne passe plus \$idShop à getProductLink()";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
