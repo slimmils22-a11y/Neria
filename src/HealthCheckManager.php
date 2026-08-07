@@ -2902,6 +2902,28 @@ class HealthCheckManager
             $offenders[] = "CertificateManager::generateSerial() n'interroge plus le compteur AUTO_INCREMENT réel — un certificat supprimé pourrait de nouveau faire réémettre le même numéro de série à un autre client";
         }
 
+        // Round 95 (2026-08-07) : GdprAuditManager::purgeCustomerData()
+        // purgeait neria_certificate uniquement via un JOIN sur ps_orders —
+        // si la commande liée avait été supprimée du BO PrestaShop, le JOIN
+        // ne matchait plus rien et le certificat (nom client en clair)
+        // survivait indéfiniment à une demande d'effacement RGPD, sans
+        // erreur ni avertissement. Colonne id_customer ajoutée
+        // (upgrade-1.0.39, renseignée à chaque émission par
+        // CertificateManager::issue()) : la purge matche désormais
+        // directement, indépendamment de la survie de la commande.
+        $gdprFile = _PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php';
+        $gdprSrc  = is_file($gdprFile) ? (file_get_contents($gdprFile) ?: '') : '';
+        if ($gdprSrc === '') {
+            $offenders[] = 'GdprAuditManager.php introuvable (purge certificat par id_customer direct)';
+        } elseif (strpos($gdprSrc, 'WHERE nc.id_customer = ') === false) {
+            $offenders[] = "GdprAuditManager::purgeCustomerData() ne purge plus neria_certificate par id_customer direct — un certificat dont la commande a été supprimée pourrait de nouveau survivre à une demande d'effacement RGPD";
+        }
+        $cm2File = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
+        $cm2Src  = is_file($cm2File) ? (file_get_contents($cm2File) ?: '') : '';
+        if ($cm2Src !== '' && strpos($cm2Src, "'id_customer'     => (int) \$order->id_customer,") === false) {
+            $offenders[] = "CertificateManager::issue() n'enregistre plus id_customer à l'émission — la purge RGPD par id_customer direct ne pourrait plus fonctionner pour les nouveaux certificats";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
