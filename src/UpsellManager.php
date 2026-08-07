@@ -362,6 +362,29 @@ class UpsellManager
     // ENRICHISSEMENT — prix, image, URL
     // ============================================================
 
+    /**
+     * Devise résolue par $idShop, pas $this->context->currency (devise du
+     * contexte d'EXÉCUTION courant, pas celle de la boutique du client) —
+     * même correctif déjà appliqué dans
+     * CollectionManager::processCollection() pour {missing_price}. En cron,
+     * le contexte reste sur la 1re boutique traitée : un client d'une autre
+     * boutique avec une devise différente recevait sinon un prix affiché
+     * dans la mauvaise devise. Extraite pour être testable sans dépendre du
+     * reste de enrich() (image produit, etc.).
+     */
+    private function resolveDisplayCurrency(?int $idShop): \Currency
+    {
+        if ($idShop !== null) {
+            return new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop));
+        }
+        // $this->context->currency peut être null hors contexte front/BO
+        // (cron, CLI, ou reflexion de test) — repli sur la devise par
+        // défaut globale plutôt qu'un TypeError.
+        return $this->context->currency instanceof \Currency
+            ? $this->context->currency
+            : new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT'));
+    }
+
     private function enrich(array $row, int $idLang, string $reason, ?int $idShop = null): ?array
     {
         $idProduct = (int) $row['id_product'];
@@ -385,10 +408,15 @@ class UpsellManager
         // la langue) — auparavant une virgule française codée en dur,
         // affichée dans le bloc upsell de CHAQUE confirmation de commande,
         // y compris pour les 18 langues non-FR.
-        $priceFormatted = \NeriaTools::displayPrice($price, $this->context->currency, $idLang);
+        $priceFormatted = \NeriaTools::displayPrice($price, $this->resolveDisplayCurrency($idShop), $idLang);
 
+        // $idShop en 6e argument : même correctif que CollectionManager pour
+        // {missing_product_url} — sans lui, un client d'une autre boutique
+        // recevait un lien pointant vers le domaine/catalogue de la
+        // boutique du contexte d'exécution courant (cron), potentiellement
+        // cassé (404) ou menant au mauvais magasin.
         $productUrl = $this->context->link->getProductLink(
-            $idProduct, null, null, null, $idLang
+            $idProduct, null, null, null, $idLang, $idShop
         );
 
         return [
