@@ -446,7 +446,16 @@ class SegmentManager
                 '{lastname}'    => $c['lastname'],
                 '{shop_name}'   => \Configuration::get('PS_SHOP_NAME'),
                 '{history_url}' => \Context::getContext()->link->getPageLink('history', true, $idLang, null, false, $this->idShop),
-                '{shop_url}'    => \Tools::getShopDomainSsl(true),
+                // getBaseLink($this->idShop), pas \Tools::getShopDomainSsl()
+                // (non scopé, résout via Context::getContext()->shop) : même
+                // correctif déjà appliqué à LoyaltyManager/
+                // SeasonalCampaignManager/ManualSendManager pour ce piège —
+                // sans lui, {shop_url} pointait vers le domaine de la
+                // boutique du CONTEXTE d'exécution courant, pas celle du
+                // client réellement ciblé par la campagne segment (déjà
+                // filtrée par $this->idShop juste au-dessus pour
+                // {history_url} et pour la sélection des destinataires).
+                '{shop_url}'    => \Context::getContext()->link->getBaseLink($this->idShop),
             ];
 
             $toName = trim($c['firstname'] . ' ' . $c['lastname']) ?: null;
