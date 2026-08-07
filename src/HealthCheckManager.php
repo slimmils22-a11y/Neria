@@ -2851,6 +2851,21 @@ class HealthCheckManager
             }
         }
 
+        // Round 92 (2026-08-07) : checkLoyaltyIntegrity() (contrôle #45)
+        // détectait un solde de points négatif via GROUP BY id_customer
+        // seul, sans id_shop — contrairement à LoyaltyManager::
+        // getCustomerStats()/getGlobalStats()/getTopCustomers(), qui
+        // respectent tous NERIA_LOYALTY_CROSS_SHOP_ENABLED. En mode cumul
+        // séparé, un solde négatif sur une boutique pouvait être masqué par
+        // un solde positif sur une autre (somme globale faussement positive).
+        $hcmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php';
+        $hcmSrc  = is_file($hcmFile) ? (file_get_contents($hcmFile) ?: '') : '';
+        if ($hcmSrc === '') {
+            $offenders[] = 'HealthCheckManager.php introuvable (checkLoyaltyIntegrity scopé par idShop)';
+        } elseif (strpos($hcmSrc, 'id_customer`, `id_shop`') === false) {
+            $offenders[] = "checkLoyaltyIntegrity() ne groupe plus par (id_customer, id_shop) en mode cumul séparé — un solde négatif sur une boutique pourrait de nouveau être masqué par un solde positif sur une autre";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
@@ -8571,11 +8586,20 @@ class HealthCheckManager
 
         $db = \Db::getInstance();
 
-        $negative = (int) $db->getValue('
+        // GROUP BY id_customer, id_shop en mode séparé (comme
+        // LoyaltyManager::getCustomerStats()/getGlobalStats()/getTopCustomers()) :
+        // sans ce filtre, un solde négatif sur UNE boutique pouvait être
+        // masqué (faux négatif) par un solde positif sur une autre, ou
+        // inversement rendre impossible d'identifier quelle boutique est
+        // réellement corrompue quand NERIA_LOYALTY_CROSS_SHOP_ENABLED est
+        // désactivé (gestion par boutique).
+        $crossShop = class_exists('ConfigManager') && (new \ConfigManager($this->module))->isLoyaltyCrossShopEnabled();
+        $groupBy   = $crossShop ? '`id_customer`' : '`id_customer`, `id_shop`';
+        $negative  = (int) $db->getValue('
             SELECT COUNT(*) FROM (
                 SELECT SUM(`points`) AS total
                 FROM `' . _DB_PREFIX_ . 'neria_loyalty_points`
-                GROUP BY `id_customer`
+                GROUP BY ' . $groupBy . '
                 HAVING total < 0
             ) AS neg
         ');
