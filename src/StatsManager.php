@@ -331,6 +331,7 @@ class StatsManager
             $idStat     = (int) $this->db->Insert_ID();
             if ($idCustomer > 0 && $idStat > 0
                 && in_array($event, ['open', 'click', 'conversion'], true)
+                && !($event === 'open' && $isMpp)
             ) {
                 try {
                     (new \LoyaltyManager($this->module))->awardPoints($idCustomer, $idStat, $event);
