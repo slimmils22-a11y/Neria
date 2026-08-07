@@ -2628,6 +2628,29 @@ class HealthCheckManager
             }
         }
 
+        // Round 80 (2026-08-06) : ChurnScoreManager::recomputeAll() et
+        // PropensityScoreManager::scoreEngagement() comptaient les
+        // pré-chargements automatiques Apple Mail Privacy Protection
+        // (is_mpp=1) comme de vraies ouvertures — contrairement à
+        // SegmentManager/StatsManager/MonthlyReportManager, qui filtrent
+        // déjà systématiquement is_mpp=0. Un client Apple Mail qui n'ouvre
+        // jamais réellement ses emails gardait un score de churn
+        // sous-estimé et un score de propension gonflé à tort.
+        $churnFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php';
+        $churnSrc  = is_file($churnFile) ? (file_get_contents($churnFile) ?: '') : '';
+        $propFile  = _PS_MODULE_DIR_ . $this->module->name . '/src/PropensityScoreManager.php';
+        $propSrc   = is_file($propFile) ? (file_get_contents($propFile) ?: '') : '';
+        if ($churnSrc === '' || $propSrc === '') {
+            $offenders[] = 'ChurnScoreManager.php/PropensityScoreManager.php introuvable (filtre is_mpp)';
+        } else {
+            if (substr_count($churnSrc, "event_type = 'open' AND is_mpp = 0") < 4) {
+                $offenders[] = "ChurnScoreManager::recomputeAll() ne filtre plus is_mpp=0 sur ses comptages d'ouverture — un client Apple Mail qui n'ouvre jamais réellement ses emails pourrait de nouveau voir son risque de désabonnement sous-estimé";
+            }
+            if (strpos($propSrc, "event_type = \\'open\\' AND is_mpp = 0") === false) {
+                $offenders[] = "PropensityScoreManager::scoreEngagement() ne filtre plus is_mpp=0 — un pré-chargement Apple MPP pourrait de nouveau gonfler à tort le score d'engagement";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
