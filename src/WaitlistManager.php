@@ -125,12 +125,31 @@ class WaitlistManager
 
             $cover    = \Product::getCover($idProduct);
             $imageUrl = '';
-            if ($cover) {
-                $imageUrl = \Context::getContext()->link->getImageLink(
-                    $product->link_rewrite,
-                    (int) $cover['id_image'],
-                    \ImageType::getFormattedName('home')
-                );
+
+            // Lien/image générés dans le contexte de LA BOUTIQUE traitée par
+            // CETTE itération ($idShop, paramètre de notifyProduct()), pas
+            // celui du contexte d'exécution courant — même correctif que
+            // CollectionManager/LookCompletionManager. hookActionUpdateQuantity()
+            // (neria.php) appelle notifyProduct() en boucle sur TOUTES les
+            // boutiques du groupe pour un stock partagé, mais
+            // Context::getContext()->shop reste fixé à la boutique du BO
+            // admin qui a déclenché la mise à jour de stock pendant toute la
+            // boucle : sans ce switch, un client de la Boutique B recevait un
+            // lien/image produit pointant vers le domaine de la Boutique A.
+            $context      = \Context::getContext();
+            $originalShop = $context->shop;
+            $context->shop = new \Shop($idShop);
+            try {
+                if ($cover) {
+                    $imageUrl = $context->link->getImageLink(
+                        $product->link_rewrite,
+                        (int) $cover['id_image'],
+                        \ImageType::getFormattedName('home')
+                    );
+                }
+                $productUrl = $context->link->getProductLink($product, null, null, null, $idLang, $idShop);
+            } finally {
+                $context->shop = $originalShop;
             }
 
             $daysWaited = max(1, (int) $row['days_waited']);
@@ -138,7 +157,7 @@ class WaitlistManager
                 '{firstname}'          => $row['firstname'],
                 '{days_waited_plural}' => $daysWaited > 1 ? 's' : '',
                 '{product_name}'       => $product->name,
-                '{product_url}'        => \Context::getContext()->link->getProductLink($product),
+                '{product_url}'        => $productUrl,
                 '{product_image}'      => $imageUrl,
                 '{product_price}'      => \NeriaTools::displayPrice((float) $product->price, new \Currency((int) \Context::getContext()->currency->id), $idLang),
                 '{days_waited}'        => $daysWaited,
