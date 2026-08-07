@@ -61,10 +61,26 @@ class CssInliner
             return $html;
         }
 
-        // Trier par spécificité croissante (element < .classe < element.classe)
-        // pour que les règles les plus spécifiques soient appliquées en premier :
-        // merge() ignore une propriété déjà inlinée, donc l'ordre de traitement
-        // détermine quelle règle "gagne" en cas de conflit (ex: a{color} vs .neria-btn{color}).
+        // Inverser AVANT le tri stable : à spécificité ÉGALE, merge() donne
+        // la priorité à la règle traitée en PREMIER (elle ignore ensuite
+        // toute propriété déjà inlinée) — sans cette inversion, le tri
+        // stable conservait l'ordre d'apparition dans le CSS, donc la
+        // PREMIÈRE règle déclarée gagnait à chaque conflit, alors que la
+        // cascade CSS standard donne la victoire à la DERNIÈRE règle
+        // déclarée à spécificité égale. Deux règles `.neria-btn { color }`
+        // (base du thème puis surcharge marchand plus bas dans le CSS)
+        // s'inlinaient donc avec la couleur de BASE sur Gmail/Outlook (qui
+        // suppriment <style> et ne lisent que le style inline), alors que
+        // Apple Mail (qui garde <style>) affichait la bonne couleur — rendu
+        // divergent silencieux entre clients mail.
+        $rules = array_reverse($rules);
+        // Trier par spécificité décroissante (element.classe > .classe >
+        // element) pour que les règles les plus spécifiques soient
+        // appliquées en premier : merge() ignore une propriété déjà
+        // inlinée, donc l'ordre de traitement détermine quelle règle
+        // "gagne" en cas de conflit (ex: a{color} vs .neria-btn{color}). Le
+        // tri PHP (usort) est stable depuis PHP 8 : à spécificité égale,
+        // l'ordre déjà inversé ci-dessus est préservé.
         usort($rules, function ($a, $b) {
             return self::specificity($b[0]) <=> self::specificity($a[0]);
         });
