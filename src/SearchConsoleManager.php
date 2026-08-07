@@ -309,7 +309,16 @@ class SearchConsoleManager
         }
         $suHost = str_replace(['sc-domain:', 'https://', 'http://'], '', rtrim($siteUrl, '/'));
 
-        return stripos($suHost, $shopHost) !== false || stripos($shopHost, $suHost) !== false;
+        // Comparaison ancrée sur les frontières de labels DNS, PAS stripos()
+        // en sous-chaîne pure : "shop.com" est une sous-chaîne de
+        // "myshop.com" (stripos ne retourne jamais false dans ce cas), donc
+        // l'ancien filtre acceptait à tort une propriété Search Console
+        // totalement non apparentée dès qu'elle partageait une fin de
+        // chaîne par coïncidence — même correctif que PostmasterManager::
+        // domainsMatch().
+        $a = strtolower($suHost);
+        $b = strtolower($shopHost);
+        return $a === $b || str_ends_with($a, '.' . $b) || str_ends_with($b, '.' . $a);
     }
 
     private function fetchAndCache(): ?array

@@ -274,6 +274,27 @@ class PostmasterManager
         return (string) parse_url(\Tools::getShopDomainSsl(true), PHP_URL_HOST);
     }
 
+    /**
+     * Compare deux domaines en respectant les frontières de labels DNS —
+     * PAS stripos() en sous-chaîne pure : "shop.com" est une sous-chaîne de
+     * "myshop.com" (stripos retourne 2, jamais false), donc l'ancien filtre
+     * acceptait à tort un domaine Google Postmaster Tools totalement non
+     * apparenté dès qu'il partageait une fin de chaîne par coïncidence — un
+     * marchand avec plusieurs domaines sous le même compte Google voyait la
+     * réputation d'un AUTRE site affichée comme celle de sa boutique.
+     */
+    private static function domainsMatch(string $a, string $b): bool
+    {
+        $a = strtolower($a);
+        $b = strtolower($b);
+        if ($a === '' || $b === '') {
+            return false;
+        }
+        return $a === $b
+            || str_ends_with($a, '.' . $b)
+            || str_ends_with($b, '.' . $a);
+    }
+
     public function getCachedStats(): ?array
     {
         $cached = \Configuration::get($this->cacheKey(self::CONFIG_CACHE));
@@ -349,7 +370,7 @@ class PostmasterManager
                 continue;
             }
             $domainName = str_replace('domains/', '', $name);
-            if ($shopHost !== '' && stripos($shopHost, $domainName) === false && stripos($domainName, $shopHost) === false) {
+            if ($shopHost !== '' && !self::domainsMatch($shopHost, $domainName)) {
                 continue;
             }
             $stats = $this->fetchDomainStats($name, $token);
