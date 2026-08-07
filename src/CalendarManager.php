@@ -302,9 +302,15 @@ class CalendarManager
             }
         }
 
-        // Dernier envoi effectue : cherche cette annee puis l'annee precedente
+        // Dernier envoi effectue : cherche l'annee suivante, cette annee,
+        // puis l'annee precedente. processEvent() peut poser le marqueur
+        // sur $year+1 (meme resolution [$year, $year+1] que ci-dessus pour
+        // les occasions a cheval sur le Nouvel An : new_year J-7 envoye le
+        // 25 decembre avec eventYear = annee+1) — sans $year+1 ici, un envoi
+        // qui vient de partir aujourd'hui restait invisible ("jamais
+        // envoye") dans le BO jusqu'au 1er janvier suivant.
         $lastSent = null;
-        foreach ([$year, $year - 1] as $y) {
+        foreach ([$year + 1, $year, $year - 1] as $y) {
             $raw = \Configuration::get($this->buildSentKey($eventKey, $lang, $countryCode, $y));
             if ($raw) {
                 $parts = explode('|', (string) $raw, 2);
