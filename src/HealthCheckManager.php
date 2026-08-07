@@ -2924,6 +2924,23 @@ class HealthCheckManager
             $offenders[] = "CertificateManager::issue() n'enregistre plus id_customer à l'émission — la purge RGPD par id_customer direct ne pourrait plus fonctionner pour les nouveaux certificats";
         }
 
+        // Round 96 (2026-08-07) : CssInliner::process() triait les règles
+        // CSS par spécificité (usort, stable depuis PHP 8) sans inverser
+        // l'ordre au préalable — à spécificité ÉGALE, le tri stable
+        // conservait l'ordre d'apparition dans le CSS, donc la PREMIÈRE
+        // règle déclarée gagnait systématiquement (merge() ignore toute
+        // propriété déjà inlinée), à l'inverse de la cascade CSS standard
+        // (dernière règle déclarée gagne à spécificité égale). Rendu
+        // divergent silencieux entre Apple Mail (garde <style>) et
+        // Gmail/Outlook (style inline uniquement).
+        $ciFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CssInliner.php';
+        $ciSrc  = is_file($ciFile) ? (file_get_contents($ciFile) ?: '') : '';
+        if ($ciSrc === '') {
+            $offenders[] = 'CssInliner.php introuvable (ordre cascade CSS à spécificité égale)';
+        } elseif (strpos($ciSrc, '$rules = array_reverse($rules);') === false) {
+            $offenders[] = "CssInliner::process() n'inverse plus l'ordre des règles avant le tri par spécificité — à spécificité égale, la PREMIÈRE règle CSS déclarée pourrait de nouveau gagner au lieu de la dernière, produisant un rendu divergent entre clients mail";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
