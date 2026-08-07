@@ -2831,6 +2831,26 @@ class HealthCheckManager
             $offenders[] = "ManualSendManager::checkAnniversaryConflict()/getAnniversaryGuardStatus() ne filtrent plus tous les deux id_shop sur neria_behavioral_sent — un client partagé entre boutiques pourrait de nouveau voir un envoi bloqué à tort par l'historique d'une AUTRE boutique";
         }
 
+        // Round 91 (2026-08-07) : UpsellManager::getStats()/getLog() (les 2
+        // seules méthodes qui alimentent l'onglet BO Upsell) n'étaient pas
+        // scopées par id_shop — alors que ps_neria_upsell a une colonne
+        // id_shop correctement filtrée partout ailleurs dans ce fichier
+        // (recordSuggestion, checkConversions, findUpsellForCustomer). Les
+        // KPIs et le journal d'une boutique mélangeaient silencieusement
+        // les données de TOUTES les boutiques de l'installation.
+        $up2File = _PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php';
+        $up2Src  = is_file($up2File) ? (file_get_contents($up2File) ?: '') : '';
+        if ($up2Src === '') {
+            $offenders[] = 'UpsellManager.php introuvable (getStats/getLog scopés par idShop)';
+        } else {
+            if (strpos($up2Src, "WHERE sent_at >= '{\$dateFrom}' AND id_shop = {\$idShop}") === false) {
+                $offenders[] = "UpsellManager::getStats() ne filtre plus id_shop — les KPIs BO Upsell pourraient de nouveau mélanger les données de toutes les boutiques";
+            }
+            if (strpos($up2Src, 'WHERE u.id_shop = {$idShop}') === false) {
+                $offenders[] = "UpsellManager::getLog() ne filtre plus id_shop — le journal BO Upsell pourrait de nouveau afficher les suggestions de toutes les boutiques";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
