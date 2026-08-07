@@ -317,7 +317,12 @@ class CertificateManager
         }
         require_once $tcpdfPath;
 
-        $shopName   = (string) \Configuration::get('PS_SHOP_NAME');
+        // Configuration::get(..., (int) $order->id_shop) : round 106, le nom
+        // de boutique imprimé sur le PDF ignorait la boutique réelle de LA
+        // COMMANDE — même piège déjà corrigé pour {shop_url} plus bas dans
+        // cette même méthode (bascule temporaire de Context::shop), mais qui
+        // ne couvrait pas ce $shopName-ci, résolu AVANT la bascule.
+        $shopName   = (string) \Configuration::get('PS_SHOP_NAME', null, null, (int) $order->id_shop);
         $shopDomain = \Tools::getShopDomainSsl(true);
         $dateStr    = \NeriaTools::formatDate($order->date_add, $lang);
         $issuedStr  = \NeriaTools::formatDate('now', $lang);
@@ -630,7 +635,12 @@ class CertificateManager
             '{serial_number}'  => $serial,
             '{id_order}'       => (int) $order->id,
             '{order_name}'     => $order->reference,
-            '{shop_name}'      => (string) \Configuration::get('PS_SHOP_NAME'),
+            // Configuration::get(..., $idShop) : round 106, même piège que
+            // {shop_url} juste au-dessus (déjà scopé via la bascule
+            // temporaire de Context::shop) — {shop_name}, lui, était résolu
+            // via le contexte non scopé, restauré à $originalShop juste
+            // avant cette ligne.
+            '{shop_name}'      => (string) \Configuration::get('PS_SHOP_NAME', null, null, $idShop),
             '{shop_url}'       => $shopUrl,
         ];
 

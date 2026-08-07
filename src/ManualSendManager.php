@@ -673,7 +673,11 @@ class ManualSendManager
             '{firstname}'   => $customer['firstname'] ?? '',
             '{lastname}'    => $customer['lastname'] ?? '',
             '{email}'       => $email,
-            '{shop_name}'   => (string) \Configuration::get('PS_SHOP_NAME'),
+            // Configuration::get(..., $idShop) : round 106, {shop_name}
+            // ignorait la boutique choisie par le marchand pour cet envoi,
+            // alors que {shop_url}/{history_url} juste en dessous sont déjà
+            // scopés par $idShop.
+            '{shop_name}'   => (string) \Configuration::get('PS_SHOP_NAME', null, null, $idShop),
             '{shop_url}'    => $this->resolveShopUrl($idShop),
             '{history_url}' => \Context::getContext()->link->getPageLink('history', true, $idLang, null, false, $idShop),
         ];
@@ -1272,7 +1276,11 @@ class ManualSendManager
             '{firstname}'   => $customer['firstname'] ?? '',
             '{lastname}'    => $customer['lastname'] ?? '',
             '{email}'       => $email,
-            '{shop_name}'   => (string) \Configuration::get('PS_SHOP_NAME'),
+            // Configuration::get(..., $idShopManual) : round 106, {shop_name}
+            // ignorait la boutique choisie par le marchand pour cet envoi
+            // planifié, alors que {shop_url}/{history_url} juste en dessous
+            // sont déjà scopés par $idShopManual.
+            '{shop_name}'   => (string) \Configuration::get('PS_SHOP_NAME', null, null, $idShopManual),
             '{shop_url}'    => $this->resolveShopUrl($idShopManual),
             '{history_url}' => \Context::getContext()->link->getPageLink('history', true, $idLang, null, false, $idShopManual),
         ];

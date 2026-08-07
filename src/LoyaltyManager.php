@@ -504,7 +504,11 @@ class LoyaltyManager
             [
                 '{firstname}'     => $customer->firstname,
                 '{lastname}'      => $customer->lastname,
-                '{shop_name}'     => \Configuration::get('PS_SHOP_NAME'),
+                // Configuration::get(..., $idShop) : round 106, {shop_name}
+                // ignorait encore la boutique réelle du destinataire alors
+                // que {history_url} juste en dessous et le Mail::Send() plus
+                // bas sont déjà scopés par $idShop.
+                '{shop_name}'     => \Configuration::get('PS_SHOP_NAME', null, null, $idShop),
                 '{new_tier_name}' => $tier['name'],
                 '{voucher_code}'  => $code,
                 '{voucher_amount}'=> $amount,
@@ -867,7 +871,11 @@ class LoyaltyManager
             [
                 '{firstname}'        => $customer->firstname,
                 '{lastname}'         => $customer->lastname,
-                '{shop_name}'        => \Configuration::get('PS_SHOP_NAME'),
+                // Même correctif (round 106) que {shop_url}/{history_url}
+                // juste en dessous : $idShop ?? contexte courant, pas
+                // Configuration::get() non scopé qui ignorait la boutique
+                // réelle du destinataire.
+                '{shop_name}'        => \Configuration::get('PS_SHOP_NAME', null, null, $idShop ?? (int) \Context::getContext()->shop->id),
                 '{shop_url}'         => $link->getBaseLink($idShop ?? (int) \Context::getContext()->shop->id),
                 '{history_url}'      => $link->getPageLink('history', true, $idLang, null, false, $idShop ?? (int) \Context::getContext()->shop->id),
                 '{points_this_month}'=> (string) $pointsMonth,

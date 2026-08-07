@@ -321,7 +321,11 @@ class OrderTriggersManager
         $common = [
             '{firstname}' => $customer->firstname,
             '{lastname}'  => $customer->lastname,
-            '{shop_name}' => \Configuration::get('PS_SHOP_NAME'),
+            // Configuration::get(..., $idShop) : round 106, {shop_name}
+            // ignorait la boutique réelle de la commande alors que $idShop
+            // ci-dessus (id_shop de LA COMMANDE) scope déjà claimMilestone()
+            // et le comptage des commandes valides juste au-dessus.
+            '{shop_name}' => \Configuration::get('PS_SHOP_NAME', null, null, $idShop),
         ];
 
         // milestone_order
@@ -516,7 +520,9 @@ class OrderTriggersManager
                 '{firstname}'      => $customer->firstname,
                 '{lastname}'       => $customer->lastname,
                 '{order_name}'     => $order->reference,
-                '{shop_name}'      => \Configuration::get('PS_SHOP_NAME'),
+                // Configuration::get(..., $idShop) : round 106, même piège
+                // que le Mail::Send() plus bas déjà scopé par $idShop.
+                '{shop_name}'      => \Configuration::get('PS_SHOP_NAME', null, null, $idShop),
                 '{id_order}'       => (int) $order->id,
                 '{cooldown_scope}' => 'order:' . (int) $order->id,
             ];
@@ -626,7 +632,10 @@ class OrderTriggersManager
                     '{lastname}'       => $customer->lastname,
                     '{order_name}'     => $order->reference,
                     '{refund_amount}'  => $formatted,
-                    '{shop_name}'      => \Configuration::get('PS_SHOP_NAME'),
+                    // Configuration::get(..., $order->id_shop) : round 106,
+                    // même piège que le Mail::Send() plus bas déjà scopé par
+                    // (int) $order->id_shop.
+                    '{shop_name}'      => \Configuration::get('PS_SHOP_NAME', null, null, (int) $order->id_shop),
                     // Scope le Mode Silence sur CETTE commande — sans lui, un
                     // client remboursé sur deux commandes distinctes dans la
                     // même fenêtre de cooldown ne recevait qu'un seul des
@@ -791,7 +800,10 @@ class OrderTriggersManager
                     '{order_name}'        => $order->reference,
                     '{meta_products}'     => $summary,
                     '{meta_products_txt}' => $summaryTxt,
-                    '{shop_name}'         => \Configuration::get('PS_SHOP_NAME'),
+                    // Configuration::get(..., $order->id_shop) : round 106,
+                    // même piège que le Mail::Send() plus bas déjà scopé par
+                    // (int) $order->id_shop.
+                    '{shop_name}'         => \Configuration::get('PS_SHOP_NAME', null, null, (int) $order->id_shop),
                     // Scope le Mode Silence sur CETTE commande — même
                     // correctif que refund_processed/order_on_hold/
                     // order_partial_shipped ci-dessus : sans lui, un retour

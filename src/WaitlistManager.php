@@ -162,7 +162,10 @@ class WaitlistManager
                 '{product_price}'      => \NeriaTools::displayPrice((float) $product->price, new \Currency((int) \Context::getContext()->currency->id), $idLang),
                 '{days_waited}'        => $daysWaited,
                 '{reservation_hours}'  => (int) \Configuration::getGlobalValue('NERIA_WAITLIST_RESERVATION_HOURS') ?: self::RESERVATION_HOURS,
-                '{shop_name}'          => \Configuration::get('PS_SHOP_NAME'),
+                // Configuration::get(..., $idShop) : round 106, même piège
+                // multi-boutique déjà corrigé (round 103) pour
+                // {product_url}/{product_image} ci-dessus dans ce même bloc.
+                '{shop_name}'          => \Configuration::get('PS_SHOP_NAME', null, null, $idShop),
                 // Scope le Mode Silence par produit (cf. CooldownManager) —
                 // sans lui, une notification "de retour en stock" légitime
                 // pour un DEUXIÈME produit dans la fenêtre de cooldown était

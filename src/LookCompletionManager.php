@@ -183,7 +183,7 @@ class LookCompletionManager
                 continue;
             }
 
-            $vars = $this->buildVars($customer, $products, $rule['category_name'] ?? '');
+            $vars = $this->buildVars($customer, $products, $rule['category_name'] ?? '', $idShop);
             // {id_order} scope le Mode Silence sur CETTE commande (cf.
             // CooldownManager::isDuplicate) — sans lui, deux suggestions
             // "complétez votre look" légitimes pour deux commandes
@@ -357,12 +357,17 @@ class LookCompletionManager
         return $blocks;
     }
 
-    private function buildVars(\Customer $customer, array $products, string $categoryName): array
+    private function buildVars(\Customer $customer, array $products, string $categoryName, int $idShop): array
     {
         $vars = [
             '{firstname}'      => $customer->firstname,
             '{category_name}'  => $categoryName,
-            '{shop_name}'      => \Configuration::get('PS_SHOP_NAME'),
+            // Configuration::get(..., $idShop) : round 106, même piège déjà
+            // corrigé (round 103) pour {product_url}/{product_image} dans
+            // buildProductBlocks() de ce même fichier — $idShop est déjà
+            // connu à l'appel (id_shop de la commande) mais n'était pas
+            // propagé jusqu'à ce {shop_name}.
+            '{shop_name}'      => \Configuration::get('PS_SHOP_NAME', null, null, $idShop),
         ];
 
         // Produit 1 (toujours présent)

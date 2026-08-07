@@ -358,7 +358,14 @@ class QueueManager
                 [
                     '{firstname}'   => $firstname,
                     '{lastname}'    => $lastname,
-                    '{shop_name}'   => \Configuration::get('PS_SHOP_NAME'),
+                    // Configuration::get(..., $idShop) : round 106, même
+                    // piège que CollectionManager::checkAndSend() corrigé au
+                    // round 105 — cette méthode tourne dans le cron
+                    // asynchrone de la file, le contexte d'exécution courant
+                    // ne correspond pas forcément à la boutique de CETTE
+                    // ligne de file ($idShop, déjà utilisé pour
+                    // {history_url} juste en dessous).
+                    '{shop_name}'   => \Configuration::get('PS_SHOP_NAME', null, null, $idShop),
                     '{history_url}' => $link ? $link->getPageLink('history', true, $idLang, null, false, $idShop) : '',
                 ],
                 $vars

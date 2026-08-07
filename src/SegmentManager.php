@@ -444,7 +444,12 @@ class SegmentManager
             $vars = [
                 '{firstname}'   => $c['firstname'],
                 '{lastname}'    => $c['lastname'],
-                '{shop_name}'   => \Configuration::get('PS_SHOP_NAME'),
+                // Configuration::get(..., $this->idShop) : même piège que
+                // {shop_url}/{history_url} juste en dessous — round 106,
+                // un client de la boutique B recevait le nom d'une AUTRE
+                // boutique si le contexte d'exécution divergeait de
+                // $this->idShop (déjà utilisé pour filtrer les destinataires).
+                '{shop_name}'   => \Configuration::get('PS_SHOP_NAME', null, null, $this->idShop),
                 '{history_url}' => \Context::getContext()->link->getPageLink('history', true, $idLang, null, false, $this->idShop),
                 // getBaseLink($this->idShop), pas \Tools::getShopDomainSsl()
                 // (non scopé, résout via Context::getContext()->shop) : même
