@@ -3006,6 +3006,27 @@ class HealthCheckManager
             $offenders[] = "EmailRenderer::voucherRateFromCode() ne prend plus \$lang en paramètre — {discount} du template newsletter_voucher pourrait de nouveau suivre silencieusement la langue du contexte d'exécution au lieu de celle du destinataire";
         }
 
+        // Round 101 (2026-08-07) : PostmasterManager (ligne de filtre
+        // domaine) et SearchConsoleManager::matchesShopHost() comparaient
+        // les domaines via stripos() en sous-chaîne pure — "shop.com" est
+        // une sous-chaîne de "myshop.com" (stripos ne retourne jamais false
+        // dans ce cas), acceptant à tort un domaine totalement non
+        // apparenté. Un marchand avec plusieurs domaines sous le même
+        // compte Google voyait la réputation d'envoi ou les statistiques
+        // SEO d'un AUTRE site affichées comme celles de sa boutique.
+        $pmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php';
+        $pmSrc  = is_file($pmFile) ? (file_get_contents($pmFile) ?: '') : '';
+        if ($pmSrc === '') {
+            $offenders[] = 'PostmasterManager.php introuvable (comparaison domaine par frontière DNS)';
+        } elseif (strpos($pmSrc, 'private static function domainsMatch(string $a, string $b): bool') === false) {
+            $offenders[] = "PostmasterManager::domainsMatch() a disparu — le filtre domaine pourrait de nouveau accepter à tort un domaine non apparenté (sous-chaîne coïncidente)";
+        }
+        $sc2File = _PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php';
+        $sc2Src  = is_file($sc2File) ? (file_get_contents($sc2File) ?: '') : '';
+        if ($sc2Src !== '' && strpos($sc2Src, "str_ends_with(\$a, '.' . \$b) || str_ends_with(\$b, '.' . \$a)") === false) {
+            $offenders[] = "SearchConsoleManager::matchesShopHost() ne compare plus par frontière DNS — pourrait de nouveau accepter à tort un domaine non apparenté";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
