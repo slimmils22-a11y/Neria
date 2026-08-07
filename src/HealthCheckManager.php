@@ -3060,6 +3060,28 @@ class HealthCheckManager
             }
         }
 
+        // Round 104 (2026-08-07) : UpsellManager::getLog() filtre bien
+        // `WHERE u.id_shop = {$idShop}` (round 91) mais construisait
+        // product_url via getProductLink($idProduct, null, null, null,
+        // $idLang) SANS $idShop, contrairement à enrich() (déjà correctement
+        // scopé, round 87). getProductLink() retombe alors sur Context::
+        // getContext()->shop (contexte d'EXÉCUTION courant) au lieu du
+        // paramètre $idShop explicitement reçu par getLog() : un admin
+        // consultant (ou un cron traitant) le journal Upsell d'une boutique
+        // B alors que le contexte reste sur la boutique A voyait des liens
+        // produit pointant vers le mauvais domaine/catalogue.
+        $up3File = _PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php';
+        $up3Src  = is_file($up3File) ? (file_get_contents($up3File) ?: '') : '';
+        if ($up3Src === '') {
+            $offenders[] = 'UpsellManager.php introuvable (getLog() product_url scopé par idShop)';
+        } else {
+            $posGetLog = strpos($up3Src, 'function getLog(');
+            $getLogBody = $posGetLog !== false ? substr($up3Src, $posGetLog, 3500) : '';
+            if ($posGetLog === false || strpos($getLogBody, '$idProduct, null, null, null, $idLang, $idShop') === false) {
+                $offenders[] = "UpsellManager::getLog() ne passe plus \$idShop à getProductLink() — le lien produit du journal BO Upsell pourrait de nouveau pointer vers la mauvaise boutique";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
