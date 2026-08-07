@@ -347,7 +347,17 @@ class CollectionManager
                 ),
                 '{bought_count}'           => (string) count($boughtIds),
                 '{total_count}'            => (string) $total,
-                '{shop_name}'              => \Configuration::get('PS_SHOP_NAME'),
+                // Nom de LA BOUTIQUE du client ($idShop), pas celui du
+                // contexte global d'exécution du cron — même piège que
+                // {missing_product_url}/{missing_price} juste au-dessus :
+                // sur une install multi-boutiques avec des noms de boutique
+                // distincts, un client de la boutique 2 recevait "Merci
+                // d'avoir complété votre collection chez <nom boutique 1>"
+                // (celle chargée au moment où le cron a démarré), car
+                // Configuration::get() sans id_shop retombe sur la valeur
+                // par défaut/contexte au lieu de celle réellement
+                // configurée pour la boutique du client.
+                '{shop_name}'              => \Configuration::get('PS_SHOP_NAME', null, null, $idShop),
                 // Scope le Mode Silence par collection (cf. CooldownManager)
                 // — sans lui, une notification légitime pour une DEUXIÈME
                 // collection complétée dans la fenêtre de cooldown était
