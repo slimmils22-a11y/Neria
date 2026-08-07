@@ -1827,12 +1827,29 @@ class Neria extends Module
 
         // ── Réputation de domaine (rafraîchissement auto 24h) ─────────
         if (class_exists('DomainReputationManager')) {
-            try {
-                (new DomainReputationManager($this))->getReport(false);
-                $ran['domain_reputation'] = true;
-            } catch (\Throwable $e) {
-                // best-effort — ne bloque jamais le front
+            // DomainReputationManager capture $this->idShop dans son
+            // constructeur et scope tout son cache (throttle 24h + rapport)
+            // sur cette seule boutique — même défaut déjà corrigé pour
+            // CalendarManager (round 76), SeasonalCampaignManager (round 77)
+            // et WebhookManager (round 78) : sans boucle par boutique ici,
+            // seule la boutique du visiteur qui a déclenché
+            // hookDisplayHeader en premier voyait sa réputation de domaine
+            // (SPF/DKIM/DMARC/RBL) rafraîchie automatiquement ; les autres
+            // boutiques gardaient un cache figé indéfiniment, sans jamais
+            // être alertées d'une dégradation réelle (perte SPF,
+            // blacklisting).
+            $originalShopDR = \Context::getContext()->shop;
+            $shopsDR = \Shop::getShops(true, null, true) ?: [(int) $originalShopDR->id];
+            foreach ($shopsDR as $idShopDR) {
+                \Context::getContext()->shop = new \Shop((int) $idShopDR);
+                try {
+                    (new DomainReputationManager($this))->getReport(false);
+                    $ran['domain_reputation'] = true;
+                } catch (\Throwable $e) {
+                    // best-effort par boutique — ne bloque jamais le front
+                }
             }
+            \Context::getContext()->shop = $originalShopDR;
         }
 
         // ── Tâches quotidiennes comportementales (fallback sans cron serveur) ─
