@@ -2715,6 +2715,23 @@ class HealthCheckManager
             $offenders[] = "BounceManager::recordBounce() ne remet plus bounce_count à 1 quand le soft bounce précédent a expiré — une adresse réhabilitée automatiquement pourrait de nouveau être rebloquée par un seul nouveau bounce";
         }
 
+        // Round 85 (2026-08-07) : SearchConsoleManager::fetchAndCache() ne
+        // comparait le siteUrl Google Search Console au host de la boutique
+        // que dans un seul sens (stripos($su, $host)) — contrairement à
+        // PostmasterManager, qui compare déjà bidirectionnellement. Une
+        // "Domain property" GSC (siteUrl = 'sc-domain:example.com', le type
+        // recommandé par Google) est plus courte que le host complet de la
+        // boutique ('www.example.com'), donc ce sens échouait toujours :
+        // aucune propriété ne matchait jamais, le BO affichait à tort
+        // "aucun site Search Console correspondant".
+        $scFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php';
+        $scSrc  = is_file($scFile) ? (file_get_contents($scFile) ?: '') : '';
+        if ($scSrc === '') {
+            $offenders[] = 'SearchConsoleManager.php introuvable (matching bidirectionnel siteUrl)';
+        } elseif (strpos($scSrc, 'stripos($suHost, $shopHost) !== false || stripos($shopHost, $suHost) !== false') === false) {
+            $offenders[] = "SearchConsoleManager::matchesShopHost() ne compare plus bidirectionnellement le siteUrl GSC au host de la boutique — les Domain properties GSC pourraient de nouveau ne jamais matcher, affichant à tort 'aucun site correspondant' dans le BO";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
