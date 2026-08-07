@@ -73,7 +73,7 @@ class CustomerEmailHistoryManager
                     COUNT(*) AS total_sent,
                     SUM(CASE WHEN EXISTS (
                         SELECT 1 FROM `{$table}` o
-                        WHERE o.tracking_token = s.tracking_token AND o.event_type = 'open'
+                        WHERE o.tracking_token = s.tracking_token AND o.event_type = 'open' AND o.is_mpp = 0
                     ) THEN 1 ELSE 0 END) AS total_opened
                 FROM `{$table}` s
                 WHERE s.id_shop = {$this->idShop} AND s.event_type = 'sent'";
@@ -105,6 +105,7 @@ class CustomerEmailHistoryManager
                     (SELECT o.date_add FROM `{$table}` o
                         WHERE o.tracking_token = s.tracking_token
                           AND o.event_type = 'open'
+                          AND o.is_mpp = 0
                         ORDER BY o.date_add ASC LIMIT 1) AS opened_at
                 FROM `{$table}` s
                 WHERE s.id_shop = {$this->idShop}
