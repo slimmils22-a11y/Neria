@@ -651,11 +651,17 @@ class UpsellManager
     /**
      * KPIs agrégés pour la période donnée.
      */
-    public function getStats(int $days = 90): array
+    public function getStats(int $days = 90, ?int $idShop = null): array
     {
+        $idShop   = $idShop ?? (int) $this->context->shop->id;
         $table    = $this->prefix . 'neria_upsell';
         $dateFrom = date('Y-m-d', strtotime("-{$days} days"));
 
+        // AND id_shop = ... : neria_upsell est scopé par boutique partout
+        // ailleurs dans ce fichier (recordSuggestion, checkConversions,
+        // findUpsellForCustomer) — sans ce filtre ici, les KPIs affichés au
+        // BO d'une boutique mélangeaient silencieusement les suggestions/
+        // clics/conversions de TOUTES les boutiques de l'installation.
         $row = $this->db->getRow(
             "SELECT
                 COUNT(*)                                           AS total_sent,
@@ -666,7 +672,7 @@ class UpsellManager
                 SUM(tier = 'co_purchase')                         AS cnt_co_purchase,
                 SUM(tier = 'bestseller')                          AS cnt_bestseller
              FROM `{$table}`
-             WHERE sent_at >= '{$dateFrom}'"
+             WHERE sent_at >= '{$dateFrom}' AND id_shop = {$idShop}"
         ) ?: [];
 
         $sent       = (int) ($row['total_sent']      ?? 0);
@@ -691,11 +697,15 @@ class UpsellManager
     /**
      * Journal des N dernières suggestions avec données client.
      */
-    public function getLog(int $idLang, int $limit = 50): array
+    public function getLog(int $idLang, int $limit = 50, ?int $idShop = null): array
     {
+        $idShop = $idShop ?? (int) $this->context->shop->id;
         $table  = $this->prefix . 'neria_upsell';
         $idLang = $idLang > 0 ? $idLang : (int) \Configuration::get('PS_LANG_DEFAULT');
 
+        // AND u.id_shop = ... : même correctif que getStats() — sans lui, le
+        // journal BO montrait des suggestions envoyées à des clients d'une
+        // AUTRE boutique.
         $rows = $this->db->executeS(
             "SELECT
                 u.id_upsell, u.id_customer, u.id_order_source, u.id_product_upsell,
@@ -710,6 +720,7 @@ class UpsellManager
              LEFT JOIN `{$this->prefix}orders` o ON o.id_order = u.id_order_source
              LEFT JOIN `{$this->prefix}image` img
                   ON img.id_product = u.id_product_upsell AND img.cover = 1
+             WHERE u.id_shop = {$idShop}
              ORDER BY u.sent_at DESC
              LIMIT " . (int) $limit
         ) ?: [];
