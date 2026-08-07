@@ -2794,6 +2794,28 @@ class HealthCheckManager
             }
         }
 
+        // Round 89 (2026-08-07) : BehavioralCronManager::generateBirthdayVoucher()
+        // filtrait bien id_shop sur son INSERT IGNORE de réservation, mais
+        // pas sur l'UPDATE final (id_cart_rule/voucher_code) ni sur le
+        // DELETE de rollback — alors que la clé unique de
+        // neria_birthday_voucher est (id_customer, year, id_shop) depuis
+        // l'upgrade-1.0.29, précisément pour isoler les réservations par
+        // boutique. Un client partagé avec un anniversaire dans deux
+        // boutiques voyait l'UPDATE d'une boutique écraser la réservation
+        // de l'autre avec un voucher_code inutilisable (CartRule restreint
+        // à une autre boutique) — même correctif déjà appliqué à
+        // OrderTriggersManager::generateMilestoneVoucher() (round 56).
+        $bcFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
+        $bcSrc  = is_file($bcFile) ? (file_get_contents($bcFile) ?: '') : '';
+        if ($bcSrc === '') {
+            $offenders[] = 'BehavioralCronManager.php introuvable (UPDATE birthday_voucher scopé par idShop)';
+        } else {
+            $posUpdate = strpos($bcSrc, "SET id_cart_rule = ' . (int) \$cartRule->id . ', voucher_code = ");
+            if ($posUpdate === false || strpos(substr($bcSrc, $posUpdate, 250), 'id_shop') === false) {
+                $offenders[] = "BehavioralCronManager::generateBirthdayVoucher() ne filtre plus id_shop sur son UPDATE final — un client partagé entre boutiques pourrait de nouveau voir sa réservation d'une boutique écrasée par celle d'une autre";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
