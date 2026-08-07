@@ -352,6 +352,19 @@ class OrderTriggersManager
                 $result = \Mail::Send(
                     $idLang, 'milestone_order', '',
                     array_merge($common, [
+                        // {id_order} : scope le Mode Silence par COMMANDE
+                        // (voir hookActionEmailSendBefore/CooldownManager),
+                        // même correctif déjà appliqué à order_partial_shipped/
+                        // order_on_hold/refund_processed/return_received
+                        // (round 63) mais jamais étendu à milestone_order.
+                        // Sans elle, un client atteignant légitimement deux
+                        // paliers différents dans la même fenêtre de cooldown
+                        // (import en masse, corrections de statut groupées)
+                        // voyait le second email milestone_order bloqué à
+                        // tort comme "doublon" par la seule clé
+                        // (template, client, fenêtre) — alors qu'un vrai bon
+                        // de réduction avait déjà été généré et attribué.
+                        '{id_order}'               => (int) $order->id,
                         '{milestone_count}'        => $this->formatMilestoneOrdinal($count, $idLang),
                         '{order_count}'            => (string) $count,
                         '{voucher_code}'           => $voucherCode,
