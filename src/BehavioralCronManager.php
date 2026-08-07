@@ -406,9 +406,17 @@ class BehavioralCronManager
             // Libère la réservation pour permettre une nouvelle tentative
             // au prochain passage du cron (sinon ce client resterait sans
             // bon d'anniversaire à vie pour cette année).
+            // AND id_shop = $idShop : la clé unique de cette table est
+            // (id_customer, year, id_shop) — un client partagé entre
+            // boutiques peut avoir une réservation distincte PAR boutique.
+            // Sans ce filtre, ce DELETE (et l'UPDATE ci-dessous) touchait
+            // TOUTES les lignes de ce client/année, quelle que soit la
+            // boutique — même correctif que
+            // OrderTriggersManager::generateMilestoneVoucher().
             $this->db->execute(
                 'DELETE FROM `' . $this->prefix . 'neria_birthday_voucher`
-                 WHERE id_customer = ' . (int) $idCustomer . ' AND year = ' . $year . ' AND id_cart_rule = 0'
+                 WHERE id_customer = ' . (int) $idCustomer . ' AND year = ' . $year . '
+                   AND id_shop = ' . $idShop . ' AND id_cart_rule = 0'
             );
             throw new \RuntimeException('CartRule::add() failed for customer ' . $idCustomer);
         }
@@ -416,7 +424,8 @@ class BehavioralCronManager
         $this->db->execute(
             'UPDATE `' . $this->prefix . 'neria_birthday_voucher`
              SET id_cart_rule = ' . (int) $cartRule->id . ', voucher_code = \'' . pSQL($code) . '\'
-             WHERE id_customer = ' . (int) $idCustomer . ' AND year = ' . $year
+             WHERE id_customer = ' . (int) $idCustomer . ' AND year = ' . $year . '
+               AND id_shop = ' . $idShop
         );
 
         return $code;
