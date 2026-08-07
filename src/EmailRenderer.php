@@ -399,7 +399,7 @@ class EmailRenderer
         // {discount}. On remet le code dans {voucher_code} (ligne « Code : … »)
         // et on calcule le vrai taux/montant du bon pour {discount} (intro).
         if ($template === 'newsletter_voucher') {
-            $this->fixNewsletterVoucherVars($params['templateVars']);
+            $this->fixNewsletterVoucherVars($params['templateVars'], $lang);
         }
 
         // â”€â”€ GÃ©nÃ¨re les variantes texte des variables HTML (pour le .txt)
@@ -1258,7 +1258,7 @@ class EmailRenderer
      *
      * @param array $templateVars Variables Smarty (passé par référence)
      */
-    private function fixNewsletterVoucherVars(array &$templateVars): void
+    private function fixNewsletterVoucherVars(array &$templateVars, string $lang): void
     {
         if (!is_array($templateVars)) {
             return;
@@ -1275,7 +1275,7 @@ class EmailRenderer
         }
 
         // {discount} (intro « offrant … de réduction ») = vrai taux/montant du bon
-        $rate = $this->voucherRateFromCode($code);
+        $rate = $this->voucherRateFromCode($code, $lang);
         if ($rate === '') {
             // Aucun cart rule ne correspond à ce code : l'intro afficherait un
             // montant vide. On le signale (email visiblement défectueux).
@@ -1294,9 +1294,17 @@ class EmailRenderer
      * son code, en chargeant le cart rule correspondant. '' si introuvable.
      *
      * @param string $code
+     * @param string $lang Code langue déjà résolu par resolveEmailLang() —
+     *                     pas $this->context->language, qui peut différer du
+     *                     destinataire réel (auto-détection géo, envoi via
+     *                     BO/cron) : même piège de "locale figée du contexte
+     *                     d'exécution" que NeriaTools::displayPrice() corrigé
+     *                     au round 99, réintroduit ici en le contournant
+     *                     complètement (aucune langue n'était transmise
+     *                     jusqu'à cette méthode).
      * @return string
      */
-    private function voucherRateFromCode(string $code): string
+    private function voucherRateFromCode(string $code, string $lang): string
     {
         $id = (int) \Db::getInstance()->getValue(
             'SELECT `id_cart_rule` FROM `' . _DB_PREFIX_ . 'cart_rule`
@@ -1311,20 +1319,23 @@ class EmailRenderer
             return '';
         }
 
+        $ctx    = \Context::getContext();
+        $idLang = (int) \Language::getIdByIso($lang) ?: (int) ($ctx->language->id ?? 0);
+
         if ((float) $rule->reduction_percent > 0) {
             $p = (float) $rule->reduction_percent;
-            // Séparateur décimal selon la langue courante — auparavant codé
-            // en dur avec une virgule française, affichant "12,5 %" même
-            // dans un email en anglais/japonais/allemand (18 langues sur 19).
+            // Séparateur décimal selon la langue du DESTINATAIRE ($lang),
+            // pas celle de $ctx->language (contexte cron/BO) — auparavant
+            // codé en dur avec une virgule française, affichant "12,5 %"
+            // même dans un email en anglais/japonais/allemand.
             if (class_exists('NumberFormatter')) {
                 try {
-                    $ctx       = \Context::getContext();
-                    $localeIso = 'en-US';
-                    $lang      = $ctx->language ?? null;
-                    if ($lang && !empty($lang->locale)) {
-                        $localeIso = str_replace('_', '-', $lang->locale);
-                    } elseif ($lang && !empty($lang->iso_code)) {
-                        $localeIso = $lang->iso_code;
+                    $localeIso   = 'en-US';
+                    $langObject  = $idLang > 0 ? new \Language($idLang) : null;
+                    if ($langObject && \Validate::isLoadedObject($langObject) && !empty($langObject->locale)) {
+                        $localeIso = str_replace('_', '-', $langObject->locale);
+                    } elseif ($langObject && \Validate::isLoadedObject($langObject) && !empty($langObject->iso_code)) {
+                        $localeIso = $langObject->iso_code;
                     }
                     $formatter = new \NumberFormatter($localeIso, \NumberFormatter::DECIMAL);
                     $formatter->setAttribute(\NumberFormatter::MAX_FRACTION_DIGITS, 2);
@@ -1340,19 +1351,10 @@ class EmailRenderer
         }
 
         if ((float) $rule->reduction_amount > 0) {
-            $ctx = \Context::getContext();
-            try {
-                return \Tools::getContextLocale($ctx)->formatPrice(
-                    (float) $rule->reduction_amount,
-                    $ctx->currency->iso_code
-                );
-            } catch (\Throwable $e) {
-                // Repli sans "€" ni virgule codés en dur (faux hors zone euro/FR) —
-                // NeriaTools::displayPrice utilise la devise réelle du contexte et
-                // la locale de la langue courante (NumberFormatter), avec son
-                // propre dernier repli minimal si l'extension intl est absente.
-                return \NeriaTools::displayPrice((float) $rule->reduction_amount, $ctx->currency);
-            }
+            // NeriaTools::displayPrice($idLang) — pas Tools::getContextLocale($ctx)
+            // en premier recours : ce dernier lit $ctx->getCurrentLocale(),
+            // figé indépendamment de la langue du destinataire (round 99).
+            return \NeriaTools::displayPrice((float) $rule->reduction_amount, $ctx->currency, $idLang);
         }
 
         return '';
