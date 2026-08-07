@@ -2989,6 +2989,23 @@ class HealthCheckManager
             $offenders[] = "NeriaTools::displayPrice() ne bascule plus sur formatPriceWithIntl() quand une langue explicite diffère du contexte — le formatage de prix pourrait de nouveau suivre silencieusement la langue du cron/BO au lieu de celle du destinataire";
         }
 
+        // Round 100 (2026-08-07) : EmailRenderer::voucherRateFromCode() lisait
+        // Context::getContext()->language / Tools::getContextLocale() au
+        // lieu de la langue du destinataire ($lang, résolue par
+        // resolveEmailLang()) — même piège de locale figée que
+        // NeriaTools::displayPrice() (round 99), réintroduit ici en
+        // contournant complètement ce correctif (aucune langue transmise
+        // jusqu'à cette méthode). {discount} du template newsletter_voucher
+        // pouvait afficher "12,5 %" au lieu de "12.5 %" pour un destinataire
+        // anglophone.
+        $erFile = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
+        $erSrc  = is_file($erFile) ? (file_get_contents($erFile) ?: '') : '';
+        if ($erSrc === '') {
+            $offenders[] = 'EmailRenderer.php introuvable (voucherRateFromCode scopé par lang)';
+        } elseif (strpos($erSrc, 'private function voucherRateFromCode(string $code, string $lang): string') === false) {
+            $offenders[] = "EmailRenderer::voucherRateFromCode() ne prend plus \$lang en paramètre — {discount} du template newsletter_voucher pourrait de nouveau suivre silencieusement la langue du contexte d'exécution au lieu de celle du destinataire";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
