@@ -111,6 +111,17 @@ class ChurnScoreManager
             GROUP BY id_customer
         ");
 
+        // Le cron a bien tourné même si aucune ligne sent/open n'existe dans
+        // la fenêtre de 90 jours (boutique tout juste installée) — tracé
+        // AVANT ce early return (pas seulement plus bas, ligne ~171) pour
+        // que checkChurnPropensityFreshness() distingue "rien à recalculer"
+        // d'un cron réellement en échec, à l'image de
+        // PropensityScoreManager::recalculateAll() qui écrit son propre
+        // repère inconditionnellement. Avant ce correctif, une boutique sans
+        // aucune donnée neria_stat sortait ici sans jamais écrire
+        // NERIA_CHURN_LAST_RUN, laissant ce garde-fou aveugle indéfiniment.
+        \Configuration::updateValue('NERIA_CHURN_LAST_RUN', date('Y-m-d H:i:s'), false, null, $this->idShop);
+
         if (!is_array($rowsPeriods) || empty($rowsPeriods)) {
             return 0;
         }
@@ -161,14 +172,6 @@ class ChurnScoreManager
         $rows = array_values(array_filter($rows, function (array $r): bool {
             return (int) $r['sent_p2'] > 0 || (int) $r['sent_p3'] > 0;
         }));
-
-        // Le cron a bien tourné même si aucun client n'a encore 30 jours
-        // d'historique passé à comparer (boutique jeune ou faible volume) —
-        // on le trace pour que checkChurnPropensityFreshness() distingue
-        // "rien à recalculer pour l'instant" d'un cron réellement en échec,
-        // plutôt que de se fier uniquement à computed_at des lignes
-        // existantes, qui ne bouge jamais dans ce cas.
-        \Configuration::updateValue('NERIA_CHURN_LAST_RUN', date('Y-m-d H:i:s'), false, null, $this->idShop);
 
         $table = _DB_PREFIX_ . self::TABLE;
 
