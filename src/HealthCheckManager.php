@@ -2686,6 +2686,21 @@ class HealthCheckManager
             $offenders[] = "ClvManager::getEngagementRate()/getTopCustomers() ne filtrent plus is_mpp=0 sur leurs comptages d'ouverture — un client Apple Mail qui n'ouvre jamais réellement ses emails pourrait de nouveau voir son CLV surestimé (multiplicateur d'engagement 'high' au lieu de 'low')";
         }
 
+        // Round 83 (2026-08-07) : StatsManager::record() attribuait des
+        // points de fidélité (LoyaltyManager::awardPoints()) pour un
+        // événement 'open' même quand $isMpp valait 1 — contrairement à
+        // tous les Managers de LECTURE déjà corrigés (rounds 74-82), ce
+        // chemin d'ÉCRITURE créditait un client Apple Mail qui n'ouvre
+        // jamais réellement ses emails à chaque pré-chargement du pixel
+        // par le proxy Apple.
+        $smFile = _PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php';
+        $smSrc  = is_file($smFile) ? (file_get_contents($smFile) ?: '') : '';
+        if ($smSrc === '') {
+            $offenders[] = 'StatsManager.php introuvable (filtre is_mpp sur points fidélité)';
+        } elseif (strpos($smSrc, "!(\$event === 'open' && \$isMpp)") === false) {
+            $offenders[] = "StatsManager::record() n'exclut plus \$isMpp avant d'attribuer des points de fidélité pour un 'open' — un client Apple Mail qui n'ouvre jamais réellement ses emails pourrait de nouveau recevoir des points à chaque pré-chargement MPP";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
