@@ -2593,6 +2593,23 @@ class HealthCheckManager
             }
         }
 
+        // Round 78 (2026-08-06) : même défaut que Calendar (76)/Seasonal (77)
+        // pour WebhookManager — instancié UNE SEULE FOIS dans
+        // runBackgroundJobs(), sans boucle multi-boutique. Les webhooks en
+        // attente d'une boutique différente de celle du contexte courant
+        // restaient indéfiniment 'pending', jamais traités.
+        if ($neriaSrc2 === '') {
+            $offenders[] = 'neria.php introuvable (boucle multi-boutique WebhookManager)';
+        } else {
+            $posWebhook = strpos($neriaSrc2, "// ── Queue webhook (toutes les 5 min)");
+            $blockWebhook = $posWebhook !== false ? substr($neriaSrc2, $posWebhook, 2600) : '';
+            if ($posWebhook === false
+                || strpos($blockWebhook, 'foreach ($shopsWebhook as $idShopWebhook) {') === false
+                || strpos($blockWebhook, 'new WebhookManager($this)') === false) {
+                $offenders[] = "neria.php::runBackgroundJobs() n'instancie plus WebhookManager dans une boucle par boutique — les webhooks en attente d'une boutique autre que celle du contexte courant pourraient de nouveau ne jamais être traités";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
