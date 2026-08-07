@@ -1571,8 +1571,19 @@ class HealthCheckManager
         $segmentSrc  = is_file($segmentFile) ? (file_get_contents($segmentFile) ?: '') : '';
         if ($segmentSrc === '') {
             $offenders[] = 'SegmentManager.php introuvable';
-        } elseif (strpos($segmentSrc, "getPageLink('history', true, \$idLang, null, false, \$this->idShop)") === false) {
-            $offenders[] = "SegmentManager : sendToSegment() n'utilise plus \$this->idShop pour {history_url}";
+        } else {
+            if (strpos($segmentSrc, "getPageLink('history', true, \$idLang, null, false, \$this->idShop)") === false) {
+                $offenders[] = "SegmentManager : sendToSegment() n'utilise plus \$this->idShop pour {history_url}";
+            }
+            // Round 102 (2026-08-07) : {shop_url} utilisait
+            // \Tools::getShopDomainSsl() non scopé (résout via
+            // Context::getContext()->shop) au lieu de $this->idShop — même
+            // famille de bug que LoyaltyManager/SeasonalCampaignManager
+            // ci-dessus, mais oublié pour SegmentManager lors de cette
+            // campagne de correctifs (seul {history_url} avait été couvert).
+            if (strpos($segmentSrc, 'getBaseLink($this->idShop)') === false) {
+                $offenders[] = "SegmentManager : sendToSegment() n'utilise plus \$this->idShop pour {shop_url} (getBaseLink())";
+            }
         }
 
         $seasonalFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php';
