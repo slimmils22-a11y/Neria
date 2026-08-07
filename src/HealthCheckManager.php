@@ -2775,6 +2775,25 @@ class HealthCheckManager
             }
         }
 
+        // Round 88 (2026-08-07) : ManualSendManager::send() calculait le
+        // ref_id de 'first_anniversary' (MIN(id_order)) sans filtre id_shop
+        // — contrairement à QueueManager::processSingle(), qui applique
+        // déjà ce correctif documenté dans BehavioralCronManager::
+        // sendFirstAnniversaries() (« 1ère commande DE CETTE boutique »).
+        // Un client partagé entre boutiques avec une commande plus ancienne
+        // sur une AUTRE boutique obtenait un ref_id incohérent, cassant la
+        // traçabilité de neria_behavioral_sent en multi-shop.
+        $msFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
+        $msSrc  = is_file($msFile) ? (file_get_contents($msFile) ?: '') : '';
+        if ($msSrc === '') {
+            $offenders[] = 'ManualSendManager.php introuvable (ref_id first_anniversary scopé par idShop)';
+        } else {
+            $posQuery = strpos($msSrc, "'SELECT MIN(id_order) FROM `' . _DB_PREFIX_ . 'orders`");
+            if ($posQuery === false || strpos(substr($msSrc, $posQuery, 300), 'id_shop') === false) {
+                $offenders[] = "ManualSendManager::send() ne filtre plus id_shop sur sa requête MIN(id_order) pour first_anniversary — un client partagé entre boutiques pourrait de nouveau obtenir un ref_id incohérent avec celui du cron";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
