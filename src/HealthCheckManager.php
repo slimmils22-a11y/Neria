@@ -2752,6 +2752,29 @@ class HealthCheckManager
             }
         }
 
+        // Round 87 (2026-08-07) : UpsellManager::enrich() résolvait le prix
+        // affiché via $this->context->currency (devise du contexte
+        // d'exécution courant) et générait le lien produit sans passer
+        // $idShop à getProductLink() — contrairement à
+        // CollectionManager::processCollection(), qui résout déjà {missing_price}
+        // via PS_CURRENCY_DEFAULT scopé par $idShop et passe $idShop à
+        // getProductLink(). En cron (contexte resté sur la 1re boutique),
+        // un client d'une autre boutique avec une devise différente
+        // recevait un bloc upsell dans la mauvaise devise et un lien
+        // produit potentiellement cassé.
+        $upFile = _PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php';
+        $upSrc  = is_file($upFile) ? (file_get_contents($upFile) ?: '') : '';
+        if ($upSrc === '') {
+            $offenders[] = 'UpsellManager.php introuvable (devise/lien scopés par idShop)';
+        } else {
+            if (strpos($upSrc, "PS_CURRENCY_DEFAULT', null, null, \$idShop") === false) {
+                $offenders[] = "UpsellManager::enrich() ne résout plus le prix affiché via la devise de la boutique du client (\$idShop) — un client d'une autre boutique pourrait de nouveau voir un prix dans la mauvaise devise";
+            }
+            if (strpos($upSrc, 'getProductLink(') !== false && strpos($upSrc, "null, \$idLang, \$idShop") === false) {
+                $offenders[] = "UpsellManager::enrich() n'appelle plus getProductLink() avec \$idShop — le lien produit du bloc upsell pourrait de nouveau pointer vers le mauvais magasin en cron multi-boutique";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
