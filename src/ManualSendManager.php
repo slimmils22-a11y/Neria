@@ -900,10 +900,18 @@ class ManualSendManager
         $refFilter = ($conflictTemplate === 'relationship_anniversary')
             ? ' AND ref_id = ' . (int) date('Y')
             : '';
+        // AND id_shop = ... : la clé UNIQUE de neria_behavioral_sent est
+        // (id_customer, template, ref_id, id_shop) depuis l'upgrade-1.0.29,
+        // précisément pour qu'un client partagé entre boutiques ait un
+        // historique d'anniversaire distinct par boutique. Sans ce filtre,
+        // un envoi sur la Boutique A bloquait à tort le même client sur la
+        // Boutique B.
+        $idShopConflict = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
         $alreadySent = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_behavioral_sent`
              WHERE id_customer = ' . (int) $customer['id_customer'] . '
-               AND template = \'' . pSQL($conflictTemplate) . '\'' . $refFilter
+               AND template = \'' . pSQL($conflictTemplate) . '\'' . $refFilter . '
+               AND id_shop = ' . $idShopConflict
         );
 
         if ($alreadySent > 0) {
@@ -1006,14 +1014,18 @@ class ManualSendManager
         }
 
         // Voir commentaire dans checkAnniversaryConflict() : ref_id=année ne
-        // s'applique qu'à relationship_anniversary.
+        // s'applique qu'à relationship_anniversary, et id_shop est requis
+        // car la clé UNIQUE de neria_behavioral_sent l'inclut (isole
+        // l'historique par boutique pour un client partagé).
         $refFilter = ($conflictTemplate === 'relationship_anniversary')
             ? ' AND ref_id = ' . (int) date('Y')
             : '';
+        $idShopConflict = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
         $conflictSent = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_behavioral_sent`
              WHERE id_customer = ' . (int) $customer['id_customer'] . '
-               AND template = \'' . pSQL($conflictTemplate) . '\'' . $refFilter
+               AND template = \'' . pSQL($conflictTemplate) . '\'' . $refFilter . '
+               AND id_shop = ' . $idShopConflict
         );
 
         $labels = [
