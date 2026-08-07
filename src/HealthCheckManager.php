@@ -2816,6 +2816,21 @@ class HealthCheckManager
             }
         }
 
+        // Round 90 (2026-08-07) : ManualSendManager::checkAnniversaryConflict()
+        // et ::getAnniversaryGuardStatus() ne filtraient pas id_shop sur
+        // neria_behavioral_sent — alors que sa clé UNIQUE est (id_customer,
+        // template, ref_id, id_shop) depuis l'upgrade-1.0.29, précisément
+        // pour isoler l'historique anniversaire par boutique. Un client
+        // partagé entre boutiques se voyait bloquer à tort un envoi sur la
+        // Boutique B par l'historique de la Boutique A.
+        $ms2File = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
+        $ms2Src  = is_file($ms2File) ? (file_get_contents($ms2File) ?: '') : '';
+        if ($ms2Src === '') {
+            $offenders[] = 'ManualSendManager.php introuvable (garde-fou anniversaire scopé par idShop)';
+        } elseif (substr_count($ms2Src, "AND id_shop = ' . \$idShopConflict") < 2) {
+            $offenders[] = "ManualSendManager::checkAnniversaryConflict()/getAnniversaryGuardStatus() ne filtrent plus tous les deux id_shop sur neria_behavioral_sent — un client partagé entre boutiques pourrait de nouveau voir un envoi bloqué à tort par l'historique d'une AUTRE boutique";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
