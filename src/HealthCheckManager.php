@@ -2957,6 +2957,21 @@ class HealthCheckManager
             $offenders[] = "OrderTriggersManager ne fournit plus {id_order} pour tous ses templates liés à une commande (dont milestone_order) — le Mode Silence pourrait de nouveau bloquer à tort un email légitime";
         }
 
+        // Round 98 (2026-08-07) : CalendarManager::getEventDisplayInfo()
+        // ne cherchait le marqueur "dernier envoi" que sur [$year, $year-1]
+        // — alors que processEvent() peut poser ce marqueur sur $year+1
+        // (occasions à cheval sur le Nouvel An, ex. new_year J-7 envoyé le
+        // 25 décembre avec eventYear = année+1). Un envoi qui venait de
+        // partir restait affiché "jamais envoyé" dans le BO jusqu'au 1er
+        // janvier suivant.
+        $calFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php';
+        $calSrc  = is_file($calFile) ? (file_get_contents($calFile) ?: '') : '';
+        if ($calSrc === '') {
+            $offenders[] = 'CalendarManager.php introuvable (dernier envoi cherché sur year+1)';
+        } elseif (strpos($calSrc, 'foreach ([$year + 1, $year, $year - 1] as $y) {') === false) {
+            $offenders[] = "CalendarManager::getEventDisplayInfo() ne cherche plus le marqueur 'dernier envoi' sur \$year+1 — un envoi de fin d'année (new_year J-7 par exemple) pourrait de nouveau apparaître 'jamais envoyé' dans le BO jusqu'au 1er janvier suivant";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
