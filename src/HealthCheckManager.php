@@ -2668,6 +2668,24 @@ class HealthCheckManager
             $offenders[] = "CustomerEmailHistoryManager::getEmails()/getShopAverageOpenRate() ne filtrent plus is_mpp=0 — un client Apple Mail qui n'ouvre jamais réellement ses emails pourrait de nouveau apparaître 'Ouvert' dans son historique BO et gonfler le taux d'ouverture moyen boutique";
         }
 
+        // Round 82 (2026-08-07) : ClvManager::getEngagementRate() et la
+        // requête batch d'engagement de getTopCustomers() comptaient les
+        // pré-chargements automatiques Apple Mail Privacy Protection
+        // (is_mpp=1) comme de vraies ouvertures — contrairement à
+        // StatsManager/SegmentManager/ChurnScoreManager/
+        // PropensityScoreManager/CustomerEmailHistoryManager, qui filtrent
+        // déjà systématiquement is_mpp=0. Un client Apple Mail qui n'ouvre
+        // jamais réellement ses emails voyait son taux d'engagement gonflé
+        // à tort, appliquant le multiplicateur CLV "high" (x1.20) au lieu
+        // de "low" (x0.85) — CLV surestimé, faux positif dans le Top 20.
+        $clvFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php';
+        $clvSrc  = is_file($clvFile) ? (file_get_contents($clvFile) ?: '') : '';
+        if ($clvSrc === '') {
+            $offenders[] = 'ClvManager.php introuvable (filtre is_mpp)';
+        } elseif (substr_count($clvSrc, "'open\\' AND `is_mpp` = 0") < 2) {
+            $offenders[] = "ClvManager::getEngagementRate()/getTopCustomers() ne filtrent plus is_mpp=0 sur leurs comptages d'ouverture — un client Apple Mail qui n'ouvre jamais réellement ses emails pourrait de nouveau voir son CLV surestimé (multiplicateur d'engagement 'high' au lieu de 'low')";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
