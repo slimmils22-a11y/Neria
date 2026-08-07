@@ -736,8 +736,18 @@ class UpsellManager
                     'product', $idImage, $imgType
                 );
             }
+            // $idShop en 6e argument : même correctif que enrich() ci-dessus
+            // et que CollectionManager — sans lui, getProductLink() retombe
+            // sur la boutique du CONTEXTE D'EXÉCUTION courant (Context::
+            // getContext()->shop) au lieu de celle du paramètre $idShop
+            // explicitement passé à getLog(). Le SELECT est bien filtré par
+            // u.id_shop = {$idShop} (round 91) mais quand getLog() est
+            // appelée avec un $idShop différent du contexte courant (ex.
+            // admin multi-boutique consultant le journal d'une AUTRE
+            // boutique que celle active), chaque lien produit du journal
+            // pointait vers le domaine/catalogue de la mauvaise boutique.
             $row['product_url'] = $this->context->link->getProductLink(
-                $idProduct, null, null, null, $idLang
+                $idProduct, null, null, null, $idLang, $idShop
             );
         }
         unset($row);
