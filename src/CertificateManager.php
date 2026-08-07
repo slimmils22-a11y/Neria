@@ -139,6 +139,13 @@ class CertificateManager
             // sous la mauvaise boutique — invisible dans getByOrder()/
             // getAll() de la vraie boutique, polluant les stats de l'autre.
             'id_shop'         => (int) $order->id_shop,
+            // Stocké directement (pas seulement dérivable via id_order) :
+            // permet à GdprAuditManager::purgeCustomerData() de purger ce
+            // certificat même si la commande liée a depuis été supprimée du
+            // BO PrestaShop — sans cette colonne, un certificat (nom client
+            // en clair) survivait indéfiniment à une demande d'effacement
+            // RGPD dès que la commande n'existait plus pour le JOIN.
+            'id_customer'     => (int) $order->id_customer,
             'id_order'        => $idOrder,
             'id_product'      => $idProduct,
             'id_order_detail' => $idOrderDetail,
@@ -813,6 +820,7 @@ class CertificateManager
             'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . self::TABLE . '` (
                 `id_certificate`  INT(11)      NOT NULL AUTO_INCREMENT,
                 `id_shop`         INT(11)      NOT NULL DEFAULT 1,
+                `id_customer`     INT UNSIGNED NOT NULL DEFAULT 0,
                 `id_order`        INT(11)      NOT NULL,
                 `id_product`      INT(11)      NOT NULL,
                 `id_order_detail` INT(11)      NOT NULL DEFAULT 0,
@@ -826,8 +834,9 @@ class CertificateManager
                 `date_add`        DATETIME     NOT NULL,
                 PRIMARY KEY (`id_certificate`),
                 UNIQUE KEY `uq_serial` (`serial_number`),
-                KEY `idx_order`   (`id_order`),
-                KEY `idx_shop`    (`id_shop`)
+                KEY `idx_order`    (`id_order`),
+                KEY `idx_shop`     (`id_shop`),
+                KEY `idx_customer` (`id_customer`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
         );
     }

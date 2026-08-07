@@ -814,20 +814,33 @@ class GdprAuditManager
                 }
             }
         }
-        // Purge neria_certificate via la commande (pas d'id_customer direct)
+        // Purge neria_certificate : id_customer stocké directement depuis
+        // l'upgrade-1.0.39 (au lieu d'un JOIN sur ps_orders) — sans cette
+        // colonne, un certificat (nom client en clair) survivait
+        // indéfiniment à une demande d'effacement RGPD dès que la commande
+        // liée avait été supprimée du BO PrestaShop, le JOIN ne matchant
+        // alors plus rien alors que purgeCustomerData() retournait quand
+        // même un total sans erreur (le marchand croyait l'effacement
+        // complet). Complété par le JOIN en repli, pour les rares
+        // certificats émis avant la migration et jamais backfillés (commande
+        // déjà supprimée au moment de l'upgrade — id_customer resté à 0).
         $fullCert = _DB_PREFIX_ . 'neria_certificate';
         $certExists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($fullCert) . "'");
         if (is_array($certExists) && !empty($certExists)) {
             $n = (int) $this->db->getValue(
                 "SELECT COUNT(*) FROM `{$fullCert}` nc
-                 INNER JOIN `" . _DB_PREFIX_ . "orders` o ON o.id_order = nc.id_order
-                 WHERE o.id_customer = " . (int) $idCustomer
+                 WHERE nc.id_customer = " . (int) $idCustomer . "
+                    OR nc.id_order IN (
+                        SELECT o.id_order FROM `" . _DB_PREFIX_ . "orders` o WHERE o.id_customer = " . (int) $idCustomer . "
+                    )"
             );
             if ($n > 0) {
                 $this->db->execute(
-                    "DELETE nc FROM `{$fullCert}` nc
-                     INNER JOIN `" . _DB_PREFIX_ . "orders` o ON o.id_order = nc.id_order
-                     WHERE o.id_customer = " . (int) $idCustomer
+                    "DELETE FROM `{$fullCert}`
+                     WHERE id_customer = " . (int) $idCustomer . "
+                        OR id_order IN (
+                            SELECT id_order FROM `" . _DB_PREFIX_ . "orders` WHERE id_customer = " . (int) $idCustomer . "
+                        )"
                 );
                 $total += $n;
             }
