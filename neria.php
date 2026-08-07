@@ -1868,13 +1868,33 @@ class Neria extends Module
                                 } catch (\Throwable $e) {}
                             }
                             if (class_exists('SeasonalCampaignManager')) {
-                                try {
-                                    (new SeasonalCampaignManager($this))->runDueCampaigns();
-                                    $ran['seasonal_campaigns'] = true;
-                                    if (class_exists('WatchdogManager')) {
-                                        (new WatchdogManager($this))->cronHeartbeat('seasonal_campaigns');
-                                    }
-                                } catch (\Throwable $e) {}
+                                // SeasonalCampaignManager capture $this->idShop dans
+                                // son constructeur et scope TOUTES ses requêtes
+                                // (campagnes actives, ciblage clients, clé de
+                                // déduplication seasonal_{id_campaign}) sur cette
+                                // seule boutique — même défaut déjà corrigé pour
+                                // CalendarManager (round 76) : sans boucle par
+                                // boutique ici, seule la boutique du premier
+                                // visiteur du jour recevait les campagnes
+                                // saisonnières (Noël, Saint-Valentin...), les
+                                // autres n'en recevant JAMAIS si elles ne sont
+                                // jamais la première boutique visitée un jour
+                                // donné (LoyaltyManager::sendMonthlyRecaps() juste
+                                // au-dessus boucle déjà correctement en INTERNE,
+                                // pas d'appel en boucle nécessaire ici pour elle).
+                                $originalShopSeasonal = \Context::getContext()->shop;
+                                $shopsSeasonal = \Shop::getShops(true, null, true) ?: [(int) $originalShopSeasonal->id];
+                                foreach ($shopsSeasonal as $idShopSeasonal) {
+                                    \Context::getContext()->shop = new \Shop((int) $idShopSeasonal);
+                                    try {
+                                        (new SeasonalCampaignManager($this))->runDueCampaigns();
+                                        $ran['seasonal_campaigns'] = true;
+                                    } catch (\Throwable $e) {}
+                                }
+                                \Context::getContext()->shop = $originalShopSeasonal;
+                                if (isset($ran['seasonal_campaigns']) && class_exists('WatchdogManager')) {
+                                    (new WatchdogManager($this))->cronHeartbeat('seasonal_campaigns');
+                                }
                             }
                         }
                     } finally {
