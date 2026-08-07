@@ -334,7 +334,7 @@ class ClvManager
         foreach ($this->db->executeS(
             'SELECT `id_customer`,
                     SUM(`event_type` = \'sent\') AS sent,
-                    SUM(`event_type` = \'open\')  AS opened
+                    SUM(`event_type` = \'open\' AND `is_mpp` = 0)  AS opened
              FROM `' . _DB_PREFIX_ . 'neria_stat`
              WHERE `id_customer` IN (' . $idList . ') AND `id_shop` = ' . $this->idShop . '
              GROUP BY `id_customer`'
@@ -495,7 +495,7 @@ class ClvManager
         // Une seule requête agrégée au lieu de deux COUNT(*) séparés sur la
         // même table avec les mêmes filtres id_customer/id_shop.
         $row = $this->db->getRow(
-            'SELECT SUM(`event_type` = \'sent\') AS sent, SUM(`event_type` = \'open\') AS opened
+            'SELECT SUM(`event_type` = \'sent\') AS sent, SUM(`event_type` = \'open\' AND `is_mpp` = 0) AS opened
              FROM `' . _DB_PREFIX_ . 'neria_stat`
              WHERE `id_customer` = ' . $idCustomer . ' AND `id_shop` = ' . $this->idShop
         );
