@@ -2732,6 +2732,26 @@ class HealthCheckManager
             $offenders[] = "SearchConsoleManager::matchesShopHost() ne compare plus bidirectionnellement le siteUrl GSC au host de la boutique — les Domain properties GSC pourraient de nouveau ne jamais matcher, affichant à tort 'aucun site correspondant' dans le BO";
         }
 
+        // Round 86 (2026-08-07) : ChurnScoreManager::recomputeAll() avait un
+        // early return (aucune ligne sent/open dans la fenêtre de 90 jours)
+        // qui s'exécutait AVANT l'écriture de NERIA_CHURN_LAST_RUN —
+        // contrairement à PropensityScoreManager::recalculateAll(), qui
+        // écrit son propre repère inconditionnellement. Une boutique sans
+        // aucune donnée neria_stat sortait sans jamais tracer l'exécution du
+        // cron, laissant checkChurnPropensityFreshness() aveugle
+        // indéfiniment pour la partie churn.
+        $csFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php';
+        $csSrc  = is_file($csFile) ? (file_get_contents($csFile) ?: '') : '';
+        if ($csSrc === '') {
+            $offenders[] = 'ChurnScoreManager.php introuvable (NERIA_CHURN_LAST_RUN avant early return)';
+        } else {
+            $posLastRun = strpos($csSrc, "\\Configuration::updateValue('NERIA_CHURN_LAST_RUN'");
+            $posReturn0 = strpos($csSrc, 'if (!is_array($rowsPeriods) || empty($rowsPeriods)) {');
+            if ($posLastRun === false || $posReturn0 === false || $posLastRun > $posReturn0) {
+                $offenders[] = "ChurnScoreManager::recomputeAll() n'écrit plus NERIA_CHURN_LAST_RUN avant son early return sur \$rowsPeriods vide — une boutique sans donnée neria_stat pourrait de nouveau ne jamais tracer l'exécution du cron, rendant checkChurnPropensityFreshness() aveugle";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
