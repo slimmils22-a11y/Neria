@@ -3100,6 +3100,36 @@ class HealthCheckManager
             $offenders[] = "CollectionManager::checkAndSend() ne passe plus \$idShop à Configuration::get('PS_SHOP_NAME', ...) — {shop_name} pourrait de nouveau afficher le nom de la mauvaise boutique";
         }
 
+        // Round 106 (2026-08-07) : balayage groupé de tous les {shop_name}
+        // légitimement scopables par idShop identifiés lors de la chasse
+        // dédiée au pattern Configuration::get('PS_SHOP_NAME', ...) sans son
+        // 4e paramètre $idShop (round 102/103/104/105 avaient déjà traité ce
+        // même piège pour d'autres placeholders/managers). Chaque entrée
+        // vérifie qu'une signature précise (le fragment de code corrigé)
+        // est toujours présente dans le fichier source — pas de simple
+        // strpos('PS_SHOP_NAME') qui donnerait de faux négatifs sur les
+        // usages légitimes (contexte courant correct) coexistant dans les
+        // mêmes fichiers.
+        $round106Checks = [
+            'SegmentManager.php'        => "\\Configuration::get('PS_SHOP_NAME', null, null, \$this->idShop)",
+            'LoyaltyManager.php'        => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",
+            'WaitlistManager.php'       => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",
+            'OrderTriggersManager.php'  => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",
+            'QueueManager.php'          => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",
+            'ManualSendManager.php'     => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",
+            'CertificateManager.php'    => "\\Configuration::get('PS_SHOP_NAME', null, null, (int) \$order->id_shop)",
+            'LookCompletionManager.php' => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",
+        ];
+        foreach ($round106Checks as $fileName => $needle) {
+            $path = _PS_MODULE_DIR_ . $this->module->name . '/src/' . $fileName;
+            $src  = is_file($path) ? (file_get_contents($path) ?: '') : '';
+            if ($src === '') {
+                $offenders[] = $fileName . " introuvable (garde-fou round 106 : {shop_name} scopé par idShop)";
+            } elseif (strpos($src, $needle) === false) {
+                $offenders[] = $fileName . " : {shop_name} ne semble plus scopé par idShop (régression possible du correctif round 106)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
