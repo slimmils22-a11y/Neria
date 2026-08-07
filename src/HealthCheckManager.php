@@ -2941,6 +2941,22 @@ class HealthCheckManager
             $offenders[] = "CssInliner::process() n'inverse plus l'ordre des règles avant le tri par spécificité — à spécificité égale, la PREMIÈRE règle CSS déclarée pourrait de nouveau gagner au lieu de la dernière, produisant un rendu divergent entre clients mail";
         }
 
+        // Round 97 (2026-08-07) : OrderTriggersManager fournissait
+        // {id_order} au Mode Silence pour order_partial_shipped/order_on_hold/
+        // refund_processed/return_received (round 63) mais jamais pour
+        // milestone_order — un client atteignant deux paliers différents
+        // dans la même fenêtre de cooldown voyait le second email
+        // milestone_order bloqué à tort comme doublon du premier, alors
+        // qu'un vrai bon de réduction distinct avait déjà été attribué pour
+        // ce second palier.
+        $otmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php';
+        $otmSrc  = is_file($otmFile) ? (file_get_contents($otmFile) ?: '') : '';
+        if ($otmSrc === '') {
+            $offenders[] = 'OrderTriggersManager.php introuvable ({id_order} milestone_order)';
+        } elseif (substr_count($otmSrc, "'{id_order}'") < 4) {
+            $offenders[] = "OrderTriggersManager ne fournit plus {id_order} pour tous ses templates liés à une commande (dont milestone_order) — le Mode Silence pourrait de nouveau bloquer à tort un email légitime";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
