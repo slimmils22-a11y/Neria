@@ -83,13 +83,25 @@ class WaitlistManager
         // réellement acheter. Premier inscrit, premier notifié (déjà trié
         // par registered_at ASC) ; les autres restent en attente pour le
         // prochain réapprovisionnement.
-        // id_product_attribute=null (et non 0) : neria_waitlist est une liste
-        // d'attente au niveau produit, pas par déclinaison. Passer 0 ne lisait
-        // que le stock de la combinaison "sans attribut" et retournait 0 pour
-        // tout produit géré par déclinaisons même quand une déclinaison précise
-        // était de retour en stock — plus aucune notification ne partait jamais.
-        // null fait sommer le stock disponible sur toutes les déclinaisons.
-        $availableQty = (int) \StockAvailable::getQuantityAvailableByProduct($idProduct, null, $idShop);
+        // SUM direct sur TOUTES les lignes stock_available de ce produit
+        // (aucun filtre id_product_attribute) — neria_waitlist est une liste
+        // d'attente au niveau produit, pas par déclinaison. L'ancien code
+        // passait id_product_attribute=0, qui ne lit que la combinaison
+        // "sans attribut" (quasi toujours à 0 pour un produit à
+        // déclinaisons). Un correctif précédent avait remplacé 0 par null en
+        // pensant que StockAvailable::getQuantityAvailableByProduct(...,
+        // null, ...) sommait alors toutes les déclinaisons — FAUX dans ce
+        // cœur PrestaShop : null y est explicitement converti en 0
+        // ("if ($id_product_attribute === null) { $id_product_attribute = 0; }",
+        // classes/stock/StockAvailable.php), donc le bug d'origine
+        // persistait à l'identique malgré ce correctif. Un SUM(quantity) SQL
+        // direct (même technique déjà utilisée dans UpsellManager pour ce
+        // même problème) est la seule façon fiable d'agréger tout le stock
+        // d'un produit à déclinaisons.
+        $availableQty = (int) $this->db->getValue(
+            "SELECT COALESCE(SUM(quantity), 0) FROM `" . _DB_PREFIX_ . "stock_available`
+             WHERE id_product = " . (int) $idProduct . " AND id_shop = " . (int) $idShop
+        );
         // availableQty <= 0 : rien de réellement disponible (stock à 0 au moment de
         // l'appel, race condition avec la mise à jour, ou déclinaison sans stock géré) —
         // ne rien envoyer plutôt que de traiter toute la file sans plafond. Ce hook est

@@ -2866,6 +2866,25 @@ class HealthCheckManager
             $offenders[] = "checkLoyaltyIntegrity() ne groupe plus par (id_customer, id_shop) en mode cumul séparé — un solde négatif sur une boutique pourrait de nouveau être masqué par un solde positif sur une autre";
         }
 
+        // Round 93 (2026-08-07) : WaitlistManager::notifyProduct() (et son
+        // garde-fou checkWaitlistBacklog() dans ce même fichier) supposaient
+        // que StockAvailable::getQuantityAvailableByProduct($id, null, ...)
+        // somme le stock sur toutes les déclinaisons — FAUX dans ce cœur
+        // PrestaShop, qui convertit null en 0. Un produit à déclinaisons de
+        // retour en stock sur UNE combinaison précise ne déclenchait jamais
+        // de notification. Un SUM(quantity) SQL direct (sans filtre
+        // id_product_attribute) remplace désormais cet appel API.
+        $wlFile = _PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php';
+        $wlSrc  = is_file($wlFile) ? (file_get_contents($wlFile) ?: '') : '';
+        if ($wlSrc === '') {
+            $offenders[] = 'WaitlistManager.php introuvable (SUM stock déclinaisons)';
+        } elseif (strpos($wlSrc, 'SELECT COALESCE(SUM(quantity), 0) FROM `" . _DB_PREFIX_ . "stock_available`') === false) {
+            $offenders[] = "WaitlistManager::notifyProduct() ne somme plus le stock via SQL direct sur toutes les déclinaisons — un produit à déclinaisons de retour en stock pourrait de nouveau ne jamais déclencher de notification";
+        }
+        if (strpos($hcmSrc, "AND id_shop = \" . (int) \$row['id_shop']") === false) {
+            $offenders[] = "checkWaitlistBacklog() ne calcule plus le stock par SUM SQL direct sur toutes les déclinaisons — le garde-fou d'auto-réparation pourrait de nouveau rester bloqué sur 'OK' pour tout produit à déclinaisons";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
@@ -7953,17 +7972,37 @@ class HealthCheckManager
             return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.waitlist_disabled')];
         }
 
-        // Clients en attente non notifiés depuis plus de 48h,
-        // dont le produit est actuellement en stock (quantity > 0)
-        $backlogProducts = $this->db->executeS(
+        // Clients en attente non notifiés depuis plus de 48h, dont le stock
+        // réellement disponible (SUM sur TOUTES les lignes stock_available,
+        // aucun filtre id_product_attribute) est positif — même correctif
+        // que WaitlistManager::notifyProduct() (voir son commentaire
+        // détaillé) : id_product_attribute = 0 ne teste que la combinaison
+        // "sans déclinaison", presque toujours à quantity = 0 pour un
+        // produit géré par déclinaisons. Un SUM(quantity) SQL direct est
+        // utilisé plutôt que StockAvailable::getQuantityAvailableByProduct()
+        // — cette API core convertit id_product_attribute=null en 0
+        // (classes/stock/StockAvailable.php), donc NE somme PAS les
+        // déclinaisons contrairement à ce qu'un correctif précédent
+        // supposait ; ce garde-fou, censé justement rattraper un oubli de
+        // notification, restait alors bloqué en permanence sur "OK" pour
+        // tout produit à déclinaisons.
+        $candidates = $this->db->executeS(
             "SELECT DISTINCT w.id_product, w.id_shop FROM `{$table}` w
-             JOIN `" . _DB_PREFIX_ . "stock_available` s
-                  ON s.id_product = w.id_product AND s.id_product_attribute = 0
              WHERE w.id_shop = {$this->idShop}
                AND w.notified_at IS NULL
-               AND w.registered_at < DATE_SUB(NOW(), INTERVAL 48 HOUR)
-               AND s.quantity > 0"
+               AND w.registered_at < DATE_SUB(NOW(), INTERVAL 48 HOUR)"
         ) ?: [];
+
+        $backlogProducts = [];
+        foreach ($candidates as $row) {
+            $qty = (int) $this->db->getValue(
+                "SELECT COALESCE(SUM(quantity), 0) FROM `" . _DB_PREFIX_ . "stock_available`
+                 WHERE id_product = " . (int) $row['id_product'] . " AND id_shop = " . (int) $row['id_shop']
+            );
+            if ($qty > 0) {
+                $backlogProducts[] = $row;
+            }
+        }
 
         if (empty($backlogProducts)) {
             $total = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$table}` WHERE id_shop = {$this->idShop} AND notified_at IS NULL");
