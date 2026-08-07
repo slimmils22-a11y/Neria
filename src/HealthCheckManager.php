@@ -2972,6 +2972,23 @@ class HealthCheckManager
             $offenders[] = "CalendarManager::getEventDisplayInfo() ne cherche plus le marqueur 'dernier envoi' sur \$year+1 — un envoi de fin d'année (new_year J-7 par exemple) pourrait de nouveau apparaître 'jamais envoyé' dans le BO jusqu'au 1er janvier suivant";
         }
 
+        // Round 99 (2026-08-07) : NeriaTools::displayPrice() réaffectait
+        // $context->language avant d'appeler \Tools::displayPrice() natif,
+        // mais celui-ci délègue à Tools::getContextLocale() qui retourne
+        // $context->getCurrentLocale() — calculé UNE SEULE FOIS par
+        // Controller::init() et jamais recalculé quand $context->language
+        // change en cours de script. Le switch de langue était un no-op
+        // silencieux : un rapport/email envoyé à des destinataires de
+        // langues différentes affichait le MÊME formatage de prix pour
+        // tous (celui du cron/BO), pas celui de chaque destinataire.
+        $ntFile = _PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php';
+        $ntSrc  = is_file($ntFile) ? (file_get_contents($ntFile) ?: '') : '';
+        if ($ntSrc === '') {
+            $offenders[] = 'NeriaTools.php introuvable (displayPrice respecte idLang explicite)';
+        } elseif (strpos($ntSrc, 'if ($targetLang !== null) {') === false) {
+            $offenders[] = "NeriaTools::displayPrice() ne bascule plus sur formatPriceWithIntl() quand une langue explicite diffère du contexte — le formatage de prix pourrait de nouveau suivre silencieusement la langue du cron/BO au lieu de celle du destinataire";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
