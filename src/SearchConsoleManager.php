@@ -291,6 +291,27 @@ class SearchConsoleManager
         return is_array($data) ? $data : null;
     }
 
+    /**
+     * Compare bidirectionnellement le siteUrl d'une propriété Search Console
+     * au host de la boutique (même logique que
+     * PostmasterManager::fetchAndCache()) : une "Domain property" Search
+     * Console (siteUrl = 'sc-domain:example.com') est plus COURTE que le
+     * host complet de la boutique ('www.example.com'), donc une comparaison
+     * à sens unique (stripos($su, $host)) échoue toujours dans ce sens très
+     * courant — Google recommande précisément ce type de propriété car il
+     * couvre http/https/www automatiquement. Extraite pour être testable
+     * sans mocker l'appel réseau à Google.
+     */
+    private function matchesShopHost(string $siteUrl, string $shopHost): bool
+    {
+        if ($shopHost === '') {
+            return false;
+        }
+        $suHost = str_replace(['sc-domain:', 'https://', 'http://'], '', rtrim($siteUrl, '/'));
+
+        return stripos($suHost, $shopHost) !== false || stripos($shopHost, $suHost) !== false;
+    }
+
     private function fetchAndCache(): ?array
     {
         $token = $this->getAccessToken();
@@ -314,10 +335,11 @@ class SearchConsoleManager
 
         // Utilise l'URL de la boutique ou le premier site disponible
         $shopUrl  = \Tools::getShopDomainSsl(true) . '/';
+        $shopHost = (string) parse_url($shopUrl, PHP_URL_HOST);
         $siteUrl  = null;
         foreach ($sitesData['siteEntry'] as $entry) {
             $su = $entry['siteUrl'] ?? '';
-            if ($su !== '' && (stripos($su, parse_url($shopUrl, PHP_URL_HOST)) !== false)) {
+            if ($su !== '' && $this->matchesShopHost($su, $shopHost)) {
                 $siteUrl = $su;
                 break;
             }
