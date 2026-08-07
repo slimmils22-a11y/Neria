@@ -554,6 +554,15 @@ class BounceManager
 
         $db  = \Db::getInstance();
 
+        // Un soft bounce expiré (voir isBounced()) doit reprendre à 1, pas
+        // s'ajouter au compteur historique jamais remis à zéro en base :
+        // sans ce reset, un unique nouveau soft bounce après expiration
+        // faisait immédiatement dépasser le seuil (bounce_count repartait
+        // de sa valeur d'avant expiration + 1), niant la réhabilitation
+        // automatique voulue par isBounced() — l'adresse était reblacklistée
+        // par un seul incident au lieu de repartir de zéro.
+        $expiryMonths = (int) \Configuration::get(self::CFG_SOFT_EXPIRY_MONTHS) ?: 6;
+
         // INSERT ... ON DUPLICATE KEY UPDATE (atomique, appuyé sur la contrainte
         // UNIQUE `uq_email`) plutôt qu'un SELECT puis INSERT/UPDATE séparés :
         // ce dernier n'était pas atomique, et recordBounce() est appelé à la
@@ -573,7 +582,12 @@ class BounceManager
                 \'' . pSQL($source) . '\', 1, NOW(), \'active\', NOW()
              )
              ON DUPLICATE KEY UPDATE
-                `bounce_count`   = `bounce_count` + 1,
+                `bounce_count`   = IF(
+                                       `type` <> \'hard\'
+                                       AND TIMESTAMPDIFF(MONTH, `last_bounce_at`, NOW()) >= ' . $expiryMonths . ',
+                                       1,
+                                       `bounce_count` + 1
+                                   ),
                 `last_bounce_at` = VALUES(`last_bounce_at`),
                 `reason`         = VALUES(`reason`),
                 `type`           = IF(`type` = \'hard\', \'hard\', VALUES(`type`))'
