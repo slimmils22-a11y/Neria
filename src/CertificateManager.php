@@ -766,9 +766,36 @@ class CertificateManager
         // Basé sur le MAX global, la suite ne collisionne jamais entre
         // boutiques — seul le "chaque boutique recommence à 1" cosmétique
         // est perdu, au profit d'une émission qui ne bloque plus jamais.
-        $last = (int) $this->db->getValue(
-            'SELECT MAX(`id_certificate`) FROM `' . _DB_PREFIX_ . self::TABLE . '`'
+        //
+        // Le compteur AUTO_INCREMENT réel de la table (information_schema),
+        // pas MAX(id_certificate) : ce dernier RÉTROGRADE quand la ligne au
+        // plus grand id_certificate est supprimée (delete(), action BO
+        // "cert_delete"), alors qu'InnoDB ne recycle JAMAIS un id
+        // AUTO_INCREMENT déjà consommé après un DELETE (contrairement à un
+        // TRUNCATE). Avec MAX(id_certificate), supprimer le certificat le
+        // plus récent faisait régénérer exactement le même numéro de série
+        // pour la prochaine émission — deux certificats différents (clients,
+        // produits, dates distincts) avec un serial_number identique,
+        // vidant de son sens la fonction de vérification d'authenticité.
+        // ANALYZE TABLE force InnoDB à rafraîchir ses statistiques
+        // persistantes avant la lecture — sans ça, information_schema.TABLES
+        // .AUTO_INCREMENT peut renvoyer une valeur mise en cache par MySQL
+        // (system variable information_schema_stats_expiry, 24h par défaut),
+        // pouvant retomber sous un id_certificate déjà consommé et
+        // reproduire le bug d'origine sous une autre forme. Coût négligeable
+        // : appelé uniquement à l'émission d'un certificat, jamais en boucle
+        // sur un gros volume.
+        $this->db->execute('ANALYZE TABLE `' . _DB_PREFIX_ . self::TABLE . '`');
+        $nextAutoIncrement = (int) $this->db->getValue(
+            'SELECT `AUTO_INCREMENT` FROM `information_schema`.`TABLES`
+             WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = \'' . _DB_PREFIX_ . self::TABLE . '\''
         );
+        // Repli sur MAX+1 si l'introspection échoue (permissions restreintes
+        // sur certains hébergements mutualisés) — comportement identique à
+        // avant ce correctif, pas une régression pour cet environnement.
+        $last = $nextAutoIncrement > 0
+            ? $nextAutoIncrement - 1
+            : (int) $this->db->getValue('SELECT MAX(`id_certificate`) FROM `' . _DB_PREFIX_ . self::TABLE . '`');
         return strtoupper($prefix) . '-' . $year . '-' . str_pad($last + 1 + $offset, 6, '0', STR_PAD_LEFT);
     }
 
