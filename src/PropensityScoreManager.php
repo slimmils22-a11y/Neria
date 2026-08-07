@@ -207,10 +207,17 @@ class PropensityScoreManager
 
     private function scoreEngagement(int $idCustomer): float
     {
+        // AND is_mpp = 0 : exclut les pré-chargements automatiques d'Apple
+        // Mail Privacy Protection (pixel chargé par le proxy Apple dès
+        // réception, pas à l'ouverture réelle) — même filtre que
+        // SegmentManager/StatsManager/ChurnScoreManager. Sans lui, un client
+        // Apple Mail qui n'ouvre jamais réellement ses emails gonflait quand
+        // même son score d'Engagement, déclenchant à tort des alertes de
+        // fenêtre d'achat "optimale" (getAlertCustomers()).
         $opens = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
              WHERE id_customer = ' . $idCustomer . ' AND id_shop = ' . $this->idShop . '
-               AND event_type = \'open\'
+               AND event_type = \'open\' AND is_mpp = 0
                AND date_add >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
         );
         $clicks = (int) $this->db->getValue(

@@ -63,6 +63,16 @@ class ChurnScoreManager
         $stat  = _DB_PREFIX_ . 'neria_stat';
         $shop  = $this->idShop;
 
+        // AND is_mpp = 0 sur les 3 open_pX : exclut les pré-chargements
+        // automatiques d'Apple Mail Privacy Protection (le pixel de tracking
+        // est chargé par le proxy Apple dès réception, pas à l'ouverture
+        // réelle) — même filtre que SegmentManager/StatsManager/
+        // MonthlyReportManager partout ailleurs, absent ici jusqu'à
+        // aujourd'hui. Sans lui, un client Apple Mail qui n'ouvre jamais
+        // réellement ses emails gardait un rate_p1 artificiellement élevé,
+        // sous-estimant son score de churn — l'inverse exact du bug déjà
+        // corrigé dans SegmentManager (ghost/dormant classé ambassador/loyal).
+        //
         // Métriques sent/open par période (0-90 j) — scindées en une requête
         // BORNÉE par date_add, séparée de la requête "tous temps" ci-dessous.
         // Auparavant une seule requête sans aucune borne de date scannait la
@@ -80,21 +90,21 @@ class ChurnScoreManager
                 SUM(CASE WHEN date_add >= DATE_SUB(NOW(), INTERVAL 30 DAY)
                           AND event_type = 'sent' THEN 1 ELSE 0 END) AS sent_p1,
                 SUM(CASE WHEN date_add >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-                          AND event_type = 'open' THEN 1 ELSE 0 END) AS open_p1,
+                          AND event_type = 'open' AND is_mpp = 0 THEN 1 ELSE 0 END) AS open_p1,
                 -- Période 2 : 31-60 j
                 SUM(CASE WHEN date_add < DATE_SUB(NOW(), INTERVAL 30 DAY)
                           AND date_add >= DATE_SUB(NOW(), INTERVAL 60 DAY)
                           AND event_type = 'sent' THEN 1 ELSE 0 END) AS sent_p2,
                 SUM(CASE WHEN date_add < DATE_SUB(NOW(), INTERVAL 30 DAY)
                           AND date_add >= DATE_SUB(NOW(), INTERVAL 60 DAY)
-                          AND event_type = 'open' THEN 1 ELSE 0 END) AS open_p2,
+                          AND event_type = 'open' AND is_mpp = 0 THEN 1 ELSE 0 END) AS open_p2,
                 -- Période 3 : 61-90 j (la plus ancienne)
                 SUM(CASE WHEN date_add < DATE_SUB(NOW(), INTERVAL 60 DAY)
                           AND date_add >= DATE_SUB(NOW(), INTERVAL 90 DAY)
                           AND event_type = 'sent' THEN 1 ELSE 0 END) AS sent_p3,
                 SUM(CASE WHEN date_add < DATE_SUB(NOW(), INTERVAL 60 DAY)
                           AND date_add >= DATE_SUB(NOW(), INTERVAL 90 DAY)
-                          AND event_type = 'open' THEN 1 ELSE 0 END) AS open_p3
+                          AND event_type = 'open' AND is_mpp = 0 THEN 1 ELSE 0 END) AS open_p3
             FROM `{$stat}`
             WHERE id_shop = {$shop} AND id_customer > 0
               AND date_add >= DATE_SUB(NOW(), INTERVAL 90 DAY)
@@ -109,7 +119,11 @@ class ChurnScoreManager
         // ("tous temps", cf. calcul du créneau d'envoi préféré) — mais scopés
         // à event_type = 'open' uniquement (sous-ensemble bien plus restreint
         // que la table entière), pas de régression de comportement par
-        // rapport à l'ancienne requête combinée.
+        // rapport à l'ancienne requête combinée. AND is_mpp = 0 : même
+        // raison que ci-dessus — un pré-chargement Apple MPP fausserait aussi
+        // last_open (faux "récent") et les tranches horaires (heure du
+        // pré-chargement automatique, pas de l'ouverture réelle par le
+        // client).
         $rowsOpenAllTime = [];
         foreach ($this->db->executeS("
             SELECT
@@ -120,7 +134,7 @@ class ChurnScoreManager
                 SUM(HOUR(date_add) >= 18 AND HOUR(date_add) < 23) AS open_evening,
                 SUM(HOUR(date_add) >= 23 OR HOUR(date_add) < 6)   AS open_night
             FROM `{$stat}`
-            WHERE id_shop = {$shop} AND id_customer > 0 AND event_type = 'open'
+            WHERE id_shop = {$shop} AND id_customer > 0 AND event_type = 'open' AND is_mpp = 0
             GROUP BY id_customer
         ") ?: [] as $r) {
             $rowsOpenAllTime[(int) $r['id_customer']] = $r;
