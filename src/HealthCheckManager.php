@@ -3082,6 +3082,24 @@ class HealthCheckManager
             }
         }
 
+        // Round 105 (2026-08-07) : CollectionManager::checkAndSend() scope
+        // déjà soigneusement {missing_product_url}/{missing_image_url}
+        // (getProductLink avec $idShop) et {missing_price}
+        // (Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop))
+        // sur la boutique du client — mais {shop_name} appelait
+        // Configuration::get('PS_SHOP_NAME') SANS $idShop, retombant sur la
+        // valeur par défaut/du contexte d'exécution du cron. Sur une install
+        // multi-boutiques avec des noms distincts, un client de la boutique 2
+        // recevait "chez <nom boutique 1>" au lieu du vrai nom de sa
+        // boutique.
+        $colFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php';
+        $colSrc  = is_file($colFile) ? (file_get_contents($colFile) ?: '') : '';
+        if ($colSrc === '') {
+            $offenders[] = 'CollectionManager.php introuvable (shop_name scopé par idShop)';
+        } elseif (strpos($colSrc, "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)") === false) {
+            $offenders[] = "CollectionManager::checkAndSend() ne passe plus \$idShop à Configuration::get('PS_SHOP_NAME', ...) — {shop_name} pourrait de nouveau afficher le nom de la mauvaise boutique";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
