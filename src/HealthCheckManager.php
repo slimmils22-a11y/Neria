@@ -2651,6 +2651,23 @@ class HealthCheckManager
             }
         }
 
+        // Round 81 (2026-08-07) : CustomerEmailHistoryManager::getEmails()
+        // et ::getShopAverageOpenRate() comptaient les pré-chargements
+        // automatiques Apple Mail Privacy Protection (is_mpp=1) comme de
+        // vraies ouvertures — contrairement à StatsManager/SegmentManager/
+        // ChurnScoreManager/PropensityScoreManager/MonthlyReportManager,
+        // qui filtrent déjà systématiquement is_mpp=0. Un client Apple Mail
+        // qui n'ouvre jamais réellement ses emails apparaissait "Ouvert"
+        // dans son historique BO, avec un badge d'engagement et un taux
+        // d'ouverture moyen boutique gonflés à tort.
+        $cehFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CustomerEmailHistoryManager.php';
+        $cehSrc  = is_file($cehFile) ? (file_get_contents($cehFile) ?: '') : '';
+        if ($cehSrc === '') {
+            $offenders[] = 'CustomerEmailHistoryManager.php introuvable (filtre is_mpp)';
+        } elseif (substr_count($cehSrc, 'o.is_mpp = 0') < 2) {
+            $offenders[] = "CustomerEmailHistoryManager::getEmails()/getShopAverageOpenRate() ne filtrent plus is_mpp=0 — un client Apple Mail qui n'ouvre jamais réellement ses emails pourrait de nouveau apparaître 'Ouvert' dans son historique BO et gonfler le taux d'ouverture moyen boutique";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
