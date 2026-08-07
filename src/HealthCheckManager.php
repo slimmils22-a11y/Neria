@@ -2575,6 +2575,24 @@ class HealthCheckManager
             }
         }
 
+        // Round 77 (2026-08-06) : même défaut que CalendarManager (round 76)
+        // pour SeasonalCampaignManager — instancié UNE SEULE FOIS dans
+        // runBackgroundJobs(), sans boucle multi-boutique. Une boutique à
+        // faible trafic pouvait ne JAMAIS être "la première" du jour et ne
+        // recevoir aucune campagne saisonnière (Noël, Saint-Valentin...),
+        // indéfiniment.
+        if ($neriaSrc2 === '') {
+            $offenders[] = 'neria.php introuvable (boucle multi-boutique SeasonalCampaignManager)';
+        } else {
+            $posSeasonal = strpos($neriaSrc2, "if (class_exists('SeasonalCampaignManager')) {");
+            $blockSeasonal = $posSeasonal !== false ? substr($neriaSrc2, $posSeasonal, 2000) : '';
+            if ($posSeasonal === false
+                || strpos($blockSeasonal, 'foreach ($shopsSeasonal as $idShopSeasonal) {') === false
+                || strpos($blockSeasonal, 'new SeasonalCampaignManager($this)') === false) {
+                $offenders[] = "neria.php::runBackgroundJobs() n'instancie plus SeasonalCampaignManager dans une boucle par boutique — les boutiques à faible trafic pourraient de nouveau ne jamais recevoir de campagne saisonnière";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
