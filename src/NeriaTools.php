@@ -1009,39 +1009,62 @@ class NeriaTools
     public static function displayPrice(float $amount, \Currency $currency, ?int $idLang = null): string
     {
         $context = \Context::getContext();
-        $originalLang = null;
+
+        // Résout la langue EXPLICITEMENT demandée (destinataire de l'email),
+        // distincte de $context->language (contexte cron/BO du process qui
+        // déclenche l'envoi).
+        $targetLang = null;
         if ($idLang !== null && \Validate::isUnsignedId($idLang)) {
             $lang = new \Language($idLang);
             if (\Validate::isLoadedObject($lang) && (int) $lang->id !== (int) ($context->language->id ?? 0)) {
-                $originalLang = $context->language;
-                $context->language = $lang;
+                $targetLang = $lang;
             }
         }
 
-        try {
-            // PS8 (et versions antérieures) : délègue à l'implémentation native,
-            // comportement strictement identique à l'existant, zéro risque de
-            // régression sur les environnements où la méthode existe encore.
-            if (method_exists('Tools', 'displayPrice')) {
-                return \Tools::displayPrice($amount, $currency);
-            }
-
+        // Quand une langue explicite diffère du contexte, NE PAS passer par
+        // \Tools::displayPrice() natif malgré method_exists() : il délègue à
+        // Tools::getContextLocale(), qui retourne $context->getCurrentLocale()
+        // — un objet Locale calculé UNE SEULE FOIS par Controller::init() (ou
+        // jamais en CLI/cron) et jamais recalculé quand du code réaffecte
+        // $context->language en cours de script. Réaffecter $context->language
+        // ici serait donc un no-op silencieux : le prix resterait formaté
+        // selon la locale figée du process (langue du cron/BO), pas celle du
+        // destinataire — MonthlyReportManager/CollectionManager/
+        // LookCompletionManager appellent tous displayPrice(..., $idLang) en
+        // croyant obtenir un prix dans la langue du CLIENT. formatPriceWithIntl()
+        // ci-dessous prend un objet \Language directement, indépendamment de
+        // $context, et formate donc réellement dans la bonne langue.
+        if ($targetLang !== null) {
             if (class_exists('NumberFormatter')) {
-                $formatted = self::formatPriceWithIntl($amount, $currency, $context->language ?? null);
+                $formatted = self::formatPriceWithIntl($amount, $currency, $targetLang);
                 if ($formatted !== null) {
                     return $formatted;
                 }
             }
-
-            // Dernier repli, sans extension intl : formatage manuel simple mais
-            // jamais faux (mieux qu'un montant absent de l'email).
             $sign = $currency->sign ?: $currency->iso_code;
             return number_format($amount, 2, ',', ' ') . ' ' . $sign;
-        } finally {
-            if ($originalLang !== null) {
-                $context->language = $originalLang;
+        }
+
+        // PS8 (et versions antérieures) : délègue à l'implémentation native,
+        // comportement strictement identique à l'existant, zéro risque de
+        // régression sur les environnements où la méthode existe encore —
+        // uniquement quand aucune langue explicite n'est demandée (le prix
+        // du contexte courant est bien celui attendu dans ce cas).
+        if (method_exists('Tools', 'displayPrice')) {
+            return \Tools::displayPrice($amount, $currency);
+        }
+
+        if (class_exists('NumberFormatter')) {
+            $formatted = self::formatPriceWithIntl($amount, $currency, $context->language ?? null);
+            if ($formatted !== null) {
+                return $formatted;
             }
         }
+
+        // Dernier repli, sans extension intl : formatage manuel simple mais
+        // jamais faux (mieux qu'un montant absent de l'email).
+        $sign = $currency->sign ?: $currency->iso_code;
+        return number_format($amount, 2, ',', ' ') . ' ' . $sign;
     }
 
     /**
