@@ -2610,6 +2610,24 @@ class HealthCheckManager
             }
         }
 
+        // Round 79 (2026-08-06) : 4e occurrence du même défaut que Calendar
+        // (76)/Seasonal (77)/Webhook (78) pour DomainReputationManager —
+        // instancié UNE SEULE FOIS dans runBackgroundJobs(), sans boucle
+        // multi-boutique. Les boutiques autres que celle du contexte
+        // courant gardaient un cache de réputation de domaine figé
+        // indéfiniment, sans jamais être alertées d'une dégradation réelle.
+        if ($neriaSrc2 === '') {
+            $offenders[] = 'neria.php introuvable (boucle multi-boutique DomainReputationManager)';
+        } else {
+            $posDR = strpos($neriaSrc2, "// ── Réputation de domaine (rafraîchissement auto 24h)");
+            $blockDR = $posDR !== false ? substr($neriaSrc2, $posDR, 1600) : '';
+            if ($posDR === false
+                || strpos($blockDR, 'foreach ($shopsDR as $idShopDR) {') === false
+                || strpos($blockDR, 'new DomainReputationManager($this)') === false) {
+                $offenders[] = "neria.php::runBackgroundJobs() n'instancie plus DomainReputationManager dans une boucle par boutique — les boutiques autres que celle du contexte courant pourraient de nouveau ne jamais voir leur réputation de domaine rafraîchie";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
