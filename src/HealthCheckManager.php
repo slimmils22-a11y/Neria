@@ -2701,6 +2701,20 @@ class HealthCheckManager
             $offenders[] = "StatsManager::record() n'exclut plus \$isMpp avant d'attribuer des points de fidélité pour un 'open' — un client Apple Mail qui n'ouvre jamais réellement ses emails pourrait de nouveau recevoir des points à chaque pré-chargement MPP";
         }
 
+        // Round 84 (2026-08-07) : BounceManager::recordBounce() incrémentait
+        // toujours bounce_count de 1 (`bounce_count` + 1), même quand le
+        // précédent soft bounce avait expiré (isBounced() le traite comme
+        // réhabilité, mais le compteur en base n'était jamais remis à zéro).
+        // Un seul nouveau soft bounce après expiration rebloquait aussitôt
+        // l'adresse, niant la réhabilitation automatique.
+        $bmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php';
+        $bmSrc  = is_file($bmFile) ? (file_get_contents($bmFile) ?: '') : '';
+        if ($bmSrc === '') {
+            $offenders[] = 'BounceManager.php introuvable (reset bounce_count sur expiration)';
+        } elseif (strpos($bmSrc, "TIMESTAMPDIFF(MONTH, `last_bounce_at`, NOW()) >= ' . \$expiryMonths") === false) {
+            $offenders[] = "BounceManager::recordBounce() ne remet plus bounce_count à 1 quand le soft bounce précédent a expiré — une adresse réhabilitée automatiquement pourrait de nouveau être rebloquée par un seul nouveau bounce";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
