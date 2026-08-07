@@ -1744,7 +1744,32 @@ class Neria extends Module
                         $lastWebhookRecheck = (int) \Configuration::get('neria_webhook_last_process');
                         if (($now - $lastWebhookRecheck) >= 300) {
                             \Configuration::updateValue('neria_webhook_last_process', $now);
-                            (new WebhookManager($this))->processQueue();
+                            // WebhookManager capture $this->idShop dans son
+                            // constructeur et processQueue() filtre sa
+                            // sélection SQL sur cette seule boutique — même
+                            // défaut déjà corrigé pour CalendarManager
+                            // (round 76) et SeasonalCampaignManager
+                            // (round 77) : sans boucle par boutique ici, les
+                            // webhooks en attente d'une boutique différente
+                            // de celle du contexte courant restaient
+                            // indéfiniment 'pending', jamais traités (à la
+                            // différence de QueueManager::processQueue()
+                            // juste au-dessus, qui traite volontairement
+                            // TOUTES les boutiques en un seul appel, sans
+                            // filtre id_shop sur sa sélection).
+                            $originalShopWebhook = \Context::getContext()->shop;
+                            $shopsWebhook = \Shop::getShops(true, null, true) ?: [(int) $originalShopWebhook->id];
+                            foreach ($shopsWebhook as $idShopWebhook) {
+                                \Context::getContext()->shop = new \Shop((int) $idShopWebhook);
+                                try {
+                                    (new WebhookManager($this))->processQueue();
+                                } catch (\Throwable $eShop) {
+                                    // best-effort par boutique — une erreur sur
+                                    // l'une ne doit pas empêcher le traitement
+                                    // des autres.
+                                }
+                            }
+                            \Context::getContext()->shop = $originalShopWebhook;
                             $ran['webhook'] = true;
                             if (class_exists('WatchdogManager')) {
                                 (new WatchdogManager($this))->cronHeartbeat('webhook');
