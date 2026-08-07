@@ -746,10 +746,19 @@ class ManualSendManager
                 && $customer
             ) {
                 if ($template === 'first_anniversary') {
+                    // AND id_shop = $idShop : même correctif que
+                    // QueueManager::processSingle() — BehavioralCronManager::
+                    // sendFirstAnniversaries() calcule id_first_order en
+                    // filtrant explicitement sur LA boutique (« 1ère commande
+                    // DE CETTE boutique »). Sans ce même filtre ici, un
+                    // client partagé entre boutiques dont la commande la
+                    // plus ancienne (toutes boutiques confondues) est sur une
+                    // AUTRE boutique obtenait un ref_id incohérent, cassant
+                    // la traçabilité de neria_behavioral_sent en multi-shop.
                     $refId = (int) $this->db->getValue(
                         'SELECT MIN(id_order) FROM `' . _DB_PREFIX_ . 'orders`
                          WHERE id_customer = ' . (int) $customer['id_customer'] . '
-                           AND valid = 1'
+                           AND valid = 1 AND id_shop = ' . (int) $idShop
                     );
                 } else {
                     $refId = (int) date('Y');
