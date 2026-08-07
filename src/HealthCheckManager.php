@@ -2885,6 +2885,23 @@ class HealthCheckManager
             $offenders[] = "checkWaitlistBacklog() ne calcule plus le stock par SUM SQL direct sur toutes les déclinaisons — le garde-fou d'auto-réparation pourrait de nouveau rester bloqué sur 'OK' pour tout produit à déclinaisons";
         }
 
+        // Round 94 (2026-08-07) : CertificateManager::generateSerial()
+        // basait le prochain numéro de série sur MAX(id_certificate), qui
+        // RÉTROGRADE quand la ligne au plus grand id est supprimée
+        // (delete(), action BO "cert_delete") — contrairement au compteur
+        // AUTO_INCREMENT réel d'InnoDB, jamais recyclé après un DELETE.
+        // Supprimer le certificat le plus récent faisait régénérer le même
+        // numéro de série pour la prochaine émission, vidant de son sens la
+        // vérification d'authenticité (deux certificats différents avec le
+        // même serial_number).
+        $cmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
+        $cmSrc  = is_file($cmFile) ? (file_get_contents($cmFile) ?: '') : '';
+        if ($cmSrc === '') {
+            $offenders[] = 'CertificateManager.php introuvable (AUTO_INCREMENT anti-réémission serial)';
+        } elseif (strpos($cmSrc, 'SELECT `AUTO_INCREMENT` FROM `information_schema`.`TABLES`') === false) {
+            $offenders[] = "CertificateManager::generateSerial() n'interroge plus le compteur AUTO_INCREMENT réel — un certificat supprimé pourrait de nouveau faire réémettre le même numéro de série à un autre client";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
