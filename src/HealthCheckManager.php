@@ -3884,6 +3884,62 @@ class HealthCheckManager
             }
         }
 
+        // Round 134 (2026-08-08) : PageSpeedManager::getLastError()/recordError()
+        // doivent, comme SeoApiManager (round 133), passer par cacheKey().
+        $psmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PageSpeedManager.php';
+        $psmSrc  = is_file($psmFile) ? (file_get_contents($psmFile) ?: '') : '';
+        if ($psmSrc === '') {
+            $offenders[] = 'PageSpeedManager.php introuvable (garde-fou round 134 : LAST_ERROR scopé par boutique)';
+        } elseif (strpos($psmSrc, '\Configuration::get($this->cacheKey(self::CONFIG_LAST_ERROR))') === false
+            || strpos($psmSrc, '\Configuration::updateValue($this->cacheKey(self::CONFIG_LAST_ERROR), $msg)') === false
+        ) {
+            $offenders[] = "PageSpeedManager : CONFIG_LAST_ERROR/CONFIG_LAST_ERROR_AT ne passent plus par cacheKey() — régression du bug corrigé le 08/08/2026 (round 134) : une erreur PageSpeed d'une boutique pourrait de nouveau être effacée/mélangée par une autre boutique";
+        }
+
+        // Round 134 (2026-08-08) : l'action BO save_carbon (neria.php) doit
+        // écrire via ConfigManager::set() (scopé idShop), pas
+        // Configuration::updateValue() en direct.
+        $mainSrc134 = file_get_contents(_PS_MODULE_DIR_ . $this->module->name . '/neria.php') ?: '';
+        $posCarbon = strpos($mainSrc134, "'neria_action') === 'save_carbon'");
+        $carbonBlock = $posCarbon !== false ? substr($mainSrc134, $posCarbon, 900) : '';
+        if ($posCarbon === false
+            || strpos($carbonBlock, '$carbonMgr->set(ConfigManager::KEY_CARBON_ENABLED') === false
+            || strpos($carbonBlock, '$carbonMgr->set(ConfigManager::KEY_CARBON_LINK') === false
+        ) {
+            $offenders[] = "neria.php : l'action save_carbon n'écrit plus via ConfigManager::set() — régression du bug corrigé le 08/08/2026 (round 134) : le bloc CO₂ pourrait de nouveau diverger entre boutiques selon celle où la config a été enregistrée";
+        }
+
+        // Round 134 (2026-08-08) : MultiClientPreviewManager::submitToLitmus()/
+        // submitToEmailOnAcid() doivent capturer curl_error() et journaliser
+        // via Watchdog, comme leurs pendants pollLitmus()/pollEmailOnAcid().
+        $mcpFile = _PS_MODULE_DIR_ . $this->module->name . '/src/MultiClientPreviewManager.php';
+        $mcpSrc  = is_file($mcpFile) ? (file_get_contents($mcpFile) ?: '') : '';
+        if ($mcpSrc === '') {
+            $offenders[] = 'MultiClientPreviewManager.php introuvable (garde-fou round 134 : submitTo*() capturent curl_error())';
+        } else {
+            $curlErrCount = substr_count($mcpSrc, '$curlErr  = curl_error($ch);');
+            if ($curlErrCount < 4) {
+                $offenders[] = "MultiClientPreviewManager : submitToLitmus()/submitToEmailOnAcid() ne capturent plus curl_error(\$ch) — régression du bug corrigé le 08/08/2026 (round 134) : un échec transport redeviendrait indiscernable d'une simple erreur HTTP inexploitable (attendu 4 occurrences avec pollLitmus()/pollEmailOnAcid(), trouvé {$curlErrCount})";
+            }
+        }
+
+        // Round 134 (2026-08-08) : le badge "issues" du multi-preview
+        // (neria.php) doit refléter count($detail), pas un comptage de
+        // blocs <style> supprimés (sous-comptait les anomalies Outlook/
+        // ProtonMail, neutralisées en styles inline).
+        if (strpos($mainSrc134, "'issues' => count(\$detail)") === false) {
+            $offenders[] = "neria.php : le badge 'issues' du multi-preview ne se base plus sur count(\$detail) — régression du bug corrigé le 08/08/2026 (round 134) : les anomalies inline (Outlook/ProtonMail) redeviendraient sous-comptées";
+        }
+
+        // Round 134 (2026-08-08) : l'action BO save_multipreview_keys doit
+        // valider le format de la clé Email on Acid (présence de ':')
+        // avant de l'enregistrer.
+        $posEoaKeys = strpos($mainSrc134, "'neria_action') === 'save_multipreview_keys'");
+        $eoaBlock = $posEoaKeys !== false ? substr($mainSrc134, $posEoaKeys, 900) : '';
+        if ($posEoaKeys === false || strpos($eoaBlock, "strpos(\$eoaKey, ':') === false") === false) {
+            $offenders[] = "neria.php : l'action save_multipreview_keys ne valide plus le format de la clé Email on Acid — régression du bug corrigé le 08/08/2026 (round 134) : une clé mal formée serait de nouveau enregistrée sans contrôle";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
