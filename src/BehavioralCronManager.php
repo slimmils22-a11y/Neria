@@ -1801,25 +1801,40 @@ class BehavioralCronManager
             $idLang     = (int) ($r['id_lang'] ?: \Configuration::get('PS_LANG_DEFAULT'));
             $idCustomer = (int) $r['id_customer'];
 
-            $product = new \Product($idProduct, false, $idLang);
-            if (!\Validate::isLoadedObject($product)) {
-                continue;
-            }
+            // $idShop explicite au constructeur ET commutation réelle du
+            // contexte boutique statique — même piège Shop::$context_id_shop
+            // que CooldownManager/DomainReputationManager (round 129) : la
+            // réassignation de Context->shop dans la boucle multi-boutique de
+            // run() ne met pas à jour ce contexte statique (seul
+            // Shop::setContext() le fait), consulté en interne par
+            // Product::getCover() (via Shop::addSqlAssociation()) en plus du
+            // constructeur Product — round 132.
+            $ghostShopId = (int) $r['id_shop'];
+            $originalGhostShopId = \Shop::getContextShopID(true);
+            \Shop::setContext(\Shop::CONTEXT_SHOP, $ghostShopId);
+            try {
+                $product = new \Product($idProduct, false, $idLang, $ghostShopId);
+                if (!\Validate::isLoadedObject($product)) {
+                    continue;
+                }
 
-            // URL produit
-            $productUrl = \Context::getContext()->link->getProductLink(
-                $product, null, null, null, $idLang, (int) $r['id_shop']
-            );
-
-            // Image principale
-            $cover    = \Product::getCover($idProduct);
-            $imageUrl = '';
-            if ($cover) {
-                $imageUrl = \Context::getContext()->link->getImageLink(
-                    $product->link_rewrite,
-                    (int) $cover['id_image'],
-                    \ImageType::getFormattedName('home')
+                // URL produit
+                $productUrl = \Context::getContext()->link->getProductLink(
+                    $product, null, null, null, $idLang, $ghostShopId
                 );
+
+                // Image principale
+                $cover    = \Product::getCover($idProduct);
+                $imageUrl = '';
+                if ($cover) {
+                    $imageUrl = \Context::getContext()->link->getImageLink(
+                        $product->link_rewrite,
+                        (int) $cover['id_image'],
+                        \ImageType::getFormattedName('home')
+                    );
+                }
+            } finally {
+                \Shop::setContext(\Shop::CONTEXT_SHOP, $originalGhostShopId);
             }
 
             $this->send(

@@ -250,7 +250,10 @@ class LookCompletionManager
         // p.id_category_default IS NOT NULL exclut les produits orphelins
         // (donnée corrompue) — sans ce filtre, un NULL castait en 0 dans
         // findMatchingRule() (IN (0, ...)), polluant la liste FIELD() et
-        // pouvant décaler l'ordre de priorité des règles.
+        // pouvant décaler l'ordre de priorité des règles. id_category_default
+        // != 0 exclut le même cas de figure quand la donnée corrompue est un
+        // 0 explicite plutôt qu'un NULL (produit mal configuré côté
+        // catalogue) — round 132.
         $rows = $this->db->executeS("
             SELECT p.id_category_default,
                    SUM(od.unit_price_tax_incl * od.product_quantity) AS category_value
@@ -258,6 +261,7 @@ class LookCompletionManager
             INNER JOIN `{$this->prefix}product` p ON p.id_product = od.product_id
             WHERE od.id_order = {$idOrder}
               AND p.id_category_default IS NOT NULL
+              AND p.id_category_default != 0
             GROUP BY p.id_category_default
             ORDER BY category_value DESC
         ");

@@ -28,6 +28,15 @@ class PostmasterManager
     const CONFIG_CACHE_HOST    = 'NERIA_POSTMASTER_CACHE_HOST';
     const CONFIG_RETURN_URL    = 'NERIA_POSTMASTER_RETURN_URL';
     const CONFIG_OAUTH_STATE   = 'NERIA_POSTMASTER_OAUTH_STATE';
+    // Volontairement GLOBALES (non passées par cacheKey(), contrairement à
+    // CONFIG_CACHE/CONFIG_CACHE_TIME) — décision de conception confirmée au
+    // round 131/132 : CONFIG_ACCESS_TOKEN/CONFIG_REFRESH_TOKEN (la connexion
+    // OAuth elle-même) sont eux aussi globaux à l'installation, une seule
+    // connexion Google Postmaster pour toutes les boutiques. Une erreur
+    // d'API/OAuth (invalid_grant, quota, panne réseau) affecte réellement
+    // TOUTES les boutiques de la même façon — la scoper par id_shop masquerait
+    // à tort le fait que la connexion est cassée pour les autres boutiques
+    // dès qu'une seule d'entre elles vient de rafraîchir son cache avec succès.
     const CONFIG_LAST_ERROR    = 'NERIA_POSTMASTER_LAST_ERROR';
     const CONFIG_LAST_ERROR_AT = 'NERIA_POSTMASTER_LAST_ERROR_AT';
 

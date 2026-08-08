@@ -3229,8 +3229,7 @@ class Neria extends Module
 
         if (Tools::getValue('neria_action') === 'toggle_time_greeting' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $cfg     = new ConfigManager($this);
-            $enabled = !$cfg->isTimeGreetingEnabled();
-            $cfg->setTimeGreetingEnabled($enabled);
+            $enabled = $cfg->toggleTimeGreetingEnabled();
             $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.smart_salutation_toggled', [
                 'state' => AdminTranslator::t($enabled ? 'msg.state_enabled' : 'msg.state_disabled'),
             ]));
@@ -3238,8 +3237,7 @@ class Neria extends Module
 
         if (Tools::getValue('neria_action') === 'toggle_multi_sender' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $cfg     = new ConfigManager($this);
-            $enabled = !$cfg->isMultiSenderEnabled();
-            $cfg->setMultiSenderEnabled($enabled);
+            $enabled = $cfg->toggleMultiSenderEnabled();
             $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.multisender_toggled', [
                 'state' => AdminTranslator::t($enabled ? 'msg.state_enabled_m' : 'msg.state_disabled_m'),
             ]));
@@ -3247,8 +3245,7 @@ class Neria extends Module
 
         if (Tools::getValue('neria_action') === 'toggle_signature' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $cfg     = new ConfigManager($this);
-            $enabled = !$cfg->isSignatureEnabled();
-            $cfg->setSignatureEnabled($enabled);
+            $enabled = $cfg->toggleSignatureEnabled();
             $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.signature_toggled', [
                 'state' => AdminTranslator::t($enabled ? 'msg.state_enabled' : 'msg.state_disabled'),
             ]));
@@ -3256,8 +3253,7 @@ class Neria extends Module
 
         if (Tools::getValue('neria_action') === 'toggle_firstname_fallback' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $cfg     = new ConfigManager($this);
-            $enabled = !$cfg->isFirstnameFallbackEnabled();
-            $cfg->setFirstnameFallbackEnabled($enabled);
+            $enabled = $cfg->toggleFirstnameFallbackEnabled();
             $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.smart_fallbacks_toggled', [
                 'state' => AdminTranslator::t($enabled ? 'msg.state_activated' : 'msg.state_deactivated'),
             ]));

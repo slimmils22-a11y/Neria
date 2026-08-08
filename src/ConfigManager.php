@@ -457,7 +457,17 @@ class ConfigManager
         if (array_key_exists($key, $this->cache)) {
             $value = $this->cache[$key];
         } else {
-            $value = \Configuration::get($key);
+            // $this->idShop explicite — même piège Shop::$context_id_shop que
+            // CooldownManager/DomainReputationManager/BehavioralCronManager
+            // (rounds 129/132) : sans ce 4e argument, Configuration::get()
+            // résout via le contexte statique ambiant (jamais mis à jour par
+            // une simple réassignation de Context->shop dans une boucle
+            // multi-boutique), pas via $this->idShop capturé au constructeur —
+            // un ConfigManager instancié à l'intérieur d'une boucle
+            // BehavioralCronManager::run() pouvait ainsi lire les réglages
+            // (bon d'anniversaire, plafond, signature, réseaux sociaux) d'une
+            // autre boutique que celle réellement traitée — round 132.
+            $value = \Configuration::get($key, null, null, $this->idShop);
             $this->cache[$key] = $value;
         }
 
@@ -608,6 +618,20 @@ class ConfigManager
         return $this->set(self::KEY_TIME_GREETING_ENABLED, (int) $enabled);
     }
 
+    /**
+     * Bascule l'état et renvoie le nouvel état — verrouillé, contrairement à
+     * l'ancien pattern appelant isX() puis setX() séparément (deux clics
+     * rapprochés, double-clic ou deux onglets BO, pouvaient tous deux lire
+     * le même état avant que l'un des deux n'écrive : le second appel
+     * réappliquait la même valeur au lieu de basculer, désynchronisant
+     * l'UI de l'état réel). Même famille de correctif que
+     * toggleMenuItemVisibility() (round 123/127) — round 132.
+     */
+    public function toggleTimeGreetingEnabled(): bool
+    {
+        return $this->toggleBooleanKey(self::KEY_TIME_GREETING_ENABLED, 'isTimeGreetingEnabled', 'setTimeGreetingEnabled');
+    }
+
     public function isFirstnameFallbackEnabled(): bool
     {
         return (bool) $this->get(self::KEY_FIRSTNAME_FALLBACK_ENABLED, 1);
@@ -616,6 +640,11 @@ class ConfigManager
     public function setFirstnameFallbackEnabled(bool $enabled): bool
     {
         return $this->set(self::KEY_FIRSTNAME_FALLBACK_ENABLED, (int) $enabled);
+    }
+
+    public function toggleFirstnameFallbackEnabled(): bool
+    {
+        return $this->toggleBooleanKey(self::KEY_FIRSTNAME_FALLBACK_ENABLED, 'isFirstnameFallbackEnabled', 'setFirstnameFallbackEnabled');
     }
 
     public function isMultiSenderEnabled(): bool
@@ -628,6 +657,11 @@ class ConfigManager
         return $this->set(self::KEY_MULTI_SENDER_ENABLED, (int) $enabled);
     }
 
+    public function toggleMultiSenderEnabled(): bool
+    {
+        return $this->toggleBooleanKey(self::KEY_MULTI_SENDER_ENABLED, 'isMultiSenderEnabled', 'setMultiSenderEnabled');
+    }
+
     public function isSignatureEnabled(): bool
     {
         return (bool) $this->get(self::KEY_SIGNATURE_ENABLED, 1);
@@ -636,6 +670,32 @@ class ConfigManager
     public function setSignatureEnabled(bool $enabled): bool
     {
         return $this->set(self::KEY_SIGNATURE_ENABLED, (int) $enabled);
+    }
+
+    public function toggleSignatureEnabled(): bool
+    {
+        return $this->toggleBooleanKey(self::KEY_SIGNATURE_ENABLED, 'isSignatureEnabled', 'setSignatureEnabled');
+    }
+
+    /**
+     * Verrou MySQL nommé par clé autour du cycle lecture-modification-
+     * écriture d'un toggle booléen — voir toggleTimeGreetingEnabled() pour
+     * le scénario de course évité. $getter/$setter sont les noms des
+     * méthodes publiques existantes de $this, appelées par leur nom pour
+     * réutiliser leur logique (cache, valeurs par défaut) sans duplication.
+     */
+    private function toggleBooleanKey(string $key, string $getter, string $setter): bool
+    {
+        $db = \Db::getInstance();
+        $lockName = 'neria_toggle_' . $key;
+        $db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 3)");
+        try {
+            $enabled = !$this->{$getter}();
+            $this->{$setter}($enabled);
+            return $enabled;
+        } finally {
+            $db->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
+        }
     }
 
     /**
