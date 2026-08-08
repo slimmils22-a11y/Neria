@@ -3173,6 +3173,29 @@ class HealthCheckManager
             }
         }
 
+        // Round 108 (2026-08-08) : UpsellManager::getLog() — le round 104
+        // avait corrigé product_url (passage de $idShop en 6e argument à
+        // getProductLink()), mais thumb_url, généré juste au-dessus dans la
+        // même boucle, appelait getImageLink() sans jamais basculer
+        // Context::getContext()->shop — passé inaperçu au round 104 car
+        // getImageLink() n'a structurellement aucun paramètre $idShop à
+        // simplement rajouter (contrairement à getProductLink()), résolvant
+        // toujours le domaine/thème via le contexte global courant. Un
+        // admin multi-boutique consultant le journal d'une autre boutique
+        // que celle active voyait thumb_url pointer vers le domaine/thème
+        // de la mauvaise boutique alors que product_url, lui, était correct.
+        $up4File = _PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php';
+        $up4Src  = is_file($up4File) ? (file_get_contents($up4File) ?: '') : '';
+        if ($up4Src === '') {
+            $offenders[] = 'UpsellManager.php introuvable (garde-fou round 108 : getLog() thumb_url scopé par idShop)';
+        } else {
+            $posGetLog4 = strpos($up4Src, 'public function getLog(');
+            $getLogBody4 = $posGetLog4 !== false ? substr($up4Src, $posGetLog4, 3200) : '';
+            if ($posGetLog4 === false || strpos($getLogBody4, '$context->shop = new \Shop($idShop);') === false) {
+                $offenders[] = "UpsellManager::getLog() ne bascule plus Context::getContext()->shop sur \$idShop avant de générer thumb_url — régression du bug corrigé le 08/08/2026 (round 108)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
