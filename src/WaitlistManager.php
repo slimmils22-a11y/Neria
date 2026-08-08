@@ -159,7 +159,14 @@ class WaitlistManager
                 '{product_name}'       => $product->name,
                 '{product_url}'        => $productUrl,
                 '{product_image}'      => $imageUrl,
-                '{product_price}'      => \NeriaTools::displayPrice((float) $product->price, new \Currency((int) \Context::getContext()->currency->id), $idLang),
+                // Currency::PS_CURRENCY_DEFAULT scopé par $idShop — même
+                // piège multi-boutique déjà corrigé (round 103) pour
+                // {product_url}/{product_image} ci-dessus dans ce même bloc,
+                // et (round 106) pour {shop_name} juste en-dessous. Sans ce
+                // scope, {product_price} retombait sur la devise du contexte
+                // d'exécution courant (BO admin qui a déclenché la mise à
+                // jour de stock), pas celle de la boutique du client réel.
+                '{product_price}'      => \NeriaTools::displayPrice((float) $product->price, new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop)), $idLang),
                 '{days_waited}'        => $daysWaited,
                 '{reservation_hours}'  => (int) \Configuration::getGlobalValue('NERIA_WAITLIST_RESERVATION_HOURS') ?: self::RESERVATION_HOURS,
                 // Configuration::get(..., $idShop) : round 106, même piège
