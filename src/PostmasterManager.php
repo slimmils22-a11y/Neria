@@ -411,9 +411,19 @@ class PostmasterManager
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.postmaster_no_matching_domain', ['host' => $shopHost]), '', 'PostmasterManager');
         }
 
-        \Configuration::updateValue(self::CONFIG_CACHE,      json_encode($results, JSON_UNESCAPED_UNICODE));
-        \Configuration::updateValue(self::CONFIG_CACHE_TIME, time());
-        \Configuration::updateValue(self::CONFIG_CACHE_HOST, $shopHost);
+        // Round 128 : écriture scopée par boutique via cacheKey() — comme
+        // TOUTES les lectures (getStats()/getCachedStats()/getCacheAge()) et
+        // clearCache() dans ce même fichier, et comme
+        // SearchConsoleManager::fetchAndCache() (méthode jumelle). Sans ce
+        // scope, l'écriture retombait sur les clés brutes non suffixées —
+        // jamais relues par aucune boutique (qui lisent toutes une clé
+        // suffixée par leur id_shop) — donc le cache n'était en réalité
+        // JAMAIS exploité : chaque chargement du BO Postmaster Tools, sur
+        // n'importe quelle boutique, redéclenchait un appel réel à l'API
+        // Gmail Postmaster (sensible aux quotas), quel que soit le TTL.
+        \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),      json_encode($results, JSON_UNESCAPED_UNICODE));
+        \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_TIME), time());
+        \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_HOST), $shopHost);
 
         if (!empty($results)) {
             $first = $results[0];
