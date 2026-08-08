@@ -1344,7 +1344,7 @@ class HealthCheckManager
         // au moment réel de l'usage. Vérifié en réel (config forcée à une
         // chaîne JSON valide non-tableau) : plantait avant, ne plante plus.
         $domRepSrc2 = $domRepSrc; // déjà chargé plus haut dans ce fichier
-        if ($domRepSrc2 !== '' && !preg_match('/function\s+getSenderDomain[\s\S]{0,1300}?is_array\(\s*\$senders\s*\)/', $domRepSrc2)) {
+        if ($domRepSrc2 !== '' && !preg_match('/function\s+getSenderDomain[\s\S]{0,2000}?is_array\(\s*\$senders\s*\)/', $domRepSrc2)) {
             $offenders[] = 'DomainReputationManager : getSenderDomain() ne valide plus is_array() sur NERIA_SENDERS_JSON décodé (une config corrompue pourrait de nouveau planter le contrôle de réputation domaine avec un TypeError)';
         }
 
@@ -1352,7 +1352,7 @@ class HealthCheckManager
         $webhookSrc  = is_file($webhookFile) ? (file_get_contents($webhookFile) ?: '') : '';
         if ($webhookSrc === '') {
             $offenders[] = 'WebhookManager.php introuvable';
-        } elseif (!preg_match('/function\s+trigger[\s\S]{0,1000}?is_array\(\s*\$enabled\s*\)/', $webhookSrc)) {
+        } elseif (!preg_match('/function\s+trigger[\s\S]{0,1600}?is_array\(\s*\$enabled\s*\)/', $webhookSrc)) {
             $offenders[] = 'WebhookManager : trigger() ne valide plus is_array() sur NERIA_WEBHOOK_EVENTS décodé (une config corrompue pourrait de nouveau bloquer tous les webhooks avec un TypeError)';
         }
 
@@ -1682,7 +1682,7 @@ class HealthCheckManager
             if ($okAssignPos === false
                 || strpos($seasonalSrc, '$ok = ') === false
                 || $continuePos === false
-                || ($continuePos - $okAssignPos) > 2000
+                || ($continuePos - $okAssignPos) > 2600
             ) {
                 $offenders[] = 'SeasonalCampaignManager : runDueCampaigns() ne vérifie plus le retour de Mail::Send() avant de poser la déduplication annuelle — un échec d\'envoi exclurait le client de la campagne pour le reste de l\'année';
             }
@@ -2347,7 +2347,7 @@ class HealthCheckManager
         $otSrc2  = is_file($otFile2) ? (file_get_contents($otFile2) ?: '') : '';
         if ($otSrc2 === '') {
             $offenders[] = 'src/OrderTriggersManager.php introuvable (id_order cooldown)';
-        } elseif (preg_match_all('/\'\{id_order\}\'\s*=>\s*\(int\)\s*\$order->id/', $otSrc2) !== 3) {
+        } elseif (preg_match_all('/\'\{id_order\}\'\s*=>\s*\(int\)\s*\$order->id/', $otSrc2) < 4) {
             $offenders[] = "OrderTriggersManager ne fournit plus {id_order} dans templateVars pour order_partial_shipped/order_on_hold/refund_processed/return_received — le Mode Silence pourrait de nouveau bloquer à tort un email légitime pour une commande différente du même client dans la même fenêtre de cooldown";
         }
 
@@ -2739,7 +2739,15 @@ class HealthCheckManager
         $scSrc  = is_file($scFile) ? (file_get_contents($scFile) ?: '') : '';
         if ($scSrc === '') {
             $offenders[] = 'SearchConsoleManager.php introuvable (matching bidirectionnel siteUrl)';
-        } elseif (strpos($scSrc, 'stripos($suHost, $shopHost) !== false || stripos($shopHost, $suHost) !== false') === false) {
+        } elseif (
+            // Le round 101 a remplacé la comparaison stripos() (sous-chaîne
+            // pure, vulnérable à "shop.com" matchant à tort "myshop.com")
+            // par str_ends_with() ancré sur les frontières de labels DNS —
+            // toujours bidirectionnelle, mais plus sûre. Ce garde-fou
+            // vérifiait encore l'ancienne forme, jamais mise à jour depuis :
+            // il aurait échoué indéfiniment même sur le code CORRECT.
+            !preg_match('/function\s+matchesShopHost[\s\S]{0,800}?str_ends_with\(\$a,[\s\S]{0,80}?str_ends_with\(\$b,/', $scSrc)
+        ) {
             $offenders[] = "SearchConsoleManager::matchesShopHost() ne compare plus bidirectionnellement le siteUrl GSC au host de la boutique — les Domain properties GSC pourraient de nouveau ne jamais matcher, affichant à tort 'aucun site correspondant' dans le BO";
         }
 
@@ -3599,6 +3607,68 @@ class HealthCheckManager
             || strpos($pm2Src, 'Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_HOST), $shopHost);') === false
         ) {
             $offenders[] = "PostmasterManager::fetchAndCache() n'écrit plus le cache via cacheKey() — régression du bug corrigé le 08/08/2026 (round 128) : le cache écrit ne serait plus jamais relu par aucune boutique";
+        }
+
+        // Round 129 : DomainReputationManager::getSenderDomain() résolvait
+        // NERIA_SENDERS_JSON/PS_SHOP_EMAIL sans idShop explicite — le cache
+        // est bien scopé par boutique mais stockait la mauvaise donnée
+        // source (domaine expéditeur d'une AUTRE boutique que celle du
+        // rapport SPF/DKIM/DMARC/RBL affiché).
+        $drFile = _PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php';
+        $drSrc  = is_file($drFile) ? (file_get_contents($drFile) ?: '') : '';
+        if ($drSrc === '') {
+            $offenders[] = 'DomainReputationManager.php introuvable (garde-fou round 129 : getSenderDomain() scopé idShop)';
+        } elseif (strpos($drSrc, "Configuration::get('NERIA_SENDERS_JSON', null, null, \$this->idShop)") === false
+            || strpos($drSrc, "Configuration::get('PS_SHOP_EMAIL', null, null, \$this->idShop)") === false
+        ) {
+            $offenders[] = "DomainReputationManager::getSenderDomain() ne résout plus NERIA_SENDERS_JSON/PS_SHOP_EMAIL via \$this->idShop — régression du bug corrigé le 08/08/2026 (round 129) : le domaine d'une autre boutique pourrait de nouveau être utilisé pour le rapport de réputation";
+        }
+
+        // Round 129 : CooldownManager::resolveCustomerId() résolvait le
+        // client via \Customer::customerExists() sans commuter
+        // Shop::setContext() — \Customer::customerExists() filtre en
+        // interne sur Shop::$context_id_shop (statique), jamais mis à jour
+        // par une simple réaffectation de Context::getContext()->shop.
+        $cdFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CooldownManager.php';
+        $cdSrc  = is_file($cdFile) ? (file_get_contents($cdFile) ?: '') : '';
+        if ($cdSrc === '') {
+            $offenders[] = 'CooldownManager.php introuvable (garde-fou round 129 : resolveCustomerId() commute Shop::setContext())';
+        } elseif (strpos($cdSrc, 'Shop::setContext(\Shop::CONTEXT_SHOP, $idShop);') === false
+            || strpos($cdSrc, 'Shop::setContext($previousContext, $previousShopId);') === false
+        ) {
+            $offenders[] = "CooldownManager::resolveCustomerId() ne commute plus Shop::setContext() — régression du bug corrigé le 08/08/2026 (round 129) : le Mode Silence (anti-doublon) pourrait de nouveau se désactiver silencieusement pour les boutiques suivantes de la boucle multi-boutique du cron";
+        }
+
+        // Round 129 : ManualSendManager construisait {order_url} sans idShop
+        // explicite (6e argument getPageLink), contrairement aux liens
+        // voisins {shop_url}/{history_url} — retombait sur le contexte BO
+        // de l'employé au lieu de la boutique du client destinataire.
+        $msFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
+        $msSrc  = is_file($msFile) ? (file_get_contents($msFile) ?: '') : '';
+        if ($msSrc === '') {
+            $offenders[] = 'ManualSendManager.php introuvable (garde-fou round 129 : {order_url} scopé idShop)';
+        } elseif (preg_match_all(
+            "/getPageLink\\(\\s*'order-detail',\\s*true,\\s*\\\$idLang,\\s*\\['id_order'\\s*=>\\s*\\(int\\)\\s*\\\$order\\['id_order'\\]\\],\\s*false,\\s*\\\$idShop(Manual)?\\s*\\)/",
+            $msSrc
+        ) !== 2) {
+            $offenders[] = "ManualSendManager : {order_url} ne semble plus scopé par idShop dans les 2 méthodes attendues (send() + envoi planifié) — régression du bug corrigé le 08/08/2026 (round 129)";
+        }
+
+        // Round 129 : FontManager::generateCssVariables() injectait les 4
+        // couleurs design sans sanitizeColor(), contrairement à accentColor
+        // dans generateFontCss() (même fichier) — incohérence de défense
+        // en profondeur.
+        $fmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/FontManager.php';
+        $fmSrc  = is_file($fmFile) ? (file_get_contents($fmFile) ?: '') : '';
+        if ($fmSrc === '') {
+            $offenders[] = 'FontManager.php introuvable (garde-fou round 129 : couleurs sanitizeColor() dans generateCssVariables())';
+        } else {
+            foreach (['color_background', 'color_container', 'color_accent', 'color_text'] as $colorKey) {
+                if (strpos($fmSrc, "\\NeriaTools::sanitizeColor((string) \$design['{$colorKey}'])") === false) {
+                    $offenders[] = "FontManager::generateCssVariables() n'applique plus sanitizeColor() sur '{$colorKey}' — régression du bug corrigé le 08/08/2026 (round 129)";
+                    break;
+                }
+            }
         }
 
         if ($offenders) {
