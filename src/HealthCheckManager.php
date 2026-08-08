@@ -3581,6 +3581,26 @@ class HealthCheckManager
             $offenders[] = "LookCompletionManager::getStats() ne scope plus sent/sent30 via JOIN sur orders.id_shop — régression du bug corrigé le 08/08/2026 (round 127)";
         }
 
+        // Round 128 (2026-08-08) : PostmasterManager::fetchAndCache() —
+        // écriture du cache scopée par boutique via cacheKey(), comme les 3
+        // lectures (getStats()/getCachedStats()/getCacheAge()) et
+        // clearCache() dans ce même fichier, et comme
+        // SearchConsoleManager::fetchAndCache() (méthode jumelle). Sans ce
+        // scope, l'écriture retombait sur les clés brutes non suffixées,
+        // jamais relues par aucune boutique — le cache n'était en réalité
+        // JAMAIS exploité, chaque chargement du BO Postmaster redéclenchant
+        // un appel réel à l'API Gmail Postmaster (sensible aux quotas).
+        $pm2File = _PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php';
+        $pm2Src  = is_file($pm2File) ? (file_get_contents($pm2File) ?: '') : '';
+        if ($pm2Src === '') {
+            $offenders[] = 'PostmasterManager.php introuvable (garde-fou round 128 : écriture du cache scopée via cacheKey())';
+        } elseif (strpos($pm2Src, 'Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),') === false
+            || strpos($pm2Src, 'Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_TIME), time());') === false
+            || strpos($pm2Src, 'Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_HOST), $shopHost);') === false
+        ) {
+            $offenders[] = "PostmasterManager::fetchAndCache() n'écrit plus le cache via cacheKey() — régression du bug corrigé le 08/08/2026 (round 128) : le cache écrit ne serait plus jamais relu par aucune boutique";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
