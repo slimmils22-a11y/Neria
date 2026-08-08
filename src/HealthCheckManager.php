@@ -3369,6 +3369,33 @@ class HealthCheckManager
             }
         }
 
+        // Round 117 (2026-08-08) : ABTestManager::estimateDaysRemaining() —
+        // le dénominateur (jours écoulés) doit être plafonné au paramètre
+        // $windowDays, cohérent avec la fenêtre utilisée pour produire
+        // $report (StatsManager::getABTestReport($template, $windowDays)).
+        // Sans ce plafond, un test A/B tournant depuis plus longtemps que la
+        // fenêtre du rapport (30 jours côté neria.php::getAbtestReportsMap())
+        // voyait son rythme quotidien sous-estimé (numérateur plafonné à la
+        // fenêtre, dénominateur basé sur le vrai date_start illimité),
+        // surestimant d'autant l'ETA "days_remaining" affichée au marchand
+        // dans l'onglet A/B Testing du BO.
+        $ab1File = _PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php';
+        $ab1Src  = is_file($ab1File) ? (file_get_contents($ab1File) ?: '') : '';
+        $ne1File = _PS_MODULE_DIR_ . $this->module->name . '/neria.php';
+        $ne1Src  = is_file($ne1File) ? (file_get_contents($ne1File) ?: '') : '';
+        if ($ab1Src === '' || $ne1Src === '') {
+            $offenders[] = 'ABTestManager.php/neria.php introuvable (garde-fou round 117 : ETA A/B plafonnée à la fenêtre du rapport)';
+        } else {
+            if (strpos($ab1Src, 'function estimateDaysRemaining(string $template, array $report, int $windowDays = 30)') === false
+                || strpos($ab1Src, '$daysElapsed     = min($daysElapsedReal, max(1, $windowDays));') === false
+            ) {
+                $offenders[] = "ABTestManager::estimateDaysRemaining() ne plafonne plus \$daysElapsed à \$windowDays — régression du bug corrigé le 08/08/2026 (round 117)";
+            }
+            if (strpos($ne1Src, '$ab->estimateDaysRemaining($tpl, $report, 30);') === false) {
+                $offenders[] = "getAbtestReportsMap() (neria.php) ne transmet plus la fenêtre 30 à estimateDaysRemaining() — régression du bug corrigé le 08/08/2026 (round 117) : incohérence de nouveau possible entre la fenêtre du rapport et celle de l'estimation ETA";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
