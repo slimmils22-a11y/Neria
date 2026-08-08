@@ -3262,6 +3262,24 @@ class HealthCheckManager
             }
         }
 
+        // Round 112 (2026-08-08) : BehavioralCronManager::run() — même piège
+        // que round 111 (MonthlyReportManager), appliqué cette fois à
+        // Configuration::get('NERIA_GDPR_AUTO_PURGE_ENABLED'). La boucle par
+        // boutique réassigne Context::getContext()->shop = new \Shop($idShop),
+        // ce qui met bien à jour $context->shop->id (donc GdprAuditManager
+        // lui-même, correctement scopé), mais PAS Shop::$context_id_shop,
+        // dont dépend Configuration::get() sans $idShop explicite. Sur une
+        // install multi-boutiques à réglages de purge RGPD divergents, le
+        // réglage de la boutique ambiante réelle (première visitée)
+        // s'appliquait à tort à toutes les boutiques de la boucle.
+        $bc1File = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
+        $bc1Src  = is_file($bc1File) ? (file_get_contents($bc1File) ?: '') : '';
+        if ($bc1Src === '') {
+            $offenders[] = 'BehavioralCronManager.php introuvable (garde-fou round 112 : purge RGPD auto scopée par idShop)';
+        } elseif (strpos($bc1Src, "\\Configuration::get('NERIA_GDPR_AUTO_PURGE_ENABLED', null, null, \$idShop)") === false) {
+            $offenders[] = "BehavioralCronManager::run() ne transmet plus \$idShop à Configuration::get('NERIA_GDPR_AUTO_PURGE_ENABLED', ...) — régression du bug corrigé le 08/08/2026 (round 112)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
