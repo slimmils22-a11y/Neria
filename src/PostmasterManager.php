@@ -90,10 +90,27 @@ class PostmasterManager
      */
     public function getAuthUrl(string $returnUrl = ''): string
     {
-        $state   = bin2hex(random_bytes(16));
-        $pending = $this->loadPendingStates();
-        $pending[$state] = ['return_url' => $returnUrl, 'ts' => time()];
-        $this->savePendingStates($pending);
+        $state = bin2hex(random_bytes(16));
+
+        // Round 122 : verrou MySQL autour du cycle lecture-modification-
+        // écriture — sans lui, deux flux lancés à quelques centaines de ms
+        // d'écart (double clic, deux onglets BO — le cas que ce mécanisme de
+        // liste (plutôt qu'un state unique) est précisément censé gérer,
+        // voir le commentaire ci-dessus) peuvent tous les deux lire le même
+        // $pending avant que l'un des deux n'écrive : le second
+        // Configuration::updateValue() écrase intégralement le premier state
+        // au lieu de fusionner, le perdant silencieusement. L'admin dont le
+        // state a disparu voit alors handleCallback() échouer malgré un code
+        // Google valide.
+        $db = \Db::getInstance();
+        $db->getValue("SELECT GET_LOCK('neria_postmaster_oauth_state', 3)");
+        try {
+            $pending = $this->loadPendingStates();
+            $pending[$state] = ['return_url' => $returnUrl, 'ts' => time()];
+            $this->savePendingStates($pending);
+        } finally {
+            $db->execute("SELECT RELEASE_LOCK('neria_postmaster_oauth_state')");
+        }
 
         return self::AUTH_URL . '?' . http_build_query([
             'client_id'     => (string) \Configuration::get(self::CONFIG_CLIENT_ID),
@@ -144,19 +161,30 @@ class PostmasterManager
      */
     public function handleCallback(string $code, string $state): bool
     {
-        $pending = $this->loadPendingStates();
-        $matchedKey = null;
-        foreach (array_keys($pending) as $candidate) {
-            if ($state !== '' && hash_equals((string) $candidate, $state)) {
-                $matchedKey = $candidate;
-                break;
+        // Round 122 : même verrou que getAuthUrl() — protège le
+        // unset()+savePendingStates() contre une écriture concurrente
+        // (un autre onglet appelant getAuthUrl() pendant ce même
+        // intervalle) qui écraserait la liste avant que ce state ne soit
+        // retiré.
+        $db = \Db::getInstance();
+        $db->getValue("SELECT GET_LOCK('neria_postmaster_oauth_state', 3)");
+        try {
+            $pending = $this->loadPendingStates();
+            $matchedKey = null;
+            foreach (array_keys($pending) as $candidate) {
+                if ($state !== '' && hash_equals((string) $candidate, $state)) {
+                    $matchedKey = $candidate;
+                    break;
+                }
             }
+            if ($matchedKey === null) {
+                return false;
+            }
+            unset($pending[$matchedKey]);
+            $this->savePendingStates($pending);
+        } finally {
+            $db->execute("SELECT RELEASE_LOCK('neria_postmaster_oauth_state')");
         }
-        if ($matchedKey === null) {
-            return false;
-        }
-        unset($pending[$matchedKey]);
-        $this->savePendingStates($pending);
 
         $response = $this->httpPost(self::TOKEN_URL, [
             'code'          => $code,
