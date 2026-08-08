@@ -835,18 +835,33 @@ class ConfigManager
      */
     public function toggleMenuItemVisibility(string $key): void
     {
-        $hidden = $this->getHiddenMenuItems();
-        if (in_array($key, $hidden, true)) {
-            $hidden = array_values(array_diff($hidden, [$key]));
-        } else {
-            $hidden[] = $key;
+        // Round 123 : verrou MySQL autour du cycle lecture-modification-
+        // écriture — même famille de bug que round 122 (states OAuth
+        // pending), ici sur la liste JSON de visibilité du menu BO. Sans
+        // lui, deux clics de masquage sur deux features différentes à
+        // quelques centaines de ms d'écart (deux onglets BO, double clic)
+        // peuvent tous deux lire la même liste avant que l'un des deux
+        // n'écrive : le second Configuration::updateGlobalValue() écrase
+        // intégralement le masquage posé par le premier, qui réapparaît
+        // silencieusement dans le menu.
+        $db = \Db::getInstance();
+        $db->getValue("SELECT GET_LOCK('neria_menu_hidden_items', 3)");
+        try {
+            $hidden = $this->getHiddenMenuItems();
+            if (in_array($key, $hidden, true)) {
+                $hidden = array_values(array_diff($hidden, [$key]));
+            } else {
+                $hidden[] = $key;
+            }
+            $encoded = json_encode(array_values($hidden));
+            \Configuration::updateGlobalValue(self::KEY_MENU_HIDDEN_ITEMS, $encoded);
+            // Invalide le cache mémoire local : sans ça, un appel à
+            // isMenuItemVisible()/getHiddenMenuItems() sur cette même instance
+            // juste après le toggle renverrait encore l'ancienne valeur.
+            $this->cache[self::KEY_MENU_HIDDEN_ITEMS] = $encoded;
+        } finally {
+            $db->execute("SELECT RELEASE_LOCK('neria_menu_hidden_items')");
         }
-        $encoded = json_encode(array_values($hidden));
-        \Configuration::updateGlobalValue(self::KEY_MENU_HIDDEN_ITEMS, $encoded);
-        // Invalide le cache mémoire local : sans ça, un appel à
-        // isMenuItemVisible()/getHiddenMenuItems() sur cette même instance
-        // juste après le toggle renverrait encore l'ancienne valeur.
-        $this->cache[self::KEY_MENU_HIDDEN_ITEMS] = $encoded;
     }
 
     /**
