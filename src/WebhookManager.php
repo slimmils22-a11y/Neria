@@ -155,13 +155,19 @@ class WebhookManager
      */
     public function trigger(string $event, array $data): void
     {
-        $url = (string) \Configuration::get(self::CONFIG_URL);
+        // Round 116 : $this->idShop transmis explicitement — même piège que
+        // rounds 111-115. Sans idShop, Configuration::get() dépend de
+        // Shop::$context_id_shop, jamais mise à jour par la réaffectation
+        // Context::getContext()->shop faite dans la boucle multi-boutique
+        // appelante (neria.php), contrairement à $this->idShop (propriété
+        // d'objet, correctement scopée — voir les requêtes SQL ci-dessous).
+        $url = (string) \Configuration::get(self::CONFIG_URL, null, null, $this->idShop);
         if ($url === '') {
             return;
         }
 
         // Filtre par événements activés ([] = tous activés)
-        $enabledJson = (string) \Configuration::get(self::CONFIG_EVENTS);
+        $enabledJson = (string) \Configuration::get(self::CONFIG_EVENTS, null, null, $this->idShop);
         $enabled = ($enabledJson !== '') ? json_decode($enabledJson, true) : [];
         // is_array() est indispensable, pas seulement "?? []" : un JSON valide
         // mais corrompu (ex: une simple chaîne, suite à une écriture partielle
@@ -216,8 +222,10 @@ class WebhookManager
 
     public function processQueue(): void
     {
-        $url    = (string) \Configuration::get(self::CONFIG_URL);
-        $secret = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_SECRET));
+        // Round 116 : $this->idShop transmis explicitement (même piège que
+        // trigger() ci-dessus).
+        $url    = (string) \Configuration::get(self::CONFIG_URL, null, null, $this->idShop);
+        $secret = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_SECRET, null, null, $this->idShop));
 
         // Revalidation à l'envoi (pas seulement à la sauvegarde) : protège
         // contre le DNS rebinding, où le domaine configuré résoudrait vers
@@ -474,8 +482,10 @@ class WebhookManager
 
     public function sendTest(): array
     {
-        $url    = (string) \Configuration::get(self::CONFIG_URL);
-        $secret = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_SECRET));
+        // Round 116 : $this->idShop transmis explicitement (même piège que
+        // trigger()/processQueue() ci-dessus).
+        $url    = (string) \Configuration::get(self::CONFIG_URL, null, null, $this->idShop);
+        $secret = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_SECRET, null, null, $this->idShop));
 
         if ($url === '' || !self::isPublicUrl($url)) {
             return ['ok' => false, 'error' => AdminTranslator::t('msg.webhook_url_invalid')];
