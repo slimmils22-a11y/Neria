@@ -3211,6 +3211,32 @@ class HealthCheckManager
             $offenders[] = "WaitlistManager::notifyProduct() ne résout plus {product_price} via PS_CURRENCY_DEFAULT scopé par \$idShop — régression du bug corrigé le 08/08/2026 (round 109)";
         }
 
+        // Round 110 (2026-08-08) : PreferencesManager::getPreferencesUrl()
+        // n'avait pas de paramètre $idShop et résolvait le lien via
+        // Context::getContext()->link->getBaseLink() — le contexte du
+        // process qui ENVOIE l'email (cron/admin BO), pas la boutique du
+        // CLIENT destinataire. EmailRenderer::resolveCustomerId() calculait
+        // pourtant déjà l'id_shop correct sans pouvoir le transmettre.
+        // Sur une installation multi-boutique, le lien "Gérer mes
+        // préférences" d'un client de la boutique B pointait vers le
+        // domaine de la boutique A.
+        $pm5File = _PS_MODULE_DIR_ . $this->module->name . '/src/PreferencesManager.php';
+        $pm5Src  = is_file($pm5File) ? (file_get_contents($pm5File) ?: '') : '';
+        $er5File = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
+        $er5Src  = is_file($er5File) ? (file_get_contents($er5File) ?: '') : '';
+        if ($pm5Src === '' || $er5Src === '') {
+            $offenders[] = 'PreferencesManager.php/EmailRenderer.php introuvable (garde-fou round 110 : preferences_url scopé par idShop)';
+        } else {
+            if (strpos($pm5Src, "function getPreferencesUrl(string \$email, int \$idCustomer, string \$lang = 'fr', int \$idShop = 0)") === false
+                || strpos($pm5Src, 'getBaseLink($idShop ?: null)') === false
+            ) {
+                $offenders[] = "PreferencesManager::getPreferencesUrl() ne résout plus le lien via \$idShop — régression du bug corrigé le 08/08/2026 (round 110)";
+            }
+            if (substr_count($er5Src, '$this->resolveShopId($params)') < 2) {
+                $offenders[] = "EmailRenderer ne transmet plus resolveShopId(\$params) à getPreferencesUrl() pour au moins 2 appels (rendu normal + secours) — régression du bug corrigé le 08/08/2026 (round 110)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
