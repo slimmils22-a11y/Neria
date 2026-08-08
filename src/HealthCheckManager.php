@@ -3523,6 +3523,30 @@ class HealthCheckManager
             $offenders[] = "PropensityScoreManager::recalculateCustomer() ne dérive plus \$total de la somme des sous-scores arrondis — régression du bug corrigé le 08/08/2026 (round 124)";
         }
 
+        // Round 125 (2026-08-08) : EmailRenderer::buildCompiledHtml()
+        // (partagée par renderPreviewHtml() — aperçu Design BO — et
+        // renderWithVars() — renvoi depuis l'historique client) doit
+        // résoudre la signature manuscrite/réseaux sociaux avec la config
+        // réelle ET traiter le bloc {if isset($var) && $var}...{/if}, comme
+        // le fait compileNeriaTemplate() (envoi réel). Sans ce correctif, ce
+        // bloc disparaissait TOUJOURS dans l'aperçu/le renvoi, quelle que
+        // soit la configuration marchand.
+        $er1File = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
+        $er1Src  = is_file($er1File) ? (file_get_contents($er1File) ?: '') : '';
+        if ($er1Src === '') {
+            $offenders[] = 'EmailRenderer.php introuvable (garde-fou round 125 : signature/réseaux sociaux résolus dans buildCompiledHtml())';
+        } else {
+            $posbch = strpos($er1Src, 'private function buildCompiledHtml(');
+            $bchBlock = $posbch !== false ? substr($er1Src, $posbch, 8000) : '';
+            if ($posbch === false
+                || strpos($bchBlock, '$this->injectSignatureVars($sigVars);') === false
+                || strpos($bchBlock, '$this->injectSocialVars($socVars);') === false
+                || strpos($bchBlock, "isset\\(\\\$([a-z_]+)\\)") === false
+            ) {
+                $offenders[] = "EmailRenderer::buildCompiledHtml() ne résout plus la signature/les réseaux sociaux (isset() manquant ou vars non injectées) — régression du bug corrigé le 08/08/2026 (round 125)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
