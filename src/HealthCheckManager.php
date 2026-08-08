@@ -3280,6 +3280,25 @@ class HealthCheckManager
             $offenders[] = "BehavioralCronManager::run() ne transmet plus \$idShop à Configuration::get('NERIA_GDPR_AUTO_PURGE_ENABLED', ...) — régression du bug corrigé le 08/08/2026 (round 112)";
         }
 
+        // Round 113 (2026-08-08) : SeasonalCampaignManager::runDueCampaigns()
+        // — même piège que rounds 111/112, appliqué cette fois à
+        // Configuration::get('PS_SHOP_NAME') pour {shop_name}. neria.php
+        // boucle sur les boutiques actives et réassigne
+        // Context::getContext()->shop = new \Shop($idShopSeasonal) avant
+        // d'instancier ce manager — $this->idShop (capturé au constructeur)
+        // est bien à jour, mais Configuration::get() sans $idShop explicite
+        // dépend de Shop::$context_id_shop, jamais modifiée par cette
+        // réaffectation. Un client d'une boutique B recevait un email de
+        // campagne saisonnière affichant le nom de la boutique ambiante
+        // réelle, pas le sien.
+        $sc1File = _PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php';
+        $sc1Src  = is_file($sc1File) ? (file_get_contents($sc1File) ?: '') : '';
+        if ($sc1Src === '') {
+            $offenders[] = 'SeasonalCampaignManager.php introuvable (garde-fou round 113 : shop_name scopé par idShop)';
+        } elseif (strpos($sc1Src, "\\Configuration::get('PS_SHOP_NAME', null, null, \$this->idShop)") === false) {
+            $offenders[] = "SeasonalCampaignManager::runDueCampaigns() ne résout plus {shop_name} via \$this->idShop — régression du bug corrigé le 08/08/2026 (round 113)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
