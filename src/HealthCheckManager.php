@@ -3414,6 +3414,24 @@ class HealthCheckManager
             $offenders[] = "QueueManager::getStats() ne filtre plus failed_30d sur send_at — régression du bug corrigé le 08/08/2026 (round 118)";
         }
 
+        // Round 119 (2026-08-08) : CollectionManager::getStats() — sent/
+        // sentLast30 doivent filtrer neria_collection_sent par id_shop
+        // (cette table EST scopée par boutique, voir hasSent() dans le même
+        // fichier), pas neria_collection (les définitions de collection,
+        // elles, n'ont pas de colonne id_shop — total/active restent
+        // légitimement globaux). Sans ce filtre, le BO d'une boutique
+        // affichait dans son KPI « Complétion de collection » les envois de
+        // TOUTES les boutiques de l'installation.
+        $cm1File = _PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php';
+        $cm1Src  = is_file($cm1File) ? (file_get_contents($cm1File) ?: '') : '';
+        if ($cm1Src === '') {
+            $offenders[] = 'CollectionManager.php introuvable (garde-fou round 119 : getStats() sent/sentLast30 scopés par idShop)';
+        } elseif (strpos($cm1Src, 'neria_collection_sent` WHERE id_shop = {$idShop}') === false
+            || strpos($cm1Src, 'WHERE id_shop = {$idShop} AND sent_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)') === false
+        ) {
+            $offenders[] = "CollectionManager::getStats() ne filtre plus sent/sentLast30 par id_shop — régression du bug corrigé le 08/08/2026 (round 119)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
