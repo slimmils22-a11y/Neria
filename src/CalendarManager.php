@@ -1077,8 +1077,16 @@ class CalendarManager
         }
 
         $idLang    = (int) $customer['id_lang'];
-        $shopName  = \Configuration::get('PS_SHOP_NAME');
-        $shopEmail = \Configuration::get('PS_SHOP_EMAIL');
+        // Round 114 : $this->idShop transmis explicitement — même piège que
+        // rounds 111/112/113. $this->idShop (propriété d'objet, lue depuis
+        // Context::getContext()->shop->id au constructeur, donc correctement
+        // à jour à chaque itération de la boucle multi-boutique de
+        // neria.php) est déjà utilisé correctement juste en-dessous
+        // (buildSentKey()/getEligibleCustomers()), mais Configuration::get()
+        // sans idShop explicite dépend de Shop::$context_id_shop, jamais mis
+        // à jour par la réaffectation Context::getContext()->shop.
+        $shopName  = \Configuration::get('PS_SHOP_NAME', null, null, $this->idShop);
+        $shopEmail = \Configuration::get('PS_SHOP_EMAIL', null, null, $this->idShop);
 
         $templateVars = [
             '{firstname}'   => $customer['firstname'],
