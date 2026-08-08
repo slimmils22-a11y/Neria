@@ -742,6 +742,23 @@ class CertificateManager
                AND `date_issued` >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01')
                AND `date_issued` <  DATE_FORMAT(NOW(), '%Y-%m-01')"
         );
+        // Round 120 : $lastMonthComparable, dédié à trend_pct — $thisMonth
+        // ne couvre que le 1er du mois à AUJOURD'HUI (fenêtre partielle),
+        // alors que $lastMonth (affiché tel quel dans 'last_month') couvre
+        // le mois précédent ENTIER. Comparer $thisMonth à $lastMonth
+        // directement (comme trend_pct le faisait) revient à comparer des
+        // fenêtres de durées différentes — même famille de bug que rounds
+        // 117/118. En tout début de mois, trend_pct affichait une chute
+        // artificielle massive (ex. -74% le 8 août avec un rythme
+        // d'émission pourtant stable), et une hausse trompeuse en toute fin
+        // de mois. $lastMonthComparable borne le mois précédent au MÊME
+        // nombre de jours écoulés que $thisMonth.
+        $lastMonthComparable = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$table}`
+             WHERE `id_shop` = {$this->idShop}
+               AND `date_issued` >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01')
+               AND `date_issued` <  DATE_ADD(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01'), INTERVAL DAY(NOW()) DAY)"
+        );
         $topProducts = $this->db->executeS(
             "SELECT `product_name`, COUNT(*) AS cnt
              FROM `{$table}`
@@ -757,8 +774,8 @@ class CertificateManager
             'email_rate'   => $total > 0 ? round($emailed / $total * 100, 1) : 0.0,
             'this_month'   => $thisMonth,
             'last_month'   => $lastMonth,
-            'trend_pct'    => $lastMonth > 0
-                ? round((($thisMonth - $lastMonth) / $lastMonth) * 100, 1)
+            'trend_pct'    => $lastMonthComparable > 0
+                ? round((($thisMonth - $lastMonthComparable) / $lastMonthComparable) * 100, 1)
                 : ($thisMonth > 0 ? 100.0 : 0.0),
             'top_products' => $topProducts,
         ];
