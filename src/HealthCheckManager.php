@@ -3508,6 +3508,21 @@ class HealthCheckManager
             $offenders[] = "ConfigManager::toggleMenuItemVisibility() ne verrouille plus le cycle lecture-modification-écriture — régression du bug corrigé le 08/08/2026 (round 123)";
         }
 
+        // Round 124 (2026-08-08) : PropensityScoreManager::recalculateCustomer()
+        // — score doit être dérivé de la somme des 4 sous-scores DÉJÀ
+        // arrondis (round(), pas une troncature (int) séparée sur la somme
+        // des floats bruts). Sans ce correctif, la somme des 4 composantes
+        // affichées côte à côte du score total pouvait différer du score
+        // total lui-même (troncatures incohérentes), minant la confiance du
+        // marchand dans le détail affiché.
+        $pr1File = _PS_MODULE_DIR_ . $this->module->name . '/src/PropensityScoreManager.php';
+        $pr1Src  = is_file($pr1File) ? (file_get_contents($pr1File) ?: '') : '';
+        if ($pr1Src === '') {
+            $offenders[] = 'PropensityScoreManager.php introuvable (garde-fou round 124 : score dérivé de la somme des sous-scores arrondis)';
+        } elseif (strpos($pr1Src, '$total = min(100, $scoreRecency + $scoreFrequency + $scoreEngagement + $scoreSeasonality);') === false) {
+            $offenders[] = "PropensityScoreManager::recalculateCustomer() ne dérive plus \$total de la somme des sous-scores arrondis — régression du bug corrigé le 08/08/2026 (round 124)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
