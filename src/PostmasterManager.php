@@ -576,14 +576,34 @@ class PostmasterManager
             CURLOPT_SSL_VERIFYPEER => true,
         ]);
         $body     = curl_exec($ch);
+        $curlErr  = curl_error($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if (!$body) {
+        // Echec transport (timeout, DNS injoignable, TLS cassé) — auparavant
+        // renvoyait null en silence : ni CONFIG_LAST_ERROR ni alerte Watchdog,
+        // contrairement à la branche HTTP>=400 ci-dessous. En cas de panne
+        // réseau persistante, HealthCheckManager::checkOAuthFreshness() ne
+        // pouvait alors afficher que le message générique "jamais rafraîchi"
+        // au lieu du vrai diagnostic, et son escalade par ancienneté d'erreur
+        // (maxErrorDays) ne se déclenchait jamais faute de timestamp posé.
+        if ($body === false) {
+            $msg = 'network error: ' . ($curlErr !== '' ? $curlErr : 'unknown');
+            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
+                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+            }
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.postmaster_api_error', ['error' => $msg]), '', 'PostmasterManager');
             return null;
         }
         $data = json_decode($body, true);
         if (!is_array($data)) {
+            $msg = 'invalid JSON response';
+            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
+                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+            }
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.postmaster_api_error', ['error' => $msg]), '', 'PostmasterManager');
             return null;
         }
 

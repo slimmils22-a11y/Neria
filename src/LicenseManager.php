@@ -388,6 +388,25 @@ class LicenseManager
      */
     public function checkDomainChange(): void
     {
+        // La licence est globale à l'installation (un seul jeton, aucun
+        // scoping id_shop) — sur une install multi-boutiques où chaque
+        // boutique a son propre domaine, comparer au domaine de la
+        // boutique actuellement visitée par le visiteur front déclenchait
+        // à tort un "changement de domaine" sur chaque page vue d'une
+        // boutique secondaire (le domaine enregistré au moment de
+        // l'activation étant celui d'une autre boutique) : cache 24h
+        // contourné en boucle sur chaque hit, appels réseau en rafale.
+        // On ne compare donc que sur la boutique par défaut de
+        // l'installation, seule boutique dont le domaine reflète
+        // légitimement celui enregistré à l'activation.
+        if (\Shop::isFeatureActive()) {
+            $defaultShopId = (int) \Configuration::get('PS_SHOP_DEFAULT');
+            $currentShopId = (int) \Context::getContext()->shop->id;
+            if ($defaultShopId > 0 && $currentShopId !== $defaultShopId) {
+                return;
+            }
+        }
+
         $token = (string) \Configuration::get(self::CONFIG_TOKEN);
         if ($token === '') {
             return;

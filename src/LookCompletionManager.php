@@ -308,51 +308,67 @@ class LookCompletionManager
         // global — même correctif que CollectionManager::processCollection().
         $currency = new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop));
 
-        $blocks = [];
-        foreach ($productIds as $pid) {
-            $pid = (int) $pid;
-            // Actif uniquement — même correctif que CollectionManager : un
-            // produit désactivé/retiré du catalogue ne doit plus être
-            // suggéré dans l'email "Complétez votre look" avec un lien mort.
-            $product = new \Product($pid, false, $idLang);
-            if (!\Validate::isLoadedObject($product) || !$product->active) continue;
+        // Le contexte statique Shop::$context_id_shop — consulté en interne
+        // par Product::getCover(), Product::isAvailableWhenOutOfStock() et
+        // le constructeur Product lui-même pour résoudre l'association
+        // product_shop — n'est PAS mis à jour par une simple réassignation
+        // de Context->shop : seul Shop::setContext() le fait réellement
+        // (même piège que CooldownManager/DomainReputationManager, round
+        // 129). Sans ce commutateur, un produit actif sur la boutique du
+        // contexte d'exécution du cron mais désactivé/non associé sur la
+        // boutique du client passait à tort le test $product->active, et
+        // getCover() pouvait résoudre l'image via la mauvaise association
+        // de boutique.
+        $originalShopId = \Shop::getContextShopID(true);
+        \Shop::setContext(\Shop::CONTEXT_SHOP, $idShop);
+        try {
+            $blocks = [];
+            foreach ($productIds as $pid) {
+                $pid = (int) $pid;
+                // Actif uniquement — un produit désactivé/retiré du
+                // catalogue ne doit plus être suggéré dans l'email
+                // "Complétez votre look" avec un lien mort.
+                $product = new \Product($pid, false, $idLang, $idShop);
+                if (!\Validate::isLoadedObject($product) || !$product->active) continue;
 
-            // Ignore un produit en rupture sans backorder possible — même
-            // correctif que CollectionManager.
-            if (!\StockAvailable::getQuantityAvailableByProduct($pid, null, $idShop)
-                && !\Product::isAvailableWhenOutOfStock($product->out_of_stock)
-            ) {
-                continue;
-            }
-
-            $cover = \Product::getCover($pid);
-            $imageUrl = '';
-
-            // Lien/image générés dans le contexte de LA BOUTIQUE du client
-            // (id_shop de la commande), pas celui du contexte d'exécution
-            // courant du cron — même correctif que CollectionManager.
-            $context = \Context::getContext();
-            $originalShop = $context->shop;
-            $context->shop = new \Shop($idShop);
-            try {
-                if ($cover) {
-                    $imageUrl = $context->link->getImageLink(
-                        $product->link_rewrite,
-                        (int) $cover['id_image'],
-                        \ImageType::getFormattedName('home')
-                    );
+                // Ignore un produit en rupture sans backorder possible.
+                if (!\StockAvailable::getQuantityAvailableByProduct($pid, null, $idShop)
+                    && !\Product::isAvailableWhenOutOfStock($product->out_of_stock)
+                ) {
+                    continue;
                 }
-                $productUrl = $context->link->getProductLink($product, null, null, null, $idLang, $idShop);
-            } finally {
-                $context->shop = $originalShop;
-            }
 
-            $blocks[] = [
-                'name'  => $product->name,
-                'url'   => $productUrl,
-                'image' => $imageUrl,
-                'price' => \NeriaTools::displayPrice((float) $product->price, $currency, $idLang),
-            ];
+                $cover = \Product::getCover($pid);
+                $imageUrl = '';
+
+                // Lien/image générés dans le contexte de LA BOUTIQUE du
+                // client (id_shop de la commande), pas celui du contexte
+                // d'exécution courant du cron.
+                $context = \Context::getContext();
+                $originalShop = $context->shop;
+                $context->shop = new \Shop($idShop);
+                try {
+                    if ($cover) {
+                        $imageUrl = $context->link->getImageLink(
+                            $product->link_rewrite,
+                            (int) $cover['id_image'],
+                            \ImageType::getFormattedName('home')
+                        );
+                    }
+                    $productUrl = $context->link->getProductLink($product, null, null, null, $idLang, $idShop);
+                } finally {
+                    $context->shop = $originalShop;
+                }
+
+                $blocks[] = [
+                    'name'  => $product->name,
+                    'url'   => $productUrl,
+                    'image' => $imageUrl,
+                    'price' => \NeriaTools::displayPrice((float) $product->price, $currency, $idLang),
+                ];
+            }
+        } finally {
+            \Shop::setContext(\Shop::CONTEXT_SHOP, $originalShopId);
         }
         return $blocks;
     }
