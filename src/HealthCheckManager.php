@@ -3130,6 +3130,49 @@ class HealthCheckManager
             }
         }
 
+        // Round 107 (2026-08-08) : CertificateManager::issue() enregistre
+        // volontairement le certificat sous l'id_shop DE LA COMMANDE (round
+        // 106, cf. commentaire "invisible dans getByOrder()/getAll() de la
+        // vraie boutique"), mais getByOrder() et redownload() — tous deux
+        // appelés depuis le bloc affiché sur la fiche commande PS
+        // (hookDisplayAdminOrderMainBottom / action cert_download) —
+        // filtraient encore par $this->idShop, résolu dans le constructeur
+        // à partir du contexte BO couramment sélectionné par l'employé
+        // (sélecteur d'en-tête), qui n'a aucune raison de correspondre à la
+        // boutique réelle de la commande consultée en multi-boutique. Un
+        // certificat pourtant bien enregistré redevenait invisible sur sa
+        // propre fiche commande (risque de réémission en double) et le
+        // bouton de retéléchargement échouait avec "certificat introuvable".
+        // id_order/id_certificate sont déjà des clés globalement uniques en
+        // multi-boutique PrestaShop : aucun filtre id_shop n'est nécessaire.
+        $certFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
+        $certSrc  = is_file($certFile) ? (file_get_contents($certFile) ?: '') : '';
+        if ($certSrc === '') {
+            $offenders[] = 'CertificateManager.php introuvable (garde-fou round 107 : getByOrder()/redownload() non scopés par le contexte BO)';
+        } else {
+            // Recherche le fragment SQL réel du filtre (pas une simple
+            // occurrence de "$this->idShop", qui apparaît aussi dans les
+            // commentaires explicatifs du correctif juste au-dessus de
+            // chaque méthode et donnerait un faux positif systématique).
+            $sqlFilterNeedle = "id_shop` = ' . \$this->idShop";
+
+            $posByOrder = strpos($certSrc, 'function getByOrder(int $idOrder): array');
+            $byOrderBody = $posByOrder !== false ? substr($certSrc, $posByOrder, 900) : '';
+            $endByOrder  = strpos($byOrderBody, "\n    }");
+            $byOrderBody = $endByOrder !== false ? substr($byOrderBody, 0, $endByOrder) : $byOrderBody;
+            if ($posByOrder === false || strpos($byOrderBody, $sqlFilterNeedle) !== false) {
+                $offenders[] = "CertificateManager::getByOrder() filtre de nouveau par \$this->idShop (contexte BO courant) — le bloc certificat de la fiche commande redeviendrait invisible en multi-boutique (régression round 107)";
+            }
+
+            $posRedl = strpos($certSrc, 'function redownload(int $idCertificate): array');
+            $redlBody = $posRedl !== false ? substr($certSrc, $posRedl, 900) : '';
+            $endRedl  = strpos($redlBody, "\n    }");
+            $redlBody = $endRedl !== false ? substr($redlBody, 0, $endRedl) : $redlBody;
+            if ($posRedl === false || strpos($redlBody, $sqlFilterNeedle) !== false) {
+                $offenders[] = "CertificateManager::redownload() filtre de nouveau par \$this->idShop (contexte BO courant) — le bouton de retéléchargement échouerait de nouveau sur un certificat pourtant existant en multi-boutique (régression round 107)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
