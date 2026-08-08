@@ -3299,6 +3299,29 @@ class HealthCheckManager
             $offenders[] = "SeasonalCampaignManager::runDueCampaigns() ne résout plus {shop_name} via \$this->idShop — régression du bug corrigé le 08/08/2026 (round 113)";
         }
 
+        // Round 114 (2026-08-08) : CalendarManager::sendCalendarEmail() —
+        // même piège que rounds 111/112/113, appliqué à Configuration::get
+        // ('PS_SHOP_NAME'/'PS_SHOP_EMAIL'). neria.php boucle sur les
+        // boutiques actives et réassigne Context::getContext()->shop = new
+        // \Shop($idShopCalendar) avant d'instancier ce manager — $this->idShop
+        // (propriété d'objet) est bien à jour, mais Configuration::get() sans
+        // idShop explicite dépend de Shop::$context_id_shop, jamais modifiée
+        // par cette réaffectation. Un client d'une boutique B recevait un
+        // email calendaire affichant le nom ET expédié depuis l'adresse de
+        // la boutique ambiante réelle, pas la sienne.
+        $cal1File = _PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php';
+        $cal1Src  = is_file($cal1File) ? (file_get_contents($cal1File) ?: '') : '';
+        if ($cal1Src === '') {
+            $offenders[] = 'CalendarManager.php introuvable (garde-fou round 114 : shop_name/shop_email scopés par idShop)';
+        } else {
+            if (strpos($cal1Src, "\\Configuration::get('PS_SHOP_NAME', null, null, \$this->idShop)") === false) {
+                $offenders[] = "CalendarManager::sendCalendarEmail() ne résout plus {shop_name} via \$this->idShop — régression du bug corrigé le 08/08/2026 (round 114)";
+            }
+            if (strpos($cal1Src, "\\Configuration::get('PS_SHOP_EMAIL', null, null, \$this->idShop)") === false) {
+                $offenders[] = "CalendarManager::sendCalendarEmail() ne résout plus l'adresse d'expédition via \$this->idShop — régression du bug corrigé le 08/08/2026 (round 114)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
