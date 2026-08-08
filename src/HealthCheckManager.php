@@ -3196,6 +3196,21 @@ class HealthCheckManager
             }
         }
 
+        // Round 109 (2026-08-08) : WaitlistManager::notifyProduct() —
+        // {product_price} utilisait Context::getContext()->currency->id,
+        // jamais basculé, contrairement à {product_url}/{product_image}
+        // (round 103) et {shop_name} (round 106) dans ce MÊME bloc de
+        // variables. Un client d'une boutique à devise différente de celle
+        // du contexte d'exécution courant (BO admin qui a déclenché la mise
+        // à jour de stock) recevait un prix affiché dans la mauvaise devise.
+        $wl3File = _PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php';
+        $wl3Src  = is_file($wl3File) ? (file_get_contents($wl3File) ?: '') : '';
+        if ($wl3Src === '') {
+            $offenders[] = 'WaitlistManager.php introuvable (garde-fou round 109 : product_price scopé par idShop)';
+        } elseif (strpos($wl3Src, "\\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop)") === false) {
+            $offenders[] = "WaitlistManager::notifyProduct() ne résout plus {product_price} via PS_CURRENCY_DEFAULT scopé par \$idShop — régression du bug corrigé le 08/08/2026 (round 109)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
