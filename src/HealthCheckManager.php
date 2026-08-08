@@ -3671,6 +3671,38 @@ class HealthCheckManager
             }
         }
 
+        // Round 130 (2026-08-08) : MonthlyReportManager::getRevenueByTemplate()
+        // — les deux requêtes (revenu direct, revenu attribué) doivent filtrer
+        // o.valid = 1, comme partout ailleurs dans le module où une somme de
+        // montants de commande est calculée (ClvManager, UpsellManager). Sans
+        // ce filtre, une commande annulée/remboursée restait comptée dans le
+        // "CA attribué" du rapport mensuel envoyé au marchand, surestimant le
+        // chiffre d'affaires réel.
+        $mrr1File = _PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php';
+        $mrr1Src  = is_file($mrr1File) ? (file_get_contents($mrr1File) ?: '') : '';
+        if ($mrr1Src === '') {
+            $offenders[] = 'MonthlyReportManager.php introuvable (garde-fou round 130 : getRevenueByTemplate() scopé o.valid=1)';
+        } elseif (substr_count($mrr1Src, 'AND o.valid = 1') !== 2) {
+            $offenders[] = "MonthlyReportManager::getRevenueByTemplate() ne filtre plus o.valid = 1 sur les deux requêtes (direct + attribué) — régression du bug corrigé le 08/08/2026 (round 130) : le CA du rapport mensuel inclurait de nouveau les commandes annulées/remboursées";
+        }
+
+        // Round 130 (2026-08-08) : upgrade-1.0.17.php — sonde la clé de
+        // chiffrement AVANT de chiffrer les secrets sensibles, et journalise
+        // via Watchdog si elle est illisible — comme
+        // GdprAuditManager::encryptExistingRecords(). Sans cette sonde,
+        // CryptoManager::encrypt() retourne la valeur EN CLAIR inchangée sans
+        // aucune trace si la clé est absente/corrompue au moment précis de
+        // l'upgrade — le marchand croit ses secrets (mot de passe IMAP,
+        // tokens OAuth, clés API tierces) chiffrés alors qu'ils ne le sont
+        // pas, sans que rien ne le signale au moment où ça se produit.
+        $up117File = _PS_MODULE_DIR_ . $this->module->name . '/upgrade/upgrade-1.0.17.php';
+        $up117Src  = is_file($up117File) ? (file_get_contents($up117File) ?: '') : '';
+        if ($up117Src === '') {
+            $offenders[] = 'upgrade-1.0.17.php introuvable (garde-fou round 130 : sonde de clé avant chiffrement des secrets)';
+        } elseif (strpos($up117Src, "CryptoManager::encrypt('neria_key_probe')") === false) {
+            $offenders[] = "upgrade_module_1_0_17() ne sonde plus la clé de chiffrement avant de chiffrer les secrets — régression du bug corrigé le 08/08/2026 (round 130) : un échec de chiffrement redeviendrait silencieux";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
