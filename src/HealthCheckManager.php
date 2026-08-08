@@ -3703,6 +3703,70 @@ class HealthCheckManager
             $offenders[] = "upgrade_module_1_0_17() ne sonde plus la clé de chiffrement avant de chiffrer les secrets — régression du bug corrigé le 08/08/2026 (round 130) : un échec de chiffrement redeviendrait silencieux";
         }
 
+        // Round 131 (2026-08-08) : LicenseManager::checkDomainChange() doit
+        // restreindre la comparaison de domaine à la boutique par défaut de
+        // l'installation. Sans ce garde-fou, sur une installation
+        // multi-boutiques multi-domaines, chaque page vue d'une boutique
+        // secondaire déclenchait à tort un "changement de domaine" (la
+        // licence étant globale mais currentDomain() reflétant la boutique
+        // visitée), contournant le cache 24h et déclenchant un appel réseau
+        // en rafale vers le serveur de licence à chaque hit.
+        $licFile = _PS_MODULE_DIR_ . $this->module->name . '/src/LicenseManager.php';
+        $licSrc  = is_file($licFile) ? (file_get_contents($licFile) ?: '') : '';
+        if ($licSrc === '') {
+            $offenders[] = 'LicenseManager.php introuvable (garde-fou round 131 : checkDomainChange() restreint à la boutique par défaut)';
+        } else {
+            $posCdc = strpos($licSrc, 'public function checkDomainChange(): void');
+            $cdcBody = $posCdc !== false ? substr($licSrc, $posCdc, 1300) : '';
+            if ($posCdc === false || strpos($cdcBody, 'Shop::isFeatureActive()') === false || strpos($cdcBody, 'PS_SHOP_DEFAULT') === false) {
+                $offenders[] = "LicenseManager::checkDomainChange() ne restreint plus la comparaison de domaine à la boutique par défaut de l'installation — régression du bug corrigé le 08/08/2026 (round 131) : les faux positifs de changement de domaine réapparaîtraient sur les boutiques secondaires en multi-boutiques";
+            }
+        }
+
+        // Round 131 (2026-08-08) : LookCompletionManager::buildProductBlocks()
+        // doit réellement commuter le contexte boutique statique via
+        // Shop::setContext() (pas seulement Context->shop) avant de charger
+        // les produits suggérés — même piège que CooldownManager/
+        // DomainReputationManager (round 129) : Shop::$context_id_shop n'est
+        // mis à jour QUE par Shop::setContext(), consulté en interne par le
+        // constructeur Product et Product::getCover().
+        $lcmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php';
+        $lcmSrc  = is_file($lcmFile) ? (file_get_contents($lcmFile) ?: '') : '';
+        if ($lcmSrc === '') {
+            $offenders[] = 'LookCompletionManager.php introuvable (garde-fou round 131 : buildProductBlocks() commute Shop::setContext())';
+        } else {
+            $posBpb = strpos($lcmSrc, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop): array');
+            $bpbBody = $posBpb !== false ? substr($lcmSrc, $posBpb, 3600) : '';
+            if ($posBpb === false
+                || strpos($bpbBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $idShop)') === false
+                || strpos($bpbBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $originalShopId)') === false
+            ) {
+                $offenders[] = "LookCompletionManager::buildProductBlocks() ne commute plus le contexte boutique statique via Shop::setContext() — régression du bug corrigé le 08/08/2026 (round 131) : un produit désactivé sur la boutique du client pourrait de nouveau être suggéré à tort";
+            }
+        }
+
+        // Round 131 (2026-08-08) : PostmasterManager::apiGet() doit
+        // journaliser CONFIG_LAST_ERROR/CONFIG_LAST_ERROR_AT (+ alerte
+        // Watchdog) sur un échec transport (timeout/DNS/TLS) ou une réponse
+        // JSON invalide, pas seulement sur une erreur HTTP>=400 explicite.
+        // Sans ce garde-fou, une panne réseau persistante redevenait
+        // totalement silencieuse, empêchant HealthCheckManager de fournir un
+        // vrai diagnostic sur l'ancienneté de l'erreur.
+        $pmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php';
+        $pmSrc  = is_file($pmFile) ? (file_get_contents($pmFile) ?: '') : '';
+        if ($pmSrc === '') {
+            $offenders[] = 'PostmasterManager.php introuvable (garde-fou round 131 : apiGet() journalise les échecs transport)';
+        } else {
+            $posApiGet = strpos($pmSrc, 'private function apiGet(string $path, string $token): ?array');
+            $apiGetBody = $posApiGet !== false ? substr($pmSrc, $posApiGet, 2800) : '';
+            if ($posApiGet === false
+                || strpos($apiGetBody, 'if ($body === false)') === false
+                || strpos($apiGetBody, "'invalid JSON response'") === false
+            ) {
+                $offenders[] = "PostmasterManager::apiGet() ne journalise plus les échecs transport/JSON invalide dans CONFIG_LAST_ERROR — régression du bug corrigé le 08/08/2026 (round 131) : une panne réseau persistante redeviendrait silencieuse";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
