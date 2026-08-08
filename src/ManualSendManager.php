@@ -686,8 +686,13 @@ class ManualSendManager
         if ($order) {
             $vars['{order_name}'] = $order['reference'];
             $vars['{id_order}']   = (int) $order['id_order'];
+            // $idShop explicite (6e argument), comme {shop_url}/{history_url}
+            // ci-dessus — sans lui, ce lien retombe sur le contexte BO de
+            // l'employé qui déclenche l'envoi, pas la boutique du client
+            // destinataire (même bug historique déjà corrigé pour les 2
+            // liens voisins, jamais répliqué ici).
             $vars['{order_url}']  = \Context::getContext()->link->getPageLink(
-                'order-detail', true, $idLang, ['id_order' => (int) $order['id_order']]
+                'order-detail', true, $idLang, ['id_order' => (int) $order['id_order']], false, $idShop
             );
         }
 
@@ -1290,7 +1295,7 @@ class ManualSendManager
             $vars['{order_name}'] = $order['reference'];
             $vars['{id_order}']   = (int) $order['id_order'];
             $vars['{order_url}']  = \Context::getContext()->link->getPageLink(
-                'order-detail', true, $idLang, ['id_order' => (int) $order['id_order']]
+                'order-detail', true, $idLang, ['id_order' => (int) $order['id_order']], false, $idShopManual
             );
         }
 

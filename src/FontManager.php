@@ -402,10 +402,15 @@ class FontManager
             </style>',
             $cssFamily,
             $fallback,
-            $design['color_background'],
-            $design['color_container'],
-            $design['color_accent'],
-            $design['color_text'],
+            // Défense en profondeur (comme generateFontCss() ci-dessus pour
+            // accentColor) : ces 4 couleurs proviennent de la config design
+            // déjà validée à l'écriture par ConfigManager::saveDesignConfig(),
+            // mais aucun filtre n'existait ici en lecture — incohérence avec
+            // le traitement voisin dans ce même fichier.
+            \NeriaTools::sanitizeColor((string) $design['color_background']),
+            \NeriaTools::sanitizeColor((string) $design['color_container']),
+            \NeriaTools::sanitizeColor((string) $design['color_accent']),
+            \NeriaTools::sanitizeColor((string) $design['color_text']),
             $design['container_width']
         );
     }

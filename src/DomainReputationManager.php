@@ -527,7 +527,18 @@ class DomainReputationManager
     private function getSenderDomain(): string
     {
         // 1. Multi-expéditeur Neria — sélecteur FR ou premier défini
-        $sendersJson = \Configuration::get('NERIA_SENDERS_JSON');
+        // $this->idShop explicite (comme ailleurs dans ce fichier, cf.
+        // lignes ~147/225) : réaffecter Context::getContext()->shop dans la
+        // boucle multi-boutique du cron (neria.php) NE met PAS à jour
+        // Shop::$context_id_shop (seul Shop::setContext() le fait) — sans ce
+        // 4e argument explicite, Configuration::get() retombe sur la
+        // boutique "ambiante" figée au bootstrap du process, pas celle de
+        // l'itération courante. Le cache de ce manager est bien scopé par
+        // boutique (CONFIG_CACHE/CONFIG_LAST_CHECK), mais stockait la
+        // mauvaise donnée source pour toute boutique après la première de
+        // la boucle : le rapport SPF/DKIM/DMARC/RBL d'une boutique B pouvait
+        // en réalité concerner le domaine expéditeur de la boutique A.
+        $sendersJson = \Configuration::get('NERIA_SENDERS_JSON', null, null, $this->idShop);
         if ($sendersJson) {
             $senders = json_decode($sendersJson, true);
             // is_array() est indispensable ici, pas seulement "?? []" : un
@@ -563,8 +574,8 @@ class DomainReputationManager
             }
         }
 
-        // 2. Email de la boutique PrestaShop
-        $email = (string) \Configuration::get('PS_SHOP_EMAIL');
+        // 2. Email de la boutique PrestaShop — même scoping explicite, même raison.
+        $email = (string) \Configuration::get('PS_SHOP_EMAIL', null, null, $this->idShop);
         $d = $this->extractDomain($email);
         if ($d) return $d;
 

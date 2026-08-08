@@ -88,7 +88,7 @@ class CooldownManager
             return false;
         }
 
-        $idCustomer = $this->resolveCustomerId($toEmail);
+        $idCustomer = $this->resolveCustomerId($toEmail, $idShop);
         if ($idCustomer <= 0) {
             return false; // invités : pas de cooldown
         }
@@ -113,9 +113,28 @@ class CooldownManager
         return $count > 0;
     }
 
-    private function resolveCustomerId(string $email): int
+    private function resolveCustomerId(string $email, int $idShop): int
     {
-        $id = (int) \Customer::customerExists($email, true);
+        // \Customer::customerExists() filtre en interne via
+        // Shop::addSqlRestriction(), qui s'appuie sur Shop::$context_id_shop
+        // (statique) — PAS sur Context::getContext()->shop->id ni sur
+        // $idShop passé en paramètre. Or la boucle multi-boutique du cron
+        // comportemental (neria.php) ne fait que réaffecter
+        // Context::getContext()->shop = new Shop($idShop), ce qui NE met
+        // PAS à jour Shop::$context_id_shop (seul Shop::setContext() le
+        // fait). Sans ce commutateur temporaire, le client était résolu par
+        // rapport à la boutique "ambiante" figée au bootstrap du process
+        // (typiquement la première boutique de la boucle), pas celle de
+        // l'itération courante — désactivant silencieusement le Mode
+        // Silence (anti-doublon) pour toutes les boutiques suivantes.
+        $previousContext = \Shop::getContext();
+        $previousShopId  = \Shop::getContextShopID();
+        \Shop::setContext(\Shop::CONTEXT_SHOP, $idShop);
+        try {
+            $id = (int) \Customer::customerExists($email, true);
+        } finally {
+            \Shop::setContext($previousContext, $previousShopId);
+        }
         return $id > 0 ? $id : 0;
     }
 }
