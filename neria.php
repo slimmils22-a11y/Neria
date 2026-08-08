@@ -3129,9 +3129,15 @@ class Neria extends Module
                     ];
                 }
             }
+            // id_shop explicite — cohérent avec ConfigManager::get()/set()
+            // (round 132/133) : la lecture (getAllSenders() via
+            // ConfigManager::get()) est scopée par $this->idShop, l'écriture
+            // doit l'être de la même façon plutôt que de se fier au contexte
+            // statique ambiant.
             Configuration::updateValue(
                 self::CONFIG_PREFIX . 'SENDERS_JSON',
-                json_encode($senders, JSON_UNESCAPED_UNICODE)
+                json_encode($senders, JSON_UNESCAPED_UNICODE),
+                false, null, (int) $this->context->shop->id
             );
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }

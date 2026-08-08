@@ -1188,7 +1188,15 @@ class ConfigManager
      */
     public function set(string $key, $value): bool
     {
-        $result = \Configuration::updateValue($key, $value);
+        // $this->idShop explicite — même asymétrie que get() avant son
+        // correctif round 132 : sans le 5e argument, Configuration::updateValue()
+        // écrit via le contexte statique ambiant (Shop::$context_id_shop,
+        // jamais mis à jour par une simple réassignation de Context->shop),
+        // pas via $this->idShop capturé au constructeur. Round 133 : trouvé
+        // via NERIA_SENDERS_JSON (neria.php save_senders, en écriture directe
+        // hors set(), corrigé séparément) — set() avait la même faille de
+        // fond, latente pour tout futur appelant en boucle multi-boutique.
+        $result = \Configuration::updateValue($key, $value, false, null, $this->idShop);
 
         if ($result) {
             $this->cache[$key] = $value;

@@ -170,7 +170,7 @@ class OrderTriggersManager
         $cartRule->date_from               = date('Y-m-d H:i:s');
         $cartRule->date_to                 = date('Y-m-d H:i:s', strtotime('+' . $config->getVoucherValidity() . ' days'));
         $cartRule->minimum_amount          = 0;
-        $cartRule->minimum_amount_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT');
+        $cartRule->minimum_amount_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop);
         $cartRule->highlight               = false;
         $cartRule->free_shipping           = false;
 
@@ -196,13 +196,17 @@ class OrderTriggersManager
         }
 
         if (!$cartRule->add()) {
-            // Libère la réservation pour permettre une nouvelle tentative
-            // (sinon ce client resterait sans bon pour ce palier à vie).
-            $this->db->execute(
-                'DELETE FROM `' . $this->prefix . 'neria_milestone_voucher`
-                 WHERE id_customer = ' . (int) $idCustomer . ' AND milestone = ' . (int) $milestone . '
-                   AND id_shop = ' . (int) $idShop . ' AND id_cart_rule = 0'
-            );
+            // Round 133 : ne PLUS libérer la réservation ici. checkMilestone()
+            // capture cette exception (bon désactivé silencieusement pour ce
+            // palier) mais envoie ensuite quand même l'email milestone_order
+            // sans bon — si la réservation était libérée à cet instant, elle
+            // n'existait déjà plus au moment où Mail::Send() réussissait,
+            // laissant le palier totalement non-réservé malgré l'email déjà
+            // parti. Un second déclenchement (hook dupliqué, retraitement de
+            // statut) pouvait alors renvoyer l'email ET, cette fois, créer un
+            // vrai bon — double bon pour le même jalon. La réservation ne
+            // doit être libérée QUE si l'envoi de l'email lui-même échoue,
+            // ce que checkMilestone() gère déjà via releaseMilestoneClaim().
             throw new \RuntimeException('CartRule::add() failed for customer ' . $idCustomer . ' milestone ' . $milestone);
         }
 

@@ -129,7 +129,16 @@ class SeoApiManager
      */
     public function getLastError(): string
     {
-        return (string) \Configuration::get(self::CONFIG_LAST_ERROR);
+        // Round 133 : scopé par boutique via cacheKey(), comme
+        // CONFIG_CACHE/CONFIG_CACHE_TIME — contrairement à PostmasterManager
+        // (connexion OAuth unique et véritablement globale à l'installation),
+        // les erreurs SEO ici peuvent être spécifiques à UNE boutique (ex.
+        // "aucune donnée CSV pour ce domaine" dans fetchSemrush()) même si la
+        // clé API elle-même est globale. Sans ce scoping, une erreur de la
+        // boutique A pouvait être effacée par un succès de la boutique B (ou
+        // inversement affichée à tort sur A) — même bug de fond que celui
+        // déjà corrigé pour le cache (cf. commentaire de cacheKey()).
+        return (string) \Configuration::get($this->cacheKey(self::CONFIG_LAST_ERROR));
     }
 
     /**
@@ -138,22 +147,22 @@ class SeoApiManager
      */
     public function getLastErrorAt(): ?int
     {
-        $t = (int) \Configuration::get(self::CONFIG_LAST_ERROR_AT);
+        $t = (int) \Configuration::get($this->cacheKey(self::CONFIG_LAST_ERROR_AT));
         return $t ?: null;
     }
 
     private function recordError(string $msg): void
     {
-        \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
-        if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
-            \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+        \Configuration::updateValue($this->cacheKey(self::CONFIG_LAST_ERROR), $msg);
+        if (!\Configuration::get($this->cacheKey(self::CONFIG_LAST_ERROR_AT))) {
+            \Configuration::updateValue($this->cacheKey(self::CONFIG_LAST_ERROR_AT), time());
         }
     }
 
     private function clearError(): void
     {
-        \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
-        \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ERROR));
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ERROR_AT));
     }
 
     // ============================================================
