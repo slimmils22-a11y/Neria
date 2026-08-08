@@ -206,10 +206,20 @@ class CertificateManager
      */
     public function redownload(int $idCertificate): array
     {
+        // Pas de filtre `id_shop` = $this->idShop (contexte BO courant de
+        // l'employé) : ce bouton est posté depuis la fiche commande PS
+        // (order_certificate_block.tpl → action sur AdminModules&configure=
+        // neria), dont le contexte de boutique en tête de BO peut très bien
+        // différer de celle de LA COMMANDE affichée (cas normal en
+        // multi-boutique tant que l'employé n'a pas explicitement changé de
+        // sélecteur). id_certificate est déjà une clé globalement unique
+        // (comme id_order pour getByOrder() ci-dessous) — y ajouter ce
+        // filtre ne fait que réintroduire, pour le téléchargement, l'exacte
+        // "invisibilité inter-boutique" qu'issue() documente déjà avoir
+        // corrigée pour l'écriture (id_shop DE LA COMMANDE, pas $this->idShop).
         $row = $this->db->getRow(
             'SELECT * FROM `' . _DB_PREFIX_ . self::TABLE . '`
-             WHERE `id_certificate` = ' . $idCertificate . '
-               AND `id_shop` = ' . $this->idShop
+             WHERE `id_certificate` = ' . $idCertificate
         );
         if (!$row) {
             return ['error' => AdminTranslator::t('msg.certificate_not_found')];
@@ -689,10 +699,20 @@ class CertificateManager
 
     public function getByOrder(int $idOrder): array
     {
+        // Pas de filtre `id_shop` = $this->idShop (contexte BO courant de
+        // l'employé) : appelé depuis hookDisplayAdminOrderMainBottom, dont
+        // le contexte de boutique en tête de BO peut différer de celle de
+        // LA COMMANDE affichée (cas normal en multi-boutique). Avec ce
+        // filtre, un certificat émis pour la commande — enregistré sous
+        // `id_order` DE LA COMMANDE (round précédent, voir issue()) —
+        // redevenait invisible sur la fiche commande elle-même dès que le
+        // contexte BO différait, risquant une réémission en double.
+        // id_order est déjà une clé globalement unique en multi-boutique
+        // PrestaShop : filtrer dessus suffit à scoper la requête à la
+        // bonne commande.
         return $this->db->executeS(
             'SELECT * FROM `' . _DB_PREFIX_ . self::TABLE . '`
              WHERE `id_order` = ' . $idOrder . '
-               AND `id_shop` = ' . $this->idShop . '
              ORDER BY `date_issued` DESC'
         ) ?: [];
     }
