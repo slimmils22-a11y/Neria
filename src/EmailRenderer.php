@@ -390,7 +390,8 @@ class EmailRenderer
                 $params['templateVars']['{preferences_url}'] = $pm->getPreferencesUrl(
                     (string) $unsubTo,
                     $this->resolveCustomerId($params),
-                    $lang
+                    $lang,
+                    $this->resolveShopId($params)
                 );
             }
         }
@@ -707,7 +708,7 @@ class EmailRenderer
                 // gênant encore : l'email de secours part déjà dans une
                 // situation dégradée (échec du rendu normal).
                 '{preferences_url}'    => class_exists('PreferencesManager')
-                    ? (new \PreferencesManager($this->module))->getPreferencesUrl($to, $this->resolveCustomerId($params), $lang)
+                    ? (new \PreferencesManager($this->module))->getPreferencesUrl($to, $this->resolveCustomerId($params), $lang, $this->resolveShopId($params))
                     : '',
             ];
 
@@ -1696,7 +1697,7 @@ class EmailRenderer
         // ce résultat, ex: getPreferencesUrl()). Même correctif déjà
         // appliqué à unsubscribe.php/preferences.php et au hook centre de
         // préférences de neria.php.
-        $idShop = (int) ($params['idShop'] ?? $this->context->shop->id);
+        $idShop = $this->resolveShopId($params);
 
         return (int) \Db::getInstance()->getValue(
             'SELECT `id_customer`
@@ -1706,6 +1707,19 @@ class EmailRenderer
                AND `id_shop` = ' . $idShop . '
              ORDER BY `id_customer` DESC'
         );
+    }
+
+    /**
+     * Résout l'id_shop du destinataire de CET envoi (params du hook, ou
+     * contexte d'exécution courant à défaut). Factorisé depuis
+     * resolveCustomerId() pour être aussi transmis à getPreferencesUrl()
+     * (round 110) — avant ça, {preferences_url} utilisait toujours
+     * Context::getContext() côté PreferencesManager, jamais l'id_shop réel
+     * du client, contrairement à cette méthode.
+     */
+    private function resolveShopId(array $params): int
+    {
+        return (int) ($params['idShop'] ?? $this->context->shop->id);
     }
 
     /**

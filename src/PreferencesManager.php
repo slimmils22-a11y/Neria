@@ -282,11 +282,17 @@ class PreferencesManager
     /**
      * Génère l'URL du centre de préférences pour un email/client.
      */
-    public function getPreferencesUrl(string $email, int $idCustomer, string $lang = 'fr'): string
+    public function getPreferencesUrl(string $email, int $idCustomer, string $lang = 'fr', int $idShop = 0): string
     {
         $token = self::tokenForEmail($email);
         $link  = \Context::getContext()->link;
-        $base  = rtrim($link->getBaseLink(), '/');
+        // Scopé par $idShop (round 110) : sans ça, getBaseLink() retombait
+        // sur Context::getContext() — le process qui ENVOIE l'email (cron,
+        // admin BO), pas la boutique du CLIENT destinataire — même piège
+        // multi-boutique déjà traité pour {product_url}/{shop_name} ailleurs
+        // dans ce module. Un client de la boutique B recevait un lien
+        // "Gérer mes préférences" pointant vers le domaine de la boutique A.
+        $base  = rtrim($link->getBaseLink($idShop ?: null), '/');
         return $base . '/module/neria/preferences'
             . '?email=' . urlencode($email)
             . '&token=' . urlencode($token)
