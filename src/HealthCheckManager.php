@@ -3322,6 +3322,29 @@ class HealthCheckManager
             }
         }
 
+        // Round 115 (2026-08-08) : WatchdogManager::sendImmediateAlert()/
+        // sendDailyDigest()/getAlertEmail() — même piège que rounds 111-114,
+        // appliqué cette fois aux emails d'alerte/digest Watchdog eux-mêmes.
+        // WatchdogManager est instancié à la volée par des managers tournant
+        // dans une boucle multi-boutique (WebhookManager, CalendarManager…) —
+        // $this->idShop (propriété d'objet) est bien à jour, mais
+        // Configuration::get() sans idShop explicite dépend de
+        // Shop::$context_id_shop, jamais modifiée par la réaffectation de
+        // Context::getContext()->shop. Un marchand multi-boutiques recevait
+        // une alerte Watchdog affichant le nom/from de la boutique ambiante
+        // réelle plutôt que celle réellement en défaut.
+        $wd1File = _PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php';
+        $wd1Src  = is_file($wd1File) ? (file_get_contents($wd1File) ?: '') : '';
+        if ($wd1Src === '') {
+            $offenders[] = 'WatchdogManager.php introuvable (garde-fou round 115 : alertes scopées par idShop)';
+        } else {
+            $wd1CountName  = substr_count($wd1Src, "\\Configuration::get('PS_SHOP_NAME', null, null, \$this->idShop)");
+            $wd1CountEmail = substr_count($wd1Src, "\\Configuration::get('PS_SHOP_EMAIL', null, null, \$this->idShop)");
+            if ($wd1CountName < 2 || $wd1CountEmail < 3) {
+                $offenders[] = "WatchdogManager ne résout plus {shop_name}/PS_SHOP_EMAIL via \$this->idShop à tous les emplacements attendus (name={$wd1CountName}/2, email={$wd1CountEmail}/3) — régression du bug corrigé le 08/08/2026 (round 115)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
