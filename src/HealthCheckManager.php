@@ -3547,6 +3547,24 @@ class HealthCheckManager
             }
         }
 
+        // Round 126 (2026-08-08) : ManualSendManager::scheduleManual() —
+        // même famille que round 125 (chemins parallèles ayant dérivé).
+        // send() (envoi immédiat) traite spécialement 'custom_message' →
+        // {custom_message_raw}, la seule clé lue par
+        // EmailRenderer::injectCustomMessage() au moment de l'envoi réel.
+        // scheduleManual() avait perdu ce cas spécial et stockait
+        // directement sous {custom_message} — injectCustomMessage() écrase
+        // alors cette clé par une chaîne vide (raw absent), faisant
+        // disparaître silencieusement le message personnalisé d'un envoi
+        // manuel PLANIFIÉ (fonctionnait pour un envoi immédiat).
+        $ms1File = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
+        $ms1Src  = is_file($ms1File) ? (file_get_contents($ms1File) ?: '') : '';
+        if ($ms1Src === '') {
+            $offenders[] = 'ManualSendManager.php introuvable (garde-fou round 126 : custom_message_raw dans scheduleManual())';
+        } elseif (substr_count($ms1Src, "\$vars['{custom_message_raw}'] = (string) \$value;") !== 2) {
+            $offenders[] = "ManualSendManager ne stocke plus 'custom_message' sous {custom_message_raw} dans les deux méthodes (send() ET scheduleManual()) — régression du bug corrigé le 08/08/2026 (round 126)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
