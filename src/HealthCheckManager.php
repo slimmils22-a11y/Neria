@@ -3831,6 +3831,59 @@ class HealthCheckManager
             }
         }
 
+        // Round 133 (2026-08-08) : OrderTriggersManager::generateMilestoneVoucher()
+        // ne doit plus libérer la réservation anti-doublon dans son bloc
+        // d'échec de CartRule::add() — seul checkMilestone() décide de la
+        // libérer, selon le résultat réel de l'envoi de l'email. Sans ce
+        // garde-fou, un double bon pour le même palier pourrait réapparaître
+        // après un échec transitoire de CartRule::add().
+        $otmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php';
+        $otmSrc  = is_file($otmFile) ? (file_get_contents($otmFile) ?: '') : '';
+        if ($otmSrc === '') {
+            $offenders[] = 'OrderTriggersManager.php introuvable (garde-fou round 133 : generateMilestoneVoucher() ne libère plus la réservation sur échec CartRule)';
+        } else {
+            $posAddCheck = strpos($otmSrc, 'if (!$cartRule->add()) {');
+            $posThrowMv  = $posAddCheck !== false ? strpos($otmSrc, 'throw new \RuntimeException(', $posAddCheck) : false;
+            $failureBlock = ($posAddCheck !== false && $posThrowMv !== false) ? substr($otmSrc, $posAddCheck, $posThrowMv - $posAddCheck) : '__MISSING__';
+            if ($posAddCheck === false || $posThrowMv === false || strpos($failureBlock, 'DELETE FROM') !== false) {
+                $offenders[] = "OrderTriggersManager::generateMilestoneVoucher() supprime de nouveau la réservation anti-doublon dans son bloc d'échec de CartRule::add() — régression du bug corrigé le 08/08/2026 (round 133) : un double bon pour le même palier pourrait réapparaître";
+            }
+            if (strpos($otmSrc, "minimum_amount_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop)") === false) {
+                $offenders[] = "OrderTriggersManager::generateMilestoneVoucher() ne résout plus minimum_amount_currency avec l'idShop explicite — régression du bug corrigé le 08/08/2026 (round 133)";
+            }
+        }
+
+        // Round 133 (2026-08-08) : ConfigManager::set() doit transmettre
+        // $this->idShop en 5e argument à Configuration::updateValue(),
+        // symétriquement à get() (round 132). Sans ce garde-fou, l'asymétrie
+        // lecture/écriture pourrait réapparaître pour tout futur appelant en
+        // boucle multi-boutique (ex. NERIA_SENDERS_JSON).
+        $cfg2File = _PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php';
+        $cfg2Src  = is_file($cfg2File) ? (file_get_contents($cfg2File) ?: '') : '';
+        if ($cfg2Src === '') {
+            $offenders[] = 'ConfigManager.php introuvable (garde-fou round 133 : set() scopé idShop)';
+        } elseif (strpos($cfg2Src, '\Configuration::updateValue($key, $value, false, null, $this->idShop)') === false) {
+            $offenders[] = "ConfigManager::set() ne transmet plus \$this->idShop à Configuration::updateValue() — régression du bug corrigé le 08/08/2026 (round 133) : l'écriture de configuration pourrait de nouveau polluer le mauvais id_shop en boucle multi-boutique";
+        }
+
+        // Round 133 (2026-08-08) : SeoApiManager::getLastError()/recordError()/
+        // clearError() doivent tous passer par cacheKey() (scopé par
+        // boutique), comme le cache. Sans ce garde-fou, une erreur SEO d'une
+        // boutique pourrait de nouveau être effacée/mélangée par un
+        // événement sur une autre boutique.
+        $seoFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SeoApiManager.php';
+        $seoSrc  = is_file($seoFile) ? (file_get_contents($seoFile) ?: '') : '';
+        if ($seoSrc === '') {
+            $offenders[] = 'SeoApiManager.php introuvable (garde-fou round 133 : LAST_ERROR scopé par boutique)';
+        } else {
+            if (strpos($seoSrc, '\Configuration::get($this->cacheKey(self::CONFIG_LAST_ERROR))') === false
+                || strpos($seoSrc, '\Configuration::updateValue($this->cacheKey(self::CONFIG_LAST_ERROR), $msg)') === false
+                || strpos($seoSrc, '\Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ERROR))') === false
+            ) {
+                $offenders[] = "SeoApiManager : CONFIG_LAST_ERROR/CONFIG_LAST_ERROR_AT ne passent plus par cacheKey() — régression du bug corrigé le 08/08/2026 (round 133) : une erreur SEO d'une boutique pourrait de nouveau être effacée/mélangée par une autre boutique";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
