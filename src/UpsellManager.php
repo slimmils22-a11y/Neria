@@ -725,32 +725,41 @@ class UpsellManager
              LIMIT " . (int) $limit
         ) ?: [];
 
-        // Ajoute l'URL miniature pour chaque ligne
-        foreach ($rows as &$row) {
-            $idProduct = (int) $row['id_product_upsell'];
-            $idImage   = (int) ($row['id_image'] ?? 0);
-            $row['thumb_url'] = '';
-            if ($idImage > 0) {
-                $imgType = \ImageType::getFormattedName('small');
-                $row['thumb_url'] = $this->context->link->getImageLink(
-                    'product', $idImage, $imgType
+        // Ajoute l'URL miniature pour chaque ligne — Context::getContext()->shop
+        // basculé temporairement sur $idShop (même pattern que
+        // CollectionManager/LookCompletionManager/WaitlistManager, round
+        // 103) : getImageLink() n'a PAS de paramètre $idShop (contrairement
+        // à getProductLink()) et résout systématiquement le domaine/thème
+        // via le contexte global courant (Tools::getMediaServer()) — sans ce
+        // switch, thumb_url pointait vers le domaine/thème de la boutique du
+        // CONTEXTE D'EXÉCUTION courant, alors que product_url (juste
+        // en-dessous, déjà scopé par $idShop en 6e argument) pointait
+        // correctement vers la bonne boutique : incohérence visible quand
+        // getLog() est appelée avec un $idShop différent du contexte actif
+        // (ex. admin multi-boutique consultant le journal d'une AUTRE
+        // boutique que celle active).
+        $context      = \Context::getContext();
+        $originalShop = $context->shop;
+        $context->shop = new \Shop($idShop);
+        try {
+            foreach ($rows as &$row) {
+                $idProduct = (int) $row['id_product_upsell'];
+                $idImage   = (int) ($row['id_image'] ?? 0);
+                $row['thumb_url'] = '';
+                if ($idImage > 0) {
+                    $imgType = \ImageType::getFormattedName('small');
+                    $row['thumb_url'] = $context->link->getImageLink(
+                        'product', $idImage, $imgType
+                    );
+                }
+                $row['product_url'] = $context->link->getProductLink(
+                    $idProduct, null, null, null, $idLang, $idShop
                 );
             }
-            // $idShop en 6e argument : même correctif que enrich() ci-dessus
-            // et que CollectionManager — sans lui, getProductLink() retombe
-            // sur la boutique du CONTEXTE D'EXÉCUTION courant (Context::
-            // getContext()->shop) au lieu de celle du paramètre $idShop
-            // explicitement passé à getLog(). Le SELECT est bien filtré par
-            // u.id_shop = {$idShop} (round 91) mais quand getLog() est
-            // appelée avec un $idShop différent du contexte courant (ex.
-            // admin multi-boutique consultant le journal d'une AUTRE
-            // boutique que celle active), chaque lien produit du journal
-            // pointait vers le domaine/catalogue de la mauvaise boutique.
-            $row['product_url'] = $this->context->link->getProductLink(
-                $idProduct, null, null, null, $idLang, $idShop
-            );
+            unset($row);
+        } finally {
+            $context->shop = $originalShop;
         }
-        unset($row);
 
         return $rows;
     }
