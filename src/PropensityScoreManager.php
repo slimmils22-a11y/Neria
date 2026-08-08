@@ -131,14 +131,30 @@ class PropensityScoreManager
     public function recalculateCustomer(int $idCustomer): void
     {
         $scores = $this->computeScores($idCustomer);
-        $total  = min(100, array_sum($scores));
+
+        // Round 124 : chaque sous-score arrondi (round(), pas une troncature
+        // (int) qui tronque vers zéro) AVANT de sommer pour $total — pas
+        // l'inverse (total tronqué depuis la somme des floats bruts, puis
+        // chaque sous-score tronqué séparément). Avant ce correctif, la
+        // somme des 4 sous-scores stockés (chacun tronqué isolément) ne
+        // correspondait pas à `score` (tronqué depuis la somme complète des
+        // floats) : ex. recency=24.7, frequency=20.3, engagement=15.9,
+        // seasonality=6.8 → score=(int)67.7=67, mais 24+20+15+6=65 — écart
+        // de 2 points visible dans le détail affiché au marchand (BO,
+        // getCustomerScore()/getAlertCustomers()), qui montre le score
+        // total ET sa ventilation par facteur côte à côte.
+        $scoreRecency     = (int) round($scores['recency']);
+        $scoreFrequency   = (int) round($scores['frequency']);
+        $scoreEngagement  = (int) round($scores['engagement']);
+        $scoreSeasonality = (int) round($scores['seasonality']);
+        $total = min(100, $scoreRecency + $scoreFrequency + $scoreEngagement + $scoreSeasonality);
 
         $this->db->execute(
             'INSERT INTO `' . _DB_PREFIX_ . 'neria_propensity_score`
              (id_customer, id_shop, score, score_recency, score_frequency, score_engagement, score_seasonality, date_upd)
-             VALUES (' . $idCustomer . ', ' . $this->idShop . ', ' . (int) $total . ',
-             ' . (int) $scores['recency'] . ', ' . (int) $scores['frequency'] . ',
-             ' . (int) $scores['engagement'] . ', ' . (int) $scores['seasonality'] . ', NOW())
+             VALUES (' . $idCustomer . ', ' . $this->idShop . ', ' . $total . ',
+             ' . $scoreRecency . ', ' . $scoreFrequency . ',
+             ' . $scoreEngagement . ', ' . $scoreSeasonality . ', NOW())
              ON DUPLICATE KEY UPDATE
                score              = VALUES(score),
                score_recency      = VALUES(score_recency),
