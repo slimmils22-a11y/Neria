@@ -836,8 +836,12 @@ class ABTestManager
     /**
      * Estime le nombre de jours restants avant la significativité.
      * Retourne 0 si déjà significatif, null si impossible à calculer.
+     *
+     * $windowDays DOIT correspondre à la fenêtre utilisée pour produire
+     * $report (StatsManager::getABTestReport($template, $windowDays)) — voir
+     * le correctif round 117 juste en-dessous.
      */
-    public function estimateDaysRemaining(string $template, array $report): ?int
+    public function estimateDaysRemaining(string $template, array $report, int $windowDays = 30): ?int
     {
         $sig = $report['significance'] ?? [];
 
@@ -867,8 +871,18 @@ class ABTestManager
             return null;
         }
 
-        $daysElapsed = max(1, (int) ceil((time() - strtotime($dateStart)) / 86400));
-        $dailyRate   = $minSent / $daysElapsed;
+        // Round 117 : plafonné à $windowDays. $sentA/$sentB (dans
+        // $sig/$report) ne comptent que les envois de la fenêtre glissante
+        // utilisée par StatsManager::getABTestReport($template, $windowDays)
+        // — PAS depuis le vrai date_start du test. Sans ce plafond, un test
+        // tournant depuis plus longtemps que $windowDays voyait son
+        // $dailyRate sous-estimé (numérateur plafonné à la fenêtre,
+        // dénominateur non plafonné et croissant indéfiniment), ce qui
+        // surestimait d'autant le nombre de jours restants affiché au
+        // marchand — de façon croissante avec l'âge du test.
+        $daysElapsedReal = max(1, (int) ceil((time() - strtotime($dateStart)) / 86400));
+        $daysElapsed     = min($daysElapsedReal, max(1, $windowDays));
+        $dailyRate       = $minSent / $daysElapsed;
 
         if ($dailyRate < 0.01) {
             return null;

@@ -7545,7 +7545,11 @@ class Neria extends Module
         foreach ($ab->getEligibleTemplates() as $tpl => $label) {
             if ($ab->hasActiveTest($tpl)) {
                 $report                  = $stats->getABTestReport($tpl, 30);
-                $report['days_remaining'] = $ab->estimateDaysRemaining($tpl, $report);
+                // Round 117 : fenêtre 30 transmise explicitement à
+                // estimateDaysRemaining() — doit rester identique à celle
+                // passée ci-dessus à getABTestReport() (voir commentaire de
+                // estimateDaysRemaining()).
+                $report['days_remaining'] = $ab->estimateDaysRemaining($tpl, $report, 30);
                 $map[$tpl]               = $report;
             }
         }
