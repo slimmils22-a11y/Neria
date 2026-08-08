@@ -1294,11 +1294,25 @@ class ManualSendManager
             );
         }
 
+        // Round 126 : cas spécial 'custom_message' réintroduit — même
+        // traitement que send() (envoi immédiat) ci-dessus. Sans lui, le
+        // message personnalisé saisi par le marchand était stocké sous
+        // {custom_message} au lieu de {custom_message_raw}, la seule clé
+        // lue par EmailRenderer::injectCustomMessage() au moment de l'envoi
+        // réel (déclenché plus tard par QueueManager::processSingle()) —
+        // celle-ci écrase alors {custom_message} par une chaîne vide (raw
+        // vide == "aucun message"), faisant disparaître silencieusement le
+        // texte du marchand dans l'email planifié, sans erreur ni log.
         foreach ($contentVars as $key => $value) {
             $key = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $key));
-            if ($key !== '') {
-                $vars['{' . $key . '}'] = (string) $value;
+            if ($key === '') {
+                continue;
             }
+            if ($key === 'custom_message') {
+                $vars['{custom_message_raw}'] = (string) $value;
+                continue;
+            }
+            $vars['{' . $key . '}'] = (string) $value;
         }
 
         $queued = (new \QueueManager($this->module))->enqueueAt($template, $customer, $vars, 0, $sendAt);
