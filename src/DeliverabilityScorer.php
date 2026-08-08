@@ -431,30 +431,39 @@ class DeliverabilityScorer
         $criteria = [];
         $recs     = [];
 
-        // ── Critère 1 : longueur du sujet (−20 max) ──────────────
+        // ── Critère 1 : longueur du sujet (−13 max) ──────────────
+        // Recalibrage 2026-08-08 (sur décision explicite de l'utilisateur) :
+        // la somme des pénalités maximales de TOUS les critères dépassait
+        // 160+ points pour un score borné [0,100] — 3-4 critères "normaux"
+        // en échec simultané suffisaient à plafonner le score à 0 avant
+        // même d'avoir épuisé tous les critères (SPF/DMARC/DKIM devenaient
+        // invisibles dans le score agrégé, bien que corrects dans le détail
+        // affiché). Chaque pénalité réduite par un facteur ~0,65 uniforme
+        // (préserve l'ordre/le poids relatif entre critères), pour un total
+        // max ≈ 106 points — voir memory project_deliverability_scorer_weighting.
         $subjectLen = mb_strlen(trim($subject));
         $cSubject   = $this->t('score.criterion_subject');
         if ($subjectLen === 0) {
-            $score -= 20;
-            $criteria[] = $this->criterion('error', $cSubject, $this->t('score.detail_empty'), -20);
+            $score -= 13;
+            $criteria[] = $this->criterion('error', $cSubject, $this->t('score.detail_empty'), -13);
             $recs[]     = ['type' => 'error', 'message' => $this->t('score.rec_empty_subject')];
         } elseif ($subjectLen < 20) {
-            $score -= 10;
-            $criteria[] = $this->criterion('warning', $cSubject, $this->t('score.detail_too_short', ['n' => $subjectLen]), -10);
+            $score -= 7;
+            $criteria[] = $this->criterion('warning', $cSubject, $this->t('score.detail_too_short', ['n' => $subjectLen]), -7);
             $recs[]     = ['type' => 'warning', 'message' => $this->t('score.rec_too_short', ['n' => $subjectLen])];
         } elseif ($subjectLen <= 50) {
             $criteria[] = $this->criterion('success', $cSubject, $this->t('score.detail_optimal', ['n' => $subjectLen]), 0);
         } elseif ($subjectLen <= 70) {
-            $score -= 5;
-            $criteria[] = $this->criterion('warning', $cSubject, $this->t('score.detail_slightly_long', ['n' => $subjectLen]), -5);
+            $score -= 3;
+            $criteria[] = $this->criterion('warning', $cSubject, $this->t('score.detail_slightly_long', ['n' => $subjectLen]), -3);
             $recs[]     = ['type' => 'warning', 'message' => $this->t('score.rec_slightly_long', ['n' => $subjectLen])];
         } else {
-            $score -= 15;
-            $criteria[] = $this->criterion('error', $cSubject, $this->t('score.detail_too_long', ['n' => $subjectLen]), -15);
+            $score -= 10;
+            $criteria[] = $this->criterion('error', $cSubject, $this->t('score.detail_too_long', ['n' => $subjectLen]), -10);
             $recs[]     = ['type' => 'error', 'message' => $this->t('score.rec_too_long', ['n' => $subjectLen])];
         }
 
-        // ── Critère 2 : mots spam dans le sujet (−8/mot, −24 max) ─
+        // ── Critère 2 : mots spam dans le sujet (−5/mot, −15 max) ─
         $subjectLower     = mb_strtolower($subject);
         $subjectSpamFound = [];
         foreach ($this->subjectSpamTriggers as $trigger) {
@@ -467,7 +476,7 @@ class DeliverabilityScorer
         }
         $subjectSpamFound = array_values(array_unique($subjectSpamFound));
         if ($subjectSpamFound) {
-            $penalty = min(24, count($subjectSpamFound) * 8);
+            $penalty = min(15, count($subjectSpamFound) * 5);
             $score  -= $penalty;
             $criteria[] = $this->criterion('error', $this->t('score.criterion_spam_subject'), implode(', ', $subjectSpamFound), -$penalty);
             $recs[]     = ['type' => 'error', 'message' => $this->t('score.rec_spam_subject', ['words' => implode('", "', $subjectSpamFound)])];
@@ -475,7 +484,7 @@ class DeliverabilityScorer
             $criteria[] = $this->criterion('success', $this->t('score.criterion_spam_subject'), $this->t('score.detail_no_spam'), 0);
         }
 
-        // ── Critère 3 : ratio texte/HTML (−20 max) ───────────────
+        // ── Critère 3 : ratio texte/HTML (−10 max) ───────────────
         // Texte VISIBLE (sans CSS/JS) rapporté au poids HTML total.
         // strlen() (octets) des deux côtés — pas mb_strlen() pour le texte :
         // mélanger caractères (numérateur) et octets (dénominateur) fausse le
@@ -491,22 +500,22 @@ class DeliverabilityScorer
         // Seuils calibrés pour des emails HTML soignés (markup + styles inline
         // légitimes) : on ne pénalise vraiment qu'un ratio anormalement bas.
         if ($ratio < 8) {
-            $score -= 15;
-            $criteria[] = $this->criterion('error', $cRatio, $this->t('score.detail_ratio', ['n' => $ratio]), -15);
+            $score -= 10;
+            $criteria[] = $this->criterion('error', $cRatio, $this->t('score.detail_ratio', ['n' => $ratio]), -10);
             $recs[]     = ['type' => 'error', 'message' => $this->t('score.rec_ratio_very_low', ['n' => $ratio])];
         } elseif ($ratio < 15) {
-            $score -= 8;
-            $criteria[] = $this->criterion('warning', $cRatio, $this->t('score.detail_ratio', ['n' => $ratio]), -8);
+            $score -= 5;
+            $criteria[] = $this->criterion('warning', $cRatio, $this->t('score.detail_ratio', ['n' => $ratio]), -5);
             $recs[]     = ['type' => 'warning', 'message' => $this->t('score.rec_ratio_low', ['n' => $ratio])];
         } elseif ($ratio < 25) {
-            $score -= 3;
-            $criteria[] = $this->criterion('info', $cRatio, $this->t('score.detail_ratio', ['n' => $ratio]), -3);
+            $score -= 2;
+            $criteria[] = $this->criterion('info', $cRatio, $this->t('score.detail_ratio', ['n' => $ratio]), -2);
             $recs[]     = ['type' => 'info', 'message' => $this->t('score.rec_ratio_ok', ['n' => $ratio])];
         } else {
             $criteria[] = $this->criterion('success', $cRatio, $this->t('score.detail_ratio_excellent', ['n' => $ratio]), 0);
         }
 
-        // ── Critère 4 : mots spam dans le corps (−5/mot, −20 max) ─
+        // ── Critère 4 : mots spam dans le corps (−3/mot, −12 max) ─
         $bodyText      = mb_strtolower($visible);
         $bodySpamFound = [];
         foreach ($this->spamTriggers as $trigger) {
@@ -517,7 +526,7 @@ class DeliverabilityScorer
         $bodySpamFound = array_values(array_unique($bodySpamFound));
 
         if ($bodySpamFound) {
-            $penalty = min(20, count($bodySpamFound) * 5);
+            $penalty = min(12, count($bodySpamFound) * 3);
             $score  -= $penalty;
             $criteria[] = $this->criterion('warning', $this->t('score.criterion_spam_body'), $this->t('score.detail_spam_found', ['n' => count($bodySpamFound)]), -$penalty);
             $more = count($bodySpamFound) > 8
@@ -549,33 +558,33 @@ class DeliverabilityScorer
 
         $cUnsub = $this->t('score.criterion_unsub');
         if (!$hasUnsubscribe) {
-            $score -= 15;
-            $criteria[] = $this->criterion('error', $cUnsub, $this->t('score.detail_absent'), -15);
+            $score -= 10;
+            $criteria[] = $this->criterion('error', $cUnsub, $this->t('score.detail_absent'), -10);
             $recs[]     = ['type' => 'error', 'message' => $this->t('score.rec_no_unsub')];
         } else {
             $criteria[] = $this->criterion('success', $cUnsub, $this->t('score.detail_present'), 0);
         }
 
-        // ── Critère 6 : poids de l'email (−15 max) ───────────────
+        // ── Critère 6 : poids de l'email (−10 max) ───────────────
         $sizeKb = round(strlen($htmlContent) / 1024, 1);
         $cWeight = $this->t('score.criterion_weight');
         if ($sizeKb > 200) {
-            $score -= 15;
-            $criteria[] = $this->criterion('error', $cWeight, $this->t('score.detail_weight', ['n' => $sizeKb]), -15);
+            $score -= 10;
+            $criteria[] = $this->criterion('error', $cWeight, $this->t('score.detail_weight', ['n' => $sizeKb]), -10);
             $recs[]     = ['type' => 'error', 'message' => $this->t('score.rec_weight_very_heavy', ['n' => $sizeKb])];
         } elseif ($sizeKb > 100) {
-            $score -= 8;
-            $criteria[] = $this->criterion('warning', $cWeight, $this->t('score.detail_weight', ['n' => $sizeKb]), -8);
+            $score -= 5;
+            $criteria[] = $this->criterion('warning', $cWeight, $this->t('score.detail_weight', ['n' => $sizeKb]), -5);
             $recs[]     = ['type' => 'warning', 'message' => $this->t('score.rec_weight_heavy', ['n' => $sizeKb])];
         } elseif ($sizeKb > 60) {
-            $score -= 3;
-            $criteria[] = $this->criterion('info', $cWeight, $this->t('score.detail_weight', ['n' => $sizeKb]), -3);
+            $score -= 2;
+            $criteria[] = $this->criterion('info', $cWeight, $this->t('score.detail_weight', ['n' => $sizeKb]), -2);
             $recs[]     = ['type' => 'info', 'message' => $this->t('score.rec_weight_ok', ['n' => $sizeKb])];
         } else {
             $criteria[] = $this->criterion('success', $cWeight, $this->t('score.detail_weight_optimal', ['n' => $sizeKb]), 0);
         }
 
-        // ── Critère 7 : patterns techniques suspects (−5/pattern, −15 max) ─
+        // ── Critère 7 : patterns techniques suspects (−3/pattern, −9 max) ─
         $technicalIssues = [];
         foreach ($this->textPatterns as $key => $pattern) {
             if (preg_match($pattern, $visible)) {
@@ -593,7 +602,7 @@ class DeliverabilityScorer
             $technicalIssues[] = 'hidden_text';
         }
         if ($technicalIssues) {
-            $penalty = min(15, count($technicalIssues) * 5);
+            $penalty = min(9, count($technicalIssues) * 3);
             $score  -= $penalty;
             $labels  = [
                 'excessive_caps'    => $this->t('score.pattern_excessive_caps'),
@@ -616,8 +625,8 @@ class DeliverabilityScorer
         $shopDomain = (string) Configuration::get('PS_SHOP_DOMAIN');
         $cDomain = $this->t('score.criterion_domain');
         if ($shopDomain !== '' && !str_contains($htmlContent, $shopDomain)) {
-            $score -= 5;
-            $criteria[] = $this->criterion('warning', $cDomain, $this->t('score.detail_absent'), -5);
+            $score -= 3;
+            $criteria[] = $this->criterion('warning', $cDomain, $this->t('score.detail_absent'), -3);
             $recs[]     = ['type' => 'info', 'message' => $this->t('score.rec_no_domain', ['domain' => $shopDomain])];
         } else {
             $criteria[] = $this->criterion('success', $cDomain, $this->t('score.detail_present'), 0);
@@ -636,24 +645,24 @@ class DeliverabilityScorer
             $dns = $this->getDnsStatus($sendingDomain);
 
             if (!$dns['spf']) {
-                $score -= 15;
-                $criteria[] = $this->criterion('error', $this->t('score.criterion_spf'), $this->t('score.detail_not_configured'), -15);
+                $score -= 10;
+                $criteria[] = $this->criterion('error', $this->t('score.criterion_spf'), $this->t('score.detail_not_configured'), -10);
                 $recs[]     = ['type' => 'error', 'message' => $this->t('score.rec_no_spf', ['domain' => $sendingDomain])];
             } else {
                 $criteria[] = $this->criterion('success', $this->t('score.criterion_spf'), $this->t('score.detail_configured'), 0);
             }
 
             if (!$dns['dmarc']) {
-                $score -= 10;
-                $criteria[] = $this->criterion('error', $this->t('score.criterion_dmarc'), $this->t('score.detail_not_configured'), -10);
+                $score -= 7;
+                $criteria[] = $this->criterion('error', $this->t('score.criterion_dmarc'), $this->t('score.detail_not_configured'), -7);
                 $recs[]     = ['type' => 'error', 'message' => $this->t('score.rec_no_dmarc', ['domain' => $sendingDomain])];
             } else {
                 $criteria[] = $this->criterion('success', $this->t('score.criterion_dmarc'), $this->t('score.detail_configured'), 0);
             }
 
             if (!$dns['dkim']) {
-                $score -= 10;
-                $criteria[] = $this->criterion('warning', $this->t('score.criterion_dkim'), $this->t('score.detail_dkim_not_detected'), -10);
+                $score -= 7;
+                $criteria[] = $this->criterion('warning', $this->t('score.criterion_dkim'), $this->t('score.detail_dkim_not_detected'), -7);
                 $recs[]     = ['type' => 'warning', 'message' => $this->t('score.rec_no_dkim', ['domain' => $sendingDomain])];
             } else {
                 $criteria[] = $this->criterion('success', $this->t('score.criterion_dkim'), $this->t('score.detail_configured'), 0);
