@@ -472,6 +472,18 @@ class CollectionManager
 
     public function getStats(): array
     {
+        // neria_collection (définitions de collection) n'a pas de colonne
+        // id_shop — un catalogue de collections global, pas de scoping
+        // nécessaire pour total/active. neria_collection_sent, en revanche,
+        // EST scopée par boutique (id_shop fait partie de la clé
+        // d'unicité, voir hasSent() ci-dessus) — round 119 : sent/sentLast30
+        // filtrés par id_shop, comme le sont déjà UpsellManager::getStats(),
+        // WaitlistManager::getStats() et QueueManager::getStats(). Sans ce
+        // filtre, le BO d'une boutique affichait les envois de TOUTES les
+        // boutiques de l'installation dans son propre KPI « Complétion de
+        // collection ».
+        $idShop = (int) \Context::getContext()->shop->id;
+
         $total = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$this->prefix}neria_collection`"
         );
@@ -479,11 +491,11 @@ class CollectionManager
             "SELECT COUNT(*) FROM `{$this->prefix}neria_collection` WHERE active = 1"
         );
         $sent = (int) $this->db->getValue(
-            "SELECT COUNT(*) FROM `{$this->prefix}neria_collection_sent`"
+            "SELECT COUNT(*) FROM `{$this->prefix}neria_collection_sent` WHERE id_shop = {$idShop}"
         );
         $sentLast30 = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$this->prefix}neria_collection_sent`
-             WHERE sent_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)"
+             WHERE id_shop = {$idShop} AND sent_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)"
         );
         return compact('total', 'active', 'sent', 'sentLast30');
     }
