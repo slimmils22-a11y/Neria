@@ -1014,8 +1014,16 @@ class MonthlyReportManager
 
     public function isDue(?int $idShop = null): bool
     {
-        $key    = $idShop !== null ? (self::CONFIG_LAST_SENT . '_' . $idShop) : self::CONFIG_LAST_SENT;
-        $last   = (string) \Configuration::get($key);
+        $key = $idShop !== null ? (self::CONFIG_LAST_SENT . '_' . $idShop) : self::CONFIG_LAST_SENT;
+        // Round 111 : $idShop transmis explicitement en 4e argument.
+        // Context::getContext()->shop = new \Shop($idShop) (checkAndSend())
+        // ne modifie PAS Shop::$context_id_shop (seul Shop::setContext() le
+        // fait) — Configuration::get() sans $idShop explicite résolvait donc
+        // toujours la boutique RÉELLE du visiteur ayant déclenché le hook,
+        // pas celle en cours d'itération dans la boucle. Le nom de clé était
+        // déjà suffixé par boutique, mais la ligne était lue/écrite sous le
+        // mauvais id_shop, cassant la déduplication entre boutiques.
+        $last   = (string) \Configuration::get($key, null, null, $idShop);
         $target = date('Y-m', strtotime('last month'));
 
         if ($last === $target) {
@@ -1031,7 +1039,10 @@ class MonthlyReportManager
         $key = $idShop !== null ? (self::CONFIG_LAST_SENT . '_' . $idShop) : self::CONFIG_LAST_SENT;
         \Configuration::updateValue(
             $key,
-            sprintf('%04d-%02d', $year, $month)
+            sprintf('%04d-%02d', $year, $month),
+            false,
+            null,
+            $idShop
         );
     }
 
