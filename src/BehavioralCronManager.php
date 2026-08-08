@@ -211,7 +211,17 @@ class BehavioralCronManager
             // visitée), laissant les tables du registre de toutes les
             // AUTRES boutiques grossir indéfiniment au-delà de leur
             // rétention configurée sur une install multi-boutiques.
-            if (class_exists('GdprAuditManager') && (bool) \Configuration::get('NERIA_GDPR_AUTO_PURGE_ENABLED')) {
+            // Round 112 : $idShop transmis explicitement en 4e argument —
+            // Context::getContext()->shop = new \Shop($idShop) ci-dessus ne
+            // modifie PAS Shop::$context_id_shop (seul Shop::setContext() le
+            // fait), donc Configuration::get() sans $idShop explicite
+            // résolvait toujours la boutique ambiante réelle (typiquement la
+            // première visitée), pas celle de l'itération courante — même
+            // piège déjà corrigé dans MonthlyReportManager (round 111). Sur
+            // une install où seule une boutique a la purge RGPD activée, elle
+            // s'exécutait (ou pas) pour TOUTES les boutiques selon le réglage
+            // de la première visitée, pas celui de chacune.
+            if (class_exists('GdprAuditManager') && (bool) \Configuration::get('NERIA_GDPR_AUTO_PURGE_ENABLED', null, null, $idShop)) {
                 try {
                     $purged = (new \GdprAuditManager($this->module->getLocalPath()))->purgeAllRegistryTables();
                     $total  = array_sum($purged);
