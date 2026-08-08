@@ -2252,8 +2252,34 @@ class EmailRenderer
             '{$neria_line_height}'       => number_format((float)($design['line_height'] ?? 1.8), 1, '.', ''),
             '{$neria_heading_weight}'    => (string)(int)($design['heading_weight'] ?? 600),
             '{$neria_tracking_pixel}'   => '',
-            '{$neria_social_links}'     => '',
             '{$neria_lang}'             => $lang,
+        ];
+
+        // Round 125 : signature manuscrite + réseaux sociaux résolus avec la
+        // VRAIE configuration marchand actuelle (comme {shop_name}/{shop_url}
+        // dans renderWithVars() — pas figés dans un snapshot). Avant ce
+        // correctif, compileNeriaTemplate() (envoi réel) résolvait
+        // {$neria_signature_url}/{$neria_social_links} ET le bloc
+        // {if isset($neria_has_signature) && $neria_has_signature}...{/if}
+        // (voir plus bas dans ce fichier), mais buildCompiledHtml() —
+        // partagée par renderPreviewHtml() (aperçu Design BO) et
+        // renderWithVars() (renvoi depuis l'historique client) — n'avait ni
+        // les variables de contenu, ni le pass regex isset() : le bloc entier
+        // disparaissait TOUJOURS, quelle que soit la config réelle. L'aperçu
+        // BO ne reflétait donc jamais la signature/les réseaux sociaux
+        // réellement configurés, et un email renvoyé depuis l'historique les
+        // perdait par rapport à l'email d'origine.
+        $sigVars = [];
+        $this->injectSignatureVars($sigVars);
+        $socVars = [];
+        $this->injectSocialVars($socVars);
+        $tplVars['{$neria_signature_url}']   = (string) ($sigVars['neria_signature_url']  ?? '');
+        $tplVars['{$neria_signature_name}']  = (string) ($sigVars['neria_signature_name'] ?? '');
+        $tplVars['{$neria_signature_title}'] = (string) ($sigVars['neria_signature_title'] ?? '');
+        $tplVars['{$neria_social_links}']    = (string) ($socVars['neria_social_links']   ?? '');
+        $condVars = [
+            'neria_has_signature' => !empty($sigVars['neria_has_signature']),
+            'neria_has_social'    => !empty($socVars['neria_has_social']),
         ];
         // strtr() (et non str_replace() avec des tableaux) : évite qu'une
         // valeur BO (nom de marque, slogan, texte personnalisé) contenant
@@ -2267,6 +2293,19 @@ class EmailRenderer
         if (!empty($extraReplacements)) {
             $compiled = strtr($compiled, $extraReplacements);
         }
+
+        // ── Blocs conditionnels {if isset($var) && $var}...{/if} (signature
+        // manuscrite, réseaux sociaux) — round 125 : même pass que
+        // compileNeriaTemplate (envoi réel), auparavant absent ici. Sans lui,
+        // ce bloc entier tombait systématiquement dans le nettoyage
+        // générique ci-dessous et disparaissait, quelle que soit $condVars.
+        $compiled = preg_replace_callback(
+            '/\{if\s+isset\(\$([a-z_]+)\)(?:\s*&&\s*\$\1)?\s*\}(.*?)\{\/if\}/s',
+            static function ($m) use ($condVars) {
+                return !empty($condVars[$m[1]]) ? $m[2] : '';
+            },
+            $compiled
+        );
 
         // ── Blocs conditionnels {if var}...{else}...{/if} (sans isset()) —
         // même logique que compileNeriaTemplate (envoi réel), pour que
