@@ -3237,6 +3237,31 @@ class HealthCheckManager
             }
         }
 
+        // Round 111 (2026-08-08) : MonthlyReportManager::isDue()/markSent()
+        // — Configuration::get()/updateValue() sans $idShop explicite
+        // résolvent la boutique via Shop::$context_id_shop, une variable
+        // statique QUE SEUL Shop::setContext() modifie — jamais une simple
+        // réaffectation de Context::getContext()->shop (celle que
+        // checkAndSend() fait avant chaque itération de sa boucle
+        // multi-boutique). Le nom de clé était déjà suffixé par boutique,
+        // mais la ligne était en réalité lue/écrite sous l'id_shop RÉEL du
+        // visiteur ayant déclenché le hook — cassant la déduplication entre
+        // boutiques (rapport mensuel envoyé en double à certains marchands).
+        $mr1File = _PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php';
+        $mr1Src  = is_file($mr1File) ? (file_get_contents($mr1File) ?: '') : '';
+        if ($mr1Src === '') {
+            $offenders[] = 'MonthlyReportManager.php introuvable (garde-fou round 111 : isDue()/markSent() scopés par idShop)';
+        } else {
+            if (strpos($mr1Src, "\$last   = (string) \\Configuration::get(\$key, null, null, \$idShop);") === false) {
+                $offenders[] = "MonthlyReportManager::isDue() ne transmet plus \$idShop à Configuration::get() — régression du bug corrigé le 08/08/2026 (round 111)";
+            }
+            $posMark1 = strpos($mr1Src, 'private function markSent(');
+            $markBlock1 = $posMark1 !== false ? substr($mr1Src, $posMark1, 500) : '';
+            if ($posMark1 === false || preg_match('/\\\\Configuration::updateValue\(\s*\$key,\s*sprintf\(\'%04d-%02d\',\s*\$year,\s*\$month\),\s*false,\s*null,\s*\$idShop\s*\);/', $markBlock1) !== 1) {
+                $offenders[] = "MonthlyReportManager::markSent() ne transmet plus \$idShop à Configuration::updateValue() — régression du bug corrigé le 08/08/2026 (round 111)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
