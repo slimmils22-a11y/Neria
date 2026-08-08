@@ -3767,6 +3767,70 @@ class HealthCheckManager
             }
         }
 
+        // Round 132 (2026-08-08) : BehavioralCronManager::sendGhostCarts()
+        // doit instancier Product avec l'idShop explicite ET commuter le
+        // contexte boutique statique via Shop::setContext() avant
+        // Product::getCover() — même piège Shop::$context_id_shop que les
+        // rounds 129/131. Sans ce garde-fou, l'email "panier fantôme"
+        // pourrait de nouveau afficher le nom/description/image d'un
+        // produit tel que catalogué dans une autre boutique.
+        $bcmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
+        $bcmSrc  = is_file($bcmFile) ? (file_get_contents($bcmFile) ?: '') : '';
+        if ($bcmSrc === '') {
+            $offenders[] = 'BehavioralCronManager.php introuvable (garde-fou round 132 : sendGhostCarts() Product idShop + Shop::setContext())';
+        } else {
+            $posGhost = strpos($bcmSrc, 'private function sendGhostCarts(');
+            $ghostBody = $posGhost !== false ? substr($bcmSrc, $posGhost, 4200) : '';
+            if ($posGhost === false
+                || strpos($ghostBody, 'new \Product($idProduct, false, $idLang, $ghostShopId)') === false
+                || strpos($ghostBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $ghostShopId)') === false
+                || strpos($ghostBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $originalGhostShopId)') === false
+            ) {
+                $offenders[] = "BehavioralCronManager::sendGhostCarts() ne commute plus le contexte boutique statique via Shop::setContext() avant Product/getCover() — régression du bug corrigé le 08/08/2026 (round 132) : les données produit d'une autre boutique pourraient réapparaître dans l'email panier fantôme";
+            }
+        }
+
+        // Round 132 (2026-08-08) : ConfigManager::get() doit transmettre
+        // $this->idShop en 4e argument à Configuration::get() — même piège
+        // Shop::$context_id_shop. Sans ce garde-fou, un ConfigManager
+        // instancié dans une boucle multi-boutique (BehavioralCronManager)
+        // pourrait de nouveau lire les réglages d'une autre boutique.
+        $cfgFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php';
+        $cfgSrc  = is_file($cfgFile) ? (file_get_contents($cfgFile) ?: '') : '';
+        if ($cfgSrc === '') {
+            $offenders[] = 'ConfigManager.php introuvable (garde-fou round 132 : get() scopé idShop + toggles verrouillés)';
+        } else {
+            if (strpos($cfgSrc, '\Configuration::get($key, null, null, $this->idShop)') === false) {
+                $offenders[] = "ConfigManager::get() ne transmet plus \$this->idShop à Configuration::get() — régression du bug corrigé le 08/08/2026 (round 132) : la configuration d'une autre boutique pourrait de nouveau polluer une boucle multi-boutique";
+            }
+            // Les 4 toggles booléens BO doivent passer par le helper
+            // verrouillé plutôt qu'un cycle isX()/setX() séparé — sans ce
+            // garde-fou, la race condition sur double-clic/deux onglets BO
+            // (désynchronisation UI/état réel) pourrait réapparaître.
+            $posHelper = strpos($cfgSrc, 'private function toggleBooleanKey(');
+            $helperBody = $posHelper !== false ? substr($cfgSrc, $posHelper, 700) : '';
+            if ($posHelper === false || strpos($helperBody, "GET_LOCK('") === false || strpos($helperBody, "RELEASE_LOCK('") === false) {
+                $offenders[] = "ConfigManager::toggleBooleanKey() n'utilise plus GET_LOCK/RELEASE_LOCK — régression du bug corrigé le 08/08/2026 (round 132) : la race condition sur les toggles booléens BO pourrait réapparaître";
+            }
+            if (substr_count($cfgSrc, 'toggleBooleanKey(self::KEY_') !== 4) {
+                $offenders[] = "ConfigManager : un ou plusieurs des 4 toggles booléens BO (time_greeting/firstname_fallback/multi_sender/signature) n'appellent plus toggleBooleanKey() — régression du bug corrigé le 08/08/2026 (round 132)";
+            }
+        }
+
+        // Round 132 (2026-08-08) : LookCompletionManager::getOrderCategoryIds()
+        // doit exclure id_category_default = 0 en plus de NULL.
+        $lcm2File = _PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php';
+        $lcm2Src  = is_file($lcm2File) ? (file_get_contents($lcm2File) ?: '') : '';
+        if ($lcm2Src === '') {
+            $offenders[] = 'LookCompletionManager.php introuvable (garde-fou round 132 : getOrderCategoryIds() exclut id_category_default=0)';
+        } else {
+            $posCat = strpos($lcm2Src, 'private function getOrderCategoryIds(int $idOrder): array');
+            $catBody = $posCat !== false ? substr($lcm2Src, $posCat, 1300) : '';
+            if ($posCat === false || strpos($catBody, 'id_category_default != 0') === false) {
+                $offenders[] = "LookCompletionManager::getOrderCategoryIds() ne filtre plus id_category_default != 0 — régression du bug corrigé le 08/08/2026 (round 132) : une catégorie 0 corrompue pourrait de nouveau polluer findMatchingRule()";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
