@@ -3470,6 +3470,26 @@ class HealthCheckManager
             $offenders[] = "LoyaltyManager ne calcule plus la fenêtre du récap via computeRecapWindowDays()/\$windowDays — régression du bug corrigé le 08/08/2026 (round 121)";
         }
 
+        // Round 122 (2026-08-08) : PostmasterManager/SearchConsoleManager —
+        // getAuthUrl()/handleCallback() doivent verrouiller (GET_LOCK/
+        // RELEASE_LOCK) leur cycle lecture-modification-écriture de la
+        // liste des states OAuth pending. Sans ce verrou, deux flux lancés
+        // à quelques centaines de ms d'écart (double clic, deux onglets BO
+        // — le cas explicitement documenté par le code) peuvent tous deux
+        // lire la même liste avant que l'un des deux n'écrive : le second
+        // Configuration::updateValue() écrase intégralement le premier
+        // state, le perdant silencieusement — l'admin voit alors échouer
+        // une connexion OAuth pourtant valide côté Google.
+        foreach (['PostmasterManager' => 'neria_postmaster_oauth_state', 'SearchConsoleManager' => 'neria_search_console_oauth_state'] as $oauthClass => $lockName) {
+            $oauthFile = _PS_MODULE_DIR_ . $this->module->name . '/src/' . $oauthClass . '.php';
+            $oauthSrc  = is_file($oauthFile) ? (file_get_contents($oauthFile) ?: '') : '';
+            if ($oauthSrc === '') {
+                $offenders[] = "{$oauthClass}.php introuvable (garde-fou round 122 : states OAuth pending verrouillés)";
+            } elseif (substr_count($oauthSrc, "GET_LOCK('{$lockName}'") !== 2 || substr_count($oauthSrc, "RELEASE_LOCK('{$lockName}'") !== 2) {
+                $offenders[] = "{$oauthClass} ne verrouille plus getAuthUrl()/handleCallback() via GET_LOCK('{$lockName}') — régression du bug corrigé le 08/08/2026 (round 122)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
