@@ -3432,6 +3432,26 @@ class HealthCheckManager
             $offenders[] = "CollectionManager::getStats() ne filtre plus sent/sentLast30 par id_shop — régression du bug corrigé le 08/08/2026 (round 119)";
         }
 
+        // Round 120 (2026-08-08) : CertificateManager::getStats() — trend_pct
+        // doit comparer $thisMonth (fenêtre partielle, du 1er du mois à
+        // aujourd'hui) à $lastMonthComparable (mois précédent borné au MÊME
+        // nombre de jours écoulés), pas à $lastMonth (mois précédent ENTIER,
+        // affiché tel quel dans 'last_month' mais impropre à un calcul de
+        // tendance). Sans ce correctif, un rythme d'émission parfaitement
+        // stable produisait une chute artificielle massive en début de mois
+        // (ex. -74% un 8 du mois) et une hausse trompeuse en toute fin de
+        // mois — même famille de bug que rounds 117/118 (fenêtres
+        // temporelles incohérentes dans un ratio).
+        $cert1File = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
+        $cert1Src  = is_file($cert1File) ? (file_get_contents($cert1File) ?: '') : '';
+        if ($cert1Src === '') {
+            $offenders[] = 'CertificateManager.php introuvable (garde-fou round 120 : trend_pct comparé sur fenêtres équivalentes)';
+        } elseif (strpos($cert1Src, '$lastMonthComparable > 0') === false
+            || strpos($cert1Src, '($thisMonth - $lastMonthComparable) / $lastMonthComparable') === false
+        ) {
+            $offenders[] = "CertificateManager::getStats() ne calcule plus trend_pct via \$lastMonthComparable — régression du bug corrigé le 08/08/2026 (round 120) : trend_pct comparerait de nouveau une fenêtre partielle à un mois précédent entier";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
