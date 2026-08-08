@@ -3452,6 +3452,24 @@ class HealthCheckManager
             $offenders[] = "CertificateManager::getStats() ne calcule plus trend_pct via \$lastMonthComparable — régression du bug corrigé le 08/08/2026 (round 120) : trend_pct comparerait de nouveau une fenêtre partielle à un mois précédent entier";
         }
 
+        // Round 121 (2026-08-08) : LoyaltyManager::sendMonthlyRecaps()/
+        // sendRecapToCustomer() — même famille que rounds 117/118/120
+        // (fenêtres temporelles incohérentes). Le throttle mensuel
+        // calendaire ('Y-m') autorise un écart réel de ~1 à 31 jours entre
+        // deux envois, mais sendRecapToCustomer() sommait toujours les
+        // points sur une fenêtre FIXE de 30 jours — recomptant les mêmes
+        // points dans deux emails rapprochés, ou en oubliant d'autres à la
+        // frontière d'un écart plus long.
+        $loy1File = _PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php';
+        $loy1Src  = is_file($loy1File) ? (file_get_contents($loy1File) ?: '') : '';
+        if ($loy1Src === '') {
+            $offenders[] = 'LoyaltyManager.php introuvable (garde-fou round 121 : fenêtre du récap basée sur le délai réel écoulé)';
+        } elseif (strpos($loy1Src, 'private static function computeRecapWindowDays(string $lastSentRaw): int') === false
+            || strpos($loy1Src, 'INTERVAL " . (int) $windowDays . " DAY)') === false
+        ) {
+            $offenders[] = "LoyaltyManager ne calcule plus la fenêtre du récap via computeRecapWindowDays()/\$windowDays — régression du bug corrigé le 08/08/2026 (round 121)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
