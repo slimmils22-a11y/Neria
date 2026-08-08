@@ -3490,6 +3490,24 @@ class HealthCheckManager
             }
         }
 
+        // Round 123 (2026-08-08) : ConfigManager::toggleMenuItemVisibility()
+        // — même famille que round 122, appliquée cette fois à la liste JSON
+        // de visibilité du menu BO (NERIA_MENU_HIDDEN_ITEMS). Sans verrou,
+        // deux clics de masquage sur deux features différentes à quelques
+        // centaines de ms d'écart peuvent tous deux lire la même liste avant
+        // que l'un des deux n'écrive : le second Configuration::
+        // updateGlobalValue() écrase intégralement le masquage posé par le
+        // premier, qui réapparaît silencieusement dans le menu BO.
+        $cfg1File = _PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php';
+        $cfg1Src  = is_file($cfg1File) ? (file_get_contents($cfg1File) ?: '') : '';
+        if ($cfg1Src === '') {
+            $offenders[] = 'ConfigManager.php introuvable (garde-fou round 123 : toggleMenuItemVisibility() verrouillé)';
+        } elseif (strpos($cfg1Src, "GET_LOCK('neria_menu_hidden_items', 3)") === false
+            || strpos($cfg1Src, "RELEASE_LOCK('neria_menu_hidden_items')") === false
+        ) {
+            $offenders[] = "ConfigManager::toggleMenuItemVisibility() ne verrouille plus le cycle lecture-modification-écriture — régression du bug corrigé le 08/08/2026 (round 123)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
