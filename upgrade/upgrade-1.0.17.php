@@ -20,10 +20,29 @@ if (!defined('_PS_VERSION_')) {
 function upgrade_module_1_0_17(Neria $module): bool
 {
     if (class_exists('CryptoManager') && CryptoManager::isAvailable()) {
-        foreach (CryptoManager::SENSITIVE_CONFIG_KEYS as $key) {
-            $value = (string) Configuration::get($key);
-            if ($value !== '' && !CryptoManager::isEncrypted($value)) {
-                Configuration::updateValue($key, CryptoManager::encrypt($value));
+        // Sonde la clé AVANT de chiffrer quoi que ce soit : CryptoManager::
+        // encrypt() retourne la valeur EN CLAIR inchangée (pas d'exception,
+        // pas de false) si la clé maîtresse est illisible (absente/corrompue
+        // au moment précis de cet upgrade) — sans cette sonde, le marchand
+        // croit ses secrets (mot de passe IMAP, tokens OAuth, clés API
+        // tierces) chiffrés en base alors qu'ils restent en clair, sans
+        // aucune trace. Même garde-fou déjà appliqué par
+        // GdprAuditManager::encryptExistingRecords() pour le chiffrement
+        // rétroactif des snapshots neria_stat.
+        $keyProbe = CryptoManager::encrypt('neria_key_probe');
+        if (!CryptoManager::isEncrypted($keyProbe)) {
+            if (class_exists('WatchdogManager')) {
+                (new WatchdogManager($module))->error(
+                    'Chiffrement rétroactif des secrets (upgrade 1.0.17) annulé : clé de chiffrement illisible (NERIA_ENCRYPTION_KEY absente ou corrompue). Les secrets restent en clair en base.',
+                    '', 'upgrade-1.0.17'
+                );
+            }
+        } else {
+            foreach (CryptoManager::SENSITIVE_CONFIG_KEYS as $key) {
+                $value = (string) Configuration::get($key);
+                if ($value !== '' && !CryptoManager::isEncrypted($value)) {
+                    Configuration::updateValue($key, CryptoManager::encrypt($value));
+                }
             }
         }
     }

@@ -462,6 +462,12 @@ class MonthlyReportManager
         $ord = _DB_PREFIX_ . 'orders';
 
         // Revenus directs : commandes liées à l'envoi (transactionnel)
+        // Scopé o.valid = 1 : sans ce filtre, une commande annulée ou
+        // intégralement remboursée après l'envoi de l'email transactionnel
+        // restait comptée dans le CA "attribué" du rapport mensuel — même
+        // garde-fou déjà appliqué partout ailleurs dans le module
+        // (ClvManager, UpsellManager) mais oublié ici, surestimant le CA
+        // affiché au marchand.
         $direct = [];
         $rows = $this->db->executeS(
             "SELECT s.template, SUM(o.total_paid_tax_incl) AS revenue
@@ -470,6 +476,7 @@ class MonthlyReportManager
              WHERE s.id_shop = {$this->idShop}
                AND s.event_type = 'sent'
                AND s.id_order > 0
+               AND o.valid = 1
                AND s.date_add >= '{$dateFrom}'
                AND s.date_add <= '{$dateTo} 23:59:59'
              GROUP BY s.template"
@@ -507,6 +514,7 @@ class MonthlyReportManager
                 JOIN `{$ord}` o
                   ON o.id_customer = s.id_customer
                  AND o.id_customer > 0
+                 AND o.valid = 1
                  AND o.date_add >= s.date_add
                  AND o.date_add <= DATE_ADD(s.date_add, INTERVAL 7 DAY)
                 WHERE s.id_shop = {$this->idShop}
