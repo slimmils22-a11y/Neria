@@ -258,7 +258,15 @@ class SeasonalCampaignManager
                         [
                             '{firstname}'     => $customer['firstname'],
                             '{lastname}'      => $customer['lastname'],
-                            '{shop_name}'     => \Configuration::get('PS_SHOP_NAME'),
+                            // Round 113 : $this->idShop transmis explicitement
+                            // — Configuration::get() sans idShop résolvait via
+                            // Shop::$context_id_shop, jamais mis à jour par la
+                            // réaffectation Context::getContext()->shop faite
+                            // dans la boucle multi-boutique appelante
+                            // (neria.php), contrairement à $this->idShop
+                            // (capturé au constructeur, lui bien à jour). Même
+                            // piège que rounds 106/111/112 pour PS_SHOP_NAME.
+                            '{shop_name}'     => \Configuration::get('PS_SHOP_NAME', null, null, $this->idShop),
                             '{shop_url}'      => $link->getBaseLink($this->idShop),
                             '{history_url}'   => $link->getPageLink('history', true, $idLang, null, false, $this->idShop),
                             '{campaign_name}' => $campaign['name'],
