@@ -327,7 +327,14 @@ class WatchdogManager
 
         // mail() natif n'assainit pas les en-têtes lui-même — retire tout
         // retour à la ligne des valeurs interpolées dans le sujet/en-têtes.
-        $shopName   = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_NAME'));
+        // Round 115 : $this->idShop transmis explicitement — même piège que
+        // rounds 111-114. Cette méthode est appelée depuis un manager
+        // instancié à la volée pendant une boucle multi-boutique
+        // (Context::getContext()->shop = new \Shop($idShop) ne modifie pas
+        // Shop::$context_id_shop, dont dépend Configuration::get() sans
+        // idShop explicite), donc $shopName/$fromEmail retombaient sur la
+        // boutique ambiante réelle plutôt que celle réellement en alerte.
+        $shopName   = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_NAME', null, null, $this->idShop));
         $shopDomain = \Tools::getShopDomainSsl(true);
         $levelUpper = strtoupper($level);
         $color      = $level === self::LEVEL_CRITICAL ? '#7a0000' : '#a32d2d';
@@ -373,7 +380,7 @@ class WatchdogManager
 
         AdminTranslator::setLang($prevLang);
 
-        $fromEmail = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_EMAIL') ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST));
+        $fromEmail = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_EMAIL', null, null, $this->idShop) ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST));
         $headers   = "MIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n"
                    . "From: Neria <" . $fromEmail . ">\r\n"
                    . "X-Mailer: Neria-WatchdogAlert/1.0\r\n";
@@ -443,7 +450,9 @@ class WatchdogManager
         $prevLang = AdminTranslator::currentLang();
         AdminTranslator::setLang($this->getShopLang());
 
-        $shopName   = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_NAME'));
+        // Round 115 : $this->idShop transmis explicitement (même piège que
+        // sendImmediateAlert() ci-dessus).
+        $shopName   = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_NAME', null, null, $this->idShop));
         $shopDomain = \Tools::getShopDomainSsl(true);
 
         // Compteurs réels (GROUP BY, SANS LIMIT) — $rows ci-dessus est
@@ -520,7 +529,7 @@ class WatchdogManager
 
         AdminTranslator::setLang($prevLang);
 
-        $fromEmail = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_EMAIL') ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST));
+        $fromEmail = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_EMAIL', null, null, $this->idShop) ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST));
         $headers   = "MIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n"
                    . "From: Neria <" . $fromEmail . ">\r\n"
                    . "X-Mailer: Neria-WatchdogDigest/1.0\r\n";
@@ -543,7 +552,9 @@ class WatchdogManager
         if ($email !== '' && \Validate::isEmail($email)) {
             return $email;
         }
-        $shopEmail = (string) \Configuration::get('PS_SHOP_EMAIL');
+        // Round 115 : $this->idShop transmis explicitement (même piège que
+        // sendImmediateAlert()/sendDailyDigest() ci-dessus).
+        $shopEmail = (string) \Configuration::get('PS_SHOP_EMAIL', null, null, $this->idShop);
         return \Validate::isEmail($shopEmail) ? $shopEmail : '';
     }
 
