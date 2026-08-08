@@ -3565,6 +3565,22 @@ class HealthCheckManager
             $offenders[] = "ManualSendManager ne stocke plus 'custom_message' sous {custom_message_raw} dans les deux méthodes (send() ET scheduleManual()) — régression du bug corrigé le 08/08/2026 (round 126)";
         }
 
+        // Round 127 (2026-08-08) : LookCompletionManager::getStats() —
+        // sent/sent30 doivent être scopés par boutique via JOIN sur
+        // orders.id_shop (neria_look_sent n'a pas de colonne id_shop propre)
+        // — même pattern que CollectionManager::getStats() (round 119).
+        // Sans ce scope, le BO d'une boutique affichait dans son KPI
+        // "Complétez votre look" les envois de TOUTES les boutiques de
+        // l'installation, juste à côté d'un KPI "Complétion de collection"
+        // correctement scopé sur le même écran.
+        $lc1File = _PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php';
+        $lc1Src  = is_file($lc1File) ? (file_get_contents($lc1File) ?: '') : '';
+        if ($lc1Src === '') {
+            $offenders[] = 'LookCompletionManager.php introuvable (garde-fou round 127 : getStats() sent/sent30 scopés via JOIN orders)';
+        } elseif (substr_count($lc1Src, 'INNER JOIN `{$this->prefix}orders` o ON o.id_order = ls.id_order') !== 2) {
+            $offenders[] = "LookCompletionManager::getStats() ne scope plus sent/sent30 via JOIN sur orders.id_shop — régression du bug corrigé le 08/08/2026 (round 127)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
