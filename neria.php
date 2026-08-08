@@ -2889,15 +2889,17 @@ class Neria extends Module
         }
 
         // ── Action : empreinte carbone ────────────────────────────
-        if (Tools::getValue('neria_action') === 'save_carbon' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-            Configuration::updateValue(
-                self::CONFIG_PREFIX . 'CARBON_ENABLED',
-                (int) Tools::getValue('neria_carbon_enabled', 0)
-            );
-            Configuration::updateValue(
-                self::CONFIG_PREFIX . 'CARBON_LINK',
-                (string) Tools::getValue('neria_carbon_link', '')
-            );
+        if (Tools::getValue('neria_action') === 'save_carbon' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('ConfigManager')) {
+            // ConfigManager::set() — round 134 : Configuration::updateValue()
+            // en direct ici, sans id_shop, divergeait de la lecture
+            // (isCarbonEnabled()/getCarbonLink() via ConfigManager::get(),
+            // scopée par $this->idShop depuis le round 132) — contrairement à
+            // save_social juste en dessous, qui passait déjà par ConfigManager.
+            // Le bloc CO₂ pouvait ne jamais apparaître (ou apparaître à tort)
+            // selon la boutique réellement traitée à l'envoi.
+            $carbonMgr = new ConfigManager($this);
+            $carbonMgr->set(ConfigManager::KEY_CARBON_ENABLED, (int) Tools::getValue('neria_carbon_enabled', 0));
+            $carbonMgr->set(ConfigManager::KEY_CARBON_LINK, (string) Tools::getValue('neria_carbon_link', ''));
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
@@ -4488,7 +4490,6 @@ class Neria extends Module
             $rawHtml = (new EmailRenderer($this))->renderPreviewHtml($mpTemplate, $mpLang);
             $mgr     = new MultiClientPreviewManager();
             $previews = [];
-            $styleCountRaw = preg_match_all('/<style\b/i', $rawHtml);
 
             // Détection des anomalies pour le résumé affiché au clic sur le badge ⚠
             $diffChecks = [
@@ -4512,9 +4513,18 @@ class Neria extends Module
                         $detail[] = $label;
                     }
                 }
+                // Round 134 : badge basé sur count($detail) — les 10 vraies
+                // anomalies détectées ci-dessus — au lieu de ne compter que
+                // les blocs <style> supprimés. Pour Outlook/ProtonMail, la
+                // quasi-totalité des neutralisations se fait dans les
+                // attributs style="" inline (transformOutlook/transformProtonMail),
+                // pas dans des blocs <style> : l'ancien calcul affichait "0
+                // issue" alors que $detail listait déjà plusieurs anomalies
+                // réelles — le marchand se fiait au badge chiffré et passait
+                // à côté du problème sans ouvrir le détail.
                 $previews[$clientId] = [
                     'html'   => $transformed,
-                    'issues' => max(0, $styleCountRaw - preg_match_all('/<style\b/i', $transformed)),
+                    'issues' => count($detail),
                     'detail' => $detail,
                 ];
             }
@@ -4526,7 +4536,7 @@ class Neria extends Module
             }
             $mpToken = bin2hex(random_bytes(10));
             foreach ($previews as $clientId => $data) {
-                file_put_contents($previewDir . $clientId . '_' . $mpToken . '.html', (string) ($data['html'] ?? ''));
+                file_put_contents($previewDir . $clientId . '_' . $mpToken . '.html', $data['html']);
             }
             // Nettoyage des fichiers > 2 h
             foreach (glob($previewDir . '*.html') ?: [] as $old) {
@@ -4536,8 +4546,8 @@ class Neria extends Module
             }
             $this->context->smarty->assign([
                 'mp_previews_meta'     => array_map(fn ($pv) => [
-                    'issues' => (int) ($pv['issues'] ?? 0),
-                    'detail' => $pv['detail'] ?? [],
+                    'issues' => $pv['issues'],
+                    'detail' => $pv['detail'],
                 ], $previews),
                 'mp_token'             => $mpToken,
                 'mp_preview_base'      => rtrim($this->context->link->getBaseLink(), '/') . '/modules/neria/getpreview.php',
@@ -4597,11 +4607,19 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'save_multipreview_keys' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $litmusKey = trim((string) Tools::getValue('litmus_key', ''));
             $eoaKey    = trim((string) Tools::getValue('eoa_key', ''));
-            if (class_exists('MultiClientPreviewManager')) {
+            // Round 134 : la clé EOA attend explicitement le format
+            // "account_id:api_password" (cf. submitToEmailOnAcid()) — sans
+            // cette validation, une valeur mal formée n'était détectée qu'au
+            // prochain appel API (erreur HTTP 401 chez Litmus/EOA), pas au
+            // moment de la sauvegarde, même pattern que save_webhooks
+            // (isPublicUrl()) ci-dessous.
+            if ($eoaKey !== '' && strpos($eoaKey, ':') === false) {
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.eoa_key_invalid_format'));
+            } elseif (class_exists('MultiClientPreviewManager')) {
                 Configuration::updateValue(MultiClientPreviewManager::CONFIG_LITMUS_KEY, CryptoManager::encrypt($litmusKey));
                 Configuration::updateValue(MultiClientPreviewManager::CONFIG_EOA_KEY, CryptoManager::encrypt($eoaKey));
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
             }
-            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
         // ── Webhooks : sauvegarde ─────────────────────────────────

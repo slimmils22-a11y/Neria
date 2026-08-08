@@ -57623,6 +57623,27 @@
         "nl": "Ongeldige URL — het moet een geldig openbaar adres zijn (https://), geen intern of privéadres.",
         "gb": "Invalid URL — it must be a valid public address (https://), not an internal or private address."
     },
+    "msg.eoa_key_invalid_format": {
+        "fr": "Clé Email on Acid invalide — le format attendu est « account_id:api_password ».",
+        "en": "Invalid Email on Acid key — expected format is \"account_id:api_password\".",
+        "de": "Ungültiger Email-on-Acid-Schlüssel — erwartetes Format ist „account_id:api_password“.",
+        "it": "Chiave Email on Acid non valida — il formato previsto è «account_id:api_password».",
+        "es": "Clave de Email on Acid no válida — el formato esperado es «account_id:api_password».",
+        "pt": "Chave Email on Acid inválida — o formato esperado é «account_id:api_password».",
+        "br": "Chave Email on Acid inválida — o formato esperado é «account_id:api_password».",
+        "ar": "مفتاح Email on Acid غير صالح — الصيغة المتوقعة هي «account_id:api_password».",
+        "ja": "無効なEmail on Acidキーです — 想定される形式は「account_id:api_password」です。",
+        "ko": "잘못된 Email on Acid 키 — 예상되는 형식은 \"account_id:api_password\"입니다.",
+        "zh": "Email on Acid 密钥无效 — 预期格式为「account_id:api_password」。",
+        "tw": "Email on Acid 金鑰無效 — 預期格式為「account_id:api_password」。",
+        "ru": "Недействительный ключ Email on Acid — ожидаемый формат «account_id:api_password».",
+        "tr": "Geçersiz Email on Acid anahtarı — beklenen biçim «account_id:api_password».",
+        "sv": "Ogiltig Email on Acid-nyckel — förväntat format är «account_id:api_password».",
+        "no": "Ugyldig Email on Acid-nøkkel — forventet format er «account_id:api_password».",
+        "da": "Ugyldig Email on Acid-nøgle — forventet format er «account_id:api_password».",
+        "nl": "Ongeldige Email on Acid-sleutel — verwacht formaat is «account_id:api_password».",
+        "gb": "Invalid Email on Acid key — expected format is \"account_id:api_password\"."
+    },
     "msg.purge_failed_watchdog": {
         "fr": "La purge a échoué — voir le journal Watchdog.",
         "en": "The purge failed — see the Watchdog log.",

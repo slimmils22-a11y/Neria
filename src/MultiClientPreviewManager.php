@@ -419,10 +419,30 @@ class MultiClientPreviewManager
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
         curl_close($ch);
 
-        if ($httpCode < 200 || $httpCode >= 300) {
-            return ['error' => 'Litmus HTTP ' . $httpCode . ' — ' . mb_substr((string) $response, 0, 200)];
+        // Round 134 : capture curl_error() + log Watchdog, même correctif
+        // déjà appliqué à pollLitmus() ci-dessous — sans lui, un échec réseau
+        // (DNS/TLS/timeout) faisait échouer curl_exec() ($response = false,
+        // httpCode = 0), produisant un message "Litmus HTTP 0 — " (chaîne
+        // vide, aucune cause exploitable) et aucune trace dans Watchdog.
+        if ($curlErr !== '' || $httpCode < 200 || $httpCode >= 300) {
+            $errMsg = $curlErr !== '' ? $curlErr : mb_substr((string) $response, 0, 200);
+            if (class_exists('WatchdogManager') && class_exists('Module')) {
+                $module = \Module::getInstanceByName('neria');
+                if ($module) {
+                    (new \WatchdogManager($module))->warning(
+                        \WatchdogManager::i18nMsg('watchdog.multipreview_poll_failed', [
+                            'provider' => 'Litmus',
+                            'code'     => $httpCode,
+                            'error'    => $errMsg,
+                        ]),
+                        '', 'MultiClientPreviewManager'
+                    );
+                }
+            }
+            return ['error' => 'Litmus HTTP ' . $httpCode . ' — ' . $errMsg];
         }
 
         $data = json_decode((string) $response, true);
@@ -534,10 +554,28 @@ class MultiClientPreviewManager
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
         curl_close($ch);
 
-        if ($httpCode < 200 || $httpCode >= 300) {
-            return ['error' => 'Email on Acid HTTP ' . $httpCode . ' — ' . mb_substr((string) $response, 0, 200)];
+        // Round 134 : même correctif que submitToLitmus() ci-dessus — capture
+        // curl_error() + log Watchdog, pour ne plus confondre un échec
+        // transport silencieux avec une simple erreur HTTP inexploitable.
+        if ($curlErr !== '' || $httpCode < 200 || $httpCode >= 300) {
+            $errMsg = $curlErr !== '' ? $curlErr : mb_substr((string) $response, 0, 200);
+            if (class_exists('WatchdogManager') && class_exists('Module')) {
+                $module = \Module::getInstanceByName('neria');
+                if ($module) {
+                    (new \WatchdogManager($module))->warning(
+                        \WatchdogManager::i18nMsg('watchdog.multipreview_poll_failed', [
+                            'provider' => 'EmailOnAcid',
+                            'code'     => $httpCode,
+                            'error'    => $errMsg,
+                        ]),
+                        '', 'MultiClientPreviewManager'
+                    );
+                }
+            }
+            return ['error' => 'Email on Acid HTTP ' . $httpCode . ' — ' . $errMsg];
         }
 
         $data = json_decode((string) $response, true);
