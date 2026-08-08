@@ -3345,6 +3345,30 @@ class HealthCheckManager
             }
         }
 
+        // Round 116 (2026-08-08) : WebhookManager::trigger()/processQueue()/
+        // sendTest() — même piège que rounds 111-115, appliqué cette fois à
+        // NERIA_WEBHOOK_URL/SECRET/EVENTS. neria.php boucle sur les
+        // boutiques actives et réassigne Context::getContext()->shop = new
+        // \Shop($idShopWebhook) avant d'instancier ce manager — $this->idShop
+        // (propriété d'objet) est bien à jour, mais Configuration::get() sans
+        // idShop explicite dépend de Shop::$context_id_shop, jamais modifiée
+        // par cette réaffectation. Sur une install où chaque boutique a sa
+        // propre URL/secret webhook, les événements d'une boutique B étaient
+        // livrés à l'URL et signés avec le secret de la boutique ambiante
+        // réelle — fuite cross-shop vers le mauvais système tiers.
+        $wh1File = _PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php';
+        $wh1Src  = is_file($wh1File) ? (file_get_contents($wh1File) ?: '') : '';
+        if ($wh1Src === '') {
+            $offenders[] = 'WebhookManager.php introuvable (garde-fou round 116 : URL/secret/events scopés par idShop)';
+        } else {
+            $wh1CountUrl    = substr_count($wh1Src, "\\Configuration::get(self::CONFIG_URL, null, null, \$this->idShop)");
+            $wh1CountSecret = substr_count($wh1Src, "\\Configuration::get(self::CONFIG_SECRET, null, null, \$this->idShop)");
+            $wh1CountEvents = substr_count($wh1Src, "\\Configuration::get(self::CONFIG_EVENTS, null, null, \$this->idShop)");
+            if ($wh1CountUrl < 3 || $wh1CountSecret < 2 || $wh1CountEvents < 1) {
+                $offenders[] = "WebhookManager ne résout plus CONFIG_URL/CONFIG_SECRET/CONFIG_EVENTS via \$this->idShop à tous les emplacements attendus (url={$wh1CountUrl}/3, secret={$wh1CountSecret}/2, events={$wh1CountEvents}/1) — régression du bug corrigé le 08/08/2026 (round 116)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
