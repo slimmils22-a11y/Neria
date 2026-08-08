@@ -741,10 +741,16 @@ class LoyaltyManager
         // un seul passage, un throttle global, un total tous magasins confondus.
         $crossShop = (new \ConfigManager($this->module))->isLoyaltyCrossShopEnabled();
         if ($crossShop) {
-            $lastSent = (string) \Configuration::get(self::CONFIG_RECAP_LAST_SENT);
-            if ($lastSent === $thisMonth) {
+            // Round 121 : valeur stockée en datetime complet (pas juste
+            // 'Y-m') pour pouvoir calculer $windowDays ci-dessous — voir
+            // sendRecapToCustomer(). Le throttle mensuel (comparaison sur
+            // les 7 premiers caractères) reste inchangé.
+            $lastSentRaw   = (string) \Configuration::get(self::CONFIG_RECAP_LAST_SENT);
+            $lastSentMonth = substr($lastSentRaw, 0, 7);
+            if ($lastSentMonth === $thisMonth) {
                 return 0; // Déjà envoyé ce mois-ci
             }
+            $windowDays = self::computeRecapWindowDays($lastSentRaw);
 
             $customers = $this->db->executeS(
                 "SELECT DISTINCT id_customer
@@ -755,7 +761,7 @@ class LoyaltyManager
             $sent = 0;
             foreach ($customers as $row) {
                 try {
-                    if ($this->sendRecapToCustomer((int) $row['id_customer'])) {
+                    if ($this->sendRecapToCustomer((int) $row['id_customer'], null, $windowDays)) {
                         $sent++;
                     }
                 } catch (\Throwable $e) {
@@ -766,7 +772,7 @@ class LoyaltyManager
                 }
             }
 
-            \Configuration::updateValue(self::CONFIG_RECAP_LAST_SENT, $thisMonth);
+            \Configuration::updateValue(self::CONFIG_RECAP_LAST_SENT, date('Y-m-d H:i:s'));
 
             return $sent;
         }
@@ -782,11 +788,13 @@ class LoyaltyManager
         $shops = \Shop::getShops(true, null, true) ?: [(int) \Context::getContext()->shop->id];
         foreach ($shops as $idShop) {
             $idShop = (int) $idShop;
-            $lastSentKey = self::CONFIG_RECAP_LAST_SENT . '_' . $idShop;
-            $lastSent = (string) \Configuration::get($lastSentKey);
-            if ($lastSent === $thisMonth) {
+            $lastSentKey   = self::CONFIG_RECAP_LAST_SENT . '_' . $idShop;
+            $lastSentRaw   = (string) \Configuration::get($lastSentKey);
+            $lastSentMonth = substr($lastSentRaw, 0, 7);
+            if ($lastSentMonth === $thisMonth) {
                 continue; // Déjà envoyé ce mois-ci pour cette boutique
             }
+            $windowDays = self::computeRecapWindowDays($lastSentRaw);
 
             $customers = $this->db->executeS(
                 "SELECT DISTINCT id_customer
@@ -796,7 +804,7 @@ class LoyaltyManager
 
             foreach ($customers as $row) {
                 try {
-                    if ($this->sendRecapToCustomer((int) $row['id_customer'], $idShop)) {
+                    if ($this->sendRecapToCustomer((int) $row['id_customer'], $idShop, $windowDays)) {
                         $sent++;
                     }
                 } catch (\Throwable $e) {
@@ -807,13 +815,36 @@ class LoyaltyManager
                 }
             }
 
-            \Configuration::updateValue($lastSentKey, $thisMonth);
+            \Configuration::updateValue($lastSentKey, date('Y-m-d H:i:s'));
         }
 
         return $sent;
     }
 
-    private function sendRecapToCustomer(int $idCustomer, ?int $idShop = null): bool
+    /**
+     * Round 121 : nombre de jours à utiliser pour la fenêtre de comptage des
+     * points du récap, basé sur le délai RÉEL écoulé depuis le dernier envoi
+     * — pas une fenêtre glissante fixe de 30 jours. Le throttle mensuel
+     * (comparaison calendaire 'Y-m') autorise un écart réel entre deux
+     * envois allant d'environ 1 à 31 jours selon le jour du mois où le cron
+     * quotidien a effectivement tourné après le changement de mois. Avec une
+     * fenêtre fixe de 30 jours : un envoi tardif (fin de mois) suivi d'un
+     * envoi précoce (début du mois suivant, 1 jour plus tard) fait
+     * quasiment recompter les MÊMES points dans les deux emails ; un envoi
+     * précoce suivi d'un envoi tardif (jusqu'à 31 jours plus tard) fait au
+     * contraire disparaître silencieusement les points gagnés juste après le
+     * précédent envoi, hors de la fenêtre glissante de 30 jours.
+     */
+    private static function computeRecapWindowDays(string $lastSentRaw): int
+    {
+        if ($lastSentRaw === '' || !strtotime($lastSentRaw)) {
+            return 30; // Jamais envoyé — comportement historique inchangé.
+        }
+        $days = (int) ceil((time() - strtotime($lastSentRaw)) / 86400);
+        return max(1, min($days, 60));
+    }
+
+    private function sendRecapToCustomer(int $idCustomer, ?int $idShop = null, int $windowDays = 30): bool
     {
         $customer = new \Customer($idCustomer);
         if (!\Validate::isLoadedObject($customer) || !$customer->active) {
@@ -830,13 +861,16 @@ class LoyaltyManager
             return false;
         }
 
-        // Points gagnés dans les 30 derniers jours
+        // Round 121 : $windowDays (délai réel écoulé depuis le dernier
+        // envoi, calculé par computeRecapWindowDays()), pas une fenêtre
+        // fixe de 30 jours — voir le commentaire de computeRecapWindowDays()
+        // pour le scénario de points dupliqués/oubliés que cela corrige.
         $shopFilter = $idShop !== null ? (' AND id_shop = ' . (int) $idShop) : '';
         $pointsMonth = (int) $this->db->getValue(
             "SELECT COALESCE(SUM(points), 0)
              FROM `{$this->prefix}" . self::TABLE_POINTS . "`
              WHERE id_customer = " . (int) $idCustomer . "
-               AND date_add >= DATE_SUB(NOW(), INTERVAL 30 DAY)" . $shopFilter
+               AND date_add >= DATE_SUB(NOW(), INTERVAL " . (int) $windowDays . " DAY)" . $shopFilter
         );
 
         // Pas de points ce mois → pas d'email (évite le spam pour inactifs)
