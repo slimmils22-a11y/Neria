@@ -3396,6 +3396,24 @@ class HealthCheckManager
             }
         }
 
+        // Round 118 (2026-08-08) : QueueManager::getStats()/
+        // HealthCheckManager::checkQueueFailedRate() — même famille que le
+        // round 117 (fenêtres temporelles incohérentes dans un ratio).
+        // failed_30d filtrait sur created_at (date de mise en file,
+        // potentiellement des semaines avant un échec réel pour un envoi
+        // programmé via scheduleManual()) au lieu de send_at (figé sur la
+        // dernière tentative planifiée par markFailedOrRetry(), donc bien
+        // plus proche du moment de l'échec réel). Un échec récent mais mis
+        // en file il y a longtemps redevenait invisible dans le taux
+        // d'échec affiché — masquant potentiellement un vrai incident.
+        $qm1File = _PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php';
+        $qm1Src  = is_file($qm1File) ? (file_get_contents($qm1File) ?: '') : '';
+        if ($qm1Src === '') {
+            $offenders[] = 'QueueManager.php introuvable (garde-fou round 118 : failed_30d filtré sur send_at)';
+        } elseif (strpos($qm1Src, "AND status = \\'failed\\' AND send_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)") === false) {
+            $offenders[] = "QueueManager::getStats() ne filtre plus failed_30d sur send_at — régression du bug corrigé le 08/08/2026 (round 118)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
@@ -10658,10 +10676,21 @@ class HealthCheckManager
              WHERE `id_shop` = ' . $this->idShop . '
                AND `status` = \'sent\' AND `sent_at` >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
         );
+        // Round 118 : filtré sur send_at, pas created_at — même correctif
+        // que QueueManager::getStats(). created_at est la date de MISE EN
+        // FILE (un envoi peut être programmé des semaines à l'avance via
+        // scheduleManual()), pas celle de l'échec réel ; sans colonne
+        // "failed_at" dédiée, send_at (figé sur la dernière tentative
+        // planifiée par markFailedOrRetry() juste avant l'échec final) en
+        // est le meilleur proxy disponible. Avec created_at, une campagne
+        // programmée à l'avance et en échec restait invisible dans
+        // failed30d au moment de l'échec réel, masquant un vrai incident de
+        // délivrabilité (statut OK affiché alors que le taux réel dépassait
+        // les seuils WARNING/ERROR).
         $failed30d = (int) $db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_queue`
              WHERE `id_shop` = ' . $this->idShop . '
-               AND `status` = \'failed\' AND `created_at` >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
+               AND `status` = \'failed\' AND `send_at` >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
         );
 
         $total = $sent30d + $failed30d;

@@ -526,10 +526,20 @@ class QueueManager
                AND status = \'sent\' AND sent_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
         );
 
+        // Round 118 : filtré sur send_at, pas created_at. created_at est la
+        // date de MISE EN FILE (ex. scheduleManual() peut programmer un
+        // envoi des semaines à l'avance), pas celle de l'échec réel — sans
+        // dédicace de colonne "failed_at", send_at (mis à jour à chaque
+        // tentative par markFailedOrRetry(), donc figé sur la DERNIÈRE
+        // tentative planifiée juste avant l'échec final) en est le meilleur
+        // proxy disponible. Avec created_at, un envoi programmé loin dans le
+        // futur puis en échec restait invisible dans failed30d au moment de
+        // l'échec réel, faussant sent30d/failed30d (même piège que le
+        // dénominateur non borné corrigé dans ABTestManager, round 117).
         $failed30d = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . $this->prefix . 'neria_queue`
              WHERE id_shop = ' . $this->idShop . '
-               AND status = \'failed\' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
+               AND status = \'failed\' AND send_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
         );
 
         $avgRaw = $this->db->getValue(
