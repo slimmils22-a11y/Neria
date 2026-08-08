@@ -419,11 +419,30 @@ class LookCompletionManager
 
     public function getStats(): array
     {
-        $rules     = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$this->prefix}neria_look_rule`");
-        $active    = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$this->prefix}neria_look_rule` WHERE active = 1");
-        $sent      = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$this->prefix}neria_look_sent`");
-        $sent30    = (int) $this->db->getValue(
-            "SELECT COUNT(*) FROM `{$this->prefix}neria_look_sent` WHERE sent_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)"
+        // Round 127 : sent/sent30 scopés par boutique — même pattern que
+        // CollectionManager::getStats() (round 119), UpsellManager::getStats()
+        // et WaitlistManager::getStats(). neria_look_sent n'a pas de colonne
+        // id_shop propre (voir sql/install.sql, table 31), mais chaque ligne
+        // référence un id_order réel via lequel la boutique se retrouve —
+        // JOIN sur orders.id_shop plutôt qu'une migration de schéma. Sans ce
+        // scope, le BO d'une boutique affichait dans son KPI "Complétez
+        // votre look" les envois de TOUTES les boutiques de l'installation,
+        // juste à côté du KPI "Complétion de collection" (même écran, cf.
+        // neria.php) correctement scopé depuis le round 119 — deux chiffres
+        // manifestement incohérents sur le même tableau de bord.
+        $idShop = (int) \Context::getContext()->shop->id;
+
+        $rules  = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$this->prefix}neria_look_rule`");
+        $active = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$this->prefix}neria_look_rule` WHERE active = 1");
+        $sent   = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$this->prefix}neria_look_sent` ls
+             INNER JOIN `{$this->prefix}orders` o ON o.id_order = ls.id_order
+             WHERE o.id_shop = {$idShop}"
+        );
+        $sent30 = (int) $this->db->getValue(
+            "SELECT COUNT(*) FROM `{$this->prefix}neria_look_sent` ls
+             INNER JOIN `{$this->prefix}orders` o ON o.id_order = ls.id_order
+             WHERE o.id_shop = {$idShop} AND ls.sent_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)"
         );
         return compact('rules', 'active', 'sent', 'sent30');
     }
