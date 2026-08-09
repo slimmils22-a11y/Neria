@@ -4239,7 +4239,7 @@ class Neria extends Module
                 if ($tradAction === 'restore_variant_b' && class_exists('TranslationHistoryManager')) {
                     $idHistory = (int) Tools::getValue('id_history', 0);
                     $idAbtestB = (int) Tools::getValue('id_abtest_b', 0);
-                    if ($idHistory > 0 && $this->abtestBelongsToShop($idAbtestB)) {
+                    if ($idHistory > 0 && $this->abtestBelongsToShop($idAbtestB, $tplKey)) {
                         $histMgr = new TranslationHistoryManager();
                         $entry   = $histMgr->getById($idHistory);
                         // getById() ne filtre que par id_shop, jamais par
@@ -7149,17 +7149,32 @@ class Neria extends Module
      * id_abtest → neria_abtest), donc sans ce contrôle un id_abtest_b
      * appartenant à une autre boutique (install multi-boutiques) serait
      * accepté tel quel.
+     *
+     * $template optionnel — round 137 : sans lui, restore_variant_b
+     * vérifiait seulement que id_abtest_b appartient à LA BOUTIQUE
+     * courante, jamais qu'il correspond au TEMPLATE actuellement affiché
+     * ($tplKey). Une requête POST avec un id_history valide pour le
+     * template affiché mais un id_abtest_b pointant vers le test A/B d'un
+     * AUTRE template actif sur la même boutique passait ce contrôle sans
+     * problème : le contenu restauré (clé/valeur du template affiché)
+     * s'écrivait alors dans neria_abtest_translation du mauvais test A/B,
+     * corrompant silencieusement la variante B d'un template sans rapport
+     * — vrai trou de contrôle serveur, pas seulement une protection
+     * absente côté client (le formulaire normal n'expose jamais ce cas,
+     * mais rien ne le bloquait côté back-end).
      */
-    private function abtestBelongsToShop(int $idAbtest): bool
+    private function abtestBelongsToShop(int $idAbtest, string $template = ''): bool
     {
         if ($idAbtest <= 0) {
             return false;
         }
-        return (bool) Db::getInstance()->getValue(
-            'SELECT `id_abtest` FROM `' . _DB_PREFIX_ . 'neria_abtest`
+        $sql = 'SELECT `id_abtest` FROM `' . _DB_PREFIX_ . 'neria_abtest`
              WHERE `id_abtest` = ' . $idAbtest . '
-               AND `id_shop` = ' . (int) $this->context->shop->id
-        );
+               AND `id_shop` = ' . (int) $this->context->shop->id;
+        if ($template !== '') {
+            $sql .= " AND `template` = '" . pSQL($template) . "'";
+        }
+        return (bool) Db::getInstance()->getValue($sql);
     }
 
     /**

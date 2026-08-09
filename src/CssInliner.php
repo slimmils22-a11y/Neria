@@ -93,15 +93,33 @@ class CssInliner
 
         $xpath = new \DOMXPath($dom);
 
+        // Round 137 : index construit en UNE seule passe sur le DOM (classe
+        // → liste d'éléments), au lieu de relancer une requête XPath sur
+        // l'intégralité du document POUR CHAQUE règle CSS. Un email avec un
+        // style par ligne (tableau produit dynamique — panier abandonné,
+        // récap de commande volumineux) génère autant de règles CSS que de
+        // lignes, chacune relançant un scan complet du DOM : coût O(règles ×
+        // taille du DOM), quadratique dès que les deux grandissent ensemble
+        // (mesuré empiriquement : ×4 à chaque doublement du nombre de
+        // lignes). Un email à plusieurs milliers de lignes pouvait bloquer
+        // le process PHP synchrone plusieurs dizaines de secondes, sans
+        // aucune limite de temps/complexité. L'index ramène le coût à
+        // O(taille du DOM + règles), chaque règle ne parcourant ensuite que
+        // les éléments réellement candidats.
+        $classIndex = [];
+        foreach ($xpath->query('//*[@class]') as $node) {
+            if (!($node instanceof \DOMElement)) {
+                continue;
+            }
+            foreach (preg_split('/\s+/', trim($node->getAttribute('class'))) as $cls) {
+                if ($cls !== '') {
+                    $classIndex[$cls][] = $node;
+                }
+            }
+        }
+
         foreach ($rules as [$sel, $props]) {
-            $xp = self::toXpath($sel);
-            if (!$xp) {
-                continue;
-            }
-            $nodes = $xpath->query($xp);
-            if (!$nodes) {
-                continue;
-            }
+            $nodes = self::resolveSelector($sel, $dom, $classIndex);
             foreach ($nodes as $node) {
                 if (!($node instanceof \DOMElement)) {
                     continue;
@@ -111,8 +129,15 @@ class CssInliner
         }
 
         $result = $dom->saveHTML();
-        // Supprimer la PI XML ajoutée en tête si présente
-        $result = preg_replace('/^<\?[^?]+\?>\s*/s', '', $result ?? '') ?? $result;
+        // Round 137 : supprime le PI XML ajouté en tête (astuce pour forcer
+        // DOMDocument à respecter l'UTF-8) — SANS ancre '^'. DOMDocument::
+        // saveHTML() insère systématiquement un DOCTYPE AVANT ce PI dans le
+        // résultat, donc l'ancre '^' ne matchait jamais et le PI restait
+        // visible en tête de TOUS les emails Neria envoyés (juste après le
+        // DOCTYPE), sans exception — dégradation de marque visible pour un
+        // module "Luxury". La regex ci-dessous reste bornée à une seule
+        // occurrence (limit=1) plutôt que non ancrée sur tout le document.
+        $result = preg_replace('/<\?xml encoding="utf-8" \?' . '>\s*/', '', $result ?? '', 1) ?? $result;
 
         return ($result !== '' && $result !== null) ? $result : $html;
     }
@@ -177,28 +202,45 @@ class CssInliner
     }
 
     // ============================================================
-    // CONVERSION CSS → XPATH
+    // RÉSOLUTION DE SÉLECTEUR → ÉLÉMENTS (via index de classes)
     // ============================================================
 
-    private static function toXpath(string $sel): ?string
+    /**
+     * Round 137 : remplace l'ancienne conversion CSS → XPath (toXpath(),
+     * qui relançait une requête XPath scannant tout le DOM à chaque appel)
+     * par une résolution via l'index de classes construit une seule fois
+     * dans process(), plus DOMDocument::getElementsByTagName() (natif,
+     * bien plus efficace qu'un XPath réinterprété à chaque règle) pour le
+     * filtre par élément.
+     *
+     * @return \DOMElement[]
+     */
+    private static function resolveSelector(string $sel, \DOMDocument $dom, array $classIndex): array
     {
         // .classe
         if (preg_match('/^\.([a-zA-Z][\w-]*)$/', $sel, $m)) {
-            $c = $m[1];
-            return "//*[contains(concat(' ',normalize-space(@class),' '),' $c ')]";
+            return $classIndex[$m[1]] ?? [];
         }
 
         // element (body, p, a, table, td…)
         if (preg_match('/^([a-zA-Z][\w]*)$/', $sel)) {
-            return '//' . strtolower($sel);
+            return iterator_to_array($dom->getElementsByTagName(strtolower($sel)), false);
         }
 
         // element.classe (td.summary)
         if (preg_match('/^([a-zA-Z][\w]*)\.([a-zA-Z][\w-]*)$/', $sel, $m)) {
-            return "//{$m[1]}[contains(concat(' ',normalize-space(@class),' '),' {$m[2]} ')]";
+            $tag = strtolower($m[1]);
+            $candidates = $classIndex[$m[2]] ?? [];
+            $out = [];
+            foreach ($candidates as $node) {
+                if ($node instanceof \DOMElement && strtolower($node->nodeName) === $tag) {
+                    $out[] = $node;
+                }
+            }
+            return $out;
         }
 
-        return null;
+        return [];
     }
 
     // ============================================================
@@ -211,32 +253,76 @@ class CssInliner
      */
     private static function merge(string $newProps, string $existingInline): string
     {
-        $result = [];
+        $result    = [];
+        $important = [];
+
+        // Round 137 : respecte !important dans la cascade — auparavant
+        // totalement ignoré (ni détecté, ni priorisé), traité comme un
+        // simple fragment de la valeur. Une règle !important (ex. un thème
+        // forçant une couleur pour contourner un style de base) perdait
+        // silencieusement face à une règle non-important mais plus
+        // spécifique, ou face au style inline déjà présent — cascade CSS
+        // standard violée, avec un rendu divergent entre clients qui
+        // gardent le <style> (Apple Mail, respecte !important) et ceux qui
+        // ne voient que l'inline (Gmail/Outlook, ne le respectait plus).
+        // Ordre de priorité implémenté : !important (peu importe la
+        // source) > inline non-important > règle non-important par
+        // spécificité — conforme à la cascade CSS2.1 simplifiée (sans
+        // feuilles utilisateur/agent).
+        $parseDecl = static function (string $decl): ?array {
+            $decl = trim($decl);
+            if ($decl === '' || !str_contains($decl, ':')) {
+                return null;
+            }
+            [$k, $v] = explode(':', $decl, 2);
+            $k = trim($k);
+            $v = trim($v);
+            $isImportant = (bool) preg_match('/!\s*important\s*$/i', $v);
+            if ($isImportant) {
+                $v = trim(preg_replace('/!\s*important\s*$/i', '', $v));
+            }
+            return [$k, $v, $isImportant];
+        };
 
         if ($existingInline !== '') {
             foreach (explode(';', $existingInline) as $decl) {
-                $decl = trim($decl);
-                if ($decl !== '' && str_contains($decl, ':')) {
-                    [$k, $v] = explode(':', $decl, 2);
-                    $result[trim($k)] = trim($v);
+                $parsed = $parseDecl($decl);
+                if ($parsed === null) {
+                    continue;
                 }
+                [$k, $v, $isImportant] = $parsed;
+                $result[$k]    = $v;
+                $important[$k] = $isImportant;
             }
         }
 
         foreach (explode(';', $newProps) as $decl) {
-            $decl = trim($decl);
-            if ($decl !== '' && str_contains($decl, ':')) {
-                [$k, $v] = explode(':', $decl, 2);
-                $k = trim($k);
-                if (!array_key_exists($k, $result)) {
-                    $result[$k] = trim($v);
-                }
+            $parsed = $parseDecl($decl);
+            if ($parsed === null) {
+                continue;
+            }
+            [$k, $v, $isImportant] = $parsed;
+            if (!array_key_exists($k, $result)) {
+                $result[$k]    = $v;
+                $important[$k] = $isImportant;
+                continue;
+            }
+            // Une déclaration !important entrante ne peut écraser qu'une
+            // déclaration existante NON importante — entre deux !important,
+            // la première rencontrée (règle la plus spécifique déjà
+            // traitée, ou style inline d'origine) l'emporte, cohérent avec
+            // le reste de l'algorithme (premier arrivé = priorité la plus
+            // haute déjà établie par l'ordre de traitement).
+            if ($isImportant && !$important[$k]) {
+                $result[$k]    = $v;
+                $important[$k] = true;
             }
         }
 
         $parts = [];
         foreach ($result as $k => $v) {
-            $parts[] = "$k: $v";
+            $suffix = !empty($important[$k]) ? ' !important' : '';
+            $parts[] = "$k: $v{$suffix}";
         }
         return implode('; ', $parts);
     }

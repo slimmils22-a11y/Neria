@@ -299,7 +299,12 @@ class CollectionManager
             // (fin de série retirée du catalogue sans mise à jour de la règle
             // de collection) : le cron continuait d'envoyer "il ne vous manque
             // que X" avec un lien produit indisponible.
-            $product = new \Product($missingId, false, $idLang);
+            // $idShop explicite au constructeur — même piège
+            // Shop::$context_id_shop que ci-dessus (round 137) : sans lui,
+            // $product->active pouvait refléter le statut du produit dans
+            // la boutique du contexte d'exécution du cron, pas celle du
+            // client réellement traité.
+            $product = new \Product($missingId, false, $idLang, $idShop);
             if (!\Validate::isLoadedObject($product) || !$product->active) {
                 $this->releaseSendClaim($colId, $idCustomer, $idShop);
                 continue;
@@ -449,22 +454,36 @@ class CollectionManager
 
     private function getProductImageUrl(int $idProduct, int $idLang, int $idShop): string
     {
-        $cover = \Product::getCover($idProduct);
-        if (!$cover) return '';
-
-        // getImageLink() ne prend pas id_shop en paramètre — le domaine
-        // utilisé dépend du Context::shop courant. Même motif déjà établi
-        // dans BehavioralCronManager/MonthlyReportManager : bascule
-        // temporaire du contexte le temps de générer CE lien, restauration
-        // immédiate après. Sans ça, l'image pointait vers le domaine de la
-        // boutique du contexte d'exécution du cron, pas celle du client.
+        // Round 137 : Shop::setContext() englobe désormais AUSSI
+        // Product::getCover() — pas seulement getImageLink() ci-dessous.
+        // getCover() résout sa requête via Shop::addSqlAssociation(), qui
+        // filtre sur le contexte boutique STATIQUE (Shop::$context_id_shop),
+        // jamais mis à jour par une simple réassignation de Context->shop
+        // (seul Shop::setContext() le fait réellement) — même piège que
+        // CooldownManager/DomainReputationManager (round 129),
+        // LookCompletionManager (round 131/132), BehavioralCronManager::
+        // sendGhostCarts() (round 132). Contrairement à ce que suggéraient
+        // les commentaires d'autres fichiers ("même correctif que
+        // CollectionManager"), CE fichier n'avait en fait jamais reçu la
+        // version complète du correctif — resté sur la réassignation
+        // partielle de Context->shop, insuffisante pour getCover().
+        $originalShopId = \Shop::getContextShopID(true);
+        \Shop::setContext(\Shop::CONTEXT_SHOP, $idShop);
         $context = \Context::getContext();
         $originalShop = $context->shop;
         $context->shop = new \Shop($idShop);
         try {
+            $cover = \Product::getCover($idProduct);
+            if (!$cover) {
+                return '';
+            }
+            // getImageLink() ne prend pas id_shop en paramètre — le domaine
+            // utilisé dépend du Context::shop courant, d'où la réassignation
+            // ci-dessus en complément de Shop::setContext().
             return $context->link->getImageLink('', (int) $cover['id_image'], \ImageType::getFormattedName('home'));
         } finally {
             $context->shop = $originalShop;
+            \Shop::setContext(\Shop::CONTEXT_SHOP, $originalShopId);
         }
     }
 
