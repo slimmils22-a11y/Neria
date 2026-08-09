@@ -602,7 +602,12 @@ class ManualSendManager
             $langIso = class_exists('TranslationEngine')
                 ? (new \TranslationEngine($this->module))->langFromId($idLang)
                 : (string) (\Language::getIsoById($idLang) ?: '');
-            if ((new \BlacklistManager())->isBlacklisted($template, $langIso)) {
+            // $idShop explicite — round 136 : sans lui, BlacklistManager
+            // retombait sur la boutique du contexte BO de l'opérateur, pas
+            // celle du client réellement destinataire (posée juste au-dessus,
+            // ligne 587) — un opérateur en contexte Boutique A envoyant à un
+            // client de Boutique B vérifiait la mauvaise blacklist.
+            if ((new \BlacklistManager($idShop))->isBlacklisted($template, $langIso)) {
                 return ['ok' => false, 'message' => AdminTranslator::tVars('msg.send_blocked_blacklist', ['template' => $template])];
             }
         }
@@ -1239,7 +1244,10 @@ class ManualSendManager
             $langIso = class_exists('TranslationEngine')
                 ? (new \TranslationEngine($this->module))->langFromId($idLang)
                 : (string) (\Language::getIsoById($idLang) ?: '');
-            if ((new \BlacklistManager())->isBlacklisted($template, $langIso)) {
+            // $idShopManual explicite — même correctif round 136 que send()
+            // ci-dessus (BlacklistManager retombait sur la boutique du
+            // contexte BO de l'opérateur, pas celle du client).
+            if ((new \BlacklistManager($idShopManual))->isBlacklisted($template, $langIso)) {
                 return ['ok' => false, 'message' => AdminTranslator::tVars('msg.send_blocked_blacklist', ['template' => $template])];
             }
         }

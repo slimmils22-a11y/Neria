@@ -1671,7 +1671,15 @@ class ConfigManager
             self::KEY_BLOCK_SPACING,
             self::KEY_SEPARATOR_STYLE,
             self::KEY_CARD_SHADOW,
-            self::KEY_DESIGN_WIZARD_SEEN,
+            // Round 136 : KEY_DESIGN_WIZARD_SEEN retiré — ce n'est pas un
+            // réglage de design (couleurs/police/bouton/espacement/
+            // séparateur/ombre), c'est un flag d'affichage BO. Le
+            // réinitialiser ici faisait réapparaître à tort le bandeau
+            // assistant "Nouveau sur Neria ?" après un simple reset factory
+            // du Design, alors que le marchand l'avait déjà fermé —
+            // incohérent avec le commentaire du handler save_design/
+            // reset_design (neria.php) qui limite explicitement le reset à
+            // ces réglages-là.
         ];
 
         $success = true;

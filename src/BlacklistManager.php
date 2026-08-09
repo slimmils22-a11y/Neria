@@ -29,10 +29,21 @@ class BlacklistManager
     /** @var array|null Cache en mémoire pour la requête (durée de la requête HTTP) */
     private ?array $cache = null;
 
-    public function __construct()
+    /**
+     * $idShop optionnel — round 136 : ManualSendManager calcule explicitement
+     * l'idShop réel du CLIENT (pas celui du contexte BO de l'opérateur, ni
+     * du contexte d'exécution ambiant d'un cron) pour PreferencesManager,
+     * mais instanciait BlacklistManager() sans ce paramètre, qui retombait
+     * alors sur Context::getContext()->shop->id — la boutique de l'opérateur
+     * en envoi manuel/planifié. Un opérateur en contexte Boutique A envoyant
+     * à un client de Boutique B vérifiait la blacklist de la MAUVAISE
+     * boutique : un template bloqué sur B pouvait partir quand même (ou
+     * inversement une règle de A bloquer à tort un envoi vers B).
+     */
+    public function __construct(?int $idShop = null)
     {
         $this->db     = \Db::getInstance();
-        $this->idShop = (int) \Context::getContext()->shop->id;
+        $this->idShop = $idShop ?? (int) \Context::getContext()->shop->id;
     }
 
     /**
@@ -45,9 +56,17 @@ class BlacklistManager
      */
     public function isBlacklisted(string $template, string $lang): bool
     {
+        // Round 136 : comparaison insensible à la casse — EmailRenderer::
+        // resolveTemplate() force systématiquement strtolower() avant
+        // d'appeler isBlacklisted(), mais add() (ci-dessous) n'a jamais
+        // normalisé la casse à l'écriture. Non exploitable aujourd'hui via
+        // le <select> BO (déjà en minuscules), mais silencieusement cassé
+        // dès qu'un template en casse mixte serait enregistré par un autre
+        // chemin (import, texte libre futur).
+        $template = mb_strtolower($template);
         $rules = $this->loadAll();
         foreach ($rules as $rule) {
-            if ($rule['template'] !== $template) {
+            if (mb_strtolower($rule['template']) !== $template) {
                 continue;
             }
             // Règle "toutes langues" (lang = '') ou règle pour cette langue précise
@@ -67,7 +86,7 @@ class BlacklistManager
      */
     public function add(string $template, string $lang): bool
     {
-        $template = pSQL(trim($template));
+        $template = pSQL(mb_strtolower(trim($template)));
         $lang     = pSQL(trim($lang));
         if ($template === '') {
             return false;
