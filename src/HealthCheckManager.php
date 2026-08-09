@@ -4040,6 +4040,59 @@ class HealthCheckManager
             }
         }
 
+        // Round 137 (2026-08-08) : CssInliner ne doit plus laisser fuiter le
+        // PI XML en tête du HTML, doit respecter !important, et résoudre
+        // les sélecteurs via un index de classes (pas une requête XPath par
+        // règle — complexité quadratique).
+        $cssFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CssInliner.php';
+        $cssSrc  = is_file($cssFile) ? (file_get_contents($cssFile) ?: '') : '';
+        if ($cssSrc === '') {
+            $offenders[] = 'CssInliner.php introuvable (garde-fou round 137 : PI XML/!important/index de classes)';
+        } else {
+            if (strpos($cssSrc, "preg_replace('/<\?xml encoding=\"utf-8\" \?' . '>\s*/'") === false) {
+                $offenders[] = "CssInliner : le nettoyage du PI XML n'utilise plus la regex non ancrée — régression du bug corrigé le 08/08/2026 (round 137) : le PI XML redeviendrait visible en tête de tous les emails envoyés";
+            }
+            if (strpos($cssSrc, "preg_match('/!\s*important\s*\$/i', \$v)") === false) {
+                $offenders[] = "CssInliner::merge() ne détecte plus !important — régression du bug corrigé le 08/08/2026 (round 137) : la cascade CSS standard serait de nouveau violée";
+            }
+            if (strpos($cssSrc, "\$xpath->query('//*[@class]')") === false
+                || strpos($cssSrc, 'private static function resolveSelector(') === false
+            ) {
+                $offenders[] = "CssInliner ne construit plus l'index de classes en une seule passe — régression du bug corrigé le 08/08/2026 (round 137) : le comportement quadratique (une requête XPath par règle CSS) pourrait réapparaître";
+            }
+        }
+
+        // Round 137 (2026-08-08) : CollectionManager::getProductImageUrl()
+        // doit commuter le contexte boutique statique via Shop::setContext()
+        // avant Product::getCover(), et runDailyCheck() doit instancier le
+        // produit manquant avec l'idShop explicite.
+        $colFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php';
+        $colSrc  = is_file($colFile) ? (file_get_contents($colFile) ?: '') : '';
+        if ($colSrc === '') {
+            $offenders[] = 'CollectionManager.php introuvable (garde-fou round 137 : Shop::setContext() + Product idShop)';
+        } else {
+            $posGPI = strpos($colSrc, 'private function getProductImageUrl(int $idProduct, int $idLang, int $idShop): string');
+            $gpiBody = $posGPI !== false ? substr($colSrc, $posGPI, 1600) : '';
+            if ($posGPI === false || strpos($gpiBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $idShop)') === false) {
+                $offenders[] = "CollectionManager::getProductImageUrl() ne commute plus le contexte boutique statique via Shop::setContext() avant Product::getCover() — régression du bug corrigé le 08/08/2026 (round 137)";
+            }
+            if (strpos($colSrc, 'new \Product($missingId, false, $idLang, $idShop)') === false) {
+                $offenders[] = "CollectionManager::runDailyCheck() n'instancie plus Product avec l'idShop explicite pour le produit manquant — régression du bug corrigé le 08/08/2026 (round 137)";
+            }
+        }
+
+        // Round 137 (2026-08-08) : neria.php::abtestBelongsToShop() doit
+        // accepter un paramètre $template, et restore_variant_b doit
+        // l'utiliser pour empêcher d'écraser la variante B d'un autre
+        // template.
+        $mainSrc137 = file_get_contents(_PS_MODULE_DIR_ . $this->module->name . '/neria.php') ?: '';
+        if (strpos($mainSrc137, 'private function abtestBelongsToShop(int $idAbtest, string $template = \'\'): bool') === false) {
+            $offenders[] = "neria.php : abtestBelongsToShop() n'accepte plus le paramètre \$template — régression du bug corrigé le 08/08/2026 (round 137) : restore_variant_b pourrait de nouveau écraser la variante B d'un autre template";
+        }
+        if (strpos($mainSrc137, 'abtestBelongsToShop($idAbtestB, $tplKey)') === false) {
+            $offenders[] = "neria.php : restore_variant_b n'appelle plus abtestBelongsToShop() avec \$tplKey — régression du bug corrigé le 08/08/2026 (round 137)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
