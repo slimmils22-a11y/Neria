@@ -4172,6 +4172,31 @@ class HealthCheckManager
             $offenders[] = "TranslationInstaller::flushBatch() n'utilise plus le flag charsetSet — régression du bug corrigé le 08/08/2026 (round 139) : SET NAMES redeviendrait exécuté à chaque lot d'import";
         }
 
+        // Round 140 (2026-09-08) : TranslationInstaller::importTemplate() ne
+        // doit plus valider (COMMIT) la suppression des traductions par
+        // défaut d'un template si le batch de réinsertion est vide, et
+        // importFromJson()/importTemplate() doivent réinitialiser leurs
+        // compteurs (début d'appel + après ROLLBACK).
+        $ti2File = _PS_MODULE_DIR_ . $this->module->name . '/src/TranslationInstaller.php';
+        $ti2Src  = is_file($ti2File) ? (file_get_contents($ti2File) ?: '') : '';
+        if ($ti2Src === '') {
+            $offenders[] = 'TranslationInstaller.php introuvable (garde-fou round 140 : batch vide non commité + compteurs réinitialisés)';
+        } else {
+            $posIT = strpos($ti2Src, 'public function importTemplate(string $jsonPath, string $template): bool');
+            $itBody = $posIT !== false ? substr($ti2Src, $posIT, 4000) : '';
+            if ($posIT === false || strpos($itBody, '$ok = !$batchWasEmpty && $this->flushBatch($batch);') === false) {
+                $offenders[] = "TranslationInstaller::importTemplate() ne protège plus contre un batch vide — régression du bug corrigé le 09/08/2026 (round 140) : le DELETE des traductions par défaut pourrait de nouveau être validé sans réinsertion, perte de données silencieuse";
+            }
+            $posIFJ = strpos($ti2Src, 'public function importFromJson(string $jsonPath): bool');
+            $ifjBody = $posIFJ !== false ? substr($ti2Src, $posIFJ, 700) : '';
+            if ($posIFJ === false || strpos($ifjBody, '$this->countInserted = 0;') === false) {
+                $offenders[] = "TranslationInstaller::importFromJson() ne réinitialise plus les compteurs en début d'appel — régression du bug corrigé le 09/08/2026 (round 140)";
+            }
+            if ($posIT === false || strpos($itBody, '$this->countInserted = 0;') === false) {
+                $offenders[] = "TranslationInstaller::importTemplate() ne réinitialise plus les compteurs en début d'appel — régression du bug corrigé le 09/08/2026 (round 140) : le rapport BO redeviendrait cumulatif si l'instance est réutilisée";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
