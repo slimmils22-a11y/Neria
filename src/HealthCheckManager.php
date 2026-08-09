@@ -3547,7 +3547,7 @@ class HealthCheckManager
             $posbch = strpos($er1Src, 'private function buildCompiledHtml(');
             $bchBlock = $posbch !== false ? substr($er1Src, $posbch, 8000) : '';
             if ($posbch === false
-                || strpos($bchBlock, '$this->injectSignatureVars($sigVars);') === false
+                || strpos($bchBlock, '$this->injectSignatureVars($sigVars, (int) $this->context->shop->id);') === false
                 || strpos($bchBlock, '$this->injectSocialVars($socVars);') === false
                 || strpos($bchBlock, "isset\\(\\\$([a-z_]+)\\)") === false
             ) {
@@ -4091,6 +4091,64 @@ class HealthCheckManager
         }
         if (strpos($mainSrc137, 'abtestBelongsToShop($idAbtestB, $tplKey)') === false) {
             $offenders[] = "neria.php : restore_variant_b n'appelle plus abtestBelongsToShop() avec \$tplKey — régression du bug corrigé le 08/08/2026 (round 137)";
+        }
+
+        // Round 138 (2026-08-08) : WaitlistManager::notifyProduct() doit
+        // commuter le contexte boutique statique via Shop::setContext()
+        // avant Product/getCover() — même piège que CollectionManager
+        // (round 137), qui n'avait lui-même jamais reçu le correctif
+        // complet malgré des commentaires le citant comme référence.
+        $wlmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php';
+        $wlmSrc  = is_file($wlmFile) ? (file_get_contents($wlmFile) ?: '') : '';
+        if ($wlmSrc === '') {
+            $offenders[] = 'WaitlistManager.php introuvable (garde-fou round 138 : Shop::setContext() + Product idShop)';
+        } else {
+            $posNP = strpos($wlmSrc, 'public function notifyProduct(');
+            $npBody = $posNP !== false ? substr($wlmSrc, $posNP, 6000) : '';
+            if ($posNP === false
+                || strpos($npBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $idShop)') === false
+                || strpos($npBody, 'new \Product($idProduct, false, $idLang, $idShop)') === false
+            ) {
+                $offenders[] = "WaitlistManager::notifyProduct() ne commute plus le contexte boutique statique via Shop::setContext() avant Product/getCover() — régression du bug corrigé le 08/08/2026 (round 138)";
+            }
+        }
+
+        // Round 138 (2026-08-08) : EmailRenderer::isInternalEmail() doit
+        // résoudre PS_SHOP_EMAIL avec l'idShop explicite, et
+        // resolveSignature()/injectSignatureVars() doivent recevoir l'idShop
+        // du destinataire réel, pas le contexte d'exécution ambiant.
+        $emrFile = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
+        $emrSrc  = is_file($emrFile) ? (file_get_contents($emrFile) ?: '') : '';
+        if ($emrSrc === '') {
+            $offenders[] = 'EmailRenderer.php introuvable (garde-fou round 138 : isInternalEmail()/signature scopés idShop)';
+        } else {
+            if (strpos($emrSrc, "\\Configuration::get('PS_SHOP_EMAIL', null, null, \$idShop)") === false) {
+                $offenders[] = "EmailRenderer::isInternalEmail() ne résout plus PS_SHOP_EMAIL avec l'idShop explicite — régression du bug corrigé le 08/08/2026 (round 138)";
+            }
+            if (strpos($emrSrc, 'private function resolveSignature(int $idShop): array') === false) {
+                $offenders[] = "EmailRenderer::resolveSignature() n'accepte plus l'idShop explicite en paramètre — régression du bug corrigé le 08/08/2026 (round 138) : la signature manuscrite pourrait de nouveau fuiter entre boutiques";
+            }
+            if (strpos($emrSrc, '$idShopFallback = $this->resolveShopId($params);') === false) {
+                $offenders[] = "EmailRenderer : le chemin fallback ne calcule plus \$idShopFallback via resolveShopId(\$params) — régression du bug corrigé le 08/08/2026 (round 138)";
+            }
+        }
+
+        // Round 138 (2026-08-08) : TranslationHistoryManager doit verrouiller
+        // record()/pruneKey() via GET_LOCK, et ne plus filtrer par id_shop
+        // (neria_translation elle-même est globale, sans colonne id_shop).
+        $thmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/TranslationHistoryManager.php';
+        $thmSrc  = is_file($thmFile) ? (file_get_contents($thmFile) ?: '') : '';
+        if ($thmSrc === '') {
+            $offenders[] = 'TranslationHistoryManager.php introuvable (garde-fou round 138 : verrou + visibilité globale)';
+        } else {
+            if (strpos($thmSrc, "GET_LOCK('") === false || strpos($thmSrc, "RELEASE_LOCK('") === false) {
+                $offenders[] = "TranslationHistoryManager::record() n'utilise plus GET_LOCK/RELEASE_LOCK — régression du bug corrigé le 08/08/2026 (round 138)";
+            }
+            $posGHFT = strpos($thmSrc, 'public function getHistoryForTemplate(');
+            $ghftBody = $posGHFT !== false ? substr($thmSrc, $posGHFT, 500) : '';
+            if ($posGHFT === false || strpos($ghftBody, 'id_shop') !== false) {
+                $offenders[] = "TranslationHistoryManager::getHistoryForTemplate() filtre de nouveau par id_shop — régression du bug corrigé le 08/08/2026 (round 138) : l'historique d'une traduction (globale) redeviendrait invisible depuis les autres boutiques";
+            }
         }
 
         if ($offenders) {
