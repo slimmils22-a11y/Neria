@@ -4151,6 +4151,27 @@ class HealthCheckManager
             }
         }
 
+        // Round 139 (2026-08-08) : neria.php::hookActionUpdateQuantity()
+        // doit être enveloppé par NeriaErrorHandler::wrapHookVoid(), comme
+        // tous les autres hooks du fichier.
+        $mainSrc139 = file_get_contents(_PS_MODULE_DIR_ . $this->module->name . '/neria.php') ?: '';
+        $posHUQ = strpos($mainSrc139, 'public function hookActionUpdateQuantity(array $params): void');
+        $huqBody = $posHUQ !== false ? substr($mainSrc139, $posHUQ, 1200) : '';
+        if ($posHUQ === false || strpos($huqBody, "NeriaErrorHandler::wrapHookVoid('hookActionUpdateQuantity'") === false) {
+            $offenders[] = "neria.php : hookActionUpdateQuantity() n'est plus enveloppé par NeriaErrorHandler::wrapHookVoid() — régression du bug corrigé le 08/08/2026 (round 139) : une exception avant le try/catch interne pourrait de nouveau casser le tunnel de commande";
+        }
+
+        // Round 139 (2026-08-08) : TranslationInstaller::flushBatch() ne
+        // doit exécuter SET NAMES qu'une seule fois par opération d'import
+        // (flag charsetSet), pas à chaque lot.
+        $tiFile = _PS_MODULE_DIR_ . $this->module->name . '/src/TranslationInstaller.php';
+        $tiSrc  = is_file($tiFile) ? (file_get_contents($tiFile) ?: '') : '';
+        if ($tiSrc === '') {
+            $offenders[] = 'TranslationInstaller.php introuvable (garde-fou round 139 : SET NAMES une seule fois)';
+        } elseif (strpos($tiSrc, 'private bool $charsetSet = false;') === false || strpos($tiSrc, 'if (!$this->charsetSet) {') === false) {
+            $offenders[] = "TranslationInstaller::flushBatch() n'utilise plus le flag charsetSet — régression du bug corrigé le 08/08/2026 (round 139) : SET NAMES redeviendrait exécuté à chaque lot d'import";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
