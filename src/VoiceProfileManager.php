@@ -64,6 +64,15 @@ class VoiceProfileManager
             return false;
         }
 
+        // Round 135 : normalise (déduplique + plafonne) la liste avant
+        // écriture — sans ça, aucune borne n'existait contrairement aux
+        // autres formulaires du module. Une liste massive ou dupliquée
+        // gonfle inutilement le coût O(n) de textContainsWords()/
+        // auditTranslations() (des milliers d'entrées de traduction
+        // scannées × mots bannis) sans apporter de détection supplémentaire.
+        $bannedWords    = $this->normalizeWordListInput($bannedWords);
+        $preferredWords = $this->normalizeWordListInput($preferredWords);
+
         return (bool) $this->db->execute(
             'INSERT INTO `' . _DB_PREFIX_ . self::TABLE . '`
              (`id_shop`, `lang`, `banned_words`, `preferred_words`, `tone_notes`, `date_upd`)
@@ -75,6 +84,32 @@ class VoiceProfileManager
                `tone_notes`      = VALUES(`tone_notes`),
                `date_upd`        = NOW()"
         );
+    }
+
+    /**
+     * Déduplique (insensible à la casse) et plafonne une liste "un mot par
+     * ligne" venant du formulaire BO, avant écriture en base — voir
+     * saveProfile(). Plafond généreux (500 entrées) : largement suffisant
+     * pour un usage éditorial réel, protège seulement contre un collage
+     * accidentel massif ou une liste jamais nettoyée.
+     */
+    private function normalizeWordListInput(string $raw): string
+    {
+        $words = $this->parseWordList($raw);
+        $seen  = [];
+        $out   = [];
+        foreach ($words as $word) {
+            $key = mb_strtolower($word);
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $out[] = $word;
+            if (count($out) >= 500) {
+                break;
+            }
+        }
+        return implode("\n", $out);
     }
 
     /**
@@ -137,6 +172,19 @@ class VoiceProfileManager
             // silencieusement. Correspondance directe par sous-chaîne pour
             // ces scripts, sans notion de frontière de mot.
             if (preg_match('/\p{Han}|\p{Hiragana}|\p{Katakana}|\p{Hangul}/u', $word)) {
+                // Round 135 : un mot CJK d'un seul caractère (idéogramme
+                // isolé) génère en pratique des faux positifs massifs — la
+                // sous-chaîne matche n'importe quel mot de plusieurs
+                // caractères qui le contient, sans rapport sémantique (ex.
+                // bannir « 日 » déclenche une alerte sur « 明日 »/« 日本 »).
+                // À partir de 2 caractères, un mot/expression CJK devient
+                // suffisamment spécifique pour que la correspondance par
+                // sous-chaîne reste exploitable — on ignore silencieusement
+                // les entrées d'un seul caractère plutôt que de noyer le
+                // marchand sous des alertes inexploitables.
+                if (mb_strlen($word) < 2) {
+                    continue;
+                }
                 if (mb_stripos($plainText, $word) !== false) {
                     $found[] = $word;
                 }

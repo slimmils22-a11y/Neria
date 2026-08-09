@@ -27,6 +27,10 @@ class GoldenHourManager
 {
     const TABLE = 'neria_stat';
 
+    const CONFIG_CACHE      = 'NERIA_GOLDEN_HOUR_CACHE';
+    const CONFIG_CACHE_TIME = 'NERIA_GOLDEN_HOUR_CACHE_TIME';
+    const CACHE_TTL         = 900; // 15 min
+
     // Seuil minimal d'ouvertures pour afficher une recommandation
     const MIN_OPENS = 10;
 
@@ -61,6 +65,41 @@ class GoldenHourManager
      * ][]
      */
     public function getRecommendations(int $days = 90): array
+    {
+        // Round 135 : navigation.tpl (rendu sur TOUTE page admin, pas
+        // seulement l'onglet Statistiques) consulte neria_has_golden_hour_data
+        // pour décider d'afficher ou non le lien de menu "Heure d'Or" — cet
+        // appel ne peut donc pas être conditionné à l'onglet actif sans
+        // casser le masquage de menu. On met en cache le résultat (15 min,
+        // scopé boutique+fenêtre) plutôt que de rejouer le LEFT JOIN sur 90
+        // jours d'historique de tracking à chaque chargement de page BO.
+        $cacheKey     = $this->cacheKey(self::CONFIG_CACHE, $days);
+        $cacheTimeKey = $this->cacheKey(self::CONFIG_CACHE_TIME, $days);
+        $cacheTime    = (int) \Configuration::get($cacheTimeKey);
+        if ($cacheTime && (time() - $cacheTime) < self::CACHE_TTL) {
+            $cached = \Configuration::get($cacheKey);
+            if ($cached) {
+                $decoded = json_decode($cached, true);
+                if (is_array($decoded)) {
+                    return $decoded;
+                }
+            }
+        }
+
+        $result = $this->computeRecommendations($days);
+
+        \Configuration::updateValue($cacheKey, json_encode($result, JSON_UNESCAPED_UNICODE));
+        \Configuration::updateValue($cacheTimeKey, time());
+
+        return $result;
+    }
+
+    private function cacheKey(string $base, int $days): string
+    {
+        return $base . '_' . $this->idShop . '_' . $days;
+    }
+
+    private function computeRecommendations(int $days): array
     {
         $table    = _DB_PREFIX_ . self::TABLE;
         $dateFrom = pSQL(date('Y-m-d', strtotime("-{$days} days")));

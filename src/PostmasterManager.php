@@ -646,10 +646,19 @@ class PostmasterManager
             CURLOPT_TIMEOUT        => 10,
             CURLOPT_SSL_VERIFYPEER => true,
         ]);
-        $body = curl_exec($ch);
+        $body    = curl_exec($ch);
+        $curlErr = curl_error($ch);
         curl_close($ch);
 
-        if (!$body) {
+        // Round 135 : même correctif que SearchConsoleManager::httpPost()
+        // (déjà en place) — un échec transport lors du rafraîchissement du
+        // token OAuth (refreshAccessToken()) retournait silencieusement []
+        // sans aucune trace Watchdog, contrairement à la lecture des données
+        // (apiGet(), round 131). Une déconnexion OAuth "mystère" en
+        // production ne pouvait alors jamais être diagnostiquée.
+        if ($body === false) {
+            $msg = 'network error: ' . ($curlErr !== '' ? $curlErr : 'unknown');
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.postmaster_api_error', ['error' => $msg]), '', 'PostmasterManager');
             return [];
         }
         $result = json_decode($body, true);

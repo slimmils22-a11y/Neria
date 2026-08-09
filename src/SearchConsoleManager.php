@@ -570,14 +570,34 @@ class SearchConsoleManager
             \CURLOPT_SSL_VERIFYPEER => true,
         ]);
         $body     = curl_exec($ch);
+        $curlErr  = curl_error($ch);
         $httpCode = curl_getinfo($ch, \CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if (!$body) {
+        // Round 135 : même correctif que PostmasterManager::apiGet() (round
+        // 131) — un échec transport (timeout, DNS injoignable, TLS cassé)
+        // renvoyait null en silence total, sans jamais écrire
+        // CONFIG_LAST_ERROR/CONFIG_LAST_ERROR_AT ni alerter Watchdog,
+        // contrairement à la branche HTTP>=400 ci-dessous. SearchConsoleManager
+        // n'avait jamais reçu ce fix alors que PostmasterManager (même
+        // famille : OAuth Google) l'a depuis le round 131.
+        if ($body === false) {
+            $msg = 'network error: ' . ($curlErr !== '' ? $curlErr : 'unknown');
+            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
+                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+            }
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_api_error', ['error' => $msg]), '', 'SearchConsoleManager');
             return null;
         }
         $data = json_decode($body, true);
         if (!is_array($data)) {
+            $msg = 'invalid JSON response';
+            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
+                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+            }
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_api_error', ['error' => $msg]), '', 'SearchConsoleManager');
             return null;
         }
 
@@ -616,14 +636,30 @@ class SearchConsoleManager
             \CURLOPT_SSL_VERIFYPEER => true,
         ]);
         $resp     = curl_exec($ch);
+        $curlErr  = curl_error($ch);
         $httpCode = curl_getinfo($ch, \CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if (!$resp) {
+        // Round 135 : même correctif que apiGet() ci-dessus — échec
+        // transport désormais journalisé, pas seulement les erreurs HTTP
+        // explicites de Google.
+        if ($resp === false) {
+            $msg = 'network error: ' . ($curlErr !== '' ? $curlErr : 'unknown');
+            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
+                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+            }
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_api_error', ['error' => $msg]), '', 'SearchConsoleManager');
             return null;
         }
         $data = json_decode($resp, true);
         if (!is_array($data)) {
+            $msg = 'invalid JSON response';
+            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
+                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+            }
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_api_error', ['error' => $msg]), '', 'SearchConsoleManager');
             return null;
         }
 
