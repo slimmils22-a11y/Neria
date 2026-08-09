@@ -120,26 +120,37 @@ class WaitlistManager
             // repli sur la langue par défaut de la boutique si absente/corrompue.
             $idLang     = (int) $row['id_lang'] ?: (int) \Configuration::get('PS_LANG_DEFAULT');
 
-            $product = new \Product($idProduct, false, $idLang);
-            if (!\Validate::isLoadedObject($product)) continue;
-
-            $cover    = \Product::getCover($idProduct);
-            $imageUrl = '';
-
-            // Lien/image générés dans le contexte de LA BOUTIQUE traitée par
-            // CETTE itération ($idShop, paramètre de notifyProduct()), pas
-            // celui du contexte d'exécution courant — même correctif que
-            // CollectionManager/LookCompletionManager. hookActionUpdateQuantity()
-            // (neria.php) appelle notifyProduct() en boucle sur TOUTES les
-            // boutiques du groupe pour un stock partagé, mais
-            // Context::getContext()->shop reste fixé à la boutique du BO
-            // admin qui a déclenché la mise à jour de stock pendant toute la
-            // boucle : sans ce switch, un client de la Boutique B recevait un
-            // lien/image produit pointant vers le domaine de la Boutique A.
+            // Round 138 : Shop::setContext() englobe désormais AUSSI le
+            // constructeur Product et Product::getCover() — pas seulement
+            // getImageLink()/getProductLink() ci-dessous. Le commentaire
+            // précédent prétendait appliquer "le même correctif que
+            // CollectionManager/LookCompletionManager", mais ne faisait en
+            // réalité que réassigner Context->shop (version PARTIELLE,
+            // insuffisante) — Product::getCover() et le constructeur
+            // Product résolvent leurs données via le contexte boutique
+            // STATIQUE (Shop::$context_id_shop), jamais mis à jour par une
+            // simple réassignation de Context->shop (seul Shop::setContext()
+            // le fait réellement). Round 137 avait déjà révélé que
+            // CollectionManager, cité ici comme référence, n'avait lui-même
+            // jamais reçu la version complète — même défaut ici.
+            // hookActionUpdateQuantity() (neria.php) appelle notifyProduct()
+            // en boucle sur TOUTES les boutiques du groupe pour un stock
+            // partagé, mais le contexte statique reste fixé à la boutique du
+            // BO admin qui a déclenché la mise à jour pendant toute la
+            // boucle : sans ce switch complet, un client de la Boutique B
+            // recevait le nom/prix/image/lien produit de la Boutique A.
+            $originalShopId = \Shop::getContextShopID(true);
+            \Shop::setContext(\Shop::CONTEXT_SHOP, $idShop);
             $context      = \Context::getContext();
             $originalShop = $context->shop;
             $context->shop = new \Shop($idShop);
             try {
+                $product = new \Product($idProduct, false, $idLang, $idShop);
+                if (!\Validate::isLoadedObject($product)) continue;
+
+                $cover    = \Product::getCover($idProduct);
+                $imageUrl = '';
+
                 if ($cover) {
                     $imageUrl = $context->link->getImageLink(
                         $product->link_rewrite,
@@ -150,6 +161,7 @@ class WaitlistManager
                 $productUrl = $context->link->getProductLink($product, null, null, null, $idLang, $idShop);
             } finally {
                 $context->shop = $originalShop;
+                \Shop::setContext(\Shop::CONTEXT_SHOP, $originalShopId);
             }
 
             $daysWaited = max(1, (int) $row['days_waited']);

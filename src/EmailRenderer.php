@@ -204,7 +204,19 @@ class EmailRenderer
             return false;
         }
 
-        $shopEmail = strtolower((string) \Configuration::get('PS_SHOP_EMAIL'));
+        // Round 138 : $idShop calculé AVANT la comparaison PS_SHOP_EMAIL —
+        // auparavant cette comparaison utilisait Configuration::get() sans
+        // id_shop explicite (contexte d'exécution ambiant), incohérent avec
+        // la requête employee_shop juste en dessous, déjà soigneusement
+        // scopée. Sur une install multi-boutiques où le contexte reste figé
+        // sur la boutique A pendant le traitement d'un email pour la
+        // boutique B, PS_SHOP_EMAIL de A était comparée à tort à
+        // l'adresse du destinataire de B — classification "interne" faussée,
+        // dégradant silencieusement la visibilité Watchdog (softLog()) pour
+        // la boutique concernée.
+        $idShop = (int) ($params['idShop'] ?? \Context::getContext()->shop->id);
+
+        $shopEmail = strtolower((string) \Configuration::get('PS_SHOP_EMAIL', null, null, $idShop));
         if ($shopEmail !== '' && $to === $shopEmail) {
             return true;
         }
@@ -217,7 +229,6 @@ class EmailRenderer
         // employés SANS ligne employee_shop (superadmin à accès global en
         // PrestaShop, qui n'ont pas d'entrée par boutique) : ceux-là restent
         // détectés comme internes sur toutes les boutiques, comme avant.
-        $idShop = (int) ($params['idShop'] ?? \Context::getContext()->shop->id);
 
         return (int) \Db::getInstance()->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'employee` e
@@ -338,7 +349,7 @@ class EmailRenderer
 
         // â”€â”€ Injecte la signature â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         if ($this->config->isSignatureEnabled()) {
-            $this->injectSignatureVars($params['templateVars']);
+            $this->injectSignatureVars($params['templateVars'], $this->resolveShopId($params));
         }
 
         // Injecte les variables personnalisées du marchand ({return_address}, etc.)
@@ -677,11 +688,15 @@ class EmailRenderer
             $outIso = \Language::getIsoById($idLang) ?: $lang;
 
             // ── Sujet (clé fallback_subject), repli sur le nom de boutique
+            // Round 138 : $idShop explicite (cohérent avec le reste de la
+            // méthode, ex. {shop_name} juste en dessous) — chemin de secours
+            // réellement client-facing (email fallback), pas un aperçu BO.
+            $idShopFallback = $this->resolveShopId($params);
             $subject = trim(strip_tags(
                 $this->engine->get('neria_fallback', 'fallback_subject', $lang)
             ));
             if ($subject === '') {
-                $subject = (string) \Configuration::get('PS_SHOP_NAME');
+                $subject = (string) \Configuration::get('PS_SHOP_NAME', null, null, $idShopFallback);
             }
 
             // ── Variables minimales attendues par le layout ─────────────
@@ -692,7 +707,7 @@ class EmailRenderer
             // pas, les placeholders {xxx} non résolus sont déjà retirés
             // (filet de sécurité) au moment de l'écriture du fichier.
             $templateVars = [
-                '{shop_name}'          => (string) \Configuration::get('PS_SHOP_NAME'),
+                '{shop_name}'          => (string) \Configuration::get('PS_SHOP_NAME', null, null, $idShopFallback),
                 '{shop_url}'           => $this->context->link->getBaseLink(),
                 '{history_url}'        => $this->context->link->getPageLink('history', true, $idLang),
                 '{guest_tracking_url}' => $this->context->link->getPageLink('guest-tracking', true, $idLang),
@@ -985,10 +1000,20 @@ class EmailRenderer
      * Si aucune signature n'est configurÃ©e, injecte des chaÃ®nes vides
      *
      * @param array $templateVars Variables Smarty (passÃ© par rÃ©fÃ©rence)
+     * @param int   $idShop       Round 138 : boutique du destinataire réel
+     *                            (resolveShopId($params)), pas le contexte
+     *                            d'exécution ambiant — resolveSignature()
+     *                            n'était jamais scopée par cet idShop
+     *                            explicite, contrairement à resolveCustomerId()/
+     *                            {preferences_url} dans ce même fichier. Un
+     *                            cron/envoi programmé traitant un email pour
+     *                            la boutique B pouvait injecter la signature
+     *                            configurée pour la boutique A si le contexte
+     *                            statique n'avait pas encore basculé.
      */
-    private function injectSignatureVars(array &$templateVars): void
+    private function injectSignatureVars(array &$templateVars, int $idShop): void
     {
-        $signature = $this->resolveSignature();
+        $signature = $this->resolveSignature($idShop);
 
         $templateVars = array_merge($templateVars, [
             'neria_signature_url'    => $signature['url'],
@@ -1904,10 +1929,9 @@ class EmailRenderer
      *
      * @return array
      */
-    private function resolveSignature(): array
+    private function resolveSignature(int $idShop): array
     {
         $table  = _DB_PREFIX_ . 'neria_signature';
-        $idShop = (int) $this->context->shop->id;
 
         $row = \Db::getInstance()->getRow(
             "SELECT `signer_name`, `signer_title`, `image_path`
@@ -2269,8 +2293,13 @@ class EmailRenderer
         // BO ne reflétait donc jamais la signature/les réseaux sociaux
         // réellement configurés, et un email renvoyé depuis l'historique les
         // perdait par rapport à l'email d'origine.
+        // Contexte BO courant : buildCompiledHtml() sert l'aperçu Design et
+        // le renvoi depuis l'historique client, tous deux pilotés depuis le
+        // BO (pas de destinataire réel dont il faudrait connaître la
+        // boutique) — comportement inchangé, idShop explicite juste pour
+        // rester cohérent avec la nouvelle signature de la méthode.
         $sigVars = [];
-        $this->injectSignatureVars($sigVars);
+        $this->injectSignatureVars($sigVars, (int) $this->context->shop->id);
         $socVars = [];
         $this->injectSocialVars($socVars);
         $tplVars['{$neria_signature_url}']   = (string) ($sigVars['neria_signature_url']  ?? '');
