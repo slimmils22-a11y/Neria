@@ -3940,6 +3940,65 @@ class HealthCheckManager
             $offenders[] = "neria.php : l'action save_multipreview_keys ne valide plus le format de la clé Email on Acid — régression du bug corrigé le 08/08/2026 (round 134) : une clé mal formée serait de nouveau enregistrée sans contrôle";
         }
 
+        // Round 135 (2026-08-08) : VoiceProfileManager::textContainsWords()
+        // doit ignorer les mots CJK d'un seul caractère (faux positifs
+        // massifs par sous-chaîne), et saveProfile() doit dédupliquer/
+        // plafonner la liste de mots avant écriture.
+        $vpmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/VoiceProfileManager.php';
+        $vpmSrc  = is_file($vpmFile) ? (file_get_contents($vpmFile) ?: '') : '';
+        if ($vpmSrc === '') {
+            $offenders[] = 'VoiceProfileManager.php introuvable (garde-fou round 135 : CJK 1 caractère ignoré + saveProfile() normalisé)';
+        } else {
+            if (strpos($vpmSrc, 'if (mb_strlen($word) < 2) {') === false) {
+                $offenders[] = "VoiceProfileManager::textContainsWords() n'ignore plus les mots CJK d'un seul caractère — régression du bug corrigé le 08/08/2026 (round 135) : les faux positifs massifs sur CJK réapparaîtraient";
+            }
+            if (strpos($vpmSrc, 'private function normalizeWordListInput(string $raw): string') === false
+                || strpos($vpmSrc, '$bannedWords    = $this->normalizeWordListInput($bannedWords);') === false
+            ) {
+                $offenders[] = "VoiceProfileManager::saveProfile() ne normalise plus (dédup/plafond) la liste de mots avant écriture — régression du bug corrigé le 08/08/2026 (round 135)";
+            }
+        }
+
+        // Round 135 (2026-08-08) : SearchConsoleManager::apiGet()/apiPost()
+        // doivent journaliser les échecs transport/JSON invalide, comme
+        // PostmasterManager::apiGet() (round 131) — jamais appliqué ici
+        // malgré la même famille de code (OAuth Google).
+        $scmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php';
+        $scmSrc  = is_file($scmFile) ? (file_get_contents($scmFile) ?: '') : '';
+        if ($scmSrc === '') {
+            $offenders[] = 'SearchConsoleManager.php introuvable (garde-fou round 135 : apiGet()/apiPost() journalisent les échecs transport)';
+        } elseif (substr_count($scmSrc, "'network error: '") < 2 || substr_count($scmSrc, "'invalid JSON response'") < 2) {
+            $offenders[] = "SearchConsoleManager : apiGet()/apiPost() ne journalisent plus les échecs transport/JSON invalide — régression du bug corrigé le 08/08/2026 (round 135) : une panne réseau redeviendrait totalement silencieuse";
+        }
+
+        // Round 135 (2026-08-08) : PostmasterManager::httpPost() doit
+        // capturer curl_error() et journaliser via Watchdog, comme
+        // SearchConsoleManager::httpPost() déjà en place.
+        $pmFile135 = _PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php';
+        $pmSrc135  = is_file($pmFile135) ? (file_get_contents($pmFile135) ?: '') : '';
+        if ($pmSrc135 === '') {
+            $offenders[] = 'PostmasterManager.php introuvable (garde-fou round 135 : httpPost() journalise les échecs transport)';
+        } else {
+            $posHttpPost = strpos($pmSrc135, 'private function httpPost(string $url, array $data): array');
+            $httpPostBody = $posHttpPost !== false ? substr($pmSrc135, $posHttpPost, 1200) : '';
+            if ($posHttpPost === false || strpos($httpPostBody, '$curlErr = curl_error($ch);') === false) {
+                $offenders[] = "PostmasterManager::httpPost() ne capture plus curl_error(\$ch) — régression du bug corrigé le 08/08/2026 (round 135) : une panne réseau lors du rafraîchissement du token OAuth redeviendrait indiagnosticable";
+            }
+        }
+
+        // Round 135 (2026-08-08) : GoldenHourManager::getRecommendations()
+        // doit mettre en cache son résultat (navigation.tpl l'appelle sur
+        // toute page admin, pas seulement l'onglet Statistiques).
+        $ghmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/GoldenHourManager.php';
+        $ghmSrc  = is_file($ghmFile) ? (file_get_contents($ghmFile) ?: '') : '';
+        if ($ghmSrc === '') {
+            $offenders[] = 'GoldenHourManager.php introuvable (garde-fou round 135 : getRecommendations() mis en cache)';
+        } elseif (strpos($ghmSrc, 'private function computeRecommendations(int $days): array') === false
+            || strpos($ghmSrc, 'CONFIG_CACHE_TIME') === false
+        ) {
+            $offenders[] = "GoldenHourManager::getRecommendations() n'est plus mis en cache — régression du bug corrigé le 08/08/2026 (round 135) : le LEFT JOIN sur 90 jours d'historique redeviendrait rejoué à chaque page admin";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
