@@ -3999,6 +3999,47 @@ class HealthCheckManager
             $offenders[] = "GoldenHourManager::getRecommendations() n'est plus mis en cache — régression du bug corrigé le 08/08/2026 (round 135) : le LEFT JOIN sur 90 jours d'historique redeviendrait rejoué à chaque page admin";
         }
 
+        // Round 136 (2026-08-08) : ManualSendManager::send()/scheduleManual()
+        // doivent instancier BlacklistManager avec l'idShop explicite du
+        // client, pas le contexte BO ambiant de l'opérateur.
+        $msmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
+        $msmSrc  = is_file($msmFile) ? (file_get_contents($msmFile) ?: '') : '';
+        if ($msmSrc === '') {
+            $offenders[] = 'ManualSendManager.php introuvable (garde-fou round 136 : BlacklistManager scopé idShop client)';
+        } elseif (strpos($msmSrc, 'new \BlacklistManager($idShop))') === false
+            || strpos($msmSrc, 'new \BlacklistManager($idShopManual))') === false
+        ) {
+            $offenders[] = "ManualSendManager : send()/scheduleManual() n'instancient plus BlacklistManager avec l'idShop explicite du client — régression du bug corrigé le 08/08/2026 (round 136) : un opérateur en contexte d'une autre boutique pourrait de nouveau contourner (ou déclencher à tort) une règle de blacklist";
+        }
+
+        // Round 136 (2026-08-08) : BlacklistManager::isBlacklisted()/add()
+        // doivent comparer/normaliser le nom du template de façon
+        // insensible à la casse.
+        $blmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BlacklistManager.php';
+        $blmSrc  = is_file($blmFile) ? (file_get_contents($blmFile) ?: '') : '';
+        if ($blmSrc === '') {
+            $offenders[] = 'BlacklistManager.php introuvable (garde-fou round 136 : comparaison insensible à la casse)';
+        } elseif (strpos($blmSrc, 'mb_strtolower($rule[\'template\'])') === false
+            || strpos($blmSrc, 'pSQL(mb_strtolower(trim($template)))') === false
+        ) {
+            $offenders[] = "BlacklistManager : isBlacklisted()/add() ne normalisent plus la casse du template — régression du bug corrigé le 08/08/2026 (round 136)";
+        }
+
+        // Round 136 (2026-08-08) : ConfigManager::resetDesignConfig() ne
+        // doit plus réinitialiser KEY_DESIGN_WIZARD_SEEN (pas un réglage de
+        // design).
+        $cfg3File = _PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php';
+        $cfg3Src  = is_file($cfg3File) ? (file_get_contents($cfg3File) ?: '') : '';
+        if ($cfg3Src === '') {
+            $offenders[] = 'ConfigManager.php introuvable (garde-fou round 136 : resetDesignConfig() préserve KEY_DESIGN_WIZARD_SEEN)';
+        } else {
+            $posResetDesign = strpos($cfg3Src, 'public function resetDesignConfig(): bool');
+            $resetBody = $posResetDesign !== false ? substr($cfg3Src, $posResetDesign, 900) : '';
+            if ($posResetDesign === false || strpos($resetBody, 'self::KEY_DESIGN_WIZARD_SEEN,') !== false) {
+                $offenders[] = "ConfigManager::resetDesignConfig() réinitialise de nouveau KEY_DESIGN_WIZARD_SEEN — régression du bug corrigé le 08/08/2026 (round 136) : le bandeau assistant réapparaîtrait à tort après un simple reset du Design";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
