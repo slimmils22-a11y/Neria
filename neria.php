@@ -849,6 +849,14 @@ class Neria extends Module
         if (!class_exists('CertificateManager')) {
             return '';
         }
+        // CFG_ENABLED volontairement GLOBAL (round 139, confirmé après
+        // relecture) : c'est un choix de conception assumé, pas un bug —
+        // l'activation "Certificats d'authenticité" est une fonctionnalité
+        // du module entier, pas une préférence par boutique, contrairement
+        // à $hasSig ci-dessous (signature réellement configurable par
+        // boutique). Sur une install multi-boutiques, il n'est donc pas
+        // possible de désactiver les certificats pour une seule boutique du
+        // groupe — comportement voulu, pas une incohérence à corriger.
         if (!(bool) Configuration::getGlobalValue(CertificateManager::CFG_ENABLED)) {
             return '';
         }
@@ -1532,6 +1540,22 @@ class Neria extends Module
     }
 
     public function hookActionUpdateQuantity(array $params): void
+    {
+        // Round 139 : seul hook du fichier qui n'était pas enveloppé par
+        // NeriaErrorHandler::wrapHookVoid(), contrairement à TOUS les autres
+        // (hookActionObjectOrderAddAfter, hookActionOrderStatusPostUpdate,
+        // hookDisplayBackOfficeHeader...). Ce hook se déclenche à chaque
+        // mise à jour de stock (StockAvailable::setQuantity()), y compris
+        // pendant le tunnel de commande — seul l'appel à notifyProduct()
+        // était protégé par un try/catch interne ; une exception levée
+        // AVANT (Shop::getShops(), instanciation de WaitlistManager)
+        // remontait et pouvait casser tout le process PrestaShop appelant.
+        NeriaErrorHandler::wrapHookVoid('hookActionUpdateQuantity', function () use ($params): void {
+            $this->hookActionUpdateQuantityImpl($params);
+        }, $this);
+    }
+
+    private function hookActionUpdateQuantityImpl(array $params): void
     {
         if (!Configuration::getGlobalValue('NERIA_WAITLIST_ENABLED')) return;
         if (!class_exists('WaitlistManager')) return;

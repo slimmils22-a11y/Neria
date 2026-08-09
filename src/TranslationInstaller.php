@@ -49,6 +49,9 @@ class TranslationInstaller
     /** @var WatchdogManager|null Instance paresseuse du watchdog */
     private ?WatchdogManager $watchdog = null;
 
+    /** Round 139 : SET NAMES exécuté une seule fois par opération d'import — voir flushBatch(). */
+    private bool $charsetSet = false;
+
     // ============================================================
     // CONSTRUCTEUR
     // ============================================================
@@ -364,8 +367,16 @@ class TranslationInstaller
             return true;
         }
 
-        // Forcer l'encodage UTF-8mb4 pour les traductions multilingues
-        $this->db->execute("SET NAMES 'utf8mb4'");
+        // Round 139 : SET NAMES exécuté UNE SEULE FOIS par opération
+        // d'import (flag d'instance), pas à chaque lot — sur un import de
+        // plusieurs milliers de clés × 19 langues (potentiellement 50-100+
+        // lots de BATCH_SIZE), c'était une requête réseau superflue répétée
+        // à chaque flushBatch(), alors que l'encodage de session ne change
+        // jamais en cours de route.
+        if (!$this->charsetSet) {
+            $this->db->execute("SET NAMES 'utf8mb4'");
+            $this->charsetSet = true;
+        }
 
         // Construction de la requête INSERT bulk
         $table   = _DB_PREFIX_ . self::TABLE;
