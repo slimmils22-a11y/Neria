@@ -49,12 +49,38 @@ class HealthCheckManager
     private int            $idShop;
     private WatchdogManager $watchdog;
 
+    /**
+     * Round 141 : checkKnownRegressionsGuard() relisait certains fichiers
+     * sources (BehavioralCronManager, LoyaltyManager, CertificateManager…)
+     * jusqu'à 9 fois via file_get_contents() DANS UNE MÊME EXÉCUTION, sans
+     * aucune mise en cache. Ce tableau mémorise le contenu déjà lu par
+     * chemin de fichier pour la durée de vie de l'instance — voir
+     * readModuleSrc().
+     *
+     * @var array<string,string>
+     */
+    private array $srcCache = [];
+
     public function __construct(Neria $module)
     {
         $this->module   = $module;
         $this->db       = \Db::getInstance();
         $this->idShop   = (int) \Context::getContext()->shop->id;
         $this->watchdog = new WatchdogManager($module);
+    }
+
+    /**
+     * Lit le contenu d'un fichier source une seule fois par instance et
+     * réutilise le résultat pour tous les appels suivants sur le même
+     * chemin — voir $srcCache.
+     */
+    private function readModuleSrc(string $file): string
+    {
+        if (!array_key_exists($file, $this->srcCache)) {
+            $this->srcCache[$file] = is_file($file) ? (file_get_contents($file) ?: '') : '';
+        }
+
+        return $this->srcCache[$file];
     }
 
     // ============================================================
@@ -72,8 +98,17 @@ class HealthCheckManager
 
     /**
      * Lance tous les contrôles automatiques si 24 h se sont écoulées.
+     *
+     * @param bool $allowHeavyScans Round 141 : par défaut false — le contrôle
+     *  known_regressions_guard() (~150 lectures de fichiers + centaines de
+     *  regex) est trop coûteux pour tourner dans le chemin de rendu d'un
+     *  visiteur front (déclenchement passif via hookDisplayHeader). Passer
+     *  true uniquement depuis un déclenchement serveur réel (cron token),
+     *  où aucun visiteur n'attend la réponse. Le dernier résultat connu de
+     *  ce contrôle reste affiché sur la page Santé entre deux exécutions
+     *  lourdes — voir buildAllChecks().
      */
-    public function runAutoChecksIfDue(): void
+    public function runAutoChecksIfDue(bool $allowHeavyScans = false): void
     {
         $lastRun = (string) \Configuration::get(self::CONFIG_LAST_RUN);
         if ($lastRun && (time() - (int) strtotime($lastRun)) < self::THROTTLE_SECONDS) {
@@ -82,7 +117,7 @@ class HealthCheckManager
 
         \Configuration::updateValue(self::CONFIG_LAST_RUN, date('Y-m-d H:i:s'));
 
-        $results = $this->buildAllChecks();
+        $results = $this->buildAllChecks($allowHeavyScans);
 
         \Configuration::updateValue(self::CONFIG_RESULTS, json_encode($results, JSON_UNESCAPED_UNICODE));
         $this->logResultsToWatchdog($results);
@@ -91,11 +126,13 @@ class HealthCheckManager
     /**
      * Diagnostic complet à la demande — ignore le throttle 24h.
      * Utilisé par le bouton "Diagnostic complet" dans l'onglet Aide.
+     * Déclenché explicitement par un admin dans le BO : jamais dans le
+     * chemin de rendu d'un visiteur, donc les scans lourds sont autorisés.
      */
     public function runFullDiagnostic(): array
     {
         \Configuration::updateValue(self::CONFIG_LAST_RUN, date('Y-m-d H:i:s'));
-        $results = $this->buildAllChecks();
+        $results = $this->buildAllChecks(true);
         \Configuration::updateValue(self::CONFIG_RESULTS, json_encode($results, JSON_UNESCAPED_UNICODE));
         $this->logResultsToWatchdog($results);
         return $results;
@@ -167,11 +204,27 @@ class HealthCheckManager
      * la doctrine "ne bloque jamais le front" avec des try/catch
      * individuels. Un contrôle qui échoue est désormais isolé et remonté
      * comme un résultat STATUS_ERROR normal, sans affecter les ~117 autres.
+     *
+     * @param bool $allowHeavyScans Round 141 : si false, le contrôle
+     *  known_regressions_guard() n'est PAS ré-exécuté — trop coûteux pour un
+     *  chemin de rendu front. Son dernier résultat connu (getLastResults())
+     *  est réutilisé tel quel s'il existe, pour que la page Santé du BO ne
+     *  perde pas ce contrôle entre deux exécutions lourdes.
      */
-    private function buildAllChecks(): array
+    private function buildAllChecks(bool $allowHeavyScans = true): array
     {
         $results = [];
+        $previous = $allowHeavyScans ? [] : $this->getLastResults();
+
         foreach ($this->checkMethodMap() as $key => $method) {
+            if (!$allowHeavyScans && $key === 'known_regressions_guard') {
+                $results[$key] = $previous[$key] ?? [
+                    'status' => self::STATUS_OK,
+                    'detail' => AdminTranslator::t('health.known_regressions_guard_pending'),
+                ];
+                continue;
+            }
+
             try {
                 $results[$key] = $this->$method();
             } catch (\Throwable $e) {
@@ -611,7 +664,7 @@ class HealthCheckManager
         $offenders = [];
 
         $rendererFile = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
-        $rendererSrc  = is_file($rendererFile) ? (file_get_contents($rendererFile) ?: '') : '';
+        $rendererSrc = $this->readModuleSrc($rendererFile);
         if ($rendererSrc === '') {
             $offenders[] = 'EmailRenderer.php introuvable';
         } else {
@@ -624,13 +677,13 @@ class HealthCheckManager
         }
 
         $cronFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
-        $cronSrc  = is_file($cronFile) ? (file_get_contents($cronFile) ?: '') : '';
+        $cronSrc = $this->readModuleSrc($cronFile);
         if ($cronSrc === '' || strpos($cronSrc, '{products_txt}') === false) {
             $offenders[] = 'BehavioralCronManager : {products_txt} n\'est plus fourni sur les paniers abandonnés';
         }
 
         $manualFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
-        $manualSrc  = is_file($manualFile) ? (file_get_contents($manualFile) ?: '') : '';
+        $manualSrc = $this->readModuleSrc($manualFile);
         if ($manualSrc === '' || strpos($manualSrc, "FROM `' . _DB_PREFIX_ . 'log`") === false) {
             $offenders[] = 'ManualSendManager : ne recherche plus la vraie cause d\'échec dans ps_log';
         }
@@ -639,19 +692,19 @@ class HealthCheckManager
         }
 
         $statsFile = _PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php';
-        $statsSrc  = is_file($statsFile) ? (file_get_contents($statsFile) ?: '') : '';
+        $statsSrc = $this->readModuleSrc($statsFile);
         if ($statsSrc === '' || strpos($statsSrc, '$orderBy') === false || strpos($statsSrc, 'sentExpr') === false) {
             $offenders[] = 'StatsManager : getTopTemplatesByMetric() pourrait de nouveau trier sur un alias d\'agrégat (erreur SQL 1247 sur MySQL)';
         }
 
         $monthlyFile = _PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php';
-        $monthlySrc  = is_file($monthlyFile) ? (file_get_contents($monthlyFile) ?: '') : '';
+        $monthlySrc = $this->readModuleSrc($monthlyFile);
         if ($monthlySrc !== '' && preg_match('/ORDER BY\s*\(total_open\s*\/\s*total_sent\)/', $monthlySrc)) {
             $offenders[] = 'MonthlyReportManager : ORDER BY réutilise de nouveau les alias total_open/total_sent (erreur SQL 1247 sur MySQL)';
         }
 
         $mainFile = _PS_MODULE_DIR_ . $this->module->name . '/' . $this->module->name . '.php';
-        $mainSrc  = is_file($mainFile) ? (file_get_contents($mainFile) ?: '') : '';
+        $mainSrc = $this->readModuleSrc($mainFile);
         if ($mainSrc === '') {
             $offenders[] = 'neria.php introuvable';
         } else {
@@ -688,7 +741,7 @@ class HealthCheckManager
         }
 
         $cssFile = _PS_MODULE_DIR_ . $this->module->name . '/views/css/neria-admin.css';
-        $cssSrc  = is_file($cssFile) ? (file_get_contents($cssFile) ?: '') : '';
+        $cssSrc = $this->readModuleSrc($cssFile);
         if ($cssSrc === '') {
             $offenders[] = 'neria-admin.css introuvable';
         } else {
@@ -701,7 +754,7 @@ class HealthCheckManager
         }
 
         $configFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php';
-        $configSrc  = is_file($configFile) ? (file_get_contents($configFile) ?: '') : '';
+        $configSrc = $this->readModuleSrc($configFile);
         if ($configSrc === '') {
             $offenders[] = 'ConfigManager.php introuvable';
         } else {
@@ -748,7 +801,7 @@ class HealthCheckManager
         // affiché même quand l'ancre n'existe pas dans le DOM : le clic
         // ramène en haut de page sans aucune indication pour le marchand.
         $navFile = _PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/navigation.tpl';
-        $navSrc  = is_file($navFile) ? (file_get_contents($navFile) ?: '') : '';
+        $navSrc = $this->readModuleSrc($navFile);
         if ($navSrc === '') {
             $offenders[] = 'navigation.tpl introuvable';
         } else {
@@ -839,7 +892,7 @@ class HealthCheckManager
         //    commande d'une AUTRE boutique (produit hors catalogue,
         //    fuite d'information entre boutiques).
         $upsellFile = _PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php';
-        $upsellSrc  = is_file($upsellFile) ? (file_get_contents($upsellFile) ?: '') : '';
+        $upsellSrc = $this->readModuleSrc($upsellFile);
         if ($upsellSrc === '') {
             $offenders[] = 'UpsellManager.php introuvable';
         } else {
@@ -874,7 +927,7 @@ class HealthCheckManager
         // la boutique B. Vérifié en réel : shop 1 -> heure 10h, shop 2 ->
         // heure 22h, correctement isolées après le fix.
         $pwmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PurchaseWindowManager.php';
-        $pwmSrc  = is_file($pwmFile) ? (file_get_contents($pwmFile) ?: '') : '';
+        $pwmSrc = $this->readModuleSrc($pwmFile);
         if ($pwmSrc === '') {
             $offenders[] = 'PurchaseWindowManager.php introuvable';
         } else {
@@ -885,7 +938,7 @@ class HealthCheckManager
             }
         }
         $behavioralFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
-        $behavioralSrc  = is_file($behavioralFile) ? (file_get_contents($behavioralFile) ?: '') : '';
+        $behavioralSrc = $this->readModuleSrc($behavioralFile);
         if ($behavioralSrc !== '' && preg_match('/getPreferredHour\(\s*\(int\)\s*\$customer\[.id_customer.\]\s*\)/', $behavioralSrc)) {
             $offenders[] = 'BehavioralCronManager : appelle de nouveau getPreferredHour() sans lui passer $idShop';
         }
@@ -901,7 +954,7 @@ class HealthCheckManager
         // detecté (true) ; même template shop 2 -> pas de doublon (false),
         // correctement isolés après le fix.
         $cooldownFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CooldownManager.php';
-        $cooldownSrc  = is_file($cooldownFile) ? (file_get_contents($cooldownFile) ?: '') : '';
+        $cooldownSrc = $this->readModuleSrc($cooldownFile);
         if ($cooldownSrc === '') {
             $offenders[] = 'CooldownManager.php introuvable';
         } else {
@@ -927,7 +980,7 @@ class HealthCheckManager
         // la première détient le verrou, puis processQueue() lui-même
         // retourne 0 sans traiter si le verrou est déjà pris ailleurs.
         $queueMgrFile = _PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php';
-        $queueMgrSrc  = is_file($queueMgrFile) ? (file_get_contents($queueMgrFile) ?: '') : '';
+        $queueMgrSrc = $this->readModuleSrc($queueMgrFile);
         if ($queueMgrSrc === '') {
             $offenders[] = 'QueueManager.php introuvable';
         } elseif (!preg_match('/function\s+processQueue[\s\S]{0,1700}?GET_LOCK/', $queueMgrSrc)) {
@@ -968,7 +1021,7 @@ class HealthCheckManager
         // envoyé (NERIA_REPORT_LAST_SENT inchangé) ; sans verrou -> envoi
         // normal et marquage correct.
         $monthlyFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php';
-        $monthlySrc2  = is_file($monthlyFile2) ? (file_get_contents($monthlyFile2) ?: '') : '';
+        $monthlySrc2 = $this->readModuleSrc($monthlyFile2);
         if ($monthlySrc2 === '') {
             $offenders[] = 'MonthlyReportManager.php introuvable';
         } elseif (!preg_match('/function\s+checkAndSend[\s\S]{0,1200}?GET_LOCK\(.neria_monthly_report_check./', $monthlySrc2)) {
@@ -985,7 +1038,7 @@ class HealthCheckManager
         // pendant la durée de l'envoi du lot peuvent déclencher le même
         // email calendaire à tout un segment de clients deux fois.
         $calendarFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php';
-        $calendarSrc  = is_file($calendarFile) ? (file_get_contents($calendarFile) ?: '') : '';
+        $calendarSrc = $this->readModuleSrc($calendarFile);
         if ($calendarSrc === '') {
             $offenders[] = 'CalendarManager.php introuvable';
         } elseif (!preg_match('/function\s+checkAndSendDailyEvents[\s\S]{0,1400}?GET_LOCK\(.neria_calendar_check./', $calendarSrc)) {
@@ -1004,7 +1057,7 @@ class HealthCheckManager
         // (pas encore 'ghost') ; même client avec premier envoi vieux de 30
         // jours -> correctement classé 'ghost'.
         $segmentFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php';
-        $segmentSrc  = is_file($segmentFile) ? (file_get_contents($segmentFile) ?: '') : '';
+        $segmentSrc = $this->readModuleSrc($segmentFile);
         if ($segmentSrc === '') {
             $offenders[] = 'SegmentManager.php introuvable';
         } elseif (!preg_match('/NEW_CUSTOMER_GRACE_DAYS/', $segmentSrc)
@@ -1032,7 +1085,7 @@ class HealthCheckManager
         // avec des points distincts -> total shop-scopé différent du total
         // transversal, et le throttle d'une boutique ne bloque pas l'autre.
         $loyaltyFile = _PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php';
-        $loyaltySrc  = is_file($loyaltyFile) ? (file_get_contents($loyaltyFile) ?: '') : '';
+        $loyaltySrc = $this->readModuleSrc($loyaltyFile);
         if ($loyaltySrc === '') {
             $offenders[] = 'LoyaltyManager.php introuvable';
         } else {
@@ -1061,7 +1114,7 @@ class HealthCheckManager
         // rapport, mais marquait le mois "envoyé" pour TOUTES les boutiques —
         // les autres ne recevaient alors plus jamais leur rapport mensuel.
         $reportFile = _PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php';
-        $reportSrc  = is_file($reportFile) ? (file_get_contents($reportFile) ?: '') : '';
+        $reportSrc = $this->readModuleSrc($reportFile);
         if ($reportSrc === '') {
             $offenders[] = 'MonthlyReportManager.php introuvable';
         } elseif (!preg_match('/function\s+checkAndSend[\s\S]{0,2500}?Shop::getShops/', $reportSrc)
@@ -1084,7 +1137,7 @@ class HealthCheckManager
         // relançant runFullCheck() (jusqu'à 8s de DNS bloquants) DANS LE
         // CHEMIN DE RENDU du visiteur front à chaque changement de boutique.
         $domRepFile = _PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php';
-        $domRepSrc  = is_file($domRepFile) ? (file_get_contents($domRepFile) ?: '') : '';
+        $domRepSrc = $this->readModuleSrc($domRepFile);
         if ($domRepSrc === '') {
             $offenders[] = 'DomainReputationManager.php introuvable';
         } else {
@@ -1104,7 +1157,7 @@ class HealthCheckManager
         // actuel. Sur une install multi-boutique à domaines distincts, une
         // boutique pouvait afficher pendant 24h les données d'une autre.
         $pageSpeedFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PageSpeedManager.php';
-        $pageSpeedSrc  = is_file($pageSpeedFile) ? (file_get_contents($pageSpeedFile) ?: '') : '';
+        $pageSpeedSrc = $this->readModuleSrc($pageSpeedFile);
         if ($pageSpeedSrc === '') {
             $offenders[] = 'PageSpeedManager.php introuvable';
         } elseif (!preg_match('/function\s+getReport[\s\S]{0,1000}?\[.url.\]\s*\?\?\s*null\)\s*===\s*\$this->getTargetUrl\(\)/', $pageSpeedSrc)) {
@@ -1112,7 +1165,7 @@ class HealthCheckManager
         }
 
         $searchConsoleFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php';
-        $searchConsoleSrc  = is_file($searchConsoleFile) ? (file_get_contents($searchConsoleFile) ?: '') : '';
+        $searchConsoleSrc = $this->readModuleSrc($searchConsoleFile);
         if ($searchConsoleSrc === '') {
             $offenders[] = 'SearchConsoleManager.php introuvable';
         } else {
@@ -1128,7 +1181,7 @@ class HealthCheckManager
         }
 
         $seoApiFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SeoApiManager.php';
-        $seoApiSrc  = is_file($seoApiFile) ? (file_get_contents($seoApiFile) ?: '') : '';
+        $seoApiSrc = $this->readModuleSrc($seoApiFile);
         if ($seoApiSrc === '') {
             $offenders[] = 'SeoApiManager.php introuvable';
         } elseif (!preg_match('/function\s+getReport[\s\S]{0,1300}?\[.domain.\]\s*\?\?\s*null\)\s*===\s*\$currentDomain/', $seoApiSrc)) {
@@ -1143,7 +1196,7 @@ class HealthCheckManager
         // GLOBALE, comparaison de domaine a posteriori (CONFIG_CACHE_HOST)
         // remplacée par un vrai scope id_shop.
         $postmasterFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php';
-        $postmasterSrc  = is_file($postmasterFile) ? (file_get_contents($postmasterFile) ?: '') : '';
+        $postmasterSrc = $this->readModuleSrc($postmasterFile);
         if ($postmasterSrc === '') {
             $offenders[] = 'PostmasterManager.php introuvable';
         } elseif (strpos($postmasterSrc, "private function cacheKey(string \$base): string") === false) {
@@ -1159,7 +1212,7 @@ class HealthCheckManager
         // automatique. Remplacés par des phrases composées propres aux
         // notifications de bounce réelles.
         $bounceFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php';
-        $bounceSrc  = is_file($bounceFile) ? (file_get_contents($bounceFile) ?: '') : '';
+        $bounceSrc = $this->readModuleSrc($bounceFile);
         if ($bounceSrc === '') {
             $offenders[] = 'BounceManager.php introuvable';
         } elseif (preg_match("/\\\$subjectKeywords\\s*=\\s*\\[[^\\]]*'échec'\\s*,/su", $bounceSrc)) {
@@ -1172,7 +1225,7 @@ class HealthCheckManager
         // polices choisies pour le PDF, pouvant afficher le nom produit en
         // rectangles vides (arabe/CJK) sur un certificat en français.
         $certFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
-        $certSrc2  = is_file($certFile2) ? (file_get_contents($certFile2) ?: '') : '';
+        $certSrc2 = $this->readModuleSrc($certFile2);
         if ($certSrc2 === '') {
             $offenders[] = 'CertificateManager.php introuvable (2e vérification)';
         } elseif (strpos($certSrc2, 'new \Product($idProduct, false, $idLangProduct)') === false) {
@@ -1184,7 +1237,7 @@ class HealthCheckManager
         // <a href="javascript:..."> ou <span onmouseover="..."> passait
         // intégralement à travers malgré le nom de la fonction.
         $neriaToolsFile = _PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php';
-        $neriaToolsSrc  = is_file($neriaToolsFile) ? (file_get_contents($neriaToolsFile) ?: '') : '';
+        $neriaToolsSrc = $this->readModuleSrc($neriaToolsFile);
         if ($neriaToolsSrc === '') {
             $offenders[] = 'NeriaTools.php introuvable';
         } elseif (strpos($neriaToolsSrc, "preg_replace('/\son\w+\s*=") === false) {
@@ -1196,7 +1249,7 @@ class HealthCheckManager
         // retournait 'FR' non normalisé, cassant silencieusement des
         // comparaisons strictes ailleurs dans le module.
         $voiceFile = _PS_MODULE_DIR_ . $this->module->name . '/src/VoiceProfileManager.php';
-        $voiceSrc  = is_file($voiceFile) ? (file_get_contents($voiceFile) ?: '') : '';
+        $voiceSrc = $this->readModuleSrc($voiceFile);
         if ($voiceSrc === '') {
             $offenders[] = 'VoiceProfileManager.php introuvable';
         } elseif (!preg_match('/function\s+sanitizeLang[\s\S]{0,500}?mb_strtolower/', $voiceSrc)) {
@@ -1209,7 +1262,7 @@ class HealthCheckManager
         // attributs style="..." uniquement — un texte VISIBLE mentionnant
         // littéralement une déclaration CSS était tronqué dans l'aperçu.
         $previewFile = _PS_MODULE_DIR_ . $this->module->name . '/src/MultiClientPreviewManager.php';
-        $previewSrc  = is_file($previewFile) ? (file_get_contents($previewFile) ?: '') : '';
+        $previewSrc = $this->readModuleSrc($previewFile);
         if ($previewSrc === '') {
             $offenders[] = 'MultiClientPreviewManager.php introuvable';
         } elseif (strpos($previewSrc, 'private function replaceInInlineStyles(string $html, array $patterns): string') === false) {
@@ -1224,7 +1277,7 @@ class HealthCheckManager
         // utilisable au checkout de la boutique B (catalogue/devise
         // différents).
         $loyaltyFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php';
-        $loyaltySrc2  = is_file($loyaltyFile2) ? (file_get_contents($loyaltyFile2) ?: '') : '';
+        $loyaltySrc2 = $this->readModuleSrc($loyaltyFile2);
         if ($loyaltySrc2 === '') {
             $offenders[] = 'LoyaltyManager.php introuvable (2e vérification)';
         } elseif (strpos($loyaltySrc2, '$cartRule->id_shop_list     = [$reservationShopId];') === false) {
@@ -1232,7 +1285,7 @@ class HealthCheckManager
         }
 
         $cronFile3 = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
-        $cronSrc3  = is_file($cronFile3) ? (file_get_contents($cronFile3) ?: '') : '';
+        $cronSrc3 = $this->readModuleSrc($cronFile3);
         if ($cronSrc3 === '') {
             $offenders[] = 'BehavioralCronManager.php introuvable (3e vérification)';
         } elseif (strpos($cronSrc3, '$cartRule->id_shop_list     = [$idShop];') === false) {
@@ -1240,7 +1293,7 @@ class HealthCheckManager
         }
 
         $orderTrigFile = _PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php';
-        $orderTrigSrc  = is_file($orderTrigFile) ? (file_get_contents($orderTrigFile) ?: '') : '';
+        $orderTrigSrc = $this->readModuleSrc($orderTrigFile);
         if ($orderTrigSrc === '') {
             $offenders[] = 'OrderTriggersManager.php introuvable';
         } elseif (strpos($orderTrigSrc, '$cartRule->id_shop_list     = [$idShop];') === false) {
@@ -1254,7 +1307,7 @@ class HealthCheckManager
         // un clic admin "Relancer" moins d'une minute après le dernier échec
         // laissait le webhook invisible au prochain passage du cron.
         $webhookFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php';
-        $webhookSrc2  = is_file($webhookFile2) ? (file_get_contents($webhookFile2) ?: '') : '';
+        $webhookSrc2 = $this->readModuleSrc($webhookFile2);
         if ($webhookSrc2 === '') {
             $offenders[] = 'WebhookManager.php introuvable';
         } else {
@@ -1280,7 +1333,7 @@ class HealthCheckManager
         // (non-conformité RGPD/CAN-SPAM : "préférences enregistrées"
         // affiché côté client, catégorie décochée jamais respectée).
         $prefFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/PreferencesManager.php';
-        $prefSrc2  = is_file($prefFile2) ? (file_get_contents($prefFile2) ?: '') : '';
+        $prefSrc2 = $this->readModuleSrc($prefFile2);
         if ($prefSrc2 === '') {
             $offenders[] = 'PreferencesManager.php introuvable (2e vérification)';
         } else {
@@ -1293,7 +1346,7 @@ class HealthCheckManager
         }
 
         $mainFile2 = _PS_MODULE_DIR_ . $this->module->name . '/' . $this->module->name . '.php';
-        $mainSrc2  = is_file($mainFile2) ? (file_get_contents($mainFile2) ?: '') : '';
+        $mainSrc2 = $this->readModuleSrc($mainFile2);
         if ($mainSrc2 === '') {
             $offenders[] = 'neria.php introuvable (2e vérification)';
         } elseif (strpos($mainSrc2, 'if ($idCustPref > 0 && !(new PreferencesManager($this))->isAllowed(') !== false) {
@@ -1309,7 +1362,7 @@ class HealthCheckManager
         // ouverture existante" et créditer des points en double pour une
         // seule ouverture réelle.
         $statsFile = _PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php';
-        $statsSrc  = is_file($statsFile) ? (file_get_contents($statsFile) ?: '') : '';
+        $statsSrc = $this->readModuleSrc($statsFile);
         if ($statsSrc === '') {
             $offenders[] = 'StatsManager.php introuvable';
         } elseif (!preg_match('/function\s+recordOpen[\s\S]{0,1000}?.neria_open_.[\s\S]{0,300}?GET_LOCK/', $statsSrc)) {
@@ -1326,7 +1379,7 @@ class HealthCheckManager
         // pouvaient doublonner l'incrément de bounce_count, rapprochant
         // artificiellement l'adresse du seuil de mise en liste noire.
         $bounceFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php';
-        $bounceSrc  = is_file($bounceFile) ? (file_get_contents($bounceFile) ?: '') : '';
+        $bounceSrc = $this->readModuleSrc($bounceFile);
         if ($bounceSrc === '') {
             $offenders[] = 'BounceManager.php introuvable';
         } elseif (!preg_match('/function\s+recordBounce[\s\S]{0,1500}?ON DUPLICATE KEY UPDATE/', $bounceSrc)) {
@@ -1349,7 +1402,7 @@ class HealthCheckManager
         }
 
         $webhookFile = _PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php';
-        $webhookSrc  = is_file($webhookFile) ? (file_get_contents($webhookFile) ?: '') : '';
+        $webhookSrc = $this->readModuleSrc($webhookFile);
         if ($webhookSrc === '') {
             $offenders[] = 'WebhookManager.php introuvable';
         } elseif (!preg_match('/function\s+trigger[\s\S]{0,1600}?is_array\(\s*\$enabled\s*\)/', $webhookSrc)) {
@@ -1370,7 +1423,7 @@ class HealthCheckManager
         // juste après la lecture de Configuration, avant toute utilisation
         // de $title/$subtitle/$bodyText dans le rendu.
         $certFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
-        $certSrc  = is_file($certFile) ? (file_get_contents($certFile) ?: '') : '';
+        $certSrc = $this->readModuleSrc($certFile);
         if ($certSrc === '') {
             $offenders[] = 'CertificateManager.php introuvable';
         } else {
@@ -1446,7 +1499,7 @@ class HealthCheckManager
         }
 
         $churnFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php';
-        $churnSrc  = is_file($churnFile) ? (file_get_contents($churnFile) ?: '') : '';
+        $churnSrc = $this->readModuleSrc($churnFile);
         if ($churnSrc === '') {
             $offenders[] = 'ChurnScoreManager.php introuvable';
         } else {
@@ -1464,7 +1517,7 @@ class HealthCheckManager
         }
 
         $wdFile = _PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php';
-        $wdSrc  = is_file($wdFile) ? (file_get_contents($wdFile) ?: '') : '';
+        $wdSrc = $this->readModuleSrc($wdFile);
         if ($wdSrc === '') {
             $offenders[] = 'WatchdogManager.php introuvable';
         } else {
@@ -1485,7 +1538,7 @@ class HealthCheckManager
         }
 
         $loyaltyFile = _PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php';
-        $loyaltySrc  = is_file($loyaltyFile) ? (file_get_contents($loyaltyFile) ?: '') : '';
+        $loyaltySrc = $this->readModuleSrc($loyaltyFile);
         if ($loyaltySrc === '') {
             $offenders[] = 'LoyaltyManager.php introuvable';
         } else {
@@ -1528,7 +1581,7 @@ class HealthCheckManager
         // trouvé dans 5 fichiers supplémentaires en cherchant systématiquement
         // le même motif que LoyaltyManager ci-dessus.
         $upsellFile = _PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php';
-        $upsellSrc  = is_file($upsellFile) ? (file_get_contents($upsellFile) ?: '') : '';
+        $upsellSrc = $this->readModuleSrc($upsellFile);
         if ($upsellSrc === '') {
             $offenders[] = 'UpsellManager.php introuvable';
         } elseif (strpos($upsellSrc, 'getBaseLink($idShop, $ssl)') === false) {
@@ -1536,7 +1589,7 @@ class HealthCheckManager
         }
 
         $cronFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
-        $cronSrc2  = is_file($cronFile2) ? (file_get_contents($cronFile2) ?: '') : '';
+        $cronSrc2 = $this->readModuleSrc($cronFile2);
         if ($cronSrc2 === '') {
             $offenders[] = 'BehavioralCronManager.php introuvable (2e vérification)';
         } else {
@@ -1560,7 +1613,7 @@ class HealthCheckManager
         }
 
         $queueFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php';
-        $queueSrc2  = is_file($queueFile2) ? (file_get_contents($queueFile2) ?: '') : '';
+        $queueSrc2 = $this->readModuleSrc($queueFile2);
         if ($queueSrc2 === '') {
             $offenders[] = 'QueueManager.php introuvable (2e vérification)';
         } elseif (strpos($queueSrc2, "getPageLink('history', true, \$idLang, null, false, \$idShop)") === false) {
@@ -1568,7 +1621,7 @@ class HealthCheckManager
         }
 
         $segmentFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php';
-        $segmentSrc  = is_file($segmentFile) ? (file_get_contents($segmentFile) ?: '') : '';
+        $segmentSrc = $this->readModuleSrc($segmentFile);
         if ($segmentSrc === '') {
             $offenders[] = 'SegmentManager.php introuvable';
         } else {
@@ -1587,7 +1640,7 @@ class HealthCheckManager
         }
 
         $seasonalFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php';
-        $seasonalSrc  = is_file($seasonalFile) ? (file_get_contents($seasonalFile) ?: '') : '';
+        $seasonalSrc = $this->readModuleSrc($seasonalFile);
         if ($seasonalSrc === '') {
             $offenders[] = 'SeasonalCampaignManager.php introuvable';
         } else {
@@ -1610,7 +1663,7 @@ class HealthCheckManager
         }
 
         $clvFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php';
-        $clvSrc  = is_file($clvFile) ? (file_get_contents($clvFile) ?: '') : '';
+        $clvSrc = $this->readModuleSrc($clvFile);
         if ($clvSrc === '') {
             $offenders[] = 'ClvManager.php introuvable';
         } else {
@@ -1626,7 +1679,7 @@ class HealthCheckManager
         }
 
         $calendarFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php';
-        $calendarSrc  = is_file($calendarFile) ? (file_get_contents($calendarFile) ?: '') : '';
+        $calendarSrc = $this->readModuleSrc($calendarFile);
         if ($calendarSrc !== '') {
             // Bug du 2026-08-05 : buildSentKey() (marqueur "campagne
             // calendaire déjà envoyée" pour Aïd/Noël/etc.) n'incluait pas
@@ -1647,7 +1700,7 @@ class HealthCheckManager
         // contenant littéralement "{autre_variable}" pouvait se faire
         // re-substituer selon l'ordre d'itération du foreach.
         $rendererFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
-        $rendererSrc3  = is_file($rendererFile2) ? (file_get_contents($rendererFile2) ?: '') : '';
+        $rendererSrc3 = $this->readModuleSrc($rendererFile2);
         if ($rendererSrc3 === '') {
             $offenders[] = 'EmailRenderer.php introuvable (2e vérification)';
         } elseif (preg_match('/foreach\s*\(\s*\$htmlTemplateVars\s+as\s+\$key\s*=>\s*\$value\s*\)\s*\{\s*if\s*\(is_string\(\$value\)\)\s*\{\s*\$compiled\s*=\s*str_replace/s', $rendererSrc3)
@@ -1660,7 +1713,7 @@ class HealthCheckManager
         // excluant systématiquement tout produit géré par déclinaisons des
         // suggestions upsell — même famille de bug que WaitlistManager.
         $upsellFile = _PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php';
-        $upsellSrc  = is_file($upsellFile) ? (file_get_contents($upsellFile) ?: '') : '';
+        $upsellSrc = $this->readModuleSrc($upsellFile);
         if ($upsellSrc === '') {
             $offenders[] = 'UpsellManager.php introuvable';
         } elseif (preg_match('/id_product_attribute\s*=\s*0\s+AND\s+sa\.quantity\s*>\s*0/', $upsellSrc)) {
@@ -1673,7 +1726,7 @@ class HealthCheckManager
         // excluant le client de la campagne pour le reste de l'année sans
         // aucune alerte.
         $seasonalFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php';
-        $seasonalSrc  = is_file($seasonalFile) ? (file_get_contents($seasonalFile) ?: '') : '';
+        $seasonalSrc = $this->readModuleSrc($seasonalFile);
         if ($seasonalSrc === '') {
             $offenders[] = 'SeasonalCampaignManager.php introuvable';
         } else {
@@ -1703,7 +1756,7 @@ class HealthCheckManager
         // domaine boutique par défaut, jamais sur le vrai domaine d'un
         // expéditeur multi-langue configuré.
         $domainRepFile = _PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php';
-        $domainRepSrc  = is_file($domainRepFile) ? (file_get_contents($domainRepFile) ?: '') : '';
+        $domainRepSrc = $this->readModuleSrc($domainRepFile);
         if ($domainRepSrc === '') {
             $offenders[] = 'DomainReputationManager.php introuvable';
         } elseif (preg_match('/\$senders\[\$lang\]\[.from.\]/', $domainRepSrc)) {
@@ -1714,7 +1767,7 @@ class HealthCheckManager
         // ne filtrait pas is_mpp=0 sur les ouvertures, incohérent avec
         // StatsManager partout ailleurs sur le dashboard BO live.
         $monthlyFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php';
-        $monthlySrc2  = is_file($monthlyFile2) ? (file_get_contents($monthlyFile2) ?: '') : '';
+        $monthlySrc2 = $this->readModuleSrc($monthlyFile2);
         if ($monthlySrc2 === '') {
             $offenders[] = 'MonthlyReportManager.php introuvable';
         } else {
@@ -1736,7 +1789,7 @@ class HealthCheckManager
         // fenêtre d'envoi remportaient tous deux le "verrou" et envoyaient
         // le même email deux fois.
         $waitlistFile = _PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php';
-        $waitlistSrc  = is_file($waitlistFile) ? (file_get_contents($waitlistFile) ?: '') : '';
+        $waitlistSrc = $this->readModuleSrc($waitlistFile);
         if ($waitlistSrc === '') {
             $offenders[] = 'WaitlistManager.php introuvable';
         } elseif (!preg_match('/notified_at IS NULL\s*\n\s*AND \(claim_started_at IS NULL/', $waitlistSrc)) {
@@ -1749,7 +1802,7 @@ class HealthCheckManager
         // corrompue en base pouvait afficher "actif/Grade A" avec un
         // déchiffrement en réalité cassé sur toutes les données.
         $gdprFile = _PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php';
-        $gdprSrc  = is_file($gdprFile) ? (file_get_contents($gdprFile) ?: '') : '';
+        $gdprSrc = $this->readModuleSrc($gdprFile);
         if ($gdprSrc === '') {
             $offenders[] = 'GdprAuditManager.php introuvable';
         } elseif (!preg_match('/auditEncryption[\s\S]{0,800}?ctype_xdigit\(\$rawKey\)/', $gdprSrc)) {
@@ -1762,7 +1815,7 @@ class HealthCheckManager
         // boutique — cassait la traçabilité neria_behavioral_sent en
         // multi-boutique.
         $queueFile = _PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php';
-        $queueSrc  = is_file($queueFile) ? (file_get_contents($queueFile) ?: '') : '';
+        $queueSrc = $this->readModuleSrc($queueFile);
         if ($queueSrc === '') {
             $offenders[] = 'QueueManager.php introuvable';
         } elseif (preg_match('/SELECT MIN\(id_order\) FROM[\s\S]{0,300}?AND valid = 1(?! AND id_shop)/', $queueSrc)) {
@@ -1774,7 +1827,7 @@ class HealthCheckManager
         // id_shop de la commande valait 0 (commande orpheline/legacy),
         // réintroduisant la fuite qu'il visait à éliminer.
         $statsFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php';
-        $statsSrc2  = is_file($statsFile2) ? (file_get_contents($statsFile2) ?: '') : '';
+        $statsSrc2 = $this->readModuleSrc($statsFile2);
         if ($statsSrc2 === '') {
             $offenders[] = 'StatsManager.php introuvable (2e vérification)';
         } elseif (preg_match('/if \(\$idShop > 0 && isset\(\$sent\[.id_shop.\]\)/', $statsSrc2)) {
@@ -1788,7 +1841,7 @@ class HealthCheckManager
         // du contexte cron d'origine avait ses segments/scores recalculés
         // chaque jour sur une install multi-boutiques.
         $cronFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
-        $cronSrc2  = is_file($cronFile2) ? (file_get_contents($cronFile2) ?: '') : '';
+        $cronSrc2 = $this->readModuleSrc($cronFile2);
         if ($cronSrc2 === '') {
             $offenders[] = 'BehavioralCronManager.php introuvable (2e vérification)';
         } else {
@@ -1810,7 +1863,7 @@ class HealthCheckManager
         // template/langue affiché (getById() ne filtre que par id_shop) —
         // pouvait écraser silencieusement une traduction sans rapport.
         $mainFile2 = _PS_MODULE_DIR_ . $this->module->name . '/' . $this->module->name . '.php';
-        $mainSrc2  = is_file($mainFile2) ? (file_get_contents($mainFile2) ?: '') : '';
+        $mainSrc2 = $this->readModuleSrc($mainFile2);
         if ($mainSrc2 === '') {
             $offenders[] = 'neria.php introuvable (2e vérification)';
         } else {
@@ -1833,7 +1886,7 @@ class HealthCheckManager
         // sans marqueur d'ordre. Corrigé en l'injectant à la volée dans
         // processQueue() à partir de id_webhook (une seule écriture).
         $webhookFile = _PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php';
-        $webhookSrc  = is_file($webhookFile) ? (file_get_contents($webhookFile) ?: '') : '';
+        $webhookSrc = $this->readModuleSrc($webhookFile);
         if ($webhookSrc === '') {
             $offenders[] = 'WebhookManager.php introuvable';
         } elseif (strpos($webhookSrc, 'idWebhook = (int) $this->db->Insert_ID()') !== false) {
@@ -1856,7 +1909,7 @@ class HealthCheckManager
         // polices non-titre — une valeur hors catalogue était enregistrée
         // "avec succès" côté BO mais sans aucun effet réel sur les emails.
         $configFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php';
-        $configSrc  = is_file($configFile) ? (file_get_contents($configFile) ?: '') : '';
+        $configSrc = $this->readModuleSrc($configFile);
         if ($configSrc === '') {
             $offenders[] = 'ConfigManager.php introuvable';
         } elseif (strpos($configSrc, "array_keys(\\FontManager::FONT_CATALOG)") === false) {
@@ -1898,7 +1951,7 @@ class HealthCheckManager
         // Round 46 : ABTestManager::getVariantForEmail() — clé de
         // répartition A/B changeait quand un invité créait un compte.
         $abtestFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php';
-        $abtestSrc  = is_file($abtestFile) ? (file_get_contents($abtestFile) ?: '') : '';
+        $abtestSrc = $this->readModuleSrc($abtestFile);
         if ($abtestSrc === '') {
             $offenders[] = 'ABTestManager.php introuvable';
         } elseif (strpos($abtestSrc, "trim(\$email) !== '' ? trim(\$email)") === false) {
@@ -1908,7 +1961,7 @@ class HealthCheckManager
         // Round 46 : DeliverabilityScorer::getSubjectSpamTriggers() exposait
         // la liste brute sans le filtre de longueur utilisé par score().
         $deliverFile = _PS_MODULE_DIR_ . $this->module->name . '/src/DeliverabilityScorer.php';
-        $deliverSrc  = is_file($deliverFile) ? (file_get_contents($deliverFile) ?: '') : '';
+        $deliverSrc = $this->readModuleSrc($deliverFile);
         if ($deliverSrc === '') {
             $offenders[] = 'DeliverabilityScorer.php introuvable';
         } elseif (!preg_match('/function getSubjectSpamTriggers[\s\S]{0,800}?mb_strlen\(\$trigger\) >= 4/', $deliverSrc)) {
@@ -1937,7 +1990,7 @@ class HealthCheckManager
         // un continue intermédiaire, bloquant le client à vie même une
         // fois la condition levée (stock revenu, préférences réactivées).
         $collectionFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php';
-        $collectionSrc  = is_file($collectionFile) ? (file_get_contents($collectionFile) ?: '') : '';
+        $collectionSrc = $this->readModuleSrc($collectionFile);
         if ($collectionSrc === '') {
             $offenders[] = 'CollectionManager.php introuvable';
         } elseif (substr_count($collectionSrc, 'releaseSendClaim($colId, $idCustomer, $idShop)') < 4) {
@@ -1948,7 +2001,7 @@ class HealthCheckManager
         }
 
         $lookFile = _PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php';
-        $lookSrc  = is_file($lookFile) ? (file_get_contents($lookFile) ?: '') : '';
+        $lookSrc = $this->readModuleSrc($lookFile);
         if ($lookSrc === '') {
             $offenders[] = 'LookCompletionManager.php introuvable';
         } elseif (substr_count($lookSrc, 'releaseSendClaim($idOrder, $idCustomer)') < 6) {
@@ -1959,7 +2012,7 @@ class HealthCheckManager
         // génération du bon (optionnelle) était dédupliquée, pas l'email
         // milestone_order lui-même.
         $otFile = _PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php';
-        $otSrc  = is_file($otFile) ? (file_get_contents($otFile) ?: '') : '';
+        $otSrc = $this->readModuleSrc($otFile);
         if ($otSrc === '') {
             $offenders[] = 'OrderTriggersManager.php introuvable';
         } elseif (strpos($otSrc, 'private function claimMilestone(') === false
@@ -1971,7 +2024,7 @@ class HealthCheckManager
         // Round 47 : CertificateManager::issue() enregistrait l'id_shop du
         // contexte BO de l'employé au lieu de celui de la commande.
         $certFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
-        $certSrc  = is_file($certFile) ? (file_get_contents($certFile) ?: '') : '';
+        $certSrc = $this->readModuleSrc($certFile);
         if ($certSrc === '') {
             $offenders[] = 'CertificateManager.php introuvable (3e vérification)';
         } elseif (strpos($certSrc, "'id_shop'         => (int) \$order->id_shop,") === false) {
@@ -1981,7 +2034,7 @@ class HealthCheckManager
         // Round 47 : PropensityScoreManager::recalculateAll() ne purgeait
         // jamais les scores des clients sortis du périmètre.
         $propFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PropensityScoreManager.php';
-        $propSrc  = is_file($propFile) ? (file_get_contents($propFile) ?: '') : '';
+        $propSrc = $this->readModuleSrc($propFile);
         if ($propSrc === '') {
             $offenders[] = 'PropensityScoreManager.php introuvable';
         } elseif (strpos($propSrc, "DELETE FROM `' . _DB_PREFIX_ . 'neria_propensity_score`") === false) {
@@ -2008,7 +2061,7 @@ class HealthCheckManager
         // réduction valide pour le même palier de fidélité (fraude aux
         // points).
         $loyaltyFile = _PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php';
-        $loyaltySrc  = is_file($loyaltyFile) ? (file_get_contents($loyaltyFile) ?: '') : '';
+        $loyaltySrc = $this->readModuleSrc($loyaltyFile);
         if ($loyaltySrc === '') {
             $offenders[] = 'LoyaltyManager.php introuvable';
         } elseif (!preg_match('/function generateVoucher[\s\S]{0,1200}?INSERT IGNORE INTO/', $loyaltySrc)) {
@@ -2020,7 +2073,7 @@ class HealthCheckManager
         // les remboursements d'un client partagé faits sur UNE AUTRE
         // boutique.
         $clvFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php';
-        $clvSrc  = is_file($clvFile) ? (file_get_contents($clvFile) ?: '') : '';
+        $clvSrc = $this->readModuleSrc($clvFile);
         if ($clvSrc === '') {
             $offenders[] = 'ClvManager.php introuvable';
         } elseif (strpos($clvSrc, 'o.`id_shop` = ' . '\' . $this->idShop') === false) {
@@ -2052,7 +2105,7 @@ class HealthCheckManager
         // placeholder brut non résolu, sans que le marchand ne puisse s'en
         // apercevoir au moment de la planification.
         $manualFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
-        $manualSrc2  = is_file($manualFile2) ? (file_get_contents($manualFile2) ?: '') : '';
+        $manualSrc2 = $this->readModuleSrc($manualFile2);
         if ($manualSrc2 === '') {
             $offenders[] = 'ManualSendManager.php introuvable (2e vérification)';
         } else {
@@ -2079,7 +2132,7 @@ class HealthCheckManager
             $offenders[] = 'BehavioralCronManager : la dédup comportementale est de nouveau posée à la mise en file (avant l\'envoi réel) — un échec SMTP définitif marquerait à tort un template "déjà envoyé" pour de bon';
         }
         $queueFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php';
-        $queueSrc2  = is_file($queueFile2) ? (file_get_contents($queueFile2) ?: '') : '';
+        $queueSrc2 = $this->readModuleSrc($queueFile2);
         if ($queueSrc2 === '') {
             $offenders[] = 'QueueManager.php introuvable (2e vérification)';
         } elseif (strpos($queueSrc2, '$refId = (int) $row[\'ref_id\'];') === false) {
@@ -2098,14 +2151,14 @@ class HealthCheckManager
         // refresh_token OAuth valide par une chaîne vide quand Google n'en
         // renvoyait pas à l'échange du code.
         $postmasterFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php';
-        $postmasterSrc  = is_file($postmasterFile) ? (file_get_contents($postmasterFile) ?: '') : '';
+        $postmasterSrc = $this->readModuleSrc($postmasterFile);
         if ($postmasterSrc === '') {
             $offenders[] = 'PostmasterManager.php introuvable';
         } elseif (!preg_match('/function applyTokenResponse[\s\S]{0,300}?if \(!empty\(\$response\[.refresh_token.\]\)\)/', $postmasterSrc)) {
             $offenders[] = 'PostmasterManager : applyTokenResponse() n\'a plus de garde sur refresh_token vide — un refresh_token valide pourrait de nouveau être écrasé par une chaîne vide';
         }
         $gscFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php';
-        $gscSrc  = is_file($gscFile) ? (file_get_contents($gscFile) ?: '') : '';
+        $gscSrc = $this->readModuleSrc($gscFile);
         if ($gscSrc === '') {
             $offenders[] = 'SearchConsoleManager.php introuvable';
         } elseif (!preg_match('/function applyTokenResponse[\s\S]{0,300}?if \(!empty\(\$response\[.refresh_token.\]\)\)/', $gscSrc)) {
@@ -2116,7 +2169,7 @@ class HealthCheckManager
         // bounce_count à 0 — la réactivation manuelle était pratiquement
         // inopérante pour toute adresse au-dessus du seuil.
         $bounceFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php';
-        $bounceSrc  = is_file($bounceFile) ? (file_get_contents($bounceFile) ?: '') : '';
+        $bounceSrc = $this->readModuleSrc($bounceFile);
         if ($bounceSrc === '') {
             $offenders[] = 'BounceManager.php introuvable';
         } elseif (!preg_match('/function reactivateBounce[\s\S]{0,900}?bounce_count\` = 0/', $bounceSrc)) {
@@ -2128,7 +2181,7 @@ class HealthCheckManager
         // (affichage détaillé) au lieu de la totalité des événements des
         // 24 dernières heures.
         $watchdogFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php';
-        $watchdogSrc2  = is_file($watchdogFile2) ? (file_get_contents($watchdogFile2) ?: '') : '';
+        $watchdogSrc2 = $this->readModuleSrc($watchdogFile2);
         if ($watchdogSrc2 === '') {
             $offenders[] = 'WatchdogManager.php introuvable (2e vérification)';
         } elseif (!preg_match('/function sendDailyDigestIfDue[\s\S]{0,5000}?GROUP BY `level`/', $watchdogSrc2)) {
@@ -2157,7 +2210,7 @@ class HealthCheckManager
         // contenait des noms de templates morts ('password_reset',
         // 'account_guest') et omettait le vrai template 'password'.
         $cooldownFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CooldownManager.php';
-        $cooldownSrc  = is_file($cooldownFile) ? (file_get_contents($cooldownFile) ?: '') : '';
+        $cooldownSrc = $this->readModuleSrc($cooldownFile);
         if ($cooldownSrc === '') {
             $offenders[] = 'CooldownManager.php introuvable';
         } elseif (!preg_match("/const BYPASS_TEMPLATES = \[[\s\S]{0,150}?'password',/", $cooldownSrc)) {
@@ -2189,7 +2242,7 @@ class HealthCheckManager
         // toute validation — redirection vers un produit invalide (404) au
         // lieu du repli my-account.
         $waitlistCtrlFile = _PS_MODULE_DIR_ . $this->module->name . '/controllers/front/waitlist.php';
-        $waitlistCtrlSrc  = is_file($waitlistCtrlFile) ? (file_get_contents($waitlistCtrlFile) ?: '') : '';
+        $waitlistCtrlSrc = $this->readModuleSrc($waitlistCtrlFile);
         if ($waitlistCtrlSrc === '') {
             $offenders[] = 'controllers/front/waitlist.php introuvable';
         } elseif (strpos($waitlistCtrlSrc, "\$redirect  = 'index.php?controller=my-account';") === false) {
@@ -2211,7 +2264,7 @@ class HealthCheckManager
         // une autre boutique masquait silencieusement un panier abandonné
         // réel sur la boutique courante.
         $cronFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
-        $cronSrc2  = is_file($cronFile2) ? (file_get_contents($cronFile2) ?: '') : '';
+        $cronSrc2 = $this->readModuleSrc($cronFile2);
         if ($cronSrc2 === '') {
             $offenders[] = 'src/BehavioralCronManager.php introuvable';
         } elseif (!preg_match('/function sendGhostCarts\(\).*?o\.valid = 1\s*AND o\.id_shop = \' \. \$idShop \. \'/s', $cronSrc2)) {
@@ -2226,7 +2279,7 @@ class HealthCheckManager
         // même client voyaient l'UPDATE de l'une écraser la réservation de
         // l'autre avec un id_cart_rule/voucher_code invalide pour elle.
         $loyaltyFile = _PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php';
-        $loyaltySrc  = is_file($loyaltyFile) ? (file_get_contents($loyaltyFile) ?: '') : '';
+        $loyaltySrc = $this->readModuleSrc($loyaltyFile);
         if ($loyaltySrc === '') {
             $offenders[] = 'src/LoyaltyManager.php introuvable';
         } elseif (strpos($loyaltySrc, "AND tier_key = '\" . pSQL(\$tier['key']) . \"'\n               AND id_shop = \" . \$reservationShopId") === false) {
@@ -2239,7 +2292,7 @@ class HealthCheckManager
         // cette table. Toute ligne tombait sur le défaut id_shop=1 de la
         // colonne, quelle que soit la vraie boutique.
         $seasonalFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php';
-        $seasonalSrc  = is_file($seasonalFile) ? (file_get_contents($seasonalFile) ?: '') : '';
+        $seasonalSrc = $this->readModuleSrc($seasonalFile);
         if ($seasonalSrc === '') {
             $offenders[] = 'src/SeasonalCampaignManager.php introuvable';
         } elseif (strpos($seasonalSrc, "AND ref_id      = {\$year}\n                       AND id_shop     = \" . (int) \$this->idShop") === false
@@ -2256,7 +2309,7 @@ class HealthCheckManager
         // voyait ses tables purgées ; les autres dépassaient silencieusement
         // leur rétention RGPD configurée sur une install multi-boutiques.
         $cronFile3b = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
-        $cronSrc3b  = is_file($cronFile3b) ? (file_get_contents($cronFile3b) ?: '') : '';
+        $cronSrc3b = $this->readModuleSrc($cronFile3b);
         if ($cronSrc3b === '') {
             $offenders[] = 'src/BehavioralCronManager.php introuvable (purge RGPD)';
         } else {
@@ -2277,7 +2330,7 @@ class HealthCheckManager
         // SUM() de tout le client NULL en SQL, l'excluant du pool des 200
         // candidats et/ou écrasant son CA réel à 0 dans le Top 20 CLV.
         $clvFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php';
-        $clvSrc  = is_file($clvFile) ? (file_get_contents($clvFile) ?: '') : '';
+        $clvSrc = $this->readModuleSrc($clvFile);
         if ($clvSrc === '') {
             $offenders[] = 'src/ClvManager.php introuvable';
         } elseif (strpos($clvSrc, "ORDER BY SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` = 0, 1, o.`conversion_rate`)) DESC") === false
@@ -2294,7 +2347,7 @@ class HealthCheckManager
         // boutiques distinctes voyait sa 2e complétion bloquée à tort par
         // la réservation posée pour la 1re (upgrade 1.0.38).
         $collectionFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php';
-        $collectionSrc  = is_file($collectionFile) ? (file_get_contents($collectionFile) ?: '') : '';
+        $collectionSrc = $this->readModuleSrc($collectionFile);
         if ($collectionSrc === '') {
             $offenders[] = 'src/CollectionManager.php introuvable';
         } elseif (strpos($collectionSrc, 'private function claimSend(int $colId, int $idCustomer, int $idShop): bool') === false
@@ -2311,7 +2364,7 @@ class HealthCheckManager
         // palier au moment d'une panne SMTP transitoire perdait
         // définitivement l'email et son bon.
         $otFile = _PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php';
-        $otSrc  = is_file($otFile) ? (file_get_contents($otFile) ?: '') : '';
+        $otSrc = $this->readModuleSrc($otFile);
         if ($otSrc === '') {
             $offenders[] = 'src/OrderTriggersManager.php introuvable';
         } elseif (!preg_match('/private function releaseMilestoneClaim/', $otSrc)
@@ -2327,7 +2380,7 @@ class HealthCheckManager
         // alors le mauvais millésime dans neria_behavioral_sent, cassant la
         // déduplication l'année suivante (client privé de son email).
         $queueFile = _PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php';
-        $queueSrc  = is_file($queueFile) ? (file_get_contents($queueFile) ?: '') : '';
+        $queueSrc = $this->readModuleSrc($queueFile);
         if ($queueSrc === '') {
             $offenders[] = 'src/QueueManager.php introuvable';
         } elseif (strpos($queueSrc, "elseif (\$row['template'] === 'relationship_anniversary')") !== false
@@ -2344,7 +2397,7 @@ class HealthCheckManager
         // dans la même fenêtre de cooldown voyait le second bloqué à tort
         // comme doublon du premier.
         $otFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php';
-        $otSrc2  = is_file($otFile2) ? (file_get_contents($otFile2) ?: '') : '';
+        $otSrc2 = $this->readModuleSrc($otFile2);
         if ($otSrc2 === '') {
             $offenders[] = 'src/OrderTriggersManager.php introuvable (id_order cooldown)';
         } elseif (preg_match_all('/\'\{id_order\}\'\s*=>\s*\(int\)\s*\$order->id/', $otSrc2) < 4) {
@@ -2358,7 +2411,7 @@ class HealthCheckManager
         // deux commandes distinctes voyait la relance de la 2e bloquée à
         // tort comme doublon de la 1re dans la même fenêtre de cooldown.
         $cronFile4 = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
-        $cronSrc4  = is_file($cronFile4) ? (file_get_contents($cronFile4) ?: '') : '';
+        $cronSrc4 = $this->readModuleSrc($cronFile4);
         if ($cronSrc4 === '') {
             $offenders[] = 'src/BehavioralCronManager.php introuvable (refund_reconciliation cooldown)';
         } elseif (preg_match_all('/\$this->send\(\'refund_reconciliation_\d\', \$customer, \$reconciliationVars, \$idOrder\)/', $cronSrc4) !== 3) {
@@ -2372,7 +2425,7 @@ class HealthCheckManager
         // dispatch PrestaShop) pouvait renvoyer deux fois return_received
         // pour le même retour.
         $otFile3 = _PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php';
-        $otSrc3  = is_file($otFile3) ? (file_get_contents($otFile3) ?: '') : '';
+        $otSrc3 = $this->readModuleSrc($otFile3);
         if ($otSrc3 === '') {
             $offenders[] = 'src/OrderTriggersManager.php introuvable (verrou return)';
         } elseif (strpos($otSrc3, "GET_LOCK('\" . pSQL(\$lockName) . \"', 0)") === false
@@ -2386,7 +2439,7 @@ class HealthCheckManager
         // INSERT IGNORE, ou id déjà supprimé) — faux message de succès côté
         // BO, sans perte de données.
         $blFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BlacklistManager.php';
-        $blSrc  = is_file($blFile) ? (file_get_contents($blFile) ?: '') : '';
+        $blSrc = $this->readModuleSrc($blFile);
         if ($blSrc === '') {
             $offenders[] = 'src/BlacklistManager.php introuvable';
         } elseif (substr_count($blSrc, 'return (bool) $ok && (int) $this->db->Affected_Rows() > 0;') !== 2) {
@@ -2402,7 +2455,7 @@ class HealthCheckManager
         // jamais l'action demandée, le lien ne faisait plus rien,
         // silencieusement.
         $waitlistFile = _PS_MODULE_DIR_ . $this->module->name . '/neria.php';
-        $waitlistSrc  = is_file($waitlistFile) ? (file_get_contents($waitlistFile) ?: '') : '';
+        $waitlistSrc = $this->readModuleSrc($waitlistFile);
         if ($waitlistSrc === '') {
             $offenders[] = 'neria.php introuvable (liens waitlist)';
         } elseif (strpos($waitlistSrc, "'?action=unsubscribe&id_product='") !== false
@@ -2418,7 +2471,7 @@ class HealthCheckManager
         // second contrôle si la valeur en base était altérée par un autre
         // chemin).
         $fontFile = _PS_MODULE_DIR_ . $this->module->name . '/src/FontManager.php';
-        $fontSrc  = is_file($fontFile) ? (file_get_contents($fontFile) ?: '') : '';
+        $fontSrc = $this->readModuleSrc($fontFile);
         if ($fontSrc === '') {
             $offenders[] = 'src/FontManager.php introuvable';
         } elseif (strpos($fontSrc, 'NeriaTools::sanitizeColor(') === false) {
@@ -2433,7 +2486,7 @@ class HealthCheckManager
         // id_customer, privant les clients inscrits après les 500 premiers
         // de toute campagne calendaire, année après année.
         $calFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php';
-        $calSrc  = is_file($calFile) ? (file_get_contents($calFile) ?: '') : '';
+        $calSrc = $this->readModuleSrc($calFile);
         if ($calSrc === '') {
             $offenders[] = 'src/CalendarManager.php introuvable';
         } elseif (strpos($calSrc, 'LIMIT " . (self::MAX_RECIPIENTS_PER_EVENT + 1);') === false
@@ -2449,7 +2502,7 @@ class HealthCheckManager
         // pouvait avoir un CLV réel supérieur à un client du pool, exclu du
         // Top N sans que l'admin n'en soit jamais informé.
         $clvFile2 = _PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php';
-        $clvSrc2  = is_file($clvFile2) ? (file_get_contents($clvFile2) ?: '') : '';
+        $clvSrc2 = $this->readModuleSrc($clvFile2);
         if ($clvSrc2 === '') {
             $offenders[] = 'src/ClvManager.php introuvable (pool Top 200)';
         } elseif (strpos($clvSrc2, 'SELECT COUNT(DISTINCT o.`id_customer`)') === false
@@ -2465,7 +2518,7 @@ class HealthCheckManager
         // blacklisté au moment du check pouvant obtenir un score parfait
         // sans aucune alerte.
         $domRepFile = _PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php';
-        $domRepSrc  = is_file($domRepFile) ? (file_get_contents($domRepFile) ?: '') : '';
+        $domRepSrc = $this->readModuleSrc($domRepFile);
         if ($domRepSrc === '') {
             $offenders[] = 'src/DomainReputationManager.php introuvable';
         } elseif (strpos($domRepSrc, "'timed_out' => \$checked < count(self::RBL_LIST),") === false
@@ -2481,7 +2534,7 @@ class HealthCheckManager
         // envoi, même à un client ayant explicitement désactivé la
         // catégorie correspondante.
         $prefFile3 = _PS_MODULE_DIR_ . $this->module->name . '/src/PreferencesManager.php';
-        $prefSrc3  = is_file($prefFile3) ? (file_get_contents($prefFile3) ?: '') : '';
+        $prefSrc3 = $this->readModuleSrc($prefFile3);
         if ($prefSrc3 === '') {
             $offenders[] = 'src/PreferencesManager.php introuvable (TEMPLATE_CAT vip/voucher)';
         } else {
@@ -2509,7 +2562,7 @@ class HealthCheckManager
         // couvert par checkTemplateCategoryMappingComplete() lui-même de
         // façon prospective, pour tout futur ajout à ces deux catalogues).
         $selfFile = _PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php';
-        $selfSrc  = is_file($selfFile) ? (file_get_contents($selfFile) ?: '') : '';
+        $selfSrc = $this->readModuleSrc($selfFile);
         if ($selfSrc === '') {
             $offenders[] = 'src/HealthCheckManager.php introuvable (auto-vérification scan WAVE1/ABTest)';
         } else {
@@ -2529,7 +2582,7 @@ class HealthCheckManager
         // les boutiques — fausse alerte sur une boutique saine si une autre
         // a une panne SMTP transitoire.
         $wdFile = _PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php';
-        $wdSrc  = is_file($wdFile) ? (file_get_contents($wdFile) ?: '') : '';
+        $wdSrc = $this->readModuleSrc($wdFile);
         if ($wdSrc === '') {
             $offenders[] = 'src/WatchdogManager.php introuvable (getQueueHealth id_shop)';
         } elseif (substr_count($wdSrc, "AND `id_shop` = {\$this->idShop}") < 3) {
@@ -2544,7 +2597,7 @@ class HealthCheckManager
         // envoyait l'email de certificat avec la config SMTP/expéditeur de
         // la mauvaise boutique.
         $certFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
-        $certSrc  = is_file($certFile) ? (file_get_contents($certFile) ?: '') : '';
+        $certSrc = $this->readModuleSrc($certFile);
         if ($certSrc === '') {
             $offenders[] = 'src/CertificateManager.php introuvable (email scopé boutique)';
         } elseif (strpos($certSrc, '$idShop   = (int) $order->id_shop;') === false) {
@@ -2557,7 +2610,7 @@ class HealthCheckManager
         // la vraie boutique du client — même défaut que CertificateManager
         // (round 74). findCustomer() ne sélectionnait même pas id_shop.
         $msFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
-        $msSrc  = is_file($msFile) ? (file_get_contents($msFile) ?: '') : '';
+        $msSrc = $this->readModuleSrc($msFile);
         if ($msSrc === '') {
             $offenders[] = 'src/ManualSendManager.php introuvable (liens scopés boutique client)';
         } elseif (strpos($msSrc, "SELECT `id_customer`, `id_lang`, `firstname`, `lastname`, `id_shop`") === false
@@ -2573,7 +2626,7 @@ class HealthCheckManager
         // emails calendaires ; les autres boutiques n'en recevaient jamais,
         // aucun jour.
         $neriaFile2 = _PS_MODULE_DIR_ . $this->module->name . '/neria.php';
-        $neriaSrc2  = is_file($neriaFile2) ? (file_get_contents($neriaFile2) ?: '') : '';
+        $neriaSrc2 = $this->readModuleSrc($neriaFile2);
         if ($neriaSrc2 === '') {
             $offenders[] = 'neria.php introuvable (boucle multi-boutique CalendarManager)';
         } else {
@@ -2648,9 +2701,9 @@ class HealthCheckManager
         // jamais réellement ses emails gardait un score de churn
         // sous-estimé et un score de propension gonflé à tort.
         $churnFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php';
-        $churnSrc  = is_file($churnFile) ? (file_get_contents($churnFile) ?: '') : '';
+        $churnSrc = $this->readModuleSrc($churnFile);
         $propFile  = _PS_MODULE_DIR_ . $this->module->name . '/src/PropensityScoreManager.php';
-        $propSrc   = is_file($propFile) ? (file_get_contents($propFile) ?: '') : '';
+        $propSrc = $this->readModuleSrc($propFile);
         if ($churnSrc === '' || $propSrc === '') {
             $offenders[] = 'ChurnScoreManager.php/PropensityScoreManager.php introuvable (filtre is_mpp)';
         } else {
@@ -2672,7 +2725,7 @@ class HealthCheckManager
         // dans son historique BO, avec un badge d'engagement et un taux
         // d'ouverture moyen boutique gonflés à tort.
         $cehFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CustomerEmailHistoryManager.php';
-        $cehSrc  = is_file($cehFile) ? (file_get_contents($cehFile) ?: '') : '';
+        $cehSrc = $this->readModuleSrc($cehFile);
         if ($cehSrc === '') {
             $offenders[] = 'CustomerEmailHistoryManager.php introuvable (filtre is_mpp)';
         } elseif (substr_count($cehSrc, 'o.is_mpp = 0') < 2) {
@@ -2690,7 +2743,7 @@ class HealthCheckManager
         // à tort, appliquant le multiplicateur CLV "high" (x1.20) au lieu
         // de "low" (x0.85) — CLV surestimé, faux positif dans le Top 20.
         $clvFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php';
-        $clvSrc  = is_file($clvFile) ? (file_get_contents($clvFile) ?: '') : '';
+        $clvSrc = $this->readModuleSrc($clvFile);
         if ($clvSrc === '') {
             $offenders[] = 'ClvManager.php introuvable (filtre is_mpp)';
         } elseif (substr_count($clvSrc, "'open\\' AND `is_mpp` = 0") < 2) {
@@ -2705,7 +2758,7 @@ class HealthCheckManager
         // jamais réellement ses emails à chaque pré-chargement du pixel
         // par le proxy Apple.
         $smFile = _PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php';
-        $smSrc  = is_file($smFile) ? (file_get_contents($smFile) ?: '') : '';
+        $smSrc = $this->readModuleSrc($smFile);
         if ($smSrc === '') {
             $offenders[] = 'StatsManager.php introuvable (filtre is_mpp sur points fidélité)';
         } elseif (strpos($smSrc, "!(\$event === 'open' && \$isMpp)") === false) {
@@ -2719,7 +2772,7 @@ class HealthCheckManager
         // Un seul nouveau soft bounce après expiration rebloquait aussitôt
         // l'adresse, niant la réhabilitation automatique.
         $bmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php';
-        $bmSrc  = is_file($bmFile) ? (file_get_contents($bmFile) ?: '') : '';
+        $bmSrc = $this->readModuleSrc($bmFile);
         if ($bmSrc === '') {
             $offenders[] = 'BounceManager.php introuvable (reset bounce_count sur expiration)';
         } elseif (strpos($bmSrc, "TIMESTAMPDIFF(MONTH, `last_bounce_at`, NOW()) >= ' . \$expiryMonths") === false) {
@@ -2736,7 +2789,7 @@ class HealthCheckManager
         // aucune propriété ne matchait jamais, le BO affichait à tort
         // "aucun site Search Console correspondant".
         $scFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php';
-        $scSrc  = is_file($scFile) ? (file_get_contents($scFile) ?: '') : '';
+        $scSrc = $this->readModuleSrc($scFile);
         if ($scSrc === '') {
             $offenders[] = 'SearchConsoleManager.php introuvable (matching bidirectionnel siteUrl)';
         } elseif (
@@ -2760,7 +2813,7 @@ class HealthCheckManager
         // cron, laissant checkChurnPropensityFreshness() aveugle
         // indéfiniment pour la partie churn.
         $csFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php';
-        $csSrc  = is_file($csFile) ? (file_get_contents($csFile) ?: '') : '';
+        $csSrc = $this->readModuleSrc($csFile);
         if ($csSrc === '') {
             $offenders[] = 'ChurnScoreManager.php introuvable (NERIA_CHURN_LAST_RUN avant early return)';
         } else {
@@ -2782,7 +2835,7 @@ class HealthCheckManager
         // recevait un bloc upsell dans la mauvaise devise et un lien
         // produit potentiellement cassé.
         $upFile = _PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php';
-        $upSrc  = is_file($upFile) ? (file_get_contents($upFile) ?: '') : '';
+        $upSrc = $this->readModuleSrc($upFile);
         if ($upSrc === '') {
             $offenders[] = 'UpsellManager.php introuvable (devise/lien scopés par idShop)';
         } else {
@@ -2803,7 +2856,7 @@ class HealthCheckManager
         // sur une AUTRE boutique obtenait un ref_id incohérent, cassant la
         // traçabilité de neria_behavioral_sent en multi-shop.
         $msFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
-        $msSrc  = is_file($msFile) ? (file_get_contents($msFile) ?: '') : '';
+        $msSrc = $this->readModuleSrc($msFile);
         if ($msSrc === '') {
             $offenders[] = 'ManualSendManager.php introuvable (ref_id first_anniversary scopé par idShop)';
         } else {
@@ -2825,7 +2878,7 @@ class HealthCheckManager
         // à une autre boutique) — même correctif déjà appliqué à
         // OrderTriggersManager::generateMilestoneVoucher() (round 56).
         $bcFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
-        $bcSrc  = is_file($bcFile) ? (file_get_contents($bcFile) ?: '') : '';
+        $bcSrc = $this->readModuleSrc($bcFile);
         if ($bcSrc === '') {
             $offenders[] = 'BehavioralCronManager.php introuvable (UPDATE birthday_voucher scopé par idShop)';
         } else {
@@ -2843,7 +2896,7 @@ class HealthCheckManager
         // partagé entre boutiques se voyait bloquer à tort un envoi sur la
         // Boutique B par l'historique de la Boutique A.
         $ms2File = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
-        $ms2Src  = is_file($ms2File) ? (file_get_contents($ms2File) ?: '') : '';
+        $ms2Src = $this->readModuleSrc($ms2File);
         if ($ms2Src === '') {
             $offenders[] = 'ManualSendManager.php introuvable (garde-fou anniversaire scopé par idShop)';
         } elseif (substr_count($ms2Src, "AND id_shop = ' . \$idShopConflict") < 2) {
@@ -2858,7 +2911,7 @@ class HealthCheckManager
         // KPIs et le journal d'une boutique mélangeaient silencieusement
         // les données de TOUTES les boutiques de l'installation.
         $up2File = _PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php';
-        $up2Src  = is_file($up2File) ? (file_get_contents($up2File) ?: '') : '';
+        $up2Src = $this->readModuleSrc($up2File);
         if ($up2Src === '') {
             $offenders[] = 'UpsellManager.php introuvable (getStats/getLog scopés par idShop)';
         } else {
@@ -2878,7 +2931,7 @@ class HealthCheckManager
         // séparé, un solde négatif sur une boutique pouvait être masqué par
         // un solde positif sur une autre (somme globale faussement positive).
         $hcmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php';
-        $hcmSrc  = is_file($hcmFile) ? (file_get_contents($hcmFile) ?: '') : '';
+        $hcmSrc = $this->readModuleSrc($hcmFile);
         if ($hcmSrc === '') {
             $offenders[] = 'HealthCheckManager.php introuvable (checkLoyaltyIntegrity scopé par idShop)';
         } elseif (strpos($hcmSrc, 'id_customer`, `id_shop`') === false) {
@@ -2894,7 +2947,7 @@ class HealthCheckManager
         // de notification. Un SUM(quantity) SQL direct (sans filtre
         // id_product_attribute) remplace désormais cet appel API.
         $wlFile = _PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php';
-        $wlSrc  = is_file($wlFile) ? (file_get_contents($wlFile) ?: '') : '';
+        $wlSrc = $this->readModuleSrc($wlFile);
         if ($wlSrc === '') {
             $offenders[] = 'WaitlistManager.php introuvable (SUM stock déclinaisons)';
         } elseif (strpos($wlSrc, 'SELECT COALESCE(SUM(quantity), 0) FROM `" . _DB_PREFIX_ . "stock_available`') === false) {
@@ -2914,7 +2967,7 @@ class HealthCheckManager
         // vérification d'authenticité (deux certificats différents avec le
         // même serial_number).
         $cmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
-        $cmSrc  = is_file($cmFile) ? (file_get_contents($cmFile) ?: '') : '';
+        $cmSrc = $this->readModuleSrc($cmFile);
         if ($cmSrc === '') {
             $offenders[] = 'CertificateManager.php introuvable (AUTO_INCREMENT anti-réémission serial)';
         } elseif (strpos($cmSrc, 'SELECT `AUTO_INCREMENT` FROM `information_schema`.`TABLES`') === false) {
@@ -2931,14 +2984,14 @@ class HealthCheckManager
         // CertificateManager::issue()) : la purge matche désormais
         // directement, indépendamment de la survie de la commande.
         $gdprFile = _PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php';
-        $gdprSrc  = is_file($gdprFile) ? (file_get_contents($gdprFile) ?: '') : '';
+        $gdprSrc = $this->readModuleSrc($gdprFile);
         if ($gdprSrc === '') {
             $offenders[] = 'GdprAuditManager.php introuvable (purge certificat par id_customer direct)';
         } elseif (strpos($gdprSrc, 'WHERE nc.id_customer = ') === false) {
             $offenders[] = "GdprAuditManager::purgeCustomerData() ne purge plus neria_certificate par id_customer direct — un certificat dont la commande a été supprimée pourrait de nouveau survivre à une demande d'effacement RGPD";
         }
         $cm2File = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
-        $cm2Src  = is_file($cm2File) ? (file_get_contents($cm2File) ?: '') : '';
+        $cm2Src = $this->readModuleSrc($cm2File);
         if ($cm2Src !== '' && strpos($cm2Src, "'id_customer'     => (int) \$order->id_customer,") === false) {
             $offenders[] = "CertificateManager::issue() n'enregistre plus id_customer à l'émission — la purge RGPD par id_customer direct ne pourrait plus fonctionner pour les nouveaux certificats";
         }
@@ -2953,7 +3006,7 @@ class HealthCheckManager
         // divergent silencieux entre Apple Mail (garde <style>) et
         // Gmail/Outlook (style inline uniquement).
         $ciFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CssInliner.php';
-        $ciSrc  = is_file($ciFile) ? (file_get_contents($ciFile) ?: '') : '';
+        $ciSrc = $this->readModuleSrc($ciFile);
         if ($ciSrc === '') {
             $offenders[] = 'CssInliner.php introuvable (ordre cascade CSS à spécificité égale)';
         } elseif (strpos($ciSrc, '$rules = array_reverse($rules);') === false) {
@@ -2969,7 +3022,7 @@ class HealthCheckManager
         // qu'un vrai bon de réduction distinct avait déjà été attribué pour
         // ce second palier.
         $otmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php';
-        $otmSrc  = is_file($otmFile) ? (file_get_contents($otmFile) ?: '') : '';
+        $otmSrc = $this->readModuleSrc($otmFile);
         if ($otmSrc === '') {
             $offenders[] = 'OrderTriggersManager.php introuvable ({id_order} milestone_order)';
         } elseif (substr_count($otmSrc, "'{id_order}'") < 4) {
@@ -2984,7 +3037,7 @@ class HealthCheckManager
         // partir restait affiché "jamais envoyé" dans le BO jusqu'au 1er
         // janvier suivant.
         $calFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php';
-        $calSrc  = is_file($calFile) ? (file_get_contents($calFile) ?: '') : '';
+        $calSrc = $this->readModuleSrc($calFile);
         if ($calSrc === '') {
             $offenders[] = 'CalendarManager.php introuvable (dernier envoi cherché sur year+1)';
         } elseif (strpos($calSrc, 'foreach ([$year + 1, $year, $year - 1] as $y) {') === false) {
@@ -3001,7 +3054,7 @@ class HealthCheckManager
         // langues différentes affichait le MÊME formatage de prix pour
         // tous (celui du cron/BO), pas celui de chaque destinataire.
         $ntFile = _PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php';
-        $ntSrc  = is_file($ntFile) ? (file_get_contents($ntFile) ?: '') : '';
+        $ntSrc = $this->readModuleSrc($ntFile);
         if ($ntSrc === '') {
             $offenders[] = 'NeriaTools.php introuvable (displayPrice respecte idLang explicite)';
         } elseif (strpos($ntSrc, 'if ($targetLang !== null) {') === false) {
@@ -3018,7 +3071,7 @@ class HealthCheckManager
         // pouvait afficher "12,5 %" au lieu de "12.5 %" pour un destinataire
         // anglophone.
         $erFile = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
-        $erSrc  = is_file($erFile) ? (file_get_contents($erFile) ?: '') : '';
+        $erSrc = $this->readModuleSrc($erFile);
         if ($erSrc === '') {
             $offenders[] = 'EmailRenderer.php introuvable (voucherRateFromCode scopé par lang)';
         } elseif (strpos($erSrc, 'private function voucherRateFromCode(string $code, string $lang): string') === false) {
@@ -3034,14 +3087,14 @@ class HealthCheckManager
         // compte Google voyait la réputation d'envoi ou les statistiques
         // SEO d'un AUTRE site affichées comme celles de sa boutique.
         $pmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php';
-        $pmSrc  = is_file($pmFile) ? (file_get_contents($pmFile) ?: '') : '';
+        $pmSrc = $this->readModuleSrc($pmFile);
         if ($pmSrc === '') {
             $offenders[] = 'PostmasterManager.php introuvable (comparaison domaine par frontière DNS)';
         } elseif (strpos($pmSrc, 'private static function domainsMatch(string $a, string $b): bool') === false) {
             $offenders[] = "PostmasterManager::domainsMatch() a disparu — le filtre domaine pourrait de nouveau accepter à tort un domaine non apparenté (sous-chaîne coïncidente)";
         }
         $sc2File = _PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php';
-        $sc2Src  = is_file($sc2File) ? (file_get_contents($sc2File) ?: '') : '';
+        $sc2Src = $this->readModuleSrc($sc2File);
         if ($sc2Src !== '' && strpos($sc2Src, "str_ends_with(\$a, '.' . \$b) || str_ends_with(\$b, '.' . \$a)") === false) {
             $offenders[] = "SearchConsoleManager::matchesShopHost() ne compare plus par frontière DNS — pourrait de nouveau accepter à tort un domaine non apparenté";
         }
@@ -3056,7 +3109,7 @@ class HealthCheckManager
         // autre boutique recevait un lien/image produit pointant vers le
         // mauvais domaine.
         $wl2File = _PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php';
-        $wl2Src  = is_file($wl2File) ? (file_get_contents($wl2File) ?: '') : '';
+        $wl2Src = $this->readModuleSrc($wl2File);
         if ($wl2Src === '') {
             $offenders[] = 'WaitlistManager.php introuvable (product_url/product_image scopés par idShop)';
         } else {
@@ -3079,7 +3132,7 @@ class HealthCheckManager
         // B alors que le contexte reste sur la boutique A voyait des liens
         // produit pointant vers le mauvais domaine/catalogue.
         $up3File = _PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php';
-        $up3Src  = is_file($up3File) ? (file_get_contents($up3File) ?: '') : '';
+        $up3Src = $this->readModuleSrc($up3File);
         if ($up3Src === '') {
             $offenders[] = 'UpsellManager.php introuvable (getLog() product_url scopé par idShop)';
         } else {
@@ -3101,7 +3154,7 @@ class HealthCheckManager
         // recevait "chez <nom boutique 1>" au lieu du vrai nom de sa
         // boutique.
         $colFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php';
-        $colSrc  = is_file($colFile) ? (file_get_contents($colFile) ?: '') : '';
+        $colSrc = $this->readModuleSrc($colFile);
         if ($colSrc === '') {
             $offenders[] = 'CollectionManager.php introuvable (shop_name scopé par idShop)';
         } elseif (strpos($colSrc, "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)") === false) {
@@ -3130,7 +3183,7 @@ class HealthCheckManager
         ];
         foreach ($round106Checks as $fileName => $needle) {
             $path = _PS_MODULE_DIR_ . $this->module->name . '/src/' . $fileName;
-            $src  = is_file($path) ? (file_get_contents($path) ?: '') : '';
+            $src = $this->readModuleSrc($path);
             if ($src === '') {
                 $offenders[] = $fileName . " introuvable (garde-fou round 106 : {shop_name} scopé par idShop)";
             } elseif (strpos($src, $needle) === false) {
@@ -3154,7 +3207,7 @@ class HealthCheckManager
         // id_order/id_certificate sont déjà des clés globalement uniques en
         // multi-boutique PrestaShop : aucun filtre id_shop n'est nécessaire.
         $certFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
-        $certSrc  = is_file($certFile) ? (file_get_contents($certFile) ?: '') : '';
+        $certSrc = $this->readModuleSrc($certFile);
         if ($certSrc === '') {
             $offenders[] = 'CertificateManager.php introuvable (garde-fou round 107 : getByOrder()/redownload() non scopés par le contexte BO)';
         } else {
@@ -3193,7 +3246,7 @@ class HealthCheckManager
         // que celle active voyait thumb_url pointer vers le domaine/thème
         // de la mauvaise boutique alors que product_url, lui, était correct.
         $up4File = _PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php';
-        $up4Src  = is_file($up4File) ? (file_get_contents($up4File) ?: '') : '';
+        $up4Src = $this->readModuleSrc($up4File);
         if ($up4Src === '') {
             $offenders[] = 'UpsellManager.php introuvable (garde-fou round 108 : getLog() thumb_url scopé par idShop)';
         } else {
@@ -3212,7 +3265,7 @@ class HealthCheckManager
         // du contexte d'exécution courant (BO admin qui a déclenché la mise
         // à jour de stock) recevait un prix affiché dans la mauvaise devise.
         $wl3File = _PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php';
-        $wl3Src  = is_file($wl3File) ? (file_get_contents($wl3File) ?: '') : '';
+        $wl3Src = $this->readModuleSrc($wl3File);
         if ($wl3Src === '') {
             $offenders[] = 'WaitlistManager.php introuvable (garde-fou round 109 : product_price scopé par idShop)';
         } elseif (strpos($wl3Src, "\\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop)") === false) {
@@ -3229,9 +3282,9 @@ class HealthCheckManager
         // préférences" d'un client de la boutique B pointait vers le
         // domaine de la boutique A.
         $pm5File = _PS_MODULE_DIR_ . $this->module->name . '/src/PreferencesManager.php';
-        $pm5Src  = is_file($pm5File) ? (file_get_contents($pm5File) ?: '') : '';
+        $pm5Src = $this->readModuleSrc($pm5File);
         $er5File = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
-        $er5Src  = is_file($er5File) ? (file_get_contents($er5File) ?: '') : '';
+        $er5Src = $this->readModuleSrc($er5File);
         if ($pm5Src === '' || $er5Src === '') {
             $offenders[] = 'PreferencesManager.php/EmailRenderer.php introuvable (garde-fou round 110 : preferences_url scopé par idShop)';
         } else {
@@ -3256,7 +3309,7 @@ class HealthCheckManager
         // visiteur ayant déclenché le hook — cassant la déduplication entre
         // boutiques (rapport mensuel envoyé en double à certains marchands).
         $mr1File = _PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php';
-        $mr1Src  = is_file($mr1File) ? (file_get_contents($mr1File) ?: '') : '';
+        $mr1Src = $this->readModuleSrc($mr1File);
         if ($mr1Src === '') {
             $offenders[] = 'MonthlyReportManager.php introuvable (garde-fou round 111 : isDue()/markSent() scopés par idShop)';
         } else {
@@ -3281,7 +3334,7 @@ class HealthCheckManager
         // réglage de la boutique ambiante réelle (première visitée)
         // s'appliquait à tort à toutes les boutiques de la boucle.
         $bc1File = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
-        $bc1Src  = is_file($bc1File) ? (file_get_contents($bc1File) ?: '') : '';
+        $bc1Src = $this->readModuleSrc($bc1File);
         if ($bc1Src === '') {
             $offenders[] = 'BehavioralCronManager.php introuvable (garde-fou round 112 : purge RGPD auto scopée par idShop)';
         } elseif (strpos($bc1Src, "\\Configuration::get('NERIA_GDPR_AUTO_PURGE_ENABLED', null, null, \$idShop)") === false) {
@@ -3300,7 +3353,7 @@ class HealthCheckManager
         // campagne saisonnière affichant le nom de la boutique ambiante
         // réelle, pas le sien.
         $sc1File = _PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php';
-        $sc1Src  = is_file($sc1File) ? (file_get_contents($sc1File) ?: '') : '';
+        $sc1Src = $this->readModuleSrc($sc1File);
         if ($sc1Src === '') {
             $offenders[] = 'SeasonalCampaignManager.php introuvable (garde-fou round 113 : shop_name scopé par idShop)';
         } elseif (strpos($sc1Src, "\\Configuration::get('PS_SHOP_NAME', null, null, \$this->idShop)") === false) {
@@ -3318,7 +3371,7 @@ class HealthCheckManager
         // email calendaire affichant le nom ET expédié depuis l'adresse de
         // la boutique ambiante réelle, pas la sienne.
         $cal1File = _PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php';
-        $cal1Src  = is_file($cal1File) ? (file_get_contents($cal1File) ?: '') : '';
+        $cal1Src = $this->readModuleSrc($cal1File);
         if ($cal1Src === '') {
             $offenders[] = 'CalendarManager.php introuvable (garde-fou round 114 : shop_name/shop_email scopés par idShop)';
         } else {
@@ -3342,7 +3395,7 @@ class HealthCheckManager
         // une alerte Watchdog affichant le nom/from de la boutique ambiante
         // réelle plutôt que celle réellement en défaut.
         $wd1File = _PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php';
-        $wd1Src  = is_file($wd1File) ? (file_get_contents($wd1File) ?: '') : '';
+        $wd1Src = $this->readModuleSrc($wd1File);
         if ($wd1Src === '') {
             $offenders[] = 'WatchdogManager.php introuvable (garde-fou round 115 : alertes scopées par idShop)';
         } else {
@@ -3365,7 +3418,7 @@ class HealthCheckManager
         // livrés à l'URL et signés avec le secret de la boutique ambiante
         // réelle — fuite cross-shop vers le mauvais système tiers.
         $wh1File = _PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php';
-        $wh1Src  = is_file($wh1File) ? (file_get_contents($wh1File) ?: '') : '';
+        $wh1Src = $this->readModuleSrc($wh1File);
         if ($wh1Src === '') {
             $offenders[] = 'WebhookManager.php introuvable (garde-fou round 116 : URL/secret/events scopés par idShop)';
         } else {
@@ -3388,9 +3441,9 @@ class HealthCheckManager
         // surestimant d'autant l'ETA "days_remaining" affichée au marchand
         // dans l'onglet A/B Testing du BO.
         $ab1File = _PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php';
-        $ab1Src  = is_file($ab1File) ? (file_get_contents($ab1File) ?: '') : '';
+        $ab1Src = $this->readModuleSrc($ab1File);
         $ne1File = _PS_MODULE_DIR_ . $this->module->name . '/neria.php';
-        $ne1Src  = is_file($ne1File) ? (file_get_contents($ne1File) ?: '') : '';
+        $ne1Src = $this->readModuleSrc($ne1File);
         if ($ab1Src === '' || $ne1Src === '') {
             $offenders[] = 'ABTestManager.php/neria.php introuvable (garde-fou round 117 : ETA A/B plafonnée à la fenêtre du rapport)';
         } else {
@@ -3415,7 +3468,7 @@ class HealthCheckManager
         // en file il y a longtemps redevenait invisible dans le taux
         // d'échec affiché — masquant potentiellement un vrai incident.
         $qm1File = _PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php';
-        $qm1Src  = is_file($qm1File) ? (file_get_contents($qm1File) ?: '') : '';
+        $qm1Src = $this->readModuleSrc($qm1File);
         if ($qm1Src === '') {
             $offenders[] = 'QueueManager.php introuvable (garde-fou round 118 : failed_30d filtré sur send_at)';
         } elseif (strpos($qm1Src, "AND status = \\'failed\\' AND send_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)") === false) {
@@ -3431,7 +3484,7 @@ class HealthCheckManager
         // affichait dans son KPI « Complétion de collection » les envois de
         // TOUTES les boutiques de l'installation.
         $cm1File = _PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php';
-        $cm1Src  = is_file($cm1File) ? (file_get_contents($cm1File) ?: '') : '';
+        $cm1Src = $this->readModuleSrc($cm1File);
         if ($cm1Src === '') {
             $offenders[] = 'CollectionManager.php introuvable (garde-fou round 119 : getStats() sent/sentLast30 scopés par idShop)';
         } elseif (strpos($cm1Src, 'neria_collection_sent` WHERE id_shop = {$idShop}') === false
@@ -3451,7 +3504,7 @@ class HealthCheckManager
         // mois — même famille de bug que rounds 117/118 (fenêtres
         // temporelles incohérentes dans un ratio).
         $cert1File = _PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php';
-        $cert1Src  = is_file($cert1File) ? (file_get_contents($cert1File) ?: '') : '';
+        $cert1Src = $this->readModuleSrc($cert1File);
         if ($cert1Src === '') {
             $offenders[] = 'CertificateManager.php introuvable (garde-fou round 120 : trend_pct comparé sur fenêtres équivalentes)';
         } elseif (strpos($cert1Src, '$lastMonthComparable > 0') === false
@@ -3469,7 +3522,7 @@ class HealthCheckManager
         // points dans deux emails rapprochés, ou en oubliant d'autres à la
         // frontière d'un écart plus long.
         $loy1File = _PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php';
-        $loy1Src  = is_file($loy1File) ? (file_get_contents($loy1File) ?: '') : '';
+        $loy1Src = $this->readModuleSrc($loy1File);
         if ($loy1Src === '') {
             $offenders[] = 'LoyaltyManager.php introuvable (garde-fou round 121 : fenêtre du récap basée sur le délai réel écoulé)';
         } elseif (strpos($loy1Src, 'private static function computeRecapWindowDays(string $lastSentRaw): int') === false
@@ -3490,7 +3543,7 @@ class HealthCheckManager
         // une connexion OAuth pourtant valide côté Google.
         foreach (['PostmasterManager' => 'neria_postmaster_oauth_state', 'SearchConsoleManager' => 'neria_search_console_oauth_state'] as $oauthClass => $lockName) {
             $oauthFile = _PS_MODULE_DIR_ . $this->module->name . '/src/' . $oauthClass . '.php';
-            $oauthSrc  = is_file($oauthFile) ? (file_get_contents($oauthFile) ?: '') : '';
+            $oauthSrc = $this->readModuleSrc($oauthFile);
             if ($oauthSrc === '') {
                 $offenders[] = "{$oauthClass}.php introuvable (garde-fou round 122 : states OAuth pending verrouillés)";
             } elseif (substr_count($oauthSrc, "GET_LOCK('{$lockName}'") !== 2 || substr_count($oauthSrc, "RELEASE_LOCK('{$lockName}'") !== 2) {
@@ -3507,7 +3560,7 @@ class HealthCheckManager
         // updateGlobalValue() écrase intégralement le masquage posé par le
         // premier, qui réapparaît silencieusement dans le menu BO.
         $cfg1File = _PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php';
-        $cfg1Src  = is_file($cfg1File) ? (file_get_contents($cfg1File) ?: '') : '';
+        $cfg1Src = $this->readModuleSrc($cfg1File);
         if ($cfg1Src === '') {
             $offenders[] = 'ConfigManager.php introuvable (garde-fou round 123 : toggleMenuItemVisibility() verrouillé)';
         } elseif (strpos($cfg1Src, "GET_LOCK('neria_menu_hidden_items', 3)") === false
@@ -3524,7 +3577,7 @@ class HealthCheckManager
         // total lui-même (troncatures incohérentes), minant la confiance du
         // marchand dans le détail affiché.
         $pr1File = _PS_MODULE_DIR_ . $this->module->name . '/src/PropensityScoreManager.php';
-        $pr1Src  = is_file($pr1File) ? (file_get_contents($pr1File) ?: '') : '';
+        $pr1Src = $this->readModuleSrc($pr1File);
         if ($pr1Src === '') {
             $offenders[] = 'PropensityScoreManager.php introuvable (garde-fou round 124 : score dérivé de la somme des sous-scores arrondis)';
         } elseif (strpos($pr1Src, '$total = min(100, $scoreRecency + $scoreFrequency + $scoreEngagement + $scoreSeasonality);') === false) {
@@ -3540,7 +3593,7 @@ class HealthCheckManager
         // bloc disparaissait TOUJOURS dans l'aperçu/le renvoi, quelle que
         // soit la configuration marchand.
         $er1File = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
-        $er1Src  = is_file($er1File) ? (file_get_contents($er1File) ?: '') : '';
+        $er1Src = $this->readModuleSrc($er1File);
         if ($er1Src === '') {
             $offenders[] = 'EmailRenderer.php introuvable (garde-fou round 125 : signature/réseaux sociaux résolus dans buildCompiledHtml())';
         } else {
@@ -3566,7 +3619,7 @@ class HealthCheckManager
         // disparaître silencieusement le message personnalisé d'un envoi
         // manuel PLANIFIÉ (fonctionnait pour un envoi immédiat).
         $ms1File = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
-        $ms1Src  = is_file($ms1File) ? (file_get_contents($ms1File) ?: '') : '';
+        $ms1Src = $this->readModuleSrc($ms1File);
         if ($ms1Src === '') {
             $offenders[] = 'ManualSendManager.php introuvable (garde-fou round 126 : custom_message_raw dans scheduleManual())';
         } elseif (substr_count($ms1Src, "\$vars['{custom_message_raw}'] = (string) \$value;") !== 2) {
@@ -3582,7 +3635,7 @@ class HealthCheckManager
         // l'installation, juste à côté d'un KPI "Complétion de collection"
         // correctement scopé sur le même écran.
         $lc1File = _PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php';
-        $lc1Src  = is_file($lc1File) ? (file_get_contents($lc1File) ?: '') : '';
+        $lc1Src = $this->readModuleSrc($lc1File);
         if ($lc1Src === '') {
             $offenders[] = 'LookCompletionManager.php introuvable (garde-fou round 127 : getStats() sent/sent30 scopés via JOIN orders)';
         } elseif (substr_count($lc1Src, 'INNER JOIN `{$this->prefix}orders` o ON o.id_order = ls.id_order') !== 2) {
@@ -3599,7 +3652,7 @@ class HealthCheckManager
         // JAMAIS exploité, chaque chargement du BO Postmaster redéclenchant
         // un appel réel à l'API Gmail Postmaster (sensible aux quotas).
         $pm2File = _PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php';
-        $pm2Src  = is_file($pm2File) ? (file_get_contents($pm2File) ?: '') : '';
+        $pm2Src = $this->readModuleSrc($pm2File);
         if ($pm2Src === '') {
             $offenders[] = 'PostmasterManager.php introuvable (garde-fou round 128 : écriture du cache scopée via cacheKey())';
         } elseif (strpos($pm2Src, 'Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),') === false
@@ -3615,7 +3668,7 @@ class HealthCheckManager
         // source (domaine expéditeur d'une AUTRE boutique que celle du
         // rapport SPF/DKIM/DMARC/RBL affiché).
         $drFile = _PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php';
-        $drSrc  = is_file($drFile) ? (file_get_contents($drFile) ?: '') : '';
+        $drSrc = $this->readModuleSrc($drFile);
         if ($drSrc === '') {
             $offenders[] = 'DomainReputationManager.php introuvable (garde-fou round 129 : getSenderDomain() scopé idShop)';
         } elseif (strpos($drSrc, "Configuration::get('NERIA_SENDERS_JSON', null, null, \$this->idShop)") === false
@@ -3630,7 +3683,7 @@ class HealthCheckManager
         // interne sur Shop::$context_id_shop (statique), jamais mis à jour
         // par une simple réaffectation de Context::getContext()->shop.
         $cdFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CooldownManager.php';
-        $cdSrc  = is_file($cdFile) ? (file_get_contents($cdFile) ?: '') : '';
+        $cdSrc = $this->readModuleSrc($cdFile);
         if ($cdSrc === '') {
             $offenders[] = 'CooldownManager.php introuvable (garde-fou round 129 : resolveCustomerId() commute Shop::setContext())';
         } elseif (strpos($cdSrc, 'Shop::setContext(\Shop::CONTEXT_SHOP, $idShop);') === false
@@ -3644,7 +3697,7 @@ class HealthCheckManager
         // voisins {shop_url}/{history_url} — retombait sur le contexte BO
         // de l'employé au lieu de la boutique du client destinataire.
         $msFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
-        $msSrc  = is_file($msFile) ? (file_get_contents($msFile) ?: '') : '';
+        $msSrc = $this->readModuleSrc($msFile);
         if ($msSrc === '') {
             $offenders[] = 'ManualSendManager.php introuvable (garde-fou round 129 : {order_url} scopé idShop)';
         } elseif (preg_match_all(
@@ -3659,7 +3712,7 @@ class HealthCheckManager
         // dans generateFontCss() (même fichier) — incohérence de défense
         // en profondeur.
         $fmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/FontManager.php';
-        $fmSrc  = is_file($fmFile) ? (file_get_contents($fmFile) ?: '') : '';
+        $fmSrc = $this->readModuleSrc($fmFile);
         if ($fmSrc === '') {
             $offenders[] = 'FontManager.php introuvable (garde-fou round 129 : couleurs sanitizeColor() dans generateCssVariables())';
         } else {
@@ -3679,7 +3732,7 @@ class HealthCheckManager
         // "CA attribué" du rapport mensuel envoyé au marchand, surestimant le
         // chiffre d'affaires réel.
         $mrr1File = _PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php';
-        $mrr1Src  = is_file($mrr1File) ? (file_get_contents($mrr1File) ?: '') : '';
+        $mrr1Src = $this->readModuleSrc($mrr1File);
         if ($mrr1Src === '') {
             $offenders[] = 'MonthlyReportManager.php introuvable (garde-fou round 130 : getRevenueByTemplate() scopé o.valid=1)';
         } elseif (substr_count($mrr1Src, 'AND o.valid = 1') !== 2) {
@@ -3696,7 +3749,7 @@ class HealthCheckManager
         // tokens OAuth, clés API tierces) chiffrés alors qu'ils ne le sont
         // pas, sans que rien ne le signale au moment où ça se produit.
         $up117File = _PS_MODULE_DIR_ . $this->module->name . '/upgrade/upgrade-1.0.17.php';
-        $up117Src  = is_file($up117File) ? (file_get_contents($up117File) ?: '') : '';
+        $up117Src = $this->readModuleSrc($up117File);
         if ($up117Src === '') {
             $offenders[] = 'upgrade-1.0.17.php introuvable (garde-fou round 130 : sonde de clé avant chiffrement des secrets)';
         } elseif (strpos($up117Src, "CryptoManager::encrypt('neria_key_probe')") === false) {
@@ -3712,7 +3765,7 @@ class HealthCheckManager
         // visitée), contournant le cache 24h et déclenchant un appel réseau
         // en rafale vers le serveur de licence à chaque hit.
         $licFile = _PS_MODULE_DIR_ . $this->module->name . '/src/LicenseManager.php';
-        $licSrc  = is_file($licFile) ? (file_get_contents($licFile) ?: '') : '';
+        $licSrc = $this->readModuleSrc($licFile);
         if ($licSrc === '') {
             $offenders[] = 'LicenseManager.php introuvable (garde-fou round 131 : checkDomainChange() restreint à la boutique par défaut)';
         } else {
@@ -3731,7 +3784,7 @@ class HealthCheckManager
         // mis à jour QUE par Shop::setContext(), consulté en interne par le
         // constructeur Product et Product::getCover().
         $lcmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php';
-        $lcmSrc  = is_file($lcmFile) ? (file_get_contents($lcmFile) ?: '') : '';
+        $lcmSrc = $this->readModuleSrc($lcmFile);
         if ($lcmSrc === '') {
             $offenders[] = 'LookCompletionManager.php introuvable (garde-fou round 131 : buildProductBlocks() commute Shop::setContext())';
         } else {
@@ -3753,7 +3806,7 @@ class HealthCheckManager
         // totalement silencieuse, empêchant HealthCheckManager de fournir un
         // vrai diagnostic sur l'ancienneté de l'erreur.
         $pmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php';
-        $pmSrc  = is_file($pmFile) ? (file_get_contents($pmFile) ?: '') : '';
+        $pmSrc = $this->readModuleSrc($pmFile);
         if ($pmSrc === '') {
             $offenders[] = 'PostmasterManager.php introuvable (garde-fou round 131 : apiGet() journalise les échecs transport)';
         } else {
@@ -3775,7 +3828,7 @@ class HealthCheckManager
         // pourrait de nouveau afficher le nom/description/image d'un
         // produit tel que catalogué dans une autre boutique.
         $bcmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php';
-        $bcmSrc  = is_file($bcmFile) ? (file_get_contents($bcmFile) ?: '') : '';
+        $bcmSrc = $this->readModuleSrc($bcmFile);
         if ($bcmSrc === '') {
             $offenders[] = 'BehavioralCronManager.php introuvable (garde-fou round 132 : sendGhostCarts() Product idShop + Shop::setContext())';
         } else {
@@ -3796,7 +3849,7 @@ class HealthCheckManager
         // instancié dans une boucle multi-boutique (BehavioralCronManager)
         // pourrait de nouveau lire les réglages d'une autre boutique.
         $cfgFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php';
-        $cfgSrc  = is_file($cfgFile) ? (file_get_contents($cfgFile) ?: '') : '';
+        $cfgSrc = $this->readModuleSrc($cfgFile);
         if ($cfgSrc === '') {
             $offenders[] = 'ConfigManager.php introuvable (garde-fou round 132 : get() scopé idShop + toggles verrouillés)';
         } else {
@@ -3808,7 +3861,10 @@ class HealthCheckManager
             // garde-fou, la race condition sur double-clic/deux onglets BO
             // (désynchronisation UI/état réel) pourrait réapparaître.
             $posHelper = strpos($cfgSrc, 'private function toggleBooleanKey(');
-            $helperBody = $posHelper !== false ? substr($cfgSrc, $posHelper, 700) : '';
+            // Fenêtre élargie à 1300 (round 141) après le correctif de
+            // vérification du retour de GET_LOCK(), qui a allongé la
+            // méthode — mesurée sur le fichier réel (~1118 octets).
+            $helperBody = $posHelper !== false ? substr($cfgSrc, $posHelper, 1300) : '';
             if ($posHelper === false || strpos($helperBody, "GET_LOCK('") === false || strpos($helperBody, "RELEASE_LOCK('") === false) {
                 $offenders[] = "ConfigManager::toggleBooleanKey() n'utilise plus GET_LOCK/RELEASE_LOCK — régression du bug corrigé le 08/08/2026 (round 132) : la race condition sur les toggles booléens BO pourrait réapparaître";
             }
@@ -3820,7 +3876,7 @@ class HealthCheckManager
         // Round 132 (2026-08-08) : LookCompletionManager::getOrderCategoryIds()
         // doit exclure id_category_default = 0 en plus de NULL.
         $lcm2File = _PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php';
-        $lcm2Src  = is_file($lcm2File) ? (file_get_contents($lcm2File) ?: '') : '';
+        $lcm2Src = $this->readModuleSrc($lcm2File);
         if ($lcm2Src === '') {
             $offenders[] = 'LookCompletionManager.php introuvable (garde-fou round 132 : getOrderCategoryIds() exclut id_category_default=0)';
         } else {
@@ -3838,7 +3894,7 @@ class HealthCheckManager
         // garde-fou, un double bon pour le même palier pourrait réapparaître
         // après un échec transitoire de CartRule::add().
         $otmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php';
-        $otmSrc  = is_file($otmFile) ? (file_get_contents($otmFile) ?: '') : '';
+        $otmSrc = $this->readModuleSrc($otmFile);
         if ($otmSrc === '') {
             $offenders[] = 'OrderTriggersManager.php introuvable (garde-fou round 133 : generateMilestoneVoucher() ne libère plus la réservation sur échec CartRule)';
         } else {
@@ -3859,7 +3915,7 @@ class HealthCheckManager
         // lecture/écriture pourrait réapparaître pour tout futur appelant en
         // boucle multi-boutique (ex. NERIA_SENDERS_JSON).
         $cfg2File = _PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php';
-        $cfg2Src  = is_file($cfg2File) ? (file_get_contents($cfg2File) ?: '') : '';
+        $cfg2Src = $this->readModuleSrc($cfg2File);
         if ($cfg2Src === '') {
             $offenders[] = 'ConfigManager.php introuvable (garde-fou round 133 : set() scopé idShop)';
         } elseif (strpos($cfg2Src, '\Configuration::updateValue($key, $value, false, null, $this->idShop)') === false) {
@@ -3872,7 +3928,7 @@ class HealthCheckManager
         // boutique pourrait de nouveau être effacée/mélangée par un
         // événement sur une autre boutique.
         $seoFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SeoApiManager.php';
-        $seoSrc  = is_file($seoFile) ? (file_get_contents($seoFile) ?: '') : '';
+        $seoSrc = $this->readModuleSrc($seoFile);
         if ($seoSrc === '') {
             $offenders[] = 'SeoApiManager.php introuvable (garde-fou round 133 : LAST_ERROR scopé par boutique)';
         } else {
@@ -3887,7 +3943,7 @@ class HealthCheckManager
         // Round 134 (2026-08-08) : PageSpeedManager::getLastError()/recordError()
         // doivent, comme SeoApiManager (round 133), passer par cacheKey().
         $psmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/PageSpeedManager.php';
-        $psmSrc  = is_file($psmFile) ? (file_get_contents($psmFile) ?: '') : '';
+        $psmSrc = $this->readModuleSrc($psmFile);
         if ($psmSrc === '') {
             $offenders[] = 'PageSpeedManager.php introuvable (garde-fou round 134 : LAST_ERROR scopé par boutique)';
         } elseif (strpos($psmSrc, '\Configuration::get($this->cacheKey(self::CONFIG_LAST_ERROR))') === false
@@ -3913,7 +3969,7 @@ class HealthCheckManager
         // submitToEmailOnAcid() doivent capturer curl_error() et journaliser
         // via Watchdog, comme leurs pendants pollLitmus()/pollEmailOnAcid().
         $mcpFile = _PS_MODULE_DIR_ . $this->module->name . '/src/MultiClientPreviewManager.php';
-        $mcpSrc  = is_file($mcpFile) ? (file_get_contents($mcpFile) ?: '') : '';
+        $mcpSrc = $this->readModuleSrc($mcpFile);
         if ($mcpSrc === '') {
             $offenders[] = 'MultiClientPreviewManager.php introuvable (garde-fou round 134 : submitTo*() capturent curl_error())';
         } else {
@@ -3945,7 +4001,7 @@ class HealthCheckManager
         // massifs par sous-chaîne), et saveProfile() doit dédupliquer/
         // plafonner la liste de mots avant écriture.
         $vpmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/VoiceProfileManager.php';
-        $vpmSrc  = is_file($vpmFile) ? (file_get_contents($vpmFile) ?: '') : '';
+        $vpmSrc = $this->readModuleSrc($vpmFile);
         if ($vpmSrc === '') {
             $offenders[] = 'VoiceProfileManager.php introuvable (garde-fou round 135 : CJK 1 caractère ignoré + saveProfile() normalisé)';
         } else {
@@ -3964,7 +4020,7 @@ class HealthCheckManager
         // PostmasterManager::apiGet() (round 131) — jamais appliqué ici
         // malgré la même famille de code (OAuth Google).
         $scmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php';
-        $scmSrc  = is_file($scmFile) ? (file_get_contents($scmFile) ?: '') : '';
+        $scmSrc = $this->readModuleSrc($scmFile);
         if ($scmSrc === '') {
             $offenders[] = 'SearchConsoleManager.php introuvable (garde-fou round 135 : apiGet()/apiPost() journalisent les échecs transport)';
         } elseif (substr_count($scmSrc, "'network error: '") < 2 || substr_count($scmSrc, "'invalid JSON response'") < 2) {
@@ -3975,7 +4031,7 @@ class HealthCheckManager
         // capturer curl_error() et journaliser via Watchdog, comme
         // SearchConsoleManager::httpPost() déjà en place.
         $pmFile135 = _PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php';
-        $pmSrc135  = is_file($pmFile135) ? (file_get_contents($pmFile135) ?: '') : '';
+        $pmSrc135 = $this->readModuleSrc($pmFile135);
         if ($pmSrc135 === '') {
             $offenders[] = 'PostmasterManager.php introuvable (garde-fou round 135 : httpPost() journalise les échecs transport)';
         } else {
@@ -3990,7 +4046,7 @@ class HealthCheckManager
         // doit mettre en cache son résultat (navigation.tpl l'appelle sur
         // toute page admin, pas seulement l'onglet Statistiques).
         $ghmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/GoldenHourManager.php';
-        $ghmSrc  = is_file($ghmFile) ? (file_get_contents($ghmFile) ?: '') : '';
+        $ghmSrc = $this->readModuleSrc($ghmFile);
         if ($ghmSrc === '') {
             $offenders[] = 'GoldenHourManager.php introuvable (garde-fou round 135 : getRecommendations() mis en cache)';
         } elseif (strpos($ghmSrc, 'private function computeRecommendations(int $days): array') === false
@@ -4003,7 +4059,7 @@ class HealthCheckManager
         // doivent instancier BlacklistManager avec l'idShop explicite du
         // client, pas le contexte BO ambiant de l'opérateur.
         $msmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
-        $msmSrc  = is_file($msmFile) ? (file_get_contents($msmFile) ?: '') : '';
+        $msmSrc = $this->readModuleSrc($msmFile);
         if ($msmSrc === '') {
             $offenders[] = 'ManualSendManager.php introuvable (garde-fou round 136 : BlacklistManager scopé idShop client)';
         } elseif (strpos($msmSrc, 'new \BlacklistManager($idShop))') === false
@@ -4016,7 +4072,7 @@ class HealthCheckManager
         // doivent comparer/normaliser le nom du template de façon
         // insensible à la casse.
         $blmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BlacklistManager.php';
-        $blmSrc  = is_file($blmFile) ? (file_get_contents($blmFile) ?: '') : '';
+        $blmSrc = $this->readModuleSrc($blmFile);
         if ($blmSrc === '') {
             $offenders[] = 'BlacklistManager.php introuvable (garde-fou round 136 : comparaison insensible à la casse)';
         } elseif (strpos($blmSrc, 'mb_strtolower($rule[\'template\'])') === false
@@ -4029,7 +4085,7 @@ class HealthCheckManager
         // doit plus réinitialiser KEY_DESIGN_WIZARD_SEEN (pas un réglage de
         // design).
         $cfg3File = _PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php';
-        $cfg3Src  = is_file($cfg3File) ? (file_get_contents($cfg3File) ?: '') : '';
+        $cfg3Src = $this->readModuleSrc($cfg3File);
         if ($cfg3Src === '') {
             $offenders[] = 'ConfigManager.php introuvable (garde-fou round 136 : resetDesignConfig() préserve KEY_DESIGN_WIZARD_SEEN)';
         } else {
@@ -4045,7 +4101,7 @@ class HealthCheckManager
         // les sélecteurs via un index de classes (pas une requête XPath par
         // règle — complexité quadratique).
         $cssFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CssInliner.php';
-        $cssSrc  = is_file($cssFile) ? (file_get_contents($cssFile) ?: '') : '';
+        $cssSrc = $this->readModuleSrc($cssFile);
         if ($cssSrc === '') {
             $offenders[] = 'CssInliner.php introuvable (garde-fou round 137 : PI XML/!important/index de classes)';
         } else {
@@ -4067,7 +4123,7 @@ class HealthCheckManager
         // avant Product::getCover(), et runDailyCheck() doit instancier le
         // produit manquant avec l'idShop explicite.
         $colFile = _PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php';
-        $colSrc  = is_file($colFile) ? (file_get_contents($colFile) ?: '') : '';
+        $colSrc = $this->readModuleSrc($colFile);
         if ($colSrc === '') {
             $offenders[] = 'CollectionManager.php introuvable (garde-fou round 137 : Shop::setContext() + Product idShop)';
         } else {
@@ -4099,7 +4155,7 @@ class HealthCheckManager
         // (round 137), qui n'avait lui-même jamais reçu le correctif
         // complet malgré des commentaires le citant comme référence.
         $wlmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php';
-        $wlmSrc  = is_file($wlmFile) ? (file_get_contents($wlmFile) ?: '') : '';
+        $wlmSrc = $this->readModuleSrc($wlmFile);
         if ($wlmSrc === '') {
             $offenders[] = 'WaitlistManager.php introuvable (garde-fou round 138 : Shop::setContext() + Product idShop)';
         } else {
@@ -4118,7 +4174,7 @@ class HealthCheckManager
         // resolveSignature()/injectSignatureVars() doivent recevoir l'idShop
         // du destinataire réel, pas le contexte d'exécution ambiant.
         $emrFile = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
-        $emrSrc  = is_file($emrFile) ? (file_get_contents($emrFile) ?: '') : '';
+        $emrSrc = $this->readModuleSrc($emrFile);
         if ($emrSrc === '') {
             $offenders[] = 'EmailRenderer.php introuvable (garde-fou round 138 : isInternalEmail()/signature scopés idShop)';
         } else {
@@ -4137,7 +4193,7 @@ class HealthCheckManager
         // record()/pruneKey() via GET_LOCK, et ne plus filtrer par id_shop
         // (neria_translation elle-même est globale, sans colonne id_shop).
         $thmFile = _PS_MODULE_DIR_ . $this->module->name . '/src/TranslationHistoryManager.php';
-        $thmSrc  = is_file($thmFile) ? (file_get_contents($thmFile) ?: '') : '';
+        $thmSrc = $this->readModuleSrc($thmFile);
         if ($thmSrc === '') {
             $offenders[] = 'TranslationHistoryManager.php introuvable (garde-fou round 138 : verrou + visibilité globale)';
         } else {
@@ -4165,7 +4221,7 @@ class HealthCheckManager
         // doit exécuter SET NAMES qu'une seule fois par opération d'import
         // (flag charsetSet), pas à chaque lot.
         $tiFile = _PS_MODULE_DIR_ . $this->module->name . '/src/TranslationInstaller.php';
-        $tiSrc  = is_file($tiFile) ? (file_get_contents($tiFile) ?: '') : '';
+        $tiSrc = $this->readModuleSrc($tiFile);
         if ($tiSrc === '') {
             $offenders[] = 'TranslationInstaller.php introuvable (garde-fou round 139 : SET NAMES une seule fois)';
         } elseif (strpos($tiSrc, 'private bool $charsetSet = false;') === false || strpos($tiSrc, 'if (!$this->charsetSet) {') === false) {
@@ -4178,7 +4234,7 @@ class HealthCheckManager
         // importFromJson()/importTemplate() doivent réinitialiser leurs
         // compteurs (début d'appel + après ROLLBACK).
         $ti2File = _PS_MODULE_DIR_ . $this->module->name . '/src/TranslationInstaller.php';
-        $ti2Src  = is_file($ti2File) ? (file_get_contents($ti2File) ?: '') : '';
+        $ti2Src = $this->readModuleSrc($ti2File);
         if ($ti2Src === '') {
             $offenders[] = 'TranslationInstaller.php introuvable (garde-fou round 140 : batch vide non commité + compteurs réinitialisés)';
         } else {
@@ -4195,6 +4251,81 @@ class HealthCheckManager
             if ($posIT === false || strpos($itBody, '$this->countInserted = 0;') === false) {
                 $offenders[] = "TranslationInstaller::importTemplate() ne réinitialise plus les compteurs en début d'appel — régression du bug corrigé le 09/08/2026 (round 140) : le rapport BO redeviendrait cumulatif si l'instance est réutilisée";
             }
+        }
+
+        // Round 141 (2026-09-09) : ConfigManager::deleteAll() et
+        // resetTimeGreetings(null) doivent rester scopés à la boutique
+        // courante via Configuration::deleteFromContext($key, null,
+        // $this->idShop) — pas Configuration::deleteByName(), qui efface la
+        // clé pour TOUTES les boutiques.
+        $cfgFile141 = _PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php';
+        $cfgSrc141 = $this->readModuleSrc($cfgFile141);
+        if ($cfgSrc141 === '') {
+            $offenders[] = 'ConfigManager.php introuvable (garde-fou round 141 : deleteAll/resetTimeGreetings scopés par boutique)';
+        } else {
+            $posDeleteAll = strpos($cfgSrc141, 'public function deleteAll(): bool');
+            $deleteAllBody = $posDeleteAll !== false ? substr($cfgSrc141, $posDeleteAll, 700) : '';
+            if ($posDeleteAll === false || strpos($deleteAllBody, '\Configuration::deleteFromContext($key, null, $this->idShop)') === false) {
+                $offenders[] = "ConfigManager::deleteAll() n'utilise plus deleteFromContext() scopé par boutique — régression du bug corrigé le 09/08/2026 (round 141) : réinitialiser Neria depuis une boutique effacerait de nouveau la config des autres boutiques";
+            }
+            if (strpos($deleteAllBody, 'Configuration::deleteByName($key)') !== false) {
+                $offenders[] = "ConfigManager::deleteAll() utilise de nouveau Configuration::deleteByName() (non scopé) — régression du bug corrigé le 09/08/2026 (round 141)";
+            }
+
+            $posResetTG = strpos($cfgSrc141, 'public function resetTimeGreetings(?string $lang = null): bool');
+            $resetTGBody = $posResetTG !== false ? substr($cfgSrc141, $posResetTG, 500) : '';
+            if ($posResetTG === false || strpos($resetTGBody, '\Configuration::deleteFromContext(self::KEY_TIME_GREETINGS, null, $this->idShop)') === false) {
+                $offenders[] = "ConfigManager::resetTimeGreetings(null) n'utilise plus deleteFromContext() scopé par boutique — régression du bug corrigé le 09/08/2026 (round 141) : réinitialiser les salutations horaires d'une boutique effacerait de nouveau celles des autres boutiques";
+            }
+
+            $posToggle = strpos($cfgSrc141, 'private function toggleBooleanKey(string $key, string $getter, string $setter): bool');
+            $toggleBody = $posToggle !== false ? substr($cfgSrc141, $posToggle, 900) : '';
+            if ($posToggle === false || strpos($toggleBody, '$gotLock = (int) $db->getValue(') === false || strpos($toggleBody, 'if ($gotLock !== 1) {') === false) {
+                $offenders[] = "ConfigManager::toggleBooleanKey() ne vérifie plus le retour de GET_LOCK() — régression du bug corrigé le 09/08/2026 (round 141) : sous contention DB, la protection anti-course deviendrait de nouveau inopérante sans que rien ne le signale";
+            }
+
+            if (strpos($cfgSrc141, 'self::KEY_DEEPL_KEY') === false || strpos($cfgSrc141, 'self::KEY_DEEPL_KEY                 => \'\',') === false) {
+                $offenders[] = "ConfigManager::DEFAULTS n'inclut plus KEY_DEEPL_KEY — régression du bug corrigé le 09/08/2026 (round 141) : la clé API DeepL redeviendrait orpheline en base après deleteAll()";
+            }
+        }
+
+        // Round 141 (2026-09-09) : checkKnownRegressionsGuard() (ce contrôle
+        // lui-même) ne doit plus tourner de façon synchrone dans le chemin
+        // de rendu du visiteur front — buildAllChecks(false) doit réutiliser
+        // le dernier résultat connu au lieu de recalculer, et readModuleSrc()
+        // doit mettre les lectures de fichiers en cache pour éviter les
+        // relectures redondantes constatées (jusqu'à 9x un même fichier par
+        // exécution).
+        $selfFile141 = _PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php';
+        $selfSrc141 = $this->readModuleSrc($selfFile141);
+        if ($selfSrc141 === '') {
+            $offenders[] = 'HealthCheckManager.php introuvable (garde-fou round 141 : scan lourd non bloquant + cache de lecture)';
+        } else {
+            if (strpos($selfSrc141, 'private array $srcCache = [];') === false || strpos($selfSrc141, 'private function readModuleSrc(string $file): string') === false) {
+                $offenders[] = "HealthCheckManager::readModuleSrc()/\$srcCache introuvables — régression du bug corrigé le 09/08/2026 (round 141) : checkKnownRegressionsGuard() relirait de nouveau plusieurs fois les mêmes fichiers par exécution";
+            }
+            $posBuildAll = strpos($selfSrc141, 'private function buildAllChecks(bool $allowHeavyScans = true): array');
+            if ($posBuildAll === false) {
+                $offenders[] = "HealthCheckManager::buildAllChecks() n'accepte plus de paramètre \$allowHeavyScans — régression du bug corrigé le 09/08/2026 (round 141) : known_regressions_guard() redeviendrait toujours ré-exécuté, y compris dans le chemin de rendu front";
+            } else {
+                $buildAllBody = substr($selfSrc141, $posBuildAll, 700);
+                if (strpos($buildAllBody, "!\$allowHeavyScans && \$key === 'known_regressions_guard'") === false) {
+                    $offenders[] = "HealthCheckManager::buildAllChecks() ne saute plus known_regressions_guard() en mode léger — régression du bug corrigé le 09/08/2026 (round 141) : le scan lourd (~150 lectures de fichiers) bloquerait de nouveau la première requête d'un visiteur front après expiration du throttle 24h";
+                }
+            }
+            if (strpos($selfSrc141, 'public function runAutoChecksIfDue(bool $allowHeavyScans = false): void') === false) {
+                $offenders[] = "HealthCheckManager::runAutoChecksIfDue() n'a plus \$allowHeavyScans=false par défaut — régression du bug corrigé le 09/08/2026 (round 141) : le déclenchement passif front (hookDisplayHeader) autoriserait de nouveau le scan lourd par défaut";
+            }
+        }
+        $mainFile141 = _PS_MODULE_DIR_ . $this->module->name . '/' . $this->module->name . '.php';
+        $mainSrc141 = $this->readModuleSrc($mainFile141);
+        if ($mainSrc141 !== '' && strpos($mainSrc141, 'public function runBackgroundJobs(bool $allowHeavyScans = false): array') === false) {
+            $offenders[] = "neria.php::runBackgroundJobs() n'a plus \$allowHeavyScans=false par défaut — régression du bug corrigé le 09/08/2026 (round 141) : hookDisplayHeader() autoriserait de nouveau le scan lourd sur chaque visiteur front";
+        }
+        $cronFile141 = _PS_MODULE_DIR_ . $this->module->name . '/controllers/front/cron.php';
+        $cronSrc141 = $this->readModuleSrc($cronFile141);
+        if ($cronSrc141 !== '' && strpos($cronSrc141, 'runBackgroundJobs(true)') === false) {
+            $offenders[] = "controllers/front/cron.php n'appelle plus runBackgroundJobs(true) — régression du bug corrigé le 09/08/2026 (round 141) : le scan lourd known_regressions_guard() ne s'exécuterait plus jamais, même via le vrai cron serveur";
         }
 
         if ($offenders) {
@@ -4234,8 +4365,8 @@ class HealthCheckManager
         $moduleDir  = _PS_MODULE_DIR_ . $this->module->name;
         $configFile = $moduleDir . '/src/ConfigManager.php';
         $mainFile   = $moduleDir . '/' . $this->module->name . '.php';
-        $configSrc  = is_file($configFile) ? (file_get_contents($configFile) ?: '') : '';
-        $mainSrc    = is_file($mainFile) ? (file_get_contents($mainFile) ?: '') : '';
+        $configSrc = $this->readModuleSrc($configFile);
+        $mainSrc = $this->readModuleSrc($mainFile);
 
         if ($configSrc === '' || $mainSrc === '') {
             return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.cc_defaults_ok')];
@@ -4586,7 +4717,7 @@ class HealthCheckManager
             $sent = array_merge($sent, \ManualSendManager::WAVE1_TEMPLATES);
         }
         $abtestFile = $srcDir . '/ABTestManager.php';
-        $abtestRaw = is_file($abtestFile) ? (file_get_contents($abtestFile) ?: '') : '';
+        $abtestRaw = $this->readModuleSrc($abtestFile);
         if (preg_match('/\$eligible\s*=\s*\[(.*?)\n\s*\];/s', $abtestRaw, $block)) {
             preg_match_all('/\'([a-z_0-9]+)\'/', $block[1], $mm);
             $sent = array_merge($sent, $mm[1]);
@@ -4619,7 +4750,7 @@ class HealthCheckManager
         // le code source plutôt que par réflexion, comme les autres contrôles
         // statiques de ce fichier.
         $statsFile = $srcDir . '/StatsManager.php';
-        $statsRaw = is_file($statsFile) ? (file_get_contents($statsFile) ?: '') : '';
+        $statsRaw = $this->readModuleSrc($statsFile);
         $statsCats = [];
         if (preg_match('/\$CHART_CATEGORIES\s*=\s*\[(.*?)\n\s*\];/s', $statsRaw, $block)) {
             preg_match_all('/\'([a-z_0-9]+)\'/', $block[1], $mm);
@@ -4826,7 +4957,7 @@ class HealthCheckManager
         }
 
         $jsonPath = _PS_MODULE_DIR_ . $this->module->name . '/data/translations.json';
-        $jsonSrc  = is_file($jsonPath) ? (file_get_contents($jsonPath) ?: '') : '';
+        $jsonSrc = $this->readModuleSrc($jsonPath);
         if ($jsonSrc !== '' && preg_match_all('/"[a-z]{2}-[a-z]{2}"\s*:/', $jsonSrc, $m)) {
             $offenders[] = 'data/translations.json : ' . count($m[0]) . ' clé(s) de langue orpheline(s) détectée(s) (ancien code avec tiret, ex. "pt-br"/"zh-tw" — jamais lu par TranslationEngine)';
         }
@@ -5084,7 +5215,7 @@ class HealthCheckManager
         $moduleDir = _PS_MODULE_DIR_ . $this->module->name;
 
         $mainFile = $moduleDir . '/' . $this->module->name . '.php';
-        $mainSrc = is_file($mainFile) ? (file_get_contents($mainFile) ?: '') : '';
+        $mainSrc = $this->readModuleSrc($mainFile);
         $codeVersion = null;
         if ($mainSrc !== '' && preg_match('/const\s+VERSION\s*=\s*[\'"]([\d.]+)[\'"]/', $mainSrc, $m)) {
             $codeVersion = $m[1];
@@ -5107,7 +5238,7 @@ class HealthCheckManager
         $unreadable = 0;
         foreach ($versionFiles as $relPath => $pattern) {
             $fullPath = $moduleDir . '/' . $relPath;
-            $src = is_file($fullPath) ? (file_get_contents($fullPath) ?: '') : '';
+            $src = $this->readModuleSrc($fullPath);
             if ($src === '' || !preg_match($pattern, $src, $m)) {
                 $unreadable++;
                 continue;
@@ -5152,7 +5283,7 @@ class HealthCheckManager
     private function checkConfigDefaultsSeeded(): array
     {
         $mainFile = _PS_MODULE_DIR_ . $this->module->name . '/' . $this->module->name . '.php';
-        $src = is_file($mainFile) ? (file_get_contents($mainFile) ?: '') : '';
+        $src = $this->readModuleSrc($mainFile);
 
         if (!preg_match('/\$defaults\s*=\s*\[(.*?)\n\s*\];/s', $src, $m)) {
             return ['status' => self::STATUS_WARNING, 'detail' => AdminTranslator::t('health.config_defaults_seeded_unreadable')];

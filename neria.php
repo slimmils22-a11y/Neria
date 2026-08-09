@@ -1677,17 +1677,23 @@ class Neria extends Module
      * nécessaire est sans danger, aucune tâche ne s'exécute deux fois
      * dans sa fenêtre.
      *
+     * @param bool $allowHeavyScans Round 141 : autorise le contrôle Watchdog
+     *  known_regressions_guard() (coûteux, ~150 lectures de fichiers) à
+     *  s'exécuter. Doit rester false depuis hookDisplayHeader() (un visiteur
+     *  attend la réponse) et n'être passé à true que depuis
+     *  controllers/front/cron.php (déclenchement serveur, pas de visiteur).
+     *
      * @return array<string,bool> Résumé "tâche => a été exécutée" (utilisé
      *                            par le contrôleur cron pour son rapport JSON)
      */
-    public function runBackgroundJobs(): array
+    public function runBackgroundJobs(bool $allowHeavyScans = false): array
     {
         $ran = [];
 
         try {
             $health = new HealthCheckManager($this);
             $health->recordDisplayHeaderRun();
-            $health->runAutoChecksIfDue();
+            $health->runAutoChecksIfDue($allowHeavyScans);
             $ran['health_checks'] = true;
         } catch (\Throwable $e) {
             // best-effort — ne bloque jamais le front, ni les jobs suivants

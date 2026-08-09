@@ -198,6 +198,11 @@ class ConfigManager
         self::KEY_FIRSTNAME_FALLBACK_ENABLED => 1,
         self::KEY_MULTI_SENDER_ENABLED      => 1,
         self::KEY_SIGNATURE_ENABLED         => 1,
+        // Round 141 : absente de DEFAULTS alors qu'elle stocke une clé API
+        // tierce sensible — deleteAll() (désinstallation/réinitialisation
+        // complète) la laissait orpheline en base. Même défaut que les 4
+        // toggles ci-dessus.
+        self::KEY_DEEPL_KEY                 => '',
     ];
 
     // Polices disponibles pour le sélecteur back-office (corps de texte)
@@ -688,7 +693,21 @@ class ConfigManager
     {
         $db = \Db::getInstance();
         $lockName = 'neria_toggle_' . $key;
-        $db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 3)");
+        $gotLock = (int) $db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 3)");
+        if ($gotLock !== 1) {
+            // Round 141 : GET_LOCK() renvoie 0 (timeout) ou NULL (erreur) —
+            // dans les deux cas le verrou n'est PAS acquis. Poursuivre comme
+            // avant rend la protection anti-course inopérante sous charge DB.
+            // On refuse la bascule et on renvoie l'état actuel inchangé
+            // plutôt que de modifier la config sans protection.
+            $this->watchdog()->warning(
+                'ConfigManager::toggleBooleanKey() : verrou MySQL non acquis pour ' . $key . ', bascule annulée',
+                '',
+                'ConfigManager'
+            );
+
+            return $this->{$getter}();
+        }
         try {
             $enabled = !$this->{$getter}();
             $this->{$setter}($enabled);
@@ -1041,7 +1060,11 @@ class ConfigManager
     public function resetTimeGreetings(?string $lang = null): bool
     {
         if ($lang === null) {
-            return (bool) \Configuration::deleteByName(self::KEY_TIME_GREETINGS);
+            // Round 141 : deleteByName() supprime pour toutes les boutiques —
+            // même piège que deleteAll(), voir son commentaire pour le détail.
+            \Configuration::deleteFromContext(self::KEY_TIME_GREETINGS, null, $this->idShop);
+            $this->cache = [];
+            return true;
         }
         $saved = $this->get(self::KEY_TIME_GREETINGS);
         $data  = ($saved && is_array($arr = json_decode($saved, true))) ? $arr : [];
@@ -1757,7 +1780,13 @@ class ConfigManager
     public function deleteAll(): bool
     {
         foreach (array_keys(self::DEFAULTS) as $key) {
-            \Configuration::deleteByName($key);
+            // Round 141 : Configuration::deleteByName() supprime la clé pour
+            // TOUTES les boutiques (aucun filtre id_shop), contrairement à
+            // get()/set() de cette classe qui sont scopés via $this->idShop.
+            // deleteFromContext() supprime uniquement l'entrée de la
+            // boutique courante (ou globale si aucune surcharge par shop
+            // n'existe pour cette clé).
+            \Configuration::deleteFromContext($key, null, $this->idShop);
         }
 
         $this->cache = [];

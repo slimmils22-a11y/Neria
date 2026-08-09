@@ -53,7 +53,11 @@ class NeriaCronModuleFrontController extends ModuleFrontController
 
         $ran = [];
         try {
-            $ran = $this->module->runBackgroundJobs();
+            // Round 141 : déclenchement serveur réel (jeton vérifié
+            // ci-dessus, aucun visiteur n'attend cette réponse) — les scans
+            // lourds (known_regressions_guard) sont donc autorisés ici,
+            // contrairement à l'appel passif depuis hookDisplayHeader().
+            $ran = $this->module->runBackgroundJobs(true);
             if (class_exists('WatchdogManager')) {
                 (new WatchdogManager($this->module))->cronHeartbeat('cron_endpoint', 'ok');
             }

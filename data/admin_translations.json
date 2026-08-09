@@ -63272,6 +63272,27 @@
         "nl": "De controle «{check}» veroorzaakte een interne fout en is overgeslagen: {error}",
         "gb": "Check \"{check}\" raised an internal error and was skipped: {error}"
     },
+    "health.known_regressions_guard_pending": {
+        "fr": "Ce contrôle est trop coûteux pour tourner sur chaque visite ; le dernier résultat s'affichera après la prochaine exécution planifiée (cron serveur) ou un diagnostic complet manuel.",
+        "en": "This check is too costly to run on every visit; the latest result will appear after the next scheduled run (server cron) or a manual full diagnostic.",
+        "de": "Diese Prüfung ist zu aufwendig, um bei jedem Besuch zu laufen; das letzte Ergebnis erscheint nach dem nächsten geplanten Lauf (Server-Cron) oder einer manuellen Vollständigen Diagnose.",
+        "it": "Questo controllo è troppo costoso per essere eseguito a ogni visita; l'ultimo risultato apparirà dopo la prossima esecuzione pianificata (cron del server) o una diagnosi completa manuale.",
+        "es": "Este control es demasiado costoso para ejecutarse en cada visita; el último resultado aparecerá tras la próxima ejecución programada (cron del servidor) o un diagnóstico completo manual.",
+        "pt": "Este controlo é demasiado dispendioso para ser executado em cada visita; o último resultado aparecerá após a próxima execução agendada (cron do servidor) ou um diagnóstico completo manual.",
+        "br": "Este controle é muito custoso para ser executado em cada visita; o último resultado aparecerá após a próxima execução agendada (cron do servidor) ou um diagnóstico completo manual.",
+        "ar": "هذا الفحص مكلف للغاية بحيث لا يمكن تشغيله في كل زيارة؛ ستظهر آخر نتيجة بعد التشغيل المجدول التالي (cron الخادم) أو تشخيص كامل يدوي.",
+        "ja": "このチェックは毎回の訪問で実行するには負荷が高すぎます。最新の結果は次回のスケジュール実行（サーバーのcron）または手動の完全診断の後に表示されます。",
+        "ko": "이 검사는 매 방문마다 실행하기에는 부담이 너무 큽니다. 최신 결과는 다음 예약 실행(서버 크론) 또는 수동 전체 진단 이후에 표시됩니다.",
+        "zh": "该检查项开销较大，无法在每次访问时运行；最新结果将在下一次计划任务（服务器 cron）或手动完整诊断后显示。",
+        "tw": "該檢查項開銷較大，無法在每次造訪時執行；最新結果將於下一次排程任務（伺服器 cron）或手動完整診斷後顯示。",
+        "ru": "Эта проверка слишком затратна, чтобы выполняться при каждом посещении; последний результат появится после следующего планового запуска (серверный cron) или ручной полной диагностики.",
+        "tr": "Bu kontrol her ziyarette çalıştırılamayacak kadar maliyetlidir; en son sonuç, bir sonraki zamanlanmış çalıştırmadan (sunucu cron) veya manuel tam tanıdan sonra görünecektir.",
+        "sv": "Denna kontroll är för kostsam för att köras vid varje besök; det senaste resultatet visas efter nästa schemalagda körning (server-cron) eller en manuell fullständig diagnostik.",
+        "no": "Denne kontrollen er for kostbar til å kjøres ved hvert besøk; det siste resultatet vises etter neste planlagte kjøring (server-cron) eller en manuell full diagnostikk.",
+        "da": "Denne kontrol er for omkostningstung til at køre ved hvert besøg; det seneste resultat vises efter den næste planlagte kørsel (server-cron) eller en manuel fuld diagnostik.",
+        "nl": "Deze controle is te kostbaar om bij elk bezoek uit te voeren; het laatste resultaat verschijnt na de volgende geplande uitvoering (server-cron) of een handmatige volledige diagnose.",
+        "gb": "This check is too costly to run on every visit; the latest result will appear after the next scheduled run (server cron) or a manual full diagnostic."
+    },
     "watchdog.license_revalidated": {
         "fr": "La licence a été revalidée par le serveur — le statut « révoqué » est levé.",
         "en": "The license was revalidated by the server — the \"revoked\" status has been cleared.",
