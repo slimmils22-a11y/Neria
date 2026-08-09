@@ -54116,6 +54116,27 @@
         "nl": "Import voltooid — {n} vertaling(en) toegevoegd",
         "gb": "Import complete — {n} translation(s) inserted"
     },
+    "watchdog.translation_import_template_empty": {
+        "fr": "Réinitialisation du template « {template} » annulée — aucune traduction valide trouvée dans le fichier source, la suppression a été annulée pour ne pas laisser le template sans texte.",
+        "en": "Template \"{template}\" reset cancelled — no valid translation found in the source file, the deletion was rolled back to avoid leaving the template without text.",
+        "de": "Zurücksetzen der Vorlage „{template}“ abgebrochen — in der Quelldatei wurde keine gültige Übersetzung gefunden, das Löschen wurde rückgängig gemacht, um die Vorlage nicht ohne Text zu lassen.",
+        "it": "Ripristino del template «{template}» annullato — nessuna traduzione valida trovata nel file sorgente, l'eliminazione è stata annullata per non lasciare il template senza testo.",
+        "es": "Restablecimiento de la plantilla «{template}» cancelado — no se encontró ninguna traducción válida en el archivo de origen, se revirtió la eliminación para no dejar la plantilla sin texto.",
+        "pt": "Reposição do modelo «{template}» cancelada — não foi encontrada nenhuma tradução válida no ficheiro de origem, a eliminação foi revertida para não deixar o modelo sem texto.",
+        "br": "Redefinição do modelo «{template}» cancelada — nenhuma tradução válida encontrada no arquivo de origem, a exclusão foi revertida para não deixar o modelo sem texto.",
+        "ar": "أُلغيت إعادة تعيين القالب «{template}» — لم يُعثر على أي ترجمة صالحة في الملف المصدر، وتم التراجع عن الحذف لتجنب ترك القالب بدون نص.",
+        "ja": "テンプレート「{template}」のリセットは中止されました — ソースファイルに有効な翻訳が見つからなかったため、テキストのないテンプレートを残さないよう削除を取り消しました。",
+        "ko": "템플릿 «{template}» 재설정이 취소되었습니다 — 원본 파일에서 유효한 번역을 찾을 수 없어 템플릿이 텍스트 없이 남지 않도록 삭제가 롤백되었습니다.",
+        "zh": "模板「{template}」重置已取消 — 在源文件中未找到有效翻译，已回滚删除操作，以避免模板没有文本。",
+        "tw": "範本「{template}」重設已取消 — 在來源檔案中找不到有效翻譯，已回復刪除操作，以避免範本沒有文字。",
+        "ru": "Сброс шаблона «{template}» отменён — в исходном файле не найдено ни одного корректного перевода, удаление было отменено, чтобы не оставить шаблон без текста.",
+        "tr": "«{template}» şablonunun sıfırlanması iptal edildi — kaynak dosyada geçerli bir çeviri bulunamadı, şablonu metinsiz bırakmamak için silme işlemi geri alındı.",
+        "sv": "Återställning av mallen «{template}» avbröts — ingen giltig översättning hittades i källfilen, borttagningen återställdes för att inte lämna mallen utan text.",
+        "no": "Tilbakestilling av malen «{template}» ble avbrutt — ingen gyldig oversettelse ble funnet i kildefilen, slettingen ble tilbakestilt for å unngå at malen ble stående uten tekst.",
+        "da": "Nulstilling af skabelonen «{template}» annulleret — ingen gyldig oversættelse fundet i kildefilen, sletningen blev rullet tilbage for ikke at efterlade skabelonen uden tekst.",
+        "nl": "Reset van sjabloon «{template}» geannuleerd — geen geldige vertaling gevonden in het bronbestand, de verwijdering is teruggedraaid om te voorkomen dat het sjabloon zonder tekst achterblijft.",
+        "gb": "Template \"{template}\" reset cancelled — no valid translation found in the source file, the deletion was rolled back to avoid leaving the template without text."
+    },
     "watchdog.translation_install_bulk_error": {
         "fr": "Erreur bulk insert : {error}",
         "en": "Bulk insert error: {error}",

@@ -82,6 +82,16 @@ class TranslationInstaller
      */
     public function importFromJson(string $jsonPath): bool
     {
+        // Round 140 : compteurs réinitialisés en tout début d'appel — garde
+        // toute réutilisation de la même instance (ex. reloadDefaultTranslations()
+        // suivi d'un second import) contre un résidu de compteurs d'un appel
+        // précédent, y compris sur les branches d'échec précoce ci-dessous
+        // (fichier introuvable, JSON invalide, racine non-tableau) qui
+        // retournaient jusqu'ici sans jamais y toucher.
+        $this->countInserted = 0;
+        $this->countSkipped  = 0;
+        $this->countErrors   = 0;
+
         // ── 1. Vérification du fichier ───────────────────────────
         if (!file_exists($jsonPath)) {
             $this->module->log(
@@ -200,6 +210,17 @@ class TranslationInstaller
 
         if ($failed) {
             $this->db->execute('ROLLBACK');
+            // Round 140 : compteurs remis à zéro — ROLLBACK annule TOUTES
+            // les insertions en base, y compris celles des lots flushés
+            // avec succès avant l'échec, mais countInserted/countSkipped/
+            // countErrors restaient à leur valeur accumulée pendant
+            // l'import. Un appelant affichant getSummary() après un import
+            // raté voyait "X traductions importées" alors que la table
+            // avait été intégralement restaurée à son état antérieur (0
+            // insertion réelle) — rapport BO trompeur.
+            $this->countInserted = 0;
+            $this->countSkipped  = 0;
+            $this->countErrors   = 0;
             return false;
         }
 
@@ -256,6 +277,17 @@ class TranslationInstaller
      */
     public function importTemplate(string $jsonPath, string $template): bool
     {
+        // Round 140 : compteurs réinitialisés en début d'appel — contrairement
+        // à reloadDefaultTranslations() (qui les reset avant d'appeler
+        // importFromJson()), importTemplate() ne le faisait jamais. Rien
+        // n'empêche l'API publique de réutiliser la même instance pour
+        // réinitialiser plusieurs templates successivement (ex. boucle BO) ;
+        // sans ce reset, getSummary() après le 2e appel additionnait les
+        // résultats du 1er import au lieu de refléter uniquement le dernier.
+        $this->countInserted = 0;
+        $this->countSkipped  = 0;
+        $this->countErrors   = 0;
+
         if (!file_exists($jsonPath)) {
             return false;
         }
@@ -275,11 +307,14 @@ class TranslationInstaller
             // ne doit pas faire planter un simple "réinitialiser ce template"
             // dans le BO — même garde-fou que importFromJson().
             if (!is_array($fields)) {
+                $this->countSkipped++;
                 continue;
             }
             foreach ($fields as $key => $value) {
                 if (is_string($value)) {
                     $batch[] = $this->buildRow($template, $lang, $key, $value, $now);
+                } else {
+                    $this->countSkipped++;
                 }
             }
         }
@@ -292,16 +327,39 @@ class TranslationInstaller
         // relancé. NB : Db::delete() préfixe lui-même la table — passer
         // self::TABLE SANS _DB_PREFIX_ (sinon double préfixe → table
         // inexistante).
+        // Round 140 : un $batch vide n'est PLUS traité comme un succès
+        // automatique — auparavant, si tous les blocs langue du template
+        // étaient malformés (scalaire au lieu de tableau) ou toutes leurs
+        // valeurs non-string, $batch restait vide, $ok valait true par
+        // défaut, et le DELETE ci-dessus était validé (COMMIT) SANS
+        // réinsertion : le template perdait définitivement ses traductions
+        // par défaut, silencieusement, sans aucune trace Watchdog — même
+        // famille de bug que les erreurs réseau avalées des rounds 131/135.
+        // Un $batch vide est désormais systématiquement traité comme un
+        // échec (ROLLBACK), la suppression n'est jamais validée sans
+        // réinsertion effective.
         $this->db->execute('START TRANSACTION');
         $this->db->delete(
             self::TABLE,
             '`template` = \'' . pSQL($template) . '\' AND `is_custom` = 0'
         );
-        $ok = !empty($batch) ? $this->flushBatch($batch) : true;
+        $batchWasEmpty = empty($batch);
+        $ok = !$batchWasEmpty && $this->flushBatch($batch);
         if ($ok) {
             $this->db->execute('COMMIT');
         } else {
             $this->db->execute('ROLLBACK');
+            // flushBatch() journalise déjà sa propre erreur Watchdog en cas
+            // d'échec SQL réel (watchdog.translation_install_bulk_error,
+            // avec la vraie erreur MySQL) — ne pas dupliquer ce log ici. Le
+            // SEUL cas qui n'avait jusqu'ici AUCUNE trace est batch vide
+            // (données source malformées), d'où ce log dédié.
+            if ($batchWasEmpty) {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.translation_import_template_empty', ['template' => $template]),
+                    '', 'TranslationInstaller'
+                );
+            }
         }
 
         return $ok;
