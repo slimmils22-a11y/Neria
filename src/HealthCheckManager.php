@@ -4328,6 +4328,80 @@ class HealthCheckManager
             $offenders[] = "controllers/front/cron.php n'appelle plus runBackgroundJobs(true) — régression du bug corrigé le 09/08/2026 (round 141) : le scan lourd known_regressions_guard() ne s'exécuterait plus jamais, même via le vrai cron serveur";
         }
 
+        // Round 142 (2026-09-09) : CalendarManager::getManualOverride()/
+        // setManualOverride()/deleteManualOverride()/getDateSource()/
+        // getAllManualOverrides() doivent rester scopés par boutique via un
+        // suffixe `_SHOP{idShop}` dans la clé (même correctif que
+        // buildSentKey(), round 40) — sans lui, un override marchand pour
+        // une boutique est silencieusement ignoré si le contexte statique
+        // Shop::$context_id_shop est resté figé sur une autre boutique
+        // pendant une boucle multi-boutique.
+        $calFile142 = _PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php';
+        $calSrc142 = $this->readModuleSrc($calFile142);
+        if ($calSrc142 === '') {
+            $offenders[] = 'CalendarManager.php introuvable (garde-fou round 142 : overrides manuels scopés boutique + traçabilité suppression + repli année N+1)';
+        } else {
+            $posGetOv = strpos($calSrc142, 'private function getManualOverride(');
+            $getOvBody = $posGetOv !== false ? substr($calSrc142, $posGetOv, 1000) : '';
+            if ($posGetOv === false || strpos($getOvBody, "'_SHOP' . \$this->idShop") === false) {
+                $offenders[] = "CalendarManager::getManualOverride() n'inclut plus le suffixe boutique dans sa clé de config — régression du bug corrigé le 09/08/2026 (round 142) : un override marchand pourrait de nouveau être silencieusement ignoré pendant une boucle multi-boutique";
+            }
+            $posSetOv = strpos($calSrc142, 'public function setManualOverride(');
+            $setOvBody = $posSetOv !== false ? substr($calSrc142, $posSetOv, 700) : '';
+            if ($posSetOv === false || strpos($setOvBody, "'_SHOP' . \$this->idShop") === false) {
+                $offenders[] = "CalendarManager::setManualOverride() n'inclut plus le suffixe boutique dans sa clé de config — régression du bug corrigé le 09/08/2026 (round 142)";
+            }
+            $posDelOv = strpos($calSrc142, 'public function deleteManualOverride(string $eventKey, int $year): void');
+            $delOvBody = $posDelOv !== false ? substr($calSrc142, $posDelOv, 900) : '';
+            if ($posDelOv === false || strpos($delOvBody, "'_SHOP' . \$this->idShop") === false) {
+                $offenders[] = "CalendarManager::deleteManualOverride() n'inclut plus le suffixe boutique dans sa clé de config — régression du bug corrigé le 09/08/2026 (round 142)";
+            }
+            if ($posDelOv === false || strpos($delOvBody, '$this->watchdog()->info(') === false) {
+                $offenders[] = "CalendarManager::deleteManualOverride() ne journalise plus la suppression via Watchdog — régression du bug corrigé le 09/08/2026 (round 142) : trou de traçabilité, aucune trace ne relierait un problème de calcul automatique à cette suppression";
+            }
+            $posAllOv = strpos($calSrc142, 'public function getAllManualOverrides(): array');
+            $allOvBody = $posAllOv !== false ? substr($calSrc142, $posAllOv, 900) : '';
+            if ($posAllOv === false || strpos($allOvBody, '_SHOP" . (int) $this->idShop') === false) {
+                $offenders[] = "CalendarManager::getAllManualOverrides() ne filtre plus par suffixe boutique — régression du bug corrigé le 09/08/2026 (round 142) : le tableau BO d'une boutique remélangerait les overrides de toutes les boutiques";
+            }
+            $posDisp = strpos($calSrc142, 'public function getEventDisplayInfo(array $event): array');
+            $dispBody = $posDisp !== false ? substr($calSrc142, $posDisp, 1700) : '';
+            if ($posDisp === false || strpos($dispBody, 'if (!$eventDate) {') === false) {
+                $offenders[] = "CalendarManager::getEventDisplayInfo() ne teste plus explicitement le cas où la résolution de l'année courante renvoie null — régression du bug corrigé le 09/08/2026 (round 142) : incohérence d'affichage BO avec getUpcomingDates()/processEvent()";
+            }
+        }
+
+        // Round 142 (2026-09-09) : WatchdogManager::shopLang() doit accepter
+        // un idShop explicite (sinon retombe sur le static
+        // Shop::$context_id_shop, figé sur la boutique d'origine pendant
+        // une boucle multi-boutique) et ses 7 appelants externes connus
+        // doivent le lui fournir.
+        $wdFile142 = _PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php';
+        $wdSrc142 = $this->readModuleSrc($wdFile142);
+        if ($wdSrc142 === '') {
+            $offenders[] = 'WatchdogManager.php introuvable (garde-fou round 142 : shopLang() idShop explicite)';
+        } elseif (strpos($wdSrc142, 'public static function shopLang(?int $idShop = null): string') === false) {
+            $offenders[] = "WatchdogManager::shopLang() n'accepte plus de paramètre \$idShop optionnel — régression du bug corrigé le 09/08/2026 (round 142) : les messages Watchdog composés pendant une boucle multi-boutique pourraient de nouveau être dans la mauvaise langue";
+        }
+        $shopLangCallers142 = [
+            'src/ABTestManager.php'        => '\WatchdogManager::shopLang($this->idShop)',
+            'src/EmailRenderer.php'        => 'WatchdogManager::shopLang((int) \Context::getContext()->shop->id)',
+            'src/PostmasterManager.php'    => '\WatchdogManager::shopLang((int) \Context::getContext()->shop->id)',
+            'src/SearchConsoleManager.php' => '\WatchdogManager::shopLang((int) \Context::getContext()->shop->id)',
+        ];
+        foreach ($shopLangCallers142 as $relPath => $expectedCall) {
+            $callerSrc = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/' . $relPath);
+            if ($callerSrc !== '' && strpos($callerSrc, $expectedCall) === false) {
+                $offenders[] = basename($relPath) . " n'appelle plus WatchdogManager::shopLang() avec un idShop explicite — régression du bug corrigé le 09/08/2026 (round 142)";
+            }
+        }
+        foreach (['src/PageSpeedManager.php', 'src/SeoApiManager.php'] as $relPath) {
+            $callerSrc = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/' . $relPath);
+            if ($callerSrc !== '' && substr_count($callerSrc, 'WatchdogManager::shopLang((int) \Context::getContext()->shop->id)') < 2) {
+                $offenders[] = basename($relPath) . " : moins de 2 appels à WatchdogManager::shopLang() avec un idShop explicite — régression du bug corrigé le 09/08/2026 (round 142)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
