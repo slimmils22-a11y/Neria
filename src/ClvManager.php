@@ -194,8 +194,15 @@ class ClvManager
         $clv12 = $base * $engagementMult * $segmentMult * $churnMult;
         $clv12 = max(0, round($clv12, 2));
 
-        // Label global
-        if ($clv12 >= $avgOrder * 3) {
+        // Label global — round 143 : $avgOrder == 0.0 traité explicitement
+        // en 'low' AVANT le test de seuil. Quand les remboursements
+        // (order_slip) ramènent totalRevenue à 0 via le max(0.0, …)
+        // ci-dessus, avgOrder ET clv12 valent tous deux 0.0 : le test
+        // `$clv12 >= $avgOrder * 3` devenait `0 >= 0` (vrai), étiquetant à
+        // tort en 'high' un client dont la CLV affichée est 0 €.
+        if ($avgOrder <= 0.0) {
+            $label = 'low';
+        } elseif ($clv12 >= $avgOrder * 3) {
             $label = 'high';
         } elseif ($clv12 >= $avgOrder) {
             $label = 'medium';
@@ -457,7 +464,10 @@ class ClvManager
         $clv12 = $base * $engagementMult * $segmentMult * $churnMult;
         $clv12 = max(0, round($clv12, 2));
 
-        if ($clv12 >= $avgOrder * 3) {
+        // Round 143 : même correctif que computeClv() — voir son commentaire.
+        if ($avgOrder <= 0.0) {
+            $label = 'low';
+        } elseif ($clv12 >= $avgOrder * 3) {
             $label = 'high';
         } elseif ($clv12 >= $avgOrder) {
             $label = 'medium';

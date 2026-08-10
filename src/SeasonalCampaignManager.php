@@ -47,6 +47,33 @@ class SeasonalCampaignManager
         return $this->watchdog;
     }
 
+    /**
+     * Réservation atomique compare-and-swap (round 143) : true si CE
+     * process a bien remporté la réservation (l'email peut/doit partir),
+     * false si un autre process l'a déjà (ou l'envoi a déjà réussi lors
+     * d'un passage précédent) — même schéma que
+     * CollectionManager::claimSend()/LookCompletionManager. S'appuie sur la
+     * contrainte UNIQUE (id_customer, template, ref_id, id_shop) de
+     * neria_behavioral_sent.
+     */
+    private function claimSend(int $idCustomer, string $sentKey, int $year): bool
+    {
+        $this->db->execute(
+            "INSERT IGNORE INTO `{$this->prefix}neria_behavioral_sent`
+                (id_customer, template, ref_id, id_shop, sent_at)
+             VALUES ({$idCustomer}, '" . pSQL($sentKey) . "', {$year}, " . (int) $this->idShop . ", NOW())"
+        );
+        return $this->db->Affected_Rows() > 0;
+    }
+
+    private function releaseSendClaim(int $idCustomer, string $sentKey, int $year): void
+    {
+        $this->db->delete('neria_behavioral_sent',
+            '`id_customer` = ' . $idCustomer . " AND `template` = '" . pSQL($sentKey) . "'"
+            . ' AND `ref_id` = ' . $year . ' AND `id_shop` = ' . (int) $this->idShop
+        );
+    }
+
     // ============================================================
     // CRUD
     // ============================================================
@@ -209,14 +236,16 @@ class SeasonalCampaignManager
                 // partagé) qui reçoit alors deux fois la même campagne
                 // saisonnière la même année ; et purger une autre boutique
                 // que la 1 ne nettoie jamais ces lignes mal étiquetées.
-                $alreadySent = (int) $this->db->getValue(
-                    "SELECT COUNT(*) FROM `{$this->prefix}neria_behavioral_sent`
-                     WHERE id_customer = {$idCustomer}
-                       AND template    = '" . pSQL($sentKey) . "'
-                       AND ref_id      = {$year}
-                       AND id_shop     = " . (int) $this->idShop
-                );
-                if ($alreadySent > 0) {
+                // Round 143 : réservation atomique AVANT l'envoi (compare-
+                // and-swap via INSERT IGNORE sur la clé UNIQUE de la table),
+                // pas un simple SELECT COUNT(*) suivi d'un INSERT après coup
+                // — même correctif que CollectionManager::claimSend()/
+                // LookCompletionManager (rounds 63/87) : sans lui, deux
+                // déclenchements cron quasi simultanés (fallback webcron +
+                // hookDisplayHeader) passent tous deux le SELECT avant que
+                // l'un des deux n'ait inséré sa ligne, et le même client
+                // reçoit deux fois la même campagne saisonnière.
+                if (!$this->claimSend($idCustomer, $sentKey, $year)) {
                     continue;
                 }
 
@@ -281,24 +310,22 @@ class SeasonalCampaignManager
                         $this->idShop
                     );
 
-                    // Ne pose la déduplication annuelle que si l'envoi a
-                    // réellement réussi — sinon (échec SMTP transitoire,
-                    // config mail invalide) le client était marqué "déjà
-                    // servi" pour l'année et ne recevait plus jamais cette
-                    // campagne saisonnière, sans qu'aucune alerte ne le
-                    // signale.
+                    // Round 143 : la réservation (claimSend()) est déjà posée
+                    // avant l'envoi — si celui-ci échoue (retour false, pas
+                    // d'exception), on la libère pour permettre une nouvelle
+                    // tentative au prochain passage du cron, plutôt que de
+                    // perdre silencieusement ce client pour l'année entière
+                    // (même logique que le commentaire round 113 juste
+                    // au-dessus, mais désormais appliquée à la réservation
+                    // posée en amont, pas à un INSERT après coup).
                     if (!$ok) {
+                        $this->releaseSendClaim($idCustomer, $sentKey, $year);
                         continue;
                     }
 
-                    $this->db->execute(
-                        "INSERT IGNORE INTO `{$this->prefix}neria_behavioral_sent`
-                            (id_customer, template, ref_id, id_shop, sent_at)
-                         VALUES ({$idCustomer}, '" . pSQL($sentKey) . "', {$year}, " . (int) $this->idShop . ", NOW())"
-                    );
-
                     $sentCount++;
                 } catch (\Throwable $e) {
+                    $this->releaseSendClaim($idCustomer, $sentKey, $year);
                     $this->watchdog()->error(
                         \WatchdogManager::i18nMsg('watchdog.seasonal_send_error', [
                             'campaign' => $campaign['name'],
@@ -433,9 +460,35 @@ class SeasonalCampaignManager
 
     /**
      * Compte les clients éligibles sans envoyer (pour l'aperçu BO).
+     *
+     * Round 143 : retire aussi les clients ayant désactivé les
+     * communications de ce template — getEligibleCustomers() ne filtre QUE
+     * sur le ciblage (genre/langue/âge/segment), pas les préférences (voir
+     * commentaire de runDueCampaigns()). Sans ce filtre, l'aperçu BO
+     * annonçait un nombre de destinataires structurellement supérieur au
+     * nombre réel d'envois le jour J, trompeur pour le marchand.
      */
     public function countEligible(array $campaign): int
     {
-        return count($this->getEligibleCustomers($campaign));
+        $customers = $this->getEligibleCustomers($campaign);
+
+        if (!class_exists('PreferencesManager')) {
+            return count($customers);
+        }
+
+        $isGiftMode = (bool) ($campaign['gift_mode'] ?? false);
+        $template   = $isGiftMode ? 'gift_ideas' : ($campaign['template'] ?? '');
+        if ($template === '') {
+            return count($customers);
+        }
+
+        $prefs = new \PreferencesManager($this->module);
+        $count = 0;
+        foreach ($customers as $customer) {
+            if ($prefs->isAllowed((int) $customer['id_customer'], $template, $this->idShop)) {
+                $count++;
+            }
+        }
+        return $count;
     }
 }

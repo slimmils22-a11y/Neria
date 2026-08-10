@@ -287,9 +287,16 @@ class ChurnScoreManager
 
     private function computeScore(array $r): array
     {
-        $rate1 = (int) $r['sent_p1'] > 0 ? (int) $r['open_p1'] / (int) $r['sent_p1'] : 0.0;
-        $rate2 = (int) $r['sent_p2'] > 0 ? (int) $r['open_p2'] / (int) $r['sent_p2'] : 0.0;
-        $rate3 = (int) $r['sent_p3'] > 0 ? (int) $r['open_p3'] / (int) $r['sent_p3'] : 0.0;
+        // Round 143 : clampés à 1.0 — un même email peut générer plusieurs
+        // événements 'open' (réouverture, plusieurs appareils/clients mail)
+        // pour un seul 'sent', donc ces taux ne sont pas structurellement
+        // bornés à 1.0. Même clamp déjà appliqué pour ce pattern identique
+        // dans ClvManager::getEngagementRate()/getTopCustomers() — sans lui,
+        // recentRisk = (1.0 - $rate1) * 30 ci-dessous pouvait sortir de sa
+        // plage documentée [0, 30] (ex. rate1=5.0 → recentRisk=-120).
+        $rate1 = min(1.0, (int) $r['sent_p1'] > 0 ? (int) $r['open_p1'] / (int) $r['sent_p1'] : 0.0);
+        $rate2 = min(1.0, (int) $r['sent_p2'] > 0 ? (int) $r['open_p2'] / (int) $r['sent_p2'] : 0.0);
+        $rate3 = min(1.0, (int) $r['sent_p3'] > 0 ? (int) $r['open_p3'] / (int) $r['sent_p3'] : 0.0);
 
         // Composante 1 — Récence (0-40 pts)
         if ($r['last_open']) {

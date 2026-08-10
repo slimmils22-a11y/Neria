@@ -73,12 +73,13 @@ class CollectionManager
      * leur nom/référence/image — évite d'afficher une liste brute de nombres
      * dans le back-office (peu lisible pour un marchand).
      */
-    public function getAllWithProductDetails(int $idLang): array
+    public function getAllWithProductDetails(int $idLang, ?int $idShop = null): array
     {
+        $idShop = $idShop ?? (int) \Context::getContext()->shop->id;
         $rows = $this->getAll();
         foreach ($rows as &$row) {
             $ids = json_decode($row['product_ids'], true);
-            $row['product_details'] = is_array($ids) ? self::resolveProducts($ids, $idLang) : [];
+            $row['product_details'] = is_array($ids) ? self::resolveProducts($ids, $idLang, $idShop) : [];
         }
         unset($row);
         return $rows;
@@ -133,8 +134,17 @@ class CollectionManager
      * Résout une liste d'IDs produits vers name/reference/image, en
      * préservant l'ordre d'origine. Les produits supprimés depuis sont
      * omis silencieusement (pas d'exception qui casserait l'affichage).
+     *
+     * Round 143 : $idShop + p.active ajoutés — contrairement à sa jumelle
+     * searchProducts() ci-dessus, cette méthode ne filtrait ni l'un ni
+     * l'autre. Sans idShop, la jointure product_lang pouvait renvoyer
+     * plusieurs lignes par id_product en environnement multi-boutiques (une
+     * par boutique quand les traductions diffèrent), et $byId[] indexait
+     * arbitrairement la dernière lue selon l'ordre MySQL — le nom/référence
+     * affiché dans l'écran BO "Collections" d'une boutique pouvait être
+     * celui d'une AUTRE boutique, de façon non déterministe.
      */
-    private static function resolveProducts(array $ids, int $idLang): array
+    private static function resolveProducts(array $ids, int $idLang, int $idShop): array
     {
         $ids = array_values(array_unique(array_map('intval', $ids)));
         if (empty($ids)) {
@@ -147,8 +157,9 @@ class CollectionManager
             "SELECT p.id_product, pl.name, p.reference
              FROM `{$prefix}product` p
              INNER JOIN `{$prefix}product_lang` pl
-                     ON pl.id_product = p.id_product AND pl.id_lang = " . (int) $idLang . "
-             WHERE p.id_product IN ({$inList})"
+                     ON pl.id_product = p.id_product AND pl.id_lang = " . (int) $idLang . " AND pl.id_shop = " . (int) $idShop . "
+             WHERE p.id_product IN ({$inList})
+               AND p.active = 1"
         );
         $byId = [];
         if (is_array($rows)) {

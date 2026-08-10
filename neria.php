@@ -5938,7 +5938,7 @@ class Neria extends Module
 
             // Variables pour la section Complétion de collection
             'collections'      => class_exists('CollectionManager')
-                ? (new CollectionManager($this))->getAllWithProductDetails((int) $this->context->language->id)
+                ? (new CollectionManager($this))->getAllWithProductDetails((int) $this->context->language->id, (int) $this->context->shop->id)
                 : [],
             'collection_stats' => class_exists('CollectionManager')
                 ? (new CollectionManager($this))->getStats()

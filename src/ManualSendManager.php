@@ -1181,6 +1181,23 @@ class ManualSendManager
             return ['ok' => false, 'message' => 'QueueManager non disponible.'];
         }
 
+        // Round 143 : validation de format + cohérence temporelle — même
+        // garde-fou que CalendarManager::setManualOverride() (même lot de
+        // fichiers), jamais répliqué ici. Sans lui, une date malformée était
+        // insérée brute (juste pSQL()) dans la colonne DATETIME send_at :
+        // soit l'INSERT échouait avec un message trompeur ("doublon" plutôt
+        // que "date invalide"), soit MySQL coerçait en 0000-00-00, qui est
+        // toujours <= NOW() — et QueueManager::processQueue() envoie
+        // immédiatement toute ligne pending dont send_at est déjà passé, y
+        // compris pour une simple erreur de frappe sur l'année.
+        $sendAtDt = \DateTime::createFromFormat('Y-m-d H:i:s', $sendAt);
+        if (!$sendAtDt || $sendAtDt->format('Y-m-d H:i:s') !== $sendAt) {
+            return ['ok' => false, 'message' => AdminTranslator::t('msg.send_schedule_invalid_date')];
+        }
+        if ($sendAtDt <= new \DateTime()) {
+            return ['ok' => false, 'message' => AdminTranslator::t('msg.send_schedule_past_date')];
+        }
+
         // Mêmes garde-fous que send() (blacklist, conflit anniversaire) —
         // sans eux, scheduleManual() était une porte de contournement
         // complète des protections du module : un template blacklisté ou en
