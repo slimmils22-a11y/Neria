@@ -2291,13 +2291,18 @@ class HealthCheckManager
         // préciser id_shop — contrairement à tous les autres appelants de
         // cette table. Toute ligne tombait sur le défaut id_shop=1 de la
         // colonne, quelle que soit la vraie boutique.
+        // Round 143 : le SELECT COUNT(*) + INSERT IGNORE après coup a été
+        // remplacé par claimSend()/releaseSendClaim() (réservation atomique
+        // — voir le garde-fou round 143 plus bas) ; cette vérification
+        // round 57 est mise à jour pour porter sur le nouveau helper plutôt
+        // que sur le code disparu.
         $seasonalFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php';
         $seasonalSrc = $this->readModuleSrc($seasonalFile);
         if ($seasonalSrc === '') {
             $offenders[] = 'src/SeasonalCampaignManager.php introuvable';
-        } elseif (strpos($seasonalSrc, "AND ref_id      = {\$year}\n                       AND id_shop     = \" . (int) \$this->idShop") === false
+        } elseif (strpos($seasonalSrc, "VALUES ({\$idCustomer}, '\" . pSQL(\$sentKey) . \"', {\$year}, \" . (int) \$this->idShop . \", NOW())") === false
                || strpos($seasonalSrc, "(id_customer, template, ref_id, id_shop, sent_at)") === false) {
-            $offenders[] = 'SeasonalCampaignManager::runDueCampaigns() ne filtre/écrit plus id_shop dans sa déduplication annuelle (neria_behavioral_sent) — un client partagé entre boutiques pourrait de nouveau recevoir une campagne saisonnière en double, ou sa dédup être purgée/conservée à tort selon la boutique';
+            $offenders[] = 'SeasonalCampaignManager::claimSend() ne filtre/écrit plus id_shop dans sa déduplication annuelle (neria_behavioral_sent) — un client partagé entre boutiques pourrait de nouveau recevoir une campagne saisonnière en double, ou sa dédup être purgée/conservée à tort selon la boutique';
         }
 
         // Round 58 (2026-08-05) : BehavioralCronManager::run() appelait
@@ -4399,6 +4404,88 @@ class HealthCheckManager
             $callerSrc = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/' . $relPath);
             if ($callerSrc !== '' && substr_count($callerSrc, 'WatchdogManager::shopLang((int) \Context::getContext()->shop->id)') < 2) {
                 $offenders[] = basename($relPath) . " : moins de 2 appels à WatchdogManager::shopLang() avec un idShop explicite — régression du bug corrigé le 09/08/2026 (round 142)";
+            }
+        }
+
+        // Round 143 (2026-09-10) : SeasonalCampaignManager::runDueCampaigns()
+        // doit réserver l'envoi via claimSend() AVANT Mail::Send() (compare-
+        // and-swap), pas un SELECT COUNT(*) suivi d'un INSERT après coup —
+        // même correctif que CollectionManager::claimSend()/
+        // LookCompletionManager (rounds 63/87). countEligible() doit aussi
+        // filtrer les préférences, pas seulement le ciblage.
+        $seasFile143 = _PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php';
+        $seasSrc143 = $this->readModuleSrc($seasFile143);
+        if ($seasSrc143 === '') {
+            $offenders[] = 'SeasonalCampaignManager.php introuvable (garde-fou round 143 : claim/release atomique + countEligible filtré préférences)';
+        } else {
+            if (strpos($seasSrc143, 'private function claimSend(int $idCustomer, string $sentKey, int $year): bool') === false) {
+                $offenders[] = "SeasonalCampaignManager::claimSend() introuvable — régression du bug corrigé le 09/08/2026 (round 143) : la réservation atomique anti-doublon a disparu, un client pourrait de nouveau recevoir deux fois la même campagne saisonnière";
+            }
+            $posRun = strpos($seasSrc143, 'public function runDueCampaigns(): int');
+            $runBody = $posRun !== false ? substr($seasSrc143, $posRun, 4200) : '';
+            if ($posRun === false || strpos($runBody, 'if (!$this->claimSend($idCustomer, $sentKey, $year)) {') === false) {
+                $offenders[] = "SeasonalCampaignManager::runDueCampaigns() n'appelle plus claimSend() avant l'envoi — régression du bug corrigé le 09/08/2026 (round 143)";
+            }
+            $posCount = strpos($seasSrc143, 'public function countEligible(array $campaign): int');
+            $countBody = $posCount !== false ? substr($seasSrc143, $posCount, 900) : '';
+            if ($posCount === false || strpos($countBody, "\$prefs->isAllowed((int) \$customer['id_customer'], \$template, \$this->idShop)") === false) {
+                $offenders[] = "SeasonalCampaignManager::countEligible() ne filtre plus les préférences — régression du bug corrigé le 09/08/2026 (round 143) : l'aperçu BO surestimerait de nouveau le nombre réel de destinataires";
+            }
+        }
+
+        // Round 143 (2026-09-10) : CollectionManager::resolveProducts() doit
+        // filtrer pl.id_shop + p.active, comme sa jumelle searchProducts().
+        $colFile143 = _PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php';
+        $colSrc143 = $this->readModuleSrc($colFile143);
+        if ($colSrc143 === '') {
+            $offenders[] = 'CollectionManager.php introuvable (garde-fou round 143 : resolveProducts() scopé boutique)';
+        } else {
+            $posResolve = strpos($colSrc143, 'private static function resolveProducts(array $ids, int $idLang, int $idShop): array');
+            $resolveBody = $posResolve !== false ? substr($colSrc143, $posResolve, 900) : '';
+            if ($posResolve === false || strpos($resolveBody, 'AND pl.id_shop = " . (int) $idShop . "') === false || strpos($resolveBody, 'AND p.active = 1') === false) {
+                $offenders[] = "CollectionManager::resolveProducts() n'accepte plus \$idShop ou ne filtre plus p.active — régression du bug corrigé le 09/08/2026 (round 143) : le nom/référence affiché dans l'écran BO Collections pourrait de nouveau être celui d'une autre boutique";
+            }
+        }
+
+        // Round 143 (2026-09-10) : ManualSendManager::scheduleManual() doit
+        // valider le format ET la cohérence temporelle de $sendAt avant de
+        // planifier — même garde-fou que CalendarManager::setManualOverride().
+        $msFile143 = _PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php';
+        $msSrc143 = $this->readModuleSrc($msFile143);
+        if ($msSrc143 === '') {
+            $offenders[] = 'ManualSendManager.php introuvable (garde-fou round 143 : scheduleManual() date validée)';
+        } elseif (strpos($msSrc143, "\$sendAtDt = \DateTime::createFromFormat('Y-m-d H:i:s', \$sendAt);") === false
+            || strpos($msSrc143, 'if ($sendAtDt <= new \DateTime()) {') === false
+        ) {
+            $offenders[] = "ManualSendManager::scheduleManual() ne valide plus le format/la cohérence temporelle de \$sendAt — régression du bug corrigé le 09/08/2026 (round 143) : une date malformée ou déjà passée pourrait de nouveau déclencher un envoi immédiat non désiré";
+        }
+
+        // Round 143 (2026-09-10) : ClvManager::computeClv()/assembleClv()
+        // doivent traiter $avgOrder <= 0.0 explicitement en 'low' avant le
+        // test de seuil 'high'.
+        $clvFile143 = _PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php';
+        $clvSrc143 = $this->readModuleSrc($clvFile143);
+        if ($clvSrc143 === '') {
+            $offenders[] = 'ClvManager.php introuvable (garde-fou round 143 : label CLV avgOrder=0)';
+        } else {
+            $guardCount143 = substr_count($clvSrc143, 'if ($avgOrder <= 0.0) {');
+            if ($guardCount143 < 2) {
+                $offenders[] = "ClvManager : le garde-fou \$avgOrder <= 0.0 n'est plus présent dans computeClv() et assembleClv() ({$guardCount143}/2) — régression du bug corrigé le 09/08/2026 (round 143) : un client à CLV=0€ (remboursement total) serait de nouveau étiqueté 'high value'";
+            }
+        }
+
+        // Round 143 (2026-09-10) : ChurnScoreManager::computeScore() doit
+        // clamper rate1/2/3 à 1.0 (un même email peut générer plusieurs
+        // 'open' pour un seul 'sent').
+        $churnFile143 = _PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php';
+        $churnSrc143 = $this->readModuleSrc($churnFile143);
+        if ($churnSrc143 === '') {
+            $offenders[] = 'ChurnScoreManager.php introuvable (garde-fou round 143 : rate1/2/3 clampés)';
+        } else {
+            $posCompute143 = strpos($churnSrc143, 'private function computeScore(array $r): array');
+            $computeBody143 = $posCompute143 !== false ? substr($churnSrc143, $posCompute143, 900) : '';
+            if ($posCompute143 === false || substr_count($computeBody143, 'min(1.0, (int) $r[') < 3) {
+                $offenders[] = "ChurnScoreManager::computeScore() ne clampe plus rate1/2/3 à 1.0 — régression du bug corrigé le 09/08/2026 (round 143) : la composante 'Taux récent' pourrait de nouveau sortir de sa plage documentée [0, 30]";
             }
         }
 
