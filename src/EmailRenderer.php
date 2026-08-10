@@ -576,7 +576,7 @@ class EmailRenderer
     {
         $lower = strtolower($cause);
         $prevLang = AdminTranslator::currentLang();
-        AdminTranslator::setLang(WatchdogManager::shopLang());
+        AdminTranslator::setLang(WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
 
         // Variable Smarty manquante : "Undefined variable: foo" ou "Undefined index: foo"
         if (preg_match('/undefined (?:variable|index)[:\s]+[\'"]?(\w+)/i', $cause, $m)) {

@@ -802,7 +802,7 @@ class ABTestManager
         $this->db->execute($sql);
 
         $prevLang = \AdminTranslator::currentLang();
-        \AdminTranslator::setLang(\WatchdogManager::shopLang());
+        \AdminTranslator::setLang(\WatchdogManager::shopLang($this->idShop));
         $winnerLabel = $winner !== ''
             ? \AdminTranslator::tVars('watchdog.abtest_winner_label', ['winner' => $winner, 'confidence' => $confidence])
             : \AdminTranslator::t('watchdog.abtest_no_winner_label');

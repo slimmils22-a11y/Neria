@@ -167,7 +167,7 @@ class PageSpeedManager
             // indice pour diagnostiquer lequel des deux cas s'appliquait.
             if ($rawKey !== '') {
                 $prevLang = \AdminTranslator::currentLang();
-                \AdminTranslator::setLang(\WatchdogManager::shopLang());
+                \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
                 $this->recordError(\AdminTranslator::t('msg.pagespeed_key_unreadable'));
                 \AdminTranslator::setLang($prevLang);
                 $this->wd()->warning(
@@ -232,7 +232,7 @@ class PageSpeedManager
         curl_close($ch);
 
         $prevLang = \AdminTranslator::currentLang();
-        \AdminTranslator::setLang(\WatchdogManager::shopLang());
+        \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
 
         if (!$body) {
             $this->recordError(\AdminTranslator::tVars('msg.pagespeed_network_error', ['error' => $curlErr]));

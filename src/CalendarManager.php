@@ -287,6 +287,20 @@ class CalendarManager
 
         $eventDate = $resolveDate($year);
         $sendDate  = null;
+
+        // Round 142 : si $resolveDate($year) renvoie directement null (ex.
+        // gap dans la table NIVEAU 3, ou année de transition pour un
+        // événement dont le calcul algorithmique NIVEAU 2 est désactivé),
+        // le repli sur $year+1 ci-dessous était sauté entièrement — la
+        // méthode renvoyait "aucun envoi prévu" alors que getUpcomingDates()
+        // et processEvent() (mêmes fichier) testent tous deux [$year,
+        // $year+1] sans condition préalable. Incohérence d'affichage BO
+        // trompeuse pour le marchand, corrigée en alignant sur le même repli
+        // inconditionnel.
+        if (!$eventDate) {
+            $eventDate = $resolveDate($year + 1);
+        }
+
         if ($eventDate) {
             $sendDate = clone $eventDate;
             $sendDate->modify("-{$daysBefore} days");
@@ -425,7 +439,15 @@ class CalendarManager
         string $eventKey,
         int    $year
     ): ?\DateTime {
-        $key   = self::OVERRIDE_PREFIX . strtoupper($eventKey) . '_' . $year;
+        // idShop inclus dans la clé — même correctif que buildSentKey()
+        // (round 40) : Configuration::get() sans idShop explicite retombe
+        // sur le static Shop::$context_id_shop, qui reste figé sur la
+        // boutique d'origine pendant la boucle multi-boutique de
+        // neria.php::runBackgroundJobs() (simple réassignation de
+        // Context->shop, jamais Shop::setContext()). Sans ce suffixe, un
+        // override saisi pour la Boutique B était silencieusement ignoré
+        // si le cron avait démarré dans le contexte de la Boutique A.
+        $key   = self::OVERRIDE_PREFIX . strtoupper($eventKey) . '_' . $year . '_SHOP' . $this->idShop;
         $value = \Configuration::get($key);
 
         if (!$value) {
@@ -456,13 +478,13 @@ class CalendarManager
             return false;
         }
 
-        $key = self::OVERRIDE_PREFIX . strtoupper($eventKey) . '_' . $year;
+        $key = self::OVERRIDE_PREFIX . strtoupper($eventKey) . '_' . $year . '_SHOP' . $this->idShop;
         $result = \Configuration::updateValue($key, $date);
 
         if ($result) {
-            $this->module->log(
+            $this->watchdog()->info(
                 "CalendarManager: override manuel [{$eventKey}][{$year}] = {$date}",
-                1
+                '', 'CalendarManager'
             );
         }
 
@@ -478,8 +500,17 @@ class CalendarManager
      */
     public function deleteManualOverride(string $eventKey, int $year): void
     {
-        $key = self::OVERRIDE_PREFIX . strtoupper($eventKey) . '_' . $year;
+        $key = self::OVERRIDE_PREFIX . strtoupper($eventKey) . '_' . $year . '_SHOP' . $this->idShop;
         \Configuration::deleteByName($key);
+        // Round 142 : trace Watchdog manquante — setManualOverride() en
+        // journalisait une, deleteManualOverride() aucune. Sans elle, la
+        // suppression d'un override réussit silencieusement : si le calcul
+        // automatique qui reprend ensuite donne une date erronée, rien ne
+        // relie le problème à cette suppression a posteriori.
+        $this->watchdog()->info(
+            "CalendarManager: override manuel supprimé [{$eventKey}][{$year}]",
+            '', 'CalendarManager'
+        );
     }
 
     /**
@@ -491,11 +522,15 @@ class CalendarManager
      */
     public function getAllManualOverrides(): array
     {
-        // Lit toutes les cles Configuration correspondant au prefixe
+        // Round 142 : filtre `_SHOP{idShop}` ajouté — sans lui, ce SELECT
+        // brut remontait les overrides de TOUTES les boutiques mélangés
+        // dans le tableau BO d'une seule (aucun moyen de les distinguer,
+        // la clé elle-même ne portait pas l'id boutique avant ce round).
         $rows = $this->db->executeS(
             "SELECT `name`, `value`
              FROM `" . _DB_PREFIX_ . "configuration`
-             WHERE `name` LIKE '" . pSQL(self::OVERRIDE_PREFIX) . "%'"
+             WHERE `name` LIKE '" . pSQL(self::OVERRIDE_PREFIX) . "%'
+               AND `name` LIKE '%\\_SHOP" . (int) $this->idShop . "'"
         );
 
         if (!is_array($rows)) {
@@ -507,9 +542,10 @@ class CalendarManager
 
         foreach ($rows as $row) {
             // Extrait event_key et year depuis le nom de la cle
-            // Format : NERIA_CAL_DATE_{EVENT_KEY}_{YEAR}
+            // Format : NERIA_CAL_DATE_{EVENT_KEY}_{YEAR}_SHOP{idShop}
             $suffix = substr($row['name'], strlen($prefix));
             $parts  = explode('_', $suffix);
+            array_pop($parts); // SHOP{idShop}, déjà filtré par la requête
             $year   = array_pop($parts);
             $eventKey = strtolower(implode('_', $parts));
 
@@ -1256,7 +1292,7 @@ class CalendarManager
      */
     public function getDateSource(string $eventKey, int $year): string
     {
-        $overrideKey = self::OVERRIDE_PREFIX . strtoupper($eventKey) . '_' . $year;
+        $overrideKey = self::OVERRIDE_PREFIX . strtoupper($eventKey) . '_' . $year . '_SHOP' . $this->idShop;
         if (\Configuration::get($overrideKey)) {
             return 'manuel';
         }

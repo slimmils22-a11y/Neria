@@ -564,17 +564,27 @@ class WatchdogManager
      * peuvent être déclenchés depuis n'importe quel contexte (cron, front,
      * BO) où Context::language ne reflète pas forcément la langue du
      * destinataire réel de l'alerte.
+     *
+     * @param int|null $idShop Round 142 : à transmettre explicitement depuis
+     *  tout appelant qui connaît sa boutique ($this->idShop capturé au
+     *  constructeur). Sans lui, Configuration::get() retombe sur le static
+     *  Shop::$context_id_shop — qui reste figé sur la boutique d'origine
+     *  pendant une boucle multi-boutique (simple réassignation de
+     *  Context->shop, jamais Shop::setContext()) — et peut renvoyer la
+     *  langue par défaut d'une AUTRE boutique que celle réellement en cours
+     *  de traitement. Impact limité au libellé des messages Watchdog, pas
+     *  de fuite de données client.
      */
-    public static function shopLang(): string
+    public static function shopLang(?int $idShop = null): string
     {
-        $idLang = (int) \Configuration::get('PS_LANG_DEFAULT');
+        $idLang = (int) \Configuration::get('PS_LANG_DEFAULT', null, null, $idShop);
         $iso    = $idLang ? \Language::getIsoById($idLang) : false;
         return $iso ?: 'en';
     }
 
     private function getShopLang(): string
     {
-        return self::shopLang();
+        return self::shopLang($this->idShop);
     }
 
     // ============================================================

@@ -259,7 +259,7 @@ class SeoApiManager
         $rows = array_values($rows);
         if (count($rows) < 2) {
             $prevLang = \AdminTranslator::currentLang();
-            \AdminTranslator::setLang(\WatchdogManager::shopLang());
+            \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
             $this->recordError(\AdminTranslator::t('msg.semrush_invalid_csv'));
             \AdminTranslator::setLang($prevLang);
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.semrush_invalid_csv'), '', 'SeoApiManager');
@@ -402,7 +402,7 @@ class SeoApiManager
             // toujours "HTTP 0" au marchand, impossible à diagnostiquer sans
             // accès aux logs serveur.
             $prevLang = \AdminTranslator::currentLang();
-            \AdminTranslator::setLang(\WatchdogManager::shopLang());
+            \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
             $this->recordError($curlErr !== '' ? $curlErr : \AdminTranslator::tVars('msg.moz_http_error', ['code' => $httpCode]));
             \AdminTranslator::setLang($prevLang);
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.moz_http_error', ['code' => $httpCode]), '', 'SeoApiManager');

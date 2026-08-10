@@ -208,7 +208,7 @@ class PostmasterManager
                 $detail = $response['error'] . ' — ' . ($response['error_description'] ?? '');
             } else {
                 $prevLang = \AdminTranslator::currentLang();
-                \AdminTranslator::setLang(\WatchdogManager::shopLang());
+                \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
                 $detail = \AdminTranslator::t('watchdog.empty_response');
                 \AdminTranslator::setLang($prevLang);
             }
