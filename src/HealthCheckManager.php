@@ -1024,7 +1024,7 @@ class HealthCheckManager
         $monthlySrc2 = $this->readModuleSrc($monthlyFile2);
         if ($monthlySrc2 === '') {
             $offenders[] = 'MonthlyReportManager.php introuvable';
-        } elseif (!preg_match('/function\s+checkAndSend[\s\S]{0,1200}?GET_LOCK\(.neria_monthly_report_check./', $monthlySrc2)) {
+        } elseif (!preg_match('/function\s+checkAndSend[\s\S]{0,1600}?GET_LOCK\(.neria_monthly_report_check./', $monthlySrc2)) {
             $offenders[] = 'MonthlyReportManager : checkAndSend() n\'utilise plus GET_LOCK (deux visites concurrentes pendant la fenêtre du 1er au 7 du mois pourraient de nouveau envoyer le rapport mensuel en double)';
         }
 
@@ -1117,7 +1117,7 @@ class HealthCheckManager
         $reportSrc = $this->readModuleSrc($reportFile);
         if ($reportSrc === '') {
             $offenders[] = 'MonthlyReportManager.php introuvable';
-        } elseif (!preg_match('/function\s+checkAndSend[\s\S]{0,2500}?Shop::getShops/', $reportSrc)
+        } elseif (!preg_match('/function\s+checkAndSend[\s\S]{0,2900}?Shop::getShops/', $reportSrc)
                || !preg_match('/CONFIG_LAST_SENT\s*\.\s*.\_.\s*\.\s*\$idShop/', $reportSrc)) {
             $offenders[] = 'MonthlyReportManager : checkAndSend() n\'itère plus sur chaque boutique avec un throttle dédié (une boutique pourrait de nouveau bloquer le rapport mensuel de toutes les autres)';
         }
@@ -4569,6 +4569,98 @@ class HealthCheckManager
             $offenders[] = 'MultiClientPreviewManager.php introuvable (garde-fou round 144 : filets ?? contre échec PCRE)';
         } elseif (substr_count($mcpSrc144, '?? $html') < 6) {
             $offenders[] = "MultiClientPreviewManager : moins de 6 filets '?? \$html' détectés — régression du bug corrigé le 09/08/2026 (round 144) : un échec PCRE (backtrack_limit dépassé) pourrait de nouveau vider l'aperçu ou provoquer un TypeError fatal selon le client simulé";
+        }
+
+        // Round 145 (2026-09-12) : MonthlyReportManager::checkAndSend() ne
+        // doit plus avoir de "fast exit" global sur CONFIG_ENABLED avant la
+        // boucle multi-boutique — revérifié PAR BOUTIQUE dans la boucle.
+        // getRecipients() doit rester scopé id_shop.
+        $mrFile145 = _PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php';
+        $mrSrc145 = $this->readModuleSrc($mrFile145);
+        if ($mrSrc145 === '') {
+            $offenders[] = 'MonthlyReportManager.php introuvable (garde-fou round 145 : CONFIG_ENABLED par boutique + getRecipients scopé)';
+        } else {
+            $posCAS145 = strpos($mrSrc145, 'public function checkAndSend(): void');
+            $posLoop145 = $posCAS145 !== false ? strpos($mrSrc145, 'foreach ($shops as $idShop) {', $posCAS145) : false;
+            $posEnabledInLoop145 = $posLoop145 !== false ? strpos($mrSrc145, "\Configuration::get(self::CONFIG_ENABLED, null, null, \$idShop)", $posLoop145) : false;
+            if ($posCAS145 === false || $posLoop145 === false || $posEnabledInLoop145 === false) {
+                $offenders[] = "MonthlyReportManager::checkAndSend() ne revérifie plus CONFIG_ENABLED avec idShop explicite dans la boucle — régression du bug corrigé le 09/08/2026 (round 145) : une boutique désactivée pourrait de nouveau court-circuiter la vérification de toutes les autres";
+            }
+            $preLoop145 = ($posCAS145 !== false && $posLoop145 !== false) ? substr($mrSrc145, $posCAS145, $posLoop145 - $posCAS145) : '';
+            if (strpos($preLoop145, 'if (!(int) \Configuration::get(self::CONFIG_ENABLED)) {') !== false) {
+                $offenders[] = "MonthlyReportManager::checkAndSend() a de nouveau un fast-exit global sur CONFIG_ENABLED avant la boucle multi-boutique — régression du bug corrigé le 09/08/2026 (round 145)";
+            }
+            $posRecip145 = strpos($mrSrc145, 'private function getRecipients(): array');
+            $recipBody145 = $posRecip145 !== false ? substr($mrSrc145, $posRecip145, 1500) : '';
+            if ($posRecip145 === false
+                || strpos($recipBody145, "\Configuration::get(self::CONFIG_RECIPIENTS, null, null, \$this->idShop)") === false
+                || strpos($recipBody145, "\Configuration::get('PS_SHOP_EMAIL', null, null, \$this->idShop)") === false
+            ) {
+                $offenders[] = "MonthlyReportManager::getRecipients() n'est plus scopé par \$this->idShop — régression du bug corrigé le 09/08/2026 (round 145) : le rapport d'une boutique pourrait de nouveau partir aux destinataires configurés pour une autre boutique";
+            }
+        }
+
+        // Round 145 (2026-09-12) : UpsellManager::findByAccessories()/
+        // findByCoPurchase()/findByCategoryBestseller() doivent filtrer le
+        // SUM de stock par id_shop.
+        $upFile145 = _PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php';
+        $upSrc145 = $this->readModuleSrc($upFile145);
+        if ($upSrc145 === '') {
+            $offenders[] = 'UpsellManager.php introuvable (garde-fou round 145 : stock upsell scopé boutique)';
+        } elseif (substr_count($upSrc145, "\$idShop !== null ? ' AND sa.id_shop = ' . (int) \$idShop : ''") < 3) {
+            $offenders[] = "UpsellManager : moins de 3 méthodes findBy*() filtrent le stock par id_shop — régression du bug corrigé le 09/08/2026 (round 145) : un produit épuisé sur la boutique du destinataire mais en stock ailleurs redeviendrait suggéré à tort en upsell";
+        }
+
+        // Round 145 (2026-09-12) : TranslationEngine::update() doit
+        // normaliser la langue (normalizeLang()), comme get()/getAll().
+        $teFile145 = _PS_MODULE_DIR_ . $this->module->name . '/src/TranslationEngine.php';
+        $teSrc145 = $this->readModuleSrc($teFile145);
+        if ($teSrc145 === '') {
+            $offenders[] = 'TranslationEngine.php introuvable (garde-fou round 145 : update() normalise la langue)';
+        } else {
+            $posUpd145 = strpos($teSrc145, 'string $key,' . "\n" . '        string $value' . "\n" . '    ): bool {');
+            $updBody145 = $posUpd145 !== false ? substr($teSrc145, $posUpd145, 800) : '';
+            if ($posUpd145 === false || strpos($updBody145, '$lang  = $this->normalizeLang($lang);') === false) {
+                $offenders[] = "TranslationEngine::update() ne normalise plus la langue avant écriture — régression du bug corrigé le 09/08/2026 (round 145) : une traduction personnalisée écrite avec un code langue non normalisé (majuscules, alias PS) redeviendrait introuvable au rendu";
+            }
+        }
+
+        // Round 145 (2026-09-12) : SignatureGenerator — les anciens fichiers
+        // PNG doivent être supprimés au changement de style
+        // (neria.php::generate_signature), et generate() doit exposer le
+        // style RÉELLEMENT rendu via $resolvedStyle.
+        $sgFile145 = _PS_MODULE_DIR_ . $this->module->name . '/src/SignatureGenerator.php';
+        $sgSrc145 = $this->readModuleSrc($sgFile145);
+        if ($sgSrc145 === '') {
+            $offenders[] = 'SignatureGenerator.php introuvable (garde-fou round 145 : resolvedStyle + orphelins nettoyés)';
+        } else {
+            $posGetFont145 = strpos($sgSrc145, 'private function getFontPath(string $style, ?string &$resolvedStyle = null): ?string');
+            if ($posGetFont145 === false) {
+                $offenders[] = "SignatureGenerator::getFontPath() n'accepte plus \$resolvedStyle par référence — régression du bug corrigé le 09/08/2026 (round 145) : le style réellement rendu ne serait plus distinguable du style demandé";
+            }
+            $posGen145 = strpos($sgSrc145, 'int    $idShop = 1,');
+            $genBody145 = $posGen145 !== false ? substr($sgSrc145, $posGen145, 1700) : '';
+            if ($posGen145 === false || strpos($genBody145, 'buildFilename($idShop, $resolvedStyle ?? $style)') === false) {
+                $offenders[] = "SignatureGenerator::generate() ne construit plus le nom de fichier avec le style réellement résolu — régression du bug corrigé le 09/08/2026 (round 145) : métadonnée mensongère si la police demandée est absente";
+            }
+        }
+        $mainSrc145 = $this->readModuleSrc($mainFile144);
+        if ($mainSrc145 !== '' && strpos($mainSrc145, '$sigGenerator->delete($idShop);') === false) {
+            $offenders[] = "neria.php::generate_signature n'appelle plus SignatureGenerator::delete() avant de régénérer — régression du bug corrigé le 09/08/2026 (round 145) : les anciens fichiers PNG de signature s'accumuleraient de nouveau sur disque à chaque changement de style";
+        }
+
+        // Round 145 (2026-09-12) : EmailRenderer::resolveSignature() doit
+        // ajouter un paramètre de cache-busting (?v=filemtime) à l'URL.
+        $erFile145 = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
+        $erSrc145 = $this->readModuleSrc($erFile145);
+        if ($erSrc145 === '') {
+            $offenders[] = 'EmailRenderer.php introuvable (garde-fou round 145 : cache-busting signature)';
+        } else {
+            $posRS145 = strpos($erSrc145, 'private function resolveSignature(int $idShop): array');
+            $rsBody145 = $posRS145 !== false ? substr($erSrc145, $posRS145, 1700) : '';
+            if ($posRS145 === false || strpos($rsBody145, "'v=' . \$mtime") === false) {
+                $offenders[] = "EmailRenderer::resolveSignature() n'ajoute plus de cache-busting à l'URL de signature — régression du bug corrigé le 09/08/2026 (round 145) : le cache navigateur/client email afficherait de nouveau une version périmée après régénération";
+            }
         }
 
         if ($offenders) {
