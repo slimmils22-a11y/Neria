@@ -4489,6 +4489,88 @@ class HealthCheckManager
             }
         }
 
+        // Round 144 (2026-09-11) : GdprAuditManager::purgeCustomerData() ne
+        // doit plus matcher le payload webhook par LIKE '%email%' (sous-
+        // chaîne non ancrée) mais décoder chaque payload et comparer les
+        // valeurs EXACTES (customer_id en priorité).
+        // encryptExistingRecords() doit rester scopé id_shop. Le rapport PDF
+        // doit compter 4 axes (+1 de plus qu'avant) dans son dénominateur.
+        $gdprFile144 = _PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php';
+        $gdprSrc144 = $this->readModuleSrc($gdprFile144);
+        if ($gdprSrc144 === '') {
+            $offenders[] = 'GdprAuditManager.php introuvable (garde-fou round 144 : purge webhook exacte + encryptExistingRecords scopé + dénominateur rapport)';
+        } else {
+            if (strpos($gdprSrc144, "(int) (\$decoded['customer_id'] ?? 0) === \$idCustomer") === false) {
+                $offenders[] = "GdprAuditManager::purgeCustomerData() ne compare plus le customer_id exact du payload webhook — régression du bug corrigé le 09/08/2026 (round 144) : un LIKE '%email%' non ancré purgerait de nouveau les données d'un tiers non consentant sur simple coïncidence de sous-chaîne";
+            }
+            $posEncrypt144 = strpos($gdprSrc144, 'public function encryptExistingRecords(): int');
+            $encryptBody144 = $posEncrypt144 !== false ? substr($gdprSrc144, $posEncrypt144, 2200) : '';
+            if ($posEncrypt144 === false || strpos($encryptBody144, "WHERE `id_shop` = \" . (int) \$this->idShop . \"") === false) {
+                $offenders[] = "GdprAuditManager::encryptExistingRecords() n'est plus scopé par boutique — régression du bug corrigé le 09/08/2026 (round 144) : une action déclenchée depuis une boutique chiffrerait de nouveau les données de toutes les autres";
+            }
+            if (strpos($gdprSrc144, "count(\$audit['retention']['rows']) + 3 + 1 + 1") === false) {
+                $offenders[] = "GdprAuditManager::generateReport() n'affiche plus le dénominateur correct (4 axes) — régression du bug corrigé le 09/08/2026 (round 144) : le rapport PDF de conformité afficherait de nouveau un total de critères incohérent avec le numérateur";
+            }
+        }
+
+        // Round 144 (2026-09-11) : WebhookManager::cleanup() doit être
+        // appelée AVANT les return précoces de validation URL/secret (pas
+        // seulement dans le finally qui les suit), et processQueue() doit
+        // isoler chaque ligne du lot dans son propre try/catch.
+        $whFile144 = _PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php';
+        $whSrc144 = $this->readModuleSrc($whFile144);
+        if ($whSrc144 === '') {
+            $offenders[] = 'WebhookManager.php introuvable (garde-fou round 144 : cleanup atteignable + try/catch par ligne)';
+        } else {
+            $posPQ144 = strpos($whSrc144, 'public function processQueue(): void');
+            $posCleanupCall144 = strpos($whSrc144, 'if (random_int(1, 10) === 1) {', $posPQ144);
+            $posUrlReturn144 = strpos($whSrc144, "if (\$url === '' || !self::isPublicUrl(\$url)) {", $posPQ144);
+            if ($posPQ144 === false || $posCleanupCall144 === false || $posUrlReturn144 === false || $posCleanupCall144 > $posUrlReturn144) {
+                $offenders[] = "WebhookManager::processQueue() n'appelle plus cleanup() avant ses return précoces de validation URL/secret — régression du bug corrigé le 09/08/2026 (round 144) : cleanup() redeviendrait inatteignable si la clé de chiffrement maîtresse devient illisible durablement, ps_neria_webhook_queue croîtrait sans borne";
+            }
+            $loopBody144 = $posPQ144 !== false ? substr($whSrc144, strpos($whSrc144, 'foreach ($rows as $row) {', $posPQ144), 3600) : '';
+            if (strpos($loopBody144, 'watchdog.webhook_row_exception') === false) {
+                $offenders[] = "WebhookManager::processQueue() n'isole plus chaque ligne du lot dans son propre try/catch — régression du bug corrigé le 09/08/2026 (round 144) : une exception sur une ligne interromprait de nouveau le traitement de tout le reste du lot";
+            }
+        }
+
+        // Round 144 (2026-09-11) : DomainReputationManager doit invalider
+        // son cache au changement d'expéditeur, checkDkim()/checkPtr()
+        // doivent signaler une troncature par budget DNS (timed_out).
+        $drFile144 = _PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php';
+        $drSrc144 = $this->readModuleSrc($drFile144);
+        if ($drSrc144 === '') {
+            $offenders[] = 'DomainReputationManager.php introuvable (garde-fou round 144 : cache invalidé + DKIM/PTR timed_out)';
+        } else {
+            if (strpos($drSrc144, 'public static function invalidateCache(int $idShop): void') === false) {
+                $offenders[] = "DomainReputationManager::invalidateCache() introuvable — régression du bug corrigé le 09/08/2026 (round 144) : le tableau de bord afficherait de nouveau jusqu'à 24h le score de l'ancien expéditeur après un changement";
+            }
+            if (strpos($drSrc144, "'record' => null, 'timed_out' => true];") === false) {
+                $offenders[] = "DomainReputationManager::checkDkim() ne signale plus 'timed_out' — régression du bug corrigé le 09/08/2026 (round 144) : une troncature DNS serait de nouveau traitée comme un DKIM absent après vérification complète";
+            }
+            $posPtr144 = strpos($drSrc144, 'private function checkPtr(string $ip, ?float $deadline = null): array');
+            $ptrBody144 = $posPtr144 !== false ? substr($drSrc144, $posPtr144, 1100) : '';
+            if ($posPtr144 === false || strpos($ptrBody144, "return ['found' => false, 'hostname' => null, 'timed_out' => true];") === false) {
+                $offenders[] = "DomainReputationManager::checkPtr() ne respecte plus le budget DNS partagé — régression du bug corrigé le 09/08/2026 (round 144) : gethostbyaddr()/gethostbyname() pourraient de nouveau bloquer un visiteur front même quand le budget est déjà épuisé";
+            }
+        }
+        $mainFile144 = _PS_MODULE_DIR_ . $this->module->name . '/' . $this->module->name . '.php';
+        $mainSrc144 = $this->readModuleSrc($mainFile144);
+        if ($mainSrc144 !== '' && strpos($mainSrc144, 'DomainReputationManager::invalidateCache((int) $this->context->shop->id)') === false) {
+            $offenders[] = "neria.php::save_senders n'appelle plus DomainReputationManager::invalidateCache() — régression du bug corrigé le 09/08/2026 (round 144)";
+        }
+
+        // Round 144 (2026-09-11) : MultiClientPreviewManager — 6 méthodes de
+        // transformation doivent avoir un filet `?? $html`/`?? $css` contre
+        // un preg_replace()/preg_replace_callback() qui renverrait null.
+        $mcpFile144 = _PS_MODULE_DIR_ . $this->module->name . '/src/MultiClientPreviewManager.php';
+        $mcpSrc144 = $this->readModuleSrc($mcpFile144);
+        if ($mcpSrc144 === '') {
+            $offenders[] = 'MultiClientPreviewManager.php introuvable (garde-fou round 144 : filets ?? contre échec PCRE)';
+        } elseif (substr_count($mcpSrc144, '?? $html') < 6) {
+            $offenders[] = "MultiClientPreviewManager : moins de 6 filets '?? \$html' détectés — régression du bug corrigé le 09/08/2026 (round 144) : un échec PCRE (backtrack_limit dépassé) pourrait de nouveau vider l'aperçu ou provoquer un TypeError fatal selon le client simulé";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
