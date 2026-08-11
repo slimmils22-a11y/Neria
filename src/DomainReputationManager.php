@@ -118,6 +118,24 @@ class DomainReputationManager
     // ============================================================
 
     /**
+     * Invalide le cache de réputation pour une boutique donnée — round 144 :
+     * rien n'appelait jamais cette invalidation quand le marchand changeait
+     * son expéditeur transactionnel (neria.php, action save_senders). Le
+     * tableau de bord continuait alors d'afficher jusqu'à 24h le score/grade
+     * de l'ANCIEN domaine, masquant le fait qu'un nouveau domaine fraîchement
+     * configuré (sans SPF/DKIM/DMARC en place) n'a en réalité aucune
+     * authentification — précisément le moment où ce risque est le plus
+     * élevé. getSenderDomain() lit NERIA_SENDERS_JSON (à défaut
+     * PS_SHOP_EMAIL) pour déterminer le domaine à auditer : c'est la même
+     * donnée que save_senders modifie.
+     */
+    public static function invalidateCache(int $idShop): void
+    {
+        \Configuration::deleteFromContext(self::CONFIG_LAST_CHECK, null, $idShop);
+        \Configuration::deleteFromContext(self::CONFIG_CACHE, null, $idShop);
+    }
+
+    /**
      * Retourne le rapport (cache ou vérification fraîche).
      */
     public function getReport(bool $forceRefresh = false): array
@@ -185,7 +203,7 @@ class DomainReputationManager
         $dkim   = $this->checkDkim($domain, $deadline);
         $dmarc  = $this->checkDmarc($domain);
         $mx     = $this->checkMx($domain);
-        $ptr    = ($ip && !$this->isPrivateIp($ip)) ? $this->checkPtr($ip) : ['found' => false, 'hostname' => null, 'skipped' => true];
+        $ptr    = ($ip && !$this->isPrivateIp($ip)) ? $this->checkPtr($ip, $deadline) : ['found' => false, 'hostname' => null, 'skipped' => true];
         $bimi   = $this->checkBimi($domain, $dmarc);
         $bl     = ($ip && !$this->isPrivateIp($ip))
             ? $this->checkBlacklists($ip, $deadline)
@@ -274,12 +292,20 @@ class DomainReputationManager
     private function checkDkim(string $domain, ?float $deadline = null): array
     {
         if (!$domain) {
-            return ['found' => false, 'selector' => null, 'record' => null];
+            return ['found' => false, 'selector' => null, 'record' => null, 'timed_out' => false];
         }
 
         foreach (self::DKIM_SELECTORS as $selector) {
             if ($deadline !== null && microtime(true) >= $deadline) {
-                break; // budget de temps DNS épuisé — résultat partiel plutôt qu'un blocage prolongé
+                // Round 144 : budget de temps DNS épuisé AVANT d'avoir
+                // interrogé tous les sélecteurs — contrairement à
+                // checkBlacklists() (round 74), ce cas n'était jamais
+                // distingué d'un "DKIM absent après vérification complète" :
+                // computeScore() traitait les deux identiquement (0 point),
+                // faussant silencieusement le score sur un résolveur DNS
+                // lent alors que le domaine peut avoir du DKIM configuré sur
+                // un sélecteur non encore atteint.
+                return ['found' => false, 'selector' => null, 'record' => null, 'timed_out' => true];
             }
             $host    = $selector . '._domainkey.' . $domain;
             $records = @dns_get_record($host, DNS_TXT) ?: [];
@@ -290,14 +316,15 @@ class DomainReputationManager
                 }
                 if (str_contains(strtolower($txt), 'v=dkim1') || preg_match('/p=[A-Za-z0-9+\/]{10,}/', $txt)) {
                     return [
-                        'found'    => true,
-                        'selector' => $selector,
-                        'record'   => substr($txt, 0, 100) . (strlen($txt) > 100 ? '…' : ''),
+                        'found'     => true,
+                        'selector'  => $selector,
+                        'record'    => substr($txt, 0, 100) . (strlen($txt) > 100 ? '…' : ''),
+                        'timed_out' => false,
                     ];
                 }
             }
         }
-        return ['found' => false, 'selector' => null, 'record' => null];
+        return ['found' => false, 'selector' => null, 'record' => null, 'timed_out' => false];
     }
 
     private function checkDmarc(string $domain): array
@@ -341,8 +368,22 @@ class DomainReputationManager
         ];
     }
 
-    private function checkPtr(string $ip): array
+    private function checkPtr(string $ip, ?float $deadline = null): array
     {
+        // Round 144 : gethostbyaddr()/gethostbyname() sont des appels
+        // résolveur système BLOQUANTS sans paramètre de timeout applicatif
+        // (contrairement à dns_get_record(), utilisé par checkDkim()/
+        // checkBlacklists()) — ils échappaient donc totalement au budget
+        // DNS_TIME_BUDGET_SECS, alors que le docblock de ce budget justifie
+        // son existence précisément par le fait que ce contrôle tourne dans
+        // le chemin d'exécution d'un visiteur front (hookDisplayHeader,
+        // fallback sans cron serveur). On ne peut pas borner la durée de
+        // ces deux appels eux-mêmes, mais on évite au moins de les lancer
+        // en plus d'un budget déjà épuisé par checkDkim() ci-dessus.
+        if ($deadline !== null && microtime(true) >= $deadline) {
+            return ['found' => false, 'hostname' => null, 'timed_out' => true];
+        }
+
         $hostname = @gethostbyaddr($ip);
 
         // gethostbyaddr retourne l'IP elle-même si aucun PTR n'existe
@@ -453,9 +494,17 @@ class DomainReputationManager
             };
         }
 
-        // DKIM — 25 pts
+        // DKIM — 25 pts. Round 144 : score neutre (12/25, même valeur que le
+        // repli SPF par défaut) si la vérification a été tronquée par le
+        // budget DNS avant d'avoir interrogé tous les sélecteurs — sinon un
+        // domaine avec du DKIM réellement configuré sur un sélecteur non
+        // encore atteint (résolveur lent) perdait les 25 points en entier,
+        // comme s'il n'avait aucun DKIM. Même principe que les blacklists
+        // ci-dessous (round 74).
         if ($dkim['found']) {
             $score += 25;
+        } elseif (!empty($dkim['timed_out'])) {
+            $score += 12;
         }
 
         // DMARC — 20 pts
@@ -476,6 +525,12 @@ class DomainReputationManager
         if (!empty($ptr['skipped']) || !empty($ptr['valid'])) {
             $score += 5;
         } elseif (!empty($ptr['found'])) {
+            $score += 2;
+        } elseif (!empty($ptr['timed_out'])) {
+            // Round 144 : score neutre (2/5) si le budget DNS était déjà
+            // épuisé avant même de tenter la résolution PTR — pas de points
+            // pleins (non vérifié) mais pas 0 non plus (pas la preuve d'une
+            // absence de PTR).
             $score += 2;
         }
 

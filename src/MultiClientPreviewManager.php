@@ -169,8 +169,15 @@ class MultiClientPreviewManager
      */
     private function stripStyleAndLinkTags(string $html): string
     {
-        $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
-        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html);
+        // Round 144 : filet ?? $html à chaque étape — même correctif déjà
+        // appliqué à replaceInInlineStyles() (voir son commentaire) mais
+        // jamais répliqué ici. preg_replace() renvoie null en cas d'erreur
+        // PCRE (backtrack_limit dépassé sur un CSS très dense, mémoire) ;
+        // sans ce filet, la 2e ligne recevait null en argument $subject
+        // (traité comme chaîne vide en PHP 8.1+) et la méthode renvoyait un
+        // aperçu totalement vide, silencieusement.
+        $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html) ?? $html;
+        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html) ?? $html;
         return $html;
     }
 
@@ -218,15 +225,17 @@ class MultiClientPreviewManager
             '/\bgap\s*:[^;"\'}]+;?/i'             => '',
         ]);
 
-        // Transforme aussi les blocs <style>
+        // Transforme aussi les blocs <style> — round 144 : filets ?? $css /
+        // ?? $html contre un preg_replace()/preg_replace_callback() qui
+        // renverrait null (erreur PCRE), voir stripStyleAndLinkTags().
         $html = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/si', function ($m) {
             $css = $m[1];
-            $css = preg_replace('/background-image\s*:[^;{}]+;?/i', '', $css);
-            $css = preg_replace('/border-radius\s*:[^;{}]+;?/i', '', $css);
-            $css = preg_replace('/display\s*:\s*flex[^;{}]*;?/i', 'display:block;', $css);
-            $css = preg_replace('/\bgap\s*:[^;{}]+;?/i', '', $css);
+            $css = preg_replace('/background-image\s*:[^;{}]+;?/i', '', $css) ?? $css;
+            $css = preg_replace('/border-radius\s*:[^;{}]+;?/i', '', $css) ?? $css;
+            $css = preg_replace('/display\s*:\s*flex[^;{}]*;?/i', 'display:block;', $css) ?? $css;
+            $css = preg_replace('/\bgap\s*:[^;{}]+;?/i', '', $css) ?? $css;
             return '<style>' . $css . '</style>';
-        }, $html);
+        }, $html) ?? $html;
 
         return $this->addBanner($html, 'outlook');
     }
@@ -243,10 +252,11 @@ class MultiClientPreviewManager
      */
     private function stripMediaQueries(string $html): string
     {
+        // Round 144 : filets ?? — voir stripStyleAndLinkTags().
         return preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/si', function ($m) {
-            $css = preg_replace('/@media\b[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/si', '', $m[1]);
+            $css = preg_replace('/@media\b[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/si', '', $m[1]) ?? $m[1];
             return '<style>' . $css . '</style>';
-        }, $html);
+        }, $html) ?? $html;
     }
 
     private function transformYahoo(string $html): string
@@ -261,7 +271,8 @@ class MultiClientPreviewManager
      */
     private function stripLinkTagsAndShadows(string $html): string
     {
-        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html);
+        // Round 144 : filet ?? — voir stripStyleAndLinkTags().
+        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html) ?? $html;
         $html = $this->replaceInInlineStyles($html, [
             '/(?:text|box)-shadow\s*:[^;"\'}]+;?/i' => '',
         ]);
@@ -284,7 +295,8 @@ class MultiClientPreviewManager
      */
     private function stripStyleAndBackgroundImage(string $html): string
     {
-        $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
+        // Round 144 : filet ?? — voir stripStyleAndLinkTags().
+        $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html) ?? $html;
         $html = $this->replaceInInlineStyles($html, [
             '/background-image\s*:[^;"\'}]+;?/i' => '',
         ]);
@@ -298,12 +310,13 @@ class MultiClientPreviewManager
 
     private function transformSamsungEmail(string $html): string
     {
-        // Samsung Email (Android) ignore les @media queries et le flexbox
+        // Samsung Email (Android) ignore les @media queries et le flexbox.
+        // Round 144 : filets ?? — voir stripStyleAndLinkTags().
         $html = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/si', function ($m) {
-            $css = preg_replace('/@media\b[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/si', '', $m[1]);
-            $css = preg_replace('/display\s*:\s*flex[^;{}]*;?/i', 'display:block;', $css);
+            $css = preg_replace('/@media\b[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/si', '', $m[1]) ?? $m[1];
+            $css = preg_replace('/display\s*:\s*flex[^;{}]*;?/i', 'display:block;', $css) ?? $css;
             return '<style>' . $css . '</style>';
-        }, $html);
+        }, $html) ?? $html;
         return $this->addBanner($html, 'samsung_email');
     }
 
@@ -335,21 +348,23 @@ class MultiClientPreviewManager
             '/(?:text|box)-shadow\s*:[^;"\'}]+;?/i' => '',
             '/\bposition\s*:[^;"\'}]+;?/i'          => '',
         ]);
+        // Round 144 : filets ?? — voir stripStyleAndLinkTags().
         $html = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/si', function ($m) {
-            $css = preg_replace('/border-radius\s*:[^;{}]+;?/i', '', $m[1]);
-            $css = preg_replace('/(?:text|box)-shadow\s*:[^;{}]+;?/i', '', $css);
-            $css = preg_replace('/\bposition\s*:[^;{}]+;?/i', '', $css);
+            $css = preg_replace('/border-radius\s*:[^;{}]+;?/i', '', $m[1]) ?? $m[1];
+            $css = preg_replace('/(?:text|box)-shadow\s*:[^;{}]+;?/i', '', $css) ?? $css;
+            $css = preg_replace('/\bposition\s*:[^;{}]+;?/i', '', $css) ?? $css;
             return '<style>' . $css . '</style>';
-        }, $html);
+        }, $html) ?? $html;
         return $this->addBanner($html, 'protonmail');
     }
 
     private function transformJpCarrier(string $html): string
     {
-        // Mail opérateur japonais : le plus restrictif — tout le CSS est supprimé
-        $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
-        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html);
-        $html = preg_replace('/\sstyle\s*=\s*(["\']).*?\1/i', '', $html);
+        // Mail opérateur japonais : le plus restrictif — tout le CSS est
+        // supprimé. Round 144 : filets ?? — voir stripStyleAndLinkTags().
+        $html = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html) ?? $html;
+        $html = preg_replace('/<link\b[^>]+rel=["\']stylesheet["\'][^>]*\/?>/i', '', $html) ?? $html;
+        $html = preg_replace('/\sstyle\s*=\s*(["\']).*?\1/i', '', $html) ?? $html;
         return $this->addBanner($html, 'jp_carrier');
     }
 

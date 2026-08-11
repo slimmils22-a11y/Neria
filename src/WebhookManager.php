@@ -222,6 +222,20 @@ class WebhookManager
 
     public function processQueue(): void
     {
+        // Round 144 : cleanup() déplacée ICI, avant les return précoces
+        // (URL invalide / secret illisible) ci-dessous — auparavant, la
+        // purge des lignes terminales anciennes ne tournait que dans le
+        // finally du bloc try qui suit ces checks. Si la clé de chiffrement
+        // maîtresse devient illisible durablement (rotation ratée, fichier
+        // de clé corrompu), processQueue() retourne systématiquement AVANT
+        // ce finally : cleanup() ne tournait alors plus jamais pour cette
+        // boutique, et ps_neria_webhook_queue croissait sans borne (aucune
+        // ligne ne pouvant plus non plus être traitée). Probabiliste (1 sur
+        // 10), même logique que QueueManager::purgeOldEntries().
+        if (random_int(1, 10) === 1) {
+            $this->cleanup();
+        }
+
         // Round 116 : $this->idShop transmis explicitement (même piège que
         // trigger() ci-dessus).
         $url    = (string) \Configuration::get(self::CONFIG_URL, null, null, $this->idShop);
@@ -300,46 +314,67 @@ class WebhookManager
             $definitivelyFailed = 0;
 
             foreach ($rows as $row) {
-            $id       = (int) $row['id_webhook'];
-            $attempts = (int) $row['attempts'] + 1;
+            $id = (int) $row['id_webhook'];
+            try {
+                $attempts = (int) $row['attempts'] + 1;
 
-            // Séquence d'ordre injectée ici (à l'envoi) plutôt qu'à l'écriture :
-            // id_webhook (auto-incrémenté, donc strictement croissant) sert de
-            // marqueur d'ordre fiable sans dépendre d'une seconde requête après
-            // l'INSERT initial. Voir le commentaire dans trigger().
-            $decodedForSeq = json_decode($row['payload'], true);
-            if (!is_array($decodedForSeq)) {
-                $decodedForSeq = [];
-            }
-            $decodedForSeq['sequence'] = $id;
-            $payloadWithSeq = json_encode($decodedForSeq, JSON_UNESCAPED_UNICODE);
-            $payload = ($payloadWithSeq !== false) ? $payloadWithSeq : $row['payload'];
+                // Séquence d'ordre injectée ici (à l'envoi) plutôt qu'à l'écriture :
+                // id_webhook (auto-incrémenté, donc strictement croissant) sert de
+                // marqueur d'ordre fiable sans dépendre d'une seconde requête après
+                // l'INSERT initial. Voir le commentaire dans trigger().
+                $decodedForSeq = json_decode($row['payload'], true);
+                if (!is_array($decodedForSeq)) {
+                    $decodedForSeq = [];
+                }
+                $decodedForSeq['sequence'] = $id;
+                $payloadWithSeq = json_encode($decodedForSeq, JSON_UNESCAPED_UNICODE);
+                $payload = ($payloadWithSeq !== false) ? $payloadWithSeq : $row['payload'];
 
-            // Incrémenter les tentatives avant l'envoi (évite les doublons parallèles)
-            $this->db->execute(
-                "UPDATE `{$table}`
-                 SET `attempts` = {$attempts}, `last_attempt` = '{$now}'
-                 WHERE `id_webhook` = {$id}"
-            );
-
-            $ok = $this->fire($url, $secret, $payload);
-
-            if ($ok) {
+                // Incrémenter les tentatives avant l'envoi (évite les doublons parallèles)
                 $this->db->execute(
-                    "UPDATE `{$table}` SET `status` = 'done' WHERE `id_webhook` = {$id}"
+                    "UPDATE `{$table}`
+                     SET `attempts` = {$attempts}, `last_attempt` = '{$now}'
+                     WHERE `id_webhook` = {$id}"
                 );
-                $sent++;
-            } elseif ($attempts >= self::MAX_ATTEMPTS) {
-                $this->db->execute(
-                    "UPDATE `{$table}` SET `status` = 'failed' WHERE `id_webhook` = {$id}"
-                );
-                $definitivelyFailed++;
-                $this->watchdog()->warning(
-                    \WatchdogManager::i18nMsg('watchdog.webhook_definitively_failed', [
-                        'event'   => $row['event'],
-                        'max'     => self::MAX_ATTEMPTS,
-                        'url'     => $url,
-                        'timeout' => self::TIMEOUT_SECS,
+
+                $ok = $this->fire($url, $secret, $payload);
+
+                if ($ok) {
+                    $this->db->execute(
+                        "UPDATE `{$table}` SET `status` = 'done' WHERE `id_webhook` = {$id}"
+                    );
+                    $sent++;
+                } elseif ($attempts >= self::MAX_ATTEMPTS) {
+                    $this->db->execute(
+                        "UPDATE `{$table}` SET `status` = 'failed' WHERE `id_webhook` = {$id}"
+                    );
+                    $definitivelyFailed++;
+                    $this->watchdog()->warning(
+                        \WatchdogManager::i18nMsg('watchdog.webhook_definitively_failed', [
+                            'event'   => $row['event'],
+                            'max'     => self::MAX_ATTEMPTS,
+                            'url'     => $url,
+                            'timeout' => self::TIMEOUT_SECS,
+                        ]),
+                        '', 'WebhookManager'
+                    );
+                }
+            } catch (\Throwable $e) {
+                // Round 144 : try/catch PAR LIGNE — même schéma que
+                // QueueManager::processSingle(). Sans lui, une exception sur
+                // UNE ligne (perte de connexion DB transitoire, échec
+                // d'écriture Watchdog dans fire()) remontait hors du
+                // foreach, hors du try englobant, et TOUTES les lignes
+                // suivantes du lot restaient silencieusement non traitées
+                // pour ce passage — contrairement à QueueManager, qui
+                // continue sur les lignes restantes du lot malgré l'échec
+                // d'une ligne isolée. La ligne reste 'pending' (attempts
+                // déjà incrémenté ci-dessus si l'UPDATE a réussi avant
+                // l'exception) et sera reprise au prochain passage du cron.
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.webhook_row_exception', [
+                        'id'    => $id,
+                        'error' => $e->getMessage(),
                     ]),
                     '', 'WebhookManager'
                 );
@@ -365,15 +400,8 @@ class WebhookManager
             );
         }
         } finally {
-            // Purge des lignes terminales anciennes — cleanup() existait déjà
-            // mais n'était appelée nulle part : ps_neria_webhook_queue
-            // s'accumulait indéfiniment. Placé dans ce finally (et non après
-            // le traitement du batch) pour tourner même quand la file est
-            // vide (return précoce ligne ~272). Probabiliste (1 sur 10),
-            // même logique que QueueManager::purgeOldEntries().
-            if (random_int(1, 10) === 1) {
-                $this->cleanup();
-            }
+            // cleanup() appelée en tout début de méthode désormais (round
+            // 144) — voir son commentaire plus haut.
             $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
         }
     }

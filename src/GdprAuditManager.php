@@ -669,9 +669,16 @@ class GdprAuditManager
         $done  = 0;
 
         do {
+            // Round 144 : scopé par id_shop — contrairement au reste du
+            // fichier (auditRetention(), purgeTable(), auditEncryption()),
+            // cette méthode chiffrait TOUTES les boutiques dès qu'un
+            // marchand déclenchait l'action depuis la sienne, effet de bord
+            // cross-boutique non maîtrisé et incohérent avec la discipline
+            // appliquée partout ailleurs dans ce même fichier.
             $rows = $this->db->executeS(
                 "SELECT `id_stat`, `rendered_vars` FROM `{$table}`
-                 WHERE `rendered_vars` IS NOT NULL
+                 WHERE `id_shop` = " . (int) $this->idShop . "
+                   AND `rendered_vars` IS NOT NULL
                    AND `rendered_vars` != ''
                    AND `rendered_vars` NOT LIKE 'ENC:%'
                  LIMIT 200"
@@ -869,31 +876,50 @@ class GdprAuditManager
         }
 
         // neria_webhook_queue : pas de référence client directe, mais le
-        // payload JSON peut contenir l'email du client (has_pii=true dans
-        // REGISTRY). Purge best-effort par recherche de l'email dans le
-        // payload — auparavant SEULE la purge automatique par ancienneté
-        // (12 mois, si NERIA_GDPR_AUTO_PURGE_ENABLED activé) y touchait,
-        // jamais une demande RGPD explicite : ce n'est pas un substitut
-        // légal au droit à l'effacement immédiat.
-        if ($email !== '') {
-            // Échapper les métacaractères LIKE (% et _) avant pSQL() : pSQL()
-            // échappe guillemets/backslashes mais pas la sémantique LIKE, et
-            // '_' est un caractère valide dans une adresse email (ex.
-            // john_doe@…) — sans échappement il matche n'importe quel
-            // caractère et peut faire purger les données d'un tiers.
-            $emailLike = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], strtolower($email));
-            $emailSql = pSQL($emailLike);
+        // payload JSON peut contenir l'email/customer_id du client
+        // (has_pii=true dans REGISTRY). Purge best-effort — auparavant SEULE
+        // la purge automatique par ancienneté (12 mois, si
+        // NERIA_GDPR_AUTO_PURGE_ENABLED activé) y touchait, jamais une
+        // demande RGPD explicite : ce n'est pas un substitut légal au droit
+        // à l'effacement immédiat.
+        //
+        // Round 144 : le matching se faisait par SQL LIKE '%email%' — une
+        // simple recherche de SOUS-CHAÎNE, sans ancrage sur les délimiteurs
+        // JSON. Un client B dont l'email contient celui du client A comme
+        // sous-chaîne (ex. "bigjean@x.com" contient "jean@x.com") voyait sa
+        // propre ligne supprimée par la demande d'effacement de A — perte
+        // de données irréversible pour un tiers non consentant. Corrigé en
+        // décodant chaque payload en PHP et en comparant les valeurs EXACTES
+        // (customer_id numérique en priorité — c'est la seule donnée
+        // réellement présente dans les payloads actuels ; repli sur une
+        // comparaison stricte, pas une sous-chaîne, sur toute valeur string
+        // du payload égale à $email, pour couvrir un futur événement qui
+        // embarquerait l'email).
+        if ($idCustomer > 0 || $email !== '') {
             $fullWh = _DB_PREFIX_ . 'neria_webhook_queue';
             $whExists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($fullWh) . "'");
             if (is_array($whExists) && !empty($whExists)) {
-                $n = (int) $this->db->getValue(
-                    "SELECT COUNT(*) FROM `{$fullWh}` WHERE LOWER(`payload`) LIKE '%{$emailSql}%'"
-                );
-                if ($n > 0) {
+                $emailLower = strtolower($email);
+                $rows = $this->db->executeS("SELECT `id_webhook`, `payload` FROM `{$fullWh}`");
+                $idsToDelete = [];
+                if (is_array($rows)) {
+                    foreach ($rows as $row) {
+                        $decoded = json_decode((string) $row['payload'], true);
+                        if (!is_array($decoded)) {
+                            continue;
+                        }
+                        $matches = ($idCustomer > 0 && (int) ($decoded['customer_id'] ?? 0) === $idCustomer)
+                            || ($emailLower !== '' && in_array($emailLower, array_map('strtolower', array_filter($decoded, 'is_string')), true));
+                        if ($matches) {
+                            $idsToDelete[] = (int) $row['id_webhook'];
+                        }
+                    }
+                }
+                if (!empty($idsToDelete)) {
                     $this->db->execute(
-                        "DELETE FROM `{$fullWh}` WHERE LOWER(`payload`) LIKE '%{$emailSql}%'"
+                        "DELETE FROM `{$fullWh}` WHERE `id_webhook` IN (" . implode(',', $idsToDelete) . ")"
                     );
-                    $total += $n;
+                    $total += count($idsToDelete);
                 }
             }
         }
@@ -989,7 +1015,8 @@ class GdprAuditManager
   <div class="score-badge"><?= $score ?></div>
   <div class="summary-text">
     <strong>Score de conformité : <?= $score ?></strong>
-    <p><?= $issues ?> point(s) d'attention identifié(s) sur les <?= count($audit['retention']['rows']) + 3 + 1 ?> critères analysés.</p>
+    <?php /* Round 144 : dénominateur corrigé — 4 axes (unsub=3, retention=N, pii=1, crypto=1), il en manquait un ; $issues (numérateur) est bien la somme des 4 axes. */ ?>
+    <p><?= $issues ?> point(s) d'attention identifié(s) sur les <?= count($audit['retention']['rows']) + 3 + 1 + 1 ?> critères analysés.</p>
   </div>
 </div>
 

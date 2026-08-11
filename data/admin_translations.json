@@ -52793,6 +52793,27 @@
         "nl": "Webhook [{event}] is definitief mislukt na {max} pogingen — URL: {url}. Controleer of het eindpunt binnen {timeout}s reageert met HTTP 2xx.",
         "gb": "Webhook [{event}] permanently failed after {max} attempts — URL: {url}. Check that the endpoint responds within {timeout}s with HTTP 2xx."
     },
+    "watchdog.webhook_row_exception": {
+        "fr": "Erreur inattendue lors du traitement du webhook #{id} — {error}. La ligne reste en file et sera reprise au prochain passage.",
+        "en": "Unexpected error while processing webhook #{id} — {error}. The row remains queued and will be retried on the next pass.",
+        "de": "Unerwarteter Fehler bei der Verarbeitung von Webhook #{id} — {error}. Der Eintrag bleibt in der Warteschlange und wird beim nächsten Durchlauf erneut versucht.",
+        "it": "Errore imprevisto durante l'elaborazione del webhook #{id} — {error}. La riga resta in coda e verrà ritentata al prossimo passaggio.",
+        "es": "Error inesperado al procesar el webhook #{id} — {error}. La línea permanece en la cola y se reintentará en el próximo paso.",
+        "pt": "Erro inesperado ao processar o webhook #{id} — {error}. A linha permanece na fila e será reprocessada na próxima passagem.",
+        "br": "Erro inesperado ao processar o webhook #{id} — {error}. A linha permanece na fila e será reprocessada na próxima passagem.",
+        "ar": "خطأ غير متوقع أثناء معالجة الـWebhook رقم {id} — {error}. يبقى السطر في قائمة الانتظار وسيُعاد المحاولة في الجولة التالية.",
+        "ja": "Webhook #{id} の処理中に予期しないエラーが発生しました — {error}。この行はキューに残り、次回の実行時に再試行されます。",
+        "ko": "웹훅 #{id} 처리 중 예기치 않은 오류가 발생했습니다 — {error}. 이 행은 대기열에 남아 다음 실행 시 재시도됩니다.",
+        "zh": "处理 Webhook #{id} 时发生意外错误 — {error}。该行仍在队列中，将在下次运行时重试。",
+        "tw": "處理 Webhook #{id} 時發生意外錯誤 — {error}。該行仍在佇列中，將於下次執行時重試。",
+        "ru": "Непредвиденная ошибка при обработке вебхука #{id} — {error}. Строка остаётся в очереди и будет повторена при следующем запуске.",
+        "tr": "Webhook #{id} işlenirken beklenmeyen bir hata oluştu — {error}. Satır kuyrukta kalır ve bir sonraki geçişte yeniden denenir.",
+        "sv": "Oväntat fel vid bearbetning av webhook #{id} — {error}. Raden förblir i kön och försöks igen vid nästa körning.",
+        "no": "Uventet feil under behandling av webhook #{id} — {error}. Raden forblir i køen og forsøkes på nytt ved neste kjøring.",
+        "da": "Uventet fejl under behandling af webhook #{id} — {error}. Rækken forbliver i køen og forsøges igen ved næste kørsel.",
+        "nl": "Onverwachte fout bij het verwerken van webhook #{id} — {error}. De regel blijft in de wachtrij en wordt bij de volgende doorloop opnieuw geprobeerd.",
+        "gb": "Unexpected error while processing webhook #{id} — {error}. The row remains queued and will be retried on the next pass."
+    },
     "watchdog.webhook_http_error": {
         "fr": "Webhook [{event}] — l'endpoint a répondu HTTP {code} (attendu 2xx). URL : {url}.",
         "en": "Webhook [{event}] — the endpoint responded HTTP {code} (expected 2xx). URL: {url}.",

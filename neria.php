@@ -3171,6 +3171,12 @@ class Neria extends Module
                 json_encode($senders, JSON_UNESCAPED_UNICODE),
                 false, null, (int) $this->context->shop->id
             );
+            // Round 144 : invalide le cache de réputation domaine — sans ça,
+            // le tableau de bord affichait jusqu'à 24h le score de l'ancien
+            // expéditeur après ce changement.
+            if (class_exists('DomainReputationManager')) {
+                DomainReputationManager::invalidateCache((int) $this->context->shop->id);
+            }
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
