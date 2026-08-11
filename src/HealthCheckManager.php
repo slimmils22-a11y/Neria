@@ -4768,6 +4768,63 @@ class HealthCheckManager
             }
         }
 
+        // Round 148 (2026-08-09) : EmailRenderer doit échapper toute
+        // variable de texte libre par défaut (liste NOIRE de fragments HTML
+        // sûrs), pas une liste blanche figée de 5 clés.
+        $erFile148 = _PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php';
+        $erSrc148 = $this->readModuleSrc($erFile148);
+        if ($erSrc148 === '') {
+            $offenders[] = 'EmailRenderer.php introuvable (garde-fou round 148 : echappement liste noire variables libres)';
+        } else {
+            $posHtv148 = strpos($erSrc148, '$htmlSafeRawKeys = [');
+            $hardenBody148 = $posHtv148 !== false ? substr($erSrc148, $posHtv148, 900) : '';
+            if ($posHtv148 === false
+                || strpos($hardenBody148, 'foreach ($htmlTemplateVars as $nameKey => $nameValue) {') === false
+                || strpos($hardenBody148, '!in_array($nameKey, $htmlSafeRawKeys, true)') === false
+            ) {
+                $offenders[] = "EmailRenderer ne durcit plus TOUTE variable de texte libre par defaut — régression du bug corrigé le 09/08/2026 (round 148) : une liste blanche figée de quelques clés laisserait de nouveau passer des variables comme {reply}/{apology_reason}/{alteration_status} sans échappement, XSS stocké possible via l'envoi manuel BO";
+            }
+        }
+
+        // Round 148 (2026-08-09) : controllers/front/preferences.php doit
+        // construire son lien de désabonnement via getUnsubscribeUrl()
+        // (donc getModuleLink()), pas en dur.
+        $prefFile148 = _PS_MODULE_DIR_ . $this->module->name . '/controllers/front/preferences.php';
+        $prefSrc148 = $this->readModuleSrc($prefFile148);
+        if ($prefSrc148 === '' || strpos($prefSrc148, "'/module/neria/unsubscribe'") !== false || strpos($prefSrc148, '$this->module->getUnsubscribeUrl(') === false) {
+            $offenders[] = "controllers/front/preferences.php construit de nouveau son lien de désabonnement en dur — régression du bug corrigé le 09/08/2026 (round 148) : casserait de nouveau sans URL rewriting";
+        }
+
+        // Round 148 (2026-08-09) : pattern "log Watchdog conditionné/manquant"
+        // (déjà trouvé round 147 dans AbTestManager), retrouvé 5 fois de
+        // plus : QueueManager::enqueue(), SegmentManager::recomputeAll(),
+        // ChurnScoreManager::recomputeAll(), WebhookManager::trigger(),
+        // AbTestManager::copyVariantBToDefault()/archiveTest().
+        $qmSrc148 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        if ($qmSrc148 === '' || strpos($qmSrc148, '$execOk = $this->db->execute(') === false || strpos($qmSrc148, 'queue_scheduling_failed') === false) {
+            $offenders[] = "QueueManager::enqueue() ne distingue plus un échec SQL réel d'un doublon ignoré — régression du bug corrigé le 09/08/2026 (round 148)";
+        }
+
+        $segSrc148 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php');
+        if ($segSrc148 === '' || strpos($segSrc148, 'segment_recompute_sql_failed') === false) {
+            $offenders[] = "SegmentManager::recomputeAll() ne journalise plus d'erreur Watchdog sur un échec SQL réel — régression du bug corrigé le 09/08/2026 (round 148)";
+        }
+
+        $churnSrc148 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php');
+        if ($churnSrc148 === '' || strpos($churnSrc148, 'churn_score_partial_failure') === false || strpos($churnSrc148, 'if ($chunkOk !== false) {') === false) {
+            $offenders[] = "ChurnScoreManager::recomputeAll() ne journalise plus d'erreur Watchdog sur un échec SQL partiel — régression du bug corrigé le 09/08/2026 (round 148)";
+        }
+
+        $whSrc148 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php');
+        if ($whSrc148 === '' || strpos($whSrc148, 'webhook_trigger_insert_failed') === false) {
+            $offenders[] = "WebhookManager::trigger() ne journalise plus d'erreur Watchdog quand l'INSERT de mise en file échoue — régression du bug corrigé le 09/08/2026 (round 148)";
+        }
+
+        $abSrc148 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/AbTestManager.php');
+        if ($abSrc148 === '' || strpos($abSrc148, 'abtest_variant_b_promote_failed') === false || strpos($abSrc148, 'abtest_archive_failed') === false) {
+            $offenders[] = "AbTestManager::copyVariantBToDefault()/archiveTest() ne conditionnent plus leur log au résultat SQL réel — régression du bug corrigé le 09/08/2026 (round 148)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
