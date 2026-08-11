@@ -223,6 +223,14 @@ class TranslationEngine
         string $key,
         string $value
     ): bool {
+        // Round 145 : normalizeLang() appliqué ici comme dans get()/getAll()
+        // — auparavant update() écrivait $lang brut tel que soumis. Un code
+        // langue arrivant en majuscules (manipulation de paramètre, bug
+        // front, futur appel API) écrivait une ligne 'FR' au lieu de 'fr' ;
+        // get()/getAll() normalisent toujours en lecture, donc cette
+        // traduction personnalisée devenait introuvable au rendu — invisible
+        // en pratique bien que réellement enregistrée en base.
+        $lang  = $this->normalizeLang($lang);
         $table = _DB_PREFIX_ . self::TABLE;
 
         // INSERT OR UPDATE (ON DUPLICATE KEY)
@@ -578,9 +586,16 @@ class TranslationEngine
 
         $table = _DB_PREFIX_ . self::TABLE;
 
-        // Une seule requête pour tout le bloc template+lang
-        // ORDER BY is_custom DESC → les traductions custom
-        // écrasent les traductions par défaut si même clé
+        // Une seule requête pour tout le bloc template+lang. ORDER BY
+        // is_custom ASC : les lignes par défaut (is_custom=0) sont lues
+        // EN PREMIER et les lignes custom (is_custom=1) EN DERNIER — le
+        // foreach ci-dessous les indexe dans un tableau PHP par clé, donc la
+        // dernière valeur lue écrase la précédente : les traductions custom
+        // gagnent bien sur les traductions par défaut pour une même clé.
+        // Round 145 : commentaire corrigé — il annonçait ASC en écrivant
+        // "DESC", contredisant le SQL réel (déjà correct) ; laissé tel quel,
+        // un futur correctif basé sur ce commentaire aurait pu inverser le
+        // tri et faire gagner les traductions par défaut par erreur.
         $rows = $this->db->executeS(
             "SELECT `translation_key`, `translation_value`
              FROM `{$table}`

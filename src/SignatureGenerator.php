@@ -112,6 +112,11 @@ class SignatureGenerator
      * @param string $style     Cle du style (ex: 'great_vibes')
      * @param string $color     Couleur hexadecimale (ex: '#b38b59')
      * @param int    $idShop    ID de la boutique
+     * @param string|null $resolvedStyle Round 145 : rempli par référence
+     *  avec le style RÉELLEMENT utilisé pour le rendu (peut différer de
+     *  $style si sa police TTF était absente du disque — voir getFontPath()).
+     *  Le nom de fichier ET la colonne BDD font_style doivent refléter ce
+     *  style réel, pas celui demandé, sous peine de métadonnée mensongère.
      * @return string|false     Chemin relatif de l'image ou false si erreur
      */
     public function generate(
@@ -119,7 +124,8 @@ class SignatureGenerator
         string $title  = '',
         string $style  = 'great_vibes',
         string $color  = '#b38b59',
-        int    $idShop = 1
+        int    $idShop = 1,
+        ?string &$resolvedStyle = null
     ) {
         // Verifie que GD est disponible
         if (!$this->isGdAvailable()) {
@@ -138,7 +144,7 @@ class SignatureGenerator
         }
 
         // Charge la police TTF
-        $fontPath = $this->getFontPath($style);
+        $fontPath = $this->getFontPath($style, $resolvedStyle);
         if (!$fontPath) {
             $this->module->log(
                 "SignatureGenerator: police [{$style}] introuvable",
@@ -154,8 +160,9 @@ class SignatureGenerator
             return false;
         }
 
-        // Sauvegarde
-        $filename = $this->buildFilename($idShop, $style);
+        // Sauvegarde — nom de fichier basé sur le style RÉELLEMENT rendu
+        // ($resolvedStyle), pas celui demandé ($style) : voir docblock.
+        $filename = $this->buildFilename($idShop, $resolvedStyle ?? $style);
         $fullPath = $this->signaturesPath . '/' . $filename;
 
         $this->ensureDirectoryExists($this->signaturesPath);
@@ -391,7 +398,18 @@ class SignatureGenerator
      * @param string $style Cle du style
      * @return string|null Chemin absolu ou null si introuvable
      */
-    private function getFontPath(string $style): ?string
+    /**
+     * Round 145 : $resolvedStyle (référence) porte désormais le style
+     * RÉELLEMENT utilisé pour le rendu — auparavant, generate() construisait
+     * le nom de fichier et la colonne BDD font_style avec le style DEMANDÉ
+     * ($style tel que soumis), même quand getFontPath() retombait
+     * silencieusement sur un autre style faute de fichier TTF installé
+     * (installation de polices partielle, cas géré par checkFonts()). Le
+     * marchand voyait alors une signature enregistrée sous un style qu'elle
+     * ne montre pas réellement — métadonnée mensongère, incohérence visuelle
+     * entre la config affichée et le rendu envoyé aux clients.
+     */
+    private function getFontPath(string $style, ?string &$resolvedStyle = null): ?string
     {
         $fontFiles = [
             'great_vibes'    => 'GreatVibes-Regular.ttf',
@@ -409,6 +427,7 @@ class SignatureGenerator
         $path = $this->fontsPath . '/' . $fontFiles[$style];
 
         if (file_exists($path)) {
+            $resolvedStyle = $style;
             return $path;
         }
 
@@ -421,6 +440,7 @@ class SignatureGenerator
                     . "fallback vers [{$key}]",
                     2
                 );
+                $resolvedStyle = $key;
                 return $fallback;
             }
         }

@@ -1944,9 +1944,24 @@ class EmailRenderer
             return ['url' => '', 'name' => '', 'title' => ''];
         }
 
-        $url = !empty($row['image_path'])
-            ? $this->module->getModuleUrl($row['image_path'])
-            : '';
+        $url = '';
+        if (!empty($row['image_path'])) {
+            $url = $this->module->getModuleUrl($row['image_path']);
+            // Round 145 : cache-busting via filemtime() — buildFilename()
+            // produit un nom de fichier déterministe (signature_{idShop}_
+            // {style}.png), sans hash de contenu. Régénérer avec le MÊME
+            // style mais une couleur/nom différents écrase le fichier sur
+            // disque à une URL strictement identique : sans ce paramètre,
+            // le cache navigateur/client email (proxy d'images Gmail,
+            // Outlook…) continuait d'afficher l'ancienne version tant que
+            // son cache HTTP n'expirait pas, malgré un changement réel côté
+            // marchand.
+            $fullPath = _PS_MODULE_DIR_ . $this->module->name . '/' . $row['image_path'];
+            $mtime = @filemtime($fullPath);
+            if ($mtime !== false) {
+                $url .= (str_contains($url, '?') ? '&' : '?') . 'v=' . $mtime;
+            }
+        }
 
         return [
             'url'   => $url,

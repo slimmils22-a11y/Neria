@@ -48,13 +48,15 @@ class MonthlyReportManager
      */
     public function checkAndSend(): void
     {
-        if (!(int) \Configuration::get(self::CONFIG_ENABLED)) {
-            return;
-        }
-
-        // Pas de "fast exit" global ici : isDue() est désormais par boutique
-        // (voir plus bas), une seule boutique "à jour" ne doit pas empêcher
-        // les autres d'être vérifiées.
+        // Round 145 : pas de "fast exit" global ici sur CONFIG_ENABLED —
+        // celui-ci est désormais revérifié PAR BOUTIQUE dans la boucle
+        // ci-dessous (comme isDue()/markSent()). Auparavant,
+        // Configuration::get(self::CONFIG_ENABLED) sans idShop résolvait la
+        // valeur de la boutique du VISITEUR ayant déclenché le hook, pas de
+        // chaque boutique itérée : si cette boutique avait le rapport
+        // désactivé, toute la boucle était court-circuitée avant même de
+        // commencer — les autres boutiques (activées, rapport dû)
+        // n'atteignaient jamais leur propre vérification, silencieusement.
 
         // Verrou MySQL : contrairement au cron comportemental (fenêtre de
         // course d'une fraction de seconde autour du seuil des 24h),
@@ -91,6 +93,10 @@ class MonthlyReportManager
                 $idShop = (int) $idShop;
                 \Context::getContext()->shop = new \Shop($idShop);
                 $this->idShop = $idShop;
+
+                if (!(int) \Configuration::get(self::CONFIG_ENABLED, null, null, $idShop)) {
+                    continue;
+                }
 
                 // Revérifie après obtention du verrou : un autre process a pu
                 // terminer son propre envoi pendant qu'on attendait.
@@ -1056,7 +1062,15 @@ class MonthlyReportManager
 
     private function getRecipients(): array
     {
-        $stored = (string) \Configuration::get(self::CONFIG_RECIPIENTS);
+        // Round 145 : $this->idShop transmis explicitement aux deux lectures
+        // — contrairement à toutes les requêtes KPI de ce fichier (déjà
+        // scopées id_shop), cette méthode ignorait la boutique et résolvait
+        // systématiquement la config de la boutique du contexte ambiant.
+        // Dans la boucle multi-boutique de checkAndSend(), le rapport de la
+        // Boutique B pouvait ainsi être envoyé aux destinataires configurés
+        // pour la Boutique A (ou l'inverse) — fuite d'information commerciale
+        // entre équipes gérant des boutiques distinctes de la même install.
+        $stored = (string) \Configuration::get(self::CONFIG_RECIPIENTS, null, null, $this->idShop);
         if ($stored) {
             $emails = array_values(array_filter(
                 array_map('trim', explode(',', $stored)),
@@ -1067,7 +1081,7 @@ class MonthlyReportManager
             }
         }
 
-        $default = (string) \Configuration::get('PS_SHOP_EMAIL');
+        $default = (string) \Configuration::get('PS_SHOP_EMAIL', null, null, $this->idShop);
         return $default ? [$default] : [];
     }
 

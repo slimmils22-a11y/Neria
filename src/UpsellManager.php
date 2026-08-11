@@ -77,7 +77,7 @@ class UpsellManager
         // Tier 1 sans photo était trouvé.
 
         // Tier 1 — accessoires définis dans le back-office produit
-        $row = $this->findByAccessories($orderProducts, $excluded, $idLang);
+        $row = $this->findByAccessories($orderProducts, $excluded, $idLang, $idShop);
         if ($row) {
             $result = $this->enrich($row, $idLang, 'L\'accessoire parfait', $idShop);
             if ($result) {
@@ -86,7 +86,7 @@ class UpsellManager
         }
 
         // Tier 2 — co-achat (collaborative filtering léger)
-        $row = $this->findByCoPurchase($orderProducts, $excluded, $idLang);
+        $row = $this->findByCoPurchase($orderProducts, $excluded, $idLang, $idShop);
         if ($row) {
             $result = $this->enrich($row, $idLang, 'Souvent acheté ensemble', $idShop);
             if ($result) {
@@ -95,7 +95,7 @@ class UpsellManager
         }
 
         // Tier 3 — meilleur vendeur même catégorie
-        $row = $this->findByCategoryBestseller($orderProducts, $excluded, $idLang);
+        $row = $this->findByCategoryBestseller($orderProducts, $excluded, $idLang, $idShop);
         if ($row) {
             $result = $this->enrich($row, $idLang, 'Notre suggestion pour vous', $idShop);
             if ($result) {
@@ -261,10 +261,13 @@ class UpsellManager
     // ALGORITHME — 3 niveaux
     // ============================================================
 
-    private function findByAccessories(array $productIds, array $excluded, int $idLang): ?array
+    private function findByAccessories(array $productIds, array $excluded, int $idLang, ?int $idShop = null): ?array
     {
         $inProducts = $this->intList($productIds);
         $notIn      = $this->notInClause('p.id_product', $excluded);
+        // Round 145 : filtre id_shop ajouté au SUM de stock — voir le
+        // commentaire détaillé au-dessus de la clause SUM ci-dessous.
+        $stockShop = $idShop !== null ? ' AND sa.id_shop = ' . (int) $idShop : '';
 
         // GROUP BY + ORDER BY déterministe : un produit peut avoir plusieurs
         // catégories (JOIN category_product) — sans ces clauses, le résultat
@@ -285,18 +288,23 @@ class UpsellManager
                -- n'a quasiment jamais de stock sur la ligne 'sans attribut',
                -- ce qui excluait systématiquement tout produit à déclinaisons
                -- des suggestions, même largement disponible. Voir correctif
-               -- identique dans WaitlistManager::notifyProduct().
+               -- identique dans WaitlistManager::notifyProduct(). Round 145 :
+               -- filtre id_shop ajouté — sans lui, un produit épuisé sur la
+               -- boutique qui envoie l'email mais en stock sur une AUTRE
+               -- boutique de la même install passait quand même le filtre
+               -- (SUM global toutes boutiques confondues).
                AND (SELECT SUM(sa.quantity) FROM `{$this->prefix}stock_available` sa
-                    WHERE sa.id_product = p.id_product) > 0
+                    WHERE sa.id_product = p.id_product{$stockShop}) > 0
              GROUP BY p.id_product
              ORDER BY p.id_product ASC"
         ) ?: null;
     }
 
-    private function findByCoPurchase(array $productIds, array $excluded, int $idLang): ?array
+    private function findByCoPurchase(array $productIds, array $excluded, int $idLang, ?int $idShop = null): ?array
     {
         $inProducts = $this->intList($productIds);
         $notIn      = $this->notInClause('od2.product_id', $excluded);
+        $stockShop  = $idShop !== null ? ' AND sa.id_shop = ' . (int) $idShop : '';
 
         return $this->db->getRow(
             "SELECT od2.product_id AS id_product, MIN(pl.name) AS name,
@@ -311,16 +319,16 @@ class UpsellManager
              JOIN `{$this->prefix}category_product` cp ON p.id_product = cp.id_product
              WHERE od1.product_id IN ({$inProducts})
                {$notIn}
-               -- Somme le stock sur toutes les déclinaisons — voir correctif
-               -- identique dans findByAccessories() ci-dessus.
+               -- Somme le stock sur toutes les déclinaisons, scopé id_shop —
+               -- voir correctif identique dans findByAccessories() ci-dessus.
                AND (SELECT SUM(sa.quantity) FROM `{$this->prefix}stock_available` sa
-                    WHERE sa.id_product = p.id_product) > 0
+                    WHERE sa.id_product = p.id_product{$stockShop}) > 0
              GROUP BY od2.product_id
              ORDER BY freq DESC"
         ) ?: null;
     }
 
-    private function findByCategoryBestseller(array $productIds, array $excluded, int $idLang): ?array
+    private function findByCategoryBestseller(array $productIds, array $excluded, int $idLang, ?int $idShop = null): ?array
     {
         // Catégories des produits commandés
         $inProducts = $this->intList($productIds);
@@ -337,6 +345,7 @@ class UpsellManager
 
         $inCats = $this->intList($categories);
         $notIn  = $this->notInClause('p.id_product', $excluded);
+        $stockShop = $idShop !== null ? ' AND sa.id_shop = ' . (int) $idShop : '';
 
         return $this->db->getRow(
             "SELECT p.id_product, pl.name, cp.id_category
@@ -347,10 +356,10 @@ class UpsellManager
                   ON p.id_product = pl.id_product AND pl.id_lang = " . (int) $idLang . "
              WHERE cp.id_category IN ({$inCats})
                {$notIn}
-               -- Somme le stock sur toutes les déclinaisons — voir correctif
-               -- identique dans findByAccessories() plus haut.
+               -- Somme le stock sur toutes les déclinaisons, scopé id_shop —
+               -- voir correctif identique dans findByAccessories() plus haut.
                AND (SELECT SUM(sa.quantity) FROM `{$this->prefix}stock_available` sa
-                    WHERE sa.id_product = p.id_product) > 0
+                    WHERE sa.id_product = p.id_product{$stockShop}) > 0
              ORDER BY (
                  SELECT COUNT(*) FROM `{$this->prefix}order_detail` od
                  WHERE od.product_id = p.id_product
