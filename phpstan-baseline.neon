@@ -13,6 +13,12 @@ parameters:
 			path: controllers/front/cron.php
 
 		-
+			message: '#^Call to an undefined method Module\:\:getUnsubscribeUrl\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: controllers/front/preferences.php
+
+		-
 			message: '#^Parameter \#1 \$module of class WatchdogManager constructor expects Neria, Module given\.$#'
 			identifier: argument.type
 			count: 2

@@ -730,7 +730,11 @@ class ABTestManager
         // importTemplate/clearDefaultTranslations, qui ne purge que
         // is_custom = 0) écrase silencieusement la variante gagnante par
         // le texte par défaut de Neria.
-        $this->db->execute(
+        // Round 148 : log conditionné au résultat réel de l'INSERT — même
+        // correctif que activateTest()/createTest()/deleteTests() (round
+        // 147, même fichier), oublié sur cette méthode lors de ce précédent
+        // correctif.
+        $result = $this->db->execute(
             "INSERT INTO `{$tableTrad}`
                  (`template`, `lang`, `translation_key`, `translation_value`, `is_custom`, `date_add`, `date_upd`)
              SELECT '" . pSQL($template) . "', `lang`, `translation_key`, `translation_value`,
@@ -743,10 +747,17 @@ class ABTestManager
                 `date_upd`          = VALUES(`date_upd`)"
         );
 
-        $this->wd()->info(
-            \WatchdogManager::i18nMsg('watchdog.abtest_variant_b_promoted', ['template' => $template]),
-            $template, 'ABTestManager'
-        );
+        if ($result !== false) {
+            $this->wd()->info(
+                \WatchdogManager::i18nMsg('watchdog.abtest_variant_b_promoted', ['template' => $template]),
+                $template, 'ABTestManager'
+            );
+        } else {
+            $this->wd()->error(
+                \WatchdogManager::i18nMsg('watchdog.abtest_variant_b_promote_failed', ['template' => $template]),
+                $template, 'ABTestManager'
+            );
+        }
     }
 
     // ============================================================
@@ -821,7 +832,11 @@ class ABTestManager
             $dateStart ? "'" . pSQL($dateStart) . "'" : 'NULL'
         );
 
-        $this->db->execute($sql);
+        // Round 148 : log conditionné au résultat réel de l'INSERT — même
+        // correctif que activateTest()/createTest()/deleteTests() (round
+        // 147, même fichier), oublié sur cette méthode lors de ce précédent
+        // correctif.
+        $result = $this->db->execute($sql);
 
         $prevLang = \AdminTranslator::currentLang();
         \AdminTranslator::setLang(\WatchdogManager::shopLang($this->idShop));
@@ -830,10 +845,18 @@ class ABTestManager
             : \AdminTranslator::t('watchdog.abtest_no_winner_label');
         $appliedLabel = $applied ? \AdminTranslator::t('watchdog.abtest_applied_label') : '';
         \AdminTranslator::setLang($prevLang);
-        $this->wd()->info(
-            \WatchdogManager::i18nMsg('watchdog.abtest_archived', ['template' => $template, 'winnerLabel' => $winnerLabel, 'appliedLabel' => $appliedLabel]),
-            $template, 'ABTestManager'
-        );
+
+        if ($result !== false) {
+            $this->wd()->info(
+                \WatchdogManager::i18nMsg('watchdog.abtest_archived', ['template' => $template, 'winnerLabel' => $winnerLabel, 'appliedLabel' => $appliedLabel]),
+                $template, 'ABTestManager'
+            );
+        } else {
+            $this->wd()->error(
+                \WatchdogManager::i18nMsg('watchdog.abtest_archive_failed', ['template' => $template]),
+                $template, 'ABTestManager'
+            );
+        }
     }
 
     /**

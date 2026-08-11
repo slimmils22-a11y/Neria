@@ -189,7 +189,12 @@ class ChurnScoreManager
         if (!empty($keepIds)) {
             $purgeSql .= ' AND `id_customer` NOT IN (' . implode(',', $keepIds) . ')';
         }
-        $this->db->execute($purgeSql);
+        // Round 148 : $sqlOk accumule le résultat réel du DELETE puis de
+        // chaque lot INSERT ci-dessous — auparavant tous ignorés (ni log
+        // d'échec nulle part dans ce fichier), et le résumé final était
+        // journalisé comme un succès inconditionnel basé sur un simple
+        // count($chunk) plutôt que sur le résultat réel des requêtes.
+        $sqlOk = $this->db->execute($purgeSql);
 
         if (empty($rows)) {
             return 0;
@@ -222,7 +227,7 @@ class ChurnScoreManager
                 );
             }
 
-            $this->db->execute(
+            $chunkOk = $this->db->execute(
                 "INSERT INTO `{$table}`
                     (`id_shop`, `id_customer`, `score`, `rate_p1`, `rate_p2`, `rate_p3`,
                      `last_open`, `preferred_slot`, `computed_at`)
@@ -236,8 +241,11 @@ class ChurnScoreManager
                     `preferred_slot` = VALUES(`preferred_slot`),
                     `computed_at`    = VALUES(`computed_at`)"
             );
+            $sqlOk = $sqlOk && $chunkOk;
 
-            $inserted += count($chunk);
+            if ($chunkOk !== false) {
+                $inserted += count($chunk);
+            }
         }
 
         $atRisk   = $this->countHighRisk();
@@ -245,6 +253,14 @@ class ChurnScoreManager
             "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . self::TABLE . "`
              WHERE id_shop = {$this->idShop} AND preferred_slot IS NOT NULL"
         );
+
+        if (!$sqlOk) {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.churn_score_partial_failure', ['n' => $inserted]),
+                '', 'ChurnScore'
+            );
+        }
+
         $this->watchdog()->info(
             \WatchdogManager::i18nMsg('watchdog.churn_score_summary', [
                 'n'        => $inserted,

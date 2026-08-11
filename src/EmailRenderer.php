@@ -2771,20 +2771,31 @@ class EmailRenderer
         //
         // Durcissement défensif (HTML uniquement — $templateVars original
         // reste intact pour la version .txt plus bas, qui ne doit jamais
-        // afficher d'entités HTML) : {firstname}/{lastname} sont normalement
-        // filtrés par Validate::isName() du cœur PS (rejette < > { } " etc.)
-        // à l'inscription/l'édition BO, donc pas de vecteur d'injection connu
-        // aujourd'hui — mais ce sont des variables directement dérivées d'un
-        // champ éditable par le client (ou saisi librement, pour
-        // message/comment/gift_message — formulaire de contact, message
-        // cadeau) qui finissaient non échappées dans le HTML compilé. Un
-        // visiteur pouvait y injecter du HTML/JS actif rendu ensuite par le
-        // client mail du destinataire (marchand ou client selon le
-        // template). Échappées ici en filet de sécurité.
+        // afficher d'entités HTML). {firstname}/{lastname} sont normalement
+        // filtrés par Validate::isName() du cœur PS, mais message/comment/
+        // gift_message (formulaire de contact, message cadeau) et — découvert
+        // au round 148 — N'IMPORTE QUELLE variable de texte libre saisie via
+        // l'envoi manuel BO (tout champ "découvert" dans un template WAVE1
+        // qui n'est pas dans ManualSendManager::AUTO_VARS, ex. {reply},
+        // {apology_reason}, {alteration_status}) finissaient non échappées
+        // dans le HTML compilé. Une liste BLANCHE figée de 5 clés ratait
+        // silencieusement toute nouvelle variable de texte libre ajoutée par
+        // un futur template — inversé en liste NOIRE : on échappe tout par
+        // défaut, sauf les fragments HTML volontairement pré-construits côté
+        // serveur (tableaux produits, blocs adresse, upsell...) qui doivent
+        // rester du HTML actif. {custom_message} est déjà échappé en amont
+        // (injectCustomMessage()) avant d'être enveloppé en HTML — l'exclure
+        // ici évite un double échappement.
+        $htmlSafeRawKeys = [
+            '{products}', '{items}', '{discounts}', '{meta_products}',
+            '{delivery_block_html}', '{invoice_block_html}',
+            '{return_address_html}', '{check_address_html}',
+            '{upsell_block}', '{custom_message}',
+        ];
         $htmlTemplateVars = $templateVars;
-        foreach (['{firstname}', '{lastname}', '{message}', '{comment}', '{gift_message}'] as $nameKey) {
-            if (isset($htmlTemplateVars[$nameKey]) && is_string($htmlTemplateVars[$nameKey])) {
-                $htmlTemplateVars[$nameKey] = htmlspecialchars($htmlTemplateVars[$nameKey], ENT_QUOTES, 'UTF-8');
+        foreach ($htmlTemplateVars as $nameKey => $nameValue) {
+            if (is_string($nameValue) && !in_array($nameKey, $htmlSafeRawKeys, true)) {
+                $htmlTemplateVars[$nameKey] = htmlspecialchars($nameValue, ENT_QUOTES, 'UTF-8');
             }
         }
         // strtr() (et non str_replace() en boucle) : une valeur cliente

@@ -71,7 +71,17 @@ class QueueManager
         // INSERT sans aucune protection : un même événement mis en file deux
         // fois (double exécution de cron, webhook rejoué) faisait recevoir
         // au client le même email en double à l'heure programmée.
-        $this->db->execute(
+        // Round 148 : $execOk capturé explicitement — auparavant le résultat
+        // de execute() était totalement ignoré, seul Affected_Rows() était
+        // consulté. Or Affected_Rows()===0 est à la fois le cas légitime
+        // "doublon ignoré par INSERT IGNORE" ET ce que renvoie un execute()
+        // ayant réellement échoué (verrou, erreur SQL) — sans distinguer les
+        // deux, un échec SQL réel était traité comme un simple doublon
+        // silencieux, ET le log de succès plus bas (avant ce correctif)
+        // aurait pu s'exécuter même sur cette situation d'échec. Même
+        // correctif que celui déjà appliqué à enqueueAt() (jumelle de cette
+        // méthode), qui distingue déjà correctement les deux cas.
+        $execOk = $this->db->execute(
             'INSERT IGNORE INTO `' . $this->prefix . 'neria_queue`
              (id_customer, id_shop, id_lang, template, recipient_email, recipient_name,
               vars_json, ref_id, send_at, status, created_at)
@@ -89,6 +99,18 @@ class QueueManager
                NOW()
              )'
         );
+
+        if ($execOk === false) {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.queue_scheduling_failed', [
+                    'template' => $template,
+                    'email'    => $customer['email'] ?? '?',
+                ]),
+                $template,
+                'QueueManager'
+            );
+            return;
+        }
 
         if ($this->db->Affected_Rows() === 0) {
             // Doublon ignoré — événement déjà en file (ou déjà traité) pour

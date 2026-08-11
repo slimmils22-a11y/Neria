@@ -195,7 +195,14 @@ class WebhookManager
         }
 
         $table = _DB_PREFIX_ . self::TABLE;
-        $this->db->execute(sprintf(
+        // Round 148 : résultat de l'INSERT capturé et journalisé en cas
+        // d'échec — auparavant totalement ignoré (ni succès ni échec loggé
+        // ici), contrairement à processQueue() plus bas dans ce même
+        // fichier qui gère méticuleusement ses propres échecs (secret
+        // illisible, verrou MySQL...). Un échec SQL réel sur CET INSERT
+        // (verrou, table verrouillée) faisait qu'un événement webhook
+        // n'était jamais mis en file, sans aucune trace exploitable.
+        $ok = $this->db->execute(sprintf(
             "INSERT INTO `%s`
                 (`id_shop`, `event`, `payload`, `status`, `attempts`, `date_add`)
              VALUES (%d, '%s', '%s', 'pending', 0, '%s')",
@@ -205,6 +212,14 @@ class WebhookManager
             pSQL($payload),
             date('Y-m-d H:i:s')
         ));
+
+        if ($ok === false) {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.webhook_trigger_insert_failed', ['event' => $event]),
+                '', 'WebhookManager'
+            );
+            return;
+        }
 
         // Numéro de séquence : PAS réinjecté ici par un second UPDATE après
         // l'INSERT (id_webhook n'est connu qu'une fois la ligne insérée) —

@@ -147,13 +147,14 @@ class NeriaPreferencesModuleFrontController extends ModuleFrontController
         // Labels des catégories (traduits via AdminTranslator si dispo)
         $catLabels = $this->getCatLabels($lang);
 
-        // URL de désabonnement complet
-        $unsubToken   = substr(hash_hmac('sha256', strtolower($email), _COOKIE_KEY_), 0, 32);
-        $unsubUrl     = rtrim($this->context->link->getBaseLink(), '/')
-                      . '/module/neria/unsubscribe'
-                      . '?email=' . urlencode($email)
-                      . '&token=' . urlencode($unsubToken)
-                      . '&lang='  . $lang;
+        // URL de désabonnement complet — round 148 : construite en dur
+        // ('/module/neria/unsubscribe?...'), cassée sans URL rewriting
+        // (PS_REWRITING_SETTINGS=0), même pattern déjà corrigé sur
+        // waitlist.php aux rounds 54/67. getUnsubscribeUrl() passe déjà par
+        // getModuleLink() (rewriting/non-rewriting + segment de langue) et
+        // génère le même jeton HMAC que celui vérifié par le contrôleur
+        // unsubscribe.
+        $unsubUrl = $this->module->getUnsubscribeUrl($email, $lang);
 
         $this->context->smarty->assign([
             'neria_prefs_email'     => $email,

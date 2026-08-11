@@ -192,8 +192,23 @@ class SegmentManager
                 `computed_at`       = VALUES(`computed_at`)
         ";
 
-        $this->db->execute($sql);
+        // Round 148 : $execOk capturé — auparavant le résultat de execute()
+        // était totalement ignoré (aucun log d'échec nulle part dans ce
+        // fichier), et le log de succès plus bas était émis
+        // inconditionnellement. Un échec SQL réel (verrou, table
+        // corrompue) laissait neria_segment non recalculé sans aucune
+        // trace exploitable — le Watchdog affirmait quand même un
+        // "recompute" réussi.
+        $execOk = $this->db->execute($sql);
         $affected = (int) $this->db->Affected_Rows();
+
+        if ($execOk === false) {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.segment_recompute_sql_failed', []),
+                '', 'SegmentManager'
+            );
+            return 0;
+        }
 
         $this->watchdog()->info(
             \WatchdogManager::i18nMsg('watchdog.segment_recomputed', ['n' => $affected]),
