@@ -4711,6 +4711,63 @@ class HealthCheckManager
             $offenders[] = "upgrade/upgrade-1.0.40.php introuvable ou incomplet — régression du bug corrigé le 09/08/2026 (round 146) : les 3 correctifs historiques (id_shop mal renseigné, Configuration non scopée boutique, contraintes UNIQUE non recréées) ne seraient de nouveau plus appliqués sur les installations existantes";
         }
 
+        // Round 147 (2026-08-09) : AbTestManager::activateTest() ne doit
+        // journaliser un succès que si l'UPDATE SQL a réellement réussi.
+        $abFile147 = _PS_MODULE_DIR_ . $this->module->name . '/src/AbTestManager.php';
+        $abSrc147 = $this->readModuleSrc($abFile147);
+        if ($abSrc147 === '') {
+            $offenders[] = 'AbTestManager.php introuvable (garde-fou round 147 : logs activate/create/delete conditionnés au résultat SQL)';
+        } else {
+            $posAct147 = strpos($abSrc147, 'public function activateTest(string $template): bool');
+            $actBody147 = $posAct147 !== false ? substr($abSrc147, $posAct147, 1800) : '';
+            if ($posAct147 === false
+                || strpos($actBody147, 'if ($result !== false) {') === false
+                || strpos($actBody147, 'abtest_activate_failed') === false
+            ) {
+                $offenders[] = "AbTestManager::activateTest() ne conditionne plus son log Watchdog au résultat réel de l'UPDATE — régression du bug corrigé le 09/08/2026 (round 147) : le log 'activated' mentirait de nouveau même en cas d'échec SQL";
+            }
+
+            $posCreate147 = strpos($abSrc147, 'public function createTest(');
+            $posActStart147 = strpos($abSrc147, 'public function activateTest(', $posCreate147);
+            $createBody147 = ($posCreate147 !== false && $posActStart147 !== false) ? substr($abSrc147, $posCreate147, $posActStart147 - $posCreate147) : '';
+            if ($posCreate147 === false || substr_count($createBody147, 'abtest_create_failed') < 2) {
+                $offenders[] = "AbTestManager::createTest() ne journalise plus d'erreur Watchdog sur ses branches d'échec SQL — régression du bug corrigé le 09/08/2026 (round 147)";
+            }
+
+            $posDelete147 = strpos($abSrc147, 'public function deleteTests(');
+            $deleteBody147 = $posDelete147 !== false ? substr($abSrc147, $posDelete147, 3000) : '';
+            if ($posDelete147 === false
+                || strpos($deleteBody147, '$ok = $this->db->execute(') === false
+                || strpos($deleteBody147, 'return $ok;') === false
+                || strpos($deleteBody147, 'abtest_delete_failed') === false
+            ) {
+                $offenders[] = "AbTestManager::deleteTests() ne répercute plus le résultat réel de ses opérations SQL (ou ne journalise plus d'erreur) — régression du bug corrigé le 09/08/2026 (round 147) : un échec partiel redeviendrait indétectable et silencieux";
+            }
+        }
+
+        // Round 147 (2026-08-09) : neria-admin.js::initTranslationsReset()
+        // et initDesignReset() doivent désactiver leur bouton avant de
+        // soumettre le formulaire (jumeaux non alignés sur le correctif
+        // round 146 de initTranslationsLoader()).
+        $jsSrc147 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/js/neria-admin.js');
+        if ($jsSrc147 === '') {
+            $offenders[] = 'neria-admin.js introuvable (garde-fou round 147 : anti-double-clic reset traductions/design)';
+        } else {
+            $posTr147 = strpos($jsSrc147, 'function initTranslationsReset()');
+            $posTrSubmit147 = $posTr147 !== false ? strpos($jsSrc147, 'form.submit();', $posTr147) : false;
+            $trBody147 = ($posTr147 !== false && $posTrSubmit147 !== false) ? substr($jsSrc147, $posTr147, $posTrSubmit147 - $posTr147) : '';
+            if ($posTr147 === false || strpos($trBody147, 'if (btn.disabled) return;') === false || strpos($trBody147, 'btn.disabled = true;') === false) {
+                $offenders[] = "neria-admin.js::initTranslationsReset() ne désactive plus le bouton avant soumission — régression du bug corrigé le 09/08/2026 (round 147) : un double-clic pourrait de nouveau générer deux requêtes POST concurrentes";
+            }
+
+            $posDes147 = strpos($jsSrc147, 'function initDesignReset()');
+            $posDesSubmit147 = $posDes147 !== false ? strpos($jsSrc147, 'form.submit();', $posDes147) : false;
+            $desBody147 = ($posDes147 !== false && $posDesSubmit147 !== false) ? substr($jsSrc147, $posDes147, $posDesSubmit147 - $posDes147) : '';
+            if ($posDes147 === false || strpos($desBody147, 'if (btn.disabled) return;') === false || strpos($desBody147, 'btn.disabled = true;') === false) {
+                $offenders[] = "neria-admin.js::initDesignReset() ne désactive plus le bouton avant soumission — régression du bug corrigé le 09/08/2026 (round 147) : un double-clic pourrait de nouveau générer deux requêtes POST concurrentes";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
