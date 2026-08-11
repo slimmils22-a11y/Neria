@@ -380,6 +380,14 @@
 
             if (!template || !lang || !template.value) return;
 
+            // Round 146 : désactive le bouton avant de soumettre — sans ça,
+            // un double-clic (réflexe courant en attendant un retour visuel
+            // absent ici, la navigation prenant un instant à démarrer)
+            // créait et soumettait deux formulaires, générant une requête
+            // POST neria_action=load_translations redondante.
+            if (btn.disabled) return;
+            btn.disabled = true;
+
             // Soumet le formulaire avec les paramètres de sélection
             var form = document.createElement('form');
             form.method = 'post';
@@ -445,6 +453,14 @@
         var btn = document.getElementById('neria-sig-preview-btn');
         if (!btn) return;
 
+        // Round 146 : jeton de requête — sans lui, cliquer "Aperçu" deux
+        // fois rapidement (ex. style A puis style B avant que la réponse A
+        // ne soit revenue) pouvait afficher le rendu du style A si sa
+        // réponse arrivait APRÈS celle de B : l'aperçu affiché ne
+        // correspondait alors plus à la configuration visible à l'écran
+        // (style/couleur), sans qu'aucune erreur ne le signale.
+        var requestToken = 0;
+
         btn.addEventListener('click', function () {
             var style     = document.getElementById('neria-sig-style');
             var color     = document.getElementById('sig_color');
@@ -453,6 +469,8 @@
             var container = document.getElementById('neria-sig-preview');
 
             if (!style || !container) return;
+
+            var thisRequest = ++requestToken;
 
             var params = new URLSearchParams({
                 neria_action: 'preview_signature',
@@ -469,6 +487,7 @@
             fetch(baseUrl + (baseUrl.indexOf('?') > -1 ? '&' : '?') + params.toString())
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
+                    if (thisRequest !== requestToken) return; // réponse obsolète, ignorée
                     if (data.preview) {
                         var altLabel = (window.NERIA_UI && window.NERIA_UI.sigPreviewAlt) || 'Signature';
                         container.innerHTML =
@@ -477,6 +496,7 @@
                     }
                 })
                 .catch(function () {
+                    if (thisRequest !== requestToken) return; // réponse obsolète, ignorée
                     var errLabel = (window.NERIA_UI && window.NERIA_UI.sigPreviewError)
                         || 'Error generating preview';
                     container.innerHTML =

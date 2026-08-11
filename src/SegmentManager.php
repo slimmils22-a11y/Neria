@@ -351,6 +351,36 @@ class SegmentManager
             $blockingCount++;
         }
 
+        // Round 146 : filtre les préférences d'abonnement, comme
+        // sendToSegment() le fait déjà (voir son commentaire détaillé).
+        // Sans ce filtre, un segment ENTIÈREMENT désabonné du template
+        // (recipient_count=40, aucune issue) passait ce contrôle à blanc
+        // sans alerte, alors que l'envoi réel se solderait par 0 email —
+        // contredisant l'objectif documenté de preflightCheck() : détecter
+        // un problème AVANT de lancer la campagne, pas après coup dans le
+        // rapport d'envoi.
+        $allowedCount = $recipientCount;
+        if ($recipientCount > 0 && class_exists('PreferencesManager')) {
+            $preferences = new \PreferencesManager($this->module);
+            $allowedCount = 0;
+            foreach ($customers as $c) {
+                if ($preferences->isAllowed((int) $c['id_customer'], $template, $this->idShop)) {
+                    $allowedCount++;
+                }
+            }
+            if ($allowedCount === 0) {
+                $issues[] = \AdminTranslator::tVars('msg.segment_all_unsubscribed', ['segment' => $segment, 'template' => $template]);
+                $blockingCount++;
+            } elseif ($allowedCount < $recipientCount) {
+                // Non bloquant : l'envoi continue pour les clients autorisés —
+                // informe simplement le marchand du nombre réel attendu.
+                $issues[] = \AdminTranslator::tVars('msg.segment_some_unsubscribed', [
+                    'skipped' => $recipientCount - $allowedCount,
+                    'total'   => $recipientCount,
+                ]);
+            }
+        }
+
         if ($capped) {
             // Non bloquant : l'envoi continue quand même, plafonné à 500 — mais
             // le marchand doit le savoir AVANT de lancer la campagne, sinon il
