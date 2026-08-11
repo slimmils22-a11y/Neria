@@ -423,6 +423,14 @@
                    || (window.NERIA_UI && window.NERIA_UI.confirmGeneric)
                    || 'Reset?';
             window.neriaConfirmAction(msg, function () {
+                // Round 147 : même garde anti-double-clic que
+                // initTranslationsLoader() (round 146) — sans elle, un
+                // double-clic sur le bouton de confirmation de la modale
+                // créait et soumettait deux formulaires, générant une
+                // requête POST neria_action=reset_template redondante.
+                if (btn.disabled) return;
+                btn.disabled = true;
+
                 var form = document.createElement('form');
                 form.method = 'post';
                 form.action = window.location.href;
@@ -517,6 +525,11 @@
                    || 'Reset?';
 
             window.neriaConfirmAction(msg, function () {
+                // Round 147 : même garde anti-double-clic que
+                // initTranslationsReset() ci-dessus.
+                if (btn.disabled) return;
+                btn.disabled = true;
+
                 var form = document.createElement('form');
                 form.method = 'post';
                 form.action = window.location.href;

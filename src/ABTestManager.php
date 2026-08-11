@@ -216,6 +216,10 @@ class ABTestManager
         );
 
         if (!$this->db->execute($sqlA)) {
+            $this->wd()->error(
+                \WatchdogManager::i18nMsg('watchdog.abtest_create_failed', ['template' => $template]),
+                $template, 'ABTestManager'
+            );
             return false;
         }
 
@@ -247,6 +251,10 @@ class ABTestManager
             // atomique de son propre point de vue : soit A et B existent
             // tous les deux, soit aucun des deux.
             $this->db->execute("DELETE FROM `{$table}` WHERE `id_abtest` = {$idAbtestA}");
+            $this->wd()->error(
+                \WatchdogManager::i18nMsg('watchdog.abtest_create_failed', ['template' => $template]),
+                $template, 'ABTestManager'
+            );
             return false;
         }
 
@@ -298,10 +306,17 @@ class ABTestManager
         $this->cacheLoaded = false;
         $this->activeTestsCache = [];
 
-        $this->wd()->info(
-            \WatchdogManager::i18nMsg('watchdog.abtest_activated', ['template' => $template]),
-            $template, 'ABTestManager'
-        );
+        if ($result !== false) {
+            $this->wd()->info(
+                \WatchdogManager::i18nMsg('watchdog.abtest_activated', ['template' => $template]),
+                $template, 'ABTestManager'
+            );
+        } else {
+            $this->wd()->error(
+                \WatchdogManager::i18nMsg('watchdog.abtest_activate_failed', ['template' => $template]),
+                $template, 'ABTestManager'
+            );
+        }
 
         return $result !== false;
     }
@@ -364,16 +379,16 @@ class ABTestManager
         $idList = implode(',', array_column($ids, 'id_abtest'));
 
         // Supprime les traductions associees
-        $this->db->execute(
+        $ok = $this->db->execute(
             "DELETE FROM `{$tableTrad}`
              WHERE `id_abtest` IN ({$idList})"
         );
 
         // Supprime les tests
-        $this->db->execute(
+        $ok = $this->db->execute(
             "DELETE FROM `{$table}`
              WHERE `id_abtest` IN ({$idList})"
-        );
+        ) && $ok;
 
         // Les événements déjà enregistrés dans neria_stat (sent/open/click/
         // conversion) ne sont rattachés qu'à `template` + `abtest_variant`
@@ -389,18 +404,25 @@ class ABTestManager
         // les lignes : les événements bruts restent disponibles pour les
         // statistiques globales du template, seule leur participation aux
         // calculs A/B (filtrés sur abtest_variant IN ('A','B')) est retirée.
-        $this->db->execute(
+        $ok = $this->db->execute(
             "UPDATE `" . _DB_PREFIX_ . "neria_stat`
              SET `abtest_variant` = NULL
              WHERE `id_shop`  = {$this->idShop}
                AND `template` = '" . pSQL($template) . "'
                AND `abtest_variant` IN ('A', 'B')"
-        );
+        ) && $ok;
 
         $this->cacheLoaded = false;
         $this->activeTestsCache = [];
 
-        return true;
+        if (!$ok) {
+            $this->wd()->error(
+                \WatchdogManager::i18nMsg('watchdog.abtest_delete_failed', ['template' => $template]),
+                $template, 'ABTestManager'
+            );
+        }
+
+        return $ok;
     }
 
     // ============================================================
