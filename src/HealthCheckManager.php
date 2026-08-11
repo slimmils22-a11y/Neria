@@ -4663,6 +4663,54 @@ class HealthCheckManager
             }
         }
 
+        // Round 146 (2026-08-09) : SegmentManager::preflightCheck() doit
+        // filtrer les destinataires réellement abonnés via PreferencesManager,
+        // comme sendToSegment() le fait déjà.
+        $smFile146 = _PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php';
+        $smSrc146 = $this->readModuleSrc($smFile146);
+        if ($smSrc146 === '') {
+            $offenders[] = 'SegmentManager.php introuvable (garde-fou round 146 : preflightCheck filtre préférences)';
+        } else {
+            $posPre146 = strpos($smSrc146, 'function preflightCheck(');
+            $preBody146 = $posPre146 !== false ? substr($smSrc146, $posPre146, 2200) : '';
+            if ($posPre146 === false || strpos($preBody146, 'msg.segment_all_unsubscribed') === false) {
+                $offenders[] = "SegmentManager::preflightCheck() ne détecte plus un segment entièrement désabonné du template — régression du bug corrigé le 09/08/2026 (round 146) : le marchand ne serait de nouveau alerté qu'après un envoi réel à 0 destinataire";
+            }
+        }
+
+        // Round 146 (2026-08-09) : neria-admin.js::initTranslationsLoader()
+        // doit désactiver le bouton avant de soumettre le formulaire.
+        $jsFile146 = _PS_MODULE_DIR_ . $this->module->name . '/views/js/neria-admin.js';
+        $jsSrc146 = $this->readModuleSrc($jsFile146);
+        if ($jsSrc146 === '') {
+            $offenders[] = 'neria-admin.js introuvable (garde-fou round 146 : anti-double-clic + jeton de requête)';
+        } else {
+            $posTl146 = strpos($jsSrc146, 'function initTranslationsLoader()');
+            $tlBody146 = $posTl146 !== false ? substr($jsSrc146, $posTl146, 1200) : '';
+            if ($posTl146 === false || strpos($tlBody146, 'if (btn.disabled) return;') === false || strpos($tlBody146, 'btn.disabled = true;') === false) {
+                $offenders[] = "neria-admin.js::initTranslationsLoader() ne désactive plus le bouton avant soumission — régression du bug corrigé le 09/08/2026 (round 146) : un double-clic pourrait de nouveau générer deux requêtes POST concurrentes";
+            }
+
+            $posSp146 = strpos($jsSrc146, 'function initSignaturePreview()');
+            $spBody146 = $posSp146 !== false ? substr($jsSrc146, $posSp146, 3000) : '';
+            if ($posSp146 === false
+                || strpos($spBody146, 'var requestToken = 0;') === false
+                || strpos($spBody146, 'var thisRequest = ++requestToken;') === false
+                || substr_count($spBody146, 'if (thisRequest !== requestToken) return;') < 2
+            ) {
+                $offenders[] = "neria-admin.js::initSignaturePreview() ne protège plus contre les réponses fetch() obsolètes via un jeton de requête — régression du bug corrigé le 09/08/2026 (round 146) : un aperçu de signature plus récent pourrait de nouveau être écrasé par une réponse plus lente et périmée";
+            }
+        }
+
+        // Round 146 (2026-08-09) : script de rattrapage upgrade-1.0.40.php
+        // (3 bugs historiques : backfill id_shop, Configuration non scopée,
+        // && court-circuitant la recréation de contraintes UNIQUE).
+        $upFile146 = _PS_MODULE_DIR_ . $this->module->name . '/upgrade/upgrade-1.0.40.php';
+        $upSrc146 = $this->readModuleSrc($upFile146);
+        if ($upSrc146 === '' || strpos($upSrc146, 'function upgrade_module_1_0_40(Neria $module): bool') === false) {
+            $offenders[] = "upgrade/upgrade-1.0.40.php introuvable ou incomplet — régression du bug corrigé le 09/08/2026 (round 146) : les 3 correctifs historiques (id_shop mal renseigné, Configuration non scopée boutique, contraintes UNIQUE non recréées) ne seraient de nouveau plus appliqués sur les installations existantes";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
