@@ -428,13 +428,17 @@
   #neria-delete-modal-actions{display:flex;gap:10px;justify-content:center;}
   </style>{/literal}
 
+  {* Round 154 : role="dialog"/aria-modal/aria-labelledby — mécanisme de
+     confirmation partagé par TOUTES les actions destructrices du module
+     (suppression, purge RGPD, chiffrement en masse...), jusqu'ici sans
+     aucune sémantique de modale pour les lecteurs d'écran. *}
   <div id="neria-delete-modal-overlay">
-    <div id="neria-delete-modal">
-      <h4>⚠ {neria_admin key='common.confirm_modal_title'}</h4>
+    <div id="neria-delete-modal" role="dialog" aria-modal="true" aria-labelledby="neria-delete-modal-title">
+      <h4 id="neria-delete-modal-title">⚠ {neria_admin key='common.confirm_modal_title'}</h4>
       <p id="neria-delete-modal-msg"></p>
       <span id="neria-delete-modal-key" class="neria-modal-key"></span>
       <div id="neria-delete-modal-actions">
-        <button type="button" class="neria-btn neria-btn--secondary" onclick="neriaCloseDeleteModal();">
+        <button type="button" class="neria-btn neria-btn--secondary" id="neria-delete-modal-cancel" onclick="neriaCloseDeleteModal();">
           {neria_admin key='common.cancel'}
         </button>
         <button type="button" class="neria-btn neria-btn--danger" id="neria-delete-modal-confirm">
@@ -447,21 +451,32 @@
   <script>
   var _neriaDeleteForm = null;
   var _neriaConfirmCallback = null;
+  // Round 154 : élément ayant déclenché l'ouverture — le focus clavier lui
+  // est restitué à la fermeture, comme l'exige le patron ARIA "dialog".
+  var _neriaModalTrigger = null;
+  function _neriaOpenDeleteModal() {
+    _neriaModalTrigger = document.activeElement;
+    document.getElementById('neria-delete-modal-confirm').disabled = false;
+    document.getElementById('neria-delete-modal-overlay').classList.add('active');
+    // Déplace le focus dans la modale (bouton "Annuler", le choix le plus
+    // sûr pour une action potentiellement destructive) — sans ça, un
+    // utilisateur clavier restait focalisé sur la page sous l'overlay,
+    // sans aucun moyen fiable d'atteindre "Annuler"/"Confirmer".
+    document.getElementById('neria-delete-modal-cancel').focus();
+  }
   function neriaConfirmDelete(btn) {
     _neriaDeleteForm = btn.closest('form');
     _neriaConfirmCallback = null;
     document.getElementById('neria-delete-modal-msg').textContent = btn.getAttribute('data-confirm');
     document.getElementById('neria-delete-modal-key').textContent = btn.getAttribute('data-key') || '';
-    document.getElementById('neria-delete-modal-confirm').disabled = false;
-    document.getElementById('neria-delete-modal-overlay').classList.add('active');
+    _neriaOpenDeleteModal();
   }
   function neriaConfirmAction(message, callback) {
     _neriaDeleteForm = null;
     _neriaConfirmCallback = callback;
     document.getElementById('neria-delete-modal-msg').textContent = message;
     document.getElementById('neria-delete-modal-key').textContent = '';
-    document.getElementById('neria-delete-modal-confirm').disabled = false;
-    document.getElementById('neria-delete-modal-overlay').classList.add('active');
+    _neriaOpenDeleteModal();
   }
   // Pour les liens <a href> (GET) au lieu d'un <form> — appeler avec
   // onclick="return neriaConfirmLink(event, this);"
@@ -508,6 +523,13 @@
     document.getElementById('neria-delete-modal-confirm').disabled = false;
     _neriaDeleteForm = null;
     _neriaConfirmCallback = null;
+    // Round 154 : restitue le focus à l'élément déclencheur — sans ça, le
+    // focus clavier retombait au début du document (ou nulle part) après
+    // fermeture, perdant la position de navigation de l'utilisateur.
+    if (_neriaModalTrigger && typeof _neriaModalTrigger.focus === 'function') {
+      _neriaModalTrigger.focus();
+    }
+    _neriaModalTrigger = null;
   }
   document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('neria-delete-modal-confirm').addEventListener('click', function(e) {
@@ -521,6 +543,32 @@
     });
     document.getElementById('neria-delete-modal-overlay').addEventListener('click', function(e) {
       if (e.target === this) { neriaCloseDeleteModal(); }
+    });
+    // Round 154 : piège du focus (Tab reste entre Annuler/Confirmer tant
+    // que la modale est ouverte) + fermeture au clavier via Échap — sans
+    // ça, un utilisateur clavier pouvait tabuler hors de la modale dans le
+    // reste de la page restée sous l'overlay.
+    document.getElementById('neria-delete-modal-overlay').addEventListener('keydown', function(e) {
+      if (!this.classList.contains('active')) { return; }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        neriaCloseDeleteModal();
+        return;
+      }
+      if (e.key === 'Tab') {
+        var cancelBtn  = document.getElementById('neria-delete-modal-cancel');
+        var confirmBtn = document.getElementById('neria-delete-modal-confirm');
+        var focusables = [cancelBtn, confirmBtn];
+        var first = focusables[0];
+        var last  = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     });
   });
   </script>

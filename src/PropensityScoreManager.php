@@ -75,15 +75,73 @@ class PropensityScoreManager
                AND c.active = 1 AND c.deleted = 0'
         ) ?: [];
 
+        // Round 154 : les 4 sous-scores étaient recalculés client par
+        // client (recalculateCustomer() → 4 SELECT + 1 INSERT chacun) —
+        // jusqu'à ~7 requêtes SQL PAR CLIENT, soit ~35 000 requêtes/nuit
+        // sur une boutique de 5000 clients ayant commandé. Pré-chargées ici
+        // en 3 requêtes groupées (GROUP BY id_customer), même pattern déjà
+        // utilisé par ChurnScoreManager::recomputeAll() pour ce même type
+        // de traitement — la formule de calcul elle-même (calcRecencyScore/
+        // calcFrequencyScore/calcEngagementScore/calcSeasonalityScore) reste
+        // rigoureusement identique, seule la source des données change
+        // (agrégat pré-chargé au lieu d'un SELECT par client).
+        $ordersAgg = $this->db->executeS(
+            'SELECT id_customer, COUNT(*) AS cnt, MIN(date_add) AS first_date, MAX(date_add) AS last_date
+             FROM `' . _DB_PREFIX_ . 'orders`
+             WHERE id_shop = ' . $this->idShop . ' AND valid = 1
+             GROUP BY id_customer'
+        ) ?: [];
+        $ordersById = [];
+        foreach ($ordersAgg as $r) {
+            $ordersById[(int) $r['id_customer']] = $r;
+        }
+
+        $currentMonth = (int) date('n');
+        $inMonthAgg = $this->db->executeS(
+            'SELECT id_customer, COUNT(*) AS cnt
+             FROM `' . _DB_PREFIX_ . 'orders`
+             WHERE id_shop = ' . $this->idShop . ' AND valid = 1 AND MONTH(date_add) = ' . $currentMonth . '
+             GROUP BY id_customer'
+        ) ?: [];
+        $inMonthById = [];
+        foreach ($inMonthAgg as $r) {
+            $inMonthById[(int) $r['id_customer']] = (int) $r['cnt'];
+        }
+
+        $engagementAgg = $this->db->executeS(
+            'SELECT id_customer,
+                    SUM(event_type = \'open\' AND is_mpp = 0)  AS opens,
+                    SUM(event_type = \'click\')                AS clicks
+             FROM `' . _DB_PREFIX_ . 'neria_stat`
+             WHERE id_shop = ' . $this->idShop . '
+               AND date_add >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+             GROUP BY id_customer'
+        ) ?: [];
+        $engagementById = [];
+        foreach ($engagementAgg as $r) {
+            $engagementById[(int) $r['id_customer']] = $r;
+        }
+
         $count = 0;
         foreach ($customers as $row) {
+            $idCustomer = (int) $row['id_customer'];
             try {
-                $this->recalculateCustomer((int) $row['id_customer']);
+                $agg = $ordersById[$idCustomer] ?? null;
+                $eng = $engagementById[$idCustomer] ?? ['opens' => 0, 'clicks' => 0];
+                $total = $agg ? (int) $agg['cnt'] : 0;
+
+                $scores = [
+                    'recency'     => $this->calcRecencyScore($agg['last_date'] ?? null),
+                    'frequency'   => $this->calcFrequencyScore($total, $agg['first_date'] ?? null),
+                    'engagement'  => $this->calcEngagementScore((int) $eng['opens'], (int) $eng['clicks']),
+                    'seasonality' => $this->calcSeasonalityScore($total, $inMonthById[$idCustomer] ?? 0),
+                ];
+                $this->persistScores($idCustomer, $scores);
                 $count++;
             } catch (\Throwable $e) {
                 $this->watchdog()->error(
                     \WatchdogManager::i18nMsg('watchdog.propensity_error', [
-                        'customer' => (int) $row['id_customer'],
+                        'customer' => $idCustomer,
                         'error'    => $e->getMessage(),
                     ]),
                     '', 'PropensityScore'
@@ -131,7 +189,16 @@ class PropensityScoreManager
     public function recalculateCustomer(int $idCustomer): void
     {
         $scores = $this->computeScores($idCustomer);
+        $this->persistScores($idCustomer, $scores);
+    }
 
+    /**
+     * Round 154 : extrait de recalculateCustomer() pour être réutilisable
+     * par recalculateAll() (scores déjà calculés à partir d'agrégats
+     * pré-chargés) sans dupliquer la logique d'arrondi/persistance.
+     */
+    private function persistScores(int $idCustomer, array $scores): void
+    {
         // Round 124 : chaque sous-score arrondi (round(), pas une troncature
         // (int) qui tronque vers zéro) AVANT de sommer pour $total — pas
         // l'inverse (total tronqué depuis la somme des floats bruts, puis
@@ -183,6 +250,16 @@ class PropensityScoreManager
             'SELECT MAX(date_add) FROM `' . _DB_PREFIX_ . 'orders`
              WHERE id_customer = ' . $idCustomer . ' AND id_shop = ' . $this->idShop . ' AND valid = 1'
         );
+        return $this->calcRecencyScore($lastOrder ?: null);
+    }
+
+    /**
+     * Round 154 : logique de calcul pure, extraite de scoreRecency() pour
+     * être appelée par recalculateAll() à partir d'un agrégat pré-chargé
+     * (voir son commentaire) sans refaire un SELECT par client.
+     */
+    private function calcRecencyScore(?string $lastOrder): float
+    {
         if (!$lastOrder) {
             return 0.0;
         }
@@ -212,9 +289,18 @@ class PropensityScoreManager
         if (!$row || (int) $row['cnt'] === 0) {
             return 0.0;
         }
+        return $this->calcFrequencyScore((int) $row['cnt'], $row['first_date']);
+    }
 
-        $months = max(1, (int) (new \DateTime($row['first_date']))->diff(new \DateTime())->days / 30.44);
-        $perMonth = (int) $row['cnt'] / $months;
+    /** Round 154 : voir calcRecencyScore(). */
+    private function calcFrequencyScore(int $cnt, ?string $firstDate): float
+    {
+        if ($cnt === 0 || !$firstDate) {
+            return 0.0;
+        }
+
+        $months = max(1, (int) (new \DateTime($firstDate))->diff(new \DateTime())->days / 30.44);
+        $perMonth = $cnt / $months;
 
         return min(self::W_FREQUENCY, round($perMonth * 8, 1));
     }
@@ -243,6 +329,12 @@ class PropensityScoreManager
                AND date_add >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
         );
 
+        return $this->calcEngagementScore($opens, $clicks);
+    }
+
+    /** Round 154 : voir calcRecencyScore(). */
+    private function calcEngagementScore(int $opens, int $clicks): float
+    {
         return min(self::W_ENGAGEMENT, (float) ($opens + $clicks * 2));
     }
 
@@ -258,6 +350,23 @@ class PropensityScoreManager
             return 0.0;
         }
 
+        $currentMonth = (int) date('n');
+        $inMonth = (int) $this->db->getValue(
+            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'orders`
+             WHERE id_customer = ' . $idCustomer . ' AND id_shop = ' . $this->idShop . '
+               AND valid = 1 AND MONTH(date_add) = ' . $currentMonth
+        );
+
+        return $this->calcSeasonalityScore($total, $inMonth);
+    }
+
+    /** Round 154 : voir calcRecencyScore(). */
+    private function calcSeasonalityScore(int $total, int $inMonth): float
+    {
+        if ($total === 0) {
+            return 0.0;
+        }
+
         // Sur un très petit échantillon (1-2 commandes au total), le ratio
         // ne peut valoir que 0%, 50% ou 100% — une simple coïncidence de
         // calendrier suffit alors à déclencher le score plein, sans aucune
@@ -266,13 +375,6 @@ class PropensityScoreManager
         if ($total < 6) {
             return 0.0;
         }
-
-        $currentMonth = (int) date('n');
-        $inMonth = (int) $this->db->getValue(
-            'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'orders`
-             WHERE id_customer = ' . $idCustomer . ' AND id_shop = ' . $this->idShop . '
-               AND valid = 1 AND MONTH(date_add) = ' . $currentMonth
-        );
 
         $ratio = $inMonth / $total;
         // Normaliser sur 12 mois : si répartition uniforme = 1/12 ≈ 8.3%

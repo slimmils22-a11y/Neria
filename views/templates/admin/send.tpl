@@ -47,13 +47,21 @@
         <label class="neria-label" for="neria-send-email">
           {neria_admin key='send.email_label'}
         </label>
+        {* Round 154 : role="combobox"/aria-expanded/aria-controls —
+           complète la liste role="listbox" ci-dessous (patron ARIA
+           combobox simplifié) pour que la navigation clavier
+           (flèches/Entrée/Échap, gérée en JS) soit annoncée correctement. *}
         <input type="email" id="neria-send-email" name="neria_email" class="neria-input"
                placeholder="{neria_admin key='send.email_placeholder' esc='html'}" required autocomplete="off"
+               role="combobox" aria-expanded="false" aria-controls="neria-autocomplete-dropdown" aria-autocomplete="list"
                value="{if isset($smarty.post.neria_email)}{$smarty.post.neria_email|escape:'html'}{/if}">
         <span class="neria-hint">{neria_admin key='send.email_hint'}</span>
 
-        {* Dropdown autocomplétion *}
-        <div id="neria-autocomplete-dropdown"
+        {* Dropdown autocomplétion — round 154 : role="listbox", auparavant
+           une liste de <div> avec seulement mouseenter/mouseleave/mousedown,
+           totalement inatteignable et inutilisable au clavier sur ce flux
+           d'envoi manuel parmi les plus fréquents du BO. *}
+        <div id="neria-autocomplete-dropdown" role="listbox"
              style="display:none; position:absolute; top:100%; left:0; right:0; z-index:200;
                     background:#fff; border:1px solid #e8d5b0; border-radius:0 0 6px 6px;
                     box-shadow:0 4px 12px rgba(0,0,0,.10); max-height:260px; overflow-y:auto;">
@@ -133,8 +141,12 @@
             <div class="neria-form-grid">
               {foreach $fields as $f}
                 <div class="neria-form-group">
-                  <label class="neria-label">{$f.label|escape:'html'}</label>
-                  <input type="text" class="neria-input" name="neria_var[{$f.key}]"
+                  {* Round 154 : id/for associés — auparavant aucun lien
+                     label/champ, un lecteur d'écran annonçait "champ de
+                     texte" sans préciser lequel sur ce formulaire d'envoi
+                     manuel utilisé quotidiennement. *}
+                  <label class="neria-label" for="neria-send-var-{$tpl|escape:'html'}-{$f.key|escape:'html'}">{$f.label|escape:'html'}</label>
+                  <input type="text" class="neria-input" id="neria-send-var-{$tpl|escape:'html'}-{$f.key|escape:'html'}" name="neria_var[{$f.key}]"
                          value="{if isset($smarty.post.neria_var) && isset($smarty.post.neria_var[$f.key])}{$smarty.post.neria_var[$f.key]|escape:'html'}{/if}">
                 </div>
               {/foreach}
@@ -160,7 +172,12 @@
 
     {* ── Planification différée ─────────────────────────────────── *}
     <div style="margin-top:20px; padding:16px 20px; background:#f9f6f1; border:1px solid #e8d5b0; border-radius:6px;">
-      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" id="neria-schedule-toggle">
+      {* Round 154 : role="button"/tabindex/aria-expanded — auparavant un
+         simple <div onclick>, inatteignable et inutilisable au clavier
+         (voir le pattern correct déjà en place sur certificates.tpl pour
+         un toggle équivalent, répliqué ici). *}
+      <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" id="neria-schedule-toggle"
+           role="button" tabindex="0" aria-expanded="false" aria-controls="neria-schedule-body">
         <span style="font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#4a3f35; opacity:.75;">
           {neria_admin key='send.schedule_toggle_label'}
         </span>
@@ -268,7 +285,9 @@
                  color:#4a3f35; opacity:.75;">
       {neria_admin key='send.preview_section_title'}
     </span>
-    <button type="button" id="neria-preview-close"
+    {* Round 154 : aria-label — bouton icône-seule, un lecteur d'écran
+       annonçait juste "bouton" en fermant la prévisualisation. *}
+    <button type="button" id="neria-preview-close" aria-label="{neria_admin key='common.close'}" title="{neria_admin key='common.close'}"
             style="background:none; border:none; font-size:16px; cursor:pointer; color:#a08060;">✕</button>
   </div>
   <iframe id="neria-preview-frame"
@@ -480,12 +499,46 @@ window.NERIA_SEND_L10N = {
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  // Round 154 : index de l'option actuellement mise en évidence au clavier
+  // (flèches haut/bas) — -1 = aucune sélection active.
+  var acActiveIndex = -1;
+
+  function acSelectCustomer(c) {
+    if (emailInput) { emailInput.value = c.email; }
+    dropdown.style.display = 'none';
+    if (emailInput) { emailInput.setAttribute('aria-expanded', 'false'); }
+    acActiveIndex = -1;
+    showCustomerCard(c);
+    checkAllGuards();
+  }
+
+  function acSetActive(index) {
+    var items = dropdown.querySelectorAll('[role="option"]');
+    if (!items.length) { return; }
+    items.forEach(function (el) { el.style.background = ''; el.setAttribute('aria-selected', 'false'); });
+    acActiveIndex = Math.max(0, Math.min(index, items.length - 1));
+    var active = items[acActiveIndex];
+    active.style.background = '#f9f6f1';
+    active.setAttribute('aria-selected', 'true');
+    active.scrollIntoView({ block: 'nearest' });
+    if (emailInput) { emailInput.setAttribute('aria-activedescendant', active.id); }
+  }
+
   function buildDropdown(results) {
     if (!dropdown) { return; }
     dropdown.innerHTML = '';
-    if (!results.length) { dropdown.style.display = 'none'; return; }
-    results.forEach(function (c) {
+    acActiveIndex = -1;
+    if (emailInput) { emailInput.removeAttribute('aria-activedescendant'); }
+    if (!results.length) {
+      dropdown.style.display = 'none';
+      if (emailInput) { emailInput.setAttribute('aria-expanded', 'false'); }
+      return;
+    }
+    results.forEach(function (c, idx) {
       var item = document.createElement('div');
+      item.id = 'neria-ac-option-' + idx;
+      item.setAttribute('role', 'option');
+      item.setAttribute('aria-selected', 'false');
       item.style.cssText = 'padding:9px 14px; cursor:pointer; border-bottom:1px solid #f0e8d8;'
                          + 'font-size:12px; color:#4a3f35; line-height:1.5;';
       item.innerHTML = '<strong>' + esc(c.firstname) + ' ' + esc(c.lastname) + '</strong>'
@@ -493,18 +546,19 @@ window.NERIA_SEND_L10N = {
                      + (c.last_order_ref
                          ? '<br><span style="color:#a08060;">' + NERIA_SEND_L10N.orderPrefix + ' ' + esc(c.last_order_ref) + (c.last_order_date ? ' · ' + esc(c.last_order_date) : '') + '</span>'
                          : '<br><span style="color:#a08060;font-style:italic;">' + NERIA_SEND_L10N.noOrder + '</span>');
-      item.addEventListener('mouseenter', function () { this.style.background = '#f9f6f1'; });
-      item.addEventListener('mouseleave', function () { this.style.background = ''; });
+      item.addEventListener('mouseenter', function () { acSetActive(idx); });
+      item.addEventListener('mouseleave', function () { this.style.background = ''; this.setAttribute('aria-selected', 'false'); });
       item.addEventListener('mousedown', function (e) {
         e.preventDefault();
-        if (emailInput) { emailInput.value = c.email; }
-        dropdown.style.display = 'none';
-        showCustomerCard(c);
-        checkAllGuards();
+        acSelectCustomer(c);
       });
       dropdown.appendChild(item);
     });
     dropdown.style.display = '';
+    if (emailInput) { emailInput.setAttribute('aria-expanded', 'true'); }
+    // Round 154 : conserve la liste de résultats pour la navigation clavier
+    // (ArrowDown/ArrowUp/Enter, gérée sur l'input — voir plus bas).
+    dropdown._neriaResults = results;
   }
 
   function runAutocomplete() {
@@ -528,6 +582,31 @@ window.NERIA_SEND_L10N = {
     emailInput.addEventListener('blur', function () {
       setTimeout(function () { if (dropdown) { dropdown.style.display = 'none'; } }, 200);
       checkAllGuards();
+    });
+    // Round 154 : navigation clavier de la liste d'auto-complétion
+    // (ArrowDown/ArrowUp déplacent la sélection en évidence, Entrée
+    // valide, Échap ferme) — auparavant totalement inutilisable sans
+    // souris malgré un affichage visuel correct des suggestions.
+    emailInput.addEventListener('keydown', function (e) {
+      if (!dropdown || dropdown.style.display === 'none') { return; }
+      var results = dropdown._neriaResults || [];
+      if (!results.length) { return; }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        acSetActive(acActiveIndex + 1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        acSetActive(acActiveIndex - 1);
+      } else if (e.key === 'Enter') {
+        if (acActiveIndex >= 0 && acActiveIndex < results.length) {
+          e.preventDefault();
+          acSelectCustomer(results[acActiveIndex]);
+        }
+      } else if (e.key === 'Escape') {
+        dropdown.style.display = 'none';
+        emailInput.setAttribute('aria-expanded', 'false');
+        acActiveIndex = -1;
+      }
     });
   }
 
@@ -559,10 +638,22 @@ window.NERIA_SEND_L10N = {
 
   // ── Planification différée ────────────────────────────────────
   if (schedToggle) {
-    schedToggle.addEventListener('click', function () {
+    // Round 154 : extrait dans une fonction nommée + gestionnaire clavier
+    // (Entrée/Espace) sur ce role="button" custom, et synchronise
+    // aria-expanded — auparavant seul un clic souris pouvait ouvrir ce
+    // panneau, le rendant totalement inatteignable au clavier.
+    var toggleSchedule = function () {
       var open = schedBody.style.display !== 'none';
       schedBody.style.display = open ? 'none' : '';
       schedArrow.textContent = open ? '▼' : '▲';
+      schedToggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+    };
+    schedToggle.addEventListener('click', toggleSchedule);
+    schedToggle.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+        e.preventDefault();
+        toggleSchedule();
+      }
     });
   }
 

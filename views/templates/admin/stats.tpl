@@ -3066,7 +3066,7 @@ var _nCopyLbl = {
           </td>
           <td>
             <div style="display:flex; align-items:center; gap:10px;">
-              {if $urow.thumb_url}<img src="{$urow.thumb_url|escape:'html'}" width="36" style="border-radius:3px; display:block; flex-shrink:0;">{/if}
+              {if $urow.thumb_url}<img src="{$urow.thumb_url|escape:'html'}" width="36" alt="" style="border-radius:3px; display:block; flex-shrink:0;">{/if}
               <a href="{$urow.product_url|escape:'html'}" target="_blank"
                  style="font-size:13px; color:var(--neria-text); text-decoration:none;">{$urow.product_name|escape:'html'}</a>
             </div>
@@ -3728,7 +3728,7 @@ var _nCopyLbl = {
               <div style="display:flex;flex-wrap:wrap;gap:6px;">
                 {foreach $col.product_details as $pd}
                   <span style="display:inline-flex;align-items:center;gap:5px;background:#faf6f0;border:1px solid #e8d8c0;border-radius:14px;padding:2px 10px 2px 2px;font-size:11px;color:#4a3f35;">
-                    {if $pd.image}<img src="{$pd.image|escape:'html'}" width="18" height="18" style="border-radius:50%;object-fit:cover;">{/if}
+                    {if $pd.image}<img src="{$pd.image|escape:'html'}" width="18" height="18" alt="" style="border-radius:50%;object-fit:cover;">{/if}
                     {$pd.name|escape:'html'|truncate:24:'…'}
                   </span>
                 {/foreach}
@@ -3815,7 +3815,7 @@ var _nCollectionMsg = {
       chip.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:#1a1a2e;color:#fff;' +
         'border-radius:14px;padding:4px 8px 4px 4px;font-size:12px;';
       var img = '';
-      if (p.image) img = '<img src="' + p.image + '" width="20" height="20" style="border-radius:50%;object-fit:cover;">';
+      if (p.image) img = '<img src="' + p.image + '" width="20" height="20" alt="" style="border-radius:50%;object-fit:cover;">';
       chip.innerHTML = img + '<span>' + p.name.replace(/</g, '&lt;') + '</span>';
 
       var btn = document.createElement('button');
@@ -3849,7 +3849,7 @@ var _nCollectionMsg = {
       if (selected.some(function (x) { return x.id === p.id; })) return;
       var row = document.createElement('div');
       row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid #f0e8d8;';
-      var img = p.image ? '<img src="' + p.image + '" width="24" height="24" style="border-radius:3px;object-fit:cover;">' : '';
+      var img = p.image ? '<img src="' + p.image + '" width="24" height="24" alt="" style="border-radius:3px;object-fit:cover;">' : '';
       row.innerHTML = img + '<span>' + p.name.replace(/</g, '&lt;') + (p.reference ? ' <span style="color:#aaa;">[' + p.reference.replace(/</g, '&lt;') + ']</span>' : '') + '</span>';
       row.onmouseover = function () { row.style.background = '#faf6f0'; };
       row.onmouseout  = function () { row.style.background = ''; };

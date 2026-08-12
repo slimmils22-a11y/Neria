@@ -407,12 +407,38 @@ class WatchdogManager
             return;
         }
 
+        // Round 154 : verrou MySQL — même piège déjà corrigé pour la queue
+        // d'envoi, la queue webhook, le cron comportemental, le calendrier
+        // et le rapport mensuel (cf. MonthlyReportManager::checkAndSend()).
+        // Sans lui, deux déclenchements concurrents (hookDisplayHeader sur
+        // deux visiteurs simultanés, ou le fallback front + un vrai cron
+        // serveur tournant en même temps) pouvaient tous deux lire
+        // $lastDigest périmé AVANT que l'un des deux n'ait eu le temps
+        // d'écrire sa mise à jour (après la construction complète de
+        // l'email) — le marchand recevait alors deux digests quotidiens
+        // identiques.
+        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_watchdog_digest_" . $this->idShop . "', 0)") !== 1) {
+            return;
+        }
+
+        try {
+            $this->sendDailyDigestIfDueLocked();
+        } finally {
+            $this->db->execute("SELECT RELEASE_LOCK('neria_watchdog_digest_" . $this->idShop . "')");
+        }
+    }
+
+    private function sendDailyDigestIfDueLocked(): void
+    {
         // Même correctif que sendImmediateAlert() : clé suffixée par boutique,
         // sinon une seule boutique par jour (la première dont le hook déclenche
         // sendDailyDigestIfDue()) recevait effectivement un digest — les
         // autres boutiques voyaient leur fenêtre de 24h "consommée" sans
         // jamais recevoir leur propre résumé, alors que leurs logs existent
         // bien en base avec leur id_shop respectif.
+        //
+        // Revérifie APRÈS obtention du verrou : un autre process a pu
+        // terminer son propre envoi pendant qu'on attendait.
         $lastDigest = (int) \Configuration::getGlobalValue(self::CFG_DIGEST_LAST . '_' . $this->idShop);
         if ((time() - $lastDigest) < 86400) {
             return;

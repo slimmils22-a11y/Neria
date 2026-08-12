@@ -191,6 +191,40 @@ class DomainReputationManager
 
     public function runFullCheck(): array
     {
+        // Round 154 : verrou MySQL — sans lui, deux déclenchements
+        // concurrents (hookDisplayHeader sur deux visiteurs simultanés, ou
+        // fallback front + vrai cron serveur) pouvaient tous deux relancer
+        // runFullCheck() (jusqu'à 8s de résolutions DNS/RBL bloquantes)
+        // dans la même fenêtre de cache périmé, doublant inutilement la
+        // charge DNS et — si le grade est F/D ou RBL>2 — pouvant chacun
+        // déclencher watchdog()->error() → sendImmediateAlert(), dont le
+        // throttle par boutique est lui-même un check-then-act non
+        // atomique : une alerte critique de réputation de domaine pouvait
+        // ainsi partir en double au marchand pour le même incident.
+        if ((int) \Db::getInstance()->getValue("SELECT GET_LOCK('neria_domain_reputation_" . $this->idShop . "', 0)") !== 1) {
+            // Verrou déjà tenu par un autre process en train de rafraîchir
+            // le même rapport : sert le cache s'il en existe un (même
+            // périmé), plutôt que de dupliquer la vérification DNS/RBL
+            // coûteuse. Si aucun cache n'existe encore (tout premier check
+            // à froid), s'exécute quand même sans verrou — un tableau vide
+            // serait pire qu'une vérification non dédupliquée une seule
+            // fois au démarrage.
+            $cached = $this->getCachedReport();
+            if ($cached !== null) {
+                return $cached;
+            }
+            return $this->runFullCheckLocked();
+        }
+
+        try {
+            return $this->runFullCheckLocked();
+        } finally {
+            \Db::getInstance()->execute("SELECT RELEASE_LOCK('neria_domain_reputation_" . $this->idShop . "')");
+        }
+    }
+
+    private function runFullCheckLocked(): array
+    {
         \Configuration::updateValue(\HealthCheckManager::CRON_LAST_DOMREP, date('Y-m-d H:i:s'));
         @set_time_limit(120);
 

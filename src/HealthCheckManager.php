@@ -115,12 +115,38 @@ class HealthCheckManager
             return;
         }
 
-        \Configuration::updateValue(self::CONFIG_LAST_RUN, date('Y-m-d H:i:s'));
+        // Round 154 : verrou MySQL — même piège déjà corrigé pour la queue
+        // d'envoi, la queue webhook, le cron comportemental, le calendrier,
+        // le rapport mensuel et (ce même round) le digest Watchdog/la
+        // réputation de domaine. Sans lui, deux déclenchements concurrents
+        // (hookDisplayHeader sur deux visiteurs simultanés, ou fallback
+        // front + vrai cron serveur) pouvaient tous deux lancer
+        // buildAllChecks() (jusqu'à ~150 contrôles, plus coûteux avec les
+        // scans lourds) en parallèle — gaspillage CPU pur ici (le résultat
+        // final `CONFIG_RESULTS` est un simple "dernier écrivain gagne",
+        // idempotent), mais évité au même titre que les autres blocs de
+        // runBackgroundJobs() par cohérence.
+        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_health_autochecks', 0)") !== 1) {
+            return;
+        }
 
-        $results = $this->buildAllChecks($allowHeavyScans);
+        try {
+            // Revérifie après obtention du verrou : un autre process a pu
+            // terminer son propre passage pendant qu'on attendait.
+            $lastRun = (string) \Configuration::get(self::CONFIG_LAST_RUN);
+            if ($lastRun && (time() - (int) strtotime($lastRun)) < self::THROTTLE_SECONDS) {
+                return;
+            }
 
-        \Configuration::updateValue(self::CONFIG_RESULTS, json_encode($results, JSON_UNESCAPED_UNICODE));
-        $this->logResultsToWatchdog($results);
+            \Configuration::updateValue(self::CONFIG_LAST_RUN, date('Y-m-d H:i:s'));
+
+            $results = $this->buildAllChecks($allowHeavyScans);
+
+            \Configuration::updateValue(self::CONFIG_RESULTS, json_encode($results, JSON_UNESCAPED_UNICODE));
+            $this->logResultsToWatchdog($results);
+        } finally {
+            $this->db->execute("SELECT RELEASE_LOCK('neria_health_autochecks')");
+        }
     }
 
     /**

@@ -156,7 +156,7 @@ class ABTestManager
      * - Bien reparti : crc32 donne une distribution uniforme
      *
      * @param string $template     Nom du template
-     * @param int    $idCustomer   ID client
+     * @param string $key          Cle de repartition (ex. email ou ID client)
      * @param int    $splitPercent Pourcentage envoye en variante A (0-100)
      * @return string 'A' ou 'B'
      */
