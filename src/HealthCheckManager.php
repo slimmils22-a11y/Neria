@@ -5204,6 +5204,35 @@ class HealthCheckManager
             $offenders[] = "abtest.tpl : les champs de nom de variante A/B n'ont plus d'aria-label — régression du bug corrigé le 09/08/2026 (round 155)";
         }
 
+        // Round 156 (09/08/2026) : ManualSendManager::findOrder() doit
+        // rester scopé par l'idShop explicitement reçu (client réel), pas
+        // par Context::getContext()->shop->id (contexte BO de l'opérateur).
+        $msmSrc156 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        if ($msmSrc156 === '') {
+            $offenders[] = 'ManualSendManager.php introuvable (garde-fou round 156 : findOrder() scopé par idShop explicite)';
+        } else {
+            $posFo156 = strpos($msmSrc156, 'private function findOrder(string $ref, int $idShop): ?array');
+            $foBody156 = $posFo156 !== false ? substr($msmSrc156, $posFo156, 450) : '';
+            if ($posFo156 === false || strpos($foBody156, "AND `id_shop` = ' . \$idShop . '") === false) {
+                $offenders[] = "ManualSendManager::findOrder() n'est plus scopé par le paramètre \$idShop explicite — régression du bug corrigé le 09/08/2026 (round 156) : un envoi manuel/planifié référençant une commande valide serait de nouveau bloqué à tort dès que l'opérateur n'est pas dans le même contexte boutique que le client destinataire";
+            }
+            if (strpos($msmSrc156, "\$this->findOrder(\$orderRef, \$idShop)") === false
+                || strpos($msmSrc156, "\$this->findOrder(\$orderRef, \$idShopManual)") === false
+            ) {
+                $offenders[] = "ManualSendManager::send()/scheduleManual() n'appellent plus findOrder() avec l'idShop du client réel — régression du bug corrigé le 09/08/2026 (round 156)";
+            }
+        }
+
+        // Round 156 (09/08/2026) : 2 règles CSS directionnelles oubliées du
+        // correctif RTL (audit dédié) doivent rester en place.
+        $cssSrc156 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/css/neria-admin.css');
+        if ($cssSrc156 === ''
+            || strpos($cssSrc156, '.neria-bo-wrap[dir="rtl"] .neria-table thead th { text-align:right; }') === false
+            || strpos($cssSrc156, '.neria-bo-wrap[dir="rtl"] .neria-abtest-variant__metrics { margin-left:0; margin-right:auto; }') === false
+        ) {
+            $offenders[] = "neria-admin.css : le tableau générique ou les métriques A/B testing ne sont plus inversés en RTL — régression du bug corrigé le 09/08/2026 (round 156)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
