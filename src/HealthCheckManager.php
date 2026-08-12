@@ -4888,6 +4888,44 @@ class HealthCheckManager
             $offenders[] = "loyalty_recap.txt n'affiche plus {progress_pct} — régression du bug corrigé le 09/08/2026 (round 149) : le client ne verrait plus son pourcentage de progression fidélité en version texte brute";
         }
 
+        // Round 150 (2026-08-09) : la version .txt d'un email compilé doit
+        // nettoyer (pas seulement résoudre brut) une traduction {neria_trad}
+        // — certaines clés (history_info, guest_tracking_info, tracking_info)
+        // contiennent un lien HTML complet pensé pour le rendu HTML.
+        $erSrc150 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($erSrc150 === '' || strpos($erSrc150, "\$v !== '' ? NeriaTools::sanitizeText(\$v) : \$m[0];") === false) {
+            $offenders[] = "EmailRenderer ne nettoie plus les traductions {neria_trad} injectées dans la version .txt — régression du bug corrigé le 09/08/2026 (round 150) : des balises HTML brutes (<a href=...>) réapparaîtraient dans la version texte de 15 templates transactionnels (bankwire, order_conf, payment, refund, shipped...)";
+        }
+
+        // Round 150 (2026-08-09) : PageSpeedManager::runCheck() ne doit
+        // effacer CONFIG_LAST_ERROR que si mobile ET desktop ont réussi.
+        $psmSrc150 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PageSpeedManager.php');
+        if ($psmSrc150 === '') {
+            $offenders[] = 'PageSpeedManager.php introuvable (garde-fou round 150 : LAST_ERROR non écrasé entre stratégies)';
+        } else {
+            $posFetch150 = strpos($psmSrc150, 'private function fetchStrategy(string $url, string $key, string $strategy): ?array');
+            $fetchBody150 = $posFetch150 !== false ? substr($psmSrc150, $posFetch150, 3400) : '';
+            if ($posFetch150 === false || strpos($fetchBody150, 'CONFIG_LAST_ERROR') !== false) {
+                $offenders[] = "PageSpeedManager::fetchStrategy() efface/écrit de nouveau CONFIG_LAST_ERROR sur son propre succès — régression du bug corrigé le 09/08/2026 (round 150) : le succès d'une stratégie effacerait de nouveau l'erreur enregistrée par l'échec de l'autre";
+            }
+            $posRun150 = strpos($psmSrc150, 'public function runCheck(): ?array');
+            $runBody150 = $posRun150 !== false ? substr($psmSrc150, $posRun150, 2600) : '';
+            if ($posRun150 === false || strpos($runBody150, 'if ($mobile !== null && $desktop !== null) {') === false) {
+                $offenders[] = "PageSpeedManager::runCheck() ne conditionne plus l'effacement de CONFIG_LAST_ERROR à la réussite des deux stratégies — régression du bug corrigé le 09/08/2026 (round 150)";
+            }
+        }
+
+        // Round 150 (2026-08-09) : PostmasterManager/SearchConsoleManager
+        // doivent revalider le domaine du cache avant de le servir.
+        $pmSrc150 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php');
+        if ($pmSrc150 === '' || strpos($pmSrc150, 'self::domainsMatch($cachedHost, $this->getShopHost())') === false) {
+            $offenders[] = "PostmasterManager ne revalide plus le domaine du cache (CONFIG_CACHE_HOST) avant de le servir — régression du bug corrigé le 09/08/2026 (round 150) : la réputation d'un ancien domaine pourrait de nouveau être affichée comme actuelle après une migration";
+        }
+        $scSrc150 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php');
+        if ($scSrc150 === '' || substr_count($scSrc150, '$this->matchesShopHost(') < 3) {
+            $offenders[] = "SearchConsoleManager ne revalide plus le domaine (site_url) du cache avant de le servir dans getStats()/getCachedStats() — régression du bug corrigé le 09/08/2026 (round 150)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
