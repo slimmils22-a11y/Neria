@@ -4994,6 +4994,20 @@ class HealthCheckManager
             $offenders[] = "TranslationHistoryManager::record() ne vérifie plus GET_LOCK()/n'journalise plus les échecs SQL — régression du bug corrigé le 09/08/2026 (round 151)";
         }
 
+        // Round 152 (2026-08-09) : SeoApiManager::httpGet() (Semrush) doit
+        // journaliser une alerte Watchdog sur un échec réseau/HTTP, comme
+        // sa jumelle fetchMoz() (même fichier) le fait déjà.
+        $samSrc152 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeoApiManager.php');
+        if ($samSrc152 === '') {
+            $offenders[] = 'SeoApiManager.php introuvable (garde-fou round 152 : alerte Watchdog httpGet Semrush)';
+        } else {
+            $posHg152 = strpos($samSrc152, 'private function httpGet(string $url): ?string');
+            $hgBody152 = $posHg152 !== false ? substr($samSrc152, $posHg152, 1400) : '';
+            if ($posHg152 === false || strpos($hgBody152, 'watchdog.semrush_http_error') === false) {
+                $offenders[] = "SeoApiManager::httpGet() ne journalise plus d'alerte Watchdog sur un échec réseau/HTTP — régression du bug corrigé le 09/08/2026 (round 152) : une panne Semrush prolongée redeviendrait invisible du flux de notifications standard";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
