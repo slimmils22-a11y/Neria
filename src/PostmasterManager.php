@@ -439,6 +439,19 @@ class PostmasterManager
 
         if (empty($results)) {
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.postmaster_no_matching_domain', ['host' => $shopHost]), '', 'PostmasterManager');
+        } else {
+            // Round 157 : CONFIG_LAST_ERROR n'était effacé qu'une seule fois,
+            // juste après le premier appel /domains réussi (ci-dessus) — un
+            // appel fetchDomainStats() en échec pour UN domaine (parmi
+            // plusieurs) pouvait re-positionner CONFIG_LAST_ERROR sans que
+            // rien ne le nettoie ensuite, même si $results contient bien des
+            // données exploitables d'autres domaines mises en cache avec
+            // succès juste en dessous. HealthCheckManager::checkOAuthFreshness()
+            // affichait alors une erreur/reconnexion à tort de façon
+            // permanente au marchand, alors que l'intégration fonctionne et
+            // que les données affichées sont à jour.
+            \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
+            \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
         }
 
         // Round 128 : écriture scopée par boutique via cacheKey() — comme

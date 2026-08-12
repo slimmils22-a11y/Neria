@@ -687,7 +687,37 @@ class MonthlyReportManager
     // LIVRAISON DE L'EMAIL
     // ============================================================
 
+    /**
+     * Round 157 : GET_LOCK() global (pas suffixé par idShop) — deliverReportLocked()
+     * écrit le rendu compilé sur un chemin de fichier FIXE et partagé
+     * (mails/{iso}/monthly_report.html|.txt, pas unique par exécution),
+     * lu ensuite par Mail::Send(). checkAndSend() est déjà protégé par
+     * GET_LOCK('neria_monthly_report_check', ...), mais l'action BO
+     * "Envoyer maintenant" (neria.php::send_report_now) appelle
+     * sendReport() → deliverReport() directement, SANS passer par ce
+     * verrou. Sur une install multi-boutiques, un envoi automatique en
+     * cours pour la Boutique A et un clic "Envoyer maintenant" pour la
+     * Boutique B au même instant pouvaient écraser mutuellement le même
+     * fichier compilé pendant que Mail::Send() de l'autre boutique était
+     * encore en train de le lire — un destinataire de la Boutique A
+     * pouvant recevoir le contenu (CA, KPI) de la Boutique B. Verrou
+     * global (pas par boutique) car c'est le CHEMIN DE FICHIER partagé
+     * entre TOUTES les boutiques qui est la ressource à protéger, pas une
+     * donnée par-boutique.
+     */
     private function deliverReport(array $data): bool
+    {
+        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_monthly_report_deliver', 5)") !== 1) {
+            return false;
+        }
+        try {
+            return $this->deliverReportLocked($data);
+        } finally {
+            $this->db->execute("SELECT RELEASE_LOCK('neria_monthly_report_deliver')");
+        }
+    }
+
+    private function deliverReportLocked(array $data): bool
     {
         $recipients = $this->getRecipients();
         if (empty($recipients)) {
@@ -718,8 +748,20 @@ class MonthlyReportManager
         $writtenFiles  = [];
         $originalLang  = class_exists('AdminTranslator') ? \AdminTranslator::currentLang() : null;
 
-        $ok        = true;
-        $failEmail = '';
+        // Round 157 : $ok distingue désormais "tous les destinataires ont
+        // reçu le rapport" (utilisé pour le log Watchdog succès/erreur) de
+        // $anySent, "au moins un destinataire l'a reçu" (utilisé par
+        // checkAndSend() pour décider markSent()). Avant ce correctif, UN
+        // SEUL destinataire en échec (ex. adresse mal configurée côté SMTP
+        // relais) empêchait markSent() pour tout le mois — isDue() restait
+        // vrai pendant toute la fenêtre de rattrapage (1er au 7), et
+        // checkAndSend() régénérait puis renvoyait le rapport EN ENTIER à
+        // TOUS les destinataires, y compris ceux qui l'avaient déjà reçu
+        // correctement, à chaque chargement de page suivant.
+        $ok         = true;
+        $anySent    = false;
+        $failEmail  = '';
+        $failEmails = [];
         foreach ($recipients as $email) {
             if (!\Validate::isEmail($email)) {
                 if ($wd) {
@@ -798,8 +840,11 @@ class MonthlyReportManager
             );
 
             if (!$sent) {
-                $ok        = false;
-                $failEmail = $email;
+                $ok          = false;
+                $failEmail   = $email;
+                $failEmails[] = $email;
+            } else {
+                $anySent = true;
             }
         }
 
@@ -826,6 +871,21 @@ class MonthlyReportManager
                     'MonthlyReportManager',
                     ['recipients' => count($recipients)]
                 );
+            } elseif ($anySent) {
+                // Échec partiel : au moins un envoi a réussi, mais pas tous
+                // — averti en warning (pas error, pour ne pas déclencher les
+                // mêmes alertes qu'un échec total) avec la liste des
+                // adresses en échec, pour que le marchand puisse corriger
+                // ces adresses précises sans que le mois entier ne soit
+                // renvoyé à tout le monde.
+                $wd->warning(
+                    \WatchdogManager::i18nMsg('watchdog.report_partial_failure', [
+                        'month' => $data['month_label'],
+                        'list'  => implode(', ', $failEmails),
+                    ]),
+                    '',
+                    'MonthlyReportManager'
+                );
             } else {
                 $smtpMethod = \Configuration::get('PS_MAIL_METHOD');
                 $msgKey     = ($smtpMethod == 2) ? 'watchdog.report_failed_smtp' : 'watchdog.report_failed_mail';
@@ -837,7 +897,12 @@ class MonthlyReportManager
             }
         }
 
-        return $ok;
+        // Round 157 : markSent() ne doit se déclencher que si AU MOINS UN
+        // envoi a réussi (pas 100%) — sinon un seul destinataire en échec
+        // provoquait un renvoi intégral du rapport à tout le monde à
+        // chaque chargement de page pendant toute la fenêtre de rattrapage
+        // (voir commentaire détaillé sur $anySent plus haut).
+        return $anySent;
     }
 
     // ============================================================

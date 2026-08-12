@@ -466,6 +466,19 @@ class SearchConsoleManager
         \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),      json_encode($result, JSON_UNESCAPED_UNICODE));
         \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_TIME), time());
 
+        // Round 157 : CONFIG_LAST_ERROR n'était effacé qu'une seule fois,
+        // juste après le premier appel /sites réussi (plus haut) — un échec
+        // de querySearchAnalytics() pour 'queries' ou 'pages' seul (parmi
+        // global/queries/pages) laissait CONFIG_LAST_ERROR positionné même
+        // si $global a réussi et que $result est bien mis en cache avec
+        // succès juste au-dessus. HealthCheckManager::checkOAuthFreshness()
+        // affichait alors une erreur/reconnexion à tort de façon permanente
+        // au marchand, alors que l'intégration fonctionne et que les
+        // données affichées sont à jour (même piège que PostmasterManager,
+        // même fichier corrigé au même round).
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
+
         $this->wd()->info(
             \WatchdogManager::i18nMsg('watchdog.gsc_loaded', [
                 'clicks'      => $result['clicks'],

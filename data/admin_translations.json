@@ -52142,6 +52142,27 @@
         "nl": "Verzenden van maandelijks rapport {month} naar \"{email}\" mislukt. Controleer de SMTP-instellingen in Geavanceerde parameters > E-mail.",
         "gb": "Failed to send monthly report {month} to \"{email}\". Check SMTP settings in Advanced Parameters > Email."
     },
+    "watchdog.report_partial_failure": {
+        "fr": "Rapport mensuel {month} envoyé, mais échec pour : {list}. Ces adresses n'ont pas reçu le rapport ce mois-ci — vérifier leur configuration.",
+        "en": "Monthly report {month} sent, but failed for: {list}. These addresses did not receive the report this month — check their configuration.",
+        "de": "Monatsbericht {month} versendet, aber fehlgeschlagen für: {list}. Diese Adressen haben den Bericht diesen Monat nicht erhalten — Konfiguration prüfen.",
+        "it": "Rapporto mensile {month} inviato, ma fallito per: {list}. Questi indirizzi non hanno ricevuto il rapporto questo mese — verificare la configurazione.",
+        "es": "Informe mensual {month} enviado, pero fallido para: {list}. Estas direcciones no recibieron el informe este mes — comprobar su configuración.",
+        "pt": "Relatório mensal {month} enviado, mas falhou para: {list}. Estes endereços não receberam o relatório este mês — verificar a sua configuração.",
+        "br": "Relatório mensal {month} enviado, mas falhou para: {list}. Esses endereços não receberam o relatório este mês — verificar a configuração.",
+        "ar": "تم إرسال التقرير الشهري {month}، لكنه فشل بالنسبة لـ: {list}. لم تستلم هذه العناوين التقرير هذا الشهر — تحققوا من إعداداتها.",
+        "ja": "月次レポート {month} は送信されましたが、次の宛先で失敗しました：{list}。これらのアドレスは今月レポートを受け取っていません — 設定を確認してください。",
+        "ko": "월간 보고서 {month}이(가) 전송되었지만 다음 주소에서 실패했습니다: {list}. 이 주소들은 이번 달 보고서를 받지 못했습니다 — 설정을 확인하세요.",
+        "zh": "月度报告 {month} 已发送，但以下地址失败：{list}。这些地址本月未收到报告 — 请检查其配置。",
+        "tw": "月報 {month} 已傳送，但以下地址失敗：{list}。這些地址本月未收到報告 — 請檢查其設定。",
+        "ru": "Ежемесячный отчёт {month} отправлен, но не удалось для: {list}. Эти адреса не получили отчёт в этом месяце — проверьте их настройки.",
+        "tr": "Aylık rapor {month} gönderildi, ancak şu adresler için başarısız oldu: {list}. Bu adresler bu ay raporu almadı — yapılandırmalarını kontrol edin.",
+        "sv": "Månadsrapport {month} skickad, men misslyckades för: {list}. Dessa adresser fick inte rapporten denna månad — kontrollera deras konfiguration.",
+        "no": "Månedlig rapport {month} sendt, men mislyktes for: {list}. Disse adressene mottok ikke rapporten denne måneden — sjekk konfigurasjonen deres.",
+        "da": "Månedlig rapport {month} sendt, men mislykkedes for: {list}. Disse adresser modtog ikke rapporten denne måned — kontroller deres konfiguration.",
+        "nl": "Maandelijks rapport {month} verzonden, maar mislukt voor: {list}. Deze adressen hebben het rapport deze maand niet ontvangen — controleer hun configuratie.",
+        "gb": "Monthly report {month} sent, but failed for: {list}. These addresses did not receive the report this month — check their configuration."
+    },
     "watchdog.report_sent": {
         "fr": "Rapport mensuel {month} envoyé ({count} envois)",
         "en": "Monthly report {month} sent ({count} emails)",

@@ -120,6 +120,19 @@ class LookCompletionManager
             // double ligne en base.
             if (!$this->claimSend($idOrder, $idCustomer)) continue;
 
+            // Round 157 : tout le traitement de cette commande (jusqu'au
+            // Mail::Send() plus bas) est désormais protégé par un seul
+            // try/catch englobant, pas seulement l'appel Mail::Send() —
+            // même correctif que CollectionManager::processCollection().
+            // Avant ce correctif, une exception levée par exemple par
+            // buildProductBlocks() (new \Product() sur une donnée produit
+            // corrompue) ou new \Customer() AVANT le bloc mail fuyait la
+            // réservation (claimSend() jamais libérée — commande exclue à
+            // vie de cette notification, clé UNIQUE uq_order bloquant tout
+            // INSERT IGNORE futur) ET remontait hors de runDailyCheck(),
+            // interrompant le traitement de TOUTES les commandes suivantes
+            // du batch pour le reste du cron de ce jour.
+            try {
             // Aucun filtre de préférence n'était appliqué ici — un client
             // ayant désactivé la catégorie 'post' (post-achat) recevait
             // quand même cette suggestion, en contradiction avec son choix.
@@ -224,6 +237,20 @@ class LookCompletionManager
                     $this->releaseSendClaim($idOrder, $idCustomer);
                 }
             } catch (\Throwable $e) {
+                $this->releaseSendClaim($idOrder, $idCustomer);
+                if (class_exists('WatchdogManager')) {
+                    (new \WatchdogManager($this->module))->error(
+                        \WatchdogManager::i18nMsg('watchdog.look_completion_item_error', ['error' => $e->getMessage()]),
+                        'complete_your_look', 'LookCompletion'
+                    );
+                }
+            }
+            } catch (\Throwable $e) {
+                // Round 157 : exception hors du bloc Mail::Send() (ci-dessus,
+                // déjà protégé) — ex. buildProductBlocks()/new \Customer()
+                // sur une donnée corrompue. Libère la réservation et
+                // continue le batch au lieu de laisser fuiter la réservation
+                // et interrompre le traitement des commandes suivantes.
                 $this->releaseSendClaim($idOrder, $idCustomer);
                 if (class_exists('WatchdogManager')) {
                     (new \WatchdogManager($this->module))->error(

@@ -274,6 +274,18 @@ class CollectionManager
             // la 1re — email jamais envoyé pour la 2e boutique, sans erreur.
             if (!$this->claimSend($colId, $idCustomer, $idShop)) continue;
 
+            // Round 157 : tout le traitement de cette ligne (jusqu'au
+            // Mail::Send() plus bas) est désormais protégé par un seul
+            // try/catch englobant, pas seulement l'appel Mail::Send().
+            // Avant ce correctif, une exception levée par exemple par
+            // `new \Product(...)` (données produit corrompues) ou par
+            // PreferencesManager/StockAvailable AVANT le bloc mail fuyait
+            // la réservation (claimSend() jamais libérée — client exclu à
+            // vie de cette notification, clé UNIQUE bloquant tout INSERT
+            // IGNORE futur) ET remontait hors de processCollection(),
+            // interrompant le traitement de TOUTES les lignes suivantes du
+            // batch pour le reste du cron de ce jour.
+            try {
             // Récupérer les infos client + langue
             $customer = new \Customer($idCustomer);
             if (!\Validate::isLoadedObject($customer)) {
@@ -416,6 +428,20 @@ class CollectionManager
                     $this->releaseSendClaim($colId, $idCustomer, $idShop);
                 }
             } catch (\Throwable $e) {
+                $this->releaseSendClaim($colId, $idCustomer, $idShop);
+                if (class_exists('WatchdogManager')) {
+                    (new \WatchdogManager($this->module))->error(
+                        \WatchdogManager::i18nMsg('watchdog.collection_item_error', ['error' => $e->getMessage()]),
+                        'collection_completion', 'CollectionManager'
+                    );
+                }
+            }
+            } catch (\Throwable $e) {
+                // Round 157 : exception hors du bloc Mail::Send() (ci-dessus,
+                // déjà protégé) — ex. new \Product()/new \Customer() sur une
+                // donnée corrompue. Libère la réservation et continue le
+                // batch au lieu de laisser fuiter la réservation et
+                // interrompre le traitement de toutes les lignes suivantes.
                 $this->releaseSendClaim($colId, $idCustomer, $idShop);
                 if (class_exists('WatchdogManager')) {
                     (new \WatchdogManager($this->module))->error(
