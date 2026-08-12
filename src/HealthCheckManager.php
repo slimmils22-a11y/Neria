@@ -4825,6 +4825,69 @@ class HealthCheckManager
             $offenders[] = "AbTestManager::copyVariantBToDefault()/archiveTest() ne conditionnent plus leur log au résultat SQL réel — régression du bug corrigé le 09/08/2026 (round 148)";
         }
 
+        // Round 149 (2026-08-09) : buildCompiledHtml() (aperçu Design BO +
+        // renvoi depuis l'historique client) doit échapper ses
+        // $extraReplacements comme compileNeriaTemplate() (envoi réel) —
+        // même liste noire partagée self::HTML_SAFE_RAW_KEYS, désormais
+        // complète (shipped_items/messages/virtualProducts inclus, oubliés
+        // au round 148).
+        $erSrc149 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($erSrc149 === '') {
+            $offenders[] = 'EmailRenderer.php introuvable (garde-fou round 149 : echappement buildCompiledHtml + liste noire complete)';
+        } else {
+            $posConst149 = strpos($erSrc149, 'const HTML_SAFE_RAW_KEYS = [');
+            $constBody149 = $posConst149 !== false ? substr($erSrc149, $posConst149, 1200) : '';
+            if ($posConst149 === false
+                || strpos($constBody149, "'{shipped_items}', '{messages}', '{virtualProducts}',") === false
+            ) {
+                $offenders[] = "EmailRenderer::HTML_SAFE_RAW_KEYS n'est plus complète (shipped_items/messages/virtualProducts) — régression du bug corrigé le 09/08/2026 (round 149) : order_partial_shipped/forward_msg/download_product afficheraient de nouveau du HTML échappé au lieu du contenu formaté";
+            }
+
+            $posBch149 = strpos($erSrc149, 'private function buildCompiledHtml(');
+            $bchBody149 = $posBch149 !== false ? substr($erSrc149, $posBch149, 9000) : '';
+            if ($posBch149 === false
+                || strpos($bchBody149, '$safeExtraReplacements = $extraReplacements;') === false
+                || strpos($bchBody149, '!in_array($nameKey, self::HTML_SAFE_RAW_KEYS, true)') === false
+            ) {
+                $offenders[] = "EmailRenderer::buildCompiledHtml() n'échappe plus ses \$extraReplacements — régression du bug corrigé le 09/08/2026 (round 149) : XSS stocké exécuté côté BO via l'aperçu d'historique client (renderWithVars())";
+            }
+
+            $posItv149 = strpos($erSrc149, 'private function injectTextVariants(');
+            $itvBody149 = $posItv149 !== false ? substr($erSrc149, $posItv149, 2200) : '';
+            if ($posItv149 === false || strpos($itvBody149, '$htmlKeysWithSuffix = [') === false) {
+                $offenders[] = "EmailRenderer::injectTextVariants() ne couvre plus tous les fragments HTML connus — régression du bug corrigé le 09/08/2026 (round 149) : un template Neria propre réutilisant products/delivery_block_html/etc. sans variante _txt afficherait de nouveau du HTML brut en version texte";
+            }
+        }
+
+        // Round 149 (2026-08-09) : ConfigManager::DEFAULTS doit inclure les
+        // 3 clés JSON KEY_FIRSTNAME_FALLBACKS/KEY_TIME_GREETINGS/
+        // KEY_TARGET_COUNTRIES, et sanitizeUrl() doit restreindre le schéma
+        // à http/https.
+        $cmSrc149 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
+        if ($cmSrc149 === '') {
+            $offenders[] = 'ConfigManager.php introuvable (garde-fou round 149 : DEFAULTS complet + sanitizeUrl schema)';
+        } else {
+            if (strpos($cmSrc149, 'self::KEY_FIRSTNAME_FALLBACKS       => \'\',') === false
+                || strpos($cmSrc149, 'self::KEY_TIME_GREETINGS            => \'\',') === false
+                || strpos($cmSrc149, 'self::KEY_TARGET_COUNTRIES          => \'\',') === false
+            ) {
+                $offenders[] = "ConfigManager::DEFAULTS n'inclut plus KEY_FIRSTNAME_FALLBACKS/KEY_TIME_GREETINGS/KEY_TARGET_COUNTRIES — régression du bug corrigé le 09/08/2026 (round 149) : deleteAll() les laisserait de nouveau orphelines en base";
+            }
+
+            $posSu149 = strpos($cmSrc149, 'private function sanitizeUrl(string $url)');
+            $suBody149 = $posSu149 !== false ? substr($cmSrc149, $posSu149, 1100) : '';
+            if ($posSu149 === false || strpos($suBody149, "in_array(\$scheme, ['http', 'https'], true)") === false) {
+                $offenders[] = "ConfigManager::sanitizeUrl() ne restreint plus le schéma à http/https — régression du bug corrigé le 09/08/2026 (round 149) : un lien social javascript:/data: pourrait de nouveau être enregistré et injecté dans chaque email envoyé";
+            }
+        }
+
+        // Round 149 (2026-08-09) : loyalty_recap.txt doit afficher
+        // {progress_pct}, comme loyalty_recap.html.
+        $lrTxt149 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/loyalty_recap.txt');
+        if ($lrTxt149 === '' || strpos($lrTxt149, '{progress_pct}') === false) {
+            $offenders[] = "loyalty_recap.txt n'affiche plus {progress_pct} — régression du bug corrigé le 09/08/2026 (round 149) : le client ne verrait plus son pourcentage de progression fidélité en version texte brute";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
