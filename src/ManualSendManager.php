@@ -661,7 +661,12 @@ class ManualSendManager
         // sur alteration_update/{order_name} et gift_guarantee/{order_url},
         // 30/07/2026), le marchand n'ayant lui-même aucun champ de secours
         // pour ces clés puisqu'elles sont considérées "automatiques".
-        $order = ($orderRef !== '') ? $this->findOrder($orderRef) : null;
+        // Round 156 : $idShop (client réel, déjà calculé ci-dessus) passé
+        // explicitement — sinon findOrder() retombait sur la boutique du
+        // contexte BO de l'opérateur, bloquant à tort ce garde-fou pour une
+        // commande pourtant valide dès que l'opérateur n'était pas dans le
+        // même contexte boutique que le client destinataire.
+        $order = ($orderRef !== '') ? $this->findOrder($orderRef, $idShop) : null;
         if (!$order) {
             $placeholders   = $this->extractPlaceholders($template);
             $needsOrderVars = array_intersect(['order_name', 'order_url'], $placeholders);
@@ -878,16 +883,27 @@ class ManualSendManager
     /**
      * Trouve une commande par sa référence.
      *
+     * Round 156 : $idShop (boutique du CLIENT réel) reçu explicitement au
+     * lieu de Context::getContext()->shop->id (contexte BO de l'opérateur
+     * qui déclenche l'envoi) — Order::generateReference() génère une
+     * référence globalement unique sur toute l'installation, pas par
+     * boutique, donc le filtre id_shop n'existe pas pour lever une
+     * ambiguïté entre boutiques : il excluait à tort une commande valide
+     * dès que l'opérateur n'était pas dans le même contexte boutique que
+     * le client destinataire, bloquant le garde-fou "contexte commande" à
+     * tort pour alteration_update/gift_guarantee.
+     *
      * @param string $ref
+     * @param int    $idShop
      * @return array|null [id_order, reference]
      */
-    private function findOrder(string $ref): ?array
+    private function findOrder(string $ref, int $idShop): ?array
     {
         $row = $this->db->getRow(
             'SELECT `id_order`, `reference`
              FROM `' . _DB_PREFIX_ . 'orders`
              WHERE `reference` = \'' . pSQL($ref) . '\'
-               AND `id_shop` = ' . (int) \Context::getContext()->shop->id . '
+               AND `id_shop` = ' . $idShop . '
              ORDER BY `id_order` DESC'
         );
 
@@ -1221,27 +1237,6 @@ class ManualSendManager
             }
         }
 
-        // ── Garde-fou contexte commande ───────────────────────────────────
-        // Même garde-fou que send() (voir son commentaire détaillé) —
-        // {order_name}/{order_url} ne sont résolus QUE si $orderRef pointe
-        // vers une commande valide. scheduleManual() ne l'appliquait pas :
-        // un envoi PLANIFIÉ (via la file d'attente) sans commande liée
-        // partait quand même, des jours plus tard, avec le placeholder brut
-        // non résolu pour alteration_update/gift_guarantee — sans que le
-        // marchand n'ait la moindre chance de s'en apercevoir au moment de
-        // la planification.
-        $order = ($orderRef !== '') ? $this->findOrder($orderRef) : null;
-        if (!$order) {
-            $placeholders   = $this->extractPlaceholders($template);
-            $needsOrderVars = array_intersect(['order_name', 'order_url'], $placeholders);
-            if (!empty($needsOrderVars)) {
-                return [
-                    'ok'      => false,
-                    'message' => AdminTranslator::tVars('msg.send_blocked_missing_order', ['list' => implode(', ', $needsOrderVars)]),
-                ];
-            }
-        }
-
         $customer = $this->findCustomer($email) ?? [
             'id_customer' => 0,
             'id_lang'     => (int) \Configuration::get('PS_LANG_DEFAULT'),
@@ -1256,6 +1251,31 @@ class ManualSendManager
         // contrairement au pseudo-client par défaut ci-dessus — donc
         // $customer['id_shop'] serait indéfini pour un vrai client.
         $idShopManual = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
+
+        // ── Garde-fou contexte commande ───────────────────────────────────
+        // Même garde-fou que send() (voir son commentaire détaillé) —
+        // {order_name}/{order_url} ne sont résolus QUE si $orderRef pointe
+        // vers une commande valide. scheduleManual() ne l'appliquait pas :
+        // un envoi PLANIFIÉ (via la file d'attente) sans commande liée
+        // partait quand même, des jours plus tard, avec le placeholder brut
+        // non résolu pour alteration_update/gift_guarantee — sans que le
+        // marchand n'ait la moindre chance de s'en apercevoir au moment de
+        // la planification. Round 156 : $idShopManual (client réel) calculé
+        // ci-dessus AVANT cet appel (déplacé depuis après) pour pouvoir le
+        // passer à findOrder() — sinon findOrder() retombait sur la
+        // boutique du contexte BO de l'opérateur (même piège déjà corrigé
+        // partout ailleurs dans ce fichier pour {shop_url}/{history_url}).
+        $order = ($orderRef !== '') ? $this->findOrder($orderRef, $idShopManual) : null;
+        if (!$order) {
+            $placeholders   = $this->extractPlaceholders($template);
+            $needsOrderVars = array_intersect(['order_name', 'order_url'], $placeholders);
+            if (!empty($needsOrderVars)) {
+                return [
+                    'ok'      => false,
+                    'message' => AdminTranslator::tVars('msg.send_blocked_missing_order', ['list' => implode(', ', $needsOrderVars)]),
+                ];
+            }
+        }
 
         if (class_exists('BlacklistManager')) {
             $langIso = class_exists('TranslationEngine')

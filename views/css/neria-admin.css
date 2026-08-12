@@ -465,7 +465,9 @@
 .neria-bo-wrap[dir="rtl"] .neria-section__langs { margin-left:0; margin-right:auto; }
 .neria-bo-wrap[dir="rtl"] .neria-stats-computed { margin-left:0; margin-right:auto; }
 .neria-bo-wrap[dir="rtl"] .neria-stats-table th { text-align:right; }
+.neria-bo-wrap[dir="rtl"] .neria-table thead th { text-align:right; }
 .neria-bo-wrap[dir="rtl"] .neria-abtest-variant__rate { margin-left:0; margin-right:auto; }
+.neria-bo-wrap[dir="rtl"] .neria-abtest-variant__metrics { margin-left:0; margin-right:auto; }
 .neria-bo-wrap[dir="rtl"] .neria-diag-count { margin-left:0; margin-right:4px; }
 .neria-bo-wrap[dir="rtl"] .neria-doc-vars,
 .neria-bo-wrap[dir="rtl"] .neria-doc-list { padding-left:0; padding-right:18px; }
