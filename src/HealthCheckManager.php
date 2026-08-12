@@ -5233,6 +5233,45 @@ class HealthCheckManager
             $offenders[] = "neria-admin.css : le tableau générique ou les métriques A/B testing ne sont plus inversés en RTL — régression du bug corrigé le 09/08/2026 (round 156)";
         }
 
+        // Round 157 (09/08/2026) : CollectionManager/LookCompletionManager
+        // doivent conserver leur try/catch englobant tout le traitement par
+        // ligne (pas seulement Mail::Send()), sans quoi une exception hors
+        // du bloc mail fuit à nouveau la réservation claimSend() et
+        // interrompt le reste du batch.
+        $colSrc157 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php');
+        if ($colSrc157 === '' || substr_count($colSrc157, 'catch (\Throwable $e) {') < 2 || substr_count($colSrc157, 'watchdog.collection_item_error') < 2) {
+            $offenders[] = "CollectionManager::processCollection() n'englobe plus tout le traitement par ligne dans un try/catch — régression du bug corrigé le 09/08/2026 (round 157) : une exception hors du bloc mail ferait de nouveau fuiter la réservation et interromprait le reste du batch";
+        }
+        $lookSrc157 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
+        if ($lookSrc157 === '' || substr_count($lookSrc157, 'catch (\Throwable $e) {') < 2 || substr_count($lookSrc157, 'watchdog.look_completion_item_error') < 2) {
+            $offenders[] = "LookCompletionManager::runDailyCheck() n'englobe plus tout le traitement par commande dans un try/catch — régression du bug corrigé le 09/08/2026 (round 157)";
+        }
+
+        // Round 157 (09/08/2026) : MonthlyReportManager::deliverReport()
+        // doit rester verrouillé (fichier de rendu partagé) et markSent()
+        // ne doit dépendre que d'AU MOINS UN envoi réussi, pas de 100%.
+        $mrmSrc157 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php');
+        if ($mrmSrc157 === ''
+            || strpos($mrmSrc157, "GET_LOCK('neria_monthly_report_deliver'") === false
+            || strpos($mrmSrc157, '$anySent = true;') === false
+            || strpos($mrmSrc157, 'return $anySent;') === false
+        ) {
+            $offenders[] = "MonthlyReportManager::deliverReport() n'a plus de verrou global ou ne distingue plus \$anySent de \$ok — régression du bug corrigé le 09/08/2026 (round 157) : un seul destinataire en échec ferait de nouveau échouer markSent() pour tout le mois, et le fichier de rendu partagé ne serait plus protégé entre envoi auto et manuel";
+        }
+
+        // Round 157 (09/08/2026) : PostmasterManager/SearchConsoleManager
+        // doivent continuer d'effacer CONFIG_LAST_ERROR une 2e fois avant/
+        // après l'écriture du cache final réussi (pas seulement après le
+        // tout premier appel API).
+        $pmSrc157 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php');
+        if ($pmSrc157 === '' || substr_count($pmSrc157, 'Configuration::deleteByName(self::CONFIG_LAST_ERROR)') < 2) {
+            $offenders[] = "PostmasterManager::fetchAndCache() n'efface plus CONFIG_LAST_ERROR une 2e fois avant l'écriture du cache final — régression du bug corrigé le 09/08/2026 (round 157)";
+        }
+        $gscSrc157 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php');
+        if ($gscSrc157 === '' || substr_count($gscSrc157, 'Configuration::deleteByName(self::CONFIG_LAST_ERROR)') < 2) {
+            $offenders[] = "SearchConsoleManager::fetchAndCache() n'efface plus CONFIG_LAST_ERROR une 2e fois après l'écriture du cache final — régression du bug corrigé le 09/08/2026 (round 157)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
