@@ -587,33 +587,60 @@ class UpsellManager
                AND u.clicked_at >= DATE_SUB(NOW(), INTERVAL 14 DAY)"
         ) ?: [];
 
-        $count = 0;
-        foreach ($rows as $row) {
-            // SUM() + GROUP BY : le produit upsell peut apparaître sur plusieurs
-            // lignes order_detail de la même commande (attributs différents,
-            // quantités multiples) — prendre une seule ligne sous-évaluait le
-            // revenu réellement attribué à l'upsell.
-            //
-            // Filtre o.id_shop = u.id_shop : sur une install multi-boutiques,
-            // un client partagé entre boutiques qui rachète le même produit
-            // sur une AUTRE boutique dans la fenêtre de 7 jours ne doit pas
-            // faire attribuer cette conversion/ce revenu à la suggestion
-            // envoyée par CETTE boutique.
-            $match = $this->db->getRow(
-                "SELECT o.id_order,
+        // Round 153 : un getRow() par ligne (jusqu'à plusieurs centaines de
+        // requêtes SQL individuelles selon le trafic upsell des 14 derniers
+        // jours) remplacé par UNE requête groupée pré-chargeant tous les
+        // candidats (id_customer/id_shop/produit) potentiellement
+        // pertinents pour CE lot de $rows, avant la boucle — le matching
+        // par fenêtre de 7 jours (relative à clicked_at, différente par
+        // ligne) reste fait en PHP, ligne par ligne, pour préserver
+        // exactement la même logique de correspondance qu'avant.
+        $custIds = array_values(array_unique(array_map(fn($r) => (int) $r['id_customer'], $rows)));
+        $prodIds = array_values(array_unique(array_map(fn($r) => (int) $r['id_product_upsell'], $rows)));
+        $candidatesByKey = [];
+        if ($custIds && $prodIds) {
+            $candidateRows = $this->db->executeS(
+                "SELECT o.id_order, o.id_customer, o.id_shop, o.date_add,
+                        od.product_id,
                         SUM(od.unit_price_tax_incl * od.product_quantity) AS revenue
                  FROM `{$this->prefix}orders` o
                  JOIN `{$this->prefix}order_detail` od
                       ON od.id_order = o.id_order
-                      AND od.product_id = " . (int) $row['id_product_upsell'] . "
-                 WHERE o.id_customer = " . (int) $row['id_customer'] . "
-                   AND o.id_shop = " . (int) $row['id_shop'] . "
-                   AND o.date_add   >  '" . pSQL($row['clicked_at']) . "'
-                   AND o.date_add   <= DATE_ADD('" . pSQL($row['clicked_at']) . "', INTERVAL 7 DAY)
+                      AND od.product_id IN (" . implode(',', $prodIds) . ")
+                 WHERE o.id_customer IN (" . implode(',', $custIds) . ")
                    AND o.valid = 1
-                 GROUP BY o.id_order
+                 GROUP BY o.id_order, od.product_id
                  ORDER BY o.date_add ASC"
-            );
+            ) ?: [];
+            foreach ($candidateRows as $cr) {
+                $key = $cr['id_customer'] . '|' . $cr['id_shop'] . '|' . $cr['product_id'];
+                $candidatesByKey[$key][] = $cr;
+            }
+        }
+
+        $count = 0;
+        foreach ($rows as $row) {
+            // SUM() + GROUP BY (dans la requête groupée ci-dessus) : le
+            // produit upsell peut apparaître sur plusieurs lignes
+            // order_detail de la même commande (attributs différents,
+            // quantités multiples) — prendre une seule ligne sous-évaluait
+            // le revenu réellement attribué à l'upsell.
+            //
+            // Filtre id_shop : sur une install multi-boutiques, un client
+            // partagé entre boutiques qui rachète le même produit sur une
+            // AUTRE boutique dans la fenêtre de 7 jours ne doit pas faire
+            // attribuer cette conversion/ce revenu à la suggestion envoyée
+            // par CETTE boutique.
+            $key = $row['id_customer'] . '|' . $row['id_shop'] . '|' . $row['id_product_upsell'];
+            $match = null;
+            foreach ($candidatesByKey[$key] ?? [] as $cr) {
+                if ($cr['date_add'] > $row['clicked_at']
+                    && $cr['date_add'] <= date('Y-m-d H:i:s', strtotime($row['clicked_at'] . ' +7 days'))
+                ) {
+                    $match = $cr; // ORDER BY date_add ASC déjà appliqué → 1er match = le plus ancien
+                    break;
+                }
+            }
 
             if ($match) {
                 // Si le même produit a été suggéré plusieurs fois au même

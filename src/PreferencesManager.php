@@ -195,6 +195,58 @@ class PreferencesManager
     }
 
     /**
+     * Round 153 : version groupée de isAllowed() — appeler isAllowed() une
+     * fois par client dans une boucle (SegmentManager::preflightCheck()/
+     * sendToSegment()) déclenchait jusqu'à ~1000 requêtes SQL individuelles
+     * pour un segment de 500 destinataires (une par appel, deux appels par
+     * envoi de campagne). Une seule requête IN(...) suffit : la table
+     * neria_preferences ne contient que les clients ayant explicitement
+     * modifié leurs préférences (opt-out par défaut absent de la table),
+     * donc tout id_customer non présent dans le résultat reste autorisé
+     * par défaut — même règle que isAllowed() ligne-par-ligne.
+     *
+     * @param int[] $idCustomers
+     * @return array<int,bool> [id_customer => autorisé]
+     */
+    public function isAllowedBatch(array $idCustomers, string $template, ?int $idShop = null): array
+    {
+        $idCustomers = array_values(array_unique(array_filter(array_map('intval', $idCustomers), fn($id) => $id > 0)));
+
+        $cat = self::TEMPLATE_CAT[$template] ?? null;
+        if ($cat === null || empty($idCustomers)) {
+            // Template non classé → toujours envoyé (même règle que
+            // isAllowed()) ; liste vide → rien à résoudre.
+            $result = [];
+            foreach ($idCustomers as $id) {
+                $result[$id] = true;
+            }
+            return $result;
+        }
+
+        $shop = $idShop ?? $this->idShop;
+        $idList = implode(',', $idCustomers);
+
+        $rows = $this->db->executeS(
+            "SELECT `id_customer`, `subscribed` FROM `" . _DB_PREFIX_ . self::TABLE . "`
+             WHERE `id_shop`     = {$shop}
+               AND `id_customer` IN ({$idList})
+               AND `category`    = '" . pSQL($cat) . "'"
+        );
+
+        $subscribed = [];
+        foreach ((array) $rows as $r) {
+            $subscribed[(int) $r['id_customer']] = (bool) $r['subscribed'];
+        }
+
+        $result = [];
+        foreach ($idCustomers as $id) {
+            // Pas de ligne = opt-in par défaut, même règle que isAllowed().
+            $result[$id] = $subscribed[$id] ?? true;
+        }
+        return $result;
+    }
+
+    /**
      * Retourne les préférences d'un client (toutes catégories).
      * Valeur par défaut : 1 (souscrit).
      */

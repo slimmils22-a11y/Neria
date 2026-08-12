@@ -4208,7 +4208,15 @@ class Neria extends Module
                 if ($tradAction === 'reset_variant_b') {
                     $idAbtestB  = (int) Tools::getValue('id_abtest_b', 0);
                     $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';
-                    if ($this->abtestBelongsToShop($idAbtestB)) {
+                    // Round 153 : $tplKey passé en 2e argument — même
+                    // correctif round 137 que restore_variant_b (voir
+                    // abtestBelongsToShop()), oublié sur cette action
+                    // jumelle. Sans lui, un id_abtest_b manipulé pointant
+                    // vers un AUTRE test A/B actif de la même boutique
+                    // passait le contrôle (même boutique = true), vidant
+                    // silencieusement la variante B d'un template différent
+                    // de celui affiché à l'écran.
+                    if ($this->abtestBelongsToShop($idAbtestB, $tplKey)) {
                         // Archive dans l'historique avant suppression
                         if (class_exists('TranslationHistoryManager')) {
                             $prevRowsB = Db::getInstance()->executeS(
@@ -4251,7 +4259,9 @@ class Neria extends Module
                 if ($tradAction === 'save_variant_b' && class_exists('ABTestManager')) {
                     $idAbtestB = (int) Tools::getValue('id_abtest_b', 0);
                     $fieldsB   = Tools::getValue('fields_b', []);
-                    if ($this->abtestBelongsToShop($idAbtestB) && is_array($fieldsB)) {
+                    // Round 153 : $tplKey passé en 2e argument — voir
+                    // commentaire identique sur reset_variant_b ci-dessus.
+                    if ($this->abtestBelongsToShop($idAbtestB, $tplKey) && is_array($fieldsB)) {
                         // Enregistre l'historique des modifications Variante B avant sauvegarde
                         if (class_exists('TranslationHistoryManager')) {
                             $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';

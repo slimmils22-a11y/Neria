@@ -374,15 +374,18 @@ class SegmentManager
         // contredisant l'objectif documenté de preflightCheck() : détecter
         // un problème AVANT de lancer la campagne, pas après coup dans le
         // rapport d'envoi.
+        // Round 153 : isAllowedBatch() (1 requête groupée) au lieu d'un
+        // isAllowed() par client (jusqu'à 500 requêtes SQL individuelles
+        // pour un segment plein).
         $allowedCount = $recipientCount;
         if ($recipientCount > 0 && class_exists('PreferencesManager')) {
             $preferences = new \PreferencesManager($this->module);
-            $allowedCount = 0;
-            foreach ($customers as $c) {
-                if ($preferences->isAllowed((int) $c['id_customer'], $template, $this->idShop)) {
-                    $allowedCount++;
-                }
-            }
+            $allowedMap = $preferences->isAllowedBatch(
+                array_column($customers, 'id_customer'),
+                $template,
+                $this->idShop
+            );
+            $allowedCount = count(array_filter($allowedMap));
             if ($allowedCount === 0) {
                 $issues[] = \AdminTranslator::tVars('msg.segment_all_unsubscribed', ['segment' => $segment, 'template' => $template]);
                 $blockingCount++;
@@ -461,11 +464,29 @@ class SegmentManager
         $failureSamples = [];
         $preferences = class_exists('PreferencesManager') ? new \PreferencesManager($this->module) : null;
 
+        // Round 153 : deux lots groupés remplacent respectivement le
+        // isAllowed() par client (déjà appelé une 1re fois dans
+        // preflightCheck() ci-dessus, donc jusqu'à 1000 requêtes pour ce
+        // seul motif) et l'instanciation new \Customer() par client
+        // (chacune déclenchant sa propre requête ObjectModel juste pour
+        // lire id_lang) — jusqu'à ~1500 requêtes SQL individuelles au total
+        // pour un segment de 500 clients, ramenées à 2 requêtes groupées.
+        $customerIds = array_column($customers, 'id_customer');
+        $allowedMap  = $preferences !== null ? $preferences->isAllowedBatch($customerIds, $template, $this->idShop) : [];
+        $langMap     = [];
+        if ($customerIds) {
+            $langRows = $this->db->executeS(
+                "SELECT `id_customer`, `id_lang` FROM `" . _DB_PREFIX_ . "customer`
+                 WHERE `id_customer` IN (" . implode(',', array_map('intval', $customerIds)) . ")"
+            );
+            foreach ((array) $langRows as $r) {
+                $langMap[(int) $r['id_customer']] = (int) $r['id_lang'];
+            }
+        }
+        $defaultLang = (int) \Configuration::get('PS_LANG_DEFAULT');
+
         foreach ($customers as $c) {
-            $customer = new \Customer((int) $c['id_customer']);
-            $idLang   = $customer->id
-                ? ((int) $customer->id_lang ?: (int) \Configuration::get('PS_LANG_DEFAULT'))
-                : (int) \Configuration::get('PS_LANG_DEFAULT');
+            $idLang = $langMap[(int) $c['id_customer']] ?: $defaultLang;
 
             // getCustomersBySegment() ne filtre que active=1/deleted=0 — un
             // client désabonné (one-click ou préférences) reste dans son
@@ -473,7 +494,7 @@ class SegmentManager
             // l'abonnement) et recevait donc quand même la campagne, en
             // contradiction directe avec sa demande de désabonnement. Même
             // garde-fou que BehavioralCronManager avant chaque envoi.
-            if ($preferences !== null && !$preferences->isAllowed((int) $c['id_customer'], $template, $this->idShop)) {
+            if ($preferences !== null && !($allowedMap[(int) $c['id_customer']] ?? true)) {
                 $skipped++;
                 continue;
             }
