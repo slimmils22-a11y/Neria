@@ -167,10 +167,12 @@
               <input type="text" name="variant_a_name"
                      class="neria-input neria-input--sm"
                      placeholder="{neria_admin key='abtest.variant_a_ph'}"
+                     aria-label="{neria_admin key='abtest.variant_a_ph'}"
                      required>
               <input type="text" name="variant_b_name"
                      class="neria-input neria-input--sm"
                      placeholder="{neria_admin key='abtest.variant_b_ph'}"
+                     aria-label="{neria_admin key='abtest.variant_b_ph'}"
                      required>
               <div class="neria-split-wrap">
                 <label class="neria-label neria-label--sm">

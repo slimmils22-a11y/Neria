@@ -384,56 +384,56 @@
   {* ── Guide selector cards ──────────────────────────────────────── *}
   <div class="na-guides">
 
-    <div class="na-guide-card" id="na-card-openrate" onclick="naShow('openrate')">
+    <div class="na-guide-card" id="na-card-openrate" role="button" tabindex="0" onclick="naShow('openrate')">
       <span class="na-guide-card__done">✓</span>
       <span class="na-guide-card__icon">↘</span>
       <p class="na-guide-card__title">{$ac.card1_title}</p>
       <p class="na-guide-card__meta">{$ac.card1_meta}</p>
     </div>
 
-    <div class="na-guide-card" id="na-card-subject" onclick="naShow('subject')">
+    <div class="na-guide-card" id="na-card-subject" role="button" tabindex="0" onclick="naShow('subject')">
       <span class="na-guide-card__done">✓</span>
       <span class="na-guide-card__icon">✎</span>
       <p class="na-guide-card__title">{$ac.card2_title}</p>
       <p class="na-guide-card__meta">{$ac.card2_meta}</p>
     </div>
 
-    <div class="na-guide-card" id="na-card-gdpr" onclick="naShow('gdpr')">
+    <div class="na-guide-card" id="na-card-gdpr" role="button" tabindex="0" onclick="naShow('gdpr')">
       <span class="na-guide-card__done">✓</span>
       <span class="na-guide-card__icon">⚖</span>
       <p class="na-guide-card__title">{$ac.card3_title}</p>
       <p class="na-guide-card__meta">{$ac.card3_meta}</p>
     </div>
 
-    <div class="na-guide-card" id="na-card-deliverability" onclick="naShow('deliverability')">
+    <div class="na-guide-card" id="na-card-deliverability" role="button" tabindex="0" onclick="naShow('deliverability')">
       <span class="na-guide-card__done">✓</span>
       <span class="na-guide-card__icon">🛡</span>
       <p class="na-guide-card__title">{$ac.card4_title}</p>
       <p class="na-guide-card__meta">{$ac.card4_meta}</p>
     </div>
 
-    <div class="na-guide-card" id="na-card-segmentation" onclick="naShow('segmentation')">
+    <div class="na-guide-card" id="na-card-segmentation" role="button" tabindex="0" onclick="naShow('segmentation')">
       <span class="na-guide-card__done">✓</span>
       <span class="na-guide-card__icon">🎯</span>
       <p class="na-guide-card__title">{$ac.card5_title}</p>
       <p class="na-guide-card__meta">{$ac.card5_meta}</p>
     </div>
 
-    <div class="na-guide-card" id="na-card-loyalty" onclick="naShow('loyalty')">
+    <div class="na-guide-card" id="na-card-loyalty" role="button" tabindex="0" onclick="naShow('loyalty')">
       <span class="na-guide-card__done">✓</span>
       <span class="na-guide-card__icon">💎</span>
       <p class="na-guide-card__title">{$ac.card6_title}</p>
       <p class="na-guide-card__meta">{$ac.card6_meta}</p>
     </div>
 
-    <div class="na-guide-card" id="na-card-abtest" onclick="naShow('abtest')">
+    <div class="na-guide-card" id="na-card-abtest" role="button" tabindex="0" onclick="naShow('abtest')">
       <span class="na-guide-card__done">✓</span>
       <span class="na-guide-card__icon">🔬</span>
       <p class="na-guide-card__title">{$ac.card7_title}</p>
       <p class="na-guide-card__meta">{$ac.card7_meta}</p>
     </div>
 
-    <div class="na-guide-card" id="na-card-cart" onclick="naShow('cart')">
+    <div class="na-guide-card" id="na-card-cart" role="button" tabindex="0" onclick="naShow('cart')">
       <span class="na-guide-card__done">✓</span>
       <span class="na-guide-card__icon">🛒</span>
       <p class="na-guide-card__title">{$ac.card8_title}</p>
@@ -780,56 +780,56 @@
 
     <ul class="na-checklist" id="na-gdpr-checklist">
       <li class="na-checklist__item">
-        <div class="na-check" data-key="gdpr_1" onclick="naToggleCheck(this)"></div>
+        <div class="na-check" data-key="gdpr_1" role="checkbox" tabindex="0" aria-checked="false" onclick="naToggleCheck(this)"></div>
         <div>
           <p class="na-check-label">{$ac.g3_ch1_l}</p>
           <p class="na-check-note">{$ac.g3_ch1_n}</p>
         </div>
       </li>
       <li class="na-checklist__item">
-        <div class="na-check" data-key="gdpr_2" onclick="naToggleCheck(this)"></div>
+        <div class="na-check" data-key="gdpr_2" role="checkbox" tabindex="0" aria-checked="false" onclick="naToggleCheck(this)"></div>
         <div>
           <p class="na-check-label">{$ac.g3_ch2_l}</p>
           <p class="na-check-note">{$ac.g3_ch2_n}</p>
         </div>
       </li>
       <li class="na-checklist__item">
-        <div class="na-check" data-key="gdpr_3" onclick="naToggleCheck(this)"></div>
+        <div class="na-check" data-key="gdpr_3" role="checkbox" tabindex="0" aria-checked="false" onclick="naToggleCheck(this)"></div>
         <div>
           <p class="na-check-label">{$ac.g3_ch3_l}</p>
           <p class="na-check-note">{$ac.g3_ch3_n}</p>
         </div>
       </li>
       <li class="na-checklist__item">
-        <div class="na-check" data-key="gdpr_4" onclick="naToggleCheck(this)"></div>
+        <div class="na-check" data-key="gdpr_4" role="checkbox" tabindex="0" aria-checked="false" onclick="naToggleCheck(this)"></div>
         <div>
           <p class="na-check-label">{$ac.g3_ch4_l}</p>
           <p class="na-check-note">{$ac.g3_ch4_n}</p>
         </div>
       </li>
       <li class="na-checklist__item">
-        <div class="na-check" data-key="gdpr_5" onclick="naToggleCheck(this)"></div>
+        <div class="na-check" data-key="gdpr_5" role="checkbox" tabindex="0" aria-checked="false" onclick="naToggleCheck(this)"></div>
         <div>
           <p class="na-check-label">{$ac.g3_ch5_l}</p>
           <p class="na-check-note">{$ac.g3_ch5_n}</p>
         </div>
       </li>
       <li class="na-checklist__item">
-        <div class="na-check" data-key="gdpr_6" onclick="naToggleCheck(this)"></div>
+        <div class="na-check" data-key="gdpr_6" role="checkbox" tabindex="0" aria-checked="false" onclick="naToggleCheck(this)"></div>
         <div>
           <p class="na-check-label">{$ac.g3_ch6_l}</p>
           <p class="na-check-note">{$ac.g3_ch6_n}</p>
         </div>
       </li>
       <li class="na-checklist__item">
-        <div class="na-check" data-key="gdpr_7" onclick="naToggleCheck(this)"></div>
+        <div class="na-check" data-key="gdpr_7" role="checkbox" tabindex="0" aria-checked="false" onclick="naToggleCheck(this)"></div>
         <div>
           <p class="na-check-label">{$ac.g3_ch7_l}</p>
           <p class="na-check-note">{$ac.g3_ch7_n}</p>
         </div>
       </li>
       <li class="na-checklist__item">
-        <div class="na-check" data-key="gdpr_8" onclick="naToggleCheck(this)"></div>
+        <div class="na-check" data-key="gdpr_8" role="checkbox" tabindex="0" aria-checked="false" onclick="naToggleCheck(this)"></div>
         <div>
           <p class="na-check-label">{$ac.g3_ch8_l}</p>
           <p class="na-check-note">{$ac.g3_ch8_n}</p>
@@ -1254,13 +1254,32 @@
     state.checks[key] = !state.checks[key];
     save(CHECK_KEY, state.checks);
     el.classList.toggle('na--checked', state.checks[key]);
+    el.setAttribute('aria-checked', state.checks[key] ? 'true' : 'false');
   };
 
   function restoreChecks() {
     document.querySelectorAll('.na-check[data-key]').forEach(function(el){
-      if (state.checks[el.getAttribute('data-key')]) el.classList.add('na--checked');
+      if (state.checks[el.getAttribute('data-key')]) {
+        el.classList.add('na--checked');
+        el.setAttribute('aria-checked', 'true');
+      }
     });
   }
+
+  // Round 155 : les cartes de sélection de guide (role="button") et les
+  // cases RGPD custom (role="checkbox") ne réagissaient qu'à la souris
+  // (onclick) — aucun moyen de les activer au clavier. Un seul écouteur
+  // délégué gère Entrée/Espace pour les deux, sans dupliquer onkeydown sur
+  // chacun des 16 éléments.
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') { return; }
+    var target = e.target;
+    if (!target || !target.classList) { return; }
+    if (target.classList.contains('na-guide-card') || target.classList.contains('na-check')) {
+      e.preventDefault();
+      target.click();
+    }
+  });
 
   naShow(state.guide);
   restoreChecks();

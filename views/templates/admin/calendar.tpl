@@ -108,6 +108,8 @@
           <a href="{$smarty.server.REQUEST_URI|escape:'html'}&neria_action=delete_calendar_event&neria_tab=calendar&cal_id={$ev.id_event|intval}"
              class="neria-btn neria-btn--danger neria-btn--xs"
              data-confirm="{neria_admin key='calendar.delete_confirm' esc='html'}"
+             aria-label="{neria_admin key='calendar.delete_btn' esc='html'}"
+             title="{neria_admin key='calendar.delete_btn' esc='html'}"
              onclick="return neriaPostLink(event, this);">✕</a>
         </td>
       </tr>

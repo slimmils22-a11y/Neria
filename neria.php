@@ -3512,8 +3512,16 @@ class Neria extends Module
         }
 
         if (Tools::getValue('neria_action') === 'deliverability_score') {
-            $scoreTemplate = (string) Tools::getValue('score_template', 'order_conf');
-            $scoreLang     = (string) Tools::getValue('score_lang', 'fr');
+            // Round 155 : score_template était le seul point d'entrée de ce
+            // type à ne pas normaliser sa valeur (contrairement à
+            // neria_template/mp_template ailleurs dans ce fichier), ouvrant
+            // un path traversal dans EmailRenderer::buildCompiledHtml()
+            // (construction directe du chemin de fichier .html à inclure).
+            $scoreTemplate = preg_replace('/[^a-z0-9_-]/i', '', (string) Tools::getValue('score_template', 'order_conf'));
+            if ($scoreTemplate === '') {
+                $scoreTemplate = 'order_conf';
+            }
+            $scoreLang = (string) Tools::getValue('score_lang', 'fr');
 
             if (class_exists('EmailRenderer') && class_exists('DeliverabilityScorer')) {
                 try {

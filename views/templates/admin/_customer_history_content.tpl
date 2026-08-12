@@ -264,12 +264,14 @@
 
 {* ── Tableau complet (masqué par défaut) ────────────────────── *}
 <div id="neria-history-filters" style="display:none;gap:10px;margin-bottom:10px;">
+  <label for="neria-history-filter-template" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">{neria_admin key='history.col_template'}</label>
   <select id="neria-history-filter-template" class="neria-select" style="max-width:220px;">
     <option value="">{neria_admin key='history.filter_all_templates'}</option>
     {foreach $neria_history.templates_list as $tpl}
       <option value="{$tpl|escape:'html'}">{$tpl|escape:'html'}</option>
     {/foreach}
   </select>
+  <label for="neria-history-filter-status" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">{neria_admin key='history.col_status'}</label>
   <select id="neria-history-filter-status" class="neria-select" style="max-width:180px;">
     <option value="">{neria_admin key='history.filter_all_status'}</option>
     <option value="opened">{neria_admin key='history.status_opened'}</option>
@@ -326,11 +328,11 @@
 {/if}
 
 {* ── Modale aperçu (iframe) ──────────────────────────────────── *}
-<div class="neria-modal-overlay" id="neria-preview-modal" style="display:none;">
+<div class="neria-modal-overlay" id="neria-preview-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="neria-preview-modal-title">
   <div class="neria-modal">
     <div class="neria-modal__header">
-      <span>{neria_admin key='history.title'}</span>
-      <button type="button" class="neria-modal__close" id="neria-preview-close">&times;</button>
+      <span id="neria-preview-modal-title">{neria_admin key='history.title'}</span>
+      <button type="button" class="neria-modal__close" id="neria-preview-close" aria-label="{neria_admin key='common.close'}" title="{neria_admin key='common.close'}">&times;</button>
     </div>
     <iframe id="neria-preview-iframe" class="neria-modal__iframe" src="about:blank"></iframe>
   </div>
@@ -386,30 +388,54 @@ document.addEventListener('DOMContentLoaded', function () {
     var closeBtn  = document.getElementById('neria-preview-close');
     var idCustomer = neriaHistoryCustomerId;
     var baseUrl    = neriaHistoryBaseUrl;
+    // Round 155 : même piège de focus/restitution du focus que la modale de
+    // confirmation globale (navigation.tpl, round 154) — sans lui, un
+    // utilisateur clavier ouvrant l'aperçu ne pouvait ni la fermer au
+    // clavier (Échap) ni retrouver le focus sur le bouton déclencheur.
+    var _neriaHistoryModalTrigger = null;
 
     function buildUrl(param, idStat) {
         var sep = baseUrl.indexOf('?') === -1 ? '?' : '&';
         return baseUrl + sep + param + '=1&id_customer=' + idCustomer + '&id_stat=' + idStat;
     }
 
+    function closePreviewModal() {
+        modal.style.display = 'none';
+        iframe.src = 'about:blank';
+        if (_neriaHistoryModalTrigger && typeof _neriaHistoryModalTrigger.focus === 'function') {
+            _neriaHistoryModalTrigger.focus();
+        }
+        _neriaHistoryModalTrigger = null;
+    }
+
     document.querySelectorAll('.neria-history-view').forEach(function (btn) {
         btn.addEventListener('click', function () {
+            _neriaHistoryModalTrigger = document.activeElement;
             iframe.src = buildUrl('neria_preview_email', btn.dataset.idStat);
             modal.style.display = 'flex';
+            if (closeBtn) { closeBtn.focus(); }
         });
     });
 
     if (closeBtn) {
-        closeBtn.addEventListener('click', function () {
-            modal.style.display = 'none';
-            iframe.src = 'about:blank';
-        });
+        closeBtn.addEventListener('click', closePreviewModal);
     }
     if (modal) {
         modal.addEventListener('click', function (e) {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-                iframe.src = 'about:blank';
+            if (e.target === modal) { closePreviewModal(); }
+        });
+        modal.addEventListener('keydown', function (e) {
+            if (modal.style.display === 'none') { return; }
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                closePreviewModal();
+                return;
+            }
+            if (e.key === 'Tab' && closeBtn) {
+                // Un seul élément focusable dans cette modale (le bouton
+                // fermer) — Tab/Shift+Tab y reste piégé.
+                e.preventDefault();
+                closeBtn.focus();
             }
         });
     }

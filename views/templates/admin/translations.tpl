@@ -95,10 +95,12 @@ window.neriaAjaxUrl = function(action, extra) {
     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--neria-text-light,#aaa);margin-bottom:8px;">🔍 {neria_admin key='translations.search_title'}</div>
     <div class="neria-search-bar">
       <input type="text" id="neria-global-search" class="neria-input"
-             placeholder="{neria_admin key='translations.search_placeholder'}" autocomplete="off">
-      <button type="button" class="neria-btn neria-btn--secondary neria-btn--sm" id="neria-search-clear" style="display:none;">✕</button>
+             placeholder="{neria_admin key='translations.search_placeholder'}" autocomplete="off"
+             role="combobox" aria-expanded="false" aria-controls="neria-search-results" aria-autocomplete="list">
+      <button type="button" class="neria-btn neria-btn--secondary neria-btn--sm" id="neria-search-clear" style="display:none;"
+              aria-label="{neria_admin key='translations.search_clear'}" title="{neria_admin key='translations.search_clear'}">✕</button>
     </div>
-    <div class="neria-search-results" id="neria-search-results"></div>
+    <div class="neria-search-results" id="neria-search-results" role="listbox"></div>
   </div>
 
   {* — Sélecteurs template / langue ———————————————————————————————— *}
@@ -923,13 +925,47 @@ document.addEventListener('DOMContentLoaded', function() {
   var searchResults = document.getElementById('neria-search-results');
   var searchClear   = document.getElementById('neria-search-clear');
   var searchTimer   = null;
+  // Round 155 : la recherche globale n'était utilisable qu'à la souris —
+  // ni role="listbox"/"option" ni navigation clavier, contrairement à
+  // l'autocomplétion client de send.tpl (round 154). acActiveIndex suit
+  // l'option actuellement survolée/activée au clavier.
+  var acActiveIndex = -1;
+
+  function selectSearchResult(el) {
+    var tpl  = el.getAttribute('data-template');
+    var lang = el.getAttribute('data-lang');
+    var sel  = document.getElementById('neria-trad-template');
+    var lsel = document.getElementById('neria-trad-lang');
+    if (sel) sel.value = tpl;
+    if (lsel) lsel.value = lang;
+    searchResults.classList.remove('active');
+    searchInput.setAttribute('aria-expanded', 'false');
+    searchInput.value = '';
+    searchClear.style.display = 'none';
+    document.getElementById('neria-trad-load').click();
+  }
+
+  function setActiveSearchResult(index) {
+    var items = searchResults.querySelectorAll('.neria-search-result-item');
+    items.forEach(function (el) { el.classList.remove('active'); el.setAttribute('aria-selected', 'false'); });
+    if (index >= 0 && index < items.length) {
+      items[index].classList.add('active');
+      items[index].setAttribute('aria-selected', 'true');
+      items[index].scrollIntoView({ block: 'nearest' });
+      searchInput.setAttribute('aria-activedescendant', items[index].id);
+      acActiveIndex = index;
+    } else {
+      searchInput.removeAttribute('aria-activedescendant');
+      acActiveIndex = -1;
+    }
+  }
 
   if (searchInput) {
     searchInput.addEventListener('input', function() {
       var q = this.value.trim();
       clearTimeout(searchTimer);
       searchClear.style.display = q ? '' : 'none';
-      if (q.length < 2) { searchResults.classList.remove('active'); searchResults.innerHTML = ''; return; }
+      if (q.length < 2) { searchResults.classList.remove('active'); searchResults.innerHTML = ''; searchInput.setAttribute('aria-expanded', 'false'); return; }
       searchTimer = setTimeout(function() {
         var url = window.neriaAjaxUrl('search_translations') + '&q=' + encodeURIComponent(q);
         fetch(url).then(function(r){ return r.json(); }).then(function(data) {
@@ -938,9 +974,9 @@ document.addEventListener('DOMContentLoaded', function() {
             searchResults.innerHTML = '<div class="neria-search-empty">' + '{neria_admin key='translations.search_no_results' esc='javascript'}'.replace('%s', escHtml(q)) + '</div>';
           } else {
             var html = '';
-            items.forEach(function(item) {
+            items.forEach(function(item, idx) {
               var hl = escHtml(item.value).replace(new RegExp('(' + escHtml(q).replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi'), '<mark>$1</mark>');
-              html += '<div class="neria-search-result-item" data-template="' + escHtml(item.template) + '" data-lang="' + escHtml(item.lang) + '">'
+              html += '<div class="neria-search-result-item" id="neria-search-option-' + idx + '" role="option" aria-selected="false" data-template="' + escHtml(item.template) + '" data-lang="' + escHtml(item.lang) + '">'
                     + '<span class="neria-search-result-item__tpl">' + escHtml(item.template_label) + '</span>'
                     + '<span class="neria-search-result-item__lang">' + escHtml(item.lang) + '</span>'
                     + '<span class="neria-search-result-item__val">' + hl + '</span>'
@@ -948,35 +984,49 @@ document.addEventListener('DOMContentLoaded', function() {
                     + '</div>';
             });
             searchResults.innerHTML = html;
-            searchResults.querySelectorAll('.neria-search-result-item').forEach(function(el) {
-              el.addEventListener('click', function() {
-                var tpl  = this.getAttribute('data-template');
-                var lang = this.getAttribute('data-lang');
-                var sel  = document.getElementById('neria-trad-template');
-                var lsel = document.getElementById('neria-trad-lang');
-                if (sel) sel.value = tpl;
-                if (lsel) lsel.value = lang;
-                searchResults.classList.remove('active');
-                searchInput.value = '';
-                searchClear.style.display = 'none';
-                document.getElementById('neria-trad-load').click();
-              });
+            searchResults.querySelectorAll('.neria-search-result-item').forEach(function(el, idx) {
+              el.addEventListener('mouseenter', function() { setActiveSearchResult(idx); });
+              el.addEventListener('click', function() { selectSearchResult(this); });
             });
           }
           searchResults.classList.add('active');
+          searchInput.setAttribute('aria-expanded', 'true');
+          setActiveSearchResult(-1);
         }).catch(function(){ searchResults.innerHTML = '<div class="neria-search-empty">Erreur de recherche.</div>'; searchResults.classList.add('active'); });
       }, 300);
+    });
+    searchInput.addEventListener('keydown', function (e) {
+      if (!searchResults.classList.contains('active')) { return; }
+      var items = searchResults.querySelectorAll('.neria-search-result-item');
+      if (!items.length) { return; }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActiveSearchResult(acActiveIndex < items.length - 1 ? acActiveIndex + 1 : 0);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveSearchResult(acActiveIndex > 0 ? acActiveIndex - 1 : items.length - 1);
+      } else if (e.key === 'Enter' && acActiveIndex >= 0) {
+        e.preventDefault();
+        selectSearchResult(items[acActiveIndex]);
+      } else if (e.key === 'Escape') {
+        searchResults.classList.remove('active');
+        searchResults.innerHTML = '';
+        searchInput.setAttribute('aria-expanded', 'false');
+        acActiveIndex = -1;
+      }
     });
     if (searchClear) {
       searchClear.addEventListener('click', function() {
         searchInput.value = ''; searchInput.focus();
         searchResults.classList.remove('active'); searchResults.innerHTML = '';
+        searchInput.setAttribute('aria-expanded', 'false');
         this.style.display = 'none';
       });
     }
     document.addEventListener('click', function(e) {
       if (!searchResults.contains(e.target) && e.target !== searchInput) {
         searchResults.classList.remove('active');
+        searchInput.setAttribute('aria-expanded', 'false');
       }
     });
   }

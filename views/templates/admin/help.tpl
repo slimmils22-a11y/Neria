@@ -1020,7 +1020,8 @@ window.NERIA_HELP_L10N = {
   pdfGeneratedDesc:  "{neria_admin key='help.pdf_generated_desc' esc='javascript'}",
   pdfOpenPrefix:     "{neria_admin key='help.pdf_open_prefix' esc='javascript'}",
   printJournalTitle: "{neria_admin key='help.print_journal_title' esc='javascript'}",
-  exportedOn:        "{neria_admin key='help.exported_on' esc='javascript'}"
+  exportedOn:        "{neria_admin key='help.exported_on' esc='javascript'}",
+  close:             "{neria_admin key='common.close' esc='javascript'}"
 };
 </script>
 {literal}
@@ -1115,6 +1116,7 @@ window.NERIA_HELP_L10N = {
 
     var toast = document.createElement('div');
     toast.id = 'neria-mail-toast';
+    toast.setAttribute('role', 'status');
     toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;'
       + 'background:#1a1a2e;color:#fff;border-radius:10px;padding:16px 20px;'
       + 'box-shadow:0 6px 24px rgba(0,0,0,.35);max-width:320px;font-family:sans-serif;';
@@ -1126,6 +1128,7 @@ window.NERIA_HELP_L10N = {
       +   'border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;">'
       + icon + ' ' + window.NERIA_HELP_L10N.pdfOpenPrefix + ' ' + label + '</a>'
       + '<button onclick="document.getElementById(\'neria-mail-toast\').remove()" '
+      +   'aria-label="' + window.NERIA_HELP_L10N.close + '" title="' + window.NERIA_HELP_L10N.close + '" '
       +   'style="background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:6px;'
       +   'padding:9px 12px;cursor:pointer;font-size:13px;">✕</button>'
       + '</div>';
@@ -1199,18 +1202,29 @@ window.NERIA_HELP_L10N = {
       li.style.cssText = 'list-style:none;';
       var btn = document.createElement('button');
       btn.type = 'button';
+      btn.setAttribute('role', 'menuitem');
       btn.style.cssText = 'width:100%;text-align:left;padding:8px 14px;background:none;border:none;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;color:#222;white-space:nowrap;';
       btn.innerHTML = '<span>' + p.icon + '</span><span>' + p.label + '</span>';
       if (p.custom) {
         var del = document.createElement('span');
         del.textContent = '✕';
         del.title = 'Supprimer';
+        del.setAttribute('role', 'button');
+        del.setAttribute('tabindex', '0');
+        del.setAttribute('aria-label', 'Supprimer ' + p.label);
         del.style.cssText = 'margin-left:auto;color:#aaa;font-size:11px;cursor:pointer;';
-        del.addEventListener('click', function (e) {
+        var deletePlatform = function (e) {
           e.stopPropagation();
           var customs = getCustomPlatforms().filter(function(x){ return x.id !== p.id; });
           saveCustomPlatforms(customs);
           buildDropdown();
+        };
+        del.addEventListener('click', deletePlatform);
+        del.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+            e.preventDefault();
+            deletePlatform(e);
+          }
         });
         btn.appendChild(del);
       }
@@ -1231,8 +1245,10 @@ window.NERIA_HELP_L10N = {
 
     var addLi = document.createElement('li');
     addLi.style.cssText = 'list-style:none;padding:8px 14px;';
-    addLi.innerHTML = '<div style="font-size:11px;font-weight:600;color:#888;margin-bottom:6px;">➕ Ajouter une plateforme</div>'
+    addLi.innerHTML = '<div style="font-size:11px;font-weight:600;color:#888;margin-bottom:6px;" id="neria-share-add-label">➕ Ajouter une plateforme</div>'
+      + '<label for="neria-share-add-name" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">Nom de la plateforme</label>'
       + '<input id="neria-share-add-name" placeholder="Nom (ex: Slack)" style="width:100%;padding:4px 7px;border:1px solid #ddd;border-radius:4px;font-size:12px;margin-bottom:5px;box-sizing:border-box;">'
+      + '<label for="neria-share-add-url" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">URL de partage</label>'
       + '<input id="neria-share-add-url"  placeholder="URL avec {text} et {title}" style="width:100%;padding:4px 7px;border:1px solid #ddd;border-radius:4px;font-size:12px;margin-bottom:6px;box-sizing:border-box;">'
       + '<button id="neria-share-add-btn" type="button" style="font-size:11px;padding:4px 10px;background:#b38b59;color:#fff;border:none;border-radius:4px;cursor:pointer;">Ajouter</button>';
     drop.appendChild(addLi);
@@ -1264,6 +1280,7 @@ window.NERIA_HELP_L10N = {
 
     var drop = document.createElement('ul');
     drop.id = 'neria-share-dropdown';
+    drop.setAttribute('role', 'menu');
     drop.style.cssText = 'display:none;position:absolute;top:calc(100% + 4px);right:0;background:#fff;'
       + 'border:1px solid #e0e0e0;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);'
       + 'padding:4px 0;min-width:230px;z-index:9999;margin:0;';
@@ -1271,10 +1288,25 @@ window.NERIA_HELP_L10N = {
 
     wrap.addEventListener('click', function (e) { e.stopPropagation(); });
 
+    // Round 155 : le menu de partage ne se fermait qu'au clic en dehors —
+    // ni Échap, ni restitution du focus au bouton déclencheur.
+    function closeDropAndRestoreFocus() {
+      closeDrop();
+      drop.style.display = 'none';
+      btnShare.focus();
+    }
+
     btnShare.addEventListener('click', function () {
       var isOpen = wrap.classList.toggle('open');
       drop.style.display = isOpen ? 'block' : 'none';
       if (isOpen) buildDropdown();
+    });
+
+    wrap.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && wrap.classList.contains('open')) {
+        e.preventDefault();
+        closeDropAndRestoreFocus();
+      }
     });
 
     document.addEventListener('click', function () {

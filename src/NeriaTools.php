@@ -812,6 +812,15 @@ class NeriaTools
      * 32 octets aléatoires), sinon retombe sur _COOKIE_KEY_/_NEW_COOKIE_KEY_
      * (toujours présentes dans une install PrestaShop) pour ne jamais
      * retourner de clé vide.
+     *
+     * Round 155 : l'ancien dernier repli était la chaîne littérale
+     * 'neria-fallback-static-key', visible dans le code source du module —
+     * quiconque connaît ce code (module open, décompilé, ancien commit
+     * public) pouvait forger des signatures valides et casser entièrement
+     * la protection anti-open-redirect que signTrackingUrl()/
+     * verifyTrackingUrl() sont censées fournir. Remplacé par une clé
+     * aléatoire générée et persistée une seule fois (auto-réparation,
+     * jamais prévisible), au lieu d'un secret connu à l'avance.
      */
     private static function trackingSignKey(): string
     {
@@ -827,7 +836,15 @@ class NeriaTools
             return _COOKIE_KEY_;
         }
 
-        return 'neria-fallback-static-key';
+        $fallbackHex = (string) \Configuration::get('NERIA_TRACKING_FALLBACK_KEY');
+        if (strlen($fallbackHex) === 64 && ($bin = @hex2bin($fallbackHex)) !== false) {
+            return $bin;
+        }
+
+        $newBin = random_bytes(32);
+        \Configuration::updateValue('NERIA_TRACKING_FALLBACK_KEY', bin2hex($newBin));
+
+        return $newBin;
     }
 
     /**
