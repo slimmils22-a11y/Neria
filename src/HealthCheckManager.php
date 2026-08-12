@@ -5134,6 +5134,76 @@ class HealthCheckManager
             $offenders[] = "stats.tpl : moins de 4 images produit/client ont un attribut alt — régression du bug corrigé le 09/08/2026 (round 154)";
         }
 
+        // Round 155 (09/08/2026) : score_template (action AJAX
+        // deliverability_score) doit rester normalisé comme neria_template/
+        // mp_template ailleurs dans ce fichier — sans ça, un path traversal
+        // redevient possible dans EmailRenderer::buildCompiledHtml().
+        $mainSrc155 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($mainSrc155 === '') {
+            $offenders[] = 'neria.php introuvable (garde-fou round 155 : score_template normalisé)';
+        } else {
+            $posAction155 = strpos($mainSrc155, "if (Tools::getValue('neria_action') === 'deliverability_score') {");
+            $actionBody155 = $posAction155 !== false ? substr($mainSrc155, $posAction155, 700) : '';
+            if ($posAction155 === false
+                || strpos($actionBody155, "preg_replace('/[^a-z0-9_-]/i', '', (string) Tools::getValue('score_template', 'order_conf'))") === false
+                || strpos($actionBody155, "\$scoreTemplate = 'order_conf';") === false
+            ) {
+                $offenders[] = "score_template (action deliverability_score) n'est plus normalisé — régression du bug corrigé le 09/08/2026 (round 155) : path traversal de nouveau possible dans EmailRenderer::buildCompiledHtml()";
+            }
+        }
+
+        // Round 155 (09/08/2026) : NeriaTools::trackingSignKey() ne doit
+        // plus jamais retomber sur un secret prévisible codé en dur.
+        $ntSrc155 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php');
+        if ($ntSrc155 === '' || strpos($ntSrc155, "return 'neria-fallback-static-key';") !== false || strpos($ntSrc155, 'NERIA_TRACKING_FALLBACK_KEY') === false) {
+            $offenders[] = "NeriaTools::trackingSignKey() retombe de nouveau sur un secret HMAC prévisible codé en dur — régression du bug corrigé le 09/08/2026 (round 155) : casserait la protection anti-open-redirect du tracking cliquable";
+        }
+
+        // Round 155 (09/08/2026) : 11 défauts d'accessibilité BO corrigés
+        // (audit dédié, hors navigation.tpl/send.tpl/stats.tpl déjà
+        // couverts au round 154) doivent rester en place.
+        $histSrc155 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/_customer_history_content.tpl');
+        if ($histSrc155 === ''
+            || strpos($histSrc155, 'role="dialog"') === false
+            || strpos($histSrc155, "e.key === 'Escape'") === false
+            || strpos($histSrc155, '_neriaHistoryModalTrigger') === false
+            || strpos($histSrc155, 'for="neria-history-filter-template"') === false
+        ) {
+            $offenders[] = "_customer_history_content.tpl : la modale d'aperçu email ou les filtres ont régressé en accessibilité — régression du bug corrigé le 09/08/2026 (round 155)";
+        }
+        $academySrc155 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/academy.tpl');
+        if ($academySrc155 === ''
+            || substr_count($academySrc155, 'role="button" tabindex="0"') < 8
+            || substr_count($academySrc155, 'role="checkbox" tabindex="0" aria-checked="false"') < 8
+        ) {
+            $offenders[] = "academy.tpl : les cartes de guide ou la checklist RGPD ne sont plus accessibles au clavier — régression du bug corrigé le 09/08/2026 (round 155)";
+        }
+        $calSrc155 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/calendar.tpl');
+        if ($calSrc155 === '' || strpos($calSrc155, "aria-label=\"{neria_admin key='calendar.delete_btn' esc='html'}\"") === false) {
+            $offenders[] = "calendar.tpl : le lien de suppression d'événement n'a plus d'aria-label — régression du bug corrigé le 09/08/2026 (round 155)";
+        }
+        $helpSrc155 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/help.tpl');
+        if ($helpSrc155 === ''
+            || strpos($helpSrc155, "toast.setAttribute('role', 'status')") === false
+            || strpos($helpSrc155, "drop.setAttribute('role', 'menu')") === false
+            || strpos($helpSrc155, 'closeDropAndRestoreFocus') === false
+            || strpos($helpSrc155, 'for="neria-share-add-name"') === false
+        ) {
+            $offenders[] = "help.tpl : le bandeau PDF ou le menu de partage ont régressé en accessibilité — régression du bug corrigé le 09/08/2026 (round 155)";
+        }
+        $tradSrc155 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/translations.tpl');
+        if ($tradSrc155 === ''
+            || strpos($tradSrc155, 'role="combobox"') === false
+            || strpos($tradSrc155, "e.key === 'ArrowDown'") === false
+            || strpos($tradSrc155, "aria-label=\"{neria_admin key='translations.search_clear'}\"") === false
+        ) {
+            $offenders[] = "translations.tpl : la recherche globale n'est plus accessible au clavier — régression du bug corrigé le 09/08/2026 (round 155)";
+        }
+        $abtestSrc155 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/abtest.tpl');
+        if ($abtestSrc155 === '' || substr_count($abtestSrc155, "aria-label=\"{neria_admin key='abtest.variant_") < 2) {
+            $offenders[] = "abtest.tpl : les champs de nom de variante A/B n'ont plus d'aria-label — régression du bug corrigé le 09/08/2026 (round 155)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
