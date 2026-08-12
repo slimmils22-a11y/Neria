@@ -284,6 +284,7 @@ class HealthCheckManager
             'orphaned_voucher_reservations' => 'checkOrphanedVoucherReservations',
             'orphaned_waitlist_claims' => 'checkOrphanedWaitlistClaims',
             'encoded_residual_links' => 'checkEncodedResidualLinks',
+            'txt_raw_html_leak' => 'checkTxtRawHtmlLeak',
             'crypto_key_health' => 'checkCryptoKeyHealth',
             'html_txt_pairs' => 'checkHtmlTxtPairs',
             'template_files'       => 'checkTemplateFiles',
@@ -4926,6 +4927,25 @@ class HealthCheckManager
             $offenders[] = "SearchConsoleManager ne revalide plus le domaine (site_url) du cache avant de le servir dans getStats()/getCachedStats() — régression du bug corrigé le 09/08/2026 (round 150)";
         }
 
+        // Round 150 bis (2026-08-09) : return_slip.txt doit utiliser
+        // {items_txt} (variante texte auto-dérivée), pas {items} (fragment
+        // HTML brut) — bug distinct trouvé PAR le nouveau contrôle prospectif
+        // checkTxtRawHtmlLeak() lui-même, juste après son ajout.
+        $rsTxt150 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/return_slip.txt');
+        if ($rsTxt150 === '' || strpos($rsTxt150, '{items_txt}') === false) {
+            $offenders[] = "return_slip.txt n'utilise plus {items_txt} — régression du bug corrigé le 09/08/2026 (round 150 bis) : la liste d'articles réapparaîtrait en HTML brut (<p>...</p>) dans le bon de retour envoyé au client";
+        }
+
+        // Round 150 bis (2026-08-09) : le contrôle prospectif
+        // checkTxtRawHtmlLeak() lui-même doit rester enregistré — sans lui,
+        // toute future clé de traduction ou variable HTML mal référencée
+        // dans un .txt (comme return_slip ci-dessus) redeviendrait
+        // silencieuse jusqu'à ce qu'un client s'en plaigne.
+        $selfSrc150 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        if ($selfSrc150 === '' || strpos($selfSrc150, "'txt_raw_html_leak' => 'checkTxtRawHtmlLeak',") === false) {
+            $offenders[] = "checkTxtRawHtmlLeak() n'est plus enregistré dans la liste des contrôles Watchdog — régression du bug corrigé le 09/08/2026 (round 150 bis) : la fuite de balises HTML brutes dans un .txt ne serait de nouveau plus détectée proactivement";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
@@ -7801,6 +7821,74 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.encoded_links_ok')];
+    }
+
+    /**
+     * Round 150 : fuite de balises HTML brutes dans la version .txt — le
+     * bug corrigé le 09/08/2026 (history_info/guest_tracking_info/
+     * tracking_info contiennent un lien HTML complet <a href="...">...</a>
+     * pensé pour le rendu HTML, jamais nettoyé côté pipeline texte). Le
+     * garde-fou statique de checkKnownRegressionsGuard() ne vérifie que le
+     * CODE de ce correctif précis — il ne détecterait pas la MÊME classe de
+     * bug réapparaissant via une future clé de traduction contenant du
+     * HTML, sur un template qui n'existe pas encore.
+     *
+     * Contrôle PROSPECTIF (même mécanisme que checkEncodedResidualLinks()
+     * juste au-dessus — rejoue la compilation réelle de CHAQUE template
+     * avec des données factices) : vérifie qu'aucun fichier .txt produit ne
+     * contient de balise HTML structurelle (<a, <img, <p, <br, <div, <span,
+     * <strong, <table...), quelle qu'en soit l'origine (traduction, variable
+     * de texte libre, futur bug d'échappement).
+     */
+    private function checkTxtRawHtmlLeak(): array
+    {
+        if (!class_exists('EmailRenderer') || !class_exists('NeriaTools')) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.txt_raw_html_ok')];
+        }
+
+        $renderer  = new \EmailRenderer($this->module);
+        $refClass  = new \ReflectionClass($renderer);
+        $fakes     = $refClass->getMethod('buildPreviewFakes');
+        $fakes->setAccessible(true);
+        $compile   = $refClass->getMethod('compileNeriaTemplate');
+        $compile->setAccessible(true);
+
+        $templates = array_keys(\NeriaTools::getTemplateLabels());
+        $offenders = [];
+
+        foreach ($templates as $tpl) {
+            try {
+                $demoVars = $fakes->invoke($renderer, $tpl, 'fr');
+                $outFile  = $compile->invoke($renderer, $tpl, 'fr', 'fr', $demoVars, true);
+                if (!$outFile || !is_file($outFile)) {
+                    continue;
+                }
+                $txtFile = preg_replace('/\.html$/', '.txt', $outFile);
+                if (!is_file($txtFile)) {
+                    continue;
+                }
+                $content = file_get_contents($txtFile) ?: '';
+                if (preg_match('/<(a|img|p|br|div|span|strong|table|em|b|ul|li)\b[^>]*>/i', $content)) {
+                    $offenders[] = $tpl;
+                }
+            } catch (\Throwable $e) {
+                // Non bloquant — un échec de compilation isolé est déjà
+                // couvert par render_canary, pas la responsabilité de ce
+                // contrôle.
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.txt_raw_html_error', [
+                    'count' => count($offenders),
+                    'list'  => implode(', ', array_slice($offenders, 0, 8)),
+                ]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.txt_raw_html_ok')];
     }
 
     /**

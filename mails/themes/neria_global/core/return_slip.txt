@@ -14,7 +14,7 @@
 
 {neria_trad key='return_slip_articles_title'}
 --------------------------------
-{items}
+{items_txt}
 
 {neria_trad key='return_slip_message_title'}
 --------------------------------
