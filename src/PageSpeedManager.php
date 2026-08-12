@@ -187,6 +187,20 @@ class PageSpeedManager
             return null;
         }
 
+        // Round 150 : le nettoyage de CONFIG_LAST_ERROR/_AT n'est plus fait
+        // à l'intérieur de fetchStrategy() (une par appel), mais ICI, une
+        // seule fois, et seulement si les DEUX stratégies ont réussi.
+        // Auparavant, un échec mobile (timeout fréquent — émulation réseau
+        // throttlée, souvent plus lente que desktop) suivi d'un succès
+        // desktop effaçait l'erreur que mobile venait juste d'enregistrer :
+        // le rapport global était considéré "réussi" (une seule stratégie
+        // en échec ne fait pas échouer runCheck()) et mis en cache avec
+        // mobile=null, sans aucune trace exploitable de la cause.
+        if ($mobile !== null && $desktop !== null) {
+            \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ERROR));
+            \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ERROR_AT));
+        }
+
         $result = [
             'url'        => $shopUrl,
             'mobile'     => $mobile,
@@ -268,9 +282,6 @@ class PageSpeedManager
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_http400', ['strategy' => $strategy, 'msg' => 'invalid JSON']), '', 'PageSpeedManager');
             return null;
         }
-
-        \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ERROR));
-        \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ERROR_AT));
 
         return $this->parseResult($data);
     }

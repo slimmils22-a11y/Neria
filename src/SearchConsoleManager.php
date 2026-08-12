@@ -295,7 +295,20 @@ class SearchConsoleManager
             $cached = \Configuration::get($this->cacheKey(self::CONFIG_CACHE));
             if ($cached) {
                 $data = json_decode($cached, true);
-                if (is_array($data)) {
+                // Round 150 : revalide le domaine du cache contre le host
+                // ACTUEL de la boutique (comme SeoApiManager::getReport()/
+                // PageSpeedManager::getReport() le font déjà) — sans ce
+                // contrôle, un changement de domaine de la boutique pendant
+                // la fenêtre de cache (jusqu'à 12h, le plus long TTL des
+                // managers SEO/API) continuait d'afficher les clics/
+                // impressions/CTR d'une propriété Search Console qui ne
+                // correspond plus au domaine réellement servi.
+                if (is_array($data) && (
+                    empty($data['site_url']) || $this->matchesShopHost(
+                        (string) $data['site_url'],
+                        (string) parse_url(\Tools::getShopDomainSsl(true), PHP_URL_HOST)
+                    )
+                )) {
                     return $data;
                 }
             }
@@ -310,7 +323,19 @@ class SearchConsoleManager
             return null;
         }
         $data = json_decode($cached, true);
-        return is_array($data) ? $data : null;
+        if (!is_array($data)) {
+            return null;
+        }
+        // Round 150 : même contrôle de domaine que getStats() — évite
+        // d'afficher indéfiniment (lecture seule, sans fetch réseau) les
+        // statistiques d'un ancien domaine après une migration.
+        if (!empty($data['site_url']) && !$this->matchesShopHost(
+            (string) $data['site_url'],
+            (string) parse_url(\Tools::getShopDomainSsl(true), PHP_URL_HOST)
+        )) {
+            return null;
+        }
+        return $data;
     }
 
     /**

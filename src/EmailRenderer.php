@@ -3021,11 +3021,22 @@ class EmailRenderer
                 );
             }
 
+            // Round 150 : NeriaTools::sanitizeText() (strip_tags +
+            // html_entity_decode) — auparavant la traduction résolue était
+            // injectée BRUTE dans le .txt, contrairement à la version HTML
+            // qui passe par sanitizeTranslationHtml(). Plusieurs clés
+            // (history_info, guest_tracking_info, tracking_info) contiennent
+            // un lien HTML complet intégré (`<a href="{history_url}">...</a>`)
+            // pensé pour le rendu HTML — sans nettoyage, le client recevant
+            // la version texte brute voyait littéralement les balises
+            // `<a href=...>` en plus de l'URL déjà dupliquée juste après par
+            // le template lui-même, sur 15 templates transactionnels
+            // fréquents (bankwire, order_conf, payment, refund, shipped...).
             $compiledTxt = preg_replace_callback(
                 '/\{neria_trad\s+key=[\'"]([a-z0-9_]+)[\'"]\s*\}/',
                 function ($m) use ($engine, $template, $lang) {
                     $v = $engine->get($template, $m[1], $lang);
-                    return $v !== '' ? $v : $m[0];
+                    return $v !== '' ? NeriaTools::sanitizeText($v) : $m[0];
                 },
                 $compiledTxt
             );

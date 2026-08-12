@@ -294,11 +294,21 @@ class PostmasterManager
     {
         $cacheTime = (int) \Configuration::get($this->cacheKey(self::CONFIG_CACHE_TIME));
         if ($cacheTime && (time() - $cacheTime) < self::CACHE_TTL) {
-            $cached = \Configuration::get($this->cacheKey(self::CONFIG_CACHE));
-            if ($cached) {
-                $data = json_decode($cached, true);
-                if (is_array($data)) {
-                    return $data;
+            // Round 150 : CONFIG_CACHE_HOST était écrit par fetchAndCache()
+            // mais jamais relu ici (comme SeoApiManager::getReport()/
+            // PageSpeedManager::getReport() le font déjà pour leur propre
+            // cache) — un changement de domaine de la boutique pendant la
+            // fenêtre de cache (jusqu'à 1h) continuait d'afficher la
+            // réputation d'envoi de l'ANCIEN domaine sans que rien ne le
+            // signale.
+            $cachedHost = (string) \Configuration::get($this->cacheKey(self::CONFIG_CACHE_HOST));
+            if ($cachedHost === '' || self::domainsMatch($cachedHost, $this->getShopHost())) {
+                $cached = \Configuration::get($this->cacheKey(self::CONFIG_CACHE));
+                if ($cached) {
+                    $data = json_decode($cached, true);
+                    if (is_array($data)) {
+                        return $data;
+                    }
                 }
             }
         }
@@ -334,6 +344,17 @@ class PostmasterManager
 
     public function getCachedStats(): ?array
     {
+        // Round 150 : même contrôle de domaine que getStats() — sans lui,
+        // cette méthode (utilisée pour un affichage BO en lecture seule,
+        // sans déclencher de fetch réseau) pouvait afficher indéfiniment la
+        // réputation d'un ancien domaine après une migration, tant qu'aucun
+        // rafraîchissement complet (fetchAndCache()) n'était déclenché
+        // ailleurs.
+        $cachedHost = (string) \Configuration::get($this->cacheKey(self::CONFIG_CACHE_HOST));
+        if ($cachedHost !== '' && !self::domainsMatch($cachedHost, $this->getShopHost())) {
+            return null;
+        }
+
         $cached = \Configuration::get($this->cacheKey(self::CONFIG_CACHE));
         if (!$cached) {
             return null;
