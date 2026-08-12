@@ -452,7 +452,14 @@ class SeoApiManager
         curl_close($ch);
 
         if (!$body || $httpCode !== 200) {
+            // Round 152 : wd()->warning() ajouté — auparavant seul
+            // recordError() (visible en creusant la page SEO BO) traçait
+            // l'échec, contrairement à fetchMoz() (même fichier) qui logue
+            // déjà les deux. Un timeout/échec DNS/certificat invalide
+            // persistant sur Semrush ne remontait jamais dans le flux de
+            // notifications/monitoring standard du module.
             $this->recordError($curlErr !== '' ? $curlErr : ('HTTP ' . $httpCode));
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.semrush_http_error', ['code' => $httpCode]), '', 'SeoApiManager');
             return null;
         }
 

@@ -64321,5 +64321,26 @@
         "da": "SQL-fejl ved registrering af oversættelseshistorik: [{template}] {lang}/{key}",
         "nl": "SQL-fout bij het registreren van vertaalgeschiedenis: [{template}] {lang}/{key}",
         "gb": "SQL failure while recording translation history: [{template}] {lang}/{key}"
+    },
+    "watchdog.semrush_http_error": {
+        "fr": "Semrush API HTTP {code} — vérifiez la clé API.",
+        "en": "Semrush API HTTP {code} — check your API key.",
+        "de": "Semrush API HTTP {code} — überprüfen Sie Ihren API-Schlüssel.",
+        "it": "Semrush API HTTP {code} — controlla la chiave API.",
+        "es": "Semrush API HTTP {code} — verifica tu clave API.",
+        "pt": "Semrush API HTTP {code} — verifique a chave API.",
+        "br": "Semrush API HTTP {code} — verifique a chave de API.",
+        "ar": "Semrush API HTTP {code} — تحقق من مفتاح API الخاص بك.",
+        "ja": "Semrush API HTTP {code} — APIキーを確認してください。",
+        "ko": "Semrush API HTTP {code} — API 키를 확인하세요.",
+        "zh": "Semrush API HTTP {code} — 请检查您的 API 密钥。",
+        "tw": "Semrush API HTTP {code} — 請檢查您的 API 金鑰。",
+        "ru": "Semrush API HTTP {code} — проверьте ваш API-ключ.",
+        "tr": "Semrush API HTTP {code} — API anahtarınızı kontrol edin.",
+        "sv": "Semrush API HTTP {code} — kontrollera din API-nyckel.",
+        "no": "Semrush API HTTP {code} — kontroller API-nøkkelen din.",
+        "da": "Semrush API HTTP {code} — kontroller din API-nøgle.",
+        "nl": "Semrush API HTTP {code} — controleer uw API-sleutel.",
+        "gb": "Semrush API HTTP {code} — check your API key."
     }
 }
