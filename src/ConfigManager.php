@@ -203,6 +203,16 @@ class ConfigManager
         // complète) la laissait orpheline en base. Même défaut que les 4
         // toggles ci-dessus.
         self::KEY_DEEPL_KEY                 => '',
+        // Round 149 : mêmes défaut manquant que KEY_DEEPL_KEY ci-dessus —
+        // ces 3 clés JSON ont chacune leur propre getter/setter
+        // (getFirstnameFallbacks()/getTimeGreetings()/getTargetCountries())
+        // mais étaient absentes de DEFAULTS, donc deleteAll() les laissait
+        // orphelines en base après une désinstallation/réinitialisation
+        // complète : une réinstallation ultérieure retrouvait silencieusement
+        // les anciennes valeurs au lieu de repartir sur un état neuf.
+        self::KEY_FIRSTNAME_FALLBACKS       => '',
+        self::KEY_TIME_GREETINGS            => '',
+        self::KEY_TARGET_COUNTRIES          => '',
     ];
 
     // Polices disponibles pour le sélecteur back-office (corps de texte)
@@ -1838,6 +1848,18 @@ class ConfigManager
     private function sanitizeUrl(string $url)
     {
         $url = filter_var(trim($url), FILTER_VALIDATE_URL);
-        return $url ?: false;
+        if (!$url) {
+            return false;
+        }
+        // Round 149 : FILTER_VALIDATE_URL valide la syntaxe générique d'un
+        // URI (schema:...) sans exiger http/https ni "//" — des chaînes
+        // comme "javascript:alert(1)" ou "data:text/html,..." étaient
+        // acceptées comme "URL valide", contrairement à sanitizeColor()
+        // (whitelist regex stricte). Consommée ensuite dans un href= par
+        // EmailRenderer::injectSocialVars() : un lien social non filtré
+        // pouvait porter un schéma actif exécuté selon le contexte
+        // (aperçu BO en iframe, client mail allégé).
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        return in_array($scheme, ['http', 'https'], true) ? $url : false;
     }
 }

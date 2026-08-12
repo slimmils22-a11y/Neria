@@ -43,6 +43,34 @@ class EmailRenderer
      */
     const TEMPLATE_ALIASES = [];
 
+    /**
+     * Round 149 : extraite en constante partagée entre compileNeriaTemplate()
+     * (envoi réel) et buildCompiledHtml() (aperçu Design BO + renvoi depuis
+     * l'historique client) — auparavant une liste locale à
+     * compileNeriaTemplate() seule, ce qui avait laissé buildCompiledHtml()
+     * sans AUCUN échappement de ses $extraReplacements (XSS stocké exécuté
+     * côté BO via l'aperçu d'historique, cf. commentaire dans
+     * buildCompiledHtml()). Clés de fragments HTML volontairement
+     * pré-construits côté serveur, à ne jamais échapper.
+     */
+    const HTML_SAFE_RAW_KEYS = [
+        '{products}', '{items}', '{discounts}', '{meta_products}',
+        '{delivery_block_html}', '{invoice_block_html}',
+        '{return_address_html}', '{check_address_html}',
+        '{upsell_block}', '{custom_message}',
+        // Ajoutées round 149 : oubliées de la liste noire d'origine (round
+        // 148), régression silencieuse depuis — {shipped_items}
+        // (order_partial_shipped.html, construite par OrderTriggersManager
+        // avec htmlspecialchars() déjà appliqué PAR LIGNE avant d'assembler
+        // les <p>, donc la ré-échapper cassait visuellement l'email),
+        // {messages} (forward_msg.html, fil de conversation SAV), et
+        // {virtualProducts} (download_product.html — injectée par le cœur
+        // PrestaShop lui-même, src/Adapter/MailTemplate/
+        // MailPreviewVariablesBuilder.php, avant interception par le hook
+        // Neria).
+        '{shipped_items}', '{messages}', '{virtualProducts}',
+    ];
+
     // ============================================================
     // PROPRIÃ‰TÃ‰S
     // ============================================================
@@ -1404,7 +1432,32 @@ class EmailRenderer
         }
 
         // Variables HTML connues â†’ variante texte {xxx_txt}
-        $htmlKeys = ['{messages}'];
+        //
+        // Round 149 : n'incluait que {messages} — les autres clés de
+        // self::HTML_SAFE_RAW_KEYS (products, items, discounts,
+        // delivery_block_html, invoice_block_html, check_address_html,
+        // return_address_html, meta_products, upsell_block) n'avaient
+        // aucun filet ici. Pour les templates NATIFS PrestaShop
+        // (order_conf, new_order, download_product...), le cœur PS fournit
+        // déjà directement ces variantes _txt (cf. PaymentModule::
+        // validateOrder(), OrderHistory.php) — le garde isset() ci-dessous
+        // les respecte donc sans jamais les écraser. Ce filet ne comble
+        // que les templates propres à Neria (return_slip et futurs) qui
+        // réutiliseraient ces mêmes noms de variable sans calculer
+        // eux-mêmes leur variante texte.
+        $htmlKeys = [
+            '{messages}', '{products}', '{items}', '{discounts}', '{meta_products}',
+            '{upsell_block}',
+        ];
+        // Ces clés ont un suffixe "_html" à remplacer par "_txt" (pas à
+        // concaténer) — mappées explicitement, la transformation générique
+        // {xxx} → {xxx_txt} ne s'applique pas à leur nommage.
+        $htmlKeysWithSuffix = [
+            '{delivery_block_html}' => '{delivery_block_txt}',
+            '{invoice_block_html}'  => '{invoice_block_txt}',
+            '{check_address_html}'  => '{check_address_txt}',
+            '{return_address_html}' => '{return_address_txt}',
+        ];
 
         foreach ($htmlKeys as $key) {
             if (empty($templateVars[$key])) {
@@ -1423,6 +1476,19 @@ class EmailRenderer
             $text = preg_replace('#</p>|<br\s*/?>#i', "\n", $html);
             $text = NeriaTools::sanitizeText($text);
             // Compacte les lignes vides multiples
+            $text = preg_replace("/\n{2,}/", "\n", $text);
+
+            $templateVars[$txtKey] = trim($text);
+        }
+
+        foreach ($htmlKeysWithSuffix as $key => $txtKey) {
+            if (empty($templateVars[$key]) || isset($templateVars[$txtKey])) {
+                continue;
+            }
+
+            $html = (string) $templateVars[$key];
+            $text = preg_replace('#</p>|<br\s*/?>#i', "\n", $html);
+            $text = NeriaTools::sanitizeText($text);
             $text = preg_replace("/\n{2,}/", "\n", $text);
 
             $templateVars[$txtKey] = trim($text);
@@ -2334,8 +2400,30 @@ class EmailRenderer
 
         // ── Placeholders génériques {xxx} (shop_url, fausses valeurs d'aperçu,
         // snapshot d'historique...) — résolus ICI, avant CssInliner (cf. docblock).
+        //
+        // Round 149 : durcissement XSS — jusqu'ici buildCompiledHtml()
+        // n'échappait JAMAIS $extraReplacements, contrairement à
+        // compileNeriaTemplate() (envoi réel, durci round 148). Cette
+        // méthode sert renderWithVars(), utilisée par
+        // CustomerEmailHistoryManager::buildPreviewHtml() pour rejouer le
+        // SNAPSHOT BRUT des variables d'un envoi passé (rendered_vars) —
+        // exactement les mêmes variables de texte libre BO concernées par
+        // le bug round 148 (ex. {reply}, {apology_reason}). Le résultat est
+        // renvoyé tel quel au navigateur (Content-Type: text/html) par
+        // neria.php::maybeOutputHistoryFileResponse() : une charge XSS
+        // stockée à l'envoi d'origine s'exécutait dans le contexte de
+        // session BO du premier employé consultant l'historique de ce
+        // client — potentiellement bien après et par une personne
+        // différente de celle ayant introduit la charge. Même liste noire
+        // que compileNeriaTemplate() (self::HTML_SAFE_RAW_KEYS).
         if (!empty($extraReplacements)) {
-            $compiled = strtr($compiled, $extraReplacements);
+            $safeExtraReplacements = $extraReplacements;
+            foreach ($safeExtraReplacements as $nameKey => $nameValue) {
+                if (is_string($nameValue) && !in_array($nameKey, self::HTML_SAFE_RAW_KEYS, true)) {
+                    $safeExtraReplacements[$nameKey] = htmlspecialchars($nameValue, ENT_QUOTES, 'UTF-8');
+                }
+            }
+            $compiled = strtr($compiled, $safeExtraReplacements);
         }
 
         // ── Blocs conditionnels {if isset($var) && $var}...{/if} (signature
@@ -2786,15 +2874,9 @@ class EmailRenderer
         // rester du HTML actif. {custom_message} est déjà échappé en amont
         // (injectCustomMessage()) avant d'être enveloppé en HTML — l'exclure
         // ici évite un double échappement.
-        $htmlSafeRawKeys = [
-            '{products}', '{items}', '{discounts}', '{meta_products}',
-            '{delivery_block_html}', '{invoice_block_html}',
-            '{return_address_html}', '{check_address_html}',
-            '{upsell_block}', '{custom_message}',
-        ];
         $htmlTemplateVars = $templateVars;
         foreach ($htmlTemplateVars as $nameKey => $nameValue) {
-            if (is_string($nameValue) && !in_array($nameKey, $htmlSafeRawKeys, true)) {
+            if (is_string($nameValue) && !in_array($nameKey, self::HTML_SAFE_RAW_KEYS, true)) {
                 $htmlTemplateVars[$nameKey] = htmlspecialchars($nameValue, ENT_QUOTES, 'UTF-8');
             }
         }

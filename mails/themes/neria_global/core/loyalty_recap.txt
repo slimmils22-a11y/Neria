@@ -11,7 +11,7 @@
 
 {neria_trad key='loyalty_recap_progress'}
 
-{if next_tier_name}{neria_trad key='loyalty_recap_next_tier'} : {next_tier_name} ({points_remaining} {neria_trad key='loyalty_recap_points_left'}){else}{neria_trad key='loyalty_recap_max_tier'}{/if}
+{if next_tier_name}{progress_pct}% — {neria_trad key='loyalty_recap_next_tier'} : {next_tier_name} ({points_remaining} {neria_trad key='loyalty_recap_points_left'}){else}{neria_trad key='loyalty_recap_max_tier'}{/if}
 
 {neria_trad key='loyalty_recap_btn'} : {shop_url}
 
