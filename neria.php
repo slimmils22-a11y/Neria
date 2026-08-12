@@ -2181,7 +2181,7 @@ class Neria extends Module
                     $customizedKeys[$r['translation_key']] = true;
                 }
             }
-            $histMgr = class_exists('TranslationHistoryManager') ? new TranslationHistoryManager() : null;
+            $histMgr = class_exists('TranslationHistoryManager') ? new TranslationHistoryManager($this) : null;
             $employee = $this->context->employee;
             $author   = trim($employee->firstname . ' ' . $employee->lastname) ?: 'DeepL';
 
@@ -4042,7 +4042,7 @@ class Neria extends Module
                     if (is_array($fields)) {
                         // Enregistre les changements dans l'historique avant d'écraser
                         if (class_exists('TranslationHistoryManager')) {
-                            $histMgr  = new TranslationHistoryManager();
+                            $histMgr  = new TranslationHistoryManager($this);
                             $employee = $this->context->employee;
                             $author   = trim($employee->firstname . ' ' . $employee->lastname) ?: 'Admin';
 
@@ -4137,7 +4137,7 @@ class Neria extends Module
 
                     // 1. Sauvegarde les valeurs custom dans le changelog avant écrasement
                     if (class_exists('TranslationHistoryManager') && !empty($jsonAll)) {
-                        $histMgr  = new TranslationHistoryManager();
+                        $histMgr  = new TranslationHistoryManager($this);
                         $employee = $this->context->employee;
                         $author   = trim($employee->firstname . ' ' . $employee->lastname) ?: 'Admin';
 
@@ -4218,7 +4218,7 @@ class Neria extends Module
                                    AND `lang` = '" . pSQL($tplLang) . "'"
                             );
                             if ($prevRowsB) {
-                                $histMgrB = new TranslationHistoryManager();
+                                $histMgrB = new TranslationHistoryManager($this);
                                 $employee = $this->context->employee;
                                 $authorB  = trim($employee->firstname . ' ' . $employee->lastname) ?: 'Admin';
                                 foreach ($prevRowsB as $r) {
@@ -4255,7 +4255,7 @@ class Neria extends Module
                         // Enregistre l'historique des modifications Variante B avant sauvegarde
                         if (class_exists('TranslationHistoryManager')) {
                             $tableTradB = _DB_PREFIX_ . 'neria_abtest_translation';
-                            $histMgrB   = new TranslationHistoryManager();
+                            $histMgrB   = new TranslationHistoryManager($this);
                             $employee   = $this->context->employee;
                             $authorB    = trim($employee->firstname . ' ' . $employee->lastname) ?: 'Admin';
                             $prevRowsB  = Db::getInstance()->executeS(
@@ -4291,7 +4291,7 @@ class Neria extends Module
                     $idHistory = (int) Tools::getValue('id_history', 0);
                     $idAbtestB = (int) Tools::getValue('id_abtest_b', 0);
                     if ($idHistory > 0 && $this->abtestBelongsToShop($idAbtestB, $tplKey)) {
-                        $histMgr = new TranslationHistoryManager();
+                        $histMgr = new TranslationHistoryManager($this);
                         $entry   = $histMgr->getById($idHistory);
                         // getById() ne filtre que par id_shop, jamais par
                         // template/langue — voir le correctif identique sur
@@ -4334,7 +4334,7 @@ class Neria extends Module
                 if ($tradAction === 'restore_translation' && class_exists('TranslationHistoryManager')) {
                     $idHistory = (int) Tools::getValue('id_history', 0);
                     if ($idHistory > 0) {
-                        $histMgr = new TranslationHistoryManager();
+                        $histMgr = new TranslationHistoryManager($this);
                         $entry   = $histMgr->getById($idHistory);
                         // getById() ne filtre que par id_shop, jamais par
                         // template/langue — sans cette vérification, un
@@ -4452,7 +4452,7 @@ class Neria extends Module
                 // Historique des modifications pour l'onglet Traductions
                 $translationHistory = [];
                 if (class_exists('TranslationHistoryManager')) {
-                    $rawHistory = (new TranslationHistoryManager())->getHistoryForTemplate($tplKey, $tplLang, 40);
+                    $rawHistory = (new TranslationHistoryManager($this))->getHistoryForTemplate($tplKey, $tplLang, 40);
                     foreach ($rawHistory as $entry) {
                         $entry['date_formatted'] = NeriaTools::formatDate($entry['date_add'], AdminTranslator::currentLang(), true);
                         $translationHistory[]    = $entry;
@@ -4512,7 +4512,7 @@ class Neria extends Module
                             // Historique des modifications Variante B
                             $translationHistoryB = [];
                             if (class_exists('TranslationHistoryManager')) {
-                                $rawHistB = (new TranslationHistoryManager())->getHistoryForTemplate('variantb_' . $tplKey, $tplLang, 40);
+                                $rawHistB = (new TranslationHistoryManager($this))->getHistoryForTemplate('variantb_' . $tplKey, $tplLang, 40);
                                 foreach ($rawHistB as $entry) {
                                     $entry['date_formatted'] = NeriaTools::formatDate($entry['date_add'], AdminTranslator::currentLang(), true);
                                     $translationHistoryB[]   = $entry;

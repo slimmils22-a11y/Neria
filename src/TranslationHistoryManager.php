@@ -13,11 +13,23 @@ class TranslationHistoryManager
 
     private \Db $db;
     private int $idShop;
+    private ?\Neria $module;
 
-    public function __construct()
+    // Round 151 : $module optionnel — permet de journaliser au Watchdog les
+    // échecs SQL/verrou de record() (voir plus bas), auparavant totalement
+    // silencieux (aucune instance WatchdogManager possible sans référence
+    // au module). Reste optionnel pour ne pas casser un appelant existant
+    // qui n'aurait pas ce contexte.
+    public function __construct(?\Neria $module = null)
     {
         $this->db     = \Db::getInstance();
         $this->idShop = (int) \Context::getContext()->shop->id;
+        $this->module = $module;
+    }
+
+    private function wd(): ?\WatchdogManager
+    {
+        return $this->module ? new \WatchdogManager($this->module) : null;
     }
 
     public function record(
@@ -41,9 +53,25 @@ class TranslationHistoryManager
         // sous forte concurrence — même famille de correctif que
         // toggleMenuItemVisibility(), round 123/127).
         $lockName = 'neria_trad_hist_' . md5($template . '|' . $lang . '|' . $key);
-        $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 3)");
+        // Round 151 : le retour de GET_LOCK() est désormais vérifié —
+        // auparavant ignoré, un échec (0 = timeout de 3s atteint, verrou
+        // déjà tenu ailleurs ; NULL = erreur) laissait passer l'INSERT +
+        // pruneKey() exactement comme si le verrou avait été obtenu,
+        // recréant sous forte concurrence la race condition que ce verrou
+        // (round 138) est censé empêcher.
+        $acquired = (int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 3)");
+        if ($acquired !== 1) {
+            $this->wd()?->warning(
+                \WatchdogManager::i18nMsg('watchdog.translation_history_lock_failed', [
+                    'template' => $template,
+                    'lang'     => $lang,
+                    'key'      => $key,
+                ]),
+                $template, 'TranslationHistoryManager'
+            );
+        }
         try {
-            $this->db->insert(self::TABLE, [
+            $inserted = $this->db->insert(self::TABLE, [
                 'id_shop'         => $this->idShop,
                 'template_key'    => pSQL($template),
                 'lang_code'       => pSQL($lang),
@@ -54,9 +82,27 @@ class TranslationHistoryManager
                 'date_add'        => date('Y-m-d H:i:s'),
             ]);
 
+            // Round 151 : échec SQL désormais journalisé — auparavant
+            // totalement silencieux (fonction void, aucun log Watchdog dans
+            // tout ce fichier), contrairement à TranslationInstaller qui
+            // logue systématiquement ses échecs SQL.
+            if (!$inserted) {
+                $this->wd()?->error(
+                    \WatchdogManager::i18nMsg('watchdog.translation_history_insert_failed', [
+                        'template' => $template,
+                        'lang'     => $lang,
+                        'key'      => $key,
+                    ]),
+                    $template, 'TranslationHistoryManager'
+                );
+                return;
+            }
+
             $this->pruneKey($template, $lang, $key);
         } finally {
-            $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
+            if ($acquired === 1) {
+                $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
+            }
         }
     }
 

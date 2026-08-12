@@ -6,6 +6,8 @@
 
 {neria_trad key='checkout_abandonment_reassure'}
 
+{products_txt}
+
 {neria_trad key='checkout_abandonment_btn'} : {cart_url}
 
 {neria_trad key='checkout_abandonment_help'}

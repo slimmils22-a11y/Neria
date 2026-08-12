@@ -936,12 +936,18 @@ class BehavioralCronManager
                 $idCart  = (int) $r['id_cart'];
                 $cartUrl = \Tools::getShopDomainSsl(true) . 'index.php?controller=order';
 
+                // Round 151 : {products_txt} ajouté — jamais injecté ici,
+                // contrairement à abandoned_cart_1/2/3 (même famille de
+                // relance panier, corrigées le 2026-07-13, cf.
+                // buildCartProductsTxt()) : la version .txt de
+                // checkout_abandonment n'affichait aucun article du panier.
                 $this->send(
                     'checkout_abandonment',
                     $r,
                     [
-                        '{cart_url}' => $cartUrl,
-                        '{products}' => $this->buildCartProducts($idCart),
+                        '{cart_url}'     => $cartUrl,
+                        '{products}'     => $this->buildCartProducts($idCart),
+                        '{products_txt}' => $this->buildCartProductsTxt($idCart),
                     ],
                     $idCart
                 );

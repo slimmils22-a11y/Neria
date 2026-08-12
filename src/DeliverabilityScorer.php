@@ -644,28 +644,41 @@ class DeliverabilityScorer
         if ($sendingDomain !== '') {
             $dns = $this->getDnsStatus($sendingDomain);
 
-            if (!$dns['spf']) {
-                $score -= 10;
-                $criteria[] = $this->criterion('error', $this->t('score.criterion_spf'), $this->t('score.detail_not_configured'), -10);
-                $recs[]     = ['type' => 'error', 'message' => $this->t('score.rec_no_spf', ['domain' => $sendingDomain])];
+            // Round 151 : une vérification DNS interrompue par une panne
+            // réseau/timeout (dns_get_record() n'a pas de timeout
+            // applicatif — budget géré dans getDnsStatus()) n'est plus
+            // pénalisée comme un domaine réellement mal configuré (-24
+            // points) : neutre, avec un avertissement explicite plutôt
+            // qu'un faux diagnostic "SPF/DMARC/DKIM non configuré".
+            if (!empty($dns['timed_out'])) {
+                $criteria[] = $this->criterion('warning', $this->t('score.criterion_spf'), $this->t('score.detail_dns_check_failed'), 0);
+                $criteria[] = $this->criterion('warning', $this->t('score.criterion_dmarc'), $this->t('score.detail_dns_check_failed'), 0);
+                $criteria[] = $this->criterion('warning', $this->t('score.criterion_dkim'), $this->t('score.detail_dns_check_failed'), 0);
+                $recs[]     = ['type' => 'warning', 'message' => $this->t('score.rec_dns_check_failed', ['domain' => $sendingDomain])];
             } else {
-                $criteria[] = $this->criterion('success', $this->t('score.criterion_spf'), $this->t('score.detail_configured'), 0);
-            }
+                if (!$dns['spf']) {
+                    $score -= 10;
+                    $criteria[] = $this->criterion('error', $this->t('score.criterion_spf'), $this->t('score.detail_not_configured'), -10);
+                    $recs[]     = ['type' => 'error', 'message' => $this->t('score.rec_no_spf', ['domain' => $sendingDomain])];
+                } else {
+                    $criteria[] = $this->criterion('success', $this->t('score.criterion_spf'), $this->t('score.detail_configured'), 0);
+                }
 
-            if (!$dns['dmarc']) {
-                $score -= 7;
-                $criteria[] = $this->criterion('error', $this->t('score.criterion_dmarc'), $this->t('score.detail_not_configured'), -7);
-                $recs[]     = ['type' => 'error', 'message' => $this->t('score.rec_no_dmarc', ['domain' => $sendingDomain])];
-            } else {
-                $criteria[] = $this->criterion('success', $this->t('score.criterion_dmarc'), $this->t('score.detail_configured'), 0);
-            }
+                if (!$dns['dmarc']) {
+                    $score -= 7;
+                    $criteria[] = $this->criterion('error', $this->t('score.criterion_dmarc'), $this->t('score.detail_not_configured'), -7);
+                    $recs[]     = ['type' => 'error', 'message' => $this->t('score.rec_no_dmarc', ['domain' => $sendingDomain])];
+                } else {
+                    $criteria[] = $this->criterion('success', $this->t('score.criterion_dmarc'), $this->t('score.detail_configured'), 0);
+                }
 
-            if (!$dns['dkim']) {
-                $score -= 7;
-                $criteria[] = $this->criterion('warning', $this->t('score.criterion_dkim'), $this->t('score.detail_dkim_not_detected'), -7);
-                $recs[]     = ['type' => 'warning', 'message' => $this->t('score.rec_no_dkim', ['domain' => $sendingDomain])];
-            } else {
-                $criteria[] = $this->criterion('success', $this->t('score.criterion_dkim'), $this->t('score.detail_configured'), 0);
+                if (!$dns['dkim']) {
+                    $score -= 7;
+                    $criteria[] = $this->criterion('warning', $this->t('score.criterion_dkim'), $this->t('score.detail_dkim_not_detected'), -7);
+                    $recs[]     = ['type' => 'warning', 'message' => $this->t('score.rec_no_dkim', ['domain' => $sendingDomain])];
+                } else {
+                    $criteria[] = $this->criterion('success', $this->t('score.criterion_dkim'), $this->t('score.detail_configured'), 0);
+                }
             }
         }
 
@@ -745,6 +758,14 @@ class DeliverabilityScorer
         return compact('type', 'name', 'detail', 'penalty');
     }
 
+    // Round 151 : même budget que DomainReputationManager::checkDkim()
+    // (round 144) — dns_get_record() n'a pas de timeout applicatif, et
+    // cette méthode enchaîne jusqu'à 14 requêtes DNS synchrones (SPF +
+    // DMARC + 12 sélecteurs DKIM) dans le thread de la requête HTTP BO
+    // (neria.php, action deliverability_score) sans aucune limite,
+    // contrairement à sa jumelle du même projet.
+    private const DNS_TIME_BUDGET_SECS = 8.0;
+
     private function getDnsStatus(string $domain): array
     {
         // Clé par domaine — un cache non clé renvoyait silencieusement les
@@ -755,7 +776,14 @@ class DeliverabilityScorer
             return self::$dnsCache[$domain];
         }
 
-        $result = ['spf' => false, 'dmarc' => false, 'dkim' => false];
+        // Round 151 : $timedOut distingue désormais un DKIM/SPF/DMARC
+        // réellement ABSENT d'une vérification interrompue par une panne
+        // DNS/réseau — auparavant les deux cas retombaient identiquement
+        // sur false, pénalisant à tort le score (-24 points) lors d'un
+        // simple incident réseau transitoire, sans aucune trace
+        // exploitable pour le distinguer d'une vraie mauvaise config.
+        $result = ['spf' => false, 'dmarc' => false, 'dkim' => false, 'timed_out' => false];
+        $deadline = microtime(true) + self::DNS_TIME_BUDGET_SECS;
 
         try {
             // Comparaisons insensibles à la casse : la casse du tag "v="
@@ -794,6 +822,10 @@ class DeliverabilityScorer
                 'selector1', 'selector2', 'mailjet', 'brevo', 'sendgrid', 's1', 's2',
             ];
             foreach ($selectors as $sel) {
+                if (microtime(true) >= $deadline) {
+                    $result['timed_out'] = true;
+                    break;
+                }
                 $records = @dns_get_record($sel . '._domainkey.' . $domain, DNS_TXT);
                 if (is_array($records) && !empty($records)) {
                     foreach ($records as $r) {
@@ -805,7 +837,14 @@ class DeliverabilityScorer
                 }
             }
         } catch (\Throwable $e) {
-            // DNS indisponible — on laisse les valeurs par défaut (false)
+            // Round 151 : timed_out=true (plutôt que de laisser les valeurs
+            // par défaut sans distinction) — auparavant une panne DNS/
+            // réseau réelle était indiscernable d'un domaine sans SPF/
+            // DMARC/DKIM. DeliverabilityScorer n'a pas d'instance de module
+            // (classe sans constructeur, cf. `new DeliverabilityScorer()`
+            // dans neria.php) : le flag est exposé à l'appelant, qui journalise
+            // déjà le résultat du score et peut y ajouter une alerte dédiée.
+            $result['timed_out'] = true;
         }
 
         self::$dnsCache ??= [];

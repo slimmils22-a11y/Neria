@@ -248,6 +248,60 @@ class CssInliner
     // ============================================================
 
     /**
+     * Découpe un bloc de déclarations CSS sur ';', en respectant les
+     * parenthèses et guillemets — round 151 : un simple explode(';', ...)
+     * coupait au milieu d'un `url(data:image/png;base64,...)` (logos/
+     * signatures embarqués, courants dans ce module — cf.
+     * SignatureGenerator.php), produisant une déclaration `background`
+     * tronquée et invalide, et un second fragment sans ':' silencieusement
+     * jeté par parseDecl() : l'image disparaissait dans les clients qui
+     * ignorent <style> (Gmail, Outlook — la cible même de CssInliner).
+     */
+    private static function splitDeclarations(string $css): array
+    {
+        $decls = [];
+        $depth = 0;
+        $quote = null;
+        $current = '';
+        $len = strlen($css);
+        for ($i = 0; $i < $len; $i++) {
+            $ch = $css[$i];
+            if ($quote !== null) {
+                $current .= $ch;
+                if ($ch === $quote) {
+                    $quote = null;
+                }
+                continue;
+            }
+            if ($ch === '"' || $ch === "'") {
+                $quote = $ch;
+                $current .= $ch;
+                continue;
+            }
+            if ($ch === '(') {
+                $depth++;
+                $current .= $ch;
+                continue;
+            }
+            if ($ch === ')') {
+                $depth = max(0, $depth - 1);
+                $current .= $ch;
+                continue;
+            }
+            if ($ch === ';' && $depth === 0) {
+                $decls[] = $current;
+                $current = '';
+                continue;
+            }
+            $current .= $ch;
+        }
+        if ($current !== '') {
+            $decls[] = $current;
+        }
+        return $decls;
+    }
+
+    /**
      * Ajoute $newProps au style inline existant sans écraser les déclarations
      * déjà présentes (les styles inline ont une priorité plus haute).
      */
@@ -285,7 +339,7 @@ class CssInliner
         };
 
         if ($existingInline !== '') {
-            foreach (explode(';', $existingInline) as $decl) {
+            foreach (self::splitDeclarations($existingInline) as $decl) {
                 $parsed = $parseDecl($decl);
                 if ($parsed === null) {
                     continue;
@@ -296,7 +350,7 @@ class CssInliner
             }
         }
 
-        foreach (explode(';', $newProps) as $decl) {
+        foreach (self::splitDeclarations($newProps) as $decl) {
             $parsed = $parseDecl($decl);
             if ($parsed === null) {
                 continue;
