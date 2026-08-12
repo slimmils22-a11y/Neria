@@ -4946,6 +4946,54 @@ class HealthCheckManager
             $offenders[] = "checkTxtRawHtmlLeak() n'est plus enregistré dans la liste des contrôles Watchdog — régression du bug corrigé le 09/08/2026 (round 150 bis) : la fuite de balises HTML brutes dans un .txt ne serait de nouveau plus détectée proactivement";
         }
 
+        // Round 151 (2026-08-09) : CssInliner::merge() doit découper les
+        // déclarations CSS via splitDeclarations() (respecte parenthèses/
+        // guillemets), pas un explode(';', ...) naïf qui corrompt une data
+        // URI base64 (logos/signatures embarqués).
+        $ciSrc151 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CssInliner.php');
+        if ($ciSrc151 === ''
+            || strpos($ciSrc151, 'private static function splitDeclarations(string $css): array') === false
+            || substr_count($ciSrc151, 'self::splitDeclarations(') < 2
+        ) {
+            $offenders[] = "CssInliner::merge() ne découpe plus les déclarations CSS via splitDeclarations() — régression du bug corrigé le 09/08/2026 (round 151) : une data URI base64 (logo/signature) contenant un ';' serait de nouveau corrompue lors de l'inlining CSS";
+        }
+
+        // Round 151 (2026-08-09) : checkout_abandonment doit injecter
+        // {products_txt} (même correctif que abandoned_cart_1/2/3).
+        $bcmSrc151 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        $posCa151 = $bcmSrc151 !== '' ? strpos($bcmSrc151, 'function sendCheckoutAbandonment') : false;
+        $caBody151 = $posCa151 !== false ? substr($bcmSrc151, $posCa151, 3200) : '';
+        if ($posCa151 === false || strpos($caBody151, "'{products_txt}'") === false || strpos($caBody151, '$this->buildCartProductsTxt($idCart)') === false) {
+            $offenders[] = "BehavioralCronManager::sendCheckoutAbandonment() n'injecte plus {products_txt} — régression du bug corrigé le 09/08/2026 (round 151) : la version texte de la relance panier abandonné 1h n'afficherait de nouveau aucun article";
+        }
+        $caTxt151 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/checkout_abandonment.txt');
+        if ($caTxt151 === '' || strpos($caTxt151, '{products_txt}') === false) {
+            $offenders[] = "checkout_abandonment.txt ne référence plus {products_txt} — régression du bug corrigé le 09/08/2026 (round 151)";
+        }
+
+        // Round 151 (2026-08-09) : DeliverabilityScorer::getDnsStatus() doit
+        // avoir un budget de temps DNS et score() ne doit plus pénaliser une
+        // vérification DNS interrompue comme un domaine réellement mal
+        // configuré.
+        $dsSrc151 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DeliverabilityScorer.php');
+        if ($dsSrc151 === ''
+            || strpos($dsSrc151, 'private const DNS_TIME_BUDGET_SECS = 8.0;') === false
+            || strpos($dsSrc151, 'if (microtime(true) >= $deadline) {') === false
+            || strpos($dsSrc151, "if (!empty(\$dns['timed_out'])) {") === false
+        ) {
+            $offenders[] = "DeliverabilityScorer::getDnsStatus()/score() n'a plus de budget de temps DNS ou ne neutralise plus la pénalité en cas de panne — régression du bug corrigé le 09/08/2026 (round 151) : un résolveur DNS lent pourrait de nouveau bloquer la page BO, et une panne réseau transitoire ferait de nouveau chuter le score de 24 points à tort";
+        }
+
+        // Round 151 (2026-08-09) : TranslationHistoryManager::record() doit
+        // vérifier GET_LOCK() et journaliser les échecs SQL.
+        $thmSrc151 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/TranslationHistoryManager.php');
+        if ($thmSrc151 === ''
+            || strpos($thmSrc151, '$acquired = (int) $this->db->getValue(') === false
+            || strpos($thmSrc151, 'watchdog.translation_history_insert_failed') === false
+        ) {
+            $offenders[] = "TranslationHistoryManager::record() ne vérifie plus GET_LOCK()/n'journalise plus les échecs SQL — régression du bug corrigé le 09/08/2026 (round 151)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
