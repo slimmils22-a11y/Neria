@@ -5008,6 +5008,37 @@ class HealthCheckManager
             }
         }
 
+        // Round 153 (2026-08-09) : reset_variant_b/save_variant_b doivent
+        // vérifier id_abtest_b contre le template affiché (tplKey), comme
+        // restore_variant_b (round 137).
+        $nSrc153 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($nSrc153 === '') {
+            $offenders[] = 'neria.php introuvable (garde-fou round 153 : variant_b actions scopées par template)';
+        } else {
+            $posReset153 = strpos($nSrc153, "if (\$tradAction === 'reset_variant_b') {");
+            $resetBody153 = $posReset153 !== false ? substr($nSrc153, $posReset153, 1000) : '';
+            if ($posReset153 === false || strpos($resetBody153, 'abtestBelongsToShop($idAbtestB, $tplKey)') === false) {
+                $offenders[] = "reset_variant_b ne vérifie plus id_abtest_b contre \$tplKey — régression du bug corrigé le 09/08/2026 (round 153) : un id_abtest_b manipulé pourrait de nouveau vider la variante B d'un AUTRE template actif sur la même boutique";
+            }
+            $posSave153 = strpos($nSrc153, "if (\$tradAction === 'save_variant_b' && class_exists('ABTestManager')) {");
+            $saveBody153 = $posSave153 !== false ? substr($nSrc153, $posSave153, 600) : '';
+            if ($posSave153 === false || strpos($saveBody153, 'abtestBelongsToShop($idAbtestB, $tplKey)') === false) {
+                $offenders[] = "save_variant_b ne vérifie plus id_abtest_b contre \$tplKey — régression du bug corrigé le 09/08/2026 (round 153) : un id_abtest_b manipulé pourrait de nouveau écraser la variante B d'un AUTRE template actif sur la même boutique";
+            }
+        }
+
+        // Round 153 (2026-08-09) : PreferencesManager::isAllowedBatch() doit
+        // rester présente (utilisée par SegmentManager pour éviter un N+1
+        // de centaines de requêtes SQL sur un envoi de campagne segment).
+        $pmSrc153 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PreferencesManager.php');
+        if ($pmSrc153 === '' || strpos($pmSrc153, 'public function isAllowedBatch(array $idCustomers, string $template, ?int $idShop = null): array') === false) {
+            $offenders[] = "PreferencesManager::isAllowedBatch() a disparu — régression du bug corrigé le 09/08/2026 (round 153) : un N+1 de centaines de requêtes SQL redeviendrait possible sur chaque envoi de campagne segment";
+        }
+        $sgSrc153 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php');
+        if ($sgSrc153 === '' || substr_count($sgSrc153, '->isAllowedBatch(') < 2) {
+            $offenders[] = "SegmentManager n'utilise plus isAllowedBatch() dans preflightCheck()/sendToSegment() — régression du bug corrigé le 09/08/2026 (round 153) : le N+1 de requêtes SQL individuelles redeviendrait possible sur un envoi de campagne segment";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
