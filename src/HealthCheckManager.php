@@ -5065,6 +5065,75 @@ class HealthCheckManager
             $offenders[] = "SegmentManager n'utilise plus isAllowedBatch() dans preflightCheck()/sendToSegment() — régression du bug corrigé le 09/08/2026 (round 153) : le N+1 de requêtes SQL individuelles redeviendrait possible sur un envoi de campagne segment";
         }
 
+        // Round 154 (2026-08-09) : PropensityScoreManager::recalculateAll()
+        // doit rester pré-chargé par lots (agrégats GROUP BY) au lieu de
+        // ré-interroger 7 fois par client (jusqu'à ~35 000 requêtes/nuit).
+        $psmSrc154 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PropensityScoreManager.php');
+        if ($psmSrc154 === '') {
+            $offenders[] = 'PropensityScoreManager.php introuvable (garde-fou round 154 : recalculateAll() pré-chargé par lots)';
+        } else {
+            $posRa154 = strpos($psmSrc154, 'public function recalculateAll(): void');
+            $raBody154 = $posRa154 !== false ? substr($psmSrc154, $posRa154, 5900) : '';
+            if ($posRa154 === false
+                || substr_count($raBody154, "GROUP BY id_customer'") < 3
+            ) {
+                $offenders[] = "PropensityScoreManager::recalculateAll() n'utilise plus les 3 requêtes agrégées GROUP BY id_customer — régression du bug corrigé le 09/08/2026 (round 154) : le N+1 (jusqu'à ~35 000 requêtes SQL/nuit) redeviendrait possible";
+            }
+            foreach (['calcRecencyScore', 'calcFrequencyScore', 'calcEngagementScore', 'calcSeasonalityScore', 'persistScores'] as $m154) {
+                if (strpos($psmSrc154, 'function ' . $m154) === false) {
+                    $offenders[] = "PropensityScoreManager::{$m154}() a disparu — régression du bug corrigé le 09/08/2026 (round 154) : le calcul batché et le calcul par client risqueraient de nouveau de diverger";
+                }
+            }
+        }
+
+        // Round 154 (2026-08-09) : trois blocs de runBackgroundJobs()
+        // identifiés sans protection anti-chevauchement doivent conserver
+        // leur GET_LOCK()/RELEASE_LOCK() (digest Watchdog, réputation de
+        // domaine, auto-diagnostics).
+        $wdSrc154 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php');
+        if ($wdSrc154 === '' || strpos($wdSrc154, "GET_LOCK('neria_watchdog_digest_") === false || strpos($wdSrc154, "RELEASE_LOCK('neria_watchdog_digest_") === false) {
+            $offenders[] = "WatchdogManager::sendDailyDigestIfDue() n'a plus de verrou GET_LOCK() — régression du bug corrigé le 09/08/2026 (round 154) : le digest quotidien pourrait de nouveau partir en double au marchand";
+        }
+        $drmSrc154 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php');
+        if ($drmSrc154 === '' || strpos($drmSrc154, "GET_LOCK('neria_domain_reputation_") === false || strpos($drmSrc154, "RELEASE_LOCK('neria_domain_reputation_") === false) {
+            $offenders[] = "DomainReputationManager::runFullCheck() n'a plus de verrou GET_LOCK() — régression du bug corrigé le 09/08/2026 (round 154) : double charge DNS/RBL et risque d'alerte dupliquée redeviendraient possibles";
+        }
+        $hcmSrc154 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        if ($hcmSrc154 !== '') {
+            $posAc154 = strpos($hcmSrc154, 'public function runAutoChecksIfDue(bool $allowHeavyScans = false): void');
+            $acBody154 = $posAc154 !== false ? substr($hcmSrc154, $posAc154, 2400) : '';
+            if ($posAc154 === false || strpos($acBody154, "GET_LOCK('neria_health_autochecks'") === false || strpos($acBody154, "RELEASE_LOCK('neria_health_autochecks'") === false) {
+                $offenders[] = "HealthCheckManager::runAutoChecksIfDue() n'a plus de verrou GET_LOCK() — régression du bug corrigé le 09/08/2026 (round 154)";
+            }
+        }
+
+        // Round 154 (2026-08-09) : 6 défauts d'accessibilité BO corrigés
+        // (audit dédié) doivent rester en place.
+        $navSrc154 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/navigation.tpl');
+        if ($navSrc154 === ''
+            || strpos($navSrc154, 'role="dialog"') === false
+            || strpos($navSrc154, 'aria-modal="true"') === false
+            || strpos($navSrc154, "e.key === 'Escape'") === false
+            || strpos($navSrc154, '_neriaModalTrigger') === false
+        ) {
+            $offenders[] = "navigation.tpl : la modale de confirmation globale a perdu son accessibilité (role dialog/aria-modal/Échap/restitution du focus) — régression du bug corrigé le 09/08/2026 (round 154)";
+        }
+        $sendSrc154 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/send.tpl');
+        if ($sendSrc154 === ''
+            || strpos($sendSrc154, 'role="listbox"') === false
+            || strpos($sendSrc154, "setAttribute('role', 'option')") === false
+            || strpos($sendSrc154, "e.key === 'ArrowDown'") === false
+            || strpos($sendSrc154, 'for="neria-send-var-') === false
+            || strpos($sendSrc154, 'role="button" tabindex="0" aria-expanded="false" aria-controls="neria-schedule-body"') === false
+            || strpos($sendSrc154, 'id="neria-preview-close" aria-label=') === false
+        ) {
+            $offenders[] = "send.tpl : l'un des correctifs d'accessibilité (autocomplétion clavier, labels de champs dynamiques, panneau de planification, bouton de fermeture) a régressé — régression du bug corrigé le 09/08/2026 (round 154)";
+        }
+        $statsSrc154 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/stats.tpl');
+        if ($statsSrc154 === '' || (substr_count($statsSrc154, ' alt="" ') + substr_count($statsSrc154, "' alt=\"\" ")) < 4) {
+            $offenders[] = "stats.tpl : moins de 4 images produit/client ont un attribut alt — régression du bug corrigé le 09/08/2026 (round 154)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
