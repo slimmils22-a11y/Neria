@@ -5481,6 +5481,35 @@ class HealthCheckManager
             $offenders[] = "neria-admin.js : initWatchdogAnalyze() n'a plus de timeout (AbortController) sur son fetch() — régression du bug corrigé le 13/08/2026 (round 162)";
         }
 
+        // Round 163 (13/08/2026) : WebhookManager::processQueue() doit
+        // forcer status='failed' si une exception survient à la dernière
+        // tentative (sinon la ligne reste 'pending'/attempts=MAX_ATTEMPTS
+        // à vie, fuite permanente en base).
+        $whSrc163 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php');
+        if ($whSrc163 === ''
+            || strpos($whSrc163, '$attemptsAfterException') === false
+            || strpos($whSrc163, "if (\$attemptsAfterException >= self::MAX_ATTEMPTS) {") === false
+        ) {
+            $offenders[] = "WebhookManager::processQueue() ne force plus status='failed' sur exception à la dernière tentative — régression du bug corrigé le 13/08/2026 (round 163) : une ligne pourrait rester 'pending'/attempts=MAX_ATTEMPTS à vie, fuite permanente en base et événement webhook perdu";
+        }
+
+        // Round 163 (13/08/2026) : neria.php ne doit plus transmettre le
+        // mot de passe IMAP des bounces en clair au template BO.
+        if ($mainSrc160 === '' || strpos($mainSrc160, "'pass'     => '',") === false) {
+            $offenders[] = "neria.php : bounce_cfg.pass n'est plus toujours vide au rendu — régression du bug corrigé le 13/08/2026 (round 163) : le mot de passe IMAP redeviendrait lisible en clair dans le code source de la page BO";
+        }
+
+        // Round 163 (13/08/2026) : l'action auto_toggle doit gérer
+        // explicitement une clé invalide (message d'erreur), pas un faux
+        // message de succès basé sur une variable non initialisée. NB : on
+        // ne cherche PAS l'ancien motif buggé ($current ?? false ? ...) —
+        // il apparaît aussi dans le commentaire explicatif du correctif
+        // lui-même (même piège que font_cyrillic au round 161), donc on
+        // vérifie seulement la présence du nouveau comportement.
+        if ($mainSrc160 === '' || strpos($mainSrc160, "'msg.invalid_action'") === false) {
+            $offenders[] = "neria.php : l'action auto_toggle ne gère plus explicitement une clé invalide — régression du bug corrigé le 13/08/2026 (round 163) : une clé altérée côté client redonnerait un faux message de succès";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
