@@ -27,11 +27,16 @@ function run_test(): array
 
     $posMethod = strpos($src, 'function generateCssVariables(');
     neria_assert($posMethod !== false, 'generateCssVariables() introuvable');
-    $block = substr($src, $posMethod, 1600);
+    $block = substr($src, $posMethod, 2600);
 
+    // Round 159 : sanitizeColor() reçoit désormais un 2e argument explicite
+    // (le vrai défaut de marque via ConfigManager::DEFAULTS), plutôt que de
+    // retomber sur le défaut générique #000000 de sanitizeColor() — la
+    // signature exacte a changé, mais l'appel à sanitizeColor() sur chaque
+    // clé reste bien présent (c'est ce que ce test vérifie).
     foreach (['color_background', 'color_container', 'color_accent', 'color_text'] as $key) {
         neria_assert(
-            strpos($block, "\\NeriaTools::sanitizeColor((string) \$design['{$key}'])") !== false,
+            strpos($block, "\\NeriaTools::sanitizeColor((string) \$design['{$key}']") !== false,
             "generateCssVariables() n'applique plus sanitizeColor() sur '{$key}' — régression du bug corrigé le 08/08/2026 (round 129)"
         );
     }

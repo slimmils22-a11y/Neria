@@ -407,10 +407,22 @@ class FontManager
             // déjà validée à l'écriture par ConfigManager::saveDesignConfig(),
             // mais aucun filtre n'existait ici en lecture — incohérence avec
             // le traitement voisin dans ce même fichier.
-            \NeriaTools::sanitizeColor((string) $design['color_background']),
-            \NeriaTools::sanitizeColor((string) $design['color_container']),
-            \NeriaTools::sanitizeColor((string) $design['color_accent']),
-            \NeriaTools::sanitizeColor((string) $design['color_text']),
+            //
+            // Round 159 : le 2e argument (repli) était omis ici,
+            // contrairement à generateFontCss() qui passe explicitement le
+            // vrai défaut de marque (#b38b59) — sanitizeColor() retombe
+            // alors sur son défaut interne générique #000000. Si une
+            // couleur corrompue atteignait la config hors admin (import,
+            // script d'upgrade, accès DB direct — exactement le scénario
+            // que ce garde-fou vise), les 4 couleurs retombaient TOUTES sur
+            // le noir au lieu des vraies valeurs de marque
+            // (ConfigManager::DEFAULTS) : fond noir + texte noir rendait le
+            // contenu de l'email invisible, au lieu de conserver
+            // l'esthétique définie par les vrais défauts.
+            \NeriaTools::sanitizeColor((string) $design['color_background'], \ConfigManager::DEFAULTS[\ConfigManager::KEY_COLOR_BACKGROUND]),
+            \NeriaTools::sanitizeColor((string) $design['color_container'], \ConfigManager::DEFAULTS[\ConfigManager::KEY_COLOR_CONTAINER]),
+            \NeriaTools::sanitizeColor((string) $design['color_accent'], \ConfigManager::DEFAULTS[\ConfigManager::KEY_COLOR_ACCENT]),
+            \NeriaTools::sanitizeColor((string) $design['color_text'], \ConfigManager::DEFAULTS[\ConfigManager::KEY_COLOR_TEXT]),
             $design['container_width']
         );
     }

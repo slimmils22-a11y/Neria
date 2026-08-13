@@ -101,8 +101,18 @@ class CalendarManager
         // corrigé pour la queue d'envoi, la queue webhook, le cron
         // comportemental et le rapport mensuel — mais la fenêtre de course
         // la plus large des cinq, faute de throttle externe.
+        // Round 159 : verrou scopé par boutique ($this->idShop), pas
+        // global — runBackgroundJobs() instancie CalendarManager dans une
+        // boucle sur toutes les boutiques actives (même pattern que
+        // DomainReputationManager/WatchdogManager, déjà scopés). Un verrou
+        // global (timeout 0, non bloquant) faisait échouer silencieusement
+        // TOUT le traitement calendaire d'un visiteur B dès qu'un visiteur A
+        // détenait le verrou pour une AUTRE boutique de la même boucle,
+        // retardant à répétition l'envoi des campagnes calendaires sur des
+        // installs multi-boutiques à trafic soutenu, sans aucun log
+        // exploitable (comportement "normal" par design du verrou).
         $db = $this->db;
-        if ((int) $db->getValue("SELECT GET_LOCK('neria_calendar_check', 0)") !== 1) {
+        if ((int) $db->getValue("SELECT GET_LOCK('neria_calendar_check_" . $this->idShop . "', 0)") !== 1) {
             return;
         }
 
@@ -145,7 +155,7 @@ class CalendarManager
                 }
             }
         } finally {
-            $db->execute("SELECT RELEASE_LOCK('neria_calendar_check')");
+            $db->execute("SELECT RELEASE_LOCK('neria_calendar_check_" . $this->idShop . "')");
         }
     }
 
