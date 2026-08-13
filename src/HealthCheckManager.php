@@ -5337,6 +5337,68 @@ class HealthCheckManager
             }
         }
 
+        // Round 160 (09/08/2026) : PostmasterManager::fetchDomainStats() ne
+        // doit boucler que sur l'absence légitime de données, pas sur une
+        // erreur réelle (429/quota inclus).
+        $pmSrc160 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php');
+        if ($pmSrc160 === '') {
+            $offenders[] = 'PostmasterManager.php introuvable (garde-fou round 160 : fetchDomainStats break sur erreur réelle)';
+        } else {
+            $posFds160 = strpos($pmSrc160, 'private function fetchDomainStats(');
+            $fdsBody160 = $posFds160 !== false ? substr($pmSrc160, $posFds160, 1800) : '';
+            if ($posFds160 === false || strpos($fdsBody160, 'if ($stat === null) {') === false) {
+                $offenders[] = "PostmasterManager::fetchDomainStats() ne s'arrête plus immédiatement sur une erreur réelle — régression du bug corrigé le 09/08/2026 (round 160) : un 429/quota redéclencherait jusqu'à 6 appels immédiats supplémentaires, aggravant activement la pénalité";
+            }
+        }
+
+        // Round 160 (09/08/2026) : les 4 boutons BO "rafraîchissement forcé"
+        // doivent conserver leur débit minimal (neriaForceRefreshAllowed()).
+        $mainSrc160 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/' . $this->module->name . '.php');
+        if ($mainSrc160 === ''
+            || strpos($mainSrc160, 'private function neriaForceRefreshAllowed(') === false
+            || substr_count($mainSrc160, 'neriaForceRefreshAllowed(') < 5
+        ) {
+            $offenders[] = "neria.php : neriaForceRefreshAllowed() a disparu ou n'est plus appelée par les 4 boutons de rafraîchissement forcé — régression du bug corrigé le 09/08/2026 (round 160) : un double-clic redéclencherait de nouveau un appel réel sans aucun débit minimal";
+        }
+
+        // Round 160 (09/08/2026) : SignatureGenerator doit conserver l'ordre
+        // generate() puis delete() (pas l'inverse), et l'alerte Watchdog sur
+        // échec imagepng().
+        if ($mainSrc160 !== '' && strpos($mainSrc160, "\$sigGenerator->delete(\$idShop, '', \$path);") === false) {
+            $offenders[] = "neria.php : la signature n'est plus supprimée APRÈS generate() (avec le nouveau fichier exclu) — régression du bug corrigé le 09/08/2026 (round 160) : une régénération échouée effacerait de nouveau la signature fonctionnelle précédente";
+        }
+        $sgSrc160 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SignatureGenerator.php');
+        if ($sgSrc160 === '' || strpos($sgSrc160, 'watchdog.signature_save_failed') === false) {
+            $offenders[] = "SignatureGenerator::generate() n'alerte plus le Watchdog sur un échec imagepng() — régression du bug corrigé le 09/08/2026 (round 160)";
+        }
+
+        // Round 160 (09/08/2026) : LicenseManager doit conserver son
+        // throttle réseau indépendant, son verrou, sa distinction de
+        // révocation, et la purge de l'état résiduel quand CONFIG_KEY est vide.
+        $lmSrc160 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LicenseManager.php');
+        if ($lmSrc160 === ''
+            || strpos($lmSrc160, 'CONFIG_LAST_ATTEMPT') === false
+            || strpos($lmSrc160, "GET_LOCK('neria_license_validate'") === false
+            || strpos($lmSrc160, "array_key_exists('valid', \$response)") === false
+            || strpos($lmSrc160, 'if ((int) \Configuration::get(self::CONFIG_LAST_CHECK) > 0) {') === false
+        ) {
+            $offenders[] = "LicenseManager n'a plus l'un des 4 correctifs du round 160 (throttle réseau CONFIG_LAST_ATTEMPT, verrou GET_LOCK, distinction array_key_exists('valid',...), purge de CONFIG_LAST_CHECK résiduel) — régression du bug corrigé le 09/08/2026 (round 160)";
+        }
+
+        // Round 160 (09/08/2026) : CssInliner doit conserver son compteur
+        // d'échecs scopé par boutique et protégé par GET_LOCK.
+        $ciSrc160 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CssInliner.php');
+        if ($ciSrc160 === ''
+            || strpos($ciSrc160, "'NERIA_CSS_INLINE_FAILURES_' . \$idShop") === false
+            || strpos($ciSrc160, "GET_LOCK('neria_css_inline_failures_") === false
+        ) {
+            $offenders[] = "CssInliner::inline() n'a plus de compteur d'échecs scopé par boutique et protégé par GET_LOCK — régression du bug corrigé le 09/08/2026 (round 160)";
+        }
+        $hcmSelf160 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        if ($hcmSelf160 === '' || strpos($hcmSelf160, "'NERIA_CSS_INLINE_FAILURES_' . \$this->idShop") === false) {
+            $offenders[] = "HealthCheckManager::checkCssInlinerSilentFailures() ne lit/reset plus la clé scopée par idShop — régression du bug corrigé le 09/08/2026 (round 160)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
@@ -12863,10 +12925,15 @@ class HealthCheckManager
      */
     private function checkCssInlinerSilentFailures(): array
     {
-        $count = (int) \Configuration::get('NERIA_CSS_INLINE_FAILURES');
+        // Round 160 : clé scopée par boutique (idShop), cohérent avec
+        // l'écriture désormais scopée dans CssInliner::inline() —
+        // auparavant la clé globale non suffixée n'était plus jamais
+        // relue par cette méthode.
+        $key   = 'NERIA_CSS_INLINE_FAILURES_' . $this->idShop;
+        $count = (int) \Configuration::get($key);
 
         if ($count > 0) {
-            \Configuration::updateValue('NERIA_CSS_INLINE_FAILURES', 0);
+            \Configuration::updateValue($key, 0);
             return [
                 'status'     => self::STATUS_WARNING,
                 'detail'     => AdminTranslator::tVars('health.css_inliner_failures_warning', ['count' => $count]),
