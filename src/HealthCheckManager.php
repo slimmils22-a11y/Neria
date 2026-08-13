@@ -5545,6 +5545,44 @@ class HealthCheckManager
             $offenders[] = "track.php : la clé de throttling n'est plus scopée par IP+token — régression du bug corrigé le 13/08/2026 (round 164) : un NAT/proxy partagé referait sous-compter les stats de destinataires légitimes";
         }
 
+        // Round 165 (14/08/2026) : MonthlyReportManager doit filtrer o.id_shop
+        // dans l'attribution de CA, restaurer $this->idShop après sa boucle
+        // multi-boutique, et signaler un écart de plusieurs mois dans isDue().
+        $mrmSrc165 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php');
+        if ($mrmSrc165 === '' || strpos($mrmSrc165, 'AND o.id_shop = {$this->idShop}') === false) {
+            $offenders[] = "MonthlyReportManager::getRevenueByTemplate() ne filtre plus o.id_shop dans l'attribution de CA — régression du bug corrigé le 14/08/2026 (round 165) : le CA fuiterait de nouveau entre boutiques partageant leurs clients";
+        }
+        if ($mrmSrc165 === ''
+            || strpos($mrmSrc165, '$originalIdShop = $this->idShop;') === false
+            || strpos($mrmSrc165, '$this->idShop = $originalIdShop;') === false
+        ) {
+            $offenders[] = "MonthlyReportManager::checkAndSend() ne restaure plus \$this->idShop après sa boucle multi-boutique — régression du bug corrigé le 14/08/2026 (round 165)";
+        }
+        if ($mrmSrc165 === '' || strpos($mrmSrc165, 'watchdog.monthly_report_gap_detected') === false) {
+            $offenders[] = "MonthlyReportManager::isDue() ne journalise plus d'écart détecté — régression du bug corrigé le 14/08/2026 (round 165) : un rapport mensuel manqué redeviendrait indétectable";
+        }
+
+        // Round 165 (14/08/2026) : DomainReputationManager doit propager le
+        // budget DNS à checkSpf/checkDmarc/checkMx/checkBimi/resolveIp,
+        // attendre réellement le verrou en cold start, et distinguer
+        // ip_missing (0 pt) de skipped (IP privée, points pleins).
+        $drmSrc165 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php');
+        if ($drmSrc165 === ''
+            || strpos($drmSrc165, 'private function checkSpf(string $domain, ?float $deadline = null): array') === false
+            || strpos($drmSrc165, 'private function checkDmarc(string $domain, ?float $deadline = null): array') === false
+            || strpos($drmSrc165, 'private function checkMx(string $domain, ?float $deadline = null): array') === false
+            || strpos($drmSrc165, 'private function checkBimi(string $domain, array $dmarc, ?float $deadline = null): array') === false
+            || strpos($drmSrc165, 'private function resolveIp(string $domain, ?float $deadline = null): ?string') === false
+        ) {
+            $offenders[] = "DomainReputationManager : le budget DNS n'est plus propagé à checkSpf/checkDmarc/checkMx/checkBimi/resolveIp — régression du bug corrigé le 14/08/2026 (round 165) : le budget censé borner le blocage du visiteur front ne couvrirait de nouveau qu'une partie du chemin d'exécution";
+        }
+        if ($drmSrc165 === '' || strpos($drmSrc165, "GET_LOCK('neria_domain_reputation_\" . \$this->idShop . \"', 6)") === false) {
+            $offenders[] = "DomainReputationManager::runFullCheck() n'attend plus réellement le verrou en cold start (pas de cache) — régression du bug corrigé le 14/08/2026 (round 165) : le double-envoi d'alerte au tout premier check d'une boutique redeviendrait possible";
+        }
+        if ($drmSrc165 === '' || strpos($drmSrc165, "!empty(\$ptr['ip_missing'])") === false || strpos($drmSrc165, "!empty(\$bl['ip_missing'])") === false) {
+            $offenders[] = "DomainReputationManager::computeScore() ne distingue plus ip_missing de skipped — régression du bug corrigé le 14/08/2026 (round 165) : un domaine expéditeur cassé obtiendrait de nouveau un plancher de score de 30 pts au lieu de 0";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
