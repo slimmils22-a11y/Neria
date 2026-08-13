@@ -5510,6 +5510,41 @@ class HealthCheckManager
             $offenders[] = "neria.php : l'action auto_toggle ne gère plus explicitement une clé invalide — régression du bug corrigé le 13/08/2026 (round 163) : une clé altérée côté client redonnerait un faux message de succès";
         }
 
+        // Round 164 (13/08/2026) : design.tpl doit échapper ses champs de
+        // couleur et calculer logo_url à partir de logo_path.
+        $designTpl164 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/design.tpl');
+        if ($designTpl164 === '' || preg_match_all("/\\|default:'#[0-9a-fA-F]+'\\|escape:'html'/", $designTpl164) < 14) {
+            $offenders[] = "design.tpl : les champs de couleur ont perdu leur échappement — régression du bug corrigé le 13/08/2026 (round 164)";
+        }
+        if ($mainSrc160 === '' || strpos($mainSrc160, "\$designConfig['logo_url'] = !empty(\$designConfig['logo_path'])") === false) {
+            $offenders[] = "neria.php : logo_url n'est plus calculée à partir de logo_path — régression du bug corrigé le 13/08/2026 (round 164) : le panneau 'Logo actuel' redeviendrait invisible même après un upload réussi";
+        }
+
+        // Round 164 (13/08/2026) : navigation.tpl doit échapper la date
+        // d'expiration de licence (donnée d'un service tiers distant).
+        $navTpl164 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/navigation.tpl');
+        if ($navTpl164 === '' || strpos($navTpl164, "{\$ls.expires_at|escape:'html'}") === false) {
+            $offenders[] = "navigation.tpl : \$ls.expires_at n'est plus échappée — régression du bug corrigé le 13/08/2026 (round 164)";
+        }
+
+        // Round 164 (13/08/2026) : QueueManager doit filtrer les messages
+        // d'erreur avant stockage Watchdog/base (identifiants/tokens).
+        $qmSrc164 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        if ($qmSrc164 === ''
+            || strpos($qmSrc164, 'private static function sanitizeErrorMessage(string $message): string') === false
+            || strpos($qmSrc164, 'self::sanitizeErrorMessage($e->getMessage())') === false
+            || strpos($qmSrc164, 'self::sanitizeErrorMessage($error)') === false
+        ) {
+            $offenders[] = "QueueManager n'assainit plus les messages d'erreur avant stockage — régression du bug corrigé le 13/08/2026 (round 164) : des identifiants/tokens d'un driver SMTP pourraient de nouveau fuiter en clair dans les logs";
+        }
+
+        // Round 164 (13/08/2026) : track.php doit scoper le throttling
+        // anti-abus par IP+token, pas IP seule.
+        $trackSrc164 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/track.php');
+        if ($trackSrc164 === '' || strpos($trackSrc164, "'neria_track_rl_' . md5(\$ip . '|' . \$token)") === false) {
+            $offenders[] = "track.php : la clé de throttling n'est plus scopée par IP+token — régression du bug corrigé le 13/08/2026 (round 164) : un NAT/proxy partagé referait sous-compter les stats de destinataires légitimes";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
