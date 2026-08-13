@@ -205,14 +205,40 @@ class DomainReputationManager
             // Verrou déjà tenu par un autre process en train de rafraîchir
             // le même rapport : sert le cache s'il en existe un (même
             // périmé), plutôt que de dupliquer la vérification DNS/RBL
-            // coûteuse. Si aucun cache n'existe encore (tout premier check
-            // à froid), s'exécute quand même sans verrou — un tableau vide
-            // serait pire qu'une vérification non dédupliquée une seule
-            // fois au démarrage.
+            // coûteuse.
             $cached = $this->getCachedReport();
             if ($cached !== null) {
                 return $cached;
             }
+
+            // Round 165 : le tout premier check à froid d'une boutique
+            // (aucun cache) exécutait auparavant runFullCheckLocked() SANS
+            // verrou dans ce cas précis — précisément le scénario que ce
+            // verrou (round 154) visait à corriger : deux déclenchements
+            // concurrents (deux visiteurs simultanés, ou fallback front +
+            // cron serveur) au tout premier lancement d'une boutique
+            // pouvaient chacun dupliquer la résolution DNS/RBL complète et
+            // chacun déclencher sa propre alerte Watchdog pour le même
+            // incident — le double-envoi que le verrou devait éliminer
+            // réapparaissait donc systématiquement au cold start. On
+            // attend maintenant réellement le verrou (jusqu'à 6s, sous le
+            // budget DNS de 8s) : l'autre process a normalement fini et
+            // écrit le cache pendant l'attente.
+            if ((int) \Db::getInstance()->getValue("SELECT GET_LOCK('neria_domain_reputation_" . $this->idShop . "', 6)") === 1) {
+                try {
+                    $cached = $this->getCachedReport();
+                    if ($cached !== null) {
+                        return $cached;
+                    }
+                    return $this->runFullCheckLocked();
+                } finally {
+                    \Db::getInstance()->execute("SELECT RELEASE_LOCK('neria_domain_reputation_" . $this->idShop . "')");
+                }
+            }
+
+            // Verrou toujours indisponible après l'attente (cas extrême) :
+            // un tableau vide serait pire qu'une vérification non
+            // dédupliquée une dernière fois.
             return $this->runFullCheckLocked();
         }
 
@@ -231,17 +257,31 @@ class DomainReputationManager
         $deadline = microtime(true) + self::DNS_TIME_BUDGET_SECS;
 
         $domain = $this->getSenderDomain();
-        $ip     = $domain ? $this->resolveIp($domain) : null;
+        $ip     = $domain ? $this->resolveIp($domain, $deadline) : null;
 
-        $spf    = $this->checkSpf($domain);
+        $spf    = $this->checkSpf($domain, $deadline);
         $dkim   = $this->checkDkim($domain, $deadline);
-        $dmarc  = $this->checkDmarc($domain);
-        $mx     = $this->checkMx($domain);
-        $ptr    = ($ip && !$this->isPrivateIp($ip)) ? $this->checkPtr($ip, $deadline) : ['found' => false, 'hostname' => null, 'skipped' => true];
-        $bimi   = $this->checkBimi($domain, $dmarc);
+        $dmarc  = $this->checkDmarc($domain, $deadline);
+        $mx     = $this->checkMx($domain, $deadline);
+
+        // Round 165 : $ip === null (domaine expéditeur introuvable/non
+        // résolvable) et $ip privée légitime (environnement de dev/test)
+        // produisaient jusqu'ici le MÊME tableau 'skipped' => true, que
+        // computeScore() traite comme "IP privée, non pénalisée" et crédite
+        // des points pleins (5/5 PTR + 25/25 RBL = 30 pts). Un domaine
+        // expéditeur cassé/mal configuré (aucune IP résolvable) obtenait
+        // ainsi un plancher de score de 30 pts au lieu de 0 — pouvant faire
+        // basculer le grade de F à D et éviter l'alerte watchdog critique
+        // (seuil grade==='F'). 'ip_missing' distingue désormais l'échec réel
+        // du skip légitime, sans changer le comportement pour une IP privée.
+        $ipMissing = ($ip === null);
+        $ptr    = ($ip && !$this->isPrivateIp($ip))
+            ? $this->checkPtr($ip, $deadline)
+            : ['found' => false, 'hostname' => null, 'skipped' => !$ipMissing, 'ip_missing' => $ipMissing];
+        $bimi   = $this->checkBimi($domain, $dmarc, $deadline);
         $bl     = ($ip && !$this->isPrivateIp($ip))
             ? $this->checkBlacklists($ip, $deadline)
-            : ['checked' => 0, 'hits' => [], 'clean' => 0, 'skipped' => true];
+            : ['checked' => 0, 'hits' => [], 'clean' => 0, 'skipped' => !$ipMissing, 'ip_missing' => $ipMissing];
 
         if (!empty($bl['timed_out'])) {
             $this->watchdog()->warning(
@@ -298,9 +338,20 @@ class DomainReputationManager
     // VÉRIFICATIONS DNS
     // ============================================================
 
-    private function checkSpf(string $domain): array
+    private function checkSpf(string $domain, ?float $deadline = null): array
     {
         if (!$domain) {
+            return ['found' => false, 'record' => null, 'policy' => null];
+        }
+
+        // Round 165 : DNS_TIME_BUDGET_SECS n'était appliqué qu'à
+        // checkDkim()/checkPtr()/checkBlacklists() — checkSpf()/checkDmarc()/
+        // checkMx()/checkBimi()/resolveIp() s'exécutaient sans jamais
+        // consulter le budget, y compris ceux appelés APRÈS checkDkim()
+        // (déjà potentiellement épuisé par ses 17 sélecteurs). Le budget
+        // censé borner le blocage du visiteur front ne couvrait donc en
+        // réalité qu'une partie du chemin d'exécution.
+        if ($deadline !== null && microtime(true) >= $deadline) {
             return ['found' => false, 'record' => null, 'policy' => null];
         }
 
@@ -361,9 +412,14 @@ class DomainReputationManager
         return ['found' => false, 'selector' => null, 'record' => null, 'timed_out' => false];
     }
 
-    private function checkDmarc(string $domain): array
+    private function checkDmarc(string $domain, ?float $deadline = null): array
     {
         if (!$domain) {
+            return ['found' => false, 'record' => null, 'policy' => null];
+        }
+
+        // Round 165 : voir commentaire de checkSpf() — budget DNS honoré.
+        if ($deadline !== null && microtime(true) >= $deadline) {
             return ['found' => false, 'record' => null, 'policy' => null];
         }
 
@@ -388,9 +444,14 @@ class DomainReputationManager
         return ['found' => false, 'record' => null, 'policy' => null];
     }
 
-    private function checkMx(string $domain): array
+    private function checkMx(string $domain, ?float $deadline = null): array
     {
         if (!$domain) {
+            return ['found' => false, 'count' => 0, 'records' => []];
+        }
+
+        // Round 165 : voir commentaire de checkSpf() — budget DNS honoré.
+        if ($deadline !== null && microtime(true) >= $deadline) {
             return ['found' => false, 'count' => 0, 'records' => []];
         }
 
@@ -436,7 +497,7 @@ class DomainReputationManager
         ];
     }
 
-    private function checkBimi(string $domain, array $dmarc): array
+    private function checkBimi(string $domain, array $dmarc, ?float $deadline = null): array
     {
         if (!$domain) {
             return ['found' => false, 'record' => null, 'eligible' => false];
@@ -445,6 +506,11 @@ class DomainReputationManager
         // BIMI nécessite DMARC p=quarantine ou p=reject
         $dmarcPolicy   = $dmarc['policy'] ?? 'none';
         $dmarcEligible = in_array($dmarcPolicy, ['quarantine', 'reject'], true);
+
+        // Round 165 : voir commentaire de checkSpf() — budget DNS honoré.
+        if ($deadline !== null && microtime(true) >= $deadline) {
+            return ['found' => false, 'record' => null, 'eligible' => $dmarcEligible];
+        }
 
         $records = @dns_get_record('default._bimi.' . $domain, DNS_TXT) ?: [];
         foreach ($records as $r) {
@@ -556,7 +622,11 @@ class DomainReputationManager
         // vérifient réellement les gros fournisseurs de messagerie) : un PTR
         // présent mais mal configuré (FCrDNS invalide) ne doit pas obtenir les
         // points pleins comme s'il était parfaitement valide.
-        if (!empty($ptr['skipped']) || !empty($ptr['valid'])) {
+        if (!empty($ptr['ip_missing'])) {
+            // Round 165 : domaine sans IP résolvable — échec réel, pas un
+            // skip légitime (IP privée) : aucun point, contrairement à
+            // 'skipped' ci-dessous qui reste réservé à l'IP privée.
+        } elseif (!empty($ptr['skipped']) || !empty($ptr['valid'])) {
             $score += 5;
         } elseif (!empty($ptr['found'])) {
             $score += 2;
@@ -571,7 +641,11 @@ class DomainReputationManager
         // Blacklists — 25 pts max
         $hits    = count($bl['hits'] ?? []);
         $blScore = max(0, 25 - ($hits * 5));
-        if (!empty($bl['skipped'])) {
+        if (!empty($bl['ip_missing'])) {
+            // Round 165 : domaine sans IP résolvable — échec réel, aucun
+            // point (voir commentaire PTR ci-dessus).
+            $blScore = 0;
+        } elseif (!empty($bl['skipped'])) {
             $blScore = 25; // IP privée — pas pénalisée
         } elseif (!empty($bl['timed_out'])) {
             // Vérification incomplète (budget DNS épuisé avant la fin de la
@@ -680,8 +754,13 @@ class DomainReputationManager
         return '';
     }
 
-    private function resolveIp(string $domain): ?string
+    private function resolveIp(string $domain, ?float $deadline = null): ?string
     {
+        // Round 165 : voir commentaire de checkSpf() — budget DNS honoré.
+        if ($deadline !== null && microtime(true) >= $deadline) {
+            return null;
+        }
+
         $r = @dns_get_record($domain, DNS_A);
         return (!empty($r[0]['ip'])) ? $r[0]['ip'] : null;
     }

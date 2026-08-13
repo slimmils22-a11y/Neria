@@ -51449,6 +51449,27 @@
         "nl": "Kan de map mails/{lang}/ niet aanmaken — controleer de schrijfrechten van modules/neria/mails/.",
         "gb": "Unable to create directory mails/{lang}/ — check write permissions on modules/neria/mails/."
     },
+    "watchdog.monthly_report_gap_detected": {
+        "fr": "Rapport mensuel : un écart de {months} mois a été détecté entre le dernier envoi ({last}) et le mois attendu ({target}) — au moins un rapport mensuel n'a probablement pas été envoyé (boutique inactive, maintenance).",
+        "en": "Monthly report: a gap of {months} month(s) was detected between the last send ({last}) and the expected month ({target}) — at least one monthly report was likely not sent (shop inactive, maintenance).",
+        "de": "Monatsbericht: Zwischen dem letzten Versand ({last}) und dem erwarteten Monat ({target}) wurde eine Lücke von {months} Monat(en) festgestellt — mindestens ein Monatsbericht wurde wahrscheinlich nicht versendet (Shop inaktiv, Wartung).",
+        "it": "Rapporto mensile: rilevato uno scarto di {months} mese/i tra l'ultimo invio ({last}) e il mese previsto ({target}) — probabilmente almeno un rapporto mensile non è stato inviato (negozio inattivo, manutenzione).",
+        "es": "Informe mensual: se detectó un desfase de {months} mes(es) entre el último envío ({last}) y el mes esperado ({target}) — probablemente al menos un informe mensual no se envió (tienda inactiva, mantenimiento).",
+        "pt": "Relatório mensal: foi detetado um intervalo de {months} mês(es) entre o último envio ({last}) e o mês esperado ({target}) — pelo menos um relatório mensal provavelmente não foi enviado (loja inativa, manutenção).",
+        "br": "Relatório mensal: foi detectado um intervalo de {months} mês(es) entre o último envio ({last}) e o mês esperado ({target}) — pelo menos um relatório mensal provavelmente não foi enviado (loja inativa, manutenção).",
+        "ar": "التقرير الشهري: تم اكتشاف فجوة قدرها {months} شهر (أشهر) بين آخر إرسال ({last}) والشهر المتوقع ({target}) — من المحتمل أن تقريرًا شهريًا واحدًا على الأقل لم يُرسل (متجر غير نشط، صيانة).",
+        "ja": "月次レポート：最終送信（{last}）と予定月（{target}）の間に{months}か月の空白が検出されました — 少なくとも1件の月次レポートが送信されていない可能性があります（ショップ非稼働、メンテナンスなど）。",
+        "ko": "월간 보고서: 마지막 발송({last})과 예상 월({target}) 사이에 {months}개월의 공백이 감지되었습니다 — 최소 하나의 월간 보고서가 발송되지 않았을 가능성이 있습니다 (매장 비활성, 유지보수).",
+        "zh": "月度报告：检测到最后发送（{last}）与预期月份（{target}）之间存在 {months} 个月的差距 — 很可能至少有一份月度报告未发送（店铺不活跃、维护中）。",
+        "tw": "月度報告：偵測到最後發送（{last}）與預期月份（{target}）之間存在 {months} 個月的差距 — 很可能至少有一份月度報告未發送（店鋪不活躍、維護中）。",
+        "ru": "Ежемесячный отчёт: обнаружен разрыв в {months} мес. между последней отправкой ({last}) и ожидаемым месяцем ({target}) — вероятно, как минимум один ежемесячный отчёт не был отправлен (магазин неактивен, техобслуживание).",
+        "tr": "Aylık rapor: son gönderim ({last}) ile beklenen ay ({target}) arasında {months} aylık bir boşluk tespit edildi — en az bir aylık rapor muhtemelen gönderilmedi (mağaza etkin değil, bakım).",
+        "sv": "Månadsrapport: ett glapp på {months} månad(er) upptäcktes mellan senaste sändningen ({last}) och den förväntade månaden ({target}) — minst en månadsrapport skickades sannolikt inte (butik inaktiv, underhåll).",
+        "no": "Månedsrapport: et gap på {months} måned(er) ble oppdaget mellom siste sending ({last}) og forventet måned ({target}) — minst én månedsrapport ble sannsynligvis ikke sendt (butikk inaktiv, vedlikehold).",
+        "da": "Månedlig rapport: der blev fundet et hul på {months} måned(er) mellem seneste afsendelse ({last}) og den forventede måned ({target}) — mindst én månedlig rapport blev sandsynligvis ikke sendt (butik inaktiv, vedligeholdelse).",
+        "nl": "Maandrapport: er is een hiaat van {months} maand(en) gedetecteerd tussen de laatste verzending ({last}) en de verwachte maand ({target}) — er is waarschijnlijk minstens één maandrapport niet verzonden (winkel inactief, onderhoud).",
+        "gb": "Monthly report: a gap of {months} month(s) was detected between the last send ({last}) and the expected month ({target}) — at least one monthly report was likely not sent (shop inactive, maintenance)."
+    },
     "watchdog.monthly_report_send_failed": {
         "fr": "Rapport mensuel : échec envoi — {error}",
         "en": "Monthly report: send failed — {error}",

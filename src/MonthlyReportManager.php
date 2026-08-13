@@ -87,6 +87,13 @@ class MonthlyReportManager
             // donc ici sur chaque boutique active, comme BehavioralCronManager
             // le fait déjà pour ses tâches comportementales.
             $originalShop = \Context::getContext()->shop;
+            // Round 165 : $this->idShop n'était jamais restauré après la
+            // boucle (seul Context::getContext()->shop l'était). Si la même
+            // instance de MonthlyReportManager est réutilisée après
+            // checkAndSend() dans la même requête, toute méthode privée
+            // dépendant de $this->idShop opérait silencieusement sur la
+            // DERNIÈRE boutique itérée plutôt que la boutique voulue.
+            $originalIdShop = $this->idShop;
             $shops = \Shop::getShops(true, null, true) ?: [(int) $originalShop->id];
 
             foreach ($shops as $idShop) {
@@ -120,6 +127,7 @@ class MonthlyReportManager
             }
 
             \Context::getContext()->shop = $originalShop;
+            $this->idShop = $originalIdShop;
         } finally {
             $db->execute("SELECT RELEASE_LOCK('neria_monthly_report_check')");
         }
@@ -492,6 +500,13 @@ class MonthlyReportManager
         }
 
         // Revenus attribués : commandes passées dans les 7 jours après un clic —
+        // Round 165 : la jointure vers `orders` ne filtrait pas o.id_shop
+        // (seul s.id_shop l'était côté stats). En multi-boutique avec
+        // comptes clients partagés, une commande passée sur une AUTRE
+        // boutique par le même client (id_customer partagé) après un clic
+        // enregistré ici pouvait être comptée comme "revenu attribué" de
+        // CETTE boutique — sur-estimation du CA affiché au marchand, sans
+        // rapport avec un email réellement envoyé par cette boutique.
         // exclut les commandes déjà comptées en "direct" ci-dessus (lien
         // transactionnel explicite via id_order), sinon un client qui clique
         // sur "suivre ma commande" dans l'email de confirmation lui-même fait
@@ -520,6 +535,7 @@ class MonthlyReportManager
                 JOIN `{$ord}` o
                   ON o.id_customer = s.id_customer
                  AND o.id_customer > 0
+                 AND o.id_shop = {$this->idShop}
                  AND o.valid = 1
                  AND o.date_add >= s.date_add
                  AND o.date_add <= DATE_ADD(s.date_add, INTERVAL 7 DAY)
@@ -1107,6 +1123,40 @@ class MonthlyReportManager
 
         if ($last === $target) {
             return false;
+        }
+
+        // Round 165 : isDue() ne compare qu'au mois précédent immédiat et
+        // n'autorise l'envoi que du 1er au 7 du mois courant. Si aucun hook
+        // ne se déclenche pour cette boutique pendant TOUTE cette fenêtre
+        // de 7 jours (boutique fermée temporairement, site en maintenance,
+        // trafic front nul), le rapport du mois manqué n'est jamais
+        // rattrapé : au mois suivant, $target a déjà glissé et l'écart se
+        // referme silencieusement, sans trace. Un vrai rattrapage rétroactif
+        // serait risqué (pourrait renvoyer plusieurs rapports d'un coup à
+        // la première visite) — on se contente ici de rendre l'incident
+        // visible plutôt que silencieux.
+        if ($last !== '' && $last !== '0') {
+            try {
+                $lastDate   = \DateTime::createFromFormat('Y-m', $last);
+                $targetDate = \DateTime::createFromFormat('Y-m', $target);
+                if ($lastDate !== false && $targetDate !== false) {
+                    $monthsGap = ((int) $targetDate->format('Y') - (int) $lastDate->format('Y')) * 12
+                        + ((int) $targetDate->format('n') - (int) $lastDate->format('n'));
+                    if ($monthsGap > 1 && class_exists('WatchdogManager')) {
+                        (new \WatchdogManager($this->module))->warning(
+                            \WatchdogManager::i18nMsg('watchdog.monthly_report_gap_detected', [
+                                'last'   => $last,
+                                'target' => $target,
+                                'months' => $monthsGap,
+                            ]),
+                            '',
+                            'MonthlyReportManager'
+                        );
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Best-effort — ne doit jamais empêcher isDue() de répondre.
+            }
         }
 
         // Fenêtre d'envoi : 1er au 7 du mois courant (rattrapage inclus)
