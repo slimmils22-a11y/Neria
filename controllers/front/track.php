@@ -47,8 +47,20 @@ class NeriaTrackModuleFrontController extends ModuleFrontController
         // n'est pas disponible (best-effort, jamais bloquant).
         $trackingWriteAllowed = true;
         if (function_exists('apcu_enabled') && apcu_enabled()) {
+            // Round 164 : la clé de throttling était scopée par IP SEULE,
+            // tous tokens/destinataires confondus. Derrière un NAT/proxy
+            // partagé (bureau, opérateur mobile), un seul destinataire très
+            // actif épuisait le quota de 30 écritures/10s pour TOUS les
+            // autres visiteurs légitimes de la même IP — pixels/clics
+            // toujours servis (pas de rupture visible), mais leur
+            // enregistrement en stats silencieusement sauté pour des
+            // destinataires n'ayant rien à voir avec l'abus. Le token (`t`)
+            // identifie l'email réellement ouvert/cliqué — combiner IP+token
+            // isole le throttling par destinataire réel sans perdre la
+            // protection anti-abus (un bot variant le token resterait de
+            // toute façon bloqué par la vérification de signature ci-dessous).
             $ip  = (string) (\Tools::getRemoteAddr() ?: '0.0.0.0');
-            $key = 'neria_track_rl_' . md5($ip);
+            $key = 'neria_track_rl_' . md5($ip . '|' . $token);
             $hits = (int) apcu_fetch($key, $ok);
             if (!$ok) {
                 apcu_store($key, 1, 10);

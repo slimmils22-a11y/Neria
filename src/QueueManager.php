@@ -506,12 +506,32 @@ class QueueManager
         } catch (\Throwable $e) {
             $this->markFailedOrRetry($id, (int) $row['attempts'] + 1, $e->getMessage());
             $this->watchdog()->error(
-                \WatchdogManager::i18nMsg('watchdog.queue_send_error', ['email' => $row['recipient_email'], 'id' => $id, 'error' => $e->getMessage()]),
+                \WatchdogManager::i18nMsg('watchdog.queue_send_error', ['email' => $row['recipient_email'], 'id' => $id, 'error' => self::sanitizeErrorMessage($e->getMessage())]),
                 $row['template'] ?? '',
                 'QueueManager'
             );
             return false;
         }
+    }
+
+    /**
+     * Round 164 : le message d'exception d'un driver SMTP peut inclure des
+     * identifiants ou des fragments d'authentification en clair (ex:
+     * "Authentication failed for user X / password Y", en-têtes
+     * Authorization). Ces messages étaient jusqu'ici stockés tels quels
+     * dans ps_neria_log (consultable en BO) — retire les motifs
+     * identifiants/mots de passe/jetons avant stockage et plafonne la
+     * longueur, plutôt qu'un simple substr() qui ne filtre aucun contenu.
+     */
+    private static function sanitizeErrorMessage(string $message): string
+    {
+        $patterns = [
+            '/\b(password|passwd|pwd|pass|secret|token|apikey|api_key)\s*[:=]\s*\S+/i',
+            '/\bAuthorization:\s*.+/i',
+        ];
+        $message = preg_replace($patterns, '[redacted]', $message) ?? $message;
+
+        return mb_substr($message, 0, 500);
     }
 
     private function markFailedOrRetry(int $id, int $attempts, string $error): void
@@ -537,7 +557,7 @@ class QueueManager
         $this->db->execute(
             'UPDATE `' . $this->prefix . 'neria_queue`
              SET status = \'' . $status . '\',
-                 error  = \'' . pSQL(substr($error, 0, 500)) . '\'' . $sendAtSql . '
+                 error  = \'' . pSQL(self::sanitizeErrorMessage($error)) . '\'' . $sendAtSql . '
              WHERE id_neria_queue = ' . $id
         );
     }

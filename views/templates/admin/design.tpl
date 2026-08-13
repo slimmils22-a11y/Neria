@@ -77,9 +77,9 @@
               <div class="neria-color-input-wrap">
                 <input type="color" id="color_background" name="color_background"
                        class="neria-color-picker" data-sync="color_background"
-                       value="{$design.color_background|default:'#f4f1eb'}">
+                       value="{$design.color_background|default:'#f4f1eb'|escape:'html'}">
                 <input type="text" class="neria-input neria-input--hex"
-                       value="{$design.color_background|default:'#f4f1eb'}"
+                       value="{$design.color_background|default:'#f4f1eb'|escape:'html'}"
                        data-sync="color_background">
               </div>
             </div>
@@ -91,9 +91,9 @@
               <div class="neria-color-input-wrap">
                 <input type="color" id="color_container" name="color_container"
                        class="neria-color-picker" data-sync="color_container"
-                       value="{$design.color_container|default:'#ffffff'}">
+                       value="{$design.color_container|default:'#ffffff'|escape:'html'}">
                 <input type="text" class="neria-input neria-input--hex"
-                       value="{$design.color_container|default:'#ffffff'}"
+                       value="{$design.color_container|default:'#ffffff'|escape:'html'}"
                        data-sync="color_container">
               </div>
             </div>
@@ -106,9 +106,9 @@
               <div class="neria-color-input-wrap">
                 <input type="color" id="color_accent" name="color_accent"
                        class="neria-color-picker" data-sync="color_accent"
-                       value="{$design.color_accent|default:'#b38b59'}">
+                       value="{$design.color_accent|default:'#b38b59'|escape:'html'}">
                 <input type="text" class="neria-input neria-input--hex"
-                       value="{$design.color_accent|default:'#b38b59'}"
+                       value="{$design.color_accent|default:'#b38b59'|escape:'html'}"
                        data-sync="color_accent">
               </div>
             </div>
@@ -120,9 +120,9 @@
               <div class="neria-color-input-wrap">
                 <input type="color" id="color_text" name="color_text"
                        class="neria-color-picker" data-sync="color_text"
-                       value="{$design.color_text|default:'#2c2c2c'}">
+                       value="{$design.color_text|default:'#2c2c2c'|escape:'html'}">
                 <input type="text" class="neria-input neria-input--hex"
-                       value="{$design.color_text|default:'#2c2c2c'}"
+                       value="{$design.color_text|default:'#2c2c2c'|escape:'html'}"
                        data-sync="color_text">
               </div>
             </div>
@@ -220,7 +220,7 @@
 
           {if isset($design.logo_url) && $design.logo_url}
             <div class="neria-logo-current">
-              <img src="{$design.logo_url}" alt="Logo"
+              <img src="{$design.logo_url|escape:'html'}" alt="Logo"
                    style="max-width:160px; max-height:80px;">
               <span class="neria-logo-current__label">
                 {neria_admin key='design.logo_current'}
@@ -335,9 +335,9 @@
               <div class="neria-color-input-wrap">
                 <input type="color" id="color_header_bg" name="color_header_bg"
                        class="neria-color-picker" data-sync="color_header_bg"
-                       value="{$design.color_header_bg|default:'#ffffff'}">
+                       value="{$design.color_header_bg|default:'#ffffff'|escape:'html'}">
                 <input type="text" class="neria-input neria-input--hex"
-                       value="{$design.color_header_bg|default:'#ffffff'}"
+                       value="{$design.color_header_bg|default:'#ffffff'|escape:'html'}"
                        data-sync="color_header_bg">
               </div>
             </div>
@@ -346,9 +346,9 @@
               <div class="neria-color-input-wrap">
                 <input type="color" id="color_footer_bg" name="color_footer_bg"
                        class="neria-color-picker" data-sync="color_footer_bg"
-                       value="{$design.color_footer_bg|default:'#ffffff'}">
+                       value="{$design.color_footer_bg|default:'#ffffff'|escape:'html'}">
                 <input type="text" class="neria-input neria-input--hex"
-                       value="{$design.color_footer_bg|default:'#ffffff'}"
+                       value="{$design.color_footer_bg|default:'#ffffff'|escape:'html'}"
                        data-sync="color_footer_bg">
               </div>
             </div>
@@ -357,9 +357,9 @@
               <div class="neria-color-input-wrap">
                 <input type="color" id="color_footer_text" name="color_footer_text"
                        class="neria-color-picker" data-sync="color_footer_text"
-                       value="{$design.color_footer_text|default:'#6b6459'}">
+                       value="{$design.color_footer_text|default:'#6b6459'|escape:'html'}">
                 <input type="text" class="neria-input neria-input--hex"
-                       value="{$design.color_footer_text|default:'#6b6459'}"
+                       value="{$design.color_footer_text|default:'#6b6459'|escape:'html'}"
                        data-sync="color_footer_text">
               </div>
             </div>

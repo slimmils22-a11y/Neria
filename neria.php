@@ -5709,6 +5709,21 @@ class Neria extends Module
         $fonts     = new FontManager($this);
         $signature = new SignatureGenerator($this);
 
+        // Round 164 : calculé une seule fois — design.tpl teste 'logo_url'
+        // pour afficher le panneau "Logo actuel", mais getDesignConfig() ne
+        // renvoie que 'logo_path' (chemin relatif brut, pas une URL
+        // publique) — le panneau ne s'affichait donc jamais, même après un
+        // upload de logo réussi. Résolu avec la même logique que
+        // EmailRenderer::resolveLogoUrl() (getModuleUrl() du chemin
+        // relatif). Pas de fallback logo PS ici : un fallback afficherait
+        // le logo PS générique comme si c'était "le logo Neria actuel",
+        // trompeur — le panneau reste simplement masqué tant qu'aucun logo
+        // n'a été uploadé, cohérent avec le {if} existant du template.
+        $designConfig = $config->getDesignConfig();
+        $designConfig['logo_url'] = !empty($designConfig['logo_path'])
+            ? $this->getModuleUrl($designConfig['logo_path'])
+            : '';
+
         // ── Variables communes à tous les onglets ─────────────────
         // neria_msg_action : action POST qui vient d'être traitée. Écrite sur la
         // bannière de message (data-neria-action) pour que le JS la repositionne
@@ -5765,7 +5780,7 @@ class Neria extends Module
             'deepl_key'        => CryptoManager::decrypt((string) $config->get(ConfigManager::KEY_DEEPL_KEY, '')),
 
             // Configuration design (couleurs, logo, typo…)
-            'design'           => $config->getDesignConfig(),
+            'design'           => $designConfig,
 
             // Styles rapides ("One-Click Apply") — onglet Design
             'design_presets'      => ConfigManager::DESIGN_PRESETS,

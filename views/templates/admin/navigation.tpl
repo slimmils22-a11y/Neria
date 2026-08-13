@@ -140,7 +140,7 @@
     {elseif $ls.expires_soon}
       <div class="neria-alert neria-alert--warning">
         <span class="neria-alert__icon">⏳</span>
-        {neria_admin key='license.banner_expires_soon'} <strong>{$ls.expires_at}</strong>.
+        {neria_admin key='license.banner_expires_soon'} <strong>{$ls.expires_at|escape:'html'}</strong>.
         {$smarty.capture.neria_license_key_form}
       </div>
     {/if}
