@@ -5272,6 +5272,48 @@ class HealthCheckManager
             $offenders[] = "SearchConsoleManager::fetchAndCache() n'efface plus CONFIG_LAST_ERROR une 2e fois après l'écriture du cache final — régression du bug corrigé le 09/08/2026 (round 157)";
         }
 
+        // Round 158 (09/08/2026) : QueueManager::processSingle() doit
+        // conserver son repli sur row['ref_id'] pour first_anniversary
+        // quand le recalcul MIN(id_order) ne trouve plus de commande valide.
+        $qmSrc158 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        if ($qmSrc158 === '') {
+            $offenders[] = 'QueueManager.php introuvable (garde-fou round 158 : repli ref_id first_anniversary)';
+        } else {
+            $posRa158 = strpos($qmSrc158, "\$refId = (int) \$this->db->getValue(");
+            $raBody158 = $posRa158 !== false ? substr($qmSrc158, $posRa158, 1800) : '';
+            if ($posRa158 === false || strpos($raBody158, 'if ($refId <= 0) {') === false || strpos($raBody158, "\$refId = (int) \$row['ref_id'];") === false) {
+                $offenders[] = "QueueManager::processSingle() n'a plus de repli sur row['ref_id'] pour first_anniversary — régression du bug corrigé le 09/08/2026 (round 158) : la dédup neria_behavioral_sent redeviendrait silencieusement sautée si la commande la plus ancienne du client bascule à valid=0 entre l'enqueue et l'envoi différé";
+            }
+        }
+
+        // Round 158 (09/08/2026) : BehavioralCronManager::sendGhostCarts()
+        // doit conserver son try/catch englobant tout le traitement par
+        // ligne (pas seulement le bloc Product/Link).
+        $bcmSrc158 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc158 === '') {
+            $offenders[] = 'BehavioralCronManager.php introuvable (garde-fou round 158 : sendGhostCarts try/catch englobant)';
+        } else {
+            $posGc158 = strpos($bcmSrc158, 'private function sendGhostCarts(');
+            $gcBody158 = $posGc158 !== false ? substr($bcmSrc158, $posGc158, 6500) : '';
+            if ($posGc158 === false || strpos($gcBody158, 'catch (\Throwable $e) {') === false || substr_count($gcBody158, "'ghost_cart'") < 2) {
+                $offenders[] = "BehavioralCronManager::sendGhostCarts() n'englobe plus tout le traitement par ligne dans un try/catch — régression du bug corrigé le 09/08/2026 (round 158) : une exception hors du try/finally interrompait de nouveau tout le lot du jour sans log exploitable";
+            }
+        }
+
+        // Round 158 (09/08/2026) : CertificateManager::resolveCertificateLang()
+        // doit conserver la vérification de NERIA_AUTO_LANG avant d'appliquer
+        // l'algorithme pays/code-postal.
+        $certSrc158 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        if ($certSrc158 === '') {
+            $offenders[] = 'CertificateManager.php introuvable (garde-fou round 158 : resolveCertificateLang respecte NERIA_AUTO_LANG)';
+        } else {
+            $posRcl158 = strpos($certSrc158, 'private function resolveCertificateLang(');
+            $rclBody158 = $posRcl158 !== false ? substr($certSrc158, $posRcl158, 1200) : '';
+            if ($posRcl158 === false || strpos($rclBody158, 'isAutoLangEnabled()') === false) {
+                $offenders[] = "CertificateManager::resolveCertificateLang() ne vérifie plus NERIA_AUTO_LANG avant d'appliquer l'algorithme pays/code-postal — régression du bug corrigé le 09/08/2026 (round 158) : le PDF et l'email pourraient de nouveau partir dans des langues différentes quand la détection auto est désactivée";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
