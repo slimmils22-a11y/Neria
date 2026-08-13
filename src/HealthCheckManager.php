@@ -5399,6 +5399,40 @@ class HealthCheckManager
             $offenders[] = "HealthCheckManager::checkCssInlinerSilentFailures() ne lit/reset plus la clé scopée par idShop — régression du bug corrigé le 09/08/2026 (round 160)";
         }
 
+        // Round 161 (13/08/2026) : TranslationInstaller::importTemplate()
+        // doit toujours journaliser via Watchdog ses 3 branches d'échec
+        // (fichier introuvable/illisible/JSON invalide), et
+        // importFromJson() doit détecter les clés dupliquées du JSON source
+        // avant insertion (sinon l'INSERT IGNORE les tranche silencieusement).
+        $tiSrc161 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/TranslationInstaller.php');
+        if ($tiSrc161 === ''
+            || strpos($tiSrc161, 'watchdog.translation_import_template_source_unreadable') === false
+            || strpos($tiSrc161, '$seenKeys[$dedupKey]') === false
+            || strpos($tiSrc161, 'watchdog.translation_duplicate_key') === false
+        ) {
+            $offenders[] = "TranslationInstaller a perdu l'un des correctifs du round 161 (log Watchdog des échecs silencieux d'importTemplate(), détection des clés dupliquées dans importFromJson()) — régression du bug corrigé le 13/08/2026 (round 161)";
+        }
+
+        // Round 161 (13/08/2026) : uninstall() doit nettoyer explicitement
+        // les PDF nominatifs de certificates/ et mails/, indépendamment de
+        // la case « supprimer les fichiers du module » du BO PS.
+        if ($mainSrc160 === ''
+            || strpos($mainSrc160, "cleanupNominativeFiles('certificates'") === false
+            || strpos($mainSrc160, "cleanupNominativeFiles('mails'") === false
+        ) {
+            $offenders[] = "neria.php : uninstall() ne nettoie plus les PDF nominatifs de certificates/ et mails/ — régression du bug corrigé le 13/08/2026 (round 161) : un risque RGPD réapparaîtrait si le marchand décoche « supprimer les fichiers du module »";
+        }
+
+        // Round 161 (13/08/2026) : install() doit réconcilier un éventuel
+        // schéma orphelin (tables restées en base après une suppression
+        // FTP sans désinstallation propre) via needUpgrade()/runUpgradeModule().
+        if ($mainSrc160 === ''
+            || strpos($mainSrc160, '\Module::needUpgrade($this)') === false
+            || strpos($mainSrc160, '$this->runUpgradeModule()') === false
+        ) {
+            $offenders[] = "neria.php : install() ne réconcilie plus le schéma via needUpgrade()/runUpgradeModule() après un succès — régression du bug corrigé le 13/08/2026 (round 161) : une réinstallation par-dessus des tables orphelines à schéma ancien ne serait plus rattrapée";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
