@@ -175,6 +175,12 @@ class SignatureGenerator
                 "SignatureGenerator: echec sauvegarde [{$fullPath}]",
                 3
             );
+            // Round 160 : asymétrie avec les 2 autres branches d'échec de
+            // cette méthode (GD indisponible, police introuvable), qui
+            // alertent déjà le Watchdog — un échec imagepng() (disque
+            // plein, permissions) restait invisible du monitoring, visible
+            // uniquement en creusant le log fichier PrestaShop brut.
+            $this->watchdog()->error(WatchdogManager::i18nMsg('watchdog.signature_save_failed', ['path' => $fullPath]), '', 'SignatureGenerator');
             return false;
         }
 
@@ -531,14 +537,23 @@ class SignatureGenerator
     /**
      * Supprime l'image de signature d'une boutique
      *
-     * @param int    $idShop ID boutique
-     * @param string $style  Style (pour construire le nom du fichier)
+     * @param int    $idShop      ID boutique
+     * @param string $style       Style (pour construire le nom du fichier)
+     * @param string $excludePath Round 160 : chemin à NE PAS supprimer (le
+     *                            fichier fraîchement généré, quand delete()
+     *                            est appelée après generate() pour nettoyer
+     *                            les anciens styles) — évite de se
+     *                            supprimer lui-même si l'ancien et le
+     *                            nouveau style partagent le même nom.
      * @return bool
      */
-    public function delete(int $idShop, string $style = ''): bool
+    public function delete(int $idShop, string $style = '', string $excludePath = ''): bool
     {
         if ($style) {
             $path = $this->signaturesPath . '/' . $this->buildFilename($idShop, $style);
+            if ($excludePath !== '' && realpath($path) === realpath($excludePath)) {
+                return true;
+            }
             if (file_exists($path)) {
                 return unlink($path);
             }
@@ -547,7 +562,11 @@ class SignatureGenerator
 
         // Supprime toutes les signatures de cette boutique
         $pattern = $this->signaturesPath . "/signature_{$idShop}_*.png";
+        $excludeReal = $excludePath !== '' ? realpath($excludePath) : false;
         foreach (glob($pattern) ?: [] as $file) {
+            if ($excludeReal !== false && realpath($file) === $excludeReal) {
+                continue;
+            }
             unlink($file);
         }
 

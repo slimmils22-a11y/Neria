@@ -35,10 +35,28 @@ class CssInliner
             // même techniquement. CssInliner est statique, sans accès à
             // WatchdogManager (qui exige une instance Neria) — un compteur
             // Configuration léger est repris par checkCssInlinerSilentFailures.
-            \Configuration::updateValue(
-                'NERIA_CSS_INLINE_FAILURES',
-                (int) \Configuration::get('NERIA_CSS_INLINE_FAILURES') + 1
-            );
+            //
+            // Round 160 : compteur scopé par boutique (clé suffixée par
+            // idShop) — auparavant global, un échec d'inlining sur la
+            // boutique A déclenchait un warning Health Check visible aussi
+            // côté boutique B, et consulter/reset ce contrôle pour B
+            // effaçait silencieusement le compteur réel de A. Round 160
+            // également : cycle lecture-modification-écriture protégé par
+            // GET_LOCK — sans lui, deux échecs d'inlining quasi simultanés
+            // (cron d'envoi en masse) pouvaient tous deux lire la même
+            // valeur avant que l'un des deux n'écrive, perdant un
+            // incrément (lost update), sous-estimant le nombre réel
+            // d'échecs silencieux affiché au marchand.
+            $idShop = (int) \Context::getContext()->shop->id;
+            $key    = 'NERIA_CSS_INLINE_FAILURES_' . $idShop;
+            $db     = \Db::getInstance();
+            if ((int) $db->getValue("SELECT GET_LOCK('neria_css_inline_failures_" . $idShop . "', 1)") === 1) {
+                try {
+                    \Configuration::updateValue($key, (int) \Configuration::get($key) + 1);
+                } finally {
+                    $db->execute("SELECT RELEASE_LOCK('neria_css_inline_failures_" . $idShop . "')");
+                }
+            }
             return $html;
         }
     }

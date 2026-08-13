@@ -493,7 +493,24 @@ class PostmasterManager
             $date = date('Ymd', strtotime("-{$i} days"));
             $stat = $this->apiGet("/{$domainResource}/trafficStats/{$date}", $token);
 
-            if (!is_array($stat) || empty($stat['domainReputation'])) {
+            // Round 160 : apiGet() retourne null aussi bien pour "pas de
+            // données ce jour-là" (cas légitime, faux — voir plus bas) QUE
+            // pour un échec réseau/HTTP réel (429/quota Google inclus,
+            // déjà journalisé dans CONFIG_LAST_ERROR par apiGet() lui-même).
+            // Avant ce correctif, les deux cas étaient confondus sous
+            // !is_array($stat) et enchaînaient un `continue` immédiat vers
+            // le jour suivant — un seul appel en 429/quota déclenchait
+            // jusqu'à 6 tentatives supplémentaires SANS AUCUN DÉLAI,
+            // aggravant activement la pénalité de quota au lieu de s'arrêter
+            // (contrairement au patron déjà correct utilisé pour DeepL dans
+            // neria.php, qui stoppe la boucle dès le premier échec de lot).
+            // Le cas légitime "réponse JSON valide mais domainReputation
+            // absent pour ce jour" reste bien un tableau non vide : seul
+            // `null` (erreur réelle) interrompt désormais la boucle.
+            if ($stat === null) {
+                break;
+            }
+            if (empty($stat['domainReputation'])) {
                 continue;
             }
 

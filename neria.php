@@ -2741,6 +2741,9 @@ class Neria extends Module
 
         // ── Google Postmaster Tools : rafraîchissement forcé ──────
         if (Tools::getValue('neria_action') === 'refresh_postmaster' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('PostmasterManager')) {
+          if (!$this->neriaForceRefreshAllowed('postmaster')) {
+            $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.force_refresh_throttled'));
+          } else {
             $manager = new PostmasterManager($this);
             $manager->clearCache();
             $stats = $manager->getStats();
@@ -2781,6 +2784,7 @@ class Neria extends Module
                     (new WatchdogManager($this))->warning(WatchdogManager::i18nMsg('watchdog.postmaster_fetch_failed'), '', 'PostmasterTools');
                 }
             }
+          }
         }
 
         // ── PageSpeed Insights : sauvegarde clé API + URL ────────
@@ -2811,6 +2815,9 @@ class Neria extends Module
 
         // ── PageSpeed Insights : rafraîchissement forcé ───────────
         if (Tools::getValue('neria_action') === 'refresh_pagespeed' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('PageSpeedManager')) {
+          if (!$this->neriaForceRefreshAllowed('pagespeed')) {
+            $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.force_refresh_throttled'));
+          } else {
             $mgr    = new PageSpeedManager($this);
             $report = $mgr->runCheck();
             if ($report) {
@@ -2822,6 +2829,7 @@ class Neria extends Module
             } else {
                 $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.pagespeed_fetch_failed'));
             }
+          }
         }
 
         // ── Search Console : sauvegarde credentials ───────────────
@@ -2857,6 +2865,9 @@ class Neria extends Module
 
         // ── Search Console : rafraîchissement forcé ───────────────
         if (Tools::getValue('neria_action') === 'refresh_searchconsole' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('SearchConsoleManager')) {
+          if (!$this->neriaForceRefreshAllowed('searchconsole')) {
+            $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.force_refresh_throttled'));
+          } else {
             $mgr    = new SearchConsoleManager($this);
             $mgr->clearCache();
             $stats = $mgr->getStats();
@@ -2869,6 +2880,7 @@ class Neria extends Module
             } else {
                 $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.searchconsole_fetch_failed'));
             }
+          }
         }
 
         // ── SEO API payante : sauvegarde config ───────────────────
@@ -2905,6 +2917,9 @@ class Neria extends Module
 
         // ── SEO API payante : rafraîchissement forcé ──────────────
         if (Tools::getValue('neria_action') === 'refresh_seo_api' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('SeoApiManager')) {
+          if (!$this->neriaForceRefreshAllowed('seo_api')) {
+            $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.force_refresh_throttled'));
+          } else {
             $mgr    = new SeoApiManager($this);
             $report = $mgr->runCheck();
             if ($report) {
@@ -2916,6 +2931,7 @@ class Neria extends Module
             } else {
                 $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.seo_fetch_failed'));
             }
+          }
         }
 
         // ── Action : empreinte carbone ────────────────────────────
@@ -3054,20 +3070,30 @@ class Neria extends Module
             } else {
                 $idShop = (int) $this->context->shop->id;
                 $sigGenerator = new SignatureGenerator($this);
-                // Round 145 : supprime les anciens fichiers PNG de cette
-                // boutique AVANT de générer le nouveau — buildFilename()
-                // inclut le style dans le nom de fichier
-                // (signature_{idShop}_{style}.png), donc un changement de
-                // style créait un nouveau fichier sans jamais supprimer
-                // l'ancien (une seule signature active par boutique en base,
-                // mais accumulation illimitée sur le disque). delete()
-                // s'exécute avant generate() : aucun risque de supprimer le
-                // fichier qu'on vient de créer.
-                $sigGenerator->delete($idShop);
                 $resolvedSigStyle = null;
                 $path = $sigGenerator->generate($sigName, $sigTitle, $sigStyle, $sigColor, $idShop, $resolvedSigStyle);
 
                 if ($path) {
+                    // Round 145 : supprime les anciens fichiers PNG de cette
+                    // boutique — buildFilename() inclut le style dans le nom
+                    // de fichier (signature_{idShop}_{style}.png), donc un
+                    // changement de style créait un nouveau fichier sans
+                    // jamais supprimer l'ancien (une seule signature active
+                    // par boutique en base, mais accumulation illimitée sur
+                    // le disque). Round 160 : delete() s'exécute désormais
+                    // APRÈS generate() (pas avant) — auparavant, si
+                    // generate() échouait après la suppression (GD
+                    // indisponible, police manquante, disque plein), la
+                    // ligne neria_signature en base restait is_active=1 et
+                    // pointait vers un fichier qui venait d'être effacé :
+                    // tous les emails envoyés ensuite affichaient une image
+                    // de signature cassée (404), sans que l'admin n'ait
+                    // aucune indication que l'ancienne signature FONCTIONNELLE
+                    // avait disparu (juste un message "génération échouée").
+                    // $path (fichier qu'on vient d'écrire) est exclu du
+                    // nettoyage pour ne jamais se supprimer lui-même.
+                    $sigGenerator->delete($idShop, '', $path);
+
                     $db = Db::getInstance();
                     // Une seule signature active par boutique — désactive les
                     // précédentes avant d'insérer la nouvelle (cohérent avec
@@ -7190,6 +7216,31 @@ class Neria extends Module
             $type === 'error' ? 'neria_error' : 'neria_success',
             $msg
         );
+    }
+
+    /**
+     * Round 160 : débit minimal entre deux clics sur un bouton BO
+     * "rafraîchissement forcé" d'une API tierce (Postmaster/PageSpeed/
+     * Search Console/SEO Semrush-Moz). Ces actions ignorent volontairement
+     * le TTL du cache normal (c'est leur rôle), mais rien n'empêchait
+     * auparavant un double-clic ou une resoumission de renvoyer le même
+     * POST plusieurs fois de suite, redéclenchant à chaque fois un appel
+     * réel à l'API tierce quel que soit l'état de quota du moment —
+     * amplifiant le risque déjà identifié dans PostmasterManager::
+     * fetchDomainStats() (round 160) si le compte est déjà en limitation.
+     *
+     * @param string $key        Identifiant court de l'action (ex. 'postmaster')
+     * @param int    $minSeconds Délai minimal entre deux clics autorisés
+     */
+    private function neriaForceRefreshAllowed(string $key, int $minSeconds = 60): bool
+    {
+        $configKey = 'NERIA_FORCE_REFRESH_' . strtoupper($key);
+        $last      = (int) Configuration::get($configKey);
+        if ($last > 0 && (time() - $last) < $minSeconds) {
+            return false;
+        }
+        Configuration::updateValue($configKey, time());
+        return true;
     }
 
     /**

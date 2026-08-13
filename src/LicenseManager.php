@@ -46,10 +46,20 @@ class LicenseManager
     const CONFIG_REVOKED_AT   = 'NERIA_LICENSE_REVOKED_AT';
     const CONFIG_LAST_ERROR   = 'NERIA_LICENSE_LAST_ERROR';
     const CONFIG_EXPIRY_WARNED_FOR = 'NERIA_LICENSE_EXPIRY_WARNED_FOR';
+    // Round 160 : timestamp distinct de CONFIG_LAST_CHECK — mis à jour à
+    // CHAQUE appel réseau (succès OU échec), alors que CONFIG_LAST_CHECK
+    // n'est renseigné que sur succès (storeToken()) et reste donc figé
+    // pendant toute une panne serveur prolongée. Sans ce 2e timestamp,
+    // dès que CACHE_TTL (24h) expirait pendant une panne, CHAQUE page vue
+    // du site redéclenchait un appel curl bloquant (jusqu'à 10s) — la
+    // panne fournisseur se transformait en incident de performance côté
+    // client, l'inverse exact de l'objectif documenté sur ce fichier.
+    const CONFIG_LAST_ATTEMPT = 'NERIA_LICENSE_LAST_ATTEMPT';
 
     const API_BASE = 'https://neriasoftware.com/api';
 
     const CACHE_TTL           = 86400;       // 24h avant nouvelle vérification réseau
+    const RETRY_BACKOFF       = 900;          // 15 min avant de retenter après un échec réseau
     const GRACE_NEVER_ACTIVATED_DAYS = 30;    // Scénario A
     const GRACE_REVOKED_DAYS         = 7;     // Scénario B
 
@@ -295,6 +305,22 @@ class LicenseManager
     {
         $key = (string) \Configuration::get(self::CONFIG_KEY);
         if ($key === '') {
+            // Round 160 : si CONFIG_KEY est vide mais qu'un CONFIG_LAST_CHECK
+            // d'une activation antérieure traîne encore (ex. clé effacée
+            // directement en base sans passer par le flux de désinstallation,
+            // qui vide les deux ensemble), isWithinGracePeriod() retombait
+            // indéfiniment sur "lastCheck > 0 => grâce illimitée" — cette
+            // méthode ne revalidera plus JAMAIS tant que CONFIG_KEY reste
+            // vide (early return ci-dessus), donc ce statut ne s'auto-
+            // corrigeait jamais. Purge donc l'état résiduel d'activation
+            // pour que isWithinGracePeriod() retombe sur son AUTRE branche
+            // (NERIA_INSTALLED_AT + GRACE_NEVER_ACTIVATED_DAYS), la seule
+            // qui a une vraie limite dans le temps pour ce cas.
+            if ((int) \Configuration::get(self::CONFIG_LAST_CHECK) > 0) {
+                \Configuration::deleteByName(self::CONFIG_LAST_CHECK);
+                \Configuration::deleteByName(self::CONFIG_REVOKED_AT);
+                \Configuration::deleteByName(self::CONFIG_TOKEN);
+            }
             return; // Jamais activé — rien à revalider, le délai de grâce s'applique déjà.
         }
 
@@ -303,6 +329,41 @@ class LicenseManager
             return;
         }
 
+        // Round 160 : gate indépendant sur CONFIG_LAST_ATTEMPT (mis à jour
+        // sur succès ET échec, contrairement à CONFIG_LAST_CHECK ci-dessus,
+        // figé sur le dernier succès) — sans lui, une fois CACHE_TTL expiré
+        // pendant une panne serveur prolongée, CHAQUE page vue relançait un
+        // appel curl bloquant (jusqu'à 10s) sans aucun répit. $force
+        // (revalidation explicite, ex. changement de domaine détecté)
+        // outrepasse volontairement ce backoff, comme il outrepasse déjà
+        // CACHE_TTL ci-dessus.
+        $lastAttempt = (int) \Configuration::get(self::CONFIG_LAST_ATTEMPT);
+        if (!$force && $lastAttempt && (time() - $lastAttempt) < self::RETRY_BACKOFF) {
+            return;
+        }
+
+        // Round 160 : verrou non bloquant sur le cycle lecture-modification-
+        // écriture de CONFIG_LAST_CHECK/CONFIG_LAST_ATTEMPT — sans lui, deux
+        // requêtes front-office concurrentes arrivant juste après expiration
+        // du cache pouvaient toutes deux passer les gardes ci-dessus avant
+        // que l'une des deux n'ait eu le temps d'écrire, doublant l'appel
+        // réseau au serveur de licence. Impact mineur (pas de corruption de
+        // données), mais cohérent avec le même pattern déjà appliqué ailleurs
+        // dans le projet (DomainReputationManager, WatchdogManager...).
+        if ((int) \Db::getInstance()->getValue("SELECT GET_LOCK('neria_license_validate', 0)") !== 1) {
+            return;
+        }
+        \Configuration::updateGlobalValue(self::CONFIG_LAST_ATTEMPT, time());
+
+        try {
+            $this->validateLicenseLocked($key);
+        } finally {
+            \Db::getInstance()->execute("SELECT RELEASE_LOCK('neria_license_validate')");
+        }
+    }
+
+    private function validateLicenseLocked(string $key): void
+    {
         $response = $this->callLicenseApi('validate', [
             'key'    => $key,
             'domain' => $this->currentDomain(),
@@ -322,7 +383,14 @@ class LicenseManager
         if (!empty($response['ok'])) {
             $this->storeToken($response);
 
-            if (empty($response['valid']) && !\Configuration::get(self::CONFIG_REVOKED_AT)) {
+            // Round 160 : array_key_exists() distingue désormais une vraie
+            // révocation serveur (clé 'valid' présente et explicitement
+            // false) d'une réponse ok:true malformée/tronquée où 'valid' est
+            // simplement ABSENTE — empty() traitait les deux cas de façon
+            // identique, démarrant à tort le compte à rebours de grâce de 7
+            // jours pour un client dont la licence est en réalité toujours
+            // valide, sur la seule base d'un signal serveur ambigu.
+            if (array_key_exists('valid', $response) && empty($response['valid']) && !\Configuration::get(self::CONFIG_REVOKED_AT)) {
                 // Transition valide → invalide détectée par le serveur
                 // (résiliation, remboursement, fraude) : démarre le délai
                 // de grâce court (scénario B), une seule fois.
