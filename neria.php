@@ -109,6 +109,28 @@ class Neria extends Module
             && $this->configureDeliveredStatus();
 
         if ($ok) {
+            // Round 161 : si modules/neria/ a été supprimé par FTP sans
+            // passer par "Désinstaller" (contournement fréquent en
+            // pratique), la ligne ps_module reste active mais les TABLES
+            // SQL, elles, restent en base avec un schéma potentiellement
+            // ancien. Une réinstallation ultérieure ré-exécute install.sql
+            // (CREATE TABLE IF NOT EXISTS — sans effet si la table existe
+            // déjà) sans jamais repasser par la chaîne des upgrade-X.Y.php,
+            // laissant des colonnes récentes manquantes (ex: id_shop
+            // ajouté en 1.0.29) — erreurs SQL "Unknown column" en prod dès
+            // les premiers crons. Cette réconciliation est le même geste
+            // que l'action BO manuelle "repair_module_version" (cf.
+            // Tools::getValue('neria_action') === 'repair_module_version'
+            // ci-dessous), simplement déclenché automatiquement ici. Sans
+            // effet sur une install réellement neuve (needUpgrade() ne
+            // trouve alors rien à faire) — jamais bloquant pour install().
+            try {
+                \Module::needUpgrade($this);
+                $this->runUpgradeModule();
+            } catch (\Throwable $e) {
+                $this->log('install(): réconciliation de schéma post-install échouée — ' . $e->getMessage(), 2);
+            }
+
             return true;
         }
 
@@ -149,6 +171,19 @@ class Neria extends Module
         // que modules/neria/). Peuvent contenir du contenu email/client réel.
         $this->cleanupPreviewCache();
 
+        // Round 161 : certificates/ et mails/ contiennent des PDF nominatifs
+        // (nom/adresse client — cf. CertificateManager/MonthlyReportManager).
+        // Contrairement à var/cache/neria_previews/ (hors modules/neria/, donc
+        // toujours nettoyé ci-dessus), ces 2 dossiers sont À L'INTÉRIEUR de
+        // modules/neria/ : ils ne survivaient QUE si le marchand décochait
+        // « supprimer les fichiers du module » dans le BO PS — mais dans ce
+        // cas précis, ils restaient indéfiniment sur le disque, orphelins de
+        // toute ligne DB (les tables sont droppées juste après par
+        // uninstall.sql). Même trou RGPD que celui déjà corrigé pour les
+        // previews — nettoyage désormais explicite, indépendant de ce choix.
+        $this->cleanupNominativeFiles('certificates', '*.pdf');
+        $this->cleanupNominativeFiles('mails', '*.pdf');
+
         return $this->restoreDeliveredStatus()
             && $this->executeSqlFile('uninstall.sql')
             && $this->uninstallTab()
@@ -167,6 +202,24 @@ class Neria extends Module
             @unlink($file);
         }
         @rmdir($previewDir);
+    }
+
+    /**
+     * Round 161 : supprime les fichiers nominatifs d'un sous-dossier du
+     * module (certificates/, mails/) indépendamment de la case « supprimer
+     * les fichiers du module » du BO PS. Ne supprime QUE les fichiers
+     * correspondant au motif fourni, jamais le dossier lui-même (des
+     * fichiers non gérés par Neria pourraient y avoir été déposés).
+     */
+    private function cleanupNominativeFiles(string $subdir, string $pattern): void
+    {
+        $dir = _PS_MODULE_DIR_ . 'neria' . DIRECTORY_SEPARATOR . $subdir . DIRECTORY_SEPARATOR;
+        if (!is_dir($dir)) {
+            return;
+        }
+        foreach (glob($dir . $pattern) ?: [] as $file) {
+            @unlink($file);
+        }
     }
 
     // ============================================================

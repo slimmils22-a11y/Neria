@@ -159,6 +159,15 @@ class TranslationInstaller
         $batch = [];
         $now   = date('Y-m-d H:i:s');
         $failed = false;
+        // Round 161 : la contrainte UNIQUE (template, lang, translation_key)
+        // fait que l'INSERT IGNORE en bulk (flushBatch) déduplique déjà les
+        // doublons éventuels du JSON source SANS jamais le signaler — la
+        // 1ère valeur des deux gagne silencieusement, la 2e (souvent la
+        // correction la plus récente) est perdue sans passer par
+        // countSkipped/countErrors ni aucun log. Ce garde-fou détecte le
+        // doublon AVANT l'insertion et le journalise, sans changer le
+        // comportement (la 1ère valeur continue de gagner).
+        $seenKeys = [];
 
         foreach ($translations as $template => $langs) {
             // Vérifie que la structure est valide
@@ -179,6 +188,16 @@ class TranslationInstaller
                         $this->countSkipped++;
                         continue;
                     }
+
+                    $dedupKey = $template . '|' . $lang . '|' . $key;
+                    if (isset($seenKeys[$dedupKey])) {
+                        $this->watchdog()->error(
+                            \WatchdogManager::i18nMsg('watchdog.translation_duplicate_key', ['template' => (string) $template, 'lang' => (string) $lang, 'key' => (string) $key]),
+                            '', 'TranslationInstaller'
+                        );
+                        continue;
+                    }
+                    $seenKeys[$dedupKey] = true;
 
                     // Ajoute la ligne au batch courant
                     $batch[] = $this->buildRow(
@@ -288,14 +307,37 @@ class TranslationInstaller
         $this->countSkipped  = 0;
         $this->countErrors   = 0;
 
+        // Round 161 : contrairement à importFromJson(), ces 3 branches
+        // d'échec retournaient jusqu'ici `false` sans aucune trace — ni
+        // module->log(), ni Watchdog. Un reset de template raté depuis le
+        // BO (clé mal orthographiée côté appelant, translations.json
+        // temporairement corrompu par un déploiement interrompu) devenait
+        // indiagnosticable après coup.
         if (!file_exists($jsonPath)) {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.translation_import_template_source_unreadable', ['template' => $template, 'reason' => 'file not found']),
+                '', 'TranslationInstaller'
+            );
             return false;
         }
 
         $json = file_get_contents($jsonPath);
-        $all  = json_decode($json, true);
+
+        if ($json === false) {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.translation_import_template_source_unreadable', ['template' => $template, 'reason' => 'read failed']),
+                '', 'TranslationInstaller'
+            );
+            return false;
+        }
+
+        $all = json_decode($json, true);
 
         if (json_last_error() !== JSON_ERROR_NONE || !isset($all[$template])) {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.translation_import_template_source_unreadable', ['template' => $template, 'reason' => json_last_error() !== JSON_ERROR_NONE ? json_last_error_msg() : 'template not found in source']),
+                '', 'TranslationInstaller'
+            );
             return false;
         }
 
