@@ -34,6 +34,22 @@ class NeriaCronModuleFrontController extends ModuleFrontController
     {
         header('Content-Type: application/json; charset=utf-8');
 
+        // Round 162 : contrairement aux hooks classiques (que PrestaShop ne
+        // déclenche plus pour un module désactivé), ce contrôleur front
+        // reste accessible par URL directe même si le marchand désactive
+        // Neria depuis le BO — désactiver le module ne purge pas
+        // NERIA_CRON_TOKEN/NERIA_CRON_ENABLED. Si le vrai cron serveur
+        // (crontab) reste actif en dehors de PrestaShop, les tâches de
+        // fond (queue d'envoi, licence, health checks) continuaient de
+        // tourner et d'écrire en base pendant toute la période où le
+        // marchand pense le module éteint — contradiction directe avec son
+        // intention explicite.
+        if (!Module::isEnabled('neria')) {
+            http_response_code(403);
+            echo json_encode(['ok' => false, 'error' => 'module_disabled']);
+            exit;
+        }
+
         $token = (string) Tools::getValue('token', '');
         $expected = (string) Configuration::getGlobalValue('NERIA_CRON_TOKEN');
 

@@ -287,10 +287,33 @@ class Neria extends Module
      */
     private function registerHooks(): bool
     {
+        // Round 162 : registerHook() retourne false aussi bien pour un hook
+        // inexistant sur la version PS courante (cas normal, compatibilité
+        // 8/9 — volontairement ignoré, cf. commentaire d'origine) QUE pour
+        // un échec réel (panne DB transitoire, résidu ps_hook_module
+        // orphelin d'une install FTP mal nettoyée provoquant une violation
+        // de contrainte d'unicité). Les deux cas étaient jusqu'ici confondus
+        // sous un simple appel sans lecture du retour : install() renvoyait
+        // toujours true même si un hook métier critique (ex:
+        // actionEmailSendBefore) n'était jamais réellement enregistré —
+        // le module semblait actif en BO sans intercepter aucun email,
+        // sans la moindre trace en log. Les échecs sont désormais
+        // journalisés (jamais bloquant pour install() : un hook légitimement
+        // absent sur une vieille version PS ne doit pas faire échouer
+        // l'installation).
+        $failed = [];
         foreach (self::HOOKS as $hook) {
-            // registerHook() retourne false si le hook est invalide
-            // On ignore les hooks non-existants (compatibilité versions)
-            $this->registerHook($hook);
+            if (!$this->registerHook($hook)) {
+                $failed[] = $hook;
+            }
+        }
+
+        if ($failed) {
+            $this->log(
+                'registerHooks(): echec d\'enregistrement pour ' . implode(', ', $failed)
+                . ' — normal si absent de cette version de PrestaShop, sinon verifier ps_hook_module',
+                2
+            );
         }
 
         return true;
@@ -3063,8 +3086,15 @@ class Neria extends Module
 
         // ── Onglet Typographie : sauvegarde ────────────────────────
         if (Tools::getValue('neria_action') === 'save_typography' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('ConfigManager')) {
+            // Round 162 : 'font_cyrillic' manquait de ce tableau alors que
+            // typography.tpl le propose bien (FontManager::getAllScripts()
+            // inclut 'cyrillic') et que ConfigManager::saveTypographyConfig()
+            // sait l'enregistrer — un marchand changeant la police cyrillique
+            // voyait "Enregistré" sans que la valeur postée n'atteigne jamais
+            // la base (faux positif de succès).
             $typoData = [
                 'font_latin'               => (string) Tools::getValue('font_latin', ''),
+                'font_cyrillic'            => (string) Tools::getValue('font_cyrillic', ''),
                 'font_arabic'              => (string) Tools::getValue('font_arabic', ''),
                 'font_japanese'            => (string) Tools::getValue('font_japanese', ''),
                 'font_korean'              => (string) Tools::getValue('font_korean', ''),

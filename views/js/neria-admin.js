@@ -73,6 +73,25 @@
                 });
             });
         });
+
+        // Round 162 : le groupe "poids des titres" (typography.tpl,
+        // heading_weight) est le même genre de carte radio, mais construit
+        // avec une classe différente (.neria-radio-card__input) et une
+        // structure différente (l'input EST DANS le <label>, pas suivi d'un
+        // sibling) — resté hors de la boucle ci-dessus, donc sans aucun
+        // retour visuel au clic ni rafraîchissement de l'aperçu, exactement
+        // le même bug déjà corrigé pour les 3 autres groupes mais oublié
+        // pour celui-ci.
+        document.querySelectorAll('.neria-radio-card__input').forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                document.querySelectorAll('input[name="' + radio.name + '"]').forEach(function (r) {
+                    var card = r.closest('.neria-radio-card');
+                    if (!card) return;
+                    card.classList.toggle('neria-radio-card--selected', r.checked);
+                });
+                schedulePreviewUpdate();
+            });
+        });
     }
 
     // ── Lexique : termes techniques cliquables dans le journal Watchdog ──
@@ -492,6 +511,14 @@
             var baseUrl = window.location.href.split('#')[0]
                 .replace(/&neria_action=[^&]*/g, '');
 
+            // Round 162 : contrairement aux autres boutons AJAX du BO
+            // (Watchdog, traductions, reset design), ce bouton restait
+            // cliquable pendant la requête — le jeton ci-dessus évite bien
+            // qu'une réponse obsolète écrase la bonne, mais un marchand qui
+            // spamme le clic génère des requêtes réseau inutiles sans le
+            // moindre indicateur "en cours".
+            btn.disabled = true;
+
             fetch(baseUrl + (baseUrl.indexOf('?') > -1 ? '&' : '?') + params.toString())
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
@@ -510,6 +537,10 @@
                     container.innerHTML =
                         '<span class="neria-signature-preview__placeholder">'
                         + errLabel + '</span>';
+                })
+                .finally(function () {
+                    if (thisRequest !== requestToken) return; // réponse obsolète, ignorée
+                    btn.disabled = false;
                 });
         });
     }
@@ -913,7 +944,17 @@
             var url  = base + '&neria_action=watchdog_refresh';
 
             var hadError = false;
-            fetch(url, { credentials: 'same-origin' })
+
+            // Round 162 : sans timeout, une requête qui reste bloquée
+            // (backend lent, connexion coupée sans erreur HTTP explicite)
+            // laissait le bouton désactivé et l'icône tourner indéfiniment,
+            // sans aucun message, jusqu'à l'abandon éventuel du navigateur
+            // lui-même — le marchand n'avait alors aucune indication qu'il
+            // pouvait réessayer.
+            var controller = ('AbortController' in window) ? new AbortController() : null;
+            var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 15000) : null;
+
+            fetch(url, { credentials: 'same-origin', signal: controller ? controller.signal : undefined })
                 .then(function (r) {
                     if (!r.ok) { throw new Error('HTTP ' + r.status); }
                     return r.json();
@@ -928,6 +969,7 @@
                     if (icon)  icon.textContent   = '⚠️';
                 })
                 .finally(function () {
+                    if (timeoutId) clearTimeout(timeoutId);
                     btn.disabled = false;
                     if (icon)  icon.style.animation = '';
                     if (!hadError) {
