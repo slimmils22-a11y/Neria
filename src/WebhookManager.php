@@ -393,6 +393,28 @@ class WebhookManager
                     ]),
                     '', 'WebhookManager'
                 );
+
+                // Round 163 : si l'exception survient précisément à la 3e
+                // tentative (attempts déjà incrémenté à MAX_ATTEMPTS avant
+                // l'UPDATE ci-dessus, typiquement une exception dans fire()
+                // au moment d'écrire l'alerte Watchdog elle-même — cas
+                // explicitement anticipé par le commentaire ci-dessus), la
+                // ligne restait 'pending'/attempts=MAX_ATTEMPTS à vie : le
+                // batch de sélection filtre `attempts < MAX_ATTEMPTS`
+                // (invisible désormais) ET cleanup() ne purge que
+                // status IN ('done','failed') (jamais nettoyée non plus) —
+                // fuite permanente en base et événement webhook perdu sans
+                // jamais déclencher l'alerte de fin de tentatives.
+                // isset($attempts) : l'exception a pu survenir AVANT la
+                // ligne 334 (payload/json_decode), auquel cas on retombe
+                // sur la valeur brute déjà en base.
+                $attemptsAfterException = isset($attempts) ? $attempts : ((int) $row['attempts'] + 1);
+                if ($attemptsAfterException >= self::MAX_ATTEMPTS) {
+                    $this->db->execute(
+                        "UPDATE `{$table}` SET `status` = 'failed', `attempts` = {$attemptsAfterException} WHERE `id_webhook` = {$id}"
+                    );
+                    $definitivelyFailed++;
+                }
             }
         }
 

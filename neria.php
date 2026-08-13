@@ -5412,11 +5412,21 @@ class Neria extends Module
                 'NERIA_LOOK_COMPLETION_ENABLED', 'NERIA_PURCHASE_WINDOW_ENABLED',
             ];
             $key = (string) Tools::getValue('auto_key');
+            $redirectBase = $this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=automations';
             if (in_array($key, $allowedAutoKeys, true)) {
                 $current = (bool) Configuration::getGlobalValue($key);
                 Configuration::updateGlobalValue($key, $current ? 0 : 1);
+                $redirectBase .= '&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled'));
+            } else {
+                // Round 163 : $key hors de $allowedAutoKeys (ex: 'auto_key'
+                // altéré côté client) laissait auparavant $current non
+                // initialisée — AdminTranslator::t($current ?? false ? ... )
+                // retombait systématiquement sur 'msg.feature_enabled', un
+                // message de succès trompeur affiché alors qu'AUCUNE
+                // modification n'avait réellement eu lieu en base.
+                $redirectBase .= '&neria_error=' . urlencode(AdminTranslator::t('msg.invalid_action'));
             }
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=automations&neria_success=' . urlencode(AdminTranslator::t($current ?? false ? 'msg.feature_disabled' : 'msg.feature_enabled')));
+            Tools::redirectAdmin($redirectBase);
         }
 
         // ── Automatisations : forcer l'exécution du cron ─────────
@@ -6262,12 +6272,25 @@ class Neria extends Module
             'bounce_webhook_url'    => class_exists('BounceManager') ? BounceManager::getWebhookUrl() : '',
             'bounce_webhook_secret' => CryptoManager::decrypt((string) Configuration::get(BounceManager::CFG_WEBHOOK_SECRET)),
             'bounce_cfg'            => [
-                'host'   => (string) Configuration::get(BounceManager::CFG_IMAP_HOST),
-                'port'   => (int)    Configuration::get(BounceManager::CFG_IMAP_PORT) ?: 993,
-                'user'   => (string) Configuration::get(BounceManager::CFG_IMAP_USER),
-                'pass'   => CryptoManager::decrypt((string) Configuration::get(BounceManager::CFG_IMAP_PASS)),
-                'ssl'    => (bool)   Configuration::get(BounceManager::CFG_IMAP_SSL),
-                'folder' => (string) Configuration::get(BounceManager::CFG_IMAP_FOLDER) ?: 'INBOX',
+                'host'     => (string) Configuration::get(BounceManager::CFG_IMAP_HOST),
+                'port'     => (int)    Configuration::get(BounceManager::CFG_IMAP_PORT) ?: 993,
+                'user'     => (string) Configuration::get(BounceManager::CFG_IMAP_USER),
+                // Round 163 : le mot de passe déchiffré était auparavant
+                // réinjecté en clair dans l'attribut value="" du champ
+                // <input type="password"> — le masquage visuel du navigateur
+                // n'empêche pas la lecture du secret en clair dans le code
+                // source de la page (devtools, cache/proxy), annulant
+                // l'intérêt du chiffrement au repos une fois la page rendue.
+                // Le champ reste désormais vide au rendu (save_bounce_config
+                // ignore déjà un champ vide et conserve la valeur existante —
+                // cf. Tools::getValue('bounce_imap_pass', '') !== '' plus
+                // haut, comportement "laisser vide pour ne pas changer").
+                // has_pass permet au template d'afficher un indicateur
+                // "mot de passe déjà configuré" sans exposer sa valeur.
+                'pass'     => '',
+                'has_pass' => Configuration::get(BounceManager::CFG_IMAP_PASS) !== false && Configuration::get(BounceManager::CFG_IMAP_PASS) !== '',
+                'ssl'      => (bool)   Configuration::get(BounceManager::CFG_IMAP_SSL),
+                'folder'   => (string) Configuration::get(BounceManager::CFG_IMAP_FOLDER) ?: 'INBOX',
             ],
 
             // ── Certificats d'authenticité ───────────────────────────

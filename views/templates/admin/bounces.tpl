@@ -363,8 +363,8 @@
 
         <div class="nb-field">
           <label>{neria_admin key='bounces.imap_pass_label'}</label>
-          <input type="password" name="bounce_imap_pass" value="{$bounce_cfg.pass|escape:'html'}" placeholder="••••••••••••">
-          <p class="nb-field__note">{neria_admin key='bounces.imap_pass_hint'}</p>
+          <input type="password" name="bounce_imap_pass" value="" placeholder="••••••••••••" autocomplete="new-password">
+          <p class="nb-field__note">{if $bounce_cfg.has_pass}{neria_admin key='bounces.imap_pass_already_set'}{else}{neria_admin key='bounces.imap_pass_hint'}{/if}</p>
         </div>
 
         <div class="nb-field">
