@@ -462,6 +462,22 @@ class QueueManager
                              WHERE id_customer = ' . (int) $row['id_customer'] . '
                                AND valid = 1 AND id_shop = ' . (int) $idShop
                         );
+                        // Round 158 : repli sur le ref_id déjà figé à
+                        // l'enqueue (row['ref_id']) si le recalcul ci-dessus
+                        // ne trouve plus aucune commande valide — la
+                        // commande la plus ancienne du client a pu basculer
+                        // à valid=0 (annulation/remboursement) entre la mise
+                        // en file (par sendFirstAnniversaries()) et l'envoi
+                        // réel, différé jusqu'à l'heure préférée du client.
+                        // Sans ce repli, $refId valait 0, le garde ci-dessous
+                        // sautait silencieusement l'INSERT de dédup alors
+                        // que l'email était bien envoyé — un futur nouvel
+                        // achat rendait le client de nouveau éligible sans
+                        // aucune trace de cet envoi précédent, exposant à un
+                        // envoi en double du même email d'anniversaire.
+                        if ($refId <= 0) {
+                            $refId = (int) $row['ref_id'];
+                        }
                     } else {
                         $refId = (int) $row['ref_id'];
                     }

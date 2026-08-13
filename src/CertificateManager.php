@@ -27,14 +27,14 @@ class CertificateManager
 
     const TABLE = 'neria_certificate';
 
-    /** @var \Module */
+    /** @var \Neria */
     private $module;
     /** @var \Db */
     private $db;
     /** @var int */
     private $idShop;
 
-    public function __construct(\Module $module)
+    public function __construct(\Neria $module)
     {
         $this->module = $module;
         $this->db     = \Db::getInstance();
@@ -253,6 +253,21 @@ class CertificateManager
      */
     private function resolveCertificateLang(\Order $order, int $idLang): string
     {
+        $engine = new \TranslationEngine($this->module);
+
+        // Round 158 : quand NERIA_AUTO_LANG est désactivé, EmailRenderer::
+        // resolveEmailLang() court-circuite entièrement l'algorithme pays/
+        // code-postal et retombe sur la langue brute du compte client
+        // (langFromId($idLang)) — cette méthode ne le faisait jamais et
+        // appliquait TOUJOURS l'algorithme pays, cassant la parité PDF/email
+        // que le commentaire de classe ci-dessus annonce pourtant garantir :
+        // un client dont le compte est en langue A mais dont l'adresse de
+        // facturation est dans un pays de langue B recevait un PDF en B et
+        // un email en A dès que le marchand désactivait la détection auto.
+        if (class_exists('ConfigManager') && !(new \ConfigManager($this->module))->isAutoLangEnabled()) {
+            return $engine->langFromId($idLang);
+        }
+
         $countryIso = '';
         $postcode   = '';
         if ($order->id_address_invoice) {
@@ -263,7 +278,6 @@ class CertificateManager
             }
         }
 
-        $engine = new \TranslationEngine($this->module);
         return $engine->resolveOptimalLang($idLang, $countryIso, $postcode);
     }
 

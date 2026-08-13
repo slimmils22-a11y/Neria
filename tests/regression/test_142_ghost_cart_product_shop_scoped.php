@@ -30,7 +30,7 @@ function run_test(): array
     $posMethod = strpos($src, 'private function sendGhostCarts(');
     neria_assert($posMethod !== false, 'sendGhostCarts() introuvable — régression du bug corrigé le 08/08/2026');
 
-    $body = substr($src, $posMethod, 4200);
+    $body = substr($src, $posMethod, 5200);
 
     $posCtor = strpos($body, 'new \Product($idProduct, false, $idLang, $ghostShopId)');
     neria_assert(

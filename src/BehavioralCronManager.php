@@ -1817,54 +1817,76 @@ class BehavioralCronManager
             // constructeur Product — round 132.
             $ghostShopId = (int) $r['id_shop'];
             $originalGhostShopId = \Shop::getContextShopID(true);
-            \Shop::setContext(\Shop::CONTEXT_SHOP, $ghostShopId);
+            // Round 158 : try/finally (SANS catch) englobait seulement les
+            // instanciations Product/Link — contrairement à toutes les
+            // autres méthodes send*() de ce fichier, qui ont un try/catch
+            // PAR LIGNE. Une exception ici (produit orphelin référencé dans
+            // cart_product, link_rewrite invalide, échec ObjectModel) n'était
+            // absorbée nulle part localement : elle remontait hors de
+            // sendGhostCarts() tout entière (rattrapée seulement par
+            // runStep(), plus haut), abandonnant silencieusement tous les
+            // couples produit/client "panier fantôme" suivants du lot pour
+            // le reste du cron de ce jour, sans log exploitable par ligne.
             try {
-                $product = new \Product($idProduct, false, $idLang, $ghostShopId);
-                if (!\Validate::isLoadedObject($product)) {
-                    continue;
-                }
+                \Shop::setContext(\Shop::CONTEXT_SHOP, $ghostShopId);
+                try {
+                    $product = new \Product($idProduct, false, $idLang, $ghostShopId);
+                    if (!\Validate::isLoadedObject($product)) {
+                        continue;
+                    }
 
-                // URL produit
-                $productUrl = \Context::getContext()->link->getProductLink(
-                    $product, null, null, null, $idLang, $ghostShopId
-                );
-
-                // Image principale
-                $cover    = \Product::getCover($idProduct);
-                $imageUrl = '';
-                if ($cover) {
-                    $imageUrl = \Context::getContext()->link->getImageLink(
-                        $product->link_rewrite,
-                        (int) $cover['id_image'],
-                        \ImageType::getFormattedName('home')
+                    // URL produit
+                    $productUrl = \Context::getContext()->link->getProductLink(
+                        $product, null, null, null, $idLang, $ghostShopId
                     );
-                }
-            } finally {
-                \Shop::setContext(\Shop::CONTEXT_SHOP, $originalGhostShopId);
-            }
 
-            $this->send(
-                'ghost_cart',
-                $r,
-                [
-                    '{product_name}'  => $product->name,
-                    '{product_url}'   => $productUrl,
-                    '{product_image}' => $imageUrl,
-                    // Devise par défaut de LA BOUTIQUE du client (id_shop du
-                    // panier), pas celle du contexte global — même correctif
-                    // que CollectionManager/LookCompletionManager (round
-                    // précédent) : l'ancienne devise par défaut globale
-                    // ignorait toujours la devise réelle de la boutique du
-                    // client sur une install multi-devises/multi-boutiques.
-                    '{product_price}' => \NeriaTools::displayPrice(
-                        (float) $product->price,
-                        new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, (int) $r['id_shop'])),
-                        $idLang
-                    ),
-                    '{times_added}'   => (int) $r['times_added'],
-                ],
-                $idProduct
-            );
+                    // Image principale
+                    $cover    = \Product::getCover($idProduct);
+                    $imageUrl = '';
+                    if ($cover) {
+                        $imageUrl = \Context::getContext()->link->getImageLink(
+                            $product->link_rewrite,
+                            (int) $cover['id_image'],
+                            \ImageType::getFormattedName('home')
+                        );
+                    }
+                } finally {
+                    \Shop::setContext(\Shop::CONTEXT_SHOP, $originalGhostShopId);
+                }
+
+                $this->send(
+                    'ghost_cart',
+                    $r,
+                    [
+                        '{product_name}'  => $product->name,
+                        '{product_url}'   => $productUrl,
+                        '{product_image}' => $imageUrl,
+                        // Devise par défaut de LA BOUTIQUE du client (id_shop du
+                        // panier), pas celle du contexte global — même correctif
+                        // que CollectionManager/LookCompletionManager (round
+                        // précédent) : l'ancienne devise par défaut globale
+                        // ignorait toujours la devise réelle de la boutique du
+                        // client sur une install multi-devises/multi-boutiques.
+                        '{product_price}' => \NeriaTools::displayPrice(
+                            (float) $product->price,
+                            new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, (int) $r['id_shop'])),
+                            $idLang
+                        ),
+                        '{times_added}'   => (int) $r['times_added'],
+                    ],
+                    $idProduct
+                );
+            } catch (\Throwable $e) {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.behavioral_send_error', [
+                        'template' => 'ghost_cart',
+                        'customer' => $idCustomer,
+                        'error'    => $e->getMessage(),
+                    ]),
+                    'ghost_cart',
+                    'BehavioralCron'
+                );
+            }
         }
     }
 
