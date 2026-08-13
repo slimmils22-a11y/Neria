@@ -5433,6 +5433,54 @@ class HealthCheckManager
             $offenders[] = "neria.php : install() ne réconcilie plus le schéma via needUpgrade()/runUpgradeModule() après un succès — régression du bug corrigé le 13/08/2026 (round 161) : une réinstallation par-dessus des tables orphelines à schéma ancien ne serait plus rattrapée";
         }
 
+        // Round 162 (13/08/2026) : registerHooks() doit lire le retour de
+        // chaque registerHook() et journaliser les échecs, save_typography
+        // doit inclure 'font_cyrillic'.
+        if ($mainSrc160 === ''
+            || strpos($mainSrc160, 'if (!$this->registerHook($hook)) {') === false
+            || strpos($mainSrc160, '$failed[] = $hook;') === false
+        ) {
+            $offenders[] = "neria.php : registerHooks() ne détecte/journalise plus les échecs de registerHook() — régression du bug corrigé le 13/08/2026 (round 162) : un hook non enregistré (résidu ps_hook_module orphelin, panne DB) redeviendrait indétectable";
+        }
+        if ($mainSrc160 === '') {
+            $offenders[] = 'neria.php introuvable (garde-fou round 162 : font_cyrillic dans save_typography)';
+        } else {
+            $posTypo162 = strpos($mainSrc160, "=== 'save_typography'");
+            $typoBody162 = $posTypo162 !== false ? substr($mainSrc160, $posTypo162, 900) : '';
+            if ($posTypo162 === false || strpos($typoBody162, "'font_cyrillic'            => (string) Tools::getValue") === false) {
+                $offenders[] = "neria.php : le handler save_typography a de nouveau perdu 'font_cyrillic' — régression du bug corrigé le 13/08/2026 (round 162) : un marchand changeant la police cyrillique verrait 'Enregistré' sans que la valeur n'atteigne la base";
+            }
+        }
+
+        // Round 162 (13/08/2026) : controllers/front/cron.php doit vérifier
+        // Module::isEnabled('neria') avant de traiter la requête.
+        $cronSrc162 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/cron.php');
+        if ($cronSrc162 === '' || strpos($cronSrc162, "Module::isEnabled('neria')") === false) {
+            $offenders[] = "controllers/front/cron.php ne vérifie plus Module::isEnabled('neria') — régression du bug corrigé le 13/08/2026 (round 162) : un module désactivé en BO n'empêcherait plus le cron externe de continuer à tourner";
+        }
+
+        // Round 162 (13/08/2026) : neria-admin.js doit gérer le groupe radio
+        // heading_weight (retour visuel), désactiver le bouton d'aperçu
+        // signature pendant la requête, et limiter le fetch Watchdog par
+        // un timeout.
+        $jsSrc162 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/js/neria-admin.js');
+        if ($jsSrc162 === ''
+            || strpos($jsSrc162, "querySelectorAll('.neria-radio-card__input')") === false
+            || strpos($jsSrc162, "classList.toggle('neria-radio-card--selected'") === false
+        ) {
+            $offenders[] = "neria-admin.js : le groupe radio heading_weight (.neria-radio-card__input) n'a plus de retour visuel — régression du bug corrigé le 13/08/2026 (round 162)";
+        }
+        if ($jsSrc162 !== '') {
+            $posSig162 = strpos($jsSrc162, 'function initSignaturePreview()');
+            $sigBody162 = $posSig162 !== false ? substr($jsSrc162, $posSig162, 3600) : '';
+            if ($posSig162 === false || strpos($sigBody162, 'btn.disabled = true;') === false || strpos($sigBody162, 'btn.disabled = false;') === false) {
+                $offenders[] = "neria-admin.js : initSignaturePreview() ne désactive plus le bouton pendant la requête — régression du bug corrigé le 13/08/2026 (round 162)";
+            }
+        }
+        if ($jsSrc162 !== '' && strpos($jsSrc162, 'new AbortController()') === false) {
+            $offenders[] = "neria-admin.js : initWatchdogAnalyze() n'a plus de timeout (AbortController) sur son fetch() — régression du bug corrigé le 13/08/2026 (round 162)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
