@@ -5314,6 +5314,29 @@ class HealthCheckManager
             }
         }
 
+        // Round 159 (09/08/2026) : CalendarManager::checkAndSendDailyEvents()
+        // doit conserver son verrou scopé par idShop, pas global.
+        $calSrc159 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php');
+        if ($calSrc159 === '' || strpos($calSrc159, "GET_LOCK('neria_calendar_check_") === false || strpos($calSrc159, "RELEASE_LOCK('neria_calendar_check_") === false) {
+            $offenders[] = "CalendarManager::checkAndSendDailyEvents() n'a plus de verrou scopé par idShop — régression du bug corrigé le 09/08/2026 (round 159) : le traitement calendaire d'une boutique bloquerait de nouveau à tort celui d'une autre boutique concurrente";
+        }
+
+        // Round 159 (09/08/2026) : FontManager::generateCssVariables() doit
+        // conserver ses vrais défauts de marque (pas #000000 générique)
+        // pour les 4 couleurs design.
+        $fmSrc159 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/FontManager.php');
+        if ($fmSrc159 === '') {
+            $offenders[] = 'FontManager.php introuvable (garde-fou round 159 : generateCssVariables couleurs de marque par défaut)';
+        } else {
+            $posGcv159 = strpos($fmSrc159, 'public function generateCssVariables(string $lang): string');
+            $gcvBody159 = $posGcv159 !== false ? substr($fmSrc159, $posGcv159, 2200) : '';
+            if ($posGcv159 === false
+                || substr_count($gcvBody159, '\ConfigManager::DEFAULTS[\ConfigManager::KEY_COLOR_') < 4
+            ) {
+                $offenders[] = "FontManager::generateCssVariables() n'utilise plus les vrais défauts de marque (ConfigManager::DEFAULTS) pour sanitizeColor() — régression du bug corrigé le 09/08/2026 (round 159) : une couleur design corrompue retomberait de nouveau sur #000000 générique (fond noir + texte noir = email invisible) au lieu des vraies couleurs de marque";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
