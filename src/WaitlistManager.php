@@ -28,34 +28,49 @@ class WaitlistManager
 
     // ── Inscription / désinscription ─────────────────────────────
 
-    public function register(int $idCustomer, int $idProduct, int $idShop): bool
+    // Round 167 : $idProductAttribute optionnel (0 = toute déclinaison
+    // confondue, comportement historique) — sans lui, un client inscrit en
+    // attendant qu'une taille/couleur précise revienne en stock était
+    // notifié dès que N'IMPORTE QUELLE combinaison du produit repassait
+    // au-dessus de 0 (notifyProduct() ne sommait que le stock du PRODUIT),
+    // même si la déclinaison réellement attendue restait à 0 — "votre
+    // produit est de retour" pour un article que le client ne pouvait en
+    // réalité pas acheter dans la taille/couleur voulue. Infrastructure
+    // backend uniquement ce round : le paramètre reste 0 par défaut tant
+    // qu'aucun appelant (front, BO) ne propose encore de sélection de
+    // déclinaison — n'introduit aucun changement de comportement pour les
+    // appels existants.
+    public function register(int $idCustomer, int $idProduct, int $idShop, int $idProductAttribute = 0): bool
     {
-        if ($this->isRegistered($idCustomer, $idProduct, $idShop)) return true;
+        if ($this->isRegistered($idCustomer, $idProduct, $idShop, $idProductAttribute)) return true;
         $t   = $this->prefix . self::TABLE;
         $now = pSQL(date('Y-m-d H:i:s'));
-        // La clé unique porte sur (id_customer, id_product, id_shop) — un client
-        // multi-boutique doit pouvoir s'inscrire séparément sur chaque boutique
-        // où le même produit est en rupture, sans que l'inscription d'une
-        // boutique écrase celle d'une autre.
+        // La clé unique porte sur (id_customer, id_product, id_product_attribute,
+        // id_shop) — un client multi-boutique doit pouvoir s'inscrire
+        // séparément sur chaque boutique où le même produit est en rupture,
+        // sans que l'inscription d'une boutique écrase celle d'une autre ;
+        // de même pour 2 déclinaisons distinctes du même produit.
         return $this->db->execute(
-            "INSERT INTO `{$t}` (id_customer, id_product, id_shop, registered_at, notified_at, claim_started_at)
-             VALUES ({$idCustomer}, {$idProduct}, {$idShop}, '{$now}', NULL, NULL)
+            "INSERT INTO `{$t}` (id_customer, id_product, id_product_attribute, id_shop, registered_at, notified_at, claim_started_at)
+             VALUES ({$idCustomer}, {$idProduct}, {$idProductAttribute}, {$idShop}, '{$now}', NULL, NULL)
              ON DUPLICATE KEY UPDATE registered_at = '{$now}', notified_at = NULL, claim_started_at = NULL"
         );
     }
 
-    public function unregister(int $idCustomer, int $idProduct, int $idShop): bool
+    public function unregister(int $idCustomer, int $idProduct, int $idShop, int $idProductAttribute = 0): bool
     {
         return $this->db->delete(self::TABLE,
-            'id_customer = ' . $idCustomer . ' AND id_product = ' . $idProduct . ' AND id_shop = ' . $idShop
+            'id_customer = ' . $idCustomer . ' AND id_product = ' . $idProduct
+            . ' AND id_product_attribute = ' . $idProductAttribute . ' AND id_shop = ' . $idShop
         );
     }
 
-    public function isRegistered(int $idCustomer, int $idProduct, int $idShop): bool
+    public function isRegistered(int $idCustomer, int $idProduct, int $idShop, int $idProductAttribute = 0): bool
     {
         return (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$this->prefix}" . self::TABLE . "`
-             WHERE id_customer = {$idCustomer} AND id_product = {$idProduct} AND id_shop = {$idShop}
+             WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
+               AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}
                AND notified_at IS NULL"
         ) > 0;
     }
@@ -63,6 +78,31 @@ class WaitlistManager
     // ── Notification lors du retour en stock ─────────────────────
 
     public function notifyProduct(int $idProduct, int $idShop): int
+    {
+        // Round 167 : le plafond availableQty ci-dessous protège contre
+        // l'envoi à toute la file, mais PAS contre deux appels concurrents
+        // à notifyProduct() pour le MÊME produit (double hook
+        // actionUpdateQuantity, ou hook + appel manuel BO quasi simultanés)
+        // — chacun relit indépendamment le même stock disponible et notifie
+        // jusqu'à availableQty inscrits DIFFÉRENTS, promettant en tout
+        // jusqu'à 2× la quantité réellement disponible. GET_LOCK sérialise
+        // les appels par produit+boutique ; timeout 0 (fail-fast) car un
+        // 2e appel concurrent doit simplement attendre le prochain
+        // déclenchement plutôt que bloquer la requête HTTP admin en cours
+        // (ce hook tourne en synchrone dans actionUpdateQuantity).
+        $lockName = 'neria_waitlist_notify_' . $idProduct . '_' . $idShop;
+        if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)") !== 1) {
+            return 0;
+        }
+
+        try {
+            return $this->notifyProductLocked($idProduct, $idShop);
+        } finally {
+            $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
+        }
+    }
+
+    private function notifyProductLocked(int $idProduct, int $idShop): int
     {
         $rows = $this->db->executeS(
             "SELECT w.*, c.firstname, c.lastname, c.email, c.id_lang, w.id_shop,
@@ -98,9 +138,26 @@ class WaitlistManager
         // direct (même technique déjà utilisée dans UpsellManager pour ce
         // même problème) est la seule façon fiable d'agréger tout le stock
         // d'un produit à déclinaisons.
+        // Round 167 : en mode "stock partagé" entre boutiques d'un même
+        // groupe (Shop::getGroup()->share_stock), PrestaShop stocke la
+        // quantité réelle sur UNE SEULE ligne stock_available avec
+        // id_shop=0/id_shop_group=X (cf. StockAvailable::addSqlShopRestriction()
+        // dans le cœur) — jamais sur une ligne id_shop=$idShop. Le filtre
+        // `id_shop = $idShop` ci-dessus renvoyait donc systématiquement 0
+        // dans ce mode, empêchant TOUT inscrit d'être jamais notifié malgré
+        // du stock réellement disponible. Même logique de bascule que le
+        // cœur PS : ligne id_shop=0/id_shop_group=X si partagé, sinon
+        // id_shop=$idShop/id_shop_group=0 comme avant.
+        $shopGroup = new \Shop($idShop);
+        $shareStock = (bool) $shopGroup->getGroup()->share_stock;
+        if ($shareStock) {
+            $stockWhere = " AND id_shop = 0 AND id_shop_group = " . (int) $shopGroup->id_shop_group;
+        } else {
+            $stockWhere = " AND id_shop = " . (int) $idShop . " AND id_shop_group = 0";
+        }
         $availableQty = (int) $this->db->getValue(
             "SELECT COALESCE(SUM(quantity), 0) FROM `" . _DB_PREFIX_ . "stock_available`
-             WHERE id_product = " . (int) $idProduct . " AND id_shop = " . (int) $idShop
+             WHERE id_product = " . (int) $idProduct . $stockWhere
         );
         // availableQty <= 0 : rien de réellement disponible (stock à 0 au moment de
         // l'appel, race condition avec la mise à jour, ou déclinaison sans stock géré) —
@@ -111,6 +168,27 @@ class WaitlistManager
         if ($availableQty <= 0) {
             return 0;
         }
+
+        // Round 167 : une ligne inscrite pour une déclinaison PRÉCISE
+        // (id_product_attribute != 0) ne doit être notifiée que si CETTE
+        // déclinaison a réellement du stock — sinon un client attendant une
+        // taille précise était notifié dès qu'une AUTRE taille du même
+        // produit revenait en stock. Les inscriptions "toute déclinaison"
+        // (id_product_attribute = 0, comportement historique) restent
+        // filtrées uniquement sur le stock total du produit, déjà vérifié
+        // ci-dessus.
+        $rows = array_values(array_filter($rows, function (array $r) use ($idProduct, $stockWhere): bool {
+            $attr = (int) $r['id_product_attribute'];
+            if ($attr === 0) {
+                return true;
+            }
+            $qty = (int) $this->db->getValue(
+                "SELECT COALESCE(SUM(quantity), 0) FROM `" . _DB_PREFIX_ . "stock_available`
+                 WHERE id_product = " . (int) $idProduct . " AND id_product_attribute = " . $attr . $stockWhere
+            );
+            return $qty > 0;
+        }));
+
         $rows = array_slice($rows, 0, $availableQty);
 
         $sent = 0;
@@ -229,6 +307,24 @@ class WaitlistManager
                 continue; // un autre processus a déjà pris/prend cette notification
             }
 
+            // Round 167 : unregister() supprimait la ligne sans condition
+            // sur claim_started_at — un client se désinscrivant exactement
+            // dans la fenêtre entre le claim ci-dessus et Mail::Send()
+            // ci-dessous recevait quand même l'email "de retour en stock"
+            // qu'il venait de refuser (l'UPDATE final notified_at trouvait
+            // simplement 0 ligne, sans erreur). Cette re-vérification juste
+            // avant l'envoi referme la majeure partie de la fenêtre — elle
+            // ne peut pas annuler un envoi déjà en cours (latence SMTP de
+            // Mail::Send() elle-même reste un residu de fenêtre inévitable
+            // dans tout système de notification "au moins une fois").
+            $stillRegistered = (int) $this->db->getValue(
+                "SELECT COUNT(*) FROM `{$this->prefix}" . self::TABLE . "`
+                 WHERE id_customer = {$idCustomer} AND id_product = {$idProduct} AND id_shop = {$idShop}"
+            ) > 0;
+            if (!$stillRegistered) {
+                continue; // désinscrit entre le claim et l'envoi
+            }
+
             try {
                 $mailed = \Mail::Send(
                     $idLang,
@@ -326,5 +422,24 @@ class WaitlistManager
              LIMIT " . (int) $limit
         );
         return is_array($rows) ? $rows : [];
+    }
+
+    /**
+     * Round 167 : purge les inscriptions jamais satisfaites au-delà de
+     * $olderThanDays — sans cette purge, une inscription pour un produit
+     * jamais réapprovisionné restait indéfiniment en base (notified_at IS
+     * NULL), grossissant neria_waitlist sans limite et faussant à terme
+     * getStats()/getTopProducts(). N'affecte que les inscriptions non
+     * satisfaites (notified_at IS NULL) — un historique de notification
+     * déjà envoyée est conservé (utile pour les statistiques).
+     */
+    public function purgeStaleEntries(int $olderThanDays = 365): int
+    {
+        $this->db->execute(
+            "DELETE FROM `{$this->prefix}" . self::TABLE . "`
+             WHERE notified_at IS NULL
+               AND registered_at < DATE_SUB(NOW(), INTERVAL " . (int) $olderThanDays . " DAY)"
+        );
+        return (int) $this->db->Affected_Rows();
     }
 }

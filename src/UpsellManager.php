@@ -347,8 +347,16 @@ class UpsellManager
         $notIn  = $this->notInClause('p.id_product', $excluded);
         $stockShop = $idShop !== null ? ' AND sa.id_shop = ' . (int) $idShop : '';
 
+        // Round 167 : GROUP BY manquant, contrairement à findByAccessories()/
+        // findByCoPurchase() — un produit appartenant à plusieurs des
+        // catégories candidates (cp.id_category IN ({$inCats})) apparaissait
+        // en plusieurs lignes distinctes (une par catégorie), rendant
+        // l'ORDER BY non déterministe entre elles à égalité de ventes :
+        // getRow() pouvait renvoyer tantôt la ligne catégorie A tantôt B
+        // pour le même appel logique — l'étiquette catégorie affichée dans
+        // l'email variait sans raison fonctionnelle pour un même produit.
         return $this->db->getRow(
-            "SELECT p.id_product, pl.name, cp.id_category
+            "SELECT p.id_product, MIN(pl.name) AS name, MIN(cp.id_category) AS id_category
              FROM `{$this->prefix}category_product` cp
              JOIN `{$this->prefix}product` p
                   ON cp.id_product = p.id_product AND p.active = 1
@@ -360,10 +368,11 @@ class UpsellManager
                -- voir correctif identique dans findByAccessories() plus haut.
                AND (SELECT SUM(sa.quantity) FROM `{$this->prefix}stock_available` sa
                     WHERE sa.id_product = p.id_product{$stockShop}) > 0
+             GROUP BY p.id_product
              ORDER BY (
                  SELECT COUNT(*) FROM `{$this->prefix}order_detail` od
                  WHERE od.product_id = p.id_product
-             ) DESC"
+             ) DESC, p.id_product ASC"
         ) ?: null;
     }
 
@@ -708,7 +717,7 @@ class UpsellManager
                 SUM(tier = 'co_purchase')                         AS cnt_co_purchase,
                 SUM(tier = 'bestseller')                          AS cnt_bestseller
              FROM `{$table}`
-             WHERE sent_at >= '{$dateFrom}' AND id_shop = {$idShop}"
+             WHERE sent_at >= '{$dateFrom}' AND id_shop = " . (int) $idShop
         ) ?: [];
 
         $sent       = (int) ($row['total_sent']      ?? 0);

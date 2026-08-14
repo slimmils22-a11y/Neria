@@ -181,6 +181,21 @@ class CertificateManager
                 $serialNumber, $pdfContent, $order, (int) $customer->id_lang
             );
             if ($err !== '') {
+                // Round 167 : ce retour anticipé court-circuitait le log
+                // Watchdog "Certificat émis" plus bas (return AVANT de
+                // l'atteindre) — sans jamais en ajouter un dédié à cet
+                // échec d'envoi. Le certificat existe pourtant bel et bien
+                // en DB ($inserted a réussi ci-dessus, emailed reste à 0) :
+                // un échec SMTP silencieux laissait un certificat
+                // "fantôme" visible dans getAll()/les stats, sans aucune
+                // trace explicite du problème d'envoi dans le journal.
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this->module))->warning(
+                        'Certificat émis mais email non envoyé : ' . $serialNumber . ' — ' . $productName
+                        . ' (commande #' . $idOrder . ', client : ' . $customerEmail . ') — ' . $err,
+                        '', 'CertificateManager'
+                    );
+                }
                 return $err;
             }
 
@@ -236,6 +251,16 @@ class CertificateManager
             $row['artisan_note'] ?? '',
             $lang
         );
+        // Round 167 : contrairement à issue() (voir plus haut, isset($pdfResult['error'])),
+        // le retour de generatePdf() n'était jamais vérifié ici. Si la
+        // génération échoue (TCPDF manquant, exception TCPDF), $result vaut
+        // ['error' => ...] mais était retourné tel quel comme si c'était
+        // ['content'=>..., 'path'=>..., 'filename'=>...] — l'appelant BO
+        // (bouton "retélécharger") recevait alors un tableau sans clé
+        // 'content', au mieux un fichier vide envoyé au navigateur.
+        if (isset($result['error'])) {
+            return ['error' => $result['error']];
+        }
         return $result;
     }
 
@@ -382,6 +407,22 @@ class CertificateManager
         if (stripos($qrBaseUrl, 'http://') === 0) {
             $qrBaseUrl = 'https://' . substr($qrBaseUrl, 7);
         }
+        // Round 167 : si CFG_QR_URL est vide ET que getShopDomainSsl(true)
+        // renvoie aussi une chaîne vide (domaine mal configuré, exécution
+        // CLI/cron sans contexte HTTP), $qrBaseUrl valait '?cert=SERIAL'
+        // sans host — TCPDF ne lève aucune exception, le QR s'imprimait
+        // avec une URL invalide/illisible, sans qu'aucun log Watchdog ni
+        // retour d'erreur ne signale la dégradation. Désactive silencieusement
+        // le bloc QR plutôt que d'imprimer un lien cassé.
+        if ($qrBaseUrl === '' || !\Validate::isUrl($qrBaseUrl)) {
+            $qrEnabled = false;
+            if (class_exists('WatchdogManager')) {
+                (new \WatchdogManager($this->module))->warning(
+                    \WatchdogManager::i18nMsg('watchdog.certificate_qr_base_url_invalid', ['serial' => $serial]),
+                    '', 'CertificateManager'
+                );
+            }
+        }
 
         // Signature manuscrite
         $sigPath  = '';
@@ -501,10 +542,25 @@ class CertificateManager
 
             // ── Note de l'artisan ─────────────────────────────────
             if ($artisanNote !== '') {
+                // Round 167 : cette note est une saisie libre d'un employé
+                // BO, sans aucune limite de longueur — le pied de page plus
+                // bas (SetXY(20, 270)) reste à une position ABSOLUE fixe,
+                // indépendante de la hauteur réellement occupée ici. Une
+                // note très longue pouvait donc pousser le corps du texte/
+                // la signature au-delà de Y=270, chevauchant le pied de
+                // page (ou basculant sur une page suivante via
+                // SetAutoPageBreak, où le pied de page atterrit alors à un
+                // endroit incohérent). Borne la longueur affichée plutôt
+                // que de recalculer dynamiquement toutes les positions
+                // fixes qui suivent — mbstring pour ne pas couper un
+                // caractère multioctet au milieu.
+                $displayNote = mb_strlen($artisanNote) > 280
+                    ? mb_substr($artisanNote, 0, 279) . '…'
+                    : $artisanNote;
                 $this->pdfSetFont($pdf, $fontSerif, 'I', 10);
                 $pdf->SetTextColor(80, 60, 30);
                 $pdf->SetXY(25, $y);
-                $pdf->MultiCell(160, 6, '"' . $artisanNote . '"', 0, 'C');
+                $pdf->MultiCell(160, 6, '"' . $displayNote . '"', 0, 'C');
                 $y = $pdf->GetY() + 6;
             }
 

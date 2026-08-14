@@ -37,7 +37,7 @@
  *    DROP (verrou InnoDB) court-circuite l'ADD qui suit (opérande droite de
  *    && jamais évaluée), laissant la table SANS contrainte de déduplication
  *    jusqu'au prochain déclenchement de l'upgrade. Ici : vérifie l'existence
- *    réelle de chacune des 7 contraintes concernées et la recrée si absente
+ *    réelle de chacune des contraintes concernées et la recrée si absente
  *    (purge des doublons résiduels au préalable, motif déjà validé dans
  *    upgrade-1.0.36.php pour neria_queue).
  */
@@ -71,7 +71,19 @@ function neria_upgrade_1_0_40_ensure_unique_key(
         return true;
     }
 
-    $tableExists = (bool) $db->getValue("SHOW TABLES LIKE '{$table}'");
+    // Round 167 : "SHOW TABLES LIKE '...'" plante sous certains couples
+    // MySQL/PDO dès que Db::getValue() lui ajoute automatiquement
+    // "LIMIT 1" (MySQL rejette "SHOW TABLES LIKE '...' LIMIT 1", erreur
+    // 1064) — jamais atteint tant que $hasKey était déjà true pour toutes
+    // les tables listées par 1.0.41, ce bug latent est resté invisible
+    // jusqu'à ce qu'un correctif ultérieur renomme une de ces contraintes
+    // (neria_waitlist), faisant retomber cette branche à chaque nouvel
+    // appel. information_schema, déjà utilisé juste au-dessus, n'a pas ce
+    // problème.
+    $tableExists = (bool) $db->getValue("
+        SELECT COUNT(*) FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$table}'
+    ");
     if (!$tableExists) {
         return true;
     }
@@ -113,14 +125,24 @@ function upgrade_module_1_0_40(Neria $module): bool
         }
     }
 
-    // ── Bug 3 : 7 contraintes UNIQUE potentiellement manquantes ─────────
+    // ── Bug 3 : contraintes UNIQUE potentiellement manquantes ───────────
+    // Round 167 : l'entrée neria_waitlist ('uq_customer_product_shop', 3
+    // colonnes) a été retirée — upgrade-1.0.41.php remplace désormais
+    // délibérément cette contrainte par 'uq_customer_product_attr_shop' (4
+    // colonnes, avec id_product_attribute pour le suivi par déclinaison) et
+    // supprime l'ancienne. La laisser ici la recréerait à chaque appel
+    // isolé de cette fonction (ex. réparation de version, tests), la
+    // faisant coexister avec la nouvelle et réintroduisant, au niveau
+    // contrainte SQL, le blocage qu'1.0.41 corrige (un même client ne
+    // pourrait de nouveau s'inscrire que sur UNE seule déclinaison par
+    // produit). Dans le vrai chemin d'upgrade, 1.0.41 s'exécute toujours
+    // après 1.0.40 et corrige de toute façon cet état si besoin.
     $uniqueKeys = [
         [$prefix . 'neria_behavioral_sent',   'uq_customer_template_ref_shop', ['id_customer', 'template', 'ref_id', 'id_shop'], 'id'],
         [$prefix . 'neria_birthday_voucher',  'uq_customer_year_shop',         ['id_customer', 'year', 'id_shop'],               'id_voucher'],
         [$prefix . 'neria_milestone_voucher', 'uq_customer_milestone_shop',    ['id_customer', 'milestone', 'id_shop'],          'id_voucher'],
         [$prefix . 'neria_loyalty_rewards',   'uq_customer_tier_shop',         ['id_customer', 'tier_key', 'id_shop'],           'id_reward'],
         [$prefix . 'neria_preferences',       'uq_shop_customer_email_cat',    ['id_shop', 'id_customer', 'email', 'category'],  'id_preference'],
-        [$prefix . 'neria_waitlist',          'uq_customer_product_shop',      ['id_customer', 'id_product', 'id_shop'],         'id_neria_waitlist'],
         [$prefix . 'neria_collection_sent',   'uq_col_customer_shop',          ['id_neria_collection', 'id_customer', 'id_shop'], 'id'],
     ];
     foreach ($uniqueKeys as [$table, $keyName, $columns, $primaryKey]) {

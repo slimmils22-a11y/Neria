@@ -838,15 +838,16 @@ COMMENT='Déduplication des emails "Complétez votre look" Neria';
 -- Liste d'attente : clients souhaitant être notifiés au retour en stock.
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `PREFIX_neria_waitlist` (
-    `id_neria_waitlist` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `id_customer`       INT UNSIGNED NOT NULL,
-    `id_product`        INT UNSIGNED NOT NULL,
-    `id_shop`           INT UNSIGNED NOT NULL DEFAULT 1,
-    `registered_at`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `notified_at`       DATETIME     NULL DEFAULT NULL,
-    `claim_started_at`  DATETIME     NULL DEFAULT NULL COMMENT 'Réservation posée avant envoi, distincte de notified_at (posée après confirmation) — permet de détecter un crash entre les deux sans risquer de redéclencher un envoi déjà réussi',
+    `id_neria_waitlist`    INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `id_customer`          INT UNSIGNED NOT NULL,
+    `id_product`           INT UNSIGNED NOT NULL,
+    `id_product_attribute` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0 = toute déclinaison confondue (comportement historique) ; sinon déclinaison précise attendue par le client',
+    `id_shop`              INT UNSIGNED NOT NULL DEFAULT 1,
+    `registered_at`        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `notified_at`          DATETIME     NULL DEFAULT NULL,
+    `claim_started_at`     DATETIME     NULL DEFAULT NULL COMMENT 'Réservation posée avant envoi, distincte de notified_at (posée après confirmation) — permet de détecter un crash entre les deux sans risquer de redéclencher un envoi déjà réussi',
     PRIMARY KEY (`id_neria_waitlist`),
-    UNIQUE KEY `uq_customer_product_shop` (`id_customer`, `id_product`, `id_shop`),
+    UNIQUE KEY `uq_customer_product_attr_shop` (`id_customer`, `id_product`, `id_product_attribute`, `id_shop`),
     KEY `idx_product`   (`id_product`),
     KEY `idx_notified`  (`notified_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

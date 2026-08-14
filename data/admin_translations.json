@@ -57770,6 +57770,27 @@
         "nl": "Certificaatconfiguratie opgeslagen.",
         "gb": "Certificate configuration saved."
     },
+    "watchdog.certificate_qr_base_url_invalid": {
+        "fr": "Certificat {serial} : le QR code a été désactivé — l'URL de base (réglage ou domaine boutique) est vide ou invalide, un QR pointant vers une adresse cassée aurait été imprimé.",
+        "en": "Certificate {serial}: QR code disabled — the base URL (setting or shop domain) is empty or invalid, a QR pointing to a broken address would have been printed.",
+        "de": "Zertifikat {serial}: QR-Code deaktiviert — die Basis-URL (Einstellung oder Shop-Domain) ist leer oder ungültig, es wäre sonst ein QR-Code mit einer defekten Adresse gedruckt worden.",
+        "it": "Certificato {serial}: codice QR disattivato — l'URL di base (impostazione o dominio del negozio) è vuoto o non valido, sarebbe stato stampato un QR con un indirizzo non funzionante.",
+        "es": "Certificado {serial}: código QR desactivado — la URL base (ajuste o dominio de la tienda) está vacía o no es válida, se habría impreso un QR con una dirección rota.",
+        "pt": "Certificado {serial}: código QR desativado — o URL base (definição ou domínio da loja) está vazio ou inválido, teria sido impresso um QR com um endereço inválido.",
+        "br": "Certificado {serial}: código QR desativado — a URL base (configuração ou domínio da loja) está vazia ou inválida, um QR com um endereço quebrado teria sido impresso.",
+        "ar": "الشهادة {serial}: تم تعطيل رمز QR — عنوان URL الأساسي (الإعداد أو نطاق المتجر) فارغ أو غير صالح، وكان سيتم طباعة رمز QR يشير إلى عنوان معطّل.",
+        "ja": "証明書 {serial}：QRコードを無効化しました — 基準URL（設定またはショップドメイン）が空または無効なため、壊れたアドレスを指すQRコードが印刷されるところでした。",
+        "ko": "인증서 {serial}: QR 코드가 비활성화되었습니다 — 기본 URL(설정 또는 매장 도메인)이 비어 있거나 유효하지 않아 잘못된 주소를 가리키는 QR 코드가 인쇄될 뻔했습니다.",
+        "zh": "证书 {serial}：二维码已禁用 — 基础网址（设置或店铺域名）为空或无效，否则将打印指向无效地址的二维码。",
+        "tw": "證書 {serial}：QR Code 已停用 — 基礎網址（設定或商店網域）為空或無效，否則將列印指向失效位址的 QR Code。",
+        "ru": "Сертификат {serial}: QR-код отключён — базовый URL (настройка или домен магазина) пуст или недействителен, иначе был бы напечатан QR-код с неработающим адресом.",
+        "tr": "Sertifika {serial}: QR kod devre dışı bırakıldı — temel URL (ayar veya mağaza alan adı) boş veya geçersiz, aksi takdirde bozuk bir adrese yönlendiren bir QR kod yazdırılacaktı.",
+        "sv": "Certifikat {serial}: QR-koden inaktiverades — bas-URL:en (inställning eller butiksdomän) är tom eller ogiltig, en QR-kod som pekar på en trasig adress hade annars skrivits ut.",
+        "no": "Sertifikat {serial}: QR-koden ble deaktivert — grunn-URL-en (innstilling eller butikkdomene) er tom eller ugyldig, en QR-kode som peker til en ødelagt adresse ville ellers blitt skrevet ut.",
+        "da": "Certifikat {serial}: QR-koden blev deaktiveret — grund-URL'en (indstilling eller butiksdomæne) er tom eller ugyldig, en QR-kode, der peger på en ødelagt adresse, ville ellers være blevet udskrevet.",
+        "nl": "Certificaat {serial}: QR-code uitgeschakeld — de basis-URL (instelling of winkeldomein) is leeg of ongeldig, anders zou een QR-code met een kapotte link zijn afgedrukt.",
+        "gb": "Certificate {serial}: QR code disabled — the base URL (setting or shop domain) is empty or invalid, a QR pointing to a broken address would have been printed."
+    },
     "msg.certificate_qr_url_invalid": {
         "fr": "URL du QR code invalide : elle doit être une adresse https:// valide.",
         "en": "Invalid QR code URL: it must be a valid https:// address.",

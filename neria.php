@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.40';
+    const VERSION = '1.0.41';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -2059,6 +2059,27 @@ class Neria extends Module
                 $ran['watchdog_digest'] = true;
             } catch (\Throwable $e) {
                 // best-effort — ne bloque jamais le front
+            }
+        }
+
+        // ── Liste d'attente — purge des inscriptions jamais satisfaites
+        //    (round 167, throttle interne 24h) ───────────────────────
+        // Aucune méthode de purge n'existait jusqu'ici pour neria_waitlist :
+        // une inscription jamais suivie d'un retour en stock restait
+        // indéfiniment en base, grossissant la table sans limite et faussant
+        // à terme getStats()/getTopProducts(). DELETE naturellement sûr sous
+        // exécution concurrente (filtré sur une date, idempotent) — pas
+        // besoin de GET_LOCK contrairement aux jobs d'insertion ci-dessus.
+        if (class_exists('WaitlistManager')) {
+            $lastPurge = (int) \Configuration::getGlobalValue('NERIA_WAITLIST_LAST_PURGE');
+            if ((time() - $lastPurge) >= 86400) {
+                try {
+                    (new WaitlistManager($this))->purgeStaleEntries();
+                    \Configuration::updateGlobalValue('NERIA_WAITLIST_LAST_PURGE', time());
+                    $ran['waitlist_purge'] = true;
+                } catch (\Throwable $e) {
+                    // best-effort — ne bloque jamais le front
+                }
             }
         }
 
