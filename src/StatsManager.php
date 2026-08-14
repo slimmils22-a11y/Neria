@@ -298,7 +298,7 @@ class StatsManager
                  `id_customer`, `id_order`, `ref_scope`, `tracking_token`,
                  `event_type`, `is_mpp`, `abtest_variant`, `rendered_vars`,
                  `revenue`, `ip_address`, `user_agent`, `date_add`)
-             VALUES (%d, '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', %d, '%s', %s, %.2f, '%s', '%s', NOW())",
+             VALUES (%d, '%s', '%s', '%s', %d, %d, '%s', '%s', '%s', %d, '%s', %s, %s, '%s', '%s', NOW())",
             $table,
             $this->idShop,
             pSQL($template),
@@ -312,7 +312,12 @@ class StatsManager
             $isMpp,
             pSQL($extra['abtest'] ?? ''),
             $renderedVars !== null ? "'" . pSQL($renderedVars) . "'" : 'NULL',
-            $revenue,
+            // number_format() (jamais sprintf('%.2f')) : sprintf('%f') honore
+            // LC_NUMERIC du process PHP (setlocale() appelé par le BO pour le
+            // formatage prix/date d'un employé fr_FR/de_DE), transformant
+            // 12.5 en "12,50" → SQL invalide, INSERT silencieusement échoué,
+            // revenu/points fidélité perdus sans trace visible en BO.
+            number_format($revenue, 2, '.', ''),
             pSQL($this->anonymizeIp($this->getClientIp())),
             pSQL(substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255))
         );
@@ -1049,8 +1054,18 @@ class StatsManager
             }
         }
 
-        $sentTs  = (int) strtotime($sentDateAdd);
-        $elapsed = $sentTs > 0 ? (time() - $sentTs) : PHP_INT_MAX;
+        // TIMESTAMPDIFF calculé côté MySQL (pas time()-strtotime() côté PHP) :
+        // strtotime() interprète $sentDateAdd (produit par NOW() MySQL) dans
+        // le fuseau PHP (date.timezone). Si le serveur MySQL et PHP ne
+        // partagent pas le même fuseau (fréquent : MySQL en UTC système,
+        // PHP en Europe/Paris pour la boutique), l'écart décale $elapsed
+        // d'1-2h et fausse la classification MPP (signaux 2 et 3), donc les
+        // KPIs d'ouverture et l'éligibilité aux points de fidélité.
+        $elapsed = $sentDateAdd !== ''
+            ? (int) $this->db->getValue(
+                "SELECT TIMESTAMPDIFF(SECOND, '" . pSQL($sentDateAdd) . "', NOW())"
+            )
+            : PHP_INT_MAX;
 
         // Signal 2 : délai < 3 secondes (humanement impossible)
         if ($elapsed < 3) {

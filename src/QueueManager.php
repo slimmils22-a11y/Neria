@@ -627,10 +627,16 @@ class QueueManager
 
         // Heure de pointe globale (pour l'histogramme simplifié)
         // getRow() ajoute LIMIT 1 automatiquement — pas de LIMIT dans la requête.
+        // Round 168 : fenêtrée sur 90 jours (comme les autres stats de cette
+        // méthode, fenêtrées sur 30j) — auparavant sur tout l'historique,
+        // ce qui rendait le "pic horaire" affiché en BO de moins en moins
+        // représentatif du comportement récent des clients à mesure que la
+        // boutique vieillit.
         $peakRow = $this->db->getRow(
             'SELECT HOUR(date_add) AS h, COUNT(*) AS cnt
              FROM `' . $this->prefix . 'orders`
              WHERE valid = 1 AND id_shop = ' . $this->idShop . '
+               AND date_add >= DATE_SUB(NOW(), INTERVAL 90 DAY)
              GROUP BY HOUR(date_add)
              ORDER BY cnt DESC'
         );

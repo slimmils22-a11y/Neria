@@ -199,6 +199,44 @@ class EmailRenderer
         $this->watchdog()->{$level}($message, $template, 'EmailRenderer', $context);
     }
 
+    /** Langues où le séparateur décimal attendu par le lecteur est la virgule. */
+    private const CARBON_COMMA_DECIMAL_LANGS = [
+        'fr', 'de', 'es', 'it', 'pt', 'pt-br', 'nl', 'pl', 'ru', 'tr',
+    ];
+
+    /**
+     * Bloc HTML « empreinte carbone » — factorisé (round 168) : la formule et
+     * le HTML étaient dupliqués à l'identique dans les deux méthodes de
+     * compilation (preview et envoi réel). Une modification du facteur
+     * d'émission dans une seule occurrence désynchronisait l'aperçu BO de
+     * l'email réellement envoyé, sans qu'aucun test ne le détecte.
+     */
+    private function buildCarbonHtml(string $compiled, string $lang): string
+    {
+        if (!$this->config->isCarbonEnabled()) {
+            return '';
+        }
+
+        $sizeKb = strlen($compiled) / 1024;
+        // Round 168 : virgule pour les langues qui l'attendent (le module est
+        // localisé en 19 langues) — number_format() avec '.' en dur affichait
+        // "~0.3g CO₂" au milieu d'un footer entièrement en français.
+        $decimalSep = in_array($lang, self::CARBON_COMMA_DECIMAL_LANGS, true) ? ',' : '.';
+        $co2 = number_format($sizeKb * 0.02, 1, $decimalSep, ''); // ~0.3g pour 15 Ko
+
+        $link         = $this->config->getCarbonLink();
+        $carbonLabel  = $this->engine->get('_global', 'carbon_label', $lang) ?: 'Empreinte estimée de cet email';
+        $carbonMethod = $this->engine->get('_global', 'carbon_method', $lang) ?: 'méthodologie';
+        $linkHtml = $link
+            ? ' — <a href="' . htmlspecialchars($link, ENT_QUOTES, 'UTF-8') . '" style="color:#a09990;text-decoration:underline;" target="_blank">' . htmlspecialchars($carbonMethod, ENT_QUOTES, 'UTF-8') . '</a>'
+            : '';
+
+        return '<tr><td style="text-align:center;font-family:Georgia,Times New Roman,serif;'
+            . 'font-size:11px;color:#a09990;padding:4px 20px 20px;line-height:1.8;">'
+            . '🌱 ' . htmlspecialchars($carbonLabel, ENT_QUOTES, 'UTF-8') . '&nbsp;: ~' . $co2 . 'g CO₂' . $linkHtml
+            . '</td></tr>';
+    }
+
     /**
      * Réglage « journaliser les emails internes » (mis en cache pour la requête).
      *
@@ -2463,21 +2501,7 @@ class EmailRenderer
 
         // Empreinte carbone — injecté AVANT le CSS inlining (DOMDocument déplace
         // les commentaires HTML hors des <table>, le str_replace ne les retrouve plus après)
-        $carbonHtml = '';
-        if ($this->config->isCarbonEnabled()) {
-            $sizeKb  = strlen($compiled) / 1024;
-            $co2     = number_format($sizeKb * 0.02, 1, '.', ''); // ~0.3g pour 15 Ko
-            $link    = $this->config->getCarbonLink();
-            $carbonLabel  = $this->engine->get('_global', 'carbon_label', $lang) ?: 'Empreinte estimée de cet email';
-            $carbonMethod = $this->engine->get('_global', 'carbon_method', $lang) ?: 'méthodologie';
-            $linkHtml = $link
-                ? ' — <a href="' . htmlspecialchars($link, ENT_QUOTES, 'UTF-8') . '" style="color:#a09990;text-decoration:underline;" target="_blank">' . htmlspecialchars($carbonMethod, ENT_QUOTES, 'UTF-8') . '</a>'
-                : '';
-            $carbonHtml = '<tr><td style="text-align:center;font-family:Georgia,Times New Roman,serif;'
-                . 'font-size:11px;color:#a09990;padding:4px 20px 20px;line-height:1.8;">'
-                . '🌱 ' . htmlspecialchars($carbonLabel, ENT_QUOTES, 'UTF-8') . '&nbsp;: ~' . $co2 . 'g CO₂' . $linkHtml
-                . '</td></tr>';
-        }
+        $carbonHtml = $this->buildCarbonHtml($compiled, $lang);
         $compiled = str_replace('<!-- NERIA_CARBON -->', $carbonHtml, $compiled);
 
         // Inline CSS pour compatibilité Gmail / Orange / Yahoo (suppriment <style>)
@@ -2938,21 +2962,7 @@ class EmailRenderer
 
         // ── Empreinte carbone — injecté avant CssInliner (DOMDocument déplace
         // les commentaires hors des <table>) et avant l'écriture du fichier ──
-        $carbonHtml = '';
-        if ($this->config->isCarbonEnabled()) {
-            $sizeKb   = strlen($compiled) / 1024;
-            $co2      = number_format($sizeKb * 0.02, 1, '.', '');
-            $carbonLink   = $this->config->getCarbonLink();
-            $carbonLabel  = $this->engine->get('_global', 'carbon_label', $lang) ?: 'Empreinte estimée de cet email';
-            $carbonMethod = $this->engine->get('_global', 'carbon_method', $lang) ?: 'méthodologie';
-            $carbonLinkHtml = $carbonLink
-                ? ' — <a href="' . htmlspecialchars($carbonLink, ENT_QUOTES, 'UTF-8') . '" style="color:#a09990;text-decoration:underline;" target="_blank">' . htmlspecialchars($carbonMethod, ENT_QUOTES, 'UTF-8') . '</a>'
-                : '';
-            $carbonHtml = '<tr><td style="text-align:center;font-family:Georgia,Times New Roman,serif;'
-                . 'font-size:11px;color:#a09990;padding:4px 20px 20px;line-height:1.8;">'
-                . '🌱 ' . htmlspecialchars($carbonLabel, ENT_QUOTES, 'UTF-8') . '&nbsp;: ~' . $co2 . 'g CO₂' . $carbonLinkHtml
-                . '</td></tr>';
-        }
+        $carbonHtml = $this->buildCarbonHtml($compiled, $lang);
         $compiled = str_replace('<!-- NERIA_CARBON -->', $carbonHtml, $compiled);
 
         // ── Inline CSS pour compatibilité Gmail / Orange / Yahoo ─────────────
