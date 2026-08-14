@@ -5583,6 +5583,53 @@ class HealthCheckManager
             $offenders[] = "DomainReputationManager::computeScore() ne distingue plus ip_missing de skipped — régression du bug corrigé le 14/08/2026 (round 165) : un domaine expéditeur cassé obtiendrait de nouveau un plancher de score de 30 pts au lieu de 0";
         }
 
+        // Round 166 (14/08/2026) : SegmentManager::recomputeAll() doit
+        // purger les segments des clients sortis du périmètre de calcul,
+        // comme ChurnScoreManager/PropensityScoreManager.
+        $smSrc166 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php');
+        if ($smSrc166 === '' || strpos($smSrc166, 'DELETE t FROM `{$table}` t') === false || strpos($smSrc166, 'watchdog.segment_purge_failed') === false) {
+            $offenders[] = "SegmentManager::recomputeAll() ne purge plus les segments des clients sortis du périmètre — régression du bug corrigé le 14/08/2026 (round 166) : un client purgé RGPD garderait de nouveau indéfiniment son ancien segment";
+        }
+
+        // Round 166 (14/08/2026) : ChurnScoreManager::recomputeAll() doit
+        // vérifier $sqlOk AVANT le retour anticipé sur $rows vide.
+        $csmSrc166 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php');
+        if ($csmSrc166 !== '') {
+            $posSqlOk166 = strpos($csmSrc166, '$sqlOk = $this->db->execute($purgeSql);');
+            $posEmpty166 = $posSqlOk166 !== false ? strpos($csmSrc166, 'if (empty($rows)) {', $posSqlOk166) : false;
+            $posCheck166 = $posSqlOk166 !== false ? strpos($csmSrc166, 'if (!$sqlOk) {', $posSqlOk166) : false;
+            if ($posSqlOk166 === false || $posEmpty166 === false || $posCheck166 === false || $posCheck166 >= $posEmpty166) {
+                $offenders[] = "ChurnScoreManager::recomputeAll() ne vérifie plus \$sqlOk avant son retour anticipé sur \$rows vide — régression du bug corrigé le 14/08/2026 (round 166) : un échec de purge redeviendrait invisible pour une boutique sans client éligible";
+            }
+        } else {
+            $offenders[] = 'ChurnScoreManager.php introuvable (garde-fou round 166)';
+        }
+
+        // Round 166 (14/08/2026) : PropensityScoreManager::recalculateAll()
+        // doit capturer le résultat du DELETE de purge et le journaliser.
+        $psmSrc166 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PropensityScoreManager.php');
+        if ($psmSrc166 === '' || strpos($psmSrc166, '$purgeOk = $this->db->execute($purgeSql);') === false || strpos($psmSrc166, 'watchdog.propensity_purge_failed') === false) {
+            $offenders[] = "PropensityScoreManager::recalculateAll() ne capture plus le résultat du DELETE de purge — régression du bug corrigé le 14/08/2026 (round 166) : des scores obsolètes pourraient rester en base indéfiniment sans trace";
+        }
+
+        // Round 166 (14/08/2026) : LoyaltyManager::awardPoints() doit
+        // resynchroniser \$idShop sur la boutique réelle de id_stat.
+        $lmSrc166 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
+        if ($lmSrc166 === '' || strpos($lmSrc166, 'SELECT id_shop FROM `{$this->prefix}neria_stat` WHERE id_stat = ') === false) {
+            $offenders[] = "LoyaltyManager::awardPoints() ne resynchronise plus \$idShop sur la boutique réelle de id_stat — régression du bug corrigé le 14/08/2026 (round 166) : un \$idShop incohérent pourrait de nouveau faire échouer silencieusement un recrédit de points";
+        }
+
+        // Round 166 (14/08/2026) : neria-emergency.php doit rattraper
+        // \Throwable (pas seulement \Exception) au chargement de config et
+        // à la connexion PDO, et ne plus afficher de message SQL brut.
+        $emergSrc166 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria-emergency.php');
+        if ($emergSrc166 === '' || substr_count($emergSrc166, 'catch (\Throwable $e) {') < 2) {
+            $offenders[] = "neria-emergency.php ne rattrape plus \\Throwable sur le chargement de config et la connexion PDO — régression du bug corrigé le 14/08/2026 (round 166) : un ParseError/Error redeviendrait fatal et non géré";
+        }
+        if ($emergSrc166 === '' || strpos($emergSrc166, '$logsError = $e->getMessage();') !== false) {
+            $offenders[] = "neria-emergency.php affiche de nouveau le message d'exception brut de la lecture des logs — régression du bug corrigé le 14/08/2026 (round 166) : une erreur SQL redeviendrait exposée en clair après authentification";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
