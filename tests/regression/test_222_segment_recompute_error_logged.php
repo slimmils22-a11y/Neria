@@ -23,7 +23,7 @@ function run_test(): array
 
     $posFn = strpos($src, 'public function recomputeAll(): int');
     neria_assert($posFn !== false, 'recomputeAll() introuvable — jeu de test invalide');
-    $body = substr($src, $posFn, 6200);
+    $body = substr($src, $posFn, 7900);
 
     neria_assert(
         strpos($body, '$execOk = $this->db->execute($sql);') !== false,
