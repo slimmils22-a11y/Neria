@@ -2947,7 +2947,7 @@ class HealthCheckManager
         if ($up2Src === '') {
             $offenders[] = 'UpsellManager.php introuvable (getStats/getLog scopés par idShop)';
         } else {
-            if (strpos($up2Src, "WHERE sent_at >= '{\$dateFrom}' AND id_shop = {\$idShop}") === false) {
+            if (strpos($up2Src, "WHERE sent_at >= '{\$dateFrom}' AND id_shop = \" . (int) \$idShop") === false) {
                 $offenders[] = "UpsellManager::getStats() ne filtre plus id_shop — les KPIs BO Upsell pourraient de nouveau mélanger les données de toutes les boutiques";
             }
             if (strpos($up2Src, 'WHERE u.id_shop = {$idShop}') === false) {
@@ -5696,6 +5696,37 @@ class HealthCheckManager
         }
         if ($umSrc167 === '' || strpos($umSrc167, 'MIN(pl.name) AS name, MIN(cp.id_category) AS id_category') === false) {
             $offenders[] = "UpsellManager::findByCategoryBestseller() n'est plus déterministe (GROUP BY/MIN manquants) — régression du bug corrigé le 14/08/2026 (round 167) : un produit multi-catégories redeviendrait affiché avec une catégorie non déterministe";
+        }
+
+        // Round 168 (14/08/2026) : StatsManager::record() doit formater le
+        // revenu via number_format() (jamais sprintf('%.2f'), sensible à
+        // LC_NUMERIC) et detectMpp() doit calculer le délai écoulé côté
+        // MySQL (TIMESTAMPDIFF), pas via time()-strtotime() côté PHP.
+        $smSrc168 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        if ($smSrc168 === '' || strpos($smSrc168, "number_format(\$revenue, 2, '.', '')") === false) {
+            $offenders[] = "StatsManager::record() ne formate plus le revenu via number_format() — régression du bug corrigé le 14/08/2026 (round 168) : sous une locale à virgule décimale (LC_NUMERIC), l'INSERT échouerait de nouveau silencieusement et la conversion serait perdue";
+        }
+        if ($smSrc168 === '' || strpos($smSrc168, 'TIMESTAMPDIFF(SECOND') === false) {
+            $offenders[] = "StatsManager::detectMpp() ne calcule plus le délai écoulé côté MySQL (TIMESTAMPDIFF) — régression du bug corrigé le 14/08/2026 (round 168) : la classification MPP redeviendrait dépendante de l'alignement des fuseaux PHP/MySQL";
+        }
+
+        // Round 168 (14/08/2026) : EmailRenderer doit factoriser le calcul
+        // de l'empreinte carbone dans buildCarbonHtml() (formule dupliquée
+        // auparavant) et adapter le séparateur décimal du CO2 à la langue.
+        $erSrc168 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($erSrc168 === '' || strpos($erSrc168, 'private function buildCarbonHtml(string $compiled, string $lang): string') === false) {
+            $offenders[] = "EmailRenderer::buildCarbonHtml() a disparu — régression du bug corrigé le 14/08/2026 (round 168) : le calcul CO2 redeviendrait dupliqué entre l'aperçu BO et l'envoi réel, risquant une désynchronisation";
+        }
+        if ($erSrc168 === '' || strpos($erSrc168, 'CARBON_COMMA_DECIMAL_LANGS') === false) {
+            $offenders[] = "EmailRenderer ne choisit plus le séparateur décimal du CO2 selon la langue — régression du bug corrigé le 14/08/2026 (round 168) : un footer en français afficherait de nouveau '~0.3g CO₂' avec un point";
+        }
+
+        // Round 168 (14/08/2026) : QueueManager::getStats() doit fenêtrer le
+        // calcul du peak_hour sur 90 jours, cohérent avec les autres stats
+        // de la méthode (30j), pas sur tout l'historique des commandes.
+        $qmSrc168 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        if ($qmSrc168 === '' || strpos($qmSrc168, 'date_add >= DATE_SUB(NOW(), INTERVAL 90 DAY)') === false) {
+            $offenders[] = "QueueManager::getStats() ne fenêtre plus le calcul du peak_hour — régression du bug corrigé le 14/08/2026 (round 168) : le pic horaire redeviendrait calculé sur tout l'historique, de moins en moins représentatif sur une boutique ancienne";
         }
 
         if ($offenders) {
