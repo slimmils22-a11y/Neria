@@ -87,7 +87,20 @@ if (!file_exists($paramsFile)) {
     emergencyDie(e18n($T, 'config_missing'), $T, $emergencyDir, $emergencyLang);
 }
 
-$params = require $paramsFile;
+// Round 166 : ce require n'était entouré d'aucun try/catch, et le bloc PDO
+// ci-dessous ne rattrapait que \Exception, pas \Throwable. Un
+// parameters.php corrompu syntaxiquement (déploiement interrompu — le
+// scénario type de "PS core cassé" que cette page prétend justement
+// survivre) lève un \ParseError/\Error, qui n'hérite PAS d'\Exception :
+// ni rattrapé ici ni par le catch(Exception) plus bas, la page produisait
+// une erreur fatale brute au lieu du message propre 'config_missing'/
+// 'db_connection_failed' prévu par le design.
+try {
+    $params = require $paramsFile;
+} catch (\Throwable $e) {
+    error_log('[Neria emergency] Fichier de configuration illisible : ' . $e->getMessage());
+    emergencyDie(e18n($T, 'config_missing'), $T, $emergencyDir, $emergencyLang);
+}
 $p      = $params['parameters'] ?? [];
 
 $dbHost   = $p['database_host']     ?? 'localhost';
@@ -105,7 +118,7 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_TIMEOUT            => 5,
     ]);
-} catch (Exception $e) {
+} catch (\Throwable $e) {
     error_log('[Neria emergency] Connexion DB échouée : ' . $e->getMessage());
     emergencyDie(e18n($T, 'db_connection_failed'), $T, $emergencyDir, $emergencyLang);
 }
@@ -151,8 +164,17 @@ try {
     $stmt->execute();
     $logs = $stmt->fetchAll();
 } catch (Exception $e) {
+    // Round 166 : contrairement à tous les autres blocs de lecture de ce
+    // fichier (health checks, bounces, compteurs — qui avalent leur erreur
+    // silencieusement), celui-ci affichait $e->getMessage() en clair dans
+    // la page APRÈS authentification par token — potentiellement le nom du
+    // driver SQL, la structure de la requête, le préfixe de table réel.
+    // Incohérent avec le principe explicite du fichier ("aucun détail
+    // technique renvoyé à l'appelant") : le détail va désormais uniquement
+    // au log serveur, comme partout ailleurs dans cette page.
+    error_log('[Neria emergency] Lecture des logs échouée : ' . $e->getMessage());
     $logs = [];
-    $logsError = $e->getMessage();
+    $logsError = true;
 }
 
 // Derniers résultats de santé
@@ -391,7 +413,7 @@ tr:hover td { background: #fafafa; }
       </div>
 
       <?php if (empty($logs)): ?>
-        <div class="no-data"><?= htmlspecialchars(e18n($T, 'no_logs')) ?><?= isset($logsError) ? ' — ' . htmlspecialchars($logsError) : '' ?>.</div>
+        <div class="no-data"><?= htmlspecialchars(e18n($T, 'no_logs')) ?><?= isset($logsError) ? ' — ' . htmlspecialchars(e18n($T, 'token_read_error')) : '' ?></div>
       <?php else: ?>
       <div class="table-wrap">
         <table id="logTable">

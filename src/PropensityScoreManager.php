@@ -169,7 +169,19 @@ class PropensityScoreManager
         if (!empty($keepIds)) {
             $purgeSql .= ' AND id_customer NOT IN (' . implode(',', $keepIds) . ')';
         }
-        $this->db->execute($purgeSql);
+        // Round 166 : le résultat du DELETE n'était même pas capturé — aucun
+        // mécanisme pour signaler un échec de purge au Watchdog (contrairement
+        // à ChurnScoreManager::recomputeAll(), qui a au moins un $sqlOk). Un
+        // verrou/timeout sur ce DELETE en fin de run laissait les scores de
+        // clients sortis du périmètre indéfiniment en base, alimentant
+        // getAlertCustomers() avec de fausses alertes, sans aucune trace.
+        $purgeOk = $this->db->execute($purgeSql);
+        if (!$purgeOk) {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.propensity_purge_failed'),
+                '', 'PropensityScore'
+            );
+        }
 
         $alerts = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_propensity_score`

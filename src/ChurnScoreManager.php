@@ -196,6 +196,21 @@ class ChurnScoreManager
         // count($chunk) plutôt que sur le résultat réel des requêtes.
         $sqlOk = $this->db->execute($purgeSql);
 
+        // Round 166 : quand $rows est vide (boutique jeune où le filtre
+        // sent_p2/sent_p3 ci-dessus élimine tous les clients), la fonction
+        // retournait immédiatement 0 SANS jamais vérifier $sqlOk ni logger
+        // — un DELETE réellement en échec (verrou concurrent, table
+        // corrompue) restait donc totalement invisible dans ce cas précis,
+        // alors que le commentaire du round 148 promet explicitement que
+        // $sqlOk sert à tracer ces échecs. Le check est désormais fait
+        // AVANT ce retour anticipé, pas seulement sur le chemin normal.
+        if (!$sqlOk) {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.churn_score_partial_failure', ['n' => 0]),
+                '', 'ChurnScore'
+            );
+        }
+
         if (empty($rows)) {
             return 0;
         }

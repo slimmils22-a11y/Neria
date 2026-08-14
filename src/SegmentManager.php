@@ -202,6 +202,37 @@ class SegmentManager
         $execOk = $this->db->execute($sql);
         $affected = (int) $this->db->Affected_Rows();
 
+        // Round 166 : contrairement à ChurnScoreManager::recomputeAll() et
+        // PropensityScoreManager::recalculateAll(), cette méthode ne
+        // purgeait JAMAIS les lignes neria_segment des clients sortis du
+        // périmètre de calcul (l'INSERT ... ON DUPLICATE KEY UPDATE
+        // ci-dessus ne fait que créer/mettre à jour, jamais supprimer). Un
+        // client purgé RGPD (ps_neria_stat vidée) gardait indéfiniment son
+        // ancien segment (ex. 'ambassador') — il continuait d'apparaître
+        // dans getCustomersBySegment() et pouvait recevoir des campagnes
+        // ciblées alors qu'il n'a plus aucune donnée réelle. On supprime
+        // ici les lignes dont le client n'a plus AUCUN événement dans
+        // neria_stat pour cette boutique (LEFT JOIN … IS NULL) — les
+        // nouveaux clients en période de grâce (exclus de l'INSERT
+        // ci-dessus mais qui ONT des stats) n'ont eux jamais eu de ligne à
+        // purger, donc ne sont pas concernés.
+        $purgeSql = "
+            DELETE t FROM `{$table}` t
+            LEFT JOIN (
+                SELECT id_customer FROM `{$stat}`
+                WHERE id_shop = {$shop} AND id_customer > 0
+                GROUP BY id_customer
+            ) keep ON keep.id_customer = t.id_customer
+            WHERE t.id_shop = {$shop} AND keep.id_customer IS NULL
+        ";
+        $purgeOk = $this->db->execute($purgeSql);
+        if ($purgeOk === false) {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.segment_purge_failed'),
+                '', 'SegmentManager'
+            );
+        }
+
         if ($execOk === false) {
             $this->watchdog()->error(
                 \WatchdogManager::i18nMsg('watchdog.segment_recompute_sql_failed', []),

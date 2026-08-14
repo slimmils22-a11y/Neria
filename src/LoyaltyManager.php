@@ -90,6 +90,26 @@ class LoyaltyManager
         // est désactivé par le marchand.
         $idShop = $idShop ?? (int) \Context::getContext()->shop->id;
 
+        // Round 166 : la clé UNIQUE (id_stat, event_type) de
+        // neria_loyalty_points n'inclut délibérément pas id_shop (un id_stat
+        // donné appartient déjà à une seule boutique — cf. commentaire du
+        // schéma). Mais rien ne garantissait jusqu'ici que le $idShop
+        // FOURNI par l'appelant correspondait bien à cette boutique réelle :
+        // un appel avec un $idShop incohérent (contexte BO au moment d'un
+        // clawback annulé, par exemple) aurait fait échouer silencieusement
+        // l'INSERT IGNORE pour la boutique attendue sans jamais recréditer
+        // la bonne — les points restant attribués à quelque boutique que ce
+        // soit qui avait fait le tout premier INSERT. On resynchronise donc
+        // systématiquement $idShop sur la boutique RÉELLE de id_stat
+        // (ps_neria_stat.id_shop, la seule source de vérité), quel que soit
+        // ce qui a été fourni en paramètre ou déduit du contexte courant.
+        $realShop = (int) $this->db->getValue(
+            "SELECT id_shop FROM `{$this->prefix}neria_stat` WHERE id_stat = " . (int) $idStat
+        );
+        if ($realShop > 0) {
+            $idShop = $realShop;
+        }
+
         $inserted = $this->db->execute(
             "INSERT IGNORE INTO `{$this->prefix}" . self::TABLE_POINTS . "`
                 (id_customer, id_stat, event_type, points, id_shop, date_add)
