@@ -17,8 +17,10 @@
  *
  * Test comportemental réel : invoque upgrade_module_1_0_40() deux fois de
  * suite (la 2e fois doit être un no-op sans erreur — idempotence réelle),
- * vérifie que les 4 clés de config globales valent bien '1', et que les 7
- * contraintes UNIQUE existent bien en base après coup.
+ * vérifie que les 4 clés de config globales valent bien '1', et que les 6
+ * contraintes UNIQUE encore de la responsabilité de ce script existent
+ * bien en base après coup (neria_waitlist exclue depuis le round 167 —
+ * voir commentaire plus bas).
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -49,13 +51,22 @@ function run_test(): array
         );
     }
 
+    // Round 167 : 'uq_customer_product_shop' sur neria_waitlist a été
+    // délibérément remplacée par upgrade-1.0.41.php par
+    // 'uq_customer_product_attr_shop' (ajout d'id_product_attribute pour le
+    // suivi par déclinaison) — ne plus la vérifier ici, sous peine que ce
+    // test RECRÉE lui-même l'ancienne contrainte 3 colonnes en invoquant
+    // upgrade_module_1_0_40() en isolation (son rescue "recrée si absente"
+    // ne sait rien de la migration 1.0.41 postérieure), la faisant coexister
+    // avec la nouvelle et bloquant de nouveau, au niveau contrainte SQL,
+    // l'inscription d'un même client sur 2 déclinaisons du même produit —
+    // effet de bord sur la base de test partagée par le reste de la suite.
     $uniqueKeys = [
         [$prefix . 'neria_behavioral_sent',   'uq_customer_template_ref_shop'],
         [$prefix . 'neria_birthday_voucher',  'uq_customer_year_shop'],
         [$prefix . 'neria_milestone_voucher', 'uq_customer_milestone_shop'],
         [$prefix . 'neria_loyalty_rewards',   'uq_customer_tier_shop'],
         [$prefix . 'neria_preferences',       'uq_shop_customer_email_cat'],
-        [$prefix . 'neria_waitlist',          'uq_customer_product_shop'],
         [$prefix . 'neria_collection_sent',   'uq_col_customer_shop'],
     ];
     foreach ($uniqueKeys as [$table, $keyName]) {
@@ -71,6 +82,6 @@ function run_test(): array
 
     return [
         'pass'    => true,
-        'message' => "upgrade_module_1_0_40() s'exécute correctement et de façon idempotente : 4 réglages globaux corrects, 7 contraintes UNIQUE vérifiées/recréées",
+        'message' => "upgrade_module_1_0_40() s'exécute correctement et de façon idempotente : 4 réglages globaux corrects, 6 contraintes UNIQUE vérifiées/recréées",
     ];
 }
