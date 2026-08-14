@@ -5630,6 +5630,74 @@ class HealthCheckManager
             $offenders[] = "neria-emergency.php affiche de nouveau le message d'exception brut de la lecture des logs — régression du bug corrigé le 14/08/2026 (round 166) : une erreur SQL redeviendrait exposée en clair après authentification";
         }
 
+        // Round 167 (14/08/2026) : WaitlistManager doit gérer le stock
+        // partagé, verrouiller notifyProduct(), re-vérifier l'inscription
+        // avant l'envoi, suivre les déclinaisons et purger les entrées
+        // obsolètes.
+        $wlSrc167 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php');
+        if ($wlSrc167 === ''
+            || strpos($wlSrc167, '->getGroup()->share_stock') === false
+            || strpos($wlSrc167, 'id_shop = 0 AND id_shop_group = ') === false
+        ) {
+            $offenders[] = "WaitlistManager ne gère plus le mode stock partagé entre boutiques d'un groupe — régression du bug corrigé le 14/08/2026 (round 167) : aucun inscrit ne serait de nouveau jamais notifié pour une boutique en stock partagé";
+        }
+        if ($wlSrc167 === '' || strpos($wlSrc167, "GET_LOCK('\" . pSQL(\$lockName) . \"', 0)") === false) {
+            $offenders[] = "WaitlistManager::notifyProduct() n'est plus protégée par un GET_LOCK — régression du bug corrigé le 14/08/2026 (round 167) : deux appels concurrents pourraient de nouveau chacun notifier des inscrits différents pour la même quantité limitée";
+        }
+        if ($wlSrc167 === '' || strpos($wlSrc167, '$stillRegistered') === false) {
+            $offenders[] = "WaitlistManager ne re-vérifie plus l'inscription juste avant l'envoi — régression du bug corrigé le 14/08/2026 (round 167) : un client désinscrit entre le claim et l'envoi recevrait de nouveau l'email sans mitigation";
+        }
+        if ($wlSrc167 === ''
+            || strpos($wlSrc167, 'int $idProductAttribute = 0): bool') === false
+            || strpos($wlSrc167, 'id_product_attribute = {$idProductAttribute}') === false
+        ) {
+            $offenders[] = "WaitlistManager ne suit plus les inscriptions par déclinaison précise — régression du bug corrigé le 14/08/2026 (round 167) : un client pourrait de nouveau être notifié pour la mauvaise taille/couleur";
+        }
+        if ($wlSrc167 === '' || strpos($wlSrc167, 'public function purgeStaleEntries(int $olderThanDays = 365): int') === false) {
+            $offenders[] = "WaitlistManager::purgeStaleEntries() a disparu — régression du bug corrigé le 14/08/2026 (round 167) : neria_waitlist grossirait de nouveau indéfiniment";
+        }
+
+        // Round 167 (14/08/2026) : checkWaitlistBacklog() doit gérer le
+        // même mode stock partagé que WaitlistManager::notifyProduct().
+        $hcmSelf167 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        if ($hcmSelf167 === ''
+            || strpos($hcmSelf167, "\$rowShop = new \Shop((int) \$row['id_shop']);") === false
+            || strpos($hcmSelf167, "if ((bool) \$rowShop->getGroup()->share_stock) {") === false
+        ) {
+            $offenders[] = "HealthCheckManager::checkWaitlistBacklog() ne gère plus le mode stock partagé — régression du bug corrigé le 14/08/2026 (round 167) : ce garde-fou ne détecterait de nouveau jamais de backlog pour une boutique en stock partagé";
+        }
+
+        // Round 167 (14/08/2026) : CertificateManager — redownload() doit
+        // vérifier l'erreur de generatePdf(), le QR doit se désactiver sur
+        // URL de base invalide, la note de l'artisan doit être bornée, un
+        // échec d'envoi email doit être journalisé.
+        $cmSrc167 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        if ($cmSrc167 === '' || strpos($cmSrc167, "isset(\$result['error'])") === false) {
+            $offenders[] = "CertificateManager::redownload() ne vérifie plus le retour de generatePdf() — régression du bug corrigé le 14/08/2026 (round 167)";
+        }
+        if ($cmSrc167 === ''
+            || strpos($cmSrc167, "\$qrBaseUrl === '' || !\Validate::isUrl(\$qrBaseUrl)") === false
+            || strpos($cmSrc167, 'watchdog.certificate_qr_base_url_invalid') === false
+        ) {
+            $offenders[] = "CertificateManager ne désactive plus le QR code sur URL de base invalide — régression du bug corrigé le 14/08/2026 (round 167) : un QR cassé pourrait de nouveau être imprimé silencieusement";
+        }
+        if ($cmSrc167 === '' || strpos($cmSrc167, 'mb_strlen($artisanNote) > 280') === false) {
+            $offenders[] = "CertificateManager ne borne plus la longueur de la note de l'artisan — régression du bug corrigé le 14/08/2026 (round 167) : une note très longue pourrait de nouveau chevaucher le pied de page du certificat PDF";
+        }
+        if ($cmSrc167 === '' || strpos($cmSrc167, 'Certificat émis mais email non envoyé') === false) {
+            $offenders[] = "CertificateManager n'journalise plus l'échec d'envoi d'email de certificat — régression du bug corrigé le 14/08/2026 (round 167) : un certificat 'fantôme' redeviendrait indétectable dans le journal";
+        }
+
+        // Round 167 (14/08/2026) : UpsellManager — cast (int) sur $idShop et
+        // GROUP BY déterministe pour findByCategoryBestseller().
+        $umSrc167 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
+        if ($umSrc167 === '' || strpos($umSrc167, "AND id_shop = \" . (int) \$idShop") === false) {
+            $offenders[] = "UpsellManager::getStats() n'interpole plus \$idShop avec un cast (int) explicite — régression du bug corrigé le 14/08/2026 (round 167)";
+        }
+        if ($umSrc167 === '' || strpos($umSrc167, 'MIN(pl.name) AS name, MIN(cp.id_category) AS id_category') === false) {
+            $offenders[] = "UpsellManager::findByCategoryBestseller() n'est plus déterministe (GROUP BY/MIN manquants) — régression du bug corrigé le 14/08/2026 (round 167) : un produit multi-catégories redeviendrait affiché avec une catégorie non déterministe";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
@@ -10808,9 +10876,23 @@ class HealthCheckManager
 
         $backlogProducts = [];
         foreach ($candidates as $row) {
+            // Round 167 : même correctif que WaitlistManager::notifyProduct() —
+            // en mode "stock partagé" entre boutiques d'un groupe, la
+            // quantité réelle est stockée sur UNE SEULE ligne id_shop=0/
+            // id_shop_group=X, jamais sur id_shop=$row['id_shop']. Sans
+            // cette bascule, ce garde-fou ne détectait JAMAIS de backlog
+            // pour une boutique en stock partagé (le SUM renvoyait toujours
+            // 0), restant bloqué sur "OK" alors que des inscrits attendaient
+            // réellement un produit disponible.
+            $rowShop = new \Shop((int) $row['id_shop']);
+            if ((bool) $rowShop->getGroup()->share_stock) {
+                $stockWhere = " AND id_shop = 0 AND id_shop_group = " . (int) $rowShop->id_shop_group;
+            } else {
+                $stockWhere = " AND id_shop = " . (int) $row['id_shop'] . " AND id_shop_group = 0";
+            }
             $qty = (int) $this->db->getValue(
                 "SELECT COALESCE(SUM(quantity), 0) FROM `" . _DB_PREFIX_ . "stock_available`
-                 WHERE id_product = " . (int) $row['id_product'] . " AND id_shop = " . (int) $row['id_shop']
+                 WHERE id_product = " . (int) $row['id_product'] . $stockWhere
             );
             if ($qty > 0) {
                 $backlogProducts[] = $row;
