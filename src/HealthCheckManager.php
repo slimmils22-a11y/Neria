@@ -878,9 +878,26 @@ class HealthCheckManager
         $adminTplDir = _PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/';
         foreach (glob($adminTplDir . '*.tpl') ?: [] as $tplFile) {
             $tplSrc = file_get_contents($tplFile) ?: '';
-            $opens  = preg_match_all('/<div\b/', $tplSrc);
-            $closes = preg_match_all('/<\/div>/', $tplSrc);
-            if ($opens !== $closes) {
+            // Round 169 : les commentaires Smarty {* ... *} sont retirés avant
+            // le comptage — un commentaire de documentation évoquant en prose
+            // d'anciennes balises ("simple <div onclick>", "une liste de
+            // <div>...") faisait gonfler le compte d'ouvertures sans balise
+            // réelle correspondante, provoquant un faux positif permanent sur
+            // send.tpl (33 vs 31, soit exactement les 2 occurrences dans des
+            // commentaires round 154) — jamais remarqué car ce garde-fou
+            // n'avait jamais été rejoué dans l'agrégat complet depuis son
+            // introduction.
+            $tplSrcNoComments = preg_replace('/\{\*.*?\*\}/s', '', $tplSrc) ?? $tplSrc;
+            $opens  = preg_match_all('/<div\b/', $tplSrcNoComments);
+            $closes = preg_match_all('/<\/div>/', $tplSrcNoComments);
+            // navigation.tpl ouvre volontairement .neria-bo-wrap sans le
+            // refermer : neria.php::getContent() concatène
+            // '<div class="neria-bo-content">' + $content + '</div></div>'
+            // APRÈS la sortie de ce template, fermant les deux wrappers à
+            // l'extérieur (voir le commentaire en tête de navigation.tpl).
+            // Un <div> de plus que de </div> y est normal et volontaire.
+            $isKnownAsymmetric = basename($tplFile) === 'navigation.tpl' && $opens === $closes + 1;
+            if ($opens !== $closes && !$isKnownAsymmetric) {
                 $offenders[] = basename($tplFile) . " : {$opens} <div> pour {$closes} </div> (balises déséquilibrées — imbrication DOM potentiellement cassée)";
             }
 
@@ -1068,7 +1085,7 @@ class HealthCheckManager
         $calendarSrc = $this->readModuleSrc($calendarFile);
         if ($calendarSrc === '') {
             $offenders[] = 'CalendarManager.php introuvable';
-        } elseif (!preg_match('/function\s+checkAndSendDailyEvents[\s\S]{0,1400}?GET_LOCK\(.neria_calendar_check./', $calendarSrc)) {
+        } elseif (!preg_match('/function\s+checkAndSendDailyEvents[\s\S]{0,2600}?GET_LOCK\(.neria_calendar_check./', $calendarSrc)) {
             $offenders[] = 'CalendarManager : checkAndSendDailyEvents() n\'utilise plus GET_LOCK (deux visiteurs concurrents pourraient de nouveau envoyer le même email calendaire à tout un segment de clients en double)';
         }
 
@@ -1144,7 +1161,7 @@ class HealthCheckManager
         $reportSrc = $this->readModuleSrc($reportFile);
         if ($reportSrc === '') {
             $offenders[] = 'MonthlyReportManager.php introuvable';
-        } elseif (!preg_match('/function\s+checkAndSend[\s\S]{0,2900}?Shop::getShops/', $reportSrc)
+        } elseif (!preg_match('/function\s+checkAndSend[\s\S]{0,3600}?Shop::getShops/', $reportSrc)
                || !preg_match('/CONFIG_LAST_SENT\s*\.\s*.\_.\s*\.\s*\$idShop/', $reportSrc)) {
             $offenders[] = 'MonthlyReportManager : checkAndSend() n\'itère plus sur chaque boutique avec un throttle dédié (une boutique pourrait de nouveau bloquer le rapport mensuel de toutes les autres)';
         }
@@ -2137,7 +2154,7 @@ class HealthCheckManager
             $offenders[] = 'ManualSendManager.php introuvable (2e vérification)';
         } else {
             if (strpos($manualSrc2, 'function scheduleManual(') !== false
-                && substr_count($manualSrc2, "\$order = (\$orderRef !== '') ? \$this->findOrder(\$orderRef) : null;") < 2
+                && preg_match_all('/\$order = \(\$orderRef !== \x27\x27\) \? \$this->findOrder\(\$orderRef,\s*\$\w+\) : null;/', $manualSrc2) < 2
             ) {
                 $offenders[] = 'ManualSendManager : scheduleManual() n\'applique plus le garde-fou "contexte commande" — un envoi planifié sans commande liée repartirait avec {order_name}/{order_url} non résolus';
             }
@@ -3630,7 +3647,7 @@ class HealthCheckManager
             $offenders[] = 'EmailRenderer.php introuvable (garde-fou round 125 : signature/réseaux sociaux résolus dans buildCompiledHtml())';
         } else {
             $posbch = strpos($er1Src, 'private function buildCompiledHtml(');
-            $bchBlock = $posbch !== false ? substr($er1Src, $posbch, 8000) : '';
+            $bchBlock = $posbch !== false ? substr($er1Src, $posbch, 10500) : '';
             if ($posbch === false
                 || strpos($bchBlock, '$this->injectSignatureVars($sigVars, (int) $this->context->shop->id);') === false
                 || strpos($bchBlock, '$this->injectSocialVars($socVars);') === false
@@ -3749,7 +3766,7 @@ class HealthCheckManager
             $offenders[] = 'FontManager.php introuvable (garde-fou round 129 : couleurs sanitizeColor() dans generateCssVariables())';
         } else {
             foreach (['color_background', 'color_container', 'color_accent', 'color_text'] as $colorKey) {
-                if (strpos($fmSrc, "\\NeriaTools::sanitizeColor((string) \$design['{$colorKey}'])") === false) {
+                if (strpos($fmSrc, "\\NeriaTools::sanitizeColor((string) \$design['{$colorKey}'],") === false) {
                     $offenders[] = "FontManager::generateCssVariables() n'applique plus sanitizeColor() sur '{$colorKey}' — régression du bug corrigé le 08/08/2026 (round 129)";
                     break;
                 }
@@ -3865,7 +3882,7 @@ class HealthCheckManager
             $offenders[] = 'BehavioralCronManager.php introuvable (garde-fou round 132 : sendGhostCarts() Product idShop + Shop::setContext())';
         } else {
             $posGhost = strpos($bcmSrc, 'private function sendGhostCarts(');
-            $ghostBody = $posGhost !== false ? substr($bcmSrc, $posGhost, 4200) : '';
+            $ghostBody = $posGhost !== false ? substr($bcmSrc, $posGhost, 5200) : '';
             if ($posGhost === false
                 || strpos($ghostBody, 'new \Product($idProduct, false, $idLang, $ghostShopId)') === false
                 || strpos($ghostBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $ghostShopId)') === false
@@ -4192,7 +4209,7 @@ class HealthCheckManager
             $offenders[] = 'WaitlistManager.php introuvable (garde-fou round 138 : Shop::setContext() + Product idShop)';
         } else {
             $posNP = strpos($wlmSrc, 'public function notifyProduct(');
-            $npBody = $posNP !== false ? substr($wlmSrc, $posNP, 6000) : '';
+            $npBody = $posNP !== false ? substr($wlmSrc, $posNP, 9500) : '';
             if ($posNP === false
                 || strpos($npBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $idShop)') === false
                 || strpos($npBody, 'new \Product($idProduct, false, $idLang, $idShop)') === false
@@ -4271,7 +4288,7 @@ class HealthCheckManager
             $offenders[] = 'TranslationInstaller.php introuvable (garde-fou round 140 : batch vide non commité + compteurs réinitialisés)';
         } else {
             $posIT = strpos($ti2Src, 'public function importTemplate(string $jsonPath, string $template): bool');
-            $itBody = $posIT !== false ? substr($ti2Src, $posIT, 4000) : '';
+            $itBody = $posIT !== false ? substr($ti2Src, $posIT, 5200) : '';
             if ($posIT === false || strpos($itBody, '$ok = !$batchWasEmpty && $this->flushBatch($batch);') === false) {
                 $offenders[] = "TranslationInstaller::importTemplate() ne protège plus contre un batch vide — régression du bug corrigé le 09/08/2026 (round 140) : le DELETE des traductions par défaut pourrait de nouveau être validé sans réinsertion, perte de données silencieuse";
             }
@@ -4672,7 +4689,7 @@ class HealthCheckManager
             }
         }
         $mainSrc145 = $this->readModuleSrc($mainFile144);
-        if ($mainSrc145 !== '' && strpos($mainSrc145, '$sigGenerator->delete($idShop);') === false) {
+        if ($mainSrc145 !== '' && strpos($mainSrc145, '$sigGenerator->delete($idShop') === false) {
             $offenders[] = "neria.php::generate_signature n'appelle plus SignatureGenerator::delete() avant de régénérer — régression du bug corrigé le 09/08/2026 (round 145) : les anciens fichiers PNG de signature s'accumuleraient de nouveau sur disque à chaque changement de style";
         }
 
@@ -4803,11 +4820,15 @@ class HealthCheckManager
         if ($erSrc148 === '') {
             $offenders[] = 'EmailRenderer.php introuvable (garde-fou round 148 : echappement liste noire variables libres)';
         } else {
-            $posHtv148 = strpos($erSrc148, '$htmlSafeRawKeys = [');
+            // Round 169 : la liste blanche a depuis été factorisée en
+            // constante de classe self::HTML_SAFE_RAW_KEYS (au lieu d'une
+            // variable locale $htmlSafeRawKeys) — le garde-fou vérifiait
+            // encore l'ancien nom, jamais mis à jour après ce refactor.
+            $posHtv148 = strpos($erSrc148, 'const HTML_SAFE_RAW_KEYS = [');
             $hardenBody148 = $posHtv148 !== false ? substr($erSrc148, $posHtv148, 900) : '';
             if ($posHtv148 === false
-                || strpos($hardenBody148, 'foreach ($htmlTemplateVars as $nameKey => $nameValue) {') === false
-                || strpos($hardenBody148, '!in_array($nameKey, $htmlSafeRawKeys, true)') === false
+                || strpos($erSrc148, 'foreach ($htmlTemplateVars as $nameKey => $nameValue) {') === false
+                || strpos($erSrc148, '!in_array($nameKey, self::HTML_SAFE_RAW_KEYS, true)') === false
             ) {
                 $offenders[] = "EmailRenderer ne durcit plus TOUTE variable de texte libre par defaut — régression du bug corrigé le 09/08/2026 (round 148) : une liste blanche figée de quelques clés laisserait de nouveau passer des variables comme {reply}/{apology_reason}/{alteration_status} sans échappement, XSS stocké possible via l'envoi manuel BO";
             }
@@ -5329,7 +5350,7 @@ class HealthCheckManager
             $offenders[] = 'FontManager.php introuvable (garde-fou round 159 : generateCssVariables couleurs de marque par défaut)';
         } else {
             $posGcv159 = strpos($fmSrc159, 'public function generateCssVariables(string $lang): string');
-            $gcvBody159 = $posGcv159 !== false ? substr($fmSrc159, $posGcv159, 2200) : '';
+            $gcvBody159 = $posGcv159 !== false ? substr($fmSrc159, $posGcv159, 2800) : '';
             if ($posGcv159 === false
                 || substr_count($gcvBody159, '\ConfigManager::DEFAULTS[\ConfigManager::KEY_COLOR_') < 4
             ) {
