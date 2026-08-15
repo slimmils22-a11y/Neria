@@ -174,15 +174,27 @@ class SeoApiManager
         if (!$this->isConfigured()) {
             return null;
         }
+        $currentDomain = parse_url(\Tools::getShopDomainSsl(true), PHP_URL_HOST);
         $cacheTime = (int) \Configuration::get($this->cacheKey(self::CONFIG_CACHE_TIME));
         if ($cacheTime && (time() - $cacheTime) < self::CACHE_TTL) {
             $data = $this->getCachedReport();
-            $currentDomain = parse_url(\Tools::getShopDomainSsl(true), PHP_URL_HOST);
             if ($data && ($data['domain'] ?? null) === $currentDomain) {
                 return $data;
             }
         }
-        return $this->runCheck();
+        $fresh = $this->runCheck();
+        if ($fresh !== null) {
+            return $fresh;
+        }
+        // Round 171 : un échec transitoire de l'API (panne, rate-limit) au
+        // moment précis où le cache de 24h expire faisait passer le widget
+        // BO d'un affichage de données valables (même vieilles de 23h59) à
+        // RIEN — alors que le dernier rapport connu reste en base, jamais
+        // réutilisé en repli. Une panne passagère provoquait un black-out
+        // complet au lieu d'un repli gracieux sur "dernières données
+        // connues (obsolètes)".
+        $stale = $this->getCachedReport();
+        return ($stale && ($stale['domain'] ?? null) === $currentDomain) ? $stale : null;
     }
 
     public function runCheck(): ?array
@@ -396,7 +408,11 @@ class SeoApiManager
         $curlErr  = curl_error($ch);
         curl_close($ch);
 
-        if (!$body || $httpCode !== 200) {
+        // Round 171 : !$body traitait aussi $body === '0' comme un échec
+        // (troncature PHP standard) — une réponse HTTP 200 légitime dont le
+        // corps serait littéralement la chaîne "0" aurait été rejetée à
+        // tort. curl_exec() ne renvoie false qu'en cas d'échec réel.
+        if ($body === false || $httpCode !== 200) {
             // curl_error() capturé — même motif que httpGet() (Semrush) :
             // sans lui, un timeout/échec DNS/certificat invalide affichait
             // toujours "HTTP 0" au marchand, impossible à diagnostiquer sans
@@ -451,7 +467,11 @@ class SeoApiManager
         $curlErr  = curl_error($ch);
         curl_close($ch);
 
-        if (!$body || $httpCode !== 200) {
+        // Round 171 : !$body traitait aussi $body === '0' comme un échec
+        // (troncature PHP standard) — une réponse HTTP 200 légitime dont le
+        // corps serait littéralement la chaîne "0" aurait été rejetée à
+        // tort. curl_exec() ne renvoie false qu'en cas d'échec réel.
+        if ($body === false || $httpCode !== 200) {
             // Round 152 : wd()->warning() ajouté — auparavant seul
             // recordError() (visible en creusant la page SEO BO) traçait
             // l'échec, contrairement à fetchMoz() (même fichier) qui logue

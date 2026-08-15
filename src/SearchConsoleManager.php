@@ -386,6 +386,14 @@ class SearchConsoleManager
         \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
         if (empty($sitesData['siteEntry'])) {
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_no_site'), '', 'SearchConsoleManager');
+            // Round 171 : le cache n'était jamais écrit sur ce retour
+            // anticipé (contrairement à PostmasterManager::fetchAndCache(),
+            // méthode jumelle) — CONFIG_CACHE_TIME restait à 0 indéfiniment,
+            // donc CHAQUE chargement de page BO affichant le widget SEO
+            // (pas seulement à l'expiration du TTL) rappelait l'API
+            // /sites en direct, sensible aux quotas Google.
+            \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),      json_encode([], JSON_UNESCAPED_UNICODE));
+            \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_TIME), time());
             return [];
         }
 
@@ -411,6 +419,10 @@ class SearchConsoleManager
                 \WatchdogManager::i18nMsg('watchdog.gsc_no_matching_site', ['host' => parse_url($shopUrl, PHP_URL_HOST)]),
                 '', 'SearchConsoleManager'
             );
+            // Round 171 : même correctif que le retour anticipé "no_site"
+            // plus haut — le cache n'était jamais écrit ici non plus.
+            \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),      json_encode([], JSON_UNESCAPED_UNICODE));
+            \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_TIME), time());
             return [];
         }
 
@@ -476,8 +488,23 @@ class SearchConsoleManager
         // au marchand, alors que l'intégration fonctionne et que les
         // données affichées sont à jour (même piège que PostmasterManager,
         // même fichier corrigé au même round).
-        \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
-        \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
+        //
+        // Round 171 : ce correctif effaçait l'erreur de façon INCONDITIONNELLE
+        // dès que $global réussissait — sans vérifier si $queries/$pages
+        // avaient EUX-mêmes échoué (apiPost() retourne null sur échec, pas
+        // []). Un échec isolé sur la requête 'queries' ou 'pages' (ex. quota
+        // ponctuel sur cette dimension précise) écrivait bien une vraie
+        // erreur dans CONFIG_LAST_ERROR via apiPost(), mais celle-ci était
+        // aussitôt effacée ici — le widget BO affichait silencieusement 0
+        // requêtes/pages sans jamais remonter d'alerte, et
+        // HealthCheckManager::checkOAuthFreshness() donnait un satisfecit
+        // trompeur. Effacement désormais conditionné à l'absence d'échec sur
+        // LES TROIS requêtes (comme PostmasterManager::fetchAndCache() ne
+        // efface que si $results n'est pas vide).
+        if ($queries !== null && $pages !== null) {
+            \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
+            \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
+        }
 
         $this->wd()->info(
             \WatchdogManager::i18nMsg('watchdog.gsc_loaded', [

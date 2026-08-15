@@ -25,8 +25,20 @@ class PageSpeedManager
     const CONFIG_CACHE_TIME = 'NERIA_PAGESPEED_CACHE_TIME';
     const CONFIG_LAST_ERROR    = 'NERIA_PAGESPEED_LAST_ERROR';
     const CONFIG_LAST_ERROR_AT = 'NERIA_PAGESPEED_LAST_ERROR_AT';
+    const CONFIG_LAST_ATTEMPT       = 'NERIA_PAGESPEED_LAST_ATTEMPT';
+    const CONFIG_LAST_ATTEMPT_RATE_LIMITED = 'NERIA_PAGESPEED_LAST_ATTEMPT_RL';
 
     const CACHE_TTL = 86400; // 24h
+    // Round 171 : cooldown court après un échec TOTAL (mobile ET desktop),
+    // distinct du CACHE_TTL de 24h — un échec ne doit pas bloquer les
+    // tentatives suivantes aussi longtemps qu'un succès, mais doit quand
+    // même empêcher un rappel immédiat à chaque chargement de page BO
+    // pendant une panne/un quota dépassé (risque d'épuisement de quota).
+    const FAILURE_COOLDOWN = 900; // 15 min
+    // Round 171 : un 429 (quota dépassé) est un signal de rate-limit
+    // explicite, pas une simple erreur transitoire — cooldown plus long
+    // pour laisser la fenêtre de quota Google se réinitialiser.
+    const RATE_LIMIT_COOLDOWN = 3600; // 1h
     const API_URL   = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
 
     private \Neria $module;
@@ -116,9 +128,35 @@ class PageSpeedManager
         return $t ?: null;
     }
 
+    /** Round 171 : messages d'erreur par stratégie (mobile/desktop), accumulés
+     * le temps d'un runCheck() puis combinés — voir recordStrategyError(). */
+    private array $strategyErrorParts = [];
+    /** Round 171 : vrai si au moins une stratégie a reçu un 429 (quota Google
+     * dépassé) durant le runCheck() en cours — déclenche un cooldown plus
+     * long avant la prochaine tentative (voir RATE_LIMIT_COOLDOWN). */
+    private bool $rateLimited = false;
+
     private function recordError(string $msg): void
     {
         \Configuration::updateValue($this->cacheKey(self::CONFIG_LAST_ERROR), $msg);
+        if (!\Configuration::get($this->cacheKey(self::CONFIG_LAST_ERROR_AT))) {
+            \Configuration::updateValue($this->cacheKey(self::CONFIG_LAST_ERROR_AT), time());
+        }
+    }
+
+    /**
+     * Round 171 : recordError() était appelée séparément par chaque appel
+     * fetchStrategy() (mobile puis desktop) et ÉCRASAIT systématiquement le
+     * message précédent — si mobile échouait pour une raison (ex. timeout
+     * réseau, fréquent) et desktop pour une autre (ex. clé invalide), seul
+     * le message desktop (écrit en dernier) survivait dans CONFIG_LAST_ERROR,
+     * cachant complètement la cause réelle de l'échec mobile au marchand/à
+     * HealthCheckManager. Les deux messages sont désormais accumulés ici
+     * (préfixés par la stratégie) puis combinés par runCheck().
+     */
+    private function recordStrategyError(string $strategy, string $msg): void
+    {
+        $this->strategyErrorParts[] = "[{$strategy}] {$msg}";
         if (!\Configuration::get($this->cacheKey(self::CONFIG_LAST_ERROR_AT))) {
             \Configuration::updateValue($this->cacheKey(self::CONFIG_LAST_ERROR_AT), time());
         }
@@ -140,7 +178,31 @@ class PageSpeedManager
                 return $data;
             }
         }
+        // Round 171 : un échec TOTAL précédent (mobile ET desktop) n'écrivait
+        // jamais CONFIG_CACHE_TIME — chaque appel suivant (chaque chargement
+        // de page BO) rappelait donc l'API PageSpeed en direct sans aucun
+        // backoff, risquant d'épuiser le quota gratuit pendant une panne/un
+        // rate-limit. Cooldown court indépendant du cache de succès.
+        if ($this->isInFailureCooldown()) {
+            return null;
+        }
         return $this->runCheck();
+    }
+
+    /**
+     * Vrai si un échec TOTAL récent (mobile ET desktop) doit encore bloquer
+     * une nouvelle tentative — extrait de getReport() pour rester testable
+     * sans dépendre d'un appel réseau réel.
+     */
+    private function isInFailureCooldown(): bool
+    {
+        $lastAttempt = (int) \Configuration::get($this->cacheKey(self::CONFIG_LAST_ATTEMPT));
+        if (!$lastAttempt) {
+            return false;
+        }
+        $wasRateLimited = (bool) \Configuration::get($this->cacheKey(self::CONFIG_LAST_ATTEMPT_RATE_LIMITED));
+        $cooldown = $wasRateLimited ? self::RATE_LIMIT_COOLDOWN : self::FAILURE_COOLDOWN;
+        return (time() - $lastAttempt) < $cooldown;
     }
 
     /**
@@ -180,12 +242,27 @@ class PageSpeedManager
 
         $shopUrl = $this->getTargetUrl();
 
+        $this->strategyErrorParts = [];
+        $this->rateLimited        = false;
+
         $mobile  = $this->fetchStrategy($shopUrl, $key, 'mobile');
         $desktop = $this->fetchStrategy($shopUrl, $key, 'desktop');
 
         if ($mobile === null && $desktop === null) {
+            \Configuration::updateValue($this->cacheKey(self::CONFIG_LAST_ATTEMPT), time());
+            \Configuration::updateValue($this->cacheKey(self::CONFIG_LAST_ATTEMPT_RATE_LIMITED), $this->rateLimited ? 1 : 0);
+            // Round 171 : combine les messages mobile+desktop (au lieu du
+            // dernier écrit qui écrasait silencieusement l'autre) — voir
+            // recordStrategyError().
+            if ($this->strategyErrorParts) {
+                $this->recordError(implode(' | ', $this->strategyErrorParts));
+            }
             return null;
         }
+        // Une des deux stratégies a fonctionné : la prochaine tentative
+        // n'a plus besoin d'attendre le cooldown d'échec.
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ATTEMPT));
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ATTEMPT_RATE_LIMITED));
 
         // Round 150 : le nettoyage de CONFIG_LAST_ERROR/_AT n'est plus fait
         // à l'intérieur de fetchStrategy() (une par appel), mais ICI, une
@@ -199,6 +276,10 @@ class PageSpeedManager
         if ($mobile !== null && $desktop !== null) {
             \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ERROR));
             \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ERROR_AT));
+        } elseif ($this->strategyErrorParts) {
+            // Échec partiel (une seule stratégie) : la cause de l'échec
+            // reste visible, sans faire échouer runCheck() globalement.
+            $this->recordError(implode(' | ', $this->strategyErrorParts));
         }
 
         $result = [
@@ -225,6 +306,10 @@ class PageSpeedManager
     // PRIVÉ
     // ============================================================
 
+    /**
+     * @phpstan-impure appelle l'API PageSpeed (curl_exec) et mute
+     * $this->rateLimited/$this->strategyErrorParts sur échec.
+     */
     private function fetchStrategy(string $url, string $key, string $strategy): ?array
     {
         $apiUrl = self::API_URL
@@ -249,7 +334,7 @@ class PageSpeedManager
         \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
 
         if (!$body) {
-            $this->recordError(\AdminTranslator::tVars('msg.pagespeed_network_error', ['error' => $curlErr]));
+            $this->recordStrategyError($strategy, \AdminTranslator::tVars('msg.pagespeed_network_error', ['error' => $curlErr]));
             \AdminTranslator::setLang($prevLang);
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_network_error_wd', ['strategy' => $strategy, 'error' => $curlErr]), '', 'PageSpeedManager');
             return null;
@@ -257,19 +342,31 @@ class PageSpeedManager
         if ($httpCode === 400) {
             $errData = json_decode($body, true);
             $msg = $errData['error']['message'] ?? \AdminTranslator::t('msg.pagespeed_invalid_request');
-            $this->recordError($msg);
+            $this->recordStrategyError($strategy, $msg);
             \AdminTranslator::setLang($prevLang);
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_http400', ['strategy' => $strategy, 'msg' => $msg]), '', 'PageSpeedManager');
             return null;
         }
         if ($httpCode === 403) {
-            $this->recordError(\AdminTranslator::t('msg.pagespeed_api_key_invalid'));
+            $this->recordStrategyError($strategy, \AdminTranslator::t('msg.pagespeed_api_key_invalid'));
             \AdminTranslator::setLang($prevLang);
             $this->wd()->error(\WatchdogManager::i18nMsg('watchdog.pagespeed_http403', ['strategy' => $strategy]), '', 'PageSpeedManager');
             return null;
         }
+        if ($httpCode === 429) {
+            // Round 171 : distingue le 429 (quota Google dépassé) des autres
+            // erreurs HTTP génériques — déclenche un cooldown plus long
+            // (RATE_LIMIT_COOLDOWN) plutôt que le cooldown court générique,
+            // pour laisser la fenêtre de quota se réinitialiser au lieu de
+            // retenter (et échouer) toutes les 15 minutes.
+            $this->rateLimited = true;
+            $this->recordStrategyError($strategy, \AdminTranslator::tVars('msg.pagespeed_http_error', ['code' => $httpCode]));
+            \AdminTranslator::setLang($prevLang);
+            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_http_other', ['strategy' => $strategy, 'code' => $httpCode]), '', 'PageSpeedManager');
+            return null;
+        }
         if ($httpCode !== 200) {
-            $this->recordError(\AdminTranslator::tVars('msg.pagespeed_http_error', ['code' => $httpCode]));
+            $this->recordStrategyError($strategy, \AdminTranslator::tVars('msg.pagespeed_http_error', ['code' => $httpCode]));
             \AdminTranslator::setLang($prevLang);
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_http_other', ['strategy' => $strategy, 'code' => $httpCode]), '', 'PageSpeedManager');
             return null;
@@ -278,7 +375,7 @@ class PageSpeedManager
 
         $data = json_decode($body, true);
         if (!is_array($data)) {
-            $this->recordError(\AdminTranslator::t('msg.pagespeed_invalid_request'));
+            $this->recordStrategyError($strategy, \AdminTranslator::t('msg.pagespeed_invalid_request'));
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_http400', ['strategy' => $strategy, 'msg' => 'invalid JSON']), '', 'PageSpeedManager');
             return null;
         }
