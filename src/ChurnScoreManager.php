@@ -122,9 +122,20 @@ class ChurnScoreManager
         // NERIA_CHURN_LAST_RUN, laissant ce garde-fou aveugle indéfiniment.
         \Configuration::updateValue('NERIA_CHURN_LAST_RUN', date('Y-m-d H:i:s'), false, null, $this->idShop);
 
-        if (!is_array($rowsPeriods) || empty($rowsPeriods)) {
-            return 0;
-        }
+        // Round 176 : ce early return sortait AVANT le bloc de purge
+        // (ci-dessous, ~ligne 176) dès que $rowsPeriods était vide (aucun
+        // événement sent/open dans les 90 derniers jours — boutique
+        // dormante, ou toutes ses lignes neria_stat purgées/RGPD). Sur une
+        // boutique qui redevient dormante après avoir eu des clients à
+        // risque, les anciennes lignes neria_churn_score (score ≥70
+        // compris) n'étaient donc JAMAIS supprimées et continuaient
+        // d'apparaître indéfiniment dans getHighRiskCustomers() — exactement
+        // le bug que le correctif round 166 (voir plus bas) visait à
+        // couvrir, mais qui ne traitait que le cas "$rows vide APRÈS
+        // filtrage", pas "$rowsPeriods vide DÈS la requête SQL". On
+        // normalise en tableau vide et on laisse le flux normal (filtrage
+        // puis purge) s'exécuter, plutôt que de sortir prématurément.
+        $rowsPeriods = is_array($rowsPeriods) ? $rowsPeriods : [];
 
         // last_open et tranches horaires : nécessitent bien tout l'historique
         // ("tous temps", cf. calcul du créneau d'envoi préféré) — mais scopés

@@ -62,6 +62,18 @@ class LicenseManager
     const RETRY_BACKOFF       = 900;          // 15 min avant de retenter après un échec réseau
     const GRACE_NEVER_ACTIVATED_DAYS = 30;    // Scénario A
     const GRACE_REVOKED_DAYS         = 7;     // Scénario B
+    // Round 176 : plafond de la grâce "dernière validation réussie"
+    // (isWithinGracePeriod() ci-dessous) — auparavant illimitée dès que
+    // CONFIG_LAST_CHECK > 0, sans aucune borne de durée. Volontairement
+    // généreux (3 mois, très au-dessus de toute panne serveur réaliste)
+    // pour ne pas réintroduire le bug déjà documenté (un plafond de 7j
+    // faisait retomber une panne prolongée sur le calcul installedAt à 30j,
+    // qui échoue pour toute boutique en prod ancienne) — mais borné : sans
+    // lui, un client dont la licence a expiré naturellement ET dont le
+    // serveur ne répond plus JAMAIS (fournisseur définitivement fermé,
+    // domaine abandonné) continuait à envoyer indéfiniment, retirant tout
+    // effet réel au mécanisme de licence.
+    const GRACE_LAST_CHECK_MAX_DAYS  = 90;
 
     /**
      * Clé PUBLIQUE Ed25519 (base64) de vérification de signature — non
@@ -143,19 +155,20 @@ class LicenseManager
         // annoncé en en-tête de ce fichier ("une panne du serveur de
         // licences ne devient JAMAIS un incident chez le client").
         //
-        // lastCheck > 0 suffit ici, SANS plafond de durée : cette valeur
-        // n'est écrite que par une validation serveur réussie (validateLicense()/
-        // storeToken()), donc sa seule présence prouve que ce client a déjà
-        // eu une licence valide. Un plafond de GRACE_REVOKED_DAYS (7j) faisait
-        // retomber toute panne serveur prolongée sur le calcul `installedAt`
-        // à 30j — qui échoue nécessairement pour une boutique en prod depuis
-        // longtemps, bloquant les envois d'un client payant en règle sur la
-        // seule base d'une panne côté Neria, en contradiction directe avec
-        // le principe documenté. La révocation explicite (CONFIG_REVOKED_AT,
-        // ci-dessus) reste le seul mécanisme qui plafonne réellement la grâce.
+        // lastCheck > 0 : cette valeur n'est écrite que par une validation
+        // serveur réussie (validateLicense()/storeToken()), donc sa seule
+        // présence prouve que ce client a déjà eu une licence valide. Un
+        // plafond de GRACE_REVOKED_DAYS (7j) ferait retomber toute panne
+        // serveur prolongée sur le calcul `installedAt` à 30j — qui échoue
+        // nécessairement pour une boutique en prod depuis longtemps,
+        // bloquant les envois d'un client payant en règle sur la seule base
+        // d'une panne côté Neria, en contradiction directe avec le principe
+        // documenté. GRACE_LAST_CHECK_MAX_DAYS (round 176, 90j) plafonne
+        // néanmoins cette grâce à une durée toujours largement suffisante
+        // pour couvrir une panne réaliste, sans la laisser illimitée.
         $lastCheck = (int) \Configuration::get(self::CONFIG_LAST_CHECK);
         if ($lastCheck > 0) {
-            return true;
+            return (time() - $lastCheck) < (self::GRACE_LAST_CHECK_MAX_DAYS * 86400);
         }
 
         $installedAt = (int) strtotime((string) \Configuration::get('NERIA_INSTALLED_AT'));

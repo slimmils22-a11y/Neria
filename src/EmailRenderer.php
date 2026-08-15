@@ -477,7 +477,7 @@ class EmailRenderer
         // {discount}. On remet le code dans {voucher_code} (ligne « Code : … »)
         // et on calcule le vrai taux/montant du bon pour {discount} (intro).
         if ($template === 'newsletter_voucher') {
-            $this->fixNewsletterVoucherVars($params['templateVars'], $lang);
+            $this->fixNewsletterVoucherVars($params['templateVars'], $lang, $this->resolveShopId($params));
         }
 
         // â”€â”€ GÃ©nÃ¨re les variantes texte des variables HTML (pour le .txt)
@@ -1123,13 +1123,21 @@ class EmailRenderer
             $htmlKey = '{' . $key . '_html}';
             $txtKey  = '{' . $key . '_txt}';
 
-            if (empty($templateVars[$rawKey])) {
+            // Round 176 : empty() traite aussi "0"/"" comme absent, alors
+            // que le docblock de cette méthode promet explicitement de ne
+            // JAMAIS remplacer une valeur déjà présente — une fakeVar
+            // d'aperçu ou une valeur injectée en amont valant "0" (compteur,
+            // code promo) était donc silencieusement écrasée par la
+            // variable personnalisée du marchand, contredisant ce
+            // comportement documenté. array_key_exists() ne regarde que la
+            // présence de la clé, pas la "vérité" de sa valeur.
+            if (!array_key_exists($rawKey, $templateVars)) {
                 $templateVars[$rawKey] = $value;
             }
-            if (empty($templateVars[$htmlKey])) {
+            if (!array_key_exists($htmlKey, $templateVars)) {
                 $templateVars[$htmlKey] = nl2br($value);
             }
-            if (empty($templateVars[$txtKey])) {
+            if (!array_key_exists($txtKey, $templateVars)) {
                 $templateVars[$txtKey] = trim(html_entity_decode($value, ENT_QUOTES, 'UTF-8'));
             }
         }
@@ -1349,8 +1357,13 @@ class EmailRenderer
      * cart rule pour {discount}. Aucune traduction à modifier.
      *
      * @param array $templateVars Variables Smarty (passé par référence)
+     * @param int   $idShop       Round 176 : boutique du destinataire réel —
+     *                            voucherRateFromCode() ne filtrait pas la
+     *                            recherche du cart_rule par boutique alors
+     *                            que PrestaShop n'impose pas l'unicité
+     *                            globale d'un code de bon en multi-shop.
      */
-    private function fixNewsletterVoucherVars(array &$templateVars, string $lang): void
+    private function fixNewsletterVoucherVars(array &$templateVars, string $lang, int $idShop): void
     {
         if (!is_array($templateVars)) {
             return;
@@ -1367,7 +1380,7 @@ class EmailRenderer
         }
 
         // {discount} (intro « offrant … de réduction ») = vrai taux/montant du bon
-        $rate = $this->voucherRateFromCode($code, $lang);
+        $rate = $this->voucherRateFromCode($code, $lang, $idShop);
         if ($rate === '') {
             // Aucun cart rule ne correspond à ce code : l'intro afficherait un
             // montant vide. On le signale (email visiblement défectueux).
@@ -1394,13 +1407,45 @@ class EmailRenderer
      *                     au round 99, réintroduit ici en le contournant
      *                     complètement (aucune langue n'était transmise
      *                     jusqu'à cette méthode).
+     * @param int $idShop Round 176 : préfère le cart_rule associé à la
+     *                     boutique du destinataire quand plusieurs cart_rule
+     *                     partagent le même code — PrestaShop n'impose pas
+     *                     l'unicité globale d'un code de bon entre boutiques
+     *                     d'une même install multi-shop ; sans ça, deux bons
+     *                     identiques créés indépendamment sur 2 boutiques
+     *                     avec des taux différents faisaient calculer
+     *                     {discount} à partir du PREMIER cart_rule trouvé en
+     *                     base, potentiellement celui d'une autre boutique
+     *                     (le code {voucher_code} restait correct, seul le
+     *                     taux/montant affiché dans l'intro était faux).
+     *                     cart_rule_shop ne contient une ligne QUE pour les
+     *                     cart_rule explicitement restreints à des boutiques
+     *                     (shop_restriction=1) — la grande majorité des bons
+     *                     n'y ont AUCUNE ligne (disponibles sur toutes les
+     *                     boutiques) : un INNER JOIN sur cette table
+     *                     exclurait donc à tort la quasi-totalité des bons
+     *                     réels. On accepte un cart_rule si soit il est
+     *                     explicitement associé à $idShop, soit il n'a
+     *                     AUCUNE ligne cart_rule_shop (non restreint) —
+     *                     avec préférence pour le match explicite en cas de
+     *                     doublon de code entre boutiques.
      * @return string
      */
-    private function voucherRateFromCode(string $code, string $lang): string
+    private function voucherRateFromCode(string $code, string $lang, int $idShop): string
     {
         $id = (int) \Db::getInstance()->getValue(
-            'SELECT `id_cart_rule` FROM `' . _DB_PREFIX_ . 'cart_rule`
-             WHERE `code` = \'' . pSQL($code) . '\''
+            'SELECT cr.`id_cart_rule` FROM `' . _DB_PREFIX_ . 'cart_rule` cr
+             LEFT JOIN `' . _DB_PREFIX_ . 'cart_rule_shop` crs
+                    ON crs.`id_cart_rule` = cr.`id_cart_rule` AND crs.`id_shop` = ' . $idShop . '
+             WHERE cr.`code` = \'' . pSQL($code) . '\'
+               AND (
+                    crs.`id_cart_rule` IS NOT NULL
+                    OR NOT EXISTS (
+                        SELECT 1 FROM `' . _DB_PREFIX_ . 'cart_rule_shop` crs2
+                        WHERE crs2.`id_cart_rule` = cr.`id_cart_rule`
+                    )
+               )
+             ORDER BY (crs.`id_cart_rule` IS NOT NULL) DESC'
         );
         if ($id <= 0) {
             return '';
