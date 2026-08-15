@@ -89,26 +89,49 @@ class CryptoManager
      * Si la valeur ne commence pas par ENC: elle est retournée telle quelle
      * (rétrocompatibilité avec les données stockées avant le chiffrement).
      */
+    /**
+     * Round 172 : vrai si le DERNIER appel à decrypt() a échoué (valeur
+     * chiffrée présente mais non récupérable), false sinon — y compris
+     * quand decrypt() n'a rien eu à déchiffrer (valeur déjà en clair).
+     * decrypt() retourne '' aussi bien sur échec que sur "jamais configuré"
+     * (chaîne vide en entrée) : sans ce drapeau, les deux cas sont
+     * indiscernables pour l'appelant, qui traite alors silencieusement une
+     * intégration cassée (OAuth, IMAP...) comme "non configurée".
+     * Vérification optionnelle : les appelants existants restent
+     * fonctionnels sans jamais la consulter (aucun changement de signature).
+     */
+    private static bool $lastDecryptFailed = false;
+
+    public static function lastDecryptFailed(): bool
+    {
+        return self::$lastDecryptFailed;
+    }
+
     public static function decrypt(string $value): string
     {
+        self::$lastDecryptFailed = false;
+
         if (!self::isEncrypted($value)) {
             return $value;
         }
 
         if (!self::isAvailable()) {
             self::logDecryptFailure('openssl indisponible');
+            self::$lastDecryptFailed = true;
             return '';
         }
 
         $key = self::loadKey();
         if ($key === '') {
             self::logDecryptFailure('clé de chiffrement absente ou illisible');
+            self::$lastDecryptFailed = true;
             return '';
         }
 
         $raw = base64_decode(substr($value, strlen(self::PREFIX)), true);
         if ($raw === false || strlen($raw) < self::IV_LEN + self::TAG_LEN + 1) {
             self::logDecryptFailure('valeur chiffrée corrompue (base64/longueur invalide)');
+            self::$lastDecryptFailed = true;
             return '';
         }
 
@@ -119,6 +142,7 @@ class CryptoManager
 
         if ($plain === false) {
             self::logDecryptFailure('échec openssl_decrypt (clé rotée/corrompue ou tag GCM invalide)');
+            self::$lastDecryptFailed = true;
             return '';
         }
 
@@ -129,16 +153,19 @@ class CryptoManager
      * Un échec de déchiffrement ne doit jamais être silencieux : sans trace,
      * il est indiscernable d'une valeur simplement vide dans les stats/audits.
      * Journalisé via le logger natif PrestaShop (toujours disponible, aucune
-     * dépendance au contexte module) — au plus une fois par requête pour
-     * éviter un flood si de nombreuses valeurs échouent d'un coup.
+     * dépendance au contexte module) — au plus une fois PAR MOTIF DISTINCT
+     * par requête (round 172 : auparavant une seule fois au total, quelle
+     * que soit la cause — si une rotation de clé ratée cassait à la fois
+     * une clé API et un token OAuth dans la même requête, un seul des deux
+     * échecs était tracé, sous-estimant l'ampleur réelle de la panne).
      */
     private static function logDecryptFailure(string $reason): void
     {
-        static $alreadyLogged = false;
-        if ($alreadyLogged || !class_exists('\PrestaShopLogger')) {
+        static $loggedReasons = [];
+        if (isset($loggedReasons[$reason]) || !class_exists('\PrestaShopLogger')) {
             return;
         }
-        $alreadyLogged = true;
+        $loggedReasons[$reason] = true;
 
         \PrestaShopLogger::addLog(
             '[Neria] CryptoManager::decrypt() a échoué : ' . $reason,

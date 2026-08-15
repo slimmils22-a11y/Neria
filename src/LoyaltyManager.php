@@ -469,11 +469,22 @@ class LoyaltyManager
         if (!$cartRule->add()) {
             // Libère la réservation pour permettre une nouvelle tentative
             // (sinon ce client resterait bloqué à vie pour ce palier).
+            // Round 172 : id_shop ajouté — sans lui, ce DELETE (contrairement
+            // à l'UPDATE juste en dessous, déjà filtré) supprimait AUSSI la
+            // réservation de l'AUTRE boutique en mode séparé si le client
+            // franchissait le même palier quasi simultanément sur les deux —
+            // y compris quand le CartRule de cette autre boutique avait déjà
+            // été créé avec succès. Ce nettoyage effaçait alors le seul
+            // enregistrement empêchant une 2e récompense : au prochain
+            // franchissement de palier, checkAndReward() ne trouvait plus
+            // aucune ligne et régénérait un second bon pour un palier déjà
+            // récompensé.
             $this->db->execute(
                 "DELETE FROM `{$this->prefix}" . self::TABLE_REWARDS . "`
                  WHERE id_customer = " . (int) $idCustomer . "
                    AND tier_key = '" . pSQL($tier['key']) . "'
-                   AND id_cart_rule = 0"
+                   AND id_cart_rule = 0
+                   AND id_shop = " . $reservationShopId
             );
             throw new \RuntimeException(\AdminTranslator::tVars('msg.loyalty_cartrule_add_failed', ['customer' => $idCustomer]));
         }
@@ -861,7 +872,18 @@ class LoyaltyManager
             return 30; // Jamais envoyé — comportement historique inchangé.
         }
         $days = (int) ceil((time() - strtotime($lastSentRaw)) / 86400);
-        return max(1, min($days, 60));
+        // Round 172 : le plafond était auparavant 60 jours — après une
+        // panne du cron de plus de 60 jours (serveur arrêté, tâche
+        // désactivée par erreur), l'écart réel (ex. 90 jours) était tronqué
+        // à 60 : les points gagnés entre le 61e et le 90e jour disparaissaient
+        // silencieusement et définitivement du récap (CONFIG_RECAP_LAST_SENT
+        // étant remis à "maintenant" juste après, aucune fenêtre future ne
+        // les recompte jamais). Le plafond n'a aucune utilité de
+        // correction — la fenêtre est toujours dérivée de l'horodatage réel
+        // du dernier envoi, jamais d'une fenêtre glissante — seulement une
+        // borne défensive contre une plage SQL déraisonnable ; relevée à 400
+        // jours (large marge au-delà d'une année complète d'inactivité).
+        return max(1, min($days, 400));
     }
 
     private function sendRecapToCustomer(int $idCustomer, ?int $idShop = null, int $windowDays = 30): bool

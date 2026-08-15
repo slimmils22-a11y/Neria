@@ -497,14 +497,37 @@ class BounceManager
         return compact('email', 'type', 'reason');
     }
 
+    /**
+     * Round 172 : le Type Postmark 'Type' détaille bien plus que
+     * HardBounce/SoftBounce — Transient, Blocked, Undeliverable,
+     * SpamNotification, DnsError, SMTPApiError sont tous des échecs
+     * temporaires/environnementaux (boîte pleine, blocage IP passager,
+     * erreur DNS transitoire...), pas des adresses définitivement
+     * invalides. L'ancien test `str_contains($type_raw, 'bounce')`
+     * filtrait même ces événements AVANT toute classification (aucun de
+     * ces types ne contient littéralement "bounce"), les ignorant
+     * purement et simplement — une adresse avec une boîte pleine
+     * répétée n'était donc jamais suivie ni bloquée. Le gate se base
+     * désormais sur RecordType === 'Bounce' (champ Postmark dédié à la
+     * distinction webhook bounce vs delivery/open/click/etc.), et la
+     * classification hard/soft couvre explicitement les types temporaires
+     * connus plutôt que de tout considérer "hard" par défaut.
+     */
+    private const POSTMARK_SOFT_TYPES = [
+        'softbounce', 'transient', 'blocked', 'undeliverable',
+        'spamnotification', 'dnserror', 'smtpapierror',
+    ];
+
     private function parsePostmark(array $p): ?array
     {
         $type_raw = $p['Type'] ?? '';
-        if (!str_contains(mb_strtolower($type_raw), 'bounce')) {
+        $isBounceRecord = ($p['RecordType'] ?? '') === 'Bounce'
+            || str_contains(mb_strtolower($type_raw), 'bounce');
+        if (!$isBounceRecord) {
             return null;
         }
         $email  = mb_strtolower($p['Email'] ?? '');
-        $type   = ($type_raw === 'SoftBounce') ? 'soft' : 'hard';
+        $type   = in_array(mb_strtolower($type_raw), self::POSTMARK_SOFT_TYPES, true) ? 'soft' : 'hard';
         $reason = $p['Description'] ?? $p['Details'] ?? "Postmark $type_raw";
         return compact('email', 'type', 'reason');
     }
