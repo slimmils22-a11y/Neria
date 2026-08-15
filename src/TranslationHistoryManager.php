@@ -69,6 +69,15 @@ class TranslationHistoryManager
                 ]),
                 $template, 'TranslationHistoryManager'
             );
+            // Round 175 : le `return` manquait ici — l'échec (ou le refus)
+            // du verrou était bien journalisé, mais l'INSERT + pruneKey()
+            // s'exécutaient quand même juste en dessous, exactement comme si
+            // le verrou avait été obtenu. La vérification du round 151 ne
+            // protégeait donc RIEN en pratique : elle se contentait de
+            // loguer un warning avant de laisser la race condition du round
+            // 138 (double insertion + double purge sous forte concurrence)
+            // se reproduire dès que GET_LOCK() time-out (3s) ou échoue.
+            return;
         }
         try {
             $inserted = $this->db->insert(self::TABLE, [
@@ -100,9 +109,11 @@ class TranslationHistoryManager
 
             $this->pruneKey($template, $lang, $key);
         } finally {
-            if ($acquired === 1) {
-                $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
-            }
+            // Round 175 : le `return` ajouté ci-dessus quand $acquired !== 1
+            // rend ce garde redondant (on n'atteint plus jamais ce bloc
+            // sans verrou obtenu, $acquired vaut toujours 1 ici) — simplifié
+            // en conséquence (PHPStan : comparaison toujours vraie).
+            $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
         }
     }
 

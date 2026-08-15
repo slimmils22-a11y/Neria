@@ -337,7 +337,16 @@ class MultiClientPreviewManager
 
     private function transformAol(string $html): string
     {
-        return $this->addBanner($this->stripMediaQueries($html), 'aol');
+        // Round 175 : le libellé CLIENTS['aol']['support'] annonce "media
+        // queries et styles supprimés", mais seule stripMediaQueries()
+        // était appelée (identique à Yahoo) — les blocs <style> restants et
+        // tout le CSS inline étaient conservés intégralement. Un marchand
+        // choisissant l'aperçu AOL pour vérifier qu'un style problématique
+        // disparaît bien voyait un rendu qui le conservait, contrairement à
+        // ce que promettait le libellé. stripStyleAndLinkTags() retire les
+        // <style> en entier (media queries comprises, puisqu'elles sont
+        // déclarées à l'intérieur) et les <link rel="stylesheet">.
+        return $this->addBanner($this->stripStyleAndLinkTags($html), 'aol');
     }
 
     private function transformProtonMail(string $html): string

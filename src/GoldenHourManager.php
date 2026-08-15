@@ -111,6 +111,13 @@ class GoldenHourManager
         // événement). On relie donc chaque ouverture à l'heure d'ENVOI de
         // son propre email via tracking_token (jointure), et on groupe par
         // (lang, jour, heure) de l'envoi — pas de l'ouverture.
+        //
+        // Round 175 : la jointure ne filtrait pas o.id_shop = s.id_shop —
+        // seul s.id_shop l'était côté WHERE. tracking_token n'a qu'un INDEX
+        // en base (pas de contrainte UNIQUE globale) : en cas de collision
+        // de token entre deux boutiques d'une même install multi-shop,
+        // l'ouverture d'une boutique B aurait pu se joindre à l'envoi d'une
+        // boutique A et fausser son taux d'ouverture/heure optimale.
         $rows = $this->db->executeS(
             "SELECT
                 s.`lang`,
@@ -121,6 +128,7 @@ class GoldenHourManager
              FROM `{$table}` s
              LEFT JOIN `{$table}` o
                     ON o.`tracking_token` = s.`tracking_token`
+                   AND o.`id_shop`        = s.`id_shop`
                    AND o.`event_type`     = 'open'
                    AND o.`is_mpp`         = 0
              WHERE s.`event_type` = 'sent'

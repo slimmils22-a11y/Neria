@@ -600,17 +600,19 @@ class CalendarManager
             case 'eid_adha':
             case 'eid_al_adha':
             case 'ramadan':
-                // calculateEidAlFitr()/calculateEidAlAdha()/calculateRamadanStart()
-                // (NIVEAU 2) reposent sur hijriToJdn(), qui produit une date
+                // Les anciennes méthodes calculateEidAlFitr()/
+                // calculateEidAlAdha()/calculateRamadanStart() (NIVEAU 2,
+                // basées sur hijriToJdn()) produisaient une date
                 // systématiquement décalée d'environ un an (vérifié : pour
-                // l'année grégorienne 2025, le calcul renvoie 2026 pour les
-                // trois occasions, et ainsi de suite pour chaque année
-                // testée). Comme ces méthodes ne retournent jamais null, le
-                // NIVEAU 3 (table 2025-2035 vérifiée manuellement, dates
+                // l'année grégorienne 2025, le calcul renvoyait 2026 pour
+                // les trois occasions, et ainsi de suite pour chaque année
+                // testée). Comme ces méthodes ne retournaient jamais null,
+                // le NIVEAU 3 (table 2025-2035 vérifiée manuellement, dates
                 // correctes) n'était donc jamais consulté — même bug que
-                // lunar_new_year. On saute directement au NIVEAU 3 plutôt
-                // que de rafistoler un algorithme hégirien qui n'a jamais
-                // été fiable.
+                // lunar_new_year. Supprimées le 15/08/2026 (round 175,
+                // nettoyage de code mort) plutôt que rafistolées : ce
+                // court-circuit vers le NIVEAU 3 était déjà en place depuis
+                // un round antérieur et les rendait inatteignables.
                 return null;
 
             case 'lunar_new_year':
@@ -639,111 +641,6 @@ class CalendarManager
             default:
                 return null;
         }
-    }
-
-    /**
-     * Calcule le debut du Ramadan pour une annee gregorienne donnee
-     * Algorithme base sur le calendrier hegirien (cycle de 30 ans)
-     *
-     * Precision : +/- 1 jour selon les observations locales
-     * Le marchand peut corriger via l'override manuel
-     *
-     * @param int $year Annee gregorienne
-     * @return \DateTime|null
-     */
-    private function calculateRamadanStart(int $year): ?\DateTime
-    {
-        // Conversion annee gregorienne â†’ annee hegirienne approximative
-        $hijriYear = (int) round(($year - 622) * (33 / 32));
-
-        // Calcul du JDN (Jour Julien) du 1er Ramadan
-        // Algorithme de Fliegel & Van Flandern adapte au calendrier hegirien
-        $jdn = $this->hijriToJdn($hijriYear, 9, 1);
-
-        return $this->jdnToDateTime($jdn);
-    }
-
-    /**
-     * Calcule la date d'Eid al-Fitr (1er Shawwal)
-     * Fin du Ramadan â€” 30 jours apres le debut
-     *
-     * @param int $year Annee gregorienne
-     * @return \DateTime|null
-     */
-    private function calculateEidAlFitr(int $year): ?\DateTime
-    {
-        $hijriYear = (int) round(($year - 622) * (33 / 32));
-        $jdn       = $this->hijriToJdn($hijriYear, 10, 1);
-
-        return $this->jdnToDateTime($jdn);
-    }
-
-    /**
-     * Calcule la date d'Eid al-Adha (10 Dhu al-Hijja)
-     *
-     * @param int $year Annee gregorienne
-     * @return \DateTime|null
-     */
-    private function calculateEidAlAdha(int $year): ?\DateTime
-    {
-        $hijriYear = (int) round(($year - 622) * (33 / 32));
-        $jdn       = $this->hijriToJdn($hijriYear, 12, 10);
-
-        return $this->jdnToDateTime($jdn);
-    }
-
-    /**
-     * Convertit une date du calendrier hegirien en Jour Julien
-     * Algorithme de conversion standard (Meeus, 1991)
-     *
-     * @param int $year  Annee hegirienne
-     * @param int $month Mois hegirien (1-12)
-     * @param int $day   Jour (1-30)
-     * @return int Numero du Jour Julien
-     */
-    private function hijriToJdn(int $year, int $month, int $day): int
-    {
-        return (int) (
-            (11 * $year + 3) / 30
-        ) + 354 * $year
-          + 30 * $month
-          - (int) (($month - 1) / 2)
-          + $day
-          + 1948440
-          - 385;
-    }
-
-    /**
-     * Convertit un Jour Julien en objet DateTime gregorien
-     *
-     * @param int $jdn Jour Julien
-     * @return \DateTime|null
-     */
-    private function jdnToDateTime(int $jdn): ?\DateTime
-    {
-        // Algorithme de conversion JDN â†’ date gregorienne
-        $l = $jdn + 68569;
-        $n = (int) (4 * $l / 146097);
-        $l = $l - (int) ((146097 * $n + 3) / 4);
-        $i = (int) (4000 * ($l + 1) / 1461001);
-        $l = $l - (int) (1461 * $i / 4) + 31;
-        $j = (int) (80 * $l / 2447);
-
-        $day   = $l - (int) (2447 * $j / 80);
-        $l     = (int) ($j / 11);
-        $month = $j + 2 - 12 * $l;
-        $year  = 100 * ($n - 49) + $i + $l;
-
-        if ($year < 1900 || $year > 2100) {
-            return null;
-        }
-
-        $date = \DateTime::createFromFormat(
-            'Y-n-j',
-            "{$year}-{$month}-{$day}"
-        );
-
-        return $date ?: null;
     }
 
     /**
