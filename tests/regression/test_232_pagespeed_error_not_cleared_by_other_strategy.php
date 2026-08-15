@@ -17,6 +17,11 @@
  * vérifie que le clear de CONFIG_LAST_ERROR a été déplacé de
  * fetchStrategy() vers runCheck(), conditionné à la réussite des DEUX
  * stratégies.
+ *
+ * Fenêtre recalibrée le 15/08/2026 (round 171) : le correctif du cooldown
+ * d'échec (isInFailureCooldown()/CONFIG_LAST_ATTEMPT, voir test_325) a
+ * ajouté du code avant la condition recherchée, poussant sa position hors
+ * de l'ancienne fenêtre de 2600 caractères.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -35,7 +40,7 @@ function run_test(): array
 
     $posRun = strpos($src, 'public function runCheck(): ?array');
     neria_assert($posRun !== false, 'runCheck() introuvable — jeu de test invalide');
-    $runBody = substr($src, $posRun, 2600);
+    $runBody = substr($src, $posRun, 3600);
     neria_assert(
         strpos($runBody, 'if ($mobile !== null && $desktop !== null) {') !== false,
         "runCheck() ne conditionne plus l'effacement de CONFIG_LAST_ERROR a la reussite des DEUX strategies — regression du bug corrige le 09/08/2026 (round 150)"

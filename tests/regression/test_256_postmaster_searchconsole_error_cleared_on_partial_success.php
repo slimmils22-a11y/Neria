@@ -20,6 +20,11 @@
  * Test structurel : vérifie la présence du 2e deleteByName() (le premier,
  * après /domains ou /sites, existait déjà avant ce correctif) juste avant
  * l'écriture du cache final.
+ *
+ * Fenêtre GSC recalibrée le 15/08/2026 (round 171) : le correctif du
+ * round 171 (effacement conditionné à $queries/$pages non-null, voir
+ * test_323) a ajouté un commentaire explicatif avant le 2e deleteByName(),
+ * poussant sa position hors de l'ancienne fenêtre de 1100 caractères.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -47,7 +52,7 @@ function run_test(): array
     );
     $posCacheWriteGsc = strpos($gsc, "\Configuration::updateValue(\$this->cacheKey(self::CONFIG_CACHE),      json_encode(\$result, JSON_UNESCAPED_UNICODE));");
     neria_assert($posCacheWriteGsc !== false, 'Écriture du cache SearchConsole introuvable — jeu de test invalide');
-    $afterCacheWriteGsc = substr($gsc, $posCacheWriteGsc, 1100);
+    $afterCacheWriteGsc = substr($gsc, $posCacheWriteGsc, 2300);
     neria_assert(
         strpos($afterCacheWriteGsc, 'Configuration::deleteByName(self::CONFIG_LAST_ERROR)') !== false,
         "SearchConsoleManager::fetchAndCache() n'efface plus CONFIG_LAST_ERROR juste après l'écriture du cache final — régression du bug corrigé le 09/08/2026 (round 157)"
