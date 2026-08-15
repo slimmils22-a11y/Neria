@@ -5855,6 +5855,53 @@ class HealthCheckManager
             }
         }
 
+        // Round 172 (15/08/2026) : CryptoManager — lastDecryptFailed()
+        // distingue un échec réel de déchiffrement d'une valeur jamais
+        // configurée, et le throttle de log est par motif distinct.
+        $cryptoSrc172 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CryptoManager.php');
+        if ($cryptoSrc172 === '') {
+            $offenders[] = 'CryptoManager.php introuvable (garde-fou round 172)';
+        } else {
+            if (strpos($cryptoSrc172, 'public static function lastDecryptFailed(): bool') === false) {
+                $offenders[] = "CryptoManager::lastDecryptFailed() a disparu — régression du bug corrigé le 15/08/2026 (round 172) : un échec réel de déchiffrement redeviendrait indiscernable d'un secret jamais configuré, masquant silencieusement une intégration cassée (OAuth, IMAP...)";
+            }
+            if (strpos($cryptoSrc172, 'static $loggedReasons = [];') === false) {
+                $offenders[] = "CryptoManager::logDecryptFailure() ne journalise plus par motif distinct — régression du bug corrigé le 15/08/2026 (round 172) : un seul échec serait de nouveau tracé par requête, quel que soit le nombre de causes différentes";
+            }
+        }
+
+        // Round 172 (15/08/2026) : LoyaltyManager — DELETE de nettoyage
+        // scopé par id_shop (symétrique à l'UPDATE), fenêtre du récap non
+        // tronquée à 60 jours.
+        $loySrc172 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
+        if ($loySrc172 === '') {
+            $offenders[] = 'LoyaltyManager.php introuvable (garde-fou round 172)';
+        } else {
+            $posFail172 = strpos($loySrc172, 'if (!$cartRule->add()) {');
+            $failBody172 = $posFail172 !== false ? substr($loySrc172, $posFail172, 1400) : '';
+            if ($posFail172 === false || strpos($failBody172, 'AND id_shop = " . $reservationShopId') === false) {
+                $offenders[] = "LoyaltyManager::generateVoucher() ne filtre plus le DELETE de nettoyage par id_shop — régression du bug corrigé le 15/08/2026 (round 172) : un échec de CartRule::add() sur une boutique supprimerait de nouveau AUSSI la réservation d'une autre boutique en mode séparé, provoquant l'émission d'un second bon pour un palier déjà récompensé";
+            }
+            if (strpos($loySrc172, 'min($days, 400)') === false) {
+                $offenders[] = "LoyaltyManager::computeRecapWindowDays() ne relève plus le plafond à 400 jours — régression du bug corrigé le 15/08/2026 (round 172) : après une panne cron de plus de 60 jours, les points gagnés au-delà seraient de nouveau tronqués et disparaîtraient définitivement du prochain récap";
+            }
+        }
+
+        // Round 172 (15/08/2026) : BounceManager::parsePostmark() doit
+        // reconnaître RecordType==='Bounce' et classer 'soft' les types
+        // Postmark temporaires connus (Transient, Blocked, etc.).
+        $bmSrc172 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php');
+        if ($bmSrc172 === '') {
+            $offenders[] = 'BounceManager.php introuvable (garde-fou round 172)';
+        } else {
+            if (strpos($bmSrc172, "(\$p['RecordType'] ?? '') === 'Bounce'") === false) {
+                $offenders[] = "BounceManager::parsePostmark() ne reconnaît plus RecordType==='Bounce' — régression du bug corrigé le 15/08/2026 (round 172) : les types Postmark temporaires (Transient/Blocked/Undeliverable/...) seraient de nouveau silencieusement ignorés, aucune adresse à boîte pleine répétée ne serait jamais suivie";
+            }
+            if (strpos($bmSrc172, 'POSTMARK_SOFT_TYPES') === false) {
+                $offenders[] = "BounceManager::parsePostmark() ne classe plus les types Postmark temporaires connus en 'soft' — régression du bug corrigé le 15/08/2026 (round 172) : un échec temporaire (boîte pleine) bloquerait de nouveau définitivement l'adresse comme un hard bounce";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
