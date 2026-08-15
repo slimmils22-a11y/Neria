@@ -111,14 +111,22 @@ class VoiceProfileManager
         $seen  = [];
         $out   = [];
         foreach ($words as $word) {
-            if (mb_strlen($word) > self::MAX_WORD_LENGTH) {
-                $word = mb_substr($word, 0, self::MAX_WORD_LENGTH);
-            }
+            // Round 174 : la clé de dédoublonnage se calculait sur le mot
+            // déjà tronqué à MAX_WORD_LENGTH — deux entrées distinctes de
+            // plus de 100 caractères partageant le même préfixe (ex. deux
+            // phrases longues quasi-identiques) produisaient alors la même
+            // clé et fusionnaient silencieusement, la seconde disparaissant
+            // sans erreur au BO. La clé est désormais calculée sur le mot
+            // ORIGINAL (avant troncature) : seules deux entrées réellement
+            // identiques (au-delà de 100 caractères y compris) fusionnent.
             $key = mb_strtolower($word);
             if (isset($seen[$key])) {
                 continue;
             }
             $seen[$key] = true;
+            if (mb_strlen($word) > self::MAX_WORD_LENGTH) {
+                $word = mb_substr($word, 0, self::MAX_WORD_LENGTH);
+            }
             $out[] = $word;
             if (count($out) >= 500) {
                 break;

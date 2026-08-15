@@ -324,13 +324,21 @@ class ClvManager
         // colonne id_shop propre, d'où le JOIN sur orders pour rester scopé
         // à cette boutique (et non aux remboursements toutes boutiques d'un
         // client partagé).
+        // Round 174 : `o.valid = 1` manquait ici, contrairement à ordersAgg
+        // juste au-dessus ET à computeClv() (qui restreint déjà les
+        // remboursements à $orderIds, lui-même filtré valid=1). Un avoir lié
+        // à une commande annulée (jamais compté dans total_revenue) était
+        // quand même soustrait ici, réduisant à tort le CLV batch d'un
+        // client — incohérent avec sa fiche individuelle (getCustomerClv(),
+        // non affectée par ce bug) et risquant un sous-classement injustifié
+        // dans le Top 20 marketing.
         $refundAgg = [];
         foreach ($this->db->executeS(
             'SELECT o.`id_customer`,
                     SUM((os.`total_products_tax_incl` + os.`total_shipping_tax_incl`) / IF(os.`conversion_rate` = 0, 1, os.`conversion_rate`)) AS total_refunded
              FROM `' . _DB_PREFIX_ . 'order_slip` os
              INNER JOIN `' . _DB_PREFIX_ . 'orders` o ON o.`id_order` = os.`id_order`
-             WHERE o.`id_customer` IN (' . $idList . ') AND o.`id_shop` = ' . $this->idShop . '
+             WHERE o.`id_customer` IN (' . $idList . ') AND o.`id_shop` = ' . $this->idShop . ' AND o.`valid` = 1
              GROUP BY o.`id_customer`'
         ) ?: [] as $r) {
             $refundAgg[(int) $r['id_customer']] = (float) $r['total_refunded'];

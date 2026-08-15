@@ -498,12 +498,22 @@ class LookCompletionManager
 
     public function getCategories(): array
     {
+        // Round 174 : aucun filtre id_shop — en multi-boutique, le BO
+        // proposait pour créer une règle de complétion de look des
+        // catégories n'appartenant pas forcément à la boutique courante
+        // (chaque boutique a son propre arbre de catégories via
+        // category_shop). Jointure ajoutée, cohérente avec le scoping déjà
+        // appliqué ailleurs dans ce fichier (getStats()).
+        $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             "SELECT c.id_category, cl.name
              FROM `{$this->prefix}category` c
              INNER JOIN `{$this->prefix}category_lang` cl
                 ON cl.id_category = c.id_category
                AND cl.id_lang = " . (int) \Configuration::get('PS_LANG_DEFAULT') . "
+             INNER JOIN `{$this->prefix}category_shop` cs
+                ON cs.id_category = c.id_category
+               AND cs.id_shop = {$idShop}
              WHERE c.active = 1 AND c.id_category > 2
              ORDER BY cl.name ASC"
         );

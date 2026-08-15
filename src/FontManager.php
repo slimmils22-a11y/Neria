@@ -248,8 +248,19 @@ class FontManager
         // Police configurée par le marchand
         $configuredFamily = $this->config->getFontForLang($lang);
 
-        // Cherche le nom court à partir de la css_family configurée
-        foreach (self::FONT_CATALOG as $name => $data) {
+        // Cherche le nom court à partir de la css_family configurée.
+        // Round 174 : un strpos() non ancré est ambigu entre un nom de
+        // police et ses variantes régionales qui le préfixent (ex. 'Noto
+        // Serif' est une sous-chaîne littérale de 'Noto Serif JP'/'KR'/
+        // 'SC'/'TC'/'HK') — l'ordre de déclaration de FONT_CATALOG
+        // déterminait alors silencieusement lequel gagnait, un piège de
+        // maintenance si cet ordre change un jour. Tri par longueur de nom
+        // DÉCROISSANTE avant la recherche : le nom le plus spécifique
+        // (le plus long) est toujours testé en premier, indépendamment de
+        // l'ordre de déclaration du catalogue.
+        $namesByLengthDesc = array_keys(self::FONT_CATALOG);
+        usort($namesByLengthDesc, static fn($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+        foreach ($namesByLengthDesc as $name) {
             if (strpos($configuredFamily, $name) !== false) {
                 return $name;
             }
