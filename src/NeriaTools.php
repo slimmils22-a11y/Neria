@@ -239,7 +239,11 @@ class NeriaTools
     {
         $ts = is_numeric($date) ? (int) $date : strtotime($date);
 
-        if (!$ts) {
+        // Round 173 : `!$ts` était vrai pour un timestamp epoch valide (0 =
+        // 1970-01-01T00:00:00Z), confondant une date réelle avec un échec
+        // de parsing — distingue désormais explicitement l'échec de
+        // strtotime() (false) d'un timestamp 0 légitime.
+        if ($ts === false) {
             return $date;
         }
 
@@ -906,6 +910,14 @@ class NeriaTools
 
         $l = $labels[$lang] ?? $labels['fr'];
 
+        // Round 173 : une $date future (ex. envoi programmé) rendait $diff
+        // négatif, donc toujours < 60 → affichait à tort "à l'instant" au
+        // lieu de refléter un délai à venir. Traite toute date future comme
+        // "à l'instant" explicitement plutôt que par un artefact du calcul.
+        if ($diff <= 0) {
+            return $l['just_now'];
+        }
+
         if ($diff < 60) {
             return $l['just_now'];
         }
@@ -1033,7 +1045,14 @@ class NeriaTools
         $targetLang = null;
         if ($idLang !== null && \Validate::isUnsignedId($idLang)) {
             $lang = new \Language($idLang);
-            if (\Validate::isLoadedObject($lang) && (int) $lang->id !== (int) ($context->language->id ?? 0)) {
+            // Round 173 : $context->language peut être null (cron/CLI sans
+            // contexte complet — précisément le cas visé par ce paramètre
+            // $idLang explicite), et accéder à ->id dessus émettrait un
+            // warning PHP 8 "Attempt to read property on null" à chaque
+            // appel malgré le `??` qui ne protège que le résultat, pas
+            // l'accès lui-même.
+            $contextLangId = $context->language !== null ? (int) $context->language->id : 0;
+            if (\Validate::isLoadedObject($lang) && (int) $lang->id !== $contextLangId) {
                 $targetLang = $lang;
             }
         }

@@ -327,6 +327,7 @@ class CssInliner
     {
         $result    = [];
         $important = [];
+        $fromInline = [];
 
         // Round 137 : respecte !important dans la cascade — auparavant
         // totalement ignoré (ni détecté, ni priorisé), traité comme un
@@ -363,8 +364,9 @@ class CssInliner
                     continue;
                 }
                 [$k, $v, $isImportant] = $parsed;
-                $result[$k]    = $v;
-                $important[$k] = $isImportant;
+                $result[$k]     = $v;
+                $important[$k]  = $isImportant;
+                $fromInline[$k] = true;
             }
         }
 
@@ -375,6 +377,25 @@ class CssInliner
             }
             [$k, $v, $isImportant] = $parsed;
             if (!array_key_exists($k, $result)) {
+                $result[$k]     = $v;
+                $important[$k]  = $isImportant;
+                $fromInline[$k] = false;
+                continue;
+            }
+            // Round 173 : une déclaration dupliquée AU SEIN de $newProps
+            // (même règle CSS, ex. fallback `color:#999; color:red;`, ou
+            // style inline d'origine avec la même propriété deux fois) doit
+            // suivre la cascade CSS standard "la dernière déclaration
+            // gagne" — auparavant seule la première rencontrée était
+            // conservée, produisant un rendu différent entre Apple Mail
+            // (garde le <style>, respecte l'ordre) et Gmail/Outlook (ne
+            // voient que le style inliné ici, recevaient la mauvaise
+            // valeur). Ne s'applique qu'entre déclarations de même origine
+            // ($fromInline[$k] === false, càd déjà issues de ce même appel
+            // à merge()) : le style inline d'origine et les règles
+            // provenant d'une autre feuille gardent leur priorité respective
+            // via la logique !important ci-dessous, inchangée.
+            if (!$fromInline[$k] && (!$important[$k] || $isImportant)) {
                 $result[$k]    = $v;
                 $important[$k] = $isImportant;
                 continue;
