@@ -21,6 +21,11 @@
  * Test comportemental réel : vrai CartRule à 12,5% de réduction, vérifie
  * que voucherRateFromCode() retourne bien "12,5 %" pour $lang='fr' et
  * "12.5 %" pour $lang='en', indépendamment du contexte.
+ *
+ * Mis à jour le 15/08/2026 (round 176) : voucherRateFromCode() prend
+ * désormais un 3e paramètre $idShop (correctif du scoping multi-boutique,
+ * voir test_347) — la signature a changé, l'appel ci-dessous est ajusté en
+ * conséquence sans changer l'objet de CE test (le formatage par langue).
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -60,8 +65,9 @@ function run_test(): array
         $ref = new ReflectionMethod(EmailRenderer::class, 'voucherRateFromCode');
         $ref->setAccessible(true);
 
-        $rateFr = $ref->invoke($renderer, $code, 'fr');
-        $rateEn = $ref->invoke($renderer, $code, 'en');
+        $idShop = (int) Context::getContext()->shop->id;
+        $rateFr = $ref->invoke($renderer, $code, 'fr', $idShop);
+        $rateEn = $ref->invoke($renderer, $code, 'en', $idShop);
 
         neria_assert(
             $rateFr !== $rateEn,
