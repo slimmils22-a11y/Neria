@@ -595,6 +595,7 @@ COMMENT='Campagnes saisonnières annuelles Neria — envoi automatique par cron'
 CREATE TABLE IF NOT EXISTS `PREFIX_neria_certificate` (
     `id_certificate`  INT(11)      NOT NULL AUTO_INCREMENT,
     `id_shop`         INT(11)      NOT NULL DEFAULT 1,
+    `id_customer`     INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Round 170 : ajouté ici pour que les installs fraîches convergent avec upgrade-1.0.39.php (purge RGPD directe sans dépendre de id_order)',
     `id_order`        INT(11)      NOT NULL,
     `id_product`      INT(11)      NOT NULL,
     `id_order_detail` INT(11)      NOT NULL DEFAULT 0,
@@ -608,9 +609,10 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_certificate` (
     `date_add`        DATETIME     NOT NULL,
     PRIMARY KEY (`id_certificate`),
     UNIQUE KEY `uq_serial` (`serial_number`),
-    KEY `idx_order`   (`id_order`),
-    KEY `idx_product` (`id_product`),
-    KEY `idx_shop`    (`id_shop`)
+    KEY `idx_order`    (`id_order`),
+    KEY `idx_product`  (`id_product`),
+    KEY `idx_shop`     (`id_shop`),
+    KEY `idx_customer` (`id_customer`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Certificats d''authenticité émis par Neria — un par produit/commande';
 

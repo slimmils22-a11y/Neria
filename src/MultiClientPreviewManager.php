@@ -380,9 +380,16 @@ class MultiClientPreviewManager
             htmlspecialchars($info['support'])
         );
 
-        // Insère le bandeau juste après <body> si présent, sinon en tête
+        // Insère le bandeau juste après <body> si présent, sinon en tête.
+        // Round 170 : ?? $html manquant ici (seule occurrence du fichier sans
+        // ce filet, contrairement à toutes les autres méthodes corrigées au
+        // round 144) — preg_replace() retourne null sur un échec du moteur
+        // PCRE (pcre.backtrack_limit dépassé), ce qui provoquait une
+        // TypeError fatale sur cette méthode déclarée `: string`, plantant
+        // tout le rendu multi-client (addBanner() est le dernier appel de
+        // chaque transform*()).
         if (stripos($html, '<body') !== false) {
-            return preg_replace('/(<body\b[^>]*>)/i', '$1' . $banner, $html, 1);
+            return preg_replace('/(<body\b[^>]*>)/i', '$1' . $banner, $html, 1) ?? $html;
         }
         return $banner . $html;
     }
@@ -469,6 +476,15 @@ class MultiClientPreviewManager
      */
     public function pollLitmus(string $testId): array
     {
+        // Round 170 : $testId était interpolé tel quel dans l'URL, la
+        // sanitisation n'existant que côté appelant (neria.php). Défense en
+        // profondeur : cette méthode publique ne doit pas dépendre de son
+        // seul appelant actuel pour rester sûre si elle est réutilisée
+        // ailleurs (cron/CLI/autre contrôleur).
+        if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $testId)) {
+            return [];
+        }
+
         $key = \CryptoManager::decrypt(trim((string) \Configuration::get(self::CONFIG_LITMUS_KEY)));
         if (!$key) {
             return [];
@@ -602,6 +618,11 @@ class MultiClientPreviewManager
      */
     public function pollEmailOnAcid(string $testId): array
     {
+        // Round 170 : voir pollLitmus() — même défense en profondeur.
+        if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $testId)) {
+            return [];
+        }
+
         $key = \CryptoManager::decrypt(trim((string) \Configuration::get(self::CONFIG_EOA_KEY)));
         if (!$key) {
             return [];

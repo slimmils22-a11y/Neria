@@ -47,10 +47,15 @@ class VoiceProfileManager
             return ['banned_words' => '', 'preferred_words' => '', 'tone_notes' => ''];
         }
 
+        // Round 170 : ?? '' avant le cast — les colonnes sont TEXT DEFAULT
+        // NULL en base ; saveProfile() écrit toujours une chaîne non-null,
+        // mais une ligne insérée/modifiée hors de ce chemin (édition directe
+        // en base, migration future) laisserait ces colonnes NULL, et
+        // (string) null émet un warning de dépréciation sous PHP 8.1+.
         return [
-            'banned_words'    => (string) $row['banned_words'],
-            'preferred_words' => (string) $row['preferred_words'],
-            'tone_notes'      => (string) $row['tone_notes'],
+            'banned_words'    => (string) ($row['banned_words'] ?? ''),
+            'preferred_words' => (string) ($row['preferred_words'] ?? ''),
+            'tone_notes'      => (string) ($row['tone_notes'] ?? ''),
         ];
     }
 
@@ -86,6 +91,13 @@ class VoiceProfileManager
         );
     }
 
+    /** Longueur max d'une entrée — round 170 : le plafond de 500 entrées ne
+     * protégeait pas contre UNE SEULE entrée de taille arbitraire (un
+     * paragraphe collé sans retour à la ligne), stockée telle quelle puis
+     * réinjectée dans une regex construite dynamiquement à chaque
+     * sauvegarde de traduction et à chaque audit complet. */
+    private const MAX_WORD_LENGTH = 100;
+
     /**
      * Déduplique (insensible à la casse) et plafonne une liste "un mot par
      * ligne" venant du formulaire BO, avant écriture en base — voir
@@ -99,6 +111,9 @@ class VoiceProfileManager
         $seen  = [];
         $out   = [];
         foreach ($words as $word) {
+            if (mb_strlen($word) > self::MAX_WORD_LENGTH) {
+                $word = mb_substr($word, 0, self::MAX_WORD_LENGTH);
+            }
             $key = mb_strtolower($word);
             if (isset($seen[$key])) {
                 continue;
@@ -156,6 +171,17 @@ class VoiceProfileManager
         if ($plainText === '') {
             return [];
         }
+        // Round 170 : preg_match() avec le modificateur /u retourne false
+        // (pas 0) sur de l'UTF-8 invalide (ligne issue d'un import legacy ou
+        // d'une donnée corrompue) — le @ masquait le warning et
+        // "false === 1" valait silencieusement false, donc "mot non
+        // trouvé" : la ligne entière échappait à l'audit (bannis ET
+        // préférés) sans que rien ne le signale, alors qu'entries_scanned
+        // continuait d'être incrémenté côté appelant comme si elle avait
+        // bien été vérifiée. Nettoyage préventif : round-trip UTF-8→UTF-8
+        // remplace les séquences invalides plutôt que de faire échouer le
+        // matching sur tout le reste, par ailleurs valide, de la chaîne.
+        $plainText = mb_convert_encoding($plainText, 'UTF-8', 'UTF-8');
 
         $found = [];
         foreach ($words as $word) {
