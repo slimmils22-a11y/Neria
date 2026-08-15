@@ -20,8 +20,17 @@
  *
  * Test fonctionnel réel (méthode privée, testée via Reflection) : vérifie
  * que le nombre de jours retourné correspond bien au délai réel écoulé
- * depuis $lastSentRaw (borné à [1, 60]), et que le comportement historique
- * (fenêtre de 30 jours) est préservé quand aucun envoi précédent n'existe.
+ * depuis $lastSentRaw (borné à [1, 400] depuis le round 172 — voir
+ * test_331), et que le comportement historique (fenêtre de 30 jours) est
+ * préservé quand aucun envoi précédent n'existe.
+ *
+ * Mis à jour le 15/08/2026 (round 172) : le plafond de 60 jours (assertion
+ * ci-dessous à l'origine) était en réalité un bug — après une panne cron
+ * de plus de 60 jours, les points gagnés entre le 61e et le 90e jour
+ * disparaissaient silencieusement et définitivement du récap. Le plafond
+ * est passé à 400 jours (défense contre une plage SQL déraisonnable
+ * seulement, plus une troncature fonctionnelle) — voir test_331 pour le
+ * test dédié à ce correctif.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -49,18 +58,27 @@ function run_test(): array
         "computeRecapWindowDays() renvoie {$oneDayAgo} pour un dernier envoi d'hier — régression du bug corrigé le 08/08/2026 (round 121) : la fenêtre retomberait de nouveau sur 30 jours fixes, recomptant les points déjà annoncés hier"
     );
 
-    // Envoi précoce il y a 45 jours (dépasse la borne max) → plafonné à 60,
-    // pas illimité (protège contre un très long silence après une panne du
-    // cron ou une désactivation prolongée du module).
-    $longAgo = date('Y-m-d H:i:s', strtotime('-90 days'));
-    $capped  = $ref->invoke(null, $longAgo);
+    // Panne cron de 90 jours → doit refléter le délai RÉEL (~90), pas être
+    // tronquée à 60 (round 172 : c'était le bug — voir test_331 pour la
+    // vérification dédiée détaillée).
+    $ninetyDaysAgo = date('Y-m-d H:i:s', strtotime('-90 days'));
+    $window90 = $ref->invoke(null, $ninetyDaysAgo);
     neria_assert(
-        $capped === 60,
-        "computeRecapWindowDays() renvoie {$capped} au lieu de 60 pour un dernier envoi vieux de 90 jours — le plafond de sécurité a disparu"
+        $window90 >= 89 && $window90 <= 91,
+        "computeRecapWindowDays() renvoie {$window90} au lieu d'environ 90 pour un dernier envoi vieux de 90 jours — régression du bug corrigé le 15/08/2026 (round 172) : la fenêtre serait de nouveau tronquée, faisant disparaître silencieusement des points du récap"
+    );
+
+    // Écart extrême (2 ans) → le plafond de sécurité (400j, protège contre
+    // une plage SQL déraisonnable) doit toujours s'appliquer.
+    $twoYearsAgo = date('Y-m-d H:i:s', strtotime('-730 days'));
+    $capped = $ref->invoke(null, $twoYearsAgo);
+    neria_assert(
+        $capped === 400,
+        "computeRecapWindowDays() renvoie {$capped} au lieu de 400 pour un dernier envoi vieux de 2 ans — le plafond de sécurité a disparu"
     );
 
     return [
         'pass'    => true,
-        'message' => "LoyaltyManager::computeRecapWindowDays() calcule bien la fenêtre du récap sur le délai réel écoulé depuis le dernier envoi (borné à [1,60]), pas une fenêtre fixe de 30 jours",
+        'message' => "LoyaltyManager::computeRecapWindowDays() calcule bien la fenêtre du récap sur le délai réel écoulé depuis le dernier envoi (borné à [1,400]), pas une fenêtre fixe de 30 jours",
     ];
 }
