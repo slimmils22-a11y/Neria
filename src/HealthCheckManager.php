@@ -4957,7 +4957,7 @@ class HealthCheckManager
                 $offenders[] = "PageSpeedManager::fetchStrategy() efface/écrit de nouveau CONFIG_LAST_ERROR sur son propre succès — régression du bug corrigé le 09/08/2026 (round 150) : le succès d'une stratégie effacerait de nouveau l'erreur enregistrée par l'échec de l'autre";
             }
             $posRun150 = strpos($psmSrc150, 'public function runCheck(): ?array');
-            $runBody150 = $posRun150 !== false ? substr($psmSrc150, $posRun150, 2600) : '';
+            $runBody150 = $posRun150 !== false ? substr($psmSrc150, $posRun150, 3600) : '';
             if ($posRun150 === false || strpos($runBody150, 'if ($mobile !== null && $desktop !== null) {') === false) {
                 $offenders[] = "PageSpeedManager::runCheck() ne conditionne plus l'effacement de CONFIG_LAST_ERROR à la réussite des deux stratégies — régression du bug corrigé le 09/08/2026 (round 150)";
             }
@@ -5049,7 +5049,7 @@ class HealthCheckManager
             $offenders[] = 'SeoApiManager.php introuvable (garde-fou round 152 : alerte Watchdog httpGet Semrush)';
         } else {
             $posHg152 = strpos($samSrc152, 'private function httpGet(string $url): ?string');
-            $hgBody152 = $posHg152 !== false ? substr($samSrc152, $posHg152, 1400) : '';
+            $hgBody152 = $posHg152 !== false ? substr($samSrc152, $posHg152, 1900) : '';
             if ($posHg152 === false || strpos($hgBody152, 'watchdog.semrush_http_error') === false) {
                 $offenders[] = "SeoApiManager::httpGet() ne journalise plus d'alerte Watchdog sur un échec réseau/HTTP — régression du bug corrigé le 09/08/2026 (round 152) : une panne Semrush prolongée redeviendrait invisible du flux de notifications standard";
             }
@@ -5796,6 +5796,62 @@ class HealthCheckManager
             }
             if (strpos($vpmSrc170, "mb_convert_encoding(\$plainText, 'UTF-8', 'UTF-8')") === false) {
                 $offenders[] = "VoiceProfileManager::textContainsWords() ne nettoie plus l'UTF-8 invalide avant matching — régression du bug corrigé le 15/08/2026 (round 170) : une ligne avec de l'UTF-8 corrompu échapperait de nouveau silencieusement à tout l'audit (bannis ET préférés)";
+            }
+        }
+
+        // Round 171 (15/08/2026) : SearchConsoleManager::fetchAndCache()
+        // doit écrire le cache sur ses 2 retours anticipés (no_site,
+        // no_matching_site), et ne préserver CONFIG_LAST_ERROR que si
+        // queries ET pages n'ont pas échoué.
+        $gscSrc171 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php');
+        if ($gscSrc171 === '') {
+            $offenders[] = 'SearchConsoleManager.php introuvable (garde-fou round 171)';
+        } else {
+            $posNoSite171 = strpos($gscSrc171, 'watchdog.gsc_no_site');
+            $bodyNoSite171 = $posNoSite171 !== false ? substr($gscSrc171, $posNoSite171, 900) : '';
+            if ($posNoSite171 === false || strpos($bodyNoSite171, 'CONFIG_CACHE_TIME), time());') === false) {
+                $offenders[] = "SearchConsoleManager::fetchAndCache() n'écrit plus le cache sur son retour 'aucun site vérifié' — régression du bug corrigé le 15/08/2026 (round 171) : chaque page BO rappellerait de nouveau l'API GSC /sites en direct";
+            }
+            $posNoMatch171 = strpos($gscSrc171, 'watchdog.gsc_no_matching_site');
+            $bodyNoMatch171 = $posNoMatch171 !== false ? substr($gscSrc171, $posNoMatch171, 700) : '';
+            if ($posNoMatch171 === false || strpos($bodyNoMatch171, 'CONFIG_CACHE_TIME), time());') === false) {
+                $offenders[] = "SearchConsoleManager::fetchAndCache() n'écrit plus le cache sur son retour 'aucun site ne correspond' — régression du bug corrigé le 15/08/2026 (round 171)";
+            }
+            if (strpos($gscSrc171, 'if ($queries !== null && $pages !== null) {') === false) {
+                $offenders[] = "SearchConsoleManager::fetchAndCache() ne conditionne plus l'effacement de CONFIG_LAST_ERROR à la réussite de queries ET pages — régression du bug corrigé le 15/08/2026 (round 171) : un échec isolé effacerait de nouveau silencieusement une vraie erreur";
+            }
+        }
+
+        // Round 171 (15/08/2026) : PageSpeedManager — cooldown après échec
+        // total (isInFailureCooldown()), messages d'erreur combinés par
+        // stratégie (recordStrategyError()), 429 distingué des autres codes.
+        $psmSrc171 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PageSpeedManager.php');
+        if ($psmSrc171 === '') {
+            $offenders[] = 'PageSpeedManager.php introuvable (garde-fou round 171)';
+        } else {
+            if (strpos($psmSrc171, 'private function isInFailureCooldown(): bool') === false) {
+                $offenders[] = "PageSpeedManager::isInFailureCooldown() a disparu — régression du bug corrigé le 15/08/2026 (round 171) : un échec total (mobile ET desktop) ne bloquerait plus les tentatives suivantes, risquant d'épuiser le quota API pendant une panne";
+            }
+            if (strpos($psmSrc171, 'private function recordStrategyError(string $strategy, string $msg): void') === false) {
+                $offenders[] = "PageSpeedManager::recordStrategyError() a disparu — régression du bug corrigé le 15/08/2026 (round 171) : le message d'erreur mobile et desktop redeviendrait écrasé au lieu d'être combiné";
+            }
+            if (strpos($psmSrc171, "if (\$httpCode === 429) {") === false) {
+                $offenders[] = "PageSpeedManager::fetchStrategy() ne distingue plus le 429 (quota dépassé) des autres erreurs HTTP — régression du bug corrigé le 15/08/2026 (round 171) : plus de cooldown spécifique plus long après un rate-limit";
+            }
+        }
+
+        // Round 171 (15/08/2026) : SeoApiManager — getReport() retombe sur
+        // le dernier rapport en cache sur échec de runCheck(), et
+        // httpGet()/fetchMoz() utilisent $body === false (pas !$body).
+        $seoSrc171 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeoApiManager.php');
+        if ($seoSrc171 === '') {
+            $offenders[] = 'SeoApiManager.php introuvable (garde-fou round 171)';
+        } else {
+            if (strpos($seoSrc171, '$stale = $this->getCachedReport();') === false) {
+                $offenders[] = "SeoApiManager::getReport() ne retombe plus sur le dernier rapport en cache sur échec — régression du bug corrigé le 15/08/2026 (round 171) : une panne transitoire provoquerait de nouveau un black-out complet du widget SEO";
+            }
+            if (substr_count($seoSrc171, 'if ($body === false || $httpCode !== 200) {') < 2) {
+                $offenders[] = "SeoApiManager::httpGet()/fetchMoz() n'utilisent plus \$body === false — régression du bug corrigé le 15/08/2026 (round 171) : une réponse HTTP 200 dont le corps vaut '0' serait de nouveau traitée à tort comme un échec";
             }
         }
 
