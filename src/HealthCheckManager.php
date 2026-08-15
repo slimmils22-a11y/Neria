@@ -5962,6 +5962,47 @@ class HealthCheckManager
             $offenders[] = "FontManager::getFontNameForLang() ne trie plus les noms de police par longueur décroissante avant la recherche — régression du bug corrigé le 15/08/2026 (round 174) : le match redeviendrait dépendant de l'ordre de déclaration de FONT_CATALOG";
         }
 
+        $histSrc175 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/TranslationHistoryManager.php');
+        if ($histSrc175 === '') {
+            $offenders[] = 'TranslationHistoryManager.php introuvable (garde-fou round 175)';
+        } else {
+            $posIf175 = strpos($histSrc175, 'if ($acquired !== 1) {');
+            $posTry175 = $posIf175 !== false ? strpos($histSrc175, 'try {', $posIf175) : false;
+            $ifBlock175 = ($posIf175 !== false && $posTry175 !== false) ? substr($histSrc175, $posIf175, $posTry175 - $posIf175) : '';
+            if ($posIf175 === false || $posTry175 === false || strpos($ifBlock175, 'return;') === false) {
+                $offenders[] = "TranslationHistoryManager::record() n'exécute plus de return après un échec de GET_LOCK() — régression du bug corrigé le 15/08/2026 (round 175) : l'INSERT + pruneKey() s'exécuteraient de nouveau même sans verrou obtenu, recréant la race condition du round 138 malgré le warning journalisé";
+            }
+        }
+
+        $ghSrc175 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GoldenHourManager.php');
+        if ($ghSrc175 === '') {
+            $offenders[] = 'GoldenHourManager.php introuvable (garde-fou round 175)';
+        } elseif (strpos($ghSrc175, 'o.`id_shop`        = s.`id_shop`') === false) {
+            $offenders[] = "GoldenHourManager::computeRecommendations() ne filtre plus sa jointure ouverture/envoi par o.id_shop = s.id_shop — régression du bug corrigé le 15/08/2026 (round 175) : une collision de tracking_token entre 2 boutiques d'une même install multi-shop fausserait de nouveau le taux d'ouverture et l'heure optimale recommandée";
+        }
+
+        $mcpSrc175 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MultiClientPreviewManager.php');
+        if ($mcpSrc175 === '') {
+            $offenders[] = 'MultiClientPreviewManager.php introuvable (garde-fou round 175)';
+        } else {
+            $posAol175 = strpos($mcpSrc175, 'private function transformAol(string $html): string');
+            $aolBody175 = $posAol175 !== false ? substr($mcpSrc175, $posAol175, 900) : '';
+            if ($posAol175 === false || strpos($aolBody175, 'stripStyleAndLinkTags($html)') === false) {
+                $offenders[] = "MultiClientPreviewManager::transformAol() n'appelle plus stripStyleAndLinkTags() — régression du bug corrigé le 15/08/2026 (round 175) : le libellé AOL promet 'media queries et styles supprimés' mais seule stripMediaQueries() serait de nouveau appelée, laissant les styles non-media intacts dans l'aperçu";
+            }
+        }
+
+        $calSrc175 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php');
+        if ($calSrc175 === '') {
+            $offenders[] = 'CalendarManager.php introuvable (garde-fou round 175)';
+        } else {
+            foreach (['calculateRamadanStart', 'calculateEidAlFitr', 'calculateEidAlAdha', 'hijriToJdn', 'jdnToDateTime'] as $deadMethod175) {
+                if (strpos($calSrc175, "function {$deadMethod175}(") !== false) {
+                    $offenders[] = "CalendarManager::{$deadMethod175}() a été réintroduite — cette méthode était du code mort (jamais appelée, calculateEventDate() court-circuite les événements hégiriens vers le NIVEAU 3) supprimé le 15/08/2026 (round 175) ; si elle est réintroduite, vérifier qu'elle est bien appelée quelque part et que son résultat est fiable avant de la garder";
+                }
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
