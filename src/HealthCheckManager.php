@@ -5924,6 +5924,44 @@ class HealthCheckManager
             }
         }
 
+        $clvSrc174 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php');
+        if ($clvSrc174 === '') {
+            $offenders[] = 'ClvManager.php introuvable (garde-fou round 174)';
+        } else {
+            $posRefund174 = strpos($clvSrc174, '// ── 1 requête : remboursements (avoirs) pour TOUS les candidats');
+            $refundBlock174 = $posRefund174 !== false ? substr($clvSrc174, $posRefund174, 1800) : '';
+            if ($posRefund174 === false || strpos($refundBlock174, "AND o.`id_shop` = ' . \$this->idShop . ' AND o.`valid` = 1") === false) {
+                $offenders[] = "ClvManager::getTopCustomers() ne filtre plus refundAgg par o.valid = 1 — régression du bug corrigé le 15/08/2026 (round 174) : un avoir lié à une commande annulée serait de nouveau soustrait à tort du CLV batch d'un client, incohérence avec sa fiche individuelle";
+            }
+        }
+
+        $voiceSrc174 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/VoiceProfileManager.php');
+        if ($voiceSrc174 === '') {
+            $offenders[] = 'VoiceProfileManager.php introuvable (garde-fou round 174)';
+        } else {
+            $posMethod174   = strpos($voiceSrc174, 'private function normalizeWordListInput');
+            $methodBody174  = $posMethod174 !== false ? substr($voiceSrc174, $posMethod174, 1200) : '';
+            $posKey174      = strpos($methodBody174, '$key = mb_strtolower($word);');
+            $posTruncate174 = strpos($methodBody174, 'mb_strlen($word) > self::MAX_WORD_LENGTH) {');
+            if ($posMethod174 === false || $posKey174 === false || $posTruncate174 === false || $posKey174 > $posTruncate174) {
+                $offenders[] = "VoiceProfileManager::normalizeWordListInput() calcule de nouveau la clé de dédoublonnage APRÈS la troncature à MAX_WORD_LENGTH — régression du bug corrigé le 15/08/2026 (round 174) : deux entrées distinctes de plus de 100 caractères partageant le même préfixe fusionneraient de nouveau silencieusement";
+            }
+        }
+
+        $lookSrc174 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
+        if ($lookSrc174 === '') {
+            $offenders[] = 'LookCompletionManager.php introuvable (garde-fou round 174)';
+        } elseif (strpos($lookSrc174, 'category_shop') === false) {
+            $offenders[] = "LookCompletionManager::getCategories() ne filtre plus par boutique (jointure category_shop disparue) — régression du bug corrigé le 15/08/2026 (round 174) : le BO proposerait de nouveau des catégories d'autres boutiques pour créer une règle de complétion de look";
+        }
+
+        $fontSrc174 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/FontManager.php');
+        if ($fontSrc174 === '') {
+            $offenders[] = 'FontManager.php introuvable (garde-fou round 174)';
+        } elseif (strpos($fontSrc174, 'mb_strlen($b) <=> mb_strlen($a)') === false) {
+            $offenders[] = "FontManager::getFontNameForLang() ne trie plus les noms de police par longueur décroissante avant la recherche — régression du bug corrigé le 15/08/2026 (round 174) : le match redeviendrait dépendant de l'ordre de déclaration de FONT_CATALOG";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
