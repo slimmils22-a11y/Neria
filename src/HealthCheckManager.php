@@ -2861,15 +2861,21 @@ class HealthCheckManager
         // aucune donnée neria_stat sortait sans jamais tracer l'exécution du
         // cron, laissant checkChurnPropensityFreshness() aveugle
         // indéfiniment pour la partie churn.
+        // Round 176 : l'early return lui-même a disparu (voir plus bas,
+        // "$rowsPeriods vide dès la requête SQL" — il empêchait aussi la
+        // purge des lignes obsolètes). Le marqueur de recherche du early
+        // return n'existe donc plus ; le garde-fou vérifie désormais que
+        // l'écriture de NERIA_CHURN_LAST_RUN précède bien la normalisation
+        // qui l'a remplacé.
         $csFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php';
         $csSrc = $this->readModuleSrc($csFile);
         if ($csSrc === '') {
             $offenders[] = 'ChurnScoreManager.php introuvable (NERIA_CHURN_LAST_RUN avant early return)';
         } else {
             $posLastRun = strpos($csSrc, "\\Configuration::updateValue('NERIA_CHURN_LAST_RUN'");
-            $posReturn0 = strpos($csSrc, 'if (!is_array($rowsPeriods) || empty($rowsPeriods)) {');
-            if ($posLastRun === false || $posReturn0 === false || $posLastRun > $posReturn0) {
-                $offenders[] = "ChurnScoreManager::recomputeAll() n'écrit plus NERIA_CHURN_LAST_RUN avant son early return sur \$rowsPeriods vide — une boutique sans donnée neria_stat pourrait de nouveau ne jamais tracer l'exécution du cron, rendant checkChurnPropensityFreshness() aveugle";
+            $posNormalize = strpos($csSrc, '$rowsPeriods = is_array($rowsPeriods) ? $rowsPeriods : [];');
+            if ($posLastRun === false || $posNormalize === false || $posLastRun > $posNormalize) {
+                $offenders[] = "ChurnScoreManager::recomputeAll() n'écrit plus NERIA_CHURN_LAST_RUN avant la normalisation de \$rowsPeriods — une boutique sans donnée neria_stat pourrait de nouveau ne jamais tracer l'exécution du cron, rendant checkChurnPropensityFreshness() aveugle";
             }
         }
 
@@ -3123,7 +3129,11 @@ class HealthCheckManager
         $erSrc = $this->readModuleSrc($erFile);
         if ($erSrc === '') {
             $offenders[] = 'EmailRenderer.php introuvable (voucherRateFromCode scopé par lang)';
-        } elseif (strpos($erSrc, 'private function voucherRateFromCode(string $code, string $lang): string') === false) {
+        } elseif (strpos($erSrc, 'private function voucherRateFromCode(string $code, string $lang, int $idShop): string') === false) {
+            // Round 176 : signature élargie d'un 3e paramètre $idShop (scoping
+            // multi-boutique du cart_rule, voir le garde-fou round 176
+            // dédié ci-dessous) — la chaîne recherchée reflète cette
+            // signature complète, $lang reste bien présent.
             $offenders[] = "EmailRenderer::voucherRateFromCode() ne prend plus \$lang en paramètre — {discount} du template newsletter_voucher pourrait de nouveau suivre silencieusement la langue du contexte d'exécution au lieu de celle du destinataire";
         }
 
@@ -6001,6 +6011,36 @@ class HealthCheckManager
                     $offenders[] = "CalendarManager::{$deadMethod175}() a été réintroduite — cette méthode était du code mort (jamais appelée, calculateEventDate() court-circuite les événements hégiriens vers le NIVEAU 3) supprimé le 15/08/2026 (round 175) ; si elle est réintroduite, vérifier qu'elle est bien appelée quelque part et que son résultat est fiable avant de la garder";
                 }
             }
+        }
+
+        $churnSrc176 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php');
+        if ($churnSrc176 === '') {
+            $offenders[] = 'ChurnScoreManager.php introuvable (garde-fou round 176)';
+        } elseif (strpos($churnSrc176, '$rowsPeriods = is_array($rowsPeriods) ? $rowsPeriods : [];') === false) {
+            $offenders[] = "ChurnScoreManager::recomputeAll() a de nouveau un early return AVANT le bloc de purge quand \$rowsPeriods est vide — régression du bug corrigé le 15/08/2026 (round 176) : une boutique dormante (ou après une purge RGPD massive de neria_stat) garderait indéfiniment ses anciennes lignes neria_churn_score, y compris des scores à risque élevé, dans getHighRiskCustomers()";
+        }
+
+        $erSrc176 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($erSrc176 === '') {
+            $offenders[] = 'EmailRenderer.php introuvable (garde-fou round 176)';
+        } else {
+            $posInject176 = strpos($erSrc176, 'private function injectCustomVars(array &$templateVars): void');
+            $injectBody176 = $posInject176 !== false ? substr($erSrc176, $posInject176, 1500) : '';
+            if ($posInject176 === false || strpos($injectBody176, 'array_key_exists($rawKey, $templateVars)') === false) {
+                $offenders[] = "EmailRenderer::injectCustomVars() n'utilise plus array_key_exists() pour vérifier si une variable est déjà présente — régression du bug corrigé le 15/08/2026 (round 176) : empty() traiterait de nouveau '0'/'' comme absent, écrasant à tort une valeur légitime malgré le docblock qui promet de ne jamais remplacer une valeur déjà présente";
+            }
+            if (strpos($erSrc176, 'private function voucherRateFromCode(string $code, string $lang, int $idShop): string') === false) {
+                $offenders[] = "EmailRenderer::voucherRateFromCode() ne prend plus \$idShop en paramètre — régression du bug corrigé le 15/08/2026 (round 176) : le taux affiché dans {discount} pourrait de nouveau provenir du premier cart_rule trouvé en base, potentiellement celui d'une autre boutique en cas de code de bon dupliqué entre boutiques";
+            } elseif (strpos($erSrc176, 'NOT EXISTS') === false) {
+                $offenders[] = "EmailRenderer::voucherRateFromCode() ne conserve plus le repli NOT EXISTS sur les cart_rule non restreints — régression : un filtre id_shop strict (INNER JOIN) exclurait à tort la quasi-totalité des bons réels (cart_rule_shop ne contient une ligne que pour les cart_rule explicitement restreints à des boutiques)";
+            }
+        }
+
+        $licSrc176 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LicenseManager.php');
+        if ($licSrc176 === '') {
+            $offenders[] = 'LicenseManager.php introuvable (garde-fou round 176)';
+        } elseif (strpos($licSrc176, 'GRACE_LAST_CHECK_MAX_DAYS') === false) {
+            $offenders[] = "LicenseManager::isWithinGracePeriod() n'a plus de plafond GRACE_LAST_CHECK_MAX_DAYS sur la grâce 'dernière validation réussie' — régression du bug corrigé le 15/08/2026 (round 176) : un client dont le serveur de licences ne répond plus jamais après expiration naturelle enverrait de nouveau indéfiniment";
         }
 
         if ($offenders) {
