@@ -5902,6 +5902,28 @@ class HealthCheckManager
             }
         }
 
+        $cssInlinerSrc173 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CssInliner.php');
+        if ($cssInlinerSrc173 === '') {
+            $offenders[] = 'CssInliner.php introuvable (garde-fou round 173)';
+        } elseif (strpos($cssInlinerSrc173, '$fromInline') === false) {
+            $offenders[] = "CssInliner::merge() ne distingue plus l'origine des déclarations (\$fromInline) — régression du bug corrigé le 15/08/2026 (round 173) : une propriété dupliquée au sein d'une même règle (ex. fallback color:#999;color:red) retomberait sur la PREMIÈRE valeur au lieu de la dernière, cascade CSS standard de nouveau violée, rendu divergent entre Apple Mail et Gmail/Outlook";
+        }
+
+        $toolsSrc173 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php');
+        if ($toolsSrc173 === '') {
+            $offenders[] = 'NeriaTools.php introuvable (garde-fou round 173)';
+        } else {
+            if (strpos($toolsSrc173, 'if ($ts === false) {') === false) {
+                $offenders[] = "NeriaTools::formatDate() ne distingue plus un échec réel de strtotime() (false) d'un timestamp epoch 0 valide — régression du bug corrigé le 15/08/2026 (round 173) : un timestamp 0 (1970-01-01) serait de nouveau traité à tort comme un échec de parsing et renverrait la chaîne brute";
+            }
+            if (strpos($toolsSrc173, '$contextLangId = $context->language !== null') === false) {
+                $offenders[] = "NeriaTools::displayPrice() accède de nouveau directement à \$context->language->id sans vérifier que \$context->language n'est pas null — régression du bug corrigé le 15/08/2026 (round 173) : warning PHP 8 émis à chaque appel cron/CLI avec \$idLang explicite (contexte langue incomplet), polluant les logs";
+            }
+            if (strpos($toolsSrc173, 'if ($diff <= 0) {') === false) {
+                $offenders[] = "NeriaTools::timeAgo() ne gère plus explicitement une date future (diff négatif) — régression du bug latent corrigé le 15/08/2026 (round 173) : un diff négatif retomberait de nouveau sur 'à l'instant' par accident (via \$diff < 60) plutôt que par un traitement explicite, sans garantie si la méthode est un jour raccrochée";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
