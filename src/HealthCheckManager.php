@@ -5750,6 +5750,55 @@ class HealthCheckManager
             $offenders[] = "QueueManager::getStats() ne fenêtre plus le calcul du peak_hour — régression du bug corrigé le 14/08/2026 (round 168) : le pic horaire redeviendrait calculé sur tout l'historique, de moins en moins représentatif sur une boutique ancienne";
         }
 
+        // Round 170 (15/08/2026) : neria_certificate doit avoir id_customer
+        // dès l'installation fraîche (install.sql), convergent avec
+        // upgrade-1.0.39.php.
+        $installSql170 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/sql/install.sql');
+        if ($installSql170 === '') {
+            $offenders[] = 'install.sql introuvable (garde-fou round 170 : id_customer sur neria_certificate)';
+        } else {
+            $posCert170 = strpos($installSql170, 'CREATE TABLE IF NOT EXISTS `PREFIX_neria_certificate`');
+            $certBody170 = $posCert170 !== false ? substr($installSql170, $posCert170, 700) : '';
+            if ($posCert170 === false || strpos($certBody170, '`id_customer`') === false) {
+                $offenders[] = "install.sql ne définit plus id_customer sur neria_certificate — régression du bug corrigé le 15/08/2026 (round 170) : toute installation fraîche recréerait une table sans cette colonne, cassant purgeCustomerData() et laissant les certificats survivre à une demande d'effacement RGPD";
+            }
+        }
+
+        // Round 170 (15/08/2026) : MultiClientPreviewManager — addBanner()
+        // doit garder son filet ?? $html, et pollLitmus()/pollEmailOnAcid()
+        // doivent valider $testId en interne.
+        $mcpSrc170 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MultiClientPreviewManager.php');
+        if ($mcpSrc170 === '') {
+            $offenders[] = 'MultiClientPreviewManager.php introuvable (garde-fou round 170)';
+        } else {
+            $posAb170 = strpos($mcpSrc170, 'private function addBanner(string $html, string $client): string');
+            $abBody170 = $posAb170 !== false ? substr($mcpSrc170, $posAb170, 1500) : '';
+            if ($posAb170 === false || strpos($abBody170, "\$html, 1) ?? \$html;") === false) {
+                $offenders[] = "MultiClientPreviewManager::addBanner() n'a plus de filet ?? \$html — régression du bug corrigé le 15/08/2026 (round 170) : un échec PCRE (pcre.backtrack_limit dépassé) redeviendrait une TypeError fatale plantant tout le rendu multi-client";
+            }
+            if (substr_count($mcpSrc170, "preg_match('/^[a-zA-Z0-9_\\-]+\$/', \$testId)") < 2) {
+                $offenders[] = "MultiClientPreviewManager::pollLitmus()/pollEmailOnAcid() ne valident plus \$testId en interne — régression du bug corrigé le 15/08/2026 (round 170) : la sanitisation redeviendrait entièrement déléguée à l'appelant";
+            }
+        }
+
+        // Round 170 (15/08/2026) : VoiceProfileManager — getProfile() null-
+        // safe, normalizeWordListInput() borne la longueur d'entrée,
+        // textContainsWords() nettoie l'UTF-8 invalide avant matching.
+        $vpmSrc170 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/VoiceProfileManager.php');
+        if ($vpmSrc170 === '') {
+            $offenders[] = 'VoiceProfileManager.php introuvable (garde-fou round 170)';
+        } else {
+            if (strpos($vpmSrc170, "(string) (\$row['banned_words'] ?? '')") === false) {
+                $offenders[] = "VoiceProfileManager::getProfile() n'est plus null-safe sur les colonnes texte — régression du bug corrigé le 15/08/2026 (round 170) : (string) null émettrait de nouveau un warning de dépréciation sous PHP 8.1+ pour une ligne insérée hors de saveProfile()";
+            }
+            if (strpos($vpmSrc170, 'MAX_WORD_LENGTH') === false) {
+                $offenders[] = "VoiceProfileManager ne borne plus la longueur d'une entrée de la liste de mots — régression du bug corrigé le 15/08/2026 (round 170) : un mot de taille arbitraire pourrait de nouveau être stocké verbatim puis réinjecté dans une regex à chaque sauvegarde de traduction";
+            }
+            if (strpos($vpmSrc170, "mb_convert_encoding(\$plainText, 'UTF-8', 'UTF-8')") === false) {
+                $offenders[] = "VoiceProfileManager::textContainsWords() ne nettoie plus l'UTF-8 invalide avant matching — régression du bug corrigé le 15/08/2026 (round 170) : une ligne avec de l'UTF-8 corrompu échapperait de nouveau silencieusement à tout l'audit (bannis ET préférés)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
