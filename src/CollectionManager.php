@@ -393,6 +393,40 @@ class CollectionManager
                 '{cooldown_scope}'         => 'collection:' . $colId,
             ];
 
+            // Round 180 : Mail::Send() du cœur PrestaShop retourne TOUJOURS
+            // true quand le hook actionEmailSendBefore annule l'envoi
+            // (bounce/blacklist/cooldown — préférences déjà vérifiées plus
+            // haut) — même piège déjà corrigé pour ManualSendManager/
+            // QueueManager/OrderTriggersManager/CustomerEmailHistoryManager/
+            // CertificateManager (rounds 176-179) mais jamais étendu ici.
+            // Sans ce contrôle, la réservation claimSend() n'était jamais
+            // libérée (seul le bloc `if ($mailed)` plus bas ne la libère
+            // JAMAIS, réussite ou non) et le client restait exclu à vie de
+            // cette notification même si le blocage était temporaire
+            // (bounce/blacklist levés plus tard).
+            if (class_exists('BounceManager') && \BounceManager::isBounced($customer->email)) {
+                $this->releaseSendClaim($colId, $idCustomer, $idShop);
+                continue;
+            }
+            if (class_exists('BlacklistManager')) {
+                $langIso = class_exists('TranslationEngine')
+                    ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                    : (string) (\Language::getIsoById($idLang) ?: '');
+                if ((new \BlacklistManager($idShop))->isBlacklisted('collection_completion', $langIso)) {
+                    $this->releaseSendClaim($colId, $idCustomer, $idShop);
+                    continue;
+                }
+            }
+            if (class_exists('ConfigManager') && class_exists('CooldownManager')
+                && (new \ConfigManager($this->module))->isCooldownEnabled()
+            ) {
+                $cdMinutes = (new \ConfigManager($this->module))->getCooldownMinutes();
+                if ((new \CooldownManager())->isDuplicate($customer->email, 'collection_completion', $cdMinutes, $idShop, 0, 'collection:' . $colId)) {
+                    $this->releaseSendClaim($colId, $idCustomer, $idShop);
+                    continue;
+                }
+            }
+
             try {
                 $mailed = \Mail::Send(
                     $idLang,

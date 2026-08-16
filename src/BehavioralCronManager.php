@@ -863,10 +863,14 @@ class BehavioralCronManager
 
     public function getCheckoutAbandonmentStats(): array
     {
-        // neria_behavioral_sent n'a pas de colonne id_shop, mais la table
-        // orders jointe en a une : sans filtre, une commande récupérée sur
-        // une autre boutique (install multi-boutiques) se retrouvait comptée
-        // dans les stats de la boutique courante.
+        // Round 180 : neria_behavioral_sent A bien une colonne id_shop
+        // (sql/install.sql, fait partie de la clé UNIQUE) — le commentaire
+        // ci-dessus affirmait le contraire à tort. Le JOIN orders était bien
+        // scopé (o.id_shop) mais le dénominateur `emails_sent` (bs.id)
+        // comptait TOUTES les boutiques : sur une install multi-boutiques,
+        // le numérateur (commandes récupérées, scopé) et le dénominateur
+        // (envois, non scopé) portaient sur des périmètres différents —
+        // conversion_rate faussé et sous-estimé pour la boutique courante.
         $idShop = (int) \Context::getContext()->shop->id;
         $row  = $this->db->getRow(
             'SELECT
@@ -878,7 +882,8 @@ class BehavioralCronManager
                 ON o.id_cart = bs.ref_id AND o.date_add > bs.sent_at
                    AND o.date_add <= DATE_ADD(bs.sent_at, INTERVAL 7 DAY)
                    AND o.id_shop = ' . $idShop . '
-             WHERE bs.template = \'checkout_abandonment\''
+             WHERE bs.template = \'checkout_abandonment\'
+               AND bs.id_shop = ' . $idShop
         );
 
         $sent      = (int)   ($row['emails_sent']       ?? 0);
@@ -1607,17 +1612,20 @@ class BehavioralCronManager
 
     public function getRelationshipAnniversaryStats(): array
     {
-        // Emails envoyés
+        $idShop = (int) \Context::getContext()->shop->id;
+
+        // Round 180 : neria_behavioral_sent A bien une colonne id_shop
+        // (sql/install.sql, fait partie de la clé UNIQUE) — sans filtre ici,
+        // ce dénominateur `emails_sent` comptait TOUTES les boutiques alors
+        // que orders_attributed/revenue_attributed ci-dessous sont bien
+        // scopés par o.id_shop : requêtes jumelles avec un scoping
+        // incohérent, même bug que getCheckoutAbandonmentStats().
         $sent = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . $this->prefix . 'neria_behavioral_sent`
-             WHERE template = \'relationship_anniversary\''
+             WHERE template = \'relationship_anniversary\' AND id_shop = ' . $idShop
         );
 
         // Commandes passées dans les 48h suivant l'envoi (attribution last-click)
-        // neria_behavioral_sent n'a pas de colonne id_shop, mais orders en a une :
-        // sans filtre, une commande d'une autre boutique (install multi-boutiques)
-        // se retrouvait attribuée aux stats de la boutique courante.
-        $idShop = (int) \Context::getContext()->shop->id;
         $row = $this->db->getRow(
             'SELECT COUNT(DISTINCT o.id_order) AS orders_attributed,
                     COALESCE(SUM(o.total_paid_tax_incl), 0) AS revenue_attributed
@@ -1627,7 +1635,7 @@ class BehavioralCronManager
                   AND o.valid = 1
                   AND o.id_shop = ' . $idShop . '
                   AND o.date_add BETWEEN bs.sent_at AND DATE_ADD(bs.sent_at, INTERVAL 48 HOUR)
-             WHERE bs.template = \'relationship_anniversary\''
+             WHERE bs.template = \'relationship_anniversary\' AND bs.id_shop = ' . $idShop
         );
 
         $orders  = (int)   ($row['orders_attributed']  ?? 0);

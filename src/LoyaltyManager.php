@@ -940,7 +940,16 @@ class LoyaltyManager
         $idLang = (int) $customer->id_lang ?: (int) \Configuration::get('PS_LANG_DEFAULT');
         $link   = \Context::getContext()->link;
 
-        \Mail::Send(
+        // Round 180 : le retour de Mail::Send() était ignoré (appel "à la
+        // volée" suivi d'un `return true;` inconditionnel) — contrairement
+        // à sendRewardEmail() du même fichier, qui capture et retourne bien
+        // le booléen réel. Un échec (blacklist, bounce, SMTP indisponible)
+        // était donc traité comme un succès : sendMonthlyRecaps() comptait
+        // un envoi réussi qui n'avait jamais eu lieu, ET le throttle
+        // mensuel (CONFIG_RECAP_LAST_SENT) était quand même posé côté
+        // appelant — le client ne recevait jamais son récap ce mois-ci,
+        // sans qu'aucune alerte Watchdog ne le signale.
+        $sent = (bool) \Mail::Send(
             $idLang,
             'loyalty_recap',
             '',
@@ -969,7 +978,14 @@ class LoyaltyManager
             $idShop ?? (int) \Context::getContext()->shop->id
         );
 
-        return true;
+        if (!$sent && class_exists('WatchdogManager')) {
+            (new \WatchdogManager($this->module))->warning(
+                \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'loyalty_recap', 'email' => $customer->email]),
+                'loyalty_recap', 'LoyaltyManager'
+            );
+        }
+
+        return $sent;
     }
 
     /**

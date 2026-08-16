@@ -749,9 +749,20 @@ class MonthlyReportManager
         // un employé BO (cas courant — le rapport part surtout à l'équipe),
         // on utilise SA langue configurée plutôt que d'imposer la langue par
         // défaut de la boutique à tout le monde.
+        // Round 180 : filtré par la boutique DU RAPPORT ($this->idShop), pas
+        // tous les employés actifs de l'install — sans lui, sur une install
+        // multi-boutiques où un employé n'a accès qu'à la Boutique A, un
+        // rapport envoyé pour la Boutique B à cette même adresse utilisait
+        // quand même la langue BO configurée de cet employé plutôt que la
+        // langue par défaut de la boutique concernée. Mineur (repli de
+        // langue seulement, pas de fuite de données) mais incohérent avec
+        // le scoping id_shop appliqué partout ailleurs dans ce fichier.
         $employeeLangs = [];
         $empRows = $this->db->executeS(
-            'SELECT `email`, `id_lang` FROM `' . _DB_PREFIX_ . 'employee` WHERE `active` = 1'
+            'SELECT e.`email`, e.`id_lang`
+             FROM `' . _DB_PREFIX_ . 'employee` e
+             INNER JOIN `' . _DB_PREFIX_ . 'employee_shop` es ON es.`id_employee` = e.`id_employee`
+             WHERE e.`active` = 1 AND es.`id_shop` = ' . $this->idShop
         ) ?: [];
         foreach ($empRows as $row) {
             $employeeLangs[mb_strtolower(trim((string) $row['email']))] = (int) $row['id_lang'];
@@ -804,6 +815,17 @@ class MonthlyReportManager
                 if (class_exists('AdminTranslator')) {
                     \AdminTranslator::setLang($recipientIso);
                 }
+
+                // Round 180 : month_label recalculé pour CETTE langue —
+                // auparavant figé une seule fois dans sendReport() (langue
+                // du contexte ayant déclenché le hook), donc jamais
+                // retraduit ici malgré le setLang() juste au-dessus. Un
+                // destinataire anglophone recevait "Janvier 2026" en titre
+                // pendant que tout le reste de l'email était bien en
+                // anglais. $data local à cette itération (pas de fuite
+                // entre langues, chaque bloc de rendu utilise sa propre
+                // valeur avant de passer à la langue suivante).
+                $data['month_label'] = $this->formatMonthLabel($data['year'], $data['month'], $recipientIso);
 
                 if (!is_dir($langDir) && !mkdir($langDir, 0755, true)) {
                     if ($wd) {
@@ -1200,9 +1222,19 @@ class MonthlyReportManager
         return $default ? [$default] : [];
     }
 
-    private function formatMonthLabel(int $year, int $month): string
+    // Round 180 : $lang optionnel ajouté — auparavant toujours résolu via
+    // AdminTranslator::currentLang() (état global au moment de l'appel),
+    // ce qui figeait month_label/prev_month_label dans UNE SEULE langue
+    // dès sendReport()/previewHtml(), avant même que deliverReportLocked()
+    // ne bascule AdminTranslator::setLang() par destinataire. Un
+    // destinataire anglophone recevait donc "Janvier 2026" en titre alors
+    // que le reste du contenu (labels, recommandations) était bien
+    // retraduit en anglais — month_label n'était jamais recalculé dans la
+    // boucle par langue. $lang=null préserve le comportement historique
+    // (état global courant) pour les appelants qui ne le passent pas.
+    private function formatMonthLabel(int $year, int $month, ?string $lang = null): string
     {
-        $lang = class_exists('AdminTranslator') ? AdminTranslator::currentLang() : 'fr';
+        $lang = $lang ?? (class_exists('AdminTranslator') ? AdminTranslator::currentLang() : 'fr');
 
         $months = [
             'fr' => ['', 'Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'],
