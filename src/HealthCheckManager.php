@@ -5684,7 +5684,7 @@ class HealthCheckManager
         ) {
             $offenders[] = "WaitlistManager ne suit plus les inscriptions par déclinaison précise — régression du bug corrigé le 14/08/2026 (round 167) : un client pourrait de nouveau être notifié pour la mauvaise taille/couleur";
         }
-        if ($wlSrc167 === '' || strpos($wlSrc167, 'public function purgeStaleEntries(int $olderThanDays = 365): int') === false) {
+        if ($wlSrc167 === '' || strpos($wlSrc167, 'function purgeStaleEntries(int $olderThanDays = 365, ?int $idShop = null): int') === false) {
             $offenders[] = "WaitlistManager::purgeStaleEntries() a disparu — régression du bug corrigé le 14/08/2026 (round 167) : neria_waitlist grossirait de nouveau indéfiniment";
         }
 
@@ -6156,6 +6156,46 @@ class HealthCheckManager
             $offenders[] = 'UpsellManager.php introuvable (garde-fou round 178)';
         } elseif (strpos($umSrc178, "od2.id_shop = ' . (int) \$idShop") === false || strpos($umSrc178, "od.id_shop = ' . (int) \$idShop") === false) {
             $offenders[] = "UpsellManager::findByCoPurchase()/findByCategoryBestseller() ne filtrent plus leur classement de popularité par id_shop — régression du bug corrigé le 16/08/2026 (round 178) : un produit populaire uniquement sur une autre boutique pourrait de nouveau être recommandé à tort";
+        }
+
+        // Round 179 : audit transversal de fin de série (dernier round
+        // systématique avant repassage en mode ponctuel/périodique — voir
+        // mémoire feedback_bug_hunt_pause_after_transversal). 4 derniers
+        // garde-fous.
+        $cehmSrc179 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CustomerEmailHistoryManager.php');
+        if ($cehmSrc179 === '') {
+            $offenders[] = 'CustomerEmailHistoryManager.php introuvable (garde-fou round 179)';
+        } else {
+            $posResend179 = strpos($cehmSrc179, 'public function resend(int $idStat, int $idCustomer): array');
+            $resendBody179 = $posResend179 !== false ? substr($cehmSrc179, $posResend179, 2000) : '';
+            if ($posResend179 === false || strpos($resendBody179, "\\BounceManager::isBounced(\$customer->email)") === false) {
+                $offenders[] = "CustomerEmailHistoryManager::resend() ne revérifie plus bounce/blacklist/préférences/cooldown avant Mail::Send() — régression du bug corrigé le 16/08/2026 (round 179) : un renvoi vers un client bloqué serait de nouveau journalisé comme un succès";
+            }
+        }
+
+        $certSrc179 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        if ($certSrc179 === '') {
+            $offenders[] = 'CertificateManager.php introuvable (garde-fou round 179)';
+        } else {
+            $posSendCert179 = strpos($certSrc179, 'private function sendCertificateEmail(');
+            $sendCertBody179 = $posSendCert179 !== false ? substr($certSrc179, $posSendCert179, 4000) : '';
+            if ($posSendCert179 === false || strpos($sendCertBody179, "\\BounceManager::isBounced(\$to)") === false) {
+                $offenders[] = "CertificateManager::sendCertificateEmail() ne revérifie plus bounce/blacklist/préférences/cooldown avant Mail::Send() — régression du bug corrigé le 16/08/2026 (round 179) : un certificat émis à une adresse bloquée serait de nouveau marqué comme envoyé avec succès";
+            }
+        }
+
+        $wdSrc179 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php');
+        if ($wdSrc179 === '') {
+            $offenders[] = 'WatchdogManager.php introuvable (garde-fou round 179)';
+        } elseif (strpos($wdSrc179, "if (!\$locked) {\n            return;\n        }") === false) {
+            $offenders[] = "WatchdogManager::record() ne vérifie plus \$locked avant sa section critique — régression du bug corrigé le 16/08/2026 (round 179) : une rafale de messages identiques pourrait de nouveau créer des lignes de log dupliquées au lieu d'une consolidation";
+        }
+
+        $wlSrc179 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php');
+        if ($wlSrc179 === '') {
+            $offenders[] = 'WaitlistManager.php introuvable (garde-fou round 179)';
+        } elseif (strpos($wlSrc179, 'function purgeStaleEntries(int $olderThanDays = 365, ?int $idShop = null): int') === false) {
+            $offenders[] = "WaitlistManager::purgeStaleEntries() n'accepte plus de \$idShop optionnel — régression du bug corrigé le 16/08/2026 (round 179) : impossible de nouveau de scoper la purge par boutique, cohérent avec getStats()/getTopProducts() de la même classe";
         }
 
         if ($offenders) {
