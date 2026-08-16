@@ -19,6 +19,10 @@
  * Test structurel (pas de manipulation de vraies commandes, qui aurait des
  * effets de bord sur les données réelles de l'environnement de dev) —
  * même approche que test_66 pour les 4 autres templates.
+ *
+ * Fenêtre élargie le 16/08/2026 (round 178) : le bloc explicitSendBlockReason()
+ * ajouté avant claimMilestone() (voir test_357) a poussé le tableau
+ * {id_order} plus loin dans le fichier.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -34,7 +38,7 @@ function run_test(): array
     $posMilestone = strpos($src, "if (in_array(\$count, self::MILESTONES, true)) {");
     neria_assert($posMilestone !== false, "Bloc milestone_order introuvable dans OrderTriggersManager.php — jeu de test invalide");
 
-    $block = substr($src, $posMilestone, 2600);
+    $block = substr($src, $posMilestone, 3600);
     neria_assert(
         strpos($block, "'{id_order}'               => (int) \$order->id,") !== false,
         "OrderTriggersManager ne fournit plus '{id_order}' pour milestone_order — régression du bug corrigé le 07/08/2026 (round 97) : le Mode Silence pourrait de nouveau bloquer à tort un second email milestone_order légitime (palier différent) déclenché dans la même fenêtre de cooldown que le précédent"
