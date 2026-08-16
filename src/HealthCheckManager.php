@@ -4789,7 +4789,7 @@ class HealthCheckManager
             }
 
             $posDelete147 = strpos($abSrc147, 'public function deleteTests(');
-            $deleteBody147 = $posDelete147 !== false ? substr($abSrc147, $posDelete147, 3000) : '';
+            $deleteBody147 = $posDelete147 !== false ? substr($abSrc147, $posDelete147, 3400) : '';
             if ($posDelete147 === false
                 || strpos($deleteBody147, '$ok = $this->db->execute(') === false
                 || strpos($deleteBody147, 'return $ok;') === false
@@ -6041,6 +6041,60 @@ class HealthCheckManager
             $offenders[] = 'LicenseManager.php introuvable (garde-fou round 176)';
         } elseif (strpos($licSrc176, 'GRACE_LAST_CHECK_MAX_DAYS') === false) {
             $offenders[] = "LicenseManager::isWithinGracePeriod() n'a plus de plafond GRACE_LAST_CHECK_MAX_DAYS sur la grâce 'dernière validation réussie' — régression du bug corrigé le 15/08/2026 (round 176) : un client dont le serveur de licences ne répond plus jamais après expiration naturelle enverrait de nouveau indéfiniment";
+        }
+
+        $abSrc177 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/AbTestManager.php');
+        if ($abSrc177 === '') {
+            $offenders[] = 'AbTestManager.php introuvable (garde-fou round 177)';
+        } elseif (strpos($abSrc177, "SET `abtest_variant` = ''") === false) {
+            $offenders[] = "AbTestManager::deleteTests() ne désétiquette plus abtest_variant via une chaîne vide — régression du bug corrigé le 15/08/2026 (round 177) : SET abtest_variant = NULL échoue silencieusement en mode SQL strict (colonne NOT NULL), laissant les anciens événements A/B polluer le calcul de significativité d'un futur test sur ce même template";
+        }
+
+        $certSrc177 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        if ($certSrc177 === '') {
+            $offenders[] = 'CertificateManager.php introuvable (garde-fou round 177)';
+        } else {
+            $posSend177 = strpos($certSrc177, '$err = $this->sendCertificateEmail(');
+            $sendBody177 = $posSend177 !== false ? substr($certSrc177, $posSend177, 250) : '';
+            if ($posSend177 === false || strpos($sendBody177, '$idLangProduct') === false) {
+                $offenders[] = "CertificateManager::issue() n'appelle plus sendCertificateEmail() avec \$idLangProduct — régression du bug corrigé le 15/08/2026 (round 177) : l'email pourrait de nouveau être envoyé dans (int) \$customer->id_lang au lieu de la langue réellement résolue pour le PDF, cassant la parité PDF/email";
+            }
+            $posIssue177 = strpos($certSrc177, 'public function issue(');
+            $issueBody177 = $posIssue177 !== false ? substr($certSrc177, $posIssue177, 8000) : '';
+            if ($posIssue177 === false || strpos($issueBody177, "GET_LOCK('") === false || strpos($issueBody177, "RELEASE_LOCK('") === false) {
+                $offenders[] = "CertificateManager::issue() n'utilise plus de verrou nommé MySQL autour de la résolution du numéro de série — régression du bug corrigé le 15/08/2026 (round 177) : la fenêtre TOCTOU entre serialExists() et l'INSERT redeviendrait exploitable sous forte concurrence";
+            }
+        }
+
+        $drmSrc177 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php');
+        if ($drmSrc177 === '') {
+            $offenders[] = 'DomainReputationManager.php introuvable (garde-fou round 177)';
+        } else {
+            if (strpos($drmSrc177, '$dnsError = ($raw === false);') === false) {
+                $offenders[] = "DomainReputationManager::checkSpf()/checkDmarc() ne distinguent plus une erreur DNS réseau (false) d'un NXDOMAIN légitime ([]) — régression du bug corrigé le 15/08/2026 (round 177) : une panne DNS transitoire serait de nouveau mise en cache 24h comme un domaine confirmé sans protection";
+            }
+            if (strpos($drmSrc177, "if (\$result === false) {\n                continue;\n            }") === false) {
+                $offenders[] = "DomainReputationManager::checkBlacklists() compte de nouveau une requête RBL en échec réseau dans 'checked' — régression du bug corrigé le 15/08/2026 (round 177) : une panne DNS totale accorderait de nouveau les 25 points RBL pleins dans computeScore()";
+            }
+            $posPtr177 = strpos($drmSrc177, 'private function checkPtr(string $ip, ?float $deadline = null): array');
+            $ptrBody177 = $posPtr177 !== false ? substr($drmSrc177, $posPtr177, 2400) : '';
+            $posAddr177 = strpos($ptrBody177, '@gethostbyaddr($ip)');
+            $posName177 = strpos($ptrBody177, '@gethostbyname($hostname)');
+            $betweenCalls177 = ($posAddr177 !== false && $posName177 !== false) ? substr($ptrBody177, $posAddr177, $posName177 - $posAddr177) : '';
+            if ($posPtr177 === false || $posAddr177 === false || $posName177 === false || strpos($betweenCalls177, '$deadline !== null && microtime(true) >= $deadline') === false) {
+                $offenders[] = "DomainReputationManager::checkPtr() ne revérifie plus le budget DNS avant son second appel bloquant (gethostbyname) — régression du bug corrigé le 15/08/2026 (round 177) : un hostname PTR pointant vers une résolution A lente pourrait de nouveau dépasser largement le budget censé protéger le visiteur front";
+            }
+        }
+
+        $atSrc177 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/AdminTranslator.php');
+        if ($atSrc177 === '') {
+            $offenders[] = 'AdminTranslator.php introuvable (garde-fou round 177)';
+        } else {
+            $posTLang177 = strpos($atSrc177, 'public static function tLang(string $key, string $iso): string');
+            $tLangBody177 = $posTLang177 !== false ? substr($atSrc177, $posTLang177, 900) : '';
+            if ($posTLang177 === false || strpos($tLangBody177, 'if (!in_array($iso, TranslationEngine::SUPPORTED_LANGS, true)) {') === false) {
+                $offenders[] = "AdminTranslator::tLang() ne valide plus \$iso contre TranslationEngine::SUPPORTED_LANGS — régression du bug corrigé le 15/08/2026 (round 177) : une clé orpheline du dictionnaire JSON pourrait de nouveau être retournée silencieusement pour un code langue non supporté";
+            }
         }
 
         if ($offenders) {
