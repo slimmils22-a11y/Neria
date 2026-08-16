@@ -400,13 +400,21 @@ class ABTestManager
         // computeSignificance()) — un "gagnant" peut être déclaré et
         // appliqué en production après seulement quelques envois du nouveau
         // test, sur la base de résultats appartenant en réalité à l'ancien.
-        // On désétiquette (abtest_variant = NULL) plutôt que de supprimer
+        // On désétiquette (abtest_variant = '') plutôt que de supprimer
         // les lignes : les événements bruts restent disponibles pour les
         // statistiques globales du template, seule leur participation aux
         // calculs A/B (filtrés sur abtest_variant IN ('A','B')) est retirée.
+        // Round 177 : `= NULL` était utilisé ici, mais neria_stat.abtest_variant
+        // est déclarée `NOT NULL DEFAULT ''` (sql/install.sql) — en mode SQL
+        // strict (MySQL 8+/MariaDB récent, défaut sur les installs récentes),
+        // cet UPDATE échouait intégralement (colonne ne peut être NULL),
+        // laissant $ok à false ET les lignes intactes avec leur ancienne
+        // variante A/B, désactivant silencieusement la purge que ce bloc est
+        // censé effectuer — le bug documenté ci-dessus restait donc actif
+        // malgré ce correctif apparent.
         $ok = $this->db->execute(
             "UPDATE `" . _DB_PREFIX_ . "neria_stat`
-             SET `abtest_variant` = NULL
+             SET `abtest_variant` = ''
              WHERE `id_shop`  = {$this->idShop}
                AND `template` = '" . pSQL($template) . "'
                AND `abtest_variant` IN ('A', 'B')"

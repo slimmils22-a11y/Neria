@@ -355,7 +355,15 @@ class DomainReputationManager
             return ['found' => false, 'record' => null, 'policy' => null];
         }
 
-        $records = @dns_get_record($domain, DNS_TXT) ?: [];
+        // Round 177 : dns_get_record() retourne `false` sur une erreur
+        // réseau/résolveur (panne DNS temporaire), un tableau vide sur un
+        // NXDOMAIN légitime (domaine sans TXT SPF) — `?: []` confondait les
+        // deux en un même "found=false", indiscernable pour l'appelant
+        // (computeScore() traitait alors une panne DNS transitoire comme
+        // "domaine sans SPF", pénalité pleine et résultat mis en cache 24h).
+        $raw = @dns_get_record($domain, DNS_TXT);
+        $dnsError = ($raw === false);
+        $records = $dnsError ? [] : $raw;
         foreach ($records as $r) {
             $txt = $r['txt'] ?? '';
             if (!$txt && !empty($r['entries'])) {
@@ -371,7 +379,7 @@ class DomainReputationManager
                 ];
             }
         }
-        return ['found' => false, 'record' => null, 'policy' => null];
+        return ['found' => false, 'record' => null, 'policy' => null, 'dns_error' => $dnsError];
     }
 
     private function checkDkim(string $domain, ?float $deadline = null): array
@@ -380,6 +388,15 @@ class DomainReputationManager
             return ['found' => false, 'selector' => null, 'record' => null, 'timed_out' => false];
         }
 
+        // Round 177 : au moins une requête par sélecteur ayant échoué au
+        // niveau réseau/résolveur (dns_get_record() === false, distinct
+        // d'un NXDOMAIN légitime) — voir commentaire de checkSpf(). Une
+        // panne transitoire sur un seul sélecteur ne doit pas empêcher de
+        // tester les suivants (elle peut réussir), mais si TOUS échouent
+        // ainsi, "found=false" ne doit pas être traité comme une absence de
+        // DKIM confirmée : le drapeau ci-dessous permet à computeScore() de
+        // retomber sur le même score neutre que pour un budget DNS épuisé.
+        $anyDnsError = false;
         foreach (self::DKIM_SELECTORS as $selector) {
             if ($deadline !== null && microtime(true) >= $deadline) {
                 // Round 144 : budget de temps DNS épuisé AVANT d'avoir
@@ -392,9 +409,13 @@ class DomainReputationManager
                 // un sélecteur non encore atteint.
                 return ['found' => false, 'selector' => null, 'record' => null, 'timed_out' => true];
             }
-            $host    = $selector . '._domainkey.' . $domain;
-            $records = @dns_get_record($host, DNS_TXT) ?: [];
-            foreach ($records as $r) {
+            $host = $selector . '._domainkey.' . $domain;
+            $raw  = @dns_get_record($host, DNS_TXT);
+            if ($raw === false) {
+                $anyDnsError = true;
+                continue;
+            }
+            foreach ($raw as $r) {
                 $txt = $r['txt'] ?? '';
                 if (!$txt && !empty($r['entries'])) {
                     $txt = implode('', (array) $r['entries']);
@@ -409,7 +430,7 @@ class DomainReputationManager
                 }
             }
         }
-        return ['found' => false, 'selector' => null, 'record' => null, 'timed_out' => false];
+        return ['found' => false, 'selector' => null, 'record' => null, 'timed_out' => false, 'dns_error' => $anyDnsError];
     }
 
     private function checkDmarc(string $domain, ?float $deadline = null): array
@@ -423,7 +444,11 @@ class DomainReputationManager
             return ['found' => false, 'record' => null, 'policy' => null];
         }
 
-        $records = @dns_get_record('_dmarc.' . $domain, DNS_TXT) ?: [];
+        // Round 177 : voir commentaire de checkSpf() — distingue une erreur
+        // réseau/résolveur (false) d'un NXDOMAIN légitime ([]).
+        $raw = @dns_get_record('_dmarc.' . $domain, DNS_TXT);
+        $dnsError = ($raw === false);
+        $records = $dnsError ? [] : $raw;
         foreach ($records as $r) {
             $txt = $r['txt'] ?? '';
             if (!$txt && !empty($r['entries'])) {
@@ -441,7 +466,7 @@ class DomainReputationManager
                 ];
             }
         }
-        return ['found' => false, 'record' => null, 'policy' => null];
+        return ['found' => false, 'record' => null, 'policy' => null, 'dns_error' => $dnsError];
     }
 
     private function checkMx(string $domain, ?float $deadline = null): array
@@ -484,6 +509,20 @@ class DomainReputationManager
         // gethostbyaddr retourne l'IP elle-même si aucun PTR n'existe
         if ($hostname === false || $hostname === $ip) {
             return ['found' => false, 'hostname' => null];
+        }
+
+        // Round 177 : le budget DNS_TIME_BUDGET_SECS n'était vérifié qu'AVANT
+        // gethostbyaddr() ci-dessus, jamais avant ce second appel bloquant
+        // (gethostbyname(), vérification FCrDNS) — contrairement à tous les
+        // autres points de contrôle DNS du fichier depuis le round 165. Un
+        // hostname PTR pointant vers un domaine dont la résolution A est
+        // lente pouvait faire dépasser largement le budget censé protéger le
+        // visiteur front (hookDisplayHeader, chemin sans cron serveur). On
+        // ne peut toujours pas borner la durée de l'appel système lui-même,
+        // mais on évite de le lancer en plus d'un budget déjà épuisé par
+        // gethostbyaddr() ci-dessus.
+        if ($deadline !== null && microtime(true) >= $deadline) {
+            return ['found' => true, 'hostname' => $hostname, 'timed_out' => true];
         }
 
         // Vérification inverse : le hostname doit résoudre vers la même IP
@@ -557,8 +596,23 @@ class DomainReputationManager
             // dns_get_record retourne false en cas d'erreur réseau,
             // tableau vide si NXDOMAIN (= non listé), tableau non vide si listé.
             $result = @dns_get_record($host, DNS_A);
+            // Round 177 : `$checked++` s'exécutait AUSSI sur une erreur
+            // réseau (`$result === false`), indiscernable ensuite d'une
+            // vérification réussie qui n'a simplement rien trouvé. Une
+            // panne DNS totale (toutes les RBL retournent false) donnait
+            // alors `checked === count(RBL_LIST)` avec `hits=[]` — les 25
+            // points pleins étaient accordés dans computeScore() alors
+            // qu'AUCUNE requête RBL n'avait réellement abouti. En ne
+            // comptant `$checked` que sur une réponse DNS réelle (succès ou
+            // NXDOMAIN), une panne totale fait retomber `checked` en dessous
+            // de count(RBL_LIST) — 'timed_out' devient vrai ci-dessous et
+            // computeScore() applique déjà le score neutre prévu pour une
+            // vérification incomplète, sans logique supplémentaire à ajouter.
+            if ($result === false) {
+                continue;
+            }
             $checked++;
-            if (is_array($result) && count($result) > 0) {
+            if (count($result) > 0) {
                 $hits[] = $rbl;
             }
         }
@@ -585,13 +639,18 @@ class DomainReputationManager
     {
         $score = 0;
 
-        // SPF — 25 pts
+        // SPF — 25 pts. Round 177 : score neutre (12/25, même valeur que le
+        // repli par défaut) sur une erreur DNS réseau/résolveur plutôt que 0
+        // — sinon une panne DNS transitoire est traitée comme "confirmé sans
+        // SPF", identique en pratique à un vrai domaine non protégé.
         if ($spf['found']) {
             $score += match($spf['policy'] ?? '') {
                 'reject'   => 25,
                 'softfail' => 20,
                 default    => 12,
             };
+        } elseif (!empty($spf['dns_error'])) {
+            $score += 12;
         }
 
         // DKIM — 25 pts. Round 144 : score neutre (12/25, même valeur que le
@@ -603,11 +662,14 @@ class DomainReputationManager
         // ci-dessous (round 74).
         if ($dkim['found']) {
             $score += 25;
-        } elseif (!empty($dkim['timed_out'])) {
+        } elseif (!empty($dkim['timed_out']) || !empty($dkim['dns_error'])) {
+            // Round 177 : dns_error (tous les sélecteurs ont échoué au
+            // niveau réseau) traité comme timed_out — même incertitude
+            // ("non vérifié", pas "confirmé absent"), même score neutre.
             $score += 12;
         }
 
-        // DMARC — 20 pts
+        // DMARC — 20 pts. Round 177 : voir commentaire SPF ci-dessus.
         if ($dmarc['found']) {
             $score += match($dmarc['policy'] ?? 'none') {
                 'reject'     => 20,
@@ -615,6 +677,8 @@ class DomainReputationManager
                 'none'       => 8,
                 default      => 8,
             };
+        } elseif (!empty($dmarc['dns_error'])) {
+            $score += 8;
         }
 
         // PTR / rDNS — 5 pts. checkPtr() calcule aussi une vérification FCrDNS

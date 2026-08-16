@@ -96,6 +96,19 @@ class AdminTranslator
     {
         $dict = self::dict();
 
+        // Round 177 : contrairement à setLang() (ligne ~252), $iso n'était
+        // jamais validé contre TranslationEngine::SUPPORTED_LANGS avant
+        // d'être utilisé comme clé de tableau — écart entre le contrat
+        // documenté ci-dessus et l'implémentation. Sans impact de sécurité
+        // (simple lookup de tableau), mais une clé orpheline dans le
+        // dictionnaire JSON (langue retirée de SUPPORTED_LANGS mais restée
+        // dans translations.json, cf. feedback_orphan_language_keys) aurait
+        // pu être retournée silencieusement pour un code langue qui n'est
+        // plus officiellement supporté.
+        if (!in_array($iso, TranslationEngine::SUPPORTED_LANGS, true)) {
+            $iso = self::FALLBACK_LANG;
+        }
+
         if (isset($dict[$key][$iso]) && $dict[$key][$iso] !== '') {
             return $dict[$key][$iso];
         }
