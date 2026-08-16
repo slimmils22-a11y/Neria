@@ -6198,6 +6198,44 @@ class HealthCheckManager
             $offenders[] = "WaitlistManager::purgeStaleEntries() n'accepte plus de \$idShop optionnel — régression du bug corrigé le 16/08/2026 (round 179) : impossible de nouveau de scoper la purge par boutique, cohérent avec getStats()/getTopProducts() de la même classe";
         }
 
+        $colSrc180 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php');
+        if ($colSrc180 === '') {
+            $offenders[] = 'CollectionManager.php introuvable (garde-fou round 180)';
+        } elseif (strpos($colSrc180, "\\BounceManager::isBounced(\$customer->email)") === false) {
+            $offenders[] = "CollectionManager::processCollection() ne revérifie plus bounce/blacklist/cooldown avant Mail::Send() — régression du bug corrigé le 16/08/2026 (round 180) : un envoi bloqué par le hook serait de nouveau journalisé comme un succès, sans jamais libérer la réservation claimSend()";
+        }
+
+        $loySrc180 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
+        if ($loySrc180 === '') {
+            $offenders[] = 'LoyaltyManager.php introuvable (garde-fou round 180)';
+        } elseif (strpos($loySrc180, '$sent = (bool) \Mail::Send(') === false) {
+            $offenders[] = "LoyaltyManager::sendRecapToCustomer() ne capture plus le retour réel de Mail::Send() — régression du bug corrigé le 16/08/2026 (round 180) : un échec d'envoi serait de nouveau traité comme un succès inconditionnel, posant quand même le throttle mensuel";
+        }
+
+        $bcmSrc180 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc180 === '') {
+            $offenders[] = 'BehavioralCronManager.php introuvable (garde-fou round 180)';
+        } else {
+            if (strpos($bcmSrc180, "WHERE bs.template = \\'checkout_abandonment\\'\n               AND bs.id_shop = ' . \$idShop") === false) {
+                $offenders[] = "BehavioralCronManager::getCheckoutAbandonmentStats() ne filtre plus emails_sent par id_shop — régression du bug corrigé le 16/08/2026 (round 180) : le taux de conversion serait de nouveau faussé en multi-boutique (dénominateur global, numérateur scopé)";
+            }
+            if (strpos($bcmSrc180, "WHERE template = \\'relationship_anniversary\\' AND id_shop = ' . \$idShop") === false) {
+                $offenders[] = "BehavioralCronManager::getRelationshipAnniversaryStats() ne filtre plus emails_sent par id_shop — régression du bug corrigé le 16/08/2026 (round 180)";
+            }
+        }
+
+        $mrmSrc180 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php');
+        if ($mrmSrc180 === '') {
+            $offenders[] = 'MonthlyReportManager.php introuvable (garde-fou round 180)';
+        } else {
+            if (strpos($mrmSrc180, "\$data['month_label'] = \$this->formatMonthLabel(\$data['year'], \$data['month'], \$recipientIso);") === false) {
+                $offenders[] = "MonthlyReportManager::deliverReportLocked() ne recalcule plus month_label par destinataire — régression du bug corrigé le 16/08/2026 (round 180) : un destinataire non-francophone recevrait de nouveau le titre du rapport figé dans la langue du contexte global";
+            }
+            if (strpos($mrmSrc180, "es.`id_shop` = ' . \$this->idShop") === false) {
+                $offenders[] = "MonthlyReportManager::deliverReportLocked() ne filtre plus la résolution de langue employé par la boutique du rapport — régression du bug corrigé le 16/08/2026 (round 180)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
