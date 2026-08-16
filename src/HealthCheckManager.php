@@ -6097,6 +6097,67 @@ class HealthCheckManager
             }
         }
 
+        $msSrc178 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        if ($msSrc178 === '') {
+            $offenders[] = 'ManualSendManager.php introuvable (garde-fou round 178)';
+        } elseif (strpos($msSrc178, "(new ConfigManager(\$this->module))->isCooldownEnabled()") === false
+            || strpos($msSrc178, 'msg.send_blocked_cooldown') === false
+        ) {
+            $offenders[] = "ManualSendManager::send() ne revérifie plus explicitement CooldownManager (Mode Silence) avant Mail::Send() — régression du bug corrigé le 16/08/2026 (round 178) : Mail::Send() retourne toujours true même quand le hook bloque réellement l'envoi, un doublon bloqué par le Mode Silence serait de nouveau journalisé comme un succès";
+        }
+
+        $qmSrc178 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        if ($qmSrc178 === '') {
+            $offenders[] = 'QueueManager.php introuvable (garde-fou round 178)';
+        } else {
+            $posSingle178 = strpos($qmSrc178, 'private function processSingle(array $row): bool');
+            $singleBody178 = $posSingle178 !== false ? substr($qmSrc178, $posSingle178, 4000) : '';
+            $hasGuards178 = strpos($singleBody178, "\\BounceManager::isBounced(\$toEmail)") !== false
+                && strpos($singleBody178, 'markQueueFailed(') !== false;
+            if ($posSingle178 === false || !$hasGuards178) {
+                $offenders[] = "QueueManager::processSingle() ne revérifie plus bounce/blacklist/préférences/cooldown avant Mail::Send() — régression du bug corrigé le 16/08/2026 (round 178) : une ligne bloquée silencieusement par le hook serait de nouveau marquée 'sent', et pour les anniversaires neria_behavioral_sent enregistrerait un envoi qui n'a jamais réellement eu lieu";
+            }
+        }
+
+        $otSrc178 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
+        if ($otSrc178 === '') {
+            $offenders[] = 'OrderTriggersManager.php introuvable (garde-fou round 178)';
+        } else {
+            if (strpos($otSrc178, 'private function explicitSendBlockReason(') === false) {
+                $offenders[] = "OrderTriggersManager::explicitSendBlockReason() a disparu — régression du bug corrigé le 16/08/2026 (round 178) : Mail::Send()===true serait de nouveau traité comme un succès inconditionnel même quand le hook bloque silencieusement l'envoi, laissant checkMilestone() réclamer un palier à vie sans jamais le libérer";
+            }
+            $posClaim178 = strpos($otSrc178, 'if (!$this->claimMilestone($idCustomer, $count, $idShop)) {');
+            $posBlock178 = strpos($otSrc178, "\$this->explicitSendBlockReason('milestone_order'");
+            if ($posClaim178 === false || $posBlock178 === false || $posBlock178 > $posClaim178) {
+                $offenders[] = "OrderTriggersManager::checkMilestone() n'appelle plus explicitSendBlockReason() AVANT claimMilestone() — régression du bug corrigé le 16/08/2026 (round 178) : un palier légitimement atteint mais bloqué par un garde-fou serait de nouveau réclamé à vie sans jamais être libéré";
+            }
+        }
+
+        $pmSrc178 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PreferencesManager.php');
+        if ($pmSrc178 === '') {
+            $offenders[] = 'PreferencesManager.php introuvable (garde-fou round 178)';
+        } else {
+            $posSave178 = strpos($pmSrc178, 'public function saveByCustomer(int $idCustomer, string $email, array $prefs): void');
+            $saveBody178 = $posSave178 !== false ? substr($pmSrc178, $posSave178, 1500) : '';
+            if ($posSave178 === false || strpos($saveBody178, "AND `email`       != '") === false) {
+                $offenders[] = "PreferencesManager::saveByCustomer() ne nettoie plus les lignes d'un email différent pour un client identifié — régression du bug corrigé le 16/08/2026 (round 178) : un client changeant d'email entre deux visites du centre de préférences accumulerait de nouveau des lignes dupliquées, et getByCustomer() (sans tri déterministe) pourrait retourner une ancienne préférence obsolète";
+            }
+        }
+
+        $smSrc178 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        if ($smSrc178 === '') {
+            $offenders[] = 'StatsManager.php introuvable (garde-fou round 178)';
+        } elseif (substr_count($smSrc178, "watchdog.stats_lock_failed") < 3) {
+            $offenders[] = "StatsManager : recordOpen()/recordClick()/recordConversion() ne vérifient plus toutes les trois \$gotLock avant leur section protégée — régression du bug corrigé le 16/08/2026 (round 178) : la protection anti-double-crédit de points fidélité ne protégerait plus rien précisément sous forte contention (échec d'acquisition du verrou)";
+        }
+
+        $umSrc178 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
+        if ($umSrc178 === '') {
+            $offenders[] = 'UpsellManager.php introuvable (garde-fou round 178)';
+        } elseif (strpos($umSrc178, "od2.id_shop = ' . (int) \$idShop") === false || strpos($umSrc178, "od.id_shop = ' . (int) \$idShop") === false) {
+            $offenders[] = "UpsellManager::findByCoPurchase()/findByCategoryBestseller() ne filtrent plus leur classement de popularité par id_shop — régression du bug corrigé le 16/08/2026 (round 178) : un produit populaire uniquement sur une autre boutique pourrait de nouveau être recommandé à tort";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
