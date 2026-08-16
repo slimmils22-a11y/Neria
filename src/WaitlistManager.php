@@ -433,12 +433,25 @@ class WaitlistManager
      * satisfaites (notified_at IS NULL) — un historique de notification
      * déjà envoyée est conservé (utile pour les statistiques).
      */
-    public function purgeStaleEntries(int $olderThanDays = 365): int
+    // Round 179 (audit transversal de fin de série) : $idShop optionnel
+    // ajouté (défaut null = toutes boutiques, comportement historique
+    // inchangé pour l'appel cron existant dans neria.php) — cohérent avec
+    // getStats()/getTopProducts() ci-dessus, qui suivent déjà ce même
+    // pattern "?int $idShop = null" dans cette classe. Auparavant cette
+    // purge était la SEULE méthode de la classe sans aucun moyen de scoper
+    // par boutique (register()/isRegistered() reçoivent $idShop en
+    // paramètre obligatoire) — un appel scopé à une boutique aurait
+    // silencieusement purgé les inscriptions en attente de TOUTES les
+    // boutiques, avec des seuils métier potentiellement différents par
+    // boutique.
+    public function purgeStaleEntries(int $olderThanDays = 365, ?int $idShop = null): int
     {
+        $shopFilter = $idShop !== null ? ' AND id_shop = ' . (int) $idShop : '';
         $this->db->execute(
             "DELETE FROM `{$this->prefix}" . self::TABLE . "`
              WHERE notified_at IS NULL
                AND registered_at < DATE_SUB(NOW(), INTERVAL " . (int) $olderThanDays . " DAY)"
+               . $shopFilter
         );
         return (int) $this->db->Affected_Rows();
     }

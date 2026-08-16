@@ -150,6 +150,24 @@ class WatchdogManager
         // donc un verrou explicite est la protection appropriée ici.
         $lockName = 'neria_log_' . md5($this->idShop . '|' . $level . '|' . $class . '|' . $message);
         $locked   = (int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 1)") === 1;
+        // Round 179 (audit transversal de fin de série) : $locked était
+        // calculé mais jamais vérifié avant la section critique (SELECT +
+        // INSERT/UPDATE) — pire que le pattern "vérifié+loggé mais sans
+        // effet" déjà corrigé ailleurs (TranslationHistoryManager round
+        // 175, StatsManager round 178) : ici il n'y avait même pas de log
+        // d'échec, le résultat était simplement ignoré. Sous rafale de
+        // messages identiques (le scénario même que ce verrou vise à
+        // couvrir, cf. commentaire ci-dessus), deux appels concurrents
+        // pouvaient tous deux lire "aucune entrée existante" et créer 2
+        // lignes au lieu d'une seule consolidée — recréant exactement la
+        // duplication que ce verrou est censé empêcher. Renonce à cette
+        // écriture précise plutôt que de risquer une duplication
+        // silencieuse (fail-safe, même principe que StatsManager) : sous
+        // contention aussi brève et rare, une ligne de log non écrite est
+        // largement préférable à un compteur d'occurrences faussé.
+        if (!$locked) {
+            return;
+        }
 
         try {
             $existing = (int) $this->db->getValue(sprintf(
@@ -187,9 +205,11 @@ class WatchdogManager
                 date('Y-m-d H:i:s')
             ));
         } finally {
-            if ($locked) {
-                $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
-            }
+            // Round 179 : le return anticipé ajouté quand !$locked rend ce
+            // garde redondant (on n'atteint plus ce bloc sans verrou
+            // obtenu) — simplifié en conséquence (PHPStan : condition
+            // toujours vraie).
+            $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
         }
 
         // Purge probabiliste (1 tentative sur 10) plutôt qu'à CHAQUE nouvelle

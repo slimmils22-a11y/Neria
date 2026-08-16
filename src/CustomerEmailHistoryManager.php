@@ -313,6 +313,40 @@ class CustomerEmailHistoryManager
 
         $toName = trim($customer->firstname . ' ' . $customer->lastname);
 
+        // Round 179 (audit transversal de fin de série) : Mail::Send() du
+        // cœur PrestaShop retourne TOUJOURS true quand le hook
+        // actionEmailSendBefore annule l'envoi (bounce/blacklist/
+        // préférences/cooldown) — même piège déjà corrigé pour
+        // ManualSendManager::send() (round 178, renvoi manuel BO
+        // équivalent) mais jamais étendu à ce renvoi-ci. Sans ce contrôle,
+        // un employé renvoyant un email à un client blacklisté/désabonné/en
+        // bounce voyait "renvoyé avec succès" alors que rien n'était
+        // réellement reparti.
+        if (class_exists('BounceManager') && \BounceManager::isBounced($customer->email)) {
+            return ['ok' => false, 'message_key' => 'history.resend_blocked', 'vars' => ['email' => $customer->email]];
+        }
+        if (class_exists('BlacklistManager')) {
+            $langIso = class_exists('TranslationEngine')
+                ? (new \TranslationEngine($this->module))->langFromId((int) $customer->id_lang)
+                : (string) (\Language::getIsoById((int) $customer->id_lang) ?: '');
+            if ((new \BlacklistManager($this->idShop))->isBlacklisted($email['template'], $langIso)) {
+                return ['ok' => false, 'message_key' => 'history.resend_blocked', 'vars' => ['email' => $customer->email]];
+            }
+        }
+        if (class_exists('PreferencesManager')
+            && !(new \PreferencesManager($this->module))->isAllowed($idCustomer, $email['template'], $this->idShop, $customer->email)
+        ) {
+            return ['ok' => false, 'message_key' => 'history.resend_blocked', 'vars' => ['email' => $customer->email]];
+        }
+        if (class_exists('ConfigManager') && class_exists('CooldownManager')
+            && (new \ConfigManager($this->module))->isCooldownEnabled()
+        ) {
+            $cdMinutes = (new \ConfigManager($this->module))->getCooldownMinutes();
+            if ((new \CooldownManager())->isDuplicate($customer->email, $email['template'], $cdMinutes, $this->idShop)) {
+                return ['ok' => false, 'message_key' => 'history.resend_blocked', 'vars' => ['email' => $customer->email]];
+            }
+        }
+
         $sent = \Mail::Send(
             (int) $customer->id_lang,
             $email['template'],

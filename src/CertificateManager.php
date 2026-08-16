@@ -757,6 +757,41 @@ class CertificateManager
             '{shop_url}'       => $shopUrl,
         ];
 
+        // Round 179 (audit transversal de fin de série) : Mail::Send() du
+        // cœur PrestaShop retourne TOUJOURS true quand le hook
+        // actionEmailSendBefore annule l'envoi (bounce/blacklist/
+        // préférences/cooldown) — même piège déjà corrigé pour
+        // ManualSendManager::send()/QueueManager::processSingle()/
+        // OrderTriggersManager (round 178) mais jamais étendu à l'envoi du
+        // certificat. Sans ce contrôle, un certificat "émis" restait marqué
+        // comme envoyé en base (emailed=1 plus bas dans issue()) même si
+        // l'adresse est blacklistée/bounced/désabonnée — invisible, sans
+        // retry possible.
+        if (class_exists('BounceManager') && \BounceManager::isBounced($to)) {
+            return AdminTranslator::tVars('msg.certificate_email_blocked', ['email' => $to]);
+        }
+        if (class_exists('BlacklistManager')) {
+            $langIso = class_exists('TranslationEngine')
+                ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                : (string) (\Language::getIsoById($idLang) ?: '');
+            if ((new \BlacklistManager($idShop))->isBlacklisted('certificate_email', $langIso)) {
+                return AdminTranslator::tVars('msg.certificate_email_blocked', ['email' => $to]);
+            }
+        }
+        if (class_exists('PreferencesManager')
+            && !(new \PreferencesManager($this->module))->isAllowed((int) $order->id_customer, 'certificate_email', $idShop, $to)
+        ) {
+            return AdminTranslator::tVars('msg.certificate_email_blocked', ['email' => $to]);
+        }
+        if (class_exists('ConfigManager') && class_exists('CooldownManager')
+            && (new \ConfigManager($this->module))->isCooldownEnabled()
+        ) {
+            $cdMinutes = (new \ConfigManager($this->module))->getCooldownMinutes();
+            if ((new \CooldownManager())->isDuplicate($to, 'certificate_email', $cdMinutes, $idShop, (int) $order->id)) {
+                return AdminTranslator::tVars('msg.certificate_email_blocked', ['email' => $to]);
+            }
+        }
+
         $sent = \Mail::Send(
             $idLang,
             'certificate_email',
