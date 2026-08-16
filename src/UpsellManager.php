@@ -305,6 +305,15 @@ class UpsellManager
         $inProducts = $this->intList($productIds);
         $notIn      = $this->notInClause('od2.product_id', $excluded);
         $stockShop  = $idShop !== null ? ' AND sa.id_shop = ' . (int) $idShop : '';
+        // Round 178 : le stock est bien scopé par boutique (ci-dessous),
+        // mais le classement par popularité (COUNT(*) AS freq, fréquence de
+        // co-achat) agrégeait order_detail de TOUTES les boutiques — un
+        // produit populaire uniquement chez une boutique B2B pouvait ainsi
+        // être poussé comme « souvent acheté ensemble » à un client d'une
+        // toute autre boutique B2C, alors que le stock lui est correctement
+        // scopé. order_detail a sa propre colonne id_shop (pas besoin de
+        // JOIN orders).
+        $freqShop = $idShop !== null ? ' AND od2.id_shop = ' . (int) $idShop : '';
 
         return $this->db->getRow(
             "SELECT od2.product_id AS id_product, MIN(pl.name) AS name,
@@ -319,6 +328,7 @@ class UpsellManager
              JOIN `{$this->prefix}category_product` cp ON p.id_product = cp.id_product
              WHERE od1.product_id IN ({$inProducts})
                {$notIn}
+               {$freqShop}
                -- Somme le stock sur toutes les déclinaisons, scopé id_shop —
                -- voir correctif identique dans findByAccessories() ci-dessus.
                AND (SELECT SUM(sa.quantity) FROM `{$this->prefix}stock_available` sa
@@ -346,6 +356,10 @@ class UpsellManager
         $inCats = $this->intList($categories);
         $notIn  = $this->notInClause('p.id_product', $excluded);
         $stockShop = $idShop !== null ? ' AND sa.id_shop = ' . (int) $idShop : '';
+        // Round 178 : voir commentaire de findByCoPurchase() ci-dessus — le
+        // sous-COUNT(*) de ventes (ORDER BY plus bas) agrégeait aussi
+        // order_detail de toutes les boutiques sans filtre id_shop.
+        $salesShop = $idShop !== null ? ' AND od.id_shop = ' . (int) $idShop : '';
 
         // Round 167 : GROUP BY manquant, contrairement à findByAccessories()/
         // findByCoPurchase() — un produit appartenant à plusieurs des
@@ -371,7 +385,7 @@ class UpsellManager
              GROUP BY p.id_product
              ORDER BY (
                  SELECT COUNT(*) FROM `{$this->prefix}order_detail` od
-                 WHERE od.product_id = p.id_product
+                 WHERE od.product_id = p.id_product{$salesShop}
              ) DESC, p.id_product ASC"
         ) ?: null;
     }

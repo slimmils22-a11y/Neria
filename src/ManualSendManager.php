@@ -678,6 +678,27 @@ class ManualSendManager
             }
         }
 
+        // ── Garde-fou Mode Silence (anti-doublon) ─────────────────────────
+        // Round 178 : ce fichier revérifie déjà explicitement bounce/
+        // blacklist/préférences précisément parce que Mail::Send() retourne
+        // TOUJOURS true quand un hook annule l'envoi (voir les garde-fous
+        // ci-dessus) — mais CooldownManager (Mode Silence) en était absent.
+        // Un marchand envoyant manuellement un template déjà parti pour ce
+        // même destinataire dans la fenêtre de cooldown voyait "email
+        // envoyé avec succès" alors que le hook le bloquait silencieusement
+        // — et pour first_anniversary/relationship_anniversary, une ligne
+        // neria_behavioral_sent était quand même insérée plus bas comme si
+        // l'envoi avait réellement eu lieu, empêchant tout futur envoi
+        // légitime via checkAnniversaryConflict().
+        if (class_exists('ConfigManager') && class_exists('CooldownManager')
+            && (new ConfigManager($this->module))->isCooldownEnabled()
+        ) {
+            $cdMinutes = (new ConfigManager($this->module))->getCooldownMinutes();
+            if ((new \CooldownManager())->isDuplicate($email, $template, $cdMinutes, $idShop, $order ? (int) $order['id_order'] : 0)) {
+                return ['ok' => false, 'message' => AdminTranslator::tVars('msg.send_blocked_cooldown', ['email' => $email])];
+            }
+        }
+
         // Contexte de base
         $vars = [
             '{firstname}'   => $customer['firstname'] ?? '',

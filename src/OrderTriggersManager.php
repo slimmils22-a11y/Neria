@@ -82,6 +82,54 @@ class OrderTriggersManager
     }
 
     /**
+     * Round 178 : Mail::Send() du cœur PrestaShop retourne TOUJOURS true
+     * quand le hook actionEmailSendBefore annule l'envoi (bounce/blacklist/
+     * préférences/cooldown — voir classes/Mail.php, "if (!$keepGoing) {
+     * return true; }"). Toutes les méthodes de ce fichier traitaient donc
+     * un envoi silencieusement bloqué par le hook comme un succès :
+     * checkMilestone() ne libérait jamais sa réservation anti-doublon
+     * (claimMilestone()) que sur un ÉCHEC détecté, donc un palier
+     * légitimement atteint mais bloqué restait réclamé à vie, sans email ni
+     * bon, sans aucun retry possible (pas de cron pour ce template) ; les
+     * autres méthodes journalisaient simplement un faux succès. Revérifie
+     * explicitement les mêmes garde-fous que ManualSendManager::send(),
+     * AVANT l'appel à Mail::Send() — retourne une raison de blocage (pour
+     * log/libération de réservation) ou null si l'envoi peut avoir lieu.
+     */
+    private function explicitSendBlockReason(string $template, string $email, int $idCustomer, int $idShop, int $idLang): ?string
+    {
+        if (class_exists('BounceManager') && \BounceManager::isBounced($email)) {
+            return 'bounce';
+        }
+
+        if (class_exists('BlacklistManager')) {
+            $langIso = class_exists('TranslationEngine')
+                ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                : (string) (\Language::getIsoById($idLang) ?: '');
+            if ((new \BlacklistManager($idShop))->isBlacklisted($template, $langIso)) {
+                return 'blacklist';
+            }
+        }
+
+        if (class_exists('PreferencesManager')
+            && !(new \PreferencesManager($this->module))->isAllowed($idCustomer, $template, $idShop, $email)
+        ) {
+            return 'preferences';
+        }
+
+        if (class_exists('ConfigManager') && class_exists('CooldownManager')
+            && (new \ConfigManager($this->module))->isCooldownEnabled()
+        ) {
+            $cdMinutes = (new \ConfigManager($this->module))->getCooldownMinutes();
+            if ((new \CooldownManager())->isDuplicate($email, $template, $cdMinutes, $idShop)) {
+                return 'cooldown';
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Résout {milestone_count} : ordinal localisé (cf. MILESTONE_ORDINALS)
      * si le palier et la langue sont couverts, repli sur le nombre brut
      * sinon (jamais de valeur vide envoyée dans un email réel).
@@ -334,6 +382,24 @@ class OrderTriggersManager
 
         // milestone_order
         if (in_array($count, self::MILESTONES, true)) {
+            // Round 178 : vérifié AVANT la réservation — même raison que le
+            // check LicenseManager tout en haut de cette méthode (économiser
+            // un bon de réduction réel pour un envoi qui de toute façon ne
+            // partira pas), mais surtout pour ne jamais réclamer le palier
+            // (claimMilestone()) pour un email qui serait de toute façon
+            // bloqué par le hook : sans ça, Mail::Send() renverrait true
+            // malgré le blocage, et la réservation ne serait JAMAIS libérée
+            // (seul un $result false la libère plus bas) — le palier
+            // resterait réclamé à vie, sans email ni bon, sans retry possible.
+            $blockReason = $this->explicitSendBlockReason('milestone_order', $customer->email, $idCustomer, $idShop, $idLang);
+            if ($blockReason !== null) {
+                $this->watchdog()->info(
+                    \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'milestone_order', 'email' => $customer->email]),
+                    'milestone_order', 'OrderTriggers'
+                );
+                return;
+            }
+
             // Réservation anti-doublon de l'EMAIL lui-même, indépendante du
             // toggle bon de réduction — voir claimMilestone().
             if (!$this->claimMilestone($idCustomer, $count, $idShop)) {
@@ -533,6 +599,16 @@ class OrderTriggersManager
 
             // order_partial_shipped : expédition partielle
             if ($newStatus->shipped && !$newStatus->delivery && !$oldStatus->shipped) {
+                // Round 178 : voir explicitSendBlockReason() — Mail::Send()
+                // renvoie true même si le hook bloque l'envoi, journalisant
+                // à tort un succès.
+                if ($this->explicitSendBlockReason('order_partial_shipped', $email, (int) $order->id_customer, $idShop, $idLang) !== null) {
+                    $this->watchdog()->info(
+                        \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'order_partial_shipped', 'email' => $email]),
+                        'order_partial_shipped', 'OrderTriggers'
+                    );
+                    return;
+                }
                 $result = \Mail::Send(
                     $idLang, 'order_partial_shipped', '',
                     array_merge($common, $this->buildShippedItemsVars($order)),
@@ -564,6 +640,14 @@ class OrderTriggersManager
                     ? ($newStatus->name[$idLang] ?? reset($newStatus->name))
                     : (string) $newStatus->name;
 
+                // Round 178 : voir explicitSendBlockReason() ci-dessus.
+                if ($this->explicitSendBlockReason('order_on_hold', $email, (int) $order->id_customer, $idShop, $idLang) !== null) {
+                    $this->watchdog()->info(
+                        \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'order_on_hold', 'email' => $email]),
+                        'order_on_hold', 'OrderTriggers'
+                    );
+                    return;
+                }
                 $result = \Mail::Send(
                     $idLang, 'order_on_hold', '',
                     array_merge($common, ['{hold_reason}' => $statusName]),
@@ -627,45 +711,56 @@ class OrderTriggersManager
             $currency = new \Currency((int) $order->id_currency);
             $formatted = \NeriaTools::displayPrice($amount, $currency, $idLang);
 
-            $result = \Mail::Send(
-                $idLang,
-                'refund_processed',
-                '',
-                [
-                    '{firstname}'      => $customer->firstname,
-                    '{lastname}'       => $customer->lastname,
-                    '{order_name}'     => $order->reference,
-                    '{refund_amount}'  => $formatted,
-                    // Configuration::get(..., $order->id_shop) : round 106,
-                    // même piège que le Mail::Send() plus bas déjà scopé par
-                    // (int) $order->id_shop.
-                    '{shop_name}'      => \Configuration::get('PS_SHOP_NAME', null, null, (int) $order->id_shop),
-                    // Scope le Mode Silence sur CETTE commande — sans lui, un
-                    // client remboursé sur deux commandes distinctes dans la
-                    // même fenêtre de cooldown ne recevait qu'un seul des
-                    // deux emails refund_processed, le second étant bloqué à
-                    // tort comme doublon.
-                    '{id_order}'       => (int) $order->id,
-                    '{cooldown_scope}' => 'order:' . (int) $order->id,
-                ],
-                $customer->email,
-                trim($customer->firstname . ' ' . $customer->lastname) ?: null,
-                null, null, null, null,
-                _PS_MODULE_DIR_ . 'neria/mails/',
-                false,
-                (int) $order->id_shop
-            );
-
-            if ($result) {
+            // Round 178 : voir explicitSendBlockReason() ci-dessus — vérifié
+            // à part (pas en early return) car le retrait des points de
+            // fidélité plus bas doit avoir lieu QUE l'email parte ou non
+            // (le remboursement est réel indépendamment du blocage email).
+            if ($this->explicitSendBlockReason('refund_processed', $customer->email, (int) $order->id_customer, (int) $order->id_shop, $idLang) !== null) {
                 $this->watchdog()->info(
-                    \WatchdogManager::i18nMsg('watchdog.refund_sent', ['amount' => $formatted, 'order' => $order->reference, 'email' => $customer->email]),
-                    'refund_processed', 'OrderTriggers'
-                );
-            } else {
-                $this->watchdog()->warning(
                     \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'refund_processed', 'email' => $customer->email]),
                     'refund_processed', 'OrderTriggers'
                 );
+            } else {
+                $result = \Mail::Send(
+                    $idLang,
+                    'refund_processed',
+                    '',
+                    [
+                        '{firstname}'      => $customer->firstname,
+                        '{lastname}'       => $customer->lastname,
+                        '{order_name}'     => $order->reference,
+                        '{refund_amount}'  => $formatted,
+                        // Configuration::get(..., $order->id_shop) : round 106,
+                        // même piège que le Mail::Send() plus bas déjà scopé par
+                        // (int) $order->id_shop.
+                        '{shop_name}'      => \Configuration::get('PS_SHOP_NAME', null, null, (int) $order->id_shop),
+                        // Scope le Mode Silence sur CETTE commande — sans lui, un
+                        // client remboursé sur deux commandes distinctes dans la
+                        // même fenêtre de cooldown ne recevait qu'un seul des
+                        // deux emails refund_processed, le second étant bloqué à
+                        // tort comme doublon.
+                        '{id_order}'       => (int) $order->id,
+                        '{cooldown_scope}' => 'order:' . (int) $order->id,
+                    ],
+                    $customer->email,
+                    trim($customer->firstname . ' ' . $customer->lastname) ?: null,
+                    null, null, null, null,
+                    _PS_MODULE_DIR_ . 'neria/mails/',
+                    false,
+                    (int) $order->id_shop
+                );
+
+                if ($result) {
+                    $this->watchdog()->info(
+                        \WatchdogManager::i18nMsg('watchdog.refund_sent', ['amount' => $formatted, 'order' => $order->reference, 'email' => $customer->email]),
+                        'refund_processed', 'OrderTriggers'
+                    );
+                } else {
+                    $this->watchdog()->warning(
+                        \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'refund_processed', 'email' => $customer->email]),
+                        'refund_processed', 'OrderTriggers'
+                    );
+                }
             }
 
             // ── Retrait des points/bons fidélité gagnés par cette commande ──
@@ -792,6 +887,15 @@ class OrderTriggersManager
                 // et sa version txt étant en réalité identiques (texte brut
                 // déjà), on réutilise les mêmes lignes.
                 $summaryTxt = $summary;
+            }
+
+            // Round 178 : voir explicitSendBlockReason() plus haut.
+            if ($this->explicitSendBlockReason('return_received', $customer->email, (int) $order->id_customer, (int) $order->id_shop, $idLang) !== null) {
+                $this->watchdog()->info(
+                    \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'return_received', 'email' => $customer->email]),
+                    'return_received', 'OrderTriggers'
+                );
+                return;
             }
 
             $result = \Mail::Send(

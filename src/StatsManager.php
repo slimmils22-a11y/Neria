@@ -178,6 +178,22 @@ class StatsManager
         // points en double pour une seule ouverture réelle.
         $lockKey = 'neria_open_' . md5($token);
         $gotLock = (bool) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockKey) . "', 2)");
+        // Round 178 : $gotLock était calculé mais jamais vérifié avant
+        // d'exécuter la section protégée (eventExists() + record()) — le
+        // verrou était pris, mais si son acquisition échouait (timeout de
+        // 2s atteint, verrou déjà tenu ailleurs sous forte charge), le code
+        // continuait quand même SANS protection, exactement dans le
+        // scénario de contention que ce verrou vise à couvrir. Fail-safe :
+        // on renonce à cette ouverture plutôt que de risquer un double
+        // crédit de points fidélité — une ouverture rare non comptée est
+        // préférable à un double crédit silencieux.
+        if (!$gotLock) {
+            $this->watchdog()->warning(
+                \WatchdogManager::i18nMsg('watchdog.stats_lock_failed', ['event' => self::EVENT_OPEN, 'token' => $token]),
+                $sent['template'] ?? '', 'StatsManager'
+            );
+            return;
+        }
         try {
             if ($this->eventExists($token, self::EVENT_OPEN)) {
                 return;
@@ -211,9 +227,11 @@ class StatsManager
                 ]);
             }
         } finally {
-            if ($gotLock) {
-                $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockKey) . "')");
-            }
+            // Round 178 : le return anticipé ajouté quand !$gotLock rend ce
+            // garde redondant (on n'atteint plus ce bloc sans verrou
+            // obtenu) — simplifié en conséquence (PHPStan : condition
+            // toujours vraie).
+            $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockKey) . "')");
         }
     }
 
@@ -239,6 +257,14 @@ class StatsManager
         // par token pour empêcher ce double crédit.
         $lockKey  = 'neria_click_' . md5($token);
         $gotLock  = (bool) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockKey) . "', 2)");
+        // Round 178 : voir commentaire équivalent dans recordOpen().
+        if (!$gotLock) {
+            $this->watchdog()->warning(
+                \WatchdogManager::i18nMsg('watchdog.stats_lock_failed', ['event' => self::EVENT_CLICK, 'token' => $token]),
+                $sent['template'] ?? '', 'StatsManager'
+            );
+            return;
+        }
         try {
             $awardPoints = !$this->eventExists($token, self::EVENT_CLICK);
 
@@ -256,9 +282,11 @@ class StatsManager
                 $awardPoints
             );
         } finally {
-            if ($gotLock) {
-                $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockKey) . "')");
-            }
+            // Round 178 : le return anticipé ajouté quand !$gotLock rend ce
+            // garde redondant (on n'atteint plus ce bloc sans verrou
+            // obtenu) — simplifié en conséquence (PHPStan : condition
+            // toujours vraie).
+            $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockKey) . "')");
         }
     }
 
@@ -821,6 +849,14 @@ class StatsManager
         // et créditer des points en double pour un seul achat réel.
         $lockKey = 'neria_conv_' . md5($token);
         $gotLock = (bool) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockKey) . "', 2)");
+        // Round 178 : voir commentaire équivalent dans recordOpen().
+        if (!$gotLock) {
+            $this->watchdog()->warning(
+                \WatchdogManager::i18nMsg('watchdog.stats_lock_failed', ['event' => self::EVENT_CONVERSION, 'token' => $token]),
+                $sent['template'] ?? '', 'StatsManager'
+            );
+            return;
+        }
         try {
             if ($this->eventExists($token, self::EVENT_CONVERSION)) {
                 return; // déjà attribuée
@@ -840,9 +876,11 @@ class StatsManager
                 ]
             );
         } finally {
-            if ($gotLock) {
-                $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockKey) . "')");
-            }
+            // Round 178 : le return anticipé ajouté quand !$gotLock rend ce
+            // garde redondant (on n'atteint plus ce bloc sans verrou
+            // obtenu) — simplifié en conséquence (PHPStan : condition
+            // toujours vraie).
+            $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockKey) . "')");
         }
 
         $this->webhook()->trigger('conversion', [

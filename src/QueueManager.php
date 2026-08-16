@@ -393,6 +393,51 @@ class QueueManager
                 $vars
             );
 
+            // ── Garde-fous avant envoi ─────────────────────────────────
+            // Round 178 : cette méthode appelait Mail::Send() directement,
+            // sans AUCUNE revérification (bounce/blacklist/préférences/
+            // cooldown) — contrairement à ManualSendManager::send(), qui
+            // les revérifie explicitement précisément parce que
+            // Mail::Send() du cœur PrestaShop retourne TOUJOURS true quand
+            // le hook actionEmailSendBefore annule l'envoi (voir classes/
+            // Mail.php, "if (!$keepGoing) { return true; }"). Sans ces
+            // garde-fous ICI, une ligne bloquée silencieusement par le hook
+            // était quand même marquée 'sent' + sent_at ci-dessous, et pour
+            // first_anniversary/relationship_anniversary une ligne
+            // neria_behavioral_sent était insérée comme si l'email était
+            // réellement parti — empêchant tout futur envoi légitime.
+            $template = (string) $row['template'];
+            $toEmail  = (string) $row['recipient_email'];
+
+            if (class_exists('BounceManager') && \BounceManager::isBounced($toEmail)) {
+                return $this->markQueueFailed($id, 'bounce');
+            }
+
+            if (class_exists('BlacklistManager')) {
+                $langIso = class_exists('TranslationEngine')
+                    ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                    : (string) (\Language::getIsoById($idLang) ?: '');
+                if ((new \BlacklistManager($idShop))->isBlacklisted($template, $langIso)) {
+                    return $this->markQueueFailed($id, 'blacklist');
+                }
+            }
+
+            if (class_exists('PreferencesManager')
+                && !(new \PreferencesManager($this->module))->isAllowed($idCustomerRow, $template, $idShop, $toEmail)
+            ) {
+                return $this->markQueueFailed($id, 'preferences');
+            }
+
+            if (class_exists('ConfigManager') && class_exists('CooldownManager')
+                && (new \ConfigManager($this->module))->isCooldownEnabled()
+            ) {
+                $cdMinutes = (new \ConfigManager($this->module))->getCooldownMinutes();
+                $cdIdOrder = (int) ($row['ref_id'] ?? 0);
+                if ((new \CooldownManager())->isDuplicate($toEmail, $template, $cdMinutes, $idShop, $cdIdOrder)) {
+                    return $this->markQueueFailed($id, 'cooldown');
+                }
+            }
+
             $sent = \Mail::Send(
                 $idLang,
                 $row['template'],
@@ -532,6 +577,29 @@ class QueueManager
         $message = preg_replace($patterns, '[redacted]', $message) ?? $message;
 
         return mb_substr($message, 0, 500);
+    }
+
+    /**
+     * Round 178 : marque définitivement une ligne comme 'failed' suite à un
+     * garde-fou de politique d'envoi (bounce/blacklist/préférences/
+     * cooldown) — PAS via markFailedOrRetry(), dont le recul exponentiel
+     * est pensé pour une panne SMTP transitoire (retentera dans 2h/4h/6h).
+     * Un blocage de politique n'est pas transitoire de la même façon : le
+     * retenter à l'identique dans 2h donnerait le même résultat (bounce/
+     * blacklist/préférence ne changent pas en quelques heures), consommant
+     * inutilement les 3 tentatives disponibles jusqu'à 'failed' de toute
+     * façon.
+     */
+    private function markQueueFailed(int $id, string $reason): bool
+    {
+        $this->db->execute(
+            'UPDATE `' . $this->prefix . 'neria_queue`
+             SET status = \'failed\',
+                 error  = \'' . pSQL('blocked_by_' . $reason) . '\'
+             WHERE id_neria_queue = ' . $id
+        );
+
+        return false;
     }
 
     private function markFailedOrRetry(int $id, int $attempts, string $error): void

@@ -274,10 +274,18 @@ class PreferencesManager
             return $prefs;
         }
 
+        // Round 178 : ORDER BY id_preference DESC — défense en profondeur
+        // en complément du nettoyage ajouté dans saveByCustomer() : si des
+        // lignes dupliquées pour la même catégorie subsistent malgré tout
+        // (données legacy antérieures à ce correctif, migration partielle),
+        // la boucle ci-dessous doit retenir la plus RÉCENTE de façon
+        // déterministe plutôt que la dernière selon l'ordre physique
+        // (non garanti) renvoyé par MySQL sans tri explicite.
         $rows = $this->db->executeS(
             "SELECT `category`, `subscribed` FROM `" . _DB_PREFIX_ . self::TABLE . "`
              WHERE `id_shop`    = {$this->idShop}
-               AND `id_customer`= {$idCustomer}"
+               AND `id_customer`= {$idCustomer}
+             ORDER BY `id_preference` ASC"
         );
 
         foreach ((is_array($rows) ? $rows : []) as $row) {
@@ -296,12 +304,36 @@ class PreferencesManager
      */
     public function saveByCustomer(int $idCustomer, string $email, array $prefs): void
     {
+        $normalizedEmail = strtolower(trim($email));
+
+        // Round 178 : la clé unique (id_shop, id_customer, email, category)
+        // inclut l'email pour distinguer deux CLIENTS INVITÉS différents
+        // (id_customer=0, voir le commentaire sur cette contrainte dans
+        // sql/install.sql) — mais pour un client IDENTIFIÉ (id_customer>0),
+        // id_customer suffit déjà à l'identifier de façon unique. L'email
+        // vient du token du lien reçu par mail, donc peut différer d'un
+        // envoi à l'autre (changement d'adresse entre deux visites du
+        // centre de préférences) : sans ce nettoyage, chaque email
+        // différent créait une NOUVELLE ligne au lieu de mettre à jour
+        // l'existante, et getByCustomer() (qui n'a pas de tri déterministe)
+        // pouvait alors retourner une ancienne préférence obsolète selon
+        // l'ordre physique MySQL — y compris un opt-out que le client
+        // croyait avoir remplacé.
+        if ($idCustomer > 0) {
+            $this->db->execute(
+                "DELETE FROM `" . _DB_PREFIX_ . self::TABLE . "`
+                 WHERE `id_shop`     = {$this->idShop}
+                   AND `id_customer` = {$idCustomer}
+                   AND `email`       != '" . pSQL($normalizedEmail) . "'"
+            );
+        }
+
         foreach (self::CATEGORIES as $cat) {
             $subscribed = isset($prefs[$cat]) ? (int)(bool)$prefs[$cat] : 1;
             $this->db->execute(
                 "INSERT INTO `" . _DB_PREFIX_ . self::TABLE . "`
                  (`id_shop`,`id_customer`,`email`,`category`,`subscribed`,`date_upd`)
-                 VALUES ({$this->idShop}, {$idCustomer}, '" . pSQL(strtolower($email)) . "',
+                 VALUES ({$this->idShop}, {$idCustomer}, '" . pSQL($normalizedEmail) . "',
                          '" . pSQL($cat) . "', {$subscribed}, NOW())
                  ON DUPLICATE KEY UPDATE
                    `subscribed` = VALUES(`subscribed`),
