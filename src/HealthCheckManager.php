@@ -6236,6 +6236,46 @@ class HealthCheckManager
             }
         }
 
+        $segSrc181 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php');
+        if ($segSrc181 === '') {
+            $offenders[] = 'SegmentManager.php introuvable (garde-fou round 181)';
+        } elseif (strpos($segSrc181, 'SELECT COUNT(*) FROM (') === false) {
+            $offenders[] = "SegmentManager::recomputeAll() ne recompte plus le nombre réel de clients traités — régression du bug corrigé le 17/08/2026 (round 181) : Affected_Rows() (2 par ligne UPDATE réellement modifiée sur un INSERT...ON DUPLICATE KEY UPDATE) serait de nouveau loggué tel quel dans Watchdog, gonflant le chiffre au-delà du nombre réel de clients";
+        }
+
+        $cfgSrc181 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
+        if ($cfgSrc181 === '') {
+            $offenders[] = 'ConfigManager.php introuvable (garde-fou round 181)';
+        } else {
+            $posToggle181 = strpos($cfgSrc181, 'public function toggleMenuItemVisibility(string $key): void');
+            $posSetAll181 = strpos($cfgSrc181, 'public function setAllMenuItemsVisibility(bool $visible): void');
+            if ($posToggle181 === false || $posSetAll181 === false) {
+                $offenders[] = "toggleMenuItemVisibility()/setAllMenuItemsVisibility() introuvables dans ConfigManager.php — jeu de garde-fous invalide (round 181)";
+            } else {
+                $toggleBody181 = substr($cfgSrc181, $posToggle181, $posSetAll181 - $posToggle181);
+                if (strpos($toggleBody181, "Configuration::updateValue(self::KEY_MENU_HIDDEN_ITEMS, \$encoded, false, null, \$this->idShop)") === false) {
+                    $offenders[] = "ConfigManager::toggleMenuItemVisibility()/setAllMenuItemsVisibility() n'écrivent plus dans le même scope shop que get()/set() — régression du bug corrigé le 17/08/2026 (round 181) : un masquage de menu après un 'Réinitialiser' réapparaîtrait de nouveau silencieusement au rechargement suivant, en multi-boutique";
+                }
+            }
+        }
+
+        $bcmSrc181 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        $otmSrc181 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
+        $loySrc181 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
+        if ($bcmSrc181 === '' || $otmSrc181 === '' || $loySrc181 === '') {
+            $offenders[] = 'BehavioralCronManager.php/OrderTriggersManager.php/LoyaltyManager.php introuvable (garde-fou round 181)';
+        } else {
+            if (strpos($bcmSrc181, 'min($amount, $config->getVoucherFixedCap())') === false) {
+                $offenders[] = "BehavioralCronManager::generateBirthdayVoucher() ne re-clampe plus le montant au plafond de sécurité à la génération — régression du bug corrigé le 17/08/2026 (round 181) : un abaissement ultérieur de NERIA_VOUCHER_FIXED_CAP ne se répercuterait plus sur un montant déjà enregistré au-dessus du nouveau plafond";
+            }
+            if (strpos($otmSrc181, 'min($amount, $config->getVoucherFixedCap())') === false) {
+                $offenders[] = "OrderTriggersManager::generateMilestoneVoucher() ne re-clampe plus le montant au plafond de sécurité à la génération — régression du bug corrigé le 17/08/2026 (round 181)";
+            }
+            if (strpos($loySrc181, 'min((float) $tier[\'amount\'], (new \ConfigManager($this->module))->getVoucherFixedCap())') === false) {
+                $offenders[] = "LoyaltyManager::generateVoucher() ne re-clampe plus le montant fixe au plafond de sécurité à la génération — régression du bug corrigé le 17/08/2026 (round 181)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
