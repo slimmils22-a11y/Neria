@@ -369,6 +369,17 @@ class BehavioralCronManager
 
         $amount    = $config->getBirthdayVoucherAmount();
         $isPercent = $config->isBirthdayVoucherPercent();
+        // Round 181 : re-clamp au plafond de sécurité au moment de la
+        // génération réelle du bon, pas seulement à la saisie du montant
+        // dans le formulaire BO (neria.php). Le plafond n'était vérifié
+        // qu'à l'écriture de NERIA_BIRTHDAY_VOUCHER_AMOUNT — si le marchand
+        // abaissait NERIA_VOUCHER_FIXED_CAP après coup (ex. suite à une
+        // saisie initiale trop généreuse), le montant déjà enregistré
+        // restait utilisé tel quel, sans qu'aucune alerte ne signale
+        // l'incohérence entre le plafond courant et le montant réel émis.
+        if (!$isPercent) {
+            $amount = min($amount, $config->getVoucherFixedCap());
+        }
         $code      = 'NERIA-BDAY-' . strtoupper(\Tools::passwdGen(6));
 
         $cartRule = new \CartRule();

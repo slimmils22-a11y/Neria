@@ -200,7 +200,39 @@ class SegmentManager
         // trace exploitable — le Watchdog affirmait quand même un
         // "recompute" réussi.
         $execOk = $this->db->execute($sql);
-        $affected = (int) $this->db->Affected_Rows();
+
+        // Round 181 : Affected_Rows() sur un INSERT ... ON DUPLICATE KEY
+        // UPDATE compte 1 par ligne insérée mais 2 par ligne mise à jour
+        // dont une colonne change réellement de valeur (comportement mysqli
+        // par défaut, MYSQLI_CLIENT_FOUND_ROWS non activé côté core
+        // PrestaShop) — le recalcul quotidien traitant très majoritairement
+        // des UPDATE (clients déjà segmentés dont les stats évoluent), le
+        // chiffre loggué pouvait quasiment doubler le nombre réel de
+        // clients traités (ex. "580 clients recalculés" sur une boutique de
+        // 300 clients), rendant la métrique Watchdog inexploitable pour
+        // détecter une vraie régression de volume. On recompte ici le
+        // nombre réel de clients concernés via la même sous-requête/WHERE
+        // que l'INSERT ci-dessus.
+        $affected = (int) $this->db->getValue("
+            SELECT COUNT(*) FROM (
+                SELECT m.id_customer
+                FROM (
+                    SELECT
+                        id_customer,
+                        SUM(event_type = 'sent')        AS total_sent,
+                        SUM(event_type = 'open' AND is_mpp = 0)        AS total_opens,
+                        MAX(CASE WHEN event_type = 'conversion' THEN date_add END) AS last_conv,
+                        MIN(CASE WHEN event_type = 'sent'       THEN date_add END) AS first_sent
+                    FROM `{$stat}`
+                    WHERE id_shop = {$shop} AND id_customer > 0
+                    GROUP BY id_customer
+                ) m
+                WHERE NOT (
+                    m.total_opens = 0
+                    AND COALESCE(m.first_sent, '1970-01-01') >= DATE_SUB(NOW(), INTERVAL {$newCustomerGraceDays} DAY)
+                )
+            ) counted
+        ");
 
         // Round 166 : contrairement à ChurnScoreManager::recomputeAll() et
         // PropensityScoreManager::recalculateAll(), cette méthode ne

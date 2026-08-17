@@ -201,6 +201,12 @@ class OrderTriggersManager
     {
         $amount    = $config->getMilestoneVoucherAmount();
         $isPercent = $config->isMilestoneVoucherPercent();
+        // Round 181 : re-clamp au plafond de sécurité au moment de la
+        // génération réelle du bon — même correctif que
+        // BehavioralCronManager::generateBirthdayVoucher().
+        if (!$isPercent) {
+            $amount = min($amount, $config->getVoucherFixedCap());
+        }
         $code      = 'NERIA-MLST-' . strtoupper(\Tools::passwdGen(6));
 
         $cartRule = new \CartRule();

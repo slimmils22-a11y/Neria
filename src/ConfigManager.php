@@ -943,7 +943,15 @@ class ConfigManager
                 $hidden[] = $key;
             }
             $encoded = json_encode(array_values($hidden));
-            \Configuration::updateGlobalValue(self::KEY_MENU_HIDDEN_ITEMS, $encoded);
+            // Round 181 : updateGlobalValue() remplacé par updateValue(...,
+            // $this->idShop) — écrivait auparavant uniquement la ligne
+            // globale (id_shop = 0) alors que get()/set() lisent et
+            // écrivent tous deux en shop-scopé. Si resetToDefaults() avait
+            // entre-temps posé une ligne shop-scopée '[]' pour cette clé
+            // (via set(), présente dans DEFAULTS), cette ligne restait
+            // prioritaire à la lecture et l'item masqué ici réapparaissait
+            // silencieusement dans le menu au rechargement suivant.
+            \Configuration::updateValue(self::KEY_MENU_HIDDEN_ITEMS, $encoded, false, null, $this->idShop);
             // Invalide le cache mémoire local : sans ça, un appel à
             // isMenuItemVisible()/getHiddenMenuItems() sur cette même instance
             // juste après le toggle renverrait encore l'ancienne valeur.
@@ -965,7 +973,10 @@ class ConfigManager
     {
         $hidden  = $visible ? [] : array_column(self::CONTROL_CENTER_REGISTRY, 'key');
         $encoded = json_encode(array_values($hidden));
-        \Configuration::updateGlobalValue(self::KEY_MENU_HIDDEN_ITEMS, $encoded);
+        // Round 181 : même correctif de scope que toggleMenuItemVisibility()
+        // ci-dessus — updateGlobalValue() ignorait une éventuelle ligne
+        // shop-scopée prioritaire à la lecture.
+        \Configuration::updateValue(self::KEY_MENU_HIDDEN_ITEMS, $encoded, false, null, $this->idShop);
         $this->cache[self::KEY_MENU_HIDDEN_ITEMS] = $encoded;
     }
 

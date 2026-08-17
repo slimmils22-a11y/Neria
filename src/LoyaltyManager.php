@@ -454,7 +454,15 @@ class LoyaltyManager
             $cartRule->reduction_percent = min(100.0, (float) $tier['amount']);
             $cartRule->reduction_amount  = 0;
         } else {
-            $cartRule->reduction_amount  = (float) $tier['amount'];
+            // Round 181 : re-clamp au plafond de sécurité au moment de la
+            // génération réelle du bon — même correctif que
+            // BehavioralCronManager::generateBirthdayVoucher() et
+            // OrderTriggersManager::generateMilestoneVoucher(). Le plafond
+            // n'était vérifié qu'à la saisie du montant du palier dans le
+            // formulaire BO ; un abaissement ultérieur de
+            // NERIA_VOUCHER_FIXED_CAP ne se répercutait jamais sur un
+            // palier déjà configuré au-dessus du nouveau plafond.
+            $cartRule->reduction_amount  = min((float) $tier['amount'], (new \ConfigManager($this->module))->getVoucherFixedCap());
             $cartRule->reduction_percent = 0;
             $cartRule->reduction_tax     = 1;
             // Devise par défaut de LA BOUTIQUE réelle en mode séparé, pas la
