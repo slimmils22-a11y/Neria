@@ -16,6 +16,15 @@
  * Reflection, privée) et vérifie que l'URL renvoyée contient bien
  * "?v=<mtime du fichier>". Modifie ensuite le fichier (touch, mtime
  * différent) et vérifie que l'URL change en conséquence.
+ *
+ * clearstatcache() (round 181) : nécessaire ici car ce test appelle
+ * resolveSignature() deux fois dans le MÊME process PHP après un touch()
+ * intermédiaire — sans elle, le cache de stat interne de PHP (filemtime())
+ * renvoie l'ancien mtime au 2e appel, un faux échec du test. Scénario
+ * artificiel au test uniquement : en production chaque requête PrestaShop
+ * est un process PHP neuf, sans cache de stat persistant entre deux
+ * régénérations réelles de la signature — le code source n'a pas besoin
+ * de clearstatcache().
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -55,6 +64,7 @@ function run_test(): array
 
         // Change le mtime (simule une régénération) — l'URL doit suivre
         touch($fullPath, 1800000000);
+        clearstatcache(true, $fullPath);
         $result2 = $ref->invoke($renderer, $idShop);
         neria_assert(
             strpos($result2['url'], '?v=1800000000') !== false,
