@@ -1994,12 +1994,15 @@ class HealthCheckManager
 
         // Round 46 : ABTestManager::getVariantForEmail() — clé de
         // répartition A/B changeait quand un invité créait un compte.
+        // Round 182 : chaîne recherchée mise à jour pour couvrir aussi le
+        // mb_strtolower() ajouté (email non normalisé en casse changeait
+        // également la variante entre deux envois).
         $abtestFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php';
         $abtestSrc = $this->readModuleSrc($abtestFile);
         if ($abtestSrc === '') {
             $offenders[] = 'ABTestManager.php introuvable';
-        } elseif (strpos($abtestSrc, "trim(\$email) !== '' ? trim(\$email)") === false) {
-            $offenders[] = 'ABTestManager : getVariantForEmail() ne priorise plus l\'email comme clé de répartition — un client passant d\'invité à compte changerait de nouveau de variante A/B entre deux envois';
+        } elseif (strpos($abtestSrc, "trim(\$email) !== '' ? mb_strtolower(trim(\$email))") === false) {
+            $offenders[] = 'ABTestManager : getVariantForEmail() ne priorise plus l\'email (normalisé en casse) comme clé de répartition — un client passant d\'invité à compte, ou dont la casse de l\'email change, basculerait de nouveau de variante A/B entre deux envois';
         }
 
         // Round 46 : DeliverabilityScorer::getSubjectSpamTriggers() exposait
@@ -6274,6 +6277,36 @@ class HealthCheckManager
             if (strpos($loySrc181, 'min((float) $tier[\'amount\'], (new \ConfigManager($this->module))->getVoucherFixedCap())') === false) {
                 $offenders[] = "LoyaltyManager::generateVoucher() ne re-clampe plus le montant fixe au plafond de sécurité à la génération — régression du bug corrigé le 17/08/2026 (round 181)";
             }
+        }
+
+        $certSrc182 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        if ($certSrc182 === '') {
+            $offenders[] = 'CertificateManager.php introuvable (garde-fou round 182)';
+        } elseif (strpos($certSrc182, 'public function delete(int $idCertificate): bool') === false) {
+            $offenders[] = "CertificateManager::delete() n'a plus une signature bool — régression du bug corrigé le 17/08/2026 (round 182) : un id_certificate inexistant, déjà supprimé, ou d'une autre boutique afficherait de nouveau un succès inconditionnel en BO malgré une suppression sans effet";
+        }
+
+        $neriaSrc182 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($neriaSrc182 === '') {
+            $offenders[] = 'neria.php introuvable (garde-fou round 182)';
+        } elseif (strpos($neriaSrc182, "if ((new CertificateManager(\$this))->delete(\$idCert)) {") === false) {
+            $offenders[] = "neria.php (action cert_delete) ne vérifie plus le retour de CertificateManager::delete() — régression du bug corrigé le 17/08/2026 (round 182)";
+        }
+
+        $abtSrc182 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/AbTestManager.php');
+        if ($abtSrc182 === '') {
+            $offenders[] = 'AbTestManager.php introuvable (garde-fou round 182)';
+        } elseif (strpos($abtSrc182, "mb_strtolower(trim(\$email))") === false) {
+            $offenders[] = "AbTestManager::getVariantForEmail() ne normalise plus la casse de l'email dans sa clé de hash — régression du bug corrigé le 17/08/2026 (round 182) : un même destinataire dont la casse de l'email change entre deux envois basculerait de nouveau de variante A/B";
+        }
+
+        $psmSrc182 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PageSpeedManager.php');
+        if ($psmSrc182 === '') {
+            $offenders[] = 'PageSpeedManager.php introuvable (garde-fou round 182)';
+        } elseif (strpos($psmSrc182, '$this->cacheKey(self::CONFIG_TARGET_URL)') === false) {
+            $offenders[] = "PageSpeedManager::getTargetUrl() ne lit plus CONFIG_TARGET_URL de façon scopée par boutique — régression du bug corrigé le 17/08/2026 (round 182) : une URL personnalisée d'une boutique s'appliquerait de nouveau à toutes les boutiques de l'installation (fuite de rapport inter-boutiques)";
+        } elseif (strpos($neriaSrc182, "PageSpeedManager::CONFIG_TARGET_URL . '_' . (int) \$this->context->shop->id") === false) {
+            $offenders[] = "neria.php n'écrit plus PageSpeedManager::CONFIG_TARGET_URL de façon scopée par boutique — régression du bug corrigé le 17/08/2026 (round 182)";
         }
 
         if ($offenders) {
