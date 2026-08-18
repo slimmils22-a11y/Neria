@@ -345,6 +345,10 @@ class ClvManager
         }
 
         // ── 1 requête : engagement email (sent/open) pour TOUS les candidats ──
+        // Round 183 : borné à 30 jours (INTERVAL 30 DAY), symétrique au
+        // correctif de getEngagementRate() ci-dessous — cette version
+        // batch alimente getTopCustomers() (classement CLV), qui souffrait
+        // du même signal d'engagement obsolète.
         $engagementAgg = [];
         foreach ($this->db->executeS(
             'SELECT `id_customer`,
@@ -352,6 +356,7 @@ class ClvManager
                     SUM(`event_type` = \'open\' AND `is_mpp` = 0)  AS opened
              FROM `' . _DB_PREFIX_ . 'neria_stat`
              WHERE `id_customer` IN (' . $idList . ') AND `id_shop` = ' . $this->idShop . '
+               AND `date_add` >= DATE_SUB(NOW(), INTERVAL 30 DAY)
              GROUP BY `id_customer`'
         ) ?: [] as $r) {
             $engagementAgg[(int) $r['id_customer']] = $r;
@@ -510,12 +515,22 @@ class ClvManager
 
     private function getEngagementRate(int $idCustomer): float
     {
-        // Une seule requête agrégée au lieu de deux COUNT(*) séparés sur la
-        // même table avec les mêmes filtres id_customer/id_shop.
+        // Round 183 : borné aux 30 derniers jours (INTERVAL 30 DAY), comme
+        // ChurnScoreManager::rate_p1 et PropensityScoreManager::scoreEngagement()
+        // — auparavant calculé sur la durée de vie complète du client, sans
+        // aucune borne de date. Les 2 indicateurs sont affichés côte à côte
+        // sur la même fiche client BO (_customer_history_content.tpl) : un
+        // client historiquement très engagé mais silencieux depuis des mois
+        // affichait "Engagement: high" ici (gonflant artificiellement
+        // engagement_mult dans la projection CLV et le classement Top CLV)
+        // alors que le bloc churn juste au-dessus le signalait "risque
+        // élevé" via un rate_p1 proche de 0 — deux signaux contradictoires
+        // sur le même écran, l'un obsolète.
         $row = $this->db->getRow(
             'SELECT SUM(`event_type` = \'sent\') AS sent, SUM(`event_type` = \'open\' AND `is_mpp` = 0) AS opened
              FROM `' . _DB_PREFIX_ . 'neria_stat`
-             WHERE `id_customer` = ' . $idCustomer . ' AND `id_shop` = ' . $this->idShop
+             WHERE `id_customer` = ' . $idCustomer . ' AND `id_shop` = ' . $this->idShop . '
+               AND `date_add` >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
         );
         $sent   = (int) ($row['sent'] ?? 0);
         $opened = (int) ($row['opened'] ?? 0);
