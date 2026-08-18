@@ -89,7 +89,21 @@ class StatsManager
             self::EVENT_SENT,
             [
                 'id_customer'   => $idCustomer,
-                'id_order'      => (int) ($params['idOrder']       ?? 0),
+                // Round 184 : $params['idOrder'] n'existe nulle part dans le
+                // module (clé jamais définie par aucun appelant) — chaque
+                // ligne 'sent' était donc systématiquement enregistrée avec
+                // id_order = 0, quel que soit le template. Le hook
+                // hookActionEmailSendBeforeImpl() (neria.php) lit pourtant
+                // correctement templateVars['{id_order}'] pour la
+                // VÉRIFICATION du cooldown juste avant — cette clé est la
+                // seule source fiable de l'id_order réel, on l'utilise
+                // désormais aussi pour l'ENREGISTREMENT du "sent" :
+                // CooldownManager::isDuplicate() scopé par commande ne
+                // trouvait jamais de correspondance, rendant le Mode
+                // Silence totalement inopérant pour tous les templates liés
+                // à une commande (order_conf, shipped, remboursements,
+                // certificats...).
+                'id_order'      => (int) ($params['templateVars']['{id_order}'] ?? 0),
                 'ref_scope'     => (string) ($params['templateVars']['{cooldown_scope}'] ?? ''),
                 'abtest'        => $params['neria_variant']        ?? '',
                 'rendered_vars' => $this->buildSnapshot($params['templateVars'] ?? []),

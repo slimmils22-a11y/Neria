@@ -223,8 +223,15 @@ class WaitlistManager
             $originalShop = $context->shop;
             $context->shop = new \Shop($idShop);
             try {
+                // Round 184 : !$product->active ajouté — contrairement à
+                // LookCompletionManager::buildProductBlocks() (déjà
+                // protégé), rien n'empêchait d'envoyer un email "de retour
+                // en stock" pour un produit désactivé/retiré du catalogue
+                // entre l'inscription sur liste d'attente et le réassort
+                // (ex. stock résiduel non nettoyé avant la désactivation),
+                // pointant vers une page produit indisponible.
                 $product = new \Product($idProduct, false, $idLang, $idShop);
-                if (!\Validate::isLoadedObject($product)) continue;
+                if (!\Validate::isLoadedObject($product) || !$product->active) continue;
 
                 $cover    = \Product::getCover($idProduct);
                 $imageUrl = '';
@@ -256,7 +263,15 @@ class WaitlistManager
                 // scope, {product_price} retombait sur la devise du contexte
                 // d'exécution courant (BO admin qui a déclenché la mise à
                 // jour de stock), pas celle de la boutique du client réel.
-                '{product_price}'      => \NeriaTools::displayPrice((float) $product->price, new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop)), $idLang),
+                // Round 184 : safeProductPrice() (Product::getPriceStatic())
+                // remplace $product->price brut — même pattern que
+                // UpsellManager::safeProductPrice()/LookCompletionManager.
+                // $product->price est le champ ObjectModel catalogue (HT,
+                // sans specific_price/promo) : un produit en promo au
+                // moment du retour en stock affichait son prix plein tarif
+                // dans l'email "de retour en stock", différent du prix
+                // réel affiché sur la fiche produit au clic.
+                '{product_price}'      => \NeriaTools::displayPrice($this->safeProductPrice($idProduct), new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop)), $idLang),
                 '{days_waited}'        => $daysWaited,
                 '{reservation_hours}'  => (int) \Configuration::getGlobalValue('NERIA_WAITLIST_RESERVATION_HOURS') ?: self::RESERVATION_HOURS,
                 // Configuration::get(..., $idShop) : round 106, même piège
@@ -378,6 +393,35 @@ class WaitlistManager
         }
 
         return $sent;
+    }
+
+    /**
+     * Round 184 : prix réel (taxe + specific_price/promo appliqués), même
+     * logique que UpsellManager::safeProductPrice()/LookCompletionManager::
+     * safeProductPrice() — Product::getPriceStatic() peut nécessiter un
+     * panier en contexte pour résoudre certaines règles de taxe ; ce fichier
+     * tourne typiquement depuis un cron/hook admin sans panier actif, d'où
+     * le panier temporaire ci-dessous.
+     */
+    private function safeProductPrice(int $idProduct): float
+    {
+        $ctx     = \Context::getContext();
+        $hadCart = \Validate::isLoadedObject($ctx->cart);
+
+        if (!$hadCart) {
+            $tmp = new \Cart();
+            $tmp->id_currency = (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT'));
+            $tmp->id_lang     = (int) ($ctx->language->id ?? \Configuration::get('PS_LANG_DEFAULT'));
+            $ctx->cart        = $tmp;
+        }
+
+        try {
+            return (float) \Product::getPriceStatic($idProduct, true, null, 2);
+        } finally {
+            if (!$hadCart) {
+                $ctx->cart = null;
+            }
+        }
     }
 
     // ── Stats BO ─────────────────────────────────────────────────

@@ -221,6 +221,22 @@ class GdprAuditManager
             'customer_col' => null,
             'has_pii'      => false,
         ],
+        // Round 184 : entrée manquante — la table est créée par
+        // upgrade-1.0.14.php (TABLE 34) et alimentée par ABTestManager,
+        // mais absente du registre RGPD : purgeAllRegistryTables() ne la
+        // purgeait jamais, contrairement à toutes les autres tables qui
+        // ont chacune une politique de rétention. Aucune donnée nominative
+        // (agrégats de variantes A/B uniquement), mais rupture de la
+        // politique de rétention annoncée par upgrade-1.0.34.php.
+        [
+            'table'        => 'neria_abtest_history',
+            'date_col'     => 'date_end',
+            'months'       => 36,
+            'label'        => 'Historique des tests A/B',
+            'note'         => 'Agrégats de tests A/B terminés — pas de données clients directes.',
+            'customer_col' => null,
+            'has_pii'      => false,
+        ],
         [
             'table'        => 'neria_seasonal_campaign',
             'date_col'     => 'date_add',

@@ -79,7 +79,13 @@ class UpsellManager
         // Tier 1 — accessoires définis dans le back-office produit
         $row = $this->findByAccessories($orderProducts, $excluded, $idLang, $idShop);
         if ($row) {
-            $result = $this->enrich($row, $idLang, 'L\'accessoire parfait', $idShop);
+            // Round 184 : $idCustomer propagé — enrich()/safeProductPrice()
+            // ignoraient jusqu'ici le client réel, résolvant le prix avec le
+            // groupe tarifaire "visiteur" par défaut du contexte cron. Un
+            // client B2B à tarif négocié (specific_price restreinte à son
+            // id_group) voyait un prix upsell différent (plus élevé) de
+            // celui qu'il paierait réellement au checkout.
+            $result = $this->enrich($row, $idLang, 'L\'accessoire parfait', $idShop, $idCustomer);
             if ($result) {
                 return $result;
             }
@@ -88,7 +94,7 @@ class UpsellManager
         // Tier 2 — co-achat (collaborative filtering léger)
         $row = $this->findByCoPurchase($orderProducts, $excluded, $idLang, $idShop);
         if ($row) {
-            $result = $this->enrich($row, $idLang, 'Souvent acheté ensemble', $idShop);
+            $result = $this->enrich($row, $idLang, 'Souvent acheté ensemble', $idShop, $idCustomer);
             if ($result) {
                 return $result;
             }
@@ -97,7 +103,7 @@ class UpsellManager
         // Tier 3 — meilleur vendeur même catégorie
         $row = $this->findByCategoryBestseller($orderProducts, $excluded, $idLang, $idShop);
         if ($row) {
-            $result = $this->enrich($row, $idLang, 'Notre suggestion pour vous', $idShop);
+            $result = $this->enrich($row, $idLang, 'Notre suggestion pour vous', $idShop, $idCustomer);
             if ($result) {
                 return $result;
             }
@@ -417,7 +423,7 @@ class UpsellManager
             : new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT'));
     }
 
-    private function enrich(array $row, int $idLang, string $reason, ?int $idShop = null): ?array
+    private function enrich(array $row, int $idLang, string $reason, ?int $idShop = null, int $idCustomer = 0): ?array
     {
         $idProduct = (int) $row['id_product'];
 
@@ -435,7 +441,7 @@ class UpsellManager
             );
         }
 
-        $price = $this->safeProductPrice($idProduct, $idLang);
+        $price = $this->safeProductPrice($idProduct, $idLang, $idCustomer);
         // Formatage localisé (séparateur décimal + position du symbole selon
         // la langue) — auparavant une virgule française codée en dur,
         // affichée dans le bloc upsell de CHAQUE confirmation de commande,
@@ -468,7 +474,7 @@ class UpsellManager
      * die() (Product.php) ; on fournit donc un cart transitoire le temps du
      * calcul, puis on restaure le contexte.
      */
-    private function safeProductPrice(int $idProduct, int $idLang): float
+    private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0): float
     {
         $ctx     = $this->context;
         $hadCart = \Validate::isLoadedObject($ctx->cart);
@@ -481,7 +487,12 @@ class UpsellManager
         }
 
         try {
-            return (float) \Product::getPriceStatic($idProduct, true, null, 2);
+            // Round 184 : $idCustomer transmis à getPriceStatic() — sans
+            // lui, la méthode retombe sur Group::getCurrent()->id (groupe
+            // "visiteur" par défaut du contexte cron), ignorant tout groupe
+            // tarifaire réel du client (ex. tarif B2B négocié via
+            // specific_price restreinte à son id_group).
+            return (float) \Product::getPriceStatic($idProduct, true, null, 2, null, false, true, 1, false, $idCustomer > 0 ? $idCustomer : null);
         } finally {
             if (!$hadCart) {
                 $ctx->cart = null;

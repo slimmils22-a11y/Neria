@@ -362,10 +362,32 @@ class LookCompletionManager
                 $product = new \Product($pid, false, $idLang, $idShop);
                 if (!\Validate::isLoadedObject($product) || !$product->active) continue;
 
-                // Ignore un produit en rupture sans backorder possible.
-                if (!\StockAvailable::getQuantityAvailableByProduct($pid, null, $idShop)
-                    && !\Product::isAvailableWhenOutOfStock($product->out_of_stock)
-                ) {
+                // Round 184 : SUM(quantity) SQL direct remplace
+                // StockAvailable::getQuantityAvailableByProduct($pid, null, ...)
+                // — même piège déjà corrigé (round 167) dans
+                // WaitlistManager::notifyProduct() mais jamais répliqué ici :
+                // le cœur PrestaShop convertit explicitement
+                // id_product_attribute=null en 0
+                // (StockAvailable::getQuantityAvailableByProduct()), donc
+                // seule la ligne "sans déclinaison" était lue — quasi
+                // toujours à 0 pour un produit géré par combinaisons. Un
+                // produit parfaitement disponible (stock réparti sur ses
+                // combinaisons) était silencieusement écarté des
+                // suggestions "Complétez votre look". Bascule stock
+                // partagé/non partagé identique à WaitlistManager (round
+                // 167) : en mode "stock partagé" entre boutiques d'un
+                // groupe, la quantité réelle est sur UNE SEULE ligne
+                // id_shop=0/id_shop_group=X, jamais sur id_shop=$idShop.
+                $lcShopGroup  = new \Shop($idShop);
+                $lcShareStock = (bool) $lcShopGroup->getGroup()->share_stock;
+                $lcStockWhere = $lcShareStock
+                    ? ' AND id_shop = 0 AND id_shop_group = ' . (int) $lcShopGroup->id_shop_group
+                    : ' AND id_shop = ' . $idShop . ' AND id_shop_group = 0';
+                $availableQty = (int) $this->db->getValue(
+                    'SELECT COALESCE(SUM(quantity), 0) FROM `' . $this->prefix . 'stock_available`
+                     WHERE id_product = ' . $pid . $lcStockWhere
+                );
+                if ($availableQty <= 0 && !\Product::isAvailableWhenOutOfStock($product->out_of_stock)) {
                     continue;
                 }
 
@@ -391,17 +413,53 @@ class LookCompletionManager
                     $context->shop = $originalShop;
                 }
 
+                // Round 184 : Product::getPriceStatic() remplace $product->price
+                // brut — même pattern que UpsellManager::safeProductPrice().
+                // $product->price est le champ ObjectModel catalogue (HT,
+                // sans specific_price/promo, sans groupe tarifaire) : un
+                // produit en promo affichait son prix plein tarif dans
+                // l'email, différent de celui réellement affiché sur la
+                // fiche produit au clic.
+                $realPrice = $this->safeProductPrice($pid);
                 $blocks[] = [
                     'name'  => $product->name,
                     'url'   => $productUrl,
                     'image' => $imageUrl,
-                    'price' => \NeriaTools::displayPrice((float) $product->price, $currency, $idLang),
+                    'price' => \NeriaTools::displayPrice($realPrice, $currency, $idLang),
                 ];
             }
         } finally {
             \Shop::setContext(\Shop::CONTEXT_SHOP, $originalShopId);
         }
         return $blocks;
+    }
+
+    /**
+     * Round 184 : prix réel (taxe + specific_price/promo appliqués), même
+     * logique que UpsellManager::safeProductPrice() — Product::getPriceStatic()
+     * peut nécessiter un panier en contexte pour résoudre certaines règles
+     * de taxe ; ce fichier tourne typiquement depuis un cron sans panier
+     * actif, d'où le panier temporaire ci-dessous.
+     */
+    private function safeProductPrice(int $idProduct): float
+    {
+        $ctx     = \Context::getContext();
+        $hadCart = \Validate::isLoadedObject($ctx->cart);
+
+        if (!$hadCart) {
+            $tmp = new \Cart();
+            $tmp->id_currency = (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT'));
+            $tmp->id_lang     = (int) ($ctx->language->id ?? \Configuration::get('PS_LANG_DEFAULT'));
+            $ctx->cart        = $tmp;
+        }
+
+        try {
+            return (float) \Product::getPriceStatic($idProduct, true, null, 2);
+        } finally {
+            if (!$hadCart) {
+                $ctx->cart = null;
+            }
+        }
     }
 
     private function buildVars(\Customer $customer, array $products, string $categoryName, int $idShop): array
