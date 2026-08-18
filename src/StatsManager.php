@@ -908,6 +908,36 @@ class StatsManager
     }
 
     /**
+     * Round 185 : ramène le revenu de la ligne 'conversion' d'une commande
+     * au montant réellement conservé par le marchand, appelée par
+     * OrderTriggersManager::handleRefund() à chaque remboursement/avoir.
+     * Sans elle, getRevenueStats()/MonthlyReportManager continuaient de
+     * compter le revenu ORIGINAL de la commande indéfiniment, surestimant
+     * durablement le ROI par template/campagne dès qu'un remboursement
+     * (même partiel) survient après l'attribution — un cas extrêmement
+     * fréquent en e-commerce (retours, litiges, fraude).
+     *
+     * recordConversion() n'enregistre qu'UNE seule ligne 'conversion' par
+     * commande (dédupliquée par token via eventExists()) — le UPDATE
+     * ci-dessous cible donc normalement 0 ou 1 ligne, jamais plusieurs.
+     */
+    public function adjustConversionRevenueForOrder(int $idOrder, float $newRevenue): void
+    {
+        if ($idOrder <= 0) {
+            return;
+        }
+
+        // Pas de ligne à ajuster pour une commande sans email tracké (achat
+        // direct, hors campagne) : Db::update() ne fait rien si 0 ligne
+        // matche le WHERE — comportement normal, pas d'erreur à journaliser.
+        $this->db->update(
+            self::TABLE,
+            ['revenue' => $newRevenue],
+            '`id_order` = ' . $idOrder . ' AND `event_type` = \'' . self::EVENT_CONVERSION . '\' AND `id_shop` = ' . $this->idShop
+        );
+    }
+
+    /**
      * Agrège les statistiques de revenus sur les N derniers jours.
      *
      * @param int $days

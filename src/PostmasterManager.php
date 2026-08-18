@@ -239,11 +239,21 @@ class PostmasterManager
      */
     private function applyTokenResponse(array $response): void
     {
-        \Configuration::updateValue(self::CONFIG_ACCESS_TOKEN, \CryptoManager::encrypt($response['access_token']));
+        // Round 185 : updateGlobalValue() remplace updateValue() — la
+        // connexion OAuth est documentée comme globale à l'installation
+        // (commentaire ci-dessus, ligne ~31), mais updateValue() sans
+        // $idShop retombe sur la boutique du CONTEXTE COURANT dès que le
+        // multi-boutique est actif (vérifié dans Configuration::updateValue()
+        // du cœur PS), pas sur le global. Une connexion établie depuis la
+        // Boutique A restait donc invisible pour la Boutique B
+        // (isConnected() y renvoyait faussement false), contrairement à
+        // LicenseManager qui utilise déjà updateGlobalValue() pour le même
+        // besoin fonctionnel (licence/jeton partagé par toute l'install).
+        \Configuration::updateGlobalValue(self::CONFIG_ACCESS_TOKEN, \CryptoManager::encrypt($response['access_token']));
         if (!empty($response['refresh_token'])) {
-            \Configuration::updateValue(self::CONFIG_REFRESH_TOKEN, \CryptoManager::encrypt($response['refresh_token']));
+            \Configuration::updateGlobalValue(self::CONFIG_REFRESH_TOKEN, \CryptoManager::encrypt($response['refresh_token']));
         }
-        \Configuration::updateValue(self::CONFIG_TOKEN_EXPIRY, time() + ($response['expires_in'] ?? 3600) - 60);
+        \Configuration::updateGlobalValue(self::CONFIG_TOKEN_EXPIRY, time() + ($response['expires_in'] ?? 3600) - 60);
     }
 
     /**
@@ -574,9 +584,9 @@ class PostmasterManager
             // HealthCheckManager::checkOAuthFreshness() n'affichait que le
             // message générique "jamais rafraîchi" au lieu de la vraie cause.
             if ($rawRefresh !== '') {
-                \Configuration::updateValue(self::CONFIG_LAST_ERROR, 'decrypt_failed: refresh token unreadable');
+                \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR, 'decrypt_failed: refresh token unreadable');
                 if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
-                    \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+                    \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR_AT, time());
                 }
                 $this->wd()->warning(
                     \WatchdogManager::i18nMsg('watchdog.postmaster_key_unreadable'),
@@ -600,9 +610,9 @@ class PostmasterManager
             // HealthCheckManager::checkOAuthFreshness() — sans ça, un
             // rafraîchissement échoué en boucle chaque nuit ne remontait que
             // dans le journal Watchdog, jamais dans le statut lu par le BO.
-            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR, $msg);
             if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
-                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+                \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR_AT, time());
             }
             // 'invalid_grant' = le marchand a révoqué l'accès côté Google (ou
             // le refresh token a expiré) — jamais transitoire, un nouveau
@@ -616,8 +626,8 @@ class PostmasterManager
             return null;
         }
 
-        \Configuration::updateValue(self::CONFIG_ACCESS_TOKEN, \CryptoManager::encrypt($response['access_token']));
-        \Configuration::updateValue(self::CONFIG_TOKEN_EXPIRY, time() + ($response['expires_in'] ?? 3600) - 60);
+        \Configuration::updateGlobalValue(self::CONFIG_ACCESS_TOKEN, \CryptoManager::encrypt($response['access_token']));
+        \Configuration::updateGlobalValue(self::CONFIG_TOKEN_EXPIRY, time() + ($response['expires_in'] ?? 3600) - 60);
 
         return $response['access_token'];
     }
@@ -649,9 +659,9 @@ class PostmasterManager
         // (maxErrorDays) ne se déclenchait jamais faute de timestamp posé.
         if ($body === false) {
             $msg = 'network error: ' . ($curlErr !== '' ? $curlErr : 'unknown');
-            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR, $msg);
             if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
-                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+                \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR_AT, time());
             }
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.postmaster_api_error', ['error' => $msg]), '', 'PostmasterManager');
             return null;
@@ -659,9 +669,9 @@ class PostmasterManager
         $data = json_decode($body, true);
         if (!is_array($data)) {
             $msg = 'invalid JSON response';
-            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR, $msg);
             if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
-                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+                \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR_AT, time());
             }
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.postmaster_api_error', ['error' => $msg]), '', 'PostmasterManager');
             return null;
@@ -673,12 +683,12 @@ class PostmasterManager
         // trouvé", masquant la vraie cause.
         if ($httpCode >= 400 || isset($data['error'])) {
             $msg = $data['error']['message'] ?? ('HTTP ' . $httpCode);
-            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR, $msg);
             // Ne pose le timestamp de début qu'au premier échec de la série —
             // préserve la date de départ réelle pour mesurer une panne
             // persistante, même si le message d'erreur change entre-temps.
             if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
-                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+                \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR_AT, time());
             }
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.postmaster_api_error', ['error' => $msg]), '', 'PostmasterManager');
             return null;

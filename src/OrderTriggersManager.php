@@ -807,6 +807,30 @@ class OrderTriggersManager
                 }
             }
 
+            // ── Ajustement du revenu attribué (ps_neria_stat) ───────────
+            // Round 185 : jusqu'ici, aucun code du module ne touchait
+            // ps_neria_stat après un remboursement — le revenu attribué à
+            // la conversion (StatsManager::recordConversion(), au moment du
+            // paiement) restait compté indéfiniment dans getRevenueStats()/
+            // MonthlyReportManager/dashboards ROI même après remboursement
+            // total, surestimant durablement le ROI par template/campagne.
+            // $totalRefunded (cumul de TOUS les avoirs de la commande) est
+            // déjà calculé ci-dessus pour le clawback fidélité — réutilisé
+            // ici pour ramener le revenu de la ligne 'conversion' de cette
+            // commande au montant réellement conservé par le marchand.
+            if (class_exists('StatsManager')) {
+                try {
+                    (new \StatsManager($this->module))->adjustConversionRevenueForOrder(
+                        (int) $order->id, max(0.0, $orderTotal - $totalRefunded)
+                    );
+                } catch (\Throwable $e) {
+                    $this->watchdog()->error(
+                        \WatchdogManager::i18nMsg('watchdog.revenue_adjustment_error', ['order' => $order->reference, 'error' => $e->getMessage()]),
+                        'refund_processed', 'OrderTriggers'
+                    );
+                }
+            }
+
             // ── Planifier la séquence de réconciliation (J+1/J+3/J+7) ──
             // Une seule séquence par commande (UNIQUE KEY uniq_order).
             // INSERT IGNORE évite les doublons si l'admin crée plusieurs avoirs.

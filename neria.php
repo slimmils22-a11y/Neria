@@ -2812,8 +2812,15 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'save_postmaster_config' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('PostmasterManager')) {
             $clientId     = trim((string) Tools::getValue('postmaster_client_id', ''));
             $clientSecret = trim((string) Tools::getValue('postmaster_client_secret', ''));
-            Configuration::updateValue(PostmasterManager::CONFIG_CLIENT_ID,     $clientId);
-            Configuration::updateValue(PostmasterManager::CONFIG_CLIENT_SECRET, CryptoManager::encrypt($clientSecret));
+            // Round 185 : updateGlobalValue() — la connexion OAuth Postmaster
+            // est documentée comme globale à l'installation (une seule
+            // connexion Google pour toutes les boutiques, cf. PostmasterManager.php
+            // ligne ~31) ; updateValue() sans idShop retombait sur la
+            // boutique du contexte BO courant dès que le multi-boutique est
+            // actif, rendant les credentials invisibles depuis les autres
+            // boutiques.
+            Configuration::updateGlobalValue(PostmasterManager::CONFIG_CLIENT_ID,     $clientId);
+            Configuration::updateGlobalValue(PostmasterManager::CONFIG_CLIENT_SECRET, CryptoManager::encrypt($clientSecret));
             // Efface les anciens tokens si les credentials changent
             Configuration::deleteByName(PostmasterManager::CONFIG_ACCESS_TOKEN);
             Configuration::deleteByName(PostmasterManager::CONFIG_REFRESH_TOKEN);
@@ -2937,8 +2944,10 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'save_searchconsole_config' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $clientId     = trim((string) Tools::getValue('sc_client_id', ''));
             $clientSecret = trim((string) Tools::getValue('sc_client_secret', ''));
-            Configuration::updateValue(SearchConsoleManager::CONFIG_CLIENT_ID,     $clientId);
-            Configuration::updateValue(SearchConsoleManager::CONFIG_CLIENT_SECRET, CryptoManager::encrypt($clientSecret));
+            // Round 185 : updateGlobalValue() — même correctif que
+            // save_postmaster_config ci-dessus.
+            Configuration::updateGlobalValue(SearchConsoleManager::CONFIG_CLIENT_ID,     $clientId);
+            Configuration::updateGlobalValue(SearchConsoleManager::CONFIG_CLIENT_SECRET, CryptoManager::encrypt($clientSecret));
             Configuration::deleteByName(SearchConsoleManager::CONFIG_ACCESS_TOKEN);
             Configuration::deleteByName(SearchConsoleManager::CONFIG_REFRESH_TOKEN);
             Configuration::deleteByName(SearchConsoleManager::CONFIG_TOKEN_EXPIRY);

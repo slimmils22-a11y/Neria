@@ -470,6 +470,17 @@ class SeasonalCampaignManager
      */
     public function countEligible(array $campaign): int
     {
+        // Round 185 : même override gift_mode → target_segment que
+        // runDueCampaigns() (envoi réel) — sans lui, l'aperçu BO du nombre
+        // de destinataires utilisait le segment CONFIGURÉ par le marchand
+        // (potentiellement vide = tous les clients) au lieu du segment
+        // RÉELLEMENT restreint à l'envoi ('ambassador,loyal' en mode
+        // "idées cadeaux"), annonçant un nombre de destinataires
+        // structurellement différent (souvent bien supérieur) de l'envoi réel.
+        if ((bool) ($campaign['gift_mode'] ?? false)) {
+            $campaign['target_segment'] = 'ambassador,loyal';
+        }
+
         $customers = $this->getEligibleCustomers($campaign);
 
         if (!class_exists('PreferencesManager')) {

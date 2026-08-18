@@ -27,6 +27,14 @@ class SearchConsoleManager
     const CONFIG_CACHE_TIME    = 'NERIA_SC_CACHE_TIME';
     const CONFIG_RETURN_URL    = 'NERIA_SC_RETURN_URL';
     const CONFIG_OAUTH_STATE   = 'NERIA_SC_OAUTH_STATE';
+    // Round 185 : volontairement GLOBALES (comme PostmasterManager, même
+    // architecture OAuth Google) — une seule connexion Search Console pour
+    // toute l'installation, une erreur d'API/OAuth affectant réellement
+    // TOUTES les boutiques de la même façon. Toutes les écritures de ces 5
+    // clés (CONFIG_ACCESS_TOKEN/REFRESH_TOKEN/TOKEN_EXPIRY/LAST_ERROR/
+    // LAST_ERROR_AT) utilisent donc updateGlobalValue(), jamais
+    // updateValue() (qui retombe sur la boutique du contexte courant dès
+    // que le multi-boutique est actif).
     const CONFIG_LAST_ERROR    = 'NERIA_SC_LAST_ERROR';
     const CONFIG_LAST_ERROR_AT = 'NERIA_SC_LAST_ERROR_AT';
 
@@ -252,11 +260,11 @@ class SearchConsoleManager
      */
     private function applyTokenResponse(array $response): void
     {
-        \Configuration::updateValue(self::CONFIG_ACCESS_TOKEN, \CryptoManager::encrypt($response['access_token']));
+        \Configuration::updateGlobalValue(self::CONFIG_ACCESS_TOKEN, \CryptoManager::encrypt($response['access_token']));
         if (!empty($response['refresh_token'])) {
-            \Configuration::updateValue(self::CONFIG_REFRESH_TOKEN, \CryptoManager::encrypt($response['refresh_token']));
+            \Configuration::updateGlobalValue(self::CONFIG_REFRESH_TOKEN, \CryptoManager::encrypt($response['refresh_token']));
         }
-        \Configuration::updateValue(self::CONFIG_TOKEN_EXPIRY, time() + ($response['expires_in'] ?? 3600) - 60);
+        \Configuration::updateGlobalValue(self::CONFIG_TOKEN_EXPIRY, time() + ($response['expires_in'] ?? 3600) - 60);
     }
 
     /**
@@ -576,9 +584,9 @@ class SearchConsoleManager
             // HealthCheckManager::checkOAuthFreshness() n'affichait que le
             // message générique "jamais rafraîchi" au lieu de la vraie cause.
             if ($rawRefresh !== '') {
-                \Configuration::updateValue(self::CONFIG_LAST_ERROR, 'decrypt_failed: refresh token unreadable');
+                \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR, 'decrypt_failed: refresh token unreadable');
                 if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
-                    \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+                    \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR_AT, time());
                 }
                 $this->wd()->warning(
                     \WatchdogManager::i18nMsg('watchdog.search_console_key_unreadable'),
@@ -600,9 +608,9 @@ class SearchConsoleManager
             $msg = $response['error_description'] ?? $errCode ?: 'unknown error';
             // Même canal d'erreur que apiGet()/apiPost(), lu par
             // HealthCheckManager::checkOAuthFreshness().
-            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR, $msg);
             if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
-                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+                \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR_AT, time());
             }
             // 'invalid_grant' = accès révoqué côté Google — jamais transitoire.
             // On efface le refresh token pour qu'isConnected() cesse de
@@ -615,8 +623,8 @@ class SearchConsoleManager
             return null;
         }
 
-        \Configuration::updateValue(self::CONFIG_ACCESS_TOKEN, \CryptoManager::encrypt($response['access_token']));
-        \Configuration::updateValue(self::CONFIG_TOKEN_EXPIRY, time() + ($response['expires_in'] ?? 3600) - 60);
+        \Configuration::updateGlobalValue(self::CONFIG_ACCESS_TOKEN, \CryptoManager::encrypt($response['access_token']));
+        \Configuration::updateGlobalValue(self::CONFIG_TOKEN_EXPIRY, time() + ($response['expires_in'] ?? 3600) - 60);
 
         return $response['access_token'];
     }
@@ -648,9 +656,9 @@ class SearchConsoleManager
         // famille : OAuth Google) l'a depuis le round 131.
         if ($body === false) {
             $msg = 'network error: ' . ($curlErr !== '' ? $curlErr : 'unknown');
-            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR, $msg);
             if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
-                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+                \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR_AT, time());
             }
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_api_error', ['error' => $msg]), '', 'SearchConsoleManager');
             return null;
@@ -658,9 +666,9 @@ class SearchConsoleManager
         $data = json_decode($body, true);
         if (!is_array($data)) {
             $msg = 'invalid JSON response';
-            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR, $msg);
             if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
-                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+                \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR_AT, time());
             }
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_api_error', ['error' => $msg]), '', 'SearchConsoleManager');
             return null;
@@ -671,12 +679,12 @@ class SearchConsoleManager
         // avec "aucun site trouvé", masquant la vraie cause.
         if ($httpCode >= 400 || isset($data['error'])) {
             $msg = $data['error']['message'] ?? ('HTTP ' . $httpCode);
-            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR, $msg);
             // Ne pose le timestamp de début qu'au premier échec de la série —
             // préserve la date de départ réelle pour mesurer une panne
             // persistante, même si le message d'erreur change entre-temps.
             if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
-                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+                \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR_AT, time());
             }
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_api_error', ['error' => $msg]), '', 'SearchConsoleManager');
             return null;
@@ -710,9 +718,9 @@ class SearchConsoleManager
         // explicites de Google.
         if ($resp === false) {
             $msg = 'network error: ' . ($curlErr !== '' ? $curlErr : 'unknown');
-            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR, $msg);
             if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
-                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+                \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR_AT, time());
             }
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_api_error', ['error' => $msg]), '', 'SearchConsoleManager');
             return null;
@@ -720,9 +728,9 @@ class SearchConsoleManager
         $data = json_decode($resp, true);
         if (!is_array($data)) {
             $msg = 'invalid JSON response';
-            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR, $msg);
             if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
-                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+                \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR_AT, time());
             }
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_api_error', ['error' => $msg]), '', 'SearchConsoleManager');
             return null;
@@ -735,9 +743,9 @@ class SearchConsoleManager
         // lieu de la faire remonter dans le Watchdog / CONFIG_LAST_ERROR.
         if ($httpCode >= 400 || isset($data['error'])) {
             $msg = $data['error']['message'] ?? ('HTTP ' . $httpCode);
-            \Configuration::updateValue(self::CONFIG_LAST_ERROR, $msg);
+            \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR, $msg);
             if (!\Configuration::get(self::CONFIG_LAST_ERROR_AT)) {
-                \Configuration::updateValue(self::CONFIG_LAST_ERROR_AT, time());
+                \Configuration::updateGlobalValue(self::CONFIG_LAST_ERROR_AT, time());
             }
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_api_error', ['error' => $msg]), '', 'SearchConsoleManager');
             return null;
