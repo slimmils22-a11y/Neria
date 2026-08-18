@@ -2201,14 +2201,14 @@ class HealthCheckManager
         $postmasterSrc = $this->readModuleSrc($postmasterFile);
         if ($postmasterSrc === '') {
             $offenders[] = 'PostmasterManager.php introuvable';
-        } elseif (!preg_match('/function applyTokenResponse[\s\S]{0,300}?if \(!empty\(\$response\[.refresh_token.\]\)\)/', $postmasterSrc)) {
+        } elseif (!preg_match('/function applyTokenResponse[\s\S]{0,1000}?if \(!empty\(\$response\[.refresh_token.\]\)\)/', $postmasterSrc)) {
             $offenders[] = 'PostmasterManager : applyTokenResponse() n\'a plus de garde sur refresh_token vide — un refresh_token valide pourrait de nouveau être écrasé par une chaîne vide';
         }
         $gscFile = _PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php';
         $gscSrc = $this->readModuleSrc($gscFile);
         if ($gscSrc === '') {
             $offenders[] = 'SearchConsoleManager.php introuvable';
-        } elseif (!preg_match('/function applyTokenResponse[\s\S]{0,300}?if \(!empty\(\$response\[.refresh_token.\]\)\)/', $gscSrc)) {
+        } elseif (!preg_match('/function applyTokenResponse[\s\S]{0,1000}?if \(!empty\(\$response\[.refresh_token.\]\)\)/', $gscSrc)) {
             $offenders[] = 'SearchConsoleManager : applyTokenResponse() n\'a plus de garde sur refresh_token vide — un refresh_token valide pourrait de nouveau être écrasé par une chaîne vide';
         }
 
@@ -4488,7 +4488,10 @@ class HealthCheckManager
                 $offenders[] = "SeasonalCampaignManager::runDueCampaigns() n'appelle plus claimSend() avant l'envoi — régression du bug corrigé le 09/08/2026 (round 143)";
             }
             $posCount = strpos($seasSrc143, 'public function countEligible(array $campaign): int');
-            $countBody = $posCount !== false ? substr($seasSrc143, $posCount, 900) : '';
+            // Round 185 : fenêtre élargie 900→1400 — l'ajout de l'override
+            // gift_mode → target_segment (même correctif que
+            // runDueCampaigns()) a repoussé l'appel isAllowed() plus loin.
+            $countBody = $posCount !== false ? substr($seasSrc143, $posCount, 1400) : '';
             if ($posCount === false || strpos($countBody, "\$prefs->isAllowed((int) \$customer['id_customer'], \$template, \$this->idShop)") === false) {
                 $offenders[] = "SeasonalCampaignManager::countEligible() ne filtre plus les préférences — régression du bug corrigé le 09/08/2026 (round 143) : l'aperçu BO surestimerait de nouveau le nombre réel de destinataires";
             }
@@ -6363,6 +6366,45 @@ class HealthCheckManager
             $offenders[] = 'GdprAuditManager.php introuvable (garde-fou round 184)';
         } elseif (strpos($gdprSrc184, "'table'        => 'neria_abtest_history',") === false) {
             $offenders[] = "neria_abtest_history a disparu du registre RGPD — régression du bug corrigé le 18/08/2026 (round 184) : cette table ne serait de nouveau jamais purgée par la rétention RGPD automatique";
+        }
+
+        $pmSrc185 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php');
+        if ($pmSrc185 === '') {
+            $offenders[] = 'PostmasterManager.php introuvable (garde-fou round 185)';
+        } elseif (strpos($pmSrc185, 'Configuration::updateGlobalValue(self::CONFIG_ACCESS_TOKEN,') === false) {
+            $offenders[] = "PostmasterManager n'écrit plus CONFIG_ACCESS_TOKEN en global (updateGlobalValue) — régression du bug corrigé le 18/08/2026 (round 185) : une connexion OAuth établie depuis une boutique redeviendrait invisible pour les autres boutiques de l'installation";
+        }
+
+        $scSrc185 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php');
+        if ($scSrc185 === '') {
+            $offenders[] = 'SearchConsoleManager.php introuvable (garde-fou round 185)';
+        } elseif (strpos($scSrc185, 'Configuration::updateGlobalValue(self::CONFIG_ACCESS_TOKEN,') === false) {
+            $offenders[] = "SearchConsoleManager n'écrit plus CONFIG_ACCESS_TOKEN en global (updateGlobalValue) — régression du bug corrigé le 18/08/2026 (round 185)";
+        }
+
+        $smSrc185 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        if ($smSrc185 === '') {
+            $offenders[] = 'StatsManager.php introuvable (garde-fou round 185)';
+        } elseif (strpos($smSrc185, 'public function adjustConversionRevenueForOrder(int $idOrder, float $newRevenue): void') === false) {
+            $offenders[] = "StatsManager::adjustConversionRevenueForOrder() a disparu — régression du bug corrigé le 18/08/2026 (round 185) : le revenu attribué à une commande ne serait de nouveau jamais ajusté après un remboursement, surestimant durablement le ROI par template/campagne";
+        }
+
+        $otmSrc185 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
+        if ($otmSrc185 === '') {
+            $offenders[] = 'OrderTriggersManager.php introuvable (garde-fou round 185)';
+        } elseif (strpos($otmSrc185, 'adjustConversionRevenueForOrder(') === false) {
+            $offenders[] = "OrderTriggersManager::handleRefund() n'appelle plus adjustConversionRevenueForOrder() — régression du bug corrigé le 18/08/2026 (round 185)";
+        }
+
+        $seasSrc185 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php');
+        if ($seasSrc185 === '') {
+            $offenders[] = 'SeasonalCampaignManager.php introuvable (garde-fou round 185)';
+        } else {
+            $posCount185 = strpos($seasSrc185, 'public function countEligible(array $campaign): int');
+            $countBody185 = $posCount185 !== false ? substr($seasSrc185, $posCount185, 800) : '';
+            if ($posCount185 === false || strpos($countBody185, "\$campaign['target_segment'] = 'ambassador,loyal';") === false) {
+                $offenders[] = "SeasonalCampaignManager::countEligible() n'applique plus l'override gift_mode → target_segment — régression du bug corrigé le 18/08/2026 (round 185) : l'aperçu BO du nombre de destinataires en mode 'idées cadeaux' redeviendrait trompeur (segment configuré au lieu du segment réellement restreint à l'envoi)";
+            }
         }
 
         if ($offenders) {
