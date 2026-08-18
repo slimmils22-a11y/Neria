@@ -19,6 +19,10 @@
  * Test comportemental réel : la commutation via Shop::setContext() puis
  * sa restauration ne doit pas laisser Shop::$context_id_shop dans un état
  * différent de l'original.
+ *
+ * Fenêtre élargie à 9300 (round 184) : l'ajout de safeProductPrice() et
+ * du garde-fou !$product->active a repoussé le point d'instanciation
+ * Product plus loin dans la méthode.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -47,7 +51,7 @@ function run_test(): array
 
     $posMethod = strpos($src, 'public function notifyProduct(');
     neria_assert($posMethod !== false, 'notifyProduct() introuvable');
-    $body = substr($src, $posMethod, 9000);
+    $body = substr($src, $posMethod, 9300);
     neria_assert(
         strpos($body, 'Shop::setContext(\Shop::CONTEXT_SHOP, $idShop)') !== false,
         "notifyProduct() ne commute plus le contexte boutique statique via Shop::setContext() — régression du bug corrigé le 08/08/2026 (round 138)"

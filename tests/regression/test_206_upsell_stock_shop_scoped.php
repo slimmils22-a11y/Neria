@@ -49,7 +49,7 @@ function run_test(): array
 
     $posEntry = strpos($src, 'public function getUpsellProduct(int $idOrder, int $idLang, ?int $idShop = null): ?array');
     neria_assert($posEntry !== false, 'getUpsellProduct() introuvable — jeu de test invalide');
-    $entryBody = substr($src, $posEntry, 2200);
+    $entryBody = substr($src, $posEntry, 2600);
     neria_assert(
         strpos($entryBody, 'findByAccessories($orderProducts, $excluded, $idLang, $idShop)') !== false
         && strpos($entryBody, 'findByCoPurchase($orderProducts, $excluded, $idLang, $idShop)') !== false

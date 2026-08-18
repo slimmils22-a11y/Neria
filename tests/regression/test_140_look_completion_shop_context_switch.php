@@ -18,6 +18,11 @@
  * Test structurel + comportemental : vérifie la présence de
  * Shop::setContext() encadrant buildProductBlocks(), ET que
  * Shop::getContextShopID() est bien restauré après un appel réel.
+ *
+ * Fenêtre élargie à 5700 (round 184) : le remplacement de
+ * StockAvailable::getQuantityAvailableByProduct() par un SUM SQL direct
+ * et l'ajout de safeProductPrice() (cf. test_379/test_380) ont repoussé
+ * le point de restauration du contexte plus loin dans la méthode.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -29,7 +34,7 @@ function run_test(): array
     $posMethod = strpos($src, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop): array');
     neria_assert($posMethod !== false, 'buildProductBlocks() introuvable — régression du bug corrigé le 08/08/2026');
 
-    $body = substr($src, $posMethod, 3600);
+    $body = substr($src, $posMethod, 5700);
 
     $posSetContext = strpos($body, 'Shop::setContext(\Shop::CONTEXT_SHOP, $idShop)');
     neria_assert(

@@ -18,6 +18,10 @@
  * Boutique B (USD) recevait un email avec un lien produit correctement
  * scopé mais un prix affiché dans la devise de la Boutique A (EUR, celle du
  * contexte BO admin qui a déclenché la mise à jour de stock).
+ *
+ * Chaîne recherchée mise à jour (round 184) : $product->price a été
+ * remplacé par $this->safeProductPrice($idProduct) (prix réel avec
+ * taxe/promo, cf. test_380), le scope devise par $idShop est inchangé.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -27,7 +31,7 @@ function run_test(): array
     neria_assert($src !== false, 'Impossible de lire src/WaitlistManager.php');
 
     neria_assert(
-        strpos($src, "\\NeriaTools::displayPrice((float) \$product->price, new \\Currency((int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop)), \$idLang)") !== false,
+        strpos($src, "\\NeriaTools::displayPrice(\$this->safeProductPrice(\$idProduct), new \\Currency((int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop)), \$idLang)") !== false,
         "WaitlistManager::notifyProduct() ne résout plus {product_price} via PS_CURRENCY_DEFAULT scopé par \$idShop — régression du bug corrigé le 08/08/2026 (round 109) : un client d'une autre boutique pourrait de nouveau voir un prix dans la devise du contexte d'exécution courant plutôt que celle de sa boutique"
     );
 
