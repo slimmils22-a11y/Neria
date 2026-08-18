@@ -127,7 +127,13 @@ class ABTestManager
         // ce hash différent, donc potentiellement de variante d'un envoi à
         // l'autre, alors que le principe du module est qu'un même
         // destinataire reçoit toujours la même variante.
-        $key = trim($email) !== '' ? trim($email) : ($idCustomer > 0 ? (string) $idCustomer : '');
+        // Round 182 : mb_strtolower() ajouté — sans lui, un même
+        // destinataire dont la casse de l'email diffère d'un envoi à
+        // l'autre (invité saisi "Jean.Dupont@Gmail.com" puis compte
+        // normalisé en minuscules, ou casse corrigée en BO) produisait un
+        // hash crc32() différent et pouvait basculer de variante,
+        // contredisant l'invariant documenté juste au-dessus.
+        $key = trim($email) !== '' ? mb_strtolower(trim($email)) : ($idCustomer > 0 ? (string) $idCustomer : '');
         if ($key === '') {
             return self::VARIANT_A;
         }

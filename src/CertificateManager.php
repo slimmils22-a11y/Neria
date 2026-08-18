@@ -919,7 +919,15 @@ class CertificateManager
         ];
     }
 
-    public function delete(int $idCertificate): void
+    // Round 182 : retourne désormais bool (auparavant void) — un id_certificate
+    // inexistant, déjà supprimé, ou appartenant à une autre boutique (scope
+    // multi-shop) faisait silencieusement échouer la suppression tout en
+    // laissant l'appelant (neria.php, action cert_delete) afficher un
+    // message de succès inconditionnel. Idem si le DELETE final échoue en
+    // base après un SELECT positif (verrou, contrainte) : le PDF peut avoir
+    // été supprimé du disque via @unlink() alors que la ligne DB reste,
+    // état incohérent jamais signalé.
+    public function delete(int $idCertificate): bool
     {
         $row = $this->db->getRow(
             'SELECT `pdf_path` FROM `' . _DB_PREFIX_ . self::TABLE . '`
@@ -927,7 +935,7 @@ class CertificateManager
                AND `id_shop` = ' . $this->idShop
         );
         if (!$row) {
-            return;
+            return false;
         }
         if ($row['pdf_path']) {
             $file = _PS_MODULE_DIR_ . 'neria/' . $row['pdf_path'];
@@ -935,7 +943,7 @@ class CertificateManager
                 @unlink($file);
             }
         }
-        $this->db->delete(self::TABLE, '`id_certificate` = ' . $idCertificate . ' AND `id_shop` = ' . $this->idShop);
+        return (bool) $this->db->delete(self::TABLE, '`id_certificate` = ' . $idCertificate . ' AND `id_shop` = ' . $this->idShop);
     }
 
     // ============================================================

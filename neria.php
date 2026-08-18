@@ -2903,7 +2903,11 @@ class Neria extends Module
                 $this->context->smarty->assign('neria_error', $urlError);
             } else {
                 Configuration::updateValue(PageSpeedManager::CONFIG_API_KEY,    CryptoManager::encrypt($key));
-                Configuration::updateValue(PageSpeedManager::CONFIG_TARGET_URL, $targetUrl);
+                // Round 182 : suffixe id_shop — même scope que cacheKey()
+                // dans PageSpeedManager (getTargetUrl()). Auparavant global,
+                // une URL personnalisée de cette boutique s'appliquait à
+                // toutes les boutiques de l'installation.
+                Configuration::updateValue(PageSpeedManager::CONFIG_TARGET_URL . '_' . (int) $this->context->shop->id, $targetUrl);
                 (new PageSpeedManager($this))->invalidateCache();
                 Configuration::deleteByName('NERIA_PAGESPEED_LAST_ERROR');
                 $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.pagespeed_config_saved'));
@@ -5701,8 +5705,15 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'cert_delete' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('CertificateManager')) {
             $idCert = (int) Tools::getValue('id_certificate', 0);
             if ($idCert > 0) {
-                (new CertificateManager($this))->delete($idCert);
-                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.certificate_deleted'));
+                // Round 182 : delete() renvoie désormais bool — un id
+                // inexistant, déjà supprimé, ou d'une autre boutique
+                // affichait auparavant un succès inconditionnel malgré
+                // une suppression sans effet.
+                if ((new CertificateManager($this))->delete($idCert)) {
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.certificate_deleted'));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.certificate_delete_failed'));
+                }
             }
         }
 
@@ -6198,7 +6209,11 @@ class Neria extends Module
             // PageSpeed Insights
             'pagespeed_configured'  => class_exists('PageSpeedManager') && (new PageSpeedManager($this))->isConfigured(),
             'pagespeed_api_key'     => class_exists('PageSpeedManager') ? CryptoManager::decrypt((string) Configuration::get(PageSpeedManager::CONFIG_API_KEY)) : '',
-            'pagespeed_target_url'  => class_exists('PageSpeedManager') ? (string) Configuration::get(PageSpeedManager::CONFIG_TARGET_URL) : '',
+            // Round 182 : Configuration::get(CONFIG_TARGET_URL) brut (global)
+            // remplacé par le formulaire réellement soumis (id_shop suffixé),
+            // cohérent avec l'écriture ci-dessus et la lecture scopée de
+            // PageSpeedManager::getTargetUrl().
+            'pagespeed_target_url'  => class_exists('PageSpeedManager') ? (string) Configuration::get(PageSpeedManager::CONFIG_TARGET_URL . '_' . (int) $this->context->shop->id) : '',
             'pagespeed_last_error'  => (string) Configuration::get('NERIA_PAGESPEED_LAST_ERROR'),
             'pagespeed_report'     => (function () {
                 if (!class_exists('PageSpeedManager')) {

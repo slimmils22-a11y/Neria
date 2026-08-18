@@ -210,7 +210,13 @@ class PageSpeedManager
      */
     public function getTargetUrl(): string
     {
-        $custom = trim((string) \Configuration::get(self::CONFIG_TARGET_URL));
+        // Round 182 : lecture scopée par boutique (cacheKey()), comme le
+        // reste de la classe — auparavant lu en global, une URL
+        // personnalisée configurée par la boutique A était appliquée à
+        // TOUTES les boutiques de l'installation : la boutique B se voyait
+        // analyser et afficher le rapport PageSpeed du site de A, sous sa
+        // propre clé de cache scopée, sans aucun avertissement.
+        $custom = trim((string) \Configuration::get($this->cacheKey(self::CONFIG_TARGET_URL)));
         if ($custom !== '') {
             return rtrim($custom, '/') . '/';
         }
