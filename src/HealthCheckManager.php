@@ -6309,6 +6309,13 @@ class HealthCheckManager
             $offenders[] = "neria.php n'écrit plus PageSpeedManager::CONFIG_TARGET_URL de façon scopée par boutique — régression du bug corrigé le 17/08/2026 (round 182)";
         }
 
+        $clvSrc183 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php');
+        if ($clvSrc183 === '') {
+            $offenders[] = 'ClvManager.php introuvable (garde-fou round 183)';
+        } elseif (substr_count($clvSrc183, "AND `date_add` >= DATE_SUB(NOW(), INTERVAL 30 DAY)") < 2) {
+            $offenders[] = "ClvManager::getEngagementRate() (et/ou sa version batch dans getTopCustomers()) ne borne(nt) plus le calcul d'engagement aux 30 derniers jours — régression du bug corrigé le 18/08/2026 (round 183) : un client historiquement engagé mais silencieux depuis des mois afficherait de nouveau un engagement 'high' (lifetime) contredisant le bloc churn affiché à côté (fenêtre récente), gonflant à tort engagement_mult et le classement Top CLV";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
