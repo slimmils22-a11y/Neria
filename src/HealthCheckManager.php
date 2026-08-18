@@ -3851,7 +3851,11 @@ class HealthCheckManager
             $offenders[] = 'LookCompletionManager.php introuvable (garde-fou round 131 : buildProductBlocks() commute Shop::setContext())';
         } else {
             $posBpb = strpos($lcmSrc, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop): array');
-            $bpbBody = $posBpb !== false ? substr($lcmSrc, $posBpb, 3600) : '';
+            // Round 184 : fenêtre élargie 3600→5700 — le remplacement de
+            // StockAvailable::getQuantityAvailableByProduct() par un SUM
+            // SQL direct et l'ajout de safeProductPrice() ont repoussé le
+            // point de restauration du contexte plus loin dans la méthode.
+            $bpbBody = $posBpb !== false ? substr($lcmSrc, $posBpb, 5700) : '';
             if ($posBpb === false
                 || strpos($bpbBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $idShop)') === false
                 || strpos($bpbBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $originalShopId)') === false
@@ -6314,6 +6318,51 @@ class HealthCheckManager
             $offenders[] = 'ClvManager.php introuvable (garde-fou round 183)';
         } elseif (substr_count($clvSrc183, "AND `date_add` >= DATE_SUB(NOW(), INTERVAL 30 DAY)") < 2) {
             $offenders[] = "ClvManager::getEngagementRate() (et/ou sa version batch dans getTopCustomers()) ne borne(nt) plus le calcul d'engagement aux 30 derniers jours — régression du bug corrigé le 18/08/2026 (round 183) : un client historiquement engagé mais silencieux depuis des mois afficherait de nouveau un engagement 'high' (lifetime) contredisant le bloc churn affiché à côté (fenêtre récente), gonflant à tort engagement_mult et le classement Top CLV";
+        }
+
+        $smSrc184 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        if ($smSrc184 === '') {
+            $offenders[] = 'StatsManager.php introuvable (garde-fou round 184)';
+        } elseif (strpos($smSrc184, "'id_order'      => (int) (\$params['templateVars']['{id_order}'] ?? 0),") === false) {
+            $offenders[] = "StatsManager::recordSent() ne lit plus \$params['templateVars']['{id_order}'] pour id_order — régression du bug corrigé le 18/08/2026 (round 184) : chaque ligne 'sent' redeviendrait enregistrée avec id_order = 0, rendant CooldownManager::isDuplicate() scopé par commande de nouveau totalement inopérant";
+        }
+
+        $wlSrc184 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php');
+        if ($wlSrc184 === '') {
+            $offenders[] = 'WaitlistManager.php introuvable (garde-fou round 184)';
+        } else {
+            if (strpos($wlSrc184, "if (!\\Validate::isLoadedObject(\$product) || !\$product->active) continue;") === false) {
+                $offenders[] = "WaitlistManager::notifyProductLocked() ne vérifie plus \$product->active — régression du bug corrigé le 18/08/2026 (round 184) : un produit désactivé recevrait de nouveau une notification 'de retour en stock' vers une page indisponible";
+            }
+            if (strpos($wlSrc184, 'private function safeProductPrice(int $idProduct): float') === false) {
+                $offenders[] = "WaitlistManager n'a plus de méthode safeProductPrice() — régression du bug corrigé le 18/08/2026 (round 184) : {product_price} redeviendrait résolu via \$product->price brut, sans taxe ni promo";
+            }
+        }
+
+        $lcmSrc184 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
+        if ($lcmSrc184 === '') {
+            $offenders[] = 'LookCompletionManager.php introuvable (garde-fou round 184)';
+        } else {
+            if (strpos($lcmSrc184, "SELECT COALESCE(SUM(quantity), 0) FROM `' . \$this->prefix . 'stock_available`") === false) {
+                $offenders[] = "LookCompletionManager::buildProductBlocks() n'utilise plus le SUM(quantity) SQL direct pour vérifier le stock — régression du bug corrigé le 18/08/2026 (round 184) : un produit à déclinaisons serait de nouveau silencieusement écarté des suggestions 'Complétez votre look'";
+            }
+            if (strpos($lcmSrc184, 'private function safeProductPrice(int $idProduct): float') === false) {
+                $offenders[] = "LookCompletionManager n'a plus de méthode safeProductPrice() — régression du bug corrigé le 18/08/2026 (round 184) : le prix affiché redeviendrait \$product->price brut, sans taxe ni promo";
+            }
+        }
+
+        $umSrc184 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
+        if ($umSrc184 === '') {
+            $offenders[] = 'UpsellManager.php introuvable (garde-fou round 184)';
+        } elseif (strpos($umSrc184, 'private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0): float') === false) {
+            $offenders[] = "UpsellManager::safeProductPrice() n'accepte plus \$idCustomer — régression du bug corrigé le 18/08/2026 (round 184) : le prix upsell d'un client à tarif négocié (B2B) redeviendrait résolu avec le groupe tarifaire visiteur par défaut";
+        }
+
+        $gdprSrc184 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        if ($gdprSrc184 === '') {
+            $offenders[] = 'GdprAuditManager.php introuvable (garde-fou round 184)';
+        } elseif (strpos($gdprSrc184, "'table'        => 'neria_abtest_history',") === false) {
+            $offenders[] = "neria_abtest_history a disparu du registre RGPD — régression du bug corrigé le 18/08/2026 (round 184) : cette table ne serait de nouveau jamais purgée par la rétention RGPD automatique";
         }
 
         if ($offenders) {
