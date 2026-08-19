@@ -843,7 +843,7 @@ CREATE TABLE IF NOT EXISTS `PREFIX_neria_waitlist` (
     `id_neria_waitlist`    INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `id_customer`          INT UNSIGNED NOT NULL,
     `id_product`           INT UNSIGNED NOT NULL,
-    `id_product_attribute` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0 = toute déclinaison confondue (comportement historique) ; sinon déclinaison précise attendue par le client',
+    `id_product_attribute` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0 = toute déclinaison confondue (comportement historique), sinon déclinaison précise attendue par le client',
     `id_shop`              INT UNSIGNED NOT NULL DEFAULT 1,
     `registered_at`        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `notified_at`          DATETIME     NULL DEFAULT NULL,
