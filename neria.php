@@ -1732,9 +1732,23 @@ class Neria extends Module
      * Corps réel de hookDisplayHeader() — appelé via NeriaErrorHandler::wrapDisplayHeader().
      * Ce hook tourne sur CHAQUE page front-office ; une exception non
      * rattrapée ici casserait la boutique pour tout visiteur.
+     *
+     * On saute le déclenchement sur les pages panier/commande : ce sont
+     * les pages les plus sensibles au temps de réponse (paiement en
+     * cours), et le vrai cron serveur (toutes les 15 min, voir
+     * controllers/front/cron.php) reste actif indépendamment de ce
+     * hook — il continue de traiter ces tâches sans dépendre du trafic
+     * sur ces deux contrôleurs précis. Toutes les autres pages du site
+     * (accueil, catégorie, fiche produit, compte...) continuent de
+     * servir de filet de secours normalement.
      */
     private function hookDisplayHeaderImpl(): void
     {
+        $controllerName = Tools::getValue('controller') ?: ($this->context->controller->controller_name ?? '');
+        if (in_array($controllerName, ['order', 'cart'], true)) {
+            return;
+        }
+
         $this->runBackgroundJobs();
     }
 
