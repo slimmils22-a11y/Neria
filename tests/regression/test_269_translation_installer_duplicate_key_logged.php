@@ -18,6 +18,21 @@
  * template fictif, appelle importFromJson(), vérifie que la 1ère valeur
  * est bien celle en base (comportement inchangé) ET qu'une ligne Watchdog
  * a été journalisée pour ce doublon.
+ *
+ * ATTENTION (trouvé le 22/08/2026, en pratique — ce test avait vidé toute
+ * la table de traductions d'un environnement de dev partagé, cassant tous
+ * les emails jusqu'à ce qu'on s'en aperçoive dans Mailpit) : importFromJson()
+ * appelle clearDefaultTranslations(), qui supprime TOUTES les lignes
+ * `is_custom = 0` de TOUTE la table (pas seulement celles du template
+ * fictif ci-dessous), avant de ne réinsérer QUE le contenu du JSON de test
+ * (une poignée de clés). Le nettoyage d'origine (`DELETE ... WHERE template
+ * = $template`) ne réparait donc que sa propre pollution, jamais la
+ * collatérale : après ce test, la table restait durablement réduite à son
+ * seul template fictif — tout le reste (des dizaines de milliers de lignes,
+ * tous templates confondus) disparu sans qu'aucune assertion ne le
+ * détecte. Le `finally` ci-dessous restaure désormais le vrai dictionnaire
+ * par défaut (data/translations.json) après le test, quel que soit son
+ * résultat.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -26,6 +41,8 @@ function run_test(): array
     $module = neria_test_module();
     $db     = neria_test_db();
     $prefix = neria_test_prefix();
+
+    $rowsBefore = (int) $db->getValue('SELECT COUNT(*) FROM ' . $prefix . 'neria_translation WHERE is_custom = 0');
 
     neria_assert(class_exists('TranslationInstaller'), 'Classe TranslationInstaller introuvable');
 
@@ -48,8 +65,9 @@ function run_test(): array
 
     neria_assert(file_put_contents($tmpPath, $json) !== false, 'Impossible d\'écrire le fichier JSON temporaire de test');
 
+    $installer = new TranslationInstaller($module);
+
     try {
-        $installer = new TranslationInstaller($module);
         $installer->importFromJson($tmpPath);
 
         // json_decode(..., true) sur un objet PHP avec clé dupliquée ne garde
@@ -70,6 +88,22 @@ function run_test(): array
         $db->delete('neria_translation', "template = '" . pSQL($template) . "'");
     } finally {
         @unlink($tmpPath);
+
+        // Restaure le vrai dictionnaire par défaut, écrasé par
+        // clearDefaultTranslations() plus haut (voir avertissement dans le
+        // docblock) — sans ça, ce test laisse la table durablement réduite
+        // à presque rien pour TOUS les templates, pas seulement le sien.
+        $installer->importFromJson(_PS_MODULE_DIR_ . 'neria/data/translations.json');
+
+        $rowsAfter = (int) $db->getValue('SELECT COUNT(*) FROM ' . $prefix . 'neria_translation WHERE is_custom = 0');
+        if ($rowsBefore > 0 && $rowsAfter < (int) ($rowsBefore * 0.9)) {
+            // La restauration elle-même a échoué à ramener un volume
+            // comparable — signale bruyamment plutôt que de laisser la
+            // table dans un état dégradé sans que personne ne le remarque.
+            throw new \RuntimeException(
+                "La restauration du dictionnaire par défaut après test_269 a échoué : {$rowsBefore} lignes avant, {$rowsAfter} après — la table de traductions reste dans un état dégradé"
+            );
+        }
     }
 
     // Vérification structurelle du garde-fou lui-même (le cas réel de doublon
