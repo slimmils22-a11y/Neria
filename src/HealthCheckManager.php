@@ -10732,6 +10732,28 @@ class HealthCheckManager
         }
 
         $lastHit = (new \WatchdogManager($this->module))->getLastCronEndpointHit();
+        $lastRejected = (string) \Configuration::getGlobalValue('NERIA_CRON_LAST_REJECTED');
+        $rejectedAgeHours = $lastRejected !== '' ? (time() - strtotime($lastRejected)) / 3600 : null;
+        $cronUrl = \Tools::getShopDomainSsl(true) . __PS_BASE_URI__
+            . 'index.php?fc=module&module=neria&controller=cron&token='
+            . urlencode((string) \Configuration::getGlobalValue('NERIA_CRON_TOKEN'));
+
+        // Round 186 : un rejet récent (jeton invalide) plus frais que le
+        // dernier battement de cœur réussi prouve que le cron ATTEINT bien
+        // le serveur — ce n'est donc pas un souci d'hébergement, mais un
+        // jeton périmé (typiquement après une réinstallation du module).
+        // Diagnostic sans ambiguïté possible dans ce cas précis.
+        if ($rejectedAgeHours !== null && $rejectedAgeHours <= 26
+            && ($lastHit === null || strtotime($lastRejected) > strtotime($lastHit))
+        ) {
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.active_cron_rejected', [
+                    'lastRejected' => $lastRejected,
+                    'cronUrl' => $cronUrl,
+                ]),
+            ];
+        }
 
         if ($lastHit === null) {
             return [
@@ -10742,10 +10764,6 @@ class HealthCheckManager
 
         $ageHours = (time() - strtotime($lastHit)) / 3600;
         if ($ageHours > 26) {
-            $cronUrl = \Tools::getShopDomainSsl(true) . __PS_BASE_URI__
-                . 'index.php?fc=module&module=neria&controller=cron&token='
-                . urlencode((string) \Configuration::getGlobalValue('NERIA_CRON_TOKEN'));
-
             return [
                 'status' => self::STATUS_WARNING,
                 'detail' => AdminTranslator::tVars('health.active_cron_stale', [

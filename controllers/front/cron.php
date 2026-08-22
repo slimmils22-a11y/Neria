@@ -54,6 +54,13 @@ class NeriaCronModuleFrontController extends ModuleFrontController
         $expected = (string) Configuration::getGlobalValue('NERIA_CRON_TOKEN');
 
         if ($token === '' || $expected === '' || !hash_equals($expected, $token)) {
+            // Round 186 : le contrôleur était atteint (l'hébergeur a bien
+            // déclenché le cron) mais rejeté silencieusement — indiscernable
+            // pour le Watchdog d'une vraie panne cron côté hébergeur. On
+            // trace l'horodatage du rejet (jamais le jeton reçu) pour que
+            // checkActiveCron() puisse donner un diagnostic précis.
+            Configuration::updateGlobalValue('NERIA_CRON_LAST_REJECTED', date('Y-m-d H:i:s'));
+
             http_response_code(403);
             echo json_encode(['ok' => false, 'error' => 'invalid_token']);
             exit;
