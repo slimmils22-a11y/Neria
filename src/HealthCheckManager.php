@@ -33,6 +33,16 @@ class HealthCheckManager
     const CRON_LAST_BOUNCES    = 'NERIA_CRON_LAST_BOUNCES';
     const CRON_LAST_DOMREP     = 'NERIA_CRON_LAST_DOMREP';
 
+    // Round 186 : horodatage dédié à la DERNIÈRE EXÉCUTION RÉELLE du scan
+    // lourd known_regressions_guard() — distinct de CONFIG_LAST_RUN, qui est
+    // mis à jour aussi bien en mode léger (hookDisplayHeader, sans le scan
+    // lourd) qu'en mode lourd, et masquerait donc une absence prolongée du
+    // scan lourd derrière un trafic front-office normal. Ce scan ne
+    // s'exécute que via le vrai cron serveur (jeton) ou le bouton
+    // "Diagnostic complet" du BO — jamais via hookDisplayHeader.
+    const KRG_LAST_RUN = 'NERIA_KRG_LAST_RUN';
+    const KRG_STALE_THRESHOLD_HOURS = 48;
+
     // Suivi des échecs consécutifs d'envoi
     const CFG_CONSECUTIVE_FAILURES = 'NERIA_CONSECUTIVE_FAILURES';
     const CONSECUTIVE_THRESHOLD    = 3;
@@ -253,6 +263,9 @@ class HealthCheckManager
 
             try {
                 $results[$key] = $this->$method();
+                if ($key === 'known_regressions_guard') {
+                    \Configuration::updateGlobalValue(self::KRG_LAST_RUN, date('Y-m-d H:i:s'));
+                }
             } catch (\Throwable $e) {
                 $results[$key] = [
                     'status' => self::STATUS_ERROR,
@@ -292,6 +305,7 @@ class HealthCheckManager
             'imap_timeout_missing'     => 'checkImapTimeoutMissing',
             'oauth_refresh_error_surfaced' => 'checkOAuthRefreshErrorSurfaced',
             'known_regressions_guard' => 'checkKnownRegressionsGuard',
+            'known_regressions_guard_freshness' => 'checkKnownRegressionsGuardFreshness',
             'control_center_defaults_consistency' => 'checkControlCenterDefaultsConsistency',
             'sql_pattern_risks'     => 'checkSqlPatternRisks',
             'unescaped_like_metachars' => 'checkUnescapedLikeMetachars',
@@ -10775,6 +10789,60 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.active_cron_ok', ['lastHit' => $lastHit])];
+    }
+
+    /**
+     * Round 186 : le scan lourd known_regressions_guard() ne tourne QUE via
+     * le vrai cron serveur (jeton) ou le bouton "Diagnostic complet" du BO
+     * — jamais via hookDisplayHeader (round 141, coût prohibitif pour un
+     * visiteur). C'est donc le seul mécanisme de Neria sans aucun filet de
+     * secours passif : un cron externe cassé (jeton périmé, hébergeur en
+     * panne) l'arrête complètement et silencieusement, contrairement aux
+     * autres tâches de fond qui continuent de tourner au fil du trafic
+     * front-office. Ce contrôle dédié le rend visible.
+     */
+    private function checkKnownRegressionsGuardFreshness(): array
+    {
+        $lastRun = (string) \Configuration::getGlobalValue(self::KRG_LAST_RUN);
+
+        if ($lastRun === '') {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.krg_freshness_pending')];
+        }
+
+        $ageHours = (time() - strtotime($lastRun)) / 3600;
+        if ($ageHours <= self::KRG_STALE_THRESHOLD_HOURS) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.krg_freshness_ok', ['lastRun' => $lastRun])];
+        }
+
+        $lastRejected = (string) \Configuration::getGlobalValue('NERIA_CRON_LAST_REJECTED');
+        $rejectedAgeHours = $lastRejected !== '' ? (time() - strtotime($lastRejected)) / 3600 : null;
+
+        // Rejet récent et plus récent que la dernière exécution réelle du
+        // scan lourd : cause la plus probable identifiée avec certitude.
+        if ($rejectedAgeHours !== null && $rejectedAgeHours <= self::KRG_STALE_THRESHOLD_HOURS
+            && strtotime($lastRejected) > strtotime($lastRun)
+        ) {
+            $cronUrl = \Tools::getShopDomainSsl(true) . __PS_BASE_URI__
+                . 'index.php?fc=module&module=neria&controller=cron&token='
+                . urlencode((string) \Configuration::getGlobalValue('NERIA_CRON_TOKEN'));
+
+            return [
+                'status' => self::STATUS_WARNING,
+                'detail' => AdminTranslator::tVars('health.krg_freshness_stale_rejected', [
+                    'days' => round($ageHours / 24, 1),
+                    'lastRun' => $lastRun,
+                    'cronUrl' => $cronUrl,
+                ]),
+            ];
+        }
+
+        return [
+            'status' => self::STATUS_WARNING,
+            'detail' => AdminTranslator::tVars('health.krg_freshness_stale', [
+                'days' => round($ageHours / 24, 1),
+                'lastRun' => $lastRun,
+            ]),
+        ];
     }
 
     /**
