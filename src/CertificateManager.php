@@ -27,14 +27,14 @@ class CertificateManager
 
     const TABLE = 'neria_certificate';
 
-    /** @var \Neria */
+    /** @var object */
     private $module;
     /** @var \Db */
     private $db;
     /** @var int */
     private $idShop;
 
-    public function __construct(\Neria $module)
+    public function __construct(object $module)
     {
         $this->module = $module;
         $this->db     = \Db::getInstance();
@@ -52,17 +52,23 @@ class CertificateManager
      * @param int    $idOrder
      * @param int    $idProduct
      * @param int    $idOrderDetail
-     * @param string $serialNumber  Vide = auto-généré
-     * @param string $artisanNote   Note libre de l'artisan
-     * @param bool   $sendEmail     Envoyer ou juste générer
+     * @param string $serialNumber     Vide = auto-généré
+     * @param string $artisanNote      Note libre de l'artisan
+     * @param bool   $sendEmail        Envoyer ou juste générer
+     * @param string $artisanName      Nom de l'artisane/artisan (page traçabilité)
+     * @param string $region           Région de tissage (page traçabilité)
+     * @param string $weavingDuration  Temps de fabrication, texte libre (ex. "3 mois")
      */
     public function issue(
         int    $idOrder,
         int    $idProduct,
         int    $idOrderDetail,
-        string $serialNumber = '',
-        string $artisanNote  = '',
-        bool   $sendEmail    = true
+        string $serialNumber    = '',
+        string $artisanNote     = '',
+        bool   $sendEmail       = true,
+        string $artisanName     = '',
+        string $region          = '',
+        string $weavingDuration = ''
     ): string {
         // ── Commande & client ─────────────────────────────────────
         $order = new \Order($idOrder);
@@ -173,6 +179,9 @@ class CertificateManager
                 'serial_number'   => pSQL($serialNumber),
                 'customer_name'   => pSQL($customerName),
                 'product_name'    => pSQL($productName),
+                'artisan_name'    => $artisanName !== '' ? pSQL($artisanName) : null,
+                'region'          => $region !== '' ? pSQL($region) : null,
+                'weaving_duration' => $weavingDuration !== '' ? pSQL($weavingDuration) : null,
                 'artisan_note'    => pSQL($artisanNote),
                 'pdf_path'        => pSQL($pdfPath),
                 'emailed'         => 0,
@@ -431,7 +440,25 @@ class CertificateManager
         $bodyText = strtr($bodyText, $pdfVars);
 
         $qrEnabled = (bool) \Configuration::get(self::CFG_QR_ENABLED);
-        $qrBaseUrl = (string) \Configuration::get(self::CFG_QR_URL) ?: $shopDomain;
+        // Par défaut (le marchand n'a configuré aucune URL QR personnalisée),
+        // le QR pointe vers la page de traçabilité publique du module plutôt
+        // que vers le simple domaine de la boutique — auparavant un lien
+        // "https://boutique.fr?cert=SERIAL" n'était géré par aucune route :
+        // le client scannait le QR pour atterrir sur la page d'accueil, le
+        // paramètre ?cert= ignoré, aucune information de traçabilité montrée.
+        $qrBaseUrl = (string) \Configuration::get(self::CFG_QR_URL);
+        if ($qrBaseUrl === '') {
+            $context = \Context::getContext();
+            if ($context !== null && isset($context->link)) {
+                try {
+                    $qrBaseUrl = (string) $context->link->getModuleLink('neria', 'certificate', [], true);
+                } catch (\Throwable $e) {
+                    $qrBaseUrl = $shopDomain;
+                }
+            } else {
+                $qrBaseUrl = $shopDomain;
+            }
+        }
         // getShopDomainSsl(true) peut malgré tout retourner du http:// si le
         // SSL n'est pas activé côté PS (PS_SSL_ENABLED) — un QR code sur un
         // certificat imprimé/PDF ne doit jamais pointer vers une URL non
@@ -835,6 +862,26 @@ class CertificateManager
         );
     }
 
+    /**
+     * Recherche publique par numéro de série (page traçabilité, front
+     * controller `certificate`). serial_number porte une contrainte UNIQUE
+     * GLOBALE (voir generateSerial()) : pas de filtre id_shop, un visiteur
+     * scannant le QR d'un certificat doit retrouver sa pièce quelle que soit
+     * la boutique qui l'a émise en multi-boutique.
+     *
+     * @return array Ligne du certificat, ou [] si non trouvé
+     */
+    public function getBySerial(string $serial): array
+    {
+        if ($serial === '') {
+            return [];
+        }
+        return $this->db->getRow(
+            'SELECT * FROM `' . _DB_PREFIX_ . self::TABLE . '`
+             WHERE `serial_number` = \'' . pSQL($serial) . '\''
+        ) ?: [];
+    }
+
     public function getByOrder(int $idOrder): array
     {
         // Pas de filtre `id_shop` = $this->idShop (contexte BO courant de
@@ -1020,6 +1067,9 @@ class CertificateManager
                 `serial_number`   VARCHAR(100) NOT NULL,
                 `customer_name`   VARCHAR(255) NOT NULL DEFAULT "",
                 `product_name`    VARCHAR(255) NOT NULL DEFAULT "",
+                `artisan_name`    VARCHAR(255) DEFAULT NULL,
+                `region`          VARCHAR(255) DEFAULT NULL,
+                `weaving_duration` VARCHAR(255) DEFAULT NULL,
                 `artisan_note`    TEXT         DEFAULT NULL,
                 `pdf_path`        VARCHAR(500) DEFAULT NULL,
                 `emailed`         TINYINT(1)   NOT NULL DEFAULT 0,

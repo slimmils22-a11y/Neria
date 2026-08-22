@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.41';
+    const VERSION = '1.0.42';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -5691,14 +5691,18 @@ class Neria extends Module
             $idOrder       = (int) Tools::getValue('cert_id_order', 0);
             $idProduct     = (int) Tools::getValue('cert_id_product', 0);
             $idOrderDetail = (int) Tools::getValue('cert_id_order_detail', 0);
-            $serialOverride = trim((string) Tools::getValue('cert_serial', ''));
-            $artisanNote    = trim((string) Tools::getValue('cert_note', ''));
-            $sendEmail      = (bool) Tools::getValue('cert_send_email', 1);
+            $serialOverride     = trim((string) Tools::getValue('cert_serial', ''));
+            $artisanNote        = trim((string) Tools::getValue('cert_note', ''));
+            $sendEmail          = (bool) Tools::getValue('cert_send_email', 1);
+            $artisanName        = trim((string) Tools::getValue('cert_artisan_name', ''));
+            $region             = trim((string) Tools::getValue('cert_region', ''));
+            $weavingDuration    = trim((string) Tools::getValue('cert_weaving_duration', ''));
 
             if ($idOrder > 0 && $idProduct > 0) {
                 $err = (new CertificateManager($this))->issue(
                     $idOrder, $idProduct, $idOrderDetail,
-                    $serialOverride, $artisanNote, $sendEmail
+                    $serialOverride, $artisanNote, $sendEmail,
+                    $artisanName, $region, $weavingDuration
                 );
                 $this->context->smarty->assign(
                     $err === '' ? 'neria_success' : 'neria_error',

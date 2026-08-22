@@ -111,6 +111,31 @@
         </div>
       </div>
 
+      {* Traçabilité : artisane / région / temps de tissage (page publique du QR) *}
+      <div class="row mt-2">
+        <div class="col-md-4">
+          <label style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;display:block;margin-bottom:4px;">
+            {neria_admin key='cert.label_artisan'}
+          </label>
+          <input type="text" name="cert_artisan_name" class="form-control form-control-sm"
+                 placeholder="{neria_admin key='cert.artisan_placeholder'}" maxlength="255">
+        </div>
+        <div class="col-md-3">
+          <label style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;display:block;margin-bottom:4px;">
+            {neria_admin key='cert.label_region'}
+          </label>
+          <input type="text" name="cert_region" class="form-control form-control-sm"
+                 placeholder="{neria_admin key='cert.region_placeholder'}" maxlength="255">
+        </div>
+        <div class="col-md-3">
+          <label style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;display:block;margin-bottom:4px;">
+            {neria_admin key='cert.label_duration'}
+          </label>
+          <input type="text" name="cert_weaving_duration" class="form-control form-control-sm"
+                 placeholder="{neria_admin key='cert.duration_placeholder'}" maxlength="255">
+        </div>
+      </div>
+
       {* Note artisan *}
       <div class="row mt-2">
         <div class="col-md-10">
