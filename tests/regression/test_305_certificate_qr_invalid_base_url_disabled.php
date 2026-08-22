@@ -23,7 +23,7 @@ function run_test(): array
 
     $posQr = strpos($src, '$qrEnabled = (bool) \Configuration::get(self::CFG_QR_ENABLED);');
     neria_assert($posQr !== false, 'Résolution de $qrEnabled introuvable — jeu de test invalide');
-    $body = substr($src, $posQr, 1700);
+    $body = substr($src, $posQr, 2600);
 
     neria_assert(
         strpos($body, "\$qrBaseUrl === '' || !\Validate::isUrl(\$qrBaseUrl)") !== false,

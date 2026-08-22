@@ -6084,7 +6084,7 @@ class HealthCheckManager
                 $offenders[] = "CertificateManager::issue() n'appelle plus sendCertificateEmail() avec \$idLangProduct — régression du bug corrigé le 15/08/2026 (round 177) : l'email pourrait de nouveau être envoyé dans (int) \$customer->id_lang au lieu de la langue réellement résolue pour le PDF, cassant la parité PDF/email";
             }
             $posIssue177 = strpos($certSrc177, 'public function issue(');
-            $issueBody177 = $posIssue177 !== false ? substr($certSrc177, $posIssue177, 8000) : '';
+            $issueBody177 = $posIssue177 !== false ? substr($certSrc177, $posIssue177, 9000) : '';
             if ($posIssue177 === false || strpos($issueBody177, "GET_LOCK('") === false || strpos($issueBody177, "RELEASE_LOCK('") === false) {
                 $offenders[] = "CertificateManager::issue() n'utilise plus de verrou nommé MySQL autour de la résolution du numéro de série — régression du bug corrigé le 15/08/2026 (round 177) : la fenêtre TOCTOU entre serialExists() et l'INSERT redeviendrait exploitable sous forte concurrence";
             }

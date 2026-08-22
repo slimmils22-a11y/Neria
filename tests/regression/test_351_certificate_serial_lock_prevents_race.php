@@ -26,7 +26,7 @@ function run_test(): array
 
     $posIssue = strpos($src, 'public function issue(');
     neria_assert($posIssue !== false, "Méthode issue() introuvable — jeu de test invalide");
-    $issueBody = substr($src, $posIssue, 8000);
+    $issueBody = substr($src, $posIssue, 9000);
 
     neria_assert(
         strpos($issueBody, "GET_LOCK('") !== false && strpos($issueBody, "RELEASE_LOCK('") !== false,
