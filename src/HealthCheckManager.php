@@ -10742,9 +10742,17 @@ class HealthCheckManager
 
         $ageHours = (time() - strtotime($lastHit)) / 3600;
         if ($ageHours > 26) {
+            $cronUrl = \Tools::getShopDomainSsl(true) . __PS_BASE_URI__
+                . 'index.php?fc=module&module=neria&controller=cron&token='
+                . urlencode((string) \Configuration::getGlobalValue('NERIA_CRON_TOKEN'));
+
             return [
                 'status' => self::STATUS_WARNING,
-                'detail' => AdminTranslator::tVars('health.active_cron_stale', ['days' => round($ageHours / 24, 1), 'lastHit' => $lastHit]),
+                'detail' => AdminTranslator::tVars('health.active_cron_stale', [
+                    'days' => round($ageHours / 24, 1),
+                    'lastHit' => $lastHit,
+                    'cronUrl' => $cronUrl,
+                ]),
             ];
         }
 
