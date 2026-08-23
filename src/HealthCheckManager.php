@@ -6770,6 +6770,20 @@ class HealthCheckManager
             $offenders[] = "OrderTriggersManager::handleRefund() ne replie plus \$refundRatio sur 0.0 pour une commande à orderTotal=0 — régression du bug corrigé le 23/08/2026 (round 192) : une commande entièrement couverte par un bon d'achat recevant un avoir trivial déclencherait de nouveau un clawback COMPLET des points de fidélité";
         }
 
+        // Round 193 (23/08/2026) : NERIA_CRON_LAST_DOMREP doit être écrit
+        // ET lu avec idShop explicite (DomainReputationManager +
+        // HealthCheckManager), pas une clé globale.
+        $drmSrc193 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php');
+        if ($drmSrc193 === '') {
+            $offenders[] = 'DomainReputationManager.php introuvable (garde-fou round 193)';
+        } elseif (strpos($drmSrc193, "\\Configuration::updateValue(\\HealthCheckManager::CRON_LAST_DOMREP, date('Y-m-d H:i:s'), false, null, \$this->idShop);") === false) {
+            $offenders[] = "DomainReputationManager::runFullCheckLocked() n'écrit plus CRON_LAST_DOMREP avec \$this->idShop — régression du bug corrigé le 23/08/2026 (round 193) : sur une install multi-boutiques, une exécution réussie sur une boutique masquerait de nouveau une panne réelle sur une autre";
+        }
+        $selfSrc193 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        if ($selfSrc193 === '' || strpos($selfSrc193, "\$lastDomrep  = (string) \\Configuration::get(self::CRON_LAST_DOMREP, null, null, \$this->idShop);") === false) {
+            $offenders[] = "HealthCheckManager::checkCronsHealth() ne lit plus CRON_LAST_DOMREP avec \$this->idShop — régression du bug corrigé le 23/08/2026 (round 193)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
@@ -9969,7 +9983,15 @@ class HealthCheckManager
         }
 
         // Réputation de domaine : cron auto hors KNOWN_CRONS, suivi séparément
-        $lastDomrep  = (string) \Configuration::get(self::CRON_LAST_DOMREP);
+        // Round 193 : $this->idShop transmis explicitement — cohérent avec
+        // le correctif de DomainReputationManager::runFullCheckLocked(),
+        // qui écrit désormais cette clé scopée par boutique. Sans ce
+        // correctif côté lecture, cette vérification retomberait sur la
+        // valeur GLOBALE (id_shop du contexte courant par défaut de
+        // Configuration::get()) qui reste identique quelle que soit la
+        // boutique consultée dans le BO, masquant de nouveau une panne
+        // propre à une seule boutique tant qu'une autre boutique réussit.
+        $lastDomrep  = (string) \Configuration::get(self::CRON_LAST_DOMREP, null, null, $this->idShop);
         $domrepLabel = AdminTranslator::t('health.cron_label_domrep');
         if ($lastDomrep === '' || $lastDomrep === false) {
             $never[] = $domrepLabel;

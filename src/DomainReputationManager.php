@@ -251,7 +251,17 @@ class DomainReputationManager
 
     private function runFullCheckLocked(): array
     {
-        \Configuration::updateValue(\HealthCheckManager::CRON_LAST_DOMREP, date('Y-m-d H:i:s'));
+        // Round 193 : $this->idShop transmis explicitement — absent
+        // jusqu'ici, alors que toutes les autres clés de ce fichier sont
+        // scrupuleusement scopées par boutique. Le cron multi-boutique
+        // (neria.php) appelle runFullCheckLocked() indépendamment pour
+        // chaque boutique (échecs individuels avalés) : si la Boutique A
+        // réussit mais la Boutique B échoue systématiquement, ce timestamp
+        // GLOBAL était quand même rafraîchi grâce au seul succès de A — un
+        // admin consultant le Diagnostic depuis le contexte de la Boutique
+        // B voyait "OK, exécuté récemment" alors que SA vérification
+        // échoue silencieusement depuis des jours.
+        \Configuration::updateValue(\HealthCheckManager::CRON_LAST_DOMREP, date('Y-m-d H:i:s'), false, null, $this->idShop);
         @set_time_limit(120);
 
         $deadline = microtime(true) + self::DNS_TIME_BUDGET_SECS;
