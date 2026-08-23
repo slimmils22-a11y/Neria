@@ -280,6 +280,41 @@ class SeasonalCampaignManager
                         }
                     }
 
+                    // Round 195 : l'appel Mail::Send ci-dessous, du cœur
+                    // PrestaShop, retourne TOUJOURS true quand le hook
+                    // actionEmailSendBefore
+                    // annule l'envoi (bounce/blacklist/cooldown — préférences
+                    // déjà vérifiées plus haut) — même piège déjà corrigé
+                    // pour CollectionManager (round 180)/LookCompletionManager
+                    // (round 190)/WaitlistManager (round 194) mais jamais
+                    // étendu ici. Sans ces garde-fous, la réservation
+                    // annuelle (claimSend() ci-dessus) n'était jamais
+                    // libérée sur un envoi bloqué — le client était exclu à
+                    // vie de CETTE campagne pour TOUTE l'année, même après
+                    // la levée du blocage.
+                    if (class_exists('BounceManager') && \BounceManager::isBounced($customer['email'])) {
+                        $this->releaseSendClaim($idCustomer, $sentKey, $year);
+                        continue;
+                    }
+                    if (class_exists('BlacklistManager')) {
+                        $langIso = class_exists('TranslationEngine')
+                            ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                            : (string) (\Language::getIsoById($idLang) ?: '');
+                        if ((new \BlacklistManager($this->idShop))->isBlacklisted($template, $langIso)) {
+                            $this->releaseSendClaim($idCustomer, $sentKey, $year);
+                            continue;
+                        }
+                    }
+                    if (class_exists('ConfigManager') && class_exists('CooldownManager')
+                        && (new \ConfigManager($this->module))->isCooldownEnabled()
+                    ) {
+                        $cdMinutes = (new \ConfigManager($this->module))->getCooldownMinutes();
+                        if ((new \CooldownManager())->isDuplicate($customer['email'], $template, $cdMinutes, $this->idShop, 0, $sentKey)) {
+                            $this->releaseSendClaim($idCustomer, $sentKey, $year);
+                            continue;
+                        }
+                    }
+
                     $ok = \Mail::Send(
                         $idLang,
                         $template,

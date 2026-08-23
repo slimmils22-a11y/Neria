@@ -745,9 +745,23 @@ class DeliverabilityScorer
         }
         foreach ($m[1] as $style) {
             $s = strtolower($style);
-            if (preg_match('/(?<![-\w])color\s*:\s*#(?:fff|ffffff)\b/', $s)
-                && !str_contains($s, 'background')) {
-                return true;
+            if (!preg_match('/(?<![-\w])color\s*:\s*#(?:fff|ffffff)\b/', $s)) {
+                continue;
+            }
+            // Round 195 : !str_contains($s, 'background') remplacé — la
+            // technique classique de masquage (color:#fff; background:#fff
+            // ou background-color:#ffffff) contient le MOT "background" et
+            // échappait donc entièrement à la détection, exactement le cas
+            // que cette fonction existe pour repérer. On extrait désormais
+            // la VALEUR de la déclaration background/background-color et on
+            // ne l'exclut que si elle diffère réellement du blanc — le
+            // texte blanc sur un bouton/encart à fond coloré (légitime)
+            // reste bien exclu, mais plus le texte blanc sur fond blanc.
+            if (preg_match('/background(?:-color)?\s*:\s*#(?:fff|ffffff)\b/', $s)) {
+                return true; // fond blanc explicite = masquage, pas une exclusion
+            }
+            if (!preg_match('/background(?:-color)?\s*:/', $s)) {
+                return true; // aucun fond déclaré = masquage (comportement d'origine)
             }
         }
         return false;

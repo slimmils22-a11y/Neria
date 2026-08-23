@@ -2008,6 +2008,44 @@ class BehavioralCronManager
                 $extraVars
             );
 
+            // Round 195 : l'appel Mail::Send plus bas, du cœur PrestaShop, retourne TOUJOURS
+            // true quand le hook actionEmailSendBefore annule l'envoi
+            // (bounce/blacklist/cooldown — préférences déjà vérifiées plus
+            // haut) — même piège déjà corrigé pour ManualSendManager/
+            // QueueManager/OrderTriggersManager/CollectionManager/
+            // LookCompletionManager/WaitlistManager (rounds 176-194) mais
+            // jamais étendu ici, alors que cette méthode partagée sert ~15
+            // templates comportementaux. Sans ces garde-fous, l'INSERT
+            // IGNORE ci-dessous marquait le template "envoyé" (contrainte
+            // UNIQUE) même sur un envoi bloqué — le client était exclu À VIE
+            // de CE template précis, même après la levée du blocage, sans
+            // jamais être retenté par le cron.
+            if (class_exists('BounceManager') && \BounceManager::isBounced($email)) {
+                $this->watchdog()->info(
+                    \WatchdogManager::i18nMsg('watchdog.send_cancelled_bounce', ['email' => $email]),
+                    $template,
+                    'BehavioralCron'
+                );
+                return;
+            }
+            if (class_exists('BlacklistManager')) {
+                $langIso = class_exists('TranslationEngine')
+                    ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                    : (string) (\Language::getIsoById($idLang) ?: '');
+                if ((new \BlacklistManager($idShop))->isBlacklisted($template, $langIso)) {
+                    return;
+                }
+            }
+            if (class_exists('ConfigManager') && class_exists('CooldownManager')
+                && (new \ConfigManager($this->module))->isCooldownEnabled()
+            ) {
+                $cdMinutes = (new \ConfigManager($this->module))->getCooldownMinutes();
+                $cdRefScope = $refId > 0 ? ('ref:' . $refId) : '';
+                if ((new \CooldownManager())->isDuplicate($email, $template, $cdMinutes, $idShop, 0, $cdRefScope)) {
+                    return;
+                }
+            }
+
             $sent = \Mail::Send(
                 $idLang,
                 $template,
