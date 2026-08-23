@@ -1963,15 +1963,19 @@ class HealthCheckManager
         }
 
         // Bug du 2026-08-05 (round 50) : ConfigManager::saveTypographyConfig()
-        // n'avait pas de whitelist contre FontManager::FONT_CATALOG pour les
+        // n'avait pas de whitelist contre le catalogue de polices pour les
         // polices non-titre — une valeur hors catalogue était enregistrée
         // "avec succès" côté BO mais sans aucun effet réel sur les emails.
+        // Round 186 : la whitelist est passée d'un array_keys(FONT_CATALOG)
+        // global à un filtrage PAR SCRIPT (getFontsForScript($script)) —
+        // chaîne recherchée mise à jour en conséquence (couvre aussi le
+        // garde-fou round 186 ci-dessous sur ce même point).
         $configFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php';
         $configSrc = $this->readModuleSrc($configFile);
         if ($configSrc === '') {
             $offenders[] = 'ConfigManager.php introuvable';
-        } elseif (strpos($configSrc, "array_keys(\\FontManager::FONT_CATALOG)") === false) {
-            $offenders[] = 'ConfigManager : saveTypographyConfig() ne valide plus les polices contre FontManager::FONT_CATALOG — une police invalide pourrait de nouveau être enregistrée "avec succès" sans effet réel sur les emails';
+        } elseif (strpos($configSrc, '$validFontsForScript = array_keys($fontMgr->getFontsForScript($script));') === false) {
+            $offenders[] = 'ConfigManager : saveTypographyConfig() ne valide plus les polices contre le catalogue — une police invalide (ou round 186 : d\'un autre script) pourrait de nouveau être enregistrée "avec succès" sans effet réel voulu sur les emails';
         }
 
         // Bug du 2026-08-05 (mise en place PHPStan) :
@@ -5806,7 +5810,9 @@ class HealthCheckManager
             $offenders[] = 'MultiClientPreviewManager.php introuvable (garde-fou round 170)';
         } else {
             $posAb170 = strpos($mcpSrc170, 'private function addBanner(string $html, string $client): string');
-            $abBody170 = $posAb170 !== false ? substr($mcpSrc170, $posAb170, 1500) : '';
+            // Round 186 : fenêtre élargie 1500→1900 — le correctif de la
+            // regex (attributs entre guillemets) a allongé cette méthode.
+            $abBody170 = $posAb170 !== false ? substr($mcpSrc170, $posAb170, 1900) : '';
             if ($posAb170 === false || strpos($abBody170, "\$html, 1) ?? \$html;") === false) {
                 $offenders[] = "MultiClientPreviewManager::addBanner() n'a plus de filet ?? \$html — régression du bug corrigé le 15/08/2026 (round 170) : un échec PCRE (pcre.backtrack_limit dépassé) redeviendrait une TypeError fatale plantant tout le rendu multi-client";
             }
@@ -6419,6 +6425,78 @@ class HealthCheckManager
             if ($posCount185 === false || strpos($countBody185, "\$campaign['target_segment'] = 'ambassador,loyal';") === false) {
                 $offenders[] = "SeasonalCampaignManager::countEligible() n'applique plus l'override gift_mode → target_segment — régression du bug corrigé le 18/08/2026 (round 185) : l'aperçu BO du nombre de destinataires en mode 'idées cadeaux' redeviendrait trompeur (segment configuré au lieu du segment réellement restreint à l'envoi)";
             }
+        }
+
+        $neriaSrc186 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($neriaSrc186 === '') {
+            $offenders[] = 'neria.php introuvable (garde-fou round 186)';
+        } else {
+            $posPs186 = strpos($neriaSrc186, "if (Tools::getValue('neria_action') === 'save_pagespeed_key'");
+            $psBody186 = $posPs186 !== false ? substr($neriaSrc186, $posPs186, 3000) : '';
+            if ($posPs186 === false || strpos($psBody186, "if (\$key !== '') {") === false) {
+                $offenders[] = "neria.php (save_pagespeed_key) n'a plus de garde 'if (\$key !== \"\")' avant d'écraser la clé PageSpeed — régression du bug corrigé le 19/08/2026 (round 186) : un champ vide (affiché après un échec de déchiffrement) effacerait de nouveau définitivement la clé API stockée";
+            }
+            if ($posPs186 === false || strpos($psBody186, '$pageSpeedMgr->clearError();') === false) {
+                $offenders[] = "neria.php (save_pagespeed_key) n'appelle plus PageSpeedManager::clearError() — régression du bug corrigé le 19/08/2026 (round 186)";
+            }
+            $posSeo186 = strpos($neriaSrc186, "if (Tools::getValue('neria_action') === 'save_seo_config'");
+            $seoBody186 = $posSeo186 !== false ? substr($neriaSrc186, $posSeo186, 3200) : '';
+            if ($posSeo186 === false
+                || strpos($seoBody186, '$semrushDecryptBroken = CryptoManager::lastDecryptFailed();') === false
+                || strpos($seoBody186, '$mozAccessDecryptBroken = CryptoManager::lastDecryptFailed();') === false
+            ) {
+                $offenders[] = "neria.php (save_seo_config) ne revérifie plus CryptoManager::lastDecryptFailed() avant d'écraser semrush_key/moz_access — régression du bug corrigé le 19/08/2026 (round 186)";
+            }
+            if (strpos($neriaSrc186, "'pagespeed_last_error'  => class_exists('PageSpeedManager') ? (new PageSpeedManager(\$this))->getLastError() : '',") === false) {
+                $offenders[] = "neria.php n'affiche plus pagespeed_last_error via PageSpeedManager::getLastError() (scopé par boutique) — régression du bug corrigé le 19/08/2026 (round 186) : la page Stats afficherait de nouveau toujours 'aucune erreur' même en cas de vraie erreur";
+            }
+        }
+
+        $psmSrc186 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PageSpeedManager.php');
+        if ($psmSrc186 === '') {
+            $offenders[] = 'PageSpeedManager.php introuvable (garde-fou round 186)';
+        } elseif (strpos($psmSrc186, 'public function clearError(): void') === false) {
+            $offenders[] = "PageSpeedManager::clearError() a disparu — régression du bug corrigé le 19/08/2026 (round 186)";
+        }
+
+        $trackSrc186 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/track.php');
+        if ($trackSrc186 === '') {
+            $offenders[] = 'controllers/front/track.php introuvable (garde-fou round 186)';
+        } else {
+            $posRef186 = strpos($trackSrc186, 'if ($ref) {');
+            $posUpsell186 = strpos($trackSrc186, '(new UpsellManager($this->module))->recordClick($idUpsell);');
+            if ($posRef186 === false || $posUpsell186 === false || $posUpsell186 < $posRef186) {
+                $offenders[] = "track.php : structure if (\$ref)/UpsellManager::recordClick() introuvable ou dans le mauvais ordre — jeu de garde-fou invalide (round 186)";
+            } else {
+                $between186 = substr($trackSrc186, $posRef186 + strlen('if ($ref) {'), $posUpsell186 - ($posRef186 + strlen('if ($ref) {')));
+                $depth186 = 0;
+                $minDepth186 = 0;
+                foreach (str_split($between186) as $ch186) {
+                    if ($ch186 === '{') {
+                        $depth186++;
+                    } elseif ($ch186 === '}') {
+                        $depth186--;
+                        $minDepth186 = min($minDepth186, $depth186);
+                    }
+                }
+                if ($minDepth186 < 0) {
+                    $offenders[] = "track.php : UpsellManager::recordClick() n'est plus imbriqué à l'intérieur de if (\$ref) — régression du bug corrigé le 19/08/2026 (round 186) : un token inconnu/inexistant en base pourrait de nouveau déclencher l'écriture sur ps_neria_upsell sans aucune vérification de signature";
+                }
+            }
+        }
+
+        $mcpmSrc186 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MultiClientPreviewManager.php');
+        if ($mcpmSrc186 === '') {
+            $offenders[] = 'MultiClientPreviewManager.php introuvable (garde-fou round 186)';
+        } elseif (strpos($mcpmSrc186, '"[^"]*"|') === false) {
+            $offenders[] = "MultiClientPreviewManager::addBanner() n'utilise plus la regex respectant les valeurs d'attribut entre guillemets — régression du bug corrigé le 19/08/2026 (round 186) : un '>' littéral dans un attribut du <body> tronquerait de nouveau la balise et casserait l'insertion du bandeau";
+        }
+
+        $cfgSrc186 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
+        if ($cfgSrc186 === '') {
+            $offenders[] = 'ConfigManager.php introuvable (garde-fou round 186)';
+        } elseif (strpos($cfgSrc186, '$validFontsForScript = array_keys($fontMgr->getFontsForScript($script));') === false) {
+            $offenders[] = "ConfigManager::saveTypographyConfig() ne filtre plus la whitelist de polices par script — régression du bug corrigé le 19/08/2026 (round 186) : un POST direct pourrait de nouveau assigner une police d'un script différent (ex. japonaise pour font_arabic), injectée sans avertissement dans le CSS des emails de ce script";
         }
 
         if ($offenders) {
