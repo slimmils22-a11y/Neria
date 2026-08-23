@@ -26375,6 +26375,27 @@
         "nl": "⚡ Watchdog-gezondheidsscore",
         "gb": "⚡ Watchdog health score"
     },
+    "help.wd_score_window_note": {
+        "fr": "Ce score compte les événements des dernières 24h — une erreur déjà corrigée continue de peser sur le score jusqu'à ce qu'elle sorte de cette fenêtre glissante. Vérifiez toujours la liste ci-contre, pas seulement le chiffre.",
+        "en": "This score counts events from the last 24h — an already-fixed error keeps weighing on the score until it exits this rolling window. Always check the list on the right, not just the number.",
+        "de": "Dieser Wert zählt Ereignisse der letzten 24 Std. — ein bereits behobener Fehler belastet den Wert weiter, bis er aus diesem gleitenden Zeitfenster fällt. Prüfen Sie immer die Liste rechts, nicht nur die Zahl.",
+        "it": "Questo punteggio conta gli eventi delle ultime 24h — un errore già corretto continua a pesare sul punteggio finché non esce da questa finestra scorrevole. Controllate sempre l'elenco a fianco, non solo il numero.",
+        "es": "Esta puntuación cuenta los eventos de las últimas 24h — un error ya corregido sigue pesando en la puntuación hasta salir de esta ventana móvil. Consulte siempre la lista de al lado, no solo el número.",
+        "pt": "Esta pontuação conta os eventos das últimas 24h — um erro já corrigido continua a pesar na pontuação até sair desta janela deslizante. Verifique sempre a lista ao lado, não apenas o número.",
+        "br": "Esta pontuação conta os eventos das últimas 24h — um erro já corrigido continua pesando na pontuação até sair dessa janela deslizante. Sempre verifique a lista ao lado, não apenas o número.",
+        "ar": "تحسب هذه الدرجة الأحداث الخاصة بآخر 24 ساعة — يستمر تأثير الخطأ الذي تم إصلاحه بالفعل على الدرجة حتى يخرج من هذه النافذة المتحركة. تحققوا دائمًا من القائمة المجاورة، وليس فقط من الرقم.",
+        "ja": "このスコアは過去24時間のイベントを集計したものです。すでに修正済みのエラーでも、この移動ウィンドウから外れるまではスコアに影響し続けます。数値だけでなく、必ず横のリストも確認してください。",
+        "ko": "이 점수는 최근 24시간의 이벤트를 집계합니다 — 이미 수정된 오류도 이 이동 시간창에서 벗어날 때까지 점수에 계속 영향을 줍니다. 숫자만 보지 말고 항상 옆의 목록을 확인하세요.",
+        "zh": "该分数统计的是过去24小时内的事件——即使问题已修复，在滑动时间窗结束前仍会持续拉低分数。请务必查看旁边的列表，而不仅仅是数字。",
+        "tw": "該分數統計的是過去24小時內的事件——即使問題已修復，在滑動時間窗結束前仍會持續拉低分數。請務必查看旁邊的清單，而不僅僅是數字。",
+        "ru": "Эта оценка учитывает события за последние 24 часа — уже исправленная ошибка продолжает влиять на оценку, пока не выйдет из этого скользящего окна. Всегда проверяйте список рядом, а не только цифру.",
+        "tr": "Bu puan son 24 saatteki olayları sayar — zaten düzeltilmiş bir hata, bu kayan pencereden çıkana kadar puanı etkilemeye devam eder. Yalnızca sayıya değil, her zaman yandaki listeye de bakın.",
+        "sv": "Denna poäng räknar händelser från de senaste 24 timmarna — ett redan åtgärdat fel fortsätter att påverka poängen tills det lämnar detta glidande tidsfönster. Kontrollera alltid listan bredvid, inte bara siffran.",
+        "no": "Denne poengsummen teller hendelser fra de siste 24 timene — en allerede rettet feil fortsetter å påvirke poengsummen til den forsvinner ut av dette glidende tidsvinduet. Sjekk alltid listen ved siden av, ikke bare tallet.",
+        "da": "Denne score tæller hændelser fra de seneste 24 timer — en allerede rettet fejl fortsætter med at påvirke scoren, indtil den forsvinder ud af dette glidende tidsvindue. Tjek altid listen ved siden af, ikke kun tallet.",
+        "nl": "Deze score telt gebeurtenissen van de laatste 24 uur — een reeds opgeloste fout blijft de score beïnvloeden tot deze uit dit voortschrijdende tijdvenster valt. Controleer altijd de lijst ernaast, niet alleen het cijfer.",
+        "gb": "This score counts events from the last 24h — an already-fixed error keeps weighing on the score until it exits this rolling window. Always check the list on the right, not just the number."
+    },
     "help.wd_updated_at": {
         "fr": "Mis à jour à",
         "en": "Updated at",
