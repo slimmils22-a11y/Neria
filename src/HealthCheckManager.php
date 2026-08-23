@@ -6606,6 +6606,63 @@ class HealthCheckManager
             $offenders[] = "upgrade-1.0.40.php utilise de nouveau SHOW TABLES LIKE via Db::getValue() — régression du bug corrigé le 23/08/2026 (round 188) : ce motif plante sous certains couples MySQL/PDO (LIMIT 1 auto-ajouté), pouvant faire échouer/sauter silencieusement le backfill id_shop sur une install multi-boutiques";
         }
 
+        // Round 189 (23/08/2026) : PostmasterManager/SearchConsoleManager::
+        // disconnect() doivent vider le cache de TOUTES les boutiques
+        // (Shop::getShops()), pas seulement la boutique courante.
+        $pmSrc189 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php');
+        if ($pmSrc189 === '') {
+            $offenders[] = 'PostmasterManager.php introuvable (garde-fou round 189)';
+        } elseif (strpos($pmSrc189, 'Shop::getShops(false, null, true)') === false) {
+            $offenders[] = "PostmasterManager::disconnect() n'itère plus Shop::getShops() pour vider le cache — régression du bug corrigé le 23/08/2026 (round 189) : sur une install multi-boutiques, se déconnecter depuis une boutique laisserait de nouveau le cache des autres intact jusqu'à expiration du TTL, affichant des données 'en direct' d'une connexion pourtant révoquée globalement";
+        }
+        $scSrc189 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php');
+        if ($scSrc189 === '') {
+            $offenders[] = 'SearchConsoleManager.php introuvable (garde-fou round 189)';
+        } elseif (strpos($scSrc189, 'Shop::getShops(false, null, true)') === false) {
+            $offenders[] = "SearchConsoleManager::disconnect() n'itère plus Shop::getShops() pour vider le cache — régression du bug corrigé le 23/08/2026 (round 189) : même risque que PostmasterManager ci-dessus";
+        }
+
+        // Round 189 (23/08/2026) : WatchdogManager doit rafraîchir date_add
+        // à chaque occurrence consolidée, pas seulement occurrence_count.
+        $wdSrc189 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php');
+        if ($wdSrc189 === '') {
+            $offenders[] = 'WatchdogManager.php introuvable (garde-fou round 189)';
+        } elseif (strpos($wdSrc189, "`occurrence_count` = `occurrence_count` + 1, `date_add` = NOW()") === false) {
+            $offenders[] = "WatchdogManager ne rafraîchit plus date_add lors de la consolidation d'occurrences — régression du bug corrigé le 23/08/2026 (round 189) : sendImmediateAlert()/sendDailyDigestIfDueLocked() filtrent par date_add, une ligne active resterait de nouveau invisible à ces fenêtres si sa création précède le début de la fenêtre";
+        }
+
+        // Round 189 (23/08/2026) : PostmasterManager/SearchConsoleManager::
+        // getAuthUrl() doivent vérifier le retour de GET_LOCK() avant
+        // d'écrire et avant RELEASE_LOCK().
+        if ($pmSrc189 !== '') {
+            $posLockPm189 = strpos($pmSrc189, "GET_LOCK('neria_postmaster_oauth_state', 3)");
+            $beforePm189 = $posLockPm189 !== false ? substr($pmSrc189, max(0, $posLockPm189 - 40), 40) : '';
+            if ($posLockPm189 === false || strpos($beforePm189, '$locked = ') === false) {
+                $offenders[] = "PostmasterManager::getAuthUrl() ne vérifie plus le retour de GET_LOCK() — régression du bug corrigé le 23/08/2026 (round 189) : le cycle lecture-modification-écriture du state OAuth s'exécuterait de nouveau sans protection sous contention, et RELEASE_LOCK() pourrait libérer un verrou détenu par un autre processus";
+            }
+        }
+        if ($scSrc189 !== '') {
+            $posLockSc189 = strpos($scSrc189, "GET_LOCK('neria_search_console_oauth_state', 3)");
+            $beforeSc189 = $posLockSc189 !== false ? substr($scSrc189, max(0, $posLockSc189 - 40), 40) : '';
+            if ($posLockSc189 === false || strpos($beforeSc189, '$locked = ') === false) {
+                $offenders[] = "SearchConsoleManager::getAuthUrl() ne vérifie plus le retour de GET_LOCK() — régression du bug corrigé le 23/08/2026 (round 189) : même risque que PostmasterManager ci-dessus";
+            }
+        }
+
+        // Round 189 (23/08/2026) : ABTestManager::getVariantForEmail() doit
+        // retourner '' (pas VARIANT_A) quand aucune clé de répartition
+        // n'est disponible.
+        $abtSrc189 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php');
+        if ($abtSrc189 === '') {
+            $offenders[] = 'ABTestManager.php introuvable (garde-fou round 189)';
+        } else {
+            $posKey189 = strpos($abtSrc189, "if (\$key === '') {");
+            $keyBody189 = $posKey189 !== false ? substr($abtSrc189, $posKey189, 80) : '';
+            if ($posKey189 === false || strpos($keyBody189, "return '';") === false) {
+                $offenders[] = "ABTestManager::getVariantForEmail() ne retourne plus '' quand aucune clé de répartition n'est disponible — régression du bug corrigé le 23/08/2026 (round 189) : ce cas limite serait de nouveau systématiquement assigné à VARIANT_A, gonflant son volume et faussant le calcul du gagnant";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
