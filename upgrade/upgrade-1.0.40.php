@@ -174,7 +174,19 @@ function upgrade_module_1_0_40(Neria $module): bool
     $shopCount = (int) $db->getValue('SELECT COUNT(*) FROM `' . $prefix . 'shop` WHERE `active` = 1');
     if ($shopCount > 1) {
         $bhTable = $prefix . 'neria_behavioral_sent';
-        $bhExists = (bool) $db->getValue("SHOW TABLES LIKE '{$bhTable}'");
+        // Round 188 : information_schema (pas SHOW TABLES LIKE) — ce fichier
+        // documente lui-même (commentaire round 167 juste au-dessus, fonction
+        // neria_upgrade_1_0_40_ensure_unique_key()) que SHOW TABLES LIKE '...'
+        // plante sous certains couples MySQL/PDO dès que Db::getValue() lui
+        // ajoute LIMIT 1 (MySQL rejette la combinaison, erreur 1064) — cette
+        // vérification-ci avait été oubliée lors de ce même correctif. Sur une
+        // combo affectée, le backfill id_shop (objectif n°1 de ce script)
+        // aurait été silencieusement sauté sur exactement les installs
+        // multi-boutiques ciblées.
+        $bhExists = (bool) $db->getValue("
+            SELECT COUNT(*) FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$bhTable}'
+        ");
         if ($bhExists) {
             // Templates dont ref_id = id_order (voir sql/install.sql, table 12).
             $orderLinkedTemplates = [
@@ -219,7 +231,14 @@ function upgrade_module_1_0_40(Neria $module): bool
                 $prefix . 'neria_loyalty_rewards',
             ];
             foreach ($otherTables as $t) {
-                if ((bool) $db->getValue("SHOW TABLES LIKE '{$t}'")) {
+                // Round 188 : information_schema — même correctif que $bhExists
+                // ci-dessus, SHOW TABLES LIKE plante sous certains couples
+                // MySQL/PDO (LIMIT 1 auto-ajouté par Db::getValue()).
+                $tExists = (bool) $db->getValue("
+                    SELECT COUNT(*) FROM information_schema.TABLES
+                    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$t}'
+                ");
+                if ($tExists) {
                     $ambiguousCount += (int) $db->getValue("SELECT COUNT(*) FROM `{$t}`");
                 }
             }

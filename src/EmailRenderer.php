@@ -2388,7 +2388,20 @@ class EmailRenderer
             return null;
         }
 
-        $compiled = preg_replace('/\{block\s+name=[\'"]neria_content[\'\"]\}\{\/block\}/', trim($m[1]), $layout);
+        // Round 188 : preg_replace_callback (pas preg_replace) — le contenu
+        // du bloc était passé comme argument REMPLACEMENT à preg_replace(),
+        // qui interprète tout '$' suivi d'un chiffre comme une rétro-
+        // référence ($1, $2...) et le remplace par une chaîne vide, faute de
+        // groupe capturé correspondant dans le motif de recherche. Tout '$'
+        // suivi d'un chiffre dans le contenu compilé (ex. un prix "$50" déjà
+        // résolu, ou toute variable de type montant) était donc
+        // silencieusement tronqué à chaque compilation d'email.
+        $blockContent = trim($m[1]);
+        $compiled = preg_replace_callback(
+            '/\{block\s+name=[\'"]neria_content[\'\"]\}\{\/block\}/',
+            fn () => $blockContent,
+            $layout
+        );
         $compiled = preg_replace('/\{extends\s+[^}]+\}/', '', $compiled);
 
         $engine   = $this->engine;
@@ -2788,7 +2801,16 @@ class EmailRenderer
             return null;
         }
 
-        $compiled = preg_replace('/\{block\s+name=[\'"]neria_content[\'\"]\}\{\/block\}/', trim($m[1]), $layout);
+        // Round 188 : preg_replace_callback (pas preg_replace) — même bug que
+        // buildCompiledHtml() ci-dessus : le contenu du bloc passé comme
+        // REMPLACEMENT à preg_replace() voit tout '$' suivi d'un chiffre
+        // interprété comme rétro-référence et effacé (ex. un prix "$50").
+        $blockContent = trim($m[1]);
+        $compiled = preg_replace_callback(
+            '/\{block\s+name=[\'"]neria_content[\'\"]\}\{\/block\}/',
+            fn () => $blockContent,
+            $layout
+        );
         $compiled = preg_replace('/\{extends\s+[^}]+\}/', '', $compiled);
 
         // ── Smart Salutation plug-and-play ─────────────────────────────────────

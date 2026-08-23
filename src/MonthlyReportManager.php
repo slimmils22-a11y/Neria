@@ -952,7 +952,17 @@ class MonthlyReportManager
         $t        = fn(string $k, array $v = []) => $this->t('report.' . $k, $v);
         $kpis     = $d['kpis'];
         $prev     = $d['prev']['kpis'];
-        $currency = \Currency::getDefaultCurrency();
+        // Round 188 : Configuration::get(..., $this->idShop) explicite —
+        // Currency::getDefaultCurrency() lit PS_CURRENCY_DEFAULT sans idShop,
+        // qui retombe sur Shop::$context_id_shop (contexte STATIQUE). La
+        // boucle multi-boutique de checkAndSend() ne fait que réassigner
+        // Context::getContext()->shop (round 165) — jamais Shop::setContext()
+        // — donc ce contexte statique reste celui du visiteur front ayant
+        // déclenché le hook, pas forcément la boutique DU RAPPORT en cours de
+        // rendu. Sur une install multi-boutiques à devises différentes, le CA
+        // s'affichait avec le symbole/format d'une AUTRE boutique.
+        $idCurrency = (int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $this->idShop);
+        $currency   = $idCurrency > 0 ? new \Currency($idCurrency) : false;
         $symbol   = $currency ? $currency->sign : 'EUR';
         // Formatage localisé du CA (séparateur décimal + position du symbole
         // selon $lang) — auparavant number_format(..., ',', ' ') codé en dur,
@@ -1303,7 +1313,12 @@ class MonthlyReportManager
             unset($vars['day_dow']);
         }
         if (isset($vars['amount_raw'])) {
-            $currency = \Currency::getDefaultCurrency();
+            // Round 188 : même correctif que renderHtml() ci-dessus —
+            // Configuration::get(..., $this->idShop) explicite au lieu de
+            // Currency::getDefaultCurrency() (retombe sur le contexte
+            // boutique statique, pas forcément celui du rapport en cours).
+            $idCurrencyRec = (int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $this->idShop);
+            $currency = $idCurrencyRec > 0 ? new \Currency($idCurrencyRec) : false;
             $idLang   = (int) \Language::getIdByIso($lang) ?: (int) \Configuration::get('PS_LANG_DEFAULT');
             $vars['amount'] = $currency
                 ? \NeriaTools::displayPrice((float) $vars['amount_raw'], $currency, $idLang)

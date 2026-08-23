@@ -137,14 +137,25 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
                     "SELECT `id_customer` FROM `" . _DB_PREFIX_ . "customer`
                      WHERE LOWER(`email`) = '" . $e . "' AND `id_shop` = " . $idShop
                 );
-                if ($customerId > 0) {
-                    (new \PreferencesManager($this->module))->saveByCustomer(
-                        $customerId,
-                        $email,
-                        array_fill_keys(\PreferencesManager::CATEGORIES, 0)
-                    );
-                    $ok = true;
-                }
+                // Round 188 : la branche invité (id_customer=0, adresse
+                // jamais devenue client PrestaShop — cas d'un abonné
+                // newsletter/newsletter_voucher uniquement via
+                // ps_emailsubscription) était absente : saveByCustomer()
+                // n'était appelée QUE si $customerId > 0. PreferencesManager
+                // gère pourtant explicitement id_customer=0 + email
+                // (isAllowed()/saveByCustomer(), cf. commentaire round 178
+                // sur la clé unique incluant l'email pour ce cas précis) —
+                // sans cette branche, un invité cliquant sur le lien "un
+                // clic" recevait bien la confirmation de désabonnement, mais
+                // continuait à recevoir toutes les autres catégories d'email
+                // Neria pour son adresse, faute de ligne neria_preferences
+                // créée (opt-in par défaut tant qu'aucune ligne n'existe).
+                (new \PreferencesManager($this->module))->saveByCustomer(
+                    $customerId,
+                    $email,
+                    array_fill_keys(\PreferencesManager::CATEGORIES, 0)
+                );
+                $ok = true;
             } catch (\Throwable $ex) {
                 // ignoré : les autres canaux de désabonnement ci-dessus restent traités
             }
