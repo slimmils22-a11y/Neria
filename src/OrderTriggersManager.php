@@ -96,7 +96,7 @@ class OrderTriggersManager
      * AVANT l'appel à Mail::Send() — retourne une raison de blocage (pour
      * log/libération de réservation) ou null si l'envoi peut avoir lieu.
      */
-    private function explicitSendBlockReason(string $template, string $email, int $idCustomer, int $idShop, int $idLang): ?string
+    private function explicitSendBlockReason(string $template, string $email, int $idCustomer, int $idShop, int $idLang, int $idOrder = 0): ?string
     {
         if (class_exists('BounceManager') && \BounceManager::isBounced($email)) {
             return 'bounce';
@@ -121,7 +121,22 @@ class OrderTriggersManager
             && (new \ConfigManager($this->module))->isCooldownEnabled()
         ) {
             $cdMinutes = (new \ConfigManager($this->module))->getCooldownMinutes();
-            if ((new \CooldownManager())->isDuplicate($email, $template, $cdMinutes, $idShop)) {
+            // Round 192 : $idOrder transmis — absent jusqu'ici, ce
+            // pré-contrôle effectuait un isDuplicate() NON scopé alors que
+            // le vrai contrôle exécuté au moment de Mail::Send() (hook
+            // actionEmailSendBefore, neria.php) est bien scopé par commande
+            // via {cooldown_scope} => 'order:'.$order->id (cf. les vars
+            // construites juste avant chaque appel à cette méthode). Un
+            // client avec 2 commandes déclenchant le même template dans la
+            // même fenêtre de cooldown (ex. expédition partielle de 2
+            // commandes lors d'un traitement d'entrepôt groupé) voyait la
+            // 2e commande bloquée à tort par le pré-contrôle non scopé
+            // (matchait l'envoi de la 1re commande, même client+template),
+            // alors que le vrai hook — scopé — l'aurait autorisée : le
+            // client ne recevait jamais la notification légitime de la 2e
+            // commande.
+            $cdRefScope = $idOrder > 0 ? ('order:' . $idOrder) : '';
+            if ((new \CooldownManager())->isDuplicate($email, $template, $cdMinutes, $idShop, $idOrder, $cdRefScope)) {
                 return 'cooldown';
             }
         }
@@ -397,7 +412,7 @@ class OrderTriggersManager
             // malgré le blocage, et la réservation ne serait JAMAIS libérée
             // (seul un $result false la libère plus bas) — le palier
             // resterait réclamé à vie, sans email ni bon, sans retry possible.
-            $blockReason = $this->explicitSendBlockReason('milestone_order', $customer->email, $idCustomer, $idShop, $idLang);
+            $blockReason = $this->explicitSendBlockReason('milestone_order', $customer->email, $idCustomer, $idShop, $idLang, (int) $order->id);
             if ($blockReason !== null) {
                 $this->watchdog()->info(
                     \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'milestone_order', 'email' => $customer->email]),
@@ -608,7 +623,7 @@ class OrderTriggersManager
                 // Round 178 : voir explicitSendBlockReason() — Mail::Send()
                 // renvoie true même si le hook bloque l'envoi, journalisant
                 // à tort un succès.
-                if ($this->explicitSendBlockReason('order_partial_shipped', $email, (int) $order->id_customer, $idShop, $idLang) !== null) {
+                if ($this->explicitSendBlockReason('order_partial_shipped', $email, (int) $order->id_customer, $idShop, $idLang, (int) $order->id) !== null) {
                     $this->watchdog()->info(
                         \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'order_partial_shipped', 'email' => $email]),
                         'order_partial_shipped', 'OrderTriggers'
@@ -647,7 +662,7 @@ class OrderTriggersManager
                     : (string) $newStatus->name;
 
                 // Round 178 : voir explicitSendBlockReason() ci-dessus.
-                if ($this->explicitSendBlockReason('order_on_hold', $email, (int) $order->id_customer, $idShop, $idLang) !== null) {
+                if ($this->explicitSendBlockReason('order_on_hold', $email, (int) $order->id_customer, $idShop, $idLang, (int) $order->id) !== null) {
                     $this->watchdog()->info(
                         \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'order_on_hold', 'email' => $email]),
                         'order_on_hold', 'OrderTriggers'
@@ -721,7 +736,7 @@ class OrderTriggersManager
             // à part (pas en early return) car le retrait des points de
             // fidélité plus bas doit avoir lieu QUE l'email parte ou non
             // (le remboursement est réel indépendamment du blocage email).
-            if ($this->explicitSendBlockReason('refund_processed', $customer->email, (int) $order->id_customer, (int) $order->id_shop, $idLang) !== null) {
+            if ($this->explicitSendBlockReason('refund_processed', $customer->email, (int) $order->id_customer, (int) $order->id_shop, $idLang, (int) $order->id) !== null) {
                 $this->watchdog()->info(
                     \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'refund_processed', 'email' => $customer->email]),
                     'refund_processed', 'OrderTriggers'
@@ -793,7 +808,15 @@ class OrderTriggersManager
                  FROM `' . _DB_PREFIX_ . 'order_slip`
                  WHERE id_order = ' . (int) $order->id
             );
-            $refundRatio  = $orderTotal > 0 ? ($totalRefunded / $orderTotal) : 1.0;
+            // Round 192 : le repli à 1.0 (100%) pour une commande à
+            // orderTotal=0 (ex. entièrement couverte par un bon d'achat)
+            // forçait un clawback COMPLET dès le premier avoir créé sur
+            // cette commande, même un avoir trivial (correction sans lien
+            // avec un vrai remboursement) — puisqu'il n'y a rien à
+            // rembourser proportionnellement sur une commande déjà à 0€, on
+            // ne déclenche plus le clawback dans ce cas (repli à 0.0, sous
+            // le seuil de 0.9 ci-dessous).
+            $refundRatio  = $orderTotal > 0 ? ($totalRefunded / $orderTotal) : 0.0;
             if ($refundRatio >= 0.9 && class_exists('LoyaltyManager') && \Configuration::getGlobalValue('NERIA_LOYALTY_ENABLED')) {
                 try {
                     (new \LoyaltyManager($this->module))->clawbackForOrder(
@@ -920,7 +943,7 @@ class OrderTriggersManager
             }
 
             // Round 178 : voir explicitSendBlockReason() plus haut.
-            if ($this->explicitSendBlockReason('return_received', $customer->email, (int) $order->id_customer, (int) $order->id_shop, $idLang) !== null) {
+            if ($this->explicitSendBlockReason('return_received', $customer->email, (int) $order->id_customer, (int) $order->id_shop, $idLang, (int) $order->id) !== null) {
                 $this->watchdog()->info(
                     \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'return_received', 'email' => $customer->email]),
                     'return_received', 'OrderTriggers'
