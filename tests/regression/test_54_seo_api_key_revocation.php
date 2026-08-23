@@ -14,6 +14,15 @@
  * les 3" aurait introduit un NOUVEAU bug : seo_moz_secret étant jamais
  * pré-rempli, il serait effacé à CHAQUE sauvegarde du formulaire, même
  * pour une raison sans rapport.
+ *
+ * Round 186 : semrush_key/moz_access écrasent toujours SAUF dans un cas
+ * précis — la valeur actuellement stockée existe mais ne se déchiffre plus
+ * (clé maîtresse de chiffrement changée entre-temps) ET le champ soumis
+ * est vide. Ce cas est indiscernable pour le marchand d'une révocation
+ * volontaire (le champ pré-rempli avec CryptoManager::decrypt() affiche
+ * '' dans les deux cas), donc la révocation "à l'aveugle" effaçait
+ * accidentellement des clés toujours configurées. Fenêtre élargie
+ * 2500→4200 (le correctif a allongé le bloc).
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -22,22 +31,22 @@ function run_test(): array
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/neria.php');
 
     $block = null;
-    if (preg_match('/save_seo_config[\s\S]{0,2500}?\(new SeoApiManager/', $src, $m)) {
+    if (preg_match('/save_seo_config[\s\S]{0,4200}?\(new SeoApiManager/', $src, $m)) {
         $block = $m[0];
     }
     neria_assert($block !== null, "bloc save_seo_config introuvable dans neria.php — vérifier que l'action n'a pas été renommée");
 
-    // semrush_key et moz_access : écrasés sans condition (pas de if avant
-    // leur updateValue).
+    // semrush_key et moz_access : écrasés dans le cas normal (round 186 :
+    // sauf le cas précis "déchiffrement cassé + champ vide", cf. docblock).
     neria_assert(
         (bool) preg_match('/Configuration::updateValue\(SeoApiManager::CONFIG_SEMRUSH_KEY, CryptoManager::encrypt\(\$semrushKey\)\);/', $block)
-        && !preg_match('/if \(\$semrushKey !== .{2}\)\s*\{\s*Configuration::updateValue\(SeoApiManager::CONFIG_SEMRUSH_KEY/', $block),
-        "seo_semrush_key n'est plus écrasé sans condition — régression du bug empêchant la révocation volontaire d'une clé Semrush"
+        && strpos($block, "if (\$semrushKey !== '' || !\$semrushDecryptBroken) {") !== false,
+        "seo_semrush_key ne conditionne plus l'écrasement à \$semrushDecryptBroken — régression du bug corrigé le 19/08/2026 (round 186), ou régression du bug round 53 (révocation volontaire empêchée)"
     );
     neria_assert(
         (bool) preg_match('/Configuration::updateValue\(SeoApiManager::CONFIG_MOZ_ACCESS, CryptoManager::encrypt\(\$mozAccess\)\);/', $block)
-        && !preg_match('/if \(\$mozAccess !== .{2}\)\s*\{\s*Configuration::updateValue\(SeoApiManager::CONFIG_MOZ_ACCESS/', $block),
-        "seo_moz_access n'est plus écrasé sans condition — régression du bug empêchant la révocation volontaire d'un accès Moz"
+        && strpos($block, "if (\$mozAccess !== '' || !\$mozAccessDecryptBroken) {") !== false,
+        "seo_moz_access ne conditionne plus l'écrasement à \$mozAccessDecryptBroken — régression du bug corrigé le 19/08/2026 (round 186), ou régression du bug round 53 (révocation volontaire empêchée)"
     );
 
     // moz_secret : DOIT rester conditionné (champ jamais pré-rempli).
