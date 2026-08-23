@@ -104,6 +104,19 @@ class PageSpeedManager
     }
 
     /**
+     * Round 186 : ajoutée pour que neria.php efface bien la clé scopée par
+     * boutique (cacheKey()) à la sauvegarde du formulaire — auparavant un
+     * Configuration::deleteByName('NERIA_PAGESPEED_LAST_ERROR') direct
+     * effaçait la clé GLOBALE, jamais écrite par cette classe (qui n'écrit
+     * que via cacheKey() depuis le round 134), donc sans aucun effet réel.
+     */
+    public function clearError(): void
+    {
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ERROR));
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ERROR_AT));
+    }
+
+    /**
      * Dernière erreur API rencontrée (vide si le dernier appel a réussi).
      * Utilisé par HealthCheckManager pour afficher la vraie cause.
      */

@@ -2923,14 +2923,30 @@ class Neria extends Module
             if ($urlError) {
                 $this->context->smarty->assign('neria_error', $urlError);
             } else {
-                Configuration::updateValue(PageSpeedManager::CONFIG_API_KEY,    CryptoManager::encrypt($key));
+                // Round 186 : n'écrase plus la clé stockée quand le champ
+                // arrive vide (même garde-fou que webhook_secret/
+                // bounce_webhook_secret) — auparavant, un champ pré-rempli
+                // avec CryptoManager::decrypt() affichait une chaîne vide
+                // indiscernable d'un "jamais configuré" si la clé maîtresse
+                // de chiffrement avait changé (decrypt() échoue
+                // silencieusement, cf. round 172) ; la moindre resauvegarde
+                // du formulaire (ex. juste l'URL cible) effaçait alors
+                // définitivement la clé API réellement configurée.
+                if ($key !== '') {
+                    Configuration::updateValue(PageSpeedManager::CONFIG_API_KEY, CryptoManager::encrypt($key));
+                }
                 // Round 182 : suffixe id_shop — même scope que cacheKey()
                 // dans PageSpeedManager (getTargetUrl()). Auparavant global,
                 // une URL personnalisée de cette boutique s'appliquait à
                 // toutes les boutiques de l'installation.
                 Configuration::updateValue(PageSpeedManager::CONFIG_TARGET_URL . '_' . (int) $this->context->shop->id, $targetUrl);
-                (new PageSpeedManager($this))->invalidateCache();
-                Configuration::deleteByName('NERIA_PAGESPEED_LAST_ERROR');
+                $pageSpeedMgr = new PageSpeedManager($this);
+                $pageSpeedMgr->invalidateCache();
+                // Round 186 : clearError() (clé scopée par boutique) remplace
+                // deleteByName('NERIA_PAGESPEED_LAST_ERROR') (clé globale
+                // jamais écrite par PageSpeedManager depuis le round 134 —
+                // ce deleteByName n'avait donc jamais aucun effet réel).
+                $pageSpeedMgr->clearError();
                 $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.pagespeed_config_saved'));
             }
         }
@@ -3022,8 +3038,34 @@ class Neria extends Module
             // VOLONTAIREMENT vidé pour révoquer l'accès — écraser
             // systématiquement (comme PageSpeed) permet cette révocation,
             // au lieu de conserver silencieusement l'ancienne clé en base.
-            Configuration::updateValue(SeoApiManager::CONFIG_SEMRUSH_KEY, CryptoManager::encrypt($semrushKey));
-            Configuration::updateValue(SeoApiManager::CONFIG_MOZ_ACCESS, CryptoManager::encrypt($mozAccess));
+            //
+            // Round 186 : SAUF si le champ est vide À CAUSE d'un échec de
+            // déchiffrement de la valeur déjà stockée (clé maîtresse de
+            // chiffrement changée entre-temps, cf. round 172) — dans ce cas
+            // précis, le champ pré-rempli affiche '' de façon indiscernable
+            // d'une révocation volontaire, et écraser effacerait
+            // définitivement une clé pourtant toujours configurée. On ne
+            // distingue les deux cas qu'en revérifiant le déchiffrement de
+            // la valeur actuellement stockée : si elle existait (non vide)
+            // mais ne se déchiffre plus, et que le champ soumis est vide,
+            // on considère qu'il s'agit du symptôme du bug, pas d'une vraie
+            // révocation, et on préserve la valeur existante.
+            $semrushDecryptBroken = false;
+            if ((string) Configuration::get(SeoApiManager::CONFIG_SEMRUSH_KEY) !== '') {
+                CryptoManager::decrypt((string) Configuration::get(SeoApiManager::CONFIG_SEMRUSH_KEY));
+                $semrushDecryptBroken = CryptoManager::lastDecryptFailed();
+            }
+            if ($semrushKey !== '' || !$semrushDecryptBroken) {
+                Configuration::updateValue(SeoApiManager::CONFIG_SEMRUSH_KEY, CryptoManager::encrypt($semrushKey));
+            }
+            $mozAccessDecryptBroken = false;
+            if ((string) Configuration::get(SeoApiManager::CONFIG_MOZ_ACCESS) !== '') {
+                CryptoManager::decrypt((string) Configuration::get(SeoApiManager::CONFIG_MOZ_ACCESS));
+                $mozAccessDecryptBroken = CryptoManager::lastDecryptFailed();
+            }
+            if ($mozAccess !== '' || !$mozAccessDecryptBroken) {
+                Configuration::updateValue(SeoApiManager::CONFIG_MOZ_ACCESS, CryptoManager::encrypt($mozAccess));
+            }
             // seo_moz_secret, à l'inverse, est un champ <input type="password">
             // JAMAIS pré-rempli (bonne pratique : ne pas réafficher un secret
             // déjà enregistré) — il est donc TOUJOURS vide à la soumission
@@ -6241,7 +6283,12 @@ class Neria extends Module
             // cohérent avec l'écriture ci-dessus et la lecture scopée de
             // PageSpeedManager::getTargetUrl().
             'pagespeed_target_url'  => class_exists('PageSpeedManager') ? (string) Configuration::get(PageSpeedManager::CONFIG_TARGET_URL . '_' . (int) $this->context->shop->id) : '',
-            'pagespeed_last_error'  => (string) Configuration::get('NERIA_PAGESPEED_LAST_ERROR'),
+            // Round 186 : Configuration::get(PageSpeedManager::getLastError())
+            // — la clé globale brute n'était jamais écrite par
+            // PageSpeedManager (scopé par boutique depuis le round 134),
+            // affichant toujours une chaîne vide en BO même en cas de
+            // vraie erreur (clé API invalide, quota dépassé...).
+            'pagespeed_last_error'  => class_exists('PageSpeedManager') ? (new PageSpeedManager($this))->getLastError() : '',
             'pagespeed_report'     => (function () {
                 if (!class_exists('PageSpeedManager')) {
                     return null;

@@ -1375,13 +1375,29 @@ class ConfigManager
         // retombait silencieusement sur la police par défaut — la config
         // affichée comme sauvegardée n'avait alors aucun effet réel sur les
         // emails envoyés.
-        $validFonts = class_exists('FontManager') ? array_keys(\FontManager::FONT_CATALOG) : null;
+        // Round 186 : la whitelist était construite depuis TOUT
+        // FontManager::FONT_CATALOG (tous scripts confondus), pas filtrée
+        // par le script correspondant à $postKey — un appel POST direct
+        // (contournant typography.tpl, qui lui filtre déjà correctement via
+        // getFontsForScript($script)) pouvait assigner une police d'un
+        // script totalement différent (ex. une police japonaise à
+        // font_arabic) : la valeur passait la whitelist globale, puis
+        // FontManager::getFontNameForLang() la retrouvait telle quelle dans
+        // le catalogue et l'injectait dans le CSS des emails de ce script,
+        // sans aucun avertissement (le fallback silencieux round 174 ne se
+        // déclenche que si le nom est ABSENT du catalogue, pas s'il existe
+        // pour le mauvais script).
+        $fontMgr = class_exists('FontManager') ? new \FontManager($this->module) : null;
 
         foreach ($fontKeys as $postKey => $configKey) {
             if (!empty($data[$postKey])) {
                 $value = \Tools::safeOutput($data[$postKey]);
-                if ($validFonts !== null && !in_array($value, $validFonts, true)) {
-                    continue;
+                if ($fontMgr !== null) {
+                    $script = substr($postKey, strlen('font_'));
+                    $validFontsForScript = array_keys($fontMgr->getFontsForScript($script));
+                    if (!in_array($value, $validFontsForScript, true)) {
+                        continue;
+                    }
                 }
                 $success = $success && $this->set($configKey, $value);
             }

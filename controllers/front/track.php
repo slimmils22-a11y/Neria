@@ -112,16 +112,31 @@ class NeriaTrackModuleFrontController extends ModuleFrontController
                                 'samesite' => 'Lax',
                             ]);
                         }
-                    }
 
-                    // Tracking upsell : détecte neria_ur dans l'URL cible
-                    if ($trackingWriteAllowed && $url !== '' && class_exists('UpsellManager')) {
-                        $parsed = parse_url($url);
-                        if (!empty($parsed['query'])) {
-                            parse_str($parsed['query'], $qp);
-                            $idUpsell = (int) ($qp['neria_ur'] ?? 0);
-                            if ($idUpsell > 0) {
-                                (new UpsellManager($this->module))->recordClick($idUpsell);
+                        // Tracking upsell : détecte neria_ur dans l'URL cible.
+                        // Round 186 : déplacé À L'INTÉRIEUR de if ($ref) — ce
+                        // bloc était auparavant un FRÈRE du if ($ref), donc
+                        // atteignable avec un token totalement inconnu/inexistant
+                        // en base, sans aucune vérification de signature HMAC
+                        // (contrairement à la redirection, protégée par
+                        // NeriaTools::verifyTrackingUrl() juste plus bas). Seul
+                        // $trackingWriteAllowed (throttling best-effort par
+                        // IP+token, contournable en faisant varier le token)
+                        // protégeait UpsellManager::recordClick() — une écriture
+                        // SQL sans authentification réelle. Un attaquant pouvait
+                        // ainsi figer clicked_at de n'importe quelle ligne
+                        // neria_upsell en boucle (id_upsell croissant, token
+                        // variable), faussant l'attribution de revenu upsell et
+                        // empêchant silencieusement l'enregistrement du vrai
+                        // clic ultérieur du client (clause AND clicked_at IS NULL).
+                        if ($trackingWriteAllowed && $url !== '' && class_exists('UpsellManager')) {
+                            $parsed = parse_url($url);
+                            if (!empty($parsed['query'])) {
+                                parse_str($parsed['query'], $qp);
+                                $idUpsell = (int) ($qp['neria_ur'] ?? 0);
+                                if ($idUpsell > 0) {
+                                    (new UpsellManager($this->module))->recordClick($idUpsell);
+                                }
                             }
                         }
                     }

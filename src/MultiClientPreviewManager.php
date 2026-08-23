@@ -398,7 +398,13 @@ class MultiClientPreviewManager
         // tout le rendu multi-client (addBanner() est le dernier appel de
         // chaque transform*()).
         if (stripos($html, '<body') !== false) {
-            return preg_replace('/(<body\b[^>]*>)/i', '$1' . $banner, $html, 1) ?? $html;
+            // Round 186 : [^>]* remplacé par une alternative qui respecte
+            // les valeurs d'attribut entre guillemets — [^>]* s'arrêtait au
+            // premier '>' littéral rencontré, même à l'intérieur d'un
+            // attribut ("data-x=\"a>b\"", légal en HTML5), tronquant la
+            // balise <body> en plein milieu d'un attribut et insérant le
+            // bandeau dans une valeur au lieu du contenu du <body>.
+            return preg_replace('/(<body\b(?:[^"\'>]|"[^"]*"|\'[^\']*\')*>)/i', '$1' . $banner, $html, 1) ?? $html;
         }
         return $banner . $html;
     }
