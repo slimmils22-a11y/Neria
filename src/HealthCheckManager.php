@@ -6464,7 +6464,7 @@ class HealthCheckManager
             $offenders[] = 'controllers/front/track.php introuvable (garde-fou round 186)';
         } else {
             $posRef186 = strpos($trackSrc186, 'if ($ref) {');
-            $posUpsell186 = strpos($trackSrc186, '(new UpsellManager($this->module))->recordClick($idUpsell);');
+            $posUpsell186 = strpos($trackSrc186, '(new UpsellManager($this->module))->recordClick($idUpsell, $idCustomerRef);');
             if ($posRef186 === false || $posUpsell186 === false || $posUpsell186 < $posRef186) {
                 $offenders[] = "track.php : structure if (\$ref)/UpsellManager::recordClick() introuvable ou dans le mauvais ordre — jeu de garde-fou invalide (round 186)";
             } else {
@@ -6497,6 +6497,55 @@ class HealthCheckManager
             $offenders[] = 'ConfigManager.php introuvable (garde-fou round 186)';
         } elseif (strpos($cfgSrc186, '$validFontsForScript = array_keys($fontMgr->getFontsForScript($script));') === false) {
             $offenders[] = "ConfigManager::saveTypographyConfig() ne filtre plus la whitelist de polices par script — régression du bug corrigé le 19/08/2026 (round 186) : un POST direct pourrait de nouveau assigner une police d'un script différent (ex. japonaise pour font_arabic), injectée sans avertissement dans le CSS des emails de ce script";
+        }
+
+        // Round 187 (23/08/2026) : UpsellManager::recordClick() doit vérifier
+        // id_customer, pas seulement id_upsell.
+        $upsellSrc187 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
+        if ($upsellSrc187 === '') {
+            $offenders[] = 'UpsellManager.php introuvable (garde-fou round 187)';
+        } else {
+            $posRc187 = strpos($upsellSrc187, 'public function recordClick(int $idUpsell, int $idCustomer): void');
+            $rcBody187 = $posRc187 !== false ? substr($upsellSrc187, $posRc187, 500) : '';
+            if ($posRc187 === false || strpos($rcBody187, 'AND id_customer = " . (int) $idCustomer') === false) {
+                $offenders[] = "UpsellManager::recordClick() ne filtre plus par id_customer — régression de l'IDOR corrigé le 23/08/2026 (round 187) : id_upsell seul (clé auto-incrémentée séquentielle) ne prouve rien sur l'identité de l'appelant, un destinataire en possession d'un token valide pour sa propre adresse pourrait de nouveau figer clicked_at sur les lignes upsell d'autres clients";
+            }
+        }
+
+        // Round 187 (23/08/2026) : GdprAuditManager::purgeCustomerData() doit
+        // scoper la purge par email de neria_preferences par id_customer AUSSI.
+        $gdprSrc187 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        if ($gdprSrc187 === '') {
+            $offenders[] = 'GdprAuditManager.php introuvable (garde-fou round 187)';
+        } else {
+            $posPref187 = strpos($gdprSrc187, "\$prefTable = _DB_PREFIX_ . 'neria_preferences';");
+            $prefBody187 = $posPref187 !== false ? substr($gdprSrc187, $posPref187, 900) : '';
+            if ($posPref187 === false || substr_count($prefBody187, "AND `id_customer` = \" . (int) \$idCustomer") < 2) {
+                $offenders[] = "GdprAuditManager::purgeCustomerData() ne scope plus la purge de neria_preferences par id_customer — régression du bug corrigé le 23/08/2026 (round 187) : une demande d'effacement RGPD purgerait de nouveau, par simple correspondance d'email, la ligne préférences d'un client totalement différent partageant cet email sur une autre boutique";
+            }
+        }
+
+        // Round 187 (23/08/2026) : WaitlistManager::notifyProductLocked()
+        // doit scoper ses 5 UPDATE par id_product_attribute, pas seulement
+        // id_customer + id_product + id_shop.
+        $wlSrc187 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php');
+        if ($wlSrc187 === '') {
+            $offenders[] = 'WaitlistManager.php introuvable (garde-fou round 187)';
+        } else {
+            $posLocked187 = strpos($wlSrc187, 'private function notifyProductLocked(');
+            $lockedBody187 = $posLocked187 !== false ? substr($wlSrc187, $posLocked187, 19000) : '';
+            if ($posLocked187 === false || substr_count($lockedBody187, 'AND id_product_attribute = {$idProductAttribute}') < 5) {
+                $offenders[] = "WaitlistManager::notifyProductLocked() ne scope plus (ou plus assez) ses UPDATE par id_product_attribute — régression du bug corrigé le 23/08/2026 (round 187) : un client inscrit sur plusieurs déclinaisons du même produit perdrait de nouveau silencieusement sa notification de retour en stock pour les déclinaisons non réassorties, le réassort d'UNE déclinaison marquant à tort notified_at sur TOUTES ses inscriptions à ce produit";
+            }
+        }
+
+        // Round 187 (23/08/2026) : BehavioralCronManager::send() doit résoudre
+        // {shop_name} avec $idShop, pas le contexte Configuration global.
+        $bcmSrc187 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc187 === '') {
+            $offenders[] = 'BehavioralCronManager.php introuvable (garde-fou round 187)';
+        } elseif (strpos($bcmSrc187, "'{shop_name}'   => \\Configuration::get('PS_SHOP_NAME', null, null, \$idShop),") === false) {
+            $offenders[] = "BehavioralCronManager::send() ne résout plus {shop_name} avec \$idShop — régression du bug corrigé le 23/08/2026 (round 187) : un email comportemental (anniversaire, relance panier, etc.) sur une install multi-boutiques afficherait de nouveau le nom d'une boutique différente de celle du client destinataire";
         }
 
         if ($offenders) {
