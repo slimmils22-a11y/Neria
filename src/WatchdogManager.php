@@ -184,8 +184,19 @@ class WatchdogManager
             ));
 
             if ($existing > 0) {
+                // Round 189 : date_add rafraîchi à chaque occurrence
+                // consolidée — absent jusqu'ici, alors que le commentaire
+                // ci-dessus affirme explicitement que la fenêtre "glisse".
+                // Sans ce rafraîchissement, date_add restait figé à la
+                // création de la ligne : sendImmediateAlert()/
+                // sendDailyDigestIfDueLocked() filtrent tous deux par
+                // date_add (burst count depuis $lastSent, digest sur 24h) —
+                // une ligne créée juste avant la fenêtre mais dont
+                // l'occurrence_count grimpait APRÈS le début de la fenêtre
+                // restait invisible à ces deux comptages, sous-évaluant
+                // l'incident réel dans le mécanisme même censé le signaler.
                 $this->db->execute(
-                    "UPDATE `{$table}` SET `occurrence_count` = `occurrence_count` + 1
+                    "UPDATE `{$table}` SET `occurrence_count` = `occurrence_count` + 1, `date_add` = NOW()
                      WHERE `id_log` = {$existing}"
                 );
                 return;

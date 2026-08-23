@@ -133,9 +133,20 @@ class ABTestManager
         // normalisé en minuscules, ou casse corrigée en BO) produisait un
         // hash crc32() différent et pouvait basculer de variante,
         // contredisant l'invariant documenté juste au-dessus.
+        // Round 189 : retourne '' (pas de test) plutôt que VARIANT_A quand
+        // aucune clé de répartition n'est disponible (email vide/malformé ET
+        // idCustomer=0) — cas normalement censé ne jamais se produire au
+        // moment de l'envoi (email toujours connu, cf. docblock), mais
+        // atteignable si EmailRenderer::resolveABVariant() reçoit un
+        // $params['to'] vide/malformé. Retourner VARIANT_A inconditionnellement
+        // gonflait artificiellement son volume et faussait le calcul du
+        // "gagnant" sur ces cas limites, exactement le biais que ce fichier
+        // documente déjà avoir corrigé pour les invités (cf. docblock
+        // ci-dessus) — sans clé stable, mieux vaut ne PAS assigner de variante
+        // du tout que d'en assigner une systématiquement fausse.
         $key = trim($email) !== '' ? mb_strtolower(trim($email)) : ($idCustomer > 0 ? (string) $idCustomer : '');
         if ($key === '') {
-            return self::VARIANT_A;
+            return '';
         }
 
         // Algorithme de repartition deterministe

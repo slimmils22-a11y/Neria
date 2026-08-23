@@ -112,13 +112,28 @@ class PostmasterManager
         // state a disparu voit alors handleCallback() échouer malgré un code
         // Google valide.
         $db = \Db::getInstance();
-        $db->getValue("SELECT GET_LOCK('neria_postmaster_oauth_state', 3)");
+        // Round 189 : retour de GET_LOCK() vérifié — auparavant ignoré, le
+        // cycle lecture-modification-écriture ci-dessous s'exécutait quand
+        // même si le verrou n'était PAS obtenu (contention, ex. deux
+        // admins cliquant "Connecter" simultanément), réintroduisant
+        // exactement la perte silencieuse de state que ce verrou est censé
+        // empêcher (cf. commentaire round 122 ci-dessus). RELEASE_LOCK()
+        // n'est appelé que si le verrou a réellement été acquis.
+        $locked = (int) $db->getValue("SELECT GET_LOCK('neria_postmaster_oauth_state', 3)") === 1;
         try {
             $pending = $this->loadPendingStates();
             $pending[$state] = ['return_url' => $returnUrl, 'ts' => time()];
             $this->savePendingStates($pending);
+            if (!$locked) {
+                $this->wd()->warning(
+                    'PostmasterManager::getAuthUrl() : verrou OAuth state non obtenu (contention) — écriture effectuée sans protection.',
+                    '', 'PostmasterManager'
+                );
+            }
         } finally {
-            $db->execute("SELECT RELEASE_LOCK('neria_postmaster_oauth_state')");
+            if ($locked) {
+                $db->execute("SELECT RELEASE_LOCK('neria_postmaster_oauth_state')");
+            }
         }
 
         return self::AUTH_URL . '?' . http_build_query([
@@ -290,7 +305,17 @@ class PostmasterManager
         ] as $key) {
             \Configuration::deleteByName($key);
         }
-        $this->clearCache();
+        // Round 189 : le token est global (deleteByName() ci-dessus, sans
+        // idShop) — clearCache() ne vidait pourtant QUE le cache de la
+        // boutique courante (cacheKey() suffixé par id_shop). Sur une install
+        // multi-boutiques, se déconnecter depuis la Boutique A laissait le
+        // cache de la Boutique B intact jusqu'à expiration du TTL (1h) :
+        // son tableau de bord continuait d'afficher des données "en direct"
+        // d'une connexion pourtant révoquée globalement.
+        foreach (\Shop::getShops(false, null, true) as $idShop) {
+            \Configuration::deleteByName(self::CONFIG_CACHE . '_' . (int) $idShop);
+            \Configuration::deleteByName(self::CONFIG_CACHE_TIME . '_' . (int) $idShop);
+        }
     }
 
     // ============================================================
