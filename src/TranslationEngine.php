@@ -126,8 +126,19 @@ class TranslationEngine
 
         $cacheKey = $template . ':' . $lang;
 
+        // Round 194 : !== '' ajouté aux 4 vérifications isset() de cette
+        // méthode — isset() seul renvoie true même pour une chaîne vide en
+        // PHP, contrairement à AdminTranslator::t()/tLang()/templateLabels()
+        // qui vérifient déjà systématiquement !== ''. update() n'empêche pas
+        // d'enregistrer une valeur vide (is_custom=1, translation_value='') :
+        // un marchand vidant accidentellement une traduction personnalisée
+        // par erreur puis enregistrant voyait get() retourner cette chaîne
+        // vide immédiatement — sautant le repli EN, le repli _global, ET
+        // l'alerte Watchdog "clé introuvable" — le client recevait un email
+        // avec une section vide, sans que personne ne soit alerté.
+
         // ── Cherche dans le cache ────────────────────────────────
-        if (isset($this->cache[$cacheKey][$key])) {
+        if (isset($this->cache[$cacheKey][$key]) && $this->cache[$cacheKey][$key] !== '') {
             return $this->resolveVariables(
                 $this->cache[$cacheKey][$key]
             );
@@ -138,7 +149,7 @@ class TranslationEngine
             $this->loadBlock($template, self::FALLBACK_LANG);
             $fallbackKey = $template . ':' . self::FALLBACK_LANG;
 
-            if (isset($this->cache[$fallbackKey][$key])) {
+            if (isset($this->cache[$fallbackKey][$key]) && $this->cache[$fallbackKey][$key] !== '') {
                 $this->module->log(
                     sprintf(
                         'TranslationEngine: fallback EN pour [%s][%s][%s]',
@@ -161,12 +172,12 @@ class TranslationEngine
         if ($template !== '_global') {
             $this->loadBlock('_global', $lang);
             $globalKey = '_global:' . $lang;
-            if (isset($this->cache[$globalKey][$key])) {
+            if (isset($this->cache[$globalKey][$key]) && $this->cache[$globalKey][$key] !== '') {
                 return $this->resolveVariables($this->cache[$globalKey][$key]);
             }
             $this->loadBlock('_global', self::FALLBACK_LANG);
             $globalFallbackKey = '_global:' . self::FALLBACK_LANG;
-            if (isset($this->cache[$globalFallbackKey][$key])) {
+            if (isset($this->cache[$globalFallbackKey][$key]) && $this->cache[$globalFallbackKey][$key] !== '') {
                 return $this->resolveVariables($this->cache[$globalFallbackKey][$key]);
             }
         }

@@ -356,6 +356,65 @@ class WaitlistManager
                 continue; // désinscrit entre le claim et l'envoi
             }
 
+            // Round 194 : Mail::Send() du cœur PrestaShop retourne TOUJOURS
+            // true quand le hook actionEmailSendBefore annule l'envoi
+            // (bounce/blacklist/préférences/cooldown) — même piège déjà
+            // corrigé pour CollectionManager (round 180)/LookCompletionManager
+            // (round 190)/QueueManager/OrderTriggersManager (round 178/192)
+            // mais jamais étendu ici. Sans ces garde-fous, notified_at était
+            // marqué (bloc if ($mailed) plus bas) même sur un envoi bloqué
+            // par le hook — le client était exclu À VIE de cette notification
+            // "de retour en stock" pour ce produit, même après la levée du
+            // blocage (bounce/blacklist levés, préférence réactivée...).
+            if (class_exists('BounceManager') && \BounceManager::isBounced($row['email'])) {
+                $this->db->execute(
+                    "UPDATE `{$this->prefix}" . self::TABLE . "`
+                     SET claim_started_at = NULL
+                     WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
+                       AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
+                );
+                continue;
+            }
+            if (class_exists('BlacklistManager')) {
+                $langIso = class_exists('TranslationEngine')
+                    ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                    : (string) (\Language::getIsoById($idLang) ?: '');
+                if ((new \BlacklistManager($idShop))->isBlacklisted('waitlist_available', $langIso)) {
+                    $this->db->execute(
+                        "UPDATE `{$this->prefix}" . self::TABLE . "`
+                         SET claim_started_at = NULL
+                         WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
+                           AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
+                    );
+                    continue;
+                }
+            }
+            if (class_exists('PreferencesManager')
+                && !(new \PreferencesManager($this->module))->isAllowed($idCustomer, 'waitlist_available', $idShop, $row['email'])
+            ) {
+                $this->db->execute(
+                    "UPDATE `{$this->prefix}" . self::TABLE . "`
+                     SET claim_started_at = NULL
+                     WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
+                       AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
+                );
+                continue;
+            }
+            if (class_exists('ConfigManager') && class_exists('CooldownManager')
+                && (new \ConfigManager($this->module))->isCooldownEnabled()
+            ) {
+                $cdMinutes = (new \ConfigManager($this->module))->getCooldownMinutes();
+                if ((new \CooldownManager())->isDuplicate($row['email'], 'waitlist_available', $cdMinutes, $idShop, 0, 'product:' . $idProduct)) {
+                    $this->db->execute(
+                        "UPDATE `{$this->prefix}" . self::TABLE . "`
+                         SET claim_started_at = NULL
+                         WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
+                           AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
+                    );
+                    continue;
+                }
+            }
+
             try {
                 $mailed = \Mail::Send(
                     $idLang,
