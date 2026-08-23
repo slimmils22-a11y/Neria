@@ -6817,6 +6817,55 @@ class HealthCheckManager
             }
         }
 
+        // Round 195 (23/08/2026) : BehavioralCronManager::send() doit
+        // revérifier bounce/blacklist/cooldown avant Mail::Send() — méthode
+        // partagée par ~15 templates comportementaux.
+        $bcmSrc195 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc195 === '') {
+            $offenders[] = 'BehavioralCronManager.php introuvable (garde-fou round 195)';
+        } else {
+            $posSend195 = strpos($bcmSrc195, 'private function send(');
+            $posMailSend195 = $posSend195 !== false ? strpos($bcmSrc195, '$sent = \Mail::Send(', $posSend195) : false;
+            $posBounce195 = $posSend195 !== false ? strpos($bcmSrc195, "\\BounceManager::isBounced(\$email)", $posSend195) : false;
+            $posBlacklist195 = $posSend195 !== false ? strpos($bcmSrc195, "BlacklistManager(\$idShop))->isBlacklisted(\$template", $posSend195) : false;
+            $posCooldown195 = $posSend195 !== false ? strpos($bcmSrc195, "CooldownManager())->isDuplicate(\$email, \$template", $posSend195) : false;
+            if ($posSend195 === false || $posMailSend195 === false || $posBounce195 === false
+                || $posBlacklist195 === false || $posCooldown195 === false
+                || $posBounce195 >= $posMailSend195 || $posBlacklist195 >= $posMailSend195 || $posCooldown195 >= $posMailSend195
+            ) {
+                $offenders[] = "BehavioralCronManager::send() ne revérifie plus bounce/blacklist/cooldown avant Mail::Send() — régression du bug corrigé le 23/08/2026 (round 195) : un client bloqué serait de nouveau marqué 'envoyé' définitivement (INSERT IGNORE neria_behavioral_sent) pour l'un des ~15 templates comportementaux, l'excluant à vie même après la levée du blocage";
+            }
+        }
+
+        // Round 195 (23/08/2026) : SeasonalCampaignManager::runDueCampaigns()
+        // doit revérifier bounce/blacklist/cooldown avant Mail::Send(), avec
+        // libération de la réservation annuelle sur chaque blocage.
+        $scmSrc195 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php');
+        if ($scmSrc195 === '') {
+            $offenders[] = 'SeasonalCampaignManager.php introuvable (garde-fou round 195)';
+        } else {
+            $posMailSend195b = strpos($scmSrc195, '$ok = \Mail::Send(');
+            $posBounce195b = strpos($scmSrc195, "\\BounceManager::isBounced(\$customer['email'])");
+            $posBlacklist195b = strpos($scmSrc195, "BlacklistManager(\$this->idShop))->isBlacklisted(\$template");
+            $posCooldown195b = strpos($scmSrc195, "CooldownManager())->isDuplicate(\$customer['email'], \$template");
+            if ($posMailSend195b === false || $posBounce195b === false || $posBlacklist195b === false || $posCooldown195b === false
+                || $posBounce195b >= $posMailSend195b || $posBlacklist195b >= $posMailSend195b || $posCooldown195b >= $posMailSend195b
+            ) {
+                $offenders[] = "SeasonalCampaignManager::runDueCampaigns() ne revérifie plus bounce/blacklist/cooldown avant Mail::Send() — régression du bug corrigé le 23/08/2026 (round 195) : un client bloqué serait de nouveau exclu à vie d'une campagne saisonnière pour toute l'année, même après la levée du blocage";
+            }
+        }
+
+        // Round 195 (23/08/2026) : DeliverabilityScorer::hasHiddenWhiteText()
+        // doit détecter le texte blanc sur fond BLANC, pas seulement
+        // l'absence de fond (sinon la technique classique de masquage
+        // échappe à la détection via le simple mot "background").
+        $dsSrc195 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DeliverabilityScorer.php');
+        if ($dsSrc195 === '') {
+            $offenders[] = 'DeliverabilityScorer.php introuvable (garde-fou round 195)';
+        } elseif (strpos($dsSrc195, "preg_match('/background(?:-color)?\\s*:\\s*#(?:fff|ffffff)\\b/', \$s)") === false) {
+            $offenders[] = "DeliverabilityScorer::hasHiddenWhiteText() ne détecte plus le texte blanc sur fond blanc explicite — régression du bug corrigé le 23/08/2026 (round 195) : la technique classique de masquage (color:#fff;background:#fff) échapperait de nouveau entièrement à la détection via le simple mot 'background'";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
