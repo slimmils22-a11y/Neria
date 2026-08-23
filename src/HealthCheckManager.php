@@ -6747,6 +6747,29 @@ class HealthCheckManager
             $offenders[] = "CalendarManager::sendCalendarEmail() ne vérifie plus BounceManager::isBounced() — régression du bug corrigé le 23/08/2026 (round 191) : une adresse en hard bounce recevrait de nouveau les emails calendrier (Noël, fête des mères, etc.), dégradant la réputation du domaine d'envoi";
         }
 
+        // Round 192 (23/08/2026) : OrderTriggersManager::explicitSendBlockReason()
+        // doit scoper son pré-contrôle cooldown par commande ($idOrder), pas
+        // un check non scopé qui bloquerait à tort une commande B à cause
+        // d'une commande A récente du même client.
+        $otmSrc192 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
+        if ($otmSrc192 === '') {
+            $offenders[] = 'OrderTriggersManager.php introuvable (garde-fou round 192)';
+        } else {
+            if (strpos($otmSrc192, 'private function explicitSendBlockReason(string $template, string $email, int $idCustomer, int $idShop, int $idLang, int $idOrder = 0): ?string') === false) {
+                $offenders[] = "OrderTriggersManager::explicitSendBlockReason() n'a plus de paramètre \$idOrder — régression du bug corrigé le 23/08/2026 (round 192) : le pré-contrôle cooldown redeviendrait non scopé par commande";
+            }
+            if (substr_count($otmSrc192, ', $idLang, (int) $order->id)') < 5) {
+                $offenders[] = "OrderTriggersManager : les 5 appels à explicitSendBlockReason() ne transmettent plus tous \$order->id — régression du bug corrigé le 23/08/2026 (round 192) : un client avec 2 commandes déclenchant le même template dans la même fenêtre de cooldown verrait de nouveau la 2e bloquée à tort par l'envoi de la 1re";
+            }
+        }
+
+        // Round 192 (23/08/2026) : OrderTriggersManager::handleRefund() ne
+        // doit plus forcer un clawback complet (ratio 1.0) sur une commande
+        // à orderTotal=0.
+        if ($otmSrc192 !== '' && strpos($otmSrc192, '$refundRatio  = $orderTotal > 0 ? ($totalRefunded / $orderTotal) : 0.0;') === false) {
+            $offenders[] = "OrderTriggersManager::handleRefund() ne replie plus \$refundRatio sur 0.0 pour une commande à orderTotal=0 — régression du bug corrigé le 23/08/2026 (round 192) : une commande entièrement couverte par un bon d'achat recevant un avoir trivial déclencherait de nouveau un clawback COMPLET des points de fidélité";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
