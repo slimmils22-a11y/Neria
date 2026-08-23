@@ -6784,6 +6784,39 @@ class HealthCheckManager
             $offenders[] = "HealthCheckManager::checkCronsHealth() ne lit plus CRON_LAST_DOMREP avec \$this->idShop — régression du bug corrigé le 23/08/2026 (round 193)";
         }
 
+        // Round 194 (23/08/2026) : TranslationEngine::get() doit vérifier
+        // !== '' en plus de isset() sur ses 4 lectures de cache — sinon une
+        // traduction personnalisée vidée par erreur serait de nouveau
+        // traitée comme valide, sautant le repli EN/_global et l'alerte
+        // Watchdog.
+        $teSrc194 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/TranslationEngine.php');
+        if ($teSrc194 === '') {
+            $offenders[] = 'TranslationEngine.php introuvable (garde-fou round 194)';
+        } elseif (substr_count($teSrc194, "]) && \$this->cache[") < 4) {
+            $offenders[] = "TranslationEngine::get() ne vérifie plus !== '' sur ses lectures de cache — régression du bug corrigé le 23/08/2026 (round 194) : une traduction personnalisée vidée par erreur serait de nouveau traitée comme valide, sautant le repli EN/_global et l'alerte Watchdog 'clé introuvable'";
+        }
+
+        // Round 194 (23/08/2026) : WaitlistManager::notifyProduct() doit
+        // revérifier bounce/blacklist/préférences/cooldown avant Mail::Send(),
+        // avec libération de claim_started_at sur chaque blocage.
+        $wlmSrc194 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php');
+        if ($wlmSrc194 === '') {
+            $offenders[] = 'WaitlistManager.php introuvable (garde-fou round 194)';
+        } else {
+            $posMailSend194 = strpos($wlmSrc194, '$mailed = \Mail::Send(');
+            $posBounce194 = strpos($wlmSrc194, "\\BounceManager::isBounced(\$row['email'])");
+            $posBlacklist194 = strpos($wlmSrc194, "BlacklistManager(\$idShop))->isBlacklisted('waitlist_available'");
+            $posPreferences194 = strpos($wlmSrc194, "PreferencesManager(\$this->module))->isAllowed(\$idCustomer, 'waitlist_available'");
+            $posCooldown194 = strpos($wlmSrc194, "CooldownManager())->isDuplicate(\$row['email'], 'waitlist_available'");
+            if ($posMailSend194 === false || $posBounce194 === false || $posBlacklist194 === false
+                || $posPreferences194 === false || $posCooldown194 === false
+                || $posBounce194 >= $posMailSend194 || $posBlacklist194 >= $posMailSend194
+                || $posPreferences194 >= $posMailSend194 || $posCooldown194 >= $posMailSend194
+            ) {
+                $offenders[] = "WaitlistManager::notifyProduct() ne revérifie plus bounce/blacklist/préférences/cooldown avant Mail::Send() — régression du bug corrigé le 23/08/2026 (round 194) : un client bloqué serait de nouveau marqué notified_at définitivement, l'excluant à vie de cette notification même après la levée du blocage";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
