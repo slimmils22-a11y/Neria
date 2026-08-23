@@ -10266,7 +10266,11 @@ class HealthCheckManager
             '1.0.25' => ['type' => 'index_column', 'table' => 'neria_preferences', 'index' => 'uq_shop_customer_email_cat', 'name' => 'email'],
             '1.0.26' => ['type' => 'column', 'table' => 'neria_waitlist', 'name' => 'claim_started_at'],
             '1.0.27' => ['type' => 'index_column', 'table' => 'neria_stat', 'index' => 'idx_shop_template_event', 'name' => 'date_add'],
-            '1.0.28' => ['type' => 'index',  'table' => 'neria_waitlist', 'name' => 'uq_customer_product_shop'],
+            // uq_customer_product_shop (créé en 1.0.28) a été remplacé par
+            // uq_customer_product_attr_shop en 1.0.40 (ajout de la variante
+            // à la clé unique) — on vérifie donc l'index final, pas celui
+            // d'origine qui n'existe plus sur une install à jour.
+            '1.0.28' => ['type' => 'index',  'table' => 'neria_waitlist', 'name' => 'uq_customer_product_attr_shop'],
             '1.0.29' => ['type' => 'column', 'table' => 'neria_loyalty_points', 'name' => 'id_shop'],
             '1.0.30' => ['type' => 'config', 'name' => 'NERIA_CERT_ENABLED'],
             '1.0.31' => ['type' => 'config_exists', 'name' => 'NERIA_LICENSE_KEY'],
@@ -12618,7 +12622,7 @@ class HealthCheckManager
 
         $attributed = (int) $db->getValue('
             SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_attribution`
-            WHERE date_add >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
         ');
 
         $rate = round($attributed / $recentOrders * 100, 1);
