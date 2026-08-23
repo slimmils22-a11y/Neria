@@ -4791,10 +4791,10 @@ class HealthCheckManager
 
         // Round 147 (2026-08-09) : AbTestManager::activateTest() ne doit
         // journaliser un succès que si l'UPDATE SQL a réellement réussi.
-        $abFile147 = _PS_MODULE_DIR_ . $this->module->name . '/src/AbTestManager.php';
+        $abFile147 = _PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php';
         $abSrc147 = $this->readModuleSrc($abFile147);
         if ($abSrc147 === '') {
-            $offenders[] = 'AbTestManager.php introuvable (garde-fou round 147 : logs activate/create/delete conditionnés au résultat SQL)';
+            $offenders[] = 'ABTestManager.php introuvable (garde-fou round 147 : logs activate/create/delete conditionnés au résultat SQL)';
         } else {
             $posAct147 = strpos($abSrc147, 'public function activateTest(string $template): bool');
             $actBody147 = $posAct147 !== false ? substr($abSrc147, $posAct147, 1800) : '';
@@ -4902,7 +4902,7 @@ class HealthCheckManager
             $offenders[] = "WebhookManager::trigger() ne journalise plus d'erreur Watchdog quand l'INSERT de mise en file échoue — régression du bug corrigé le 09/08/2026 (round 148)";
         }
 
-        $abSrc148 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/AbTestManager.php');
+        $abSrc148 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php');
         if ($abSrc148 === '' || strpos($abSrc148, 'abtest_variant_b_promote_failed') === false || strpos($abSrc148, 'abtest_archive_failed') === false) {
             $offenders[] = "AbTestManager::copyVariantBToDefault()/archiveTest() ne conditionnent plus leur log au résultat SQL réel — régression du bug corrigé le 09/08/2026 (round 148)";
         }
@@ -6067,9 +6067,9 @@ class HealthCheckManager
             $offenders[] = "LicenseManager::isWithinGracePeriod() n'a plus de plafond GRACE_LAST_CHECK_MAX_DAYS sur la grâce 'dernière validation réussie' — régression du bug corrigé le 15/08/2026 (round 176) : un client dont le serveur de licences ne répond plus jamais après expiration naturelle enverrait de nouveau indéfiniment";
         }
 
-        $abSrc177 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/AbTestManager.php');
+        $abSrc177 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php');
         if ($abSrc177 === '') {
-            $offenders[] = 'AbTestManager.php introuvable (garde-fou round 177)';
+            $offenders[] = 'ABTestManager.php introuvable (garde-fou round 177)';
         } elseif (strpos($abSrc177, "SET `abtest_variant` = ''") === false) {
             $offenders[] = "AbTestManager::deleteTests() ne désétiquette plus abtest_variant via une chaîne vide — régression du bug corrigé le 15/08/2026 (round 177) : SET abtest_variant = NULL échoue silencieusement en mode SQL strict (colonne NOT NULL), laissant les anciens événements A/B polluer le calcul de significativité d'un futur test sur ce même template";
         }
@@ -6314,9 +6314,9 @@ class HealthCheckManager
             $offenders[] = "neria.php (action cert_delete) ne vérifie plus le retour de CertificateManager::delete() — régression du bug corrigé le 17/08/2026 (round 182)";
         }
 
-        $abtSrc182 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/AbTestManager.php');
+        $abtSrc182 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php');
         if ($abtSrc182 === '') {
-            $offenders[] = 'AbTestManager.php introuvable (garde-fou round 182)';
+            $offenders[] = 'ABTestManager.php introuvable (garde-fou round 182)';
         } elseif (strpos($abtSrc182, "mb_strtolower(trim(\$email))") === false) {
             $offenders[] = "AbTestManager::getVariantForEmail() ne normalise plus la casse de l'email dans sa clé de hash — régression du bug corrigé le 17/08/2026 (round 182) : un même destinataire dont la casse de l'email change entre deux envois basculerait de nouveau de variante A/B";
         }
