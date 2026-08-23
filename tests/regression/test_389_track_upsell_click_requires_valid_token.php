@@ -32,7 +32,7 @@ function run_test(): array
     $posRef = strpos($src, 'if ($ref) {');
     neria_assert($posRef !== false, "\"if (\$ref) {\" introuvable — jeu de test invalide");
 
-    $posUpsellCall = strpos($src, '(new UpsellManager($this->module))->recordClick($idUpsell);', $posRef);
+    $posUpsellCall = strpos($src, '(new UpsellManager($this->module))->recordClick($idUpsell, $idCustomerRef);', $posRef);
     neria_assert($posUpsellCall !== false, "Appel UpsellManager::recordClick() introuvable après if (\$ref) — jeu de test invalide");
 
     // Calcule la profondeur d'accolades entre les deux positions, en
