@@ -825,12 +825,26 @@ class StatsManager
      * Enregistre une conversion (commande payée) attribuée à un email Neria.
      * Stocke l'id_order et le montant dans rendered_vars (JSON) pour éviter
      * toute migration de schéma.
+     *
+     * Round 191 : retourne désormais bool (true = conversion réellement
+     * enregistrée, ou déjà enregistrée précédemment — dans les deux cas
+     * l'appelant peut nettoyer la ligne neria_attribution en toute sécurité ;
+     * false = tentative avortée pour une raison TRANSITOIRE — token inconnu,
+     * boutique différente, ou verrou non obtenu sous contention — auparavant
+     * indiscernable d'un succès pour l'appelant. hookActionOrderStatusPostUpdate
+     * (neria.php) journalisait "conversion enregistrée" et supprimait
+     * définitivement la ligne neria_attribution même sur ces échecs
+     * transitoires, perdant le token sans jamais avoir réellement crédité
+     * la conversion — notamment sous verrou non obtenu (2 changements de
+     * statut de commande quasi simultanés, cas documenté juste au-dessus
+     * comme fréquent avec certains modules de paiement), sous-évaluant
+     * durablement le ROI sans que rien ne le signale.
      */
-    public function recordConversion(string $token, int $idOrder, float $amount, int $idShop = 0): void
+    public function recordConversion(string $token, int $idOrder, float $amount, int $idShop = 0): bool
     {
         $sent = $this->getSentByToken($token);
         if (!$sent) {
-            return;
+            return false;
         }
 
         // Le cookie neria_ref n'a pas d'attribut domain explicite (host-only
@@ -849,7 +863,7 @@ class StatsManager
         // id_shop=1 étant le minimum valide sur une install PrestaShop, 0
         // n'est jamais une vraie boutique légitime : pas besoin de ce garde.
         if (isset($sent['id_shop']) && (int) $sent['id_shop'] !== $idShop) {
-            return;
+            return false;
         }
 
         // Même piège de course que recordOpen()/recordClick() (voir leurs
@@ -869,11 +883,11 @@ class StatsManager
                 \WatchdogManager::i18nMsg('watchdog.stats_lock_failed', ['event' => self::EVENT_CONVERSION, 'token' => $token]),
                 $sent['template'] ?? '', 'StatsManager'
             );
-            return;
+            return false;
         }
         try {
             if ($this->eventExists($token, self::EVENT_CONVERSION)) {
-                return; // déjà attribuée
+                return true; // déjà attribuée — pas un échec, sûr de nettoyer neria_attribution
             }
 
             $this->record(
@@ -905,6 +919,8 @@ class StatsManager
             'revenue'        => $amount,
             'tracking_token' => $token,
         ]);
+
+        return true;
     }
 
     /**

@@ -1006,6 +1006,20 @@ class CalendarManager
             return false;
         }
 
+        // Round 191 : BounceManager ajouté — absent jusqu'ici, alors que
+        // les 8 autres chemins d'envoi du module (CertificateManager,
+        // CollectionManager, CustomerEmailHistoryManager,
+        // LookCompletionManager, ManualSendManager, OrderTriggersManager,
+        // QueueManager) vérifient tous BounceManager::isBounced($email)
+        // juste avant Mail::Send(). Sans ce contrôle, une adresse en hard
+        // bounce continuait de recevoir les emails calendrier (Noël, fête
+        // des mères, etc.), dégradant la réputation du domaine d'envoi —
+        // exactement le cas que BounceManager existe pour prévenir ailleurs
+        // dans le module.
+        if (class_exists('BounceManager') && \BounceManager::isBounced($customer['email'])) {
+            return false;
+        }
+
         // La sélection en amont ne filtre que customer.newsletter = 1 (flag
         // global PS) — un client ayant désactivé spécifiquement la catégorie
         // Neria de CE template (préférences granulaires par catégorie) tout

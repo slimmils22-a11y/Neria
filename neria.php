@@ -854,7 +854,22 @@ class Neria extends Module
             return;
         }
 
-        (new StatsManager($this))->recordConversion($token, $idOrder, $amount, (int) $order->id_shop);
+        // Round 191 : $recorded vérifié — recordConversion() retourne
+        // désormais false sur un échec TRANSITOIRE (token inconnu, boutique
+        // différente, ou verrou GET_LOCK non obtenu sous contention, cf. son
+        // commentaire). Auparavant le code journalisait "conversion
+        // enregistrée" et supprimait DÉFINITIVEMENT la ligne neria_attribution
+        // même sur ces échecs — perdant le token sans jamais avoir
+        // réellement crédité la conversion, notamment quand une commande
+        // traverse 2 statuts quasi simultanément (verrou perdu par la 2e
+        // tentative) : le même piège documenté juste au-dessus pour l'échec
+        // de chargement de la commande, mais appliqué de façon incohérente
+        // ici. On abandonne cette tentative : la ligne reste en base pour
+        // être retentée au prochain changement de statut.
+        $recorded = (new StatsManager($this))->recordConversion($token, $idOrder, $amount, (int) $order->id_shop);
+        if (!$recorded) {
+            return;
+        }
 
         if (class_exists('WatchdogManager')) {
             (new WatchdogManager($this))->info(
