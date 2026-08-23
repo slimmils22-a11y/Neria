@@ -4930,7 +4930,10 @@ class HealthCheckManager
             }
 
             $posBch149 = strpos($erSrc149, 'private function buildCompiledHtml(');
-            $bchBody149 = $posBch149 !== false ? substr($erSrc149, $posBch149, 9000) : '';
+            // Round 188 : fenêtre élargie 9000→9600 — le correctif
+            // preg_replace_callback() (bug $ + chiffre traité comme
+            // rétro-référence) a allongé cette méthode de part et d'autre.
+            $bchBody149 = $posBch149 !== false ? substr($erSrc149, $posBch149, 9600) : '';
             if ($posBch149 === false
                 || strpos($bchBody149, '$safeExtraReplacements = $extraReplacements;') === false
                 || strpos($bchBody149, '!in_array($nameKey, self::HTML_SAFE_RAW_KEYS, true)') === false
@@ -6546,6 +6549,61 @@ class HealthCheckManager
             $offenders[] = 'BehavioralCronManager.php introuvable (garde-fou round 187)';
         } elseif (strpos($bcmSrc187, "'{shop_name}'   => \\Configuration::get('PS_SHOP_NAME', null, null, \$idShop),") === false) {
             $offenders[] = "BehavioralCronManager::send() ne résout plus {shop_name} avec \$idShop — régression du bug corrigé le 23/08/2026 (round 187) : un email comportemental (anniversaire, relance panier, etc.) sur une install multi-boutiques afficherait de nouveau le nom d'une boutique différente de celle du client destinataire";
+        }
+
+        // Round 188 (23/08/2026) : EmailRenderer::buildCompiledHtml() (2
+        // occurrences) doit injecter le bloc neria_content via
+        // preg_replace_callback(), pas preg_replace() avec le contenu comme
+        // argument remplacement direct.
+        $erSrc188 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($erSrc188 === '') {
+            $offenders[] = 'EmailRenderer.php introuvable (garde-fou round 188)';
+        } else {
+            $ccCount188 = substr_count($erSrc188, "preg_replace_callback(\n            '/\\{block\\s+name=[\\'\"]neria_content[\\'\\\"]\\}\\{\\/block\\}/',");
+            if ($ccCount188 < 2) {
+                $offenders[] = "EmailRenderer::buildCompiledHtml() n'injecte plus (ou plus assez) le bloc neria_content via preg_replace_callback() — régression du bug corrigé le 23/08/2026 (round 188) : preg_replace() interpréterait de nouveau tout '\$' suivi d'un chiffre dans le contenu compilé (ex. un prix \"\$50\") comme une rétro-référence et le supprimerait silencieusement";
+            }
+        }
+
+        // Round 188 (23/08/2026) : MonthlyReportManager::renderHtml()/
+        // resolveRecVars() doivent résoudre PS_CURRENCY_DEFAULT avec
+        // $this->idShop explicite, pas via Currency::getDefaultCurrency()
+        // (contexte boutique statique non fiable en multi-boutique).
+        $mrmSrc188 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php');
+        if ($mrmSrc188 === '') {
+            $offenders[] = 'MonthlyReportManager.php introuvable (garde-fou round 188)';
+        } else {
+            $curCount188 = substr_count($mrmSrc188, "Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$this->idShop)");
+            if ($curCount188 < 2) {
+                $offenders[] = "MonthlyReportManager ne résout plus PS_CURRENCY_DEFAULT avec \$this->idShop explicite (trouvé {$curCount188}/2) — régression du bug corrigé le 23/08/2026 (round 188) : le CA du rapport mensuel d'une boutique pourrait de nouveau s'afficher avec la devise d'une autre boutique";
+            }
+        }
+
+        // Round 188 (23/08/2026) : unsubscribe.php doit appeler
+        // PreferencesManager::saveByCustomer() sans condition sur
+        // $customerId, pour couvrir aussi les invités (id_customer=0).
+        $unsubSrc188 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/unsubscribe.php');
+        if ($unsubSrc188 === '') {
+            $offenders[] = 'unsubscribe.php introuvable (garde-fou round 188)';
+        } else {
+            $posPrefBlock188 = strpos($unsubSrc188, "class_exists('PreferencesManager')");
+            $posSaveCall188 = $posPrefBlock188 !== false ? strpos($unsubSrc188, '->saveByCustomer(', $posPrefBlock188) : false;
+            $between188 = ($posPrefBlock188 !== false && $posSaveCall188 !== false)
+                ? substr($unsubSrc188, $posPrefBlock188, $posSaveCall188 - $posPrefBlock188)
+                : '';
+            if ($posPrefBlock188 === false || $posSaveCall188 === false || strpos($between188, 'if ($customerId > 0)') !== false) {
+                $offenders[] = "unsubscribe.php gate de nouveau saveByCustomer() derrière une condition sur \$customerId — régression du bug corrigé le 23/08/2026 (round 188) : un invité (id_customer=0, jamais devenu client PrestaShop) ne verrait de nouveau jamais sa ligne neria_preferences créée lors d'un désabonnement, continuant à recevoir les autres catégories d'emails Neria malgré la confirmation de désabonnement";
+            }
+        }
+
+        // Round 188 (23/08/2026) : upgrade-1.0.40.php ne doit plus utiliser
+        // SHOW TABLES LIKE (plante sous certains couples MySQL/PDO), partout
+        // remplacé par information_schema.TABLES.
+        $up140Src188 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/upgrade/upgrade-1.0.40.php');
+        if ($up140Src188 === '') {
+            $offenders[] = 'upgrade-1.0.40.php introuvable (garde-fou round 188)';
+        } elseif (strpos($up140Src188, "getValue(\"SHOW TABLES LIKE") !== false) {
+            $offenders[] = "upgrade-1.0.40.php utilise de nouveau SHOW TABLES LIKE via Db::getValue() — régression du bug corrigé le 23/08/2026 (round 188) : ce motif plante sous certains couples MySQL/PDO (LIMIT 1 auto-ajouté), pouvant faire échouer/sauter silencieusement le backfill id_shop sur une install multi-boutiques";
         }
 
         if ($offenders) {
