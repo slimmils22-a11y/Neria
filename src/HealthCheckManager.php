@@ -6715,6 +6715,38 @@ class HealthCheckManager
             }
         }
 
+        // Round 191 (23/08/2026) : StatsManager::recordConversion() doit
+        // retourner bool, et hookActionOrderStatusPostUpdateImpl() (neria.php)
+        // doit vérifier ce résultat avant de journaliser/supprimer la ligne
+        // neria_attribution.
+        $smSrc191 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        if ($smSrc191 === '') {
+            $offenders[] = 'StatsManager.php introuvable (garde-fou round 191)';
+        } elseif (strpos($smSrc191, 'public function recordConversion(string $token, int $idOrder, float $amount, int $idShop = 0): bool') === false) {
+            $offenders[] = "StatsManager::recordConversion() n'a plus de type de retour bool — régression du bug corrigé le 23/08/2026 (round 191) : l'appelant (neria.php) ne pourrait de nouveau plus distinguer un échec transitoire (token inconnu, boutique différente, verrou non obtenu) d'un succès";
+        }
+        $mainSrc191 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($mainSrc191 === '') {
+            $offenders[] = 'neria.php introuvable (garde-fou round 191)';
+        } else {
+            $posCall191 = strpos($mainSrc191, '$recorded = (new StatsManager($this))->recordConversion($token, $idOrder, $amount, (int) $order->id_shop);');
+            $posDelete191 = strpos($mainSrc191, "DELETE FROM `' . _DB_PREFIX_ . 'neria_attribution` WHERE id_order = ' . \$idOrder", $posCall191 !== false ? $posCall191 : 0);
+            $between191 = ($posCall191 !== false && $posDelete191 !== false) ? substr($mainSrc191, $posCall191, $posDelete191 - $posCall191) : '';
+            if ($posCall191 === false || $posDelete191 === false || strpos($between191, 'if (!$recorded) {') === false) {
+                $offenders[] = "hookActionOrderStatusPostUpdateImpl() ne vérifie plus le résultat de recordConversion() avant de journaliser/supprimer la ligne neria_attribution — régression du bug corrigé le 23/08/2026 (round 191) : un échec transitoire journaliserait de nouveau faussement 'conversion enregistrée' et perdrait définitivement le token d'attribution";
+            }
+        }
+
+        // Round 191 (23/08/2026) : CalendarManager::sendCalendarEmail() doit
+        // vérifier BounceManager::isBounced(), comme les 8 autres chemins
+        // d'envoi du module.
+        $cmSrc191 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php');
+        if ($cmSrc191 === '') {
+            $offenders[] = 'CalendarManager.php introuvable (garde-fou round 191)';
+        } elseif (strpos($cmSrc191, "\\BounceManager::isBounced(\$customer['email'])") === false) {
+            $offenders[] = "CalendarManager::sendCalendarEmail() ne vérifie plus BounceManager::isBounced() — régression du bug corrigé le 23/08/2026 (round 191) : une adresse en hard bounce recevrait de nouveau les emails calendrier (Noël, fête des mères, etc.), dégradant la réputation du domaine d'envoi";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
