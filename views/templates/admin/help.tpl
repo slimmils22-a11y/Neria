@@ -19,7 +19,7 @@
     </button>
   </h2>
   <div id="neria-wd-timestamp" style="font-size:11px;color:#aaa;text-align:right;margin-top:-8px;margin-bottom:8px;"></div>
-  <div style="font-size:11px;color:#9a8365;background:#fbf6ec;border:1px solid #e8d5b0;border-radius:5px;padding:8px 12px;margin-bottom:16px;line-height:1.5;">
+  <div style="font-size:11px;color:#9a8365;background:#fbf6ec;border:1px solid #e8d5b0;border-radius:5px;padding:8px 12px;margin-top:16px;margin-bottom:16px;line-height:1.5;">
     ℹ️ {neria_admin key='help.wd_score_window_note'}
   </div>
 
