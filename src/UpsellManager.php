@@ -584,16 +584,29 @@ class UpsellManager
 
     /**
      * Enregistre un clic sur le lien upsell (depuis track.php).
+     *
+     * Round 187 : $idCustomer (déduit du token de tracking déjà validé par
+     * l'appelant) ajouté à la clause WHERE. id_upsell seul (clé auto-
+     * incrémentée séquentielle) ne prouvait rien sur l'identité de
+     * l'appelant : n'importe quel destinataire d'un email légitime (donc
+     * en possession d'UN token valide, quel qu'il soit) pouvait forger
+     * track.php?e=click&t=<son propre token>&url=...?neria_ur=N en faisant
+     * varier N pour marquer clicked_at sur les lignes upsell d'AUTRES
+     * clients — faussant l'attribution de revenu upsell store-wide
+     * (checkConversions() attribue ensuite tout achat du client CIBLÉ dans
+     * les 7 jours à la suggestion falsifiée) et bloquant définitivement le
+     * vrai clic futur de ce client (garde clicked_at IS NULL ci-dessous).
      */
-    public function recordClick(int $idUpsell): void
+    public function recordClick(int $idUpsell, int $idCustomer): void
     {
-        if ($idUpsell <= 0) {
+        if ($idUpsell <= 0 || $idCustomer <= 0) {
             return;
         }
         $this->db->execute(
             "UPDATE `{$this->prefix}neria_upsell`
              SET clicked_at = NOW()
              WHERE id_upsell = " . (int) $idUpsell . "
+               AND id_customer = " . (int) $idCustomer . "
                AND clicked_at IS NULL"
         );
     }

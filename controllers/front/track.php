@@ -119,23 +119,30 @@ class NeriaTrackModuleFrontController extends ModuleFrontController
                         // atteignable avec un token totalement inconnu/inexistant
                         // en base, sans aucune vérification de signature HMAC
                         // (contrairement à la redirection, protégée par
-                        // NeriaTools::verifyTrackingUrl() juste plus bas). Seul
-                        // $trackingWriteAllowed (throttling best-effort par
-                        // IP+token, contournable en faisant varier le token)
-                        // protégeait UpsellManager::recordClick() — une écriture
-                        // SQL sans authentification réelle. Un attaquant pouvait
-                        // ainsi figer clicked_at de n'importe quelle ligne
-                        // neria_upsell en boucle (id_upsell croissant, token
-                        // variable), faussant l'attribution de revenu upsell et
+                        // NeriaTools::verifyTrackingUrl() juste plus bas).
+                        //
+                        // Round 187 : id_customer du token (déjà validé, $ref)
+                        // transmis à recordClick() et vérifié en base. Être à
+                        // l'intérieur de if ($ref) garantissait un token
+                        // EXISTANT, mais pas que id_upsell (clé auto-incrémentée
+                        // séquentielle, prise telle quelle dans l'URL cible)
+                        // appartienne au client de CE token. Un destinataire en
+                        // possession d'un token valide pour SA PROPRE adresse
+                        // pouvait donc forger n'importe quel neria_ur et figer
+                        // clicked_at sur les lignes upsell d'AUTRES clients —
+                        // faussant l'attribution de revenu upsell store-wide et
                         // empêchant silencieusement l'enregistrement du vrai
-                        // clic ultérieur du client (clause AND clicked_at IS NULL).
+                        // clic ultérieur de ces clients (clause clicked_at IS
+                        // NULL). recordClick() rejette maintenant toute ligne
+                        // dont id_customer ne correspond pas à $ref['id_customer'].
                         if ($trackingWriteAllowed && $url !== '' && class_exists('UpsellManager')) {
                             $parsed = parse_url($url);
                             if (!empty($parsed['query'])) {
                                 parse_str($parsed['query'], $qp);
                                 $idUpsell = (int) ($qp['neria_ur'] ?? 0);
-                                if ($idUpsell > 0) {
-                                    (new UpsellManager($this->module))->recordClick($idUpsell);
+                                $idCustomerRef = (int) ($ref['id_customer'] ?? 0);
+                                if ($idUpsell > 0 && $idCustomerRef > 0) {
+                                    (new UpsellManager($this->module))->recordClick($idUpsell, $idCustomerRef);
                                 }
                             }
                         }

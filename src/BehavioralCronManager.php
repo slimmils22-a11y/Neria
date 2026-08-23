@@ -1990,7 +1990,19 @@ class BehavioralCronManager
                 [
                     '{firstname}'   => $customer['firstname'],
                     '{lastname}'    => $customer['lastname'],
-                    '{shop_name}'   => \Configuration::get('PS_SHOP_NAME'),
+                    // Round 187 : $idShop ajouté — absent jusqu'ici alors que
+                    // ce même send() résout déjà $idShop correctement pour
+                    // historyUrl()/Mail::Send() juste en-dessous, et que
+                    // QueueManager::processSingle() le fait pour cette MÊME
+                    // variable dans le même flux d'envoi (email comportemental
+                    // en file, envoyé à l'heure préférée du client). Sans ce
+                    // scope, sur une install multi-boutiques avec un
+                    // PS_SHOP_NAME distinct par boutique, tout email envoyé
+                    // directement par send() (pas via la file) affichait le
+                    // nom de la boutique du contexte Configuration COURANT au
+                    // moment de l'exécution du cron — pas forcément celle du
+                    // client réellement destinataire.
+                    '{shop_name}'   => \Configuration::get('PS_SHOP_NAME', null, null, $idShop),
                     '{history_url}' => $this->historyUrl($idLang, $idShop),
                 ],
                 $extraVars

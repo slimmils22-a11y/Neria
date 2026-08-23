@@ -310,10 +310,25 @@ class WaitlistManager
             // lui aussi Affected_Rows() > 0, envoyant le même email deux
             // fois. Le délai d'1h permet de récupérer un claim orphelin
             // (process mort avant notified_at) sans bloquer le client à vie.
+            // Round 187 : id_product_attribute ajouté à CETTE requête et aux
+            // 3 suivantes de ce bloc (re-vérification, notified_at, libération
+            // de réclamation) — absent jusqu'ici alors que le SELECT initial
+            // (plus haut) scope déjà correctement par déclinaison précise
+            // (round 167, cf. commentaire ci-dessus sur $rows). Un client
+            // inscrit sur DEUX déclinaisons différentes du même produit
+            // (ex. taille S et taille L) a deux lignes distinctes en base.
+            // Sans ce filtre, traiter la ligne de la taille S (réassortie)
+            // matchait AUSSI la ligne taille L (jamais réassortie, filtrée
+            // hors de $rows plus haut) — la marquant à tort notified_at alors
+            // qu'aucun email n'a jamais été envoyé pour cette déclinaison :
+            // le client perd silencieusement sa notification de retour en
+            // stock pour la taille L.
+            $idProductAttribute = (int) $row['id_product_attribute'];
             $claimed = $this->db->execute(
                 "UPDATE `{$this->prefix}" . self::TABLE . "`
                  SET claim_started_at = NOW()
-                 WHERE id_customer = {$idCustomer} AND id_product = {$idProduct} AND id_shop = {$idShop}
+                 WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
+                   AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}
                    AND notified_at IS NULL
                    AND (claim_started_at IS NULL OR claim_started_at < DATE_SUB(NOW(), INTERVAL 1 HOUR))"
             ) && $this->db->Affected_Rows() > 0;
@@ -334,7 +349,8 @@ class WaitlistManager
             // dans tout système de notification "au moins une fois").
             $stillRegistered = (int) $this->db->getValue(
                 "SELECT COUNT(*) FROM `{$this->prefix}" . self::TABLE . "`
-                 WHERE id_customer = {$idCustomer} AND id_product = {$idProduct} AND id_shop = {$idShop}"
+                 WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
+                   AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
             ) > 0;
             if (!$stillRegistered) {
                 continue; // désinscrit entre le claim et l'envoi
@@ -358,7 +374,8 @@ class WaitlistManager
                     $this->db->execute(
                         "UPDATE `{$this->prefix}" . self::TABLE . "`
                          SET notified_at = NOW()
-                         WHERE id_customer = {$idCustomer} AND id_product = {$idProduct} AND id_shop = {$idShop}"
+                         WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
+                           AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
                     );
                     $sent++;
 
@@ -373,7 +390,8 @@ class WaitlistManager
                     $this->db->execute(
                         "UPDATE `{$this->prefix}" . self::TABLE . "`
                          SET claim_started_at = NULL
-                         WHERE id_customer = {$idCustomer} AND id_product = {$idProduct} AND id_shop = {$idShop}"
+                         WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
+                           AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
                     );
                 }
             } catch (\Throwable $e) {
@@ -381,7 +399,8 @@ class WaitlistManager
                 $this->db->execute(
                     "UPDATE `{$this->prefix}" . self::TABLE . "`
                      SET claim_started_at = NULL
-                     WHERE id_customer = {$idCustomer} AND id_product = {$idProduct} AND id_shop = {$idShop}"
+                     WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
+                       AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
                 );
                 if (class_exists('WatchdogManager')) {
                     (new \WatchdogManager($this->module))->error(

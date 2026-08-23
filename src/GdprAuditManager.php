@@ -821,18 +821,49 @@ class GdprAuditManager
                 $total += $count;
             }
         }
-        // Purge par email : neria_preferences + neria_bounces (pas d'id_customer)
+        // Purge par email : neria_preferences + neria_bounces.
+        //
+        // Round 187 : neria_preferences a désormais AUSSI un filtre
+        // id_customer (en plus de l'email) — absent jusqu'ici. Sa clé unique
+        // est (id_shop, id_customer, email, category) : deux CLIENTS
+        // DIFFÉRENTS sur deux boutiques distinctes d'une même install
+        // multi-boutiques peuvent légitimement partager le même email
+        // (boutiques indépendantes, ou coïncidence). Sans le filtre
+        // id_customer, une demande d'effacement RGPD traitée pour le client
+        // de la Boutique A supprimait AUSSI, silencieusement, la ligne
+        // préférences (opt-in/out) d'un client totalement différent sur la
+        // Boutique B qui partage juste cet email — une suppression non
+        // autorisée des données d'un tiers. id_customer identifie de façon
+        // unique le VRAI client PrestaShop (même à travers plusieurs
+        // boutiques d'un même groupe), contrairement à l'email seul.
+        //
+        // neria_bounces reste purgée par email SEUL, sans changement : cette
+        // table n'a pas de colonne id_customer (ni id_shop) — un rebond est
+        // par nature attaché à une adresse email, pas à un compte client
+        // précis, et reste volontairement global (clé unique sur `email`).
         if ($email !== '') {
             $emailSql = pSQL(strtolower($email));
-            foreach (['neria_preferences', 'neria_bounces'] as $tbl) {
-                $full = _DB_PREFIX_ . $tbl;
-                $exists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($full) . "'");
-                if (!is_array($exists) || empty($exists)) {
-                    continue;
-                }
-                $n = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$full}` WHERE `email` = '{$emailSql}'");
+
+            $prefTable = _DB_PREFIX_ . 'neria_preferences';
+            $exists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($prefTable) . "'");
+            if (is_array($exists) && !empty($exists)) {
+                $n = (int) $this->db->getValue(
+                    "SELECT COUNT(*) FROM `{$prefTable}` WHERE `email` = '{$emailSql}' AND `id_customer` = " . (int) $idCustomer
+                );
                 if ($n > 0) {
-                    $this->db->execute("DELETE FROM `{$full}` WHERE `email` = '{$emailSql}'");
+                    $this->db->execute(
+                        "DELETE FROM `{$prefTable}` WHERE `email` = '{$emailSql}' AND `id_customer` = " . (int) $idCustomer
+                    );
+                    $total += $n;
+                }
+            }
+
+            $bouncesTable = _DB_PREFIX_ . 'neria_bounces';
+            $exists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($bouncesTable) . "'");
+            if (is_array($exists) && !empty($exists)) {
+                $n = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$bouncesTable}` WHERE `email` = '{$emailSql}'");
+                if ($n > 0) {
+                    $this->db->execute("DELETE FROM `{$bouncesTable}` WHERE `email` = '{$emailSql}'");
                     $total += $n;
                 }
             }
