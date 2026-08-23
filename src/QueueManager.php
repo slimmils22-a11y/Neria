@@ -432,8 +432,26 @@ class QueueManager
                 && (new \ConfigManager($this->module))->isCooldownEnabled()
             ) {
                 $cdMinutes = (new \ConfigManager($this->module))->getCooldownMinutes();
-                $cdIdOrder = (int) ($row['ref_id'] ?? 0);
-                if ((new \CooldownManager())->isDuplicate($toEmail, $template, $cdMinutes, $idShop, $cdIdOrder)) {
+                // Round 190 : $idOrder/$refScope lus depuis $allVars
+                // (mêmes clés {id_order}/{cooldown_scope} que
+                // hookActionEmailSendBefore dans neria.php), PAS row['ref_id']
+                // — row['ref_id'] est un identifiant de dédup GÉNÉRIQUE de la
+                // file (année×mois pour wishlist_reminder, id_cart pour
+                // checkout_abandonment, id_order seulement pour certains
+                // templates), pas systématiquement un id de commande.
+                // L'utiliser tel quel comme $idOrder produisait une clause
+                // SQL "AND id_order = <valeur>" qui ne matchait alors JAMAIS
+                // aucune ligne réelle de neria_stat pour ces templates : ce
+                // pré-contrôle (censé, depuis le round 178, marquer la ligne
+                // 'failed'/'cooldown' AVANT Mail::Send()) ne se déclenchait
+                // quasiment jamais. Mail::Send() était alors appelé, le hook
+                // global bloquait bien l'envoi réel mais renvoyait TOUJOURS
+                // true, et la ligne était marquée à tort 'sent' + insérée
+                // dans neria_behavioral_sent — verrouillant définitivement ce
+                // créneau alors que l'email n'a jamais été livré.
+                $cdIdOrder  = (int) ($allVars['{id_order}'] ?? 0);
+                $cdRefScope = (string) ($allVars['{cooldown_scope}'] ?? '');
+                if ((new \CooldownManager())->isDuplicate($toEmail, $template, $cdMinutes, $idShop, $cdIdOrder, $cdRefScope)) {
                     return $this->markQueueFailed($id, 'cooldown');
                 }
             }

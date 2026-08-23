@@ -995,8 +995,18 @@ class ManualSendManager
             return ['blocked' => false, 'message' => ''];
         }
 
+        // Round 190 : $customer['id_shop'] (boutique du CLIENT réel) prioritaire
+        // sur Context::getContext()->shop->id (contexte BO de l'opérateur qui
+        // prévisualise l'envoi) — même piège déjà corrigé partout ailleurs
+        // dans cette classe (send()/scheduleManual()/checkAnniversaryConflict(),
+        // cf. commentaires round 136/156). Sans ce correctif, un opérateur en
+        // contexte Boutique A prévisualisant un envoi pour un client de la
+        // Boutique B voyait un bandeau "autorisé"/"bloqué" évalué sur les
+        // préférences de la MAUVAISE boutique — pouvant afficher "autorisé"
+        // alors que l'envoi réel (qui utilise bien $customer['id_shop']) sera
+        // bloqué, ou l'inverse, juste avant que l'opérateur clique Envoyer.
         $customer  = $this->findCustomer($email);
-        $idShop    = (int) \Context::getContext()->shop->id;
+        $idShop    = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
         $idCustomer = $customer ? (int) $customer['id_customer'] : 0;
 
         $allowed = (new \PreferencesManager($this->module))->isAllowed($idCustomer, $template, $idShop, $email);

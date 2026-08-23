@@ -204,6 +204,39 @@ class LookCompletionManager
             // bloquaient mutuellement à tort.
             $vars['{id_order}'] = $idOrder;
 
+            // Round 190 : Mail::Send() du cœur PrestaShop retourne TOUJOURS
+            // true quand le hook actionEmailSendBefore annule l'envoi
+            // (bounce/blacklist/cooldown — préférences déjà vérifiées plus
+            // haut) — même piège déjà corrigé pour CollectionManager (round
+            // 180) mais jamais étendu ici. Sans ce contrôle, la réservation
+            // claimSend() n'était jamais libérée (seul le bloc `if ($mailed)`
+            // plus bas ne la libère JAMAIS, réussite ou non) et le client
+            // restait exclu à vie de cette notification (clé UNIQUE
+            // uq_order) même si le blocage était temporaire (bounce/
+            // blacklist levés plus tard).
+            if (class_exists('BounceManager') && \BounceManager::isBounced($customer->email)) {
+                $this->releaseSendClaim($idOrder, $idCustomer);
+                continue;
+            }
+            if (class_exists('BlacklistManager')) {
+                $langIso = class_exists('TranslationEngine')
+                    ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                    : (string) (\Language::getIsoById($idLang) ?: '');
+                if ((new \BlacklistManager($idShop))->isBlacklisted('complete_your_look', $langIso)) {
+                    $this->releaseSendClaim($idOrder, $idCustomer);
+                    continue;
+                }
+            }
+            if (class_exists('ConfigManager') && class_exists('CooldownManager')
+                && (new \ConfigManager($this->module))->isCooldownEnabled()
+            ) {
+                $cdMinutes = (new \ConfigManager($this->module))->getCooldownMinutes();
+                if ((new \CooldownManager())->isDuplicate($customer->email, 'complete_your_look', $cdMinutes, $idShop, $idOrder)) {
+                    $this->releaseSendClaim($idOrder, $idCustomer);
+                    continue;
+                }
+            }
+
             try {
                 $mailed = \Mail::Send(
                     $idLang,
