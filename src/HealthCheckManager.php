@@ -6663,6 +6663,58 @@ class HealthCheckManager
             }
         }
 
+        // Round 190 (23/08/2026) : LookCompletionManager::runDailyCheck()
+        // doit revérifier bounce/blacklist/cooldown avant Mail::Send(), avec
+        // releaseSendClaim() sur chaque blocage (même piège que
+        // CollectionManager corrigé au round 180).
+        $lcSrc190 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
+        if ($lcSrc190 === '') {
+            $offenders[] = 'LookCompletionManager.php introuvable (garde-fou round 190)';
+        } else {
+            $posMailSend190 = strpos($lcSrc190, '$mailed = \Mail::Send(');
+            $posBounce190 = strpos($lcSrc190, "\\BounceManager::isBounced(\$customer->email)");
+            $posBlacklist190 = strpos($lcSrc190, "BlacklistManager(\$idShop))->isBlacklisted('complete_your_look'");
+            $posCooldown190 = strpos($lcSrc190, "CooldownManager())->isDuplicate(\$customer->email, 'complete_your_look'");
+            if ($posMailSend190 === false || $posBounce190 === false || $posBlacklist190 === false || $posCooldown190 === false
+                || $posBounce190 >= $posMailSend190 || $posBlacklist190 >= $posMailSend190 || $posCooldown190 >= $posMailSend190
+            ) {
+                $offenders[] = "LookCompletionManager::runDailyCheck() ne revérifie plus bounce/blacklist/cooldown avant Mail::Send() — régression du bug corrigé le 23/08/2026 (round 190) : un client bloqué (bounce/blacklist/cooldown) serait de nouveau marqué 'envoyé' à tort et exclu à vie de cette notification (clé UNIQUE uq_order), même après la levée du blocage";
+            } else {
+                $guardsBlock190 = substr($lcSrc190, $posBounce190, $posMailSend190 - $posBounce190);
+                if (substr_count($guardsBlock190, 'releaseSendClaim($idOrder, $idCustomer)') !== 3) {
+                    $offenders[] = "LookCompletionManager : les 3 garde-fous bounce/blacklist/cooldown ne libèrent plus systématiquement releaseSendClaim() sur blocage — régression du bug corrigé le 23/08/2026 (round 190)";
+                }
+            }
+        }
+
+        // Round 190 (23/08/2026) : QueueManager::processSingle() doit lire
+        // {id_order}/{cooldown_scope} depuis $allVars pour le pré-contrôle
+        // cooldown, pas row['ref_id'] (identifiant de dédup générique, pas
+        // systématiquement un id de commande).
+        $qmSrc190 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        if ($qmSrc190 === '') {
+            $offenders[] = 'QueueManager.php introuvable (garde-fou round 190)';
+        } elseif (strpos($qmSrc190, "\$cdIdOrder  = (int) (\$allVars['{id_order}'] ?? 0);") === false
+            || strpos($qmSrc190, "\$cdRefScope = (string) (\$allVars['{cooldown_scope}'] ?? 0);") !== false
+            || strpos($qmSrc190, "\$cdRefScope = (string) (\$allVars['{cooldown_scope}'] ?? '');") === false
+        ) {
+            $offenders[] = "QueueManager::processSingle() ne lit plus {id_order}/{cooldown_scope} depuis \$allVars pour le pré-contrôle cooldown — régression du bug corrigé le 23/08/2026 (round 190) : row['ref_id'] (année×mois, id_cart, etc. selon le template) redeviendrait utilisé tel quel comme id_order, ne matchant jamais neria_stat, laissant Mail::Send() être appelé et la ligne marquée à tort 'sent' malgré un blocage réel du hook";
+        }
+
+        // Round 190 (23/08/2026) : ManualSendManager::getPreferencesGuardStatus()
+        // doit résoudre $customer['id_shop'] en priorité sur le contexte BO
+        // de l'opérateur.
+        $msmSrc190 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        if ($msmSrc190 === '') {
+            $offenders[] = 'ManualSendManager.php introuvable (garde-fou round 190)';
+        } else {
+            $posGps190 = strpos($msmSrc190, 'public function getPreferencesGuardStatus(');
+            $gpsBody190 = $posGps190 !== false ? substr($msmSrc190, $posGps190, 1300) : '';
+            if ($posGps190 === false || strpos($gpsBody190, "\$idShop    = (int) (\$customer['id_shop'] ?? \\Context::getContext()->shop->id);") === false) {
+                $offenders[] = "ManualSendManager::getPreferencesGuardStatus() n'utilise plus \$customer['id_shop'] en priorité — régression du bug corrigé le 23/08/2026 (round 190) : le bandeau d'avertissement BO serait de nouveau évalué sur le contexte de l'opérateur au lieu de la boutique réelle du client";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
