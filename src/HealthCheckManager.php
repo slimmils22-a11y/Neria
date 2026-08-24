@@ -7026,6 +7026,19 @@ class HealthCheckManager
             $offenders[] = "SegmentManager::sendToSegment() ne vérifie plus bounce/blacklist/cooldown avant Mail::Send() — régression du bug corrigé le 24/08/2026 (round 200) : une campagne segment recompterait à tort en 'envoyé' des emails silencieusement bloqués par le hook";
         }
 
+        // Round 201 (24/08/2026) : filter_segment (GET) doit être validé
+        // contre la liste blanche SegmentManager::getAllSegments() avant
+        // d'être injecté dans une clé de traduction dynamique dans
+        // segments.tpl — AdminTranslator::t() renvoie sinon la clé BRUTE
+        // (non échappée) pour une clé inconnue, XSS réfléchi via
+        // ?filter_segment=<payload>.
+        $neriaSrc201 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($neriaSrc201 === '') {
+            $offenders[] = 'neria.php introuvable (garde-fou round 201)';
+        } elseif (strpos($neriaSrc201, "if (\$seg !== '' && !in_array(\$seg, SegmentManager::getAllSegments(), true)) {") === false) {
+            $offenders[] = "neria.php ne valide plus filter_segment contre la liste blanche des segments — régression du bug corrigé le 24/08/2026 (round 201) : XSS réfléchi via ?filter_segment=<payload> injecté dans une clé de traduction non échappée de segments.tpl";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
