@@ -6923,6 +6923,48 @@ class HealthCheckManager
             ];
         }
 
+        // Round 197 (23/08/2026) : LoyaltyManager::sendRewardEmail()/
+        // sendRecapToCustomer() doivent vérifier bounce/blacklist avant
+        // Mail::Send().
+        $lmSrc197 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
+        if ($lmSrc197 === '') {
+            $offenders[] = 'LoyaltyManager.php introuvable (garde-fou round 197)';
+        } else {
+            $posReward197 = strpos($lmSrc197, 'private function sendRewardEmail(');
+            $posRewardMail197 = $posReward197 !== false ? strpos($lmSrc197, 'return (bool) \Mail::Send(', $posReward197) : false;
+            $posRewardBounce197 = $posReward197 !== false ? strpos($lmSrc197, "\\BounceManager::isBounced(\$customer->email)", $posReward197) : false;
+            if ($posReward197 === false || $posRewardMail197 === false || $posRewardBounce197 === false || $posRewardBounce197 >= $posRewardMail197) {
+                $offenders[] = "LoyaltyManager::sendRewardEmail() ne vérifie plus BounceManager avant Mail::Send() — régression du bug corrigé le 23/08/2026 (round 197)";
+            }
+            $posRecap197 = strpos($lmSrc197, 'private function sendRecapToCustomer(');
+            $posRecapMail197 = $posRecap197 !== false ? strpos($lmSrc197, '$sent = (bool) \Mail::Send(', $posRecap197) : false;
+            $posRecapBounce197 = $posRecap197 !== false ? strpos($lmSrc197, "\\BounceManager::isBounced(\$customer->email)", $posRecap197) : false;
+            if ($posRecap197 === false || $posRecapMail197 === false || $posRecapBounce197 === false || $posRecapBounce197 >= $posRecapMail197) {
+                $offenders[] = "LoyaltyManager::sendRecapToCustomer() ne vérifie plus BounceManager avant Mail::Send() — régression du bug corrigé le 23/08/2026 (round 197) : un client bloqué raterait de nouveau son récap mensuel sans alerte Watchdog";
+            }
+            // Round 197 : le montant affiché doit utiliser la même devise
+            // que le CartRule réellement généré, pas $this->context->currency.
+            if (strpos($lmSrc197, "NeriaTools::displayPrice((float) \$tier['amount'], \$currencyVoucher, \$idLangCustomer)") === false) {
+                $offenders[] = "LoyaltyManager::checkAndReward() n'utilise plus la devise du CartRule pour le montant affiché — régression du bug corrigé le 23/08/2026 (round 197) : le montant communiqué au client redeviendrait formaté dans la devise de navigation du visiteur, potentiellement différente de la devise réelle du bon généré";
+            }
+        }
+
+        // Round 197 (23/08/2026) : MonthlyReportManager::getRevenueByTemplate()
+        // doit dédupliquer (template, id_order) dans sa requête de CA direct.
+        $mrmSrc197 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php');
+        if ($mrmSrc197 === '') {
+            $offenders[] = 'MonthlyReportManager.php introuvable (garde-fou round 197)';
+        } elseif (strpos($mrmSrc197, 'SELECT DISTINCT s.template, s.id_order, o.total_paid_tax_incl AS order_total') === false) {
+            $offenders[] = "MonthlyReportManager::getRevenueByTemplate() ne dédoublonne plus (template, id_order) pour le CA direct — régression du bug corrigé le 23/08/2026 (round 197) : un renvoi manuel d'un email transactionnel pour la même commande gonflerait de nouveau le CA direct affiché au marchand";
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.known_regressions_error', ['list' => implode(' | ', $offenders)]),
+            ];
+        }
+
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.known_regressions_ok')];
     }
 
