@@ -82,6 +82,45 @@ class SegmentManager
         return $this->watchdog;
     }
 
+    /**
+     * Round 200 : reproduit OrderTriggersManager::explicitSendBlockReason()
+     * (bounce/blacklist/cooldown) pour que sendToSegment() ne compte plus en
+     * "envoyé" un email silencieusement bloqué par le hook
+     * actionEmailSendBefore — Mail::Send() renvoie toujours true dans ce cas.
+     * Pas de scope par commande ici (campagne segment, pas de $idOrder).
+     */
+    private function explicitSendBlockReason(string $template, string $email, int $idLang): ?string
+    {
+        if (class_exists('BounceManager') && \BounceManager::isBounced($email)) {
+            return 'bounce';
+        }
+
+        if (class_exists('BlacklistManager')) {
+            $langIso = class_exists('TranslationEngine')
+                ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                : (string) (\Language::getIsoById($idLang) ?: '');
+            if ((new \BlacklistManager($this->idShop))->isBlacklisted($template, $langIso)) {
+                return 'blacklist';
+            }
+        }
+
+        if (class_exists('ConfigManager') && class_exists('CooldownManager')
+            && (new \ConfigManager($this->module))->isCooldownEnabled()
+        ) {
+            $cdMinutes = (new \ConfigManager($this->module))->getCooldownMinutes();
+            // sendToSegment() ne transmet ni {id_order} ni {cooldown_scope}
+            // dans $vars (cf. neria.php::hookActionEmailSendBeforeImpl()) —
+            // le vrai contrôle exécuté au moment de Mail::Send() est donc
+            // NON scopé ; ce pré-contrôle doit reproduire exactement le
+            // même appel non scopé pour ne pas diverger.
+            if ((new \CooldownManager())->isDuplicate($email, $template, $cdMinutes, $this->idShop)) {
+                return 'cooldown';
+            }
+        }
+
+        return null;
+    }
+
     // ============================================================
     // RECALCUL
     // ============================================================
@@ -558,6 +597,18 @@ class SegmentManager
             // contradiction directe avec sa demande de désabonnement. Même
             // garde-fou que BehavioralCronManager avant chaque envoi.
             if ($preferences !== null && !($allowedMap[(int) $c['id_customer']] ?? true)) {
+                $skipped++;
+                continue;
+            }
+
+            // Round 200 : Mail::Send() renvoie toujours true même quand
+            // hookActionEmailSendBeforeImpl() (neria.php) bloque
+            // silencieusement l'envoi pour bounce/blacklist/cooldown — sans
+            // ce pré-contrôle explicite (déjà appliqué partout ailleurs via
+            // le même pattern, cf. OrderTriggersManager::
+            // explicitSendBlockReason()), une campagne segment comptait à
+            // tort en "envoyé" des emails jamais réellement délivrés.
+            if ($this->explicitSendBlockReason($template, $c['email'], $idLang) !== null) {
                 $skipped++;
                 continue;
             }
