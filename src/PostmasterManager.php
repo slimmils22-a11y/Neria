@@ -191,7 +191,10 @@ class PostmasterManager
         // intervalle) qui écraserait la liste avant que ce state ne soit
         // retiré.
         $db = \Db::getInstance();
-        $db->getValue("SELECT GET_LOCK('neria_postmaster_oauth_state', 3)");
+        // Round 196 : retour de GET_LOCK() vérifié — même correctif que
+        // getAuthUrl() (round 189), jamais porté ici. RELEASE_LOCK() n'est
+        // appelé que si le verrou a réellement été acquis.
+        $locked = (int) $db->getValue("SELECT GET_LOCK('neria_postmaster_oauth_state', 3)") === 1;
         try {
             $pending = $this->loadPendingStates();
             $matchedKey = null;
@@ -206,8 +209,16 @@ class PostmasterManager
             }
             unset($pending[$matchedKey]);
             $this->savePendingStates($pending);
+            if (!$locked) {
+                $this->wd()->warning(
+                    'PostmasterManager::handleCallback() : verrou OAuth state non obtenu (contention) — écriture effectuée sans protection.',
+                    '', 'PostmasterManager'
+                );
+            }
         } finally {
-            $db->execute("SELECT RELEASE_LOCK('neria_postmaster_oauth_state')");
+            if ($locked) {
+                $db->execute("SELECT RELEASE_LOCK('neria_postmaster_oauth_state')");
+            }
         }
 
         $response = $this->httpPost(self::TOKEN_URL, [

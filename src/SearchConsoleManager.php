@@ -217,8 +217,11 @@ class SearchConsoleManager
     public function handleCallback(string $code, string $state): bool
     {
         // Round 122 : même verrou que getAuthUrl().
+        // Round 196 : retour de GET_LOCK() vérifié — même correctif que
+        // getAuthUrl() (round 189), jamais porté ici. RELEASE_LOCK() n'est
+        // appelé que si le verrou a réellement été acquis.
         $db = \Db::getInstance();
-        $db->getValue("SELECT GET_LOCK('neria_search_console_oauth_state', 3)");
+        $locked = (int) $db->getValue("SELECT GET_LOCK('neria_search_console_oauth_state', 3)") === 1;
         try {
             $pending = $this->loadPendingStates();
             $matchedKey = null;
@@ -233,8 +236,16 @@ class SearchConsoleManager
             }
             unset($pending[$matchedKey]);
             $this->savePendingStates($pending);
+            if (!$locked) {
+                $this->wd()->warning(
+                    'SearchConsoleManager::handleCallback() : verrou OAuth state non obtenu (contention) — écriture effectuée sans protection.',
+                    '', 'SearchConsoleManager'
+                );
+            }
         } finally {
-            $db->execute("SELECT RELEASE_LOCK('neria_search_console_oauth_state')");
+            if ($locked) {
+                $db->execute("SELECT RELEASE_LOCK('neria_search_console_oauth_state')");
+            }
         }
 
         $response = $this->httpPost(self::TOKEN_URL, [

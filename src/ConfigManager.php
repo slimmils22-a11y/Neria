@@ -934,7 +934,19 @@ class ConfigManager
         // intégralement le masquage posé par le premier, qui réapparaît
         // silencieusement dans le menu.
         $db = \Db::getInstance();
-        $db->getValue("SELECT GET_LOCK('neria_menu_hidden_items', 3)");
+        // Round 196 : retour de GET_LOCK() vérifié — même correctif que
+        // toggleBooleanKey() (round 141), jamais porté ici. Sous contention,
+        // on refuse la bascule plutôt que de modifier la config sans
+        // protection (même stratégie que la méthode jumelle).
+        $gotLock = (int) $db->getValue("SELECT GET_LOCK('neria_menu_hidden_items', 3)");
+        if ($gotLock !== 1) {
+            $this->watchdog()->warning(
+                'ConfigManager::toggleMenuItemVisibility() : verrou MySQL non acquis pour ' . $key . ', bascule annulée',
+                '',
+                'ConfigManager'
+            );
+            return;
+        }
         try {
             $hidden = $this->getHiddenMenuItems();
             if (in_array($key, $hidden, true)) {
