@@ -6102,7 +6102,19 @@ class Neria extends Module
             'segment_counts'      => class_exists('SegmentManager')
                 ? (new SegmentManager($this))->getSegmentCounts()
                 : [],
-            'segment_customers'   => (function () use ($activeTab) {
+            // Round 201 : filter_segment (paramètre GET) était repris tel
+            // quel, sans validation contre la liste blanche des segments
+            // réels, puis injecté dans une clé de traduction dynamique
+            // ({neria_admin key="seg.label_{$segment_filter}"} dans
+            // segments.tpl). AdminTranslator::t() renvoie la clé BRUTE, non
+            // échappée, quand aucune traduction n'existe — et smartyHelper()
+            // n'échappe la sortie que si 'esc=html' est explicitement
+            // passé, ce qui n'était pas le cas ici. Un lien
+            // ?filter_segment=<img src=x onerror=...> ouvert par un employé
+            // BO exécutait du JavaScript arbitraire dans le contexte admin
+            // (XSS réfléchi). Corrigé en validant $seg une seule fois ici,
+            // contre la liste blanche réelle des segments.
+            'segment_customers'   => (function () use ($activeTab, &$neriaSegFilter) {
                 if (!class_exists('SegmentManager')) {
                     return [];
                 }
@@ -6110,9 +6122,13 @@ class Neria extends Module
                 if ($seg === '' && $activeTab === 'segments') {
                     $seg = SegmentManager::AMBASSADOR;
                 }
+                if ($seg !== '' && !in_array($seg, SegmentManager::getAllSegments(), true)) {
+                    $seg = SegmentManager::AMBASSADOR;
+                }
+                $neriaSegFilter = $seg;
                 return $seg !== '' ? (new SegmentManager($this))->getCustomersBySegment($seg, 50) : [];
             })(),
-            'segment_filter'      => (string) Tools::getValue('filter_segment', SegmentManager::AMBASSADOR),
+            'segment_filter'      => $neriaSegFilter ?? SegmentManager::AMBASSADOR,
             'segment_all'         => class_exists('SegmentManager') ? SegmentManager::getAllSegments() : [],
             'segment_campaign_templates' => class_exists('SegmentManager') ? SegmentManager::CAMPAIGN_TEMPLATES : [],
             'segment_recommended' => class_exists('SegmentManager') ? SegmentManager::RECOMMENDED_TEMPLATES : [],
