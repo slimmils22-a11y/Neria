@@ -7012,6 +7012,20 @@ class HealthCheckManager
             $offenders[] = "HealthCheckManager::checkCssInlinerSilentFailures() ne passe plus \$this->idShop à Configuration::get()/updateValue() — régression du bug corrigé le 24/08/2026 (round 199)";
         }
 
+        // Round 200 (24/08/2026) : SegmentManager::sendToSegment() doit
+        // vérifier bounce/blacklist/cooldown (explicitSendBlockReason())
+        // avant Mail::Send(), comme OrderTriggersManager/QueueManager/
+        // ManualSendManager — Mail::Send() renvoie toujours true même quand
+        // le hook actionEmailSendBefore bloque silencieusement l'envoi.
+        $smSrc200 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php');
+        if ($smSrc200 === '') {
+            $offenders[] = 'SegmentManager.php introuvable (garde-fou round 200)';
+        } elseif (strpos($smSrc200, 'private function explicitSendBlockReason(string $template, string $email, int $idLang): ?string') === false
+            || strpos($smSrc200, "if (\$this->explicitSendBlockReason(\$template, \$c['email'], \$idLang) !== null) {") === false
+        ) {
+            $offenders[] = "SegmentManager::sendToSegment() ne vérifie plus bounce/blacklist/cooldown avant Mail::Send() — régression du bug corrigé le 24/08/2026 (round 200) : une campagne segment recompterait à tort en 'envoyé' des emails silencieusement bloqués par le hook";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
