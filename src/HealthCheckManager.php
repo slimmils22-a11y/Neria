@@ -6992,6 +6992,26 @@ class HealthCheckManager
             $offenders[] = "PageSpeedManager::getReport() ne retombe plus sur le dernier rapport connu — régression du bug corrigé le 24/08/2026 (round 198) : une panne/rate-limit transitoire de l'API ferait de nouveau passer le widget BO de 'scores valables' à VIDE au lieu d'afficher les derniers scores connus";
         }
 
+        // Round 199 (24/08/2026) : le compteur d'échecs silencieux
+        // d'inlining CSS doit être lu/écrit avec $idShop passé explicitement
+        // à Configuration::get()/updateValue(), pas seulement via un
+        // suffixe textuel dans le nom de clé — sinon Configuration scope la
+        // ligne ps_configuration via le contexte ambiant (potentiellement
+        // périmé en boucle multi-boutique), pas via le nom de la clé.
+        $ciSrc199 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CssInliner.php');
+        if ($ciSrc199 === '') {
+            $offenders[] = 'CssInliner.php introuvable (garde-fou round 199)';
+        } elseif (strpos($ciSrc199, "\\Configuration::updateValue(\$key, (int) \\Configuration::get(\$key, null, null, \$idShop) + 1, false, null, \$idShop)") === false) {
+            $offenders[] = "CssInliner::inline() ne passe plus \$idShop à Configuration::get()/updateValue() — régression du bug corrigé le 24/08/2026 (round 199) : le compteur d'échecs silencieux d'une boutique pourrait de nouveau polluer/écraser la ligne d'une autre boutique";
+        }
+        $hcmSelf199 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        if ($hcmSelf199 === ''
+            || strpos($hcmSelf199, "\\Configuration::get(\$key, null, null, \$this->idShop)") === false
+            || strpos($hcmSelf199, "\\Configuration::updateValue(\$key, 0, false, null, \$this->idShop)") === false
+        ) {
+            $offenders[] = "HealthCheckManager::checkCssInlinerSilentFailures() ne passe plus \$this->idShop à Configuration::get()/updateValue() — régression du bug corrigé le 24/08/2026 (round 199)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
@@ -14629,10 +14649,10 @@ class HealthCheckManager
         // auparavant la clé globale non suffixée n'était plus jamais
         // relue par cette méthode.
         $key   = 'NERIA_CSS_INLINE_FAILURES_' . $this->idShop;
-        $count = (int) \Configuration::get($key);
+        $count = (int) \Configuration::get($key, null, null, $this->idShop);
 
         if ($count > 0) {
-            \Configuration::updateValue($key, 0);
+            \Configuration::updateValue($key, 0, false, null, $this->idShop);
             return [
                 'status'     => self::STATUS_WARNING,
                 'detail'     => AdminTranslator::tVars('health.css_inliner_failures_warning', ['count' => $count]),
