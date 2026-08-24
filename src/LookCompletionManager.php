@@ -453,7 +453,7 @@ class LookCompletionManager
                 // produit en promo affichait son prix plein tarif dans
                 // l'email, différent de celui réellement affiché sur la
                 // fiche produit au clic.
-                $realPrice = $this->safeProductPrice($pid);
+                $realPrice = $this->safeProductPrice($pid, $idShop);
                 $blocks[] = [
                     'name'  => $product->name,
                     'url'   => $productUrl,
@@ -474,14 +474,22 @@ class LookCompletionManager
      * de taxe ; ce fichier tourne typiquement depuis un cron sans panier
      * actif, d'où le panier temporaire ci-dessous.
      */
-    private function safeProductPrice(int $idProduct): float
+    private function safeProductPrice(int $idProduct, int $idShop): float
     {
         $ctx     = \Context::getContext();
         $hadCart = \Validate::isLoadedObject($ctx->cart);
 
         if (!$hadCart) {
             $tmp = new \Cart();
-            $tmp->id_currency = (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT'));
+            // Round 198 : PS_CURRENCY_DEFAULT scopé par $idShop — même
+            // correctif que WaitlistManager::safeProductPrice(). Le montant
+            // était auparavant calculé dans la devise AMBIANTE du process
+            // ($ctx->currency, potentiellement différente de la boutique
+            // réelle du client sur un cron multi-boutiques), puis affiché
+            // avec le symbole de la devise de $idShop (displayPrice() ne
+            // convertit jamais) — écart réel entre le montant numérique et
+            // le symbole affiché.
+            $tmp->id_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop) ?: (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT'));
             $tmp->id_lang     = (int) ($ctx->language->id ?? \Configuration::get('PS_LANG_DEFAULT'));
             $ctx->cart        = $tmp;
         }

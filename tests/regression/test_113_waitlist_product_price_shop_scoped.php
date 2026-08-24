@@ -31,7 +31,7 @@ function run_test(): array
     neria_assert($src !== false, 'Impossible de lire src/WaitlistManager.php');
 
     neria_assert(
-        strpos($src, "\\NeriaTools::displayPrice(\$this->safeProductPrice(\$idProduct), new \\Currency((int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop)), \$idLang)") !== false,
+        strpos($src, "\\NeriaTools::displayPrice(\$this->safeProductPrice(\$idProduct, \$idShop), new \\Currency((int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop)), \$idLang)") !== false,
         "WaitlistManager::notifyProduct() ne résout plus {product_price} via PS_CURRENCY_DEFAULT scopé par \$idShop — régression du bug corrigé le 08/08/2026 (round 109) : un client d'une autre boutique pourrait de nouveau voir un prix dans la devise du contexte d'exécution courant plutôt que celle de sa boutique"
     );
 

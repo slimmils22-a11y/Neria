@@ -441,7 +441,7 @@ class UpsellManager
             );
         }
 
-        $price = $this->safeProductPrice($idProduct, $idLang, $idCustomer);
+        $price = $this->safeProductPrice($idProduct, $idLang, $idCustomer, $idShop);
         // Formatage localisé (séparateur décimal + position du symbole selon
         // la langue) — auparavant une virgule française codée en dur,
         // affichée dans le bloc upsell de CHAQUE confirmation de commande,
@@ -474,14 +474,24 @@ class UpsellManager
      * die() (Product.php) ; on fournit donc un cart transitoire le temps du
      * calcul, puis on restaure le contexte.
      */
-    private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0): float
+    private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0, ?int $idShop = null): float
     {
         $ctx     = $this->context;
         $hadCart = \Validate::isLoadedObject($ctx->cart);
 
         if (!$hadCart) {
             $tmp = new \Cart();
-            $tmp->id_currency = (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT'));
+            // Round 198 : PS_CURRENCY_DEFAULT scopé par $idShop quand connu
+            // — même correctif que WaitlistManager/LookCompletionManager::
+            // safeProductPrice(). resolveDisplayCurrency() (appelant, cf.
+            // commentaire round 184 ci-dessus) résout déjà correctement la
+            // devise d'AFFICHAGE par $idShop, mais le MONTANT lui-même
+            // continuait d'être calculé dans la devise AMBIANTE du process
+            // ($ctx->currency) — la correction de l'affichage ne suffisait
+            // pas si la valeur sous-jacente restait dans la mauvaise devise.
+            $tmp->id_currency = $idShop !== null
+                ? ((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop) ?: (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT')))
+                : (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT'));
             $tmp->id_lang     = $idLang;
             $ctx->cart        = $tmp;
         }

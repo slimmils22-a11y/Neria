@@ -35,7 +35,7 @@ function run_test(): array
         "UpsellManager::enrich() n'accepte plus \$idCustomer — régression du bug corrigé le 18/08/2026 (round 184)"
     );
     neria_assert(
-        strpos($src, 'private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0): float') !== false,
+        strpos($src, 'private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0, ?int $idShop = null): float') !== false,
         "UpsellManager::safeProductPrice() n'accepte plus \$idCustomer — régression du bug corrigé le 18/08/2026 (round 184)"
     );
     neria_assert(

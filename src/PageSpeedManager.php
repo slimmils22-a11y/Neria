@@ -197,9 +197,22 @@ class PageSpeedManager
         // backoff, risquant d'épuiser le quota gratuit pendant une panne/un
         // rate-limit. Cooldown court indépendant du cache de succès.
         if ($this->isInFailureCooldown()) {
-            return null;
+            // Round 198 : repli sur le dernier rapport connu (même correctif
+            // que SeoApiManager::getReport(), round 171) — absent jusqu'ici.
+            // Sans lui, une panne/rate-limit transitoire de l'API Google
+            // survenant pile au moment où le cache de 24h expire faisait
+            // passer le widget BO de "scores valables" à VIDE pendant toute
+            // la durée du cooldown, alors que le dernier rapport connu reste
+            // en base, jamais réutilisé en repli.
+            $stale = $this->getCachedReport();
+            return ($stale && ($stale['url'] ?? null) === $this->getTargetUrl()) ? $stale : null;
         }
-        return $this->runCheck();
+        $fresh = $this->runCheck();
+        if ($fresh !== null) {
+            return $fresh;
+        }
+        $stale = $this->getCachedReport();
+        return ($stale && ($stale['url'] ?? null) === $this->getTargetUrl()) ? $stale : null;
     }
 
     /**
