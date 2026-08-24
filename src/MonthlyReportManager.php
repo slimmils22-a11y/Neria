@@ -482,18 +482,28 @@ class MonthlyReportManager
         // garde-fou déjà appliqué partout ailleurs dans le module
         // (ClvManager, UpsellManager) mais oublié ici, surestimant le CA
         // affiché au marchand.
+        // Round 197 : sous-requête DISTINCT (template, id_order) avant la
+        // somme — absente jusqu'ici, contrairement à la requête "attribué"
+        // juste en dessous qui dédoublonne explicitement. Un renvoi manuel
+        // d'un email transactionnel pour la MÊME commande (2e ligne 'sent'
+        // avec le même id_order+template) faisait compter le montant de
+        // cette commande deux fois dans le SUM(), gonflant le CA "direct"
+        // affiché au marchand.
         $direct = [];
         $rows = $this->db->executeS(
-            "SELECT s.template, SUM(o.total_paid_tax_incl) AS revenue
-             FROM `{$st}` s
-             JOIN `{$ord}` o ON o.id_order = s.id_order
-             WHERE s.id_shop = {$this->idShop}
-               AND s.event_type = 'sent'
-               AND s.id_order > 0
-               AND o.valid = 1
-               AND s.date_add >= '{$dateFrom}'
-               AND s.date_add <= '{$dateTo} 23:59:59'
-             GROUP BY s.template"
+            "SELECT template, SUM(order_total) AS revenue
+             FROM (
+                 SELECT DISTINCT s.template, s.id_order, o.total_paid_tax_incl AS order_total
+                 FROM `{$st}` s
+                 JOIN `{$ord}` o ON o.id_order = s.id_order
+                 WHERE s.id_shop = {$this->idShop}
+                   AND s.event_type = 'sent'
+                   AND s.id_order > 0
+                   AND o.valid = 1
+                   AND s.date_add >= '{$dateFrom}'
+                   AND s.date_add <= '{$dateTo} 23:59:59'
+             ) dedup
+             GROUP BY template"
         ) ?: [];
         foreach ($rows as $row) {
             $direct[$row['template']] = (float) $row['revenue'];

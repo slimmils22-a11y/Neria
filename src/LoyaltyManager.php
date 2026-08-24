@@ -186,7 +186,22 @@ class LoyaltyManager
                         'SELECT id_lang FROM `' . $this->prefix . 'customer`
                          WHERE id_customer = ' . $idCustomer
                     ) ?: (int) \Configuration::get('PS_LANG_DEFAULT');
-                    $amount = \NeriaTools::displayPrice((float) $tier['amount'], $this->context->currency, $idLangCustomer);
+                    // Round 197 : la devise du CartRule réellement généré
+                    // (reduction_currency, cf. generateVoucher() plus bas —
+                    // PS_CURRENCY_DEFAULT scopé par $reservationShopId) est
+                    // désormais utilisée ici aussi, au lieu de
+                    // $this->context->currency (devise de NAVIGATION du
+                    // visiteur au moment du déclenchement, potentiellement
+                    // différente sur une install multi-devises). Sans ce
+                    // correctif, un client naviguant en USD alors que la
+                    // boutique par défaut est en EUR recevait un email
+                    // annonçant "$10" alors que le bon réellement généré
+                    // accordait 10€ — montant/devise trompeurs.
+                    $idCurrencyVoucher = $reservationShopId > 0
+                        ? (int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $reservationShopId)
+                        : (int) \Configuration::get('PS_CURRENCY_DEFAULT');
+                    $currencyVoucher = $idCurrencyVoucher > 0 ? new \Currency($idCurrencyVoucher) : $this->context->currency;
+                    $amount = \NeriaTools::displayPrice((float) $tier['amount'], $currencyVoucher, $idLangCustomer);
                 }
 
                 $emailSent = $this->sendRewardEmail($idCustomer, $tier, $code, $amount, $total, $idShop);
@@ -535,6 +550,25 @@ class LoyaltyManager
         }
 
         $idLang = (int) $customer->id_lang ?: (int) \Configuration::get('PS_LANG_DEFAULT');
+
+        // Round 197 : bounce/blacklist ajoutés — absents jusqu'ici. Le bon
+        // d'achat lui-même est déjà accordé inconditionnellement plus haut
+        // dans checkAndReward() (generateVoucher(), avant cet appel), donc
+        // ce contrôle ne prévient aucune perte de récompense — il évite
+        // seulement de journaliser un envoi comme réussi (watchdog.
+        // loyalty_tier_reached) alors qu'il a en réalité été bloqué par le
+        // hook, qui renvoie toujours true depuis Mail::Send().
+        if (class_exists('BounceManager') && \BounceManager::isBounced($customer->email)) {
+            return false;
+        }
+        if (class_exists('BlacklistManager')) {
+            $langIso = class_exists('TranslationEngine')
+                ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                : (string) (\Language::getIsoById($idLang) ?: '');
+            if ((new \BlacklistManager($idShop))->isBlacklisted('loyalty_tier_upgrade', $langIso)) {
+                return false;
+            }
+        }
 
         return (bool) \Mail::Send(
             $idLang,
@@ -947,6 +981,27 @@ class LoyaltyManager
 
         $idLang = (int) $customer->id_lang ?: (int) \Configuration::get('PS_LANG_DEFAULT');
         $link   = \Context::getContext()->link;
+
+        // Round 197 : bounce/blacklist ajoutés — absents jusqu'ici, alors
+        // que $sent gate le throttle mensuel global CONFIG_RECAP_LAST_SENT
+        // (posé une fois pour tous les clients après la boucle appelante,
+        // cf. commentaire round 180 ci-dessous). Sans ce contrôle local, un
+        // client bloqué au moment du cron mensuel ratait son récap ce
+        // mois-ci sans qu'aucune alerte Watchdog ne le signale (le hook
+        // global bloque bien l'envoi réel mais Mail::Send() renvoie
+        // toujours true).
+        $realIdShop = $idShop ?? (int) \Context::getContext()->shop->id;
+        if (class_exists('BounceManager') && \BounceManager::isBounced($customer->email)) {
+            return false;
+        }
+        if (class_exists('BlacklistManager')) {
+            $langIso = class_exists('TranslationEngine')
+                ? (new \TranslationEngine($this->module))->langFromId($idLang)
+                : (string) (\Language::getIsoById($idLang) ?: '');
+            if ((new \BlacklistManager($realIdShop))->isBlacklisted('loyalty_recap', $langIso)) {
+                return false;
+            }
+        }
 
         // Round 180 : le retour de Mail::Send() était ignoré (appel "à la
         // volée" suivi d'un `return true;` inconditionnel) — contrairement
