@@ -6866,6 +6866,56 @@ class HealthCheckManager
             $offenders[] = "DeliverabilityScorer::hasHiddenWhiteText() ne détecte plus le texte blanc sur fond blanc explicite — régression du bug corrigé le 23/08/2026 (round 195) : la technique classique de masquage (color:#fff;background:#fff) échapperait de nouveau entièrement à la détection via le simple mot 'background'";
         }
 
+        // Round 196 (23/08/2026) : sql/install.sql doit définir
+        // artisan_name/region/weaving_duration sur neria_certificate,
+        // cohérent avec upgrade-1.0.42.php (sinon une install VRAIMENT
+        // neuve plante à la première émission de certificat).
+        $installSql196 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/sql/install.sql');
+        if ($installSql196 === '') {
+            $offenders[] = 'install.sql introuvable (garde-fou round 196)';
+        } else {
+            $posCert196 = strpos($installSql196, 'CREATE TABLE IF NOT EXISTS `PREFIX_neria_certificate`');
+            $certBody196 = $posCert196 !== false ? substr($installSql196, $posCert196, 1100) : '';
+            foreach (['artisan_name', 'region', 'weaving_duration'] as $col196) {
+                if (strpos($certBody196, "`{$col196}`") === false) {
+                    $offenders[] = "install.sql ne définit plus la colonne `{$col196}` sur neria_certificate — régression du bug corrigé le 23/08/2026 (round 196) : une install VRAIMENT neuve planterait de nouveau à la première émission de certificat (erreur SQL 'Unknown column')";
+                }
+            }
+        }
+
+        // Round 196 (23/08/2026) : PostmasterManager/SearchConsoleManager::
+        // handleCallback() et ConfigManager::toggleMenuItemVisibility()
+        // doivent vérifier le retour de GET_LOCK() — même correctif que
+        // leurs méthodes jumelles (getAuthUrl() round 189, toggleBooleanKey()
+        // round 141) jamais porté ici.
+        if ($pmSrc189 !== '') {
+            $posLockPmCb196 = strpos($pmSrc189, "GET_LOCK('neria_postmaster_oauth_state', 3)");
+            $posLockPmCb196b = $posLockPmCb196 !== false ? strpos($pmSrc189, "GET_LOCK('neria_postmaster_oauth_state', 3)", $posLockPmCb196 + 1) : false;
+            $beforePmCb196 = $posLockPmCb196b !== false ? substr($pmSrc189, max(0, $posLockPmCb196b - 60), 60) : '';
+            if ($posLockPmCb196b === false || strpos($beforePmCb196, '$locked = ') === false) {
+                $offenders[] = "PostmasterManager::handleCallback() ne vérifie plus le retour de GET_LOCK() — régression du bug corrigé le 23/08/2026 (round 196) : le cycle lecture-modification-écriture du callback OAuth s'exécuterait de nouveau sans protection sous contention";
+            }
+        }
+        if ($scSrc189 !== '') {
+            $posLockScCb196 = strpos($scSrc189, "GET_LOCK('neria_search_console_oauth_state', 3)");
+            $posLockScCb196b = $posLockScCb196 !== false ? strpos($scSrc189, "GET_LOCK('neria_search_console_oauth_state', 3)", $posLockScCb196 + 1) : false;
+            $beforeScCb196 = $posLockScCb196b !== false ? substr($scSrc189, max(0, $posLockScCb196b - 60), 60) : '';
+            if ($posLockScCb196b === false || strpos($beforeScCb196, '$locked = ') === false) {
+                $offenders[] = "SearchConsoleManager::handleCallback() ne vérifie plus le retour de GET_LOCK() — régression du bug corrigé le 23/08/2026 (round 196) : même risque que PostmasterManager ci-dessus";
+            }
+        }
+        $cfgSrc196 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
+        if ($cfgSrc196 === '') {
+            $offenders[] = 'ConfigManager.php introuvable (garde-fou round 196)';
+        } else {
+            $posMenuLock196 = strpos($cfgSrc196, "GET_LOCK('neria_menu_hidden_items', 3)");
+            $beforeMenu196 = $posMenuLock196 !== false ? substr($cfgSrc196, max(0, $posMenuLock196 - 60), 60) : '';
+            $afterMenu196 = $posMenuLock196 !== false ? substr($cfgSrc196, $posMenuLock196, 250) : '';
+            if ($posMenuLock196 === false || strpos($beforeMenu196, '$gotLock = ') === false || strpos($afterMenu196, 'if ($gotLock !== 1)') === false) {
+                $offenders[] = "ConfigManager::toggleMenuItemVisibility() ne vérifie plus le retour de GET_LOCK() — régression du bug corrigé le 23/08/2026 (round 196) : la bascule de visibilité d'un item de menu s'exécuterait de nouveau sans protection sous contention";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
