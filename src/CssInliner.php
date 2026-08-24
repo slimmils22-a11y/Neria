@@ -52,7 +52,7 @@ class CssInliner
             $db     = \Db::getInstance();
             if ((int) $db->getValue("SELECT GET_LOCK('neria_css_inline_failures_" . $idShop . "', 1)") === 1) {
                 try {
-                    \Configuration::updateValue($key, (int) \Configuration::get($key) + 1);
+                    \Configuration::updateValue($key, (int) \Configuration::get($key, null, null, $idShop) + 1, false, null, $idShop);
                 } finally {
                     $db->execute("SELECT RELEASE_LOCK('neria_css_inline_failures_" . $idShop . "')");
                 }
