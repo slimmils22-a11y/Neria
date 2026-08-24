@@ -6360,7 +6360,7 @@ class HealthCheckManager
             if (strpos($wlSrc184, "if (!\\Validate::isLoadedObject(\$product) || !\$product->active) continue;") === false) {
                 $offenders[] = "WaitlistManager::notifyProductLocked() ne vérifie plus \$product->active — régression du bug corrigé le 18/08/2026 (round 184) : un produit désactivé recevrait de nouveau une notification 'de retour en stock' vers une page indisponible";
             }
-            if (strpos($wlSrc184, 'private function safeProductPrice(int $idProduct): float') === false) {
+            if (strpos($wlSrc184, 'private function safeProductPrice(int $idProduct, int $idShop): float') === false) {
                 $offenders[] = "WaitlistManager n'a plus de méthode safeProductPrice() — régression du bug corrigé le 18/08/2026 (round 184) : {product_price} redeviendrait résolu via \$product->price brut, sans taxe ni promo";
             }
         }
@@ -6372,7 +6372,7 @@ class HealthCheckManager
             if (strpos($lcmSrc184, "SELECT COALESCE(SUM(quantity), 0) FROM `' . \$this->prefix . 'stock_available`") === false) {
                 $offenders[] = "LookCompletionManager::buildProductBlocks() n'utilise plus le SUM(quantity) SQL direct pour vérifier le stock — régression du bug corrigé le 18/08/2026 (round 184) : un produit à déclinaisons serait de nouveau silencieusement écarté des suggestions 'Complétez votre look'";
             }
-            if (strpos($lcmSrc184, 'private function safeProductPrice(int $idProduct): float') === false) {
+            if (strpos($lcmSrc184, 'private function safeProductPrice(int $idProduct, int $idShop): float') === false) {
                 $offenders[] = "LookCompletionManager n'a plus de méthode safeProductPrice() — régression du bug corrigé le 18/08/2026 (round 184) : le prix affiché redeviendrait \$product->price brut, sans taxe ni promo";
             }
         }
@@ -6380,7 +6380,7 @@ class HealthCheckManager
         $umSrc184 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
         if ($umSrc184 === '') {
             $offenders[] = 'UpsellManager.php introuvable (garde-fou round 184)';
-        } elseif (strpos($umSrc184, 'private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0): float') === false) {
+        } elseif (strpos($umSrc184, 'private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0, ?int $idShop = null): float') === false) {
             $offenders[] = "UpsellManager::safeProductPrice() n'accepte plus \$idCustomer — régression du bug corrigé le 18/08/2026 (round 184) : le prix upsell d'un client à tarif négocié (B2B) redeviendrait résolu avec le groupe tarifaire visiteur par défaut";
         }
 
@@ -6956,6 +6956,40 @@ class HealthCheckManager
             $offenders[] = 'MonthlyReportManager.php introuvable (garde-fou round 197)';
         } elseif (strpos($mrmSrc197, 'SELECT DISTINCT s.template, s.id_order, o.total_paid_tax_incl AS order_total') === false) {
             $offenders[] = "MonthlyReportManager::getRevenueByTemplate() ne dédoublonne plus (template, id_order) pour le CA direct — régression du bug corrigé le 23/08/2026 (round 197) : un renvoi manuel d'un email transactionnel pour la même commande gonflerait de nouveau le CA direct affiché au marchand";
+        }
+
+        // Round 198 (24/08/2026) : WaitlistManager/LookCompletionManager/
+        // UpsellManager::safeProductPrice() doivent résoudre id_currency via
+        // PS_CURRENCY_DEFAULT scopé par $idShop, pas la devise ambiante du
+        // process — sinon le montant numérique calculé peut ne plus
+        // correspondre au symbole de devise affiché par l'appelant.
+        $wlSrc198 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php');
+        if ($wlSrc198 === '') {
+            $offenders[] = 'WaitlistManager.php introuvable (garde-fou round 198)';
+        } elseif (strpos($wlSrc198, "\$tmp->id_currency = (int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop)") === false) {
+            $offenders[] = "WaitlistManager::safeProductPrice() ne résout plus id_currency via \$idShop — régression du bug corrigé le 24/08/2026 (round 198) : le montant calculé pourrait de nouveau être dans une devise différente de celle affichée";
+        }
+        $lcmSrc198 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
+        if ($lcmSrc198 === '') {
+            $offenders[] = 'LookCompletionManager.php introuvable (garde-fou round 198)';
+        } elseif (strpos($lcmSrc198, "\$tmp->id_currency = (int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop)") === false) {
+            $offenders[] = "LookCompletionManager::safeProductPrice() ne résout plus id_currency via \$idShop — régression du bug corrigé le 24/08/2026 (round 198)";
+        }
+        $umSrc198 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
+        if ($umSrc198 === '') {
+            $offenders[] = 'UpsellManager.php introuvable (garde-fou round 198)';
+        } elseif (strpos($umSrc198, "\$idShop !== null\n                ? ((int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop)") === false) {
+            $offenders[] = "UpsellManager::safeProductPrice() ne résout plus id_currency via \$idShop — régression du bug corrigé le 24/08/2026 (round 198)";
+        }
+
+        // Round 198 (24/08/2026) : PageSpeedManager::getReport() doit
+        // retomber sur le dernier rapport connu en cas d'échec/cooldown,
+        // comme sa jumelle SeoApiManager::getReport() (round 171).
+        $psmSrc198 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PageSpeedManager.php');
+        if ($psmSrc198 === '') {
+            $offenders[] = 'PageSpeedManager.php introuvable (garde-fou round 198)';
+        } elseif (substr_count($psmSrc198, "return (\$stale && (\$stale['url'] ?? null) === \$this->getTargetUrl()) ? \$stale : null;") < 2) {
+            $offenders[] = "PageSpeedManager::getReport() ne retombe plus sur le dernier rapport connu — régression du bug corrigé le 24/08/2026 (round 198) : une panne/rate-limit transitoire de l'API ferait de nouveau passer le widget BO de 'scores valables' à VIDE au lieu d'afficher les derniers scores connus";
         }
 
         if ($offenders) {
