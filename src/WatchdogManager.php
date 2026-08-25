@@ -493,6 +493,15 @@ class WatchdogManager
 
         $email = $this->getAlertEmail();
         if ($email === '') {
+            // Round 203 : sans cette mise à jour du throttle, tant qu'aucune
+            // adresse d'alerte valide n'est configurée ET qu'il existe des
+            // logs warning/error/critical dans les 24h, cette branche était
+            // atteinte à CHAQUE appel de sendDailyDigestIfDue() (déclenché
+            // depuis hookDisplayHeader, donc potentiellement à chaque hit
+            // front) — ré-exécutant les 2 requêtes SQL ci-dessus en boucle,
+            // sans throttle, précisément pendant un incident actif où la
+            // base est déjà sous tension.
+            \Configuration::updateGlobalValue(self::CFG_DIGEST_LAST . '_' . $this->idShop, time());
             return;
         }
 

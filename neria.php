@@ -1201,7 +1201,12 @@ class Neria extends Module
 
     private function searchCustomersForHistory(string $query): array
     {
-        $q = pSQL($query);
+        // Round 203 : échappe les métacaractères LIKE (%, _) avant pSQL() —
+        // même correctif que ManualSendManager::searchCustomers() (déjà en
+        // place). Sans lui, un "_" dans la recherche (fréquent, ex.
+        // jean_dupont) matche n'importe quel caractère et élargit
+        // silencieusement les résultats à des clients non pertinents.
+        $q = pSQL(addcslashes($query, '%_'));
         // Respecte le mode de partage client PrestaShop — évite qu'un employé
         // restreint à une boutique retrouve/consulte l'historique de clients
         // d'une autre boutique isolée (cf. ManualSendManager::searchCustomers).
