@@ -374,6 +374,20 @@ class CalendarManager
         if ($month === 2 && $day === 29 && !\checkdate(2, 29, $year)) {
             $day = 28;
         }
+
+        // Round 202 : DateTime::createFromFormat('Y-n-j', ...) est tolérant
+        // aux jours/mois hors plage — il fait un "rollover" arithmétique
+        // silencieux (ex. "2026-4-31" devient le 1er mai 2026, "2026-13-5"
+        // devient janvier 2027) au lieu de retourner false. Le reste du code
+        // (processEvent(), getUpcomingDates()...) traite tout retour non-null
+        // comme une date valide et volontaire — sans ce garde-fou, une date
+        // hors plage (déjà censée être filtrée en amont par neria.php, mais
+        // ceci est une défense en profondeur pour tout futur appelant) serait
+        // silencieusement décalée d'un jour/mois/année sans aucune alerte.
+        if (!\checkdate($month, $day, $year)) {
+            return null;
+        }
+
         return \DateTime::createFromFormat('Y-n-j', "{$year}-{$month}-{$day}") ?: null;
     }
 

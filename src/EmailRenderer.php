@@ -2699,6 +2699,14 @@ class EmailRenderer
             '{qty}'                => '0',
             '{subject}'            => 'Aperçu',
             '{virtualProducts}'    => '<p>Patron de couture Neria Vol.1 — <a href="#">Télécharger</a></p>',
+            // Round 202 : {virtualProductsTxt} manquait ici, contrairement à
+            // {shipped_items}/{shipped_items_txt} juste au-dessus — le cœur
+            // PS fournit toujours les deux ensemble pour un vrai envoi
+            // (OrderHistory.php), donc les emails réels ne sont pas
+            // affectés, mais l'aperçu Design BO du .txt de download_product
+            // affichait un bloc de téléchargement vide (variable résiduelle
+            // silencieusement retirée par le filet de sécurité).
+            '{virtualProductsTxt}' => 'Patron de couture Neria Vol.1 — Télécharger : https://exemple.test/download/abc123',
             '{bankwire_owner}'     => 'Maison Neria SARL',
             '{bankwire_details}'   => 'IBAN : FR76 3000 6000 0112 3456 7890 189 — BIC : AGRIFRPP',
             '{bankwire_address}'   => '12 rue de la Paix, 75001 Paris, France',

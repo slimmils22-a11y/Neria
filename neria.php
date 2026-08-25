@@ -3325,9 +3325,22 @@ class Neria extends Module
             $active     = (int) Tools::getValue('cal_active', 0) > 0 ? 1 : 0;
             $idShop     = (int) $this->context->shop->id;
 
-            // Date personnalisée : validation format MM-DD
+            // Date personnalisée : format MM-DD ET validité calendaire réelle.
+            // Round 202 : une regex ne vérifiant que le FORMAT (ex. "04-31",
+            // "02-30", "13-05") laissait passer des dates inexistantes que
+            // CalendarManager::resolveMonthDay() (DateTime::createFromFormat
+            // avec 'n'/'j', tolérants) "rollover" silencieusement vers une
+            // AUTRE date réelle au lieu d'échouer — un marchand configurant
+            // "31 avril" par erreur voyait l'email partir le 1er mai sans
+            // aucune alerte, le reste du code traitant tout retour non-null
+            // comme une date valide et volontaire. checkdate() avec 2028
+            // (année bissextile de référence) accepte 29/02 tout en
+            // rejetant les jours réellement hors plage.
             $rawDate    = preg_replace('/[^0-9\-]/', '', (string) Tools::getValue('cal_custom_date', ''));
-            $customDate = (preg_match('/^\d{2}-\d{2}$/', $rawDate)) ? $rawDate : '';
+            $customDate = '';
+            if (preg_match('/^(\d{2})-(\d{2})$/', $rawDate, $mCal) && \checkdate((int) $mCal[1], (int) $mCal[2], 2028)) {
+                $customDate = $rawDate;
+            }
 
             if ($eventKey && $lang && $template) {
                 Db::getInstance()->execute(
