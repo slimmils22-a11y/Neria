@@ -7068,6 +7068,29 @@ class HealthCheckManager
             $offenders[] = "EmailRenderer::buildPreviewFakes() ne fournit plus {virtualProductsTxt} — régression du bug corrigé le 24/08/2026 (round 202) : l'aperçu Design BO du .txt de download_product afficherait de nouveau un bloc de téléchargement vide";
         }
 
+        // Round 203a (24/08/2026) : sendDailyDigestIfDueLocked() doit poser
+        // le throttle CFG_DIGEST_LAST même quand aucune adresse d'alerte
+        // n'est configurée — sinon les 2 requêtes SQL de comptage sont
+        // ré-exécutées à chaque hit front (hookDisplayHeader) sans throttle
+        // tant que des logs warning/error/critical existent dans les 24h.
+        $wdSrc203 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php');
+        if ($wdSrc203 === '') {
+            $offenders[] = 'WatchdogManager.php introuvable (garde-fou round 203a)';
+        } elseif (strpos($wdSrc203, "// Round 203 : sans cette mise à jour du throttle") === false) {
+            $offenders[] = "WatchdogManager::sendDailyDigestIfDueLocked() ne pose plus le throttle quand aucune adresse d'alerte n'est configurée — régression du bug corrigé le 24/08/2026 (round 203) : requêtes SQL répétées à chaque hit front pendant un incident actif";
+        }
+
+        // Round 203b (24/08/2026) : searchCustomersForHistory() (neria.php)
+        // doit échapper les métacaractères LIKE (%, _) avant pSQL(), comme
+        // ManualSendManager::searchCustomers() — sinon un "_" dans la
+        // recherche élargit silencieusement le matching.
+        $neriaSrc203 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($neriaSrc203 === '') {
+            $offenders[] = 'neria.php introuvable (garde-fou round 203b)';
+        } elseif (strpos($neriaSrc203, "\$q = pSQL(addcslashes(\$query, '%_'));") === false) {
+            $offenders[] = "neria.php::searchCustomersForHistory() n'échappe plus les métacaractères LIKE — régression du bug corrigé le 24/08/2026 (round 203)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
