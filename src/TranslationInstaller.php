@@ -52,6 +52,13 @@ class TranslationInstaller
     /** Round 139 : SET NAMES exécuté une seule fois par opération d'import — voir flushBatch(). */
     private bool $charsetSet = false;
 
+    /**
+     * Round 204 : logs Watchdog en attente, journalisés seulement APRÈS
+     * résolution de la transaction (COMMIT/ROLLBACK) — voir queueWatchdogError()
+     * ci-dessous pour le pourquoi.
+     */
+    private array $pendingWatchdogLogs = [];
+
     // ============================================================
     // CONSTRUCTEUR
     // ============================================================
@@ -68,6 +75,46 @@ class TranslationInstaller
             $this->watchdog = new WatchdogManager($this->module);
         }
         return $this->watchdog;
+    }
+
+    /**
+     * Round 204 : WatchdogManager utilise la MÊME connexion Db::getInstance()
+     * singleton que TranslationInstaller — un watchdog()->error() appelé
+     * DANS la transaction START TRANSACTION/ROLLBACK (import échoué) était
+     * donc lui-même annulé par le ROLLBACK, effaçant précisément le log
+     * censé expliquer pourquoi l'import a échoué (erreur SQL réelle du
+     * bulk insert, doublon de clé détecté). Les appels concernés (dans
+     * flushBatch() et la détection de doublon d'importFromJson()) sont
+     * désormais mis en attente ici, puis réellement journalisés par
+     * flushPendingWatchdogLogs() une fois la transaction résolue.
+     */
+    private function queueWatchdogError(string $msg, string $template = ''): void
+    {
+        $this->pendingWatchdogLogs[] = ['msg' => $msg, 'template' => $template, 'moduleLog' => null];
+    }
+
+    /**
+     * Même piège que queueWatchdogError() ci-dessus : Neria::log() écrit via
+     * PrestaShopLogger::addLog(), lui aussi sur la connexion Db::getInstance()
+     * singleton — un appel DANS la transaction est tout aussi annulé par un
+     * ROLLBACK que le serait un watchdog()->error() direct.
+     */
+    private function queueModuleLog(string $msg, int $severity = 3): void
+    {
+        $this->pendingWatchdogLogs[] = ['msg' => null, 'template' => '', 'moduleLog' => ['msg' => $msg, 'severity' => $severity]];
+    }
+
+    private function flushPendingWatchdogLogs(): void
+    {
+        foreach ($this->pendingWatchdogLogs as $log) {
+            if ($log['msg'] !== null) {
+                $this->watchdog()->error($log['msg'], $log['template'], 'TranslationInstaller');
+            }
+            if ($log['moduleLog'] !== null) {
+                $this->module->log($log['moduleLog']['msg'], $log['moduleLog']['severity']);
+            }
+        }
+        $this->pendingWatchdogLogs = [];
     }
 
     // ============================================================
@@ -191,9 +238,8 @@ class TranslationInstaller
 
                     $dedupKey = $template . '|' . $lang . '|' . $key;
                     if (isset($seenKeys[$dedupKey])) {
-                        $this->watchdog()->error(
-                            \WatchdogManager::i18nMsg('watchdog.translation_duplicate_key', ['template' => (string) $template, 'lang' => (string) $lang, 'key' => (string) $key]),
-                            '', 'TranslationInstaller'
+                        $this->queueWatchdogError(
+                            \WatchdogManager::i18nMsg('watchdog.translation_duplicate_key', ['template' => (string) $template, 'lang' => (string) $lang, 'key' => (string) $key])
                         );
                         continue;
                     }
@@ -229,6 +275,9 @@ class TranslationInstaller
 
         if ($failed) {
             $this->db->execute('ROLLBACK');
+            // Round 204 : journalisé maintenant que ROLLBACK est passé —
+            // voir queueWatchdogError()/flushPendingWatchdogLogs().
+            $this->flushPendingWatchdogLogs();
             // Round 140 : compteurs remis à zéro — ROLLBACK annule TOUTES
             // les insertions en base, y compris celles des lots flushés
             // avec succès avant l'échec, mais countInserted/countSkipped/
@@ -244,6 +293,10 @@ class TranslationInstaller
         }
 
         $this->db->execute('COMMIT');
+        // Round 204 : les logs de doublon détectés en cours d'import (s'il
+        // y en a eu, sans que cela fasse échouer l'import) sont journalisés
+        // maintenant que COMMIT est passé.
+        $this->flushPendingWatchdogLogs();
 
         // ── 6. Log du résultat ───────────────────────────────────
         $this->module->log(
@@ -397,12 +450,14 @@ class TranslationInstaller
             // SEUL cas qui n'avait jusqu'ici AUCUNE trace est batch vide
             // (données source malformées), d'où ce log dédié.
             if ($batchWasEmpty) {
-                $this->watchdog()->error(
-                    \WatchdogManager::i18nMsg('watchdog.translation_import_template_empty', ['template' => $template]),
-                    '', 'TranslationInstaller'
+                $this->queueWatchdogError(
+                    \WatchdogManager::i18nMsg('watchdog.translation_import_template_empty', ['template' => $template])
                 );
             }
         }
+        // Round 204 : journalisé seulement maintenant que la transaction
+        // (COMMIT ou ROLLBACK) est résolue — voir queueWatchdogError().
+        $this->flushPendingWatchdogLogs();
 
         return $ok;
     }
@@ -517,15 +572,13 @@ class TranslationInstaller
             $this->countInserted += (int) $this->db->Affected_Rows();
         } else {
             $this->countErrors += count($batch);
-            $this->module->log(
+            $this->queueModuleLog(
                 'TranslationInstaller: erreur bulk insert → ' .
                 $this->db->getMsgError(),
                 3
             );
-            $this->watchdog()->error(
-                \WatchdogManager::i18nMsg('watchdog.translation_install_bulk_error', ['error' => $this->db->getMsgError()]),
-                '',
-                'TranslationInstaller'
+            $this->queueWatchdogError(
+                \WatchdogManager::i18nMsg('watchdog.translation_install_bulk_error', ['error' => $this->db->getMsgError()])
             );
         }
 
