@@ -7039,6 +7039,35 @@ class HealthCheckManager
             $offenders[] = "neria.php ne valide plus filter_segment contre la liste blanche des segments — régression du bug corrigé le 24/08/2026 (round 201) : XSS réfléchi via ?filter_segment=<payload> injecté dans une clé de traduction non échappée de segments.tpl";
         }
 
+        // Round 202 (24/08/2026) : cal_custom_date (MM-DD) doit être validé
+        // par checkdate(), pas seulement par un format regex — sinon une
+        // date calendaire inexistante (ex. 31 avril) est silencieusement
+        // "rollover" par DateTime::createFromFormat('Y-n-j', ...) vers une
+        // AUTRE date réelle, sans jamais déclencher le repli attendu.
+        $neriaSrc202 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($neriaSrc202 === '') {
+            $offenders[] = 'neria.php introuvable (garde-fou round 202a)';
+        } elseif (strpos($neriaSrc202, "checkdate((int) \$mCal[1], (int) \$mCal[2], 2028)") === false) {
+            $offenders[] = "neria.php ne valide plus cal_custom_date par checkdate() — régression du bug corrigé le 24/08/2026 (round 202) : une date calendaire inexistante (ex. 31 avril) serait de nouveau silencieusement décalée vers une autre date réelle sans alerte";
+        }
+        $calSrc202 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php');
+        if ($calSrc202 === '') {
+            $offenders[] = 'CalendarManager.php introuvable (garde-fou round 202a)';
+        } elseif (strpos($calSrc202, 'if (!\checkdate($month, $day, $year)) {') === false) {
+            $offenders[] = "CalendarManager::resolveMonthDay() ne rejette plus les dates calendaires invalides — régression du bug corrigé le 24/08/2026 (round 202)";
+        }
+
+        // Round 202b (24/08/2026) : buildPreviewFakes() doit fournir
+        // {virtualProductsTxt} en plus de {virtualProducts} — sinon l'aperçu
+        // Design BO du .txt de download_product affiche un bloc de
+        // téléchargement vide (variable résiduelle silencieusement retirée).
+        $erSrc202 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($erSrc202 === '') {
+            $offenders[] = 'EmailRenderer.php introuvable (garde-fou round 202b)';
+        } elseif (strpos($erSrc202, "'{virtualProductsTxt}' => 'Patron de couture Neria Vol.1") === false) {
+            $offenders[] = "EmailRenderer::buildPreviewFakes() ne fournit plus {virtualProductsTxt} — régression du bug corrigé le 24/08/2026 (round 202) : l'aperçu Design BO du .txt de download_product afficherait de nouveau un bloc de téléchargement vide";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
