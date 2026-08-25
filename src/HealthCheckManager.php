@@ -7091,6 +7091,29 @@ class HealthCheckManager
             $offenders[] = "neria.php::searchCustomersForHistory() n'échappe plus les métacaractères LIKE — régression du bug corrigé le 24/08/2026 (round 203)";
         }
 
+        // Round 204a (24/08/2026) : TranslationInstaller doit différer ses
+        // logs Watchdog/module (flushPendingWatchdogLogs()) jusqu'après
+        // résolution de la transaction — WatchdogManager/Neria::log()
+        // utilisent la même connexion Db::getInstance() singleton, un log
+        // émis DANS la transaction est annulé par un ROLLBACK.
+        $tiSrc204 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/TranslationInstaller.php');
+        if ($tiSrc204 === '') {
+            $offenders[] = 'TranslationInstaller.php introuvable (garde-fou round 204a)';
+        } elseif (substr_count($tiSrc204, '$this->flushPendingWatchdogLogs();') < 3) {
+            $offenders[] = "TranslationInstaller ne différe plus systématiquement ses logs Watchdog après la transaction — régression du bug corrigé le 24/08/2026 (round 204) : un log d'échec d'import serait de nouveau annulé par le ROLLBACK qu'il est censé expliquer";
+        }
+
+        // Round 204b (24/08/2026) : upgrade-1.0.42.php doit chaîner les
+        // clauses AFTER (artisan_name→region→weaving_duration), pas toutes
+        // "AFTER product_name" — sinon l'ordre physique des colonnes de
+        // neria_certificate diverge entre install fraîche et upgrade.
+        $up42Src204 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/upgrade/upgrade-1.0.42.php');
+        if ($up42Src204 === '') {
+            $offenders[] = 'upgrade-1.0.42.php introuvable (garde-fou round 204b)';
+        } elseif (strpos($up42Src204, "'weaving_duration' => ['def' => 'VARCHAR(255) DEFAULT NULL', 'after' => 'region']") === false) {
+            $offenders[] = "upgrade-1.0.42.php ne chaîne plus les clauses AFTER pour neria_certificate — régression du bug corrigé le 24/08/2026 (round 204) : l'ordre physique des colonnes divergerait de nouveau entre install fraîche et upgrade successif";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
