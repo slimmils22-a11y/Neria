@@ -7178,6 +7178,20 @@ class HealthCheckManager
             $offenders[] = "VoiceProfileManager::textContainsWords() ne journalise plus les erreurs PCRE non liées à l'UTF-8 — régression du bug corrigé le 25/08/2026 (round 207) : un audit de traduction échouerait de nouveau silencieusement sur un texte volumineux";
         }
 
+        // Round 208 (25/08/2026) : SignatureGenerator::createImage() doit
+        // vérifier le retour de imagettfbbox() — sinon une police TTF
+        // corrompue produit une signature mal centrée/hors cadre sans
+        // aucune alerte Watchdog, contrairement aux 3 autres branches
+        // d'échec de generate() (round 160).
+        $sgSrc208 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SignatureGenerator.php');
+        if ($sgSrc208 === '') {
+            $offenders[] = 'SignatureGenerator.php introuvable (garde-fou round 208)';
+        } elseif (strpos($sgSrc208, "if (\$bbox === false) {") === false
+            || strpos($sgSrc208, "watchdog.signature_font_corrupted") === false
+        ) {
+            $offenders[] = "SignatureGenerator::createImage() ne vérifie plus le retour de imagettfbbox() — régression du bug corrigé le 25/08/2026 (round 208) : une police TTF corrompue produirait de nouveau une signature mal centrée/hors cadre sans aucune alerte Watchdog";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
