@@ -226,8 +226,23 @@ class VoiceProfileManager
             }
 
             $pattern = '/(?<![\p{L}\p{N}])' . preg_quote($word, '/') . '(?![\p{L}\p{N}])/ui';
-            if (@preg_match($pattern, $plainText) === 1) {
+            $matchResult = @preg_match($pattern, $plainText);
+            if ($matchResult === 1) {
                 $found[] = $word;
+            } elseif ($matchResult === false && preg_last_error() !== PREG_NO_ERROR) {
+                // Round 207 : le round 170 a corrigé le SEUL cas UTF-8
+                // invalide (pré-nettoyage ligne 192 ci-dessus), mais le @
+                // masque toujours TOUTE autre erreur PCRE — notamment
+                // PREG_BACKTRACK_LIMIT_ERROR/PREG_RECURSION_LIMIT_ERROR,
+                // plausibles sur un $plainText très volumineux (CGV, fiche
+                // produit longue). Dans ce cas preg_match() retourne false,
+                // "false === 1" vaut silencieusement false ("mot non
+                // trouvé"), et auditTranslations() incrémente quand même
+                // entries_scanned — donnant l'illusion que l'entrée a été
+                // vérifiée alors qu'aucun mot banni n'a pu être testé sur
+                // elle. Journalisé ici (méthode statique, pas d'accès à
+                // WatchdogManager) plutôt que silencieusement avalé.
+                error_log('[Neria] VoiceProfileManager::textContainsWords() : erreur PCRE ' . preg_last_error() . ' sur un texte de ' . mb_strlen($plainText) . ' caractères — audit incomplet pour ce mot');
             }
         }
 
