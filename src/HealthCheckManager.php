@@ -7114,6 +7114,31 @@ class HealthCheckManager
             $offenders[] = "upgrade-1.0.42.php ne chaîne plus les clauses AFTER pour neria_certificate — régression du bug corrigé le 24/08/2026 (round 204) : l'ordre physique des colonnes divergerait de nouveau entre install fraîche et upgrade successif";
         }
 
+        // Round 205a (25/08/2026) : NeriaTools::timeAgo() doit gérer
+        // explicitement l'échec de strtotime() (false), pas seulement
+        // formatDate() — sinon time() - false (caste à 0) produit un
+        // "il y a N mois" absurde pour une date non parsable.
+        $ntSrc205 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php');
+        if ($ntSrc205 === '') {
+            $offenders[] = 'NeriaTools.php introuvable (garde-fou round 205a)';
+        } else {
+            $posTimeAgo205 = strpos($ntSrc205, 'public static function timeAgo(');
+            if ($posTimeAgo205 === false || strpos($ntSrc205, 'if ($ts === false) {', $posTimeAgo205) === false) {
+                $offenders[] = "NeriaTools::timeAgo() ne gère plus l'échec de strtotime() — régression du bug corrigé le 25/08/2026 (round 205) : une date non parsable produirait de nouveau un texte 'il y a N mois' absurde";
+            }
+        }
+
+        // Round 205b (25/08/2026) : ConfigManager::resetDesignConfig() ne
+        // doit plus documenter à tort que KEY_DESIGN_WIZARD_SEEN est
+        // réinitialisé — ce flag a été retiré au round 136 et le docblock
+        // n'avait jamais été corrigé, piège pour un futur correctif.
+        $cmSrc205 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
+        if ($cmSrc205 === '') {
+            $offenders[] = 'ConfigManager.php introuvable (garde-fou round 205b)';
+        } elseif (strpos($cmSrc205, 'Round 205 : ce docblock affirmait à tort') === false) {
+            $offenders[] = "ConfigManager::resetDesignConfig() : le docblock corrigé au round 205 a disparu — vérifier qu'il n'affirme pas de nouveau à tort réinitialiser KEY_DESIGN_WIZARD_SEEN";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
