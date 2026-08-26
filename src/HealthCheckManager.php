@@ -7192,6 +7192,20 @@ class HealthCheckManager
             $offenders[] = "SignatureGenerator::createImage() ne vérifie plus le retour de imagettfbbox() — régression du bug corrigé le 25/08/2026 (round 208) : une police TTF corrompue produirait de nouveau une signature mal centrée/hors cadre sans aucune alerte Watchdog";
         }
 
+        // Round 209 (25/08/2026) : ChurnScoreManager::countHighRisk() doit
+        // appliquer le même filtre customer (active=1/deleted=0) que
+        // getHighRiskCustomers() — sinon le "atRisk" du résumé de cron peut
+        // dépasser le nombre de clients réellement listés/actionnables.
+        $csmSrc209 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php');
+        if ($csmSrc209 === '') {
+            $offenders[] = 'ChurnScoreManager.php introuvable (garde-fou round 209)';
+        } else {
+            $posCHR209 = strpos($csmSrc209, 'public function countHighRisk(): int');
+            if ($posCHR209 === false || strpos($csmSrc209, 'AND c.active = 1 AND c.deleted = 0', $posCHR209) === false) {
+                $offenders[] = "ChurnScoreManager::countHighRisk() ne filtre plus les clients désactivés/supprimés — régression du bug corrigé le 25/08/2026 (round 209) : le compteur 'atRisk' du résumé de cron redeviendrait incohérent avec la liste réellement affichée au marchand";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
