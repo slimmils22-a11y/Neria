@@ -712,7 +712,7 @@ class OrderTriggersManager
             // sans verrou plutôt que de bloquer un remboursement légitime.
             if ($idOrderSlip > 0) {
                 $lockName = 'neria_refund_slip_' . $idOrderSlip;
-                if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)") !== 1) {
+                if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)", false) !== 1) {
                     return;
                 }
             }
@@ -902,7 +902,7 @@ class OrderTriggersManager
         // insuffisant contre deux appels quasi simultanés.
         $idOrderReturn = (int) $orderReturn->id;
         $lockName = 'neria_return_' . $idOrderReturn;
-        if ($idOrderReturn > 0 && (int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)") !== 1) {
+        if ($idOrderReturn > 0 && (int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)", false) !== 1) {
             return;
         }
 

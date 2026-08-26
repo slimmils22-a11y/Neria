@@ -281,7 +281,7 @@ class QueueManager
         // global (pas par boutique) : cette méthode traite déjà toutes les
         // boutiques en un seul appel (le id_shop par ligne est utilisé pour
         // l'envoi, pas pour filtrer la sélection).
-        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_queue_process_queue', 0)") !== 1) {
+        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_queue_process_queue', 0)", false) !== 1) {
             return 0;
         }
 

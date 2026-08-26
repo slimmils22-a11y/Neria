@@ -703,7 +703,7 @@ class ConfigManager
     {
         $db = \Db::getInstance();
         $lockName = 'neria_toggle_' . $key;
-        $gotLock = (int) $db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 3)");
+        $gotLock = (int) $db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 3)", false);
         if ($gotLock !== 1) {
             // Round 141 : GET_LOCK() renvoie 0 (timeout) ou NULL (erreur) —
             // dans les deux cas le verrou n'est PAS acquis. Poursuivre comme
@@ -938,7 +938,7 @@ class ConfigManager
         // toggleBooleanKey() (round 141), jamais porté ici. Sous contention,
         // on refuse la bascule plutôt que de modifier la config sans
         // protection (même stratégie que la méthode jumelle).
-        $gotLock = (int) $db->getValue("SELECT GET_LOCK('neria_menu_hidden_items', 3)");
+        $gotLock = (int) $db->getValue("SELECT GET_LOCK('neria_menu_hidden_items', 3)", false);
         if ($gotLock !== 1) {
             $this->watchdog()->warning(
                 'ConfigManager::toggleMenuItemVisibility() : verrou MySQL non acquis pour ' . $key . ', bascule annulée',

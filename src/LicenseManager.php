@@ -411,7 +411,7 @@ class LicenseManager
         // réseau au serveur de licence. Impact mineur (pas de corruption de
         // données), mais cohérent avec le même pattern déjà appliqué ailleurs
         // dans le projet (DomainReputationManager, WatchdogManager...).
-        if ((int) \Db::getInstance()->getValue("SELECT GET_LOCK('neria_license_validate', 0)") !== 1) {
+        if ((int) \Db::getInstance()->getValue("SELECT GET_LOCK('neria_license_validate', 0)", false) !== 1) {
             return;
         }
         \Configuration::updateGlobalValue(self::CONFIG_LAST_ATTEMPT, time());

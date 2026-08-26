@@ -68,7 +68,7 @@ class MonthlyReportManager
         // marchand. Même piège déjà corrigé pour la queue d'envoi, la queue
         // webhook et le cron comportemental.
         $db = $this->db;
-        if ((int) $db->getValue("SELECT GET_LOCK('neria_monthly_report_check', 0)") !== 1) {
+        if ((int) $db->getValue("SELECT GET_LOCK('neria_monthly_report_check', 0)", false) !== 1) {
             return;
         }
 
@@ -733,7 +733,7 @@ class MonthlyReportManager
      */
     private function deliverReport(array $data): bool
     {
-        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_monthly_report_deliver', 5)") !== 1) {
+        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_monthly_report_deliver', 5)", false) !== 1) {
             return false;
         }
         try {

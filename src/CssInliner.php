@@ -50,7 +50,7 @@ class CssInliner
             $idShop = (int) \Context::getContext()->shop->id;
             $key    = 'NERIA_CSS_INLINE_FAILURES_' . $idShop;
             $db     = \Db::getInstance();
-            if ((int) $db->getValue("SELECT GET_LOCK('neria_css_inline_failures_" . $idShop . "', 1)") === 1) {
+            if ((int) $db->getValue("SELECT GET_LOCK('neria_css_inline_failures_" . $idShop . "', 1)", false) === 1) {
                 try {
                     \Configuration::updateValue($key, (int) \Configuration::get($key, null, null, $idShop) + 1, false, null, $idShop);
                 } finally {

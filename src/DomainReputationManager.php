@@ -201,7 +201,7 @@ class DomainReputationManager
         // throttle par boutique est lui-même un check-then-act non
         // atomique : une alerte critique de réputation de domaine pouvait
         // ainsi partir en double au marchand pour le même incident.
-        if ((int) \Db::getInstance()->getValue("SELECT GET_LOCK('neria_domain_reputation_" . $this->idShop . "', 0)") !== 1) {
+        if ((int) \Db::getInstance()->getValue("SELECT GET_LOCK('neria_domain_reputation_" . $this->idShop . "', 0)", false) !== 1) {
             // Verrou déjà tenu par un autre process en train de rafraîchir
             // le même rapport : sert le cache s'il en existe un (même
             // périmé), plutôt que de dupliquer la vérification DNS/RBL
@@ -224,7 +224,7 @@ class DomainReputationManager
             // attend maintenant réellement le verrou (jusqu'à 6s, sous le
             // budget DNS de 8s) : l'autre process a normalement fini et
             // écrit le cache pendant l'attente.
-            if ((int) \Db::getInstance()->getValue("SELECT GET_LOCK('neria_domain_reputation_" . $this->idShop . "', 6)") === 1) {
+            if ((int) \Db::getInstance()->getValue("SELECT GET_LOCK('neria_domain_reputation_" . $this->idShop . "', 6)", false) === 1) {
                 try {
                     $cached = $this->getCachedReport();
                     if ($cached !== null) {

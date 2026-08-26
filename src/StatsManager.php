@@ -191,7 +191,7 @@ class StatsManager
         // existante" avant que l'une n'ait inséré sa ligne, créditant des
         // points en double pour une seule ouverture réelle.
         $lockKey = 'neria_open_' . md5($token);
-        $gotLock = (bool) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockKey) . "', 2)");
+        $gotLock = (bool) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockKey) . "', 2)", false);
         // Round 178 : $gotLock était calculé mais jamais vérifié avant
         // d'exécuter la section protégée (eventExists() + record()) — le
         // verrou était pris, mais si son acquisition échouait (timeout de
@@ -270,7 +270,7 @@ class StatsManager
         // toutes deux créditer des points. GET_LOCK sérialise la décision
         // par token pour empêcher ce double crédit.
         $lockKey  = 'neria_click_' . md5($token);
-        $gotLock  = (bool) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockKey) . "', 2)");
+        $gotLock  = (bool) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockKey) . "', 2)", false);
         // Round 178 : voir commentaire équivalent dans recordOpen().
         if (!$gotLock) {
             $this->watchdog()->warning(
@@ -876,7 +876,7 @@ class StatsManager
         // simultanés pouvaient tous deux lire "aucune conversion existante"
         // et créditer des points en double pour un seul achat réel.
         $lockKey = 'neria_conv_' . md5($token);
-        $gotLock = (bool) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockKey) . "', 2)");
+        $gotLock = (bool) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockKey) . "', 2)", false);
         // Round 178 : voir commentaire équivalent dans recordOpen().
         if (!$gotLock) {
             $this->watchdog()->warning(
@@ -1188,11 +1188,17 @@ class StatsManager
     {
         $table = _DB_PREFIX_ . self::TABLE;
 
+        // Round 210 : $use_cache=false — eventExists() est le "check" de
+        // check-then-act appairé au GET_LOCK ci-dessus ; le mettre en
+        // cache SQL PrestaShop peut faire lire un résultat périmé
+        // ("pas encore enregistré") après qu'un process concurrent ait
+        // déjà inséré la ligne, contournant la dédup malgré le verrou.
         $count = (int) $this->db->getValue(
             "SELECT COUNT(*)
              FROM `{$table}`
              WHERE `tracking_token` = '" . pSQL($token) . "'
-               AND `event_type`     = '" . pSQL($event) . "'"
+               AND `event_type`     = '" . pSQL($event) . "'",
+            false
         );
 
         return $count > 0;

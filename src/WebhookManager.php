@@ -292,7 +292,7 @@ class WebhookManager
         // le même lot de lignes 'pending' avant que l'un des deux n'ait eu le
         // temps d'incrémenter `attempts` — livrant chaque webhook deux fois.
         $lockName = 'neria_webhook_process_queue_' . $this->idShop;
-        if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)") !== 1) {
+        if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)", false) !== 1) {
             return;
         }
 

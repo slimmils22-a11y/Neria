@@ -1333,7 +1333,18 @@ class BehavioralCronManager
 
     private function sendQuoteEmail(string $template, array $r, bool $withExtension = false): void
     {
-        $idCurrency = (int) ($r['id_currency'] ?: \Configuration::get('PS_CURRENCY_DEFAULT'));
+        // Round 210 : $idShop transmis explicitement — même piège déjà
+        // corrigé ailleurs dans ce fichier (lignes 224/423/1891) pour la
+        // boucle multi-boutiques de run() : la réassignation
+        // Context::getContext()->shop ne modifie PAS Shop::$context_id_shop
+        // (seul Shop::setContext() le fait), donc Configuration::get() sans
+        // $idShop explicite retombe sur le contexte ambiant réel, pas sur
+        // la boutique de l'itération courante. Sans ce correctif, un devis
+        // B2B de la boutique B (devise USD) dont id_currency est vide/0
+        // affichait sa relance avec la devise par défaut de la boutique A
+        // (contexte ambiant), montant dans la mauvaise devise pour un email
+        // transactionnel engageant une décision d'achat.
+        $idCurrency = (int) ($r['id_currency'] ?: \Configuration::get('PS_CURRENCY_DEFAULT', null, null, (int) $r['id_shop']));
         $currency   = new \Currency($idCurrency);
         $idLang     = (int) ($r['id_lang'] ?? 0);
         $langIso    = \Language::getIsoById($idLang) ?: 'fr';

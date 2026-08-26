@@ -119,7 +119,7 @@ class PostmasterManager
         // exactement la perte silencieuse de state que ce verrou est censé
         // empêcher (cf. commentaire round 122 ci-dessus). RELEASE_LOCK()
         // n'est appelé que si le verrou a réellement été acquis.
-        $locked = (int) $db->getValue("SELECT GET_LOCK('neria_postmaster_oauth_state', 3)") === 1;
+        $locked = (int) $db->getValue("SELECT GET_LOCK('neria_postmaster_oauth_state', 3)", false) === 1;
         try {
             $pending = $this->loadPendingStates();
             $pending[$state] = ['return_url' => $returnUrl, 'ts' => time()];
@@ -194,7 +194,7 @@ class PostmasterManager
         // Round 196 : retour de GET_LOCK() vérifié — même correctif que
         // getAuthUrl() (round 189), jamais porté ici. RELEASE_LOCK() n'est
         // appelé que si le verrou a réellement été acquis.
-        $locked = (int) $db->getValue("SELECT GET_LOCK('neria_postmaster_oauth_state', 3)") === 1;
+        $locked = (int) $db->getValue("SELECT GET_LOCK('neria_postmaster_oauth_state', 3)", false) === 1;
         try {
             $pending = $this->loadPendingStates();
             $matchedKey = null;

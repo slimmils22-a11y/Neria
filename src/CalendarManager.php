@@ -112,7 +112,7 @@ class CalendarManager
         // installs multi-boutiques à trafic soutenu, sans aucun log
         // exploitable (comportement "normal" par design du verrou).
         $db = $this->db;
-        if ((int) $db->getValue("SELECT GET_LOCK('neria_calendar_check_" . $this->idShop . "', 0)") !== 1) {
+        if ((int) $db->getValue("SELECT GET_LOCK('neria_calendar_check_" . $this->idShop . "', 0)", false) !== 1) {
             return;
         }
 

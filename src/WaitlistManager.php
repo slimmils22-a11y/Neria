@@ -91,7 +91,7 @@ class WaitlistManager
         // déclenchement plutôt que bloquer la requête HTTP admin en cours
         // (ce hook tourne en synchrone dans actionUpdateQuantity).
         $lockName = 'neria_waitlist_notify_' . $idProduct . '_' . $idShop;
-        if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)") !== 1) {
+        if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)", false) !== 1) {
             return 0;
         }
 

@@ -59,7 +59,7 @@ class TranslationHistoryManager
         // pruneKey() exactement comme si le verrou avait été obtenu,
         // recréant sous forte concurrence la race condition que ce verrou
         // (round 138) est censé empêcher.
-        $acquired = (int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 3)");
+        $acquired = (int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 3)", false);
         if ($acquired !== 1) {
             $this->wd()?->warning(
                 \WatchdogManager::i18nMsg('watchdog.translation_history_lock_failed', [

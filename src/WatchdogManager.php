@@ -149,7 +149,7 @@ class WatchdogManager
         // exploitable en ON DUPLICATE KEY (la fenêtre "dernière heure" glisse),
         // donc un verrou explicite est la protection appropriée ici.
         $lockName = 'neria_log_' . md5($this->idShop . '|' . $level . '|' . $class . '|' . $message);
-        $locked   = (int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 1)") === 1;
+        $locked   = (int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 1)", false) === 1;
         // Round 179 (audit transversal de fin de série) : $locked était
         // calculé mais jamais vérifié avant la section critique (SELECT +
         // INSERT/UPDATE) — pire que le pattern "vérifié+loggé mais sans
@@ -448,7 +448,7 @@ class WatchdogManager
         // d'écrire sa mise à jour (après la construction complète de
         // l'email) — le marchand recevait alors deux digests quotidiens
         // identiques.
-        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_watchdog_digest_" . $this->idShop . "', 0)") !== 1) {
+        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_watchdog_digest_" . $this->idShop . "', 0)", false) !== 1) {
             return;
         }
 
