@@ -428,11 +428,23 @@ class ChurnScoreManager
      */
     public function countHighRisk(): int
     {
-        $table = _DB_PREFIX_ . self::TABLE;
+        // Round 209 : même filtre que getHighRiskCustomers() (jointure
+        // customer + active=1/deleted=0) — neria_churn_score n'est jamais
+        // purgée quand un client est désactivé ou soft-supprimé (RGPD),
+        // elle ne l'est que par la fenêtre glissante de 90 jours de
+        // recomputeAll(), indépendante du statut du client. Sans ce
+        // filtre, le "atRisk" du résumé de cron (watchdog.churn_score_summary)
+        // pouvait dépasser le nombre de clients réellement listés/
+        // actionnables dans getHighRiskCustomers() — écart trompeur pour
+        // le marchand sur une boutique à fort taux de suppression de comptes.
+        $table  = _DB_PREFIX_ . self::TABLE;
+        $cTable = _DB_PREFIX_ . 'customer';
         return (int) $this->db->getValue(sprintf(
-            "SELECT COUNT(*) FROM `%s`
-             WHERE `id_shop` = %d AND `score` >= %d",
-            $table, $this->idShop, self::HIGH_RISK_THRESHOLD
+            "SELECT COUNT(*) FROM `%s` s
+             INNER JOIN `%s` c ON c.id_customer = s.id_customer
+             WHERE s.id_shop = %d AND s.score >= %d
+               AND c.active = 1 AND c.deleted = 0",
+            $table, $cTable, $this->idShop, self::HIGH_RISK_THRESHOLD
         ));
     }
 
