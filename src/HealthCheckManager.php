@@ -1369,7 +1369,7 @@ class HealthCheckManager
         if ($webhookSrc2 === '') {
             $offenders[] = 'WebhookManager.php introuvable';
         } else {
-            if (!preg_match('/function\s+retryOne[\s\S]{0,1500}?`last_attempt`\s*=\s*NULL/', $webhookSrc2)) {
+            if (!preg_match('/function\s+retryOne[\s\S]{0,2200}?`last_attempt`\s*=\s*NULL/', $webhookSrc2)) {
                 $offenders[] = "WebhookManager : retryOne() ne réinitialise plus last_attempt — relance manuelle inopérante avant 1 minute";
             }
             // Depuis le round 49, le numéro de séquence n'est plus injecté
@@ -7352,6 +7352,31 @@ class HealthCheckManager
         // nettoyer le fichier PDF orphelin si l'INSERT échoue.
         if ($cmSrc212a === '' || strpos($cmSrc212a, '$orphanPath = _PS_MODULE_DIR_ . \'neria/\' . $pdfPath;') === false) {
             $offenders[] = "CertificateManager::issue() ne nettoie plus le fichier PDF orphelin sur échec d'INSERT — régression du bug corrigé le 25/08/2026 (round 212)";
+        }
+
+        // Round 213 (26/08/2026) : WebhookManager::retryOne() doit lire
+        // $use_cache=false ET l'UPDATE qui suit doit revérifier
+        // status='failed' dans son propre WHERE (défense en profondeur,
+        // ne plus se reposer uniquement sur le SELECT de contrôle).
+        $whSrc213 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php');
+        if ($whSrc213 === '') {
+            $offenders[] = 'WebhookManager.php introuvable (garde-fou round 213)';
+        } else {
+            $whSrc213Norm = str_replace("\r", '', $whSrc213);
+            if (strpos($whSrc213Norm, "AND status = 'failed'\",\n            \$table, \$idWebhook, \$this->idShop\n        ), false);") === false) {
+                $offenders[] = "WebhookManager::retryOne() n'a plus \$use_cache=false sur son SELECT de contrôle — régression du bug corrigé le 26/08/2026 (round 213) : un webhook déjà 'done' pourrait de nouveau être requeue via un résultat de cache SQL périmé, causant une livraison dupliquée vers un système tiers";
+            }
+            if (strpos($whSrc213, "WHERE `id_webhook` = %d AND id_shop = %d AND status = 'failed'\",") === false) {
+                $offenders[] = "WebhookManager::retryOne() ne revérifie plus status='failed' dans le WHERE de son UPDATE — régression du bug corrigé le 26/08/2026 (round 213) : la défense en profondeur ajoutée en plus du \$use_cache=false a disparu";
+            }
+        }
+
+        // Round 213 (26/08/2026) : AbTestManager::copyVariantBToDefault()
+        // doit lire id_abtest avec $use_cache=false — le texte SQL est
+        // identique d'un cycle de test A/B à l'autre sur le même template.
+        $abSrc213 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/AbTestManager.php');
+        if ($abSrc213 === '' || strpos($abSrc213, "AND `is_active` = 1\",\n            false\n        );") === false) {
+            $offenders[] = "AbTestManager::copyVariantBToDefault() n'a plus \$use_cache=false sur sa lecture d'id_abtest — régression du bug corrigé le 26/08/2026 (round 213) : un nouveau cycle de test A/B gagné par B pourrait promouvoir les traductions d'un ANCIEN test B déjà désactivé";
         }
 
         if ($offenders) {
