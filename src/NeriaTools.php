@@ -889,7 +889,17 @@ class NeriaTools
      */
     public static function timeAgo(string $date, string $lang = 'fr'): string
     {
-        $diff = time() - strtotime($date);
+        // Round 205 : strtotime() renvoie false (pas 0) pour une date non
+        // parsable — time() - false caste false en 0, donnant un $diff
+        // énorme (≈ time() courant) qui retombait silencieusement dans la
+        // branche "il y a N mois" avec un N absurde, au lieu de signaler
+        // l'échec. Même piège déjà corrigé pour formatDate() (round 173,
+        // voir son commentaire ci-dessus) mais jamais porté ici.
+        $ts = strtotime($date);
+        if ($ts === false) {
+            return $date;
+        }
+        $diff = time() - $ts;
 
         $labels = [
             'fr' => [

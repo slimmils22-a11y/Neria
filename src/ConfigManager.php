@@ -1328,7 +1328,8 @@ class ConfigManager
             }
         }
 
-        // Espacement interne des sections — entre 20 et 64px
+        // Espacement interne des sections — entre 16 et 64px (cohérent
+        // avec le slider design.tpl min="16" max="64")
         if (isset($data['section_padding'])) {
             $pad = (int) $data['section_padding'];
             $pad = max(16, min(64, $pad));
@@ -1716,10 +1717,15 @@ class ConfigManager
      * ni aux réglages d'autres onglets (réseaux sociaux, A/B testing,
      * multi-expéditeur, typographie par script...).
      *
-     * Réinitialise aussi KEY_DESIGN_WIZARD_SEEN : un retour au design
-     * usine remet le marchand devant une ardoise vierge, donc l'assistant
-     * de démarrage (bandeau "Nouveau sur Neria ?") redevient pertinent et
-     * doit se réafficher.
+     * Round 205 : ce docblock affirmait à tort que KEY_DESIGN_WIZARD_SEEN
+     * était aussi réinitialisé — c'était vrai jusqu'au round 136, où ce
+     * flag a été délibérément RETIRÉ de $designKeys ci-dessous (ce n'est
+     * pas un réglage de design, réinitialiser ici faisait réapparaître à
+     * tort le bandeau "Nouveau sur Neria ?" après un simple reset factory
+     * du Design). Le docblock n'avait jamais été mis à jour en conséquence
+     * — piège pour quiconque s'y fierait comme source de vérité et
+     * réintroduirait KEY_DESIGN_WIZARD_SEEN, ramenant la régression du
+     * round 136 (voir test_162_reset_design_preserves_wizard_seen).
      *
      * @return bool
      */
