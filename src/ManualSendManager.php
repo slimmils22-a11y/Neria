@@ -958,11 +958,14 @@ class ManualSendManager
         // un envoi sur la Boutique A bloquait à tort le même client sur la
         // Boutique B.
         $idShopConflict = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
+        // Round 212 : $use_cache=false, même famille de bug que les rounds
+        // 210-211 (cache SQL neutralisant ce garde-fou anti-conflit).
         $alreadySent = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_behavioral_sent`
              WHERE id_customer = ' . (int) $customer['id_customer'] . '
                AND template = \'' . pSQL($conflictTemplate) . '\'' . $refFilter . '
-               AND id_shop = ' . $idShopConflict
+               AND id_shop = ' . $idShopConflict,
+            false
         );
 
         if ($alreadySent > 0) {
@@ -1082,11 +1085,14 @@ class ManualSendManager
             ? ' AND ref_id = ' . (int) date('Y')
             : '';
         $idShopConflict = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
+        // Round 212 : $use_cache=false, même famille de bug que les rounds
+        // 210-211 (cache SQL neutralisant ce garde-fou anti-conflit).
         $conflictSent = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_behavioral_sent`
              WHERE id_customer = ' . (int) $customer['id_customer'] . '
                AND template = \'' . pSQL($conflictTemplate) . '\'' . $refFilter . '
-               AND id_shop = ' . $idShopConflict
+               AND id_shop = ' . $idShopConflict,
+            false
         );
 
         $labels = [

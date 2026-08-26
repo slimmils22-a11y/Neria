@@ -158,11 +158,15 @@ class LoyaltyManager
 
             // Déjà récompensé pour ce palier ? (sentinelle 0 en mode cumul
             // transversal, vraie boutique en mode séparé — voir ci-dessus)
+            // Round 212 : $use_cache=false, même famille de bug que les
+            // rounds 210-211 — sans lui, un doublon de bon de fidélité
+            // (perte financière directe) restait possible sous cache SQL.
             $alreadySent = (int) $this->db->getValue(
                 "SELECT COUNT(*) FROM `{$this->prefix}" . self::TABLE_REWARDS . "`
                  WHERE id_customer = " . (int) $idCustomer . "
                    AND tier_key = '" . pSQL($tier['key']) . "'
-                   AND id_shop = " . $reservationShopId
+                   AND id_shop = " . $reservationShopId,
+                false
             );
             if ($alreadySent > 0) {
                 continue;

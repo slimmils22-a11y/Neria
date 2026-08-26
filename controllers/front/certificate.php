@@ -31,7 +31,35 @@ class NeriaCertificateModuleFrontController extends ModuleFrontController
         $serial = trim((string) Tools::getValue('cert'));
         $cert   = [];
 
-        if ($serial !== '' && class_exists('CertificateManager')) {
+        // Round 212 : les numéros de série sont un simple compteur
+        // séquentiel (CERT-ANNÉE-NNNNNN, cf. CertificateManager::
+        // generateSerial()) — cette page publique, non authentifiée,
+        // n'avait jusqu'ici AUCUNE limitation de débit, contrairement à
+        // track.php (throttling APCu par IP+token, round 164). Un tiers
+        // pouvait parcourir séquentiellement tous les numéros pour
+        // aspirer produit/artisan/région/date d'émission de l'intégralité
+        // du catalogue de production. Même mécanisme que track.php
+        // (fail-open si APCu indisponible, jamais bloquant en soi), mais
+        // scopé par IP SEULE : il n'y a pas de "destinataire réel" ici à
+        // isoler comme pour le pixel de tracking, la cible du throttle
+        // est le scraping en masse depuis une même source.
+        $lookupAllowed = true;
+        if (function_exists('apcu_enabled') && apcu_enabled()) {
+            $ip  = (string) (Tools::getRemoteAddr() ?: '0.0.0.0');
+            $key = 'neria_cert_rl_' . md5($ip);
+            $hits = (int) apcu_fetch($key, $ok);
+            if (!$ok) {
+                apcu_store($key, 1, 10);
+            } else {
+                $hits++;
+                apcu_store($key, $hits, 10);
+                if ($hits > 20) {
+                    $lookupAllowed = false;
+                }
+            }
+        }
+
+        if ($serial !== '' && $lookupAllowed && class_exists('CertificateManager')) {
             $cert = (new CertificateManager($this->module))->getBySerial($serial);
         }
 

@@ -706,11 +706,15 @@ class UpsellManager
                 // sans ce garde-fou, un seul achat réel faisait attribuer le
                 // même revenu à chaque suggestion, doublant le total dans
                 // getStats()/ROI.
+                // Round 212 : $use_cache=false, même famille de bug que les
+                // rounds 210-211 (cache SQL gonflant artificiellement le
+                // ROI upsell affiché sur un retry/double worker cron).
                 $alreadyClaimed = (int) $this->db->getValue(
                     "SELECT COUNT(*) FROM `{$table}`
                      WHERE id_order_converted = " . (int) $match['id_order'] . "
                        AND id_product_upsell  = " . (int) $row['id_product_upsell'] . "
-                       AND id_customer        = " . (int) $row['id_customer']
+                       AND id_customer        = " . (int) $row['id_customer'],
+                    false
                 );
                 if ($alreadyClaimed > 0) {
                     continue;

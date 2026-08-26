@@ -1569,13 +1569,17 @@ class BehavioralCronManager
                     break;
                 }
                 try {
-                    // Déduplication via neria_behavioral_sent
+                    // Déduplication via neria_behavioral_sent — Round 212 :
+                    // $use_cache=false, même famille de bug que les rounds
+                    // 210-211 (cache SQL PrestaShop neutralisant un
+                    // check-then-act anti-doublon).
                     $alreadySent = (int) $this->db->getValue(
                         "SELECT COUNT(*) FROM `{$this->prefix}neria_behavioral_sent`
                          WHERE id_customer = " . (int) $customer['id_customer'] . "
                            AND template = 'product_lifespan_reminder'
                            AND ref_id = {$idProduct}
-                           AND id_shop = " . (int) $customer['id_shop']
+                           AND id_shop = " . (int) $customer['id_shop'],
+                        false
                     );
                     if ($alreadySent > 0) {
                         continue;

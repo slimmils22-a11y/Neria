@@ -347,10 +347,15 @@ class WaitlistManager
             // ne peut pas annuler un envoi déjà en cours (latence SMTP de
             // Mail::Send() elle-même reste un residu de fenêtre inévitable
             // dans tout système de notification "au moins une fois").
+            // Round 212 : $use_cache=false, même famille de bug que les
+            // rounds 210-211 — cette re-vérification juste avant l'envoi
+            // est précisément le type de lecture le plus sensible à la
+            // péremption du cache SQL.
             $stillRegistered = (int) $this->db->getValue(
                 "SELECT COUNT(*) FROM `{$this->prefix}" . self::TABLE . "`
                  WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
-                   AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
+                   AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}",
+                false
             ) > 0;
             if (!$stillRegistered) {
                 continue; // désinscrit entre le claim et l'envoi

@@ -170,6 +170,11 @@ class WatchdogManager
         }
 
         try {
+            // Round 212 : $use_cache=false, même famille de bug que les
+            // rounds 210-211 — même sous verrou GET_LOCK (déjà corrigé),
+            // ce SELECT reste une lecture indépendante que le cache SQL
+            // PrestaShop peut resservir périmée, cassant le throttle
+            // anti-spam de logs identiques.
             $existing = (int) $this->db->getValue(sprintf(
                 "SELECT `id_log` FROM `%s`
                  WHERE `id_shop` = %d AND `level` = '%s' AND `class` = '%s'
@@ -181,7 +186,7 @@ class WatchdogManager
                 pSQL($level),
                 pSQL($class),
                 pSQL($message)
-            ));
+            ), false);
 
             if ($existing > 0) {
                 // Round 189 : date_add rafraîchi à chaque occurrence
