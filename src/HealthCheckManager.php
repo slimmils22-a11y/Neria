@@ -136,7 +136,7 @@ class HealthCheckManager
         // final `CONFIG_RESULTS` est un simple "dernier écrivain gagne",
         // idempotent), mais évité au même titre que les autres blocs de
         // runBackgroundJobs() par cohérence.
-        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_health_autochecks', 0)") !== 1) {
+        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_health_autochecks', 0)", false) !== 1) {
             return;
         }
 
@@ -2264,7 +2264,12 @@ class HealthCheckManager
         // de l'INSERT — un envoi manuel planifié en doublon (contrainte
         // UNIQUE) échouait silencieusement, ManualSendManager annonçant
         // quand même "programmé avec succès".
-        if ($queueSrc2 !== '' && strpos($queueSrc2, "INSERT IGNORE INTO `' . \$this->prefix . 'neria_queue`\n             (id_customer, id_shop, id_lang, template, recipient_email, recipient_name,\n              vars_json, ref_id, send_at, status, created_at)") === false) {
+        // Round 210 : comparaison normalisée (\r retirés des deux côtés) —
+        // les fins de ligne CRLF (git core.autocrlf sur cet environnement)
+        // faisaient échouer cette comparaison littérale calibrée en LF sur
+        // du code par ailleurs strictement inchangé — faux négatif du
+        // garde-fou lui-même, pas une régression réelle.
+        if ($queueSrc2 !== '' && strpos(str_replace("\r", '', $queueSrc2), "INSERT IGNORE INTO `' . \$this->prefix . 'neria_queue`\n             (id_customer, id_shop, id_lang, template, recipient_email, recipient_name,\n              vars_json, ref_id, send_at, status, created_at)") === false) {
             $offenders[] = 'QueueManager : enqueueAt() n\'utilise plus INSERT IGNORE — un envoi manuel planifié en doublon échouerait de nouveau silencieusement sans que ManualSendManager ne le détecte';
         }
         if ($manualSrc2 !== '' && strpos($manualSrc2, '$queued = (new \QueueManager($this->module))->enqueueAt(') === false) {
@@ -2869,7 +2874,14 @@ class HealthCheckManager
             // toujours bidirectionnelle, mais plus sûre. Ce garde-fou
             // vérifiait encore l'ancienne forme, jamais mise à jour depuis :
             // il aurait échoué indéfiniment même sur le code CORRECT.
-            !preg_match('/function\s+matchesShopHost[\s\S]{0,800}?str_ends_with\(\$a,[\s\S]{0,80}?str_ends_with\(\$b,/', $scSrc)
+            // Round 210 : fenêtre élargie 800→1000 — les fins de ligne
+            // CRLF (git core.autocrlf sur cet environnement, cf. les
+            // avertissements "LF will be replaced by CRLF" à chaque commit)
+            // ajoutent un octet par ligne, faisant déborder la fenêtre
+            // initiale de quelques dizaines d'octets sur du code par
+            // ailleurs strictement inchangé — faux négatif du garde-fou
+            // lui-même, pas une régression réelle.
+            !preg_match('/function\s+matchesShopHost[\s\S]{0,1000}?str_ends_with\(\$a,[\s\S]{0,80}?str_ends_with\(\$b,/', $scSrc)
         ) {
             $offenders[] = "SearchConsoleManager::matchesShopHost() ne compare plus bidirectionnellement le siteUrl GSC au host de la boutique — les Domain properties GSC pourraient de nouveau ne jamais matcher, affichant à tort 'aucun site correspondant' dans le BO";
         }
@@ -7204,6 +7216,48 @@ class HealthCheckManager
             if ($posCHR209 === false || strpos($csmSrc209, 'AND c.active = 1 AND c.deleted = 0', $posCHR209) === false) {
                 $offenders[] = "ChurnScoreManager::countHighRisk() ne filtre plus les clients désactivés/supprimés — régression du bug corrigé le 25/08/2026 (round 209) : le compteur 'atRisk' du résumé de cron redeviendrait incohérent avec la liste réellement affichée au marchand";
             }
+        }
+
+        // Round 210 (25/08/2026) : bug systémique — Db::getValue() met en
+        // cache SQL (PrestaShop, réglage Performances) le RÉSULTAT d'un
+        // GET_LOCK() par défaut ($use_cache=true implicite). Deux appels
+        // concurrents portant sur la MÊME clé de verrou peuvent alors
+        // recevoir "1" (verrou acquis) directement depuis le cache, sans
+        // qu'un second GET_LOCK() n'ait réellement eu lieu côté MySQL —
+        // neutralisant silencieusement tout mécanisme d'exclusion mutuelle
+        // du module quand le cache SQL est actif. 25 appels dans 16
+        // fichiers devaient passer $use_cache=false explicitement.
+        $round210Files = [
+            'src/CalendarManager.php'          => "SELECT GET_LOCK('neria_calendar_check_\" . \$this->idShop . \"', 0)\", false)",
+            'src/ConfigManager.php'             => "SELECT GET_LOCK('neria_menu_hidden_items', 3)\", false)",
+            'src/CssInliner.php'                => "SELECT GET_LOCK('neria_css_inline_failures_\" . \$idShop . \"', 1)\", false)",
+            'src/DomainReputationManager.php'   => "SELECT GET_LOCK('neria_domain_reputation_\" . \$this->idShop . \"', 6)\", false)",
+            'src/LicenseManager.php'            => "SELECT GET_LOCK('neria_license_validate', 0)\", false)",
+            'src/MonthlyReportManager.php'      => "SELECT GET_LOCK('neria_monthly_report_deliver', 5)\", false)",
+            'src/OrderTriggersManager.php'      => "SELECT GET_LOCK('\" . pSQL(\$lockName) . \"', 0)\", false) !== 1) {\n                    return;",
+            'src/PostmasterManager.php'         => "SELECT GET_LOCK('neria_postmaster_oauth_state', 3)\", false)",
+            'src/QueueManager.php'              => "SELECT GET_LOCK('neria_queue_process_queue', 0)\", false)",
+            'src/SearchConsoleManager.php'      => "SELECT GET_LOCK('neria_search_console_oauth_state', 3)\", false)",
+            'src/StatsManager.php'              => "SELECT GET_LOCK('\" . pSQL(\$lockKey) . \"', 2)\", false)",
+            'src/TranslationHistoryManager.php' => "SELECT GET_LOCK('\" . pSQL(\$lockName) . \"', 3)\", false)",
+            'src/WaitlistManager.php'           => "SELECT GET_LOCK('\" . pSQL(\$lockName) . \"', 0)\", false)",
+            'src/WatchdogManager.php'           => "SELECT GET_LOCK('neria_watchdog_digest_\" . \$this->idShop . \"', 0)\", false)",
+            'src/WebhookManager.php'            => "SELECT GET_LOCK('\" . pSQL(\$lockName) . \"', 0)\", false)",
+            'src/HealthCheckManager.php'        => "SELECT GET_LOCK('neria_health_autochecks', 0)\", false)",
+        ];
+        foreach ($round210Files as $relPath => $needle210) {
+            $src210 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/' . $relPath);
+            if ($src210 === '' || strpos($src210, $needle210) === false) {
+                $offenders[] = "{$relPath} n'a plus \$use_cache=false sur son appel GET_LOCK() attendu — régression du bug corrigé le 25/08/2026 (round 210) : le cache SQL PrestaShop pourrait de nouveau neutraliser silencieusement ce verrou d'exclusion mutuelle";
+            }
+        }
+        $smSrc210 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        if ($smSrc210 !== '' && strpos($smSrc210, "pSQL(\$event) . \"'\",\r\n            false\r\n        );") === false) {
+            $offenders[] = "StatsManager::eventExists() n'a plus \$use_cache=false — régression du bug corrigé le 25/08/2026 (round 210) : le check-then-act appairé au GET_LOCK pourrait de nouveau lire un résultat de cache SQL périmé";
+        }
+        $bcmSrc210 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc210 !== '' && strpos($bcmSrc210, "Configuration::get('PS_CURRENCY_DEFAULT', null, null, (int) \$r['id_shop'])") === false) {
+            $offenders[] = "BehavioralCronManager::sendQuoteEmail() ne transmet plus \$idShop à Configuration::get('PS_CURRENCY_DEFAULT') — régression du bug corrigé le 25/08/2026 (round 210) : un devis B2B afficherait de nouveau sa relance dans la devise de la mauvaise boutique";
         }
 
         if ($offenders) {
