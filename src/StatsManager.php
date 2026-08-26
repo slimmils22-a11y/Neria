@@ -1349,12 +1349,21 @@ class StatsManager
         }
 
         // Taux d'ouverture et de clic
-        $sentCur  = max(1, (float) ($raw['current']['sent']  ?? 1));
-        $sentPrev = max(1, (float) ($raw['previous']['sent'] ?? 1));
+        // Round 211 : max(1, $sent) plancher le dénominateur à 1 au lieu
+        // de garder $sent réel — contrairement au pattern protecteur
+        // ($sent > 0 ? ... : 0) utilisé partout ailleurs dans ce fichier.
+        // sent/opens/clicks sont comptés par la DATE PROPRE de chaque
+        // événement (pas la date d'envoi) : un email envoyé la semaine
+        // précédente peut être ouvert/cliqué durant la semaine courante.
+        // Avec 0 envoi mais des ouvertures dans la fenêtre courante,
+        // opens/max(1,0) affichait un taux de plusieurs centaines de %
+        // au lieu d'un simple 0 (non calculable, pas d'envoi = pas de taux).
+        $sentCur  = (float) ($raw['current']['sent']  ?? 0);
+        $sentPrev = (float) ($raw['previous']['sent'] ?? 0);
         foreach (['open_rate', 'click_rate'] as $rk) {
             $base  = $rk === 'open_rate' ? 'opens' : 'clicks';
-            $cur   = round((float) ($raw['current'][$base]  ?? 0) / $sentCur  * 100, 1);
-            $prev  = round((float) ($raw['previous'][$base] ?? 0) / $sentPrev * 100, 1);
+            $cur   = $sentCur  > 0 ? round((float) ($raw['current'][$base]  ?? 0) / $sentCur  * 100, 1) : 0.0;
+            $prev  = $sentPrev > 0 ? round((float) ($raw['previous'][$base] ?? 0) / $sentPrev * 100, 1) : 0.0;
             $delta = $prev > 0 ? round(($cur - $prev) / $prev * 100, 1) : null;
             $result[$rk] = [
                 'current'  => $cur,

@@ -101,13 +101,24 @@ class CooldownManager
             $scopeCondition = '';
         }
 
+        // Round 211 : $use_cache=false — même famille de bug que le round
+        // 210 (25 GET_LOCK() neutralisés par le cache SQL PrestaShop).
+        // isDuplicate() est un check-then-act anti-doublon appelé en
+        // boucle sur un même lot (cron QueueManager/BehavioralCronManager/
+        // OrderTriggersManager/WaitlistManager...) — deux appels
+        // consécutifs pour le même customer+template+scope dans le MÊME
+        // process PHP ont un texte SQL strictement identique. Sans ce
+        // paramètre, le 2e appel pouvait lire un COUNT(*)=0 mis en cache
+        // AVANT l'insertion de la ligne 'sent' du 1er envoi, contournant
+        // silencieusement le Mode Silence dans ce cas précis.
         $count = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_stat`
              WHERE `id_customer` = ' . (int) $idCustomer . '
                AND `id_shop`     = ' . (int) $idShop . '
                AND `template`    = \'' . pSQL($template) . '\'
                AND `event_type`  = \'sent\'' . $scopeCondition . '
-               AND `date_add`    > DATE_SUB(NOW(), INTERVAL ' . (int) $windowMinutes . ' MINUTE)'
+               AND `date_add`    > DATE_SUB(NOW(), INTERVAL ' . (int) $windowMinutes . ' MINUTE)',
+            false
         );
 
         return $count > 0;

@@ -61,17 +61,41 @@ class NeriaPreferencesModuleFrontController extends ModuleFrontController
         // `cid` fourni par le client sans vérifier qu'il correspond bien à cet
         // email, un client authentifié sur SA PROPRE adresse pourrait changer
         // `cid` pour écraser les préférences d'un autre client (IDOR en écriture).
-        // Scopé à la boutique courante : en multiboutique sans partage de
-        // comptes, la même adresse peut correspondre à des lignes client
-        // distinctes par boutique (colonne id_shop). Sans ce filtre, un
-        // lien de préférences reçu de la boutique A pouvait résoudre le
-        // compte client d'une autre boutique et lire/écrire ses préférences.
-        $row = Db::getInstance()->getRow(
-            "SELECT `id_customer` FROM `" . _DB_PREFIX_ . "customer`
-             WHERE LOWER(`email`) = '" . pSQL(strtolower($email)) . "'
-             AND `deleted` = 0 AND `id_shop` = " . (int) $this->context->shop->id
-        );
-        $idCustomer = $row ? (int) $row['id_customer'] : 0;
+        //
+        // Round 211 : l'ancienne requête SQL brute filtrait par
+        // `id_shop = boutique courante` STRICT — correct sans partage de
+        // comptes (une même adresse email peut correspondre à des lignes
+        // client distinctes par boutique), mais faux EN CAS de partage de
+        // comptes actif (Shop::SHARE_CUSTOMER) : le compte est rattaché à
+        // sa boutique de CRÉATION dans `id_shop`, pas à la boutique
+        // actuellement visitée. Un client créé sur la boutique A cliquant
+        // un lien de préférences reçu depuis/pour la boutique B ne trouvait
+        // alors aucune ligne, retombait à id_customer=0 (traité comme
+        // invité), et ses préférences réelles de client identifié
+        // n'étaient jamais mises à jour — désabonnement silencieusement
+        // inefficace. Correctif : Customer::customerExists() (cœur PS) via
+        // Shop::addSqlRestriction(Shop::SHARE_CUSTOMER), qui gère nativement
+        // les deux cas — même pattern déjà éprouvé dans
+        // CooldownManager::resolveCustomerId() (bascule temporaire du
+        // contexte Shop statique, jamais modifié par une simple
+        // réaffectation de Context::getContext()->shop).
+        $previousShopContext = Shop::getContext();
+        $previousShopId      = Shop::getContextShopID();
+        Shop::setContext(Shop::CONTEXT_SHOP, (int) $this->context->shop->id);
+        try {
+            $idCustomer = (int) Customer::customerExists($email, true);
+        } finally {
+            Shop::setContext($previousShopContext, $previousShopId);
+        }
+        // Customer::customerExists() ne filtre pas les comptes soft-supprimés
+        // (deleted=1), contrairement à l'ancienne requête SQL brute — un
+        // compte RGPD-supprimé ne doit pas rester éditable via ce lien public.
+        if ($idCustomer > 0) {
+            $custCheck = new Customer($idCustomer);
+            if (!Validate::isLoadedObject($custCheck) || (int) $custCheck->deleted === 1) {
+                $idCustomer = 0;
+            }
+        }
 
         $manager = new PreferencesManager($this->module);
 
