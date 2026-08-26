@@ -125,14 +125,62 @@ class LicenseManager
             $expires = is_array($payload) ? (int) ($payload['expires'] ?? 0) : 0;
             $valid   = is_array($payload) ? !empty($payload['valid']) : false;
 
-            if ($valid && ($expires === 0 || $expires > time())) {
+            // Round 206 : le jeton signé porte un champ 'domain', mais
+            // rien ici ne le comparait jamais au domaine réellement exécuté
+            // — seul checkDomainChange() (cron) le faisait, en PLANIFIANT
+            // une revalidation réseau ASYNCHRONE sans jamais bloquer
+            // l'envoi entre-temps. Copier NERIA_LICENSE_TOKEN/_KEY vers une
+            // installation non licenciée (clone de config, staging→prod
+            // dupliqué) permettait donc l'envoi immédiat et continu tant
+            // que le cron Neria de cette installation ne tournait pas — la
+            // signature Ed25519 reste valide (elle signe le jeton, pas le
+            // domaine d'exécution). Même scoping multi-boutique que
+            // checkDomainChange() : le jeton est global à l'installation,
+            // comparé uniquement sur la boutique PAR DÉFAUT (une boutique
+            // secondaire a légitimement un domaine différent de celui
+            // enregistré à l'activation — pas une fraude).
+            $cachedDomain   = is_array($payload) ? (string) ($payload['domain'] ?? '') : '';
+            $domainMismatch = $this->isDomainMismatch($cachedDomain);
+
+            if ($valid && !$domainMismatch && ($expires === 0 || $expires > time())) {
                 return true;
+            }
+
+            // Mismatch de domaine détecté sur la boutique par défaut :
+            // refus explicite, PAS de repli sur le délai de grâce — celui-ci
+            // existe pour une panne réseau/serveur, pas pour couvrir une
+            // réutilisation du jeton sur un domaine non enregistré.
+            if ($domainMismatch) {
+                return false;
             }
         }
 
         // Jeton absent, signature invalide, ou licence explicitement
         // invalide/expirée : on retombe sur le délai de grâce.
         return $this->isWithinGracePeriod();
+    }
+
+    /**
+     * Round 206 : true si le domaine enregistré dans le jeton (à
+     * l'activation) diverge du domaine réellement exécuté ici. Même
+     * scoping multi-boutique que checkDomainChange() : ne compare que sur
+     * la boutique PAR DÉFAUT de l'installation (le jeton est global,
+     * comparer sur une boutique secondaire en multi-boutique donnerait un
+     * faux positif — son domaine diffère légitimement de celui enregistré
+     * à l'activation).
+     */
+    private function isDomainMismatch(string $cachedDomain): bool
+    {
+        if ($cachedDomain === '') {
+            return false;
+        }
+        $onDefaultShop = true;
+        if (\Shop::isFeatureActive()) {
+            $defaultShopId = (int) \Configuration::get('PS_SHOP_DEFAULT');
+            $currentShopId = (int) \Context::getContext()->shop->id;
+            $onDefaultShop = $defaultShopId <= 0 || $currentShopId === $defaultShopId;
+        }
+        return $onDefaultShop && $cachedDomain !== $this->currentDomain();
     }
 
     /**
@@ -567,6 +615,15 @@ class LicenseManager
         if (count($parts) !== 4) {
             return '••••';
         }
+        // Round 206 : seul $parts[2] était masqué — les segments 0, 1 et 3
+        // (8 des 12 caractères significatifs de la clé) restaient en clair
+        // dans les logs Watchdog (activateLicense()) et l'affichage BO
+        // (getStatusForDisplay()), contredisant le commentaire de cette
+        // méthode ("jamais la clé en clair dans un log"). Seul le préfixe
+        // fixe (NERIA) et le dernier segment restent visibles, suffisants
+        // pour qu'un marchand/support reconnaisse SA clé sans exposer une
+        // fraction significative de sa valeur réelle.
+        $parts[1] = str_repeat('•', 4);
         $parts[2] = str_repeat('•', 4);
         return implode('-', $parts);
     }
