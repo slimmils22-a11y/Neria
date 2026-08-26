@@ -6548,7 +6548,7 @@ class HealthCheckManager
             $offenders[] = 'WaitlistManager.php introuvable (garde-fou round 187)';
         } else {
             $posLocked187 = strpos($wlSrc187, 'private function notifyProductLocked(');
-            $lockedBody187 = $posLocked187 !== false ? substr($wlSrc187, $posLocked187, 19000) : '';
+            $lockedBody187 = $posLocked187 !== false ? substr($wlSrc187, $posLocked187, 26000) : '';
             if ($posLocked187 === false || substr_count($lockedBody187, 'AND id_product_attribute = {$idProductAttribute}') < 5) {
                 $offenders[] = "WaitlistManager::notifyProductLocked() ne scope plus (ou plus assez) ses UPDATE par id_product_attribute — régression du bug corrigé le 23/08/2026 (round 187) : un client inscrit sur plusieurs déclinaisons du même produit perdrait de nouveau silencieusement sa notification de retour en stock pour les déclinaisons non réassorties, le réassort d'UNE déclinaison marquant à tort notified_at sur TOUTES ses inscriptions à ce produit";
             }
@@ -7293,6 +7293,65 @@ class HealthCheckManager
             $offenders[] = 'controllers/front/preferences.php introuvable (garde-fou round 211c)';
         } elseif (strpos($prefCtrlSrc211, '$idCustomer = (int) Customer::customerExists($email, true);') === false) {
             $offenders[] = "preferences.php ne résout plus le client via Customer::customerExists() — régression du bug corrigé le 25/08/2026 (round 211) : un client en multi-boutique à comptes partagés redeviendrait injoignable via son lien de préférences reçu d'une autre boutique du groupe";
+        }
+
+        // Round 212a (25/08/2026) : 8 occurrences supplémentaires du bug
+        // systémique rounds 210-211 (cache SQL PrestaShop neutralisant un
+        // check-then-act anti-doublon/anti-conflit/throttle), trouvées par
+        // balayage exhaustif de src/.
+        $round212aFiles = [
+            'src/BehavioralCronManager.php' => "AND id_shop = \" . (int) \$customer['id_shop'],\n                        false\n                    );",
+            'src/LoyaltyManager.php'        => "AND id_shop = \" . \$reservationShopId,\n                false\n            );",
+            'src/UpsellManager.php'         => "AND id_customer        = \" . (int) \$row['id_customer'],\n                    false\n                );",
+            'src/WaitlistManager.php'       => "AND id_product_attribute = {\$idProductAttribute} AND id_shop = {\$idShop}\",\n                false\n            ) > 0;",
+            'src/WatchdogManager.php'       => 'pSQL($message)
+            ), false);',
+            'src/CertificateManager.php'    => "SELECT GET_LOCK('\" . pSQL(\$serialLockName) . \"', 5)\",\n            false\n        )) === 1;",
+        ];
+        foreach ($round212aFiles as $relPath212a => $needle212a) {
+            $src212a = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/' . $relPath212a);
+            if ($src212a === '' || strpos(str_replace("\r", '', $src212a), str_replace("\r", '', $needle212a)) === false) {
+                $offenders[] = "{$relPath212a} n'a plus \$use_cache=false sur son check-then-act attendu — régression du bug corrigé le 25/08/2026 (round 212) : le mécanisme anti-doublon/anti-conflit/throttle redeviendrait contournable par le cache SQL";
+            }
+        }
+        // ManualSendManager a 2 occurrences distinctes (anti-conflit anniversaire).
+        $msmSrc212a = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        if ($msmSrc212a === '' || substr_count($msmSrc212a, "AND id_shop = ' . \$idShopConflict,\n            false\n        );") < 2) {
+            $offenders[] = "ManualSendManager n'a plus \$use_cache=false sur ses 2 check-then-act anti-conflit anniversaire — régression du bug corrigé le 25/08/2026 (round 212)";
+        }
+        // CertificateManager::serialExists() — 2e occurrence de ce fichier.
+        $cmSrc212a = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        if ($cmSrc212a === '' || strpos($cmSrc212a, "WHERE `serial_number` = \\'' . pSQL(\$serial) . '\\'',\n            false\n        );") === false) {
+            $offenders[] = "CertificateManager::serialExists() n'a plus \$use_cache=false — régression du bug corrigé le 25/08/2026 (round 212)";
+        }
+
+        // Round 212b (25/08/2026) : CertificateManager doit transmettre
+        // \$idShop (ou l'id_shop de la commande) à Configuration::get() pour
+        // le préfixe/titre/sous-titre/corps/QR du PDF — même correctif que
+        // \$shopName (round 106), jamais étendu à ces champs jusqu'ici.
+        if ($cmSrc212a === ''
+            || strpos($cmSrc212a, "\\Configuration::get(self::CFG_TITLE, null, null, (int) \$order->id_shop)") === false
+            || strpos($cmSrc212a, "\\Configuration::get(self::CFG_SERIAL_PREFIX, null, null, \$idShop)") === false
+        ) {
+            $offenders[] = "CertificateManager ne transmet plus \$idShop à Configuration::get() pour le préfixe/titre/sous-titre/corps/QR du PDF — régression du bug corrigé le 25/08/2026 (round 212) : le PDF afficherait de nouveau les réglages de la mauvaise boutique";
+        }
+
+        // Round 212c (25/08/2026) : controllers/front/certificate.php doit
+        // limiter le débit par IP (comme track.php, round 164) — sinon les
+        // numéros de série séquentiels redeviennent énumérables en masse
+        // sans aucun frein, exposant produit/artisan/région/date d'émission
+        // de tout le catalogue de production.
+        $certCtrlSrc212 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/certificate.php');
+        if ($certCtrlSrc212 === '') {
+            $offenders[] = 'controllers/front/certificate.php introuvable (garde-fou round 212c)';
+        } elseif (strpos($certCtrlSrc212, "\$key = 'neria_cert_rl_' . md5(\$ip);") === false) {
+            $offenders[] = "controllers/front/certificate.php ne limite plus le débit par IP — régression du bug corrigé le 25/08/2026 (round 212) : les numéros de série séquentiels redeviendraient énumérables en masse sans aucun frein";
+        }
+
+        // Round 212d (25/08/2026) : CertificateManager::issue() doit
+        // nettoyer le fichier PDF orphelin si l'INSERT échoue.
+        if ($cmSrc212a === '' || strpos($cmSrc212a, '$orphanPath = _PS_MODULE_DIR_ . \'neria/\' . $pdfPath;') === false) {
+            $offenders[] = "CertificateManager::issue() ne nettoie plus le fichier PDF orphelin sur échec d'INSERT — régression du bug corrigé le 25/08/2026 (round 212)";
         }
 
         if ($offenders) {
