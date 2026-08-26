@@ -7165,6 +7165,19 @@ class HealthCheckManager
             $offenders[] = "LicenseManager::maskKey() ne masque plus le segment [1] de la clé — régression du bug corrigé le 25/08/2026 (round 206) : la clé de licence redeviendrait insuffisamment masquée dans les logs/BO";
         }
 
+        // Round 207 (25/08/2026) : VoiceProfileManager::textContainsWords()
+        // doit journaliser toute erreur PCRE (pas seulement l'UTF-8 invalide
+        // déjà corrigé round 170) — sinon une erreur de limite de
+        // backtracking/récursion sur un texte volumineux fait échouer
+        // silencieusement le mot comme "non trouvé" sans aucune trace,
+        // tandis qu'entries_scanned continue d'être incrémenté.
+        $vpmSrc207 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/VoiceProfileManager.php');
+        if ($vpmSrc207 === '') {
+            $offenders[] = 'VoiceProfileManager.php introuvable (garde-fou round 207)';
+        } elseif (strpos($vpmSrc207, "elseif (\$matchResult === false && preg_last_error() !== PREG_NO_ERROR) {") === false) {
+            $offenders[] = "VoiceProfileManager::textContainsWords() ne journalise plus les erreurs PCRE non liées à l'UTF-8 — régression du bug corrigé le 25/08/2026 (round 207) : un audit de traduction échouerait de nouveau silencieusement sur un texte volumineux";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
