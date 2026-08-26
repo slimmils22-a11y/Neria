@@ -217,7 +217,22 @@ class SignatureGenerator
         $rgb = $this->hexToRgb($color);
 
         // Calcule la taille reelle du texte pour adapter la largeur
-        $bbox    = imagettfbbox(self::FONT_SIZE_SIGNATURE, 0, $fontPath, $name);
+        $bbox = imagettfbbox(self::FONT_SIZE_SIGNATURE, 0, $fontPath, $name);
+        if ($bbox === false) {
+            // Round 208 : imagettfbbox() renvoie false sur une police TTF
+            // corrompue/tronquée (déploiement interrompu, fichier altéré)
+            // même quand file_exists() (déjà vérifié dans getFontPath())
+            // est positif — sans ce garde-fou, $bbox[4]/$bbox[0] plus bas
+            // déclenchaient un accès sur tableau booléen (warning PHP,
+            // valeurs nulles), produisant une signature mal centrée voire
+            // hors cadre SANS aucune trace Watchdog, contrairement aux 3
+            // autres branches d'échec de generate() (GD manquant, police
+            // introuvable, échec de sauvegarde — round 160) qui, elles,
+            // alertent déjà systématiquement.
+            $this->module->log("SignatureGenerator: police TTF corrompue [{$fontPath}]", 3);
+            $this->watchdog()->error(WatchdogManager::i18nMsg('watchdog.signature_font_corrupted', ['path' => $fontPath]), '', 'SignatureGenerator');
+            return false;
+        }
         $textW   = abs($bbox[4] - $bbox[0]) + 60; // marge laterale
         $width   = max(self::IMAGE_WIDTH, $textW);
         $height  = self::IMAGE_HEIGHT + (!empty($title) ? 30 : 0);
@@ -722,6 +737,19 @@ class SignatureGenerator
             $hex = str_repeat($hex[0], 2)
                  . str_repeat($hex[1], 2)
                  . str_repeat($hex[2], 2);
+        }
+
+        // Round 208 : les 2 seuls appelants réels (neria.php) passent déjà
+        // $color par NeriaTools::sanitizeColor() avant generate(), donc ce
+        // filet n'est jamais exercé aujourd'hui — mais contrairement à
+        // ConfigManager (qui utilise systématiquement sanitizeColor() avec
+        // un défaut de marque), rien ici n'empêche un futur appelant direct
+        // de cette classe de passer une valeur hors format. hexdec() sur
+        // une chaîne trop courte/non-hex ignore silencieusement les
+        // caractères invalides et produit une teinte imprévisible plutôt
+        // que la couleur de marque attendue (#b38b59).
+        if (!preg_match('/^[0-9a-f]{6}$/i', $hex)) {
+            $hex = 'b38b59';
         }
 
         return [
