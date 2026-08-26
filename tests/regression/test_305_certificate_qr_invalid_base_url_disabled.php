@@ -21,7 +21,7 @@ function run_test(): array
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/CertificateManager.php');
     neria_assert($src !== false, 'Impossible de lire CertificateManager.php');
 
-    $posQr = strpos($src, '$qrEnabled = (bool) \Configuration::get(self::CFG_QR_ENABLED);');
+    $posQr = strpos($src, '$qrEnabled = (bool) \Configuration::get(self::CFG_QR_ENABLED, null, null, (int) $order->id_shop);');
     neria_assert($posQr !== false, 'Résolution de $qrEnabled introuvable — jeu de test invalide');
     $body = substr($src, $posQr, 2600);
 
