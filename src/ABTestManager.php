@@ -737,12 +737,19 @@ class ABTestManager
         $tableTradB = _DB_PREFIX_ . self::TABLE_TRAD;
         $tableTrad  = _DB_PREFIX_ . 'neria_translation';
 
+        // Round 213 : $use_cache=false, même famille de bug que les rounds
+        // 210-212 — ce texte SQL est identique d'un cycle de test à l'autre
+        // sur le même template (id_abtest n'apparaît pas dans le WHERE) ;
+        // sans ce paramètre, un résultat mis en cache lors d'un précédent
+        // cycle gagné par B pourrait promouvoir les traductions de
+        // l'ANCIEN test B au lieu du test réellement en cours.
         $idAbtestB = (int) $this->db->getValue(
             "SELECT `id_abtest` FROM `{$tableAb}`
              WHERE `id_shop`   = {$this->idShop}
                AND `template`  = '" . pSQL($template) . "'
                AND `variant`   = 'B'
-               AND `is_active` = 1"
+               AND `is_active` = 1",
+            false
         );
 
         if (!$idAbtestB) {

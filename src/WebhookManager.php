@@ -679,10 +679,15 @@ class WebhookManager
         // id_webhook de la boutique (même 'done', déjà livré avec succès)
         // pouvait être remis en file par un clic admin sur un mauvais ID —
         // renvoyant deux fois le même événement à un système tiers.
+        // Round 213 : $use_cache=false, même famille de bug que les rounds
+        // 210-212 (cache SQL PrestaShop pouvant resservir un résultat
+        // périmé). Le WHERE de l'UPDATE ci-dessous revérifie désormais
+        // aussi status='failed' lui-même, en défense en profondeur —
+        // il ne se repose plus uniquement sur ce SELECT.
         $row = $this->db->getRow(sprintf(
             "SELECT id_webhook FROM `%s` WHERE id_webhook = %d AND id_shop = %d AND status = 'failed'",
             $table, $idWebhook, $this->idShop
-        ));
+        ), false);
         if (!$row) {
             return false;
         }
@@ -694,7 +699,7 @@ class WebhookManager
         // enregistré (POW(2,0) = 1 minute) laissait le webhook invisible au
         // prochain passage du cron malgré le message de succès affiché.
         $this->db->execute(sprintf(
-            "UPDATE `%s` SET `status` = 'pending', `attempts` = 0, `last_attempt` = NULL WHERE `id_webhook` = %d AND id_shop = %d",
+            "UPDATE `%s` SET `status` = 'pending', `attempts` = 0, `last_attempt` = NULL WHERE `id_webhook` = %d AND id_shop = %d AND status = 'failed'",
             $table, $idWebhook, $this->idShop
         ));
 
