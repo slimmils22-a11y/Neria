@@ -7139,6 +7139,32 @@ class HealthCheckManager
             $offenders[] = "ConfigManager::resetDesignConfig() : le docblock corrigé au round 205 a disparu — vérifier qu'il n'affirme pas de nouveau à tort réinitialiser KEY_DESIGN_WIZARD_SEEN";
         }
 
+        // Round 206a (25/08/2026) : LicenseManager::isEmailSendingAllowed()
+        // doit comparer le domaine du jeton au domaine courant (sur la
+        // boutique par défaut) — sinon un jeton copié vers une install non
+        // licenciée autoriserait l'envoi indéfiniment tant que le cron de
+        // revalidation (checkDomainChange()) ne tourne pas.
+        $lmSrc206 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LicenseManager.php');
+        if ($lmSrc206 === '') {
+            $offenders[] = 'LicenseManager.php introuvable (garde-fou round 206a)';
+        } else {
+            $posIEA206 = strpos($lmSrc206, 'public function isEmailSendingAllowed(): bool');
+            if ($posIEA206 === false
+                || strpos($lmSrc206, 'private function isDomainMismatch(string $cachedDomain): bool') === false
+                || strpos($lmSrc206, 'if ($valid && !$domainMismatch && ($expires === 0 || $expires > time())) {', $posIEA206) === false
+            ) {
+                $offenders[] = "LicenseManager::isEmailSendingAllowed() ne vérifie plus le domaine du jeton — régression du bug corrigé le 25/08/2026 (round 206) : un jeton copié vers une installation non licenciée autoriserait de nouveau l'envoi indéfiniment";
+            }
+        }
+
+        // Round 206b (25/08/2026) : LicenseManager::maskKey() doit masquer
+        // 2 segments sur 4 (parts[1] ET parts[2]), pas un seul — sinon 8
+        // des 12 caractères significatifs de la clé de licence restent en
+        // clair dans les logs Watchdog et l'affichage BO.
+        if ($lmSrc206 !== '' && strpos($lmSrc206, "\$parts[1] = str_repeat('•', 4);") === false) {
+            $offenders[] = "LicenseManager::maskKey() ne masque plus le segment [1] de la clé — régression du bug corrigé le 25/08/2026 (round 206) : la clé de licence redeviendrait insuffisamment masquée dans les logs/BO";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
