@@ -7260,6 +7260,41 @@ class HealthCheckManager
             $offenders[] = "BehavioralCronManager::sendQuoteEmail() ne transmet plus \$idShop à Configuration::get('PS_CURRENCY_DEFAULT') — régression du bug corrigé le 25/08/2026 (round 210) : un devis B2B afficherait de nouveau sa relance dans la devise de la mauvaise boutique";
         }
 
+        // Round 211a (25/08/2026) : CooldownManager::isDuplicate() — même
+        // famille de bug que le round 210 (cache SQL neutralisant un
+        // check-then-act anti-doublon appelé en boucle sur un même lot).
+        $cdmSrc211 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CooldownManager.php');
+        if ($cdmSrc211 === '') {
+            $offenders[] = 'CooldownManager.php introuvable (garde-fou round 211a)';
+        } elseif (strpos(str_replace("\r", '', $cdmSrc211), "MINUTE)',\n            false\n        );") === false) {
+            $offenders[] = "CooldownManager::isDuplicate() n'a plus \$use_cache=false — régression du bug corrigé le 25/08/2026 (round 211) : le Mode Silence pourrait de nouveau être contourné par le cache SQL sur un lot avec doublon client+template+scope";
+        }
+
+        // Round 211b (25/08/2026) : StatsManager::getKpiTrends() doit
+        // garder le pattern protecteur $sent > 0 ? ... : 0, pas
+        // max(1, $sent) — sinon un taux d'ouverture/clic peut redevenir
+        // aberrant (>100%) quand 0 envoi mais des ouvertures tombent dans
+        // la fenêtre courante (événements datés indépendamment de l'envoi).
+        $smSrc211 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        if ($smSrc211 === '') {
+            $offenders[] = 'StatsManager.php introuvable (garde-fou round 211b)';
+        } elseif (strpos($smSrc211, '$cur   = $sentCur  > 0 ? round((float) ($raw[\'current\'][$base]  ?? 0) / $sentCur  * 100, 1) : 0.0;') === false) {
+            $offenders[] = "StatsManager::getKpiTrends() ne garde plus le pattern protecteur \$sent > 0 pour le taux d'ouverture/clic — régression du bug corrigé le 25/08/2026 (round 211) : un taux aberrant (>100%) redeviendrait possible avec 0 envoi mais des ouvertures dans la fenêtre courante";
+        }
+
+        // Round 211c (25/08/2026) : preferences.php doit résoudre le
+        // client via Customer::customerExists() (respecte
+        // Shop::SHARE_CUSTOMER), pas une requête SQL brute filtrée sur
+        // id_shop strict — sinon un client en multi-boutique à comptes
+        // partagés ne serait de nouveau jamais retrouvé depuis une autre
+        // boutique du groupe, rendant son lien de préférences inopérant.
+        $prefCtrlSrc211 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/preferences.php');
+        if ($prefCtrlSrc211 === '') {
+            $offenders[] = 'controllers/front/preferences.php introuvable (garde-fou round 211c)';
+        } elseif (strpos($prefCtrlSrc211, '$idCustomer = (int) Customer::customerExists($email, true);') === false) {
+            $offenders[] = "preferences.php ne résout plus le client via Customer::customerExists() — régression du bug corrigé le 25/08/2026 (round 211) : un client en multi-boutique à comptes partagés redeviendrait injoignable via son lien de préférences reçu d'une autre boutique du groupe";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
