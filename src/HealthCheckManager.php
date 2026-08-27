@@ -7586,6 +7586,25 @@ class HealthCheckManager
             $offenders[] = "navigation.tpl n'applique plus |escape:'html' après le dernier regex_replace de \$neria_tab_base/\$neria_test_base — régression du bug corrigé le 26/08/2026 (round 221) : un message de confirmation resterait de nouveau coincé sur tous les onglets du menu BO";
         }
 
+        // Round 222 (26/08/2026) : neria.php::abtestBelongsToShop() doit
+        // lire $use_cache=false — contrôle d'AUTORISATION avant 6 actions
+        // sensibles sur neria_abtest_translation.
+        $neriaSrc222 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($neriaSrc222 === '' || strpos($neriaSrc222, 'return (bool) Db::getInstance()->getValue($sql, false);') === false) {
+            $offenders[] = "neria.php::abtestBelongsToShop() n'a plus \$use_cache=false — régression du bug corrigé le 26/08/2026 (round 222) : le contrôle d'autorisation avant écriture sur neria_abtest_translation pourrait de nouveau être contourné par un résultat de cache SQL périmé";
+        }
+
+        // Round 222 (26/08/2026) : BehavioralCronManager::run() (relance
+        // fin de vie produit) doit calculer {estimated_days} depuis la
+        // vraie date d'achat, pas depuis la durée de vie configurée.
+        $bcmSrc222 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc222 === ''
+            || strpos($bcmSrc222, "\$daysSincePurchase = (int) (new \\DateTime(\$customer['purchase_date']))") === false
+            || strpos($bcmSrc222, "'{estimated_days}' => (string) \$daysSincePurchase,") === false
+        ) {
+            $offenders[] = "BehavioralCronManager n'utilise plus purchase_date pour calculer {estimated_days} — régression du bug corrigé le 26/08/2026 (round 222) : product_lifespan_reminder afficherait de nouveau une date d'achat fausse au client";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
