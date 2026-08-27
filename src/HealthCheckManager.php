@@ -7546,6 +7546,22 @@ class HealthCheckManager
             $offenders[] = "DeliverabilityScorer::getDnsStatus() ne vérifie plus la deadline DNS avant SPF/DMARC — régression du bug corrigé le 26/08/2026 (round 218) : une résolution DNS bloquante pourrait de nouveau dépasser le budget promis";
         }
 
+        // Round 219 (26/08/2026) : gdpr.tpl doit couvrir le cas
+        // openssl_ok=true/key_ok=false dans son résumé chiffrement ;
+        // bounces.tpl doit appliquer truncate AVANT escape sur $b.reason
+        // et échapper $bounce_webhook_url aux 2 emplacements.
+        $gdprTpl219 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/gdpr.tpl');
+        if ($gdprTpl219 === '' || strpos($gdprTpl219, "{elseif \$gdpr_audit.crypto.openssl_ok && !\$gdpr_audit.crypto.key_ok}") === false) {
+            $offenders[] = "gdpr.tpl n'a plus la branche openssl_ok/!key_ok du résumé chiffrement — régression du bug corrigé le 26/08/2026 (round 219) : le résumé resterait de nouveau vide quand la clé de chiffrement est invalide";
+        }
+        $bouncesTpl219 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/bounces.tpl');
+        if ($bouncesTpl219 === ''
+            || strpos($bouncesTpl219, "{\$b.reason|truncate:80:'…'|escape:'html'}") === false
+            || substr_count($bouncesTpl219, "{\$bounce_webhook_url|escape:'html'}") < 2
+        ) {
+            $offenders[] = "bounces.tpl n'a plus l'ordre truncate/escape attendu sur \$b.reason et/ou n'échappe plus \$bounce_webhook_url — régression du bug corrigé le 26/08/2026 (round 219)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
