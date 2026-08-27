@@ -7517,6 +7517,35 @@ class HealthCheckManager
             $offenders[] = "neria.php::quote_add n'a plus \$use_cache=false sur son contrôle anti-doublon \$alreadyTracked — régression du bug corrigé le 26/08/2026 (round 217) : un devis B2B pourrait de nouveau être suivi en double, causant des emails de relance dupliqués";
         }
 
+        // Round 218 (26/08/2026) : BlacklistManager::loadAll() et
+        // BounceManager::isBounced() doivent lire $use_cache=false — ces
+        // deux gardes anti-envoi sont vérifiées avant CHAQUE Mail::Send().
+        $blSrc218 = str_replace("\r", '', $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BlacklistManager.php'));
+        if ($blSrc218 === '' || strpos($blSrc218, "ORDER BY `template`, `lang`',\n            true,\n            false\n        );") === false) {
+            $offenders[] = "BlacklistManager::loadAll() n'a plus \$use_cache=false — régression du bug corrigé le 26/08/2026 (round 218) : un template fraîchement blacklisté pourrait continuer à être envoyé";
+        }
+        $boSrc218 = str_replace("\r", '', $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php'));
+        if ($boSrc218 === '' || strpos($boSrc218, "WHERE `email` = \\'' . pSQL(\$email) . '\\'',\n            false\n        );") === false) {
+            $offenders[] = "BounceManager::isBounced() n'a plus \$use_cache=false — régression du bug corrigé le 26/08/2026 (round 218) : un hard bounce fraîchement enregistré pourrait ne pas être vu immédiatement";
+        }
+
+        // Round 218 (26/08/2026) : SeasonalCampaignManager::
+        // getEligibleCustomers() doit rester fail-closed sur son filtre
+        // langue (jamais de clause WHERE manquante quand target_lang est
+        // renseigné mais ne résout aucun id_lang).
+        $scSrc218 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php');
+        if ($scSrc218 === '' || strpos($scSrc218, "\$where[] = 'c.id_lang IN (' . (!empty(\$langIds) ? implode(',', \$langIds) : '0') . ')';") === false) {
+            $offenders[] = "SeasonalCampaignManager::getEligibleCustomers() n'est plus fail-closed sur son filtre langue — régression du bug corrigé le 26/08/2026 (round 218) : une campagne pourrait de nouveau cibler TOUS les clients de toutes langues si aucun code ISO ne résout";
+        }
+
+        // Round 218 (26/08/2026) : DeliverabilityScorer::getDnsStatus()
+        // doit vérifier la deadline DNS avant les appels SPF ET DMARC, pas
+        // seulement dans la boucle des sélecteurs DKIM.
+        $dsSrc218 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DeliverabilityScorer.php');
+        if ($dsSrc218 === '' || substr_count($dsSrc218, 'if (microtime(true) >= $deadline) {') < 3) {
+            $offenders[] = "DeliverabilityScorer::getDnsStatus() ne vérifie plus la deadline DNS avant SPF/DMARC — régression du bug corrigé le 26/08/2026 (round 218) : une résolution DNS bloquante pourrait de nouveau dépasser le budget promis";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
