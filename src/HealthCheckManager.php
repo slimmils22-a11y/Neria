@@ -7562,6 +7562,16 @@ class HealthCheckManager
             $offenders[] = "bounces.tpl n'a plus l'ordre truncate/escape attendu sur \$b.reason et/ou n'échappe plus \$bounce_webhook_url — régression du bug corrigé le 26/08/2026 (round 219)";
         }
 
+        // Round 220 (26/08/2026) : stats.tpl doit échapper $cat.name dans
+        // le sélecteur de catégorie "Complétez votre look" — XSS stocké
+        // via un nom de catégorie renommé par un employé n'ayant que le
+        // droit "Catalogue > Catégories" (permission distincte de l'accès
+        // au module Neria).
+        $statsTpl220 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/stats.tpl');
+        if ($statsTpl220 === '' || strpos($statsTpl220, "<option value=\"{\$cat.id_category|intval}\">{\$cat.name|escape:'html':'UTF-8'}</option>") === false) {
+            $offenders[] = "stats.tpl n'échappe plus \$cat.name dans le sélecteur de catégorie — régression du bug corrigé le 26/08/2026 (round 220) : un nom de catégorie contenant du HTML/JS s'exécuterait de nouveau dans la session BO d'un administrateur";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
