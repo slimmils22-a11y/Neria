@@ -7468,6 +7468,47 @@ class HealthCheckManager
             $offenders[] = "SearchConsoleManager::httpPost() n'utilise plus \$body === false — régression du bug corrigé le 26/08/2026 (round 215)";
         }
 
+        // Round 216 (26/08/2026) : TranslationHistoryManager::pruneKey()
+        // doit lire $use_cache=false — sinon la ligne d'historique
+        // fraîchement insérée peut être supprimée par erreur juste après.
+        $thmSrc216 = str_replace("\r", '', $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/TranslationHistoryManager.php'));
+        if ($thmSrc216 === ''
+            || strpos($thmSrc216, "self::MAX_PER_KEY\n        ), true, false);") === false
+            || strpos($thmSrc216, "\$limit\n        ), true, false);") === false
+            || strpos($thmSrc216, "\$idHistory\n        ), false);") === false
+        ) {
+            $offenders[] = "TranslationHistoryManager n'a plus \$use_cache=false attendu (pruneKey/getHistoryForTemplate/getById) — régression du bug corrigé le 26/08/2026 (round 216) : la dernière entrée d'historique pourrait de nouveau être supprimée par erreur";
+        }
+
+        // Round 216 (26/08/2026) : TranslationEngine::loadBlock()/
+        // getAvailableTemplates()/getAvailableLangs() doivent lire
+        // $use_cache=false.
+        $teSrc216 = str_replace("\r", '', $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/TranslationEngine.php'));
+        if ($teSrc216 === ''
+            || strpos($teSrc216, "ORDER BY `is_custom` ASC\",\n            true,\n            false\n        );") === false
+            || strpos($teSrc216, "ORDER BY `template` ASC\",\n            true,\n            false\n        );") === false
+            || strpos($teSrc216, "ORDER BY `lang` ASC\",\n            true,\n            false\n        );") === false
+        ) {
+            $offenders[] = "TranslationEngine n'a plus \$use_cache=false attendu (loadBlock/getAvailableTemplates/getAvailableLangs) — régression du bug corrigé le 26/08/2026 (round 216)";
+        }
+
+        // Round 216 (26/08/2026) : NeriaTools::getDiagnosticReport() doit
+        // lire $use_cache=false sur ses 2 lectures.
+        $ntSrc216 = str_replace("\r", '', $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php'));
+        if ($ntSrc216 === ''
+            || strpos($ntSrc216, "SELECT COUNT(*) FROM `{\$fullTable}`\",\n                    false\n                );") === false
+        ) {
+            $offenders[] = "NeriaTools::getDiagnosticReport() n'a plus \$use_cache=false attendu — régression du bug corrigé le 26/08/2026 (round 216) : le rapport de diagnostic pourrait de nouveau afficher un état trompeur";
+        }
+
+        // Round 216 (26/08/2026) : controllers/front/cron.php doit limiter
+        // le débit par IP sur les tentatives à token invalide (comme
+        // track.php, round 164).
+        $cronSrc216 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/cron.php');
+        if ($cronSrc216 === '' || strpos($cronSrc216, "\$key = 'neria_cron_rl_' . md5(\$ip);") === false) {
+            $offenders[] = "controllers/front/cron.php ne limite plus le débit par IP sur les tentatives à token invalide — régression du bug corrigé le 26/08/2026 (round 216)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
