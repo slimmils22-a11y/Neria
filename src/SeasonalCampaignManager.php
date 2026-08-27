@@ -414,12 +414,17 @@ class SeasonalCampaignManager
         }
 
         // Filtre langue (codes Neria → id_lang PS)
+        // Round 218 : fail-CLOSED — si aucun code ISO stocké ne correspond
+        // plus à une langue installée (ex. langue désinstallée après la
+        // configuration de la campagne), la clause WHERE n'était auparavant
+        // jamais ajoutée : la campagne ciblait alors silencieusement TOUS
+        // les clients de toutes langues au lieu de personne.
+        // 'c.id_lang IN (0)' ne matche jamais aucun client réel (id_lang
+        // PrestaShop démarre à 1).
         $langs = array_filter(array_map('trim', explode(',', $campaign['target_lang'] ?? '')));
         if (!empty($langs)) {
             $langIds = $this->resolveLanguageIds($langs);
-            if (!empty($langIds)) {
-                $where[] = 'c.id_lang IN (' . implode(',', $langIds) . ')';
-            }
+            $where[] = 'c.id_lang IN (' . (!empty($langIds) ? implode(',', $langIds) : '0') . ')';
         }
 
         // Filtre âge min — TIMESTAMPDIFF (pas YEAR(NOW())-YEAR(birthday), qui

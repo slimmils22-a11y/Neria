@@ -808,24 +808,42 @@ class DeliverabilityScorer
             // était signalé à tort comme absent (faux négatif, score de
             // délivrabilité faussement bas).
 
-            // SPF : enregistrement TXT commençant par "v=spf1"
-            $records = @dns_get_record($domain, DNS_TXT);
-            if (is_array($records)) {
-                foreach ($records as $r) {
-                    if (isset($r['txt']) && stripos(trim($r['txt']), 'v=spf1') === 0) {
-                        $result['spf'] = true;
-                        break;
+            // Round 218 : le budget DNS annoncé (commentaire ci-dessus,
+            // "même budget que DomainReputationManager::checkDkim()")
+            // n'était en réalité vérifié que dans la boucle des sélecteurs
+            // DKIM plus bas — jamais avant les appels SPF/DMARC eux-mêmes,
+            // contrairement à la référence : DomainReputationManager::
+            // checkSpf()/checkDmarc() honorent bien la deadline depuis le
+            // round 165. Sans ce contrôle ici, une résolution DNS bloquante
+            // sur l'appel SPF ou DMARC pouvait dépasser largement le budget
+            // promis, avant même que la vérification de la boucle DKIM
+            // n'ait la moindre chance de s'exécuter.
+            if (microtime(true) >= $deadline) {
+                $result['timed_out'] = true;
+            } else {
+                // SPF : enregistrement TXT commençant par "v=spf1"
+                $records = @dns_get_record($domain, DNS_TXT);
+                if (is_array($records)) {
+                    foreach ($records as $r) {
+                        if (isset($r['txt']) && stripos(trim($r['txt']), 'v=spf1') === 0) {
+                            $result['spf'] = true;
+                            break;
+                        }
                     }
                 }
             }
 
-            // DMARC : TXT sur _dmarc.<domaine>
-            $records = @dns_get_record('_dmarc.' . $domain, DNS_TXT);
-            if (is_array($records)) {
-                foreach ($records as $r) {
-                    if (isset($r['txt']) && stripos($r['txt'], 'v=DMARC1') !== false) {
-                        $result['dmarc'] = true;
-                        break;
+            if (microtime(true) >= $deadline) {
+                $result['timed_out'] = true;
+            } else {
+                // DMARC : TXT sur _dmarc.<domaine>
+                $records = @dns_get_record('_dmarc.' . $domain, DNS_TXT);
+                if (is_array($records)) {
+                    foreach ($records as $r) {
+                        if (isset($r['txt']) && stripos($r['txt'], 'v=DMARC1') !== false) {
+                            $result['dmarc'] = true;
+                            break;
+                        }
                     }
                 }
             }

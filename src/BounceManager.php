@@ -75,11 +75,18 @@ class BounceManager
         // (recordBounce()), donc comparer avec l'horloge PHP introduirait le
         // même risque de décalage serveur web/serveur DB que celui corrigé
         // pour neria_stat.date_add.
+        // Round 218 : $use_cache=false, même famille de bug que les rounds
+        // 210-217 — ce garde-fou est vérifié avant CHAQUE Mail::Send().
+        // Sans ce paramètre, un hard bounce fraîchement enregistré via le
+        // webhook ESP pourrait ne pas être vu immédiatement par un envoi
+        // groupé du même cron, contournant silencieusement le filtre
+        // anti-bounce.
         $row = \Db::getInstance()->getRow(
             'SELECT `type`, `bounce_count`, `status`,
                     TIMESTAMPDIFF(MONTH, `last_bounce_at`, NOW()) AS months_since_bounce
              FROM `' . _DB_PREFIX_ . self::TABLE . '`
-             WHERE `email` = \'' . pSQL($email) . '\''
+             WHERE `email` = \'' . pSQL($email) . '\'',
+            false
         );
 
         if (!$row || $row['status'] !== 'active') {

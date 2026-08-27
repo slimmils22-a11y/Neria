@@ -153,11 +153,18 @@ class BlacklistManager
         if ($this->cache !== null) {
             return $this->cache;
         }
+        // Round 218 : $use_cache=false, même famille de bug que les rounds
+        // 210-217 — cette lecture alimente isBlacklisted(), vérifié avant
+        // CHAQUE envoi. Sans ce paramètre, un template tout juste
+        // blacklisté par le marchand pourrait continuer à partir sous
+        // cache SQL périmé (le blocage censé être immédiat ne l'est pas).
         $rows = $this->db->executeS(
             'SELECT `id_blacklist`, `template`, `lang`, `date_add`
              FROM `' . _DB_PREFIX_ . self::TABLE . '`
              WHERE `id_shop` = ' . (int) $this->idShop . '
-             ORDER BY `template`, `lang`'
+             ORDER BY `template`, `lang`',
+            true,
+            false
         );
         $this->cache = is_array($rows) ? $rows : [];
         return $this->cache;
