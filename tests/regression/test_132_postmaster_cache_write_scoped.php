@@ -31,7 +31,7 @@ function run_test(): array
 
     $posFetch = strpos($src, 'private function fetchAndCache(');
     neria_assert($posFetch !== false, "Méthode fetchAndCache() introuvable — jeu de test invalide");
-    $block = substr($src, $posFetch, 4400);
+    $block = substr($src, $posFetch, 5000);
 
     neria_assert(
         strpos($block, 'Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),') !== false,
