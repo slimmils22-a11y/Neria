@@ -7572,6 +7572,20 @@ class HealthCheckManager
             $offenders[] = "stats.tpl n'échappe plus \$cat.name dans le sélecteur de catégorie — régression du bug corrigé le 26/08/2026 (round 220) : un nom de catégorie contenant du HTML/JS s'exécuterait de nouveau dans la session BO d'un administrateur";
         }
 
+        // Round 221 (26/08/2026) : navigation.tpl doit appliquer
+        // |escape:'html' APRÈS tous les regex_replace de $neria_tab_base
+        // et $neria_test_base — sinon les paramètres neria_success/
+        // neria_error/neria_action/neria_msg_action/neria_test_lang ne
+        // sont plus jamais retirés de l'URL des liens de menu (un
+        // message de confirmation resterait coincé sur tous les onglets).
+        $navTpl221 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/navigation.tpl');
+        if ($navTpl221 === ''
+            || strpos($navTpl221, "regex_replace:'/&neria_msg_action=[^&]*/':''|escape:'html'}") === false
+            || strpos($navTpl221, "regex_replace:'/&neria_test_lang=[^&]*/':''|escape:'html'}") === false
+        ) {
+            $offenders[] = "navigation.tpl n'applique plus |escape:'html' après le dernier regex_replace de \$neria_tab_base/\$neria_test_base — régression du bug corrigé le 26/08/2026 (round 221) : un message de confirmation resterait de nouveau coincé sur tous les onglets du menu BO";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
