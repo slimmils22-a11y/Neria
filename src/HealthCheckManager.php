@@ -7509,6 +7509,14 @@ class HealthCheckManager
             $offenders[] = "controllers/front/cron.php ne limite plus le débit par IP sur les tentatives à token invalide — régression du bug corrigé le 26/08/2026 (round 216)";
         }
 
+        // Round 217 (26/08/2026) : neria.php::quote_add doit lire
+        // $use_cache=false sur son contrôle anti-doublon $alreadyTracked —
+        // sinon un devis B2B pourrait de nouveau être suivi en double.
+        $neriaSrc217 = str_replace("\r", '', $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php'));
+        if ($neriaSrc217 === '' || strpos($neriaSrc217, "AND quote_ref = \\'' . pSQL(\$quoteRef) . '\\'',\n                    false\n                )") === false) {
+            $offenders[] = "neria.php::quote_add n'a plus \$use_cache=false sur son contrôle anti-doublon \$alreadyTracked — régression du bug corrigé le 26/08/2026 (round 217) : un devis B2B pourrait de nouveau être suivi en double, causant des emails de relance dupliqués";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
