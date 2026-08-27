@@ -1609,10 +1609,31 @@ class BehavioralCronManager
                         $idProduct, null, null, null, $idLang, (int) $customer['id_shop']
                     );
 
+                    // Round 222 : {estimated_days} calculé depuis la vraie
+                    // date d'achat (purchase_date), pas depuis $lifespanDays
+                    // (la durée de vie TOTALE configurée du produit). Le
+                    // texte envoyé affirme "vous avez acquis {product_name}
+                    // il y a {estimated_days} jours" — avant ce correctif,
+                    // il annonçait toujours la durée de vie totale (ex. 180
+                    // jours) au lieu du délai réellement écoulé depuis
+                    // l'achat (targetDay, ex. 150, voire plus à cause de la
+                    // fenêtre de rattrapage ci-dessus) : une information de
+                    // date fausse et incohérente avec la propre facture du
+                    // client.
+                    $daysSincePurchase = $lifespanDays;
+                    try {
+                        $daysSincePurchase = (int) (new \DateTime($customer['purchase_date']))
+                            ->diff(new \DateTime())->days;
+                    } catch (\Throwable $e) {
+                        // Repli sur $lifespanDays si purchase_date est
+                        // illisible — comportement identique à avant ce
+                        // correctif, jamais pire.
+                    }
+
                     $this->send('product_lifespan_reminder', $customer, [
                         '{product_name}'   => $productName,
                         '{product_url}'    => $productUrl,
-                        '{estimated_days}' => (string) $lifespanDays,
+                        '{estimated_days}' => (string) $daysSincePurchase,
                     ], $idProduct);
                     $totalSentThisRun++;
                 } catch (\Throwable $e) {

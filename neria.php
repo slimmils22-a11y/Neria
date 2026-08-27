@@ -7574,13 +7574,22 @@ class Neria extends Module
         if ($idAbtest <= 0) {
             return false;
         }
+        // Round 222 : $use_cache=false, même famille de bug que les rounds
+        // 210-217 (quote_add, WebhookManager::retryOne()...) — mais ici
+        // ce n'est pas un simple garde anti-doublon : c'est le contrôle
+        // d'AUTORISATION avant écriture/lecture sur neria_abtest_translation
+        // (save/reset/restore Variante B, export/import CSV). Sans ce
+        // paramètre, un résultat "true" mis en cache pourrait autoriser
+        // ces actions même après que le test A/B a été désactivé/déplacé
+        // vers une autre boutique — contournement du contrôle d'accès par
+        // cache SQL périmé.
         $sql = 'SELECT `id_abtest` FROM `' . _DB_PREFIX_ . 'neria_abtest`
              WHERE `id_abtest` = ' . $idAbtest . '
                AND `id_shop` = ' . (int) $this->context->shop->id;
         if ($template !== '') {
             $sql .= " AND `template` = '" . pSQL($template) . "'";
         }
-        return (bool) Db::getInstance()->getValue($sql);
+        return (bool) Db::getInstance()->getValue($sql, false);
     }
 
     /**
