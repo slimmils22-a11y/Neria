@@ -466,10 +466,15 @@ class GdprAuditManager
             $months = $def['months'];
 
             // Vérifie que la table existe
+            // Round 214 : $use_cache=false — un résultat périmé pourrait
+            // faire sauter à tort l'audit d'une table nouvellement créée
+            // (après une mise à jour de module) tant que le cache n'expire
+            // pas.
             $exists = (bool) $this->db->getValue(
                 "SELECT COUNT(*) FROM information_schema.TABLES
                  WHERE TABLE_SCHEMA = DATABASE()
-                   AND TABLE_NAME = '" . pSQL($table) . "'"
+                   AND TABLE_NAME = '" . pSQL($table) . "'",
+                false
             );
             if (!$exists) {
                 continue;
@@ -750,9 +755,15 @@ class GdprAuditManager
         $shopFilter = $hasShopCol ? " AND `id_shop` = {$this->idShop}" : '';
 
         // Compte avant purge
+        // Round 214 : $use_cache=false — le DELETE ci-dessous s'exécute de
+        // toute façon (pas de check-then-act sur l'action elle-même), mais
+        // ce compte est retourné et affiché comme preuve d'exécution de la
+        // purge automatique quotidienne ; un résultat périmé afficherait un
+        // chiffre trompeur (typiquement 0) au marchand.
         $count = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$fullTable}`
-             WHERE `{$dateCol}` < DATE_SUB(NOW(), INTERVAL {$months} MONTH){$shopFilter}"
+             WHERE `{$dateCol}` < DATE_SUB(NOW(), INTERVAL {$months} MONTH){$shopFilter}",
+            false
         );
 
         $this->db->execute(
@@ -811,8 +822,15 @@ class GdprAuditManager
             if (!is_array($exists) || empty($exists)) {
                 continue;
             }
+            // Round 214 : $use_cache=false — même famille de bug que les
+            // rounds 210-213. Sans lui, un COUNT périmé mis en cache SQL
+            // (résultat 0) ferait sauter silencieusement la suppression
+            // réelle de données personnelles, alors que purgeCustomerData()
+            // retournerait quand même un total "succès" sans erreur — le
+            // marchand croirait le droit à l'effacement RGPD honoré.
             $count = (int) $this->db->getValue(
-                "SELECT COUNT(*) FROM `{$full}` WHERE `{$col}` = " . (int) $idCustomer
+                "SELECT COUNT(*) FROM `{$full}` WHERE `{$col}` = " . (int) $idCustomer,
+                false
             );
             if ($count > 0) {
                 $this->db->execute(
@@ -847,8 +865,11 @@ class GdprAuditManager
             $prefTable = _DB_PREFIX_ . 'neria_preferences';
             $exists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($prefTable) . "'");
             if (is_array($exists) && !empty($exists)) {
+                // Round 214 : $use_cache=false, même risque de purge RGPD
+                // silencieusement neutralisée qu'au bloc ci-dessus.
                 $n = (int) $this->db->getValue(
-                    "SELECT COUNT(*) FROM `{$prefTable}` WHERE `email` = '{$emailSql}' AND `id_customer` = " . (int) $idCustomer
+                    "SELECT COUNT(*) FROM `{$prefTable}` WHERE `email` = '{$emailSql}' AND `id_customer` = " . (int) $idCustomer,
+                    false
                 );
                 if ($n > 0) {
                     $this->db->execute(
@@ -861,7 +882,8 @@ class GdprAuditManager
             $bouncesTable = _DB_PREFIX_ . 'neria_bounces';
             $exists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($bouncesTable) . "'");
             if (is_array($exists) && !empty($exists)) {
-                $n = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$bouncesTable}` WHERE `email` = '{$emailSql}'");
+                // Round 214 : $use_cache=false, même risque.
+                $n = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$bouncesTable}` WHERE `email` = '{$emailSql}'", false);
                 if ($n > 0) {
                     $this->db->execute("DELETE FROM `{$bouncesTable}` WHERE `email` = '{$emailSql}'");
                     $total += $n;
@@ -881,12 +903,14 @@ class GdprAuditManager
         $fullCert = _DB_PREFIX_ . 'neria_certificate';
         $certExists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($fullCert) . "'");
         if (is_array($certExists) && !empty($certExists)) {
+            // Round 214 : $use_cache=false, même risque.
             $n = (int) $this->db->getValue(
                 "SELECT COUNT(*) FROM `{$fullCert}` nc
                  WHERE nc.id_customer = " . (int) $idCustomer . "
                     OR nc.id_order IN (
                         SELECT o.id_order FROM `" . _DB_PREFIX_ . "orders` o WHERE o.id_customer = " . (int) $idCustomer . "
-                    )"
+                    )",
+                false
             );
             if ($n > 0) {
                 $this->db->execute(
@@ -907,10 +931,12 @@ class GdprAuditManager
         $fullAttr = _DB_PREFIX_ . 'neria_attribution';
         $attrExists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($fullAttr) . "'");
         if (is_array($attrExists) && !empty($attrExists)) {
+            // Round 214 : $use_cache=false, même risque.
             $n = (int) $this->db->getValue(
                 "SELECT COUNT(*) FROM `{$fullAttr}` na
                  INNER JOIN `" . _DB_PREFIX_ . "orders` o ON o.id_order = na.id_order
-                 WHERE o.id_customer = " . (int) $idCustomer
+                 WHERE o.id_customer = " . (int) $idCustomer,
+                false
             );
             if ($n > 0) {
                 $this->db->execute(
@@ -947,7 +973,13 @@ class GdprAuditManager
             $whExists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($fullWh) . "'");
             if (is_array($whExists) && !empty($whExists)) {
                 $emailLower = strtolower($email);
-                $rows = $this->db->executeS("SELECT `id_webhook`, `payload` FROM `{$fullWh}`");
+                // Round 214 : $use_cache=false — ce texte SQL (sans WHERE
+                // filtrant sur le client) est identique à CHAQUE appel de
+                // purgeCustomerData(), quel que soit le client traité :
+                // sans ce paramètre, une purge pourrait ne jamais voir un
+                // webhook inséré après la mise en cache d'un appel
+                // précédent.
+                $rows = $this->db->executeS("SELECT `id_webhook`, `payload` FROM `{$fullWh}`", true, false);
                 $idsToDelete = [];
                 if (is_array($rows)) {
                     foreach ($rows as $row) {

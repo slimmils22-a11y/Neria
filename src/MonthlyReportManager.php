@@ -750,10 +750,17 @@ class MonthlyReportManager
             return false;
         }
 
-        $shopName = (string) \Configuration::get('PS_SHOP_NAME');
+        // Round 214 : $this->idShop explicite — même piège déjà corrigé
+        // ailleurs dans ce fichier (round 188 sur PS_CURRENCY_DEFAULT,
+        // round 145 sur getRecipients()) mais oublié ici. Sans lui, un
+        // rapport livré pour la boutique en cours d'itération (checkAndSend()
+        // réassigne $this->idShop dans sa boucle multi-boutique, jamais
+        // Shop::setContext()) affichait le nom/adresse expéditeur d'une
+        // AUTRE boutique de l'installation.
+        $shopName = (string) \Configuration::get('PS_SHOP_NAME', null, null, $this->idShop);
         $mailDir     = _PS_MODULE_DIR_ . 'neria/mails/';
         $wd          = class_exists('WatchdogManager') ? new \WatchdogManager($this->module) : null;
-        $defaultLang = (int) \Configuration::get('PS_LANG_DEFAULT');
+        $defaultLang = (int) \Configuration::get('PS_LANG_DEFAULT', null, null, $this->idShop);
 
         // Résout la langue de chaque destinataire : si son email correspond à
         // un employé BO (cas courant — le rapport part surtout à l'équipe),
@@ -873,6 +880,11 @@ class MonthlyReportManager
                 ]);
             }
 
+            // Round 214 : PS_SHOP_EMAIL scopé par $this->idShop (même
+            // correctif que $shopName ci-dessus) + $this->idShop transmis
+            // explicitement à Mail::Send() en dernier argument — même
+            // pattern déjà appliqué dans CalendarManager::sendCalendarEmail(),
+            // jamais porté ici.
             $sent = \Mail::Send(
                 $recipientLangId,
                 'monthly_report',
@@ -880,11 +892,13 @@ class MonthlyReportManager
                 [],
                 $email,
                 $shopName,
-                (string) \Configuration::get('PS_SHOP_EMAIL'),
+                (string) \Configuration::get('PS_SHOP_EMAIL', null, null, $this->idShop),
                 $shopName,
                 null,
                 null,
-                $mailDir
+                $mailDir,
+                false,
+                $this->idShop
             );
 
             if (!$sent) {
@@ -1077,7 +1091,9 @@ class MonthlyReportManager
             $h .= '<p class="neria-text-note">' . $t('unsub_note', ['n' => $d['unsub']]) . '</p>';
         }
 
-        $shopName = htmlspecialchars((string) \Configuration::get('PS_SHOP_NAME'));
+        // Round 214 : $this->idShop explicite, même correctif que
+        // deliverReportLocked() ci-dessus.
+        $shopName = htmlspecialchars((string) \Configuration::get('PS_SHOP_NAME', null, null, $this->idShop));
         $shopUrl  = \Context::getContext()->link ? \Context::getContext()->link->getBaseLink() : '#';
 
         $html  = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">';

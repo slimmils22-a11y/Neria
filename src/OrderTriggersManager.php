@@ -385,9 +385,15 @@ class OrderTriggersManager
         // client peut décrocher un palier (et sa récompense) sur des commandes
         // jamais réellement honorées.
         $idShop = (int) $order->id_shop;
+        // Round 214 : $use_cache=false, même famille de bug que les rounds
+        // 210-213 — sans lui, un COUNT périmé mis en cache SQL pourrait
+        // faire manquer définitivement un palier (le compte réel ne
+        // repasse jamais par cette valeur), privant le client de son bon
+        // de réduction et de son email de reconnaissance.
         $count  = (int) \Db::getInstance()->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'orders`
-             WHERE `id_customer` = ' . $idCustomer . ' AND `id_shop` = ' . $idShop . ' AND `valid` = 1'
+             WHERE `id_customer` = ' . $idCustomer . ' AND `id_shop` = ' . $idShop . ' AND `valid` = 1',
+            false
         );
         $idLang = (int) $customer->id_lang ?: (int) \Configuration::get('PS_LANG_DEFAULT');
         $toName = trim($customer->firstname . ' ' . $customer->lastname) ?: null;
@@ -803,10 +809,18 @@ class OrderTriggersManager
             // total — un calcul basé sur le seul avoir courant manquerait ce
             // cas (chaque avoir individuellement < 90%, jamais de clawback).
             $orderTotal   = (float) $order->total_paid_tax_incl;
+            // Round 214 : $use_cache=false, même famille de bug que les
+            // rounds 210-213 — ce texte SQL est identique pour CHAQUE avoir
+            // d'une même commande (id_order seul dans le WHERE), c'est
+            // exactement le cas d'un cumul en 2 avoirs successifs décrit
+            // ci-dessus qu'un résultat de cache périmé pourrait fausser,
+            // impactant à la fois le clawback fidélité et l'ajustement du
+            // revenu attribué juste en dessous.
             $totalRefunded = (float) $this->db->getValue(
                 'SELECT SUM(total_products_tax_incl + total_shipping_tax_incl)
                  FROM `' . _DB_PREFIX_ . 'order_slip`
-                 WHERE id_order = ' . (int) $order->id
+                 WHERE id_order = ' . (int) $order->id,
+                false
             );
             // Round 192 : le repli à 1.0 (100%) pour une commande à
             // orderTotal=0 (ex. entièrement couverte par un bon d'achat)
