@@ -1395,7 +1395,7 @@ class HealthCheckManager
         if ($prefSrc2 === '') {
             $offenders[] = 'PreferencesManager.php introuvable (2e vérification)';
         } else {
-            if (!preg_match('/function\s+isAllowed[\s\S]{0,900}?`id_customer`\s*=\s*0[\s\S]{0,200}?`email`\s*=/', $prefSrc2)) {
+            if (!preg_match('/function\s+isAllowed[\s\S]{0,1500}?`id_customer`\s*=\s*0[\s\S]{0,200}?`email`\s*=/', $prefSrc2)) {
                 $offenders[] = "PreferencesManager : isAllowed() ne consulte plus la ligne par email pour les destinataires sans compte (id_customer=0) — centre de préférences de nouveau sans effet pour cette population";
             }
             if (!preg_match('/function\s+getByCustomer[\s\S]{0,600}?`id_customer`\s*=\s*0[\s\S]{0,200}?`email`\s*=/', $prefSrc2)) {
@@ -7427,6 +7427,45 @@ class HealthCheckManager
             || strpos($mrmSrc214, "\$shopName = htmlspecialchars((string) \\Configuration::get('PS_SHOP_NAME', null, null, \$this->idShop));") === false
         ) {
             $offenders[] = "MonthlyReportManager ne scope plus PS_SHOP_NAME/PS_SHOP_EMAIL par \$this->idShop — régression du bug corrigé le 26/08/2026 (round 214) : le rapport mensuel pourrait de nouveau afficher l'identité d'une autre boutique";
+        }
+
+        // Round 215 (26/08/2026) : CollectionManager::processCollection()
+        // doit sommer stock_available directement (pas
+        // StockAvailable::getQuantityAvailableByProduct(null)) — même
+        // piège déjà corrigé rounds 167/184.
+        $colSrc215 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php');
+        if ($colSrc215 === '' || strpos($colSrc215, "SELECT COALESCE(SUM(quantity), 0) FROM `' . \$this->prefix . 'stock_available`") === false) {
+            $offenders[] = "CollectionManager::processCollection() n'utilise plus le SUM(quantity) SQL direct — régression du bug corrigé le 26/08/2026 (round 215) : un produit à combinaisons parfaitement disponible serait de nouveau écarté silencieusement";
+        }
+
+        // Round 215 (26/08/2026) : PreferencesManager::isAllowed()/
+        // isAllowedBatch() doivent lire $use_cache=false — ce résultat
+        // détermine directement si Mail::Send() part ou non (risque RGPD).
+        $prefSrc215Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PreferencesManager.php');
+        $prefSrc215 = str_replace("\r", '', $prefSrc215Raw);
+        if ($prefSrc215Raw === ''
+            || substr_count($prefSrc215, "AND `category`    = '\" . pSQL(\$cat) . \"'\",\n                false\n            );") < 1
+            || strpos($prefSrc215, "AND `category`  = '\" . pSQL(\$cat) . \"'\",\n            false\n        );") === false
+            || strpos($prefSrc215, "AND `category`    = '\" . pSQL(\$cat) . \"'\",\n            true,\n            false\n        );") === false
+        ) {
+            $offenders[] = "PreferencesManager::isAllowed()/isAllowedBatch() n'ont plus \$use_cache=false attendu — régression du bug corrigé le 26/08/2026 (round 215) : un client désabonné pourrait de nouveau recevoir un email sous cache SQL périmé";
+        }
+
+        // Round 215 (26/08/2026) : PostmasterManager doit être fail-closed
+        // sur son filtre de domaine (pas fail-open sur \$shopHost vide) ;
+        // PageSpeedManager/SearchConsoleManager doivent utiliser
+        // \$body === false (pas !\$body).
+        $pmSrc215 = str_replace("\r", '', $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php'));
+        if ($pmSrc215 === '' || strpos($pmSrc215, "if (\$shopHost === '' || !self::domainsMatch(\$shopHost, \$domainName)) {") === false) {
+            $offenders[] = "PostmasterManager::fetchAndCache() n'est plus fail-closed sur son filtre de domaine — régression du bug corrigé le 26/08/2026 (round 215)";
+        }
+        $psmSrc215 = str_replace("\r", '', $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PageSpeedManager.php'));
+        if ($psmSrc215 === '' || strpos($psmSrc215, 'if ($body === false) {') === false) {
+            $offenders[] = "PageSpeedManager::fetchStrategy() n'utilise plus \$body === false — régression du bug corrigé le 26/08/2026 (round 215)";
+        }
+        $scmSrc215 = str_replace("\r", '', $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php'));
+        if ($scmSrc215 === '' || strpos($scmSrc215, "if (\$body === false) {\n            return [];\n        }") === false) {
+            $offenders[] = "SearchConsoleManager::httpPost() n'utilise plus \$body === false — régression du bug corrigé le 26/08/2026 (round 215)";
         }
 
         if ($offenders) {
