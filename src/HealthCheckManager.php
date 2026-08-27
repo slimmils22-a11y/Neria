@@ -7379,6 +7379,56 @@ class HealthCheckManager
             $offenders[] = "AbTestManager::copyVariantBToDefault() n'a plus \$use_cache=false sur sa lecture d'id_abtest — régression du bug corrigé le 26/08/2026 (round 213) : un nouveau cycle de test A/B gagné par B pourrait promouvoir les traductions d'un ANCIEN test B déjà désactivé";
         }
 
+        // Round 214 (26/08/2026) : GdprAuditManager::purgeCustomerData()
+        // doit lire $use_cache=false sur ses COUNT/executeS de contrôle —
+        // sinon le droit à l'effacement RGPD peut échouer silencieusement
+        // sous cache SQL BO actif (le total retourné reste "succès").
+        $gdprSrc214 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        if ($gdprSrc214 === '') {
+            $offenders[] = 'GdprAuditManager.php introuvable (garde-fou round 214)';
+        } else {
+            $gdpr214Needles = [
+                "WHERE `{\$col}` = \" . (int) \$idCustomer,\n                false\n            );",
+                "AND `id_customer` = \" . (int) \$idCustomer,\n                    false\n                );",
+                "WHERE `email` = '{\$emailSql}'\", false);",
+                "SELECT `id_webhook`, `payload` FROM `{\$fullWh}`\", true, false);",
+                "WHERE `{\$dateCol}` < DATE_SUB(NOW(), INTERVAL {\$months} MONTH){\$shopFilter}\",\n            false\n        );",
+                "AND TABLE_NAME = '\" . pSQL(\$table) . \"'\",\n                false\n            );",
+            ];
+            foreach ($gdpr214Needles as $needle214) {
+                if (strpos($gdprSrc214, $needle214) === false) {
+                    $offenders[] = "GdprAuditManager n'a plus un \$use_cache=false attendu (purge RGPD/audit) — régression du bug corrigé le 26/08/2026 (round 214) : le droit à l'effacement RGPD pourrait de nouveau échouer silencieusement";
+                    break;
+                }
+            }
+        }
+
+        // Round 214 (26/08/2026) : OrderTriggersManager::checkMilestone()
+        // et handleRefund() doivent lire $use_cache=false — sinon un
+        // palier de fidélité peut être définitivement manqué, ou le
+        // clawback fidélité/ajustement de revenu faussé sur un
+        // remboursement en plusieurs avoirs.
+        $otmSrc214 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
+        if ($otmSrc214 === ''
+            || strpos($otmSrc214, "AND `id_shop` = ' . \$idShop . ' AND `valid` = 1',\n            false\n        );") === false
+            || strpos($otmSrc214, "WHERE id_order = ' . (int) \$order->id,\n                false\n            );") === false
+        ) {
+            $offenders[] = "OrderTriggersManager::checkMilestone()/handleRefund() n'ont plus \$use_cache=false attendu — régression du bug corrigé le 26/08/2026 (round 214)";
+        }
+
+        // Round 214 (26/08/2026) : MonthlyReportManager doit scoper
+        // PS_SHOP_NAME/PS_SHOP_EMAIL par $this->idShop — sinon un rapport
+        // mensuel livré pour une boutique peut afficher l'identité
+        // expéditeur d'une AUTRE boutique de l'installation.
+        $mrmSrc214 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php');
+        if ($mrmSrc214 === ''
+            || strpos($mrmSrc214, "\$shopName = (string) \\Configuration::get('PS_SHOP_NAME', null, null, \$this->idShop);") === false
+            || strpos($mrmSrc214, "(string) \\Configuration::get('PS_SHOP_EMAIL', null, null, \$this->idShop)") === false
+            || strpos($mrmSrc214, "\$shopName = htmlspecialchars((string) \\Configuration::get('PS_SHOP_NAME', null, null, \$this->idShop));") === false
+        ) {
+            $offenders[] = "MonthlyReportManager ne scope plus PS_SHOP_NAME/PS_SHOP_EMAIL par \$this->idShop — régression du bug corrigé le 26/08/2026 (round 214) : le rapport mensuel pourrait de nouveau afficher l'identité d'une autre boutique";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
