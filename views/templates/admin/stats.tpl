@@ -3964,7 +3964,7 @@ var _nCollectionMsg = {
           <option value="">{neria_admin key='stats.choose_category_option'}</option>
           {if isset($look_categories)}
             {foreach $look_categories as $cat}
-              <option value="{$cat.id_category}">{$cat.name}</option>
+              <option value="{$cat.id_category|intval}">{$cat.name|escape:'html':'UTF-8'}</option>
             {/foreach}
           {/if}
         </select>
