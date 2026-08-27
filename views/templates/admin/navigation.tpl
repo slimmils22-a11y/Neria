@@ -41,8 +41,11 @@
       <span class="neria-header-sep"></span>
 
       {* ── Envoi email de test ──────────────────────────────────── *}
-      {assign var="neria_test_base" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_action=[^&]*/':''|escape:'html'}
-      {assign var="neria_test_base" value=$neria_test_base|regex_replace:'/&neria_test_lang=[^&]*/':''}
+      {* Round 221 : |escape:'html' déplacé APRÈS le 2e regex_replace —
+         même piège que $neria_tab_base ci-dessus, le 2e regex_replace
+         n'avait aucun effet sur '&amp;neria_test_lang=...'. *}
+      {assign var="neria_test_base" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_action=[^&]*/':''}
+      {assign var="neria_test_base" value=$neria_test_base|regex_replace:'/&neria_test_lang=[^&]*/':''|escape:'html'}
       <span class="neria-test-send">
         <label class="neria-header-label" for="neria-test-lang-select">{neria_admin key='nav.email_test'}</label>
         <select id="neria-test-lang-select" class="neria-select neria-select--sm">
@@ -171,11 +174,19 @@
          precedent toggle reste coince dans la query string et reapparait
          sur CHAQUE onglet visite ensuite, indefiniment, jusqu'a ce que
          l'utilisateur recharge une URL sans ces parametres a la main. *}
-      {assign var="neria_tab_base" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''|escape:'html'}
+      {* Round 221 : |escape:'html' déplacé APRÈS tous les regex_replace —
+         auparavant appliqué en premier, il transformait chaque '&' en
+         '&amp;' AVANT les 4 regex_replace suivants, dont les patterns
+         littéraux '/&xxx=[^&]*/' ne matchaient alors plus jamais rien
+         (il aurait fallu chercher '&amp;xxx='). Résultat : AUCUN des 4
+         paramètres n'était réellement retiré malgré le commentaire
+         ci-dessus décrivant l'intention — vérifié empiriquement avec la
+         bibliothèque Smarty du projet avant correctif. *}
+      {assign var="neria_tab_base" value=$smarty.server.REQUEST_URI|regex_replace:'/&neria_tab=[^&]*/':''}
       {assign var="neria_tab_base" value=$neria_tab_base|regex_replace:'/&neria_success=[^&]*/':''}
       {assign var="neria_tab_base" value=$neria_tab_base|regex_replace:'/&neria_error=[^&]*/':''}
       {assign var="neria_tab_base" value=$neria_tab_base|regex_replace:'/&neria_action=[^&]*/':''}
-      {assign var="neria_tab_base" value=$neria_tab_base|regex_replace:'/&neria_msg_action=[^&]*/':''}
+      {assign var="neria_tab_base" value=$neria_tab_base|regex_replace:'/&neria_msg_action=[^&]*/':''|escape:'html'}
       <li class="neria-bo-nav__item neria-bo-nav__item--has-sub">
         <a href="{$neria_tab_base}&neria_tab=configure"
            class="neria-bo-nav__link {if $neria_active_tab === 'configure'}neria-bo-nav__link--active{/if}">
