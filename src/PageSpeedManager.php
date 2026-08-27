@@ -365,7 +365,11 @@ class PageSpeedManager
         $prevLang = \AdminTranslator::currentLang();
         \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
 
-        if (!$body) {
+        // Round 215 : $body === false (pas !$body) — même correctif déjà
+        // appliqué dans SeoApiManager::httpGet()/fetchMoz() : !$body
+        // traiterait aussi un corps de réponse littéral "0" comme un échec
+        // réseau.
+        if ($body === false) {
             $this->recordStrategyError($strategy, \AdminTranslator::tVars('msg.pagespeed_network_error', ['error' => $curlErr]));
             \AdminTranslator::setLang($prevLang);
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_network_error_wd', ['strategy' => $strategy, 'error' => $curlErr]), '', 'PageSpeedManager');

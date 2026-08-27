@@ -799,13 +799,18 @@ class SearchConsoleManager
             \CURLOPT_TIMEOUT        => 10,
             \CURLOPT_SSL_VERIFYPEER => true,
         ]);
+        // Round 215 : $body === false (pas !$body) — le commentaire round
+        // 135 de PostmasterManager::httpPost() affirmait ce correctif déjà
+        // en place ici, ce qui était faux (oubli lors de cette passe) : un
+        // corps de réponse littéral "0" était à tort traité comme un échec
+        // réseau.
         $body = curl_exec($ch);
-        if (!$body) {
+        if ($body === false) {
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.gsc_curl_error', ['error' => curl_error($ch)]), '', 'SearchConsoleManager');
         }
         curl_close($ch);
 
-        if (!$body) {
+        if ($body === false) {
             return [];
         }
         $result = json_decode($body, true);

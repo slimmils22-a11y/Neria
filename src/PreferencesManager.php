@@ -173,21 +173,30 @@ class PreferencesManager
             if ($email === '') {
                 return true;
             }
+            // Round 215 : $use_cache=false, même famille de bug que les
+            // rounds 210-214 — ce résultat détermine directement si
+            // Mail::Send() part ou non. Sans lui, un client venant de se
+            // désabonner (INSERT/UPDATE brut via Db::execute(), hors cycle
+            // ObjectModel) pourrait, sous cache SQL périmé, recevoir quand
+            // même l'email — risque RGPD direct et silencieux.
             $row = $this->db->getRow(
                 "SELECT `subscribed` FROM `" . _DB_PREFIX_ . self::TABLE . "`
                  WHERE `id_shop`     = {$shop}
                    AND `id_customer` = 0
                    AND `email`       = '" . pSQL($email) . "'
-                   AND `category`    = '" . pSQL($cat) . "'"
+                   AND `category`    = '" . pSQL($cat) . "'",
+                false
             );
             return $row === false || (bool) $row['subscribed'];
         }
 
+        // Round 215 : $use_cache=false, même risque qu'au bloc ci-dessus.
         $row = $this->db->getRow(
             "SELECT `subscribed` FROM `" . _DB_PREFIX_ . self::TABLE . "`
              WHERE `id_shop`    = {$shop}
                AND `id_customer`= {$idCustomer}
-               AND `category`  = '" . pSQL($cat) . "'"
+               AND `category`  = '" . pSQL($cat) . "'",
+            false
         );
 
         // Pas de ligne = opt-in par défaut
@@ -226,11 +235,16 @@ class PreferencesManager
         $shop = $idShop ?? $this->idShop;
         $idList = implode(',', $idCustomers);
 
+        // Round 215 : $use_cache=false, même risque que isAllowed()
+        // ci-dessus (isAllowedBatch() alimente directement les envois
+        // groupés de SegmentManager::sendToSegment()).
         $rows = $this->db->executeS(
             "SELECT `id_customer`, `subscribed` FROM `" . _DB_PREFIX_ . self::TABLE . "`
              WHERE `id_shop`     = {$shop}
                AND `id_customer` IN ({$idList})
-               AND `category`    = '" . pSQL($cat) . "'"
+               AND `category`    = '" . pSQL($cat) . "'",
+            true,
+            false
         );
 
         $subscribed = [];

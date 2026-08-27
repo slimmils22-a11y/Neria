@@ -337,7 +337,27 @@ class CollectionManager
             // backorder possible) — sans ça, l'email « il ne vous manque
             // que X » invite le client à acheter un produit qu'il ne peut
             // pas réellement commander.
-            if (!\StockAvailable::getQuantityAvailableByProduct($missingId, null, $idShop)
+            // Round 215 : SUM(quantity) SQL direct remplace
+            // StockAvailable::getQuantityAvailableByProduct($missingId, null, ...)
+            // — même piège déjà corrigé (round 167 WaitlistManager, round
+            // 184 LookCompletionManager) mais jamais répliqué ici : le cœur
+            // PrestaShop convertit explicitement id_product_attribute=null
+            // en 0, donc seule la ligne "sans déclinaison" était lue —
+            // quasi toujours à 0 pour un produit géré par combinaisons. Un
+            // produit parfaitement disponible (stock réparti sur ses
+            // combinaisons) était silencieusement écarté. Bascule stock
+            // partagé/non partagé identique à LookCompletionManager/
+            // WaitlistManager.
+            $colShopGroup  = new \Shop($idShop);
+            $colShareStock = (bool) $colShopGroup->getGroup()->share_stock;
+            $colStockWhere = $colShareStock
+                ? ' AND id_shop = 0 AND id_shop_group = ' . (int) $colShopGroup->id_shop_group
+                : ' AND id_shop = ' . $idShop . ' AND id_shop_group = 0';
+            $availableQty = (int) $this->db->getValue(
+                'SELECT COALESCE(SUM(quantity), 0) FROM `' . $this->prefix . 'stock_available`
+                 WHERE id_product = ' . $missingId . $colStockWhere
+            );
+            if ($availableQty <= 0
                 && !\Product::isAvailableWhenOutOfStock($product->out_of_stock)
             ) {
                 $this->releaseSendClaim($colId, $idCustomer, $idShop);

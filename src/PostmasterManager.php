@@ -473,8 +473,16 @@ class PostmasterManager
             if (!$name) {
                 continue;
             }
+            // Round 215 : fail-CLOSED — auparavant, un $shopHost vide
+            // (PS_SHOP_DOMAIN_SSL mal configuré/vide) rendait la condition
+            // toujours fausse, donc AUCUN domaine n'était filtré : TOUS les
+            // domaines du compte Google Postmaster Tools du marchand (
+            // potentiellement plusieurs boutiques) se retrouvaient mélangés
+            // dans $results. Incohérent avec SearchConsoleManager::
+            // matchesShopHost(), qui échoue déjà (fail-closed) sur un host
+            // vide.
             $domainName = str_replace('domains/', '', $name);
-            if ($shopHost !== '' && !self::domainsMatch($shopHost, $domainName)) {
+            if ($shopHost === '' || !self::domainsMatch($shopHost, $domainName)) {
                 continue;
             }
             $stats = $this->fetchDomainStats($name, $token);
