@@ -264,6 +264,13 @@
   <p style="font-size:13px;color:#4a9e6b;font-weight:600;">✓ {neria_admin key='gdpr.all_encrypted'}</p>
   {elseif !$gdpr_audit.crypto.openssl_ok}
   <p style="font-size:13px;color:var(--neria-text-muted,#888);">{neria_admin key='gdpr.encrypt_unavailable'}</p>
+  {elseif $gdpr_audit.crypto.openssl_ok && !$gdpr_audit.crypto.key_ok}
+  {* Round 219 : OpenSSL disponible mais clé de chiffrement absente/invalide
+     (crypto.active = false alors que openssl_ok = true) — sans cette
+     branche, aucun des 3 cas ci-dessus ne matchait et ce résumé restait
+     vide, sans expliquer au marchand pourquoi le chiffrement est inactif
+     (seule la pastille "clé" au-dessus montrait la croix rouge). *}
+  <p style="font-size:13px;color:#e05c5c;font-weight:600;">✕ {neria_admin key='gdpr.encrypt_key_invalid'}</p>
   {/if}
 
   {if $gdpr_audit.crypto.other_pii_tables|@count > 0}

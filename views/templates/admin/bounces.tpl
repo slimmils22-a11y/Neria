@@ -302,7 +302,7 @@
             {neria_admin key='bounces.mech2_body'}
           </p>
           <p style="font-size:12px;font-weight:700;color:var(--neria-dark);margin:10px 0 4px;">{neria_admin key='bounces.webhook_url_label'}</p>
-          <code class="nb-code" id="nb-webhook-url">{$bounce_webhook_url}</code>
+          <code class="nb-code" id="nb-webhook-url">{$bounce_webhook_url|escape:'html'}</code>
           <button class="nb-copy-btn" onclick="nbCopy('nb-webhook-url', this)">{neria_admin key='bounces.copy_btn'}</button>
           <p class="nb-step__body" style="margin-top:10px;">
             <strong>{neria_admin key='bounces.security_label'}</strong> {neria_admin key='bounces.mech2_security_body'}
@@ -408,7 +408,7 @@
 
       <div class="nb-field nb-field--full" style="margin-bottom:14px;">
         <label>{neria_admin key='bounces.webhook_url_field_label'}</label>
-        <code class="nb-code">{$bounce_webhook_url}</code>
+        <code class="nb-code">{$bounce_webhook_url|escape:'html'}</code>
         <button type="button" class="nb-copy-btn" onclick="nbCopy(null, this, '{$bounce_webhook_url|escape:'javascript'}')">{neria_admin key='bounces.copy_url_btn'}</button>
       </div>
 
@@ -486,7 +486,7 @@
             <td><strong>{$b.email|escape:'html'}</strong></td>
             <td><span class="nb-badge nb-badge--{$b.type}">{$b.type}</span></td>
             <td><span class="nb-badge nb-badge--{$b.source}">{$b.source}</span></td>
-            <td style="max-width:280px;color:#777;font-size:11px;">{$b.reason|escape:'html'|truncate:80:'…'}</td>
+            <td style="max-width:280px;color:#777;font-size:11px;">{$b.reason|truncate:80:'…'|escape:'html'}</td>
             <td style="text-align:center;">{$b.bounce_count|intval}</td>
             <td style="white-space:nowrap;">{$b.last_bounce_at|escape:'html'|date_format:'%d/%m/%Y'}</td>
             <td><span class="nb-badge nb-badge--{$b.status}">{$b.status}</span></td>
