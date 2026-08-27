@@ -136,6 +136,9 @@ class TranslationHistoryManager
     public function getHistoryForTemplate(string $template, string $lang, int $limit = 40): array
     {
         $table = _DB_PREFIX_ . self::TABLE;
+        // Round 216 : $use_cache=false — un marchand consultant l'écran
+        // d'historique juste après une modification pourrait sinon ne pas
+        // voir immédiatement la dernière entrée sous cache SQL périmé.
         $rows  = $this->db->executeS(sprintf(
             "SELECT * FROM `%s`
              WHERE `template_key` = '%s' AND `lang_code` = '%s'
@@ -145,18 +148,19 @@ class TranslationHistoryManager
             pSQL($template),
             pSQL($lang),
             $limit
-        ));
+        ), true, false);
         return is_array($rows) ? $rows : [];
     }
 
     public function getById(int $idHistory): ?array
     {
         $table = _DB_PREFIX_ . self::TABLE;
+        // Round 216 : $use_cache=false, même risque qu'au-dessus.
         $row   = $this->db->getRow(sprintf(
             "SELECT * FROM `%s` WHERE `id_history` = %d",
             $table,
             $idHistory
-        ));
+        ), false);
         return $row ?: null;
     }
 
@@ -170,6 +174,14 @@ class TranslationHistoryManager
         // la ligne réellement la plus récente (ordre non déterministe entre
         // lignes de date_add égale), qui était alors supprimée par le
         // DELETE ci-dessous au lieu d'une entrée plus ancienne.
+        // Round 216 : $use_cache=false, même famille de bug que les rounds
+        // 210-215 — cette lecture est exécutée juste après l'INSERT de
+        // record() (voir ci-dessus). Sans ce paramètre, un résultat de
+        // cache SQL périmé pourrait exclure la ligne fraîchement insérée du
+        // "Top MAX_PER_KEY" conservé, et le DELETE ci-dessous la
+        // supprimerait alors immédiatement — perte silencieuse de l'entrée
+        // d'historique la plus récente, celle qu'on cherche justement à
+        // conserver.
         $keep = $this->db->executeS(sprintf(
             "SELECT `id_history` FROM `%s`
              WHERE `template_key` = '%s'
@@ -181,7 +193,7 @@ class TranslationHistoryManager
             pSQL($lang),
             pSQL($key),
             self::MAX_PER_KEY
-        ));
+        ), true, false);
 
         if (empty($keep)) {
             return;

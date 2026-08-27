@@ -396,16 +396,23 @@ class NeriaTools
         $report['database'] = [];
         foreach ($tables as $table) {
             $fullTable = _DB_PREFIX_ . $table;
+            // Round 216 : $use_cache=false sur les 2 lectures — sans lui,
+            // le rapport de diagnostic pourrait afficher "table absente"/
+            // "0 ligne" pour une table réellement présente et non vide,
+            // trompeur pour le marchand ou le support consultant ce
+            // diagnostic.
             $exists    = (bool) $db->getValue(
                 "SELECT COUNT(*) FROM information_schema.TABLES
                  WHERE TABLE_SCHEMA = DATABASE()
-                   AND TABLE_NAME   = '" . pSQL($fullTable) . "'"
+                   AND TABLE_NAME   = '" . pSQL($fullTable) . "'",
+                false
             );
 
             $count = 0;
             if ($exists) {
                 $count = (int) $db->getValue(
-                    "SELECT COUNT(*) FROM `{$fullTable}`"
+                    "SELECT COUNT(*) FROM `{$fullTable}`",
+                    false
                 );
             }
 

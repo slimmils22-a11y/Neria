@@ -59,7 +59,35 @@ class NeriaCronModuleFrontController extends ModuleFrontController
             // pour le Watchdog d'une vraie panne cron côté hébergeur. On
             // trace l'horodatage du rejet (jamais le jeton reçu) pour que
             // checkActiveCron() puisse donner un diagnostic précis.
-            Configuration::updateGlobalValue('NERIA_CRON_LAST_REJECTED', date('Y-m-d H:i:s'));
+            //
+            // Round 216 : ce endpoint public, non authentifié, n'avait
+            // jusqu'ici aucun throttling — contrairement à track.php, déjà
+            // durci pour ce même risque (commentaire round 164). Chaque
+            // tentative à token invalide déclenchait quand même l'écriture
+            // ci-dessous (UPDATE + invalidation du cache de configuration
+            // PrestaShop) : vecteur d'épuisement DB/CPU sans authentification,
+            // limité seulement par la bande passante de l'attaquant. Fail-
+            // open si APCu indisponible (best-effort, jamais bloquant) — on
+            // saute uniquement l'écriture au-delà du seuil, jamais la
+            // réponse HTTP 403 elle-même.
+            $rejectionWriteAllowed = true;
+            if (function_exists('apcu_enabled') && apcu_enabled()) {
+                $ip  = (string) (Tools::getRemoteAddr() ?: '0.0.0.0');
+                $key = 'neria_cron_rl_' . md5($ip);
+                $hits = (int) apcu_fetch($key, $ok);
+                if (!$ok) {
+                    apcu_store($key, 1, 10);
+                } else {
+                    $hits++;
+                    apcu_store($key, $hits, 10);
+                    if ($hits > 10) {
+                        $rejectionWriteAllowed = false;
+                    }
+                }
+            }
+            if ($rejectionWriteAllowed) {
+                Configuration::updateGlobalValue('NERIA_CRON_LAST_REJECTED', date('Y-m-d H:i:s'));
+            }
 
             http_response_code(403);
             echo json_encode(['ok' => false, 'error' => 'invalid_token']);

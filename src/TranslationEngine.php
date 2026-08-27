@@ -607,12 +607,18 @@ class TranslationEngine
         // "DESC", contredisant le SQL réel (déjà correct) ; laissé tel quel,
         // un futur correctif basé sur ce commentaire aurait pu inverser le
         // tri et faire gagner les traductions par défaut par erreur.
+        // Round 216 : $use_cache=false, même famille de bug que les rounds
+        // 210-215 — sans lui, un email envoyé juste après une modification
+        // en BO (update()) pourrait servir l'ancien texte sous cache SQL
+        // périmé, alors que le BO affiche déjà le nouveau.
         $rows = $this->db->executeS(
             "SELECT `translation_key`, `translation_value`
              FROM `{$table}`
              WHERE `template` = '" . pSQL($template) . "'
                AND `lang`     = '" . pSQL($lang) . "'
-             ORDER BY `is_custom` ASC"
+             ORDER BY `is_custom` ASC",
+            true,
+            false
         );
 
         $this->cache[$cacheKey] = [];
@@ -712,10 +718,15 @@ class TranslationEngine
     {
         $table = _DB_PREFIX_ . self::TABLE;
 
+        // Round 216 : $use_cache=false — sans lui, la liste déroulante BO
+        // pourrait rester obsolète après un import de nouveau template tant
+        // que le cache SQL n'expire pas.
         $rows = $this->db->executeS(
             "SELECT DISTINCT `template`
              FROM `{$table}`
-             ORDER BY `template` ASC"
+             ORDER BY `template` ASC",
+            true,
+            false
         );
 
         if (!is_array($rows)) {
@@ -735,11 +746,14 @@ class TranslationEngine
     {
         $table = _DB_PREFIX_ . self::TABLE;
 
+        // Round 216 : $use_cache=false, même risque qu'au-dessus.
         $rows = $this->db->executeS(
             "SELECT DISTINCT `lang`
              FROM `{$table}`
              WHERE `template` = '" . pSQL($template) . "'
-             ORDER BY `lang` ASC"
+             ORDER BY `lang` ASC",
+            true,
+            false
         );
 
         if (!is_array($rows)) {
