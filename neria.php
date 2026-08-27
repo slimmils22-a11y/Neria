@@ -5246,12 +5246,18 @@ class Neria extends Module
             // Anti-doublon : même référence déjà suivie pour ce client dans cette
             // boutique. Évite deux séquences de relance parallèles sur un même devis
             // (le client recevrait chaque email en double) et des stats faussées.
+            // Round 217 : $use_cache=false, même famille de bug que les
+            // rounds 210-216 — sans lui, un résultat de cache SQL périmé
+            // pourrait laisser passer un second INSERT pour le même devis
+            // (double-clic, rechargement de formulaire POST), créant deux
+            // séquences de relance parallèles et des emails dupliqués.
             $alreadyTracked = ($idCustomer > 0 && $quoteRef !== '')
                 ? (int) Db::getInstance()->getValue(
                     'SELECT id_quote FROM `' . _DB_PREFIX_ . 'neria_quote`
                      WHERE id_shop = ' . (int) $this->context->shop->id . '
                        AND id_customer = ' . (int) $idCustomer . '
-                       AND quote_ref = \'' . pSQL($quoteRef) . '\''
+                       AND quote_ref = \'' . pSQL($quoteRef) . '\'',
+                    false
                 )
                 : 0;
 
