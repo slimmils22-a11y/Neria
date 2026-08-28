@@ -405,4 +405,74 @@ class PreferencesManager
     {
         return $this->getByCustomer($idCustomer);
     }
+
+    /**
+     * Round 232 : $prefs_stats attendu par configure.tpl (bloc "Centre de
+     * préférences email") — le template existait déjà avec ses {if
+     * $prefs_stats}/{foreach} mais aucune méthode ne calculait jamais cette
+     * variable côté PHP, ni ici ni dans neria.php. La section restait donc
+     * vide en permanence pour tous les marchands, sans erreur visible
+     * (échec silencieux du {if} Smarty sur une variable non définie).
+     *
+     * Retourne, par catégorie, le nombre de désabonnements (subscribed=0)
+     * et le total de préférences explicitement enregistrées (opt-in par
+     * défaut : une absence de ligne n'est pas comptée ici, seules les
+     * lignes réellement écrites par un client via le centre de
+     * préférences le sont).
+     */
+    public function getStats(): array
+    {
+        $stats = array_fill_keys(self::CATEGORIES, ['opted_out' => 0, 'total' => 0]);
+
+        $rows = $this->db->executeS(
+            "SELECT `category`,
+                    COUNT(*) AS total,
+                    SUM(`subscribed` = 0) AS opted_out
+             FROM `" . _DB_PREFIX_ . self::TABLE . "`
+             WHERE `id_shop` = {$this->idShop}
+             GROUP BY `category`"
+        );
+
+        foreach ((is_array($rows) ? $rows : []) as $row) {
+            $cat = $row['category'];
+            if (array_key_exists($cat, $stats)) {
+                $stats[$cat] = [
+                    'opted_out' => (int) $row['opted_out'],
+                    'total'     => (int) $row['total'],
+                ];
+            }
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Round 232 : $prefs_recent attendu par configure.tpl, même défaut que
+     * getStats() ci-dessus — jamais implémentée.
+     *
+     * Retourne les $limit clients ayant le plus récemment modifié leurs
+     * préférences (toutes catégories confondues), avec leur nombre actuel
+     * de catégories désabonnées.
+     */
+    public function getRecentChanges(int $limit = 10): array
+    {
+        $limit = max(1, min(50, $limit));
+
+        $rows = $this->db->executeS(
+            "SELECT p.id_customer, p.email,
+                    MAX(p.date_upd) AS date_upd,
+                    SUM(p.subscribed = 0) AS nb_optout,
+                    COALESCE(c.firstname, '') AS firstname,
+                    COALESCE(c.lastname, '')  AS lastname
+             FROM `" . _DB_PREFIX_ . self::TABLE . "` p
+             LEFT JOIN `" . _DB_PREFIX_ . "customer` c
+                    ON c.id_customer = p.id_customer AND p.id_customer > 0
+             WHERE p.id_shop = {$this->idShop}
+             GROUP BY p.id_customer, p.email
+             ORDER BY MAX(p.date_upd) DESC
+             LIMIT {$limit}"
+        );
+
+        return is_array($rows) ? $rows : [];
+    }
 }

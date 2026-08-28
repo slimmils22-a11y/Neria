@@ -5930,6 +5930,13 @@ class Neria extends Module
             'neria_menu_visible'   => $this->getMenuVisibilityMap($config),
             'control_center_items' => $this->getControlCenterItems($config),
 
+            // Round 232 : $prefs_stats/$prefs_recent — configure.tpl les
+            // attendait déjà (bloc "Centre de préférences email") mais
+            // n'étaient jamais assignées, laissant cette section BO vide
+            // en permanence pour tous les marchands.
+            'prefs_stats'  => (new PreferencesManager($this))->getStats(),
+            'prefs_recent' => (new PreferencesManager($this))->getRecentChanges(),
+
             // Libellés et drapeaux des 19 langues supportées
             'lang_labels'      => NeriaTools::getLangLabels(),
             'lang_flags'       => NeriaTools::getLangFlags(),
