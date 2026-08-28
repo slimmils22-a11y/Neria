@@ -680,8 +680,12 @@ class WatchdogManager
                AND `date_add` < DATE_SUB(NOW(), INTERVAL " . self::DEFAULT_RETENTION . " DAY)"
         );
 
+        // Round 223 : $use_cache=false, même famille de bug que les
+        // rounds 210-222 — sans lui, la purge par plafond pourrait être
+        // retardée d'un cycle sous cache SQL périmé.
         $count = (int) $this->db->getValue(
-            "SELECT COUNT(*) FROM `{$table}` WHERE `id_shop` = {$this->idShop}"
+            "SELECT COUNT(*) FROM `{$table}` WHERE `id_shop` = {$this->idShop}",
+            false
         );
 
         if ($count > self::MAX_LOGS) {

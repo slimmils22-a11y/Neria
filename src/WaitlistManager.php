@@ -67,11 +67,19 @@ class WaitlistManager
 
     public function isRegistered(int $idCustomer, int $idProduct, int $idShop, int $idProductAttribute = 0): bool
     {
+        // Round 223 : $use_cache=false, même famille de bug que les
+        // rounds 210-222 — register() retourne true (succès) sans jamais
+        // exécuter l'INSERT si ce check renvoie à tort "déjà inscrit" sous
+        // cache SQL périmé (ex. juste après un unregister() qui a
+        // supprimé la ligne) : le client croirait être inscrit sur la
+        // liste d'attente sans qu'aucune ligne n'existe réellement,
+        // ne recevant alors jamais la notification de retour en stock.
         return (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$this->prefix}" . self::TABLE . "`
              WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
                AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}
-               AND notified_at IS NULL"
+               AND notified_at IS NULL",
+            false
         ) > 0;
     }
 
