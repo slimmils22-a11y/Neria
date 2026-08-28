@@ -973,10 +973,15 @@ class Neria extends Module
                    . '&configure=' . $this->name
                    . '&neria_action=cert_issue';
 
-        // Vérifie si une signature est disponible
+        // Vérifie si une signature est disponible — Round 226 : scopé par
+        // $order->id_shop (boutique RÉELLE de la commande consultée), pas
+        // $this->context->shop->id (boutique sélectionnée dans le contexte
+        // BO courant de l'employé) — même famille de bug que rounds 107/111
+        // (CertificateManager::getByOrder()/redownload()), ici sur un point
+        // d'entrée différent qui y avait échappé.
         $hasSig = (bool) Db::getInstance()->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_signature`
-             WHERE `is_active` = 1 AND `id_shop` = ' . (int) $this->context->shop->id
+             WHERE `is_active` = 1 AND `id_shop` = ' . (int) $order->id_shop
         );
 
         $this->context->smarty->assign([
@@ -5466,14 +5471,30 @@ class Neria extends Module
 
         // ── RGPD : chiffrement des enregistrements existants ─────
         if (Tools::getValue('neria_action') === 'gdpr_encrypt_all' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('GdprAuditManager')) {
-            $done = (new GdprAuditManager(__DIR__))->encryptExistingRecords();
-            if (class_exists('WatchdogManager')) {
-                (new WatchdogManager($this))->info(
-                    WatchdogManager::i18nMsg('watchdog.gdpr_encrypt_retroactive', ['n' => $done]),
-                    '', 'RGPD'
-                );
+            // Round 226 : try/catch ajouté, comme gdpr_purge juste au-dessus
+            // — encryptExistingRecords() boucle par lots sans plafond de
+            // temps ; sans ce filet, un timeout/erreur DB en cours de boucle
+            // laissait remonter une page d'erreur fatale PrestaShop générique
+            // au lieu du message BO propre, sans indiquer combien de lignes
+            // avaient réellement été chiffrées.
+            try {
+                $done = (new GdprAuditManager(__DIR__))->encryptExistingRecords();
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this))->info(
+                        WatchdogManager::i18nMsg('watchdog.gdpr_encrypt_retroactive', ['n' => $done]),
+                        '', 'RGPD'
+                    );
+                }
+                $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.records_encrypted', ['n' => $done]));
+            } catch (\Throwable $e) {
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this))->error(
+                        WatchdogManager::i18nMsg('watchdog.gdpr_encrypt_retroactive_failed', ['error' => $e->getMessage()]),
+                        '', 'RGPD'
+                    );
+                }
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.purge_failed_watchdog'));
             }
-            $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.records_encrypted', ['n' => $done]));
         }
 
         // ── Fidélité : activation / désactivation ────────────────
