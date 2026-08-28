@@ -628,6 +628,25 @@ class UpsellManager
      */
     public function checkConversions(): int
     {
+        // Round 229 : GET_LOCK ajouté — le check-then-act plus bas
+        // (alreadyClaimed puis UPDATE) n'était protégé que contre le cache
+        // SQL périmé (round 212), pas contre deux exécutions RÉELLEMENT
+        // concurrentes de checkConversions() (double worker cron, retry
+        // après timeout perçu, exécution manuelle simultanée au cron) —
+        // même famille de protection que QueueManager::processQueue().
+        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_upsell_check_conversions', 0)", false) !== 1) {
+            return 0;
+        }
+
+        try {
+            return $this->checkConversionsLocked();
+        } finally {
+            $this->db->execute("SELECT RELEASE_LOCK('neria_upsell_check_conversions')");
+        }
+    }
+
+    private function checkConversionsLocked(): int
+    {
         $table  = $this->prefix . 'neria_upsell';
         $rows   = $this->db->executeS(
             "SELECT u.id_upsell, u.id_customer, u.id_shop, u.id_product_upsell, u.clicked_at
