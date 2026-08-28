@@ -7627,6 +7627,16 @@ class HealthCheckManager
             $offenders[] = "WaitlistManager::isRegistered() n'a plus \$use_cache=false — régression du bug corrigé le 27/08/2026 (round 223) : un client pourrait de nouveau croire être inscrit sur la liste d'attente sans qu'aucune ligne n'existe réellement";
         }
 
+        // Round 224 (28/08/2026) : sendCheckoutAbandonment() avait une
+        // borne haute fixe à 24h, contrairement à sendAbandonedCarts()
+        // déjà corrigée pour le même défaut (cron quotidien à heure
+        // variable) — un cron sauté faisait perdre silencieusement la
+        // relance panier avec transporteur+adresses déjà sélectionnés.
+        $bcmSrc224 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc224 === '' || strpos($bcmSrc224, 'DATE_SUB(NOW(), INTERVAL 168 HOUR)') === false) {
+            $offenders[] = "BehavioralCronManager::sendCheckoutAbandonment() n'a plus de fenêtre élargie à 168h — régression du bug corrigé le 28/08/2026 (round 224) : une relance panier à fort taux de conversion pourrait de nouveau être perdue silencieusement si le cron saute un jour";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
