@@ -3,6 +3,15 @@
 # Pour régénérer la baseline après avoir accepté de nouveaux avertissements
 # (jamais pour masquer un vrai bug, seulement du bruit type-hygiène confirmé) :
 # powershell -File bin\phpstan\run.ps1 -GenerateBaseline
+#
+# NOTE (round 230) : phpstan.neon référence C:/laragon/www/shop en dur
+# (scanDirectories, stubs de classes core PrestaShop) — testé une
+# interpolation %env(NERIA_PS_ROOT_DIR)% pour le rendre portable, mais le
+# phar PHPStan embarqué dans bin/phpstan/ (build minimal sans Nette\DI
+# complet) plante sur cette syntaxe ("Class Nette\DI\ServiceCreationException
+# not found"). Reverti au chemin en dur : sur une autre machine, éditer
+# directement scanDirectories dans phpstan.neon (outillage dev uniquement,
+# jamais expédié aux clients avec le module).
 
 param(
     [switch]$GenerateBaseline
