@@ -7605,6 +7605,28 @@ class HealthCheckManager
             $offenders[] = "BehavioralCronManager n'utilise plus purchase_date pour calculer {estimated_days} — régression du bug corrigé le 26/08/2026 (round 222) : product_lifespan_reminder afficherait de nouveau une date d'achat fausse au client";
         }
 
+        // Round 223 (27/08/2026) : 5 occurrences résiduelles du bug
+        // systémique cache SQL trouvées par balayage exhaustif de tout
+        // src/*.php — HealthCheckManager::checkOrphanedVoucherReservations()
+        // (x3), WatchdogManager::pruneOldLogs(), WaitlistManager::
+        // isRegistered().
+        $hcmSrc223Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        $hcmSrc223 = str_replace("\r", '', $hcmSrc223Raw);
+        if ($hcmSrc223Raw === ''
+            || substr_count($hcmSrc223, "created_at` < DATE_SUB(NOW(), INTERVAL 24 HOUR)',\n                false\n            );") < 1
+            || strpos($hcmSrc223, "sent_at` < DATE_SUB(NOW(), INTERVAL 24 HOUR)',\n                false\n            );") === false
+        ) {
+            $offenders[] = "HealthCheckManager::checkOrphanedVoucherReservations() n'a plus \$use_cache=false attendu — régression du bug corrigé le 27/08/2026 (round 223)";
+        }
+        $wdSrc223 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php');
+        if ($wdSrc223 === '' || strpos($wdSrc223, "WHERE `id_shop` = {\$this->idShop}\",\n            false\n        );") === false) {
+            $offenders[] = "WatchdogManager::pruneOldLogs() n'a plus \$use_cache=false — régression du bug corrigé le 27/08/2026 (round 223)";
+        }
+        $wlSrc223 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php');
+        if ($wlSrc223 === '' || strpos($wlSrc223, "AND notified_at IS NULL\",\n            false\n        ) > 0;") === false) {
+            $offenders[] = "WaitlistManager::isRegistered() n'a plus \$use_cache=false — régression du bug corrigé le 27/08/2026 (round 223) : un client pourrait de nouveau croire être inscrit sur la liste d'attente sans qu'aucune ligne n'existe réellement";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
@@ -10259,9 +10281,14 @@ class HealthCheckManager
             if (!$this->tableExists($table)) {
                 continue;
             }
+            // Round 223 : $use_cache=false, même famille de bug que les
+            // rounds 210-222 — sans lui, un résultat de cache SQL périmé
+            // pourrait faire sauter silencieusement ce nettoyage de
+            // réservations orphelines.
             $count = (int) $db->getValue(
                 'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . $table . '`
-                 WHERE `id_cart_rule` = 0 AND `created_at` < DATE_SUB(NOW(), INTERVAL 24 HOUR)'
+                 WHERE `id_cart_rule` = 0 AND `created_at` < DATE_SUB(NOW(), INTERVAL 24 HOUR)',
+                false
             );
             if ($count > 0) {
                 $db->execute(
@@ -10276,9 +10303,11 @@ class HealthCheckManager
         // sa colonne de date s'appelle `sent_at` (et non `created_at`) — traitée
         // séparément pour cette raison, avec la même logique de nettoyage 24h.
         if ($this->tableExists('neria_loyalty_rewards')) {
+            // Round 223 : $use_cache=false, même risque qu'au-dessus.
             $count = (int) $db->getValue(
                 'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_loyalty_rewards`
-                 WHERE `id_cart_rule` = 0 AND `sent_at` < DATE_SUB(NOW(), INTERVAL 24 HOUR)'
+                 WHERE `id_cart_rule` = 0 AND `sent_at` < DATE_SUB(NOW(), INTERVAL 24 HOUR)',
+                false
             );
             if ($count > 0) {
                 $db->execute(
