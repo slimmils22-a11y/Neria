@@ -7670,6 +7670,18 @@ class HealthCheckManager
             $offenders[] = "MonthlyReportManager::getRevenueByTemplate() ne divise plus par conversion_rate — régression du bug corrigé le 28/08/2026 (round 227) : le CA par template du rapport mensuel mélangerait de nouveau des montants de devises différentes sur une boutique multi-devises";
         }
 
+        // Round 228 (28/08/2026) : getCheckoutAbandonmentStats() et
+        // getRelationshipAnniversaryStats() sommaient total_paid_tax_incl
+        // sans diviser par conversion_rate — même famille de bug que le
+        // round 227 (MonthlyReportManager), non propagée ici.
+        $bcmSrc228 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc228 === ''
+            || strpos($bcmSrc228, 'SUM(o.total_paid_tax_incl / IF(o.conversion_rate = 0, 1, o.conversion_rate)), 0) AS revenue_recovered') === false
+            || strpos($bcmSrc228, 'SUM(o.total_paid_tax_incl / IF(o.conversion_rate = 0, 1, o.conversion_rate)), 0) AS revenue_attributed') === false
+        ) {
+            $offenders[] = "BehavioralCronManager::getCheckoutAbandonmentStats()/getRelationshipAnniversaryStats() ne divisent plus par conversion_rate — régression du bug corrigé le 28/08/2026 (round 228) : ces KPI mélangeraient de nouveau des montants de devises différentes sur une boutique multi-devises";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
