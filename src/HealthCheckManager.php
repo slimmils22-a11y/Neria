@@ -7695,6 +7695,27 @@ class HealthCheckManager
             $offenders[] = "UpsellManager::checkConversions() n'est plus protégée par un GET_LOCK — régression du bug corrigé le 28/08/2026 (round 229) : deux exécutions concurrentes du cron pourraient de nouveau créditer deux fois la même conversion de revenu upsell";
         }
 
+        // Round 232 (28/08/2026) : configure.tpl attendait déjà
+        // $prefs_stats/$prefs_recent (bloc "Centre de préférences email")
+        // mais aucune méthode PHP ne les calculait jamais — section BO
+        // vide en permanence pour tous les marchands, sans erreur visible.
+        $pmSrc232Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PreferencesManager.php');
+        $pmSrc232 = str_replace("\r", '', $pmSrc232Raw);
+        if ($pmSrc232Raw === ''
+            || strpos($pmSrc232, 'public function getStats(): array') === false
+            || strpos($pmSrc232, 'public function getRecentChanges(int $limit = 10): array') === false
+        ) {
+            $offenders[] = "PreferencesManager::getStats()/getRecentChanges() ont disparu — régression du bug corrigé le 28/08/2026 (round 232) : le bloc Centre de préférences email de configure.tpl redeviendrait vide sans données";
+        }
+        $nSrc232Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $nSrc232 = str_replace("\r", '', $nSrc232Raw);
+        if ($nSrc232Raw === ''
+            || strpos($nSrc232, "'prefs_stats'  => (new PreferencesManager(\$this))->getStats(),") === false
+            || strpos($nSrc232, "'prefs_recent' => (new PreferencesManager(\$this))->getRecentChanges(),") === false
+        ) {
+            $offenders[] = "neria.php n'assigne plus prefs_stats/prefs_recent à configure.tpl — régression du bug corrigé le 28/08/2026 (round 232) : le bloc Centre de préférences email redeviendrait vide en permanence pour tous les marchands";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
