@@ -7637,6 +7637,25 @@ class HealthCheckManager
             $offenders[] = "BehavioralCronManager::sendCheckoutAbandonment() n'a plus de fenêtre élargie à 168h — régression du bug corrigé le 28/08/2026 (round 224) : une relance panier à fort taux de conversion pourrait de nouveau être perdue silencieusement si le cron saute un jour";
         }
 
+        // Round 226 (28/08/2026) : hookDisplayAdminOrderMainBottomImpl()
+        // calculait $hasSig via le contexte BO de l'employé (boutique
+        // sélectionnée) au lieu de $order->id_shop (boutique réelle de la
+        // commande consultée) — même famille de bug que rounds 107/111
+        // (CertificateManager), sur un point d'entrée différent.
+        $nSrc226Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $nSrc226 = str_replace("\r", '', $nSrc226Raw);
+        if ($nSrc226Raw === '' || strpos($nSrc226, "neria_signature`\n             WHERE `is_active` = 1 AND `id_shop` = ' . (int) \$order->id_shop") === false) {
+            $offenders[] = "hookDisplayAdminOrderMainBottomImpl() ne calcule plus \$hasSig via \$order->id_shop — régression du bug corrigé le 28/08/2026 (round 226) : la disponibilité de signature affichée sur la fiche commande BO pourrait de nouveau refléter la mauvaise boutique sur une install multi-boutiques";
+        }
+
+        // Round 226 (28/08/2026) : gdpr_encrypt_all n'avait pas de
+        // try/catch, contrairement à gdpr_purge juste au-dessus.
+        if ($nSrc226Raw === '' || strpos($nSrc226, "'neria_action') === 'gdpr_encrypt_all'") === false
+            || strpos($nSrc226, 'watchdog.gdpr_encrypt_retroactive_failed') === false
+        ) {
+            $offenders[] = "gdpr_encrypt_all n'est plus protégée par un try/catch — régression du bug corrigé le 28/08/2026 (round 226) : un timeout/erreur DB en cours de boucle referait remonter une page d'erreur fatale générique au lieu du message BO propre";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
