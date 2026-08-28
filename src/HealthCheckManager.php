@@ -6966,7 +6966,7 @@ class HealthCheckManager
         $mrmSrc197 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php');
         if ($mrmSrc197 === '') {
             $offenders[] = 'MonthlyReportManager.php introuvable (garde-fou round 197)';
-        } elseif (strpos($mrmSrc197, 'SELECT DISTINCT s.template, s.id_order, o.total_paid_tax_incl AS order_total') === false) {
+        } elseif (strpos($mrmSrc197, 'SELECT DISTINCT s.template, s.id_order,') === false) {
             $offenders[] = "MonthlyReportManager::getRevenueByTemplate() ne dédoublonne plus (template, id_order) pour le CA direct — régression du bug corrigé le 23/08/2026 (round 197) : un renvoi manuel d'un email transactionnel pour la même commande gonflerait de nouveau le CA direct affiché au marchand";
         }
 
@@ -7654,6 +7654,20 @@ class HealthCheckManager
             || strpos($nSrc226, 'watchdog.gdpr_encrypt_retroactive_failed') === false
         ) {
             $offenders[] = "gdpr_encrypt_all n'est plus protégée par un try/catch — régression du bug corrigé le 28/08/2026 (round 226) : un timeout/erreur DB en cours de boucle referait remonter une page d'erreur fatale générique au lieu du message BO propre";
+        }
+
+        // Round 227 (28/08/2026) : MonthlyReportManager::getRevenueByTemplate()
+        // sommait total_paid_tax_incl sans diviser par conversion_rate — sur
+        // une boutique multi-devises, mélangeait des montants dans des
+        // devises différentes, faussant le CA affiché au marchand dans le
+        // rapport mensuel automatique.
+        $mrmSrc227Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php');
+        $mrmSrc227 = str_replace("\r", '', $mrmSrc227Raw);
+        if ($mrmSrc227Raw === ''
+            || strpos($mrmSrc227, 'o.total_paid_tax_incl / IF(o.conversion_rate = 0, 1, o.conversion_rate) AS order_total') === false
+            || strpos($mrmSrc227, 'SUM(winner.total_paid_tax_incl / IF(winner.conversion_rate = 0, 1, winner.conversion_rate)) AS revenue') === false
+        ) {
+            $offenders[] = "MonthlyReportManager::getRevenueByTemplate() ne divise plus par conversion_rate — régression du bug corrigé le 28/08/2026 (round 227) : le CA par template du rapport mensuel mélangerait de nouveau des montants de devises différentes sur une boutique multi-devises";
         }
 
         if ($offenders) {
