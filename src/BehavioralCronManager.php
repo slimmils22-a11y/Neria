@@ -915,6 +915,8 @@ class BehavioralCronManager
             return;
         }
 
+        // Round 224 : fenêtre élargie à 168h (comme sendAbandonedCarts()) —
+        // évite la perte silencieuse si le cron saute un jour.
         $hours  = self::DELAY_CHECKOUT_HOURS;
         $idShop = (int) \Context::getContext()->shop->id;
         $rows  = $this->db->executeS(
@@ -928,7 +930,7 @@ class BehavioralCronManager
                AND ca.id_address_invoice > 0
                AND (SELECT COUNT(*) FROM `' . $this->prefix . 'cart_product` cp
                     WHERE cp.id_cart = ca.id_cart) > 0
-               AND ca.date_upd BETWEEN DATE_SUB(NOW(), INTERVAL 24 HOUR)
+               AND ca.date_upd BETWEEN DATE_SUB(NOW(), INTERVAL 168 HOUR)
                                    AND DATE_SUB(NOW(), INTERVAL ' . $hours . ' HOUR)
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'orders` o WHERE o.id_cart = ca.id_cart
