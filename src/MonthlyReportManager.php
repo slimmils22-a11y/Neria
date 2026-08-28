@@ -489,11 +489,19 @@ class MonthlyReportManager
         // avec le même id_order+template) faisait compter le montant de
         // cette commande deux fois dans le SUM(), gonflant le CA "direct"
         // affiché au marchand.
+        // Round 227 : order_total ramené à la devise par défaut de la
+        // boutique via conversion_rate — même garde-fou que ClvManager
+        // (commentaire lignes 116-118 de ce dernier). Sans lui, sur une
+        // boutique multi-devises, ce SUM() additionnait des montants dans
+        // des devises différentes comme s'ils étaient tous dans la même,
+        // surestimant (ou sous-estimant) le CA affiché au marchand dans le
+        // rapport mensuel automatique.
         $direct = [];
         $rows = $this->db->executeS(
             "SELECT template, SUM(order_total) AS revenue
              FROM (
-                 SELECT DISTINCT s.template, s.id_order, o.total_paid_tax_incl AS order_total
+                 SELECT DISTINCT s.template, s.id_order,
+                        o.total_paid_tax_incl / IF(o.conversion_rate = 0, 1, o.conversion_rate) AS order_total
                  FROM `{$st}` s
                  JOIN `{$ord}` o ON o.id_order = s.id_order
                  WHERE s.id_shop = {$this->idShop}
@@ -537,10 +545,11 @@ class MonthlyReportManager
         // retient désormais que le clic le PLUS RÉCENT avant la commande
         // (last-click), cohérent avec le principe déjà appliqué par
         // AttributionManager pour l'attribution de revenus.
+        // Round 227 : même garde-fou conversion_rate que direct ci-dessus.
         $attributed = [];
         $rows2 = $this->db->executeS(
-            "SELECT winner.template, SUM(winner.total_paid_tax_incl) AS revenue FROM (
-                SELECT s.template, o.id_order, o.total_paid_tax_incl
+            "SELECT winner.template, SUM(winner.total_paid_tax_incl / IF(winner.conversion_rate = 0, 1, winner.conversion_rate)) AS revenue FROM (
+                SELECT s.template, o.id_order, o.total_paid_tax_incl, o.conversion_rate
                 FROM `{$st}` s
                 JOIN `{$ord}` o
                   ON o.id_customer = s.id_customer
