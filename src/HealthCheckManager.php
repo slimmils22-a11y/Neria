@@ -7682,6 +7682,19 @@ class HealthCheckManager
             $offenders[] = "BehavioralCronManager::getCheckoutAbandonmentStats()/getRelationshipAnniversaryStats() ne divisent plus par conversion_rate — régression du bug corrigé le 28/08/2026 (round 228) : ces KPI mélangeraient de nouveau des montants de devises différentes sur une boutique multi-devises";
         }
 
+        // Round 229 (28/08/2026) : UpsellManager::checkConversions() n'était
+        // protégée par aucun GET_LOCK() — deux exécutions concurrentes du
+        // cron pouvaient chacune créditer la même conversion de revenu
+        // upsell, gonflant le ROI affiché au marchand.
+        $umSrc229Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
+        $umSrc229 = str_replace("\r", '', $umSrc229Raw);
+        if ($umSrc229Raw === ''
+            || strpos($umSrc229, "GET_LOCK('neria_upsell_check_conversions', 0)") === false
+            || strpos($umSrc229, "RELEASE_LOCK('neria_upsell_check_conversions')") === false
+        ) {
+            $offenders[] = "UpsellManager::checkConversions() n'est plus protégée par un GET_LOCK — régression du bug corrigé le 28/08/2026 (round 229) : deux exécutions concurrentes du cron pourraient de nouveau créditer deux fois la même conversion de revenu upsell";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
