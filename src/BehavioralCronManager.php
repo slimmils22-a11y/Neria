@@ -882,12 +882,16 @@ class BehavioralCronManager
         // le numérateur (commandes récupérées, scopé) et le dénominateur
         // (envois, non scopé) portaient sur des périmètres différents —
         // conversion_rate faussé et sous-estimé pour la boutique courante.
+        // Round 228 : revenue_recovered converti via conversion_rate — même
+        // garde-fou que ClvManager/MonthlyReportManager (round 227), sans
+        // ça ce SUM() mélangeait des montants de devises différentes sur
+        // une boutique multi-devises.
         $idShop = (int) \Context::getContext()->shop->id;
         $row  = $this->db->getRow(
             'SELECT
                 COUNT(bs.id)                    AS emails_sent,
                 COUNT(DISTINCT o.id_order)      AS orders_recovered,
-                COALESCE(SUM(o.total_paid_tax_incl), 0) AS revenue_recovered
+                COALESCE(SUM(o.total_paid_tax_incl / IF(o.conversion_rate = 0, 1, o.conversion_rate)), 0) AS revenue_recovered
              FROM `' . $this->prefix . 'neria_behavioral_sent` bs
              LEFT JOIN `' . $this->prefix . 'orders` o
                 ON o.id_cart = bs.ref_id AND o.date_add > bs.sent_at
@@ -1675,9 +1679,11 @@ class BehavioralCronManager
         );
 
         // Commandes passées dans les 48h suivant l'envoi (attribution last-click)
+        // Round 228 : revenue_attributed converti via conversion_rate, même
+        // garde-fou que getCheckoutAbandonmentStats() ci-dessus.
         $row = $this->db->getRow(
             'SELECT COUNT(DISTINCT o.id_order) AS orders_attributed,
-                    COALESCE(SUM(o.total_paid_tax_incl), 0) AS revenue_attributed
+                    COALESCE(SUM(o.total_paid_tax_incl / IF(o.conversion_rate = 0, 1, o.conversion_rate)), 0) AS revenue_attributed
              FROM `' . $this->prefix . 'neria_behavioral_sent` bs
              JOIN `' . $this->prefix . 'orders` o
                   ON o.id_customer = bs.id_customer
