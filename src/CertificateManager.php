@@ -294,6 +294,23 @@ class CertificateManager
             return ['error' => AdminTranslator::t('msg.certificate_not_found')];
         }
 
+        // Round 243 : id_certificate n'étant PAS filtré par $this->idShop
+        // (voir commentaire ci-dessus — nécessaire pour la fiche commande
+        // multi-boutique), rien n'empêchait un employé dont le PROFIL est
+        // restreint à un sous-ensemble de boutiques (association
+        // ps_employee_shop) de récupérer, en changeant simplement
+        // id_certificate dans la requête, le PDF (nom client, produit, note
+        // artisan) d'une commande d'une boutique à laquelle il n'a jamais eu
+        // accès. hasAuthOnShop() vérifie les boutiques RÉELLEMENT assignées
+        // à l'employé (indépendant du sélecteur BO courant, contrairement à
+        // Shop::getContextListShopID()) — c'est le contrôle attendu ici,
+        // pas un filtre SQL id_shop qui casserait le cas légitime déjà
+        // documenté plus haut.
+        $employee = \Context::getContext()->employee ?? null;
+        if ($employee !== null && \Validate::isLoadedObject($employee) && !$employee->hasAuthOnShop((int) $row['id_shop'])) {
+            return ['error' => AdminTranslator::t('msg.certificate_not_found')];
+        }
+
         $order    = new \Order((int) $row['id_order']);
         $customer = new \Customer((int) $order->id_customer);
         $lang     = $this->resolveCertificateLang($order, (int) $customer->id_lang);

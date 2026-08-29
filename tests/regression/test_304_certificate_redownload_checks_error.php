@@ -26,7 +26,7 @@ function run_test(): array
 
     $posFn = strpos($src, 'public function redownload(int $idCertificate): array');
     neria_assert($posFn !== false, 'redownload() introuvable — jeu de test invalide');
-    $body = substr($src, $posFn, 2500);
+    $body = substr($src, $posFn, 3800);
 
     neria_assert(
         strpos($body, "isset(\$result['error'])") !== false,

@@ -63,7 +63,14 @@ class NeriaErrorHandler
             // Écriture directe en DB — WatchdogManager peut ne plus être chargeable ici.
             try {
                 $db  = \Db::getInstance();
-                $msg = pSQL(substr($message, 0, 2000));
+                // Round 243 : mb_substr (pas substr) -- $message peut
+                // interpoler du texte multi-octets (nom client/produit
+                // levé dans une exception métier) ; une coupe en octets
+                // brutes risque de trancher au milieu d'un caractère,
+                // produisant une séquence UTF-8 invalide en base (même
+                // correction déjà appliquée à QueueManager::
+                // sanitizeErrorMessage() au round 164).
+                $msg = pSQL(mb_substr($message, 0, 2000));
                 $idShop = self::currentShopId();
                 $db->execute(
                     "INSERT INTO `" . _DB_PREFIX_ . "neria_log`
@@ -125,7 +132,8 @@ class NeriaErrorHandler
                 // Si même le watchdog plante, écriture directe en DB
                 try {
                     $db  = \Db::getInstance();
-                    $msg = pSQL(substr($e->getMessage(), 0, 500));
+                    // Round 243 : mb_substr (voir justification ligne ~66).
+                    $msg = pSQL(mb_substr($e->getMessage(), 0, 500));
                     $idShop = self::currentShopId();
                     $db->execute(
                         "INSERT INTO `" . _DB_PREFIX_ . "neria_log`
@@ -180,7 +188,8 @@ class NeriaErrorHandler
             } catch (\Throwable $t) {
                 try {
                     $db  = \Db::getInstance();
-                    $msg = pSQL(substr($e->getMessage(), 0, 500));
+                    // Round 243 : mb_substr (voir justification ligne ~66).
+                    $msg = pSQL(mb_substr($e->getMessage(), 0, 500));
                     $idShop = self::currentShopId();
                     $db->execute(
                         "INSERT INTO `" . _DB_PREFIX_ . "neria_log`
@@ -239,7 +248,8 @@ class NeriaErrorHandler
         } catch (\Throwable $t) {
             try {
                 $db  = \Db::getInstance();
-                $msg = pSQL(substr($hookName . ' : ' . $e->getMessage(), 0, 500));
+                // Round 243 : mb_substr (voir justification ligne ~66).
+                $msg = pSQL(mb_substr($hookName . ' : ' . $e->getMessage(), 0, 500));
                 $idShop = self::currentShopId();
                 $db->execute(
                     "INSERT INTO `" . _DB_PREFIX_ . "neria_log`

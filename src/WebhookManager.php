@@ -688,7 +688,12 @@ class WebhookManager
                 '', 'WebhookManager'
             );
         } else {
-            $preview = substr($body, 0, 150);
+            // Round 243 : mb_substr (pas substr) -- $body est la réponse
+            // HTTP brute d'un endpoint tiers configuré par le marchand, dont
+            // le contenu (message d'erreur localisé) peut être multi-octets
+            // dans n'importe laquelle des 19 langues supportées ; une coupe
+            // en octets bruts risque de trancher au milieu d'un caractère.
+            $preview = mb_substr($body, 0, 150);
             $this->watchdog()->warning(
                 $preview !== ''
                     ? \WatchdogManager::i18nMsg('watchdog.webhook_test_http_error_response', ['code' => $httpCode, 'url' => $url, 'response' => $preview])
@@ -700,7 +705,7 @@ class WebhookManager
         return [
             'ok'        => $ok,
             'http_code' => $httpCode,
-            'body'      => substr($body, 0, 300),
+            'body'      => mb_substr($body, 0, 300),
         ];
     }
 
