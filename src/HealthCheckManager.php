@@ -7797,6 +7797,40 @@ class HealthCheckManager
             $offenders[] = "ManualSendManager::resolveShopUrl() n'encadre plus la bascule de contexte boutique par un try/finally — régression du bug corrigé le 28/08/2026 (round 239)";
         }
 
+        // Round 240 (28/08/2026) : suite du round 239 — 4 sites
+        // supplémentaires de la même famille (ressource/état partagé non
+        // restauré sur exception) corrigés : le compteur "sent" de
+        // BehavioralCronManager::sendRelationshipAnniversaries() (send()
+        // renvoyait void, incrémenté inconditionnellement même sur échec
+        // interne) ; LoyaltyManager (langue BO en boucle) ;
+        // PageSpeedManager et SeoApiManager (Configuration::updateValue()
+        // entre setLang() et sa restauration, sans try/finally).
+        $bcmSrc240Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        $bcmSrc240 = str_replace("\r", '', $bcmSrc240Raw);
+        if ($bcmSrc240Raw === ''
+            || strpos($bcmSrc240, "int \$refId = 0\n    ): bool {") === false
+            || strpos($bcmSrc240, "if (\$this->send(\n                    'relationship_anniversary',") === false
+        ) {
+            $offenders[] = "BehavioralCronManager::send()/sendRelationshipAnniversaries() ne vérifient plus le résultat réel de l'envoi — régression du bug corrigé le 28/08/2026 (round 240) : le résumé Watchdog afficherait de nouveau un taux de succès de 100% même en cas d'échecs réels";
+        }
+        $lmSrc240Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
+        $lmSrc240 = str_replace("\r", '', $lmSrc240Raw);
+        if ($lmSrc240Raw === '' || strpos($lmSrc240, "try {\n            foreach (\$langs as \$l) {") === false) {
+            $offenders[] = "LoyaltyManager n'encadre plus sa boucle de langues par un try/finally — régression du bug corrigé le 28/08/2026 (round 240)";
+        }
+        $psmSrc240Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PageSpeedManager.php');
+        $psmSrc240 = str_replace("\r", '', $psmSrc240Raw);
+        if ($psmSrc240Raw === ''
+            || strpos($psmSrc240, "\$prevLang = \\AdminTranslator::currentLang();\n        try {\n            \\AdminTranslator::setLang(\\WatchdogManager::shopLang((int) \\Context::getContext()->shop->id));") === false
+        ) {
+            $offenders[] = "PageSpeedManager n'encadre plus ses mutations de langue par un try/finally — régression du bug corrigé le 28/08/2026 (round 240)";
+        }
+        $samSrc240Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeoApiManager.php');
+        $samSrc240 = str_replace("\r", '', $samSrc240Raw);
+        if ($samSrc240Raw === '' || strpos($samSrc240, "\$this->recordError(\\AdminTranslator::t('msg.semrush_invalid_csv'));\n            } finally {") === false) {
+            $offenders[] = "SeoApiManager n'encadre plus ses mutations de langue par un try/finally — régression du bug corrigé le 28/08/2026 (round 240)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
