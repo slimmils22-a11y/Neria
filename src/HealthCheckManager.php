@@ -305,6 +305,7 @@ class HealthCheckManager
             'imap_timeout_missing'     => 'checkImapTimeoutMissing',
             'oauth_refresh_error_surfaced' => 'checkOAuthRefreshErrorSurfaced',
             'known_regressions_guard' => 'checkKnownRegressionsGuard',
+            'queue_status_enum_migrated' => 'checkQueueStatusEnumMigrated',
             'known_regressions_guard_freshness' => 'checkKnownRegressionsGuardFreshness',
             'control_center_defaults_consistency' => 'checkControlCenterDefaultsConsistency',
             'sql_pattern_risks'     => 'checkSqlPatternRisks',
@@ -4622,7 +4623,7 @@ class HealthCheckManager
             if ($posPQ144 === false || $posCleanupCall144 === false || $posUrlReturn144 === false || $posCleanupCall144 > $posUrlReturn144) {
                 $offenders[] = "WebhookManager::processQueue() n'appelle plus cleanup() avant ses return précoces de validation URL/secret — régression du bug corrigé le 09/08/2026 (round 144) : cleanup() redeviendrait inatteignable si la clé de chiffrement maîtresse devient illisible durablement, ps_neria_webhook_queue croîtrait sans borne";
             }
-            $loopBody144 = $posPQ144 !== false ? substr($whSrc144, strpos($whSrc144, 'foreach ($rows as $row) {', $posPQ144), 3600) : '';
+            $loopBody144 = $posPQ144 !== false ? substr($whSrc144, strpos($whSrc144, 'foreach ($rows as $row) {', $posPQ144), 5400) : '';
             if (strpos($loopBody144, 'watchdog.webhook_row_exception') === false) {
                 $offenders[] = "WebhookManager::processQueue() n'isole plus chaque ligne du lot dans son propre try/catch — régression du bug corrigé le 09/08/2026 (round 144) : une exception sur une ligne interromprait de nouveau le traitement de tout le reste du lot";
             }
@@ -6156,7 +6157,7 @@ class HealthCheckManager
             $offenders[] = 'QueueManager.php introuvable (garde-fou round 178)';
         } else {
             $posSingle178 = strpos($qmSrc178, 'private function processSingle(array $row): bool');
-            $singleBody178 = $posSingle178 !== false ? substr($qmSrc178, $posSingle178, 4000) : '';
+            $singleBody178 = $posSingle178 !== false ? substr($qmSrc178, $posSingle178, 5400) : '';
             $hasGuards178 = strpos($singleBody178, "\\BounceManager::isBounced(\$toEmail)") !== false
                 && strpos($singleBody178, 'markQueueFailed(') !== false;
             if ($posSingle178 === false || !$hasGuards178) {
@@ -7831,6 +7832,43 @@ class HealthCheckManager
             $offenders[] = "SeoApiManager n'encadre plus ses mutations de langue par un try/finally — régression du bug corrigé le 28/08/2026 (round 240)";
         }
 
+        // Round 241 : besoin de reproduire des occurrences de guillemet
+        // simple échappé (\') telles qu'elles apparaissent réellement dans
+        // le code source de QueueManager.php (chaînes PHP entre guillemets
+        // simples). Construites via chr() plutôt que transcrites à la main
+        // pour éliminer tout risque d'erreur d'échappement dans CE fichier.
+        $bs241 = chr(92);
+        $q241  = chr(39);
+
+        $qmSrc241Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        $qmSrc241 = str_replace("\r", '', $qmSrc241Raw);
+        $qmNeedle241a = 'attempts = attempts + 1, status = ' . $bs241 . $q241 . 'sending' . $bs241 . $q241;
+        if ($qmSrc241Raw === '' || strpos($qmSrc241, $qmNeedle241a) === false) {
+            $offenders[] = "QueueManager::processSingle() ne réserve plus atomiquement la ligne (status='sending') avant l'envoi — régression du bug corrigé le 29/08/2026 (round 241) : un crash du process entre Mail::Send() réussi et l'UPDATE status='sent' laisserait de nouveau la ligne 'pending', renvoyant le même email en double au prochain passage du cron";
+        }
+        $qmNeedle241b = 'SET status = ' . $bs241 . $q241 . 'pending' . $bs241 . $q241
+            . "\n                 WHERE status = " . $bs241 . $q241 . 'sending' . $bs241 . $q241
+            . "\n                   AND send_at <= DATE_SUB(NOW(), INTERVAL 10 MINUTE)";
+        if ($qmSrc241Raw === '' || strpos($qmSrc241, $qmNeedle241b) === false) {
+            $offenders[] = "QueueManager::processQueue() ne récupère plus les lignes bloquées à 'sending' après un crash — régression du bug corrigé le 29/08/2026 (round 241) : une ligne réservée puis abandonnée par un crash resterait bloquée définitivement, jamais retentée";
+        }
+
+        $whmSrc241Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php');
+        $whmSrc241 = str_replace("\r", '', $whmSrc241Raw);
+        $whmNeedle241a = 'SET `attempts` = {$attempts}, `last_attempt` = ' . $q241 . '{$now}' . $q241 . ', `status` = ' . $q241 . 'sending' . $q241
+            . "\n                     WHERE `id_webhook` = {\$id}"
+            . "\n                       AND `status` = " . $q241 . 'pending' . $q241;
+        if ($whmSrc241Raw === '' || strpos($whmSrc241, $whmNeedle241a) === false) {
+            $offenders[] = "WebhookManager::processQueue() ne réserve plus atomiquement la ligne (status='sending') avant fire() — régression du bug corrigé le 29/08/2026 (round 241) : un crash du process entre l'envoi réussi et l'UPDATE status='done' laisserait de nouveau la ligne 'pending', livrant le même webhook en double au prochain passage";
+        }
+        $whmNeedle241b = 'SET `status` = ' . $q241 . 'pending' . $q241
+            . "\n                 WHERE `id_shop` = {\$this->idShop}"
+            . "\n                   AND `status` = " . $q241 . 'sending' . $q241
+            . "\n                   AND `last_attempt` <= DATE_SUB(NOW(), INTERVAL 10 MINUTE)";
+        if ($whmSrc241Raw === '' || strpos($whmSrc241, $whmNeedle241b) === false) {
+            $offenders[] = "WebhookManager::processQueue() ne récupère plus les lignes bloquées à 'sending' après un crash — régression du bug corrigé le 29/08/2026 (round 241) : une ligne réservée puis abandonnée par un crash resterait bloquée définitivement, jamais retentée";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
@@ -7839,6 +7877,53 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.known_regressions_ok')];
+    }
+
+    /**
+     * Contrôle DYNAMIQUE (introspection du schéma réel, pas du code source) —
+     * round 241 : `status` de ps_neria_queue et ps_neria_webhook_queue sont
+     * des colonnes ENUM. La réservation atomique ajoutée au round 241 y
+     * écrit désormais la valeur 'sending' — une valeur absente de la
+     * définition ENUM est silencieusement tronquée en chaîne vide par MySQL
+     * en mode non strict (constaté en réel pendant le développement du
+     * round 241), au lieu de lever une erreur. Une ligne dont le statut
+     * devient '' ne correspond plus à AUCUNE clause WHERE existante (ni
+     * 'pending' pour la sélection normale, ni 'sending' pour le nettoyage de
+     * reprise après crash) : elle reste bloquée EN PERMANENCE, plus grave
+     * que le bug d'origine que le round 241 corrigeait (perte silencieuse
+     * au lieu d'une duplication occasionnelle). upgrade-1.0.43.php migre le
+     * schéma ; ce contrôle détecte une install dont l'upgrade n'aurait
+     * jamais tourné (ou un ALTER TABLE manuel qui aurait régressé le
+     * schéma).
+     */
+    private function checkQueueStatusEnumMigrated(): array
+    {
+        $tables = [
+            _DB_PREFIX_ . 'neria_queue',
+            _DB_PREFIX_ . 'neria_webhook_queue',
+        ];
+        $offenders = [];
+
+        foreach ($tables as $table) {
+            $columnType = (string) $this->db->getValue(
+                "SELECT COLUMN_TYPE FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME   = '" . pSQL($table) . "'
+                   AND COLUMN_NAME  = 'status'"
+            );
+            if ($columnType === '' || strpos($columnType, "'sending'") === false) {
+                $offenders[] = $table;
+            }
+        }
+
+        if ($offenders) {
+            return [
+                'status' => self::STATUS_ERROR,
+                'detail' => AdminTranslator::tVars('health.queue_status_enum_error', ['tables' => implode(', ', $offenders)]),
+            ];
+        }
+
+        return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.queue_status_enum_ok')];
     }
 
     /**

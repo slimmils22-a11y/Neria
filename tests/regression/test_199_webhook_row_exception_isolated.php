@@ -33,7 +33,7 @@ function run_test(): array
     $posForeach = strpos($src, 'foreach ($rows as $row) {', $posMethod);
     neria_assert($posForeach !== false, 'la boucle de traitement du lot est introuvable — jeu de test invalide');
 
-    $loopBody = substr($src, $posForeach, 3600);
+    $loopBody = substr($src, $posForeach, 5400);
 
     $posTry = strpos($loopBody, 'try {');
     $posFire = strpos($loopBody, '$ok = $this->fire($url, $secret, $payload);');
