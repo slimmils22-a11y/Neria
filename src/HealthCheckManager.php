@@ -7726,6 +7726,29 @@ class HealthCheckManager
             $offenders[] = "ManualSendManager::send() ne filtre plus les \\r\\n internes du sujet BO — régression du bug corrigé le 28/08/2026 (round 236) : un sujet d'envoi manuel pourrait de nouveau contenir des retours à la ligne bruts";
         }
 
+        // Round 237 (28/08/2026) : ChurnScoreManager/ClvManager mélangeaient
+        // l'horloge PHP (time()/new DateTime()) avec des dates posées par
+        // MySQL (NOW()) — sur un hébergement où les deux serveurs ont un
+        // fuseau différent, le score de récence churn et l'ancienneté CLV
+        // pouvaient dériver silencieusement. Calcul déplacé côté SQL via
+        // TIMESTAMPDIFF, même correctif que BounceManager::isBounced().
+        $csmSrc237Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php');
+        $csmSrc237 = str_replace("\r", '', $csmSrc237Raw);
+        if ($csmSrc237Raw === ''
+            || strpos($csmSrc237, 'TIMESTAMPDIFF(SECOND, MAX(date_add), NOW()) AS seconds_since_open') === false
+            || strpos($csmSrc237, "\$days    = (int) \$r['seconds_since_open'] / 86400;") === false
+        ) {
+            $offenders[] = "ChurnScoreManager ne calcule plus la récence via TIMESTAMPDIFF SQL — régression du bug corrigé le 28/08/2026 (round 237) : le score de churn pourrait de nouveau dériver silencieusement si PHP et MySQL ont des fuseaux horaires différents";
+        }
+        $clvSrc237Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php');
+        $clvSrc237 = str_replace("\r", '', $clvSrc237Raw);
+        if ($clvSrc237Raw === ''
+            || strpos($clvSrc237, 'TIMESTAMPDIFF(SECOND, o.`date_add`, NOW()) AS seconds_since_order') === false
+            || strpos($clvSrc237, 'TIMESTAMPDIFF(SECOND, MIN(o.`date_add`), NOW()) AS seconds_since_first') === false
+        ) {
+            $offenders[] = "ClvManager ne calcule plus l'ancienneté client via TIMESTAMPDIFF SQL — régression du bug corrigé le 28/08/2026 (round 237) : le CLV pourrait de nouveau dériver silencieusement si PHP et MySQL ont des fuseaux horaires différents";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
