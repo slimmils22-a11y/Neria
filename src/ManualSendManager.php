@@ -573,7 +573,11 @@ class ManualSendManager
 
         // Sujet vide : laissé tel quel. EmailRenderer le remplira avec le titre
         // du template traduit dans la langue détectée du client.
-        $subject = trim($subject);
+        // Round 236 : \r\n internes retirés, même garde-fou déjà appliqué à
+        // WatchdogManager/EmailRenderer(fromName)/neria.php — défense en
+        // profondeur contre une injection d'en-tête (CWE-93) via un sujet
+        // saisi librement par un employé BO.
+        $subject = trim(str_replace(["\r", "\n"], ' ', $subject));
 
         $customer = $this->findCustomer($email);
         $idLang   = $customer ? (int) $customer['id_lang'] : (int) \Configuration::get('PS_LANG_DEFAULT');
