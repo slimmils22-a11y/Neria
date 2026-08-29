@@ -151,6 +151,7 @@ class ChurnScoreManager
             SELECT
                 id_customer,
                 MAX(date_add) AS last_open,
+                TIMESTAMPDIFF(SECOND, MAX(date_add), NOW()) AS seconds_since_open,
                 SUM(HOUR(date_add) >= 6  AND HOUR(date_add) < 12) AS open_morning,
                 SUM(HOUR(date_add) >= 12 AND HOUR(date_add) < 18) AS open_afternoon,
                 SUM(HOUR(date_add) >= 18 AND HOUR(date_add) < 23) AS open_evening,
@@ -162,7 +163,13 @@ class ChurnScoreManager
             $rowsOpenAllTime[(int) $r['id_customer']] = $r;
         }
 
-        $emptyOpenStats = ['last_open' => null, 'open_morning' => 0, 'open_afternoon' => 0, 'open_evening' => 0, 'open_night' => 0];
+        // Round 237 : seconds_since_open calculé côté SQL via TIMESTAMPDIFF
+        // (horloge MySQL des deux côtés), pas via time() - strtotime()
+        // (mélange horloge PHP / horloge MySQL) — même correctif déjà
+        // appliqué dans BounceManager::isBounced() pour la même raison :
+        // évite une dérive silencieuse du score de récence si le serveur
+        // web et le serveur MySQL n'ont pas le même fuseau horaire.
+        $emptyOpenStats = ['last_open' => null, 'seconds_since_open' => null, 'open_morning' => 0, 'open_afternoon' => 0, 'open_evening' => 0, 'open_night' => 0];
         $rows = [];
         foreach ($rowsPeriods as $r) {
             $rows[] = $r + ($rowsOpenAllTime[(int) $r['id_customer']] ?? $emptyOpenStats);
@@ -342,7 +349,7 @@ class ChurnScoreManager
 
         // Composante 1 — Récence (0-40 pts)
         if ($r['last_open']) {
-            $days    = (time() - strtotime($r['last_open'])) / 86400;
+            $days    = (int) $r['seconds_since_open'] / 86400;
             $recency = min(1.0, max(0.0, $days / 90)) * 40;
         } else {
             $recency = 40; // jamais ouvert

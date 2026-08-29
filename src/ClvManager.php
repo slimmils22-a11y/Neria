@@ -104,7 +104,8 @@ class ClvManager
 
         // ── Historique d'achats ───────────────────────────────────
         $orders = $this->db->executeS(
-            'SELECT o.`id_order`, o.`total_paid_tax_incl`, o.`conversion_rate`, o.`date_add`
+            'SELECT o.`id_order`, o.`total_paid_tax_incl`, o.`conversion_rate`, o.`date_add`,
+                    TIMESTAMPDIFF(SECOND, o.`date_add`, NOW()) AS seconds_since_order
              FROM `' . _DB_PREFIX_ . 'orders` o
              WHERE o.`id_customer` = ' . $idCustomer . '
                AND o.`id_shop` = ' . $this->idShop . '
@@ -153,10 +154,13 @@ class ClvManager
 
         $avgOrder = $totalRevenue / $orderCount;
 
-        // Ancienneté en mois (minimum 1)
-        $firstDate    = new \DateTime($orders[0]['date_add']);
-        $now          = new \DateTime();
-        $monthsActive = max(1, (int) $firstDate->diff($now)->days / 30.44);
+        // Ancienneté en mois (minimum 1) — Round 237 : seconds_since_order
+        // calculé côté SQL (TIMESTAMPDIFF, horloge MySQL des deux côtés),
+        // pas via new \DateTime() côté PHP comparé à date_add posé par
+        // MySQL (mélange d'horloges, même correctif que ChurnScoreManager
+        // et BounceManager::isBounced()).
+        $daysActive   = (int) ((int) $orders[0]['seconds_since_order'] / 86400);
+        $monthsActive = max(1, $daysActive / 30.44);
 
         $frequencyMonthly = $orderCount / $monthsActive;
 
@@ -310,6 +314,7 @@ class ClvManager
             'SELECT o.`id_customer`,
                     COUNT(*) AS order_count,
                     MIN(o.`date_add`) AS first_date,
+                    TIMESTAMPDIFF(SECOND, MIN(o.`date_add`), NOW()) AS seconds_since_first,
                     SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` = 0, 1, o.`conversion_rate`)) AS total_revenue
              FROM `' . _DB_PREFIX_ . 'orders` o
              WHERE o.`id_customer` IN (' . $idList . ')
@@ -401,7 +406,7 @@ class ClvManager
             $clv = $this->assembleClv(
                 (int) $agg['order_count'],
                 (float) $agg['total_revenue'],
-                (string) $agg['first_date'],
+                (int) $agg['seconds_since_first'],
                 $engagementRate,
                 $segmentAgg[$idCustomer] ?? null,
                 $churnAgg[$idCustomer] ?? 0,
@@ -426,7 +431,7 @@ class ClvManager
     private function assembleClv(
         int $orderCount,
         float $totalRevenue,
-        string $firstDate,
+        int $secondsSinceFirst,
         float $engagementRate,
         ?string $segment,
         int $churnScore,
@@ -436,9 +441,11 @@ class ClvManager
         $totalRevenue = max(0.0, $totalRevenue - $totalRefunded);
         $avgOrder = $totalRevenue / $orderCount;
 
-        $firstDateObj = new \DateTime($firstDate);
-        $now          = new \DateTime();
-        $monthsActive = max(1, (int) $firstDateObj->diff($now)->days / 30.44);
+        // Round 237 : $secondsSinceFirst calculé côté SQL (TIMESTAMPDIFF,
+        // horloge MySQL des deux côtés), pas via new \DateTime() côté PHP —
+        // même correctif que computeClv() ci-dessus et ChurnScoreManager.
+        $daysActive   = (int) ($secondsSinceFirst / 86400);
+        $monthsActive = max(1, $daysActive / 30.44);
 
         $frequencyMonthly = $orderCount / $monthsActive;
 
