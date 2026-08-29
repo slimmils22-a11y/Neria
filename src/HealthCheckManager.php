@@ -7771,6 +7771,32 @@ class HealthCheckManager
             $offenders[] = "neria.php ne pointe plus vers le fichier compilé unique pour log_alert — régression du bug corrigé le 28/08/2026 (round 238)";
         }
 
+        // Round 239 (28/08/2026) : mutations temporaires de Context->shop
+        // (MonthlyReportManager::checkAndSend()/deliverReportLocked(),
+        // CertificateManager::sendCertificateEmail(), ManualSendManager::
+        // resolveShopUrl()) doivent être encadrées d'un try/finally — sans
+        // ça, une exception levée pendant le traitement laisse le contexte
+        // boutique (ou la langue BO) bloqué pour le reste de la requête,
+        // même famille de bug que le fichier email partagé du round 238.
+        $mrmSrc239Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php');
+        $mrmSrc239 = str_replace("\r", '', $mrmSrc239Raw);
+        if ($mrmSrc239Raw === ''
+            || strpos($mrmSrc239, 'private function deliverReportLockedInner(') === false
+            || strpos($mrmSrc239, "\$this->idShop = \$originalIdShop;\n            }") === false
+        ) {
+            $offenders[] = "MonthlyReportManager n'encadre plus ses mutations de contexte boutique/langue par un try/finally — régression du bug corrigé le 28/08/2026 (round 239) : une exception pendant le traitement multi-boutique/multi-langue laisserait de nouveau le contexte bloqué pour le reste de la requête";
+        }
+        $cmSrc239Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        $cmSrc239 = str_replace("\r", '', $cmSrc239Raw);
+        if ($cmSrc239Raw === '' || strpos($cmSrc239, "\$shopUrl = \\Tools::getShopDomainSsl(true, true);\n        } finally {") === false) {
+            $offenders[] = "CertificateManager::sendCertificateEmail() n'encadre plus la bascule de contexte boutique par un try/finally — régression du bug corrigé le 28/08/2026 (round 239)";
+        }
+        $msmSrc239Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        $msmSrc239 = str_replace("\r", '', $msmSrc239Raw);
+        if ($msmSrc239Raw === '' || strpos($msmSrc239, "return \\Tools::getShopDomainSsl(true, true);\n        } finally {") === false) {
+            $offenders[] = "ManualSendManager::resolveShopUrl() n'encadre plus la bascule de contexte boutique par un try/finally — régression du bug corrigé le 28/08/2026 (round 239)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
