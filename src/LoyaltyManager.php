@@ -429,12 +429,21 @@ class LoyaltyManager
         $langs = \Language::getLanguages(false);
         $names = [];
         $prevLang = \AdminTranslator::currentLang();
-        foreach ($langs as $l) {
-            $iso = \Language::getIsoById((int) $l['id_lang']) ?: 'en';
-            \AdminTranslator::setLang($iso);
-            $names[(int) $l['id_lang']] = \AdminTranslator::tVars('msg.loyalty_reward_name', ['tier' => $tier['name']]);
+        // Round 240 : try/finally — Language::getIsoById() (vraie requête
+        // SQL) tourne À CHAQUE itération pendant que AdminTranslator reste
+        // dans l'état muté ; sans ça, une erreur DB au milieu de la boucle
+        // laissait la langue BO bloquée sur celle de l'itération en cours
+        // pour le reste de la requête, même famille de bug que les rounds
+        // 238-239 (ressource/état partagé non restauré sur exception).
+        try {
+            foreach ($langs as $l) {
+                $iso = \Language::getIsoById((int) $l['id_lang']) ?: 'en';
+                \AdminTranslator::setLang($iso);
+                $names[(int) $l['id_lang']] = \AdminTranslator::tVars('msg.loyalty_reward_name', ['tier' => $tier['name']]);
+            }
+        } finally {
+            \AdminTranslator::setLang($prevLang);
         }
-        \AdminTranslator::setLang($prevLang);
 
         $cartRule = new \CartRule();
         $cartRule->name                    = $names;

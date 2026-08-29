@@ -270,10 +270,16 @@ class SeoApiManager
         $rows = array_filter(array_map('str_getcsv', explode("\n", trim($overview))));
         $rows = array_values($rows);
         if (count($rows) < 2) {
+            // Round 240 : try/finally — recordError() écrit réellement en
+            // base entre le setLang() et sa restauration, même risque que
+            // PageSpeedManager (fetchStrategy()/runCheck()).
             $prevLang = \AdminTranslator::currentLang();
-            \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
-            $this->recordError(\AdminTranslator::t('msg.semrush_invalid_csv'));
-            \AdminTranslator::setLang($prevLang);
+            try {
+                \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
+                $this->recordError(\AdminTranslator::t('msg.semrush_invalid_csv'));
+            } finally {
+                \AdminTranslator::setLang($prevLang);
+            }
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.semrush_invalid_csv'), '', 'SeoApiManager');
             return null;
         }
@@ -417,10 +423,16 @@ class SeoApiManager
             // sans lui, un timeout/échec DNS/certificat invalide affichait
             // toujours "HTTP 0" au marchand, impossible à diagnostiquer sans
             // accès aux logs serveur.
+            // Round 240 : try/finally — même correctif que fetchSemrush()
+            // ci-dessus (recordError() écrit réellement en base entre les
+            // deux setLang()).
             $prevLang = \AdminTranslator::currentLang();
-            \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
-            $this->recordError($curlErr !== '' ? $curlErr : \AdminTranslator::tVars('msg.moz_http_error', ['code' => $httpCode]));
-            \AdminTranslator::setLang($prevLang);
+            try {
+                \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
+                $this->recordError($curlErr !== '' ? $curlErr : \AdminTranslator::tVars('msg.moz_http_error', ['code' => $httpCode]));
+            } finally {
+                \AdminTranslator::setLang($prevLang);
+            }
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.moz_http_error', ['code' => $httpCode]), '', 'SeoApiManager');
             return null;
         }

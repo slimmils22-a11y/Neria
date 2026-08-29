@@ -260,10 +260,16 @@ class PageSpeedManager
             // marchand voyant "pas de données PageSpeed" n'avait aucun
             // indice pour diagnostiquer lequel des deux cas s'appliquait.
             if ($rawKey !== '') {
+                // Round 240 : try/finally — recordError() écrit réellement
+                // en base entre le setLang() et sa restauration, même
+                // risque que fetchStrategy() plus bas dans ce fichier.
                 $prevLang = \AdminTranslator::currentLang();
-                \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
-                $this->recordError(\AdminTranslator::t('msg.pagespeed_key_unreadable'));
-                \AdminTranslator::setLang($prevLang);
+                try {
+                    \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
+                    $this->recordError(\AdminTranslator::t('msg.pagespeed_key_unreadable'));
+                } finally {
+                    \AdminTranslator::setLang($prevLang);
+                }
                 $this->wd()->warning(
                     \WatchdogManager::i18nMsg('watchdog.pagespeed_key_unreadable'),
                     '', 'PageSpeedManager'
@@ -362,52 +368,60 @@ class PageSpeedManager
         $curlErr  = curl_error($ch);
         curl_close($ch);
 
+        // Round 240 : try/finally — recordStrategyError() (appelé dans
+        // chaque branche ci-dessous) écrit réellement en base
+        // (Configuration::updateValue()), entre le setLang() et sa
+        // restauration ; sans try/finally, une exception DB pendant cette
+        // écriture (verrou, perte de connexion — plausible pendant un
+        // incident, contexte même où ces branches d'erreur se déclenchent)
+        // laissait la langue BO bloquée pour le reste de la requête, même
+        // famille de bug que les rounds 238-239. La restauration était
+        // aussi dupliquée avant CHAQUE return — fragile à toute évolution
+        // future ; centralisée ici dans un seul finally.
         $prevLang = \AdminTranslator::currentLang();
-        \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
+        try {
+            \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
 
-        // Round 215 : $body === false (pas !$body) — même correctif déjà
-        // appliqué dans SeoApiManager::httpGet()/fetchMoz() : !$body
-        // traiterait aussi un corps de réponse littéral "0" comme un échec
-        // réseau.
-        if ($body === false) {
-            $this->recordStrategyError($strategy, \AdminTranslator::tVars('msg.pagespeed_network_error', ['error' => $curlErr]));
+            // Round 215 : $body === false (pas !$body) — même correctif déjà
+            // appliqué dans SeoApiManager::httpGet()/fetchMoz() : !$body
+            // traiterait aussi un corps de réponse littéral "0" comme un échec
+            // réseau.
+            if ($body === false) {
+                $this->recordStrategyError($strategy, \AdminTranslator::tVars('msg.pagespeed_network_error', ['error' => $curlErr]));
+                $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_network_error_wd', ['strategy' => $strategy, 'error' => $curlErr]), '', 'PageSpeedManager');
+                return null;
+            }
+            if ($httpCode === 400) {
+                $errData = json_decode($body, true);
+                $msg = $errData['error']['message'] ?? \AdminTranslator::t('msg.pagespeed_invalid_request');
+                $this->recordStrategyError($strategy, $msg);
+                $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_http400', ['strategy' => $strategy, 'msg' => $msg]), '', 'PageSpeedManager');
+                return null;
+            }
+            if ($httpCode === 403) {
+                $this->recordStrategyError($strategy, \AdminTranslator::t('msg.pagespeed_api_key_invalid'));
+                $this->wd()->error(\WatchdogManager::i18nMsg('watchdog.pagespeed_http403', ['strategy' => $strategy]), '', 'PageSpeedManager');
+                return null;
+            }
+            if ($httpCode === 429) {
+                // Round 171 : distingue le 429 (quota Google dépassé) des autres
+                // erreurs HTTP génériques — déclenche un cooldown plus long
+                // (RATE_LIMIT_COOLDOWN) plutôt que le cooldown court générique,
+                // pour laisser la fenêtre de quota se réinitialiser au lieu de
+                // retenter (et échouer) toutes les 15 minutes.
+                $this->rateLimited = true;
+                $this->recordStrategyError($strategy, \AdminTranslator::tVars('msg.pagespeed_http_error', ['code' => $httpCode]));
+                $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_http_other', ['strategy' => $strategy, 'code' => $httpCode]), '', 'PageSpeedManager');
+                return null;
+            }
+            if ($httpCode !== 200) {
+                $this->recordStrategyError($strategy, \AdminTranslator::tVars('msg.pagespeed_http_error', ['code' => $httpCode]));
+                $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_http_other', ['strategy' => $strategy, 'code' => $httpCode]), '', 'PageSpeedManager');
+                return null;
+            }
+        } finally {
             \AdminTranslator::setLang($prevLang);
-            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_network_error_wd', ['strategy' => $strategy, 'error' => $curlErr]), '', 'PageSpeedManager');
-            return null;
         }
-        if ($httpCode === 400) {
-            $errData = json_decode($body, true);
-            $msg = $errData['error']['message'] ?? \AdminTranslator::t('msg.pagespeed_invalid_request');
-            $this->recordStrategyError($strategy, $msg);
-            \AdminTranslator::setLang($prevLang);
-            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_http400', ['strategy' => $strategy, 'msg' => $msg]), '', 'PageSpeedManager');
-            return null;
-        }
-        if ($httpCode === 403) {
-            $this->recordStrategyError($strategy, \AdminTranslator::t('msg.pagespeed_api_key_invalid'));
-            \AdminTranslator::setLang($prevLang);
-            $this->wd()->error(\WatchdogManager::i18nMsg('watchdog.pagespeed_http403', ['strategy' => $strategy]), '', 'PageSpeedManager');
-            return null;
-        }
-        if ($httpCode === 429) {
-            // Round 171 : distingue le 429 (quota Google dépassé) des autres
-            // erreurs HTTP génériques — déclenche un cooldown plus long
-            // (RATE_LIMIT_COOLDOWN) plutôt que le cooldown court générique,
-            // pour laisser la fenêtre de quota se réinitialiser au lieu de
-            // retenter (et échouer) toutes les 15 minutes.
-            $this->rateLimited = true;
-            $this->recordStrategyError($strategy, \AdminTranslator::tVars('msg.pagespeed_http_error', ['code' => $httpCode]));
-            \AdminTranslator::setLang($prevLang);
-            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_http_other', ['strategy' => $strategy, 'code' => $httpCode]), '', 'PageSpeedManager');
-            return null;
-        }
-        if ($httpCode !== 200) {
-            $this->recordStrategyError($strategy, \AdminTranslator::tVars('msg.pagespeed_http_error', ['code' => $httpCode]));
-            \AdminTranslator::setLang($prevLang);
-            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.pagespeed_http_other', ['strategy' => $strategy, 'code' => $httpCode]), '', 'PageSpeedManager');
-            return null;
-        }
-        \AdminTranslator::setLang($prevLang);
 
         $data = json_decode($body, true);
         if (!is_array($data)) {

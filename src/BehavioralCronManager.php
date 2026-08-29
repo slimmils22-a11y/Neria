@@ -1781,23 +1781,34 @@ class BehavioralCronManager
             $years      = (int) $r['years'];
             $yearsLabel = $this->yearsLabel($years, (int) $r['id_lang']);
 
+            // Round 240 : $sent n'est désormais incrémenté QUE si send()
+            // confirme un envoi réel (ou une mise en file) — auparavant
+            // incrémenté inconditionnellement (send() était void), le
+            // résumé Watchdog affichait un taux de succès de 100% même
+            // quand des envois étaient annulés (préférences/bounce/
+            // blacklist/cooldown) ou silencieusement refusés par
+            // Mail::Send(), induisant le marchand en erreur sur le
+            // résultat réel de la campagne.
             try {
-                $this->send(
+                if ($this->send(
                     'relationship_anniversary',
                     $r,
                     ['{years_label}' => $yearsLabel],
                     (int) date('Y')
-                );
-                $sent++;
-                $this->watchdog()->info(
-                    \WatchdogManager::i18nMsg('watchdog.anniversary_sent', [
-                        'email'     => $r['email'] ?? '?',
-                        'firstname' => $r['firstname'] ?? '',
-                        'years'     => $yearsLabel,
-                    ]),
-                    'relationship_anniversary',
-                    'BehavioralCron'
-                );
+                )) {
+                    $sent++;
+                    $this->watchdog()->info(
+                        \WatchdogManager::i18nMsg('watchdog.anniversary_sent', [
+                            'email'     => $r['email'] ?? '?',
+                            'firstname' => $r['firstname'] ?? '',
+                            'years'     => $yearsLabel,
+                        ]),
+                        'relationship_anniversary',
+                        'BehavioralCron'
+                    );
+                } else {
+                    $errors++;
+                }
             } catch (\Throwable $e) {
                 $errors++;
                 $this->watchdog()->error(
@@ -1965,12 +1976,24 @@ class BehavioralCronManager
      * @param array  $extraVars Variables spécifiques au template
      * @param int    $refId     Identifiant de déduplication (id_order, id_cart, année…)
      */
+    /**
+     * Round 240 : retourne désormais bool (au lieu de void) — le seul
+     * appelant journalisant un résumé agrégé (sendRelationshipAnniversaries())
+     * incrémentait son compteur "sent" inconditionnellement après l'appel,
+     * même quand l'envoi était en réalité annulé en interne (préférences,
+     * bounce, blacklist, cooldown) ou silencieusement refusé par
+     * Mail::Send() — le résumé Watchdog affichait alors un taux de succès
+     * de 100% qui ne reflétait pas la réalité, induisant le marchand en
+     * erreur sur le résultat réel d'une campagne comportementale. true =
+     * envoi réellement confirmé OU mis en file d'attente (sera envoyé
+     * plus tard) ; false = annulé/bloqué/échoué.
+     */
     private function send(
         string $template,
         array $customer,
         array $extraVars,
         int $refId = 0
-    ): void {
+    ): bool {
         $email = $customer['email'] ?? '?';
 
         try {
@@ -1988,7 +2011,7 @@ class BehavioralCronManager
                         $template,
                         'BehavioralCron'
                     );
-                    return;
+                    return false;
                 }
             }
 
@@ -2000,7 +2023,7 @@ class BehavioralCronManager
                     $template,
                     'BehavioralCron'
                 );
-                return;
+                return false;
             }
 
             // ── Fenêtre d'achat individuelle ─────────────────────────────
@@ -2025,7 +2048,7 @@ class BehavioralCronManager
                     // retentait plus jamais, silencieusement (round 51).
                     // enqueue() protège déjà contre la mise en file en
                     // double via sa propre contrainte UNIQUE.
-                    return;
+                    return true;
                 }
             }
             // ─────────────────────────────────────────────────────────────
@@ -2070,14 +2093,14 @@ class BehavioralCronManager
                     $template,
                     'BehavioralCron'
                 );
-                return;
+                return false;
             }
             if (class_exists('BlacklistManager')) {
                 $langIso = class_exists('TranslationEngine')
                     ? (new \TranslationEngine($this->module))->langFromId($idLang)
                     : (string) (\Language::getIsoById($idLang) ?: '');
                 if ((new \BlacklistManager($idShop))->isBlacklisted($template, $langIso)) {
-                    return;
+                    return false;
                 }
             }
             if (class_exists('ConfigManager') && class_exists('CooldownManager')
@@ -2086,7 +2109,7 @@ class BehavioralCronManager
                 $cdMinutes = (new \ConfigManager($this->module))->getCooldownMinutes();
                 $cdRefScope = $refId > 0 ? ('ref:' . $refId) : '';
                 if ((new \CooldownManager())->isDuplicate($email, $template, $cdMinutes, $idShop, 0, $cdRefScope)) {
-                    return;
+                    return false;
                 }
             }
 
@@ -2115,19 +2138,22 @@ class BehavioralCronManager
                     $template,
                     'BehavioralCron'
                 );
-            } else {
-                $this->watchdog()->warning(
-                    \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => $template, 'email' => $email]),
-                    $template,
-                    'BehavioralCron'
-                );
+                return true;
             }
+
+            $this->watchdog()->warning(
+                \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => $template, 'email' => $email]),
+                $template,
+                'BehavioralCron'
+            );
+            return false;
         } catch (\Throwable $e) {
             $this->watchdog()->error(
                 \WatchdogManager::i18nMsg('watchdog.send_exception', ['template' => $template, 'email' => $email, 'error' => $e->getMessage()]),
                 $template,
                 'BehavioralCron'
             );
+            return false;
         }
     }
 
