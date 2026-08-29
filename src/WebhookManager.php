@@ -299,6 +299,22 @@ class WebhookManager
         try {
             $table = _DB_PREFIX_ . self::TABLE;
 
+            // Round 241 : récupère les lignes bloquées à 'sending' par un
+            // crash du process entre la réservation (juste avant fire())
+            // et l'écriture du statut final ('done'/'failed'/retour à
+            // 'pending'). Même logique que QueueManager::processQueue() —
+            // 10 minutes est largement supérieur au TIMEOUT_SECS de fire(),
+            // et le GET_LOCK ci-dessus garantit qu'un seul process traite
+            // cette file à la fois, donc une ligne encore 'sending' après ce
+            // délai est nécessairement une reprise après crash.
+            $this->db->execute(
+                "UPDATE `{$table}`
+                 SET `status` = 'pending'
+                 WHERE `id_shop` = {$this->idShop}
+                   AND `status` = 'sending'
+                   AND `last_attempt` <= DATE_SUB(NOW(), INTERVAL 10 MINUTE)"
+            );
+
             // Backoff exponentiel (2^attempts minutes) via last_attempt : sans lui,
             // les 3 tentatives d'un webhook contre un endpoint en panne
             // transitoire pouvaient être consommées en quelques minutes au
@@ -345,12 +361,29 @@ class WebhookManager
                 $payloadWithSeq = json_encode($decodedForSeq, JSON_UNESCAPED_UNICODE);
                 $payload = ($payloadWithSeq !== false) ? $payloadWithSeq : $row['payload'];
 
-                // Incrémenter les tentatives avant l'envoi (évite les doublons parallèles)
+                // Round 241 : réservation atomique (attempts + statut
+                // 'sending' en une seule UPDATE conditionnée à
+                // status='pending') — avant, cette UPDATE incrémentait
+                // `attempts` sans changer le statut : un crash du process
+                // entre l'appel fire() réussi et l'UPDATE status='done'
+                // plus bas laissait la ligne 'pending' avec attempts <
+                // MAX_ATTEMPTS, livrant le même webhook une seconde fois au
+                // prochain passage. 'sending' retire la ligne du pool
+                // 'pending' dès la réservation ; récupérée par le nettoyage
+                // en tête de processQueue() après 10 minutes si le process
+                // crashe avant l'écriture du statut final.
                 $this->db->execute(
                     "UPDATE `{$table}`
-                     SET `attempts` = {$attempts}, `last_attempt` = '{$now}'
-                     WHERE `id_webhook` = {$id}"
+                     SET `attempts` = {$attempts}, `last_attempt` = '{$now}', `status` = 'sending'
+                     WHERE `id_webhook` = {$id}
+                       AND `status` = 'pending'"
                 );
+                if ((int) $this->db->Affected_Rows() !== 1) {
+                    // Déjà réservée/traitée entre la sélection du lot et cet
+                    // appel (protection best-effort en plus du GET_LOCK
+                    // englobant) — ne pas retraiter.
+                    continue;
+                }
 
                 $ok = $this->fire($url, $secret, $payload);
 
@@ -372,6 +405,18 @@ class WebhookManager
                             'timeout' => self::TIMEOUT_SECS,
                         ]),
                         '', 'WebhookManager'
+                    );
+                } else {
+                    // Round 241 : échec retentable (attempts < MAX_ATTEMPTS)
+                    // — remet la ligne à 'pending' pour qu'elle redevienne
+                    // sélectionnable au prochain passage (le backoff
+                    // exponentiel de la requête SELECT plus haut, basé sur
+                    // last_attempt, s'applique déjà). Sans ce reset, la
+                    // ligne resterait bloquée à 'sending' jusqu'au nettoyage
+                    // de 10 minutes en tête de fonction — retard inutile
+                    // pour un échec transitoire déjà comptabilisé.
+                    $this->db->execute(
+                        "UPDATE `{$table}` SET `status` = 'pending' WHERE `id_webhook` = {$id}"
                     );
                 }
             } catch (\Throwable $e) {
@@ -414,6 +459,17 @@ class WebhookManager
                         "UPDATE `{$table}` SET `status` = 'failed', `attempts` = {$attemptsAfterException} WHERE `id_webhook` = {$id}"
                     );
                     $definitivelyFailed++;
+                } else {
+                    // Round 241 : l'exception a pu survenir APRÈS la
+                    // réservation atomique (status déjà passé à 'sending'
+                    // ci-dessus) — sans ce reset explicite, la ligne resterait
+                    // bloquée à 'sending' (invisible du SELECT `status =
+                    // 'pending'`) jusqu'au nettoyage de 10 minutes en tête de
+                    // fonction, au lieu d'être retentée dès le prochain
+                    // passage respectant le backoff.
+                    $this->db->execute(
+                        "UPDATE `{$table}` SET `status` = 'pending' WHERE `id_webhook` = {$id}"
+                    );
                 }
             }
         }

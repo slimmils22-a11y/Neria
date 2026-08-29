@@ -286,6 +286,21 @@ class QueueManager
         }
 
         try {
+            // Round 241 : récupère les lignes restées bloquées à 'sending' par
+            // un crash du process (OOM/kill/timeout serveur) entre la
+            // réservation atomique (processSingle()) et l'écriture du statut
+            // final. 10 minutes est largement supérieur à toute latence
+            // Mail::Send() réelle — une ligne encore 'sending' après ce délai
+            // est nécessairement une reprise après crash, jamais un envoi
+            // légitimement en cours (le GET_LOCK ci-dessus garantit qu'un
+            // seul process exécute processQueue() à la fois).
+            $this->db->execute(
+                'UPDATE `' . $this->prefix . 'neria_queue`
+                 SET status = \'pending\'
+                 WHERE status = \'sending\'
+                   AND send_at <= DATE_SUB(NOW(), INTERVAL 10 MINUTE)'
+            );
+
             $rows = $this->db->executeS(
                 'SELECT * FROM `' . $this->prefix . 'neria_queue`
                  WHERE status = \'pending\'
@@ -345,12 +360,28 @@ class QueueManager
     {
         $id = (int) $row['id_neria_queue'];
 
-        // Incrémenter les tentatives immédiatement pour éviter le double-envoi concurrent.
+        // Round 241 : réservation atomique (attempts + statut 'sending' en
+        // une seule UPDATE conditionnée à status='pending'). Avant, cette
+        // UPDATE incrémentait seulement `attempts` sans changer le statut :
+        // un crash du process entre l'envoi réussi (Mail::Send()) et
+        // l'UPDATE status='sent' plus bas laissait la ligne 'pending' avec
+        // attempts < MAX_ATTEMPTS — le prochain passage du cron la
+        // resélectionnait et renvoyait le même email au client. Le statut
+        // 'sending' retire la ligne du pool 'pending' dès la réservation ;
+        // si le process crashe avant l'écriture du statut final, elle reste
+        // détectable (pas silencieusement re-livrée) et sera récupérée par
+        // le nettoyage en tête de processQueue() après 10 minutes.
         $this->db->execute(
             'UPDATE `' . $this->prefix . 'neria_queue`
-             SET attempts = attempts + 1
-             WHERE id_neria_queue = ' . $id
+             SET attempts = attempts + 1, status = \'sending\'
+             WHERE id_neria_queue = ' . $id . '
+               AND status = \'pending\''
         );
+        if ((int) $this->db->Affected_Rows() !== 1) {
+            // Déjà réservée/traitée entre la sélection du lot et cet appel
+            // (protection best-effort en plus du GET_LOCK englobant).
+            return false;
+        }
 
         try {
             $vars   = json_decode($row['vars_json'] ?? '{}', true) ?: [];
