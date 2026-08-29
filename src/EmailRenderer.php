@@ -495,9 +495,22 @@ class EmailRenderer
         // PrestaShop sert un autre fichier que la langue détectée et l'email
         // part dans la mauvaise langue.
         $outIso = \Language::getIsoById((int) ($params['idLang'] ?? 0)) ?: $lang;
+        // Round 238 : nom de fichier compilé UNIQUE par envoi (pas juste par
+        // template+langue) — mails/{iso}/{template}.html était PARTAGÉ entre
+        // toutes les requêtes envoyant ce même template dans cette même
+        // langue. Deux envois concurrents (ex. deux commandes passées à
+        // quelques millisecondes d'écart, order_conf en période de forte
+        // affluence) pouvaient s'écraser mutuellement entre l'écriture de
+        // l'un et la lecture par Mail::Send() de l'autre — un client
+        // recevait alors un email compilé avec les données (nom, token de
+        // tracking) d'un AUTRE client. $outputName rend cette fenêtre de
+        // concurrence sans effet : chaque envoi écrit son propre fichier,
+        // jamais partagé. cleanupStaleCompiledMails() (appelée plus bas,
+        // probabiliste) purge ensuite ces fichiers devenus inutiles.
+        $outputName = $template . '__' . bin2hex(random_bytes(8));
         // silentIfCoreMissing=true : ce template peut être hors périmètre Neria
         // (module tiers) — cf. docblock de compileNeriaTemplate().
-        $compiledPath = $this->compileNeriaTemplate($template, $lang, $outIso, $params['templateVars'] ?? [], false, true);
+        $compiledPath = $this->compileNeriaTemplate($template, $lang, $outIso, $params['templateVars'] ?? [], false, true, $outputName);
         if ($compiledPath !== null) {
             // ── Wrapping des liens pour le tracking de clics ─────────────
             if ($this->config->isStatsEnabled() && !empty($params['neria_token'])) {
@@ -508,11 +521,12 @@ class EmailRenderer
                 // PS détecte 'modules/neria/' dans le chemin et cherche dans ce dossier
                 $params['templatePath'] = _PS_MODULE_DIR_ . 'neria/mails/';
             }
-            // Si un alias a changé le nom du template, synchroniser $params['template']
-            // pour que PS cherche le bon fichier compilé dans templatePath.
-            if ($params['template'] !== $template) {
-                $params['template'] = $template;
-            }
+            // PS lit templatePath + idLang/iso + $params['template'] + '.html'
+            // (Mail::Send, actionEmailSendBefore passe 'template' par
+            // référence) — pointe désormais vers le fichier unique de CET
+            // envoi, jamais vers celui, partagé, d'un autre envoi concurrent.
+            $params['template'] = $outputName;
+            $this->cleanupStaleCompiledMails();
         } elseif (file_exists(
             $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html')
         )) {
@@ -800,7 +814,14 @@ class EmailRenderer
             // laissant le fichier compilé avec des placeholders déjà
             // retirés/vidés, jamais résolus par la suite malgré le
             // $templateVars passé à Mail::Send() plus bas).
-            if ($this->compileNeriaTemplate('neria_fallback', $lang, $outIso, $templateVars) === null) {
+            // Round 238 : nom de fichier compilé UNIQUE par envoi, même
+            // raison qu'applyNeriaRendering() — ce chemin appelle Mail::Send()
+            // directement (processEmailParams() ne re-traite pas grâce à
+            // self::$inFallback), donc sans ce correctif mails/{iso}/
+            // neria_fallback.html restait partagé entre tous les envois de
+            // secours concurrents dans une même langue.
+            $fallbackOutputName = 'neria_fallback__' . bin2hex(random_bytes(8));
+            if ($this->compileNeriaTemplate('neria_fallback', $lang, $outIso, $templateVars, false, false, $fallbackOutputName) === null) {
                 $this->watchdog()->critical(
                     WatchdogManager::i18nMsg('watchdog.fallback_no_template'),
                     'neria_fallback',
@@ -808,13 +829,14 @@ class EmailRenderer
                 );
                 return false;
             }
+            $this->cleanupStaleCompiledMails();
 
             // ── Envoi (anti-récursion via le drapeau statique) ──────────
             self::$inFallback = true;
             try {
                 $sent = \Mail::Send(
                     $idLang,
-                    'neria_fallback',
+                    $fallbackOutputName,
                     $subject,
                     $templateVars,
                     $to,
@@ -1639,6 +1661,44 @@ class EmailRenderer
         $params['neria_token']    = $token;
         $params['neria_template'] = $template;
         $params['neria_lang']     = $lang;
+    }
+
+    /**
+     * Round 238 : depuis que les fichiers compilés (mails/{iso}/*.html/.txt)
+     * sont nommés de façon unique par envoi ({template}__{hex16}) plutôt que
+     * partagés par template+langue — pour éviter qu'un envoi concurrent
+     * n'écrase le fichier qu'un autre est en train de faire lire à
+     * Mail::Send() — ces fichiers s'accumulent et doivent être purgés
+     * périodiquement. Appel probabiliste (comme WatchdogManager::log()) :
+     * chaque envoi n'a qu'une chance sur 50 de déclencher un balayage,
+     * suffisant pour ne jamais laisser le dossier grossir indéfiniment sans
+     * ajouter de coût perceptible à un envoi individuel. Un fichier de plus
+     * de 5 minutes ne peut plus être en attente de lecture par Mail::Send()
+     * (toujours lu dans la même requête PHP, quelques millisecondes après
+     * l'écriture) — marge très large avant suppression.
+     */
+    private function cleanupStaleCompiledMails(): void
+    {
+        if (random_int(1, 50) !== 1) {
+            return;
+        }
+
+        $mailsDir = _PS_MODULE_DIR_ . 'neria/mails/';
+        if (!is_dir($mailsDir)) {
+            return;
+        }
+
+        $cutoff = time() - 300;
+        foreach (glob($mailsDir . '*/*__*.html') ?: [] as $file) {
+            $mtime = @filemtime($file);
+            if ($mtime !== false && $mtime < $cutoff) {
+                @unlink($file);
+                $txtFile = substr($file, 0, -5) . '.txt';
+                if (is_file($txtFile)) {
+                    @unlink($txtFile);
+                }
+            }
+        }
     }
 
     /**
@@ -2721,7 +2781,10 @@ class EmailRenderer
      * natif PrestaShop (mails/<iso>/ à la racine du shop, traductions PS
      * standard) au lieu du rendu stylé/traduit Neria.
      */
-    public function ensureInternalTemplateCompiled(string $template, int $idLang, string $subject = ''): ?string
+    /**
+     * @return array{templatePath: string, template: string}|null
+     */
+    public function ensureInternalTemplateCompiled(string $template, int $idLang, string $subject = ''): ?array
     {
         $lang = $this->engine->langFromId($idLang);
         $iso  = \Language::getIsoById($idLang) ?: $lang;
@@ -2747,9 +2810,23 @@ class EmailRenderer
                 ? (new \PreferencesManager($this->module))->getPreferencesUrl($adminEmail, 0, $lang)
                 : '',
         ];
-        return $this->compileNeriaTemplate($template, $lang, $iso, $templateVars) !== null
-            ? _PS_MODULE_DIR_ . 'neria/mails/'
-            : null;
+        // Round 238 : nom de fichier compilé UNIQUE par envoi, même raison
+        // qu'applyNeriaRendering()/sendFallbackEmail() — deux alertes
+        // log_alert concurrentes dans la même langue (ex. plusieurs
+        // événements Watchdog déclenchés à quelques millisecondes d'écart)
+        // partageaient sinon mails/{iso}/log_alert.html : le marchand
+        // pouvait recevoir un email d'alerte dont le corps réel appartenait
+        // à une AUTRE alerte que celle annoncée par le sujet.
+        $outputName = $template . '__' . bin2hex(random_bytes(8));
+        if ($this->compileNeriaTemplate($template, $lang, $iso, $templateVars, false, false, $outputName) === null) {
+            return null;
+        }
+        $this->cleanupStaleCompiledMails();
+
+        return [
+            'templatePath' => _PS_MODULE_DIR_ . 'neria/mails/',
+            'template'     => $outputName,
+        ];
     }
 
     /**
@@ -2762,8 +2839,16 @@ class EmailRenderer
         ?string $outIso = null,
         array $templateVars = [],
         bool $suppressResidualLog = false,
-        bool $silentIfCoreMissing = false
+        bool $silentIfCoreMissing = false,
+        ?string $outputName = null
     ): ?string {
+        // Round 238 : $outputName distinct de $template — permet d'écrire le
+        // fichier compilé sous un nom UNIQUE par envoi (voir applyNeriaRendering
+        // et sendFallbackEmail) tout en lisant toujours la même SOURCE
+        // (mails/themes/neria_global/core/$template.html). $template seul
+        // continue de désigner le fichier source à tous les autres endroits
+        // de cette méthode.
+        $outputName = $outputName ?? $template;
         $layoutPath = $this->module->getModulePath('mails/themes/neria_global/layout.html');
         $corePath   = $this->module->getModulePath('mails/themes/neria_global/core/' . $template . '.html');
 
@@ -3054,7 +3139,7 @@ class EmailRenderer
             mkdir($outDir, 0755, true);
         }
 
-        $outFile = $outDir . $template . '.html';
+        $outFile = $outDir . $outputName . '.html';
         if (file_put_contents($outFile, $compiled) === false) {
             $this->watchdog()->error(
                 WatchdogManager::i18nMsg('watchdog.write_error', ['lang' => $outIso ?: $lang, 'template' => $template]),
@@ -3153,7 +3238,7 @@ class EmailRenderer
             // Slot du message personnalisé optionnel (vide par défaut, rempli
             // par Mail::Send via {custom_message_txt} si un message est saisi).
             $compiledTxt = rtrim($compiledTxt, "\n") . "\n{custom_message_txt}\n";
-            file_put_contents($outDir . $template . '.txt', $compiledTxt);
+            file_put_contents($outDir . $outputName . '.txt', $compiledTxt);
         }
 
         return $outFile;

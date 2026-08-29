@@ -423,13 +423,18 @@ class Neria extends Module
             $tplName = $params['template'] ?? '';
             if ($tplName === 'log_alert' && class_exists('EmailRenderer')) {
                 try {
-                    $templatePath = (new EmailRenderer($this))->ensureInternalTemplateCompiled(
+                    $compiled = (new EmailRenderer($this))->ensureInternalTemplateCompiled(
                         $tplName,
                         (int) ($params['idLang'] ?? 0),
                         (string) ($params['subject'] ?? '')
                     );
-                    if ($templatePath !== null) {
-                        $params['templatePath'] = $templatePath;
+                    if ($compiled !== null) {
+                        $params['templatePath'] = $compiled['templatePath'];
+                        // Round 238 : pointe vers le fichier compilé UNIQUE de
+                        // CET envoi (voir EmailRenderer::ensureInternalTemplateCompiled())
+                        // — sans ça, deux alertes log_alert concurrentes dans
+                        // la même langue pouvaient s'échanger leur contenu.
+                        $params['template'] = $compiled['template'];
                     }
                 } catch (\Throwable $ignored) {
                 }
