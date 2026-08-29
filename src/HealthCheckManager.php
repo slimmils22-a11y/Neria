@@ -7716,6 +7716,16 @@ class HealthCheckManager
             $offenders[] = "neria.php n'assigne plus prefs_stats/prefs_recent à configure.tpl — régression du bug corrigé le 28/08/2026 (round 232) : le bloc Centre de préférences email redeviendrait vide en permanence pour tous les marchands";
         }
 
+        // Round 236 (28/08/2026) : ManualSendManager::send() ne retirait que
+        // les \r\n en tête/fin du sujet BO (trim), pas les \r\n internes —
+        // incohérence de défense en profondeur avec le même garde-fou déjà
+        // appliqué ailleurs (WatchdogManager, EmailRenderer fromName).
+        $msmSrc236Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        $msmSrc236 = str_replace("\r", '', $msmSrc236Raw);
+        if ($msmSrc236Raw === '' || strpos($msmSrc236, '$subject = trim(str_replace(["\r", "\n"], \' \', $subject));') === false) {
+            $offenders[] = "ManualSendManager::send() ne filtre plus les \\r\\n internes du sujet BO — régression du bug corrigé le 28/08/2026 (round 236) : un sujet d'envoi manuel pourrait de nouveau contenir des retours à la ligne bruts";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
