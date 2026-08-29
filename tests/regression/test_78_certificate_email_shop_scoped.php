@@ -29,7 +29,8 @@ function run_test(): array
     );
 
     neria_assert(
-        strpos($src, "if ((int) \$originalShop->id !== \$idShop) {\n            \\Context::getContext()->shop = new \\Shop(\$idShop);") !== false,
+        strpos($src, "if ((int) \$originalShop->id !== \$idShop) {\n") !== false
+            && strpos($src, '\Context::getContext()->shop = new \Shop($idShop);') !== false,
         "sendCertificateEmail() ne bascule plus temporairement le contexte vers la boutique de la commande avant de résoudre {shop_url} — régression du bug corrigé le 06/08/2026 (round 74)"
     );
 

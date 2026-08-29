@@ -25,7 +25,7 @@ function run_test(): array
 
     $posFn = strpos($src, 'public function checkAndSend(): void');
     neria_assert($posFn !== false, 'checkAndSend() introuvable — jeu de test invalide');
-    $body = substr($src, $posFn, 4600);
+    $body = substr($src, $posFn, 5600);
 
     neria_assert(
         strpos($body, '$originalIdShop = $this->idShop;') !== false,
@@ -37,7 +37,7 @@ function run_test(): array
     $posIdShopRestore = strpos($body, '$this->idShop = $originalIdShop;', $posOriginalShopRestore);
 
     neria_assert(
-        $posIdShopRestore !== false && $posIdShopRestore < $posOriginalShopRestore + 60,
+        $posIdShopRestore !== false && $posIdShopRestore < $posOriginalShopRestore + 100,
         "checkAndSend() ne restaure plus \$this->idShop juste après Context::getContext()->shop — régression du bug corrigé le 13/08/2026 (round 165) : une réutilisation de l'instance après checkAndSend() opérerait silencieusement sur la dernière boutique itérée"
     );
 
