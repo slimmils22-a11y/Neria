@@ -782,12 +782,21 @@ class CertificateManager
         // de résoudre {shop_url}, même pattern que BehavioralCronManager.
         // Sans ça, {shop_url} pointait vers le domaine du contexte BO de
         // l'employé au lieu de celui de la boutique réelle de la commande.
+        // Round 239 : try/finally — si getShopDomainSsl() lève une
+        // exception (domaine SSL mal configuré), la restauration ne devait
+        // pas être sautée : sinon Context->shop restait bloqué sur la
+        // boutique de CETTE commande pour le reste de la requête (ce
+        // manager traite plusieurs commandes/boutiques à la suite dans un
+        // même run cron) — même famille de bug que le round 238.
         $originalShop = \Context::getContext()->shop;
-        if ((int) $originalShop->id !== $idShop) {
-            \Context::getContext()->shop = new \Shop($idShop);
+        try {
+            if ((int) $originalShop->id !== $idShop) {
+                \Context::getContext()->shop = new \Shop($idShop);
+            }
+            $shopUrl = \Tools::getShopDomainSsl(true, true);
+        } finally {
+            \Context::getContext()->shop = $originalShop;
         }
-        $shopUrl = \Tools::getShopDomainSsl(true, true);
-        \Context::getContext()->shop = $originalShop;
 
         $vars = [
             '{firstname}'      => $customerName,

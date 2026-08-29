@@ -96,38 +96,50 @@ class MonthlyReportManager
             $originalIdShop = $this->idShop;
             $shops = \Shop::getShops(true, null, true) ?: [(int) $originalShop->id];
 
-            foreach ($shops as $idShop) {
-                $idShop = (int) $idShop;
-                \Context::getContext()->shop = new \Shop($idShop);
-                $this->idShop = $idShop;
+            // Round 239 : try/finally dédié autour de la boucle — la
+            // restauration de Context->shop/$this->idShop se faisait
+            // auparavant en dur APRÈS la boucle, hors de toute protection.
+            // isDue() (juste en dessous) tourne HORS du try/catch qui ne
+            // protège que sendReport()/markSent() : une exception levée là
+            // laissait le contexte boutique bloqué sur la boutique en cours
+            // d'itération pour le reste de la requête (ce hook se déclenche
+            // sur CHAQUE page front) — même famille de bug que le fichier
+            // email partagé du round 238 (état/ressource partagé non
+            // restauré sur un chemin d'erreur).
+            try {
+                foreach ($shops as $idShop) {
+                    $idShop = (int) $idShop;
+                    \Context::getContext()->shop = new \Shop($idShop);
+                    $this->idShop = $idShop;
 
-                if (!(int) \Configuration::get(self::CONFIG_ENABLED, null, null, $idShop)) {
-                    continue;
-                }
-
-                // Revérifie après obtention du verrou : un autre process a pu
-                // terminer son propre envoi pendant qu'on attendait.
-                if (!$this->isDue($idShop)) {
-                    continue;
-                }
-
-                try {
-                    if ($this->sendReport($year, $month)) {
-                        $this->markSent($year, $month, $idShop);
+                    if (!(int) \Configuration::get(self::CONFIG_ENABLED, null, null, $idShop)) {
+                        continue;
                     }
-                } catch (\Throwable $e) {
-                    if (class_exists('WatchdogManager')) {
-                        (new WatchdogManager($this->module))->error(
-                            WatchdogManager::i18nMsg('watchdog.monthly_report_send_failed', ['error' => $e->getMessage()]),
-                            '',
-                            'MonthlyReportManager'
-                        );
+
+                    // Revérifie après obtention du verrou : un autre process a pu
+                    // terminer son propre envoi pendant qu'on attendait.
+                    if (!$this->isDue($idShop)) {
+                        continue;
+                    }
+
+                    try {
+                        if ($this->sendReport($year, $month)) {
+                            $this->markSent($year, $month, $idShop);
+                        }
+                    } catch (\Throwable $e) {
+                        if (class_exists('WatchdogManager')) {
+                            (new WatchdogManager($this->module))->error(
+                                WatchdogManager::i18nMsg('watchdog.monthly_report_send_failed', ['error' => $e->getMessage()]),
+                                '',
+                                'MonthlyReportManager'
+                            );
+                        }
                     }
                 }
+            } finally {
+                \Context::getContext()->shop = $originalShop;
+                $this->idShop = $originalIdShop;
             }
-
-            \Context::getContext()->shop = $originalShop;
-            $this->idShop = $originalIdShop;
         } finally {
             $db->execute("SELECT RELEASE_LOCK('neria_monthly_report_check')");
         }
@@ -801,6 +813,37 @@ class MonthlyReportManager
         $writtenFiles  = [];
         $originalLang  = class_exists('AdminTranslator') ? \AdminTranslator::currentLang() : null;
 
+        // Round 239 : try/finally dédié — AdminTranslator::setLang() (plus
+        // bas, par langue de destinataire) n'était restauré qu'en dur en
+        // fin de méthode. Si renderHtml()/renderTxt() (rendu Smarty) lève
+        // une exception pour une langue, la langue globale restait bloquée
+        // sur celle du destinataire du rapport pour le reste de la requête
+        // — même famille de bug que le fichier email partagé du round 238.
+        try {
+            return $this->deliverReportLockedInner($recipients, $employeeLangs, $defaultLang, $shopName, $mailDir, $wd, $data, $renderedLangs, $writtenFiles);
+        } finally {
+            if ($originalLang !== null && class_exists('AdminTranslator')) {
+                \AdminTranslator::setLang($originalLang);
+            }
+        }
+    }
+
+    /**
+     * Corps de deliverReportLocked() extrait pour pouvoir englober
+     * intégralement la restauration de langue dans un try/finally (round
+     * 239) sans dupliquer la logique existante.
+     */
+    private function deliverReportLockedInner(
+        array $recipients,
+        array $employeeLangs,
+        int $defaultLang,
+        string $shopName,
+        string $mailDir,
+        ?\WatchdogManager $wd,
+        array $data,
+        array $renderedLangs,
+        array $writtenFiles
+    ): bool {
         // Round 157 : $ok distingue désormais "tous les destinataires ont
         // reçu le rapport" (utilisé pour le log Watchdog succès/erreur) de
         // $anySent, "au moins un destinataire l'a reçu" (utilisé par
@@ -925,11 +968,9 @@ class MonthlyReportManager
             @unlink($f);
         }
 
-        // Restaure la langue d'origine — setLang() modifie un état global,
-        // ne doit jamais fuiter sur le reste du rendu de la page BO courante.
-        if ($originalLang !== null && class_exists('AdminTranslator')) {
-            \AdminTranslator::setLang($originalLang);
-        }
+        // Restauration de la langue déplacée dans le try/finally de
+        // deliverReportLocked() (round 239) — garantie même si une
+        // exception a été levée pendant le rendu d'une langue.
 
         if ($wd) {
             if ($ok) {

@@ -874,14 +874,19 @@ class ManualSendManager
      */
     private function resolveShopUrl(int $idShop): string
     {
+        // Round 239 : try/finally — même correctif que
+        // CertificateManager::sendCertificateEmail() (pattern identique) :
+        // si getShopDomainSsl() lève une exception, Context->shop restait
+        // sinon bloqué sur la boutique demandée pour le reste de la requête.
         $originalShop = \Context::getContext()->shop;
-        if ((int) $originalShop->id !== $idShop) {
-            \Context::getContext()->shop = new \Shop($idShop);
+        try {
+            if ((int) $originalShop->id !== $idShop) {
+                \Context::getContext()->shop = new \Shop($idShop);
+            }
+            return \Tools::getShopDomainSsl(true, true);
+        } finally {
+            \Context::getContext()->shop = $originalShop;
         }
-        $shopUrl = \Tools::getShopDomainSsl(true, true);
-        \Context::getContext()->shop = $originalShop;
-
-        return $shopUrl;
     }
 
     /**
