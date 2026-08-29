@@ -7749,6 +7749,28 @@ class HealthCheckManager
             $offenders[] = "ClvManager ne calcule plus l'ancienneté client via TIMESTAMPDIFF SQL — régression du bug corrigé le 28/08/2026 (round 237) : le CLV pourrait de nouveau dériver silencieusement si PHP et MySQL ont des fuseaux horaires différents";
         }
 
+        // Round 238 (28/08/2026) : les 3 chemins de compilation email
+        // (applyNeriaRendering, sendFallbackEmail, ensureInternalTemplateCompiled)
+        // écrivaient dans un fichier PARTAGÉ par template+langue
+        // (mails/{iso}/{template}.html) — deux envois concurrents du même
+        // template dans la même langue pouvaient s'écraser mutuellement
+        // entre écriture et lecture par Mail::Send(), un client recevant
+        // alors un email compilé avec les données d'un AUTRE client.
+        $erSrc238Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        $erSrc238 = str_replace("\r", '', $erSrc238Raw);
+        if ($erSrc238Raw === ''
+            || strpos($erSrc238, "\$outputName = \$template . '__' . bin2hex(random_bytes(8));") === false
+            || strpos($erSrc238, "\$fallbackOutputName = 'neria_fallback__' . bin2hex(random_bytes(8));") === false
+            || strpos($erSrc238, 'private function cleanupStaleCompiledMails(): void') === false
+        ) {
+            $offenders[] = "EmailRenderer ne compile plus chaque email dans un fichier unique par envoi — régression du bug corrigé le 28/08/2026 (round 238) : deux envois concurrents du même template/langue pourraient de nouveau mélanger leurs données (nom, token de tracking) entre deux clients différents";
+        }
+        $nSrc238Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $nSrc238 = str_replace("\r", '', $nSrc238Raw);
+        if ($nSrc238Raw === '' || strpos($nSrc238, "\$params['template'] = \$compiled['template'];") === false) {
+            $offenders[] = "neria.php ne pointe plus vers le fichier compilé unique pour log_alert — régression du bug corrigé le 28/08/2026 (round 238)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
