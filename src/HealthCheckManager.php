@@ -7869,6 +7869,28 @@ class HealthCheckManager
             $offenders[] = "WebhookManager::processQueue() ne récupère plus les lignes bloquées à 'sending' après un crash — régression du bug corrigé le 29/08/2026 (round 241) : une ligne réservée puis abandonnée par un crash resterait bloquée définitivement, jamais retentée";
         }
 
+        $cmSrc243Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        $cmSrc243 = str_replace("\r", '', $cmSrc243Raw);
+        $cmNeedle243 = '!$employee->hasAuthOnShop((int) $row[' . chr(39) . 'id_shop' . chr(39) . '])';
+        if ($cmSrc243Raw === '' || strpos($cmSrc243, $cmNeedle243) === false) {
+            $offenders[] = "CertificateManager::redownload() ne vérifie plus hasAuthOnShop() — régression du bug corrigé le 30/08/2026 (round 243) : un employé dont le profil est restreint à un sous-ensemble de boutiques pourrait de nouveau télécharger le PDF (nom client, produit, note artisan) d'un certificat de n'importe quelle boutique en changeant simplement id_certificate";
+        }
+        $nehSrc243Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaErrorHandler.php');
+        $nehSrc243 = str_replace("\r", '', $nehSrc243Raw);
+        if ($nehSrc243Raw === ''
+            || substr_count($nehSrc243, 'pSQL(mb_substr(') < 4
+        ) {
+            $offenders[] = "NeriaErrorHandler n'utilise plus mb_substr() sur les 4 sites de journalisation de secours — régression du bug corrigé le 30/08/2026 (round 243) : un message d'exception multi-octets (nom client/produit dans une langue non-latine) tronqué en octets bruts produirait de nouveau une séquence UTF-8 invalide en base";
+        }
+        $whmSrc243Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php');
+        $whmSrc243 = str_replace("\r", '', $whmSrc243Raw);
+        if ($whmSrc243Raw === ''
+            || strpos($whmSrc243, 'mb_substr($body, 0, 150)') === false
+            || strpos($whmSrc243, 'mb_substr($body, 0, 300)') === false
+        ) {
+            $offenders[] = "WebhookManager n'utilise plus mb_substr() sur l'aperçu de réponse HTTP tierce — régression du bug corrigé le 30/08/2026 (round 243) : une réponse webhook multi-octets tronquée en octets bruts produirait de nouveau une séquence UTF-8 invalide dans le log Watchdog/la réponse de test BO";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
