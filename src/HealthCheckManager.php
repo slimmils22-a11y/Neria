@@ -1203,7 +1203,7 @@ class HealthCheckManager
             if (strpos($domRepSrc, 'Configuration::get(self::CONFIG_LAST_CHECK, null, null, $this->idShop)') === false) {
                 $offenders[] = "DomainReputationManager : getCachedReport() n'utilise plus le cache scopé par \$this->idShop (cache thrashing en multi-boutique, latence DNS front)";
             }
-            if (strpos($domRepSrc, 'Configuration::updateValue(self::CONFIG_CACHE, json_encode($report), false, null, $this->idShop)') === false) {
+            if (strpos($domRepSrc, 'Configuration::updateValue(self::CONFIG_CACHE, $encodedReport, false, null, $this->idShop)') === false) {
                 $offenders[] = "DomainReputationManager : runFullCheck() n'écrit plus le cache scopé par \$this->idShop";
             }
         }
@@ -6123,7 +6123,7 @@ class HealthCheckManager
                 $offenders[] = "DomainReputationManager::checkBlacklists() compte de nouveau une requête RBL en échec réseau dans 'checked' — régression du bug corrigé le 15/08/2026 (round 177) : une panne DNS totale accorderait de nouveau les 25 points RBL pleins dans computeScore()";
             }
             $posPtr177 = strpos($drmSrc177, 'private function checkPtr(string $ip, ?float $deadline = null): array');
-            $ptrBody177 = $posPtr177 !== false ? substr($drmSrc177, $posPtr177, 2400) : '';
+            $ptrBody177 = $posPtr177 !== false ? substr($drmSrc177, $posPtr177, 3800) : '';
             $posAddr177 = strpos($ptrBody177, '@gethostbyaddr($ip)');
             $posName177 = strpos($ptrBody177, '@gethostbyname($hostname)');
             $betweenCalls177 = ($posAddr177 !== false && $posName177 !== false) ? substr($ptrBody177, $posAddr177, $posName177 - $posAddr177) : '';
@@ -7949,6 +7949,15 @@ class HealthCheckManager
         $prefsSrc247 = str_replace("\r", '', $prefsSrc247Raw);
         if ($prefsSrc247Raw === '' || strpos($prefsSrc247, "'neria_prefs_rl_'") === false) {
             $offenders[] = "preferences.php ne limite plus le débit de résolution/sauvegarde des préférences — régression du bug corrigé le 30/08/2026 (round 247) : un rejeu automatisé d'un lien de préférences légitime pourrait de nouveau déclencher indéfiniment Customer::customerExists()/getByCustomer() (et saveByCustomer() en POST), sans authentification requise";
+        }
+
+        $drmSrc248Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php');
+        $drmSrc248 = str_replace("\r", '', $drmSrc248Raw);
+        if ($drmSrc248Raw === '' || strpos($drmSrc248, "if (!mb_check_encoding(\$hostname, 'UTF-8')) {") === false) {
+            $offenders[] = "DomainReputationManager::checkPtr() ne valide plus l'encodage UTF-8 du hostname PTR — régression du bug corrigé le 30/08/2026 (round 248) : un hostname PTR (donnée exogène, publiée par le propriétaire du bloc IP inverse) contenant une séquence UTF-8 invalide referait échouer silencieusement json_encode(\$report), vidant le cache de réputation domaine à chaque visite front";
+        }
+        if ($drmSrc248Raw === '' || strpos($drmSrc248, '$encodedReport = json_encode($report);') === false || strpos($drmSrc248, 'if ($encodedReport === false) {') === false) {
+            $offenders[] = "DomainReputationManager::runFullCheck() ne vérifie plus le retour de json_encode() avant l'écriture en cache — régression du bug corrigé le 30/08/2026 (round 248) : un échec d'encodage stockerait de nouveau une chaîne vide en cache tout en mettant à jour CONFIG_LAST_CHECK, empêchant toute mise en cache future pendant 24h";
         }
 
         if ($offenders) {
