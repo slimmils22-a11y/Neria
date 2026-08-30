@@ -8046,6 +8046,20 @@ class HealthCheckManager
             $offenders[] = "StatsManager::getKpiTrends() n'utilise plus une borne haute inclusive (<=) sur la fenêtre 'current' — régression du bug corrigé le 31/08/2026 (round 253) : la journée en cours serait de nouveau totalement exclue du total 'current', alors que getKpis(7) (widget jumeau affiché sur le même onglet stats.tpl) inclut bien aujourd'hui — deux totaux '7 derniers jours' différents affichés côte à côte";
         }
 
+        $abtSrc254Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php');
+        $abtSrc254 = str_replace("\r", '', $abtSrc254Raw);
+        if ($abtSrc254Raw === ''
+            || strpos($abtSrc254, '$variantAName = mb_substr($variantAName, 0, 100);') === false
+            || strpos($abtSrc254, '$variantBName = mb_substr($variantBName, 0, 100);') === false
+        ) {
+            $offenders[] = "ABTestManager::createTest() ne tronque plus variant_name à 100 caractères avant l'écriture — régression du bug corrigé le 31/08/2026 (round 254) : un nom de variante trop long serait de nouveau tronqué silencieusement par MySQL en OCTETS (mode non strict), risquant du mojibake affiché en BO, ou ferait échouer l'INSERT sans message clair (mode strict)";
+        }
+        $scmSrc254Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php');
+        $scmSrc254 = str_replace("\r", '', $scmSrc254Raw);
+        if ($scmSrc254Raw === '' || substr_count($scmSrc254, "pSQL(mb_substr((string) (\$data['name'] ?? ''), 0, 100))") < 2) {
+            $offenders[] = "SeasonalCampaignManager::create()/update() ne tronquent plus name à 100 caractères avant l'écriture — régression du bug corrigé le 31/08/2026 (round 254) : un nom de campagne trop long serait de nouveau tronqué silencieusement par MySQL en OCTETS (mode non strict), risquant du mojibake, ou ferait échouer l'écriture sans que le contrôleur ne le détecte avant d'afficher un message de succès";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
