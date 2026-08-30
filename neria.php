@@ -1290,6 +1290,7 @@ class Neria extends Module
         $this->createSeasonalCampaignTableIfNeeded();
         $this->createBirthdayVoucherTableIfNeeded();
         $this->createMilestoneVoucherTableIfNeeded();
+        $this->clearSmartyCompileCacheIfVersionChanged();
 
         // Réputation de domaine — refresh auto côté BO (même throttle 24h que front)
         if (class_exists('DomainReputationManager')) {
@@ -1518,6 +1519,49 @@ class Neria extends Module
         );
 
         Configuration::updateValue('NERIA_CREATED_MILESTONE_VOUCHER_TABLE', 1);
+    }
+
+    /**
+     * Round 254 : aucun des ~43 scripts upgrade/upgrade-1.0.X.php ne purge
+     * le cache de COMPILATION Smarty (var/cache/{env}/smarty/compile/, PHP
+     * compilé depuis les .tpl du module) -- distinct du cache de RENDU que
+     * PrestaShop core gère déjà nativement. checkSmartyCompileCheck()
+     * (HealthCheckManager) détecte déjà PASSIVEMENT si
+     * PS_SMARTY_FORCE_COMPILE est désactivé (config non standard mais
+     * possible sur un hébergement optimisant la perf), auquel cas Smarty
+     * ne recompare plus les timestamps source/compilé : un déploiement de
+     * nouvelle version du module continuerait alors de servir un .tpl
+     * compilé PÉRIMÉ jusqu'à ce qu'un admin remarque l'alerte et vide le
+     * cache manuellement.
+     *
+     * NERIA_INSTALLED_VERSION est déjà mis à jour PAR CHAQUE script
+     * upgrade-1.0.X.php lui-même (avant que ce hook ne s'exécute au
+     * prochain chargement BO) -- la comparer à self::VERSION ici ne
+     * détecterait donc jamais rien. Une clé de suivi SÉPARÉE, dédiée
+     * uniquement à cette purge, permet de détecter fiablement un
+     * changement de version au premier chargement BO qui suit --
+     * fonctionne même pour un déploiement qui ne passe PAS par le
+     * gestionnaire de modules PrestaShop (ex. copie de fichiers directe,
+     * notre propre flux de travail de développement), contrairement à un
+     * appel placé dans un script upgrade-X.Y.Z.php isolé.
+     */
+    private function clearSmartyCompileCacheIfVersionChanged(): void
+    {
+        $purgedVersion = (string) Configuration::getGlobalValue('NERIA_SMARTY_COMPILE_PURGED_VERSION');
+        if ($purgedVersion === self::VERSION) {
+            return;
+        }
+
+        try {
+            Tools::clearCompile();
+        } catch (\Throwable $e) {
+            // best-effort -- ne jamais bloquer le chargement BO pour ça ;
+            // sera retenté au prochain chargement puisque la clé de suivi
+            // n'est mise à jour QU'après un appel qui n'a pas levé.
+            return;
+        }
+
+        Configuration::updateGlobalValue('NERIA_SMARTY_COMPILE_PURGED_VERSION', self::VERSION);
     }
 
     private function createSeasonalCampaignTableIfNeeded(): void
