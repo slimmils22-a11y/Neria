@@ -8007,6 +8007,29 @@ class HealthCheckManager
             $offenders[] = "CryptoManager::logDecryptFailure() ne scope plus son throttle par motif via \$GLOBALS — régression du bug corrigé le 31/08/2026 (round 250) : la variable static locale survivrait de nouveau au-delà de la requête courante sur un worker PHP-FPM réutilisé, bannissant à vie un motif d'échec pour TOUTES les boutiques traitées ensuite par ce même worker, même celles n'ayant rien à voir avec le premier incident";
         }
 
+        // Round 251 : même schéma dans les 3 classes -- cartRule->add()
+        // écrit dans ps_cart_rule (+lang/group), hors contrôle du module,
+        // sans transaction englobant l'UPDATE de suivi qui suit. Vérifie
+        // que les 3 UPDATE vérifient désormais Affected_Rows() et
+        // désactivent le CartRule fraîchement créé en cas d'échec, plutôt
+        // que de le laisser actif et non traçable (bon non révocable ou
+        // double bon actif selon la classe).
+        $lmSrc251Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
+        $lmSrc251 = str_replace("\r", '', $lmSrc251Raw);
+        if ($lmSrc251Raw === '' || strpos($lmSrc251, "if ((int) \$this->db->Affected_Rows() !== 1) {\n            \$cartRule->active = false;") === false) {
+            $offenders[] = "LoyaltyManager::generateVoucher() ne vérifie plus le résultat de l'UPDATE de suivi après cartRule->add() — régression du bug corrigé le 31/08/2026 (round 251) : un échec silencieux laisserait de nouveau un bon actif non traçable, jamais révocable par revokeInvalidRewards() sur un remboursement ultérieur";
+        }
+        $otmSrc251Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
+        $otmSrc251 = str_replace("\r", '', $otmSrc251Raw);
+        if ($otmSrc251Raw === '' || strpos($otmSrc251, "if ((int) \$this->db->Affected_Rows() !== 1) {\n            \$cartRule->active = false;") === false) {
+            $offenders[] = "OrderTriggersManager::generateMilestoneVoucher() ne vérifie plus le résultat de l'UPDATE de suivi après cartRule->add() — régression du bug corrigé le 31/08/2026 (round 251) : un échec combiné à un échec d'envoi d'email ultérieur libérerait la réservation via releaseMilestoneClaim() alors qu'un vrai CartRule actif existe déjà, exposant à un second bon actif au prochain déclenchement du même jalon";
+        }
+        $bcmSrc251Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        $bcmSrc251 = str_replace("\r", '', $bcmSrc251Raw);
+        if ($bcmSrc251Raw === '' || strpos($bcmSrc251, "if ((int) \$this->db->Affected_Rows() !== 1) {\n            \$cartRule->active = false;") === false) {
+            $offenders[] = "BehavioralCronManager::generateBirthdayVoucher() ne vérifie plus le résultat de l'UPDATE de suivi après cartRule->add() — régression du bug corrigé le 31/08/2026 (round 251) : un échec silencieux exposerait de nouveau à un second bon d'anniversaire actif régénéré au prochain passage du cron pour la même année";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
