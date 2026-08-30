@@ -383,7 +383,18 @@ class StatsManager
                 try {
                     (new \LoyaltyManager($this->module))->awardPoints($idCustomer, $idStat, $event);
                 } catch (\Throwable $e) {
-                    // Non-bloquant : la fidélité ne doit jamais bloquer le tracking
+                    // Round 246 : "non-bloquant" (le tracking ne doit jamais
+                    // échouer à cause d'un souci fidélité) ne veut pas dire
+                    // "silencieux" -- ce catch était le seul de logEvent()
+                    // sans aucune trace Watchdog. checkAndReward() (appelée
+                    // en aval par awardPoints()) journalise déjà ses propres
+                    // échecs ; seules les erreurs survenant AVANT (accès
+                    // contexte, requêtes SQL amont) tombaient ici sans
+                    // laisser de trace exploitable par le marchand.
+                    $this->watchdog()->warning(
+                        \WatchdogManager::i18nMsg('watchdog.stats_award_points_failed', ['event' => $event, 'error' => $e->getMessage()]),
+                        '', 'StatsManager'
+                    );
                 }
             }
         }

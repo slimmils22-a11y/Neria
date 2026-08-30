@@ -261,7 +261,14 @@ class AdminTranslator
      */
     public static function setLang(string $lang): void
     {
-        $lang = strtolower(trim($lang));
+        // Round 246 : mb_strtolower (pas strtolower) -- strtolower() est
+        // sensible à setlocale(LC_CTYPE, ...) ; si un AUTRE module/le
+        // serveur a positionné une locale turque pour la boutique,
+        // strtolower('IT') retourne 'ıt' (i sans point) au lieu de 'it',
+        // cassant silencieusement in_array(..., true) contre
+        // SUPPORTED_LANGS et faisant retomber en anglais un override de
+        // langue pourtant valide.
+        $lang = mb_strtolower(trim($lang), 'UTF-8');
         if ($lang !== '' && in_array($lang, TranslationEngine::SUPPORTED_LANGS, true)) {
             self::$lang = $lang;
         }
@@ -287,7 +294,8 @@ class AdminTranslator
         // = garde réelle de contexte back-office.
         $employee = \Context::getContext()->employee ?? null;
         if ($employee !== null && \Validate::isLoadedObject($employee)) {
-            $override = strtolower((string) \Tools::getValue('neria_bo_lang'));
+            // Round 246 : mb_strtolower (voir justification dans setLang()).
+            $override = mb_strtolower((string) \Tools::getValue('neria_bo_lang'), 'UTF-8');
             if ($override !== '' && in_array($override, TranslationEngine::SUPPORTED_LANGS, true)) {
                 return self::$lang = $override;
             }
@@ -300,7 +308,8 @@ class AdminTranslator
             && isset($context->language)
             && !empty($context->language->iso_code)
         ) {
-            $iso = strtolower((string) $context->language->iso_code);
+            // Round 246 : mb_strtolower (voir justification dans setLang()).
+            $iso = mb_strtolower((string) $context->language->iso_code, 'UTF-8');
         }
 
         // On ne garde que les 19 langues réellement traduites ; sinon anglais.

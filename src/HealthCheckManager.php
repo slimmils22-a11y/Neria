@@ -7902,6 +7902,44 @@ class HealthCheckManager
             $offenders[] = "generate_signature (neria.php) ne verrouille plus la section generate()+delete()+écriture DB par GET_LOCK par boutique — régression du bug corrigé le 30/08/2026 (round 244) : deux soumissions quasi simultanées du formulaire signature pour la même boutique pourraient de nouveau chacune supprimer le fichier PNG que l'autre vient d'écrire, laissant la signature active référencer une image inexistante (404) dans les emails";
         }
 
+        $atSrc246Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/AdminTranslator.php');
+        $atSrc246 = str_replace("\r", '', $atSrc246Raw);
+        if ($atSrc246Raw === '' || substr_count($atSrc246, "mb_strtolower(") < 3) {
+            $offenders[] = "AdminTranslator n'utilise plus mb_strtolower() sur ses 3 sites de résolution de langue (setLang/currentLang x2) — régression du bug corrigé le 30/08/2026 (round 246) : strtolower() est sensible à setlocale(LC_CTYPE, ...) — sous une locale turque positionnée ailleurs dans le process PHP, strtolower('IT') retournerait de nouveau 'ıt' au lieu de 'it', cassant silencieusement la résolution de langue";
+        }
+        $teSrc246Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/TranslationEngine.php');
+        $teSrc246 = str_replace("\r", '', $teSrc246Raw);
+        $posNorm246 = strpos($teSrc246, 'private function normalizeLang(string $lang): string');
+        $normBody246 = $posNorm246 !== false ? substr($teSrc246, $posNorm246, 900) : '';
+        if ($posNorm246 === false || strpos($normBody246, 'mb_strtolower(') === false) {
+            $offenders[] = "TranslationEngine::normalizeLang() n'utilise plus mb_strtolower() — régression du bug corrigé le 30/08/2026 (round 246) : sous locale turque, un code langue 'IT' ne matcherait plus SUPPORTED_LANGS, impactant le rendu des emails pour les clients italiens";
+        }
+        $smSrc246Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        $smSrc246 = str_replace("\r", '', $smSrc246Raw);
+        if ($smSrc246Raw === '' || strpos($smSrc246, 'watchdog.stats_award_points_failed') === false) {
+            $offenders[] = "StatsManager::logEvent() ne journalise plus l'échec silencieux d'attribution des points de fidélité — régression du bug corrigé le 30/08/2026 (round 246) : un client pourrait de nouveau perdre des points sans qu'aucune trace n'existe nulle part";
+        }
+        // Auto-vérification sur SOI-MÊME (HealthCheckManager.php) : bornée à
+        // la fonction checkWaitlistBacklog() plutôt qu'au fichier entier --
+        // sinon la chaîne needle, présente ICI MÊME dans ce bloc de
+        // garde-fou, ferait toujours matcher un strpos() sur le fichier
+        // complet (piège d'auto-référence), rendant le contrôle inopérant
+        // quel que soit l'état réel du code à l'endroit surveillé.
+        $hcmSelfSrc246 = str_replace("\r", '', $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php'));
+        // strrpos() (DERNIÈRE occurrence), pas strpos() -- ce needle
+        // apparaît aussi, littéralement, dans la ligne juste au-dessus (son
+        // propre argument de recherche) : un strpos() depuis le début du
+        // fichier trouverait cette occurrence-ci en premier (plus haut dans
+        // le fichier que le vrai site d'appel), rendant le contrôle
+        // structurellement toujours vrai quel que soit l'état réel du code
+        // surveillé -- piège d'auto-référence, cette fois sur le texte de
+        // recherche lui-même plutôt que sur le message d'erreur.
+        $posWl246 = strrpos($hcmSelfSrc246, "\$waitlistMgr->notifyProduct((int) \$row['id_product'], (int) \$row['id_shop']);");
+        $wlBody246 = $posWl246 !== false ? substr($hcmSelfSrc246, $posWl246, 900) : '';
+        if ($posWl246 === false || strpos($wlBody246, "'watchdog.waitlist_autofix_product_failed'") === false) {
+            $offenders[] = "checkWaitlistBacklog() (auto-réparation) ne journalise plus l'échec de notification d'un produit — régression du bug corrigé le 30/08/2026 (round 246) : un client en liste d'attente pourrait de nouveau ne jamais être notifié, sans aucune trace exploitable";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
@@ -13267,7 +13305,19 @@ class HealthCheckManager
             try {
                 $notified += $waitlistMgr->notifyProduct((int) $row['id_product'], (int) $row['id_shop']);
             } catch (\Throwable $e) {
-                // best-effort — on continue avec les autres produits
+                // Round 246 : "best-effort" ne voulait pas dire "sans
+                // trace" -- ce catch avalait l'exception sans aucun log,
+                // contrairement au reste de ce fichier. Le rapport final
+                // affichait juste "X notifiés sur Y produits" sans indiquer
+                // QUEL produit avait échoué ni pourquoi, rendant tout
+                // diagnostic impossible pour le marchand.
+                $this->watchdog->warning(
+                    \WatchdogManager::i18nMsg('watchdog.waitlist_autofix_product_failed', [
+                        'id_product' => (int) $row['id_product'],
+                        'error'      => $e->getMessage(),
+                    ]),
+                    '', 'HealthCheckManager'
+                );
             }
         }
 

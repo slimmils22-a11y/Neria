@@ -671,7 +671,15 @@ class TranslationEngine
      */
     private function normalizeLang(string $lang): string
     {
-        $lang = strtolower(trim($lang));
+        // Round 246 : mb_strtolower (pas strtolower) -- strtolower() est
+        // sensible à setlocale(LC_CTYPE, ...) ; sous une locale turque
+        // positionnée ailleurs dans le process PHP, strtolower('IT')
+        // retourne 'ıt' au lieu de 'it', ne matchant plus la table de
+        // mapping ni SUPPORTED_LANGS -- ce chemin est central au moteur de
+        // traduction (get()/getAll()/langFromId()), impactant potentiellement
+        // le rendu de tous les emails envoyés à des clients italiens si la
+        // boutique tourne sous locale turque.
+        $lang = mb_strtolower(trim($lang), 'UTF-8');
 
         // Mapping des codes PS vers codes Neria
         $map = [
