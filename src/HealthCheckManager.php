@@ -8069,6 +8069,14 @@ class HealthCheckManager
             $offenders[] = "neria.php ne purge plus le cache de compilation Smarty après un changement de version — régression du bug corrigé le 31/08/2026 (round 254 bis) : si PS_SMARTY_FORCE_COMPILE est désactivé sur l'hébergement, un déploiement de nouvelle version du module servirait de nouveau un template .tpl compilé périmé jusqu'à ce qu'un admin le remarque et vide le cache manuellement";
         }
 
+        $ntSrc255Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php');
+        $ntSrc255 = str_replace("\r", '', $ntSrc255Raw);
+        $posSh255 = strpos($ntSrc255, 'public static function sanitizeHtml(string $text): string');
+        $shBody255 = $posSh255 !== false ? substr($ntSrc255, $posSh255, 2200) : '';
+        if ($posSh255 === false || strpos($shBody255, "htmlspecialchars(\$href[2], ENT_QUOTES, 'UTF-8')") === false) {
+            $offenders[] = "NeriaTools::sanitizeHtml() n'échappe plus l'URL href avant réinjection — régression du durcissement du 31/08/2026 (round 255) : une URL contenant un '&' (fréquent en query string) produirait de nouveau un attribut HTML non conforme (défense en profondeur, pas une réouverture d'exploit d'attribut connu)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
