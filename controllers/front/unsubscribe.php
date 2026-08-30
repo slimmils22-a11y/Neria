@@ -97,6 +97,37 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
             return false;
         }
 
+        // Round 247 : même philosophie que track.php (round 164) -- ne
+        // jamais bloquer l'action visible (le lien de désabonnement DOIT
+        // toujours répondre normalement, RFC 8058 l'exige pour le POST
+        // "un clic"), mais éviter que le REJEU du même lien légitime en
+        // boucle (script) ne déclenche indéfiniment la chaîne complète
+        // UPDATE customer + SELECT + PreferencesManager::saveByCustomer()
+        // (autre UPDATE/INSERT) + SHOW TABLES/UPDATE emailsubscription +
+        // WebhookManager::trigger() (appel HTTP sortant configurable par
+        // le marchand) — épuisement DB/CPU, voire amplification réseau
+        // vers un tiers, pour un endpoint accessible sans authentification
+        // dès qu'un token valide (reçu dans UN email) est connu. Le
+        // désabonnement étant idempotent (remettre à 0 une valeur déjà à
+        // 0 ne change rien), sauter le traitement au-delà du seuil et
+        // renvoyer directement "déjà traité" est sûr : la toute première
+        // requête légitime a déjà fait le travail réel. Fail-open si APCu
+        // indisponible (best-effort, jamais bloquant).
+        if (function_exists('apcu_enabled') && apcu_enabled()) {
+            $ip  = (string) (Tools::getRemoteAddr() ?: '0.0.0.0');
+            $key = 'neria_unsub_rl_' . md5($ip . '|' . $token);
+            $hits = (int) apcu_fetch($key, $ok2);
+            if (!$ok2) {
+                apcu_store($key, 1, 10);
+            } else {
+                $hits++;
+                apcu_store($key, $hits, 10);
+                if ($hits > 5) {
+                    return true;
+                }
+            }
+        }
+
         $db     = Db::getInstance();
         $e      = pSQL(Tools::strtolower($email));
         $idShop = (int) $this->context->shop->id;

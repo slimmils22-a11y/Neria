@@ -56,6 +56,37 @@ class NeriaPreferencesModuleFrontController extends ModuleFrontController
             return;
         }
 
+        // Round 247 : même philosophie que track.php (round 164)/
+        // unsubscribe.php (round 247) — un token HMAC valide (reçu dans UN
+        // email) reste connu indéfiniment ; sans frein, un rejeu automatisé
+        // du lien (même en GET simple, sans soumission de formulaire)
+        // déclenche à CHAQUE requête Shop::setContext() +
+        // Customer::customerExists() + PreferencesManager::getByCustomer()
+        // (et en POST, en plus : saveByCustomer() + UPDATE customer +
+        // log Watchdog) — épuisement DB/CPU sur un endpoint public sans
+        // authentification. Contrairement à track.php (pixel toujours
+        // servi, seule l'écriture stats est sautée), la page de
+        // préférences EST le contenu demandé : au-delà du seuil, on
+        // dégrade vers la page d'erreur déjà existante (assignError(),
+        // même chemin que pour un token invalide) plutôt que de renvoyer
+        // une erreur HTTP dédiée — cohérent avec le reste du fichier.
+        // Fail-open si APCu indisponible (best-effort, jamais bloquant).
+        if (function_exists('apcu_enabled') && apcu_enabled()) {
+            $ip  = (string) (Tools::getRemoteAddr() ?: '0.0.0.0');
+            $key = 'neria_prefs_rl_' . md5($ip . '|' . $token);
+            $hits = (int) apcu_fetch($key, $ok);
+            if (!$ok) {
+                apcu_store($key, 1, 10);
+            } else {
+                $hits++;
+                apcu_store($key, $hits, 10);
+                if ($hits > 20) {
+                    $this->assignError($lang);
+                    return;
+                }
+            }
+        }
+
         // Résolution du client par email UNIQUEMENT — le token HMAC n'authentifie
         // que l'email, jamais le paramètre `cid`. Si on faisait confiance à un
         // `cid` fourni par le client sans vérifier qu'il correspond bien à cet
