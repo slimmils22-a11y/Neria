@@ -7940,6 +7940,17 @@ class HealthCheckManager
             $offenders[] = "checkWaitlistBacklog() (auto-réparation) ne journalise plus l'échec de notification d'un produit — régression du bug corrigé le 30/08/2026 (round 246) : un client en liste d'attente pourrait de nouveau ne jamais être notifié, sans aucune trace exploitable";
         }
 
+        $unsubSrc247Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/unsubscribe.php');
+        $unsubSrc247 = str_replace("\r", '', $unsubSrc247Raw);
+        if ($unsubSrc247Raw === '' || strpos($unsubSrc247, "'neria_unsub_rl_'") === false) {
+            $offenders[] = "unsubscribe.php ne limite plus le débit de traitement du désabonnement — régression du bug corrigé le 30/08/2026 (round 247) : un rejeu automatisé d'un lien de désabonnement légitime pourrait de nouveau déclencher indéfiniment la chaîne complète UPDATE/SELECT/webhook sortant, sans authentification requise";
+        }
+        $prefsSrc247Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/preferences.php');
+        $prefsSrc247 = str_replace("\r", '', $prefsSrc247Raw);
+        if ($prefsSrc247Raw === '' || strpos($prefsSrc247, "'neria_prefs_rl_'") === false) {
+            $offenders[] = "preferences.php ne limite plus le débit de résolution/sauvegarde des préférences — régression du bug corrigé le 30/08/2026 (round 247) : un rejeu automatisé d'un lien de préférences légitime pourrait de nouveau déclencher indéfiniment Customer::customerExists()/getByCustomer() (et saveByCustomer() en POST), sans authentification requise";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
