@@ -7891,6 +7891,17 @@ class HealthCheckManager
             $offenders[] = "WebhookManager n'utilise plus mb_substr() sur l'aperçu de réponse HTTP tierce — régression du bug corrigé le 30/08/2026 (round 243) : une réponse webhook multi-octets tronquée en octets bruts produirait de nouveau une séquence UTF-8 invalide dans le log Watchdog/la réponse de test BO";
         }
 
+        $neriaSrc244Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $neriaSrc244 = str_replace("\r", '', $neriaSrc244Raw);
+        $posSig244 = strpos($neriaSrc244, "'generate_signature'");
+        $sigBody244 = $posSig244 !== false ? substr($neriaSrc244, $posSig244, 7200) : '';
+        if ($neriaSrc244Raw === ''
+            || strpos($sigBody244, "GET_LOCK('\" . pSQL(\$sigLockName) . \"', 5)") === false
+            || strpos($sigBody244, "RELEASE_LOCK('\" . pSQL(\$sigLockName) . \"')") === false
+        ) {
+            $offenders[] = "generate_signature (neria.php) ne verrouille plus la section generate()+delete()+écriture DB par GET_LOCK par boutique — régression du bug corrigé le 30/08/2026 (round 244) : deux soumissions quasi simultanées du formulaire signature pour la même boutique pourraient de nouveau chacune supprimer le fichier PNG que l'autre vient d'écrire, laissant la signature active référencer une image inexistante (404) dans les emails";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
