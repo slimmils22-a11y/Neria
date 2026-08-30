@@ -1304,7 +1304,19 @@ class StatsManager
 
         $raw = [];
         foreach (['current' => 0, 'previous' => 7] as $period => $offset) {
-            $from = pSQL(date('Y-m-d', strtotime('-' . ($offset + 7) . ' days')));
+            // Round 253 : bornes INCLUSIVES des deux côtés (>= ... <= ...),
+            // pas >= ... < ... -- l'ancienne borne haute exclusive
+            // (`to = aujourd'hui` pour 'current', comparé en `<`) excluait
+            // TOTALEMENT la journée en cours de la fenêtre "current", alors
+            // que getKpis(7) (widget jumeau affiché sur le MÊME onglet
+            // stats.tpl, via $stats.kpis/$kpi_trends) utilise `date_add >=
+            // dateFrom` SANS borne haute et inclut donc bien aujourd'hui.
+            // Le marchand voyait deux totaux "7 derniers jours" différents
+            // côte à côte dès qu'il y avait de l'activité le jour même, et
+            // le delta % de tendance semaine-sur-semaine était calculé sur
+            // une fenêtre glissée d'un jour en arrière, sous-représentant
+            // systématiquement le volume réel de la semaine en cours.
+            $from = pSQL(date('Y-m-d', strtotime('-' . ($offset + 6) . ' days')));
             $to   = pSQL(date('Y-m-d', strtotime('-' . $offset . ' days')));
             $row  = $this->db->getRow("
                 SELECT
@@ -1314,7 +1326,7 @@ class StatsManager
                 FROM `{$table}`
                 WHERE id_shop     = {$this->idShop}
                   AND DATE(date_add) >= '{$from}'
-                  AND DATE(date_add) <  '{$to}'
+                  AND DATE(date_add) <= '{$to}'
             ");
             $raw[$period] = $row ?: ['sent' => 0, 'opens' => 0, 'clicks' => 0];
 
@@ -1326,21 +1338,23 @@ class StatsManager
                 WHERE id_shop     = {$this->idShop}
                   AND subscribed  = 0
                   AND DATE(date_upd) >= '{$from}'
-                  AND DATE(date_upd) <  '{$to}'
+                  AND DATE(date_upd) <= '{$to}'
             ");
         }
 
         // Revenus attribués — depuis neria_stat event_type='conversion'
         $statTable = _DB_PREFIX_ . self::TABLE;
         foreach (['current' => 0, 'previous' => 7] as $period => $offset) {
-            $from = pSQL(date('Y-m-d', strtotime('-' . ($offset + 7) . ' days')));
+            // Round 253 : voir justification dans la boucle ci-dessus --
+            // bornes inclusives des deux côtés, cohérentes avec getKpis(7).
+            $from = pSQL(date('Y-m-d', strtotime('-' . ($offset + 6) . ' days')));
             $to   = pSQL(date('Y-m-d', strtotime('-' . $offset . ' days')));
             $rev  = (float) $this->db->getValue(
                 "SELECT COALESCE(SUM(revenue), 0) FROM `{$statTable}`
                  WHERE event_type = 'conversion'
                    AND id_shop    = {$this->idShop}
                    AND DATE(date_add) >= '{$from}'
-                   AND DATE(date_add) <  '{$to}'"
+                   AND DATE(date_add) <= '{$to}'"
             );
             $raw[$period]['revenue'] = $rev;
         }
