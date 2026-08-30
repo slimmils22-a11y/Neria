@@ -97,6 +97,18 @@ class SeasonalCampaignManager
         return $row ?: null;
     }
 
+    // Round 254 : `name` (VARCHAR(100)) tronqué explicitement en caractères
+    // (mb_substr, pas substr) AVANT écriture, dans create() ET update() --
+    // ce champ "nom interne de la campagne" est libre côté BO (aucun
+    // maxlength HTML, aucune validation serveur), contrairement à
+    // days_before/min_age/max_age juste à côté qui sont déjà bornés
+    // (max()/min()) dans neria.php -- asymétrie révélatrice d'un oubli.
+    // Sans troncature explicite, MySQL tronque silencieusement en OCTETS
+    // en mode non strict (courant sur mutualisé), risquant de couper en
+    // plein milieu d'un caractère UTF-8 multi-octets (table utf8mb4) --
+    // mojibake affiché ensuite en BO/rapports ; en mode strict, l'écriture
+    // échoue purement et simplement sans que le contrôleur ne vérifie le
+    // retour avant d'afficher un message de succès.
     public function create(array $data): int
     {
         $this->db->execute(
@@ -106,7 +118,7 @@ class SeasonalCampaignManager
                  gift_mode, date_add, date_upd)
              VALUES (
                 " . (int) $this->idShop . ",
-                '" . pSQL($data['name']           ?? '') . "',
+                '" . pSQL(mb_substr((string) ($data['name'] ?? ''), 0, 100)) . "',
                 '" . pSQL($data['template']        ?? '') . "',
                 '" . pSQL($data['annual_date']     ?? '01-01') . "',
                 " . (int) ($data['days_before']    ?? 0) . ",
@@ -127,7 +139,7 @@ class SeasonalCampaignManager
     {
         $this->db->execute(
             "UPDATE `{$this->prefix}" . self::TABLE . "` SET
-                name            = '" . pSQL($data['name']          ?? '') . "',
+                name            = '" . pSQL(mb_substr((string) ($data['name'] ?? ''), 0, 100)) . "',
                 template        = '" . pSQL($data['template']       ?? '') . "',
                 annual_date     = '" . pSQL($data['annual_date']    ?? '01-01') . "',
                 days_before     = " . (int) ($data['days_before']   ?? 0) . ",

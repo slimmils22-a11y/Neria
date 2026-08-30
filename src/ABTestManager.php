@@ -215,6 +215,20 @@ class ABTestManager
         // Valide le split (entre 10 et 90 pour eviter les cas extremes)
         $splitPercent = max(10, min(90, $splitPercent));
 
+        // Round 254 : troncature explicite AVANT l'écriture -- `variant_name`
+        // est un VARCHAR(100) sans aucune limite de longueur imposée côté BO
+        // (ni maxlength HTML, ni validation serveur), pour un champ libre où
+        // un marchand décrivant sa variante en phrase complète ("Ton
+        // empathique, on s'excuse et on offre 10% pour le retard...")
+        // dépasse facilement 100 caractères. Sans troncature explicite en
+        // caractères (mb_substr, pas substr), MySQL tronque silencieusement
+        // en OCTETS en mode non strict (courant sur mutualisé) -- risque de
+        // couper en plein milieu d'un caractère UTF-8 multi-octets
+        // (mojibake affiché ensuite en BO/rapports), ou l'INSERT échoue
+        // purement et simplement en mode strict.
+        $variantAName = mb_substr($variantAName, 0, 100);
+        $variantBName = mb_substr($variantBName, 0, 100);
+
         $table = _DB_PREFIX_ . self::TABLE;
 
         // Cree la variante A
