@@ -5642,7 +5642,15 @@ class Neria extends Module
             $fixedCap = (new ConfigManager($this))->getVoucherFixedCap();
             foreach ($keys as $k) {
                 $isPercent = (bool) Tools::getValue('loyalty_percent_' . $k, 0);
-                $amount    = max(0.01, (float) Tools::getValue('loyalty_amount_' . $k, 5));
+                // Round 252 : str_replace(',', '.', ...) avant le cast --
+                // même garde-fou que neria_voucher_fixed_cap/
+                // birthday_voucher_amount/milestone_voucher_amount
+                // ci-dessus, seul montant BO de ce groupe fonctionnel à ne
+                // pas l'avoir jusqu'ici. Sans lui, une saisie au format
+                // français ("12,50") est tronquée par (float) à la virgule
+                // ("12"), enregistrant silencieusement un palier de
+                // fidélité à un montant erroné, sans aucune erreur visible.
+                $amount    = max(0.01, (float) str_replace(',', '.', (string) Tools::getValue('loyalty_amount_' . $k, 5)));
                 // Plafond en mode pourcentage — même garde-fou que les bons
                 // anniversaire/palier de commande. Sans ça, une faute de
                 // frappe marchand ("500" au lieu de "50") crée un CartRule à
