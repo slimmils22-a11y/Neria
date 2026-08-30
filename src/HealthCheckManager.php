@@ -7375,7 +7375,7 @@ class HealthCheckManager
         // Round 213 (26/08/2026) : AbTestManager::copyVariantBToDefault()
         // doit lire id_abtest avec $use_cache=false — le texte SQL est
         // identique d'un cycle de test A/B à l'autre sur le même template.
-        $abSrc213 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/AbTestManager.php');
+        $abSrc213 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php');
         if ($abSrc213 === '' || strpos($abSrc213, "AND `is_active` = 1\",\n            false\n        );") === false) {
             $offenders[] = "AbTestManager::copyVariantBToDefault() n'a plus \$use_cache=false sur sa lecture d'id_abtest — régression du bug corrigé le 26/08/2026 (round 213) : un nouveau cycle de test A/B gagné par B pourrait promouvoir les traductions d'un ANCIEN test B déjà désactivé";
         }
@@ -7958,6 +7958,37 @@ class HealthCheckManager
         }
         if ($drmSrc248Raw === '' || strpos($drmSrc248, '$encodedReport = json_encode($report);') === false || strpos($drmSrc248, 'if ($encodedReport === false) {') === false) {
             $offenders[] = "DomainReputationManager::runFullCheck() ne vérifie plus le retour de json_encode() avant l'écriture en cache — régression du bug corrigé le 30/08/2026 (round 248) : un échec d'encodage stockerait de nouveau une chaîne vide en cache tout en mettant à jour CONFIG_LAST_CHECK, empêchant toute mise en cache future pendant 24h";
+        }
+
+        // Round 249 : casse cohérente 'ABTestManager.php' (B majuscule)
+        // partout où le fichier est référencé par chemin -- pas de 'b'
+        // minuscule à cette même position du nom.
+        // Windows (environnement de dev/test) est insensible à la casse des
+        // noms de fichier -- ce défaut de casse restait invisible ici. Sur
+        // le serveur de production (Linux/O2switch, casse-sensible),
+        // require_once()/file_get_contents() avec la mauvaise casse
+        // provoque une erreur fatale ou un échec silencieux selon l'appel.
+        // $wrongCase249 construit par concaténation (pas un littéral 'AbTest
+        // Manager.php' écrit tel quel ici) pour que CE bloc de garde-fou
+        // lui-même, relu comme du texte source par ce même contrôle
+        // (HealthCheckManager.php figure dans la liste vérifiée ci-dessous),
+        // ne se fasse jamais passer pour une occurrence de la mauvaise casse
+        // -- piège d'auto-référence déjà rencontré au round 246.
+        $wrongCase249 = 'A' . 'b' . 'TestManager.php';
+        $filesToCheck249 = [
+            'src/HealthCheckManager.php',
+            'tests/regression/test_215_abtest_activate_log_reflects_result.php',
+            'tests/regression/test_216_abtest_create_delete_errors_logged.php',
+            'tests/regression/test_225_abtest_copyvariant_archive_log_conditioned.php',
+            'tests/regression/test_349_abtest_delete_variant_reset_not_null.php',
+            'tests/regression/test_374_abtest_variant_key_case_insensitive.php',
+            'tests/regression/test_446_abtest_copy_variant_no_cache.php',
+        ];
+        foreach ($filesToCheck249 as $relPath249) {
+            $src249 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/' . $relPath249);
+            if ($src249 !== '' && strpos($src249, $wrongCase249) !== false) {
+                $offenders[] = "{$relPath249} référence de nouveau le nom de fichier ABTestManager.php avec un 'b' minuscule au lieu de 'B' majuscule — régression du bug corrigé le 31/08/2026 (round 249) : invisible sous Windows (insensible à la casse), mais provoquerait une erreur fatale sur le serveur de production Linux";
+            }
         }
 
         if ($offenders) {

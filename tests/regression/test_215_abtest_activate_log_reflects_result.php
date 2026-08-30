@@ -24,8 +24,8 @@ require_once __DIR__ . '/bootstrap.php';
 
 function run_test(): array
 {
-    $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/AbTestManager.php');
-    neria_assert($src !== false, 'Impossible de lire src/AbTestManager.php');
+    $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/ABTestManager.php');
+    neria_assert($src !== false, 'Impossible de lire src/ABTestManager.php');
 
     $posFn = strpos($src, 'public function activateTest(string $template): bool');
     neria_assert($posFn !== false, 'activateTest() introuvable — jeu de test invalide');

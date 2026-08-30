@@ -20,7 +20,7 @@ require_once __DIR__ . '/bootstrap.php';
 
 function run_test(): array
 {
-    require_once _PS_MODULE_DIR_ . 'neria/src/AbTestManager.php';
+    require_once _PS_MODULE_DIR_ . 'neria/src/ABTestManager.php';
 
     $db      = neria_test_db();
     $prefix  = neria_test_prefix();
