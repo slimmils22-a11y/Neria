@@ -161,7 +161,25 @@ class CryptoManager
      */
     private static function logDecryptFailure(string $reason): void
     {
-        static $loggedReasons = [];
+        // Round 250 : `static $loggedReasons` (variable statique LOCALE à
+        // la méthode) persiste pour toute la durée de vie du WORKER
+        // PHP-FPM, pas seulement de la requête courante -- contrairement à
+        // l'intention documentée ci-dessus ("par requête", round 172). Sur
+        // un hébergement mutualisé, si la boutique A déclenche un échec de
+        // déchiffrement sur le worker W, ce motif générique (souvent non
+        // paramétré par boutique/clé, ex. "clé rotée/corrompue ou tag GCM
+        // invalide") est journalisé une fois puis banni de journalisation
+        // À VIE sur W -- une boutique B totalement différente, traitée
+        // ensuite par ce même worker et subissant le MÊME libellé
+        // d'échec, ne serait alors jamais journalisée : sous-détection
+        // silencieuse d'un incident réel chez un autre client. $GLOBALS
+        // est garanti frais à chaque requête tout en restant partagé au
+        // sein d'UNE MÊME requête (préserve la dédup intra-requête voulue
+        // par le round 172).
+        if (!isset($GLOBALS['__neria_crypto_logged_decrypt_reasons'])) {
+            $GLOBALS['__neria_crypto_logged_decrypt_reasons'] = [];
+        }
+        $loggedReasons = &$GLOBALS['__neria_crypto_logged_decrypt_reasons'];
         if (isset($loggedReasons[$reason]) || !class_exists('\PrestaShopLogger')) {
             return;
         }

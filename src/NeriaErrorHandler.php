@@ -26,18 +26,33 @@ if (!defined('_PS_VERSION_')) {
 
 class NeriaErrorHandler
 {
-    private static bool $registered = false;
-
     /**
      * Enregistre le shutdown handler une seule fois par requête.
      * À appeler depuis Neria::__construct().
+     *
+     * Round 250 : une propriété `private static bool $registered` était
+     * utilisée pour ce garde d'idempotence -- mais une propriété statique
+     * de CLASSE survit pour toute la durée de vie du WORKER PHP-FPM, pas
+     * seulement de la requête courante (contrairement à
+     * register_shutdown_function() lui-même, dont la liste est bien
+     * réinitialisée par PHP à chaque nouvelle requête). Sur un
+     * hébergement mutualisé/PHP-FPM (le cas réel de production), le
+     * handler s'enregistrait à la 1ère requête traitée par un worker,
+     * puis register() devenait un no-op PERMANENT pour ce worker : le
+     * filet de sécurité contre les erreurs fatales PHP (E_ERROR/E_PARSE/
+     * E_CORE_ERROR) ne fonctionnait plus du tout pour toutes les requêtes
+     * suivantes traitées par ce même worker (des milliers, selon
+     * pm.max_requests), sans qu'aucune alerte ne le signale. $GLOBALS
+     * est, lui, garanti frais à chaque requête (contrairement à une
+     * propriété statique de classe) tout en restant partagé au sein
+     * d'UNE MÊME requête si register() y était appelé plusieurs fois.
      */
     public static function register(): void
     {
-        if (self::$registered) {
+        if (!empty($GLOBALS['__neria_error_handler_registered'])) {
             return;
         }
-        self::$registered = true;
+        $GLOBALS['__neria_error_handler_registered'] = true;
 
         register_shutdown_function(static function (): void {
             $err = error_get_last();

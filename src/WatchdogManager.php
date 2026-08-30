@@ -377,6 +377,19 @@ class WatchdogManager
         $subject    = $burstCount > 1
             ? str_replace(["\r", "\n"], '', AdminTranslator::tVars('wd_alert.subject_burst', ['level' => $levelUpper, 'shop' => $shopName, 'n' => $burstCount]))
             : str_replace(["\r", "\n"], '', AdminTranslator::tVars('wd_alert.subject', ['level' => $levelUpper, 'shop' => $shopName]));
+        // Round 250 : cette méthode utilise mail() natif (pas Mail::Send()
+        // du cœur PS, volontairement -- "pour fonctionner même si PS
+        // Mail::Send est cassé", voir plus bas), donc porte l'entière
+        // responsabilité de l'encodage RFC 2047 de l'en-tête Subject. Sans
+        // ça, un sujet contenant du texte non-ASCII (traduction dans une
+        // langue non-latine, ou simplement PS_SHOP_NAME saisi par le
+        // marchand avec des caractères accentués/non-latins) partait en
+        // octets UTF-8 bruts dans l'en-tête SMTP -- non conforme RFC 822,
+        // affichage "??????"/mojibake côté client mail (Outlook
+        // notamment), précisément dans la situation où l'alerte doit être
+        // comprise vite (erreur/critique). mb_encode_mimeheader() laisse
+        // un sujet purement ASCII inchangé (pas de surcoût inutile).
+        $subject = mb_encode_mimeheader($subject, 'UTF-8', 'B', "\r\n");
 
         $emergencyToken = (string) \Configuration::getGlobalValue('NERIA_EMERGENCY_TOKEN');
         $emergencyUrl   = $emergencyToken
@@ -552,6 +565,9 @@ class WatchdogManager
         }
 
         $subject = str_replace(["\r", "\n"], '', AdminTranslator::tVars('wd_digest.subject', ['count' => $totalReal, 'shop' => $shopName]));
+        // Round 250 : voir justification dans sendImmediateAlert() -- mail()
+        // natif ici aussi, encodage RFC 2047 à la charge de Neria.
+        $subject = mb_encode_mimeheader($subject, 'UTF-8', 'B', "\r\n");
 
         $emergencyToken = (string) \Configuration::getGlobalValue('NERIA_EMERGENCY_TOKEN');
         $emergencyUrl   = $emergencyToken

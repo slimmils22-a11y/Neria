@@ -45,8 +45,15 @@ function run_test(): array
     neria_assert(CryptoManager::lastDecryptFailed() === true, "lastDecryptFailed() ne détecte pas l'échec de tag GCM — jeu de test invalide");
 
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/CryptoManager.php');
+    // Round 250 : le throttle par motif distinct n'utilise plus une
+    // variable `static` locale (celle-ci persistait pour toute la durée du
+    // worker PHP-FPM, pas seulement la requête courante — régression
+    // similaire à celle corrigée ici au round 172, mais sur la portée
+    // requête/process plutôt que sur le regroupement par motif) : il est
+    // désormais scopé par requête via $GLOBALS, tout en conservant la même
+    // dédup PAR MOTIF DISTINCT que ce test vérifie depuis le round 172.
     neria_assert(
-        strpos($src, 'static $loggedReasons = [];') !== false
+        strpos($src, "\$GLOBALS['__neria_crypto_logged_decrypt_reasons']") !== false
         && strpos($src, 'isset($loggedReasons[$reason])') !== false,
         "logDecryptFailure() n'utilise plus un throttle par motif distinct — régression du bug corrigé le 15/08/2026 (round 172) : un seul échec serait de nouveau tracé par requête, quel que soit le nombre de motifs différents"
     );
