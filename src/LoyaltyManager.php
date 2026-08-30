@@ -542,6 +542,33 @@ class LoyaltyManager
                AND id_shop = " . $reservationShopId
         );
 
+        // Round 251 : le retour de cet UPDATE n'était jamais vérifié.
+        // cartRule->add() écrit dans ps_cart_rule (+lang/group) — des
+        // tables HORS contrôle du module, sans transaction SQL englobant
+        // les deux écritures. Si cet UPDATE échoue (contrainte, connexion
+        // coupée, timeout) alors que add() a réussi, la ligne
+        // neria_loyalty_rewards reste PERMANENMENT à id_cart_rule=0/
+        // voucher_code='' alors qu'un vrai CartRule actif existe déjà —
+        // revokeInvalidRewards() (`if ($idCartRule <= 0) continue;`) ne le
+        // verrait alors JAMAIS comme lié à ce CartRule et ne pourrait
+        // jamais le révoquer sur un remboursement ultérieur du palier :
+        // bon de réduction non révocable, fuite permanente. Désactive le
+        // CartRule fraîchement créé plutôt que de le laisser actif et non
+        // traçable -- même sémantique que la branche add()-échoué
+        // ci-dessus (exception + réservation libérée pour nouvel essai).
+        if ((int) $this->db->Affected_Rows() !== 1) {
+            $cartRule->active = false;
+            $cartRule->update();
+            $this->db->execute(
+                "DELETE FROM `{$this->prefix}" . self::TABLE_REWARDS . "`
+                 WHERE id_customer = " . (int) $idCustomer . "
+                   AND tier_key = '" . pSQL($tier['key']) . "'
+                   AND id_cart_rule = 0
+                   AND id_shop = " . $reservationShopId
+            );
+            throw new \RuntimeException(\AdminTranslator::tVars('msg.loyalty_cartrule_add_failed', ['customer' => $idCustomer]));
+        }
+
         return $code;
     }
 

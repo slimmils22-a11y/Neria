@@ -286,6 +286,24 @@ class OrderTriggersManager
                AND id_shop = ' . (int) $idShop
         );
 
+        // Round 251 : le retour de cet UPDATE n'était jamais vérifié.
+        // cartRule->add() écrit dans ps_cart_rule (+lang/group), hors
+        // contrôle du module, sans transaction englobante. Si cet UPDATE
+        // échoue alors que add() a réussi, la ligne neria_milestone_voucher
+        // reste à id_cart_rule=0 -- et releaseMilestoneClaim() (appelée si
+        // l'envoi d'email échoue ensuite, `WHERE ... id_cart_rule = 0`)
+        // supprimerait alors cette réservation redevenue "libre" alors
+        // qu'un vrai CartRule actif existe déjà : un futur déclenchement du
+        // même palier régénère un SECOND bon actif pour le même jalon
+        // (perte financière directe). Désactive le CartRule fraîchement
+        // créé plutôt que de le laisser actif et non traçable -- même
+        // sémantique que la branche add()-échoué ci-dessus.
+        if ((int) $this->db->Affected_Rows() !== 1) {
+            $cartRule->active = false;
+            $cartRule->update();
+            throw new \RuntimeException('CartRule update failed for customer ' . $idCustomer . ' milestone ' . $milestone);
+        }
+
         return $code;
     }
 
