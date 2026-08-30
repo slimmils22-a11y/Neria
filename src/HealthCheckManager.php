@@ -5921,7 +5921,7 @@ class HealthCheckManager
             if (strpos($cryptoSrc172, 'public static function lastDecryptFailed(): bool') === false) {
                 $offenders[] = "CryptoManager::lastDecryptFailed() a disparu — régression du bug corrigé le 15/08/2026 (round 172) : un échec réel de déchiffrement redeviendrait indiscernable d'un secret jamais configuré, masquant silencieusement une intégration cassée (OAuth, IMAP...)";
             }
-            if (strpos($cryptoSrc172, 'static $loggedReasons = [];') === false) {
+            if (strpos($cryptoSrc172, "\$loggedReasons = &\$GLOBALS['__neria_crypto_logged_decrypt_reasons'];") === false) {
                 $offenders[] = "CryptoManager::logDecryptFailure() ne journalise plus par motif distinct — régression du bug corrigé le 15/08/2026 (round 172) : un seul échec serait de nouveau tracé par requête, quel que soit le nombre de causes différentes";
             }
         }
@@ -7989,6 +7989,22 @@ class HealthCheckManager
             if ($src249 !== '' && strpos($src249, $wrongCase249) !== false) {
                 $offenders[] = "{$relPath249} référence de nouveau le nom de fichier ABTestManager.php avec un 'b' minuscule au lieu de 'B' majuscule — régression du bug corrigé le 31/08/2026 (round 249) : invisible sous Windows (insensible à la casse), mais provoquerait une erreur fatale sur le serveur de production Linux";
             }
+        }
+
+        $wdmSrc250Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php');
+        $wdmSrc250 = str_replace("\r", '', $wdmSrc250Raw);
+        if ($wdmSrc250Raw === '' || substr_count($wdmSrc250, "mb_encode_mimeheader(\$subject, 'UTF-8', 'B', \"\\r\\n\")") < 2) {
+            $offenders[] = "WatchdogManager n'encode plus le sujet des alertes mail() natif en RFC 2047 sur ses 2 sites (sendImmediateAlert/sendDailyDigestIfDue) — régression du bug corrigé le 31/08/2026 (round 250) : un sujet non-ASCII (traduction non-latine, PS_SHOP_NAME accentué) repartirait en octets UTF-8 bruts dans l'en-tête SMTP, non conforme RFC 822, affichage mojibake côté client mail";
+        }
+        $nehSrc250Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaErrorHandler.php');
+        $nehSrc250 = str_replace("\r", '', $nehSrc250Raw);
+        if ($nehSrc250Raw === '' || strpos($nehSrc250, "!empty(\$GLOBALS['__neria_error_handler_registered'])") === false) {
+            $offenders[] = "NeriaErrorHandler::register() ne scope plus son garde d'idempotence par requête (\$GLOBALS) — régression du bug corrigé le 31/08/2026 (round 250) : une propriété static de classe survivrait de nouveau au-delà de la requête courante sur un worker PHP-FPM réutilisé, désactivant silencieusement et définitivement le filet de sécurité contre les erreurs fatales pour toutes les requêtes suivantes traitées par ce worker";
+        }
+        $cmSrc250Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CryptoManager.php');
+        $cmSrc250 = str_replace("\r", '', $cmSrc250Raw);
+        if ($cmSrc250Raw === '' || strpos($cmSrc250, "\$loggedReasons = &\$GLOBALS['__neria_crypto_logged_decrypt_reasons'];") === false) {
+            $offenders[] = "CryptoManager::logDecryptFailure() ne scope plus son throttle par motif via \$GLOBALS — régression du bug corrigé le 31/08/2026 (round 250) : la variable static locale survivrait de nouveau au-delà de la requête courante sur un worker PHP-FPM réutilisé, bannissant à vie un motif d'échec pour TOUTES les boutiques traitées ensuite par ce même worker, même celles n'ayant rien à voir avec le premier incident";
         }
 
         if ($offenders) {
