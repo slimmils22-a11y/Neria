@@ -8038,6 +8038,14 @@ class HealthCheckManager
             $offenders[] = "save_loyalty_tiers (neria.php) ne nettoie plus la virgule décimale de loyalty_amount_* avant le cast (float) — régression du bug corrigé le 31/08/2026 (round 252) : une saisie au format français ('12,50') serait de nouveau tronquée à la virgule ('12'), enregistrant silencieusement un palier de fidélité à un montant erroné";
         }
 
+        $smSrc253Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        $smSrc253 = str_replace("\r", '', $smSrc253Raw);
+        $posKt253 = strpos($smSrc253, 'public function getKpiTrends(): array');
+        $ktBody253 = $posKt253 !== false ? substr($smSrc253, $posKt253, 3800) : '';
+        if ($posKt253 === false || substr_count($ktBody253, "DATE(date_add) <= '{\$to}'") < 2) {
+            $offenders[] = "StatsManager::getKpiTrends() n'utilise plus une borne haute inclusive (<=) sur la fenêtre 'current' — régression du bug corrigé le 31/08/2026 (round 253) : la journée en cours serait de nouveau totalement exclue du total 'current', alors que getKpis(7) (widget jumeau affiché sur le même onglet stats.tpl) inclut bien aujourd'hui — deux totaux '7 derniers jours' différents affichés côte à côte";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
