@@ -8030,6 +8030,14 @@ class HealthCheckManager
             $offenders[] = "BehavioralCronManager::generateBirthdayVoucher() ne vérifie plus le résultat de l'UPDATE de suivi après cartRule->add() — régression du bug corrigé le 31/08/2026 (round 251) : un échec silencieux exposerait de nouveau à un second bon d'anniversaire actif régénéré au prochain passage du cron pour la même année";
         }
 
+        $neriaSrc252Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $neriaSrc252 = str_replace("\r", '', $neriaSrc252Raw);
+        if ($neriaSrc252Raw === ''
+            || strpos($neriaSrc252, "max(0.01, (float) str_replace(',', '.', (string) Tools::getValue('loyalty_amount_' . \$k, 5)))") === false
+        ) {
+            $offenders[] = "save_loyalty_tiers (neria.php) ne nettoie plus la virgule décimale de loyalty_amount_* avant le cast (float) — régression du bug corrigé le 31/08/2026 (round 252) : une saisie au format français ('12,50') serait de nouveau tronquée à la virgule ('12'), enregistrant silencieusement un palier de fidélité à un montant erroné";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
