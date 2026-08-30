@@ -57,7 +57,20 @@ class NeriaTools
             '/<a\b[^>]*>/i',
             static function (array $m): string {
                 if (preg_match('/href\s*=\s*(["\'])((?:https?:|mailto:)[^"\']*)\1/i', $m[0], $href)) {
-                    return '<a href="' . $href[2] . '">';
+                    // Round 255 : $href[2] était réinjecté SANS échappement.
+                    // La classe de caractères [^"\'] du regex ci-dessus exclut
+                    // déjà tout guillemet de la valeur capturée (donc pas de
+                    // sortie d'attribut possible par ce biais), et tout
+                    // attribut hors href (ex: onmouseover=) est de toute façon
+                    // éliminé par la reconstruction minimale ci-dessous -- ce
+                    // n'est PAS un contournement d'attribut exploitable tel
+                    // quel. En revanche, une URL contenant un '&' (fréquent en
+                    // query string, ex: "?a=1&b=2") produisait un attribut
+                    // HTML invalide (un '&' brut hors entité n'est pas
+                    // strictement conforme dans un attribut HTML) -- durci en
+                    // défense en profondeur avec htmlspecialchars(), y compris
+                    // si la logique de reconstruction ci-dessus change un jour.
+                    return '<a href="' . htmlspecialchars($href[2], ENT_QUOTES, 'UTF-8') . '">';
                 }
                 return '<a>';
             },
