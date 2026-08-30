@@ -8060,6 +8060,15 @@ class HealthCheckManager
             $offenders[] = "SeasonalCampaignManager::create()/update() ne tronquent plus name à 100 caractères avant l'écriture — régression du bug corrigé le 31/08/2026 (round 254) : un nom de campagne trop long serait de nouveau tronqué silencieusement par MySQL en OCTETS (mode non strict), risquant du mojibake, ou ferait échouer l'écriture sans que le contrôleur ne le détecte avant d'afficher un message de succès";
         }
 
+        $neriaSrcSmartyRaw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $neriaSrcSmarty = str_replace("\r", '', $neriaSrcSmartyRaw);
+        if ($neriaSrcSmartyRaw === ''
+            || strpos($neriaSrcSmarty, 'private function clearSmartyCompileCacheIfVersionChanged(): void') === false
+            || strpos($neriaSrcSmarty, "\$this->clearSmartyCompileCacheIfVersionChanged();") === false
+        ) {
+            $offenders[] = "neria.php ne purge plus le cache de compilation Smarty après un changement de version — régression du bug corrigé le 31/08/2026 (round 254 bis) : si PS_SMARTY_FORCE_COMPILE est désactivé sur l'hébergement, un déploiement de nouvelle version du module servirait de nouveau un template .tpl compilé périmé jusqu'à ce qu'un admin le remarque et vide le cache manuellement";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
