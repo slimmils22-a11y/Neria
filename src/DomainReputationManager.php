@@ -324,8 +324,27 @@ class DomainReputationManager
             'timestamp'  => time(),
         ];
 
-        \Configuration::updateValue(self::CONFIG_CACHE, json_encode($report), false, null, $this->idShop);
-        \Configuration::updateValue(self::CONFIG_LAST_CHECK, time(), false, null, $this->idShop);
+        // Round 248 : json_encode() retourne false en cas de donnée non
+        // encodable (défense en profondeur -- la source la plus probable,
+        // le hostname PTR, est désormais assainie dans checkPtr() ci-dessus,
+        // mais d'autres champs de $report pourraient théoriquement poser le
+        // même problème à l'avenir). Écrire false tel quel dans
+        // Configuration::updateValue() le convertit silencieusement en
+        // chaîne vide -- CONFIG_LAST_CHECK ne doit alors PAS être mis à
+        // jour : le laisser à sa valeur précédente (ou absent) permet à
+        // getCachedReport() de retenter runFullCheck() dès le prochain
+        // appel plutôt que de rester bloqué sur un cache vide jusqu'à
+        // l'expiration du TTL de 24h.
+        $encodedReport = json_encode($report);
+        if ($encodedReport === false) {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.domain_reputation_encode_failed', ['domain' => $domain ?: '?']),
+                '', 'DomainReputationManager'
+            );
+        } else {
+            \Configuration::updateValue(self::CONFIG_CACHE, $encodedReport, false, null, $this->idShop);
+            \Configuration::updateValue(self::CONFIG_LAST_CHECK, time(), false, null, $this->idShop);
+        }
 
         $rblHits = count($bl['hits'] ?? []);
         $msgVars = ['domain' => $domain ?: '?', 'score' => $score, 'grade' => $grade];
@@ -518,6 +537,24 @@ class DomainReputationManager
 
         // gethostbyaddr retourne l'IP elle-même si aucun PTR n'existe
         if ($hostname === false || $hostname === $ip) {
+            return ['found' => false, 'hostname' => null];
+        }
+
+        // Round 248 : le hostname PTR est publié par le PROPRIÉTAIRE du
+        // bloc IP inverse -- une donnée exogène, pas garantie UTF-8 valide
+        // ni conforme à la syntaxe d'un nom d'hôte (résolveur mal
+        // configuré, IP recyclée, relai compromis). Sans ce garde,
+        // $report (construit plus bas dans runFullCheck() à partir de la
+        // valeur retournée ici) pouvait contenir un octet UTF-8 invalide,
+        // faisant échouer json_encode($report) SILENCIEUSEMENT (retour
+        // false, jamais vérifié avant l'écriture en Configuration) --
+        // CONFIG_CACHE se retrouvait alors vide alors que CONFIG_LAST_CHECK
+        // était quand même mis à jour, empêchant TOUTE mise en cache
+        // future tant que ce PTR ne changeait pas : ce contrôle DNS
+        // complet (jusqu'à DNS_TIME_BUDGET_SECS de résolutions bloquantes)
+        // se relançait alors à CHAQUE visite front (hookDisplayHeader,
+        // chemin sans cron serveur) au lieu d'une fois par 24h.
+        if (!mb_check_encoding($hostname, 'UTF-8')) {
             return ['found' => false, 'hostname' => null];
         }
 

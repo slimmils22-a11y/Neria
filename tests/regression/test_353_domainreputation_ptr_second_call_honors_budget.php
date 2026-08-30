@@ -46,7 +46,7 @@ function run_test(): array
     neria_assert($src !== false, 'Impossible de lire src/DomainReputationManager.php');
     $posMethod = strpos($src, 'private function checkPtr(string $ip, ?float $deadline = null): array');
     neria_assert($posMethod !== false, "Méthode checkPtr() introuvable — jeu de test invalide");
-    $body = substr($src, $posMethod, 2400);
+    $body = substr($src, $posMethod, 3800);
     $posGethostbyaddr = strpos($body, '@gethostbyaddr($ip)');
     $posGethostbyname = strpos($body, '@gethostbyname($hostname)');
     neria_assert($posGethostbyaddr !== false && $posGethostbyname !== false, "Les deux appels résolveur introuvables — jeu de test invalide");
