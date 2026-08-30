@@ -570,19 +570,23 @@ class SignatureGenerator
                 return true;
             }
             if (file_exists($path)) {
-                return unlink($path);
+                return @unlink($path);
             }
             return true;
         }
 
         // Supprime toutes les signatures de cette boutique
+        // Round 244 : @ -- fichier potentiellement déjà supprimé entre le
+        // glob() et cet unlink() (résiduel même sous le GET_LOCK ajouté
+        // côté appelant : un nettoyage disque externe, ou un appel direct à
+        // delete() hors du chemin verrouillé de neria.php, reste possible).
         $pattern = $this->signaturesPath . "/signature_{$idShop}_*.png";
         $excludeReal = $excludePath !== '' ? realpath($excludePath) : false;
         foreach (glob($pattern) ?: [] as $file) {
             if ($excludeReal !== false && realpath($file) === $excludeReal) {
                 continue;
             }
-            unlink($file);
+            @unlink($file);
         }
 
         return true;
@@ -783,7 +787,18 @@ class SignatureGenerator
     private function ensureDirectoryExists(string $path): void
     {
         if (!is_dir($path)) {
-            mkdir($path, 0755, true);
+            // Round 244 : @ + revérification is_dir() -- sans le GET_LOCK
+            // par boutique ajouté côté appelant (neria.php), deux requêtes
+            // concurrentes passant is_dir() à false simultanément faisaient
+            // échouer le mkdir() de la seconde avec un warning PHP non
+            // suppressé ("File exists"). Le verrou ferme la fenêtre de
+            // course réelle ; @ + revérification reste une défense en
+            // profondeur bon marché (ex: dossier créé entre-temps par un
+            // autre process hors du périmètre du verrou).
+            @mkdir($path, 0755, true);
+            if (!is_dir($path)) {
+                return;
+            }
 
             // Securite : ajoute un index.php vide
             $indexFile = $path . '/index.php';

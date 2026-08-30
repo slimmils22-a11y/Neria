@@ -3272,55 +3272,82 @@ class Neria extends Module
                 $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.signature_missing_founder_name'));
             } else {
                 $idShop = (int) $this->context->shop->id;
-                $sigGenerator = new SignatureGenerator($this);
-                $resolvedSigStyle = null;
-                $path = $sigGenerator->generate($sigName, $sigTitle, $sigStyle, $sigColor, $idShop, $resolvedSigStyle);
+                $db     = Db::getInstance();
 
-                if ($path) {
-                    // Round 145 : supprime les anciens fichiers PNG de cette
-                    // boutique — buildFilename() inclut le style dans le nom
-                    // de fichier (signature_{idShop}_{style}.png), donc un
-                    // changement de style créait un nouveau fichier sans
-                    // jamais supprimer l'ancien (une seule signature active
-                    // par boutique en base, mais accumulation illimitée sur
-                    // le disque). Round 160 : delete() s'exécute désormais
-                    // APRÈS generate() (pas avant) — auparavant, si
-                    // generate() échouait après la suppression (GD
-                    // indisponible, police manquante, disque plein), la
-                    // ligne neria_signature en base restait is_active=1 et
-                    // pointait vers un fichier qui venait d'être effacé :
-                    // tous les emails envoyés ensuite affichaient une image
-                    // de signature cassée (404), sans que l'admin n'ait
-                    // aucune indication que l'ancienne signature FONCTIONNELLE
-                    // avait disparu (juste un message "génération échouée").
-                    // $path (fichier qu'on vient d'écrire) est exclu du
-                    // nettoyage pour ne jamais se supprimer lui-même.
-                    $sigGenerator->delete($idShop, '', $path);
-
-                    $db = Db::getInstance();
-                    // Une seule signature active par boutique — désactive les
-                    // précédentes avant d'insérer la nouvelle (cohérent avec
-                    // EmailRenderer::resolveSignature() qui lit WHERE is_active=1).
-                    $db->execute(
-                        'UPDATE `' . _DB_PREFIX_ . 'neria_signature` SET `is_active` = 0 WHERE `id_shop` = ' . $idShop
-                    );
-                    $db->insert('neria_signature', [
-                        'id_shop'      => $idShop,
-                        'signer_name'  => pSQL($sigName),
-                        'signer_title' => pSQL($sigTitle),
-                        // Round 145 : $resolvedSigStyle (style réellement
-                        // rendu, peut différer de $sigStyle si sa police TTF
-                        // était absente — voir SignatureGenerator::generate()).
-                        'font_style'   => pSQL($resolvedSigStyle ?? $sigStyle),
-                        'color'        => pSQL($sigColor),
-                        'image_path'   => pSQL($path),
-                        'is_active'    => 1,
-                        'date_add'     => date('Y-m-d H:i:s'),
-                        'date_upd'     => date('Y-m-d H:i:s'),
-                    ]);
-                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
-                } else {
+                // Round 244 : generate()+delete()+écriture DB n'étaient
+                // protégés par AUCUN verrou. SignatureGenerator::delete()
+                // sans $style glob TOUS les PNG de la boutique et supprime
+                // tout sauf le fichier qu'on vient d'écrire ($path) — deux
+                // soumissions quasi simultanées de ce formulaire pour LA
+                // MÊME boutique (deux comptes admin actifs, ou double-clic)
+                // avec des styles différents peuvent alors chacune supprimer
+                // le fichier PNG que l'AUTRE vient tout juste d'écrire :
+                // selon l'ordre d'entrelacement, la ligne neria_signature
+                // insérée en dernier peut référencer un image_path déjà
+                // supprimé par le nettoyage de l'autre requête — exactement
+                // la signature cassée (404) que le commentaire round 160
+                // ci-dessous cherche à éviter, mais déclenchée par une
+                // concurrence entre deux requêtes plutôt que par un échec
+                // séquentiel de generate(). GET_LOCK par boutique (même
+                // idiome que MonthlyReportManager::deliverReportLocked(),
+                // round 157) rend cette section critique atomique.
+                $sigLockName = 'neria_signature_' . $idShop;
+                if ((int) $db->getValue("SELECT GET_LOCK('" . pSQL($sigLockName) . "', 5)", false) !== 1) {
                     $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.signature_generation_failed'));
+                } else {
+                    try {
+                        $sigGenerator = new SignatureGenerator($this);
+                        $resolvedSigStyle = null;
+                        $path = $sigGenerator->generate($sigName, $sigTitle, $sigStyle, $sigColor, $idShop, $resolvedSigStyle);
+
+                        if ($path) {
+                            // Round 145 : supprime les anciens fichiers PNG de cette
+                            // boutique — buildFilename() inclut le style dans le nom
+                            // de fichier (signature_{idShop}_{style}.png), donc un
+                            // changement de style créait un nouveau fichier sans
+                            // jamais supprimer l'ancien (une seule signature active
+                            // par boutique en base, mais accumulation illimitée sur
+                            // le disque). Round 160 : delete() s'exécute désormais
+                            // APRÈS generate() (pas avant) — auparavant, si
+                            // generate() échouait après la suppression (GD
+                            // indisponible, police manquante, disque plein), la
+                            // ligne neria_signature en base restait is_active=1 et
+                            // pointait vers un fichier qui venait d'être effacé :
+                            // tous les emails envoyés ensuite affichaient une image
+                            // de signature cassée (404), sans que l'admin n'ait
+                            // aucune indication que l'ancienne signature FONCTIONNELLE
+                            // avait disparu (juste un message "génération échouée").
+                            // $path (fichier qu'on vient d'écrire) est exclu du
+                            // nettoyage pour ne jamais se supprimer lui-même.
+                            $sigGenerator->delete($idShop, '', $path);
+
+                            // Une seule signature active par boutique — désactive les
+                            // précédentes avant d'insérer la nouvelle (cohérent avec
+                            // EmailRenderer::resolveSignature() qui lit WHERE is_active=1).
+                            $db->execute(
+                                'UPDATE `' . _DB_PREFIX_ . 'neria_signature` SET `is_active` = 0 WHERE `id_shop` = ' . $idShop
+                            );
+                            $db->insert('neria_signature', [
+                                'id_shop'      => $idShop,
+                                'signer_name'  => pSQL($sigName),
+                                'signer_title' => pSQL($sigTitle),
+                                // Round 145 : $resolvedSigStyle (style réellement
+                                // rendu, peut différer de $sigStyle si sa police TTF
+                                // était absente — voir SignatureGenerator::generate()).
+                                'font_style'   => pSQL($resolvedSigStyle ?? $sigStyle),
+                                'color'        => pSQL($sigColor),
+                                'image_path'   => pSQL($path),
+                                'is_active'    => 1,
+                                'date_add'     => date('Y-m-d H:i:s'),
+                                'date_upd'     => date('Y-m-d H:i:s'),
+                            ]);
+                            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                        } else {
+                            $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.signature_generation_failed'));
+                        }
+                    } finally {
+                        $db->execute("SELECT RELEASE_LOCK('" . pSQL($sigLockName) . "')");
+                    }
                 }
             }
         }
