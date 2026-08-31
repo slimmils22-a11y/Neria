@@ -8229,6 +8229,40 @@ class HealthCheckManager
             $offenders[] = "QueueManager::processSingle() ne revérifie plus le produit ghost_cart au moment de l'envoi réel — régression du bug corrigé le 31/08/2026 (round 260) : un produit désactivé/supprimé entre la mise en file et l'envoi serait de nouveau proposé à l'achat, avec un prix potentiellement périmé";
         }
 
+        // Round 261 (31/08/2026) : WatchdogManager::sendImmediateAlert()/
+        // sendDailyDigestIfDueLocked() basculaient AdminTranslator::setLang()
+        // (propriété statique, partagée pour tout le process PHP) sans
+        // try/finally — une exception entre le basculement et la
+        // restauration laissait la langue bloquée sur celle de la boutique
+        // pour le reste de la requête/du cron.
+        $wdSrc261 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php');
+        $posImmediate261 = strpos($wdSrc261, 'private function sendImmediateAlert(string $level, string $message, string $template, string $class): void');
+        $posDigestLocked261 = strpos($wdSrc261, 'private function sendDailyDigestIfDueLocked(): void');
+        $immediateBody261 = ($posImmediate261 !== false && $posDigestLocked261 !== false && $posDigestLocked261 > $posImmediate261)
+            ? substr($wdSrc261, $posImmediate261, $posDigestLocked261 - $posImmediate261)
+            : '';
+        $digestBody261 = $posDigestLocked261 !== false ? substr($wdSrc261, $posDigestLocked261, 10500) : '';
+        if ($wdSrc261 === ''
+            || $immediateBody261 === ''
+            || strpos($immediateBody261, "} finally {\n            AdminTranslator::setLang(\$prevLang);\n        }") === false
+            || strpos($digestBody261, "} finally {\n            AdminTranslator::setLang(\$prevLang);\n        }") === false
+        ) {
+            $offenders[] = "WatchdogManager::sendImmediateAlert()/sendDailyDigestIfDueLocked() n'encadrent plus AdminTranslator::setLang() par un try/finally — régression du bug corrigé le 31/08/2026 (round 261) : une exception en cours de rendu laisserait de nouveau la langue de traduction bloquée sur celle de la boutique pour le reste du process";
+        }
+
+        // Round 261 (31/08/2026) : aucun hook Neria n'écoutait la
+        // suppression physique d'une commande PS — les KPIs de revenu/ROI
+        // par campagne restaient surestimés indéfiniment du montant de
+        // toute commande supprimée.
+        $neriaSrc261 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($neriaSrc261 === ''
+            || strpos($neriaSrc261, "'actionObjectOrderDeleteAfter',") === false
+            || strpos($neriaSrc261, 'public function hookActionObjectOrderDeleteAfter(array $params): void') === false
+            || strpos($neriaSrc261, '->adjustConversionRevenueForOrder($idOrder, 0.0);') === false
+        ) {
+            $offenders[] = "neria.php n'enregistre/n'implémente plus le hook actionObjectOrderDeleteAfter — régression du bug corrigé le 31/08/2026 (round 261) : le revenu 'conversion' d'une commande supprimée resterait de nouveau figé indéfiniment, surestimant les KPIs de ROI par campagne";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
