@@ -126,7 +126,29 @@ class Neria extends Module
             // trouve alors rien à faire) — jamais bloquant pour install().
             try {
                 \Module::needUpgrade($this);
-                $this->runUpgradeModule();
+                $result = $this->runUpgradeModule();
+                // Round 257 : Module::runUpgradeModule() (cœur PS) ne lève
+                // JAMAIS d'exception sur l'échec d'un script upgrade-X.php —
+                // il désactive silencieusement le module ($this->disable(),
+                // classes/module/Module.php) et retourne un simple tableau
+                // success=false. Le catch(Throwable) ci-dessous ne voyait
+                // donc jamais cet échec : install() retournait true, PS
+                // affichait "installé avec succès", et le module restait
+                // en réalité désactivé (plus aucun hook, plus aucun email)
+                // sans une seule ligne de log. Même contrôle que l'action
+                // BO manuelle "repair_module_version" plus bas (qui lit
+                // déjà $result['success']), simplement répliqué ici pour
+                // que ce chemin d'échec silencieux du cœur PS laisse au
+                // moins une trace exploitable.
+                if (empty($result['success']) && !empty($result['version_fail'])) {
+                    $this->log(
+                        'install(): réconciliation de schéma post-install échouée sur upgrade-'
+                            . $result['version_fail'] . ' — module désactivé automatiquement par '
+                            . 'Module::runUpgradeModule() (cœur PrestaShop). Utiliser l\'action BO '
+                            . '"repair_module_version" après correction du script d\'upgrade.',
+                        3
+                    );
+                }
             } catch (\Throwable $e) {
                 $this->log('install(): réconciliation de schéma post-install échouée — ' . $e->getMessage(), 2);
             }

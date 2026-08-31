@@ -28,6 +28,10 @@ class CustomerEmailHistoryManager
     const INACTIVE_DAYS  = 60;
     const STORM_WINDOW_HOURS = 2;
     const STORM_THRESHOLD    = 3;
+    // Round 257 : en dessous de ce nombre d'emails envoyés, le taux
+    // d'ouverture n'est pas statistiquement significatif -- voir
+    // computeEngagementBadge().
+    const MIN_BADGE_SAMPLE = 3;
 
     private Neria $module;
     private \Db $db;
@@ -145,6 +149,20 @@ class CustomerEmailHistoryManager
         $opened   = count(array_filter($emails, fn($e) => $e['opened']));
         $rateOpen = round(($opened / $total) * 100);
 
+        // Round 257 : en dessous de ce volume, un taux de 0%/100% n'est
+        // pas significatif -- un client venant de recevoir son 1er email,
+        // pas encore ouvert (quelques minutes/heures), tombait directement
+        // sur le badge "Inactif" (0% d'ouverture), identique à celui d'un
+        // client ayant reçu des dizaines d'emails jamais ouverts.
+        if ($total < self::MIN_BADGE_SAMPLE) {
+            return [
+                'total_sent' => $total,
+                'total_open' => $opened,
+                'rate_open'  => $rateOpen,
+                'level'      => 'insufficient_data',
+            ];
+        }
+
         if ($rateOpen >= 70) {
             $level = 'very_engaged';
         } elseif ($rateOpen >= 40) {
@@ -186,9 +204,24 @@ class CustomerEmailHistoryManager
                 }
             }
 
-            $daysSinceLastOpen = $lastOpen
-                ? (int) floor((time() - strtotime($lastOpen)) / 86400)
-                : (int) floor((time() - strtotime(end($emails)['sent_at'])) / 86400);
+            // Round 257 : TIMESTAMPDIFF calculé côté MySQL (pas time()-
+            // strtotime() côté PHP) -- même piège déjà identifié et corrigé
+            // dans StatsManager::detectMpp() : time() lit l'horloge PHP
+            // (fuseau date.timezone), alors que strtotime($lastOpen)
+            // réinterprète une valeur produite par NOW() MySQL. Si les deux
+            // serveurs ne partagent pas le même fuseau (fréquent en
+            // mutualisé), l'écart décale $daysSinceLastOpen et peut
+            // déclencher/manquer l'alerte "client inactif" au mauvais
+            // moment. Note : contrairement à ce calcul, detectStorm() et
+            // buildCsv() ci-dessous NE SONT PAS concernés par ce piège --
+            // vérifié empiriquement : ils ne font que des différences ou
+            // reformats entre deux valeurs MySQL réinterprétées de la même
+            // façon, ce qui annule tout décalage de fuseau (pas de mélange
+            // avec l'horloge PHP live).
+            $refDate = $lastOpen ?: end($emails)['sent_at'];
+            $daysSinceLastOpen = (int) floor(
+                ((int) $this->db->getValue("SELECT TIMESTAMPDIFF(SECOND, '" . pSQL($refDate) . "', NOW())")) / 86400
+            );
 
             if ($badge['total_sent'] >= 2 && $daysSinceLastOpen >= self::INACTIVE_DAYS) {
                 $alerts[] = [

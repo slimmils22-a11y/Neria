@@ -213,6 +213,8 @@
       <span class="neria-badge neria-badge--accent">{neria_admin key='history.badge_engaged'}</span>
     {elseif $neria_history.badge.level === 'low'}
       <span class="neria-badge neria-badge--neutral">{neria_admin key='history.badge_low'}</span>
+    {elseif $neria_history.badge.level === 'insufficient_data'}
+      <span class="neria-badge neria-badge--neutral">{neria_admin key='history.badge_insufficient_data'}</span>
     {else}
       <span class="neria-badge neria-badge--warn">{neria_admin key='history.badge_inactive'}</span>
     {/if}

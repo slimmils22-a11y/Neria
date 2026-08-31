@@ -27,6 +27,15 @@ class ChurnScoreManager
 {
     const TABLE              = 'neria_churn_score';
     const HIGH_RISK_THRESHOLD = 70;
+    // Round 257 : en dessous de ce volume d'envois sur une période, un taux
+    // d'ouverture (0% ou 100%) n'est pas statistiquement significatif -- 1
+    // seul email non ouvert donnait déjà le pire score possible sur cette
+    // composante (recentRisk/trend au maximum), au même titre qu'un vrai
+    // historique de dizaines d'envois jamais ouverts. Même principe que les
+    // gardes de volume minimum déjà appliquées ailleurs dans le module
+    // (StatsManager::detectAnomalies, MonthlyReportManager HAVING
+    // total_sent >= MIN_SENDS, GoldenHourManager sentCount >= 3).
+    const MIN_SAMPLE_SENDS = 3;
 
     private \Neria $module;
     private \Db    $db;
@@ -356,22 +365,27 @@ class ChurnScoreManager
         }
 
         // Composante 2 — Taux récent inversé (0-30 pts)
-        if ((int) $r['sent_p1'] === 0) {
-            // Aucun envoi dans les 30 derniers jours (client simplement pas
-            // ciblé récemment — segmentation, pause volontaire...) : $rate1
-            // vaut mécaniquement 0.0, ce qui plaçait cette composante à son
-            // maximum (30 pts, "n'ouvre jamais") sans qu'aucune ouverture
-            // manquée ne se soit réellement produite. Même traitement que
-            // la composante Tendance ci-dessous pour sent_p3 === 0 : risque
-            // modéré par défaut plutôt que le pire cas.
+        if ((int) $r['sent_p1'] < self::MIN_SAMPLE_SENDS) {
+            // Round 257 : sent_p1 < MIN_SAMPLE_SENDS (pas seulement === 0)
+            // -- avec 1 ou 2 envois, $rate1 vaut souvent mécaniquement 0.0
+            // ou 1.0, plaçant cette composante à son extrême (30 pts ou
+            // 0 pt) sur un échantillon non significatif. Aucun envoi dans
+            // les 30 derniers jours (client simplement pas ciblé récemment
+            // — segmentation, pause volontaire...) tombe dans le même cas.
+            // Même traitement que la composante Tendance ci-dessous pour
+            // sent_p3 < MIN_SAMPLE_SENDS : risque modéré par défaut plutôt
+            // que le pire (ou le meilleur) cas extrapolé d'un échantillon
+            // trop petit pour être fiable.
             $recentRisk = 15.0;
         } else {
             $recentRisk = (1.0 - $rate1) * 30;
         }
 
         // Composante 3 — Tendance de déclin P3 → P1 (0-30 pts)
-        if ((int) $r['sent_p3'] === 0) {
-            // Pas d'historique 61-90j : client récent, risque modéré par défaut
+        if ((int) $r['sent_p3'] < self::MIN_SAMPLE_SENDS) {
+            // Pas assez d'historique 61-90j (< MIN_SAMPLE_SENDS envois) :
+            // client récent ou peu sollicité sur cette fenêtre, risque
+            // modéré par défaut plutôt qu'un déclin extrapolé d'1-2 emails.
             $trend = 10.0;
         } elseif ($rate3 > 0.0) {
             $decline = max(0.0, $rate3 - $rate1) / $rate3;
