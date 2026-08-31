@@ -8263,6 +8263,24 @@ class HealthCheckManager
             $offenders[] = "neria.php n'enregistre/n'implémente plus le hook actionObjectOrderDeleteAfter — régression du bug corrigé le 31/08/2026 (round 261) : le revenu 'conversion' d'une commande supprimée resterait de nouveau figé indéfiniment, surestimant les KPIs de ROI par campagne";
         }
 
+        // Round 261 (31/08/2026, complément) : EmailRenderer::
+        // reformatProductsHtml() ne reportait pas l'attribut colspan des
+        // lignes de personnalisation multiple (produit par le template
+        // cœur mails/_partials/order_conf_product_list.tpl) sur la ligne
+        // reconstruite — désalignement de colonnes dans le tableau
+        // {products} pour tout produit à plusieurs champs de
+        // personnalisation.
+        $erSrc261 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        $posReformat261 = strpos($erSrc261, 'private function reformatProductsHtml(array &$templateVars): void');
+        $reformatBody261 = $posReformat261 !== false ? substr($erSrc261, $posReformat261, 4300) : '';
+        if ($erSrc261 === ''
+            || $reformatBody261 === ''
+            || strpos($reformatBody261, "getAttribute('colspan')") === false
+            || strpos($reformatBody261, '$colspanAttr') === false
+        ) {
+            $offenders[] = "EmailRenderer::reformatProductsHtml() ne reporte plus l'attribut colspan sur les lignes reconstruites — régression du bug corrigé le 31/08/2026 (round 261) : une ligne de personnalisation multiple (3 <td> physiques = 5 colonnes logiques dans le HTML source du cœur PS) serait de nouveau désalignée avec les lignes produit à 5 colonnes du même tableau {products}";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
