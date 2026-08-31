@@ -4514,7 +4514,11 @@ class HealthCheckManager
                 $offenders[] = "SeasonalCampaignManager::claimSend() introuvable — régression du bug corrigé le 09/08/2026 (round 143) : la réservation atomique anti-doublon a disparu, un client pourrait de nouveau recevoir deux fois la même campagne saisonnière";
             }
             $posRun = strpos($seasSrc143, 'public function runDueCampaigns(): int');
-            $runBody = $posRun !== false ? substr($seasSrc143, $posRun, 4200) : '';
+            // Round 256 : fenêtre élargie 4200→4700 — l'ajout de la
+            // relecture périodique isStillActive() dans la boucle d'envoi
+            // (garde-fou round 256, voir plus bas) a repoussé claimSend()
+            // plus loin dans le corps de la méthode.
+            $runBody = $posRun !== false ? substr($seasSrc143, $posRun, 4700) : '';
             if ($posRun === false || strpos($runBody, 'if (!$this->claimSend($idCustomer, $sentKey, $year)) {') === false) {
                 $offenders[] = "SeasonalCampaignManager::runDueCampaigns() n'appelle plus claimSend() avant l'envoi — régression du bug corrigé le 09/08/2026 (round 143)";
             }
@@ -8075,6 +8079,27 @@ class HealthCheckManager
         $shBody255 = $posSh255 !== false ? substr($ntSrc255, $posSh255, 2200) : '';
         if ($posSh255 === false || strpos($shBody255, "htmlspecialchars(\$href[2], ENT_QUOTES, 'UTF-8')") === false) {
             $offenders[] = "NeriaTools::sanitizeHtml() n'échappe plus l'URL href avant réinjection — régression du durcissement du 31/08/2026 (round 255) : une URL contenant un '&' (fréquent en query string) produirait de nouveau un attribut HTML non conforme (défense en profondeur, pas une réouverture d'exploit d'attribut connu)";
+        }
+
+        // Round 256 (31/08/2026) : SeasonalCampaignManager::runDueCampaigns()
+        // ne relisait `is_active` qu'UNE SEULE FOIS (snapshot getAll() en
+        // tête de méthode), avant une boucle clients non bornée par LIMIT —
+        // un toggle() BO en cours d'envoi était ignoré jusqu'au prochain
+        // passage cron.
+        $scmSrc256Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php');
+        $scmSrc256 = str_replace("\r", '', $scmSrc256Raw);
+        $posLoop256 = strpos($scmSrc256, 'foreach ($customers as $customer) {');
+        $posMailSend256 = strpos($scmSrc256, '$ok = \Mail::Send(');
+        $loopHead256 = ($posLoop256 !== false && $posMailSend256 !== false && $posMailSend256 > $posLoop256)
+            ? substr($scmSrc256, $posLoop256, $posMailSend256 - $posLoop256)
+            : '';
+        if ($scmSrc256Raw === ''
+            || strpos($scmSrc256, 'private function isStillActive(int $idCampaign): bool') === false
+            || $loopHead256 === ''
+            || strpos($loopHead256, '$this->isStillActive($idCampaign)') === false
+            || !preg_match('/!\$this->isStillActive\(\$idCampaign\)\)\s*\{\s*break;/', $loopHead256)
+        ) {
+            $offenders[] = "SeasonalCampaignManager::runDueCampaigns() ne relit plus is_active en cours de boucle — régression du bug corrigé le 31/08/2026 (round 256) : un marchand désactivant une campagne en urgence (toggle() BO) pendant un envoi de masse en cours ne l'interromprait plus avant le prochain passage cron quotidien";
         }
 
         if ($offenders) {
