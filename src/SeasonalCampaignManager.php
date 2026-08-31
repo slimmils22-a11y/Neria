@@ -97,6 +97,25 @@ class SeasonalCampaignManager
         return $row ?: null;
     }
 
+    // Round 256 : `is_active` n'est lu qu'UNE SEULE FOIS dans
+    // runDueCampaigns() (snapshot getAll() en tête de méthode), avant la
+    // boucle des clients éligibles -- laquelle n'est bornée par AUCUN
+    // LIMIT (voir getEligibleCustomers()). Si le marchand clique sur
+    // toggle() (BO) pour stopper en urgence une campagne dont l'envoi est
+    // en cours (ex. plusieurs milliers de clients ciblés), le cron
+    // continue jusqu'au bout du lot déjà chargé en mémoire, ignorant la
+    // désactivation. Ce helper permet une relecture peu coûteuse (une
+    // seule colonne, clé primaire) à intervalle régulier DANS la boucle.
+    private function isStillActive(int $idCampaign): bool
+    {
+        $value = $this->db->getValue(
+            "SELECT is_active FROM `{$this->prefix}" . self::TABLE . "`
+             WHERE id_campaign = " . (int) $idCampaign . "
+               AND id_shop = " . (int) $this->idShop
+        );
+        return $value === false ? false : (bool) $value;
+    }
+
     // Round 254 : `name` (VARCHAR(100)) tronqué explicitement en caractères
     // (mb_substr, pas substr) AVANT écriture, dans create() ET update() --
     // ce champ "nom interne de la campagne" est libre côté BO (aucun
@@ -235,8 +254,19 @@ class SeasonalCampaignManager
                 continue;
             }
             $sentCount = 0;
+            $checkedIndex = 0;
 
             foreach ($customers as $customer) {
+                // Round 256 : relecture périodique de is_active (toutes les
+                // 20 itérations) pour permettre à un toggle() BO en cours
+                // de route d'interrompre l'envoi -- sans LIMIT sur
+                // getEligibleCustomers(), un gros ciblage pouvait continuer
+                // à envoyer pendant plusieurs minutes après désactivation.
+                if ($checkedIndex > 0 && $checkedIndex % 20 === 0 && !$this->isStillActive($idCampaign)) {
+                    break;
+                }
+                $checkedIndex++;
+
                 $idCustomer = (int) $customer['id_customer'];
 
                 // Déduplication annuelle — id_shop obligatoire : sans lui,
