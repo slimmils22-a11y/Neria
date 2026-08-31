@@ -425,6 +425,36 @@ class QueueManager
             $idLang = (int) ($row['id_lang'] ?? \Configuration::get('PS_LANG_DEFAULT'));
             $idShop = (int) ($row['id_shop'] ?? 1);
 
+            // Round 260 : {product_price}/{product_name}/{product_image} de
+            // ghost_cart sont capturés par BehavioralCronManager::
+            // sendGhostCarts() AU MOMENT DE LA MISE EN FILE, pas à l'envoi
+            // réel -- ce template est le seul du module à faire transiter
+            // un prix/produit par la fenêtre d'achat individuelle
+            // (NERIA_PURCHASE_WINDOW_ENABLED), avec un délai pouvant
+            // atteindre ~24h (nextOccurrence()). Sans revérification ici,
+            // un changement de prix (soldes, correction) entre-temps
+            // envoyait un prix périmé au client, et un produit désactivé/
+            // supprimé restait proposé à l'achat -- contrairement à
+            // WaitlistManager::notifyProduct(), qui revérifie déjà
+            // explicitement $product->active au moment de l'envoi réel
+            // (round 184) pour la même classe de risque. ref_id porte bien
+            // id_product pour CE template précis (BehavioralCronManager::
+            // send('ghost_cart', $r, [...], $idProduct)) -- contrairement à
+            // d'autres templates où ref_id est un identifiant de dédup
+            // générique sans rapport avec un produit (cf. commentaire
+            // round 190 plus bas sur $cdIdOrder).
+            if ((string) $row['template'] === 'ghost_cart' && (int) $row['ref_id'] > 0) {
+                $ghostProduct = new \Product((int) $row['ref_id'], false, $idLang, $idShop);
+                if (!\Validate::isLoadedObject($ghostProduct) || !$ghostProduct->active) {
+                    return $this->markQueueFailed($id, 'product_unavailable');
+                }
+                $vars['{product_price}'] = \NeriaTools::displayPrice(
+                    (float) $ghostProduct->price,
+                    new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop)),
+                    $idLang
+                );
+            }
+
             $ctx  = \Context::getContext();
             $link = ($ctx && $ctx->link) ? $ctx->link : null;
 
