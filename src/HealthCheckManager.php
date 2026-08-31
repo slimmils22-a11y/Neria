@@ -8185,6 +8185,31 @@ class HealthCheckManager
             $offenders[] = "GdprAuditManager::purgeCustomerData() n'est plus encadrée par une transaction (START TRANSACTION/COMMIT/ROLLBACK) avec vérification systématique de chaque DELETE (execOrFail) — régression du bug corrigé le 31/08/2026 (round 258) : un échec SQL en cours de purge RGPD (ex. verrou concurrent avec la purge automatique par ancienneté) laisserait de nouveau certaines tables purgées et d'autres non, tout en retournant un succès silencieux au marchand";
         }
 
+        // Round 259 (31/08/2026) : QueueManager::enqueue()/enqueueAt()
+        // n'importe jamais un échec silencieux de json_encode() (retour
+        // false sur séquence UTF-8 invalide) — sans repli explicite,
+        // pSQL(false) était castée en chaîne vide et stockée telle quelle,
+        // perdant silencieusement toutes les variables dynamiques de
+        // l'email (bloc upsell, montant...) sans aucune trace Watchdog.
+        $qmSrc259Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        $qmSrc259 = str_replace("\r", '', $qmSrc259Raw);
+        if ($qmSrc259Raw === ''
+            || substr_count($qmSrc259, "\$varsJsonEncoded = json_encode(\$extraVars, JSON_UNESCAPED_UNICODE);") < 2
+            || substr_count($qmSrc259, "if (\$varsJsonEncoded === false) {") < 2
+            || substr_count($qmSrc259, "watchdog.queue_vars_encode_failed") < 2
+        ) {
+            $offenders[] = "QueueManager::enqueue()/enqueueAt() ne gère plus l'échec silencieux de json_encode() sur les variables d'email — régression du bug corrigé le 31/08/2026 (round 259) : une séquence UTF-8 invalide dans les variables ferait de nouveau disparaître silencieusement tout le contenu dynamique de l'email, sans trace Watchdog";
+        }
+
+        // Round 259 (31/08/2026) : SeasonalCampaignManager::
+        // getEligibleCustomers() ignorait totalement customer.newsletter
+        // (flag natif PrestaShop), contrairement à son moteur jumeau
+        // CalendarManager qui le croise déjà correctement.
+        $scmSrc259 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php');
+        if ($scmSrc259 === '' || strpos($scmSrc259, 'AND c.newsletter = 1') === false) {
+            $offenders[] = "SeasonalCampaignManager::getEligibleCustomers() ne filtre plus sur c.newsletter — régression du bug corrigé le 31/08/2026 (round 259) : un client ayant décoché la case native \"Newsletter\" de son compte (sans jamais être passé par le centre de préférences Neria) recevrait de nouveau les campagnes saisonnières malgré sa désinscription explicite via ce canal légitime";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
