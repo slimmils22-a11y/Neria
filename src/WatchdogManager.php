@@ -361,6 +361,19 @@ class WatchdogManager
         $prevLang = AdminTranslator::currentLang();
         AdminTranslator::setLang($this->getShopLang());
 
+        // Round 261 : try/finally -- sans lui, une exception levée entre
+        // setLang() et sa restauration (ex. échec SQL improbable mais
+        // possible sur un appel ultérieur, corruption de données passée à
+        // NeriaTools::formatDate()) laissait AdminTranslator::$lang
+        // (propriété STATIQUE) bloqué sur la langue de LA BOUTIQUE pour le
+        // reste du process PHP entier -- pas seulement cette alerte -- donc
+        // potentiellement tous les rendus Neria suivants dans la même
+        // requête/cron. Même correctif déjà appliqué à PageSpeedManager/
+        // SeoApiManager (round 240) et MonthlyReportManager (round 239)
+        // pour ce pattern identique, jamais porté ici alors que ce fichier
+        // est le point d'échec le plus visité du module (wd()->error()/
+        // critical() appelés depuis presque tous les autres Manager).
+        try {
         // mail() natif n'assainit pas les en-têtes lui-même — retire tout
         // retour à la ligne des valeurs interpolées dans le sujet/en-têtes.
         // Round 115 : $this->idShop transmis explicitement — même piège que
@@ -426,8 +439,9 @@ class WatchdogManager
                 : '')
             . '<p style="margin-top:20px;font-size:11px;color:#aaa;">' . AdminTranslator::t('wd_alert.footer') . '</p>'
             . '</div></div></body></html>';
-
-        AdminTranslator::setLang($prevLang);
+        } finally {
+            AdminTranslator::setLang($prevLang);
+        }
 
         $fromEmail = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_EMAIL', null, null, $this->idShop) ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST));
         $headers   = "MIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n"
@@ -534,6 +548,13 @@ class WatchdogManager
         $prevLang = AdminTranslator::currentLang();
         AdminTranslator::setLang($this->getShopLang());
 
+        // Round 261 : try/finally -- même correctif que sendImmediateAlert()
+        // ci-dessus, d'autant plus nécessaire ici qu'une vraie requête SQL
+        // (executeS() ci-dessous) s'exécute entre setLang() et sa
+        // restauration -- un échec DB (deadlock, perte de connexion) y
+        // laisserait AdminTranslator::$lang (propriété statique) bloqué sur
+        // la langue de la boutique pour le reste du process entier.
+        try {
         // Round 115 : $this->idShop transmis explicitement (même piège que
         // sendImmediateAlert() ci-dessus).
         $shopName   = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_NAME', null, null, $this->idShop));
@@ -613,8 +634,9 @@ class WatchdogManager
                 : '')
             . '<p style="margin-top:20px;font-size:11px;color:#aaa;">' . AdminTranslator::t('wd_digest.footer') . '</p>'
             . '</div></div></body></html>';
-
-        AdminTranslator::setLang($prevLang);
+        } finally {
+            AdminTranslator::setLang($prevLang);
+        }
 
         $fromEmail = str_replace(["\r", "\n"], '', (string) \Configuration::get('PS_SHOP_EMAIL', null, null, $this->idShop) ?: 'noreply@' . parse_url($shopDomain, PHP_URL_HOST));
         $headers   = "MIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n"

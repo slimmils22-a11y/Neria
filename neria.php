@@ -39,7 +39,7 @@ class Neria extends Module
     // ============================================================
 
     /** Version courante du module */
-    const VERSION = '1.0.43';
+    const VERSION = '1.0.44';
 
     /** Préfixe de toutes les clés Configuration::get() du module */
     const CONFIG_PREFIX = 'NERIA_';
@@ -292,6 +292,14 @@ class Neria extends Module
             'actionOrderSlipAdd',
             // return_received : retour marchandise enregistré
             'actionObjectOrderReturnAddAfter',
+
+            // ── Suppression physique de commande (round 261) ──────
+            // Ramène à 0 le revenu 'conversion' attribué à cette commande
+            // dans neria_stat -- sans ce hook, aucun mécanisme n'existait
+            // pour une suppression (contrairement à actionOrderSlipAdd, qui
+            // gère déjà le remboursement/avoir) : les KPIs de revenu/ROI par
+            // campagne restaient surestimés indéfiniment.
+            'actionObjectOrderDeleteAfter',
 
             // ── Certificat d'authenticité : bloc fiche commande ───
             'displayAdminOrderMainBottom',
@@ -948,6 +956,38 @@ class Neria extends Module
                 return;
             }
             (new OrderTriggersManager($this))->handleReturn($orderReturn);
+        }, $this);
+    }
+
+    /**
+     * Round 261 : suppression physique d'une commande PS (BO > Commandes >
+     * Supprimer, différent d'une annulation/remboursement qui garde la
+     * ligne en base). Ramène à 0 le revenu 'conversion' attribué à cette
+     * commande dans neria_stat -- même mécanisme que
+     * StatsManager::adjustConversionRevenueForOrder(), déjà utilisé par
+     * OrderTriggersManager::handleRefund() pour un remboursement réel, mais
+     * jamais câblé sur la suppression. Sans ce hook, aucun mécanisme
+     * n'existait : les KPIs de revenu/ROI par campagne (dashboard,
+     * tendances, ABTest) restaient surestimés indéfiniment du montant de
+     * toute commande supprimée, contrairement à
+     * MonthlyReportManager::getRevenueByTemplate() qui, lui, fait un JOIN
+     * live vers ps_orders et s'auto-corrige déjà correctement.
+     */
+    public function hookActionObjectOrderDeleteAfter(array $params): void
+    {
+        NeriaErrorHandler::wrapHookVoid('hookActionObjectOrderDeleteAfter', function () use ($params): void {
+            if (!class_exists('StatsManager')) {
+                return;
+            }
+            $order = $params['object'] ?? null;
+            if (!$order instanceof Order) {
+                return;
+            }
+            $idOrder = (int) $order->id;
+            if ($idOrder <= 0) {
+                return;
+            }
+            (new StatsManager($this))->adjustConversionRevenueForOrder($idOrder, 0.0);
         }, $this);
     }
 

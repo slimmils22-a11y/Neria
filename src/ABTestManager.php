@@ -884,13 +884,19 @@ class ABTestManager
         // correctif.
         $result = $this->db->execute($sql);
 
+        // Round 261 : try/finally -- même correctif de cohérence que
+        // WatchdogManager::sendImmediateAlert()/sendDailyDigestIfDueLocked()
+        // pour ce pattern setLang()/restauration.
         $prevLang = \AdminTranslator::currentLang();
         \AdminTranslator::setLang(\WatchdogManager::shopLang($this->idShop));
-        $winnerLabel = $winner !== ''
-            ? \AdminTranslator::tVars('watchdog.abtest_winner_label', ['winner' => $winner, 'confidence' => $confidence])
-            : \AdminTranslator::t('watchdog.abtest_no_winner_label');
-        $appliedLabel = $applied ? \AdminTranslator::t('watchdog.abtest_applied_label') : '';
-        \AdminTranslator::setLang($prevLang);
+        try {
+            $winnerLabel = $winner !== ''
+                ? \AdminTranslator::tVars('watchdog.abtest_winner_label', ['winner' => $winner, 'confidence' => $confidence])
+                : \AdminTranslator::t('watchdog.abtest_no_winner_label');
+            $appliedLabel = $applied ? \AdminTranslator::t('watchdog.abtest_applied_label') : '';
+        } finally {
+            \AdminTranslator::setLang($prevLang);
+        }
 
         if ($result !== false) {
             $this->wd()->info(
