@@ -64,7 +64,28 @@ class QueueManager
         $idLang    = (int) ($customer['id_lang'] ?? \Configuration::get('PS_LANG_DEFAULT'));
         $idShop    = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
         $toName    = trim(($customer['firstname'] ?? '') . ' ' . ($customer['lastname'] ?? ''));
-        $varsJson  = json_encode($extraVars, JSON_UNESCAPED_UNICODE);
+        $varsJsonEncoded = json_encode($extraVars, JSON_UNESCAPED_UNICODE);
+        // Round 259 : json_encode() renvoie `false` (silencieusement, sans
+        // exception) si $extraVars contient une séquence d'octets UTF-8
+        // invalide (données produit/client mal saisies ou importées depuis
+        // un autre système) — même piège déjà géré ailleurs dans le module
+        // (WebhookManager::trigger(), StatsManager::buildSnapshot()), mais
+        // jamais porté ici. Sans ce repli, `pSQL(false)` était castée en
+        // chaîne vide et stockée telle quelle en base : l'email partait
+        // quand même via processQueue(), mais TOUTES les variables
+        // dynamiques (bloc upsell, montant, nom de produit...) disparaissaient
+        // silencieusement, sans aucune trace Watchdog.
+        if ($varsJsonEncoded === false) {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.queue_vars_encode_failed', [
+                    'template' => $template,
+                    'email'    => $customer['email'] ?? '?',
+                ]),
+                $template,
+                'QueueManager'
+            );
+        }
+        $varsJson = $varsJsonEncoded !== false ? $varsJsonEncoded : '{}';
 
         // INSERT IGNORE appuyé sur la contrainte UNIQUE (id_customer,
         // template, ref_id) — cf. upgrade-1.0.36.php. Auparavant un simple
@@ -146,7 +167,23 @@ class QueueManager
         $idLang   = (int) ($customer['id_lang'] ?? \Configuration::get('PS_LANG_DEFAULT'));
         $idShop   = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
         $toName   = trim(($customer['firstname'] ?? '') . ' ' . ($customer['lastname'] ?? ''));
-        $varsJson = json_encode($extraVars, JSON_UNESCAPED_UNICODE);
+        $varsJsonEncoded = json_encode($extraVars, JSON_UNESCAPED_UNICODE);
+        // Round 259 : même repli qu'enqueue() ci-dessus sur un échec
+        // silencieux de json_encode() (séquence UTF-8 invalide dans
+        // $extraVars) — sans lui, $varsJson=false était castée en chaîne
+        // vide par pSQL(), perdant silencieusement toutes les variables
+        // dynamiques de l'envoi manuel planifié.
+        if ($varsJsonEncoded === false) {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.queue_vars_encode_failed', [
+                    'template' => $template,
+                    'email'    => $customer['email'] ?? '?',
+                ]),
+                $template,
+                'QueueManager'
+            );
+        }
+        $varsJson = $varsJsonEncoded !== false ? $varsJsonEncoded : '{}';
 
         // INSERT IGNORE (appuyé sur la même contrainte UNIQUE (id_customer,
         // template, ref_id, id_shop) qu'enqueue(), cf. upgrade-1.0.36.php) +

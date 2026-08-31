@@ -296,13 +296,17 @@ class SeasonalCampaignManager
                     $link     = \Context::getContext()->link;
                     $template = $isGiftMode ? 'gift_ideas' : $campaign['template'];
 
-                    // getEligibleCustomers() ne filtre QUE sur les critères de
-                    // ciblage (genre/langue/âge/segment) — aucun filtre de
-                    // préférence, pas même le flag newsletter global. Sans ce
-                    // contrôle, un client désabonné recevait quand même
-                    // n'importe quelle campagne saisonnière correspondant à
-                    // son ciblage. Même garde-fou que
-                    // BehavioralCronManager/SegmentManager/CalendarManager.
+                    // getEligibleCustomers() filtre déjà sur les critères de
+                    // ciblage (genre/langue/âge/segment) ET c.newsletter = 1
+                    // (round 259) ; ce contrôle PreferencesManager, lui,
+                    // couvre la catégorie de préférence Neria dédiée
+                    // (granularité par type de campagne, distincte du flag
+                    // newsletter global). Sans lui, un client désabonné
+                    // spécifiquement de cette catégorie (mais toujours
+                    // newsletter=1) recevait quand même n'importe quelle
+                    // campagne saisonnière correspondant à son ciblage. Même
+                    // garde-fou que BehavioralCronManager/SegmentManager/
+                    // CalendarManager.
                     if (class_exists('PreferencesManager')
                         && !(new \PreferencesManager($this->module))->isAllowed($idCustomer, $template, $this->idShop)
                     ) {
@@ -493,15 +497,30 @@ class SeasonalCampaignManager
         // fuite de ciblage cross-boutique (RGPD/branding), même avec un
         // segment renseigné (le JOIN restreint mais ne remplace pas un
         // filtre client manquant sur ses propres colonnes).
+        // Round 259 : c.newsletter = 1 -- avant, seul PreferencesManager::
+        // isAllowed() (catégorie Neria dédiée, opt-in par défaut si aucune
+        // ligne n'existe) était revérifié juste avant l'envoi, jamais ce
+        // flag natif PrestaShop. Un client ayant décoché la case native
+        // "Newsletter" sur son compte (ou en BO), sans jamais être passé
+        // par le lien/centre de préférences Neria (donc sans ligne
+        // neria_preferences pour lui), restait donc opt-in par défaut côté
+        // Neria et continuait de recevoir les campagnes saisonnières malgré
+        // sa désinscription explicite via ce canal légitime -- exactement
+        // le signal que CalendarManager::getEligibleCustomers() croise déjà
+        // correctement (c.newsletter = 1), mais que ce moteur jumeau avait
+        // omis, contrairement à ce que son propre commentaire plus bas
+        // (bloc isAllowed()) décrivait déjà comme un risque ("aucun filtre
+        // de préférence, pas même le flag newsletter global").
         return $this->db->executeS(
             "SELECT DISTINCT c.id_customer, c.id_lang, c.firstname, c.lastname, c.email
              FROM `{$this->prefix}customer` c
              {$joins}
-             WHERE c.active   = 1
-               AND c.deleted  = 0
-               AND c.is_guest = 0
-               AND c.email    != ''
-               AND c.id_shop  = " . (int) $this->idShop . "
+             WHERE c.active     = 1
+               AND c.deleted    = 0
+               AND c.is_guest   = 0
+               AND c.email      != ''
+               AND c.newsletter = 1
+               AND c.id_shop    = " . (int) $this->idShop . "
                {$whereStr}
              ORDER BY c.id_customer ASC"
         ) ?: [];
