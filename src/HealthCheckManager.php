@@ -8164,6 +8164,27 @@ class HealthCheckManager
             $offenders[] = "CustomerEmailHistoryManager::computeAlerts() ne calcule plus \$daysSinceLastOpen via TIMESTAMPDIFF() côté MySQL — régression du bug corrigé le 31/08/2026 (round 257) : un décalage de fuseau horaire entre PHP et MySQL fausserait de nouveau le déclenchement de l'alerte 'client inactif'";
         }
 
+        // Round 258 (31/08/2026) : GdprAuditManager::purgeCustomerData()
+        // enchaînait 6 blocs DELETE sur des tables différentes sans
+        // transaction ET sans vérifier le retour d'aucun execute() — un
+        // échec SQL en cours de route (deadlock avec la purge automatique
+        // par ancienneté, qui touche les mêmes tables) laissait une purge
+        // RGPD partielle silencieusement comptée comme un succès complet.
+        $gdprSrc258 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        $posPurge258 = strpos($gdprSrc258, 'public function purgeCustomerData(int $idCustomer, string $email): int');
+        $posExecOrFail258 = $posPurge258 !== false ? strpos($gdprSrc258, 'private function execOrFail(string $sql, string $context): void', $posPurge258) : false;
+        $purgeBody258 = ($posPurge258 !== false && $posExecOrFail258 !== false && $posExecOrFail258 > $posPurge258)
+            ? substr($gdprSrc258, $posPurge258, $posExecOrFail258 - $posPurge258)
+            : '';
+        if ($purgeBody258 === ''
+            || strpos($purgeBody258, "\$this->db->execute('START TRANSACTION');") === false
+            || strpos($purgeBody258, "\$this->db->execute('COMMIT');") === false
+            || strpos($purgeBody258, "\$this->db->execute('ROLLBACK');") === false
+            || substr_count($purgeBody258, '$this->execOrFail(') < 6
+        ) {
+            $offenders[] = "GdprAuditManager::purgeCustomerData() n'est plus encadrée par une transaction (START TRANSACTION/COMMIT/ROLLBACK) avec vérification systématique de chaque DELETE (execOrFail) — régression du bug corrigé le 31/08/2026 (round 258) : un échec SQL en cours de purge RGPD (ex. verrou concurrent avec la purge automatique par ancienneté) laisserait de nouveau certaines tables purgées et d'autres non, tout en retournant un succès silencieux au marchand";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
