@@ -814,7 +814,30 @@ class GdprAuditManager
      */
     public function purgeCustomerData(int $idCustomer, string $email): int
     {
+        // Round 258 : l'ensemble de cette méthode encadre désormais TOUTES
+        // les suppressions dans une transaction START TRANSACTION/COMMIT/
+        // ROLLBACK, avec vérification explicite du retour de CHAQUE
+        // execute() -- même piège que TranslationInstaller (round 140/204) :
+        // avant, un DELETE pouvait échouer (deadlock, verrou transitoire
+        // sous charge concurrente avec la purge automatique par ancienneté,
+        // NERIA_GDPR_AUTO_PURGE_ENABLED, qui touche les MÊMES tables
+        // neria_certificate/neria_attribution) SANS que son retour soit
+        // vérifié -- $total était quand même incrémenté du $count
+        // pré-calculé, et purgeCustomerData() retournait un succès complet
+        // au marchand alors qu'une partie des données personnelles du
+        // client (potentiellement neria_certificate, qui contient son nom
+        // en clair) n'avait en réalité JAMAIS été supprimée. Un droit à
+        // l'effacement RGPD confirmé au marchand mais partiellement non
+        // honoré, sans aucune trace. Toute table InnoDB (défaut PS) rend
+        // ce module transactionnellement cohérent : soit la purge complète
+        // réussit, soit rien n'est modifié et l'échec remonte bruyamment
+        // (exception, catchée et journalisée par
+        // NeriaErrorHandler::wrapHookVoid() côté appelant) plutôt qu'un
+        // succès silencieux et faux.
         $total = 0;
+        $this->db->execute('START TRANSACTION');
+
+        try {
         foreach (self::getPiiTablesByCustomer() as $table => $col) {
             $full = _DB_PREFIX_ . $table;
             // Vérifie que la table existe avant de DELETE
@@ -833,8 +856,9 @@ class GdprAuditManager
                 false
             );
             if ($count > 0) {
-                $this->db->execute(
-                    "DELETE FROM `{$full}` WHERE `{$col}` = " . (int) $idCustomer
+                $this->execOrFail(
+                    "DELETE FROM `{$full}` WHERE `{$col}` = " . (int) $idCustomer,
+                    $table
                 );
                 $total += $count;
             }
@@ -872,8 +896,9 @@ class GdprAuditManager
                     false
                 );
                 if ($n > 0) {
-                    $this->db->execute(
-                        "DELETE FROM `{$prefTable}` WHERE `email` = '{$emailSql}' AND `id_customer` = " . (int) $idCustomer
+                    $this->execOrFail(
+                        "DELETE FROM `{$prefTable}` WHERE `email` = '{$emailSql}' AND `id_customer` = " . (int) $idCustomer,
+                        'neria_preferences'
                     );
                     $total += $n;
                 }
@@ -885,7 +910,7 @@ class GdprAuditManager
                 // Round 214 : $use_cache=false, même risque.
                 $n = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$bouncesTable}` WHERE `email` = '{$emailSql}'", false);
                 if ($n > 0) {
-                    $this->db->execute("DELETE FROM `{$bouncesTable}` WHERE `email` = '{$emailSql}'");
+                    $this->execOrFail("DELETE FROM `{$bouncesTable}` WHERE `email` = '{$emailSql}'", 'neria_bounces');
                     $total += $n;
                 }
             }
@@ -913,12 +938,13 @@ class GdprAuditManager
                 false
             );
             if ($n > 0) {
-                $this->db->execute(
+                $this->execOrFail(
                     "DELETE FROM `{$fullCert}`
                      WHERE id_customer = " . (int) $idCustomer . "
                         OR id_order IN (
                             SELECT id_order FROM `" . _DB_PREFIX_ . "orders` WHERE id_customer = " . (int) $idCustomer . "
-                        )"
+                        )",
+                    'neria_certificate'
                 );
                 $total += $n;
             }
@@ -939,10 +965,11 @@ class GdprAuditManager
                 false
             );
             if ($n > 0) {
-                $this->db->execute(
+                $this->execOrFail(
                     "DELETE na FROM `{$fullAttr}` na
                      INNER JOIN `" . _DB_PREFIX_ . "orders` o ON o.id_order = na.id_order
-                     WHERE o.id_customer = " . (int) $idCustomer
+                     WHERE o.id_customer = " . (int) $idCustomer,
+                    'neria_attribution'
                 );
                 $total += $n;
             }
@@ -995,15 +1022,40 @@ class GdprAuditManager
                     }
                 }
                 if (!empty($idsToDelete)) {
-                    $this->db->execute(
-                        "DELETE FROM `{$fullWh}` WHERE `id_webhook` IN (" . implode(',', $idsToDelete) . ")"
+                    $this->execOrFail(
+                        "DELETE FROM `{$fullWh}` WHERE `id_webhook` IN (" . implode(',', $idsToDelete) . ")",
+                        'neria_webhook_queue'
                     );
                     $total += count($idsToDelete);
                 }
             }
         }
 
+            $this->db->execute('COMMIT');
+        } catch (\Throwable $e) {
+            $this->db->execute('ROLLBACK');
+
+            throw $e;
+        }
+
         return $total;
+    }
+
+    /**
+     * Round 258 : exécute un DELETE et lève une exception si l'exécution
+     * échoue (Db::execute() de PrestaShop renvoie simplement `false` sur
+     * échec, sans exception) -- utilisé exclusivement dans
+     * purgeCustomerData() pour garantir qu'aucun échec SQL individuel ne
+     * puisse passer inaperçu et gonfler silencieusement le total renvoyé
+     * comme "succès" au marchand.
+     */
+    private function execOrFail(string $sql, string $context): void
+    {
+        if (!$this->db->execute($sql)) {
+            throw new \RuntimeException(
+                "GdprAuditManager::purgeCustomerData() : échec SQL sur '{$context}' — " . $this->db->getMsgError()
+            );
+        }
     }
 
     // ============================================================
