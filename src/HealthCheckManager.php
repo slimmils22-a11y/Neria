@@ -8102,6 +8102,68 @@ class HealthCheckManager
             $offenders[] = "SeasonalCampaignManager::runDueCampaigns() ne relit plus is_active en cours de boucle — régression du bug corrigé le 31/08/2026 (round 256) : un marchand désactivant une campagne en urgence (toggle() BO) pendant un envoi de masse en cours ne l'interromprait plus avant le prochain passage cron quotidien";
         }
 
+        // Round 257 (31/08/2026) : neria.php::install() ne lisait pas le
+        // retour de Module::runUpgradeModule() (cœur PS) — un échec
+        // silencieux d'upgrade (désactivation automatique du module par le
+        // cœur, sans exception) n'était donc jamais loggué.
+        $neriaSrc257 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $posInstall257 = strpos($neriaSrc257, 'public function install(): bool');
+        $posUninstall257 = $posInstall257 !== false ? strpos($neriaSrc257, '// DÉSINSTALLATION', $posInstall257) : false;
+        $installBody257 = ($posInstall257 !== false && $posUninstall257 !== false && $posUninstall257 > $posInstall257)
+            ? substr($neriaSrc257, $posInstall257, $posUninstall257 - $posInstall257)
+            : '';
+        if ($neriaSrc257 === ''
+            || $installBody257 === ''
+            || strpos($installBody257, '$result = $this->runUpgradeModule();') === false
+            || strpos($installBody257, "empty(\$result['success']) && !empty(\$result['version_fail'])") === false
+        ) {
+            $offenders[] = "neria.php::install() ne détecte plus l'échec silencieux d'un script upgrade-X.php — régression du bug corrigé le 31/08/2026 (round 257) : Module::runUpgradeModule() (cœur PS) désactive le module sans jamais lever d'exception, install() retournerait de nouveau true sans aucune trace exploitable pendant que le module reste réellement désactivé (plus aucun email envoyé)";
+        }
+
+        // Round 257 (31/08/2026) : ChurnScoreManager::computeScore() plaçait
+        // ses composantes recentRisk/trend à leur extrême sur un échantillon
+        // d'1 seul email par période, sans garde de volume minimum.
+        $churnSrc257Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php');
+        $churnSrc257 = str_replace("\r", '', $churnSrc257Raw);
+        if ($churnSrc257Raw === ''
+            || strpos($churnSrc257, 'const MIN_SAMPLE_SENDS = 3;') === false
+            || substr_count($churnSrc257, "< self::MIN_SAMPLE_SENDS") < 2
+        ) {
+            $offenders[] = "ChurnScoreManager::computeScore() n'applique plus de garde de volume minimum (MIN_SAMPLE_SENDS) sur recentRisk/trend — régression du bug corrigé le 31/08/2026 (round 257) : un client avec 1-2 emails par période obtiendrait de nouveau un score de désabonnement extrême (≈100), trompeur pour une alerte affichée sur sa fiche client BO";
+        }
+
+        // Round 257 (31/08/2026) : CustomerEmailHistoryManager::
+        // computeEngagementBadge() ne gardait que le cas total===0, badgeant
+        // "Inactif" dès 1 email non ouvert.
+        $cehmSrc257Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CustomerEmailHistoryManager.php');
+        $cehmSrc257 = str_replace("\r", '', $cehmSrc257Raw);
+        if ($cehmSrc257Raw === ''
+            || strpos($cehmSrc257, 'const MIN_BADGE_SAMPLE = 3;') === false
+            || strpos($cehmSrc257, "if (\$total < self::MIN_BADGE_SAMPLE) {") === false
+            || strpos($cehmSrc257, "'level'      => 'insufficient_data',") === false
+        ) {
+            $offenders[] = "CustomerEmailHistoryManager::computeEngagementBadge() n'applique plus de seuil minimum (MIN_BADGE_SAMPLE) avant de badger un client — régression du bug corrigé le 31/08/2026 (round 257) : un client venant de recevoir son 1er email (pas encore ouvert) serait de nouveau étiqueté 'Inactif', identique à un client à l'historique conséquent jamais ouvert";
+        }
+        $tplSrc257 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/_customer_history_content.tpl');
+        if ($tplSrc257 === '' || strpos($tplSrc257, "\$neria_history.badge.level === 'insufficient_data'") === false) {
+            $offenders[] = "_customer_history_content.tpl n'affiche plus de badge dédié pour le niveau 'insufficient_data' — régression du bug corrigé le 31/08/2026 (round 257) : ce niveau retomberait dans le {else} du template, réaffichant le badge 'Inactif' pourtant censé être évité";
+        }
+
+        // Round 257 (31/08/2026) : CustomerEmailHistoryManager::
+        // computeAlerts() calculait $daysSinceLastOpen via time()-
+        // strtotime() côté PHP (dérive possible avec l'horloge MySQL).
+        $posAlerts257 = strpos($cehmSrc257, 'public function computeAlerts(array $emails, array $badge): array');
+        $posStorm257 = $posAlerts257 !== false ? strpos($cehmSrc257, 'private function detectStorm', $posAlerts257) : false;
+        $alertsBody257 = ($posAlerts257 !== false && $posStorm257 !== false && $posStorm257 > $posAlerts257)
+            ? substr($cehmSrc257, $posAlerts257, $posStorm257 - $posAlerts257)
+            : '';
+        if ($alertsBody257 === ''
+            || strpos($alertsBody257, 'time() - strtotime(') !== false
+            || strpos($alertsBody257, 'TIMESTAMPDIFF(SECOND,') === false
+        ) {
+            $offenders[] = "CustomerEmailHistoryManager::computeAlerts() ne calcule plus \$daysSinceLastOpen via TIMESTAMPDIFF() côté MySQL — régression du bug corrigé le 31/08/2026 (round 257) : un décalage de fuseau horaire entre PHP et MySQL fausserait de nouveau le déclenchement de l'alerte 'client inactif'";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
