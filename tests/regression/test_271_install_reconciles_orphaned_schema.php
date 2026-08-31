@@ -30,7 +30,10 @@ function run_test(): array
 
     $posFn = strpos($src, 'public function install(): bool');
     neria_assert($posFn !== false, 'install() introuvable — jeu de test invalide');
-    $body = substr($src, $posFn, 2000);
+    // Round 257 : fenêtre élargie 2000→3700 — l'ajout de la détection de
+    // l'échec silencieux d'upgrade (garde-fou round 257) a repoussé le
+    // catch(\Throwable) plus loin dans le corps de install().
+    $body = substr($src, $posFn, 3700);
 
     neria_assert(
         strpos($body, 'if ($ok) {') !== false,

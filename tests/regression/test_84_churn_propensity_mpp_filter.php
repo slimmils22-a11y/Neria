@@ -12,12 +12,20 @@
  * son risque de désabonnement (ChurnScoreManager) et gonflant à tort son
  * score de propension à l'achat (PropensityScoreManager).
  *
- * Test comportemental réel : un client de test avec 1 email envoyé et 1
- * "ouverture" MPP (is_mpp=1) dans les 30 derniers jours, aucune vraie
- * ouverture. Avec le correctif, il doit être classé À RISQUE (score de
- * churn élevé) et son engagement ne doit PAS être gonflé par l'ouverture
- * MPP — sans le correctif, il apparaîtrait au contraire comme parfaitement
- * engagé (rate1=100%, last_open="maintenant").
+ * Test comportemental réel : un client de test avec 3 emails envoyés (dont
+ * 1 avec une "ouverture" MPP, is_mpp=1) dans les 30 derniers jours, aucune
+ * vraie ouverture. Avec le correctif, il doit être classé À RISQUE (score
+ * de churn élevé) et son engagement ne doit PAS être gonflé par
+ * l'ouverture MPP — sans le correctif, il apparaîtrait au contraire comme
+ * parfaitement engagé (rate1=100%, last_open="maintenant").
+ *
+ * Round 257 : fixture portée de 1 à 3 emails en période 1 — en dessous de
+ * MIN_SAMPLE_SENDS (garde-fou round 257 contre les scores extrapolés sur
+ * un échantillon trop petit), le score attendu ici (>=70) n'était plus
+ * atteint avec un seul email, sans lien avec le filtre MPP lui-même
+ * (assertion rate_p1===0.0 déjà séparée et toujours valide avec 1 seul
+ * email). 3 emails restent un échantillon volontairement réduit mais
+ * suffisant pour ne plus être amorti par ce garde-fou.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -32,20 +40,35 @@ function run_test(): array
     $idShop     = (int) Context::getContext()->shop->id;
     $token1     = 'regtest84-' . uniqid();
     $token2     = 'regtest84-' . uniqid();
+    $token1b    = 'regtest84-' . uniqid();
+    $token1c    = 'regtest84-' . uniqid();
+    $allTokens  = [$token1, $token2, $token1b, $token1c];
 
-    $db->execute("DELETE FROM {$prefix}neria_stat WHERE tracking_token IN ('" . pSQL($token1) . "', '" . pSQL($token2) . "')");
+    $db->execute("DELETE FROM {$prefix}neria_stat WHERE tracking_token IN ('" . implode("', '", array_map('pSQL', $allTokens)) . "')");
     $db->execute("DELETE FROM {$prefix}neria_churn_score WHERE id_customer = {$idCustomer} AND id_shop = {$idShop}");
     $db->execute("DELETE FROM {$prefix}neria_propensity_score WHERE id_customer = {$idCustomer} AND id_shop = {$idShop}");
 
     try {
-        // 1 email envoyé il y a 5 jours (période 1, 0-30j).
+        // 3 emails envoyés il y a 5 jours (période 1, 0-30j) — round 257 :
+        // au moins MIN_SAMPLE_SENDS pour ne pas être amorti par le
+        // garde-fou anti-extrapolation sur petit échantillon.
         $db->execute(
             "INSERT INTO {$prefix}neria_stat
                 (id_shop, template, lang, id_customer, tracking_token, event_type, is_mpp, date_add)
              VALUES ({$idShop}, 'newsletter', 'fr', {$idCustomer}, '{$token1}', 'sent', 0, DATE_SUB(NOW(), INTERVAL 5 DAY))"
         );
-        // Sa seule "ouverture" : un pré-chargement Apple MPP, PAS une vraie
-        // ouverture — même token, is_mpp=1.
+        $db->execute(
+            "INSERT INTO {$prefix}neria_stat
+                (id_shop, template, lang, id_customer, tracking_token, event_type, is_mpp, date_add)
+             VALUES ({$idShop}, 'newsletter', 'fr', {$idCustomer}, '{$token1b}', 'sent', 0, DATE_SUB(NOW(), INTERVAL 4 DAY))"
+        );
+        $db->execute(
+            "INSERT INTO {$prefix}neria_stat
+                (id_shop, template, lang, id_customer, tracking_token, event_type, is_mpp, date_add)
+             VALUES ({$idShop}, 'newsletter', 'fr', {$idCustomer}, '{$token1c}', 'sent', 0, DATE_SUB(NOW(), INTERVAL 3 DAY))"
+        );
+        // Sa seule "ouverture" (sur les 3) : un pré-chargement Apple MPP,
+        // PAS une vraie ouverture — même token, is_mpp=1.
         $db->execute(
             "INSERT INTO {$prefix}neria_stat
                 (id_shop, template, lang, id_customer, tracking_token, event_type, is_mpp, date_add)
@@ -89,7 +112,7 @@ function run_test(): array
             'message' => "ChurnScoreManager/PropensityScoreManager excluent bien les pré-chargements Apple MPP de leurs comptages d'ouverture",
         ];
     } finally {
-        $db->execute("DELETE FROM {$prefix}neria_stat WHERE tracking_token IN ('" . pSQL($token1) . "', '" . pSQL($token2) . "')");
+        $db->execute("DELETE FROM {$prefix}neria_stat WHERE tracking_token IN ('" . implode("', '", array_map('pSQL', $allTokens)) . "')");
         $db->execute("DELETE FROM {$prefix}neria_churn_score WHERE id_customer = {$idCustomer} AND id_shop = {$idShop}");
         $db->execute("DELETE FROM {$prefix}neria_propensity_score WHERE id_customer = {$idCustomer} AND id_shop = {$idShop}");
     }
