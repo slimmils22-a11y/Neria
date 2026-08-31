@@ -3297,7 +3297,27 @@ class EmailRenderer
                 continue;
             }
 
+            // Round 261 (vérification empirique demandée par l'utilisateur
+            // suite à un audit) : le template CŒUR PrestaShop
+            // mails/_partials/order_conf_product_list.tpl produit, pour un
+            // produit avec PLUSIEURS champs de personnalisation (gravure +
+            // police, message cadeau + emballage...), une ligne <tr>
+            // supplémentaire dont le premier <td> porte colspan="3" (donc
+            // seulement 3 <td> PHYSIQUES = 5 colonnes LOGIQUES, HTML valide
+            // côté cœur). Sans reprendre cet attribut colspan ici, la ligne
+            // reconstruite ne comptait plus que 3 <td> SANS colspan —
+            // désalignée avec les lignes produit à 5 colonnes du même
+            // tableau, cassant visuellement la grille dans les clients mail
+            // stricts (Outlook notamment). Vérifié empiriquement (script
+            // scratch simulant le DOMDocument sur un vrai extrait du
+            // template cœur) avant correctif : l'hypothèse initiale d'un
+            // agent (une ligne "Total" glissant à travers le filtre
+            // strpos($firstStyle,'border')) ne se matérialise PAS —
+            // order_conf_product_list.tpl ne contient AUCUNE ligne total,
+            // seulement des lignes produit ; le vrai cas est celui décrit
+            // ci-dessus.
             $contents = [];
+            $colspans = [];
             foreach ($outerTds as $td) {
                 $innerTds = $td->getElementsByTagName('td');
                 $content  = '';
@@ -3316,12 +3336,15 @@ class EmailRenderer
                     }
                 }
                 $contents[] = $content;
+                $colspan    = (int) $td->getAttribute('colspan');
+                $colspans[] = $colspan > 1 ? $colspan : 1;
             }
 
             $cells = '';
             foreach ($contents as $i => $content) {
-                $style  = $styles[$i] ?? $base;
-                $cells .= '<td style="' . $style . '">' . $content . '</td>';
+                $style       = $styles[$i] ?? $base;
+                $colspanAttr = $colspans[$i] > 1 ? ' colspan="' . $colspans[$i] . '"' : '';
+                $cells .= '<td' . $colspanAttr . ' style="' . $style . '">' . $content . '</td>';
             }
 
             $newRows[] = '<tr>' . $cells . '</tr>';
