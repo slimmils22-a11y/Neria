@@ -6161,7 +6161,11 @@ class HealthCheckManager
             $offenders[] = 'QueueManager.php introuvable (garde-fou round 178)';
         } else {
             $posSingle178 = strpos($qmSrc178, 'private function processSingle(array $row): bool');
-            $singleBody178 = $posSingle178 !== false ? substr($qmSrc178, $posSingle178, 5400) : '';
+            // Round 260 : fenêtre élargie 5400→7500 — l'ajout de la
+            // revérification produit ghost_cart (garde-fou round 260, voir
+            // plus bas) a repoussé le check BounceManager plus loin dans le
+            // corps de la méthode.
+            $singleBody178 = $posSingle178 !== false ? substr($qmSrc178, $posSingle178, 7500) : '';
             $hasGuards178 = strpos($singleBody178, "\\BounceManager::isBounced(\$toEmail)") !== false
                 && strpos($singleBody178, 'markQueueFailed(') !== false;
             if ($posSingle178 === false || !$hasGuards178) {
@@ -8208,6 +8212,21 @@ class HealthCheckManager
         $scmSrc259 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php');
         if ($scmSrc259 === '' || strpos($scmSrc259, 'AND c.newsletter = 1') === false) {
             $offenders[] = "SeasonalCampaignManager::getEligibleCustomers() ne filtre plus sur c.newsletter — régression du bug corrigé le 31/08/2026 (round 259) : un client ayant décoché la case native \"Newsletter\" de son compte (sans jamais être passé par le centre de préférences Neria) recevrait de nouveau les campagnes saisonnières malgré sa désinscription explicite via ce canal légitime";
+        }
+
+        // Round 260 (31/08/2026) : QueueManager::processSingle() rejouait
+        // aveuglément {product_price}/{product_name} figés dans vars_json
+        // au moment de la mise en file de ghost_cart, sans jamais
+        // revérifier le produit (jusqu'à ~24h de délai possible via la
+        // fenêtre d'achat individuelle) — prix périmé ou produit désactivé/
+        // supprimé proposé à l'achat dans l'email.
+        $qmSrc260 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        if ($qmSrc260 === ''
+            || strpos($qmSrc260, "(string) \$row['template'] === 'ghost_cart' && (int) \$row['ref_id'] > 0") === false
+            || strpos($qmSrc260, "!\Validate::isLoadedObject(\$ghostProduct) || !\$ghostProduct->active") === false
+            || strpos($qmSrc260, "\$this->markQueueFailed(\$id, 'product_unavailable')") === false
+        ) {
+            $offenders[] = "QueueManager::processSingle() ne revérifie plus le produit ghost_cart au moment de l'envoi réel — régression du bug corrigé le 31/08/2026 (round 260) : un produit désactivé/supprimé entre la mise en file et l'envoi serait de nouveau proposé à l'achat, avec un prix potentiellement périmé";
         }
 
         if ($offenders) {
