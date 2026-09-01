@@ -423,7 +423,7 @@ class BounceManager
                     continue;
                 }
                 $result = $this->parseSendgrid($event);
-                if ($result !== null && $result['email'] !== '') {
+                if ($result !== null && $result['email'] !== '' && !$this->bounceEventAlreadyProcessed('sendgrid', $result['event_id'])) {
                     $this->recordBounce($result['email'], $result['type'], $result['reason'], 'webhook');
                     $recordedAny = true;
                 }
@@ -442,8 +442,48 @@ class BounceManager
             return false;
         }
 
+        // Round 273 : les ESP (Mailgun, SendGrid, Postmark) redélivrent
+        // normalement un même événement de bounce ("at-least-once
+        // delivery" — comportement STANDARD, pas une erreur) si le
+        // webhook précédent n'a pas été acquitté assez vite. La protection
+        // atomique ci-dessus (INSERT ... ON DUPLICATE KEY UPDATE,
+        // commentaire round 210-217) empêche une CONFLIT/duplication SQL
+        // entre 2 appels concurrents, mais n'empêche PAS 2 appels
+        // SÉQUENTIELS (quelques minutes/heures d'écart, replay légitime)
+        // d'incrémenter bounce_count une seconde fois pour un seul bounce
+        // réel — rapprochant artificiellement l'adresse du seuil de
+        // blacklist (soft bounce) sans qu'aucun nouvel échec réel ne se
+        // soit produit. Déduplication par ID d'événement ESP (fenêtre 24h,
+        // largement supérieure aux délais de redélivraison usuels),
+        // fail-open si APCu indisponible — même convention que le throttle
+        // webhook sortant de unsubscribe.php (round 265).
+        if ($this->bounceEventAlreadyProcessed($source, $result['event_id'])) {
+            return false;
+        }
+
         $this->recordBounce($result['email'], $result['type'], $result['reason'], 'webhook');
         return true;
+    }
+
+    /**
+     * Round 273 : déduplication des événements de bounce webhook par ID
+     * ESP (fenêtre 24h). Fail-open (retourne toujours false, donc jamais
+     * bloquant) si l'ID d'événement est vide (ESP générique sans champ
+     * dédié) ou si APCu est indisponible — un événement sans ID
+     * déduplicable est traité normalement, comme avant ce correctif.
+     */
+    private function bounceEventAlreadyProcessed(string $source, string $eventId): bool
+    {
+        if ($eventId === '' || !function_exists('apcu_enabled') || !apcu_enabled()) {
+            return false;
+        }
+        $key = 'neria_bounce_evt_' . $source . '_' . md5($eventId);
+        $alreadyProcessed = false;
+        apcu_fetch($key, $alreadyProcessed);
+        if (!$alreadyProcessed) {
+            apcu_store($key, 1, 86400);
+        }
+        return (bool) $alreadyProcessed;
     }
 
     private function parseMailgun(array $p): ?array
@@ -454,11 +494,12 @@ class BounceManager
         if (!in_array($event, ['failed', 'bounced', 'dropped'], true)) {
             return null;
         }
-        $email  = mb_strtolower($data['recipient'] ?? '');
-        $sev    = $data['delivery-status']['code'] ?? $data['severity'] ?? '';
-        $type   = (str_starts_with((string) $sev, '5') || $sev === 'permanent') ? 'hard' : 'soft';
-        $reason = $data['delivery-status']['message'] ?? $data['delivery-status']['description'] ?? "Mailgun $event";
-        return compact('email', 'type', 'reason');
+        $email    = mb_strtolower($data['recipient'] ?? '');
+        $sev      = $data['delivery-status']['code'] ?? $data['severity'] ?? '';
+        $type     = (str_starts_with((string) $sev, '5') || $sev === 'permanent') ? 'hard' : 'soft';
+        $reason   = $data['delivery-status']['message'] ?? $data['delivery-status']['description'] ?? "Mailgun $event";
+        $event_id = (string) ($data['id'] ?? '');
+        return compact('email', 'type', 'reason', 'event_id');
     }
 
     private function parseSendgrid(array $p): ?array
@@ -501,7 +542,8 @@ class BounceManager
             $type = ($p['type'] ?? '') === 'blocked' ? 'soft' : 'hard';
         }
 
-        return compact('email', 'type', 'reason');
+        $event_id = (string) ($p['sg_event_id'] ?? '');
+        return compact('email', 'type', 'reason', 'event_id');
     }
 
     /**
@@ -533,10 +575,11 @@ class BounceManager
         if (!$isBounceRecord) {
             return null;
         }
-        $email  = mb_strtolower($p['Email'] ?? '');
-        $type   = in_array(mb_strtolower($type_raw), self::POSTMARK_SOFT_TYPES, true) ? 'soft' : 'hard';
-        $reason = $p['Description'] ?? $p['Details'] ?? "Postmark $type_raw";
-        return compact('email', 'type', 'reason');
+        $email    = mb_strtolower($p['Email'] ?? '');
+        $type     = in_array(mb_strtolower($type_raw), self::POSTMARK_SOFT_TYPES, true) ? 'soft' : 'hard';
+        $reason   = $p['Description'] ?? $p['Details'] ?? "Postmark $type_raw";
+        $event_id = isset($p['ID']) ? (string) $p['ID'] : '';
+        return compact('email', 'type', 'reason', 'event_id');
     }
 
     private function parseGenericWebhook(array $p): ?array
@@ -545,10 +588,14 @@ class BounceManager
         if (!str_contains($event, 'bounce') && !str_contains($event, 'fail') && !str_contains($event, 'drop')) {
             return null;
         }
-        $email  = mb_strtolower($p['email'] ?? $p['recipient'] ?? $p['address'] ?? '');
-        $type   = str_contains($event, 'soft') ? 'soft' : 'hard';
-        $reason = $p['reason'] ?? $p['message'] ?? $p['description'] ?? $event;
-        return compact('email', 'type', 'reason');
+        $email    = mb_strtolower($p['email'] ?? $p['recipient'] ?? $p['address'] ?? '');
+        $type     = str_contains($event, 'soft') ? 'soft' : 'hard';
+        $reason   = $p['reason'] ?? $p['message'] ?? $p['description'] ?? $event;
+        // Round 273 : pas de champ dédié standard pour un ESP générique —
+        // event_id vide fait fail-open dans bounceEventAlreadyProcessed()
+        // (déduplication sautée pour cette source, comme avant ce correctif).
+        $event_id = (string) ($p['event_id'] ?? $p['id'] ?? '');
+        return compact('email', 'type', 'reason', 'event_id');
     }
 
     /**

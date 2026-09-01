@@ -28,7 +28,27 @@ class NeriaBounceModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $rawBody  = file_get_contents('php://input');
+        // Round 273 : $rawBody est lu et json_decode() est tenté AVANT la
+        // vérification de signature HMAC ci-dessous — un tiers non
+        // authentifié (l'URL de ce endpoint est publique et documentée en
+        // tête de fichier, aucun token dans le chemin) pouvait donc faire
+        // consommer CPU/mémoire à chaque requête, même invalide/non
+        // signée, en postant un corps volumineux répété (déni de service
+        // applicatif à volume modéré). Limite de taille appliquée avant
+        // toute lecture complète/décodage — 1 Mo est largement suffisant
+        // pour tout payload légitime de bounce (Mailgun/SendGrid/Postmark
+        // envoient un ou quelques événements par requête, quelques Ko).
+        $contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+        if ($contentLength > 1048576) {
+            $this->jsonResponse(['error' => 'Payload too large'], 413);
+            return;
+        }
+
+        $rawBody  = file_get_contents('php://input', false, null, 0, 1048576 + 1);
+        if (strlen((string) $rawBody) > 1048576) {
+            $this->jsonResponse(['error' => 'Payload too large'], 413);
+            return;
+        }
         $payload  = json_decode($rawBody, true);
 
         if (!is_array($payload)) {
