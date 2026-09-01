@@ -528,6 +528,24 @@
                         container.innerHTML =
                             '<img src="' + data.preview
                             + '" class="neria-signature-preview__img" alt="' + altLabel + '">';
+                    } else {
+                        // Round 271 : le serveur répond en HTTP 200 même en
+                        // cas d'exception PHP (neria.php, action
+                        // preview_signature), avec {preview: null,
+                        // error: "..."} — comme data.preview est alors
+                        // null, cette branche ne s'exécutait pas, et le
+                        // .catch() (qui affiche le message d'erreur prévu)
+                        // n'était jamais atteint puisque la requête réseau
+                        // avait réussi. Le marchand ne voyait ni le nouvel
+                        // aperçu ni aucune indication d'échec — même défaut
+                        // racine que watchdog_refresh (round 270) : data.error
+                        // n'était jamais testé avant de décider de l'état à
+                        // présenter.
+                        var errLabel = (window.NERIA_UI && window.NERIA_UI.sigPreviewError)
+                            || 'Error generating preview';
+                        container.innerHTML =
+                            '<span class="neria-signature-preview__placeholder">'
+                            + errLabel + '</span>';
                     }
                 })
                 .catch(function () {
