@@ -2204,12 +2204,31 @@ class Neria extends Module
 
         // ── Watchdog — digest quotidien (throttle interne 24h) ────────
         if (class_exists('WatchdogManager')) {
-            try {
-                (new WatchdogManager($this))->sendDailyDigestIfDue();
-                $ran['watchdog_digest'] = true;
-            } catch (\Throwable $e) {
-                // best-effort — ne bloque jamais le front
+            // Round 266 : WatchdogManager capture $this->idShop dans son
+            // constructeur et scope TOUT le digest quotidien (throttle
+            // CFG_DIGEST_LAST_{idShop}, sélection SQL WHERE id_shop = ...)
+            // sur cette seule boutique — même défaut déjà corrigé pour
+            // CalendarManager (round 76), DomainReputationManager
+            // (round 78) et SeasonalCampaignManager (round 77) : sans
+            // boucle par boutique ici, seule la boutique du contexte
+            // ambiant au moment de cet appel (celle du vrai cron serveur,
+            // ou celle du premier visiteur front du jour) recevait son
+            // digest Watchdog quotidien — les autres boutiques
+            // accumulaient des erreurs/alertes en base sans jamais que le
+            // marchand en soit informé par email, silencieusement et
+            // indéfiniment.
+            $originalShopDigest = \Context::getContext()->shop;
+            $shopsDigest = \Shop::getShops(true, null, true) ?: [(int) $originalShopDigest->id];
+            foreach ($shopsDigest as $idShopDigest) {
+                \Context::getContext()->shop = new \Shop((int) $idShopDigest);
+                try {
+                    (new WatchdogManager($this))->sendDailyDigestIfDue();
+                    $ran['watchdog_digest'] = true;
+                } catch (\Throwable $e) {
+                    // best-effort par boutique — ne bloque jamais le front
+                }
             }
+            \Context::getContext()->shop = $originalShopDigest;
         }
 
         // ── Liste d'attente — purge des inscriptions jamais satisfaites

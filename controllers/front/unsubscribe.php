@@ -162,6 +162,18 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
         // neria_preferences n'existe. Toutes les catégories sont mises à 0
         // (pas seulement celle du template d'origine) : un désabonnement
         // "un clic" doit être total, conformément à la RFC 8058.
+        // Round 266 : $prefsOk trace le succès de CE canal précis, distinct
+        // du $ok global partagé par les 3 canaux — nécessaire pour détecter
+        // plus bas un échec partiel silencieux (ex. ps_customer.newsletter
+        // mis à 0 avec succès, MAIS cette étape en échec) : sans ce
+        // distinguo, $ok restait déjà "true" grâce à un canal précédent et
+        // masquait totalement l'échec de neria_preferences — la SEULE table
+        // consultée par PreferencesManager::isAllowed(), donc le client
+        // voyait la confirmation de désabonnement tout en continuant à
+        // recevoir la totalité des emails comportementaux/fidélité/
+        // saisonniers/B2B Neria, sans aucune trace exploitable par le
+        // marchand pour détecter le problème.
+        $prefsOk = false;
         if (class_exists('PreferencesManager')) {
             try {
                 $customerId = (int) $db->getValue(
@@ -186,9 +198,12 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
                     $email,
                     array_fill_keys(\PreferencesManager::CATEGORIES, 0)
                 );
-                $ok = true;
+                $ok      = true;
+                $prefsOk = true;
             } catch (\Throwable $ex) {
-                // ignoré : les autres canaux de désabonnement ci-dessus restent traités
+                // ignoré pour l'affichage : les autres canaux de désabonnement
+                // ci-dessus restent traités — mais journalisé plus bas via
+                // Watchdog si un autre canal a réussi, pour rester détectable.
             }
         }
 
@@ -212,6 +227,26 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
             try {
                 (new WatchdogManager($this->module))->info(
                     WatchdogManager::i18nMsg('watchdog.unsubscribe_marketing_processed'),
+                    '',
+                    'Unsubscribe',
+                    ['email' => $email]
+                );
+            } catch (\Throwable $ex) {
+                // log best-effort
+            }
+        }
+
+        // Round 266 : $ok est vrai dès qu'UN SEUL des 3 canaux a réussi, ce
+        // qui masquait un échec de neria_preferences (canal exclusivement
+        // consulté par PreferencesManager::isAllowed() avant tout envoi
+        // Neria) tant que ps_customer.newsletter ou ps_emailsubscription
+        // avaient réussi de leur côté. Le rendu de la page de confirmation
+        // reste inchangé (toujours best-effort, jamais bloquant — cf. round
+        // 247), mais ce cas devient désormais détectable par le marchand.
+        if ($ok && !$prefsOk && class_exists('PreferencesManager') && class_exists('WatchdogManager')) {
+            try {
+                (new WatchdogManager($this->module))->warning(
+                    WatchdogManager::i18nMsg('watchdog.unsubscribe_preferences_channel_failed', ['email' => $email]),
                     '',
                     'Unsubscribe',
                     ['email' => $email]

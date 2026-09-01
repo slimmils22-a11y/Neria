@@ -44,7 +44,15 @@ class WaitlistManager
     {
         if ($this->isRegistered($idCustomer, $idProduct, $idShop, $idProductAttribute)) return true;
         $t   = $this->prefix . self::TABLE;
-        $now = pSQL(date('Y-m-d H:i:s'));
+        // Round 266 : registered_at doit être écrit via NOW() (horloge du
+        // serveur MySQL), pas via date('Y-m-d H:i:s') (horloge/fuseau PHP)
+        // — toutes les colonnes horodatées comparées ci-dessous
+        // (DATEDIFF(NOW(), registered_at), registered_at < DATE_SUB(NOW(),
+        // ...)) le sont exclusivement côté SQL avec NOW(), comme
+        // claim_started_at/notified_at plus bas dans ce même fichier. Un
+        // décalage entre le fuseau PHP (date.timezone) et celui du serveur
+        // MySQL (fréquent en hébergement mutualisé) faussait ces
+        // comparaisons de ±1 jour selon l'heure d'inscription.
         // La clé unique porte sur (id_customer, id_product, id_product_attribute,
         // id_shop) — un client multi-boutique doit pouvoir s'inscrire
         // séparément sur chaque boutique où le même produit est en rupture,
@@ -52,8 +60,8 @@ class WaitlistManager
         // de même pour 2 déclinaisons distinctes du même produit.
         return $this->db->execute(
             "INSERT INTO `{$t}` (id_customer, id_product, id_product_attribute, id_shop, registered_at, notified_at, claim_started_at)
-             VALUES ({$idCustomer}, {$idProduct}, {$idProductAttribute}, {$idShop}, '{$now}', NULL, NULL)
-             ON DUPLICATE KEY UPDATE registered_at = '{$now}', notified_at = NULL, claim_started_at = NULL"
+             VALUES ({$idCustomer}, {$idProduct}, {$idProductAttribute}, {$idShop}, NOW(), NULL, NULL)
+             ON DUPLICATE KEY UPDATE registered_at = NOW(), notified_at = NULL, claim_started_at = NULL"
         );
     }
 
