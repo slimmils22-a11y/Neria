@@ -584,7 +584,18 @@ class WebhookManager
         }
 
         if ($httpCode < 200 || $httpCode >= 300) {
-            $preview = substr((string) $response, 0, 150);
+            // Round 267 : mb_substr (pas substr) — même correctif que
+            // sendTest() (round 243), jamais porté ici alors que fire()
+            // est le VRAI chemin emprunté à chaque déclenchement de
+            // webhook en production (sendTest() n'est que le bouton BO
+            // « Tester »). $response est la réponse HTTP brute d'un
+            // endpoint tiers configuré par le marchand, dont le contenu
+            // (message d'erreur localisé) peut être multi-octets — une
+            // coupe en octets bruts risque de trancher au milieu d'un
+            // caractère, produisant une séquence UTF-8 invalide que
+            // htmlspecialchars() (sans ENT_SUBSTITUTE) rejette ensuite
+            // silencieusement en chaîne vide dans le digest quotidien.
+            $preview = mb_substr((string) $response, 0, 150);
             $this->watchdog()->warning(
                 $preview !== ''
                     ? \WatchdogManager::i18nMsg('watchdog.webhook_http_error_response', ['event' => $event, 'code' => $httpCode, 'url' => $url, 'response' => $preview])
