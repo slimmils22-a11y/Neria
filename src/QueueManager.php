@@ -661,6 +661,25 @@ class QueueManager
                 return true;
             }
 
+            // Round 268 : Mail::Send() peut retourner false SANS lever
+            // d'exception (le cœur PrestaShop capture lui-même
+            // \Swift_SwiftException en interne et renvoie simplement false —
+            // cas typique d'une panne SMTP totale et permanente côté
+            // marchand : mauvais mot de passe, port fermé). Avant ce
+            // correctif, ce chemin n'appelait AUCUN watchdog()->warning()/
+            // error() — seul le catch ci-dessous (jamais atteint pour ce
+            // type de panne) le fait. Résultat : ni alerte immédiate
+            // (sendImmediateAlert() n'est déclenché que par error()/
+            // critical()) ni entrée dans le digest quotidien (filtré sur
+            // warning/error/critical, jamais info) ne signalait au marchand
+            // une panne d'envoi totale, potentiellement pendant des jours,
+            // malgré une infrastructure d'alerte déjà conçue pour survivre
+            // à un SMTP marchand cassé (mail() natif, round 250).
+            $this->watchdog()->warning(
+                \WatchdogManager::i18nMsg('watchdog.queue_send_failed', ['email' => $row['recipient_email'], 'id' => $id]),
+                $row['template'] ?? '',
+                'QueueManager'
+            );
             $this->markFailedOrRetry($id, (int) $row['attempts'] + 1, 'Mail::Send() a retourné false.');
             return false;
 
