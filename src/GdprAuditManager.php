@@ -33,13 +33,19 @@ class GdprAuditManager
             'has_pii'      => true,
         ],
         [
+            // Round 270 : has_pii=false était erroné — message/context
+            // contiennent régulièrement l'email en clair du client
+            // (WatchdogManager::i18nMsg()/$context). customer_col reste
+            // null (pas de colonne id_customer directe : purge par email,
+            // gérée en cas spécial dans purgeCustomerData() comme
+            // neria_webhook_queue, PAS via getPiiTablesByCustomer()).
             'table'        => 'neria_log',
             'date_col'     => 'date_add',
             'months'       => 12,
             'label'        => 'Journal système (watchdog)',
-            'note'         => 'Journaux techniques internes.',
+            'note'         => 'Journaux techniques internes — peuvent contenir l\'email du destinataire (confirmations/échecs d\'envoi).',
             'customer_col' => null,
-            'has_pii'      => false,
+            'has_pii'      => true,
         ],
         [
             'table'        => 'neria_behavioral_sent',
@@ -632,8 +638,8 @@ class GdprAuditManager
             if ($entry['table'] === 'neria_stat') {
                 continue;
             }
-            $note = $entry['note'] ?? '';
-            if (($entry['has_pii'] ?? false) && (stripos($note, 'email') !== false || stripos($note, 'clair') !== false)) {
+            $note = $entry['note'];
+            if ($entry['has_pii'] && (stripos($note, 'email') !== false || stripos($note, 'clair') !== false)) {
                 $otherPiiTables[] = [
                     'table' => $entry['table'],
                     'label' => $entry['label'],
@@ -1027,6 +1033,67 @@ class GdprAuditManager
                         'neria_webhook_queue'
                     );
                     $total += count($idsToDelete);
+                }
+            }
+        }
+
+        // Round 270 : neria_log.message ET neria_log.context contiennent
+        // très régulièrement l'email en clair du client — message via
+        // WatchdogManager::i18nMsg() (sérialise ses $vars, dont 'email',
+        // dans la chaîne persistée : pattern utilisé dans une vingtaine de
+        // fichiers du module — confirmations/échecs d'envoi, remboursements,
+        // etc.), context via le $context brut passé à info()/warning()/
+        // error()/critical() (ex. ['email' => $email], encodé tel quel par
+        // record()). La table était pourtant déclarée
+        // customer_col=null/has_pii=false dans REGISTRY : ni
+        // purgeCustomerData() ni la cartographie PII affichée au marchand
+        // ne la couvraient. Un client exerçant son droit à l'effacement
+        // voyait alors son email survivre indéfiniment (au mieux purgé par
+        // ancienneté à 12 mois, ce qui n'est pas un substitut légal au
+        // droit à l'effacement immédiat). Même logique de comparaison
+        // EXACTE (pas de LIKE sous-chaîne) que neria_webhook_queue
+        // ci-dessus (round 144) : décodage JSON, comparaison stricte sur
+        // les valeurs.
+        if ($email !== '') {
+            $fullLog = _DB_PREFIX_ . 'neria_log';
+            $logExists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($fullLog) . "'");
+            if (is_array($logExists) && !empty($logExists)) {
+                $emailLower = strtolower($email);
+                // Round 214 (même raison que neria_webhook_queue ci-dessus) :
+                // $use_cache=false, texte SQL identique à chaque appel.
+                $logRows = $this->db->executeS("SELECT `id_log`, `message`, `context` FROM `{$fullLog}`", true, false);
+                $logIdsToDelete = [];
+                if (is_array($logRows)) {
+                    foreach ($logRows as $row) {
+                        $matches = false;
+
+                        $msg = (string) $row['message'];
+                        if (strpos($msg, '::i18n::') === 0) {
+                            $decodedLog = json_decode(substr($msg, 8), true);
+                            $vars = is_array($decodedLog) ? ($decodedLog['v'] ?? []) : [];
+                            if (is_array($vars) && in_array($emailLower, array_map('strtolower', array_filter($vars, 'is_string')), true)) {
+                                $matches = true;
+                            }
+                        }
+
+                        if (!$matches && $row['context'] !== null && $row['context'] !== '') {
+                            $decodedCtx = json_decode((string) $row['context'], true);
+                            if (is_array($decodedCtx) && in_array($emailLower, array_map('strtolower', array_filter($decodedCtx, 'is_string')), true)) {
+                                $matches = true;
+                            }
+                        }
+
+                        if ($matches) {
+                            $logIdsToDelete[] = (int) $row['id_log'];
+                        }
+                    }
+                }
+                if (!empty($logIdsToDelete)) {
+                    $this->execOrFail(
+                        "DELETE FROM `{$fullLog}` WHERE `id_log` IN (" . implode(',', $logIdsToDelete) . ")",
+                        'neria_log'
+                    );
+                    $total += count($logIdsToDelete);
                 }
             }
         }

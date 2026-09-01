@@ -959,7 +959,20 @@
                     if (!r.ok) { throw new Error('HTTP ' + r.status); }
                     return r.json();
                 })
-                .then(function (d) { applyWatchdogData(d); })
+                .then(function (d) {
+                    // Round 270 : le serveur répond en HTTP 200 même en cas
+                    // d'exception PHP (neria.php, action watchdog_refresh),
+                    // avec seulement {error: "..."} au lieu des champs
+                    // attendus (score/color/label/issues/crons). Sans ce
+                    // contrôle, applyWatchdogData(d) recevait cet objet tel
+                    // quel : d.issues étant undefined, la branche "aucun
+                    // problème détecté" s'affichait en vert — un état
+                    // visuel trompeur, inverse de la réalité (le contrôle a
+                    // en fait échoué), sans que le marchand n'ait aucune
+                    // indication qu'il devrait réessayer.
+                    if (d && d.error) { throw new Error(d.error); }
+                    applyWatchdogData(d);
+                })
                 .catch(function () {
                     // Un échec silencieux ici laissait le marchand cliquer
                     // "Analyser" sans jamais comprendre pourquoi rien ne se
