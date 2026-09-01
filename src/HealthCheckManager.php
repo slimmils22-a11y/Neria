@@ -8461,6 +8461,42 @@ class HealthCheckManager
             $offenders[] = "HealthCheckManager::checkUnsubscribeUrl() ne signe plus son token de test via NeriaTools::trackingSignKey() — régression du bug corrigé le 01/09/2026 (round 269) : ce self-test échouerait à tort (faux positif « lien de désabonnement cassé ») dès que _COOKIE_KEY_ diverge de la clé réellement utilisée par les 3 autres sites";
         }
 
+        // Round 270 (01/09/2026) : neria_log.message/.context contiennent
+        // très régulièrement l'email en clair du client, mais la table
+        // était hors du périmètre de GdprAuditManager::purgeCustomerData()
+        // (customer_col=null, has_pii=false) — un client exerçant son
+        // droit à l'effacement RGPD voyait son email y survivre
+        // indéfiniment.
+        $gdprSrc270 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        $gdprLogPos270 = $gdprSrc270 !== '' ? strpos($gdprSrc270, "'table'        => 'neria_log',") : false;
+        $gdprLogEntry270 = $gdprLogPos270 !== false ? substr($gdprSrc270, $gdprLogPos270, 400) : '';
+        $gdprPurgePos270 = $gdprSrc270 !== '' ? strpos($gdprSrc270, "\$fullLog = _DB_PREFIX_ . 'neria_log';") : false;
+        $gdprPurgeBody270 = $gdprPurgePos270 !== false ? substr($gdprSrc270, $gdprPurgePos270, 2200) : '';
+        if ($gdprSrc270 === ''
+            || $gdprLogPos270 === false
+            || strpos($gdprLogEntry270, "'has_pii'      => true,") === false
+            || $gdprPurgePos270 === false
+            || strpos($gdprPurgeBody270, "DELETE FROM `{\$fullLog}`") === false
+            || strpos($gdprPurgeBody270, "\$decodedCtx = json_decode((string) \$row['context'], true);") === false
+        ) {
+            $offenders[] = "GdprAuditManager ne purge plus neria_log (message/context) lors d'une demande d'effacement RGPD, ou REGISTRY['neria_log'].has_pii n'est plus à true — régression du bug corrigé le 01/09/2026 (round 270) : l'email d'un client survivrait de nouveau indéfiniment dans les journaux techniques après une demande d'effacement explicite";
+        }
+
+        // Round 270 (01/09/2026) : le handler AJAX watchdog_refresh
+        // (neria.php) répond en HTTP 200 même en cas d'exception PHP
+        // (seulement {error:...}) — le JS n'affichait alors aucune erreur,
+        // interprétant l'absence de champ 'issues' comme "aucun problème
+        // détecté" en vert, un état trompeur inverse de la réalité.
+        $jsSrc270 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/js/neria-admin.js');
+        $jsFetchPos270 = $jsSrc270 !== '' ? strpos($jsSrc270, "fetch(url, { credentials: 'same-origin', signal: controller ? controller.signal : undefined })") : false;
+        $jsBlock270 = $jsFetchPos270 !== false ? substr($jsSrc270, $jsFetchPos270, 1200) : '';
+        if ($jsSrc270 === ''
+            || $jsFetchPos270 === false
+            || strpos($jsBlock270, 'if (d && d.error) { throw new Error(d.error); }') === false
+        ) {
+            $offenders[] = "views/js/neria-admin.js ne vérifie plus d.error avant applyWatchdogData(d) dans le rafraîchissement Watchdog — régression du bug corrigé le 01/09/2026 (round 270) : une exception serveur afficherait de nouveau \"aucun problème détecté\" en vert au marchand";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
