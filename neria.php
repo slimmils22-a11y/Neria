@@ -5849,7 +5849,13 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'save_bounce_config' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('BounceManager')) {
             Configuration::updateValue(BounceManager::CFG_ENABLED,        (int)    Tools::getValue('bounce_enabled', 0));
             Configuration::updateValue(BounceManager::CFG_IMAP_HOST,      (string) Tools::getValue('bounce_imap_host', ''));
-            Configuration::updateValue(BounceManager::CFG_IMAP_PORT,      (int)    Tools::getValue('bounce_imap_port', 993));
+            // Round 263 : max(1, min(65535, ...)) -- port TCP hors plage (négatif ou
+            // >65535) accepté sans borne par un POST direct (contrairement à
+            // tous les autres champs numériques du module, systématiquement
+            // clampés). Impact réel resté bénin jusqu'ici (imap_open() échoue
+            // proprement sur un port invalide, déjà géré), mais corrigé par
+            // cohérence/défense en profondeur avec le reste du module.
+            Configuration::updateValue(BounceManager::CFG_IMAP_PORT,      max(1, min(65535, (int) Tools::getValue('bounce_imap_port', 993))));
             Configuration::updateValue(BounceManager::CFG_IMAP_USER,      (string) Tools::getValue('bounce_imap_user', ''));
             $pass = (string) Tools::getValue('bounce_imap_pass', '');
             if ($pass !== '') {
@@ -5869,7 +5875,8 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'test_imap_connection' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('BounceManager')) {
             // Précharge les valeurs du formulaire avant de tester
             Configuration::updateValue(BounceManager::CFG_IMAP_HOST,   (string) Tools::getValue('bounce_imap_host', ''));
-            Configuration::updateValue(BounceManager::CFG_IMAP_PORT,   (int)    Tools::getValue('bounce_imap_port', 993));
+            // Round 263 : même clamp que save_bounce_config() ci-dessus.
+            Configuration::updateValue(BounceManager::CFG_IMAP_PORT,   max(1, min(65535, (int) Tools::getValue('bounce_imap_port', 993))));
             Configuration::updateValue(BounceManager::CFG_IMAP_USER,   (string) Tools::getValue('bounce_imap_user', ''));
             $p = (string) Tools::getValue('bounce_imap_pass', '');
             if ($p !== '') {
