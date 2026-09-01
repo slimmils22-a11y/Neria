@@ -51,7 +51,7 @@
                 <span class="neria-abtest-metric">{$report.A.rate_open|default:0}% {neria_admin key='abtest.open_short'}</span>
                 <span class="neria-abtest-metric neria-abtest-metric--secondary">{$report.A.rate_click|default:0}% {neria_admin key='abtest.click_short'}</span>
                 <span class="neria-abtest-metric neria-abtest-metric--revenue" title="{$smarty.capture.revenue_tooltip}">
-                  {if isset($report.A.total_revenue)}{$report.A.total_revenue|string_format:"%.2f"}{else}0.00{/if}€ {neria_admin key='abtest.col_ca'}
+                  {if isset($report.A.total_revenue)}{$report.A.total_revenue|string_format:"%.2f"}{else}0.00{/if}{$currency_symbol} {neria_admin key='abtest.col_ca'}
                 </span>
               </span>
               {if $winner === 'A'}<span class="neria-abtest-crown">↑</span>{/if}
@@ -67,7 +67,7 @@
                 <span class="neria-abtest-metric">{$report.B.rate_open|default:0}% {neria_admin key='abtest.open_short'}</span>
                 <span class="neria-abtest-metric neria-abtest-metric--secondary">{$report.B.rate_click|default:0}% {neria_admin key='abtest.click_short'}</span>
                 <span class="neria-abtest-metric neria-abtest-metric--revenue" title="{$smarty.capture.revenue_tooltip}">
-                  {if isset($report.B.total_revenue)}{$report.B.total_revenue|string_format:"%.2f"}{else}0.00{/if}€ {neria_admin key='abtest.col_ca'}
+                  {if isset($report.B.total_revenue)}{$report.B.total_revenue|string_format:"%.2f"}{else}0.00{/if}{$currency_symbol} {neria_admin key='abtest.col_ca'}
                 </span>
               </span>
               {if $winner === 'B'}<span class="neria-abtest-crown">↑</span>{/if}
@@ -253,7 +253,7 @@
             </td>
             <td style="padding:8px 12px;text-align:center;color:var(--neria-muted);">
               {if $h.revenue_a > 0 || $h.revenue_b > 0}
-                {$h.revenue_a|string_format:"%.2f"}€ / {$h.revenue_b|string_format:"%.2f"}€
+                {$h.revenue_a|string_format:"%.2f"}{$currency_symbol} / {$h.revenue_b|string_format:"%.2f"}{$currency_symbol}
               {else}
                 —
               {/if}

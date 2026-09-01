@@ -221,7 +221,31 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
             }
         }
 
-        if ($ok && class_exists('WebhookManager')) {
+        // Round 265 : le throttle APCu ci-dessus (5 requêtes/10s) protège
+        // la DB/le CPU contre une rafale rapide, mais ne protège PAS le
+        // webhook sortant 'unsubscribed' contre un REJEU espacé de plus de
+        // 10 secondes du même lien légitime (rechargement de la page de
+        // confirmation, retry réseau du client mail sur le POST one-click
+        // RFC 8058, scanner de sécurité d'entreprise qui pré-visite le lien
+        // List-Unsubscribe) — le désabonnement lui-même reste idempotent
+        // ($ok=true à chaque fois), mais WebhookManager::trigger() met
+        // inconditionnellement un NOUVEL événement en file à chaque appel,
+        // sans vérifier qu'un événement équivalent a déjà été notifié
+        // récemment pour ce même token. Un service tiers non idempotent
+        // (CRM, plateforme externe) recevrait alors plusieurs notifications
+        // 'unsubscribed' pour un seul désabonnement réel. Fenêtre 24h
+        // (indépendante du throttle DB ci-dessus, dédiée à CE seul appel) :
+        // fail-open si APCu indisponible, comme le throttle plus haut.
+        $webhookAlreadyNotified = false;
+        if (function_exists('apcu_enabled') && apcu_enabled()) {
+            $webhookKey = 'neria_unsub_webhook_' . md5($token);
+            apcu_fetch($webhookKey, $webhookAlreadyNotified);
+            if (!$webhookAlreadyNotified) {
+                apcu_store($webhookKey, 1, 86400);
+            }
+        }
+
+        if ($ok && !$webhookAlreadyNotified && class_exists('WebhookManager')) {
             try {
                 (new WebhookManager($this->module))->trigger('unsubscribed', [
                     'customer_email' => $email,
