@@ -8540,6 +8540,56 @@ class HealthCheckManager
             $offenders[] = "SegmentManager::getSegmentCounts() ne filtre plus c.active=1/c.deleted=0 — régression du bug corrigé le 01/09/2026 (round 272) : le badge de comptage par segment redeviendrait incohérent avec la liste de clients réellement affichée (getCustomersBySegment())";
         }
 
+        // Round 273 (01/09/2026) : BounceManager ne déduplique plus les
+        // événements de bounce webhook redélivrés par l'ESP (Mailgun/
+        // SendGrid/Postmark redélivrent normalement un webhook non
+        // acquitté — comportement standard) — un replay séquentiel
+        // légitime incrémentait bounce_count une 2e fois pour un seul
+        // bounce réel.
+        $bounceSrc273 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php');
+        if ($bounceSrc273 === ''
+            || strpos($bounceSrc273, 'private function bounceEventAlreadyProcessed(string $source, string $eventId): bool') === false
+            || strpos($bounceSrc273, "if (\$this->bounceEventAlreadyProcessed(\$source, \$result['event_id'])) {") === false
+            || strpos($bounceSrc273, "\$event_id = (string) (\$data['id'] ?? '');") === false
+            || strpos($bounceSrc273, "\$event_id = (string) (\$p['sg_event_id'] ?? '');") === false
+            || strpos($bounceSrc273, "\$event_id = isset(\$p['ID']) ? (string) \$p['ID'] : '';") === false
+        ) {
+            $offenders[] = "src/BounceManager.php ne déduplique plus les événements de bounce webhook redélivrés par l'ESP — régression du bug corrigé le 01/09/2026 (round 273) : un replay légitime rapprocherait de nouveau artificiellement une adresse du seuil de blacklist";
+        }
+
+        // Round 273 (01/09/2026) : controllers/front/bounce.php lisait le
+        // corps entier de la requête et tentait json_decode() AVANT toute
+        // vérification de signature HMAC — un tiers non authentifié
+        // pouvait consommer CPU/mémoire via un payload volumineux répété
+        // (endpoint public, aucun token dans l'URL).
+        $bounceCtrlSrc273 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/bounce.php');
+        $bounceJsonDecodePos273 = $bounceCtrlSrc273 !== '' ? strpos($bounceCtrlSrc273, 'json_decode($rawBody, true);') : false;
+        $bounceContentLenPos273 = $bounceCtrlSrc273 !== '' ? strpos($bounceCtrlSrc273, "\$contentLength = (int) (\$_SERVER['CONTENT_LENGTH'] ?? 0);") : false;
+        $bounceMaxlenPos273 = $bounceCtrlSrc273 !== '' ? strpos($bounceCtrlSrc273, "file_get_contents('php://input', false, null, 0, 1048576 + 1);") : false;
+        if ($bounceCtrlSrc273 === ''
+            || $bounceJsonDecodePos273 === false
+            || $bounceContentLenPos273 === false
+            || $bounceMaxlenPos273 === false
+            || $bounceContentLenPos273 > $bounceJsonDecodePos273
+            || $bounceMaxlenPos273 > $bounceJsonDecodePos273
+        ) {
+            $offenders[] = "controllers/front/bounce.php ne borne plus la taille du corps de requête avant lecture/décodage — régression du bug corrigé le 01/09/2026 (round 273) : un payload volumineux non authentifié serait de nouveau lu/décodé intégralement, risque de déni de service applicatif";
+        }
+
+        // Round 273 (01/09/2026) : waitlist_title codait en dur la forme
+        // plurielle du mot "jour" pour 10 langues (de/it/es/pt/br/ru/sv/
+        // no/da/nl), alors que days_waited=1 est un cas garanti et
+        // fréquent (max(1, ...) dans WaitlistManager::notifyProductLocked()).
+        $waitlistTransSrc273 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/translations.json');
+        if ($waitlistTransSrc273 === ''
+            || strpos($waitlistTransSrc273, 'Tage gewartet') !== false
+            || strpos($waitlistTransSrc273, 'Tag(e) gewartet') === false
+            || strpos($waitlistTransSrc273, 'giorno/i') === false
+            || strpos($waitlistTransSrc273, 'día(s)') === false
+        ) {
+            $offenders[] = "data/translations.json (waitlist_title) recode en dur une forme plurielle incorrecte pour days_waited=1 dans une ou plusieurs langues — régression du bug corrigé le 01/09/2026 (round 273)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
