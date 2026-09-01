@@ -8389,6 +8389,24 @@ class HealthCheckManager
             $offenders[] = "neria.php::runBackgroundJobs() n'appelle plus sendDailyDigestIfDue() dans une boucle sur toutes les boutiques actives — régression du bug corrigé le 01/09/2026 (round 266) : seule la boutique du contexte ambiant recevrait de nouveau son digest Watchdog quotidien, les autres n'étant plus jamais alertées";
         }
 
+        // Round 267 (01/09/2026) : WebhookManager::fire() tronquait la
+        // réponse HTTP d'erreur d'un endpoint tiers via substr() (octets
+        // bruts) au lieu de mb_substr() — sendTest() utilise déjà
+        // mb_substr() depuis le round 243 pour cette même donnée, mais
+        // fire() (le vrai chemin de production) avait été oublié. Une coupe
+        // en plein milieu d'un caractère UTF-8 multi-octets produit une
+        // séquence invalide, rejetée silencieusement (chaîne vide) par
+        // htmlspecialchars() dans le digest quotidien.
+        $webhookSrc267 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php');
+        $webhookFirePos267 = $webhookSrc267 !== '' ? strpos($webhookSrc267, 'if ($httpCode < 200 || $httpCode >= 300) {') : false;
+        $webhookFireBody267 = $webhookFirePos267 !== false ? substr($webhookSrc267, $webhookFirePos267, 1000) : '';
+        if ($webhookSrc267 === ''
+            || $webhookFirePos267 === false
+            || strpos($webhookFireBody267, 'mb_substr((string) $response, 0, 150)') === false
+        ) {
+            $offenders[] = "src/WebhookManager.php::fire() n'utilise plus mb_substr() pour tronquer la réponse HTTP d'erreur — régression du bug corrigé le 01/09/2026 (round 267) : une coupe en octets bruts au milieu d'un caractère multi-octets produirait de nouveau une séquence UTF-8 invalide, rejetée silencieusement par htmlspecialchars() dans le digest quotidien";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
