@@ -4790,8 +4790,11 @@ class HealthCheckManager
                 $offenders[] = "neria-admin.js::initTranslationsLoader() ne désactive plus le bouton avant soumission — régression du bug corrigé le 09/08/2026 (round 146) : un double-clic pourrait de nouveau générer deux requêtes POST concurrentes";
             }
 
+            // Round 271 : fenêtre élargie 3000 -> 5200 (correctif
+            // preview_signature ajoutant une branche else plus loin dans
+            // la même fonction, repoussant thisRequest/requestToken).
             $posSp146 = strpos($jsSrc146, 'function initSignaturePreview()');
-            $spBody146 = $posSp146 !== false ? substr($jsSrc146, $posSp146, 3000) : '';
+            $spBody146 = $posSp146 !== false ? substr($jsSrc146, $posSp146, 5200) : '';
             if ($posSp146 === false
                 || strpos($spBody146, 'var requestToken = 0;') === false
                 || strpos($spBody146, 'var thisRequest = ++requestToken;') === false
@@ -5550,8 +5553,10 @@ class HealthCheckManager
             $offenders[] = "neria-admin.js : le groupe radio heading_weight (.neria-radio-card__input) n'a plus de retour visuel — régression du bug corrigé le 13/08/2026 (round 162)";
         }
         if ($jsSrc162 !== '') {
+            // Round 271 : fenêtre élargie 3600 -> 5200 (même raison que le
+            // garde-fou round 146 juste au-dessus).
             $posSig162 = strpos($jsSrc162, 'function initSignaturePreview()');
-            $sigBody162 = $posSig162 !== false ? substr($jsSrc162, $posSig162, 3600) : '';
+            $sigBody162 = $posSig162 !== false ? substr($jsSrc162, $posSig162, 5200) : '';
             if ($posSig162 === false || strpos($sigBody162, 'btn.disabled = true;') === false || strpos($sigBody162, 'btn.disabled = false;') === false) {
                 $offenders[] = "neria-admin.js : initSignaturePreview() ne désactive plus le bouton pendant la requête — régression du bug corrigé le 13/08/2026 (round 162)";
             }
@@ -8495,6 +8500,26 @@ class HealthCheckManager
             || strpos($jsBlock270, 'if (d && d.error) { throw new Error(d.error); }') === false
         ) {
             $offenders[] = "views/js/neria-admin.js ne vérifie plus d.error avant applyWatchdogData(d) dans le rafraîchissement Watchdog — régression du bug corrigé le 01/09/2026 (round 270) : une exception serveur afficherait de nouveau \"aucun problème détecté\" en vert au marchand";
+        }
+
+        // Round 271 (01/09/2026) : même défaut que watchdog_refresh
+        // (round 270), sur le handler AJAX preview_signature — le serveur
+        // répond en HTTP 200 même en cas d'exception PHP (avec
+        // {preview: null, error: "..."}), et le JS ne testait que
+        // data.preview avant de décider de l'état à afficher : l'aperçu
+        // restait silencieusement obsolète ou vide, sans message d'erreur,
+        // le .catch() (jamais atteint puisque la requête réseau réussit)
+        // n'affichant jamais le message pourtant prévu.
+        $jsSrc271 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/js/neria-admin.js');
+        $jsIfPos271 = $jsSrc271 !== '' ? strpos($jsSrc271, 'if (data.preview) {') : false;
+        $jsBlock271 = $jsIfPos271 !== false ? substr($jsSrc271, $jsIfPos271, 1800) : '';
+        if ($jsSrc271 === ''
+            || $jsIfPos271 === false
+            || strpos($jsBlock271, '} else {') === false
+            || strpos($jsBlock271, 'sigPreviewError') === false
+            || strpos($jsBlock271, 'neria-signature-preview__placeholder') === false
+        ) {
+            $offenders[] = "views/js/neria-admin.js n'affiche plus de message d'erreur (branche else, sigPreviewError) quand preview_signature échoue côté serveur — régression du bug corrigé le 01/09/2026 (round 271) : le marchand ne verrait de nouveau ni le nouvel aperçu ni aucune indication d'échec";
         }
 
         if ($offenders) {
