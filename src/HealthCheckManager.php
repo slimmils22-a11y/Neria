@@ -7902,7 +7902,10 @@ class HealthCheckManager
         $neriaSrc244Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
         $neriaSrc244 = str_replace("\r", '', $neriaSrc244Raw);
         $posSig244 = strpos($neriaSrc244, "'generate_signature'");
-        $sigBody244 = $posSig244 !== false ? substr($neriaSrc244, $posSig244, 7200) : '';
+        // Round 262 : fenêtre élargie 7200→8200 — l'ajout de la troncature
+        // mb_substr() sur $sigName/$sigTitle (garde-fou round 262, voir
+        // plus bas) a repoussé RELEASE_LOCK plus loin dans le bloc.
+        $sigBody244 = $posSig244 !== false ? substr($neriaSrc244, $posSig244, 8200) : '';
         if ($neriaSrc244Raw === ''
             || strpos($sigBody244, "GET_LOCK('\" . pSQL(\$sigLockName) . \"', 5)") === false
             || strpos($sigBody244, "RELEASE_LOCK('\" . pSQL(\$sigLockName) . \"')") === false
@@ -8279,6 +8282,21 @@ class HealthCheckManager
             || strpos($reformatBody261, '$colspanAttr') === false
         ) {
             $offenders[] = "EmailRenderer::reformatProductsHtml() ne reporte plus l'attribut colspan sur les lignes reconstruites — régression du bug corrigé le 31/08/2026 (round 261) : une ligne de personnalisation multiple (3 <td> physiques = 5 colonnes logiques dans le HTML source du cœur PS) serait de nouveau désalignée avec les lignes produit à 5 colonnes du même tableau {products}";
+        }
+
+        // Round 262 (01/09/2026) : neria.php (action generate_signature)
+        // écrivait $sigName/$sigTitle dans neria_signature.signer_name/
+        // signer_title (VARCHAR(100)) sans troncature explicite — ces
+        // valeurs proviennent des Variables personnalisées (VARCHAR(500),
+        // champ BO libre sans maxlength HTML), un marchand pouvait donc
+        // légitimement dépasser 100 caractères sans jamais s'approcher de
+        // la limite du champ source.
+        $neriaSrc262 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($neriaSrc262 === ''
+            || strpos($neriaSrc262, "\$sigName  = mb_substr(trim((string) (\$customVars['founder_name']  ?? '')), 0, 100);") === false
+            || strpos($neriaSrc262, "\$sigTitle = mb_substr(trim((string) (\$customVars['founder_title'] ?? '')), 0, 100);") === false
+        ) {
+            $offenders[] = "neria.php (action generate_signature) ne tronque plus \$sigName/\$sigTitle via mb_substr(..., 0, 100) avant l'écriture dans neria_signature — régression du bug corrigé le 01/09/2026 (round 262) : un nom/titre de signature trop long serait de nouveau tronqué silencieusement par MySQL en OCTETS (mode non strict), risquant du mojibake, ou ferait échouer l'INSERT sans message clair pour le marchand";
         }
 
         if ($offenders) {
