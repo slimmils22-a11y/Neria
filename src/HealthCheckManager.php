@@ -8407,6 +8407,22 @@ class HealthCheckManager
             $offenders[] = "src/WebhookManager.php::fire() n'utilise plus mb_substr() pour tronquer la réponse HTTP d'erreur — régression du bug corrigé le 01/09/2026 (round 267) : une coupe en octets bruts au milieu d'un caractère multi-octets produirait de nouveau une séquence UTF-8 invalide, rejetée silencieusement par htmlspecialchars() dans le digest quotidien";
         }
 
+        // Round 268 (01/09/2026) : QueueManager::processSingle() n'émettait
+        // aucun watchdog()->warning()/error() quand Mail::Send() retournait
+        // false SANS exception (cas typique d'une panne SMTP totale et
+        // permanente côté marchand) — ni alerte immédiate, ni entrée dans
+        // le digest quotidien (filtré sur warning/error/critical, jamais
+        // info) ne signalait alors cette panne au marchand.
+        $queueSrc268 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        $queueRetryPos268 = $queueSrc268 !== '' ? strpos($queueSrc268, "\$this->markFailedOrRetry(\$id, (int) \$row['attempts'] + 1, 'Mail::Send() a retourné false.');") : false;
+        $queueBefore268 = $queueRetryPos268 !== false ? substr($queueSrc268, max(0, $queueRetryPos268 - 700), 700) : '';
+        if ($queueSrc268 === ''
+            || $queueRetryPos268 === false
+            || strpos($queueBefore268, "WatchdogManager::i18nMsg('watchdog.queue_send_failed', ['email' => \$row['recipient_email'], 'id' => \$id])") === false
+        ) {
+            $offenders[] = "src/QueueManager.php::processSingle() n'émet plus de watchdog()->warning() quand Mail::Send() échoue sans exception — régression du bug corrigé le 01/09/2026 (round 268) : une panne SMTP totale et permanente redeviendrait invisible côté digest/alerte Watchdog";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
