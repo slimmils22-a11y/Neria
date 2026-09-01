@@ -8339,6 +8339,56 @@ class HealthCheckManager
             $offenders[] = "controllers/front/unsubscribe.php n'a plus la déduplication APCu de 24h du webhook 'unsubscribed' — régression du bug corrigé le 01/09/2026 (round 265) : un rejeu du lien de désabonnement re-déclencherait le webhook sortant sans limite au-delà du throttle DB de 10s";
         }
 
+        // Round 266 (01/09/2026) : WaitlistManager::register() écrivait
+        // registered_at via l'horloge PHP (date('Y-m-d H:i:s')), alors que
+        // toutes les comparaisons en aval (DATEDIFF(NOW(), registered_at),
+        // registered_at < DATE_SUB(NOW(), ...)) se font côté SQL avec
+        // NOW() — un décalage entre fuseau PHP et fuseau MySQL faussait ces
+        // comparaisons de ±1 jour.
+        $waitlistSrc266 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php');
+        $waitlistRegisterPos266 = $waitlistSrc266 !== '' ? strpos($waitlistSrc266, 'public function register(') : false;
+        $waitlistSqlPos266 = $waitlistRegisterPos266 !== false ? strpos($waitlistSrc266, 'return $this->db->execute(', $waitlistRegisterPos266) : false;
+        $waitlistSqlBody266 = $waitlistSqlPos266 !== false ? substr($waitlistSrc266, $waitlistSqlPos266, 700) : '';
+        if ($waitlistSrc266 === ''
+            || $waitlistSqlPos266 === false
+            || strpos($waitlistSqlBody266, "date('Y-m-d H:i:s')") !== false
+            || substr_count($waitlistSqlBody266, 'NOW()') < 2
+        ) {
+            $offenders[] = "src/WaitlistManager.php::register() n'écrit plus registered_at via NOW() (horloge du serveur MySQL) — régression du bug corrigé le 01/09/2026 (round 266) : un décalage entre le fuseau PHP et celui du serveur MySQL fausserait de nouveau les DATEDIFF()/comparaisons NOW() en aval de ±1 jour";
+        }
+
+        // Round 266 (01/09/2026) : le désabonnement (unsubscribe.php)
+        // pouvait échouer silencieusement sur le canal PreferencesManager
+        // (la SEULE table consultée avant tout envoi Neria) tout en
+        // affichant quand même la confirmation, dès qu'un AUTRE canal
+        // (ps_customer.newsletter ou ps_emailsubscription) avait réussi —
+        // sans aucune trace pour le marchand.
+        $unsubSrc266 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/unsubscribe.php');
+        if ($unsubSrc266 === ''
+            || strpos($unsubSrc266, '$prefsOk = false;') === false
+            || strpos($unsubSrc266, "if (\$ok && !\$prefsOk && class_exists('PreferencesManager') && class_exists('WatchdogManager'))") === false
+        ) {
+            $offenders[] = "controllers/front/unsubscribe.php ne journalise plus de warning Watchdog quand le canal PreferencesManager échoue alors qu'un autre canal a réussi — régression du bug corrigé le 01/09/2026 (round 266) : un désabonnement partiel redeviendrait invisible pour le marchand malgré la confirmation affichée au client";
+        }
+
+        // Round 266 (01/09/2026) : le digest quotidien Watchdog
+        // (sendDailyDigestIfDue()) n'était appelé qu'une seule fois dans
+        // runBackgroundJobs(), hors de toute boucle sur Shop::getShops() —
+        // 5e occurrence du même défaut que Calendar (76)/Seasonal
+        // (77)/Webhook (78)/DomainReputation (79) : seule la boutique du
+        // contexte ambiant recevait son digest.
+        $neriaSrc266 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $digestBlockPos266 = $neriaSrc266 !== '' ? strpos($neriaSrc266, '// ── Watchdog — digest quotidien (throttle interne 24h)') : false;
+        $digestBlock266 = $digestBlockPos266 !== false ? substr($neriaSrc266, $digestBlockPos266, 1900) : '';
+        if ($neriaSrc266 === ''
+            || $digestBlockPos266 === false
+            || strpos($digestBlock266, 'foreach ($shopsDigest as $idShopDigest) {') === false
+            || strpos($digestBlock266, 'new WatchdogManager($this)') === false
+            || strpos($digestBlock266, '\Context::getContext()->shop = $originalShopDigest;') === false
+        ) {
+            $offenders[] = "neria.php::runBackgroundJobs() n'appelle plus sendDailyDigestIfDue() dans une boucle sur toutes les boutiques actives — régression du bug corrigé le 01/09/2026 (round 266) : seule la boutique du contexte ambiant recevrait de nouveau son digest Watchdog quotidien, les autres n'étant plus jamais alertées";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
