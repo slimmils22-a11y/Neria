@@ -8299,6 +8299,18 @@ class HealthCheckManager
             $offenders[] = "neria.php (action generate_signature) ne tronque plus \$sigName/\$sigTitle via mb_substr(..., 0, 100) avant l'écriture dans neria_signature — régression du bug corrigé le 01/09/2026 (round 262) : un nom/titre de signature trop long serait de nouveau tronqué silencieusement par MySQL en OCTETS (mode non strict), risquant du mojibake, ou ferait échouer l'INSERT sans message clair pour le marchand";
         }
 
+        // Round 263 (01/09/2026) : bounce_imap_port (save_bounce_config /
+        // test_imap_connection) était accepté sans borne côté serveur
+        // (simple cast (int)), malgré la contrainte HTML min="1" max="65535"
+        // jamais revalidée — incohérent avec le reste du module, qui borne
+        // systématiquement ses champs numériques.
+        $neriaSrc263 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($neriaSrc263 === ''
+            || substr_count($neriaSrc263, "max(1, min(65535, (int) Tools::getValue('bounce_imap_port', 993)))") < 2
+        ) {
+            $offenders[] = "neria.php n'applique plus max(1, min(65535, ...)) sur bounce_imap_port aux 2 sites d'écriture (save_bounce_config + test_imap_connection) — régression du bug corrigé le 01/09/2026 (round 263) : un POST direct avec un port hors plage (négatif ou >65535) serait de nouveau accepté sans borne";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
