@@ -8311,6 +8311,34 @@ class HealthCheckManager
             $offenders[] = "neria.php n'applique plus max(1, min(65535, ...)) sur bounce_imap_port aux 2 sites d'écriture (save_bounce_config + test_imap_connection) — régression du bug corrigé le 01/09/2026 (round 263) : un POST direct avec un port hors plage (négatif ou >65535) serait de nouveau accepté sans borne";
         }
 
+        // Round 265 (01/09/2026) : views/templates/admin/abtest.tpl codait
+        // en dur le symbole '€' à 4 emplacements (CA variante A, CA
+        // variante B, ligne d'historique "revenue_a / revenue_b"), au lieu
+        // d'utiliser {$currency_symbol} comme stats.tpl — une boutique en
+        // devise non-euro affichait quand même '€' sur l'écran A/B Testing.
+        $abtestTpl265 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/abtest.tpl');
+        if ($abtestTpl265 === ''
+            || strpos($abtestTpl265, '€') !== false
+            || substr_count($abtestTpl265, '{$currency_symbol}') < 4
+        ) {
+            $offenders[] = "views/templates/admin/abtest.tpl contient de nouveau un symbole '€' codé en dur (ou n'utilise plus {\$currency_symbol} aux 4 emplacements attendus) — régression du bug corrigé le 01/09/2026 (round 265) : une boutique en devise non-euro afficherait de nouveau '€' sur l'écran A/B Testing";
+        }
+
+        // Round 265 (01/09/2026) : le webhook sortant 'unsubscribed' de
+        // controllers/front/unsubscribe.php n'était protégé contre le
+        // rejeu que par le throttle DB/CPU existant (5 req/10s, round 247),
+        // insuffisant contre un rejeu ESPACÉ (rechargement page, retry
+        // client mail, scanner de sécurité) — ajout d'une déduplication
+        // APCu dédiée de 24h avant l'appel WebhookManager::trigger().
+        $unsubSrc265 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/unsubscribe.php');
+        if ($unsubSrc265 === ''
+            || strpos($unsubSrc265, "'neria_unsub_webhook_' . md5(\$token)") === false
+            || strpos($unsubSrc265, 'apcu_store($webhookKey, 1, 86400)') === false
+            || strpos($unsubSrc265, "if (\$ok && !\$webhookAlreadyNotified && class_exists('WebhookManager'))") === false
+        ) {
+            $offenders[] = "controllers/front/unsubscribe.php n'a plus la déduplication APCu de 24h du webhook 'unsubscribed' — régression du bug corrigé le 01/09/2026 (round 265) : un rejeu du lien de désabonnement re-déclencherait le webhook sortant sans limite au-delà du throttle DB de 10s";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
