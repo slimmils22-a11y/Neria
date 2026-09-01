@@ -24,7 +24,9 @@ function run_test(): array
 
     $posFn = strpos($src, 'function initSignaturePreview()');
     neria_assert($posFn !== false, 'initSignaturePreview() introuvable — jeu de test invalide');
-    $body = substr($src, $posFn, 3600);
+    // Round 271 : fenêtre élargie 3600 -> 5200 (correctif preview_signature
+    // ajoutant une branche else plus loin dans la même fonction).
+    $body = substr($src, $posFn, 5200);
 
     neria_assert(
         strpos($body, 'btn.disabled = true;') !== false,
