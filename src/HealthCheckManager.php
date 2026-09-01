@@ -8423,6 +8423,44 @@ class HealthCheckManager
             $offenders[] = "src/QueueManager.php::processSingle() n'émet plus de watchdog()->warning() quand Mail::Send() échoue sans exception — régression du bug corrigé le 01/09/2026 (round 268) : une panne SMTP totale et permanente redeviendrait invisible côté digest/alerte Watchdog";
         }
 
+        // Round 269 (01/09/2026) : les jetons de désabonnement/préférences
+        // étaient signés directement avec _COOKIE_KEY_ (constante PS
+        // régénérable par le marchand) au lieu de
+        // NeriaTools::trackingSignKey() (préfère NERIA_ENCRYPTION_KEY,
+        // propre au module) — une rotation invalidait silencieusement tout
+        // lien déjà envoyé dans un email. Vérifie les 3 fichiers autres que
+        // HealthCheckManager.php lui-même (voir plus bas pour l'auto-check).
+        $neriaSrc269 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $unsubSrc269 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/unsubscribe.php');
+        $prefsMgrSrc269 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PreferencesManager.php');
+        if ($neriaSrc269 === ''
+            || strpos($neriaSrc269, "hash_hmac('sha256', \$email, \\NeriaTools::trackingSignKey())") === false
+            || $unsubSrc269 === ''
+            || strpos($unsubSrc269, "hash_hmac('sha256', Tools::strtolower(\$email), \\NeriaTools::trackingSignKey())") === false
+            || $prefsMgrSrc269 === ''
+            || strpos($prefsMgrSrc269, "hash_hmac('sha256', strtolower(trim(\$email)), \\NeriaTools::trackingSignKey())") === false
+        ) {
+            $offenders[] = "un des jetons de désabonnement/préférences (neria.php, unsubscribe.php, PreferencesManager.php) ne signe plus via NeriaTools::trackingSignKey() — régression du bug corrigé le 01/09/2026 (round 269) : une rotation de _COOKIE_KEY_ invaliderait de nouveau silencieusement tout lien déjà envoyé dans un email";
+        }
+
+        // Auto-check round 269 : HealthCheckManager::checkUnsubscribeUrl()
+        // (self-test BO du lien de désabonnement) doit rester cohérent avec
+        // les 3 sites ci-dessus, sinon ce self-test échouerait à tort
+        // (faux positif) après leur correctif. Utilise strrpos (pas
+        // strpos) — piège auto-référentiel connu (round 246) : ce fichier
+        // contient LUI-MÊME le motif recherché (dans ce commentaire et
+        // celui du bloc offender ci-dessus), qui apparaît AVANT le vrai
+        // code de checkUnsubscribeUrl() plus loin dans le fichier ; strpos
+        // matcherait alors toujours ce bloc-ci en premier, sans jamais
+        // vérifier le vrai site.
+        $selfFile269 = _PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php';
+        $selfSrc269 = $this->readModuleSrc($selfFile269);
+        if ($selfSrc269 === ''
+            || strrpos($selfSrc269, "hash_hmac('sha256', \$testEmail, \\NeriaTools::trackingSignKey())") === false
+        ) {
+            $offenders[] = "HealthCheckManager::checkUnsubscribeUrl() ne signe plus son token de test via NeriaTools::trackingSignKey() — régression du bug corrigé le 01/09/2026 (round 269) : ce self-test échouerait à tort (faux positif « lien de désabonnement cassé ») dès que _COOKIE_KEY_ diverge de la clé réellement utilisée par les 3 autres sites";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
@@ -13671,7 +13709,12 @@ class HealthCheckManager
     private function checkUnsubscribeUrl(): array
     {
         $testEmail = 'neria-health-check@example.com';
-        $token     = substr(hash_hmac('sha256', $testEmail, _COOKIE_KEY_), 0, 32);
+        // Round 269 : doit rester en cohérence avec Neria::getUnsubscribeUrl()
+        // / unsubscribe.php, qui signent désormais via
+        // NeriaTools::trackingSignKey() (plus _COOKIE_KEY_ directement) —
+        // sinon ce contrôle échouerait systématiquement à tort (faux
+        // positif "lien de désabonnement cassé") après ce correctif.
+        $token     = substr(hash_hmac('sha256', $testEmail, \NeriaTools::trackingSignKey()), 0, 32);
         $base      = \Tools::getShopDomainSsl(true);
         $url       = $base . '/index.php?fc=module&module=neria&controller=unsubscribe'
                    . '&email=' . urlencode($testEmail) . '&token=' . $token;
