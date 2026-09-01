@@ -8522,6 +8522,24 @@ class HealthCheckManager
             $offenders[] = "views/js/neria-admin.js n'affiche plus de message d'erreur (branche else, sigPreviewError) quand preview_signature échoue côté serveur — régression du bug corrigé le 01/09/2026 (round 271) : le marchand ne verrait de nouveau ni le nouvel aperçu ni aucune indication d'échec";
         }
 
+        // Round 272 (01/09/2026) : SegmentManager::getSegmentCounts()
+        // (badge affiché sur chaque carte segment) comptait tous les
+        // clients de neria_customer_segment sans filtrer active/deleted,
+        // alors que getCustomersBySegment() (la liste réellement
+        // affichée) filtre c.active=1 AND c.deleted=0 — un client
+        // désactivé/soft-deleted restait compté dans le badge
+        // indéfiniment sans jamais apparaître dans la liste détaillée.
+        $segSrc272 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php');
+        $segCountsPos272 = $segSrc272 !== '' ? strpos($segSrc272, 'public function getSegmentCounts(): array') : false;
+        $segCountsBody272 = $segCountsPos272 !== false ? substr($segSrc272, $segCountsPos272, 1600) : '';
+        if ($segSrc272 === ''
+            || $segCountsPos272 === false
+            || strpos($segCountsBody272, "INNER JOIN `{\$cTable}` c ON c.id_customer = s.id_customer") === false
+            || strpos($segCountsBody272, 'c.active = 1 AND c.deleted = 0') === false
+        ) {
+            $offenders[] = "SegmentManager::getSegmentCounts() ne filtre plus c.active=1/c.deleted=0 — régression du bug corrigé le 01/09/2026 (round 272) : le badge de comptage par segment redeviendrait incohérent avec la liste de clients réellement affichée (getCustomersBySegment())";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
