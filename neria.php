@@ -670,7 +670,13 @@ class Neria extends Module
         if ($email === '' || !Validate::isEmail($email)) {
             return '';
         }
-        $token = substr(hash_hmac('sha256', $email, _COOKIE_KEY_), 0, 32);
+        // Round 269 : signé via NeriaTools::trackingSignKey() (préfère
+        // NERIA_ENCRYPTION_KEY, propre au module, jamais affectée par une
+        // rotation de _COOKIE_KEY_ côté PrestaShop) au lieu de _COOKIE_KEY_
+        // directement — une rotation invalidait sinon silencieusement tout
+        // lien de désabonnement déjà envoyé dans un email (List-Unsubscribe
+        // et pied de page), sans recours ni message clair pour le client.
+        $token = substr(hash_hmac('sha256', $email, \NeriaTools::trackingSignKey()), 0, 32);
 
         $params = ['email' => $email, 'token' => $token];
 

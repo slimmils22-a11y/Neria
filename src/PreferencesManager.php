@@ -371,10 +371,17 @@ class PreferencesManager
 
     /**
      * Génère le token HMAC pour un email (même logique que unsubscribe).
+     *
+     * Round 269 : signé via NeriaTools::trackingSignKey() (préfère
+     * NERIA_ENCRYPTION_KEY, propre au module, jamais affectée par une
+     * rotation de _COOKIE_KEY_ côté PrestaShop) au lieu de _COOKIE_KEY_
+     * directement — une rotation invalidait sinon silencieusement tout
+     * lien de préférences déjà envoyé dans un email, sans recours pour le
+     * client.
      */
     public static function tokenForEmail(string $email): string
     {
-        return substr(hash_hmac('sha256', strtolower(trim($email)), _COOKIE_KEY_), 0, 32);
+        return substr(hash_hmac('sha256', strtolower(trim($email)), \NeriaTools::trackingSignKey()), 0, 32);
     }
 
     /**

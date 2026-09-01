@@ -92,7 +92,11 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
             return false;
         }
 
-        $expected = substr(hash_hmac('sha256', Tools::strtolower($email), _COOKIE_KEY_), 0, 32);
+        // Round 269 : signé via NeriaTools::trackingSignKey() — doit rester
+        // en cohérence avec Neria::getUnsubscribeUrl(), qui génère ce même
+        // jeton avec la même clé (NERIA_ENCRYPTION_KEY en priorité, jamais
+        // affectée par une rotation de _COOKIE_KEY_ côté PrestaShop).
+        $expected = substr(hash_hmac('sha256', Tools::strtolower($email), \NeriaTools::trackingSignKey()), 0, 32);
         if (!is_string($token) || !hash_equals($expected, $token)) {
             return false;
         }

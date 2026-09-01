@@ -846,7 +846,20 @@ class NeriaTools
      * aléatoire générée et persistée une seule fois (auto-réparation,
      * jamais prévisible), au lieu d'un secret connu à l'avance.
      */
-    private static function trackingSignKey(): string
+    /**
+     * Round 269 : rendue publique (était privée) — réutilisée telle quelle
+     * par PreferencesManager::tokenForEmail() et unsubscribe.php pour les
+     * mêmes raisons que ci-dessus (round 155) : ces 2 jetons HMAC
+     * calculaient leur signature directement sur _COOKIE_KEY_, sans le
+     * repli sur NERIA_ENCRYPTION_KEY dont bénéficie déjà le tracking. Une
+     * rotation de _COOKIE_KEY_ (régénération volontaire des clés de
+     * sécurité du site, ou migration) invalidait alors silencieusement
+     * tout lien de désabonnement/préférences déjà envoyé dans un email —
+     * le client cliquant sur un lien reçu avant la rotation obtenait un
+     * échec sans recours ni explication, malgré une demande de
+     * désabonnement légitime (risque de conformité RFC 8058/anti-spam).
+     */
+    public static function trackingSignKey(): string
     {
         $hex = (string) \Configuration::get('NERIA_ENCRYPTION_KEY');
         if (strlen($hex) === 64 && ($bin = @hex2bin($hex)) !== false) {
