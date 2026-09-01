@@ -3371,8 +3371,20 @@ class Neria extends Module
                 'variable_value',
                 'variable_key'
             );
-            $sigName  = trim((string) ($customVars['founder_name']  ?? ''));
-            $sigTitle = trim((string) ($customVars['founder_title'] ?? ''));
+            // Round 262 : mb_substr(..., 0, 100) explicite -- même pattern
+            // que le round 254 (variant_name/name). $sigName/$sigTitle
+            // proviennent des Variables personnalisées (variable_value
+            // VARCHAR(500), champ BO libre SANS maxlength HTML), mais
+            // neria_signature.signer_name/signer_title ne sont que
+            // VARCHAR(100). Sans troncature explicite, MySQL tronque
+            // silencieusement en OCTETS en mode non strict (courant sur
+            // mutualisé, risque de mojibake sur un caractère UTF-8
+            // multi-octets coupé en plein milieu) ou fait échouer l'INSERT
+            // en mode strict -- dans les deux cas sans message clair pour
+            // le marchand (le code ne vérifie que $path généré par
+            // SignatureGenerator, pas le succès de cet INSERT).
+            $sigName  = mb_substr(trim((string) ($customVars['founder_name']  ?? '')), 0, 100);
+            $sigTitle = mb_substr(trim((string) ($customVars['founder_title'] ?? '')), 0, 100);
 
             if ($sigName === '') {
                 $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.signature_missing_founder_name'));
