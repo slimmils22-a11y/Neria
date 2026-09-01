@@ -331,12 +331,28 @@ class SegmentManager
      */
     public function getSegmentCounts(): array
     {
-        $table = _DB_PREFIX_ . self::TABLE;
+        $table  = _DB_PREFIX_ . self::TABLE;
+        $cTable = _DB_PREFIX_ . 'customer';
+        // Round 272 : doit filtrer c.active=1/c.deleted=0 comme
+        // getCustomersBySegment() ci-dessous — sans ce JOIN, ce compteur
+        // (affiché en badge sur chaque carte segment, et qui déclenche le
+        // message "liste tronquée" au-delà de 50) incluait aussi les
+        // clients désactivés/soft-deleted, jamais présents dans la
+        // liste réelle affichée en dessous (elle, correctement filtrée).
+        // Le marchand voyait un chiffre plus élevé que le nombre de lignes
+        // réellement listées, et pouvait voir le message de troncature
+        // s'afficher à tort alors que la liste affichée était déjà
+        // complète. recomputeAll() ne nettoie neria_customer_segment que
+        // pour un client sans AUCUN événement neria_stat restant (purge
+        // RGPD complète, round 166) — jamais pour une simple désactivation
+        // de compte, qui laisse la ligne de segment orpheline (au sens de
+        // ce badge) indéfiniment jusqu'au prochain recalcul.
         $rows  = $this->db->executeS(
-            "SELECT `segment`, COUNT(*) AS cnt
-             FROM `{$table}`
-             WHERE `id_shop` = {$this->idShop}
-             GROUP BY `segment`"
+            "SELECT s.segment, COUNT(*) AS cnt
+             FROM `{$table}` s
+             INNER JOIN `{$cTable}` c ON c.id_customer = s.id_customer
+             WHERE s.id_shop = {$this->idShop} AND c.active = 1 AND c.deleted = 0
+             GROUP BY s.segment"
         );
 
         $counts = array_fill_keys(self::getAllSegments(), 0);
