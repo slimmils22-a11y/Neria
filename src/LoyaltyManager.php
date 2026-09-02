@@ -453,7 +453,7 @@ class LoyaltyManager
         $cartRule->quantity_per_user       = 1;
         $cartRule->active                  = 1;
         $cartRule->date_from               = date('Y-m-d H:i:s');
-        $cartRule->date_to                 = date('Y-m-d H:i:s', strtotime('+1 year'));
+        $cartRule->date_to                 = date('Y-m-d H:i:s', strtotime('+' . (new \ConfigManager($this->module))->getVoucherValidity() . ' days'));
         $cartRule->minimum_amount          = 0;
         $cartRule->minimum_amount_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT');
         $cartRule->highlight               = false;
