@@ -644,6 +644,22 @@ class OrderTriggersManager
 
             // order_partial_shipped : expédition partielle
             if ($newStatus->shipped && !$newStatus->delivery && !$oldStatus->shipped) {
+                // Round 280 : contrairement à handleRefund()/handleReturn(),
+                // ce déclencheur n'avait AUCUNE protection anti-doublon
+                // indépendante du toggle marchand "Mode Silence"
+                // (NERIA_COOLDOWN_ENABLED, désactivé par défaut) —
+                // explicitSendBlockReason() ne bloque le cooldown que si ce
+                // réglage est activé. Un redéclenchement du hook
+                // actionOrderStatusPostUpdate pour LA MÊME transition
+                // (module tiers rappelant setCurrentState(), retry BO,
+                // requête rejouée) envoyait alors deux fois l'email au
+                // client. Même motif GET_LOCK que handleRefund()/
+                // handleReturn(), scopé par commande + statut cible pour
+                // ne pas bloquer une transition ultérieure légitime.
+                $lockNamePs = 'neria_partial_shipped_' . (int) $order->id . '_' . (int) $newStatus->id;
+                if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockNamePs) . "', 0)", false) !== 1) {
+                    return;
+                }
                 // Round 178 : voir explicitSendBlockReason() — Mail::Send()
                 // renvoie true même si le hook bloque l'envoi, journalisant
                 // à tort un succès.
@@ -684,6 +700,15 @@ class OrderTriggersManager
                 $statusName = is_array($newStatus->name)
                     ? ($newStatus->name[$idLang] ?? reset($newStatus->name))
                     : (string) $newStatus->name;
+
+                // Round 280 : même protection anti-doublon que
+                // order_partial_shipped ci-dessus (voir commentaire), pour
+                // la même raison — aucun verrou indépendant du toggle
+                // "Mode Silence" n'existait ici.
+                $lockNameOh = 'neria_order_on_hold_' . (int) $order->id . '_' . (int) $newStatus->id;
+                if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockNameOh) . "', 0)", false) !== 1) {
+                    return;
+                }
 
                 // Round 178 : voir explicitSendBlockReason() ci-dessus.
                 if ($this->explicitSendBlockReason('order_on_hold', $email, (int) $order->id_customer, $idShop, $idLang, (int) $order->id) !== null) {
