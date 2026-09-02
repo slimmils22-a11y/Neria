@@ -29,8 +29,9 @@ function run_test(): array
     neria_assert($wlSrc !== false, 'Impossible de lire src/WaitlistManager.php');
 
     neria_assert(
-        strpos($lcmSrc, 'private function safeProductPrice(int $idProduct, int $idShop): float') !== false
-            && strpos($lcmSrc, '$realPrice = $this->safeProductPrice($pid, $idShop);') !== false,
+        // Round 275 : signatures élargies d'un paramètre int $idCurrency = 0.
+        strpos($lcmSrc, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0): float') !== false
+            && strpos($lcmSrc, '$realPrice = $this->safeProductPrice($pid, $idShop, $idCurrency);') !== false,
         "LookCompletionManager n'utilise plus safeProductPrice()/Product::getPriceStatic() pour le prix affiché — régression du bug corrigé le 18/08/2026 (round 184) : un produit en promo afficherait de nouveau son prix plein tarif dans l'email"
     );
     neria_assert(

@@ -31,10 +31,11 @@ function run_test(): array
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/LookCompletionManager.php');
     neria_assert($src !== false, 'Impossible de lire src/LookCompletionManager.php');
 
-    $posMethod = strpos($src, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop): array');
+    // Round 275 : signature élargie d'un paramètre int $idCurrency = 0.
+    $posMethod = strpos($src, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0): array');
     neria_assert($posMethod !== false, 'buildProductBlocks() introuvable — régression du bug corrigé le 08/08/2026');
 
-    $body = substr($src, $posMethod, 5700);
+    $body = substr($src, $posMethod, 6400);
 
     $posSetContext = strpos($body, 'Shop::setContext(\Shop::CONTEXT_SHOP, $idShop)');
     neria_assert(

@@ -45,15 +45,17 @@ function run_test(): array
         "WaitlistManager n'appelle plus safeProductPrice() avec \$idShop — régression du bug corrigé le 24/08/2026 (round 198)"
     );
 
-    // LookCompletionManager
+    // LookCompletionManager (round 275 : signature élargie d'un paramètre
+    // int $idCurrency = 0 — littéraux mis à jour, contrôle inchangé sur le
+    // fond, présence de $idShop)
     $lcSrc = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/LookCompletionManager.php');
     neria_assert($lcSrc !== false, 'Impossible de lire src/LookCompletionManager.php');
     neria_assert(
-        strpos($lcSrc, 'private function safeProductPrice(int $idProduct, int $idShop): float') !== false,
+        strpos($lcSrc, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0): float') !== false,
         "LookCompletionManager::safeProductPrice() n'a plus le paramètre \$idShop — régression du bug corrigé le 24/08/2026 (round 198)"
     );
     neria_assert(
-        strpos($lcSrc, '$this->safeProductPrice($pid, $idShop)') !== false,
+        strpos($lcSrc, '$this->safeProductPrice($pid, $idShop, $idCurrency)') !== false,
         "LookCompletionManager n'appelle plus safeProductPrice() avec \$idShop — régression du bug corrigé le 24/08/2026 (round 198)"
     );
 

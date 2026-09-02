@@ -54,8 +54,13 @@ function run_test(): array
         strpos($gdpr, "WHERE `email` = '{\$emailSql}'\", false);") !== false,
         "GdprAuditManager::purgeCustomerData() n'a plus \$use_cache=false sur son COUNT neria_bounces — régression du bug corrigé le 26/08/2026 (round 214)"
     );
+    // Round 275 : la requête est désormais paginée (LIMIT/OFFSET, lue par
+    // lots pour éviter de charger toute la table en mémoire) — littéral
+    // mis à jour, contrôle inchangé sur le fond ($use_cache=false toujours
+    // présent, en 2e argument nommé positionnellement true puis false).
     neria_assert(
-        strpos($gdpr, "SELECT `id_webhook`, `payload` FROM `{\$fullWh}`\", true, false);") !== false,
+        strpos($gdpr, "SELECT `id_webhook`, `payload` FROM `{\$fullWh}`") !== false
+            && strpos($gdpr, "ORDER BY `id_webhook` ASC LIMIT {\$whChunkSize} OFFSET {\$whOffset}\",\n                        true,\n                        false\n                    );") !== false,
         "GdprAuditManager::purgeCustomerData() n'a plus \$use_cache=false sur son executeS() neria_webhook_queue — régression du bug corrigé le 26/08/2026 (round 214)"
     );
     neria_assert(
