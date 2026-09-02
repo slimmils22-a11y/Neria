@@ -962,16 +962,27 @@ class OrderTriggersManager
             $summary    = '';
             $summaryTxt = '';
             if (is_array($rows) && !empty($rows)) {
-                $lines = array_map(
+                // Round 276 : {meta_products} est dans HTML_SAFE_RAW_KEYS
+                // (EmailRenderer::compileNeriaTemplate() ne l'échappe donc
+                // PAS automatiquement, en supposant — comme pour son voisin
+                // {shipped_items} juste au-dessus dans ce même fichier —
+                // qu'il l'est déjà par son builder). od.product_name est un
+                // champ texte libre saisi par le marchand en BO : un nom de
+                // produit contenant '<'/'>'/'&' cassait la mise en page de
+                // l'email return_received (voire injection HTML basique)
+                // faute d'échappement, contrairement à {shipped_items} qui,
+                // lui, applique déjà array_map('htmlspecialchars', ...).
+                // La version texte brut ({meta_products_txt}) reste NON
+                // échappée : y appliquer htmlspecialchars() afficherait des
+                // entités littérales ("&amp;") dans l'email en texte brut.
+                $summaryTxt = implode("\n", array_map(
                     fn($r) => '× ' . (int) $r['product_quantity'] . ' ' . $r['product_name'],
                     $rows
-                );
-                $summary    = implode("\n", $lines);
-                // {meta_products_txt} — bug trouvé le 2026-07-14 (contrôle
-                // Watchdog txt_placeholder_coverage) : jamais fourni, {summary}
-                // et sa version txt étant en réalité identiques (texte brut
-                // déjà), on réutilise les mêmes lignes.
-                $summaryTxt = $summary;
+                ));
+                $summary = implode("\n", array_map(
+                    fn($r) => '× ' . (int) $r['product_quantity'] . ' ' . htmlspecialchars((string) $r['product_name'], ENT_QUOTES, 'UTF-8'),
+                    $rows
+                ));
             }
 
             // Round 178 : voir explicitSendBlockReason() plus haut.

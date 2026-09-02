@@ -433,7 +433,15 @@ class SeoApiManager
             } finally {
                 \AdminTranslator::setLang($prevLang);
             }
-            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.moz_http_error', ['code' => $httpCode]), '', 'SeoApiManager');
+            // Round 276 : même distinction 401/403 que fetchSemrush()
+            // ci-dessus — un identifiant/secret Moz invalide/expiré est
+            // ainsi escaladé en alerte immédiate, pas noyé dans le même
+            // warning() générique qu'une panne réseau transitoire.
+            if ($httpCode === 401 || $httpCode === 403) {
+                $this->wd()->error(\WatchdogManager::i18nMsg('watchdog.moz_http_auth_error', ['code' => $httpCode]), '', 'SeoApiManager');
+            } else {
+                $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.moz_http_error', ['code' => $httpCode]), '', 'SeoApiManager');
+            }
             return null;
         }
 
@@ -491,7 +499,22 @@ class SeoApiManager
             // persistant sur Semrush ne remontait jamais dans le flux de
             // notifications/monitoring standard du module.
             $this->recordError($curlErr !== '' ? $curlErr : ('HTTP ' . $httpCode));
-            $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.semrush_http_error', ['code' => $httpCode]), '', 'SeoApiManager');
+            // Round 276 : 401/403 (clé Semrush invalide/révoquée/crédits
+            // épuisés) traité désormais distinctement d'une panne réseau
+            // générique (timeout/500/DNS) — même schéma que
+            // PageSpeedManager::fetchStrategy() (403 -> error(), round 171).
+            // Sans cette distinction, un marchand dont la clé a expiré
+            // voyait le même warning() générique "HTTP 403" en boucle
+            // indéfiniment, jamais escaladé en alerte immédiate
+            // (sendImmediateAlert() n'est déclenché que par error()/
+            // critical(), jamais par warning()) — sans texte explicatif
+            // distinguant "votre clé n'est plus valide" d'une simple panne
+            // réseau transitoire.
+            if ($httpCode === 401 || $httpCode === 403) {
+                $this->wd()->error(\WatchdogManager::i18nMsg('watchdog.semrush_http_auth_error', ['code' => $httpCode]), '', 'SeoApiManager');
+            } else {
+                $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.semrush_http_error', ['code' => $httpCode]), '', 'SeoApiManager');
+            }
             return null;
         }
 

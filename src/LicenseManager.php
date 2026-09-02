@@ -456,7 +456,18 @@ class LicenseManager
                 // (résiliation, remboursement, fraude) : démarre le délai
                 // de grâce court (scénario B), une seule fois.
                 \Configuration::updateGlobalValue(self::CONFIG_REVOKED_AT, time());
-                $this->wd()->warning(
+                // Round 276 : warning() -> error() — une révocation confirmée
+                // par le serveur démarre un compte à rebours de seulement 7
+                // jours (GRACE_REVOKED_DAYS) avant l'arrêt COMPLET de tous
+                // les envois email du module. warning() ne déclenche jamais
+                // sendImmediateAlert() (contrairement à error()/critical(),
+                // cf. WatchdogManager::warning()/error()) — sans alerte
+                // immédiate, seul le digest quotidien (opt-in, désactivé par
+                // défaut) ou une consultation manuelle du BO pouvait révéler
+                // l'incident, le marchand ne découvrant l'extinction totale
+                // des envois qu'après coup, sans avoir été prévenu à temps
+                // pour agir dans le délai de grâce.
+                $this->wd()->error(
                     \WatchdogManager::i18nMsg('watchdog.license_revoked'),
                     '', 'LicenseManager'
                 );
@@ -487,7 +498,14 @@ class LicenseManager
                 $alreadyWarnedFor = (int) \Configuration::get(self::CONFIG_EXPIRY_WARNED_FOR);
                 if ($alreadyWarnedFor !== $expires) {
                     \Configuration::updateGlobalValue(self::CONFIG_EXPIRY_WARNED_FOR, $expires);
-                    $this->wd()->warning(
+                    // Round 276 : warning() -> error() — même raison que la
+                    // révocation ci-dessus (déclenche sendImmediateAlert()).
+                    // C'est justement l'alerte censée être PROACTIVE (avant
+                    // l'échéance) : la laisser au niveau warning() la
+                    // reléguait au même canal opt-in que le reste, alors
+                    // qu'elle doit atteindre le marchand à temps pour
+                    // renouveler avant l'expiration réelle.
+                    $this->wd()->error(
                         \WatchdogManager::i18nMsg('watchdog.license_expiring_soon', [
                             'date' => date('Y-m-d', $expires),
                         ]),
