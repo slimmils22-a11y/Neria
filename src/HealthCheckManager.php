@@ -8835,6 +8835,24 @@ class HealthCheckManager
             $offenders[] = "BehavioralCronManager::sendRelationshipAnniversaries() ne source plus l'année de déduplication via SELECT YEAR(NOW()) — régression du bug corrigé le 02/09/2026 (round 281)";
         }
 
+        // Round 283 (02/09/2026) : OrderTriggersManager::buildShippedItemsVars()
+        // avalait silencieusement toute exception (getProducts()/requête
+        // order_carrier en échec) — renvoyait {shipped_items}/{shipped_items_txt}
+        // vides sans journaliser, un email order_partial_shipped dégradé
+        // partait sans laisser aucune trace Watchdog.
+        $otmSrc283 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
+        $otmFnPos283 = $otmSrc283 !== '' ? strpos($otmSrc283, 'private function buildShippedItemsVars(\Order $order): array') : false;
+        $otmCatchPos283 = $otmFnPos283 !== false ? strpos($otmSrc283, 'catch (\Throwable $e) {', $otmFnPos283) : false;
+        $otmCatchBody283 = ($otmCatchPos283 !== false && $otmCatchPos283 - $otmFnPos283 < 3000) ? substr($otmSrc283, $otmCatchPos283, 900) : '';
+        if ($otmSrc283 === ''
+            || $otmFnPos283 === false
+            || $otmCatchPos283 === false
+            || strpos($otmCatchBody283, '$this->watchdog()->warning(') === false
+            || strpos($otmCatchBody283, 'watchdog.shipped_items_build_error') === false
+        ) {
+            $offenders[] = "OrderTriggersManager::buildShippedItemsVars() n'a plus le log Watchdog dans son catch — régression du bug corrigé le 02/09/2026 (round 283) : une exception lors de la construction de {shipped_items}/{shipped_items_txt} redeviendrait totalement invisible, un email order_partial_shipped dégradé (sans articles ni suivi) partirait sans laisser aucune trace";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,

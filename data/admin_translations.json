@@ -52520,6 +52520,27 @@
         "nl": "return_received retour #{return}: fout — {error}",
         "gb": "return_received return #{return}: error — {error}"
     },
+    "watchdog.shipped_items_build_error": {
+        "fr": "order_partial_shipped commande {order} : échec construction articles/suivi — {error}",
+        "en": "order_partial_shipped order {order}: items/tracking build failed — {error}",
+        "de": "order_partial_shipped Bestellung {order}: Aufbau Artikel/Sendungsverfolgung fehlgeschlagen — {error}",
+        "it": "order_partial_shipped ordine {order}: costruzione articoli/tracciamento fallita — {error}",
+        "es": "order_partial_shipped pedido {order}: fallo al construir artículos/seguimiento — {error}",
+        "pt": "order_partial_shipped encomenda {order}: falha ao construir artigos/rastreio — {error}",
+        "br": "order_partial_shipped pedido {order}: falha ao construir itens/rastreio — {error}",
+        "ar": "order_partial_shipped الطلب {order}: فشل إنشاء العناصر/التتبع — {error}",
+        "ja": "order_partial_shipped 注文{order}：商品/追跡情報の生成に失敗 — {error}",
+        "ko": "order_partial_shipped 주문 {order}: 상품/배송 추적 생성 실패 — {error}",
+        "zh": "order_partial_shipped 订单 {order}：商品/物流跟踪构建失败 — {error}",
+        "tw": "order_partial_shipped 訂單 {order}：商品/物流追蹤建立失敗 — {error}",
+        "ru": "order_partial_shipped заказ {order}: ошибка построения товаров/трекинга — {error}",
+        "tr": "order_partial_shipped sipariş {order}: ürün/takip oluşturma hatası — {error}",
+        "sv": "order_partial_shipped order {order}: kunde inte bygga artiklar/spårning — {error}",
+        "no": "order_partial_shipped ordre {order}: kunne ikke bygge varer/sporing — {error}",
+        "da": "order_partial_shipped ordre {order}: kunne ikke bygge varer/sporing — {error}",
+        "nl": "order_partial_shipped bestelling {order}: opbouwen artikelen/tracking mislukt — {error}",
+        "gb": "order_partial_shipped order {order}: items/tracking build failed — {error}"
+    },
     "watchdog.return_sent": {
         "fr": "return_received retour #{return} commande #{order} envoyé à {email}",
         "en": "return_received return #{return} order #{order} sent to {email}",
