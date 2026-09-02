@@ -6406,7 +6406,7 @@ class HealthCheckManager
         $umSrc184 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
         if ($umSrc184 === '') {
             $offenders[] = 'UpsellManager.php introuvable (garde-fou round 184)';
-        } elseif (strpos($umSrc184, 'private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0, ?int $idShop = null): float') === false) {
+        } elseif (strpos($umSrc184, 'private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0, ?int $idShop = null, ?int $idCurrency = null): float') === false) {
             $offenders[] = "UpsellManager::safeProductPrice() n'accepte plus \$idCustomer — régression du bug corrigé le 18/08/2026 (round 184) : le prix upsell d'un client à tarif négocié (B2B) redeviendrait résolu avec le groupe tarifaire visiteur par défaut";
         }
 
@@ -7004,7 +7004,7 @@ class HealthCheckManager
         $umSrc198 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
         if ($umSrc198 === '') {
             $offenders[] = 'UpsellManager.php introuvable (garde-fou round 198)';
-        } elseif (strpos($umSrc198, "\$idShop !== null\n                ? ((int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop)") === false) {
+        } elseif (strpos($umSrc198, "? ((int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop) ?: (int) (\$ctx->currency->id ?? \\Configuration::get('PS_CURRENCY_DEFAULT')))") === false) {
             $offenders[] = "UpsellManager::safeProductPrice() ne résout plus id_currency via \$idShop — régression du bug corrigé le 24/08/2026 (round 198)";
         }
 
@@ -8588,6 +8588,38 @@ class HealthCheckManager
             || strpos($waitlistTransSrc273, 'día(s)') === false
         ) {
             $offenders[] = "data/translations.json (waitlist_title) recode en dur une forme plurielle incorrecte pour days_waited=1 dans une ou plusieurs langues — régression du bug corrigé le 01/09/2026 (round 273)";
+        }
+
+        // Round 274 (01/09/2026) : waitlist_reservation codait en dur la
+        // forme plurielle du mot "heure" pour la quasi-totalité des
+        // langues à accord variable, alors que reservation_hours=1 est un
+        // cas atteignable (max(1, min(72, ...)) dans neria.php, réglable
+        // en BO).
+        $waitlistResSrc274 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/translations.json');
+        if ($waitlistResSrc274 === ''
+            || strpos($waitlistResSrc274, 'valable {reservation_hours} heures') !== false
+            || strpos($waitlistResSrc274, 'heure(s)') === false
+            || strpos($waitlistResSrc274, 'hour(s)') === false
+            || strpos($waitlistResSrc274, 'Stunde(n)') === false
+        ) {
+            $offenders[] = "data/translations.json (waitlist_reservation) recode en dur une forme plurielle incorrecte pour reservation_hours=1 dans une ou plusieurs langues — régression du bug corrigé le 01/09/2026 (round 274)";
+        }
+
+        // Round 274 (01/09/2026) : UpsellManager n'utilisait que la devise
+        // PAR DÉFAUT de la boutique, jamais la devise RÉELLE de la
+        // commande — un client ayant acheté dans une devise secondaire
+        // (boutique multi-devises) recevait le prix upsell suggéré affiché
+        // dans la mauvaise devise, incohérent avec le reste du même email.
+        $upsellSrc274 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
+        $bhvSrc274 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($upsellSrc274 === ''
+            || strpos($upsellSrc274, 'public function getUpsellProduct(int $idOrder, int $idLang, ?int $idShop = null, ?int $idCurrency = null): ?array') === false
+            || strpos($upsellSrc274, 'private function resolveDisplayCurrency(?int $idShop, ?int $idCurrency = null): \Currency') === false
+            || $bhvSrc274 === ''
+            || strpos($bhvSrc274, 'o.id_order, o.id_customer, o.id_shop, o.id_currency,') === false
+            || strpos($bhvSrc274, "getUpsellProduct(\$idOrder, \$idLang, (int) \$r['id_shop'], (int) \$r['id_currency']);") === false
+        ) {
+            $offenders[] = "UpsellManager/BehavioralCronManager ne propagent plus la devise réelle de la commande (id_currency) jusqu'au prix upsell suggéré — régression du bug corrigé le 01/09/2026 (round 274) : le prix affiché redeviendrait incohérent avec la devise réelle de la commande sur une boutique multi-devises";
         }
 
         if ($offenders) {
