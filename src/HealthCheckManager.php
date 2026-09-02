@@ -8779,6 +8779,29 @@ class HealthCheckManager
             $offenders[] = "GdprAuditManager::purgeCustomerData() ne pagine plus neria_webhook_queue par curseur (id_webhook > dernier vu) — régression du bug corrigé le 02/09/2026 (round 278) : une pagination OFFSET redeviendrait vulnérable au décalage de fenêtre causé par un WebhookManager::cleanup() concurrent, pouvant faire survivre des webhooks du client à sa demande d'effacement RGPD";
         }
 
+        // Round 280 (02/09/2026) : OrderTriggersManager::handleStatusChange()
+        // n'avait aucune protection anti-doublon indépendante du toggle
+        // "Mode Silence" (NERIA_COOLDOWN_ENABLED, désactivé par défaut) pour
+        // order_partial_shipped/order_on_hold — contrairement à
+        // handleRefund()/handleReturn() (GET_LOCK, round 65). Un
+        // redéclenchement du hook actionOrderStatusPostUpdate pour la même
+        // transition pouvait envoyer l'email deux fois.
+        $otmSrc280 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
+        $otmPsPos280 = $otmSrc280 !== '' ? strpos($otmSrc280, "if (\$newStatus->shipped && !\$newStatus->delivery && !\$oldStatus->shipped) {") : false;
+        $otmPsBody280 = $otmPsPos280 !== false ? substr($otmSrc280, $otmPsPos280, 1400) : '';
+        $otmOhPos280 = $otmSrc280 !== '' ? strpos($otmSrc280, "\$statusName = is_array(\$newStatus->name)") : false;
+        $otmOhBody280 = $otmOhPos280 !== false ? substr($otmSrc280, $otmOhPos280, 800) : '';
+        if ($otmSrc280 === ''
+            || $otmPsPos280 === false
+            || strpos($otmPsBody280, "GET_LOCK('") === false
+            || strpos($otmPsBody280, 'neria_partial_shipped_') === false
+            || $otmOhPos280 === false
+            || strpos($otmOhBody280, "GET_LOCK('") === false
+            || strpos($otmOhBody280, 'neria_order_on_hold_') === false
+        ) {
+            $offenders[] = "OrderTriggersManager::handleStatusChange() n'a plus le verrou GET_LOCK() anti-doublon pour order_partial_shipped/order_on_hold — régression du bug corrigé le 02/09/2026 (round 280) : un redéclenchement du hook actionOrderStatusPostUpdate pour la même transition de statut enverrait de nouveau l'email deux fois au client, indépendamment du réglage Mode Silence (désactivé par défaut)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
