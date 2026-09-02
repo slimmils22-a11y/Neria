@@ -5112,7 +5112,9 @@ class HealthCheckManager
             $offenders[] = 'SeoApiManager.php introuvable (garde-fou round 152 : alerte Watchdog httpGet Semrush)';
         } else {
             $posHg152 = strpos($samSrc152, 'private function httpGet(string $url): ?string');
-            $hgBody152 = $posHg152 !== false ? substr($samSrc152, $posHg152, 1900) : '';
+            // Round 276 : fenêtre élargie 1900 -> 2800 (ajout de la
+            // distinction 401/403 auth error).
+            $hgBody152 = $posHg152 !== false ? substr($samSrc152, $posHg152, 2800) : '';
             if ($posHg152 === false || strpos($hgBody152, 'watchdog.semrush_http_error') === false) {
                 $offenders[] = "SeoApiManager::httpGet() ne journalise plus d'alerte Watchdog sur un échec réseau/HTTP — régression du bug corrigé le 09/08/2026 (round 152) : une panne Semrush prolongée redeviendrait invisible du flux de notifications standard";
             }
@@ -8668,6 +8670,57 @@ class HealthCheckManager
             || strpos($upg44Src275, 'return $ok;') === false
         ) {
             $offenders[] = "upgrade-1.0.44.php ne propage plus le résultat réel de registerHook() jusqu'à son retour — régression du bug corrigé le 01/09/2026 (round 275) : un échec d'enregistrement du hook actionObjectOrderDeleteAfter redeviendrait indétectable, jamais rejoué par needUpgrade()";
+        }
+
+        // Round 276 (01/09/2026) : {meta_products} (email return_received)
+        // est dans HTML_SAFE_RAW_KEYS (EmailRenderer ne l'échappe pas
+        // automatiquement) mais son builder concaténait product_name
+        // (texte libre marchand) sans échappement — contrairement à son
+        // voisin {shipped_items} dans le même fichier.
+        $otmSrc276 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
+        if ($otmSrc276 === ''
+            || strpos($otmSrc276, "htmlspecialchars((string) \$r['product_name'], ENT_QUOTES, 'UTF-8')") === false
+        ) {
+            $offenders[] = "OrderTriggersManager n'échappe plus product_name pour {meta_products} — régression du bug corrigé le 01/09/2026 (round 276) : un nom de produit contenant '<'/'>'/'&' casserait de nouveau la mise en page de l'email return_received envoyé au client";
+        }
+
+        // Round 276 (01/09/2026) : LicenseManager journalisait la
+        // révocation confirmée et l'alerte d'expiration proactive via
+        // wd()->warning() — jamais d'alerte immédiate (sendImmediateAlert()
+        // n'est déclenché que par error()/critical()), alors qu'une
+        // révocation démarre un compte à rebours de 7 jours avant l'arrêt
+        // complet des envois email du module.
+        $licSrc276 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LicenseManager.php');
+        $licRevokedPos276 = $licSrc276 !== '' ? strpos($licSrc276, '\Configuration::updateGlobalValue(self::CONFIG_REVOKED_AT, time());') : false;
+        $licRevokedBody276 = $licRevokedPos276 !== false ? substr($licSrc276, $licRevokedPos276, 1200) : '';
+        $licExpiringPos276 = $licSrc276 !== '' ? strpos($licSrc276, '\Configuration::updateGlobalValue(self::CONFIG_EXPIRY_WARNED_FOR, $expires);') : false;
+        $licExpiringBody276 = $licExpiringPos276 !== false ? substr($licSrc276, $licExpiringPos276, 900) : '';
+        if ($licSrc276 === ''
+            || $licRevokedPos276 === false
+            || strpos($licRevokedBody276, '$this->wd()->error(') === false
+            || $licExpiringPos276 === false
+            || strpos($licExpiringBody276, '$this->wd()->error(') === false
+        ) {
+            $offenders[] = "LicenseManager ne déclenche plus d'alerte email immédiate (error()) sur révocation confirmée ou expiration proche — régression du bug corrigé le 01/09/2026 (round 276) : le marchand ne serait de nouveau averti que par le digest opt-in, potentiellement après l'extinction totale des envois";
+        }
+
+        // Round 276 (01/09/2026) : SeoApiManager (Semrush/Moz) traitait
+        // tout code HTTP ≠ 200 identiquement (warning() générique) sans
+        // distinguer 401/403 (clé invalide/révoquée) d'une panne réseau
+        // transitoire — contrairement à PageSpeedManager::fetchStrategy()
+        // (403 -> error(), round 171), jamais répliqué ici.
+        $seoSrc276 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeoApiManager.php');
+        $seoHttpGetPos276 = $seoSrc276 !== '' ? strpos($seoSrc276, 'private function httpGet(string $url): ?string') : false;
+        $seoHttpGetBody276 = $seoHttpGetPos276 !== false ? substr($seoSrc276, $seoHttpGetPos276, 2600) : '';
+        $seoFetchMozPos276 = $seoSrc276 !== '' ? strpos($seoSrc276, 'private function fetchMoz(string $domain): ?array') : false;
+        $seoFetchMozBody276 = $seoFetchMozPos276 !== false ? substr($seoSrc276, $seoFetchMozPos276, 3800) : '';
+        if ($seoSrc276 === ''
+            || $seoHttpGetPos276 === false
+            || strpos($seoHttpGetBody276, 'watchdog.semrush_http_auth_error') === false
+            || $seoFetchMozPos276 === false
+            || strpos($seoFetchMozBody276, 'watchdog.moz_http_auth_error') === false
+        ) {
+            $offenders[] = "SeoApiManager ne distingue plus 401/403 (clé Semrush/Moz invalide) d'une panne réseau générique — régression du bug corrigé le 01/09/2026 (round 276) : une clé expirée redeviendrait noyée dans le même warning() qu'une panne transitoire, sans alerte immédiate";
         }
 
         if ($offenders) {
