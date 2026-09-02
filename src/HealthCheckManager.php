@@ -8723,6 +8723,25 @@ class HealthCheckManager
             $offenders[] = "SeoApiManager ne distingue plus 401/403 (clé Semrush/Moz invalide) d'une panne réseau générique — régression du bug corrigé le 01/09/2026 (round 276) : une clé expirée redeviendrait noyée dans le même warning() qu'une panne transitoire, sans alerte immédiate";
         }
 
+        // Round 277 (02/09/2026) : LoyaltyManager::generateVoucher() calculait
+        // la date d'expiration du bon de récompense de palier fidélité avec
+        // strtotime('+1 year') codé en dur, ignorant le réglage marchand
+        // NERIA_VOUCHER_VALIDITY — contrairement aux bons anniversaire
+        // (BehavioralCronManager) et palier de commande (OrderTriggersManager),
+        // qui lisent déjà correctement getVoucherValidity().
+        $loySrc277 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
+        $loyFnPos277 = $loySrc277 !== '' ? strpos($loySrc277, 'private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward): string') : false;
+        $loyDateToPos277 = $loyFnPos277 !== false ? strpos($loySrc277, '$cartRule->date_to', $loyFnPos277) : false;
+        $loyDateToBody277 = ($loyDateToPos277 !== false && $loyDateToPos277 - $loyFnPos277 < 4000) ? substr($loySrc277, $loyDateToPos277, 200) : '';
+        if ($loySrc277 === ''
+            || $loyFnPos277 === false
+            || $loyDateToPos277 === false
+            || strpos($loyDateToBody277, 'getVoucherValidity()') === false
+            || strpos($loyDateToBody277, "strtotime('+1 year')") !== false
+        ) {
+            $offenders[] = "LoyaltyManager::generateVoucher() ne respecte plus le réglage marchand NERIA_VOUCHER_VALIDITY pour l'expiration du bon de récompense fidélité — régression du bug corrigé le 02/09/2026 (round 277) : le bon de palier fidélité redeviendrait fixé à +1 an quel que soit le réglage BO, contrairement aux bons anniversaire et palier de commande";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
