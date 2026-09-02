@@ -53,8 +53,11 @@ function run_test(): array
     // Le bon d'anniversaire (CartRule) doit être enregistré sous la boutique du client,
     // pas sous la valeur DEFAULT 1 de la colonne — bug distinct trouvé lors du test réel
     // à 2 boutiques (id_shop absent de l'INSERT malgré le filtre de lecture correct).
+    // Round 281 : signature élargie d'un $year optionnel (source MySQL
+    // YEAR(NOW()) au lieu de PHP date('Y'), cf. commentaire round 281 dans
+    // sendBirthdays()) — littéral mis à jour, contrôle id_shop inchangé.
     neria_assert(
-        str_contains($src, 'function generateBirthdayVoucher(int $idCustomer, \ConfigManager $config, int $idShop)')
+        str_contains($src, 'function generateBirthdayVoucher(int $idCustomer, \ConfigManager $config, int $idShop, ?int $year = null)')
         && str_contains($src, '(id_customer, year, id_cart_rule, voucher_code, id_shop, created_at)'),
         "generateBirthdayVoucher() n'insère plus id_shop — régression du bug où le bon d'anniversaire d'un client de la boutique 2 était enregistré sous id_shop=1 (DEFAULT de colonne)"
     );
