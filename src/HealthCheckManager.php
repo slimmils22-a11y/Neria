@@ -8802,6 +8802,39 @@ class HealthCheckManager
             $offenders[] = "OrderTriggersManager::handleStatusChange() n'a plus le verrou GET_LOCK() anti-doublon pour order_partial_shipped/order_on_hold — régression du bug corrigé le 02/09/2026 (round 280) : un redéclenchement du hook actionOrderStatusPostUpdate pour la même transition de statut enverrait de nouveau l'email deux fois au client, indépendamment du réglage Mode Silence (désactivé par défaut)";
         }
 
+        // Round 281 (02/09/2026) : BehavioralCronManager::sendBirthdays()/
+        // sendRelationshipAnniversaries() détectaient le jour côté SQL
+        // (NOW()) mais calculaient l'année de déduplication côté PHP
+        // (date('Y')) — deux horloges indépendantes, pouvant diverger
+        // autour de minuit le 31/12 si PHP et la session MySQL n'ont pas
+        // le même fuseau horaire.
+        $bcmSrc281 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        $bcmBdayPos281 = $bcmSrc281 !== '' ? strpos($bcmSrc281, 'private function sendBirthdays(): void') : false;
+        $bcmBdayYearPos281 = $bcmBdayPos281 !== false ? strpos($bcmSrc281, '$year   = ', $bcmBdayPos281) : false;
+        $bcmBdayBody281 = ($bcmBdayYearPos281 !== false && $bcmBdayYearPos281 - $bcmBdayPos281 < 2500) ? substr($bcmSrc281, $bcmBdayYearPos281, 200) : '';
+        if ($bcmSrc281 === ''
+            || $bcmBdayPos281 === false
+            || $bcmBdayYearPos281 === false
+            || strpos($bcmBdayBody281, 'SELECT YEAR(NOW())') === false
+        ) {
+            $offenders[] = "BehavioralCronManager::sendBirthdays() ne source plus l'année de déduplication via SELECT YEAR(NOW()) — régression du bug corrigé le 02/09/2026 (round 281) : un client né le 31/12 ou le 01/01 pourrait de nouveau recevoir son email d'anniversaire deux fois (ou jamais) selon le décalage de fuseau horaire entre PHP et MySQL";
+        }
+        if ($bcmSrc281 === ''
+            || strpos($bcmSrc281, 'private function generateBirthdayVoucher(int $idCustomer, \ConfigManager $config, int $idShop, ?int $year = null): string') === false
+        ) {
+            $offenders[] = "BehavioralCronManager::generateBirthdayVoucher() n'a plus le paramètre \$year optionnel sourcé de MySQL — régression du bug corrigé le 02/09/2026 (round 281)";
+        }
+        $bcmRaPos281 = $bcmSrc281 !== '' ? strpos($bcmSrc281, 'private function sendRelationshipAnniversaries(') : false;
+        $bcmRaYearPos281 = $bcmRaPos281 !== false ? strpos($bcmSrc281, '$currentYear = ', $bcmRaPos281) : false;
+        $bcmRaBody281 = ($bcmRaYearPos281 !== false && $bcmRaYearPos281 - $bcmRaPos281 < 3000) ? substr($bcmSrc281, $bcmRaYearPos281, 200) : '';
+        if ($bcmSrc281 === ''
+            || $bcmRaPos281 === false
+            || $bcmRaYearPos281 === false
+            || strpos($bcmRaBody281, 'SELECT YEAR(NOW())') === false
+        ) {
+            $offenders[] = "BehavioralCronManager::sendRelationshipAnniversaries() ne source plus l'année de déduplication via SELECT YEAR(NOW()) — régression du bug corrigé le 02/09/2026 (round 281)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
