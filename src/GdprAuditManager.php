@@ -1026,17 +1026,32 @@ class GdprAuditManager
                 // process.
                 $idsToDelete = [];
                 $whChunkSize = 2000;
-                $whOffset    = 0;
+                $whLastId    = 0;
+                // Round 278 : pagination par curseur (id_webhook > dernier vu),
+                // pas par OFFSET — WebhookManager::processQueue() appelle
+                // cleanup() de façon probabiliste (1 chance sur 10) à CHAQUE
+                // exécution du cron webhook, sans lien avec id_webhook
+                // (DELETE ... WHERE status IN ('done','failed') AND
+                // date_add < ...). Si ce cleanup() supprimait des lignes
+                // déjà lues par cette boucle pendant qu'elle tournait, la
+                // fenêtre OFFSET de l'itération suivante se décalait : des
+                // lignes jamais renvoyées par aucun LIMIT/OFFSET, donc des
+                // webhooks du client effacé qui survivaient à sa demande
+                // RGPD. Le curseur sur id_webhook (clé strictement
+                // croissante, jamais réattribuée) est immunisé contre les
+                // suppressions concurrentes, quelle que soit leur position.
                 do {
                     $rows = $this->db->executeS(
                         "SELECT `id_webhook`, `payload` FROM `{$fullWh}`
-                         ORDER BY `id_webhook` ASC LIMIT {$whChunkSize} OFFSET {$whOffset}",
+                         WHERE `id_webhook` > {$whLastId}
+                         ORDER BY `id_webhook` ASC LIMIT {$whChunkSize}",
                         true,
                         false
                     );
                     $rowCount = is_array($rows) ? count($rows) : 0;
                     if (is_array($rows)) {
                         foreach ($rows as $row) {
+                            $whLastId = max($whLastId, (int) $row['id_webhook']);
                             $decoded = json_decode((string) $row['payload'], true);
                             if (!is_array($decoded)) {
                                 continue;
@@ -1048,7 +1063,6 @@ class GdprAuditManager
                             }
                         }
                     }
-                    $whOffset += $whChunkSize;
                 } while ($rowCount === $whChunkSize);
                 if (!empty($idsToDelete)) {
                     $this->execOrFail(

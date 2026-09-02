@@ -1847,11 +1847,18 @@ class Neria extends Module
         // en usage réel faute de test couvrant ce hook.
         $purged = (new GdprAuditManager($this->getLocalPath()))->purgeCustomerData($idCustomer, $email);
 
+        // Round 278 : ne PAS repasser l'email en clair ici — purgeCustomerData()
+        // vient tout juste de scanner/supprimer les lignes neria_log
+        // contenant cet email (round 270), et ce log de confirmation
+        // l'y réinjectait aussitôt après, contredisant le droit à
+        // l'effacement qui vient d'être exécuté (neria_log n'est jamais
+        // repurgée par id_customer ensuite, seulement par ancienneté à 12
+        // mois). Seuls l'id client (déjà supprimé, non identifiant à lui
+        // seul) et le compteur sont conservés.
         if (class_exists('WatchdogManager')) {
             (new WatchdogManager($this))->info(
                 WatchdogManager::i18nMsg('watchdog.gdpr_customer_purged', [
                     'customer' => $idCustomer,
-                    'email'    => $email,
                     'n'        => $purged,
                 ]),
                 '', 'GdprAuditManager'
