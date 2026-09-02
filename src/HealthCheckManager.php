@@ -7409,10 +7409,11 @@ class HealthCheckManager
                 "WHERE `{\$col}` = \" . (int) \$idCustomer,\n                false\n            );",
                 "AND `id_customer` = \" . (int) \$idCustomer,\n                    false\n                );",
                 "WHERE `email` = '{\$emailSql}'\", false);",
-                // Round 275 : requête paginée (LIMIT/OFFSET par lots, pas un
-                // SELECT * chargeant toute la table en mémoire) — littéral
-                // mis à jour, $use_cache=false toujours vérifié.
-                "ORDER BY `id_webhook` ASC LIMIT {\$whChunkSize} OFFSET {\$whOffset}\",\n                        true,\n                        false\n                    );",
+                // Round 275 : requête paginée (par lots, pas un SELECT *
+                // chargeant toute la table en mémoire) — round 278 : pagination
+                // passée d'OFFSET à un curseur id_webhook, littéral mis à
+                // jour, $use_cache=false toujours vérifié.
+                "ORDER BY `id_webhook` ASC LIMIT {\$whChunkSize}\",\n                        true,\n                        false\n                    );",
                 "WHERE `{\$dateCol}` < DATE_SUB(NOW(), INTERVAL {\$months} MONTH){\$shopFilter}\",\n            false\n        );",
                 "AND TABLE_NAME = '\" . pSQL(\$table) . \"'\",\n                false\n            );",
             ];
@@ -8650,10 +8651,12 @@ class HealthCheckManager
         // tiers en panne, aucun plafond équivalent à neria_log).
         $gdprSrc275 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
         $gdprWhPos275 = $gdprSrc275 !== '' ? strpos($gdprSrc275, '$whChunkSize = 2000;') : false;
-        $gdprWhBody275 = $gdprWhPos275 !== false ? substr($gdprSrc275, $gdprWhPos275, 1500) : '';
+        $gdprWhBody275 = $gdprWhPos275 !== false ? substr($gdprSrc275, $gdprWhPos275, 2800) : '';
         if ($gdprSrc275 === ''
             || $gdprWhPos275 === false
-            || strpos($gdprWhBody275, 'ORDER BY `id_webhook` ASC LIMIT {$whChunkSize} OFFSET {$whOffset}') === false
+            // Round 278 : pagination passée d'OFFSET à un curseur id_webhook,
+            // littéral mis à jour ci-dessous.
+            || strpos($gdprWhBody275, 'ORDER BY `id_webhook` ASC LIMIT {$whChunkSize}') === false
             || strpos($gdprWhBody275, 'while ($rowCount === $whChunkSize);') === false
         ) {
             $offenders[] = "GdprAuditManager::purgeCustomerData() ne pagine plus la lecture de neria_webhook_queue — régression du bug corrigé le 01/09/2026 (round 275) : un backlog volumineux chargerait de nouveau toute la table en mémoire à chaque demande RGPD d'effacement";
@@ -8740,6 +8743,40 @@ class HealthCheckManager
             || strpos($loyDateToBody277, "strtotime('+1 year')") !== false
         ) {
             $offenders[] = "LoyaltyManager::generateVoucher() ne respecte plus le réglage marchand NERIA_VOUCHER_VALIDITY pour l'expiration du bon de récompense fidélité — régression du bug corrigé le 02/09/2026 (round 277) : le bon de palier fidélité redeviendrait fixé à +1 an quel que soit le réglage BO, contrairement aux bons anniversaire et palier de commande";
+        }
+
+        // Round 278 (02/09/2026) : neria.php::hookActionDeleteGDPRCustomerImpl()
+        // réinjectait l'email en clair du client dans neria_log JUSTE APRÈS
+        // que purgeCustomerData() venait de scanner/supprimer les lignes
+        // neria_log contenant cet email (round 270) — neria_log n'est
+        // ensuite jamais repurgée par id_customer, seulement par ancienneté.
+        $neriaPhp278 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $gdprPurgePos278 = $neriaPhp278 !== '' ? strpos($neriaPhp278, '->purgeCustomerData($idCustomer, $email);') : false;
+        $gdprPurgeBody278 = $gdprPurgePos278 !== false ? substr($neriaPhp278, $gdprPurgePos278, 1000) : '';
+        if ($neriaPhp278 === ''
+            || $gdprPurgePos278 === false
+            || strpos($gdprPurgeBody278, "'customer' => \$idCustomer,") === false
+            || strpos($gdprPurgeBody278, "'n'        => \$purged,") === false
+            || strpos($gdprPurgeBody278, "'email'    => \$email,") !== false
+        ) {
+            $offenders[] = "neria.php::hookActionDeleteGDPRCustomerImpl() réinjecte de nouveau l'email du client dans le log watchdog.gdpr_customer_purged — régression du bug corrigé le 02/09/2026 (round 278) : l'email d'un client venant d'exercer son droit à l'effacement RGPD redeviendrait persisté en clair dans neria_log juste après en avoir été retiré, sans jamais y être repurgé avant 12 mois";
+        }
+
+        // Round 278 (02/09/2026) : GdprAuditManager::purgeCustomerData()
+        // lisait neria_webhook_queue par LIMIT/OFFSET — WebhookManager::cleanup()
+        // (probabiliste, 1/10, à chaque exécution du cron webhook) pouvait
+        // supprimer des lignes déjà lues pendant le scan, décalant la
+        // fenêtre OFFSET des itérations suivantes et faisant sauter des
+        // webhooks du client en cours d'effacement RGPD.
+        $gdprSrc278 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        $whChunkPos278 = $gdprSrc278 !== '' ? strpos($gdprSrc278, '$whChunkSize = 2000;') : false;
+        $whChunkBody278 = $whChunkPos278 !== false ? substr($gdprSrc278, $whChunkPos278, 2800) : '';
+        if ($gdprSrc278 === ''
+            || $whChunkPos278 === false
+            || strpos($whChunkBody278, 'WHERE `id_webhook` > {$whLastId}') === false
+            || strpos($whChunkBody278, 'OFFSET {$whOffset}') !== false
+        ) {
+            $offenders[] = "GdprAuditManager::purgeCustomerData() ne pagine plus neria_webhook_queue par curseur (id_webhook > dernier vu) — régression du bug corrigé le 02/09/2026 (round 278) : une pagination OFFSET redeviendrait vulnérable au décalage de fenêtre causé par un WebhookManager::cleanup() concurrent, pouvant faire survivre des webhooks du client à sa demande d'effacement RGPD";
         }
 
         if ($offenders) {
