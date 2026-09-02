@@ -1017,7 +1017,7 @@ class BehavioralCronManager
         // sendFirstAnniversaries()/sendReorderReminders() — cf. commit af86c15.
         $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
-            'SELECT o.id_order, o.id_customer, o.id_shop,
+            'SELECT o.id_order, o.id_customer, o.id_shop, o.id_currency,
                     c.email, c.firstname, c.lastname, c.id_lang
              FROM `' . $this->prefix . 'orders` o
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = o.id_customer
@@ -1059,7 +1059,12 @@ class BehavioralCronManager
 
             if ($upsellMgr !== null) {
                 try {
-                    $upsell = $upsellMgr->getUpsellProduct($idOrder, $idLang, (int) $r['id_shop']);
+                    // Round 274 : o.id_currency transmis — sans lui, le prix
+                    // suggéré était affiché/calculé dans la devise PAR
+                    // DÉFAUT de la boutique plutôt que dans la devise
+                    // RÉELLE de CETTE commande, incohérent avec le reste du
+                    // même email sur une boutique multi-devises.
+                    $upsell = $upsellMgr->getUpsellProduct($idOrder, $idLang, (int) $r['id_shop'], (int) $r['id_currency']);
 
                     if ($upsell !== null) {
                         $idUpsell = $upsellMgr->recordSuggestion(

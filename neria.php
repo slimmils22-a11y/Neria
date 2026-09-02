@@ -5616,7 +5616,16 @@ class Neria extends Module
             $result = ['status' => 'no_suggestion'];
             try {
                 $upsellMgr = new UpsellManager($this);
-                $upsell    = $upsellMgr->getUpsellProduct($idOrder, $idLang);
+                // Round 274 : id_currency de la commande transmis — ce
+                // preview prétend renvoyer le bloc HTML EXACT inséré dans
+                // l'email du client (commentaire ci-dessous) ; sans la
+                // devise réelle de la commande, il affichait un prix dans
+                // la devise par défaut de la boutique, potentiellement
+                // différent de ce que le client reçoit réellement.
+                $idCurrencyOrder = (int) Db::getInstance()->getValue(
+                    'SELECT `id_currency` FROM `' . _DB_PREFIX_ . 'orders` WHERE `id_order` = ' . $idOrder
+                );
+                $upsell = $upsellMgr->getUpsellProduct($idOrder, $idLang, idCurrency: $idCurrencyOrder);
                 if ($upsell) {
                     // Renvoie le bloc HTML EXACT inséré dans l'email du client
                     $result = [

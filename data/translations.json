@@ -25601,7 +25601,7 @@
             "waitlist_eyebrow": "Réservé pour vous",
             "waitlist_title": "Vous avez attendu {days_waited} jour{days_waited_plural}. Nous ne l'avons pas oublié.",
             "waitlist_intro": "Cette pièce est de nouveau disponible — et parce que vous étiez là avant tout le monde, nous vous accordons une priorité d'accès exclusive.",
-            "waitlist_reservation": "Votre accès prioritaire est valable {reservation_hours} heures. Passé ce délai, le produit sera ouvert à tous.",
+            "waitlist_reservation": "Votre accès prioritaire est valable {reservation_hours} heure(s). Passé ce délai, le produit sera ouvert à tous.",
             "waitlist_cta": "Voir le produit",
             "waitlist_note": "Cette notification vous est envoyée car vous avez demandé à être alerté(e) du retour en stock de ce produit."
         },
@@ -25611,7 +25611,7 @@
             "waitlist_eyebrow": "Reserved for you",
             "waitlist_title": "You waited {days_waited} day{days_waited_plural}. We haven't forgotten.",
             "waitlist_intro": "This piece is back in stock — and because you were here before anyone else, we're giving you exclusive priority access.",
-            "waitlist_reservation": "Your priority access is valid for {reservation_hours} hours. After that, the product will be open to everyone.",
+            "waitlist_reservation": "Your priority access is valid for {reservation_hours} hour(s). After that, the product will be open to everyone.",
             "waitlist_cta": "View product",
             "waitlist_note": "You're receiving this notification because you asked to be alerted when this product came back in stock."
         },
@@ -25621,7 +25621,7 @@
             "waitlist_eyebrow": "Für Sie reserviert",
             "waitlist_title": "Sie haben {days_waited} Tag(e) gewartet. Wir haben es nicht vergessen.",
             "waitlist_intro": "Dieses Stück ist wieder verfügbar — und weil Sie vor allen anderen dabei waren, gewähren wir Ihnen exklusiven vorrangigen Zugang.",
-            "waitlist_reservation": "Ihr Vorrangzugang gilt für {reservation_hours} Stunden. Danach ist das Produkt für alle verfügbar.",
+            "waitlist_reservation": "Ihr Vorrangzugang gilt für {reservation_hours} Stunde(n). Danach ist das Produkt für alle verfügbar.",
             "waitlist_cta": "Produkt ansehen",
             "waitlist_note": "Sie erhalten diese Benachrichtigung, weil Sie darum gebeten haben, beim Wiederverfügbarwerden dieses Produkts informiert zu werden."
         },
@@ -25631,7 +25631,7 @@
             "waitlist_eyebrow": "Riservato per Voi",
             "waitlist_title": "Avete aspettato {days_waited} giorno/i. Non l'abbiamo dimenticato.",
             "waitlist_intro": "Questo articolo è di nuovo disponibile — e poiché eravate qui prima di tutti gli altri, Vi concediamo un accesso prioritario esclusivo.",
-            "waitlist_reservation": "Il Vostro accesso prioritario è valido per {reservation_hours} ore. Dopo questo periodo, il prodotto sarà disponibile per tutti.",
+            "waitlist_reservation": "Il Vostro accesso prioritario è valido per {reservation_hours} ora/e. Dopo questo periodo, il prodotto sarà disponibile per tutti.",
             "waitlist_cta": "Vedi il prodotto",
             "waitlist_note": "Ricevete questa notifica perché avete chiesto di essere avvisati quando questo prodotto tornasse disponibile."
         },
@@ -25641,7 +25641,7 @@
             "waitlist_eyebrow": "Reservado para usted",
             "waitlist_title": "Esperó {days_waited} día(s). No lo hemos olvidado.",
             "waitlist_intro": "Esta pieza vuelve a estar disponible — y porque estaba aquí antes que nadie, le damos acceso prioritario exclusivo.",
-            "waitlist_reservation": "Su acceso prioritario es válido durante {reservation_hours} horas. Después, el producto estará disponible para todos.",
+            "waitlist_reservation": "Su acceso prioritario es válido durante {reservation_hours} hora(s). Después, el producto estará disponible para todos.",
             "waitlist_cta": "Ver el producto",
             "waitlist_note": "Recibe esta notificación porque pidió que le avisáramos cuando este producto volviera a estar disponible."
         },
@@ -25651,7 +25651,7 @@
             "waitlist_eyebrow": "Reservado para si",
             "waitlist_title": "Esperou {days_waited} dia(s). Não esquecemos.",
             "waitlist_intro": "Esta peça voltou a estar disponível — e porque estava aqui antes de todos os outros, concedemos-lhe acesso prioritário exclusivo.",
-            "waitlist_reservation": "O seu acesso prioritário é válido por {reservation_hours} horas. Após esse prazo, o produto ficará disponível para todos.",
+            "waitlist_reservation": "O seu acesso prioritário é válido por {reservation_hours} hora(s). Após esse prazo, o produto ficará disponível para todos.",
             "waitlist_cta": "Ver o produto",
             "waitlist_note": "Recebe esta notificação porque pediu para ser alertado/a quando este produto voltasse a estar disponível."
         },
@@ -25661,7 +25661,7 @@
             "waitlist_eyebrow": "Reservado para você",
             "waitlist_title": "Você esperou {days_waited} dia(s). Não esquecemos.",
             "waitlist_intro": "Esta peça voltou ao estoque — e porque você estava aqui antes de todo mundo, damos a você acesso prioritário exclusivo.",
-            "waitlist_reservation": "Seu acesso prioritário é válido por {reservation_hours} horas. Depois disso, o produto ficará disponível para todos.",
+            "waitlist_reservation": "Seu acesso prioritário é válido por {reservation_hours} hora(s). Depois disso, o produto ficará disponível para todos.",
             "waitlist_cta": "Ver o produto",
             "waitlist_note": "Você recebe esta notificação porque pediu para ser avisado/a quando este produto voltasse ao estoque."
         },
@@ -25671,7 +25671,7 @@
             "waitlist_eyebrow": "محجوز لكم",
             "waitlist_title": "لقد انتظرتم {days_waited} يومًا. لم ننسَ ذلك.",
             "waitlist_intro": "هذا المنتج متوفر مجددًا — ولأنكم كنتم هنا قبل الجميع، نمنحكم أولوية وصول حصرية.",
-            "waitlist_reservation": "أولوية وصولكم سارية لمدة {reservation_hours} ساعات. بعد ذلك، سيكون المنتج متاحًا للجميع.",
+            "waitlist_reservation": "أولوية وصولكم سارية لمدة {reservation_hours} ساعة. بعد ذلك، سيكون المنتج متاحًا للجميع.",
             "waitlist_cta": "عرض المنتج",
             "waitlist_note": "تتلقون هذا الإشعار لأنكم طلبتم تنبيهكم عند عودة هذا المنتج إلى المخزون."
         },
@@ -25721,7 +25721,7 @@
             "waitlist_eyebrow": "Зарезервировано для Вас",
             "waitlist_title": "Вы ждали {days_waited} дн. Мы не забыли.",
             "waitlist_intro": "Этот товар снова в наличии — и поскольку Вы были здесь раньше всех, мы предоставляем Вам эксклюзивный приоритетный доступ.",
-            "waitlist_reservation": "Ваш приоритетный доступ действителен {reservation_hours} часа. После этого товар будет доступен всем.",
+            "waitlist_reservation": "Ваш приоритетный доступ действителен {reservation_hours} ч. После этого товар будет доступен всем.",
             "waitlist_cta": "Посмотреть товар",
             "waitlist_note": "Вы получили это уведомление, потому что просили оповестить Вас о возвращении товара в наличие."
         },
@@ -25741,7 +25741,7 @@
             "waitlist_eyebrow": "Reserverat för dig",
             "waitlist_title": "Du väntade {days_waited} dag(ar). Vi har inte glömt.",
             "waitlist_intro": "Den här produkten är tillbaka i lager — och eftersom du var här före alla andra ger vi dig exklusiv prioriterad tillgång.",
-            "waitlist_reservation": "Din prioriterade tillgång gäller i {reservation_hours} timmar. Därefter öppnas produkten för alla.",
+            "waitlist_reservation": "Din prioriterade tillgång gäller i {reservation_hours} timme/timmar. Därefter öppnas produkten för alla.",
             "waitlist_cta": "Visa produkten",
             "waitlist_note": "Du får detta meddelande för att du bad om att bli aviserad när produkten kom tillbaka i lager."
         },
@@ -25751,7 +25751,7 @@
             "waitlist_eyebrow": "Reservert for deg",
             "waitlist_title": "Du ventet {days_waited} dag(er). Vi har ikke glemt.",
             "waitlist_intro": "Dette produktet er tilbake på lager — og fordi du var her før alle andre, gir vi deg eksklusiv prioritert tilgang.",
-            "waitlist_reservation": "Din prioriterte tilgang er gyldig i {reservation_hours} timer. Etter det åpnes produktet for alle.",
+            "waitlist_reservation": "Din prioriterte tilgang er gyldig i {reservation_hours} time(r). Etter det åpnes produktet for alle.",
             "waitlist_cta": "Se produktet",
             "waitlist_note": "Du mottar denne varslingen fordi du ba om å bli varslet når produktet kom tilbake på lager."
         },
@@ -25761,7 +25761,7 @@
             "waitlist_eyebrow": "Reserveret til dig",
             "waitlist_title": "Du ventede {days_waited} dag(e). Vi har ikke glemt.",
             "waitlist_intro": "Dette produkt er tilbage på lager — og fordi du var her før alle andre, giver vi dig eksklusiv prioriteret adgang.",
-            "waitlist_reservation": "Din prioriterede adgang er gyldig i {reservation_hours} timer. Derefter åbnes produktet for alle.",
+            "waitlist_reservation": "Din prioriterede adgang er gyldig i {reservation_hours} time(r). Derefter åbnes produktet for alle.",
             "waitlist_cta": "Se produktet",
             "waitlist_note": "Du modtager denne notifikation, fordi du bad om at blive underrettet, når dette produkt kom tilbage på lager."
         },
@@ -25781,7 +25781,7 @@
             "waitlist_eyebrow": "Reserved for you",
             "waitlist_title": "You waited {days_waited} day{days_waited_plural}. We haven't forgotten.",
             "waitlist_intro": "This piece is back in stock — and because you were here before anyone else, we're giving you exclusive priority access.",
-            "waitlist_reservation": "Your priority access is valid for {reservation_hours} hours. After that, the product will be open to everyone.",
+            "waitlist_reservation": "Your priority access is valid for {reservation_hours} hour(s). After that, the product will be open to everyone.",
             "waitlist_cta": "View product",
             "waitlist_note": "You're receiving this notification because you asked to be alerted when this product came back in stock."
         }

@@ -54,7 +54,19 @@ class UpsellManager
      * @return array|null  ['name', 'price_formatted', 'image_url', 'product_url',
      *                      'category', 'reason']
      */
-    public function getUpsellProduct(int $idOrder, int $idLang, ?int $idShop = null): ?array
+    // Round 274 : $idCurrency (optionnel) — la devise RÉELLE de la commande
+    // qui déclenche la suggestion (ex. post_purchase_review), distincte de
+    // resolveDisplayCurrency($idShop) qui résout la devise PAR DÉFAUT de la
+    // boutique. Sur une boutique multi-devises (plusieurs devises actives
+    // au checkout, pas seulement multi-boutiques), un client ayant acheté
+    // dans une devise secondaire (ex. USD sur une boutique par défaut en
+    // EUR) recevait le prix du produit suggéré affiché en EUR, à un taux
+    // non lié à celui réellement appliqué à sa commande — incohérent avec
+    // le reste du même email. Reste optionnel (null) pour les appelants
+    // sans commande précise en contexte (renderUpsellBlock() pour les
+    // campagnes saisonnières "idées cadeaux" — pas de devise de commande
+    // pertinente dans ce cas, comportement inchangé).
+    public function getUpsellProduct(int $idOrder, int $idLang, ?int $idShop = null, ?int $idCurrency = null): ?array
     {
         if ($idLang <= 0) {
             $idLang = (int) \Configuration::get('PS_LANG_DEFAULT');
@@ -85,7 +97,7 @@ class UpsellManager
             // client B2B à tarif négocié (specific_price restreinte à son
             // id_group) voyait un prix upsell différent (plus élevé) de
             // celui qu'il paierait réellement au checkout.
-            $result = $this->enrich($row, $idLang, 'L\'accessoire parfait', $idShop, $idCustomer);
+            $result = $this->enrich($row, $idLang, 'L\'accessoire parfait', $idShop, $idCustomer, $idCurrency);
             if ($result) {
                 return $result;
             }
@@ -94,7 +106,7 @@ class UpsellManager
         // Tier 2 — co-achat (collaborative filtering léger)
         $row = $this->findByCoPurchase($orderProducts, $excluded, $idLang, $idShop);
         if ($row) {
-            $result = $this->enrich($row, $idLang, 'Souvent acheté ensemble', $idShop, $idCustomer);
+            $result = $this->enrich($row, $idLang, 'Souvent acheté ensemble', $idShop, $idCustomer, $idCurrency);
             if ($result) {
                 return $result;
             }
@@ -103,7 +115,7 @@ class UpsellManager
         // Tier 3 — meilleur vendeur même catégorie
         $row = $this->findByCategoryBestseller($orderProducts, $excluded, $idLang, $idShop);
         if ($row) {
-            $result = $this->enrich($row, $idLang, 'Notre suggestion pour vous', $idShop, $idCustomer);
+            $result = $this->enrich($row, $idLang, 'Notre suggestion pour vous', $idShop, $idCustomer, $idCurrency);
             if ($result) {
                 return $result;
             }
@@ -410,8 +422,14 @@ class UpsellManager
      * dans la mauvaise devise. Extraite pour être testable sans dépendre du
      * reste de enrich() (image produit, etc.).
      */
-    private function resolveDisplayCurrency(?int $idShop): \Currency
+    private function resolveDisplayCurrency(?int $idShop, ?int $idCurrency = null): \Currency
     {
+        // Round 274 : $idCurrency (devise RÉELLE de la commande, quand
+        // connue) prime sur la devise par défaut de la boutique — voir
+        // commentaire de getUpsellProduct() ci-dessus.
+        if ($idCurrency !== null && $idCurrency > 0) {
+            return new \Currency($idCurrency);
+        }
         if ($idShop !== null) {
             return new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop));
         }
@@ -423,7 +441,7 @@ class UpsellManager
             : new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT'));
     }
 
-    private function enrich(array $row, int $idLang, string $reason, ?int $idShop = null, int $idCustomer = 0): ?array
+    private function enrich(array $row, int $idLang, string $reason, ?int $idShop = null, int $idCustomer = 0, ?int $idCurrency = null): ?array
     {
         $idProduct = (int) $row['id_product'];
 
@@ -441,12 +459,12 @@ class UpsellManager
             );
         }
 
-        $price = $this->safeProductPrice($idProduct, $idLang, $idCustomer, $idShop);
+        $price = $this->safeProductPrice($idProduct, $idLang, $idCustomer, $idShop, $idCurrency);
         // Formatage localisé (séparateur décimal + position du symbole selon
         // la langue) — auparavant une virgule française codée en dur,
         // affichée dans le bloc upsell de CHAQUE confirmation de commande,
         // y compris pour les 18 langues non-FR.
-        $priceFormatted = \NeriaTools::displayPrice($price, $this->resolveDisplayCurrency($idShop), $idLang);
+        $priceFormatted = \NeriaTools::displayPrice($price, $this->resolveDisplayCurrency($idShop, $idCurrency), $idLang);
 
         // $idShop en 6e argument : même correctif que CollectionManager pour
         // {missing_product_url} — sans lui, un client d'une autre boutique
@@ -474,7 +492,7 @@ class UpsellManager
      * die() (Product.php) ; on fournit donc un cart transitoire le temps du
      * calcul, puis on restaure le contexte.
      */
-    private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0, ?int $idShop = null): float
+    private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0, ?int $idShop = null, ?int $idCurrency = null): float
     {
         $ctx     = $this->context;
         $hadCart = \Validate::isLoadedObject($ctx->cart);
@@ -489,9 +507,18 @@ class UpsellManager
             // continuait d'être calculé dans la devise AMBIANTE du process
             // ($ctx->currency) — la correction de l'affichage ne suffisait
             // pas si la valeur sous-jacente restait dans la mauvaise devise.
-            $tmp->id_currency = $idShop !== null
-                ? ((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop) ?: (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT')))
-                : (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT'));
+            //
+            // Round 274 : $idCurrency (devise RÉELLE de la commande, quand
+            // connue) prime sur PS_CURRENCY_DEFAULT — sinon le MONTANT
+            // calculé restait dans la devise par défaut de la boutique même
+            // quand l'affichage (resolveDisplayCurrency()) utilisait déjà
+            // la bonne devise, produisant un prix affiché avec le bon
+            // symbole mais la mauvaise valeur sous-jacente.
+            $tmp->id_currency = ($idCurrency !== null && $idCurrency > 0)
+                ? $idCurrency
+                : ($idShop !== null
+                    ? ((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop) ?: (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT')))
+                    : (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT')));
             $tmp->id_lang     = $idLang;
             $ctx->cart        = $tmp;
         }
