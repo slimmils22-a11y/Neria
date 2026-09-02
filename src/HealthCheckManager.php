@@ -3881,12 +3881,14 @@ class HealthCheckManager
         if ($lcmSrc === '') {
             $offenders[] = 'LookCompletionManager.php introuvable (garde-fou round 131 : buildProductBlocks() commute Shop::setContext())';
         } else {
-            $posBpb = strpos($lcmSrc, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop): array');
+            $posBpb = strpos($lcmSrc, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0): array');
             // Round 184 : fenêtre élargie 3600→5700 — le remplacement de
             // StockAvailable::getQuantityAvailableByProduct() par un SUM
             // SQL direct et l'ajout de safeProductPrice() ont repoussé le
             // point de restauration du contexte plus loin dans la méthode.
-            $bpbBody = $posBpb !== false ? substr($lcmSrc, $posBpb, 5700) : '';
+            // Round 275 : fenêtre élargie 5700→6400 (paramètre $idCurrency
+            // ajouté à la signature et à son commentaire).
+            $bpbBody = $posBpb !== false ? substr($lcmSrc, $posBpb, 6400) : '';
             if ($posBpb === false
                 || strpos($bpbBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $idShop)') === false
                 || strpos($bpbBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $originalShopId)') === false
@@ -6398,7 +6400,7 @@ class HealthCheckManager
             if (strpos($lcmSrc184, "SELECT COALESCE(SUM(quantity), 0) FROM `' . \$this->prefix . 'stock_available`") === false) {
                 $offenders[] = "LookCompletionManager::buildProductBlocks() n'utilise plus le SUM(quantity) SQL direct pour vérifier le stock — régression du bug corrigé le 18/08/2026 (round 184) : un produit à déclinaisons serait de nouveau silencieusement écarté des suggestions 'Complétez votre look'";
             }
-            if (strpos($lcmSrc184, 'private function safeProductPrice(int $idProduct, int $idShop): float') === false) {
+            if (strpos($lcmSrc184, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0): float') === false) {
                 $offenders[] = "LookCompletionManager n'a plus de méthode safeProductPrice() — régression du bug corrigé le 18/08/2026 (round 184) : le prix affiché redeviendrait \$product->price brut, sans taxe ni promo";
             }
         }
@@ -6998,7 +7000,7 @@ class HealthCheckManager
         $lcmSrc198 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
         if ($lcmSrc198 === '') {
             $offenders[] = 'LookCompletionManager.php introuvable (garde-fou round 198)';
-        } elseif (strpos($lcmSrc198, "\$tmp->id_currency = (int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop)") === false) {
+        } elseif (strpos($lcmSrc198, ": ((int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop) ?: (int) (\$ctx->currency->id ?? \\Configuration::get('PS_CURRENCY_DEFAULT')));") === false) {
             $offenders[] = "LookCompletionManager::safeProductPrice() ne résout plus id_currency via \$idShop — régression du bug corrigé le 24/08/2026 (round 198)";
         }
         $umSrc198 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
@@ -7405,7 +7407,10 @@ class HealthCheckManager
                 "WHERE `{\$col}` = \" . (int) \$idCustomer,\n                false\n            );",
                 "AND `id_customer` = \" . (int) \$idCustomer,\n                    false\n                );",
                 "WHERE `email` = '{\$emailSql}'\", false);",
-                "SELECT `id_webhook`, `payload` FROM `{\$fullWh}`\", true, false);",
+                // Round 275 : requête paginée (LIMIT/OFFSET par lots, pas un
+                // SELECT * chargeant toute la table en mémoire) — littéral
+                // mis à jour, $use_cache=false toujours vérifié.
+                "ORDER BY `id_webhook` ASC LIMIT {\$whChunkSize} OFFSET {\$whOffset}\",\n                        true,\n                        false\n                    );",
                 "WHERE `{\$dateCol}` < DATE_SUB(NOW(), INTERVAL {\$months} MONTH){\$shopFilter}\",\n            false\n        );",
                 "AND TABLE_NAME = '\" . pSQL(\$table) . \"'\",\n                false\n            );",
             ];
@@ -8620,6 +8625,49 @@ class HealthCheckManager
             || strpos($bhvSrc274, "getUpsellProduct(\$idOrder, \$idLang, (int) \$r['id_shop'], (int) \$r['id_currency']);") === false
         ) {
             $offenders[] = "UpsellManager/BehavioralCronManager ne propagent plus la devise réelle de la commande (id_currency) jusqu'au prix upsell suggéré — régression du bug corrigé le 01/09/2026 (round 274) : le prix affiché redeviendrait incohérent avec la devise réelle de la commande sur une boutique multi-devises";
+        }
+
+        // Round 275 (01/09/2026) : même défaut que UpsellManager (round
+        // 274), sur LookCompletionManager — email "Complétez votre look"
+        // lié à une commande précise, prix suggéré affiché dans la devise
+        // PAR DÉFAUT de la boutique au lieu de la devise RÉELLE de cette
+        // commande sur une boutique multi-devises.
+        $lcmSrc275 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
+        if ($lcmSrc275 === ''
+            || strpos($lcmSrc275, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0): array') === false
+            || strpos($lcmSrc275, '$tmp->id_currency = $idCurrency > 0') === false
+            || strpos($lcmSrc275, 'SELECT DISTINCT oh.id_order, o.id_customer, o.id_lang, o.id_shop, o.id_currency') === false
+        ) {
+            $offenders[] = "LookCompletionManager ne propage plus la devise réelle de la commande (id_currency) jusqu'au prix suggéré 'Complétez votre look' — régression du bug corrigé le 01/09/2026 (round 275) : le prix affiché redeviendrait incohérent avec la devise réelle de la commande sur une boutique multi-devises";
+        }
+
+        // Round 275 (01/09/2026) : GdprAuditManager::purgeCustomerData()
+        // chargeait toute la table neria_webhook_queue en un seul SELECT
+        // sans LIMIT ni filtre id_shop — risque d'épuisement mémoire sur
+        // une boutique à fort trafic avec un backlog volumineux (endpoint
+        // tiers en panne, aucun plafond équivalent à neria_log).
+        $gdprSrc275 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        $gdprWhPos275 = $gdprSrc275 !== '' ? strpos($gdprSrc275, '$whChunkSize = 2000;') : false;
+        $gdprWhBody275 = $gdprWhPos275 !== false ? substr($gdprSrc275, $gdprWhPos275, 1500) : '';
+        if ($gdprSrc275 === ''
+            || $gdprWhPos275 === false
+            || strpos($gdprWhBody275, 'ORDER BY `id_webhook` ASC LIMIT {$whChunkSize} OFFSET {$whOffset}') === false
+            || strpos($gdprWhBody275, 'while ($rowCount === $whChunkSize);') === false
+        ) {
+            $offenders[] = "GdprAuditManager::purgeCustomerData() ne pagine plus la lecture de neria_webhook_queue — régression du bug corrigé le 01/09/2026 (round 275) : un backlog volumineux chargerait de nouveau toute la table en mémoire à chaque demande RGPD d'effacement";
+        }
+
+        // Round 275 (01/09/2026) : upgrade_module_1_0_44() ignorait le
+        // retour de registerHook() et renvoyait toujours true — un échec
+        // silencieux d'enregistrement du hook committait quand même la
+        // version cible, empêchant needUpgrade() de jamais rejouer ce
+        // script.
+        $upg44Src275 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/upgrade/upgrade-1.0.44.php');
+        if ($upg44Src275 === ''
+            || strpos($upg44Src275, "\$ok = \$module->registerHook('actionObjectOrderDeleteAfter');") === false
+            || strpos($upg44Src275, 'return $ok;') === false
+        ) {
+            $offenders[] = "upgrade-1.0.44.php ne propage plus le résultat réel de registerHook() jusqu'à son retour — régression du bug corrigé le 01/09/2026 (round 275) : un échec d'enregistrement du hook actionObjectOrderDeleteAfter redeviendrait indétectable, jamais rejoué par needUpgrade()";
         }
 
         if ($offenders) {
