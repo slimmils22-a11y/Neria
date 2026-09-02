@@ -1133,6 +1133,18 @@ class OrderTriggersManager
                 '{shipped_items_txt}' => implode("\n", $allLines),
             ];
         } catch (\Throwable $e) {
+            // Round 283 : ce catch renvoyait un contenu vide sans jamais
+            // journaliser l'échec — order_partial_shipped partait quand
+            // même au client (Mail::Send() ne sait pas que ces variables
+            // sont vides par erreur, pas par absence réelle de données),
+            // mais SANS la liste des articles expédiés ni le numéro de
+            // suivi transporteur, et sans aucune trace Watchdog permettant
+            // au marchand de savoir qu'un email dégradé a été envoyé.
+            $this->watchdog()->warning(
+                \WatchdogManager::i18nMsg('watchdog.shipped_items_build_error', ['order' => $order->reference, 'error' => $e->getMessage()]),
+                'order_partial_shipped', 'OrderTriggers'
+            );
+
             return ['{shipped_items}' => '', '{shipped_items_txt}' => ''];
         }
     }
