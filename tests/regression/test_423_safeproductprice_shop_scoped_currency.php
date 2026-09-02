@@ -57,15 +57,17 @@ function run_test(): array
         "LookCompletionManager n'appelle plus safeProductPrice() avec \$idShop — régression du bug corrigé le 24/08/2026 (round 198)"
     );
 
-    // UpsellManager
+    // UpsellManager (round 274 : signature élargie d'un paramètre
+    // ?int $idCurrency = null — littéraux mis à jour, contrôle inchangé
+    // sur le fond, présence de $idShop)
     $usSrc = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/UpsellManager.php');
     neria_assert($usSrc !== false, 'Impossible de lire src/UpsellManager.php');
     neria_assert(
-        strpos($usSrc, 'private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0, ?int $idShop = null): float') !== false,
+        strpos($usSrc, 'private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0, ?int $idShop = null, ?int $idCurrency = null): float') !== false,
         "UpsellManager::safeProductPrice() n'a plus le paramètre \$idShop — régression du bug corrigé le 24/08/2026 (round 198)"
     );
     neria_assert(
-        strpos($usSrc, '$this->safeProductPrice($idProduct, $idLang, $idCustomer, $idShop)') !== false,
+        strpos($usSrc, '$this->safeProductPrice($idProduct, $idLang, $idCustomer, $idShop, $idCurrency)') !== false,
         "UpsellManager n'appelle plus safeProductPrice() avec \$idShop — régression du bug corrigé le 24/08/2026 (round 198)"
     );
 

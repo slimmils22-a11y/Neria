@@ -47,7 +47,8 @@ function run_test(): array
         );
     }
 
-    $posEntry = strpos($src, 'public function getUpsellProduct(int $idOrder, int $idLang, ?int $idShop = null): ?array');
+    // Round 274 : signature élargie d'un paramètre ?int $idCurrency = null.
+    $posEntry = strpos($src, 'public function getUpsellProduct(int $idOrder, int $idLang, ?int $idShop = null, ?int $idCurrency = null): ?array');
     neria_assert($posEntry !== false, 'getUpsellProduct() introuvable — jeu de test invalide');
     $entryBody = substr($src, $posEntry, 2600);
     neria_assert(

@@ -30,12 +30,15 @@ function run_test(): array
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/UpsellManager.php');
     neria_assert($src !== false, 'Impossible de lire src/UpsellManager.php');
 
+    // Round 274 : signatures élargies d'un paramètre ?int $idCurrency = null
+    // (devise réelle de la commande) — littéraux mis à jour en conséquence,
+    // contrôle inchangé sur le fond (présence de $idCustomer).
     neria_assert(
-        strpos($src, 'private function enrich(array $row, int $idLang, string $reason, ?int $idShop = null, int $idCustomer = 0): ?array') !== false,
+        strpos($src, 'private function enrich(array $row, int $idLang, string $reason, ?int $idShop = null, int $idCustomer = 0, ?int $idCurrency = null): ?array') !== false,
         "UpsellManager::enrich() n'accepte plus \$idCustomer — régression du bug corrigé le 18/08/2026 (round 184)"
     );
     neria_assert(
-        strpos($src, 'private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0, ?int $idShop = null): float') !== false,
+        strpos($src, 'private function safeProductPrice(int $idProduct, int $idLang, int $idCustomer = 0, ?int $idShop = null, ?int $idCurrency = null): float') !== false,
         "UpsellManager::safeProductPrice() n'accepte plus \$idCustomer — régression du bug corrigé le 18/08/2026 (round 184)"
     );
     neria_assert(
@@ -43,13 +46,13 @@ function run_test(): array
         "UpsellManager::safeProductPrice() ne transmet plus \$idCustomer à Product::getPriceStatic() — régression du bug corrigé le 18/08/2026 (round 184) : un client B2B à tarif négocié verrait de nouveau un prix upsell résolu avec le groupe visiteur par défaut"
     );
 
-    $posEntry = strpos($src, 'public function getUpsellProduct(int $idOrder, int $idLang, ?int $idShop = null): ?array');
+    $posEntry = strpos($src, 'public function getUpsellProduct(int $idOrder, int $idLang, ?int $idShop = null, ?int $idCurrency = null): ?array');
     neria_assert($posEntry !== false, 'getUpsellProduct() introuvable — jeu de test invalide');
     $entryBody = substr($src, $posEntry, 2600);
     neria_assert(
-        strpos($entryBody, "enrich(\$row, \$idLang, 'L\'accessoire parfait', \$idShop, \$idCustomer)") !== false
-            && strpos($entryBody, "enrich(\$row, \$idLang, 'Souvent acheté ensemble', \$idShop, \$idCustomer)") !== false
-            && strpos($entryBody, "enrich(\$row, \$idLang, 'Notre suggestion pour vous', \$idShop, \$idCustomer)") !== false,
+        strpos($entryBody, "enrich(\$row, \$idLang, 'L\'accessoire parfait', \$idShop, \$idCustomer, \$idCurrency)") !== false
+            && strpos($entryBody, "enrich(\$row, \$idLang, 'Souvent acheté ensemble', \$idShop, \$idCustomer, \$idCurrency)") !== false
+            && strpos($entryBody, "enrich(\$row, \$idLang, 'Notre suggestion pour vous', \$idShop, \$idCustomer, \$idCurrency)") !== false,
         "getUpsellProduct() ne transmet plus \$idCustomer aux 3 appels enrich() — régression du bug corrigé le 18/08/2026 (round 184)"
     );
 
