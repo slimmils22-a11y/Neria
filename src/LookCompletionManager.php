@@ -94,7 +94,7 @@ class LookCompletionManager
         if (!$deliveredStateId) $deliveredStateId = 5;
 
         $orders = $this->db->executeS("
-            SELECT DISTINCT oh.id_order, o.id_customer, o.id_lang, o.id_shop
+            SELECT DISTINCT oh.id_order, o.id_customer, o.id_lang, o.id_shop, o.id_currency
             FROM `{$this->prefix}order_history` oh
             INNER JOIN `{$this->prefix}orders` o ON o.id_order = oh.id_order AND o.valid = 1
             WHERE oh.id_order_state = {$deliveredStateId}
@@ -111,6 +111,7 @@ class LookCompletionManager
             $idCustomer = (int) $order['id_customer'];
             $idLang     = (int) $order['id_lang'] ?: (int) \Configuration::get('PS_LANG_DEFAULT');
             $idShop     = (int) $order['id_shop'];
+            $idCurrency = (int) $order['id_currency'];
 
             // Réservation atomique AVANT l'envoi (voir le commentaire
             // équivalent dans CollectionManager::processCollection()) : deux
@@ -184,7 +185,11 @@ class LookCompletionManager
             }
 
             // Récupérer les infos des produits suggérés (max 3)
-            $products = $this->buildProductBlocks(array_slice($productIds, 0, 3), $idLang, $idShop);
+            // Round 275 : $idCurrency (devise RÉELLE de CETTE commande)
+            // transmis — même correctif que UpsellManager (round 274),
+            // jamais répliqué ici alors que le déclenchement (email lié à
+            // une commande précise 48h après livraison) est identique.
+            $products = $this->buildProductBlocks(array_slice($productIds, 0, 3), $idLang, $idShop, $idCurrency);
             if (empty($products)) {
                 $this->releaseSendClaim($idOrder, $idCustomer);
                 continue;
@@ -366,11 +371,18 @@ class LookCompletionManager
         return is_array($rows) ? array_map('intval', array_column($rows, 'product_id')) : [];
     }
 
-    private function buildProductBlocks(array $productIds, int $idLang, int $idShop): array
+    private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0): array
     {
-        // Devise par défaut de LA BOUTIQUE du client, pas celle du contexte
-        // global — même correctif que CollectionManager::processCollection().
-        $currency = new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop));
+        // Round 275 : $idCurrency (devise RÉELLE de la commande qui
+        // déclenche cet email, quand connue) prime sur la devise par
+        // défaut de la boutique — même correctif que UpsellManager::
+        // resolveDisplayCurrency() (round 274). Sans lui, un client ayant
+        // acheté dans une devise secondaire (boutique multi-devises)
+        // recevait les prix suggérés dans la devise par défaut de la
+        // boutique, incohérent avec sa commande réelle.
+        $currency = $idCurrency > 0
+            ? new \Currency($idCurrency)
+            : new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop));
 
         // Le contexte statique Shop::$context_id_shop — consulté en interne
         // par Product::getCover(), Product::isAvailableWhenOutOfStock() et
@@ -453,7 +465,7 @@ class LookCompletionManager
                 // produit en promo affichait son prix plein tarif dans
                 // l'email, différent de celui réellement affiché sur la
                 // fiche produit au clic.
-                $realPrice = $this->safeProductPrice($pid, $idShop);
+                $realPrice = $this->safeProductPrice($pid, $idShop, $idCurrency);
                 $blocks[] = [
                     'name'  => $product->name,
                     'url'   => $productUrl,
@@ -474,7 +486,7 @@ class LookCompletionManager
      * de taxe ; ce fichier tourne typiquement depuis un cron sans panier
      * actif, d'où le panier temporaire ci-dessous.
      */
-    private function safeProductPrice(int $idProduct, int $idShop): float
+    private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0): float
     {
         $ctx     = \Context::getContext();
         $hadCart = \Validate::isLoadedObject($ctx->cart);
@@ -489,7 +501,13 @@ class LookCompletionManager
             // avec le symbole de la devise de $idShop (displayPrice() ne
             // convertit jamais) — écart réel entre le montant numérique et
             // le symbole affiché.
-            $tmp->id_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop) ?: (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT'));
+            //
+            // Round 275 : $idCurrency (devise RÉELLE de la commande, quand
+            // connue) prime sur PS_CURRENCY_DEFAULT — même correctif que
+            // UpsellManager::safeProductPrice() (round 274).
+            $tmp->id_currency = $idCurrency > 0
+                ? $idCurrency
+                : ((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop) ?: (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT')));
             $tmp->id_lang     = (int) ($ctx->language->id ?? \Configuration::get('PS_LANG_DEFAULT'));
             $ctx->cart        = $tmp;
         }

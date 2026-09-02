@@ -1012,21 +1012,44 @@ class GdprAuditManager
                 // sans ce paramètre, une purge pourrait ne jamais voir un
                 // webhook inséré après la mise en cache d'un appel
                 // précédent.
-                $rows = $this->db->executeS("SELECT `id_webhook`, `payload` FROM `{$fullWh}`", true, false);
+                //
+                // Round 275 : lu par LOTS (LIMIT/OFFSET), pas en un seul
+                // SELECT * — contrairement à neria_log (plafonnée à 500
+                // lignes/boutique par WatchdogManager::MAX_LOGS),
+                // neria_webhook_queue n'a aucun plafond équivalent (seul
+                // WebhookManager::cleanup() purge les lignes done/failed de
+                // +30 jours ; les lignes 'pending' d'un backlog — endpoint
+                // tiers en panne, volume élevé — s'accumulent sans limite).
+                // Sur une boutique à fort trafic avec un tel backlog,
+                // charger la table entière en un seul tableau PHP à chaque
+                // demande RGPD d'effacement pouvait épuiser la mémoire du
+                // process.
                 $idsToDelete = [];
-                if (is_array($rows)) {
-                    foreach ($rows as $row) {
-                        $decoded = json_decode((string) $row['payload'], true);
-                        if (!is_array($decoded)) {
-                            continue;
-                        }
-                        $matches = ($idCustomer > 0 && (int) ($decoded['customer_id'] ?? 0) === $idCustomer)
-                            || ($emailLower !== '' && in_array($emailLower, array_map('strtolower', array_filter($decoded, 'is_string')), true));
-                        if ($matches) {
-                            $idsToDelete[] = (int) $row['id_webhook'];
+                $whChunkSize = 2000;
+                $whOffset    = 0;
+                do {
+                    $rows = $this->db->executeS(
+                        "SELECT `id_webhook`, `payload` FROM `{$fullWh}`
+                         ORDER BY `id_webhook` ASC LIMIT {$whChunkSize} OFFSET {$whOffset}",
+                        true,
+                        false
+                    );
+                    $rowCount = is_array($rows) ? count($rows) : 0;
+                    if (is_array($rows)) {
+                        foreach ($rows as $row) {
+                            $decoded = json_decode((string) $row['payload'], true);
+                            if (!is_array($decoded)) {
+                                continue;
+                            }
+                            $matches = ($idCustomer > 0 && (int) ($decoded['customer_id'] ?? 0) === $idCustomer)
+                                || ($emailLower !== '' && in_array($emailLower, array_map('strtolower', array_filter($decoded, 'is_string')), true));
+                            if ($matches) {
+                                $idsToDelete[] = (int) $row['id_webhook'];
+                            }
                         }
                     }
-                }
+                    $whOffset += $whChunkSize;
+                } while ($rowCount === $whChunkSize);
                 if (!empty($idsToDelete)) {
                     $this->execOrFail(
                         "DELETE FROM `{$fullWh}` WHERE `id_webhook` IN (" . implode(',', $idsToDelete) . ")",
