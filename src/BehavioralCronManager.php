@@ -287,7 +287,17 @@ class BehavioralCronManager
         // client né le 29/02 ne recevait jamais son email d'anniversaire.
         // DAY(LAST_DAY(NOW())) = 28 confirme que février n'a que 28 jours
         // cette année-ci.
-        $year   = (int) date('Y');
+        // Round 281 : année sourcée de MySQL (YEAR(NOW())), pas PHP
+        // date('Y') — le test du jour ci-dessous (DAY(NOW())/MONTH(NOW()))
+        // tourne déjà sur l'horloge MySQL ; si PHP et la session MySQL ne
+        // partagent pas le même fuseau horaire, les deux horloges peuvent
+        // diverger de calendrier autour de minuit (ex. 00h30 heure locale
+        // PHP = encore la veille en UTC côté MySQL), faisant enregistrer la
+        // déduplication (ref_id) sur une année différente de celle du jour
+        // réellement détecté par le SELECT — un client né le 31/12 ou le
+        // 01/01 pouvait alors recevoir l'email deux fois (ou jamais) autour
+        // du nouvel an. Sourcer les deux du même NOW() élimine le risque.
+        $year   = (int) $this->db->getValue('SELECT YEAR(NOW())');
         $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             'SELECT c.id_customer, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop
@@ -313,7 +323,7 @@ class BehavioralCronManager
         foreach ((array) $rows as $r) {
             $idCustomer = (int) $r['id_customer'];
             try {
-                $code = $this->generateBirthdayVoucher($idCustomer, $config, $idShop);
+                $code = $this->generateBirthdayVoucher($idCustomer, $config, $idShop, $year);
             } catch (\Throwable $e) {
                 $this->watchdog()->error(
                     \WatchdogManager::i18nMsg('watchdog.birthday_voucher_error', [
@@ -353,9 +363,14 @@ class BehavioralCronManager
      *
      * @return string Le code du bon, ou '' si déjà réservé par une requête concurrente.
      */
-    private function generateBirthdayVoucher(int $idCustomer, \ConfigManager $config, int $idShop): string
+    private function generateBirthdayVoucher(int $idCustomer, \ConfigManager $config, int $idShop, ?int $year = null): string
     {
-        $year = (int) date('Y');
+        // Round 281 : $year sourcé de MySQL (YEAR(NOW())) par l'appelant
+        // (sendBirthdays()), pas PHP date('Y') — voir commentaire round 281
+        // ci-dessus dans sendBirthdays(). Repli sur YEAR(NOW()) local (pas
+        // date('Y')) si appelée sans année explicite (ex. tests existants),
+        // pour rester cohérent même en dehors du chemin normal.
+        $year = $year ?? (int) $this->db->getValue('SELECT YEAR(NOW())');
 
         $reserved = $this->db->execute(
             'INSERT IGNORE INTO `' . $this->prefix . 'neria_birthday_voucher`
@@ -1744,13 +1759,26 @@ class BehavioralCronManager
         // 1re commande a été passée un 29/02 n'atteint jamais
         // DATE_FORMAT(NOW(),'%m-%d') = '02-29' les années non bissextiles.
         $idShop = (int) \Context::getContext()->shop->id;
-        // Année calculée côté PHP (et non YEAR(NOW()) côté MySQL) pour rester
-        // cohérente avec l'insertion plus bas dans send() qui utilise
-        // (int) date('Y') — sans ça, un décalage de fuseau horaire entre PHP
-        // et la session MySQL pouvait faire diverger les deux valeurs autour
-        // de minuit le 31/12, cassant la déduplication et permettant un
-        // second envoi du même email d'anniversaire de relation.
-        $currentYear = (int) date('Y');
+        // Round 281 : année désormais sourcée de MySQL (YEAR(NOW())), pas
+        // PHP date('Y') comme le faisait le correctif précédent (commentaire
+        // ci-dessous conservé pour l'historique) — ce correctif ne
+        // réconciliait que les DEUX appels PHP entre eux (ici et dans
+        // send() plus bas), pas le fait que le test du jour ci-dessous
+        // (DATE_FORMAT(NOW(),'%m-%d')) tourne, lui, sur l'horloge MySQL :
+        // si PHP et la session MySQL ne partagent pas le même fuseau
+        // horaire, un client dont la 1re commande date du 31/12 ou 01/01
+        // pouvait voir le jour détecté par MySQL diverger de l'année
+        // enregistrée par PHP, cassant la déduplication autour du nouvel an.
+        // Sourcer les deux du même NOW() élimine le risque à la racine.
+        //
+        // Ancien commentaire (round précédent) : "Année calculée côté PHP
+        // (et non YEAR(NOW()) côté MySQL) pour rester cohérente avec
+        // l'insertion plus bas dans send() qui utilise (int) date('Y') —
+        // sans ça, un décalage de fuseau horaire entre PHP et la session
+        // MySQL pouvait faire diverger les deux valeurs autour de minuit le
+        // 31/12, cassant la déduplication et permettant un second envoi du
+        // même email d'anniversaire de relation."
+        $currentYear = (int) $this->db->getValue('SELECT YEAR(NOW())');
         $rows = $this->db->executeS(
             'SELECT c.id_customer, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop,
                     MIN(o.date_add) AS first_order_date,
@@ -1815,7 +1843,7 @@ class BehavioralCronManager
                     'relationship_anniversary',
                     $r,
                     ['{years_label}' => $yearsLabel],
-                    (int) date('Y')
+                    $currentYear
                 )) {
                     $sent++;
                     $this->watchdog()->info(
