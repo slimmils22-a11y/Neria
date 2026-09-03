@@ -9062,6 +9062,31 @@ class HealthCheckManager
             $offenders[] = "BehavioralCronManager::buildCartProducts()/buildCartProductsTxt() n'appliquent plus getAttributeCombinationLabel() aux 2 emplacements attendus ({$bcmAttrCount292}/2) — régression du bug corrigé le 03/09/2026 (round 292) : deux déclinaisons différentes du même produit dans un panier abandonné redeviendraient indiscernables dans l'email de relance";
         }
 
+        // Round 293 (03/09/2026) : CalendarManager::sendCalendarEmail() était
+        // le seul chemin d'envoi du module à dégrader une exception réelle
+        // (échec SMTP/transport) en simple module->log() natif (ps_log,
+        // jamais consulté par le tableau Watchdog ni le digest), au lieu de
+        // watchdog()->error() comme tous les autres managers d'envoi.
+        $calSrc293 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php');
+        if ($calSrc293 === '' || strpos($calSrc293, "WatchdogManager::i18nMsg('watchdog.calendar_send_exception'") === false) {
+            $offenders[] = "CalendarManager::sendCalendarEmail() ne journalise plus les exceptions SMTP via watchdog()->error() — régression du bug corrigé le 03/09/2026 (round 293) : une panne SMTP récurrente sur les emails calendrier redeviendrait invisible du tableau Watchdog";
+        }
+
+        // Round 293 (03/09/2026) : ManualSendManager::send() était le seul
+        // point d'envoi manuel sans try/catch autour de Mail::Send() ni de
+        // l'INSERT de suivi anniversaire — une exception (transport SMTP ou
+        // deadlock concurrent avec BehavioralCronManager sur
+        // neria_behavioral_sent) remontait non interceptée jusqu'à
+        // neria.php::postProcess(), page d'erreur fatale pour l'employé BO,
+        // parfois après un envoi réellement réussi.
+        $manSrc293 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        if ($manSrc293 === ''
+            || strpos($manSrc293, "WatchdogManager::i18nMsg('watchdog.manual_send_exception'") === false
+            || strpos($manSrc293, "WatchdogManager::i18nMsg('watchdog.manual_send_tracking_exception'") === false
+        ) {
+            $offenders[] = "ManualSendManager::send() n'entoure plus Mail::Send()/l'INSERT de suivi anniversaire d'un try/catch — régression du bug corrigé le 03/09/2026 (round 293) : une exception transitoire crasherait de nouveau la page BO, parfois après un envoi pourtant réussi";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
