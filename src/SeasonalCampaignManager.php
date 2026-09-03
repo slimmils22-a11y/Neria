@@ -338,6 +338,27 @@ class SeasonalCampaignManager
                     // libérée sur un envoi bloqué — le client était exclu à
                     // vie de CETTE campagne pour TOUTE l'année, même après
                     // la levée du blocage.
+                    // Round 286 : getEligibleCustomers() filtre active=1/
+                    // deleted=0 QU'AU MOMENT du SELECT initial — cette
+                    // méthode n'a explicitement PAS de LIMIT (voir commentaire
+                    // ligne ~262 ci-dessus), donc un ciblage large peut
+                    // s'étaler sur plusieurs minutes d'envois SMTP réels. Un
+                    // client désactivé en BO ou ayant exercé son droit à
+                    // l'effacement RGPD PENDANT ce laps de temps continuait
+                    // de recevoir la campagne aux itérations suivantes, avec
+                    // des données déjà périmées en RAM (prénom/nom).
+                    // Relecture fraîche et légère, même motif que
+                    // SegmentManager::explicitSendBlockReason() (round 286).
+                    $customerRow = $this->db->getRow(
+                        'SELECT `active`, `deleted` FROM `' . $this->prefix . 'customer`
+                         WHERE `id_customer` = ' . $idCustomer,
+                        false
+                    );
+                    if (!$customerRow || (int) $customerRow['active'] !== 1 || (int) $customerRow['deleted'] !== 0) {
+                        $this->releaseSendClaim($idCustomer, $sentKey, $year);
+                        continue;
+                    }
+
                     if (class_exists('BounceManager') && \BounceManager::isBounced($customer['email'])) {
                         $this->releaseSendClaim($idCustomer, $sentKey, $year);
                         continue;

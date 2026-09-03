@@ -89,8 +89,32 @@ class SegmentManager
      * actionEmailSendBefore — Mail::Send() renvoie toujours true dans ce cas.
      * Pas de scope par commande ici (campagne segment, pas de $idOrder).
      */
-    private function explicitSendBlockReason(string $template, string $email, int $idLang): ?string
+    private function explicitSendBlockReason(string $template, string $email, int $idLang, int $idCustomer = 0): ?string
     {
+        // Round 286 : getCustomersBySegment() ne filtre active=1/deleted=0
+        // QU'AU MOMENT du SELECT initial (jusqu'à 500 destinataires, chargés
+        // en mémoire PHP en une fois) — un envoi SMTP réel prend ~150-300ms
+        // par destinataire, donc un lot de 500 peut s'étaler sur 1 à 2
+        // minutes. Un client désactivé en BO ou ayant exercé son droit à
+        // l'effacement RGPD (purgeCustomerData(), round 278 — la
+        // suppression/effacement natif PrestaShop met bien deleted=1 sur la
+        // ligne ps_customer) PENDANT ce laps de temps continuait de recevoir
+        // la campagne aux itérations suivantes, avec des données déjà
+        // périmées en RAM (prénom/nom, éventuellement déjà purgés côté
+        // Neria). Relecture fraîche et légère (indexée sur la clé primaire),
+        // pas de cache — cohérent avec le reste de cette méthode qui
+        // interroge déjà bounce/blacklist/cooldown à chaque itération.
+        if ($idCustomer > 0) {
+            $row = $this->db->getRow(
+                'SELECT `active`, `deleted` FROM `' . _DB_PREFIX_ . 'customer`
+                 WHERE `id_customer` = ' . $idCustomer,
+                false
+            );
+            if (!$row || (int) $row['active'] !== 1 || (int) $row['deleted'] !== 0) {
+                return 'customer_inactive';
+            }
+        }
+
         if (class_exists('BounceManager') && \BounceManager::isBounced($email)) {
             return 'bounce';
         }
@@ -624,7 +648,7 @@ class SegmentManager
             // le même pattern, cf. OrderTriggersManager::
             // explicitSendBlockReason()), une campagne segment comptait à
             // tort en "envoyé" des emails jamais réellement délivrés.
-            if ($this->explicitSendBlockReason($template, $c['email'], $idLang) !== null) {
+            if ($this->explicitSendBlockReason($template, $c['email'], $idLang, (int) $c['id_customer']) !== null) {
                 $skipped++;
                 continue;
             }
