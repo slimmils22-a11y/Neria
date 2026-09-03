@@ -397,7 +397,19 @@ class WebhookManager
                         "UPDATE `{$table}` SET `status` = 'failed' WHERE `id_webhook` = {$id}"
                     );
                     $definitivelyFailed++;
-                    $this->watchdog()->warning(
+                    // Round 287 : error() au lieu de warning() — contrairement
+                    // à un échec RETENTABLE (attempts < MAX_ATTEMPTS, encore
+                    // en cours de recul exponentiel), ceci est un échec
+                    // DÉFINITIF : la notification externe (webhook) est
+                    // perdue pour de bon, aucune nouvelle tentative n'aura
+                    // jamais lieu. warning() ne déclenche jamais
+                    // sendImmediateAlert() (round 268/276, réservé à error()/
+                    // critical()) — le marchand n'était informé de cette
+                    // perte définitive qu'au digest quotidien (jusqu'à ~24h
+                    // de délai), jamais immédiatement, alors que
+                    // QueueManager::markFailedOrRetry() escalade déjà les
+                    // pannes d'envoi équivalentes.
+                    $this->watchdog()->error(
                         \WatchdogManager::i18nMsg('watchdog.webhook_definitively_failed', [
                             'event'   => $row['event'],
                             'max'     => self::MAX_ATTEMPTS,
