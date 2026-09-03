@@ -4629,7 +4629,7 @@ class HealthCheckManager
             if ($posPQ144 === false || $posCleanupCall144 === false || $posUrlReturn144 === false || $posCleanupCall144 > $posUrlReturn144) {
                 $offenders[] = "WebhookManager::processQueue() n'appelle plus cleanup() avant ses return précoces de validation URL/secret — régression du bug corrigé le 09/08/2026 (round 144) : cleanup() redeviendrait inatteignable si la clé de chiffrement maîtresse devient illisible durablement, ps_neria_webhook_queue croîtrait sans borne";
             }
-            $loopBody144 = $posPQ144 !== false ? substr($whSrc144, strpos($whSrc144, 'foreach ($rows as $row) {', $posPQ144), 5400) : '';
+            $loopBody144 = $posPQ144 !== false ? substr($whSrc144, strpos($whSrc144, 'foreach ($rows as $row) {', $posPQ144), 6800) : '';
             if (strpos($loopBody144, 'watchdog.webhook_row_exception') === false) {
                 $offenders[] = "WebhookManager::processQueue() n'isole plus chaque ligne du lot dans son propre try/catch — régression du bug corrigé le 09/08/2026 (round 144) : une exception sur une ligne interromprait de nouveau le traitement de tout le reste du lot";
             }
@@ -8897,6 +8897,21 @@ class HealthCheckManager
             || strpos($seaBody286, "(int) \$customerRow['deleted'] !== 0") === false
         ) {
             $offenders[] = "SeasonalCampaignManager::runDueCampaigns() ne relit plus l'état active/deleted du client — régression du bug corrigé le 02/09/2026 (round 286) : un client désactivé/GDPR-purgé en cours de lot recevrait de nouveau la campagne saisonnière";
+        }
+
+        // Round 287 (02/09/2026) : WebhookManager::processQueue() journalisait
+        // l'échec DÉFINITIF d'un webhook (MAX_ATTEMPTS épuisé) via
+        // wd()->warning() — niveau qui ne déclenche jamais sendImmediateAlert()
+        // (rounds 268/276), contrairement à l'équivalent QueueManager.
+        $whmSrc287 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php');
+        $whmPos287 = $whmSrc287 !== '' ? strpos($whmSrc287, '$definitivelyFailed++;') : false;
+        $whmBody287 = $whmPos287 !== false ? substr($whmSrc287, $whmPos287, 1200) : '';
+        if ($whmSrc287 === ''
+            || $whmPos287 === false
+            || strpos($whmBody287, '$this->watchdog()->error(') === false
+            || strpos($whmBody287, "\\WatchdogManager::i18nMsg('watchdog.webhook_definitively_failed',") === false
+        ) {
+            $offenders[] = "WebhookManager::processQueue() ne déclenche plus d'alerte email immédiate (error()) sur échec définitif d'un webhook — régression du bug corrigé le 02/09/2026 (round 287) : le marchand ne serait de nouveau informé de la perte définitive de la notification qu'au digest quotidien opt-in";
         }
 
         if ($offenders) {
