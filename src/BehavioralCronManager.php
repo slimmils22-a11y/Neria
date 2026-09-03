@@ -2214,7 +2214,7 @@ class BehavioralCronManager
     {
         try {
             $rows = $this->db->executeS(
-                'SELECT p.reference, pl.name, cp.quantity
+                'SELECT p.reference, pl.name, cp.quantity, cp.id_product_attribute, cp.id_cart
                  FROM `' . $this->prefix . 'cart_product` cp
                  JOIN `' . $this->prefix . 'product` p ON p.id_product = cp.id_product
                  JOIN `' . $this->prefix . 'product_lang` pl
@@ -2226,8 +2226,19 @@ class BehavioralCronManager
             if (!is_array($rows) || empty($rows)) {
                 return '';
             }
+            // Round 292 : déclinaison précise ajoutée au nom générique —
+            // sans elle, deux déclinaisons différentes du même produit dans
+            // le même panier produisaient deux lignes visuellement
+            // identiques (voir NeriaTools::getAttributeCombinationLabel()).
+            $idLangCart = (int) $this->db->getValue(
+                'SELECT id_lang FROM `' . $this->prefix . 'cart` WHERE id_cart = ' . $idCart
+            );
             $lines = array_map(
-                fn($r) => '<li>× ' . (int) $r['quantity'] . ' ' . htmlspecialchars($r['name']) . '</li>',
+                function ($r) use ($idLangCart) {
+                    $attrLabel = \NeriaTools::getAttributeCombinationLabel((int) $r['id_product_attribute'], $idLangCart);
+                    $name = $attrLabel !== '' ? ($r['name'] . ' — ' . $attrLabel) : $r['name'];
+                    return '<li>× ' . (int) $r['quantity'] . ' ' . htmlspecialchars($name) . '</li>';
+                },
                 $rows
             );
             return '<ul style="margin:0;padding:0 0 0 18px;">' . implode('', $lines) . '</ul>';
@@ -2246,7 +2257,7 @@ class BehavioralCronManager
     {
         try {
             $rows = $this->db->executeS(
-                'SELECT p.reference, pl.name, cp.quantity
+                'SELECT p.reference, pl.name, cp.quantity, cp.id_product_attribute, cp.id_cart
                  FROM `' . $this->prefix . 'cart_product` cp
                  JOIN `' . $this->prefix . 'product` p ON p.id_product = cp.id_product
                  JOIN `' . $this->prefix . 'product_lang` pl
@@ -2258,8 +2269,16 @@ class BehavioralCronManager
             if (!is_array($rows) || empty($rows)) {
                 return '';
             }
+            // Round 292 : voir buildCartProducts() (variante HTML) ci-dessus.
+            $idLangCart = (int) $this->db->getValue(
+                'SELECT id_lang FROM `' . $this->prefix . 'cart` WHERE id_cart = ' . $idCart
+            );
             $lines = array_map(
-                fn($r) => '- ' . (int) $r['quantity'] . ' x ' . $r['name'],
+                function ($r) use ($idLangCart) {
+                    $attrLabel = \NeriaTools::getAttributeCombinationLabel((int) $r['id_product_attribute'], $idLangCart);
+                    $name = $attrLabel !== '' ? ($r['name'] . ' — ' . $attrLabel) : $r['name'];
+                    return '- ' . (int) $r['quantity'] . ' x ' . $name;
+                },
                 $rows
             );
             return implode("\n", $lines);

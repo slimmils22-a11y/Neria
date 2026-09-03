@@ -267,10 +267,16 @@ class WaitlistManager
             }
 
             $daysWaited = max(1, (int) $row['days_waited']);
+            // Round 292 : nom de la déclinaison PRÉCISE (round 167, ce
+            // client n'est notifié QUE si la combinaison exacte qu'il
+            // attend est de nouveau en stock) ajouté au nom générique du
+            // produit — voir NeriaTools::getAttributeCombinationLabel().
+            $attrLabel292 = \NeriaTools::getAttributeCombinationLabel((int) $row['id_product_attribute'], $idLang);
+            $productName292 = $attrLabel292 !== '' ? ($product->name . ' — ' . $attrLabel292) : $product->name;
             $vars = [
                 '{firstname}'          => $row['firstname'],
                 '{days_waited_plural}' => $daysWaited > 1 ? 's' : '',
-                '{product_name}'       => $product->name,
+                '{product_name}'       => $productName292,
                 '{product_url}'        => $productUrl,
                 '{product_image}'      => $imageUrl,
                 // Currency::PS_CURRENCY_DEFAULT scopé par $idShop — même
@@ -288,7 +294,7 @@ class WaitlistManager
                 // moment du retour en stock affichait son prix plein tarif
                 // dans l'email "de retour en stock", différent du prix
                 // réel affiché sur la fiche produit au clic.
-                '{product_price}'      => \NeriaTools::displayPrice($this->safeProductPrice($idProduct, $idShop), new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop)), $idLang),
+                '{product_price}'      => \NeriaTools::displayPrice($this->safeProductPrice($idProduct, $idShop, $idCustomer), new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop)), $idLang),
                 '{days_waited}'        => $daysWaited,
                 '{reservation_hours}'  => (int) \Configuration::getGlobalValue('NERIA_WAITLIST_RESERVATION_HOURS') ?: self::RESERVATION_HOURS,
                 // Configuration::get(..., $idShop) : round 106, même piège
@@ -503,7 +509,7 @@ class WaitlistManager
      * tourne typiquement depuis un cron/hook admin sans panier actif, d'où
      * le panier temporaire ci-dessous.
      */
-    private function safeProductPrice(int $idProduct, int $idShop): float
+    private function safeProductPrice(int $idProduct, int $idShop, int $idCustomer = 0): float
     {
         $ctx     = \Context::getContext();
         $hadCart = \Validate::isLoadedObject($ctx->cart);
@@ -528,7 +534,14 @@ class WaitlistManager
         }
 
         try {
-            return (float) \Product::getPriceStatic($idProduct, true, null, 2);
+            // Round 292 : $idCustomer transmis (10e paramètre) — même
+            // correctif que UpsellManager::safeProductPrice() (round 184/
+            // 381), jamais répliqué ici. Sans lui, getPriceStatic()
+            // résolvait le groupe via Group::getCurrent() (contexte ambiant
+            // du cron/employé BO), pas le VRAI groupe du client destinataire
+            // — un client B2B avec une remise groupe négociée voyait le
+            // prix PUBLIC plein tarif dans son email "de retour en stock".
+            return (float) \Product::getPriceStatic($idProduct, true, null, 2, null, false, true, 1, false, $idCustomer > 0 ? $idCustomer : null);
         } finally {
             if (!$hadCart) {
                 $ctx->cart = null;

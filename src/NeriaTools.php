@@ -214,6 +214,55 @@ class NeriaTools
         return $url;
     }
 
+    /**
+     * Round 292 : nom de la déclinaison (ex. "Taille: M, Couleur: Rouge")
+     * pour un id_product_attribute précis. WaitlistManager notifie un
+     * client pour LA DÉCLINAISON PRÉCISE qu'il attend (round 167,
+     * id_product_attribute != 0 vérifié isolément) mais n'affichait que
+     * le nom générique du produit parent dans l'email — un client
+     * attendant "Taille M, Rouge" ne pouvait pas savoir SI C'ÉTAIT bien
+     * cette combinaison précise qui venait de revenir en stock (une
+     * autre déclinaison du même produit pouvant rester épuisée), risquant
+     * de re-sélectionner par erreur une combinaison toujours indisponible.
+     * Même angle mort dans BehavioralCronManager::buildCartProducts() —
+     * le panier abandonné affichait le nom générique sans préciser LA
+     * déclinaison réellement choisie par le client (deux déclinaisons
+     * différentes du même produit dans le panier produisaient deux lignes
+     * visuellement identiques).
+     *
+     * @return string "" si $idProductAttribute <= 0 (produit sans
+     *                déclinaison) ou si aucune combinaison trouvée.
+     */
+    public static function getAttributeCombinationLabel(int $idProductAttribute, int $idLang): string
+    {
+        if ($idProductAttribute <= 0) {
+            return '';
+        }
+
+        $rows = \Db::getInstance()->executeS(
+            'SELECT agl.`name` AS group_name, al.`name` AS attr_name
+             FROM `' . _DB_PREFIX_ . 'product_attribute_combination` pac
+             INNER JOIN `' . _DB_PREFIX_ . 'attribute` a ON a.`id_attribute` = pac.`id_attribute`
+             INNER JOIN `' . _DB_PREFIX_ . 'attribute_lang` al
+                 ON al.`id_attribute` = a.`id_attribute` AND al.`id_lang` = ' . (int) $idLang . '
+             INNER JOIN `' . _DB_PREFIX_ . 'attribute_group_lang` agl
+                 ON agl.`id_attribute_group` = a.`id_attribute_group` AND agl.`id_lang` = ' . (int) $idLang . '
+             WHERE pac.`id_product_attribute` = ' . (int) $idProductAttribute . '
+             ORDER BY a.`position` ASC'
+        );
+
+        if (!is_array($rows) || empty($rows)) {
+            return '';
+        }
+
+        $parts = array_map(
+            static fn(array $r): string => trim((string) $r['group_name']) . ': ' . trim((string) $r['attr_name']),
+            $rows
+        );
+
+        return implode(', ', $parts);
+    }
+
     // ============================================================
     // FORMATAGE DES TEXTES
     // ============================================================

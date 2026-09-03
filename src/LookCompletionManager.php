@@ -189,7 +189,7 @@ class LookCompletionManager
             // transmis — même correctif que UpsellManager (round 274),
             // jamais répliqué ici alors que le déclenchement (email lié à
             // une commande précise 48h après livraison) est identique.
-            $products = $this->buildProductBlocks(array_slice($productIds, 0, 3), $idLang, $idShop, $idCurrency);
+            $products = $this->buildProductBlocks(array_slice($productIds, 0, 3), $idLang, $idShop, $idCurrency, $idCustomer);
             if (empty($products)) {
                 $this->releaseSendClaim($idOrder, $idCustomer);
                 continue;
@@ -371,7 +371,7 @@ class LookCompletionManager
         return is_array($rows) ? array_map('intval', array_column($rows, 'product_id')) : [];
     }
 
-    private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0): array
+    private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0, int $idCustomer = 0): array
     {
         // Round 275 : $idCurrency (devise RÉELLE de la commande qui
         // déclenche cet email, quand connue) prime sur la devise par
@@ -466,7 +466,7 @@ class LookCompletionManager
                 // produit en promo affichait son prix plein tarif dans
                 // l'email, différent de celui réellement affiché sur la
                 // fiche produit au clic.
-                $realPrice = $this->safeProductPrice($pid, $idShop, $idCurrency);
+                $realPrice = $this->safeProductPrice($pid, $idShop, $idCurrency, $idCustomer);
                 $blocks[] = [
                     'name'  => $product->name,
                     'url'   => $productUrl,
@@ -487,7 +487,7 @@ class LookCompletionManager
      * de taxe ; ce fichier tourne typiquement depuis un cron sans panier
      * actif, d'où le panier temporaire ci-dessous.
      */
-    private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0): float
+    private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0): float
     {
         $ctx     = \Context::getContext();
         $hadCart = \Validate::isLoadedObject($ctx->cart);
@@ -514,7 +514,14 @@ class LookCompletionManager
         }
 
         try {
-            return (float) \Product::getPriceStatic($idProduct, true, null, 2);
+            // Round 292 : $idCustomer transmis (10e paramètre) — même
+            // correctif que UpsellManager::safeProductPrice() (round 184/
+            // 381), jamais répliqué ici. Sans lui, getPriceStatic()
+            // résolvait le groupe via le contexte ambiant du cron, pas le
+            // VRAI groupe du client destinataire — un client B2B avec une
+            // remise groupe négociée voyait le prix public plein tarif
+            // dans son email "complétez votre look".
+            return (float) \Product::getPriceStatic($idProduct, true, null, 2, null, false, true, 1, false, $idCustomer > 0 ? $idCustomer : null);
         } finally {
             if (!$hadCart) {
                 $ctx->cart = null;
