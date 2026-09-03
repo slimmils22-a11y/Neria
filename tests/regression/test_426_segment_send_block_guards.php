@@ -39,13 +39,15 @@ function run_test(): array
     neria_assert($posMethod !== false, 'sendToSegment() introuvable — jeu de test invalide');
     $posMail = strpos($src, '$ok = \Mail::Send(', $posMethod);
     neria_assert($posMail !== false, 'Appel Mail::Send() introuvable dans sendToSegment() — jeu de test invalide');
-    $posBlockCheck = strpos($src, 'if ($this->explicitSendBlockReason($template, $c[\'email\'], $idLang) !== null) {', $posMethod);
+    // Round 286 : $idCustomer ajouté (paramètre optionnel) pour la
+    // revalidation active/deleted — littéral mis à jour.
+    $posBlockCheck = strpos($src, 'if ($this->explicitSendBlockReason($template, $c[\'email\'], $idLang, (int) $c[\'id_customer\']) !== null) {', $posMethod);
     neria_assert(
         $posBlockCheck !== false && $posBlockCheck < $posMail,
         "SegmentManager::sendToSegment() ne vérifie plus bounce/blacklist/cooldown avant Mail::Send() — régression du bug corrigé le 24/08/2026 (round 200) : une campagne segment recompterait à tort en 'envoyé' des emails silencieusement bloqués"
     );
 
-    $posExplicit = strpos($src, 'private function explicitSendBlockReason(string $template, string $email, int $idLang): ?string');
+    $posExplicit = strpos($src, 'private function explicitSendBlockReason(string $template, string $email, int $idLang, int $idCustomer = 0): ?string');
     neria_assert($posExplicit !== false, "SegmentManager::explicitSendBlockReason() introuvable — régression du bug corrigé le 24/08/2026 (round 200)");
     neria_assert(
         strpos($src, '\BounceManager::isBounced($email)', $posExplicit) !== false,
