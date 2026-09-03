@@ -8996,6 +8996,30 @@ class HealthCheckManager
             $offenders[] = "controllers/front/unsubscribe.php ne bascule plus le payload webhook 'unsubscribed' entre customer_id et customer_email — régression de l'amélioration du 03/09/2026 (round 290) : le webhook redeviendrait l'unique événement du module à transmettre systématiquement l'email en clair, même pour un client identifié";
         }
 
+        // Round 291 (03/09/2026) : Link::getImageLink() (cœur PrestaShop)
+        // suit le protocole de la requête HTTP courante (cron/webhook
+        // interne souvent en http://), pas PS_SSL_ENABLED — 4 managers
+        // construisaient une URL d'image produit sans NeriaTools::
+        // forceHttpsIfEnabled(), risquant un blocage de contenu mixte
+        // (Gmail/Outlook.com) sur une boutique forçant HTTPS.
+        $ntSrc291 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php');
+        if ($ntSrc291 === '' || strpos($ntSrc291, 'public static function forceHttpsIfEnabled(string $url): string') === false) {
+            $offenders[] = "NeriaTools::forceHttpsIfEnabled() a disparu — régression du bug corrigé le 03/09/2026 (round 291) : les URLs d'image produit dans les emails cron (panier abandonné, liste d'attente, complétez votre look/collection) redeviendraient exposées au contenu mixte HTTP sur une boutique forçant HTTPS";
+        }
+        $img291Sites = [
+            'src/CollectionManager.php'      => 2,
+            'src/LookCompletionManager.php'  => 1,
+            'src/WaitlistManager.php'        => 1,
+            'src/BehavioralCronManager.php'  => 1,
+        ];
+        foreach ($img291Sites as $img291File => $img291Expected) {
+            $img291Src = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/' . $img291File);
+            $img291Count = $img291Src !== '' ? substr_count($img291Src, 'NeriaTools::forceHttpsIfEnabled(') : 0;
+            if ($img291Src === '' || $img291Count !== $img291Expected) {
+                $offenders[] = "{$img291File} n'applique plus forceHttpsIfEnabled() au bon nombre d'emplacements ({$img291Count}/{$img291Expected}) — régression du bug corrigé le 03/09/2026 (round 291) : une URL d'image produit redeviendrait exposée au contenu mixte HTTP dans un email envoyé depuis une boutique HTTPS";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
