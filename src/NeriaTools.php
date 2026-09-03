@@ -1080,6 +1080,24 @@ class NeriaTools
 
     public static function displayPrice(float $amount, \Currency $currency, ?int $idLang = null): string
     {
+        // Round 285 : $currency peut être un objet Currency NON CHARGÉ — les
+        // appelants (OrderTriggersManager::handleRefund(),
+        // BehavioralCronManager::sendQuoteEmail()...) instancient souvent
+        // `new \Currency($idCurrency)` à partir d'un id_currency STOCKÉ EN
+        // BASE (commande/devis ancien), qui peut référencer une devise que
+        // le marchand a supprimée depuis. Sans ce repli, iso_code/sign
+        // valent '' et le prix affiché dans l'email (refund_processed,
+        // relance de devis B2B) perd son symbole/code monétaire, voire un
+        // formatage cassé selon le chemin emprunté plus bas. Repli sur la
+        // devise par défaut de la boutique plutôt que de propager une
+        // devise vide.
+        if (!\Validate::isLoadedObject($currency)) {
+            $fallback = \Currency::getDefaultCurrency();
+            if ($fallback instanceof \Currency && \Validate::isLoadedObject($fallback)) {
+                $currency = $fallback;
+            }
+        }
+
         $context = \Context::getContext();
 
         // Résout la langue EXPLICITEMENT demandée (destinataire de l'email),
