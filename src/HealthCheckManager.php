@@ -4520,7 +4520,10 @@ class HealthCheckManager
             // relecture périodique isStillActive() dans la boucle d'envoi
             // (garde-fou round 256, voir plus bas) a repoussé claimSend()
             // plus loin dans le corps de la méthode.
-            $runBody = $posRun !== false ? substr($seasSrc143, $posRun, 4700) : '';
+            // Round 289 : 4700→5800 — l'ajout du plafonnement de lot
+            // (MAX_BATCH_PER_RUN, garde-fou round 289 dédié plus bas) a
+            // repoussé claimSend() plus loin encore.
+            $runBody = $posRun !== false ? substr($seasSrc143, $posRun, 5800) : '';
             if ($posRun === false || strpos($runBody, 'if (!$this->claimSend($idCustomer, $sentKey, $year)) {') === false) {
                 $offenders[] = "SeasonalCampaignManager::runDueCampaigns() n'appelle plus claimSend() avant l'envoi — régression du bug corrigé le 09/08/2026 (round 143)";
             }
@@ -8949,6 +8952,27 @@ class HealthCheckManager
             || strpos($nphDesignBody288, "AdminTranslator::t('msg.config_save_partial_failed')") === false
         ) {
             $offenders[] = "neria.php::save_design ne conditionne plus 'Enregistré' sur le retour de saveDesignConfig() — régression du bug corrigé le 02/09/2026 (round 288)";
+        }
+
+        // Round 289 (03/09/2026) : SeasonalCampaignManager::runDueCampaigns()
+        // n'avait aucun plafond sur le lot réellement consommé — claimSend()
+        // réserve un client AVANT Mail::Send(), un crash brutal en cours
+        // d'envoi laisse la réservation orpheline pour le reste de l'année
+        // (pas de colonne d'état sur neria_behavioral_sent permettant un
+        // rattrapage sûr). Plafonné à MAX_BATCH_PER_RUN=500, appliqué APRÈS
+        // getEligibleCustomers() (pas dedans, pour ne pas fausser
+        // countEligible(), l'aperçu BO du nombre de destinataires).
+        $seaSrc289 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php');
+        $seaGetPos289 = $seaSrc289 !== '' ? strpos($seaSrc289, '$customers = $this->getEligibleCustomers($campaign);') : false;
+        $seaLoopPos289 = $seaGetPos289 !== false ? strpos($seaSrc289, 'foreach ($customers as $customer) {', $seaGetPos289) : false;
+        $seaBetween289 = ($seaGetPos289 !== false && $seaLoopPos289 !== false) ? substr($seaSrc289, $seaGetPos289, $seaLoopPos289 - $seaGetPos289) : '';
+        if ($seaSrc289 === ''
+            || strpos($seaSrc289, 'const MAX_BATCH_PER_RUN = 500;') === false
+            || $seaGetPos289 === false
+            || $seaLoopPos289 === false
+            || strpos($seaBetween289, 'array_slice($customers, 0, self::MAX_BATCH_PER_RUN)') === false
+        ) {
+            $offenders[] = "SeasonalCampaignManager::runDueCampaigns() ne plafonne plus le lot consommé par passage (MAX_BATCH_PER_RUN) — régression du bug corrigé le 03/09/2026 (round 289) : un ciblage large redeviendrait exposé à une fenêtre de crash prolongée, avec réservation orpheline possible pour le reste de l'année civile en cas de dépassement memory_limit/max_execution_time pendant l'envoi";
         }
 
         if ($offenders) {

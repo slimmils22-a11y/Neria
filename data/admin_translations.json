@@ -64280,6 +64280,27 @@
         "nl": "Segmentcampagne \"{segment}\" (sjabloon {template}): limiet van 500 ontvangers bereikt, sommige klanten in het segment hebben deze campagne niet ontvangen.",
         "gb": "Segment campaign \"{segment}\" (template {template}): 500-recipient cap reached, some customers in the segment did not receive this campaign."
     },
+    "watchdog.seasonal_batch_capped": {
+        "fr": "Campagne saisonnière « {campaign} » : {total} destinataires éligibles, seuls {max} traités ce passage — les autres seront traités au prochain passage du cron.",
+        "en": "Seasonal campaign \"{campaign}\": {total} eligible recipients, only {max} processed this run — the rest will be processed on the next cron run.",
+        "de": "Saisonale Kampagne „{campaign}\": {total} berechtigte Empfänger, nur {max} in diesem Durchlauf verarbeitet — der Rest wird beim nächsten Cron-Durchlauf verarbeitet.",
+        "it": "Campagna stagionale \"{campaign}\": {total} destinatari idonei, solo {max} elaborati in questa esecuzione — gli altri saranno elaborati alla prossima esecuzione del cron.",
+        "es": "Campaña estacional \"{campaign}\": {total} destinatarios elegibles, solo {max} procesados en esta ejecución — el resto se procesará en la próxima ejecución del cron.",
+        "pt": "Campanha sazonal \"{campaign}\": {total} destinatários elegíveis, apenas {max} processados nesta execução — os restantes serão processados na próxima execução do cron.",
+        "br": "Campanha sazonal \"{campaign}\": {total} destinatários elegíveis, apenas {max} processados nesta execução — os demais serão processados na próxima execução do cron.",
+        "ar": "الحملة الموسمية «{campaign}»: {total} مستلم مؤهل، تمت معالجة {max} فقط في هذا التشغيل — سيتم معالجة الباقي في التشغيل التالي للمهمة المجدولة.",
+        "ja": "季節キャンペーン「{campaign}」：対象{total}件のうち、今回の実行では{max}件のみ処理されました — 残りは次回のcron実行で処理されます。",
+        "ko": "시즌 캠페인 \"{campaign}\": 적격 수신자 {total}명 중 이번 실행에서 {max}명만 처리됨 — 나머지는 다음 크론 실행 시 처리됩니다.",
+        "zh": "季节性活动\"{campaign}\"：符合条件的收件人共{total}位，本次仅处理{max}位 — 其余将在下次定时任务运行时处理。",
+        "tw": "季節性活動「{campaign}」：符合資格的收件人共{total}位，本次僅處理{max}位 — 其餘將於下次排程任務執行時處理。",
+        "ru": "Сезонная кампания «{campaign}»: подходящих получателей {total}, за этот запуск обработано только {max} — остальные будут обработаны при следующем запуске планировщика.",
+        "tr": "Sezonluk kampanya \"{campaign}\": {total} uygun alıcıdan bu çalıştırmada yalnızca {max} tanesi işlendi — kalanlar bir sonraki cron çalıştırmasında işlenecek.",
+        "sv": "Säsongskampanj \"{campaign}\": {total} berättigade mottagare, endast {max} behandlade denna körning — resten behandlas vid nästa cron-körning.",
+        "no": "Sesongkampanje \"{campaign}\": {total} kvalifiserte mottakere, kun {max} behandlet denne kjøringen — resten behandles ved neste cron-kjøring.",
+        "da": "Sæsonkampagne \"{campaign}\": {total} kvalificerede modtagere, kun {max} behandlet i denne kørsel — resten behandles ved næste cron-kørsel.",
+        "nl": "Seizoenscampagne \"{campaign}\": {total} in aanmerking komende ontvangers, slechts {max} verwerkt in deze run — de rest wordt verwerkt bij de volgende cron-run.",
+        "gb": "Seasonal campaign \"{campaign}\": {total} eligible recipients, only {max} processed this run — the rest will be processed on the next cron run."
+    },
     "msg.bounce_imap_read_failed": {
         "fr": "Lecture de ce message échouée (erreur réseau IMAP transitoire) — ignoré, il sera relu au prochain passage.",
         "en": "Failed to read this message (transient IMAP network error) — skipped, it will be re-read on the next pass.",
