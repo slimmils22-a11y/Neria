@@ -1967,11 +1967,12 @@ class BehavioralCronManager
                     $cover    = \Product::getCover($idProduct);
                     $imageUrl = '';
                     if ($cover) {
-                        $imageUrl = \Context::getContext()->link->getImageLink(
+                        // Round 291 : forceHttpsIfEnabled() — voir NeriaTools.php.
+                        $imageUrl = \NeriaTools::forceHttpsIfEnabled(\Context::getContext()->link->getImageLink(
                             $product->link_rewrite,
                             (int) $cover['id_image'],
                             \ImageType::getFormattedName('home')
-                        );
+                        ));
                     }
                 } finally {
                     \Shop::setContext(\Shop::CONTEXT_SHOP, $originalGhostShopId);

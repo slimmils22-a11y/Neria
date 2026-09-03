@@ -447,11 +447,12 @@ class LookCompletionManager
                 $context->shop = new \Shop($idShop);
                 try {
                     if ($cover) {
-                        $imageUrl = $context->link->getImageLink(
+                        // Round 291 : forceHttpsIfEnabled() — voir NeriaTools.php.
+                        $imageUrl = \NeriaTools::forceHttpsIfEnabled($context->link->getImageLink(
                             $product->link_rewrite,
                             (int) $cover['id_image'],
                             \ImageType::getFormattedName('home')
-                        );
+                        ));
                     }
                     $productUrl = $context->link->getProductLink($product, null, null, null, $idLang, $idShop);
                 } finally {

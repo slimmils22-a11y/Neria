@@ -189,7 +189,12 @@ class CollectionManager
         if (!$cover) {
             return '';
         }
-        return \Context::getContext()->link->getImageLink('', (int) $cover['id_image'], \ImageType::getFormattedName('small_default'));
+        // Round 291 : forceHttpsIfEnabled() — getImageLink() suit le
+        // protocole de la requête HTTP courante (cron/webhook interne
+        // souvent en http://), pas PS_SSL_ENABLED — voir NeriaTools.php.
+        return \NeriaTools::forceHttpsIfEnabled(
+            \Context::getContext()->link->getImageLink('', (int) $cover['id_image'], \ImageType::getFormattedName('small_default'))
+        );
     }
 
     // ── CRON : détection + envoi ──────────────────────────────────────────
@@ -571,7 +576,10 @@ class CollectionManager
             // getImageLink() ne prend pas id_shop en paramètre — le domaine
             // utilisé dépend du Context::shop courant, d'où la réassignation
             // ci-dessus en complément de Shop::setContext().
-            return $context->link->getImageLink('', (int) $cover['id_image'], \ImageType::getFormattedName('home'));
+            // Round 291 : forceHttpsIfEnabled() — voir NeriaTools.php.
+            return \NeriaTools::forceHttpsIfEnabled(
+                $context->link->getImageLink('', (int) $cover['id_image'], \ImageType::getFormattedName('home'))
+            );
         } finally {
             $context->shop = $originalShop;
             \Shop::setContext(\Shop::CONTEXT_SHOP, $originalShopId);

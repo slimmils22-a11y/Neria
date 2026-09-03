@@ -188,6 +188,32 @@ class NeriaTools
         return $filtered ?: '';
     }
 
+    /**
+     * Round 291 : \Link::getImageLink() (cœur PrestaShop) n'a aucun
+     * paramètre pour forcer HTTPS — elle utilise systématiquement
+     * $this->protocol_content, déterminé par l'état SSL de la REQUÊTE HTTP
+     * courante (Tools::usingSecureMode()/FrontController::$ssl), pas par le
+     * réglage marchand PS_SSL_ENABLED lui-même. Un cron/webhook interne
+     * déclenché via une URL http:// simple (fréquent pour éviter la
+     * négociation TLS en boucle locale) produit alors une URL d'image
+     * http:// même sur une boutique qui force HTTPS pour ses vrais
+     * visiteurs — Gmail/Outlook.com traitent ceci comme du contenu mixte et
+     * peuvent bloquer l'image dans l'email (panier abandonné, liste
+     * d'attente, complétez votre look/collection). UpsellManager
+     * contourne déjà ce piège en construisant sa propre URL directe avec
+     * PS_SSL_ENABLED — ce helper généralise la même correction, en aval,
+     * pour les managers qui utilisent getImageLink() du cœur (URL "amie"
+     * dépendant de la réécriture .htaccess, donc non reconstructible à
+     * l'identique par une simple concaténation manuelle).
+     */
+    public static function forceHttpsIfEnabled(string $url): string
+    {
+        if ($url !== '' && \Configuration::get('PS_SSL_ENABLED') && strpos($url, 'http://') === 0) {
+            return 'https://' . substr($url, 7);
+        }
+        return $url;
+    }
+
     // ============================================================
     // FORMATAGE DES TEXTES
     // ============================================================
