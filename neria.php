@@ -3293,8 +3293,11 @@ class Neria extends Module
                 'social_youtube'   => (string) Tools::getValue('social_youtube', ''),
                 'social_tiktok'    => (string) Tools::getValue('social_tiktok', ''),
             ];
-            (new ConfigManager($this))->saveSocialConfig($socialData);
-            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+            if ((new ConfigManager($this))->saveSocialConfig($socialData)) {
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+            } else {
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.config_save_partial_failed'));
+            }
         }
 
         // ── Onglet Design : sauvegarde ─────────────────────────────
@@ -3319,7 +3322,7 @@ class Neria extends Module
                 'separator_style'   => (string) Tools::getValue('separator_style', ''),
                 'card_shadow'       => (string) Tools::getValue('card_shadow', ''),
             ];
-            $designMgr->saveDesignConfig($designData);
+            $designConfigSaved = $designMgr->saveDesignConfig($designData);
 
             $logoUploadFailed = false;
             if (!empty($_FILES['logo']['tmp_name'])) {
@@ -3330,7 +3333,11 @@ class Neria extends Module
             }
 
             if (!$logoUploadFailed) {
-                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                if ($designConfigSaved) {
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.config_save_partial_failed'));
+                }
             }
         }
 
@@ -3362,8 +3369,11 @@ class Neria extends Module
                 'line_height'              => (float) Tools::getValue('line_height', 0),
                 'heading_weight'           => (int) Tools::getValue('heading_weight', 0),
             ];
-            (new ConfigManager($this))->saveTypographyConfig($typoData);
-            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+            if ((new ConfigManager($this))->saveTypographyConfig($typoData)) {
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+            } else {
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.config_save_partial_failed'));
+            }
         }
 
         // ── Variables personnalisées : sauvegarde ──────────────────
@@ -3378,8 +3388,11 @@ class Neria extends Module
                 'return_deadline_days'   => (string) Tools::getValue('return_deadline_days', ''),
                 'return_processing_days' => (string) Tools::getValue('return_processing_days', ''),
             ];
-            (new ConfigManager($this))->saveCustomVariables($varsData);
-            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+            if ((new ConfigManager($this))->saveCustomVariables($varsData)) {
+                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+            } else {
+                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.config_save_partial_failed'));
+            }
         }
 
         // ── Signature manuscrite : génération ──────────────────────
