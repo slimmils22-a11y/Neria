@@ -25,6 +25,20 @@ class SeasonalCampaignManager
     const GENDER_MALE   = 1;
     const GENDER_FEMALE = 2;
 
+    // Round 289 : plafond du lot RÉELLEMENT consommé par runDueCampaigns()
+    // par passage de cron — pas appliqué à getEligibleCustomers() elle-même
+    // (countEligible(), l'aperçu BO du nombre de destinataires, appelle la
+    // même méthode et doit rester exact). claimSend() réserve un client
+    // AVANT l'envoi effectif ; un crash brutal (memory_limit/max_execution_time,
+    // ni catch ni finally garantis dans ce cas) pendant l'envoi laisse la
+    // réservation orpheline pour le reste de l'année (pas de colonne d'état
+    // permettant un rattrapage sûr, cf. mémoire projet round 289). Réduit
+    // la fenêtre d'exposition en bornant la durée d'un seul passage — les
+    // clients non traités restent éligibles et seront repris au prochain
+    // passage du cron (jamais insérés dans neria_behavioral_sent tant que
+    // non atteints). Même valeur que BehavioralCronManager::MAX_BATCH_PER_RUN.
+    const MAX_BATCH_PER_RUN = 500;
+
     private Neria $module;
     private \Db $db;
     private int $idShop;
@@ -253,6 +267,24 @@ class SeasonalCampaignManager
                 );
                 continue;
             }
+
+            // Round 289 : plafonne le lot RÉELLEMENT consommé, pas le
+            // résultat de getEligibleCustomers() elle-même (countEligible()
+            // reste exact). Les clients au-delà du plafond restent
+            // éligibles et seront traités au prochain passage du cron.
+            $totalEligible = count($customers);
+            if ($totalEligible > self::MAX_BATCH_PER_RUN) {
+                $customers = array_slice($customers, 0, self::MAX_BATCH_PER_RUN);
+                $this->watchdog()->info(
+                    \WatchdogManager::i18nMsg('watchdog.seasonal_batch_capped', [
+                        'campaign' => $campaign['name'],
+                        'total'    => $totalEligible,
+                        'max'      => self::MAX_BATCH_PER_RUN,
+                    ]),
+                    $campaign['template'] ?? '', 'SeasonalCampaign'
+                );
+            }
+
             $sentCount = 0;
             $checkedIndex = 0;
 
