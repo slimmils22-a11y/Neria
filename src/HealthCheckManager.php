@@ -8975,6 +8975,27 @@ class HealthCheckManager
             $offenders[] = "SeasonalCampaignManager::runDueCampaigns() ne plafonne plus le lot consommé par passage (MAX_BATCH_PER_RUN) — régression du bug corrigé le 03/09/2026 (round 289) : un ciblage large redeviendrait exposé à une fenêtre de crash prolongée, avec réservation orpheline possible pour le reste de l'année civile en cas de dépassement memory_limit/max_execution_time pendant l'envoi";
         }
 
+        // Round 290 (03/09/2026) : controllers/front/unsubscribe.php
+        // transmettait l'email en clair au webhook sortant 'unsubscribed',
+        // seul événement du module à ne pas utiliser customer_id.
+        $unsubSrc290 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/unsubscribe.php');
+        $unsubPrefsPos290 = $unsubSrc290 !== '' ? strpos($unsubSrc290, '$prefsOk = false;') : false;
+        $unsubCustIdPos290 = $unsubPrefsPos290 !== false ? strpos($unsubSrc290, '$customerId = 0;', $unsubPrefsPos290) : false;
+        $unsubTriggerPos290 = $unsubSrc290 !== '' ? strpos($unsubSrc290, "class_exists('WebhookManager')") : false;
+        $unsubTriggerBody290 = $unsubTriggerPos290 !== false ? substr($unsubSrc290, $unsubTriggerPos290, 1000) : '';
+        if ($unsubSrc290 === ''
+            || $unsubPrefsPos290 === false
+            || $unsubCustIdPos290 === false
+            || ($unsubCustIdPos290 - $unsubPrefsPos290) >= 600
+            || $unsubTriggerPos290 === false
+            || $unsubTriggerPos290 <= $unsubCustIdPos290
+            || strpos($unsubTriggerBody290, '$customerId > 0') === false
+            || strpos($unsubTriggerBody290, "'customer_id' => \$customerId") === false
+            || strpos($unsubTriggerBody290, "'customer_email' => \$email") === false
+        ) {
+            $offenders[] = "controllers/front/unsubscribe.php ne bascule plus le payload webhook 'unsubscribed' entre customer_id et customer_email — régression de l'amélioration du 03/09/2026 (round 290) : le webhook redeviendrait l'unique événement du module à transmettre systématiquement l'email en clair, même pour un client identifié";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
