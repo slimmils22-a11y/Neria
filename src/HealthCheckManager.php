@@ -7050,8 +7050,8 @@ class HealthCheckManager
         $smSrc200 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php');
         if ($smSrc200 === '') {
             $offenders[] = 'SegmentManager.php introuvable (garde-fou round 200)';
-        } elseif (strpos($smSrc200, 'private function explicitSendBlockReason(string $template, string $email, int $idLang): ?string') === false
-            || strpos($smSrc200, "if (\$this->explicitSendBlockReason(\$template, \$c['email'], \$idLang) !== null) {") === false
+        } elseif (strpos($smSrc200, 'private function explicitSendBlockReason(string $template, string $email, int $idLang, int $idCustomer = 0): ?string') === false
+            || strpos($smSrc200, "if (\$this->explicitSendBlockReason(\$template, \$c['email'], \$idLang, (int) \$c['id_customer']) !== null) {") === false
         ) {
             $offenders[] = "SegmentManager::sendToSegment() ne vérifie plus bounce/blacklist/cooldown avant Mail::Send() — régression du bug corrigé le 24/08/2026 (round 200) : une campagne segment recompterait à tort en 'envoyé' des emails silencieusement bloqués par le hook";
         }
@@ -8868,6 +8868,35 @@ class HealthCheckManager
             || strpos($ntBody285, '\Currency::getDefaultCurrency()') === false
         ) {
             $offenders[] = "NeriaTools::displayPrice() ne se replie plus sur la devise par défaut quand \$currency n'est pas chargé — régression du bug corrigé le 02/09/2026 (round 285) : un id_currency stocké en base référençant une devise supprimée redonnerait un prix sans symbole/code monétaire dans refund_processed/les relances de devis B2B";
+        }
+
+        // Round 286 (02/09/2026) : SegmentManager::sendToSegment()/
+        // SeasonalCampaignManager::runDueCampaigns() ne revérifiaient jamais
+        // le statut active/deleted du CLIENT juste avant Mail::Send() — un
+        // client désactivé/GDPR-purgé en cours de lot (jusqu'à plusieurs
+        // minutes pour un gros ciblage) continuait de recevoir l'email.
+        $sgmSrc286 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php');
+        $sgmFnPos286 = $sgmSrc286 !== '' ? strpos($sgmSrc286, 'private function explicitSendBlockReason(string $template, string $email, int $idLang, int $idCustomer = 0): ?string') : false;
+        $sgmBody286 = $sgmFnPos286 !== false ? substr($sgmSrc286, $sgmFnPos286, 1700) : '';
+        if ($sgmSrc286 === ''
+            || $sgmFnPos286 === false
+            || strpos($sgmBody286, "SELECT `active`, `deleted` FROM `' . _DB_PREFIX_ . 'customer`") === false
+            || strpos($sgmBody286, "return 'customer_inactive';") === false
+        ) {
+            $offenders[] = "SegmentManager::explicitSendBlockReason() ne relit plus l'état active/deleted du client — régression du bug corrigé le 02/09/2026 (round 286) : une campagne segment continuerait d'envoyer à un client désactivé/GDPR-purgé en cours de lot";
+        }
+
+        $seaSrc286 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php');
+        $seaFnPos286 = $seaSrc286 !== '' ? strpos($seaSrc286, 'public function runDueCampaigns(): int') : false;
+        $seaCheckPos286 = $seaFnPos286 !== false ? strpos($seaSrc286, "SELECT `active`, `deleted` FROM `' . \$this->prefix . 'customer`", $seaFnPos286) : false;
+        $seaBody286 = $seaCheckPos286 !== false ? substr($seaSrc286, $seaCheckPos286, 600) : '';
+        if ($seaSrc286 === ''
+            || $seaFnPos286 === false
+            || $seaCheckPos286 === false
+            || strpos($seaBody286, "(int) \$customerRow['active'] !== 1") === false
+            || strpos($seaBody286, "(int) \$customerRow['deleted'] !== 0") === false
+        ) {
+            $offenders[] = "SeasonalCampaignManager::runDueCampaigns() ne relit plus l'état active/deleted du client — régression du bug corrigé le 02/09/2026 (round 286) : un client désactivé/GDPR-purgé en cours de lot recevrait de nouveau la campagne saisonnière";
         }
 
         if ($offenders) {
