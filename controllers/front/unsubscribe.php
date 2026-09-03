@@ -178,6 +178,12 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
         // saisonniers/B2B Neria, sans aucune trace exploitable par le
         // marchand pour détecter le problème.
         $prefsOk = false;
+        // Round 290 : $customerId hissé hors du bloc PreferencesManager pour
+        // être réutilisable par le webhook 'unsubscribed' plus bas (minimisation
+        // des données — customer_id plutôt que l'email en clair quand
+        // l'adresse correspond à un vrai compte client, aligné sur les 4
+        // autres événements du module qui transmettent tous customer_id).
+        $customerId = 0;
         if (class_exists('PreferencesManager')) {
             try {
                 $customerId = (int) $db->getValue(
@@ -286,9 +292,18 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
 
         if ($ok && !$webhookAlreadyNotified && class_exists('WebhookManager')) {
             try {
-                (new WebhookManager($this->module))->trigger('unsubscribed', [
-                    'customer_email' => $email,
-                ]);
+                // Round 290 : customer_id (comme les 4 autres événements
+                // webhook du module) plutôt que l'email en clair quand
+                // l'adresse correspond à un vrai compte client — l'email
+                // reste transmis SEULEMENT en repli pour un invité
+                // (id_customer=0, jamais devenu client PrestaShop, cf.
+                // round 188 plus haut) : un id interne à cette boutique ne
+                // serait alors pas exploitable par le récepteur externe, qui
+                // ne connaît cette adresse que par son email.
+                $webhookPayload = $customerId > 0
+                    ? ['customer_id' => $customerId]
+                    : ['customer_email' => $email];
+                (new WebhookManager($this->module))->trigger('unsubscribed', $webhookPayload);
             } catch (\Throwable $ex) {
                 // best-effort
             }
