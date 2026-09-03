@@ -8853,6 +8853,23 @@ class HealthCheckManager
             $offenders[] = "OrderTriggersManager::buildShippedItemsVars() n'a plus le log Watchdog dans son catch — régression du bug corrigé le 02/09/2026 (round 283) : une exception lors de la construction de {shipped_items}/{shipped_items_txt} redeviendrait totalement invisible, un email order_partial_shipped dégradé (sans articles ni suivi) partirait sans laisser aucune trace";
         }
 
+        // Round 285 (02/09/2026) : NeriaTools::displayPrice() ne vérifiait
+        // jamais Validate::isLoadedObject($currency) — plusieurs appelants
+        // instancient new \Currency($idCurrency) depuis un id STOCKÉ EN
+        // BASE (commande/devis ancien), pouvant référencer une devise
+        // supprimée depuis. Le prix affiché dans refund_processed/les
+        // relances de devis B2B perdait alors son symbole/code monétaire.
+        $ntSrc285 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php');
+        $ntFnPos285 = $ntSrc285 !== '' ? strpos($ntSrc285, 'public static function displayPrice(float $amount, \Currency $currency, ?int $idLang = null): string') : false;
+        $ntBody285 = $ntFnPos285 !== false ? substr($ntSrc285, $ntFnPos285, 1300) : '';
+        if ($ntSrc285 === ''
+            || $ntFnPos285 === false
+            || strpos($ntBody285, '!\Validate::isLoadedObject($currency)') === false
+            || strpos($ntBody285, '\Currency::getDefaultCurrency()') === false
+        ) {
+            $offenders[] = "NeriaTools::displayPrice() ne se replie plus sur la devise par défaut quand \$currency n'est pas chargé — régression du bug corrigé le 02/09/2026 (round 285) : un id_currency stocké en base référençant une devise supprimée redonnerait un prix sans symbole/code monétaire dans refund_processed/les relances de devis B2B";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
