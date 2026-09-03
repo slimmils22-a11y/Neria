@@ -8914,6 +8914,43 @@ class HealthCheckManager
             $offenders[] = "WebhookManager::processQueue() ne déclenche plus d'alerte email immédiate (error()) sur échec définitif d'un webhook — régression du bug corrigé le 02/09/2026 (round 287) : le marchand ne serait de nouveau informé de la perte définitive de la notification qu'au digest quotidien opt-in";
         }
 
+        // Round 288 (02/09/2026) : les handlers BO save_social/save_design/
+        // save_typography/save_custom_vars (neria.php) ignoraient le retour
+        // booléen de ConfigManager::saveXxxConfig() — un échec partiel de
+        // Configuration::updateValue() en cours de boucle affichait quand
+        // même "Enregistré" au marchand, sans aucun signal.
+        $nphSrc288 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $nphHandlers288 = [
+            'save_social'      => "if ((new ConfigManager(\$this))->saveSocialConfig(\$socialData)) {",
+            'save_typography'  => "if ((new ConfigManager(\$this))->saveTypographyConfig(\$typoData)) {",
+            'save_custom_vars' => "if ((new ConfigManager(\$this))->saveCustomVariables(\$varsData)) {",
+        ];
+        foreach ($nphHandlers288 as $nphAction288 => $nphNeedle288) {
+            $nphPos288 = $nphSrc288 !== '' ? strpos($nphSrc288, "Tools::getValue('neria_action') === '{$nphAction288}'") : false;
+            $nphNeedlePos288 = $nphPos288 !== false ? strpos($nphSrc288, $nphNeedle288, $nphPos288) : false;
+            $nphBody288 = $nphNeedlePos288 !== false ? substr($nphSrc288, $nphNeedlePos288, 400) : '';
+            if ($nphSrc288 === ''
+                || $nphPos288 === false
+                || $nphNeedlePos288 === false
+                || $nphNeedlePos288 - $nphPos288 >= 2000
+                || strpos($nphBody288, "AdminTranslator::t('msg.config_save_partial_failed')") === false
+            ) {
+                $offenders[] = "neria.php::{$nphAction288} ne vérifie plus le retour de ConfigManager avant d'afficher 'Enregistré' — régression du bug corrigé le 02/09/2026 (round 288) : un échec partiel de sauvegarde afficherait de nouveau un faux succès au marchand";
+            }
+        }
+        $nphDesignPos288 = $nphSrc288 !== '' ? strpos($nphSrc288, "Tools::getValue('neria_action') === 'save_design'") : false;
+        $nphDesignSavedPos288 = $nphDesignPos288 !== false ? strpos($nphSrc288, '$designConfigSaved = $designMgr->saveDesignConfig($designData);', $nphDesignPos288) : false;
+        $nphDesignBody288 = $nphDesignSavedPos288 !== false ? substr($nphSrc288, $nphDesignSavedPos288, 900) : '';
+        if ($nphSrc288 === ''
+            || $nphDesignPos288 === false
+            || $nphDesignSavedPos288 === false
+            || $nphDesignSavedPos288 - $nphDesignPos288 >= 2000
+            || strpos($nphDesignBody288, 'if ($designConfigSaved) {') === false
+            || strpos($nphDesignBody288, "AdminTranslator::t('msg.config_save_partial_failed')") === false
+        ) {
+            $offenders[] = "neria.php::save_design ne conditionne plus 'Enregistré' sur le retour de saveDesignConfig() — régression du bug corrigé le 02/09/2026 (round 288)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,

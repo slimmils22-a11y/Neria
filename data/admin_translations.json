@@ -56762,6 +56762,27 @@
         "nl": "Kan SEO-gegevens niet ophalen. Controleer uw API-sleutel.",
         "gb": "Unable to retrieve SEO data. Check your API key."
     },
+    "msg.config_save_partial_failed": {
+        "fr": "Certains réglages n'ont pas pu être enregistrés — vérifiez les valeurs saisies et réessayez.",
+        "en": "Some settings could not be saved — check the entered values and try again.",
+        "de": "Einige Einstellungen konnten nicht gespeichert werden — prüfen Sie die eingegebenen Werte und versuchen Sie es erneut.",
+        "it": "Alcune impostazioni non sono state salvate — verifica i valori inseriti e riprova.",
+        "es": "Algunos ajustes no se pudieron guardar — compruebe los valores introducidos e inténtelo de nuevo.",
+        "pt": "Algumas definições não puderam ser guardadas — verifique os valores inseridos e tente novamente.",
+        "br": "Algumas configurações não puderam ser salvas — verifique os valores inseridos e tente novamente.",
+        "ar": "تعذّر حفظ بعض الإعدادات — تحققوا من القيم المدخلة وأعيدوا المحاولة.",
+        "ja": "一部の設定を保存できませんでした — 入力した値を確認してもう一度お試しください。",
+        "ko": "일부 설정을 저장하지 못했습니다 — 입력한 값을 확인하고 다시 시도하세요.",
+        "zh": "部分设置未能保存 — 请检查输入的值后重试。",
+        "tw": "部分設定未能儲存 — 請檢查輸入的值後重試。",
+        "ru": "Некоторые настройки не удалось сохранить — проверьте введённые значения и повторите попытку.",
+        "tr": "Bazı ayarlar kaydedilemedi — girilen değerleri kontrol edip tekrar deneyin.",
+        "sv": "Vissa inställningar kunde inte sparas — kontrollera de angivna värdena och försök igen.",
+        "no": "Enkelte innstillinger kunne ikke lagres — sjekk de angitte verdiene og prøv igjen.",
+        "da": "Nogle indstillinger kunne ikke gemmes — tjek de indtastede værdier, og prøv igen.",
+        "nl": "Sommige instellingen konden niet worden opgeslagen — controleer de ingevoerde waarden en probeer het opnieuw.",
+        "gb": "Some settings could not be saved — check the entered values and try again."
+    },
     "msg.logo_upload_failed_banner": {
         "fr": "Logo non enregistré — vérifiez le format (PNG, JPEG, GIF, WebP) et la taille (max 2 Mo).",
         "en": "Logo not saved — check the format (PNG, JPEG, GIF, WebP) and size (max 2 MB).",
