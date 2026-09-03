@@ -62,8 +62,10 @@ function run_test(): array
         $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/LookCompletionManager.php');
         neria_assert($src !== false, 'Impossible de lire src/LookCompletionManager.php');
 
+        // Round 292 : signatures élargies d'un paramètre int $idCustomer = 0
+        // — littéraux mis à jour, contrôle inchangé sur le fond ($idCurrency).
         neria_assert(
-            strpos($src, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0): float') !== false,
+            strpos($src, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0): float') !== false,
             "LookCompletionManager::safeProductPrice() n'accepte plus \$idCurrency — régression du bug corrigé le 01/09/2026 (round 275)"
         );
         neria_assert(
@@ -71,7 +73,7 @@ function run_test(): array
             "LookCompletionManager::safeProductPrice() ne priorise plus \$idCurrency sur la devise par défaut de la boutique — régression du bug corrigé le 01/09/2026 (round 275) : le prix suggéré redeviendrait affiché dans la devise par défaut de la boutique, pas celle réelle de la commande du client"
         );
         neria_assert(
-            strpos($src, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0): array') !== false,
+            strpos($src, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0, int $idCustomer = 0): array') !== false,
             "LookCompletionManager::buildProductBlocks() n'accepte plus \$idCurrency — régression du bug corrigé le 01/09/2026 (round 275)"
         );
 

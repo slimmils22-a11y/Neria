@@ -32,7 +32,8 @@ function run_test(): array
     neria_assert($src !== false, 'Impossible de lire src/LookCompletionManager.php');
 
     // Round 275 : signature élargie d'un paramètre int $idCurrency = 0.
-    $posMethod = strpos($src, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0): array');
+    // Round 292 : élargie à nouveau d'un paramètre int $idCustomer = 0.
+    $posMethod = strpos($src, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0, int $idCustomer = 0): array');
     neria_assert($posMethod !== false, 'buildProductBlocks() introuvable — régression du bug corrigé le 08/08/2026');
 
     $body = substr($src, $posMethod, 6400);

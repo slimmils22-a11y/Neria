@@ -30,8 +30,10 @@ function run_test(): array
 
     neria_assert(
         // Round 275 : signatures élargies d'un paramètre int $idCurrency = 0.
-        strpos($lcmSrc, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0): float') !== false
-            && strpos($lcmSrc, '$realPrice = $this->safeProductPrice($pid, $idShop, $idCurrency);') !== false,
+        // Round 292 : LookCompletionManager élargie à nouveau d'un
+        // paramètre int $idCustomer = 0.
+        strpos($lcmSrc, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0): float') !== false
+            && strpos($lcmSrc, '$realPrice = $this->safeProductPrice($pid, $idShop, $idCurrency, $idCustomer);') !== false,
         "LookCompletionManager n'utilise plus safeProductPrice()/Product::getPriceStatic() pour le prix affiché — régression du bug corrigé le 18/08/2026 (round 184) : un produit en promo afficherait de nouveau son prix plein tarif dans l'email"
     );
     neria_assert(
@@ -40,8 +42,10 @@ function run_test(): array
     );
 
     neria_assert(
-        strpos($wlSrc, 'private function safeProductPrice(int $idProduct, int $idShop): float') !== false
-            && strpos($wlSrc, "\$this->safeProductPrice(\$idProduct, \$idShop)") !== false,
+        // Round 292 : WaitlistManager élargie d'un paramètre
+        // int $idCustomer = 0.
+        strpos($wlSrc, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCustomer = 0): float') !== false
+            && strpos($wlSrc, "\$this->safeProductPrice(\$idProduct, \$idShop, \$idCustomer)") !== false,
         "WaitlistManager n'utilise plus safeProductPrice()/Product::getPriceStatic() pour {product_price} — régression du bug corrigé le 18/08/2026 (round 184)"
     );
     neria_assert(
