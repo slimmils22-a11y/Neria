@@ -1095,6 +1095,23 @@ class CalendarManager
             return $result !== false;
 
         } catch (\Throwable $e) {
+            // Round 293 : seul chemin d'envoi du module à dégrader une
+            // exception réelle (échec SMTP/transport) en simple
+            // module->log() natif (ps_log, jamais consulté par le tableau
+            // Watchdog ni le digest) — contrairement aux 8+ autres managers
+            // qui journalient systématiquement via watchdog()->error() avec
+            // le message d'exception, seul moyen pour le marchand de
+            // diagnostiquer une panne SMTP récurrente sur les emails
+            // calendrier sans consulter les logs serveur bruts.
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.calendar_send_exception', [
+                    'email' => $customer['email'],
+                    'event' => $template,
+                    'error' => $e->getMessage(),
+                ]),
+                $template,
+                'CalendarManager'
+            );
             $this->module->log(
                 'CalendarManager: erreur SMTP envoi à '
                 . $customer['email'] . ' : ' . $e->getMessage(),

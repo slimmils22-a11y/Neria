@@ -755,21 +755,44 @@ class ManualSendManager
         // mais ne la retourne jamais à l'appelant — juste `false`.
         $sendAttemptedAt = date('Y-m-d H:i:s');
 
-        $sent = \Mail::Send(
-            $idLang,
-            $template,
-            $subject,
-            $vars,
-            $email,
-            $toName !== '' ? $toName : null,
-            null,
-            null,
-            null,
-            null,
-            _PS_MODULE_DIR_ . 'neria/mails/',
-            false,
-            $idShop
-        );
+        // Round 293 : seul point d'envoi manuel du module sans try/catch,
+        // contrairement à OrderTriggersManager/WebhookManager/
+        // SeasonalCampaignManager etc. — une exception de Mail::Send()
+        // (transport SMTP/Symfony Mailer PS9) remontait non interceptée
+        // jusqu'à neria.php::postProcess(), page d'erreur fatale pour
+        // l'employé BO.
+        try {
+            $sent = \Mail::Send(
+                $idLang,
+                $template,
+                $subject,
+                $vars,
+                $email,
+                $toName !== '' ? $toName : null,
+                null,
+                null,
+                null,
+                null,
+                _PS_MODULE_DIR_ . 'neria/mails/',
+                false,
+                $idShop
+            );
+        } catch (\Throwable $e) {
+            $this->watchdog()->error(
+                WatchdogManager::i18nMsg('watchdog.manual_send_exception', [
+                    'template' => $template,
+                    'email'    => $email,
+                    'error'    => $e->getMessage(),
+                ]),
+                $template,
+                'ManualSendManager'
+            );
+
+            return [
+                'ok'      => false,
+                'message' => AdminTranslator::tVars('msg.send_exception', ['error' => $e->getMessage()]),
+            ];
+        }
 
         if ($sent) {
             $this->watchdog()->info(
@@ -809,12 +832,32 @@ class ManualSendManager
                 }
 
                 if ($refId > 0) {
-                    $this->db->execute(
-                        'INSERT IGNORE INTO `' . _DB_PREFIX_ . 'neria_behavioral_sent`
-                         (id_customer, template, ref_id, id_shop, sent_at)
-                         VALUES (' . (int) $customer['id_customer'] . ', \'' . pSQL($template) . '\', '
-                        . $refId . ', ' . $idShop . ', NOW())'
-                    );
+                    // Round 293 : try/catch ajouté — l'email vient d'être
+                    // réellement envoyé avec succès (watchdog déjà loggé
+                    // "manual_send_ok" ci-dessus) ; une exception ici (perte
+                    // de connexion transitoire, deadlock concurrent avec
+                    // BehavioralCronManager qui écrit dans la même table)
+                    // ne doit ni crasher la page BO ni faire croire à
+                    // l'employé que l'envoi a échoué (risque de renvoi en
+                    // double), juste être tracée pour diagnostic.
+                    try {
+                        $this->db->execute(
+                            'INSERT IGNORE INTO `' . _DB_PREFIX_ . 'neria_behavioral_sent`
+                             (id_customer, template, ref_id, id_shop, sent_at)
+                             VALUES (' . (int) $customer['id_customer'] . ', \'' . pSQL($template) . '\', '
+                            . $refId . ', ' . $idShop . ', NOW())'
+                        );
+                    } catch (\Throwable $e) {
+                        $this->watchdog()->error(
+                            WatchdogManager::i18nMsg('watchdog.manual_send_tracking_exception', [
+                                'template' => $template,
+                                'email'    => $email,
+                                'error'    => $e->getMessage(),
+                            ]),
+                            $template,
+                            'ManualSendManager'
+                        );
+                    }
                 }
             }
 
