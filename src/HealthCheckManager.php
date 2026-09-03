@@ -3881,7 +3881,7 @@ class HealthCheckManager
         if ($lcmSrc === '') {
             $offenders[] = 'LookCompletionManager.php introuvable (garde-fou round 131 : buildProductBlocks() commute Shop::setContext())';
         } else {
-            $posBpb = strpos($lcmSrc, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0): array');
+            $posBpb = strpos($lcmSrc, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0, int $idCustomer = 0): array');
             // Round 184 : fenêtre élargie 3600→5700 — le remplacement de
             // StockAvailable::getQuantityAvailableByProduct() par un SUM
             // SQL direct et l'ajout de safeProductPrice() ont repoussé le
@@ -6393,7 +6393,7 @@ class HealthCheckManager
             if (strpos($wlSrc184, "if (!\\Validate::isLoadedObject(\$product) || !\$product->active) continue;") === false) {
                 $offenders[] = "WaitlistManager::notifyProductLocked() ne vérifie plus \$product->active — régression du bug corrigé le 18/08/2026 (round 184) : un produit désactivé recevrait de nouveau une notification 'de retour en stock' vers une page indisponible";
             }
-            if (strpos($wlSrc184, 'private function safeProductPrice(int $idProduct, int $idShop): float') === false) {
+            if (strpos($wlSrc184, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCustomer = 0): float') === false) {
                 $offenders[] = "WaitlistManager n'a plus de méthode safeProductPrice() — régression du bug corrigé le 18/08/2026 (round 184) : {product_price} redeviendrait résolu via \$product->price brut, sans taxe ni promo";
             }
         }
@@ -6405,7 +6405,7 @@ class HealthCheckManager
             if (strpos($lcmSrc184, "SELECT COALESCE(SUM(quantity), 0) FROM `' . \$this->prefix . 'stock_available`") === false) {
                 $offenders[] = "LookCompletionManager::buildProductBlocks() n'utilise plus le SUM(quantity) SQL direct pour vérifier le stock — régression du bug corrigé le 18/08/2026 (round 184) : un produit à déclinaisons serait de nouveau silencieusement écarté des suggestions 'Complétez votre look'";
             }
-            if (strpos($lcmSrc184, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0): float') === false) {
+            if (strpos($lcmSrc184, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0): float') === false) {
                 $offenders[] = "LookCompletionManager n'a plus de méthode safeProductPrice() — régression du bug corrigé le 18/08/2026 (round 184) : le prix affiché redeviendrait \$product->price brut, sans taxe ni promo";
             }
         }
@@ -8640,7 +8640,7 @@ class HealthCheckManager
         // commande sur une boutique multi-devises.
         $lcmSrc275 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
         if ($lcmSrc275 === ''
-            || strpos($lcmSrc275, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0): array') === false
+            || strpos($lcmSrc275, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0, int $idCustomer = 0): array') === false
             || strpos($lcmSrc275, '$tmp->id_currency = $idCurrency > 0') === false
             || strpos($lcmSrc275, 'SELECT DISTINCT oh.id_order, o.id_customer, o.id_lang, o.id_shop, o.id_currency') === false
         ) {
@@ -9018,6 +9018,48 @@ class HealthCheckManager
             if ($img291Src === '' || $img291Count !== $img291Expected) {
                 $offenders[] = "{$img291File} n'applique plus forceHttpsIfEnabled() au bon nombre d'emplacements ({$img291Count}/{$img291Expected}) — régression du bug corrigé le 03/09/2026 (round 291) : une URL d'image produit redeviendrait exposée au contenu mixte HTTP dans un email envoyé depuis une boutique HTTPS";
             }
+        }
+
+        // Round 292 (03/09/2026) : WaitlistManager::safeProductPrice()/
+        // LookCompletionManager::safeProductPrice() n'avaient pas le
+        // correctif groupe client déjà appliqué à UpsellManager (round
+        // 184/381) — Product::getPriceStatic() résolvait le groupe via le
+        // contexte ambiant du cron, pas le VRAI client destinataire, un
+        // client B2B à tarif négocié voyait le prix public plein tarif.
+        $wlSrc292 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php');
+        if ($wlSrc292 === ''
+            || strpos($wlSrc292, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCustomer = 0): float') === false
+            || strpos($wlSrc292, '$idCustomer > 0 ? $idCustomer : null)') === false
+        ) {
+            $offenders[] = "WaitlistManager::safeProductPrice() ne transmet plus \$idCustomer à Product::getPriceStatic() — régression du bug corrigé le 03/09/2026 (round 292) : un client B2B à tarif négocié verrait de nouveau le prix public dans son email de retour en stock";
+        }
+        $lcSrc292 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
+        if ($lcSrc292 === ''
+            || strpos($lcSrc292, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCurrency = 0, int $idCustomer = 0): float') === false
+            || strpos($lcSrc292, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0, int $idCustomer = 0): array') === false
+            || strpos($lcSrc292, '$this->buildProductBlocks(array_slice($productIds, 0, 3), $idLang, $idShop, $idCurrency, $idCustomer);') === false
+        ) {
+            $offenders[] = "LookCompletionManager::safeProductPrice()/buildProductBlocks() ne transmettent plus \$idCustomer — régression du bug corrigé le 03/09/2026 (round 292) : un client B2B à tarif négocié verrait de nouveau le prix public dans son email complétez votre look";
+        }
+
+        // Round 292 (03/09/2026) : WaitlistManager::notifyProduct()/
+        // BehavioralCronManager::buildCartProducts()/buildCartProductsTxt()
+        // affichaient le nom générique du produit sans la déclinaison
+        // précise (taille/couleur) — un client attendant une combinaison
+        // exacte ne pouvait pas savoir si c'était bien celle-ci qui venait
+        // de revenir en stock, ou distinguer deux déclinaisons différentes
+        // du même produit dans un panier abandonné.
+        $ntSrc292 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php');
+        if ($ntSrc292 === '' || strpos($ntSrc292, 'public static function getAttributeCombinationLabel(int $idProductAttribute, int $idLang): string') === false) {
+            $offenders[] = "NeriaTools::getAttributeCombinationLabel() a disparu — régression du bug corrigé le 03/09/2026 (round 292) : le nom de la déclinaison précise disparaîtrait de nouveau des emails de recommandation";
+        }
+        if ($wlSrc292 === '' || strpos($wlSrc292, "NeriaTools::getAttributeCombinationLabel((int) \$row['id_product_attribute'], \$idLang)") === false) {
+            $offenders[] = "WaitlistManager::notifyProduct() n'applique plus getAttributeCombinationLabel() — régression du bug corrigé le 03/09/2026 (round 292)";
+        }
+        $bcmSrc292 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        $bcmAttrCount292 = $bcmSrc292 !== '' ? substr_count($bcmSrc292, "NeriaTools::getAttributeCombinationLabel((int) \$r['id_product_attribute'], \$idLangCart)") : 0;
+        if ($bcmSrc292 === '' || $bcmAttrCount292 !== 2 || strpos($bcmSrc292, 'cp.id_product_attribute') === false) {
+            $offenders[] = "BehavioralCronManager::buildCartProducts()/buildCartProductsTxt() n'appliquent plus getAttributeCombinationLabel() aux 2 emplacements attendus ({$bcmAttrCount292}/2) — régression du bug corrigé le 03/09/2026 (round 292) : deux déclinaisons différentes du même produit dans un panier abandonné redeviendraient indiscernables dans l'email de relance";
         }
 
         if ($offenders) {
