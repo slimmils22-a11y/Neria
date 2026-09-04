@@ -30,7 +30,15 @@
 </table>
 
 {* ── Note de clôture ── *}
+{* Round 295 : bordure/padding physiques (left) inversés pour le RTL — seul
+   template du thème à utiliser border-left/padding-left au lieu d'une
+   marge verticale simple ; sans cette inversion, l'accent décoratif
+   restait à gauche même en arabe, à l'opposé du sens de lecture RTL. *}
+{if $neria_dir == 'rtl'}
+<p class="neria-text-note" style="margin-top:24px;font-style:italic;border-right:3px solid #e8d5b0;padding-right:14px;">
+{else}
 <p class="neria-text-note" style="margin-top:24px;font-style:italic;border-left:3px solid #e8d5b0;padding-left:14px;">
+{/if}
   {neria_trad key='ghost_cart_note'}
 </p>
 {/block}

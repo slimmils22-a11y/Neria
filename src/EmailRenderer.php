@@ -69,6 +69,13 @@ class EmailRenderer
         // MailPreviewVariablesBuilder.php, avant interception par le hook
         // Neria).
         '{shipped_items}', '{messages}', '{virtualProducts}',
+        // Round 295 : {milestone_voucher_block} (OrderTriggersManager::
+        // buildMilestoneVoucherHtmlBlock(), bon de réduction sur paliers de
+        // commandes, milestone_order.html) oubliée de cette liste depuis son
+        // introduction — même régression que round 149 (fragment HTML
+        // pré-échappé par ligne, ré-échapper le <div> entier affichait le
+        // balisage brut au client au lieu du bloc visuel).
+        '{milestone_voucher_block}',
     ];
 
     // ============================================================
