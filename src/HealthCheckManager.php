@@ -13452,6 +13452,44 @@ class HealthCheckManager
      * que le marchand ne consulte pas l'onglet Statistiques. Ce contrôle le
      * détecte en amont, pendant le diagnostic périodique.
      */
+    /**
+     * Round 299 : pire ancienneté de cache (en minutes, null = jamais
+     * synchronisé) sur TOUTES les boutiques actives, pas seulement celle du
+     * contexte d'exécution de ce contrôle — getCacheAge() de $mgr lit
+     * Context::getContext()->shop->id en interne (cacheKey()), donc un appel
+     * unique ne voit que la boutique ayant déclenché ce passage de
+     * checkOAuthFreshness() (trafic front / cron serveur), jamais les
+     * autres. Sur une install multi-boutiques déséquilibrée en trafic, une
+     * boutique C sans visiteur ni cron dédié pouvait voir sa réputation
+     * Postmaster/Search Console gelée depuis des semaines sans que ce
+     * contrôle proactif ne le détecte JAMAIS pour l'ensemble de
+     * l'installation (le token OAuth lui-même est global, mais le cache de
+     * synchronisation est scopé par boutique). Lecture directe de la
+     * config (CONFIG_CACHE_TIME . '_' . $idShop) pour chaque boutique
+     * active, sans changer le contexte Shop ambiant.
+     */
+    private function worstOAuthCacheAgeMinutes(string $cacheTimeConfigKey): ?int
+    {
+        $shopIds = [$this->idShop];
+        if (\Shop::isFeatureActive()) {
+            foreach (\Shop::getShops(true, null, true) as $activeShopId) {
+                $shopIds[] = (int) $activeShopId;
+            }
+        }
+        $worstAge = null;
+        foreach (array_unique($shopIds) as $sid) {
+            $t = (int) \Configuration::get($cacheTimeConfigKey . '_' . $sid);
+            $age = $t > 0 ? (int) round((time() - $t) / 60) : null;
+            if ($age === null) {
+                return null; // au moins une boutique jamais synchronisée : pire cas, inutile de continuer
+            }
+            if ($worstAge === null || $age > $worstAge) {
+                $worstAge = $age;
+            }
+        }
+        return $worstAge;
+    }
+
     private function checkOAuthFreshness(): array
     {
         $stale = [];
@@ -13463,7 +13501,7 @@ class HealthCheckManager
         if (class_exists('SearchConsoleManager')) {
             $mgr = new \SearchConsoleManager($this->module);
             if ($mgr->isConnected()) {
-                $age = $mgr->getCacheAge();
+                $age = $this->worstOAuthCacheAgeMinutes(\SearchConsoleManager::CONFIG_CACHE_TIME);
                 if ($age === null || $age > $staleThresholdMinutes) {
                     $err = $mgr->getLastError();
                     if ($err !== '') {
@@ -13486,7 +13524,7 @@ class HealthCheckManager
         if (class_exists('PostmasterManager')) {
             $mgr = new \PostmasterManager($this->module);
             if ($mgr->isConnected()) {
-                $age = $mgr->getCacheAge();
+                $age = $this->worstOAuthCacheAgeMinutes(\PostmasterManager::CONFIG_CACHE_TIME);
                 if ($age === null || $age > $staleThresholdMinutes) {
                     $err = $mgr->getLastError();
                     if ($err !== '') {

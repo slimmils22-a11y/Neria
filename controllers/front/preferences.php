@@ -148,11 +148,28 @@ class NeriaPreferencesModuleFrontController extends ModuleFrontController
                 // PrestaShop natif (et tout module tiers qui s'y fie), et
                 // inversement (cf. le correctif symétrique dans
                 // unsubscribe.php côté one-click RFC 8058).
+                //
+                // Round 299 : `AND id_shop = $this->context->shop->id`
+                // supprimé — $idCustomer est déjà résolu ci-dessus via
+                // Customer::customerExists() sous restriction
+                // Shop::SHARE_CUSTOMER (round 211, gère nativement le cas
+                // partage de comptes : le compte est rattaché en base à sa
+                // boutique de CRÉATION, pas à la boutique visitée). Filtrer
+                // en plus par la boutique VISITÉE ici — contrairement à
+                // unsubscribe.php ci-dessous, qui filtre par email ET
+                // id_shop car une même adresse PEUT avoir plusieurs lignes
+                // client distinctes par boutique SANS partage de comptes —
+                // ne sert à rien puisque $idCustomer identifie déjà une
+                // ligne unique, et fait échouer silencieusement l'UPDATE
+                // (0 ligne affectée) dès que le partage de comptes est
+                // actif et que le lien est ouvert depuis une autre boutique
+                // que celle de création du compte : le client croyait
+                // s'être désabonné mais ps_customer.newsletter restait à 1.
                 if ($idCustomer > 0) {
                     try {
                         Db::getInstance()->execute(
                             "UPDATE `" . _DB_PREFIX_ . "customer` SET `newsletter` = " . (int) $submitted['newsletter'] . "
-                             WHERE `id_customer` = " . $idCustomer . " AND `id_shop` = " . (int) $this->context->shop->id
+                             WHERE `id_customer` = " . $idCustomer
                         );
                     } catch (\Throwable $ex) {
                         // best-effort : les préférences Neria restent la source

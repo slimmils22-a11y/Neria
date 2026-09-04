@@ -189,8 +189,83 @@ class DomainReputationManager
      */
     private const DNS_TIME_BUDGET_SECS = 8.0;
 
+    /**
+     * Round 299 : nom de verrou basé sur le DOMAINE expéditeur (haché, pas
+     * l'id_shop) — deux boutiques distinctes envoyant depuis le MÊME
+     * domaine (sous-domaines partageant SPF/DKIM/DMARC racine, ou même
+     * expéditeur transactionnel configuré sur les deux) déclenchaient
+     * jusqu'ici chacune leur propre cycle DNS/RBL complet (jusqu'à 84
+     * requêtes RBL redondantes par cycle, verrou round 154/165 scopé par
+     * boutique donc totalement inefficace entre elles), avec un risque
+     * réel d'incohérence : un grade/score différent affiché pour CHACUNE
+     * alors que la réputation DNS sous-jacente est objectivement unique.
+     * getSenderDomain() n'effectue aucun appel réseau (lecture config +
+     * JSON) — appelable ici sans coût avant la prise de verrou.
+     * Repli sur l'id_shop si le domaine n'a pas pu être déterminé, pour ne
+     * jamais faire cohabiter deux boutiques à domaine "vide"/inconnu sous
+     * le même verrou par accident.
+     */
+    private function lockName(string $domain): string
+    {
+        return $domain !== ''
+            ? 'neria_domain_reputation_dom_' . md5($domain)
+            : 'neria_domain_reputation_' . $this->idShop;
+    }
+
+    /**
+     * Round 299 : cherche, parmi les AUTRES boutiques actives, un rapport
+     * encore frais (< CACHE_TTL) pour ce MÊME domaine — évite de relancer
+     * une résolution DNS/RBL complète quand une boutique sœur vient déjà
+     * de la faire pour le domaine partagé, et garantit que les deux
+     * boutiques affichent le même grade/score pour la même réputation
+     * réelle plutôt que deux résultats potentiellement divergents obtenus
+     * à quelques minutes/heures d'écart.
+     */
+    private function findFreshReportForDomain(string $domain, ?array $shopIds = null): ?array
+    {
+        if ($domain === '') {
+            return null;
+        }
+        // $shopIds injectable (tests) — par défaut, toutes les boutiques
+        // actives réelles. Sur une install mono-boutique, Shop::getShops()
+        // ne renvoie que la boutique courante, exclue juste en dessous : le
+        // résultat est donc naturellement null sans avoir besoin d'un garde
+        // Shop::isFeatureActive() séparé.
+        $shopIds = $shopIds ?? \Shop::getShops(true, null, true);
+        foreach ($shopIds as $otherShopId) {
+            $otherShopId = (int) $otherShopId;
+            if ($otherShopId === $this->idShop) {
+                continue;
+            }
+            $lastCheck = (int) \Configuration::get(self::CONFIG_LAST_CHECK, null, null, $otherShopId);
+            if (!$lastCheck || (time() - $lastCheck) >= self::CACHE_TTL) {
+                continue;
+            }
+            $json = \Configuration::get(self::CONFIG_CACHE, null, null, $otherShopId);
+            if (!$json) {
+                continue;
+            }
+            $data = json_decode($json, true);
+            if (is_array($data) && ($data['domain'] ?? null) === $domain) {
+                return $data;
+            }
+        }
+        return null;
+    }
+
     public function runFullCheck(): array
     {
+        $domain = $this->getSenderDomain();
+        $lockName = $this->lockName($domain);
+
+        // Round 299 : mutualisation par domaine tentée AVANT toute prise de
+        // verrou/résolution DNS — voir findFreshReportForDomain() ci-dessus.
+        $shared = $this->findFreshReportForDomain($domain);
+        if ($shared !== null) {
+            $this->cacheReport($shared);
+            return $shared;
+        }
+
         // Round 154 : verrou MySQL — sans lui, deux déclenchements
         // concurrents (hookDisplayHeader sur deux visiteurs simultanés, ou
         // fallback front + vrai cron serveur) pouvaient tous deux relancer
@@ -201,7 +276,10 @@ class DomainReputationManager
         // throttle par boutique est lui-même un check-then-act non
         // atomique : une alerte critique de réputation de domaine pouvait
         // ainsi partir en double au marchand pour le même incident.
-        if ((int) \Db::getInstance()->getValue("SELECT GET_LOCK('neria_domain_reputation_" . $this->idShop . "', 0)", false) !== 1) {
+        // Round 299 : $lockName scopé par domaine (pas id_shop) — voir
+        // lockName() ci-dessus, mutualise aussi la protection anti-double-
+        // exécution entre boutiques partageant le même domaine.
+        if ((int) \Db::getInstance()->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)", false) !== 1) {
             // Verrou déjà tenu par un autre process en train de rafraîchir
             // le même rapport : sert le cache s'il en existe un (même
             // périmé), plutôt que de dupliquer la vérification DNS/RBL
@@ -224,32 +302,53 @@ class DomainReputationManager
             // attend maintenant réellement le verrou (jusqu'à 6s, sous le
             // budget DNS de 8s) : l'autre process a normalement fini et
             // écrit le cache pendant l'attente.
-            if ((int) \Db::getInstance()->getValue("SELECT GET_LOCK('neria_domain_reputation_" . $this->idShop . "', 6)", false) === 1) {
+            if ((int) \Db::getInstance()->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 6)", false) === 1) {
                 try {
                     $cached = $this->getCachedReport();
                     if ($cached !== null) {
                         return $cached;
                     }
-                    return $this->runFullCheckLocked();
+                    $shared = $this->findFreshReportForDomain($domain);
+                    if ($shared !== null) {
+                        $this->cacheReport($shared);
+                        return $shared;
+                    }
+                    return $this->runFullCheckLocked($domain);
                 } finally {
-                    \Db::getInstance()->execute("SELECT RELEASE_LOCK('neria_domain_reputation_" . $this->idShop . "')");
+                    \Db::getInstance()->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
                 }
             }
 
             // Verrou toujours indisponible après l'attente (cas extrême) :
             // un tableau vide serait pire qu'une vérification non
             // dédupliquée une dernière fois.
-            return $this->runFullCheckLocked();
+            return $this->runFullCheckLocked($domain);
         }
 
         try {
-            return $this->runFullCheckLocked();
+            return $this->runFullCheckLocked($domain);
         } finally {
-            \Db::getInstance()->execute("SELECT RELEASE_LOCK('neria_domain_reputation_" . $this->idShop . "')");
+            \Db::getInstance()->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
         }
     }
 
-    private function runFullCheckLocked(): array
+    /**
+     * Round 299 : écrit un rapport (potentiellement mutualisé depuis une
+     * boutique sœur au même domaine) dans le cache de CETTE boutique, sans
+     * refaire le calcul — même écriture que la fin de runFullCheckLocked(),
+     * factorisée pour être réutilisée par les 2 branches "domaine partagé".
+     */
+    private function cacheReport(array $report): void
+    {
+        $encoded = json_encode($report);
+        if ($encoded === false) {
+            return;
+        }
+        \Configuration::updateValue(self::CONFIG_CACHE, $encoded, false, null, $this->idShop);
+        \Configuration::updateValue(self::CONFIG_LAST_CHECK, time(), false, null, $this->idShop);
+    }
+
+    private function runFullCheckLocked(?string $domain = null): array
     {
         // Round 193 : $this->idShop transmis explicitement — absent
         // jusqu'ici, alors que toutes les autres clés de ce fichier sont
@@ -266,7 +365,12 @@ class DomainReputationManager
 
         $deadline = microtime(true) + self::DNS_TIME_BUDGET_SECS;
 
-        $domain = $this->getSenderDomain();
+        // Round 299 : $domain accepté en paramètre optionnel — runFullCheck()
+        // l'a déjà calculé (sans coût réseau) pour choisir le nom de verrou
+        // et tenter la mutualisation par domaine ; éviter de le relire une
+        // 2e fois ici garde un comportement strictement identique si cette
+        // méthode est appelée directement (tests, ou $domain omis).
+        $domain = $domain ?? $this->getSenderDomain();
         $ip     = $domain ? $this->resolveIp($domain, $deadline) : null;
 
         $spf    = $this->checkSpf($domain, $deadline);
