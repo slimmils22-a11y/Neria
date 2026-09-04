@@ -9277,6 +9277,61 @@ class HealthCheckManager
             $offenders[] = "controllers/front/preferences.php a de nouveau un filtre id_shop erroné sur l'UPDATE ps_customer.newsletter — régression du bug corrigé le 04/09/2026 (round 299) : un client à compte partagé multi-boutiques verrait de nouveau sa synchronisation newsletter échouer silencieusement";
         }
 
+        // Round 300 (04/09/2026) : StatsManager::zTestProportions() ne
+        // vérifiait pas la règle n·p̄≥5 (validité de l'approximation
+        // normale) — un taux de clic faible (1-3%, typique e-commerce)
+        // pouvait déclencher un "gagnant" A/B statistiquement injustifié.
+        $smSrc300 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        if ($smSrc300 === ''
+            || strpos($smSrc300, 'if ($n1 * $pPool < 5 || $n2 * $pPool < 5 || $n1 * (1 - $pPool) < 5 || $n2 * (1 - $pPool) < 5) {') === false
+        ) {
+            $offenders[] = "StatsManager::zTestProportions() ne vérifie plus la règle n·p̄≥5 avant de déclarer un gagnant A/B — régression du bug corrigé le 04/09/2026 (round 300) : un taux de clic faible pourrait de nouveau déclencher une confiance statistiquement injustifiée";
+        }
+
+        // Round 300 (04/09/2026) : logSignificanceIfNew() journalisait/
+        // déclenchait le webhook ab_winner dès la 1ère observation d'un
+        // gagnant à 95%+ — sans protection contre le "peeking" (réévalué à
+        // chaque ouverture de l'onglet BO), un pic isolé de confiance
+        // pouvait déclencher seul une déclaration de gagnant définitive.
+        if ($smSrc300 === ''
+            || strpos($smSrc300, 'const SIG_STABILITY_HOURS = 20;') === false
+            || strpos($smSrc300, "'NERIA_SIG_PENDING_'") === false
+        ) {
+            $offenders[] = "StatsManager::logSignificanceIfNew() n'exige plus de confirmation stable du gagnant A/B sur 2 observations espacées — régression du bug corrigé le 04/09/2026 (round 300) : un pic isolé de confiance redeviendrait suffisant pour déclarer un gagnant définitif";
+        }
+
+        // Round 300 (04/09/2026) : StatsManager::recordClick() n'appelait
+        // jamais detectMpp() (contrairement à recordOpen()) — un scanner de
+        // sécurité d'entreprise pré-visitant les liens dès réception
+        // faussait les KPIs de clic ET créditait des points de fidélité
+        // avant toute lecture humaine de l'email.
+        if ($smSrc300 === '' || strpos($smSrc300, '$awardPoints = !$isMpp && !$this->eventExists($token, self::EVENT_CLICK);') === false) {
+            $offenders[] = "StatsManager::recordClick() ne détecte plus les préchargements automatiques (detectMpp()) — régression du bug corrigé le 04/09/2026 (round 300) : un scanner de sécurité créditerait de nouveau des points de fidélité avant toute lecture humaine";
+        }
+
+        // Round 300 (04/09/2026) : SegmentManager::recomputeAll() comptait
+        // total_conv sans exclure les conversions dont la commande a été
+        // remboursée à ≥90% — un client sans CA net réel pouvait être classé
+        // 'ambassador'/'loyal' et cibler des campagnes VIP à tort.
+        $segSrc300 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php');
+        if ($segSrc300 === '' || strpos($segSrc300, '0.9 * COALESCE((') === false) {
+            $offenders[] = "SegmentManager::recomputeAll() ne déduit plus les conversions remboursées à ≥90% de total_conv — régression du bug corrigé le 04/09/2026 (round 300) : un client sans CA net réel pourrait de nouveau être classé 'ambassador'/'loyal' à tort";
+        }
+
+        // Round 300 (04/09/2026) : LicenseManager::getStatusForDisplay() ne
+        // reflétait pas le 3e scénario de grâce (jeton expiré + serveur de
+        // licences injoignable en continu) — aucune alerte BO ne
+        // s'affichait pendant que le marchand consommait silencieusement
+        // ses 90 derniers jours de grâce.
+        $licSrc300 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LicenseManager.php');
+        if ($licSrc300 === '' || strpos($licSrc300, 'elseif ($expires > 0 && $expires <= time()) {') === false) {
+            $offenders[] = "LicenseManager::getStatusForDisplay() ne reflète plus le 3e scénario de grâce (jeton expiré, serveur injoignable) — régression du bug corrigé le 04/09/2026 (round 300) : le bandeau BO n'afficherait de nouveau aucune alerte pendant la période de grâce de 90 jours";
+        }
+        $navTplSrc300 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/navigation.tpl');
+        if ($navTplSrc300 === '' || strpos($navTplSrc300, '{elseif $ls.in_grace_period && $ls.has_key && !$ls.revoked}') === false) {
+            $offenders[] = "navigation.tpl n'a plus de branche dédiée au 3e scénario de grâce LicenseManager — régression du bug corrigé le 04/09/2026 (round 300)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
