@@ -13137,10 +13137,21 @@ class HealthCheckManager
             ];
         }
 
+        // Round 294 : is_mpp = 0 ajouté — sans lui, les préchargements
+        // automatiques Apple Mail Privacy Protection (déclenchés à la
+        // réception, indépendamment d'une ouverture humaine réelle)
+        // gonflent artificiellement ce taux à la hausse, dans le sens qui
+        // MASQUE précisément le problème que cette alerte est censée
+        // détecter (domaine en spam, DKIM cassé, pixel de tracking
+        // défaillant) — contrairement à SegmentManager/MonthlyReportManager/
+        // ChurnScoreManager/PropensityScoreManager/CustomerEmailHistoryManager/
+        // ClvManager/StatsManager, qui filtrent déjà tous is_mpp = 0 sur
+        // leurs comptages d'ouverture.
         $open7 = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$table}`
              WHERE `id_shop`    = {$this->idShop}
                AND `event_type` = 'open'
+               AND `is_mpp`     = 0
                AND `date_add`  > DATE_SUB(NOW(), INTERVAL 7 DAY)"
         );
 
@@ -13176,10 +13187,14 @@ class HealthCheckManager
     {
         $table = _DB_PREFIX_ . 'neria_stat';
 
+        // Round 294 : is_mpp = 0 ajouté sur le comptage 'opened' — même
+        // correctif que checkOpenRate7d() ci-dessus, pour la même raison
+        // (préchargements Apple MPP gonflant artificiellement le taux
+        // d'ouverture, masquant une dégradation réelle).
         $recent = $this->db->getRow(
             "SELECT
                 SUM(CASE WHEN event_type = 'sent' THEN 1 ELSE 0 END) AS sent,
-                SUM(CASE WHEN event_type = 'open' THEN 1 ELSE 0 END) AS opened
+                SUM(CASE WHEN event_type = 'open' AND is_mpp = 0 THEN 1 ELSE 0 END) AS opened
              FROM `{$table}`
              WHERE id_shop = {$this->idShop}
                AND date_add > DATE_SUB(NOW(), INTERVAL 7 DAY)"
@@ -13188,7 +13203,7 @@ class HealthCheckManager
         $baseline = $this->db->getRow(
             "SELECT
                 SUM(CASE WHEN event_type = 'sent' THEN 1 ELSE 0 END) AS sent,
-                SUM(CASE WHEN event_type = 'open' THEN 1 ELSE 0 END) AS opened
+                SUM(CASE WHEN event_type = 'open' AND is_mpp = 0 THEN 1 ELSE 0 END) AS opened
              FROM `{$table}`
              WHERE id_shop = {$this->idShop}
                AND date_add > DATE_SUB(NOW(), INTERVAL 37 DAY)
