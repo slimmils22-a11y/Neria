@@ -5184,8 +5184,11 @@ class HealthCheckManager
         if ($wdSrc154 === '' || strpos($wdSrc154, "GET_LOCK('neria_watchdog_digest_") === false || strpos($wdSrc154, "RELEASE_LOCK('neria_watchdog_digest_") === false) {
             $offenders[] = "WatchdogManager::sendDailyDigestIfDue() n'a plus de verrou GET_LOCK() — régression du bug corrigé le 09/08/2026 (round 154) : le digest quotidien pourrait de nouveau partir en double au marchand";
         }
+        // Round 299 : littéraux élargis — le nom du verrou est passé par
+        // $lockName (basé sur le domaine, cf. lockName()) depuis
+        // pSQL($lockName), plus concaténé en dur juste après GET_LOCK('.
         $drmSrc154 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php');
-        if ($drmSrc154 === '' || strpos($drmSrc154, "GET_LOCK('neria_domain_reputation_") === false || strpos($drmSrc154, "RELEASE_LOCK('neria_domain_reputation_") === false) {
+        if ($drmSrc154 === '' || strpos($drmSrc154, "GET_LOCK('\" . pSQL(\$lockName) . \"'") === false || strpos($drmSrc154, "RELEASE_LOCK('\" . pSQL(\$lockName) . \"'") === false) {
             $offenders[] = "DomainReputationManager::runFullCheck() n'a plus de verrou GET_LOCK() — régression du bug corrigé le 09/08/2026 (round 154) : double charge DNS/RBL et risque d'alerte dupliquée redeviendraient possibles";
         }
         $hcmSrc154 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
@@ -5668,7 +5671,10 @@ class HealthCheckManager
         ) {
             $offenders[] = "DomainReputationManager : le budget DNS n'est plus propagé à checkSpf/checkDmarc/checkMx/checkBimi/resolveIp — régression du bug corrigé le 14/08/2026 (round 165) : le budget censé borner le blocage du visiteur front ne couvrirait de nouveau qu'une partie du chemin d'exécution";
         }
-        if ($drmSrc165 === '' || strpos($drmSrc165, "GET_LOCK('neria_domain_reputation_\" . \$this->idShop . \"', 6)") === false) {
+        // Round 299 : littéral élargi — même raison que le guard round 154
+        // ci-dessus, $lockName remplace la concaténation directe de
+        // $this->idShop après GET_LOCK('.
+        if ($drmSrc165 === '' || strpos($drmSrc165, "GET_LOCK('\" . pSQL(\$lockName) . \"', 6)") === false) {
             $offenders[] = "DomainReputationManager::runFullCheck() n'attend plus réellement le verrou en cold start (pas de cache) — régression du bug corrigé le 14/08/2026 (round 165) : le double-envoi d'alerte au tout premier check d'une boutique redeviendrait possible";
         }
         if ($drmSrc165 === '' || strpos($drmSrc165, "!empty(\$ptr['ip_missing'])") === false || strpos($drmSrc165, "!empty(\$bl['ip_missing'])") === false) {
@@ -7254,7 +7260,9 @@ class HealthCheckManager
             'src/CalendarManager.php'          => "SELECT GET_LOCK('neria_calendar_check_\" . \$this->idShop . \"', 0)\", false)",
             'src/ConfigManager.php'             => "SELECT GET_LOCK('neria_menu_hidden_items', 3)\", false)",
             'src/CssInliner.php'                => "SELECT GET_LOCK('neria_css_inline_failures_\" . \$idShop . \"', 1)\", false)",
-            'src/DomainReputationManager.php'   => "SELECT GET_LOCK('neria_domain_reputation_\" . \$this->idShop . \"', 6)\", false)",
+            // Round 299 : littéral élargi — $lockName (basé sur le domaine)
+            // remplace $this->idShop, cf. lockName().
+            'src/DomainReputationManager.php'   => "SELECT GET_LOCK('\" . pSQL(\$lockName) . \"', 6)\", false)",
             'src/LicenseManager.php'            => "SELECT GET_LOCK('neria_license_validate', 0)\", false)",
             'src/MonthlyReportManager.php'      => "SELECT GET_LOCK('neria_monthly_report_deliver', 5)\", false)",
             'src/OrderTriggersManager.php'      => "SELECT GET_LOCK('\" . pSQL(\$lockName) . \"', 0)\", false) !== 1) {\n                    return;",
@@ -9230,6 +9238,43 @@ class HealthCheckManager
         $hcmSelfSrc298 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
         if ($hcmSelfSrc298 === '' || strrpos($hcmSelfSrc298, 'private function checkAlertEmailInvalid(): array') === false) {
             $offenders[] = "HealthCheckManager::checkAlertEmailInvalid() a disparu — régression du bug corrigé le 04/09/2026 (round 298) : une adresse d'alerte Watchdog invalide redeviendrait invisible du tableau de bord BO";
+        }
+
+        // Round 299 (04/09/2026) : checkOAuthFreshness() n'évaluait la
+        // fraîcheur du cache Search Console/Postmaster que pour la
+        // boutique du contexte d'exécution — jamais les autres boutiques
+        // actives, alors que le cache de synchronisation est scopé par
+        // boutique. Une boutique sans trafic pouvait voir sa réputation
+        // gelée sans que ce contrôle proactif ne le détecte jamais.
+        // Auto-référentiel (worstOAuthCacheAgeMinutes() vit dans ce même
+        // fichier) : strrpos(), pas strpos() — cf. piège round 246/294.
+        $hcmSelfSrc299 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        if ($hcmSelfSrc299 === '' || strrpos($hcmSelfSrc299, 'private function worstOAuthCacheAgeMinutes(string $cacheTimeConfigKey): ?int') === false) {
+            $offenders[] = "HealthCheckManager::worstOAuthCacheAgeMinutes() a disparu — régression du bug corrigé le 04/09/2026 (round 299) : checkOAuthFreshness() redeviendrait aveugle aux autres boutiques actives d'une install multi-boutiques";
+        }
+
+        // Round 299 (04/09/2026) : DomainReputationManager mutualise
+        // désormais son cache ET son verrou par domaine expéditeur réel
+        // (pas seulement par id_shop) — sans quoi deux boutiques au même
+        // domaine relançaient chacune leur propre cycle DNS/RBL complet,
+        // avec un risque de grade/score divergent pour la même réputation.
+        $drmSrc299 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php');
+        if ($drmSrc299 === ''
+            || strpos($drmSrc299, 'private function findFreshReportForDomain(string $domain, ?array $shopIds = null): ?array') === false
+            || strpos($drmSrc299, "'neria_domain_reputation_dom_' . md5(\$domain)") === false
+        ) {
+            $offenders[] = "DomainReputationManager ne mutualise plus son cache/verrou par domaine expéditeur — régression du bug corrigé le 04/09/2026 (round 299) : deux boutiques au même domaine relanceraient de nouveau chacune leur propre cycle DNS/RBL complet";
+        }
+
+        // Round 299 (04/09/2026) : controllers/front/preferences.php
+        // filtrait l'UPDATE de synchronisation ps_customer.newsletter par
+        // id_shop = boutique VISITÉE — faux dès que le partage de comptes
+        // (Shop::SHARE_CUSTOMER) est actif et que le lien de préférences
+        // est ouvert depuis une autre boutique que celle de création du
+        // compte (id_customer, déjà résolu explicitement, suffit).
+        $prefCtrlSrc299 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/preferences.php');
+        if ($prefCtrlSrc299 === '' || strpos($prefCtrlSrc299, "WHERE `id_customer` = \" . \$idCustomer . \" AND `id_shop`") !== false) {
+            $offenders[] = "controllers/front/preferences.php a de nouveau un filtre id_shop erroné sur l'UPDATE ps_customer.newsletter — régression du bug corrigé le 04/09/2026 (round 299) : un client à compte partagé multi-boutiques verrait de nouveau sa synchronisation newsletter échouer silencieusement";
         }
 
         if ($offenders) {
