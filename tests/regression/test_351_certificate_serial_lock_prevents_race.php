@@ -26,7 +26,10 @@ function run_test(): array
 
     $posIssue = strpos($src, 'public function issue(');
     neria_assert($posIssue !== false, "Méthode issue() introuvable — jeu de test invalide");
-    $issueBody = substr($src, $posIssue, 9000);
+    // Fenêtre élargie 9000→9800 (round 301) : la persistance de
+    // signature_path (signature figée à l'émission) a repoussé
+    // RELEASE_LOCK() plus loin dans le corps de issue().
+    $issueBody = substr($src, $posIssue, 9800);
 
     neria_assert(
         strpos($issueBody, "GET_LOCK('") !== false && strpos($issueBody, "RELEASE_LOCK('") !== false,
