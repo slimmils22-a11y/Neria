@@ -76,6 +76,11 @@ class EmailRenderer
         // pré-échappé par ligne, ré-échapper le <div> entier affichait le
         // balisage brut au client au lieu du bloc visuel).
         '{milestone_voucher_block}',
+        // Round 298 : {fallback_order_ref} (sendFallbackEmail(), fragment
+        // <p> pré-échappé par htmlspecialchars() sur chacune de ses parties
+        // avant assemblage) — même schéma que {milestone_voucher_block}
+        // ci-dessus.
+        '{fallback_order_ref}',
     ];
 
     // ============================================================
@@ -786,6 +791,33 @@ class EmailRenderer
                 $subject = (string) \Configuration::get('PS_SHOP_NAME', null, null, $idShopFallback);
             }
 
+            // Round 298 : {fallback_order_ref}/{fallback_order_ref_txt} —
+            // l'email original (order_conf et tout autre template lié à une
+            // commande précise) transmet {id_order}/{order_name} dans
+            // $params['templateVars'], mais ce contexte métier critique
+            // était jusqu'ici totalement perdu dans le message de secours
+            // générique. Un client dont le rendu échoue précisément sur SA
+            // commande (variable produit manquante, devise mal formée sur
+            // une déclinaison...) recevait un email vague sans aucun moyen
+            // de relier ce message à son achat — le pire moment pour perdre
+            // cette info. Vide (aucune ligne affichée) si le template en
+            // échec n'était pas lié à une commande.
+            $origOrderId   = (int) ($params['templateVars']['{id_order}'] ?? 0);
+            $origOrderName = trim((string) ($params['templateVars']['{order_name}'] ?? ''));
+            $orderRefHtml  = '';
+            $orderRefTxt   = '';
+            if ($origOrderId > 0 || $origOrderName !== '') {
+                $refLabel = htmlspecialchars(
+                    $this->engine->get('neria_fallback', 'fallback_order_ref_label', $lang),
+                    ENT_QUOTES,
+                    'UTF-8'
+                );
+                $refValue     = $origOrderName !== '' ? $origOrderName : ('#' . $origOrderId);
+                $refValueSafe = htmlspecialchars($refValue, ENT_QUOTES, 'UTF-8');
+                $orderRefHtml = '<p class="neria-text" style="margin-top:12px;"><strong>' . $refLabel . ' : </strong>' . $refValueSafe . '</p>';
+                $orderRefTxt  = $refLabel . ' : ' . $refValue;
+            }
+
             // ── Variables minimales attendues par le layout ─────────────
             // Construites AVANT la compilation (voir plus bas) : le fichier
             // .html/.txt écrit sur disque est ce que Mail::Send() lit et
@@ -794,6 +826,8 @@ class EmailRenderer
             // pas, les placeholders {xxx} non résolus sont déjà retirés
             // (filet de sécurité) au moment de l'écriture du fichier.
             $templateVars = [
+                '{fallback_order_ref}'     => $orderRefHtml,
+                '{fallback_order_ref_txt}' => $orderRefTxt,
                 '{shop_name}'          => (string) \Configuration::get('PS_SHOP_NAME', null, null, $idShopFallback),
                 '{shop_url}'           => $this->context->link->getBaseLink(),
                 '{history_url}'        => $this->context->link->getPageLink('history', true, $idLang),

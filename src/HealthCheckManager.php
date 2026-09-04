@@ -384,6 +384,7 @@ class HealthCheckManager
             'clv_freshness'        => 'checkClvFreshness',
             'quote_reminders'      => 'checkQuoteRemindersStuck',
             'campaign_empty_seg'   => 'checkCampaignEmptySegment',
+            'alert_email_invalid'  => 'checkAlertEmailInvalid',
             // ── Qualité des données ────────────────────────────────────
             'attribution_coverage' => 'checkAttributionCoverage',
             'history_table_size'   => 'checkTranslationHistorySize',
@@ -15450,6 +15451,35 @@ class HealthCheckManager
         }
 
         return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::tVars('health.campaign_ok', ['count' => count($campaigns)])];
+    }
+
+    /**
+     * Round 298 — Adresse email d'alerte Watchdog invalide/absente.
+     * WatchdogManager::getAlertEmail() (NERIA_ALERT_EMAIL avec repli sur
+     * PS_SHOP_EMAIL) échoue silencieusement — sendImmediateAlert()/
+     * sendDailyDigest() retournent simplement sans rien envoyer, sans
+     * aucune trace visible du marchand (seul un error_log() serveur,
+     * round 298, en garde une trace technique). Ce contrôle expose
+     * explicitement ce cas dans le tableau de bord BO, seul endroit où un
+     * marchand qui ne consulte jamais les logs serveur peut découvrir que
+     * son mécanisme d'alerte critique est cassé.
+     */
+    private function checkAlertEmailInvalid(): array
+    {
+        $configuredEmail = (string) \Configuration::getGlobalValue('NERIA_ALERT_EMAIL');
+        if ($configuredEmail !== '' && \Validate::isEmail($configuredEmail)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.alert_email_ok')];
+        }
+
+        $shopEmail = (string) \Configuration::get('PS_SHOP_EMAIL', null, null, $this->idShop);
+        if (\Validate::isEmail($shopEmail)) {
+            return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.alert_email_ok')];
+        }
+
+        return [
+            'status' => self::STATUS_WARNING,
+            'detail' => AdminTranslator::t('health.alert_email_invalid'),
+        ];
     }
 
     /**

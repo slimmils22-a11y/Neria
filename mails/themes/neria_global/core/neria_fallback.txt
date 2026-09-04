@@ -4,6 +4,8 @@
 
 {neria_trad key='fallback_message'}
 
+{fallback_order_ref_txt}
+
 {neria_trad key='fallback_signature'}
 
 {shop_name}

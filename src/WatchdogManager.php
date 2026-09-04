@@ -335,6 +335,15 @@ class WatchdogManager
 
         $email = $this->getAlertEmail();
         if ($email === '') {
+            // Round 298 : error_log() ajouté — sans lui, ce cas (NERIA_ALERT_EMAIL
+            // mal saisi/typo ET PS_SHOP_EMAIL lui-même invalide/vide) était
+            // structurellement indiscernable de "rien à signaler" : aucune
+            // trace nulle part, contrairement à un échec réel de mail()
+            // (ligne ci-dessous), qui lui journalise déjà explicitement.
+            // Le marchand ne recevait alors plus JAMAIS aucune alerte
+            // critique — précisément le scénario que ce mécanisme est censé
+            // prévenir, mais appliqué à sa propre configuration.
+            error_log('[Neria WatchdogManager] Alerte immédiate non envoyée : aucune adresse email de destination valide (NERIA_ALERT_EMAIL et PS_SHOP_EMAIL invalides ou vides).');
             return;
         }
 
@@ -533,6 +542,11 @@ class WatchdogManager
             // front) — ré-exécutant les 2 requêtes SQL ci-dessus en boucle,
             // sans throttle, précisément pendant un incident actif où la
             // base est déjà sous tension.
+            // Round 298 : error_log() ajouté — même raison que
+            // sendImmediateAlert() ci-dessus, pour que ce cas (email de
+            // destination invalide) laisse au moins une trace serveur au
+            // lieu d'être indiscernable de "rien à signaler".
+            error_log('[Neria WatchdogManager] Digest quotidien non envoyé : aucune adresse email de destination valide (NERIA_ALERT_EMAIL et PS_SHOP_EMAIL invalides ou vides).');
             \Configuration::updateGlobalValue(self::CFG_DIGEST_LAST . '_' . $this->idShop, time());
             return;
         }

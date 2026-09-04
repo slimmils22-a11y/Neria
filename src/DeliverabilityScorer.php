@@ -543,7 +543,12 @@ class DeliverabilityScorer
             $criteria[] = $this->criterion('success', $this->t('score.criterion_spam_body'), $this->t('score.detail_no_spam'), 0);
         }
 
-        // ── Critère 5 : lien de désabonnement (−15) ──────────────
+        // ── Critère 5 : lien de désabonnement (−10) ──────────────
+        // Round 298 : commentaire corrigé (−15 → −10) — n'avait pas été mis
+        // à jour lors du recalibrage round ~130 (facteur ~0,65), contrairement
+        // au reste du fichier ; le code réel (ligne suivante) a toujours
+        // appliqué −10, cohérent avec le budget total documenté plus haut
+        // (13+15+10+12+10+10+9+3+10+7+7 = 106).
         $hasUnsubscribe = str_contains($htmlContent, 'unsubscribe')
             || str_contains($htmlContent, 'désabonnement')
             || str_contains($htmlContent, 'désabonner')

@@ -23698,114 +23698,133 @@
             "fallback_subject": "Un message de notre maison",
             "fallback_greeting": "Nous pensons à vous",
             "fallback_message": "Nous avons bien reçu votre demande et la traitons avec toute l'attention qu'elle mérite. Notre équipe prendra contact avec vous si nécessaire.",
+            "fallback_order_ref_label": "Référence commande",
             "fallback_signature": "Avec toute notre attention,"
         },
         "en": {
             "fallback_subject": "A message from our house",
             "fallback_greeting": "We are thinking of you",
             "fallback_message": "We have received your request and are handling it with all due attention. Our team will contact you if necessary.",
+            "fallback_order_ref_label": "Order reference",
             "fallback_signature": "With all our care,"
         },
         "de": {
             "fallback_subject": "Eine Nachricht aus unserem Haus",
             "fallback_greeting": "Wir denken an Sie",
             "fallback_message": "Wir haben Ihre Anfrage erhalten und bearbeiten sie mit der gebührenden Sorgfalt. Unser Team wird sich bei Bedarf mit Ihnen in Verbindung setzen.",
+            "fallback_order_ref_label": "Bestellreferenz",
             "fallback_signature": "Mit aller Sorgfalt,"
         },
         "it": {
             "fallback_subject": "Un messaggio dalla nostra maison",
             "fallback_greeting": "Pensiamo a Voi",
             "fallback_message": "Abbiamo ricevuto la Vostra richiesta e la stiamo gestendo con tutta la dovuta attenzione. Il nostro team Vi contatterà se necessario.",
+            "fallback_order_ref_label": "Riferimento ordine",
             "fallback_signature": "Con tutta la nostra cura,"
         },
         "es": {
             "fallback_subject": "Un mensaje de nuestra maison",
             "fallback_greeting": "Pensamos en usted",
             "fallback_message": "Hemos recibido su solicitud y la estamos gestionando con toda la atención que merece. Nuestro equipo le contactará si es necesario.",
+            "fallback_order_ref_label": "Referencia del pedido",
             "fallback_signature": "Con toda nuestra atención,"
         },
         "pt": {
             "fallback_subject": "Uma mensagem da nossa maison",
             "fallback_greeting": "Pensamos em si",
             "fallback_message": "Recebemos o seu pedido e estamos a tratá-lo com toda a atenção devida. A nossa equipa entrará em contacto se necessário.",
+            "fallback_order_ref_label": "Referência da encomenda",
             "fallback_signature": "Com toda a nossa atenção,"
         },
         "br": {
             "fallback_subject": "Uma mensagem da nossa maison",
             "fallback_greeting": "Pensamos em você",
             "fallback_message": "Recebemos sua solicitação e estamos tratando-a com toda a atenção que merece. Nossa equipe entrará em contato se necessário.",
+            "fallback_order_ref_label": "Referência do pedido",
             "fallback_signature": "Com toda a nossa atenção,"
         },
         "ar": {
             "fallback_subject": "رسالة من دارنا",
             "fallback_greeting": "نفكر فيكم",
             "fallback_message": "لقد استلمنا طلبكم ونعالجه بكل الاهتمام الذي يستحقه. سيتواصل معكم فريقنا إذا لزم الأمر.",
+            "fallback_order_ref_label": "مرجع الطلب",
             "fallback_signature": "بكل اهتمامنا،"
         },
         "ja": {
             "fallback_subject": "私どもよりご連絡申し上げます",
             "fallback_greeting": "お客様のことを思っております",
             "fallback_message": "お客様のご要望を確かに承りました。誠意をもって対応いたします。必要な場合はスタッフよりご連絡申し上げます。",
+            "fallback_order_ref_label": "注文番号",
             "fallback_signature": "心を込めて、"
         },
         "ko": {
             "fallback_subject": "저희 메종의 메시지입니다",
             "fallback_greeting": "고객님을 생각하고 있습니다",
             "fallback_message": "고객님의 요청을 접수했으며 정성껏 처리하고 있습니다. 필요한 경우 저희 팀이 연락드리겠습니다.",
+            "fallback_order_ref_label": "주문 참조 번호",
             "fallback_signature": "정성을 다하여,"
         },
         "zh": {
             "fallback_subject": "来自我们精品店的消息",
             "fallback_greeting": "我们在想念您",
             "fallback_message": "我们已收到您的请求，并正以应有的关注处理。如有必要，我们的团队将与您联系。",
+            "fallback_order_ref_label": "订单编号",
             "fallback_signature": "满怀关怀，"
         },
         "tw": {
             "fallback_subject": "來自我們精品店的消息",
             "fallback_greeting": "我們在想念您",
             "fallback_message": "我們已收到您的請求，並正以應有的關注處理。如有必要，我們的團隊將與您聯繫。",
+            "fallback_order_ref_label": "訂單編號",
             "fallback_signature": "滿懷關懷，"
         },
         "ru": {
             "fallback_subject": "Сообщение от нашего дома",
             "fallback_greeting": "Мы думаем о Вас",
             "fallback_message": "Мы получили Ваш запрос и обрабатываем его с должным вниманием. Наша команда свяжется с Вами при необходимости.",
+            "fallback_order_ref_label": "Номер заказа",
             "fallback_signature": "С полным вниманием,"
         },
         "tr": {
             "fallback_subject": "Maison'umuzdan bir mesaj",
             "fallback_greeting": "Sizi düşünüyoruz",
             "fallback_message": "Talebinizi aldık ve gerekli tüm özenle işleme koyuyoruz. Gerekirse ekibimiz sizinle iletişime geçecektir.",
+            "fallback_order_ref_label": "Sipariş referansı",
             "fallback_signature": "Tüm özenimizle,"
         },
         "sv": {
             "fallback_subject": "Ett meddelande från vårt hus",
             "fallback_greeting": "Vi tänker på dig",
             "fallback_message": "Vi har mottagit din förfrågan och hanterar den med all vederbörlig uppmärksamhet. Vårt team kontaktar dig vid behov.",
+            "fallback_order_ref_label": "Beställningsreferens",
             "fallback_signature": "Med all vår omsorg,"
         },
         "no": {
             "fallback_subject": "En melding fra vårt hus",
             "fallback_greeting": "Vi tenker på deg",
             "fallback_message": "Vi har mottatt din forespørsel og behandler den med all nødvendig oppmerksomhet. Teamet vårt kontakter deg ved behov.",
+            "fallback_order_ref_label": "Bestillingsreferanse",
             "fallback_signature": "Med all vår omtanke,"
         },
         "da": {
             "fallback_subject": "En besked fra vores hus",
             "fallback_greeting": "Vi tænker på dig",
             "fallback_message": "Vi har modtaget din anmodning og behandler den med al skyldig opmærksomhed. Vores team kontakter dig om nødvendigt.",
+            "fallback_order_ref_label": "Ordrereference",
             "fallback_signature": "Med al vores omsorg,"
         },
         "nl": {
             "fallback_subject": "Een bericht van ons huis",
             "fallback_greeting": "Wij denken aan u",
             "fallback_message": "Wij hebben uw verzoek ontvangen en behandelen het met alle vereiste aandacht. Ons team neemt contact met u op indien nodig.",
+            "fallback_order_ref_label": "Orderreferentie",
             "fallback_signature": "Met alle zorg,"
         },
         "gb": {
             "fallback_subject": "A message from our house",
             "fallback_greeting": "We are thinking of you",
             "fallback_message": "We have received your request and are handling it with all due attention. Our team will contact you if necessary.",
+            "fallback_order_ref_label": "Order reference",
             "fallback_signature": "With all our care,"
         }
     },
