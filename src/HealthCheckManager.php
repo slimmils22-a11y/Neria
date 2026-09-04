@@ -6128,8 +6128,12 @@ class HealthCheckManager
             if ($posSend177 === false || strpos($sendBody177, '$idLangProduct') === false) {
                 $offenders[] = "CertificateManager::issue() n'appelle plus sendCertificateEmail() avec \$idLangProduct — régression du bug corrigé le 15/08/2026 (round 177) : l'email pourrait de nouveau être envoyé dans (int) \$customer->id_lang au lieu de la langue réellement résolue pour le PDF, cassant la parité PDF/email";
             }
+            // Round 301 : fenêtre élargie 9000→9800 — l'ajout de la
+            // persistance de signature_path (colonne figée à l'émission,
+            // garde-fou round 301 ci-dessous) a repoussé RELEASE_LOCK()
+            // plus loin dans le corps de issue().
             $posIssue177 = strpos($certSrc177, 'public function issue(');
-            $issueBody177 = $posIssue177 !== false ? substr($certSrc177, $posIssue177, 9000) : '';
+            $issueBody177 = $posIssue177 !== false ? substr($certSrc177, $posIssue177, 9800) : '';
             if ($posIssue177 === false || strpos($issueBody177, "GET_LOCK('") === false || strpos($issueBody177, "RELEASE_LOCK('") === false) {
                 $offenders[] = "CertificateManager::issue() n'utilise plus de verrou nommé MySQL autour de la résolution du numéro de série — régression du bug corrigé le 15/08/2026 (round 177) : la fenêtre TOCTOU entre serialExists() et l'INSERT redeviendrait exploitable sous forte concurrence";
             }
@@ -9330,6 +9334,20 @@ class HealthCheckManager
         $navTplSrc300 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/navigation.tpl');
         if ($navTplSrc300 === '' || strpos($navTplSrc300, '{elseif $ls.in_grace_period && $ls.has_key && !$ls.revoked}') === false) {
             $offenders[] = "navigation.tpl n'a plus de branche dédiée au 3e scénario de grâce LicenseManager — régression du bug corrigé le 04/09/2026 (round 300)";
+        }
+
+        // Round 301 (04/09/2026) : CertificateManager::generatePdf()
+        // résolvait la signature manuscrite EN LIVE à chaque appel — un
+        // certificat déjà émis changeait rétroactivement de signature à
+        // chaque re-téléchargement dès que le marchand changeait la
+        // signature active en BO, alors que le numéro de série et la date
+        // d'émission restent, eux, figés.
+        $certSrc301 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        if ($certSrc301 === ''
+            || strpos($certSrc301, '?string $frozenSigPath = null') === false
+            || strpos($certSrc301, "\$frozenSigPath = isset(\$row['signature_path']) && \$row['signature_path'] !== '' ? \$row['signature_path'] : null;") === false
+        ) {
+            $offenders[] = "CertificateManager ne fige plus la signature manuscrite à l'émission (paramètre \$frozenSigPath) — régression du bug corrigé le 04/09/2026 (round 301) : un certificat déjà émis changerait de nouveau rétroactivement de signature à chaque re-téléchargement";
         }
 
         if ($offenders) {
