@@ -9135,6 +9135,28 @@ class HealthCheckManager
             $offenders[] = "QueueManager::processSingle() ne revérifie plus l'état 'panier non converti' avant l'envoi différé d'une relance panier abandonné — régression du bug corrigé le 03/09/2026 (round 294)";
         }
 
+        // Round 295 (04/09/2026) : {milestone_voucher_block}
+        // (OrderTriggersManager, bon de réduction sur paliers de commandes)
+        // était absente de EmailRenderer::HTML_SAFE_RAW_KEYS — le fragment
+        // HTML pré-échappé du bon de réduction était ré-échappé, affichant
+        // le balisage brut au client au lieu de l'encadré visuel.
+        $erSrc295 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($erSrc295 === '' || strpos($erSrc295, "'{milestone_voucher_block}',") === false) {
+            $offenders[] = "EmailRenderer::HTML_SAFE_RAW_KEYS ne couvre plus '{milestone_voucher_block}' — régression du bug corrigé le 04/09/2026 (round 295) : le bon de réduction sur paliers de commandes redeviendrait affiché en balisage HTML brut dans l'email milestone_order";
+        }
+
+        // Round 295 (04/09/2026) : ghost_cart.html était le seul template du
+        // thème à garder une bordure/padding physique (left) inconditionnelle
+        // sur sa note de clôture — non inversée pour la langue arabe (RTL),
+        // rupture visuelle sur un template prétendant supporter le RTL complet.
+        $ghostTplSrc295 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/ghost_cart.html');
+        if ($ghostTplSrc295 === ''
+            || strpos($ghostTplSrc295, "{if \$neria_dir == 'rtl'}") === false
+            || strpos($ghostTplSrc295, 'border-right:3px solid #e8d5b0;padding-right:14px;') === false
+        ) {
+            $offenders[] = "ghost_cart.html n'inverse plus bordure/padding pour la langue arabe (RTL) — régression du bug corrigé le 04/09/2026 (round 295)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
