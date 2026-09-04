@@ -226,7 +226,31 @@ class SegmentManager
                     -- ambassador/loyal au lieu de ghost/dormant.
                     SUM(event_type = 'open' AND is_mpp = 0)        AS total_opens,
                     SUM(event_type = 'click')       AS total_clicks,
-                    SUM(event_type = 'conversion')  AS total_conv,
+                    -- Round 300 : conversions remboursées à ≥ 90% exclues du
+                    -- comptage — même seuil que le clawback fidélité
+                    -- (OrderTriggersManager::handleRefund(), round 178).
+                    -- adjustConversionRevenueForOrder() (round 185) ramène
+                    -- déjà `revenue` à 0 sur cette ligne 'conversion' en cas
+                    -- de remboursement quasi-total, mais ne supprime NI ne
+                    -- requalifie jamais la ligne elle-même — sans ce filtre,
+                    -- un client dont toutes les commandes ont été remboursées
+                    -- restait compté dans total_conv et pouvait être classé
+                    -- 'ambassador'/'loyal' (ciblage VIP) malgré un CA net nul.
+                    SUM(
+                        event_type = 'conversion'
+                        AND (
+                            id_order <= 0
+                            OR COALESCE((
+                                SELECT SUM(os.total_products_tax_incl + os.total_shipping_tax_incl)
+                                FROM `" . _DB_PREFIX_ . "order_slip` os
+                                WHERE os.id_order = `{$stat}`.id_order
+                            ), 0) < 0.9 * COALESCE((
+                                SELECT o.total_paid_tax_incl
+                                FROM `" . _DB_PREFIX_ . "orders` o
+                                WHERE o.id_order = `{$stat}`.id_order
+                            ), 0)
+                        )
+                    )  AS total_conv,
                     MAX(CASE WHEN event_type = 'open' AND is_mpp = 0 THEN date_add END) AS last_open,
                     MAX(CASE WHEN event_type = 'conversion' THEN date_add END) AS last_conv,
                     MIN(CASE WHEN event_type = 'sent'       THEN date_add END) AS first_sent

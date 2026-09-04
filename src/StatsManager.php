@@ -280,7 +280,24 @@ class StatsManager
             return;
         }
         try {
-            $awardPoints = !$this->eventExists($token, self::EVENT_CLICK);
+            // Round 300 : detectMpp() réutilisé pour les clics — jusqu'ici
+            // seul recordOpen() l'appelait, is_mpp restant systématiquement
+            // à 0 (valeur par défaut de record()) pour TOUT événement
+            // 'click'. Un scanner de sécurité d'entreprise (Microsoft Safe
+            // Links, Proofpoint URL Defense, Mimecast) qui pré-visite tous
+            // les liens d'un email dès sa réception (délai < 3s, signal 2
+            // de detectMpp() — générique, pas spécifique à Apple Mail)
+            // déclenchait alors un vrai clic comptabilisé dans les KPIs
+            // (rate_click, A/B testing) ET créditait des points de
+            // fidélité au destinataire avant même qu'il n'ait ouvert
+            // l'email — même classe de bug que les ouvertures MPP Apple,
+            // jamais traitée pour ce type d'événement.
+            $isMpp = $this->detectMpp(
+                $_SERVER['HTTP_USER_AGENT'] ?? '',
+                $sent['date_add']
+            );
+
+            $awardPoints = !$isMpp && !$this->eventExists($token, self::EVENT_CLICK);
 
             $this->record(
                 $sent['template'],
@@ -292,6 +309,7 @@ class StatsManager
                     'id_order'     => (int) $sent['id_order'],
                     'country_code' => $sent['country_code'],
                     'abtest'       => $sent['abtest_variant'],
+                    'is_mpp'       => $isMpp ? 1 : 0,
                 ],
                 $awardPoints
             );
@@ -578,6 +596,9 @@ class StatsManager
     }
 
     const SIG_MIN_SAMPLE = 100;
+    // Round 300 : fenêtre de stabilité minimale (peeking) — voir
+    // logSignificanceIfNew().
+    const SIG_STABILITY_HOURS = 20;
 
     public function getABTestReport(string $template, int $days = 30): array
     {
@@ -675,7 +696,43 @@ class StatsManager
             return;
         }
 
+        // Round 300 : atténuation du "peeking" — ce calcul est réévalué à
+        // chaque ouverture de l'onglet A/B testing du BO (getAbtestReportsMap()),
+        // sans aucune correction pour comparaisons répétées. Sur un test
+        // surveillé quotidiennement pendant plusieurs semaines, le taux réel
+        // de faux positifs pour "atteindre 95% au moins une fois" dépasse
+        // largement les 5% nominaux d'un test statique unique. Sans éliminer
+        // le peeking (nécessiterait un correctif séquentiel complet type
+        // O'Brien-Fleming, hors de portée raisonnable ici), on exige une
+        // STABILITÉ minimale : le même gagnant doit être observé à ≥95% de
+        // confiance à DEUX reprises espacées d'au moins SIG_STABILITY_HOURS
+        // — un pic isolé lors d'un unique chargement de page ne déclenche
+        // plus seul le webhook/log "gagnant atteint".
+        $pendingKey = 'NERIA_SIG_PENDING_' . strtoupper(preg_replace('/[^A-Za-z0-9]/', '_', $template));
+        $pending = (string) \Configuration::get($pendingKey, null, null, $this->idShop);
+        $pendingWinner = null;
+        $pendingSince  = 0;
+        if (substr_count($pending, '|') === 1) {
+            [$pendingWinner, $pendingSinceStr] = explode('|', $pending, 2);
+            $pendingSince = (int) $pendingSinceStr;
+        }
+
+        if ($pendingWinner !== $winner) {
+            // Première observation de ce gagnant (ou changement de tendance
+            // depuis la dernière observation en attente) : on l'enregistre
+            // comme candidat, sans encore journaliser/déclencher le webhook.
+            \Configuration::updateValue($pendingKey, $winner . '|' . time(), false, null, $this->idShop);
+            return;
+        }
+
+        if ((time() - $pendingSince) < (self::SIG_STABILITY_HOURS * 3600)) {
+            // Même gagnant qu'au dernier passage, mais pas encore assez de
+            // temps écoulé depuis la première observation — on attend.
+            return;
+        }
+
         \Configuration::updateValue($cfgKey, $winner . '|' . $conf, false, null, $this->idShop);
+        \Configuration::deleteFromContext($pendingKey, null, $this->idShop);
 
         (new WatchdogManager($this->module))->info(
             WatchdogManager::i18nMsg('watchdog.abtest_significance_reached', ['template' => $template, 'conf' => $conf, 'winner' => $winner]),
@@ -748,6 +805,21 @@ class StatsManager
         $se = sqrt($pPool * (1 - $pPool) * (1 / $n1 + 1 / $n2));
 
         if ($se < 1e-10) {
+            return $out;
+        }
+
+        // Round 300 : règle usuelle de validité de l'approximation normale
+        // pour un test z sur proportions — n·p̄ ET n·(1-p̄) doivent valoir au
+        // moins 5 dans CHAQUE groupe. self::SIG_MIN_SAMPLE (100) protège
+        // bien le taux d'OUVERTURE (~20-30%, largement > 5 dès 100 envois),
+        // mais pas le taux de CLIC, souvent 1-3% en e-commerce : avec
+        // n1=n2=100 et x1=4/x2=0 (p̄=0,02), n·p̄=2 < 5 des deux côtés —
+        // l'approximation normale n'est pas fiable, mais le z-score
+        // (≈2,02) franchissait quand même le seuil 90% et déclarait un
+        // "gagnant" statistiquement injustifié, appliqué automatiquement
+        // via apply_abtest_winner sans aucun garde-fou ni avertissement.
+        if ($n1 * $pPool < 5 || $n2 * $pPool < 5 || $n1 * (1 - $pPool) < 5 || $n2 * (1 - $pPool) < 5) {
+            $out['sufficient'] = false;
             return $out;
         }
 

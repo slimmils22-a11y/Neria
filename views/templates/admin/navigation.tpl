@@ -140,6 +140,22 @@
         {/if}
         {$smarty.capture.neria_license_key_form}
       </div>
+    {elseif $ls.in_grace_period && $ls.has_key && !$ls.revoked}
+      {* Round 300 : 3e scénario de grâce (LicenseManager::isWithinGracePeriod(),
+         round 176) — jeton expiré naturellement pendant que le serveur de
+         licences reste injoignable en continu. Sans cette branche, ce cas
+         ne matchait ni "!has_key" (une clé EST présente) ni "revoked" (pas
+         révoqué) ni "expires_soon" (l'échéance est déjà passée) — aucune
+         alerte ne s'affichait alors que le marchand consommait
+         silencieusement ses 90 derniers jours de grâce. *}
+      <div class="neria-alert neria-alert--warning">
+        <span class="neria-alert__icon">⏳</span>
+        {neria_admin key='license.banner_grace_lastcheck'}
+        {if $ls.grace_days_left !== null}
+          {neria_admin key='license.banner_days_left' n=$ls.grace_days_left}
+        {/if}
+        {$smarty.capture.neria_license_key_form}
+      </div>
     {elseif $ls.expires_soon}
       <div class="neria-alert neria-alert--warning">
         <span class="neria-alert__icon">⏳</span>

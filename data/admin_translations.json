@@ -55460,6 +55460,27 @@
         "nl": "Uw Neria-licentie verloopt op",
         "gb": "Your Neria license expires on"
     },
+    "license.banner_grace_lastcheck": {
+        "fr": "Votre licence Neria est arrivée à échéance et notre serveur de vérification est actuellement injoignable. Les envois restent autorisés pendant cette période de grâce.",
+        "en": "Your Neria license has reached its expiry date and our verification server is currently unreachable. Sends remain allowed during this grace period.",
+        "de": "Ihre Neria-Lizenz ist abgelaufen, und unser Prüfserver ist derzeit nicht erreichbar. Der Versand bleibt während dieser Schonfrist erlaubt.",
+        "it": "La tua licenza Neria è scaduta e il nostro server di verifica non è attualmente raggiungibile. Gli invii restano consentiti durante questo periodo di tolleranza.",
+        "es": "Su licencia Neria ha llegado a su vencimiento y nuestro servidor de verificación no está disponible actualmente. Los envíos siguen permitidos durante este período de gracia.",
+        "pt": "A sua licença Neria atingiu a data de validade e o nosso servidor de verificação está atualmente inacessível. Os envios continuam permitidos durante este período de tolerância.",
+        "br": "Sua licença Neria atingiu a data de validade e nosso servidor de verificação está atualmente inacessível. Os envios continuam permitidos durante este período de tolerância.",
+        "ar": "انتهت صلاحية ترخيص Neria الخاص بك، وخادم التحقق لدينا غير متاح حاليًا. يظل الإرسال مسموحًا خلال فترة السماح هذه.",
+        "ja": "Neriaライセンスの有効期限が切れており、現在検証サーバーに接続できません。この猶予期間中は送信が引き続き許可されます。",
+        "ko": "Neria 라이선스가 만료되었으며 현재 확인 서버에 연결할 수 없습니다. 이 유예 기간 동안 발송은 계속 허용됩니다.",
+        "zh": "您的 Neria 许可证已到期，且我们的验证服务器目前无法访问。在此宽限期内仍允许发送。",
+        "tw": "您的 Neria 授權已到期，且我們的驗證伺服器目前無法連線。在此寬限期內仍允許發送。",
+        "ru": "Срок действия лицензии Neria истёк, а наш сервер проверки в настоящее время недоступен. Отправка остаётся разрешённой в течение этого льготного периода.",
+        "tr": "Neria lisansınızın süresi doldu ve doğrulama sunucumuza şu anda ulaşılamıyor. Bu tolerans süresi boyunca gönderimlere izin verilmeye devam edilecek.",
+        "sv": "Din Neria-licens har löpt ut och vår verifieringsserver kan för närvarande inte nås. Utskick är fortsatt tillåtna under denna respitperiod.",
+        "no": "Neria-lisensen din har utløpt, og verifiseringsserveren vår er for øyeblikket utilgjengelig. Utsendelser er fortsatt tillatt i denne nådeperioden.",
+        "da": "Din Neria-licens er udløbet, og vores verifikationsserver er i øjeblikket utilgængelig. Afsendelser er fortsat tilladt i denne henstandsperiode.",
+        "nl": "Uw Neria-licentie is verlopen en onze verificatieserver is momenteel niet bereikbaar. Verzendingen blijven toegestaan tijdens deze respijtperiode.",
+        "gb": "Your Neria license has reached its expiry date and our verification server is currently unreachable. Sends remain allowed during this grace period."
+    },
     "license.invalid_format": {
         "fr": "Format de clé invalide. Attendu : NERIA-XXXX-XXXX-XXXX.",
         "en": "Invalid key format. Expected: NERIA-XXXX-XXXX-XXXX.",

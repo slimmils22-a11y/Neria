@@ -607,6 +607,22 @@ class LicenseManager
             }
         } elseif ($revokedAt > 0) {
             $graceDaysLeft = max(0, self::GRACE_REVOKED_DAYS - (int) floor((time() - $revokedAt) / 86400));
+        } elseif ($expires > 0 && $expires <= time()) {
+            // Round 300 : 3e scénario de isWithinGracePeriod() (lastCheck,
+            // round 176) jamais reflété ici — un jeton expiré NATURELLEMENT
+            // (fin d'abonnement) pendant que le serveur de licences reste
+            // injoignable en continu (CONFIG_LAST_CHECK figé sur la dernière
+            // validation réussie, forcément AVANT l'échéance) faisait
+            // disparaître toute alerte du bandeau BO (expires_soon exige
+            // $expires > time(), in_grace_period restait false) — le
+            // marchand consommait silencieusement ses 90 derniers jours de
+            // grâce sans aucun signal visuel jusqu'à la coupure brutale des
+            // envois, alors même que isEmailSendingAllowed() continuait de
+            // les autoriser via cette même grâce.
+            $lastCheck = (int) \Configuration::get(self::CONFIG_LAST_CHECK);
+            if ($lastCheck > 0) {
+                $graceDaysLeft = max(0, self::GRACE_LAST_CHECK_MAX_DAYS - (int) floor((time() - $lastCheck) / 86400));
+            }
         }
 
         return [
