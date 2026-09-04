@@ -15,10 +15,12 @@
  *
  * Test comportemental réel (même technique que test_255 : une seconde
  * connexion MySQL brute détient le verrou pendant l'appel) : supprime le
- * cache existant, une seconde connexion tient le verrou
- * neria_domain_reputation_<idShop>, appelle runFullCheck() et vérifie
- * qu'il attend réellement (élapsed proche de 6s) plutôt que de retourner
- * quasi instantanément comme avant le correctif.
+ * cache existant, une seconde connexion tient le VRAI verrou que le code
+ * va utiliser (round 299 : basé sur le domaine expéditeur via lockName(),
+ * plus id_shop directement — récupéré via réflexion pour rester fidèle au
+ * comportement réel), appelle runFullCheck() et vérifie qu'il attend
+ * réellement (élapsed proche de 6s) plutôt que de retourner quasi
+ * instantanément comme avant le correctif.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -49,12 +51,18 @@ function run_test(): array
         Configuration::updateValue(DomainReputationManager::CONFIG_LAST_CHECK, '0', false, null, $idShop);
         Configuration::updateValue(DomainReputationManager::CONFIG_CACHE, '', false, null, $idShop);
 
-        $lockName = 'neria_domain_reputation_' . $idShop;
+        $mgr = new DomainReputationManager(neria_test_module());
+        $refDomain = new ReflectionMethod(DomainReputationManager::class, 'getSenderDomain');
+        $refDomain->setAccessible(true);
+        $domain = (string) $refDomain->invoke($mgr);
+        $refLock = new ReflectionMethod(DomainReputationManager::class, 'lockName');
+        $refLock->setAccessible(true);
+        $lockName = (string) $refLock->invoke($mgr, $domain);
+
         $res = mysqli_query($mysqli, "SELECT GET_LOCK('" . mysqli_real_escape_string($mysqli, $lockName) . "', 2)");
         $row = mysqli_fetch_row($res);
         neria_assert((int) $row[0] === 1, 'La seconde connexion MySQL n\'a pas pu obtenir le verrou — jeu de test invalide');
 
-        $mgr = new DomainReputationManager(neria_test_module());
         $start = microtime(true);
         $mgr->runFullCheck();
         $elapsed = microtime(true) - $start;
@@ -68,7 +76,7 @@ function run_test(): array
             "runFullCheck() a mis {$elapsed}s à retourner — devrait rester borné par l'attente de verrou (6s) + une éventuelle vérification de repli, pas bloquer indéfiniment"
         );
     } finally {
-        mysqli_query($mysqli, "SELECT RELEASE_LOCK('neria_domain_reputation_" . $idShop . "')");
+        mysqli_query($mysqli, "SELECT RELEASE_LOCK('" . mysqli_real_escape_string($mysqli, $lockName ?? ('neria_domain_reputation_' . $idShop)) . "')");
         mysqli_close($mysqli);
         if ($originalCache !== false && $originalCache !== '') {
             Configuration::updateValue(DomainReputationManager::CONFIG_CACHE, $originalCache, false, null, $idShop);

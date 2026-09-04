@@ -35,8 +35,11 @@ function run_test(): array
 
     $drm = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/DomainReputationManager.php');
     neria_assert($drm !== false, 'Impossible de lire src/DomainReputationManager.php');
+    // Round 299 : littéral élargi — le nom du verrou est passé par
+    // $lockName (basé sur le domaine, cf. DomainReputationManager::
+    // lockName()) depuis pSQL($lockName), plus concaténé en dur.
     neria_assert(
-        strpos($drm, "GET_LOCK('neria_domain_reputation_") !== false && strpos($drm, "RELEASE_LOCK('neria_domain_reputation_") !== false,
+        strpos($drm, "GET_LOCK('\" . pSQL(\$lockName) . \"'") !== false && strpos($drm, "RELEASE_LOCK('\" . pSQL(\$lockName) . \"'") !== false,
         "DomainReputationManager::runFullCheck() n'a plus de verrou GET_LOCK() — régression du bug corrigé le 09/08/2026 (round 154) : double charge DNS/RBL et risque d'alerte dupliquée redeviendraient possibles"
     );
 
