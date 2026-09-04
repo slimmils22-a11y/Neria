@@ -455,6 +455,30 @@ class QueueManager
                 );
             }
 
+            // Round 294 : même classe de risque que ghost_cart ci-dessus,
+            // jamais répliquée à ces 4 templates — abandoned_cart_1/2/3 et
+            // checkout_abandonment vérifient bien "panier non converti"
+            // (NOT EXISTS orders) au moment de la SÉLECTION par le cron
+            // (BehavioralCronManager::sendAbandonedCarts()/
+            // sendCheckoutAbandonment()), mais jamais à l'envoi RÉEL —
+            // avec un délai pouvant atteindre ~24h via la fenêtre d'achat
+            // individuelle, le client peut finaliser sa commande entre-
+            // temps et recevoir malgré tout une relance "vous avez oublié
+            // ceci" pour des articles déjà achetés. ref_id porte bien
+            // id_cart pour ces 4 templates (BehavioralCronManager::send(),
+            // 4e argument $refId).
+            $cartAbandonTemplates = ['abandoned_cart_1', 'abandoned_cart_2', 'abandoned_cart_3', 'checkout_abandonment'];
+            if (in_array((string) $row['template'], $cartAbandonTemplates, true) && (int) $row['ref_id'] > 0) {
+                $stillAbandoned = (bool) $this->db->getValue(
+                    'SELECT NOT EXISTS(
+                         SELECT 1 FROM `' . $this->prefix . 'orders` WHERE id_cart = ' . (int) $row['ref_id'] . '
+                     )'
+                );
+                if (!$stillAbandoned) {
+                    return $this->markQueueFailed($id, 'cart_already_converted');
+                }
+            }
+
             $ctx  = \Context::getContext();
             $link = ($ctx && $ctx->link) ? $ctx->link : null;
 

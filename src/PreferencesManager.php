@@ -81,6 +81,14 @@ class PreferencesManager
         'repair_request_confirm'    => 'post',
         'care_certificate'          => 'post',
         'certificate_provenance'    => 'post',
+        // Round 294 : 'certificate_email' (CertificateManager::send(),
+        // certificat PDF d'authenticité joint à une commande) était absent
+        // de cette table — isAllowed() le traitait comme "non classé" et
+        // l'envoyait TOUJOURS, même à un client ayant désactivé la
+        // catégorie 'post' dans son centre de préférences, malgré un
+        // appel isAllowed() explicitement présent avant Mail::Send()
+        // (garde-fou visible mais inopérant faute d'entrée ici).
+        'certificate_email'         => 'post',
         'extended_warranty'         => 'post',
         'white_glove_apology'       => 'post',
         'product_recall'            => 'post',
