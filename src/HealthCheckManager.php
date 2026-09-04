@@ -9200,6 +9200,38 @@ class HealthCheckManager
             $offenders[] = "upgrade_module_1_0_17() ne boucle plus explicitement sur les boutiques actives — régression du bug corrigé le 04/09/2026 (round 297) : un secret saisi sous une autre boutique que le contexte d'exécution de l'upgrade resterait de nouveau en clair en base";
         }
 
+        // Round 298 (04/09/2026) : EmailRenderer::sendFallbackEmail() ne
+        // réinjectait pas {id_order}/{order_name} dans l'email de secours
+        // générique — un client dont le rendu échouait sur SA commande
+        // recevait un message vague sans aucun moyen de le relier à son
+        // achat.
+        $erSrc298 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($erSrc298 === ''
+            || strpos($erSrc298, "'{fallback_order_ref}'     => \$orderRefHtml,") === false
+            || strpos($erSrc298, "'{fallback_order_ref}',") === false
+        ) {
+            $offenders[] = "EmailRenderer::sendFallbackEmail() ne réinjecte plus {fallback_order_ref} (id_order/order_name) dans l'email de secours — régression du bug corrigé le 04/09/2026 (round 298) : un client dont le rendu échoue sur sa propre commande recevrait de nouveau un message générique sans moyen de le relier à son achat";
+        }
+
+        // Round 298 (04/09/2026) : WatchdogManager::getAlertEmail() échouait
+        // silencieusement quand NERIA_ALERT_EMAIL ET PS_SHOP_EMAIL étaient
+        // tous deux invalides — aucune alerte critique ni digest quotidien
+        // ne partait plus jamais, sans aucune trace nulle part.
+        $wdmSrc298 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php');
+        if ($wdmSrc298 === ''
+            || strpos($wdmSrc298, "error_log('[Neria WatchdogManager] Alerte immédiate non envoyée") === false
+            || strpos($wdmSrc298, "error_log('[Neria WatchdogManager] Digest quotidien non envoyé") === false
+        ) {
+            $offenders[] = "WatchdogManager ne journalise plus via error_log() l'échec silencieux d'email d'alerte invalide (sendImmediateAlert()/sendDailyDigest()) — régression du bug corrigé le 04/09/2026 (round 298)";
+        }
+        // Auto-référentiel (checkAlertEmailInvalid() vit dans ce même
+        // fichier) : strrpos() et non strpos(), cf. piège round 246 déjà
+        // reproduit une fois par erreur au round 294.
+        $hcmSelfSrc298 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        if ($hcmSelfSrc298 === '' || strrpos($hcmSelfSrc298, 'private function checkAlertEmailInvalid(): array') === false) {
+            $offenders[] = "HealthCheckManager::checkAlertEmailInvalid() a disparu — régression du bug corrigé le 04/09/2026 (round 298) : une adresse d'alerte Watchdog invalide redeviendrait invisible du tableau de bord BO";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
