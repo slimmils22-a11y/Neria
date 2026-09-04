@@ -7687,11 +7687,15 @@ class HealthCheckManager
         // une boutique multi-devises, mélangeait des montants dans des
         // devises différentes, faussant le CA affiché au marchand dans le
         // rapport mensuel automatique.
+        // Round 297 : littéraux élargis — la division par conversion_rate
+        // n'est plus immédiatement suivie de "AS order_total"/"AS revenue"
+        // depuis l'ajout de la déduction des avoirs partiels (GREATEST(0,
+        // ... - refund)), qui s'intercale entre les deux.
         $mrmSrc227Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php');
         $mrmSrc227 = str_replace("\r", '', $mrmSrc227Raw);
         if ($mrmSrc227Raw === ''
-            || strpos($mrmSrc227, 'o.total_paid_tax_incl / IF(o.conversion_rate = 0, 1, o.conversion_rate) AS order_total') === false
-            || strpos($mrmSrc227, 'SUM(winner.total_paid_tax_incl / IF(winner.conversion_rate = 0, 1, winner.conversion_rate)) AS revenue') === false
+            || strpos($mrmSrc227, 'o.total_paid_tax_incl / IF(o.conversion_rate = 0, 1, o.conversion_rate)') === false
+            || strpos($mrmSrc227, 'winner.total_paid_tax_incl / IF(winner.conversion_rate = 0, 1, winner.conversion_rate)') === false
         ) {
             $offenders[] = "MonthlyReportManager::getRevenueByTemplate() ne divise plus par conversion_rate — régression du bug corrigé le 28/08/2026 (round 227) : le CA par template du rapport mensuel mélangerait de nouveau des montants de devises différentes sur une boutique multi-devises";
         }
@@ -9170,6 +9174,29 @@ class HealthCheckManager
         $extBody296 = $posExt296 !== false ? substr($bcmSrc296, $posExt296, 200) : '';
         if ($bcmSrc296 === '' || $posExt296 === false || strpos($extBody296, "AND status = 'active'") === false) {
             $offenders[] = "BehavioralCronManager::sendQuoteExpiryReminders() (section 3, offre de prolongation) ne revérifie plus status = 'active' avant de passer un devis à 'expired' — régression du bug corrigé le 04/09/2026 (round 296) : un devis accepté ('won') par le client pendant l'envoi de l'email serait de nouveau écrasé en 'expired' par le cron";
+        }
+
+        // Round 297 (04/09/2026) : MonthlyReportManager::getRevenueByTemplate()
+        // (revenu direct ET attribué) sommait total_paid_tax_incl sans jamais
+        // déduire les avoirs partiels (order_slip) — le rapport mensuel
+        // surestimait durablement le CA attribué à un template dès qu'il y
+        // avait des retours, incohérent avec ClvManager/getRevenueStats()
+        // qui déduisent déjà ces mêmes avoirs.
+        $mrmSrc297 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php');
+        $refundCount297 = $mrmSrc297 !== '' ? substr_count($mrmSrc297, 'FROM `" . _DB_PREFIX_ . "order_slip` os') : 0;
+        if ($mrmSrc297 === '' || $refundCount297 !== 2) {
+            $offenders[] = "MonthlyReportManager::getRevenueByTemplate() ne déduit plus les avoirs partiels (order_slip) au bon nombre d'emplacements ({$refundCount297}/2, direct+attribué) — régression du bug corrigé le 04/09/2026 (round 297) : le rapport mensuel surestimerait de nouveau le CA attribué à un template en présence de retours partiels";
+        }
+
+        // Round 297 (04/09/2026) : upgrade_module_1_0_17() (chiffrement
+        // rétroactif des secrets sensibles) appelait Configuration::get()/
+        // updateValue() sans $idShop explicite — sur une install multi-
+        // boutiques, un secret saisi sous une autre boutique que le
+        // contexte d'exécution de l'upgrade restait en clair en base,
+        // sans aucune alerte.
+        $up1017Src297 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/upgrade/upgrade-1.0.17.php');
+        if ($up1017Src297 === '' || strpos($up1017Src297, 'Shop::getShops(true, null, true)') === false) {
+            $offenders[] = "upgrade_module_1_0_17() ne boucle plus explicitement sur les boutiques actives — régression du bug corrigé le 04/09/2026 (round 297) : un secret saisi sous une autre boutique que le contexte d'exécution de l'upgrade resterait de nouveau en clair en base";
         }
 
         if ($offenders) {
