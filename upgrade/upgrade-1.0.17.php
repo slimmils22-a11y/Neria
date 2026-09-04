@@ -38,10 +38,35 @@ function upgrade_module_1_0_17(Neria $module): bool
                 );
             }
         } else {
-            foreach (CryptoManager::SENSITIVE_CONFIG_KEYS as $key) {
-                $value = (string) Configuration::get($key);
-                if ($value !== '' && !CryptoManager::isEncrypted($value)) {
-                    Configuration::updateValue($key, CryptoManager::encrypt($value));
+            // Round 297 : boutiques explicitement parcourues une à une —
+            // Configuration::get()/updateValue() sans $idShop retombent sur
+            // Shop::getContextShopID(true), la boutique du CONTEXTE
+            // D'EXÉCUTION de cet upgrade (déclenché en CLI, par un cron de
+            // gestionnaire de modules, ou depuis le BO alors qu'une autre
+            // boutique que celle où le secret a été saisi est active) — pas
+            // forcément celle sous laquelle le marchand a enregistré le
+            // secret. Sur une install multi-boutiques (Shop::isFeatureActive()),
+            // Configuration::updateValue() sans $idShop enregistre bien une
+            // valeur SCOPÉE À LA BOUTIQUE ACTIVE (pas globale) — un secret
+            // saisi depuis la Boutique B restait donc invisible à ce script
+            // s'il tournait dans le contexte de la Boutique A, laissant ce
+            // secret en clair en base indéfiniment, sans aucune alerte (la
+            // sonde de clé ci-dessus ne couvre que le cas clé illisible, pas
+            // celui-ci). Même classe de bug déjà corrigée aux rounds
+            // 132/133/144 (ConfigManager::set(), GdprAuditManager::
+            // encryptExistingRecords()), jamais répliquée ici.
+            $shopIds = [0];
+            if (Shop::isFeatureActive()) {
+                foreach (Shop::getShops(true, null, true) as $activeShopId) {
+                    $shopIds[] = (int) $activeShopId;
+                }
+            }
+            foreach (array_unique($shopIds) as $idShopUpgrade) {
+                foreach (CryptoManager::SENSITIVE_CONFIG_KEYS as $key) {
+                    $value = (string) Configuration::get($key, null, null, $idShopUpgrade);
+                    if ($value !== '' && !CryptoManager::isEncrypted($value)) {
+                        Configuration::updateValue($key, CryptoManager::encrypt($value), false, null, $idShopUpgrade);
+                    }
                 }
             }
         }

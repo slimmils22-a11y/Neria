@@ -508,12 +508,30 @@ class MonthlyReportManager
         // des devises différentes comme s'ils étaient tous dans la même,
         // surestimant (ou sous-estimant) le CA affiché au marchand dans le
         // rapport mensuel automatique.
+        // Round 297 : avoirs partiels (order_slip) déduits — sans cette
+        // soustraction, une commande partiellement remboursée après
+        // l'attribution restait comptée pour son montant BRUT d'origine
+        // (total_paid_tax_incl n'est jamais modifié par un avoir), alors
+        // que la commande reste valid=1 (un remboursement PARTIEL ne fait
+        // pas basculer la commande à un état non-loggable, contrairement à
+        // un remboursement total). Le rapport mensuel automatique
+        // (envoyé au marchand) surestimait durablement le CA attribué à
+        // un template dès qu'il y avait des retours — incohérent avec
+        // StatsManager::getRevenueStats()/ClvManager, qui déduisent déjà
+        // ces mêmes avoirs (round 185/227) pour les mêmes commandes.
         $direct = [];
         $rows = $this->db->executeS(
             "SELECT template, SUM(order_total) AS revenue
              FROM (
                  SELECT DISTINCT s.template, s.id_order,
-                        o.total_paid_tax_incl / IF(o.conversion_rate = 0, 1, o.conversion_rate) AS order_total
+                        GREATEST(0,
+                            o.total_paid_tax_incl / IF(o.conversion_rate = 0, 1, o.conversion_rate)
+                            - COALESCE((
+                                SELECT SUM((os.total_products_tax_incl + os.total_shipping_tax_incl) / IF(os.conversion_rate = 0, 1, os.conversion_rate))
+                                FROM `" . _DB_PREFIX_ . "order_slip` os
+                                WHERE os.id_order = o.id_order
+                            ), 0)
+                        ) AS order_total
                  FROM `{$st}` s
                  JOIN `{$ord}` o ON o.id_order = s.id_order
                  WHERE s.id_shop = {$this->idShop}
@@ -558,10 +576,22 @@ class MonthlyReportManager
         // (last-click), cohérent avec le principe déjà appliqué par
         // AttributionManager pour l'attribution de revenus.
         // Round 227 : même garde-fou conversion_rate que direct ci-dessus.
+        // Round 297 : même déduction des avoirs partiels (order_slip) que la
+        // requête "direct" ci-dessus — voir commentaire ci-dessus pour le
+        // détail du bug (o.total_paid_tax_incl jamais réduit par un avoir
+        // partiel, commande restant valid=1).
         $attributed = [];
         $rows2 = $this->db->executeS(
-            "SELECT winner.template, SUM(winner.total_paid_tax_incl / IF(winner.conversion_rate = 0, 1, winner.conversion_rate)) AS revenue FROM (
-                SELECT s.template, o.id_order, o.total_paid_tax_incl, o.conversion_rate
+            "SELECT winner.template, SUM(GREATEST(0,
+                winner.total_paid_tax_incl / IF(winner.conversion_rate = 0, 1, winner.conversion_rate)
+                - winner.refunded
+            )) AS revenue FROM (
+                SELECT s.template, o.id_order, o.total_paid_tax_incl, o.conversion_rate,
+                       COALESCE((
+                           SELECT SUM((os.total_products_tax_incl + os.total_shipping_tax_incl) / IF(os.conversion_rate = 0, 1, os.conversion_rate))
+                           FROM `" . _DB_PREFIX_ . "order_slip` os
+                           WHERE os.id_order = o.id_order
+                       ), 0) AS refunded
                 FROM `{$st}` s
                 JOIN `{$ord}` o
                   ON o.id_customer = s.id_customer
