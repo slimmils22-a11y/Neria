@@ -17,6 +17,9 @@
  * Fenêtre élargie à 10000 (round 181) : le recomptage réel de $affected
  * (correctif round 181, cf. test_370) a repoussé le bloc if ($execOk ===
  * false) plus loin dans la méthode.
+ * Fenêtre élargie à 11500 (round 300) : la déduction des conversions
+ * remboursées à ≥90% (round 300, sous-requêtes corrélées order_slip/
+ * orders dans le SQL de recomputeAll()) a de nouveau repoussé ce bloc.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -27,7 +30,7 @@ function run_test(): array
 
     $posFn = strpos($src, 'public function recomputeAll(): int');
     neria_assert($posFn !== false, 'recomputeAll() introuvable — jeu de test invalide');
-    $body = substr($src, $posFn, 10000);
+    $body = substr($src, $posFn, 11500);
 
     neria_assert(
         strpos($body, '$execOk = $this->db->execute($sql);') !== false,

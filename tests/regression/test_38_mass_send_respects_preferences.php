@@ -41,7 +41,15 @@ function run_test(): array
         $prefs->saveByCustomer($idCustomer, $email, array_merge($allOn, ['behav' => 0]));
         $segMgr = new SegmentManager($module);
         $res = $segMgr->sendToSegment('loyal', 'private_sale', []);
-        if (($res['skipped'] ?? 0) < 1) {
+        // Round 146 : quand 100% du segment ciblé a désactivé le template
+        // (ici : notre unique client de test, behav=0), preflightCheck()
+        // bloque l'envoi ENTIER en amont (error='preflight_failed') plutôt
+        // que de boucler et marquer chaque client 'skipped' individuellement
+        // — comportement plus fort (bloque avant tout envoi) que l'ancienne
+        // attente de ce test (skipped >= 1), mise à jour le 04/09/2026
+        // (round 300) après avoir constaté que ce test échouait déjà avant
+        // toute modification de ce round, indépendamment de lui.
+        if (($res['error'] ?? '') !== 'preflight_failed' && ($res['skipped'] ?? 0) < 1) {
             $failures[] = "SegmentManager::sendToSegment() n'a pas bloqué un client desabonne (behav=0)";
         }
         $db->execute("DELETE FROM {$prefix}neria_customer_segment WHERE id_customer={$idCustomer} AND id_shop={$idShop} AND segment='loyal'");
