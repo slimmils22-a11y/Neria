@@ -158,6 +158,7 @@ class CertificateManager
 
             $pdfContent = $pdfResult['content'];
             $pdfPath    = $pdfResult['path'];
+            $sigPath    = (string) ($pdfResult['sig_path'] ?? '');
 
             // ── Sauvegarde en DB ──────────────────────────────────────
             $inserted = $this->db->insert(self::TABLE, [
@@ -187,6 +188,9 @@ class CertificateManager
                 'weaving_duration' => $weavingDuration !== '' ? pSQL($weavingDuration) : null,
                 'artisan_note'    => pSQL($artisanNote),
                 'pdf_path'        => pSQL($pdfPath),
+                // Round 301 : figé au moment de l'émission — voir
+                // generatePdf()/redownload() pour la lecture en repli.
+                'signature_path'  => pSQL($sigPath),
                 'emailed'         => 0,
                 'date_issued'     => date('Y-m-d H:i:s'),
                 'date_add'        => date('Y-m-d H:i:s'),
@@ -314,13 +318,19 @@ class CertificateManager
         $order    = new \Order((int) $row['id_order']);
         $customer = new \Customer((int) $order->id_customer);
         $lang     = $this->resolveCertificateLang($order, (int) $customer->id_lang);
+        // Round 301 : $frozenSigPath — colonne absente/vide (certificat
+        // émis avant ce correctif) => null, repli sur la résolution live
+        // historique dans generatePdf(). Sinon, la signature réellement
+        // active AU MOMENT DE L'ÉMISSION est réutilisée telle quelle.
+        $frozenSigPath = isset($row['signature_path']) && $row['signature_path'] !== '' ? $row['signature_path'] : null;
         $result   = $this->generatePdf(
             $row['serial_number'],
             $order,
             $row['customer_name'],
             $row['product_name'],
             $row['artisan_note'] ?? '',
-            $lang
+            $lang,
+            $frozenSigPath
         );
         // Round 167 : contrairement à issue() (voir plus haut, isset($pdfResult['error'])),
         // le retour de generatePdf() n'était jamais vérifié ici. Si la
@@ -429,7 +439,8 @@ class CertificateManager
         string $customerName,
         string $productName,
         string $artisanNote,
-        string $lang
+        string $lang,
+        ?string $frozenSigPath = null
     ): array {
         $tcpdfPath = _PS_ROOT_DIR_ . '/vendor/tecnickcom/tcpdf/tcpdf.php';
         if (!file_exists($tcpdfPath)) {
@@ -523,16 +534,34 @@ class CertificateManager
         }
 
         // Signature manuscrite
-        $sigPath  = '';
-        $sigRow   = $this->db->getRow(
-            'SELECT `image_path` FROM `' . _DB_PREFIX_ . 'neria_signature`
-             WHERE `is_active` = 1 AND `id_shop` = ' . $this->idShop . '
-             ORDER BY `date_upd` DESC'
-        );
-        if ($sigRow && !empty($sigRow['image_path'])) {
-            $candidate = _PS_MODULE_DIR_ . 'neria/' . ltrim($sigRow['image_path'], '/');
-            if (file_exists($candidate)) {
-                $sigPath = $candidate;
+        // Round 301 : $frozenSigPath — figée au moment de l'ÉMISSION
+        // originale (colonne `signature_path`, voir issue()) et transmise
+        // ici par redownload(), au lieu de toujours résoudre la signature
+        // ACTIVE COURANTE. Sans ce gel, un certificat déjà émis changeait
+        // rétroactivement de signature à chaque re-téléchargement dès que
+        // le marchand changeait la signature manuscrite active en BO — le
+        // document affichait alors une signature qui n'était pas encore
+        // active à la date d'émission/certification imprimée sur le PDF,
+        // contredisant sa propre valeur probante de document daté.
+        // $frozenSigPath === null (émission initiale, ou re-téléchargement
+        // d'un certificat créé avant ce correctif, colonne vide) : repli
+        // sur la résolution live historique, inchangée.
+        $sigPath = '';
+        if ($frozenSigPath !== null) {
+            if ($frozenSigPath !== '' && file_exists($frozenSigPath)) {
+                $sigPath = $frozenSigPath;
+            }
+        } else {
+            $sigRow = $this->db->getRow(
+                'SELECT `image_path` FROM `' . _DB_PREFIX_ . 'neria_signature`
+                 WHERE `is_active` = 1 AND `id_shop` = ' . $this->idShop . '
+                 ORDER BY `date_upd` DESC'
+            );
+            if ($sigRow && !empty($sigRow['image_path'])) {
+                $candidate = _PS_MODULE_DIR_ . 'neria/' . ltrim($sigRow['image_path'], '/');
+                if (file_exists($candidate)) {
+                    $sigPath = $candidate;
+                }
             }
         }
 
@@ -749,7 +778,10 @@ class CertificateManager
         // (neria.php, action cert_download).
         $safeSerial = preg_replace('/[^a-z0-9_\-]/i', '_', $serial);
 
-        return ['content' => $pdfContent, 'path' => $path, 'filename' => 'certificat_' . $safeSerial . '.pdf'];
+        // Round 301 : $sigPath renvoyé — issue() le persiste dans la
+        // colonne `signature_path` pour geler la signature réellement
+        // utilisée à l'émission (voir commentaire ci-dessus sur $frozenSigPath).
+        return ['content' => $pdfContent, 'path' => $path, 'filename' => 'certificat_' . $safeSerial . '.pdf', 'sig_path' => $sigPath];
     }
 
     // ============================================================
@@ -1130,6 +1162,7 @@ class CertificateManager
                 `weaving_duration` VARCHAR(255) DEFAULT NULL,
                 `artisan_note`    TEXT         DEFAULT NULL,
                 `pdf_path`        VARCHAR(500) DEFAULT NULL,
+                `signature_path`  VARCHAR(500) DEFAULT NULL COMMENT \'round 301 - signature manuscrite figee a emission\',
                 `emailed`         TINYINT(1)   NOT NULL DEFAULT 0,
                 `date_issued`     DATETIME     NOT NULL,
                 `date_add`        DATETIME     NOT NULL,
