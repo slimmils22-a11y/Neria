@@ -1355,10 +1355,21 @@ class BehavioralCronManager
         foreach ((array) $rowsExt as $r) {
             try {
                 $this->sendQuoteEmail('quote_extension_offer', $r, true);
+                // Round 296 : AND status = 'active' ajouté — seul des 3
+                // UPDATE de cette méthode à modifier `status`, donc seul
+                // exposé à une vraie course : entre le SELECT ci-dessus et
+                // cet UPDATE (après l'envoi de l'email, aller-retour SMTP
+                // potentiellement lent), le client peut avoir accepté/signé
+                // le devis entre-temps (status passé à 'won' par un code
+                // externe au module). Sans cette revérification,
+                // l'UPDATE écrasait inconditionnellement 'won' en 'expired'
+                // — le client venait d'accepter le devis mais le voyait
+                // basculer expiré, en plus de recevoir l'email "offre de
+                // prolongation" pour un devis déjà accepté.
                 $this->db->execute(
                     'UPDATE `' . $this->prefix . 'neria_quote`
                      SET sent_extension = 1, status = \'expired\', date_upd = NOW()
-                     WHERE id_quote = ' . (int) $r['id_quote']
+                     WHERE id_quote = ' . (int) $r['id_quote'] . " AND status = 'active'"
                 );
             } catch (\Throwable $e) {
                 $this->watchdog()->error(
