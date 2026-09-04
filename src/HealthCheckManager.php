@@ -6173,11 +6173,12 @@ class HealthCheckManager
             $offenders[] = 'QueueManager.php introuvable (garde-fou round 178)';
         } else {
             $posSingle178 = strpos($qmSrc178, 'private function processSingle(array $row): bool');
-            // Round 260 : fenêtre élargie 5400→7500 — l'ajout de la
-            // revérification produit ghost_cart (garde-fou round 260, voir
-            // plus bas) a repoussé le check BounceManager plus loin dans le
-            // corps de la méthode.
-            $singleBody178 = $posSingle178 !== false ? substr($qmSrc178, $posSingle178, 7500) : '';
+            // Round 294 : fenêtre élargie 7500→9000 — l'ajout de la
+            // revérification "panier non converti" (garde-fou round 294,
+            // voir plus bas) a de nouveau repoussé le check BounceManager
+            // plus loin dans le corps de la méthode (round 260 : 5400→7500
+            // pour la même raison, revérification produit ghost_cart).
+            $singleBody178 = $posSingle178 !== false ? substr($qmSrc178, $posSingle178, 9000) : '';
             $hasGuards178 = strpos($singleBody178, "\\BounceManager::isBounced(\$toEmail)") !== false
                 && strpos($singleBody178, 'markQueueFailed(') !== false;
             if ($posSingle178 === false || !$hasGuards178) {
@@ -9085,6 +9086,53 @@ class HealthCheckManager
             || strpos($manSrc293, "WatchdogManager::i18nMsg('watchdog.manual_send_tracking_exception'") === false
         ) {
             $offenders[] = "ManualSendManager::send() n'entoure plus Mail::Send()/l'INSERT de suivi anniversaire d'un try/catch — régression du bug corrigé le 03/09/2026 (round 293) : une exception transitoire crasherait de nouveau la page BO, parfois après un envoi pourtant réussi";
+        }
+
+        // Round 294 (03/09/2026) : 'certificate_email' (CertificateManager)
+        // était absent de PreferencesManager::TEMPLATE_CAT — isAllowed()
+        // le traitait comme "non classé" et l'envoyait TOUJOURS, malgré un
+        // appel isAllowed() présent mais inopérant avant Mail::Send().
+        $prefSrc294 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PreferencesManager.php');
+        if ($prefSrc294 === '' || strpos($prefSrc294, "'certificate_email'         => 'post',") === false) {
+            $offenders[] = "PreferencesManager::TEMPLATE_CAT ne couvre plus 'certificate_email' — régression du bug corrigé le 03/09/2026 (round 294) : le certificat PDF continuerait d'être envoyé en violation de l'opt-out 'post' du client";
+        }
+
+        // Round 294 (03/09/2026) : checkOpenRate7d()/checkEngagementTrend()
+        // (ci-dessous dans ce même fichier) comptaient les ouvertures sans
+        // filtrer is_mpp=0 — les préchargements Apple MPP gonflaient le
+        // taux d'ouverture affiché, masquant silencieusement une vraie
+        // panne de délivrabilité que ces alertes sont censées détecter.
+        // Auto-référentiel : ce contrôle vit dans HealthCheckManager.php
+        // lui-même — un substr_count() sur le fichier ENTIER matcherait
+        // aussi ses propres littéraux de recherche ci-dessous (piège déjà
+        // rencontré round 246, cf. checkKnownRegressionsGuard()). Fenêtre
+        // ancrée sur la position RÉELLE des 2 méthodes concernées, jamais
+        // sur le fichier entier.
+        // strrpos() (pas strpos()) : les littéraux 'private function
+        // checkOpenRate7d(): array' / 'checkEngagementTrend(): array'
+        // apparaissent une 1ère fois ICI MÊME comme aiguilles de recherche
+        // de ce contrôle — strpos() s'arrêterait sur cette 1ère occurrence
+        // au lieu de la VRAIE définition de méthode plus loin dans le
+        // fichier (piège déjà rencontré round 246).
+        $hcmSelfSrc294 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        $posOpenRate294 = $hcmSelfSrc294 !== '' ? strrpos($hcmSelfSrc294, 'private function checkOpenRate7d(): array') : false;
+        $posTrend294    = $hcmSelfSrc294 !== '' ? strrpos($hcmSelfSrc294, 'private function checkEngagementTrend(): array') : false;
+        $openRateBody294 = $posOpenRate294 !== false ? substr($hcmSelfSrc294, $posOpenRate294, 2200) : '';
+        $trendBody294    = $posTrend294 !== false ? substr($hcmSelfSrc294, $posTrend294, 2200) : '';
+        $mppCount294 = substr_count($openRateBody294, "AND `is_mpp`     = 0") + substr_count($trendBody294, "event_type = 'open' AND is_mpp = 0");
+        if ($posOpenRate294 === false || $posTrend294 === false || $mppCount294 !== 3) {
+            $offenders[] = "checkOpenRate7d()/checkEngagementTrend() ne filtrent plus is_mpp=0 au bon nombre d'emplacements ({$mppCount294}/3) — régression du bug corrigé le 03/09/2026 (round 294) : une panne de délivrabilité réelle redeviendrait masquée par les préchargements Apple MPP";
+        }
+
+        // Round 294 (03/09/2026) : QueueManager::processSingle() revérifiait
+        // déjà le produit ghost_cart au moment de l'envoi réel (round 260),
+        // mais jamais l'état "panier non converti" pour les 4 templates de
+        // relance panier abandonné — un client finalisant sa commande
+        // pendant le délai de la fenêtre d'achat individuelle (~24h)
+        // recevait quand même une relance pour des articles déjà achetés.
+        $qmSrc294 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        if ($qmSrc294 === '' || strpos($qmSrc294, "\$this->markQueueFailed(\$id, 'cart_already_converted')") === false) {
+            $offenders[] = "QueueManager::processSingle() ne revérifie plus l'état 'panier non converti' avant l'envoi différé d'une relance panier abandonné — régression du bug corrigé le 03/09/2026 (round 294)";
         }
 
         if ($offenders) {
