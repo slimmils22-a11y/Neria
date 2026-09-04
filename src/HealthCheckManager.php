@@ -9157,6 +9157,21 @@ class HealthCheckManager
             $offenders[] = "ghost_cart.html n'inverse plus bordure/padding pour la langue arabe (RTL) — régression du bug corrigé le 04/09/2026 (round 295)";
         }
 
+        // Round 296 (04/09/2026) : BehavioralCronManager::
+        // sendQuoteExpiryReminders(), section 3 (offre de prolongation) —
+        // l'UPDATE qui bascule status='expired' est le seul des 3 UPDATE de
+        // cette méthode à modifier `status`, donc le seul exposé à une
+        // vraie course : entre le SELECT (status='active') et cet UPDATE
+        // (après l'envoi de l'email), le client peut avoir accepté le devis
+        // entre-temps ('won') — sans revérification, l'UPDATE écrasait ce
+        // 'won' fraîchement posé en 'expired'.
+        $bcmSrc296 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        $posExt296 = $bcmSrc296 !== '' ? strpos($bcmSrc296, "SET sent_extension = 1, status = \\'expired\\', date_upd = NOW()") : false;
+        $extBody296 = $posExt296 !== false ? substr($bcmSrc296, $posExt296, 200) : '';
+        if ($bcmSrc296 === '' || $posExt296 === false || strpos($extBody296, "AND status = 'active'") === false) {
+            $offenders[] = "BehavioralCronManager::sendQuoteExpiryReminders() (section 3, offre de prolongation) ne revérifie plus status = 'active' avant de passer un devis à 'expired' — régression du bug corrigé le 04/09/2026 (round 296) : un devis accepté ('won') par le client pendant l'envoi de l'email serait de nouveau écrasé en 'expired' par le cron";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
