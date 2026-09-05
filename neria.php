@@ -993,7 +993,10 @@ class Neria extends Module
             if ($idOrder <= 0) {
                 return;
             }
-            (new StatsManager($this))->adjustConversionRevenueForOrder($idOrder, 0.0);
+            // Round 302 : (int) $order->id_shop transmis explicitement — même
+            // correctif que OrderTriggersManager::handleRefund(), cf.
+            // commentaire de StatsManager::adjustConversionRevenueForOrder().
+            (new StatsManager($this))->adjustConversionRevenueForOrder($idOrder, 0.0, (int) $order->id_shop);
         }, $this);
     }
 
@@ -1797,9 +1800,30 @@ class Neria extends Module
             ? (\Shop::getShops(true, null, true) ?: [(int) $this->context->shop->id])
             : [(int) ($params['id_shop'] ?? $this->context->shop->id)];
 
+        // Round 302 : dédoublonnage par groupe à stock partagé — sans lui,
+        // cette boucle appelait notifyProduct() une fois par boutique du
+        // groupe, et WaitlistManager traite désormais la file COMBINÉE de
+        // tout le groupe dès le premier appel (cf. commentaire round 302
+        // dans WaitlistManager::notifyProduct()) ; les appels suivants pour
+        // les boutiques restantes du MÊME groupe, dans cette même exécution
+        // synchrone du hook, retrouveraient alors un lot d'inscrits déjà
+        // notifiés vidé mais un stock disponible recalculé identique (non
+        // décrémenté par la notification elle-même), et pourraient donc
+        // notifier un second lot au-delà de la quantité réellement
+        // disponible. Un seul appel par groupe à stock partagé suffit et
+        // couvre déjà toutes ses boutiques membres.
+        $processedGroups302 = [];
         $mgr = new WaitlistManager($this);
         foreach ($shopsToNotify as $idShop) {
             try {
+                $shopObj302 = new \Shop((int) $idShop);
+                if ((bool) $shopObj302->getGroup()->share_stock) {
+                    $idShopGroup302 = (int) $shopObj302->id_shop_group;
+                    if (isset($processedGroups302[$idShopGroup302])) {
+                        continue;
+                    }
+                    $processedGroups302[$idShopGroup302] = true;
+                }
                 $mgr->notifyProduct($idProduct, (int) $idShop);
             } catch (\Throwable $e) {
                 $this->log('WaitlistManager::notifyProduct() erreur : ' . $e->getMessage(), 3);

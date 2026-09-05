@@ -497,15 +497,27 @@ class GdprAuditManager
             $shopFilter = $hasShopCol ? " AND `id_shop` = {$this->idShop}" : '';
             $shopWhere  = $hasShopCol ? " WHERE `id_shop` = {$this->idShop}" : '';
 
-            $total = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$table}`{$shopWhere}");
+            // Round 302 : $use_cache=false sur les 3 requêtes ci-dessous —
+            // même famille de bug que les rounds 210-223 documentés dans ce
+            // fichier et dans WaitlistManager/LoyaltyManager (Db::getValue()
+            // met en cache SQL par défaut). $overdue pilote directement
+            // $isIssue puis le grade RGPD affiché au marchand dans le
+            // rapport exporté : un marchand qui clique "Purger maintenant"
+            // (purgeTable(), déjà en $use_cache=false ligne ~769) puis
+            // recharge l'onglet RGPD pouvait se voir resservir l'ancien
+            // COUNT(*) non nul par le cache SQL, affichant encore "À
+            // PURGER" pour une table qui vient pourtant d'être nettoyée.
+            $total = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$table}`{$shopWhere}", false);
 
             $oldest = $this->db->getValue(
-                "SELECT MIN(`{$dcol}`) FROM `{$table}`{$shopWhere}"
+                "SELECT MIN(`{$dcol}`) FROM `{$table}`{$shopWhere}",
+                false
             );
 
             $overdue = (int) $this->db->getValue(
                 "SELECT COUNT(*) FROM `{$table}`
-                 WHERE `{$dcol}` < DATE_SUB(NOW(), INTERVAL {$months} MONTH){$shopFilter}"
+                 WHERE `{$dcol}` < DATE_SUB(NOW(), INTERVAL {$months} MONTH){$shopFilter}",
+                false
             );
 
             $isIssue = $overdue > 0;

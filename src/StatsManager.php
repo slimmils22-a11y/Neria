@@ -1020,11 +1020,27 @@ class StatsManager
      * commande (dédupliquée par token via eventExists()) — le UPDATE
      * ci-dessous cible donc normalement 0 ou 1 ligne, jamais plusieurs.
      */
-    public function adjustConversionRevenueForOrder(int $idOrder, float $newRevenue): void
+    // Round 302 : $idShop optionnel ajouté (défaut null = repli sur
+    // $this->idShop, comportement historique inchangé pour tout appelant
+    // qui ne le fournirait pas). Auparavant le WHERE filtrait TOUJOURS sur
+    // $this->idShop, fixé une seule fois dans le constructeur à partir du
+    // contexte BO AMBIANT (Context::getContext()->shop->id) — jamais celui
+    // de la commande réellement remboursée. Sur une install multi-boutiques
+    // où le contexte BO courant (liste "toutes boutiques", ou reliquat
+    // d'une boutique précédente) diffère de order->id_shop, l'UPDATE ne
+    // matchait aucune ligne (0 ligne affectée, silencieux par conception —
+    // cf. commentaire ci-dessous) : le revenu attribué restait à son
+    // montant ORIGINAL dans getRevenueStats()/dashboards ROI de la boutique
+    // de la commande, malgré le remboursement — exactement le bug que ce
+    // correctif (round 185) visait à éliminer. Même pattern déjà appliqué à
+    // recordConversion() ci-dessus (paramètre $idShop explicite).
+    public function adjustConversionRevenueForOrder(int $idOrder, float $newRevenue, ?int $idShop = null): void
     {
         if ($idOrder <= 0) {
             return;
         }
+
+        $idShop = $idShop ?? $this->idShop;
 
         // Pas de ligne à ajuster pour une commande sans email tracké (achat
         // direct, hors campagne) : Db::update() ne fait rien si 0 ligne
@@ -1032,7 +1048,7 @@ class StatsManager
         $this->db->update(
             self::TABLE,
             ['revenue' => $newRevenue],
-            '`id_order` = ' . $idOrder . ' AND `event_type` = \'' . self::EVENT_CONVERSION . '\' AND `id_shop` = ' . $this->idShop
+            '`id_order` = ' . $idOrder . ' AND `event_type` = \'' . self::EVENT_CONVERSION . '\' AND `id_shop` = ' . $idShop
         );
     }
 

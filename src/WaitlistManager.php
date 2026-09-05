@@ -106,27 +106,69 @@ class WaitlistManager
         // 2e appel concurrent doit simplement attendre le prochain
         // déclenchement plutôt que bloquer la requête HTTP admin en cours
         // (ce hook tourne en synchrone dans actionUpdateQuantity).
-        $lockName = 'neria_waitlist_notify_' . $idProduct . '_' . $idShop;
+        //
+        // Round 302 : en mode stock partagé (Shop::getGroup()->share_stock),
+        // neria.php (hookActionUpdateQuantityImpl) boucle sur TOUTES les
+        // boutiques du groupe et appelle notifyProduct() une fois par
+        // boutique — chaque appel relisait indépendamment le MÊME total de
+        // stock partagé (aucune décrémentation entre deux boutiques du même
+        // groupe dans cette même exécution synchrone du hook), notifiant
+        // jusqu'à availableQty inscrits DIFFÉRENTS par boutique, soit
+        // jusqu'à N× la quantité réellement disponible pour un groupe de N
+        // boutiques — exactement le problème que ce garde-fou (round 167)
+        // dit vouloir éviter, mais uniquement traité pour 2 appels
+        // concurrents sur la MÊME boutique, pas pour la boucle séquentielle
+        // multi-boutique du stock partagé. Le verrou et la file de rows à
+        // traiter portent désormais sur le GROUPE entier (toutes les
+        // boutiques qui partagent ce stock), pas sur une boutique isolée :
+        // un seul appel — le premier de la boucle — traite alors la file
+        // combinée de toutes les boutiques du groupe et applique le
+        // plafond UNE seule fois sur le total réellement disponible.
+        $shopGroup  = new \Shop($idShop);
+        $shareStock = (bool) $shopGroup->getGroup()->share_stock;
+
+        if ($shareStock) {
+            $idShopGroup = (int) $shopGroup->id_shop_group;
+            $lockName    = 'neria_waitlist_notify_group_' . $idProduct . '_' . $idShopGroup;
+            $shopIds     = \Shop::getShops(true, $idShopGroup, true);
+            if (!is_array($shopIds) || empty($shopIds)) {
+                $shopIds = [$idShop];
+            }
+        } else {
+            $lockName = 'neria_waitlist_notify_' . $idProduct . '_' . $idShop;
+            $shopIds  = [$idShop];
+        }
+
         if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)", false) !== 1) {
             return 0;
         }
 
         try {
-            return $this->notifyProductLocked($idProduct, $idShop);
+            return $this->notifyProductLocked($idProduct, $idShop, $shopIds);
         } finally {
             $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockName) . "')");
         }
     }
 
-    private function notifyProductLocked(int $idProduct, int $idShop): int
+    /**
+     * @param int[] $shopIds Boutiques dont la file d'attente est traitée en
+     *                       une seule passe — un groupe entier à stock
+     *                       partagé (round 302), ou une boutique isolée
+     *                       ([$idShop]) sinon. $idShop reste la boutique
+     *                       d'origine de l'appel (résolution du groupe /
+     *                       stock partagé) — pas nécessairement celle du
+     *                       client notifié, cf. $rowShopId ci-dessous.
+     */
+    private function notifyProductLocked(int $idProduct, int $idShop, array $shopIds): int
     {
+        $shopIdsList = implode(',', array_map('intval', $shopIds));
         $rows = $this->db->executeS(
             "SELECT w.*, c.firstname, c.lastname, c.email, c.id_lang, w.id_shop,
                     DATEDIFF(NOW(), w.registered_at) AS days_waited
              FROM `{$this->prefix}" . self::TABLE . "` w
              INNER JOIN `{$this->prefix}customer` c ON c.id_customer = w.id_customer
              WHERE w.id_product = {$idProduct}
-               AND w.id_shop = {$idShop}
+               AND w.id_shop IN ({$shopIdsList})
                AND w.notified_at IS NULL
              ORDER BY w.registered_at ASC"
         );
@@ -210,6 +252,15 @@ class WaitlistManager
         $sent = 0;
         foreach ($rows as $row) {
             $idCustomer = (int) $row['id_customer'];
+            // Round 302 : boutique RÉELLE de cet inscrit (peut différer de
+            // $idShop, celui d'origine de l'appel) — un groupe à stock
+            // partagé peut combiner des inscrits de plusieurs boutiques
+            // dans $rows (cf. notifyProductLocked() ci-dessus). Tout ce qui
+            // suit (contexte boutique, prix, lien produit, email envoyé,
+            // clé de réclamation/notification, cooldown, blacklist) doit
+            // utiliser LA boutique du client, jamais celle de l'appel
+            // d'origine.
+            $rowShopId  = (int) $row['id_shop'];
             // Langue du client (déjà récupérée par la jointure ci-dessus) —
             // repli sur la langue par défaut de la boutique si absente/corrompue.
             $idLang     = (int) $row['id_lang'] ?: (int) \Configuration::get('PS_LANG_DEFAULT');
@@ -234,10 +285,10 @@ class WaitlistManager
             // boucle : sans ce switch complet, un client de la Boutique B
             // recevait le nom/prix/image/lien produit de la Boutique A.
             $originalShopId = \Shop::getContextShopID(true);
-            \Shop::setContext(\Shop::CONTEXT_SHOP, $idShop);
+            \Shop::setContext(\Shop::CONTEXT_SHOP, $rowShopId);
             $context      = \Context::getContext();
             $originalShop = $context->shop;
-            $context->shop = new \Shop($idShop);
+            $context->shop = new \Shop($rowShopId);
             try {
                 // Round 184 : !$product->active ajouté — contrairement à
                 // LookCompletionManager::buildProductBlocks() (déjà
@@ -246,7 +297,7 @@ class WaitlistManager
                 // entre l'inscription sur liste d'attente et le réassort
                 // (ex. stock résiduel non nettoyé avant la désactivation),
                 // pointant vers une page produit indisponible.
-                $product = new \Product($idProduct, false, $idLang, $idShop);
+                $product = new \Product($idProduct, false, $idLang, $rowShopId);
                 if (!\Validate::isLoadedObject($product) || !$product->active) continue;
 
                 $cover    = \Product::getCover($idProduct);
@@ -260,7 +311,7 @@ class WaitlistManager
                         \ImageType::getFormattedName('home')
                     ));
                 }
-                $productUrl = $context->link->getProductLink($product, null, null, null, $idLang, $idShop);
+                $productUrl = $context->link->getProductLink($product, null, null, null, $idLang, $rowShopId);
             } finally {
                 $context->shop = $originalShop;
                 \Shop::setContext(\Shop::CONTEXT_SHOP, $originalShopId);
@@ -279,7 +330,7 @@ class WaitlistManager
                 '{product_name}'       => $productName292,
                 '{product_url}'        => $productUrl,
                 '{product_image}'      => $imageUrl,
-                // Currency::PS_CURRENCY_DEFAULT scopé par $idShop — même
+                // Currency::PS_CURRENCY_DEFAULT scopé par $rowShopId — même
                 // piège multi-boutique déjà corrigé (round 103) pour
                 // {product_url}/{product_image} ci-dessus dans ce même bloc,
                 // et (round 106) pour {shop_name} juste en-dessous. Sans ce
@@ -294,13 +345,13 @@ class WaitlistManager
                 // moment du retour en stock affichait son prix plein tarif
                 // dans l'email "de retour en stock", différent du prix
                 // réel affiché sur la fiche produit au clic.
-                '{product_price}'      => \NeriaTools::displayPrice($this->safeProductPrice($idProduct, $idShop, $idCustomer), new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop)), $idLang),
+                '{product_price}'      => \NeriaTools::displayPrice($this->safeProductPrice($idProduct, $rowShopId, $idCustomer), new \Currency((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $rowShopId)), $idLang),
                 '{days_waited}'        => $daysWaited,
                 '{reservation_hours}'  => (int) \Configuration::getGlobalValue('NERIA_WAITLIST_RESERVATION_HOURS') ?: self::RESERVATION_HOURS,
-                // Configuration::get(..., $idShop) : round 106, même piège
+                // Configuration::get(..., $rowShopId) : round 106, même piège
                 // multi-boutique déjà corrigé (round 103) pour
                 // {product_url}/{product_image} ci-dessus dans ce même bloc.
-                '{shop_name}'          => \Configuration::get('PS_SHOP_NAME', null, null, $idShop),
+                '{shop_name}'          => \Configuration::get('PS_SHOP_NAME', null, null, $rowShopId),
                 // Scope le Mode Silence par produit (cf. CooldownManager) —
                 // sans lui, une notification "de retour en stock" légitime
                 // pour un DEUXIÈME produit dans la fenêtre de cooldown était
@@ -351,7 +402,7 @@ class WaitlistManager
                 "UPDATE `{$this->prefix}" . self::TABLE . "`
                  SET claim_started_at = NOW()
                  WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
-                   AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}
+                   AND id_product_attribute = {$idProductAttribute} AND id_shop = {$rowShopId}
                    AND notified_at IS NULL
                    AND (claim_started_at IS NULL OR claim_started_at < DATE_SUB(NOW(), INTERVAL 1 HOUR))"
             ) && $this->db->Affected_Rows() > 0;
@@ -377,7 +428,7 @@ class WaitlistManager
             $stillRegistered = (int) $this->db->getValue(
                 "SELECT COUNT(*) FROM `{$this->prefix}" . self::TABLE . "`
                  WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
-                   AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}",
+                   AND id_product_attribute = {$idProductAttribute} AND id_shop = {$rowShopId}",
                 false
             ) > 0;
             if (!$stillRegistered) {
@@ -399,7 +450,7 @@ class WaitlistManager
                     "UPDATE `{$this->prefix}" . self::TABLE . "`
                      SET claim_started_at = NULL
                      WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
-                       AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
+                       AND id_product_attribute = {$idProductAttribute} AND id_shop = {$rowShopId}"
                 );
                 continue;
             }
@@ -407,24 +458,24 @@ class WaitlistManager
                 $langIso = class_exists('TranslationEngine')
                     ? (new \TranslationEngine($this->module))->langFromId($idLang)
                     : (string) (\Language::getIsoById($idLang) ?: '');
-                if ((new \BlacklistManager($idShop))->isBlacklisted('waitlist_available', $langIso)) {
+                if ((new \BlacklistManager($rowShopId))->isBlacklisted('waitlist_available', $langIso)) {
                     $this->db->execute(
                         "UPDATE `{$this->prefix}" . self::TABLE . "`
                          SET claim_started_at = NULL
                          WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
-                           AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
+                           AND id_product_attribute = {$idProductAttribute} AND id_shop = {$rowShopId}"
                     );
                     continue;
                 }
             }
             if (class_exists('PreferencesManager')
-                && !(new \PreferencesManager($this->module))->isAllowed($idCustomer, 'waitlist_available', $idShop, $row['email'])
+                && !(new \PreferencesManager($this->module))->isAllowed($idCustomer, 'waitlist_available', $rowShopId, $row['email'])
             ) {
                 $this->db->execute(
                     "UPDATE `{$this->prefix}" . self::TABLE . "`
                      SET claim_started_at = NULL
                      WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
-                       AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
+                       AND id_product_attribute = {$idProductAttribute} AND id_shop = {$rowShopId}"
                 );
                 continue;
             }
@@ -432,12 +483,12 @@ class WaitlistManager
                 && (new \ConfigManager($this->module))->isCooldownEnabled()
             ) {
                 $cdMinutes = (new \ConfigManager($this->module))->getCooldownMinutes();
-                if ((new \CooldownManager())->isDuplicate($row['email'], 'waitlist_available', $cdMinutes, $idShop, 0, 'product:' . $idProduct)) {
+                if ((new \CooldownManager())->isDuplicate($row['email'], 'waitlist_available', $cdMinutes, $rowShopId, 0, 'product:' . $idProduct)) {
                     $this->db->execute(
                         "UPDATE `{$this->prefix}" . self::TABLE . "`
                          SET claim_started_at = NULL
                          WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
-                           AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
+                           AND id_product_attribute = {$idProductAttribute} AND id_shop = {$rowShopId}"
                     );
                     continue;
                 }
@@ -454,7 +505,7 @@ class WaitlistManager
                     null, null, null, null,
                     _PS_MODULE_DIR_ . 'neria/mails/',
                     false,
-                    $idShop
+                    $rowShopId
                 );
 
                 if ($mailed) {
@@ -462,7 +513,7 @@ class WaitlistManager
                         "UPDATE `{$this->prefix}" . self::TABLE . "`
                          SET notified_at = NOW()
                          WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
-                           AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
+                           AND id_product_attribute = {$idProductAttribute} AND id_shop = {$rowShopId}"
                     );
                     $sent++;
 
@@ -478,7 +529,7 @@ class WaitlistManager
                         "UPDATE `{$this->prefix}" . self::TABLE . "`
                          SET claim_started_at = NULL
                          WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
-                           AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
+                           AND id_product_attribute = {$idProductAttribute} AND id_shop = {$rowShopId}"
                     );
                 }
             } catch (\Throwable $e) {
@@ -487,7 +538,7 @@ class WaitlistManager
                     "UPDATE `{$this->prefix}" . self::TABLE . "`
                      SET claim_started_at = NULL
                      WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
-                       AND id_product_attribute = {$idProductAttribute} AND id_shop = {$idShop}"
+                       AND id_product_attribute = {$idProductAttribute} AND id_shop = {$rowShopId}"
                 );
                 if (class_exists('WatchdogManager')) {
                     (new \WatchdogManager($this->module))->error(

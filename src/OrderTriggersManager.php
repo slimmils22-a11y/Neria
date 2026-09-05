@@ -900,8 +900,10 @@ class OrderTriggersManager
             // commande au montant réellement conservé par le marchand.
             if (class_exists('StatsManager')) {
                 try {
+                    // Round 302 : (int) $order->id_shop transmis explicitement —
+                    // voir commentaire de StatsManager::adjustConversionRevenueForOrder().
                     (new \StatsManager($this->module))->adjustConversionRevenueForOrder(
-                        (int) $order->id, max(0.0, $orderTotal - $totalRefunded)
+                        (int) $order->id, max(0.0, $orderTotal - $totalRefunded), (int) $order->id_shop
                     );
                 } catch (\Throwable $e) {
                     $this->watchdog()->error(
