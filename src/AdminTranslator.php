@@ -132,13 +132,29 @@ class AdminTranslator
      * @param string $key  Clé sémantique
      * @param array  $vars Paires {placeholder} => valeur
      */
+    // Round 304 : strtr() (et non str_replace() en boucle) — même
+    // correctif déjà appliqué à TranslationEngine::resolveVariables() pour
+    // ce même piège. str_replace() en boucle enchaîne les remplacements
+    // SÉQUENTIELLEMENT sur le résultat déjà transformé : si la valeur d'UNE
+    // variable contient littéralement le texte "{autre_clé}" (ex. un
+    // extrait de réponse d'erreur d'une API tierce injecté tel quel dans
+    // 'detail', voir neria.php::msg.deepl_zero_translated), ce texte
+    // injecté se faisait à son tour remplacer par la valeur de l'autre
+    // variable lors du passage suivant — corruption silencieuse du message
+    // affiché au marchand, dépendante de l'ordre d'itération du tableau.
+    // strtr() avec un tableau effectue un seul passage simultané sur le
+    // texte ORIGINAL, sans jamais rescanner une portion déjà substituée.
     public static function tVars(string $key, array $vars = []): string
     {
         $str = self::t($key);
-        foreach ($vars as $k => $v) {
-            $str = str_replace('{' . $k . '}', (string) $v, $str);
+        if (empty($vars)) {
+            return $str;
         }
-        return $str;
+        $replace = [];
+        foreach ($vars as $k => $v) {
+            $replace['{' . $k . '}'] = (string) $v;
+        }
+        return strtr($str, $replace);
     }
 
     /**

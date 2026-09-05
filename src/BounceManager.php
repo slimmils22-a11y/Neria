@@ -651,6 +651,21 @@ class BounceManager
         // ou toutes deux lire "existe" et incrémenter bounce_count deux fois
         // pour un seul rebond réel — rapprochant artificiellement l'adresse
         // du seuil de mise en liste noire (soft bounce).
+        //
+        // Round 304 : `status` = IF(VALUES(`type`) = 'hard', 'active', `status`)
+        // — un nouveau HARD bounce réactive désormais isBounced() même sur
+        // une adresse marquée `ignored` par ignoreBounce() (le marchand
+        // ayant jugé qu'un bounce PRÉCÉDENT était un faux positif). Sans
+        // cette clause, ignoreBounce() désactivait le filtrage anti-bounce
+        // de façon PERMANENTE pour l'adresse : isBounced() ne teste que
+        // `status = 'active'`, jamais `type`/`bounce_count` — un nouveau
+        // hard bounce authentique (mailbox inexistante, domaine mort)
+        // continuait d'incrémenter bounce_count/mettre à jour reason en
+        // silence sous status='ignored', sans jamais rebloquer l'envoi.
+        // Un hard bounce est un signal sans ambiguïté (contrairement à un
+        // soft bounce, laissé inchangé ici pour respecter le jugement du
+        // marchand sur un incident transitoire) : il doit toujours reprendre
+        // le dessus sur une ancienne décision "ignorer".
         $db->execute(
             'INSERT INTO `' . _DB_PREFIX_ . self::TABLE . '`
                 (`email`, `type`, `reason`, `source`, `bounce_count`, `last_bounce_at`, `status`, `date_add`)
@@ -667,7 +682,8 @@ class BounceManager
                                    ),
                 `last_bounce_at` = VALUES(`last_bounce_at`),
                 `reason`         = VALUES(`reason`),
-                `type`           = IF(`type` = \'hard\', \'hard\', VALUES(`type`))'
+                `type`           = IF(`type` = \'hard\', \'hard\', VALUES(`type`)),
+                `status`         = IF(VALUES(`type`) = \'hard\', \'active\', `status`)'
         );
 
         if (class_exists('WatchdogManager')) {
