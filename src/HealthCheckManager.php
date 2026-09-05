@@ -2599,7 +2599,10 @@ class HealthCheckManager
         if ($domRepSrc === '') {
             $offenders[] = 'src/DomainReputationManager.php introuvable';
         } elseif (strpos($domRepSrc, "'timed_out' => \$checked < count(self::RBL_LIST),") === false
-               || strpos($domRepSrc, "} elseif (!empty(\$bl['timed_out'])) {") === false) {
+               // Round 305 : littéral mis à jour — la condition porte
+               // désormais aussi sur $hits === 0 (cf. garde-fou round 305
+               // ci-dessous, qui vérifie spécifiquement ce raffinement).
+               || strpos($domRepSrc, "} elseif (!empty(\$bl['timed_out']) && \$hits === 0) {") === false) {
             $offenders[] = "DomainReputationManager ne distingue plus un budget DNS épuisé d'un '0 hit' réel sur la composante blacklist — un domaine réellement blacklisté pourrait de nouveau obtenir un score de réputation parfait sans alerte si checkDkim() épuise le budget avant checkBlacklists()";
         }
 
@@ -8674,7 +8677,12 @@ class HealthCheckManager
         $lcmSrc275 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
         if ($lcmSrc275 === ''
             || strpos($lcmSrc275, 'private function buildProductBlocks(array $productIds, int $idLang, int $idShop, int $idCurrency = 0, int $idCustomer = 0): array') === false
-            || strpos($lcmSrc275, '$tmp->id_currency = $idCurrency > 0') === false
+            // Round 305 : littéral mis à jour — la résolution de la devise
+            // a été extraite dans $resolvedCurrencyId (réutilisée aussi
+            // pour la bascule de $context->currency, cf. garde-fou round
+            // 305 ci-dessous), mais la priorité $idCurrency > 0 reste
+            // identique sur le fond.
+            || strpos($lcmSrc275, '$resolvedCurrencyId = $idCurrency > 0') === false
             || strpos($lcmSrc275, 'SELECT DISTINCT oh.id_order, o.id_customer, o.id_lang, o.id_shop, o.id_currency') === false
         ) {
             $offenders[] = "LookCompletionManager ne propage plus la devise réelle de la commande (id_currency) jusqu'au prix suggéré 'Complétez votre look' — régression du bug corrigé le 01/09/2026 (round 275) : le prix affiché redeviendrait incohérent avec la devise réelle de la commande sur une boutique multi-devises";
@@ -9494,6 +9502,73 @@ class HealthCheckManager
             if ($posTVars304 === false || strpos($tVarsBody304, 'strtr(') === false) {
                 $offenders[] = "AdminTranslator::tVars() n'utilise plus strtr() — régression du bug corrigé le 05/09/2026 (round 304) : une substitution de variable en cascade (dépendante de l'ordre du tableau) redeviendrait possible, pouvant corrompre un message affiché au marchand";
             }
+        }
+
+        // Round 305 (05/09/2026) : BehavioralCronManager::sendWinBacks()
+        // sourçait l'année de déduplication via date('Y') PHP, incohérent
+        // avec le test d'éligibilité entièrement côté MySQL (NOW()) — même
+        // piège déjà corrigé pour sendBirthdays()/sendRelationshipAnniversaries()
+        // (round 281), jamais étendu ici.
+        $bcmSrc305 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc305 === '') {
+            $offenders[] = 'BehavioralCronManager.php introuvable (garde-fou round 305)';
+        } else {
+            $posWb305 = strpos($bcmSrc305, 'private function sendWinBacks(): void');
+            $wbBody305 = $posWb305 !== false ? substr($bcmSrc305, $posWb305, 1200) : '';
+            if ($posWb305 === false || strpos($wbBody305, "\$year   = (int) \$this->db->getValue('SELECT YEAR(NOW())');") === false) {
+                $offenders[] = "BehavioralCronManager::sendWinBacks() ne sourçe plus l'année via YEAR(NOW()) SQL — régression du bug corrigé le 05/09/2026 (round 305) : un décalage de fuseau horaire PHP/MySQL autour du nouvel an pourrait de nouveau désynchroniser la déduplication annuelle des win-backs";
+            }
+        }
+
+        // Round 305 (05/09/2026) : DomainReputationManager::computeScore()
+        // écrasait inconditionnellement le score blacklist par une valeur
+        // neutre (12/25) dès qu'un timeout DNS survenait, y compris quand
+        // des hits RBL avaient déjà été confirmés avant l'épuisement du
+        // budget — un domaine gravement blacklisté + timeout affichait un
+        // meilleur score qu'un domaine propre + timeout.
+        $drmSrc305 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php');
+        if ($drmSrc305 === ''
+            || strpos($drmSrc305, "elseif (!empty(\$bl['timed_out']) && \$hits === 0) {") === false
+        ) {
+            $offenders[] = "DomainReputationManager::computeScore() ne restreint plus la neutralisation du score blacklist au cas hits=0 — régression du bug corrigé le 05/09/2026 (round 305) : un timeout DNS écraserait de nouveau des hits RBL réellement confirmés par un score neutre plus optimiste que le score réel";
+        }
+
+        // Round 305 (05/09/2026) : UpsellManager/LookCompletionManager::
+        // safeProductPrice() ne basculaient que $cart->id_currency, jamais
+        // lu par Product::getPriceStatic() (cœur PrestaShop) pour résoudre
+        // la devise de calcul — uniquement $context->currency->id. Les
+        // correctifs documentés des rounds 198/274/275 n'avaient donc
+        // AUCUN effet réel sur le montant calculé.
+        $usmSrc305 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
+        if ($usmSrc305 === '' || strpos($usmSrc305, '$ctx->currency   = new \Currency($resolvedCurrencyId);') === false) {
+            $offenders[] = "UpsellManager::safeProductPrice() ne bascule plus \$context->currency — régression du bug corrigé le 05/09/2026 (round 305) : le montant calculé redeviendrait résolu dans la devise ambiante du process, quelle que soit la devise réellement transmise";
+        }
+        $lcmSrc305 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
+        if ($lcmSrc305 === '' || strpos($lcmSrc305, '$ctx->currency   = new \Currency($resolvedCurrencyId);') === false) {
+            $offenders[] = "LookCompletionManager::safeProductPrice() ne bascule plus \$context->currency — régression du bug corrigé le 05/09/2026 (round 305)";
+        }
+
+        // Round 305 (05/09/2026) : CollectionManager résolvait
+        // {missing_price} via $product->price brut (catalogue, sans
+        // taxe/promo/groupe tarifaire) — même piège déjà corrigé dans
+        // UpsellManager/LookCompletionManager (round 184), jamais étendu
+        // ici.
+        $colSrc305 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php');
+        if ($colSrc305 === ''
+            || strpos($colSrc305, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCustomer = 0): float') === false
+            || strpos($colSrc305, '$productPrice = $this->safeProductPrice($missingId, $idShop, $idCustomer);') === false
+        ) {
+            $offenders[] = "CollectionManager ne résout plus {missing_price} via safeProductPrice()/Product::getPriceStatic() — régression du bug corrigé le 05/09/2026 (round 305) : un produit manquant en promotion afficherait de nouveau son prix HT plein tarif dans l'email";
+        }
+
+        // Round 305 (05/09/2026) : WebhookManager::trigger() construisait
+        // son payload via array_merge([clés système], $data) — array_merge()
+        // fait primer le DERNIER tableau en cas de collision, une clé
+        // 'event'/'shop_id'/'timestamp' fournie dans $data écraserait
+        // silencieusement les valeurs réelles.
+        $whmSrc305 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php');
+        if ($whmSrc305 === '' || strpos($whmSrc305, 'array_merge($data, [') === false) {
+            $offenders[] = "WebhookManager::trigger() ne place plus les clés système en dernier dans array_merge() — régression du bug corrigé le 05/09/2026 (round 305) : une clé 'event'/'shop_id'/'timestamp' fournie par mégarde dans \$data pourrait de nouveau écraser silencieusement les valeurs réelles du payload webhook";
         }
 
         if ($offenders) {
