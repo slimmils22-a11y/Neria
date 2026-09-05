@@ -749,6 +749,17 @@ class QueueManager
      * inutilement les 3 tentatives disponibles jusqu'à 'failed' de toute
      * façon.
      */
+    // Round 303 : appelle désormais watchdog()->warning() — même principe
+    // que le round 268 juste au-dessus (processSingle()) : un chemin
+    // d'échec qui n'appelle aucun watchdog()->warning()/error() est
+    // invisible (ni alerte immédiate, ni entrée dans le digest quotidien,
+    // filtré sur warning/error/critical, jamais absence de log). Un
+    // marchand ayant planifié un envoi manuel (ManualSendManager::
+    // scheduleManual(), qui répond "programmé avec succès") n'avait
+    // ensuite AUCUN moyen de savoir que l'email n'est jamais parti
+    // (bloqué par bounce/blacklist/préférences/cooldown/produit
+    // indisponible/panier déjà converti), ni pourquoi — la ligne passait
+    // silencieusement en status='failed' en base, sans trace.
     private function markQueueFailed(int $id, string $reason): bool
     {
         $this->db->execute(
@@ -756,6 +767,11 @@ class QueueManager
              SET status = \'failed\',
                  error  = \'' . pSQL('blocked_by_' . $reason) . '\'
              WHERE id_neria_queue = ' . $id
+        );
+
+        $this->watchdog()->warning(
+            \WatchdogManager::i18nMsg('watchdog.queue_blocked', ['reason' => $reason, 'id' => $id]),
+            '', 'QueueManager'
         );
 
         return false;

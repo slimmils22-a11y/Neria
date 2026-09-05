@@ -296,13 +296,19 @@ class PreferencesManager
             return $prefs;
         }
 
-        // Round 178 : ORDER BY id_preference DESC — défense en profondeur
+        // Round 178 : ORDER BY id_preference ASC — défense en profondeur
         // en complément du nettoyage ajouté dans saveByCustomer() : si des
         // lignes dupliquées pour la même catégorie subsistent malgré tout
         // (données legacy antérieures à ce correctif, migration partielle),
-        // la boucle ci-dessous doit retenir la plus RÉCENTE de façon
-        // déterministe plutôt que la dernière selon l'ordre physique
-        // (non garanti) renvoyé par MySQL sans tri explicite.
+        // la boucle ci-dessous écrase $prefs[$cat] à CHAQUE itération —
+        // avec un tri ASC (plus ancien → plus récent), c'est donc bien la
+        // DERNIÈRE itération (la ligne la plus RÉCENTE) qui l'emporte, de
+        // façon déterministe plutôt que selon l'ordre physique (non
+        // garanti) renvoyé par MySQL sans tri explicite. Round 303 :
+        // commentaire corrigé — il affirmait à tort "DESC", ce qui aurait
+        // en réalité fait gagner la ligne la plus ANCIENNE (l'inverse de
+        // l'objectif visé) si un futur correctif s'y était fié pour
+        // "réparer" un tri jugé à tort incohérent avec ce texte.
         $rows = $this->db->executeS(
             "SELECT `category`, `subscribed` FROM `" . _DB_PREFIX_ . self::TABLE . "`
              WHERE `id_shop`    = {$this->idShop}

@@ -85,8 +85,17 @@ class PropensityScoreManager
         // calcFrequencyScore/calcEngagementScore/calcSeasonalityScore) reste
         // rigoureusement identique, seule la source des données change
         // (agrégat pré-chargé au lieu d'un SELECT par client).
+        // Round 303 : TIMESTAMPDIFF(DAY, ..., NOW()) calculé côté SQL
+        // (horloge MySQL des deux côtés), pas via new \DateTime() PHP
+        // comparée à une date issue de MySQL — même correctif déjà
+        // appliqué à ChurnScoreManager::recomputeAll() (round 237) pour ce
+        // même mélange d'horloges, qui fait dériver silencieusement le
+        // score si le serveur web et le serveur MySQL n'ont pas le même
+        // fuseau horaire (seuils sensibles : RECENCY_FULL_DAYS=7).
         $ordersAgg = $this->db->executeS(
-            'SELECT id_customer, COUNT(*) AS cnt, MIN(date_add) AS first_date, MAX(date_add) AS last_date
+            'SELECT id_customer, COUNT(*) AS cnt,
+                    TIMESTAMPDIFF(DAY, MIN(date_add), NOW()) AS days_since_first,
+                    TIMESTAMPDIFF(DAY, MAX(date_add), NOW()) AS days_since_last
              FROM `' . _DB_PREFIX_ . 'orders`
              WHERE id_shop = ' . $this->idShop . ' AND valid = 1
              GROUP BY id_customer'
@@ -131,8 +140,8 @@ class PropensityScoreManager
                 $total = $agg ? (int) $agg['cnt'] : 0;
 
                 $scores = [
-                    'recency'     => $this->calcRecencyScore($agg['last_date'] ?? null),
-                    'frequency'   => $this->calcFrequencyScore($total, $agg['first_date'] ?? null),
+                    'recency'     => $this->calcRecencyScore(isset($agg['days_since_last']) ? (int) $agg['days_since_last'] : null),
+                    'frequency'   => $this->calcFrequencyScore($total, isset($agg['days_since_first']) ? (int) $agg['days_since_first'] : null),
                     'engagement'  => $this->calcEngagementScore((int) $eng['opens'], (int) $eng['clicks']),
                     'seasonality' => $this->calcSeasonalityScore($total, $inMonthById[$idCustomer] ?? 0),
                 ];
@@ -258,25 +267,28 @@ class PropensityScoreManager
 
     private function scoreRecency(int $idCustomer): float
     {
-        $lastOrder = $this->db->getValue(
-            'SELECT MAX(date_add) FROM `' . _DB_PREFIX_ . 'orders`
+        // Round 303 : TIMESTAMPDIFF(DAY, ..., NOW()) côté SQL — voir
+        // commentaire de recalculateAll().
+        $days = $this->db->getValue(
+            'SELECT TIMESTAMPDIFF(DAY, MAX(date_add), NOW()) FROM `' . _DB_PREFIX_ . 'orders`
              WHERE id_customer = ' . $idCustomer . ' AND id_shop = ' . $this->idShop . ' AND valid = 1'
         );
-        return $this->calcRecencyScore($lastOrder ?: null);
+        return $this->calcRecencyScore($days !== false && $days !== null ? (int) $days : null);
     }
 
     /**
      * Round 154 : logique de calcul pure, extraite de scoreRecency() pour
      * être appelée par recalculateAll() à partir d'un agrégat pré-chargé
      * (voir son commentaire) sans refaire un SELECT par client.
+     * Round 303 : reçoit désormais un nombre de jours déjà calculé côté
+     * SQL (TIMESTAMPDIFF), plus une date brute comparée via new \DateTime()
+     * PHP — évite le mélange horloge PHP/horloge MySQL.
      */
-    private function calcRecencyScore(?string $lastOrder): float
+    private function calcRecencyScore(?int $days): float
     {
-        if (!$lastOrder) {
+        if ($days === null) {
             return 0.0;
         }
-
-        $days = (int) (new \DateTime())->diff(new \DateTime($lastOrder))->days;
 
         if ($days <= self::RECENCY_FULL_DAYS) {
             return self::W_RECENCY;
@@ -293,25 +305,32 @@ class PropensityScoreManager
 
     private function scoreFrequency(int $idCustomer): float
     {
+        // Round 303 : TIMESTAMPDIFF(DAY, ..., NOW()) côté SQL — voir
+        // commentaire de recalculateAll().
         $row = $this->db->getRow(
-            'SELECT COUNT(*) AS cnt, MIN(date_add) AS first_date
+            'SELECT COUNT(*) AS cnt, TIMESTAMPDIFF(DAY, MIN(date_add), NOW()) AS days_since_first
              FROM `' . _DB_PREFIX_ . 'orders`
              WHERE id_customer = ' . $idCustomer . ' AND id_shop = ' . $this->idShop . ' AND valid = 1'
         );
         if (!$row || (int) $row['cnt'] === 0) {
             return 0.0;
         }
-        return $this->calcFrequencyScore((int) $row['cnt'], $row['first_date']);
+        return $this->calcFrequencyScore((int) $row['cnt'], isset($row['days_since_first']) ? (int) $row['days_since_first'] : null);
     }
 
-    /** Round 154 : voir calcRecencyScore(). */
-    private function calcFrequencyScore(int $cnt, ?string $firstDate): float
+    /**
+     * Round 154 : voir calcRecencyScore().
+     * Round 303 : reçoit désormais un nombre de jours déjà calculé côté
+     * SQL (TIMESTAMPDIFF), plus une date brute comparée via new \DateTime()
+     * PHP — évite le mélange horloge PHP/horloge MySQL.
+     */
+    private function calcFrequencyScore(int $cnt, ?int $daysSinceFirst): float
     {
-        if ($cnt === 0 || !$firstDate) {
+        if ($cnt === 0 || $daysSinceFirst === null) {
             return 0.0;
         }
 
-        $months = max(1, (int) (new \DateTime($firstDate))->diff(new \DateTime())->days / 30.44);
+        $months = max(1, $daysSinceFirst / 30.44);
         $perMonth = $cnt / $months;
 
         return min(self::W_FREQUENCY, round($perMonth * 8, 1));

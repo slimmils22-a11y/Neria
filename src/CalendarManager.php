@@ -1064,7 +1064,15 @@ class CalendarManager
             '{lastname}'    => $customer['lastname'],
             '{email}'       => $customer['email'],
             '{shop_name}'   => $shopName,
-            '{shop_url}'    => \Tools::getShopDomainSsl(true, true),
+            // Round 303 : getBaseLink($this->idShop), pas
+            // \Tools::getShopDomainSsl() (non scopé, dépend du contexte
+            // d'exécution courant) — même correctif déjà appliqué à
+            // SegmentManager/LoyaltyManager/SeasonalCampaignManager/
+            // ManualSendManager pour ce même piège. checkAndSendDailyEvents()
+            // est appelé dans une boucle multi-boutique (runBackgroundJobs()) ;
+            // sans lui, {shop_url} pointait vers le domaine de la boutique du
+            // CONTEXTE d'exécution courant, pas celle du client réellement ciblé.
+            '{shop_url}'    => \Context::getContext()->link->getBaseLink($this->idShop),
             '{id_customer}' => $customer['id_customer'],
         ];
 

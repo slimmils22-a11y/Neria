@@ -52310,6 +52310,27 @@
         "nl": "Wachtrij — Mail::Send() is mislukt (zonder uitzondering) voor {email} (#{id}) — controleer de SMTP-configuratie",
         "gb": "Queue — Mail::Send() failed (no exception) for {email} (#{id}) — check your SMTP configuration"
     },
+    "watchdog.queue_blocked": {
+        "fr": "Queue — envoi bloqué ({reason}) pour la ligne #{id}",
+        "en": "Queue — send blocked ({reason}) for line #{id}",
+        "de": "Warteschlange — Versand blockiert ({reason}) für Zeile #{id}",
+        "it": "Coda — invio bloccato ({reason}) per la riga #{id}",
+        "es": "Cola — envío bloqueado ({reason}) para la línea #{id}",
+        "pt": "Fila — envio bloqueado ({reason}) para a linha #{id}",
+        "br": "Fila — envio bloqueado ({reason}) para a linha #{id}",
+        "ar": "قائمة الانتظار — تم حظر الإرسال ({reason}) للسطر #{id}",
+        "ja": "キュー — 行 #{id} の送信がブロックされました（{reason}）",
+        "ko": "대기열 — 줄 #{id}의 발송이 차단되었습니다({reason})",
+        "zh": "队列 — 第 #{id} 行的发送已被阻止（{reason}）",
+        "tw": "佇列 — 第 #{id} 行的發送已被封鎖（{reason}）",
+        "ru": "Очередь — отправка заблокирована ({reason}) для строки #{id}",
+        "tr": "Kuyruk — #{id} satırı için gönderim engellendi ({reason})",
+        "sv": "Kö — sändning blockerad ({reason}) för rad #{id}",
+        "no": "Kø — sending blokkert ({reason}) for linje #{id}",
+        "da": "Kø — afsendelse blokeret ({reason}) for linje #{id}",
+        "nl": "Wachtrij — verzending geblokkeerd ({reason}) voor regel #{id}",
+        "gb": "Queue — send blocked ({reason}) for line #{id}"
+    },
     "watchdog.queue_send_error": {
         "fr": "Queue — Erreur pour {email} (#{id}) : {error}",
         "en": "Queue — Error for {email} (#{id}): {error}",
