@@ -47,15 +47,20 @@ function run_test(): array
         $urlWithRealShop = $context->link->getProductLink($product, null, null, null, null, $realShopId);
 
         // Vérification structurelle : notifyProduct() applique bien ce même
-        // switch de contexte et passe $idShop à getProductLink().
+        // switch de contexte et passe la boutique réelle du client à
+        // getProductLink(). Round 302 : la variable a été renommée
+        // $idShop→$rowShopId à l'intérieur de la boucle par inscrit (la
+        // boutique réelle du client peut différer de $idShop, celui de
+        // l'appel d'origine, en mode groupe à stock partagé) — même
+        // mécanisme, littéral mis à jour.
         $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/WaitlistManager.php') ?: '';
         neria_assert(
-            strpos($src, '$context->shop = new \Shop($idShop);') !== false,
-            "WaitlistManager::notifyProduct() ne bascule plus temporairement Context::getContext()->shop sur \$idShop — régression du bug corrigé le 07/08/2026 (round 103) : un client d'une autre boutique pourrait de nouveau recevoir un lien/image produit pointant vers le mauvais domaine"
+            strpos($src, '$context->shop = new \Shop($rowShopId);') !== false,
+            "WaitlistManager::notifyProduct() ne bascule plus temporairement Context::getContext()->shop sur la boutique réelle du client — régression du bug corrigé le 07/08/2026 (round 103) : un client d'une autre boutique pourrait de nouveau recevoir un lien/image produit pointant vers le mauvais domaine"
         );
         neria_assert(
-            strpos($src, 'getProductLink($product, null, null, null, $idLang, $idShop)') !== false,
-            "WaitlistManager::notifyProduct() ne passe plus \$idShop à getProductLink() — régression du bug corrigé le 07/08/2026 (round 103)"
+            strpos($src, 'getProductLink($product, null, null, null, $idLang, $rowShopId)') !== false,
+            "WaitlistManager::notifyProduct() ne passe plus la boutique réelle du client à getProductLink() — régression du bug corrigé le 07/08/2026 (round 103)"
         );
         neria_assert(
             !empty($urlWithRealShop),

@@ -17,6 +17,12 @@
  * réglage global de la boutique de test partagée par toute la suite — trop
  * invasif) : vérifie que la logique de bascule est bien présente et
  * cohérente avec celle du cœur PS.
+ *
+ * Round 302 : signature de notifyProductLocked() élargie d'un paramètre
+ * $shopIds (traite désormais la file combinée de tout le groupe à stock
+ * partagé en un seul appel, pas boutique par boutique) — littéral de
+ * recherche mis à jour, la logique de bascule id_shop=0/id_shop_group=X
+ * ci-dessous est inchangée.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -25,7 +31,7 @@ function run_test(): array
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/WaitlistManager.php');
     neria_assert($src !== false, 'Impossible de lire WaitlistManager.php');
 
-    $posFn = strpos($src, 'private function notifyProductLocked(int $idProduct, int $idShop): int');
+    $posFn = strpos($src, 'private function notifyProductLocked(int $idProduct, int $idShop, array $shopIds): int');
     neria_assert($posFn !== false, 'notifyProductLocked() introuvable — jeu de test invalide');
     $body = substr($src, $posFn, 3600);
 

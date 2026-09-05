@@ -23,6 +23,10 @@
  * remplacé par $this->safeProductPrice($idProduct) (prix réel avec
  * taxe/promo, cf. test_380), le scope devise par $idShop est inchangé.
  * Round 292 : safeProductPrice() élargie d'un paramètre $idCustomer.
+ * Round 302 : $idShop renommé $rowShopId dans la boucle par inscrit (la
+ * boutique réelle du client peut différer de la boutique de l'appel
+ * d'origine en mode groupe à stock partagé) — même scope, littéral mis
+ * à jour.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -32,8 +36,8 @@ function run_test(): array
     neria_assert($src !== false, 'Impossible de lire src/WaitlistManager.php');
 
     neria_assert(
-        strpos($src, "\\NeriaTools::displayPrice(\$this->safeProductPrice(\$idProduct, \$idShop, \$idCustomer), new \\Currency((int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop)), \$idLang)") !== false,
-        "WaitlistManager::notifyProduct() ne résout plus {product_price} via PS_CURRENCY_DEFAULT scopé par \$idShop — régression du bug corrigé le 08/08/2026 (round 109) : un client d'une autre boutique pourrait de nouveau voir un prix dans la devise du contexte d'exécution courant plutôt que celle de sa boutique"
+        strpos($src, "\\NeriaTools::displayPrice(\$this->safeProductPrice(\$idProduct, \$rowShopId, \$idCustomer), new \\Currency((int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$rowShopId)), \$idLang)") !== false,
+        "WaitlistManager::notifyProduct() ne résout plus {product_price} via PS_CURRENCY_DEFAULT scopé par la boutique réelle du client — régression du bug corrigé le 08/08/2026 (round 109) : un client d'une autre boutique pourrait de nouveau voir un prix dans la devise du contexte d'exécution courant plutôt que celle de sa boutique"
     );
 
     return [

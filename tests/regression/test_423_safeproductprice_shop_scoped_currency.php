@@ -43,8 +43,8 @@ function run_test(): array
         "WaitlistManager::safeProductPrice() ne résout plus id_currency via PS_CURRENCY_DEFAULT scopé par \$idShop — régression du bug corrigé le 24/08/2026 (round 198) : le montant serait de nouveau calculé dans la devise ambiante du process"
     );
     neria_assert(
-        strpos($wlSrc, '$this->safeProductPrice($idProduct, $idShop, $idCustomer)') !== false,
-        "WaitlistManager n'appelle plus safeProductPrice() avec \$idShop — régression du bug corrigé le 24/08/2026 (round 198)"
+        strpos($wlSrc, '$this->safeProductPrice($idProduct, $rowShopId, $idCustomer)') !== false,
+        "WaitlistManager n'appelle plus safeProductPrice() avec la boutique réelle du client — régression du bug corrigé le 24/08/2026 (round 198)"
     );
 
     // LookCompletionManager (round 275 : signature élargie d'un paramètre

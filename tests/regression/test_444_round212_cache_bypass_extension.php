@@ -32,7 +32,7 @@ function run_test(): array
         'src/BehavioralCronManager.php' => "AND id_shop = \" . (int) \$customer['id_shop'],\n                        false\n                    );",
         'src/LoyaltyManager.php'        => "AND id_shop = \" . \$reservationShopId,\n                false\n            );",
         'src/UpsellManager.php'         => "AND id_customer        = \" . (int) \$row['id_customer'],\n                    false\n                );",
-        'src/WaitlistManager.php'       => "AND id_product_attribute = {\$idProductAttribute} AND id_shop = {\$idShop}\",\n                false\n            ) > 0;",
+        'src/WaitlistManager.php'       => "AND id_product_attribute = {\$idProductAttribute} AND id_shop = {\$rowShopId}\",\n                false\n            ) > 0;",
         'src/WatchdogManager.php'       => "pSQL(\$message)\n            ), false);",
         'src/CertificateManager.php'    => "SELECT GET_LOCK('\" . pSQL(\$serialLockName) . \"', 5)\",\n            false\n        )) === 1;",
     ];

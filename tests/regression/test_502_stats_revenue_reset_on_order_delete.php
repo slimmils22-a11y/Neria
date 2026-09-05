@@ -21,10 +21,17 @@
  * `StatsManager::adjustConversionRevenueForOrder($idOrder, 0.0)` — même
  * mécanisme déjà utilisé pour le remboursement, réutilisé tel quel.
  *
+ * Round 302 : adjustConversionRevenueForOrder() reçoit désormais un 3e
+ * paramètre $idShop, transmis par ce hook via (int) $order->id_shop (au
+ * lieu de retomber sur le contexte BO ambiant, cf. commentaire de
+ * StatsManager::adjustConversionRevenueForOrder()) — l'objet Order fabriqué
+ * ci-dessous doit donc porter un id_shop réaliste, cohérent avec la ligne
+ * neria_stat insérée pour ce test.
+ *
  * Test comportemental réel : insère une vraie ligne 'conversion' avec un
  * revenu non nul pour une commande de test, déclenche le VRAI hook via
- * l'instance du module (avec un objet Order fabriqué portant cet id), et
- * vérifie que le revenu est bien retombé à 0 en base.
+ * l'instance du module (avec un objet Order fabriqué portant cet id et son
+ * id_shop), et vérifie que le revenu est bien retombé à 0 en base.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -61,6 +68,7 @@ function run_test(): array
 
         $order = new Order();
         $order->id = $idOrder;
+        $order->id_shop = $idShop;
         $module->hookActionObjectOrderDeleteAfter(['object' => $order]);
 
         $revenueAfter = $db->getValue(

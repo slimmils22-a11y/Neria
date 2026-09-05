@@ -17,6 +17,9 @@
  * Tools::displayPrice() nécessitant un contexte HTTP complet, cf.
  * test_107 — serait lourde et fragile pour ce seul contrôle) : vérifie
  * la présence exacte de la condition dans le code source.
+ *
+ * Round 302 : littéral $idShop→$rowShopId (renommage de variable dans la
+ * boucle par inscrit, boutique réelle du client).
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -25,7 +28,7 @@ function run_test(): array
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/WaitlistManager.php');
     neria_assert($src !== false, 'Impossible de lire src/WaitlistManager.php');
 
-    $pos = strpos($src, '$product = new \Product($idProduct, false, $idLang, $idShop);');
+    $pos = strpos($src, '$product = new \Product($idProduct, false, $idLang, $rowShopId);');
     neria_assert($pos !== false, "Instanciation du produit introuvable — jeu de test invalide");
     $body = substr($src, $pos, 300);
 

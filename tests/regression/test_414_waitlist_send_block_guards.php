@@ -24,6 +24,10 @@
  * contrainte que test_365/test_404 pour les fichiers jumeaux) : vérifie
  * que les 4 garde-fous précèdent bien Mail::Send() et libèrent la
  * réservation.
+ *
+ * Round 302 : littéral BlacklistManager($idShop)→BlacklistManager($rowShopId)
+ * — renommage de variable dans la boucle par inscrit (boutique réelle du
+ * client), même garde-fou.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -36,7 +40,7 @@ function run_test(): array
     neria_assert($posMailSend !== false, "Appel Mail::Send() introuvable dans notifyProduct() — jeu de test invalide");
 
     $posBounce = strpos($src, "\\BounceManager::isBounced(\$row['email'])");
-    $posBlacklist = strpos($src, "BlacklistManager(\$idShop))->isBlacklisted('waitlist_available'");
+    $posBlacklist = strpos($src, "BlacklistManager(\$rowShopId))->isBlacklisted('waitlist_available'");
     $posPreferences = strpos($src, "PreferencesManager(\$this->module))->isAllowed(\$idCustomer, 'waitlist_available'");
     $posCooldown = strpos($src, "CooldownManager())->isDuplicate(\$row['email'], 'waitlist_available'");
 

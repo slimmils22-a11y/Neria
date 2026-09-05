@@ -45,7 +45,7 @@ function run_test(): array
         // Round 292 : WaitlistManager élargie d'un paramètre
         // int $idCustomer = 0.
         strpos($wlSrc, 'private function safeProductPrice(int $idProduct, int $idShop, int $idCustomer = 0): float') !== false
-            && strpos($wlSrc, "\$this->safeProductPrice(\$idProduct, \$idShop, \$idCustomer)") !== false,
+            && strpos($wlSrc, "\$this->safeProductPrice(\$idProduct, \$rowShopId, \$idCustomer)") !== false,
         "WaitlistManager n'utilise plus safeProductPrice()/Product::getPriceStatic() pour {product_price} — régression du bug corrigé le 18/08/2026 (round 184)"
     );
     neria_assert(

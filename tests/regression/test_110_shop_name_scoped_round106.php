@@ -50,7 +50,7 @@ function run_test(): array
     $checks = [
         'SegmentManager.php'        => "\\Configuration::get('PS_SHOP_NAME', null, null, \$this->idShop)",
         'LoyaltyManager.php'        => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",
-        'WaitlistManager.php'       => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",
+        'WaitlistManager.php'       => "\\Configuration::get('PS_SHOP_NAME', null, null, \$rowShopId)",
         'OrderTriggersManager.php'  => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",
         'QueueManager.php'          => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",
         'ManualSendManager.php'     => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",

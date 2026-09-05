@@ -23,6 +23,12 @@
  * Fenêtre élargie à 9300 (round 184) : l'ajout de safeProductPrice() et
  * du garde-fou !$product->active a repoussé le point d'instanciation
  * Product plus loin dans la méthode.
+ *
+ * Fenêtre élargie 9300→12800 et littéraux $idShop→$rowShopId (round 302) :
+ * notifyProduct() route désormais la résolution du groupe à stock partagé
+ * avant d'appeler notifyProductLocked(), qui traite la boutique RÉELLE de
+ * chaque inscrit ($rowShopId) plutôt que la boutique d'origine de l'appel
+ * ($idShop) — cf. commentaire round 302 dans WaitlistManager.php.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -51,13 +57,13 @@ function run_test(): array
 
     $posMethod = strpos($src, 'public function notifyProduct(');
     neria_assert($posMethod !== false, 'notifyProduct() introuvable');
-    $body = substr($src, $posMethod, 9300);
+    $body = substr($src, $posMethod, 12800);
     neria_assert(
-        strpos($body, 'Shop::setContext(\Shop::CONTEXT_SHOP, $idShop)') !== false,
+        strpos($body, 'Shop::setContext(\Shop::CONTEXT_SHOP, $rowShopId)') !== false,
         "notifyProduct() ne commute plus le contexte boutique statique via Shop::setContext() — régression du bug corrigé le 08/08/2026 (round 138)"
     );
     neria_assert(
-        strpos($body, 'new \Product($idProduct, false, $idLang, $idShop)') !== false,
+        strpos($body, 'new \Product($idProduct, false, $idLang, $rowShopId)') !== false,
         "notifyProduct() n'instancie plus Product avec l'idShop explicite — régression du bug corrigé le 08/08/2026 (round 138)"
     );
 
