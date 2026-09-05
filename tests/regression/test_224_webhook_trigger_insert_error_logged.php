@@ -23,7 +23,10 @@ function run_test(): array
 
     $posFn = strpos($src, 'public function trigger(string $event, array $data): void');
     neria_assert($posFn !== false, 'trigger() introuvable — jeu de test invalide');
-    $body = substr($src, $posFn, 3300);
+    // Fenêtre élargie 3300→3700 (round 305) : le commentaire expliquant le
+    // réordonnancement d'array_merge() (clés système en dernier, cf.
+    // garde-fou round 305) a repoussé les littéraux plus loin.
+    $body = substr($src, $posFn, 3700);
 
     neria_assert(
         strpos($body, '$ok = $this->db->execute(sprintf(') !== false,
