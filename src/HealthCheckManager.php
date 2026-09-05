@@ -9462,6 +9462,40 @@ class HealthCheckManager
             }
         }
 
+        // Round 304 (05/09/2026) : BounceManager::recordBounce() ne
+        // touchait jamais `status` dans son ON DUPLICATE KEY UPDATE — une
+        // adresse marquée `ignored` via ignoreBounce() restait ignorée
+        // INDÉFINIMENT même face à un nouveau HARD bounce authentique
+        // postérieur (isBounced() ne teste que `status`, jamais
+        // `type`/`bounce_count`), désactivant le filtrage anti-bounce de
+        // façon permanente pour l'adresse — risque de
+        // réputation/délivrabilité continu.
+        $bmSrc304 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php');
+        if ($bmSrc304 === ''
+            || strpos($bmSrc304, "`status`         = IF(VALUES(`type`) = \\'hard\\', \\'active\\', `status`)") === false
+        ) {
+            $offenders[] = "BounceManager::recordBounce() ne réactive plus status='active' sur un nouveau hard bounce — régression du bug corrigé le 05/09/2026 (round 304) : une adresse marquée 'ignored' resterait de nouveau exemptée du filtrage anti-bounce en permanence, même face à un hard bounce authentique postérieur";
+        }
+
+        // Round 304 (05/09/2026) : AdminTranslator::tVars() substituait ses
+        // variables via une boucle str_replace() séquentielle — même piège
+        // déjà corrigé dans TranslationEngine::resolveVariables() (round
+        // documenté dans ce même fichier) : une valeur de variable
+        // contenant littéralement le texte "{autre_clé}" (ex. un extrait
+        // de réponse d'erreur d'API tierce) se faisait re-substituer au
+        // passage suivant, corrompant silencieusement le message affiché
+        // au marchand.
+        $atSrc304 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/AdminTranslator.php');
+        if ($atSrc304 === '') {
+            $offenders[] = 'AdminTranslator.php introuvable (garde-fou round 304)';
+        } else {
+            $posTVars304 = strpos($atSrc304, 'public static function tVars(string $key, array $vars = []): string');
+            $tVarsBody304 = $posTVars304 !== false ? substr($atSrc304, $posTVars304, 400) : '';
+            if ($posTVars304 === false || strpos($tVarsBody304, 'strtr(') === false) {
+                $offenders[] = "AdminTranslator::tVars() n'utilise plus strtr() — régression du bug corrigé le 05/09/2026 (round 304) : une substitution de variable en cascade (dépendante de l'ordre du tableau) redeviendrait possible, pouvant corrompre un message affiché au marchand";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
