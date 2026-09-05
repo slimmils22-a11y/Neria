@@ -862,12 +862,23 @@ class DomainReputationManager
             $blScore = 0;
         } elseif (!empty($bl['skipped'])) {
             $blScore = 25; // IP privée — pas pénalisée
-        } elseif (!empty($bl['timed_out'])) {
+        } elseif (!empty($bl['timed_out']) && $hits === 0) {
             // Vérification incomplète (budget DNS épuisé avant la fin de la
             // boucle RBL) : "0 hit" ne veut ici rien dire de fiable — un
             // domaine réellement blacklisté sur une RBL non atteinte
             // donnerait pourtant hits=[] comme un domaine vraiment propre.
             // Score neutre (ni plein ni nul) plutôt qu'une fausse assurance.
+            //
+            // Round 305 : cette neutralisation ne s'applique désormais QUE
+            // si hits=0 — auparavant elle écrasait INCONDITIONNELLEMENT
+            // $blScore dès qu'un timeout survenait, y compris quand des
+            // hits avaient déjà été confirmés AVANT l'épuisement du budget
+            // DNS. Un hit RBL confirmé est une preuve positive, jamais une
+            // incertitude : un domaine à 5 hits confirmés + timeout
+            // affichait un score neutre de 12/25, MEILLEUR que le score
+            // réel de 0/25 pourtant déjà établi par ces hits — inversant
+            // silencieusement la logique de pénalisation pour le cas le
+            // plus grave (déjà confirmé blacklisté sur plusieurs RBL).
             $blScore = 12;
         }
         $score += $blScore;

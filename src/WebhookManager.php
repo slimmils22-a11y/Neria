@@ -181,12 +181,20 @@ class WebhookManager
             return;
         }
 
+        // Round 305 : les clés système (event/shop_id/timestamp) passent
+        // désormais en SECOND argument d'array_merge() — en cas de clé
+        // identique, array_merge() fait primer le DERNIER tableau fourni.
+        // Aucun appelant actuel ne passe ces clés dans $data, donc ceci
+        // était latent, mais un futur appelant fournissant par mégarde une
+        // clé 'event'/'shop_id'/'timestamp' dans $data écraserait
+        // silencieusement l'événement/la boutique/l'horodatage réels du
+        // payload envoyé au webhook externe.
         $payload = json_encode(
-            array_merge([
+            array_merge($data, [
                 'event'     => $event,
                 'shop_id'   => $this->idShop,
                 'timestamp' => date('c'),
-            ], $data),
+            ]),
             JSON_UNESCAPED_UNICODE
         );
 

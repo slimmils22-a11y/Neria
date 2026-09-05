@@ -497,6 +497,12 @@ class UpsellManager
         $ctx     = $this->context;
         $hadCart = \Validate::isLoadedObject($ctx->cart);
 
+        $resolvedCurrencyId = ($idCurrency !== null && $idCurrency > 0)
+            ? $idCurrency
+            : ($idShop !== null
+                ? ((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop) ?: (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT')))
+                : (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT')));
+
         if (!$hadCart) {
             $tmp = new \Cart();
             // Round 198 : PS_CURRENCY_DEFAULT scopé par $idShop quand connu
@@ -514,13 +520,30 @@ class UpsellManager
             // quand l'affichage (resolveDisplayCurrency()) utilisait déjà
             // la bonne devise, produisant un prix affiché avec le bon
             // symbole mais la mauvaise valeur sous-jacente.
-            $tmp->id_currency = ($idCurrency !== null && $idCurrency > 0)
-                ? $idCurrency
-                : ($idShop !== null
-                    ? ((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop) ?: (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT')))
-                    : (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT')));
+            $tmp->id_currency = $resolvedCurrencyId;
             $tmp->id_lang     = $idLang;
             $ctx->cart        = $tmp;
+        }
+
+        // Round 305 : \Product::getPriceStatic() (cœur PrestaShop) ne lit
+        // JAMAIS $cart->id_currency pour résoudre la devise de calcul —
+        // uniquement $context->currency->id (classes/Product.php, ligne
+        // "$id_currency = ... $context->currency->id ..."). Les rounds
+        // 198/274 ci-dessus ne faisaient donc RIEN sur le MONTANT calculé
+        // malgré leur intention documentée : ils corrigeaient $cart, un
+        // levier ignoré par cette fonction du cœur pour la résolution de
+        // devise. Sans ce switch de $ctx->currency lui-même, un client
+        // ayant commandé dans une devise secondaire (USD sur une boutique
+        // par défaut en EUR) recevait un montant numérique calculé dans la
+        // devise AMBIANTE du process cron (souvent EUR), affiché avec le
+        // symbole $ (résolu séparément par resolveDisplayCurrency()) — un
+        // écart réel prix affiché / prix réellement dû, pas seulement un
+        // symbole erroné.
+        $originalCurrency = $ctx->currency;
+        $currencyChanged   = false;
+        if (!\Validate::isLoadedObject($originalCurrency) || (int) $originalCurrency->id !== $resolvedCurrencyId) {
+            $ctx->currency   = new \Currency($resolvedCurrencyId);
+            $currencyChanged = true;
         }
 
         try {
@@ -533,6 +556,9 @@ class UpsellManager
         } finally {
             if (!$hadCart) {
                 $ctx->cart = null;
+            }
+            if ($currencyChanged) {
+                $ctx->currency = $originalCurrency;
             }
         }
     }

@@ -492,6 +492,10 @@ class LookCompletionManager
         $ctx     = \Context::getContext();
         $hadCart = \Validate::isLoadedObject($ctx->cart);
 
+        $resolvedCurrencyId = $idCurrency > 0
+            ? $idCurrency
+            : ((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop) ?: (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT')));
+
         if (!$hadCart) {
             $tmp = new \Cart();
             // Round 198 : PS_CURRENCY_DEFAULT scopé par $idShop — même
@@ -506,11 +510,23 @@ class LookCompletionManager
             // Round 275 : $idCurrency (devise RÉELLE de la commande, quand
             // connue) prime sur PS_CURRENCY_DEFAULT — même correctif que
             // UpsellManager::safeProductPrice() (round 274).
-            $tmp->id_currency = $idCurrency > 0
-                ? $idCurrency
-                : ((int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop) ?: (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT')));
+            $tmp->id_currency = $resolvedCurrencyId;
             $tmp->id_lang     = (int) ($ctx->language->id ?? \Configuration::get('PS_LANG_DEFAULT'));
             $ctx->cart        = $tmp;
+        }
+
+        // Round 305 : \Product::getPriceStatic() (cœur PrestaShop) ne lit
+        // JAMAIS $cart->id_currency pour résoudre la devise de calcul —
+        // uniquement $context->currency->id. Les rounds 198/275 ci-dessus
+        // ne faisaient donc RIEN sur le MONTANT calculé malgré leur
+        // intention documentée : ils corrigeaient $cart, un levier ignoré
+        // par cette fonction du cœur pour la résolution de devise. Même
+        // correctif que UpsellManager::safeProductPrice() (round 305).
+        $originalCurrency = $ctx->currency;
+        $currencyChanged   = false;
+        if (!\Validate::isLoadedObject($originalCurrency) || (int) $originalCurrency->id !== $resolvedCurrencyId) {
+            $ctx->currency   = new \Currency($resolvedCurrencyId);
+            $currencyChanged = true;
         }
 
         try {
@@ -525,6 +541,9 @@ class LookCompletionManager
         } finally {
             if (!$hadCart) {
                 $ctx->cart = null;
+            }
+            if ($currencyChanged) {
+                $ctx->currency = $originalCurrency;
             }
         }
     }

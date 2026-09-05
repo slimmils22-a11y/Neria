@@ -378,7 +378,19 @@ class CollectionManager
             $productLink  = \Context::getContext()->link->getProductLink($product, null, null, null, $idLang, $idShop);
             $productName  = $product->name;
             $productImage = $this->getProductImageUrl($missingId, $idLang, $idShop);
-            $productPrice = (float) $product->price;
+            // Round 305 : Product::getPriceStatic() (prix réel avec taxe/
+            // promo/groupe tarifaire), pas $product->price brut — même
+            // correctif déjà appliqué à UpsellManager::enrich()/
+            // LookCompletionManager::buildProductBlocks() (round 184),
+            // jamais répliqué ici malgré un contexte identique (email cron,
+            // prix affiché à un client précis). $product->price est le
+            // champ ObjectModel catalogue (HT, sans specific_price/promo,
+            // sans groupe tarifaire) : un produit manquant actuellement en
+            // promotion, ou un client à tarif groupe négocié (B2B),
+            // affichait un prix HT plein tarif dans l'email "il ne vous
+            // manque que X", différent de celui réellement affiché sur la
+            // fiche produit au clic.
+            $productPrice = $this->safeProductPrice($missingId, $idShop, $idCustomer);
 
             $toName = trim($customer->firstname . ' ' . $customer->lastname) ?: null;
 
@@ -546,6 +558,51 @@ class CollectionManager
         }
         $ctx = \Context::getContext();
         return (int) ($ctx->language->id ?? \Configuration::get('PS_LANG_DEFAULT'));
+    }
+
+    /**
+     * Round 305 : prix réel (taxe + specific_price/promo + groupe tarifaire
+     * appliqués), même logique que UpsellManager::safeProductPrice()/
+     * LookCompletionManager::safeProductPrice(). Bascule aussi bien le
+     * panier temporaire QUE $context->currency lui-même : Product::
+     * getPriceStatic() (cœur PrestaShop) ne lit jamais $cart->id_currency
+     * pour résoudre la devise de calcul, uniquement $context->currency->id
+     * — un correctif qui n'agirait que sur $cart n'aurait aucun effet réel
+     * sur le montant calculé (piège identifié round 305 dans les 2 classes
+     * jumelles ci-dessus, corrigé ici dès la première version).
+     */
+    private function safeProductPrice(int $idProduct, int $idShop, int $idCustomer = 0): float
+    {
+        $ctx     = \Context::getContext();
+        $hadCart = \Validate::isLoadedObject($ctx->cart);
+
+        $resolvedCurrencyId = (int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop)
+            ?: (int) ($ctx->currency->id ?? \Configuration::get('PS_CURRENCY_DEFAULT'));
+
+        if (!$hadCart) {
+            $tmp = new \Cart();
+            $tmp->id_currency = $resolvedCurrencyId;
+            $tmp->id_lang     = (int) ($ctx->language->id ?? \Configuration::get('PS_LANG_DEFAULT'));
+            $ctx->cart        = $tmp;
+        }
+
+        $originalCurrency = $ctx->currency;
+        $currencyChanged  = false;
+        if (!\Validate::isLoadedObject($originalCurrency) || (int) $originalCurrency->id !== $resolvedCurrencyId) {
+            $ctx->currency   = new \Currency($resolvedCurrencyId);
+            $currencyChanged = true;
+        }
+
+        try {
+            return (float) \Product::getPriceStatic($idProduct, true, null, 2, null, false, true, 1, false, $idCustomer > 0 ? $idCustomer : null);
+        } finally {
+            if (!$hadCart) {
+                $ctx->cart = null;
+            }
+            if ($currencyChanged) {
+                $ctx->currency = $originalCurrency;
+            }
+        }
     }
 
     private function getProductImageUrl(int $idProduct, int $idLang, int $idShop): string

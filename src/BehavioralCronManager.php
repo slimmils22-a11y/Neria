@@ -617,7 +617,19 @@ class BehavioralCronManager
             return;
         }
         $days   = self::DELAY_WIN_BACK_DAYS;
-        $year   = (int) date('Y');
+        // Round 305 : année sourcée de MySQL (YEAR(NOW())), pas PHP
+        // date('Y') — même correctif déjà appliqué à sendBirthdays() (round
+        // 281) et sendRelationshipAnniversaries() pour ce même piège,
+        // jamais étendu ici malgré le même schéma de dédup annuelle
+        // (ref_id = année). Le test d'éligibilité ci-dessous tourne
+        // entièrement côté MySQL (NOW()) ; si PHP et la session MySQL ne
+        // partagent pas le même fuseau horaire, les deux horloges peuvent
+        // diverger de calendrier autour du nouvel an, faisant enregistrer
+        // la déduplication sur une année différente de celle réellement
+        // détectée par le SELECT — un client pouvait alors recevoir
+        // l'email win_back deux fois (ou jamais l'année suivante) autour
+        // du 31/12-01/01.
+        $year   = (int) $this->db->getValue('SELECT YEAR(NOW())');
         $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             'SELECT c.id_customer, c.email, c.firstname, c.lastname, c.id_lang, c.id_shop
