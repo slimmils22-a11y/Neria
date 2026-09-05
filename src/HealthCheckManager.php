@@ -9417,6 +9417,51 @@ class HealthCheckManager
             $offenders[] = "neria.php::hookActionUpdateQuantityImpl() ne dédoublonne plus les boutiques à stock partagé par groupe — régression du bug corrigé le 05/09/2026 (round 302) : un groupe à stock partagé serait de nouveau traité une fois par boutique membre dans la même exécution du hook";
         }
 
+        // Round 303 (05/09/2026) : PropensityScoreManager::calcRecencyScore()/
+        // calcFrequencyScore() calculaient le nombre de jours via
+        // new \DateTime() PHP comparée à une date issue de MySQL — mélange
+        // d'horloges qui fait dériver silencieusement le score si le
+        // serveur web et le serveur MySQL n'ont pas le même fuseau horaire
+        // (seuils sensibles : RECENCY_FULL_DAYS=7). Même correctif déjà
+        // appliqué à ChurnScoreManager::recomputeAll() (round 237).
+        $propSrc303 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PropensityScoreManager.php');
+        if ($propSrc303 === ''
+            || strpos($propSrc303, 'TIMESTAMPDIFF(DAY, MAX(date_add), NOW()) AS days_since_last') === false
+            || strpos($propSrc303, 'TIMESTAMPDIFF(DAY, MIN(date_add), NOW()) AS days_since_first') === false
+            || strpos($propSrc303, 'private function calcRecencyScore(?int $days): float') === false
+        ) {
+            $offenders[] = "PropensityScoreManager ne calcule plus le nombre de jours via TIMESTAMPDIFF SQL — régression du bug corrigé le 05/09/2026 (round 303) : le score de récence/fréquence redeviendrait sujet au mélange horloge PHP/horloge MySQL";
+        }
+
+        // Round 303 (05/09/2026) : CalendarManager::sendCalendarEmail()
+        // résolvait {shop_url} via \Tools::getShopDomainSsl(true, true) —
+        // non scopé par $this->idShop, contrairement à {shop_name}/
+        // {shop_email} juste au-dessus et Mail::Send() plus bas dans la
+        // même méthode. checkAndSendDailyEvents() est appelé dans une
+        // boucle multi-boutique.
+        $calSrc303 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php');
+        if ($calSrc303 === ''
+            || strpos($calSrc303, "'{shop_url}'    => \\Context::getContext()->link->getBaseLink(\$this->idShop),") === false
+        ) {
+            $offenders[] = "CalendarManager::sendCalendarEmail() ne résout plus {shop_url} via getBaseLink(\$this->idShop) — régression du bug corrigé le 05/09/2026 (round 303) : {shop_url} pointerait de nouveau vers le domaine du contexte d'exécution courant, pas celle de la boutique réelle du client";
+        }
+
+        // Round 303 (05/09/2026) : QueueManager::markQueueFailed() (bounce,
+        // blacklist, préférences, cooldown, produit indisponible, panier
+        // déjà converti) ne journalisait jamais dans le Watchdog — même
+        // principe que le round 268 juste au-dessus (processSingle()) :
+        // un chemin d'échec invisible (ni alerte, ni digest quotidien).
+        $qmSrc303 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        if ($qmSrc303 === '') {
+            $offenders[] = 'QueueManager.php introuvable (garde-fou round 303)';
+        } else {
+            $posMqf303 = strpos($qmSrc303, 'private function markQueueFailed(int $id, string $reason): bool');
+            $mqfBody303 = $posMqf303 !== false ? substr($qmSrc303, $posMqf303, 700) : '';
+            if ($posMqf303 === false || strpos($mqfBody303, 'watchdog()->warning(') === false) {
+                $offenders[] = "QueueManager::markQueueFailed() ne journalise plus dans le Watchdog — régression du bug corrigé le 05/09/2026 (round 303) : un envoi bloqué (bounce/blacklist/préférences/cooldown/produit indisponible/panier déjà converti) redeviendrait totalement invisible pour le marchand";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
