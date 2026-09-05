@@ -3207,11 +3207,11 @@ class HealthCheckManager
         if ($wl2Src === '') {
             $offenders[] = 'WaitlistManager.php introuvable (product_url/product_image scopés par idShop)';
         } else {
-            if (strpos($wl2Src, '$context->shop = new \Shop($idShop);') === false) {
-                $offenders[] = "WaitlistManager::notifyProduct() ne bascule plus temporairement Context::getContext()->shop sur \$idShop — {product_url}/{product_image} pourraient de nouveau pointer vers le mauvais domaine";
+            if (strpos($wl2Src, '$context->shop = new \Shop($rowShopId);') === false) {
+                $offenders[] = "WaitlistManager::notifyProduct() ne bascule plus temporairement Context::getContext()->shop sur la boutique réelle du client — {product_url}/{product_image} pourraient de nouveau pointer vers le mauvais domaine";
             }
-            if (strpos($wl2Src, 'getProductLink($product, null, null, null, $idLang, $idShop)') === false) {
-                $offenders[] = "WaitlistManager::notifyProduct() ne passe plus \$idShop à getProductLink()";
+            if (strpos($wl2Src, 'getProductLink($product, null, null, null, $idLang, $rowShopId)') === false) {
+                $offenders[] = "WaitlistManager::notifyProduct() ne passe plus la boutique réelle du client à getProductLink()";
             }
         }
 
@@ -3268,7 +3268,7 @@ class HealthCheckManager
         $round106Checks = [
             'SegmentManager.php'        => "\\Configuration::get('PS_SHOP_NAME', null, null, \$this->idShop)",
             'LoyaltyManager.php'        => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",
-            'WaitlistManager.php'       => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",
+            'WaitlistManager.php'       => "\\Configuration::get('PS_SHOP_NAME', null, null, \$rowShopId)",
             'OrderTriggersManager.php'  => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",
             'QueueManager.php'          => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",
             'ManualSendManager.php'     => "\\Configuration::get('PS_SHOP_NAME', null, null, \$idShop)",
@@ -3358,12 +3358,19 @@ class HealthCheckManager
         // variables. Un client d'une boutique à devise différente de celle
         // du contexte d'exécution courant (BO admin qui a déclenché la mise
         // à jour de stock) recevait un prix affiché dans la mauvaise devise.
+        // Round 302 : littéral resserré sur l'appel spécifique du bloc
+        // $vars (displayPrice(...), avec $rowShopId, boutique réelle du
+        // client) — un simple "PS_CURRENCY_DEFAULT', null, null, $idShop)"
+        // matcherait à tort le paramètre $idShop interne, sans lien, de
+        // safeProductPrice() elle-même (toujours présent plus bas dans ce
+        // même fichier), rendant ce garde-fou aveugle à une régression
+        // réelle du bloc $vars.
         $wl3File = _PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php';
         $wl3Src = $this->readModuleSrc($wl3File);
         if ($wl3Src === '') {
             $offenders[] = 'WaitlistManager.php introuvable (garde-fou round 109 : product_price scopé par idShop)';
-        } elseif (strpos($wl3Src, "\\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop)") === false) {
-            $offenders[] = "WaitlistManager::notifyProduct() ne résout plus {product_price} via PS_CURRENCY_DEFAULT scopé par \$idShop — régression du bug corrigé le 08/08/2026 (round 109)";
+        } elseif (strpos($wl3Src, "\\NeriaTools::displayPrice(\$this->safeProductPrice(\$idProduct, \$rowShopId, \$idCustomer), new \\Currency((int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$rowShopId)), \$idLang)") === false) {
+            $offenders[] = "WaitlistManager::notifyProduct() ne résout plus {product_price} via PS_CURRENCY_DEFAULT scopé par la boutique réelle du client — régression du bug corrigé le 08/08/2026 (round 109)";
         }
 
         // Round 110 (2026-08-08) : PreferencesManager::getPreferencesUrl()
@@ -4259,11 +4266,16 @@ class HealthCheckManager
         if ($wlmSrc === '') {
             $offenders[] = 'WaitlistManager.php introuvable (garde-fou round 138 : Shop::setContext() + Product idShop)';
         } else {
+            // Round 302 : fenêtre élargie 9500→12800 et littéraux
+            // $idShop→$rowShopId — notifyProduct() route désormais la
+            // résolution du groupe à stock partagé avant d'appeler
+            // notifyProductLocked(), qui traite la boutique RÉELLE de
+            // chaque inscrit ($rowShopId), pas celle de l'appel d'origine.
             $posNP = strpos($wlmSrc, 'public function notifyProduct(');
-            $npBody = $posNP !== false ? substr($wlmSrc, $posNP, 9500) : '';
+            $npBody = $posNP !== false ? substr($wlmSrc, $posNP, 12800) : '';
             if ($posNP === false
-                || strpos($npBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $idShop)') === false
-                || strpos($npBody, 'new \Product($idProduct, false, $idLang, $idShop)') === false
+                || strpos($npBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $rowShopId)') === false
+                || strpos($npBody, 'new \Product($idProduct, false, $idLang, $rowShopId)') === false
             ) {
                 $offenders[] = "WaitlistManager::notifyProduct() ne commute plus le contexte boutique statique via Shop::setContext() avant Product/getCover() — régression du bug corrigé le 08/08/2026 (round 138)";
             }
@@ -6453,7 +6465,10 @@ class HealthCheckManager
         $smSrc185 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
         if ($smSrc185 === '') {
             $offenders[] = 'StatsManager.php introuvable (garde-fou round 185)';
-        } elseif (strpos($smSrc185, 'public function adjustConversionRevenueForOrder(int $idOrder, float $newRevenue): void') === false) {
+        // Round 302 : signature élargie d'un paramètre $idShop optionnel
+        // (scope désormais explicitement la boutique de la commande, pas
+        // le contexte BO ambiant) — littéral mis à jour.
+        } elseif (strpos($smSrc185, 'public function adjustConversionRevenueForOrder(int $idOrder, float $newRevenue, ?int $idShop = null): void') === false) {
             $offenders[] = "StatsManager::adjustConversionRevenueForOrder() a disparu — régression du bug corrigé le 18/08/2026 (round 185) : le revenu attribué à une commande ne serait de nouveau jamais ajusté après un remboursement, surestimant durablement le ROI par template/campagne";
         }
 
@@ -6850,7 +6865,7 @@ class HealthCheckManager
         } else {
             $posMailSend194 = strpos($wlmSrc194, '$mailed = \Mail::Send(');
             $posBounce194 = strpos($wlmSrc194, "\\BounceManager::isBounced(\$row['email'])");
-            $posBlacklist194 = strpos($wlmSrc194, "BlacklistManager(\$idShop))->isBlacklisted('waitlist_available'");
+            $posBlacklist194 = strpos($wlmSrc194, "BlacklistManager(\$rowShopId))->isBlacklisted('waitlist_available'");
             $posPreferences194 = strpos($wlmSrc194, "PreferencesManager(\$this->module))->isAllowed(\$idCustomer, 'waitlist_available'");
             $posCooldown194 = strpos($wlmSrc194, "CooldownManager())->isDuplicate(\$row['email'], 'waitlist_available'");
             if ($posMailSend194 === false || $posBounce194 === false || $posBlacklist194 === false
@@ -7338,7 +7353,7 @@ class HealthCheckManager
             'src/BehavioralCronManager.php' => "AND id_shop = \" . (int) \$customer['id_shop'],\n                        false\n                    );",
             'src/LoyaltyManager.php'        => "AND id_shop = \" . \$reservationShopId,\n                false\n            );",
             'src/UpsellManager.php'         => "AND id_customer        = \" . (int) \$row['id_customer'],\n                    false\n                );",
-            'src/WaitlistManager.php'       => "AND id_product_attribute = {\$idProductAttribute} AND id_shop = {\$idShop}\",\n                false\n            ) > 0;",
+            'src/WaitlistManager.php'       => "AND id_product_attribute = {\$idProductAttribute} AND id_shop = {\$rowShopId}\",\n                false\n            ) > 0;",
             'src/WatchdogManager.php'       => 'pSQL($message)
             ), false);',
             'src/CertificateManager.php'    => "SELECT GET_LOCK('\" . pSQL(\$serialLockName) . \"', 5)\",\n            false\n        )) === 1;",
@@ -8295,7 +8310,7 @@ class HealthCheckManager
         if ($neriaSrc261 === ''
             || strpos($neriaSrc261, "'actionObjectOrderDeleteAfter',") === false
             || strpos($neriaSrc261, 'public function hookActionObjectOrderDeleteAfter(array $params): void') === false
-            || strpos($neriaSrc261, '->adjustConversionRevenueForOrder($idOrder, 0.0);') === false
+            || strpos($neriaSrc261, '->adjustConversionRevenueForOrder($idOrder, 0.0, (int) $order->id_shop);') === false
         ) {
             $offenders[] = "neria.php n'enregistre/n'implémente plus le hook actionObjectOrderDeleteAfter — régression du bug corrigé le 31/08/2026 (round 261) : le revenu 'conversion' d'une commande supprimée resterait de nouveau figé indéfiniment, surestimant les KPIs de ROI par campagne";
         }
@@ -9348,6 +9363,58 @@ class HealthCheckManager
             || strpos($certSrc301, "\$frozenSigPath = isset(\$row['signature_path']) && \$row['signature_path'] !== '' ? \$row['signature_path'] : null;") === false
         ) {
             $offenders[] = "CertificateManager ne fige plus la signature manuscrite à l'émission (paramètre \$frozenSigPath) — régression du bug corrigé le 04/09/2026 (round 301) : un certificat déjà émis changerait de nouveau rétroactivement de signature à chaque re-téléchargement";
+        }
+
+        // Round 302 (05/09/2026) : GdprAuditManager::auditRetention()
+        // appelait Db::getValue() SANS $use_cache=false sur ses requêtes
+        // total/oldest/overdue — $overdue pilote pourtant directement le
+        // grade RGPD affiché au marchand ; un marchand purgeant une table
+        // puis rechargeant l'onglet RGPD pouvait se voir resservir
+        // l'ancien COUNT(*) non nul par le cache SQL.
+        $gdprSrc302 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        if ($gdprSrc302 === ''
+            || strpos($gdprSrc302, "SELECT COUNT(*) FROM `{\$table}`{\$shopWhere}\", false)") === false
+            || strpos($gdprSrc302, "SELECT MIN(`{\$dcol}`) FROM `{\$table}`{\$shopWhere}\",\n                false") === false
+        ) {
+            $offenders[] = "GdprAuditManager::auditRetention() n'a plus \$use_cache=false sur ses requêtes total/oldest — régression du bug corrigé le 05/09/2026 (round 302) : le cache SQL PrestaShop pourrait de nouveau resservir un compteur de rétention périmé, masquant une purge pourtant réussie au marchand dans le rapport RGPD";
+        }
+
+        // Round 302 (05/09/2026) : StatsManager::adjustConversionRevenueForOrder()
+        // filtrait TOUJOURS son UPDATE sur $this->idShop (contexte BO
+        // ambiant, fixé au constructeur), jamais la boutique de la commande
+        // réellement remboursée/supprimée — sur une install multi-boutiques,
+        // l'ajustement de revenu échouait silencieusement (0 ligne matchée)
+        // dès que le contexte BO différait de order->id_shop.
+        $smSrc302 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        if ($smSrc302 === ''
+            || strpos($smSrc302, 'public function adjustConversionRevenueForOrder(int $idOrder, float $newRevenue, ?int $idShop = null): void') === false
+        ) {
+            $offenders[] = "StatsManager::adjustConversionRevenueForOrder() n'accepte plus de \$idShop optionnel — régression du bug corrigé le 05/09/2026 (round 302) : l'ajustement de revenu après remboursement/suppression resterait de nouveau scopé sur le contexte BO ambiant plutôt que la boutique réelle de la commande";
+        }
+        $otmSrc302 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
+        if ($otmSrc302 === ''
+            || strpos($otmSrc302, '(int) $order->id, max(0.0, $orderTotal - $totalRefunded), (int) $order->id_shop') === false
+        ) {
+            $offenders[] = "OrderTriggersManager::handleRefund() ne transmet plus (int) \$order->id_shop à adjustConversionRevenueForOrder() — régression du bug corrigé le 05/09/2026 (round 302)";
+        }
+
+        // Round 302 (05/09/2026) : WaitlistManager::notifyProduct() traitait
+        // les boutiques d'un groupe à stock partagé une par une — chaque
+        // appel relisait indépendamment le même stock partagé (aucune
+        // décrémentation entre boutiques dans la même exécution du hook),
+        // sur-notifiant la file d'attente jusqu'à N× le stock réellement
+        // disponible pour un groupe de N boutiques.
+        $wlSrc302 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php');
+        if ($wlSrc302 === ''
+            || strpos($wlSrc302, "'neria_waitlist_notify_group_'") === false
+            || strpos($wlSrc302, 'private function notifyProductLocked(int $idProduct, int $idShop, array $shopIds): int') === false
+            || strpos($wlSrc302, 'AND w.id_shop IN ({$shopIdsList})') === false
+        ) {
+            $offenders[] = "WaitlistManager ne traite plus la file d'attente combinée d'un groupe à stock partagé en un seul appel — régression du bug corrigé le 05/09/2026 (round 302) : un groupe de N boutiques à stock partagé pourrait de nouveau notifier jusqu'à N× la quantité réellement disponible";
+        }
+        $neriaSrc302 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($neriaSrc302 === '' || strpos($neriaSrc302, '$processedGroups302') === false) {
+            $offenders[] = "neria.php::hookActionUpdateQuantityImpl() ne dédoublonne plus les boutiques à stock partagé par groupe — régression du bug corrigé le 05/09/2026 (round 302) : un groupe à stock partagé serait de nouveau traité une fois par boutique membre dans la même exécution du hook";
         }
 
         if ($offenders) {
