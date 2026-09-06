@@ -4139,10 +4139,12 @@ class Neria extends Module
         // retard (ex: fichiers mis à jour par FTP sans repasser par la liste
         // des modules, qui déclenche habituellement l'upgrade automatiquement).
         if (Tools::getValue('neria_action') === 'repair_module_version' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-            $before = (string) Configuration::get('NERIA_INSTALLED_VERSION');
+            // Round 312 : id_shop=0 explicite — voir correctif détaillé dans
+            // upgrade-1.0.45.php/HealthCheckManager::checkVersionSync().
+            $before = (string) Configuration::get('NERIA_INSTALLED_VERSION', null, null, 0);
             \Module::needUpgrade($this);
             $result = $this->runUpgradeModule();
-            $after  = (string) Configuration::get('NERIA_INSTALLED_VERSION');
+            $after  = (string) Configuration::get('NERIA_INSTALLED_VERSION', null, null, 0);
 
             if (!empty($result['success']) || $after === $this->version) {
                 $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.version_repair_success', ['version' => $after]));
@@ -8117,7 +8119,15 @@ class Neria extends Module
             if ($key !== 'NERIA_INSTALLED_VERSION' && Configuration::get($key) !== false) {
                 continue;
             }
-            if (!Configuration::updateValue($key, $value)) {
+            // Round 312 : NERIA_INSTALLED_VERSION écrite via
+            // updateGlobalValue() — updateValue() écrit sur la boutique du
+            // contexte BO courant dès que le multi-boutique est actif, pas
+            // globalement ; voir le correctif détaillé dans upgrade-1.0.45.php
+            // et HealthCheckManager::checkVersionSync() (même clé).
+            $written = $key === 'NERIA_INSTALLED_VERSION'
+                ? Configuration::updateGlobalValue($key, $value)
+                : Configuration::updateValue($key, $value);
+            if (!$written) {
                 return false;
             }
         }

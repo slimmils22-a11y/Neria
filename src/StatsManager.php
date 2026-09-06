@@ -1709,15 +1709,26 @@ class StatsManager
         // juillet) était systématiquement comparé à un mois complet (juin
         // entier), affichant une "chute" fictive d'activité à volume
         // constant, tant que le mois n'est pas terminé.
-        $dayOfMonth       = (int) date('j');
-        $prevMonthLastDay = (int) date('t', strtotime('first day of last month'));
+        //
+        // Round 312 : toutes les dates ci-dessous étaient calculées via
+        // date()/strtotime() PHP (horloge PHP) comparées à date_add rempli
+        // par MySQL — même piège horloge PHP/MySQL déjà corrigé partout
+        // ailleurs dans ce fichier (rounds 310/311), oublié ici (dernière
+        // méthode de reporting du fichier à en souffrir). Ancré sur
+        // CURDATE() MySQL : $anchor sert de "aujourd'hui" pour tous les
+        // calculs de date qui suivent, au lieu du "now" PHP local.
+        $todaySql312 = (string) $this->db->getValue('SELECT CURDATE()');
+        $anchor           = new \DateTime($todaySql312);
+        $prevMonthAnchor  = (clone $anchor)->modify('first day of last month');
+        $dayOfMonth       = (int) $anchor->format('j');
+        $prevMonthLastDay = (int) $prevMonthAnchor->format('t');
         $prevEndDay       = min($dayOfMonth, $prevMonthLastDay);
 
         $periods = [
-            'current'  => [date('Y-m-01'), date('Y-m-d')],
+            'current'  => [$anchor->format('Y-m-01'), $anchor->format('Y-m-d')],
             'previous' => [
-                date('Y-m-01', strtotime('first day of last month')),
-                date('Y-m-', strtotime('first day of last month')) . str_pad((string) $prevEndDay, 2, '0', STR_PAD_LEFT),
+                $prevMonthAnchor->format('Y-m-01'),
+                $prevMonthAnchor->format('Y-m-') . str_pad((string) $prevEndDay, 2, '0', STR_PAD_LEFT),
             ],
         ];
 
@@ -1781,9 +1792,12 @@ class StatsManager
             $data['delta'][$key] = $prev > 0 ? round(($cur - $prev) / $prev * 100, 1) : null;
         }
 
+        // Round 312 : $anchor/$prevMonthAnchor (ancrés CURDATE() MySQL, voir
+        // plus haut) au lieu de `new \DateTime('first day of ...')` qui
+        // utilise implicitement l'horloge PHP locale.
         $data['labels'] = [
-            'current'  => $this->formatMonthLabel(new \DateTime('first day of this month')),
-            'previous' => $this->formatMonthLabel(new \DateTime('first day of last month')),
+            'current'  => $this->formatMonthLabel(clone $anchor),
+            'previous' => $this->formatMonthLabel(clone $prevMonthAnchor),
         ];
 
         return $data;

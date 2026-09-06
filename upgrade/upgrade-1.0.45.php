@@ -30,7 +30,16 @@ function upgrade_module_1_0_45(Neria $module): bool
         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '{$table}'
     ");
     if (!$tableExists) {
-        Configuration::updateValue('NERIA_INSTALLED_VERSION', $module->version);
+        // Round 312 : updateGlobalValue() au lieu de updateValue() —
+        // Configuration::updateValue() écrit sur la boutique du CONTEXTE BO
+        // courant (pas globalement) dès que le multi-boutique est actif ;
+        // exécuté depuis un contexte BO positionné sur une boutique précise
+        // (pas "Toutes les boutiques"), seule cette boutique obtenait la
+        // ligne NERIA_INSTALLED_VERSION, désynchronisant
+        // HealthCheckManager::checkVersionSync() pour les autres boutiques
+        // — même classe de bug ("Bug 2") déjà corrigée pour 4 autres clés
+        // dans upgrade-1.0.40.php, jamais étendue à cette clé-ci.
+        Configuration::updateGlobalValue('NERIA_INSTALLED_VERSION', $module->version);
         return true;
     }
 
@@ -49,7 +58,8 @@ function upgrade_module_1_0_45(Neria $module): bool
         ");
     }
 
-    $ok = $ok && Configuration::updateValue('NERIA_INSTALLED_VERSION', $module->version);
+    // Round 312 : updateGlobalValue() — voir commentaire détaillé plus haut.
+    $ok = $ok && Configuration::updateGlobalValue('NERIA_INSTALLED_VERSION', $module->version);
 
     return $ok;
 }

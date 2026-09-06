@@ -515,13 +515,33 @@ class WaitlistManager
                          WHERE id_customer = {$idCustomer} AND id_product = {$idProduct}
                            AND id_product_attribute = {$idProductAttribute} AND id_shop = {$rowShopId}"
                     );
-                    $sent++;
+                    // Round 312 : Affected_Rows() vérifié — même garde-fou
+                    // que le claim initial juste plus haut dans cette même
+                    // méthode. Sans lui, un échec silencieux de cet UPDATE
+                    // (perte de connexion transitoire, ou fenêtre de claim
+                    // expirée pendant un envoi SMTP anormalement lent et
+                    // reprise entre-temps par un autre process) laissait
+                    // notified_at NULL malgré un email réellement envoyé et
+                    // un log Watchdog "succès" — au prochain réassort, ce
+                    // même inscrit aurait pu recevoir un second email,
+                    // exactement le double-envoi que le mécanisme de claim
+                    // (round 167/187) est censé empêcher.
+                    if ((int) $this->db->Affected_Rows() > 0) {
+                        $sent++;
 
-                    if (class_exists('WatchdogManager')) {
-                        (new \WatchdogManager($this->module))->info(
-                            sprintf('Waitlist → %s (produit #%d, %d j d\'attente)', $row['email'], $idProduct, $daysWaited),
-                            'waitlist_available', 'WaitlistManager'
-                        );
+                        if (class_exists('WatchdogManager')) {
+                            (new \WatchdogManager($this->module))->info(
+                                sprintf('Waitlist → %s (produit #%d, %d j d\'attente)', $row['email'], $idProduct, $daysWaited),
+                                'waitlist_available', 'WaitlistManager'
+                            );
+                        }
+                    } else {
+                        if (class_exists('WatchdogManager')) {
+                            (new \WatchdogManager($this->module))->warning(
+                                sprintf('Waitlist : email envoyé à %s mais notified_at non confirmé en base (produit #%d) — risque de second envoi au prochain réassort', $row['email'], $idProduct),
+                                'waitlist_available', 'WaitlistManager'
+                            );
+                        }
                     }
                 } else {
                     // Envoi échoué : on libère la réclamation pour permettre un nouvel essai.
