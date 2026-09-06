@@ -4776,8 +4776,11 @@ class HealthCheckManager
         if ($erSrc145 === '') {
             $offenders[] = 'EmailRenderer.php introuvable (garde-fou round 145 : cache-busting signature)';
         } else {
+            // Round 308 : fenêtre élargie 1700→2100 — l'ajout de l'ORDER BY
+            // date_upd DESC (déterminisme signature, garde-fou round 308
+            // ci-dessous) a repoussé 'v=' . $mtime plus loin dans le corps.
             $posRS145 = strpos($erSrc145, 'private function resolveSignature(int $idShop): array');
-            $rsBody145 = $posRS145 !== false ? substr($erSrc145, $posRS145, 1700) : '';
+            $rsBody145 = $posRS145 !== false ? substr($erSrc145, $posRS145, 2100) : '';
             if ($posRS145 === false || strpos($rsBody145, "'v=' . \$mtime") === false) {
                 $offenders[] = "EmailRenderer::resolveSignature() n'ajoute plus de cache-busting à l'URL de signature — régression du bug corrigé le 09/08/2026 (round 145) : le cache navigateur/client email afficherait de nouveau une version périmée après régénération";
             }
@@ -9626,6 +9629,64 @@ class HealthCheckManager
             || strpos($dlvSrc307, "preg_match('/<\\s*([^<>\\s]+@[^<>\\s]+)\\s*>/', \$fromEmail, \$mFrom307)") === false
         ) {
             $offenders[] = "DeliverabilityScorer::score() n'extrait plus l'adresse d'un From avec nom affiché ('Nom <email>') — régression du bug corrigé le 06/09/2026 (round 307) : un domaine d'envoi pourtant parfaitement configuré serait de nouveau pénalisé à tort (-24 pts) sur SPF/DMARC/DKIM";
+        }
+
+        // Round 308 (06/09/2026) : ManualSendManager::scheduleManual()
+        // reprenait fidèlement tous les autres garde-fous de send() (bounce,
+        // contexte commande, blacklist, préférences, variables manquantes,
+        // conflit anniversaire) mais jamais CooldownManager — un envoi
+        // planifié pour un destinataire déjà servi dans la fenêtre de
+        // cooldown était accepté avec succès puis bloqué silencieusement
+        // par le hook au moment réel de l'envoi.
+        $msmSrc308 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        if ($msmSrc308 === ''
+            || substr_count($msmSrc308, "(new \\CooldownManager())->isDuplicate(\$email, \$template, \$cdMinutesManual, \$idShopManual, \$order ? (int) \$order['id_order'] : 0)") !== 1
+        ) {
+            $offenders[] = "ManualSendManager::scheduleManual() ne revérifie plus CooldownManager (Mode Silence) — régression du bug corrigé le 06/09/2026 (round 308) : un envoi planifié pour un destinataire déjà servi dans la fenêtre de cooldown serait de nouveau accepté sans avertir le marchand, puis bloqué silencieusement le jour J";
+        }
+
+        // Round 308 (06/09/2026) : BlacklistManager normalisait la casse du
+        // TEMPLATE (round 136) mais jamais celle du code LANGUE, ni à
+        // l'écriture (add()) ni à la lecture (isBlacklisted()) — une règle
+        // enregistrée avec un code langue en majuscules ne matcherait
+        // jamais le code langue normalisé transmis par les appelants réels.
+        $blSrc308 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BlacklistManager.php');
+        if ($blSrc308 === ''
+            || strpos($blSrc308, "\$lang     = pSQL(mb_strtolower(trim(\$lang)));") === false
+            || strpos($blSrc308, "mb_strtolower(\$rule['lang']) === \$lang") === false
+        ) {
+            $offenders[] = "BlacklistManager ne normalise plus la casse du code langue (add()/isBlacklisted()) — régression du bug corrigé le 06/09/2026 (round 308) : une règle de blacklist enregistrée avec un code langue en majuscules deviendrait de nouveau silencieusement inopérante";
+        }
+
+        // Round 308 (06/09/2026) : ConfigManager::getSignatureConfig() (BO)
+        // et EmailRenderer::resolveSignature() (emails réels) résolvaient
+        // tous deux la signature active sans ORDER BY — en cas d'anomalie
+        // de données (plus d'une ligne is_active=1 pour la même boutique),
+        // la signature affichée en BO pouvait différer de façon non
+        // déterministe de celle réellement injectée dans les emails.
+        // Littéral de recherche volontairement sans saut de ligne (dérive
+        // CRLF de l'environnement — core.autocrlf convertit \n en \r\n à la
+        // récupération, cassant tout littéral figé qui en contiendrait un).
+        $cfgSrc308 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
+        $emlSrc308 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($cfgSrc308 === '' || $emlSrc308 === ''
+            || substr_count($cfgSrc308, "ORDER BY `date_upd` DESC") !== 1
+            || substr_count($emlSrc308, "ORDER BY `date_upd` DESC") !== 1
+        ) {
+            $offenders[] = "ConfigManager::getSignatureConfig() et/ou EmailRenderer::resolveSignature() n'ordonnent plus la résolution de signature active par date_upd DESC — régression du bug corrigé le 06/09/2026 (round 308) : résultat non déterministe possible en cas d'anomalie de données (plus d'une ligne is_active=1), signature BO potentiellement incohérente avec celle réellement injectée dans les emails";
+        }
+
+        // Round 308 (06/09/2026) : TranslationHistoryManager::record()
+        // persistait date_add via date() PHP alors que TranslationEngine::
+        // update() écrit déjà date_upd via NOW() côté SQL pour cette même
+        // clé — même piège horloge PHP/MySQL déjà corrigé rounds 303/305/307
+        // ailleurs, jamais étendu ici.
+        $thmSrc308 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/TranslationHistoryManager.php');
+        if ($thmSrc308 === ''
+            || strpos($thmSrc308, "\$nowSql308 = (string) \$this->db->getValue('SELECT NOW()');") === false
+            || substr_count($thmSrc308, "'date_add'        => \$nowSql308,") !== 1
+        ) {
+            $offenders[] = "TranslationHistoryManager::record() ne source plus date_add via l'horloge MySQL — régression du bug corrigé le 06/09/2026 (round 308) : l'ordre chronologique affiché au marchand entre date_upd (MySQL) et date_add (PHP) pourrait de nouveau être incohérent si les deux serveurs n'ont pas le même fuseau horaire";
         }
 
         if ($offenders) {
