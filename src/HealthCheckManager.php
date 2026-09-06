@@ -9571,6 +9571,21 @@ class HealthCheckManager
             $offenders[] = "WebhookManager::trigger() ne place plus les clés système en dernier dans array_merge() — régression du bug corrigé le 05/09/2026 (round 305) : une clé 'event'/'shop_id'/'timestamp' fournie par mégarde dans \$data pourrait de nouveau écraser silencieusement les valeurs réelles du payload webhook";
         }
 
+        // Round 306 (05/09/2026) : OrderTriggersManager::handleStatusChange()
+        // posait un GET_LOCK() nommé pour order_partial_shipped/
+        // order_on_hold (round 280) sans jamais le libérer via
+        // RELEASE_LOCK() — contrairement à handleRefund()/handleReturn()
+        // dans ce même fichier, qui libèrent bien leur verrou en finally.
+        // Fuite de verrous nommés sur toute connexion réutilisée au-delà
+        // d'une seule requête (worker de file, script CLI par lot).
+        $otmSrc306 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
+        if ($otmSrc306 === ''
+            || substr_count($otmSrc306, "\$this->db->execute(\"SELECT RELEASE_LOCK('\" . pSQL(\$lockNamePs) . \"')\");") !== 1
+            || substr_count($otmSrc306, "\$this->db->execute(\"SELECT RELEASE_LOCK('\" . pSQL(\$lockNameOh) . \"')\");") !== 1
+        ) {
+            $offenders[] = "OrderTriggersManager::handleStatusChange() ne libère plus ses verrous nommés (order_partial_shipped/order_on_hold) via RELEASE_LOCK() — régression du bug corrigé le 05/09/2026 (round 306) : fuite de verrous MySQL nommés sur toute connexion réutilisée au-delà d'une seule requête";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
