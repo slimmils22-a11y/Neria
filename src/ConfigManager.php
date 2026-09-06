@@ -1801,10 +1801,18 @@ class ConfigManager
         // resolveSignature() pour l'injection dans les emails. Les anciennes
         // clés NERIA_SIGNATURE_* n'étaient jamais écrites nulle part.
         $table = _DB_PREFIX_ . 'neria_signature';
+        // Round 308 : ORDER BY ajouté — sans lui, si plus d'une ligne
+        // is_active=1 existait pour cette boutique (anomalie de données),
+        // MySQL ne garantit aucun ordre particulier sans ORDER BY : la
+        // signature affichée ici pouvait différer de façon non déterministe
+        // de celle réellement injectée par EmailRenderer::resolveSignature()
+        // (même défaut, corrigé en même temps) — même convention que
+        // CertificateManager (ORDER BY date_upd DESC).
         $row   = $this->db->getRow(
             "SELECT `signer_name`, `signer_title`, `font_style`, `color`, `image_path`
              FROM `{$table}`
-             WHERE `id_shop` = {$this->idShop} AND `is_active` = 1"
+             WHERE `id_shop` = {$this->idShop} AND `is_active` = 1
+             ORDER BY `date_upd` DESC"
         );
 
         if (!$row) {

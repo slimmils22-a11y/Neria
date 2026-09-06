@@ -64,13 +64,24 @@ class BlacklistManager
         // dès qu'un template en casse mixte serait enregistré par un autre
         // chemin (import, texte libre futur).
         $template = mb_strtolower($template);
+        // Round 308 : même piège que round 136 ci-dessus, jamais étendu à
+        // $lang — add() ne normalise pas la casse du code langue à
+        // l'écriture, et cette comparaison était sensible à la casse.
+        // Non exploitable aujourd'hui via le <select> BO (codes langue déjà
+        // en minuscules), mais silencieusement cassé dès qu'une règle
+        // serait enregistrée avec un code langue en majuscules par un autre
+        // chemin (import CSV, évolution future du BO) : la règle "cette
+        // langue" ne matcherait alors plus jamais le code langue normalisé
+        // (toujours en minuscules) transmis par les appelants, laissant
+        // partir un email censé être bloqué.
+        $lang = mb_strtolower($lang);
         $rules = $this->loadAll();
         foreach ($rules as $rule) {
             if (mb_strtolower($rule['template']) !== $template) {
                 continue;
             }
             // Règle "toutes langues" (lang = '') ou règle pour cette langue précise
-            if ($rule['lang'] === '' || ($lang !== '' && $rule['lang'] === $lang)) {
+            if ($rule['lang'] === '' || ($lang !== '' && mb_strtolower($rule['lang']) === $lang)) {
                 return true;
             }
         }
@@ -87,7 +98,9 @@ class BlacklistManager
     public function add(string $template, string $lang): bool
     {
         $template = pSQL(mb_strtolower(trim($template)));
-        $lang     = pSQL(trim($lang));
+        // Round 308 : mb_strtolower() à l'écriture, même correctif round 136
+        // que $template ci-dessus — voir isBlacklisted() pour le détail.
+        $lang     = pSQL(mb_strtolower(trim($lang)));
         if ($template === '') {
             return false;
         }

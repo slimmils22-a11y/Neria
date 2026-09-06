@@ -2183,11 +2183,17 @@ class EmailRenderer
     {
         $table  = _DB_PREFIX_ . 'neria_signature';
 
+        // Round 308 : ORDER BY ajouté — même correctif que ConfigManager::
+        // getSignatureConfig() (lu par l'onglet Configure BO) : sans lui,
+        // si plus d'une ligne is_active=1 existait pour cette boutique,
+        // l'email envoyé pouvait afficher une signature différente de celle
+        // montrée en BO, MySQL ne garantissant aucun ordre sans ORDER BY.
         $row = \Db::getInstance()->getRow(
             "SELECT `signer_name`, `signer_title`, `image_path`
              FROM `{$table}`
              WHERE `id_shop`  = {$idShop}
-               AND `is_active` = 1"
+               AND `is_active` = 1
+             ORDER BY `date_upd` DESC"
         );
 
         if (!$row) {

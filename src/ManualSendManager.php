@@ -1394,6 +1394,30 @@ class ManualSendManager
             return ['ok' => false, 'message' => AdminTranslator::tVars('msg.send_blocked_preferences', ['email' => $email])];
         }
 
+        // ── Garde-fou Mode Silence (anti-doublon) ─────────────────────────
+        // Round 308 : même garde-fou que send() (round 178) juste au-dessus
+        // du bloc préférences dans cette classe — repris fidèlement ici pour
+        // TOUS les autres garde-fous de send() (bounce, contexte commande,
+        // blacklist, préférences, variables manquantes, conflit
+        // anniversaire) mais jamais pour CooldownManager. Même raisonnement
+        // que le garde-fou préférences juste au-dessus : le hook central
+        // actionEmailSendBefore revérifiera bien le cooldown au moment de
+        // l'envoi réel par QueueManager::processQueue(), mais sans cette
+        // vérification ICI le marchand n'a aucun moyen de savoir, au moment
+        // de la PLANIFICATION, qu'un envoi déjà parti hors-queue pour ce
+        // même destinataire fera échouer silencieusement l'envoi planifié
+        // le jour J (et, pour first_anniversary/relationship_anniversary,
+        // qu'une ligne neria_behavioral_sent serait quand même insérée par
+        // QueueManager comme si l'envoi avait réellement eu lieu).
+        if (class_exists('ConfigManager') && class_exists('CooldownManager')
+            && (new \ConfigManager($this->module))->isCooldownEnabled()
+        ) {
+            $cdMinutesManual = (new \ConfigManager($this->module))->getCooldownMinutes();
+            if ((new \CooldownManager())->isDuplicate($email, $template, $cdMinutesManual, $idShopManual, $order ? (int) $order['id_order'] : 0)) {
+                return ['ok' => false, 'message' => AdminTranslator::tVars('msg.send_blocked_cooldown', ['email' => $email])];
+            }
+        }
+
         if (class_exists('ConfigManager')) {
             $overrideKeys = [];
             foreach (array_keys($contentVars) as $k) {

@@ -80,6 +80,15 @@ class TranslationHistoryManager
             return;
         }
         try {
+            // Round 308 : horloge MySQL (pas date() PHP) — TranslationEngine::
+            // update() écrit déjà date_upd via NOW() côté SQL pour cette même
+            // clé ; si le serveur PHP et le serveur MySQL n'ont pas le même
+            // fuseau horaire, l'entrée d'historique (date_add, horloge PHP)
+            // pouvait apparaître postérieure ou antérieure à date_upd
+            // (horloge MySQL) pour un même flux d'édition BO immédiat
+            // (update() suivi de record()), rendant l'ordre chronologique
+            // affiché au marchand incohérent avec la réalité.
+            $nowSql308 = (string) $this->db->getValue('SELECT NOW()');
             $inserted = $this->db->insert(self::TABLE, [
                 'id_shop'         => $this->idShop,
                 'template_key'    => pSQL($template),
@@ -88,7 +97,7 @@ class TranslationHistoryManager
                 'old_value'       => pSQL($oldValue, true),
                 'new_value'       => pSQL($newValue, true),
                 'author'          => pSQL($author),
-                'date_add'        => date('Y-m-d H:i:s'),
+                'date_add'        => $nowSql308,
             ]);
 
             // Round 151 : échec SQL désormais journalisé — auparavant
