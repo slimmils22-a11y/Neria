@@ -41,7 +41,15 @@ function run_test(): array
     $config = new ConfigManager($module);
     $originalEnabled = Configuration::get(ConfigManager::KEY_COOLDOWN_ENABLED);
     $originalMinutes = Configuration::get(ConfigManager::KEY_COOLDOWN_MINUTES);
-    $template = 'return_slip'; // template réel, hors BYPASS_TEMPLATES
+    // Round 308 : 'return_slip' remplacé par 'vip' — 'return_slip' n'a
+    // jamais fait partie de ManualSendManager::WAVE1_TEMPLATES (isSendable()
+    // le rejette AVANT d'atteindre le garde-fou cooldown), donc ce test
+    // passait bien à cause du message "Template non autorisé", jamais
+    // grâce au garde-fou round 178 qu'il est censé vérifier — découvert en
+    // vérifiant la falsifiabilité du garde-fou symétrique de
+    // scheduleManual() (round 308, test_584) : désactiver le garde-fou
+    // cooldown ne faisait PAS échouer ce test.
+    $template = 'vip'; // template réel de WAVE1_TEMPLATES (isSendable() === true)
 
     try {
         $config->set(ConfigManager::KEY_COOLDOWN_ENABLED, 1);
@@ -57,9 +65,15 @@ function run_test(): array
         $mgr    = new ManualSendManager($module);
         $result = $mgr->send($template, $email, '', '', []);
 
+        // Assertion précise sur le CONTENU du message (pas seulement
+        // ok===false) : send() a plusieurs autres garde-fous (bounce,
+        // blacklist, préférences, isSendable()) qui peuvent aussi renvoyer
+        // ok=false pour une tout autre raison — seul le message de blocage
+        // cooldown prouve que c'est bien CE garde-fou précis qui a été
+        // atteint et déclenché.
         neria_assert(
-            $result['ok'] === false,
-            "ManualSendManager::send() n'est pas bloqué par le Mode Silence alors qu'un envoi identique existe dans la fenêtre de cooldown — régression du bug corrigé le 16/08/2026 (round 178) : CooldownManager n'était jamais revérifié avant Mail::Send(), qui retourne toujours true même quand le hook bloque réellement l'envoi"
+            $result['ok'] === false && str_contains((string) $result['message'], 'Mode Silence'),
+            "ManualSendManager::send() n'est pas bloqué par le Mode Silence alors qu'un envoi identique existe dans la fenêtre de cooldown (message obtenu : '" . ($result['message'] ?? '?') . "') — régression du bug corrigé le 16/08/2026 (round 178) : CooldownManager n'était jamais revérifié avant Mail::Send(), qui retourne toujours true même quand le hook bloque réellement l'envoi"
         );
 
         return [
