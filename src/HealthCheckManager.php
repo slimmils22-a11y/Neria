@@ -9689,6 +9689,84 @@ class HealthCheckManager
             $offenders[] = "TranslationHistoryManager::record() ne source plus date_add via l'horloge MySQL — régression du bug corrigé le 06/09/2026 (round 308) : l'ordre chronologique affiché au marchand entre date_upd (MySQL) et date_add (PHP) pourrait de nouveau être incohérent si les deux serveurs n'ont pas le même fuseau horaire";
         }
 
+        // Round 309 (06/09/2026) : GoldenHourManager::computeRecommendations()
+        // calculait sa borne de fenêtre d'analyse via date()/strtotime() PHP
+        // au lieu de DATE_SUB(NOW(), ...) SQL — même piège horloge PHP/MySQL
+        // déjà corrigé ailleurs dans le module.
+        $ghmSrc309 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GoldenHourManager.php');
+        if ($ghmSrc309 === ''
+            || strpos($ghmSrc309, 'DATE_SUB(NOW(), INTERVAL {$days} DAY)') === false
+        ) {
+            $offenders[] = "GoldenHourManager::computeRecommendations() ne calcule plus sa fenêtre d'analyse via DATE_SUB(NOW(), ...) SQL — régression du bug corrigé le 06/09/2026 (round 309) : la fenêtre pourrait de nouveau dépendre de l'horloge PHP au lieu de MySQL, biaisant sent_count/opened_count en bordure";
+        }
+
+        // Round 309 (06/09/2026) : WatchdogManager::record() persistait
+        // date_add via date() PHP pour une NOUVELLE ligne de log, alors que
+        // le SELECT de dédoublonnage et l'UPDATE de consolidation juste à
+        // côté utilisent tous deux NOW() MySQL — sur le logger CENTRAL du
+        // module lui-même.
+        $wdmSrc309 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WatchdogManager.php');
+        if ($wdmSrc309 === ''
+            || substr_count($wdmSrc309, "VALUES (%d, '%s', '%s', '%s', '%s', %s, 1, NOW())") !== 1
+        ) {
+            $offenders[] = "WatchdogManager::record() ne source plus date_add via l'horloge MySQL sur l'INSERT d'une nouvelle ligne de log — régression du bug corrigé le 06/09/2026 (round 309) : le throttle anti-spam de logs identiques (fenêtre DATE_SUB(NOW(), INTERVAL 1 HOUR)) pourrait de nouveau être faussé si PHP et MySQL n'ont pas le même fuseau horaire";
+        }
+
+        // Round 309 (06/09/2026) : WatchdogManager::getLastCronEndpointHit()
+        // lisait sans $use_cache=false, contrairement aux autres lectures
+        // fraîcheur-critique de ce même fichier.
+        if ($wdmSrc309 === '') {
+            $offenders[] = 'WatchdogManager.php introuvable (garde-fou round 309 : cache getLastCronEndpointHit)';
+        } else {
+            $posGlceh309  = strpos($wdmSrc309, 'public function getLastCronEndpointHit(): ?string');
+            $glcehBody309 = $posGlceh309 !== false ? substr($wdmSrc309, $posGlceh309, 900) : '';
+            $posGv309     = strpos($glcehBody309, '$this->db->getValue(');
+            $posClose309  = $posGv309 !== false ? strpos($glcehBody309, ');', $posGv309) : false;
+            $callBody309  = ($posGv309 !== false && $posClose309 !== false) ? substr($glcehBody309, $posGv309, $posClose309 - $posGv309) : '';
+            if ($posGlceh309 === false || strpos($callBody309, 'false') === false) {
+                $offenders[] = "WatchdogManager::getLastCronEndpointHit() n'a plus \$use_cache=false sur sa lecture — régression du bug corrigé le 06/09/2026 (round 309) : une valeur périmée pourrait de nouveau être resservie par le cache SQL PrestaShop juste après un cronHeartbeat('cron_endpoint', ...) réussi";
+            }
+        }
+
+        // Round 309 (06/09/2026) : PostmasterManager/SearchConsoleManager
+        // écrivent leurs clés OAuth volontairement globales via
+        // updateGlobalValue() (round 185) mais les lisaient via un simple
+        // Configuration::get($key) sans $idShop explicite — une ligne
+        // id_shop-scopée périmée pouvait rester préférée à la ligne globale
+        // à jour sur le cœur PrestaShop.
+        $pmSrc309 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php');
+        if ($pmSrc309 === ''
+            || strpos($pmSrc309, 'private function cfgGlobal(string $key)') === false
+            || strpos($pmSrc309, 'return \Configuration::get($key, null, null, 0);') === false
+        ) {
+            $offenders[] = "PostmasterManager::cfgGlobal() a disparu — régression du bug corrigé le 06/09/2026 (round 309) : les clés OAuth volontairement globales (client_id/secret, access/refresh token...) pourraient de nouveau lire une ligne id_shop-scopée périmée au lieu de la valeur globale à jour";
+        }
+        $scmSrc309 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php');
+        if ($scmSrc309 === ''
+            || strpos($scmSrc309, 'private function cfgGlobal(string $key)') === false
+            || strpos($scmSrc309, 'return \Configuration::get($key, null, null, 0);') === false
+        ) {
+            $offenders[] = "SearchConsoleManager::cfgGlobal() a disparu — régression du bug corrigé le 06/09/2026 (round 309) : même bug que PostmasterManager::cfgGlobal()";
+        }
+
+        // Round 309 (06/09/2026) : SeoApiManager::invalidateCache() ne
+        // purgeait que le cache de résultat, jamais LAST_ERROR/LAST_ERROR_AT
+        // — une erreur de l'ancien fournisseur/ancienne clé continuait à
+        // s'afficher malgré le changement de configuration en BO.
+        $seoSrc309 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeoApiManager.php');
+        if ($seoSrc309 === '') {
+            $offenders[] = 'SeoApiManager.php introuvable (garde-fou round 309 : invalidateCache purge erreur)';
+        } else {
+            $posInv309  = strpos($seoSrc309, 'public function invalidateCache(): void');
+            $invBody309 = $posInv309 !== false ? substr($seoSrc309, $posInv309, 1100) : '';
+            if ($posInv309 === false
+                || substr_count($invBody309, 'deleteByName($this->cacheKey(self::CONFIG_LAST_ERROR))') !== 1
+                || substr_count($invBody309, 'deleteByName($this->cacheKey(self::CONFIG_LAST_ERROR_AT))') !== 1
+            ) {
+                $offenders[] = "SeoApiManager::invalidateCache() ne purge plus LAST_ERROR/LAST_ERROR_AT — régression du bug corrigé le 06/09/2026 (round 309) : une erreur de l'ancien fournisseur/ancienne clé continuerait à s'afficher dans l'onglet santé BO malgré le changement de configuration";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
