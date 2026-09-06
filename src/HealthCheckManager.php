@@ -9889,6 +9889,52 @@ class HealthCheckManager
             }
         }
 
+        // Round 312 (06/09/2026) : StatsManager::getMonthlyComparison()
+        // (dernière méthode de reporting du fichier à en souffrir) calculait
+        // toutes ses bornes/labels de mois via date()/strtotime()/
+        // new DateTime() PHP au lieu d'un ancrage CURDATE() MySQL — même
+        // piège horloge PHP/MySQL déjà corrigé partout ailleurs dans ce
+        // fichier (rounds 310/311).
+        $smSrc312 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        if ($smSrc312 === ''
+            || strpos($smSrc312, "\$todaySql312 = (string) \$this->db->getValue('SELECT CURDATE()');") === false
+        ) {
+            $offenders[] = "StatsManager::getMonthlyComparison() n'ancre plus ses bornes/labels de mois sur CURDATE() MySQL — régression du bug corrigé le 06/09/2026 (round 312) : le comparatif mois-à-date redeviendrait dépendant de l'horloge PHP au lieu de MySQL";
+        }
+
+        // Round 312 (06/09/2026) : NERIA_INSTALLED_VERSION était écrite via
+        // Configuration::updateValue() (boutique du contexte BO courant,
+        // pas globalement) à 3 endroits et lue sans forcer id_shop=0 à 2
+        // endroits — même classe de bug ("Bug 2") déjà corrigée pour 4
+        // autres clés dans upgrade-1.0.40.php, jamais étendue à celle-ci.
+        $up45Src312 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/upgrade/upgrade-1.0.45.php');
+        if ($up45Src312 === ''
+            || substr_count($up45Src312, "Configuration::updateGlobalValue('NERIA_INSTALLED_VERSION'") !== 2
+        ) {
+            $offenders[] = "upgrade-1.0.45.php n'écrit plus NERIA_INSTALLED_VERSION via updateGlobalValue() — régression du bug corrigé le 06/09/2026 (round 312) : un upgrade exécuté depuis un contexte BO scopé à une boutique précise désynchroniserait de nouveau checkVersionSync() pour les autres boutiques";
+        }
+        if ($nSrc311 === ''
+            || strpos($nSrc311, "Configuration::updateGlobalValue(\$key, \$value)") === false
+            || substr_count($nSrc311, "Configuration::get('NERIA_INSTALLED_VERSION', null, null, 0)") !== 2
+        ) {
+            $offenders[] = "neria.php ne lit/n'écrit plus NERIA_INSTALLED_VERSION globalement (setDefaultConfiguration()/repair_module_version) — régression du bug corrigé le 06/09/2026 (round 312)";
+        }
+        if (strpos($this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php'), "\$installedVersion = (string) \\Configuration::get('NERIA_INSTALLED_VERSION', null, null, 0);") === false) {
+            $offenders[] = "HealthCheckManager::checkVersionSync() ne lit plus NERIA_INSTALLED_VERSION avec id_shop=0 explicite — régression du bug corrigé le 06/09/2026 (round 312)";
+        }
+
+        // Round 312 (06/09/2026) : WaitlistManager::notifyProductLocked()
+        // ne vérifiait jamais Affected_Rows() sur l'UPDATE de notified_at
+        // après un envoi réussi — contrairement au claim initial de cette
+        // même méthode (round 167/187).
+        $wlmSrc312 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php');
+        if ($wlmSrc312 === ''
+            || strpos($wlmSrc312, 'SET notified_at = NOW()') === false
+            || strpos($wlmSrc312, '(int) $this->db->Affected_Rows() > 0') === false
+        ) {
+            $offenders[] = "WaitlistManager::notifyProductLocked() ne vérifie plus Affected_Rows() après l'UPDATE de notified_at — régression du bug corrigé le 06/09/2026 (round 312) : un échec silencieux de cet UPDATE laisserait de nouveau notified_at NULL malgré un email réellement envoyé, exposant à un second envoi au prochain réassort";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
@@ -13724,12 +13770,19 @@ class HealthCheckManager
      */
     private function checkVersionSync(): array
     {
-        $installedVersion = (string) \Configuration::get('NERIA_INSTALLED_VERSION');
+        // Round 312 : id_shop=0 explicite à la lecture, cohérent avec
+        // l'écriture désormais globale (updateGlobalValue(), upgrade-1.0.45.php
+        // et le repli "première install" juste en dessous) — même correctif
+        // que PostmasterManager::cfgGlobal()/SearchConsoleManager::cfgGlobal()
+        // (round 309) : sans lui, une ligne id_shop-scopée périmée (upgrade
+        // exécuté depuis une boutique précise avant ce correctif) resterait
+        // préférée à la ligne globale à jour par le cœur PrestaShop.
+        $installedVersion = (string) \Configuration::get('NERIA_INSTALLED_VERSION', null, null, 0);
         $currentVersion   = $this->module->version;
 
         if ($installedVersion === '' || $installedVersion === false) {
             // Première install ou module trop ancien : on écrit la version courante
-            \Configuration::updateValue('NERIA_INSTALLED_VERSION', $currentVersion);
+            \Configuration::updateGlobalValue('NERIA_INSTALLED_VERSION', $currentVersion);
             return [
                 'status' => self::STATUS_OK,
                 'detail' => AdminTranslator::tVars('health.version_registered', ['version' => $currentVersion]),
