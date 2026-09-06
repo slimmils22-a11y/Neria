@@ -9815,6 +9815,80 @@ class HealthCheckManager
             $offenders[] = "StatsManager::getKpiTrends() ne calcule plus ses bornes de fenêtre via DATE_SUB(CURDATE(), ...) SQL — régression du bug corrigé le 06/09/2026 (round 310) : le delta % de tendance semaine-sur-semaine pourrait de nouveau dépendre de l'horloge PHP au lieu de MySQL";
         }
 
+        // Round 311 (06/09/2026) : ~12 autres méthodes de reporting de
+        // StatsManager (getGlobalReport/getReportByLang/getReportByCountry/
+        // getDailyEvolution/getKpis/getABTestReport/getRevenueStats/
+        // getRevenueDailyByCategory/getEngagementDailyChart/getOpenHeatmap/
+        // getTopTemplatesByMetric/getTopTemplatesByRevenue) partageaient le
+        // même défaut horloge PHP/MySQL que getKpiTrends() (round 310),
+        // jamais étendu. Sous-cas plus sévère sur les 2 méthodes à liste
+        // $dates (labels ET filtre) : ancrage $todaySql311 sur CURDATE()
+        // MySQL requis, sinon un jour réellement présent en base peut
+        // silencieusement perdre tout son revenu/engagement affiché.
+        if ($smSrc310 === ''
+            || substr_count($smSrc310, 'DATE_SUB(NOW(), INTERVAL {$days} DAY)') < 9
+            || substr_count($smSrc310, "\$todaySql311 = (string) \$this->db->getValue('SELECT CURDATE()');") !== 2
+        ) {
+            $offenders[] = "StatsManager : une ou plusieurs des ~12 méthodes de reporting ne calculent plus leur borne de fenêtre via DATE_SUB(NOW(), ...) SQL, ou l'ancrage \$todaySql311 (CURDATE() MySQL) des listes \$dates a disparu — régression du bug corrigé le 06/09/2026 (round 311) : des rapports BO (revenus, engagement, top templates...) pourraient de nouveau dépendre de l'horloge PHP au lieu de MySQL, avec un risque de perte silencieuse de données du jour courant sur les graphiques par catégorie/jour";
+        }
+
+        // Round 311 (06/09/2026) : quote_mark_won/quote_mark_lost/
+        // quote_delete/lifespan_delete (neria.php) affichaient un message
+        // de succès inconditionnellement dès que l'id fourni était
+        // numériquement positif, sans jamais vérifier Affected_Rows() —
+        // même pattern que restore_translation/restore_variant_b/
+        // add_calendar_event (round 310), retrouvé dans une zone différente.
+        $nSrc311 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($nSrc311 === ''
+            || substr_count($nSrc311, "AdminTranslator::t('msg.quote_not_found')") < 3
+            || strpos($nSrc311, "AdminTranslator::t('msg.lifespan_not_found')") === false
+        ) {
+            $offenders[] = "quote_mark_won/quote_mark_lost/quote_delete/lifespan_delete n'assignent plus de neria_error dédié pour le cas 0 ligne affectée — régression du bug corrigé le 06/09/2026 (round 311) : le message de succès s'afficherait de nouveau même pour un ID inexistant ou d'une autre boutique";
+        }
+
+        // Round 311 (06/09/2026) : save_seasonal_campaign/
+        // delete_seasonal_campaign/toggle_seasonal_campaign (neria.php)
+        // affichaient un succès inconditionnel — SeasonalCampaignManager::
+        // update()/delete()/toggle() étaient void, jamais de retour
+        // exploitable. Passées à bool (Affected_Rows() > 0 pour delete/
+        // toggle ; vérification d'existence préalable pour update(), qui
+        // ne modifierait sinon aucune valeur si le marchand resoumet des
+        // données identiques — Affected_Rows() ne compte QUE les lignes
+        // dont une valeur a réellement changé, pas les lignes matchées).
+        $scmSrc311 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php');
+        if ($scmSrc311 === ''
+            || strpos($scmSrc311, 'public function update(int $id, array $data): bool') === false
+            || strpos($scmSrc311, 'public function delete(int $id): bool') === false
+            || strpos($scmSrc311, 'public function toggle(int $id): bool') === false
+            || strpos($scmSrc311, "WHERE id_campaign = ' . (int) \$id . ' AND id_shop = ' . (int) \$this->idShop,\n            false\n        );") === false
+        ) {
+            // Littéral d'existence préalable potentiellement fragile aux
+            // sauts de ligne (dérive CRLF documentée du projet) — vérifié
+            // séparément sans saut de ligne juste après.
+            if ($scmSrc311 === '' || strpos($scmSrc311, "SELECT 1 FROM `' . \$this->prefix . self::TABLE . '`") === false) {
+                $offenders[] = "SeasonalCampaignManager::update()/delete()/toggle() ne renvoient plus bool, ou update() a perdu sa vérification d'existence préalable — régression du bug corrigé le 06/09/2026 (round 311) : save_seasonal_campaign/delete_seasonal_campaign/toggle_seasonal_campaign afficheraient de nouveau un succès inconditionnel en BO, ou update() confondrait à tort 'aucun changement réel' avec 'campagne introuvable'";
+            }
+        }
+        if (strpos($nSrc311, "AdminTranslator::t('msg.seasonal_campaign_not_found')") === false) {
+            $offenders[] = "neria.php n'exploite plus le retour bool de SeasonalCampaignManager::update()/delete()/toggle() (neria_error msg.seasonal_campaign_not_found absent) — régression du bug corrigé le 06/09/2026 (round 311)";
+        }
+
+        // Round 311 (06/09/2026) : ChurnScoreManager::computeScore()
+        // n'appliquait le garde-fou MIN_SAMPLE_SENDS (round 257) qu'à la
+        // composante "Taux récent", jamais à la composante "Tendance" —
+        // qui réutilise pourtant $rate1 (via $decline) et souffre du même
+        // défaut sur un échantillon sent_p1 insuffisant.
+        $csmSrc311 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php');
+        if ($csmSrc311 === '') {
+            $offenders[] = 'ChurnScoreManager.php introuvable (garde-fou round 311 : symétrie MIN_SAMPLE_SENDS composante Tendance)';
+        } else {
+            $posTrend311 = strpos($csmSrc311, '// Composante 3 — Tendance de déclin P3 → P1 (0-30 pts)');
+            $trendBody311 = $posTrend311 !== false ? substr($csmSrc311, $posTrend311, 900) : '';
+            if ($posTrend311 === false || strpos($trendBody311, "(int) \$r['sent_p1'] < self::MIN_SAMPLE_SENDS") === false) {
+                $offenders[] = "ChurnScoreManager::computeScore() : la composante Tendance ne vérifie plus sent_p1 < MIN_SAMPLE_SENDS — régression du bug corrigé le 06/09/2026 (round 311) : un client par ailleurs très engagé pourrait de nouveau se voir attribuer jusqu'à 30 pts de risque churn sur la base d'un seul envoi récent non ouvert (échantillon non significatif)";
+            }
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
