@@ -5461,11 +5461,20 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'lifespan_delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idLifespan = (int) Tools::getValue('lifespan_id');
             if ($idLifespan > 0) {
-                Db::getInstance()->execute(
+                $dbLs311 = Db::getInstance();
+                $dbLs311->execute(
                     'DELETE FROM `' . _DB_PREFIX_ . 'neria_product_lifespan`
                      WHERE id_lifespan = ' . $idLifespan . ' AND id_shop = ' . (int) $this->context->shop->id
                 );
-                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.lifespan_product_removed'));
+                // Round 311 : Affected_Rows() vérifié — même pattern que
+                // restore_translation/restore_variant_b/add_calendar_event
+                // (round 310) : Db::execute() renvoie true même à 0 ligne
+                // affectée (id_lifespan inexistant ou d'une autre boutique).
+                if ((int) $dbLs311->Affected_Rows() > 0) {
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.lifespan_product_removed'));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.lifespan_not_found'));
+                }
             }
         }
 
@@ -5545,12 +5554,22 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'quote_mark_won' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idQuote = (int) Tools::getValue('id_quote');
             if ($idQuote > 0) {
-                Db::getInstance()->execute(
+                $dbQ310 = Db::getInstance();
+                $dbQ310->execute(
                     'UPDATE `' . _DB_PREFIX_ . 'neria_quote`
                      SET status = \'won\', date_upd = NOW()
                      WHERE id_quote = ' . $idQuote . ' AND id_shop = ' . (int) $this->context->shop->id
                 );
-                $this->assignQuoteMsg('success', AdminTranslator::t('msg.quote_marked_won'));
+                // Round 311 : Affected_Rows() vérifié — même pattern que
+                // restore_translation/restore_variant_b/add_calendar_event
+                // (round 310) : Db::execute() renvoie true même à 0 ligne
+                // affectée (id_quote inexistant ou d'une autre boutique),
+                // affichant à tort "Devis marqué comme gagné".
+                if ((int) $dbQ310->Affected_Rows() > 0) {
+                    $this->assignQuoteMsg('success', AdminTranslator::t('msg.quote_marked_won'));
+                } else {
+                    $this->assignQuoteMsg('error', AdminTranslator::t('msg.quote_not_found'));
+                }
             }
         }
 
@@ -5558,12 +5577,19 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'quote_mark_lost' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idQuote = (int) Tools::getValue('id_quote');
             if ($idQuote > 0) {
-                Db::getInstance()->execute(
+                $dbQ310 = Db::getInstance();
+                $dbQ310->execute(
                     'UPDATE `' . _DB_PREFIX_ . 'neria_quote`
                      SET status = \'lost\', date_upd = NOW()
                      WHERE id_quote = ' . $idQuote . ' AND id_shop = ' . (int) $this->context->shop->id
                 );
-                $this->assignQuoteMsg('success', AdminTranslator::t('msg.quote_marked_lost'));
+                // Round 311 : Affected_Rows() vérifié — voir commentaire
+                // détaillé sur quote_mark_won ci-dessus.
+                if ((int) $dbQ310->Affected_Rows() > 0) {
+                    $this->assignQuoteMsg('success', AdminTranslator::t('msg.quote_marked_lost'));
+                } else {
+                    $this->assignQuoteMsg('error', AdminTranslator::t('msg.quote_not_found'));
+                }
             }
         }
 
@@ -5571,11 +5597,18 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'quote_delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idQuote = (int) Tools::getValue('id_quote');
             if ($idQuote > 0) {
-                Db::getInstance()->execute(
+                $dbQ310 = Db::getInstance();
+                $dbQ310->execute(
                     'DELETE FROM `' . _DB_PREFIX_ . 'neria_quote`
                      WHERE id_quote = ' . $idQuote . ' AND id_shop = ' . (int) $this->context->shop->id
                 );
-                $this->assignQuoteMsg('success', AdminTranslator::t('msg.quote_deleted'));
+                // Round 311 : Affected_Rows() vérifié — voir commentaire
+                // détaillé sur quote_mark_won ci-dessus.
+                if ((int) $dbQ310->Affected_Rows() > 0) {
+                    $this->assignQuoteMsg('success', AdminTranslator::t('msg.quote_deleted'));
+                } else {
+                    $this->assignQuoteMsg('error', AdminTranslator::t('msg.quote_not_found'));
+                }
             }
         }
 
@@ -5929,9 +5962,16 @@ class Neria extends Module
                 'max_age'        => $maxAge,
                 'gift_mode'      => (int) (bool) Tools::getValue('seasonal_gift_mode', 0),
             ];
+            // Round 311 : résultat réel vérifié — update()/delete()/
+            // toggle() renvoient désormais un bool (Affected_Rows() > 0)
+            // au lieu de void ; create() insère toujours une nouvelle
+            // ligne (pas de clause WHERE pouvant échouer silencieusement).
             if ($id > 0) {
-                $mgr->update($id, $data);
-                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.seasonal_campaign_updated'));
+                if ($mgr->update($id, $data)) {
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.seasonal_campaign_updated'));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.seasonal_campaign_not_found'));
+                }
             } else {
                 $mgr->create($data);
                 $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.seasonal_campaign_created'));
@@ -5942,8 +5982,11 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'delete_seasonal_campaign' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('SeasonalCampaignManager')) {
             $id = (int) Tools::getValue('id_campaign', 0);
             if ($id > 0) {
-                (new SeasonalCampaignManager($this))->delete($id);
-                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.seasonal_campaign_deleted'));
+                if ((new SeasonalCampaignManager($this))->delete($id)) {
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.seasonal_campaign_deleted'));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.seasonal_campaign_not_found'));
+                }
             }
         }
 
@@ -5951,8 +5994,11 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'toggle_seasonal_campaign' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('SeasonalCampaignManager')) {
             $id = (int) Tools::getValue('id_campaign', 0);
             if ($id > 0) {
-                (new SeasonalCampaignManager($this))->toggle($id);
-                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                if ((new SeasonalCampaignManager($this))->toggle($id)) {
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.seasonal_campaign_not_found'));
+                }
             }
         }
 

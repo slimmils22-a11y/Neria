@@ -425,7 +425,14 @@ class StatsManager
     public function getGlobalReport(int $days = 30, string $lang = ''): array
     {
         $table      = _DB_PREFIX_ . self::TABLE;
-        $dateFrom   = date('Y-m-d', strtotime("-{$days} days"));
+        // Round 311 : borne calculée côté SQL (DATE_SUB(NOW(), ...)) au
+        // lieu de date()/strtotime() PHP — même piège horloge PHP/MySQL
+        // déjà corrigé round 310 (getKpiTrends()) et ailleurs dans ce même
+        // fichier (detectMpp()/detectAnomalies()) : si le serveur PHP et le
+        // serveur MySQL n'ont pas le même fuseau horaire, la fenêtre
+        // calculée en PHP pouvait décaler d'un jour les événements proches
+        // de minuit, faussant les totaux/taux affichés au marchand.
+        $days       = (int) $days;
         $langFilter = $lang ? "AND `lang` = '" . pSQL($lang) . "'" : '';
 
         $sql = "SELECT
@@ -436,7 +443,7 @@ class StatsManager
                     COUNT(CASE WHEN `event_type` = 'click'                    THEN 1 END) AS total_click
                 FROM `{$table}`
                 WHERE `id_shop`  = {$this->idShop}
-                  AND `date_add` >= '{$dateFrom}'
+                  AND `date_add` >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
                   {$langFilter}
                 GROUP BY `template`
                 ORDER BY `total_sent` DESC";
@@ -460,7 +467,9 @@ class StatsManager
     public function getReportByLang(int $days = 30, string $template = ''): array
     {
         $table          = _DB_PREFIX_ . self::TABLE;
-        $dateFrom       = date('Y-m-d', strtotime("-{$days} days"));
+        // Round 311 : voir commentaire détaillé dans getGlobalReport() —
+        // borne calculée côté SQL au lieu de date()/strtotime() PHP.
+        $days           = (int) $days;
         $templateFilter = $template
             ? "AND `template` = '" . pSQL($template) . "'"
             : '';
@@ -472,7 +481,7 @@ class StatsManager
                     COUNT(CASE WHEN `event_type` = 'click'                    THEN 1 END) AS total_click
                 FROM `{$table}`
                 WHERE `id_shop`  = {$this->idShop}
-                  AND `date_add` >= '{$dateFrom}'
+                  AND `date_add` >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
                   {$templateFilter}
                 GROUP BY `lang`
                 ORDER BY `total_sent` DESC";
@@ -496,7 +505,9 @@ class StatsManager
     public function getReportByCountry(int $days = 30): array
     {
         $table    = _DB_PREFIX_ . self::TABLE;
-        $dateFrom = date('Y-m-d', strtotime("-{$days} days"));
+        // Round 311 : voir commentaire détaillé dans getGlobalReport() —
+        // borne calculée côté SQL au lieu de date()/strtotime() PHP.
+        $days     = (int) $days;
 
         $sql = "SELECT
                     `country_code`,
@@ -505,7 +516,7 @@ class StatsManager
                     COUNT(CASE WHEN `event_type` = 'click'                    THEN 1 END) AS total_click
                 FROM `{$table}`
                 WHERE `id_shop`      = {$this->idShop}
-                  AND `date_add`     >= '{$dateFrom}'
+                  AND `date_add`     >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
                   AND `country_code` != ''
                 GROUP BY `country_code`
                 ORDER BY `total_sent` DESC
@@ -530,7 +541,9 @@ class StatsManager
     public function getDailyEvolution(int $days = 30, string $template = ''): array
     {
         $table          = _DB_PREFIX_ . self::TABLE;
-        $dateFrom       = date('Y-m-d', strtotime("-{$days} days"));
+        // Round 311 : voir commentaire détaillé dans getGlobalReport() —
+        // borne calculée côté SQL au lieu de date()/strtotime() PHP.
+        $days           = (int) $days;
         $templateFilter = $template
             ? "AND `template` = '" . pSQL($template) . "'"
             : '';
@@ -543,7 +556,7 @@ class StatsManager
                     COUNT(CASE WHEN `event_type` = 'click'                    THEN 1 END) AS click
                 FROM `{$table}`
                 WHERE `id_shop`  = {$this->idShop}
-                  AND `date_add` >= '{$dateFrom}'
+                  AND `date_add` >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
                   {$templateFilter}
                 GROUP BY DATE(`date_add`)
                 ORDER BY `date` ASC";
@@ -554,7 +567,12 @@ class StatsManager
     public function getKpis(int $days = 30): array
     {
         $table    = _DB_PREFIX_ . self::TABLE;
-        $dateFrom = date('Y-m-d', strtotime("-{$days} days"));
+        // Round 311 : voir commentaire détaillé dans getGlobalReport() —
+        // borne calculée côté SQL au lieu de date()/strtotime() PHP. Ce
+        // widget est comparé à getKpiTrends() (même onglet stats.tpl,
+        // round 253) : la propriété "aucune borne haute, inclut toujours
+        // l'instant présent" reste inchangée par ce correctif.
+        $days     = (int) $days;
 
         $sql = "SELECT
                     COUNT(CASE WHEN `event_type` = 'sent'                     THEN 1 END) AS total_sent,
@@ -567,7 +585,7 @@ class StatsManager
                     COUNT(DISTINCT `country_code`)                                         AS active_countries
                 FROM `{$table}`
                 WHERE `id_shop`  = {$this->idShop}
-                  AND `date_add` >= '{$dateFrom}'";
+                  AND `date_add` >= DATE_SUB(NOW(), INTERVAL {$days} DAY)";
 
         $row = $this->db->getRow($sql);
         if (!$row) {
@@ -603,9 +621,12 @@ class StatsManager
     public function getABTestReport(string $template, int $days = 30): array
     {
         $table    = _DB_PREFIX_ . self::TABLE;
-        $dateFrom = date('Y-m-d', strtotime("-{$days} days"));
+        // Round 311 : voir commentaire détaillé dans getGlobalReport() —
+        // borne calculée côté SQL au lieu de date()/strtotime() PHP.
+        // $days=9999 reste le sentinel "aucune borne" (dateClause vide).
+        $days     = (int) $days;
 
-        $dateClause = $days < 9999 ? "AND `date_add` >= '{$dateFrom}'" : '';
+        $dateClause = $days < 9999 ? "AND `date_add` >= DATE_SUB(NOW(), INTERVAL {$days} DAY)" : '';
 
         $sql = "SELECT
                     `abtest_variant` AS variant,
@@ -1066,7 +1087,9 @@ class StatsManager
     public function getRevenueStats(int $days = 90): array
     {
         $table    = _DB_PREFIX_ . self::TABLE;
-        $dateFrom = pSQL(date('Y-m-d', strtotime("-{$days} days")));
+        // Round 311 : voir commentaire détaillé dans getGlobalReport() —
+        // borne calculée côté SQL au lieu de date()/strtotime() PHP.
+        $days     = (int) $days;
 
         // MySQL 5.7+ : JSON_EXTRACT sur un champ TEXT
         $rows = $this->db->executeS(
@@ -1077,7 +1100,7 @@ class StatsManager
              FROM `{$table}`
              WHERE `event_type` = '" . self::EVENT_CONVERSION . "'
                AND `id_shop`    = {$this->idShop}
-               AND `date_add`   >= '{$dateFrom}'
+               AND `date_add`   >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
              GROUP BY `template`
              ORDER BY revenue DESC"
         );
@@ -1149,14 +1172,23 @@ class StatsManager
     public function getRevenueDailyByCategory(int $days = 30): array
     {
         $table    = _DB_PREFIX_ . self::TABLE;
-        $dateFrom = pSQL(date('Y-m-d', strtotime("-{$days} days")));
+        // Round 311 : borne calculée côté SQL (comme getGlobalReport() et
+        // consorts) — ET la liste $dates ci-dessous (labels du graphique,
+        // utilisée aussi comme FILTRE : tout jour SQL absent de cette liste
+        // voit sa ligne silencieusement ignorée par les isset() plus bas)
+        // est désormais ancrée sur CURDATE() MySQL au lieu de date() PHP.
+        // Sans cet ancrage, un jour réellement présent en base (horloge
+        // MySQL) mais non présent dans $dates (horloge PHP décalée) perdait
+        // silencieusement tout son revenu dans le graphique par catégorie.
+        $days     = (int) $days;
+        $todaySql311 = (string) $this->db->getValue('SELECT CURDATE()');
 
         $rows = $this->db->executeS(
             "SELECT DATE(`date_add`) AS `d`, `template`, SUM(`revenue`) AS `rev`
              FROM `{$table}`
              WHERE `event_type` = '" . self::EVENT_CONVERSION . "'
                AND `id_shop`    = {$this->idShop}
-               AND `date_add`  >= '{$dateFrom}'
+               AND `date_add`  >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
                AND `revenue`   >  0
              GROUP BY DATE(`date_add`), `template`
              ORDER BY `d` ASC"
@@ -1164,7 +1196,7 @@ class StatsManager
 
         $dates = [];
         for ($i = $days; $i >= 0; $i--) {
-            $dates[] = date('Y-m-d', strtotime("-{$i} days"));
+            $dates[] = date('Y-m-d', strtotime("{$todaySql311} -{$i} days"));
         }
 
         $tplTocat = [];
@@ -1505,7 +1537,11 @@ class StatsManager
     public function getEngagementDailyChart(int $days = 30): array
     {
         $table    = _DB_PREFIX_ . self::TABLE;
-        $dateFrom = pSQL(date('Y-m-d', strtotime("-{$days} days")));
+        // Round 311 : voir commentaire détaillé dans getRevenueDailyByCategory()
+        // — borne SQL + $dates ancré sur CURDATE() MySQL (sert aussi de
+        // filtre via $byDate[$d] ?? null plus bas, pas seulement de label).
+        $days     = (int) $days;
+        $todaySql311 = (string) $this->db->getValue('SELECT CURDATE()');
 
         $rows = $this->db->executeS("
             SELECT DATE(date_add) AS d,
@@ -1514,14 +1550,14 @@ class StatsManager
                    COUNT(CASE WHEN event_type = 'click'             THEN 1 END) AS clicks
             FROM `{$table}`
             WHERE id_shop  = {$this->idShop}
-              AND date_add >= '{$dateFrom}'
+              AND date_add >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
             GROUP BY DATE(date_add)
             ORDER BY d ASC
         ");
 
         $dates = [];
         for ($i = $days; $i >= 0; $i--) {
-            $dates[] = date('Y-m-d', strtotime("-{$i} days"));
+            $dates[] = date('Y-m-d', strtotime("{$todaySql311} -{$i} days"));
         }
 
         $byDate = [];
@@ -1546,7 +1582,9 @@ class StatsManager
     public function getOpenHeatmap(int $days = 90): array
     {
         $table    = _DB_PREFIX_ . self::TABLE;
-        $dateFrom = pSQL(date('Y-m-d', strtotime("-{$days} days")));
+        // Round 311 : voir commentaire détaillé dans getGlobalReport() —
+        // borne calculée côté SQL au lieu de date()/strtotime() PHP.
+        $days     = (int) $days;
 
         $rows = $this->db->executeS("
             SELECT WEEKDAY(date_add) AS dow, HOUR(date_add) AS h, COUNT(*) AS cnt
@@ -1554,7 +1592,7 @@ class StatsManager
             WHERE event_type = 'open'
               AND is_mpp     = 0
               AND id_shop    = {$this->idShop}
-              AND date_add  >= '{$dateFrom}'
+              AND date_add  >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
             GROUP BY WEEKDAY(date_add), HOUR(date_add)
         ");
 
@@ -1581,7 +1619,8 @@ class StatsManager
     public function getTopTemplatesByMetric(string $metric = 'rate_open', int $limit = 10): array
     {
         $table    = _DB_PREFIX_ . self::TABLE;
-        $dateFrom = pSQL(date('Y-m-d', strtotime('-30 days')));
+        // Round 311 : voir commentaire détaillé dans getGlobalReport() —
+        // borne calculée côté SQL au lieu de date()/strtotime() PHP.
 
         // MySQL interdit de référencer l'alias d'une fonction d'agrégat dans
         // une expression arithmétique d'ORDER BY (erreur 1247 "reference to
@@ -1599,7 +1638,7 @@ class StatsManager
                    COUNT(CASE WHEN event_type = 'click'             THEN 1 END) AS clicks
             FROM `{$table}`
             WHERE id_shop  = {$this->idShop}
-              AND date_add >= '{$dateFrom}'
+              AND date_add >= DATE_SUB(NOW(), INTERVAL 30 DAY)
             GROUP BY template
             HAVING sent >= 5
             ORDER BY {$orderBy}
@@ -1627,7 +1666,8 @@ class StatsManager
     public function getTopTemplatesByRevenue(int $limit = 10): array
     {
         $table    = _DB_PREFIX_ . self::TABLE;
-        $dateFrom = pSQL(date('Y-m-d', strtotime('-30 days')));
+        // Round 311 : voir commentaire détaillé dans getGlobalReport() —
+        // borne calculée côté SQL au lieu de date()/strtotime() PHP.
 
         $rows = $this->db->executeS("
             SELECT template, COUNT(*) AS orders, SUM(revenue) AS revenue
@@ -1635,7 +1675,7 @@ class StatsManager
             WHERE event_type = 'conversion'
               AND id_shop    = {$this->idShop}
               AND revenue    > 0
-              AND date_add  >= '{$dateFrom}'
+              AND date_add  >= DATE_SUB(NOW(), INTERVAL 30 DAY)
             GROUP BY template
             ORDER BY revenue DESC
             LIMIT " . (int) $limit

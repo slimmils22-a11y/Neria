@@ -168,8 +168,33 @@ class SeasonalCampaignManager
         return (int) $this->db->Insert_ID();
     }
 
-    public function update(int $id, array $data): void
+    // Round 311 : void -> bool (Affected_Rows() > 0) — update()/delete()/
+    // toggle() sont toutes scopées `id_campaign + id_shop`, mais neria.php
+    // affichait "Campagne mise à jour/supprimée/activée" inconditionnellement
+    // dès que l'id était numériquement positif, sans jamais savoir si la
+    // clause WHERE avait réellement touché une ligne (id inexistant ou
+    // appartenant à une autre boutique) — même pattern déjà corrigé round
+    // 310 pour restore_translation/restore_variant_b/add_calendar_event.
+    public function update(int $id, array $data): bool
     {
+        // Round 311 : existence vérifiée AVANT l'UPDATE plutôt que via
+        // Affected_Rows() après — contrairement à delete()/toggle() (qui
+        // changent TOUJOURS l'état d'une ligne matchée), Affected_Rows()
+        // sur un UPDATE ne compte que les lignes dont une valeur a
+        // réellement changé (pas de CLIENT_FOUND_ROWS sur cette connexion
+        // PDO) : un marchand resoumettant le formulaire sans rien modifier
+        // (mêmes valeurs) aurait vu update() renvoyer faussement false —
+        // "Campagne introuvable" affiché à tort pour une campagne pourtant
+        // bien existante et bien mise à jour (sans changement réel).
+        $exists = (bool) $this->db->getValue(
+            'SELECT 1 FROM `' . $this->prefix . self::TABLE . '`
+             WHERE id_campaign = ' . (int) $id . ' AND id_shop = ' . (int) $this->idShop,
+            false
+        );
+        if (!$exists) {
+            return false;
+        }
+
         $this->db->execute(
             "UPDATE `{$this->prefix}" . self::TABLE . "` SET
                 name            = '" . pSQL(mb_substr((string) ($data['name'] ?? ''), 0, 100)) . "',
@@ -187,18 +212,20 @@ class SeasonalCampaignManager
              WHERE id_campaign  = " . (int) $id . "
                AND id_shop      = " . (int) $this->idShop
         );
+        return true;
     }
 
-    public function delete(int $id): void
+    public function delete(int $id): bool
     {
         $this->db->execute(
             "DELETE FROM `{$this->prefix}" . self::TABLE . "`
              WHERE id_campaign = " . (int) $id . "
                AND id_shop = " . (int) $this->idShop
         );
+        return (int) $this->db->Affected_Rows() > 0;
     }
 
-    public function toggle(int $id): void
+    public function toggle(int $id): bool
     {
         $this->db->execute(
             "UPDATE `{$this->prefix}" . self::TABLE . "`
@@ -206,6 +233,7 @@ class SeasonalCampaignManager
              WHERE id_campaign = " . (int) $id . "
                AND id_shop = " . (int) $this->idShop
         );
+        return (int) $this->db->Affected_Rows() > 0;
     }
 
     // ============================================================

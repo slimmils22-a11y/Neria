@@ -387,6 +387,18 @@ class ChurnScoreManager
             // client récent ou peu sollicité sur cette fenêtre, risque
             // modéré par défaut plutôt qu'un déclin extrapolé d'1-2 emails.
             $trend = 10.0;
+        } elseif ((int) $r['sent_p1'] < self::MIN_SAMPLE_SENDS) {
+            // Round 311 : garde symétrique à celle de $recentRisk ci-dessus
+            // — $rate1 (échantillon 0-30j) est utilisé ici aussi (via
+            // $decline = ($rate3 - $rate1) / $rate3), et souffre du même
+            // défaut si sent_p1 < MIN_SAMPLE_SENDS (1-2 envois) : un seul
+            // email récent non ouvert forçait $rate1=0.0 puis $decline=1.0
+            // quel que soit $rate3, poussant $trend à son maximum (30 pts)
+            // sur un échantillon non significatif — alors que ce garde-fou
+            // existait déjà pour $recentRisk (round 257) mais n'avait
+            // jamais été étendu ici, malgré le commentaire de $recentRisk
+            // affirmant explicitement "même traitement que Tendance".
+            $trend = 15.0;
         } elseif ($rate3 > 0.0) {
             $decline = max(0.0, $rate3 - $rate1) / $rate3;
             $trend   = $decline * 30;
