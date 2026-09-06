@@ -291,9 +291,23 @@ class LoyaltyManager
     }
 
     /**
-     * Révoque (désactive, sans supprimer l'historique) tout bon de palier
-     * déjà émis mais jamais utilisé si le total de points actuel du client
-     * est repassé sous le seuil qui l'avait déclenché.
+     * Révoque (désactive le CartRule ET supprime la ligne de réservation)
+     * tout bon de palier déjà émis mais jamais utilisé si le total de
+     * points actuel du client est repassé sous le seuil qui l'avait
+     * déclenché.
+     *
+     * Round 307 : ce docblock affirmait à tort "sans supprimer
+     * l'historique" — le code supprime bel et bien la ligne de
+     * `neria_loyalty_rewards`. Vérifié INTENTIONNEL (pas un bug à corriger
+     * dans le code) : la clé UNIQUE (id_customer, tier_key, id_shop) de
+     * cette table sert aussi de garde-fou anti-doublon dans
+     * checkAndReward() (`$alreadySent = COUNT(*) ... WHERE tier_key=...`)
+     * — si la ligne révoquée n'était pas supprimée, un client qui
+     * re-franchit ce même palier plus tard (ex. remboursement annulé,
+     * nouvel achat) ne pourrait plus jamais recevoir de second bon pour ce
+     * palier. Conséquence acceptée en l'état : la fiche client BO
+     * (getCustomerStats()['rewards']) perd toute trace qu'un bon a un jour
+     * été émis puis révoqué pour ce palier.
      */
     /**
      * Recrédite les points de fidélité d'une commande précédemment

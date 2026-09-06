@@ -160,6 +160,10 @@ class CertificateManager
             $pdfPath    = $pdfResult['path'];
             $sigPath    = (string) ($pdfResult['sig_path'] ?? '');
 
+            // Round 307 : horloge MySQL pour date_issued/date_add — voir
+            // commentaire détaillé sur ces colonnes plus bas.
+            $nowSql307 = (string) $this->db->getValue('SELECT NOW()');
+
             // ── Sauvegarde en DB ──────────────────────────────────────
             $inserted = $this->db->insert(self::TABLE, [
                 // id_shop de LA COMMANDE, pas $this->idShop (contexte BO de
@@ -192,8 +196,17 @@ class CertificateManager
                 // generatePdf()/redownload() pour la lecture en repli.
                 'signature_path'  => pSQL($sigPath),
                 'emailed'         => 0,
-                'date_issued'     => date('Y-m-d H:i:s'),
-                'date_add'        => date('Y-m-d H:i:s'),
+                // Round 307 : horloge MySQL (pas date() PHP) — même piège
+                // déjà corrigé rounds 303/305 ailleurs dans le module.
+                // getStats() borne ses fenêtres mensuelles via NOW()/
+                // DATE_FORMAT(NOW(), ...) côté MySQL ; si le serveur PHP et
+                // le serveur MySQL n'ont pas le même fuseau horaire (cas
+                // fréquent en hébergement mutualisé, MySQL en UTC), un
+                // certificat émis juste avant/après minuit pouvait se
+                // retrouver classé dans le mauvais mois par rapport aux
+                // bornes NOW()-based, faussant thisMonth/lastMonth/trend_pct.
+                'date_issued'     => $nowSql307,
+                'date_add'        => $nowSql307,
             ]);
 
             if (!$inserted) {
@@ -552,9 +565,16 @@ class CertificateManager
                 $sigPath = $frozenSigPath;
             }
         } else {
+            // Round 307 : id_shop DE LA COMMANDE, pas $this->idShop (contexte
+            // BO courant de l'employé) — même piège déjà corrigé pour
+            // $shopName/$title/$subtitle/$bodyText/$qrEnabled/$qrBaseUrl plus
+            // haut dans cette même méthode (rounds 106/212), oublié ici : un
+            // employé en contexte Boutique B émettant un certificat pour une
+            // commande de Boutique A recevait la signature manuscrite active
+            // de B au lieu de celle de A.
             $sigRow = $this->db->getRow(
                 'SELECT `image_path` FROM `' . _DB_PREFIX_ . 'neria_signature`
-                 WHERE `is_active` = 1 AND `id_shop` = ' . $this->idShop . '
+                 WHERE `is_active` = 1 AND `id_shop` = ' . (int) $order->id_shop . '
                  ORDER BY `date_upd` DESC'
             );
             if ($sigRow && !empty($sigRow['image_path'])) {

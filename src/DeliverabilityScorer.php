@@ -642,8 +642,19 @@ class DeliverabilityScorer
         if ($fromEmail === '' || !str_contains($fromEmail, '@')) {
             $fromEmail = (string) Configuration::get('PS_SHOP_EMAIL');
         }
+        // Round 307 : PS_MAIL_EMAIL_MESSAGE_FROM ne contient normalement
+        // qu'une adresse nue chez PrestaShop, mais rien ne l'empêche d'être
+        // modifiée directement en base/API/import sous la forme
+        // "Nom <adresse@domaine.tld>" — sans cette extraction, le chevron
+        // fermant '>' restait collé au domaine extrait par explode('@', ..),
+        // invalidant toute recherche DNS SPF/DMARC/DKIM et pénalisant à
+        // tort le score de délivrabilité (-24 pts) pour un domaine pourtant
+        // parfaitement configuré.
+        if (preg_match('/<\s*([^<>\s]+@[^<>\s]+)\s*>/', $fromEmail, $mFrom307)) {
+            $fromEmail = $mFrom307[1];
+        }
         $sendingDomain = str_contains($fromEmail, '@')
-            ? trim(explode('@', $fromEmail)[1])
+            ? rtrim(trim(explode('@', $fromEmail)[1]), "<>\"' \t\n\r\0\x0B")
             : '';
 
         if ($sendingDomain !== '') {
