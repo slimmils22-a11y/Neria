@@ -6147,8 +6147,12 @@ class HealthCheckManager
             // persistance de signature_path (colonne figée à l'émission,
             // garde-fou round 301 ci-dessous) a repoussé RELEASE_LOCK()
             // plus loin dans le corps de issue().
+            // Round 307 : fenêtre élargie 9800→10500 — l'ajout du
+            // commentaire + $nowSql307 (horloge MySQL pour date_issued/
+            // date_add, garde-fou round 307 ci-dessous) a de nouveau
+            // repoussé RELEASE_LOCK() plus loin dans le corps de issue().
             $posIssue177 = strpos($certSrc177, 'public function issue(');
-            $issueBody177 = $posIssue177 !== false ? substr($certSrc177, $posIssue177, 9800) : '';
+            $issueBody177 = $posIssue177 !== false ? substr($certSrc177, $posIssue177, 10500) : '';
             if ($posIssue177 === false || strpos($issueBody177, "GET_LOCK('") === false || strpos($issueBody177, "RELEASE_LOCK('") === false) {
                 $offenders[] = "CertificateManager::issue() n'utilise plus de verrou nommé MySQL autour de la résolution du numéro de série — régression du bug corrigé le 15/08/2026 (round 177) : la fenêtre TOCTOU entre serialExists() et l'INSERT redeviendrait exploitable sous forte concurrence";
             }
@@ -9584,6 +9588,44 @@ class HealthCheckManager
             || substr_count($otmSrc306, "\$this->db->execute(\"SELECT RELEASE_LOCK('\" . pSQL(\$lockNameOh) . \"')\");") !== 1
         ) {
             $offenders[] = "OrderTriggersManager::handleStatusChange() ne libère plus ses verrous nommés (order_partial_shipped/order_on_hold) via RELEASE_LOCK() — régression du bug corrigé le 05/09/2026 (round 306) : fuite de verrous MySQL nommés sur toute connexion réutilisée au-delà d'une seule requête";
+        }
+
+        // Round 307 (06/09/2026) : CertificateManager::generatePdf()
+        // résolvait la signature manuscrite active via
+        // `WHERE id_shop = $this->idShop` (contexte BO COURANT de
+        // l'employé), alors que shopName/title/subtitle/bodyText/
+        // qrEnabled/qrBaseUrl juste à côté (rounds 106/212) utilisent tous
+        // (int) $order->id_shop (boutique RÉELLE de la commande).
+        $certSrc307 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        if ($certSrc307 === ''
+            || strpos($certSrc307, "WHERE `is_active` = 1 AND `id_shop` = ' . (int) \$order->id_shop . '") === false
+        ) {
+            $offenders[] = "CertificateManager::generatePdf() ne résout plus la signature manuscrite via (int) \$order->id_shop — régression du bug corrigé le 06/09/2026 (round 307) : un employé en contexte Boutique B émettant un certificat pour une commande de Boutique A recevrait de nouveau la signature active de B";
+        }
+
+        // Round 307 (06/09/2026) : CertificateManager::issue() persistait
+        // date_issued/date_add via date('Y-m-d H:i:s') PHP, alors que
+        // getStats() borne ses fenêtres mensuelles via NOW()/DATE_FORMAT
+        // (NOW(), ...) côté MySQL — même piège déjà corrigé rounds 303/305
+        // ailleurs, jamais étendu ici.
+        if ($certSrc307 === ''
+            || strpos($certSrc307, "\$nowSql307 = (string) \$this->db->getValue('SELECT NOW()');") === false
+            || substr_count($certSrc307, "'date_issued'     => \$nowSql307,") !== 1
+            || substr_count($certSrc307, "'date_add'        => \$nowSql307,") !== 1
+        ) {
+            $offenders[] = "CertificateManager::issue() ne source plus date_issued/date_add via l'horloge MySQL — régression du bug corrigé le 06/09/2026 (round 307) : un certificat émis autour de minuit pourrait de nouveau être classé dans le mauvais mois par getStats() si PHP et MySQL n'ont pas le même fuseau horaire";
+        }
+
+        // Round 307 (06/09/2026) : DeliverabilityScorer::score() extrayait
+        // le domaine d'envoi via `explode('@', $fromEmail)[1]` sans tenir
+        // compte d'un format "Nom <adresse@domaine.tld>" pour
+        // PS_MAIL_EMAIL_MESSAGE_FROM — le chevron fermant restait collé au
+        // domaine extrait, invalidant toute recherche DNS SPF/DMARC/DKIM.
+        $dlvSrc307 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DeliverabilityScorer.php');
+        if ($dlvSrc307 === ''
+            || strpos($dlvSrc307, "preg_match('/<\\s*([^<>\\s]+@[^<>\\s]+)\\s*>/', \$fromEmail, \$mFrom307)") === false
+        ) {
+            $offenders[] = "DeliverabilityScorer::score() n'extrait plus l'adresse d'un From avec nom affiché ('Nom <email>') — régression du bug corrigé le 06/09/2026 (round 307) : un domaine d'envoi pourtant parfaitement configuré serait de nouveau pénalisé à tort (-24 pts) sur SPF/DMARC/DKIM";
         }
 
         if ($offenders) {
