@@ -660,32 +660,47 @@ class OrderTriggersManager
                 if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockNamePs) . "', 0)", false) !== 1) {
                     return;
                 }
-                // Round 178 : voir explicitSendBlockReason() — Mail::Send()
-                // renvoie true même si le hook bloque l'envoi, journalisant
-                // à tort un succès.
-                if ($this->explicitSendBlockReason('order_partial_shipped', $email, (int) $order->id_customer, $idShop, $idLang, (int) $order->id) !== null) {
-                    $this->watchdog()->info(
-                        \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'order_partial_shipped', 'email' => $email]),
-                        'order_partial_shipped', 'OrderTriggers'
+                // Round 306 : try/finally ajouté — contrairement à
+                // handleRefund()/handleReturn() (qui libèrent bien leur
+                // verrou en finally), ce GET_LOCK() n'était jamais suivi
+                // d'un RELEASE_LOCK() correspondant, ni ici ni dans le
+                // catch/finally englobant la méthode entière. Sans impact
+                // fonctionnel visible en usage web classique (PrestaShop
+                // ferme la connexion PHP-FPM en fin de requête, ce qui
+                // libère automatiquement tout GET_LOCK() côté MySQL), mais
+                // une fuite de verrous nommés jamais libérés sur toute
+                // connexion réutilisée au-delà d'une seule requête (worker
+                // de file, script CLI de retraitement en masse de statuts).
+                try {
+                    // Round 178 : voir explicitSendBlockReason() —
+                    // Mail::Send() renvoie true même si le hook bloque
+                    // l'envoi, journalisant à tort un succès.
+                    if ($this->explicitSendBlockReason('order_partial_shipped', $email, (int) $order->id_customer, $idShop, $idLang, (int) $order->id) !== null) {
+                        $this->watchdog()->info(
+                            \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'order_partial_shipped', 'email' => $email]),
+                            'order_partial_shipped', 'OrderTriggers'
+                        );
+                        return;
+                    }
+                    $result = \Mail::Send(
+                        $idLang, 'order_partial_shipped', '',
+                        array_merge($common, $this->buildShippedItemsVars($order)),
+                        $email, $toName, null, null, null, null,
+                        _PS_MODULE_DIR_ . 'neria/mails/', false, $idShop
                     );
-                    return;
-                }
-                $result = \Mail::Send(
-                    $idLang, 'order_partial_shipped', '',
-                    array_merge($common, $this->buildShippedItemsVars($order)),
-                    $email, $toName, null, null, null, null,
-                    _PS_MODULE_DIR_ . 'neria/mails/', false, $idShop
-                );
-                if ($result) {
-                    $this->watchdog()->info(
-                        \WatchdogManager::i18nMsg('watchdog.partial_shipped_sent', ['order' => $order->reference, 'email' => $email]),
-                        'order_partial_shipped', 'OrderTriggers'
-                    );
-                } else {
-                    $this->watchdog()->warning(
-                        \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'order_partial_shipped', 'email' => $email]),
-                        'order_partial_shipped', 'OrderTriggers'
-                    );
+                    if ($result) {
+                        $this->watchdog()->info(
+                            \WatchdogManager::i18nMsg('watchdog.partial_shipped_sent', ['order' => $order->reference, 'email' => $email]),
+                            'order_partial_shipped', 'OrderTriggers'
+                        );
+                    } else {
+                        $this->watchdog()->warning(
+                            \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'order_partial_shipped', 'email' => $email]),
+                            'order_partial_shipped', 'OrderTriggers'
+                        );
+                    }
+                } finally {
+                    $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockNamePs) . "')");
                 }
                 return;
             }
@@ -710,30 +725,37 @@ class OrderTriggersManager
                     return;
                 }
 
-                // Round 178 : voir explicitSendBlockReason() ci-dessus.
-                if ($this->explicitSendBlockReason('order_on_hold', $email, (int) $order->id_customer, $idShop, $idLang, (int) $order->id) !== null) {
-                    $this->watchdog()->info(
-                        \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'order_on_hold', 'email' => $email]),
-                        'order_on_hold', 'OrderTriggers'
+                // Round 306 : try/finally ajouté — voir commentaire
+                // identique sur le verrou order_partial_shipped ci-dessus
+                // (même défaut, même correctif).
+                try {
+                    // Round 178 : voir explicitSendBlockReason() ci-dessus.
+                    if ($this->explicitSendBlockReason('order_on_hold', $email, (int) $order->id_customer, $idShop, $idLang, (int) $order->id) !== null) {
+                        $this->watchdog()->info(
+                            \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'order_on_hold', 'email' => $email]),
+                            'order_on_hold', 'OrderTriggers'
+                        );
+                        return;
+                    }
+                    $result = \Mail::Send(
+                        $idLang, 'order_on_hold', '',
+                        array_merge($common, ['{hold_reason}' => $statusName]),
+                        $email, $toName, null, null, null, null,
+                        _PS_MODULE_DIR_ . 'neria/mails/', false, $idShop
                     );
-                    return;
-                }
-                $result = \Mail::Send(
-                    $idLang, 'order_on_hold', '',
-                    array_merge($common, ['{hold_reason}' => $statusName]),
-                    $email, $toName, null, null, null, null,
-                    _PS_MODULE_DIR_ . 'neria/mails/', false, $idShop
-                );
-                if ($result) {
-                    $this->watchdog()->info(
-                        \WatchdogManager::i18nMsg('watchdog.order_on_hold_sent', ['status' => $statusName, 'order' => $order->reference, 'email' => $email]),
-                        'order_on_hold', 'OrderTriggers'
-                    );
-                } else {
-                    $this->watchdog()->warning(
-                        \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'order_on_hold', 'email' => $email]),
-                        'order_on_hold', 'OrderTriggers'
-                    );
+                    if ($result) {
+                        $this->watchdog()->info(
+                            \WatchdogManager::i18nMsg('watchdog.order_on_hold_sent', ['status' => $statusName, 'order' => $order->reference, 'email' => $email]),
+                            'order_on_hold', 'OrderTriggers'
+                        );
+                    } else {
+                        $this->watchdog()->warning(
+                            \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'order_on_hold', 'email' => $email]),
+                            'order_on_hold', 'OrderTriggers'
+                        );
+                    }
+                } finally {
+                    $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockNameOh) . "')");
                 }
             }
         } catch (\Throwable $e) {
