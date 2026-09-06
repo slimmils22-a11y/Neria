@@ -3572,14 +3572,27 @@ class Neria extends Module
             }
 
             if ($eventKey && $lang && $template) {
-                Db::getInstance()->execute(
+                $dbCal310 = Db::getInstance();
+                $dbCal310->execute(
                     'INSERT IGNORE INTO `' . _DB_PREFIX_ . 'neria_calendar_event`
                      (`id_shop`, `event_key`, `lang`, `country_code`, `custom_date`, `template`, `send_days_before`, `is_active`, `date_add`, `date_upd`)
                      VALUES (' . $idShop . ', \'' . pSQL($eventKey) . '\', \'' . pSQL($lang) . '\',
                              \'' . pSQL($country) . '\', \'' . pSQL($customDate) . '\',
                              \'' . pSQL($template) . '\', ' . $days . ', ' . $active . ', NOW(), NOW())'
                 );
-                $this->context->smarty->assign('neria_success', AdminTranslator::t('calendar.added'));
+                // Round 310 : Affected_Rows() vérifié — INSERT IGNORE sur la
+                // contrainte UNIQUE (id_shop, event_key, lang) exécute la
+                // requête SANS erreur (0 ligne insérée) si l'événement existe
+                // déjà pour cette boutique/langue, mais execute() renvoie
+                // quand même true : le message "Occasion ajoutée" s'affichait
+                // à tort pour une tentative de recréation ignorée en silence
+                // (double soumission, ou tentative de changer send_days_before/
+                // custom_date en recréant au lieu d'utiliser save_calendar_event).
+                if ((int) $dbCal310->Affected_Rows() > 0) {
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('calendar.added'));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('calendar.already_exists'));
+                }
             }
         }
 
@@ -4800,9 +4813,19 @@ class Neria extends Module
                                 $restoreVal,
                                 $author . ' (restauration B)'
                             );
+                            // Round 310 : neria_success déplacé DANS cette
+                            // condition — auparavant assigné inconditionnellement
+                            // après le bloc, un id_history obsolète (onglet
+                            // changé sans rechargement, id manipulé) affichait
+                            // "Enregistré" alors qu'aucune restauration n'avait
+                            // réellement eu lieu (ni update ni record()).
+                            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                        } else {
+                            $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.restore_entry_not_found'));
                         }
+                    } else {
+                        $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.restore_entry_not_found'));
                     }
-                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
                 }
 
                 if ($tradAction === 'restore_translation' && class_exists('TranslationHistoryManager')) {
@@ -4857,9 +4880,19 @@ class Neria extends Module
                                     'Traductions'
                                 );
                             }
+                            // Round 310 : neria_success déplacé DANS cette
+                            // condition — auparavant assigné inconditionnellement
+                            // après le bloc, un id_history obsolète (onglet
+                            // changé sans rechargement, id manipulé) affichait
+                            // "Enregistré" alors qu'aucune restauration n'avait
+                            // réellement eu lieu (ni update ni record()).
+                            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                        } else {
+                            $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.restore_entry_not_found'));
                         }
+                    } else {
+                        $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.restore_entry_not_found'));
                     }
-                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
                 }
 
                 if ($tradAction === 'delete_history' && class_exists('TranslationHistoryManager')) {

@@ -1404,8 +1404,16 @@ class StatsManager
             // le delta % de tendance semaine-sur-semaine était calculé sur
             // une fenêtre glissée d'un jour en arrière, sous-représentant
             // systématiquement le volume réel de la semaine en cours.
-            $from = pSQL(date('Y-m-d', strtotime('-' . ($offset + 6) . ' days')));
-            $to   = pSQL(date('Y-m-d', strtotime('-' . $offset . ' days')));
+            // Round 310 : bornes calculées côté SQL (DATE_SUB(CURDATE(), ...))
+            // au lieu de date()/strtotime() PHP — même piège horloge PHP/MySQL
+            // déjà corrigé ailleurs dans le module (detectMpp()/detectAnomalies()
+            // dans ce même fichier utilisent déjà ce pattern) : si le serveur
+            // PHP et le serveur MySQL n'ont pas le même fuseau horaire, la
+            // fenêtre calculée en PHP pouvait décaler d'un jour les événements
+            // proches de minuit, faussant systématiquement le delta % de
+            // tendance semaine-sur-semaine.
+            $offsetLow  = (int) $offset + 6;
+            $offsetHigh = (int) $offset;
             $row  = $this->db->getRow("
                 SELECT
                     COUNT(CASE WHEN event_type = 'sent'              THEN 1 END) AS sent,
@@ -1413,8 +1421,8 @@ class StatsManager
                     COUNT(CASE WHEN event_type = 'click'             THEN 1 END) AS clicks
                 FROM `{$table}`
                 WHERE id_shop     = {$this->idShop}
-                  AND DATE(date_add) >= '{$from}'
-                  AND DATE(date_add) <= '{$to}'
+                  AND DATE(date_add) >= DATE_SUB(CURDATE(), INTERVAL {$offsetLow} DAY)
+                  AND DATE(date_add) <= DATE_SUB(CURDATE(), INTERVAL {$offsetHigh} DAY)
             ");
             $raw[$period] = $row ?: ['sent' => 0, 'opens' => 0, 'clicks' => 0];
 
@@ -1425,8 +1433,8 @@ class StatsManager
                 SELECT COUNT(*) FROM `{$prefTable}`
                 WHERE id_shop     = {$this->idShop}
                   AND subscribed  = 0
-                  AND DATE(date_upd) >= '{$from}'
-                  AND DATE(date_upd) <= '{$to}'
+                  AND DATE(date_upd) >= DATE_SUB(CURDATE(), INTERVAL {$offsetLow} DAY)
+                  AND DATE(date_upd) <= DATE_SUB(CURDATE(), INTERVAL {$offsetHigh} DAY)
             ");
         }
 
@@ -1435,14 +1443,16 @@ class StatsManager
         foreach (['current' => 0, 'previous' => 7] as $period => $offset) {
             // Round 253 : voir justification dans la boucle ci-dessus --
             // bornes inclusives des deux côtés, cohérentes avec getKpis(7).
-            $from = pSQL(date('Y-m-d', strtotime('-' . ($offset + 6) . ' days')));
-            $to   = pSQL(date('Y-m-d', strtotime('-' . $offset . ' days')));
+            // Round 310 : bornes calculées côté SQL — voir commentaire détaillé
+            // dans la boucle ci-dessus.
+            $offsetLow  = (int) $offset + 6;
+            $offsetHigh = (int) $offset;
             $rev  = (float) $this->db->getValue(
                 "SELECT COALESCE(SUM(revenue), 0) FROM `{$statTable}`
                  WHERE event_type = 'conversion'
                    AND id_shop    = {$this->idShop}
-                   AND DATE(date_add) >= '{$from}'
-                   AND DATE(date_add) <= '{$to}'"
+                   AND DATE(date_add) >= DATE_SUB(CURDATE(), INTERVAL {$offsetLow} DAY)
+                   AND DATE(date_add) <= DATE_SUB(CURDATE(), INTERVAL {$offsetHigh} DAY)"
             );
             $raw[$period]['revenue'] = $rev;
         }
