@@ -22,12 +22,21 @@ foreach ($files as $file) {
     $total++;
     $name = basename($file, '.php');
 
-    $runner = tempnam(sys_get_temp_dir(), 'neriatest_') . '.php';
-    file_put_contents($runner, "<?php require '" . addslashes($file) . "'; \$r = run_test(); echo json_encode(\$r);");
-
-    $cmd = escapeshellarg($phpBin) . ' ' . escapeshellarg($runner) . ' 2>&1';
+    // Round 308 bis (06/09/2026) : plus de fichier temporaire écrit sur
+    // disque à chaque test (tempnam() + file_put_contents()) — le code est
+    // désormais passé directement en ligne de commande via `php -r`. Sur
+    // cet environnement, Windows Defender (protection temps réel) scanne
+    // systématiquement tout NOUVEAU fichier écrit avant de le laisser
+    // s'exécuter, ajoutant ~11-12s de latence à CHAQUE test (mesuré : la
+    // suite complète est passée de ~5-10 min avant le round 306 à ~2h
+    // ensuite, sans changement du nombre de tests ni du code testé —
+    // uniquement un changement de comportement de l'antivirus/dossier temp
+    // système). Isolation par process toujours garantie (aucun changement
+    // de comportement des tests eux-mêmes), simplement sans passage par le
+    // système de fichiers.
+    $code = "require '" . addslashes($file) . "'; \$r = run_test(); echo json_encode(\$r);";
+    $cmd = escapeshellarg($phpBin) . ' -r ' . escapeshellarg($code) . ' 2>&1';
     $output = shell_exec($cmd);
-    @unlink($runner);
 
     $decoded = json_decode((string) $output, true);
 
