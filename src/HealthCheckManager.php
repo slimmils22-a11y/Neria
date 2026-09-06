@@ -8111,8 +8111,13 @@ class HealthCheckManager
         $smSrc253Raw = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
         $smSrc253 = str_replace("\r", '', $smSrc253Raw);
         $posKt253 = strpos($smSrc253, 'public function getKpiTrends(): array');
-        $ktBody253 = $posKt253 !== false ? substr($smSrc253, $posKt253, 3800) : '';
-        if ($posKt253 === false || substr_count($ktBody253, "DATE(date_add) <= '{\$to}'") < 2) {
+        $ktBody253 = $posKt253 !== false ? substr($smSrc253, $posKt253, 4400) : '';
+        // Round 310 : littéral mis à jour — la borne haute inclusive (<=)
+        // est désormais calculée côté SQL (DATE_SUB(CURDATE(), INTERVAL
+        // {$offsetHigh} DAY)) au lieu d'un '{$to}' PHP, mais reste bien
+        // inclusive (<=, pas <) — c'est cette propriété-là que ce garde-fou
+        // vérifie, pas la source de calcul de la borne.
+        if ($posKt253 === false || substr_count($ktBody253, 'DATE(date_add) <= DATE_SUB(CURDATE(), INTERVAL {$offsetHigh} DAY)') < 2) {
             $offenders[] = "StatsManager::getKpiTrends() n'utilise plus une borne haute inclusive (<=) sur la fenêtre 'current' — régression du bug corrigé le 31/08/2026 (round 253) : la journée en cours serait de nouveau totalement exclue du total 'current', alors que getKpis(7) (widget jumeau affiché sur le même onglet stats.tpl) inclut bien aujourd'hui — deux totaux '7 derniers jours' différents affichés côte à côte";
         }
 
@@ -9765,6 +9770,49 @@ class HealthCheckManager
             ) {
                 $offenders[] = "SeoApiManager::invalidateCache() ne purge plus LAST_ERROR/LAST_ERROR_AT — régression du bug corrigé le 06/09/2026 (round 309) : une erreur de l'ancien fournisseur/ancienne clé continuerait à s'afficher dans l'onglet santé BO malgré le changement de configuration";
             }
+        }
+
+        // Round 310 (06/09/2026) : restore_translation/restore_variant_b
+        // (neria.php) assignaient neria_success INCONDITIONNELLEMENT après
+        // leur bloc de traitement — même quand id_history était obsolète/
+        // introuvable et qu'aucune restauration réelle n'avait eu lieu.
+        $nSrc310 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($nSrc310 === ''
+            || substr_count($nSrc310, "AdminTranslator::t('msg.restore_entry_not_found')") < 2
+        ) {
+            $offenders[] = "restore_translation/restore_variant_b n'assignent plus neria_error pour une entrée d'historique obsolète/introuvable — régression du bug corrigé le 06/09/2026 (round 310) : le message 'Enregistré' s'afficherait de nouveau même quand aucune restauration réelle n'a eu lieu";
+        }
+
+        // Round 310 (06/09/2026) : add_calendar_event ne vérifiait jamais
+        // Affected_Rows() après son INSERT IGNORE (contrainte UNIQUE
+        // id_shop+event_key+lang) — le message "Occasion ajoutée" pouvait
+        // s'afficher pour un doublon silencieusement ignoré (0 ligne
+        // réellement insérée).
+        if ($nSrc310 === '') {
+            $offenders[] = 'neria.php introuvable (garde-fou round 310 : add_calendar_event Affected_Rows)';
+        } else {
+            $posCal310  = strpos($nSrc310, "if (\$eventKey && \$lang && \$template) {");
+            $calBody310 = $posCal310 !== false ? substr($nSrc310, $posCal310, 1800) : '';
+            if ($posCal310 === false
+                || strpos($calBody310, 'Affected_Rows()') === false
+                || strpos($calBody310, "AdminTranslator::t('calendar.already_exists')") === false
+            ) {
+                $offenders[] = "add_calendar_event ne vérifie plus Affected_Rows() après son INSERT IGNORE — régression du bug corrigé le 06/09/2026 (round 310) : le message 'Occasion ajoutée' s'afficherait de nouveau pour un doublon silencieusement ignoré";
+            }
+        }
+
+        // Round 310 (06/09/2026) : StatsManager::getKpiTrends() calculait
+        // ses bornes de fenêtre via date()/strtotime() PHP au lieu de
+        // DATE_SUB(CURDATE(), ...) SQL — même piège horloge PHP/MySQL déjà
+        // corrigé ailleurs dans ce même fichier (detectMpp()/
+        // detectAnomalies()), jamais étendu à ce KPI très visible (delta %
+        // de tendance semaine-sur-semaine affiché en BO).
+        $smSrc310 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        if ($smSrc310 === ''
+            || substr_count($smSrc310, 'DATE_SUB(CURDATE(), INTERVAL {$offsetLow} DAY)') !== 3
+            || substr_count($smSrc310, 'DATE_SUB(CURDATE(), INTERVAL {$offsetHigh} DAY)') !== 3
+        ) {
+            $offenders[] = "StatsManager::getKpiTrends() ne calcule plus ses bornes de fenêtre via DATE_SUB(CURDATE(), ...) SQL — régression du bug corrigé le 06/09/2026 (round 310) : le delta % de tendance semaine-sur-semaine pourrait de nouveau dépendre de l'horloge PHP au lieu de MySQL";
         }
 
         if ($offenders) {
