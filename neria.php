@@ -6587,7 +6587,10 @@ class Neria extends Module
             'postmaster_configured'  => class_exists('PostmasterManager') && (new PostmasterManager($this))->isConfigured(),
             'postmaster_connected'   => class_exists('PostmasterManager') && (new PostmasterManager($this))->isConnected(),
             'pm_redirect_uri'        => class_exists('PostmasterManager') ? (new PostmasterManager($this))->getRedirectUri() : '',
-            'postmaster_client_id'   => class_exists('PostmasterManager') ? (string) Configuration::get(PostmasterManager::CONFIG_CLIENT_ID) : '',
+            // Round 309 : id_shop=0 explicite — CONFIG_CLIENT_ID est écrit
+            // via updateGlobalValue() ci-dessus, même correctif que
+            // PostmasterManager::cfgGlobal().
+            'postmaster_client_id'   => class_exists('PostmasterManager') ? (string) Configuration::get(PostmasterManager::CONFIG_CLIENT_ID, null, null, 0) : '',
             'postmaster_stats'       => (function () {
                 if (!class_exists('PostmasterManager')) {
                     return null;
@@ -6630,7 +6633,9 @@ class Neria extends Module
             // Google Search Console
             'searchconsole_configured' => class_exists('SearchConsoleManager') && (new SearchConsoleManager($this))->isConfigured(),
             'searchconsole_connected'  => class_exists('SearchConsoleManager') && (new SearchConsoleManager($this))->isConnected(),
-            'searchconsole_client_id'  => class_exists('SearchConsoleManager') ? (string) Configuration::get(SearchConsoleManager::CONFIG_CLIENT_ID) : '',
+            // Round 309 : id_shop=0 explicite — même correctif que
+            // postmaster_client_id ci-dessus.
+            'searchconsole_client_id'  => class_exists('SearchConsoleManager') ? (string) Configuration::get(SearchConsoleManager::CONFIG_CLIENT_ID, null, null, 0) : '',
             'sc_redirect_uri'          => class_exists('SearchConsoleManager') ? (new SearchConsoleManager($this))->getRedirectUri() : '',
             'searchconsole_stats'      => (function () {
                 if (!class_exists('SearchConsoleManager')) {

@@ -101,8 +101,17 @@ class GoldenHourManager
 
     private function computeRecommendations(int $days): array
     {
-        $table    = _DB_PREFIX_ . self::TABLE;
-        $dateFrom = pSQL(date('Y-m-d', strtotime("-{$days} days")));
+        $table = _DB_PREFIX_ . self::TABLE;
+        // Round 309 : borne de date calculée côté SQL (DATE_SUB(NOW(), ...))
+        // au lieu de date()/strtotime() PHP — même piège horloge PHP/MySQL
+        // déjà corrigé ailleurs dans le module (ClvManager::
+        // getEngagementRate() utilise déjà ce pattern) : si le serveur PHP
+        // et le serveur MySQL n'ont pas le même fuseau horaire, la fenêtre
+        // de {$days} jours calculée en PHP pouvait inclure/exclure une
+        // journée entière de sends/opens en bordure, biaisant légèrement
+        // sent_count/opened_count du dernier jour et donc potentiellement
+        // le créneau "meilleure heure" retenu quand les volumes sont
+        // proches du seuil.
 
         // Le taux par créneau doit répondre à "si j'envoie à cette heure,
         // quelle proportion de mes emails est ouverte ?" — pas "combien
@@ -133,7 +142,7 @@ class GoldenHourManager
                    AND o.`is_mpp`         = 0
              WHERE s.`event_type` = 'sent'
                AND s.`id_shop`    = {$this->idShop}
-               AND s.`date_add`   >= '{$dateFrom}'
+               AND s.`date_add`   >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
                AND s.`lang`       != ''
              GROUP BY s.`lang`, dow, hour"
         );

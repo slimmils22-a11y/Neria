@@ -207,18 +207,29 @@ class WatchdogManager
                 return;
             }
 
+            // Round 309 : NOW() MySQL au lieu de date('Y-m-d H:i:s') PHP —
+            // le SELECT de dédoublonnage juste au-dessus et l'UPDATE de
+            // consolidation juste en dessous utilisent tous deux NOW()
+            // MySQL sur cette même colonne date_add ; si le serveur PHP et
+            // le serveur MySQL n'ont pas le même fuseau horaire, une ligne
+            // fraîchement insérée avec date() PHP pouvait tomber hors de la
+            // fenêtre DATE_SUB(NOW(), INTERVAL 1 HOUR) du dédoublonnage
+            // (créant plusieurs lignes distinctes au lieu d'un
+            // occurrence_count cumulé) ou au contraire élargir la fenêtre
+            // de throttle anti-spam bien au-delà d'1h — sur le logger
+            // CENTRAL du module lui-même, dont dépendent sendImmediateAlert()
+            // et sendDailyDigestIfDueLocked().
             $this->db->execute(sprintf(
                 "INSERT INTO `%s`
                     (`id_shop`, `level`, `template`, `class`, `message`, `context`, `occurrence_count`, `date_add`)
-                 VALUES (%d, '%s', '%s', '%s', '%s', %s, 1, '%s')",
+                 VALUES (%d, '%s', '%s', '%s', '%s', %s, 1, NOW())",
                 $table,
                 $this->idShop,
                 pSQL($level),
                 pSQL($template),
                 pSQL($class),
                 pSQL($message),
-                $contextSql,
-                date('Y-m-d H:i:s')
+                $contextSql
             ));
         } finally {
             // Round 179 : le return anticipé ajouté quand !$locked rend ce
@@ -837,9 +848,17 @@ class WatchdogManager
     public function getLastCronEndpointHit(): ?string
     {
         $table = _DB_PREFIX_ . self::TABLE_CRON;
+        // Round 309 : $use_cache=false — même famille de bug que les rounds
+        // 210-212 déjà corrigés ailleurs dans ce fichier (record(),
+        // pruneOldLogs()) : sans lui, le cache SQL PrestaShop peut resservir
+        // une valeur périmée après un cronHeartbeat('cron_endpoint', ...)
+        // récent (INSERT ... ON DUPLICATE KEY UPDATE), affichant à tort
+        // "jamais appelé" ou une ancienne date dans l'onglet santé BO alors
+        // que le endpoint cron externe vient de tourner avec succès.
         $value = $this->db->getValue(
             "SELECT `last_run` FROM `{$table}`
-             WHERE `id_shop` = {$this->idShop} AND `cron_key` = 'cron_endpoint'"
+             WHERE `id_shop` = {$this->idShop} AND `cron_key` = 'cron_endpoint'",
+            false
         );
         return $value ?: null;
     }

@@ -120,6 +120,15 @@ class SeoApiManager
     {
         \Configuration::deleteByName($this->cacheKey(self::CONFIG_CACHE));
         \Configuration::deleteByName($this->cacheKey(self::CONFIG_CACHE_TIME));
+        // Round 309 : LAST_ERROR/LAST_ERROR_AT également purgés — le
+        // docblock ci-dessus affirme "fournisseur/clé modifié en BO", mais
+        // seul le cache de résultat était nettoyé : une erreur laissée par
+        // l'ancien fournisseur/l'ancienne clé continuait à s'afficher dans
+        // l'onglet santé BO (HealthCheckManager) jusqu'au prochain
+        // runCheck() réussi, malgré le marchand venant de corriger le
+        // problème signalé.
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ERROR));
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ERROR_AT));
     }
 
     /**
