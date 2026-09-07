@@ -10232,6 +10232,22 @@ class HealthCheckManager
             $offenders[] = "neria.php ne vérifie plus l'effet réel de save_calendar_event/toggle_calendar_event/delete_calendar_event (msg calendar.event_not_found) — régression du bug corrigé le 07/09/2026 (round 317) : le message de succès s'afficherait de nouveau même pour un cal_id inexistant ou d'une autre boutique";
         }
 
+        // Round 318 (07/09/2026) : NeriaPreferencesModuleFrontController::
+        // assignError() codait en dur 'neria_prefs_dir' => 'ltr', contrairement
+        // au chemin succès juste au-dessus (initContent()) qui calcule
+        // correctement via AdminTranslator::dir() — un destinataire arabe (RTL)
+        // avec un lien de préférences invalide/expiré voyait son texte
+        // d'erreur arabe rendu dans un conteneur dir="ltr".
+        $prefsSrc318 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/preferences.php');
+        $posAssignErr318 = strpos($prefsSrc318, 'private function assignError(string $lang): void');
+        $bodyAssignErr318 = $posAssignErr318 !== false ? substr($prefsSrc318, $posAssignErr318, 800) : '';
+        if ($prefsSrc318 === ''
+            || $posAssignErr318 === false
+            || strpos($bodyAssignErr318, 'AdminTranslator::dir()') === false
+        ) {
+            $offenders[] = "NeriaPreferencesModuleFrontController::assignError() ne calcule plus 'neria_prefs_dir' via AdminTranslator::dir() — régression du bug corrigé le 07/09/2026 (round 318) : un destinataire RTL verrait de nouveau son texte d'erreur rendu dans un conteneur dir=\"ltr\"";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
