@@ -237,8 +237,18 @@ class QueueManager
      */
     private function nextOccurrence(int $hour): string
     {
-        $now    = new \DateTime();
-        $target = new \DateTime('today ' . sprintf('%02d:00:00', $hour));
+        // Round 313 : $now ancré sur NOW() MySQL au lieu de `new \DateTime()`
+        // (horloge PHP) — send_at calculé ici est stocké tel quel puis
+        // comparé à NOW() côté MySQL dans processQueue() (`send_at <= NOW()`).
+        // Même piège horloge PHP/MySQL déjà corrigé ailleurs dans le module
+        // (PropensityScoreManager round 303, StatsManager rounds 310-312),
+        // jamais porté ici : si le serveur web (PHP) et le serveur MySQL
+        // n'ont pas le même fuseau horaire, un client avec une heure
+        // préférée de 14h recevait son email 1 à 2h avant/après l'heure
+        // réellement souhaitée, silencieusement, sans qu'aucune erreur ne
+        // soit levée.
+        $now    = new \DateTime((string) $this->db->getValue('SELECT NOW()'));
+        $target = new \DateTime($now->format('Y-m-d') . ' ' . sprintf('%02d:00:00', $hour));
 
         // `<` et non `<=` : si l'heure cible tombe pile à la seconde actuelle
         // (cas limite très rare), elle reste programmée pour AUJOURD'HUI —
@@ -414,7 +424,16 @@ class QueueManager
              WHERE id_neria_queue = ' . $id . '
                AND status = \'pending\''
         );
-        if ((int) $this->db->Affected_Rows() !== 1) {
+        // Round 313 : résultat capturé dans une variable dédiée (au lieu de
+        // l'expression répétée (int) $this->db->Affected_Rows() inline,
+        // comme plus bas pour la vérification de l'UPDATE status='sent') --
+        // PHPStan associait à tort la même expression littérale répétée deux
+        // fois dans cette méthode à une seule et même valeur figée (1),
+        // rapportant la 2e vérification comme "toujours fausse" alors que
+        // les deux UPDATE sont bien distinctes et peuvent chacune renvoyer 0
+        // en pratique (ligne déjà retirée par un autre process concurrent).
+        $affectedReserve313 = (int) $this->db->Affected_Rows();
+        if ($affectedReserve313 !== 1) {
             // Déjà réservée/traitée entre la sélection du lot et cet appel
             // (protection best-effort en plus du GET_LOCK englobant).
             return false;
@@ -597,6 +616,30 @@ class QueueManager
                      SET status = \'sent\', sent_at = NOW()
                      WHERE id_neria_queue = ' . $id
                 );
+                // Round 313 : Affected_Rows() vérifié — sans lui, un échec
+                // silencieux de cet UPDATE précis (deadlock, coupure de
+                // connexion juste après Mail::Send()) laissait la ligne
+                // bloquée au statut 'sending' ALORS QUE L'EMAIL A RÉELLEMENT
+                // ÉTÉ ENVOYÉ. Le nettoyage "sending bloqué depuis 10 min" en
+                // tête de processQueue() (round 241) compare send_at (déjà
+                // dans le passé par construction, puisque ce statut n'est
+                // atteint qu'après une sélection send_at <= NOW()) à
+                // NOW() - 10 MINUTE — cette ligne redevient alors éligible
+                // au nettoyage dès le prochain passage cron, quel que soit
+                // le temps réellement écoulé depuis sa réservation, et est
+                // resélectionnée + RENVOYÉE UNE SECONDE FOIS au même client.
+                // Alerte critique explicite plutôt qu'un simple log discret :
+                // ce cas précis (email parti, DB non mise à jour) ne peut
+                // PAS être corrigé automatiquement sans risque de double
+                // envoi — seule une intervention manuelle (vérifier puis
+                // marquer 'sent' à la main) est sûre.
+                $affectedSent313 = (int) $this->db->Affected_Rows();
+                if ($affectedSent313 === 0) {
+                    $this->watchdog()->critical(
+                        \WatchdogManager::i18nMsg('watchdog.queue_sent_not_confirmed', ['id' => $id, 'template' => $row['template'], 'email' => $row['recipient_email']]),
+                        $row['template'], 'QueueManager'
+                    );
+                }
 
                 // Miroir de ManualSendManager::send() : un envoi comportemental
                 // planifié via la fenêtre d'achat (BehavioralCronManager::send()

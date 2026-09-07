@@ -65875,5 +65875,26 @@
         "da": "Denne sæsonkampagne findes ikke længere eller tilhører en anden butik — der blev ikke foretaget nogen ændring.",
         "nl": "Deze seizoenscampagne bestaat niet meer of behoort tot een andere winkel — er is geen wijziging aangebracht.",
         "gb": "This seasonal campaign no longer exists or belongs to another shop — no change was made."
+    },
+    "watchdog.queue_sent_not_confirmed": {
+        "fr": "Email de la file (#{id}, modèle {template}, {email}) probablement envoyé mais non confirmé en base — vérifiez manuellement avant tout nouvel envoi pour éviter un doublon.",
+        "en": "Queued email (#{id}, template {template}, {email}) likely sent but not confirmed in the database — check manually before any resend to avoid a duplicate.",
+        "de": "E-Mail aus der Warteschlange (#{id}, Vorlage {template}, {email}) wahrscheinlich gesendet, aber nicht in der Datenbank bestätigt — bitte manuell prüfen, um eine doppelte Zustellung zu vermeiden.",
+        "it": "Email in coda (#{id}, modello {template}, {email}) probabilmente inviata ma non confermata nel database — verificare manualmente prima di un nuovo invio per evitare un duplicato.",
+        "es": "Correo en cola (#{id}, plantilla {template}, {email}) probablemente enviado pero no confirmado en la base de datos — verifique manualmente antes de reenviar para evitar un duplicado.",
+        "pt": "Email da fila (#{id}, modelo {template}, {email}) provavelmente enviado mas não confirmado na base de dados — verifique manualmente antes de reenviar para evitar duplicação.",
+        "br": "Email da fila (#{id}, modelo {template}, {email}) provavelmente enviado mas não confirmado no banco de dados — verifique manualmente antes de reenviar para evitar duplicação.",
+        "ar": "من المرجح أن رسالة البريد الإلكتروني في قائمة الانتظار (رقم {id}، القالب {template}، {email}) قد أُرسلت لكنها غير مؤكدة في قاعدة البيانات — تحقق يدويًا قبل إعادة الإرسال لتجنب التكرار.",
+        "ja": "キュー内のメール（#{id}、テンプレート {template}、{email}）は送信された可能性がありますが、データベースで確認されていません — 重複を避けるため、再送信前に手動で確認してください。",
+        "ko": "대기열의 이메일(#{id}, 템플릿 {template}, {email})이 발송되었을 가능성이 있지만 데이터베이스에서 확인되지 않았습니다 — 중복 발송을 피하려면 재발송 전에 수동으로 확인하세요.",
+        "zh": "队列中的邮件（#{id}，模板 {template}，{email}）可能已发送但未在数据库中确认 — 请在重新发送前手动检查，以避免重复。",
+        "tw": "佇列中的郵件（#{id}，範本 {template}，{email}）可能已寄出但未在資料庫中確認 — 請在重新寄送前手動檢查，以避免重複。",
+        "ru": "Письмо из очереди (#{id}, шаблон {template}, {email}), вероятно, отправлено, но не подтверждено в базе данных — проверьте вручную перед повторной отправкой, чтобы избежать дублирования.",
+        "tr": "Kuyruktaki e-posta (#{id}, şablon {template}, {email}) muhtemelen gönderildi ancak veritabanında onaylanmadı — yinelenmeyi önlemek için yeniden göndermeden önce manuel olarak kontrol edin.",
+        "sv": "Kö-e-post (#{id}, mall {template}, {email}) troligen skickad men inte bekräftad i databasen — kontrollera manuellt innan ny sändning för att undvika en dubblett.",
+        "no": "Kø-e-post (#{id}, mal {template}, {email}) sannsynligvis sendt, men ikke bekreftet i databasen — kontroller manuelt før ny sending for å unngå en duplikat.",
+        "da": "Kø-e-mail (#{id}, skabelon {template}, {email}) sandsynligvis sendt, men ikke bekræftet i databasen — kontroller manuelt før gensendelse for at undgå en duplikat.",
+        "nl": "E-mail uit de wachtrij (#{id}, sjabloon {template}, {email}) waarschijnlijk verzonden maar niet bevestigd in de database — controleer handmatig vóór een nieuwe verzending om een dubbele te voorkomen.",
+        "gb": "Queued email (#{id}, template {template}, {email}) likely sent but not confirmed in the database — check manually before any resend to avoid a duplicate."
     }
 }

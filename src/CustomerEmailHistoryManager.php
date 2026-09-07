@@ -82,7 +82,15 @@ class CustomerEmailHistoryManager
                 FROM `{$table}` s
                 WHERE s.id_shop = {$this->idShop} AND s.event_type = 'sent'";
 
-        $row = $this->db->getRow($sql);
+        // Round 313 : $use_cache=false — même famille de bug que les rounds
+        // 210-223 (cache SQL PrestaShop non contourné sur une lecture
+        // fraîcheur-critique). Le texte SQL de cette requête est identique
+        // d'un appel à l'autre pour la même boutique (aucun paramètre
+        // variable dans le SQL lui-même) : sans ce paramètre, une ouverture
+        // qui vient de se produire (tracking pixel) n'était pas reflétée
+        // immédiatement dans la moyenne boutique affichée en comparaison du
+        // badge d'engagement individuel du client.
+        $row = $this->db->getRow($sql, false);
         if (!$row || (int) $row['total_sent'] === 0) {
             return 0.0;
         }
@@ -218,7 +226,20 @@ class CustomerEmailHistoryManager
             // reformats entre deux valeurs MySQL réinterprétées de la même
             // façon, ce qui annule tout décalage de fuseau (pas de mélange
             // avec l'horloge PHP live).
-            $refDate = $lastOpen ?: end($emails)['sent_at'];
+            // Round 313 : reset($emails) (email le plus RÉCENT) au lieu de
+            // end($emails) (email le plus ANCIEN) — $emails est trié
+            // `ORDER BY s.date_add DESC` (voir commentaire ci-dessus sur ce
+            // même tri), donc end($emails) renvoie le tout PREMIER email
+            // jamais envoyé au client, pas le dernier. Quand aucun email
+            // n'a jamais été ouvert (cas fréquent : nouveaux clients,
+            // désabonnés email-only, boîtes bloquant le pixel), le calcul
+            // de "jours depuis la dernière activité" se basait sur l'envoi
+            // le plus ancien de tout l'historique au lieu du plus récent —
+            // un client inscrit depuis 400 jours mais ayant reçu un email
+            // hier (pas encore ouvert, normal) affichait "inactif depuis
+            // ~400 jours" au lieu de ~1 jour, déclenchant à tort l'alerte
+            // "client inactif" pour un client en réalité actif dans le funnel.
+            $refDate = $lastOpen ?: reset($emails)['sent_at'];
             $daysSinceLastOpen = (int) floor(
                 ((int) $this->db->getValue("SELECT TIMESTAMPDIFF(SECOND, '" . pSQL($refDate) . "', NOW())")) / 86400
             );
