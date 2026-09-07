@@ -32,11 +32,14 @@ function run_test(): array
     neria_assert($posAssemble !== false, 'assembleClv() introuvable — jeu de test invalide');
 
     foreach (['computeClv' => $posCompute, 'assembleClv' => $posAssemble] as $method => $pos) {
-        // Fenêtre large (6000) : computeClv()/assembleClv() sont de longues
-        // méthodes (~5500 octets mesurés jusqu'au garde-fou) qui recalculent
-        // tout le CLV (historique commandes, remboursements, engagement,
-        // segment, churn) avant d'atteindre l'étiquetage final.
-        $body = substr($src, $pos, 6000);
+        // Fenêtre large (7000) : computeClv()/assembleClv() sont de longues
+        // méthodes qui recalculent tout le CLV (historique commandes,
+        // remboursements, engagement, segment, churn) avant d'atteindre
+        // l'étiquetage final. Round 316 : élargie 6000→7000 — le correctif
+        // round 316 (IS NULL OR + commentaire explicatif sur les requêtes
+        // conversion_rate) a repoussé le garde-fou plus loin dans
+        // computeClv() (~6800 octets mesurés désormais).
+        $body = substr($src, $pos, 7000);
         $posGuard = strpos($body, 'if ($avgOrder <= 0.0) {');
         // Recherche la condition de CODE réelle ("} elseif (...)"), pas une
         // mention en commentaire du même texte qui précède le code (ce

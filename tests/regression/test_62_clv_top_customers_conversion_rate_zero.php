@@ -22,12 +22,12 @@ function run_test(): array
     neria_assert($src !== false, 'Impossible de lire src/ClvManager.php');
 
     neria_assert(
-        strpos($src, "ORDER BY SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` = 0, 1, o.`conversion_rate`)) DESC") !== false,
+        strpos($src, "ORDER BY SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` IS NULL OR o.`conversion_rate` = 0, 1, o.`conversion_rate`)) DESC") !== false,
         "getTopCustomers() ne protège plus contre conversion_rate=0 dans son ORDER BY de pré-sélection — régression du bug corrigé le 06/08/2026 (round 59) : un client à forte valeur avec une commande à conversion_rate=0 pourrait de nouveau être exclu du pool des 200 candidats"
     );
 
     neria_assert(
-        strpos($src, "SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` = 0, 1, o.`conversion_rate`)) AS total_revenue") !== false,
+        strpos($src, "SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` IS NULL OR o.`conversion_rate` = 0, 1, o.`conversion_rate`)) AS total_revenue") !== false,
         "getTopCustomers() ne protège plus contre conversion_rate=0 dans son agrégat total_revenue — régression du bug corrigé le 06/08/2026 (round 59) : le CA d'un client avec une commande à conversion_rate=0 serait de nouveau écrasé à 0 (NULL en SQL) dans le Top 20 CLV"
     );
 
