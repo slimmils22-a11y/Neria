@@ -10198,6 +10198,40 @@ class HealthCheckManager
             $offenders[] = "ClvManager n'applique plus IF(conversion_rate IS NULL OR conversion_rate = 0, 1, conversion_rate) sur ses 4 requêtes batch — régression du bug corrigé le 07/09/2026 (round 316) : une commande à conversion_rate NULL serait de nouveau exclue du CA total dans le classement Top clients, en écart avec la fiche client individuelle";
         }
 
+        // Round 317 (07/09/2026) : HealthCheckManager::
+        // checkOrphanedWaitlistClaims() ne contournait pas le cache SQL
+        // PrestaShop, contrairement à checkOrphanedVoucherReservations()
+        // juste au-dessus (round 223) — un résultat de cache périmé pouvait
+        // faire sauter silencieusement le nettoyage des claims orphelins.
+        // strrpos() (pas strpos()) : ce garde-fou vit DANS HealthCheckManager.php
+        // lui-même, dont le texte lu contient aussi la ligne de code ci-dessous
+        // qui mentionne littéralement la même signature de méthode — piège
+        // auto-référentiel déjà documenté round 246.
+        $hcmSrc317 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/HealthCheckManager.php');
+        $posOrphanWl317 = strrpos($hcmSrc317, 'private function checkOrphanedWaitlistClaims(): array');
+        $bodyOrphanWl317 = $posOrphanWl317 !== false ? substr($hcmSrc317, $posOrphanWl317, 1200) : '';
+        $posQueryWl317 = strpos($bodyOrphanWl317, 'DATE_SUB(NOW(), INTERVAL 1 HOUR)');
+        $tailWl317 = $posQueryWl317 !== false ? substr($bodyOrphanWl317, $posQueryWl317, 60) : '';
+        if ($hcmSrc317 === ''
+            || $posOrphanWl317 === false
+            || $posQueryWl317 === false
+            || strpos($tailWl317, 'false') === false
+        ) {
+            $offenders[] = "HealthCheckManager::checkOrphanedWaitlistClaims() ne contourne plus le cache SQL PrestaShop (\$use_cache=false) — régression du bug corrigé le 07/09/2026 (round 317) : le nettoyage automatique des claims waitlist orphelins pourrait de nouveau être silencieusement sauté";
+        }
+
+        // Round 317 (07/09/2026) : neria.php save_calendar_event/
+        // toggle_calendar_event/delete_calendar_event affichaient un succès
+        // inconditionnel sans vérifier l'effet réel de l'UPDATE/DELETE —
+        // même pattern que restore_translation/add_calendar_event (round
+        // 310) et quote/lifespan (round 311), jamais porté à ces 3 actions.
+        $nphpSrc317 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($nphpSrc317 === ''
+            || substr_count($nphpSrc317, "'calendar.event_not_found'") !== 3
+        ) {
+            $offenders[] = "neria.php ne vérifie plus l'effet réel de save_calendar_event/toggle_calendar_event/delete_calendar_event (msg calendar.event_not_found) — régression du bug corrigé le 07/09/2026 (round 317) : le message de succès s'afficherait de nouveau même pour un cal_id inexistant ou d'une autre boutique";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
@@ -12965,12 +12999,21 @@ class HealthCheckManager
             return ['status' => self::STATUS_OK, 'detail' => AdminTranslator::t('health.orphaned_waitlist_claims_ok')];
         }
 
+        // Round 317 : $use_cache=false — même famille de bug que les rounds
+        // 210-223, déjà corrigée pour checkOrphanedVoucherReservations()
+        // juste au-dessus (round 223), jamais portée ici. Sans ce
+        // paramètre, un résultat de cache SQL périmé (0, d'un appel
+        // antérieur dans le même process/cache partagé) pourrait faire
+        // sauter silencieusement ce nettoyage, laissant des clients
+        // bloqués indéfiniment sans notification de retour en stock ni
+        // nouvel essai possible.
         $db    = \Db::getInstance();
         $count = (int) $db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'neria_waitlist`
              WHERE `notified_at` IS NULL
                AND `claim_started_at` IS NOT NULL
-               AND `claim_started_at` < DATE_SUB(NOW(), INTERVAL 1 HOUR)'
+               AND `claim_started_at` < DATE_SUB(NOW(), INTERVAL 1 HOUR)',
+            false
         );
 
         if ($count > 0) {
