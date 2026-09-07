@@ -1,5 +1,21 @@
 <?php
-/** Régression : les fenêtres abandoned_cart_1/2/3 + checkout_abandonment ne doivent ni se chevaucher ni être trop étroites pour un cron quotidien. */
+/**
+ * Régression : les fenêtres abandoned_cart_1/2/3 + checkout_abandonment ne doivent ni se chevaucher ni être trop étroites pour un cron quotidien.
+ *
+ * Round 318 : le SELECT final filtrait uniquement par `ref_id = $idCart`,
+ * sans filtrer par template ni id_customer — ref_id est une colonne
+ * générique réutilisée avec des sémantiques différentes selon le template
+ * (id_cart pour abandoned_cart_*, mais année pour birthday/win_back, id de
+ * palier pour loyalty_tier_upgrade, etc. — voir sql/install.sql, table 12).
+ * Sur cette suite de tests longue durée, neria_behavioral_sent accumule des
+ * résidus d'autres tests avec des ref_id numériques divers ; une pure
+ * coïncidence entre le id_cart auto-incrémenté généré ici et un ref_id
+ * résiduel d'un AUTRE template/client (ex: loyalty_tier_upgrade ref_id=1011)
+ * faisait compter à tort 2 lignes au lieu d'1, un faux positif de
+ * régression sans rapport avec la vraie logique de fenêtres testée ici (le
+ * code de production, lui, filtre toujours par id_customer ET template
+ * ensemble — voir sendAbandonedCarts() — donc n'a jamais ce problème).
+ */
 require_once __DIR__ . '/bootstrap.php';
 
 function run_test(): array
@@ -20,7 +36,12 @@ function run_test(): array
         $ref->invoke($mgr, 'abandoned_cart_1', 1);
         $ref->invoke($mgr, 'abandoned_cart_2', 24);
 
-        $rows = $db->executeS("SELECT template FROM {$prefix}neria_behavioral_sent WHERE ref_id={$idCart}");
+        $rows = $db->executeS(
+            "SELECT template FROM {$prefix}neria_behavioral_sent
+             WHERE ref_id = {$idCart}
+               AND id_customer = {$idCustomer}
+               AND template IN ('abandoned_cart_1', 'abandoned_cart_2')"
+        );
         $count = count($rows);
 
         neria_assert(
@@ -30,7 +51,7 @@ function run_test(): array
 
         return ['pass' => true, 'message' => 'Fenêtres cron panier abandonné toujours jointives sans chevauchement'];
     } finally {
-        $db->execute("DELETE FROM {$prefix}neria_behavioral_sent WHERE ref_id={$idCart}");
+        $db->execute("DELETE FROM {$prefix}neria_behavioral_sent WHERE ref_id={$idCart} AND id_customer={$idCustomer} AND template IN ('abandoned_cart_1', 'abandoned_cart_2')");
         $db->execute("DELETE FROM {$prefix}cart WHERE id_cart={$idCart}");
     }
 }
