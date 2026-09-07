@@ -25,7 +25,10 @@ function run_test(): array
     $posMethod = strpos($src, 'private function generateMilestoneVoucher(');
     neria_assert($posMethod !== false, 'generateMilestoneVoucher() introuvable — régression du bug corrigé le 08/08/2026');
 
-    $body = substr($src, $posMethod, 2600);
+    // Round 314 : fenêtre élargie 2600→3600 — le correctif round 314
+    // (ancrage NOW() MySQL + commentaire explicatif sur date_from) a
+    // repoussé les littéraux ci-dessous plus loin dans le corps.
+    $body = substr($src, $posMethod, 3600);
 
     neria_assert(
         strpos($body, "\$cartRule->minimum_amount_currency = (int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop);") !== false,

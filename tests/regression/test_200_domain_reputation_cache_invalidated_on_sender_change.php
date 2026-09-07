@@ -10,17 +10,21 @@
  * l'ANCIEN domaine — au moment précis où le risque (nouveau domaine
  * fraîchement configuré, sans SPF/DKIM/DMARC en place) est le plus élevé.
  *
- * Test structurel assumé explicitement : Configuration::get() du cœur PS
- * ignore silencieusement tout idShop explicite quand
- * Shop::isFeatureActive() === false (installation mono-boutique, cas de
- * cet environnement de dev — même limite que test_188/round 142, confirmée
- * ici aussi en LECTURE, pas seulement en écriture) : impossible de faire
- * lire à getCachedReport() une ligne shop-scopée précise dans cet
- * environnement, même via un INSERT SQL brut préalable — Configuration::get()
- * retombe sur Shop::getContextShopID(true) (NULL en mono-boutique) avant
- * même de tenter la lecture shop-scopée. Vérifie donc que invalidateCache()
- * appelle bien deleteFromContext() sur les 2 clés de cache, et que
- * neria.php::save_senders l'appelle bien après avoir sauvegardé l'expéditeur.
+ * Mis à jour le 07/09/2026 (round 314) : invalidateCache() n'utilise plus
+ * Configuration::deleteFromContext() — le cœur PrestaShop fait retourner
+ * cette méthode IMMÉDIATEMENT sans rien supprimer dès que
+ * Shop::getContext() === Shop::CONTEXT_ALL (l'état naturel de cet
+ * environnement de test CLI, confirmé par test_290), quel que soit le
+ * $idShop explicite passé en argument — le correctif round 144 ne
+ * fonctionnait donc en réalité JAMAIS dans ce contexte précis. Remplacé
+ * par Configuration::updateValue($key, '', ...), qui écrit bien sur la
+ * boutique explicitement demandée quel que soit le contexte BO ambiant
+ * (voir test_606 pour le test comportemental dédié à ce correctif).
+ *
+ * Test structurel : vérifie que invalidateCache() appelle bien
+ * updateValue() (pas deleteFromContext()) sur les 2 clés de cache, et que
+ * neria.php::save_senders l'appelle bien après avoir sauvegardé
+ * l'expéditeur.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -32,14 +36,14 @@ function run_test(): array
     $posMethod = strpos($src, 'public static function invalidateCache(int $idShop): void');
     neria_assert($posMethod !== false, "DomainReputationManager::invalidateCache() introuvable — régression du bug corrigé le 09/08/2026 (round 144)");
 
-    $body = substr($src, $posMethod, 400);
+    $body = substr($src, $posMethod, 1800);
     neria_assert(
-        strpos($body, "\Configuration::deleteFromContext(self::CONFIG_LAST_CHECK, null, \$idShop);") !== false,
-        "invalidateCache() n'efface plus CONFIG_LAST_CHECK — régression du bug corrigé le 09/08/2026 (round 144)"
+        strpos($body, "\Configuration::updateValue(self::CONFIG_LAST_CHECK, '', false, null, \$idShop);") !== false,
+        "invalidateCache() n'efface plus CONFIG_LAST_CHECK via updateValue() — régression du bug corrigé le 07/09/2026 (round 314) : sous Shop::CONTEXT_ALL, deleteFromContext() ne ferait de nouveau RIEN"
     );
     neria_assert(
-        strpos($body, "\Configuration::deleteFromContext(self::CONFIG_CACHE, null, \$idShop);") !== false,
-        "invalidateCache() n'efface plus CONFIG_CACHE — régression du bug corrigé le 09/08/2026 (round 144)"
+        strpos($body, "\Configuration::updateValue(self::CONFIG_CACHE, '', false, null, \$idShop);") !== false,
+        "invalidateCache() n'efface plus CONFIG_CACHE via updateValue() — régression du bug corrigé le 07/09/2026 (round 314)"
     );
 
     $mainSrc = file_get_contents(_PS_MODULE_DIR_ . 'neria/neria.php');

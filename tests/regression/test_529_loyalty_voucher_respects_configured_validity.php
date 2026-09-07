@@ -41,8 +41,11 @@ function run_test(): array
     $posFn = strpos($src, 'private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward): string');
     neria_assert($posFn !== false, 'generateVoucher() introuvable — jeu de test invalide');
 
+    // Round 314 : distance max élargie 4000→4500 — le correctif round 314
+    // (ancrage NOW() MySQL + commentaire explicatif) sur cette même
+    // méthode a repoussé $cartRule->date_to plus loin dans le corps.
     $posDateTo = strpos($src, '$cartRule->date_to', $posFn);
-    neria_assert($posDateTo !== false && $posDateTo - $posFn < 4000, "\$cartRule->date_to introuvable dans generateVoucher() — jeu de test invalide");
+    neria_assert($posDateTo !== false && $posDateTo - $posFn < 4500, "\$cartRule->date_to introuvable dans generateVoucher() — jeu de test invalide");
 
     $body = substr($src, $posDateTo, 200);
 
