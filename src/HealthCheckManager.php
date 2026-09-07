@@ -2409,12 +2409,15 @@ class HealthCheckManager
         // commande à conversion_rate=0 (donnée legacy/import) rendait le
         // SUM() de tout le client NULL en SQL, l'excluant du pool des 200
         // candidats et/ou écrasant son CA réel à 0 dans le Top 20 CLV.
+        // Round 316 : littéral mis à jour — IS NULL OR ajouté au garde-fou
+        // (voir guard round 316 plus bas) ; ce contrôle-ci reste focalisé
+        // sur la protection contre 0 elle-même, toujours présente.
         $clvFile = _PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php';
         $clvSrc = $this->readModuleSrc($clvFile);
         if ($clvSrc === '') {
             $offenders[] = 'src/ClvManager.php introuvable';
-        } elseif (strpos($clvSrc, "ORDER BY SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` = 0, 1, o.`conversion_rate`)) DESC") === false
-               || strpos($clvSrc, "SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` = 0, 1, o.`conversion_rate`)) AS total_revenue") === false) {
+        } elseif (strpos($clvSrc, "ORDER BY SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` IS NULL OR o.`conversion_rate` = 0, 1, o.`conversion_rate`)) DESC") === false
+               || strpos($clvSrc, "SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` IS NULL OR o.`conversion_rate` = 0, 1, o.`conversion_rate`)) AS total_revenue") === false) {
             $offenders[] = "ClvManager::getTopCustomers() ne protège plus ses divisions par o.conversion_rate contre 0 — un client avec une commande à conversion_rate=0 pourrait de nouveau être exclu du Top 20 CLV ou voir son CA écrasé à 0";
         }
 
@@ -10165,6 +10168,34 @@ class HealthCheckManager
             || strpos($bodyTrCount315, 'false') === false
         ) {
             $offenders[] = "NeriaTools::getDiagnosticReport() ne contourne plus le cache SQL PrestaShop (\$use_cache=false) pour le comptage des traductions — régression du bug corrigé le 07/09/2026 (round 315)";
+        }
+
+        // Round 316 (07/09/2026) : MonthlyReportManager::t() substituait
+        // ses variables via str_replace() en boucle (cascade de
+        // remplacement) au lieu de strtr() en un seul passage — même piège
+        // déjà corrigé dans AdminTranslator::tVars() (round 304) et
+        // TranslationEngine::resolveVariables().
+        $mrmSrc316 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php');
+        $posT316 = strpos($mrmSrc316, 'private function t(string $key, array $vars = []): string');
+        $bodyT316 = $posT316 !== false ? substr($mrmSrc316, $posT316, 1500) : '';
+        if ($mrmSrc316 === ''
+            || $posT316 === false
+            || strpos($bodyT316, 'strtr($str, $replace)') === false
+        ) {
+            $offenders[] = "MonthlyReportManager::t() n'utilise plus strtr() pour substituer ses variables — régression du bug corrigé le 07/09/2026 (round 316) : une valeur de variable contenant littéralement '{autre_placeholder}' corromprait de nouveau le message du rapport mensuel (cascade de remplacement)";
+        }
+
+        // Round 316 (07/09/2026) : ClvManager utilisait
+        // IF(conversion_rate = 0, 1, conversion_rate) sur 4 requêtes
+        // batch — IF(NULL = 0, 1, NULL) s'évalue à NULL en SQL, donc SUM()
+        // ignorait silencieusement toute commande à conversion_rate NULL,
+        // en écart avec computeClv() (PHP) qui traite déjà NULL et 0 de
+        // façon identique via `?: 1.0`.
+        $clvSrc316 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php');
+        if ($clvSrc316 === ''
+            || (substr_count($clvSrc316, 'IS NULL OR o.`conversion_rate` = 0') + substr_count($clvSrc316, 'IS NULL OR os.`conversion_rate` = 0')) !== 4
+        ) {
+            $offenders[] = "ClvManager n'applique plus IF(conversion_rate IS NULL OR conversion_rate = 0, 1, conversion_rate) sur ses 4 requêtes batch — régression du bug corrigé le 07/09/2026 (round 316) : une commande à conversion_rate NULL serait de nouveau exclue du CA total dans le classement Top clients, en écart avec la fiche client individuelle";
         }
 
         if ($offenders) {
