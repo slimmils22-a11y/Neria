@@ -6206,12 +6206,18 @@ class HealthCheckManager
             $offenders[] = 'QueueManager.php introuvable (garde-fou round 178)';
         } else {
             $posSingle178 = strpos($qmSrc178, 'private function processSingle(array $row): bool');
-            // Round 294 : fenêtre élargie 7500→9000 — l'ajout de la
+            // Round 313 : fenêtre élargie 9000→10500 — les 2 correctifs
+            // horloge/Affected_Rows ajoutés au round 313 (réservation
+            // atomique capturée dans une variable dédiée + vérification
+            // Affected_Rows() sur l'UPDATE status='sent', chacun avec son
+            // commentaire explicatif) ont repoussé le check BounceManager au
+            //-delà de l'ancienne fenêtre de 9000 (nouvel offset mesuré :
+            // ~9200). Round 294 : fenêtre élargie 7500→9000 — l'ajout de la
             // revérification "panier non converti" (garde-fou round 294,
-            // voir plus bas) a de nouveau repoussé le check BounceManager
+            // voir plus bas) avait de nouveau repoussé le check BounceManager
             // plus loin dans le corps de la méthode (round 260 : 5400→7500
             // pour la même raison, revérification produit ghost_cart).
-            $singleBody178 = $posSingle178 !== false ? substr($qmSrc178, $posSingle178, 9000) : '';
+            $singleBody178 = $posSingle178 !== false ? substr($qmSrc178, $posSingle178, 10500) : '';
             $hasGuards178 = strpos($singleBody178, "\\BounceManager::isBounced(\$toEmail)") !== false
                 && strpos($singleBody178, 'markQueueFailed(') !== false;
             if ($posSingle178 === false || !$hasGuards178) {
@@ -9933,6 +9939,50 @@ class HealthCheckManager
             || strpos($wlmSrc312, '(int) $this->db->Affected_Rows() > 0') === false
         ) {
             $offenders[] = "WaitlistManager::notifyProductLocked() ne vérifie plus Affected_Rows() après l'UPDATE de notified_at — régression du bug corrigé le 06/09/2026 (round 312) : un échec silencieux de cet UPDATE laisserait de nouveau notified_at NULL malgré un email réellement envoyé, exposant à un second envoi au prochain réassort";
+        }
+
+        // Round 313 (06/09/2026) : CustomerEmailHistoryManager::computeAlerts()
+        // calculait la date de référence "client inactif" via
+        // end($emails)['sent_at'] (le PREMIER email jamais envoyé, $emails
+        // étant trié DESC) au lieu de reset($emails)['sent_at'] (le DERNIER)
+        // quand aucun email n'a jamais été ouvert.
+        $cehmSrc313 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CustomerEmailHistoryManager.php');
+        if ($cehmSrc313 === ''
+            || strpos($cehmSrc313, '$refDate = $lastOpen ?: reset($emails)[\'sent_at\'];') === false
+        ) {
+            $offenders[] = "CustomerEmailHistoryManager::computeAlerts() ne calcule plus sa date de référence via reset(\$emails) — régression du bug corrigé le 06/09/2026 (round 313) : l'alerte 'client inactif' redeviendrait basée sur le tout premier email jamais envoyé au lieu du dernier";
+        }
+
+        // Round 313 (06/09/2026) : CustomerEmailHistoryManager::getShopAverageOpenRate()
+        // ne contournait pas le cache SQL PrestaShop (Db::getRow() par
+        // défaut $use_cache=true) sur une lecture pourtant fraîcheur-critique
+        // (comparaison boutique du badge d'engagement individuel).
+        if (strpos($cehmSrc313, '$row = $this->db->getRow($sql, false);') === false) {
+            $offenders[] = "CustomerEmailHistoryManager::getShopAverageOpenRate() ne contourne plus le cache SQL PrestaShop (\$use_cache=false) — régression du bug corrigé le 06/09/2026 (round 313) : la moyenne d'ouverture boutique affichée redeviendrait potentiellement périmée";
+        }
+
+        // Round 313 (06/09/2026) : QueueManager::processSingle() marquait
+        // une ligne 'sent' via UPDATE sans jamais vérifier Affected_Rows() —
+        // un échec silencieux de cette UPDATE précise (email réellement
+        // envoyé, DB non mise à jour) exposait à un second envoi au même
+        // client au prochain passage cron (nettoyage "sending" bloqué).
+        $qmSrc313 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        if ($qmSrc313 === ''
+            || strpos($qmSrc313, '$affectedSent313 = (int) $this->db->Affected_Rows();') === false
+            || strpos($qmSrc313, '$affectedSent313 === 0') === false
+            || strpos($qmSrc313, "'watchdog.queue_sent_not_confirmed'") === false
+        ) {
+            $offenders[] = "QueueManager::processSingle() ne vérifie plus Affected_Rows() après l'UPDATE status='sent' — régression du bug corrigé le 06/09/2026 (round 313) : un échec silencieux de cette UPDATE précise redeviendrait invisible, exposant à un double envoi";
+        }
+
+        // Round 313 (06/09/2026) : QueueManager::nextOccurrence() calculait
+        // $now via new \DateTime() (horloge PHP) au lieu d'ancrer sur NOW()
+        // MySQL — send_at calculé ici est pourtant stocké tel quel puis
+        // comparé à NOW() côté MySQL dans processQueue().
+        if ($qmSrc313 === ''
+            || strpos($qmSrc313, "new \\DateTime((string) \$this->db->getValue('SELECT NOW()'))") === false
+        ) {
+            $offenders[] = "QueueManager::nextOccurrence() n'ancre plus \$now sur NOW() MySQL — régression du bug corrigé le 06/09/2026 (round 313) : les envois comportementaux planifiés redeviendraient dépendants de l'horloge PHP, décalés en cas de fuseau différent entre serveurs web et MySQL";
         }
 
         if ($offenders) {
