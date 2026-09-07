@@ -3600,35 +3600,65 @@ class Neria extends Module
             $idEvent = (int) Tools::getValue('cal_id', 0);
             $days    = max(1, min(60, (int) Tools::getValue('cal_days', 7)));
             if ($idEvent > 0) {
-                Db::getInstance()->execute(
-                    'UPDATE `' . _DB_PREFIX_ . 'neria_calendar_event`
-                     SET `send_days_before` = ' . $days . ', `date_upd` = NOW()
-                     WHERE `id_event` = ' . $idEvent . ' AND `id_shop` = ' . (int) $this->context->shop->id
+                // Round 317 : existence vérifiée AVANT l'UPDATE — un
+                // UPDATE resoumettant la même valeur send_days_before
+                // donnerait Affected_Rows()=0 bien que la ligne existe
+                // réellement (fausse ambiguïté, même pattern que
+                // SeasonalCampaignManager::update(), round 311). Sans
+                // aucune vérification (l'état d'origine), un cal_id
+                // inexistant ou d'une autre boutique affichait quand même
+                // "Enregistré".
+                $calExists317 = (bool) Db::getInstance()->getValue(
+                    'SELECT 1 FROM `' . _DB_PREFIX_ . 'neria_calendar_event`
+                     WHERE `id_event` = ' . $idEvent . ' AND `id_shop` = ' . (int) $this->context->shop->id,
+                    false
                 );
-                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                if ($calExists317) {
+                    Db::getInstance()->execute(
+                        'UPDATE `' . _DB_PREFIX_ . 'neria_calendar_event`
+                         SET `send_days_before` = ' . $days . ', `date_upd` = NOW()
+                         WHERE `id_event` = ' . $idEvent . ' AND `id_shop` = ' . (int) $this->context->shop->id
+                    );
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('calendar.event_not_found'));
+                }
             }
         }
 
         if (Tools::getValue('neria_action') === 'toggle_calendar_event' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idEvent = (int) Tools::getValue('cal_id', 0);
             if ($idEvent > 0) {
+                // Round 317 : Affected_Rows() vérifié — is_active = 1 -
+                // is_active change TOUJOURS la valeur quand la ligne est
+                // trouvée (XOR), donc fiable ici sans fausse ambiguïté.
                 Db::getInstance()->execute(
                     'UPDATE `' . _DB_PREFIX_ . 'neria_calendar_event`
                      SET `is_active` = 1 - `is_active`, `date_upd` = NOW()
                      WHERE `id_event` = ' . $idEvent . ' AND `id_shop` = ' . (int) $this->context->shop->id
                 );
-                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                if ((int) Db::getInstance()->Affected_Rows() > 0) {
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('calendar.event_not_found'));
+                }
             }
         }
 
         if (Tools::getValue('neria_action') === 'delete_calendar_event' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $idEvent = (int) Tools::getValue('cal_id', 0);
             if ($idEvent > 0) {
+                // Round 317 : Affected_Rows() vérifié — DELETE est un
+                // indicateur fiable, pas d'ambiguïté possible.
                 Db::getInstance()->execute(
                     'DELETE FROM `' . _DB_PREFIX_ . 'neria_calendar_event`
                      WHERE `id_event` = ' . $idEvent . ' AND `id_shop` = ' . (int) $this->context->shop->id
                 );
-                $this->context->smarty->assign('neria_success', AdminTranslator::t('calendar.deleted'));
+                if ((int) Db::getInstance()->Affected_Rows() > 0) {
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('calendar.deleted'));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('calendar.event_not_found'));
+                }
             }
         }
 

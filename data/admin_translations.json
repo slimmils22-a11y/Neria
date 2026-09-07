@@ -65917,5 +65917,26 @@
         "da": "Intet bounce fundet for {email} — det er muligvis allerede håndteret fra en anden fane.",
         "nl": "Geen bounce gevonden voor {email} — deze is mogelijk al verwerkt vanuit een ander tabblad.",
         "gb": "No bounce found for {email} — it may have already been handled from another tab."
+    },
+    "calendar.event_not_found": {
+        "fr": "Cet événement de calendrier n'existe plus ou appartient à une autre boutique — aucune modification n'a été effectuée.",
+        "en": "This calendar event no longer exists or belongs to another shop — no change was made.",
+        "de": "Dieses Kalenderereignis existiert nicht mehr oder gehört zu einem anderen Shop — es wurde keine Änderung vorgenommen.",
+        "it": "Questo evento del calendario non esiste più o appartiene a un altro negozio — non è stata apportata alcuna modifica.",
+        "es": "Este evento del calendario ya no existe o pertenece a otra tienda — no se realizó ningún cambio.",
+        "pt": "Este evento do calendário já não existe ou pertence a outra loja — não foi feita nenhuma alteração.",
+        "br": "Este evento do calendário não existe mais ou pertence a outra loja — nenhuma alteração foi feita.",
+        "ar": "لم يعد هذا الحدث في التقويم موجودًا أو أنه يتبع متجرًا آخر — لم يتم إجراء أي تغيير.",
+        "ja": "このカレンダーイベントは存在しないか、別のショップに属しています — 変更は行われませんでした。",
+        "ko": "이 캘린더 이벤트가 더 이상 존재하지 않거나 다른 상점에 속해 있습니다 — 변경 사항이 적용되지 않았습니다.",
+        "zh": "此日历事件不再存在或属于其他店铺 — 未进行任何更改。",
+        "tw": "此行事曆事件已不存在或屬於其他商店 — 未進行任何變更。",
+        "ru": "Это событие календаря больше не существует или принадлежит другому магазину — изменения не были внесены.",
+        "tr": "Bu takvim etkinliği artık mevcut değil veya başka bir mağazaya ait — herhangi bir değişiklik yapılmadı.",
+        "sv": "Denna kalenderhändelse finns inte längre eller tillhör en annan butik — ingen ändring gjordes.",
+        "no": "Denne kalenderhendelsen finnes ikke lenger eller tilhører en annen butikk — ingen endring ble gjort.",
+        "da": "Denne kalenderbegivenhed findes ikke længere eller tilhører en anden butik — der blev ikke foretaget nogen ændring.",
+        "nl": "Deze kalendergebeurtenis bestaat niet meer of behoort tot een andere winkel — er is geen wijziging aangebracht.",
+        "gb": "This calendar event no longer exists or belongs to another shop — no change was made."
     }
 }
