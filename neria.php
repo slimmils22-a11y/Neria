@@ -6077,16 +6077,25 @@ class Neria extends Module
             $action = Tools::getValue('neria_action');
             if ($email !== '') {
                 if ($action === 'ignore_bounce') {
-                    $mgr->ignoreBounce($email);
+                    $ok = $mgr->ignoreBounce($email);
                     $msgKey = 'msg.bounce_ignored';
                 } elseif ($action === 'reactivate_bounce') {
-                    $mgr->reactivateBounce($email);
+                    $ok = $mgr->reactivateBounce($email);
                     $msgKey = 'msg.bounce_reactivated';
                 } else {
-                    $mgr->deleteBounce($email);
+                    $ok = $mgr->deleteBounce($email);
                     $msgKey = 'msg.bounce_deleted';
                 }
-                $this->context->smarty->assign('neria_success', AdminTranslator::t($msgKey));
+                // Round 315 : succès affiché uniquement si l'action a
+                // réellement eu un effet — ignoreBounce()/reactivateBounce()/
+                // deleteBounce() renvoient désormais false si aucune ligne
+                // ne correspond à l'email (déjà traité par un autre onglet
+                // BO, faute de frappe) au lieu de toujours true.
+                if ($ok) {
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t($msgKey));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::tVars('msg.bounce_not_found', ['email' => $email]));
+                }
             }
         }
 

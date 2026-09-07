@@ -548,12 +548,21 @@ class ABTestManager
 
         $table = _DB_PREFIX_ . self::TABLE_TRAD;
 
+        // Round 315 : $use_cache=false — même famille de bug que les rounds
+        // 210-213 (voir copyVariantBToDefault() plus bas, même table). Cette
+        // méthode est appelée par EmailRenderer à CHAQUE rendu d'email pour
+        // la variante B (closure {neria_trad}) ; sans ce paramètre, une
+        // correction de texte via saveVariantBTranslations() pendant qu'un
+        // cron d'envoi tourne pouvait rester invisible pour les emails
+        // restant à traiter dans le même process (résultat mis en cache par
+        // un appel antérieur sur la même clé).
         $value = $this->db->getValue(
             "SELECT `translation_value`
              FROM `{$table}`
              WHERE `id_abtest`       = {$idAbtest}
                AND `lang`            = '" . pSQL($lang) . "'
-               AND `translation_key` = '" . pSQL($key) . "'"
+               AND `translation_key` = '" . pSQL($key) . "'",
+            false
         );
 
         return $value !== false ? (string) $value : null;
@@ -618,12 +627,15 @@ class ABTestManager
             return self::STATUS_ACTIVE;
         }
 
+        // Round 315 : $use_cache=false — même famille de bug que les rounds
+        // 210-213 (getVariantBValue()/copyVariantBToDefault() plus haut).
         $table = _DB_PREFIX_ . self::TABLE;
         $count = (int) $this->db->getValue(
             "SELECT COUNT(*)
              FROM `{$table}`
              WHERE `id_shop`  = {$this->idShop}
-               AND `template` = '" . pSQL($template) . "'"
+               AND `template` = '" . pSQL($template) . "'",
+            false
         );
 
         return $count > 0 ? self::STATUS_DRAFT : 'none';

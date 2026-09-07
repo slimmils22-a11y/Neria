@@ -511,8 +511,12 @@ class NeriaTools
         }
 
         // ── Traductions ───────────────────────────────────────────
+        // Round 315 : $use_cache=false — même famille de bug que le round
+        // 216 juste au-dessus (mêmes conséquences : ce compte alimente
+        // translations.ok, 20 des 100 points du score de santé affiché).
         $translationCount = (int) $db->getValue(
-            "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_translation`"
+            "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_translation`",
+            false
         );
 
         $report['translations'] = [

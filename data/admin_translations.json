@@ -65896,5 +65896,26 @@
         "da": "Kø-e-mail (#{id}, skabelon {template}, {email}) sandsynligvis sendt, men ikke bekræftet i databasen — kontroller manuelt før gensendelse for at undgå en duplikat.",
         "nl": "E-mail uit de wachtrij (#{id}, sjabloon {template}, {email}) waarschijnlijk verzonden maar niet bevestigd in de database — controleer handmatig vóór een nieuwe verzending om een dubbele te voorkomen.",
         "gb": "Queued email (#{id}, template {template}, {email}) likely sent but not confirmed in the database — check manually before any resend to avoid a duplicate."
+    },
+    "msg.bounce_not_found": {
+        "fr": "Aucun bounce trouvé pour {email} — il a peut-être déjà été traité depuis un autre onglet.",
+        "en": "No bounce found for {email} — it may have already been handled from another tab.",
+        "de": "Kein Bounce für {email} gefunden — er wurde möglicherweise bereits in einem anderen Tab bearbeitet.",
+        "it": "Nessun bounce trovato per {email} — potrebbe essere già stato gestito da un'altra scheda.",
+        "es": "No se encontró ningún rebote para {email} — puede que ya se haya gestionado desde otra pestaña.",
+        "pt": "Nenhum bounce encontrado para {email} — pode já ter sido tratado noutro separador.",
+        "br": "Nenhum bounce encontrado para {email} — pode já ter sido tratado em outra aba.",
+        "ar": "لم يتم العثور على أي ارتداد لـ {email} — ربما تمت معالجته بالفعل من علامة تبويب أخرى.",
+        "ja": "{email} に該当するバウンスが見つかりません — 別のタブですでに処理された可能性があります。",
+        "ko": "{email}에 해당하는 반송을 찾을 수 없습니다 — 다른 탭에서 이미 처리되었을 수 있습니다.",
+        "zh": "未找到 {email} 的退信记录 — 可能已在其他标签页中处理。",
+        "tw": "找不到 {email} 的退信記錄 — 可能已在其他分頁中處理。",
+        "ru": "Отказ для {email} не найден — возможно, он уже был обработан в другой вкладке.",
+        "tr": "{email} için geri dönüş bulunamadı — başka bir sekmeden zaten işlenmiş olabilir.",
+        "sv": "Ingen studs hittades för {email} — den kan redan ha hanterats från en annan flik.",
+        "no": "Ingen sprett funnet for {email} — den kan allerede ha blitt håndtert fra en annen fane.",
+        "da": "Intet bounce fundet for {email} — det er muligvis allerede håndteret fra en anden fane.",
+        "nl": "Geen bounce gevonden voor {email} — deze is mogelijk al verwerkt vanuit een ander tabblad.",
+        "gb": "No bounce found for {email} — it may have already been handled from another tab."
     }
 }

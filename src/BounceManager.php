@@ -751,11 +751,30 @@ class BounceManager
 
     public function ignoreBounce(string $email): bool
     {
-        return (bool) \Db::getInstance()->execute(
+        // Round 315 : existence vérifiée AVANT l'UPDATE plutôt que via
+        // Affected_Rows() après — un email déjà au statut 'ignored' (bouton
+        // recliqué, ou onglet BO ouvert deux fois) donne Affected_Rows()=0
+        // bien que la ligne existe réellement (aucune valeur changée), même
+        // fausse ambiguïté déjà documentée pour SeasonalCampaignManager::
+        // update() (round 311) — Db::execute() renvoie toujours true tant
+        // que la requête SQL elle-même a réussi, y compris quand AUCUNE
+        // ligne ne correspond à l'email (faute de frappe, ligne déjà
+        // supprimée par un autre onglet BO), affichant "Bounce ignoré" à
+        // tort.
+        $emailSql = pSQL(mb_strtolower(trim($email)));
+        $exists = (bool) \Db::getInstance()->getValue(
+            'SELECT 1 FROM `' . _DB_PREFIX_ . self::TABLE . '` WHERE `email` = \'' . $emailSql . '\'',
+            false
+        );
+        if (!$exists) {
+            return false;
+        }
+        \Db::getInstance()->execute(
             'UPDATE `' . _DB_PREFIX_ . self::TABLE . '`
              SET `status` = \'ignored\'
-             WHERE `email` = \'' . pSQL(mb_strtolower(trim($email))) . '\''
+             WHERE `email` = \'' . $emailSql . '\''
         );
+        return true;
     }
 
     public function reactivateBounce(string $email): bool
@@ -768,19 +787,38 @@ class BounceManager
         // (bounce_count = bounce_count + 1) et isBounced() rebloquait
         // aussitôt l'adresse, rendant la réactivation manuelle pratiquement
         // inopérante pour toute adresse au-dessus du seuil.
-        return (bool) \Db::getInstance()->execute(
+        // Round 315 : existence vérifiée AVANT l'UPDATE — même raisonnement
+        // que ignoreBounce() ci-dessus (fausse ambiguïté Affected_Rows()
+        // sur une adresse déjà 'active'/bounce_count=0).
+        $emailSql = pSQL(mb_strtolower(trim($email)));
+        $exists = (bool) \Db::getInstance()->getValue(
+            'SELECT 1 FROM `' . _DB_PREFIX_ . self::TABLE . '` WHERE `email` = \'' . $emailSql . '\'',
+            false
+        );
+        if (!$exists) {
+            return false;
+        }
+        \Db::getInstance()->execute(
             'UPDATE `' . _DB_PREFIX_ . self::TABLE . '`
              SET `status` = \'active\', `bounce_count` = 0
-             WHERE `email` = \'' . pSQL(mb_strtolower(trim($email))) . '\''
+             WHERE `email` = \'' . $emailSql . '\''
         );
+        return true;
     }
 
     public function deleteBounce(string $email): bool
     {
-        return (bool) \Db::getInstance()->delete(
+        // Round 315 : Affected_Rows() vérifié — DELETE est un vrai
+        // indicateur fiable ici (pas d'ambiguïté "valeurs resoumises
+        // identiques" possible pour une suppression). Db::delete()
+        // renvoyait toujours true tant que la requête SQL réussissait,
+        // même quand aucune ligne ne correspondait à l'email (déjà
+        // supprimé par un autre onglet BO, faute de frappe).
+        \Db::getInstance()->delete(
             self::TABLE,
             '`email` = \'' . pSQL(mb_strtolower(trim($email))) . '\''
         );
+        return (int) \Db::getInstance()->Affected_Rows() > 0;
     }
 
     public function addManualBounce(string $email, string $type = 'hard'): void

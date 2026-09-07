@@ -444,8 +444,11 @@ class GdprAuditManager
         ];
 
         // 1e. Taille de la blacklist (information, pas une issue)
+        // Round 315 : $use_cache=false — même famille de bug que le reste
+        // de ce fichier (rounds 210-223/302).
         $blacklistCount = (int) $this->db->getValue(
-            "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_blacklist` WHERE `id_shop` = " . $this->idShop
+            "SELECT COUNT(*) FROM `" . _DB_PREFIX_ . "neria_blacklist` WHERE `id_shop` = " . $this->idShop,
+            false
         );
         $checks[] = [
             'label'  => 'Blacklist de désabonnement',
@@ -612,11 +615,21 @@ class GdprAuditManager
         // courante comme auditRetention()/purgeTable(), sinon le score RGPD
         // d'une boutique dépend des données en clair d'une autre boutique
         // sur une install multi-boutiques (chiffres et grade faussés).
+        // Round 315 : $use_cache=false — même famille de bug que les rounds
+        // 210-223/302, déjà systématiquement corrigée ailleurs dans ce même
+        // fichier (auditRetention() ligne 510, auditUnsubscribe() ligne
+        // 929, purge log ligne 1113), mais oubliée ici. Sans ce paramètre,
+        // un marchand cliquant "Chiffrer les enregistrements existants"
+        // (encryptExistingRecords(), qui modifie réellement les lignes)
+        // puis rechargeant l'onglet RGPD pouvait voir un grade/score
+        // encore basé sur l'ancien décompte périmé.
         $totalVars = (int) $this->db->getValue(
-            "SELECT COUNT(*) FROM `{$table}` WHERE `rendered_vars` IS NOT NULL AND `rendered_vars` != '' AND `id_shop` = {$this->idShop}"
+            "SELECT COUNT(*) FROM `{$table}` WHERE `rendered_vars` IS NOT NULL AND `rendered_vars` != '' AND `id_shop` = {$this->idShop}",
+            false
         );
         $encrypted = (int) $this->db->getValue(
-            "SELECT COUNT(*) FROM `{$table}` WHERE `rendered_vars` LIKE 'ENC:%' AND `id_shop` = {$this->idShop}"
+            "SELECT COUNT(*) FROM `{$table}` WHERE `rendered_vars` LIKE 'ENC:%' AND `id_shop` = {$this->idShop}",
+            false
         );
         $plain = $totalVars - $encrypted;
 
