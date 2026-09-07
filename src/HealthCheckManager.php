@@ -8596,7 +8596,10 @@ class HealthCheckManager
         // indéfiniment sans jamais apparaître dans la liste détaillée.
         $segSrc272 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php');
         $segCountsPos272 = $segSrc272 !== '' ? strpos($segSrc272, 'public function getSegmentCounts(): array') : false;
-        $segCountsBody272 = $segCountsPos272 !== false ? substr($segSrc272, $segCountsPos272, 1600) : '';
+        // Round 314 : fenêtre élargie 1600→2100 — le correctif round 314
+        // ($use_cache=false + commentaire explicatif) sur cette même
+        // méthode a repoussé le littéral ci-dessous.
+        $segCountsBody272 = $segCountsPos272 !== false ? substr($segSrc272, $segCountsPos272, 2100) : '';
         if ($segSrc272 === ''
             || $segCountsPos272 === false
             || strpos($segCountsBody272, "INNER JOIN `{\$cTable}` c ON c.id_customer = s.id_customer") === false
@@ -8797,7 +8800,10 @@ class HealthCheckManager
         $loySrc277 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
         $loyFnPos277 = $loySrc277 !== '' ? strpos($loySrc277, 'private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward): string') : false;
         $loyDateToPos277 = $loyFnPos277 !== false ? strpos($loySrc277, '$cartRule->date_to', $loyFnPos277) : false;
-        $loyDateToBody277 = ($loyDateToPos277 !== false && $loyDateToPos277 - $loyFnPos277 < 4000) ? substr($loySrc277, $loyDateToPos277, 200) : '';
+        // Round 314 : distance max élargie 4000→4500 — le correctif round
+        // 314 (ancrage NOW() MySQL + commentaire explicatif) sur cette même
+        // méthode a repoussé $cartRule->date_to plus loin dans le corps.
+        $loyDateToBody277 = ($loyDateToPos277 !== false && $loyDateToPos277 - $loyFnPos277 < 4500) ? substr($loySrc277, $loyDateToPos277, 200) : '';
         if ($loySrc277 === ''
             || $loyFnPos277 === false
             || $loyDateToPos277 === false
@@ -9983,6 +9989,109 @@ class HealthCheckManager
             || strpos($qmSrc313, "new \\DateTime((string) \$this->db->getValue('SELECT NOW()'))") === false
         ) {
             $offenders[] = "QueueManager::nextOccurrence() n'ancre plus \$now sur NOW() MySQL — régression du bug corrigé le 06/09/2026 (round 313) : les envois comportementaux planifiés redeviendraient dépendants de l'horloge PHP, décalés en cas de fuseau différent entre serveurs web et MySQL";
+        }
+
+        // Round 314 (07/09/2026) : LookCompletionManager::claimSend()/
+        // CollectionManager::claimSend() écrivaient sent_at via date() PHP
+        // au lieu de NOW() SQL — getStats() filtre "envoyés 30 derniers
+        // jours" purement côté MySQL dans les deux fichiers.
+        $lcmSrc314 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
+        if ($lcmSrc314 === ''
+            || strpos($lcmSrc314, 'VALUES ({$idOrder}, {$idCustomer}, NOW())') === false
+        ) {
+            $offenders[] = "LookCompletionManager::claimSend() n'écrit plus sent_at via NOW() SQL — régression du bug corrigé le 07/09/2026 (round 314)";
+        }
+        $colSrc314 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php');
+        if ($colSrc314 === ''
+            || strpos($colSrc314, 'VALUES ({$colId}, {$idCustomer}, {$idShop}, NOW())') === false
+        ) {
+            $offenders[] = "CollectionManager::claimSend() n'écrit plus sent_at via NOW() SQL — régression du bug corrigé le 07/09/2026 (round 314)";
+        }
+
+        // Round 314 (07/09/2026) : UpsellManager::findByCoPurchase() ne
+        // départageait pas les égalités de fréquence de co-achat (non
+        // déterministe), contrairement à ses méthodes sœurs du même fichier.
+        $upsSrc314 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
+        if ($upsSrc314 === ''
+            || strpos($upsSrc314, 'ORDER BY freq DESC, od2.product_id ASC') === false
+        ) {
+            $offenders[] = "UpsellManager::findByCoPurchase() ne départage plus ses égalités de fréquence via od2.product_id ASC — régression du bug corrigé le 07/09/2026 (round 314)";
+        }
+
+        // Round 314 (07/09/2026) : WebhookManager::processQueue() écrivait
+        // last_attempt via date() PHP au lieu de NOW() SQL, comparé
+        // exclusivement côté MySQL (nettoyage 'sending' bloqué + backoff
+        // exponentiel) ; getRecentDeliveries() ne contournait pas le cache
+        // SQL PrestaShop sur une lecture de statut temps réel.
+        $whmSrc314 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php');
+        if ($whmSrc314 === ''
+            || strpos($whmSrc314, "\$now   = (string) \$this->db->getValue('SELECT NOW()');") === false
+        ) {
+            $offenders[] = "WebhookManager::processQueue() n'ancre plus \$now sur NOW() MySQL — régression du bug corrigé le 07/09/2026 (round 314)";
+        }
+        $posRecentDeliveries314 = strpos($whmSrc314, 'public function getRecentDeliveries(int $limit = 10): array');
+        $recentDeliveriesBody314 = $posRecentDeliveries314 !== false ? substr($whmSrc314, $posRecentDeliveries314, 1200) : '';
+        if ($whmSrc314 === ''
+            || strpos($recentDeliveriesBody314, '), true, false);') === false
+        ) {
+            $offenders[] = "WebhookManager::getRecentDeliveries() ne contourne plus le cache SQL PrestaShop (\$use_cache=false) — régression du bug corrigé le 07/09/2026 (round 314)";
+        }
+
+        // Round 314 (07/09/2026) : 3 méthodes de génération de bon
+        // (LoyaltyManager::generateVoucher(), BehavioralCronManager::
+        // generateBirthdayVoucher(), OrderTriggersManager::
+        // generateMilestoneVoucher()) écrivaient date_from via date() PHP —
+        // le cœur PrestaShop valide pourtant NOW() BETWEEN date_from AND
+        // date_to purement côté MySQL au checkout.
+        $lomSrc314 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
+        if ($lomSrc314 === ''
+            || strpos($lomSrc314, '$cartRule->date_from               = $nowSql314;') === false
+        ) {
+            $offenders[] = "LoyaltyManager::generateVoucher() n'ancre plus date_from sur NOW() MySQL — régression du bug corrigé le 07/09/2026 (round 314) : un bon de fidélité fraîchement émis serait de nouveau rejeté au checkout si le serveur web est en avance sur MySQL";
+        }
+        $bcmSrc314 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc314 === ''
+            || strpos($bcmSrc314, '$cartRule->date_from               = $nowSql314;') === false
+        ) {
+            $offenders[] = "BehavioralCronManager::generateBirthdayVoucher() n'ancre plus date_from sur NOW() MySQL — régression du bug corrigé le 07/09/2026 (round 314)";
+        }
+        $otmSrc314 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
+        if ($otmSrc314 === ''
+            || strpos($otmSrc314, '$cartRule->date_from               = $nowSql314;') === false
+        ) {
+            $offenders[] = "OrderTriggersManager::generateMilestoneVoucher() n'ancre plus date_from sur NOW() MySQL — régression du bug corrigé le 07/09/2026 (round 314)";
+        }
+
+        // Round 314 (07/09/2026) : LoyaltyManager::computeRecapWindowDays()
+        // calculait l'écart via time() PHP, appliqué ensuite comme offset
+        // depuis NOW() MySQL dans sendRecapToCustomer().
+        if ($lomSrc314 === ''
+            || strpos($lomSrc314, 'TIMESTAMPDIFF(SECOND,') === false
+            || strpos($lomSrc314, '$diffSeconds314') === false
+        ) {
+            $offenders[] = "LoyaltyManager::computeRecapWindowDays() n'ancre plus son calcul sur TIMESTAMPDIFF() MySQL — régression du bug corrigé le 07/09/2026 (round 314)";
+        }
+
+        // Round 314 (07/09/2026) : DomainReputationManager::invalidateCache()
+        // utilisait Configuration::deleteFromContext(), no-op silencieux du
+        // cœur PrestaShop dès que Shop::getContext()===CONTEXT_ALL, quel que
+        // soit le $idShop explicite passé en argument (même piège rounds
+        // 290/300).
+        $drmSrc314 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php');
+        if ($drmSrc314 === ''
+            || strpos($drmSrc314, "\Configuration::updateValue(self::CONFIG_LAST_CHECK, '', false, null, \$idShop);") === false
+        ) {
+            $offenders[] = "DomainReputationManager::invalidateCache() n'utilise plus updateValue() — régression du bug corrigé le 07/09/2026 (round 314) : le cache de réputation domaine resterait périmé jusqu'à 24h sous Shop::CONTEXT_ALL";
+        }
+
+        // Round 314 (07/09/2026) : SegmentManager::getSegmentCounts()/
+        // getCustomersBySegment() ne contournaient pas le cache SQL
+        // PrestaShop — cette dernière alimente directement sendToSegment().
+        $sgmSrc314 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php');
+        if ($sgmSrc314 === ''
+            || substr_count($sgmSrc314, 'true, false') < 2
+        ) {
+            $offenders[] = "SegmentManager::getSegmentCounts()/getCustomersBySegment() ne contournent plus le cache SQL PrestaShop (\$use_cache=false) — régression du bug corrigé le 07/09/2026 (round 314) : sendToSegment() pourrait de nouveau envoyer à une liste de destinataires périmée";
         }
 
         if ($offenders) {
