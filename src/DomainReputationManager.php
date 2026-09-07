@@ -131,8 +131,27 @@ class DomainReputationManager
      */
     public static function invalidateCache(int $idShop): void
     {
-        \Configuration::deleteFromContext(self::CONFIG_LAST_CHECK, null, $idShop);
-        \Configuration::deleteFromContext(self::CONFIG_CACHE, null, $idShop);
+        // Round 314 : Configuration::updateValue($key, '', ...) au lieu de
+        // deleteFromContext() — le cœur PrestaShop (classes/Configuration.php)
+        // fait retourner deleteFromContext() IMMÉDIATEMENT sans rien
+        // supprimer dès que Shop::getContext() === Shop::CONTEXT_ALL (le
+        // sélecteur de boutique du BO positionné sur "Toutes les
+        // boutiques"), quel que soit le $idShop explicite passé en
+        // argument — même piège déjà rencontré et documenté rounds 290/300
+        // sur ce même noyau PrestaShop. save_senders (neria.php) appelle
+        // pourtant toujours cette méthode avec un $idShop concret
+        // ($this->context->shop->id), jamais "toutes les boutiques" : le
+        // cache de réputation domaine (score/grade SPF/DKIM/DMARC/RBL)
+        // restait donc affiché jusqu'à 24h après un changement d'expéditeur
+        // transactionnel dès que l'admin BO avait "Toutes les boutiques"
+        // sélectionné au moment du changement — précisément le bug que ce
+        // correctif (round 144) prétendait déjà résoudre. updateValue()
+        // avec un $idShop explicite écrit bien sur CETTE boutique quel que
+        // soit le contexte BO ambiant (comme le fait déjà l'écriture de
+        // SENDERS_JSON juste à côté dans neria.php) ; une valeur vide est
+        // lue comme "0"/falsy par getCachedReport(), invalidant le cache.
+        \Configuration::updateValue(self::CONFIG_LAST_CHECK, '', false, null, $idShop);
+        \Configuration::updateValue(self::CONFIG_CACHE, '', false, null, $idShop);
     }
 
     /**

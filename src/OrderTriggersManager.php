@@ -236,8 +236,19 @@ class OrderTriggersManager
         $cartRule->quantity                = 1;
         $cartRule->quantity_per_user       = 1;
         $cartRule->active                  = 1;
-        $cartRule->date_from               = date('Y-m-d H:i:s');
-        $cartRule->date_to                 = date('Y-m-d H:i:s', strtotime('+' . $config->getVoucherValidity() . ' days'));
+        // Round 314 : date_from/date_to ancrés sur NOW() MySQL au lieu de
+        // date() PHP — même correctif que LoyaltyManager::generateVoucher()
+        // (round 314) : le cœur PrestaShop valide la disponibilité du bon
+        // au checkout via `NOW() BETWEEN cr.date_from AND cr.date_to`
+        // (classes/CartRule.php, comparaison purement MySQL). Si le serveur
+        // web (PHP) est en avance sur le serveur MySQL, date_from tombait
+        // dans le "futur" du point de vue MySQL : le bon palier fraîchement
+        // émis (et déjà envoyé par email au client) était rejeté au
+        // checkout ("code invalide") jusqu'à ce que les horloges se
+        // rejoignent.
+        $nowSql314 = (string) $this->db->getValue('SELECT NOW()');
+        $cartRule->date_from               = $nowSql314;
+        $cartRule->date_to                 = date('Y-m-d H:i:s', strtotime($nowSql314 . ' +' . $config->getVoucherValidity() . ' days'));
         $cartRule->minimum_amount          = 0;
         $cartRule->minimum_amount_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop);
         $cartRule->highlight               = false;

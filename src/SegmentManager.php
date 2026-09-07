@@ -395,12 +395,19 @@ class SegmentManager
         // RGPD complète, round 166) — jamais pour une simple désactivation
         // de compte, qui laisse la ligne de segment orpheline (au sens de
         // ce badge) indéfiniment jusqu'au prochain recalcul.
+        // Round 314 : $use_cache=false — même famille de bug que les rounds
+        // 210-223 (cache SQL PrestaShop non contourné sur une lecture
+        // fraîcheur-critique). Ce badge de comptage par segment est affiché
+        // juste après recomputeAll() dans le même écran BO ; sans ce
+        // paramètre, un recalcul venant de tourner pouvait ne pas se
+        // refléter immédiatement dans les compteurs affichés.
         $rows  = $this->db->executeS(
             "SELECT s.segment, COUNT(*) AS cnt
              FROM `{$table}` s
              INNER JOIN `{$cTable}` c ON c.id_customer = s.id_customer
              WHERE s.id_shop = {$this->idShop} AND c.active = 1 AND c.deleted = 0
-             GROUP BY s.segment"
+             GROUP BY s.segment",
+            true, false
         );
 
         $counts = array_fill_keys(self::getAllSegments(), 0);
@@ -442,6 +449,12 @@ class SegmentManager
             $extraWhere .= " AND addr.id_country = " . (int) $filters['id_country'];
         }
 
+        // Round 314 : $use_cache=false — cette méthode alimente directement
+        // sendToSegment()/le compteur "récipiendaires" affiché avant envoi.
+        // Sans ce paramètre, une liste juste recalculée par recomputeAll()
+        // (ou un client venant d'être purgé RGPD, cf. round 289 juste
+        // au-dessus) pouvait ne pas se refléter dans les envois lancés
+        // immédiatement après, même famille de bug que les rounds 210-223.
         $rows = $this->db->executeS(sprintf(
             "SELECT s.id_customer, s.total_sent, s.total_opens, s.total_clicks,
                     s.total_conversions, s.last_open, s.last_conversion,
@@ -469,7 +482,7 @@ class SegmentManager
             pSQL($segment),
             $extraWhere,
             $limit, $offset
-        ));
+        ), true, false);
 
         return is_array($rows) ? $rows : [];
     }

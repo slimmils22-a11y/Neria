@@ -348,7 +348,19 @@ class WebhookManager
                 '', 'WebhookManager'
             );
 
-            $now   = date('Y-m-d H:i:s');
+            // Round 314 : $now ancré sur NOW() MySQL au lieu de date() PHP —
+            // last_attempt écrit ici (ligne ci-dessous) est ensuite comparé
+            // exclusivement côté MySQL (DATE_SUB(NOW(), ...) plus haut pour
+            // le nettoyage des lignes 'sending' bloquées, et pour le backoff
+            // exponentiel). Si le serveur web (PHP) et le serveur MySQL
+            // n'ont pas le même fuseau horaire : PHP en avance → last_attempt
+            // parait "dans le futur" pour MySQL, le nettoyage des lignes
+            // 'sending' bloquées après crash ne les récupère alors jamais ;
+            // PHP en retard → la fenêtre de backoff exponentiel est
+            // raccourcie/contournée, un webhook encore réellement en cours
+            // de traitement par un autre process pourrait être repris trop
+            // tôt (double livraison au endpoint externe du marchand).
+            $now   = (string) $this->db->getValue('SELECT NOW()');
             $sent  = 0;
             $definitivelyFailed = 0;
 
@@ -746,6 +758,12 @@ class WebhookManager
 
     public function getRecentDeliveries(int $limit = 10): array
     {
+        // Round 314 : $use_cache=false — même famille de bug que les rounds
+        // 210-223. Cet onglet BO affiche le statut de livraison EN TEMPS
+        // RÉEL (status/attempts/last_attempt) ; sans ce paramètre, un
+        // marchand rafraîchissant la page juste après un passage de
+        // processQueue() pouvait voir un statut périmé (ex. 'pending' pour
+        // une ligne déjà 'done'/'failed').
         $rows = $this->db->executeS(sprintf(
             "SELECT `id_webhook`, `event`, `status`, `attempts`, `last_attempt`, `date_add`
              FROM `%s`
@@ -755,7 +773,7 @@ class WebhookManager
             _DB_PREFIX_ . self::TABLE,
             $this->idShop,
             $limit
-        ));
+        ), true, false);
 
         return is_array($rows) ? $rows : [];
     }

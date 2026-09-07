@@ -591,10 +591,19 @@ class LookCompletionManager
      */
     private function claimSend(int $idOrder, int $idCustomer): bool
     {
+        // Round 314 : sent_at écrit via NOW() SQL au lieu de date() PHP —
+        // getStats() ci-dessous filtre ensuite sent30 via
+        // `sent_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)`, comparaison
+        // purement côté MySQL. Si le serveur web (PHP) et le serveur MySQL
+        // n'ont pas le même fuseau horaire, une ligne écrite avec l'horloge
+        // PHP pouvait être incluse/exclue à tort près de la frontière des 30
+        // jours — même piège horloge PHP/MySQL déjà corrigé ailleurs dans le
+        // module, jamais porté ici alors que le reste de cette même classe
+        // (UpsellManager notamment) écrit déjà ses horodatages via NOW().
         $this->db->execute(
             "INSERT IGNORE INTO `{$this->prefix}neria_look_sent`
                 (`id_order`, `id_customer`, `sent_at`)
-             VALUES ({$idOrder}, {$idCustomer}, '" . date('Y-m-d H:i:s') . "')"
+             VALUES ({$idOrder}, {$idCustomer}, NOW())"
         );
         return $this->db->Affected_Rows() > 0;
     }

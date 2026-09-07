@@ -459,6 +459,18 @@ class LoyaltyManager
             \AdminTranslator::setLang($prevLang);
         }
 
+        // Round 314 : date_from/date_to ancrés sur NOW() MySQL au lieu de
+        // date() PHP — le cœur PrestaShop valide la disponibilité du bon au
+        // checkout via `NOW() BETWEEN cr.date_from AND cr.date_to`
+        // (classes/CartRule.php, comparaison purement MySQL). Si le serveur
+        // web (PHP) est en avance sur le serveur MySQL, date_from tombait
+        // dans le "futur" du point de vue MySQL : le bon de fidélité
+        // fraîchement émis (et déjà envoyé par email au client) était
+        // rejeté au checkout ("code invalide") jusqu'à ce que les horloges
+        // se rejoignent — même piège horloge PHP/MySQL déjà corrigé
+        // ailleurs dans le module, jamais porté ici.
+        $nowSql314 = (string) $this->db->getValue('SELECT NOW()');
+
         $cartRule = new \CartRule();
         $cartRule->name                    = $names;
         $cartRule->code                    = $code;
@@ -466,8 +478,8 @@ class LoyaltyManager
         $cartRule->quantity                = 1;
         $cartRule->quantity_per_user       = 1;
         $cartRule->active                  = 1;
-        $cartRule->date_from               = date('Y-m-d H:i:s');
-        $cartRule->date_to                 = date('Y-m-d H:i:s', strtotime('+' . (new \ConfigManager($this->module))->getVoucherValidity() . ' days'));
+        $cartRule->date_from               = $nowSql314;
+        $cartRule->date_to                 = date('Y-m-d H:i:s', strtotime($nowSql314 . ' +' . (new \ConfigManager($this->module))->getVoucherValidity() . ' days'));
         $cartRule->minimum_amount          = 0;
         $cartRule->minimum_amount_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT');
         $cartRule->highlight               = false;
@@ -967,7 +979,18 @@ class LoyaltyManager
         if ($lastSentRaw === '' || !strtotime($lastSentRaw)) {
             return 30; // Jamais envoyé — comportement historique inchangé.
         }
-        $days = (int) ceil((time() - strtotime($lastSentRaw)) / 86400);
+        // Round 314 : écart calculé via TIMESTAMPDIFF() côté MySQL au lieu
+        // de time() (horloge PHP) — $lastSentRaw est écrit via date() PHP
+        // (voir CONFIG_RECAP_LAST_SENT plus haut, inchangé par ce round),
+        // mais $windowDays est ensuite appliqué comme offset depuis NOW()
+        // MySQL dans sendRecapToCustomer() (`date_add >= DATE_SUB(NOW(),
+        // INTERVAL $windowDays DAY)`) — un écart entre les deux horloges
+        // décalait légèrement la frontière de la fenêtre par rapport au
+        // délai réel écoulé depuis le dernier envoi.
+        $diffSeconds314 = (int) \Db::getInstance()->getValue(
+            "SELECT TIMESTAMPDIFF(SECOND, '" . pSQL($lastSentRaw) . "', NOW())"
+        );
+        $days = (int) ceil($diffSeconds314 / 86400);
         // Round 172 : le plafond était auparavant 60 jours — après une
         // panne du cron de plus de 60 jours (serveur arrêté, tâche
         // désactivée par erreur), l'écart réel (ex. 90 jours) était tronqué

@@ -536,10 +536,16 @@ class CollectionManager
      */
     private function claimSend(int $colId, int $idCustomer, int $idShop): bool
     {
+        // Round 314 : sent_at écrit via NOW() SQL au lieu de date() PHP —
+        // getStats() filtre "envoyés 30 derniers jours" via
+        // `sent_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)`, comparaison
+        // purement côté MySQL. Même piège horloge PHP/MySQL corrigé ce même
+        // round dans LookCompletionManager::claimSend() (pattern identique,
+        // même KPI voisin sur le tableau de bord BO).
         $this->db->execute(
             "INSERT IGNORE INTO `{$this->prefix}neria_collection_sent`
                 (`id_neria_collection`, `id_customer`, `id_shop`, `sent_at`)
-             VALUES ({$colId}, {$idCustomer}, {$idShop}, '" . date('Y-m-d H:i:s') . "')"
+             VALUES ({$colId}, {$idCustomer}, {$idShop}, NOW())"
         );
         return $this->db->Affected_Rows() > 0;
     }

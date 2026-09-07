@@ -333,6 +333,14 @@ class UpsellManager
         // JOIN orders).
         $freqShop = $idShop !== null ? ' AND od2.id_shop = ' . (int) $idShop : '';
 
+        // Round 314 : tie-break `od2.product_id ASC` ajouté — contrairement
+        // à findByAccessories() (ORDER BY p.id_product ASC) et
+        // findByCategoryBestseller() (fenêtre round 167, tie-break déjà en
+        // place), cette méthode ne départageait pas les égalités de `freq`
+        // (fréquence de co-achat) : MySQL ne garantit aucun ordre stable
+        // entre lignes à égalité, donc getRow() (qui renvoie la 1re ligne)
+        // pouvait retourner un produit différent d'un appel à l'autre pour
+        // la même commande, sans raison fonctionnelle.
         return $this->db->getRow(
             "SELECT od2.product_id AS id_product, MIN(pl.name) AS name,
                     MIN(cp.id_category) AS id_category, COUNT(*) AS freq
@@ -352,7 +360,7 @@ class UpsellManager
                AND (SELECT SUM(sa.quantity) FROM `{$this->prefix}stock_available` sa
                     WHERE sa.id_product = p.id_product{$stockShop}) > 0
              GROUP BY od2.product_id
-             ORDER BY freq DESC"
+             ORDER BY freq DESC, od2.product_id ASC"
         ) ?: null;
     }
 
