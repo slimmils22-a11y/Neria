@@ -10248,6 +10248,37 @@ class HealthCheckManager
             $offenders[] = "NeriaPreferencesModuleFrontController::assignError() ne calcule plus 'neria_prefs_dir' via AdminTranslator::dir() — régression du bug corrigé le 07/09/2026 (round 318) : un destinataire RTL verrait de nouveau son texte d'erreur rendu dans un conteneur dir=\"ltr\"";
         }
 
+        // Round 319 (07/09/2026) : ABTestManager::estimateDaysRemaining()
+        // calculait l'âge réel du test via time() - strtotime($dateStart)
+        // (horloge PHP), alors que date_start est écrit via NOW() (horloge
+        // MySQL, activate()) — un décalage de fuseau entre serveur
+        // applicatif et serveur MySQL faussait le nombre de jours restants
+        // affiché au marchand dans l'onglet A/B Testing du BO.
+        $abtSrc319 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php');
+        $posEstimDays319 = strpos($abtSrc319, 'public function estimateDaysRemaining(');
+        $bodyEstimDays319 = $posEstimDays319 !== false ? substr($abtSrc319, $posEstimDays319, 2200) : '';
+        if ($abtSrc319 === ''
+            || $posEstimDays319 === false
+            || strpos($bodyEstimDays319, 'TIMESTAMPDIFF(SECOND, `date_start`, NOW())') === false
+        ) {
+            $offenders[] = "ABTestManager::estimateDaysRemaining() ne calcule plus l'âge du test A/B côté SQL (TIMESTAMPDIFF) — régression du bug corrigé le 07/09/2026 (round 319) : le nombre de jours restants affiché redépendrait de l'horloge PHP (strtotime), faussé en cas de décalage de fuseau avec le serveur MySQL";
+        }
+
+        // Round 319 (07/09/2026) : StatsManager::zTestProportions() renvoyait
+        // sufficient=true (valeur par défaut) sur les branches pPool<=0/
+        // pPool>=1/se quasi nul — abtest.tpl masquait donc à tort
+        // l'avertissement "données insuffisantes" sur ces cas (fréquents
+        // pour un taux de clic e-commerce, souvent 1-3%).
+        $smSrc319 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        $posZTest319 = strpos($smSrc319, 'private function zTestProportions(');
+        $bodyZTest319 = $posZTest319 !== false ? substr($smSrc319, $posZTest319, 2500) : '';
+        if ($smSrc319 === ''
+            || $posZTest319 === false
+            || substr_count($bodyZTest319, "'sufficient'] = false") !== 4
+        ) {
+            $offenders[] = "StatsManager::zTestProportions() ne signale plus sufficient=false sur les branches pPool<=0/pPool>=1/se quasi nul — régression du bug corrigé le 07/09/2026 (round 319) : l'avertissement 'données insuffisantes' resterait de nouveau masqué à tort dans le BO A/B Testing";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
