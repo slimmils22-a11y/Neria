@@ -144,9 +144,20 @@ class ClvManager
         // par boutique ci-dessus, pas à id_customer seul (sinon un client
         // partagé entre boutiques verrait ses remboursements d'UNE AUTRE
         // boutique déduits à tort de ce CLV-ci).
+        // Round 316 : IS NULL ajouté au garde-fou IF(conversion_rate = 0, ...)
+        // — cohérent avec le PHP de computeClv() ci-dessus, qui traite déjà
+        // NULL et 0 de façon identique via `?: 1.0` (les deux sont "falsy").
+        // Côté SQL, IF(NULL = 0, 1, NULL) s'évalue à NULL (pas à la branche
+        // 1), donc SUM() ignorait silencieusement toute commande à
+        // conversion_rate NULL — écart entre computeClv() (l'inclut à taux
+        // 1.0) et les requêtes batch (l'exclut totalement du CA), pour le
+        // même client. conversion_rate est NOT NULL en schéma PrestaShop
+        // standard, mais le code documentait déjà conversion_rate=0 comme
+        // scénario legacy/import plausible — NULL l'est tout autant dans ce
+        // même contexte.
         $orderIds = implode(',', array_map(static fn ($o) => (int) $o['id_order'], $orders));
         $totalRefunded = (float) $this->db->getValue(
-            'SELECT SUM((os.`total_products_tax_incl` + os.`total_shipping_tax_incl`) / IF(os.`conversion_rate` = 0, 1, os.`conversion_rate`))
+            'SELECT SUM((os.`total_products_tax_incl` + os.`total_shipping_tax_incl`) / IF(os.`conversion_rate` IS NULL OR os.`conversion_rate` = 0, 1, os.`conversion_rate`))
              FROM `' . _DB_PREFIX_ . 'order_slip` os
              WHERE os.`id_order` IN (' . $orderIds . ')'
         );
@@ -271,7 +282,7 @@ class ClvManager
              WHERE o.`id_shop` = ' . $this->idShop . ' AND o.`valid` = 1
                AND c.`deleted` = 0
              GROUP BY o.`id_customer`, c.`firstname`, c.`lastname`, c.`email`
-             ORDER BY SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` = 0, 1, o.`conversion_rate`)) DESC
+             ORDER BY SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` IS NULL OR o.`conversion_rate` = 0, 1, o.`conversion_rate`)) DESC
              LIMIT 200'
         ) ?: [];
 
@@ -315,7 +326,7 @@ class ClvManager
                     COUNT(*) AS order_count,
                     MIN(o.`date_add`) AS first_date,
                     TIMESTAMPDIFF(SECOND, MIN(o.`date_add`), NOW()) AS seconds_since_first,
-                    SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` = 0, 1, o.`conversion_rate`)) AS total_revenue
+                    SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` IS NULL OR o.`conversion_rate` = 0, 1, o.`conversion_rate`)) AS total_revenue
              FROM `' . _DB_PREFIX_ . 'orders` o
              WHERE o.`id_customer` IN (' . $idList . ')
                AND o.`id_shop` = ' . $this->idShop . ' AND o.`valid` = 1
@@ -340,7 +351,7 @@ class ClvManager
         $refundAgg = [];
         foreach ($this->db->executeS(
             'SELECT o.`id_customer`,
-                    SUM((os.`total_products_tax_incl` + os.`total_shipping_tax_incl`) / IF(os.`conversion_rate` = 0, 1, os.`conversion_rate`)) AS total_refunded
+                    SUM((os.`total_products_tax_incl` + os.`total_shipping_tax_incl`) / IF(os.`conversion_rate` IS NULL OR os.`conversion_rate` = 0, 1, os.`conversion_rate`)) AS total_refunded
              FROM `' . _DB_PREFIX_ . 'order_slip` os
              INNER JOIN `' . _DB_PREFIX_ . 'orders` o ON o.`id_order` = os.`id_order`
              WHERE o.`id_customer` IN (' . $idList . ') AND o.`id_shop` = ' . $this->idShop . ' AND o.`valid` = 1

@@ -1436,10 +1436,25 @@ class MonthlyReportManager
 
     private function t(string $key, array $vars = []): string
     {
+        // Round 316 : strtr() au lieu de str_replace() en boucle — même
+        // piège déjà corrigé dans AdminTranslator::tVars() (round 304) et
+        // TranslationEngine::resolveVariables() : str_replace() en boucle
+        // enchaîne les remplacements SÉQUENTIELLEMENT sur le résultat déjà
+        // transformé — si la valeur d'UNE variable contient littéralement
+        // le texte "{autre_clé}", ce texte injecté se fait à son tour
+        // remplacer par la valeur de l'autre variable au passage suivant,
+        // corrompant silencieusement le message (sujet/corps du rapport
+        // mensuel envoyé au marchand), dépendant de l'ordre d'itération du
+        // tableau. strtr() effectue un seul passage simultané sur le texte
+        // ORIGINAL.
         $str = class_exists('AdminTranslator') ? AdminTranslator::t($key) : $key;
-        foreach ($vars as $k => $v) {
-            $str = str_replace('{' . $k . '}', (string) $v, $str);
+        if (empty($vars)) {
+            return $str;
         }
-        return $str;
+        $replace = [];
+        foreach ($vars as $k => $v) {
+            $replace['{' . $k . '}'] = (string) $v;
+        }
+        return strtr($str, $replace);
     }
 }
