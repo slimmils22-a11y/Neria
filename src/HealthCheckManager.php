@@ -2235,11 +2235,14 @@ class HealthCheckManager
         // Round 51 : BounceManager::reactivateBounce() ne remettait pas
         // bounce_count à 0 — la réactivation manuelle était pratiquement
         // inopérante pour toute adresse au-dessus du seuil.
+        // Round 315 : fenêtre élargie 900→1400 — le correctif round 315
+        // (vérification d'existence avant l'UPDATE + commentaire explicatif)
+        // a repoussé bounce_count` = 0 plus loin dans le corps.
         $bounceFile = _PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php';
         $bounceSrc = $this->readModuleSrc($bounceFile);
         if ($bounceSrc === '') {
             $offenders[] = 'BounceManager.php introuvable';
-        } elseif (!preg_match('/function reactivateBounce[\s\S]{0,900}?bounce_count\` = 0/', $bounceSrc)) {
+        } elseif (!preg_match('/function reactivateBounce[\s\S]{0,1400}?bounce_count\` = 0/', $bounceSrc)) {
             $offenders[] = 'BounceManager : reactivateBounce() ne remet plus bounce_count à 0 — la réactivation manuelle redeviendrait pratiquement inopérante pour toute adresse au-dessus du seuil';
         }
 
@@ -10092,6 +10095,76 @@ class HealthCheckManager
             || substr_count($sgmSrc314, 'true, false') < 2
         ) {
             $offenders[] = "SegmentManager::getSegmentCounts()/getCustomersBySegment() ne contournent plus le cache SQL PrestaShop (\$use_cache=false) — régression du bug corrigé le 07/09/2026 (round 314) : sendToSegment() pourrait de nouveau envoyer à une liste de destinataires périmée";
+        }
+
+        // Round 315 (07/09/2026) : BounceManager::ignoreBounce()/
+        // reactivateBounce()/deleteBounce() renvoyaient toujours true, même
+        // quand aucune ligne ne correspondait à l'email fourni —
+        // Db::execute()/Db::delete() renvoient true dès que la requête SQL
+        // a réussi, indépendamment du nombre de lignes réellement affectées.
+        $bmSrc315 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php');
+        if ($bmSrc315 === ''
+            || substr_count($bmSrc315, 'SELECT 1 FROM ') < 2
+            || strpos($bmSrc315, '(int) \Db::getInstance()->Affected_Rows() > 0') === false
+        ) {
+            $offenders[] = "BounceManager::ignoreBounce()/reactivateBounce()/deleteBounce() ne vérifient plus l'existence/l'effet réel avant de renvoyer true — régression du bug corrigé le 07/09/2026 (round 315) : le marchand verrait de nouveau 'Bounce ignoré/réactivé/supprimé' pour un email inexistant";
+        }
+        $nphpSrc315 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($nphpSrc315 === ''
+            || strpos($nphpSrc315, "'msg.bounce_not_found'") === false
+        ) {
+            $offenders[] = "neria.php n'affiche plus msg.bounce_not_found en cas d'échec de ignore_bounce/reactivate_bounce/delete_bounce — régression du bug corrigé le 07/09/2026 (round 315)";
+        }
+
+        // Round 315 (07/09/2026) : ABTestManager::getVariantBValue()/
+        // getTestStatus() ne contournaient pas le cache SQL PrestaShop —
+        // getVariantBValue() alimente EmailRenderer à CHAQUE rendu d'email
+        // pour la variante B.
+        $atmSrc315 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php');
+        $posVarB315 = strpos($atmSrc315, 'function getVariantBValue(');
+        $bodyVarB315 = $posVarB315 !== false ? substr($atmSrc315, $posVarB315, 1700) : '';
+        if ($atmSrc315 === ''
+            || $posVarB315 === false
+            || strpos($bodyVarB315, "pSQL(\$key) . \"'\",") === false
+        ) {
+            $offenders[] = "ABTestManager::getVariantBValue() ne contourne plus le cache SQL PrestaShop (\$use_cache=false) — régression du bug corrigé le 07/09/2026 (round 315) : une correction de texte via saveVariantBTranslations() pourrait de nouveau rester invisible pendant un cron d'envoi en cours";
+        }
+        $posStatus315 = strpos($atmSrc315, 'public function getTestStatus(string $template): string');
+        $bodyStatus315 = $posStatus315 !== false ? substr($atmSrc315, $posStatus315, 700) : '';
+        if ($posStatus315 === false
+            || strpos($bodyStatus315, "pSQL(\$template) . \"'\",") === false
+        ) {
+            $offenders[] = "ABTestManager::getTestStatus() ne contourne plus le cache SQL PrestaShop (\$use_cache=false) — régression du bug corrigé le 07/09/2026 (round 315)";
+        }
+
+        // Round 315 (07/09/2026) : GdprAuditManager::auditEncryption() ne
+        // contournait pas le cache SQL PrestaShop sur ses 2 lectures —
+        // contrairement à la discipline appliquée partout ailleurs dans ce
+        // même fichier (rounds 210-223/302).
+        $gdprSrc315 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        $posEnc315 = strpos($gdprSrc315, 'public function auditEncryption(): array');
+        $bodyEnc315 = $posEnc315 !== false ? substr($gdprSrc315, $posEnc315, 2500) : '';
+        if ($gdprSrc315 === ''
+            || $posEnc315 === false
+            || substr_count($bodyEnc315, "AND `id_shop` = {\$this->idShop}\",") < 2
+        ) {
+            $offenders[] = "GdprAuditManager::auditEncryption() ne contourne plus le cache SQL PrestaShop (\$use_cache=false) sur ses 2 lectures — régression du bug corrigé le 07/09/2026 (round 315) : le grade RGPD affiché pourrait rester périmé juste après un chiffrement manuel";
+        }
+        if (strpos($gdprSrc315, "neria_blacklist` WHERE `id_shop` = \" . \$this->idShop,") === false) {
+            $offenders[] = "GdprAuditManager::auditUnsubscribe() ne contourne plus le cache SQL PrestaShop (\$use_cache=false) pour le comptage de la blacklist — régression du bug corrigé le 07/09/2026 (round 315)";
+        }
+
+        // Round 315 (07/09/2026) : NeriaTools::getDiagnosticReport() ne
+        // contournait pas le cache SQL PrestaShop pour le comptage des
+        // traductions (translations.ok, 20 des 100 points du score de santé).
+        $ntSrc315 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php');
+        $posTrCount315 = strpos($ntSrc315, 'neria_translation`",');
+        $bodyTrCount315 = $posTrCount315 !== false ? substr($ntSrc315, $posTrCount315, 60) : '';
+        if ($ntSrc315 === ''
+            || $posTrCount315 === false
+            || strpos($bodyTrCount315, 'false') === false
+        ) {
+            $offenders[] = "NeriaTools::getDiagnosticReport() ne contourne plus le cache SQL PrestaShop (\$use_cache=false) pour le comptage des traductions — régression du bug corrigé le 07/09/2026 (round 315)";
         }
 
         if ($offenders) {
