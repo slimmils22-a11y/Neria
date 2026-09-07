@@ -989,7 +989,19 @@ class ABTestManager
         // dénominateur non plafonné et croissant indéfiniment), ce qui
         // surestimait d'autant le nombre de jours restants affiché au
         // marchand — de façon croissante avec l'âge du test.
-        $daysElapsedReal = max(1, (int) ceil((time() - strtotime($dateStart)) / 86400));
+        // Round 319 : date_start est écrit via NOW() (horloge MySQL, ligne
+        // ~330) ; time() - strtotime($dateStart) comparait donc l'horloge
+        // PHP à une valeur MySQL — même piège que StatsManager/ClvManager/
+        // GoldenHourManager déjà corrigés ailleurs. Calcul déplacé côté SQL
+        // (TIMESTAMPDIFF) pour rester sur une seule horloge cohérente.
+        $secondsElapsed  = (int) $this->db->getValue(
+            "SELECT TIMESTAMPDIFF(SECOND, `date_start`, NOW()) FROM `{$tableAb}`
+             WHERE `id_shop`   = {$this->idShop}
+               AND `template`  = '" . pSQL($template) . "'
+               AND `is_active` = 1
+               AND `variant`   = 'A'"
+        );
+        $daysElapsedReal = max(1, (int) ceil($secondsElapsed / 86400));
         $daysElapsed     = min($daysElapsedReal, max(1, $windowDays));
         $dailyRate       = $minSent / $daysElapsed;
 

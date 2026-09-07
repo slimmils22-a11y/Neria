@@ -819,13 +819,23 @@ class StatsManager
         $total = $n1 + $n2;
         $pPool = ($x1 + $x2) / $total;
 
+        // Round 319 : ces deux branches renvoyaient $out avec sufficient
+        // resté à sa valeur par défaut (true) — alors qu'elles signalent
+        // exactement la même situation "test non exploitable statistiquement"
+        // que la règle n·p̄<5 juste en dessous (round 300). pPool<=0 (aucun
+        // clic des deux côtés) ou pPool>=1 (100% des deux côtés) est loin
+        // d'être un cas d'école pour un taux de clic e-commerce (souvent
+        // 1-3%) sur une fenêtre courte ; abtest.tpl (ligne 82) masquait donc
+        // à tort l'avertissement "données insuffisantes" au marchand.
         if ($pPool <= 0.0 || $pPool >= 1.0) {
+            $out['sufficient'] = false;
             return $out;
         }
 
         $se = sqrt($pPool * (1 - $pPool) * (1 / $n1 + 1 / $n2));
 
         if ($se < 1e-10) {
+            $out['sufficient'] = false;
             return $out;
         }
 
