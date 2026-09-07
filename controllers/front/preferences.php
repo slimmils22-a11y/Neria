@@ -252,7 +252,7 @@ class NeriaPreferencesModuleFrontController extends ModuleFrontController
             'neria_prefs_error'  => true,
             'neria_shop_name'    => (string) Configuration::get('PS_SHOP_NAME'),
             'neria_shop_url'     => $this->context->link->getBaseLink(),
-            'neria_prefs_dir'    => 'ltr',
+            'neria_prefs_dir'    => class_exists('AdminTranslator') ? AdminTranslator::dir() : 'ltr',
             'neria_prefs_saved'  => false,
             'neria_prefs_email'  => '',
             'neria_prefs_token'  => '',
