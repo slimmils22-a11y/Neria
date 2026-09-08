@@ -10437,6 +10437,23 @@ class HealthCheckManager
             $offenders[] = "DeliverabilityScorer::score() ne normalise plus la casse avant de rechercher le lien de désabonnement — régression du bug corrigé le 08/09/2026 (round 322) : un lien affiché en majuscules/casse mixte serait de nouveau compté à tort comme absent (-10 points)";
         }
 
+        // Round 323 (08/09/2026) : TranslationInstaller::importFromJson()
+        // ne détectait pas un JSON racine VIDE ([]) — is_array([]) vaut
+        // true, ce cas passait le garde-fou !is_array() existant (round
+        // 172). Le foreach ne s'exécutait alors jamais, la transaction
+        // était COMMIT, effaçant silencieusement tout le dictionnaire de
+        // traductions par défaut (clearDefaultTranslations() déjà exécuté)
+        // sans jamais rien réinsérer.
+        $tiSrc323 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/TranslationInstaller.php');
+        $posTi323 = strpos($tiSrc323, 'public function importFromJson(string $jsonPath): bool');
+        $bodyTi323 = $posTi323 !== false ? substr($tiSrc323, $posTi323, 3500) : '';
+        if ($tiSrc323 === ''
+            || $posTi323 === false
+            || strpos($bodyTi323, '!is_array($translations) || empty($translations)') === false
+        ) {
+            $offenders[] = "TranslationInstaller::importFromJson() ne détecte plus un JSON racine vide ([]) — régression du bug corrigé le 08/09/2026 (round 323) : un translations.json vidé/tronqué effacerait de nouveau tout le dictionnaire de traductions par défaut sans jamais rien réinsérer";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
