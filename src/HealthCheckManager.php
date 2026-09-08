@@ -10570,6 +10570,22 @@ class HealthCheckManager
             }
         }
 
+        $cehmSrc325 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CustomerEmailHistoryManager.php');
+        if ($cehmSrc325 === '' || strpos($cehmSrc325, 'unset($row);') === false) {
+            $offenders[] = "CustomerEmailHistoryManager::getEmails() ne libère plus la référence \$row (unset) après sa boucle interne — régression du bug corrigé le 08/09/2026 (round 325) : le tableau retourné redeviendrait exposé à une corruption silencieuse de sa dernière entrée par un futur appelant réutilisant \$row";
+        }
+        $loyaltySrc325 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
+        if ($loyaltySrc325 === '' || strpos($loyaltySrc325, 'if ($updated && $deleted) {') === false || strpos($loyaltySrc325, 'watchdog.loyalty_reward_revoke_failed') === false) {
+            $offenders[] = "LoyaltyManager::revokeUnusedRewardsBelowThreshold() ne vérifie plus \$updated && \$deleted avant de journaliser un succès — régression du bug corrigé le 08/09/2026 (round 325) : un échec CartRule::update()/Db::delete() serait de nouveau journalisé comme un succès, laissant un CartRule actif ou une réservation orpheline en base";
+        }
+        $bcmSrc325 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc325 === '' || strpos($bcmSrc325, 'cr.shop_restriction = 0') === false || strpos($bcmSrc325, "'cart_rule_shop` crs") === false) {
+            $offenders[] = "BehavioralCronManager::sendRewardExpiryAlerts() ne filtre plus cr.shop_restriction/cart_rule_shop — régression du bug corrigé le 08/09/2026 (round 325) : une alerte d'expiration serait de nouveau envoyée pour un bon de fidélité restreint à une autre boutique, inutilisable par le client destinataire";
+        }
+        if ($bcmSrc325 === '' || strpos($bcmSrc325, 'SELECT YEAR(NOW()) AS y, MONTH(NOW()) AS m') === false) {
+            $offenders[] = "BehavioralCronManager::sendWishlistReminders() ne sourçe plus année/mois via YEAR(NOW())/MONTH(NOW()) SQL — régression du bug corrigé le 08/09/2026 (round 325) : un décalage de fuseau horaire PHP/MySQL pourrait de nouveau faire diverger la clé de déduplication mensuelle wishlist_reminder";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
