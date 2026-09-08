@@ -15,6 +15,11 @@
  *
  * Test structurel : vérifie que le bloc gdpr_encrypt_all contient bien un
  * try/catch avec le message d'échec dédié.
+ *
+ * Round 323 : fenêtre élargie 2000→2500 — le correctif round 323
+ * (isEncryptionKeyReadable(), voir test_639) a inséré du code avant le
+ * catch/le message d'échec, repoussant les littéraux ciblés au-delà de
+ * l'ancienne fenêtre.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -25,7 +30,7 @@ function run_test(): array
 
     $posAction = strpos($src, "'neria_action') === 'gdpr_encrypt_all'");
     neria_assert($posAction !== false, "Action gdpr_encrypt_all introuvable — jeu de test invalide");
-    $body = substr($src, $posAction, 2000);
+    $body = substr($src, $posAction, 2500);
 
     neria_assert(
         strpos($body, 'try {') !== false && strpos($body, 'catch (\Throwable $e)') !== false,
