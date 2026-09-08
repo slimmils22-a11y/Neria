@@ -5905,8 +5905,32 @@ class Neria extends Module
             // le clic sur "Activer" ne ferait que confirmer l'état déjà
             // actif au lieu de le désactiver comme le marchand le demande.
             $current = (new ConfigManager($this))->isLoyaltyCrossShopEnabled();
-            Configuration::updateGlobalValue('NERIA_LOYALTY_CROSS_SHOP_ENABLED', $current ? 0 : 1);
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=configure&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-loyalty-section');
+
+            // Hors round (08/09/2026) : la bascule ne migre aucune ligne
+            // neria_loyalty_rewards existante. checkAndReward()/
+            // revokeUnusedRewardsBelowThreshold() scopent leurs requêtes via
+            // $reservationShopId = $crossShop ? 0 : $idShop — changer ce
+            // réglage alors que des réservations existent rend les lignes
+            // déjà posées invisibles sous la nouvelle clé, risquant un bon
+            // de fidélité émis en double pour un palier déjà récompensé
+            // (voir project_neria_loyalty_crossshop_toggle_migration_gap.md).
+            // Migrer les données dans les deux sens est ambigu (un client
+            // partagé entre boutiques n'a pas de boutique "propriétaire"
+            // unique pour une ligne transversale) — on bloque donc la
+            // bascule tant que des réservations sont en attente, plutôt que
+            // de risquer la corruption silencieuse.
+            $pendingRewards = (int) Db::getInstance()->getValue(
+                'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . LoyaltyManager::TABLE_REWARDS . '`'
+            );
+            if ($pendingRewards > 0) {
+                $this->context->smarty->assign(
+                    'neria_error',
+                    AdminTranslator::tVars('msg.loyalty_crossshop_toggle_blocked_pending', ['count' => $pendingRewards])
+                );
+            } else {
+                Configuration::updateGlobalValue('NERIA_LOYALTY_CROSS_SHOP_ENABLED', $current ? 0 : 1);
+                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=configure&neria_success=' . urlencode(AdminTranslator::t($current ? 'msg.feature_disabled' : 'msg.feature_enabled')) . '#neria-loyalty-section');
+            }
         }
 
         // ── Centre de contrôle : visibilité d'une feature dans le menu ──

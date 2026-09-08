@@ -66106,5 +66106,26 @@
         "da": "Loyalitet — kunne ikke tilbagekalde kuponen for niveau {tier} for kunde #{customer} (CartRule blev ikke deaktiveret eller reservationen blev ikke fjernet) — manuel kontrol kræves.",
         "nl": "Loyaliteit — intrekken van de voucher van niveau {tier} voor klant #{customer} mislukt (CartRule niet gedeactiveerd of reservering niet verwijderd) — handmatige controle vereist.",
         "gb": "Loyalty — Failed to revoke tier {tier} voucher for customer #{customer} (CartRule not deactivated or reservation not removed) — manual check required."
+    },
+    "msg.loyalty_crossshop_toggle_blocked_pending": {
+        "fr": "Impossible de modifier ce réglage : {count} récompense(s) de fidélité en attente. Attendez leur expiration ou leur révocation avant de changer le mode de cumul.",
+        "en": "Cannot change this setting: {count} pending loyalty reward(s). Wait for them to expire or be revoked before changing the accumulation mode.",
+        "de": "Diese Einstellung kann nicht geändert werden: {count} ausstehende Treueprämie(n). Warten Sie, bis sie ablaufen oder widerrufen werden, bevor Sie den Kumulierungsmodus ändern.",
+        "it": "Impossibile modificare questa impostazione: {count} premio/i fedeltà in sospeso. Attendere la scadenza o la revoca prima di cambiare la modalità di accumulo.",
+        "es": "No se puede cambiar este ajuste: {count} recompensa(s) de fidelidad pendiente(s). Espere a que expiren o sean revocadas antes de cambiar el modo de acumulación.",
+        "pt": "Não é possível alterar esta configuração: {count} recompensa(s) de fidelidade pendente(s). Aguarde a expiração ou revogação antes de alterar o modo de acumulação.",
+        "br": "Não é possível alterar esta configuração: {count} recompensa(s) de fidelidade pendente(s). Aguarde a expiração ou revogação antes de alterar o modo de acumulação.",
+        "ar": "لا يمكن تغيير هذا الإعداد: {count} مكافأة ولاء معلقة. انتظر انتهاء صلاحيتها أو إلغاءها قبل تغيير وضع التراكم.",
+        "ja": "この設定は変更できません：保留中のロイヤルティ特典が{count}件あります。累計モードを変更する前に、有効期限切れまたは取り消しをお待ちください。",
+        "ko": "이 설정을 변경할 수 없습니다: 보류 중인 로열티 보상이 {count}개 있습니다. 누적 모드를 변경하기 전에 만료되거나 취소될 때까지 기다리세요.",
+        "zh": "无法更改此设置：有 {count} 个待处理的忠诚度奖励。请等待其过期或被撤销后再更改累积模式。",
+        "tw": "無法更改此設定：有 {count} 個待處理的忠誠度獎勵。請等待其過期或被撤銷後再更改累積模式。",
+        "ru": "Невозможно изменить эту настройку: {count} ожидающих наград лояльности. Дождитесь их истечения или отзыва, прежде чем менять режим накопления.",
+        "tr": "Bu ayar değiştirilemiyor: {count} bekleyen sadakat ödülü var. Birikim modunu değiştirmeden önce süresinin dolmasını veya iptal edilmesini bekleyin.",
+        "sv": "Det går inte att ändra denna inställning: {count} väntande lojalitetsbelöning(ar). Vänta tills de går ut eller återkallas innan du ändrar ackumuleringsläget.",
+        "no": "Kan ikke endre denne innstillingen: {count} ventende lojalitetsbelønning(er). Vent til de utløper eller tilbakekalles før du endrer akkumuleringsmodus.",
+        "da": "Kan ikke ændre denne indstilling: {count} afventende loyalitetsbelønning(er). Vent til de udløber eller tilbagekaldes, før du ændrer akkumuleringstilstanden.",
+        "nl": "Deze instelling kan niet worden gewijzigd: {count} openstaande loyaliteitsbeloning(en). Wacht tot ze verlopen of worden ingetrokken voordat u de opbouwmodus wijzigt.",
+        "gb": "Cannot change this setting: {count} pending loyalty reward(s). Wait for them to expire or be revoked before changing the accumulation mode."
     }
 }

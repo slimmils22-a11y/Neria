@@ -10586,6 +10586,13 @@ class HealthCheckManager
             $offenders[] = "BehavioralCronManager::sendWishlistReminders() ne sourçe plus année/mois via YEAR(NOW())/MONTH(NOW()) SQL — régression du bug corrigé le 08/09/2026 (round 325) : un décalage de fuseau horaire PHP/MySQL pourrait de nouveau faire diverger la clé de déduplication mensuelle wishlist_reminder";
         }
 
+        $neriaPhpSrc648 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $posCrossShop648 = $neriaPhpSrc648 !== '' ? strpos($neriaPhpSrc648, "Tools::getValue('neria_action') === 'loyalty_cross_shop_toggle'") : false;
+        $bodyCrossShop648 = $posCrossShop648 !== false ? substr($neriaPhpSrc648, $posCrossShop648, 2000) : '';
+        if ($bodyCrossShop648 === '' || strpos($bodyCrossShop648, '$pendingRewards > 0') === false || strpos($bodyCrossShop648, 'msg.loyalty_crossshop_toggle_blocked_pending') === false) {
+            $offenders[] = "neria.php::loyalty_cross_shop_toggle ne bloque plus la bascule quand des réservations neria_loyalty_rewards sont en attente — régression du correctif du 08/09/2026 : un marchand pourrait de nouveau changer le mode de cumul transversal alors que des récompenses existent, risquant un bon de fidélité émis en double (voir project_neria_loyalty_crossshop_toggle_migration_gap.md)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
