@@ -668,7 +668,24 @@ class OrderTriggersManager
                 // handleReturn(), scopé par commande + statut cible pour
                 // ne pas bloquer une transition ultérieure légitime.
                 $lockNamePs = 'neria_partial_shipped_' . (int) $order->id . '_' . (int) $newStatus->id;
-                if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockNamePs) . "', 0)", false) !== 1) {
+                $lockResPs  = $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockNamePs) . "', 0)", false);
+                // Round 323 : GET_LOCK() renvoie NULL en cas d'erreur MySQL
+                // réelle (verrou système indisponible, nombre de locks
+                // nommés simultanés dépassé) — indiscernable de 0 (verrou
+                // déjà détenu, blocage anti-doublon normal) sans regarder la
+                // valeur brute AVANT cast. Contrairement à
+                // explicitSendBlockReason() (même fichier), aucune trace
+                // Watchdog n'existait pour ce cas précis d'échec technique,
+                // qui peut perdre un email légitime sans que rien ne le
+                // signale. Le cas 0 (dédup normale) reste volontairement
+                // silencieux — c'est le comportement voulu, pas une erreur.
+                if ($lockResPs === null) {
+                    $this->watchdog()->warning(
+                        'OrderTriggersManager: GET_LOCK() a échoué (verrou système indisponible) pour ' . $lockNamePs,
+                        '', 'OrderTriggersManager'
+                    );
+                }
+                if ((int) $lockResPs !== 1) {
                     return;
                 }
                 // Round 306 : try/finally ajouté — contrairement à
@@ -732,7 +749,15 @@ class OrderTriggersManager
                 // la même raison — aucun verrou indépendant du toggle
                 // "Mode Silence" n'existait ici.
                 $lockNameOh = 'neria_order_on_hold_' . (int) $order->id . '_' . (int) $newStatus->id;
-                if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockNameOh) . "', 0)", false) !== 1) {
+                $lockResOh  = $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockNameOh) . "', 0)", false);
+                // Round 323 : voir commentaire équivalent sur order_partial_shipped ci-dessus.
+                if ($lockResOh === null) {
+                    $this->watchdog()->warning(
+                        'OrderTriggersManager: GET_LOCK() a échoué (verrou système indisponible) pour ' . $lockNameOh,
+                        '', 'OrderTriggersManager'
+                    );
+                }
+                if ((int) $lockResOh !== 1) {
                     return;
                 }
 
@@ -794,7 +819,15 @@ class OrderTriggersManager
             // sans verrou plutôt que de bloquer un remboursement légitime.
             if ($idOrderSlip > 0) {
                 $lockName = 'neria_refund_slip_' . $idOrderSlip;
-                if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)", false) !== 1) {
+                $lockResRf = $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)", false);
+                // Round 323 : voir commentaire équivalent sur order_partial_shipped (handleOrderStatus...).
+                if ($lockResRf === null) {
+                    $this->watchdog()->warning(
+                        'OrderTriggersManager: GET_LOCK() a échoué (verrou système indisponible) pour ' . $lockName,
+                        '', 'OrderTriggersManager'
+                    );
+                }
+                if ((int) $lockResRf !== 1) {
                     return;
                 }
             }
@@ -994,8 +1027,18 @@ class OrderTriggersManager
         // insuffisant contre deux appels quasi simultanés.
         $idOrderReturn = (int) $orderReturn->id;
         $lockName = 'neria_return_' . $idOrderReturn;
-        if ($idOrderReturn > 0 && (int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)", false) !== 1) {
-            return;
+        if ($idOrderReturn > 0) {
+            $lockResRet = $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)", false);
+            // Round 323 : voir commentaire équivalent sur order_partial_shipped (handleOrderStatus...).
+            if ($lockResRet === null) {
+                $this->watchdog()->warning(
+                    'OrderTriggersManager: GET_LOCK() a échoué (verrou système indisponible) pour ' . $lockName,
+                    '', 'OrderTriggersManager'
+                );
+            }
+            if ((int) $lockResRet !== 1) {
+                return;
+            }
         }
 
         try {

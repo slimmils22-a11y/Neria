@@ -687,6 +687,24 @@ class GdprAuditManager
     }
 
     /**
+     * Round 323 : sonde extraite d'encryptExistingRecords() (identique) —
+     * permet à l'appelant (neria.php::gdpr_encrypt_all) de distinguer AVANT
+     * l'appel "rien à chiffrer" (retour 0, cas normal) de "clé de
+     * chiffrement illisible" (retour 0 aussi auparavant, indiscernable) —
+     * les deux cas affichaient jusqu'ici le même message de succès
+     * "0 enregistrement(s) chiffré(s)", masquant une clé absente/corrompue
+     * derrière un message rassurant alors qu'un log Watchdog error existait
+     * déjà en interne sans jamais remonter à l'écran.
+     */
+    public function isEncryptionKeyReadable(): bool
+    {
+        if (!class_exists('CryptoManager') || !\CryptoManager::isAvailable()) {
+            return false;
+        }
+        return \CryptoManager::isEncrypted(\CryptoManager::encrypt('neria_key_probe'));
+    }
+
+    /**
      * Chiffre en masse les enregistrements rendered_vars encore en clair.
      * Traite par lots de 200 pour ne pas saturer la mémoire.
      *
@@ -703,8 +721,7 @@ class GdprAuditManager
         // la boucle ci-dessous réécrit indéfiniment les mêmes lignes non
         // préfixées 'ENC:%' (la condition de sortie du WHERE n'est jamais
         // satisfaite), bloquant la requête BO jusqu'au timeout serveur.
-        $keyProbe = \CryptoManager::encrypt('neria_key_probe');
-        if (!\CryptoManager::isEncrypted($keyProbe)) {
+        if (!$this->isEncryptionKeyReadable()) {
             if (class_exists('WatchdogManager') && class_exists('Module')) {
                 $neria = \Module::getInstanceByName('neria');
                 if ($neria) {

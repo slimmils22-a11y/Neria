@@ -5241,7 +5241,17 @@ class Neria extends Module
                     WebhookManager::CONFIG_EVENTS,
                     json_encode(is_array($whEvents) ? $whEvents : [])
                 );
-                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                // Round 323 : contrairement aux configs voisines (PageSpeed,
+                // SEO API, bounce webhook secret — commentaires round 186/172),
+                // un champ webhook_url vidé au submit (résiliation volontaire
+                // OU champ vidé par erreur/resoumission d'un vieux formulaire)
+                // n'était jamais distingué d'un enregistrement normal — même
+                // bannière générique "Enregistré", sans avertir explicitement
+                // que les webhooks venaient d'être désactivés.
+                $this->context->smarty->assign(
+                    'neria_success',
+                    AdminTranslator::t($whUrl === '' ? 'msg.webhook_url_cleared_disabled' : 'msg.saved')
+                );
             }
         }
 
@@ -5851,14 +5861,24 @@ class Neria extends Module
             // au lieu du message BO propre, sans indiquer combien de lignes
             // avaient réellement été chiffrées.
             try {
-                $done = (new GdprAuditManager(__DIR__))->encryptExistingRecords();
-                if (class_exists('WatchdogManager')) {
-                    (new WatchdogManager($this))->info(
-                        WatchdogManager::i18nMsg('watchdog.gdpr_encrypt_retroactive', ['n' => $done]),
-                        '', 'RGPD'
-                    );
+                $gdprMgr322 = new GdprAuditManager(__DIR__);
+                // Round 323 : encryptExistingRecords() renvoie 0 aussi bien
+                // quand il n'y avait rien à chiffrer (cas normal) que quand
+                // la clé de chiffrement est illisible (échec réel, déjà
+                // journalisé en interne mais jamais remonté à l'écran) — les
+                // deux cas affichaient le même message de succès trompeur.
+                if (!$gdprMgr322->isEncryptionKeyReadable()) {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.gdpr_encryption_key_unreadable'));
+                } else {
+                    $done = $gdprMgr322->encryptExistingRecords();
+                    if (class_exists('WatchdogManager')) {
+                        (new WatchdogManager($this))->info(
+                            WatchdogManager::i18nMsg('watchdog.gdpr_encrypt_retroactive', ['n' => $done]),
+                            '', 'RGPD'
+                        );
+                    }
+                    $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.records_encrypted', ['n' => $done]));
                 }
-                $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.records_encrypted', ['n' => $done]));
             } catch (\Throwable $e) {
                 if (class_exists('WatchdogManager')) {
                     (new WatchdogManager($this))->error(

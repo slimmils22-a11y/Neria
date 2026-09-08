@@ -1095,7 +1095,9 @@ class ConfigManager
         if ($lang === null) {
             // Round 141 : deleteByName() supprime pour toutes les boutiques —
             // même piège que deleteAll(), voir son commentaire pour le détail.
-            \Configuration::deleteFromContext(self::KEY_TIME_GREETINGS, null, $this->idShop);
+            // Round 323 : deleteFromContext() remplacé par deleteScoped() —
+            // même correctif que deleteAll(), voir son commentaire round 323.
+            $this->deleteScoped(self::KEY_TIME_GREETINGS);
             $this->cache = [];
             return true;
         }
@@ -1846,14 +1848,37 @@ class ConfigManager
             // Round 141 : Configuration::deleteByName() supprime la clé pour
             // TOUTES les boutiques (aucun filtre id_shop), contrairement à
             // get()/set() de cette classe qui sont scopés via $this->idShop.
-            // deleteFromContext() supprime uniquement l'entrée de la
-            // boutique courante (ou globale si aucune surcharge par shop
-            // n'existe pour cette clé).
-            \Configuration::deleteFromContext($key, null, $this->idShop);
+            // Round 323 : deleteFromContext() (utilisé jusqu'ici) renvoie
+            // IMMÉDIATEMENT sans rien faire dès que Shop::getContext() ===
+            // Shop::CONTEXT_ALL (cœur PrestaShop, classes/Configuration.php)
+            // — quel que soit l'$idShop explicite passé en 3e argument. Un
+            // marchand en contexte BO "Toutes les boutiques" au moment de
+            // réinitialiser Neria voyait donc un succès sans que rien ne
+            // soit réellement supprimé (même famille de bug déjà corrigée
+            // rounds 290/300/314). deleteScoped() ci-dessous reproduit la
+            // même logique que deleteFromContext() (résoudre l'id de ligne
+            // via l'idShop explicite puis la supprimer par id) SANS son
+            // early-return sous CONTEXT_ALL.
+            $this->deleteScoped($key);
         }
 
         $this->cache = [];
         return true;
+    }
+
+    /**
+     * Supprime la ligne ps_configuration de $key scopée à $this->idShop,
+     * quel que soit Shop::getContext() — voir le commentaire round 323 dans
+     * deleteAll() ci-dessus pour le pourquoi (deleteFromContext() no-op
+     * sous CONTEXT_ALL). getIdByName() n'a pas ce défaut : il utilise
+     * l'$idShop explicite tel quel, sans jamais consulter Shop::getContext().
+     */
+    private function deleteScoped(string $key): void
+    {
+        $id = (int) \Configuration::getIdByName($key, null, $this->idShop);
+        if ($id > 0) {
+            \Configuration::deleteById($id);
+        }
     }
 
     // ============================================================
