@@ -10328,6 +10328,55 @@ class HealthCheckManager
             $offenders[] = "collection_toggle/collection_delete/look_rule_toggle/look_rule_delete (neria.php) ne vérifient plus l'effet réel avant d'afficher un succès — régression du bug corrigé le 08/09/2026 (round 320) : le message de succès s'afficherait de nouveau même pour une collection/règle déjà supprimée ou inexistante";
         }
 
+        // Round 321 (08/09/2026) : CryptoManager::generateAndStoreKey()
+        // écrivait la clé de chiffrement AES-256 via updateValue() (scope
+        // boutique du contexte courant) au lieu de updateGlobalValue() —
+        // même famille de bug que rounds 185/312. Une clé écrite ainsi
+        // devient différente/vide relue depuis un autre contexte
+        // (cron/CLI, autre boutique), provoquant un échec de déchiffrement
+        // silencieux des secrets (IMAP/OAuth) sans corruption réelle en base.
+        $cryptoSrc321 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CryptoManager.php');
+        $posCrypto321 = strpos($cryptoSrc321, 'public static function generateAndStoreKey(): void');
+        $bodyCrypto321 = $posCrypto321 !== false ? substr($cryptoSrc321, $posCrypto321, 1200) : '';
+        if ($cryptoSrc321 === ''
+            || $posCrypto321 === false
+            || strpos($bodyCrypto321, 'updateGlobalValue(self::CONFIG_KEY') === false
+        ) {
+            $offenders[] = "CryptoManager::generateAndStoreKey() n'écrit plus la clé de chiffrement via updateGlobalValue() — régression du bug corrigé le 08/09/2026 (round 321) : la clé AES redeviendrait scopée par boutique, provoquant un échec de déchiffrement silencieux des secrets selon le contexte";
+        }
+
+        // Round 321 (08/09/2026) : LicenseManager::validateLicense() ne
+        // purgeait pas CONFIG_EXPIRES/CONFIG_PLAN/CONFIG_SOURCE/
+        // CONFIG_EXPIRY_WARNED_FOR dans son bloc de purge résiduelle (round
+        // 160) — getStatusForDisplay() les lit inconditionnellement,
+        // affichant expires_at/plan/source d'une licence inexistante
+        // simultanément à has_key=false.
+        $licSrc321 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LicenseManager.php');
+        $posLic321 = strpos($licSrc321, 'public function validateLicense(bool $force = false): void');
+        $bodyLic321 = $posLic321 !== false ? substr($licSrc321, $posLic321, 2300) : '';
+        if ($licSrc321 === ''
+            || $posLic321 === false
+            || strpos($bodyLic321, 'deleteByName(self::CONFIG_EXPIRY_WARNED_FOR)') === false
+        ) {
+            $offenders[] = "LicenseManager::validateLicense() ne purge plus CONFIG_EXPIRES/CONFIG_PLAN/CONFIG_SOURCE/CONFIG_EXPIRY_WARNED_FOR — régression du bug corrigé le 08/09/2026 (round 321) : le bandeau BO afficherait de nouveau expires_at/plan/source d'une licence inexistante";
+        }
+
+        // Round 321 (08/09/2026) : EmailRenderer::isExcluded() instanciait
+        // BlacklistManager() sans idShop explicite, retombant sur le
+        // contexte ambiant (opérateur BO/cron) au lieu de la boutique du
+        // DESTINATAIRE réel — un envoi déclenché depuis le BO d'une
+        // boutique A pour un client de la boutique B appliquait les règles
+        // de blacklist de A au lieu de B.
+        $erSrc321 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        $posEr321 = strpos($erSrc321, 'private function isExcluded(string $template, array $params = []): bool');
+        $bodyEr321 = $posEr321 !== false ? substr($erSrc321, $posEr321, 2600) : '';
+        if ($erSrc321 === ''
+            || $posEr321 === false
+            || strpos($bodyEr321, 'new BlacklistManager($this->resolveShopId($params))') === false
+        ) {
+            $offenders[] = "EmailRenderer::isExcluded() n'instancie plus BlacklistManager avec l'idShop résolu via resolveShopId(\$params) — régression du bug corrigé le 08/09/2026 (round 321) : les règles de blacklist d'une autre boutique (contexte ambiant) s'appliqueraient de nouveau au lieu de celles du destinataire réel";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
