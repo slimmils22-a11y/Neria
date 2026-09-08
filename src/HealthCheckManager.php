@@ -4376,18 +4376,26 @@ class HealthCheckManager
 
         // Round 141 (2026-09-09) : ConfigManager::deleteAll() et
         // resetTimeGreetings(null) doivent rester scopés à la boutique
-        // courante via Configuration::deleteFromContext($key, null,
-        // $this->idShop) — pas Configuration::deleteByName(), qui efface la
-        // clé pour TOUTES les boutiques.
+        // courante — pas Configuration::deleteByName(), qui efface la clé
+        // pour TOUTES les boutiques.
+        // Round 323 (08/09/2026) : le mécanisme de scoping est passé de
+        // Configuration::deleteFromContext() à ConfigManager::deleteScoped()
+        // — deleteFromContext() ne fait RIEN dès que Shop::getContext() ===
+        // Shop::CONTEXT_ALL (cœur PrestaShop), quel que soit l'idShop
+        // explicite passé, laissant un marchand en BO "Toutes les
+        // boutiques" croire à un succès sans rien supprimer réellement
+        // (même famille de bug que rounds 290/300/314). deleteScoped()
+        // résout l'id de ligne via Configuration::getIdByName() (insensible
+        // à Shop::getContext()) puis supprime par id.
         $cfgFile141 = _PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php';
         $cfgSrc141 = $this->readModuleSrc($cfgFile141);
         if ($cfgSrc141 === '') {
-            $offenders[] = 'ConfigManager.php introuvable (garde-fou round 141 : deleteAll/resetTimeGreetings scopés par boutique)';
+            $offenders[] = 'ConfigManager.php introuvable (garde-fou round 141/323 : deleteAll/resetTimeGreetings scopés par boutique, insensibles à CONTEXT_ALL)';
         } else {
             $posDeleteAll = strpos($cfgSrc141, 'public function deleteAll(): bool');
-            $deleteAllBody = $posDeleteAll !== false ? substr($cfgSrc141, $posDeleteAll, 700) : '';
-            if ($posDeleteAll === false || strpos($deleteAllBody, '\Configuration::deleteFromContext($key, null, $this->idShop)') === false) {
-                $offenders[] = "ConfigManager::deleteAll() n'utilise plus deleteFromContext() scopé par boutique — régression du bug corrigé le 09/08/2026 (round 141) : réinitialiser Neria depuis une boutique effacerait de nouveau la config des autres boutiques";
+            $deleteAllBody = $posDeleteAll !== false ? substr($cfgSrc141, $posDeleteAll, 1500) : '';
+            if ($posDeleteAll === false || strpos($deleteAllBody, '$this->deleteScoped($key)') === false) {
+                $offenders[] = "ConfigManager::deleteAll() n'utilise plus deleteScoped() — régression du bug corrigé le 08/09/2026 (round 323) : sous Shop::CONTEXT_ALL, réinitialiser Neria afficherait de nouveau un succès sans rien supprimer réellement";
             }
             if (strpos($deleteAllBody, 'Configuration::deleteByName($key)') !== false) {
                 $offenders[] = "ConfigManager::deleteAll() utilise de nouveau Configuration::deleteByName() (non scopé) — régression du bug corrigé le 09/08/2026 (round 141)";
@@ -4395,8 +4403,17 @@ class HealthCheckManager
 
             $posResetTG = strpos($cfgSrc141, 'public function resetTimeGreetings(?string $lang = null): bool');
             $resetTGBody = $posResetTG !== false ? substr($cfgSrc141, $posResetTG, 500) : '';
-            if ($posResetTG === false || strpos($resetTGBody, '\Configuration::deleteFromContext(self::KEY_TIME_GREETINGS, null, $this->idShop)') === false) {
-                $offenders[] = "ConfigManager::resetTimeGreetings(null) n'utilise plus deleteFromContext() scopé par boutique — régression du bug corrigé le 09/08/2026 (round 141) : réinitialiser les salutations horaires d'une boutique effacerait de nouveau celles des autres boutiques";
+            if ($posResetTG === false || strpos($resetTGBody, '$this->deleteScoped(self::KEY_TIME_GREETINGS)') === false) {
+                $offenders[] = "ConfigManager::resetTimeGreetings(null) n'utilise plus deleteScoped() — régression du bug corrigé le 08/09/2026 (round 323) : sous Shop::CONTEXT_ALL, réinitialiser les salutations horaires afficherait de nouveau un succès sans rien supprimer réellement";
+            }
+
+            $posDelScoped323 = strpos($cfgSrc141, 'private function deleteScoped(string $key): void');
+            $delScopedBody323 = $posDelScoped323 !== false ? substr($cfgSrc141, $posDelScoped323, 400) : '';
+            if ($posDelScoped323 === false
+                || strpos($delScopedBody323, 'Configuration::getIdByName($key, null, $this->idShop)') === false
+                || strpos($delScopedBody323, 'Configuration::deleteById($id)') === false
+            ) {
+                $offenders[] = "ConfigManager::deleteScoped() n'utilise plus getIdByName()/deleteById() — régression du bug corrigé le 08/09/2026 (round 323) : un retour à deleteFromContext() no-operait de nouveau sous Shop::CONTEXT_ALL";
             }
 
             $posToggle = strpos($cfgSrc141, 'private function toggleBooleanKey(string $key, string $getter, string $setter): bool');
@@ -7306,7 +7323,12 @@ class HealthCheckManager
             'src/DomainReputationManager.php'   => "SELECT GET_LOCK('\" . pSQL(\$lockName) . \"', 6)\", false)",
             'src/LicenseManager.php'            => "SELECT GET_LOCK('neria_license_validate', 0)\", false)",
             'src/MonthlyReportManager.php'      => "SELECT GET_LOCK('neria_monthly_report_deliver', 5)\", false)",
-            'src/OrderTriggersManager.php'      => "SELECT GET_LOCK('\" . pSQL(\$lockName) . \"', 0)\", false) !== 1) {\n                    return;",
+            // Round 323 : littéral adapté — la valeur de GET_LOCK() est
+            // désormais capturée dans une variable (avant cast) pour
+            // distinguer NULL (erreur réelle) de 0 (dédup normale), au lieu
+            // d'un cast direct dans la condition ; $use_cache=false reste
+            // inchangé.
+            'src/OrderTriggersManager.php'      => "SELECT GET_LOCK('\" . pSQL(\$lockName) . \"', 0)\", false);",
             'src/PostmasterManager.php'         => "SELECT GET_LOCK('neria_postmaster_oauth_state', 3)\", false)",
             'src/QueueManager.php'              => "SELECT GET_LOCK('neria_queue_process_queue', 0)\", false)",
             'src/SearchConsoleManager.php'      => "SELECT GET_LOCK('neria_search_console_oauth_state', 3)\", false)",
@@ -10452,6 +10474,50 @@ class HealthCheckManager
             || strpos($bodyTi323, '!is_array($translations) || empty($translations)') === false
         ) {
             $offenders[] = "TranslationInstaller::importFromJson() ne détecte plus un JSON racine vide ([]) — régression du bug corrigé le 08/09/2026 (round 323) : un translations.json vidé/tronqué effacerait de nouveau tout le dictionnaire de traductions par défaut sans jamais rien réinsérer";
+        }
+
+        // Round 323 (08/09/2026, traitement différé) : GdprAuditManager::
+        // encryptExistingRecords() renvoyait 0 aussi bien pour "rien à
+        // chiffrer" que pour "clé de chiffrement illisible" — indiscernable
+        // par l'appelant. isEncryptionKeyReadable() (sonde extraite,
+        // réutilisée en interne) permet à neria.php de distinguer les deux
+        // cas et d'afficher une erreur explicite plutôt qu'un faux succès.
+        $gamSrc323 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        if ($gamSrc323 === '' || strpos($gamSrc323, 'public function isEncryptionKeyReadable(): bool') === false) {
+            $offenders[] = "GdprAuditManager::isEncryptionKeyReadable() a disparu — régression du bug corrigé le 08/09/2026 (round 323) : gdpr_encrypt_all ne pourrait plus distinguer 'rien à chiffrer' de 'clé illisible', réaffichant un faux succès";
+        }
+        $nphpGdpr323 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $posGdpr323 = strpos($nphpGdpr323, "'gdpr_encrypt_all'");
+        $bodyGdpr323 = $posGdpr323 !== false ? substr($nphpGdpr323, $posGdpr323, 1800) : '';
+        if ($nphpGdpr323 === ''
+            || $posGdpr323 === false
+            || strpos($bodyGdpr323, 'isEncryptionKeyReadable()') === false
+            || strpos($bodyGdpr323, "AdminTranslator::t('msg.gdpr_encryption_key_unreadable')") === false
+        ) {
+            $offenders[] = "neria.php (gdpr_encrypt_all) ne vérifie plus isEncryptionKeyReadable() avant d'afficher un succès — régression du bug corrigé le 08/09/2026 (round 323) : un succès trompeur s'afficherait de nouveau même si la clé de chiffrement est illisible";
+        }
+
+        // Round 323 (08/09/2026, traitement différé) : neria.php::save_webhooks
+        // affichait la même bannière générique "Enregistré" que webhook_url
+        // soit renseignée OU vidée au submit, sans avertir explicitement
+        // que les webhooks sortants venaient d'être désactivés.
+        $posWh323 = strpos($nphpGdpr323, "'save_webhooks'");
+        $bodyWh323 = $posWh323 !== false ? substr($nphpGdpr323, $posWh323, 2200) : '';
+        if ($nphpGdpr323 === ''
+            || $posWh323 === false
+            || strpos($bodyWh323, "\$whUrl === '' ? 'msg.webhook_url_cleared_disabled' : 'msg.saved'") === false
+        ) {
+            $offenders[] = "neria.php::save_webhooks n'affiche plus de message distinct quand webhook_url est vidée — régression du bug corrigé le 08/09/2026 (round 323) : un champ vidé accidentellement afficherait de nouveau la bannière générique 'Enregistré' sans avertir que les webhooks sont désactivés";
+        }
+
+        // Round 323 (08/09/2026, traitement différé) : OrderTriggersManager
+        // — les 4 verrous GET_LOCK() anti-doublon (order_partial_shipped,
+        // order_on_hold, handleRefund, handleReturn) traitaient un échec
+        // réel (GET_LOCK() renvoie NULL) en silence total, indiscernable
+        // d'un blocage anti-doublon normal (0), sans aucune trace Watchdog.
+        $otmSrc323 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
+        if ($otmSrc323 === '' || substr_count($otmSrc323, 'GET_LOCK() a échoué (verrou système indisponible) pour') !== 4) {
+            $offenders[] = "OrderTriggersManager ne journalise plus (ou plus assez) l'échec réel de GET_LOCK() via Watchdog — régression du bug corrigé le 08/09/2026 (round 323) : un email légitime pourrait de nouveau être perdu silencieusement sur une panne MySQL réelle";
         }
 
         if ($offenders) {
