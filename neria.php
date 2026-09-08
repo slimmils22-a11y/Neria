@@ -4499,13 +4499,22 @@ class Neria extends Module
             $toneNotes = (string) Tools::getValue('voice_tone_notes', '');
 
             if ($voiceLang !== '') {
-                (new VoiceProfileManager($this))->saveProfile($voiceLang, $banned, $preferred, $toneNotes);
-                if (class_exists('WatchdogManager')) {
-                    (new WatchdogManager($this))->info(
-                        WatchdogManager::i18nMsg('watchdog.voice_profile_updated', ['lang' => $voiceLang]), '', 'Traductions'
-                    );
+                // Round 322 : le retour de saveProfile() n'était jamais
+                // vérifié — un succès s'affichait inconditionnellement même
+                // quand rien n'avait été écrit (ex. langue rejetée par
+                // sanitizeLang() après le durcissement round 322, ou échec
+                // INSERT en sql_mode strict).
+                $voiceSaved = (new VoiceProfileManager($this))->saveProfile($voiceLang, $banned, $preferred, $toneNotes);
+                if ($voiceSaved) {
+                    if (class_exists('WatchdogManager')) {
+                        (new WatchdogManager($this))->info(
+                            WatchdogManager::i18nMsg('watchdog.voice_profile_updated', ['lang' => $voiceLang]), '', 'Traductions'
+                        );
+                    }
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('translations.voice_saved'));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.voice_profile_save_failed'));
                 }
-                $this->context->smarty->assign('neria_success', AdminTranslator::t('translations.voice_saved'));
             }
         }
 
@@ -5559,6 +5568,16 @@ class Neria extends Module
                 )
                 : 0;
 
+            // Round 322 : quote_total/expiry_date n'étaient jamais validés
+            // — un montant négatif (erreur de saisie) était inséré tel
+            // quel (DECIMAL(10,2) l'accepte sans erreur SQL), faussant tout
+            // reporting agrégé et l'email de relance affichant ce montant
+            // au client B2B ; une date non convertible en DATE valide
+            // provoquait un échec INSERT silencieux en sql_mode strict
+            // (jamais vérifié avant ce round, contrairement à quote_mark_won/
+            // lost/delete et lifespan_add/delete qui vérifient déjà leur effet).
+            $expiryDateValid = $expiryDate !== '' && Validate::isDate($expiryDate);
+
             if ($custInput === '' || $quoteRef === '' || $expiryDate === '') {
                 $this->assignQuoteMsg('error', AdminTranslator::t('msg.quote_required_fields'));
             } elseif ($idCustomer <= 0) {
@@ -5571,14 +5590,20 @@ class Neria extends Module
                     'error',
                     AdminTranslator::tVars('msg.quote_already_tracked', ['ref' => htmlspecialchars($quoteRef)])
                 );
+            } elseif (!$expiryDateValid || $quoteTotal < 0) {
+                $this->assignQuoteMsg('error', AdminTranslator::t('msg.quote_invalid_amount_or_date'));
             } else {
-                Db::getInstance()->execute(
+                $quoteAdded = Db::getInstance()->execute(
                     'INSERT INTO `' . _DB_PREFIX_ . 'neria_quote`
                      (id_shop, id_customer, quote_ref, quote_total, id_currency, expiry_date, status, date_add, date_upd)
                      VALUES (' . (int) $this->context->shop->id . ', ' . $idCustomer . ', \'' . $quoteRef . '\',
                      ' . $quoteTotal . ', ' . $idCurrency . ', \'' . $expiryDate . '\', \'active\', NOW(), NOW())'
                 );
-                $this->assignQuoteMsg('success', AdminTranslator::t('msg.quote_added'));
+                if ($quoteAdded) {
+                    $this->assignQuoteMsg('success', AdminTranslator::t('msg.quote_added'));
+                } else {
+                    $this->assignQuoteMsg('error', AdminTranslator::t('msg.quote_save_failed'));
+                }
             }
         }
 

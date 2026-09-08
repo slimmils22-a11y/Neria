@@ -549,16 +549,28 @@ class DeliverabilityScorer
         // au reste du fichier ; le code réel (ligne suivante) a toujours
         // appliqué −10, cohérent avec le budget total documenté plus haut
         // (13+15+10+12+10+10+9+3+10+7+7 = 106).
-        $hasUnsubscribe = str_contains($htmlContent, 'unsubscribe')
-            || str_contains($htmlContent, 'désabonnement')
-            || str_contains($htmlContent, 'désabonner')
-            || str_contains($htmlContent, 'désinscrire')
-            || str_contains($htmlContent, 'se désinscrire')
-            || str_contains($htmlContent, 'abmelden')
-            || str_contains($htmlContent, 'darse de baja')
-            || str_contains($htmlContent, 'cancelar suscripción')
-            || str_contains($htmlContent, 'annullare iscrizione')
-            || str_contains($htmlContent, 'cancelar inscrição')
+        // Round 322 : $htmlContentLower — contrairement aux critères 2/4 de
+        // ce même fichier (mb_strtolower($subject)/mb_strtolower($visible)),
+        // cette recherche restait sensible à la casse. Un lien/bouton
+        // affiché "Se Désabonner"/"UNSUBSCRIBE" (usage typographique courant
+        // pour un bouton stylé) ne matchait aucune des chaînes ci-dessous
+        // (toutes en minuscules) : le critère comptait à tort "lien de
+        // désabonnement absent" (-10 points, recommandation d'en ajouter un)
+        // alors qu'il est bel et bien présent. 'List-Unsubscribe' (en-tête
+        // technique RFC 8058) volontairement exclu de la normalisation — son
+        // nom de champ est conventionnellement écrit ainsi dans les sources
+        // email, casse-insensible n'apportant rien de plus ici.
+        $htmlContentLower = mb_strtolower($htmlContent);
+        $hasUnsubscribe = str_contains($htmlContentLower, 'unsubscribe')
+            || str_contains($htmlContentLower, 'désabonnement')
+            || str_contains($htmlContentLower, 'désabonner')
+            || str_contains($htmlContentLower, 'désinscrire')
+            || str_contains($htmlContentLower, 'se désinscrire')
+            || str_contains($htmlContentLower, 'abmelden')
+            || str_contains($htmlContentLower, 'darse de baja')
+            || str_contains($htmlContentLower, 'cancelar suscripción')
+            || str_contains($htmlContentLower, 'annullare iscrizione')
+            || str_contains($htmlContentLower, 'cancelar inscrição')
             || str_contains($htmlContent, 'List-Unsubscribe');
 
         $cUnsub = $this->t('score.criterion_unsub');

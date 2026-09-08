@@ -324,6 +324,18 @@ class VoiceProfileManager
         // appelant passant 'FR' obtenait sinon 'FR' non normalisé, cassant
         // silencieusement les comparaisons strictes ailleurs dans le module
         // (TranslationEngine::SUPPORTED_LANGS toujours en minuscule).
-        return mb_strtolower((string) preg_replace('/[^a-z]/i', '', $lang));
+        $lang = mb_strtolower((string) preg_replace('/[^a-z]/i', '', $lang));
+        // Round 322 : validation contre la liste réelle des langues
+        // supportées — auparavant seuls les caractères non-alphabétiques
+        // étaient retirés, sans aucune borne de longueur ni de contenu. La
+        // colonne `lang` est un VARCHAR(5) (sql/install.sql) ; une valeur
+        // trad_lang manipulée en POST (ex. 10+ lettres) passait intacte le
+        // filtre et provoquait soit un échec INSERT silencieux (sql_mode
+        // strict, saveProfile() renvoie false — jamais vérifié par
+        // neria.php avant ce round), soit une troncature à 5 caractères
+        // pouvant entrer en collision avec la clé UNIQUE (id_shop, lang)
+        // d'une AUTRE langue légitime et l'écraser via ON DUPLICATE KEY
+        // UPDATE (sql_mode non strict).
+        return in_array($lang, TranslationEngine::SUPPORTED_LANGS, true) ? $lang : '';
     }
 }
