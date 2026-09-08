@@ -2152,7 +2152,19 @@ class EmailRenderer
             ? (int) $params['idLang']
             : (int) \Configuration::get('PS_LANG_DEFAULT');
         $lang = $idLang > 0 ? $this->engine->langFromId($idLang) : '';
-        return (new BlacklistManager())->isBlacklisted($template, $lang);
+        // Round 321 : BlacklistManager() instancié sans idShop retombait sur
+        // Context::getContext()->shop->id (contexte BO de l'opérateur ou
+        // dernier contexte cron actif), pas la boutique du DESTINATAIRE réel
+        // — resolveShopId($params) est déjà utilisé ailleurs dans ce même
+        // fichier pour ce besoin exact (round 138), et $params['idShop'] est
+        // déjà fourni ici par Mail::Send() du cœur PrestaShop (hook
+        // actionEmailSendBefore) dès qu'un appelant (ex. ManualSendManager::
+        // send()) passe explicitement l'idShop du client en 13e argument.
+        // Sans ce correctif, un envoi déclenché depuis le BO d'une boutique A
+        // (ManualSendManager restaure le contexte AVANT Mail::Send() via
+        // resolveShopUrl()) pour un client de la boutique B appliquait les
+        // règles de blacklist de A au lieu de B.
+        return (new BlacklistManager($this->resolveShopId($params)))->isBlacklisted($template, $lang);
     }
 
     /**

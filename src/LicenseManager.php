@@ -381,6 +381,16 @@ class LicenseManager
                 \Configuration::deleteByName(self::CONFIG_LAST_CHECK);
                 \Configuration::deleteByName(self::CONFIG_REVOKED_AT);
                 \Configuration::deleteByName(self::CONFIG_TOKEN);
+                // Round 321 : CONFIG_EXPIRES/CONFIG_PLAN/CONFIG_SOURCE/
+                // CONFIG_EXPIRY_WARNED_FOR n'étaient pas purgés ici — lus
+                // inconditionnellement par getStatusForDisplay() indépendamment
+                // de has_key, ils restaient affichés (expires_at/plan/source
+                // d'une licence qui n'existe plus) simultanément à has_key=false,
+                // une incohérence visible dans le bandeau BO.
+                \Configuration::deleteByName(self::CONFIG_EXPIRES);
+                \Configuration::deleteByName(self::CONFIG_PLAN);
+                \Configuration::deleteByName(self::CONFIG_SOURCE);
+                \Configuration::deleteByName(self::CONFIG_EXPIRY_WARNED_FOR);
             }
             return; // Jamais activé — rien à revalider, le délai de grâce s'applique déjà.
         }

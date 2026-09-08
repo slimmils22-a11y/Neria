@@ -206,8 +206,18 @@ class CryptoManager
      */
     public static function generateAndStoreKey(): void
     {
-        if (!\Configuration::get(self::CONFIG_KEY)) {
-            \Configuration::updateValue(self::CONFIG_KEY, bin2hex(random_bytes(32)));
+        // Round 321 : updateGlobalValue()/lecture forcée id_shop=0 — même
+        // correctif que rounds 185/312 (NERIA_EMERGENCY_TOKEN juste au-dessus
+        // dans neria.php, NERIA_INSTALLED_VERSION) pour la même classe de
+        // bug : updateValue()/Configuration::get() sans $idShop retombent
+        // sur la boutique du CONTEXTE COURANT dès que le multi-boutique est
+        // actif — une clé de chiffrement AES écrite/lue ainsi devient
+        // différente selon le contexte shop actif au moment de l'appel
+        // (install BO vs cron/CLI vs front d'une autre boutique),
+        // provoquant un échec de déchiffrement silencieux (secrets IMAP/
+        // OAuth illisibles) sans que la donnée en base soit corrompue.
+        if (!\Configuration::get(self::CONFIG_KEY, null, null, 0)) {
+            \Configuration::updateGlobalValue(self::CONFIG_KEY, bin2hex(random_bytes(32)));
         }
     }
 
