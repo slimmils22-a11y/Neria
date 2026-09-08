@@ -4280,8 +4280,12 @@ class HealthCheckManager
             // résolution du groupe à stock partagé avant d'appeler
             // notifyProductLocked(), qui traite la boutique RÉELLE de
             // chaque inscrit ($rowShopId), pas celle de l'appel d'origine.
+            // Round 324 : fenêtre élargie 12800→13200 — le correctif
+            // GET_LOCK() NULL-vs-0 (voir plus bas) a inséré du code avant
+            // les littéraux ciblés, les repoussant au-delà de l'ancienne
+            // fenêtre.
             $posNP = strpos($wlmSrc, 'public function notifyProduct(');
-            $npBody = $posNP !== false ? substr($wlmSrc, $posNP, 12800) : '';
+            $npBody = $posNP !== false ? substr($wlmSrc, $posNP, 13200) : '';
             if ($posNP === false
                 || strpos($npBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $rowShopId)') === false
                 || strpos($npBody, 'new \Product($idProduct, false, $idLang, $rowShopId)') === false
@@ -10518,6 +10522,52 @@ class HealthCheckManager
         $otmSrc323 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
         if ($otmSrc323 === '' || substr_count($otmSrc323, 'GET_LOCK() a échoué (verrou système indisponible) pour') !== 4) {
             $offenders[] = "OrderTriggersManager ne journalise plus (ou plus assez) l'échec réel de GET_LOCK() via Watchdog — régression du bug corrigé le 08/09/2026 (round 323) : un email légitime pourrait de nouveau être perdu silencieusement sur une panne MySQL réelle";
+        }
+
+        // Round 324 (08/09/2026) : TranslationHistoryManager::
+        // getHistoryForTemplate() triait uniquement par date_add DESC, sans
+        // départage sur id_history — contrairement à pruneKey() (même
+        // fichier), qui départage explicitement (date_add a une résolution
+        // à la seconde). Un ordre non déterministe entre deux entrées de la
+        // même seconde pouvait tromper le marchand sur QUELLE version il
+        // restaure (neria.php restore_translation/restore_variant_b).
+        $thmSrc324 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/TranslationHistoryManager.php');
+        $posThm324 = strpos($thmSrc324, 'public function getHistoryForTemplate(string $template, string $lang, int $limit = 40): array');
+        $bodyThm324 = $posThm324 !== false ? substr($thmSrc324, $posThm324, 1600) : '';
+        if ($thmSrc324 === ''
+            || $posThm324 === false
+            || strpos($bodyThm324, 'date_add` DESC, `id_history` DESC') === false
+        ) {
+            $offenders[] = "TranslationHistoryManager::getHistoryForTemplate() ne départage plus sur id_history DESC — régression du bug corrigé le 08/09/2026 (round 324) : l'ordre entre deux entrées de la même seconde redeviendrait indéterminé, risquant de tromper le marchand sur la version qu'il restaure";
+        }
+
+        // Round 324 (08/09/2026) : balayage exhaustif suite au correctif
+        // round 323 (OrderTriggersManager) — 7 autres fichiers avaient le
+        // même défaut GET_LOCK() (cast direct sans distinguer NULL d'une
+        // erreur réelle de 0 un blocage anti-doublon normal, aucune trace
+        // Watchdog).
+        $getlockFiles324 = [
+            'src/CalendarManager.php'      => 'neria_calendar_check_',
+            'src/LicenseManager.php'       => 'neria_license_validate',
+            'src/MonthlyReportManager.php' => 'neria_monthly_report_check',
+            'src/QueueManager.php'         => 'neria_queue_process_queue',
+            'src/UpsellManager.php'        => 'neria_upsell_check_conversions',
+        ];
+        foreach ($getlockFiles324 as $relPath324 => $lockLabel324) {
+            $src324 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/' . $relPath324);
+            if ($src324 === '' || strpos($src324, "GET_LOCK() a échoué (verrou système indisponible) pour {$lockLabel324}") === false) {
+                $offenders[] = "{$relPath324} ne distingue plus NULL (erreur GET_LOCK() réelle) de 0 (blocage anti-doublon normal) — régression du bug corrigé le 08/09/2026 (round 324) : un traitement légitime pourrait de nouveau être perdu silencieusement sur une panne MySQL réelle, sans aucune trace Watchdog";
+            }
+        }
+        $mrmSrc324 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php');
+        if ($mrmSrc324 === '' || substr_count($mrmSrc324, 'GET_LOCK() a échoué (verrou système indisponible) pour neria_monthly_report') !== 2) {
+            $offenders[] = "MonthlyReportManager ne journalise plus les 2 échecs GET_LOCK() attendus (checkAndSend + deliverReport) — régression du bug corrigé le 08/09/2026 (round 324)";
+        }
+        foreach (['src/WaitlistManager.php', 'src/WebhookManager.php'] as $relPath324b) {
+            $src324b = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/' . $relPath324b);
+            if ($src324b === '' || strpos($src324b, "GET_LOCK() a échoué (verrou système indisponible) pour ' . \$lockName") === false) {
+                $offenders[] = "{$relPath324b} ne distingue plus NULL (erreur GET_LOCK() réelle) de 0 (blocage anti-doublon normal) — régression du bug corrigé le 08/09/2026 (round 324)";
+            }
         }
 
         if ($offenders) {
