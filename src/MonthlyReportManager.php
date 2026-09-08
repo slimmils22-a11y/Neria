@@ -68,7 +68,17 @@ class MonthlyReportManager
         // marchand. Même piège déjà corrigé pour la queue d'envoi, la queue
         // webhook et le cron comportemental.
         $db = $this->db;
-        if ((int) $db->getValue("SELECT GET_LOCK('neria_monthly_report_check', 0)", false) !== 1) {
+        $lockRes324 = $db->getValue("SELECT GET_LOCK('neria_monthly_report_check', 0)", false);
+        // Round 324 : distingue NULL (erreur MySQL réelle) de 0 (verrou
+        // déjà détenu — blocage normal) — même correctif que
+        // OrderTriggersManager (round 323).
+        if ($lockRes324 === null && class_exists('WatchdogManager')) {
+            (new \WatchdogManager($this->module))->warning(
+                'MonthlyReportManager: GET_LOCK() a échoué (verrou système indisponible) pour neria_monthly_report_check',
+                '', 'MonthlyReportManager'
+            );
+        }
+        if ((int) $lockRes324 !== 1) {
             return;
         }
 
@@ -784,7 +794,17 @@ class MonthlyReportManager
      */
     private function deliverReport(array $data): bool
     {
-        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_monthly_report_deliver', 5)", false) !== 1) {
+        $lockResDl324 = $this->db->getValue("SELECT GET_LOCK('neria_monthly_report_deliver', 5)", false);
+        // Round 324 : distingue NULL (erreur MySQL réelle) de 0 (verrou
+        // déjà détenu — blocage normal) — même correctif que
+        // OrderTriggersManager (round 323).
+        if ($lockResDl324 === null && class_exists('WatchdogManager')) {
+            (new \WatchdogManager($this->module))->warning(
+                'MonthlyReportManager: GET_LOCK() a échoué (verrou système indisponible) pour neria_monthly_report_deliver',
+                '', 'MonthlyReportManager'
+            );
+        }
+        if ((int) $lockResDl324 !== 1) {
             return false;
         }
         try {

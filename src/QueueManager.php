@@ -328,7 +328,17 @@ class QueueManager
         // global (pas par boutique) : cette méthode traite déjà toutes les
         // boutiques en un seul appel (le id_shop par ligne est utilisé pour
         // l'envoi, pas pour filtrer la sélection).
-        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_queue_process_queue', 0)", false) !== 1) {
+        $lockRes324 = $this->db->getValue("SELECT GET_LOCK('neria_queue_process_queue', 0)", false);
+        // Round 324 : distingue NULL (erreur MySQL réelle) de 0 (verrou
+        // déjà détenu — blocage normal) — même correctif que
+        // OrderTriggersManager (round 323).
+        if ($lockRes324 === null) {
+            $this->watchdog()->warning(
+                'QueueManager: GET_LOCK() a échoué (verrou système indisponible) pour neria_queue_process_queue',
+                '', 'QueueManager'
+            );
+        }
+        if ((int) $lockRes324 !== 1) {
             return 0;
         }
 

@@ -148,10 +148,20 @@ class TranslationHistoryManager
         // Round 216 : $use_cache=false — un marchand consultant l'écran
         // d'historique juste après une modification pourrait sinon ne pas
         // voir immédiatement la dernière entrée sous cache SQL périmé.
+        // Round 324 : tie-break id_history DESC ajouté — même raisonnement
+        // que pruneKey() ci-dessous (date_add a une résolution à la
+        // seconde ; sans départage, l'ordre entre deux entrées insérées la
+        // même seconde — édition rapide de plusieurs champs dans le même
+        // écran BO, import en masse — est indéterminé). Cette méthode
+        // alimente l'écran d'historique où le marchand choisit QUELLE
+        // entrée restaurer (neria.php restore_translation/restore_variant_b) ;
+        // un ordre non déterministe pouvait afficher l'entrée la plus
+        // récente en dessous d'une entrée plus ancienne, risquant de
+        // tromper le marchand sur la version qu'il restaure réellement.
         $rows  = $this->db->executeS(sprintf(
             "SELECT * FROM `%s`
              WHERE `template_key` = '%s' AND `lang_code` = '%s'
-             ORDER BY `date_add` DESC
+             ORDER BY `date_add` DESC, `id_history` DESC
              LIMIT %d",
             $table,
             pSQL($template),

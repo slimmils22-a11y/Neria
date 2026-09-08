@@ -139,7 +139,17 @@ class WaitlistManager
             $shopIds  = [$idShop];
         }
 
-        if ((int) $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)", false) !== 1) {
+        $lockRes324 = $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockName) . "', 0)", false);
+        // Round 324 : distingue NULL (erreur MySQL réelle) de 0 (verrou
+        // déjà détenu — blocage normal) — même correctif que
+        // OrderTriggersManager (round 323).
+        if ($lockRes324 === null && class_exists('WatchdogManager')) {
+            (new \WatchdogManager($this->module))->warning(
+                'WaitlistManager: GET_LOCK() a échoué (verrou système indisponible) pour ' . $lockName,
+                '', 'WaitlistManager'
+            );
+        }
+        if ((int) $lockRes324 !== 1) {
             return 0;
         }
 

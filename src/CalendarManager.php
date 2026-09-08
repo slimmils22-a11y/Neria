@@ -112,7 +112,17 @@ class CalendarManager
         // installs multi-boutiques à trafic soutenu, sans aucun log
         // exploitable (comportement "normal" par design du verrou).
         $db = $this->db;
-        if ((int) $db->getValue("SELECT GET_LOCK('neria_calendar_check_" . $this->idShop . "', 0)", false) !== 1) {
+        $lockRes324 = $db->getValue("SELECT GET_LOCK('neria_calendar_check_" . $this->idShop . "', 0)", false);
+        // Round 324 : distingue NULL (erreur MySQL réelle) de 0 (verrou
+        // déjà détenu — blocage normal, volontairement silencieux) — même
+        // correctif que OrderTriggersManager (round 323).
+        if ($lockRes324 === null) {
+            $this->watchdog()->warning(
+                'CalendarManager: GET_LOCK() a échoué (verrou système indisponible) pour neria_calendar_check_' . $this->idShop,
+                '', 'CalendarManager'
+            );
+        }
+        if ((int) $lockRes324 !== 1) {
             return;
         }
 

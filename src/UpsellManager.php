@@ -695,7 +695,17 @@ class UpsellManager
         // concurrentes de checkConversions() (double worker cron, retry
         // après timeout perçu, exécution manuelle simultanée au cron) —
         // même famille de protection que QueueManager::processQueue().
-        if ((int) $this->db->getValue("SELECT GET_LOCK('neria_upsell_check_conversions', 0)", false) !== 1) {
+        $lockRes324 = $this->db->getValue("SELECT GET_LOCK('neria_upsell_check_conversions', 0)", false);
+        // Round 324 : distingue NULL (erreur MySQL réelle) de 0 (verrou
+        // déjà détenu — blocage normal) — même correctif que
+        // OrderTriggersManager (round 323).
+        if ($lockRes324 === null) {
+            $this->watchdog()->warning(
+                'UpsellManager: GET_LOCK() a échoué (verrou système indisponible) pour neria_upsell_check_conversions',
+                '', 'UpsellManager'
+            );
+        }
+        if ((int) $lockRes324 !== 1) {
             return 0;
         }
 
