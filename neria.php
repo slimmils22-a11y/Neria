@@ -5665,21 +5665,33 @@ class Neria extends Module
             $id  = (int) Tools::getValue('look_rule_id');
             $mgr = new LookCompletionManager($this);
             $r   = $mgr->getRuleById($id);
-            $msgKey = 'msg.item_activated';
+            // Round 320 : $msgKey par défaut restait 'msg.item_activated' et
+            // était affiché en neria_success même quand $r est introuvable
+            // (id déjà supprimé, double-clic) — aucune modification n'avait
+            // pourtant eu lieu. Même pattern que collection_toggle
+            // ci-dessous, jamais corrigé ici contrairement au calendrier
+            // (round 317).
             if ($r) {
                 $mgr->updateRule($id, (int) $r['id_category'], json_decode($r['product_ids'], true), !(bool) $r['active']);
                 $msgKey = $r['active'] ? 'msg.item_deactivated' : 'msg.item_activated';
+                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($msgKey)) . '#neria-look-section');
+            } else {
+                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_error=' . urlencode(AdminTranslator::t('msg.look_rule_not_found')) . '#neria-look-section');
             }
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($msgKey)) . '#neria-look-section');
         }
 
         // ── Look completion : supprimer règle ─────────────────────
         if (Tools::getValue('neria_action') === 'look_rule_delete' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('LookCompletionManager')) {
             $id = (int) Tools::getValue('look_rule_id');
-            if ($id > 0) {
-                (new LookCompletionManager($this))->deleteRule($id);
+            // Round 320 : deleteRule() renvoie désormais Affected_Rows()>0
+            // (fiable pour un DELETE) — le succès n'est affiché que si une
+            // ligne a réellement été supprimée.
+            $deleted = $id > 0 && (new LookCompletionManager($this))->deleteRule($id);
+            if ($deleted) {
+                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t('msg.look_rule_deleted')) . '#neria-look-section');
+            } else {
+                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_error=' . urlencode(AdminTranslator::t('msg.look_rule_not_found')) . '#neria-look-section');
             }
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t('msg.look_rule_deleted')) . '#neria-look-section');
         }
 
         // ── Collection : ajouter ─────────────────────────────────
@@ -5701,21 +5713,31 @@ class Neria extends Module
             $id  = (int) Tools::getValue('collection_id');
             $mgr = new CollectionManager($this);
             $col = $mgr->getById($id);
-            $msgKey = 'msg.item_activated';
+            // Round 320 : $msgKey par défaut restait 'msg.item_activated' et
+            // était affiché en neria_success même quand $col est introuvable
+            // (id déjà supprimé, double-clic) — aucune modification n'avait
+            // pourtant eu lieu.
             if ($col) {
                 $mgr->update($id, $col['name'], json_decode($col['product_ids'], true), !(bool) $col['active']);
                 $msgKey = $col['active'] ? 'msg.item_deactivated' : 'msg.item_activated';
+                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($msgKey)) . '#neria-collection-section');
+            } else {
+                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_error=' . urlencode(AdminTranslator::t('msg.collection_not_found')) . '#neria-collection-section');
             }
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($msgKey)) . '#neria-collection-section');
         }
 
         // ── Collection : supprimer ────────────────────────────────
         if (Tools::getValue('neria_action') === 'collection_delete' && $_SERVER['REQUEST_METHOD'] === 'POST' && class_exists('CollectionManager')) {
             $id = (int) Tools::getValue('collection_id');
-            if ($id > 0) {
-                (new CollectionManager($this))->delete($id);
+            // Round 320 : delete() renvoie désormais Affected_Rows()>0
+            // (fiable pour un DELETE) — le succès n'est affiché que si une
+            // ligne a réellement été supprimée.
+            $deleted = $id > 0 && (new CollectionManager($this))->delete($id);
+            if ($deleted) {
+                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t('msg.collection_deleted')) . '#neria-collection-section');
+            } else {
+                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_error=' . urlencode(AdminTranslator::t('msg.collection_not_found')) . '#neria-collection-section');
             }
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t('msg.collection_deleted')) . '#neria-collection-section');
         }
 
         // ── Upsell : toggle activer/désactiver ───────────────────

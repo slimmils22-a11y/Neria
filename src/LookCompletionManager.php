@@ -78,7 +78,12 @@ class LookCompletionManager
 
     public function deleteRule(int $id): bool
     {
-        return $this->db->delete('neria_look_rule', '`id_neria_look_rule` = ' . $id);
+        // Round 320 : même correctif que CollectionManager::delete() —
+        // Db::delete() renvoie le succès de la requête SQL, pas le nombre
+        // de lignes réellement supprimées ; Affected_Rows() est fiable pour
+        // un DELETE (contrairement à un UPDATE).
+        $this->db->delete('neria_look_rule', '`id_neria_look_rule` = ' . $id);
+        return (int) $this->db->Affected_Rows() > 0;
     }
 
     // ── CRON : détection + envoi ─────────────────────────────────────────

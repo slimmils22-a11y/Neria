@@ -307,6 +307,15 @@ class SearchConsoleManager
             \Configuration::updateGlobalValue(self::CONFIG_REFRESH_TOKEN, \CryptoManager::encrypt($response['refresh_token']));
         }
         \Configuration::updateGlobalValue(self::CONFIG_TOKEN_EXPIRY, time() + ($response['expires_in'] ?? 3600) - 60);
+
+        // Round 320 : sans ce nettoyage, une reconnexion OAuth réussie après
+        // une erreur (refresh token révoqué/expiré) laissait CONFIG_LAST_ERROR
+        // positionné — checkOAuthFreshness() (HealthCheckManager) affichait
+        // donc l'ancienne erreur "invalid_grant" dans le Health Check du BO
+        // juste après une reconnexion pourtant réussie, jusqu'au prochain
+        // cycle getStats() complet (jusqu'à 12h de TTL de cache).
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
     }
 
     /**

@@ -304,6 +304,13 @@ class PostmasterManager
             \Configuration::updateGlobalValue(self::CONFIG_REFRESH_TOKEN, \CryptoManager::encrypt($response['refresh_token']));
         }
         \Configuration::updateGlobalValue(self::CONFIG_TOKEN_EXPIRY, time() + ($response['expires_in'] ?? 3600) - 60);
+
+        // Round 320 : même correctif que SearchConsoleManager::applyTokenResponse()
+        // — sans ce nettoyage, une reconnexion OAuth réussie laissait
+        // CONFIG_LAST_ERROR positionné, affichant l'ancienne erreur dans le
+        // Health Check du BO juste après une reconnexion pourtant réussie.
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR);
+        \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
     }
 
     /**

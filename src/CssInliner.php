@@ -47,7 +47,21 @@ class CssInliner
             // valeur avant que l'un des deux n'écrive, perdant un
             // incrément (lost update), sous-estimant le nombre réel
             // d'échecs silencieux affiché au marchand.
-            $idShop = (int) \Context::getContext()->shop->id;
+            // Round 320 : accès protégé (même motif que NeriaErrorHandler::
+            // currentShopId()) — en contexte dégradé (Context::getContext()
+            // ->shop non initialisé), l'accès direct produisait $idShop=0,
+            // scopant le compteur d'échecs silencieux sur une "boutique 0"
+            // fictive, invisible dans le Health Check de la vraie boutique
+            // concernée par l'échec d'inlining.
+            $idShop = 1;
+            try {
+                $ctxShop = \Context::getContext()->shop ?? null;
+                if ($ctxShop !== null && (int) $ctxShop->id > 0) {
+                    $idShop = (int) $ctxShop->id;
+                }
+            } catch (\Throwable $ctxErr) {
+                // Repli sur $idShop=1 ci-dessus.
+            }
             $key    = 'NERIA_CSS_INLINE_FAILURES_' . $idShop;
             $db     = \Db::getInstance();
             if ((int) $db->getValue("SELECT GET_LOCK('neria_css_inline_failures_" . $idShop . "', 1)", false) === 1) {

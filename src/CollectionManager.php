@@ -64,8 +64,17 @@ class CollectionManager
 
     public function delete(int $id): bool
     {
+        // Round 320 : Db::delete() renvoie le succès de la requête SQL, pas
+        // le nombre de lignes réellement supprimées (cœur PrestaShop,
+        // classes/db/Db.php::delete() renvoie (bool) $res du query(), true
+        // même si 0 ligne ne correspondait au WHERE) — neria.php affichait
+        // donc "Collection supprimée" inconditionnellement dès que
+        // $id > 0, même pour un id déjà supprimé/inexistant. Affected_Rows()
+        // est fiable pour un DELETE (contrairement à un UPDATE, cf.
+        // BounceManager::deleteBounce(), round 315).
         $this->db->delete('neria_collection_sent', '`id_neria_collection` = ' . $id);
-        return $this->db->delete('neria_collection', '`id_neria_collection` = ' . $id);
+        $this->db->delete('neria_collection', '`id_neria_collection` = ' . $id);
+        return (int) $this->db->Affected_Rows() > 0;
     }
 
     /**
