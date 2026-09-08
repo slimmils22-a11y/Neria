@@ -10377,6 +10377,66 @@ class HealthCheckManager
             $offenders[] = "EmailRenderer::isExcluded() n'instancie plus BlacklistManager avec l'idShop résolu via resolveShopId(\$params) — régression du bug corrigé le 08/09/2026 (round 321) : les règles de blacklist d'une autre boutique (contexte ambiant) s'appliqueraient de nouveau au lieu de celles du destinataire réel";
         }
 
+        // Round 322 (08/09/2026) : VoiceProfileManager::sanitizeLang() ne
+        // retirait que les caractères non-alphabétiques, sans valider le
+        // résultat contre la liste réelle des langues supportées — une
+        // langue manipulée en POST (10+ lettres) provoquait un échec INSERT
+        // silencieux (sql_mode strict) ou une troncature à 5 caractères
+        // (VARCHAR(5)) pouvant écraser une AUTRE langue légitime via
+        // ON DUPLICATE KEY UPDATE.
+        $vpmSrc322 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/VoiceProfileManager.php');
+        $posVpm322 = strpos($vpmSrc322, 'private function sanitizeLang(string $lang): string');
+        $bodyVpm322 = $posVpm322 !== false ? substr($vpmSrc322, $posVpm322, 1800) : '';
+        if ($vpmSrc322 === ''
+            || $posVpm322 === false
+            || strpos($bodyVpm322, 'SUPPORTED_LANGS, true) ? $lang') === false
+        ) {
+            $offenders[] = "VoiceProfileManager::sanitizeLang() ne valide plus la langue contre TranslationEngine::SUPPORTED_LANGS — régression du bug corrigé le 08/09/2026 (round 322) : une langue manipulée hors liste redeviendrait acceptée, risquant une troncature/collision ou un échec INSERT silencieux";
+        }
+
+        // Round 322 (08/09/2026) : neria.php (action save_voice_profile) ne
+        // vérifiait pas le retour de saveProfile() — un succès s'affichait
+        // inconditionnellement même quand rien n'avait été écrit.
+        $nphpVoice322 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $posVoice322 = strpos($nphpVoice322, "\$tradAction === 'save_voice_profile'");
+        $bodyVoice322 = $posVoice322 !== false ? substr($nphpVoice322, $posVoice322, 2000) : '';
+        if ($nphpVoice322 === ''
+            || $posVoice322 === false
+            || strpos($bodyVoice322, "AdminTranslator::t('msg.voice_profile_save_failed')") === false
+        ) {
+            $offenders[] = "neria.php (save_voice_profile) ne vérifie plus le retour réel de saveProfile() — régression du bug corrigé le 08/09/2026 (round 322) : un succès s'afficherait de nouveau même si l'écriture du profil vocal a échoué";
+        }
+
+        // Round 322 (08/09/2026) : neria.php::quote_add n'appliquait aucune
+        // validation sur quote_total (montant négatif accepté) ni sur
+        // expiry_date (aucun Validate::isDate()), et ne vérifiait pas le
+        // retour réel de l'INSERT.
+        $posQuote322 = strpos($nphpVoice322, "Tools::getValue('neria_action') === 'quote_add'");
+        $bodyQuote322 = $posQuote322 !== false ? substr($nphpVoice322, $posQuote322, 5800) : '';
+        if ($nphpVoice322 === ''
+            || $posQuote322 === false
+            || strpos($bodyQuote322, 'Validate::isDate($expiryDate)') === false
+            || strpos($bodyQuote322, '$quoteTotal < 0') === false
+            || strpos($bodyQuote322, "AdminTranslator::t('msg.quote_save_failed')") === false
+        ) {
+            $offenders[] = "neria.php::quote_add ne valide plus quote_total/expiry_date ni ne vérifie l'effet réel de l'INSERT — régression du bug corrigé le 08/09/2026 (round 322) : un montant négatif, une date invalide, ou un échec d'écriture silencieux redeviendraient possibles";
+        }
+
+        // Round 322 (08/09/2026) : DeliverabilityScorer::score() (critère 5,
+        // lien de désabonnement) recherchait les mots-clés directement dans
+        // $htmlContent sans normaliser la casse, contrairement aux critères
+        // 2/4 du même fichier — un lien affiché en majuscules/casse mixte
+        // ("UNSUBSCRIBE", "Se Désabonner") était compté à tort comme absent.
+        $dsSrc322 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DeliverabilityScorer.php');
+        $posDs322 = strpos($dsSrc322, '// ── Critère 5 : lien de désabonnement');
+        $bodyDs322 = $posDs322 !== false ? substr($dsSrc322, $posDs322, 2500) : '';
+        if ($dsSrc322 === ''
+            || $posDs322 === false
+            || strpos($bodyDs322, '$htmlContentLower = mb_strtolower($htmlContent)') === false
+        ) {
+            $offenders[] = "DeliverabilityScorer::score() ne normalise plus la casse avant de rechercher le lien de désabonnement — régression du bug corrigé le 08/09/2026 (round 322) : un lien affiché en majuscules/casse mixte serait de nouveau compté à tort comme absent (-10 points)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
