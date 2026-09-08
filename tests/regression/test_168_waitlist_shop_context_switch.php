@@ -29,6 +29,10 @@
  * avant d'appeler notifyProductLocked(), qui traite la boutique RÉELLE de
  * chaque inscrit ($rowShopId) plutôt que la boutique d'origine de l'appel
  * ($idShop) — cf. commentaire round 302 dans WaitlistManager.php.
+ *
+ * Fenêtre élargie 12800→13200 (round 324) : le correctif GET_LOCK()
+ * NULL-vs-0 (distinction erreur MySQL réelle vs blocage anti-doublon
+ * normal) a inséré du code avant les littéraux ciblés.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -57,7 +61,7 @@ function run_test(): array
 
     $posMethod = strpos($src, 'public function notifyProduct(');
     neria_assert($posMethod !== false, 'notifyProduct() introuvable');
-    $body = substr($src, $posMethod, 12800);
+    $body = substr($src, $posMethod, 13200);
     neria_assert(
         strpos($body, 'Shop::setContext(\Shop::CONTEXT_SHOP, $rowShopId)') !== false,
         "notifyProduct() ne commute plus le contexte boutique statique via Shop::setContext() — régression du bug corrigé le 08/08/2026 (round 138)"

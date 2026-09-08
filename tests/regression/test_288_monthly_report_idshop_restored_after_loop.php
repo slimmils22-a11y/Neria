@@ -15,6 +15,11 @@
  * rapports mensuels — trop invasif pour l'environnement de test partagé) :
  * vérifie que $this->idShop est bien sauvegardé avant la boucle et
  * restauré au même endroit que le contexte boutique.
+ *
+ * Fenêtre élargie 5600→6100 (round 324) : le correctif GET_LOCK()
+ * NULL-vs-0 (distinction erreur MySQL réelle vs blocage anti-doublon
+ * normal), inséré plus tôt dans cette même méthode, a repoussé les
+ * littéraux ciblés.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -25,7 +30,7 @@ function run_test(): array
 
     $posFn = strpos($src, 'public function checkAndSend(): void');
     neria_assert($posFn !== false, 'checkAndSend() introuvable — jeu de test invalide');
-    $body = substr($src, $posFn, 5600);
+    $body = substr($src, $posFn, 6100);
 
     neria_assert(
         strpos($body, '$originalIdShop = $this->idShop;') !== false,
