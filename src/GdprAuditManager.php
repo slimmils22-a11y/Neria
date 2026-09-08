@@ -986,6 +986,30 @@ class GdprAuditManager
                 false
             );
             if ($n > 0) {
+                // Round 326 : les PDF sur disque (nom client en clair, cf.
+                // CertificateManager::generatePdf()) ne sont supprimés
+                // QUE par CertificateManager::delete() (suppression manuelle
+                // BO) — jamais par cette purge RGPD, qui ne touchait que la
+                // ligne SQL. Sans ce unlink(), le PDF survit indéfiniment
+                // sur le serveur, non référencé en base, alors que le
+                // marchand voit un effacement RGPD "complet".
+                $certPaths = $this->db->executeS(
+                    "SELECT `pdf_path` FROM `{$fullCert}` nc
+                     WHERE nc.id_customer = " . (int) $idCustomer . "
+                        OR nc.id_order IN (
+                            SELECT o.id_order FROM `" . _DB_PREFIX_ . "orders` o WHERE o.id_customer = " . (int) $idCustomer . "
+                        )",
+                    true,
+                    false
+                );
+                foreach ((array) $certPaths as $certRow) {
+                    if (!empty($certRow['pdf_path'])) {
+                        $certFile = _PS_MODULE_DIR_ . 'neria/' . $certRow['pdf_path'];
+                        if (file_exists($certFile)) {
+                            @unlink($certFile);
+                        }
+                    }
+                }
                 $this->execOrFail(
                     "DELETE FROM `{$fullCert}`
                      WHERE id_customer = " . (int) $idCustomer . "

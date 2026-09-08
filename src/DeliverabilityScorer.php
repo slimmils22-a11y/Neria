@@ -638,7 +638,7 @@ class DeliverabilityScorer
             $criteria[] = $this->criterion('success', $this->t('score.criterion_patterns'), $this->t('score.detail_no_pattern'), 0);
         }
 
-        // ── Critère 8 : domaine de la boutique présent (−5) ──────
+        // ── Critère 8 : domaine de la boutique présent (−3) ──────
         $shopDomain = (string) Configuration::get('PS_SHOP_DOMAIN');
         $cDomain = $this->t('score.criterion_domain');
         if ($shopDomain !== '' && !str_contains($htmlContent, $shopDomain)) {

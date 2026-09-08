@@ -563,6 +563,20 @@ class CertificateManager
         if ($frozenSigPath !== null) {
             if ($frozenSigPath !== '' && file_exists($frozenSigPath)) {
                 $sigPath = $frozenSigPath;
+            } elseif ($frozenSigPath !== '') {
+                // Round 326 : le fichier référencé par signature_path a
+                // disparu du disque (nettoyage, migration, restauration
+                // partielle) — $sigPath reste '' (PAS de repli sur la
+                // signature active courante, qui violerait le gel round
+                // 301). Le PDF re-téléchargé est alors silencieusement
+                // dégradé (bloc signature vide) sans aucune trace : journalisé
+                // pour que le marchand puisse au moins le constater.
+                if (class_exists('WatchdogManager')) {
+                    (new WatchdogManager($this->module))->warning(
+                        'Signature figée introuvable sur disque pour un re-téléchargement de certificat : ' . $frozenSigPath,
+                        '', 'CertificateManager'
+                    );
+                }
             }
         } else {
             // Round 307 : id_shop DE LA COMMANDE, pas $this->idShop (contexte
@@ -1037,11 +1051,20 @@ class CertificateManager
         // d'émission pourtant stable), et une hausse trompeuse en toute fin
         // de mois. $lastMonthComparable borne le mois précédent au MÊME
         // nombre de jours écoulés que $thisMonth.
+        // Round 326 : LEAST() plafonne la borne haute au 1er du mois courant.
+        // Sans lui, en fin de mois long suivant un mois court (ex. le 31
+        // octobre, DAY(NOW())=31, septembre=30 jours), DATE_ADD ajoutait 31
+        // jours au 1er septembre = 2 octobre — débordant DANS le mois
+        // courant et comptant deux fois les certificats des 1er/2 octobre
+        // (déjà inclus dans $thisMonth), faussant trend_pct.
         $lastMonthComparable = (int) $this->db->getValue(
             "SELECT COUNT(*) FROM `{$table}`
              WHERE `id_shop` = {$this->idShop}
                AND `date_issued` >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01')
-               AND `date_issued` <  DATE_ADD(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01'), INTERVAL DAY(NOW()) DAY)"
+               AND `date_issued` <  LEAST(
+                       DATE_ADD(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01'), INTERVAL DAY(NOW()) DAY),
+                       DATE_FORMAT(NOW(), '%Y-%m-01')
+                   )"
         );
         $topProducts = $this->db->executeS(
             "SELECT `product_name`, COUNT(*) AS cnt

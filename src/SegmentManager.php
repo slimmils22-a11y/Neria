@@ -240,6 +240,20 @@ class SegmentManager
                         event_type = 'conversion'
                         AND (
                             id_order <= 0
+                            -- Round 326 : commande à 0€ (coupon -100%, offre)
+                            -- OU commande supprimée depuis (sous-requête orders
+                            -- ne renvoie rien -> COALESCE 0) : le seuil devenait
+                            -- 0.9*0=0, et le montant remboursé (généralement 0
+                            -- lui aussi, aucun remboursement réel) donnait
+                            -- '0 < 0' = FAUX, excluant à tort une conversion
+                            -- réelle jamais remboursée. Testé explicitement
+                            -- AVANT le calcul du seuil pour ne jamais dépendre
+                            -- d'une comparaison 0 < 0.
+                            OR COALESCE((
+                                SELECT o.total_paid_tax_incl
+                                FROM `" . _DB_PREFIX_ . "orders` o
+                                WHERE o.id_order = `{$stat}`.id_order
+                            ), 0) <= 0
                             OR COALESCE((
                                 SELECT SUM(os.total_products_tax_incl + os.total_shipping_tax_incl)
                                 FROM `" . _DB_PREFIX_ . "order_slip` os
