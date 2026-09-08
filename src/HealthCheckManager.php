@@ -10593,6 +10593,28 @@ class HealthCheckManager
             $offenders[] = "neria.php::loyalty_cross_shop_toggle ne bloque plus la bascule quand des réservations neria_loyalty_rewards sont en attente — régression du correctif du 08/09/2026 : un marchand pourrait de nouveau changer le mode de cumul transversal alors que des récompenses existent, risquant un bon de fidélité émis en double (voir project_neria_loyalty_crossshop_toggle_migration_gap.md)";
         }
 
+        $certSrc326 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        if ($certSrc326 === '' || strpos($certSrc326, "LEAST(\n                       DATE_ADD(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), '%Y-%m-01'), INTERVAL DAY(NOW()) DAY),\n                       DATE_FORMAT(NOW(), '%Y-%m-01')\n                   )") === false) {
+            $offenders[] = "CertificateManager::getStats() ne plafonne plus la borne haute de lastMonthComparable via LEAST() — régression du bug corrigé le 08/09/2026 (round 326) : en fin de mois long suivant un mois court, des certificats du mois COURANT seraient de nouveau comptés en double dans trend_pct";
+        }
+        if ($certSrc326 === '' || strpos($certSrc326, "Signature figée introuvable sur disque pour un re-téléchargement de certificat") === false) {
+            $offenders[] = "CertificateManager::generatePdf() ne journalise plus de warning Watchdog quand la signature figée d'un certificat a disparu du disque — régression du bug corrigé le 08/09/2026 (round 326) : un PDF re-téléchargé pourrait de nouveau être silencieusement dégradé sans aucune trace";
+        }
+        $gdprSrc326 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        $posCertPurge326 = $gdprSrc326 !== '' ? strpos($gdprSrc326, "Purge neria_certificate") : false;
+        $bodyCertPurge326 = $posCertPurge326 !== false ? substr($gdprSrc326, $posCertPurge326, 3000) : '';
+        if ($bodyCertPurge326 === '' || strpos($bodyCertPurge326, 'certPaths') === false || strpos($bodyCertPurge326, '@unlink($certFile)') === false) {
+            $offenders[] = "GdprAuditManager::purgeCustomerData() ne supprime plus les fichiers PDF de certificat sur disque — régression du bug corrigé le 08/09/2026 (round 326) : une donnée personnelle en clair (nom client) survivrait sur le disque du serveur malgré un effacement RGPD affiché comme complet";
+        }
+        // Round 326 : littéral mono-ligne (pas de \n dans la chaîne recherchée)
+        // — un needle multi-lignes serait cassé par une différence de fin de
+        // ligne CRLF/LF entre HealthCheckManager.php et SegmentManager.php
+        // (dérive CRLF déjà documentée en mémoire projet).
+        $segSrc326 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php');
+        if ($segSrc326 === '' || strpos($segSrc326, 'Round 326 : commande à 0') === false || strpos($segSrc326, '), 0) <= 0') === false) {
+            $offenders[] = "SegmentManager::recomputeAll() ne compte plus une conversion liée à une commande introuvable/à 0€ comme non remboursée — régression du bug corrigé le 08/09/2026 (round 326) : un client fidèle (coupons -100%, commande supprimée en BO) pourrait de nouveau ne jamais atteindre les segments loyal/ambassador";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
