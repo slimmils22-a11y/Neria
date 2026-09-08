@@ -31,7 +31,10 @@ function run_test(): array
 
     $posCatch = strpos($ci, 'catch (\Throwable $e) {');
     neria_assert($posCatch !== false, 'Bloc catch introuvable dans CssInliner::inline() — jeu de test invalide');
-    $body = substr($ci, $posCatch, 1900);
+    // Round 320 : fenêtre élargie 1900→2600 — le commentaire explicatif
+    // ajouté par le correctif round 320 (protection Context::getContext()
+    // ->shop) a repoussé les littéraux ciblés au-delà de l'ancienne fenêtre.
+    $body = substr($ci, $posCatch, 2600);
 
     neria_assert(
         strpos($body, "'NERIA_CSS_INLINE_FAILURES_' . \$idShop") !== false,
