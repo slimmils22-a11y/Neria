@@ -10279,6 +10279,55 @@ class HealthCheckManager
             $offenders[] = "StatsManager::zTestProportions() ne signale plus sufficient=false sur les branches pPool<=0/pPool>=1/se quasi nul — régression du bug corrigé le 07/09/2026 (round 319) : l'avertissement 'données insuffisantes' resterait de nouveau masqué à tort dans le BO A/B Testing";
         }
 
+        // Round 320 (08/09/2026) : PostmasterManager/SearchConsoleManager::
+        // applyTokenResponse() n'effaçait jamais CONFIG_LAST_ERROR/
+        // CONFIG_LAST_ERROR_AT après un échange de token OAuth réussi — une
+        // reconnexion réussie après une erreur (refresh token révoqué)
+        // affichait donc encore l'ancienne erreur dans le Health Check du
+        // BO jusqu'au prochain cycle getStats() complet.
+        foreach (['PostmasterManager', 'SearchConsoleManager'] as $oauthCls320) {
+            $oauthSrc320 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/' . $oauthCls320 . '.php');
+            $posApply320 = strpos($oauthSrc320, 'private function applyTokenResponse(array $response): void');
+            $bodyApply320 = $posApply320 !== false ? substr($oauthSrc320, $posApply320, 1900) : '';
+            if ($oauthSrc320 === ''
+                || $posApply320 === false
+                || substr_count($bodyApply320, 'deleteByName(self::CONFIG_LAST_ERROR') !== 2
+            ) {
+                $offenders[] = "{$oauthCls320}::applyTokenResponse() n'efface plus CONFIG_LAST_ERROR/CONFIG_LAST_ERROR_AT après un échange de token réussi — régression du bug corrigé le 08/09/2026 (round 320) : une reconnexion OAuth réussie afficherait de nouveau l'ancienne erreur périmée dans le Health Check du BO";
+            }
+        }
+
+        // Round 320 (08/09/2026) : CssInliner::inline() lisait
+        // Context::getContext()->shop->id sans protection dans son filet de
+        // sécurité (catch) — en contexte dégradé, l'accès direct produisait
+        // $idShop=0, scopant le compteur d'échecs silencieux sur une
+        // "boutique 0" fictive invisible dans le Health Check.
+        $cssSrc320 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CssInliner.php');
+        if ($cssSrc320 === ''
+            || strpos($cssSrc320, '$idShop = 1;') === false
+            || strpos($cssSrc320, 'catch (\Throwable $ctxErr)') === false
+        ) {
+            $offenders[] = "CssInliner::inline() ne protège plus l'accès au contexte boutique dans son filet de sécurité — régression du bug corrigé le 08/09/2026 (round 320) : un contexte boutique non initialisé scoperait de nouveau le compteur d'échecs silencieux sur une boutique 0 fictive";
+        }
+
+        // Round 320 (08/09/2026) : les actions BO collection_toggle/
+        // collection_delete/look_rule_toggle/look_rule_delete (neria.php)
+        // affichaient un succès inconditionnel sans vérifier l'effet réel —
+        // CollectionManager::delete()/LookCompletionManager::deleteRule()
+        // renvoyaient (bool) Db::delete() (succès de la requête SQL, pas le
+        // nombre de lignes réellement supprimées).
+        $collSrc320 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php');
+        $lookSrc320 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
+        $nphpSrc320 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($collSrc320 === '' || strpos($collSrc320, "return (int) \$this->db->Affected_Rows() > 0;") === false
+            || $lookSrc320 === '' || substr_count($lookSrc320, "Affected_Rows() > 0;") < 1
+            || $nphpSrc320 === ''
+            || strpos($nphpSrc320, "AdminTranslator::t('msg.collection_not_found')") === false
+            || strpos($nphpSrc320, "AdminTranslator::t('msg.look_rule_not_found')") === false
+        ) {
+            $offenders[] = "collection_toggle/collection_delete/look_rule_toggle/look_rule_delete (neria.php) ne vérifient plus l'effet réel avant d'afficher un succès — régression du bug corrigé le 08/09/2026 (round 320) : le message de succès s'afficherait de nouveau même pour une collection/règle déjà supprimée ou inexistante";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
