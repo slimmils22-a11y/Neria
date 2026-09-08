@@ -177,9 +177,20 @@ class TranslationInstaller
         // simplement pas (aucune erreur PHP fatale), $failed reste false, la
         // transaction est COMMIT — effaçant silencieusement tout le
         // dictionnaire par défaut sans jamais réinsérer quoi que ce soit.
-        if (!is_array($translations)) {
+        // Round 323 : !empty() ajouté — un JSON syntaxiquement valide ET
+        // dont la racine EST bien un tableau, mais VIDE ([]), passait ce
+        // garde-fou (is_array([]) === true) sans jamais être détecté. Le
+        // foreach ci-dessous ne s'exécute alors simplement pas, $failed
+        // reste false, la transaction est COMMIT — effaçant silencieusement
+        // tout le dictionnaire par défaut (clearDefaultTranslations() déjà
+        // exécuté) sans jamais réinsérer quoi que ce soit, exactement le
+        // scénario que le commentaire round 172 ci-dessus redoutait déjà
+        // (fichier vidé par erreur, réponse d'erreur d'un CDN livrée à la
+        // place du vrai fichier) mais que la garde !is_array() seule ne
+        // couvrait pas.
+        if (!is_array($translations) || empty($translations)) {
             $this->module->log(
-                'TranslationInstaller: structure JSON invalide (racine non-tableau) → ' . $jsonPath,
+                'TranslationInstaller: structure JSON invalide (racine non-tableau ou vide) → ' . $jsonPath,
                 3
             );
             return false;
