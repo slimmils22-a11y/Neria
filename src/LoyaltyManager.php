@@ -389,17 +389,39 @@ class LoyaltyManager
             if ((int) $cartRule->quantity <= 0) {
                 continue;
             }
+            // Round 325 : les deux retours (update()/delete()) n'étaient
+            // jamais vérifiés — un succès était journalisé inconditionnellement.
+            // Si update() échoue (verrou DB, timeout, erreur de validation
+            // ObjectModel), le CartRule reste ACTIF en base malgré
+            // watchdog.loyalty_reward_revoked affiché comme un succès — le
+            // client garde une réduction qu'il ne devrait plus avoir. Si
+            // delete() échoue alors qu'update() a réussi, la ligne de
+            // réservation reste en base indéfiniment (pointant vers un bon
+            // désactivé) : checkAndReward() continuerait à trouver
+            // $alreadySent>0 pour ce palier et ne récompenserait plus jamais
+            // ce client, même s'il regagne légitimement les points —
+            // violation directe de l'intention documentée round 307.
             $cartRule->active = 0;
-            $cartRule->update();
+            $updated = (bool) $cartRule->update();
 
             $this->db->delete(self::TABLE_REWARDS, 'id_reward = ' . (int) $reward['id_reward']);
+            $deleted = (int) $this->db->Affected_Rows() > 0;
 
-            $this->watchdog()->info(
-                \WatchdogManager::i18nMsg('watchdog.loyalty_reward_revoked', [
-                    'customer' => $idCustomer, 'tier' => $reward['tier_key'],
-                ]),
-                'refund_processed', 'Loyalty'
-            );
+            if ($updated && $deleted) {
+                $this->watchdog()->info(
+                    \WatchdogManager::i18nMsg('watchdog.loyalty_reward_revoked', [
+                        'customer' => $idCustomer, 'tier' => $reward['tier_key'],
+                    ]),
+                    'refund_processed', 'Loyalty'
+                );
+            } else {
+                $this->watchdog()->error(
+                    \WatchdogManager::i18nMsg('watchdog.loyalty_reward_revoke_failed', [
+                        'customer' => $idCustomer, 'tier' => $reward['tier_key'],
+                    ]),
+                    'refund_processed', 'Loyalty'
+                );
+            }
         }
     }
 

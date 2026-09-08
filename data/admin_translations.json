@@ -66085,5 +66085,26 @@
         "da": "Gemt — webhook-URL'en er ryddet: udgående webhooks er nu deaktiveret.",
         "nl": "Opgeslagen — de webhook-URL is gewist: uitgaande webhooks zijn nu uitgeschakeld.",
         "gb": "Saved — the webhook URL was cleared: outgoing webhooks are now disabled."
+    },
+    "watchdog.loyalty_reward_revoke_failed": {
+        "fr": "Fidélité — Échec de révocation du bon du palier {tier} pour le client #{customer} (CartRule non désactivé ou réservation non supprimée) — vérification manuelle requise.",
+        "en": "Loyalty — Failed to revoke tier {tier} voucher for customer #{customer} (CartRule not deactivated or reservation not removed) — manual check required.",
+        "de": "Treue — Widerruf des Gutscheins der Stufe {tier} für Kunde #{customer} fehlgeschlagen (CartRule nicht deaktiviert oder Reservierung nicht entfernt) — manuelle Prüfung erforderlich.",
+        "it": "Fedeltà — Revoca del buono del livello {tier} non riuscita per il cliente #{customer} (CartRule non disattivato o prenotazione non rimossa) — verifica manuale richiesta.",
+        "es": "Fidelidad — Error al revocar el bono del nivel {tier} para el cliente #{customer} (CartRule no desactivado o reserva no eliminada) — se requiere verificación manual.",
+        "pt": "Fidelidade — Falha ao revogar o vale do nível {tier} para o cliente #{customer} (CartRule não desativado ou reserva não removida) — verificação manual necessária.",
+        "br": "Fidelidade — Falha ao revogar o cupom do nível {tier} para o cliente #{customer} (CartRule não desativado ou reserva não removida) — verificação manual necessária.",
+        "ar": "الولاء — فشل إلغاء قسيمة المستوى {tier} للعميل #{customer} (لم يتم تعطيل CartRule أو إزالة الحجز) — يلزم التحقق اليدوي.",
+        "ja": "ロイヤルティ — 顧客#{customer}のティア{tier}バウチャーの取り消しに失敗しました（CartRuleが無効化されていないか、予約が削除されていません）— 手動確認が必要です。",
+        "ko": "로열티 — 고객 #{customer}의 등급 {tier} 쿠폰 취소에 실패했습니다(CartRule이 비활성화되지 않았거나 예약이 삭제되지 않음) — 수동 확인이 필요합니다.",
+        "zh": "忠诚度 — 撤销客户 #{customer} 的等级 {tier} 优惠券失败（CartRule 未停用或预留未删除）— 需要人工核实。",
+        "tw": "忠誠度 — 撤銷客戶 #{customer} 的等級 {tier} 優惠券失敗（CartRule 未停用或預留未刪除）— 需要人工核實。",
+        "ru": "Лояльность — не удалось отозвать купон уровня {tier} у клиента #{customer} (CartRule не деактивирован или резервирование не удалено) — требуется ручная проверка.",
+        "tr": "Sadakat — müşteri #{customer} için {tier} seviyesi kuponunun iptali başarısız oldu (CartRule devre dışı bırakılmadı veya rezervasyon kaldırılmadı) — manuel kontrol gerekli.",
+        "sv": "Lojalitet — det gick inte att återkalla kupongen för nivå {tier} för kund #{customer} (CartRule inaktiverades inte eller reservationen togs inte bort) — manuell kontroll krävs.",
+        "no": "Lojalitet — kunne ikke tilbakekalle kupongen for nivå {tier} for kunde #{customer} (CartRule ble ikke deaktivert eller reservasjonen ble ikke fjernet) — manuell kontroll kreves.",
+        "da": "Loyalitet — kunne ikke tilbagekalde kuponen for niveau {tier} for kunde #{customer} (CartRule blev ikke deaktiveret eller reservationen blev ikke fjernet) — manuel kontrol kræves.",
+        "nl": "Loyaliteit — intrekken van de voucher van niveau {tier} voor klant #{customer} mislukt (CartRule niet gedeactiveerd of reservering niet verwijderd) — handmatige controle vereist.",
+        "gb": "Loyalty — Failed to revoke tier {tier} voucher for customer #{customer} (CartRule not deactivated or reservation not removed) — manual check required."
     }
 }

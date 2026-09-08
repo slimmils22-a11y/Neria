@@ -135,6 +135,15 @@ class CustomerEmailHistoryManager
             $row['sent_at_fmt']  = \NeriaTools::formatDate($row['sent_at'], \AdminTranslator::currentLang(), true);
             $row['has_snapshot'] = !empty($row['rendered_vars']);
         }
+        // Round 325 : unset($row) — sans lui, $row reste une référence
+        // PHP vers le DERNIER élément de $rows après la boucle. Aucun
+        // appelant de ce fichier n'itère avec la même variable $row sur ce
+        // tableau (pas d'impact observable aujourd'hui), mais un futur
+        // `foreach ($emails as $row) { ... }` côté appelant écraserait
+        // silencieusement la dernière entrée avec les valeurs de
+        // l'avant-dernière itération — bombe à retardement classique des
+        // références PHP non libérées.
+        unset($row);
 
         return $rows;
     }

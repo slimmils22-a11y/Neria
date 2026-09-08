@@ -698,6 +698,12 @@ class BehavioralCronManager
         // pour toujours. Borné à CURDATE() en bas de plage pour ne jamais
         // alerter "expire dans 7 jours" sur un bon déjà expiré — cf. commit
         // af86c15.
+        // Round 325 : LoyaltyManager pose shop_restriction=1 + cart_rule_shop
+        // sur les bons non transversaux (voir revokeUnusedRewardsBelowThreshold
+        // et l'attribution du bon) — sans exclure cr.shop_restriction=1 dont
+        // cart_rule_shop ne couvre PAS c.id_shop, l'alerte serait envoyée pour
+        // un bon inutilisable dans la boutique du client (id_shop du client
+        // ayant pu diverger de celui du bon depuis sa création).
         $idShop = (int) \Context::getContext()->shop->id;
         $rows = $this->db->executeS(
             'SELECT cr.id_cart_rule, cr.id_customer, cr.date_to,
@@ -706,6 +712,13 @@ class BehavioralCronManager
              JOIN `' . $this->prefix . 'customer` c ON c.id_customer = cr.id_customer
              WHERE cr.active = 1 AND cr.id_customer > 0 AND c.id_shop = ' . $idShop . '
                AND DATE(cr.date_to) BETWEEN CURDATE() AND DATE(DATE_ADD(NOW(), INTERVAL 7 DAY))
+               AND (
+                   cr.shop_restriction = 0
+                   OR EXISTS (
+                       SELECT 1 FROM `' . $this->prefix . 'cart_rule_shop` crs
+                       WHERE crs.id_cart_rule = cr.id_cart_rule AND crs.id_shop = ' . $idShop . '
+                   )
+               )
                AND NOT EXISTS (
                    SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent` bs
                    WHERE bs.id_customer = cr.id_customer
@@ -764,7 +777,14 @@ class BehavioralCronManager
             return;
         }
 
-        $refId  = (int) date('Y') * 100 + (int) date('n');
+        // Round 325 : année/mois sourcés de MySQL (YEAR(NOW())/MONTH(NOW())),
+        // pas PHP date('Y')/date('n') — même correctif déjà appliqué ailleurs
+        // dans ce fichier (round 281/305). Un décalage d'horloge PHP/MySQL
+        // près d'un changement de mois ferait dériver ref_id, provoquant soit
+        // un doublon (deux mois différents avec la même clé), soit une
+        // relance manquée (déjà envoyée sous l'ancienne clé PHP).
+        $now    = $this->db->getRow('SELECT YEAR(NOW()) AS y, MONTH(NOW()) AS m');
+        $refId  = (int) $now['y'] * 100 + (int) $now['m'];
         $idShop = (int) \Context::getContext()->shop->id;
 
         // Un client peut avoir plusieurs lignes dans `wishlist` (plusieurs
