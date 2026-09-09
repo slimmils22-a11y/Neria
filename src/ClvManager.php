@@ -553,7 +553,18 @@ class ClvManager
         $sent   = (int) ($row['sent'] ?? 0);
         $opened = (int) ($row['opened'] ?? 0);
 
-        return $sent > 0 ? min(1.0, $opened / $sent) : 0.0;
+        // Round 328 : sent=0 (aucun email envoyé sur les 30 derniers jours —
+        // client jamais encore ciblé par une campagne, ou consentement pas
+        // encore donné) retournait 0.0, tombant automatiquement sous
+        // ENGAGEMENT_MEDIUM et infligeant la même pénalité -15% (mult 0.85)
+        // qu'un client à qui on a envoyé des dizaines d'emails jamais
+        // ouverts — aucune donnée ne permet pourtant de dire que CE client
+        // "n'ouvre pas ses emails". Retourne désormais ENGAGEMENT_MEDIUM
+        // (mult neutre 1.00) plutôt que le pire cas extrapolé d'un
+        // échantillon nul — même principe que ChurnScoreManager::
+        // MIN_SAMPLE_SENDS (round 257) : risque/multiplicateur neutre par
+        // défaut quand la donnée est absente, pas l'extrême.
+        return $sent > 0 ? min(1.0, $opened / $sent) : self::ENGAGEMENT_MEDIUM;
     }
 
     private function getSegmentMultiplier(int $idCustomer): array

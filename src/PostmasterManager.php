@@ -485,6 +485,19 @@ class PostmasterManager
         \Configuration::deleteByName(self::CONFIG_LAST_ERROR_AT);
         if (empty($domains['domains'])) {
             $this->wd()->warning(\WatchdogManager::i18nMsg('watchdog.postmaster_no_domain'), '', 'PostmasterManager');
+            // Round 328 : ce retour anticipé ne passait pas par le bloc
+            // d'écriture du cache plus bas (lignes ~552+) — CONFIG_CACHE_TIME
+            // restait à 0 indéfiniment. getStats() ne déclenche fetchAndCache()
+            // QUE si le cache est absent/expiré : sans cette écriture, un
+            // domaine sans historique Google Postmaster suffisant (compte
+            // fraîchement connecté) redéclenchait un appel réseau réel à
+            // chaque chargement de page BO, sans jamais respecter le TTL 1h —
+            // même bug déjà corrigé pour SearchConsoleManager (round 171) et
+            // pour le cas "aucun domaine CORRESPONDANT" de cette méthode
+            // (ligne ~552, jamais porté sur cette branche plus en amont).
+            \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),      json_encode([], JSON_UNESCAPED_UNICODE));
+            \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_TIME), time());
+            \Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE_HOST), $this->getShopHost());
             return [];
         }
 

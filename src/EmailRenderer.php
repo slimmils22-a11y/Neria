@@ -229,7 +229,19 @@ class EmailRenderer
             return '';
         }
 
-        $sizeKb = strlen($compiled) / 1024;
+        // Round 328 : la taille était mesurée sur $compiled AVANT CssInliner::
+        // inline() (appelé juste après, aux deux points d'appel — le
+        // placeholder carbone doit être injecté avant l'inlining pour des
+        // raisons DOM, voir leurs commentaires). CssInliner convertit les
+        // règles <style> en attributs style="" DUPLIQUÉS sur chaque élément
+        // concerné — le HTML final réellement envoyé au client est presque
+        // toujours PLUS LOURD que $compiled à ce stade, sous-estimant
+        // systématiquement le CO₂ affiché par rapport à l'email réellement
+        // livré. On mesure ici la taille sur une COPIE déjà inlinée (sans
+        // toucher à $compiled, qui doit rester non-inliné pour la suite du
+        // flux d'origine).
+        $sizeSource = (class_exists('CssInliner')) ? CssInliner::inline($compiled) : $compiled;
+        $sizeKb = strlen($sizeSource) / 1024;
         // Round 168 : virgule pour les langues qui l'attendent (le module est
         // localisé en 19 langues) — number_format() avec '.' en dur affichait
         // "~0.3g CO₂" au milieu d'un footer entièrement en français.
