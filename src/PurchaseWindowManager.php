@@ -51,6 +51,15 @@ class PurchaseWindowManager
         // d'heure de référence retournée — approximation suffisante pour
         // programmer l'envoi dans la bonne fenêtre du client.
         // getRow() ajoute LIMIT 1 automatiquement — pas de LIMIT dans la requête.
+        // Round 330 : $use_cache=false — même famille de bug que
+        // WaitlistManager::isRegistered() (round 223) : le cache SQL de
+        // PrestaShop n'est PAS invalidé quand une nouvelle commande est
+        // insérée dans ps_orders. Sans ce paramètre, un client passant une
+        // 2e commande dans le même créneau horaire (faisant enfin atteindre
+        // MINIMUM_ORDERS) pouvait continuer à recevoir null (résultat
+        // mis en cache lors d'un appel antérieur avec les mêmes
+        // id_customer/id_shop), le privant indéfiniment de la fenêtre
+        // d'achat pourtant désormais détectable.
         $row = $this->db->getRow(
             'SELECT FLOOR(HOUR(date_add) / 2) * 2 AS h, COUNT(*) AS cnt
              FROM `' . $this->prefix . 'orders`
@@ -58,7 +67,8 @@ class PurchaseWindowManager
                AND id_shop = ' . (int) $idShop . '
                AND valid = 1
              GROUP BY FLOOR(HOUR(date_add) / 2)
-             ORDER BY cnt DESC, h ASC'
+             ORDER BY cnt DESC, h ASC',
+            false
         );
 
         if (!$row || (int) $row['cnt'] < self::MINIMUM_ORDERS) {
@@ -90,6 +100,7 @@ class PurchaseWindowManager
         // Même regroupement par créneau de 2h que getPreferredHour(), pour que
         // ce compteur BO reflète bien le nombre de clients pour lesquels une
         // fenêtre sera effectivement détectée par getPreferredHour().
+        // Round 330 : $use_cache=false — même raison que getPreferredHour() ci-dessus.
         return (int) $this->db->getValue(
             'SELECT COUNT(DISTINCT id_customer) FROM (
                SELECT id_customer
@@ -97,7 +108,8 @@ class PurchaseWindowManager
                WHERE valid = 1 AND id_shop = ' . (int) $idShop . '
                GROUP BY id_customer, FLOOR(HOUR(date_add) / 2)
                HAVING COUNT(*) >= ' . self::MINIMUM_ORDERS . '
-             ) sub'
+             ) sub',
+            false
         );
     }
 
@@ -109,12 +121,19 @@ class PurchaseWindowManager
      */
     public function getHourDistribution(int $idShop): array
     {
+        // Round 330 : executeS($sql, true, false) — piège de signature déjà
+        // documenté (round 326 ailleurs dans le module) : le 2e argument
+        // positionnel contrôle le MODE TABLEAU, pas le cache ; il faut donc
+        // bien passer explicitement `true` en 2e position pour garder le
+        // mode tableau ET `false` en 3e position pour bypasser le cache.
         $rows = $this->db->executeS(
             'SELECT HOUR(date_add) AS h, COUNT(DISTINCT id_customer) AS cnt
              FROM `' . $this->prefix . 'orders`
              WHERE valid = 1 AND id_shop = ' . (int) $idShop . '
              GROUP BY HOUR(date_add)
-             ORDER BY h ASC'
+             ORDER BY h ASC',
+            true,
+            false
         );
 
         $dist = array_fill(0, 24, 0);

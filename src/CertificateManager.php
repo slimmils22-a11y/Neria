@@ -336,6 +336,9 @@ class CertificateManager
         // historique dans generatePdf(). Sinon, la signature réellement
         // active AU MOMENT DE L'ÉMISSION est réutilisée telle quelle.
         $frozenSigPath = isset($row['signature_path']) && $row['signature_path'] !== '' ? $row['signature_path'] : null;
+        // Round 330 : date_issued réelle (colonne DATETIME toujours
+        // renseignée dès issue(), horloge MySQL round 307) — voir
+        // generatePdf()/$frozenIssuedDate pour le pourquoi.
         $result   = $this->generatePdf(
             $row['serial_number'],
             $order,
@@ -343,7 +346,8 @@ class CertificateManager
             $row['product_name'],
             $row['artisan_note'] ?? '',
             $lang,
-            $frozenSigPath
+            $frozenSigPath,
+            (string) $row['date_issued']
         );
         // Round 167 : contrairement à issue() (voir plus haut, isset($pdfResult['error'])),
         // le retour de generatePdf() n'était jamais vérifié ici. Si la
@@ -453,7 +457,8 @@ class CertificateManager
         string $productName,
         string $artisanNote,
         string $lang,
-        ?string $frozenSigPath = null
+        ?string $frozenSigPath = null,
+        ?string $frozenIssuedDate = null
     ): array {
         $tcpdfPath = _PS_ROOT_DIR_ . '/vendor/tecnickcom/tcpdf/tcpdf.php';
         if (!file_exists($tcpdfPath)) {
@@ -469,7 +474,19 @@ class CertificateManager
         $shopName   = (string) \Configuration::get('PS_SHOP_NAME', null, null, (int) $order->id_shop);
         $shopDomain = \Tools::getShopDomainSsl(true);
         $dateStr    = \NeriaTools::formatDate($order->date_add, $lang);
-        $issuedStr  = \NeriaTools::formatDate('now', $lang);
+        // Round 330 : $frozenIssuedDate — même principe que $frozenSigPath
+        // (round 301) pour la signature. redownload() passe désormais la
+        // VRAIE date_issued enregistrée en DB au lieu de laisser retomber
+        // sur 'now' : sans ce paramètre, le libellé "Date certifiée" du PDF
+        // (voir plus bas, certificate_pdf_label_certified_date) changeait à
+        // chaque retéléchargement pour afficher la date du jour du clic
+        // BO au lieu de la date RÉELLE d'émission du certificat — une
+        // divergence directe avec l'intention de "valeur probante de
+        // document daté" documentée round 301 pour la signature figée.
+        // issue() continue de passer null ici (certificat pas encore
+        // inséré en DB à cet instant) : 'now' au moment de l'émission reste
+        // correct, c'est bien la date d'émission réelle.
+        $issuedStr  = \NeriaTools::formatDate($frozenIssuedDate ?? 'now', $lang);
 
         // Instancié ici (et non plus seulement plus bas pour les libellés du
         // tableau) car les valeurs PAR DÉFAUT du titre/sous-titre/corps
@@ -815,7 +832,12 @@ class CertificateManager
         // Round 301 : $sigPath renvoyé — issue() le persiste dans la
         // colonne `signature_path` pour geler la signature réellement
         // utilisée à l'émission (voir commentaire ci-dessus sur $frozenSigPath).
-        return ['content' => $pdfContent, 'path' => $path, 'filename' => 'certificat_' . $safeSerial . '.pdf', 'sig_path' => $sigPath];
+        // 'issued_str' : round 330, même principe de traçabilité que
+        // 'sig_path' ci-dessus — expose la date "certifiée" réellement
+        // imprimée sur le PDF (utile pour vérifier par un test
+        // comportemental réel que redownload() fige bien cette date, sans
+        // avoir à parser le flux PDF compressé lui-même).
+        return ['content' => $pdfContent, 'path' => $path, 'filename' => 'certificat_' . $safeSerial . '.pdf', 'sig_path' => $sigPath, 'issued_str' => $issuedStr];
     }
 
     // ============================================================
@@ -1129,7 +1151,15 @@ class CertificateManager
         // "Boutique A" (préfixes différents) obtenait un certificat
         // préfixé selon B au lieu de A.
         $prefix = (string) \Configuration::get(self::CFG_SERIAL_PREFIX, null, null, $idShop) ?: 'CERT';
-        $year   = date('Y');
+        // Round 330 : YEAR(NOW()) côté MySQL, pas date('Y') PHP — même
+        // piège déjà corrigé rounds 303/305/307 ailleurs dans ce fichier
+        // pour date_issued/date_add. Hébergement mutualisé fréquent où PHP
+        // et MySQL n'ont pas le même fuseau horaire : un certificat émis
+        // dans la fenêtre de bascule d'année (ex. 23h50 Europe/Paris le
+        // 31/12, déjà 00h00 UTC le 01/01) obtenait un préfixe d'année
+        // ("CERT-2025-...") qui ne correspondait plus à date_issued
+        // ("2026-01-01..."), enregistrée elle via l'horloge MySQL.
+        $year = (string) (int) $this->db->getValue('SELECT YEAR(NOW())', false);
         // Volontairement NON scopé par id_shop : serial_number porte une
         // contrainte UNIQUE GLOBALE (toutes boutiques confondues, cf.
         // createTable()) que serialExists() vérifie elle aussi sans filtre
