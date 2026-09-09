@@ -10664,6 +10664,33 @@ class HealthCheckManager
             $offenders[] = "BehavioralCronManager::getQuoteStats() ne compte plus 'extended' avec 'active' dans quotes_active — régression du correctif du 09/09/2026 (hors round) : un devis réellement prolongé basculerait de nouveau à tort en quotes_lost dès l'envoi de l'email de prolongation";
         }
 
+        // Round 330 : CertificateManager::generatePdf() doit toujours
+        // accepter $frozenIssuedDate et l'utiliser en priorité — sans quoi
+        // redownload() afficherait de nouveau la date du jour du clic au
+        // lieu de la vraie date_issued figée à l'émission.
+        $certSrc330 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        if ($certSrc330 === '' || strpos($certSrc330, '$frozenIssuedDate ?? \'now\'') === false) {
+            $offenders[] = "CertificateManager::generatePdf() n'utilise plus \$frozenIssuedDate en priorité pour \$issuedStr — régression du bug corrigé le 09/09/2026 (round 330) : redownload() afficherait de nouveau la date du jour du clic au lieu de la vraie date d'émission sur le PDF regénéré";
+        }
+        // Round 330 : generateSerial() doit toujours sourcer l'année via
+        // l'horloge MySQL (comme date_issued/date_add depuis le round 307),
+        // pas via date('Y') PHP.
+        if ($certSrc330 === '' || strpos($certSrc330, "\$year = (string) (int) \$this->db->getValue('SELECT YEAR(NOW())', false);") === false) {
+            $offenders[] = "CertificateManager::generateSerial() ne source plus l'année via YEAR(NOW()) MySQL — régression du bug corrigé le 09/09/2026 (round 330) : le préfixe d'année du numéro de série pourrait de nouveau diverger de date_issued (horloge MySQL) autour d'un changement d'année sur un hébergement où PHP et MySQL n'ont pas le même fuseau horaire";
+        }
+        // Round 330 : PurchaseWindowManager doit bypasser le cache SQL sur
+        // ses 3 méthodes lisant ps_orders (même famille que round 223).
+        $pwmSrc330 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PurchaseWindowManager.php');
+        if ($pwmSrc330 === '' || strpos($pwmSrc330, "ORDER BY cnt DESC, h ASC',\n            false\n        );") === false) {
+            $offenders[] = "PurchaseWindowManager::getPreferredHour() n'a plus \$use_cache=false sur getRow() — régression du bug corrigé le 09/09/2026 (round 330) : le cache SQL PrestaShop (actif en production) pourrait de nouveau renvoyer un résultat périmé après l'insertion d'une nouvelle commande";
+        }
+        if ($pwmSrc330 === '' || strpos($pwmSrc330, "sub',\n            false\n        );") === false) {
+            $offenders[] = "PurchaseWindowManager::getWindowCoverageCount() n'a plus \$use_cache=false — régression du bug corrigé le 09/09/2026 (round 330)";
+        }
+        if ($pwmSrc330 === '' || strpos($pwmSrc330, "ORDER BY h ASC',\n            true,\n            false\n        );") === false) {
+            $offenders[] = "PurchaseWindowManager::getHourDistribution() n'a plus executeS(sql, true, false) — régression du bug corrigé le 09/09/2026 (round 330)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
