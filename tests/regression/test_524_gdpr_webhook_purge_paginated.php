@@ -90,7 +90,10 @@ function run_test(): array
             $pos !== false,
             "GdprAuditManager::purgeCustomerData() ne pagine plus la lecture de neria_webhook_queue par lots — régression du bug corrigé le 01/09/2026 (round 275) : un backlog volumineux (boutique à fort trafic, endpoint tiers en panne) chargerait de nouveau toute la table en mémoire à chaque demande RGPD d'effacement"
         );
-        $body = substr($src, $pos, 2800);
+        // Fenêtre élargie 2800→4200 (round 330, hors round) : le scoping
+        // id_shop ajouté sur le match par email (colonne id_shop lue en
+        // plus de payload) a repoussé 'while ($rowCount...' plus loin.
+        $body = substr($src, $pos, 4200);
         neria_assert(
             strpos($body, 'WHERE `id_webhook` > {$whLastId}') !== false
             && strpos($body, 'ORDER BY `id_webhook` ASC LIMIT {$whChunkSize}') !== false

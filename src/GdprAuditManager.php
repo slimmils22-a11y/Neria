@@ -860,7 +860,7 @@ class GdprAuditManager
      * Purge toutes les données personnelles Neria d'un client (hook RGPD PS).
      * Appelé par hookActionDeleteGDPRCustomer quand un marchand supprime un compte.
      */
-    public function purgeCustomerData(int $idCustomer, string $email): int
+    public function purgeCustomerData(int $idCustomer, string $email, int $idShop = 0): int
     {
         // Round 258 : l'ensemble de cette méthode encadre désormais TOUTES
         // les suppressions dans une transaction START TRANSACTION/COMMIT/
@@ -1108,7 +1108,7 @@ class GdprAuditManager
                 // suppressions concurrentes, quelle que soit leur position.
                 do {
                     $rows = $this->db->executeS(
-                        "SELECT `id_webhook`, `payload` FROM `{$fullWh}`
+                        "SELECT `id_webhook`, `id_shop`, `payload` FROM `{$fullWh}`
                          WHERE `id_webhook` > {$whLastId}
                          ORDER BY `id_webhook` ASC LIMIT {$whChunkSize}",
                         true,
@@ -1122,8 +1122,31 @@ class GdprAuditManager
                             if (!is_array($decoded)) {
                                 continue;
                             }
+                            // Round 330 (hors round) : sur une install
+                            // multi-boutiques, un match par email SEUL
+                            // (branche invité 'customer_email' sans
+                            // customer_id, cf. controllers/front/
+                            // unsubscribe.php) pouvait purger le webhook en
+                            // attente d'un client TOTALEMENT différent d'une
+                            // AUTRE boutique partageant la même adresse par
+                            // coïncidence — même famille de bug que
+                            // neria_preferences (round 187), mais celui-ci
+                            // n'était pas transposable via id_customer (les
+                            // lignes concernées n'en ont justement aucun).
+                            // La table porte pourtant sa PROPRE colonne
+                            // `id_shop` (indépendante du payload JSON) —
+                            // exploitée ici pour restreindre le match par
+                            // email à la boutique du demandeur quand celle-ci
+                            // est connue ; à défaut ($idShop non transmis par
+                            // l'appelant, valeur 0 par défaut), on retombe
+                            // sur l'ancien comportement plutôt que de
+                            // bloquer une purge par ailleurs légitime.
+                            $emailMatches = $emailLower !== '' && in_array($emailLower, array_map('strtolower', array_filter($decoded, 'is_string')), true);
+                            if ($emailMatches && $idShop > 0) {
+                                $emailMatches = (int) $row['id_shop'] === $idShop;
+                            }
                             $matches = ($idCustomer > 0 && (int) ($decoded['customer_id'] ?? 0) === $idCustomer)
-                                || ($emailLower !== '' && in_array($emailLower, array_map('strtolower', array_filter($decoded, 'is_string')), true));
+                                || $emailMatches;
                             if ($matches) {
                                 $idsToDelete[] = (int) $row['id_webhook'];
                             }
@@ -1157,6 +1180,17 @@ class GdprAuditManager
         // EXACTE (pas de LIKE sous-chaîne) que neria_webhook_queue
         // ci-dessus (round 144) : décodage JSON, comparaison stricte sur
         // les valeurs.
+        //
+        // Round 330 (hors round) : limite structurelle ACCEPTÉE, pas
+        // corrigée — neria_log n'a AUCUNE colonne id_shop/id_customer
+        // (round 270, customer_col=null), contrairement à
+        // neria_webhook_queue qui a sa PROPRE colonne id_shop (voir le
+        // scoping ajouté ci-dessus). Un match par email seul, toutes
+        // boutiques confondues, reste donc le seul mécanisme possible sans
+        // migration de schéma — même arbitrage déjà accepté explicitement
+        // pour neria_bounces (round 187, commentaire plus haut) : le risque
+        // théorique de collision d'email cross-boutique est jugé preferable
+        // à l'absence totale de purge RGPD sur cette table.
         if ($email !== '') {
             $fullLog = _DB_PREFIX_ . 'neria_log';
             $logExists = $this->db->executeS("SHOW TABLES LIKE '" . pSQL($fullLog) . "'");

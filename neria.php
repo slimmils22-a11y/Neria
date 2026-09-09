@@ -1856,6 +1856,11 @@ class Neria extends Module
         $data       = (array) $customer;
         $idCustomer = (int) ($data['id'] ?? $data['id_customer'] ?? 0);
         $email      = (string) ($data['email'] ?? '');
+        // Round 330 (hors round) : id_shop du client, transmis à
+        // purgeCustomerData() pour restreindre à la bonne boutique le match
+        // par email SEUL sur neria_webhook_queue (voir commentaire détaillé
+        // dans GdprAuditManager::purgeCustomerData()).
+        $idShop     = (int) ($data['id_shop'] ?? 0);
 
         if ($idCustomer <= 0 || $email === '') {
             return;
@@ -1869,7 +1874,7 @@ class Neria extends Module
         // données Neria (stats, comportemental, fidélité...) pour ce client.
         // Détecté par PHPStan (mise en place le 05/08/2026), jamais remarqué
         // en usage réel faute de test couvrant ce hook.
-        $purged = (new GdprAuditManager($this->getLocalPath()))->purgeCustomerData($idCustomer, $email);
+        $purged = (new GdprAuditManager($this->getLocalPath()))->purgeCustomerData($idCustomer, $email, $idShop);
 
         // Round 278 : ne PAS repasser l'email en clair ici — purgeCustomerData()
         // vient tout juste de scanner/supprimer les lignes neria_log

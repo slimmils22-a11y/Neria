@@ -34,7 +34,9 @@ function run_test(): array
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/neria.php');
     neria_assert($src !== false, 'Impossible de lire neria.php');
 
-    $posPurge = strpos($src, '->purgeCustomerData($idCustomer, $email);');
+    // Round 330 (hors round) : $idShop transmis en 3e argument depuis ce
+    // même point d'appel — littéral mis à jour.
+    $posPurge = strpos($src, '->purgeCustomerData($idCustomer, $email, $idShop);');
     neria_assert($posPurge !== false, 'Appel purgeCustomerData() introuvable — jeu de test invalide');
 
     $body = substr($src, $posPurge, 1000);

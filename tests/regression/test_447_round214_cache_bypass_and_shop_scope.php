@@ -58,9 +58,11 @@ function run_test(): array
     // de charger toute la table en mémoire) — round 278 : pagination
     // passée d'OFFSET à un curseur id_webhook, littéral mis à jour,
     // contrôle inchangé sur le fond ($use_cache=false toujours présent,
-    // en 2e argument nommé positionnellement true puis false).
+    // en 2e argument nommé positionnellement true puis false). Round 330
+    // (hors round) : colonne `id_shop` ajoutée à la sélection (scoping
+    // boutique du match par email), littéral mis à jour.
     neria_assert(
-        strpos($gdpr, "SELECT `id_webhook`, `payload` FROM `{\$fullWh}`") !== false
+        strpos($gdpr, "SELECT `id_webhook`, `id_shop`, `payload` FROM `{\$fullWh}`") !== false
             && strpos($gdpr, "ORDER BY `id_webhook` ASC LIMIT {\$whChunkSize}\",\n                        true,\n                        false\n                    );") !== false,
         "GdprAuditManager::purgeCustomerData() n'a plus \$use_cache=false sur son executeS() neria_webhook_queue — régression du bug corrigé le 26/08/2026 (round 214)"
     );

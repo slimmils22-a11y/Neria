@@ -8280,7 +8280,10 @@ class HealthCheckManager
         // par ancienneté, qui touche les mêmes tables) laissait une purge
         // RGPD partielle silencieusement comptée comme un succès complet.
         $gdprSrc258 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
-        $posPurge258 = strpos($gdprSrc258, 'public function purgeCustomerData(int $idCustomer, string $email): int');
+        // Round 330 (hors round) : signature élargie avec $idShop=0
+        // (scoping boutique du match par email sur neria_webhook_queue) —
+        // littéral mis à jour en conséquence.
+        $posPurge258 = strpos($gdprSrc258, 'public function purgeCustomerData(int $idCustomer, string $email, int $idShop = 0): int');
         $posExecOrFail258 = $posPurge258 !== false ? strpos($gdprSrc258, 'private function execOrFail(string $sql, string $context): void', $posPurge258) : false;
         $purgeBody258 = ($posPurge258 !== false && $posExecOrFail258 !== false && $posExecOrFail258 > $posPurge258)
             ? substr($gdprSrc258, $posPurge258, $posExecOrFail258 - $posPurge258)
@@ -8748,7 +8751,9 @@ class HealthCheckManager
         // tiers en panne, aucun plafond équivalent à neria_log).
         $gdprSrc275 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
         $gdprWhPos275 = $gdprSrc275 !== '' ? strpos($gdprSrc275, '$whChunkSize = 2000;') : false;
-        $gdprWhBody275 = $gdprWhPos275 !== false ? substr($gdprSrc275, $gdprWhPos275, 2800) : '';
+        // Fenêtre élargie 2800→4200 (round 330, hors round) : le scoping
+        // id_shop ajouté sur le match par email a repoussé le littéral.
+        $gdprWhBody275 = $gdprWhPos275 !== false ? substr($gdprSrc275, $gdprWhPos275, 4200) : '';
         if ($gdprSrc275 === ''
             || $gdprWhPos275 === false
             // Round 278 : pagination passée d'OFFSET à un curseur id_webhook,
@@ -8851,7 +8856,8 @@ class HealthCheckManager
         // neria_log contenant cet email (round 270) — neria_log n'est
         // ensuite jamais repurgée par id_customer, seulement par ancienneté.
         $neriaPhp278 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
-        $gdprPurgePos278 = $neriaPhp278 !== '' ? strpos($neriaPhp278, '->purgeCustomerData($idCustomer, $email);') : false;
+        // Round 330 (hors round) : $idShop transmis en 3e argument désormais.
+        $gdprPurgePos278 = $neriaPhp278 !== '' ? strpos($neriaPhp278, '->purgeCustomerData($idCustomer, $email, $idShop);') : false;
         $gdprPurgeBody278 = $gdprPurgePos278 !== false ? substr($neriaPhp278, $gdprPurgePos278, 1000) : '';
         if ($neriaPhp278 === ''
             || $gdprPurgePos278 === false
@@ -10689,6 +10695,35 @@ class HealthCheckManager
         }
         if ($pwmSrc330 === '' || strpos($pwmSrc330, "ORDER BY h ASC',\n            true,\n            false\n        );") === false) {
             $offenders[] = "PurchaseWindowManager::getHourDistribution() n'a plus executeS(sql, true, false) — régression du bug corrigé le 09/09/2026 (round 330)";
+        }
+
+        // Round 330 (hors round) : l'email waitlist_available ne doit plus
+        // prétendre à une réservation de stock que le système ne tient
+        // jamais réellement (aucun verrou de stock, cf.
+        // project_neria_waitlist_reservation_promise_not_implemented.md).
+        $waitlistI18n330 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/data/translations.json');
+        if ($waitlistI18n330 === '' || strpos($waitlistI18n330, 'Priorité pour vous') === false) {
+            $offenders[] = "data/translations.json (waitlist_available.fr.waitlist_eyebrow) ne dit plus 'Priorité pour vous' — régression du correctif du 09/09/2026 (hors round) : l'email redeviendrait 'Réservé pour vous', promettant une réservation de stock que le système n'applique jamais";
+        }
+        if ($waitlistI18n330 === '' || strpos($waitlistI18n330, 'Réservé pour vous') !== false) {
+            $offenders[] = "data/translations.json (waitlist_available.fr) contient de nouveau 'Réservé pour vous' — régression du correctif du 09/09/2026 (hors round) sur la promesse de réservation de stock jamais implémentée";
+        }
+
+        // Round 330 (hors round) : purgeCustomerData() doit toujours
+        // accepter $idShop et l'utiliser pour scoper le match par email sur
+        // neria_webhook_queue (via la colonne id_shop propre à la table) —
+        // sans quoi une purge RGPD purgerait de nouveau le webhook d'un
+        // client totalement différent d'une autre boutique partageant le
+        // même email par coïncidence.
+        $gdprSrc330 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        if ($gdprSrc330 === '' || strpos($gdprSrc330, 'public function purgeCustomerData(int $idCustomer, string $email, int $idShop = 0): int') === false) {
+            $offenders[] = "GdprAuditManager::purgeCustomerData() n'accepte plus \$idShop — régression du correctif du 09/09/2026 (hors round) : le scoping boutique du match par email sur neria_webhook_queue serait de nouveau impossible";
+        }
+        if ($gdprSrc330 === '' || strpos($gdprSrc330, "SELECT `id_webhook`, `id_shop`, `payload` FROM `{\$fullWh}`") === false) {
+            $offenders[] = "GdprAuditManager::purgeCustomerData() ne lit plus la colonne id_shop de neria_webhook_queue — régression du correctif du 09/09/2026 (hors round)";
+        }
+        if ($gdprSrc330 === '' || strpos($gdprSrc330, "\$emailMatches = (int) \$row['id_shop'] === \$idShop;") === false) {
+            $offenders[] = "GdprAuditManager::purgeCustomerData() ne restreint plus le match par email à la boutique du demandeur — régression du correctif du 09/09/2026 (hors round) : une demande d'effacement RGPD purgerait de nouveau, par simple coïncidence d'email, le webhook en attente d'un client totalement différent d'une autre boutique";
         }
 
         if ($offenders) {
