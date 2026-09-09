@@ -10633,6 +10633,21 @@ class HealthCheckManager
             $offenders[] = "GoldenHourManager::computeRecommendations() n'a plus d'ORDER BY explicite — régression du bug corrigé le 09/09/2026 (round 327) : la recommandation best_day/best_hour redeviendrait non déterministe en cas d'égalité de taux d'ouverture";
         }
 
+        $pmSrc328 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php');
+        $posNoDomain328 = $pmSrc328 !== '' ? strpos($pmSrc328, "watchdog.postmaster_no_domain'), '', 'PostmasterManager');") : false;
+        $bodyNoDomain328 = $posNoDomain328 !== false ? substr($pmSrc328, $posNoDomain328, 1300) : '';
+        if ($bodyNoDomain328 === '' || strpos($bodyNoDomain328, 'CONFIG_CACHE_TIME), time());') === false) {
+            $offenders[] = "PostmasterManager::fetchAndCache() n'écrit plus le cache dans le bloc 'aucun domaine' — régression du bug corrigé le 09/09/2026 (round 328) : chaque page BO redéclencherait un appel réseau réel à l'API Google Postmaster tant qu'aucun domaine n'est encore listé";
+        }
+        $emailRendererSrc328 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($emailRendererSrc328 === '' || strpos($emailRendererSrc328, '$sizeSource = (class_exists(\'CssInliner\')) ? CssInliner::inline($compiled) : $compiled;') === false) {
+            $offenders[] = "EmailRenderer::buildCarbonHtml() ne mesure plus la taille sur le HTML APRÈS inlining CSS — régression du bug corrigé le 09/09/2026 (round 328) : l'empreinte carbone affichée sous-estimerait de nouveau systématiquement le poids réel de l'email livré au client";
+        }
+        $clvSrc328 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php');
+        if ($clvSrc328 === '' || strpos($clvSrc328, 'return $sent > 0 ? min(1.0, $opened / $sent) : self::ENGAGEMENT_MEDIUM;') === false) {
+            $offenders[] = "ClvManager::getEngagementRate() ne retourne plus ENGAGEMENT_MEDIUM pour sent=0 — régression du bug corrigé le 09/09/2026 (round 328) : une pénalité -15% (engagement 'low') serait de nouveau infligée à tort à un client jamais ciblé par une campagne email";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
