@@ -10615,6 +10615,24 @@ class HealthCheckManager
             $offenders[] = "SegmentManager::recomputeAll() ne compte plus une conversion liée à une commande introuvable/à 0€ comme non remboursée — régression du bug corrigé le 08/09/2026 (round 326) : un client fidèle (coupons -100%, commande supprimée en BO) pourrait de nouveau ne jamais atteindre les segments loyal/ambassador";
         }
 
+        $neriaPhpSrc327 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $posReportNow327 = $neriaPhpSrc327 !== '' ? strpos($neriaPhpSrc327, "Tools::getValue('neria_action') === 'send_report_now'") : false;
+        $bodyReportNow327 = $posReportNow327 !== false ? substr($neriaPhpSrc327, $posReportNow327, 1400) : '';
+        if ($bodyReportNow327 === '' || strpos($bodyReportNow327, 'if ($rm->sendReport($year, $month)) {') === false) {
+            $offenders[] = "neria.php::send_report_now ne vérifie plus le retour de MonthlyReportManager::sendReport() — régression du bug corrigé le 09/09/2026 (round 327) : un échec (aucun destinataire valide, envoi déjà en cours) redeviendrait silencieux, sans aucun message pour le marchand";
+        }
+        if ($neriaPhpSrc327 === '' || strpos($neriaPhpSrc327, 'getCachedReportIfCurrentDomain();') === false) {
+            $offenders[] = "neria.php n'utilise plus getCachedReportIfCurrentDomain() pour pagespeed_report/seo_report — régression du bug corrigé le 09/09/2026 (round 327) : la page Stats BO afficherait de nouveau indéfiniment un rapport PageSpeed/SEO obsolète appartenant à un autre domaine";
+        }
+        $pwmSrc327 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PurchaseWindowManager.php');
+        if ($pwmSrc327 === '' || strpos($pwmSrc327, 'return (int) $row[\'h\'] + 1;') === false) {
+            $offenders[] = "PurchaseWindowManager::getPreferredHour() ne retourne plus le milieu du créneau de 2h — régression du bug corrigé le 09/09/2026 (round 327) : l'email serait de nouveau programmé jusqu'à ~2h avant l'heure d'achat réelle du client";
+        }
+        $ghSrc327 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GoldenHourManager.php');
+        if ($ghSrc327 === '' || strpos($ghSrc327, 'ORDER BY s.`lang` ASC, dow ASC, hour ASC') === false) {
+            $offenders[] = "GoldenHourManager::computeRecommendations() n'a plus d'ORDER BY explicite — régression du bug corrigé le 09/09/2026 (round 327) : la recommandation best_day/best_hour redeviendrait non déterministe en cas d'égalité de taux d'ouverture";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
