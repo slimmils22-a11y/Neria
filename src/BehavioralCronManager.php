@@ -1246,11 +1246,18 @@ class BehavioralCronManager
     public function getQuoteStats(): array
     {
         $idShop = (int) \Context::getContext()->shop->id;
+        // Round 329 (hors round) : 'extended' compté avec 'active' — un
+        // devis réellement prolongé (voir sendQuoteExpiryReminders(),
+        // section 3) reste une opportunité ouverte jusqu'à sa NOUVELLE
+        // échéance, pas une occasion perdue. Sans ce changement, il
+        // basculerait à tort dans quotes_lost dès l'envoi de l'email de
+        // prolongation, alors même que le client vient de recevoir 7 jours
+        // supplémentaires pour se décider.
         $row = $this->db->getRow(
             'SELECT
                 COUNT(*)                                          AS total_quotes,
                 SUM(status = \'won\')                            AS quotes_won,
-                SUM(status = \'active\')                         AS quotes_active,
+                SUM(status IN (\'active\',\'extended\'))         AS quotes_active,
                 SUM(status IN (\'expired\',\'lost\'))            AS quotes_lost,
                 COALESCE(SUM(CASE WHEN status = \'won\' THEN quote_total ELSE 0 END), 0) AS revenue_won
              FROM `' . $this->prefix . 'neria_quote`
@@ -1405,13 +1412,26 @@ class BehavioralCronManager
                 // potentiellement lent), le client peut avoir accepté/signé
                 // le devis entre-temps (status passé à 'won' par un code
                 // externe au module). Sans cette revérification,
-                // l'UPDATE écrasait inconditionnellement 'won' en 'expired'
-                // — le client venait d'accepter le devis mais le voyait
-                // basculer expiré, en plus de recevoir l'email "offre de
+                // l'UPDATE écrasait inconditionnellement 'won' en l'état
+                // ci-dessous — le client venait d'accepter le devis mais le
+                // voyait basculer, en plus de recevoir l'email "offre de
                 // prolongation" pour un devis déjà accepté.
+                // Round 329 (hors round) : status='extended' (valeur ENUM
+                // prévue dans le schéma depuis l'origine mais jamais
+                // assignée jusqu'ici) + expiry_date réellement repoussée de
+                // 7 jours — auparavant l'email promettait "prolongé jusqu'au
+                // {new_expiry_date}" mais le système passait directement en
+                // 'expired' SANS jamais toucher expiry_date : une promesse
+                // concrète envoyée au client que rien ne matérialisait
+                // jamais côté marchand (aucune action BO ne permettait non
+                // plus de la matérialiser manuellement). La clôture finale
+                // (passage à 'expired') a désormais lieu à la section 4
+                // ci-dessous, une fois la NOUVELLE échéance elle aussi
+                // dépassée — jamais une 2e fois pour le même devis, puisque
+                // cette requête ne cible que status='active'.
                 $this->db->execute(
                     'UPDATE `' . $this->prefix . 'neria_quote`
-                     SET sent_extension = 1, status = \'expired\', date_upd = NOW()
+                     SET sent_extension = 1, status = \'extended\', expiry_date = DATE_ADD(expiry_date, INTERVAL 7 DAY), date_upd = NOW()
                      WHERE id_quote = ' . (int) $r['id_quote'] . " AND status = 'active'"
                 );
             } catch (\Throwable $e) {
@@ -1424,6 +1444,31 @@ class BehavioralCronManager
                     'BehavioralCron'
                 );
             }
+        }
+
+        // ── 4. Clôture finale (échéance PROLONGÉE elle aussi dépassée) ──
+        // Round 329 (hors round) : aucun email envoyé ici — juste la
+        // fermeture d'état qui manquait depuis l'origine pour les devis
+        // réellement prolongés à la section 3. Sans cette étape, un devis
+        // 'extended' resterait indéfiniment "en jeu" dans getQuoteStats()
+        // (jamais compté dans quotes_lost) même des mois après sa nouvelle
+        // échéance, alors qu'aucune relance ni action marchand n'a suivi.
+        try {
+            $this->db->execute(
+                'UPDATE `' . $this->prefix . 'neria_quote`
+                 SET status = \'expired\', date_upd = NOW()
+                 WHERE status = \'extended\' AND id_shop = ' . $idShop . '
+                   AND DATE(expiry_date) < CURDATE()
+                 LIMIT ' . self::MAX_BATCH_PER_RUN
+            );
+        } catch (\Throwable $e) {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.quote_extended_close_error', [
+                    'error' => $e->getMessage(),
+                ]),
+                'quote_extension_offer',
+                'BehavioralCron'
+            );
         }
     }
 

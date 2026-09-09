@@ -66169,5 +66169,26 @@
         "da": "Kunne ikke sende månedsrapporten: ingen gyldig modtager konfigureret, eller en afsendelse er allerede i gang. Tjek e-mailadresserne i indstillingerne.",
         "nl": "Verzenden van het maandrapport mislukt: geen geldige ontvanger geconfigureerd, of er is al een verzending bezig. Controleer de e-mailadressen in de instellingen.",
         "gb": "Failed to send the monthly report: no valid recipient configured, or a send is already in progress. Check the email addresses in settings."
+    },
+    "watchdog.quote_extended_close_error": {
+        "fr": "Échec de la clôture des devis prolongés arrivés à échéance : {error}",
+        "en": "Failed to close out extended quotes past their new deadline: {error}",
+        "de": "Fehler beim Abschließen verlängerter Angebote nach Ablauf der neuen Frist: {error}",
+        "it": "Impossibile chiudere i preventivi prorogati scaduti alla nuova scadenza: {error}",
+        "es": "Error al cerrar los presupuestos prorrogados que superaron su nuevo plazo: {error}",
+        "pt": "Falha ao encerrar orçamentos prorrogados após o novo prazo: {error}",
+        "br": "Falha ao encerrar orçamentos prorrogados após o novo prazo: {error}",
+        "ar": "فشل إغلاق عروض الأسعار الممددة بعد انتهاء الموعد النهائي الجديد: {error}",
+        "ja": "新しい期限を過ぎた延長見積りのクローズ処理に失敗しました: {error}",
+        "ko": "새 마감일이 지난 연장된 견적을 마감하지 못했습니다: {error}",
+        "zh": "关闭已延期且超过新截止日期的报价失败：{error}",
+        "tw": "關閉已延期且超過新截止日期的報價失敗：{error}",
+        "ru": "Не удалось закрыть продлённые сметы, срок которых истёк: {error}",
+        "tr": "Yeni son tarihi geçen uzatılmış teklifler kapatılamadı: {error}",
+        "sv": "Det gick inte att stänga förlängda offerter som passerat sitt nya slutdatum: {error}",
+        "no": "Kunne ikke lukke forlengede tilbud som har passert sin nye frist: {error}",
+        "da": "Kunne ikke lukke forlængede tilbud, der har overskredet den nye frist: {error}",
+        "nl": "Kan verlengde offertes die hun nieuwe deadline zijn gepasseerd niet afsluiten: {error}",
+        "gb": "Failed to close out extended quotes past their new deadline: {error}"
     }
 }

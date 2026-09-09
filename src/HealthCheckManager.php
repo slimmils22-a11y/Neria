@@ -9261,11 +9261,16 @@ class HealthCheckManager
         // (après l'envoi de l'email), le client peut avoir accepté le devis
         // entre-temps ('won') — sans revérification, l'UPDATE écrasait ce
         // 'won' fraîchement posé en 'expired'.
+        // Round 329 (hors round) : littéral mis à jour (status='extended',
+        // pas 'expired' — voir sendQuoteExpiryReminders() section 3) suite
+        // au correctif faisant réellement prolonger le devis au lieu de
+        // l'expirer directement. La protection anti-course vérifiée ici
+        // (AND status = 'active') reste inchangée.
         $bcmSrc296 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
-        $posExt296 = $bcmSrc296 !== '' ? strpos($bcmSrc296, "SET sent_extension = 1, status = \\'expired\\', date_upd = NOW()") : false;
-        $extBody296 = $posExt296 !== false ? substr($bcmSrc296, $posExt296, 200) : '';
+        $posExt296 = $bcmSrc296 !== '' ? strpos($bcmSrc296, "SET sent_extension = 1, status = \\'extended\\', expiry_date = DATE_ADD(expiry_date, INTERVAL 7 DAY), date_upd = NOW()") : false;
+        $extBody296 = $posExt296 !== false ? substr($bcmSrc296, $posExt296, 260) : '';
         if ($bcmSrc296 === '' || $posExt296 === false || strpos($extBody296, "AND status = 'active'") === false) {
-            $offenders[] = "BehavioralCronManager::sendQuoteExpiryReminders() (section 3, offre de prolongation) ne revérifie plus status = 'active' avant de passer un devis à 'expired' — régression du bug corrigé le 04/09/2026 (round 296) : un devis accepté ('won') par le client pendant l'envoi de l'email serait de nouveau écrasé en 'expired' par le cron";
+            $offenders[] = "BehavioralCronManager::sendQuoteExpiryReminders() (section 3, offre de prolongation) ne revérifie plus status = 'active' avant de prolonger un devis — régression du bug corrigé le 04/09/2026 (round 296) : un devis accepté ('won') par le client pendant l'envoi de l'email serait de nouveau écrasé par le cron";
         }
 
         // Round 297 (04/09/2026) : MonthlyReportManager::getRevenueByTemplate()
@@ -10646,6 +10651,17 @@ class HealthCheckManager
         $clvSrc328 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php');
         if ($clvSrc328 === '' || strpos($clvSrc328, 'return $sent > 0 ? min(1.0, $opened / $sent) : self::ENGAGEMENT_MEDIUM;') === false) {
             $offenders[] = "ClvManager::getEngagementRate() ne retourne plus ENGAGEMENT_MEDIUM pour sent=0 — régression du bug corrigé le 09/09/2026 (round 328) : une pénalité -15% (engagement 'low') serait de nouveau infligée à tort à un client jamais ciblé par une campagne email";
+        }
+
+        $bcmSrc329 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc329 === '' || strpos($bcmSrc329, "status = \\'extended\\', expiry_date = DATE_ADD(expiry_date, INTERVAL 7 DAY)") === false) {
+            $offenders[] = "BehavioralCronManager::sendQuoteExpiryReminders() (section 3) ne prolonge plus réellement le devis (status='extended' + expiry_date+7j) — régression du correctif du 09/09/2026 (hors round) : l'email promettrait de nouveau une prolongation que le système n'applique jamais en base";
+        }
+        if ($bcmSrc329 === '' || strpos($bcmSrc329, "SET status = \\'expired\\', date_upd = NOW()\n                 WHERE status = \\'extended\\'") === false) {
+            $offenders[] = "BehavioralCronManager::sendQuoteExpiryReminders() ne clôture plus les devis 'extended' dont la nouvelle échéance est dépassée — régression du correctif du 09/09/2026 (hors round) : un devis prolongé resterait indéfiniment 'en jeu' dans getQuoteStats()";
+        }
+        if ($bcmSrc329 === '' || strpos($bcmSrc329, "SUM(status IN (\\'active\\',\\'extended\\'))") === false) {
+            $offenders[] = "BehavioralCronManager::getQuoteStats() ne compte plus 'extended' avec 'active' dans quotes_active — régression du correctif du 09/09/2026 (hors round) : un devis réellement prolongé basculerait de nouveau à tort en quotes_lost dès l'envoi de l'email de prolongation";
         }
 
         if ($offenders) {
