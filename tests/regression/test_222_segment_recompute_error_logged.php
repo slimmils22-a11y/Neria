@@ -20,6 +20,13 @@
  * Fenêtre élargie à 11500 (round 300) : la déduction des conversions
  * remboursées à ≥90% (round 300, sous-requêtes corrélées order_slip/
  * orders dans le SQL de recomputeAll()) a de nouveau repoussé ce bloc.
+ * Fenêtre élargie à 12000 (round 327, offset réel mesuré 11715) : la
+ * clause "OR COALESCE(total_paid_tax_incl,0) <= 0" (round 326, conversion
+ * sur commande à 0€/supprimée) a de nouveau repoussé ce bloc plus loin
+ * dans la méthode — collatéral détecté par la suite complète, pas par le
+ * garde-fou HealthCheckManager (fenêtre substr() d'un TEST séparé, jamais
+ * synchronisée automatiquement avec un garde-fou touchant le même fichier
+ * — précédent déjà documenté rounds 314/323/324).
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -30,7 +37,7 @@ function run_test(): array
 
     $posFn = strpos($src, 'public function recomputeAll(): int');
     neria_assert($posFn !== false, 'recomputeAll() introuvable — jeu de test invalide');
-    $body = substr($src, $posFn, 11500);
+    $body = substr($src, $posFn, 12000);
 
     neria_assert(
         strpos($body, '$execOk = $this->db->execute($sql);') !== false,
