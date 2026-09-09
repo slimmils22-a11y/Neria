@@ -21,6 +21,10 @@
  * Google, non invocable dans ce jeu de tests) : vérifie que les 3 écritures
  * de fetchAndCache() passent bien par cacheKey(), comme toutes les
  * lectures.
+ *
+ * Fenêtre élargie à 6200 (round 328, offset réel mesuré 5772) : l'ajout
+ * du bloc d'écriture cache dans la branche "aucun domaine" (round 328,
+ * cf. test_658) a repoussé plus loin le bloc final vérifié ici.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -31,7 +35,7 @@ function run_test(): array
 
     $posFetch = strpos($src, 'private function fetchAndCache(');
     neria_assert($posFetch !== false, "Méthode fetchAndCache() introuvable — jeu de test invalide");
-    $block = substr($src, $posFetch, 5000);
+    $block = substr($src, $posFetch, 6200);
 
     neria_assert(
         strpos($block, 'Configuration::updateValue($this->cacheKey(self::CONFIG_CACHE),') !== false,
