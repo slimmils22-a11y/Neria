@@ -26,10 +26,11 @@ function run_test(): array
 
     $posFn = strpos($src, 'public function redownload(int $idCertificate): array');
     neria_assert($posFn !== false, 'redownload() introuvable — jeu de test invalide');
-    // Fenêtre élargie 3800→4000 (round 301) : la lecture de
-    // signature_path (signature figée à l'émission) a repoussé
-    // isset($result['error']) plus loin dans le corps de redownload().
-    $body = substr($src, $posFn, 4000);
+    // Fenêtre élargie 3800→4000 (round 301) puis 4000→4200 (round 330,
+    // collatéral : ajout du paramètre $frozenIssuedDate) : chaque ajout
+    // repousse un peu plus isset($result['error']) dans le corps de
+    // redownload().
+    $body = substr($src, $posFn, 4200);
 
     neria_assert(
         strpos($body, "isset(\$result['error'])") !== false,
