@@ -114,6 +114,24 @@ class SeoApiManager
     }
 
     /**
+     * Round 327 : neria.php (page Stats BO) affichait le cache brut via
+     * getCachedReport() SANS jamais passer par getReport() — toute la
+     * logique de correspondance de domaine ajoutée dans getReport() (voir
+     * ci-dessous) était donc du code mort côté affichage réel : un
+     * changement de domaine de boutique (renommage hors formulaire Neria,
+     * sans invalidateCache()) laissait afficher indéfiniment le rapport
+     * SEO de l'ANCIEN domaine. Cette méthode applique le même contrôle de
+     * domaine que getReport(), SANS jamais déclencher runCheck() (pas
+     * d'appel réseau synchrone au chargement d'une page BO normale).
+     */
+    public function getCachedReportIfCurrentDomain(): ?array
+    {
+        $data = $this->getCachedReport();
+        $currentDomain = parse_url(\Tools::getShopDomainSsl(true), PHP_URL_HOST);
+        return ($data && ($data['domain'] ?? null) === $currentDomain) ? $data : null;
+    }
+
+    /**
      * Invalide le cache de LA BOUTIQUE courante (fournisseur/clé modifié en BO).
      */
     public function invalidateCache(): void

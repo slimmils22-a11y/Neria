@@ -95,6 +95,26 @@ class PageSpeedManager
     }
 
     /**
+     * Round 327 : neria.php (page Stats BO) affichait le cache brut via
+     * getCachedReport() SANS jamais passer par getReport() — toute la
+     * logique de correspondance de domaine ajoutée dans getReport() (voir
+     * ci-dessous) était donc du code mort côté affichage réel : un
+     * changement de domaine de boutique (renommage hors formulaire Neria,
+     * sans invalidateCache()) laissait afficher indéfiniment le rapport de
+     * l'ANCIEN domaine, avec un cache_age laissant croire à des données
+     * pertinentes. Cette méthode applique le même contrôle url/domaine que
+     * getReport(), SANS jamais déclencher runCheck() (pas d'appel réseau
+     * synchrone au chargement d'une page BO normale — getReport() ferait
+     * un appel Google PageSpeed en direct si le cache est absent/expiré,
+     * inapproprié pour un simple rendu de page).
+     */
+    public function getCachedReportIfCurrentDomain(): ?array
+    {
+        $data = $this->getCachedReport();
+        return ($data && ($data['url'] ?? null) === $this->getTargetUrl()) ? $data : null;
+    }
+
+    /**
      * Invalide le cache de LA BOUTIQUE courante (clé/URL modifiée en BO).
      */
     public function invalidateCache(): void

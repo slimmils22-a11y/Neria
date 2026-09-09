@@ -144,7 +144,8 @@ class GoldenHourManager
                AND s.`id_shop`    = {$this->idShop}
                AND s.`date_add`   >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
                AND s.`lang`       != ''
-             GROUP BY s.`lang`, dow, hour"
+             GROUP BY s.`lang`, dow, hour
+             ORDER BY s.`lang` ASC, dow ASC, hour ASC"
         );
 
         if (!$rows) {
@@ -168,7 +169,16 @@ class GoldenHourManager
 
             // Garde le meilleur créneau par taux d'ouverture (min 3 envois
             // pour ce créneau, sinon le taux n'est pas significatif — un
-            // seul envoi ouvert donnerait 100% par pur hasard)
+            // seul envoi ouvert donnerait 100% par pur hasard).
+            // Round 327 : la requête n'avait pas d'ORDER BY et la comparaison
+            // était strictement '>' — en cas d'égalité EXACTE de taux entre
+            // deux créneaux (ex. 3/3 vs 3/3), c'était le premier rencontré
+            // dans l'ordre de retour MySQL (non garanti sans ORDER BY, donc
+            // potentiellement variable d'une exécution à l'autre) qui
+            // l'emportait, faisant "changer tout seul" best_day/best_hour en
+            // BO sans que les données sous-jacentes n'aient bougé. L'ORDER BY
+            // ajouté ci-dessus rend désormais ce choix déterministe (premier
+            // jour/heure par ordre croissant en cas d'égalité).
             if ($sentCount >= 3 && (!isset($peakByLang[$lang]) || $rate > $peakByLang[$lang]['rate'])) {
                 $peakByLang[$lang] = $r;
             }

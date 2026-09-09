@@ -2938,7 +2938,19 @@ class Neria extends Module
                 $rm    = new MonthlyReportManager($this);
                 $year  = (int) date('Y', strtotime('last month'));
                 $month = (int) date('n', strtotime('last month'));
-                $rm->sendReport($year, $month);
+                // Round 327 : le retour bool de sendReport() n'était jamais
+                // vérifié — seul handler d'envoi immédiat du fichier à
+                // n'assigner NI neria_success NI neria_error. sendReport()
+                // renvoie false sans destinataire valide (getRecipients()
+                // vide, ou GET_LOCK() déjà tenu) : le marchand cliquant
+                // "Envoyer maintenant" pour vérifier sa config avant
+                // l'échéance mensuelle automatique n'avait alors AUCUN
+                // retour visuel, croyant à tort que l'envoi avait eu lieu.
+                if ($rm->sendReport($year, $month)) {
+                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.report_sent'));
+                } else {
+                    $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.report_send_failed'));
+                }
             }
         }
 
@@ -6837,7 +6849,9 @@ class Neria extends Module
                 if (!$mgr->isConfigured()) {
                     return null;
                 }
-                return $mgr->getCachedReport();
+                // Round 327 : getCachedReportIfCurrentDomain() (pas
+                // getCachedReport() brut) — voir son docblock.
+                return $mgr->getCachedReportIfCurrentDomain();
             })(),
             'pagespeed_cache_age'  => class_exists('PageSpeedManager') ? (new PageSpeedManager($this))->getCacheAge() : null,
 
@@ -6874,7 +6888,9 @@ class Neria extends Module
                 if (!$mgr->isConfigured()) {
                     return null;
                 }
-                return $mgr->getCachedReport();
+                // Round 327 : getCachedReportIfCurrentDomain() (pas
+                // getCachedReport() brut) — voir son docblock.
+                return $mgr->getCachedReportIfCurrentDomain();
             })(),
             'seo_cache_age'    => class_exists('SeoApiManager') ? (new SeoApiManager($this))->getCacheAge() : null,
 

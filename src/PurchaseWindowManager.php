@@ -65,7 +65,16 @@ class PurchaseWindowManager
             return null;
         }
 
-        return (int) $row['h'];
+        // Round 327 : +1 pour viser le MILIEU du créneau de 2h, pas sa borne
+        // basse. QueueManager::nextOccurrence() traite cette valeur comme une
+        // heure cible EXACTE (sprintf('%02d:00:00', $hour)), sans aucune
+        // tolérance — retourner la borne basse programmait systématiquement
+        // l'envoi jusqu'à ~2h AVANT l'heure d'achat réelle du client (ex.
+        // commandes à 10h58/11h05/11h34 → créneau [10h-12h[ → email envoyé à
+        // 10h00 pile, ~1h occurrence avant son heure habituelle réelle),
+        // contredisant l'intention documentée ("programmer l'envoi dans la
+        // bonne fenêtre du client").
+        return (int) $row['h'] + 1;
     }
 
     /**
