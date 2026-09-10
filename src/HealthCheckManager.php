@@ -2027,12 +2027,17 @@ class HealthCheckManager
 
         // Round 46 : DeliverabilityScorer::getSubjectSpamTriggers() exposait
         // la liste brute sans le filtre de longueur utilisé par score().
+        // Round 331 : le filtre littéral mb_strlen($trigger) >= 4 a été
+        // remplacé par un appel à triggerMeetsMinLength() (seuil variable
+        // selon le script, CJK/Hangul abaissé à 2) — la vérification porte
+        // désormais sur la présence de cet appel, pas sur le littéral 4
+        // devenu incorrect pour tous les scripts.
         $deliverFile = _PS_MODULE_DIR_ . $this->module->name . '/src/DeliverabilityScorer.php';
         $deliverSrc = $this->readModuleSrc($deliverFile);
         if ($deliverSrc === '') {
             $offenders[] = 'DeliverabilityScorer.php introuvable';
-        } elseif (!preg_match('/function getSubjectSpamTriggers[\s\S]{0,800}?mb_strlen\(\$trigger\) >= 4/', $deliverSrc)) {
-            $offenders[] = 'DeliverabilityScorer : getSubjectSpamTriggers() ne filtre plus les triggers courts (< 4 caractères) — de nouveau incohérent avec score(), faux positifs possibles';
+        } elseif (!preg_match('/function getSubjectSpamTriggers[\s\S]{0,800}?triggerMeetsMinLength\(\$trigger\)/', $deliverSrc)) {
+            $offenders[] = 'DeliverabilityScorer : getSubjectSpamTriggers() ne filtre plus les triggers courts via triggerMeetsMinLength() — de nouveau incohérent avec score(), faux positifs possibles';
         }
 
         // Round 46 : DomainReputationManager — array_key_first() sur un
@@ -10724,6 +10729,48 @@ class HealthCheckManager
         }
         if ($gdprSrc330 === '' || strpos($gdprSrc330, "\$emailMatches = (int) \$row['id_shop'] === \$idShop;") === false) {
             $offenders[] = "GdprAuditManager::purgeCustomerData() ne restreint plus le match par email à la boutique du demandeur — régression du correctif du 09/09/2026 (hors round) : une demande d'effacement RGPD purgerait de nouveau, par simple coïncidence d'email, le webhook en attente d'un client totalement différent d'une autre boutique";
+        }
+
+        // Round 331 : hasHiddenWhiteText() doit accepter les guillemets
+        // simples ET doubles pour l'attribut style — sinon la technique de
+        // masquage white-on-white écrite avec des guillemets simples
+        // (éditeurs WYSIWYG, contenu collé depuis Word/Outlook) échappe de
+        // nouveau totalement à la détection.
+        $delivSrc331 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DeliverabilityScorer.php');
+        if ($delivSrc331 === '' || strpos($delivSrc331, 'preg_match_all(\'/style\s*=\s*(["\\\'])(.*?)\1/i\', $html, $m)') === false) {
+            $offenders[] = "DeliverabilityScorer::hasHiddenWhiteText() n'accepte plus les guillemets simples pour l'attribut style — régression du bug corrigé le 10/09/2026 (round 331) : le masquage white-on-white écrit avec style='...' échapperait de nouveau totalement à la détection";
+        }
+        // Round 331 : le seuil de longueur minimale des déclencheurs spam
+        // doit rester abaissé à 2 pour les scripts CJK/Hangul — sinon la
+        // quasi-totalité du dictionnaire chinois/japonais/coréen redevient
+        // silencieusement neutralisée par le seuil de 4 conçu pour le latin.
+        if ($delivSrc331 === '' || strpos($delivSrc331, 'private static function triggerMeetsMinLength(string $trigger): bool') === false) {
+            $offenders[] = "DeliverabilityScorer::triggerMeetsMinLength() a disparu — régression du bug corrigé le 10/09/2026 (round 331) : le dictionnaire anti-spam CJK/coréen (mots de 2 caractères) redeviendrait inopérant";
+        }
+        if ($delivSrc331 === '' || strpos($delivSrc331, "\$minLen = preg_match('/[\\x{4E00}-\\x{9FFF}\\x{3040}-\\x{30FF}\\x{AC00}-\\x{D7A3}]/u', \$trigger) ? 2 : 4;") === false) {
+            $offenders[] = "DeliverabilityScorer::triggerMeetsMinLength() n'abaisse plus le seuil à 2 pour les scripts CJK/Hangul — régression du bug corrigé le 10/09/2026 (round 331)";
+        }
+        // Round 331 : le cache DNS statique doit avoir un TTL — sinon un
+        // marchand corrigeant SPF/DKIM/DMARC verrait l'ancien résultat
+        // survivre indéfiniment tant que le worker PHP-FPM n'est pas recyclé.
+        if ($delivSrc331 === '' || strpos($delivSrc331, 'private const DNS_CACHE_TTL_SECS = 300;') === false) {
+            $offenders[] = "DeliverabilityScorer::DNS_CACHE_TTL_SECS a disparu — régression du bug corrigé le 10/09/2026 (round 331) : le cache DNS statique redeviendrait sans expiration";
+        }
+        if ($delivSrc331 === '' || strpos($delivSrc331, '(microtime(true) - self::$dnsCache[$domain][\'cached_at\']) < self::DNS_CACHE_TTL_SECS') === false) {
+            $offenders[] = "DeliverabilityScorer::getDnsStatus() ne vérifie plus l'âge de l'entrée de cache avant de la servir — régression du bug corrigé le 10/09/2026 (round 331)";
+        }
+        // Round 331 : safeProductPrice() (UpsellManager/LookCompletionManager)
+        // doit basculer $ctx->shop avant Product::getPriceStatic() — sinon
+        // les promotions specific_price scopées par boutique ne sont plus
+        // jamais résolues quand le cron démarre dans le contexte d'une autre
+        // boutique que celle du client destinataire.
+        $usSrc331 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
+        if ($usSrc331 === '' || strpos($usSrc331, '$ctx->shop   = new \Shop($idShop);') === false) {
+            $offenders[] = "UpsellManager::safeProductPrice() ne bascule plus \$ctx->shop — régression du bug corrigé le 10/09/2026 (round 331) : une promotion specific_price scopée boutique ne serait de nouveau jamais résolue";
+        }
+        $lcSrc331 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LookCompletionManager.php');
+        if ($lcSrc331 === '' || strpos($lcSrc331, '$ctx->shop   = new \Shop($idShop);') === false) {
+            $offenders[] = "LookCompletionManager::safeProductPrice() ne bascule plus \$ctx->shop — régression du bug corrigé le 10/09/2026 (round 331)";
         }
 
         if ($offenders) {
