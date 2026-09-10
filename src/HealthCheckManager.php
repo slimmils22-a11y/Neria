@@ -10850,6 +10850,26 @@ class HealthCheckManager
             $offenders[] = "CalendarManager::sendCalendarEmail() n'instancie plus BlacklistManager avec \$this->idShop — régression du bug corrigé le 10/09/2026 (round 333)";
         }
 
+        // Round 333 (hors round) : NERIA_TRACKING_FALLBACK_KEY doit rester
+        // dans SENSITIVE_CONFIG_KEYS et être chiffrée/déchiffrée via
+        // CryptoManager dans NeriaTools::trackingSignKey() — sinon cette
+        // clé de secours HMAC redevient lisible en clair en base et
+        // échappe à l'audit checkSecretsEncrypted()/au chiffrement
+        // rétroactif upgrade-1.0.17.
+        $cryptoSrc333hr = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CryptoManager.php');
+        if ($cryptoSrc333hr === '' || strpos($cryptoSrc333hr, "'NERIA_TRACKING_FALLBACK_KEY',") === false) {
+            $offenders[] = "CryptoManager::SENSITIVE_CONFIG_KEYS n'inclut plus NERIA_TRACKING_FALLBACK_KEY — régression du correctif du 10/09/2026 (hors round)";
+        }
+        $ntSrc333hr = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaTools.php');
+        $posTsk333hr = $ntSrc333hr !== '' ? strpos($ntSrc333hr, 'public static function trackingSignKey(): string') : false;
+        $tskBody333hr = $posTsk333hr !== false ? substr($ntSrc333hr, $posTsk333hr, 1600) : '';
+        if ($tskBody333hr === '' || strpos($tskBody333hr, '\CryptoManager::decrypt($fallbackStored)') === false) {
+            $offenders[] = "NeriaTools::trackingSignKey() ne déchiffre plus NERIA_TRACKING_FALLBACK_KEY via CryptoManager — régression du correctif du 10/09/2026 (hors round)";
+        }
+        if ($tskBody333hr === '' || strpos($tskBody333hr, '\CryptoManager::encrypt($newHex)') === false) {
+            $offenders[] = "NeriaTools::trackingSignKey() ne chiffre plus NERIA_TRACKING_FALLBACK_KEY via CryptoManager à l'écriture — régression du correctif du 10/09/2026 (hors round) : une nouvelle clé de secours serait de nouveau stockée en clair";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,

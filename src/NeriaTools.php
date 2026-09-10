@@ -952,13 +952,23 @@ class NeriaTools
             return _COOKIE_KEY_;
         }
 
-        $fallbackHex = (string) \Configuration::get('NERIA_TRACKING_FALLBACK_KEY');
+        // Round 333 (hors round) : NERIA_TRACKING_FALLBACK_KEY est
+        // désormais chiffrée au repos (CryptoManager::SENSITIVE_CONFIG_KEYS)
+        // — decrypt() gère nativement la rétrocompatibilité (une valeur déjà
+        // en clair, sans préfixe ENC:, est retournée telle quelle), donc les
+        // installations existantes lisent leur clé actuelle sans rupture.
+        $fallbackStored = (string) \Configuration::get('NERIA_TRACKING_FALLBACK_KEY');
+        $fallbackHex = class_exists('CryptoManager') ? \CryptoManager::decrypt($fallbackStored) : $fallbackStored;
         if (strlen($fallbackHex) === 64 && ($bin = @hex2bin($fallbackHex)) !== false) {
             return $bin;
         }
 
         $newBin = random_bytes(32);
-        \Configuration::updateValue('NERIA_TRACKING_FALLBACK_KEY', bin2hex($newBin));
+        $newHex = bin2hex($newBin);
+        \Configuration::updateValue(
+            'NERIA_TRACKING_FALLBACK_KEY',
+            class_exists('CryptoManager') ? \CryptoManager::encrypt($newHex) : $newHex
+        );
 
         return $newBin;
     }

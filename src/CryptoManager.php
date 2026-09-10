@@ -52,6 +52,15 @@ class CryptoManager
         'NERIA_MOZ_SECRET_KEY',
         'NERIA_LITMUS_KEY',
         'NERIA_EOA_KEY',
+        // Round 333 (hors round) : clé de secours HMAC pour la signature du
+        // tracking (clics/ouvertures) — voir NeriaTools::trackingSignKey().
+        // Générée aléatoirement (32 octets) et utilisée UNIQUEMENT en
+        // dernier recours (NERIA_ENCRYPTION_KEY et _COOKIE_KEY_/
+        // _NEW_COOKIE_KEY_ sont toujours essayées avant), mais reste un
+        // secret cryptographique de même nature que les autres entrées de
+        // cette liste — aucune raison de l'exclure de l'audit
+        // checkSecretsEncrypted()/du chiffrement rétroactif upgrade-1.0.17.
+        'NERIA_TRACKING_FALLBACK_KEY',
     ];
 
     // ============================================================
