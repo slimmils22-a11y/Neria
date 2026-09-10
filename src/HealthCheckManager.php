@@ -8007,7 +8007,9 @@ class HealthCheckManager
         // Round 262 : fenêtre élargie 7200→8200 — l'ajout de la troncature
         // mb_substr() sur $sigName/$sigTitle (garde-fou round 262, voir
         // plus bas) a repoussé RELEASE_LOCK plus loin dans le bloc.
-        $sigBody244 = $posSig244 !== false ? substr($neriaSrc244, $posSig244, 8200) : '';
+        // Round 333 : élargie à nouveau 8200→9900 — vérification du retour
+        // de Db::insert('neria_signature', ...) ajoutée dans ce même bloc.
+        $sigBody244 = $posSig244 !== false ? substr($neriaSrc244, $posSig244, 9900) : '';
         if ($neriaSrc244Raw === ''
             || strpos($sigBody244, "GET_LOCK('\" . pSQL(\$sigLockName) . \"', 5)") === false
             || strpos($sigBody244, "RELEASE_LOCK('\" . pSQL(\$sigLockName) . \"')") === false
@@ -10812,6 +10814,40 @@ class HealthCheckManager
         }
         if ($vpSrc332 === '' || strpos($vpSrc332, 'mb_substr($toneNotes, 0, self::MAX_TONE_NOTES_CHARS)') === false) {
             $offenders[] = "VoiceProfileManager::saveProfile() ne tronque plus tone_notes via mb_substr() — régression du bug corrigé le 10/09/2026 (round 332)";
+        }
+
+        // Round 333 : le handler generate_signature de neria.php doit
+        // vérifier le retour de Db::insert('neria_signature', ...) — sans
+        // quoi un succès serait affiché même si plus aucune signature
+        // active ne reste en base (ancien fichier déjà supprimé).
+        $neriaSrc333 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $posInsert333 = $neriaSrc333 !== '' ? strpos($neriaSrc333, "\$inserted = \$db->insert('neria_signature', [") : false;
+        $insertBody333 = $posInsert333 !== false ? substr($neriaSrc333, $posInsert333, 2800) : '';
+        if ($insertBody333 === ''
+            || strpos($insertBody333, 'if ($inserted) {') === false
+            || strpos($insertBody333, "AdminTranslator::t('msg.signature_save_failed')") === false
+        ) {
+            $offenders[] = "neria.php (handler generate_signature) ne vérifie plus le retour de Db::insert('neria_signature', ...) — régression du bug corrigé le 10/09/2026 (round 333) : un message de succès inconditionnel redeviendrait affiché même si aucune signature active ne reste réellement en base";
+        }
+        // Round 333 : drawTitle() doit vérifier imagettfbbox() !== false
+        // AVANT tout accès $bbox[...] sur la police système du titre.
+        $sigSrc333 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SignatureGenerator.php');
+        $posDrawTitle333 = $sigSrc333 !== '' ? strpos($sigSrc333, 'private function drawTitle(') : false;
+        $drawTitleBody333 = $posDrawTitle333 !== false ? substr($sigSrc333, $posDrawTitle333, 1200) : '';
+        if ($drawTitleBody333 === '' || strpos($drawTitleBody333, '$bbox !== false') === false) {
+            $offenders[] = "SignatureGenerator::drawTitle() ne vérifie plus \$bbox !== false avant d'accéder au tableau — régression du bug corrigé le 10/09/2026 (round 333) : une police système corrompue provoquerait de nouveau un accès sur tableau booléen sans repli sur le fallback GD";
+        }
+        // Round 333 : getExistingSignatures() doit revérifier file_exists()
+        // avant de lire les métadonnées d'un fichier trouvé par glob().
+        if ($sigSrc333 === '' || strpos($sigSrc333, 'if (!file_exists($file)) {') === false) {
+            $offenders[] = "SignatureGenerator::getExistingSignatures() ne revérifie plus file_exists() avant de lire filesize()/filemtime() — régression du bug corrigé le 10/09/2026 (round 333) : un fichier supprimé entre glob() et la lecture produirait de nouveau des métadonnées fantômes (taille 0, date epoch)";
+        }
+        // Round 333 : CalendarManager doit instancier BlacklistManager avec
+        // $this->idShop explicite — sans lui, le constructeur retombe sur le
+        // contexte ambiant, pas la boutique réellement traitée.
+        $calSrc333 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php');
+        if ($calSrc333 === '' || strpos($calSrc333, 'new \BlacklistManager($this->idShop)') === false) {
+            $offenders[] = "CalendarManager::sendCalendarEmail() n'instancie plus BlacklistManager avec \$this->idShop — régression du bug corrigé le 10/09/2026 (round 333)";
         }
 
         if ($offenders) {
