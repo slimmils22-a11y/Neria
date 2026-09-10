@@ -374,8 +374,16 @@ class SignatureGenerator
         // On utilise une fonte embarquee simple si disponible
         $titleFontPath = $this->getSystemFontPath();
 
-        if ($titleFontPath) {
-            $bbox      = imagettfbbox(self::FONT_SIZE_TITLE, 0, $titleFontPath, $title);
+        // Round 333 : imagettfbbox() peut renvoyer false sur une police
+        // système corrompue/tronquée même quand getSystemFontPath() l'a
+        // trouvée — même piège déjà corrigé round 208 pour createImage()
+        // (police TTF du module), jamais étendu à cette police SYSTÈME.
+        // Sans ce garde-fou, $bbox[4]/$bbox[0] déclenchaient un accès sur
+        // tableau booléen (warning PHP, largeur incohérente), sans repli
+        // sur la police GD embarquée pourtant disponible juste en dessous.
+        $bbox = $titleFontPath ? imagettfbbox(self::FONT_SIZE_TITLE, 0, $titleFontPath, $title) : false;
+
+        if ($titleFontPath && $bbox !== false) {
             $textWidth = abs($bbox[4] - $bbox[0]);
             $titleX    = (int) (($width - $textWidth) / 2);
             $titleY    = $y + 28;
@@ -604,6 +612,16 @@ class SignatureGenerator
         $signatures = [];
 
         foreach (glob($pattern) ?: [] as $file) {
+            // Round 333 : revérification d'existence entre le glob() et la
+            // lecture des métadonnées — même raisonnement que delete()/
+            // ensureDirectoryExists() (round 244) : un fichier supprimé
+            // entre-temps (delete() concurrent, nettoyage disque externe)
+            // faisait retourner filesize()/filemtime() = false, affiché tel
+            // quel au BO ('0' octet et date 1970-01-01) sans que le fichier
+            // n'existe plus réellement.
+            if (!file_exists($file)) {
+                continue;
+            }
             $filename = basename($file);
             // Le style peut lui-meme contenir des underscores (ex: "great_vibes",
             // "dancing_script", "pinyon_script") : un simple explode('_') coupe

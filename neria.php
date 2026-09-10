@@ -3531,7 +3531,7 @@ class Neria extends Module
                             $db->execute(
                                 'UPDATE `' . _DB_PREFIX_ . 'neria_signature` SET `is_active` = 0 WHERE `id_shop` = ' . $idShop
                             );
-                            $db->insert('neria_signature', [
+                            $inserted = $db->insert('neria_signature', [
                                 'id_shop'      => $idShop,
                                 'signer_name'  => pSQL($sigName),
                                 'signer_title' => pSQL($sigTitle),
@@ -3545,7 +3545,34 @@ class Neria extends Module
                                 'date_add'     => date('Y-m-d H:i:s'),
                                 'date_upd'     => date('Y-m-d H:i:s'),
                             ]);
-                            $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                            // Round 333 : retour de l'INSERT désormais vérifié —
+                            // risque déjà pointé en commentaire round 262
+                            // ci-dessus ("le code ne vérifie que $path... pas le
+                            // succès de cet INSERT") mais jamais corrigé.
+                            // L'ancien fichier PNG vient d'être supprimé
+                            // (delete() ci-dessus) et toutes les lignes
+                            // existantes désactivées (UPDATE is_active=0) : si
+                            // cet INSERT échoue (contrainte, verrou, disque),
+                            // plus AUCUNE signature active ne resterait en base
+                            // pour cette boutique tout en affichant "succès" —
+                            // tous les emails envoyés ensuite perdraient
+                            // silencieusement leur signature.
+                            if ($inserted) {
+                                $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                            } else {
+                                $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.signature_save_failed'));
+                                if (class_exists('WatchdogManager')) {
+                                    try {
+                                        (new WatchdogManager($this))->error(
+                                            WatchdogManager::i18nMsg('watchdog.signature_save_failed', ['shop' => $idShop]),
+                                            '',
+                                            'SignatureGenerator'
+                                        );
+                                    } catch (\Throwable $e) {
+                                        // best-effort
+                                    }
+                                }
+                            }
                         } else {
                             $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.signature_generation_failed'));
                         }

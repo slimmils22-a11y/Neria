@@ -1026,7 +1026,18 @@ class CalendarManager
         // file_exists() ci-dessous jouait ce rôle indirectement, ce qui
         // dépendait d'un fichier compilé potentiellement supprimé/absent
         // pour de tout autres raisons (cf. checkBlacklistStaleFiles).
-        if (class_exists('BlacklistManager') && (new \BlacklistManager())->isBlacklisted($template, $lang)) {
+        // Round 333 : $this->idShop transmis explicitement — seul appel de
+        // BlacklistManager dans tout le module qui n'utilisait pas son
+        // constructeur explicite (tous les autres, ex. EmailRenderer round
+        // 321, passent $idShop). Sans lui, le constructeur retombe sur
+        // Context::getContext()->shop->id. Sur le seul chemin d'appel actuel
+        // (boucle multi-boutique de neria.php), ce contexte ambiant
+        // correspond accidentellement à la bonne boutique — mais tout code
+        // futur invoquant sendCalendarEmail() en dehors de cette boucle
+        // précise (bouton "envoi test" BO, appel direct) appliquerait les
+        // règles de blacklist d'une boutique différente de celle réellement
+        // traitée.
+        if (class_exists('BlacklistManager') && (new \BlacklistManager($this->idShop))->isBlacklisted($template, $lang)) {
             return false;
         }
 
