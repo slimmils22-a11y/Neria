@@ -21,6 +21,11 @@
  * SPF/DMARC/DKIM configurés (donc qu'il a interrogé EXACTEMENT ce domaine,
  * pas une variante polluée par le chevron) — sans dépendre d'une vraie
  * résolution DNS réseau.
+ *
+ * Mis à jour le 10/09/2026 (round 331) : le cache DNS statique porte
+ * désormais un TTL (voir test_669) — chaque entrée est un tableau
+ * ['result' => ..., 'cached_at' => ...], plus le résultat brut directement.
+ * L'injection ci-dessous suit ce nouveau format.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -34,7 +39,7 @@ function run_test(): array
     $ref = new ReflectionProperty('DeliverabilityScorer', 'dnsCache');
     $ref->setAccessible(true);
     $originalCache = $ref->getValue();
-    $ref->setValue(null, [$testDomain => $fakeDns]);
+    $ref->setValue(null, [$testDomain => ['result' => $fakeDns, 'cached_at' => microtime(true)]]);
 
     $originalFrom = Configuration::get('PS_MAIL_EMAIL_MESSAGE_FROM');
 
