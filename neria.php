@@ -78,7 +78,10 @@ class Neria extends Module
 
         // Filet de sécurité global : capture les E_ERROR/E_PARSE/E_CORE_ERROR
         // qui ne sont pas rattrapables par try/catch.
-        NeriaErrorHandler::register();
+        // Round 335 : $this transmis — permet au shutdown handler de
+        // tenter WatchdogManager::critical() (déduplication) avant de
+        // basculer sur l'écriture brute (voir NeriaErrorHandler::register()).
+        NeriaErrorHandler::register($this);
 
         $this->displayName = $this->l('Neria – Luxury Email Suite');
         // Description et confirmation traduites (19 langues) via le dictionnaire
@@ -5780,8 +5783,16 @@ class Neria extends Module
             $productIds = array_filter(array_map('intval', explode(',', $rawIds)));
             $msgKey = 'error:msg.collection_invalid';
             if ($name !== '' && count($productIds) >= 2) {
-                (new CollectionManager($this))->create($name, $productIds);
-                $msgKey = 'success:msg.collection_added';
+                // Round 335 : retour de create() désormais vérifié — même
+                // pattern déjà corrigé round 320 pour collection_toggle/
+                // collection_delete/look_rule_toggle/look_rule_delete,
+                // jamais étendu à cette action-ci. Sans ce contrôle, un
+                // échec d'INSERT (perte de connexion DB, erreur SQL) restait
+                // invisible : le marchand voyait "Collection ajoutée" alors
+                // qu'aucune ligne n'avait réellement été insérée.
+                $msgKey = (new CollectionManager($this))->create($name, $productIds)
+                    ? 'success:msg.collection_added'
+                    : 'error:msg.collection_invalid';
             }
             [$msgType, $msgTransKey] = explode(':', $msgKey);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_' . $msgType . '=' . urlencode(AdminTranslator::t($msgTransKey)) . '#neria-collection-section');
@@ -5796,8 +5807,16 @@ class Neria extends Module
             // était affiché en neria_success même quand $col est introuvable
             // (id déjà supprimé, double-clic) — aucune modification n'avait
             // pourtant eu lieu.
-            if ($col) {
-                $mgr->update($id, $col['name'], json_decode($col['product_ids'], true), !(bool) $col['active']);
+            // Round 335 : product_ids revalidé comme tableau AVANT l'appel à
+            // update() (typé strictement `array`) — même garde déjà
+            // appliquée à runDailyCheck() ci-dessous dans CollectionManager,
+            // jamais étendue à ce chemin BO. Sans elle, une ligne
+            // `product_ids` corrompue (JSON invalide en base) faisait
+            // planter la requête (TypeError fatale, non attrapée) au lieu
+            // d'afficher un message d'erreur propre.
+            $colProductIds = $col ? json_decode($col['product_ids'], true) : null;
+            if ($col && is_array($colProductIds)) {
+                $mgr->update($id, $col['name'], $colProductIds, !(bool) $col['active']);
                 $msgKey = $col['active'] ? 'msg.item_deactivated' : 'msg.item_activated';
                 Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($msgKey)) . '#neria-collection-section');
             } else {

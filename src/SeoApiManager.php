@@ -370,12 +370,31 @@ class SeoApiManager
         // etc. étaient TOUJOURS absentes, donc ?? 0 déclenchait
         // systématiquement, affichant "0 partout" en silence quel que soit
         // le vrai trafic du domaine, sans jamais lever d'erreur.
+        // Round 335 : si AUCUNE des colonnes attendues n'est présente (export
+        // Semrush qui a de nouveau changé de format, ou réponse d'erreur
+        // rendue en CSV), le code continuait avant ce correctif à fabriquer
+        // un $result avec (int) ($row[...] ?? 0) partout, à le mettre en
+        // cache 24h via runCheck() comme un rapport VALIDE, et à effacer
+        // getLastError() (clearError()) — un warning Watchdog interne était
+        // bien loggué, mais rien n'empêchait la donnée fabriquée à 0
+        // d'écraser le dernier rapport correct pendant 24h sans aucune
+        // alerte visible pour le marchand dans le BO. Même pattern déjà
+        // documenté juste au-dessus (mauvaises clés CSV lues) mais jamais
+        // traité comme une VRAIE erreur bloquante — seulement journalisé.
         $expectedKeys = ['Rk', 'Or', 'Ot', 'Oc', 'Ad', 'At'];
         if (count(array_intersect($expectedKeys, array_keys($row))) === 0) {
             $this->wd()->warning(
                 \WatchdogManager::i18nMsg('watchdog.semrush_unexpected_columns', ['headers' => implode(',', array_keys($row))]),
                 '', 'SeoApiManager'
             );
+            $prevLang = \AdminTranslator::currentLang();
+            try {
+                \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
+                $this->recordError(\AdminTranslator::t('msg.semrush_unexpected_columns'));
+            } finally {
+                \AdminTranslator::setLang($prevLang);
+            }
+            return null;
         }
 
         $result = [

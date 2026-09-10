@@ -47,14 +47,14 @@ class NeriaErrorHandler
      * propriété statique de classe) tout en restant partagé au sein
      * d'UNE MÊME requête si register() y était appelé plusieurs fois.
      */
-    public static function register(): void
+    public static function register(?\Neria $module = null): void
     {
         if (!empty($GLOBALS['__neria_error_handler_registered'])) {
             return;
         }
         $GLOBALS['__neria_error_handler_registered'] = true;
 
-        register_shutdown_function(static function (): void {
+        register_shutdown_function(static function () use ($module): void {
             $err = error_get_last();
 
             // Seulement les fatals (E_ERROR=1, E_PARSE=4, E_CORE_ERROR=16, E_COMPILE_ERROR=64)
@@ -74,6 +74,29 @@ class NeriaErrorHandler
                 basename($err['file']),
                 $err['line']
             );
+
+            // Round 335 : tente d'abord WatchdogManager::critical() — qui
+            // déduplique déjà (GET_LOCK + fenêtre glissante 1h,
+            // occurrence_count) — au lieu de basculer inconditionnellement
+            // sur l'INSERT brut ci-dessous. Sans cette tentative, un fatal
+            // PHP répété à chaque requête touchant une page cassée (ex.
+            // hookDisplayHeader() sur une fiche produit à fort trafic)
+            // insérait une NOUVELLE ligne 'critical' par requête, sans
+            // aucune limite ni fenêtre de consolidation, noyant la table
+            // neria_log précisément pendant l'incident où elle doit rester
+            // lisible. $module n'est disponible que si register() a été
+            // appelé avec l'instance du module (cas normal, depuis
+            // Neria::__construct()) — sinon (module non chargeable au
+            // moment du register(), cas limite) on retombe directement sur
+            // l'écriture brute comme avant.
+            if ($module !== null) {
+                try {
+                    (new \WatchdogManager($module))->critical($message, '', 'NeriaErrorHandler');
+                    return;
+                } catch (\Throwable $t) {
+                    // WatchdogManager indisponible en phase de shutdown — repli ci-dessous.
+                }
+            }
 
             // Écriture directe en DB — WatchdogManager peut ne plus être chargeable ici.
             try {

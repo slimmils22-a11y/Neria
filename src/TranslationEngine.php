@@ -522,10 +522,17 @@ class TranslationEngine
         $table  = _DB_PREFIX_ . 'neria_custom_variable';
         $idShop = (int) \Context::getContext()->shop->id;
 
+        // Round 335 : $use_cache=false — même famille de bug que les
+        // rounds 210-216 sur les 3 autres executeS() de ce fichier : sans
+        // lui, un email envoyé juste après une modification d'une variable
+        // personnalisée en BO (ConfigManager::setCustomVariable()) pouvait
+        // servir l'ancienne valeur sous cache SQL périmé.
         $rows = $this->db->executeS(
             "SELECT `variable_key`, `variable_value`
              FROM `{$table}`
-             WHERE `id_shop` = {$idShop}"
+             WHERE `id_shop` = {$idShop}",
+            true,
+            false
         );
 
         if (is_array($rows)) {

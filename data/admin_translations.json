@@ -28622,6 +28622,27 @@
         "nl": "Ongeldig CSV-antwoord — onjuiste API-sleutel of domein onbekend bij Semrush.",
         "gb": "Invalid CSV response — incorrect API key or domain unknown to Semrush."
     },
+    "msg.semrush_unexpected_columns": {
+        "fr": "Format de réponse Semrush inattendu (colonnes manquantes) — dernier rapport connu conservé, aucune nouvelle donnée mise en cache.",
+        "en": "Unexpected Semrush response format (missing columns) — last known report kept, no new data cached.",
+        "de": "Unerwartetes Semrush-Antwortformat (fehlende Spalten) — letzter bekannter Bericht beibehalten, keine neuen Daten zwischengespeichert.",
+        "it": "Formato di risposta Semrush inatteso (colonne mancanti) — ultimo rapporto noto conservato, nessun nuovo dato memorizzato nella cache.",
+        "es": "Formato de respuesta de Semrush inesperado (columnas faltantes) — se conserva el último informe conocido, no se almacenaron nuevos datos en caché.",
+        "pt": "Formato de resposta do Semrush inesperado (colunas em falta) — mantido o último relatório conhecido, nenhum dado novo foi guardado em cache.",
+        "br": "Formato de resposta do Semrush inesperado (colunas ausentes) — mantido o último relatório conhecido, nenhum dado novo foi armazenado em cache.",
+        "ar": "تنسيق استجابة Semrush غير متوقع (أعمدة مفقودة) — تم الاحتفاظ بآخر تقرير معروف، ولم يتم تخزين أي بيانات جديدة مؤقتًا.",
+        "ja": "Semrushの応答フォーマットが予期しないものです(列が不足)— 最後に取得できた有効なレポートを保持し、新しいデータはキャッシュされませんでした。",
+        "ko": "예상치 못한 Semrush 응답 형식입니다(열 누락) — 마지막으로 확인된 보고서를 유지하며, 새 데이터는 캐시되지 않았습니다.",
+        "zh": "Semrush 响应格式异常(缺少列)— 已保留最后一次有效报告,未缓存新数据。",
+        "tw": "Semrush 回應格式異常(缺少欄位)— 已保留最後一次有效報告,未快取新資料。",
+        "ru": "Неожиданный формат ответа Semrush (отсутствуют столбцы) — сохранён последний известный отчёт, новые данные не кэшированы.",
+        "tr": "Beklenmeyen Semrush yanıt biçimi (eksik sütunlar) — bilinen son rapor korundu, yeni veri önbelleğe alınmadı.",
+        "sv": "Oväntat Semrush-svarsformat (saknade kolumner) — senaste kända rapport behålls, ingen ny data cachelagrades.",
+        "no": "Uventet Semrush-svarformat (manglende kolonner) — siste kjente rapport beholdes, ingen nye data ble bufret.",
+        "da": "Uventet Semrush-svarformat (manglende kolonner) — seneste kendte rapport bevaret, ingen nye data blev cachet.",
+        "nl": "Onverwacht Semrush-antwoordformaat (ontbrekende kolommen) — laatst bekende rapport behouden, geen nieuwe gegevens gecachet.",
+        "gb": "Unexpected Semrush response format (missing columns) — last known report kept, no new data cached."
+    },
     "msg.send_failed": {
         "fr": "Échec de l'envoi. Vérifiez la configuration email de PrestaShop.",
         "en": "Sending failed. Check PrestaShop's email configuration.",
