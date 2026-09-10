@@ -534,6 +534,22 @@ class LookCompletionManager
             $currencyChanged = true;
         }
 
+        // Round 331 : $ctx->shop jamais basculé jusqu'ici — même piège que
+        // la devise (round 305 ci-dessus), jamais étendu à la boutique.
+        // \Product::getPriceStatic() (cœur PrestaShop) transmet
+        // $context->shop->id à priceCalculation(), qui l'utilise pour
+        // résoudre les specific_price (promotions) scopées par id_shop.
+        // buildProductBlocks() (appelant) bascule déjà $context->shop pour
+        // l'image/lien produit, mais le restaure AVANT cet appel — le
+        // calcul de prix retombait donc dans la boutique du cron, pas
+        // celle ($idShop) du client destinataire.
+        $originalShop = $ctx->shop;
+        $shopChanged  = false;
+        if (!\Validate::isLoadedObject($originalShop) || (int) $originalShop->id !== $idShop) {
+            $ctx->shop   = new \Shop($idShop);
+            $shopChanged = true;
+        }
+
         try {
             // Round 292 : $idCustomer transmis (10e paramètre) — même
             // correctif que UpsellManager::safeProductPrice() (round 184/
@@ -549,6 +565,9 @@ class LookCompletionManager
             }
             if ($currencyChanged) {
                 $ctx->currency = $originalCurrency;
+            }
+            if ($shopChanged) {
+                $ctx->shop = $originalShop;
             }
         }
     }

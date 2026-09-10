@@ -554,6 +554,25 @@ class UpsellManager
             $currencyChanged = true;
         }
 
+        // Round 331 : $ctx->shop jamais basculé jusqu'ici — même piège que
+        // la devise (round 305 ci-dessus), jamais étendu à la boutique.
+        // \Product::getPriceStatic() (cœur PrestaShop) transmet
+        // $context->shop->id à priceCalculation(), qui l'utilise pour
+        // résoudre les specific_price (promotions) scopées par id_shop.
+        // Sans ce switch, un cron démarré en contexte "Boutique A"
+        // calculait le prix d'un produit en promo SPÉCIFIQUEMENT sur la
+        // "Boutique B" du client destinataire sans jamais voir cette
+        // promo — le client recevait le prix plein tarif dans l'email
+        // alors qu'il payait réellement le prix promotionnel au clic sur
+        // la fiche produit (dont l'URL, elle, est déjà scopée par $idShop
+        // ailleurs dans ce fichier).
+        $originalShop = $ctx->shop;
+        $shopChanged  = false;
+        if ($idShop !== null && (!\Validate::isLoadedObject($originalShop) || (int) $originalShop->id !== $idShop)) {
+            $ctx->shop   = new \Shop($idShop);
+            $shopChanged = true;
+        }
+
         try {
             // Round 184 : $idCustomer transmis à getPriceStatic() — sans
             // lui, la méthode retombe sur Group::getCurrent()->id (groupe
@@ -567,6 +586,9 @@ class UpsellManager
             }
             if ($currencyChanged) {
                 $ctx->currency = $originalCurrency;
+            }
+            if ($shopChanged) {
+                $ctx->shop = $originalShop;
             }
         }
     }

@@ -414,15 +414,35 @@ class DeliverabilityScorer
      */
     public function getSubjectSpamTriggers(): array
     {
-        // Même filtre de longueur (>= 4 caractères) que score() ci-dessous —
-        // sans lui, un appelant utilisant cette liste brute (ex. vérificateur
-        // de mots-spam en direct pendant la saisie du sujet en BO) signalait
+        // Même filtre de longueur que score() ci-dessous — sans lui, un
+        // appelant utilisant cette liste brute (ex. vérificateur de
+        // mots-spam en direct pendant la saisie du sujet en BO) signalait
         // des fragments de 2-3 lettres que le scoring réel ignore, produisant
         // des faux positifs incohérents avec le score effectivement affiché.
         return array_values(array_filter(
             $this->subjectSpamTriggers,
-            static fn ($trigger) => mb_strlen($trigger) >= 4
+            static fn ($trigger) => self::triggerMeetsMinLength($trigger)
         ));
+    }
+
+    /**
+     * Round 331 : le seuil de longueur minimale (anti-faux-positifs sur des
+     * fragments latins de 2-3 lettres, ex. "off") neutralisait
+     * silencieusement la quasi-totalité du dictionnaire CJK/coréen — des
+     * mots pleins de 2 caractères en chinois/japonais/coréen ('免费',
+     * '折扣', '当選', '할인', etc., voir $subjectSpamTriggers/$spamTriggers
+     * ci-dessus), qui n'ont pas le problème de fragment court qu'a un
+     * script alphabétique où 2-3 lettres peuvent être une simple
+     * sous-chaîne d'un mot innocent. Un sujet entièrement rédigé en CJK ne
+     * déclenchait donc plus AUCUN des déclencheurs pourtant explicitement
+     * traduits dans ces langues. Seuil abaissé à 2 pour les scripts
+     * CJK/Hangul (qui ne s'écrivent pas avec des espaces et où 2
+     * caractères forment déjà un mot plein), 4 conservé pour le reste.
+     */
+    private static function triggerMeetsMinLength(string $trigger): bool
+    {
+        $minLen = preg_match('/[\x{4E00}-\x{9FFF}\x{3040}-\x{30FF}\x{AC00}-\x{D7A3}]/u', $trigger) ? 2 : 4;
+        return mb_strlen($trigger) >= $minLen;
     }
 
     public function score(string $htmlContent, string $subject): array
@@ -470,7 +490,7 @@ class DeliverabilityScorer
             // Même garde-fou que le corps (critère 4 plus bas) : un déclencheur
             // de 2-3 lettres peut matcher en sous-chaîne dans un mot ordinaire
             // d'une autre langue et générer un faux positif de score spam.
-            if (mb_strlen($trigger) >= 4 && str_contains($subjectLower, mb_strtolower($trigger))) {
+            if (self::triggerMeetsMinLength($trigger) && str_contains($subjectLower, mb_strtolower($trigger))) {
                 $subjectSpamFound[] = $trigger;
             }
         }
@@ -519,7 +539,7 @@ class DeliverabilityScorer
         $bodyText      = mb_strtolower($visible);
         $bodySpamFound = [];
         foreach ($this->spamTriggers as $trigger) {
-            if (mb_strlen($trigger) >= 4 && str_contains($bodyText, mb_strtolower($trigger))) {
+            if (self::triggerMeetsMinLength($trigger) && str_contains($bodyText, mb_strtolower($trigger))) {
                 $bodySpamFound[] = $trigger;
             }
         }
@@ -768,10 +788,15 @@ class DeliverabilityScorer
      */
     private function hasHiddenWhiteText(string $html): bool
     {
-        if (!preg_match_all('/style\s*=\s*"([^"]*)"/i', $html, $m)) {
+        // Round 331 : accepte aussi les guillemets simples (style='...') —
+        // usage courant (éditeurs WYSIWYG, contenu collé depuis Word/
+        // Outlook), auparavant totalement ignoré par la regex qui
+        // n'exigeait que des guillemets doubles, laissant passer la
+        // technique de masquage réelle qu'elle est censée détecter.
+        if (!preg_match_all('/style\s*=\s*(["\'])(.*?)\1/i', $html, $m)) {
             return false;
         }
-        foreach ($m[1] as $style) {
+        foreach ($m[2] as $style) {
             $s = strtolower($style);
             if (!preg_match('/(?<![-\w])color\s*:\s*#(?:fff|ffffff)\b/', $s)) {
                 continue;
@@ -808,14 +833,30 @@ class DeliverabilityScorer
     // contrairement à sa jumelle du même projet.
     private const DNS_TIME_BUDGET_SECS = 8.0;
 
+    // Round 331 : TTL sur le cache DNS statique — voir getDnsStatus().
+    private const DNS_CACHE_TTL_SECS = 300;
+
     private function getDnsStatus(string $domain): array
     {
         // Clé par domaine — un cache non clé renvoyait silencieusement les
         // résultats SPF/DKIM/DMARC du PREMIER domaine analysé pour tout appel
         // suivant sur un domaine différent (scénario multi-expéditeur par
         // langue avec des domaines d'envoi distincts).
-        if (self::$dnsCache !== null && isset(self::$dnsCache[$domain])) {
-            return self::$dnsCache[$domain];
+        //
+        // Round 331 : TTL de 5 min ajouté — self::$dnsCache est une
+        // propriété STATIC, donc persistante au-delà d'une seule requête
+        // HTTP tant que le worker PHP-FPM n'est pas recyclé (piège déjà
+        // documenté ailleurs dans le module, "État static PHP-FPM ≠ portée
+        // requête"). Sans TTL, un marchand corrigeant son enregistrement
+        // SPF/DKIM/DMARC puis relançant l'analyse quelques minutes après
+        // pouvait se voir réafficher l'ancien résultat (pénalité DNS
+        // obsolète) si la requête retombait sur le même worker — parfois
+        // pendant des heures selon la config pm.max_requests.
+        if (self::$dnsCache !== null
+            && isset(self::$dnsCache[$domain])
+            && (microtime(true) - self::$dnsCache[$domain]['cached_at']) < self::DNS_CACHE_TTL_SECS
+        ) {
+            return self::$dnsCache[$domain]['result'];
         }
 
         // Round 151 : $timedOut distingue désormais un DKIM/SPF/DMARC
@@ -908,7 +949,7 @@ class DeliverabilityScorer
         }
 
         self::$dnsCache ??= [];
-        self::$dnsCache[$domain] = $result;
+        self::$dnsCache[$domain] = ['result' => $result, 'cached_at' => microtime(true)];
         return $result;
     }
 
