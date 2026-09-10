@@ -10773,6 +10773,47 @@ class HealthCheckManager
             $offenders[] = "LookCompletionManager::safeProductPrice() ne bascule plus \$ctx->shop — régression du bug corrigé le 10/09/2026 (round 331)";
         }
 
+        // Round 332 : transformSamsungEmail() doit neutraliser display:flex
+        // aussi dans les attributs style="..." inline (pas seulement dans
+        // les blocs <style>) — sinon l'aperçu "Samsung Email" laisse un
+        // flexbox intact post-CssInliner::inline(), malgré l'annonce
+        // "flexbox ignoré" faite au marchand.
+        $mcpSrc332 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MultiClientPreviewManager.php');
+        $posSamsung332 = $mcpSrc332 !== '' ? strpos($mcpSrc332, 'private function transformSamsungEmail(string $html): string') : false;
+        $samsungBody332 = $posSamsung332 !== false ? substr($mcpSrc332, $posSamsung332, 1600) : '';
+        if ($samsungBody332 === '' || strpos($samsungBody332, '$this->replaceInInlineStyles($html, [') === false) {
+            $offenders[] = "MultiClientPreviewManager::transformSamsungEmail() ne neutralise plus display:flex dans les attributs style=\"...\" inline — régression du bug corrigé le 10/09/2026 (round 332) : l'aperçu Samsung Email laisserait de nouveau un flexbox intact post-inlining malgré l'annonce 'flexbox ignoré'";
+        }
+        // Round 332 : getStatusForDisplay() doit détecter le mismatch de
+        // domaine et supprimer le grace_days_left contradictoire dans ce
+        // cas — sans quoi le statut retourné peut afficher
+        // sending_allowed=false ET in_grace_period=true simultanément.
+        // Le littéral '$domainMismatch = $this->isDomainMismatch(...)'
+        // existe aussi dans isEmailSendingAllowed() (round 206) — ancré
+        // dans la fenêtre de getStatusForDisplay() pour ne détecter QUE sa
+        // propre régression, pas celle (déjà couverte ailleurs) de l'autre
+        // méthode.
+        $licSrc332 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LicenseManager.php');
+        $posDisplay332 = $licSrc332 !== '' ? strpos($licSrc332, 'public function getStatusForDisplay(): array') : false;
+        $displayBody332 = $posDisplay332 !== false ? substr($licSrc332, $posDisplay332, 2200) : '';
+        if ($displayBody332 === '' || strpos($displayBody332, '$domainMismatch = $this->isDomainMismatch($cachedDomain);') === false) {
+            $offenders[] = "LicenseManager::getStatusForDisplay() ne détecte plus le mismatch de domaine — régression du bug corrigé le 10/09/2026 (round 332)";
+        }
+        if ($licSrc332 === '' || strpos($licSrc332, "'domain_mismatch'  => \$domainMismatch,") === false) {
+            $offenders[] = "LicenseManager::getStatusForDisplay() n'expose plus la clé domain_mismatch — régression du bug corrigé le 10/09/2026 (round 332)";
+        }
+        // Round 332 : saveProfile() doit plafonner tone_notes (comme
+        // banned_words/preferred_words, rounds 135/170) — sinon MySQL peut
+        // tronquer silencieusement au-delà de 65535 octets en sql_mode non
+        // strict, sans que le marchand en soit informé.
+        $vpSrc332 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/VoiceProfileManager.php');
+        if ($vpSrc332 === '' || strpos($vpSrc332, 'private const MAX_TONE_NOTES_CHARS = 15000;') === false) {
+            $offenders[] = "VoiceProfileManager::MAX_TONE_NOTES_CHARS a disparu — régression du bug corrigé le 10/09/2026 (round 332) : tone_notes redeviendrait sans limite de longueur avant écriture";
+        }
+        if ($vpSrc332 === '' || strpos($vpSrc332, 'mb_substr($toneNotes, 0, self::MAX_TONE_NOTES_CHARS)') === false) {
+            $offenders[] = "VoiceProfileManager::saveProfile() ne tronque plus tone_notes via mb_substr() — régression du bug corrigé le 10/09/2026 (round 332)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
