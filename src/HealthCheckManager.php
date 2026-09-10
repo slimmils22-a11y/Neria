@@ -10870,6 +10870,51 @@ class HealthCheckManager
             $offenders[] = "NeriaTools::trackingSignKey() ne chiffre plus NERIA_TRACKING_FALLBACK_KEY via CryptoManager à l'écriture — régression du correctif du 10/09/2026 (hors round) : une nouvelle clé de secours serait de nouveau stockée en clair";
         }
 
+        // Round 334 : getTopCustomers() doit retomber sur ENGAGEMENT_MEDIUM
+        // (pas 0.0) pour sent=0 — symétrique à getEngagementRate() (round
+        // 328) — sinon deux vues du même client (fiche individuelle vs
+        // Top CLV) affichent de nouveau un engagement contradictoire.
+        $clvSrc334 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php');
+        $posTop334 = $clvSrc334 !== '' ? strpos($clvSrc334, 'public function getTopCustomers(int $limit = 20): array') : false;
+        $topBody334 = $posTop334 !== false ? substr($clvSrc334, $posTop334, 9500) : '';
+        if ($topBody334 === '' || strpos($topBody334, '$engagementRate = $sent > 0 ? min(1.0, $opened / $sent) : self::ENGAGEMENT_MEDIUM;') === false) {
+            $offenders[] = "ClvManager::getTopCustomers() ne retombe plus sur ENGAGEMENT_MEDIUM pour sent=0 — régression du bug corrigé le 10/09/2026 (round 334) : une pénalité -15% (engagement 'low') serait de nouveau infligée à tort dans le classement batch, en contradiction avec la fiche individuelle du même client";
+        }
+        // Round 334 : renderTxt() doit retraduire le libellé du top3 via
+        // $labels[$row['template']], pas $row['label'] figé au build.
+        $mrmSrc334 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/MonthlyReportManager.php');
+        $posTxt334 = $mrmSrc334 !== '' ? strpos($mrmSrc334, 'private function renderTxt(array $d, string $lang): string') : false;
+        $txtBody334 = $posTxt334 !== false ? substr($mrmSrc334, $posTxt334, 1300) : '';
+        if ($txtBody334 === '' || strpos($txtBody334, '$labels = class_exists(\'AdminTranslator\') ? AdminTranslator::templateLabels() : [];') === false) {
+            $offenders[] = "MonthlyReportManager::renderTxt() ne calcule plus \$labels en tête de méthode — régression du bug corrigé le 10/09/2026 (round 334) : le top3 de la version TXT afficherait de nouveau les libellés de template dans la langue du build, pas celle du destinataire";
+        }
+        $posTop3Loop334 = ($mrmSrc334 !== '' && $posTxt334 !== false) ? strpos($mrmSrc334, "section_top3'", $posTxt334) : false;
+        $top3LoopBody334 = $posTop3Loop334 !== false ? substr($mrmSrc334, $posTop3Loop334, 400) : '';
+        if ($top3LoopBody334 === '' || strpos($top3LoopBody334, "\$label = \$labels[\$row['template']] ?? (\$row['label'] ?? \$row['template']);") === false) {
+            $offenders[] = "MonthlyReportManager::renderTxt() ne retraduit plus le libellé du top3 via \$labels[\$row['template']] — régression du bug corrigé le 10/09/2026 (round 334)";
+        }
+        // Round 334 : previewHtml() doit transmettre $lang à
+        // formatMonthLabel() — sinon month_label retombe sur la langue
+        // ambiante de la session BO au lieu de la langue d'aperçu demandée.
+        $posPreview334 = $mrmSrc334 !== '' ? strpos($mrmSrc334, 'public function previewHtml(string $lang = \'fr\'): string') : false;
+        $previewBody334 = $posPreview334 !== false ? substr($mrmSrc334, $posPreview334, 1400) : '';
+        if ($previewBody334 === '' || strpos($previewBody334, '$this->formatMonthLabel($year, $month, $lang);') === false) {
+            $offenders[] = "MonthlyReportManager::previewHtml() ne transmet plus \$lang à formatMonthLabel() — régression du bug corrigé le 10/09/2026 (round 334) : le titre de l'aperçu afficherait de nouveau le mois dans la langue de la session BO ambiante au lieu de la langue demandée pour l'aperçu";
+        }
+        // Round 334 : getEmails()/getEmailById() doivent bypasser le cache
+        // SQL — même famille que getShopAverageOpenRate() (round 313).
+        $cehmSrc334 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CustomerEmailHistoryManager.php');
+        $posGetEmails334 = $cehmSrc334 !== '' ? strpos($cehmSrc334, 'public function getEmails(int $idCustomer): array') : false;
+        $getEmailsBody334 = $posGetEmails334 !== false ? substr($cehmSrc334, $posGetEmails334, 1600) : '';
+        if ($getEmailsBody334 === '' || strpos($getEmailsBody334, '$rows = $this->db->executeS($sql, true, false);') === false) {
+            $offenders[] = "CustomerEmailHistoryManager::getEmails() n'a plus \$use_cache=false sur son executeS() — régression du bug corrigé le 10/09/2026 (round 334)";
+        }
+        $posGetById334 = $cehmSrc334 !== '' ? strpos($cehmSrc334, 'public function getEmailById(int $idStat, int $idCustomer): ?array') : false;
+        $getByIdBody334 = $posGetById334 !== false ? substr($cehmSrc334, $posGetById334, 900) : '';
+        if ($getByIdBody334 === '' || strpos($getByIdBody334, "AND event_type = 'sent'\",\n            false\n        );") === false) {
+            $offenders[] = "CustomerEmailHistoryManager::getEmailById() n'a plus \$use_cache=false sur son getRow() — régression du bug corrigé le 10/09/2026 (round 334)";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
