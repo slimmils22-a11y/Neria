@@ -10915,6 +10915,59 @@ class HealthCheckManager
             $offenders[] = "CustomerEmailHistoryManager::getEmailById() n'a plus \$use_cache=false sur son getRow() — régression du bug corrigé le 10/09/2026 (round 334)";
         }
 
+        // Round 335 : fetchSemrush() ne doit plus fabriquer un résultat
+        // (0 partout, mis en cache 24h comme un succès) quand l'export CSV
+        // Semrush ne contient AUCUNE des colonnes attendues.
+        $seoSrc335 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeoApiManager.php');
+        $posSemrush335 = $seoSrc335 !== '' ? strpos($seoSrc335, 'private function fetchSemrush(string $domain): ?array') : false;
+        $semrushBody335 = $posSemrush335 !== false ? substr($seoSrc335, $posSemrush335, 7000) : '';
+        if ($semrushBody335 === ''
+            || strpos($semrushBody335, "\$this->recordError(\\AdminTranslator::t('msg.semrush_unexpected_columns'))") === false
+        ) {
+            $offenders[] = "SeoApiManager::fetchSemrush() ne journalise plus recordError('msg.semrush_unexpected_columns') sur colonnes CSV inattendues — régression du bug corrigé le 10/09/2026 (round 335) : un rapport SEO fabriqué à 0 partout serait de nouveau mis en cache 24h comme un résultat valide";
+        }
+
+        // Round 335 : loadCustomVars() doit bypasser le cache SQL, même
+        // famille que les 3 autres executeS() de TranslationEngine.php
+        // (rounds 210-216).
+        $teSrc335 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/TranslationEngine.php');
+        $posLoadVars335 = $teSrc335 !== '' ? strpos($teSrc335, 'private function loadCustomVars(): void') : false;
+        $loadVarsBody335 = $posLoadVars335 !== false ? substr($teSrc335, $posLoadVars335, 900) : '';
+        if ($loadVarsBody335 === '' || strpos($loadVarsBody335, "WHERE `id_shop` = {\$idShop}\",\n            true,\n            false\n        );") === false) {
+            $offenders[] = "TranslationEngine::loadCustomVars() n'a plus \$use_cache=false sur son executeS() — régression du bug corrigé le 10/09/2026 (round 335)";
+        }
+
+        // Round 335 : collection_add doit conditionner le message de succès
+        // au retour réel de CollectionManager::create() (pattern round 320
+        // jamais étendu ici) ; collection_toggle doit valider is_array()
+        // sur le json_decode() de product_ids AVANT update() (typé array).
+        $neriaSrc335 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $posCollAdd335 = $neriaSrc335 !== '' ? strpos($neriaSrc335, "neria_action') === 'collection_add'") : false;
+        $collAddBody335 = $posCollAdd335 !== false ? substr($neriaSrc335, $posCollAdd335, 1300) : '';
+        if ($collAddBody335 === ''
+            || strpos($collAddBody335, '$msgKey = (new CollectionManager($this))->create($name, $productIds)') === false
+        ) {
+            $offenders[] = "neria.php (collection_add) ne conditionne plus le succès affiché au retour réel de CollectionManager::create() — régression du bug corrigé le 10/09/2026 (round 335)";
+        }
+        $posCollToggle335 = $neriaSrc335 !== '' ? strpos($neriaSrc335, "neria_action') === 'collection_toggle'") : false;
+        $collToggleBody335 = $posCollToggle335 !== false ? substr($neriaSrc335, $posCollToggle335, 1400) : '';
+        if ($collToggleBody335 === ''
+            || strpos($collToggleBody335, 'if ($col && is_array($colProductIds)) {') === false
+        ) {
+            $offenders[] = "neria.php (collection_toggle) ne valide plus is_array() sur product_ids avant CollectionManager::update() — régression du bug corrigé le 10/09/2026 (round 335) : une ligne corrompue provoquerait de nouveau une erreur fatale";
+        }
+
+        // Round 335 : le shutdown handler de NeriaErrorHandler doit tenter
+        // WatchdogManager::critical() (déduplication) avant tout INSERT brut.
+        $nehSrc335 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaErrorHandler.php');
+        $posRegister335 = $nehSrc335 !== '' ? strpos($nehSrc335, 'public static function register(?\Neria $module = null): void') : false;
+        $registerBody335 = $posRegister335 !== false ? substr($nehSrc335, $posRegister335, 2500) : '';
+        if ($registerBody335 === ''
+            || strpos($registerBody335, "(new \\WatchdogManager(\$module))->critical(\$message, '', 'NeriaErrorHandler');") === false
+        ) {
+            $offenders[] = "NeriaErrorHandler::register() ne tente plus WatchdogManager::critical() (déduplication) avant l'INSERT brut de secours — régression du bug corrigé le 10/09/2026 (round 335) : un fatal PHP répété inonderait de nouveau neria_log sans consolidation";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
