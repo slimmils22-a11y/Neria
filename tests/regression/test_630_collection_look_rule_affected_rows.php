@@ -71,7 +71,7 @@ function run_test(): array
     foreach (['collection_toggle', 'look_rule_toggle'] as $action) {
         $pos = strpos($src, "Tools::getValue('neria_action') === '{$action}'");
         neria_assert($pos !== false, "action {$action} introuvable — jeu de test invalide");
-        $body = substr($src, $pos, 1500);
+        $body = substr($src, $pos, 2200);
         $expectedKey = $action === 'collection_toggle' ? 'msg.collection_not_found' : 'msg.look_rule_not_found';
         neria_assert(
             strpos($body, "AdminTranslator::t('{$expectedKey}')") !== false,

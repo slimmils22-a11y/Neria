@@ -73,13 +73,17 @@ function run_test(): array
         );
     }
 
-    // PageSpeedManager et SeoApiManager ont 2 appels chacun
-    foreach (['PageSpeedManager.php', 'SeoApiManager.php'] as $file) {
+    // PageSpeedManager a 2 appels ; SeoApiManager en a 3 depuis le round 335
+    // (nouveau repli recordError('msg.semrush_unexpected_columns') dans
+    // fetchSemrush(), même pattern try/setLang/finally que les 2 appels
+    // préexistants).
+    $expectedCounts = ['PageSpeedManager.php' => 2, 'SeoApiManager.php' => 3];
+    foreach ($expectedCounts as $file => $expected) {
         $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/' . $file);
         $count = substr_count($src, 'WatchdogManager::shopLang((int) \Context::getContext()->shop->id)');
         neria_assert(
-            $count === 2,
-            "{$file} : {$count}/2 appels à shopLang() passent un idShop explicite — régression du bug corrigé le 09/08/2026 (round 142)"
+            $count === $expected,
+            "{$file} : {$count}/{$expected} appels à shopLang() passent un idShop explicite — régression du bug corrigé le 09/08/2026 (round 142)"
         );
         neria_assert(
             strpos($src, 'WatchdogManager::shopLang())') === false,
@@ -89,6 +93,6 @@ function run_test(): array
 
     return [
         'pass'    => true,
-        'message' => "WatchdogManager::shopLang() accepte bien un idShop explicite, transmis par ses 7 appelants externes connus (ABTestManager, EmailRenderer, PageSpeedManager×2, PostmasterManager, SearchConsoleManager, SeoApiManager×2)",
+        'message' => "WatchdogManager::shopLang() accepte bien un idShop explicite, transmis par ses 7 appelants externes connus (ABTestManager, EmailRenderer, PageSpeedManager×2, PostmasterManager, SearchConsoleManager, SeoApiManager×3)",
     ];
 }
