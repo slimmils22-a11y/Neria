@@ -619,8 +619,29 @@ class LicenseManager
         $expires = (int) \Configuration::get(self::CONFIG_EXPIRES);
         $revokedAt = (int) \Configuration::get(self::CONFIG_REVOKED_AT);
 
+        // Round 332 : même détection que isEmailSendingAllowed() (round
+        // 206) — sans elle, un jeton expiré NATURELLEMENT sur une
+        // installation clonée vers un autre domaine (staging, migration)
+        // affichait un bandeau BO contradictoire : sending_allowed=false
+        // (bloqué à raison par le mismatch de domaine, sans repli sur la
+        // grâce, cf. isEmailSendingAllowed()) MAIS in_grace_period=true
+        // avec un grace_days_left positif calculé sur CONFIG_LAST_CHECK —
+        // le marchand voyait "en période de grâce, X jours restants" alors
+        // que les envois étaient déjà bloqués, sans aucun rapport avec une
+        // panne serveur ni indication de la cause réelle.
+        $domainMismatch = false;
+        if ($token !== '' && $this->verifyTokenSignature($token)) {
+            $payload = json_decode($token, true);
+            $cachedDomain = is_array($payload) ? (string) ($payload['domain'] ?? '') : '';
+            $domainMismatch = $this->isDomainMismatch($cachedDomain);
+        }
+
         $graceDaysLeft = null;
-        if ($key === '') {
+        if ($domainMismatch) {
+            // Blocage à raison par mismatch de domaine — isEmailSendingAllowed()
+            // refuse explicitement tout repli sur la grâce dans ce cas
+            // (round 206), donc aucun grace_days_left n'a de sens ici.
+        } elseif ($key === '') {
             $installedAt = (int) strtotime((string) \Configuration::get('NERIA_INSTALLED_AT'));
             if ($installedAt > 0) {
                 $graceDaysLeft = max(0, self::GRACE_NEVER_ACTIVATED_DAYS - (int) floor((time() - $installedAt) / 86400));
@@ -656,6 +677,7 @@ class LicenseManager
             'in_grace_period'  => $graceDaysLeft !== null,
             'grace_days_left'  => $graceDaysLeft,
             'revoked'          => $revokedAt > 0,
+            'domain_mismatch'  => $domainMismatch,
         ];
     }
 

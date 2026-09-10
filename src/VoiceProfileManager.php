@@ -78,6 +78,21 @@ class VoiceProfileManager
         $bannedWords    = $this->normalizeWordListInput($bannedWords);
         $preferredWords = $this->normalizeWordListInput($preferredWords);
 
+        // Round 332 : contrairement à banned_words/preferred_words
+        // (plafonnés round 135/170), tone_notes n'avait AUCUNE limite de
+        // longueur avant écriture. Colonne TEXT (65 535 octets max) : au-delà,
+        // un sql_mode strict fait échouer l'INSERT (déjà géré côté appelant,
+        // round 322 — pas de faux succès), mais en sql_mode non strict
+        // (fréquent en hébergement mutualisé), MySQL tronque SILENCIEUSEMENT
+        // à 65 535 octets — le marchand croit sa note complète enregistrée.
+        // Plafond en CARACTÈRES (mb_substr, jamais substr() sur cette
+        // valeur) très en-deçà de la limite en octets (15000 car. × 4
+        // octets UTF-8 max = 60000 < 65535) pour ne jamais risquer de
+        // couper un caractère multi-octets (UTF-8/emoji) en deux.
+        if (mb_strlen($toneNotes) > self::MAX_TONE_NOTES_CHARS) {
+            $toneNotes = mb_substr($toneNotes, 0, self::MAX_TONE_NOTES_CHARS);
+        }
+
         return (bool) $this->db->execute(
             'INSERT INTO `' . _DB_PREFIX_ . self::TABLE . '`
              (`id_shop`, `lang`, `banned_words`, `preferred_words`, `tone_notes`, `date_upd`)
@@ -97,6 +112,9 @@ class VoiceProfileManager
      * réinjectée dans une regex construite dynamiquement à chaque
      * sauvegarde de traduction et à chaque audit complet. */
     private const MAX_WORD_LENGTH = 100;
+
+    /** Round 332 : plafond de tone_notes (texte libre) — voir saveProfile(). */
+    private const MAX_TONE_NOTES_CHARS = 15000;
 
     /**
      * Déduplique (insensible à la casse) et plafonne une liste "un mot par

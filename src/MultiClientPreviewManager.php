@@ -312,6 +312,20 @@ class MultiClientPreviewManager
     {
         // Samsung Email (Android) ignore les @media queries et le flexbox.
         // Round 144 : filets ?? — voir stripStyleAndLinkTags().
+        //
+        // Round 332 : le flexbox n'était neutralisé que dans les blocs
+        // <style> — jamais dans les attributs style="..." inline, à la
+        // différence de transformOutlook() (même neutralisation flexbox,
+        // qui appelle bien replaceInInlineStyles() EN PLUS du traitement
+        // <style>). Or CssInliner::inline() tourne systématiquement avant
+        // l'envoi, donc une règle CSS "display:flex" finit très
+        // majoritairement inline sur l'élément, pas dans un <style>
+        // résiduel — l'aperçu "Samsung Email" laissait alors le flexbox
+        // intact, contredisant l'annonce "flexbox ignoré" faite au
+        // marchand.
+        $html = $this->replaceInInlineStyles($html, [
+            '/display\s*:\s*flex[^;"\'}]*;?/i' => 'display:block;',
+        ]);
         $html = preg_replace_callback('/<style\b[^>]*>(.*?)<\/style>/si', function ($m) {
             $css = preg_replace('/@media\b[^{]*\{(?:[^{}]|\{[^{}]*\})*\}/si', '', $m[1]) ?? $m[1];
             $css = preg_replace('/display\s*:\s*flex[^;{}]*;?/i', 'display:block;', $css) ?? $css;
