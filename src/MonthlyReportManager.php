@@ -199,7 +199,15 @@ class MonthlyReportManager
 
         $report['prev']            = $prevReport;
         $report['recommendations'] = $this->generateRecommendations($report, $prevReport);
-        $report['month_label']     = $this->formatMonthLabel($year, $month);
+        // Round 334 : $lang transmis explicitement — sans lui,
+        // formatMonthLabel() retombait sur AdminTranslator::currentLang()
+        // AU MOMENT DE CET APPEL (donc la langue ambiante de la session BO
+        // de l'employé), pas la langue $lang demandée pour CETTE
+        // prévisualisation, positionnée seulement plus bas via setLang().
+        // Même correctif déjà appliqué pour l'envoi réel dans
+        // deliverReportLockedInner() (round 180), jamais porté à
+        // previewHtml(), qui ne passe pas par cette méthode.
+        $report['month_label']     = $this->formatMonthLabel($year, $month, $lang);
 
         $originalLang = class_exists('AdminTranslator') ? \AdminTranslator::currentLang() : null;
         if (class_exists('AdminTranslator')) {
@@ -1230,6 +1238,17 @@ class MonthlyReportManager
         $t    = fn(string $k, array $v = []) => $this->t('report.' . $k, $v);
         $kpis = $d['kpis'];
         $sep  = str_repeat('-', 48);
+        // Round 334 : résolu ICI (au rendu, par destinataire) — même
+        // raisonnement que renderHtml() ci-dessus (round non identifié en
+        // commentaire, mais logique identique) : $row['label'] a été
+        // calculé une seule fois au moment du build du rapport, dans la
+        // langue globale ambiante à cet instant, pas celle du destinataire
+        // courant. renderHtml() re-résout déjà ce libellé via $labels ;
+        // renderTxt() ne le faisait QUE pour les recommandations (ligne
+        // plus bas), jamais pour le top3 — la version TXT d'un email
+        // affichait alors des noms de template dans la mauvaise langue par
+        // rapport au reste du texte, déjà bien traduit via $t().
+        $labels = class_exists('AdminTranslator') ? AdminTranslator::templateLabels() : [];
 
         $lines = [
             $t('header_title', ['month' => $d['month_label']]),
@@ -1245,13 +1264,13 @@ class MonthlyReportManager
         if (!empty($d['rankings']['top3'])) {
             $lines[] = $t('section_top3');
             foreach ($d['rankings']['top3'] as $i => $row) {
-                $lines[] = ($i + 1) . '. ' . $row['label'] . ' - ' . $row['rate_open'] . '% ' . $t('open_rate_label');
+                $label = $labels[$row['template']] ?? ($row['label'] ?? $row['template']);
+                $lines[] = ($i + 1) . '. ' . $label . ' - ' . $row['rate_open'] . '% ' . $t('open_rate_label');
             }
             $lines[] = '';
         }
 
         if (!empty($d['recommendations'])) {
-            $labels = class_exists('AdminTranslator') ? AdminTranslator::templateLabels() : [];
             $lines[] = $t('section_recs');
             foreach ($d['recommendations'] as $rec) {
                 $lines[] = '- ' . $this->t('report.' . $rec['key'], $this->resolveRecVars($rec['vars'], $labels, $lang));

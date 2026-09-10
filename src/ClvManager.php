@@ -412,7 +412,14 @@ class ClvManager
 
             $sent   = (int) ($engagementAgg[$idCustomer]['sent'] ?? 0);
             $opened = (int) ($engagementAgg[$idCustomer]['opened'] ?? 0);
-            $engagementRate = $sent > 0 ? min(1.0, $opened / $sent) : 0.0;
+            // Round 334 : sent=0 renvoyait 0.0 ici, tombant sous
+            // ENGAGEMENT_MEDIUM et infligeant à tort la pénalité -15% —
+            // exactement le bug corrigé round 328 dans getEngagementRate()
+            // (chemin single-customer), jamais porté à cette duplication
+            // batch qui alimente le classement Top CLV. Un même client
+            // obtenait donc un multiplicateur d'engagement contradictoire
+            // selon qu'on consultait sa fiche individuelle ou le Top 20.
+            $engagementRate = $sent > 0 ? min(1.0, $opened / $sent) : self::ENGAGEMENT_MEDIUM;
 
             $clv = $this->assembleClv(
                 (int) $agg['order_count'],

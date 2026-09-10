@@ -125,7 +125,16 @@ class CustomerEmailHistoryManager
                   AND s.event_type = 'sent'
                 ORDER BY s.date_add DESC";
 
-        $rows = $this->db->executeS($sql);
+        // Round 334 : executeS($sql, true, false) — même famille de bug que
+        // getShopAverageOpenRate() ci-dessus (round 313) : le texte SQL est
+        // identique d'un appel à l'autre pour le même client, sans
+        // $use_cache=false une ouverture ou un envoi qui vient de se
+        // produire n'était pas reflété immédiatement dans la timeline/le
+        // badge/les alertes de la fiche client. Piège de signature (round
+        // 326) : le 2e argument positionnel contrôle le MODE TABLEAU, pas
+        // le cache — `true` explicite requis pour pouvoir passer `false`
+        // en 3e position.
+        $rows = $this->db->executeS($sql, true, false);
         if (!is_array($rows)) {
             return [];
         }
@@ -309,12 +318,19 @@ class CustomerEmailHistoryManager
     {
         $table = _DB_PREFIX_ . StatsManager::TABLE;
 
+        // Round 334 : $use_cache=false — même famille de bug que
+        // getEmails()/getShopAverageOpenRate() ci-dessus (round 313) : un
+        // aperçu/renvoi lancé juste après l'envoi initial (avant que la
+        // ligne ait pu être relue en base après un précédent cache SQL sous
+        // le même texte de requête) pouvait retomber sur une version
+        // incomplète mise en cache.
         $row = $this->db->getRow(
             "SELECT * FROM `{$table}`
              WHERE id_stat = " . (int) $idStat . "
                AND id_customer = " . (int) $idCustomer . "
                AND id_shop = {$this->idShop}
-               AND event_type = 'sent'"
+               AND event_type = 'sent'",
+            false
         );
 
         return $row ?: null;
