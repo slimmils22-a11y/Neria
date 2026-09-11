@@ -2907,9 +2907,19 @@ class Neria extends Module
         }
 
         if (Tools::getValue('neria_action') === 'toggle_autolang' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-            $current = (bool) Configuration::get(self::CONFIG_PREFIX . 'AUTO_LANG');
+            // Round 337 : id_shop explicite (lecture ET écriture) — même
+            // correctif déjà appliqué à save_senders (round 132/133) —
+            // ConfigManager::isAutoLangEnabled() lit toujours avec
+            // $this->idShop explicite ; sans le même scope ici, la lecture
+            // ambiante ci-dessus pouvait déjà refléter le mauvais contexte
+            // boutique, et l'écriture pouvait cibler une boutique différente
+            // de celle réellement en cours d'édition — le BO affichait
+            // "Enregistré" sans que le réglage n'ait d'effet pour la
+            // boutique visée.
+            $idShop337 = (int) $this->context->shop->id;
+            $current = (bool) Configuration::get(self::CONFIG_PREFIX . 'AUTO_LANG', null, null, $idShop337);
             $enabled = !$current;
-            Configuration::updateValue(self::CONFIG_PREFIX . 'AUTO_LANG', (int) $enabled);
+            Configuration::updateValue(self::CONFIG_PREFIX . 'AUTO_LANG', (int) $enabled, false, null, $idShop337);
             $this->context->smarty->assign('neria_success', AdminTranslator::tVars('msg.autolang_toggled', [
                 'state' => AdminTranslator::t($enabled ? 'msg.state_enabled' : 'msg.state_disabled'),
             ]));
@@ -3024,7 +3034,10 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'save_cooldown' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $minutes = (int) Tools::getValue('neria_cooldown_minutes', 10);
             $minutes = max(1, min(60, $minutes));
-            Configuration::updateValue(self::CONFIG_PREFIX . 'COOLDOWN_MINUTES', $minutes);
+            // Round 337 : id_shop explicite — ConfigManager::getCooldownMinutes()
+            // lit toujours avec $this->idShop explicite (même correctif que
+            // save_senders, round 132/133).
+            Configuration::updateValue(self::CONFIG_PREFIX . 'COOLDOWN_MINUTES', $minutes, false, null, (int) $this->context->shop->id);
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
@@ -3745,7 +3758,10 @@ class Neria extends Module
         if (Tools::getValue('neria_action') === 'save_voucher_validity' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $days = (int) Tools::getValue('neria_voucher_validity', 30);
             $days = max(1, min(365, $days));
-            Configuration::updateValue(self::CONFIG_PREFIX . 'VOUCHER_VALIDITY', $days);
+            // Round 337 : id_shop explicite — ConfigManager::getVoucherValidity()/
+            // getVoucherFixedCap() lisent toujours avec $this->idShop explicite
+            // (même correctif que save_senders, round 132/133).
+            Configuration::updateValue(self::CONFIG_PREFIX . 'VOUCHER_VALIDITY', $days, false, null, (int) $this->context->shop->id);
 
             // Plafond réglable par le marchand pour les bons en mode montant
             // fixe (anniversaire / paliers / fidélité) — 10 000 par défaut,
@@ -3754,7 +3770,7 @@ class Neria extends Module
             // faute de frappe ("1000" au lieu de "10").
             $cap = (float) str_replace(',', '.', (string) Tools::getValue('neria_voucher_fixed_cap', 10000));
             $cap = max(1, min(1000000, $cap));
-            Configuration::updateValue(self::CONFIG_PREFIX . 'VOUCHER_FIXED_CAP', $cap);
+            Configuration::updateValue(self::CONFIG_PREFIX . 'VOUCHER_FIXED_CAP', $cap, false, null, (int) $this->context->shop->id);
 
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
@@ -3770,8 +3786,11 @@ class Neria extends Module
             // sans limite, auto-envoyé à chaque anniversaire client.
             $fixedCap = (new ConfigManager($this))->getVoucherFixedCap();
             $amount = max(0, $isPercent ? min(100, $amount) : min($fixedCap, $amount));
-            Configuration::updateValue(self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_AMOUNT', $amount);
-            Configuration::updateValue(self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_PERCENT', $isPercent ? 1 : 0);
+            // Round 337 : id_shop explicite — même correctif que save_senders
+            // (round 132/133), cohérent avec ConfigManager::getBirthdayVoucherAmount()/
+            // isBirthdayVoucherPercent() qui lisent toujours avec $this->idShop.
+            Configuration::updateValue(self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_AMOUNT', $amount, false, null, (int) $this->context->shop->id);
+            Configuration::updateValue(self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_PERCENT', $isPercent ? 1 : 0, false, null, (int) $this->context->shop->id);
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
@@ -3783,9 +3802,14 @@ class Neria extends Module
             // Même plafond de sécurité réglable que le bon anniversaire ci-dessus.
             $fixedCap  = (new ConfigManager($this))->getVoucherFixedCap();
             $amount    = max(0, $isPercent ? min(100, $amount) : min($fixedCap, $amount));
-            Configuration::updateValue(self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_ENABLED', $enabled ? 1 : 0);
-            Configuration::updateValue(self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_AMOUNT', $amount);
-            Configuration::updateValue(self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_PERCENT', $isPercent ? 1 : 0);
+            // Round 337 : id_shop explicite — même correctif que save_senders
+            // (round 132/133), cohérent avec ConfigManager::isMilestoneVoucherEnabled()/
+            // getMilestoneVoucherAmount()/isMilestoneVoucherPercent() qui
+            // lisent toujours avec $this->idShop.
+            $idShop337b = (int) $this->context->shop->id;
+            Configuration::updateValue(self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_ENABLED', $enabled ? 1 : 0, false, null, $idShop337b);
+            Configuration::updateValue(self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_AMOUNT', $amount, false, null, $idShop337b);
+            Configuration::updateValue(self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_PERCENT', $isPercent ? 1 : 0, false, null, $idShop337b);
             $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
         }
 
@@ -4868,8 +4892,9 @@ class Neria extends Module
                     if ($idHistory > 0 && $this->abtestBelongsToShop($idAbtestB, $tplKey)) {
                         $histMgr = new TranslationHistoryManager($this);
                         $entry   = $histMgr->getById($idHistory);
-                        // getById() ne filtre que par id_shop, jamais par
-                        // template/langue — voir le correctif identique sur
+                        // Round 337 : commentaire corrigé — getById() ne
+                        // filtre par RIEN d'autre que id_history (pas même
+                        // id_shop), voir le correctif identique sur
                         // restore_translation plus bas.
                         if ($entry && ($entry['template_key'] ?? null) === 'variantb_' . $tplKey
                             && ($entry['lang_code'] ?? null) === $tplLang
@@ -4921,8 +4946,11 @@ class Neria extends Module
                     if ($idHistory > 0) {
                         $histMgr = new TranslationHistoryManager($this);
                         $entry   = $histMgr->getById($idHistory);
-                        // getById() ne filtre que par id_shop, jamais par
-                        // template/langue — sans cette vérification, un
+                        // Round 337 : commentaire corrigé — getById() ne
+                        // filtre par RIEN d'autre que id_history (pas même
+                        // id_shop, cf. round 138/TranslationHistoryManager),
+                        // jamais par template/langue non plus — sans cette
+                        // vérification applicative, un
                         // id_history pointant vers un AUTRE template ou une
                         // AUTRE langue que celui/celle actuellement affiché
                         // (onglet changé sans rechargement, id manipulé)
@@ -4986,10 +5014,22 @@ class Neria extends Module
                 if ($tradAction === 'delete_history' && class_exists('TranslationHistoryManager')) {
                     $idHistory = (int) Tools::getValue('id_history', 0);
                     if ($idHistory > 0) {
+                        // Round 337 : filtre id_shop retiré — incohérent avec
+                        // TranslationHistoryManager::getHistoryForTemplate()/
+                        // getById() (round 138), qui ne scopent délibérément
+                        // plus par id_shop depuis que l'historique est affiché
+                        // GLOBALEMENT (neria_translation elle-même n'a aucune
+                        // colonne id_shop, une édition est toujours globale).
+                        // Sur une installation multi-boutique, un opérateur
+                        // consultant l'historique depuis la boutique A pouvait
+                        // voir une entrée créée depuis la boutique B (visible
+                        // via la liste globale) mais cliquer "Supprimer"
+                        // n'avait alors AUCUN effet (0 ligne matchée, aucune
+                        // vérification/erreur affichée) — l'entrée réapparaissait
+                        // silencieusement à chaque rechargement.
                         Db::getInstance()->execute(
                             "DELETE FROM `" . _DB_PREFIX_ . "neria_translation_history`
-                             WHERE `id_history` = " . $idHistory . "
-                               AND `id_shop` = " . (int) $this->context->shop->id
+                             WHERE `id_history` = " . $idHistory
                         );
                     }
                 }

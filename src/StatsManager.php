@@ -435,12 +435,23 @@ class StatsManager
         $days       = (int) $days;
         $langFilter = $lang ? "AND `lang` = '" . pSQL($lang) . "'" : '';
 
+        // Round 337 : AND is_mpp = 0 ajouté au comptage des CLICS, symétrique
+        // à celui déjà appliqué aux OUVERTURES depuis le round 300 —
+        // recordClick() détecte bien les pré-visites automatiques des
+        // scanners de sécurité d'entreprise (Microsoft Safe Links,
+        // Proofpoint URL Defense, Mimecast) via detectMpp() et les exclut
+        // déjà de l'attribution des points de fidélité ($awardPoints), mais
+        // TOUTES les requêtes de reporting sur les clics (ce fichier entier)
+        // continuaient de les compter comme de vrais clics — faussant
+        // rate_click/CTOR, le classement des templates et la significativité
+        // des tests A/B pour toute boutique à clientèle B2B (où ces
+        // scanners sont très répandus).
         $sql = "SELECT
                     `template`,
                     COUNT(CASE WHEN `event_type` = 'sent'                     THEN 1 END) AS total_sent,
                     COUNT(CASE WHEN `event_type` = 'open' AND `is_mpp` = 0   THEN 1 END) AS total_open,
                     COUNT(CASE WHEN `event_type` = 'open' AND `is_mpp` = 1   THEN 1 END) AS mpp_open,
-                    COUNT(CASE WHEN `event_type` = 'click'                    THEN 1 END) AS total_click
+                    COUNT(CASE WHEN `event_type` = 'click' AND `is_mpp` = 0  THEN 1 END) AS total_click
                 FROM `{$table}`
                 WHERE `id_shop`  = {$this->idShop}
                   AND `date_add` >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
@@ -478,7 +489,7 @@ class StatsManager
                     `lang`,
                     COUNT(CASE WHEN `event_type` = 'sent'                     THEN 1 END) AS total_sent,
                     COUNT(CASE WHEN `event_type` = 'open' AND `is_mpp` = 0   THEN 1 END) AS total_open,
-                    COUNT(CASE WHEN `event_type` = 'click'                    THEN 1 END) AS total_click
+                    COUNT(CASE WHEN `event_type` = 'click' AND `is_mpp` = 0  THEN 1 END) AS total_click
                 FROM `{$table}`
                 WHERE `id_shop`  = {$this->idShop}
                   AND `date_add` >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
@@ -513,7 +524,7 @@ class StatsManager
                     `country_code`,
                     COUNT(CASE WHEN `event_type` = 'sent'                     THEN 1 END) AS total_sent,
                     COUNT(CASE WHEN `event_type` = 'open' AND `is_mpp` = 0   THEN 1 END) AS total_open,
-                    COUNT(CASE WHEN `event_type` = 'click'                    THEN 1 END) AS total_click
+                    COUNT(CASE WHEN `event_type` = 'click' AND `is_mpp` = 0  THEN 1 END) AS total_click
                 FROM `{$table}`
                 WHERE `id_shop`      = {$this->idShop}
                   AND `date_add`     >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
@@ -553,7 +564,7 @@ class StatsManager
                     COUNT(CASE WHEN `event_type` = 'sent'                     THEN 1 END) AS sent,
                     COUNT(CASE WHEN `event_type` = 'open' AND `is_mpp` = 0   THEN 1 END) AS open,
                     COUNT(CASE WHEN `event_type` = 'open' AND `is_mpp` = 1   THEN 1 END) AS mpp,
-                    COUNT(CASE WHEN `event_type` = 'click'                    THEN 1 END) AS click
+                    COUNT(CASE WHEN `event_type` = 'click' AND `is_mpp` = 0  THEN 1 END) AS click
                 FROM `{$table}`
                 WHERE `id_shop`  = {$this->idShop}
                   AND `date_add` >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
@@ -578,7 +589,7 @@ class StatsManager
                     COUNT(CASE WHEN `event_type` = 'sent'                     THEN 1 END) AS total_sent,
                     COUNT(CASE WHEN `event_type` = 'open' AND `is_mpp` = 0   THEN 1 END) AS total_open,
                     COUNT(CASE WHEN `event_type` = 'open' AND `is_mpp` = 1   THEN 1 END) AS mpp_open,
-                    COUNT(CASE WHEN `event_type` = 'click'                    THEN 1 END) AS total_click,
+                    COUNT(CASE WHEN `event_type` = 'click' AND `is_mpp` = 0  THEN 1 END) AS total_click,
                     COUNT(CASE WHEN `event_type` = 'conversion'               THEN 1 END) AS total_conversion,
                     COUNT(DISTINCT `template`)                                             AS active_templates,
                     COUNT(DISTINCT `lang`)                                                 AS active_langs,
@@ -632,7 +643,7 @@ class StatsManager
                     `abtest_variant` AS variant,
                     COUNT(CASE WHEN `event_type` = 'sent'                          THEN 1 END) AS total_sent,
                     COUNT(CASE WHEN `event_type` = 'open' AND `is_mpp` = 0        THEN 1 END) AS total_open,
-                    COUNT(CASE WHEN `event_type` = 'click'                         THEN 1 END) AS total_click,
+                    COUNT(CASE WHEN `event_type` = 'click' AND `is_mpp` = 0       THEN 1 END) AS total_click,
                     SUM(CASE WHEN `event_type`   = 'conversion' THEN `revenue` ELSE 0 END) AS total_revenue
                 FROM `{$table}`
                 WHERE `id_shop`        = {$this->idShop}
@@ -1460,7 +1471,7 @@ class StatsManager
                 SELECT
                     COUNT(CASE WHEN event_type = 'sent'              THEN 1 END) AS sent,
                     COUNT(CASE WHEN event_type = 'open' AND is_mpp=0 THEN 1 END) AS opens,
-                    COUNT(CASE WHEN event_type = 'click'             THEN 1 END) AS clicks
+                    COUNT(CASE WHEN event_type = 'click' AND is_mpp=0 THEN 1 END) AS clicks
                 FROM `{$table}`
                 WHERE id_shop     = {$this->idShop}
                   AND DATE(date_add) >= DATE_SUB(CURDATE(), INTERVAL {$offsetLow} DAY)
@@ -1557,7 +1568,7 @@ class StatsManager
             SELECT DATE(date_add) AS d,
                    COUNT(CASE WHEN event_type = 'sent'              THEN 1 END) AS sent,
                    COUNT(CASE WHEN event_type = 'open' AND is_mpp=0 THEN 1 END) AS opens,
-                   COUNT(CASE WHEN event_type = 'click'             THEN 1 END) AS clicks
+                   COUNT(CASE WHEN event_type = 'click' AND is_mpp=0 THEN 1 END) AS clicks
             FROM `{$table}`
             WHERE id_shop  = {$this->idShop}
               AND date_add >= DATE_SUB(NOW(), INTERVAL {$days} DAY)
@@ -1638,14 +1649,14 @@ class StatsManager
         // plutôt que l'alias.
         $sentExpr = "COUNT(CASE WHEN event_type = 'sent' THEN 1 END)";
         $orderBy = $metric === 'rate_click'
-            ? "COUNT(CASE WHEN event_type = 'click' THEN 1 END) / NULLIF({$sentExpr}, 0) DESC"
+            ? "COUNT(CASE WHEN event_type = 'click' AND is_mpp=0 THEN 1 END) / NULLIF({$sentExpr}, 0) DESC"
             : "COUNT(CASE WHEN event_type = 'open' AND is_mpp=0 THEN 1 END) / NULLIF({$sentExpr}, 0) DESC";
 
         $rows = $this->db->executeS("
             SELECT template,
                    COUNT(CASE WHEN event_type = 'sent'              THEN 1 END) AS sent,
                    COUNT(CASE WHEN event_type = 'open' AND is_mpp=0 THEN 1 END) AS opens,
-                   COUNT(CASE WHEN event_type = 'click'             THEN 1 END) AS clicks
+                   COUNT(CASE WHEN event_type = 'click' AND is_mpp=0 THEN 1 END) AS clicks
             FROM `{$table}`
             WHERE id_shop  = {$this->idShop}
               AND date_add >= DATE_SUB(NOW(), INTERVAL 30 DAY)
@@ -1752,7 +1763,7 @@ class StatsManager
                 SELECT
                     COUNT(CASE WHEN event_type = 'sent'              THEN 1 END) AS sent,
                     COUNT(CASE WHEN event_type = 'open' AND is_mpp=0 THEN 1 END) AS opens,
-                    COUNT(CASE WHEN event_type = 'click'             THEN 1 END) AS clicks
+                    COUNT(CASE WHEN event_type = 'click' AND is_mpp=0 THEN 1 END) AS clicks
                 FROM `{$table}`
                 WHERE id_shop      = {$this->idShop}
                   AND DATE(date_add) >= '{$from}'
@@ -1915,7 +1926,7 @@ class StatsManager
                     SUM(CASE WHEN `date_add` > DATE_SUB(NOW(), INTERVAL 7 DAY)
                               AND `event_type` = 'open' AND `is_mpp` = 0 THEN 1 ELSE 0 END) AS opens_this,
                     SUM(CASE WHEN `date_add` > DATE_SUB(NOW(), INTERVAL 7 DAY)
-                              AND `event_type` = 'click' THEN 1 ELSE 0 END) AS clicks_this,
+                              AND `event_type` = 'click' AND `is_mpp` = 0 THEN 1 ELSE 0 END) AS clicks_this,
                     SUM(CASE WHEN `date_add` <= DATE_SUB(NOW(), INTERVAL 7 DAY)
                               AND `date_add` > DATE_SUB(NOW(), INTERVAL 14 DAY)
                               AND `event_type` = 'sent' THEN 1 ELSE 0 END) AS sent_last,
@@ -1924,7 +1935,7 @@ class StatsManager
                               AND `event_type` = 'open' AND `is_mpp` = 0 THEN 1 ELSE 0 END) AS opens_last,
                     SUM(CASE WHEN `date_add` <= DATE_SUB(NOW(), INTERVAL 7 DAY)
                               AND `date_add` > DATE_SUB(NOW(), INTERVAL 14 DAY)
-                              AND `event_type` = 'click' THEN 1 ELSE 0 END) AS clicks_last
+                              AND `event_type` = 'click' AND `is_mpp` = 0 THEN 1 ELSE 0 END) AS clicks_last
              FROM `{$table}`
              WHERE `id_shop`   = {$this->idShop}
                AND `date_add` > DATE_SUB(NOW(), INTERVAL 14 DAY)

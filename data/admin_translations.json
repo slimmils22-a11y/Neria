@@ -59870,6 +59870,27 @@
         "nl": "Verzending geblokkeerd: er is al een e-mail verzonden naar {email} voor deze template binnen het venster van Stille modus (dubbele bescherming).",
         "gb": "Send blocked: an email was already sent to {email} for this template within the Silence Mode window (duplicate protection)."
     },
+    "msg.send_blocked_duplicate": {
+        "fr": "Envoi bloqué : un envoi identique est déjà en cours de traitement (probable double-clic ou resoumission du formulaire) — patientez quelques secondes puis vérifiez l'historique avant de renvoyer.",
+        "en": "Send blocked: an identical send is already being processed (likely a double-click or form resubmission) — wait a few seconds and check the history before resending.",
+        "de": "Versand blockiert: Ein identischer Versand wird bereits verarbeitet (vermutlich Doppelklick oder erneute Formularübermittlung) — bitte einige Sekunden warten und den Verlauf prüfen, bevor erneut gesendet wird.",
+        "it": "Invio bloccato: un invio identico è già in elaborazione (probabile doppio clic o reinvio del modulo) — attendere qualche secondo e controllare lo storico prima di reinviare.",
+        "es": "Envío bloqueado: ya se está procesando un envío idéntico (probable doble clic o reenvío del formulario) — espere unos segundos y revise el historial antes de reenviar.",
+        "pt": "Envio bloqueado: um envio idêntico já está a ser processado (provável duplo clique ou reenvio do formulário) — aguarde alguns segundos e verifique o histórico antes de reenviar.",
+        "br": "Envio bloqueado: um envio idêntico já está sendo processado (provável duplo clique ou reenvio do formulário) — aguarde alguns segundos e verifique o histórico antes de reenviar.",
+        "ar": "تم حظر الإرسال: يتم بالفعل معالجة إرسال مطابق (على الأرجح نقر مزدوج أو إعادة إرسال النموذج) — انتظر بضع ثوانٍ وتحقق من السجل قبل إعادة الإرسال.",
+        "ja": "送信がブロックされました：同一の送信が既に処理中です（ダブルクリックまたはフォームの再送信の可能性）。数秒待ってから、再送信前に履歴をご確認ください。",
+        "ko": "발송이 차단되었습니다: 동일한 발송이 이미 처리 중입니다(더블 클릭 또는 양식 재제출 가능성) — 몇 초 기다린 후 다시 보내기 전에 기록을 확인하세요.",
+        "zh": "发送已阻止：一个相同的发送正在处理中（可能是重复点击或表单重新提交）— 请等待几秒钟,并在重新发送前查看历史记录。",
+        "tw": "傳送已封鎖：一個相同的傳送正在處理中（可能是重複點擊或表單重新提交）— 請稍候幾秒,並在重新傳送前查看紀錄。",
+        "ru": "Отправка заблокирована: идентичная отправка уже обрабатывается (вероятно, двойной клик или повторная отправка формы) — подождите несколько секунд и проверьте историю перед повторной отправкой.",
+        "tr": "Gönderim engellendi: Aynı gönderim zaten işleniyor (muhtemelen çift tıklama veya formun yeniden gönderilmesi) — birkaç saniye bekleyin ve tekrar göndermeden önce geçmişi kontrol edin.",
+        "sv": "Utskick blockerat: ett identiskt utskick bearbetas redan (troligen dubbelklick eller omskickat formulär) — vänta några sekunder och kontrollera historiken innan du skickar igen.",
+        "no": "Utsending blokkert: en identisk utsending behandles allerede (sannsynligvis dobbeltklikk eller gjeninnsending av skjema) — vent noen sekunder og sjekk historikken før du sender på nytt.",
+        "da": "Afsendelse blokeret: en identisk afsendelse behandles allerede (sandsynligvis dobbeltklik eller genindsendelse af formular) — vent et par sekunder og tjek historikken, før du sender igen.",
+        "nl": "Verzending geblokkeerd: een identieke verzending wordt al verwerkt (waarschijnlijk dubbelklik of opnieuw indienen van het formulier) — wacht enkele seconden en controleer de geschiedenis voordat u opnieuw verzendt.",
+        "gb": "Send blocked: an identical send is already being processed (likely a double-click or form resubmission) — wait a few seconds and check the history before resending."
+    },
     "msg.send_blocked_preferences": {
         "fr": "Envoi bloqué : {email} a désactivé cette catégorie d'emails dans son centre de préférences.",
         "en": "Send blocked: {email} has opted out of this email category in their preference center.",

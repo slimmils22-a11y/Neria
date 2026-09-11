@@ -521,7 +521,49 @@ class ManualSendManager
      * @param array  $contentVars Champs de contenu remplis par le marchand [key => value]
      * @return array{ok:bool, message:string}
      */
+    /**
+     * Round 337 : verrou anti-doublon autour de sendInner() — le formulaire
+     * d'envoi manuel BO (send.tpl) n'a ni token CSRF/idempotency ni bouton
+     * désactivé au submit ; un double-clic ou une resoumission (bouton
+     * "précédent" du navigateur, retry réseau) déclenchait deux requêtes
+     * POST neria_action=send_manual quasi simultanées, traitées chacune
+     * indépendamment par sendInner() — chacune passant tous les garde-fous
+     * (bounce, blacklist, préférences, contexte commande) puisqu'aucun
+     * d'eux n'est un verrou anti-doublon d'ENVOI. Le seul filet existant
+     * (CooldownManager::isDuplicate(), "Mode Silence") est désactivé par
+     * défaut (isCooldownEnabled()===false tant que le marchand ne l'active
+     * pas explicitement) ; checkDuplicate() est purement informatif
+     * (retourne toujours 'blocked'=>false, simple bandeau d'avertissement
+     * côté JS avant le clic, jamais rappelé au moment réel de l'envoi).
+     * Résultat sans ce verrou : le client pouvait recevoir deux fois le
+     * même email. Fenêtre courte (GET_LOCK timeout=0 — best-effort, pas de
+     * blocage perceptible pour un envoi normal) clé sur email+template+
+     * orderRef, même famille que les verrous GET_LOCK déjà utilisés dans
+     * ce module (QueueManager::processQueue(), CalendarManager, etc.).
+     */
     public function send(
+        string $template,
+        string $email,
+        string $orderRef,
+        string $subject,
+        array $contentVars
+    ): array {
+        $lockKey337 = 'neria_manualsend_' . md5(trim($email) . '|' . $template . '|' . $orderRef);
+        $lockRes337 = $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockKey337) . "', 0)", false);
+        if ((int) $lockRes337 !== 1) {
+            // Verrou déjà détenu (envoi identique en cours) ou GET_LOCK() en
+            // erreur (NULL) — dans les deux cas, ne pas laisser passer un
+            // second envoi concurrent pour la même combinaison.
+            return ['ok' => false, 'message' => AdminTranslator::t('msg.send_blocked_duplicate')];
+        }
+        try {
+            return $this->sendInner($template, $email, $orderRef, $subject, $contentVars);
+        } finally {
+            $this->db->execute("SELECT RELEASE_LOCK('" . pSQL($lockKey337) . "')");
+        }
+    }
+
+    private function sendInner(
         string $template,
         string $email,
         string $orderRef,
