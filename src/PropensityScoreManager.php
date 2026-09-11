@@ -105,11 +105,16 @@ class PropensityScoreManager
             $ordersById[(int) $r['id_customer']] = $r;
         }
 
-        $currentMonth = (int) date('n');
+        // Round 336 : MONTH(NOW()) calculé côté SQL au lieu de date('n') PHP
+        // — même correctif round 303 que TIMESTAMPDIFF() ci-dessus, jamais
+        // porté à ce calcul de saisonnalité. Un décalage de fuseau horaire
+        // entre le serveur PHP et le serveur MySQL pouvait faire retomber
+        // ce comptage sur le mauvais mois près d'un changement de mois,
+        // silencieusement (aucune trace Watchdog).
         $inMonthAgg = $this->db->executeS(
             'SELECT id_customer, COUNT(*) AS cnt
              FROM `' . _DB_PREFIX_ . 'orders`
-             WHERE id_shop = ' . $this->idShop . ' AND valid = 1 AND MONTH(date_add) = ' . $currentMonth . '
+             WHERE id_shop = ' . $this->idShop . ' AND valid = 1 AND MONTH(date_add) = MONTH(NOW())
              GROUP BY id_customer'
         ) ?: [];
         $inMonthById = [];
@@ -381,11 +386,12 @@ class PropensityScoreManager
             return 0.0;
         }
 
-        $currentMonth = (int) date('n');
+        // Round 336 : MONTH(NOW()) côté SQL au lieu de date('n') PHP — voir
+        // le correctif jumeau ci-dessus dans recalculateAll().
         $inMonth = (int) $this->db->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'orders`
              WHERE id_customer = ' . $idCustomer . ' AND id_shop = ' . $this->idShop . '
-               AND valid = 1 AND MONTH(date_add) = ' . $currentMonth
+               AND valid = 1 AND MONTH(date_add) = MONTH(NOW())'
         );
 
         return $this->calcSeasonalityScore($total, $inMonth);

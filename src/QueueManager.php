@@ -428,9 +428,26 @@ class QueueManager
         // si le process crashe avant l'écriture du statut final, elle reste
         // détectable (pas silencieusement re-livrée) et sera récupérée par
         // le nettoyage en tête de processQueue() après 10 minutes.
+        // Round 336 : `send_at = NOW()` ajouté à cette réservation — sans
+        // lui, le nettoyage en tête de processQueue() compare le délai de
+        // 10 minutes à `send_at`, qui reste figé sur la date de
+        // PLANIFICATION d'origine (jusqu'à ~24h dans le passé pour un envoi
+        // comportemental différé par nextOccurrence()), pas la date de
+        // RÉSERVATION. `send_at <= NOW() - 10 MINUTE` était alors déjà vrai
+        // dès l'instant de la réservation dans l'immense majorité des cas :
+        // un crash juste après (avant l'écriture du statut final) rendait
+        // la ligne IMMÉDIATEMENT re-sélectionnable au tout prochain passage
+        // du cron, sans attendre les 10 minutes annoncées — si Mail::Send()
+        // avait réussi juste avant le crash, l'email repartait aussitôt en
+        // double. `send_at` est déjà traité comme un horodatage mutable
+        // "dernière activité" par le reste du fichier (mis à jour au
+        // backoff round 118 ci-dessous), pas une date de planification
+        // figée — ce réflexe n'avait simplement pas été porté ici. Sans
+        // effet sur l'affichage BO (getPendingManual() ne montre que
+        // status='pending', jamais 'sending').
         $this->db->execute(
             'UPDATE `' . $this->prefix . 'neria_queue`
-             SET attempts = attempts + 1, status = \'sending\'
+             SET attempts = attempts + 1, status = \'sending\', send_at = NOW()
              WHERE id_neria_queue = ' . $id . '
                AND status = \'pending\''
         );

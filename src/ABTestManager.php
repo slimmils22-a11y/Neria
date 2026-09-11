@@ -1071,7 +1071,19 @@ class ABTestManager
             // Comportemental produit
             'product_lifespan_reminder',
             // Acquisition & engagement
-            'newsletter_conf',
+            // Round 336 : 'newsletter_conf' retiré — confirmation de double
+            // opt-in, transactionnelle par nature (contredit le commentaire
+            // de cette méthode : "pas les transactionnels obligatoires
+            // comme order_conf"). Ce template était absent de
+            // PreferencesManager::TEMPLATE_CAT (non préférence-gaté, comme
+            // souhaité pour un email transactionnel), mais sa présence ICI
+            // le rendait sélectionnable dans le BO pour créer un test A/B
+            // (neria.php) — un marchand aurait pu tester des variantes
+            // d'une confirmation d'inscription obligatoire, ou pire, un
+            // futur correctif ajoutant ce template à TEMPLATE_CAT pour
+            // fermer cette incohérence aurait alors bloqué l'envoi de la
+            // confirmation elle-même à un client ayant décoché "newsletter"
+            // — nonsensique puisque cet email EST l'action d'inscription.
             'newsletter_voucher',
             'referral_invitation',
             'private_invitation',

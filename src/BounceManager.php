@@ -666,7 +666,15 @@ class BounceManager
         // soft bounce, laissé inchangé ici pour respecter le jugement du
         // marchand sur un incident transitoire) : il doit toujours reprendre
         // le dessus sur une ancienne décision "ignorer".
-        $db->execute(
+        // Round 336 : retour capturé — même pattern "succès affiché sans
+        // vérifier l'effet réel" déjà corrigé plus bas dans ce même fichier
+        // pour ignoreBounce()/reactivateBounce()/deleteBounce() (round 315),
+        // jamais porté à ce point d'entrée central (appelé par les 2
+        // canaux IMAP et webhook). Sans cette vérification, un échec SQL
+        // transitoire (connexion coupée, verrou) journalisait quand même
+        // un watchdog.bounce_recorded de succès, alors que l'adresse
+        // n'était en réalité pas protégée contre un futur envoi.
+        $inserted336 = $db->execute(
             'INSERT INTO `' . _DB_PREFIX_ . self::TABLE . '`
                 (`email`, `type`, `reason`, `source`, `bounce_count`, `last_bounce_at`, `status`, `date_add`)
              VALUES (
@@ -687,11 +695,19 @@ class BounceManager
         );
 
         if (class_exists('WatchdogManager')) {
-            (new \WatchdogManager($this->module))->warning(
-                \WatchdogManager::i18nMsg('watchdog.bounce_recorded', ['type' => $type, 'email' => $email, 'source' => $source, 'reason' => $reason]),
-                'bounce',
-                'BounceManager'
-            );
+            if ($inserted336) {
+                (new \WatchdogManager($this->module))->warning(
+                    \WatchdogManager::i18nMsg('watchdog.bounce_recorded', ['type' => $type, 'email' => $email, 'source' => $source, 'reason' => $reason]),
+                    'bounce',
+                    'BounceManager'
+                );
+            } else {
+                (new \WatchdogManager($this->module))->critical(
+                    \WatchdogManager::i18nMsg('watchdog.bounce_record_failed', ['type' => $type, 'email' => $email, 'source' => $source]),
+                    'bounce',
+                    'BounceManager'
+                );
+            }
         }
     }
 

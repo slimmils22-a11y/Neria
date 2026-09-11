@@ -50357,6 +50357,27 @@
         "nl": "{type}-bounce geregistreerd voor {email} ({source}): {reason}",
         "gb": "{type} bounce recorded for {email} ({source}): {reason}"
     },
+    "watchdog.bounce_record_failed": {
+        "fr": "Échec de l'enregistrement du bounce {type} pour {email} ({source}) — l'écriture en base a échoué, l'adresse n'est pas protégée",
+        "en": "Failed to record {type} bounce for {email} ({source}) — the database write failed, the address is not protected",
+        "de": "Fehler beim Erfassen des {type}-Bounces für {email} ({source}) — Datenbankschreibvorgang fehlgeschlagen, die Adresse ist nicht geschützt",
+        "it": "Registrazione del bounce {type} fallita per {email} ({source}) — la scrittura nel database non è riuscita, l'indirizzo non è protetto",
+        "es": "Error al registrar el rebote {type} para {email} ({source}) — falló la escritura en la base de datos, la dirección no está protegida",
+        "pt": "Falha ao registar o bounce {type} para {email} ({source}) — a escrita na base de dados falhou, o endereço não está protegido",
+        "br": "Falha ao registrar o bounce {type} para {email} ({source}) — a gravação no banco de dados falhou, o endereço não está protegido",
+        "ar": "فشل تسجيل ارتداد {type} لـ {email} ({source}) — فشلت الكتابة في قاعدة البيانات، العنوان غير محمي",
+        "ja": "{type}バウンスの記録に失敗しました：{email}（{source}）— データベースへの書き込みに失敗し、このアドレスは保護されていません",
+        "ko": "{email}에 대한 {type} 반송 기록 실패 ({source}) — 데이터베이스 쓰기가 실패하여 이 주소는 보호되지 않습니다",
+        "zh": "为 {email}（{source}）记录 {type} 退信失败 — 数据库写入失败,该地址未受保护",
+        "tw": "為 {email}（{source}）記錄 {type} 退信失敗 — 資料庫寫入失敗,該地址未受保護",
+        "ru": "Не удалось зафиксировать отказ {type} для {email} ({source}) — запись в базу данных не удалась, адрес не защищён",
+        "tr": "{email} için {type} geri dönüşü kaydedilemedi ({source}) — veritabanı yazma işlemi başarısız oldu, adres korunmuyor",
+        "sv": "Det gick inte att registrera {type}-studs för {email} ({source}) — databasskrivningen misslyckades, adressen är inte skyddad",
+        "no": "Kunne ikke registrere {type}-sprett for {email} ({source}) — databaseskrivingen mislyktes, adressen er ikke beskyttet",
+        "da": "Kunne ikke registrere {type}-bounce for {email} ({source}) — databaseskrivningen mislykkedes, adressen er ikke beskyttet",
+        "nl": "Registreren van {type}-bounce voor {email} ({source}) mislukt — de databaseschrijfactie is mislukt, het adres is niet beschermd",
+        "gb": "Failed to record {type} bounce for {email} ({source}) — the database write failed, the address is not protected"
+    },
     "watchdog.calendar_date_not_found": {
         "fr": "Date introuvable pour l'occasion \"{event}\" en {year} — vérifiez le calendrier.",
         "en": "Date not found for occasion \"{event}\" in {year} — check the calendar.",
