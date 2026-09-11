@@ -11038,6 +11038,75 @@ class HealthCheckManager
             $offenders[] = "OrderTriggersManager::checkMilestone() ne journalise plus d'alerte dédiée mentionnant le code du bon déjà émis en cas d'échec d'envoi — régression du correctif du 11/09/2026 (hors round, suite round 336) : le marchand n'aurait de nouveau aucun moyen de savoir qu'un rattrapage manuel est possible";
         }
 
+        // Round 337 : delete_history (neria.php) ne doit plus filtrer par
+        // id_shop — incohérent avec le scope global de lecture (round 138).
+        $neriaSrc337 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $posDeleteHist337 = $neriaSrc337 !== '' ? strpos($neriaSrc337, "\$tradAction === 'delete_history'") : false;
+        $posDeleteSql337 = ($neriaSrc337 !== '' && $posDeleteHist337 !== false)
+            ? strpos($neriaSrc337, 'DELETE FROM `" . _DB_PREFIX_ . "neria_translation_history`', $posDeleteHist337)
+            : false;
+        $deleteSqlBody337 = $posDeleteSql337 !== false ? substr($neriaSrc337, $posDeleteSql337, 200) : '';
+        if ($deleteSqlBody337 === '' || strpos($deleteSqlBody337, 'id_shop') !== false) {
+            $offenders[] = "neria.php (delete_history) filtre de nouveau son DELETE par id_shop — régression du bug corrigé le 11/09/2026 (round 337) : la suppression redeviendrait silencieusement inopérante pour une entrée d'historique créée depuis une autre boutique";
+        }
+
+        // Round 337 : 5 handlers de configuration doivent transmettre
+        // id_shop explicite à Configuration::updateValue(), cohérent avec
+        // ConfigManager::get() (même pattern que save_senders round 132/133).
+        $posCooldown337 = $neriaSrc337 !== '' ? strpos($neriaSrc337, "neria_action') === 'save_cooldown'") : false;
+        $cooldownBody337 = $posCooldown337 !== false ? substr($neriaSrc337, $posCooldown337, 800) : '';
+        if ($cooldownBody337 === '' || strpos($cooldownBody337, "false, null, (int) \$this->context->shop->id)") === false) {
+            $offenders[] = "neria.php (save_cooldown) ne transmet plus id_shop explicite à Configuration::updateValue() — régression du bug corrigé le 11/09/2026 (round 337)";
+        }
+        $posAutolang337 = $neriaSrc337 !== '' ? strpos($neriaSrc337, "neria_action') === 'toggle_autolang'") : false;
+        $autolangBody337 = $posAutolang337 !== false ? substr($neriaSrc337, $posAutolang337, 1300) : '';
+        if ($autolangBody337 === '' || strpos($autolangBody337, "Configuration::updateValue(self::CONFIG_PREFIX . 'AUTO_LANG', (int) \$enabled, false, null, \$idShop337)") === false) {
+            $offenders[] = "neria.php (toggle_autolang) ne transmet plus id_shop explicite à Configuration::updateValue() — régression du bug corrigé le 11/09/2026 (round 337)";
+        }
+        $posVoucherVal337 = $neriaSrc337 !== '' ? strpos($neriaSrc337, "neria_action') === 'save_voucher_validity'") : false;
+        $voucherValBody337 = $posVoucherVal337 !== false ? substr($neriaSrc337, $posVoucherVal337, 1500) : '';
+        if ($voucherValBody337 === ''
+            || strpos($voucherValBody337, "Configuration::updateValue(self::CONFIG_PREFIX . 'VOUCHER_VALIDITY', \$days, false, null, (int) \$this->context->shop->id)") === false
+            || strpos($voucherValBody337, "Configuration::updateValue(self::CONFIG_PREFIX . 'VOUCHER_FIXED_CAP', \$cap, false, null, (int) \$this->context->shop->id)") === false
+        ) {
+            $offenders[] = "neria.php (save_voucher_validity) ne transmet plus id_shop explicite à Configuration::updateValue() — régression du bug corrigé le 11/09/2026 (round 337)";
+        }
+        $posBirthdayVouch337 = $neriaSrc337 !== '' ? strpos($neriaSrc337, "neria_action') === 'save_birthday_voucher'") : false;
+        $birthdayVouchBody337 = $posBirthdayVouch337 !== false ? substr($neriaSrc337, $posBirthdayVouch337, 1500) : '';
+        if ($birthdayVouchBody337 === '' || strpos($birthdayVouchBody337, "Configuration::updateValue(self::CONFIG_PREFIX . 'BIRTHDAY_VOUCHER_AMOUNT', \$amount, false, null, (int) \$this->context->shop->id)") === false) {
+            $offenders[] = "neria.php (save_birthday_voucher) ne transmet plus id_shop explicite à Configuration::updateValue() — régression du bug corrigé le 11/09/2026 (round 337)";
+        }
+        $posMilestoneVouch337 = $neriaSrc337 !== '' ? strpos($neriaSrc337, "neria_action') === 'save_milestone_voucher'") : false;
+        $milestoneVouchBody337 = $posMilestoneVouch337 !== false ? substr($neriaSrc337, $posMilestoneVouch337, 1400) : '';
+        if ($milestoneVouchBody337 === '' || strpos($milestoneVouchBody337, "Configuration::updateValue(self::CONFIG_PREFIX . 'MILESTONE_VOUCHER_ENABLED', \$enabled ? 1 : 0, false, null, \$idShop337b)") === false) {
+            $offenders[] = "neria.php (save_milestone_voucher) ne transmet plus id_shop explicite à Configuration::updateValue() — régression du bug corrigé le 11/09/2026 (round 337)";
+        }
+
+        // Round 337 : StatsManager doit exclure is_mpp des comptages de
+        // clics, symétrique aux ouvertures (round 300).
+        $smSrc337 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/StatsManager.php');
+        if ($smSrc337 !== '') {
+            $clickCount337 = preg_match_all("/event_type[`']?\s*=\s*'click'/i", $smSrc337);
+            $mppFiltered337 = preg_match_all("/event_type[`']?\s*=\s*'click'[^\\n]*is_mpp/i", $smSrc337);
+            if ($clickCount337 === 0 || $mppFiltered337 !== $clickCount337) {
+                $offenders[] = "StatsManager ne filtre plus is_mpp sur tous ses comptages de clics ({$mppFiltered337}/{$clickCount337}) — régression du bug corrigé le 11/09/2026 (round 337) : les pré-visites de scanners de sécurité (Microsoft Safe Links, Proofpoint, Mimecast) redeviendraient comptées comme de vrais clics dans les KPIs/classements/tests A-B";
+            }
+        } else {
+            $offenders[] = "StatsManager.php introuvable (garde-fou round 337)";
+        }
+
+        // Round 337 : ManualSendManager::send() doit acquérir un verrou
+        // GET_LOCK anti-doublon avant de déléguer à sendInner().
+        $msmSrc337 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        $posSendFn337 = $msmSrc337 !== '' ? strpos($msmSrc337, 'public function send(') : false;
+        $sendBody337 = $posSendFn337 !== false ? substr($msmSrc337, $posSendFn337, 1200) : '';
+        if ($sendBody337 === ''
+            || strpos($sendBody337, "GET_LOCK('") === false
+            || strpos($sendBody337, 'private function sendInner(') === false
+        ) {
+            $offenders[] = "ManualSendManager::send() n'acquiert plus de verrou GET_LOCK anti-doublon avant de déléguer à sendInner() — régression du bug corrigé le 11/09/2026 (round 337) : un double-clic ou une resoumission de formulaire BO redeviendrait susceptible de déclencher un second envoi réel au client";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
