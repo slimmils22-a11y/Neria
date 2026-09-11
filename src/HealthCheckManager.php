@@ -11011,6 +11011,33 @@ class HealthCheckManager
             $offenders[] = "BounceManager::recordBounce() ne journalise plus d'alerte dédiée sur échec de son INSERT — régression du bug corrigé le 11/09/2026 (round 336) : un échec SQL transitoire redeviendrait invisible, journalisé comme un succès";
         }
 
+        // Hors round (suite round 336) : LoyaltyManager::generateVoucher()
+        // doit scoper minimum_amount_currency par $reservationShopId, comme
+        // reduction_currency du même CartRule.
+        $lmSrc336b = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
+        $posGenVoucher336b = $lmSrc336b !== '' ? strpos($lmSrc336b, 'private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward): string') : false;
+        $genVoucherBody336b = $posGenVoucher336b !== false ? substr($lmSrc336b, $posGenVoucher336b, 5300) : '';
+        if ($genVoucherBody336b === ''
+            || strpos($genVoucherBody336b, "\$cartRule->minimum_amount_currency = \$reservationShopId > 0\n            ? (int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$reservationShopId)") === false
+        ) {
+            $offenders[] = "LoyaltyManager::generateVoucher() ne scope plus minimum_amount_currency par \$reservationShopId — régression du correctif du 11/09/2026 (hors round, suite round 336) : incohérence de nouveau introduite avec reduction_currency du même CartRule";
+        }
+
+        // Hors round (suite round 336) : OrderTriggersManager::checkMilestone()
+        // doit mentionner le code d'un bon réellement émis quand l'envoi de
+        // milestone_order échoue après génération du bon.
+        $otmSrc336b = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/OrderTriggersManager.php');
+        $posCheckMilestone336b = $otmSrc336b !== '' ? strpos($otmSrc336b, 'private function checkMilestone(\Order $order): void') : false;
+        $posReleaseCall336b = ($otmSrc336b !== '' && $posCheckMilestone336b !== false)
+            ? strpos($otmSrc336b, '$this->releaseMilestoneClaim($idCustomer, $count, $idShop);', $posCheckMilestone336b)
+            : false;
+        $checkMilestoneBody336b = $posReleaseCall336b !== false ? substr($otmSrc336b, $posReleaseCall336b, 1700) : '';
+        if ($checkMilestoneBody336b === ''
+            || strpos($checkMilestoneBody336b, "WatchdogManager::i18nMsg('watchdog.milestone_send_fail_voucher_issued'") === false
+        ) {
+            $offenders[] = "OrderTriggersManager::checkMilestone() ne journalise plus d'alerte dédiée mentionnant le code du bon déjà émis en cas d'échec d'envoi — régression du correctif du 11/09/2026 (hors round, suite round 336) : le marchand n'aurait de nouveau aucun moyen de savoir qu'un rattrapage manuel est possible";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,

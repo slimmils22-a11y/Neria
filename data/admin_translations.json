@@ -51764,6 +51764,27 @@
         "nl": "milestone_order niveau {count} verzonden naar {email}",
         "gb": "milestone_order tier {count} sent to {email}"
     },
+    "watchdog.milestone_send_fail_voucher_issued": {
+        "fr": "milestone_order palier {count} : échec de l'envoi à {email}, mais un bon de réduction RÉEL a déjà été généré (code {voucher_code}) — rattrapage manuel recommandé (transmettre le code au client)",
+        "en": "milestone_order tier {count}: send failed to {email}, but a REAL discount voucher was already generated (code {voucher_code}) — manual follow-up recommended (share the code with the customer)",
+        "de": "milestone_order Stufe {count}: Versand an {email} fehlgeschlagen, aber es wurde bereits ein ECHTER Rabattgutschein erstellt (Code {voucher_code}) — manuelle Nachverfolgung empfohlen (Code an den Kunden weitergeben)",
+        "it": "milestone_order livello {count}: invio non riuscito a {email}, ma è già stato generato un buono sconto REALE (codice {voucher_code}) — si consiglia un follow-up manuale (comunicare il codice al cliente)",
+        "es": "milestone_order nivel {count}: fallo al enviar a {email}, pero ya se generó un cupón de descuento REAL (código {voucher_code}) — se recomienda un seguimiento manual (comunicar el código al cliente)",
+        "pt": "milestone_order nível {count}: falha ao enviar para {email}, mas já foi gerado um cupão de desconto REAL (código {voucher_code}) — recomenda-se acompanhamento manual (comunicar o código ao cliente)",
+        "br": "milestone_order nível {count}: falha ao enviar para {email}, mas um cupom de desconto REAL já foi gerado (código {voucher_code}) — recomenda-se um acompanhamento manual (repassar o código ao cliente)",
+        "ar": "milestone_order المستوى {count}: فشل الإرسال إلى {email}، لكن تم بالفعل إنشاء قسيمة خصم حقيقية (الرمز {voucher_code}) — يُنصح بالمتابعة اليدوية (إرسال الرمز إلى العميل)",
+        "ja": "milestone_order マイルストーン{count}：{email}への送信に失敗しましたが、実際の割引クーポン（コード{voucher_code}）は既に発行済みです — 手動でのフォロー（顧客へのコード連絡）を推奨します",
+        "ko": "milestone_order 등급 {count}: {email}로 발송 실패, 그러나 실제 할인 쿠폰(코드 {voucher_code})은 이미 발급됨 — 수동 후속 조치 권장(고객에게 코드 전달)",
+        "zh": "milestone_order 里程碑 {count}：发送至 {email} 失败，但真实的优惠券（代码 {voucher_code}）已生成 — 建议人工跟进(将代码告知客户)",
+        "tw": "milestone_order 里程碑 {count}：發送至 {email} 失敗,但真實的優惠券(代碼 {voucher_code})已產生 — 建議人工跟進(將代碼告知客戶)",
+        "ru": "milestone_order этап {count}: не удалось отправить на {email}, но РЕАЛЬНЫЙ купон уже создан (код {voucher_code}) — рекомендуется ручное сопровождение (сообщить код клиенту)",
+        "tr": "milestone_order kademe {count}: {email} adresine gönderim başarısız oldu, ancak GERÇEK bir indirim kuponu zaten oluşturuldu (kod {voucher_code}) — manuel takip önerilir (kodu müşteriyle paylaşın)",
+        "sv": "milestone_order nivå {count}: sändning till {email} misslyckades, men en RIKTIG rabattkupong har redan skapats (kod {voucher_code}) — manuell uppföljning rekommenderas (dela koden med kunden)",
+        "no": "milestone_order nivå {count}: sending til {email} mislyktes, men en EKTE rabattkupong er allerede opprettet (kode {voucher_code}) — manuell oppfølging anbefales (del koden med kunden)",
+        "da": "milestone_order niveau {count}: afsendelse til {email} mislykkedes, men en ÆGTE rabatkupon er allerede oprettet (kode {voucher_code}) — manuel opfølgning anbefales (del koden med kunden)",
+        "nl": "milestone_order niveau {count}: verzenden naar {email} mislukt, maar er is al een ECHTE kortingsbon aangemaakt (code {voucher_code}) — handmatige opvolging aanbevolen (deel de code met de klant)",
+        "gb": "milestone_order tier {count}: send failed to {email}, but a REAL discount voucher was already generated (code {voucher_code}) — manual follow-up recommended (share the code with the customer)"
+    },
     "watchdog.mkdir_error": {
         "fr": "Impossible de créer le dossier mails/{lang}/ — vérifier les permissions d'écriture sur modules/neria/mails/.",
         "en": "Unable to create directory mails/{lang}/ — check write permissions on modules/neria/mails/.",

@@ -503,7 +503,16 @@ class LoyaltyManager
         $cartRule->date_from               = $nowSql314;
         $cartRule->date_to                 = date('Y-m-d H:i:s', strtotime($nowSql314 . ' +' . (new \ConfigManager($this->module))->getVoucherValidity() . ' days'));
         $cartRule->minimum_amount          = 0;
-        $cartRule->minimum_amount_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT');
+        // Hors round (suite round 336) : scopé par $reservationShopId, même
+        // raisonnement que reduction_currency plus bas dans cette méthode —
+        // sur une installation multi-devises en mode fidélité séparé par
+        // boutique, la devise par défaut de la boutique du client peut
+        // différer de celle de l'installation globale (boutique 1). Sans
+        // effet observable tant que minimum_amount reste à 0 (aucun seuil
+        // réel), mais incohérent avec reduction_currency du même CartRule.
+        $cartRule->minimum_amount_currency = $reservationShopId > 0
+            ? (int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $reservationShopId)
+            : (int) \Configuration::get('PS_CURRENCY_DEFAULT');
         $cartRule->highlight               = false;
         $cartRule->free_shipping           = false;
 

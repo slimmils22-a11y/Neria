@@ -516,10 +516,28 @@ class OrderTriggersManager
                     // privait ce client de milestone_order à vie, sans aucun
                     // mécanisme de retry pour ce template.
                     $this->releaseMilestoneClaim($idCustomer, $count, $idShop);
-                    $this->watchdog()->warning(
-                        \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'milestone_order', 'email' => $customer->email]),
-                        'milestone_order', 'OrderTriggers'
-                    );
+                    // Hors round (suite round 336) : si un bon RÉEL a déjà
+                    // été généré ($voucherCode !== ''), releaseMilestoneClaim()
+                    // ne libère PAS la réservation (son WHERE ... AND
+                    // id_cart_rule = 0 ne matche plus rien dès que le bon est
+                    // écrit en base) — ce palier ne redéclenchera donc jamais.
+                    // Le client n'a pourtant jamais reçu son code : sans cette
+                    // alerte dédiée, seul un watchdog.send_silent_fail générique
+                    // était journalisé, sans jamais mentionner qu'un vrai bon
+                    // CartRule actif existe malgré tout en base — aucun moyen
+                    // pour le marchand de savoir qu'un rattrapage manuel
+                    // (transmettre le code au client) est possible.
+                    if ($voucherCode !== '') {
+                        $this->watchdog()->warning(
+                            \WatchdogManager::i18nMsg('watchdog.milestone_send_fail_voucher_issued', ['count' => $count, 'email' => $customer->email, 'voucher_code' => $voucherCode]),
+                            'milestone_order', 'OrderTriggers'
+                        );
+                    } else {
+                        $this->watchdog()->warning(
+                            \WatchdogManager::i18nMsg('watchdog.send_silent_fail', ['template' => 'milestone_order', 'email' => $customer->email]),
+                            'milestone_order', 'OrderTriggers'
+                        );
+                    }
                 }
             } catch (\Throwable $e) {
                 $this->releaseMilestoneClaim($idCustomer, $count, $idShop);
