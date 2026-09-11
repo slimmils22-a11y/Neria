@@ -137,20 +137,57 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
         $idShop = (int) $this->context->shop->id;
         $ok     = false;
 
-        // Newsletter des comptes clients — scopé à la boutique courante :
-        // `customer` a une colonne id_shop et, en multiboutique sans partage
-        // de comptes, la même adresse email peut correspondre à des lignes
-        // client distinctes par boutique. Sans ce filtre, cliquer sur le
-        // lien de désabonnement reçu de la boutique A désabonnait aussi
-        // silencieusement le même email sur les boutiques B, C...
+        // Round 339 : résolution de $customerId via Customer::customerExists()
+        // sous bascule temporaire du contexte Shop statique — même correctif
+        // round 211 déjà appliqué dans preferences.php pour EXACTEMENT le
+        // même problème (voir son commentaire détaillé) : une requête SQL
+        // brute filtrant `id_shop = boutique courante` STRICT sur `customer`
+        // est correcte SANS partage de comptes (une même adresse peut
+        // correspondre à des lignes client distinctes par boutique), mais
+        // fausse EN CAS de partage de comptes actif (Shop::SHARE_CUSTOMER) :
+        // le compte est rattaché à sa boutique de CRÉATION dans id_shop, pas
+        // à la boutique actuellement visitée. Un client créé sur la boutique
+        // A cliquant un lien de désabonnement reçu depuis/pour la boutique B
+        // ne trouvait alors aucune ligne : ps_customer.newsletter du VRAI
+        // compte n'était jamais mis à 0, et neria_preferences (juste plus
+        // bas) créait une ligne INVITÉE (id_customer=0) au lieu de mettre à
+        // jour la ligne du vrai client — désabonnement RGPD/CAN-SPAM
+        // silencieusement inefficace : confirmation affichée, mais le client
+        // continuait de recevoir tous les emails marketing Neria.
+        $previousShopContext339 = Shop::getContext();
+        $previousShopId339      = Shop::getContextShopID();
+        Shop::setContext(Shop::CONTEXT_SHOP, $idShop);
         try {
-            $db->execute(
-                "UPDATE `" . _DB_PREFIX_ . "customer` SET `newsletter` = 0
-                 WHERE LOWER(`email`) = '" . $e . "' AND `id_shop` = " . $idShop
-            );
-            $ok = true;
-        } catch (\Throwable $ex) {
-            // ignoré : on tente quand même la newsletter invités
+            $customerId = (int) Customer::customerExists($email, true);
+        } finally {
+            Shop::setContext($previousShopContext339, $previousShopId339);
+        }
+        // Comptes soft-supprimés (deleted=1) exclus — mêmes raisons que
+        // preferences.php : un compte RGPD-supprimé ne doit pas être traité
+        // comme un client identifié valide via ce lien public.
+        if ($customerId > 0) {
+            $custCheck339 = new Customer($customerId);
+            if (!Validate::isLoadedObject($custCheck339) || (int) $custCheck339->deleted === 1) {
+                $customerId = 0;
+            }
+        }
+
+        // Newsletter des comptes clients — par id_customer résolu ci-dessus
+        // (pas par email+id_shop strict, cf. correctif round 339 ci-dessus).
+        // Sans identifiant client résolu (adresse jamais devenue client
+        // PrestaShop — abonné newsletter/newsletter_voucher uniquement via
+        // ps_emailsubscription), rien à mettre à jour ici : la branche
+        // invité plus bas (ps_emailsubscription) prend le relais.
+        if ($customerId > 0) {
+            try {
+                $db->execute(
+                    "UPDATE `" . _DB_PREFIX_ . "customer` SET `newsletter` = 0
+                     WHERE `id_customer` = " . $customerId
+                );
+                $ok = true;
+            } catch (\Throwable $ex) {
+                // ignoré : on tente quand même la newsletter invités
+            }
         }
 
         // Catégories Neria (ps_neria_preferences) — TOUTES à 0. Auparavant
@@ -178,18 +215,13 @@ class NeriaUnsubscribeModuleFrontController extends ModuleFrontController
         // saisonniers/B2B Neria, sans aucune trace exploitable par le
         // marchand pour détecter le problème.
         $prefsOk = false;
-        // Round 290 : $customerId hissé hors du bloc PreferencesManager pour
-        // être réutilisable par le webhook 'unsubscribed' plus bas (minimisation
-        // des données — customer_id plutôt que l'email en clair quand
-        // l'adresse correspond à un vrai compte client, aligné sur les 4
-        // autres événements du module qui transmettent tous customer_id).
-        $customerId = 0;
+        // Round 290 : $customerId (résolu plus haut, round 339) réutilisable
+        // par le webhook 'unsubscribed' plus bas (minimisation des données —
+        // customer_id plutôt que l'email en clair quand l'adresse correspond
+        // à un vrai compte client, aligné sur les 4 autres événements du
+        // module qui transmettent tous customer_id).
         if (class_exists('PreferencesManager')) {
             try {
-                $customerId = (int) $db->getValue(
-                    "SELECT `id_customer` FROM `" . _DB_PREFIX_ . "customer`
-                     WHERE LOWER(`email`) = '" . $e . "' AND `id_shop` = " . $idShop
-                );
                 // Round 188 : la branche invité (id_customer=0, adresse
                 // jamais devenue client PrestaShop — cas d'un abonné
                 // newsletter/newsletter_voucher uniquement via

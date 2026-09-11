@@ -95,10 +95,23 @@ class NeriaWaitlistModuleFrontController extends ModuleFrontController
             $idCustomer = (int) $this->context->customer->id;
             $idShop     = (int) $this->context->shop->id;
 
-            if ($action === 'subscribe') {
-                $mgr->register($idCustomer, $idProduct, $idShop);
-            } else {
-                $mgr->unregister($idCustomer, $idProduct, $idShop);
+            // Round 339 : retour vérifié — sans lui, un échec d'écriture
+            // (contrainte, verrou, erreur MySQL transitoire) passait
+            // inaperçu : le client était redirigé exactement comme en cas
+            // de succès (aucun message différent), croyant être inscrit à
+            // la liste d'attente alors que rien n'a été enregistré, sans
+            // jamais recevoir la notification de réapprovisionnement.
+            $writeOk = $action === 'subscribe'
+                ? $mgr->register($idCustomer, $idProduct, $idShop)
+                : $mgr->unregister($idCustomer, $idProduct, $idShop);
+            if (!$writeOk && class_exists('WatchdogManager')) {
+                try {
+                    (new WatchdogManager($this->module))->warning(
+                        WatchdogManager::i18nMsg('watchdog.waitlist_write_failed', ['action' => $action, 'id_customer' => $idCustomer, 'id_product' => $idProduct]),
+                        '', 'WaitlistController'
+                    );
+                } catch (\Throwable $ignored) {
+                }
             }
         } catch (\Throwable $e) {
             if (class_exists('WatchdogManager')) {

@@ -408,7 +408,16 @@ class WebhookManager
                      WHERE `id_webhook` = {$id}
                        AND `status` = 'pending'"
                 );
-                if ((int) $this->db->Affected_Rows() !== 1) {
+                // Résultat capturé dans une variable dédiée — même
+                // correctif round 313 que QueueManager::processSingle() :
+                // PHPStan associe à tort deux appels distincts de
+                // $this->db->Affected_Rows() dans la même méthode à une
+                // seule et même valeur figée si l'un des deux reste une
+                // expression inline ; capturer CHACUN des deux appels dans
+                // sa propre variable (ici et plus bas pour l'UPDATE
+                // status='done') lève complètement l'ambiguïté.
+                $affectedReserve339 = (int) $this->db->Affected_Rows();
+                if ($affectedReserve339 !== 1) {
                     // Déjà réservée/traitée entre la sélection du lot et cet
                     // appel (protection best-effort en plus du GET_LOCK
                     // englobant) — ne pas retraiter.
@@ -421,6 +430,41 @@ class WebhookManager
                     $this->db->execute(
                         "UPDATE `{$table}` SET `status` = 'done' WHERE `id_webhook` = {$id}"
                     );
+                    // Round 339 : Affected_Rows() vérifié — même correctif
+                    // que QueueManager::processSingle() (round 313, voir son
+                    // commentaire détaillé) : sans lui, un échec silencieux
+                    // de CET UPDATE précis (deadlock, coupure de connexion
+                    // juste après fire()) laissait la ligne bloquée au
+                    // statut 'sending' ALORS QUE LE WEBHOOK A RÉELLEMENT ÉTÉ
+                    // LIVRÉ au système tiers du marchand (CRM/Zapier). Le
+                    // nettoyage "sending bloqué depuis 10 min" en tête de
+                    // processQueue() la remettrait alors à 'pending' et la
+                    // RENVERRAIT UNE SECONDE FOIS au même endpoint externe —
+                    // exactement le risque de double livraison que la
+                    // réservation atomique (round 241) visait à éliminer,
+                    // mais côté "avant envoi" seulement, pas "après envoi
+                    // réussi". Alerte critique explicite plutôt qu'un simple
+                    // log discret : ce cas précis (webhook livré, DB non
+                    // mise à jour) ne peut pas être corrigé automatiquement
+                    // sans risque de double notification — seule une
+                    // intervention manuelle est sûre.
+                    // Résultat capturé dans une variable dédiée (au lieu de
+                    // l'expression répétée (int) $this->db->Affected_Rows()
+                    // inline) — même correctif round 313 que
+                    // QueueManager::processSingle() : PHPStan associait à
+                    // tort la même expression littérale répétée deux fois
+                    // dans cette méthode (ligne 411 ci-dessus) à une seule
+                    // et même valeur figée (1), rapportant cette 2e
+                    // vérification comme "toujours fausse" alors que les
+                    // deux UPDATE sont bien distinctes et peuvent chacune
+                    // renvoyer 0 en pratique.
+                    $affectedDone339 = (int) $this->db->Affected_Rows();
+                    if ($affectedDone339 === 0) {
+                        $this->watchdog()->critical(
+                            \WatchdogManager::i18nMsg('watchdog.webhook_done_not_confirmed', ['id' => $id, 'event' => $row['event'], 'url' => $url]),
+                            '', 'WebhookManager'
+                        );
+                    }
                     $sent++;
                 } elseif ($attempts >= self::MAX_ATTEMPTS) {
                     $this->db->execute(
