@@ -3954,7 +3954,7 @@ class HealthCheckManager
             $offenders[] = 'BehavioralCronManager.php introuvable (garde-fou round 132 : sendGhostCarts() Product idShop + Shop::setContext())';
         } else {
             $posGhost = strpos($bcmSrc, 'private function sendGhostCarts(');
-            $ghostBody = $posGhost !== false ? substr($bcmSrc, $posGhost, 5200) : '';
+            $ghostBody = $posGhost !== false ? substr($bcmSrc, $posGhost, 5700) : '';
             if ($posGhost === false
                 || strpos($ghostBody, 'new \Product($idProduct, false, $idLang, $ghostShopId)') === false
                 || strpos($ghostBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $ghostShopId)') === false
@@ -5437,7 +5437,7 @@ class HealthCheckManager
             $offenders[] = 'BehavioralCronManager.php introuvable (garde-fou round 158 : sendGhostCarts try/catch englobant)';
         } else {
             $posGc158 = strpos($bcmSrc158, 'private function sendGhostCarts(');
-            $gcBody158 = $posGc158 !== false ? substr($bcmSrc158, $posGc158, 6500) : '';
+            $gcBody158 = $posGc158 !== false ? substr($bcmSrc158, $posGc158, 7200) : '';
             if ($posGc158 === false || strpos($gcBody158, 'catch (\Throwable $e) {') === false || substr_count($gcBody158, "'ghost_cart'") < 2) {
                 $offenders[] = "BehavioralCronManager::sendGhostCarts() n'englobe plus tout le traitement par ligne dans un try/catch — régression du bug corrigé le 09/08/2026 (round 158) : une exception hors du try/finally interrompait de nouveau tout le lot du jour sans log exploitable";
             }
@@ -6546,7 +6546,7 @@ class HealthCheckManager
             $offenders[] = 'neria.php introuvable (garde-fou round 186)';
         } else {
             $posPs186 = strpos($neriaSrc186, "if (Tools::getValue('neria_action') === 'save_pagespeed_key'");
-            $psBody186 = $posPs186 !== false ? substr($neriaSrc186, $posPs186, 3000) : '';
+            $psBody186 = $posPs186 !== false ? substr($neriaSrc186, $posPs186, 3700) : '';
             if ($posPs186 === false || strpos($psBody186, "if (\$key !== '') {") === false) {
                 $offenders[] = "neria.php (save_pagespeed_key) n'a plus de garde 'if (\$key !== \"\")' avant d'écraser la clé PageSpeed — régression du bug corrigé le 19/08/2026 (round 186) : un champ vide (affiché après un échec de déchiffrement) effacerait de nouveau définitivement la clé API stockée";
             }
@@ -11105,6 +11105,52 @@ class HealthCheckManager
             || strpos($sendBody337, 'private function sendInner(') === false
         ) {
             $offenders[] = "ManualSendManager::send() n'acquiert plus de verrou GET_LOCK anti-doublon avant de déléguer à sendInner() — régression du bug corrigé le 11/09/2026 (round 337) : un double-clic ou une resoumission de formulaire BO redeviendrait susceptible de déclencher un second envoi réel au client";
+        }
+
+        // Round 338 : PageSpeedManager::invalidateCache() doit effacer
+        // aussi CONFIG_LAST_ATTEMPT/CONFIG_LAST_ATTEMPT_RATE_LIMITED.
+        $psmSrc338 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PageSpeedManager.php');
+        $posInvalidate338 = $psmSrc338 !== '' ? strpos($psmSrc338, 'public function invalidateCache(): void') : false;
+        $invalidateBody338 = $posInvalidate338 !== false ? substr($psmSrc338, $posInvalidate338, 1300) : '';
+        if ($invalidateBody338 === ''
+            || strpos($invalidateBody338, 'deleteByName($this->cacheKey(self::CONFIG_LAST_ATTEMPT));') === false
+            || strpos($invalidateBody338, 'deleteByName($this->cacheKey(self::CONFIG_LAST_ATTEMPT_RATE_LIMITED));') === false
+        ) {
+            $offenders[] = "PageSpeedManager::invalidateCache() n'efface plus CONFIG_LAST_ATTEMPT/CONFIG_LAST_ATTEMPT_RATE_LIMITED — régression du bug corrigé le 11/09/2026 (round 338) : un marchand corrigeant sa configuration resterait de nouveau bloqué par le cooldown résiduel d'un échec antérieur";
+        }
+
+        // Round 338 : save_pagespeed_key (neria.php) doit ajouter un schéma
+        // manquant avant parse_url().
+        $neriaSrc338 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        $posPagespeedKey338 = $neriaSrc338 !== '' ? strpos($neriaSrc338, "Tools::getValue('neria_action') === 'save_pagespeed_key'") : false;
+        $pagespeedKeyBody338 = $posPagespeedKey338 !== false ? substr($neriaSrc338, $posPagespeedKey338, 1200) : '';
+        if ($pagespeedKeyBody338 === '' || strpos($pagespeedKeyBody338, "\$urlToParse  = preg_match('/^https?:\\/\\//i', \$targetUrl) ? \$targetUrl : 'https://' . \$targetUrl;") === false) {
+            $offenders[] = "neria.php (save_pagespeed_key) n'ajoute plus de schéma https:// manquant avant parse_url() — régression du bug corrigé le 11/09/2026 (round 338) : une URL cible saisie sans schéma redeviendrait systématiquement rejetée même pour un domaine correct";
+        }
+
+        // Round 338 : SeasonalCampaignManager::isStillActive() doit
+        // bypasser le cache SQL.
+        $scmSrc338 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php');
+        $posIsStillActive338 = $scmSrc338 !== '' ? strpos($scmSrc338, 'private function isStillActive(int $idCampaign): bool') : false;
+        $isStillActiveBody338 = $posIsStillActive338 !== false ? substr($scmSrc338, $posIsStillActive338, 1700) : '';
+        if ($isStillActiveBody338 === ''
+            || strpos($isStillActiveBody338, "AND id_shop = \" . (int) \$this->idShop,") === false
+            || strpos($isStillActiveBody338, "\n            false\n        );") === false
+        ) {
+            $offenders[] = "SeasonalCampaignManager::isStillActive() n'a plus \$use_cache=false sur son getValue() — régression du bug corrigé le 11/09/2026 (round 338) : le cron pourrait de nouveau continuer d'envoyer une campagne désactivée en urgence jusqu'à la fin du lot en cours";
+        }
+
+        // Round 338 : BehavioralCronManager doit transmettre $idShop
+        // explicite pour PS_LANG_DEFAULT (4 sites) et minimum_amount_currency.
+        $bcmSrc338 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc338 === ''
+            || strpos($bcmSrc338, "\\Configuration::get('PS_LANG_DEFAULT', null, null, \$idShop));") === false
+            || strpos($bcmSrc338, "\\Configuration::get('PS_LANG_DEFAULT', null, null, (int) \$customer['id_shop']);") === false
+            || strpos($bcmSrc338, "\\Configuration::get('PS_LANG_DEFAULT', null, null, (int) \$r['id_shop']));") === false
+            || strpos($bcmSrc338, "\$idLang = (int) \$customer['id_lang'] ?: (int) \\Configuration::get('PS_LANG_DEFAULT', null, null, \$idShop);") === false
+            || strpos($bcmSrc338, "\$cartRule->minimum_amount_currency = (int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$idShop);") === false
+        ) {
+            $offenders[] = "BehavioralCronManager ne transmet plus \$idShop explicite pour PS_LANG_DEFAULT et/ou minimum_amount_currency à un des sites corrigés — régression du bug corrigé le 11/09/2026 (round 338) : un client avec id_lang NULL/0 recevrait de nouveau un email dans la mauvaise langue";
         }
 
         if ($offenders) {
