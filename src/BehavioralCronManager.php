@@ -424,7 +424,12 @@ class BehavioralCronManager
         $cartRule->date_from               = $nowSql314;
         $cartRule->date_to                 = date('Y-m-d H:i:s', strtotime($nowSql314 . ' +' . $config->getVoucherValidity() . ' days'));
         $cartRule->minimum_amount          = 0;
-        $cartRule->minimum_amount_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT');
+        // Round 338 : scopé par $idShop, même correctif que
+        // LoyaltyManager::generateVoucher() (round 336) — incohérent avec
+        // reduction_currency plus bas dans cette même méthode, qui l'est
+        // déjà. Sans effet observable tant que minimum_amount reste à 0
+        // (aucun seuil réel), mais incohérence de cohérence à corriger.
+        $cartRule->minimum_amount_currency = (int) \Configuration::get('PS_CURRENCY_DEFAULT', null, null, $idShop);
         $cartRule->highlight               = false;
         $cartRule->free_shipping           = false;
 
@@ -1104,7 +1109,15 @@ class BehavioralCronManager
 
         foreach ((array) $rows as $r) {
             $idOrder = (int) $r['id_order'];
-            $idLang  = (int) ($r['id_lang'] ?: \Configuration::get('PS_LANG_DEFAULT'));
+            // Round 338 : $idShop explicite — même correctif round 187 déjà
+            // appliqué à PS_SHOP_NAME/PS_CURRENCY_DEFAULT dans d'autres
+            // méthodes de ce fichier, jamais porté ici. run() réassigne
+            // Context->shop en boucle sans jamais appeler Shop::setContext()
+            // (seule méthode qui met vraiment à jour Shop::$context_id_shop),
+            // donc Configuration::get() sans idShop explicite retombe sur la
+            // boutique ambiante réelle, pas $idShop (celle du client c.id_lang
+            // NULL/0 traité dans cette itération).
+            $idLang  = (int) ($r['id_lang'] ?: \Configuration::get('PS_LANG_DEFAULT', null, null, $idShop));
 
             $extraVars = ['{review_url}' => \Tools::getShopDomainSsl(true)];
 
@@ -1740,7 +1753,10 @@ class BehavioralCronManager
                         continue;
                     }
 
-                    $idLang      = (int) $customer['id_lang'] ?: (int) \Configuration::get('PS_LANG_DEFAULT');
+                    // Round 338 : $idShop explicite (même correctif round
+                    // 187 que PS_SHOP_NAME/PS_CURRENCY_DEFAULT ailleurs dans
+                    // ce fichier) — customer['id_shop'] est déjà disponible.
+                    $idLang      = (int) $customer['id_lang'] ?: (int) \Configuration::get('PS_LANG_DEFAULT', null, null, (int) $customer['id_shop']);
                     $productName = $this->db->getValue(
                         "SELECT name FROM `{$this->prefix}product_lang`
                          WHERE id_product = {$idProduct} AND id_lang = {$idLang} LIMIT 1"
@@ -2026,7 +2042,14 @@ class BehavioralCronManager
 
         foreach ((array) $rows as $r) {
             $idProduct  = (int) $r['id_product'];
-            $idLang     = (int) ($r['id_lang'] ?: \Configuration::get('PS_LANG_DEFAULT'));
+            // Round 338 : $idShop explicite (r['id_shop'] déjà disponible,
+            // résolu AVANT le Shop::setContext() plus bas) — même correctif
+            // round 187 que PS_SHOP_NAME/PS_CURRENCY_DEFAULT ailleurs dans ce
+            // fichier, particulièrement ironique ici puisque cette même
+            // méthode bascule explicitement le contexte boutique statique
+            // juste après (ligne ~2064), précisément pour éviter ce genre de
+            // piège — mais cette résolution a lieu AVANT ce setContext().
+            $idLang     = (int) ($r['id_lang'] ?: \Configuration::get('PS_LANG_DEFAULT', null, null, (int) $r['id_shop']));
             $idCustomer = (int) $r['id_customer'];
 
             // $idShop explicite au constructeur ET commutation réelle du
@@ -2146,8 +2169,12 @@ class BehavioralCronManager
         $email = $customer['email'] ?? '?';
 
         try {
-            $idLang = (int) $customer['id_lang'] ?: (int) \Configuration::get('PS_LANG_DEFAULT');
             $idShop = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
+            // Round 338 : $idShop explicite — même correctif round 187 déjà
+            // appliqué à {shop_name}/PS_CURRENCY_DEFAULT plus bas dans cette
+            // même méthode (partagée par ~15 templates comportementaux),
+            // jamais porté à cette résolution de langue.
+            $idLang = (int) $customer['id_lang'] ?: (int) \Configuration::get('PS_LANG_DEFAULT', null, null, $idShop);
             $toName = trim($customer['firstname'] . ' ' . $customer['lastname']) ?: null;
             $idCust = (int) ($customer['id_customer'] ?? 0);
 

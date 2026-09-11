@@ -122,10 +122,22 @@ class SeasonalCampaignManager
     // seule colonne, clé primaire) à intervalle régulier DANS la boucle.
     private function isStillActive(int $idCampaign): bool
     {
+        // Round 338 : $use_cache=false — sans lui, ce helper de "relecture
+        // peu coûteuse" (round 256, voir commentaire ci-dessous) retombait
+        // sur le cache SQL PrestaShop : la première exécution dans une
+        // boucle runDueCampaigns() (tous les 20 clients) mettait en cache le
+        // résultat sous la même clé (SQL identique pour un même
+        // id_campaign/id_shop), et TOUS les appels suivants de la même
+        // boucle recevaient ce résultat périmé au lieu de la valeur réelle
+        // en base — exactement l'inverse de l'objectif documenté. Un
+        // marchand cliquant sur toggle() en BO pour arrêter en urgence une
+        // campagne en cours d'envoi (ciblage large) voyait le cron
+        // continuer d'envoyer jusqu'au bout du lot.
         $value = $this->db->getValue(
             "SELECT is_active FROM `{$this->prefix}" . self::TABLE . "`
              WHERE id_campaign = " . (int) $idCampaign . "
-               AND id_shop = " . (int) $this->idShop
+               AND id_shop = " . (int) $this->idShop,
+            false
         );
         return $value === false ? false : (bool) $value;
     }

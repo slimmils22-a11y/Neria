@@ -121,6 +121,18 @@ class PageSpeedManager
     {
         \Configuration::deleteByName($this->cacheKey(self::CONFIG_CACHE));
         \Configuration::deleteByName($this->cacheKey(self::CONFIG_CACHE_TIME));
+        // Round 338 : CONFIG_LAST_ATTEMPT/CONFIG_LAST_ATTEMPT_RATE_LIMITED
+        // effacés ici aussi — sans ça, un marchand corrigeant une clé
+        // API/URL invalide juste après un échec (mobile ET desktop, cf.
+        // runCheck()) restait bloqué par le cooldown résiduel (15 min à 1h
+        // si le dernier échec était un 429) : getReport() retombait sur
+        // isInFailureCooldown()=true, puis sur getCachedReport() — qui
+        // vient pourtant d'être vidé par les deux lignes ci-dessus — donc
+        // affichait "aucune donnée" malgré une configuration désormais
+        // valide, jusqu'à expiration du cooldown ou clic explicite sur
+        // "Rafraîchir" (seul chemin appelant runCheck() directement).
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ATTEMPT));
+        \Configuration::deleteByName($this->cacheKey(self::CONFIG_LAST_ATTEMPT_RATE_LIMITED));
     }
 
     /**

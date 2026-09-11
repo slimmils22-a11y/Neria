@@ -3137,7 +3137,16 @@ class Neria extends Module
             $urlError  = '';
 
             if ($targetUrl !== '') {
-                $parsed      = parse_url($targetUrl);
+                // Round 338 : schéma ajouté si absent AVANT parse_url() —
+                // sans lui, une URL saisie sans "http(s)://" (ex.
+                // "boutique.com") ne renvoie aucune clé 'host' chez
+                // parse_url() (PHP la place dans 'path'), $enteredHost
+                // devenait alors '' et msg.url_wrong_domain s'affichait
+                // systématiquement même pour un domaine par ailleurs
+                // correct — empêchant la sauvegarde tant que le marchand ne
+                // devine pas qu'il faut préfixer explicitement l'URL.
+                $urlToParse  = preg_match('/^https?:\/\//i', $targetUrl) ? $targetUrl : 'https://' . $targetUrl;
+                $parsed      = parse_url($urlToParse);
                 $enteredHost = strtolower(preg_replace('/^www\./', '', $parsed['host'] ?? ''));
                 $shopHost    = strtolower(preg_replace('/^www\./', '', Tools::getShopDomain()));
                 if ($enteredHost === '' || $enteredHost !== $shopHost) {
