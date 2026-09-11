@@ -6249,7 +6249,10 @@ class HealthCheckManager
             // voir plus bas) avait de nouveau repoussé le check BounceManager
             // plus loin dans le corps de la méthode (round 260 : 5400→7500
             // pour la même raison, revérification produit ghost_cart).
-            $singleBody178 = $posSingle178 !== false ? substr($qmSrc178, $posSingle178, 10500) : '';
+            // Round 336 : fenêtre élargie 10500→11200 — le nouveau
+            // commentaire explicatif de la réservation send_at=NOW() a de
+            // nouveau repoussé le check BounceManager plus loin.
+            $singleBody178 = $posSingle178 !== false ? substr($qmSrc178, $posSingle178, 11200) : '';
             $hasGuards178 = strpos($singleBody178, "\\BounceManager::isBounced(\$toEmail)") !== false
                 && strpos($singleBody178, 'markQueueFailed(') !== false;
             if ($posSingle178 === false || !$hasGuards178) {
@@ -10968,6 +10971,46 @@ class HealthCheckManager
             $offenders[] = "NeriaErrorHandler::register() ne tente plus WatchdogManager::critical() (déduplication) avant l'INSERT brut de secours — régression du bug corrigé le 10/09/2026 (round 335) : un fatal PHP répété inonderait de nouveau neria_log sans consolidation";
         }
 
+        // Round 336 : processSingle() (QueueManager) doit rafraîchir
+        // send_at=NOW() lors de la réservation atomique — sinon la fenêtre
+        // de récupération après crash (10 min, processQueue()) redevient
+        // immédiatement satisfaite pour tout envoi différé.
+        $qmSrc336 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        $posProcessSingle336 = $qmSrc336 !== '' ? strpos($qmSrc336, 'private function processSingle(array $row): bool') : false;
+        $processSingleBody336 = $posProcessSingle336 !== false ? substr($qmSrc336, $posProcessSingle336, 2600) : '';
+        if ($processSingleBody336 === ''
+            || strpos($processSingleBody336, "SET attempts = attempts + 1, status = \\'sending\\', send_at = NOW()") === false
+        ) {
+            $offenders[] = "QueueManager::processSingle() ne rafraîchit plus send_at=NOW() lors de la réservation atomique — régression du bug corrigé le 11/09/2026 (round 336) : un crash juste après réservation redeviendrait immédiatement re-livrable au lieu d'attendre 10 minutes, risquant un envoi en double";
+        }
+
+        // Round 336 : PropensityScoreManager doit utiliser MONTH(NOW())
+        // côté SQL, pas date('n') PHP, pour le calcul de saisonnalité.
+        $psmSrc336 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PropensityScoreManager.php');
+        if ($psmSrc336 === '' || substr_count($psmSrc336, 'MONTH(date_add) = MONTH(NOW())') !== 2) {
+            $offenders[] = "PropensityScoreManager n'utilise plus MONTH(NOW()) côté SQL pour son calcul de saisonnalité — régression du bug corrigé le 11/09/2026 (round 336) : un décalage de fuseau horaire PHP/MySQL redeviendrait susceptible de compter les commandes dans le mauvais mois";
+        }
+
+        // Round 336 : newsletter_conf (transactionnel) ne doit plus être
+        // listé dans AbTestManager::getEligibleTemplates().
+        $abSrc336 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ABTestManager.php');
+        $posEligible336 = $abSrc336 !== '' ? strpos($abSrc336, 'public function getEligibleTemplates(): array') : false;
+        $eligibleBody336 = $posEligible336 !== false ? substr($abSrc336, $posEligible336, 2400) : '';
+        if ($eligibleBody336 === '' || strpos($eligibleBody336, "'newsletter_conf',") !== false) {
+            $offenders[] = "AbTestManager::getEligibleTemplates() liste de nouveau 'newsletter_conf' — régression du bug corrigé le 11/09/2026 (round 336) : un marchand pourrait de nouveau créer un test A/B sur la confirmation de double opt-in, un email transactionnel obligatoire";
+        }
+
+        // Round 336 : recordBounce() (BounceManager) doit vérifier le
+        // retour de son INSERT.
+        $bmSrc336 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BounceManager.php');
+        $posRecordBounce336 = $bmSrc336 !== '' ? strpos($bmSrc336, 'public function recordBounce(string $email, string $type, string $reason, string $source = \'imap\'): void') : false;
+        $recordBounceBody336 = $posRecordBounce336 !== false ? substr($bmSrc336, $posRecordBounce336, 5700) : '';
+        if ($recordBounceBody336 === ''
+            || strpos($recordBounceBody336, "WatchdogManager::i18nMsg('watchdog.bounce_record_failed'") === false
+        ) {
+            $offenders[] = "BounceManager::recordBounce() ne journalise plus d'alerte dédiée sur échec de son INSERT — régression du bug corrigé le 11/09/2026 (round 336) : un échec SQL transitoire redeviendrait invisible, journalisé comme un succès";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
@@ -11420,8 +11463,10 @@ class HealthCheckManager
         // adressé au MARCHAND, pas au client — aucune notion de préférence
         // ni d'attribution de revenu par catégorie n'a de sens ici),
         // newsletter_conf (confirmation double opt-in — transactionnel par
-        // nature, listé dans ABTestManager::getEligibleTemplates() mais
-        // jamais destiné à être préférence-gaté, comme les trois précédents).
+        // nature, jamais destiné à être préférence-gaté, comme les trois
+        // précédents ; retiré d'ABTestManager::getEligibleTemplates() au
+        // round 336 pour la même raison — exclusion ici conservée par
+        // robustesse défensive si ce template devait y réapparaître).
         $sent = array_diff(array_unique($sent), ['certificate_email', 'neria_fallback', 'monthly_report', 'newsletter_conf']);
 
         // Extraction manifestement cassée (refactor ayant changé les deux
