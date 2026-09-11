@@ -34,7 +34,7 @@ function run_test(): array
     // ── restore_translation ──────────────────────────────────────────
     $posRT = strpos($src, "if (\$tradAction === 'restore_translation' && class_exists('TranslationHistoryManager')) {");
     neria_assert($posRT !== false, 'restore_translation introuvable — jeu de test invalide');
-    $bodyRT = substr($src, $posRT, 4000);
+    $bodyRT = substr($src, $posRT, 4400);
 
     $posSuccessRT = strpos($bodyRT, "smarty->assign('neria_success', AdminTranslator::t('msg.saved'));");
     $posWatchdogRT = strpos($bodyRT, "'watchdog.translation_field_restored'");
