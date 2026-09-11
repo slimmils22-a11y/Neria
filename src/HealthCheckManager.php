@@ -11153,6 +11153,17 @@ class HealthCheckManager
             $offenders[] = "BehavioralCronManager ne transmet plus \$idShop explicite pour PS_LANG_DEFAULT et/ou minimum_amount_currency à un des sites corrigés — régression du bug corrigé le 11/09/2026 (round 338) : un client avec id_lang NULL/0 recevrait de nouveau un email dans la mauvaise langue";
         }
 
+        // Hors round (suite round 338) : SearchConsoleManager::getRedirectUri()
+        // doit résoudre le domaine de la boutique #1 (canonique), pas celui
+        // du contexte BO courant — cette connexion OAuth est volontairement
+        // globale (round 185).
+        $scmSrc338b = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php');
+        $posRedirect338b = $scmSrc338b !== '' ? strpos($scmSrc338b, 'public function getRedirectUri(): string') : false;
+        $redirectBody338b = $posRedirect338b !== false ? substr($scmSrc338b, $posRedirect338b, 1400) : '';
+        if ($redirectBody338b === '' || strpos($redirectBody338b, '$domain = \ShopUrl::getMainShopDomainSSL(1);') === false) {
+            $offenders[] = "SearchConsoleManager::getRedirectUri() ne résout plus le domaine de la boutique #1 (canonique) — régression du correctif du 12/09/2026 (hors round, suite round 338) : le redirect_uri OAuth redeviendrait dépendant du contexte BO courant, risquant un 'redirect_uri_mismatch' Google selon la boutique depuis laquelle l'admin initie la connexion";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,

@@ -94,7 +94,29 @@ class SearchConsoleManager
 
     public function getRedirectUri(): string
     {
-        return \Tools::getShopDomainSsl(true)
+        // Round 338 : domaine de LA BOUTIQUE #1 (canonique), pas
+        // Tools::getShopDomainSsl(true) qui résout le domaine de la
+        // boutique du CONTEXTE BO courant — incohérent avec le caractère
+        // volontairement GLOBAL de cette connexion OAuth (round 185,
+        // commentaire ci-dessus). Sur une installation multi-boutiques à
+        // domaines différents, un client OAuth Google enregistré pour un
+        // seul domaine (généralement celui de la boutique principale)
+        // rejetait la connexion ("redirect_uri_mismatch") dès que l'admin
+        // cliquait "Connecter" depuis le contexte d'une AUTRE boutique —
+        // sans message d'erreur exploitable côté Neria. La boutique #1
+        // existe toujours (créée à l'installation de PrestaShop), donc
+        // stable comme référence canonique.
+        $domain = \ShopUrl::getMainShopDomainSSL(1);
+        if ($domain === '' || $domain === null) {
+            // Repli défensif — ne devrait pas se produire (boutique #1
+            // toujours présente), mais évite un redirect_uri vide en cas
+            // d'installation atypique.
+            return \Tools::getShopDomainSsl(true)
+                . __PS_BASE_URI__
+                . 'index.php?fc=module&module=neria&controller=oauthsc';
+        }
+
+        return \Tools::getProtocol((bool) \Configuration::get('PS_SSL_ENABLED')) . $domain
             . __PS_BASE_URI__
             . 'index.php?fc=module&module=neria&controller=oauthsc';
     }
