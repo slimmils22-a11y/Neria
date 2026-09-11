@@ -4680,7 +4680,7 @@ class HealthCheckManager
             if ($posPQ144 === false || $posCleanupCall144 === false || $posUrlReturn144 === false || $posCleanupCall144 > $posUrlReturn144) {
                 $offenders[] = "WebhookManager::processQueue() n'appelle plus cleanup() avant ses return précoces de validation URL/secret — régression du bug corrigé le 09/08/2026 (round 144) : cleanup() redeviendrait inatteignable si la clé de chiffrement maîtresse devient illisible durablement, ps_neria_webhook_queue croîtrait sans borne";
             }
-            $loopBody144 = $posPQ144 !== false ? substr($whSrc144, strpos($whSrc144, 'foreach ($rows as $row) {', $posPQ144), 6800) : '';
+            $loopBody144 = $posPQ144 !== false ? substr($whSrc144, strpos($whSrc144, 'foreach ($rows as $row) {', $posPQ144), 10000) : '';
             if (strpos($loopBody144, 'watchdog.webhook_row_exception') === false) {
                 $offenders[] = "WebhookManager::processQueue() n'isole plus chaque ligne du lot dans son propre try/catch — régression du bug corrigé le 09/08/2026 (round 144) : une exception sur une ligne interromprait de nouveau le traitement de tout le reste du lot";
             }
@@ -9092,14 +9092,16 @@ class HealthCheckManager
         // transmettait l'email en clair au webhook sortant 'unsubscribed',
         // seul événement du module à ne pas utiliser customer_id.
         $unsubSrc290 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/unsubscribe.php');
-        $unsubPrefsPos290 = $unsubSrc290 !== '' ? strpos($unsubSrc290, '$prefsOk = false;') : false;
-        $unsubCustIdPos290 = $unsubPrefsPos290 !== false ? strpos($unsubSrc290, '$customerId = 0;', $unsubPrefsPos290) : false;
+        // Round 339 : $customerId est désormais résolu plus haut dans le
+        // fichier (via Customer::customerExists(), avant $prefsOk = false)
+        // — la fenêtre round 290 ci-dessous vérifie donc seulement que la
+        // résolution existe bien AVANT le déclenchement du webhook, plus la
+        // bascule customer_id/customer_email elle-même (inchangée).
+        $unsubCustIdPos290 = $unsubSrc290 !== '' ? strpos($unsubSrc290, '$customerId = (int) Customer::customerExists($email, true);') : false;
         $unsubTriggerPos290 = $unsubSrc290 !== '' ? strpos($unsubSrc290, "class_exists('WebhookManager')") : false;
         $unsubTriggerBody290 = $unsubTriggerPos290 !== false ? substr($unsubSrc290, $unsubTriggerPos290, 1000) : '';
         if ($unsubSrc290 === ''
-            || $unsubPrefsPos290 === false
             || $unsubCustIdPos290 === false
-            || ($unsubCustIdPos290 - $unsubPrefsPos290) >= 600
             || $unsubTriggerPos290 === false
             || $unsubTriggerPos290 <= $unsubCustIdPos290
             || strpos($unsubTriggerBody290, '$customerId > 0') === false
@@ -11162,6 +11164,46 @@ class HealthCheckManager
         $redirectBody338b = $posRedirect338b !== false ? substr($scmSrc338b, $posRedirect338b, 1400) : '';
         if ($redirectBody338b === '' || strpos($redirectBody338b, '$domain = \ShopUrl::getMainShopDomainSSL(1);') === false) {
             $offenders[] = "SearchConsoleManager::getRedirectUri() ne résout plus le domaine de la boutique #1 (canonique) — régression du correctif du 12/09/2026 (hors round, suite round 338) : le redirect_uri OAuth redeviendrait dépendant du contexte BO courant, risquant un 'redirect_uri_mismatch' Google selon la boutique depuis laquelle l'admin initie la connexion";
+        }
+
+        // Round 339 : unsubscribe.php doit résoudre le client via
+        // Customer::customerExists() (respecte Shop::SHARE_CUSTOMER), même
+        // correctif que preferences.php (round 211).
+        $unsubSrc339 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/unsubscribe.php');
+        if ($unsubSrc339 === ''
+            || strpos($unsubSrc339, 'Shop::setContext(Shop::CONTEXT_SHOP, $idShop);') === false
+            || strpos($unsubSrc339, '$customerId = (int) Customer::customerExists($email, true);') === false
+        ) {
+            $offenders[] = "controllers/front/unsubscribe.php ne résout plus le client via Customer::customerExists() — régression du bug corrigé le 12/09/2026 (round 339) : un client en multi-boutique à comptes partagés redeviendrait injoignable via son lien de désabonnement reçu d'une autre boutique du groupe, désabonnement silencieusement inefficace";
+        }
+
+        // Round 339 : WebhookManager::processQueue() doit vérifier
+        // Affected_Rows() sur l'UPDATE status='done'.
+        $whmSrc339 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WebhookManager.php');
+        $posWhDone339 = $whmSrc339 !== '' ? strpos($whmSrc339, "UPDATE `{\$table}` SET `status` = 'done' WHERE `id_webhook` = {\$id}") : false;
+        $whDoneBody339 = $posWhDone339 !== false ? substr($whmSrc339, $posWhDone339, 2800) : '';
+        if ($whDoneBody339 === ''
+            || strpos($whDoneBody339, '$affectedDone339 = (int) $this->db->Affected_Rows();') === false
+            || strpos($whDoneBody339, '$affectedDone339 === 0') === false
+            || strpos($whDoneBody339, "'watchdog.webhook_done_not_confirmed'") === false
+        ) {
+            $offenders[] = "WebhookManager::processQueue() ne vérifie plus Affected_Rows() sur l'UPDATE status='done' — régression du bug corrigé le 12/09/2026 (round 339) : un échec silencieux de cette UPDATE (webhook réellement livré, DB non mise à jour) redeviendrait invisible, provoquant une double notification au système tiers au prochain passage";
+        }
+
+        // Round 339 : waitlist_button.tpl doit utiliser de vrais formulaires
+        // POST (pas de simples <a href>, incompatibles avec l'exigence POST
+        // du contrôleur) ; waitlist.php doit vérifier le retour de
+        // register()/unregister().
+        $waitlistTpl339 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/front/waitlist_button.tpl');
+        if ($waitlistTpl339 === '' || substr_count($waitlistTpl339, "url|escape:'html'}\" method=\"post\"") !== 2) {
+            $offenders[] = "views/templates/front/waitlist_button.tpl n'utilise plus 2 <form method=\"post\"> pour l'inscription/désinscription à la liste d'attente — régression du bug corrigé le 12/09/2026 (round 339) : le bouton redeviendrait un simple lien GET, systématiquement rejeté par le contrôleur, rendant la fonctionnalité intégralement inopérante";
+        }
+        $waitlistCtrl339 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/controllers/front/waitlist.php');
+        if ($waitlistCtrl339 === ''
+            || strpos($waitlistCtrl339, "\$writeOk = \$action === 'subscribe'") === false
+            || strpos($waitlistCtrl339, "WatchdogManager::i18nMsg('watchdog.waitlist_write_failed'") === false
+        ) {
+            $offenders[] = "controllers/front/waitlist.php ne vérifie plus le retour de register()/unregister() — régression du bug corrigé le 12/09/2026 (round 339)";
         }
 
         if ($offenders) {
