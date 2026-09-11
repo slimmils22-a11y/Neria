@@ -38,12 +38,15 @@ function run_test(): array
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/controllers/front/unsubscribe.php');
     neria_assert($src !== false, 'Impossible de lire controllers/front/unsubscribe.php');
 
-    $posPrefsBlock = strpos($src, "\$prefsOk = false;");
-    neria_assert($posPrefsBlock !== false, 'jeu de test invalide : bloc PreferencesManager introuvable');
-    $posCustomerIdInit = strpos($src, '$customerId = 0;', $posPrefsBlock);
+    // Round 339 : $customerId est désormais résolu bien plus haut dans le
+    // fichier (via Customer::customerExists(), pour corriger une
+    // incohérence de scoping multi-boutique — cf. test_701), pas juste
+    // avant le bloc PreferencesManager comme auparavant. Seul l'ORDRE
+    // relatif face au déclenchement du webhook compte ici.
+    $posCustomerIdInit = strpos($src, '$customerId = (int) Customer::customerExists($email, true);');
     neria_assert(
-        $posCustomerIdInit !== false && $posCustomerIdInit - $posPrefsBlock < 600,
-        "controllers/front/unsubscribe.php n'initialise plus \$customerId=0 avant sa résolution — régression de la correction du 03/09/2026 (round 290)"
+        $posCustomerIdInit !== false,
+        "controllers/front/unsubscribe.php ne résout plus \$customerId via Customer::customerExists() — régression de la correction du 12/09/2026 (round 339)"
     );
 
     $posTrigger = strpos($src, "class_exists('WebhookManager')");
