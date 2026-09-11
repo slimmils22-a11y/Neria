@@ -69,7 +69,7 @@ function run_test(): array
         neria_assert($src !== false, 'Impossible de lire src/BehavioralCronManager.php');
         $posFn = strpos($src, 'private function sendPostPurchase(string $template, int $days): void');
         neria_assert($posFn !== false, 'sendPostPurchase() introuvable — jeu de test invalide');
-        $body = substr($src, $posFn, 3400);
+        $body = substr($src, $posFn, 3900);
         neria_assert(
             strpos($body, 'o.id_order, o.id_customer, o.id_shop, o.id_currency,') !== false,
             "sendPostPurchase() ne sélectionne plus o.id_currency — régression du bug corrigé le 01/09/2026 (round 274)"
