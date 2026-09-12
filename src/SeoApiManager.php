@@ -498,6 +498,28 @@ class SeoApiManager
 
         $r = $data['results'][0] ?? [];
 
+        // Round 342 : même correctif que fetchSemrush() (round 335) — si
+        // l'API Moz change de format de réponse (renommage de champs), le
+        // code continuait avant ce correctif à fabriquer un $result à 0
+        // partout, mis en cache 24h via runCheck() comme un rapport VALIDE,
+        // effaçant getLastError() — indiscernable d'un domaine réellement à
+        // 0 sur ces métriques.
+        $expectedKeys = ['domain_authority', 'page_authority', 'spam_score', 'links_to_root_domain', 'root_domains_to_root_domain'];
+        if (count(array_intersect($expectedKeys, array_keys($r))) === 0) {
+            $this->wd()->warning(
+                \WatchdogManager::i18nMsg('watchdog.moz_unexpected_columns', ['keys' => implode(',', array_keys($r))]),
+                '', 'SeoApiManager'
+            );
+            $prevLang = \AdminTranslator::currentLang();
+            try {
+                \AdminTranslator::setLang(\WatchdogManager::shopLang((int) \Context::getContext()->shop->id));
+                $this->recordError(\AdminTranslator::t('msg.moz_unexpected_columns'));
+            } finally {
+                \AdminTranslator::setLang($prevLang);
+            }
+            return null;
+        }
+
         $result = [
             'domain'              => $domain,
             'domain_authority'    => (int)   ($r['domain_authority']    ?? 0),

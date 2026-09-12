@@ -212,11 +212,15 @@ class TranslationInstaller
         // (la table retrouve son état d'avant l'appel).
         $this->db->execute('START TRANSACTION');
 
-        $this->clearDefaultTranslations();
+        $failed = !$this->clearDefaultTranslations();
+        if ($failed) {
+            $this->queueWatchdogError(
+                \WatchdogManager::i18nMsg('watchdog.translation_clear_default_failed')
+            );
+        }
 
         $batch = [];
         $now   = date('Y-m-d H:i:s');
-        $failed = false;
         // Round 161 : la contrainte UNIQUE (template, lang, translation_key)
         // fait que l'INSERT IGNORE en bulk (flushBatch) déduplique déjà les
         // doublons éventuels du JSON source SANS jamais le signaler — la
@@ -227,7 +231,10 @@ class TranslationInstaller
         // comportement (la 1ère valeur continue de gagner).
         $seenKeys = [];
 
-        foreach ($translations as $template => $langs) {
+        // Round 342 : la purge a réellement échoué — inutile de construire
+        // et d'insérer des lots qui seront de toute façon annulés par le
+        // ROLLBACK ci-dessous (voir clearDefaultTranslations()).
+        foreach ($failed ? [] : $translations as $template => $langs) {
             // Vérifie que la structure est valide
             if (!is_array($langs)) {
                 $this->countSkipped++;
@@ -445,22 +452,34 @@ class TranslationInstaller
         // échec (ROLLBACK), la suppression n'est jamais validée sans
         // réinsertion effective.
         $this->db->execute('START TRANSACTION');
-        $this->db->delete(
+        // Round 342 : retour du DELETE désormais capturé — voir le
+        // commentaire détaillé sur clearDefaultTranslations() (même bug,
+        // même correctif) : sans lui, un échec réel de cette suppression
+        // (pas "0 ligne", une vraie erreur SQL) laissait les anciennes
+        // lignes en place, et l'INSERT IGNORE de flushBatch() ignorait
+        // alors silencieusement les nouvelles valeurs à cause du conflit
+        // avec les anciennes non supprimées.
+        $deleteOk = (bool) $this->db->delete(
             self::TABLE,
             '`template` = \'' . pSQL($template) . '\' AND `is_custom` = 0'
         );
         $batchWasEmpty = empty($batch);
-        $ok = !$batchWasEmpty && $this->flushBatch($batch);
+        $ok = $deleteOk && !$batchWasEmpty && $this->flushBatch($batch);
         if ($ok) {
             $this->db->execute('COMMIT');
         } else {
             $this->db->execute('ROLLBACK');
             // flushBatch() journalise déjà sa propre erreur Watchdog en cas
             // d'échec SQL réel (watchdog.translation_install_bulk_error,
-            // avec la vraie erreur MySQL) — ne pas dupliquer ce log ici. Le
-            // SEUL cas qui n'avait jusqu'ici AUCUNE trace est batch vide
-            // (données source malformées), d'où ce log dédié.
-            if ($batchWasEmpty) {
+            // avec la vraie erreur MySQL) — ne pas dupliquer ce log ici. Les
+            // 2 cas qui n'avaient jusqu'ici AUCUNE trace sont batch vide
+            // (données source malformées) et échec du DELETE ci-dessus,
+            // d'où ces logs dédiés.
+            if (!$deleteOk) {
+                $this->queueWatchdogError(
+                    \WatchdogManager::i18nMsg('watchdog.translation_clear_default_failed')
+                );
+            } elseif ($batchWasEmpty) {
                 $this->queueWatchdogError(
                     \WatchdogManager::i18nMsg('watchdog.translation_import_template_empty', ['template' => $template])
                 );
@@ -481,11 +500,22 @@ class TranslationInstaller
      * Supprime toutes les traductions par défaut (is_custom = 0)
      * Préserve les traductions personnalisées du marchand (is_custom = 1)
      */
-    private function clearDefaultTranslations(): void
+    private function clearDefaultTranslations(): bool
     {
         // NB : Db::delete() préfixe lui-même la table — passer self::TABLE
         // SANS _DB_PREFIX_ (sinon double préfixe → table inexistante).
-        $this->db->delete(
+        //
+        // Round 342 : retour désormais capturé. Db::delete() renvoie le
+        // succès de la REQUÊTE SQL (false sur une vraie erreur — verrou,
+        // timeout, connexion perdue — pas "0 ligne supprimée", qui reste un
+        // succès), jamais vérifié jusqu'ici. Un échec réel laissait les
+        // anciennes lignes is_custom=0 en place ; le flushBatch() suivant
+        // (INSERT IGNORE, contrainte UNIQUE template+lang+translation_key)
+        // ignorait alors silencieusement les nouvelles valeurs à cause du
+        // conflit avec les anciennes non supprimées — une correction de
+        // translations.json pouvait ainsi ne jamais être appliquée, sans
+        // aucune trace (COMMIT si flushBatch() réussissait par ailleurs).
+        return (bool) $this->db->delete(
             self::TABLE,
             '`is_custom` = 0'
         );

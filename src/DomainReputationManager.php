@@ -389,8 +389,9 @@ class DomainReputationManager
         // et tenter la mutualisation par domaine ; éviter de le relire une
         // 2e fois ici garde un comportement strictement identique si cette
         // méthode est appelée directement (tests, ou $domain omis).
-        $domain = $domain ?? $this->getSenderDomain();
-        $ip     = $domain ? $this->resolveIp($domain, $deadline) : null;
+        $domain     = $domain ?? $this->getSenderDomain();
+        $ipDnsError = false;
+        $ip         = $domain ? $this->resolveIp($domain, $deadline, $ipDnsError) : null;
 
         $spf    = $this->checkSpf($domain, $deadline);
         $dkim   = $this->checkDkim($domain, $deadline);
@@ -408,13 +409,16 @@ class DomainReputationManager
         // (seuil grade==='F'). 'ip_missing' distingue désormais l'échec réel
         // du skip légitime, sans changer le comportement pour une IP privée.
         $ipMissing = ($ip === null);
+        // Round 342 : dns_error propagé — voir commentaire de resolveIp().
+        // Ne s'applique qu'au cas ip_missing (une IP privée légitime, elle,
+        // reste 'skipped' inconditionnellement, comportement inchangé).
         $ptr    = ($ip && !$this->isPrivateIp($ip))
             ? $this->checkPtr($ip, $deadline)
-            : ['found' => false, 'hostname' => null, 'skipped' => !$ipMissing, 'ip_missing' => $ipMissing];
+            : ['found' => false, 'hostname' => null, 'skipped' => !$ipMissing, 'ip_missing' => $ipMissing, 'dns_error' => $ipMissing && $ipDnsError];
         $bimi   = $this->checkBimi($domain, $dmarc, $deadline);
         $bl     = ($ip && !$this->isPrivateIp($ip))
             ? $this->checkBlacklists($ip, $deadline)
-            : ['checked' => 0, 'hits' => [], 'clean' => 0, 'skipped' => !$ipMissing, 'ip_missing' => $ipMissing];
+            : ['checked' => 0, 'hits' => [], 'clean' => 0, 'skipped' => !$ipMissing, 'ip_missing' => $ipMissing, 'dns_error' => $ipMissing && $ipDnsError];
 
         if (!empty($bl['timed_out'])) {
             $this->watchdog()->warning(
@@ -856,10 +860,16 @@ class DomainReputationManager
         // vérifient réellement les gros fournisseurs de messagerie) : un PTR
         // présent mais mal configuré (FCrDNS invalide) ne doit pas obtenir les
         // points pleins comme s'il était parfaitement valide.
-        if (!empty($ptr['ip_missing'])) {
-            // Round 165 : domaine sans IP résolvable — échec réel, pas un
-            // skip légitime (IP privée) : aucun point, contrairement à
-            // 'skipped' ci-dessous qui reste réservé à l'IP privée.
+        if (!empty($ptr['ip_missing']) && !empty($ptr['dns_error'])) {
+            // Round 342 : panne DNS transitoire lors de la résolution de
+            // l'IP expéditeur (pas un NXDOMAIN confirmé) — score neutre,
+            // même principe que SPF/DKIM/DMARC/timed_out ci-dessous.
+            $score += 2;
+        } elseif (!empty($ptr['ip_missing'])) {
+            // Round 165 : domaine sans IP résolvable (NXDOMAIN confirmé) —
+            // échec réel, pas un skip légitime (IP privée) : aucun point,
+            // contrairement à 'skipped' ci-dessous qui reste réservé à l'IP
+            // privée.
         } elseif (!empty($ptr['skipped']) || !empty($ptr['valid'])) {
             $score += 5;
         } elseif (!empty($ptr['found'])) {
@@ -875,9 +885,13 @@ class DomainReputationManager
         // Blacklists — 25 pts max
         $hits    = count($bl['hits'] ?? []);
         $blScore = max(0, 25 - ($hits * 5));
-        if (!empty($bl['ip_missing'])) {
-            // Round 165 : domaine sans IP résolvable — échec réel, aucun
-            // point (voir commentaire PTR ci-dessus).
+        if (!empty($bl['ip_missing']) && !empty($bl['dns_error'])) {
+            // Round 342 : panne DNS transitoire — score neutre (voir
+            // commentaire PTR ci-dessus et resolveIp()).
+            $blScore = 12;
+        } elseif (!empty($bl['ip_missing'])) {
+            // Round 165 : domaine sans IP résolvable (NXDOMAIN confirmé) —
+            // échec réel, aucun point (voir commentaire PTR ci-dessus).
             $blScore = 0;
         } elseif (!empty($bl['skipped'])) {
             $blScore = 25; // IP privée — pas pénalisée
@@ -999,14 +1013,26 @@ class DomainReputationManager
         return '';
     }
 
-    private function resolveIp(string $domain, ?float $deadline = null): ?string
+    private function resolveIp(string $domain, ?float $deadline = null, bool &$dnsError = false): ?string
     {
+        $dnsError = false;
+
         // Round 165 : voir commentaire de checkSpf() — budget DNS honoré.
         if ($deadline !== null && microtime(true) >= $deadline) {
             return null;
         }
 
+        // Round 342 : dns_get_record() retourne `false` sur une erreur
+        // réseau/résolveur (panne DNS temporaire), un tableau vide (ou sans
+        // clé 'ip') sur un NXDOMAIN légitime — même distinction dns_error déjà
+        // appliquée à checkSpf()/checkDkim()/checkDmarc() (round 177), jamais
+        // portée ici. Sans elle, une panne transitoire au moment précis de ce
+        // check faisait perdre 30 points (PTR 5 + blacklists 25, cf.
+        // computeScore()) à un domaine parfaitement sain, résultat mis en
+        // cache 24h — traitée comme une preuve d'absence d'IP au lieu d'une
+        // vérification simplement non aboutie.
         $r = @dns_get_record($domain, DNS_A);
+        $dnsError = ($r === false);
         return (!empty($r[0]['ip'])) ? $r[0]['ip'] : null;
     }
 
