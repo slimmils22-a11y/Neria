@@ -61,7 +61,9 @@ function run_test(): array
 
     $posMethod = strpos($src, 'public function notifyProduct(');
     neria_assert($posMethod !== false, 'notifyProduct() introuvable');
-    $body = substr($src, $posMethod, 13200);
+    // Round 346 : fenêtre élargie 13200→14200 — cache SQL bypassé +
+    // cooldown scopé par déclinaison, commentaires ajoutés avant.
+    $body = substr($src, $posMethod, 14200);
     neria_assert(
         strpos($body, 'Shop::setContext(\Shop::CONTEXT_SHOP, $rowShopId)') !== false,
         "notifyProduct() ne commute plus le contexte boutique statique via Shop::setContext() — régression du bug corrigé le 08/08/2026 (round 138)"
