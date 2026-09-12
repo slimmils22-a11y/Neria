@@ -11206,6 +11206,27 @@ class HealthCheckManager
             $offenders[] = "controllers/front/waitlist.php ne vérifie plus le retour de register()/unregister() — régression du bug corrigé le 12/09/2026 (round 339)";
         }
 
+        // Round 340 : UpsellManager::recordSuggestion() doit capturer le
+        // retour de l'INSERT et journaliser une alerte Watchdog critique en
+        // cas d'échec, au lieu d'utiliser Insert_ID() sans garde.
+        $upsellMgrSrc340 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
+        if ($upsellMgrSrc340 === ''
+            || strpos($upsellMgrSrc340, '$inserted340 = $this->db->execute(') === false
+            || strpos($upsellMgrSrc340, 'watchdog.upsell_suggestion_insert_failed') === false
+        ) {
+            $offenders[] = "UpsellManager::recordSuggestion() ne vérifie plus le succès réel de l'INSERT — régression du bug corrigé le 12/09/2026 (round 340) : un échec SQL silencieux afficherait de nouveau un faux succès via Insert_ID() non vérifié, sans aucune trace Watchdog";
+        }
+        // Round 340 : UpsellManager::recordClick() doit distinguer un
+        // double-clic légitime (ligne existante, clicked_at déjà posé —
+        // cas normal) d'une ligne (id_upsell, id_customer) qui n'existe pas
+        // du tout (token corrompu/forgé ou échec d'écriture antérieur).
+        if ($upsellMgrSrc340 === ''
+            || strpos($upsellMgrSrc340, '(int) $this->db->Affected_Rows() === 0') === false
+            || strpos($upsellMgrSrc340, 'watchdog.upsell_click_row_missing') === false
+        ) {
+            $offenders[] = "UpsellManager::recordClick() ne vérifie plus Affected_Rows()/l'existence de la ligne après l'UPDATE — régression du bug corrigé le 12/09/2026 (round 340) : un clic non enregistré (échec silencieux) redeviendrait invisible pour le marchand";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
