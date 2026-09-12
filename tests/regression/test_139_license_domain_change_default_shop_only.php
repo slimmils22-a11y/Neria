@@ -29,7 +29,11 @@ function run_test(): array
     $posMethod = strpos($src, 'public function checkDomainChange(): void');
     neria_assert($posMethod !== false, 'checkDomainChange() introuvable — régression du bug corrigé le 08/08/2026');
 
-    $body = substr($src, $posMethod, 1400);
+    // Fenêtre élargie 1400→1700 hors round (12/09/2026, suite round 341) :
+    // commentaire de déchiffrement ajouté avant $cachedDomain (chiffrement
+    // au repos de NERIA_LICENSE_TOKEN) a poussé son offset au-delà de
+    // l'ancienne fenêtre.
+    $body = substr($src, $posMethod, 1700);
 
     $posFeatureCheck = strpos($body, 'Shop::isFeatureActive()');
     neria_assert(

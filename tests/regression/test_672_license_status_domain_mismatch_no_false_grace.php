@@ -45,7 +45,10 @@ function run_test(): array
 
     $posFn = strpos($src, 'public function getStatusForDisplay(): array');
     neria_assert($posFn !== false, 'getStatusForDisplay() introuvable — jeu de test invalide');
-    $body = substr($src, $posFn, 4300);
+    // Fenêtre élargie 4300→4600 hors round (12/09/2026, suite round 341) :
+    // commentaires de déchiffrement ajoutés (chiffrement au repos de
+    // NERIA_LICENSE_KEY/_TOKEN) ont poussé les offsets de fin de méthode.
+    $body = substr($src, $posFn, 4600);
 
     neria_assert(
         strpos($body, '$domainMismatch = $this->isDomainMismatch($cachedDomain);') !== false,

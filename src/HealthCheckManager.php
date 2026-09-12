@@ -15134,7 +15134,10 @@ class HealthCheckManager
 
         // 1.0.5, 1.0.13 : pas d'effet distinct et vérifiable (contenu de
         // template / config tierce optionnelle) — volontairement absents.
-        // 1.0.17 : couvert séparément par checkSecretsEncrypted().
+        // 1.0.17, 1.0.46 : couvert séparément par checkSecretsEncrypted()
+        // (chiffrement rétroactif de secrets déjà couverts par
+        // CryptoManager::SENSITIVE_CONFIG_KEYS — 1.0.46 y ajoute
+        // NERIA_LICENSE_KEY/_TOKEN, hors round 12/09/2026 suite round 341).
         $manifest = [
             '1.0.1'  => ['type' => 'table',  'name' => 'neria_quote'],
             '1.0.2'  => ['type' => 'table',  'name' => 'neria_reconciliation'],

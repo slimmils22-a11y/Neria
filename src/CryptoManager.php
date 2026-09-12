@@ -61,6 +61,17 @@ class CryptoManager
         // cette liste — aucune raison de l'exclure de l'audit
         // checkSecretsEncrypted()/du chiffrement rétroactif upgrade-1.0.17.
         'NERIA_TRACKING_FALLBACK_KEY',
+        // Hors round (12/09/2026, suite round 341) : jeton/clé de licence
+        // NeriaSoftware — identifiants d'authentification auprès du serveur
+        // de licences externe, de même nature que les autres entrées de
+        // cette liste. NERIA_LICENSE_KEY/_TOKEN sont GLOBAUX à l'installation
+        // (Configuration::updateGlobalValue(), jamais scopés par boutique),
+        // contrairement à la plupart des autres clés ci-dessus — voir
+        // upgrade-1.0.46.php pour la migration rétroactive adaptée à ce
+        // scoping global (pas de boucle par boutique, contrairement à
+        // upgrade-1.0.17.php).
+        'NERIA_LICENSE_KEY',
+        'NERIA_LICENSE_TOKEN',
     ];
 
     // ============================================================

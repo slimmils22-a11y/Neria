@@ -118,7 +118,9 @@ class LicenseManager
      */
     public function isEmailSendingAllowed(): bool
     {
-        $token = (string) \Configuration::get(self::CONFIG_TOKEN);
+        // Hors round (12/09/2026, suite round 341) : déchiffrement — voir
+        // le commentaire détaillé sur storeToken() plus bas.
+        $token = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_TOKEN));
 
         if ($token !== '' && $this->verifyTokenSignature($token)) {
             $payload = json_decode($token, true);
@@ -253,7 +255,12 @@ class LicenseManager
             return false;
         }
 
-        $token = $token ?? (string) \Configuration::get(self::CONFIG_TOKEN);
+        // Hors round (12/09/2026, suite round 341) : déchiffrement — un
+        // token explicitement PASSÉ en paramètre (ex. depuis
+        // getStatusForDisplay(), qui lit et déchiffre lui-même la config une
+        // seule fois) est déjà en clair, seul le repli sur la config brute
+        // ci-dessous nécessite un déchiffrement.
+        $token = $token ?? \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_TOKEN));
         if ($token === '') {
             return false;
         }
@@ -322,7 +329,12 @@ class LicenseManager
         }
 
         $this->storeToken($response);
-        \Configuration::updateGlobalValue(self::CONFIG_KEY, $key);
+        // Hors round (12/09/2026, suite round 341) : chiffrement au repos —
+        // NERIA_LICENSE_KEY ajoutée à CryptoManager::SENSITIVE_CONFIG_KEYS.
+        // $key (variable locale ci-dessus, ligne 305) reste en clair pour
+        // maskKey()/le log Watchdog juste plus bas — seule la valeur ÉCRITE
+        // en config est chiffrée.
+        \Configuration::updateGlobalValue(self::CONFIG_KEY, \CryptoManager::encrypt($key));
         \Configuration::deleteByName(self::CONFIG_REVOKED_AT);
 
         $this->wd()->info(
@@ -364,7 +376,10 @@ class LicenseManager
      */
     public function validateLicense(bool $force = false): void
     {
-        $key = (string) \Configuration::get(self::CONFIG_KEY);
+        // Hors round (12/09/2026, suite round 341) : déchiffrement — $key
+        // est transmise à callLicenseApi() ('validate') via
+        // validateLicenseLocked(), le serveur a besoin de la clé en clair.
+        $key = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_KEY));
         if ($key === '') {
             // Round 160 : si CONFIG_KEY est vide mais qu'un CONFIG_LAST_CHECK
             // d'une activation antérieure traîne encore (ex. clé effacée
@@ -574,7 +589,9 @@ class LicenseManager
             }
         }
 
-        $token = (string) \Configuration::get(self::CONFIG_TOKEN);
+        // Hors round (12/09/2026, suite round 341) : déchiffrement — voir
+        // le commentaire détaillé sur storeToken() plus bas.
+        $token = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_TOKEN));
         if ($token === '') {
             return;
         }
@@ -588,7 +605,16 @@ class LicenseManager
     private function storeToken(array $response): void
     {
         $token = json_encode($response, JSON_UNESCAPED_SLASHES);
-        \Configuration::updateGlobalValue(self::CONFIG_TOKEN, $token !== false ? $token : '');
+        // Hors round (12/09/2026, suite round 341) : chiffrement au repos —
+        // NERIA_LICENSE_TOKEN ajoutée à CryptoManager::SENSITIVE_CONFIG_KEYS.
+        // Le token signé Ed25519 (JSON avec 'sig') est chiffré tel quel APRÈS
+        // sa construction/signature côté serveur — CryptoManager::encrypt()
+        // ne touche qu'à la représentation au repos, la signature interne au
+        // JSON déchiffré reste vérifiée par verifyTokenSignature() comme
+        // avant. CryptoManager::encrypt()/decrypt() sont no-op (retournent la
+        // valeur telle quelle) si openssl est indisponible ou la clé absente
+        // — jamais de perte de jeton par cette seule cause.
+        \Configuration::updateGlobalValue(self::CONFIG_TOKEN, $token !== false ? \CryptoManager::encrypt($token) : '');
         \Configuration::updateGlobalValue(self::CONFIG_EXPIRES, (int) ($response['expires'] ?? 0));
         \Configuration::updateGlobalValue(self::CONFIG_PLAN, (string) ($response['plan'] ?? ''));
         \Configuration::updateGlobalValue(self::CONFIG_SOURCE, (string) ($response['source'] ?? 'direct'));
@@ -612,8 +638,10 @@ class LicenseManager
      */
     public function getStatusForDisplay(): array
     {
-        $key   = (string) \Configuration::get(self::CONFIG_KEY);
-        $token = (string) \Configuration::get(self::CONFIG_TOKEN);
+        // Hors round (12/09/2026, suite round 341) : déchiffrement — voir
+        // le commentaire détaillé sur storeToken().
+        $key   = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_KEY));
+        $token = \CryptoManager::decrypt((string) \Configuration::get(self::CONFIG_TOKEN));
         $valid = $this->isEmailSendingAllowed();
 
         $expires = (int) \Configuration::get(self::CONFIG_EXPIRES);
