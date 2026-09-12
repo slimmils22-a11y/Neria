@@ -11227,6 +11227,14 @@ class HealthCheckManager
             $offenders[] = "UpsellManager::recordClick() ne vérifie plus Affected_Rows()/l'existence de la ligne après l'UPDATE — régression du bug corrigé le 12/09/2026 (round 340) : un clic non enregistré (échec silencieux) redeviendrait invisible pour le marchand";
         }
 
+        // Round 341 : CollectionManager::create()/update() doivent borner
+        // `name` à la taille réelle de la colonne (VARCHAR(255)) avant
+        // écriture, au lieu de laisser MySQL tronquer silencieusement.
+        $collMgrSrc341 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php');
+        if ($collMgrSrc341 === '' || substr_count($collMgrSrc341, 'pSQL(mb_substr($name, 0, 255))') !== 2) {
+            $offenders[] = "CollectionManager::create()/update() ne bornent plus \$name à 255 caractères avant écriture — régression du bug corrigé le 12/09/2026 (round 341) : un nom de collection trop long serait de nouveau tronqué silencieusement par MySQL, sans que create()/update() ne le signalent";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
