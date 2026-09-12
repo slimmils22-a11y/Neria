@@ -1795,7 +1795,10 @@ class HealthCheckManager
             if ($okAssignPos === false
                 || strpos($seasonalSrc, '$ok = ') === false
                 || $continuePos === false
-                || ($continuePos - $okAssignPos) > 2600
+                // Round 344 : seuil élargi 2600→4000 — commentaire de
+                // correctif {cooldown_scope} ajouté dans les templateVars
+                // de ce même Mail::Send().
+                || ($continuePos - $okAssignPos) > 4000
             ) {
                 $offenders[] = 'SeasonalCampaignManager : runDueCampaigns() ne vérifie plus le retour de Mail::Send() avant de poser la déduplication annuelle — un échec d\'envoi exclurait le client de la campagne pour le reste de l\'année';
             }
@@ -11311,6 +11314,24 @@ class HealthCheckManager
         $msmSrc343 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
         if ($msmSrc343 === '' || strpos($msmSrc343, "md5(\\Tools::strtolower(trim(\$email))") === false) {
             $offenders[] = "ManualSendManager::send() ne normalise plus la casse de l'email dans sa clé de verrou anti-doublon — régression du bug corrigé le 12/09/2026 (round 343) : le verrou round 337 pourrait de nouveau être contourné par une simple différence de casse";
+        }
+
+        // Round 344 : SeasonalCampaignManager doit fournir {cooldown_scope}
+        // dans son Mail::Send() pour que isDuplicate() puisse fonctionner.
+        $scmSrc344 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeasonalCampaignManager.php');
+        if ($scmSrc344 === '' || strpos($scmSrc344, "'{cooldown_scope}' => \$sentKey,") === false) {
+            $offenders[] = "SeasonalCampaignManager ne fournit plus '{cooldown_scope}' => \$sentKey dans les templateVars de Mail::Send() — régression du bug corrigé le 12/09/2026 (round 344) : le Mode Silence (fenêtre en minutes) redeviendrait silencieusement inopérant pour toutes les campagnes saisonnières (ref_scope écrit en base toujours vide, ne matchant jamais la condition SQL de isDuplicate())";
+        }
+
+        // Round 344 : les handlers look_rule_add/look_rule_toggle de
+        // neria.php doivent vérifier le retour réel de createRule()/
+        // updateRule() (LookCompletionManager).
+        $nSrc344 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($nSrc344 === ''
+            || strpos($nSrc344, '$msgKey = (new LookCompletionManager($this))->createRule($idCat, array_slice($pids, 0, 3))') === false
+            || strpos($nSrc344, '$toggled = $mgr->updateRule($id, (int) $r[\'id_category\'], json_decode($r[\'product_ids\'], true), !(bool) $r[\'active\']);') === false
+        ) {
+            $offenders[] = "neria.php (look_rule_add/look_rule_toggle) ne vérifie plus le retour réel de LookCompletionManager::createRule()/updateRule() — régression du bug corrigé le 12/09/2026 (round 344) : un échec réel d'INSERT/UPDATE afficherait de nouveau un succès trompeur au marchand";
         }
 
         if ($offenders) {
