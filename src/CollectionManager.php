@@ -46,7 +46,19 @@ class CollectionManager
     public function create(string $name, array $productIds, bool $active = true): bool
     {
         return $this->db->insert('neria_collection', [
-            'name'        => pSQL($name),
+            // Round 341 : bornée à la taille réelle de la colonne
+            // VARCHAR(255) avant écriture, même pattern que
+            // BounceManager::recordBounce() (`reason` borné à 500). Sans
+            // cette borne côté PHP, un nom trop long était tronqué
+            // SILENCIEUSEMENT par la connexion MySQL de PrestaShop — vérifié
+            // empiriquement round 340 que STRICT_TRANS_TABLES (actif au
+            // niveau serveur) n'est PAS appliqué sur cette connexion,
+            // contrairement à l'hypothèse habituelle qu'un dépassement de
+            // colonne provoquerait une erreur SQL explicite en mode strict.
+            // create() renvoyait donc un succès et affichait "Collection
+            // ajoutée" alors que le nom stocké différait de la saisie réelle
+            // du marchand, sans aucun message.
+            'name'        => pSQL(mb_substr($name, 0, 255)),
             'product_ids' => pSQL(json_encode(array_values(array_unique(array_map('intval', $productIds))))),
             'active'      => (int) $active,
             'created_at'  => date('Y-m-d H:i:s'),
@@ -56,7 +68,8 @@ class CollectionManager
     public function update(int $id, string $name, array $productIds, bool $active): bool
     {
         return $this->db->update('neria_collection', [
-            'name'        => pSQL($name),
+            // Round 341 : voir commentaire équivalent dans create().
+            'name'        => pSQL(mb_substr($name, 0, 255)),
             'product_ids' => pSQL(json_encode(array_values(array_unique(array_map('intval', $productIds))))),
             'active'      => (int) $active,
         ], '`id_neria_collection` = ' . $id);
