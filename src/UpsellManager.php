@@ -646,7 +646,18 @@ class UpsellManager
         ];
         $tier = $tierMap[$upsell['reason']] ?? 'bestseller';
 
-        $this->db->execute(
+        // Round 340 : retour de l'INSERT capturé — même pattern "succès
+        // affiché sans vérifier l'effet réel" déjà corrigé ailleurs dans la
+        // série (BounceManager::recordBounce() round 336, CollectionManager
+        // collection_add round 335). Sans cette vérification, un échec SQL
+        // transitoire (connexion coupée, verrou) laissait Insert_ID()
+        // renvoyer 0 (ou l'ID d'un INSERT précédent sur la même connexion),
+        // journalisant quand même un watchdog.upsell_suggestion_created de
+        // succès alors qu'aucune ligne n'a réellement été créée — le retour
+        // 0 était déjà correctement testé par l'appelant (BehavioralCronManager
+        // ligne ~1144), mais aucune trace Watchdog n'existait pour distinguer
+        // un échec SQL réel d'un cas normal.
+        $inserted340 = $this->db->execute(
             "INSERT INTO `{$this->prefix}neria_upsell`
                 (id_customer, id_shop, id_order_source, id_product_upsell, product_name, tier, reason, sent_at)
              VALUES (
@@ -660,6 +671,18 @@ class UpsellManager
                 NOW()
              )"
         );
+
+        if (!$inserted340) {
+            $this->watchdog()->critical(
+                \WatchdogManager::i18nMsg('watchdog.upsell_suggestion_insert_failed', [
+                    'customer' => $idCustomer,
+                    'order'    => $idOrderSource,
+                    'product'  => $upsell['name'],
+                ]),
+                'upsell', 'Upsell'
+            );
+            return 0;
+        }
 
         $idUpsell = (int) $this->db->Insert_ID();
         $this->watchdog()->info(
@@ -702,6 +725,34 @@ class UpsellManager
                AND id_customer = " . (int) $idCustomer . "
                AND clicked_at IS NULL"
         );
+
+        // Round 340 : Affected_Rows() == 0 est un cas NORMAL et attendu pour
+        // un second clic légitime (clicked_at déjà posé par le premier —
+        // c'est justement l'objet de la clause `clicked_at IS NULL`), donc
+        // on ne peut pas journaliser un échec sur ce seul critère (faux
+        // positifs Watchdog à chaque relecture d'email). On ne distingue ce
+        // cas normal d'un échec SQL réel (verrou, timeout) qu'en vérifiant
+        // si la ligne (id_upsell, id_customer) existe tout court : si elle
+        // n'existe même pas, ni le double-clic légitime ni un succès partiel
+        // ne peuvent l'expliquer — c'est soit un token corrompu/forgé (déjà
+        // filtré en amont par l'appelant), soit un UPDATE qui a réellement
+        // échoué avant même de trouver la ligne.
+        if ((int) $this->db->Affected_Rows() === 0) {
+            $exists340 = (bool) $this->db->getValue(
+                "SELECT 1 FROM `{$this->prefix}neria_upsell`
+                 WHERE id_upsell = " . (int) $idUpsell . "
+                   AND id_customer = " . (int) $idCustomer
+            );
+            if (!$exists340) {
+                $this->watchdog()->warning(
+                    \WatchdogManager::i18nMsg('watchdog.upsell_click_row_missing', [
+                        'upsell'   => $idUpsell,
+                        'customer' => $idCustomer,
+                    ]),
+                    'upsell', 'Upsell'
+                );
+            }
+        }
     }
 
     /**
