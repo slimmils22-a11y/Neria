@@ -4369,8 +4369,14 @@ class HealthCheckManager
             $offenders[] = 'TranslationInstaller.php introuvable (garde-fou round 140 : batch vide non commité + compteurs réinitialisés)';
         } else {
             $posIT = strpos($ti2Src, 'public function importTemplate(string $jsonPath, string $template): bool');
-            $itBody = $posIT !== false ? substr($ti2Src, $posIT, 5200) : '';
-            if ($posIT === false || strpos($itBody, '$ok = !$batchWasEmpty && $this->flushBatch($batch);') === false) {
+            // Round 342 : fenêtre élargie 5200→5600 — commentaire de
+            // capture $deleteOk ajouté avant le littéral recherché.
+            $itBody = $posIT !== false ? substr($ti2Src, $posIT, 5600) : '';
+            // Round 342 : littéral élargi — $ok inclut désormais aussi
+            // $deleteOk (voir garde-fou dédié round 342 ci-dessous), mais la
+            // protection batch-vide (!$batchWasEmpty) doit rester présente
+            // dans la même expression.
+            if ($posIT === false || strpos($itBody, '!$batchWasEmpty && $this->flushBatch($batch);') === false) {
                 $offenders[] = "TranslationInstaller::importTemplate() ne protège plus contre un batch vide — régression du bug corrigé le 09/08/2026 (round 140) : le DELETE des traductions par défaut pourrait de nouveau être validé sans réinsertion, perte de données silencieuse";
             }
             $posIFJ = strpos($ti2Src, 'public function importFromJson(string $jsonPath): bool');
@@ -5717,7 +5723,10 @@ class HealthCheckManager
             || strpos($drmSrc165, 'private function checkDmarc(string $domain, ?float $deadline = null): array') === false
             || strpos($drmSrc165, 'private function checkMx(string $domain, ?float $deadline = null): array') === false
             || strpos($drmSrc165, 'private function checkBimi(string $domain, array $dmarc, ?float $deadline = null): array') === false
-            || strpos($drmSrc165, 'private function resolveIp(string $domain, ?float $deadline = null): ?string') === false
+            // Round 342 : signature élargie (\$dnsError par référence, voir
+            // garde-fou dédié round 342) — le paramètre \$deadline reste
+            // présent, c'est tout ce que ce garde-fou round 165 vérifie.
+            || strpos($drmSrc165, 'private function resolveIp(string $domain, ?float $deadline = null') === false
         ) {
             $offenders[] = "DomainReputationManager : le budget DNS n'est plus propagé à checkSpf/checkDmarc/checkMx/checkBimi/resolveIp — régression du bug corrigé le 14/08/2026 (round 165) : le budget censé borner le blocage du visiteur front ne couvrirait de nouveau qu'une partie du chemin d'exécution";
         }
@@ -11233,6 +11242,42 @@ class HealthCheckManager
         $collMgrSrc341 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CollectionManager.php');
         if ($collMgrSrc341 === '' || substr_count($collMgrSrc341, 'pSQL(mb_substr($name, 0, 255))') !== 2) {
             $offenders[] = "CollectionManager::create()/update() ne bornent plus \$name à 255 caractères avant écriture — régression du bug corrigé le 12/09/2026 (round 341) : un nom de collection trop long serait de nouveau tronqué silencieusement par MySQL, sans que create()/update() ne le signalent";
+        }
+
+        // Round 342 : DomainReputationManager::resolveIp() doit distinguer
+        // une panne DNS transitoire d'un NXDOMAIN confirmé, et computeScore()
+        // doit appliquer un score neutre (pas 0) sur PTR/blacklist dans le
+        // premier cas.
+        $drmSrc342 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/DomainReputationManager.php');
+        if ($drmSrc342 === ''
+            || strpos($drmSrc342, 'private function resolveIp(string $domain, ?float $deadline = null, bool &$dnsError = false): ?string') === false
+            || strpos($drmSrc342, "if (!empty(\$ptr['ip_missing']) && !empty(\$ptr['dns_error'])) {") === false
+            || strpos($drmSrc342, "if (!empty(\$bl['ip_missing']) && !empty(\$bl['dns_error'])) {") === false
+        ) {
+            $offenders[] = "DomainReputationManager::resolveIp()/computeScore() ne distinguent plus une panne DNS transitoire d'un NXDOMAIN confirmé lors de la résolution de l'IP expéditeur — régression du bug corrigé le 12/09/2026 (round 342) : un domaine sain victime d'une panne DNS passagère perdrait de nouveau 30 points (PTR+blacklist), résultat mis en cache 24h";
+        }
+
+        // Round 342 : TranslationInstaller::clearDefaultTranslations()/
+        // importTemplate() doivent capturer le retour réel de Db::delete().
+        $tiSrc342 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/TranslationInstaller.php');
+        if ($tiSrc342 === ''
+            || strpos($tiSrc342, 'private function clearDefaultTranslations(): bool') === false
+            || strpos($tiSrc342, '$failed = !$this->clearDefaultTranslations();') === false
+            || strpos($tiSrc342, '$deleteOk = (bool) $this->db->delete(') === false
+            || strpos($tiSrc342, '$ok = $deleteOk && !$batchWasEmpty && $this->flushBatch($batch);') === false
+        ) {
+            $offenders[] = "TranslationInstaller::clearDefaultTranslations()/importTemplate() ne vérifient plus le retour réel de Db::delete() — régression du bug corrigé le 12/09/2026 (round 342) : un échec SQL réel (pas une absence de ligne) laisserait les anciennes traductions en place, l'INSERT IGNORE suivant ignorant silencieusement les nouvelles valeurs par conflit de clé unique";
+        }
+
+        // Round 342 : SeoApiManager::fetchMoz() doit détecter une réponse
+        // JSON sans aucune des clés attendues, même correctif que
+        // fetchSemrush() (round 335).
+        $seoSrc342 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SeoApiManager.php');
+        if ($seoSrc342 === ''
+            || strpos($seoSrc342, "count(array_intersect(\$expectedKeys, array_keys(\$r))) === 0") === false
+            || strpos($seoSrc342, "\$this->recordError(\\AdminTranslator::t('msg.moz_unexpected_columns'))") === false
+        ) {
+            $offenders[] = "SeoApiManager::fetchMoz() ne détecte plus une réponse JSON sans aucune clé attendue — régression du bug corrigé le 12/09/2026 (round 342) : un rapport fabriqué à 0 partout serait de nouveau mis en cache 24h comme un résultat valide, effaçant getLastError()";
         }
 
         if ($offenders) {
