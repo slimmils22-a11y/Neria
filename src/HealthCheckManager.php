@@ -3931,8 +3931,12 @@ class HealthCheckManager
         if ($pmSrc === '') {
             $offenders[] = 'PostmasterManager.php introuvable (garde-fou round 131 : apiGet() journalise les échecs transport)';
         } else {
-            $posApiGet = strpos($pmSrc, 'private function apiGet(string $path, string $token): ?array');
-            $apiGetBody = $posApiGet !== false ? substr($pmSrc, $posApiGet, 2800) : '';
+            // Round 343 : signature élargie ($retriedAfter401, voir
+            // garde-fou dédié round 343) — seul le préfixe importe ici.
+            $posApiGet = strpos($pmSrc, 'private function apiGet(string $path, string $token');
+            // Round 343 : fenêtre élargie 2800→3900 — bloc de détection
+            // 401/refresh/retentative ajouté avant les littéraux recherchés.
+            $apiGetBody = $posApiGet !== false ? substr($pmSrc, $posApiGet, 3900) : '';
             if ($posApiGet === false
                 || strpos($apiGetBody, 'if ($body === false)') === false
                 || strpos($apiGetBody, "'invalid JSON response'") === false
@@ -10890,7 +10894,9 @@ class HealthCheckManager
         // Top CLV) affichent de nouveau un engagement contradictoire.
         $clvSrc334 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php');
         $posTop334 = $clvSrc334 !== '' ? strpos($clvSrc334, 'public function getTopCustomers(int $limit = 20): array') : false;
-        $topBody334 = $posTop334 !== false ? substr($clvSrc334, $posTop334, 9500) : '';
+        // Round 343 : fenêtre élargie 9500→9700 — filtre active=1 ajouté
+        // au début de getTopCustomers().
+        $topBody334 = $posTop334 !== false ? substr($clvSrc334, $posTop334, 9700) : '';
         if ($topBody334 === '' || strpos($topBody334, '$engagementRate = $sent > 0 ? min(1.0, $opened / $sent) : self::ENGAGEMENT_MEDIUM;') === false) {
             $offenders[] = "ClvManager::getTopCustomers() ne retombe plus sur ENGAGEMENT_MEDIUM pour sent=0 — régression du bug corrigé le 10/09/2026 (round 334) : une pénalité -15% (engagement 'low') serait de nouveau infligée à tort dans le classement batch, en contradiction avec la fiche individuelle du même client";
         }
@@ -11110,7 +11116,9 @@ class HealthCheckManager
         // GET_LOCK anti-doublon avant de déléguer à sendInner().
         $msmSrc337 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
         $posSendFn337 = $msmSrc337 !== '' ? strpos($msmSrc337, 'public function send(') : false;
-        $sendBody337 = $posSendFn337 !== false ? substr($msmSrc337, $posSendFn337, 1200) : '';
+        // Round 343 : fenêtre élargie 1200→1800 — commentaire de
+        // normalisation de casse de l'email ajouté avant la clé de verrou.
+        $sendBody337 = $posSendFn337 !== false ? substr($msmSrc337, $posSendFn337, 1800) : '';
         if ($sendBody337 === ''
             || strpos($sendBody337, "GET_LOCK('") === false
             || strpos($sendBody337, 'private function sendInner(') === false
@@ -11278,6 +11286,31 @@ class HealthCheckManager
             || strpos($seoSrc342, "\$this->recordError(\\AdminTranslator::t('msg.moz_unexpected_columns'))") === false
         ) {
             $offenders[] = "SeoApiManager::fetchMoz() ne détecte plus une réponse JSON sans aucune clé attendue — régression du bug corrigé le 12/09/2026 (round 342) : un rapport fabriqué à 0 partout serait de nouveau mis en cache 24h comme un résultat valide, effaçant getLastError()";
+        }
+
+        // Round 343 : ClvManager::getTopCustomers() doit exclure les
+        // clients désactivés (active=0), cohérent avec ChurnScoreManager
+        // (round 209).
+        $clvSrc343 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php');
+        if ($clvSrc343 === '' || substr_count($clvSrc343, 'c.`active` = 1 AND c.`deleted` = 0') !== 2) {
+            $offenders[] = "ClvManager::getTopCustomers() n'exclut plus les clients désactivés (active=0) de sa pré-sélection — régression du bug corrigé le 12/09/2026 (round 343) : un client désactivé pourrait de nouveau apparaître dans le Top CLV du BO";
+        }
+
+        // Round 343 : PostmasterManager::apiGet() doit détecter un 401 et
+        // déclencher un refresh + retentative unique.
+        $pmSrc343 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PostmasterManager.php');
+        if ($pmSrc343 === ''
+            || strpos($pmSrc343, "if (\$httpCode === 401 && !\$retriedAfter401) {") === false
+            || strpos($pmSrc343, 'return $this->apiGet($path, $newToken, true);') === false
+        ) {
+            $offenders[] = "PostmasterManager::apiGet() ne détecte plus spécifiquement un 401 avec refresh + retentative unique — régression du bug corrigé le 12/09/2026 (round 343) : un token révoqué avant son expiration locale bloquerait de nouveau tous les appels BO jusqu'à expiration naturelle";
+        }
+
+        // Round 343 : ManualSendManager::send() doit normaliser la casse
+        // de l'email dans la clé de verrou anti-doublon (round 337).
+        $msmSrc343 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ManualSendManager.php');
+        if ($msmSrc343 === '' || strpos($msmSrc343, "md5(\\Tools::strtolower(trim(\$email))") === false) {
+            $offenders[] = "ManualSendManager::send() ne normalise plus la casse de l'email dans sa clé de verrou anti-doublon — régression du bug corrigé le 12/09/2026 (round 343) : le verrou round 337 pourrait de nouveau être contourné par une simple différence de casse";
         }
 
         if ($offenders) {
