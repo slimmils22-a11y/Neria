@@ -11334,6 +11334,28 @@ class HealthCheckManager
             $offenders[] = "neria.php (look_rule_add/look_rule_toggle) ne vérifie plus le retour réel de LookCompletionManager::createRule()/updateRule() — régression du bug corrigé le 12/09/2026 (round 344) : un échec réel d'INSERT/UPDATE afficherait de nouveau un succès trompeur au marchand";
         }
 
+        // Round 345 : ConfigManager::uploadLogo() doit vérifier le retour
+        // réel de set() avant d'annoncer un succès.
+        $cmSrc345 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
+        if ($cmSrc345 === ''
+            || strpos($cmSrc345, 'if (!$this->set(self::KEY_LOGO_PATH, $relativePath)) {') === false
+            || strpos($cmSrc345, "\\WatchdogManager::i18nMsg('watchdog.logo_upload_config_write_failed'") === false
+        ) {
+            $offenders[] = "ConfigManager::uploadLogo() ne vérifie plus le retour réel de set(self::KEY_LOGO_PATH, ...) — régression du bug corrigé le 12/09/2026 (round 345) : un échec réel de l'écriture en configuration afficherait de nouveau un succès trompeur alors que l'ancien logo resterait utilisé";
+        }
+
+        // Round 345 : NeriaErrorHandler doit vérifier qu'une ligne récente
+        // existe réellement après critical(), pas seulement l'absence
+        // d'exception (fail-safe silencieux round 179 sous contention
+        // GET_LOCK).
+        $nehSrc345 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/NeriaErrorHandler.php');
+        if ($nehSrc345 === ''
+            || strpos($nehSrc345, "AND `date_add` > DATE_SUB(NOW(), INTERVAL 5 SECOND)") === false
+            || strpos($nehSrc345, 'if ($written) {') === false
+        ) {
+            $offenders[] = "NeriaErrorHandler ne vérifie plus qu'une ligne récente existe réellement après WatchdogManager::critical() — régression du bug corrigé le 12/09/2026 (round 345) : un fatal PHP pourrait de nouveau n'être journalisé nulle part si critical() renonce silencieusement sous contention GET_LOCK (fail-safe round 179), précisément pendant une rafale de fatals identiques";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
