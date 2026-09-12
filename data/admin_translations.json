@@ -55355,6 +55355,27 @@
         "nl": "Logo-upload geweigerd: bestand te groot ({size} KB). Maximale grootte: 2 MB.",
         "gb": "Logo upload rejected: file too large ({size} KB). Maximum size: 2 MB."
     },
+    "watchdog.logo_upload_config_write_failed": {
+        "fr": "Upload logo : le fichier a bien été déplacé vers \"{path}\" mais l'enregistrement en configuration a échoué — l'ancien logo reste utilisé dans les emails. Réessayez l'upload.",
+        "en": "Logo upload: the file was moved to \"{path}\" but saving the configuration failed — the previous logo is still used in emails. Please retry the upload.",
+        "de": "Logo-Upload: Die Datei wurde nach „{path}\" verschoben, aber das Speichern der Konfiguration ist fehlgeschlagen — das vorherige Logo wird in E-Mails weiterhin verwendet. Bitte laden Sie es erneut hoch.",
+        "it": "Caricamento logo: il file è stato spostato in \"{path}\" ma il salvataggio della configurazione non è riuscito — nelle email viene ancora usato il logo precedente. Riprova il caricamento.",
+        "es": "Carga del logo: el archivo se movió a \"{path}\" pero no se pudo guardar la configuración — en los correos se sigue usando el logo anterior. Vuelva a intentar la carga.",
+        "pt": "Envio do logótipo: o ficheiro foi movido para \"{path}\" mas a gravação da configuração falhou — o logótipo anterior continua a ser usado nos e-mails. Tente enviar novamente.",
+        "br": "Envio do logotipo: o arquivo foi movido para \"{path}\" mas a gravação da configuração falhou — o logotipo anterior continua sendo usado nos e-mails. Tente enviar novamente.",
+        "ar": "تحميل الشعار: تم نقل الملف إلى \"{path}\" لكن حفظ الإعدادات فشل — لا يزال الشعار السابق مستخدمًا في الرسائل. أعيدوا المحاولة.",
+        "ja": "ロゴのアップロード：ファイルは「{path}」に移動されましたが、設定の保存に失敗しました — メールには以前のロゴが引き続き使用されます。再度アップロードしてください。",
+        "ko": "로고 업로드: 파일이 \"{path}\"로 이동되었지만 설정 저장에 실패했습니다 — 이메일에는 이전 로고가 계속 사용됩니다. 업로드를 다시 시도하세요.",
+        "zh": "标志上传：文件已移动到「{path}」，但保存配置失败——邮件中仍使用之前的标志。请重新上传。",
+        "tw": "標誌上傳：檔案已移動到「{path}」，但儲存設定失敗——電子郵件中仍使用先前的標誌。請重新上傳。",
+        "ru": "Загрузка логотипа: файл перемещён в «{path}», но сохранение настроек не удалось — в письмах по-прежнему используется предыдущий логотип. Повторите загрузку.",
+        "tr": "Logo yükleme: dosya \"{path}\" konumuna taşındı ancak yapılandırma kaydedilemedi — e-postalarda önceki logo kullanılmaya devam ediyor. Yüklemeyi tekrar deneyin.",
+        "sv": "Logotypuppladdning: filen flyttades till \"{path}\" men det gick inte att spara konfigurationen — den föregående logotypen används fortfarande i e-postmeddelanden. Försök ladda upp igen.",
+        "no": "Logoopplasting: filen ble flyttet til \"{path}\", men lagring av konfigurasjonen mislyktes — den forrige logoen brukes fortsatt i e-poster. Prøv opplastingen på nytt.",
+        "da": "Logo-upload: filen blev flyttet til \"{path}\", men det mislykkedes at gemme konfigurationen — det tidligere logo bruges stadig i e-mails. Forsøg uploaden igen.",
+        "nl": "Logo-upload: het bestand is verplaatst naar \"{path}\" maar het opslaan van de configuratie is mislukt — het vorige logo wordt nog steeds gebruikt in e-mails. Probeer de upload opnieuw.",
+        "gb": "Logo upload: the file was moved to \"{path}\" but saving the configuration failed — the previous logo is still used in emails. Please retry the upload."
+    },
     "watchdog.logo_upload_move_failed": {
         "fr": "Upload logo : échec du déplacement vers \"{dest}\". Vérifiez que le dossier data/signatures/ est accessible en écriture (chmod 755 ou 777).",
         "en": "Logo upload: failed to move to \"{dest}\". Check that the data/signatures/ folder is writable (chmod 755 or 777).",

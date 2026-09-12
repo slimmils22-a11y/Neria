@@ -1683,8 +1683,21 @@ class ConfigManager
         }
 
         // Sauvegarde le chemin en configuration
+        // Round 345 : retour de set() désormais vérifié — sans lui, le
+        // fichier était bien déplacé sur disque (move_uploaded_file()
+        // ci-dessus a réussi) mais si l'écriture ps_configuration échouait
+        // (verrou DB transitoire), la méthode renvoyait quand même
+        // $relativePath (donc "succès") : le marchand voyait "logo mis à
+        // jour" en BO alors que NERIA_LOGO_PATH n'avait pas changé — les
+        // emails continuaient d'afficher l'ancien logo, sans aucune trace.
         $relativePath = 'data/signatures/' . $filename;
-        $this->set(self::KEY_LOGO_PATH, $relativePath);
+        if (!$this->set(self::KEY_LOGO_PATH, $relativePath)) {
+            $this->watchdog()->error(
+                \WatchdogManager::i18nMsg('watchdog.logo_upload_config_write_failed', ['path' => $relativePath]),
+                '', 'ConfigManager'
+            );
+            return false;
+        }
 
         return $relativePath;
     }

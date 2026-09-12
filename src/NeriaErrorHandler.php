@@ -92,7 +92,30 @@ class NeriaErrorHandler
             if ($module !== null) {
                 try {
                     (new \WatchdogManager($module))->critical($message, '', 'NeriaErrorHandler');
-                    return;
+                    // Round 345 : critical() peut renvoyer SANS EXCEPTION
+                    // tout en n'ayant RIEN écrit — WatchdogManager::record()
+                    // renonce silencieusement (fail-safe documenté round 179)
+                    // si GET_LOCK() échoue sous contention, précisément le
+                    // scénario de rafale de fatals identiques que ce chemin
+                    // est censé couvrir. "Pas d'exception" ne prouve donc pas
+                    // "écrit avec succès" — on vérifie qu'une ligne réelle et
+                    // récente existe avant de renoncer au repli ci-dessous
+                    // (date_add est rafraîchi à chaque occurrence consolidée,
+                    // round 189, donc une écriture réussie — même consolidée —
+                    // produit toujours une ligne très récente).
+                    $written = (bool) \Db::getInstance()->getValue(
+                        "SELECT 1 FROM `" . _DB_PREFIX_ . "neria_log`
+                         WHERE `id_shop` = " . self::currentShopId() . "
+                           AND `level` = 'critical' AND `class` = 'NeriaErrorHandler'
+                           AND `message` = '" . pSQL($message) . "'
+                           AND `date_add` > DATE_SUB(NOW(), INTERVAL 5 SECOND)",
+                        false
+                    );
+                    if ($written) {
+                        return;
+                    }
+                    // Sinon : critical() a renoncé silencieusement — on
+                    // continue vers le repli INSERT brut ci-dessous.
                 } catch (\Throwable $t) {
                     // WatchdogManager indisponible en phase de shutdown — repli ci-dessous.
                 }
