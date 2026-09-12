@@ -26,10 +26,13 @@ function run_test(): array
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/PostmasterManager.php');
     neria_assert($src !== false, 'Impossible de lire src/PostmasterManager.php');
 
-    $posMethod = strpos($src, 'private function apiGet(string $path, string $token): ?array');
+    // Round 343 : signature élargie ($retriedAfter401) — seul le préfixe importe.
+    $posMethod = strpos($src, 'private function apiGet(string $path, string $token');
     neria_assert($posMethod !== false, 'apiGet() introuvable — régression du bug corrigé le 08/08/2026');
 
-    $body = substr($src, $posMethod, 2800);
+    // Round 343 : fenêtre élargie 2800→3900 — bloc de détection
+    // 401/refresh/retentative ajouté avant les littéraux recherchés.
+    $body = substr($src, $posMethod, 3900);
 
     $posNetworkCheck = strpos($body, 'if ($body === false)');
     neria_assert(
