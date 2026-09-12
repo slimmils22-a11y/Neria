@@ -66107,6 +66107,27 @@
         "nl": "Deze seizoenscampagne bestaat niet meer of behoort tot een andere winkel — er is geen wijziging aangebracht.",
         "gb": "This seasonal campaign no longer exists or belongs to another shop — no change was made."
     },
+    "watchdog.behavioral_sent_dedup_missing": {
+        "fr": "Email comportemental envoyé (modèle {template}, client #{id_customer}, référence {ref_id}) mais la ligne de déduplication anti-doublon n'a pas été trouvée en base — un nouvel envoi du même événement pourrait ne pas être détecté comme doublon.",
+        "en": "Behavioral email sent (template {template}, customer #{id_customer}, reference {ref_id}) but the anti-duplicate dedup row was not found in the database — a future send for the same event may not be detected as a duplicate.",
+        "de": "Verhaltensbasierte E-Mail gesendet (Vorlage {template}, Kunde #{id_customer}, Referenz {ref_id}), aber die Zeile zur Duplikatvermeidung wurde nicht in der Datenbank gefunden — ein künftiger Versand für dasselbe Ereignis könnte nicht als Duplikat erkannt werden.",
+        "it": "Email comportamentale inviata (modello {template}, cliente #{id_customer}, riferimento {ref_id}) ma la riga di deduplicazione anti-duplicato non è stata trovata nel database — un futuro invio per lo stesso evento potrebbe non essere rilevato come duplicato.",
+        "es": "Correo comportamental enviado (plantilla {template}, cliente #{id_customer}, referencia {ref_id}) pero no se encontró la fila de deduplicación anti-duplicado en la base de datos — un futuro envío para el mismo evento podría no detectarse como duplicado.",
+        "pt": "Email comportamental enviado (modelo {template}, cliente #{id_customer}, referência {ref_id}) mas a linha de desduplicação anti-duplicado não foi encontrada na base de dados — um envio futuro para o mesmo evento pode não ser detetado como duplicado.",
+        "br": "Email comportamental enviado (modelo {template}, cliente #{id_customer}, referência {ref_id}) mas a linha de desduplicação anti-duplicado não foi encontrada no banco de dados — um envio futuro para o mesmo evento pode não ser detectado como duplicado.",
+        "ar": "أُرسلت رسالة السلوك الإلكترونية (القالب {template}، العميل رقم {id_customer}، المرجع {ref_id}) لكن لم يُعثر على سطر إزالة التكرار في قاعدة البيانات — قد لا يُكتشف إرسال مستقبلي لنفس الحدث كتكرار.",
+        "ja": "行動トリガーメールは送信されました（テンプレート {template}、顧客 #{id_customer}、参照 {ref_id}）が、重複防止用の記録がデータベースに見つかりませんでした — 同じイベントの今後の送信が重複として検出されない可能性があります。",
+        "ko": "행동 기반 이메일이 발송되었습니다(템플릿 {template}, 고객 #{id_customer}, 참조 {ref_id})만 중복 방지 기록을 데이터베이스에서 찾을 수 없습니다 — 동일 이벤트에 대한 향후 발송이 중복으로 감지되지 않을 수 있습니다.",
+        "zh": "行为邮件已发送（模板 {template}，客户 #{id_customer}，参考 {ref_id}），但在数据库中未找到防重复记录行——未来针对同一事件的发送可能无法被识别为重复。",
+        "tw": "行為郵件已寄出（範本 {template}，客戶 #{id_customer}，參考 {ref_id}），但在資料庫中未找到防重複記錄列——未來針對同一事件的寄送可能無法被識別為重複。",
+        "ru": "Поведенческое письмо отправлено (шаблон {template}, клиент #{id_customer}, ссылка {ref_id}), но строка дедупликации не найдена в базе данных — будущая отправка того же события может не быть распознана как дубликат.",
+        "tr": "Davranışsal e-posta gönderildi (şablon {template}, müşteri #{id_customer}, referans {ref_id}) ancak yinelenme önleme satırı veritabanında bulunamadı — aynı olay için gelecekteki bir gönderim yineleme olarak algılanmayabilir.",
+        "sv": "Beteendebaserat e-postmeddelande skickat (mall {template}, kund #{id_customer}, referens {ref_id}) men dedupliceringsraden hittades inte i databasen — en framtida sändning för samma händelse kan inte upptäckas som en dubblett.",
+        "no": "Atferdsbasert e-post sendt (mal {template}, kunde #{id_customer}, referanse {ref_id}), men dedupliseringslinjen ble ikke funnet i databasen — en fremtidig sending for samme hendelse kan ikke bli oppdaget som en duplikat.",
+        "da": "Adfærdsbaseret e-mail sendt (skabelon {template}, kunde #{id_customer}, reference {ref_id}), men dedupliceringslinjen blev ikke fundet i databasen — en fremtidig afsendelse for samme begivenhed kan muligvis ikke registreres som en duplikat.",
+        "nl": "Gedragsgestuurde e-mail verzonden (sjabloon {template}, klant #{id_customer}, referentie {ref_id}) maar de deduplicatierij is niet gevonden in de database — een toekomstige verzending voor dezelfde gebeurtenis wordt mogelijk niet als duplicaat herkend.",
+        "gb": "Behavioural email sent (template {template}, customer #{id_customer}, reference {ref_id}) but the anti-duplicate dedup row was not found in the database — a future send for the same event may not be detected as a duplicate."
+    },
     "watchdog.queue_sent_not_confirmed": {
         "fr": "Email de la file (#{id}, modèle {template}, {email}) probablement envoyé mais non confirmé en base — vérifiez manuellement avant tout nouvel envoi pour éviter un doublon.",
         "en": "Queued email (#{id}, template {template}, {email}) likely sent but not confirmed in the database — check manually before any resend to avoid a duplicate.",

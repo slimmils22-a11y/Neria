@@ -61,8 +61,16 @@ class QueueManager
         int    $preferredHour
     ): void {
         $sendAt    = $this->nextOccurrence($preferredHour);
-        $idLang    = (int) ($customer['id_lang'] ?? \Configuration::get('PS_LANG_DEFAULT'));
         $idShop    = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
+        // Round 346 : $idShop explicite — même piège déjà corrigé ailleurs
+        // dans le module (round 106/187/338) pour PS_LANG_DEFAULT/
+        // PS_SHOP_NAME/etc. : sans lui, Configuration::get() retombe sur le
+        // contexte shop AMBIANT (pas $idShop résolu ci-dessus) dès que le
+        // multi-boutique est actif. En multi-boutique avec des langues par
+        // défaut différentes, un client sans id_lang connu (envoi manuel à
+        // une adresse sans compte, cf. ManualSendManager) pouvait recevoir
+        // l'email programmé dans la langue par défaut d'une AUTRE boutique.
+        $idLang    = (int) ($customer['id_lang'] ?? \Configuration::get('PS_LANG_DEFAULT', null, null, $idShop));
         $toName    = trim(($customer['firstname'] ?? '') . ' ' . ($customer['lastname'] ?? ''));
         $varsJsonEncoded = json_encode($extraVars, JSON_UNESCAPED_UNICODE);
         // Round 259 : json_encode() renvoie `false` (silencieusement, sans
@@ -164,8 +172,9 @@ class QueueManager
         int    $refId,
         string $sendAt
     ): bool {
-        $idLang   = (int) ($customer['id_lang'] ?? \Configuration::get('PS_LANG_DEFAULT'));
         $idShop   = (int) ($customer['id_shop'] ?? \Context::getContext()->shop->id);
+        // Round 346 : $idShop explicite — même correctif que enqueue() ci-dessus.
+        $idLang   = (int) ($customer['id_lang'] ?? \Configuration::get('PS_LANG_DEFAULT', null, null, $idShop));
         $toName   = trim(($customer['firstname'] ?? '') . ' ' . ($customer['lastname'] ?? ''));
         $varsJsonEncoded = json_encode($extraVars, JSON_UNESCAPED_UNICODE);
         // Round 259 : même repli qu'enqueue() ci-dessus sur un échec
@@ -468,8 +477,9 @@ class QueueManager
 
         try {
             $vars   = json_decode($row['vars_json'] ?? '{}', true) ?: [];
-            $idLang = (int) ($row['id_lang'] ?? \Configuration::get('PS_LANG_DEFAULT'));
             $idShop = (int) ($row['id_shop'] ?? 1);
+            // Round 346 : $idShop explicite — même correctif que enqueue()/enqueueAt().
+            $idLang = (int) ($row['id_lang'] ?? \Configuration::get('PS_LANG_DEFAULT', null, null, $idShop));
 
             // Round 260 : {product_price}/{product_name}/{product_image} de
             // ghost_cart sont capturés par BehavioralCronManager::
@@ -738,12 +748,47 @@ class QueueManager
                     }
 
                     if ($refId > 0) {
+                        // Round 346 : retour désormais capturé. INSERT IGNORE
+                        // absorbe silencieusement un VRAI doublon (contrainte
+                        // UNIQUE déjà présente pour ce triplet — cas normal,
+                        // rien à signaler), mais aussi un échec SQL réel
+                        // (deadlock, connexion perdue) — jusqu'ici confondus.
+                        // Dans ce second cas, l'email part bien (Mail::Send()
+                        // a déjà réussi juste avant) mais la ligne de dédup
+                        // anti-doublon n'existe pas : un an plus tard,
+                        // sendFirstAnniversaries()/sendRelationshipAnniversaries()
+                        // (BehavioralCronManager) ne la trouvent plus et
+                        // renvoient le même email en double, sans aucune
+                        // alerte. On ne peut pas distinguer les deux cas sans
+                        // un SELECT supplémentaire (Affected_Rows()=0 sur un
+                        // INSERT IGNORE est ambigu par nature), donc on
+                        // vérifie l'existence de la ligne juste après, comme
+                        // déjà fait ailleurs dans le module pour ce même piège.
                         $this->db->execute(
                             'INSERT IGNORE INTO `' . $this->prefix . 'neria_behavioral_sent`
                              (id_customer, template, ref_id, id_shop, sent_at)
                              VALUES (' . (int) $row['id_customer'] . ', \'' . pSQL($row['template']) . '\', '
                             . $refId . ', ' . $idShop . ', NOW())'
                         );
+                        $exists346 = (bool) $this->db->getValue(
+                            'SELECT 1 FROM `' . $this->prefix . 'neria_behavioral_sent`
+                             WHERE id_customer = ' . (int) $row['id_customer'] . '
+                               AND template = \'' . pSQL($row['template']) . '\'
+                               AND ref_id = ' . $refId . '
+                               AND id_shop = ' . $idShop,
+                            false
+                        );
+                        if (!$exists346) {
+                            $this->watchdog()->warning(
+                                \WatchdogManager::i18nMsg('watchdog.behavioral_sent_dedup_missing', [
+                                    'template'    => $row['template'],
+                                    'id_customer' => (int) $row['id_customer'],
+                                    'ref_id'      => $refId,
+                                ]),
+                                $row['template'],
+                                'QueueManager'
+                            );
+                        }
                     }
                 }
 

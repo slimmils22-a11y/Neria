@@ -223,9 +223,20 @@ class WaitlistManager
         } else {
             $stockWhere = " AND id_shop = " . (int) $idShop . " AND id_shop_group = 0";
         }
+        // Round 346 : $use_cache=false — même pattern déjà appliqué à
+        // isRegistered() (round 223) et $stillRegistered (round 212) dans ce
+        // même fichier, pour exactement ce risque. hookActionUpdateQuantity
+        // peut appeler notifyProduct() plusieurs fois pour LE MÊME produit/
+        // boutique dans la MÊME requête HTTP (import de stock en masse,
+        // plusieurs mouvements successifs sur une ligne) — sans ce
+        // paramètre, un appel ultérieur avec un texte SQL identique pouvait
+        // relire une quantité mise en cache par le 1er appel, périmée par
+        // rapport au stock réel déjà modifié entre les deux dans cette même
+        // requête.
         $availableQty = (int) $this->db->getValue(
             "SELECT COALESCE(SUM(quantity), 0) FROM `" . _DB_PREFIX_ . "stock_available`
-             WHERE id_product = " . (int) $idProduct . $stockWhere
+             WHERE id_product = " . (int) $idProduct . $stockWhere,
+            false
         );
         // availableQty <= 0 : rien de réellement disponible (stock à 0 au moment de
         // l'appel, race condition avec la mise à jour, ou déclinaison sans stock géré) —
@@ -250,9 +261,11 @@ class WaitlistManager
             if ($attr === 0) {
                 return true;
             }
+            // Round 346 : voir commentaire équivalent sur $availableQty.
             $qty = (int) $this->db->getValue(
                 "SELECT COALESCE(SUM(quantity), 0) FROM `" . _DB_PREFIX_ . "stock_available`
-                 WHERE id_product = " . (int) $idProduct . " AND id_product_attribute = " . $attr . $stockWhere
+                 WHERE id_product = " . (int) $idProduct . " AND id_product_attribute = " . $attr . $stockWhere,
+                false
             );
             return $qty > 0;
         }));
@@ -362,11 +375,19 @@ class WaitlistManager
                 // multi-boutique déjà corrigé (round 103) pour
                 // {product_url}/{product_image} ci-dessus dans ce même bloc.
                 '{shop_name}'          => \Configuration::get('PS_SHOP_NAME', null, null, $rowShopId),
-                // Scope le Mode Silence par produit (cf. CooldownManager) —
-                // sans lui, une notification "de retour en stock" légitime
-                // pour un DEUXIÈME produit dans la fenêtre de cooldown était
-                // bloquée à tort comme doublon de la première.
-                '{cooldown_scope}'     => 'product:' . $idProduct,
+                // Scope le Mode Silence par produit ET déclinaison (cf.
+                // CooldownManager) — sans lui, une notification "de retour
+                // en stock" légitime pour un DEUXIÈME produit dans la
+                // fenêtre de cooldown était bloquée à tort comme doublon de
+                // la première. Round 346 : déclinaison ajoutée au scope —
+                // un même client peut avoir 2 inscriptions distinctes pour
+                // 2 déclinaisons du MÊME produit (round 167/187) ; sans la
+                // déclinaison dans le scope, la notification de la 1ʳᵉ
+                // déclinaison enregistrait l'occurrence de cooldown pour
+                // TOUT le produit, faisant bloquer à tort la notification
+                // légitime de la 2ᵉ déclinaison traitée juste après dans la
+                // même boucle.
+                '{cooldown_scope}'     => 'product:' . $idProduct . ':' . (int) $row['id_product_attribute'],
             ];
 
             // Réclamation atomique AVANT l'envoi : deux appels concurrents à
@@ -493,7 +514,8 @@ class WaitlistManager
                 && (new \ConfigManager($this->module))->isCooldownEnabled()
             ) {
                 $cdMinutes = (new \ConfigManager($this->module))->getCooldownMinutes();
-                if ((new \CooldownManager())->isDuplicate($row['email'], 'waitlist_available', $cdMinutes, $rowShopId, 0, 'product:' . $idProduct)) {
+                // Round 346 : voir commentaire équivalent sur {cooldown_scope} plus haut.
+                if ((new \CooldownManager())->isDuplicate($row['email'], 'waitlist_available', $cdMinutes, $rowShopId, 0, 'product:' . $idProduct . ':' . $idProductAttribute)) {
                     $this->db->execute(
                         "UPDATE `{$this->prefix}" . self::TABLE . "`
                          SET claim_started_at = NULL
