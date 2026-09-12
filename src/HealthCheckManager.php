@@ -4296,8 +4296,11 @@ class HealthCheckManager
             // GET_LOCK() NULL-vs-0 (voir plus bas) a inséré du code avant
             // les littéraux ciblés, les repoussant au-delà de l'ancienne
             // fenêtre.
+            // Round 346 : fenêtre élargie 13200→14200 — cache SQL
+            // bypassé + cooldown scopé par déclinaison, commentaires ajoutés
+            // avant les littéraux ciblés.
             $posNP = strpos($wlmSrc, 'public function notifyProduct(');
-            $npBody = $posNP !== false ? substr($wlmSrc, $posNP, 13200) : '';
+            $npBody = $posNP !== false ? substr($wlmSrc, $posNP, 14200) : '';
             if ($posNP === false
                 || strpos($npBody, 'Shop::setContext(\Shop::CONTEXT_SHOP, $rowShopId)') === false
                 || strpos($npBody, 'new \Product($idProduct, false, $idLang, $rowShopId)') === false
@@ -11354,6 +11357,42 @@ class HealthCheckManager
             || strpos($nehSrc345, 'if ($written) {') === false
         ) {
             $offenders[] = "NeriaErrorHandler ne vérifie plus qu'une ligne récente existe réellement après WatchdogManager::critical() — régression du bug corrigé le 12/09/2026 (round 345) : un fatal PHP pourrait de nouveau n'être journalisé nulle part si critical() renonce silencieusement sous contention GET_LOCK (fail-safe round 179), précisément pendant une rafale de fatals identiques";
+        }
+
+        // Round 346 : QueueManager::processSingle() doit vérifier
+        // l'existence réelle de la ligne de dédup après l'INSERT IGNORE
+        // dans neria_behavioral_sent, et résoudre PS_LANG_DEFAULT avec
+        // $idShop explicite.
+        $qmSrc346 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/QueueManager.php');
+        if ($qmSrc346 === ''
+            || strpos($qmSrc346, '$exists346 = (bool) $this->db->getValue(') === false
+            || strpos($qmSrc346, "\\WatchdogManager::i18nMsg('watchdog.behavioral_sent_dedup_missing'") === false
+        ) {
+            $offenders[] = "QueueManager::processSingle() ne vérifie plus l'existence réelle de la ligne de dédup après l'INSERT IGNORE — régression du bug corrigé le 12/09/2026 (round 346) : un échec SQL réel redeviendrait indiscernable d'un doublon légitime, sans aucune alerte, exposant à un envoi comportemental en double";
+        }
+        if ($qmSrc346 === '' || substr_count($qmSrc346, "\\Configuration::get('PS_LANG_DEFAULT', null, null, \$idShop)") !== 3) {
+            $offenders[] = "QueueManager ne résout plus PS_LANG_DEFAULT avec \$idShop explicite aux 3 emplacements attendus (enqueue(), enqueueAt(), processSingle()) — régression du bug corrigé le 12/09/2026 (round 346)";
+        }
+
+        // Round 346 : WaitlistManager doit bypasser le cache SQL sur les 2
+        // lectures de stock, et scoper le cooldown par déclinaison.
+        $wlSrc346 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/WaitlistManager.php');
+        if ($wlSrc346 === ''
+            || strpos($wlSrc346, "'{cooldown_scope}'     => 'product:' . \$idProduct . ':' . (int) \$row['id_product_attribute'],") === false
+            || strpos($wlSrc346, "'product:' . \$idProduct . ':' . \$idProductAttribute))") === false
+        ) {
+            $offenders[] = "WaitlistManager ne scope plus le Mode Silence par déclinaison (product:id:attribut) — régression du bug corrigé le 12/09/2026 (round 346) : la notification d'une déclinaison bloquerait de nouveau à tort celle d'une autre déclinaison du même produit";
+        }
+        if ($wlSrc346 === '') {
+            $offenders[] = 'WaitlistManager.php introuvable (garde-fou round 346 : cache SQL stock)';
+        } else {
+            $posAvail346 = strpos($wlSrc346, '$availableQty = (int) $this->db->getValue(');
+            $posQtyAttr346 = strpos($wlSrc346, '$qty = (int) $this->db->getValue(');
+            if ($posAvail346 === false || strpos(substr($wlSrc346, $posAvail346, 400), 'false') === false
+                || $posQtyAttr346 === false || strpos(substr($wlSrc346, $posQtyAttr346, 400), 'false') === false
+            ) {
+                $offenders[] = "WaitlistManager ne bypasse plus le cache SQL sur les lectures de stock — régression du bug corrigé le 12/09/2026 (round 346)";
+            }
         }
 
         if ($offenders) {
