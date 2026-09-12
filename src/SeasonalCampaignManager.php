@@ -475,6 +475,22 @@ class SeasonalCampaignManager
                             '{campaign_name}' => $campaign['name'],
                             '{upsell_block}'  => $upsellHtml,
                             '{upsell_block_txt}' => $upsellTxt,
+                            // Round 344 : {cooldown_scope} manquant — isDuplicate()
+                            // ci-dessus est interrogé avec refScope=$sentKey (ex.
+                            // 'seasonal_42'), mais StatsManager::record() ne lit
+                            // ref_scope QUE depuis cette clé de templateVars
+                            // (jamais renseignée ici) — la ligne réellement écrite
+                            // en base avait donc toujours ref_scope='', que la
+                            // condition SQL de isDuplicate() (ref_scope =
+                            // 'seasonal_42') ne pouvait jamais matcher. Le Mode
+                            // Silence (fenêtre en minutes) était donc
+                            // silencieusement inopérant pour TOUS les envois de
+                            // campagnes saisonnières, quel que soit le nombre
+                            // d'envois précédents dans la fenêtre — même famille
+                            // de correctif déjà appliquée à BehavioralCronManager/
+                            // OrderTriggersManager ('order:'.$idOrder), jamais
+                            // porté ici.
+                            '{cooldown_scope}' => $sentKey,
                         ],
                         $customer['email'],
                         $customer['firstname'] . ' ' . $customer['lastname'],

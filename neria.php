@@ -5784,8 +5784,15 @@ class Neria extends Module
             $pids    = array_filter(array_map('intval', explode(',', $rawIds)));
             $msgKey = 'error:msg.look_rule_invalid';
             if ($idCat > 0 && count($pids) >= 2) {
-                (new LookCompletionManager($this))->createRule($idCat, array_slice($pids, 0, 3));
-                $msgKey = 'success:msg.look_rule_added';
+                // Round 344 : retour de createRule() désormais vérifié — même
+                // pattern déjà corrigé pour collection_add (round 335) et
+                // look_rule_delete (round 320), jamais porté à cette action-ci.
+                // Sans ce contrôle, un échec d'INSERT (perte de connexion DB,
+                // erreur SQL) restait invisible : le marchand voyait "règle
+                // ajoutée" alors qu'aucune ligne n'avait réellement été insérée.
+                $msgKey = (new LookCompletionManager($this))->createRule($idCat, array_slice($pids, 0, 3))
+                    ? 'success:msg.look_rule_added'
+                    : 'error:msg.look_rule_invalid';
             }
             [$msgType, $msgTransKey] = explode(':', $msgKey);
             Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_' . $msgType . '=' . urlencode(AdminTranslator::t($msgTransKey)) . '#neria-look-section');
@@ -5800,12 +5807,21 @@ class Neria extends Module
             // était affiché en neria_success même quand $r est introuvable
             // (id déjà supprimé, double-clic) — aucune modification n'avait
             // pourtant eu lieu. Même pattern que collection_toggle
-            // ci-dessous, jamais corrigé ici contrairement au calendrier
-            // (round 317).
+            // ci-dessous.
+            // Round 344 : retour de updateRule() désormais vérifié — même
+            // correctif porté au calendrier (round 317), jamais appliqué ici
+            // jusqu'à présent (aveu explicite laissé dans ce commentaire
+            // depuis le round 320). Sans lui, un échec réel de l'UPDATE
+            // (verrou transitoire, erreur SQL) affichait quand même
+            // "activé"/"désactivé" alors que l'état en base n'avait pas changé.
             if ($r) {
-                $mgr->updateRule($id, (int) $r['id_category'], json_decode($r['product_ids'], true), !(bool) $r['active']);
-                $msgKey = $r['active'] ? 'msg.item_deactivated' : 'msg.item_activated';
-                Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($msgKey)) . '#neria-look-section');
+                $toggled = $mgr->updateRule($id, (int) $r['id_category'], json_decode($r['product_ids'], true), !(bool) $r['active']);
+                if ($toggled) {
+                    $msgKey = $r['active'] ? 'msg.item_deactivated' : 'msg.item_activated';
+                    Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_success=' . urlencode(AdminTranslator::t($msgKey)) . '#neria-look-section');
+                } else {
+                    Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_error=' . urlencode(AdminTranslator::t('msg.look_rule_invalid')) . '#neria-look-section');
+                }
             } else {
                 Tools::redirectAdmin($this->context->link->getAdminLink('AdminModules', true, [], ['configure' => $this->name]) . '&neria_tab=stats&neria_error=' . urlencode(AdminTranslator::t('msg.look_rule_not_found')) . '#neria-look-section');
             }
