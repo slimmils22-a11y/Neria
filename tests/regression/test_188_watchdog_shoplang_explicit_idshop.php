@@ -73,11 +73,11 @@ function run_test(): array
         );
     }
 
-    // PageSpeedManager a 2 appels ; SeoApiManager en a 3 depuis le round 335
-    // (nouveau repli recordError('msg.semrush_unexpected_columns') dans
-    // fetchSemrush(), même pattern try/setLang/finally que les 2 appels
-    // préexistants).
-    $expectedCounts = ['PageSpeedManager.php' => 2, 'SeoApiManager.php' => 3];
+    // PageSpeedManager a 2 appels ; SeoApiManager en a 4 depuis le round 342
+    // (round 335 : nouveau repli recordError('msg.semrush_unexpected_columns')
+    // dans fetchSemrush(), 2→3 ; round 342 : même correctif répliqué à
+    // fetchMoz() avec recordError('msg.moz_unexpected_columns'), 3→4).
+    $expectedCounts = ['PageSpeedManager.php' => 2, 'SeoApiManager.php' => 4];
     foreach ($expectedCounts as $file => $expected) {
         $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/' . $file);
         $count = substr_count($src, 'WatchdogManager::shopLang((int) \Context::getContext()->shop->id)');
@@ -93,6 +93,6 @@ function run_test(): array
 
     return [
         'pass'    => true,
-        'message' => "WatchdogManager::shopLang() accepte bien un idShop explicite, transmis par ses 7 appelants externes connus (ABTestManager, EmailRenderer, PageSpeedManager×2, PostmasterManager, SearchConsoleManager, SeoApiManager×3)",
+        'message' => "WatchdogManager::shopLang() accepte bien un idShop explicite, transmis par ses 7 appelants externes connus (ABTestManager, EmailRenderer, PageSpeedManager×2, PostmasterManager, SearchConsoleManager, SeoApiManager×4)",
     ];
 }
