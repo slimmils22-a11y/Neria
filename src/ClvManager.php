@@ -273,6 +273,13 @@ class ClvManager
         // SUM() de tout le client NULL en SQL (division par zéro), le
         // classant en dernier dans l'ORDER BY et écrasant son CA réel à 0
         // dans total_revenue plus bas, malgré un historique d'achat non nul.
+        // Round 343 : c.active = 1 ajouté — ChurnScoreManager::
+        // getHighRiskCustomers()/countHighRisk() excluent déjà les clients
+        // désactivés (round 209, filtre active=1 AND deleted=0), jamais
+        // porté ici. Un client désactivé (compte suspendu par le marchand,
+        // mais pas soft-supprimé) apparaissait dans le "Top CLV" du BO —
+        // incohérence entre deux vues marketing du même module sur un
+        // client à qui on ne peut plus rien envoyer/vendre en pratique.
         $customers = $this->db->executeS(
             'SELECT o.`id_customer`,
                     CONCAT(c.`firstname`, " ", c.`lastname`) AS customer_name,
@@ -280,7 +287,7 @@ class ClvManager
              FROM `' . _DB_PREFIX_ . 'orders` o
              INNER JOIN `' . _DB_PREFIX_ . 'customer` c ON c.`id_customer` = o.`id_customer`
              WHERE o.`id_shop` = ' . $this->idShop . ' AND o.`valid` = 1
-               AND c.`deleted` = 0
+               AND c.`active` = 1 AND c.`deleted` = 0
              GROUP BY o.`id_customer`, c.`firstname`, c.`lastname`, c.`email`
              ORDER BY SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` IS NULL OR o.`conversion_rate` = 0, 1, o.`conversion_rate`)) DESC
              LIMIT 200'
@@ -306,7 +313,7 @@ class ClvManager
                  FROM `' . _DB_PREFIX_ . 'orders` o
                  INNER JOIN `' . _DB_PREFIX_ . 'customer` c ON c.`id_customer` = o.`id_customer`
                  WHERE o.`id_shop` = ' . $this->idShop . ' AND o.`valid` = 1
-                   AND c.`deleted` = 0'
+                   AND c.`active` = 1 AND c.`deleted` = 0'
             );
             if ($totalCandidates > 200) {
                 $this->watchdog()->warning(

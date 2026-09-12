@@ -548,7 +548,15 @@ class ManualSendManager
         string $subject,
         array $contentVars
     ): array {
-        $lockKey337 = 'neria_manualsend_' . md5(trim($email) . '|' . $template . '|' . $orderRef);
+        // Round 343 : Tools::strtolower() ajouté — la clé de verrou était
+        // calculée sur l'email tel que saisi, sans normalisation de casse,
+        // alors que le lookup SQL réel (findCustomer()) est insensible à la
+        // casse (collation MySQL par défaut). Deux requêtes POST quasi
+        // simultanées avec des casses différentes de la même adresse
+        // (ex. "Test@x.com" vs "test@x.com") obtenaient deux clés GET_LOCK
+        // distinctes et contournaient totalement le verrou anti-doublon
+        // ajouté au round 337.
+        $lockKey337 = 'neria_manualsend_' . md5(\Tools::strtolower(trim($email)) . '|' . $template . '|' . $orderRef);
         $lockRes337 = $this->db->getValue("SELECT GET_LOCK('" . pSQL($lockKey337) . "', 0)", false);
         if ((int) $lockRes337 !== 1) {
             // Verrou déjà détenu (envoi identique en cours) ou GET_LOCK() en

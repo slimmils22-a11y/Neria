@@ -724,7 +724,7 @@ class PostmasterManager
     // HTTP
     // ============================================================
 
-    private function apiGet(string $path, string $token): ?array
+    private function apiGet(string $path, string $token, bool $retriedAfter401 = false): ?array
     {
         $ch = curl_init(self::API_BASE . $path);
         curl_setopt_array($ch, [
@@ -737,6 +737,24 @@ class PostmasterManager
         $curlErr  = curl_error($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+
+        // Round 343 : Google peut révoquer/invalider un access_token AVANT
+        // l'expiration locale prévue (changement de scope, révocation
+        // partielle, dérive d'horloge) — getAccessToken() ne rafraîchit
+        // alors QUE sur base de CONFIG_TOKEN_EXPIRY, jamais atteint dans ce
+        // cas. Sans ce garde-fou, un 401 était traité comme une erreur
+        // générique (branche HTTP≥400 plus bas) et chaque appel BO
+        // échouait inutilement jusqu'à l'expiration naturelle (jusqu'à ~55
+        // min) au lieu de se rétablir via un simple refresh immédiat. Une
+        // seule retentative (jamais de boucle) : un refresh qui aboutit à
+        // un nouveau 401 est un vrai problème (jamais transitoire), pas la
+        // peine de réessayer indéfiniment.
+        if ($httpCode === 401 && !$retriedAfter401) {
+            $newToken = $this->refreshAccessToken();
+            if ($newToken !== null) {
+                return $this->apiGet($path, $newToken, true);
+            }
+        }
 
         // Echec transport (timeout, DNS injoignable, TLS cassé) — auparavant
         // renvoyait null en silence : ni CONFIG_LAST_ERROR ni alerte Watchdog,
