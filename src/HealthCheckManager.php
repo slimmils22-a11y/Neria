@@ -8864,7 +8864,7 @@ class HealthCheckManager
         // (BehavioralCronManager) et palier de commande (OrderTriggersManager),
         // qui lisent déjà correctement getVoucherValidity().
         $loySrc277 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
-        $loyFnPos277 = $loySrc277 !== '' ? strpos($loySrc277, 'private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward): string') : false;
+        $loyFnPos277 = $loySrc277 !== '' ? strpos($loySrc277, 'private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward, bool $restrictToSingleShop = true, ?array $shopIdsGroup = null): string') : false;
         $loyDateToPos277 = $loyFnPos277 !== false ? strpos($loySrc277, '$cartRule->date_to', $loyFnPos277) : false;
         // Round 314 : distance max élargie 4000→4500 — le correctif round
         // 314 (ancrage NOW() MySQL + commentaire explicatif) sur cette même
@@ -11043,7 +11043,7 @@ class HealthCheckManager
         // doit scoper minimum_amount_currency par $reservationShopId, comme
         // reduction_currency du même CartRule.
         $lmSrc336b = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
-        $posGenVoucher336b = $lmSrc336b !== '' ? strpos($lmSrc336b, 'private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward): string') : false;
+        $posGenVoucher336b = $lmSrc336b !== '' ? strpos($lmSrc336b, 'private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward, bool $restrictToSingleShop = true, ?array $shopIdsGroup = null): string') : false;
         $genVoucherBody336b = $posGenVoucher336b !== false ? substr($lmSrc336b, $posGenVoucher336b, 5300) : '';
         if ($genVoucherBody336b === ''
             || strpos($genVoucherBody336b, "\$cartRule->minimum_amount_currency = \$reservationShopId > 0\n            ? (int) \\Configuration::get('PS_CURRENCY_DEFAULT', null, null, \$reservationShopId)") === false
@@ -11542,6 +11542,42 @@ class HealthCheckManager
         $emailRendererSrc350 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
         if ($emailRendererSrc350 === '' || substr_count($emailRendererSrc350, "['{neria_is_rtl}'] = \$this->engine->isRtl(\$lang);") !== 2) {
             $offenders[] = "EmailRenderer ne propage plus {neria_is_rtl} dans les templateVars des DEUX chemins de compilation (envoi réel + aperçu BO) — régression du bug corrigé le 13/09/2026 (round 350) : la note de clôture de ghost_cart.html (et tout futur template utilisant cette variable) redeviendrait supprimée dans au moins l'un des deux chemins";
+        }
+
+        // Round 351 : LoyaltyManager doit scoper le cumul transversal au
+        // GROUPE de boutiques (shopIdsInSameGroup()/groupAnchorShopId()),
+        // pas à toute l'installation — décision produit validée le
+        // 13/09/2026 (module vendu à de multiples commerçants via
+        // PrestaShop Addons).
+        $lmSrc351 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/LoyaltyManager.php');
+        if ($lmSrc351 === ''
+            || strpos($lmSrc351, 'private function shopIdsInSameGroup(int $idShop): array') === false
+            || strpos($lmSrc351, '$reservationShopId = $crossShop ? $this->groupAnchorShopId($shopIdsGroup) : $idShop;') === false
+            || strpos($lmSrc351, 'if ($restrictToSingleShop) {') === false
+        ) {
+            $offenders[] = "LoyaltyManager ne scope plus le cumul transversal par groupe de boutiques — régression du bug corrigé le 13/09/2026 (round 351) : les points/bons de deux enseignes indépendantes d'un même install pourraient de nouveau être fusionnés à tort";
+        }
+
+        // Round 351 : EmailRenderer doit résoudre l'expéditeur multi-sender
+        // via un ConfigManager scopé sur resolveShopId($params) (boutique
+        // réelle du destinataire), pas $this->config (figé sur la boutique
+        // ambiante à l'instanciation d'EmailRenderer).
+        if ($emailRendererSrc350 === '' || strpos($emailRendererSrc350, 'new \ConfigManager($this->module, $this->resolveShopId($params));') === false) {
+            $offenders[] = "EmailRenderer n'instancie plus un ConfigManager scopé sur resolveShopId(\$params) pour le multi-sender — régression du bug corrigé le 13/09/2026 (round 351) : l'expéditeur d'un client d'une autre boutique afficherait de nouveau le From: de la boutique ambiante";
+        }
+        $cmSrc351 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ConfigManager.php');
+        if ($cmSrc351 === '' || strpos($cmSrc351, 'public function __construct(Neria $module, ?int $idShop = null)') === false) {
+            $offenders[] = "ConfigManager::__construct() n'accepte plus de \$idShop optionnel explicite — régression du bug corrigé le 13/09/2026 (round 351)";
+        }
+
+        // Round 351 : CertificateManager doit dériver le nom de fichier PDF
+        // d'un hash du serial brut, pas d'une substitution à perte —
+        // évite la collision entre deux certificats distincts (impact réel
+        // via GdprAuditManager::purgeCustomerData(), suppression cross-
+        // client d'un fichier archivé).
+        $certSrc351 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        if ($certSrc351 === '' || strpos($certSrc351, "\$file = 'cert_' . substr(hash('sha256', \$serial), 0, 32) . '.pdf';") === false) {
+            $offenders[] = "CertificateManager::generatePdf() ne dérive plus le nom de fichier d'un hash du serial brut — régression du bug corrigé le 13/09/2026 (round 351) : deux certificats distincts pourraient de nouveau collisionner sur le même fichier physique";
         }
 
         if ($offenders) {
@@ -15447,6 +15483,10 @@ class HealthCheckManager
         // (chiffrement rétroactif de secrets déjà couverts par
         // CryptoManager::SENSITIVE_CONFIG_KEYS — 1.0.46 y ajoute
         // NERIA_LICENSE_KEY/_TOKEN, hors round 12/09/2026 suite round 341).
+        // 1.0.47 : migration de données (id_shop=0 -> ancre de groupe sur
+        // neria_loyalty_rewards, round 351) — pas d'effet distinct
+        // vérifiable via ce mécanisme générique (aucune table/colonne/
+        // config nouvelle), même famille que 1.0.5/1.0.13.
         $manifest = [
             '1.0.1'  => ['type' => 'table',  'name' => 'neria_quote'],
             '1.0.2'  => ['type' => 'table',  'name' => 'neria_reconciliation'],
