@@ -23,7 +23,7 @@ function run_test(): array
 
     $posFn = strpos($src, 'function sendCheckoutAbandonment');
     neria_assert($posFn !== false, 'sendCheckoutAbandonment() introuvable — jeu de test invalide');
-    $body = substr($src, $posFn, 3200);
+    $body = substr($src, $posFn, 4400);
 
     neria_assert(
         strpos($body, "'{products_txt}'") !== false && strpos($body, '$this->buildCartProductsTxt($idCart)') !== false,

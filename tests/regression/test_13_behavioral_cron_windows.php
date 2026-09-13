@@ -15,6 +15,13 @@
  * régression sans rapport avec la vraie logique de fenêtres testée ici (le
  * code de production, lui, filtre toujours par id_customer ET template
  * ensemble — voir sendAbandonedCarts() — donc n'a jamais ce problème).
+ *
+ * Round 350 : un produit réel est désormais inséré dans le panier fictif —
+ * sendAbandonedCarts() revérifie depuis ce round que le panier contient
+ * encore au moins un article juste avant l'envoi (garde-fou panier vidé/
+ * modifié) ; un panier de test sans aucune ligne cart_product ne
+ * déclenchait plus aucun template, faussant ce test qui vérifie la logique
+ * de fenêtres, pas le contenu du panier.
  */
 require_once __DIR__ . '/bootstrap.php';
 
@@ -27,6 +34,11 @@ function run_test(): array
     $db->execute("INSERT INTO {$prefix}cart (id_shop, id_shop_group, id_customer, id_currency, id_lang, date_add, date_upd)
         VALUES (1, 1, {$idCustomer}, 1, 1, NOW(), DATE_SUB(NOW(), INTERVAL '24:30:00' HOUR_SECOND))");
     $idCart = (int) $db->Insert_ID();
+
+    $product = $db->getRow("SELECT id_product FROM {$prefix}product WHERE active = 1");
+    neria_assert($product !== false && $product !== null, 'Jeu de test invalide : aucun produit actif disponible');
+    $db->execute("INSERT INTO {$prefix}cart_product (id_cart, id_product, id_address_delivery, id_shop, quantity, date_add)
+        VALUES ({$idCart}, " . (int) $product['id_product'] . ", 0, 1, 1, NOW())");
 
     try {
         require_once _PS_MODULE_DIR_ . 'neria/src/BehavioralCronManager.php';
@@ -52,6 +64,7 @@ function run_test(): array
         return ['pass' => true, 'message' => 'Fenêtres cron panier abandonné toujours jointives sans chevauchement'];
     } finally {
         $db->execute("DELETE FROM {$prefix}neria_behavioral_sent WHERE ref_id={$idCart} AND id_customer={$idCustomer} AND template IN ('abandoned_cart_1', 'abandoned_cart_2')");
+        $db->execute("DELETE FROM {$prefix}cart_product WHERE id_cart={$idCart}");
         $db->execute("DELETE FROM {$prefix}cart WHERE id_cart={$idCart}");
     }
 }
