@@ -11466,6 +11466,28 @@ class HealthCheckManager
             $offenders[] = "Neria::uninstall() ne balaie plus les fichiers HTML/TXT compilés nominatifs restants (mails/*/*__*.html) — régression du bug corrigé le 13/09/2026 (round 348) : des données client réelles pourraient de nouveau rester sur disque indéfiniment après désinstallation";
         }
 
+        // Round 349 : le handler A/B testing de neria.php doit vérifier le
+        // retour de ABTestManager::deleteTests() avant de poursuivre avec
+        // createTest()/activateTest() — sinon un échec partiel du DELETE
+        // laisse des lignes A/B orphelines qu'activateTest() (filtre
+        // seulement par template, pas id_abtest) réactive aussi, exposant à
+        // "appliquer le gagnant" sur un ancien test B jamais mesuré dans le
+        // cycle courant.
+        $neriaSrc349 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($neriaSrc349 === '' || strpos($neriaSrc349, 'if (!$ab->deleteTests($tplKey)) {') === false) {
+            $offenders[] = "Le handler A/B testing de neria.php ne vérifie plus le retour de deleteTests() avant createTest()/activateTest() — régression du bug corrigé le 13/09/2026 (round 349) : un échec partiel du DELETE laisserait de nouveau des lignes A/B orphelines réactivées par le cycle suivant";
+        }
+
+        // Round 349 : le libellé statique initial de la progression academy
+        // doit annoncer le nombre RÉEL de guides (8), pas un ancien total
+        // figé — updateProgress() (JS) l'écrase de toute façon au
+        // chargement, mais un résidu de contenu obsolète reste un signal de
+        // refactoring non propagé.
+        $academySrc349 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/academy.tpl');
+        if ($academySrc349 === '' || strpos($academySrc349, '<span id="na-progress-label">0 / 8</span>') === false) {
+            $offenders[] = "academy.tpl : le libellé statique de progression n'annonce plus 0 / 8 — régression du bug corrigé le 13/09/2026 (round 349), ou un guide a été ajouté/retiré sans mettre à jour ce test/garde-fou en conséquence";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
