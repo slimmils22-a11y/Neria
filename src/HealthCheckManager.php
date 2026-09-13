@@ -5142,7 +5142,7 @@ class HealthCheckManager
         // {products_txt} (même correctif que abandoned_cart_1/2/3).
         $bcmSrc151 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
         $posCa151 = $bcmSrc151 !== '' ? strpos($bcmSrc151, 'function sendCheckoutAbandonment') : false;
-        $caBody151 = $posCa151 !== false ? substr($bcmSrc151, $posCa151, 3200) : '';
+        $caBody151 = $posCa151 !== false ? substr($bcmSrc151, $posCa151, 4400) : '';
         if ($posCa151 === false || strpos($caBody151, "'{products_txt}'") === false || strpos($caBody151, '$this->buildCartProductsTxt($idCart)') === false) {
             $offenders[] = "BehavioralCronManager::sendCheckoutAbandonment() n'injecte plus {products_txt} — régression du bug corrigé le 09/08/2026 (round 151) : la version texte de la relance panier abandonné 1h n'afficherait de nouveau aucun article";
         }
@@ -9282,12 +9282,16 @@ class HealthCheckManager
         // thème à garder une bordure/padding physique (left) inconditionnelle
         // sur sa note de clôture — non inversée pour la langue arabe (RTL),
         // rupture visuelle sur un template prétendant supporter le RTL complet.
+        // Round 350 : {if $neria_dir == 'rtl'} remplacé par {if neria_is_rtl}
+        // — l'ancienne syntaxe (comparaison d'égalité) s'est révélée n'avoir
+        // JAMAIS fonctionné dans le moteur de rendu maison réel (voir
+        // commentaire détaillé dans ghost_cart.html et test_731).
         $ghostTplSrc295 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/ghost_cart.html');
         if ($ghostTplSrc295 === ''
-            || strpos($ghostTplSrc295, "{if \$neria_dir == 'rtl'}") === false
+            || strpos($ghostTplSrc295, '{if neria_is_rtl}') === false
             || strpos($ghostTplSrc295, 'border-right:3px solid #e8d5b0;padding-right:14px;') === false
         ) {
-            $offenders[] = "ghost_cart.html n'inverse plus bordure/padding pour la langue arabe (RTL) — régression du bug corrigé le 04/09/2026 (round 295)";
+            $offenders[] = "ghost_cart.html n'inverse plus bordure/padding pour la langue arabe (RTL) — régression du bug corrigé le 04/09/2026 (round 295)/13/09/2026 (round 350)";
         }
 
         // Round 296 (04/09/2026) : BehavioralCronManager::
@@ -10901,8 +10905,9 @@ class HealthCheckManager
         $clvSrc334 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php');
         $posTop334 = $clvSrc334 !== '' ? strpos($clvSrc334, 'public function getTopCustomers(int $limit = 20): array') : false;
         // Round 343 : fenêtre élargie 9500→9700 — filtre active=1 ajouté
-        // au début de getTopCustomers().
-        $topBody334 = $posTop334 !== false ? substr($clvSrc334, $posTop334, 9700) : '';
+        // au début de getTopCustomers(). Round 350 : élargie 9700→10200 —
+        // filtre is_guest=0 ajouté (SELECT principal + COUNT de pool).
+        $topBody334 = $posTop334 !== false ? substr($clvSrc334, $posTop334, 10200) : '';
         if ($topBody334 === '' || strpos($topBody334, '$engagementRate = $sent > 0 ? min(1.0, $opened / $sent) : self::ENGAGEMENT_MEDIUM;') === false) {
             $offenders[] = "ClvManager::getTopCustomers() ne retombe plus sur ENGAGEMENT_MEDIUM pour sent=0 — régression du bug corrigé le 10/09/2026 (round 334) : une pénalité -15% (engagement 'low') serait de nouveau infligée à tort dans le classement batch, en contradiction avec la fiche individuelle du même client";
         }
@@ -11486,6 +11491,57 @@ class HealthCheckManager
         $academySrc349 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/views/templates/admin/academy.tpl');
         if ($academySrc349 === '' || strpos($academySrc349, '<span id="na-progress-label">0 / 8</span>') === false) {
             $offenders[] = "academy.tpl : le libellé statique de progression n'annonce plus 0 / 8 — régression du bug corrigé le 13/09/2026 (round 349), ou un guide a été ajouté/retiré sans mettre à jour ce test/garde-fou en conséquence";
+        }
+
+        // Round 350 : SegmentManager/ClvManager/ChurnScoreManager/
+        // PropensityScoreManager doivent exclure is_guest=1 de leurs listes
+        // de ciblage marketing — décision produit validée le 13/09/2026
+        // (suite finding round 349) : un compte invité PrestaShop est une
+        // coquille technique sans connexion possible, pas une relation
+        // client suivie.
+        $segSrc350 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SegmentManager.php');
+        if ($segSrc350 === '' || strpos($segSrc350, 'AND c.active = 1 AND c.deleted = 0 AND c.is_guest = 0') === false) {
+            $offenders[] = "SegmentManager::getCustomersBySegment() ne filtre plus is_guest=0 — régression du bug corrigé le 13/09/2026 (round 350) : un compte invité pourrait de nouveau être ciblé par une campagne segment";
+        }
+        $clvSrc350 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ClvManager.php');
+        if ($clvSrc350 === '' || substr_count($clvSrc350, 'is_guest') < 2) {
+            $offenders[] = "ClvManager::getTopCustomers() ne filtre plus is_guest=0 (SELECT principal et/ou COUNT de pool) — régression du bug corrigé le 13/09/2026 (round 350)";
+        }
+        $churnSrc350 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/ChurnScoreManager.php');
+        if ($churnSrc350 === '' || substr_count($churnSrc350, 'is_guest') < 2) {
+            $offenders[] = "ChurnScoreManager::getHighRiskCustomers()/countHighRisk() ne filtrent plus is_guest=0 — régression du bug corrigé le 13/09/2026 (round 350)";
+        }
+        $propSrc350 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/PropensityScoreManager.php');
+        if ($propSrc350 === '' || strpos($propSrc350, 'AND c.active = 1 AND c.deleted = 0 AND c.is_guest = 0') === false) {
+            $offenders[] = "PropensityScoreManager::getAlertCustomers() ne filtre plus is_guest=0 — régression du bug corrigé le 13/09/2026 (round 350)";
+        }
+
+        // Round 350 : sendAbandonedCarts()/sendCheckoutAbandonment()
+        // doivent revérifier juste avant l'envoi (1) l'absence de commande
+        // entre-temps et (2) la présence d'au moins un article — fenêtre de
+        // course sur un lot de MAX_BATCH_PER_RUN=500 paniers, dont l'envoi
+        // SMTP réel peut s'étaler sur plusieurs minutes.
+        $bcmSrc350 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/BehavioralCronManager.php');
+        if ($bcmSrc350 === ''
+            || substr_count($bcmSrc350, 'if ($alreadyOrdered) {') !== 2
+            || substr_count($bcmSrc350, "if (\$products === '') {") !== 2
+            || substr_count($bcmSrc350, "'watchdog.behavioral_send_cancelled_empty_cart'") !== 2
+        ) {
+            $offenders[] = "BehavioralCronManager::sendAbandonedCarts()/sendCheckoutAbandonment() ne revérifient plus l'absence de commande ET la présence d'articles juste avant l'envoi — régression du bug corrigé le 13/09/2026 (round 350)";
+        }
+
+        // Round 350 : ghost_cart.html — le bloc conditionnel RTL/LTR de la
+        // note de clôture doit utiliser la variable booléenne dédiée
+        // {neria_is_rtl}, reconnue par le compilateur maison — et les deux
+        // chemins de compilation (envoi réel + aperçu BO) doivent bien la
+        // propager dans leurs templateVars respectifs.
+        $ghostSrc350 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/mails/themes/neria_global/core/ghost_cart.html');
+        if ($ghostSrc350 === '' || strpos($ghostSrc350, '{if neria_is_rtl}') === false) {
+            $offenders[] = "ghost_cart.html n'utilise plus {neria_is_rtl} pour son bloc conditionnel RTL/LTR — régression du bug corrigé le 13/09/2026 (round 350)";
+        }
+        $emailRendererSrc350 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($emailRendererSrc350 === '' || substr_count($emailRendererSrc350, "['{neria_is_rtl}'] = \$this->engine->isRtl(\$lang);") !== 2) {
+            $offenders[] = "EmailRenderer ne propage plus {neria_is_rtl} dans les templateVars des DEUX chemins de compilation (envoi réel + aperçu BO) — régression du bug corrigé le 13/09/2026 (round 350) : la note de clôture de ghost_cart.html (et tout futur template utilisant cette variable) redeviendrait supprimée dans au moins l'un des deux chemins";
         }
 
         if ($offenders) {
