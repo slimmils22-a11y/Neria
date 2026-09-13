@@ -11395,6 +11395,42 @@ class HealthCheckManager
             }
         }
 
+        // Round 347 : les 5 boucles per-boutique de runBackgroundJobs()
+        // doivent restaurer Context::getContext()->shop dans un `finally`,
+        // garantissant la restauration même si new \Shop($idShop) lève
+        // (boutique fantôme/orpheline) — sinon le contexte boutique d'une
+        // requête HTTP front réelle reste corrompu pour le reste du rendu.
+        $neriaSrc347 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($neriaSrc347 === '') {
+            $offenders[] = 'neria.php introuvable (garde-fou round 347 : restauration contexte boutique runBackgroundJobs())';
+        } else {
+            foreach (['Webhook', 'Calendar', 'DR', 'Seasonal', 'Digest'] as $suffix347) {
+                $originalVar347 = '$originalShop' . $suffix347;
+                $posOriginal347 = strpos($neriaSrc347, $originalVar347 . ' = \Context::getContext()->shop;');
+                $window347 = $posOriginal347 !== false ? substr($neriaSrc347, $posOriginal347, 2200) : '';
+                $posTry347 = $window347 !== '' ? strpos($window347, 'try {') : false;
+                $posFinally347 = $posTry347 !== false ? strpos($window347, '} finally {', $posTry347) : false;
+                $finallyOk347 = $posFinally347 !== false
+                    && strpos(substr($window347, $posFinally347, 700), '\Context::getContext()->shop = ' . $originalVar347 . ';') !== false;
+                if (!$finallyOk347) {
+                    $offenders[] = "runBackgroundJobs() (boucle {$suffix347}) ne restaure plus \Context::getContext()->shop dans un finally — régression du bug corrigé le 13/09/2026 (round 347) : le contexte boutique d'une requête front réelle resterait corrompu si new \\Shop() lève";
+                }
+            }
+        }
+
+        // Round 347 : SearchConsoleManager::apiGet()/apiPost() doivent
+        // détecter un 401 et retenter une seule fois après refresh, comme
+        // PostmasterManager::apiGet() (round 343) — même famille OAuth
+        // Google, correctif jamais répliqué jusqu'ici.
+        $scmSrc347 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php');
+        if ($scmSrc347 === ''
+            || substr_count($scmSrc347, 'bool $retriedAfter401 = false') !== 2
+            || substr_count($scmSrc347, "if (\$httpCode === 401 && !\$retriedAfter401) {") !== 2
+            || substr_count($scmSrc347, '$newToken = $this->refreshAccessToken();') !== 2
+        ) {
+            $offenders[] = "SearchConsoleManager::apiGet()/apiPost() ne détectent plus un 401 avec retentative après refresh — régression du bug corrigé le 13/09/2026 (round 347) : un token invalidé prématurément par Google bloquerait de nouveau tout appel BO jusqu'à l'expiration naturelle du token local";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
