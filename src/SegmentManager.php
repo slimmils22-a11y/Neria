@@ -487,7 +487,7 @@ class SegmentManager
              )
              LEFT JOIN `%s` co ON co.id_country = addr.id_country
              WHERE s.id_shop = %d AND s.segment = '%s'
-               AND c.active = 1 AND c.deleted = 0
+               AND c.active = 1 AND c.deleted = 0 AND c.is_guest = 0
                %s
              ORDER BY s.total_opens DESC, s.last_open DESC
              LIMIT %d OFFSET %d",

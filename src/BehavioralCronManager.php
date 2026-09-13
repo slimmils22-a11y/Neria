@@ -919,8 +919,44 @@ class BehavioralCronManager
         foreach ((array) $rows as $r) {
             try {
                 $idCart   = (int) $r['id_cart'];
+
+                // Round 350 : revérification juste avant l'envoi — le SELECT
+                // ci-dessus filtre déjà NOT EXISTS orders au moment de la
+                // sélection, mais jusqu'à MAX_BATCH_PER_RUN=500 paniers sont
+                // traités en une seule passe ; les envois SMTP réels
+                // (surtout via un relais externe lent) peuvent s'étaler sur
+                // plusieurs minutes. Un client en fin de lot peut finaliser
+                // sa commande entre le SELECT et son tour d'envoi — sans ce
+                // contrôle, il recevait quand même la relance "panier oublié"
+                // pour une commande déjà payée. Même risque déjà identifié
+                // et corrigé côté file d'attente (QueueManager::
+                // processSingle(), round 294) mais jamais porté à ce chemin
+                // d'envoi direct.
+                $alreadyOrdered = (bool) $this->db->getValue(
+                    'SELECT 1 FROM `' . $this->prefix . 'orders` WHERE id_cart = ' . $idCart,
+                    false
+                );
+                if ($alreadyOrdered) {
+                    continue;
+                }
+
                 $cartUrl  = \Tools::getShopDomainSsl(true) . 'index.php?controller=order';
                 $products = $this->buildCartProducts($idCart);
+
+                // Round 350 : si le panier a été vidé/modifié entre le
+                // SELECT et cet envoi (client revenu sur le site, panier
+                // recyclé par PrestaShop), buildCartProducts() renvoie ''
+                // silencieusement — sans ce contrôle, un email "vous avez
+                // oublié ceci" partait quand même, sans aucun article
+                // listé, incohérent et potentiellement perçu comme un bug.
+                if ($products === '') {
+                    $this->watchdog()->info(
+                        \WatchdogManager::i18nMsg('watchdog.behavioral_send_cancelled_empty_cart', ['template' => $template]),
+                        $template,
+                        'BehavioralCron'
+                    );
+                    continue;
+                }
 
                 $this->send(
                     $template,
@@ -1035,7 +1071,32 @@ class BehavioralCronManager
         foreach ((array) $rows as $r) {
             try {
                 $idCart  = (int) $r['id_cart'];
+
+                // Round 350 : même revérification que sendAbandonedCarts()
+                // juste au-dessus — jusqu'à MAX_BATCH_PER_RUN=500 paniers
+                // traités en une passe, un client en fin de lot peut
+                // finaliser sa commande entre le SELECT et son tour d'envoi.
+                $alreadyOrdered = (bool) $this->db->getValue(
+                    'SELECT 1 FROM `' . $this->prefix . 'orders` WHERE id_cart = ' . $idCart,
+                    false
+                );
+                if ($alreadyOrdered) {
+                    continue;
+                }
+
                 $cartUrl = \Tools::getShopDomainSsl(true) . 'index.php?controller=order';
+                $products = $this->buildCartProducts($idCart);
+
+                // Round 350 : même garde-fou que sendAbandonedCarts() —
+                // panier vidé/modifié entre le SELECT et cet envoi.
+                if ($products === '') {
+                    $this->watchdog()->info(
+                        \WatchdogManager::i18nMsg('watchdog.behavioral_send_cancelled_empty_cart', ['template' => 'checkout_abandonment']),
+                        'checkout_abandonment',
+                        'BehavioralCron'
+                    );
+                    continue;
+                }
 
                 // Round 151 : {products_txt} ajouté — jamais injecté ici,
                 // contrairement à abandoned_cart_1/2/3 (même famille de
@@ -1047,7 +1108,7 @@ class BehavioralCronManager
                     $r,
                     [
                         '{cart_url}'     => $cartUrl,
-                        '{products}'     => $this->buildCartProducts($idCart),
+                        '{products}'     => $products,
                         '{products_txt}' => $this->buildCartProductsTxt($idCart),
                     ],
                     $idCart

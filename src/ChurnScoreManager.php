@@ -438,13 +438,19 @@ class ChurnScoreManager
         $table  = _DB_PREFIX_ . self::TABLE;
         $cTable = _DB_PREFIX_ . 'customer';
 
+        // Round 350 : c.is_guest = 0 ajouté — même décision produit que
+        // ClvManager/SegmentManager/PropensityScoreManager (voir leurs
+        // commentaires respectifs) : un compte invité n'est pas une
+        // relation client suivie, cibler un "risque de churn" sur ce
+        // profil n'a pas de sens (il n'y a jamais eu de compte à
+        // "réactiver").
         $rows = $this->db->executeS(sprintf(
             "SELECT s.id_customer, s.score, s.rate_p1, s.rate_p2, s.rate_p3, s.last_open,
                     c.firstname, c.lastname, c.email
              FROM `%s` s
              INNER JOIN `%s` c ON c.id_customer = s.id_customer
              WHERE s.id_shop = %d AND s.score >= %d
-               AND c.active = 1 AND c.deleted = 0
+               AND c.active = 1 AND c.deleted = 0 AND c.is_guest = 0
              ORDER BY s.score DESC
              LIMIT %d",
             $table, $cTable,
@@ -476,7 +482,7 @@ class ChurnScoreManager
             "SELECT COUNT(*) FROM `%s` s
              INNER JOIN `%s` c ON c.id_customer = s.id_customer
              WHERE s.id_shop = %d AND s.score >= %d
-               AND c.active = 1 AND c.deleted = 0",
+               AND c.active = 1 AND c.deleted = 0 AND c.is_guest = 0",
             $table, $cTable, $this->idShop, self::HIGH_RISK_THRESHOLD
         ));
     }

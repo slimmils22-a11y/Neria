@@ -429,6 +429,9 @@ class PropensityScoreManager
      */
     public function getAlertCustomers(int $limit = 20): array
     {
+        // Round 350 : c.is_guest = 0 ajouté — même décision produit que
+        // ClvManager/SegmentManager/ChurnScoreManager (voir leurs
+        // commentaires respectifs).
         return $this->db->executeS(
             'SELECT ps.id_customer, ps.score,
                     ps.score_recency, ps.score_frequency, ps.score_engagement, ps.score_seasonality,
@@ -441,7 +444,7 @@ class PropensityScoreManager
              JOIN `' . _DB_PREFIX_ . 'customer` c ON c.id_customer = ps.id_customer
              WHERE ps.id_shop = ' . $this->idShop . '
                AND ps.score >= ' . self::ALERT_THRESHOLD . '
-               AND c.active = 1 AND c.deleted = 0
+               AND c.active = 1 AND c.deleted = 0 AND c.is_guest = 0
              ORDER BY ps.score DESC
              LIMIT ' . (int) $limit
         ) ?: [];

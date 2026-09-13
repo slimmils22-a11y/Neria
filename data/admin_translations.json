@@ -52961,6 +52961,27 @@
         "nl": "Verzending geannuleerd — klant {id} heeft de categorie voor \"{template}\" uitgeschakeld.",
         "gb": "Send cancelled — customer {id} disabled the category for \"{template}\"."
     },
+    "watchdog.behavioral_send_cancelled_empty_cart": {
+        "fr": "Envoi annulé pour \"{template}\" — le panier a été vidé/modifié entre la sélection et l'envoi (plus aucun article).",
+        "en": "Send cancelled for \"{template}\" — the cart was emptied/modified between selection and send (no items left).",
+        "de": "Versand für „{template}“ abgebrochen — der Warenkorb wurde zwischen Auswahl und Versand geleert/geändert (keine Artikel mehr).",
+        "it": "Invio annullato per \"{template}\" — il carrello è stato svuotato/modificato tra la selezione e l'invio (nessun articolo rimasto).",
+        "es": "Envío cancelado para \"{template}\" — el carrito se vació/modificó entre la selección y el envío (no quedan artículos).",
+        "pt": "Envio cancelado para \"{template}\" — o carrinho foi esvaziado/modificado entre a seleção e o envio (sem artigos).",
+        "br": "Envio cancelado para \"{template}\" — o carrinho foi esvaziado/modificado entre a seleção e o envio (sem itens).",
+        "ar": "تم إلغاء الإرسال لـ \"{template}\" — تم إفراغ/تعديل السلة بين الاختيار والإرسال (لم تتبق عناصر).",
+        "ja": "「{template}」の送信をキャンセル — 選択から送信までの間にカートが空にされたか変更されました（商品なし）。",
+        "ko": "\"{template}\" 발송 취소됨 — 선택과 발송 사이에 장바구니가 비워지거나 변경되었습니다(남은 상품 없음).",
+        "zh": "\"{template}\"的发送已取消 — 购物车在选取和发送之间被清空/修改（无剩余商品）。",
+        "tw": "「{template}」的發送已取消 — 購物車在選取和發送之間被清空/修改（無剩餘商品）。",
+        "ru": "Отправка «{template}» отменена — корзина была очищена/изменена между выбором и отправкой (товаров не осталось).",
+        "tr": "\"{template}\" gönderimi iptal edildi — seçim ile gönderim arasında sepet boşaltıldı/değiştirildi (ürün kalmadı).",
+        "sv": "Sändning av \"{template}\" avbruten — kundvagnen tömdes/ändrades mellan urval och utskick (inga artiklar kvar).",
+        "no": "Sending av \"{template}\" avbrutt — handlekurven ble tømt/endret mellom utvalg og utsendelse (ingen varer igjen).",
+        "da": "Afsendelse af \"{template}\" annulleret — kurven blev tømt/ændret mellem udvalg og afsendelse (ingen varer tilbage).",
+        "nl": "Verzending van \"{template}\" geannuleerd — het winkelwagentje werd geleegd/gewijzigd tussen selectie en verzending (geen artikelen meer).",
+        "gb": "Send cancelled for \"{template}\" — the cart was emptied/modified between selection and send (no items left)."
+    },
     "watchdog.send_exception": {
         "fr": "Erreur lors de l'envoi de \"{template}\" à {email} : {error}. Vérifiez la configuration SMTP et les logs serveur.",
         "en": "Error sending \"{template}\" to {email}: {error}. Check your SMTP configuration and server logs.",

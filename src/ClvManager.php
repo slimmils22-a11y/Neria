@@ -273,6 +273,13 @@ class ClvManager
         // SUM() de tout le client NULL en SQL (division par zéro), le
         // classant en dernier dans l'ORDER BY et écrasant son CA réel à 0
         // dans total_revenue plus bas, malgré un historique d'achat non nul.
+        // Round 350 : c.is_guest = 0 ajouté (SELECT principal + COUNT de
+        // détection de pool plus bas) — décision produit explicite de
+        // l'utilisateur : un compte invité PrestaShop est une coquille
+        // technique sans connexion possible, pas une relation client
+        // suivie ; SeasonalCampaignManager l'excluait déjà (is_guest=0),
+        // jamais porté aux moteurs de ciblage marketing (segment/CLV/
+        // churn/propension).
         // Round 343 : c.active = 1 ajouté — ChurnScoreManager::
         // getHighRiskCustomers()/countHighRisk() excluent déjà les clients
         // désactivés (round 209, filtre active=1 AND deleted=0), jamais
@@ -287,7 +294,7 @@ class ClvManager
              FROM `' . _DB_PREFIX_ . 'orders` o
              INNER JOIN `' . _DB_PREFIX_ . 'customer` c ON c.`id_customer` = o.`id_customer`
              WHERE o.`id_shop` = ' . $this->idShop . ' AND o.`valid` = 1
-               AND c.`active` = 1 AND c.`deleted` = 0
+               AND c.`active` = 1 AND c.`deleted` = 0 AND c.`is_guest` = 0
              GROUP BY o.`id_customer`, c.`firstname`, c.`lastname`, c.`email`
              ORDER BY SUM(o.`total_paid_tax_incl` / IF(o.`conversion_rate` IS NULL OR o.`conversion_rate` = 0, 1, o.`conversion_rate`)) DESC
              LIMIT 200'
@@ -313,7 +320,7 @@ class ClvManager
                  FROM `' . _DB_PREFIX_ . 'orders` o
                  INNER JOIN `' . _DB_PREFIX_ . 'customer` c ON c.`id_customer` = o.`id_customer`
                  WHERE o.`id_shop` = ' . $this->idShop . ' AND o.`valid` = 1
-                   AND c.`active` = 1 AND c.`deleted` = 0'
+                   AND c.`active` = 1 AND c.`deleted` = 0 AND c.`is_guest` = 0'
             );
             if ($totalCandidates > 200) {
                 $this->watchdog()->warning(

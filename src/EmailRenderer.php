@@ -2669,6 +2669,15 @@ class EmailRenderer
         // ── Blocs conditionnels {if var}...{else}...{/if} (sans isset()) —
         // même logique que compileNeriaTemplate (envoi réel), pour que
         // l'aperçu reflète fidèlement ce qui sera envoyé.
+        // Round 350 : {neria_is_rtl} ajouté — ghost_cart.html utilisait
+        // `{if $neria_dir == 'rtl'}...{else}...{/if}` (comparaison
+        // d'égalité), une forme que ce handler à variable NUE ne reconnaît
+        // pas (regex exige un nom de variable seul, sans opérateur) : le
+        // bloc entier (les deux branches) tombait dans le nettoyage
+        // générique juste plus bas, supprimant la note de clôture RTL/LTR
+        // dans TOUS les emails ghost_cart, LTR comme RTL — y compris cet
+        // aperçu BO.
+        $extraReplacements['{neria_is_rtl}'] = $this->engine->isRtl($lang);
         $compiled = preg_replace_callback(
             '/\{if\s+\$?([a-z_]+)\s*\}(.*?)(?:\{else\}(.*?))?\{\/if\}/s',
             static function ($m) use ($extraReplacements) {
@@ -3161,6 +3170,13 @@ class EmailRenderer
         // utilisé par ex. par loyalty_recap pour palier suivant / palier max.
         // Sans cette étape, tout le bloc (les deux branches) était supprimé
         // par le nettoyage générique ci-dessous, quel que soit l'état réel.
+        // Round 350 : {neria_is_rtl} ajouté — même correctif que
+        // buildCompiledHtml() (aperçu) ci-dessus, pour l'envoi réel.
+        // ghost_cart.html utilisait `{if $neria_dir == 'rtl'}` (comparaison
+        // d'égalité, non reconnue par ce handler à variable nue), tombant
+        // dans le nettoyage générique et supprimant la note de clôture
+        // RTL/LTR de tous les emails ghost_cart réellement envoyés.
+        $templateVars['{neria_is_rtl}'] = $this->engine->isRtl($lang);
         $compiled = preg_replace_callback(
             '/\{if\s+\$?([a-z_]+)\s*\}(.*?)(?:\{else\}(.*?))?\{\/if\}/s',
             static function ($m) use ($templateVars) {
