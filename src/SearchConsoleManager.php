@@ -716,7 +716,7 @@ class SearchConsoleManager
     // HTTP
     // ============================================================
 
-    private function apiGet(string $path, string $token): ?array
+    private function apiGet(string $path, string $token, bool $retriedAfter401 = false): ?array
     {
         $ch = curl_init(self::API_BASE . $path);
         curl_setopt_array($ch, [
@@ -729,6 +729,24 @@ class SearchConsoleManager
         $curlErr  = curl_error($ch);
         $httpCode = curl_getinfo($ch, \CURLINFO_HTTP_CODE);
         curl_close($ch);
+
+        // Round 347 : même correctif que PostmasterManager::apiGet() (round
+        // 343) — Google peut révoquer/invalider un access_token AVANT
+        // l'expiration locale prévue (CONFIG_TOKEN_EXPIRY), jamais atteinte
+        // dans ce cas. Sans ce garde-fou, un 401 tombait dans la branche
+        // HTTP≥400 générique plus bas et chaque appel BO échouait
+        // inutilement jusqu'à l'expiration naturelle (jusqu'à ~55 min) au
+        // lieu de se rétablir via un simple refresh immédiat. Une seule
+        // retentative (jamais de boucle) : un refresh qui aboutit à un
+        // nouveau 401 est un vrai problème, pas la peine de réessayer
+        // indéfiniment. SearchConsoleManager (même famille OAuth Google que
+        // PostmasterManager) n'avait jamais reçu ce correctif.
+        if ($httpCode === 401 && !$retriedAfter401) {
+            $newToken = $this->refreshAccessToken();
+            if ($newToken !== null) {
+                return $this->apiGet($path, $newToken, true);
+            }
+        }
 
         // Round 135 : même correctif que PostmasterManager::apiGet() (round
         // 131) — un échec transport (timeout, DNS injoignable, TLS cassé)
@@ -776,7 +794,7 @@ class SearchConsoleManager
         return $data;
     }
 
-    private function apiPost(string $path, string $token, string $body): ?array
+    private function apiPost(string $path, string $token, string $body, bool $retriedAfter401 = false): ?array
     {
         $ch = curl_init(self::API_BASE . $path);
         curl_setopt_array($ch, [
@@ -795,6 +813,16 @@ class SearchConsoleManager
         $curlErr  = curl_error($ch);
         $httpCode = curl_getinfo($ch, \CURLINFO_HTTP_CODE);
         curl_close($ch);
+
+        // Round 347 : même correctif que apiGet() ci-dessus — retry immédiat
+        // sur 401 avant expiration locale prévue du token (voir commentaire
+        // détaillé dans apiGet()).
+        if ($httpCode === 401 && !$retriedAfter401) {
+            $newToken = $this->refreshAccessToken();
+            if ($newToken !== null) {
+                return $this->apiPost($path, $newToken, $body, true);
+            }
+        }
 
         // Round 135 : même correctif que apiGet() ci-dessus — échec
         // transport désormais journalisé, pas seulement les erreurs HTTP

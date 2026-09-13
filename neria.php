@@ -2060,17 +2060,27 @@ class Neria extends Module
                             // filtre id_shop sur sa sélection).
                             $originalShopWebhook = \Context::getContext()->shop;
                             $shopsWebhook = \Shop::getShops(true, null, true) ?: [(int) $originalShopWebhook->id];
-                            foreach ($shopsWebhook as $idShopWebhook) {
-                                \Context::getContext()->shop = new \Shop((int) $idShopWebhook);
-                                try {
-                                    (new WebhookManager($this))->processQueue();
-                                } catch (\Throwable $eShop) {
-                                    // best-effort par boutique — une erreur sur
-                                    // l'une ne doit pas empêcher le traitement
-                                    // des autres.
+                            try {
+                                foreach ($shopsWebhook as $idShopWebhook) {
+                                    try {
+                                        \Context::getContext()->shop = new \Shop((int) $idShopWebhook);
+                                        (new WebhookManager($this))->processQueue();
+                                    } catch (\Throwable $eShop) {
+                                        // best-effort par boutique — une erreur sur
+                                        // l'une (y compris l'instanciation \Shop()
+                                        // elle-même, round 347) ne doit pas empêcher
+                                        // le traitement des autres.
+                                    }
                                 }
+                            } finally {
+                                // round 347 : restauration garantie même si
+                                // l'exception vient de new \Shop() elle-même —
+                                // sans finally, le contexte boutique de CETTE
+                                // requête HTTP (visiteur front réel) restait
+                                // positionné sur la dernière boutique manipulée
+                                // pour le reste du rendu de sa page.
+                                \Context::getContext()->shop = $originalShopWebhook;
                             }
-                            \Context::getContext()->shop = $originalShopWebhook;
                             $ran['webhook'] = true;
                             if (class_exists('WatchdogManager')) {
                                 (new WatchdogManager($this))->cronHeartbeat('webhook');
@@ -2098,17 +2108,21 @@ class Neria extends Module
             // avec leur propre id_shop.
             $originalShopCalendar = \Context::getContext()->shop;
             $shopsCalendar = \Shop::getShops(true, null, true) ?: [(int) $originalShopCalendar->id];
-            foreach ($shopsCalendar as $idShopCalendar) {
-                \Context::getContext()->shop = new \Shop((int) $idShopCalendar);
-                try {
-                    $calendar = new CalendarManager($this);
-                    $calendar->checkAndSendDailyEvents();
-                    $ran['calendar'] = true;
-                } catch (\Throwable $e) {
-                    // best-effort — ne bloque jamais le front, ni les jobs suivants
+            try {
+                foreach ($shopsCalendar as $idShopCalendar) {
+                    try {
+                        \Context::getContext()->shop = new \Shop((int) $idShopCalendar);
+                        $calendar = new CalendarManager($this);
+                        $calendar->checkAndSendDailyEvents();
+                        $ran['calendar'] = true;
+                    } catch (\Throwable $e) {
+                        // best-effort — ne bloque jamais le front, ni les jobs
+                        // suivants (y compris si new \Shop() lève, round 347)
+                    }
                 }
+            } finally {
+                \Context::getContext()->shop = $originalShopCalendar;
             }
-            \Context::getContext()->shop = $originalShopCalendar;
             if (isset($ran['calendar']) && class_exists('WatchdogManager')) {
                 (new WatchdogManager($this))->cronHeartbeat('calendar');
             }
@@ -2141,16 +2155,20 @@ class Neria extends Module
             // blacklisting).
             $originalShopDR = \Context::getContext()->shop;
             $shopsDR = \Shop::getShops(true, null, true) ?: [(int) $originalShopDR->id];
-            foreach ($shopsDR as $idShopDR) {
-                \Context::getContext()->shop = new \Shop((int) $idShopDR);
-                try {
-                    (new DomainReputationManager($this))->getReport(false);
-                    $ran['domain_reputation'] = true;
-                } catch (\Throwable $e) {
-                    // best-effort par boutique — ne bloque jamais le front
+            try {
+                foreach ($shopsDR as $idShopDR) {
+                    try {
+                        \Context::getContext()->shop = new \Shop((int) $idShopDR);
+                        (new DomainReputationManager($this))->getReport(false);
+                        $ran['domain_reputation'] = true;
+                    } catch (\Throwable $e) {
+                        // best-effort par boutique — ne bloque jamais le front
+                        // (y compris si new \Shop() lève, round 347)
+                    }
                 }
+            } finally {
+                \Context::getContext()->shop = $originalShopDR;
             }
-            \Context::getContext()->shop = $originalShopDR;
         }
 
         // ── Tâches quotidiennes comportementales (fallback sans cron serveur) ─
@@ -2227,14 +2245,17 @@ class Neria extends Module
                                 // pas d'appel en boucle nécessaire ici pour elle).
                                 $originalShopSeasonal = \Context::getContext()->shop;
                                 $shopsSeasonal = \Shop::getShops(true, null, true) ?: [(int) $originalShopSeasonal->id];
-                                foreach ($shopsSeasonal as $idShopSeasonal) {
-                                    \Context::getContext()->shop = new \Shop((int) $idShopSeasonal);
-                                    try {
-                                        (new SeasonalCampaignManager($this))->runDueCampaigns();
-                                        $ran['seasonal_campaigns'] = true;
-                                    } catch (\Throwable $e) {}
+                                try {
+                                    foreach ($shopsSeasonal as $idShopSeasonal) {
+                                        try {
+                                            \Context::getContext()->shop = new \Shop((int) $idShopSeasonal);
+                                            (new SeasonalCampaignManager($this))->runDueCampaigns();
+                                            $ran['seasonal_campaigns'] = true;
+                                        } catch (\Throwable $e) {}
+                                    }
+                                } finally {
+                                    \Context::getContext()->shop = $originalShopSeasonal;
                                 }
-                                \Context::getContext()->shop = $originalShopSeasonal;
                                 if (isset($ran['seasonal_campaigns']) && class_exists('WatchdogManager')) {
                                     (new WatchdogManager($this))->cronHeartbeat('seasonal_campaigns');
                                 }
@@ -2264,16 +2285,20 @@ class Neria extends Module
             // indéfiniment.
             $originalShopDigest = \Context::getContext()->shop;
             $shopsDigest = \Shop::getShops(true, null, true) ?: [(int) $originalShopDigest->id];
-            foreach ($shopsDigest as $idShopDigest) {
-                \Context::getContext()->shop = new \Shop((int) $idShopDigest);
-                try {
-                    (new WatchdogManager($this))->sendDailyDigestIfDue();
-                    $ran['watchdog_digest'] = true;
-                } catch (\Throwable $e) {
-                    // best-effort par boutique — ne bloque jamais le front
+            try {
+                foreach ($shopsDigest as $idShopDigest) {
+                    try {
+                        \Context::getContext()->shop = new \Shop((int) $idShopDigest);
+                        (new WatchdogManager($this))->sendDailyDigestIfDue();
+                        $ran['watchdog_digest'] = true;
+                    } catch (\Throwable $e) {
+                        // best-effort par boutique — ne bloque jamais le front
+                        // (y compris si new \Shop() lève, round 347)
+                    }
                 }
+            } finally {
+                \Context::getContext()->shop = $originalShopDigest;
             }
-            \Context::getContext()->shop = $originalShopDigest;
         }
 
         // ── Liste d'attente — purge des inscriptions jamais satisfaites
