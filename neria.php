@@ -209,6 +209,25 @@ class Neria extends Module
         $this->cleanupNominativeFiles('certificates', '*.pdf');
         $this->cleanupNominativeFiles('mails', '*.pdf');
 
+        // Round 348 : cleanupNominativeFiles('mails', '*.pdf') ci-dessus ne
+        // vise que d'éventuels PDF à plat — EmailRenderer::compileNeriaTemplate()
+        // écrit en réalité, à CHAQUE envoi individuel, un fichier HTML+TXT
+        // nominatif (prénom, liens de tracking, contenu commande réel) dans
+        // mails/{iso}/{template}__{hex}.html, jamais atteint par ce glob non
+        // récursif sur une extension différente. Ces fichiers sont censés
+        // être auto-purgés par cleanupStaleCompiledMails() (probabiliste,
+        // 1/50 par envoi, seuil 5 min) — un crash/kill de process ou
+        // simplement la malchance statistique juste avant une désinstallation
+        // pouvait laisser des données client réelles sur disque
+        // indéfiniment, hors de portée de tout nettoyage RGPD ultérieur.
+        foreach (glob(_PS_MODULE_DIR_ . 'neria/mails/*/*__*.html') ?: [] as $mailFile) {
+            @unlink($mailFile);
+            $txtFile = substr($mailFile, 0, -5) . '.txt';
+            if (is_file($txtFile)) {
+                @unlink($txtFile);
+            }
+        }
+
         return $this->restoreDeliveredStatus()
             && $this->executeSqlFile('uninstall.sql')
             && $this->uninstallTab()

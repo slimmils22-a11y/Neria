@@ -950,6 +950,30 @@ class GdprAuditManager
                     );
                     $total += $n;
                 }
+
+                // Round 348 : une ligne "invité" (id_customer=0) créée avant
+                // que ce même email ne soit rattaché à un compte identifié
+                // (achat invité, puis création de compte avec la même
+                // adresse — round 178) n'était jamais purgée par le DELETE
+                // ci-dessus, qui filtre sur le VRAI id_customer du client.
+                // id_customer=0 n'identifie par nature aucun tiers (round
+                // 187 protège seulement contre un homonyme id_customer>0
+                // différent) : purger aussi cette ligne invité est donc sûr,
+                // et sans elle l'email en clair du client survivait
+                // indéfiniment à sa propre demande d'effacement RGPD.
+                if ((int) $idCustomer > 0) {
+                    $nGuest = (int) $this->db->getValue(
+                        "SELECT COUNT(*) FROM `{$prefTable}` WHERE `email` = '{$emailSql}' AND `id_customer` = 0",
+                        false
+                    );
+                    if ($nGuest > 0) {
+                        $this->execOrFail(
+                            "DELETE FROM `{$prefTable}` WHERE `email` = '{$emailSql}' AND `id_customer` = 0",
+                            'neria_preferences'
+                        );
+                        $total += $nGuest;
+                    }
+                }
             }
 
             $bouncesTable = _DB_PREFIX_ . 'neria_bounces';

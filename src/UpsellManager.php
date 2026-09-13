@@ -165,7 +165,7 @@ class UpsellManager
     private function findUpsellForCustomer(int $idCustomer, int $idLang, int $idShop): ?array
     {
         $row = $this->db->getRow(
-            "SELECT id_order FROM `{$this->prefix}orders`
+            "SELECT id_order, id_currency FROM `{$this->prefix}orders`
              WHERE id_customer = " . (int) $idCustomer . "
                AND id_shop = " . (int) $idShop . "
                AND valid = 1
@@ -175,7 +175,13 @@ class UpsellManager
             return null;
         }
 
-        return $this->getUpsellProduct((int) $row['id_order'], $idLang, $idShop);
+        // Round 348 : $idCurrency (devise RÉELLE de la dernière commande du
+        // client) doit être transmis à getUpsellProduct(), comme déjà fait
+        // pour BehavioralCronManager (round 274) — sans lui,
+        // resolveDisplayCurrency() retombait sur la devise par défaut de la
+        // boutique, potentiellement différente de celle dans laquelle ce
+        // client a réellement payé (boutique multi-devises).
+        return $this->getUpsellProduct((int) $row['id_order'], $idLang, $idShop, (int) $row['id_currency']);
     }
 
     // ============================================================
