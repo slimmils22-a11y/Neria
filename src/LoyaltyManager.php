@@ -55,6 +55,40 @@ class LoyaltyManager
         return $this->watchdog;
     }
 
+    /**
+     * Round 350/351 : liste des id_shop appartenant au même GROUPE de
+     * boutiques que $idShop. Le module étant destiné à être vendu à de
+     * multiples commerçants (PrestaShop Addons), le mode "cumul
+     * transversal" ne doit agréger que les boutiques d'une même
+     * entité/politique (le groupe de boutiques, unité native PrestaShop
+     * prévue pour ça) — jamais toute l'installation, qui peut légitimement
+     * héberger des enseignes indépendantes sans aucun rapport entre elles.
+     */
+    private function shopIdsInSameGroup(int $idShop): array
+    {
+        $idShopGroup = (int) $this->db->getValue(
+            'SELECT id_shop_group FROM `' . $this->prefix . 'shop` WHERE id_shop = ' . (int) $idShop
+        );
+        if ($idShopGroup <= 0) {
+            return [$idShop];
+        }
+        $ids = \Shop::getShops(true, $idShopGroup, true);
+        return !empty($ids) ? array_map('intval', array_values($ids)) : [$idShop];
+    }
+
+    /**
+     * Boutique "ancre" d'un groupe : la plus petite id_shop du groupe,
+     * choisie de façon déterministe pour servir de clé de réservation
+     * anti-doublon UNIQUE en mode cumul transversal (colonne id_shop de
+     * neria_loyalty_rewards restant INT UNSIGNED — pas de sentinelle
+     * négative possible). Remplace l'ancienne sentinelle 0 (portée
+     * installation entière) par une valeur qui distingue chaque groupe.
+     */
+    private function groupAnchorShopId(array $shopIdsInGroup): int
+    {
+        return !empty($shopIdsInGroup) ? min($shopIdsInGroup) : 0;
+    }
+
     // ============================================================
     // ATTRIBUTION DE POINTS
     // ============================================================
@@ -137,18 +171,35 @@ class LoyaltyManager
         $idShop = $idShop ?? (int) \Context::getContext()->shop->id;
         // Cumul transversal (défaut, comportement historique) : le total ET
         // la vérification "déjà récompensé" ignorent la boutique réelle, au
-        // profit d'une valeur sentinelle 0 — nécessaire pour que la clé
-        // UNIQUE (id_customer, tier_key, id_shop) de neria_loyalty_rewards
-        // bloque bien un 2e bon quelle que soit la boutique d'origine :
-        // sans sentinelle fixe, deux boutiques traitant le même client au
-        // même moment réserveraient chacune SA propre ligne (id_shop
-        // différent), créant deux CartRule pour un seul palier franchi.
+        // profit d'une valeur ANCRE du GROUPE de boutiques — nécessaire pour
+        // que la clé UNIQUE (id_customer, tier_key, id_shop) de
+        // neria_loyalty_rewards bloque bien un 2e bon quelle que soit la
+        // boutique d'origine DU MÊME GROUPE : sans ancre fixe par groupe,
+        // deux boutiques du même groupe traitant le même client au même
+        // moment réserveraient chacune SA propre ligne (id_shop différent),
+        // créant deux CartRule pour un seul palier franchi.
+        // Round 350/351 : scope désormais le GROUPE de boutiques, pas toute
+        // l'installation — ce module est vendu à de multiples commerçants
+        // (PrestaShop Addons), certains hébergeant plusieurs enseignes
+        // indépendantes dans des groupes distincts sur la même install ;
+        // l'ancienne sentinelle globale (0) fusionnait à tort les points de
+        // deux enseignes sans aucun rapport pour un client partagé entre
+        // groupes (customer sharing). L'ancre (plus petit id_shop du
+        // groupe) remplace la sentinelle 0, la colonne id_shop restant
+        // UNSIGNED (pas de valeur négative possible).
         // Mode séparé (réglage marchand) : chaque boutique utilise sa vraie
         // id_shop, avec son propre total et son propre palier —
         // cf. ConfigManager::isLoyaltyCrossShopEnabled().
         $crossShop = (new \ConfigManager($this->module))->isLoyaltyCrossShopEnabled();
-        $reservationShopId = $crossShop ? 0 : $idShop;
-        $total = $this->getCustomerPoints($idCustomer, $crossShop ? null : $idShop);
+        $shopIdsGroup = $crossShop ? $this->shopIdsInSameGroup($idShop) : null;
+        $reservationShopId = $crossShop ? $this->groupAnchorShopId($shopIdsGroup) : $idShop;
+        // Restriction du CartRule à une seule boutique (plus bas dans
+        // generateVoucher()) : uniquement en mode séparé. Ne PAS déduire ce
+        // choix de $reservationShopId > 0 — l'ancre de groupe est toujours
+        // > 0 (vraie boutique), contrairement à l'ancienne sentinelle 0 qui
+        // servait aussi, par un heureux hasard, à ce test.
+        $restrictToSingleShop = !$crossShop;
+        $total = $this->getCustomerPoints($idCustomer, $crossShop ? null : $idShop, $shopIdsGroup);
         $tiers  = $this->getTiers();
 
         foreach ($tiers as $tier) {
@@ -174,7 +225,7 @@ class LoyaltyManager
 
             // Génère le bon et envoie l'email
             try {
-                $code = $this->generateVoucher($idCustomer, $tier, $reservationShopId, $total);
+                $code = $this->generateVoucher($idCustomer, $tier, $reservationShopId, $total, $restrictToSingleShop, $shopIdsGroup);
                 if ($code === '') {
                     // Réservation perdue face à une requête concurrente —
                     // comportement attendu (anti-doublon), pas une erreur.
@@ -345,9 +396,15 @@ class LoyaltyManager
 
     private function revokeUnusedRewardsBelowThreshold(int $idCustomer, int $idShop): void
     {
+        // Round 351 : même correctif que checkAndReward() — l'ancre de
+        // groupe remplace la sentinelle globale 0, sinon cette méthode
+        // chercherait les bons réservés sous id_shop=0 (qui n'existent
+        // plus depuis le correctif) et ne révoquerait jamais rien en mode
+        // cumul transversal.
         $crossShop = (new \ConfigManager($this->module))->isLoyaltyCrossShopEnabled();
-        $reservationShopId = $crossShop ? 0 : $idShop;
-        $total = $this->getCustomerPoints($idCustomer, $crossShop ? null : $idShop);
+        $shopIdsGroup = $crossShop ? $this->shopIdsInSameGroup($idShop) : null;
+        $reservationShopId = $crossShop ? $this->groupAnchorShopId($shopIdsGroup) : $idShop;
+        $total = $this->getCustomerPoints($idCustomer, $crossShop ? null : $idShop, $shopIdsGroup);
 
         // Index par clé de palier -> seuil réel configuré (tier['points']).
         // points_at_reward n'est qu'un SNAPSHOT du total au moment de
@@ -429,7 +486,7 @@ class LoyaltyManager
     // GÉNÉRATION DU BON PS (CartRule)
     // ============================================================
 
-    private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward): string
+    private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward, bool $restrictToSingleShop = true, ?array $shopIdsGroup = null): string
     {
         // Réservation atomique du palier AVANT de créer un vrai bon de
         // réduction : la contrainte UNIQUE (id_customer, tier_key, id_shop)
@@ -524,12 +581,23 @@ class LoyaltyManager
         // B (catalogue/devise différents), alors que la réservation
         // anti-doublon (neria_loyalty_rewards) ne contrôle que l'UNICITÉ de
         // l'émission, pas la validité d'usage du bon. En mode cumul
-        // transversal ($reservationShopId = sentinelle 0), le bon reste
-        // volontairement utilisable sur toutes les boutiques — c'est le
-        // comportement voulu de ce mode.
-        if ($reservationShopId > 0 && \Shop::isFeatureActive()) {
-            $cartRule->shop_restriction = 1;
-            $cartRule->id_shop_list     = [$reservationShopId];
+        // transversal, le bon reste volontairement utilisable sur toutes
+        // les boutiques DU MÊME GROUPE — c'est le comportement voulu de ce
+        // mode — mais round 350/351 : plus jamais sur TOUTE l'installation
+        // (des enseignes indépendantes d'un autre groupe ne doivent jamais
+        // pouvoir accepter ce bon).
+        if (\Shop::isFeatureActive()) {
+            if ($restrictToSingleShop) {
+                $cartRule->shop_restriction = true;
+                $cartRule->id_shop_list     = [$reservationShopId];
+            } elseif (!empty($shopIdsGroup) && count($shopIdsGroup) < (int) \Shop::getTotalShops(true)) {
+                // Restriction au groupe UNIQUEMENT si ce groupe ne couvre
+                // pas déjà toutes les boutiques actives de l'installation
+                // (sinon shop_restriction=1 avec la liste complète est un
+                // no-op strictement plus coûteux que shop_restriction=0).
+                $cartRule->shop_restriction = true;
+                $cartRule->id_shop_list     = $shopIdsGroup;
+            }
         }
 
         if ($tier['is_percent']) {
@@ -757,9 +825,19 @@ class LoyaltyManager
      *                         historique) cumule sur toutes les boutiques.
      *                         Cf. ConfigManager::isLoyaltyCrossShopEnabled().
      */
-    public function getCustomerPoints(int $idCustomer, ?int $idShop = null): int
+    // Round 350/351 : $shopIdsGroup (optionnel) scope la somme sur la
+    // liste des boutiques d'un GROUPE (mode cumul transversal) plutôt que
+    // sur $idShop seul (mode séparé) ou sur AUCUN filtre (ancien
+    // comportement transversal = toute l'installation, jamais voulu pour
+    // un module vendu à des enseignes indépendantes). Prime sur $idShop
+    // quand fourni.
+    public function getCustomerPoints(int $idCustomer, ?int $idShop = null, ?array $shopIdsGroup = null): int
     {
-        $shopFilter = $idShop !== null ? (' AND id_shop = ' . (int) $idShop) : '';
+        if ($shopIdsGroup !== null && !empty($shopIdsGroup)) {
+            $shopFilter = ' AND id_shop IN (' . implode(',', array_map('intval', $shopIdsGroup)) . ')';
+        } else {
+            $shopFilter = $idShop !== null ? (' AND id_shop = ' . (int) $idShop) : '';
+        }
         return (int) $this->db->getValue(
             "SELECT COALESCE(SUM(points), 0)
              FROM `{$this->prefix}" . self::TABLE_POINTS . "`
@@ -803,12 +881,27 @@ class LoyaltyManager
     public function getCustomerStats(int $idCustomer): array
     {
         $crossShop = (new \ConfigManager($this->module))->isLoyaltyCrossShopEnabled();
-        $idShop    = $crossShop ? null : (int) \Context::getContext()->shop->id;
+        $ctxShopId = (int) \Context::getContext()->shop->id;
+        $idShop    = $crossShop ? null : $ctxShopId;
+        // Round 350/351 : scope groupe, pas installation entière — voir
+        // checkAndReward().
+        $shopIdsGroup = $crossShop ? $this->shopIdsInSameGroup($ctxShopId) : null;
 
-        $total    = $this->getCustomerPoints($idCustomer, $idShop);
-        $tier     = $this->getCustomerTier($idCustomer, $idShop);
-        $next     = $this->getNextTier($idCustomer, $idShop);
+        $total    = $this->getCustomerPoints($idCustomer, $idShop, $shopIdsGroup);
         $tiers    = $this->getTiers();
+        $tier     = null;
+        foreach ($tiers as $t) {
+            if ($total >= $t['points']) {
+                $tier = $t;
+            }
+        }
+        $next = null;
+        foreach ($tiers as $t) {
+            if ($total < $t['points']) {
+                $next = $t;
+                break;
+            }
+        }
 
         // Barre de progression vers le prochain palier
         $progressPct = 0;
@@ -822,13 +915,26 @@ class LoyaltyManager
             $progressPct = 100;
         }
 
-        $shopFilter = $idShop !== null ? (' AND id_shop = ' . (int) $idShop) : '';
+        // Round 350/351 : en mode cumul transversal, l'historique de points
+        // (neria_loyalty_points, id_shop = boutique RÉELLE de l'événement)
+        // doit être scopé sur la liste des boutiques du groupe — un filtre
+        // vide (ancien comportement) remontait l'historique de TOUTE
+        // l'installation. Les bons (neria_loyalty_rewards) sont eux
+        // toujours écrits sous l'ANCRE du groupe (une seule valeur), donc
+        // filtrés par égalité sur cette ancre, pas par IN(...).
+        if ($shopIdsGroup !== null && !empty($shopIdsGroup)) {
+            $historyFilter = ' AND id_shop IN (' . implode(',', array_map('intval', $shopIdsGroup)) . ')';
+            $rewardFilter  = ' AND id_shop = ' . $this->groupAnchorShopId($shopIdsGroup);
+        } else {
+            $historyFilter = $idShop !== null ? (' AND id_shop = ' . (int) $idShop) : '';
+            $rewardFilter  = $historyFilter;
+        }
 
         // Historique récent (10 derniers événements)
         $history = $this->db->executeS(
             "SELECT event_type, points, date_add
              FROM `{$this->prefix}" . self::TABLE_POINTS . "`
-             WHERE id_customer = " . (int) $idCustomer . $shopFilter . "
+             WHERE id_customer = " . (int) $idCustomer . $historyFilter . "
              ORDER BY date_add DESC
              LIMIT 10"
         ) ?: [];
@@ -837,7 +943,7 @@ class LoyaltyManager
         $rewards = $this->db->executeS(
             "SELECT tier_name, voucher_code, voucher_amount, is_percent, sent_at
              FROM `{$this->prefix}" . self::TABLE_REWARDS . "`
-             WHERE id_customer = " . (int) $idCustomer . $shopFilter . "
+             WHERE id_customer = " . (int) $idCustomer . $rewardFilter . "
              ORDER BY sent_at DESC"
         ) ?: [];
 
@@ -865,7 +971,20 @@ class LoyaltyManager
         $ptable    = $this->prefix . self::TABLE_POINTS;
         $rtable    = $this->prefix . self::TABLE_REWARDS;
         $crossShop = (new \ConfigManager($this->module))->isLoyaltyCrossShopEnabled();
-        $shopFilter = $crossShop ? '' : (' WHERE id_shop = ' . (int) \Context::getContext()->shop->id);
+        $ctxShopId = (int) \Context::getContext()->shop->id;
+        // Round 350/351 : scope groupe, pas installation entière — voir
+        // checkAndReward()/getCustomerStats(). neria_loyalty_points garde la
+        // boutique RÉELLE de chaque événement (filtre IN sur le groupe) ;
+        // neria_loyalty_rewards est écrite sous l'ANCRE du groupe (filtre
+        // par égalité).
+        if ($crossShop) {
+            $shopIdsGroup   = $this->shopIdsInSameGroup($ctxShopId);
+            $pointsFilter   = ' WHERE id_shop IN (' . implode(',', array_map('intval', $shopIdsGroup)) . ')';
+            $rewardsFilter  = ' WHERE id_shop = ' . $this->groupAnchorShopId($shopIdsGroup);
+        } else {
+            $pointsFilter  = ' WHERE id_shop = ' . $ctxShopId;
+            $rewardsFilter = $pointsFilter;
+        }
 
         $row = $this->db->getRow(
             "SELECT
@@ -874,10 +993,10 @@ class LoyaltyManager
                 SUM(event_type = 'open')                          AS cnt_open,
                 SUM(event_type = 'click')                         AS cnt_click,
                 SUM(event_type = 'conversion')                    AS cnt_conversion
-             FROM `{$ptable}`{$shopFilter}"
+             FROM `{$ptable}`{$pointsFilter}"
         ) ?: [];
 
-        $rewards = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$rtable}`{$shopFilter}");
+        $rewards = (int) $this->db->getValue("SELECT COUNT(*) FROM `{$rtable}`{$rewardsFilter}");
 
         return [
             'total_points'      => (int) ($row['total_points']      ?? 0),

@@ -432,11 +432,17 @@ class ConfigManager
     // CONSTRUCTEUR
     // ============================================================
 
-    public function __construct(Neria $module)
+    // Round 351 : $idShop optionnel — permet de scoper explicitement une
+    // instance sur une boutique précise (ex. la boutique RÉELLE du
+    // destinataire d'un email, résolue via resolveShopId()) plutôt que sur
+    // la boutique ambiante au moment de la construction. Rétrocompatible :
+    // tous les appelants existants (sans 2e argument) gardent le
+    // comportement historique (ambiant).
+    public function __construct(Neria $module, ?int $idShop = null)
     {
         $this->module = $module;
         $this->db     = \Db::getInstance();
-        $this->idShop = (int) \Context::getContext()->shop->id;
+        $this->idShop = $idShop ?? (int) \Context::getContext()->shop->id;
     }
 
     private function watchdog(): \WatchdogManager

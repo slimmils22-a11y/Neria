@@ -799,8 +799,25 @@ class CertificateManager
         }
 
         // Sauvegarde optionnelle sur disque
+        // Round 351 : nom de fichier dérivé d'un hash du serial BRUT, pas
+        // d'une sanitization à perte (preg_replace remplaçant tout
+        // caractère hors [a-z0-9_-] par '_') — deux numéros de série
+        // DIFFÉRENTS au sens de la vraie contrainte UNIQUE en base
+        // (serialExists()) pouvaient converger vers le MÊME nom de fichier
+        // après cette substitution (ex. "CERT/2026-000123" et
+        // "CERT 2026-000123" donnent tous deux "CERT_2026-000123") — le
+        // second file_put_contents() écrasait alors silencieusement le
+        // fichier physique du premier certificat, dont la ligne DB restait
+        // intacte mais pointait désormais vers le contenu du second.
+        // Matérialisé concrètement via GdprAuditManager::purgeCustomerData()
+        // (unlink() sur pdf_path) : l'effacement RGPD d'un client pouvait
+        // supprimer le fichier archivé d'un AUTRE client sans aucune trace.
+        // sha256 tronqué à 32 caractères hex : collision non exploitable en
+        // pratique, déterministe (même serial => même nom), aucune perte
+        // d'information contrairement à la substitution caractère par
+        // caractère.
         $dir  = _PS_MODULE_DIR_ . 'neria/certificates/';
-        $file = 'cert_' . preg_replace('/[^a-z0-9_\-]/i', '_', $serial) . '.pdf';
+        $file = 'cert_' . substr(hash('sha256', $serial), 0, 32) . '.pdf';
         $path = '';
         if (!is_dir($dir)) {
             @mkdir($dir, 0755, true);

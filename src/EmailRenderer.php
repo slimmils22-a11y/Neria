@@ -392,8 +392,18 @@ class EmailRenderer
         $lang = $this->resolveEmailLang($params);
 
         // Expéditeur spécifique à la langue (multi-sender)
-        if ($this->config->isMultiSenderEnabled()) {
-            $sender = $this->config->getSenderForLang($lang);
+        // Round 351 : ConfigManager scopé explicitement sur
+        // resolveShopId($params) (la boutique RÉELLE du destinataire), pas
+        // $this->config — celui-ci est construit UNE FOIS à l'instanciation
+        // d'EmailRenderer et reste figé sur la boutique alors ambiante
+        // (round 132/133), potentiellement différente du destinataire réel
+        // de CET envoi précis. Même correctif déjà appliqué à la
+        // signature/aux réseaux sociaux/à la blacklist plus haut/plus bas
+        // dans ce même fichier (rounds 138/176/321) — jamais porté à ce
+        // bloc multi-sender jusqu'ici.
+        $senderConfig = new \ConfigManager($this->module, $this->resolveShopId($params));
+        if ($senderConfig->isMultiSenderEnabled()) {
+            $sender = $senderConfig->getSenderForLang($lang);
             if (!empty($sender['name'])) {
                 // Neutralise CR/LF : 'name' vient du champ libre JSON
                 // NERIA_SENDERS_JSON saisi en BO sans validation de format
