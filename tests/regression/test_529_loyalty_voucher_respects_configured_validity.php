@@ -38,8 +38,8 @@ function run_test(): array
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/LoyaltyManager.php');
     neria_assert($src !== false, 'Impossible de lire src/LoyaltyManager.php');
 
-    $posFn = strpos($src, 'private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward): string');
-    neria_assert($posFn !== false, 'generateVoucher() introuvable — jeu de test invalide');
+    $posFn = strpos($src, 'private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward, bool $restrictToSingleShop = true, ?array $shopIdsGroup = null): string');
+    neria_assert($posFn !== false, 'generateVoucher() introuvable (ou signature modifiée sans répercuter ce test — round 351 : ajout $restrictToSingleShop/$shopIdsGroup) — jeu de test invalide');
 
     // Round 314 : distance max élargie 4000→4500 — le correctif round 314
     // (ancrage NOW() MySQL + commentaire explicatif) sur cette même

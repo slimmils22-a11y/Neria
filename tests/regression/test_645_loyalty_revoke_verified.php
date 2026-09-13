@@ -63,14 +63,16 @@ function run_test(): array
         // inconnu) -> le seuil de repli est points_at_reward lui-même (100).
         // Le client n'a aucun point réel enregistré pour ce test -> total=0
         // < 100 -> la branche de révocation se déclenche à coup sûr.
-        // id_shop=0 : isLoyaltyCrossShopEnabled() vaut true par défaut
-        // (ConfigManager::KEY_LOYALTY_CROSS_SHOP_ENABLED), donc
-        // revokeUnusedRewardsBelowThreshold() cherche la réservation via
-        // la sentinelle id_shop=0 (cumul transversal), pas l'id_shop réel.
+        // isLoyaltyCrossShopEnabled() vaut true par défaut (ConfigManager::
+        // KEY_LOYALTY_CROSS_SHOP_ENABLED), donc revokeUnusedRewardsBelowThreshold()
+        // cherche la réservation via l'ANCRE du groupe de boutiques de
+        // $idShop (round 351 — remplace l'ancienne sentinelle globale 0).
+        // Sur cette installation à un seul groupe, l'ancre du groupe de
+        // $idShop est $idShop lui-même.
         $db->execute(
             "INSERT INTO {$prefix}neria_loyalty_rewards
                 (id_customer, tier_key, tier_name, points_at_reward, id_cart_rule, voucher_code, voucher_amount, is_percent, id_shop, sent_at)
-             VALUES ({$idCustomer}, '{$tierKey}', 'Regtest645', 100, {$idCartRule}, '{$cartRule->code}', 10, 1, 0, NOW())"
+             VALUES ({$idCustomer}, '{$tierKey}', 'Regtest645', 100, {$idCartRule}, '{$cartRule->code}', 10, 1, {$idShop}, NOW())"
         );
         neria_assert((int) $db->Affected_Rows() === 1, 'jeu de test invalide : la réservation initiale a échoué');
 

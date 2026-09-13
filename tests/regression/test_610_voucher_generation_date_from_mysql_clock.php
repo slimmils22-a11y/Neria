@@ -29,7 +29,7 @@ function run_test(): array
     $checks = [
         [
             'file'   => 'src/LoyaltyManager.php',
-            'anchor' => 'private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward): string',
+            'anchor' => 'private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward, bool $restrictToSingleShop = true, ?array $shopIdsGroup = null): string',
             'label'  => 'LoyaltyManager::generateVoucher()',
         ],
         [

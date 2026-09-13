@@ -33,7 +33,7 @@ function run_test(): array
     // ── Vérification structurelle du correctif ────────────────────────
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/LoyaltyManager.php');
     neria_assert($src !== false, 'Impossible de lire src/LoyaltyManager.php');
-    $posFn = strpos($src, 'private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward): string');
+    $posFn = strpos($src, 'private function generateVoucher(int $idCustomer, array $tier, int $reservationShopId, int $pointsAtReward, bool $restrictToSingleShop = true, ?array $shopIdsGroup = null): string');
     neria_assert($posFn !== false, 'generateVoucher() introuvable — jeu de test invalide');
     $posMinAmt = strpos($src, 'minimum_amount_currency', $posFn);
     neria_assert($posMinAmt !== false, 'minimum_amount_currency introuvable dans generateVoucher() — jeu de test invalide');
