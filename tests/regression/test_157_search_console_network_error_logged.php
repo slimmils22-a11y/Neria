@@ -17,12 +17,12 @@ function run_test(): array
     $src = file_get_contents(_PS_MODULE_DIR_ . 'neria/src/SearchConsoleManager.php');
     neria_assert($src !== false, 'Impossible de lire src/SearchConsoleManager.php');
 
-    foreach (['apiGet' => 'private function apiGet(string $path, string $token): ?array',
-              'apiPost' => 'private function apiPost(string $path, string $token, string $body): ?array'] as $method => $signature) {
+    foreach (['apiGet' => 'private function apiGet(string $path, string $token, bool $retriedAfter401 = false): ?array',
+              'apiPost' => 'private function apiPost(string $path, string $token, string $body, bool $retriedAfter401 = false): ?array'] as $method => $signature) {
         $posMethod = strpos($src, $signature);
-        neria_assert($posMethod !== false, "{$method}() introuvable — régression du bug corrigé le 08/08/2026 (round 135)");
+        neria_assert($posMethod !== false, "{$method}() introuvable — régression du bug corrigé le 08/08/2026 (round 135), ou signature modifiée sans répercuter ce test (round 347 : ajout \$retriedAfter401)");
 
-        $body = substr($src, $posMethod, 2000);
+        $body = substr($src, $posMethod, 3200);
 
         $networkCheckVar = $method === 'apiGet' ? '$body === false' : '$resp === false';
         neria_assert(
