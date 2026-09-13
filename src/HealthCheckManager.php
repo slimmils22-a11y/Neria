@@ -11431,6 +11431,41 @@ class HealthCheckManager
             $offenders[] = "SearchConsoleManager::apiGet()/apiPost() ne détectent plus un 401 avec retentative après refresh — régression du bug corrigé le 13/09/2026 (round 347) : un token invalidé prématurément par Google bloquerait de nouveau tout appel BO jusqu'à l'expiration naturelle du token local";
         }
 
+        // Round 348 : UpsellManager::findUpsellForCustomer() doit lire
+        // id_currency de la dernière commande du client et le transmettre à
+        // getUpsellProduct() (même correctif que BehavioralCronManager,
+        // round 274) — sans lui, le bloc upsell des campagnes saisonnières
+        // affiche de nouveau la devise par défaut de la boutique au lieu de
+        // la devise réellement payée par ce client.
+        $umSrc348 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/UpsellManager.php');
+        if ($umSrc348 === ''
+            || strpos($umSrc348, 'SELECT id_order, id_currency FROM') === false
+            || strpos($umSrc348, 'return $this->getUpsellProduct((int) $row[\'id_order\'], $idLang, $idShop, (int) $row[\'id_currency\']);') === false
+        ) {
+            $offenders[] = "UpsellManager::findUpsellForCustomer() ne transmet plus id_currency à getUpsellProduct() — régression du bug corrigé le 13/09/2026 (round 348) : le bloc upsell d'une campagne saisonnière afficherait de nouveau un prix dans la devise par défaut de la boutique, pas celle réellement payée par le client";
+        }
+
+        // Round 348 : GdprAuditManager::purgeCustomerData() doit aussi
+        // supprimer une éventuelle ligne "invité" (id_customer=0) de
+        // neria_preferences partageant le même email que le client purgé —
+        // sinon cet email en clair survit indéfiniment à sa propre demande
+        // d'effacement RGPD (round 178 : clé unique incluant l'email crée 2
+        // lignes distinctes pour un même client passé d'invité à identifié).
+        $gdprSrc348 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/GdprAuditManager.php');
+        if ($gdprSrc348 === '' || strpos($gdprSrc348, "WHERE `email` = '{\$emailSql}' AND `id_customer` = 0") === false) {
+            $offenders[] = "GdprAuditManager::purgeCustomerData() ne purge plus la ligne invité (id_customer=0) de neria_preferences partageant le même email — régression du bug corrigé le 13/09/2026 (round 348) : un email en clair survivrait de nouveau indéfiniment à sa propre demande d'effacement RGPD";
+        }
+
+        // Round 348 : Neria::uninstall() doit balayer mails/*/*__*.html (+
+        // .txt associé) pour supprimer les fichiers compilés nominatifs
+        // restants — cleanupNominativeFiles('mails', '*.pdf') ne peut, par
+        // construction (extension différente + non récursif), jamais les
+        // atteindre.
+        $neriaSrc348 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/neria.php');
+        if ($neriaSrc348 === '' || strpos($neriaSrc348, "glob(_PS_MODULE_DIR_ . 'neria/mails/*/*__*.html')") === false) {
+            $offenders[] = "Neria::uninstall() ne balaie plus les fichiers HTML/TXT compilés nominatifs restants (mails/*/*__*.html) — régression du bug corrigé le 13/09/2026 (round 348) : des données client réelles pourraient de nouveau rester sur disque indéfiniment après désinstallation";
+        }
+
         if ($offenders) {
             return [
                 'status' => self::STATUS_ERROR,
