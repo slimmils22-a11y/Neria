@@ -377,7 +377,7 @@
 
   {* ── Progress bar ──────────────────────────────────────────────── *}
   <div class="na-progress">
-    <span id="na-progress-label">0 / 6</span>
+    <span id="na-progress-label">0 / 8</span>
     <div class="na-progress__bar"><div class="na-progress__fill" id="na-progress-fill"></div></div>
   </div>
 

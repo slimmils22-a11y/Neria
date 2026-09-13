@@ -4217,13 +4217,27 @@ class Neria extends Module
                     $ab->archiveTest($tplKey, $report, $winner, $conf, false);
                 }
 
-                $ab->deleteTests($tplKey);
-                $idA = $ab->createTest($tplKey, $variantAName, $variantBName, $splitPercent);
-                if ($idA) {
-                    $ab->activateTest($tplKey);
-                    $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
-                } else {
+                // Round 349 : retour de deleteTests() désormais vérifié —
+                // sans ce contrôle, un échec partiel (connexion perdue en
+                // plein DELETE) laissait des lignes A/B orphelines d'un
+                // ancien cycle dans neria_abtest. activateTest() ci-dessous
+                // ne filtre QUE par template (pas par id_abtest), donc le
+                // prochain cycle réactivait AUSSI ces orphelines — et
+                // getAllActiveTests()/archiveTest() (SELECT ... variant='B'
+                // AND is_active=1 SANS ORDER BY) pouvaient alors remonter un
+                // id_abtest arbitraire, exposant le marchand à voir
+                // "appliquer le gagnant" sur le contenu d'un ancien test B
+                // jamais réellement mesuré dans ce cycle.
+                if (!$ab->deleteTests($tplKey)) {
                     $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.error'));
+                } else {
+                    $idA = $ab->createTest($tplKey, $variantAName, $variantBName, $splitPercent);
+                    if ($idA) {
+                        $ab->activateTest($tplKey);
+                        $this->context->smarty->assign('neria_success', AdminTranslator::t('msg.saved'));
+                    } else {
+                        $this->context->smarty->assign('neria_error', AdminTranslator::t('msg.error'));
+                    }
                 }
             }
         }
