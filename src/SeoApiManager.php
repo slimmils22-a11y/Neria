@@ -23,6 +23,7 @@ class SeoApiManager
     const CONFIG_SEMRUSH_KEY = 'NERIA_SEMRUSH_API_KEY';
     const CONFIG_MOZ_ACCESS  = 'NERIA_MOZ_ACCESS_ID';
     const CONFIG_MOZ_SECRET  = 'NERIA_MOZ_SECRET_KEY';
+    const CONFIG_SEMRUSH_DATABASE = 'NERIA_SEMRUSH_DATABASE';
     const CONFIG_CACHE       = 'NERIA_SEO_API_CACHE';
     const CONFIG_CACHE_TIME  = 'NERIA_SEO_API_CACHE_TIME';
     const CONFIG_LAST_ERROR    = 'NERIA_SEO_API_LAST_ERROR';
@@ -279,13 +280,27 @@ class SeoApiManager
             return null;
         }
 
+        // Hors round (14/09/2026) : 'database' était codé en dur sur 'fr'
+        // (le marché de l'auteur d'origine), sans aucune option pour
+        // l'adapter — le module est vendu à des commerçants du monde
+        // entier (Addons), pas seulement des marchands francophones. Un
+        // marchand hors zone francophone recevait un rapport SEO quasi
+        // vide/faussé (trafic organique proche de 0 sur la base FR),
+        // silencieusement, sans aucune indication que la cause était un
+        // mauvais périmètre géographique côté appel API. 'us' est la base
+        // Semrush la plus large et le choix par défaut le plus neutre en
+        // l'absence de préférence explicite du marchand ; NERIA_SEMRUSH_DATABASE
+        // reste configurable pour un futur réglage BO dédié sans retoucher
+        // cette méthode.
+        $semrushDb = (string) \Configuration::get(self::CONFIG_SEMRUSH_DATABASE) ?: 'us';
+
         // Domain overview : trafic organique, mots-clés, backlinks
         $overviewUrl = self::SEMRUSH_API . '?' . http_build_query([
             'type'           => 'domain_ranks',
             'key'            => $key,
             'export_columns' => 'Dn,Rk,Or,Ot,Oc,Ad,At,Ac',
             'domain'         => $domain,
-            'database'       => 'fr',
+            'database'       => $semrushDb,
         ]);
 
         $overview = $this->httpGet($overviewUrl);
@@ -325,13 +340,13 @@ class SeoApiManager
             return null;
         }
 
-        // Top 5 mots-clés organiques
+        // Top 10 mots-clés organiques
         $kwUrl = self::SEMRUSH_API . '?' . http_build_query([
             'type'           => 'domain_organic',
             'key'            => $key,
             'export_columns' => 'Ph,Po,Nq,Cp,Ur',
             'domain'         => $domain,
-            'database'       => 'fr',
+            'database'       => $semrushDb,
             'display_limit'  => 10,
             'display_sort'   => 'nq_desc',
         ]);

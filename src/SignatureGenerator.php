@@ -572,9 +572,26 @@ class SignatureGenerator
      */
     public function delete(int $idShop, string $style = '', string $excludePath = ''): bool
     {
+        // Hors round (14/09/2026) : $excludePath comparé par realpath() ---
+        // mais generate() (seul appelant réel, neria.php:3635) retourne un
+        // chemin RELATIF au module (self::SIGNATURES_DIR, sans le préfixe
+        // absolu de $signaturesPath). realpath() sur un chemin relatif le
+        // résout par rapport au répertoire de travail COURANT du process
+        // PHP (racine PrestaShop), jamais modules/neria/data/signatures —
+        // il ne correspond donc jamais au fichier réel et retourne false,
+        // désactivant systématiquement l'exclusion : la signature qu'on
+        // vient de générer était supprimée par le nettoyage qui suit
+        // immédiatement dans le même appel (neria.php:3635), reproduit
+        // empiriquement. Comparaison sur basename() plutôt que realpath() :
+        // les 2 chemins (relatif ou absolu) partagent le même nom de
+        // fichier, et tous les fichiers de cette méthode vivent dans le
+        // même répertoire $signaturesPath — pas besoin de résoudre un
+        // chemin réel sur disque, juste de comparer les noms.
+        $excludeBasename = $excludePath !== '' ? basename($excludePath) : '';
+
         if ($style) {
             $path = $this->signaturesPath . '/' . $this->buildFilename($idShop, $style);
-            if ($excludePath !== '' && realpath($path) === realpath($excludePath)) {
+            if ($excludeBasename !== '' && basename($path) === $excludeBasename) {
                 return true;
             }
             if (file_exists($path)) {
@@ -589,9 +606,8 @@ class SignatureGenerator
         // côté appelant : un nettoyage disque externe, ou un appel direct à
         // delete() hors du chemin verrouillé de neria.php, reste possible).
         $pattern = $this->signaturesPath . "/signature_{$idShop}_*.png";
-        $excludeReal = $excludePath !== '' ? realpath($excludePath) : false;
         foreach (glob($pattern) ?: [] as $file) {
-            if ($excludeReal !== false && realpath($file) === $excludeReal) {
+            if ($excludeBasename !== '' && basename($file) === $excludeBasename) {
                 continue;
             }
             @unlink($file);
