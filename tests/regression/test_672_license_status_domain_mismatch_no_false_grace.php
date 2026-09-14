@@ -48,7 +48,8 @@ function run_test(): array
     // Fenêtre élargie 4300→4600 hors round (12/09/2026, suite round 341) :
     // commentaires de déchiffrement ajoutés (chiffrement au repos de
     // NERIA_LICENSE_KEY/_TOKEN) ont poussé les offsets de fin de méthode.
-    $body = substr($src, $posFn, 4600);
+    // Élargie 4600→5000 round 356 : distinction $keyDecryptFailed ajoutée.
+    $body = substr($src, $posFn, 5000);
 
     neria_assert(
         strpos($body, '$domainMismatch = $this->isDomainMismatch($cachedDomain);') !== false,
