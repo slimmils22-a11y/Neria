@@ -260,7 +260,15 @@ class CryptoManager
 
     private static function loadKey(): string
     {
-        $hex = (string) \Configuration::get(self::CONFIG_KEY);
+        // Hors round (14/09/2026) : $idShop explicite à 0 — même correctif
+        // que generateAndStoreKey() ci-dessus (round 321), par cohérence
+        // défensive sur le même chemin lecture/écriture. Vérifié sans
+        // risque : Configuration::get() sans $idShop retombe sur le
+        // contexte ambiant SEULEMENT s'il existe une ligne spécifique à CE
+        // shop pour cette clé — jamais le cas ici, generateAndStoreKey()
+        // écrit toujours via updateGlobalValue() (id_shop=0). Corrigé pour
+        // rester cohérent si ce chemin d'écriture change un jour.
+        $hex = (string) \Configuration::get(self::CONFIG_KEY, null, null, 0);
         // ctype_xdigit() en plus de la longueur — une clé corrompue en base
         // (édition manuelle, restauration partielle) mais conservant 64
         // caractères non-hexadécimaux faisait émettre un warning PHP par

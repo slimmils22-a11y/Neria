@@ -1292,47 +1292,64 @@ class ConfigManager
             self::KEY_COLOR_FOOTER_TEXT => 'color_footer_text',
         ];
 
+        // Hors round (14/09/2026) : l'ancien agrégat, avec set() en
+        // opérande DROIT du ET logique, court-circuitait — dès le premier
+        // échec d'écriture (verrou DB
+        // transitoire, erreur Configuration::updateValue()), $success
+        // valait false et TOUTES les écritures suivantes de la boucle/de la
+        // méthode n'étaient plus jamais TENTÉES (l'opérande droit de && ne
+        // s'évalue pas si le gauche est déjà false) — pas juste "retour
+        // false", une perte silencieuse d'écriture réelle. $ok capture
+        // chaque tentative individuellement, garantissant que set() est
+        // TOUJOURS appelé pour chaque champ, peu importe l'issue des
+        // précédents.
         foreach ($colorKeys as $key => $postKey) {
             if (isset($data[$postKey])) {
                 $color = $this->sanitizeColor($data[$postKey]);
                 if ($color) {
-                    $success = $success && $this->set($key, $color);
+                    $ok = $this->set($key, $color);
+                    $success = $success && $ok;
                 }
             }
         }
 
         // Mode sombre — booléen
         if (isset($data['dark_mode'])) {
-            $success = $success && $this->set(
+            $ok = $this->set(
                 self::KEY_DARK_MODE,
                 (int) (bool) $data['dark_mode']
             );
+            $success = $success && $ok;
         }
 
         // Largeur conteneur — entier entre 480 et 800
         if (isset($data['container_width'])) {
             $width = (int) $data['container_width'];
             $width = max(480, min(800, $width));
-            $success = $success && $this->set(self::KEY_CONTAINER_WIDTH, $width);
+            $ok = $this->set(self::KEY_CONTAINER_WIDTH, $width);
+            $success = $success && $ok;
         }
 
         // Largeur logo — entier entre 80 et 320
         if (isset($data['logo_width'])) {
             $logoWidth = (int) $data['logo_width'];
             $logoWidth = max(80, min(320, $logoWidth));
-            $success = $success && $this->set(self::KEY_LOGO_WIDTH, $logoWidth);
+            $ok = $this->set(self::KEY_LOGO_WIDTH, $logoWidth);
+            $success = $success && $ok;
         }
 
         // Police de titres
         if (!empty($data['font_heading']) && isset(self::HEADING_FONT_OPTIONS[$data['font_heading']])) {
-            $success = $success && $this->set(self::KEY_FONT_HEADING, $data['font_heading']);
+            $ok = $this->set(self::KEY_FONT_HEADING, $data['font_heading']);
+            $success = $success && $ok;
         }
 
         // Border-radius bouton — valeurs autorisées : 0, 2, 6, 24
         if (isset($data['btn_radius'])) {
             $radius = (int) $data['btn_radius'];
             if (in_array($radius, [0, 2, 6, 24], true)) {
-                $success = $success && $this->set(self::KEY_BTN_RADIUS, $radius);
+                $ok = $this->set(self::KEY_BTN_RADIUS, $radius);
+                $success = $success && $ok;
             }
         }
 
@@ -1341,24 +1358,28 @@ class ConfigManager
         if (isset($data['section_padding'])) {
             $pad = (int) $data['section_padding'];
             $pad = max(16, min(64, $pad));
-            $success = $success && $this->set(self::KEY_SECTION_PADDING, $pad);
+            $ok = $this->set(self::KEY_SECTION_PADDING, $pad);
+            $success = $success && $ok;
         }
 
         // Espacement entre les blocs — entre 16 et 80px
         if (isset($data['block_spacing'])) {
             $sp = (int) $data['block_spacing'];
             $sp = max(16, min(80, $sp));
-            $success = $success && $this->set(self::KEY_BLOCK_SPACING, $sp);
+            $ok = $this->set(self::KEY_BLOCK_SPACING, $sp);
+            $success = $success && $ok;
         }
 
         // Style du séparateur
         if (!empty($data['separator_style']) && in_array($data['separator_style'], ['none', 'line', 'dotted', 'double'], true)) {
-            $success = $success && $this->set(self::KEY_SEPARATOR_STYLE, $data['separator_style']);
+            $ok = $this->set(self::KEY_SEPARATOR_STYLE, $data['separator_style']);
+            $success = $success && $ok;
         }
 
         // Ombre de la carte email
         if (!empty($data['card_shadow']) && in_array($data['card_shadow'], ['none', 'soft', 'medium', 'strong'], true)) {
-            $success = $success && $this->set(self::KEY_CARD_SHADOW, $data['card_shadow']);
+            $ok = $this->set(self::KEY_CARD_SHADOW, $data['card_shadow']);
+            $success = $success && $ok;
         }
 
         return $success;
@@ -1420,7 +1441,8 @@ class ConfigManager
                         continue;
                     }
                 }
-                $success = $success && $this->set($configKey, $value);
+                $ok = $this->set($configKey, $value);
+                $success = $success && $ok;
             }
         }
 
@@ -1428,21 +1450,24 @@ class ConfigManager
         if (isset($data['font_size'])) {
             $fs = (int) $data['font_size'];
             $fs = max(12, min(16, $fs));
-            $success = $success && $this->set(self::KEY_FONT_SIZE, $fs);
+            $ok = $this->set(self::KEY_FONT_SIZE, $fs);
+            $success = $success && $ok;
         }
 
         // Interligne — 1.4 à 2.0
         if (isset($data['line_height'])) {
             $lh = round((float) $data['line_height'], 1);
             $lh = max(1.4, min(2.0, $lh));
-            $success = $success && $this->set(self::KEY_LINE_HEIGHT, $lh);
+            $ok = $this->set(self::KEY_LINE_HEIGHT, $lh);
+            $success = $success && $ok;
         }
 
         // Poids titres — 400 / 600 / 700
         if (isset($data['heading_weight'])) {
             $hw = (int) $data['heading_weight'];
             if (in_array($hw, [400, 600, 700], true)) {
-                $success = $success && $this->set(self::KEY_HEADING_WEIGHT, $hw);
+                $ok = $this->set(self::KEY_HEADING_WEIGHT, $hw);
+                $success = $success && $ok;
             }
         }
 
@@ -1475,7 +1500,8 @@ class ConfigManager
                 continue; // URL invalide → on ignore
             }
 
-            $success = $success && $this->set($configKey, $url);
+            $ok = $this->set($configKey, $url);
+            $success = $success && $ok;
         }
 
         return $success;
@@ -1614,10 +1640,11 @@ class ConfigManager
 
         foreach (self::CUSTOM_VARIABLE_KEYS as $varKey) {
             if (array_key_exists($varKey, $data)) {
-                $success = $success && $this->setCustomVariable(
+                $ok = $this->setCustomVariable(
                     $varKey,
                     \Tools::safeOutput($data[$varKey])
                 );
+                $success = $success && $ok;
             }
         }
 
@@ -1723,7 +1750,8 @@ class ConfigManager
         $success = true;
 
         foreach (self::DEFAULTS as $key => $value) {
-            $success = $success && $this->set($key, $value);
+            $ok = $this->set($key, $value);
+            $success = $success && $ok;
         }
 
         $this->cache = [];
@@ -1783,7 +1811,8 @@ class ConfigManager
 
         $success = true;
         foreach ($designKeys as $key) {
-            $success = $success && $this->set($key, self::DEFAULTS[$key]);
+            $ok = $this->set($key, self::DEFAULTS[$key]);
+            $success = $success && $ok;
         }
 
         $this->cache = [];

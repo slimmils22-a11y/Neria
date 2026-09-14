@@ -281,11 +281,19 @@ class PreferencesManager
             if ($email === '') {
                 return $prefs;
             }
+            // Hors round (14/09/2026) : ORDER BY id_preference ASC — même
+            // défense en profondeur que la branche client identifié
+            // ci-dessous (round 178), jamais portée à cette branche
+            // invité : sans tri explicite, des lignes dupliquées pour la
+            // même catégorie (données legacy/import) laissaient l'ordre
+            // physique MySQL (non garanti) décider laquelle l'emporte, au
+            // lieu de systématiquement la plus RÉCENTE.
             $rows = $this->db->executeS(
                 "SELECT `category`, `subscribed` FROM `" . _DB_PREFIX_ . self::TABLE . "`
                  WHERE `id_shop`     = {$this->idShop}
                    AND `id_customer` = 0
-                   AND `email`       = '" . pSQL($email) . "'"
+                   AND `email`       = '" . pSQL($email) . "'
+                 ORDER BY `id_preference` ASC"
             );
             foreach ((is_array($rows) ? $rows : []) as $row) {
                 $cat = $row['category'];
