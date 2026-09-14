@@ -553,8 +553,30 @@ class DomainReputationManager
                 $txt = implode('', (array) $r['entries']);
             }
             if (stripos($txt, 'v=spf1') === 0) {
-                $policy = str_contains($txt, '-all') ? 'reject' :
-                         (str_contains($txt, '~all') ? 'softfail' : 'neutral');
+                // Round 358 : extraction du mécanisme 'all' comme JETON
+                // isolé (bordé par un espace ou une extrémité de chaîne),
+                // pas une simple sous-chaîne — str_contains($txt, '-all')
+                // matchait à tort n'importe quel autre mécanisme contenant
+                // littéralement "-all" (ex. "include:relay-all.example.net
+                // ~all" — le VRAI qualifier final ~all était alors masqué
+                // par le "-all" trouvé dans "relay-all", classant à tort en
+                // 'reject' (25 pts) une politique réellement 'softfail'
+                // (20 pts)). '+all'/'all' sans qualifier (équivalent à
+                // '+all' selon la RFC 7208) sont désormais classés
+                // 'permissive' — la politique SPF la plus dangereuse
+                // (autorise EXPLICITEMENT n'importe quel expéditeur à
+                // usurper le domaine), auparavant confondue avec 'neutral'
+                // (score identique au repli par défaut, alors que c'est le
+                // pire cas possible, pire qu'une absence totale de SPF).
+                $policy = 'neutral';
+                if (preg_match('/(?:^|\s)([+\-~?]?)all(?:\s|$)/i', $txt, $mAll)) {
+                    $policy = match ($mAll[1]) {
+                        '-'     => 'reject',
+                        '~'     => 'softfail',
+                        '+', '' => 'permissive',
+                        default => 'neutral',
+                    };
+                }
                 return [
                     'found'  => true,
                     'record' => $txt,
@@ -845,10 +867,16 @@ class DomainReputationManager
         // — sinon une panne DNS transitoire est traitée comme "confirmé sans
         // SPF", identique en pratique à un vrai domaine non protégé.
         if ($spf['found']) {
+            // Round 358 : 'permissive' ('+all'/'all' sans qualifier) noté 0
+            // — la pire politique SPF possible (usurpation explicitement
+            // autorisée), auparavant confondue avec 'neutral' (12 pts, même
+            // score qu'un domaine dont le SPF n'a simplement pas de
+            // mécanisme 'all' explicite).
             $score += match($spf['policy'] ?? '') {
-                'reject'   => 25,
-                'softfail' => 20,
-                default    => 12,
+                'reject'     => 25,
+                'softfail'   => 20,
+                'permissive' => 0,
+                default      => 12,
             };
         } elseif (!empty($spf['dns_error'])) {
             $score += 12;
@@ -1029,7 +1057,37 @@ class DomainReputationManager
         if ($d) return $d;
 
         // 3. Nom de domaine de la boutique
-        return \Tools::getShopDomainSsl();
+        // Round 358 : \Tools::getShopDomainSsl() remplacé par une lecture
+        // SQL directe scopée par $this->idShop — même raisonnement que les
+        // 2 replis ci-dessus (round 193), mais \Tools::getShopDomainSsl()
+        // n'expose AUCUN paramètre $idShop et délègue à
+        // ShopUrl::getMainShopDomainSSL($id_shop = null), qui met en cache
+        // (cache STATIQUE de process, classes/shop/ShopUrl.php) le domaine
+        // sous la clé (int) null === 0 — indépendamment de la boutique
+        // RÉELLEMENT ambiante au moment de l'appel. Dans la boucle
+        // multi-boutique de neria.php (un seul process PHP, plusieurs
+        // boutiques itérées), la boutique A sans sender/PS_SHOP_EMAIL
+        // configuré remplit ce cache clé 0 avec SON domaine ; toute
+        // boutique B suivante dans la MÊME boucle, elle aussi sans sender/
+        // PS_SHOP_EMAIL, retombe sur ce même repli et reçoit le domaine de
+        // A — le rapport SPF/DKIM/DMARC/RBL mis en cache sous
+        // NERIA_DOMAIN_REP_CACHE scopé id_shop=B contient alors l'audit du
+        // domaine de A, exactement la fuite cross-boutique que le round
+        // 193 visait à éliminer, réintroduite par une API du cœur que ce
+        // fichier ne contrôle pas.
+        $domainRow = \Db::getInstance()->getRow(
+            'SELECT `domain_ssl`, `domain` FROM `' . _DB_PREFIX_ . 'shop_url`
+             WHERE `id_shop` = ' . (int) $this->idShop . ' AND `main` = 1 AND `active` = 1',
+            false
+        );
+        if ($domainRow && !empty($domainRow['domain_ssl'])) {
+            return (string) $domainRow['domain_ssl'];
+        }
+        if ($domainRow && !empty($domainRow['domain'])) {
+            return (string) $domainRow['domain'];
+        }
+
+        return \Tools::getHttpHost();
     }
 
     private function extractDomain(string $email): string

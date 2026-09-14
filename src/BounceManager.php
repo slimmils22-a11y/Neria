@@ -814,9 +814,21 @@ class BounceManager
         if (!$exists) {
             return false;
         }
+        // Round 358 : `type` remis à 'soft' — sans lui, une adresse en hard
+        // bounce (status='active', type='hard') gardait ce type après
+        // "réactivation" : isBounced() (voir son commentaire ligne 96-99,
+        // "seule la réactivation manuelle débloque un hard bounce")
+        // retourne TOUJOURS true dès que status='active' ET type='hard',
+        // indépendamment de bounce_count — la réactivation manuelle
+        // n'avait donc AUCUN effet réel sur un hard bounce : le bouton BO
+        // "Réactiver" affichait un succès (la ligne existe, l'UPDATE
+        // réussit) alors que l'adresse restait bloquée dès l'envoi
+        // suivant. Seul ignoreBounce() (status='ignored') fonctionnait
+        // réellement pour débloquer une telle adresse — contrairement à ce
+        // que l'UI présente (2 actions BO distinctes et légitimes).
         \Db::getInstance()->execute(
             'UPDATE `' . _DB_PREFIX_ . self::TABLE . '`
-             SET `status` = \'active\', `bounce_count` = 0
+             SET `status` = \'active\', `bounce_count` = 0, `type` = \'soft\'
              WHERE `email` = \'' . $emailSql . '\''
         );
         return true;
