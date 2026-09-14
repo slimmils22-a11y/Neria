@@ -5633,6 +5633,56 @@ class HealthCheckManager
             $offenders[] = "CustomerEmailHistoryManager::resend() n'est plus protégée par GET_LOCK() — régression du bug corrigé le 14/09/2026 (round 356) : un double-clic BO (ou deux onglets) pourrait de nouveau déclencher 2 envois identiques malgré le Mode Silence actif";
         }
 
+        // Round 357 (14/09/2026) : TranslationEngine doit résoudre les
+        // variables personnalisées PAR boutique explicite, pas seulement
+        // via le contexte ambiant — voir loadCustomVars()/resolveVariables().
+        $teSrc357 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/TranslationEngine.php');
+        if ($teSrc357 === ''
+            || strpos($teSrc357, 'private function loadCustomVars(int $idShop): array') === false
+            || strpos($teSrc357, 'private function resolveVariables(string $text, ?int $idShop = null): string') === false
+            || strpos($teSrc357, 'public function get(string $template, string $key, string $lang, ?int $idShop = null): string') === false
+        ) {
+            $offenders[] = "TranslationEngine ne propage plus \$idShop à travers get()/resolveVariables()/loadCustomVars() — régression du bug corrigé le 14/09/2026 (round 357) : les variables personnalisées ({maison_name}/etc.) seraient de nouveau résolues via le contexte ambiant, pas la boutique réelle du destinataire";
+        }
+        $erSrc357 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/EmailRenderer.php');
+        if ($erSrc357 === ''
+            || strpos($erSrc357, "\$headline = \$this->engine->get(\$template, 'greeting_main', \$lang, \$this->resolveShopId(\$params));") === false
+            || strpos($erSrc357, '?int $idShop = null') === false
+        ) {
+            $offenders[] = "EmailRenderer ne transmet plus resolveShopId(\$params) à TranslationEngine::get() — régression du bug corrigé le 14/09/2026 (round 357)";
+        }
+        $cmSrc357 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CertificateManager.php');
+        if ($cmSrc357 === '' || substr_count($cmSrc357, "\$lang, (int) \$order->id_shop)") < 12) {
+            $offenders[] = "CertificateManager::generatePdf() ne transmet plus (int) \$order->id_shop à TranslationEngine::get() sur tous ses sites — régression du bug corrigé le 14/09/2026 (round 357)";
+        }
+
+        // Round 357 (14/09/2026) : CalendarManager::getUpcomingDates() doit
+        // basculer sur $year+1 quand la date d'envoi de $year est déjà
+        // passée, et getEligibleCustomers() doit rester fail-CLOSED quand
+        // un code pays configuré n'est plus résolvable.
+        $calSrc357 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/CalendarManager.php');
+        $posUpcoming357 = $calSrc357 !== '' ? strpos($calSrc357, 'public function getUpcomingDates(): array') : false;
+        $upcomingBody357 = $posUpcoming357 !== false ? substr($calSrc357, $posUpcoming357, 2500) : '';
+        if ($upcomingBody357 === '' || substr_count($upcomingBody357, "getEventDate(\$event['event_key'], \$year + 1)") < 2) {
+            $offenders[] = "CalendarManager::getUpcomingDates() ne bascule plus sur \$year+1 quand la date d'envoi est déjà passée — régression du bug corrigé le 14/09/2026 (round 357) : la quasi-totalité des occasions disparaîtrait de nouveau du panneau BO après leur passage, jusqu'au 1er janvier suivant";
+        }
+        if ($calSrc357 === '' || strpos($calSrc357, "\$countryFilter = 'AND 1=0';") === false) {
+            $offenders[] = "CalendarManager::getEligibleCustomers() ne retombe plus fail-closed quand un code pays n'est plus résolvable — régression du bug corrigé le 14/09/2026 (round 357) : un pays désactivé/invalide ferait de nouveau fuiter le ciblage vers TOUS les clients de la langue";
+        }
+
+        // Round 357 (14/09/2026) : SearchConsoleManager::refreshAccessToken()
+        // doit purger CONFIG_ACCESS_TOKEN/CONFIG_TOKEN_EXPIRY en plus de
+        // CONFIG_REFRESH_TOKEN sur 'invalid_grant'.
+        $scSrc357 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/SearchConsoleManager.php');
+        $posInvalidGrant357 = $scSrc357 !== '' ? strpos($scSrc357, "if (\$errCode === 'invalid_grant') {") : false;
+        $invalidGrantBody357 = $posInvalidGrant357 !== false ? substr($scSrc357, $posInvalidGrant357, 400) : '';
+        if ($invalidGrantBody357 === ''
+            || strpos($invalidGrantBody357, 'deleteByName(self::CONFIG_ACCESS_TOKEN)') === false
+            || strpos($invalidGrantBody357, 'deleteByName(self::CONFIG_TOKEN_EXPIRY)') === false
+        ) {
+            $offenders[] = "SearchConsoleManager::refreshAccessToken() ne purge plus CONFIG_ACCESS_TOKEN/CONFIG_TOKEN_EXPIRY sur 'invalid_grant' — régression du bug corrigé le 14/09/2026 (round 357) : un access token révoqué resterait servi en cache jusqu'à son expiration naturelle";
+        }
+
         // Round 160 (09/08/2026) : LicenseManager doit conserver son
         // throttle réseau indépendant, son verrou, sa distinction de
         // révocation, et la purge de l'état résiduel quand CONFIG_KEY est vide.
@@ -11064,7 +11114,7 @@ class HealthCheckManager
         // famille que les 3 autres executeS() de TranslationEngine.php
         // (rounds 210-216).
         $teSrc335 = $this->readModuleSrc(_PS_MODULE_DIR_ . $this->module->name . '/src/TranslationEngine.php');
-        $posLoadVars335 = $teSrc335 !== '' ? strpos($teSrc335, 'private function loadCustomVars(): void') : false;
+        $posLoadVars335 = $teSrc335 !== '' ? strpos($teSrc335, 'private function loadCustomVars(int $idShop): array') : false;
         $loadVarsBody335 = $posLoadVars335 !== false ? substr($teSrc335, $posLoadVars335, 900) : '';
         if ($loadVarsBody335 === '' || strpos($loadVarsBody335, "WHERE `id_shop` = {\$idShop}\",\n            true,\n            false\n        );") === false) {
             $offenders[] = "TranslationEngine::loadCustomVars() n'a plus \$use_cache=false sur son executeS() — régression du bug corrigé le 10/09/2026 (round 335)";
